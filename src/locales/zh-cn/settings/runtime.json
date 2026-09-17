@@ -1,0 +1,23 @@
+{
+  "title": "离线模型",
+  "description": "用于文档解析与语音转写，数据全程本地处理。",
+  "runtimeReady": "就绪",
+  "runtimeMissing": "未安装",
+  "runtimeChecking": "检查中…",
+  "whisperModelDownload": "Whisper 转写模型",
+  "whisperModelNotInstalled": "未安装",
+  "downloadModel": "下载模型",
+  "cancelDownload": "取消下载",
+  "modelDownloadComplete": "{model} 下载完成",
+  "modelsInstalled": "已安装 {installed}/{total}",
+  "removeModel": "删除模型",
+  "whisperStandardModel": "多语言语音转写模型（本地）",
+  "modelDownloadPolicy": "模型下载后完全在本地离线运行，数据绝不离开本地设备。",
+  "generativeAiPrivacy": "云端 API 仅传输所选上下文；本地解析与音频转写不上传原始文件。",
+  "textEmbeddingModel": "文本向量模型（Qwen3-Embedding-0.6B）",
+  "textEmbeddingModelDescription": "用于设备上的本地语义搜索（本地 · 约 1.2 GB）",
+  "modelDownloading": "正在下载 ({part}) · {downloaded} / {total}",
+  "modelDownloadFailed": "下载失败",
+  "retryDownload": "重试下载",
+  "modelVerifying": "校验完整性中…"
+}

@@ -1,0 +1,14 @@
+{
+  "newNote": "New Note",
+  "notePlaceholder": "Write anything…",
+  "newText": "Text",
+  "textPlaceholder": "Type to enter text",
+  "openItem": "Open {title}",
+  "untitledMarkdown": "Untitled Markdown",
+  "markdownTitle": "Markdown Title",
+  "emptyMarkdown": "Empty Markdown",
+  "markdownPlaceholder": "Start writing…",
+  "editorLoading": "Preparing editor…",
+  "editorLoadingHint": "Large documents may take a moment to open.",
+  "editorPlaceholder": "Start writing…"
+}

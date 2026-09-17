@@ -1,0 +1,78 @@
+import { createSpaceHistoryState } from "../history/history-state";
+import { createSpaceMediaState } from "../media/media-state";
+import { createWorkspaceNavigationState } from "../workspace/navigation-history";
+import { createSpaceContentState } from "./content-state";
+import { createSpaceUiState } from "./workbench-state";
+
+export type {
+  CanvasZoomMode,
+  RevealRequest,
+  SceneCue,
+  ViewportRequest,
+  ZoomRequest,
+} from "./workbench-state";
+
+export function createSpaceState() {
+  const ui = createSpaceUiState();
+  return {
+    ...createSpaceContentState(),
+    ...ui,
+    ...createSpaceMediaState(),
+    ...createSpaceHistoryState(),
+    ...createWorkspaceNavigationState(),
+  };
+}
+
+export type SpaceState = ReturnType<typeof createSpaceState>;
+
+export function publicSpaceState(state: SpaceState) {
+  return {
+    spaces: state.spaces,
+    draftSpace: state.draftSpace,
+    nodes: state.nodes,
+    urlCaptures: state.urlCaptures,
+    scenes: state.scenes,
+    relations: state.relations,
+    activeSpace: state.activeSpace,
+    activeSpaceId: state.activeSpaceId,
+    ready: state.ready,
+    loading: state.loading,
+    workspaceMode: state.workspaceMode,
+    libraryScope: state.libraryScope,
+    libraryLayout: state.libraryLayout,
+    libraryQuery: state.libraryQuery,
+    librarySearchNonce: state.librarySearchNonce,
+    thumbnailCaptureActive: state.thumbnailCaptureActive,
+    findOpen: state.findOpen,
+    globalFindOpen: state.globalFindOpen,
+    askScopeRequest: state.askScopeRequest,
+    inspectorMode: state.inspectorMode,
+    focusedEditorId: state.focusedEditorId,
+    insertionPoint: state.insertionPoint,
+    revealRequest: state.revealRequest,
+    viewportRequest: state.viewportRequest,
+    zoomRequest: state.zoomRequest,
+    selectionClearNonce: state.selectionClearNonce,
+    sceneCue: state.sceneCue,
+    mediaAnalysisIds: state.mediaAnalysisIds,
+    mediaAnalysisPreviews: state.mediaAnalysisPreviews,
+    mediaSeekRequest: state.mediaSeekRequest,
+    mediaToggleRequest: state.mediaToggleRequest,
+    mediaPlayback: state.mediaPlayback,
+    sourcePeek: state.sourcePeek,
+    editorLocateRequest: state.editorLocateRequest,
+    canvasFocusIds: state.canvasFocusIds,
+    outlineFocusRequest: state.outlineFocusRequest,
+    outlineRenameNodeId: state.outlineRenameNodeId,
+    recentlyDeletedSpaceId: state.recentlyDeletedSpaceId,
+    relationKindFilter: state.relationKindFilter,
+    relationStatusFilter: state.relationStatusFilter,
+    savedQueryFilter: state.savedQueryFilter,
+    canUndo: state.canUndo,
+    canRedo: state.canRedo,
+    openSpaceIds: state.openSpaceIds,
+    closedSpaceIds: state.closedSpaceIds,
+    canNavigateBack: state.canNavigateBack,
+    canNavigateForward: state.canNavigateForward,
+  };
+}

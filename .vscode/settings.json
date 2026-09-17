@@ -1,0 +1,14 @@
+{
+  "editor.defaultFormatter": "oxc.oxc-vscode",
+  "editor.formatOnSave": false,
+  "editor.codeActionsOnSave": {
+    "source.format.oxc": "always",
+    "source.fixAll.oxc": "always"
+  },
+  "oxc.requireConfig": true,
+  "oxc.path.oxlint": "node_modules/.bin/oxlint",
+  "oxc.lint.run": "onType",
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "vue.server.hybridMode": true,
+  "cSpell.words": ["KNOVUM", "lucide", "reka", "tauri", "vueuse", "wdio"]
+}

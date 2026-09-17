@@ -1,0 +1,15 @@
+{
+  "ready": "Ready",
+  "running": "{count} running",
+  "title": "Tasks",
+  "empty": "No active tasks",
+  "clearCompleted": "Clear Completed",
+  "dismiss": "Dismiss",
+  "cancel": "Cancel Task",
+  "cancelling": "Cancelling…",
+  "cancelled": "Cancelled",
+  "forceDismiss": "Remove from List",
+  "failed": "This task could not be completed.",
+  "showDetails": "Show details",
+  "hideDetails": "Hide details"
+}

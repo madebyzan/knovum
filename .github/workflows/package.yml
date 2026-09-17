@@ -1,0 +1,85 @@
+name: QA packages
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    name: ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macOS
+            os: macos-15
+            command: pnpm package:macos
+            artifact: knovum-macos-qa
+            paths: |
+              src-tauri/target/release/bundle/dmg/*.dmg
+              src-tauri/target/release/bundle/macos/*.app
+          - name: Windows
+            os: windows-2025
+            command: pnpm package:windows
+            artifact: knovum-windows-qa
+            paths: |
+              src-tauri/target/release/bundle/nsis/*-setup.exe
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          check-latest: false
+      - name: Enable pnpm
+        shell: bash
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.17.0 --activate
+      - name: Require committed lockfiles
+        shell: bash
+        run: |
+          test -f pnpm-lock.yaml
+          test -f src-tauri/Cargo.lock
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Provision controlled bundled runtime
+        env:
+          KNOVUM_BUNDLED_RUNTIME_MACOS_ARM64_URL: ${{ vars.KNOVUM_BUNDLED_RUNTIME_MACOS_ARM64_URL }}
+          KNOVUM_BUNDLED_RUNTIME_MACOS_ARM64_SHA256: ${{ vars.KNOVUM_BUNDLED_RUNTIME_MACOS_ARM64_SHA256 }}
+          KNOVUM_BUNDLED_RUNTIME_MACOS_X64_URL: ${{ vars.KNOVUM_BUNDLED_RUNTIME_MACOS_X64_URL }}
+          KNOVUM_BUNDLED_RUNTIME_MACOS_X64_SHA256: ${{ vars.KNOVUM_BUNDLED_RUNTIME_MACOS_X64_SHA256 }}
+          KNOVUM_BUNDLED_RUNTIME_WINDOWS_ARM64_URL: ${{ vars.KNOVUM_BUNDLED_RUNTIME_WINDOWS_ARM64_URL }}
+          KNOVUM_BUNDLED_RUNTIME_WINDOWS_ARM64_SHA256: ${{ vars.KNOVUM_BUNDLED_RUNTIME_WINDOWS_ARM64_SHA256 }}
+          KNOVUM_BUNDLED_RUNTIME_WINDOWS_X64_URL: ${{ vars.KNOVUM_BUNDLED_RUNTIME_WINDOWS_X64_URL }}
+          KNOVUM_BUNDLED_RUNTIME_WINDOWS_X64_SHA256: ${{ vars.KNOVUM_BUNDLED_RUNTIME_WINDOWS_X64_SHA256 }}
+          KNOVUM_BUNDLED_RUNTIME_AUTHORIZATION: ${{ secrets.KNOVUM_BUNDLED_RUNTIME_AUTHORIZATION }}
+        run: pnpm runtime:provision
+      - name: Audit production web dependencies
+        run: pnpm security:web
+      - name: Install cargo-deny
+        run: cargo install cargo-deny --locked
+      - name: Audit Rust dependencies
+        run: cargo deny --manifest-path src-tauri/Cargo.toml check advisories licenses
+      - name: Run quality gates
+        run: pnpm check
+      - name: Smoke provisioned bundled runtime
+        env:
+          KNOVUM_BUNDLED_RUNTIME_SMOKE: "1"
+        run: cargo test --locked --manifest-path src-tauri/Cargo.toml --test bundled_runtime_smoke
+      - name: Smoke real background-removal runtime
+        run: pnpm smoke:cutout
+      - name: Build QA package
+        env:
+          APPLE_SIGNING_IDENTITY: ${{ matrix.os == 'macos-15' && '-' || '' }}
+        run: ${{ matrix.command }}
+      - name: Upload package artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.paths }}
+          if-no-files-found: error
+          retention-days: 14

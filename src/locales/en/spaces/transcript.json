@@ -1,0 +1,19 @@
+{
+  "mediaChapters": "Chapters",
+  "mediaTranscript": "Transcript Text",
+  "editChapter": "Edit Chapter",
+  "editTranscriptSegment": "Edit Transcript Segment",
+  "transcriptText": "Transcript Text",
+  "chapterStartTime": "Start Time",
+  "chapterSeek": "Jump to Chapter",
+  "chapterTitle": "Chapter Title",
+  "chapterSummary": "Chapter Summary",
+  "chapterEarlier": "Adjust Start (Earlier)",
+  "chapterLater": "Adjust Start (Later)",
+  "chapterEarlierShort": "Earlier",
+  "chapterLaterShort": "Later",
+  "searchTranscript": "Search Transcript",
+  "noTranscriptMatches": "No matching transcript text",
+  "mediaTranscriptLive": "Live Transcription",
+  "mediaTranscriptLiveHint": "Live transcript text will appear here as recognized."
+}

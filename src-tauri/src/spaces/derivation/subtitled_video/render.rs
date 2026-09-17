@@ -1,0 +1,169 @@
+use std::{
+    fs,
+    io::Read,
+    path::{Path, PathBuf},
+    process::{Command, Stdio},
+};
+
+use sha2::{Digest, Sha256};
+use tauri::ipc::Channel;
+use tokio_util::sync::CancellationToken;
+use uuid::Uuid;
+
+use super::persistence::{RenderedVideo, VideoSubtitleSource};
+use super::scratch::ScratchFile;
+use super::{progress, SubtitledVideoProgress, CANCELLED};
+use crate::{local_resources::tools, media::subprocess, spaces::assets::asset_directory};
+
+pub fn render(
+    app: &tauri::AppHandle,
+    id: &str,
+    source: VideoSubtitleSource,
+    channel: &Channel<SubtitledVideoProgress>,
+    cancellation: &CancellationToken,
+) -> Result<RenderedVideo, String> {
+    progress(channel, "preparingSubtitles", 8)?;
+    let directory = asset_directory(app)?;
+    let output = ScratchFile::new(directory.join(format!("derived-{}.mp4", Uuid::new_v4())));
+    burn_in_subtitles(
+        app,
+        id,
+        &directory,
+        &source,
+        output.path(),
+        channel,
+        cancellation,
+    )?;
+    progress(channel, "savingResource", 94)?;
+    inspect_output(output.retain())
+}
+
+fn burn_in_subtitles(
+    app: &tauri::AppHandle,
+    id: &str,
+    directory: &Path,
+    source: &VideoSubtitleSource,
+    output: &Path,
+    channel: &Channel<SubtitledVideoProgress>,
+    cancellation: &CancellationToken,
+) -> Result<(), String> {
+    let subtitle = ScratchFile::new(directory.join(format!("subtitle-{id}.srt")));
+    let font = ScratchFile::new(directory.join(format!("subtitle-font-{id}.otf")));
+    let bundled_font = tools::resolve_shared_file(app, "fonts/NotoSansCJKsc-Regular.otf")
+        .ok_or("Bundled subtitle font is unavailable")?;
+    fs::write(subtitle.path(), &source.srt).map_err(|error| error.to_string())?;
+    fs::copy(bundled_font, font.path()).map_err(|error| error.to_string())?;
+    run_ffmpeg(
+        app,
+        &source.path,
+        subtitle.path(),
+        output,
+        channel,
+        cancellation,
+    )
+}
+
+fn run_ffmpeg(
+    app: &tauri::AppHandle,
+    source: &str,
+    subtitle: &Path,
+    output: &Path,
+    channel: &Channel<SubtitledVideoProgress>,
+    cancellation: &CancellationToken,
+) -> Result<(), String> {
+    let ffmpeg = tools::resolve_tool(app, "KNOVUM_FFMPEG_PATH", tools::ffmpeg_name())
+        .ok_or("FFmpeg is required to create a subtitled video")?;
+    progress(channel, "renderingSubtitles", 24)?;
+    let subtitle_name = subtitle
+        .file_name()
+        .and_then(|name| name.to_str())
+        .ok_or("Subtitle workspace path is invalid")?;
+    let child = Command::new(ffmpeg)
+        .args(ffmpeg_arguments(source, subtitle_name)?)
+        .arg(output)
+        .current_dir(
+            subtitle
+                .parent()
+                .ok_or("Subtitle workspace is unavailable")?,
+        )
+        .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::piped())
+        .spawn()
+        .map_err(|error| format!("failed to launch FFmpeg: {error}"))?;
+    let run = subprocess::wait_with_stderr(child, cancellation, CANCELLED, |_| Ok(()))?;
+    if run.status.success() {
+        Ok(())
+    } else {
+        Err(subprocess::diagnostic_error(
+            &run.diagnostics,
+            "FFmpeg could not create the subtitled video",
+        ))
+    }
+}
+
+pub(super) fn ffmpeg_arguments(source: &str, subtitle_name: &str) -> Result<Vec<String>, String> {
+    let filter = format!(
+        "subtitles={subtitle_name}:fontsdir=.:force_style='FontName=Noto Sans CJK SC,Alignment=2,MarginL=36,MarginR=36,MarginV=28,FontSize=14,Outline=1.5,Shadow=0,WrapStyle=0'"
+    );
+    Ok(vec![
+        "-hide_banner".into(),
+        "-loglevel".into(),
+        "error".into(),
+        "-y".into(),
+        "-i".into(),
+        source.into(),
+        "-vf".into(),
+        filter,
+        "-map".into(),
+        "0:v:0".into(),
+        "-map".into(),
+        "0:a?".into(),
+        "-c:v".into(),
+        platform_h264_encoder()?.into(),
+        "-b:v".into(),
+        "8M".into(),
+        "-maxrate".into(),
+        "12M".into(),
+        "-bufsize".into(),
+        "16M".into(),
+        "-pix_fmt".into(),
+        "yuv420p".into(),
+        "-c:a".into(),
+        "copy".into(),
+        "-movflags".into(),
+        "+faststart".into(),
+    ])
+}
+
+fn platform_h264_encoder() -> Result<&'static str, String> {
+    #[cfg(target_os = "macos")]
+    return Ok("h264_videotoolbox");
+    #[cfg(target_os = "windows")]
+    return Ok("h264_mf");
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+    Err("Subtitle video rendering is supported only on macOS and Windows".into())
+}
+
+fn inspect_output(path: PathBuf) -> Result<RenderedVideo, String> {
+    let metadata = fs::metadata(&path).map_err(|error| error.to_string())?;
+    let size = metadata.len();
+    if size == 0 {
+        return Err("FFmpeg created an empty subtitled video".into());
+    }
+    let mut file = fs::File::open(&path).map_err(|error| error.to_string())?;
+    let mut hasher = Sha256::new();
+    let mut buffer = [0u8; 65536];
+    loop {
+        let read = file.read(&mut buffer).map_err(|error| error.to_string())?;
+        if read == 0 {
+            break;
+        }
+        hasher.update(&buffer[..read]);
+    }
+    Ok(RenderedVideo {
+        path: path.to_string_lossy().into_owned(),
+        size: size as i64,
+        revision: format!("sha256:{:x}", hasher.finalize()),
+    })
+}

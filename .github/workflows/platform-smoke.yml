@@ -1,0 +1,53 @@
+name: Platform smoke
+
+on:
+  pull_request:
+    paths:
+      - "src/**"
+      - "src-tauri/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "vite.config.ts"
+      - "tsconfig*.json"
+      - ".github/workflows/platform-smoke.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: platform-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  desktop:
+    name: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15, windows-2025]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          check-latest: false
+      - name: Enable pnpm
+        shell: bash
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.17.0 --activate
+      - name: Require committed lockfiles
+        shell: bash
+        run: |
+          test -f pnpm-lock.yaml
+          test -f src-tauri/Cargo.lock
+      - name: Install web dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Run web gates
+        run: pnpm check:web
+      - name: Build desktop binary (compile smoke only)
+        env:
+          KNOVUM_ALLOW_MISSING_BUNDLED_RUNTIME_FOR_COMPILE_SMOKE: "1"
+        run: pnpm tauri build --no-bundle

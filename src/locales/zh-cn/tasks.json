@@ -1,0 +1,15 @@
+{
+  "ready": "就绪",
+  "running": "{count} 个任务运行中",
+  "title": "任务",
+  "empty": "当前无运行任务",
+  "clearCompleted": "清除已完成",
+  "dismiss": "移除记录",
+  "cancel": "取消任务",
+  "cancelling": "正在取消…",
+  "cancelled": "已取消",
+  "forceDismiss": "从列表移除",
+  "failed": "此任务未能完成。",
+  "showDetails": "显示详细信息",
+  "hideDetails": "隐藏详细信息"
+}

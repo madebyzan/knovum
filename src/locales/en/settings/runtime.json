@@ -1,0 +1,23 @@
+{
+  "title": "Offline Models",
+  "description": "Used for document parsing and speech-to-text. Data processed entirely offline.",
+  "runtimeReady": "Ready",
+  "runtimeMissing": "Not Installed",
+  "runtimeChecking": "Checking…",
+  "whisperModelDownload": "Whisper Model",
+  "whisperModelNotInstalled": "Not Installed",
+  "downloadModel": "Download Model",
+  "cancelDownload": "Cancel Download",
+  "modelDownloadComplete": "{model} downloaded",
+  "modelsInstalled": "{installed}/{total} installed",
+  "removeModel": "Remove Model",
+  "whisperStandardModel": "Multilingual Speech-to-Text Model (Local)",
+  "modelDownloadPolicy": "Models run entirely offline on this device once installed. Data never leaves your machine.",
+  "generativeAiPrivacy": "Only selected context is transmitted to cloud APIs. Local document parsing and audio transcription do not upload raw files.",
+  "textEmbeddingModel": "Text Embedding Model (Qwen3-Embedding-0.6B)",
+  "textEmbeddingModelDescription": "Enables private semantic search on this device (Local · ~1.2 GB)",
+  "modelDownloading": "Downloading ({part}) · {downloaded} / {total}",
+  "modelDownloadFailed": "Download failed",
+  "retryDownload": "Retry Download",
+  "modelVerifying": "Verifying integrity…"
+}

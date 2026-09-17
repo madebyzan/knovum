@@ -1,0 +1,48 @@
+import type {
+  SpaceAudioPayload,
+  SpaceCodePayload,
+  SpaceFilePayload,
+  SpaceImagePayload,
+  SpaceMarkdownPayload,
+  SpaceNodePayload,
+  SpaceNotePayload,
+  SpaceSectionPayload,
+  SpaceTextPayload,
+  SpaceVideoPayload,
+  SpaceWebsitePayload,
+} from "./node-payload";
+
+export type SpaceManagedAssetPayload =
+  | SpaceImagePayload
+  | SpaceVideoPayload
+  | SpaceAudioPayload
+  | SpaceFilePayload
+  | SpaceCodePayload;
+
+export type SpaceMediaPayload = SpaceAudioPayload | SpaceVideoPayload;
+export type SpaceEditorPayload = SpaceNotePayload | SpaceMarkdownPayload;
+export type SpaceCanvasTextPayload = SpaceNotePayload | SpaceTextPayload;
+
+export function isSpaceManagedAssetPayload(data: SpaceNodePayload): data is SpaceManagedAssetPayload {
+  return ["image", "video", "audio", "file", "code"].includes(data.kind);
+}
+
+export function isSpaceMediaPayload(data: SpaceNodePayload): data is SpaceMediaPayload {
+  return data.kind === "audio" || data.kind === "video";
+}
+
+export function isSpaceNotePayload(data: SpaceNodePayload): data is SpaceNotePayload {
+  return data.kind === "note";
+}
+
+export function isSpaceWebsitePayload(data: SpaceNodePayload): data is SpaceWebsitePayload {
+  return data.kind === "website";
+}
+
+export function isSpaceMarkdownPayload(data: SpaceNodePayload): data is SpaceMarkdownPayload {
+  return data.kind === "markdown";
+}
+
+export function isSpaceSectionPayload(data: SpaceNodePayload): data is SpaceSectionPayload {
+  return data.kind === "section";
+}

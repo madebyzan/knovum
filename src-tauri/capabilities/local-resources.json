@@ -1,0 +1,13 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "local-resources",
+  "description": "Main-window access to installed local processing tools and models.",
+  "windows": ["main"],
+  "permissions": [
+    "local-resources:allow-get-status",
+    "local-resources:allow-install-models",
+    "local-resources:allow-cancel-model-install",
+    "local-resources:allow-list-model-installs",
+    "local-resources:allow-remove-model"
+  ]
+}

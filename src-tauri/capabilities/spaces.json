@@ -1,0 +1,35 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "spaces",
+  "description": "Permissions owned by the Spaces bounded context.",
+  "windows": ["main"],
+  "permissions": [
+    "core:menu:allow-popup",
+    "core:menu:allow-new",
+    "core:resources:allow-close",
+    "clipboard:allow-has-files",
+    "clipboard:allow-has-image",
+    "clipboard:allow-read-files",
+    "clipboard:allow-read-image-binary",
+    "clipboard:allow-write-html-and-text",
+    "spaces:allow-read-space-clipboard-content",
+    "opener:default",
+    {
+      "identifier": "fs:allow-read-file",
+      "allow": [
+        {
+          "path": "$APPDATA/spaces/assets/**/*"
+        }
+      ]
+    },
+    {
+      "identifier": "fs:allow-mkdir",
+      "allow": [{ "path": "$APPDATA/spaces" }, { "path": "$APPDATA/spaces/assets" }]
+    },
+    {
+      "identifier": "fs:allow-write-file",
+      "allow": [{ "path": "$APPDATA/spaces/assets/canvas-thumbnail-*.jpg" }]
+    },
+    "spaces:default"
+  ]
+}

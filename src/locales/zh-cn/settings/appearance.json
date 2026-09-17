@@ -1,0 +1,12 @@
+{
+  "title": "外观",
+  "description": "自定义主题、字号与界面密度。",
+  "theme": "主题",
+  "themeDescription": "自动同步操作系统的浅色或深色外观。",
+  "textSize": "字体大小",
+  "textSizeDescription": "调整界面文本字号大小。",
+  "density": "界面密度",
+  "densityDescription": "调整控件大小与界面间距。",
+  "language": "语言",
+  "languageDescription": "选择界面语言或跟随系统。"
+}

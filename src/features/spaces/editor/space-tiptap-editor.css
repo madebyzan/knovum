@@ -1,0 +1,217 @@
+:deep(.space-tiptap-prose) {
+  min-height: 32rem;
+  outline: none;
+  color: var(--color-foreground);
+  font-size: var(--text-body-lg);
+  line-height: 1.68;
+}
+:deep(.space-tiptap-prose > * + *) {
+  margin-top: 0.8em;
+}
+:deep(.space-tiptap-prose h1) {
+  margin-top: 1.65em;
+  font-size: 1.75rem;
+  line-height: 1.2;
+  font-weight: 650;
+  letter-spacing: -0.025em;
+}
+:deep(.space-tiptap-prose h2) {
+  margin-top: 1.45em;
+  font-size: 1.35rem;
+  line-height: 1.3;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+:deep(.space-tiptap-prose h3) {
+  margin-top: 1.3em;
+  font-size: 1.08rem;
+  line-height: 1.35;
+  font-weight: 650;
+}
+:deep(.space-tiptap-prose ul:not([data-type="taskList"])),
+:deep(.space-tiptap-prose ol) {
+  padding-left: 1.45rem;
+}
+:deep(.space-tiptap-prose ul) {
+  list-style: disc;
+}
+:deep(.space-tiptap-prose ol) {
+  list-style: decimal;
+}
+:deep(.space-tiptap-prose ul[data-type="taskList"]) {
+  list-style: none;
+  padding-left: 0;
+}
+:deep(.space-tiptap-prose ul[data-type="taskList"] li) {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+}
+:deep(.space-tiptap-prose ul[data-type="taskList"] label) {
+  margin-top: 0.16rem;
+}
+:deep(.space-tiptap-prose ul[data-type="taskList"] input) {
+  accent-color: var(--color-accent);
+}
+:deep(.space-tiptap-prose img) {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-panel);
+}
+:deep(.space-tiptap-prose blockquote) {
+  border-left: 2px solid var(--color-border-strong);
+  padding-left: 1rem;
+  color: var(--color-foreground-secondary);
+}
+:deep(.space-tiptap-prose a) {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in oklab, var(--color-accent) 45%, transparent);
+  text-underline-offset: 0.16em;
+}
+:deep(.space-tiptap-prose code) {
+  border-radius: 0.3rem;
+  background: var(--color-field);
+  padding: 0.12em 0.32em;
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+:deep(.space-tiptap-prose pre) {
+  overflow: auto;
+  border-radius: var(--radius-panel);
+  background: var(--color-surface);
+  padding: 0.9rem 1rem;
+}
+:deep(.space-tiptap-prose pre code) {
+  background: transparent;
+  padding: 0;
+}
+:deep(.space-tiptap-prose .tableWrapper) {
+  overflow-x: auto;
+}
+:deep(.space-tiptap-prose.resize-cursor),
+:deep(.space-tiptap-prose .resize-cursor) {
+  cursor: col-resize;
+}
+:deep(.space-tiptap-prose .column-resize-handle) {
+  position: absolute;
+  top: 0;
+  right: -1px;
+  bottom: -1px;
+  width: 2px;
+  background: var(--color-accent);
+  pointer-events: none;
+}
+:deep(.space-tiptap-prose table) {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+:deep(.space-tiptap-prose th),
+:deep(.space-tiptap-prose td) {
+  position: relative;
+  border: 1px solid var(--color-border-strong);
+  padding: 0.45rem 0.55rem;
+  vertical-align: top;
+}
+:deep(.space-tiptap-prose th) {
+  background: var(--color-surface);
+  font-weight: 600;
+}
+:deep(.space-tiptap-prose .selectedCell::after) {
+  position: absolute;
+  inset: 0;
+  background: var(--color-selected);
+  content: "";
+  pointer-events: none;
+}
+:deep(.space-tiptap-prose p.is-editor-empty:first-child::before) {
+  float: left;
+  height: 0;
+  color: var(--color-foreground-tertiary);
+  content: attr(data-placeholder);
+  pointer-events: none;
+}
+:deep(.space-tiptap-prose ::selection) {
+  background: color-mix(in oklab, var(--color-accent) 20%, transparent);
+}
+:deep(.space-tiptap-prose .ProseMirror-selectednode) {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+:deep(.space-tiptap-prose .find-and-replace-result) {
+  border-radius: 0.18rem;
+  background: color-mix(in oklab, var(--color-warning) 28%, transparent);
+}
+:deep(.space-tiptap-prose .find-and-replace-result-current) {
+  border-radius: 0.18rem;
+  background: color-mix(in oklab, var(--color-accent) 30%, transparent);
+}
+@keyframes reasoning-trace-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+:deep(.space-tiptap-prose .reasoning-trace) {
+  border-radius: 0.2rem;
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklab, var(--color-accent) 8%, transparent) 0%,
+    color-mix(in oklab, var(--color-accent) 28%, transparent) 50%,
+    color-mix(in oklab, var(--color-accent) 8%, transparent) 100%
+  );
+  background-size: 200% 100%;
+  animation: reasoning-trace-shimmer 1.6s ease-in-out infinite;
+  box-decoration-break: clone;
+}
+:deep(.space-tiptap-prose .grounded-citation) {
+  cursor: pointer;
+  border-radius: 0.2rem;
+  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+  padding-inline: 0.16rem;
+  color: var(--color-accent);
+  font-size: 0;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+:deep(.space-tiptap-prose .grounded-citation::after) {
+  content: attr(data-citation-label);
+  font-size: 0.72rem;
+}
+
+:deep(.space-tiptap-prose .grounded-citation:hover),
+:deep(.space-tiptap-prose .grounded-citation:focus-visible) {
+  background: color-mix(in srgb, var(--color-accent) 18%, transparent);
+  outline: 1px solid color-mix(in srgb, var(--color-accent) 40%, transparent);
+}
+
+:deep(.space-tiptap-prose mark) {
+  border-radius: 0.2rem;
+  padding: 0.08em 0.22em;
+  color: inherit;
+}
+
+:root[data-theme="dark"] :deep(.space-tiptap-prose mark[data-color="#fde68a"]),
+:root[data-theme="dark"] :deep(.space-tiptap-prose mark[style*="#fde68a"]) {
+  background-color: var(--knovum-editor-highlight-color-yellow) !important;
+}
+
+:root[data-theme="dark"] :deep(.space-tiptap-prose mark[data-color="#bbf7d0"]),
+:root[data-theme="dark"] :deep(.space-tiptap-prose mark[style*="#bbf7d0"]) {
+  background-color: var(--knovum-editor-highlight-color-green) !important;
+}
+
+:root[data-theme="dark"] :deep(.space-tiptap-prose mark[data-color="#bfdbfe"]),
+:root[data-theme="dark"] :deep(.space-tiptap-prose mark[style*="#bfdbfe"]) {
+  background-color: var(--knovum-editor-highlight-color-blue) !important;
+}
+
+:root[data-theme="dark"] :deep(.space-tiptap-prose mark[data-color="#fbcfe8"]),
+:root[data-theme="dark"] :deep(.space-tiptap-prose mark[style*="#fbcfe8"]) {
+  background-color: var(--knovum-editor-highlight-color-pink) !important;
+}

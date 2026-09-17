@@ -1,0 +1,6 @@
+* text=auto eol=lf
+*.png binary
+*.ico binary
+*.icns binary
+src-tauri/resources/bundled-runtime/macos-*/* filter=lfs diff=lfs merge=lfs -text
+src-tauri/resources/bundled-runtime/windows-*/* filter=lfs diff=lfs merge=lfs -text

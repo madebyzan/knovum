@@ -1,0 +1,147 @@
+use std::fs;
+
+use serde_json::Value;
+use sha2::{Digest, Sha256};
+use tauri::AppHandle;
+use uuid::Uuid;
+
+use super::{source, CompleteImageCutoutRequest, CompletedDerivationOutput};
+use crate::spaces::derivation::relations;
+use crate::spaces::{
+    assets::asset_directory,
+    db,
+    knowledge::{contracts, indexing::revision},
+};
+
+pub(super) async fn complete(
+    app: AppHandle,
+    request: CompleteImageCutoutRequest,
+) -> Result<CompletedDerivationOutput, String> {
+    let source = source::path(&app, &request.id).await?;
+    let path = asset_directory(&app)?.join(format!("derived-{}.png", Uuid::new_v4()));
+    let processed = crate::blocking::run({
+        let path = path.clone();
+        move || process(source, path)
+    })
+    .await?;
+    match persist_completion(
+        &app,
+        &request,
+        path.to_string_lossy().as_ref(),
+        &processed.digest,
+        processed.size,
+        processed.width,
+        processed.height,
+    )
+    .await
+    {
+        Ok(completed) => Ok(completed),
+        Err(error) => {
+            let _ = fs::remove_file(path);
+            Err(error)
+        }
+    }
+}
+
+struct ProcessedCutout {
+    digest: String,
+    size: usize,
+    width: u32,
+    height: u32,
+}
+
+fn process(
+    source: std::path::PathBuf,
+    output: std::path::PathBuf,
+) -> Result<ProcessedCutout, String> {
+    let cutout = crate::images::remove_background(&source)?;
+    let digest = format!("sha256:{:x}", Sha256::digest(&cutout.png));
+    if let Err(error) = fs::write(&output, &cutout.png) {
+        let _ = fs::remove_file(output);
+        return Err(error.to_string());
+    }
+    Ok(ProcessedCutout {
+        digest,
+        size: cutout.png.len(),
+        width: cutout.width,
+        height: cutout.height,
+    })
+}
+
+async fn persist_completion(
+    app: &AppHandle,
+    request: &CompleteImageCutoutRequest,
+    path: &str,
+    digest: &str,
+    size: usize,
+    width: u32,
+    height: u32,
+) -> Result<CompletedDerivationOutput, String> {
+    let pool = db::pool(app).await?;
+    let mut tx = db::begin_write(pool).await?;
+    let row: Option<(String, String, String, String)> = sqlx::query_as(
+        r#"SELECT d.space_id,i.node_id,d.output_node_id,n.data
+           FROM spaces_knowledge_derivations d
+           JOIN spaces_knowledge_derivation_inputs i ON i.derivation_id=d.id AND i.position=0 AND i.role='primary'
+           JOIN spaces_nodes n ON n.id=d.output_node_id
+           WHERE d.id=$1 AND d.status='running'"#,
+    )
+    .bind(&request.id)
+    .fetch_optional(&mut *tx)
+    .await
+    .map_err(db::sql_error)?;
+    let Some((space_id, source_id, output_id, data)) = row else {
+        return Err("Background removal is no longer running".into());
+    };
+    source::revalidate(&mut tx, &request.id, &space_id, &source_id).await?;
+    let now = crate::clock::unix_time_millis()?;
+    let mut value: Value = serde_json::from_str(&data).map_err(db::json_error)?;
+    apply_output_data(&mut value, path, digest, size, width, height, now)?;
+    contracts::validate_node(&mut tx, &space_id, &output_id, "image", &value).await?;
+    let relation = relations::derives_from(
+        &space_id,
+        &output_id,
+        &source_id,
+        "Background removed from source image",
+        now,
+    );
+    crate::spaces::derivation::persist_output_node(&mut tx, &output_id, &value, now).await?;
+    relations::insert(&mut tx, &relation).await?;
+    sqlx::query("UPDATE spaces_knowledge_derivations SET status='completed',error='',completed_at=$1,updated_at=$1 WHERE id=$2 AND status='running'")
+        .bind(now).bind(&request.id).execute(&mut *tx).await.map_err(db::sql_error)?;
+    sqlx::query("UPDATE spaces SET updated_at=$1 WHERE id=$2")
+        .bind(now)
+        .bind(&space_id)
+        .execute(&mut *tx)
+        .await
+        .map_err(db::sql_error)?;
+    tx.commit().await.map_err(db::sql_error)?;
+    Ok(CompletedDerivationOutput {
+        node_id: output_id,
+        data: value,
+        relation,
+    })
+}
+
+fn apply_output_data(
+    value: &mut Value,
+    path: &str,
+    digest: &str,
+    size: usize,
+    width: u32,
+    height: u32,
+    now: i64,
+) -> Result<(), String> {
+    let object = value
+        .as_object_mut()
+        .ok_or_else(|| "Derived image data is invalid".to_string())?;
+    object.insert("assetPath".into(), Value::String(path.into()));
+    object.insert("sourceRevision".into(), Value::String(digest.into()));
+    object.insert("size".into(), Value::from(size as u64));
+    object.insert("modifiedAt".into(), Value::from(now));
+    object.insert("intrinsicWidth".into(), Value::from(width));
+    object.insert("intrinsicHeight".into(), Value::from(height));
+    object.remove("processingState");
+    revision::apply(value)?;
+    Ok(())
+}

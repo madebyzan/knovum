@@ -1,0 +1,23 @@
+{
+  "itemsSelected": "已选中 {count} 项",
+  "basicInformation": "基本信息",
+  "showSource": "原文视图",
+  "detailType": "类型",
+  "detailOriginalUrl": "原地址",
+  "detailProvider": "平台",
+  "detailSiteName": "网站",
+  "detailDescription": "简介",
+  "detailCanonicalUrl": "规范地址",
+  "detailModified": "修改时间",
+  "detailDimensions": "分辨率/尺寸",
+  "extractedDocumentText": "提取的纯文本",
+  "visualDetectedText": "OCR 识别文本",
+  "detailTitle": "标题",
+  "sourceExcerptTitle": "摘录 · {title}",
+  "sourceExcerptLine": "— {title} · {location}",
+  "openSource": "定位原始节点",
+  "source": "来源",
+  "basedOn": "推导基于",
+  "targetSpace": "目标空间",
+  "none": "未设置"
+}

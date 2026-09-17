@@ -1,0 +1,59 @@
+{
+  "sourcePeekNoText": "No text content at source location.",
+  "openAtSource": "Locate at Source",
+  "title": "Ask",
+  "description": "Answer questions based on Space content with cited source evidence.",
+  "knowledgeClaimTitle": "Knowledge from Grounded Answer",
+  "allSpacesReadOnly": "All Spaces · Search Only",
+  "groundedSourceRationale": "Sources and Evidence",
+  "askSpacePlaceholder": "Ask about selection, section, or all spaces…",
+  "askKnowledge": "Ask Question",
+  "aiScope": {
+    "selection": "Selection",
+    "section": "Section",
+    "space": "Current Space",
+    "all-spaces": "All Spaces"
+  },
+  "aiAction": {
+    "compare": "Compare",
+    "synthesize": "Synthesize",
+    "contradictions": "Find Contradictions",
+    "saveAsKnowledge": "Save as Knowledge"
+  },
+  "aiPrompt": {
+    "compare": "Compare selected knowledge sources, highlighting consensus, differences, and trade-offs with citations.",
+    "synthesize": "Synthesize key findings across sources while preserving essential context and citations.",
+    "contradictions": "Analyze conflicting viewpoints between sources, presenting evidence objectively."
+  },
+  "useCurrentEvidence": "Use Current Selection as Evidence",
+  "attachCurrentEvidence": "Attach currently highlighted source location as evidence.",
+  "evidenceEmpty": "Open a specific source or search result to attach as evidence.",
+  "removeEvidence": "Remove Evidence",
+  "staleEvidence": "Evidence source version has changed",
+  "knowledgeThreads": "Conversations",
+  "newKnowledgeThread": "New Conversation",
+  "ask": "Ask",
+  "stop": "Stop",
+  "renameKnowledgeThread": "Rename Session",
+  "deleteKnowledgeThread": "Delete Session",
+  "deleteKnowledgeThreadDescription": "Delete this Q&A session and its conversation history?",
+  "knowledgeThreadName": "Session Name",
+  "knowledgeSaved": "Knowledge saved",
+  "aiStarters": "Suggested Prompts",
+  "extractAsEvidence": "Extract as Evidence",
+  "sendShortcutHint": "Send",
+  "sources": "Sources · {count}",
+  "showOnCanvas": "Show on Canvas",
+  "askSelection": "Ask Selection",
+  "askSection": "Ask Section",
+  "aiStage": {
+    "retrieving": "Searching knowledge…",
+    "generating": "Generating response…",
+    "saving": "Saving session history…"
+  },
+  "aiDisabledTitle": "No Compatible AI Target",
+  "aiDisabledDescription": "Configure a compatible model or enable an installed desktop Agent for this action.",
+  "openAiSettings": "Configure Models",
+  "openAgentSettings": "Configure Desktop Agents",
+  "aiSettingsUnavailable": "AI settings could not be loaded"
+}

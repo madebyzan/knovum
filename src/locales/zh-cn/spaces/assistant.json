@@ -1,0 +1,59 @@
+{
+  "sourcePeekNoText": "当前来源位置无文本内容。",
+  "openAtSource": "定位至来源位置",
+  "title": "询问",
+  "description": "基于空间内容回答问题并标注来源引用。",
+  "knowledgeClaimTitle": "从回答生成的知识",
+  "allSpacesReadOnly": "所有空间 · 仅搜索",
+  "groundedSourceRationale": "来源与依据",
+  "askSpacePlaceholder": "针对当前选中、分区或全部空间提问…",
+  "askKnowledge": "发起问答",
+  "aiScope": {
+    "selection": "当前选中",
+    "section": "所在分区",
+    "space": "当前空间",
+    "all-spaces": "所有空间"
+  },
+  "aiAction": {
+    "compare": "对比分歧",
+    "synthesize": "归纳综合",
+    "contradictions": "寻找矛盾",
+    "saveAsKnowledge": "保存为知识"
+  },
+  "aiPrompt": {
+    "compare": "对比所选知识来源，梳理核心共识、差异与取舍，并标注证据引用。",
+    "synthesize": "归纳总结各来源的关键结论，保留核心限定条件与上下文，并标注证据引用。",
+    "contradictions": "分析各来源之间的分歧与矛盾观点，客观阐述双方证据。"
+  },
+  "useCurrentEvidence": "使用当前选中位置作为证据",
+  "attachCurrentEvidence": "可将当前高亮的来源节点位置关联为证据。",
+  "evidenceEmpty": "选择特定文本来源或检索结果后即可关联为证据。",
+  "removeEvidence": "移除证据",
+  "staleEvidence": "证据引用的源文件版本已变更",
+  "knowledgeThreads": "会话",
+  "newKnowledgeThread": "新建对话",
+  "ask": "提问",
+  "stop": "停止",
+  "renameKnowledgeThread": "重命名会话",
+  "deleteKnowledgeThread": "删除会话",
+  "deleteKnowledgeThreadDescription": "确认删除此知识问答会话及其对话记录？",
+  "knowledgeThreadName": "会话名称",
+  "knowledgeSaved": "知识已保存",
+  "aiStarters": "推荐提问",
+  "extractAsEvidence": "摘录为证据",
+  "sendShortcutHint": "发送",
+  "sources": "来源 · {count}",
+  "showOnCanvas": "在画布中定位",
+  "askSelection": "询问选中项",
+  "askSection": "询问当前分区",
+  "aiStage": {
+    "retrieving": "检索相关知识中…",
+    "generating": "生成回答中…",
+    "saving": "保存会话历史中…"
+  },
+  "aiDisabledTitle": "没有兼容的 AI 执行目标",
+  "aiDisabledDescription": "请为当前操作配置兼容模型，或启用已安装的桌面 Agent。",
+  "openAiSettings": "配置模型",
+  "openAgentSettings": "配置桌面 Agent",
+  "aiSettingsUnavailable": "AI 设置加载失败"
+}

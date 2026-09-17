@@ -1,0 +1,16 @@
+{
+  "note": "Sticky Note",
+  "text": "Text",
+  "markdown": "Markdown",
+  "subtitle": "Subtitles",
+  "website": "Website",
+  "image": "Image",
+  "video": "Video",
+  "audio": "Audio",
+  "file": "File",
+  "code": "Code",
+  "credential": "Credential",
+  "object": "Knowledge Object",
+  "portal": "Space Portal",
+  "section": "Section"
+}

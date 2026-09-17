@@ -1,0 +1,45 @@
+<script setup lang="ts">
+import { LoaderCircle } from "@lucide/vue";
+import { computed, type HTMLAttributes } from "vue";
+import { useI18n } from "vue-i18n";
+
+import { cn } from "./cn";
+
+const props = withDefaults(
+  defineProps<{
+    label?: string | undefined;
+    size?: "sm" | "md" | undefined;
+    tone?: "muted" | "accent" | "faint" | undefined;
+    class?: HTMLAttributes["class"];
+  }>(),
+  {
+    label: undefined,
+    size: "md",
+    tone: "muted",
+  },
+);
+
+const { t } = useI18n();
+const accessibleLabel = computed(() => props.label ?? t("common.loading"));
+const toneClasses: Record<"muted" | "accent" | "faint", string> = {
+  accent: "text-accent",
+  faint: "text-foreground-tertiary",
+  muted: "text-foreground-secondary",
+};
+</script>
+
+<template>
+  <LoaderCircle
+    :class="
+      cn(
+        'animate-spin motion-reduce:animate-none',
+        size === 'sm' ? 'size-(--knovum-icon-size-sm)' : 'size-(--knovum-icon-size-md)',
+        toneClasses[tone],
+        props.class,
+      )
+    "
+    :stroke-width="1.75"
+    role="status"
+    :aria-label="accessibleLabel"
+  />
+</template>

@@ -1,0 +1,19 @@
+{
+  "mediaChapters": "章节",
+  "mediaTranscript": "转写文本",
+  "editChapter": "编辑章节",
+  "editTranscriptSegment": "编辑转写文本",
+  "transcriptText": "转写文本",
+  "chapterStartTime": "开始时间",
+  "chapterSeek": "跳转到此章节",
+  "chapterTitle": "章节标题",
+  "chapterSummary": "章节摘要",
+  "chapterEarlier": "微调起点（向前）",
+  "chapterLater": "微调起点（向后）",
+  "chapterEarlierShort": "提前",
+  "chapterLaterShort": "延后",
+  "searchTranscript": "搜索转写文本",
+  "noTranscriptMatches": "无匹配的转写文本",
+  "mediaTranscriptLive": "实时转写中",
+  "mediaTranscriptLiveHint": "实时转写文本将同步显示于此。"
+}

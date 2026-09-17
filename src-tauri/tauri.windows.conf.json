@@ -1,0 +1,39 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "bundle": {
+    "windows": {
+      "allowDowngrades": false,
+      "nsis": {
+        "installMode": "currentUser",
+        "languages": ["English", "SimpChinese"],
+        "displayLanguageSelector": false
+      },
+      "wix": {
+        "language": ["en-US", "zh-CN"],
+        "upgradeCode": "4ca77810-ca74-578f-b546-f357f4a3cd25"
+      }
+    },
+    "targets": ["nsis"]
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Knovum",
+        "width": 1280,
+        "height": 820,
+        "minWidth": 960,
+        "minHeight": 640,
+        "center": true,
+        "decorations": true,
+        "transparent": true,
+        "noRedirectionBitmap": true,
+        "scrollBarStyle": "fluentOverlay",
+        "windowEffects": {
+          "effects": ["mica"]
+        },
+        "visible": false
+      }
+    ]
+  }
+}

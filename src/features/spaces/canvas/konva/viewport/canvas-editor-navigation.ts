@@ -1,0 +1,106 @@
+import type { CanvasNodeLayoutV1 } from "../../contract/canvas-document";
+import type { CanvasViewport } from "../../contract/canvas-editor-port";
+import { screenPointFromCanvas, zoomViewportAt } from "./viewport-math";
+
+interface CanvasNavigationContext {
+  layouts(): readonly CanvasNodeLayoutV1[];
+  selectedNodeIds(): ReadonlySet<string>;
+  setSelection(ids: readonly string[]): void;
+  setViewport(viewport: CanvasViewport): void;
+  size(): { width: number; height: number };
+  viewport(): CanvasViewport;
+}
+
+export function zoomCanvasViewport(context: CanvasNavigationContext, factor: number) {
+  setCanvasZoom(context, context.viewport().zoom * factor);
+}
+
+export function setCanvasZoom(context: CanvasNavigationContext, zoom: number) {
+  const size = context.size();
+  context.setViewport(zoomViewportAt(context.viewport(), { x: size.width / 2, y: size.height / 2 }, zoom));
+}
+
+export function revealCanvasLayouts(
+  context: CanvasNavigationContext,
+  ids: readonly string[],
+  mode: "ensure-visible" | "focus",
+) {
+  const layouts = context.layouts().filter(({ nodeId }) => ids.includes(nodeId));
+  if (!layouts.length) return;
+  context.setSelection(ids);
+  const bounds = layoutBounds(layouts);
+  if (mode === "focus") {
+    fitCanvasLayouts(context, layouts);
+  } else if (!isVisible(bounds, context.viewport(), context.size())) {
+    context.setViewport(ensureBoundsVisible(bounds, context.viewport(), context.size()));
+  }
+}
+
+export function fitCanvasLayouts(context: CanvasNavigationContext, layouts: readonly CanvasNodeLayoutV1[]) {
+  if (!layouts.length) return;
+  const bounds = layoutBounds(layouts);
+  const size = context.size();
+  const padding = 80;
+  const zoom = Math.min(
+    (size.width - padding * 2) / bounds.width,
+    (size.height - padding * 2) / bounds.height,
+    2,
+  );
+  context.setViewport({
+    x: (size.width - bounds.width * zoom) / 2 - bounds.x * zoom,
+    y: (size.height - bounds.height * zoom) / 2 - bounds.y * zoom,
+    zoom,
+  });
+}
+
+export function selectedCanvasLayouts(context: CanvasNavigationContext) {
+  const selected = context.selectedNodeIds();
+  return context.layouts().filter(({ nodeId }) => selected.has(nodeId));
+}
+
+function layoutBounds(layouts: readonly CanvasNodeLayoutV1[]) {
+  const left = Math.min(...layouts.map(({ frame }) => frame.x));
+  const top = Math.min(...layouts.map(({ frame }) => frame.y));
+  const right = Math.max(...layouts.map(({ frame }) => frame.x + frame.width));
+  const bottom = Math.max(...layouts.map(({ frame }) => frame.y + frame.height));
+  return { x: left, y: top, width: Math.max(1, right - left), height: Math.max(1, bottom - top) };
+}
+
+function isVisible(
+  bounds: ReturnType<typeof layoutBounds>,
+  viewport: CanvasViewport,
+  size: { width: number; height: number },
+) {
+  const topLeft = screenPointFromCanvas(bounds, viewport);
+  const bottomRight = screenPointFromCanvas(
+    { x: bounds.x + bounds.width, y: bounds.y + bounds.height },
+    viewport,
+  );
+  return topLeft.x >= 0 && topLeft.y >= 0 && bottomRight.x <= size.width && bottomRight.y <= size.height;
+}
+
+function ensureBoundsVisible(
+  bounds: ReturnType<typeof layoutBounds>,
+  viewport: CanvasViewport,
+  size: { width: number; height: number },
+) {
+  const padding = 32;
+  const topLeft = screenPointFromCanvas(bounds, viewport);
+  const bottomRight = screenPointFromCanvas(
+    { x: bounds.x + bounds.width, y: bounds.y + bounds.height },
+    viewport,
+  );
+  const availableWidth = Math.max(0, size.width - padding * 2);
+  const availableHeight = Math.max(0, size.height - padding * 2);
+  const centerX = (topLeft.x + bottomRight.x) / 2;
+  const centerY = (topLeft.y + bottomRight.y) / 2;
+  const x =
+    bottomRight.x - topLeft.x > availableWidth
+      ? viewport.x + size.width / 2 - centerX
+      : viewport.x + Math.max(padding - topLeft.x, Math.min(0, size.width - padding - bottomRight.x));
+  const y =
+    bottomRight.y - topLeft.y > availableHeight
+      ? viewport.y + size.height / 2 - centerY
+      : viewport.y + Math.max(padding - topLeft.y, Math.min(0, size.height - padding - bottomRight.y));
+  return { x, y, zoom: viewport.zoom };
+}

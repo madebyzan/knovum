@@ -1,0 +1,19 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "ai-runtime",
+  "description": "Main-window access to the Rust AI runtime and its persistent workbench state.",
+  "windows": ["main"],
+  "permissions": [
+    "ai:allow-cancel-job",
+    "ai:allow-complete",
+    "ai:allow-complete-stream",
+    "ai:allow-detect-agent-installations",
+    "ai:allow-list-agent-descriptors",
+    "ai:allow-list-provider-descriptors",
+    "ai:allow-transform-editor",
+    "ai:allow-transform-editor-stream",
+    "ai:allow-translate-text",
+    "ai:allow-translate-text-stream",
+    "ai:allow-validate-model-settings"
+  ]
+}

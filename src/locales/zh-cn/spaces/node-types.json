@@ -1,0 +1,16 @@
+{
+  "note": "便签",
+  "text": "文本",
+  "markdown": "Markdown",
+  "subtitle": "字幕",
+  "website": "网页",
+  "image": "图片",
+  "video": "视频",
+  "audio": "音频",
+  "file": "文件",
+  "code": "代码",
+  "credential": "凭证",
+  "object": "知识对象",
+  "portal": "空间入口",
+  "section": "分区"
+}

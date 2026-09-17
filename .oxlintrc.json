@@ -1,0 +1,53 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "import", "vue", "vitest", "unicorn", "promise", "oxc"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "perf": "error"
+  },
+  "options": {
+    "denyWarnings": true,
+    "reportUnusedDisableDirectives": "error"
+  },
+  "rules": {
+    "import/no-cycle": "error",
+    "import/no-duplicates": "error",
+    "promise/no-return-wrap": "error",
+    "promise/param-names": "error",
+    "typescript/consistent-type-imports": [
+      "error",
+      {
+        "prefer": "type-imports"
+      }
+    ],
+    "typescript/no-explicit-any": "error",
+    "no-underscore-dangle": [
+      "error",
+      {
+        "allow": ["__knovumE2eBridge", "__knovumReleaseSmoke", "__TAURI__"]
+      }
+    ],
+    "unicorn/prefer-global-this": "error",
+    "unicorn/prefer-query-selector": "off",
+    "complexity": ["error", 10],
+    "max-lines": [
+      "error",
+      {
+        "max": 180,
+        "skipBlankLines": true,
+        "skipComments": true
+      }
+    ],
+    "max-params": ["error", 4],
+    "no-warning-comments": [
+      "error",
+      {
+        "terms": ["todo", "fixme", "hack"],
+        "location": "anywhere"
+      }
+    ],
+    "preserve-caught-error": "off"
+  },
+  "ignorePatterns": ["dist/**", "node_modules/**", "src-tauri/target/**", "src-tauri/gen/**"]
+}

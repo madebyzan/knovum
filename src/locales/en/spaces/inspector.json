@@ -1,0 +1,23 @@
+{
+  "itemsSelected": "{count} items selected",
+  "basicInformation": "General",
+  "showSource": "Source View",
+  "detailType": "Type",
+  "detailOriginalUrl": "Original URL",
+  "detailProvider": "Platform",
+  "detailSiteName": "Website",
+  "detailDescription": "Description",
+  "detailCanonicalUrl": "Canonical URL",
+  "detailModified": "Modified Date",
+  "detailDimensions": "Dimensions / Resolution",
+  "extractedDocumentText": "Extracted Text",
+  "visualDetectedText": "OCR Recognized Text",
+  "detailTitle": "Title",
+  "sourceExcerptTitle": "Excerpt · {title}",
+  "sourceExcerptLine": "— {title} · {location}",
+  "openSource": "Locate Source Node",
+  "source": "Source",
+  "basedOn": "Inferred From",
+  "targetSpace": "Target Space",
+  "none": "Not Set"
+}

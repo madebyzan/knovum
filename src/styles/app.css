@@ -1,0 +1,197 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "./tokens.css";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+@custom-variant macos (&:where([data-platform="macos"], [data-platform="macos"] *));
+@custom-variant windows (&:where([data-platform="windows"], [data-platform="windows"] *));
+
+@layer base {
+  html,
+  body,
+  #app {
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  html,
+  body {
+    @apply bg-chrome;
+  }
+
+  :root[data-platform="macos"],
+  :root[data-platform="macos"] body {
+    background: transparent;
+  }
+  body {
+    @apply m-0 font-sans text-body text-foreground;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-tap-highlight-color: transparent;
+    user-select: text;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+    letter-spacing: inherit;
+  }
+
+  button {
+    color: inherit;
+    user-select: none;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  summary,
+  select {
+    cursor: default;
+  }
+
+  input,
+  textarea {
+    caret-color: var(--color-accent);
+  }
+
+  ::placeholder {
+    color: var(--color-foreground-tertiary);
+    opacity: 1;
+  }
+
+  :disabled,
+  [aria-disabled="true"] {
+    cursor: default;
+  }
+
+  svg.animate-spin {
+    transform-box: view-box;
+    transform-origin: 50% 50%;
+    will-change: transform;
+  }
+
+  :focus {
+    outline: none;
+  }
+
+  :focus-visible {
+    outline: 1px solid var(--color-focus-ring);
+    outline-offset: -2px;
+  }
+
+  ::selection {
+    @apply bg-selected;
+  }
+
+  * {
+    box-sizing: border-box;
+    scrollbar-color: color-mix(in oklch, var(--color-foreground-tertiary) 38%, transparent) transparent;
+    scrollbar-width: thin;
+  }
+
+  *::-webkit-scrollbar {
+    width: var(--knovum-scrollbar-size);
+    height: var(--knovum-scrollbar-size);
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    min-width: calc(var(--knovum-scrollbar-size) * 3.5);
+    min-height: calc(var(--knovum-scrollbar-size) * 3.5);
+    border: var(--knovum-scrollbar-inset) solid transparent;
+    border-radius: 999px;
+    background: color-mix(in oklch, var(--color-foreground-tertiary) 38%, transparent);
+    background-clip: content-box;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in oklch, var(--color-foreground-secondary) 58%, transparent);
+    background-clip: content-box;
+  }
+
+  *::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+}
+
+@utility material-navigation {
+  background-color: var(--color-chrome);
+}
+
+@utility material-toolbar {
+  background-color: var(--color-chrome);
+  box-shadow:
+    var(--shadow-toolbar),
+    inset 0 0.5px 0 var(--knovum-material-highlight-color);
+}
+
+@utility material-overlay {
+  background-color: var(--color-overlay);
+  backdrop-filter: blur(var(--blur-overlay)) saturate(1.18);
+}
+
+.workspace-splitter-group.is-motion-ready > [data-panel] {
+  transition: flex-grow 220ms var(--ease-standard);
+}
+
+.workspace-splitter-group.is-motion-ready:has([data-state="drag"]) > [data-panel] {
+  transition-duration: 0ms;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .material-overlay {
+    backdrop-filter: none;
+  }
+}
+
+@container workspace-toolbar (max-width: 52rem) {
+  .space-toolbar-secondary,
+  .space-tab-search {
+    display: none;
+  }
+}
+
+@container workspace-toolbar (max-width: 42rem) {
+  .space-toolbar-primary,
+  .space-view-history,
+  .space-view-overview {
+    display: none;
+  }
+
+  .space-toolbar-actions {
+    display: none;
+  }
+}
+
+@container workspace-toolbar (max-width: 30rem) {
+  .space-view-fit {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+@media (forced-colors: active) {
+  :focus-visible {
+    outline-color: Highlight;
+  }
+}

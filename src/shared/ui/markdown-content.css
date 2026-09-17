@@ -1,0 +1,75 @@
+:deep(.ui-markdown > * + *) {
+  margin-top: 0.65rem;
+}
+:deep(.ui-markdown h1) {
+  font-size: var(--text-title-lg);
+  font-weight: 650;
+  line-height: var(--text-title-lg--line-height);
+}
+:deep(.ui-markdown h2) {
+  font-size: var(--text-title-sm);
+  font-weight: 650;
+  line-height: var(--text-title-sm--line-height);
+}
+:deep(.ui-markdown h3) {
+  font-size: var(--text-body-lg);
+  font-weight: 650;
+  line-height: var(--text-body-lg--line-height);
+}
+:deep(.ui-markdown p),
+:deep(.ui-markdown li) {
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+}
+:deep(.ui-markdown ul:not([data-type="taskList"])),
+:deep(.ui-markdown ol) {
+  padding-left: 1.4rem;
+}
+:deep(.ui-markdown ul:not([data-type="taskList"])) {
+  list-style: disc;
+}
+:deep(.ui-markdown ol) {
+  list-style: decimal;
+}
+:deep(.ui-markdown blockquote) {
+  border-left: 2px solid var(--color-border);
+  color: var(--color-foreground-secondary);
+  padding-left: 0.8rem;
+}
+:deep(.ui-markdown code) {
+  background-color: var(--color-raised);
+  border-radius: var(--radius-control);
+  padding: 0.08rem 0.28rem;
+  font-size: var(--text-caption);
+}
+:deep(.ui-markdown pre) {
+  background-color: var(--color-raised);
+  overflow: auto;
+  border-radius: 0.4rem;
+  padding: 0.75rem;
+}
+:deep(.ui-markdown pre code) {
+  background: transparent;
+  padding: 0;
+}
+:deep(.ui-markdown a) {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+:deep(.ui-markdown .tableWrapper) {
+  overflow-x: auto;
+}
+:deep(.ui-markdown table) {
+  width: 100%;
+  border-collapse: collapse;
+}
+:deep(.ui-markdown th),
+:deep(.ui-markdown td) {
+  border: 1px solid var(--color-border);
+  padding: 0.35rem 0.5rem;
+  text-align: left;
+}
+:deep(.ui-markdown ul[data-type="taskList"]) {
+  list-style: none;
+  padding-left: 0;
+}

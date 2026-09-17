@@ -1,0 +1,46 @@
+{
+  "enrichmentQueueTitle": "Processing",
+  "enrichmentQueueSubtitle": "{count} items remaining",
+  "enrichmentQueueCancel": "Cancel",
+  "enrichmentJobType": {
+    "embed_text": "Text Vector Indexing",
+    "analyze_image": "Visual Image Analysis",
+    "transcribe_media": "Audio Whisper Transcription",
+    "analyze_video_first_frame": "Video First Frame Extraction",
+    "embed_media_transcript": "Transcript Vector Indexing",
+    "parse_document": "Document extraction",
+    "analyze_document": "Document visual analysis"
+  },
+  "matchBadge": {
+    "documentOcr": "Recognized document text",
+    "documentInterpretation": "Document visual interpretation",
+    "imageDescription": "Image Description",
+    "videoFirstFrame": "Video First Frame",
+    "mediaTimeRange": "{start} – {end}"
+  },
+  "rebuildRetrievalIndex": "Rebuild Retrieval Index",
+  "rebuildRetrievalIndexDone": "Index rebuilt; generated {count} vector entries.",
+  "nodeEnrichmentPending": "Pending {count}",
+  "nodeEnrichmentRunning": "Processing {count}",
+  "nodeEnrichmentFailed": "Failed {count}",
+  "nodeEnrichmentRetry": "Retry",
+  "semanticUnavailable": "Smart search is unavailable · Showing text matches only",
+  "processingFailed": "Processing failed",
+  "documentCoverage": "Document processing",
+  "documentOcrEvidence": "Machine-recognized text · Recognition errors are possible",
+  "documentInterpretationEvidence": "AI visual interpretation · Not an original document statement",
+  "documentTextCoverage": "Text extracted from {count} of {total} pages.",
+  "documentUnclassifiedPages": "{count} pages have no extractable body text or known images; they may be blank or contain unsupported content.",
+  "documentRecognitionRequired": "Pages requiring recognition: {pages}",
+  "documentVisualCoverage": "Visual analysis: {count} of {total} sources completed.",
+  "documentVisualUnavailable": "{count} referenced images cannot be decoded by the document parser.",
+  "visualWaitingConfiguration": "Visual analysis is waiting for visual understanding to be configured.",
+  "documentWarnings": {
+    "office_vector_drawings_unsupported": "Office vector drawings are not visually analyzed; they remain in the original file.",
+    "spreadsheet_image_cell_anchors_unavailable": "Spreadsheet images are located by worksheet, not by cell.",
+    "spreadsheet_chart_rendering_unsupported": "Available chart text is extracted; chart appearance is not analyzed.",
+    "legacy_office_visual_occurrence_coverage_limited": "This legacy Office format does not expose complete image positions.",
+    "legacy_spreadsheet_formulas_unavailable": "Legacy spreadsheets expose cached values, not formula expressions.",
+    "pdf_visual_coverage_limited": "PDF image regions use the parser's public position data. Inline images and vector graphics are not guaranteed to be fully covered; the original file retains all content."
+  }
+}

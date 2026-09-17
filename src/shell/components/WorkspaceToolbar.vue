@@ -1,0 +1,57 @@
+<script setup lang="ts">
+import type { WorkspaceDefinition } from "../../shared/contracts/workspace-definition";
+import WorkspaceNavigationControls from "./WorkspaceNavigationControls.vue";
+
+defineProps<{
+  workspace: WorkspaceDefinition;
+  sidebarPinned: boolean;
+  sidebarWidth: number;
+}>();
+const emit = defineEmits<{
+  "toggle-sidebar": [];
+  "preview-sidebar": [];
+  "cancel-sidebar-preview": [];
+}>();
+</script>
+
+<template>
+  <header
+    class="@container relative h-(--knovum-window-chrome-height) shrink-0 material-toolbar [container-name:workspace-toolbar]"
+  >
+    <div data-tauri-drag-region class="absolute inset-0" />
+    <div
+      class="workspace-toolbar-content relative grid h-full"
+      :style="{
+        gridTemplateColumns: `${sidebarWidth}px minmax(0, 1fr)`,
+      }"
+    >
+      <div
+        class="flex min-w-0 items-center justify-between gap-1 pr-1 pl-(--knovum-window-navigation-control-offset)"
+      >
+        <WorkspaceNavigationControls
+          :sidebar-pinned="sidebarPinned"
+          @toggle-sidebar="emit('toggle-sidebar')"
+          @preview-sidebar="emit('preview-sidebar')"
+          @cancel-sidebar-preview="emit('cancel-sidebar-preview')"
+        />
+        <component :is="workspace.toolbarLeading" class="shrink-0" />
+      </div>
+      <div class="flex min-w-0 items-center gap-1 pr-3">
+        <component :is="workspace.toolbar" class="min-w-0 flex-1" />
+      </div>
+    </div>
+  </header>
+</template>
+
+<style scoped>
+.workspace-toolbar-content {
+  pointer-events: none;
+}
+.workspace-toolbar-content :deep(button),
+.workspace-toolbar-content :deep(input),
+.workspace-toolbar-content :deep(select),
+.workspace-toolbar-content :deep(textarea),
+.workspace-toolbar-content :deep(a) {
+  pointer-events: auto;
+}
+</style>

@@ -1,0 +1,27 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "main-desktop",
+  "description": "Permissions required by the current desktop shell.",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "core:window:allow-set-progress-bar",
+    "core:window:allow-set-theme",
+    "autostart:default",
+    "log:default",
+    "store:default",
+    "os:default",
+    "core:window:allow-set-title",
+    "core:window:allow-start-dragging",
+    "core:window:allow-request-user-attention",
+    "dialog:default",
+    "secrets:allow-get",
+    "secrets:allow-set",
+    "secrets:allow-delete",
+    "desktop:allow-set-locale",
+    "desktop:allow-set-workspace-menu-state",
+    "desktop:allow-complete-bootstrap",
+    "desktop:allow-register-exit-coordinator",
+    "desktop:allow-resolve-app-exit"
+  ]
+}

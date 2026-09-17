@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "app-updater",
+  "description": "Main-window access to Knovum-owned signed updater commands without exposing the updater plugin directly.",
+  "windows": ["main"],
+  "permissions": ["allow-app-updater"]
+}

@@ -1,0 +1,154 @@
+use serde_json::Value;
+use sqlx::Row;
+use tauri::{AppHandle, Runtime};
+
+use super::{
+    contracts::{NodeDataChange, UpdateNodesRequest},
+    derived::{changed_top_level_fields, field_changed, generated_chunks, media_chunks},
+    space_timestamp::touch_updated_at,
+};
+use crate::spaces::{
+    assets::enrichment::jobs,
+    db,
+    knowledge::{chunk_store, contracts, events},
+};
+
+pub async fn update_many<R: Runtime>(
+    app: &AppHandle<R>,
+    request: UpdateNodesRequest,
+) -> Result<(), String> {
+    update_many_with_actor(app, request, "human").await
+}
+
+async fn update_many_with_actor<R: Runtime>(
+    app: &AppHandle<R>,
+    request: UpdateNodesRequest,
+    actor_kind: &str,
+) -> Result<(), String> {
+    if request.changes.is_empty() {
+        return Ok(());
+    }
+    let now = crate::clock::unix_time_millis()?;
+    let pool = db::pool(app).await?;
+    let mut tx = db::begin_write(pool).await?;
+    update_many_in_transaction(
+        &mut tx,
+        &request.space_id,
+        &request.changes,
+        actor_kind,
+        now,
+    )
+    .await?;
+    touch_updated_at(&mut tx, &request.space_id, now).await?;
+    tx.commit().await.map_err(db::sql_error)
+}
+
+pub(in crate::spaces) async fn update_many_in_transaction(
+    tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
+    space_id: &str,
+    changes: &[NodeDataChange],
+    actor_kind: &str,
+    now: i64,
+) -> Result<(), String> {
+    for change in changes {
+        apply_node_change(tx, space_id, change, actor_kind, now).await?;
+    }
+    Ok(())
+}
+
+async fn apply_node_change(
+    tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
+    space_id: &str,
+    change: &NodeDataChange,
+    actor_kind: &str,
+    now: i64,
+) -> Result<(), String> {
+    let row = sqlx::query("SELECT kind, data FROM spaces_nodes WHERE space_id = $1 AND id = $2 AND deleted_at IS NULL")
+        .bind(space_id)
+        .bind(&change.id)
+        .fetch_optional(&mut **tx)
+        .await
+        .map_err(db::sql_error)?
+        .ok_or_else(|| format!("Space node {} was not found", change.id))?;
+    let kind: String = row.try_get("kind").map_err(db::sql_error)?;
+    let previous_data: String = row.try_get("data").map_err(db::sql_error)?;
+    let before: Value = serde_json::from_str(&previous_data).map_err(db::json_error)?;
+    let object_type_id =
+        contracts::validate_node(tx, space_id, &change.id, &kind, &change.data).await?;
+    let revision_changed = field_changed(&before, &change.data, "knowledgeRevision");
+    let source_revision_changed = field_changed(&before, &change.data, "sourceRevision");
+    if revision_changed {
+        chunk_store::detach_canonical(tx, space_id, &change.id).await?;
+    }
+    let data = serde_json::to_string(&change.data).map_err(db::json_error)?;
+    sqlx::query("UPDATE spaces_nodes SET object_type_id = $1, data = $2, updated_at = $3 WHERE space_id = $4 AND id = $5")
+        .bind(object_type_id)
+        .bind(data)
+        .bind(now)
+        .bind(space_id)
+        .bind(&change.id)
+        .execute(&mut **tx)
+        .await
+        .map_err(db::sql_error)?;
+    if let Some(source) = change.source_chunks.as_deref() {
+        chunk_store::replace(tx, space_id, &change.id, "source", source, now).await?;
+    } else if source_revision_changed {
+        chunk_store::clear(tx, space_id, &change.id, "source").await?;
+    }
+    if revision_changed {
+        let derived = generated_chunks(&change.data)?;
+        chunk_store::replace(tx, space_id, &change.id, "derived", &derived, now).await?;
+    }
+    if field_changed(&before, &change.data, "mediaKnowledge") || source_revision_changed {
+        let media = media_chunks(&change.data)?;
+        let current_media = change
+            .data
+            .get("mediaKnowledge")
+            .and_then(|value| value.get("sourceRevision"))
+            .and_then(Value::as_str)
+            == change.data.get("sourceRevision").and_then(Value::as_str);
+        if current_media {
+            chunk_store::replace(tx, space_id, &change.id, "media", &media, now).await?;
+        } else {
+            chunk_store::clear(tx, space_id, &change.id, "media").await?;
+        }
+    }
+    events::append(
+        tx,
+        events::EventRecord::new(
+            space_id,
+            events::EventEntity::new("node", &change.id),
+            "updated",
+            events::EventActor::new(actor_kind, None),
+            &serde_json::json!({
+                "changedFields": changed_top_level_fields(&before, &change.data),
+            }),
+            now,
+        ),
+    )
+    .await?;
+    events::append_object_status_transition(
+        tx,
+        space_id,
+        &change.id,
+        &before,
+        &change.data,
+        events::EventActor::new(actor_kind, None),
+        now,
+    )
+    .await?;
+    let enrichment_changed = source_revision_changed
+        || [
+            "previewPath",
+            "processingState",
+            "mediaKnowledge",
+            "visualKnowledge",
+            "documentCoverage",
+        ]
+        .iter()
+        .any(|field| field_changed(&before, &change.data, field));
+    if enrichment_changed {
+        jobs::intent::synchronize_for_node(tx, space_id, &change.id, &change.data, now).await?;
+    }
+    Ok(())
+}

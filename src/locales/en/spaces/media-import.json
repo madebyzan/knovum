@@ -1,0 +1,7 @@
+{
+  "importTitle": "Import media",
+  "resolving": "Reading media information…",
+  "downloading": "Downloading media…",
+  "finalizing": "Adding media to this Space…",
+  "importFailed": "Media could not be imported."
+}

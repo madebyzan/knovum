@@ -1,0 +1,70 @@
+<script setup lang="ts">
+import { AlertTriangle } from "@lucide/vue";
+import { storeToRefs } from "pinia";
+import { onMounted, shallowRef } from "vue";
+import { useI18n } from "vue-i18n";
+
+import UiButton from "../../shared/ui/UiButton.vue";
+import { useDeferredEditorMount } from "./editor/use-deferred-editor-mount";
+import SpaceCanvas from "./presentation/canvas/SpaceCanvas.vue";
+import SpaceTiptapEditor from "./presentation/editor/SpaceTiptapEditor.vue";
+import SpaceLibrary from "./presentation/library/SpaceLibrary.vue";
+import SpaceEditorLoading from "./presentation/SpaceEditorLoading.vue";
+import SpaceRecentlyDeleted from "./presentation/SpaceRecentlyDeleted.vue";
+import { useSpaceStore } from "./session/space-store";
+import { useSpaceSessionLifecycle } from "./workspace/use-space-session-lifecycle";
+
+const store = useSpaceStore();
+const { focusedEditorId } = storeToRefs(store);
+const { t } = useI18n();
+const initializationError = shallowRef<Error>();
+const initializing = shallowRef(false);
+const mountedEditorId = useDeferredEditorMount(focusedEditorId);
+useSpaceSessionLifecycle(store.commitActiveSession);
+
+async function initialize() {
+  if (initializing.value) return;
+  initializing.value = true;
+  initializationError.value = undefined;
+  try {
+    await store.initialize(t("spaces.space.inbox"));
+  } catch (caught) {
+    initializationError.value = caught instanceof Error ? caught : new Error(String(caught));
+  } finally {
+    initializing.value = false;
+  }
+}
+
+onMounted(() => void initialize());
+</script>
+
+<template>
+  <main class="relative isolate h-full min-h-0 bg-canvas">
+    <div v-if="initializationError" class="grid h-full place-items-center p-8 text-center">
+      <div class="max-w-sm">
+        <AlertTriangle class="mx-auto size-7 text-warning" />
+        <h2 class="mt-3 text-title font-semibold">{{ t("spaces.space.initializationFailed") }}</h2>
+        <p class="mt-1 text-body text-foreground-secondary">
+          {{ t("spaces.space.initializationFailedHint") }}
+        </p>
+        <p class="mt-2 text-caption text-danger">{{ initializationError.message }}</p>
+        <UiButton class="mt-4" :disabled="initializing" @click="initialize">{{ t("common.retry") }}</UiButton>
+      </div>
+    </div>
+    <template v-else-if="store.ready">
+      <SpaceCanvas />
+      <section v-if="store.workspaceMode === 'library'" class="absolute inset-0 z-40 bg-canvas">
+        <SpaceLibrary />
+      </section>
+      <SpaceEditorLoading v-if="focusedEditorId && !mountedEditorId" />
+      <SpaceTiptapEditor v-if="mountedEditorId" :key="mountedEditorId" />
+      <SpaceRecentlyDeleted
+        v-if="store.recentlyDeletedSpaceId !== undefined"
+        :key="store.recentlyDeletedSpaceId ?? 'all'"
+        :space-id="store.recentlyDeletedSpaceId"
+        :open="true"
+        @update:open="!$event && (store.recentlyDeletedSpaceId = undefined)"
+      />
+    </template>
+  </main>
+</template>

@@ -1,0 +1,111 @@
+import { info as logInfo } from "@tauri-apps/plugin-log";
+import { platform } from "@tauri-apps/plugin-os";
+
+import type { AppCommand } from "../../../shared/contracts/app-command";
+import type { CanvasEditorPort } from "../canvas/contract/canvas-editor-port";
+
+interface CanvasEditingCommandLabels {
+  copy: string;
+  cut: string;
+  deleteSelection: string;
+  duplicate: string;
+  paste: string;
+  redo: string;
+  selectAll: string;
+  undo: string;
+}
+
+interface CanvasEditingCommandOptions {
+  canRedo: () => boolean;
+  canUndo: () => boolean;
+  editor: () =>
+    | Pick<
+        CanvasEditorPort,
+        | "copySelection"
+        | "cutSelection"
+        | "deleteSelection"
+        | "duplicateSelection"
+        | "pasteSelection"
+        | "selectAll"
+      >
+    | undefined;
+  hasNodeSelection: () => boolean;
+  hasSelection: () => boolean;
+  labels: CanvasEditingCommandLabels;
+  redo: () => Promise<void>;
+  undo: () => Promise<void>;
+}
+
+export function createCanvasEditingCommands(options: CanvasEditingCommandOptions): AppCommand[] {
+  const editor = options.editor;
+  return [
+    {
+      id: "spaces.undo",
+      title: options.labels.undo,
+      shortcut: "$mod+Z",
+      category: "editing",
+      isEnabled: options.canUndo,
+      run: options.undo,
+    },
+    {
+      id: "spaces.redo",
+      title: options.labels.redo,
+      shortcut: "$mod+Shift+Z",
+      category: "editing",
+      isEnabled: options.canRedo,
+      run: options.redo,
+    },
+    {
+      id: "spaces.copy",
+      title: options.labels.copy,
+      shortcut: "$mod+C",
+      category: "editing",
+      isEnabled: options.hasNodeSelection,
+      run: () => editor()?.copySelection(),
+    },
+    {
+      id: "spaces.cut",
+      title: options.labels.cut,
+      shortcut: "$mod+X",
+      category: "editing",
+      isEnabled: options.hasNodeSelection,
+      run: () => editor()?.cutSelection(),
+    },
+    {
+      id: "spaces.paste",
+      title: options.labels.paste,
+      shortcut: "$mod+V",
+      category: "editing",
+      run: async () => {
+        const canvasEditor = editor();
+        await logInfo(`[spaces.paste] command invoked; editor=${canvasEditor ? "active" : "missing"}`);
+        if (!canvasEditor) return;
+        const pasted = await canvasEditor.pasteSelection();
+        await logInfo(`[spaces.paste] command completed; pasted=${pasted}`);
+      },
+    },
+    {
+      id: "spaces.duplicate",
+      title: options.labels.duplicate,
+      shortcut: "$mod+D",
+      category: "editing",
+      isEnabled: options.hasNodeSelection,
+      run: () => editor()?.duplicateSelection(),
+    },
+    {
+      id: "spaces.delete-selection",
+      title: options.labels.deleteSelection,
+      shortcut: platform() === "macos" ? "Backspace" : "Delete",
+      category: "editing",
+      isEnabled: options.hasSelection,
+      run: () => editor()?.deleteSelection(),
+    },
+    {
+      id: "spaces.select-all",
+      title: options.labels.selectAll,
+      shortcut: "$mod+A",
+      category: "canvas",
+      run: () => editor()?.selectAll(),
+    },
+  ];
+}

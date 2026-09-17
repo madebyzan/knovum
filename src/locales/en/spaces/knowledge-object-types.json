@@ -1,0 +1,8 @@
+{
+  "claim": "Claim",
+  "evidence": "Evidence",
+  "question": "Question",
+  "decision": "Decision",
+  "concept": "Concept",
+  "experiment": "Experiment"
+}

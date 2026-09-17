@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "ytDlp": {
+    "version": "2026.08.19",
+    "sourceLicense": "Unlicense",
+    "standaloneLicense": "GPL-3.0-or-later",
+    "release": "https://github.com/yt-dlp/yt-dlp/releases/tag/2026.08.19",
+    "correspondingSource": {
+      "url": "https://github.com/yt-dlp/yt-dlp/archive/refs/tags/2026.08.19.tar.gz",
+      "sha256": "a0779c45179a846986a852bce31bddbe9259b594574f75c0ec146d0567058f7e"
+    }
+  },
+  "deno": {
+    "version": "2.9.6",
+    "license": "MIT",
+    "release": "https://github.com/denoland/deno/releases/tag/v2.9.6"
+  },
+  "targets": {
+    "macos-arm64": {
+      "ytDlp": {
+        "asset": "yt-dlp_macos",
+        "sha256": "0f192b7ec147ab6288885d6351d9ab67367640029b4377576ef46dd79cf7b202"
+      },
+      "deno": {
+        "asset": "deno-aarch64-apple-darwin.zip",
+        "sha256": "213a2f304f04d3c9cb5220669afad138f60a5aab1fe80962abdeb8f35807a472",
+        "binarySha256": "b3ac3bd206e48c26026cadd80c1367e96c149f9c66130952382a642b09fa8a71"
+      }
+    },
+    "macos-x64": {
+      "ytDlp": {
+        "asset": "yt-dlp_macos",
+        "sha256": "0f192b7ec147ab6288885d6351d9ab67367640029b4377576ef46dd79cf7b202"
+      },
+      "deno": {
+        "asset": "deno-x86_64-apple-darwin.zip",
+        "sha256": "7d4524b82bcc557fe020a1a5b56956ed42b992ae5b28026e8ad5d17329533f5f",
+        "binarySha256": "ec9fbd8e8f5f6ca5ceb0ebe4a564636f2c698bf60e3187460ded400cc0147fd5"
+      }
+    },
+    "windows-arm64": {
+      "ytDlp": {
+        "asset": "yt-dlp_arm64.exe",
+        "sha256": "05b438997bafc3affdfda9d041353c9d73e04dc842207254b655b0887c4445b0"
+      },
+      "deno": {
+        "asset": "deno-aarch64-pc-windows-msvc.zip",
+        "sha256": "acb014afe2299847764e232b4993e162e3946cdeec36603e3f1a0b548cd1ea55",
+        "binarySha256": "7259fbfaf9fb0d83551b7f85b38b3dc4d7c2c63cf05427b042fbf63bdcb6f778"
+      }
+    },
+    "windows-x64": {
+      "ytDlp": {
+        "asset": "yt-dlp.exe",
+        "sha256": "66674953fe251b89f4d08c5f0e35e0728679bd67ab3d7d05c0562af101dd3e7a"
+      },
+      "deno": {
+        "asset": "deno-x86_64-pc-windows-msvc.zip",
+        "sha256": "15e5300b0ba3c3695a7621d90160a746ec9e710228cee639afa9d580f6e3cd11",
+        "binarySha256": "2ff9493dfa356be2975f477025ea770088e9e9cb2c83d983236d13561b96b7a6"
+      }
+    }
+  }
+}

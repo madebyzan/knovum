@@ -1,0 +1,27 @@
+:deep(.citation-badge) {
+  display: inline-block;
+  margin: 0 0.1rem;
+  padding: 0 0.12rem;
+  border-radius: 0.15rem;
+  font-size: 0.65em;
+  font-weight: 650;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--color-accent);
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 2px;
+  transition:
+    background 0.15s ease,
+    text-decoration-color 0.15s ease;
+  vertical-align: super;
+  user-select: none;
+}
+:deep(.citation-badge:hover),
+:deep(.citation-badge:focus-visible),
+:deep(.citation-badge.is-active) {
+  background: color-mix(in oklab, var(--color-accent) 10%, transparent);
+  text-decoration-color: var(--color-accent);
+  outline: none;
+}

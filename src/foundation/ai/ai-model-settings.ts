@@ -1,0 +1,93 @@
+import { z } from "zod";
+
+import { desktopAgentSettingsSchema } from "./agent-models";
+import {
+  aiConnectionSettingsSchema,
+  aiDefaultsSchema,
+  type AiModelCapability,
+  type AiModelTarget,
+  type AiRoutingPurpose,
+  type ExecutionTarget,
+} from "./ai-models";
+import { routingPolicy } from "./execution-routing";
+
+type AiModelSettingsShape = {
+  connections: z.infer<typeof aiConnectionSettingsSchema>[];
+  desktopAgents: z.infer<typeof desktopAgentSettingsSchema>[];
+  defaults: z.infer<typeof aiDefaultsSchema>;
+};
+type SettingsRefinement = z.core.$RefinementCtx<AiModelSettingsShape>;
+
+export const aiModelSettingsSchema = z
+  .object({
+    connections: z.array(aiConnectionSettingsSchema),
+    desktopAgents: z.array(desktopAgentSettingsSchema),
+    defaults: aiDefaultsSchema,
+  })
+  .strict()
+  .superRefine((settings, context) => {
+    rejectDuplicateConnections(settings, context);
+    rejectDuplicateDesktopAgents(settings, context);
+    rejectInvalidDefaultTargets(settings, context);
+  });
+
+export type AiModelSettings = z.infer<typeof aiModelSettingsSchema>;
+
+export const defaultAiModelSettings: AiModelSettings = {
+  connections: [],
+  desktopAgents: [],
+  defaults: {
+    writing: null,
+    knowledge: null,
+    visualUnderstanding: null,
+    translation: null,
+    imageGeneration: null,
+    videoGeneration: null,
+  },
+};
+
+function rejectDuplicateConnections(settings: AiModelSettingsShape, context: SettingsRefinement) {
+  if (new Set(settings.connections.map(({ id }) => id)).size !== settings.connections.length) {
+    context.addIssue({ code: "custom", path: ["connections"], message: "Duplicate AI connection id" });
+  }
+}
+
+function rejectDuplicateDesktopAgents(settings: AiModelSettingsShape, context: SettingsRefinement) {
+  if (new Set(settings.desktopAgents.map(({ kind }) => kind)).size !== settings.desktopAgents.length) {
+    context.addIssue({ code: "custom", path: ["desktopAgents"], message: "Duplicate desktop agent" });
+  }
+}
+
+function rejectInvalidDefaultTargets(settings: AiModelSettingsShape, context: SettingsRefinement) {
+  const targets: ReadonlyArray<readonly [ExecutionTarget | null, AiRoutingPurpose]> = [
+    [settings.defaults.writing, "writing"],
+    [settings.defaults.knowledge, "knowledge"],
+    [settings.defaults.visualUnderstanding, "visual-understanding"],
+    [settings.defaults.translation, "translation"],
+    [settings.defaults.imageGeneration, "image-generation"],
+    [settings.defaults.videoGeneration, "video-generation"],
+  ];
+
+  for (const [target, purpose] of targets) {
+    if (!target) continue;
+    if (target.type === "agent") {
+      const enabled = settings.desktopAgents.some((agent) => agent.kind === target.kind);
+      if (!enabled) context.addIssue({ code: "custom", message: `Invalid agent target for ${purpose}` });
+      continue;
+    }
+    const capability: AiModelCapability = routingPolicy(purpose).modelCapability;
+    if (!resolvesToCapability(settings.connections, target, capability)) {
+      context.addIssue({ code: "custom", message: `Invalid ${capability} model target` });
+    }
+  }
+}
+
+function resolvesToCapability(
+  connections: AiModelSettingsShape["connections"],
+  target: AiModelTarget,
+  capability: AiModelCapability,
+) {
+  const connection = connections.find(({ id }) => id === target.connectionId);
+  const model = connection?.models.find(({ id }) => id === target.modelId);
+  return Boolean(model?.capabilities.includes(capability));
+}

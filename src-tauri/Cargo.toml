@@ -1,0 +1,172 @@
+[package]
+name = "knovum"
+version = "1.0.0-beta4"
+description = "Local-first desktop workbench for delegated AI work"
+authors = ["Knovum Team"]
+edition = "2021"
+rust-version = "1.92"
+
+[lib]
+name = "knovum_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[features]
+default = []
+e2e = ["dep:tauri-plugin-wdio", "dep:tauri-plugin-wdio-webdriver"]
+
+[dependencies]
+tauri = { version = "2", features = ["macos-private-api", "protocol-asset", "tray-icon"] }
+tauri-plugin-autostart = "2"
+tauri-plugin-clipboard = "2"
+clipboard-rs = "0.2.4"
+tauri-plugin-dialog = "2"
+tauri-plugin-fs = "2"
+tauri-plugin-log = "2"
+tauri-plugin-updater = "2"
+tauri-plugin-opener = "2"
+tauri-plugin-os = "2"
+tauri-plugin-single-instance = "2"
+tauri-plugin-store = "2"
+tauri-plugin-window-state = "2"
+serde = { version = "1", features = ["derive"] }
+log = "0.4"
+keyring = "4.1.5"
+base64 = "0.22.1"
+ring = "0.17.14"
+same-file = "1.0.6"
+zeroize = "1.8.2"
+infer = "0.19.0"
+mime = "0.3.17"
+mime_guess = { version = "2.0.5", features = ["rev-mappings"] }
+tauri-plugin-wdio = { version = "1", optional = true }
+tauri-plugin-wdio-webdriver = { version = "1", optional = true }
+
+image = { version = "0.25.10", default-features = false, features = ["png", "jpeg", "bmp", "tiff", "webp"] }
+tract-onnx = "=0.23.5"
+reqwest = { version = "0.12.28", default-features = false, features = [
+  "rustls-tls",
+  "json",
+  "blocking",
+  "multipart",
+  "stream",
+] }
+zip = { version = "4.6.1", default-features = false }
+tar = "0.4.46"
+flate2 = "1.1.9"
+encoding_rs = "0.8.35"
+genai = "=0.6.5"
+async-openai = { version = "=0.41.3", default-features = false, features = ["image", "rustls"] }
+docx-rs = { version = "=0.4.22", default-features = false, features = ["image"] }
+pulldown-cmark = "=0.13.0"
+typst-as-lib = { version = "=0.16.0", default-features = false }
+typst-layout = "=0.15.1"
+typst-pdf = "=0.15.1"
+futures = "0.3"
+office_oxide = { version = "=0.1.8", default-features = false }
+pdf-inspector = { version = "=1.20.0", default-features = false }
+
+serde_json = "1"
+sqlx = { version = "0.8.6", default-features = false, features = [
+  "macros",
+  "migrate",
+  "sqlite",
+  "runtime-tokio",
+] }
+sha2 = "=0.10.9"
+tokio = { version = "1", features = ["process", "io-util", "sync", "time", "rt", "macros", "net"] }
+uuid = { version = "1.24.0", features = ["v4"] }
+fnv = "1.0.7"
+lancedb = "0.37.1"
+arrow-array = "58.4.0"
+arrow-schema = "58.4.0"
+futures-util = "0.3"
+candle-core = "0.11.0"
+candle-nn = "0.11.0"
+tokenizers = { version = "0.22.2", default-features = false, features = ["onig"] }
+
+# Spaces knowledge server
+rmcp = { version = "=3.1.3", features = ["transport-streamable-http-server"] }
+axum = "=0.8.9"
+tokio-util = "=0.7.19"
+walkdir = "2.5.0"
+agent-client-protocol = "2.1.0"
+
+# Quick Look: document thumbnails for imported files, and the system preview panel. The objc2
+# framework crates default to every class they bind, which would pull UIKit and AppKit image
+# bindings into a macOS-only thumbnail path, so the ones Knovum adds enable only the classes it names.
+[target.'cfg(target_os = "macos")'.dependencies]
+block2 = "0.6.2"
+objc2 = "0.6.4"
+objc2-core-graphics = { version = "=0.3.2", default-features = false, features = [
+  "std",
+  "CGBitmapContext",
+  "CGColorSpace",
+  "CGContext",
+  "CGImage",
+  "CGPDFDocument",
+  "CGPDFPage",
+  "CGAffineTransform",
+] }
+objc2-core-foundation = { version = "0.3.2", default-features = false, features = [
+  "std",
+  "CFCGTypes",
+  "CFString",
+  "CFURL",
+  "objc2",
+] }
+objc2-foundation = { version = "0.3.2", default-features = false, features = [
+  "std",
+  "NSError",
+  "NSString",
+  "NSURL",
+] }
+objc2-image-io = { version = "0.3.2", default-features = false, features = [
+  "std",
+  "CGImageDestination",
+  "objc2",
+  "objc2-core-graphics",
+] }
+objc2-quick-look-thumbnailing = { version = "0.3.2", default-features = false, features = [
+  "std",
+  "QLThumbnailGenerationRequest",
+  "QLThumbnailGenerator",
+  "QLThumbnailRepresentation",
+  "block2",
+  "objc2-core-foundation",
+  "objc2-core-graphics",
+] }
+quicklook = "0.2.2"
+
+# Windows Shell owns document thumbnails. Full preview remains behind the same native-preview
+# boundary, but needs its own HWND/STA host before it can be enabled.
+[target.'cfg(target_os = "windows")'.dependencies]
+windows = { version = "0.61.3", features = [
+  "Data_Pdf",
+  "Foundation",
+  "Storage",
+  "Storage_Streams",
+  "Graphics_Imaging",
+  "Win32_System_WinRT",
+  "Win32_Foundation",
+  "Win32_Graphics_Gdi",
+  "Win32_System_Com",
+  "Win32_System_LibraryLoader",
+  "Win32_System_Registry",
+  "Win32_UI_Shell",
+  "Win32_UI_Shell_PropertiesSystem",
+  "Win32_UI_WindowsAndMessaging",
+] }
+
+# Local model inference runs inside this crate as well as numerical dependencies.
+# Keep debug symbols/assertions, but never run its matrix kernels unoptimized.
+# Incremental compilation is disabled because opt-level = 3 with CGU caching triggers
+# LLVM anonymous symbol mismatches (_anon.<hash>.llvm.<id>) in ld64 on macOS.
+[profile.dev]
+opt-level = 3
+incremental = false
+
+[lints.rust]
+linker_messages = "allow"

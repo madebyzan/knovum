@@ -1,0 +1,124 @@
+<script setup lang="ts">
+import {
+  Boxes,
+  Bot,
+  ChevronRight,
+  CircleHelp,
+  FileText,
+  FileInput,
+  FlaskConical,
+  GitBranch,
+  Globe2,
+  KeyRound,
+  Lightbulb,
+  LockKeyhole,
+  Mic,
+  Quote,
+  Shapes,
+  SlidersHorizontal,
+} from "@lucide/vue";
+import { DropdownMenuPortal, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from "reka-ui";
+import { useI18n } from "vue-i18n";
+
+import UiDropdownMenuItem from "../../../shared/ui/UiDropdownMenuItem.vue";
+import UiSeparator from "../../../shared/ui/UiSeparator.vue";
+import type { SystemKnowledgeObjectKind } from "../knowledge/model/object-types";
+
+const emit = defineEmits<{
+  markdown: [];
+  knowledge: [kind: SystemKnowledgeObjectKind];
+  customKnowledge: [];
+  portal: [];
+  manageTypes: [];
+  website: [];
+  importFile: [];
+  recordAudio: [];
+  credential: [kind: "api-key" | "account-password"];
+  agent: [];
+}>();
+const { t } = useI18n();
+const submenuClass = "material-overlay z-50 min-w-48 rounded-panel p-1 shadow-popover ring-1 ring-border";
+const knowledgeItems = [
+  { kind: "concept", icon: Shapes },
+  { kind: "question", icon: CircleHelp },
+  { kind: "claim", icon: Lightbulb },
+  { kind: "evidence", icon: Quote },
+  { kind: "experiment", icon: FlaskConical },
+  { kind: "decision", icon: GitBranch },
+] as const;
+</script>
+
+<template>
+  <UiDropdownMenuItem @select="emit('markdown')">
+    <FileText class="size-(--knovum-icon-size-sm)" />{{ t("spaces.nodeTypes.markdown") }}
+  </UiDropdownMenuItem>
+  <DropdownMenuSub>
+    <DropdownMenuSubTrigger
+      class="flex h-(--knovum-compact-item-height) cursor-default items-center gap-2 rounded-control px-2 text-label text-foreground outline-none data-[highlighted]:bg-control-hover"
+    >
+      <Shapes class="size-(--knovum-icon-size-sm)" />
+      <span class="min-w-0 flex-1">{{ t("spaces.knowledge.structuredKnowledge") }}</span>
+      <ChevronRight class="size-(--knovum-icon-size-xs) text-foreground-tertiary" />
+    </DropdownMenuSubTrigger>
+    <DropdownMenuPortal>
+      <DropdownMenuSubContent :side-offset="4" :align-offset="-4" :class="submenuClass">
+        <UiDropdownMenuItem
+          v-for="item in knowledgeItems"
+          :key="item.kind"
+          @select="emit('knowledge', item.kind)"
+        >
+          <component :is="item.icon" class="size-(--knovum-icon-size-sm)" />{{
+            t(`spaces.knowledgeObjectTypes.${item.kind}`)
+          }}
+        </UiDropdownMenuItem>
+        <UiSeparator class="my-1" />
+        <UiDropdownMenuItem @select="emit('customKnowledge')">
+          <Shapes class="size-(--knovum-icon-size-sm)" />{{ t("spaces.knowledge.customKnowledgeObject") }}…
+        </UiDropdownMenuItem>
+        <UiDropdownMenuItem @select="emit('manageTypes')">
+          <SlidersHorizontal class="size-(--knovum-icon-size-sm)" />{{
+            t("spaces.knowledge.manageKnowledgeTypes")
+          }}…
+        </UiDropdownMenuItem>
+      </DropdownMenuSubContent>
+    </DropdownMenuPortal>
+  </DropdownMenuSub>
+
+  <UiSeparator class="my-1" />
+  <UiDropdownMenuItem @select="emit('website')">
+    <Globe2 class="size-(--knovum-icon-size-sm)" />{{ t("spaces.transfer.addWebsite") }}…
+  </UiDropdownMenuItem>
+  <UiDropdownMenuItem @select="emit('importFile')">
+    <FileInput class="size-(--knovum-icon-size-sm)" />{{ t("spaces.canvas.actions.importFiles") }}
+  </UiDropdownMenuItem>
+  <UiDropdownMenuItem @select="emit('recordAudio')">
+    <Mic class="size-(--knovum-icon-size-sm)" />{{ t("spaces.media.recordAudio") }}…
+  </UiDropdownMenuItem>
+  <UiSeparator class="my-1" />
+  <UiDropdownMenuItem @select="emit('agent')">
+    <Bot class="size-(--knovum-icon-size-sm)" />{{ t("spaces.creation.createWithAgent") }}…
+  </UiDropdownMenuItem>
+  <UiSeparator class="my-1" />
+  <UiDropdownMenuItem @select="emit('portal')">
+    <Boxes class="size-(--knovum-icon-size-sm)" />{{ t("spaces.nodeTypes.portal") }}…
+  </UiDropdownMenuItem>
+  <DropdownMenuSub>
+    <DropdownMenuSubTrigger
+      class="flex h-(--knovum-compact-item-height) cursor-default items-center gap-2 rounded-control px-2 text-label text-foreground outline-none data-[highlighted]:bg-control-hover"
+    >
+      <KeyRound class="size-(--knovum-icon-size-sm)" />
+      <span class="min-w-0 flex-1">{{ t("spaces.nodeTypes.credential") }}</span>
+      <ChevronRight class="size-(--knovum-icon-size-xs) text-foreground-tertiary" />
+    </DropdownMenuSubTrigger>
+    <DropdownMenuPortal>
+      <DropdownMenuSubContent :side-offset="4" :align-offset="-4" :class="submenuClass">
+        <UiDropdownMenuItem @select="emit('credential', 'api-key')">
+          <KeyRound class="size-(--knovum-icon-size-sm)" />{{ t("spaces.credentials.apiKey") }}
+        </UiDropdownMenuItem>
+        <UiDropdownMenuItem @select="emit('credential', 'account-password')">
+          <LockKeyhole class="size-(--knovum-icon-size-sm)" />{{ t("spaces.credentials.accountPassword") }}
+        </UiDropdownMenuItem>
+      </DropdownMenuSubContent>
+    </DropdownMenuPortal>
+  </DropdownMenuSub>
+</template>

@@ -1,0 +1,24 @@
+.canvas-text-prose {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.canvas-text-prose p,
+.canvas-text-prose ul,
+.canvas-text-prose ol {
+  margin: 0;
+}
+
+.canvas-text-prose ul,
+.canvas-text-prose ol {
+  padding-inline-start: 1.25em;
+}
+
+.canvas-text-prose ul {
+  list-style: disc;
+}
+
+.canvas-text-prose ol {
+  list-style: decimal;
+}

@@ -1,0 +1,20 @@
+{
+  "build": {
+    "beforeBuildCommand": ""
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "security": {
+      "capabilities": [
+        "main-desktop",
+        "spaces",
+        {
+          "identifier": "e2e",
+          "description": "Test-only WebdriverIO capability enabled only by the E2E build flavor.",
+          "windows": ["main"],
+          "permissions": ["wdio:default", "wdio-webdriver:default"]
+        }
+      ]
+    }
+  }
+}

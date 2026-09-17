@@ -1,0 +1,30 @@
+use std::fs;
+
+use super::super::{verification, ModelDescriptor};
+
+const DESCRIPTOR: ModelDescriptor = ModelDescriptor {
+    directory: "test",
+    file: "model.bin",
+    env_key: "KNOVUM_TEST_MODEL",
+    repository: "test/model",
+    revision: "test",
+    sha256: "9372c470eeadd5ecd9c3c74c2b3cb633f8e2f2fad799250a0f70d652b6b825e4",
+    download_size: 5,
+};
+
+#[test]
+fn verified_receipt_replaces_repeated_content_hashing() {
+    let root = std::env::temp_dir().join(format!("knovum-model-receipt-{}", uuid::Uuid::new_v4()));
+    fs::create_dir(&root).unwrap();
+    let model = root.join(DESCRIPTOR.file);
+    fs::write(&model, b"model").unwrap();
+
+    assert!(verification::verify_and_record(&model, DESCRIPTOR).unwrap());
+    let metadata = fs::metadata(&model).unwrap();
+    assert!(verification::receipt_matches(&model, DESCRIPTOR, &metadata).unwrap());
+
+    verification::remove_receipt(&model).unwrap();
+    assert!(!verification::receipt_matches(&model, DESCRIPTOR, &metadata).unwrap());
+    fs::remove_file(model).unwrap();
+    fs::remove_dir(root).unwrap();
+}

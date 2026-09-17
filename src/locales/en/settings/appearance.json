@@ -1,0 +1,12 @@
+{
+  "title": "Appearance",
+  "description": "Customize theme, font scale, and layout density.",
+  "theme": "Theme",
+  "themeDescription": "Automatically synchronize with system light or dark mode.",
+  "textSize": "Font Size",
+  "textSizeDescription": "Adjust interface text font size.",
+  "density": "Density",
+  "densityDescription": "Adjust control size and spacing.",
+  "language": "Language",
+  "languageDescription": "Choose display language or match system locale."
+}

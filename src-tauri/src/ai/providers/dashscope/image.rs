@@ -1,0 +1,154 @@
+use futures::future::BoxFuture;
+use serde::Deserialize;
+
+use crate::ai::{
+    contracts::{GeneratedImage, ImageGenerationCapability, ImageGenerationInput},
+    error::{AiError, AiErrorCode, AiResult},
+    transport::{http_client, SecurityContext},
+};
+
+pub struct DashScopeImageAdapter;
+
+#[derive(Deserialize)]
+struct ResponsePayload {
+    output: OutputPayload,
+    code: Option<String>,
+    message: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct OutputPayload {
+    choices: Option<Vec<ChoiceItem>>,
+    #[serde(rename = "results")]
+    artifacts: Option<Vec<ImageArtifact>>,
+}
+
+#[derive(Deserialize)]
+struct ChoiceItem {
+    message: ChoiceMessageItem,
+}
+
+#[derive(Deserialize)]
+struct ChoiceMessageItem {
+    content: Vec<ContentItem>,
+}
+
+#[derive(Deserialize)]
+struct ContentItem {
+    image: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct ImageArtifact {
+    url: String,
+    actual_prompt: Option<String>,
+}
+
+impl ImageGenerationCapability for DashScopeImageAdapter {
+    fn generate<'a>(
+        &'a self,
+        ctx: &'a SecurityContext,
+        req: &'a ImageGenerationInput,
+    ) -> BoxFuture<'a, AiResult<GeneratedImage>> {
+        Box::pin(async move {
+            let secret = ctx.require_api_key()?;
+            let endpoint = dashscope_endpoint(&ctx.endpoint)?;
+            let body = serde_json::json!({
+                "model": ctx.model,
+                "input": {
+                    "messages": [{
+                        "role": "user",
+                        "content": [{ "text": req.prompt }]
+                    }]
+                },
+                "parameters": {
+                    "size": image_size(&req.aspect_ratio),
+                    "n": 1,
+                    "prompt_extend": true,
+                    "watermark": false
+                }
+            });
+
+            let client = http_client();
+            let submit_url = format!("{endpoint}/services/aigc/multimodal-generation/generation");
+            let generation_response = client
+                .post(&submit_url)
+                .bearer_auth(secret)
+                .json(&body)
+                .send()
+                .await
+                .map_err(|e| AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string()))?;
+
+            let status = generation_response.status();
+            let payload: ResponsePayload = generation_response
+                .json()
+                .await
+                .map_err(|e| AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string()))?;
+
+            if !status.is_success() {
+                let code = payload.code.as_deref().unwrap_or("unknown");
+                let msg = payload.message.as_deref().unwrap_or("request failed");
+                return Err(AiError::new(
+                    AiErrorCode::ProviderRequestFailed,
+                    format!("DashScope image generation failed: {code} - {msg}"),
+                ));
+            }
+
+            let (url, revised_prompt) = extract_image(payload.output).ok_or_else(|| {
+                AiError::new(
+                    AiErrorCode::InvalidResponse,
+                    "DashScope image response did not contain an image URL",
+                )
+            })?;
+
+            let download_response = client
+                .get(&url)
+                .send()
+                .await
+                .map_err(|e| AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string()))?
+                .error_for_status()
+                .map_err(|e| AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string()))?;
+
+            let image_bytes = download_response
+                .bytes()
+                .await
+                .map_err(|e| AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string()))?
+                .to_vec();
+
+            Ok(GeneratedImage {
+                bytes: image_bytes,
+                provider: ctx.provider.clone(),
+                model: ctx.model.clone(),
+                revised_prompt,
+            })
+        })
+    }
+}
+
+pub(super) fn dashscope_endpoint(endpoint: &str) -> AiResult<String> {
+    let ep = endpoint.trim().trim_end_matches('/');
+    let root = ep.strip_suffix("/compatible-mode/v1").unwrap_or(ep);
+    let root = root.strip_suffix("/api/v1").unwrap_or(root);
+    Ok(format!("{root}/api/v1"))
+}
+
+fn extract_image(output: OutputPayload) -> Option<(String, Option<String>)> {
+    if let Some(image) = output.artifacts.and_then(|items| items.into_iter().next()) {
+        return Some((image.url, image.actual_prompt));
+    }
+    output
+        .choices?
+        .into_iter()
+        .flat_map(|c| c.message.content)
+        .find_map(|c| c.image.map(|url| (url, None)))
+}
+
+fn image_size(ratio: &str) -> &'static str {
+    match ratio {
+        "3:2" => "1536*1024",
+        "2:3" => "1024*1536",
+        "16:9" => "1920*1080",
+        "9:16" => "1080*1920",
+        _ => "2048*2048",
+    }
+}
