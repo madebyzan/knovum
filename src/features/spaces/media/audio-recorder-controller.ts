@@ -104,7 +104,7 @@ export function createSpaceAudioRecorderController(options: AudioRecorderControl
         await removeSpaceAsset(asset.path);
         return;
       }
-      options.saved(asset, spaceId);
+      await options.save(asset, spaceId);
       options.close();
     } catch {
       await cancelRecorderSession();

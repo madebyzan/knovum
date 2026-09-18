@@ -2,11 +2,8 @@ import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import { removeSpaceAsset } from "../assets/asset-operations";
-import { addImportedSpaceAsset } from "../assets/import";
 import { importSpaceFromPicker } from "../assets/import-flow";
 import { createSystemKnowledgeObjectPayload } from "../knowledge/model/object-factory";
-import type { PersistedAudioSpaceAsset } from "../media/audio-recording";
 import { useSpaceStore } from "../session/space-store";
 import { addSavedWebsite } from "../website/capture";
 import { normalizeSpaceUrl } from "../website/url";
@@ -15,7 +12,6 @@ export function useAddMenu() {
   const store = useSpaceStore();
   const { t } = useI18n();
   const websiteOpen = ref(false);
-  const recorderOpen = ref(false);
   const customObjectOpen = ref(false);
   const typeManagerOpen = ref(false);
   const portalOpen = ref(false);
@@ -62,19 +58,9 @@ export function useAddMenu() {
     website.value = "";
     websiteOpen.value = false;
   }
-  async function addRecording(asset: PersistedAudioSpaceAsset, spaceId: string) {
-    if (store.activeSpaceId !== spaceId) {
-      await removeSpaceAsset(asset.path);
-      return;
-    }
-    await addImportedSpaceAsset(asset, store.nextInsertionPoint(), (data, position) =>
-      store.addItem(data, position),
-    );
-  }
   return {
     store,
     websiteOpen,
-    recorderOpen,
     customObjectOpen,
     typeManagerOpen,
     portalOpen,
@@ -86,7 +72,5 @@ export function useAddMenu() {
     addCredential,
     importFromPicker,
     addWebsite,
-    addRecording,
-    toast,
   };
 }

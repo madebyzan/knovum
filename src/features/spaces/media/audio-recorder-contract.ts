@@ -5,7 +5,7 @@ import type { PersistedAudioSpaceAsset } from "./audio-recording";
 export interface AudioRecorderControllerOptions {
   open: Ref<boolean>;
   spaceId: Ref<string | undefined>;
-  saved: (asset: PersistedAudioSpaceAsset, spaceId: string) => void;
+  save: (asset: PersistedAudioSpaceAsset, spaceId: string) => Promise<void>;
   failed: () => void;
   close: () => void;
 }

@@ -43,6 +43,7 @@ export function publicSpaceState(state: SpaceState) {
     libraryQuery: state.libraryQuery,
     librarySearchNonce: state.librarySearchNonce,
     thumbnailCaptureActive: state.thumbnailCaptureActive,
+    audioRecordingTarget: state.audioRecordingTarget,
     findOpen: state.findOpen,
     globalFindOpen: state.globalFindOpen,
     askScopeRequest: state.askScopeRequest,

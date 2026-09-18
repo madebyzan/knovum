@@ -2,6 +2,7 @@
 import { Plus } from "@lucide/vue";
 import { ToolbarButton } from "reka-ui";
 import { useI18n } from "vue-i18n";
+import { toast } from "vue-sonner";
 
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiDialog from "../../../shared/ui/UiDialog.vue";
@@ -12,7 +13,6 @@ import { useCanvasToolStore } from "../canvas/canvas-tool-store";
 import { useAddMenu } from "../presentation/use-add-menu";
 import AgentCreationDialog from "./AgentCreationDialog.vue";
 import SpaceKnowledgeTypeManager from "./knowledge/SpaceKnowledgeTypeManager.vue";
-import SpaceAudioRecorder from "./media/SpaceAudioRecorder.vue";
 import SpaceAddMenuContent from "./SpaceAddMenuContent.vue";
 import SpaceCustomKnowledgeObjectDialog from "./SpaceCustomKnowledgeObjectDialog.vue";
 import SpacePortalDialog from "./SpacePortalDialog.vue";
@@ -22,7 +22,6 @@ const tools = useCanvasToolStore();
 const {
   store,
   websiteOpen,
-  recorderOpen,
   customObjectOpen,
   typeManagerOpen,
   portalOpen,
@@ -34,9 +33,15 @@ const {
   addCredential,
   importFromPicker,
   addWebsite,
-  addRecording,
-  toast,
 } = useAddMenu();
+
+async function beginAudioRecording() {
+  try {
+    await store.beginAudioRecording();
+  } catch (error) {
+    toast.error(t("spaces.media.audioRecordingFailed"), { description: String(error) });
+  }
+}
 </script>
 
 <template>
@@ -61,7 +66,7 @@ const {
       @manage-types="typeManagerOpen = true"
       @website="websiteOpen = true"
       @import-file="importFromPicker()"
-      @record-audio="recorderOpen = true"
+      @record-audio="beginAudioRecording"
       @credential="addCredential"
       @agent="agentCreationOpen = true"
     />
@@ -83,11 +88,5 @@ const {
   <SpaceCustomKnowledgeObjectDialog v-model:open="customObjectOpen" />
   <SpaceKnowledgeTypeManager v-model:open="typeManagerOpen" />
   <SpacePortalDialog v-model:open="portalOpen" />
-  <SpaceAudioRecorder
-    v-model:open="recorderOpen"
-    v-bind="store.activeSpaceId ? { spaceId: store.activeSpaceId } : {}"
-    @saved="addRecording"
-    @failed="toast.error(t('spaces.media.audioRecordingFailed'))"
-  />
   <AgentCreationDialog v-model:open="agentCreationOpen" />
 </template>

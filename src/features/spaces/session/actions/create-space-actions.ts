@@ -1,6 +1,7 @@
 import type { SpacePlacement } from "../../canvas/navigation-requests";
 import { createInspectorActions } from "../../inspector/inspector-actions";
 import { createSpaceMediaActions } from "../../media/actions";
+import { createSpaceAudioRecordingActions } from "../../media/audio-recording-actions";
 import { createSelectionActions } from "../../organization/selection-actions";
 import { materializeActiveSpace } from "../../workspace/draft-space-actions";
 import type { SpaceSessionContext } from "../../workspace/space-session-actions";
@@ -44,6 +45,14 @@ export function createSpaceActions(state: SpaceState, placement: SpacePlacement)
     playback: state.mediaPlayback,
     saveNodeData: mutations.saveNodeData,
   });
+  const audioRecording = createSpaceAudioRecordingActions({
+    activeSpaceId: state.activeSpaceId,
+    target: state.audioRecordingTarget,
+    nextInsertionPoint: placement.nextInsertionPoint,
+    ensureActiveSpacePersisted: () => materializeActiveSpace(spaceContext),
+    createPendingItemForSpace: mutations.createPendingItemForSpace,
+    finalizePendingItems: placementActions.finalizePendingItems,
+  });
   const lifecycle = createSpaceNodeLifecycleActions({
     activeSpaceId: state.activeSpaceId,
     nodes: state.nodes,
@@ -71,6 +80,7 @@ export function createSpaceActions(state: SpaceState, placement: SpacePlacement)
   });
   return {
     ...actions,
+    ...audioRecording,
     ensureActiveSpacePersisted: () => materializeActiveSpace(spaceContext),
     ...canvasImport,
     ...createCanvasGestureActions(state),

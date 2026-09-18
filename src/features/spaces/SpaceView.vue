@@ -8,6 +8,7 @@ import UiButton from "../../shared/ui/UiButton.vue";
 import { useDeferredEditorMount } from "./editor/use-deferred-editor-mount";
 import SpaceCanvas from "./presentation/canvas/SpaceCanvas.vue";
 import SpaceTiptapEditor from "./presentation/editor/SpaceTiptapEditor.vue";
+import SpaceAudioRecordingDock from "./presentation/media/SpaceAudioRecordingDock.vue";
 import SpaceLibrary from "./presentation/library/SpaceLibrary.vue";
 import SpaceEditorLoading from "./presentation/SpaceEditorLoading.vue";
 import SpaceRecentlyDeleted from "./presentation/SpaceRecentlyDeleted.vue";
@@ -53,6 +54,7 @@ onMounted(() => void initialize());
     </div>
     <template v-else-if="store.ready">
       <SpaceCanvas />
+      <SpaceAudioRecordingDock class="pointer-events-auto absolute bottom-3 left-1/2 z-50 -translate-x-1/2" />
       <section v-if="store.workspaceMode === 'library'" class="absolute inset-0 z-40 bg-canvas">
         <SpaceLibrary />
       </section>
