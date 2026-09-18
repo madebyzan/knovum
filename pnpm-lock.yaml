@@ -205,8 +205,8 @@ importers:
         specifier: ^9.31.2
         version: 9.31.2
       '@wdio/tauri-plugin':
-        specifier: ^1.3.0
-        version: 1.3.0(supports-color@8.1.1)(tsx@4.23.12)
+        specifier: ^1.4.0
+        version: 1.4.0(supports-color@8.1.1)(tsx@4.23.12)
       '@wdio/tauri-service':
         specifier: ^1.3.0
         version: 1.3.0(expect-webdriverio@6.0.10)(supports-color@8.1.1)(tsx@4.23.12)(webdriverio@9.31.5(supports-color@8.1.1))
@@ -1489,9 +1489,6 @@ packages:
   '@tauri-apps/plugin-fs@2.5.2':
     resolution: {integrity: sha512-XXvMSnFiob+G1H+YHCDf+bzWVumseQuEIhzpbOJzevUfL4k0U+sTApZWJHpoLiamggnVPJm5dJ5sDsniRyWxlg==}
 
-  '@tauri-apps/plugin-log@2.9.0':
-    resolution: {integrity: sha512-Ql8okrnsguk0eDq1GvRfttFV5KaeW/7vcao6bdbkXCRJ1+2sWE15ZJvJVEKVANrOKy1mRngqC3IFIAP+wP5qSw==}
-
   '@tauri-apps/plugin-log@2.9.1':
     resolution: {integrity: sha512-8dYNEQOgZcIEqeFtHAsOIGLoptm+j94270Jf2MrGS/zbsYNd4C8DKyOdeYggAyE3ugwr12mTefIfC8lVVEhdlg==}
 
@@ -1983,6 +1980,10 @@ packages:
     resolution: {integrity: sha512-roTRIi/0pxSpC7C4DIAqzh3i2dqKaV+T+mx9Yu1vOGAG9vbQwHGn/qwxHTggE+3kV1FYWOoSI0eKnKw9aqFiDg==}
     engines: {node: ^18.12.0 || ^20.9.0 || >=22.11.0}
 
+  '@wdio/native-spy@1.3.0':
+    resolution: {integrity: sha512-Kw1/HsOM8CNnlPHozlv0FP+nFnms5efICq5WqpaNdwa0urv/C9K/jhM69OqAbocBfRXkDVuWecNPmCV9S/cXGw==}
+    engines: {node: ^18.12.0 || ^20.9.0 || >=22.11.0}
+
   '@wdio/native-types@2.4.0':
     resolution: {integrity: sha512-GjgPskOoTvl17Jwj8aAU3A31gpklL5M1KfbrwYffbQT16CTpJTD8A4PdoS2ZjGoCWcyLBR1CWdJI3W8T0JBLjw==}
     engines: {node: ^18.12.0 || ^20.9.0 || >=22.11.0}
@@ -2002,6 +2003,15 @@ packages:
 
   '@wdio/native-utils@2.6.0':
     resolution: {integrity: sha512-54qpJ1XwNl4gBTYb84xsRTHDi3zTdmbms4FBUVFY50+X3t0FDuMmWlBLYADdyS1d17uv698GUFRjrorRKLAPXw==}
+    engines: {node: ^18.12.0 || ^20.9.0 || >=22.11.0}
+    peerDependencies:
+      tsx: ^4.22.4
+    peerDependenciesMeta:
+      tsx:
+        optional: true
+
+  '@wdio/native-utils@2.7.0':
+    resolution: {integrity: sha512-qCzc+5o4YVESApQB5//NxomZ+F+M3Pc02hUNnJ1/w9naMb8mfgaHXBLWVwejEfO36z2MnwGatBNWZAm38G1frA==}
     engines: {node: ^18.12.0 || ^20.9.0 || >=22.11.0}
     peerDependencies:
       tsx: ^4.22.4
@@ -2039,8 +2049,8 @@ packages:
     resolution: {integrity: sha512-lNLLPUk4y1Yp5pWwBFF+tjZIy7bOv0TPTk4HDWV4LnnHnkc24abI0nN+kb2y5/JV8ZgwLCCVKUFRdRUxfKsAaQ==}
     engines: {node: '>=18.20.0'}
 
-  '@wdio/tauri-plugin@1.3.0':
-    resolution: {integrity: sha512-dq0utb6Lj5bi3zzHkIIb4WTegpqVMc3D+mVsJCx7OzRPiFQfhYutmRIkNS/i3Cai41KqTf2eP5ZvlPO0LCKv0A==}
+  '@wdio/tauri-plugin@1.4.0':
+    resolution: {integrity: sha512-fXebQlQiomyNWYRNBN6OBsaJTXDQSbkvRFeGteEedI/VPSXNVgv23WgjwHYOu3+ZOhiF2UwaiigjP6821tLSOw==}
     engines: {node: ^18.12.0 || ^20.9.0 || >=22.11.0}
 
   '@wdio/tauri-service@1.3.0':
@@ -2831,7 +2841,7 @@ packages:
   glob@8.1.0:
     resolution: {integrity: sha512-r8hpEjiQEYlF2QU0df3dS+nxxSIreXQS1qRhMJM0Q5NDdR386C7jb7Hwwod8Fgiuex+k0GFjgft18yvxm5XoCQ==}
     engines: {node: '>=12'}
-    deprecated: Glob versions prior to v9 are no longer supported
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   global-directory@4.0.1:
     resolution: {integrity: sha512-wHTUcDUoZ1H5/0iVqEudYW4/kAlN5cZ3j/bXn0Dpbizl9iaUVeWSHqiOjsgk6OW2bkLclbBjzewBz6weQ1zA2Q==}
@@ -4577,6 +4587,11 @@ packages:
     engines: {node: '>= 14.6'}
     hasBin: true
 
+  yaml@2.9.1:
+    resolution: {integrity: sha512-3NxN8+78OdzbT7C/WjGsyfPAtJaN3FNDsWxv7Y7mcDsT/oOmgW8BpyQQFFBnvZE3j9Y2Sdz1ULFLezL7Eb2yFw==}
+    engines: {node: '>= 14.6'}
+    hasBin: true
+
   yargs-parser@20.2.4:
     resolution: {integrity: sha512-WOkpgNhPTlE73h4VFAFsOnomJVaovO8VqLDzy5saChRBFQFBoMYirowyW+Q9HB4HFF4Z7VZTiG3iSzJJA29yRA==}
     engines: {node: '>=10'}
@@ -4902,7 +4917,7 @@ snapshots:
   '@isaacs/cliui@8.0.2':
     dependencies:
       string-width: 5.1.2
-      string-width-cjs: string-width@4.2.0
+      string-width-cjs: string-width@4.2.3
       strip-ansi: 7.2.0
       strip-ansi-cjs: strip-ansi@6.0.1
       wrap-ansi: 8.1.0
@@ -5453,10 +5468,6 @@ snapshots:
       '@tauri-apps/api': 2.11.1
 
   '@tauri-apps/plugin-fs@2.5.2':
-    dependencies:
-      '@tauri-apps/api': 2.11.1
-
-  '@tauri-apps/plugin-log@2.9.0':
     dependencies:
       '@tauri-apps/api': 2.11.1
 
@@ -6115,6 +6126,8 @@ snapshots:
 
   '@wdio/native-spy@1.2.0': {}
 
+  '@wdio/native-spy@1.3.0': {}
+
   '@wdio/native-types@2.4.0': {}
 
   '@wdio/native-types@2.5.0': {}
@@ -6142,6 +6155,20 @@ snapshots:
       json5: 2.2.3
       smol-toml: 1.8.0
       yaml: 2.9.0
+    optionalDependencies:
+      tsx: 4.23.12
+    transitivePeerDependencies:
+      - supports-color
+
+  '@wdio/native-utils@2.7.0(supports-color@8.1.1)(tsx@4.23.12)':
+    dependencies:
+      '@wdio/logger': 9.29.1
+      debug: 4.4.3(supports-color@8.1.1)
+      esbuild: 0.28.2
+      find-up-simple: 1.0.1
+      json5: 2.2.3
+      smol-toml: 1.8.0
+      yaml: 2.9.1
     optionalDependencies:
       tsx: 4.23.12
     transitivePeerDependencies:
@@ -6206,12 +6233,12 @@ snapshots:
       easy-table: 1.2.0
       pretty-ms: 9.3.1
 
-  '@wdio/tauri-plugin@1.3.0(supports-color@8.1.1)(tsx@4.23.12)':
+  '@wdio/tauri-plugin@1.4.0(supports-color@8.1.1)(tsx@4.23.12)':
     dependencies:
       '@tauri-apps/api': 2.11.1
-      '@tauri-apps/plugin-log': 2.9.0
-      '@wdio/native-spy': 1.2.0
-      '@wdio/native-utils': 2.6.0(supports-color@8.1.1)(tsx@4.23.12)
+      '@tauri-apps/plugin-log': 2.9.1
+      '@wdio/native-spy': 1.3.0
+      '@wdio/native-utils': 2.7.0(supports-color@8.1.1)(tsx@4.23.12)
     transitivePeerDependencies:
       - supports-color
       - tsx
@@ -8811,6 +8838,8 @@ snapshots:
   y18n@5.0.8: {}
 
   yaml@2.9.0: {}
+
+  yaml@2.9.1: {}
 
   yargs-parser@20.2.4: {}
 
