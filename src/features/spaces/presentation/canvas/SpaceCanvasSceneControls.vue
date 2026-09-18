@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ChevronLeft, ChevronRight, List } from "@lucide/vue";
 import { ToolbarButton, ToolbarRoot } from "reka-ui";
-import { computed, shallowRef } from "vue";
+import { computed, nextTick, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
@@ -21,6 +21,7 @@ const editorSession = useCanvasEditorSession();
 const { scenes, activeSceneId, recentSceneId, createScene, getTargetScene, openScene, stepScene } =
   useSceneList();
 const open = shallowRef(false);
+const saving = shallowRef(false);
 const canStep = computed(() => scenes.value.length > 1);
 
 function sceneLabel(direction: -1 | 1) {
@@ -30,15 +31,21 @@ function sceneLabel(direction: -1 | 1) {
 }
 
 async function saveScene() {
+  if (saving.value) return;
   const editor = editorSession.activeEditor.value;
   if (!editor) throw new Error("Canvas editor is unavailable");
-  const thumbnail = await saveCanvasThumbnailBlob(await editor.captureSceneViewport());
+  saving.value = true;
+  let thumbnail: string | undefined;
   try {
+    thumbnail = await saveCanvasThumbnailBlob(await editor.captureSceneViewport());
     const created = await createScene(thumbnail);
     if (!created) await removeSpaceAsset(thumbnail);
+    await nextTick();
   } catch (error) {
-    await removeSpaceAsset(thumbnail);
+    if (thumbnail) await removeSpaceAsset(thumbnail);
     throw error;
+  } finally {
+    saving.value = false;
   }
 }
 
@@ -97,7 +104,7 @@ async function duplicateScene(scene: SpaceScene) {
         <ChevronLeft class="size-(--knovum-icon-size-xs)" :stroke-width="1.55" />
       </UiIconButton>
     </ToolbarButton>
-    <UiPopover v-model:open="open" side="top" align="center" :side-offset="8" class="p-1.5">
+    <UiPopover v-model:open="open" side="top" align="center" :side-offset="6" class="p-0">
       <template #trigger>
         <ToolbarButton as-child>
           <UiIconButton :label="t('spaces.navigation.scenes')" size="sm" class="size-5 rounded-grid-cell">
@@ -108,6 +115,7 @@ async function duplicateScene(scene: SpaceScene) {
       <SpaceCanvasScenePanel
         :scenes="scenes"
         :recent-scene-id="recentSceneId"
+        :saving="saving"
         v-bind="activeSceneId ? { activeSceneId } : {}"
         @create="saveScene"
         @duplicate="duplicateScene"

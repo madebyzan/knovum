@@ -58,34 +58,35 @@ const canvasChromeInsets = { top: 56, right: 16, bottom: 56, left: 16 } as const
     />
     <div
       v-if="!empty"
-      class="pointer-events-auto absolute bottom-1.5 left-1.5 flex h-7 items-center overflow-hidden rounded-control border border-border-strong bg-canvas"
+      class="pointer-events-auto absolute bottom-1 left-1 flex h-6 items-center overflow-hidden rounded-control border border-border-strong bg-canvas"
     >
       <SpaceCanvasViewControls />
       <Transition
-        enter-active-class="transition-[opacity,transform] duration-150 ease-standard motion-reduce:transition-none"
-        enter-from-class="-translate-x-1 opacity-0"
-        leave-active-class="transition-[opacity,transform] duration-100 ease-standard motion-reduce:transition-none"
-        leave-to-class="-translate-x-1 opacity-0"
+        enter-active-class="overflow-hidden transition-[width,opacity,transform] duration-180 ease-standard motion-reduce:transition-none"
+        enter-from-class="w-0 -translate-x-1 opacity-0"
+        leave-active-class="overflow-hidden transition-[width,opacity,transform] duration-160 ease-standard motion-reduce:transition-none"
+        leave-to-class="w-0 -translate-x-1 opacity-0"
       >
         <div
           v-if="!scenesCollapsed"
-          class="flex h-full w-17 shrink-0 items-center border-x border-border-strong bg-control px-0.5"
+          class="flex h-full w-17 shrink-0 items-center overflow-hidden border-l border-border-strong bg-control px-0.5"
         >
           <SpaceCanvasSceneControls />
         </div>
       </Transition>
-      <UiIconButton
-        :label="t(scenesCollapsed ? 'spaces.navigation.expandScenes' : 'spaces.navigation.collapseScenes')"
-        size="sm"
-        class="mx-0.5 size-5 rounded-grid-cell border border-border-strong text-foreground hover:border-border-hover hover:bg-control-hover"
-        @click="scenesCollapsed = !scenesCollapsed"
-      >
-        <Star
-          class="size-(--knovum-icon-size-xs) transition-transform duration-150 ease-standard"
-          :class="scenesCollapsed ? 'scale-95' : 'scale-100'"
-          :stroke-width="1.55"
-        />
-      </UiIconButton>
+      <div class="flex h-full shrink-0 items-center border-l border-border-strong px-0.5">
+        <UiIconButton
+          :label="t(scenesCollapsed ? 'spaces.navigation.expandScenes' : 'spaces.navigation.collapseScenes')"
+          size="sm"
+          class="size-5 rounded-grid-cell text-foreground-secondary hover:bg-control-hover hover:text-foreground"
+          @click="scenesCollapsed = !scenesCollapsed"
+        >
+          <Star
+            class="size-(--knovum-icon-size-xs)"
+            :stroke-width="1.55"
+          />
+        </UiIconButton>
+      </div>
     </div>
     <SpaceCanvasSelectionAnchor
       v-if="

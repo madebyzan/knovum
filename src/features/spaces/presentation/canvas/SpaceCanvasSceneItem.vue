@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Check, Copy, Ellipsis, Pencil, RefreshCw, Trash2, X } from "@lucide/vue";
-import { computed, shallowRef } from "vue";
+import { computed, nextTick, shallowRef, useTemplateRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiDropdownMenu from "../../../../shared/ui/UiDropdownMenu.vue";
@@ -24,10 +24,13 @@ const emit = defineEmits<{
 const { t } = useI18n();
 const editing = shallowRef(false);
 const title = shallowRef("");
+const titleInput = useTemplateRef<InstanceType<typeof UiInput>>("titleInput");
 
-function beginRename() {
+async function beginRename() {
   title.value = scene.title;
   editing.value = true;
+  await nextTick();
+  titleInput.value?.focus();
 }
 
 function finishRename() {
@@ -53,62 +56,71 @@ const menuItems = computed(() => [
 <template>
   <div
     :data-scene-id="scene.id"
-    class="group grid min-h-13 items-center px-2 transition-colors duration-100 ease-standard"
+    class="group relative mb-0.5 min-h-14 rounded-control transition-colors duration-100 ease-standard last:mb-0"
     :class="[
-      editing ? 'grid-cols-[4rem_minmax(0,1fr)_3.5rem]' : 'grid-cols-[4rem_minmax(0,1fr)_1.75rem]',
-      active ? 'bg-control-pressed text-foreground' : 'text-foreground-secondary',
-      recent
-        ? 'animate-in duration-150 ease-standard fade-in-0 slide-in-from-top-1 motion-reduce:animate-none'
-        : '',
+      active ? 'bg-control-pressed' : 'hover:bg-control-hover',
+      recent ? 'scene-item-recent' : '',
     ]"
   >
-    <img
-      v-if="scene.thumbnailPath"
-      :src="spaceAssetSource(scene.thumbnailPath)"
-      alt=""
-      class="h-9 w-14 rounded-grid-cell border border-border-strong bg-canvas object-cover"
-      draggable="false"
-    />
-    <div v-else class="h-9 w-14 rounded-grid-cell border border-border-strong bg-canvas" />
-    <div v-if="editing" class="min-w-0 pr-2">
+    <div v-if="editing" class="grid min-h-14 grid-cols-[4.75rem_minmax(0,1fr)_3rem] items-center gap-2 px-1.5 py-1">
+      <img
+        v-if="scene.thumbnailPath"
+        :src="spaceAssetSource(scene.thumbnailPath)"
+        alt=""
+        class="h-10 w-18 rounded-grid-cell border border-border-strong bg-canvas object-cover"
+        draggable="false"
+      />
+      <div v-else class="h-10 w-18 rounded-grid-cell border border-border-strong bg-canvas" />
       <UiInput
+        ref="titleInput"
         v-model="title"
-        class="h-(--knovum-control-height-sm) w-full min-w-0"
+        class="h-7 w-full min-w-0"
         @keydown.enter="finishRename"
         @keydown.escape="editing = false"
       />
+      <div class="flex items-center justify-self-end">
+        <UiIconButton :label="t('common.save')" :tooltip="false" size="sm" class="size-6" @click="finishRename">
+          <Check class="size-(--knovum-icon-size-xs)" />
+        </UiIconButton>
+        <UiIconButton
+          :label="t('common.cancel')"
+          :tooltip="false"
+          size="sm"
+          class="size-6"
+          @click="editing = false"
+        >
+          <X class="size-(--knovum-icon-size-xs)" />
+        </UiIconButton>
+      </div>
     </div>
+
     <button
       v-else
       type="button"
-      class="min-w-0 self-stretch text-left outline-none focus-visible:text-foreground"
+      class="grid min-h-14 w-full grid-cols-[4.75rem_minmax(0,1fr)] items-center gap-2 rounded-control px-1.5 py-1 pr-8 text-left outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-inset"
+      :aria-current="active ? 'true' : undefined"
       @click="emit('open', scene)"
+      @dblclick.stop="beginRename"
     >
-      <span class="flex h-full items-center truncate text-label font-medium text-foreground">
-        {{ scene.title }}
-      </span>
+      <img
+        v-if="scene.thumbnailPath"
+        :src="spaceAssetSource(scene.thumbnailPath)"
+        alt=""
+        class="h-10 w-18 rounded-grid-cell border border-border-strong bg-canvas object-cover"
+        draggable="false"
+      />
+      <span v-else class="h-10 w-18 rounded-grid-cell border border-border-strong bg-canvas" />
+      <span class="min-w-0 truncate text-label font-medium text-foreground">{{ scene.title }}</span>
     </button>
-    <div v-if="editing" class="flex items-center gap-1 justify-self-end pr-1">
-      <UiIconButton :label="t('common.save')" :tooltip="false" size="sm" class="size-6" @click="finishRename">
-        <Check class="size-(--knovum-icon-size-xs)" />
-      </UiIconButton>
-      <UiIconButton
-        :label="t('common.cancel')"
-        :tooltip="false"
-        size="sm"
-        class="size-6"
-        @click="editing = false"
-      >
-        <X class="size-(--knovum-icon-size-xs)" />
-      </UiIconButton>
-    </div>
-    <UiDropdownMenu v-else side="right" align="start" :items="menuItems">
+
+    <UiDropdownMenu v-if="!editing" side="right" align="start" :items="menuItems">
       <template #trigger>
         <UiIconButton
           :label="t('common.more')"
           :tooltip="false"
           size="sm"
-          class="size-6 rounded-grid-cell border border-transparent opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 hover:border-border"
+          class="absolute top-1/2 right-1 z-10 size-6 -translate-y-1/2 rounded-grid-cell opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 data-[state=open]:bg-control-pressed data-[state=open]:opacity-100"
+          @click.stop
         >
           <Ellipsis class="size-(--knovum-icon-size-xs)" />
         </UiIconButton>
@@ -116,3 +128,28 @@ const menuItems = computed(() => [
     </UiDropdownMenu>
   </div>
 </template>
+
+<style scoped>
+.scene-item-recent {
+  animation: scene-item-arrive 420ms var(--ease-standard);
+}
+
+@keyframes scene-item-arrive {
+  0% {
+    opacity: 0;
+    transform: translateY(-5px) scale(0.985);
+    background: var(--knovum-color-background-control-pressed);
+  }
+  55% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    background: var(--knovum-color-background-control-pressed);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene-item-recent {
+    animation: none;
+  }
+}
+</style>

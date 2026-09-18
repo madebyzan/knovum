@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Plus } from "@lucide/vue";
+import { LoaderCircle, Plus } from "@lucide/vue";
 import { nextTick, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -7,9 +7,10 @@ import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import type { SpaceScene } from "../../scenes/scene";
 import SpaceCanvasSceneItem from "./SpaceCanvasSceneItem.vue";
 
-const { activeSceneId, recentSceneId, scenes } = defineProps<{
+const { activeSceneId, recentSceneId, saving, scenes } = defineProps<{
   activeSceneId?: string;
   recentSceneId?: string;
+  saving: boolean;
   scenes: readonly SpaceScene[];
 }>();
 const emit = defineEmits<{
@@ -36,23 +37,22 @@ watch(
 </script>
 
 <template>
-  <section class="w-72 select-none">
-    <header class="flex items-center justify-between gap-3 px-1.5 pt-0.5 pb-2">
-      <p class="text-label font-semibold text-foreground">{{ t("spaces.navigation.scenes") }}</p>
+  <section class="w-68 select-none overflow-hidden rounded-[inherit]">
+    <header class="flex h-9 items-center justify-between border-b border-divider px-2.5">
+      <p class="text-label font-medium text-foreground">{{ t("spaces.navigation.scenes") }}</p>
       <UiIconButton
         :label="t('spaces.navigation.saveScene')"
         size="sm"
-        class="size-6 rounded-grid-cell border border-border-strong"
+        class="size-6 rounded-grid-cell"
+        :disabled="saving"
+        :aria-busy="saving"
         @click="emit('create')"
       >
-        <Plus class="size-(--knovum-icon-size-xs)" :stroke-width="1.55" />
+        <LoaderCircle v-if="saving" class="size-(--knovum-icon-size-sm) animate-spin" :stroke-width="1.6" />
+        <Plus v-else class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
       </UiIconButton>
     </header>
-    <div
-      v-if="scenes.length"
-      ref="sceneList"
-      class="scene-list max-h-72 divide-y divide-border overflow-y-auto rounded-control border border-border-strong bg-control"
-    >
+    <div v-if="scenes.length" ref="sceneList" class="scene-list max-h-80 overflow-y-auto p-1.5">
       <SpaceCanvasSceneItem
         v-for="scene in scenes"
         :key="scene.id"
@@ -66,9 +66,21 @@ watch(
         @update="emit('update', $event)"
       />
     </div>
-    <p v-else class="px-2 py-5 text-center text-caption text-foreground-tertiary">
-      {{ t("spaces.navigation.scenesEmpty") }}
-    </p>
+    <div v-else class="flex flex-col items-center px-5 py-5 text-center">
+      <p class="text-caption leading-5 text-foreground-tertiary">
+        {{ t("spaces.navigation.scenesEmpty") }}
+      </p>
+      <button
+        type="button"
+        class="mt-3 flex h-7 items-center gap-1.5 rounded-control border border-border-strong bg-control px-3 text-caption font-medium text-foreground shadow-control hover:bg-control-hover active:bg-control-pressed disabled:pointer-events-none disabled:opacity-50"
+        :disabled="saving"
+        :aria-busy="saving"
+        @click="emit('create')"
+      >
+        <LoaderCircle v-if="saving" class="size-(--knovum-icon-size-xs) animate-spin" />
+        {{ t("spaces.navigation.saveScene") }}
+      </button>
+    </div>
   </section>
 </template>
 
