@@ -37,7 +37,7 @@ watch(
 </script>
 
 <template>
-  <section class="w-68 select-none overflow-hidden rounded-[inherit]">
+  <section class="w-68 overflow-hidden rounded-[inherit] select-none">
     <header class="flex h-9 items-center justify-between border-b border-divider px-2.5">
       <p class="text-label font-medium text-foreground">{{ t("spaces.navigation.scenes") }}</p>
       <UiIconButton

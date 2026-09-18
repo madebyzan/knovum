@@ -81,10 +81,7 @@ const canvasChromeInsets = { top: 56, right: 16, bottom: 56, left: 16 } as const
           class="size-5 rounded-grid-cell text-foreground-secondary hover:bg-control-hover hover:text-foreground"
           @click="scenesCollapsed = !scenesCollapsed"
         >
-          <Star
-            class="size-(--knovum-icon-size-xs)"
-            :stroke-width="1.55"
-          />
+          <Star class="size-(--knovum-icon-size-xs)" :stroke-width="1.55" />
         </UiIconButton>
       </div>
     </div>

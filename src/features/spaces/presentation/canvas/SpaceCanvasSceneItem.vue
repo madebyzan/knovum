@@ -57,12 +57,12 @@ const menuItems = computed(() => [
   <div
     :data-scene-id="scene.id"
     class="group relative mb-0.5 min-h-14 rounded-control transition-colors duration-100 ease-standard last:mb-0"
-    :class="[
-      active ? 'bg-control-pressed' : 'hover:bg-control-hover',
-      recent ? 'scene-item-recent' : '',
-    ]"
+    :class="[active ? 'bg-control-pressed' : 'hover:bg-control-hover', recent ? 'scene-item-recent' : '']"
   >
-    <div v-if="editing" class="grid min-h-14 grid-cols-[4.75rem_minmax(0,1fr)_3rem] items-center gap-2 px-1.5 py-1">
+    <div
+      v-if="editing"
+      class="grid min-h-14 grid-cols-[4.75rem_minmax(0,1fr)_3rem] items-center gap-2 px-1.5 py-1"
+    >
       <img
         v-if="scene.thumbnailPath"
         :src="spaceAssetSource(scene.thumbnailPath)"
@@ -79,7 +79,13 @@ const menuItems = computed(() => [
         @keydown.escape="editing = false"
       />
       <div class="flex items-center justify-self-end">
-        <UiIconButton :label="t('common.save')" :tooltip="false" size="sm" class="size-6" @click="finishRename">
+        <UiIconButton
+          :label="t('common.save')"
+          :tooltip="false"
+          size="sm"
+          class="size-6"
+          @click="finishRename"
+        >
           <Check class="size-(--knovum-icon-size-xs)" />
         </UiIconButton>
         <UiIconButton

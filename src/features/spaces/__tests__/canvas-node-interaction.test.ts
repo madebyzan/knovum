@@ -32,9 +32,9 @@ describe("canvas node interaction policy", () => {
         }),
       ).activationMode,
     ).toBe("select-to-interact");
-    expect(
-      canvasNodeInteraction(canvasNode("file", { kind: "file", title: "doc.pdf" })).activationMode,
-    ).toBe("primary");
+    expect(canvasNodeInteraction(canvasNode("file", { kind: "file", title: "doc.pdf" })).activationMode).toBe(
+      "primary",
+    );
     expect(
       canvasNodeInteraction(canvasNode("section", { kind: "section", title: "Section" })).activationMode,
     ).toBe("primary");

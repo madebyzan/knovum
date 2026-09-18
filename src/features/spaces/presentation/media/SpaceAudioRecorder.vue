@@ -107,7 +107,7 @@ watch(
         </span>
 
         <div class="ml-2 min-w-0 flex-1">
-          <div class="text-body font-medium leading-5 tabular-nums">{{ controller.elapsedLabel.value }}</div>
+          <div class="text-body leading-5 font-medium tabular-nums">{{ controller.elapsedLabel.value }}</div>
           <div role="status" class="truncate text-micro leading-4 text-foreground-tertiary">
             {{ statusText }}
           </div>
