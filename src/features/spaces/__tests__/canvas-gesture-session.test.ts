@@ -24,16 +24,14 @@ describe("canvas gesture session", () => {
     expect(session.directManipulation.value).toBeUndefined();
   });
 
-  it("routes keyboard movement through the atomic gesture commit", async () => {
+  it("commits keyboard movement without implicitly changing Section membership", async () => {
     const nodes = [section(), note("member", 1_000, 40)];
     const { events, model } = harness(nodes);
     const session = gestureSession(model, events, nodes, new Set(["member"]));
 
     await session.nudge({ x: -950, y: 0 });
 
-    expect(events.onCommitGesture).toHaveBeenCalledWith(
-      expect.objectContaining({ assignments: [{ id: "member", sectionId: "section" }] }),
-    );
+    expect(events.onCommitGesture).toHaveBeenCalledWith(expect.objectContaining({ assignments: [] }));
   });
 
   it("serializes rapid keyboard nudges from the latest committed document", async () => {

@@ -8,7 +8,7 @@ import {
   editorPortDocument as document,
   editorPortHistory as history,
   editorPortHostEvents as hostEvents,
-} from "./konva-editor-port-fixture";
+} from "../canvas/konva/testing/editor-port-fixture";
 
 describe("Konva editor port", () => {
   it("routes clipboard operations through product ports and uses the last canvas pointer", async () => {
@@ -45,7 +45,10 @@ describe("Konva editor port", () => {
       setSelection() {},
       setViewport() {},
       size: () => ({ width: 800, height: 600 }),
-      stage: () => undefined,
+      animateViewport() {},
+      palette: () => {
+        throw new Error("This port fixture does not render a palette");
+      },
       viewport: () => document.viewport,
       onCommitGesture: async (request) => ({ document: request.document, revision: 1, history }),
       onCopyNodes: copy,
@@ -119,7 +122,10 @@ describe("Konva editor port", () => {
       setSelection,
       setViewport() {},
       size: () => ({ width: 800, height: 600 }),
-      stage: () => undefined,
+      animateViewport() {},
+      palette: () => {
+        throw new Error("This port fixture does not render a palette");
+      },
       viewport: () => document.viewport,
       ...hostEvents(),
       onDeleteSelection: deleteSelection,

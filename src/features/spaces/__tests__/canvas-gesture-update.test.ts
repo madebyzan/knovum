@@ -43,4 +43,24 @@ describe("canvas gesture layout updates", () => {
     ]);
     expect(applyCanvasGestureUpdates(scaled, captured).nodes[0]?.appearance).toBeUndefined();
   });
+
+  it("preserves unchanged records without inventing absent appearance fields", () => {
+    const next = applyCanvasGestureUpdates(document, [
+      { nodeId: "text", frame: { ...document.nodes[0]!.frame } },
+    ]);
+    expect(next).toEqual(document);
+    expect(next.nodes[0]).toBe(document.nodes[0]);
+    expect(next.nodes[0]).not.toHaveProperty("appearance");
+  });
+
+  it("restores absence as the exact original layout shape without mutating the source", () => {
+    const captured = captureCanvasGestureLayouts(document, [
+      { nodeId: "text", frame: { ...document.nodes[0]!.frame } },
+    ]);
+    const appearance = { typographyScale: 2 };
+    const next = applyCanvasGestureUpdates(document, [{ ...captured[0]!, appearance }]);
+    expect(next.nodes[0]?.appearance).not.toBe(appearance);
+    expect(document.nodes[0]).not.toHaveProperty("appearance");
+    expect(applyCanvasGestureUpdates(next, captured)).toEqual(document);
+  });
 });

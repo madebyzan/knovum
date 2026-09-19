@@ -1,5 +1,5 @@
-import type { CanvasDocumentV1 } from "../canvas/contract/canvas-document";
-import type { CanvasPersistenceHistory, CanvasSurfaceEvents } from "../canvas/contract/canvas-editor";
+import type { CanvasDocumentV1 } from "../../contract/canvas-document";
+import type { CanvasPersistenceHistory, CanvasSurfaceEvents } from "../../contract/canvas-editor";
 
 export const editorPortDocument: CanvasDocumentV1 = {
   version: 1,

@@ -1,10 +1,13 @@
+import { isEqual } from "es-toolkit";
 import type Konva from "konva";
 import { shallowRef } from "vue";
 
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
+import { requireMovableScope, resolveCanvasMovementScope } from "../../../organization/movement-scope";
 import type { CanvasNodeFrameUpdate, CanvasNodeLayoutV1 } from "../../contract/canvas-document";
 import type { CanvasPersistenceHistory, CanvasSurfaceEvents } from "../../contract/canvas-editor";
 import type { CanvasPoint } from "../../contract/canvas-editor-port";
+import { expandCanvasMovement } from "../../document/canvas-movement";
 import type { CanvasDocumentModel } from "../document/canvas-document-model";
 import {
   applyCanvasGestureUpdates,
@@ -62,7 +65,7 @@ export function createCanvasGestureSession(options: CanvasGestureSessionOptions)
   }
 
   function nudge(offset: CanvasPoint) {
-    const targetNodeIds = movableSelectionNodeIds();
+    const targetNodeIds = new Set(options.selectedNodeIds());
     return enqueue(() => commitNudge(offset, targetNodeIds));
   }
 
@@ -73,24 +76,17 @@ export function createCanvasGestureSession(options: CanvasGestureSessionOptions)
   }
 
   async function commitNudge(offset: CanvasPoint, targetNodeIds: ReadonlySet<string>) {
-    const updates = options
-      .layouts()
-      .flatMap<CanvasNodeFrameUpdate>(({ nodeId, frame }) =>
-        targetNodeIds.has(nodeId)
-          ? [{ nodeId, frame: { ...frame, x: frame.x + offset.x, y: frame.y + offset.y } }]
-          : [],
-      );
+    const scope = requireMovableScope(resolveCanvasMovementScope(options.nodes(), targetNodeIds));
+    const layouts = options.layouts();
+    const byId = new Map(layouts.map((layout) => [layout.nodeId, layout]));
+    const roots = [...scope.rootIds].map((nodeId) => {
+      const layout = byId.get(nodeId);
+      if (!layout) throw new Error(`The movement root has no layout: ${nodeId}`);
+      const frame = layout.frame;
+      return { nodeId, frame: { ...frame, x: frame.x + offset.x, y: frame.y + offset.y } };
+    });
+    const updates = expandCanvasMovement(options.nodes(), layouts, roots);
     await commit(updates);
-  }
-
-  function movableSelectionNodeIds() {
-    const nodes = options.nodes();
-    const selected = new Set(options.selectedNodeIds());
-    for (const node of nodes) {
-      if (node.data.sectionId && selected.has(node.data.sectionId)) selected.add(node.id);
-    }
-    const locked = new Set(nodes.filter(({ data }) => data.locked).map(({ id }) => id));
-    return new Set([...selected].filter((id) => !locked.has(id)));
   }
 
   async function commit(updates: readonly CanvasGestureUpdate[], manipulation?: CanvasDirectManipulation) {
@@ -101,19 +97,31 @@ export function createCanvasGestureSession(options: CanvasGestureSessionOptions)
     }
     const before = options.document.document;
     const after = applyCanvasGestureUpdates(before, updates);
-    const assignments = sectionAssignments(
-      updates.map(({ nodeId: movedNodeId }) => movedNodeId),
-      after.nodes,
-      options.sectionNodeIds(),
-      options.nodes(),
-    );
+    if (isEqual(before, after)) {
+      options.previewFrames([]);
+      finishDirectManipulation(manipulation);
+      return;
+    }
+    const assignments =
+      manipulation === "drag"
+        ? sectionAssignments(
+            [
+              ...requireMovableScope(
+                resolveCanvasMovementScope(options.nodes(), new Set(updates.map(({ nodeId }) => nodeId))),
+              ).rootIds,
+            ],
+            after.nodes,
+            options.sectionNodeIds(),
+            options.nodes(),
+          )
+        : [];
     const beforeFrames = captureCanvasGestureLayouts(before, updates);
-    options.document.applyLocalDocument(after);
+    options.document.replace(after);
     options.previewFrames([]);
     finishDirectManipulation(manipulation);
     try {
       const committed = await options.events.onCommitGesture({ assignments, document: after });
-      options.document.applyLocalDocument(committed.document);
+      options.document.replace(committed.document);
       const afterFrames = captureCanvasGestureLayouts(committed.document, updates);
       controller.restoreFrames(afterFrames);
       options.events.onHistoryEntry({
@@ -121,7 +129,7 @@ export function createCanvasGestureSession(options: CanvasGestureSessionOptions)
         redo: () => replay(afterFrames, committed.history.redo),
       });
     } catch (error) {
-      options.document.applyLocalDocument(before);
+      options.document.replace(before);
       controller.restoreFrames(beforeFrames);
       throw error;
     }
@@ -159,7 +167,7 @@ export function createCanvasGestureSession(options: CanvasGestureSessionOptions)
   ) {
     const document = applyCanvasGestureUpdates(options.document.document, updates);
     const result = await options.events.onHistoryTransition(document, transition);
-    options.document.applyLocalDocument(result.document);
+    options.document.replace(result.document);
   }
 
   return {

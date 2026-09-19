@@ -22,7 +22,7 @@ export function useNodeDragAutoPan(options: NodeDragAutoPanOptions) {
   });
 
   function begin(nodeId: string) {
-    options.gestures.controller.beginDrag(nodeId);
+    if (!options.gestures.controller.beginDrag(nodeId)) return;
     activeNodeId = nodeId;
     options.gestures.beginDirectManipulation("drag");
   }

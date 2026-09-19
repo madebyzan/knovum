@@ -58,6 +58,28 @@ Knowledge Events, Knowledge chunks, AI threads and AI messages inside one Rust
 SQLx read transaction; the Renderer receives one complete manifest and never supplies authoritative
 database state for export.
 
+## Canvas movement ownership
+
+Movement distinguishes explicit selection, operation roots and affected members through one
+Space-owned query. A selected Section and one of its selected members become one operation root;
+multiple selected Sections each carry their complete member set regardless of which starts a drag.
+Mouse drag, keyboard nudge, alignment, distribution and automatic layout share that scope.
+Arrangement computes root translations and applies each translation to its complete operation unit;
+it does not resize a Section around stationary content.
+
+A locked selected root or a directly edited item inside a locked Section blocks the whole movement.
+Locked descendants follow their unlocked Section without changing their relative positions. Missing
+affected geometry fails the operation rather than leaving members behind. These rules do not redefine
+resize, deletion or content-editing lock policies.
+
+Only an explicit content drag can change Section membership. Keyboard movement, arrangement, resize
+and Fit never infer membership from their resulting geometry; dragging a Section does not independently
+reassign its members. Gesture previews, committed results and rejected-gesture rollbacks update the
+renderer projection without entering the independent plain-document autosave path. The host-owned
+atomic gesture transaction is the sole durable writer for that gesture. Its Undo/Redo restores the
+whole captured geometry without changing the current camera. No-op gestures neither persist nor
+create history; removing an appearance during replay restores the original absence of that field.
+
 ## Cross-resource cleanup
 
 SQLite cannot atomically commit filesystem or Keychain side effects.

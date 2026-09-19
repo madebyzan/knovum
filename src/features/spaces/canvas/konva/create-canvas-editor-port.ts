@@ -1,5 +1,6 @@
+import { requireMovableScope, resolveCanvasMovementScope } from "../../organization/movement-scope";
 import { captureCanvasOverview, captureCanvasViewport } from "../canvas-overview-capture";
-import type { CanvasEditorPort, CanvasPoint, CanvasRect } from "../contract/canvas-editor-port";
+import type { CanvasEditorPort } from "../contract/canvas-editor-port";
 import {
   alignCanvasLayouts,
   distributeCanvasLayouts,
@@ -7,15 +8,11 @@ import {
 } from "../document/canvas-arrangement";
 import { autoLayoutCanvas } from "../document/canvas-auto-layout";
 import { removeCanvasSelection } from "../document/canvas-content";
-import {
-  canvasNodePlacements,
-  createCanvasSelectionSnapshot,
-  movableCanvasNodeIds,
-} from "../document/canvas-selection-snapshot";
+import { expandCanvasMovement } from "../document/canvas-movement";
+import { canvasNodePlacements, createCanvasSelectionSnapshot } from "../document/canvas-selection-snapshot";
 import { createCanvasPersistenceHistory } from "../persistence/canvas-persistence-history";
 import type { KonvaEditorPortOptions } from "./canvas-editor-port-options";
 import { canvasAutoLayoutEdges } from "./document/canvas-auto-layout-edges";
-import type { CanvasDocumentModel } from "./document/canvas-document-model";
 import { createNodeContentHeightBatch } from "./node-content-height-batch";
 import { projectCanvasScene } from "./scene/scene-projection";
 import {
@@ -42,18 +39,25 @@ export function createKonvaEditorPort(options: KonvaEditorPortOptions): CanvasEd
     moveSelectionLayer: (mode) => options.model.moveNodes(options.selectedNodeIds(), mode),
     alignSelection: (mode) => {
       const nodeIds = movableSelectedNodeIds();
-      return options.runFrameMutation(() => alignCanvasLayouts(layoutsFor(nodeIds), mode));
+      return options.runFrameMutation(() => expandMovement(alignCanvasLayouts(layoutsFor(nodeIds), mode)));
     },
     autoLayoutSelection: (direction) => {
       const nodeIds = movableSelectedNodeIds();
-      return options.runFrameMutation(() => {
+      return options.runFrameMutation(async () => {
         const targetLayouts = layoutsFor(nodeIds);
-        return autoLayoutCanvas(targetLayouts, canvasAutoLayoutEdges(options.relations()), direction);
+        const updates = await autoLayoutCanvas(
+          targetLayouts,
+          canvasAutoLayoutEdges(options.relations()),
+          direction,
+        );
+        return expandMovement(updates);
       });
     },
     distributeSelection: (mode) => {
       const nodeIds = movableSelectedNodeIds();
-      return options.runFrameMutation(() => distributeCanvasLayouts(layoutsFor(nodeIds), mode));
+      return options.runFrameMutation(() =>
+        expandMovement(distributeCanvasLayouts(layoutsFor(nodeIds), mode)),
+      );
     },
     fitSection: (sectionId) => {
       const memberIds = new Set(
@@ -156,7 +160,12 @@ export function createKonvaEditorPort(options: KonvaEditorPortOptions): CanvasEd
   }
 
   function movableSelectedNodeIds() {
-    return movableCanvasNodeIds(options.nodes(), options.selectedNodeIds());
+    return requireMovableScope(resolveCanvasMovementScope(options.nodes(), options.selectedNodeIds()))
+      .rootIds;
+  }
+
+  function expandMovement(updates: Parameters<typeof expandCanvasMovement>[2]) {
+    return expandCanvasMovement(options.nodes(), options.layouts(), updates);
   }
 
   function layoutsFor(nodeIds: ReadonlySet<string>) {

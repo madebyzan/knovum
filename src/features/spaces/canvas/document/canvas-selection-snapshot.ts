@@ -1,4 +1,3 @@
-import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { CanvasNodeLayoutV1 } from "../contract/canvas-document";
 import type { CanvasRect, CanvasSelectionSnapshot } from "../contract/canvas-editor-port";
 import { canvasLayoutBounds } from "./canvas-arrangement";
@@ -39,9 +38,4 @@ export function canvasNodePlacements(layouts: readonly CanvasNodeLayoutV1[], nod
   return layouts.flatMap(({ nodeId, frame }) =>
     nodeIds.has(nodeId) ? [{ id: nodeId, x: frame.x, y: frame.y }] : [],
   );
-}
-
-export function movableCanvasNodeIds(nodes: readonly SpaceCanvasNode[], selectedIds: ReadonlySet<string>) {
-  const lockedIds = new Set(nodes.filter(({ data }) => data.locked).map(({ id }) => id));
-  return new Set([...selectedIds].filter((id) => !lockedIds.has(id)));
 }

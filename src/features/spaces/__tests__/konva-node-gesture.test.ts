@@ -51,7 +51,7 @@ describe("Konva node gestures", () => {
     expect(updates).toHaveLength(2);
   });
 
-  it("does not move locked nodes in a multi-selection", async () => {
+  it("rejects the complete drag when a selected operation root is locked", async () => {
     const layouts = [layout("free", 0, 0), layout("locked", 40, 80)];
     const nodes = [
       canvasNote("free", 0, 0),
@@ -72,13 +72,13 @@ describe("Konva node gestures", () => {
       zoom: () => 1,
     });
 
-    gestures.beginDrag("free");
-    shapes.get("free")!.position({ x: 20, y: 20 });
+    expect(gestures.beginDrag("free")).toBe(false);
     gestures.moveDrag("free");
     const updates = await gestures.endDrag("free");
 
     expect(shapes.get("locked")!.position()).toEqual({ x: 40, y: 80 });
-    expect(updates.map(({ nodeId }) => nodeId)).toEqual(["free"]);
+    expect(updates).toEqual([]);
+    expect(shapes.get("free")!.position()).toEqual({ x: 0, y: 0 });
   });
 
   it("normalizes the native Transformer scale when the gesture ends", async () => {
@@ -134,6 +134,7 @@ interface FakeNode {
   scale(point: { x: number; y: number }): void;
   scaleX(): number;
   scaleY(): number;
+  stopDrag(): void;
 }
 
 function shape(nodeId: string, initialX: number, initialY: number): FakeNode {
@@ -148,6 +149,7 @@ function shape(nodeId: string, initialX: number, initialY: number): FakeNode {
     },
     rotation: () => 0,
     scale() {},
+    stopDrag() {},
     scaleX: () => 1,
     scaleY: () => 1,
   } as FakeNode;

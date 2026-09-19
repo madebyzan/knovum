@@ -1,3 +1,4 @@
+import { sameCanvasNodeAppearance } from "../../contract/canvas-document";
 import type {
   CanvasDocumentV1,
   CanvasNodeFrame,
@@ -32,12 +33,18 @@ export function applyCanvasGestureUpdates(
     nodes: document.nodes.map((node) => {
       const update = layouts.get(node.nodeId);
       if (!update) return node;
-      return {
-        ...node,
-        frame: { ...update.frame },
-        sizeAuthority: update.sizeAuthority ?? node.sizeAuthority,
-        appearance: "appearance" in update ? (update.appearance ?? undefined) : node.appearance,
-      };
+      const sizeAuthority = update.sizeAuthority ?? node.sizeAuthority;
+      const appearance = "appearance" in update ? (update.appearance ?? undefined) : node.appearance;
+      if (
+        sameCanvasFrame(node.frame, update.frame) &&
+        sizeAuthority === node.sizeAuthority &&
+        sameCanvasNodeAppearance(node.appearance, appearance)
+      )
+        return node;
+      const next = { ...node, frame: { ...update.frame }, sizeAuthority };
+      if (appearance) next.appearance = { ...appearance };
+      else delete next.appearance;
+      return next;
     }),
   };
 }
