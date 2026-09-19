@@ -75,10 +75,12 @@ resize, deletion or content-editing lock policies.
 Only an explicit content drag can change Section membership. Keyboard movement, arrangement, resize
 and Fit never infer membership from their resulting geometry; dragging a Section does not independently
 reassign its members. Gesture previews, committed results and rejected-gesture rollbacks update the
-renderer projection without entering the independent plain-document autosave path. The host-owned
+renderer projection without entering the independent plain-document autosave path. The committed model
+remains unchanged while an edit is pending; transient frame previews are separate so a live camera save
+cannot capture uncommitted content geometry. The host-owned
 atomic gesture transaction is the sole durable writer for that gesture. Its Undo/Redo restores the
-whole captured geometry without changing the current camera. No-op gestures neither persist nor
-create history; removing an appearance during replay restores the original absence of that field.
+whole captured geometry without changing the current camera, including camera movement during the
+commit itself. No-op gestures neither persist nor create history; removing an appearance during replay restores the original absence of that field.
 
 ## Cross-resource cleanup
 

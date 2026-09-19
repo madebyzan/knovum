@@ -116,12 +116,10 @@ export function createCanvasGestureSession(options: CanvasGestureSessionOptions)
           )
         : [];
     const beforeFrames = captureCanvasGestureLayouts(before, updates);
-    options.document.replace(after);
-    options.previewFrames([]);
-    finishDirectManipulation(manipulation);
+    options.previewFrames(updates);
     try {
       const committed = await options.events.onCommitGesture({ assignments, document: after });
-      options.document.replace(committed.document);
+      options.document.replace({ ...committed.document, viewport: options.document.document.viewport });
       const afterFrames = captureCanvasGestureLayouts(committed.document, updates);
       controller.restoreFrames(afterFrames);
       options.events.onHistoryEntry({
@@ -129,9 +127,11 @@ export function createCanvasGestureSession(options: CanvasGestureSessionOptions)
         redo: () => replay(afterFrames, committed.history.redo),
       });
     } catch (error) {
-      options.document.replace(before);
-      controller.restoreFrames(beforeFrames);
+      controller.restoreFrames(captureCanvasGestureLayouts(options.document.document, updates));
       throw error;
+    } finally {
+      options.previewFrames([]);
+      finishDirectManipulation(manipulation);
     }
   }
 
@@ -167,7 +167,7 @@ export function createCanvasGestureSession(options: CanvasGestureSessionOptions)
   ) {
     const document = applyCanvasGestureUpdates(options.document.document, updates);
     const result = await options.events.onHistoryTransition(document, transition);
-    options.document.replace(result.document);
+    options.document.replace({ ...result.document, viewport: options.document.document.viewport });
   }
 
   return {
