@@ -1,3 +1,4 @@
+pub(in crate::spaces) mod editing;
 pub(in crate::spaces) mod organization;
 mod agent_artifacts;
 pub(crate) mod assets;
@@ -57,6 +58,7 @@ pub fn plugin() -> tauri::plugin::TauriPlugin<tauri::Wry> {
             crate::spaces::assets::import::media::cancel_media_import,
             crate::spaces::canvas_state::load_canvas_state,
             crate::spaces::canvas_state::save_canvas_state,
+            crate::spaces::canvas_state::save_editor_viewport,
             crate::spaces::canvas_state::commit_canvas_gesture,
             crate::spaces::canvas_state::delete_canvas_selection,
             crate::spaces::canvas_state::restore_canvas_selection,

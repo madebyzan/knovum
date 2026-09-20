@@ -3,6 +3,8 @@ mod appearance;
 mod structure_contract;
 mod gesture;
 mod repository;
+mod stored_document;
+pub(in crate::spaces) mod viewport;
 mod selection;
 mod validation;
 mod structure_validation;
@@ -81,3 +83,8 @@ pub(crate) async fn set_imported_canvas_nodes_deleted<R: Runtime>(
 mod tests;
 
 pub(in crate::spaces) use structure_validation::valid_id as valid_structure_id;
+
+#[tauri::command]
+pub(crate) async fn save_editor_viewport<R: Runtime>(app: AppHandle<R>, request: viewport::SaveViewportRequest) -> Result<(), String> {
+    let pool = db::pool(&app).await?; viewport::save(pool, request).await
+}

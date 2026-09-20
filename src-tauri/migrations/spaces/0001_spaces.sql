@@ -73,25 +73,26 @@ CREATE TABLE spaces_canvas_state (
 
 CREATE TABLE spaces_canvas_asset_references (
   space_id TEXT NOT NULL,
-  node_id TEXT NOT NULL,
+  item_id TEXT NOT NULL,
   path TEXT NOT NULL CHECK (length(path) > 0),
-  PRIMARY KEY (space_id, node_id),
-  FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE,
-  FOREIGN KEY (node_id) REFERENCES spaces_nodes(id) ON DELETE CASCADE
+  PRIMARY KEY (space_id, item_id),
+  FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE
 );
-
 CREATE TRIGGER spaces_canvas_asset_reference_same_space_insert
 BEFORE INSERT ON spaces_canvas_asset_references BEGIN
   SELECT CASE WHEN NOT EXISTS (
-    SELECT 1 FROM spaces_nodes WHERE id = NEW.node_id AND space_id = NEW.space_id
-  ) THEN RAISE(ABORT, 'Canvas asset reference node must belong to Canvas Space') END;
+    SELECT 1 FROM spaces_canvas_state c, json_each(c.document,'$.layout.items') l
+    WHERE c.space_id=NEW.space_id AND json_extract(l.value,'$.itemId')=NEW.item_id
+      AND json_extract(l.value,'$.appearance.background')=NEW.path
+  ) THEN RAISE(ABORT,'Background reference must match its owning editor layout') END;
 END;
-
 CREATE TRIGGER spaces_canvas_asset_reference_same_space_update
-BEFORE UPDATE OF space_id, node_id ON spaces_canvas_asset_references BEGIN
+BEFORE UPDATE ON spaces_canvas_asset_references BEGIN
   SELECT CASE WHEN NOT EXISTS (
-    SELECT 1 FROM spaces_nodes WHERE id = NEW.node_id AND space_id = NEW.space_id
-  ) THEN RAISE(ABORT, 'Canvas asset reference node must belong to Canvas Space') END;
+    SELECT 1 FROM spaces_canvas_state c, json_each(c.document,'$.layout.items') l
+    WHERE c.space_id=NEW.space_id AND json_extract(l.value,'$.itemId')=NEW.item_id
+      AND json_extract(l.value,'$.appearance.background')=NEW.path
+  ) THEN RAISE(ABORT,'Background reference must match its owning editor layout') END;
 END;
 
 CREATE VIEW spaces_semantic_nodes AS
@@ -660,3 +661,44 @@ INSERT INTO spaces_object_types(id, space_id, name, icon, description, fields, s
   ('system:evidence', NULL, 'Evidence', 'quote', 'A source-grounded observation or excerpt.', '[{"key":"observation","label":"Observation","kind":"text","required":true}]', 1, 0, 0),
   ('system:experiment', NULL, 'Experiment', 'flask-conical', 'A hypothesis, method, and result that can generate evidence.', '[{"key":"hypothesis","label":"Hypothesis","kind":"text"},{"key":"result","label":"Result","kind":"text"}]', 1, 0, 0),
   ('system:question', NULL, 'Question', 'circle-help', 'An open or resolved research question.', '[{"key":"question","label":"Question","kind":"text","required":true}]', 1, 0, 0);
+
+
+-- Camera movement is not an organizational edit and does not increment edit revision.
+CREATE TABLE spaces_canvas_viewports (
+  space_id TEXT PRIMARY KEY NOT NULL REFERENCES spaces(id) ON DELETE CASCADE,
+  viewport TEXT NOT NULL CHECK (json_valid(viewport)),
+  updated_at INTEGER NOT NULL
+);
+-- Bounded reversible edit receipts. Content bodies remain solely in their content records.
+CREATE TABLE spaces_edit_receipts (
+  space_id TEXT NOT NULL REFERENCES spaces(id) ON DELETE CASCADE,
+  mutation_id TEXT NOT NULL,
+  request_hash TEXT NOT NULL,
+  applied_revision INTEGER NOT NULL,
+  changes TEXT NOT NULL CHECK (json_valid(changes)),
+  selection_before TEXT NOT NULL CHECK (json_valid(selection_before)),
+  selection_after TEXT NOT NULL CHECK (json_valid(selection_after)),
+  invalidated_at INTEGER,
+  created_at INTEGER NOT NULL,
+  PRIMARY KEY (space_id,mutation_id)
+);
+CREATE INDEX spaces_edit_receipts_created ON spaces_edit_receipts(space_id,created_at);
+-- Deleted snapshots are lifecycle records, never an alternate active structure.
+CREATE TABLE spaces_editor_trash (
+  space_id TEXT NOT NULL REFERENCES spaces(id) ON DELETE CASCADE,
+  item_id TEXT NOT NULL,
+  batch_id TEXT NOT NULL,
+  structure TEXT NOT NULL CHECK (json_valid(structure)),
+  layout TEXT NOT NULL CHECK (json_valid(layout)),
+  world_transform TEXT NOT NULL CHECK (json_valid(world_transform)),
+  deleted_at INTEGER NOT NULL,
+  PRIMARY KEY (space_id,item_id)
+);
+CREATE INDEX spaces_editor_trash_batch ON spaces_editor_trash(space_id,batch_id,deleted_at);
+CREATE TABLE spaces_deleted_relations (
+  space_id TEXT NOT NULL REFERENCES spaces(id) ON DELETE CASCADE,
+  relation_id TEXT PRIMARY KEY NOT NULL REFERENCES spaces_relations(id) ON DELETE CASCADE,
+  batch_id TEXT NOT NULL,
+  style TEXT CHECK (style IS NULL OR json_valid(style)),
+  deleted_at INTEGER NOT NULL
+);

@@ -85,6 +85,7 @@ fn main() {
                         "cancel_media_import",
                         "load_canvas_state",
                         "save_canvas_state",
+                        "save_editor_viewport",
                         "delete_canvas_selection",
                         "commit_canvas_gesture",
                         "restore_canvas_selection",
