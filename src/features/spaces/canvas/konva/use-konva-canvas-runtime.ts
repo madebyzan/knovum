@@ -4,6 +4,7 @@ import type { VueKonvaRef } from "vue-konva/core";
 
 import type { SpaceEditorDocument } from "../contract/canvas-document";
 import type { CanvasSurfaceProps } from "../contract/canvas-surface";
+import { projectEditorLayouts } from "../document/editor-layout-projection";
 import { CanvasDocumentModel } from "./document/canvas-document-model";
 import { useCanvasDocumentSync } from "./document/use-canvas-document-sync";
 import { createCanvasGestureSession } from "./interaction/canvas-gesture-session";
@@ -31,12 +32,13 @@ export function useKonvaCanvasRuntime(
   const stageComponent = useTemplateRef<VueKonvaRef<Konva.Stage>>("stage");
   const stage = shallowRef<Konva.Stage>();
   const model = new CanvasDocumentModel(props.document, {
-    documentChanged,
+    commitDocument: (document, before) => props.events.onCommitGesture({ document, baseDocument: before }),
+    reportError: props.events.onError,
     historyEntry: props.events.onHistoryEntry,
     viewportChanged: props.events.onViewportChange,
   });
   const sceneDocument = model.sceneDocumentRef;
-  const layouts = computed(() => sceneDocument.value.nodes);
+  const layouts = computed(() => projectEditorLayouts(sceneDocument.value));
   const viewport = useStageViewport({
     host,
     initialViewport: model.document.viewport,

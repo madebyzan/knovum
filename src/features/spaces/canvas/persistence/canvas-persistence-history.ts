@@ -4,8 +4,7 @@ import type {
   CanvasPersistenceHistory,
   CanvasPersistenceMutationResult,
 } from "../contract/canvas-editor";
-import { contentAddedBetween, removeCanvasContent, restoreCanvasContent } from "../document/canvas-content";
-
+import { replayEditorTransition } from "../document/editor-history-transition";
 interface CanvasPersistenceHistoryOptions {
   before: SpaceEditorDocument;
   after: SpaceEditorDocument;
@@ -14,34 +13,22 @@ interface CanvasPersistenceHistoryOptions {
   commit(
     document: SpaceEditorDocument,
     transition: CanvasPersistenceHistory["undo"],
+    baseDocument: SpaceEditorDocument,
   ): Promise<CanvasPersistenceMutationResult & { document: SpaceEditorDocument }>;
   adopt(document: SpaceEditorDocument): void;
 }
-
 export function createCanvasPersistenceHistory(options: CanvasPersistenceHistoryOptions): CanvasHistoryEntry {
+  async function replay(
+    before: SpaceEditorDocument,
+    after: SpaceEditorDocument,
+    transition: CanvasPersistenceHistory["undo"],
+  ) {
+    const base = options.current();
+    const result = await options.commit(replayEditorTransition(base, before, after), transition, base);
+    options.adopt(result.document);
+  }
   return {
     undo: () => replay(options.after, options.before, options.persistence.undo),
     redo: () => replay(options.before, options.after, options.persistence.redo),
   };
-
-  async function replay(
-    source: SpaceEditorDocument,
-    target: SpaceEditorDocument,
-    transition: CanvasPersistenceHistory["undo"],
-  ) {
-    const document = applyContentTransition(options.current(), source, target);
-    const result = await options.commit(document, transition);
-    options.adopt(result.document);
-  }
-}
-
-function applyContentTransition(
-  current: SpaceEditorDocument,
-  source: SpaceEditorDocument,
-  target: SpaceEditorDocument,
-) {
-  const removed = contentAddedBetween(target, source);
-  const added = contentAddedBetween(source, target);
-  const withoutRemoved = removeCanvasContent(current, new Set(removed.nodes.map(({ nodeId }) => nodeId)));
-  return restoreCanvasContent(withoutRemoved, target, new Set(added.nodes.map(({ nodeId }) => nodeId)));
 }

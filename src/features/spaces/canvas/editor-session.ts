@@ -1,6 +1,7 @@
 import { computed, readonly, shallowRef, toValue, type MaybeRefOrGetter } from "vue";
 
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
+import type { SpaceEditorDocument } from "./contract/canvas-document";
 import type {
   CanvasEditorPort,
   CanvasSelectionSnapshot,
@@ -8,6 +9,7 @@ import type {
 } from "./contract/canvas-editor-port";
 
 const activeEditor = shallowRef<CanvasEditorPort>();
+const document = shallowRef<SpaceEditorDocument>();
 const viewport = shallowRef<CanvasViewport>();
 const emptySelection: CanvasSelectionSnapshot = {
   nodeIds: [],
@@ -34,6 +36,7 @@ let suspendedParticipants: readonly SpaceSessionParticipant[] = [];
 export function useCanvasEditorSession() {
   return {
     activeEditor,
+    document: computed(() => document.value),
     activeTextSelectionNodeId: readonly(activeTextSelectionNodeId),
     directManipulation: readonly(directManipulation),
     transitioning: readonly(transitioning),
@@ -53,13 +56,18 @@ export function currentCanvasEditor() {
 export function registerCanvasEditor(editor: CanvasEditorPort) {
   if (transitioning.value) suspendedEditor = editor;
   else activeEditor.value = editor;
+  const detachDocument = editor.observeDocument((next) => {
+    document.value = next;
+  });
   viewport.value = editor.getViewport();
   selection.value = editor.getSelectionSnapshot();
   return () => {
+    detachDocument();
     if (suspendedEditor === editor) suspendedEditor = undefined;
     if (activeEditor.value !== editor) return;
     activeEditor.value = undefined;
     viewport.value = undefined;
+    document.value = undefined;
     selection.value = emptySelection;
     directManipulation.value = false;
     activeTextSelectionNodeId.value = undefined;

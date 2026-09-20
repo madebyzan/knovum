@@ -1,180 +1,157 @@
+import { isEqual } from "es-toolkit";
 import { shallowRef, type ShallowRef } from "vue";
 
-import {
-  sameCanvasNodeAppearance,
-  type SpaceEditorDocument,
-  type CanvasNodeAppearance,
-  type CanvasRelationColor,
+import type { StructureCommand } from "../../../organization/structure/commands/contract";
+import { reorderStructureItems } from "../../../organization/structure/commands/layer-order";
+import { planStructureCommand } from "../../../organization/structure/commands/plan";
+import type {
+  CanvasNodeAppearance,
+  CanvasRelationColor,
+  SpaceEditorDocument,
 } from "../../contract/canvas-document";
-import type { CanvasHistoryEntry, CanvasLayerMove, CanvasViewport } from "../../contract/canvas-editor";
-import { applyCanvasLayerOrder, sameCanvasViewport } from "./canvas-document-mutations";
-import { reorderCanvasNodes } from "./canvas-layer-order";
+import { parseSpaceEditorDocument } from "../../contract/canvas-document";
+import type {
+  CanvasGestureCommitResult,
+  CanvasHistoryEntry,
+  CanvasLayerMove,
+  CanvasViewport,
+} from "../../contract/canvas-editor";
+import { setEditorAppearance, setEditorRelationColor } from "../../document/editor-appearance";
+import { replayEditorTransition } from "../../document/editor-history-transition";
+import { projectEditorLayouts } from "../../document/editor-layout-projection";
+import { sameCanvasViewport } from "./canvas-document-mutations";
 
 interface CanvasDocumentModelEvents {
-  documentChanged(document: SpaceEditorDocument): void;
-  historyEntry(entry: CanvasHistoryEntry): void;
+  commitDocument(
+    document: SpaceEditorDocument,
+    before: SpaceEditorDocument,
+  ): Promise<CanvasGestureCommitResult>;
   viewportChanged(viewport: CanvasViewport): void;
+  historyEntry(entry: CanvasHistoryEntry): void;
+  reportError(error: unknown): void;
 }
-
+/** Committed application state only. Gesture previews and the camera are independent. */
 export class CanvasDocumentModel {
   private readonly current: ShallowRef<SpaceEditorDocument>;
   private readonly sceneCurrent: ShallowRef<SpaceEditorDocument>;
   private readonly observers = new Set<(document: SpaceEditorDocument) => void>();
-  private layoutIndices = new Map<string, number>();
-
+  private readonly pending = new Set<Promise<unknown>>();
+  private tail = Promise.resolve();
   constructor(
     document: SpaceEditorDocument,
     private readonly events: CanvasDocumentModelEvents,
   ) {
     this.current = shallowRef(document);
     this.sceneCurrent = shallowRef(document);
-    this.indexLayouts(document);
   }
-
   get document() {
     return this.current.value;
   }
-
   get documentRef(): Readonly<ShallowRef<SpaceEditorDocument>> {
     return this.current;
   }
-
   get sceneDocumentRef(): Readonly<ShallowRef<SpaceEditorDocument>> {
     return this.sceneCurrent;
   }
-
   replace(document: SpaceEditorDocument) {
     this.assign(document);
   }
-
   applyLocalDocument(document: SpaceEditorDocument) {
-    this.update(document);
+    this.assign(document);
   }
-
-  moveNodes(nodeIds: ReadonlySet<string>, mode: CanvasLayerMove) {
-    const nodes = reorderCanvasNodes(this.document.nodes, nodeIds, mode);
-    if (nodes.every((node, index) => node === this.document.nodes[index])) return;
-    const before = new Map(this.document.nodes.map(({ nodeId, zIndex }) => [nodeId, zIndex]));
-    const after = new Map(nodes.map(({ nodeId, zIndex }) => [nodeId, zIndex]));
-    this.update(applyCanvasLayerOrder(this.document, after));
-    this.events.historyEntry({
-      undo: async () => this.update(applyCanvasLayerOrder(this.document, before)),
-      redo: async () => this.update(applyCanvasLayerOrder(this.document, after)),
+  layout(id: string) {
+    return projectEditorLayouts(this.document).find((layout) => layout.nodeId === id);
+  }
+  async flush() {
+    await Promise.all([...this.pending]);
+  }
+  mutate(calculate: (document: SpaceEditorDocument) => SpaceEditorDocument, record = true): Promise<void> {
+    const operation = this.tail.then(async () => {
+      const before = this.document;
+      const after = parseSpaceEditorDocument(calculate(before));
+      if (
+        isEqual(before.structure, after.structure) &&
+        isEqual(before.layout, after.layout) &&
+        isEqual(before.relationStyles, after.relationStyles)
+      )
+        return;
+      const result = await this.events.commitDocument(after, before);
+      this.assign({ ...result.document, viewport: this.document.viewport });
+      if (record)
+        this.events.historyEntry({
+          undo: () => this.mutate((current) => replayEditorTransition(current, after, before), false),
+          redo: () => this.mutate((current) => replayEditorTransition(current, before, after), false),
+        });
     });
+    this.pending.add(operation);
+    this.tail = operation.then(
+      () => undefined,
+      () => undefined,
+    );
+    void operation.then(
+      () => this.pending.delete(operation),
+      () => this.pending.delete(operation),
+    );
+    return operation;
   }
-
-  setRelationColor(relationId: string, color: CanvasRelationColor) {
-    const before = relationColor(this.document, relationId);
-    if (before === color) return;
-    this.applyRelationColor(relationId, color);
-    this.events.historyEntry({
-      undo: async () => this.applyRelationColor(relationId, before),
-      redo: async () => this.applyRelationColor(relationId, color),
+  async execute(command: StructureCommand, selection: readonly string[] = []) {
+    let selected = selection;
+    await this.mutate((document) => {
+      const plan = planStructureCommand(document, command, selection);
+      if (plan.effects.removedContentNodeIds.length || plan.effects.contentClones.length)
+        throw new Error("Content lifecycle changes require a Space content transaction");
+      selected = plan.selection;
+      return { ...document, ...plan.after };
     });
+    return selected;
   }
-
-  setNodeAppearance(nodeId: string, patch: Partial<CanvasNodeAppearance>) {
-    const layout = this.document.nodes.find((node) => node.nodeId === nodeId);
-    const appearance = layout ? mergeAppearance(layout.appearance, patch) : undefined;
-    if (!layout || sameCanvasNodeAppearance(layout.appearance, appearance)) return;
-    const before = layout.appearance;
-    this.applyNodeAppearance(nodeId, appearance);
-    this.events.historyEntry({
-      undo: async () => this.applyNodeAppearance(nodeId, before),
-      redo: async () => this.applyNodeAppearance(nodeId, appearance),
-    });
+  moveNodes(ids: ReadonlySet<string>, mode: CanvasLayerMove) {
+    return this.mutate((document) => reorderStructureItems(document, [...ids], mode));
   }
-
+  setRelationColor(id: string, color: CanvasRelationColor) {
+    return this.mutate((document) => setEditorRelationColor(document, id, color));
+  }
+  setNodeAppearance(id: string, patch: Partial<CanvasNodeAppearance>) {
+    return this.mutate((document) => setEditorAppearance(document, id, patch));
+  }
   fitNodeHeights(heights: ReadonlyMap<string, number>) {
-    let changed = false;
-    const nodes = [...this.document.nodes];
-    for (const [nodeId, height] of heights) {
-      const index = this.layoutIndices.get(nodeId);
-      const node = index === undefined ? undefined : nodes[index];
-      const fittedHeight = Math.ceil(height);
-      if (!node || fittedHeight === node.frame.height) continue;
-      changed = true;
-      nodes[index] = {
-        ...node,
-        frame: { ...node.frame, height: fittedHeight },
-        sizeAuthority: "frame" as const,
-      };
-    }
-    if (!changed) return;
-    this.update({ ...this.document, nodes }, false);
+    return this.mutate(
+      (document) => ({
+        ...document,
+        layout: {
+          version: 1,
+          items: document.layout.items.map((layout) => {
+            const height = heights.get(layout.itemId);
+            return layout.kind === "content" && height !== undefined
+              ? { ...layout, size: { ...layout.size, height: Math.ceil(height) } }
+              : layout;
+          }),
+        },
+      }),
+      false,
+    ).catch(this.events.reportError);
   }
-
   setViewport(viewport: CanvasViewport) {
     if (sameCanvasViewport(this.document.viewport, viewport)) return;
-    this.assign({ ...this.document, viewport: { ...viewport } }, false);
-    this.events.documentChanged(this.document);
+    this.assign({ ...this.document, viewport: { ...viewport } });
     this.events.viewportChanged(viewport);
   }
-
-  private update(document: SpaceEditorDocument, reindex = true) {
-    this.assign(document, reindex);
-    this.events.documentChanged(document);
-  }
-
   observe(observer: (document: SpaceEditorDocument) => void) {
     this.observers.add(observer);
     observer(this.document);
-    return () => this.observers.delete(observer);
+    return () => {
+      this.observers.delete(observer);
+    };
   }
-
-  private applyRelationColor(relationId: string, color: CanvasRelationColor) {
-    const retained = this.document.relationStyles?.filter((style) => style.relationId !== relationId) ?? [];
-    const relationStyles = color === "neutral" ? retained : [...retained, { relationId, color }];
-    this.update(withRelationStyles(this.document, relationStyles), false);
-  }
-
-  private applyNodeAppearance(nodeId: string, appearance: CanvasNodeAppearance | undefined) {
-    this.update(
-      {
-        ...this.document,
-        nodes: this.document.nodes.map((node) => (node.nodeId === nodeId ? { ...node, appearance } : node)),
-      },
-      false,
-    );
-  }
-
-  private assign(document: SpaceEditorDocument, reindex = true) {
-    const sceneChanged =
-      this.current.value.nodes !== document.nodes ||
-      this.current.value.relationStyles !== document.relationStyles;
+  private assign(document: SpaceEditorDocument) {
+    const previous = this.document;
     this.current.value = document;
-    if (sceneChanged) this.sceneCurrent.value = document;
-    if (reindex) this.indexLayouts(document);
+    if (
+      previous.structure !== document.structure ||
+      previous.layout !== document.layout ||
+      previous.relationStyles !== document.relationStyles
+    )
+      this.sceneCurrent.value = document;
     for (const observer of this.observers) observer(document);
   }
-
-  layout(nodeId: string) {
-    const index = this.layoutIndices.get(nodeId);
-    return index === undefined ? undefined : this.document.nodes[index];
-  }
-
-  private indexLayouts(document: SpaceEditorDocument) {
-    this.layoutIndices = new Map(document.nodes.map(({ nodeId }, index) => [nodeId, index]));
-  }
-}
-
-function mergeAppearance(
-  current: CanvasNodeAppearance | undefined,
-  patch: Partial<CanvasNodeAppearance>,
-): CanvasNodeAppearance {
-  const appearance = { ...current, ...patch };
-  if (appearance.customFill === undefined) delete appearance.customFill;
-  return appearance;
-}
-
-function relationColor(document: SpaceEditorDocument, relationId: string): CanvasRelationColor {
-  return document.relationStyles?.find((style) => style.relationId === relationId)?.color ?? "neutral";
-}
-
-function withRelationStyles(
-  document: SpaceEditorDocument,
-  relationStyles: NonNullable<SpaceEditorDocument["relationStyles"]>,
-): SpaceEditorDocument {
-  const { relationStyles: _current, ...content } = document;
-  return relationStyles.length ? { ...content, relationStyles } : content;
 }

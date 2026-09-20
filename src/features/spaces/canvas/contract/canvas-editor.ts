@@ -7,7 +7,6 @@ import type {
   CanvasSelectionSnapshot,
   CanvasViewport,
 } from "./canvas-editor-port";
-import type { SectionAssignment } from "./section-membership";
 
 export type {
   CanvasEditorPort,
@@ -35,6 +34,7 @@ export interface CanvasHistoryEntry {
 }
 
 export interface CanvasDeleteSelectionRequest {
+  baseDocument: SpaceEditorDocument;
   nodeIds: readonly string[];
   relationIds: readonly string[];
   baseRevision: number;
@@ -70,7 +70,7 @@ export interface CanvasDeleteSelectionResult {
 }
 
 export interface CanvasGestureCommitRequest {
-  assignments: readonly SectionAssignment[];
+  baseDocument: SpaceEditorDocument;
   baseRevision: number;
   document: SpaceEditorDocument;
 }
@@ -86,6 +86,8 @@ export interface CanvasGestureCommitResult {
 export interface CanvasHostEvents {
   onCommitGesture(request: CanvasGestureCommitRequest): Promise<CanvasGestureCommitResult>;
   onCopyNodes(nodes: readonly CanvasNodePlacement[]): Promise<void>;
+  onPrepareStructureEdit(): Promise<void>;
+  onStructureToolFinished(): void;
   onCreateRelation(sourceNodeId: string, targetNodeId: string): Promise<void>;
   onCreateTextNode(kind: "note" | "text", point: CanvasPoint): Promise<string | undefined>;
   onCutSelection(request: CanvasCutSelectionRequest): Promise<CanvasDeleteSelectionResult>;
@@ -116,5 +118,6 @@ export interface CanvasSurfaceEvents extends Omit<
   onHistoryTransition(
     document: SpaceEditorDocument,
     transition: CanvasPersistenceHistory["undo"],
+    baseDocument: SpaceEditorDocument,
   ): Promise<CanvasPersistenceMutationResult & { document: SpaceEditorDocument }>;
 }
