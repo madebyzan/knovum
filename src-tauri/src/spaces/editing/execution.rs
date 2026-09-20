@@ -12,22 +12,27 @@ pub(super) async fn execute(pool: &sqlx::SqlitePool, request: ExecuteEditRequest
     let (before, revision) = canvas_state::load_in_transaction(&mut tx, &request.space_id).await?;
     canvas_state::validation::validate_content_references(&mut tx, &request.space_id, &before).await?;
     if revision != request.base_revision { return Err("Space edit revision conflict".into()); }
-    let before_state = if request.command.deletes_subtrees() { lifecycle_state::capture(&mut tx, &request.space_id).await? } else { lifecycle_state::LifecycleState::default() };
+    let before_state = if request.command.changes_content() { lifecycle_state::capture(&mut tx, &request.space_id).await? } else { lifecycle_state::LifecycleState::default() };
     let mut plan = match &request.command {
         EditorCommand::MeasureText { measurements } => organization::Plan { after: super::measurements::apply(&mut tx, &request.space_id, &before, measurements).await?, selection: vec![], removed_content_ids: vec![] },
         _ => organization::plan_editor(&before, &request.command)?,
     };
+
     let now = crate::clock::unix_time_millis()?;
+    let inserted = if let EditorCommand::InsertFragment { fragment, .. } = &request.command {
+        super::fragment_execution::stage(&mut tx, &request.space_id, fragment, &plan.after, now).await?
+    } else { vec![] };
     if request.command.deletes_subtrees() {
         super::lifecycle_edit::delete(&mut tx, &request.space_id, &plan.removed_content_ids, request.command.requested_relation_deletions(), now).await?;
         archive::removed(&mut tx, &request.space_id, &request.mutation_id, &before, &plan.after, now).await?;
         let live: Vec<String> = sqlx::query_scalar("SELECT id FROM spaces_relations WHERE space_id=$1 AND status<>'invalidated'").bind(&request.space_id).fetch_all(&mut *tx).await.map_err(db::sql_error)?;
         if let Some(styles) = plan.after.relation_styles.as_mut() { styles.retain(|style| live.contains(&style.relation_id)); }
     }
-    let lifecycle = if request.command.deletes_subtrees() { lifecycle_state::diff(&before_state, &lifecycle_state::capture(&mut tx, &request.space_id).await?) } else { Default::default() };
+    let lifecycle = if request.command.changes_content() { lifecycle_state::diff(&before_state, &lifecycle_state::capture(&mut tx, &request.space_id).await?) } else { Default::default() };
     let delta = changes::diff(&before, &plan.after);
     let changed = !changes::unchanged(&delta) || !lifecycle_state::empty(&lifecycle);
     let revision = if changed { canvas_state::save_in_transaction(&mut tx, &request.space_id, revision, &plan.after).await? } else { revision };
+    if !inserted.is_empty() { nodes::complete_nodes_in_transaction(&mut tx, &request.space_id, &inserted, now).await?; }
     if changed { nodes::touch_updated_at(&mut tx, &request.space_id, now).await?; }
     let selection_before = match &request.command { EditorCommand::Structure { selection, .. } => selection.clone(), EditorCommand::DeleteSelection { ids, .. } => ids.clone(), EditorCommand::TransformFrames { updates } | EditorCommand::ArrangeFrames { updates } => updates.iter().map(|update| update.node_id.clone()).collect(), _ => vec![] };
     let receipt = Receipt { mutation_id: request.mutation_id, request_hash: hash, revision, selection_before, selection_after: plan.selection,

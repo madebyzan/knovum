@@ -70,7 +70,7 @@ pub(super) async fn validate_portal(
     if let Some(node_id) =
         optional_nonempty_string(data.get("targetNodeId"), "Portal target node", 128)?
     {
-        validate_same_space_node(tx, target_space_id, "", node_id).await?;
+        crate::spaces::canvas_state::navigation::validate_item_target(tx, target_space_id, node_id).await?;
     }
     Ok(())
 }

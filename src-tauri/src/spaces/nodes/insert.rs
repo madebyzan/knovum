@@ -34,9 +34,18 @@ pub(in crate::spaces) async fn insert_many_in_transaction(
     nodes: &[InsertNode],
     now: i64,
 ) -> Result<(), String> {
-    for node in nodes {
-        insert_single_node(tx, space_id, node, now).await?;
-    }
+
+    stage_nodes_in_transaction(tx, space_id, nodes, now).await?;
+    complete_nodes_in_transaction(tx, space_id, nodes, now).await
+}
+
+pub(in crate::spaces) async fn stage_nodes_in_transaction(tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>, space_id: &str, nodes: &[InsertNode], now: i64) -> Result<(), String> {
+    for node in nodes { insert_single_node(tx, space_id, node, now).await?; }
+    Ok(())
+}
+pub(in crate::spaces) async fn complete_nodes_in_transaction(tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>, space_id: &str, nodes: &[InsertNode], now: i64) -> Result<(), String> {
+    for node in nodes { contracts::validate_node(tx, space_id, &node.id, &node.kind, &node.data).await?; }
+    for node in nodes { complete_single_node(tx, space_id, node, now).await?; }
     Ok(())
 }
 
@@ -49,8 +58,8 @@ async fn insert_single_node(
     if !node.initial_x.is_finite() || !node.initial_y.is_finite() {
         return Err("Space node initial placement must be finite".into());
     }
-    let object_type_id =
-        contracts::validate_node(tx, space_id, &node.id, &node.kind, &node.data).await?;
+    if !crate::spaces::canvas_state::valid_structure_id(&node.id) { return Err("Invalid content identity".into()); }
+    let object_type_id = if node.kind == "object" { Some(node.data.get("objectTypeId").and_then(serde_json::Value::as_str).ok_or("Objects require a type")?) } else { None };
     let data = serde_json::to_string(&node.data).map_err(db::json_error)?;
     sqlx::query(
         r#"INSERT INTO spaces_nodes (
@@ -68,6 +77,10 @@ async fn insert_single_node(
     .execute(&mut **tx)
     .await
     .map_err(db::sql_error)?;
+
+    Ok(())
+}
+async fn complete_single_node(tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>, space_id: &str, node: &InsertNode, now: i64) -> Result<(), String> {
     events::append(
         tx,
         events::EventRecord::new(

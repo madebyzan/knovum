@@ -13,6 +13,10 @@ pub(in crate::spaces) use contract::StructureCommand;
 pub(in crate::spaces) use plan::{plan, Plan};
 
 mod editor_command;
+mod fragment_contract;
+mod fragment_plan;
+#[cfg(test)] mod fragment_tests;
+pub(in crate::spaces) use fragment_contract::{EditorFragment, FragmentPlacement, FragmentObjectType};
 mod editor_plan;
 mod frame_edit;
 mod appearance_edit;

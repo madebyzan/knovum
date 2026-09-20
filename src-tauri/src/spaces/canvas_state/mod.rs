@@ -5,6 +5,7 @@ mod gesture;
 mod repository;
 mod stored_document;
 pub(in crate::spaces) mod viewport;
+pub(in crate::spaces) mod navigation;
 mod selection;
 pub(in crate::spaces) mod validation;
 mod structure_validation;

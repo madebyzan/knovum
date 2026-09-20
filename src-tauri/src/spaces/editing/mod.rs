@@ -5,6 +5,8 @@ mod archive;
 mod receipts;
 mod measurements;
 mod execution;
+mod fragment_execution;
+mod fragment_types;
 mod lifecycle_edit;
 mod lifecycle_guards;
 mod lifecycle_replay;

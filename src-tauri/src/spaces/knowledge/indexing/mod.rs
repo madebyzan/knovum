@@ -17,8 +17,8 @@ pub struct KnowledgeChunkSeed {
     pub metadata: Value,
 }
 
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct KnowledgeChunkInput {
     pub kind: String,
     pub text: String,

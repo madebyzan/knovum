@@ -14,6 +14,7 @@ pub(in crate::spaces) enum EditorCommand {
     MoveLayer { ids: Vec<String>, mode: LayerMove },
     DeleteSelection { ids: Vec<String>, #[serde(rename = "relationIds")] relation_ids: Vec<String> },
     MeasureText { measurements: Vec<TextMeasurement> },
+    InsertFragment { fragment: super::fragment_contract::EditorFragment, placement: super::fragment_contract::FragmentPlacement },
 }
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -38,6 +39,7 @@ pub(in crate::spaces) enum AppearanceField {
 #[serde(rename_all = "kebab-case")]
 pub(in crate::spaces) enum LayerMove { Front, Forward, Backward, Back }
 impl EditorCommand {
+    pub(in crate::spaces) fn changes_content(&self) -> bool { self.deletes_subtrees() || matches!(self, Self::InsertFragment { .. }) }
     pub(in crate::spaces) fn deletes_subtrees(&self) -> bool {
         matches!(self, Self::DeleteSelection { .. } | Self::Structure { command: StructureCommand::DeleteSubtrees { .. }, .. })
     }

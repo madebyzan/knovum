@@ -2,6 +2,7 @@ use super::{context::Context, draft::Draft, editor_command::EditorCommand, frame
 use crate::spaces::canvas_state::{self, contract::{SpaceEditorDocument, CanvasRelationStyleV1}};
 pub(in crate::spaces) fn plan_editor(before: &SpaceEditorDocument, command: &EditorCommand) -> Result<super::Plan, String> {
     match command {
+        EditorCommand::InsertFragment { fragment, placement } => return super::fragment_plan::plan(before, fragment, placement),
         EditorCommand::Structure { command, selection } => return super::plan(before, command, selection),
         EditorCommand::DeleteSelection { ids, .. } => {
             if ids.is_empty() { return Ok(super::Plan { after: before.clone(), selection: vec![], removed_content_ids: vec![] }); }
