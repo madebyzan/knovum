@@ -1,6 +1,6 @@
 ## Organization development verification
 
-Source commit: `a965ee8eedbe8f7eec1781cd08edaf3cc763ecfe`. Actual runner results; not a complete product acceptance.
+Source commit: `735f1e3f0b949d0929ceddde6cbeef5637c830d9`. Actual runner results; not a complete product acceptance.
 
 | Check | Result |
 | --- | --- |
@@ -45,31 +45,29 @@ src/features/spaces/__tests__/canvas-gesture-camera.test.ts(41,50): error TS7031
 src/features/spaces/__tests__/canvas-gesture-camera.test.ts(72,35): error TS2339: Property 'nodes' does not exist on type '{ version: 1; structure: { version: 1; items: ({ kind: "content"; nodeId: string; id: string; parentId: string | null; order: number; locked: boolean; } | { kind: "group"; title: string; id: string; parentId: string | null; order: number; locked: boolean; } | { ...; })[]; }; layout: { ...; }; viewport: { ...; }; rel...'.
 src/features/spaces/__tests__/canvas-gesture-camera.test.ts(72,48): error TS7031: Binding element 'frame' implicitly has an 'any' type.
 src/features/spaces/__tests__/canvas-gesture-repository.test.ts(15,3): error TS2353: Object literal may only specify known properties, and 'nodes' does not exist in type '{ version: 1; structure: { version: 1; items: ({ kind: "content"; nodeId: string; id: string; parentId: string | null; order: number; locked: boolean; } | { kind: "group"; title: string; id: string; parentId: string | null; order: number; locked: boolean; } | { ...; })[]; }; layout: { ...; }; viewport: { ...; }; rel...'.
+src/features/spaces/__tests__/canvas-gesture-repository.test.ts(25,50): error TS2554: Expected 2 arguments, but got 3.
 src/features/spaces/__tests__/canvas-gesture-session.test.ts(74,27): error TS2339: Property 'nodes' does not exist on type '{ version: 1; structure: { version: 1; items: ({ kind: "content"; nodeId: string; id: string; parentId: string | null; order: number; locked: boolean; } | { kind: "group"; title: string; id: string; parentId: string | null; order: number; locked: boolean; } | { ...; })[]; }; layout: { ...; }; viewport: { ...; }; rel...'.
 src/features/spaces/__tests__/canvas-gesture-session.test.ts(86,27): error TS2339: Property 'nodes' does not exist on type '{ version: 1; structure: { version: 1; items: ({ kind: "content"; nodeId: string; id: string; parentId: string | null; order: number; locked: boolean; } | { kind: "group"; title: string; id: string; parentId: string | null; order: number; locked: boolean; } | { ...; })[]; }; layout: { ...; }; viewport: { ...; }; rel...'.
 src/features/spaces/__tests__/canvas-gesture-session.test.ts(106,27): error TS2339: Property 'nodes' does not exist on type '{ version: 1; structure: { version: 1; items: ({ kind: "content"; nodeId: string; id: string; parentId: string | null; order: number; locked: boolean; } | { kind: "group"; title: string; id: string; parentId: string | null; order: number; locked: boolean; } | { ...; })[]; }; layout: { ...; }; viewport: { ...; }; rel...'.
 src/features/spaces/__tests__/canvas-gesture-session.test.ts(131,27): error TS2339: Property 'nodes' does not exist on type '{ version: 1; structure: { version: 1; items: ({ kind: "content"; nodeId: string; id: string; parentId: string | null; order: number; locked: boolean; } | { kind: "group"; title: string; id: string; parentId: string | null; order: number; locked: boolean; } | { ...; })[]; }; layout: { ...; }; viewport: { ...; }; rel...'.
 src/features/spaces/__tests__/canvas-gesture-session.test.ts(131,40): error TS7031: Binding element 'frame' implicitly has an 'any' type.
 src/features/spaces/__tests__/canvas-gesture-session.test.ts(136,33): error TS2339: Property 'nodes' does not exist on type '{ version: 1; structure: { version: 1; items: ({ kind: "content"; nodeId: string; id: string; parentId: string | null; order: number; locked: boolean; } | { kind: "group"; title: string; id: string; parentId: string | null; order: number; locked: boolean; } | { ...; })[]; }; layout: { ...; }; viewport: { ...; }; rel...'.
+src/features/spaces/__tests__/canvas-gesture-session.test.ts(142,5): error TS2353: Object literal may only specify known properties, and 'documentChanged' does not exist in type 'CanvasDocumentModelEvents'.
 src/features/spaces/__tests__/canvas-gesture-session.test.ts(179,35): error TS2339: Property 'nodes' does not exist on type '{ version: 1; structure: { version: 1; items: ({ kind: "content"; nodeId: string; id: string; parentId: string | null; order: number; locked: boolean; } | { kind: "group"; title: string; id: string; parentId: string | null; order: number; locked: boolean; } | { ...; })[]; }; layout: { ...; }; viewport: { ...; }; rel...'.
 src/features/spaces/__tests__/canvas-gesture-update.test.ts(12,3): error TS2353: Object literal may only specify known properties, and 'nodes' does not exist in type '{ version: 1; structure: { version: 1; items: ({ kind: "content"; nodeId: string; id: string; parentId: string | null; order: number; locked: boolean; } | { kind: "group"; title: string; id: string; parentId: string | null; order: number; locked: boolean; } | { ...; })[]; }; layout: { ...; }; viewport: { ...; }; rel...'.
+src/features/spaces/__tests__/canvas-gesture-update.test.ts(31,17): error TS2339: Property 'nodes' does not exist on type '{ layout: { version: 1; items: ({ kind: "group"; itemId: string; transform: { x: number; y: number; rotation: number; scale: number; }; } | { kind: "content"; itemId: string; transform: { x: number; y: number; rotation: number; scale: number; }; size: { ...; }; sizeAuthority: "content" | "frame"; fileSubpath?: strin...'.
 src/features/spaces/__tests__/canvas-gesture-update.test.ts(39,46): error TS2339: Property 'nodes' does not exist on type '{ version: 1; structure: { version: 1; items: ({ kind: "content"; nodeId: string; id: string; parentId: string | null; order: number; locked: boolean; } | { kind: "group"; title: string; id: string; parentId: string | null; order: number; locked: boolean; } | { ...; })[]; }; layout: { ...; }; viewport: { ...; }; rel...'.
+src/features/spaces/__tests__/canvas-gesture-update.test.ts(44,56): error TS2339: Property 'nodes' does not exist on type '{ layout: { version: 1; items: ({ kind: "group"; itemId: string; transform: { x: number; y: number; rotation: number; scale: number; }; } | { kind: "content"; itemId: string; transform: { x: number; y: number; rotation: number; scale: number; }; size: { ...; }; sizeAuthority: "content" | "frame"; fileSubpath?: strin...'.
 src/features/spaces/__tests__/canvas-gesture-update.test.ts(49,46): error TS2339: Property 'nodes' does not exist on type '{ version: 1; structure: { version: 1; items: ({ kind: "content"; nodeId: string; id: string; parentId: string | null; order: number; locked: boolean; } | { kind: "group"; title: string; id: string; parentId: string | null; order: number; locked: boolean; } | { ...; })[]; }; layout: { ...; }; viewport: { ...; }; rel...'.
+src/features/spaces/__tests__/canvas-gesture-update.test.ts(52,17): error TS2339: Property 'nodes' does not exist on type '{ layout: { version: 1; items: ({ kind: "group"; itemId: string; transform: { x: number; y: number; rotation: number; scale: number; }; } | { kind: "content"; itemId: string; transform: { x: number; y: number; rotation: number; scale: number; }; size: { ...; }; sizeAuthority: "content" | "frame"; fileSubpath?: strin...'.
 src/features/spaces/__tests__/canvas-gesture-update.test.ts(52,41): error TS2339: Property 'nodes' does not exist on type '{ version: 1; structure: { version: 1; items: ({ kind: "content"; nodeId: string; id: string; parentId: string | null; order: number; locked: boolean; } | { kind: "group"; title: string; id: string; parentId: string | null; order: number; locked: boolean; } | { ...; })[]; }; layout: { ...; }; viewport: { ...; }; rel...'.
+src/features/spaces/__tests__/canvas-gesture-update.test.ts(53,17): error TS2339: Property 'nodes' does not exist on type '{ layout: { version: 1; items: ({ kind: "group"; itemId: string; transform: { x: number; y: number; rotation: number; scale: number; }; } | { kind: "content"; itemId: string; transform: { x: number; y: number; rotation: number; scale: number; }; size: { ...; }; sizeAuthority: "content" | "frame"; fileSubpath?: strin...'.
 src/features/spaces/__tests__/canvas-gesture-update.test.ts(58,46): error TS2339: Property 'nodes' does not exist on type '{ version: 1; structure: { version: 1; items: ({ kind: "content"; nodeId: string; id: string; parentId: string | null; order: number; locked: boolean; } | { kind: "group"; title: string; id: string; parentId: string | null; order: number; locked: boolean; } | { ...; })[]; }; layout: { ...; }; viewport: { ...; }; rel...'.
+src/features/spaces/__tests__/canvas-gesture-update.test.ts(62,17): error TS2339: Property 'nodes' does not exist on type '{ layout: { version: 1; items: ({ kind: "group"; itemId: string; transform: { x: number; y: number; rotation: number; scale: number; }; } | { kind: "content"; itemId: string; transform: { x: number; y: number; rotation: number; scale: number; }; size: { ...; }; sizeAuthority: "content" | "frame"; fileSubpath?: strin...'.
 src/features/spaces/__tests__/canvas-gesture-update.test.ts(63,21): error TS2339: Property 'nodes' does not exist on type '{ version: 1; structure: { version: 1; items: ({ kind: "content"; nodeId: string; id: string; parentId: string | null; order: number; locked: boolean; } | { kind: "group"; title: string; id: string; parentId: string | null; order: number; locked: boolean; } | { ...; })[]; }; layout: { ...; }; viewport: { ...; }; rel...'.
 src/features/spaces/__tests__/canvas-movement-integration.test.ts(8,33): error TS2339: Property 'nodes' does not exist on type '{ version: 1; structure: { version: 1; items: ({ kind: "content"; nodeId: string; id: string; parentId: string | null; order: number; locked: boolean; } | { kind: "group"; title: string; id: string; parentId: string | null; order: number; locked: boolean; } | { ...; })[]; }; layout: { ...; }; viewport: { ...; }; rel...'.
 src/features/spaces/__tests__/canvas-movement-integration.test.ts(8,46): error TS7031: Binding element 'nodeId' implicitly has an 'any' type.
-src/features/spaces/__tests__/canvas-movement-integration.test.ts(8,54): error TS7031: Binding element 'frame' implicitly has an 'any' type.
-src/features/spaces/__tests__/canvas-movement-integration.test.ts(69,59): error TS2339: Property 'nodes' does not exist on type '{ version: 1; structure: { version: 1; items: ({ kind: "content"; nodeId: string; id: string; parentId: string | null; order: number; locked: boolean; } | { kind: "group"; title: string; id: string; parentId: string | null; order: number; locked: boolean; } | { ...; })[]; }; layout: { ...; }; viewport: { ...; }; rel...'.
-src/features/spaces/__tests__/canvas-movement-integration.test.ts(69,73): error TS7031: Binding element 'nodeId' implicitly has an 'any' type.
-src/features/spaces/__tests__/canvas-movement-integration.test.ts(71,35): error TS2339: Property 'nodes' does not exist on type '{ version: 1; structure: { version: 1; items: ({ kind: "content"; nodeId: string; id: string; parentId: string | null; order: number; locked: boolean; } | { kind: "group"; title: string; id: string; parentId: string | null; order: number; locked: boolean; } | { ...; })[]; }; layout: { ...; }; viewport: { ...; }; rel...'.
-src/features/spaces/__tests__/canvas-movement-integration.test.ts(71,49): error TS7031: Binding element 'nodeId' implicitly has an 'any' type.
-src/features/spaces/__tests__/canvas-movement-lifecycle.test.ts(7,33): error TS2339: Property 'nodes' does not exist on type '{ version: 1; structure: { version: 1; items: ({ kind: "content"; nodeId: string; id: string; parentId: string | null; order: number; locked: boolean; } | { kind: "group"; title: string; id: string; parentId: string | null; order: number; locked: boolean; } | { ...; })[]; }; layout: { ...; }; viewport: { ...; }; rel...'.
-src/features/spaces/__tests__/canvas-movement-lifecycle.test.ts(7,46): error TS7031: Binding element 'nodeId' implicitly has an 'any' type.
-src/features/spaces/__tests__/canvas-movement-lifecycle.test.ts(7,54): error TS7031: Binding element 'frame' implicitly has an 'any' type.
-src/features/spaces/__tests__/canvas-movement-lifecycle.test.ts(21,35): error TS2339: Property 'nodes' does not exist on type '{ version: 1; structure: { version: 1; items: ({ kind: "content"; nodeId: string; id: string; parentId: string | null; order: number; locked: boolean; } | { kind: "group"; title: string; id: string; parentId: string | null; order: number; locked: boolean; } | { ...; })[]; }; layout: { ...; }; viewport: { ...; }; rel...'.
-src/features/spaces/__tests__/canvas-movement-lifecycle.test.ts(21,48): error TS
+src/features/spaces/__tests__/can
 ```
 </details>
 
@@ -80,7 +78,7 @@ $ node tools/check-frontend-source-structure.mjs && node tools/check-ai-provider
 Frontend source structure gate failed (7):
 - src/features/spaces/__tests__/canvas-surface-host.test.ts: 184 effective lines exceeds 180
 - src/features/spaces/__tests__/konva-scene-projection.test.ts: 210 effective lines exceeds 180
-- src/features/spaces/canvas/konva/use-konva-canvas-runtime.ts: 183 effective lines exceeds 180
+- src/features/spaces/canvas/konva/use-konva-canvas-runtime.ts: 185 effective lines exceeds 180
 - src/features/spaces/presentation/SpaceOutline.vue: 185 effective lines exceeds 180
 - src/features/spaces/presentation/canvas/SpaceCanvas.vue: 188 effective lines exceeds 180
 - src/features/spaces/presentation/knowledge/SpaceKnowledgeTypeManager.vue: 211 effective lines exceeds 180
@@ -93,10 +91,35 @@ Frontend source structure gate failed (7):
 <details><summary>Frontend tests failures</summary>
 
 ```text
-472 passed, 75 failed
-/home/runner/work/knovum/knovum/src/foundation/i18n/__tests__/locale-completeness.test.ts :: locale completeness uses semantic lowerCamelCase message keys
-AssertionError: expected [ …(9) ] to deeply equal []
-    at /home/runner/work/knovum/knovum/src/foundation/i18n/__tests__/locale-completeness.test.ts:112:72
+464 passed, 83 failed
+/home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-arrangement-operation.test.ts :: whole-operation arrangement through the canvas port distributes three Section roots and carries every member by its parent's delta
+TypeError: Cannot read properties of undefined (reading 'filter')
+    at layoutsFor (/home/runner/work/knovum/knovum/src/features/spaces/canvas/konva/create-canvas-editor-port.ts:172:29)
+    at /home/runner/work/knovum/knovum/src/features/spaces/canvas/konva/create-canvas-editor-port.ts:59:48
+    at /home/runner/work/knovum/knovum/src/features/spaces/canvas/konva/interaction/canvas-gesture-session.ts:75:45
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+/home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-arrangement-operation.test.ts :: whole-operation arrangement through the canvas port gives ELK only operation roots and expands its resulting movement to members
+TypeError: Cannot read properties of undefined (reading 'filter')
+    at layoutsFor (/home/runner/work/knovum/knovum/src/features/spaces/canvas/konva/create-canvas-editor-port.ts:172:29)
+    at /home/runner/work/knovum/knovum/src/features/spaces/canvas/konva/create-canvas-editor-port.ts:47:31
+    at /home/runner/work/knovum/knovum/src/features/spaces/canvas/konva/interaction/canvas-gesture-session.ts:75:45
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+/home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-arrangement-operation.test.ts :: whole-operation arrangement through the canvas port leaves the document unchanged if automatic layout computation fails
+Error: expected [Function] to throw error matching /worker unavailable/u but got 'Cannot read properties of undefined (…'
+    at _Assertion.__VITEST_REJECTS__ (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+expect@4.1.10/node_modules/@vitest/expect/dist/index.js:1747:17)
+    at _Assertion.propertyGetter (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1570:27)
+    at Reflect.get (<anonymous>)
+    at Object.proxyGetter [as get] (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1659:22)
+    at /home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-arrangement-operation.test.ts:71:59
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+/home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-document-rebase.test.ts :: canvas document rebase merges independent relation presentation changes by relation identity
+TypeError: Cannot read properties of undefined (reading 'items')
+    at rebaseCanvasDocument (/home/runner/work/knovum/knovum/src/features/spaces/canvas/host/canvas-document-rebase.ts:16:24)
+    at /home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-document-rebase.test.ts:33:12
     at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
     at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
     at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
@@ -105,55 +128,10 @@ AssertionError: expected [ …(9) ] to deeply equal []
     at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
     at new Promise (<anonymous>)
     at runWithTimeout (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2955:64
-/home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-arrangement-operation.test.ts :: whole-operation arrangement through the canvas port distributes three Section roots and carries every member by its parent's delta
-TypeError: Cannot read properties of undefined (reading 'map')
-    at CanvasDocumentModel.indexLayouts (/home/runner/work/knovum/knovum/src/features/spaces/canvas/konva/document/canvas-document-model.ts:157:49)
-    at new CanvasDocumentModel (/home/runner/work/knovum/knovum/src/features/spaces/canvas/konva/document/canvas-document-model.ts:31:10)
-    at Module.movementHarness (/home/runner/work/knovum/knovum/src/features/spaces/canvas/konva/testing/canvas-movement-harness.ts:14:17)
-    at /home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-arrangement-operation.test.ts:27:21
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
-    at new Promise (<anonymous>)
-    at runWithCancel (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
-/home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-arrangement-operation.test.ts :: whole-operation arrangement through the canvas port gives ELK only operation roots and expands its resulting movement to members
-TypeError: Cannot read properties of undefined (reading 'map')
-    at CanvasDocumentModel.indexLayouts (/home/runner/work/knovum/knovum/src/features/spaces/canvas/konva/document/canvas-document-model.ts:157:49)
-    at new CanvasDocumentModel (/home/runner/work/knovum/knovum/src/features/spaces/canvas/konva/document/canvas-document-model.ts:31:10)
-    at Module.movementHarness (/home/runner/work/knovum/knovum/src/features/spaces/canvas/konva/testing/canvas-movement-harness.ts:14:17)
-    at /home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-arrangement-operation.test.ts:39:21
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
-    at new Promise (<anonymous>)
-    at runWithCancel (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
-/home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-arrangement-operation.test.ts :: whole-operation arrangement through the canvas port does not persist a partial alignment when any selected root is locked
-TypeError: Cannot read properties of undefined (reading 'map')
-    at CanvasDocumentModel.indexLayouts (/home/runner/work/knovum/knovum/src/features/spaces/canvas/konva/document/canvas-document-model.ts:157:49)
-    at new CanvasDocumentModel (/home/runner/work/knovum/knovum/src/features/spaces/canvas/konva/document/canvas-document-model.ts:31:10)
-    at Module.movementHarness (/home/runner/work/knovum/knovum/src/features/spaces/canvas/konva/testing/canvas-movement-harness.ts:14:17)
-    at /home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-arrangement-operation.test.ts:60:21
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
-    at new Promise (<anonymous>)
-    at runWithCancel (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
-/home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-arrangement-operation.test.ts :: whole-operation arrangement through the canvas port leaves the document unchanged if automatic layout computation fails
-TypeError: Cannot read properties of undefined (reading 'map')
-    at CanvasDocumentModel.indexLayouts (/home/runner/work/knovum/knovum/src/features/spaces/canvas/konva/document/canvas-document-model.ts:157:49)
-    at new CanvasDocumentModel (/home/runner/work/knovum/knovum/src/features/spaces/canvas/konva/document/canvas-document-model.ts:31:10)
-    at Module.movementHarness (/home/runner/work/knovum/knovum/src/features/spaces/canvas/konva/testing/canvas-movement-harness.ts:14:17)
-    at /home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-arrangement-operation.test.ts:68:21
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
-    at new Promise (<anonymous>)
-    at runWithCancel (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+/home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-document-workspace.test.ts :: Space-owned document workspace persists the captured camera at the committed revision even after detachment
+TypeError: Cannot read properties of undefined (reading 'items')
+    at rebaseCanvasDocument (/home/runner/work/knovum/knovum/src/features/spaces/canvas/host/canvas-document-rebase.ts:16:24)
+    at /home/runner/work/knovum/knovum/src/features/spaces/canvas/host/canvas-document-workspace.ts:61:13
 /home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-document.test.ts :: CanvasDocument v1 accepts engine-neutral layout state without domain content
 ZodError: [
   {
@@ -315,14 +293,57 @@ ZodError: [
     at new Promise (<anonymous>)
     at runWithTimeout (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)
 /home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-gesture-camera.test.ts :: committing geometry while the camera remains live keeps camera autosave free of uncommitted geometry (rejected=false)
+AssertionError: expected "vi.fn()" to be called once, but got 0 times
+    at /home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-gesture-camera.test.ts:26:46
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+/home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-gesture-camera.test.ts :: committing geometry while the camera remains live keeps camera autosave free of uncommitted geometry (rejected=true)
+AssertionError: expected "vi.fn()" to be called once, but got 0 times
+    at /home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-gesture-camera.test.ts:26:46
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+/home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-gesture-camera.test.ts :: committing geometry while the camera remains live preserves camera changes while undo is committing
 TypeError: Cannot read properties of undefined (reading 'map')
-    at CanvasDocumentModel.indexLayouts (/home/runner/work/knovum/knovum/src/features/spaces/canvas/konva/document/canvas-document-model.ts:157:49)
-    at new CanvasDocumentModel (/home/runner/work/knovum/knovum/src/features/spaces/canvas/konva/document/canvas-document-model.ts:31:10)
-    at movementHarness (/home/runner/work/knovum/knovum/src/features/spaces/canvas/konva/testing/canvas-movement-harness.ts:14:17)
-    at /home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-gesture-camera.test.ts:11:23
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
-    at file:///home/runner/work/knovum/knovum/node_modu
+    at commitNudge (/home/runner/work/knovum/knovum/src/features/spaces/canvas/konva/interaction/canvas-gesture-session.ts:81:34)
+    at /home/runner/work/knovum/knovum/src/features/spaces/canvas/konva/interaction/canvas-gesture-session.ts:69:26
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+/home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-gesture-camera.test.ts :: committing geometry while the camera remains live preserves camera changes while redo is committing
+TypeError: Cannot read properties of undefined (reading 'map')
+    at commitNudge (/home/runner/work/knovum/knovum/src/features/spaces/canvas/konva/interaction/canvas-gesture-session.ts:81:34)
+    at /home/runner/work/knovum/knovum/src/features/spaces/canvas/konva/interaction/canvas-gesture-session.ts:69:26
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+/home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-gesture-repository.test.ts :: canvas gesture repository constructs the strict persistence DTO without leaking gesture-only fields
+AssertionError: expected "vi.fn()" to be called with arguments: [ …(2) ]
+
+Received:
+
+  1st vi.fn() call:
+
+@@ -1,11 +1,10 @@
+  [
+    "plugin:spaces|commit_canvas_gesture",
+    {
+      "request": {
+        "baseRevision": 3,
+-       "changes": [],
+        "document": {
+          "nodes": [],
+          "version": 1,
+          "viewport": {
+            "x": 0,
+
+
+Number of calls: 1
+
+    at Proxy.<anonymous> (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+expect@4.1.10/node_modules/@vitest/expect/dist/index.js:1487:10)
+    at Proxy.<anonymous> (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+expect@4.1.10/node_modules/@vitest/expect/dist/index.js:1156:15)
+    at Proxy.methodWrapper (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1700:25)
+    at /home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-gesture-repository.test.ts:27:26
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+/home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-gesture-session.test.ts :: canvas gesture session commits keyboard movement without implicitly changing Section membership
+TypeError: Cannot read properties of undefined (reading 'map')
+    at commitNudge (/home/runner/work/knovum/knovum/src/features/spaces/canvas/konva/interaction/canvas-gesture-session.ts:81:34)
+    at /home/runner/work/knovum/knovum/src/features/spaces/canvas/konva/interaction/canvas-gesture-session.ts:69:26
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+/home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-gesture-session.test.ts :: canvas gesture session serializes rapid keyboard nudges from
 ```
 </details>
 
@@ -332,9 +353,9 @@ TypeError: Cannot read properties of undefined (reading 'map')
 $ vite build
 vite v8.2.2 building client environment for production...
 transforming...
-✓ 4029 modules transformed.
+✓ 4048 modules transformed.
 rendering chunks...
-✗ Build failed in 3.82s
+✗ Build failed in 2.56s
 error during build:
 Build failed with 1 error:
 
