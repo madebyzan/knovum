@@ -30,6 +30,12 @@ describe("createSpaceNode", () => {
         title: "Interview",
         assetPath: "/spaces/assets/interview.wav",
         fileName: "interview.wav",
+        mediaAnalysis: {
+          schemaVersion: 1,
+          sourceRevision: "sha256:test",
+          durationMs: 1_000,
+          waveform: [0.2, 0.7],
+        },
         mediaKnowledge: {
           transcript: {
             language: "en",
@@ -37,10 +43,9 @@ describe("createSpaceNode", () => {
             text: "Hello",
             segments: [{ startMs: 0, endMs: 1_000, text: "Hello" }],
             subtitleCues: [{ startMs: 0, endMs: 1_000, text: "Hello" }],
-            waveform: [0.2, 0.7],
           },
           sourceRevision: "sha256:test",
-          schemaVersion: 3,
+          schemaVersion: 4,
           insights: {
             summary: "Greeting",
             chapters: [{ startMs: 0, endMs: 1_000, title: "Intro", summary: "Greeting" }],

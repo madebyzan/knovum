@@ -16,10 +16,10 @@ type SpaceStore = ReturnType<typeof useSpaceStore>;
 export function canCreateSubtitleResource(node: SpaceCanvasNode | undefined): boolean {
   if (node?.data.kind !== "video" || !node.data.sourceRevision) return false;
   const knowledge = node.data.mediaKnowledge;
-  return (
-    knowledge?.schemaVersion === 3 &&
-    knowledge.sourceRevision === node.data.sourceRevision &&
-    knowledge.transcript.subtitleCues.length > 0
+  return Boolean(
+    knowledge &&
+      knowledge.sourceRevision === node.data.sourceRevision &&
+      knowledge.transcript.subtitleCues.length > 0,
   );
 }
 
