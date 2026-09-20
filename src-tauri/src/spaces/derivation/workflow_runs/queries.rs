@@ -15,23 +15,6 @@ pub async fn get<R: Runtime>(app: &AppHandle<R>, id: &str) -> Result<WorkflowRun
     record(pool, row).await
 }
 
-pub async fn list<R: Runtime>(
-    app: &AppHandle<R>,
-    space_id: &str,
-) -> Result<Vec<WorkflowRunRecord>, String> {
-    let pool = db::pool(app).await?;
-    let rows = sqlx::query(
-        "SELECT id,space_id,workflow_id,workflow_version,status,error,created_at,updated_at,completed_at \
-         FROM spaces_creation_workflow_runs WHERE space_id=$1 ORDER BY created_at DESC,id DESC",
-    )
-    .bind(space_id).fetch_all(pool).await.map_err(db::sql_error)?;
-    let mut records = Vec::with_capacity(rows.len());
-    for row in rows {
-        records.push(record(pool, row).await?);
-    }
-    Ok(records)
-}
-
 async fn record(
     pool: &sqlx::SqlitePool,
     row: sqlx::sqlite::SqliteRow,

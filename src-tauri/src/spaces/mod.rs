@@ -132,7 +132,6 @@ pub fn plugin() -> tauri::plugin::TauriPlugin<tauri::Wry> {
             crate::spaces::derivation::commands::export_document_as_docx,
             crate::spaces::derivation::commands::export_document_as_pdf,
             crate::spaces::derivation::workflow_runs::save_creation_workflow_run,
-            crate::spaces::derivation::workflow_runs::list_creation_workflow_runs,
             crate::spaces::derivation::workflow_runs::plan_creation_workflow_step,
             crate::spaces::derivation::output_paths::allocate_knowledge_image_path,
             crate::spaces::derivation::output_paths::allocate_document_docx_path,

@@ -1,6 +1,6 @@
 use super::ModelDescriptor;
 
-const DEFAULT_ENDPOINTS: [&str; 2] = ["https://huggingface.co", "https://hf-mirror.com"];
+const DEFAULT_ENDPOINT = "https://huggingface.co";
 
 pub(super) fn download_urls(descriptor: ModelDescriptor) -> Result<Vec<reqwest::Url>, String> {
     let endpoint = std::env::var("KNOVUM_MODEL_ENDPOINT").or_else(|error| match error {
@@ -9,7 +9,7 @@ pub(super) fn download_urls(descriptor: ModelDescriptor) -> Result<Vec<reqwest::
     });
     match endpoint {
         Ok(endpoint) => urls(descriptor, &[&endpoint]),
-        Err(std::env::VarError::NotPresent) => urls(descriptor, &DEFAULT_ENDPOINTS),
+        Err(std::env::VarError::NotPresent) => urls(descriptor, &[DEFAULT_ENDPOINT]),
         Err(_) => Err("Model endpoint must be valid Unicode".to_string()),
     }
 }

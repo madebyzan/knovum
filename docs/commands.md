@@ -45,12 +45,3 @@ Saved Website networking is Rust-owned: the crate-level web capture module perfo
 
 - `plugin:spaces|preview_asset` — authorizes one managed Space asset and opens the platform system preview. The engine is internal Rust code and never accepts an untrusted Renderer path directly.
 - Canvas surfaces omit the action when the platform has no system preview panel; media retains its own spacebar playback behavior.
-
-## Commands without a Renderer consumer
-
-These declared commands have no production Renderer consumer. The list is documentation, not a gate
-registry: nothing enforces it, so it is only as true as the last review that read it. Treat each
-entry as authorized debt and prefer deleting an unused command — an unreachable command still
-widens the WebView ACL, which `AGENTS.md` forbids granting preemptively.
-
-- `plugin:spaces|list_creation_workflow_runs`: Workflow runs are written by `plugin:spaces|save_creation_workflow_run`; no history view reads them yet.

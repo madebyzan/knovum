@@ -16,13 +16,6 @@ pub async fn save_creation_workflow_run<R: Runtime>(
     persistence::save(&app, request).await
 }
 
-#[tauri::command]
-pub async fn list_creation_workflow_runs<R: Runtime>(
-    app: AppHandle<R>,
-    space_id: String,
-) -> Result<Vec<WorkflowRunRecord>, String> {
-    queries::list(&app, &space_id).await
-}
 
 #[tauri::command]
 pub fn plan_creation_workflow_step(

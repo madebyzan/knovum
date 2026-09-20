@@ -161,7 +161,6 @@ fn main() {
                         "export_document_as_docx",
                         "export_document_as_pdf",
                         "save_creation_workflow_run",
-                        "list_creation_workflow_runs",
                         "plan_creation_workflow_step",
                         "allocate_knowledge_image_path",
                         "allocate_document_docx_path",
