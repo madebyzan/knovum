@@ -16,8 +16,11 @@ jobs:
   web:
     name: Web quality
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: "22"
@@ -29,35 +32,85 @@ jobs:
       - name: Require committed lockfile
         run: test -f pnpm-lock.yaml
       - name: Install dependencies
+        id: install
         run: pnpm install --frozen-lockfile
       - name: Audit production dependencies
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: pnpm security:web
-      - name: Run web gates
-        run: pnpm check:web
+      - name: Check command authority
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: pnpm check:authority
+      - name: Check application types
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: pnpm typecheck
+      - name: Check desktop test types
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: pnpm typecheck:e2e
+      - name: Lint source
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: pnpm lint
+      - name: Check architecture
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: pnpm architecture
+      - name: Run all frontend tests
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        timeout-minutes: 12
+        run: pnpm exec vitest run --maxWorkers=4
+      - name: Check unused code
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: pnpm deadcode
+      - name: Check duplication
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: pnpm duplicates
+      - name: Check formatting
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: pnpm format:check
+      - name: Build frontend
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: pnpm build
 
   rust:
     name: Rust quality
     runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      CARGO_BUILD_JOBS: "2"
+      CARGO_PROFILE_DEV_DEBUG: "0"
+      CARGO_PROFILE_TEST_DEBUG: "0"
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - name: Install Tauri Linux prerequisites
+        id: prerequisites
         run: |
           sudo apt-get update
-          sudo apt-get install -y             libwebkit2gtk-4.1-dev             build-essential             curl             wget             file             libxdo-dev             libssl-dev             libayatana-appindicator3-dev             librsvg2-dev
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev build-essential curl wget file \
+            libxdo-dev libssl-dev libayatana-appindicator3-dev \
+            librsvg2-dev protobuf-compiler
       - name: Require committed lockfile
         run: test -f src-tauri/Cargo.lock
       - name: Verify Rust architecture boundaries
+        if: ${{ !cancelled() && steps.prerequisites.outcome == 'success' }}
         run: node tools/check-rust-architecture.mjs
       - name: Verify Rust toolchain
+        id: toolchain
+        if: ${{ !cancelled() && steps.prerequisites.outcome == 'success' }}
         run: rustc --version && cargo --version
       - name: Audit Rust dependencies
+        if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}
         uses: EmbarkStudios/cargo-deny-action@v2
         with:
           rust-version: "1.97.1"
           manifest-path: src-tauri/Cargo.toml
           command: check advisories licenses
-      - name: Run Rust gates
-        run: |
-          cargo fmt --manifest-path src-tauri/Cargo.toml -- --check
-          cargo clippy --locked --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
-          cargo test --locked --manifest-path src-tauri/Cargo.toml
+      - name: Check Rust formatting
+        if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}
+        run: cargo fmt --manifest-path src-tauri/Cargo.toml -- --check
+      - name: Check Rust code and tests
+        if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}
+        run: cargo clippy --locked --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
+      - name: Run Rust tests
+        if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}
+        run: cargo test --locked --manifest-path src-tauri/Cargo.toml
