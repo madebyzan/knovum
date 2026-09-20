@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
 
-import type { SpaceCredential } from "../model/credential";
-import type { Space } from "../model/space";
-import { archiveSpace, permanentlyDeleteSpace, unarchiveSpace } from "../workspace/archive-actions";
-import type { SpaceSessionContext } from "../workspace/space-session-actions";
-import { createTestSessionContext, createTestSpace } from "./test-session-context.test";
+import type { SpaceCredential } from "../../model/credential";
+import type { Space } from "../../model/space";
+import { archiveSpace, permanentlyDeleteSpace, unarchiveSpace } from "../archive-actions";
+import type { SpaceSessionContext } from "../space-session-actions";
+import { createTestSessionContext, createTestSpace } from "../../__tests__/test-session-context.test";
 
 const lifecycleRepository = vi.hoisted(() => ({
   archiveSpace: vi.fn<(id: string) => Promise<void>>(),
@@ -16,7 +16,7 @@ const spaceRepository = vi.hoisted(() => ({
   listCredentialNodeIds: vi.fn<(id: string) => Promise<string[]>>(),
 }));
 
-vi.mock("../workspace/space-repository", () => ({
+vi.mock("../space-repository", () => ({
   archiveSpace: lifecycleRepository.archiveSpace,
   deleteSpacePermanently: spaceRepository.deleteSpacePermanently,
   listCredentialNodeIds: spaceRepository.listCredentialNodeIds,
@@ -25,13 +25,13 @@ vi.mock("../workspace/space-repository", () => ({
 const assets = vi.hoisted(() => ({
   cleanupDeletedSpaceAssets: vi.fn<(paths: readonly string[]) => Promise<void>>(),
 }));
-vi.mock("../assets/asset-operations", () => assets);
+vi.mock("../../assets/asset-operations", () => assets);
 const credentialStore = vi.hoisted(() => ({
   deleteSpaceCredentials: vi.fn<(nodeIds: readonly string[]) => Promise<void>>(),
   loadSpaceCredential: vi.fn<(nodeId: string) => Promise<SpaceCredential | undefined>>(),
   saveSpaceCredential: vi.fn<(nodeId: string, credential: SpaceCredential) => Promise<void>>(),
 }));
-vi.mock("../credentials/credential-repository", () => credentialStore);
+vi.mock("../../credentials/credential-repository", () => credentialStore);
 function space(): Space {
   return createTestSpace({
     id: "research",

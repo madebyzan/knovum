@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createCanvasEditingCommands } from "../commands/canvas-editing-commands";
+import { createCanvasEditingCommands } from "../canvas-editing-commands";
 
 vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => "macos" }));
 vi.mock("@tauri-apps/plugin-log", () => ({

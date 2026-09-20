@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { parseCanvasDocument } from "../canvas/contract/canvas-document";
+import { parseCanvasDocument } from "../canvas-document";
 
 function document() {
   return {

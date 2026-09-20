@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { revealCanvasLayouts } from "../canvas/konva/viewport/canvas-editor-navigation";
+import { revealCanvasLayouts } from "../canvas-editor-navigation";
 
 describe("canvas editor navigation", () => {
   it("pans an off-screen node into view without changing zoom", () => {

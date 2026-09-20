@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import type { CanvasDocumentV1 } from "../canvas/contract/canvas-document";
-import { rebaseCanvasDocument } from "../canvas/host/canvas-document-rebase";
+import type { CanvasDocumentV1 } from "../../contract/canvas-document";
+import { rebaseCanvasDocument } from "../canvas-document-rebase";
 
 const base: CanvasDocumentV1 = {
   version: 1,

@@ -4,8 +4,8 @@ import {
   activeThreadNodeIds,
   knowledgeScopeNodeIds,
   suggestedKnowledgeScope,
-} from "../knowledge/assistant/assistant-state";
-import type { GroundedThread } from "../knowledge/model/grounded-thread";
+} from "../assistant-state";
+import type { GroundedThread } from "../../model/grounded-thread";
 
 describe("grounded assistant scope", () => {
   it("keeps persisted thread scope authoritative", () => {

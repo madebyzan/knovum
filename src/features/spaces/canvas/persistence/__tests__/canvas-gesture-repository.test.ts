@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { CanvasDocumentV1 } from "../canvas/contract/canvas-document";
-import { commitCanvasGesture } from "../canvas/persistence/canvas-gesture-repository";
+import type { CanvasDocumentV1 } from "../../contract/canvas-document";
+import { commitCanvasGesture } from "../canvas-gesture-repository";
 
 const tauri = vi.hoisted(() => ({
   invoke: vi.fn<(command: string, args?: unknown) => Promise<unknown>>(),

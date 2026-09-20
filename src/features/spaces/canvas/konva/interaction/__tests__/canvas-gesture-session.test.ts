@@ -1,12 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { CanvasDocumentV1, CanvasNodeFrameUpdate } from "../canvas/contract/canvas-document";
-import type { CanvasPersistenceHistory, CanvasSurfaceEvents } from "../canvas/contract/canvas-editor";
-import { createCanvasDocument } from "../canvas/document/canvas-document-sync";
-import { CanvasDocumentModel } from "../canvas/konva/document/canvas-document-model";
-import { createCanvasGestureSession } from "../canvas/konva/interaction/canvas-gesture-session";
-import { createSpaceNotePayload } from "../editor/tiptap-content";
-import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
+import type { CanvasDocumentV1, CanvasNodeFrameUpdate } from "../../../contract/canvas-document";
+import type { CanvasPersistenceHistory, CanvasSurfaceEvents } from "../../../contract/canvas-editor";
+import { createCanvasDocument } from "../../../document/canvas-document-sync";
+import { CanvasDocumentModel } from "../../document/canvas-document-model";
+import { createCanvasGestureSession } from "../canvas-gesture-session";
+import { createSpaceNotePayload } from "../../../../editor/tiptap-content";
+import type { SpaceCanvasNode } from "../../../../model/nodes/canvas-node";
 
 describe("canvas gesture session", () => {
   it("owns the direct-manipulation lifecycle independently from persistence busy state", () => {

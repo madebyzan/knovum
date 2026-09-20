@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { CanvasEditorPort } from "../canvas/contract/canvas-editor-port";
-import { createCanvasContentLayoutCoordinator } from "../presentation/canvas/canvas-content-layout-coordinator";
+import type { CanvasEditorPort } from "../../../canvas/contract/canvas-editor-port";
+import { createCanvasContentLayoutCoordinator } from "../canvas-content-layout-coordinator";
 
 describe("canvas content layout coordinator", () => {
   it("measures and flushes content height before its session phase resolves", async () => {
