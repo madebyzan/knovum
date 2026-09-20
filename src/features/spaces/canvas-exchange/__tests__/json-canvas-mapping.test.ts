@@ -74,7 +74,7 @@ describe("JSON Canvas 1.0 neutral mapping", () => {
     });
     expect(
       exportJsonCanvasDocument(
-        [{ layout: { ...plan.nodes[0]!, nodeId: "file" }, content: plan.nodes[0]!.content }],
+        [{ layout: { ...plan.nodes[0]!, nodeId: "file", sizeAuthority: "frame" as const }, content: plan.nodes[0]!.content }],
         [],
       ).nodes?.[0],
     ).toMatchObject({ color: "3", subpath: "#Heading" });
@@ -99,7 +99,7 @@ describe("JSON Canvas 1.0 neutral mapping", () => {
     expect(plan.nodes[0]?.appearance).toEqual({ customFill: "#12aBcF" });
     expect(
       exportJsonCanvasDocument(
-        [{ layout: { ...plan.nodes[0]!, nodeId: "custom" }, content: plan.nodes[0]!.content }],
+        [{ layout: { ...plan.nodes[0]!, nodeId: "custom", sizeAuthority: "frame" as const }, content: plan.nodes[0]!.content }],
         [],
       ).nodes?.[0],
     ).toMatchObject({ color: "#12aBcF" });

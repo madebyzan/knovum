@@ -108,7 +108,7 @@ describe("Konva canvas document synchronization", () => {
         {
           nodeId: "b",
           frame: { x: 10, y: 10, width: 100, height: 100, rotation: 0 },
-          sizeAuthority: "frame",
+          sizeAuthority: "frame" as const,
           zIndex: 1,
         },
       ],

@@ -48,7 +48,7 @@ describe("JSON Canvas application service", () => {
     );
     const editor = {
       getDocument: () => document,
-      observeDocument: (observer) => {
+      observeDocument: (observer: (document: CanvasDocumentV1) => void) => {
         observer(document);
         return () => undefined;
       },
