@@ -1,6 +1,18 @@
 # Complete failing test diagnostics
 
 ```text
+/home/runner/work/knovum/knovum/src/foundation/i18n/__tests__/locale-completeness.test.ts :: locale completeness uses semantic lowerCamelCase message keys
+AssertionError: expected [ …(9) ] to deeply equal []
+    at /home/runner/work/knovum/knovum/src/foundation/i18n/__tests__/locale-completeness.test.ts:112:72
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2955:64
 /home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-arrangement-operation.test.ts :: whole-operation arrangement through the canvas port distributes three Section roots and carries every member by its parent's delta
 TypeError: Cannot destructure property 'width' of '(0 , __vite_ssr_import_1__.spaceNodeSizePolicy)(...)' as it is undefined.
     at /home/runner/work/knovum/knovum/src/features/spaces/canvas/document/canvas-document-sync.ts:36:19
@@ -701,7 +713,7 @@ ZodError: [
   }
 ]
     at parseSpaceEditorDocument (/home/runner/work/knovum/knovum/src/features/spaces/canvas/contract/canvas-document.ts:79:36)
-    at Object.remapCanvasState [as remap] (/home/runner/work/knovum/knovum/src/features/spaces/canvas/canvas-package-codec.ts:14:20)
+    at Object.remap (/home/runner/work/knovum/knovum/src/features/spaces/canvas/canvas-package-codec.ts:10:22)
     at /home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-package-codec.test.ts:7:38
     at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
     at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
@@ -1412,16 +1424,4 @@ AssertionError: expected [Function] to throw error matching /cycle/u but got 'Si
     at new Promise (<anonymous>)
     at runWithCancel (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
     at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
-/home/runner/work/knovum/knovum/src/foundation/i18n/__tests__/locale-completeness.test.ts :: locale completeness uses semantic lowerCamelCase message keys
-AssertionError: expected [ …(9) ] to deeply equal []
-    at /home/runner/work/knovum/knovum/src/foundation/i18n/__tests__/locale-completeness.test.ts:112:72
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
-    at new Promise (<anonymous>)
-    at runWithCancel (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
-    at new Promise (<anonymous>)
-    at runWithTimeout (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2955:64
 ```
