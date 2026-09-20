@@ -6,7 +6,7 @@ CREATE TABLE spaces_enrichment_jobs_next (
   id TEXT PRIMARY KEY NOT NULL,
   space_id TEXT NOT NULL,
   node_id TEXT NOT NULL,
-  job_type TEXT NOT NULL CHECK (job_type IN ('embed_text','analyze_image','analyze_media','transcribe_media','analyze_video_first_frame','embed_media_transcript','parse_document','analyze_document')),
+  job_type TEXT NOT NULL CHECK (job_type IN ('embed_text','analyze_image','transcribe_media','analyze_video_first_frame','embed_media_transcript','parse_document','analyze_document')),
   status TEXT NOT NULL CHECK (status IN ('pending','running','succeeded','failed','cancelled','awaiting_configuration')),
   source_revision TEXT NOT NULL,
   attempts INTEGER NOT NULL DEFAULT 0 CHECK (attempts >= 0),
