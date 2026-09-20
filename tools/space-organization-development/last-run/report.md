@@ -1,6 +1,6 @@
 ## Organization development verification
 
-Source commit: `12fc032945b7f77bb1219108439acf1deffc7820`. Actual execution, not a product acceptance claim.
+Source commit: `a5062d5bb521fe954dee8b5869f664bd088c77fe`. Actual execution, not a product acceptance claim.
 
 | Check | Result |
 | --- | --- |
@@ -15,7 +15,7 @@ Source commit: `12fc032945b7f77bb1219108439acf1deffc7820`. Actual execution, not
 | Formatting | FAIL (1) |
 | Build | FAIL (1) |
 
-Frontend tests: 449 passed, 104 failed; 0 pending.
+Frontend tests: 445 passed, 108 failed; 0 pending.
 
 
 Every check has a complete companion Markdown/log artifact. Rust validation is a separate job. No gate, test, or lint rule is disabled.

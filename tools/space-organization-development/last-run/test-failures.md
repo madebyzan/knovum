@@ -1,18 +1,6 @@
 # Complete failing test diagnostics
 
 ```text
-/home/runner/work/knovum/knovum/src/foundation/i18n/__tests__/locale-completeness.test.ts :: locale completeness uses semantic lowerCamelCase message keys
-AssertionError: expected [ …(9) ] to deeply equal []
-    at /home/runner/work/knovum/knovum/src/foundation/i18n/__tests__/locale-completeness.test.ts:112:72
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
-    at new Promise (<anonymous>)
-    at runWithCancel (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
-    at new Promise (<anonymous>)
-    at runWithTimeout (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2955:64
 /home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-arrangement-operation.test.ts :: whole-operation arrangement through the canvas port distributes three Section roots and carries every member by its parent's delta
 TypeError: Cannot destructure property 'width' of '(0 , __vite_ssr_import_1__.spaceNodeSizePolicy)(...)' as it is undefined.
     at /home/runner/work/knovum/knovum/src/features/spaces/canvas/document/canvas-document-sync.ts:36:19
@@ -1352,6 +1340,54 @@ Error: The Space editor is not ready for an organizational command
     at runWithCancel (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
     at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
     at new Promise (<anonymous>)
+/home/runner/work/knovum/knovum/src/features/spaces/__tests__/selection-product-state.test.ts :: canvasSelectionProductState exposes semantic product actions without duplicating engine arrangement actions
+TypeError: Cannot read properties of undefined (reading 'items')
+    at indexStructure (/home/runner/work/knovum/knovum/src/features/spaces/model/structure/structure-index.ts:11:32)
+    at structureSelectionEligibility (/home/runner/work/knovum/knovum/src/features/spaces/organization/structure/structure-eligibility.ts:6:16)
+    at canvasSelectionProductState (/home/runner/work/knovum/knovum/src/features/spaces/presentation/canvas/selection-product-state.ts:15:17)
+    at /home/runner/work/knovum/knovum/src/features/spaces/__tests__/selection-product-state.test.ts:21:19
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+/home/runner/work/knovum/knovum/src/features/spaces/__tests__/selection-product-state.test.ts :: canvasSelectionProductState uses section context and preserves the selected lock state
+TypeError: Cannot read properties of undefined (reading 'items')
+    at indexStructure (/home/runner/work/knovum/knovum/src/features/spaces/model/structure/structure-index.ts:11:32)
+    at structureSelectionEligibility (/home/runner/work/knovum/knovum/src/features/spaces/organization/structure/structure-eligibility.ts:6:16)
+    at canvasSelectionProductState (/home/runner/work/knovum/knovum/src/features/spaces/presentation/canvas/selection-product-state.ts:15:17)
+    at /home/runner/work/knovum/knovum/src/features/spaces/__tests__/selection-product-state.test.ts:39:19
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+/home/runner/work/knovum/knovum/src/features/spaces/__tests__/selection-product-state.test.ts :: canvasSelectionProductState connects only an exact two-node semantic selection
+TypeError: Cannot read properties of undefined (reading 'items')
+    at indexStructure (/home/runner/work/knovum/knovum/src/features/spaces/model/structure/structure-index.ts:11:32)
+    at structureSelectionEligibility (/home/runner/work/knovum/knovum/src/features/spaces/organization/structure/structure-eligibility.ts:6:16)
+    at canvasSelectionProductState (/home/runner/work/knovum/knovum/src/features/spaces/presentation/canvas/selection-product-state.ts:15:17)
+    at /home/runner/work/knovum/knovum/src/features/spaces/__tests__/selection-product-state.test.ts:49:12
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+/home/runner/work/knovum/knovum/src/features/spaces/__tests__/selection-product-state.test.ts :: canvasSelectionProductState identifies managed assets as system-preview targets
+TypeError: Cannot read properties of undefined (reading 'items')
+    at indexStructure (/home/runner/work/knovum/knovum/src/features/spaces/model/structure/structure-index.ts:11:32)
+    at structureSelectionEligibility (/home/runner/work/knovum/knovum/src/features/spaces/organization/structure/structure-eligibility.ts:6:16)
+    at canvasSelectionProductState (/home/runner/work/knovum/knovum/src/features/spaces/presentation/canvas/selection-product-state.ts:15:17)
+    at /home/runner/work/knovum/knovum/src/features/spaces/__tests__/selection-product-state.test.ts:65:12
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
 /home/runner/work/knovum/knovum/src/features/spaces/__tests__/space-session-actions.test.ts :: openSpace coalesces repeated clicks while the same space is loading
 AssertionError: expected "vi.fn()" to be called 1 times, but got 0 times
     at /home/runner/work/knovum/knovum/src/features/spaces/__tests__/space-session-actions.test.ts:78:38
@@ -1424,4 +1460,16 @@ AssertionError: expected [Function] to throw error matching /cycle/u but got 'Si
     at new Promise (<anonymous>)
     at runWithCancel (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
     at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+/home/runner/work/knovum/knovum/src/foundation/i18n/__tests__/locale-completeness.test.ts :: locale completeness uses semantic lowerCamelCase message keys
+AssertionError: expected [ …(9) ] to deeply equal []
+    at /home/runner/work/knovum/knovum/src/foundation/i18n/__tests__/locale-completeness.test.ts:112:72
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2955:64
 ```
