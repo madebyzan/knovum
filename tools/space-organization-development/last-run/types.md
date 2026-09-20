@@ -1,6 +1,6 @@
 # Types
 
-Source: `9b1a5aba096de51ed2bf377ef8bbea9c5b2e9ad1`. Exit code: 2.
+Source: `a9c6bb781622093bf6415df2bbbb5eecd1a5a013`. Exit code: 2.
 
 ```text
 $ vue-tsc --noEmit && tsc --noEmit -p tsconfig.node.json

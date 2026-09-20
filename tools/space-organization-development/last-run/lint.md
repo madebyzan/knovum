@@ -1,26 +1,26 @@
 # Lint
 
-Source: `9b1a5aba096de51ed2bf377ef8bbea9c5b2e9ad1`. Exit code: 1.
+Source: `a9c6bb781622093bf6415df2bbbb5eecd1a5a013`. Exit code: 1.
 
 ```text
 $ oxlint .
 ::error file=src/features/spaces/canvas/konva/scene/scene-projection.ts,line=41,endLine=74,col=31,endColumn=6,title=eslint(complexity)::src/features/spaces/canvas/konva/scene/scene-projection.ts:41:31: function has a complexity of 11. Maximum allowed is 10.
 ::error file=src/features/spaces/canvas/konva/scene/scene-projection.ts,line=99,endLine=99,col=8,endColumn=11,title=oxc(no-map-spread)::src/features/spaces/canvas/konva/scene/scene-projection.ts:99:8: Spreading to modify object properties in `map` calls is inefficient
-::error file=src/features/spaces/enrichment/job-scheduler.ts,line=48,endLine=48,col=51,endColumn=55,title=unicorn(no-array-sort)::src/features/spaces/enrichment/job-scheduler.ts:48:51: Use `Array#toSorted()` instead of `Array#sort()`.
-::error file=src/features/spaces/organization/selection-actions.ts,line=5,endLine=5,col=17,endColumn=39,title=unicorn(consistent-function-scoping)::src/features/spaces/organization/selection-actions.ts:5:17: Function `editor` does not capture any variables from its parent scope
 ::error file=src/features/spaces/canvas/document/editor-layout-projection.ts,line=11,endLine=11,col=37,endColumn=40,title=oxc(no-map-spread)::src/features/spaces/canvas/document/editor-layout-projection.ts:11:37: Spreading to modify object properties in `map` calls is inefficient
 ::error file=src/features/spaces/canvas/document/editor-layout-projection.ts,line=11,endLine=44,col=41,endColumn=4,title=eslint(complexity)::src/features/spaces/canvas/document/editor-layout-projection.ts:11:41: function has a complexity of 12. Maximum allowed is 10.
 ::error file=src/features/spaces/canvas/konva/scene/canvas-node-interaction.ts,line=18,endLine=55,col=8,endColumn=2,title=eslint(complexity)::src/features/spaces/canvas/konva/scene/canvas-node-interaction.ts:18:8: function `canvasNodeInteraction` has a complexity of 17. Maximum allowed is 10.
+::error file=src/features/spaces/enrichment/job-scheduler.ts,line=48,endLine=48,col=51,endColumn=55,title=unicorn(no-array-sort)::src/features/spaces/enrichment/job-scheduler.ts:48:51: Use `Array#toSorted()` instead of `Array#sort()`.
+::error file=src/features/spaces/organization/selection-actions.ts,line=5,endLine=5,col=17,endColumn=39,title=unicorn(consistent-function-scoping)::src/features/spaces/organization/selection-actions.ts:5:17: Function `editor` does not capture any variables from its parent scope
 ::error file=src/features/spaces/canvas-exchange/json-canvas-mapping.ts,line=50,endLine=60,col=1,endColumn=2,title=eslint(complexity)::src/features/spaces/canvas-exchange/json-canvas-mapping.ts:50:1: function `exportNode` has a complexity of 12. Maximum allowed is 10.
 ::error file=src/features/spaces/canvas/konva/presentation/container-chrome-projection.ts,line=5,endLine=13,col=42,endColumn=2,title=eslint(max-params)::src/features/spaces/canvas/konva/presentation/container-chrome-projection.ts:5:42: Function 'containerChromeProjection' has too many parameters (7). Maximum allowed is 4.
 ::error file=src/features/spaces/canvas/konva/presentation/container-chrome-projection.ts,line=16,endLine=38,col=30,endColumn=4,title=eslint(complexity)::src/features/spaces/canvas/konva/presentation/container-chrome-projection.ts:16:30: function has a complexity of 11. Maximum allowed is 10.
-::error file=src/features/spaces/canvas/konva/interaction/canvas-translation-snapping.ts,line=49,endLine=89,col=1,endColumn=2,title=eslint(complexity)::src/features/spaces/canvas/konva/interaction/canvas-translation-snapping.ts:49:1: function `alignmentSnap` has a complexity of 19. Maximum allowed is 10.
-::error file=src/features/spaces/canvas/konva/selection/selection-transform-policy.ts,line=28,endLine=60,col=8,endColumn=2,title=eslint(complexity)::src/features/spaces/canvas/konva/selection/selection-transform-policy.ts:28:8: function `projectSelectionTransformPolicy` has a complexity of 13. Maximum allowed is 10.
 ::error file=src/features/spaces/canvas/konva/selection/use-canvas-selection.ts,line=63,endLine=88,col=3,endColumn=4,title=eslint(complexity)::src/features/spaces/canvas/konva/selection/use-canvas-selection.ts:63:3: function `endMarquee` has a complexity of 15. Maximum allowed is 10.
+::error file=src/features/spaces/clipboard/transfer.ts,line=81,endLine=87,col=12,endColumn=8,title=eslint(complexity)::src/features/spaces/clipboard/transfer.ts:81:12: function has a complexity of 11. Maximum allowed is 10.
+::error file=src/features/spaces/canvas/konva/interaction/canvas-translation-snapping.ts,line=49,endLine=89,col=1,endColumn=2,title=eslint(complexity)::src/features/spaces/canvas/konva/interaction/canvas-translation-snapping.ts:49:1: function `alignmentSnap` has a complexity of 19. Maximum allowed is 10.
 ::error file=src/features/spaces/canvas/konva/selection/selection-transform-geometry.ts,line=8,endLine=14,col=44,endColumn=2,title=eslint(max-params)::src/features/spaces/canvas/konva/selection/selection-transform-geometry.ts:8:44: Function 'constrainSelectionTransform' has too many parameters (5). Maximum allowed is 4.
 ::error file=src/features/spaces/canvas/konva/selection/selection-transform-geometry.ts,line=31,endLine=38,col=25,endColumn=2,title=eslint(max-params)::src/features/spaces/canvas/konva/selection/selection-transform-geometry.ts:31:25: Function 'constrainedSize' has too many parameters (6). Maximum allowed is 4.
 ::error file=src/features/spaces/canvas/konva/selection/selection-transform-geometry.ts,line=56,endLine=62,col=27,endColumn=2,title=eslint(max-params)::src/features/spaces/canvas/konva/selection/selection-transform-geometry.ts:56:27: Function 'contentAspectSize' has too many parameters (5). Maximum allowed is 4.
-::error file=src/features/spaces/clipboard/transfer.ts,line=81,endLine=87,col=12,endColumn=8,title=eslint(complexity)::src/features/spaces/clipboard/transfer.ts:81:12: function has a complexity of 11. Maximum allowed is 10.
+::error file=src/features/spaces/canvas/konva/selection/selection-transform-policy.ts,line=28,endLine=60,col=8,endColumn=2,title=eslint(complexity)::src/features/spaces/canvas/konva/selection/selection-transform-policy.ts:28:8: function `projectSelectionTransformPolicy` has a complexity of 13. Maximum allowed is 10.
 ::error file=src/features/spaces/canvas/konva/document/canvas-document-model.ts,line=66,endLine=66,col=24,endColumn=27,title=unicorn(no-useless-spread)::src/features/spaces/canvas/konva/document/canvas-document-model.ts:66:24: `Promise.all` accepts an iterable, so it's unnecessary to convert the iterable to an array.
 ::error file=src/features/spaces/canvas/konva/document/canvas-document-model.ts,line=69,endLine=85,col=38,endColumn=6,title=promise(always-return)::src/features/spaces/canvas/konva/document/canvas-document-model.ts:69:38: Each then() should return a value or throw
 ::error file=src/features/spaces/canvas/konva/document/canvas-document-mutations.ts,line=22,endLine=22,col=34,endColumn=37,title=oxc(no-map-spread)::src/features/spaces/canvas/konva/document/canvas-document-mutations.ts:22:34: Spreading to modify object properties in `map` calls is inefficient
@@ -72,7 +72,7 @@ $ oxlint .
 ::error file=src/features/spaces/__tests__/canvas-document.test.ts,line=154,endLine=154,col=7,endColumn=14,title=vitest(require-to-throw-message)::src/features/spaces/__tests__/canvas-document.test.ts:154:7: Require a message for "toThrow".
 
 Found 0 warnings and 66 errors.
-Finished in 614ms on 964 files with 208 rules using 2 threads.
+Finished in 584ms on 964 files with 208 rules using 2 threads.
 [ELIFECYCLE] Command failed with exit code 1.
 
 ```
