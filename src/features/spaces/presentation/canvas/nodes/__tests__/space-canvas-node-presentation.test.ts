@@ -28,6 +28,9 @@ describe("Konva node presentation", () => {
       color: "neutral",
       bounds: { x: 0, y: 0, width: 100, height: 100 },
       midpoint: { x: 50, y: 50 },
+      sourceNodeId: "a",
+      targetNodeId: "b",
+      parallelOffset: 0,
       points: [0, 0, 30, 0, 70, 100, 100, 100],
       relation: {
         id: "edge",

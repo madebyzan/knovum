@@ -17,6 +17,7 @@ import {
 } from "@lucide/vue";
 import { platform } from "@tauri-apps/plugin-os";
 import { ToolbarButton, ToolbarRoot } from "reka-ui";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiBadge from "../../../../shared/ui/UiBadge.vue";
@@ -45,6 +46,11 @@ const menuRow =
   "flex h-(--knovum-compact-item-height) cursor-default items-center gap-2 rounded-control px-2 text-label text-foreground outline-none data-[highlighted]:bg-control-hover data-[disabled]:text-foreground-tertiary";
 const submenu = "material-overlay z-50 min-w-48 rounded-panel p-1 ring-1 ring-border";
 const deleteShortcut = platform() === "macos" ? "Backspace" : "Delete";
+const selectedTextNode = computed(() => {
+  if (actions.selectedNodes.value.length !== 1) return undefined;
+  const node = actions.selectedNodes.value[0];
+  return node && (node.data.kind === "note" || node.data.kind === "text") ? node : undefined;
+});
 </script>
 
 <template>
@@ -59,12 +65,9 @@ const deleteShortcut = platform() === "macos" ? "Backspace" : "Delete";
       {{ actions.selectedNodes.value.length }}
     </UiBadge>
     <SpaceCanvasTextFormatBar
-      v-if="
-        actions.selectedNodes.value.length === 1 &&
-        ['note', 'text'].includes(actions.selectedNodes.value[0]!.data.kind)
-      "
-      :kind="actions.selectedNodes.value[0]!.data.kind"
-      :appearance="actions.selectedAppearance.value"
+      v-if="selectedTextNode"
+      :kind="selectedTextNode.data.kind"
+      v-bind="actions.selectedAppearance.value ? { appearance: actions.selectedAppearance.value } : {}"
       @update="actions.setAppearance"
     />
     <ToolbarButton v-if="actions.state.value.canOpen" as-child>

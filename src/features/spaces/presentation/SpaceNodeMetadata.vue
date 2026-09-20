@@ -20,7 +20,7 @@ import { refreshSavedWebsite } from "../website/capture";
 
 interface MetadataRow {
   label: string;
-  value?: string;
+  value: string | undefined;
   multiline?: boolean;
 }
 

@@ -70,6 +70,7 @@ function restoreScenes(context: SpacePackageRestoreContext): SpacePackageRestore
   return context.manifest.scenes.map((scene) => ({
     id: requiredMap(maps.scenes, scene.id, "Scene"),
     title: scene.title,
+    thumbnailPath: null,
     viewportX: scene.viewportX,
     viewportY: scene.viewportY,
     viewportZoom: scene.viewportZoom,
