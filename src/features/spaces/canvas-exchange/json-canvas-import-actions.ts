@@ -17,7 +17,7 @@ import {
   discardJsonCanvasPreparation,
   prepareJsonCanvasNodes,
 } from "./json-canvas-node-preparation";
-import type { createSpaceMutations } from "../session/actions/node-mutations";
+import type { createSpaceMutations } from "../nodes/node-mutations";
 
 interface JsonCanvasImportContext {
   ensureActiveSpacePersisted(): Promise<void>;

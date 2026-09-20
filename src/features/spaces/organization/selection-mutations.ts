@@ -4,7 +4,7 @@ import type { Ref } from "vue";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
 import { validateSpaceNodePayload } from "../model/nodes/schema/node-payload";
-import type { NodeDataChange } from "../session/actions/node-mutations";
+import type { NodeDataChange } from "../nodes/node-mutations";
 
 export interface SelectionActionContext {
   nodes: Ref<SpaceCanvasNode[]>;

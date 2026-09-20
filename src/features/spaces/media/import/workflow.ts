@@ -2,7 +2,7 @@ import { info as logInfo } from "@tauri-apps/plugin-log";
 
 import { i18n } from "../../../../foundation/i18n/i18n";
 import { useTaskStore } from "../../../../foundation/tasks/task-store";
-import { formatByteSize } from "../../assets/format-byte-size";
+import { formatOptionalBytes } from "../../../../foundation/format/bytes";
 import type { SpaceMediaPayload } from "../../model/nodes/capabilities";
 import type { ImportedMedia, MediaImportProgress } from "./contract";
 import { cancelMediaImport, requestMediaImport } from "./ipc";
@@ -93,12 +93,12 @@ function updateProgress(taskId: string, progress: MediaImportProgress) {
     tasks.detail(taskId, detail);
     return;
   }
-  const downloaded = formatByteSize(progress.downloadedBytes) ?? "";
+  const downloaded = formatOptionalBytes(progress.downloadedBytes) ?? "";
   if (progress.totalBytes === null || progress.totalBytes === 0) {
     tasks.detail(taskId, downloaded ? `${detail} · ${downloaded}` : detail);
     return;
   }
-  const total = formatByteSize(progress.totalBytes) ?? "";
+  const total = formatOptionalBytes(progress.totalBytes) ?? "";
   tasks.progress(taskId, (progress.downloadedBytes / progress.totalBytes) * 100, `${downloaded} / ${total}`);
 }
 

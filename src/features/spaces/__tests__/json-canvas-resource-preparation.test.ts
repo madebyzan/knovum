@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { prepareJsonCanvasNodes } from "../session/actions/json-canvas-node-preparation";
+import { prepareJsonCanvasNodes } from "../canvas-exchange/json-canvas-node-preparation";
 
 const assets = vi.hoisted(() => ({
   cancel: vi.fn<(jobId: string) => Promise<void>>(async () => {}),

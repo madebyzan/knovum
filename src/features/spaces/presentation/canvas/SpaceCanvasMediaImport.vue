@@ -5,7 +5,7 @@ import { useI18n } from "vue-i18n";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
-import { formatByteSize } from "../../assets/format-byte-size";
+import { formatOptionalBytes } from "../../../../foundation/format/bytes";
 import type { SpaceUrlCaptureProjection } from "../../sources/url-capture-projection";
 
 const props = defineProps<{ capture: SpaceUrlCaptureProjection }>();
@@ -26,7 +26,7 @@ const progress = computed(() => {
   return undefined;
 });
 const transferred = computed(() =>
-  props.capture.downloadedBytes > 0 ? formatByteSize(props.capture.downloadedBytes) : undefined,
+  props.capture.downloadedBytes > 0 ? formatOptionalBytes(props.capture.downloadedBytes) : undefined,
 );
 </script>
 

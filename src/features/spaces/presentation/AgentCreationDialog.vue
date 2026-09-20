@@ -11,7 +11,7 @@ import UiSelect from "../../../shared/ui/UiSelect.vue";
 import UiTextarea from "../../../shared/ui/UiTextarea.vue";
 import { useAgentAttachments } from "../agent-creation/use-agent-attachments";
 import { useAgentCreation } from "../agent-creation/use-agent-creation";
-import { formatByteSize } from "../assets/format-byte-size";
+import { formatOptionalBytes } from "../../../foundation/format/bytes";
 
 const open = defineModel<boolean>("open", { required: true });
 const { t } = useI18n();
@@ -124,7 +124,7 @@ function artifactIcon(kind: AgentArtifact["kind"]) {
           <div class="min-w-0 flex-1">
             <div class="truncate text-label text-foreground">{{ artifact.name }}</div>
             <div class="truncate text-caption text-foreground-tertiary">
-              {{ artifact.relativePath }} · {{ formatByteSize(artifact.size) }}
+              {{ artifact.relativePath }} · {{ formatOptionalBytes(artifact.size) }}
             </div>
           </div>
           <UiButton v-if="canPreview" size="sm" variant="ghost" @click="preview(artifact)">

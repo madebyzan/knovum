@@ -18,7 +18,7 @@ import {
 import CanvasSurfaceHost from "../../canvas/host/CanvasSurfaceHost.vue";
 import { isSpaceNodeOpenable, openSpaceNode } from "../../canvas/selection-actions";
 import { useContextDock } from "../../canvas/use-context-dock";
-import { createCanvasSelectionActions } from "../../session/actions/canvas-selection-actions";
+import { createCanvasSelectionActions } from "../../canvas/canvas-selection-actions";
 import { useSpaceStore } from "../../session/space-store";
 import { createCanvasContentLayoutCoordinator } from "./canvas-content-layout-coordinator";
 import { createCanvasNodeContentPersistence } from "./canvas-node-content-persistence";

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ChevronDown, ChevronRight } from "@lucide/vue";
+import { ask } from "@tauri-apps/plugin-dialog";
 import { xor } from "es-toolkit";
 import { storeToRefs } from "pinia";
 import { computed, inject, ref, shallowRef, watch } from "vue";
@@ -9,7 +10,6 @@ import { workspaceSidebarKey } from "../../../shared/contracts/workspace-sidebar
 import { useCanvasEditorSession } from "../canvas/editor-session";
 import { openSpaceNode, selectAndRevealSpaceNode } from "../canvas/selection-actions";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
-import { confirmDeleteSpaceSectionContents } from "../session/actions/destructive-actions";
 import { useSpaceStore } from "../session/space-store";
 import { popupSpaceContextMenu, spaceMenuItem } from "../workspace/space-menu";
 import SpaceOutlineRow from "./SpaceOutlineRow.vue";
@@ -56,6 +56,16 @@ watch(
 watch(nodes, () => {
   if (!nodes.value.some((node) => node.id === editingId.value)) editingId.value = null;
 });
+async function deleteSectionContents(sectionId: string) {
+  const confirmed = await ask(t("spaces.canvas.deleteSectionContentsDescription"), {
+    title: t("spaces.canvas.deleteSectionWithContents"),
+    kind: "warning",
+    okLabel: t("common.delete"),
+    cancelLabel: t("common.cancel"),
+  });
+  if (confirmed) await store.deleteSectionWithContents(sectionId);
+}
+
 async function showNodeMenu(node: SpaceCanvasNode) {
   if (!editorSession.selection.value.nodeIds.includes(node.id)) editorSession.selectNodes([node.id]);
   const open =
@@ -80,9 +90,7 @@ async function showNodeMenu(node: SpaceCanvasNode) {
     node.data.kind === "section"
       ? [
           spaceMenuItem(t("spaces.canvas.removeSection"), () => store.removeSection(node.id)),
-          spaceMenuItem(t("spaces.canvas.deleteSectionWithContents"), () =>
-            confirmDeleteSpaceSectionContents(() => store.deleteSectionWithContents(node.id)),
-          ),
+          spaceMenuItem(t("spaces.canvas.deleteSectionWithContents"), () => deleteSectionContents(node.id)),
         ]
       : [spaceMenuItem(t("spaces.navigation.deleteSelection"), () => store.deleteSelection([node.id]))];
   await popupSpaceContextMenu([

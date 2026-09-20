@@ -1,8 +1,8 @@
 import { watch } from "vue";
 
 import { useAiSettingsStore } from "../../../foundation/ai/ai-settings-store";
-import type { createSpaceMutations } from "../session/actions/node-mutations";
-import type { createPlacementActions } from "../session/actions/placement-actions";
+import type { createSpaceMutations } from "../nodes/node-mutations";
+import type { createPlacementActions } from "../canvas/placement-actions";
 import type { SpaceState } from "../session/session-state";
 import { resumePendingEnrichmentJobs } from "./job-scheduler";
 

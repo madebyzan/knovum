@@ -6,7 +6,7 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import UiButton from "../../../shared/ui/UiButton.vue";
-import { formatByteSize } from "../assets/format-byte-size";
+import { formatOptionalBytes } from "../../../foundation/format/bytes";
 import { mediaProviderDisplayName } from "../media/provider-display-name";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import {
@@ -47,7 +47,7 @@ const rows = computed(() => {
       label: t("spaces.navigation.detailStorage"),
       value: asset ? t("spaces.transfer.localPrivateCopy") : undefined,
     },
-    { label: t("spaces.navigation.detailSize"), value: formatByteSize(asset?.size) },
+    { label: t("spaces.navigation.detailSize"), value: formatOptionalBytes(asset?.size) },
     {
       label: t("spaces.inspector.detailModified"),
       value: modifiedAtLabel(asset?.modifiedAt),

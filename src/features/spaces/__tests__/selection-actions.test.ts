@@ -11,7 +11,7 @@ import {
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
 import { createSelectionActions } from "../organization/selection-actions";
-import type { NodeDataChange } from "../session/actions/node-mutations";
+import type { NodeDataChange } from "../nodes/node-mutations";
 
 function harness(locked = false) {
   const section = createSpaceNode(
