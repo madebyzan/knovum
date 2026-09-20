@@ -2,10 +2,12 @@
 import { Stage as KonvaStage } from "vue-konva/core";
 
 import type { CanvasNodeContentSlotProps, CanvasSurfaceProps } from "../contract/canvas-surface";
+import CanvasContainerChrome from "./presentation/CanvasContainerChrome.vue";
 import CanvasDomOverlay from "./presentation/CanvasDomOverlay.vue";
 import CanvasGridLayer from "./presentation/CanvasGridLayer.vue";
 import CanvasMarquee from "./presentation/CanvasMarquee.vue";
 import CanvasSceneLayers from "./presentation/CanvasSceneLayers.vue";
+import CanvasStructureFeedback from "./presentation/CanvasStructureFeedback.vue";
 import { useKonvaCanvasRuntime } from "./use-konva-canvas-runtime";
 
 const props = defineProps<CanvasSurfaceProps>();
@@ -25,7 +27,7 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
         ? 'cursor-grabbing'
         : runtime.viewport.spacePressed.value || tool === 'pan'
           ? 'cursor-grab'
-          : tool === 'note' || tool === 'text'
+          : tool === 'note' || tool === 'text' || tool === 'section'
             ? 'cursor-crosshair'
             : '',
     ]"
@@ -57,6 +59,7 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
         :interactive="
           interactionEnabled &&
           tool === 'select' &&
+          !runtime.gestures.busy.value &&
           !runtime.viewport.panning.value &&
           !runtime.capturesCanvasInteraction.value &&
           !runtime.viewport.spacePressed.value
@@ -64,6 +67,7 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
         :selection-chrome-visible="
           interactionEnabled &&
           tool === 'select' &&
+          !runtime.gestures.busy.value &&
           !runtime.viewport.spacePressed.value &&
           !runtime.viewport.panning.value &&
           runtime.gestures.directManipulation.value !== 'drag'
@@ -99,11 +103,37 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
         :zoom="runtime.viewport.viewport.value.zoom"
       />
     </KonvaStage>
+    <CanvasStructureFeedback
+      :document="runtime.model.document"
+      :group-id="runtime.scope.groupId.value"
+      :viewport="runtime.viewport.viewport.value"
+      :drawing="tool === 'section'"
+      :bounds="runtime.drawing.bounds.value"
+      :candidates="runtime.drawing.candidates.value"
+      :drop-target="runtime.gestures.dropTarget.value"
+      @exit="runtime.scope.exit"
+    />
+    <CanvasContainerChrome
+      v-if="runtime.editor.value"
+      :document="runtime.model.document"
+      :scene="runtime.scene.value"
+      :viewport="runtime.viewport.viewport.value"
+      :previews="runtime.scenePreview.layouts"
+      :selected="runtime.selection.nodeIds.value"
+      :visible="runtime.visibility.visibleNodeIds.value"
+      :rename-id="runtime.scope.renameId.value"
+      :editor="runtime.editor.value"
+      :drop-target="runtime.gestures.dropTarget.value"
+      :interactive="interactionEnabled && tool === 'select' && !runtime.gestures.busy.value"
+      :report-error="events.onError"
+      @finish-rename="runtime.scope.renameId.value = undefined"
+    />
     <Teleport v-if="runtime.stage.value" :to="runtime.stage.value.getContent()">
       <CanvasDomOverlay
         :interaction-enabled="
           interactionEnabled &&
           tool === 'select' &&
+          !runtime.gestures.busy.value &&
           !runtime.viewport.spacePressed.value &&
           !runtime.viewport.panning.value
         "

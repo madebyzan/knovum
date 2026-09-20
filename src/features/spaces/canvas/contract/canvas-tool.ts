@@ -1,1 +1,1 @@
-export type CanvasTool = "select" | "pan" | "note" | "text";
+export type CanvasTool = "select" | "pan" | "note" | "text" | "section";

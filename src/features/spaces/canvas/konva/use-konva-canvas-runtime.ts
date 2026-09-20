@@ -13,6 +13,7 @@ import { useLayoutPreview } from "./interaction/use-layout-preview";
 import { useNodeContentActivation } from "./interaction/use-node-content-activation";
 import { useNodeDragAutoPan } from "./interaction/use-node-drag-auto-pan";
 import { usePointerInteractions } from "./interaction/use-pointer-interactions";
+import { useSectionDrawing } from "./interaction/use-section-drawing";
 import { useCanvasPalette } from "./presentation/use-canvas-palette";
 import { createCanvasScenePreviewIndex, useCanvasScenePreview } from "./scene/scene-preview";
 import { projectCanvasScene } from "./scene/scene-projection";
@@ -119,7 +120,23 @@ export function useKonvaCanvasRuntime(props: CanvasSurfaceProps) {
     else if (item?.kind === "section") scope.renameId.value = target;
     else activateContent(target);
   }
+  const drawing = useSectionDrawing({
+    document: () => model.document,
+    zoom: () => viewport.viewport.value.zoom,
+    exitScope: () => {
+      scope.groupId.value = null;
+      selection.clear();
+    },
+    execute: gestures.runStructureCommand,
+    complete: props.events.onStructureToolFinished,
+    reportError: props.events.onError,
+  });
+  watch(
+    () => props.tool,
+    () => drawing.cancel(),
+  );
   const pointer = usePointerInteractions({
+    sectionDrawing: drawing,
     resolveHit: scope.resolveHit,
     cancelActiveGesture: gestures.cancelActiveGesture,
     host,
@@ -156,7 +173,8 @@ export function useKonvaCanvasRuntime(props: CanvasSurfaceProps) {
     if (selection.marqueeRect.value || viewport.panning.value) return pointer.pointerCancel();
     nodeDrag.cancel();
     if (!gestures.cancelActiveGesture()) {
-      if (scope.renameId.value) scope.renameId.value = undefined;
+      if (drawing.bounds.value) drawing.cancel();
+      else if (scope.renameId.value) scope.renameId.value = undefined;
       else if (scope.groupId.value) scope.exit();
       else selection.clear();
     }
@@ -198,6 +216,7 @@ export function useKonvaCanvasRuntime(props: CanvasSurfaceProps) {
   });
 
   return {
+    drawing,
     editor,
     scope,
     model,

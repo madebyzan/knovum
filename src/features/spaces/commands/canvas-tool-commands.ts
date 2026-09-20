@@ -5,4 +5,5 @@ export const CANVAS_TOOL_COMMANDS = [
   { tool: "pan", title: "shell.panCanvas", shortcut: "H" },
   { tool: "note", title: "spaces.editor.newNote", shortcut: "N" },
   { tool: "text", title: "spaces.editor.newText", shortcut: "T" },
+  { tool: "section", title: "spaces.structure.drawSection", shortcut: "S" },
 ] as const satisfies readonly { tool: CanvasTool; title: string; shortcut: string }[];

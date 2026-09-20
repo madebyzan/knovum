@@ -10,6 +10,12 @@ import type { useStageViewport } from "../viewport/use-stage-viewport";
 interface PointerInteractionOptions {
   cancelActiveGesture(): boolean;
   resolveHit(id: string): string;
+  sectionDrawing: {
+    begin(point: CanvasPoint): void;
+    move(point: CanvasPoint): void;
+    finish(): Promise<void>;
+    cancel(): void;
+  };
   host: Readonly<Ref<HTMLElement | null>>;
   selection: ReturnType<typeof useCanvasSelection>;
   viewport: ReturnType<typeof useStageViewport>;
@@ -53,12 +59,15 @@ export function usePointerInteractions(options: PointerInteractionOptions) {
       );
       if (distance >= 3) pressedSelection.moved = true;
     }
-    if (options.viewport.panning.value) options.viewport.movePan(event);
+    if (options.tool.value === "section" && lastCanvasPoint.value && !options.viewport.panning.value)
+      options.sectionDrawing.move(lastCanvasPoint.value);
+    else if (options.viewport.panning.value) options.viewport.movePan(event);
     else options.selection.moveMarquee(event);
   }
   function pointerUp(event?: PointerEvent) {
     if (event && capturedPointer && capturedPointer.id !== event.pointerId) return;
     if (options.viewport.panning.value) options.viewport.endPan(event);
+    else if (options.tool.value === "section") void options.sectionDrawing.finish();
     else options.selection.endMarquee();
     if (pressedSelection && (!event || pressedSelection.id === event.pointerId)) {
       if (!pressedSelection.moved) options.selection.setNodeIds([pressedSelection.nodeId]);
@@ -69,6 +78,7 @@ export function usePointerInteractions(options: PointerInteractionOptions) {
   function pointerCancel(event?: PointerEvent) {
     if (event && capturedPointer && capturedPointer.id !== event.pointerId) return;
     options.cancelActiveGesture();
+    options.sectionDrawing.cancel();
     options.viewport.endPan();
     options.selection.cancelMarquee();
     pressedSelection = undefined;
@@ -99,6 +109,10 @@ export function usePointerInteractions(options: PointerInteractionOptions) {
     const tool = options.tool.value;
     if (event.evt.button !== 0 || tool === "select" || tool === "pan") return false;
     const point = lastCanvasPoint.value;
+    if (tool === "section") {
+      if (point) options.sectionDrawing.begin(point);
+      return true;
+    }
     if (point && !creating) {
       creating = true;
       void options

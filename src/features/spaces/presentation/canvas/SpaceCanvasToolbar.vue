@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Hand, MousePointer2, StickyNote, Type } from "@lucide/vue";
+import { Hand, MousePointer2, StickyNote, Type, Frame } from "@lucide/vue";
 import { ToolbarButton, ToolbarRoot, ToolbarSeparator } from "reka-ui";
 import { useI18n } from "vue-i18n";
 
@@ -9,7 +9,7 @@ import { CANVAS_TOOL_COMMANDS } from "../../commands/canvas-tool-commands";
 import SpaceAddMenu from "../SpaceAddMenu.vue";
 
 const tools = useCanvasToolStore();
-const icons = { select: MousePointer2, pan: Hand, note: StickyNote, text: Type };
+const icons = { select: MousePointer2, pan: Hand, note: StickyNote, text: Type, section: Frame };
 const { t } = useI18n();
 </script>
 

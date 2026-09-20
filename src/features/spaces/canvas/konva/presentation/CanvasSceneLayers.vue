@@ -60,6 +60,7 @@ const {
   resizeSnapFrames,
   selectedFrames,
   visibleContentNodes,
+  visibleGroups,
   visibleRelations,
   visibleSections,
 } = projection;
@@ -102,6 +103,7 @@ onMounted(() => void nextTick(syncInteractionCanvas));
       :key="item.node.id"
       :interactive="interactive"
       :item="item"
+      :selected="selectedNodeIds.has(item.node.id)"
       :palette="palette"
       :zoom="zoom"
       @activate="emit('activate', $event)"
@@ -111,10 +113,25 @@ onMounted(() => void nextTick(syncInteractionCanvas));
       @pointer-down="relayPointerDown"
     />
     <CanvasNodeShape
+      v-for="item in visibleGroups"
+      :key="item.node.id"
+      :interactive="interactive"
+      :item="item"
+      :selected="selectedNodeIds.has(item.node.id)"
+      :palette="palette"
+      :zoom="zoom"
+      @activate="emit('activate', $event)"
+      @drag-end="emit('dragEnd', $event)"
+      @drag-move="(id, event) => emit('dragMove', id, event)"
+      @drag-start="emit('dragStart', $event)"
+      @pointer-down="relayPointerDown"
+    />
+    <CanvasNodeShape
       :interactive="interactive"
       v-for="item in visibleContentNodes"
       :key="item.node.id"
       :item="item"
+      :selected="selectedNodeIds.has(item.node.id)"
       :palette="palette"
       :zoom="zoom"
       @activate="emit('activate', $event)"

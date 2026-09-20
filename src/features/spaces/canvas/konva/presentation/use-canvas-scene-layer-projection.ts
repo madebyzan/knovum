@@ -23,6 +23,7 @@ export function useCanvasSceneLayerProjection(props: CanvasSceneLayerProjectionI
     visibleSections: computed(() =>
       props.scene.sections.filter(({ node }) => props.visibleNodeIds.has(node.id)),
     ),
+    visibleGroups: computed(() => props.scene.groups.filter(({ node }) => props.visibleNodeIds.has(node.id))),
     visibleContentNodes: computed(() =>
       props.scene.contentNodes.filter(({ node }) => props.visibleNodeIds.has(node.id)),
     ),

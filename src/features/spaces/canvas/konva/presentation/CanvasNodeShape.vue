@@ -5,32 +5,35 @@ import { Group as KonvaGroup, Rect as KonvaRect } from "vue-konva/core";
 // oxlint-disable-next-line import/no-unassigned-import
 import "konva/lib/shapes/Rect";
 
+import { SECTION_HEADER_SCREEN_HEIGHT } from "../../contract/section-metrics";
 import type { CanvasSceneNode } from "../scene/scene-projection";
 import type { CanvasPalette } from "./use-canvas-palette";
-
 const props = defineProps<{
   interactive: boolean;
   item: CanvasSceneNode;
   palette: CanvasPalette;
   zoom: number;
+  selected: boolean;
 }>();
 const emit = defineEmits<{
-  activate: [nodeId: string];
-  dragEnd: [nodeId: string];
-  dragMove: [nodeId: string, event: Konva.KonvaEventObject<DragEvent>];
-  dragStart: [nodeId: string];
-  pointerDown: [nodeId: string, event: Konva.KonvaEventObject<PointerEvent>];
+  activate: [id: string];
+  dragEnd: [id: string];
+  dragStart: [id: string];
+  dragMove: [id: string, event: Konva.KonvaEventObject<DragEvent>];
+  pointerDown: [id: string, event: Konva.KonvaEventObject<PointerEvent>];
 }>();
-
 const frame = computed(() => props.item.layout.frame);
-const isSection = computed(() => props.item.node.data.kind === "section");
-const appearanceColor = computed(() => {
+const section = computed(() => props.item.node.data.kind === "section");
+const group = computed(() => props.item.node.data.kind === "group");
+const collapsed = computed(() => props.item.node.data.kind === "section" && props.item.node.data.collapsed);
+const color = computed(() => {
   const appearance = props.item.layout.appearance;
-  if (appearance?.customFill) return appearance.customFill;
-  const fill = appearance?.fill;
-  return fill ? props.palette.noteFill[fill] : undefined;
+  return (
+    appearance?.customFill ??
+    (appearance?.fill ? props.palette.noteFill[appearance.fill] : props.palette.surface)
+  );
 });
-const groupConfig = computed(() => ({
+const config = computed(() => ({
   id: `canvas-node-${props.item.node.id}`,
   name: "canvas-node",
   nodeId: props.item.node.id,
@@ -39,43 +42,47 @@ const groupConfig = computed(() => ({
   rotation: frame.value.rotation,
   draggable: props.interactive && props.item.interaction.movable,
 }));
-
-function moveToLayer(event: Konva.KonvaEventObject<DragEvent>, layerId: string) {
-  const layer = event.target.getStage()?.findOne<Konva.Layer>(`#${layerId}`);
-  if (layer) event.target.moveTo(layer);
-}
-
-function beginDrag(event: Konva.KonvaEventObject<DragEvent>) {
-  moveToLayer(event, "canvas-drag-layer");
-  emit("dragStart", props.item.node.id);
-}
-
-function finishDrag(event: Konva.KonvaEventObject<DragEvent>) {
-  moveToLayer(event, "canvas-node-layer");
-  emit("dragEnd", props.item.node.id);
-}
 </script>
-
 <template>
   <KonvaGroup
-    :config="groupConfig"
+    :config="config"
     @dblclick="interactive && emit('activate', item.node.id)"
-    @dragend="finishDrag"
+    @dragstart="emit('dragStart', item.node.id)"
+    @dragend="emit('dragEnd', item.node.id)"
     @dragmove="emit('dragMove', item.node.id, $event)"
-    @dragstart="beginDrag"
     @pointerdown="emit('pointerDown', item.node.id, $event)"
   >
     <KonvaRect
       :config="{
         width: frame.width,
         height: frame.height,
-        fill: isSection ? (appearanceColor ?? palette.surface) : 'transparent',
-        opacity: isSection && appearanceColor ? 0.14 : 1,
-        stroke: appearanceColor ?? palette.border,
-        strokeEnabled: isSection,
+        fill: section ? color : 'transparent',
+        opacity: section ? 0.12 : 1,
+        listening: section ? collapsed : !group || selected,
+        strokeEnabled: false,
+        cornerRadius: section ? 6 : 0,
+        perfectDrawEnabled: false,
+      }"
+    />
+    <KonvaRect
+      v-if="section"
+      :config="{
+        width: frame.width,
+        height: frame.height,
+        listening: false,
+        stroke: selected ? palette.accent : palette.border,
         strokeWidth: 1 / zoom,
-        cornerRadius: isSection ? 8 : 10,
-        dash: isSection ? [7 / zoom, 5 / zoom] : undefined,
+        strokeScaleEnabled: false,
+        cornerRadius: 6,
+        perfectDrawEnabled: false,
+      }"
+    />
+    <KonvaRect
+      v-if="section && !collapsed"
+      :config="{
+        width: frame.width,
+        height: Math.min(frame.height, SECTION_HEADER_SCREEN_HEIGHT / zoom),
+        fill: 'transparent',
         perfectDrawEnabled: false,
       }"
     />
