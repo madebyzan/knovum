@@ -1,6 +1,6 @@
 # Unused code
 
-Source: `5e4d21bfcd28b34dd57c2806be29ec8f19a860cc`. Exit code: 1.
+Source: `9b1a5aba096de51ed2bf377ef8bbea9c5b2e9ad1`. Exit code: 1.
 
 ```text
 $ knip
