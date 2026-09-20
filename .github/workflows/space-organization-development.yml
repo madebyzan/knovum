@@ -1,6 +1,6 @@
 name: Space organization development
 
-# Temporary integration runner for PR 14, restricted to its existing development branch.
+# Temporary PR-14 development runner; it never runs default-branch or fork code.
 on:
   push:
     branches: [refactor/space-organization]
@@ -12,13 +12,12 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: space-organization-development
-  cancel-in-progress: false
-
 jobs:
   verify:
     if: github.repository == 'madebyzan/knovum' && github.ref == 'refs/heads/refactor/space-organization'
+    concurrency:
+      group: space-organization-source
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 35
     permissions:
@@ -98,17 +97,21 @@ jobs:
             await github.rest.issues.createComment({ ...context.repo, issue_number: 14, body: fs.readFileSync(report, 'utf8') });
 
   native:
+    # Explicit native checkpoints avoid rebuilding the full inference/document toolchain on every edit.
     needs: verify
-    if: ${{ !cancelled() && needs.verify.outputs.source != '' }}
+    if: ${{ !cancelled() && needs.verify.outputs.source != '' && (github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[native]')) }}
+    concurrency:
+      group: space-organization-native
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 60
     permissions:
       contents: write
-      pull-requests: write
     env:
       CARGO_BUILD_JOBS: '2'
       CARGO_PROFILE_DEV_DEBUG: '0'
       CARGO_PROFILE_TEST_DEBUG: '0'
+      # cargo check emits no runtime binary. Product/profile optimization settings remain unchanged.
       CARGO_PROFILE_DEV_OPT_LEVEL: '0'
       CARGO_INCREMENTAL: '0'
       SOURCE_SHA: ${{ needs.verify.outputs.source }}
@@ -179,6 +182,5 @@ jobs:
           git add tools/space-organization-development/last-native/report.md
           if ! git diff --cached --quiet; then
             git commit -m 'chore: record exact-source native compilation diagnostics'
-            # Never force a moving branch; artifact evidence is retained even if publication races.
             git push origin HEAD:refs/heads/refactor/space-organization
           fi
