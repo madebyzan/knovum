@@ -1,6 +1,6 @@
 ## Organization development verification
 
-Source commit: `d7845bf015a721137992723559c70d29fd8fbe92`. Actual runner results; not a complete product acceptance.
+Source commit: `0d23388d288b9d719fcfe155d3588fc543849576`. Actual runner results; not a complete product acceptance.
 
 | Check | Result |
 | --- | --- |
@@ -60,13 +60,14 @@ src/features/spaces/__tests__/canvas-gesture-session.test.ts(131,40): error TS70
 src/features/spaces/__tests__/canvas-gesture-session.test.ts(136,33): error TS2339: Property 'nodes' does not exist on type '{ version: 1; structure: { version: 1; items: ({ kind: "content"; nodeId: string; id: string; parentId: string | null; order: number; locked: boolean; } | { kind: "group"; title: string; id: string; parentId: string | null; order: number; locked: boolean; } | { ...; })[]; }; layout: { ...; }; viewport: { ...; }; rel...'.
 src/features/spaces/__tests__/canvas-gesture-session.test.ts(142,5): error TS2353: Object literal may only specify known properties, and 'documentChanged' does not exist in type 'CanvasDocumentModelEvents'.
 src/features/spaces/__tests__/canvas-gesture-session.test.ts(179,35): error TS2339: Property 'nodes' does not exist on type '{ version: 1; structure: { version: 1; items: ({ kind: "content"; nodeId: string; id: string; parentId: string | null; order: number; locked: boolean; } | { kind: "group"; title: string; id: string; parentId: string | null; order: number; locked: boolean; } | { ...; })[]; }; layout: { ...; }; viewport: { ...; }; rel...'.
+src/features/spaces/__tests__/canvas-gesture-session.test.ts(182,5): error TS2353: Object literal may only specify known properties, and 'sectionNodeIds' does not exist in type 'Options'.
 src/features/spaces/__tests__/canvas-gesture-session.test.ts(192,5): error TS2322: Type '"section"' is not assignable to type '"object" | "file" | "text" | "note" | "code" | "markdown" | "website" | "image" | "video" | "audio" | "subtitle" | "credential" | "portal"'.
 src/features/spaces/__tests__/canvas-gesture-session.test.ts(193,13): error TS2322: Type '"section"' is not assignable to type '"object" | "file" | "text" | "note" | "code" | "markdown" | "website" | "image" | "video" | "audio" | "subtitle" | "credential" | "portal"'.
 src/features/spaces/__tests__/canvas-gesture-update.test.ts(12,3): error TS2353: Object literal may only specify known properties, and 'nodes' does not exist in type '{ version: 1; structure: { version: 1; items: ({ kind: "content"; nodeId: string; id: string; parentId: string | null; order: number; locked: boolean; } | { kind: "group"; title: string; id: string; parentId: string | null; order: number; locked: boolean; } | { ...; })[]; }; layout: { ...; }; viewport: { ...; }; rel...'.
 src/features/spaces/__tests__/canvas-gesture-update.test.ts(31,17): error TS2339: Property 'nodes' does not exist on type '{ layout: { version: 1; items: ({ kind: "group"; itemId: string; transform: { x: number; y: number; rotation: number; scale: number; }; } | { kind: "content"; itemId: string; transform: { x: number; y: number; rotation: number; scale: number; }; size: { ...; }; sizeAuthority: "content" | "frame"; fileSubpath?: strin...'.
 src/features/spaces/__tests__/canvas-gesture-update.test.ts(39,46): error TS2339: Property 'nodes' does not exist on type '{ version: 1; structure: { version: 1; items: ({ kind: "content"; nodeId: string; id: string; parentId: string | null; order: number; locked: boolean; } | { kind: "group"; title: string; id: string; parentId: string | null; order: number; locked: boolean; } | { ...; })[]; }; layout: { ...; }; viewport: { ...; }; rel...'.
 src/features/spaces/__tests__/canvas-gesture-update.test.ts(44,56): error TS2339: Property 'nodes' does not exist on type '{ layout: { version: 1; items: ({ kind: "group"; itemId: string; transform: { x: number; y: number; rotation: number; scale: number; }; } | { kind: "content"; itemId: string; transform: { x: number; y: number; rotation: number; scale: number; }; size: { ...; }; sizeAuthority: "content" | "frame"; fileSubpath?: strin...'.
-src/features/spaces/__tests__/canvas-gesture-update.test.ts(49,46): error TS2339: Property 'nodes' does not exist on type '{ version: 1; structure: { version: 1; items: ({ kind: "content"; nodeId: string; id: string; parentId: string | null; order: number; locked: boolean; } | { kind: "group"; title: string; id: string; parentId: string | null; order:
+src/features/spaces/__tests__/canvas-gesture-update.test.ts(49,46): error TS2339: Property 'nodes' does not exist on type '{ version: 1; structure: { version: 1; ite
 ```
 </details>
 
@@ -77,9 +78,9 @@ $ node tools/check-frontend-source-structure.mjs && node tools/check-ai-provider
 Frontend source structure gate failed (7):
 - src/features/spaces/__tests__/canvas-surface-host.test.ts: 184 effective lines exceeds 180
 - src/features/spaces/__tests__/konva-scene-projection.test.ts: 210 effective lines exceeds 180
-- src/features/spaces/canvas/konva/use-konva-canvas-runtime.ts: 220 effective lines exceeds 180
+- src/features/spaces/canvas/konva/use-konva-canvas-runtime.ts: 223 effective lines exceeds 180
 - src/features/spaces/presentation/SpaceOutline.vue: 185 effective lines exceeds 180
-- src/features/spaces/presentation/canvas/SpaceCanvas.vue: 188 effective lines exceeds 180
+- src/features/spaces/presentation/canvas/SpaceCanvas.vue: 194 effective lines exceeds 180
 - src/features/spaces/presentation/knowledge/SpaceKnowledgeTypeManager.vue: 211 effective lines exceeds 180
 - src/features/spaces/__tests__/capture-url-fixture.ts: files under __tests__ must use the exact .test.ts suffix
 [ELIFECYCLE] Command failed with exit code 1.
@@ -90,19 +91,7 @@ Frontend source structure gate failed (7):
 <details><summary>Frontend tests failures</summary>
 
 ```text
-443 passed, 104 failed
-/home/runner/work/knovum/knovum/src/foundation/i18n/__tests__/locale-completeness.test.ts :: locale completeness uses semantic lowerCamelCase message keys
-AssertionError: expected [ …(9) ] to deeply equal []
-    at /home/runner/work/knovum/knovum/src/foundation/i18n/__tests__/locale-completeness.test.ts:112:72
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
-    at new Promise (<anonymous>)
-    at runWithCancel (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
-    at new Promise (<anonymous>)
-    at runWithTimeout (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2955:64
+442 passed, 105 failed
 /home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-arrangement-operation.test.ts :: whole-operation arrangement through the canvas port distributes three Section roots and carries every member by its parent's delta
 TypeError: Cannot destructure property 'width' of '(0 , __vite_ssr_import_1__.spaceNodeSizePolicy)(...)' as it is undefined.
     at /home/runner/work/knovum/knovum/src/features/spaces/canvas/document/canvas-document-sync.ts:36:19
@@ -324,7 +313,19 @@ ZodError: [
     at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
     at new Promise (<anonymous>)
     at runWithCancel (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.1
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)
+/home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-gesture-camera.test.ts :: committing geometry while the camera remains live keeps camera autosave free of uncommitted geometry (rejected=false)
+TypeError: Cannot destructure property 'width' of '(0 , __vite_ssr_import_1__.spaceNodeSizePolicy)(...)' as it is undefined.
+    at /home/runner/work/knovum/knovum/src/features/spaces/canvas/document/canvas-document-sync.ts:36:19
+    at Array.map (<anonymous>)
+    at appendEditorContent (/home/runner/work/knovum/knovum/src/features/spaces/canvas/document/canvas-document-sync.ts:35:18)
+    at createCanvasDocument (/home/runner/work/knovum/knovum/src/features/spaces/canvas/document/canvas-document-sync.ts:50:10)
+    at movementHarness (/home/runner/work/knovum/knovum/src/features/spaces/canvas/konva/testing/canvas-movement-harness.ts:14:41)
+    at /home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-gesture-camera.test.ts:11:23
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm
 ```
 </details>
 
@@ -334,24 +335,32 @@ ZodError: [
 $ vite build
 vite v8.2.2 building client environment for production...
 transforming...
-✓ 4050 modules transformed.
+✓ 4049 modules transformed.
 rendering chunks...
-✗ Build failed in 2.85s
+✗ Build failed in 3.67s
 error during build:
-Build failed with 2 errors:
-
-[MISSING_EXPORT] "reconcileCanvasDocument" is not exported by "src/features/spaces/canvas/document/canvas-document-sync.ts".
-   ╭─[ src/features/spaces/canvas/host/use-canvas-document-session.ts:2:32 ]
-   │
- 2 │ import { createCanvasDocument, reconcileCanvasDocument } from "../document/canvas-document-sync";
-   │                                ───────────┬───────────  
-   │                                           ╰───────────── Missing export
-───╯
+Build failed with 3 errors:
 
 [MISSING_EXPORT] "structureContentNodeIds" is not exported by "src/features/spaces/organization/structure/structure-selection.ts".
    ╭─[ src/features/spaces/canvas/konva/scene/scene-projection.ts:3:10 ]
    │
  3 │ import { structureContentNodeIds, structureSelectionTarget } from "../../../organization/structure/structure-selection";
+   │          ───────────┬───────────  
+   │                     ╰───────────── Missing export
+───╯
+
+[MISSING_EXPORT] "structureContentNodeIds" is not exported by "src/features/spaces/organization/structure/structure-selection.ts".
+   ╭─[ src/features/spaces/canvas/konva/create-canvas-editor-port.ts:2:35 ]
+   │
+ 2 │ import { structureOperationRoots, structureContentNodeIds } from "../../organization/structure/structure-selection";
+   │                                   ───────────┬───────────  
+   │                                              ╰───────────── Missing export
+───╯
+
+[MISSING_EXPORT] "structureContentNodeIds" is not exported by "src/features/spaces/organization/structure/structure-selection.ts".
+   ╭─[ src/features/spaces/canvas/konva/selection/canvas-selection-deletion.ts:2:10 ]
+   │
+ 2 │ import { structureContentNodeIds } from "../../../organization/structure/structure-selection";
    │          ───────────┬───────────  
    │                     ╰───────────── Missing export
 ───╯
