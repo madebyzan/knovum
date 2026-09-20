@@ -69,6 +69,22 @@ jobs:
           path: ${{ runner.temp }}/organization-report
           retention-days: 7
           if-no-files-found: ignore
+      - name: Save line-addressable diagnostics
+        if: ${{ !cancelled() && steps.save.outcome == 'success' }}
+        env:
+          REPORT_DIRECTORY: ${{ runner.temp }}/organization-report
+        run: |
+          test -f "$REPORT_DIRECTORY/report.md"
+          mkdir -p tools/space-organization-development/last-run
+          cp "$REPORT_DIRECTORY"/*.log tools/space-organization-development/last-run/
+          cp "$REPORT_DIRECTORY/report.md" tools/space-organization-development/last-run/report.md
+          git add -- tools/space-organization-development/last-run
+          if ! git diff --cached --quiet; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git commit -m 'chore: record organization integration diagnostics'
+            git push origin HEAD:refs/heads/refactor/space-organization
+          fi
       - name: Report the actual results on PR 14
         if: ${{ !cancelled() && steps.save.outcome == 'success' }}
         uses: actions/github-script@v9
