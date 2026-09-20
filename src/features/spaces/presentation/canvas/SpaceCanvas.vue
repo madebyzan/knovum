@@ -159,6 +159,8 @@ onBeforeUnmount(() => {
     <CanvasSurfaceHost
       :key="spaceId"
       :events="canvasEvents"
+      :persistence="store.draftSpace?.id === spaceId ? 'draft' : 'persisted'"
+      :ensure-persisted="store.ensureActiveSpacePersisted"
       :import-json-canvas="imports.importJsonCanvas"
       :focus-node-ids="store.canvasFocusIds"
       :interaction-enabled="!editorSession.transitioning.value"

@@ -1,5 +1,7 @@
 import type { CanvasDocumentV1 } from "./canvas-document";
 
+export type CanvasSpacePersistence = "draft" | "persisted";
+
 export interface StoredCanvasState {
   document: CanvasDocumentV1;
   revision: number;

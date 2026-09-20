@@ -12,6 +12,7 @@ import { createJsonCanvasExchangePort } from "../../canvas-exchange/json-canvas-
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceRelation } from "../../model/relations/relation";
 import type { CanvasHostEvents, CanvasSurfaceEvents } from "../contract/canvas-editor";
+import type { CanvasSpacePersistence } from "../contract/canvas-persistence";
 import type { CanvasNodeContentSlotProps } from "../contract/canvas-surface";
 import type { CanvasTool } from "../contract/canvas-tool";
 import KonvaCanvasSurface from "../konva/KonvaCanvasSurface.vue";
@@ -19,6 +20,8 @@ import { useCanvasDocumentSession } from "./use-canvas-document-session";
 
 const props = defineProps<{
   events: CanvasHostEvents;
+  persistence: CanvasSpacePersistence;
+  ensurePersisted(): Promise<void>;
   importJsonCanvas(request: CanvasJsonImportRequest): Promise<CanvasJsonImportCommitResult>;
   focusNodeIds: readonly string[];
   interactionEnabled: boolean;
@@ -30,6 +33,8 @@ const props = defineProps<{
 const emit = defineEmits<{ exchangeReady: [exchange: CanvasExchangePort] }>();
 defineSlots<{ "node-content"(props: CanvasNodeContentSlotProps): unknown }>();
 const session = useCanvasDocumentSession({
+  persistence: () => props.persistence,
+  ensurePersisted: () => props.ensurePersisted(),
   nodes: () => props.nodes,
   reportError: props.events.onError,
   spaceId: () => props.spaceId,
@@ -86,6 +91,12 @@ watch(
   () => {
     surface.value?.flushViewport();
     void session.start().catch(props.events.onError);
+  },
+);
+watch(
+  () => props.persistence,
+  (persistence) => {
+    if (persistence === "persisted") void session.persist().catch(props.events.onError);
   },
 );
 watch(

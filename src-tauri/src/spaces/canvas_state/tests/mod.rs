@@ -1,3 +1,5 @@
+mod persistence;
+
 use super::{contract::CanvasDocumentV1, validate_document};
 use sqlx::sqlite::SqlitePoolOptions;
 

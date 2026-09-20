@@ -2,131 +2,114 @@ import { shallowRef } from "vue";
 
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { CanvasDocumentV1 } from "../contract/canvas-document";
+import type { CanvasSpacePersistence } from "../contract/canvas-persistence";
 import { createCanvasDocument, reconcileCanvasDocument } from "../document/canvas-document-sync";
 import { registerSpaceSessionParticipant } from "../editor-session";
-import {
-  acquireCanvasPersistenceLease,
-  registerCanvasMutationTarget,
-} from "../persistence/canvas-persistence-coordinator";
-import { canvasStateRepository } from "../persistence/canvas-state-repository";
-import { CanvasSnapshotSaveQueue } from "../persistence/snapshot-save-queue";
-import { rebaseCanvasDocument } from "./canvas-document-rebase";
-import { isCurrentCanvasSession, requireCurrentCanvasSession } from "./canvas-session-identity";
-import {
-  commitCanvasSessionPersistence,
-  releaseCanvasSessionPersistence,
-} from "./canvas-session-persistence";
+import { registerCanvasMutationTarget } from "../persistence/canvas-persistence-coordinator";
+import type { CanvasSnapshotSaveQueue } from "../persistence/snapshot-save-queue";
+import { createCanvasDocumentTransactions } from "./canvas-document-transactions";
+import { requireCurrentCanvasSession } from "./canvas-session-identity";
+import { commitCanvasSessionPersistence } from "./canvas-session-persistence";
+import { openCanvasSessionStorage } from "./canvas-session-storage";
 
 interface CanvasDocumentSessionOptions {
   nodes(): readonly SpaceCanvasNode[];
   reportError(error: unknown): void;
   spaceId(): string;
+  persistence(): CanvasSpacePersistence;
+  ensurePersisted(): Promise<void>;
 }
 
 export function useCanvasDocumentSession(options: CanvasDocumentSessionOptions) {
   const document = shallowRef<CanvasDocumentV1>();
   const surfaceKey = shallowRef(0);
   let saveQueue: CanvasSnapshotSaveQueue | undefined;
-  let persistenceLease: ReturnType<typeof acquireCanvasPersistenceLease> | undefined;
+  let storage: ReturnType<typeof openCanvasSessionStorage> | undefined;
+  let persistenceReady: Promise<void> | undefined;
   let unregisterMutationTarget: (() => void) | undefined;
-  let committedDocument: CanvasDocumentV1 | undefined;
-  let pendingDocument: CanvasDocumentV1 | undefined;
-  let pendingBaseDocument: CanvasDocumentV1 | undefined;
-  let transactionTail = Promise.resolve();
-  let transactionCount = 0;
   let generation = 0;
+  let transactions = createCanvasDocumentTransactions({
+    document,
+    identity: currentSessionIdentity,
+    ready: readyQueue,
+  });
   const detachSessionCommit = registerSpaceSessionParticipant({
-    commit: () => commitCanvasSessionPersistence(saveQueue, transactionTail, options.reportError),
+    async commit() {
+      await transactions.pending;
+      await persistenceReady;
+      await commitCanvasSessionPersistence(saveQueue, transactions.pending, options.reportError);
+    },
     phase: "persistence",
   });
 
-  async function commitTransaction<T extends { document: CanvasDocumentV1; revision: number }>(
+  function commitTransaction<T extends { document: CanvasDocumentV1; revision: number }>(
     commit: (baseRevision: number) => Promise<T>,
   ) {
-    const queue = saveQueue;
-    const transactionGeneration = generation;
-    const transactionSpaceId = options.spaceId();
-    const expectedSession = {
-      generation: transactionGeneration,
-      queue,
-      spaceId: transactionSpaceId,
-    };
-    if (!queue) throw new Error("Canvas persistence is not ready");
-    if (transactionCount === 0) pendingBaseDocument = document.value;
-    transactionCount += 1;
-    const result = transactionTail.then(() =>
-      queue.transaction(async (baseRevision) => {
-        requireCurrentCanvasSession(expectedSession, currentSessionIdentity());
-        const committed = await commit(baseRevision);
-        if (!isCurrentCanvasSession(expectedSession, currentSessionIdentity())) return committed;
-        const nextDocument =
-          pendingDocument && pendingBaseDocument
-            ? rebaseCanvasDocument(pendingBaseDocument, committed.document, pendingDocument)
-            : committed.document;
-        if (transactionCount > 1) {
-          pendingBaseDocument = committed.document;
-          pendingDocument = nextDocument;
-        } else {
-          pendingBaseDocument = undefined;
-          pendingDocument = undefined;
-        }
-        committedDocument = nextDocument;
-        document.value = nextDocument;
-        if (nextDocument !== committed.document) queue.schedule(() => nextDocument);
-        return { ...committed, document: nextDocument };
-      }),
-    );
-    transactionTail = result.then(
-      () => {
-        transactionCount -= 1;
-        return undefined;
-      },
-      () => {
-        transactionCount -= 1;
-        if (isCurrentCanvasSession(expectedSession, currentSessionIdentity()) && pendingDocument) {
-          const pending = pendingDocument;
-          pendingDocument = undefined;
-          saveQueue?.schedule(() => pending);
-        }
-        return undefined;
-      },
-    );
-    const committed = await result;
-    requireCurrentCanvasSession(expectedSession, currentSessionIdentity());
-    return committed;
+    return transactions.commit(commit);
+  }
+
+  async function readyQueue() {
+    if (!saveQueue) await persist();
+    if (!saveQueue) throw new Error("Canvas persistence is not ready");
+    return saveQueue;
   }
 
   async function start() {
-    const currentGeneration = ++generation;
-    const previousQueue = saveQueue;
-    const previousLease = persistenceLease;
-    const previousTransactions = transactionTail;
+    generation += 1;
     unregisterMutationTarget?.();
     unregisterMutationTarget = undefined;
-    const spaceId = options.spaceId();
+    storage?.release(transactions.pending);
+    storage = undefined;
+    persistenceReady = undefined;
     saveQueue = undefined;
-    committedDocument = undefined;
-    pendingDocument = undefined;
-    pendingBaseDocument = undefined;
-    document.value = undefined;
-    previousLease?.release(
-      releaseCanvasSessionPersistence(previousQueue, previousTransactions, options.reportError),
-    );
-    persistenceLease = acquireCanvasPersistenceLease(spaceId);
-    await persistenceLease.wait();
-    if (currentGeneration !== generation) return;
-    const stored = await canvasStateRepository.load(spaceId);
-    if (currentGeneration !== generation) return;
-    const initial = stored
-      ? reconcileCanvasDocument(stored.document, options.nodes())
-      : createCanvasDocument(options.nodes());
-    saveQueue = new CanvasSnapshotSaveQueue({
-      spaceId,
-      persistence: canvasStateRepository,
-      initialState: stored,
-      reportError: options.reportError,
+    transactions = createCanvasDocumentTransactions({
+      document,
+      identity: currentSessionIdentity,
+      ready: readyQueue,
     });
-    unregisterMutationTarget = registerCanvasMutationTarget(spaceId, async (mutation) => {
+    document.value = undefined;
+    if (options.persistence() === "draft") {
+      publishDocument(createCanvasDocument(options.nodes()));
+    } else {
+      persistenceReady = openStorage("load");
+      await persistenceReady;
+    }
+  }
+
+  function persist() {
+    if (persistenceReady) return persistenceReady;
+    const expectedSession = currentSessionIdentity();
+    const pending = Promise.resolve().then(async () => {
+      await options.ensurePersisted();
+      requireCurrentCanvasSession(expectedSession, currentSessionIdentity());
+      await openStorage("create");
+    });
+    persistenceReady = pending;
+    // A failed parent creation remains an action failure, not a permanently poisoned draft session.
+    void pending.catch(() => {
+      if (persistenceReady === pending && !storage) persistenceReady = undefined;
+    });
+    return pending;
+  }
+
+  async function openStorage(mode: "create" | "load") {
+    const currentGeneration = generation;
+    storage = openCanvasSessionStorage(options.spaceId(), mode, options.reportError);
+    const { stored, queue } = await storage.ready;
+    if (currentGeneration !== generation) return;
+    const initial =
+      document.value ??
+      (stored
+        ? reconcileCanvasDocument(stored.document, options.nodes())
+        : createCanvasDocument(options.nodes()));
+    saveQueue = queue;
+    if (!document.value) publishDocument(initial);
+    if (!stored || initial !== stored.document) queue.schedule(() => initial);
+  }
+
+  function publishDocument(initial: CanvasDocumentV1) {
+    const currentGeneration = generation;
+    unregisterMutationTarget = registerCanvasMutationTarget(options.spaceId(), async (mutation) => {
       if (currentGeneration !== generation || !document.value) {
         throw new Error("Canvas mutation target is no longer active");
       }
@@ -134,7 +117,6 @@ export function useCanvasDocumentSession(options: CanvasDocumentSessionOptions) 
     });
     document.value = initial;
     surfaceKey.value += 1;
-    if (!stored || initial !== stored.document) saveQueue.schedule(() => initial);
   }
 
   function synchronizeNodes(nodes: readonly SpaceCanvasNode[]) {
@@ -145,32 +127,31 @@ export function useCanvasDocumentSession(options: CanvasDocumentSessionOptions) 
 
   function documentChanged(next: CanvasDocumentV1) {
     document.value = next;
-    if (next === committedDocument) {
-      committedDocument = undefined;
-      return;
-    }
-    if (transactionCount > 0) {
-      pendingDocument = next;
-      return;
-    }
-    saveQueue?.schedule(() => next);
+    if (!transactions.consumesDocumentChange(next)) saveQueue?.schedule(() => next);
   }
 
   function dispose() {
     generation += 1;
     unregisterMutationTarget?.();
     unregisterMutationTarget = undefined;
-    persistenceLease?.release(
-      releaseCanvasSessionPersistence(saveQueue, transactionTail, options.reportError),
-    );
-    persistenceLease = undefined;
+    storage?.release(transactions.pending);
+    storage = undefined;
     saveQueue = undefined;
     detachSessionCommit();
   }
 
   function currentSessionIdentity() {
-    return { generation, queue: saveQueue, spaceId: options.spaceId() };
+    return { generation, spaceId: options.spaceId() };
   }
 
-  return { commitTransaction, dispose, document, documentChanged, start, surfaceKey, synchronizeNodes };
+  return {
+    commitTransaction,
+    dispose,
+    document,
+    documentChanged,
+    persist,
+    start,
+    surfaceKey,
+    synchronizeNodes,
+  };
 }
