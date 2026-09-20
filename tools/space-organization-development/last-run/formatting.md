@@ -1,16 +1,19 @@
 # Formatting
 
-Source: `5677b1f49ad542d76ff63cf81b259e54de4ec23b`. Exit code: 1.
+Source: `04cd6d9837e17e64432659fe8ba8672fdb3ff17a`. Exit code: 1.
 
 ```text
 $ oxfmt --check .
 Checking formatting...
 
 .github/workflows/space-organization-development.yml (0ms)
-tools/space-organization-development/last-run/report.md (41ms)
+tools/space-organization-development/last-native/report.md (106ms)
+tools/space-organization-development/last-run/build.md (8ms)
+tools/space-organization-development/last-run/frontend-tests.md (264ms)
+tools/space-organization-development/last-run/report.md (21ms)
 
-Format issues found in above 2 files. Run without `--check` to fix.
-Finished in 7856ms on 1090 files using 2 threads.
+Format issues found in above 5 files. Run without `--check` to fix.
+Finished in 8344ms on 1108 files using 2 threads.
 [ELIFECYCLE] Command failed with exit code 1.
 
 ```
