@@ -89,7 +89,7 @@ describe("canvas session commit identity", () => {
     activeSpaceId.value = "b";
     pending.resolve({ importedNodes: [], revision: 1 });
 
-    await expect(transaction).rejects.toThrow("JSON Canvas import target changed");
+    await expect(transaction).resolves.toMatchObject({ revision: 1 });
     expect(nodes.value).toEqual([]);
     expect(commitPendingItems).not.toHaveBeenCalled();
     expect(requestReveal).not.toHaveBeenCalled();
@@ -119,7 +119,7 @@ describe("canvas session commit identity", () => {
     store.activeSpaceId = "b";
     pending.resolve({ revision: 1 });
 
-    await expect(transaction).rejects.toThrow("Canvas deletion target changed");
+    await expect(transaction).resolves.toMatchObject({ revision: 1 });
     expect(store.nodes).toEqual([original]);
   });
 });

@@ -66,15 +66,13 @@ export function createJsonCanvasImportActions(context: JsonCanvasImportContext) 
         return discardJsonCanvasPreparation(preparation, error);
       }
     })();
-    if (context.state.activeSpaceId.value !== spaceId) {
-      completeJsonCanvasPreparation(preparation);
-      throw new Error("JSON Canvas import target changed");
-    }
     const imported = committed.prepared.map(({ node }) => node);
-    context.state.nodes.value = [...context.state.nodes.value, ...imported];
-    context.state.relations.value = [...context.state.relations.value, ...committed.importedRelations];
-    context.mutations.commitPendingItems(spaceId, imported, "none");
-    context.placement.requestReveal(imported.map(({ id }) => id));
+    if (context.state.activeSpaceId.value === spaceId) {
+      context.state.nodes.value = [...context.state.nodes.value, ...imported];
+      context.state.relations.value = [...context.state.relations.value, ...committed.importedRelations];
+      context.mutations.commitPendingItems(spaceId, imported, "none");
+      context.placement.requestReveal(imported.map(({ id }) => id));
+    }
     for (const node of imported) {
       if (isSpaceManagedAssetPayload(node.data)) {
         scheduleSpaceAssetProcessing(assetProcessing, spaceId, node.id, node.data);

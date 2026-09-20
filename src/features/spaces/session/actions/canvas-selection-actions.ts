@@ -63,7 +63,6 @@ export function createCanvasSelectionActions(store: SpaceStore) {
       spaceId,
       survivorChanges: survivorChanges.map(({ id, after: data }) => ({ id, data })),
     });
-    if (store.activeSpaceId !== spaceId) throw new Error("Canvas deletion target changed");
     applyDeletedState();
     return {
       ...result,
@@ -72,6 +71,7 @@ export function createCanvasSelectionActions(store: SpaceStore) {
     };
 
     function applyDeletedState() {
+      if (store.activeSpaceId !== spaceId) return;
       store.nodes = applyPayloads(
         store.nodes.filter(({ id }) => !selected.has(id)),
         survivorAfter,
@@ -91,10 +91,12 @@ export function createCanvasSelectionActions(store: SpaceStore) {
         relationIds: removedRelations.map(({ id }) => id),
         survivorChanges: survivorChanges.map(({ id, before: data }) => ({ id, data })),
       });
-      const nodes = [...store.nodes];
-      for (const { node, index } of removedNodes) nodes.splice(Math.min(index, nodes.length), 0, node);
-      store.nodes = applyPayloads(nodes, survivorBefore);
-      store.relations = [...store.relations, ...removedRelations];
+      if (store.activeSpaceId === spaceId) {
+        const nodes = [...store.nodes];
+        for (const { node, index } of removedNodes) nodes.splice(Math.min(index, nodes.length), 0, node);
+        store.nodes = applyPayloads(nodes, survivorBefore);
+        store.relations = [...store.relations, ...removedRelations];
+      }
       scheduleKnowledgeIndex(spaceId, request.nodeIds);
       return restored;
     }
