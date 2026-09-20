@@ -1,6 +1,6 @@
 # Duplication
 
-Source: `ee7238e255c61baaef754195649d8c3c0e4375cd`. Exit code: 0.
+Source: `dc38cb8c6ae8a22e00c8bcdfa9d19cbf64275e40`. Exit code: 0.
 
 ```text
 $ jscpd src src-tauri/src --min-lines 6 --min-tokens 80 --threshold 1
@@ -213,6 +213,6 @@ Clone found (typescript)
 │ Total:     │ 1890           │ 135828      │ 869320       │ 63           │ 1161 (0.85%)     │ 8584 (0.99%)      │
 └────────────┴────────────────┴─────────────┴──────────────┴──────────────┴──────────────────┴───────────────────┘
 Found 63 clones.
-time: 337.117ms
+time: 325.172ms
 
 ```

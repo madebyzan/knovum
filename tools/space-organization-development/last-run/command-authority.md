@@ -1,6 +1,6 @@
 # Command authority
 
-Source: `ee7238e255c61baaef754195649d8c3c0e4375cd`. Exit code: 0.
+Source: `dc38cb8c6ae8a22e00c8bcdfa9d19cbf64275e40`. Exit code: 0.
 
 ```text
 $ node tools/check-tauri-command-coverage.mjs
