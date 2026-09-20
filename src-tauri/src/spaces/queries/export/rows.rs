@@ -23,17 +23,24 @@ pub(super) async fn space(
     crate::sqlite::row_to_json(&row)
 }
 
+
 pub(super) async fn canvas_state(
-    tx: &mut Transaction<'_, Sqlite>,
-    space_id: &str,
+    tx: &mut Transaction<'_, Sqlite>, space_id: &str, assets: &mut PackageAssets,
 ) -> Result<Value, String> {
-    let row = sqlx::query("SELECT document FROM spaces_canvas_state WHERE space_id = ? LIMIT 1")
-        .bind(space_id)
-        .fetch_optional(&mut **tx)
-        .await
-        .map_err(db::sql_error)?
-        .ok_or_else(|| "Space canvas state is unavailable".to_owned())?;
-    Ok(serde_json::json!({ "document": parse_json(&row, "document")? }))
+    let (mut document, _) = crate::spaces::canvas_state::load_in_transaction(tx, space_id).await?;
+    crate::spaces::canvas_state::validation::validate_content_references(tx, space_id, &document).await?;
+    for layout in &mut document.layout.items {
+        use crate::spaces::canvas_state::contract::StructureLayout;
+        match layout {
+            StructureLayout::Content { appearance, .. } | StructureLayout::Section { appearance, .. } => {
+                if let Some(path) = appearance.as_mut().and_then(|appearance| appearance.background.as_mut()) {
+                    *path = assets.reference(path);
+                }
+            }
+            StructureLayout::Group { .. } => {}
+        }
+    }
+    Ok(serde_json::json!({ "document": document }))
 }
 
 pub(super) async fn scenes(

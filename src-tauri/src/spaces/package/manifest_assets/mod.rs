@@ -39,6 +39,15 @@ pub(super) fn parse(manifest: &str) -> Result<ManifestAssets, String> {
             }
         }
     }
+
+    if let Some(layouts) = value.pointer("/canvasState/document/layout/items").and_then(Value::as_array) {
+        for layout in layouts {
+            if let Some(reference) = layout.pointer("/appearance/background").and_then(Value::as_str) {
+                let token = package_token(reference)?.ok_or("Packaged backgrounds must reference packaged resources")?;
+                used_tokens.insert(token.to_owned());
+            }
+        }
+    }
     Ok(ManifestAssets {
         used_tokens,
         source_revisions,

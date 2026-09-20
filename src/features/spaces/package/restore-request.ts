@@ -28,6 +28,9 @@ export function buildSpacePackageRestoreRequest(
     space: packageSpace(space),
     canvasState: canvasCodec.remap(context.manifest.canvasState, {
       nodeIds: context.maps.nodes,
+      itemIds: context.maps.items,
+      relationIds: context.maps.relations,
+      assets: context.assets,
     }),
     objectTypes: remapObjectTypes(context.manifest.objectTypes, context.maps),
     nodes,
@@ -70,11 +73,12 @@ function restoreScenes(context: SpacePackageRestoreContext): SpacePackageRestore
   return context.manifest.scenes.map((scene) => ({
     id: requiredMap(maps.scenes, scene.id, "Scene"),
     title: scene.title,
+    thumbnailPath: null,
     viewportX: scene.viewportX,
     viewportY: scene.viewportY,
     viewportZoom: scene.viewportZoom,
     orderIndex: scene.orderIndex,
-    focusNodeIds: scene.focusNodeIds.map((id) => requiredMap(maps.nodes, id, "Scene focus node")),
+    focusNodeIds: scene.focusNodeIds.map((id) => requiredMap(maps.items, id, "Scene focus item")),
     relationKinds: scene.relationKinds,
     relationStatuses: scene.relationStatuses,
     queryFilter: remapQueryFilter(scene.queryFilter, maps),

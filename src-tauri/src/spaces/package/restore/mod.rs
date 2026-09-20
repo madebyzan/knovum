@@ -22,6 +22,7 @@ pub async fn restore<R: Runtime>(
     insert_nodes(&mut tx, &request).await?;
     insert_canvas_state(&mut tx, &request).await?;
     insert_scenes(&mut tx, &request).await?;
+    validate_nodes(&mut tx, &request).await?;
     knowledge::insert_relations(&mut tx, &request).await?;
     derivations::insert(&mut tx, &request).await?;
     workflow_runs::insert(&mut tx, &request).await?;
@@ -37,23 +38,10 @@ async fn insert_canvas_state(
     tx: &mut Transaction<'_, Sqlite>,
     request: &RestorePackageRequest,
 ) -> Result<(), String> {
-    crate::spaces::canvas_state::validate_document(&request.canvas_state.document)?;
-    let document = serde_json::to_string(&request.canvas_state.document).map_err(db::json_error)?;
-    sqlx::query(
-        "INSERT INTO spaces_canvas_state(space_id,document,revision,updated_at) VALUES($1,$2,1,$3)",
-    )
-    .bind(&request.space.id)
-    .bind(document)
-    .bind(request.space.updated_at)
-    .execute(&mut **tx)
-    .await
-    .map_err(db::sql_error)?;
-    crate::spaces::assets::synchronize_canvas_references(
-        tx,
-        &request.space.id,
-        &request.canvas_state.document,
-    )
-    .await?;
+
+    crate::spaces::canvas_state::save_in_transaction(tx, &request.space.id, 0, &request.canvas_state.document).await?;
+    crate::spaces::canvas_state::viewport::save_in_transaction(tx, &request.space.id, &request.canvas_state.document.viewport).await?;
+
     Ok(())
 }
 
@@ -137,6 +125,11 @@ async fn insert_nodes(
         ).bind(&row.id).bind(&request.space.id).bind(&row.kind).bind(object_type)
             .bind(data).bind(row.created_at).bind(row.updated_at).execute(&mut **tx).await.map_err(db::sql_error)?;
     }
+
+    Ok(())
+}
+
+async fn validate_nodes(tx: &mut Transaction<'_, Sqlite>, request: &RestorePackageRequest) -> Result<(), String> {
     for row in &request.nodes {
         knowledge_contracts::validate_node(tx, &request.space.id, &row.id, &row.kind, &row.data)
             .await?;
@@ -162,8 +155,10 @@ async fn insert_scenes(
         }
         knowledge_contracts::validate_query_filter(tx, &request.space.id, &row.query_filter)
             .await?;
+        let item_ids: std::collections::HashSet<&str> = request.canvas_state.document.structure.items.iter().map(|item| item.id.as_str()).collect();
+        let mut focus_ids = std::collections::HashSet::new();
         for id in &row.focus_node_ids {
-            knowledge_contracts::validate_same_space_node(tx, &request.space.id, "", id).await?;
+            if !item_ids.contains(id.as_str()) || !focus_ids.insert(id.as_str()) { return Err("Saved View focus must reference unique active structure items".into()); }
         }
         for kind in &row.relation_kinds {
             knowledge_contracts::validate_relation_kind(kind)?;

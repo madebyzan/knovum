@@ -1,6 +1,8 @@
 import type { SpacePackageManifest } from "./manifest-schema";
+import { validatePackagedStructure } from "./structure-validation";
 
 export function validateManifestOwnership(manifest: SpacePackageManifest) {
+  validatePackagedStructure(manifest);
   validateSpaceOwnedRows(manifest);
   validateObjectTypeOwnership(manifest);
   const nodeIds = new Set(manifest.nodes.map((node) => node.id));

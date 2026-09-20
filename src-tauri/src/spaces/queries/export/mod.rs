@@ -36,7 +36,7 @@ pub async fn collect_space_package_snapshot<R: Runtime>(
     let creation_workflow_runs = workflow_runs::rows(&mut tx, &space_id).await?;
     let mut assets = package_assets::PackageAssets::default();
     let nodes = rows::nodes(&mut tx, &space_id, &mut assets).await?;
-    let canvas_state = rows::canvas_state(&mut tx, &space_id).await?;
+    let canvas_state = rows::canvas_state(&mut tx, &space_id, &mut assets).await?;
     let chunks = rows::chunks(&mut tx, &space_id).await?;
     let ai_threads = rows::threads(&mut tx, &space_id).await?;
     let ai_messages = rows::messages(&mut tx, &space_id).await?;

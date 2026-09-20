@@ -15,14 +15,19 @@ const relationSchema = z
     kind: z.enum(SPACE_RELATION_KINDS),
     rationale: z.string(),
     status: z.enum(SPACE_RELATION_STATUSES),
-    statusBeforeInvalidation: z.enum(["active", "contested"]).nullable().optional(),
-    confidence: z.number().finite().min(0).max(1).optional(),
+    statusBeforeInvalidation: z.enum(["active", "contested"]).nullable(),
+    confidence: z.number().finite().min(0).max(1).nullable(),
     actorKind: z.enum(["human", "assistant", "agent", "system"]),
-    actorId: identity.optional(),
+    actorId: identity.nullable(),
     createdAt: z.number().int(),
     updatedAt: z.number().int(),
   })
-  .strict();
+  .strict()
+  .transform(({ confidence, actorId, ...relation }) => ({
+    ...relation,
+    ...(confidence === null ? {} : { confidence }),
+    ...(actorId === null ? {} : { actorId }),
+  }));
 export const editorContentSchema = z
   .object({
     nodes: z.array(

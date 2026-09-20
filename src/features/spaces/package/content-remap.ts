@@ -46,6 +46,8 @@ export function remapNodePayload(
   const copy = structuredClone(data);
   if (copy.kind === "object") remapObject(copy, maps, objectTypes);
   if (copy.kind === "portal") remapPortal(copy, maps);
+  if (copy.kind === "subtitle")
+    copy.sourceVideoNodeId = requiredMap(maps.nodes, copy.sourceVideoNodeId, "subtitle source");
   return copy;
 }
 
@@ -53,7 +55,7 @@ function remapPortal(data: Extract<SpaceNodePayload, { kind: "portal" }>, maps: 
   if (data.targetSpaceId !== maps.sourceSpaceId) return;
   data.targetSpaceId = maps.targetSpaceId;
   if (data.targetSceneId) data.targetSceneId = requiredMap(maps.scenes, data.targetSceneId, "portal Scene");
-  if (data.targetNodeId) data.targetNodeId = requiredMap(maps.nodes, data.targetNodeId, "portal node");
+  if (data.targetNodeId) data.targetNodeId = requiredMap(maps.items, data.targetNodeId, "portal item");
 }
 
 export function remapGroundedCitation(

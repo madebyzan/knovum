@@ -4,6 +4,7 @@ export interface PackageIdMaps {
   sourceSpaceId: string;
   targetSpaceId: string;
   nodes: Map<string, string>;
+  items: Map<string, string>;
   scenes: Map<string, string>;
   relations: Map<string, string>;
   derivations: Map<string, string>;
@@ -15,10 +16,18 @@ export interface PackageIdMaps {
 }
 
 export function createPackageIdMaps(manifest: SpacePackageManifest, targetSpaceId: string): PackageIdMaps {
+  const nodes = idMap(manifest.nodes);
+  const items = new Map(
+    manifest.canvasState.document.structure.items.map((item) => [
+      item.id,
+      item.kind === "content" ? requiredMap(nodes, item.nodeId, "content") : crypto.randomUUID(),
+    ]),
+  );
   return {
     sourceSpaceId: manifest.space.id,
     targetSpaceId,
-    nodes: idMap(manifest.nodes),
+    nodes,
+    items,
     scenes: idMap(manifest.scenes),
     relations: idMap(manifest.relations),
     derivations: idMap(manifest.derivations),
@@ -30,7 +39,7 @@ export function createPackageIdMaps(manifest: SpacePackageManifest, targetSpaceI
   };
 }
 
-export function requiredMap(map: Map<string, string>, key: string, kind: string): string {
+export function requiredMap(map: ReadonlyMap<string, string>, key: string, kind: string): string {
   const value = map.get(key);
   if (!value) throw new Error(`Package references an unknown ${kind}`);
   return value;
