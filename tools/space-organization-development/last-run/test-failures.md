@@ -1,18 +1,6 @@
 # Complete failing test diagnostics
 
 ```text
-/home/runner/work/knovum/knovum/src/foundation/i18n/__tests__/locale-completeness.test.ts :: locale completeness uses semantic lowerCamelCase message keys
-AssertionError: expected [ …(9) ] to deeply equal []
-    at /home/runner/work/knovum/knovum/src/foundation/i18n/__tests__/locale-completeness.test.ts:112:72
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
-    at new Promise (<anonymous>)
-    at runWithCancel (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
-    at new Promise (<anonymous>)
-    at runWithTimeout (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2955:64
 /home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-arrangement-operation.test.ts :: whole-operation arrangement through the canvas port distributes three Section roots and carries every member by its parent's delta
 TypeError: Cannot destructure property 'width' of '(0 , __vite_ssr_import_1__.spaceNodeSizePolicy)(...)' as it is undefined.
     at /home/runner/work/knovum/knovum/src/features/spaces/canvas/document/canvas-document-sync.ts:36:19
@@ -333,7 +321,7 @@ AssertionError: expected "vi.fn()" to be called 1 times, but got 0 times
 TypeError: Cannot read properties of undefined (reading '0')
     at movedFrame (/home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-gesture-session.test.ts:136:33)
     at /home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-gesture-session.test.ts:82:51
-    at Object.runFrameMutation (/home/runner/work/knovum/knovum/src/features/spaces/canvas/konva/interaction/canvas-gesture-session.ts:107:27)
+    at Object.runFrameMutation (/home/runner/work/knovum/knovum/src/features/spaces/canvas/konva/interaction/canvas-gesture-session.ts:117:27)
     at /home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-gesture-session.test.ts:82:27
     at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
     at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
@@ -346,8 +334,8 @@ AssertionError: expected false to be true // Object.is equality
     at /home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-gesture-session.test.ts:100:32
     at processTicksAndRejections (node:internal/process/task_queues:103:5)
 /home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-gesture-session.test.ts :: canvas gesture session keeps a queued nudge bound to the selection that received the command
-TypeError: this.events.commitDocument is not a function
-    at /home/runner/work/knovum/knovum/src/features/spaces/canvas/konva/document/canvas-document-model.ts:78:40
+TypeError: this.events.executeCommand is not a function
+    at /home/runner/work/knovum/knovum/src/features/spaces/canvas/konva/document/canvas-document-model.ts:65:40
     at processTicksAndRejections (node:internal/process/task_queues:103:5)
 /home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-gesture-update.test.ts :: canvas gesture layout updates commits frame and typography scale as one layout mutation
 TypeError: Cannot read properties of undefined (reading 'items')
@@ -1016,11 +1004,8 @@ TypeError: model.document.nodes is not iterable
     at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2955:64
 Failed to resolve import "../canvas/konva/document/canvas-layer-order" from "src/features/spaces/__tests__/konva-canvas-presentation-document.test.ts". Does the file exist?
 /home/runner/work/knovum/knovum/src/features/spaces/__tests__/konva-editor-port.test.ts :: Konva editor port routes clipboard operations through product ports and uses the last canvas pointer
-TypeError: Cannot read properties of undefined (reading 'items')
-    at indexStructure (/home/runner/work/knovum/knovum/src/features/spaces/model/structure/structure-index.ts:11:32)
-    at /home/runner/work/knovum/knovum/src/features/spaces/canvas/konva/selection/canvas-selection-deletion.ts:10:41
-    at Object.cutSelection (/home/runner/work/knovum/knovum/src/features/spaces/canvas/konva/create-canvas-editor-port.ts:49:25)
-    at /home/runner/work/knovum/knovum/src/features/spaces/__tests__/konva-editor-port.test.ts:80:16
+TypeError: this.events.executeCommand is not a function
+    at /home/runner/work/knovum/knovum/src/features/spaces/canvas/konva/document/canvas-document-model.ts:65:40
     at processTicksAndRejections (node:internal/process/task_queues:103:5)
 /home/runner/work/knovum/knovum/src/features/spaces/__tests__/konva-editor-port.test.ts :: Konva editor port commits node and semantic relation deletion through one host transaction
 TypeError: options.scopeGroupId is not a function
@@ -1427,4 +1412,16 @@ AssertionError: expected [Function] to throw error matching /cycle/u but got 'Si
     at new Promise (<anonymous>)
     at runWithCancel (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
     at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+/home/runner/work/knovum/knovum/src/foundation/i18n/__tests__/locale-completeness.test.ts :: locale completeness uses semantic lowerCamelCase message keys
+AssertionError: expected [ …(9) ] to deeply equal []
+    at /home/runner/work/knovum/knovum/src/foundation/i18n/__tests__/locale-completeness.test.ts:112:72
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2955:64
 ```
