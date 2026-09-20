@@ -1,6 +1,6 @@
 # Native compile and test-type check
 
-Source: `c19dca0aeebcac2901adf70bbb48443c8fa7908a`. Exit code: 0. This is a compiler check, not a desktop or runtime test pass.
+Source: `338a721ed95500572ba8288605180a0e93e2d122`. Exit code: 0. This is a compiler check, not a desktop or runtime test pass.
 
 ```text
    Compiling knovum v1.0.0-beta4 (/home/runner/work/knovum/knovum/src-tauri)
@@ -22,6 +22,6 @@ src/system_preview/thumbnail/mod.rs:30:4: warning: function `ensure_not_cancelle
 src/system_preview/thumbnail/policy.rs:6:15: warning: function `supports` is never used
 warning: `knovum` (lib) generated 15 warnings (run `cargo fix --lib -p knovum` to apply 6 suggestions)
 warning: `knovum` (lib test) generated 15 warnings (14 duplicates)
-    Finished `dev` profile [unoptimized] target(s) in 29.86s
+    Finished `dev` profile [unoptimized] target(s) in 30.45s
 
 ```
