@@ -43,7 +43,7 @@ pub fn validate_event_pair(entity_kind: &str, event_kind: &str) -> Result<(), St
         ),
         "provenance" => matches!(
             event_kind,
-            "created" | "superseded" | "invalidated" | "moved"
+            "created" | "superseded" | "invalidated" | "restored" | "moved"
         ),
         "type" => matches!(event_kind, "created" | "updated"),
         _ => false,

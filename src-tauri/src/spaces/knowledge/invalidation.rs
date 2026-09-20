@@ -147,7 +147,7 @@ pub async fn invalidate_provenance_for_nodes(
     Ok(())
 }
 
-async fn invalidate_provenance(
+pub(in crate::spaces) async fn invalidate_provenance(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
     provenance_id: &str,

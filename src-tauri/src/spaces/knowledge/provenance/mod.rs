@@ -159,3 +159,6 @@ use validation::{ensure_target, validate_input};
 
 mod rows;
 use rows::{event_row, provenance_row};
+
+mod history_restore;
+pub(in crate::spaces) use history_restore::restore as restore_for_history;

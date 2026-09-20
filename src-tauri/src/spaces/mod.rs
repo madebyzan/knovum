@@ -60,6 +60,7 @@ pub fn plugin() -> tauri::plugin::TauriPlugin<tauri::Wry> {
             crate::spaces::canvas_state::save_canvas_state,
             crate::spaces::canvas_state::save_editor_viewport,
             crate::spaces::editing::execute_space_edit,
+            crate::spaces::editing::replay_space_edit,
             crate::spaces::editing::query_space_edit_receipt,
             crate::spaces::editing::load_editor_workspace,
             crate::spaces::canvas_state::commit_canvas_gesture,

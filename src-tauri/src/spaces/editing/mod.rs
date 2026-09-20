@@ -6,6 +6,9 @@ mod receipts;
 mod measurements;
 mod execution;
 mod lifecycle_edit;
+mod lifecycle_guards;
+mod lifecycle_replay;
+mod replay;
 mod result;
 use tauri::{AppHandle, Emitter, Runtime};
 use crate::spaces::{db, canvas_state, queries};
@@ -32,4 +35,13 @@ pub(crate) async fn load_editor_workspace<R: Runtime>(app: AppHandle<R>, space_i
     canvas_state::validation::validate_content_references(&mut tx, &space_id, &document).await?;
     let content = queries::read_editor_content(&mut tx, &space_id).await?;
     tx.commit().await.map_err(db::sql_error)?; Ok(contracts::EditorWorkspace { document, revision, content })
+}
+
+#[tauri::command]
+pub(crate) async fn replay_space_edit<R: Runtime>(app: AppHandle<R>, request: contracts::ReplayEditRequest) -> Result<contracts::EditResult, String> {
+    let space_id = request.space_id.clone(); let pool = db::pool(&app).await?;
+    let result = replay::replay(pool, request).await?;
+    crate::spaces::knowledge::retrieval::invalidation_outbox::drain_and_report(&app, pool).await;
+    if let Err(error) = app.emit("spaces:editor-committed", serde_json::json!({"spaceId":space_id,"revision":result.revision,"mutationId":result.mutation_id})) { log::error!("History committed but notification failed: {error}"); }
+    Ok(result)
 }

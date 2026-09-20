@@ -6,7 +6,7 @@ use crate::spaces::db;
 use super::changes::RecordChange;
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub(super) struct RelationState { pub id: String, pub source_id: String, pub target_id: String, pub status: String, pub previous_status: Option<String> }
+pub(super) struct RelationState { pub id: String, pub source_id: String, pub target_id: String, pub kind: String, pub rationale: String, pub confidence: Option<f64>, pub status: String, pub previous_status: Option<String> }
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub(super) struct ProvenanceState {
@@ -16,7 +16,7 @@ pub(super) struct ProvenanceState {
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub(super) struct NodeActivity { pub id: String, pub active: bool }
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub(in crate::spaces) struct LifecycleChanges {
     pub(super) nodes: Vec<RecordChange<NodeActivity>>,
@@ -33,9 +33,9 @@ pub(super) async fn capture(tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>, space_
         let id: String = row.try_get("id").map_err(db::sql_error)?;
         state.nodes.insert(id.clone(), NodeActivity { id, active: row.try_get::<Option<i64>,_>("deleted_at").map_err(db::sql_error)?.is_none() });
     }
-    for row in sqlx::query("SELECT id,source_id,target_id,status,status_before_invalidation FROM spaces_relations WHERE space_id=$1").bind(space_id).fetch_all(&mut **tx).await.map_err(db::sql_error)? {
+    for row in sqlx::query("SELECT id,source_id,target_id,kind,rationale,confidence,status,status_before_invalidation FROM spaces_relations WHERE space_id=$1").bind(space_id).fetch_all(&mut **tx).await.map_err(db::sql_error)? {
         let id: String = row.try_get("id").map_err(db::sql_error)?;
-        state.relations.insert(id.clone(), RelationState { id, source_id: row.try_get("source_id").map_err(db::sql_error)?, target_id: row.try_get("target_id").map_err(db::sql_error)?, status: row.try_get("status").map_err(db::sql_error)?, previous_status: row.try_get("status_before_invalidation").map_err(db::sql_error)? });
+        state.relations.insert(id.clone(), RelationState { id, source_id: row.try_get("source_id").map_err(db::sql_error)?, target_id: row.try_get("target_id").map_err(db::sql_error)?, kind: row.try_get("kind").map_err(db::sql_error)?, rationale: row.try_get("rationale").map_err(db::sql_error)?, confidence: row.try_get("confidence").map_err(db::sql_error)?, status: row.try_get("status").map_err(db::sql_error)?, previous_status: row.try_get("status_before_invalidation").map_err(db::sql_error)? });
     }
     for row in sqlx::query("SELECT id,target_kind,target_id,source_node_id,source_revision,locator,quote,status FROM spaces_provenance WHERE space_id=$1").bind(space_id).fetch_all(&mut **tx).await.map_err(db::sql_error)? {
         let id: String = row.try_get("id").map_err(db::sql_error)?;

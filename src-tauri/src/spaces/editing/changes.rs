@@ -1,10 +1,10 @@
 use std::collections::{BTreeMap, HashSet};
 use serde::{Deserialize, Serialize};
 use crate::spaces::canvas_state::contract::{SpaceEditorDocument, StructureItem, StructureLayout, CanvasRelationStyleV1};
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub(in crate::spaces) struct RecordChange<T> { pub id: String, pub before: Option<T>, pub after: Option<T> }
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub(in crate::spaces) struct EditChanges {
     pub version: u8,

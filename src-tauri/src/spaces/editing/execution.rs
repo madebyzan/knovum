@@ -29,7 +29,7 @@ pub(super) async fn execute(pool: &sqlx::SqlitePool, request: ExecuteEditRequest
     let changed = !changes::unchanged(&delta) || !lifecycle_state::empty(&lifecycle);
     let revision = if changed { canvas_state::save_in_transaction(&mut tx, &request.space_id, revision, &plan.after).await? } else { revision };
     if changed { nodes::touch_updated_at(&mut tx, &request.space_id, now).await?; }
-    let selection_before = match &request.command { EditorCommand::Structure { selection, .. } => selection.clone(), _ => vec![] };
+    let selection_before = match &request.command { EditorCommand::Structure { selection, .. } => selection.clone(), EditorCommand::DeleteSelection { ids, .. } => ids.clone(), EditorCommand::TransformFrames { updates } | EditorCommand::ArrangeFrames { updates } => updates.iter().map(|update| update.node_id.clone()).collect(), _ => vec![] };
     let receipt = Receipt { mutation_id: request.mutation_id, request_hash: hash, revision, selection_before, selection_after: plan.selection,
         changes: ReceiptChanges { version: 1, reversible: changed && !matches!(request.command, EditorCommand::MeasureText { .. }), document: delta, lifecycle },
     };

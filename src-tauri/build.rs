@@ -87,6 +87,7 @@ fn main() {
                         "save_canvas_state",
                         "save_editor_viewport",
                         "execute_space_edit",
+                        "replay_space_edit",
                         "query_space_edit_receipt",
                         "load_editor_workspace",
                         "delete_canvas_selection",
