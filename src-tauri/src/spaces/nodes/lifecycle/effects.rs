@@ -45,39 +45,6 @@ pub(super) async fn cancel_enrichment_jobs_for_nodes(
     Ok(())
 }
 
-pub(super) async fn remove_nodes_from_scene_focus(
-    tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
-    space_id: &str,
-    ids: &[String],
-    now: i64,
-) -> Result<(), String> {
-    let selected: HashSet<&str> = ids.iter().map(String::as_str).collect();
-    let rows = sqlx::query("SELECT id,focus_node_ids FROM spaces_scenes WHERE space_id=$1")
-        .bind(space_id)
-        .fetch_all(&mut **tx)
-        .await
-        .map_err(db::sql_error)?;
-    for row in rows {
-        let id: String = row.try_get("id").map_err(db::sql_error)?;
-        let raw: String = row.try_get("focus_node_ids").map_err(db::sql_error)?;
-        let mut focus: Vec<String> = serde_json::from_str(&raw).map_err(db::json_error)?;
-        let before = focus.len();
-        focus.retain(|node_id| !selected.contains(node_id.as_str()));
-        if focus.len() == before {
-            continue;
-        }
-        let focus = serde_json::to_string(&focus).map_err(db::json_error)?;
-        sqlx::query("UPDATE spaces_scenes SET focus_node_ids=$1,updated_at=$2 WHERE id=$3")
-            .bind(focus)
-            .bind(now)
-            .bind(id)
-            .execute(&mut **tx)
-            .await
-            .map_err(db::sql_error)?;
-    }
-    Ok(())
-}
-
 pub(super) async fn mark_nodes_deleted(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     space_id: &str,
@@ -88,7 +55,6 @@ pub(super) async fn mark_nodes_deleted(
     crate::spaces::knowledge::grounding::references::detach_nodes(tx, space_id, ids).await?;
     invalidate_relations_for_nodes(tx, space_id, ids, now).await?;
     invalidation::invalidate_provenance_for_nodes(tx, space_id, ids, "human", None, now).await?;
-    remove_nodes_from_scene_focus(tx, space_id, ids, now).await?;
     cancel_enrichment_jobs_for_nodes(tx, space_id, ids, now).await?;
     for id in ids {
         sqlx::query(

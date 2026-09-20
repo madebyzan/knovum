@@ -169,3 +169,5 @@ use canonical::{fnv1a64, stable_json};
 
 #[cfg(test)]
 mod tests;
+
+pub(in crate::spaces) fn render_revision(data: &Value) -> String { format!("render1:{:016x}", fnv1a64(stable_json(data).as_bytes())) }

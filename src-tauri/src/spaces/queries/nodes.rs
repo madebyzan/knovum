@@ -53,7 +53,7 @@ pub async fn list_recently_deleted_items<R: Runtime>(
     .map_err(db::sql_error)
 }
 
-fn node_row(row: sqlx::sqlite::SqliteRow) -> Result<Value, String> {
+pub(super) fn node_row(row: sqlx::sqlite::SqliteRow) -> Result<Value, String> {
     let data_raw: String = row.try_get("data").map_err(db::sql_error)?;
     let data: Value = serde_json::from_str(&data_raw).map_err(db::json_error)?;
     Ok(serde_json::json!({

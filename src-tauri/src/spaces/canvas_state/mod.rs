@@ -6,7 +6,7 @@ mod repository;
 mod stored_document;
 pub(in crate::spaces) mod viewport;
 mod selection;
-mod validation;
+pub(in crate::spaces) mod validation;
 mod structure_validation;
 mod layout_validation;
 pub(in crate::spaces) mod geometry;

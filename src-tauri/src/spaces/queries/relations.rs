@@ -22,7 +22,7 @@ pub async fn list_relations<R: Runtime>(
     rows.into_iter().map(relation_row).collect()
 }
 
-fn relation_row(row: sqlx::sqlite::SqliteRow) -> Result<Value, String> {
+pub(super) fn relation_row(row: sqlx::sqlite::SqliteRow) -> Result<Value, String> {
     Ok(serde_json::json!({
         "id": row.try_get::<String,_>("id").map_err(db::sql_error)?,
         "spaceId": row.try_get::<String,_>("space_id").map_err(db::sql_error)?,
