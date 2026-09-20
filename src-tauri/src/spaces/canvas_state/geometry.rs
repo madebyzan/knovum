@@ -20,7 +20,8 @@ pub(in crate::spaces) fn valid_transform(value: StructureTransform) -> bool {
     coordinate(value.x) && coordinate(value.y) && value.rotation.is_finite() && (-180.0..180.0).contains(&value.rotation)
         && value.scale.is_finite() && (SCALE_MIN..=SCALE_MAX).contains(&value.scale)
 }
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
 pub(in crate::spaces) struct Bounds { pub x: f64, pub y: f64, pub width: f64, pub height: f64 }
 pub(in crate::spaces) fn transformed_bounds(transform: StructureTransform, size: StructureSize) -> Bounds {
     let points = [(0.0, 0.0), (size.width, 0.0), (0.0, size.height), (size.width, size.height)].map(|(x,y)| compose(transform, StructureTransform { x, y, ..identity() }));

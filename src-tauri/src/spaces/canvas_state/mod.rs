@@ -79,3 +79,5 @@ pub(crate) async fn set_imported_canvas_nodes_deleted<R: Runtime>(
 
 #[cfg(test)]
 mod tests;
+
+pub(in crate::spaces) use structure_validation::valid_id as valid_structure_id;

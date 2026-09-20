@@ -1,3 +1,4 @@
+pub(in crate::spaces) mod organization;
 mod agent_artifacts;
 pub(crate) mod assets;
 mod canvas_exchange;
