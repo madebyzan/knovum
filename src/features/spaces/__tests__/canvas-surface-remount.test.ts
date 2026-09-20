@@ -7,6 +7,7 @@ import type {
 } from "../canvas-exchange/json-canvas-import-contract";
 import type { CanvasDocumentV1 } from "../canvas/contract/canvas-document";
 import type { CanvasHostEvents } from "../canvas/contract/canvas-editor";
+import type { CanvasSpacePersistence } from "../canvas/contract/canvas-persistence";
 import { createCanvasDocument } from "../canvas/document/canvas-document-sync";
 import { canvasNote, deferred } from "../testing/canvas-fixtures";
 
@@ -33,6 +34,27 @@ afterEach(() => {
 });
 
 describe("CanvasSurfaceHost remount persistence", () => {
+  it("promotes a draft in place when the workspace reports that its Space was persisted", async () => {
+    vi.useFakeTimers();
+    repository.save.mockResolvedValue(1);
+    const wrapper = mountHost("draft", [], undefined, "draft");
+    await flushPromises();
+    const surface = wrapper.findComponent({ name: "KonvaCanvasSurface" });
+    const document = { ...createCanvasDocument([]), viewport: { x: 80, y: 120, zoom: 1.5 } };
+    surface.vm.$emit("documentChange", document);
+    await vi.advanceTimersByTimeAsync(301);
+    expect(repository.load).not.toHaveBeenCalled();
+    expect(repository.save).not.toHaveBeenCalled();
+
+    await wrapper.setProps({ persistence: "persisted" });
+    await flushPromises();
+    await vi.advanceTimersByTimeAsync(301);
+    expect(repository.save).toHaveBeenCalledOnce();
+    expect(repository.save).toHaveBeenCalledWith({ spaceId: "draft", baseRevision: 0, document });
+    expect(wrapper.findComponent({ name: "KonvaCanvasSurface" }).vm).toBe(surface.vm);
+    expect(repository.load).not.toHaveBeenCalled();
+  });
+
   it("persists reconciliation instead of leaving it as an in-memory repair", async () => {
     vi.useFakeTimers();
     const first = canvasNote("a");
@@ -138,10 +160,14 @@ function mountHost(
   spaceId: string,
   nodes: ReturnType<typeof canvasNote>[],
   events = { onError: vi.fn<(error: unknown) => void>() } as unknown as CanvasHostEvents,
+  persistence: CanvasSpacePersistence = "persisted",
 ) {
   return mount(CanvasSurfaceHost, {
     props: {
       events,
+      persistence,
+      ensurePersisted: async () => {},
+      interactionEnabled: true,
       importJsonCanvas: jsonImporter(),
       focusNodeIds: [],
       tool: "select",

@@ -9,6 +9,7 @@ import type { CanvasDocumentV1 } from "../canvas/contract/canvas-document";
 import type {
   CanvasDeleteSelectionResult,
   CanvasHostEvents,
+  CanvasPersistenceMutationRequest,
   CanvasSurfaceEvents,
 } from "../canvas/contract/canvas-editor";
 import { createCanvasDocument } from "../canvas/document/canvas-document-sync";
@@ -139,25 +140,18 @@ describe("CanvasSurfaceHost", () => {
 });
 
 function events(): CanvasHostEvents {
+  const commit = async (request: CanvasPersistenceMutationRequest) => ({
+    document: request.document,
+    revision: request.baseRevision + 1,
+    history: persistenceHistory,
+  });
   return {
-    onCommitGesture: async (request) => ({
-      document: request.document,
-      revision: request.baseRevision + 1,
-      history: persistenceHistory,
-    }),
+    onCommitGesture: commit,
     onCopyNodes: async () => {},
     onCreateRelation: async () => {},
     onCreateTextNode: async () => "created",
-    onCutSelection: async (request) => ({
-      document: request.document,
-      revision: request.baseRevision + 1,
-      history: persistenceHistory,
-    }),
-    onDeleteSelection: async (request) => ({
-      document: request.document,
-      revision: request.baseRevision + 1,
-      history: persistenceHistory,
-    }),
+    onCutSelection: commit,
+    onDeleteSelection: commit,
     onDuplicateNodes: async () => {},
     onInsertText: async () => {},
     onInsertUrl: async () => {},
@@ -175,15 +169,14 @@ function events(): CanvasHostEvents {
   };
 }
 
-function jsonImporter() {
-  return vi.fn<(request: CanvasJsonImportRequest) => Promise<CanvasJsonImportCommitResult>>();
-}
-
 function mountHost(spaceId: string, hostEvents: CanvasHostEvents) {
   return mount(CanvasSurfaceHost, {
     props: {
       events: hostEvents,
-      importJsonCanvas: jsonImporter(),
+      persistence: "persisted",
+      ensurePersisted: async () => {},
+      interactionEnabled: true,
+      importJsonCanvas: vi.fn<(request: CanvasJsonImportRequest) => Promise<CanvasJsonImportCommitResult>>(),
       focusNodeIds: [],
       tool: "select",
       nodes: [canvasNote(spaceId)],
