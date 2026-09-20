@@ -1,6 +1,6 @@
 name: Space organization development
 
-# Temporary integration runner for PR #14. Never executes fork or default-branch code.
+# Temporary integration runner for PR 14, restricted to its existing development branch.
 on:
   push:
     branches: [refactor/space-organization]
@@ -20,10 +20,12 @@ jobs:
   verify:
     if: github.repository == 'madebyzan/knovum' && github.ref == 'refs/heads/refactor/space-organization'
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 35
     permissions:
       contents: write
       pull-requests: write
+    outputs:
+      source: ${{ steps.save.outputs.sha }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -38,12 +40,11 @@ jobs:
           corepack enable
           corepack prepare pnpm@11.17.0 --activate
           pnpm install --frozen-lockfile
-      - name: Apply the reviewed integration step
+      - name: Apply reviewed source changes
         run: python3 tools/space-organization-development/apply.py
-      - name: Format edited frontend files
-        run: |
-          git ls-files -m -o --exclude-standard -z -- '*.ts' '*.vue' '*.mjs' '*.json' '*.md' | xargs -0 -r pnpm exec oxfmt
-      - name: Save changes on the same development branch
+      - name: Format changed frontend source
+        run: git ls-files -m -o --exclude-standard -z -- '*.ts' '*.vue' '*.mjs' '*.json' '*.md' | xargs -0 -r pnpm exec oxfmt
+      - name: Save changes on the same branch
         id: save
         run: |
           git add -- src src-tauri docs tools package.json pnpm-lock.yaml
@@ -51,33 +52,31 @@ jobs:
             git config user.name 'github-actions[bot]'
             git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
             git commit -m 'refactor(spaces): apply reviewed organization integration step'
-            # No force push: stop rather than overwrite a newer user or assistant commit.
             git push origin HEAD:refs/heads/refactor/space-organization
           fi
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-      - name: Run checks and preserve complete output
+      - name: Run complete frontend checks
         id: verification
         env:
           REPORT_DIRECTORY: ${{ runner.temp }}/organization-report
           NO_COLOR: '1'
         run: python3 tools/space-organization-development/verify.py
-      - name: Upload verification evidence
+      - name: Upload frontend evidence
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
           name: organization-${{ steps.save.outputs.sha }}
           path: ${{ runner.temp }}/organization-report
           retention-days: 7
-          if-no-files-found: ignore
-      - name: Save line-addressable diagnostics
+          if-no-files-found: warn
+      - name: Save line-addressable frontend diagnostics
         if: ${{ !cancelled() && steps.save.outcome == 'success' }}
         env:
           REPORT_DIRECTORY: ${{ runner.temp }}/organization-report
         run: |
           test -f "$REPORT_DIRECTORY/report.md"
           mkdir -p tools/space-organization-development/last-run
-          cp "$REPORT_DIRECTORY"/*.log tools/space-organization-development/last-run/
-          cp "$REPORT_DIRECTORY/report.md" tools/space-organization-development/last-run/report.md
+          cp "$REPORT_DIRECTORY"/*.md tools/space-organization-development/last-run/
           git add -- tools/space-organization-development/last-run
           if ! git diff --cached --quiet; then
             git config user.name 'github-actions[bot]'
@@ -85,7 +84,7 @@ jobs:
             git commit -m 'chore: record organization integration diagnostics'
             git push origin HEAD:refs/heads/refactor/space-organization
           fi
-      - name: Report the actual results on PR 14
+      - name: Report actual frontend results
         if: ${{ !cancelled() && steps.save.outcome == 'success' }}
         uses: actions/github-script@v9
         env:
@@ -95,9 +94,91 @@ jobs:
             const fs = require('node:fs');
             const path = require('node:path');
             const report = path.join(process.env.REPORT_DIRECTORY, 'report.md');
-            if (!fs.existsSync(report)) {
-              core.setFailed('Verification did not produce a report');
-              return;
-            }
-            const body = fs.readFileSync(report, 'utf8');
-            await github.rest.issues.createComment({ ...context.repo, issue_number: 14, body });
+            if (!fs.existsSync(report)) { core.setFailed('Verification produced no report'); return; }
+            await github.rest.issues.createComment({ ...context.repo, issue_number: 14, body: fs.readFileSync(report, 'utf8') });
+
+  native:
+    needs: verify
+    if: ${{ !cancelled() && needs.verify.outputs.source != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      CARGO_BUILD_JOBS: '2'
+      CARGO_PROFILE_DEV_DEBUG: '0'
+      CARGO_PROFILE_TEST_DEBUG: '0'
+      CARGO_PROFILE_DEV_OPT_LEVEL: '0'
+      CARGO_INCREMENTAL: '0'
+      SOURCE_SHA: ${{ needs.verify.outputs.source }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.verify.outputs.source }}
+          persist-credentials: true
+      - name: Install native build prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev protobuf-compiler
+      - name: Restore native dependency cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            src-tauri/target
+          key: organization-native-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml', 'src-tauri/Cargo.lock') }}-${{ github.run_id }}
+          restore-keys: |
+            organization-native-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml', 'src-tauri/Cargo.lock') }}-
+      - name: Check native code and every test target
+        id: native_check
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/native-report"
+          rustc --version | tee "$RUNNER_TEMP/native-report/toolchain.log"
+          cargo --version | tee -a "$RUNNER_TEMP/native-report/toolchain.log"
+          set +e
+          cargo check --locked --manifest-path src-tauri/Cargo.toml --all-targets --message-format=short > "$RUNNER_TEMP/native-report/check.log" 2>&1
+          result=$?
+          echo "exit_code=$result" >> "$GITHUB_OUTPUT"
+          printf '# Native compile and test-type check\n\nSource: `%s`. Exit code: %s. This is a compiler check, not a desktop or runtime test pass.\n\n```text\n' "$SOURCE_SHA" "$result" > "$RUNNER_TEMP/native-report/report.md"
+          cat "$RUNNER_TEMP/native-report/check.log" >> "$RUNNER_TEMP/native-report/report.md"
+          printf '\n```\n' >> "$RUNNER_TEMP/native-report/report.md"
+          tail -180 "$RUNNER_TEMP/native-report/check.log"
+          exit "$result"
+      - name: Save native dependency cache
+        if: ${{ !cancelled() }}
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            src-tauri/target
+          key: organization-native-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml', 'src-tauri/Cargo.lock') }}-${{ github.run_id }}
+      - name: Upload native evidence
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: organization-native-${{ needs.verify.outputs.source }}
+          path: ${{ runner.temp }}/native-report
+          retention-days: 7
+          if-no-files-found: warn
+      - name: Publish exact-source native diagnostics
+        if: ${{ !cancelled() && steps.native_check.outputs.exit_code != '' }}
+        shell: bash
+        run: |
+          git fetch origin refs/heads/refactor/space-organization
+          git worktree add --detach "$RUNNER_TEMP/native-report-tree" FETCH_HEAD
+          destination="$RUNNER_TEMP/native-report-tree/tools/space-organization-development/last-native"
+          mkdir -p "$destination"
+          cp "$RUNNER_TEMP/native-report/report.md" "$destination/report.md"
+          cd "$RUNNER_TEMP/native-report-tree"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tools/space-organization-development/last-native/report.md
+          if ! git diff --cached --quiet; then
+            git commit -m 'chore: record exact-source native compilation diagnostics'
+            # Never force a moving branch; artifact evidence is retained even if publication races.
+            git push origin HEAD:refs/heads/refactor/space-organization
+          fi
