@@ -1,55 +1,59 @@
-"""Run real checks, retain full logs, and report compact failures without weakening gates."""
-
+"""Run the repository's real frontend gates and retain complete, line-addressable evidence."""
 import json
 import os
 from pathlib import Path
 import re
 import subprocess
 
-out = Path(os.environ["REPORT_DIRECTORY"])
+out = Path(os.environ['REPORT_DIRECTORY'])
 out.mkdir(parents=True, exist_ok=True)
-sha = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
+sha = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
 checks = [
-    ("Types", ["pnpm", "typecheck"], 180),
-    ("Architecture", ["pnpm", "architecture"], 120),
-    ("Frontend tests", ["pnpm", "exec", "vitest", "run", "--maxWorkers=4", "--reporter=json", f"--outputFile={out / 'tests.json'}"], 420),
-    ("Build", ["pnpm", "build"], 180),
+    ('Types', ['pnpm', 'typecheck'], 180),
+    ('Desktop types', ['pnpm', 'typecheck:e2e'], 120),
+    ('Command authority', ['pnpm', 'check:authority'], 120),
+    ('Lint', ['pnpm', 'lint'], 180),
+    ('Architecture', ['pnpm', 'architecture'], 150),
+    ('Frontend tests', ['pnpm', 'exec', 'vitest', 'run', '--maxWorkers=4', '--reporter=default', '--reporter=json', f'--outputFile.json={out / "tests.json"}'], 600),
+    ('Unused code', ['pnpm', 'deadcode'], 180),
+    ('Duplication', ['pnpm', 'duplicates'], 180),
+    ('Formatting', ['pnpm', 'format:check'], 180),
+    ('Build', ['pnpm', 'build'], 240),
 ]
 results = []
+ansi = re.compile(r'\x1b\[[0-?]*[ -/]*[@-~]')
 for name, command, timeout in checks:
-    log_path = out / (name.lower().replace(" ", "-") + ".log")
-    with log_path.open("w") as log:
+    stem = name.lower().replace(' ', '-')
+    path = out / f'{stem}.log'
+    with path.open('w') as stream:
         try:
-            completed = subprocess.run(command, stdout=log, stderr=subprocess.STDOUT, timeout=timeout, check=False)
-            code = completed.returncode
+            status = subprocess.run(command, stdout=stream, stderr=subprocess.STDOUT, timeout=timeout, check=False).returncode
         except subprocess.TimeoutExpired:
-            log.write(f"\nCheck exceeded its {timeout}s timeout. This is a failure, not a pass.\n")
-            code = 124
-    text = re.sub(r"\x1b\[[0-?]*[ -/]*[@-~]", "", log_path.read_text(errors="replace"))
-    results.append({"name": name, "exitCode": code, "log": text})
-    print(f"{name}: exit {code}")
+            stream.write(f'\nCheck exceeded its {timeout}s timeout. This is a failure, not a pass.\n')
+            status = 124
+    text = ansi.sub('', path.read_text(errors='replace'))
+    results.append({'name': name, 'exitCode': status})
+    (out / f'{stem}.md').write_text(f'# {name}\n\nSource: `{sha}`. Exit code: {status}.\n\n```text\n{text}\n```\n')
+    if name == 'Types':
+        diagnostic = '\n'.join(line for line in text.splitlines() if ': error TS' in line and '/__tests__/' not in line)
+        (out / 'production-type-errors.md').write_text(f'# Production type diagnostics\n\nSource: `{sha}`.\n\n```text\n{diagnostic}\n```\n')
+    print(f'{name}: exit {status}', flush=True)
 
-report = [f"## Organization development verification\n\nSource commit: `{sha}`. Actual runner results; not a complete product acceptance.\n", "| Check | Result |", "| --- | --- |"]
-for item in results:
-    report.append(f"| {item['name']} | {'PASS' if item['exitCode'] == 0 else 'FAIL (' + str(item['exitCode']) + ')'} |")
-for item in results:
-    if item["exitCode"] == 0:
-        continue
-    if item["name"] == "Frontend tests" and (out / "tests.json").exists():
-        data = json.loads((out / "tests.json").read_text())
-        lines = [f"{data.get('numPassedTests')} passed, {data.get('numFailedTests')} failed"]
-        for test_file in data.get("testResults", []):
-            for test in test_file.get("assertionResults", []):
-                if test.get("status") == "failed":
-                    lines.append(test_file.get("name", "") + " :: " + test.get("fullName", ""))
-                    lines.extend(test.get("failureMessages", []))
-            if test_file.get("message"):
-                lines.append(test_file["message"])
-        detail = "\n".join(lines)
-    else:
-        detail = item["log"]
-    report.append(f"\n<details><summary>{item['name']} failures</summary>\n\n```text\n{detail[:18000]}\n```\n</details>")
-report.append("\nComplete logs and test JSON are attached to this workflow run. No gates, tests, or lint rules were disabled.\n")
-(out / "report.md").write_text("\n".join(report)[:62000])
-(out / "results.json").write_text(json.dumps({"sha": sha, "checks": [{"name": row["name"], "exitCode": row["exitCode"]} for row in results]}, indent=2))
-raise SystemExit(0 if all(row["exitCode"] == 0 for row in results) else 1)
+summary = [f'## Organization development verification\n\nSource commit: `{sha}`. Actual execution, not a product acceptance claim.\n', '| Check | Result |', '| --- | --- |']
+for result in results:
+    summary.append(f'| {result["name"]} | {"PASS" if result["exitCode"] == 0 else "FAIL (" + str(result["exitCode"]) + ")"} |')
+if (out / 'tests.json').exists():
+    data = json.loads((out / 'tests.json').read_text())
+    summary.append(f'\nFrontend tests: {data.get("numPassedTests")} passed, {data.get("numFailedTests")} failed; {data.get("numPendingTests")} pending.\n')
+    failures = []
+    for file in data.get('testResults', []):
+        for test in file.get('assertionResults', []):
+            if test.get('status') == 'failed':
+                failures.append(file.get('name', '') + ' :: ' + test.get('fullName', ''))
+                failures.extend(test.get('failureMessages', []))
+        if file.get('message'): failures.append(file['message'])
+    (out / 'test-failures.md').write_text('# Complete failing test diagnostics\n\n```text\n' + '\n'.join(failures) + '\n```\n')
+summary.append('\nEvery check has a complete companion Markdown/log artifact. Rust validation is a separate job. No gate, test, or lint rule is disabled.\n')
+(out / 'report.md').write_text('\n'.join(summary))
+(out / 'results.json').write_text(json.dumps({'sha': sha, 'checks': results}, indent=2))
+raise SystemExit(0 if all(result['exitCode'] == 0 for result in results) else 1)
