@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { CanvasDocumentV1 } from "../canvas/contract/canvas-document";
 import type { SaveCanvasStateRequest } from "../canvas/contract/canvas-persistence";
+import type { SaveCanvasStateRequest } from "../canvas/contract/canvas-persistence";
 import { CanvasDocumentWorkspace } from "../canvas/host/canvas-document-workspace";
 import { CanvasSnapshotSaveQueue } from "../canvas/persistence/snapshot-save-queue";
 
