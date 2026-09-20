@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { createSpaceNode } from "../canvas/node";
-import { canvasSelectionProductState } from "../presentation/canvas/selection-product-state";
+import { createSpaceNode } from "../../../canvas/node";
+import { canvasSelectionProductState } from "../selection-product-state";
 
 const note = (id: string, locked = false) =>
   createSpaceNode(

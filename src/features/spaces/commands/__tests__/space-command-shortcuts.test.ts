@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { SPACE_COMMAND_SHORTCUTS } from "../commands/space-command-shortcuts";
+import { SPACE_COMMAND_SHORTCUTS } from "../space-command-shortcuts";
 
 describe("Space command shortcuts", () => {
   it("assigns one chord to each canvas command", () => {

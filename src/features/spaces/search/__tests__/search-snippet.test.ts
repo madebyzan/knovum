@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { markSpaceSubstring, searchTerms } from "../search/search-snippet";
+import { markSpaceSubstring, searchTerms } from "../search-snippet";
 
 describe("Space search snippets", () => {
   it("derives snippet terms while Rust owns the database search plan", () => {

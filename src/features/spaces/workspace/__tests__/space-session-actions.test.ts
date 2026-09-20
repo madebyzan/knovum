@@ -1,16 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
 
-import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
-import type { SpaceRelation } from "../model/relations/relation";
-import type { SpaceScene } from "../scenes/scene";
+import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
+import type { SpaceRelation } from "../../model/relations/relation";
+import type { SpaceScene } from "../../scenes/scene";
 import {
   createSpace,
   materializeActiveSpace,
   openSpace,
   type SpaceSessionContext,
-} from "../workspace/space-session-actions";
-import { createTestSpace, createTestSessionContext } from "./test-session-context.test";
+} from "../space-session-actions";
+import { createTestSpace, createTestSessionContext } from "../../__tests__/test-session-context.test";
 
 const nodeRepository = vi.hoisted(() => ({
   listNodes: vi.fn<(spaceId: string) => Promise<SpaceCanvasNode[]>>(),
@@ -26,17 +26,17 @@ const relationRepository = vi.hoisted(() => ({
   listRelations: vi.fn<(spaceId: string) => Promise<SpaceRelation[]>>(),
 }));
 
-vi.mock("../nodes/node-repository", () => ({
+vi.mock("../../nodes/node-repository", () => ({
   listNodes: nodeRepository.listNodes,
 }));
-vi.mock("../workspace/space-repository", () => ({
+vi.mock("../space-repository", () => ({
   createSpace: lifecycleRepository.createSpace,
   listSpaces: vi.fn<() => void>(),
   markSpaceOpened: lifecycleRepository.markSpaceOpened,
   updateSpaceTitle: vi.fn<() => void>(),
 }));
-vi.mock("../scenes/scene-repository", () => ({ listScenes: sceneDatabase.listScenes }));
-vi.mock("../knowledge/relations/relation-repository", () => ({
+vi.mock("../../scenes/scene-repository", () => ({ listScenes: sceneDatabase.listScenes }));
+vi.mock("../../knowledge/relations/relation-repository", () => ({
   listRelations: relationRepository.listRelations,
 }));
 

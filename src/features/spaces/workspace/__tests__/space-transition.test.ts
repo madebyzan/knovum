@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { registerSpaceSessionParticipant } from "../canvas/editor-session";
-import { createSpaceHistoryState } from "../history/history-state";
-import { beginSpaceMutation } from "../history/mutation-barrier";
-import type { SpaceSessionContext } from "../workspace/space-session-context";
-import { transitionActiveSpaceSession } from "../workspace/space-transition";
+import { registerSpaceSessionParticipant } from "../../canvas/editor-session";
+import { createSpaceHistoryState } from "../../history/history-state";
+import { beginSpaceMutation } from "../../history/mutation-barrier";
+import type { SpaceSessionContext } from "../space-session-context";
+import { transitionActiveSpaceSession } from "../space-transition";
 
 describe("space transition", () => {
   it("drains active mutations before the final canvas persistence flush", async () => {

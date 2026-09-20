@@ -1,15 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
-import type { SpaceFilePayload, SpaceNodePayload } from "../model/nodes/node-payload";
+import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
+import type { SpaceFilePayload, SpaceNodePayload } from "../../model/nodes/node-payload";
 
 const { refreshSpaceAsset } = vi.hoisted(() => ({
   refreshSpaceAsset: vi.fn<(spaceId: string, nodeId: string) => Promise<SpaceNodePayload | undefined>>(),
 }));
 
-vi.mock("../assets/asset-operations", () => ({ refreshSpaceAsset }));
+vi.mock("../asset-operations", () => ({ refreshSpaceAsset }));
 
-import { refreshSpaceResources } from "../assets/resource-refresh";
+import { refreshSpaceResources } from "../resource-refresh";
 
 const apply = vi.fn<(spaceId: string, id: string, data: SpaceNodePayload) => void>();
 

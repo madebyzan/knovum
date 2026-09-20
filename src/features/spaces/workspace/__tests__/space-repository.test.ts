@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { deleteSpacePermanently } from "../workspace/space-repository";
+import { deleteSpacePermanently } from "../space-repository";
 
 const persistence = vi.hoisted(() => ({
   invoke: vi.fn<(command: string, args?: unknown) => Promise<unknown>>(),

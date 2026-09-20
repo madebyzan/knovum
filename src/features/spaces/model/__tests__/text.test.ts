@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { sliceUtf16Safe, truncateUtf16 } from "../model/text";
+import { sliceUtf16Safe, truncateUtf16 } from "../text";
 
 describe("truncateUtf16", () => {
   it("never splits a surrogate pair", () => {

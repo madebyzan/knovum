@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { canvasRelationArrowheads } from "../canvas/konva/presentation/connector-presentation";
-import type { CanvasSceneRelation } from "../canvas/konva/scene/scene-projection";
-import { createSpaceNotePayload } from "../editor/tiptap-content";
-import { spaceCanvasNodePresentation } from "../presentation/canvas/nodes/space-canvas-node-presentation";
+import { canvasRelationArrowheads } from "../../../../canvas/konva/presentation/connector-presentation";
+import type { CanvasSceneRelation } from "../../../../canvas/konva/scene/scene-projection";
+import { createSpaceNotePayload } from "../../../../editor/tiptap-content";
+import { spaceCanvasNodePresentation } from "../space-canvas-node-presentation";
 
 describe("Konva node presentation", () => {
   it("keeps type-specific content instead of flattening every node into one card", () => {
