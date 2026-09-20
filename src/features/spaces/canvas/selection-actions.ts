@@ -1,61 +1,11 @@
 import { openUrl } from "@tauri-apps/plugin-opener";
 
 import { openSystemPreview } from "../../../foundation/system-preview/system-preview";
-import { removeSpaceAssets } from "../assets/asset-operations";
-import { assetPathsForNodes } from "../assets/node-asset-paths";
-import { scheduleSpaceAssetProcessing } from "../assets/processing-scheduler";
-import { cloneClipboardNodes, duplicateSpaceNodes } from "../clipboard/node-cloning";
-import { readSpaceClipboardHtml, writeSpaceClipboardDirect } from "../clipboard/transfer";
-import type { PositionedSpaceNode, SpaceCanvasNode } from "../model/nodes/canvas-node";
+import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { isSpaceManagedAssetPayload } from "../model/nodes/capabilities";
 import type { SpaceNodeKind } from "../model/nodes/node-payload";
 import type { useSpaceStore } from "../session/space-store";
 import { useCanvasEditorSession } from "./editor-session";
-
-export async function duplicateSpaceSelection(
-  store: ReturnType<typeof useSpaceStore>,
-  selectedNodes: readonly PositionedSpaceNode[],
-) {
-  const copies = await duplicateSpaceNodes(selectedNodes);
-  if (!copies.length) return;
-  try {
-    await store.addItems(copies);
-  } catch (error) {
-    await removeSpaceAssets(assetPathsForNodes(copies));
-    throw error;
-  }
-  scheduleManagedCopies(store, copies);
-  useCanvasEditorSession().selectNodes(copies.map((node) => node.id));
-}
-
-export async function copySpaceSelectionToClipboard(selectedNodes: readonly PositionedSpaceNode[]) {
-  await writeSpaceSelectionToClipboard(selectedNodes);
-}
-
-export async function pasteSpaceClipboardAt(
-  store: ReturnType<typeof useSpaceStore>,
-  point: { x: number; y: number },
-  html: string | null,
-) {
-  if (html) {
-    const payload = readSpaceClipboardHtml(html);
-    if (!payload) return false;
-    const copies = await cloneClipboardNodes(payload, point);
-    try {
-      await store.addItems(copies);
-    } catch (error) {
-      await removeSpaceAssets(assetPathsForNodes(copies));
-      throw error;
-    }
-    scheduleManagedCopies(store, copies);
-    return true;
-  }
-  return false;
-}
-
-async function writeSpaceSelectionToClipboard(nodes: readonly PositionedSpaceNode[]) {
-  await writeSpaceClipboardDirect(nodes);
-}
 
 type OpenHandler = (store: ReturnType<typeof useSpaceStore>, node: SpaceCanvasNode) => void | Promise<void>;
 
@@ -106,14 +56,4 @@ export async function openPortalNode(
   await store.openSpace(spaceId);
   if (sceneId) await store.openSceneView(sceneId);
   if (nodeId) useCanvasEditorSession().reveal([nodeId], "focus");
-}
-
-function scheduleManagedCopies(store: ReturnType<typeof useSpaceStore>, nodes: readonly SpaceCanvasNode[]) {
-  const spaceId = store.activeSpaceId;
-  if (!spaceId) return;
-  const context = { applyNodeDataForSpace: store.applyNodeDataForSpace };
-  for (const node of nodes) {
-    if (!isSpaceManagedAssetPayload(node.data)) continue;
-    scheduleSpaceAssetProcessing(context, spaceId, node.id, node.data);
-  }
 }

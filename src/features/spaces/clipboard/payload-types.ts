@@ -1,12 +1,5 @@
-import type { SpaceNodePayload } from "../model/nodes/node-payload";
+import type { z } from "zod";
 
-export interface SpaceClipboardNode {
-  id: string;
-  position: { x: number; y: number };
-  data: SpaceNodePayload;
-}
-
-export interface SpaceClipboardPayload {
-  version: 1;
-  nodes: SpaceClipboardNode[];
-}
+import type { spaceClipboardPayloadSchema } from "./payload-schema";
+export type SpaceClipboardPayload = z.infer<typeof spaceClipboardPayloadSchema>;
+export type SpaceClipboardNode = SpaceClipboardPayload["nodes"][number];

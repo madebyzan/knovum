@@ -38,6 +38,10 @@ export function createKonvaEditorPort(options: KonvaEditorPortOptions): CanvasEd
   });
   return {
     cancelInteraction: options.cancelInteraction,
+    insertFragment: async (fragment, placement) => {
+      const result = await options.model.executeNative({ kind: "insert-fragment", fragment, placement });
+      options.setSelection(result.selection);
+    },
     executeStructureCommand: (command) =>
       command.kind === "delete-subtrees"
         ? deletion(command.ids, [])

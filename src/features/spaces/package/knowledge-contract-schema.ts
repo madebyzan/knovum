@@ -1,17 +1,9 @@
 import { z } from "zod";
 
+import { objectFieldSchema } from "../knowledge/model/object-field-schema";
 import { knowledgeLocatorSchema } from "../knowledge/model/schema";
 import { packageTimeSchema } from "./core-schema";
 
-const fieldSchema = z
-  .object({
-    key: z.string().min(1).max(128),
-    label: z.string().min(1).max(128),
-    kind: z.enum(["text", "number", "boolean", "date", "node-ref", "enum"]),
-    required: z.boolean().optional(),
-    options: z.array(z.string().trim().min(1).max(128)).min(1).max(64).optional(),
-  })
-  .strict();
 export const objectTypeSchema = z
   .object({
     id: z.string().min(1).max(128),
@@ -19,7 +11,7 @@ export const objectTypeSchema = z
     name: z.string().min(1).max(128),
     icon: z.string().min(1).max(128),
     description: z.string().max(4096),
-    fields: z.array(fieldSchema).max(64),
+    fields: z.array(objectFieldSchema).max(64),
     system: z.literal(false),
     createdAt: packageTimeSchema,
     updatedAt: packageTimeSchema,

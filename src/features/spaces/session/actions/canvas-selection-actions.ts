@@ -1,13 +1,13 @@
 import type {
   CanvasCutSelectionRequest,
   CanvasDeleteSelectionRequest,
-  CanvasNodePlacement,
+  CanvasSelectionTransfer,
 } from "../../canvas/contract/canvas-editor";
 import {
   deleteCanvasSelection,
   restoreCanvasSelection,
 } from "../../canvas/persistence/canvas-selection-repository";
-import { copySpaceSelectionToClipboard, duplicateSpaceSelection } from "../../canvas/selection-actions";
+import { copySpaceSelectionToClipboard, duplicateSpaceSelection } from "../../clipboard/selection-transfer";
 import { writeSpaceClipboardDirect } from "../../clipboard/transfer";
 import { scheduleKnowledgeIndex } from "../../knowledge/indexing/index-scheduler";
 import { prepareSpaceKnowledgePayload } from "../../knowledge/model/node-knowledge";
@@ -19,7 +19,7 @@ import type { useSpaceStore } from "../space-store";
 type SpaceStore = ReturnType<typeof useSpaceStore>;
 
 export function createCanvasSelectionActions(store: SpaceStore) {
-  function nodesAtPlacements(placements: readonly CanvasNodePlacement[]): PositionedSpaceNode[] {
+  function nodesAtPlacements(transfer: CanvasSelectionTransfer): PositionedSpaceNode[] {
     const positions = new Map(placements.map(({ id, x, y }) => [id, { x, y }]));
     return store.nodes.flatMap((node) => {
       const position = positions.get(node.id);
@@ -124,11 +124,9 @@ export function createCanvasSelectionActions(store: SpaceStore) {
   }
 
   return {
-    copyNodes: (placements: readonly CanvasNodePlacement[]) =>
-      copySpaceSelectionToClipboard(nodesAtPlacements(placements)),
+    copyNodes: (transfer: CanvasSelectionTransfer) => copySpaceSelectionToClipboard(store, transfer),
     cutSelection,
-    duplicateNodes: (placements: readonly CanvasNodePlacement[]) =>
-      duplicateSpaceSelection(store, nodesAtPlacements(placements)),
+    duplicateNodes: (transfer: CanvasSelectionTransfer) => duplicateSpaceSelection(store, transfer),
     deleteSelection,
   };
 }

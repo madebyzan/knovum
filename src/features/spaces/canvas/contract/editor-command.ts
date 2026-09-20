@@ -6,6 +6,7 @@ import type {
   SpaceEditorDocument,
 } from "./canvas-document";
 import type { CanvasLayerMove } from "./canvas-editor-port";
+import type { EditorFragment, FragmentPlacement } from "./editor-fragment";
 
 export interface EditorFrameUpdate extends CanvasNodeFrameUpdate {
   typographyScale?: number;
@@ -18,6 +19,7 @@ export interface EditorTextMeasurement {
   contentRevision: string;
 }
 export type SpaceEditorCommand =
+  | { kind: "insert-fragment"; fragment: EditorFragment; placement: FragmentPlacement }
   | { kind: "structure"; command: StructureCommand; selection: readonly string[] }
   | { kind: "transform-frames" | "arrange-frames"; updates: readonly EditorFrameUpdate[] }
   | {

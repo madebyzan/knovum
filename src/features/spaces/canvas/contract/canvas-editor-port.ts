@@ -1,5 +1,6 @@
 import type { StructureCommand } from "../../organization/structure/commands/contract";
 import type { SpaceEditorDocument, CanvasNodeAppearance, CanvasRelationColor } from "./canvas-document";
+import type { EditorFragment, FragmentPlacement } from "./editor-fragment";
 
 export interface CanvasPoint {
   x: number;
@@ -41,6 +42,7 @@ export interface CanvasContentHeightMeasurement {
 
 export interface CanvasEditorPort {
   cancelInteraction(): void;
+  insertFragment(fragment: EditorFragment, placement: FragmentPlacement): Promise<void>;
   executeStructureCommand(command: StructureCommand): Promise<void>;
   enterGroup(id: string): void;
   exitGroup(): void;

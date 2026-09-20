@@ -1,89 +1,49 @@
-import { compact, isString } from "es-toolkit";
 import { writeHtmlAndText } from "tauri-plugin-clipboard-api";
 
-import type { PositionedSpaceNode, SpaceCanvasNode } from "../model/nodes/canvas-node";
-import { isSpaceSectionPayload } from "../model/nodes/capabilities";
-import { validateSpaceNodePayload } from "../model/nodes/schema/node-payload";
-import { createSpaceClipboardPayload } from "./payload";
+import { parseSpaceClipboardPayload } from "./payload-schema";
 import type { SpaceClipboardPayload } from "./payload-types";
 
-const HTML_MARKER = /<!--knovum-spaces:([^>]*)-->/u;
-
-export function writeSpaceClipboard(event: ClipboardEvent, nodes: readonly PositionedSpaceNode[]) {
-  if (!event.clipboardData || nodes.length === 0) return false;
-  const payload = createSpaceClipboardPayload(nodes);
-  event.clipboardData.setData("text/plain", clipboardText(nodes.map(({ node }) => node)));
+const MARKER = /<!--knovum-spaces:([^>]*)-->/u;
+const MAX_BYTES = 8 * 1024 * 1024;
+export async function writeSpaceClipboardDirect(payload: SpaceClipboardPayload) {
+  await writeHtmlAndText(clipboardHtml(payload), clipboardText(payload));
+}
+export function writeSpaceClipboard(event: ClipboardEvent, payload: SpaceClipboardPayload) {
+  if (!event.clipboardData) return false;
   event.clipboardData.setData("text/html", clipboardHtml(payload));
+  event.clipboardData.setData("text/plain", clipboardText(payload));
   return true;
 }
-
-export async function writeSpaceClipboardDirect(nodes: readonly PositionedSpaceNode[]) {
-  if (!nodes.length) return false;
-  await writeHtmlAndText(
-    clipboardHtml(createSpaceClipboardPayload(nodes)),
-    clipboardText(nodes.map(({ node }) => node)),
-  );
-  return true;
-}
-
-export function readSpaceClipboard(event: ClipboardEvent): SpaceClipboardPayload | undefined {
+export function readSpaceClipboard(event: ClipboardEvent) {
   return readSpaceClipboardHtml(event.clipboardData?.getData("text/html") ?? "");
 }
-
 export function readSpaceClipboardHtml(html: string): SpaceClipboardPayload | undefined {
-  const marker = html.match(HTML_MARKER)?.[1];
-  if (!marker) return undefined;
-  try {
-    return parsePayload(decodeURIComponent(marker));
-  } catch {
-    return undefined;
-  }
+  const encoded = html.match(MARKER)?.[1];
+  if (encoded === undefined) return undefined;
+  if (encoded.length > MAX_BYTES * 3) throw new Error("Native clipboard content is too large");
+  const source = decodeURIComponent(encoded);
+  if (new TextEncoder().encode(source).byteLength > MAX_BYTES)
+    throw new Error("Native clipboard content is too large");
+  // A malformed native payload fails explicitly; it is not silently reinterpreted as plain text.
+  return parseSpaceClipboardPayload(JSON.parse(source));
 }
-
-function clipboardHtml(payload: SpaceClipboardPayload) {
-  return `<!--knovum-spaces:${encodeURIComponent(JSON.stringify(payload))}-->`;
+function clipboardHtml(value: SpaceClipboardPayload) {
+  const source = JSON.stringify(parseSpaceClipboardPayload(value));
+  if (new TextEncoder().encode(source).byteLength > MAX_BYTES)
+    throw new Error("Selection exceeds the 8 MiB clipboard limit; export a Space package instead");
+  return `<!--knovum-spaces:${encodeURIComponent(source)}-->`;
 }
-
-function parsePayload(value: string): SpaceClipboardPayload | undefined {
-  if (value.length > 8 * 1024 * 1024) return undefined;
-  try {
-    const parsed = JSON.parse(value) as Partial<SpaceClipboardPayload>;
-    if (parsed.version !== 1 || !Array.isArray(parsed.nodes) || !validNodeCount(parsed.nodes.length))
-      return undefined;
-    const nodes = parsed.nodes.map((node) => {
-      if (!isString(node?.id) || !node.id || node.id.length > 128 || !validPosition(node.position)) {
-        throw new Error("Invalid clipboard node");
-      }
-      return {
-        id: node.id,
-        position: { x: node.position.x, y: node.position.y },
-        data: validateSpaceNodePayload(node.data),
-      };
-    });
-    return { version: 1, nodes };
-  } catch {
-    return undefined;
-  }
-}
-
-function validNodeCount(count: number) {
-  return count > 0 && count <= 200;
-}
-
-function validPosition(position: { x?: number; y?: number } | undefined) {
-  return Boolean(position && Number.isFinite(position.x) && Number.isFinite(position.y));
-}
-
-function clipboardText(nodes: readonly SpaceCanvasNode[]) {
-  return compact(
-    nodes
-      .filter((node) => !isSpaceSectionPayload(node.data))
-      .map(({ data }) => {
-        if (data.kind === "website") return data.url ?? data.title;
-        if ((data.kind === "video" || data.kind === "audio") && data.origin) return data.origin.url;
-        if (data.kind === "note" || data.kind === "text") return data.plainText ?? data.title;
-        if (data.kind === "markdown") return data.text ?? data.title;
-        return data.title;
-      }),
-  ).join("\n\n");
+function clipboardText(payload: SpaceClipboardPayload) {
+  const parts = payload.nodes
+    .map(({ data }) => {
+      if (data.kind === "website") return data.url;
+      if ((data.kind === "video" || data.kind === "audio") && data.origin) return data.origin.url;
+      if (data.kind === "note" || data.kind === "text") return data.plainText;
+      if (data.kind === "markdown") return data.text;
+      return data.title;
+    })
+    .filter(Boolean);
+  return parts.length
+    ? parts.join("\n\n")
+    : payload.structure.items.flatMap((item) => (item.kind === "content" ? [] : [item.title])).join("\n");
 }
