@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { activeHeadingFromScroll, spaceTiptapHeadings } from "../editor/tiptap-outline";
+import { activeHeadingFromScroll, spaceTiptapHeadings } from "../tiptap-outline";
 
 function rect(top: number): DOMRect {
   return { x: 0, y: top, width: 0, height: 0, top, right: 0, bottom: top, left: 0, toJSON: () => ({}) };

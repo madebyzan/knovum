@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { normalizeSpaceUrl, websiteDefaultTitle } from "../website/url";
+import { normalizeSpaceUrl, websiteDefaultTitle } from "../url";
 
 describe("normalizeSpaceUrl", () => {
   it("keeps http and https URLs", () => {

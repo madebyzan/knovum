@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { classifyUrlSource } from "../sources/url-source-kind";
+import { classifyUrlSource } from "../url-source-kind";
 
 describe("URL source classification", () => {
   it.each([
