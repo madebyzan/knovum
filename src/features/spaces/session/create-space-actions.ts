@@ -8,12 +8,12 @@ import type { SpaceSessionContext } from "../workspace/space-session-actions";
 import type { SpaceState } from "./session-state";
 import { assembleSpaceActions } from "./assemble-space-actions";
 import { createCanvasGestureActions } from "../canvas/canvas-gesture-actions";
-import { createJsonCanvasImportActions } from "./actions/json-canvas-import-actions";
+import { createJsonCanvasImportActions } from "../canvas-exchange/json-canvas-import-actions";
 import { createSpaceNodeLifecycleActions } from "../nodes/node-lifecycle-actions";
 import { createSpaceMutations } from "../nodes/node-mutations";
 import { createPlacementActions } from "../canvas/placement-actions";
 import { removeSpaceRelations, type RelationContext } from "../knowledge/relations/relation-actions";
-import { createSpaceViewActions } from "./actions/view-actions";
+import { createCanvasFocusActions } from "../canvas/focus-actions";
 
 export function createSpaceActions(state: SpaceState, placement: SpacePlacement) {
   const spaceContext = createSpaceContext(state);
@@ -59,7 +59,7 @@ export function createSpaceActions(state: SpaceState, placement: SpacePlacement)
     relations: state.relations,
   });
   const context = createInspectorActions(state, placement, media.requestMediaSeek);
-  const view = createSpaceViewActions(state, placement);
+  const view = createCanvasFocusActions(state, placement);
   const actions = assembleSpaceActions({
     state,
     mutations,

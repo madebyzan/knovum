@@ -9,3 +9,7 @@ export function formatBytes(value: number) {
   const scaled = value / 1024 ** index;
   return `${scaled >= 10 || index === 0 ? scaled.toFixed(0) : scaled.toFixed(1)} ${UNITS[index]}`;
 }
+
+export function formatOptionalBytes(value: number | undefined): string | undefined {
+  return value === undefined ? undefined : formatBytes(value);
+}

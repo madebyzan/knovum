@@ -4,7 +4,7 @@ import { useTaskStore } from "../../../foundation/tasks/task-store";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { isSpaceMediaPayload, type SpaceMediaPayload } from "../model/nodes/capabilities";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
-import { runSpaceMediaInference } from "../session/actions/work-scheduler";
+import { runSpaceMediaInference } from "../session/work-scheduler";
 import {
   appendSpaceMediaAnalysisPreview,
   clearSpaceMediaAnalysisPreview,

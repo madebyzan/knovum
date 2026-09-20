@@ -1,25 +1,25 @@
 import { isAbsolute, resolve, sep } from "@tauri-apps/api/path";
 
-import { i18n } from "../../../../foundation/i18n/i18n";
-import { useTaskStore } from "../../../../foundation/tasks/task-store";
+import { i18n } from "../../../foundation/i18n/i18n";
+import { useTaskStore } from "../../../foundation/tasks/task-store";
 import {
   cancelSpaceAssetImport,
   copyStagedSpaceAsset,
   prepareSpaceAssetImport,
   removeSpaceAssets,
-} from "../../assets/asset-operations";
-import { formatByteSize } from "../../assets/format-byte-size";
-import type { ImportedSpaceAsset } from "../../assets/imported-asset";
-import { importedSpaceNodePayload } from "../../assets/imported-asset-payload";
+} from "../assets/asset-operations";
+import { formatOptionalBytes } from "../../../foundation/format/bytes";
+import type { ImportedSpaceAsset } from "../assets/imported-asset";
+import { importedSpaceNodePayload } from "../assets/imported-asset-payload";
 import type {
   CanvasJsonImportRequest,
   JsonCanvasImportNodeV1,
-} from "../../canvas-exchange/json-canvas-import-contract";
-import type { PreparedJsonCanvasNode } from "../../canvas-exchange/json-canvas-import-repository";
-import { createSpaceNode } from "../../canvas/node";
-import { noteFromPlainText } from "../../canvas/text-import";
-import type { SpaceNodePayload } from "../../model/nodes/node-payload";
-import { normalizeSpaceUrl, websiteDefaultTitle } from "../../website/url";
+} from "./json-canvas-import-contract";
+import type { PreparedJsonCanvasNode } from "./json-canvas-import-repository";
+import { createSpaceNode } from "../canvas/node";
+import { noteFromPlainText } from "../canvas/text-import";
+import type { SpaceNodePayload } from "../model/nodes/node-payload";
+import { normalizeSpaceUrl, websiteDefaultTitle } from "../website/url";
 
 export interface JsonCanvasNodePreparation {
   nodes: PreparedJsonCanvasNode[];
@@ -149,13 +149,13 @@ async function importCanvasResource(
 
 function updateProgress(taskId: string, progress: { bytesCopied: number; totalBytes?: number }) {
   const tasks = useTaskStore();
-  const current = formatByteSize(progress.bytesCopied) ?? "";
+  const current = formatOptionalBytes(progress.bytesCopied) ?? "";
   if (!progress.totalBytes) tasks.detail(taskId, current);
   else {
     tasks.progress(
       taskId,
       (progress.bytesCopied / progress.totalBytes) * 100,
-      `${current} / ${formatByteSize(progress.totalBytes)}`,
+      `${current} / ${formatOptionalBytes(progress.totalBytes)}`,
     );
   }
 }

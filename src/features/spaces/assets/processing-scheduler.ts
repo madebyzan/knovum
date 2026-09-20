@@ -3,7 +3,7 @@ import { useTaskStore } from "../../../foundation/tasks/task-store";
 import { resumePendingEnrichmentJobs } from "../enrichment/job-scheduler";
 import { isSpaceManagedAssetPayload } from "../model/nodes/capabilities";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
-import { runSpaceAssetDerivation } from "../session/actions/work-scheduler";
+import { runSpaceAssetDerivation } from "../session/work-scheduler";
 import { cancelSpaceAssetProcessing, deriveSpaceAssetData } from "./asset-operations";
 
 const ASSET_PROCESSING_CANCELLED = "SPACE_ASSET_PROCESSING_CANCELLED";

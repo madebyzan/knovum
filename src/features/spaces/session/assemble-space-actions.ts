@@ -42,7 +42,7 @@ import {
   updateSpaceRelation,
   type RelationContext,
 } from "../knowledge/relations/relation-actions";
-import type { createSpaceViewActions } from "./actions/view-actions";
+import type { createCanvasFocusActions } from "../canvas/focus-actions";
 
 interface Input {
   state: SpaceState;
@@ -54,7 +54,7 @@ interface Input {
   lifecycle: ReturnType<typeof createSpaceNodeLifecycleActions>;
   context: ReturnType<typeof createInspectorActions>;
   spaceContext: SpaceSessionContext;
-  view: ReturnType<typeof createSpaceViewActions>;
+  view: ReturnType<typeof createCanvasFocusActions>;
 }
 
 export function assembleSpaceActions(input: Input) {

@@ -1,15 +1,15 @@
-import type { SpacePlacement } from "../../canvas/navigation-requests";
-import type { SpaceSavedViewFilter } from "../../knowledge/model/projections";
-import { snapshotSpaceQueryFilter } from "../../knowledge/model/query-filter";
+import type { SpacePlacement } from "./navigation-requests";
+import type { SpaceSavedViewFilter } from "../knowledge/model/projections";
+import { snapshotSpaceQueryFilter } from "../knowledge/model/query-filter";
 import {
   findSemanticRelationPath,
   queryMatchingNodes,
   relationNeighborhood,
-} from "../../knowledge/model/relation-graph";
-import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
-import type { SpaceState } from "../session-state";
+} from "../knowledge/model/relation-graph";
+import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
+import type { SpaceState } from "../session/session-state";
 
-export function createSpaceViewActions(state: SpaceState, placement: SpacePlacement) {
+export function createCanvasFocusActions(state: SpaceState, placement: SpacePlacement) {
   function focusSection(id: string) {
     state.canvasFocusIds.value = state.nodes.value
       .filter((node) => node.id === id || node.data.sectionId === id)

@@ -1,6 +1,6 @@
 import type { SpaceCodePayload, SpaceFilePayload } from "../model/nodes/node-payload";
 import { classifyFilePresentation, fileCaptionKey, type SpaceCaptionKey } from "./file-presentation";
-import { formatByteSize } from "./format-byte-size";
+import { formatOptionalBytes } from "../../../foundation/format/bytes";
 
 /**
  * Media is deliberately absent: an image, a video or an audio player already says what it is, and
@@ -16,7 +16,7 @@ export interface SpaceCaption {
 
 export function spaceNodeCaption(data: SpaceCaptionData): SpaceCaption {
   const labelKey: SpaceCaption["labelKey"] = `spaces.transfer.fileType.${captionKey(data)}`;
-  const detail = formatByteSize(data.size);
+  const detail = formatOptionalBytes(data.size);
   return detail === undefined ? { labelKey } : { labelKey, detail };
 }
 

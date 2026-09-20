@@ -2,14 +2,14 @@ import { useTaskStore } from "../../../foundation/tasks/task-store";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { isSpaceManagedAssetPayload } from "../model/nodes/capabilities";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
-import { runSpaceAssetTransfer } from "../session/actions/work-scheduler";
+import { runSpaceAssetTransfer } from "../session/work-scheduler";
 import {
   cancelSpaceAssetImport,
   copyStagedSpaceAsset,
   removeSpaceAsset,
   type PreparedSpaceImport,
 } from "./asset-operations";
-import { formatByteSize } from "./format-byte-size";
+import { formatOptionalBytes } from "../../../foundation/format/bytes";
 import type { SpaceImportContext, SpaceImportSource } from "./import-contract";
 import { importedSpaceNodePayload } from "./imported-asset-payload";
 import { scheduleSpaceAssetProcessing } from "./processing-scheduler";
@@ -74,10 +74,10 @@ export async function commitManagedImport(options: CommitManagedImportOptions) {
 function updateCopyProgress(taskId: string, progress: { bytesCopied: number; totalBytes?: number }) {
   const tasks = useTaskStore();
   if (!progress.totalBytes) {
-    tasks.detail(taskId, formatByteSize(progress.bytesCopied) ?? "");
+    tasks.detail(taskId, formatOptionalBytes(progress.bytesCopied) ?? "");
     return;
   }
-  const current = formatByteSize(progress.bytesCopied);
-  const total = formatByteSize(progress.totalBytes);
+  const current = formatOptionalBytes(progress.bytesCopied);
+  const total = formatOptionalBytes(progress.totalBytes);
   tasks.progress(taskId, (progress.bytesCopied / progress.totalBytes) * 100, `${current} / ${total}`);
 }
