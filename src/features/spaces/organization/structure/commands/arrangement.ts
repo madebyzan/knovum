@@ -6,7 +6,10 @@ import type { StructureCommandOf } from "./contract";
 import { moveRoot } from "./movement";
 import { operationRoots, type StructureOperation, type StructureOperationResult } from "./operation";
 
-export function alignItems(operation: StructureOperation, command: StructureCommandOf<"align-items">): StructureOperationResult {
+export function alignItems(
+  operation: StructureOperation,
+  command: StructureCommandOf<"align-items">,
+): StructureOperationResult {
   const roots = arrangementRoots(operation, command.ids, 2);
   const bounds = unionStructureBounds(roots.map((item) => operation.projection.bounds.get(item.id)!))!;
   const fraction = { start: 0, center: 0.5, end: 1 }[command.alignment];
@@ -17,12 +20,20 @@ export function alignItems(operation: StructureOperation, command: StructureComm
   }
   return { selection: roots.map((item) => item.id) };
 }
-export function distributeItems(operation: StructureOperation, command: StructureCommandOf<"distribute-items">): StructureOperationResult {
+export function distributeItems(
+  operation: StructureOperation,
+  command: StructureCommandOf<"distribute-items">,
+): StructureOperationResult {
   const { axis } = command;
   const size = axis === "x" ? "width" : "height";
-  const roots = arrangementRoots(operation, command.ids, 3).toSorted((a, b) => operation.projection.bounds.get(a.id)![axis] - operation.projection.bounds.get(b.id)![axis] || operation.projection.paintOrder.get(a.id)! - operation.projection.paintOrder.get(b.id)!);
+  const roots = arrangementRoots(operation, command.ids, 3).toSorted(
+    (a, b) =>
+      operation.projection.bounds.get(a.id)![axis] - operation.projection.bounds.get(b.id)![axis] ||
+      operation.projection.paintOrder.get(a.id)! - operation.projection.paintOrder.get(b.id)!,
+  );
   const bounds = roots.map((item) => operation.projection.bounds.get(item.id)!);
-  const first = bounds[0]!; const last = bounds[bounds.length - 1]!;
+  const first = bounds[0]!;
+  const last = bounds[bounds.length - 1]!;
   const span = last[axis] + last[size] - first[axis];
   const gap = (span - bounds.reduce((sum, rect) => sum + rect[size], 0)) / (roots.length - 1);
   let position = first[axis];
@@ -36,8 +47,14 @@ export function distributeItems(operation: StructureOperation, command: Structur
 }
 function arrangementRoots(operation: StructureOperation, ids: readonly string[], count: number) {
   const roots = operationRoots(operation, ids);
-  if (roots.length < count) throw new StructureError("invalid-selection", `This arrangement requires ${count} operation roots`);
-  assertStructureEditable(operation.context.tree, roots.map((item) => item.id));
+  if (roots.length < count)
+    throw new StructureError("invalid-selection", `This arrangement requires ${count} operation roots`);
+  assertStructureEditable(
+    operation.context.tree,
+    roots.map((item) => item.id),
+  );
   return roots;
 }
-function anchor(bounds: StructureBounds, axis: "x" | "y", fraction: number) { return bounds[axis] + bounds[axis === "x" ? "width" : "height"] * fraction; }
+function anchor(bounds: StructureBounds, axis: "x" | "y", fraction: number) {
+  return bounds[axis] + bounds[axis === "x" ? "width" : "height"] * fraction;
+}

@@ -1,4 +1,8 @@
-import { requireStructureItem, structureAncestors, structureSubtree } from "../../../model/structure/structure-index";
+import {
+  requireStructureItem,
+  structureAncestors,
+  structureSubtree,
+} from "../../../model/structure/structure-index";
 import { indexStructureSnapshot } from "../structure-context";
 import { projectStructure } from "../structure-projection";
 import { structureSnapshotSchema, type StructureSnapshot } from "../structure-snapshot-contract";
@@ -15,22 +19,41 @@ export interface StructureCommandPlan {
   inverse: StructureChanges;
   selection: readonly string[];
   affectedItemIds: readonly string[];
-  effects: { removedContentNodeIds: readonly string[]; contentClones: readonly { sourceNodeId: string; targetNodeId: string }[] };
+  effects: {
+    removedContentNodeIds: readonly string[];
+    contentClones: readonly { sourceNodeId: string; targetNodeId: string }[];
+  };
 }
-export function planStructureCommand(snapshot: StructureSnapshot, source: StructureCommand, selection: readonly string[] = []): StructureCommandPlan {
+export function planStructureCommand(
+  snapshot: StructureSnapshot,
+  source: StructureCommand,
+  selection: readonly string[] = [],
+): StructureCommandPlan {
   const command = structureCommandSchema.parse(source);
   const context = validateStructureSnapshot(snapshot);
   for (const id of selection) requireStructureItem(context.tree, id);
   const draft = createStructureDraft(snapshot);
-  const result = executeStructureCommand({ context, projection: projectStructure(context), draft, selection }, command);
+  const result = executeStructureCommand(
+    { context, projection: projectStructure(context), draft, selection },
+    command,
+  );
   const after = structureSnapshotSchema.parse(draftSnapshot(draft));
   validateStructureSnapshot(after);
   const changes = diffStructureSnapshots(snapshot, after);
-  return { command, after, changes, inverse: inverseStructureChanges(changes), selection: [...result.selection],
-    affectedItemIds: affectedIds(snapshot, after, changes), effects: {
-      removedContentNodeIds: changes.items.flatMap(({ before, after: next }) => before?.kind === "content" && next === null ? [before.nodeId] : []),
+  return {
+    command,
+    after,
+    changes,
+    inverse: inverseStructureChanges(changes),
+    selection: [...result.selection],
+    affectedItemIds: affectedIds(snapshot, after, changes),
+    effects: {
+      removedContentNodeIds: changes.items.flatMap(({ before, after: next }) =>
+        before?.kind === "content" && next === null ? [before.nodeId] : [],
+      ),
       contentClones: result.contentClones ?? [],
-    } };
+    },
+  };
 }
 function affectedIds(before: StructureSnapshot, after: StructureSnapshot, changes: StructureChanges) {
   const changed = new Set([...changes.items, ...changes.layouts].map((change) => change.id));

@@ -88,6 +88,7 @@ describe("Space structure contract", () => {
   it("rejects composed scales outside the contract even when locals are legal", () => {
     const source = fixture();
     source.layout.items[1]!.transform = { ...transform, scale: 1_000_000 };
-    expect(() => parse(source)).toThrow(/bounds/u);
+    source.layout.items[2]!.transform = { ...transform, scale: 2 };
+    expect(() => parse(source)).toThrow(/Composed world/u);
   });
 });
