@@ -58,6 +58,22 @@ Knowledge Events, Knowledge chunks, AI threads and AI messages inside one Rust
 SQLx read transaction; the Renderer receives one complete manifest and never supplies authoritative
 database state for export.
 
+## Draft canvas lifecycle
+
+A workspace draft is an in-memory Space, not a persisted aggregate. The canvas host receives its
+explicit `draft` or `persisted` lifecycle from the workspace. Draft viewport changes and tab flushes
+must not load or save canvas state, acquire a persistence lease, or materialize an empty Space.
+
+The first durable action materializes the Space before opening its canvas storage. Promotion shares
+one readiness promise, retains the current document and surface, and creates a revision-zero save
+queue. Transaction admission tracks local changes even while materialization is pending. Opening
+an already persisted Space instead loads its authoritative revision under the existing storage lease.
+Transaction bookkeeping belongs to the logical session generation, not to the storage readiness state.
+
+Tab transitions await admitted transactions, storage readiness and pending snapshots before leaving.
+Rust distinguishes an absent owning Space from a compare-and-swap conflict within the write
+transaction. Neither error permits a forced overwrite, automatic reload-and-retry, or compatibility path.
+
 ## Cross-resource cleanup
 
 SQLite cannot atomically commit filesystem or Keychain side effects.
