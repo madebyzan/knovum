@@ -23,7 +23,7 @@ pub(in crate::spaces) enum StructureCommand {
 }
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "lowercase")]
-pub(super) enum Axis { X, Y }
+pub(in crate::spaces) enum Axis { X, Y }
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "lowercase")]
-pub(super) enum Alignment { Start, Center, End }
+pub(in crate::spaces) enum Alignment { Start, Center, End }

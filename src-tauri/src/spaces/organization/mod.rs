@@ -11,3 +11,11 @@ mod lifecycle;
 mod plan;
 pub(in crate::spaces) use contract::StructureCommand;
 pub(in crate::spaces) use plan::{plan, Plan};
+
+mod editor_command;
+mod editor_plan;
+mod frame_edit;
+mod appearance_edit;
+mod layer_order;
+pub(in crate::spaces) use editor_command::{EditorCommand, FrameUpdate, TextMeasurement};
+pub(in crate::spaces) use editor_plan::plan_editor;

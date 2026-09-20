@@ -41,7 +41,8 @@
         "enable": true,
         "scope": ["$APPDATA/spaces/assets/**/*", "$APPDATA/spaces/previews/**/*"]
       }
-    }
+    },
+    "macOSPrivateApi": true
   },
   "plugins": {
     "sql": {
