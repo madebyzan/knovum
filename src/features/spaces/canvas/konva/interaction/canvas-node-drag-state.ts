@@ -1,52 +1,69 @@
 import type Konva from "konva";
 
-import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
-import { resolveCanvasMovementScope } from "../../../organization/movement-scope";
-import type { CanvasNodeFrameUpdate, CanvasNodeLayoutV1 } from "../../contract/canvas-document";
+import {
+  indexStructure,
+  structureSubtree,
+  structureAncestors,
+} from "../../../model/structure/structure-index";
+import {
+  assertStructureEditable,
+  structureOperationRoots,
+} from "../../../organization/structure/structure-selection";
+import type {
+  CanvasNodeFrameUpdate,
+  CanvasNodeLayoutV1,
+  SpaceEditorDocument,
+} from "../../contract/canvas-document";
 import { captureCanvasNodeRefs } from "./canvas-node-access";
 import {
   createCanvasTranslationSnapIndex,
   type CanvasTranslationGestureState,
 } from "./canvas-translation-snapping";
-
-interface CanvasNodeDragInput {
-  layouts: readonly CanvasNodeLayoutV1[];
-  nodes: readonly SpaceCanvasNode[];
-  selectedNodeIds: ReadonlySet<string>;
-  primaryId: string;
-  stage: Konva.Stage | undefined;
-}
-
-export function captureCanvasNodeDragState({
-  layouts,
-  nodes,
-  selectedNodeIds,
-  primaryId,
-  stage,
-}: CanvasNodeDragInput) {
-  const scope = resolveCanvasMovementScope(nodes, new Set([...selectedNodeIds, primaryId]));
-  if (scope.blockedIds.length) return undefined;
-  const byId = new Map(layouts.map((layout) => [layout.nodeId, layout]));
+export function captureCanvasNodeDragState(
+  layouts: readonly CanvasNodeLayoutV1[],
+  document: SpaceEditorDocument,
+  selectedIds: ReadonlySet<string>,
+  primaryId: string,
+  stage: Konva.Stage | undefined,
+) {
+  const tree = indexStructure(document.structure);
+  const roots = structureOperationRoots(tree, [...selectedIds, primaryId]);
+  assertStructureEditable(
+    tree,
+    roots.map((item) => item.id),
+  );
+  const affected = new Set(
+    structureSubtree(
+      tree,
+      roots.map((item) => item.id),
+    ).map((item) => item.id),
+  );
+  const ancestors = new Set(
+    roots.flatMap((item) =>
+      structureAncestors(tree, item.id)
+        .filter((parent) => parent.kind === "group")
+        .map((parent) => parent.id),
+    ),
+  );
   const frames = new Map(
-    [...scope.affectedIds].map((id) => {
-      const frame = byId.get(id)?.frame;
-      if (!frame) throw new Error(`The affected canvas item has no layout: ${id}`);
-      return [id, { ...frame }] as const;
-    }),
+    layouts
+      .filter((layout) => affected.has(layout.nodeId))
+      .map((layout) => [layout.nodeId, { ...layout.frame }]),
   );
   const origin = frames.get(primaryId);
   if (!origin) return undefined;
-  const stationary = layouts.filter(({ nodeId }) => !frames.has(nodeId)).map(({ frame }) => frame);
   const state: CanvasTranslationGestureState = {
     primaryId,
     origin,
     frames,
-    snapIndex: createCanvasTranslationSnapIndex(stationary),
+    snapIndex: createCanvasTranslationSnapIndex(
+      layouts
+        .filter((layout) => !affected.has(layout.nodeId) && !ancestors.has(layout.nodeId))
+        .map((layout) => layout.frame),
+    ),
   };
-  const nodeRefs = captureCanvasNodeRefs(stage, frames.keys());
-  return { nodeRefs, state };
+  return { state, nodeRefs: captureCanvasNodeRefs(stage, frames.keys()) };
 }
-
 export function restoreCanvasNodeFrames(
   updates: readonly CanvasNodeFrameUpdate[],
   nodes: ReadonlyMap<string, Konva.Node>,

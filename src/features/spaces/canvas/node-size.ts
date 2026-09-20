@@ -35,7 +35,6 @@ const POLICIES: Record<SpaceNodeKind, SpaceNodeSizePolicy> = {
   file: policy([256, 192], [224, 152], "proportional"),
   code: policy([304, 224], [264, 168]),
   credential: policy([220, 56], [220, 56], "fixed"),
-  section: policy([432, 288], [304, 192]),
   object: policy([256, 176], [224, 144]),
   portal: policy([256, 88], [256, 88], "fixed"),
 };

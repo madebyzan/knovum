@@ -29,7 +29,7 @@ export function useNodeContentActivation(options: NodeContentActivationOptions) 
 
   function activateNode(id: string) {
     const item = options.scene.value.nodes.find(({ node }) => node.id === id);
-    if (!item) return;
+    if (!item || !item.interaction.movable) return;
     if (item.interaction.activationMode !== "primary") {
       options.selection.setNodeIds([id]);
       interactiveNodeId.value = id;
@@ -44,7 +44,7 @@ export function useNodeContentActivation(options: NodeContentActivationOptions) 
       const selectedId = ids.size === 1 ? ids.values().next().value : undefined;
       if (selectedId) {
         const selected = options.scene.value.nodes.find(({ node }) => node.id === selectedId);
-        if (selected?.interaction.activationMode === "select-to-interact") {
+        if (selected?.interaction.movable && selected.interaction.activationMode === "select-to-interact") {
           interactiveNodeId.value = selectedId;
         }
       }

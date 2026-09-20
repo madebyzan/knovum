@@ -1,9 +1,10 @@
 import type Konva from "konva";
-import { nextTick, onMounted, watch, type Ref } from "vue";
+import { nextTick, onMounted, shallowRef, watch, type Ref } from "vue";
 import type { VueKonvaRef } from "vue-konva/core";
 
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceRelation } from "../../model/relations/relation";
+import type { StructureCommand } from "../../organization/structure/commands/contract";
 import type { CanvasNodeLayoutV1 } from "../contract/canvas-document";
 import type { CanvasSurfaceEvents } from "../contract/canvas-editor";
 import type { CanvasPoint, CanvasRect } from "../contract/canvas-editor-port";
@@ -16,6 +17,12 @@ import type { useStageViewport } from "./viewport/use-stage-viewport";
 
 interface EditorRegistrationOptions {
   cancelInteraction(): void;
+  executeStructureCommand(command: StructureCommand): Promise<void>;
+  enterGroup(id: string): void;
+  exitGroup(): void;
+  scopeGroupId(): string | null;
+  setEditingScope(ids: readonly string[]): void;
+  requestContainerRename(id: string): void;
   events: CanvasSurfaceEvents;
   focusNodeIds(): readonly string[];
   host: Readonly<Ref<HTMLElement | null>>;
@@ -37,6 +44,7 @@ interface EditorRegistrationOptions {
 }
 
 export function useEditorRegistration(options: EditorRegistrationOptions) {
+  const editorRef = shallowRef<ReturnType<typeof createKonvaEditorPort>>();
   let editor: ReturnType<typeof createKonvaEditorPort> | undefined;
   watch(options.focusNodeIds, (ids) => editor?.reveal(ids, "focus"));
   onMounted(async () => {
@@ -46,6 +54,12 @@ export function useEditorRegistration(options: EditorRegistrationOptions) {
     editor = createKonvaEditorPort({
       ...options.events,
       cancelInteraction: options.cancelInteraction,
+      executeStructureCommand: options.executeStructureCommand,
+      enterGroup: options.enterGroup,
+      exitGroup: options.exitGroup,
+      scopeGroupId: options.scopeGroupId,
+      setEditingScope: options.setEditingScope,
+      requestContainerRename: options.requestContainerRename,
       runFrameMutation: options.runFrameMutation,
       host: () => options.host.value!,
       layouts: () => options.layouts.value,
@@ -66,7 +80,9 @@ export function useEditorRegistration(options: EditorRegistrationOptions) {
       size: () => options.viewport.size,
       viewport: options.viewport.getViewport,
     });
+    editorRef.value = editor;
     options.events.onReady(editor);
     editor.reveal(options.focusNodeIds(), "focus");
   });
+  return editorRef;
 }

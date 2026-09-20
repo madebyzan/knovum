@@ -20,7 +20,7 @@ const detailLevel = computed(() =>
   spaceCanvasDetailLevel(props.viewport.zoom * 100, props.scene.nodes.length),
 );
 const visibleNodes = computed(() =>
-  props.scene.nodes.filter(({ node }) => props.visibleNodeIds.has(node.id)),
+  props.scene.contentNodes.filter(({ node }) => props.visibleNodeIds.has(node.id)),
 );
 const worldStyle = computed(() => ({
   transform: `translate(${props.viewport.x}px, ${props.viewport.y}px) scale(${props.viewport.zoom})`,

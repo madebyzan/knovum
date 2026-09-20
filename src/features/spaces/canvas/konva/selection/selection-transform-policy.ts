@@ -3,6 +3,7 @@ import type { SpaceNodeResizeMode } from "../../node-size";
 import type { CanvasSceneNode } from "../scene/scene-projection";
 
 export interface CanvasSelectionTransformPolicy {
+  rotateEnabled?: boolean;
   contentAspect?: {
     ratio: number;
     fixedVerticalChrome: number;
@@ -39,10 +40,10 @@ export function projectSelectionTransformPolicy(
   return {
     ...(transform.contentAspect ? { contentAspect: transform.contentAspect } : {}),
     resizeMode: transform.resizeMode,
-    maxHeight: transform.maxHeight,
-    maxWidth: transform.maxWidth,
-    minHeight: transform.minHeight,
-    minWidth: transform.minWidth,
+    maxHeight: transform.maxHeight * (node.layout.contentScale ?? 1),
+    maxWidth: transform.maxWidth * (node.layout.contentScale ?? 1),
+    minHeight: transform.minHeight * (node.layout.contentScale ?? 1),
+    minWidth: transform.minWidth * (node.layout.contentScale ?? 1),
     ...(node.node.data.kind === "text"
       ? {
           proportionalScale: {
@@ -54,5 +55,6 @@ export function projectSelectionTransformPolicy(
         }
       : {}),
     nodeIds: [node.node.id],
+    rotateEnabled: node.node.data.kind === "group",
   };
 }

@@ -1,126 +1,142 @@
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import type { SpaceRelation } from "../../../model/relations/relation";
-import type { SpaceEditorDocument, CanvasNodeLayoutV1 } from "../../contract/canvas-document";
-import { spaceNodeDimensions } from "../../node-size";
+import { structureAncestors } from "../../../model/structure/structure-index";
+import { indexStructureSnapshot } from "../../../organization/structure/structure-context";
+import {
+  structureContentNodeIds,
+  structureSelectionTarget,
+} from "../../../organization/structure/structure-selection";
+import { visibleStructureRepresentative } from "../../../organization/structure/structure-visibility";
+import type { CanvasDisplayNode } from "../../contract/canvas-display-node";
+import type { SpaceEditorDocument } from "../../contract/canvas-document";
+import { projectEditorLayouts } from "../../document/editor-layout-projection";
 import { canvasNodeInteraction } from "./canvas-node-interaction";
-import type { CanvasScene, CanvasSceneNode, CanvasSceneRelation, CanvasSceneSection } from "./canvas-scene";
+import type {
+  CanvasScene,
+  CanvasSceneNode,
+  CanvasSceneContentNode,
+  CanvasSceneRelation,
+} from "./canvas-scene";
 import { parallelRelationOffsets } from "./parallel-relation-offsets";
 import { relationGeometry } from "./relation-path";
-
-export type { CanvasScene, CanvasSceneNode, CanvasSceneRelation, CanvasSceneSection } from "./canvas-scene";
+export type {
+  CanvasScene,
+  CanvasSceneNode,
+  CanvasSceneContentNode,
+  CanvasSceneRelation,
+  CanvasSceneSection,
+} from "./canvas-scene";
 
 export function projectCanvasScene(
   document: SpaceEditorDocument,
   nodes: readonly SpaceCanvasNode[],
   relations: readonly SpaceRelation[],
+  scopeGroupId: string | null = null,
 ): CanvasScene {
+  const context = indexStructureSnapshot(document);
   const content = new Map(nodes.map((node) => [node.id, node]));
-  const projected = document.nodes
-    .flatMap<Omit<CanvasSceneNode, "paintOrder">>((layout) => {
-      const node = content.get(layout.nodeId);
-      return node && !node.hidden
-        ? [
-            {
-              interaction: canvasNodeInteraction(node),
-              layout: effectiveLayout(layout, node),
-              node,
-            },
-          ]
-        : [];
+  const layouts = projectEditorLayouts(document);
+  const layoutsById = new Map(layouts.map((layout) => [layout.nodeId, layout]));
+  const projected = layouts
+    .flatMap<CanvasSceneNode>((layout) => {
+      const item = context.tree.items.get(layout.nodeId)!;
+      if (visibleStructureRepresentative(context, item.id) !== item.id) return [];
+      let node: CanvasDisplayNode;
+      if (item.kind === "content") {
+        const source = content.get(item.nodeId);
+        if (!source || source.hidden) return [];
+        node = source;
+      } else {
+        const local = context.layouts.get(item.id)!;
+        const contentCount = structureContentNodeIds(context.tree, [item.id]).length;
+        node =
+          item.kind === "group"
+            ? { id: item.id, data: { kind: "group", title: item.title, collapsed: false, contentCount } }
+            : {
+                id: item.id,
+                data: {
+                  kind: "section",
+                  title: item.title,
+                  collapsed: local.kind === "section" && local.collapsed,
+                  contentCount,
+                },
+              };
+      }
+      const targetId = structureSelectionTarget(context.tree, item.id, scopeGroupId);
+      const target = targetId ? context.tree.items.get(targetId) : undefined;
+      const locked =
+        !target ||
+        target.locked ||
+        structureAncestors(context.tree, target.id).some((parent) => parent.locked);
+      const interaction = canvasNodeInteraction(node, locked);
+      if (targetId !== item.id) interaction.connectable = false;
+      return [{ node, layout, paintOrder: layout.zIndex, interaction }];
     })
-    .toSorted((left, right) => left.layout.zIndex - right.layout.zIndex);
-  const collapsedSections = new Set(
-    projected
-      .filter(({ node }) => node.data.kind === "section" && node.data.collapsed)
-      .map(({ node }) => node.id),
-  );
-  const visibleNodes = projected.filter(
-    ({ node }) => !node.data.sectionId || !collapsedSections.has(node.data.sectionId),
-  );
-  const backgroundNodes = visibleNodes.filter(({ node }) => node.data.kind === "section");
-  const contentNodes = visibleNodes.filter(({ node }) => node.data.kind !== "section");
-  const paintOrderedNodes = [...backgroundNodes, ...contentNodes].map((node, paintOrder) =>
-    Object.assign({}, node, { paintOrder }),
-  );
-  const byId = new Map(paintOrderedNodes.map((item) => [item.node.id, item]));
-  const relationEndpoints = relationEndpointNodes(projected, byId, collapsedSections);
-  const relationStyles = new Map(document.relationStyles?.map((style) => [style.relationId, style.color]));
-  const relationOffsets = parallelRelationOffsets(relations, relationEndpoints);
-  const membersBySection = new Map<string, CanvasSceneNode[]>();
-  for (const item of paintOrderedNodes) {
-    if (!item.node.data.sectionId) continue;
-    const members = membersBySection.get(item.node.data.sectionId) ?? [];
-    members.push(item);
-    membersBySection.set(item.node.data.sectionId, members);
+    .toSorted((left, right) => left.paintOrder - right.paintOrder);
+  const ordered = [
+    ...projected.filter((item) => item.node.data.kind === "section"),
+    ...projected.filter((item) => item.node.data.kind !== "section"),
+  ];
+  const byId = new Map(ordered.map((item) => [item.node.id, item]));
+  const endpoints = new Map<string, CanvasSceneNode>();
+  for (const item of document.structure.items) {
+    if (item.kind !== "content") continue;
+    const representative = byId.get(visibleStructureRepresentative(context, item.id));
+    if (representative && !content.get(item.nodeId)?.hidden) endpoints.set(item.nodeId, representative);
   }
-  const sections = backgroundNodes
-    .filter((item) => item.node.data.kind === "section")
-    .map((section): CanvasSceneSection =>
-      Object.assign({}, byId.get(section.node.id)!, {
-        members: membersBySection.get(section.node.id) ?? [],
-      }),
-    );
+  const offsets = parallelRelationOffsets(relations, endpoints);
+  const styles = new Map(document.relationStyles?.map((style) => [style.relationId, style.color]));
   return {
-    contentNodes: paintOrderedNodes.filter(({ node }) => node.data.kind !== "section"),
-    nodes: paintOrderedNodes,
+    nodes: ordered,
     nodesById: byId,
-    sections,
+    contentNodes: ordered.filter(
+      (item): item is CanvasSceneContentNode =>
+        item.node.data.kind !== "group" && item.node.data.kind !== "section",
+    ),
+    groups: ordered.filter((item) => item.node.data.kind === "group"),
+    sections: ordered
+      .filter((item) => item.node.data.kind === "section")
+      .map((section) => ({
+        ...section,
+        members: structureContentNodeIds(context.tree, [section.node.id]).flatMap((id) => {
+          const node = content.get(id);
+          const layout = layoutsById.get(id);
+          return node && layout
+            ? [{ node, layout, interaction: canvasNodeInteraction(node), paintOrder: layout.zIndex }]
+            : [];
+        }),
+      })),
     relations: relations.flatMap((relation) =>
       projectRelation(
         relation,
-        relationEndpoints,
-        relationStyles.get(relation.id) ?? "neutral",
-        relationOffsets.get(relation.id) ?? 0,
+        endpoints,
+        styles.get(relation.id) ?? "neutral",
+        offsets.get(relation.id) ?? 0,
       ),
     ),
   };
 }
-
-function relationEndpointNodes(
-  nodes: readonly Omit<CanvasSceneNode, "paintOrder">[],
-  visibleById: ReadonlyMap<string, CanvasSceneNode>,
-  collapsedSections: ReadonlySet<string>,
-) {
-  const endpoints = new Map<string, CanvasSceneNode>();
-  for (const item of nodes) {
-    const sectionId = item.node.data.sectionId;
-    const representativeId = sectionId && collapsedSections.has(sectionId) ? sectionId : item.node.id;
-    const representative = visibleById.get(representativeId);
-    if (representative) endpoints.set(item.node.id, representative);
-  }
-  return endpoints;
-}
-
-function effectiveLayout(layout: CanvasNodeLayoutV1, node: SpaceCanvasNode): CanvasNodeLayoutV1 {
-  if (node.data.kind !== "section" || !node.data.collapsed) return layout;
-  return { ...layout, frame: { ...layout.frame, ...spaceNodeDimensions(node.data) } };
-}
-
 function projectRelation(
   relation: SpaceRelation,
   nodes: ReadonlyMap<string, CanvasSceneNode>,
   color: CanvasSceneRelation["color"],
   parallelOffset: number,
 ): CanvasSceneRelation[] {
-  const source = nodes.get(relation.sourceId)?.layout.frame;
-  const target = nodes.get(relation.targetId)?.layout.frame;
-  const sourceNodeId = nodes.get(relation.sourceId)?.node.id;
-  const targetNodeId = nodes.get(relation.targetId)?.node.id;
-  if (!source || !target || !sourceNodeId || !targetNodeId || sourceNodeId === targetNodeId) return [];
-  const geometry = relationGeometry(source, target, parallelOffset);
+  const source = nodes.get(relation.sourceId),
+    target = nodes.get(relation.targetId);
+  if (!source || !target || source.node.id === target.node.id || relation.status === "invalidated") return [];
+  const geometry = relationGeometry(source.layout.frame, target.layout.frame, parallelOffset);
   return [
     {
+      ...geometry,
       id: relation.id,
       key: `relation:${relation.id}`,
       kind: "relation",
       label: relation.kind,
       relation,
       color,
-      bounds: geometry.bounds,
-      midpoint: geometry.midpoint,
-      points: geometry.points,
-      sourceNodeId,
-      targetNodeId,
+      sourceNodeId: source.node.id,
+      targetNodeId: target.node.id,
       parallelOffset,
     },
   ];

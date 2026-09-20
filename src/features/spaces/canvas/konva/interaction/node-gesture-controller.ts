@@ -1,6 +1,7 @@
 import type Konva from "konva";
 
-import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
+import type { CanvasDisplayNode } from "../../contract/canvas-display-node";
+import type { SpaceEditorDocument } from "../../contract/canvas-document";
 import type { CanvasNodeFrameUpdate, CanvasNodeLayoutV1 } from "../../contract/canvas-document";
 import type { CanvasGestureUpdate } from "./canvas-gesture-update";
 import { captureCanvasNodeRefs } from "./canvas-node-access";
@@ -11,8 +12,9 @@ import { snapCanvasTranslation, type CanvasTranslationGestureState } from "./can
 import { projectResizeFeedback } from "./proportional-resize-feedback";
 
 interface NodeGestureControllerOptions {
+  document(): SpaceEditorDocument;
   layouts(): readonly CanvasNodeLayoutV1[];
-  nodes(): readonly SpaceCanvasNode[];
+  nodes(): readonly CanvasDisplayNode[];
   previewFrames(updates: readonly CanvasGestureUpdate[]): void;
   selectedNodeIds(): ReadonlySet<string>;
   stage(): Konva.Stage | undefined;

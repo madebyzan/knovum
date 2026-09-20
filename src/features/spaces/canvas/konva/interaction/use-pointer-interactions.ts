@@ -9,6 +9,7 @@ import type { useStageViewport } from "../viewport/use-stage-viewport";
 
 interface PointerInteractionOptions {
   cancelActiveGesture(): boolean;
+  resolveHit(id: string): string;
   host: Readonly<Ref<HTMLElement | null>>;
   selection: ReturnType<typeof useCanvasSelection>;
   viewport: ReturnType<typeof useStageViewport>;
@@ -80,6 +81,7 @@ export function usePointerInteractions(options: PointerInteractionOptions) {
     options.host.value?.focus();
     capture(event.evt);
     if (beginToolInteraction(event)) return;
+    nodeId = options.resolveHit(nodeId);
     const additive = event.evt.metaKey || event.evt.ctrlKey || event.evt.shiftKey;
     pressedSelection =
       !additive && options.selection.nodeIds.value.has(nodeId)

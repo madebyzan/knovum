@@ -87,6 +87,7 @@ function previewLayout(layout: CanvasNodeLayoutV1, update: CanvasGestureUpdate):
   return {
     ...layout,
     frame: update.frame,
+    contentScale: update.contentScale ?? layout.contentScale,
     appearance: "appearance" in update ? (update.appearance ?? undefined) : layout.appearance,
   };
 }

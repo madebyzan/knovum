@@ -1,3 +1,4 @@
+import type { StructureCommand } from "../../organization/structure/commands/contract";
 import type { SpaceEditorDocument, CanvasNodeAppearance, CanvasRelationColor } from "./canvas-document";
 
 export interface CanvasPoint {
@@ -14,6 +15,7 @@ export interface CanvasNodePlacement extends CanvasPoint {
 }
 
 export interface CanvasSelectionSnapshot {
+  scopeGroupId?: string | null;
   nodeIds: readonly string[];
   nodePlacements: readonly CanvasNodePlacement[];
   relationIds: readonly string[];
@@ -39,13 +41,18 @@ export interface CanvasContentHeightMeasurement {
 
 export interface CanvasEditorPort {
   cancelInteraction(): void;
+  executeStructureCommand(command: StructureCommand): Promise<void>;
+  enterGroup(id: string): void;
+  exitGroup(): void;
+  requestContainerRename(id: string): void;
+  deleteItems(ids: readonly string[], relationIds?: readonly string[]): Promise<void>;
   copySelection(): Promise<void>;
   cutSelection(): Promise<void>;
   pasteSelection(): Promise<boolean>;
   deleteSelection(): Promise<void>;
   duplicateSelection(): Promise<void>;
-  nudgeSelection(offset: CanvasPoint): void;
-  moveSelectionLayer(mode: CanvasLayerMove): void;
+  nudgeSelection(offset: CanvasPoint): Promise<void>;
+  moveSelectionLayer(mode: CanvasLayerMove): Promise<void>;
   alignSelection(mode: CanvasAlignMode): Promise<void>;
   autoLayoutSelection(direction: CanvasAutoLayoutDirection): Promise<void>;
   distributeSelection(mode: CanvasDistributeMode): Promise<void>;
@@ -57,8 +64,8 @@ export interface CanvasEditorPort {
   reveal(nodeIds: readonly string[], mode: "ensure-visible" | "focus"): void;
   navigateViewport(viewport: CanvasViewport): void;
   setViewport(viewport: CanvasViewport): void;
-  setRelationColor(relationId: string, color: CanvasRelationColor): void;
-  setNodeAppearance(nodeId: string, patch: Partial<CanvasNodeAppearance>): void;
+  setRelationColor(relationId: string, color: CanvasRelationColor): Promise<void>;
+  setNodeAppearance(nodeId: string, patch: Partial<CanvasNodeAppearance>): Promise<void>;
   fitNodeContentHeight(nodeId: string, measurement: CanvasContentHeightMeasurement): void;
   flushContentHeightFitting(): boolean;
   setContentHeightFittingPaused(paused: boolean): void;

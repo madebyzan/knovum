@@ -99,11 +99,4 @@ export const spaceNodePayloadSchema = z.discriminatedUnion("kind", [
       targetNodeId: z.string().min(1).max(128).optional(),
     })
     .strict(),
-  z
-    .object({
-      ...baseSpaceNodeFields,
-      kind: z.literal("section"),
-      collapsed: z.boolean().optional(),
-    })
-    .strict(),
 ]);

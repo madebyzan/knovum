@@ -1,5 +1,6 @@
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceRelation } from "../../model/relations/relation";
+import type { StructureCommand } from "../../organization/structure/commands/contract";
 import type { CanvasNodeFrameUpdate, CanvasNodeLayoutV1 } from "../contract/canvas-document";
 import type { CanvasSurfaceEvents } from "../contract/canvas-editor";
 import type { CanvasPoint, CanvasRect, CanvasViewport } from "../contract/canvas-editor-port";
@@ -13,6 +14,12 @@ export type CanvasFrameMutation = () =>
 export interface KonvaEditorPortOptions extends CanvasSurfaceEvents {
   animateViewport(viewport: CanvasViewport): void;
   cancelInteraction(): void;
+  executeStructureCommand(command: StructureCommand): Promise<void>;
+  enterGroup(id: string): void;
+  exitGroup(): void;
+  scopeGroupId(): string | null;
+  setEditingScope(ids: readonly string[]): void;
+  requestContainerRename(id: string): void;
   runFrameMutation(mutation: CanvasFrameMutation): Promise<void>;
   host(): HTMLElement;
   layouts(): readonly CanvasNodeLayoutV1[];

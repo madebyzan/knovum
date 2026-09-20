@@ -1,20 +1,20 @@
 import type Konva from "konva";
 
-import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
+import type { CanvasDisplayNode } from "../../contract/canvas-display-node";
 import type { CanvasNodeLayoutV1 } from "../../contract/canvas-document";
 import type { CanvasGestureUpdate } from "./canvas-gesture-update";
 import { captureCanvasNodeRefs } from "./canvas-node-access";
 import { scaledCanvasTextAppearance } from "./canvas-text-transform";
 
 export interface CanvasTransformTarget {
-  content: SpaceCanvasNode;
+  content: CanvasDisplayNode;
   layout: CanvasNodeLayoutV1;
   node: Konva.Node;
 }
 
 export function captureCanvasTransformTargets(
   layouts: readonly CanvasNodeLayoutV1[],
-  nodes: readonly SpaceCanvasNode[],
+  nodes: readonly CanvasDisplayNode[],
   selectedNodeIds: ReadonlySet<string>,
   stage: Konva.Stage | undefined,
 ) {
@@ -38,7 +38,6 @@ export function projectCanvasTransformUpdates(
 ): CanvasGestureUpdate[] {
   return options.targets.flatMap<CanvasGestureUpdate>(({ content, layout, node }) => {
     const nodeId = content.id;
-    if (content.data.locked) return [];
     const frame = {
       x: node.x(),
       y: node.y(),

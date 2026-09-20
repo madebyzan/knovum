@@ -104,8 +104,9 @@ const styleResizeAnchor: NonNullable<Konva.TransformerConfig["anchorStyleFunc"]>
   anchor.hitStrokeWidth(metrics.value.hitStrokeWidth);
   anchor.visible(isResizeAnchorVisible(anchor));
 };
-function isResizeAnchorVisible(anchor: Konva.Rect) {
+function isResizeAnchorVisible(anchor: Konva.Node) {
   const enabled = enabledResizeAnchors.value.some((name) => anchor.hasName(name));
+  if (anchor.hasName("rotater")) return props.policy.rotateEnabled === true;
   return enabled && (activeResizeAnchor === undefined || anchor.hasName(activeResizeAnchor));
 }
 
@@ -146,7 +147,7 @@ function finishTransform() {
   <KonvaTransformer
     ref="transformer"
     :config="{
-      rotateEnabled: false,
+      rotateEnabled: policy.rotateEnabled === true,
       visible,
       listening: interactive && visible,
       flipEnabled: false,
