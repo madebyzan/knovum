@@ -92,7 +92,7 @@ ZodError: [
     "message": "Unrecognized key: \"nodes\""
   }
 ]
-    at parseSpaceEditorDocument (/home/runner/work/knovum/knovum/src/features/spaces/canvas/contract/canvas-document.ts:80:36)
+    at parseSpaceEditorDocument (/home/runner/work/knovum/knovum/src/features/spaces/canvas/contract/canvas-document.ts:79:36)
     at /home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-document.test.ts:30:12
     at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
     at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
@@ -141,7 +141,7 @@ ZodError: [
     "message": "Unrecognized key: \"nodes\""
   }
 ]
-    at parseSpaceEditorDocument (/home/runner/work/knovum/knovum/src/features/spaces/canvas/contract/canvas-document.ts:80:36)
+    at parseSpaceEditorDocument (/home/runner/work/knovum/knovum/src/features/spaces/canvas/contract/canvas-document.ts:79:36)
     at /home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-document.test.ts:55:7
     at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
     at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
@@ -178,7 +178,7 @@ ZodError: [
     "message": "Unrecognized key: \"nodes\""
   }
 ]
-    at parseSpaceEditorDocument (/home/runner/work/knovum/knovum/src/features/spaces/canvas/contract/canvas-document.ts:80:36)
+    at parseSpaceEditorDocument (/home/runner/work/knovum/knovum/src/features/spaces/canvas/contract/canvas-document.ts:79:36)
     at /home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-document.test.ts:79:7
     at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
     at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
@@ -215,7 +215,7 @@ ZodError: [
     "message": "Unrecognized key: \"nodes\""
   }
 ]
-    at parseSpaceEditorDocument (/home/runner/work/knovum/knovum/src/features/spaces/canvas/contract/canvas-document.ts:80:36)
+    at parseSpaceEditorDocument (/home/runner/work/knovum/knovum/src/features/spaces/canvas/contract/canvas-document.ts:79:36)
     at /home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-document.test.ts:144:7
     at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
     at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
@@ -700,7 +700,7 @@ ZodError: [
     "message": "Unrecognized key: \"nodes\""
   }
 ]
-    at parseSpaceEditorDocument (/home/runner/work/knovum/knovum/src/features/spaces/canvas/contract/canvas-document.ts:80:36)
+    at parseSpaceEditorDocument (/home/runner/work/knovum/knovum/src/features/spaces/canvas/contract/canvas-document.ts:79:36)
     at Object.remapCanvasState [as remap] (/home/runner/work/knovum/knovum/src/features/spaces/canvas/canvas-package-codec.ts:14:20)
     at /home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-package-codec.test.ts:7:38
     at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
@@ -722,18 +722,7 @@ TypeError: Cannot destructure property 'width' of '(0 , __vite_ssr_import_1__.sp
     at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
     at new Promise (<anonymous>)
     at runWithCancel (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
-/home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-section-membership.test.ts :: canvas section membership uses a collapsed section's visible bar instead of its stored expanded bounds
-TypeError: Cannot read properties of undefined (reading 'resizeMode')
-    at spaceNodeDimensions (/home/runner/work/knovum/knovum/src/features/spaces/canvas/node-size.ts:53:12)
-    at visibleSectionFrame (/home/runner/work/knovum/knovum/src/features/spaces/canvas/konva/scene/section-membership.ts:49:32)
-    at /home/runner/work/knovum/knovum/src/features/spaces/canvas/konva/scene/section-membership.ts:15:42
-    at Array.map (<anonymous>)
-    at sectionAssignments (/home/runner/work/knovum/knovum/src/features/spaces/canvas/konva/scene/section-membership.ts:14:6)
-    at /home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-section-membership.test.ts:27:12
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
-    at new Promise (<anonymous>)
+Failed to resolve import "../canvas/konva/scene/section-membership" from "src/features/spaces/__tests__/canvas-section-membership.test.ts". Does the file exist?
 /home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-surface-host.test.ts :: CanvasSurfaceHost does not install a stale load after the active space changes
 TypeError: Cannot read properties of null (reading 'shapeFlag')
     at getRootNodes (/home/runner/work/knovum/knovum/node_modules/.pnpm/@vue+test-utils@2.5.0_@vue+compiler-dom@3.5.42_@vue+server-renderer@3.5.42_vue@3.5.42_typescript@6.0.3_/node_modules/@vue/test-utils/dist/vue-test-utils.cjs.js:7497:15)
@@ -881,6 +870,30 @@ TypeError: Cannot destructure property 'type' of 'vnode' as it is null.
     at render (/home/runner/work/knovum/knovum/node_modules/.pnpm/@vue+runtime-core@3.5.42/node_modules/@vue/runtime-core/dist/runtime-core.cjs.js:6878:9)
     at Object.unmount (/home/runner/work/knovum/knovum/node_modules/.pnpm/@vue+runtime-core@3.5.42/node_modules/@vue/runtime-core/dist/runtime-core.cjs.js:4367:11)
     at VueWrapper.unmount (/home/runner/work/knovum/knovum/node_modules/.pnpm/@vue+test-utils@2.5.0_@vue+compiler-dom@3.5.42_@vue+server-renderer@3.5.42_vue@3.5.42_typescript@6.0.3_/node_modules/@vue/test-utils/dist/vue-test-utils.cjs.js:7857:20)
+/home/runner/work/knovum/knovum/src/features/spaces/__tests__/clipboard-transfer.test.ts :: spaces clipboard round-trips the structured HTML marker while keeping useful plain text
+TypeError: (0 , __vite_ssr_import_2__.isSpaceSectionPayload) is not a function
+    at /home/runner/work/knovum/knovum/src/features/spaces/clipboard/transfer.ts:80:26
+    at Array.filter (<anonymous>)
+    at clipboardText (/home/runner/work/knovum/knovum/src/features/spaces/clipboard/transfer.ts:80:8)
+    at writeSpaceClipboard (/home/runner/work/knovum/knovum/src/features/spaces/clipboard/transfer.ts:15:45)
+    at /home/runner/work/knovum/knovum/src/features/spaces/__tests__/clipboard-transfer.test.ts:27:12
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+/home/runner/work/knovum/knovum/src/features/spaces/__tests__/clipboard-transfer.test.ts :: spaces clipboard copies reactive node data without structured-clone failures
+TypeError: (0 , __vite_ssr_import_2__.isSpaceSectionPayload) is not a function
+    at /home/runner/work/knovum/knovum/src/features/spaces/clipboard/transfer.ts:80:26
+    at Array.filter (<anonymous>)
+    at clipboardText (/home/runner/work/knovum/knovum/src/features/spaces/clipboard/transfer.ts:80:8)
+    at writeSpaceClipboard (/home/runner/work/knovum/knovum/src/features/spaces/clipboard/transfer.ts:15:45)
+    at /home/runner/work/knovum/knovum/src/features/spaces/__tests__/clipboard-transfer.test.ts:44:12
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
 /home/runner/work/knovum/knovum/src/features/spaces/__tests__/derivation-schema.test.ts :: knowledge video package metadata accepts complete generated video metadata
 AssertionError: expected false to be true // Object.is equality
     at /home/runner/work/knovum/knovum/src/features/spaces/__tests__/derivation-schema.test.ts:32:76
@@ -989,42 +1002,11 @@ TypeError: model.document.nodes is not iterable
     at new Promise (<anonymous>)
     at runWithTimeout (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)
     at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2955:64
-/home/runner/work/knovum/knovum/src/features/spaces/__tests__/konva-canvas-presentation-document.test.ts :: Konva canvas presentation document reorders selected nodes using the document z-order
-TypeError: Cannot read properties of undefined (reading 'toSorted')
-    at reorderCanvasNodes (/home/runner/work/knovum/knovum/src/features/spaces/canvas/konva/document/canvas-layer-order.ts:11:25)
-    at /home/runner/work/knovum/knovum/src/features/spaces/__tests__/konva-canvas-presentation-document.test.ts:13:12
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
-    at new Promise (<anonymous>)
-    at runWithCancel (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
-    at new Promise (<anonymous>)
-    at runWithTimeout (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)
-/home/runner/work/knovum/knovum/src/features/spaces/__tests__/konva-canvas-presentation-document.test.ts :: Konva canvas presentation document undoes one relation color without replacing unrelated presentation changes
-AssertionError: expected undefined to deeply equal [ { relationId: 'b', color: 'green' } ]
-    at /home/runner/work/knovum/knovum/src/features/spaces/__tests__/konva-canvas-presentation-document.test.ts:37:43
-    at processTicksAndRejections (node:internal/process/task_queues:103:5)
-/home/runner/work/knovum/knovum/src/features/spaces/__tests__/konva-canvas-presentation-document.test.ts :: Konva canvas presentation document records node appearance as a reversible document mutation
-TypeError: Cannot read properties of undefined (reading '0')
-    at /home/runner/work/knovum/knovum/src/features/spaces/__tests__/konva-canvas-presentation-document.test.ts:46:27
-    at processTicksAndRejections (node:internal/process/task_queues:103:5)
-/home/runner/work/knovum/knovum/src/features/spaces/__tests__/konva-canvas-presentation-document.test.ts :: Konva canvas presentation document projects selected appearance without a document-level subscription
-TypeError: Cannot read properties of undefined (reading '0')
-    at /home/runner/work/knovum/knovum/src/features/spaces/__tests__/konva-canvas-presentation-document.test.ts:57:5
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
-    at new Promise (<anonymous>)
-    at runWithCancel (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
-    at new Promise (<anonymous>)
-    at runWithTimeout (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)
-    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2955:64
+Failed to resolve import "../canvas/konva/document/canvas-layer-order" from "src/features/spaces/__tests__/konva-canvas-presentation-document.test.ts". Does the file exist?
 /home/runner/work/knovum/knovum/src/features/spaces/__tests__/konva-editor-port.test.ts :: Konva editor port routes clipboard operations through product ports and uses the last canvas pointer
 TypeError: Cannot read properties of undefined (reading 'items')
     at indexStructure (/home/runner/work/knovum/knovum/src/features/spaces/model/structure/structure-index.ts:11:32)
-    at /home/runner/work/knovum/knovum/src/features/spaces/canvas/konva/selection/canvas-selection-deletion.ts:10:45
+    at /home/runner/work/knovum/knovum/src/features/spaces/canvas/konva/selection/canvas-selection-deletion.ts:10:41
     at Object.cutSelection (/home/runner/work/knovum/knovum/src/features/spaces/canvas/konva/create-canvas-editor-port.ts:49:25)
     at /home/runner/work/knovum/knovum/src/features/spaces/__tests__/konva-editor-port.test.ts:80:16
     at processTicksAndRejections (node:internal/process/task_queues:103:5)
@@ -1305,7 +1287,7 @@ TypeError: Cannot read properties of undefined (reading 'resizeMode')
 TypeError: Cannot convert undefined or null to object
     at Function.hasOwn (<anonymous>)
     at pick (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/es-toolkit@1.52.0/node_modules/es-toolkit/dist/object/pick.mjs:23:14)
-    at spaceNodeResizePolicy (/home/runner/work/knovum/knovum/src/features/spaces/canvas/node-size.ts:74:10)
+    at spaceNodeResizePolicy (/home/runner/work/knovum/knovum/src/features/spaces/canvas/node-size.ts:71:10)
     at /home/runner/work/knovum/knovum/src/features/spaces/__tests__/node-size.test.ts:131:14
     at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
     at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
@@ -1326,42 +1308,40 @@ AssertionError: expected [Function] to throw error including 'Unrecognized keys'
     at runWithCancel (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
     at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
 /home/runner/work/knovum/knovum/src/features/spaces/__tests__/selection-actions.test.ts :: spaces organization allows a Section itself to be locked
-ZodError: [
-  {
-    "code": "invalid_union",
-    "errors": [],
-    "note": "No matching discriminator",
-    "discriminator": "kind",
-    "options": [
-      "note",
-      "text",
-      "markdown",
-      "subtitle",
-      "website",
-      "image",
-      "video",
-      "audio",
-      "file",
-      "code",
-      "credential",
-      "object",
-      "portal"
-    ],
-    "path": [
-      "kind"
-    ],
-    "message": "Invalid discriminator value. Expected 'note' | 'text' | 'markdown' | 'subtitle' | 'website' | 'image' | 'video' | 'audio' | 'file' | 'code' | 'credential' | 'object' | 'portal'"
-  }
-]
-    at validateSpaceNodePayload (/home/runner/work/knovum/knovum/src/features/spaces/model/nodes/schema/node-payload.ts:5:33)
-    at /home/runner/work/knovum/knovum/src/features/spaces/organization/selection-mutations.ts:31:20
-    at Array.flatMap (<anonymous>)
-    at updateSelected (/home/runner/work/knovum/knovum/src/features/spaces/organization/selection-mutations.ts:29:39)
-    at Object.setLocked (/home/runner/work/knovum/knovum/src/features/spaces/organization/selection-actions.ts:22:11)
+Error: The Space editor is not ready for an organizational command
+    at editor (/home/runner/work/knovum/knovum/src/features/spaces/organization/selection-actions.ts:8:23)
+    at Object.setLocked (/home/runner/work/knovum/knovum/src/features/spaces/organization/selection-actions.ts:26:7)
     at /home/runner/work/knovum/knovum/src/features/spaces/__tests__/selection-actions.test.ts:52:24
     at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
     at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
     at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
+/home/runner/work/knovum/knovum/src/features/spaces/__tests__/selection-actions.test.ts :: deleteSelection removes selected relations before nodes and undoes both in one step
+Error: The Space editor is not ready for an organizational command
+    at editor (/home/runner/work/knovum/knovum/src/features/spaces/organization/selection-actions.ts:8:23)
+    at Object.deleteSelection (/home/runner/work/knovum/knovum/src/features/spaces/organization/selection-actions.ts:28:7)
+    at /home/runner/work/knovum/knovum/src/features/spaces/__tests__/selection-actions.test.ts:112:24
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
+/home/runner/work/knovum/knovum/src/features/spaces/__tests__/selection-actions.test.ts :: deleteSelection deletes a selected relation on its own
+Error: The Space editor is not ready for an organizational command
+    at editor (/home/runner/work/knovum/knovum/src/features/spaces/organization/selection-actions.ts:8:23)
+    at Object.deleteSelection (/home/runner/work/knovum/knovum/src/features/spaces/organization/selection-actions.ts:28:7)
+    at /home/runner/work/knovum/knovum/src/features/spaces/__tests__/selection-actions.test.ts:123:24
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
     at new Promise (<anonymous>)
 /home/runner/work/knovum/knovum/src/features/spaces/__tests__/space-session-actions.test.ts :: openSpace coalesces repeated clicks while the same space is loading
 AssertionError: expected "vi.fn()" to be called 1 times, but got 0 times
