@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { remapGroundedCitation } from "../package/content-remap";
+import { remapGroundedCitation } from "../content-remap";
 
 const snapshot = {
   index: 1,

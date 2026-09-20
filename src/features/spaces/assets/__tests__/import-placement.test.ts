@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { layoutImportGrid } from "../assets/import-placement";
+import { layoutImportGrid } from "../import-placement";
 
 describe("Space import placement", () => {
   it("uses the widest column and tallest row so mixed resources never overlap", () => {

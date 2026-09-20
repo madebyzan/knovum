@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { importedSpaceNodePayload } from "../assets/imported-asset-payload";
+import { importedSpaceNodePayload } from "../imported-asset-payload";
 
 describe("importedSpaceNodePayload", () => {
   it("accepts a persisted audio recording without a source revision", () => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { classifyFilePresentation, fileExtension, usesDocumentPreview } from "../assets/file-presentation";
+import { classifyFilePresentation, fileExtension, usesDocumentPreview } from "../file-presentation";
 
 describe("space file presentation", () => {
   it("normalizes extensions before choosing a presentation", () => {

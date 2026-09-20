@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { isDirectMediaResource } from "../sources/direct-media-resource";
+import { isDirectMediaResource } from "../direct-media-resource";
 
 describe("direct media resource URL", () => {
   it("recognizes direct file paths without interpreting query strings as extensions", () => {

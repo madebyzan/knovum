@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { createSpacePlacement } from "../canvas/navigation-requests";
-import { createInspectorActions } from "../inspector/inspector-actions";
-import { createSpaceState } from "../session/session-state";
+import { createSpacePlacement } from "../../canvas/navigation-requests";
+import { createInspectorActions } from "../inspector-actions";
+import { createSpaceState } from "../../session/session-state";
 
 function setup() {
   const state = createSpaceState();

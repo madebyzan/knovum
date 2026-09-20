@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { derivationSchema } from "../package/derivation-schema";
+import { derivationSchema } from "../derivation-schema";
 
 function generatedVideoDerivation() {
   return {

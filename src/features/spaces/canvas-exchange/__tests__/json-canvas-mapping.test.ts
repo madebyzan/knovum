@@ -4,7 +4,7 @@ import {
   exportJsonCanvasDocument,
   importJsonCanvasDocument,
   mergeImportedJsonCanvasDocument,
-} from "../canvas-exchange/json-canvas-mapping";
+} from "../json-canvas-mapping";
 
 describe("JSON Canvas 1.0 neutral mapping", () => {
   it("uses array order as the standard z-order and keeps Knovum fields out", () => {

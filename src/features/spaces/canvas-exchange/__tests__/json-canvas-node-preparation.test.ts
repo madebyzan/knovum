@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import type { CanvasJsonImportRequest } from "../canvas-exchange/json-canvas-import-contract";
-import { prepareJsonCanvasNodes } from "../session/actions/json-canvas-node-preparation";
+import type { CanvasJsonImportRequest } from "../json-canvas-import-contract";
+import { prepareJsonCanvasNodes } from "../json-canvas-node-preparation";
 
 const frame = { x: 10, y: 20, width: 320, height: 180, rotation: 0 } as const;
 

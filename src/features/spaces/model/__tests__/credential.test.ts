@@ -6,10 +6,10 @@ const secrets = vi.hoisted(() => ({
   setSecret: vi.fn<(key: string, value: string) => Promise<void>>(),
 }));
 
-vi.mock("../../../foundation/secrets/secret-store", () => secrets);
+vi.mock("../../../../foundation/secrets/secret-store", () => secrets);
 
-import { commitSpaceCredentialChange } from "../credentials/credential-actions";
-import { deleteSpaceCredentials } from "../credentials/credential-repository";
+import { commitSpaceCredentialChange } from "../../credentials/credential-actions";
+import { deleteSpaceCredentials } from "../../credentials/credential-repository";
 
 describe("spaces credential consistency", () => {
   beforeEach(() => {
