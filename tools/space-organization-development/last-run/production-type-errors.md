@@ -1,6 +1,6 @@
 # Production type diagnostics
 
-Source: `a5062d5bb521fe954dee8b5869f664bd088c77fe`.
+Source: `c19dca0aeebcac2901adf70bbb48443c8fa7908a`.
 
 ```text
 src/features/spaces/canvas-exchange/json-canvas-mapping.ts(80,28): error TS2339: Property 'nodes' does not exist on type '{ version: 1; structure: { version: 1; items: ({ kind: "content"; nodeId: string; id: string; parentId: string | null; order: number; locked: boolean; } | { kind: "group"; title: string; id: string; parentId: string | null; order: number; locked: boolean; } | { ...; })[]; }; layout: { ...; }; viewport: { ...; }; rel...'.

@@ -1,19 +1,26 @@
 # Frontend tests
 
-Source: `a5062d5bb521fe954dee8b5869f664bd088c77fe`. Exit code: 1.
+Source: `c19dca0aeebcac2901adf70bbb48443c8fa7908a`. Exit code: 1.
 
 ```text
 
  RUN  v4.1.10 /home/runner/work/knovum/knovum
 
- ✓ src/features/spaces/__tests__/capture-url.test.ts (9 tests) 34ms
- ❯ src/features/spaces/__tests__/konva-scene-projection.test.ts (6 tests | 6 failed) 68ms
-     × always paints section backgrounds behind their members 31ms
-     × projects collapsed sections without mutating stored geometry or rendering members 11ms
-     × projects one identity for each semantic relation 1ms
-     × projects parallel relations onto stable distinct curve lanes 9ms
+ ✓ src/features/spaces/__tests__/capture-url.test.ts (9 tests) 30ms
+ ❯ src/features/spaces/__tests__/konva-scene-projection.test.ts (6 tests | 6 failed) 26ms
+     × always paints section backgrounds behind their members 15ms
+     × projects collapsed sections without mutating stored geometry or rendering members 1ms
+     × projects one identity for each semantic relation 3ms
+     × projects parallel relations onto stable distinct curve lanes 1ms
      × projects external relations from collapsed members onto their section boundary 1ms
-     × keeps hidden layout data out of the rendered scene 5ms
+     × keeps hidden layout data out of the rendered scene 1ms
+ ❯ src/features/spaces/__tests__/canvas-gesture-session.test.ts (6 tests | 5 failed) 110ms
+     ✓ owns the direct-manipulation lifecycle independently from persistence busy state 51ms
+     × commits keyboard movement without implicitly changing Section membership 13ms
+     × serializes rapid keyboard nudges from the latest committed document 14ms
+     × calculates queued frame mutations from the latest committed document 7ms
+     × keeps geometry interaction busy while an asynchronous frame calculation is pending 16ms
+     × keeps a queued nudge bound to the selection that received the command 8ms
 stderr | src/features/spaces/__tests__/canvas-surface-host.test.ts > CanvasSurfaceHost > does not install a stale load after the active space changes
 [Vue warn]: Missing required prop: "interactionEnabled" 
   at <CanvasSurfaceHost events= {
@@ -122,7 +129,6 @@ stderr | src/features/spaces/__tests__/canvas-surface-host.test.ts > CanvasSurfa
 } importJsonCanvas=fn<Mock> focusNodeIds= []  ... > 
   at <VTUROOT>
 
- ✓ src/foundation/commands/__tests__/command-shortcuts.test.ts (11 tests) 82ms
 stderr | src/features/spaces/__tests__/canvas-surface-host.test.ts > CanvasSurfaceHost > rejects an in-flight commit after the active space changes
 [Vue warn]: Missing required prop: "interactionEnabled" 
   at <CanvasSurfaceHost events= {
@@ -257,19 +263,13 @@ stderr | src/features/spaces/__tests__/canvas-surface-host.test.ts > CanvasSurfa
 } importJsonCanvas=fn<Mock> focusNodeIds= []  ... > 
   at <VTUROOT>
 
- ❯ src/features/spaces/__tests__/canvas-surface-host.test.ts (4 tests | 4 failed) 117ms
-     × does not install a stale load after the active space changes 93ms
-     × rejects an in-flight commit after the active space changes 9ms
-     × rejects an in-flight commit after unmount 5ms
-     × preserves an in-flight viewport change without replacing committed node frames 5ms
- ✓ src/features/spaces/__tests__/structure-commands.test.ts (11 tests) 264ms
- ❯ src/features/spaces/__tests__/canvas-gesture-session.test.ts (6 tests | 5 failed) 132ms
-     ✓ owns the direct-manipulation lifecycle independently from persistence busy state 47ms
-     × commits keyboard movement without implicitly changing Section membership 19ms
-     × serializes rapid keyboard nudges from the latest committed document 14ms
-     × calculates queued frame mutations from the latest committed document 9ms
-     × keeps geometry interaction busy while an asynchronous frame calculation is pending 19ms
-     × keeps a queued nudge bound to the selection that received the command 9ms
+ ❯ src/features/spaces/__tests__/canvas-surface-host.test.ts (4 tests | 4 failed) 141ms
+     × does not install a stale load after the active space changes 90ms
+     × rejects an in-flight commit after the active space changes 20ms
+     × rejects an in-flight commit after unmount 14ms
+     × preserves an in-flight viewport change without replacing committed node frames 15ms
+ ✓ src/foundation/commands/__tests__/command-shortcuts.test.ts (11 tests) 78ms
+ ✓ src/features/spaces/__tests__/structure-commands.test.ts (11 tests) 157ms
 stderr | src/features/spaces/__tests__/canvas-surface-remount.test.ts > CanvasSurfaceHost remount persistence > persists reconciliation instead of leaving it as an in-memory repair
 [Vue warn]: Missing required prop: "interactionEnabled" 
   at <CanvasSurfaceHost events= {
@@ -708,81 +708,80 @@ stderr | src/features/spaces/__tests__/canvas-surface-remount.test.ts > CanvasSu
 } importJsonCanvas=fn<Mock> focusNodeIds= []  ... > 
   at <VTUROOT>
 
- ❯ src/features/spaces/__tests__/canvas-surface-remount.test.ts (3 tests | 3 failed) 243ms
-     × persists reconciliation instead of leaving it as an in-memory repair 180ms
-     × waits for the previous A flush across a keyed A to B to A remount 28ms
-     × waits for an in-flight formal commit before remounting the same space 33ms
- ❯ src/features/spaces/__tests__/konva-editor-port.test.ts (2 tests | 2 failed) 30ms
-     × routes clipboard operations through product ports and uses the last canvas pointer 17ms
-     × commits node and semantic relation deletion through one host transaction 9ms
- ❯ src/features/spaces/__tests__/node-size.test.ts (22 tests | 3 failed) 54ms
-     ✓ gives note a semantic desktop default 4ms
-     ✓ gives text a semantic desktop default 4ms
+ ❯ src/features/spaces/__tests__/canvas-surface-remount.test.ts (3 tests | 3 failed) 160ms
+     × persists reconciliation instead of leaving it as an in-memory repair 136ms
+     × waits for the previous A flush across a keyed A to B to A remount 12ms
+     × waits for an in-flight formal commit before remounting the same space 11ms
+ ❯ src/features/spaces/__tests__/konva-editor-port.test.ts (2 tests | 2 failed) 23ms
+     × routes clipboard operations through product ports and uses the last canvas pointer 9ms
+     × commits node and semantic relation deletion through one host transaction 7ms
+ ❯ src/features/spaces/__tests__/konva-node-gesture.test.ts (3 tests | 3 failed) 25ms
+     × moves a section and its domain members in one frame commit 13ms
+     × rejects the complete drag when a selected operation root is locked 1ms
+     × normalizes the native Transformer scale when the gesture ends 11ms
+ ❯ src/features/spaces/__tests__/node-size.test.ts (22 tests | 3 failed) 37ms
+     ✓ gives note a semantic desktop default 7ms
+     ✓ gives text a semantic desktop default 0ms
      ✓ gives markdown a semantic desktop default 0ms
      ✓ gives website a semantic desktop default 0ms
      ✓ gives audio a semantic desktop default 0ms
      ✓ gives file a semantic desktop default 0ms
      ✓ gives code a semantic desktop default 0ms
-     ✓ gives credential a semantic desktop default 4ms
-     × gives section a semantic desktop default 13ms
+     ✓ gives credential a semantic desktop default 0ms
+     × gives section a semantic desktop default 7ms
      ✓ gives object a semantic desktop default 0ms
      ✓ gives portal a semantic desktop default 0ms
-     ✓ fits standard and long-form image ratios without cropping or distortion 3ms
-     ✓ reserves stable desktop chrome around video presentation geometry 1ms
-     ✓ sizes a rendered document card from the page's own ratio 0ms
+     ✓ fits standard and long-form image ratios without cropping or distortion 0ms
+     ✓ reserves stable desktop chrome around video presentation geometry 0ms
+     ✓ sizes a rendered document card from the page's own ratio 2ms
      ✓ keeps the page area inside the card true to the rendered ratio 0ms
      ✓ uses every available system-preview ratio and leaves unrendered documents at the default 0ms
-     × uses the rendered compact geometry for collapsed sections 7ms
+     × uses the rendered compact geometry for collapsed sections 4ms
      ✓ keeps compact utility nodes fixed 0ms
      ✓ keeps compact utility nodes fixed while visual cards remain resizable 1ms
-     ✓ does not impose a presentation cap on resizable nodes 3ms
+     ✓ does not impose a presentation cap on resizable nodes 5ms
      × keeps document and section geometry independently resizable 1ms
      ✓ derives initial visual dimensions only from intrinsic content 0ms
- ❯ src/features/spaces/__tests__/konva-node-gesture.test.ts (3 tests | 3 failed) 31ms
-     × moves a section and its domain members in one frame commit 16ms
-     × rejects the complete drag when a selected operation root is locked 4ms
-     × normalizes the native Transformer scale when the gesture ends 8ms
- ✓ src/features/spaces/__tests__/canvas-snapshot-save-queue.test.ts (5 tests) 157ms
- ✓ src/features/spaces/__tests__/canvas-persistence-history.test.ts (3 tests) 105ms
- ❯ src/features/spaces/__tests__/konva-canvas-document.test.ts (6 tests | 6 failed) 72ms
-     × creates canonical frames from domain nodes 15ms
-     × adopts intrinsic media geometry until the persisted frame becomes authoritative 31ms
-     × preserves authored frames while adding and removing domain nodes 7ms
-     × rejects content authority on nodes without content-sized geometry 6ms
-     × preserves document and layout identities when domain geometry is unchanged 4ms
-     × keeps viewport changes made after an import when undoing imported content 4ms
- ✓ src/features/spaces/__tests__/konva-rich-node-content.test.ts (6 tests) 179ms
- ✓ src/features/spaces/__tests__/json-canvas-mapping.test.ts (6 tests) 26ms
- ❯ src/features/spaces/__tests__/canvas-document-workspace.test.ts (4 tests | 1 failed) 242ms
-     ✓ keeps a successful database acknowledgement when its renderer is detached 66ms
-     ✓ rejects queued old-Space work before a second database call 56ms
-     ✓ does not make a successor's camera wait on the old Space transaction 59ms
-     × persists the captured camera at the committed revision even after detachment 60ms
- ✓ src/features/spaces/__tests__/canvas-session-commit-guard.test.ts (2 tests) 71ms
- ✓ src/features/spaces/__tests__/archive-actions.test.ts (6 tests) 40ms
- ✓ src/features/spaces/__tests__/canvas-clipboard-paste.test.ts (9 tests) 45ms
- ❯ src/features/spaces/__tests__/canvas-document.test.ts (9 tests | 5 failed) 92ms
-     × accepts engine-neutral layout state without domain content 42ms
-     ✓ rejects engine snapshots and copied domain content 10ms
-     × rejects duplicate nodes 19ms
-     ✓ requires explicit size ownership instead of inferring it from dimensions 2ms
-     × uses the same unsigned 32-bit layer range as the Rust contract 3ms
-     ✓ rejects duplicated domain membership and lock state 3ms
-     × accepts only the current semantic appearance contract 1ms
-     ✓ rejects semantic relations embedded in the spatial document 5ms
+ ✓ src/features/spaces/__tests__/canvas-snapshot-save-queue.test.ts (5 tests) 133ms
+ ✓ src/features/spaces/__tests__/canvas-persistence-history.test.ts (3 tests) 57ms
+ ❯ src/features/spaces/__tests__/konva-canvas-document.test.ts (6 tests | 6 failed) 33ms
+     × creates canonical frames from domain nodes 10ms
+     × adopts intrinsic media geometry until the persisted frame becomes authoritative 12ms
+     × preserves authored frames while adding and removing domain nodes 3ms
+     × rejects content authority on nodes without content-sized geometry 2ms
+     × preserves document and layout identities when domain geometry is unchanged 2ms
+     × keeps viewport changes made after an import when undoing imported content 2ms
+ ✓ src/features/spaces/__tests__/json-canvas-mapping.test.ts (6 tests) 14ms
+ ✓ src/features/spaces/__tests__/konva-rich-node-content.test.ts (6 tests) 109ms
+ ❯ src/features/spaces/__tests__/canvas-document-workspace.test.ts (4 tests | 1 failed) 230ms
+     ✓ keeps a successful database acknowledgement when its renderer is detached 64ms
+     ✓ rejects queued old-Space work before a second database call 54ms
+     ✓ does not make a successor's camera wait on the old Space transaction 52ms
+     × persists the captured camera at the committed revision even after detachment 59ms
+ ✓ src/features/spaces/__tests__/canvas-session-commit-guard.test.ts (2 tests) 69ms
+ ✓ src/features/spaces/__tests__/canvas-clipboard-paste.test.ts (9 tests) 20ms
+ ✓ src/features/spaces/__tests__/archive-actions.test.ts (6 tests) 19ms
+ ✓ src/features/spaces/__tests__/canvas-node-interaction.test.ts (7 tests) 19ms
+ ❯ src/features/spaces/__tests__/canvas-document.test.ts (9 tests | 5 failed) 57ms
+     × accepts engine-neutral layout state without domain content 25ms
+     ✓ rejects engine snapshots and copied domain content 4ms
+     × rejects duplicate nodes 9ms
+     ✓ requires explicit size ownership instead of inferring it from dimensions 1ms
+     × uses the same unsigned 32-bit layer range as the Rust contract 5ms
+     ✓ rejects duplicated domain membership and lock state 1ms
+     × accepts only the current semantic appearance contract 0ms
+     ✓ rejects semantic relations embedded in the spatial document 0ms
      × stores only non-default relation presentation overrides 5ms
- ✓ src/features/spaces/__tests__/canvas-node-interaction.test.ts (7 tests) 34ms
- ❯ src/features/spaces/__tests__/canvas-movement-integration.test.ts (8 tests | 8 failed) 54ms
-     × aligns two Sections and both member sets through the real editor port 28ms
-     × does not realign a selected member separately from its Section 6ms
-     × moves multiple Sections with keyboard input and does not rewrite memberships 1ms
-     × keeps locked descendants attached to an unlocked Section for keyboard input 1ms
-     × rejects an entire nudge against a locked operation root 6ms
-     × keeps fit separate from moving a Section and does not adopt overlapping content 1ms
-     × never sends an optimistic gesture or a rejected gesture to the independent autosave path 1ms
-     × records and undoes the entire aligned operation while preserving a newer camera 6ms
- ✓ src/features/spaces/__tests__/tiptap-content.test.ts (7 tests) 142ms
- ✓ src/features/spaces/__tests__/derivation-action-catalog.test.ts (6 tests) 11ms
+ ❯ src/features/spaces/__tests__/canvas-movement-integration.test.ts (8 tests | 8 failed) 22ms
+     × aligns two Sections and both member sets through the real editor port 9ms
+     × does not realign a selected member separately from its Section 5ms
+     × moves multiple Sections with keyboard input and does not rewrite memberships 0ms
+     × keeps locked descendants attached to an unlocked Section for keyboard input 0ms
+     × rejects an entire nudge against a locked operation root 0ms
+     × keeps fit separate from moving a Section and does not adopt overlapping content 3ms
+     × never sends an optimistic gesture or a rejected gesture to the independent autosave path 0ms
+     × records and undoes the entire aligned operation while preserving a newer camera 0ms
+ ✓ src/features/spaces/__tests__/tiptap-content.test.ts (7 tests) 205ms
 stderr | src/features/spaces/__tests__/konva-rich-node-interactions.test.ts > Konva rich node interactions > persists direct note editing and refuses editing for locked notes
 [Vue warn]: Missing required prop: "verticalClass" 
   at <SpaceCanvasNote id="note" data= {
@@ -1684,7 +1683,7 @@ stderr | src/features/spaces/__tests__/konva-rich-node-interactions.test.ts > Ko
     typography: {},
     placeholder: {}
   },
-  instanceId: '0u72jee',
+  instanceId: 'u2otxu8',
   hasWarnedStaleDecorationRead: false,
   options: {
     element: HTMLDivElement {
@@ -2905,7 +2904,7 @@ stderr | src/features/spaces/__tests__/konva-rich-node-interactions.test.ts > Ko
     typography: {},
     placeholder: {}
   },
-  instanceId: '0u72jee',
+  instanceId: 'u2otxu8',
   hasWarnedStaleDecorationRead: false,
   options: {
     element: HTMLDivElement {
@@ -4126,7 +4125,7 @@ stderr | src/features/spaces/__tests__/konva-rich-node-interactions.test.ts > Ko
     typography: {},
     placeholder: {}
   },
-  instanceId: '0u72jee',
+  instanceId: 'u2otxu8',
   hasWarnedStaleDecorationRead: false,
   options: {
     element: HTMLDivElement {
@@ -5356,7 +5355,7 @@ stderr | src/features/spaces/__tests__/konva-rich-node-interactions.test.ts > Ko
     typography: {},
     placeholder: {}
   },
-  instanceId: '0u72jee',
+  instanceId: 'u2otxu8',
   hasWarnedStaleDecorationRead: false,
   options: {
     element: HTMLDivElement {
@@ -6586,7 +6585,7 @@ stderr | src/features/spaces/__tests__/konva-rich-node-interactions.test.ts > Ko
     typography: {},
     placeholder: {}
   },
-  instanceId: '0u72jee',
+  instanceId: 'u2otxu8',
   hasWarnedStaleDecorationRead: false,
   options: {
     element: HTMLDivElement {
@@ -7847,7 +7846,7 @@ stderr | src/features/spaces/__tests__/konva-rich-node-interactions.test.ts > Ko
     typography: {},
     placeholder: {}
   },
-  instanceId: '0u72jee',
+  instanceId: 'u2otxu8',
   hasWarnedStaleDecorationRead: false,
   options: {
     element: HTMLDivElement {
@@ -9077,7 +9076,7 @@ stderr | src/features/spaces/__tests__/konva-rich-node-interactions.test.ts > Ko
     typography: {},
     placeholder: {}
   },
-  instanceId: '0u72jee',
+  instanceId: 'u2otxu8',
   hasWarnedStaleDecorationRead: false,
   options: {
     element: HTMLDivElement {
@@ -10307,7 +10306,7 @@ stderr | src/features/spaces/__tests__/konva-rich-node-interactions.test.ts > Ko
     typography: {},
     placeholder: {}
   },
-  instanceId: '0u72jee',
+  instanceId: 'u2otxu8',
   hasWarnedStaleDecorationRead: false,
   options: {
     element: HTMLDivElement {
@@ -10698,223 +10697,222 @@ stderr | src/features/spaces/__tests__/konva-rich-node-interactions.test.ts > Ko
 [Vue warn]: Unhandled error during execution of component update 
   at <VTUROOT>
 
- ❯ src/features/spaces/__tests__/konva-rich-node-interactions.test.ts (3 tests | 1 failed) 451ms
-     × persists direct note editing and refuses editing for locked notes 395ms
-     ✓ consumes media requests and synchronizes playback state 42ms
-     ✓ surfaces background media analysis on the canvas node 11ms
- ❯ src/features/spaces/__tests__/space-session-actions.test.ts (7 tests | 5 failed) 15095ms
-     ✓ creates a valid default space and session context 16ms
-     ✓ does not reload the already active space 10ms
-     × coalesces repeated clicks while the same space is loading 28ms
-     × keeps the current canvas snapshot visible until the new Space is ready 5009ms
-     × cancels a pending switch when the user returns to the active Space 12ms
-     × reuses one session draft without persisting repeated new-Space actions 5002ms
-     × persists the draft exactly once before its first content write 5007ms
- ❯ src/features/spaces/__tests__/manifest-parser.test.ts (5 tests | 4 failed) 141ms
-     × accepts regenerated canonical citations and detached historical snapshots 81ms
-     × accepts All-Spaces threads with detached external citation snapshots 24ms
-     × rejects a canonical citation whose snapshot revision is stale 11ms
-     × rejects derivations that reference unavailable nodes 16ms
-     ✓ rejects canvas state that copies domain content into the layout document 5ms
- ❯ src/features/spaces/__tests__/selection-actions.test.ts (3 tests | 3 failed) 27ms
-     × allows a Section itself to be locked 15ms
-     × removes selected relations before nodes and undoes both in one step 4ms
-     × deletes a selected relation on its own 3ms
- ✓ src/features/spaces/__tests__/json-canvas-service.test.ts (1 test) 35ms
- ✓ src/foundation/ai/__tests__/integration-settings-schema.test.ts (8 tests) 61ms
- ✓ src/features/spaces/__tests__/package-structure-remap.test.ts (3 tests) 39ms
- ❯ src/features/spaces/__tests__/structure-contract.test.ts (8 tests | 1 failed) 99ms
-     ✓ keeps structure and local layout separate and resolves operation roots 47ms
-     ✓ derives tight local Group bounds without rotating world AABBs again 9ms
-     ✓ rejects a missing active content placement 7ms
-     ✓ rejects nested Sections 2ms
+ ❯ src/features/spaces/__tests__/konva-rich-node-interactions.test.ts (3 tests | 1 failed) 242ms
+     × persists direct note editing and refuses editing for locked notes 201ms
+     ✓ consumes media requests and synchronizes playback state 31ms
+     ✓ surfaces background media analysis on the canvas node 8ms
+ ✓ src/features/spaces/__tests__/derivation-action-catalog.test.ts (6 tests) 7ms
+ ❯ src/features/spaces/__tests__/manifest-parser.test.ts (5 tests | 4 failed) 44ms
+     × accepts regenerated canonical citations and detached historical snapshots 26ms
+     × accepts All-Spaces threads with detached external citation snapshots 6ms
+     × rejects a canonical citation whose snapshot revision is stale 3ms
+     × rejects derivations that reference unavailable nodes 4ms
+     ✓ rejects canvas state that copies domain content into the layout document 1ms
+ ❯ src/features/spaces/__tests__/selection-actions.test.ts (3 tests | 3 failed) 9ms
+     × allows a Section itself to be locked 6ms
+     × removes selected relations before nodes and undoes both in one step 1ms
+     × deletes a selected relation on its own 1ms
+ ✓ src/features/spaces/__tests__/json-canvas-service.test.ts (1 test) 19ms
+ ✓ src/foundation/ai/__tests__/integration-settings-schema.test.ts (8 tests) 32ms
+ ✓ src/features/spaces/__tests__/package-structure-remap.test.ts (3 tests) 33ms
+ ❯ src/features/spaces/__tests__/structure-contract.test.ts (8 tests | 1 failed) 59ms
+     ✓ keeps structure and local layout separate and resolves operation roots 26ms
+     ✓ derives tight local Group bounds without rotating world AABBs again 2ms
+     ✓ rejects a missing active content placement 5ms
+     ✓ rejects nested Sections 1ms
      ✓ rejects duplicate sibling orders 1ms
-     × rejects parent cycles without recursive traversal 22ms
-     ✓ rejects kind-mismatched layouts 1ms
-     ✓ rejects composed scales outside the contract even when locals are legal 3ms
- ✓ src/features/spaces/__tests__/imported-asset-payload.test.ts (8 tests) 18ms
- ❯ src/features/spaces/__tests__/canvas-movement.test.ts (8 tests | 8 failed) 30ms
-     × captures all selected Section members when s1 starts the drag 15ms
+     × rejects parent cycles without recursive traversal 16ms
+     ✓ rejects kind-mismatched layouts 4ms
+     ✓ rejects composed scales outside the contract even when locals are legal 0ms
+ ✓ src/features/spaces/__tests__/imported-asset-payload.test.ts (8 tests) 14ms
+ ❯ src/features/spaces/__tests__/canvas-movement.test.ts (8 tests | 8 failed) 20ms
+     × captures all selected Section members when s1 starts the drag 8ms
      × captures all selected Section members when s2 starts the drag 1ms
-     × copies every captured frame and retains locked descendants 2ms
-     × rejects capture rather than skipping a locked selected root 1ms
-     × applies a different offset to each whole root for alignment/distribution 1ms
-     × moves a selected child only once when its Section is also selected 3ms
-     × does not interpret resizing as a movement 4ms
-     × rejects missing descendant geometry instead of silently leaving it behind 2ms
- ❯ src/features/spaces/__tests__/canvas-gesture-camera.test.ts (4 tests | 4 failed) 54ms
-     × keeps camera autosave free of uncommitted geometry (rejected=false) 32ms
-     × keeps camera autosave free of uncommitted geometry (rejected=true) 8ms
-     × preserves camera changes while undo is committing 1ms
-     × preserves camera changes while redo is committing 6ms
- ✓ src/features/spaces/__tests__/media-import.test.ts (9 tests) 58ms
- ❯ src/foundation/i18n/__tests__/locale-completeness.test.ts (5 tests | 1 failed) 78ms
-     ✓ keeps English and Simplified Chinese keys aligned 12ms
-     ✓ defines every statically referenced translation key 18ms
-     ✓ keeps placeholders aligned between languages 14ms
-     ✓ keeps locale module paths aligned 1ms
-     × uses semantic lowerCamelCase message keys 31ms
- ❯ src/features/spaces/__tests__/canvas-movement-lifecycle.test.ts (5 tests | 5 failed) 47ms
-     × commits multiple dragged Sections without separately reparenting their members 27ms
-     × still permits an explicit content drag to leave its Section 6ms
-     × does not change membership when a resize moves a content center outside its Section 1ms
-     × does not record an empty selection or a zero-offset movement 5ms
-     × rejects a missing descendant layout before any persisted keyboard movement 1ms
- ❯ src/features/spaces/__tests__/node-content-height-batch.test.ts (2 tests | 2 failed) 59ms
-     × fits text height in both directions without creating history 40ms
-     × defers content layout while a direct resize owns the frame 16ms
- ❯ src/features/spaces/__tests__/canvas-arrangement-operation.test.ts (4 tests | 4 failed) 46ms
+     × copies every captured frame and retains locked descendants 4ms
+     × rejects capture rather than skipping a locked selected root 0ms
+     × applies a different offset to each whole root for alignment/distribution 0ms
+     × moves a selected child only once when its Section is also selected 1ms
+     × does not interpret resizing as a movement 0ms
+     × rejects missing descendant geometry instead of silently leaving it behind 0ms
+ ❯ src/features/spaces/__tests__/canvas-gesture-camera.test.ts (4 tests | 4 failed) 14ms
+     × keeps camera autosave free of uncommitted geometry (rejected=false) 7ms
+     × keeps camera autosave free of uncommitted geometry (rejected=true) 3ms
+     × preserves camera changes while undo is committing 2ms
+     × preserves camera changes while redo is committing 0ms
+ ✓ src/features/spaces/__tests__/media-import.test.ts (9 tests) 27ms
+ ❯ src/foundation/i18n/__tests__/locale-completeness.test.ts (5 tests | 1 failed) 49ms
+     ✓ keeps English and Simplified Chinese keys aligned 5ms
+     ✓ defines every statically referenced translation key 10ms
+     ✓ keeps placeholders aligned between languages 18ms
+     ✓ keeps locale module paths aligned 0ms
+     × uses semantic lowerCamelCase message keys 13ms
+ ❯ src/features/spaces/__tests__/canvas-movement-lifecycle.test.ts (5 tests | 5 failed) 9ms
+     × commits multiple dragged Sections without separately reparenting their members 4ms
+     × still permits an explicit content drag to leave its Section 1ms
+     × does not change membership when a resize moves a content center outside its Section 0ms
+     × does not record an empty selection or a zero-offset movement 0ms
+     × rejects a missing descendant layout before any persisted keyboard movement 0ms
+ ❯ src/features/spaces/__tests__/space-session-actions.test.ts (7 tests | 5 failed) 15060ms
+     ✓ creates a valid default space and session context 11ms
+     ✓ does not reload the already active space 6ms
+     × coalesces repeated clicks while the same space is loading 16ms
+     × keeps the current canvas snapshot visible until the new Space is ready 5004ms
+     × cancels a pending switch when the user returns to the active Space 12ms
+     × reuses one session draft without persisting repeated new-Space actions 5003ms
+     × persists the draft exactly once before its first content write 5001ms
+ ❯ src/features/spaces/__tests__/canvas-arrangement-operation.test.ts (4 tests | 4 failed) 47ms
      × distributes three Section roots and carries every member by its parent's delta 30ms
-     × gives ELK only operation roots and expands its resulting movement to members 7ms
-     × does not persist a partial alignment when any selected root is locked 1ms
-     × leaves the document unchanged if automatic layout computation fails 5ms
- ✓ src/features/spaces/__tests__/tiptap-outline.test.ts (3 tests) 22ms
- ✓ src/features/spaces/__tests__/konva-transform-geometry.test.ts (6 tests) 16ms
+     × gives ELK only operation roots and expands its resulting movement to members 5ms
+     × does not persist a partial alignment when any selected root is locked 0ms
+     × leaves the document unchanged if automatic layout computation fails 3ms
+ ✓ src/features/spaces/__tests__/tiptap-outline.test.ts (3 tests) 9ms
+ ❯ src/features/spaces/__tests__/node-content-height-batch.test.ts (2 tests | 2 failed) 42ms
+     × fits text height in both directions without creating history 32ms
+     × defers content layout while a direct resize owns the frame 7ms
+ ✓ src/features/spaces/__tests__/konva-transform-geometry.test.ts (6 tests) 23ms
  ❯ src/features/spaces/__tests__/konva-canvas-presentation-document.test.ts (0 test)
- ✓ src/features/spaces/__tests__/website-refresh.test.ts (2 tests) 39ms
- ❯ src/features/spaces/__tests__/canvas-section-gesture.test.ts (1 test | 1 failed) 24ms
-     × moves section members and preserves a newer viewport on undo 16ms
- ✓ src/features/spaces/__tests__/json-canvas-resource-preparation.test.ts (1 test) 15ms
- ✓ src/features/spaces/__tests__/knowledge-structure-scope.test.ts (8 tests) 47ms
- ✓ src/foundation/ai/__tests__/ai-execution.test.ts (6 tests) 24ms
- ✓ src/features/spaces/__tests__/konva-preview-scene.test.ts (1 test) 33ms
- ✓ src/features/spaces/__tests__/media-schema.test.ts (5 tests) 73ms
- ✓ src/features/spaces/__tests__/node-knowledge.test.ts (4 tests) 32ms
- ✓ src/features/spaces/__tests__/space-resource-content.test.ts (4 tests) 206ms
- ✓ src/features/spaces/__tests__/media-editing.test.ts (5 tests) 30ms
- ✓ src/features/spaces/__tests__/inspector-actions.test.ts (4 tests) 12ms
- ❯ src/features/spaces/__tests__/node.test.ts (4 tests | 1 failed) 239ms
-     ✓ keeps renderer state out of the domain node contract 9ms
-     × rejects current section geometry in domain data 76ms
-     ✓ deep-clones media knowledge for independent duplicated nodes 21ms
-     ✓ clones reactive node data into a plain persistable value 119ms
- ✓ src/features/spaces/__tests__/canvas-connector-gesture.test.ts (4 tests) 26ms
- ✓ src/features/spaces/__tests__/resource-refresh.test.ts (3 tests) 17ms
- ✓ src/features/spaces/__tests__/movement-scope.test.ts (7 tests) 32ms
- ✓ src/features/spaces/__tests__/creation-workflow-executor.test.ts (2 tests) 19ms
- ✓ src/foundation/tasks/__tests__/task-store.test.ts (5 tests) 95ms
- ❯ src/features/spaces/__tests__/canvas-gesture-update.test.ts (4 tests | 4 failed) 53ms
-     × commits frame and typography scale as one layout mutation 33ms
-     × captures absence explicitly so undo removes gesture-created appearance 13ms
-     × preserves unchanged records without inventing absent appearance fields 5ms
-     × restores absence as the exact original layout shape without mutating the source 1ms
- ✓ src/features/spaces/__tests__/canvas-editing-commands.test.ts (2 tests) 26ms
- ❯ src/features/spaces/__tests__/selection-product-state.test.ts (4 tests | 4 failed) 42ms
-     × exposes semantic product actions without duplicating engine arrangement actions 34ms
+ ✓ src/features/spaces/__tests__/website-refresh.test.ts (2 tests) 10ms
+ ❯ src/features/spaces/__tests__/canvas-section-gesture.test.ts (1 test | 1 failed) 33ms
+     × moves section members and preserves a newer viewport on undo 28ms
+ ✓ src/features/spaces/__tests__/json-canvas-resource-preparation.test.ts (1 test) 24ms
+ ✓ src/features/spaces/__tests__/knowledge-structure-scope.test.ts (8 tests) 26ms
+ ✓ src/foundation/ai/__tests__/ai-execution.test.ts (6 tests) 15ms
+ ✓ src/features/spaces/__tests__/media-schema.test.ts (5 tests) 46ms
+ ✓ src/features/spaces/__tests__/node-knowledge.test.ts (4 tests) 14ms
+ ✓ src/features/spaces/__tests__/konva-preview-scene.test.ts (1 test) 12ms
+ ✓ src/features/spaces/__tests__/space-resource-content.test.ts (4 tests) 69ms
+ ✓ src/features/spaces/__tests__/inspector-actions.test.ts (4 tests) 35ms
+ ✓ src/features/spaces/__tests__/media-editing.test.ts (5 tests) 32ms
+ ❯ src/features/spaces/__tests__/node.test.ts (4 tests | 1 failed) 195ms
+     ✓ keeps renderer state out of the domain node contract 5ms
+     × rejects current section geometry in domain data 53ms
+     ✓ deep-clones media knowledge for independent duplicated nodes 35ms
+     ✓ clones reactive node data into a plain persistable value 94ms
+ ✓ src/features/spaces/__tests__/canvas-connector-gesture.test.ts (4 tests) 17ms
+ ✓ src/features/spaces/__tests__/movement-scope.test.ts (7 tests) 14ms
+ ✓ src/features/spaces/__tests__/resource-refresh.test.ts (3 tests) 19ms
+ ✓ src/features/spaces/__tests__/creation-workflow-executor.test.ts (2 tests) 11ms
+ ✓ src/foundation/tasks/__tests__/task-store.test.ts (5 tests) 61ms
+ ✓ src/features/spaces/__tests__/canvas-editing-commands.test.ts (2 tests) 8ms
+ ❯ src/features/spaces/__tests__/canvas-gesture-update.test.ts (4 tests | 4 failed) 32ms
+     × commits frame and typography scale as one layout mutation 18ms
+     × captures absence explicitly so undo removes gesture-created appearance 1ms
+     × preserves unchanged records without inventing absent appearance fields 11ms
+     × restores absence as the exact original layout shape without mutating the source 0ms
+ ❯ src/features/spaces/__tests__/selection-product-state.test.ts (4 tests | 4 failed) 27ms
+     × exposes semantic product actions without duplicating engine arrangement actions 15ms
      × uses section context and preserves the selected lock state 1ms
-     × connects only an exact two-node semantic selection 5ms
-     × identifies managed assets as system-preview targets 1ms
- ✓ src/features/spaces/__tests__/markdown-document.test.ts (8 tests) 54ms
- ✓ src/features/spaces/enrichment/__tests__/job-scheduler.test.ts (2 tests) 72ms
- ✓ src/features/spaces/__tests__/credential.test.ts (3 tests) 49ms
- ✓ src/features/spaces/__tests__/canvas-website-preview.test.ts (3 tests) 204ms
- ❯ src/features/spaces/__tests__/clipboard-transfer.test.ts (3 tests | 2 failed) 160ms
-     × round-trips the structured HTML marker while keeping useful plain text 142ms
-     × copies reactive node data without structured-clone failures 8ms
-     ✓ rejects any clipboard payload that is not version 1 6ms
- ✓ src/features/spaces/__tests__/space-history-pending.test.ts (3 tests) 45ms
- ✓ src/features/spaces/__tests__/konva-selection-chrome.test.ts (3 tests) 27ms
- ✓ src/features/spaces/__tests__/canvas-snapping.test.ts (4 tests) 34ms
- ✓ src/features/spaces/__tests__/media-chapters.test.ts (4 tests) 16ms
- ❯ src/features/spaces/__tests__/derivation-schema.test.ts (4 tests | 2 failed) 59ms
-     × accepts complete generated video metadata 44ms
-     ✓ requires metadata for a completed knowledge video 3ms
-     ✓ rejects obsolete review metadata 3ms
-     × accepts a completed Markdown PDF export without provider metadata 4ms
- ✓ src/shell/__tests__/commands.test.ts (2 tests) 37ms
- ✓ src/features/spaces/__tests__/derivation-output-application.test.ts (2 tests) 24ms
- ✓ src/features/spaces/__tests__/canvas-drop.test.ts (2 tests) 56ms
- ✓ src/features/spaces/__tests__/caption.test.ts (4 tests) 19ms
- ❯ src/features/spaces/__tests__/konva-selection.test.ts (2 tests | 2 failed) 32ms
-     × preserves a multi-selection when an already-selected node begins a drag 24ms
-     × removes selected nodes that leave the projected scene 3ms
- ✓ src/features/settings/components/__tests__/SecretSettingsRow.test.ts (3 tests) 276ms
- ✓ src/features/spaces/__tests__/space-canvas-node-presentation.test.ts (2 tests) 12ms
- ❯ src/features/spaces/__tests__/knowledge-location.test.ts (3 tests | 1 failed) 63ms
-     ✓ formats precise source positions 15ms
-     × checks source and editor revisions against the correct authority 38ms
-     ✓ preserves explicit FTS match segments for rendering 9ms
- ❯ src/features/spaces/__tests__/konva-node-gesture-callbacks.test.ts (1 test | 1 failed) 32ms
-     × keeps event callbacks bound to their gesture controller 23ms
- ✓ src/features/spaces/__tests__/json-canvas-node-preparation.test.ts (1 test) 36ms
- ❯ src/features/spaces/__tests__/canvas-overview-geometry.test.ts (3 tests | 3 failed) 47ms
-     × fits the whole document independently of editor viewport 37ms
-     × includes rotated node corners 4ms
-     × does not depend on a mounted viewport when empty 4ms
- ✓ src/features/spaces/__tests__/website-metadata.test.ts (1 test) 162ms
- ✓ src/shared/ui/__tests__/UiButton.test.ts (4 tests) 168ms
- ✓ src/features/spaces/__tests__/relation-graph.test.ts (3 tests) 19ms
- ✓ src/foundation/ai/__tests__/structured-output.test.ts (5 tests) 40ms
- ✓ src/features/spaces/__tests__/clipboard-image-import.test.ts (2 tests) 34ms
- ✓ src/features/spaces/__tests__/test-session-context.test.ts (1 test) 19ms
- ✓ src/features/spaces/workspace/__tests__/navigation-history.test.ts (3 tests) 30ms
- ✓ src/features/spaces/__tests__/knowledge-video-inputs.test.ts (2 tests) 29ms
- ✓ src/features/spaces/__tests__/space-transition.test.ts (1 test) 17ms
- ✓ src/features/spaces/__tests__/canvas-text-transform.test.ts (4 tests) 24ms
- ✓ src/features/spaces/__tests__/canvas-arrangement.test.ts (3 tests) 29ms
- ✓ src/features/spaces/__tests__/canvas-text-commit-session.test.ts (2 tests) 22ms
- ✓ src/features/spaces/__tests__/knowledge-index-scheduler.test.ts (1 test) 24ms
- ✓ src/features/spaces/__tests__/canvas-editor-navigation.test.ts (2 tests) 44ms
- ✓ src/features/spaces/__tests__/canvas-thumbnail-file.test.ts (2 tests) 40ms
- ✓ src/foundation/context-menu/__tests__/context-menu.test.ts (4 tests) 38ms
- ✓ src/app/__tests__/workspace-session.test.ts (2 tests) 33ms
+     × connects only an exact two-node semantic selection 0ms
+     × identifies managed assets as system-preview targets 6ms
+ ✓ src/features/spaces/enrichment/__tests__/job-scheduler.test.ts (2 tests) 26ms
+ ✓ src/features/spaces/__tests__/markdown-document.test.ts (8 tests) 19ms
+ ✓ src/features/spaces/__tests__/credential.test.ts (3 tests) 27ms
+ ✓ src/features/spaces/__tests__/canvas-website-preview.test.ts (3 tests) 96ms
+ ❯ src/features/spaces/__tests__/clipboard-transfer.test.ts (3 tests | 2 failed) 81ms
+     × round-trips the structured HTML marker while keeping useful plain text 74ms
+     × copies reactive node data without structured-clone failures 4ms
+     ✓ rejects any clipboard payload that is not version 1 1ms
+ ✓ src/features/spaces/__tests__/space-history-pending.test.ts (3 tests) 46ms
+ ✓ src/features/spaces/__tests__/canvas-snapping.test.ts (4 tests) 13ms
+ ✓ src/features/spaces/__tests__/konva-selection-chrome.test.ts (3 tests) 17ms
+ ❯ src/features/spaces/__tests__/derivation-schema.test.ts (4 tests | 2 failed) 24ms
+     × accepts complete generated video metadata 18ms
+     ✓ requires metadata for a completed knowledge video 1ms
+     ✓ rejects obsolete review metadata 1ms
+     × accepts a completed Markdown PDF export without provider metadata 3ms
+ ✓ src/features/spaces/__tests__/media-chapters.test.ts (4 tests) 18ms
+ ✓ src/shell/__tests__/commands.test.ts (2 tests) 18ms
+ ✓ src/features/spaces/__tests__/derivation-output-application.test.ts (2 tests) 19ms
+ ✓ src/features/spaces/__tests__/canvas-drop.test.ts (2 tests) 18ms
+ ✓ src/features/spaces/__tests__/caption.test.ts (4 tests) 13ms
+ ❯ src/features/spaces/__tests__/konva-selection.test.ts (2 tests | 2 failed) 21ms
+     × preserves a multi-selection when an already-selected node begins a drag 13ms
+     × removes selected nodes that leave the projected scene 7ms
+ ✓ src/features/spaces/__tests__/space-canvas-node-presentation.test.ts (2 tests) 8ms
+ ✓ src/features/settings/components/__tests__/SecretSettingsRow.test.ts (3 tests) 180ms
+ ❯ src/features/spaces/__tests__/knowledge-location.test.ts (3 tests | 1 failed) 36ms
+     ✓ formats precise source positions 8ms
+     × checks source and editor revisions against the correct authority 16ms
+     ✓ preserves explicit FTS match segments for rendering 7ms
+ ❯ src/features/spaces/__tests__/konva-node-gesture-callbacks.test.ts (1 test | 1 failed) 13ms
+     × keeps event callbacks bound to their gesture controller 12ms
+ ❯ src/features/spaces/__tests__/canvas-overview-geometry.test.ts (3 tests | 3 failed) 35ms
+     × fits the whole document independently of editor viewport 21ms
+     × includes rotated node corners 11ms
+     × does not depend on a mounted viewport when empty 1ms
+ ✓ src/features/spaces/__tests__/json-canvas-node-preparation.test.ts (1 test) 17ms
+ ✓ src/features/spaces/__tests__/website-metadata.test.ts (1 test) 91ms
+ ✓ src/features/spaces/__tests__/relation-graph.test.ts (3 tests) 6ms
+ ✓ src/shared/ui/__tests__/UiButton.test.ts (4 tests) 171ms
+ ✓ src/foundation/ai/__tests__/structured-output.test.ts (5 tests) 26ms
+ ✓ src/features/spaces/__tests__/test-session-context.test.ts (1 test) 13ms
+ ✓ src/features/spaces/__tests__/clipboard-image-import.test.ts (2 tests) 14ms
+ ✓ src/features/spaces/workspace/__tests__/navigation-history.test.ts (3 tests) 14ms
+ ✓ src/features/spaces/__tests__/knowledge-video-inputs.test.ts (2 tests) 6ms
+ ✓ src/features/spaces/__tests__/canvas-text-transform.test.ts (4 tests) 16ms
+ ✓ src/features/spaces/__tests__/space-transition.test.ts (1 test) 11ms
+ ✓ src/features/spaces/__tests__/canvas-arrangement.test.ts (3 tests) 12ms
+ ✓ src/features/spaces/__tests__/canvas-text-commit-session.test.ts (2 tests) 15ms
+ ✓ src/features/spaces/__tests__/canvas-editor-navigation.test.ts (2 tests) 19ms
+ ✓ src/features/spaces/__tests__/knowledge-index-scheduler.test.ts (1 test) 23ms
+ ✓ src/features/spaces/__tests__/canvas-thumbnail-file.test.ts (2 tests) 23ms
+ ✓ src/foundation/context-menu/__tests__/context-menu.test.ts (4 tests) 14ms
+ ✓ src/features/spaces/__tests__/media-platform-url.test.ts (21 tests) 14ms
+ ✓ src/app/__tests__/workspace-session.test.ts (2 tests) 19ms
+ ✓ src/foundation/dom/__tests__/scrollable-target.test.ts (4 tests) 12ms
  ❯ src/features/spaces/__tests__/canvas-section-membership.test.ts (0 test)
- ✓ src/features/spaces/__tests__/media-platform-url.test.ts (21 tests) 24ms
- ✓ src/foundation/preferences/__tests__/preferences-schema.test.ts (4 tests) 45ms
- ✓ src/foundation/dom/__tests__/scrollable-target.test.ts (4 tests) 22ms
- ✓ src/foundation/async/__tests__/keyed-serial-queue.test.ts (2 tests) 14ms
- ✓ src/features/settings/__tests__/ai-connection-draft.test.ts (2 tests) 22ms
- ✓ src/features/spaces/__tests__/content-remap.test.ts (2 tests) 21ms
- ✓ src/features/spaces/__tests__/file-presentation.test.ts (2 tests) 23ms
- ✓ src/features/spaces/__tests__/canvas-video-caption.test.ts (1 test) 84ms
- ✓ src/shared/ui/__tests__/UiDropdownMenu.test.ts (2 tests) 478ms
- ✓ src/shared/ui/__tests__/UiProgress.test.ts (3 tests) 182ms
- ✓ src/shared/ui/__tests__/UiSearchInput.test.ts (3 tests) 150ms
- ✓ src/features/spaces/__tests__/canvas-content-layout-coordinator.test.ts (1 test) 21ms
- ✓ src/features/spaces/__tests__/json-canvas-group-background.test.ts (3 tests) 30ms
- ✓ src/foundation/ai/__tests__/agent-models.test.ts (3 tests) 22ms
- ❯ src/features/spaces/__tests__/canvas-document-rebase.test.ts (1 test | 1 failed) 17ms
-     × merges independent relation presentation changes by relation identity 14ms
- ❯ src/features/spaces/__tests__/canvas-gesture-repository.test.ts (1 test | 1 failed) 48ms
-     × constructs the strict persistence DTO without leaking gesture-only fields 45ms
- ❯ src/features/spaces/__tests__/canvas-package-codec.test.ts (1 test | 1 failed) 20ms
-     × remaps node references in the neutral document 17ms
- ✓ src/shared/ui/__tests__/UiKbd.test.ts (3 tests) 153ms
- ✓ src/features/spaces/__tests__/canvas-selection-projection.test.ts (1 test) 24ms
- ✓ src/shared/ui/__tests__/UiBadge.test.ts (3 tests) 129ms
- ✓ src/features/spaces/__tests__/preview-policy.test.ts (3 tests) 13ms
- ✓ src/shared/ui/__tests__/UiIconButton.test.ts (2 tests) 228ms
- ✓ src/features/spaces/__tests__/assistant-state.test.ts (2 tests) 10ms
- ✓ src/features/spaces/__tests__/url.test.ts (4 tests) 16ms
- ✓ src/features/spaces/__tests__/space-repository.test.ts (1 test) 31ms
- ✓ src/shared/ui/__tests__/use-kbd.test.ts (2 tests) 21ms
- ✓ src/features/spaces/__tests__/knowledge-passage.test.ts (2 tests) 56ms
- ✓ src/features/spaces/__tests__/canvas-text-selection-bar.test.ts (1 test) 129ms
- ✓ src/shared/ui/__tests__/UiNumberField.test.ts (2 tests) 168ms
- ✓ src/shared/ui/__tests__/UiSwitch.test.ts (2 tests) 139ms
- ✓ src/features/spaces/__tests__/json-canvas-relations.test.ts (1 test) 24ms
- ✓ src/shared/ui/__tests__/UiDropdownMenuItem.test.ts (1 test) 372ms
-     ✓ renders slot content and handles destructive class  358ms
- ✓ src/features/spaces/__tests__/canvas-edge-auto-pan.test.ts (3 tests) 21ms
- ✓ src/features/spaces/__tests__/knowledge-object-presentation.test.ts (2 tests) 12ms
- ✓ src/features/spaces/__tests__/text.test.ts (3 tests) 12ms
- ✓ src/features/spaces/__tests__/deferred-editor-mount.test.ts (1 test) 23ms
- ✓ src/shared/ui/__tests__/UiCheckbox.test.ts (2 tests) 209ms
- ✓ src/shared/ui/__tests__/UiDropdownMenuCheckboxItem.test.ts (1 test) 331ms
-     ✓ renders checkbox item with slot content  325ms
- ✓ src/features/spaces/__tests__/konva-viewport.test.ts (2 tests) 28ms
- ✓ src/features/spaces/__tests__/search-snippet.test.ts (2 tests) 25ms
- ✓ src/shared/ui/__tests__/UiTagsInput.test.ts (2 tests) 256ms
- ✓ src/features/spaces/__tests__/konva-viewport-culling.test.ts (1 test) 9ms
- ✓ src/shared/ui/__tests__/UiSeparator.test.ts (2 tests) 176ms
- ✓ src/features/spaces/__tests__/import-placement.test.ts (1 test) 26ms
- ✓ src/app/__tests__/runtime-diagnostics.test.ts (1 test) 14ms
- ✓ src/shared/ui/__tests__/UiPopover.test.ts (1 test) 165ms
- ✓ src/foundation/file-drop/__tests__/file-drop.test.ts (2 tests) 11ms
- ✓ src/features/spaces/__tests__/url-source-kind.test.ts (4 tests) 26ms
- ✓ src/features/spaces/__tests__/direct-media-resource.test.ts (1 test) 14ms
- ✓ src/shared/ui/__tests__/cn.test.ts (2 tests) 34ms
- ✓ src/features/spaces/__tests__/space-command-shortcuts.test.ts (1 test) 4ms
+ ✓ src/foundation/async/__tests__/keyed-serial-queue.test.ts (2 tests) 20ms
+ ✓ src/foundation/preferences/__tests__/preferences-schema.test.ts (4 tests) 20ms
+ ✓ src/features/settings/__tests__/ai-connection-draft.test.ts (2 tests) 21ms
+ ✓ src/features/spaces/__tests__/content-remap.test.ts (2 tests) 15ms
+ ✓ src/features/spaces/__tests__/file-presentation.test.ts (2 tests) 7ms
+ ✓ src/shared/ui/__tests__/UiDropdownMenu.test.ts (2 tests) 263ms
+ ✓ src/features/spaces/__tests__/canvas-video-caption.test.ts (1 test) 87ms
+ ✓ src/shared/ui/__tests__/UiProgress.test.ts (3 tests) 74ms
+ ✓ src/features/spaces/__tests__/canvas-content-layout-coordinator.test.ts (1 test) 4ms
+ ✓ src/shared/ui/__tests__/UiSearchInput.test.ts (3 tests) 161ms
+ ✓ src/features/spaces/__tests__/json-canvas-group-background.test.ts (3 tests) 6ms
+ ✓ src/foundation/ai/__tests__/agent-models.test.ts (3 tests) 20ms
+ ❯ src/features/spaces/__tests__/canvas-gesture-repository.test.ts (1 test | 1 failed) 21ms
+     × constructs the strict persistence DTO without leaking gesture-only fields 20ms
+ ❯ src/features/spaces/__tests__/canvas-document-rebase.test.ts (1 test | 1 failed) 16ms
+     × merges independent relation presentation changes by relation identity 13ms
+ ✓ src/shared/ui/__tests__/UiKbd.test.ts (3 tests) 108ms
+ ❯ src/features/spaces/__tests__/canvas-package-codec.test.ts (1 test | 1 failed) 26ms
+     × remaps node references in the neutral document 24ms
+ ✓ src/features/spaces/__tests__/preview-policy.test.ts (3 tests) 8ms
+ ✓ src/features/spaces/__tests__/canvas-selection-projection.test.ts (1 test) 9ms
+ ✓ src/shared/ui/__tests__/UiBadge.test.ts (3 tests) 82ms
+ ✓ src/features/spaces/__tests__/assistant-state.test.ts (2 tests) 8ms
+ ✓ src/shared/ui/__tests__/UiIconButton.test.ts (2 tests) 167ms
+ ✓ src/features/spaces/__tests__/url.test.ts (4 tests) 12ms
+ ✓ src/features/spaces/__tests__/space-repository.test.ts (1 test) 11ms
+ ✓ src/shared/ui/__tests__/use-kbd.test.ts (2 tests) 12ms
+ ✓ src/features/spaces/__tests__/knowledge-passage.test.ts (2 tests) 38ms
+ ✓ src/features/spaces/__tests__/canvas-text-selection-bar.test.ts (1 test) 44ms
+ ✓ src/shared/ui/__tests__/UiNumberField.test.ts (2 tests) 139ms
+ ✓ src/features/spaces/__tests__/json-canvas-relations.test.ts (1 test) 8ms
+ ✓ src/shared/ui/__tests__/UiSwitch.test.ts (2 tests) 120ms
+ ✓ src/shared/ui/__tests__/UiDropdownMenuItem.test.ts (1 test) 144ms
+ ✓ src/features/spaces/__tests__/canvas-edge-auto-pan.test.ts (3 tests) 20ms
+ ✓ src/features/spaces/__tests__/knowledge-object-presentation.test.ts (2 tests) 14ms
+ ✓ src/features/spaces/__tests__/text.test.ts (3 tests) 9ms
+ ✓ src/shared/ui/__tests__/UiCheckbox.test.ts (2 tests) 129ms
+ ✓ src/features/spaces/__tests__/deferred-editor-mount.test.ts (1 test) 7ms
+ ✓ src/shared/ui/__tests__/UiDropdownMenuCheckboxItem.test.ts (1 test) 152ms
+ ✓ src/features/spaces/__tests__/konva-viewport.test.ts (2 tests) 10ms
+ ✓ src/shared/ui/__tests__/UiTagsInput.test.ts (2 tests) 169ms
+ ✓ src/features/spaces/__tests__/search-snippet.test.ts (2 tests) 27ms
+ ✓ src/features/spaces/__tests__/konva-viewport-culling.test.ts (1 test) 7ms
+ ✓ src/shared/ui/__tests__/UiSeparator.test.ts (2 tests) 117ms
+ ✓ src/features/spaces/__tests__/import-placement.test.ts (1 test) 5ms
+ ✓ src/app/__tests__/runtime-diagnostics.test.ts (1 test) 7ms
+ ✓ src/features/spaces/__tests__/url-source-kind.test.ts (4 tests) 11ms
+ ✓ src/foundation/file-drop/__tests__/file-drop.test.ts (2 tests) 15ms
+ ✓ src/features/spaces/__tests__/direct-media-resource.test.ts (1 test) 7ms
+ ✓ src/shared/ui/__tests__/UiPopover.test.ts (1 test) 88ms
+ ✓ src/shared/ui/__tests__/cn.test.ts (2 tests) 10ms
+ ✓ src/features/spaces/__tests__/space-command-shortcuts.test.ts (1 test) 2ms
 
 ⎯⎯⎯⎯⎯⎯ Failed Suites 2 ⎯⎯⎯⎯⎯⎯⎯
 
@@ -12908,6 +12906,32 @@ Vitest caught 10 unhandled errors during the test run.
 This might cause false positive tests. Resolve unhandled errors to make sure your tests are not affected.
 
 ⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+TypeError: this.events.executeCommand is not a function
+ ❯ src/features/spaces/canvas/konva/document/canvas-document-model.ts:65:40
+     63|   executeNative(command: SpaceEditorCommand, baseDocument?: SpaceEdito…
+     64|     return this.enqueue(async () => {
+     65|       const result = await this.events.executeCommand({
+       |                                        ^
+     66|         command,
+     67|         mutationId: crypto.randomUUID(),
+ ❯ processTicksAndRejections node:internal/process/task_queues:103:5
+
+This error originated in "src/features/spaces/__tests__/canvas-gesture-session.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+TypeError: this.events.executeCommand is not a function
+ ❯ src/features/spaces/canvas/konva/document/canvas-document-model.ts:65:40
+     63|   executeNative(command: SpaceEditorCommand, baseDocument?: SpaceEdito…
+     64|     return this.enqueue(async () => {
+     65|       const result = await this.events.executeCommand({
+       |                                        ^
+     66|         command,
+     67|         mutationId: crypto.randomUUID(),
+ ❯ processTicksAndRejections node:internal/process/task_queues:103:5
+
+This error originated in "src/features/spaces/__tests__/canvas-gesture-session.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
 TypeError: Cannot read properties of undefined (reading '0')
  ❯ Proxy.render node_modules/.pnpm/vue@3.5.42_typescript@6.0.3/node_modules/vue/dist/vue.cjs.js:71:18
  ❯ renderComponentRoot node_modules/.pnpm/@vue+runtime-core@3.5.42/node_modules/@vue/runtime-core/dist/runtime-core.cjs.js:4661:16
@@ -12942,32 +12966,6 @@ This error originated in "src/features/spaces/__tests__/canvas-surface-host.test
 The latest test that might've caused the error is "rejects an in-flight commit after the active space changes". It might mean one of the following:
 - The error was thrown, while Vitest was running this test.
 - If the error occurred after the test had been completed, this was the last documented test before it was thrown.
-
-⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
-TypeError: this.events.executeCommand is not a function
- ❯ src/features/spaces/canvas/konva/document/canvas-document-model.ts:65:40
-     63|   executeNative(command: SpaceEditorCommand, baseDocument?: SpaceEdito…
-     64|     return this.enqueue(async () => {
-     65|       const result = await this.events.executeCommand({
-       |                                        ^
-     66|         command,
-     67|         mutationId: crypto.randomUUID(),
- ❯ processTicksAndRejections node:internal/process/task_queues:103:5
-
-This error originated in "src/features/spaces/__tests__/canvas-gesture-session.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
-
-⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
-TypeError: this.events.executeCommand is not a function
- ❯ src/features/spaces/canvas/konva/document/canvas-document-model.ts:65:40
-     63|   executeNative(command: SpaceEditorCommand, baseDocument?: SpaceEdito…
-     64|     return this.enqueue(async () => {
-     65|       const result = await this.events.executeCommand({
-       |                                        ^
-     66|         command,
-     67|         mutationId: crypto.randomUUID(),
- ❯ processTicksAndRejections node:internal/process/task_queues:103:5
-
-This error originated in "src/features/spaces/__tests__/canvas-gesture-session.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
 
 ⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
 TypeError: Cannot read properties of undefined (reading '0')
@@ -13098,8 +13096,8 @@ The latest test that might've caused the error is "defers content layout while a
  Test Files  37 failed | 116 passed (153)
       Tests  108 failed | 445 passed (553)
      Errors  10 errors
-   Start at  08:56:06
-   Duration  103.14s (transform 22.39s, setup 0ms, import 133.90s, tests 26.04s, environment 169.60s)
+   Start at  09:06:30
+   Duration  62.23s (transform 13.79s, setup 0ms, import 78.43s, tests 21.97s, environment 95.82s)
 
 JSON report written to /home/runner/work/_temp/organization-report/tests.json
 
