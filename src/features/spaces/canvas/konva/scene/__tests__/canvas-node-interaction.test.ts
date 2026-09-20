@@ -4,6 +4,8 @@ import { canvasNodeInteraction } from "../canvas-node-interaction";
 import { projectSelectionTransformPolicy } from "../../selection/selection-transform-policy";
 import { createSpaceNotePayload, createSpaceTextPayload } from "../../../../editor/tiptap-content";
 import type { SpaceCanvasNode } from "../../../../model/nodes/canvas-node";
+import type { SpaceNodePayload } from "../../../../model/nodes/node-payload";
+import type { CanvasNodeLayoutV1 } from "../../../contract/canvas-document";
 
 describe("canvas node interaction policy", () => {
   it("distinguishes media controls on selection from embedded editing on activation", () => {
@@ -114,7 +116,7 @@ describe("canvas node interaction policy", () => {
   });
 });
 
-function canvasNode(id: string, data: SpaceCanvasNode["data"]): SpaceCanvasNode {
+function canvasNode<T extends SpaceNodePayload>(id: string, data: T): SpaceCanvasNode<T> {
   return { id, type: data.kind, data, initialPosition: { x: 0, y: 0 } };
 }
 
@@ -122,7 +124,7 @@ function audioData() {
   return { kind: "audio", title: "Audio", assetPath: "/audio.wav", fileName: "audio.wav" } as const;
 }
 
-function layout(nodeId: string) {
+function layout(nodeId: string): CanvasNodeLayoutV1 {
   return {
     nodeId,
     frame: { x: 0, y: 0, width: 300, height: 220, rotation: 0 },

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
+import type { CanvasNodeLayoutV1 } from "../../../contract/canvas-document";
 import { revealCanvasLayouts } from "../canvas-editor-navigation";
 
 describe("canvas editor navigation", () => {
@@ -32,7 +33,7 @@ function navigationContext(
   };
 }
 
-function layout(nodeId: string, x: number, y: number) {
+function layout(nodeId: string, x: number, y: number): CanvasNodeLayoutV1 {
   return {
     nodeId,
     frame: { x, y, width: 300, height: 220, rotation: 0 },

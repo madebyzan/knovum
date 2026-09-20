@@ -90,7 +90,8 @@ export class CanvasDocumentModel {
     const nodes = [...this.document.nodes];
     for (const [nodeId, height] of heights) {
       const index = this.layoutIndices.get(nodeId);
-      const node = index === undefined ? undefined : nodes[index];
+      if (index === undefined) continue;
+      const node = nodes[index];
       const fittedHeight = Math.ceil(height);
       if (!node || fittedHeight === node.frame.height) continue;
       changed = true;

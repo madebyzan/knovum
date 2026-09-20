@@ -85,7 +85,6 @@ export function useKonvaCanvasRuntime(
     events: props.events,
     layouts: () => layouts.value,
     nodes: () => props.nodes,
-    palette: () => palette.value,
     previewFrames: preview.update,
     sectionNodeIds: () =>
       new Set(props.nodes.filter(({ data }) => data.kind === "section").map(({ id }) => id)),

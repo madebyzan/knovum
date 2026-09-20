@@ -104,7 +104,7 @@ const styleResizeAnchor: NonNullable<Konva.TransformerConfig["anchorStyleFunc"]>
   anchor.hitStrokeWidth(metrics.value.hitStrokeWidth);
   anchor.visible(isResizeAnchorVisible(anchor));
 };
-function isResizeAnchorVisible(anchor: Konva.Rect) {
+function isResizeAnchorVisible(anchor: Konva.Node) {
   const enabled = enabledResizeAnchors.value.some((name) => anchor.hasName(name));
   return enabled && (activeResizeAnchor === undefined || anchor.hasName(activeResizeAnchor));
 }
