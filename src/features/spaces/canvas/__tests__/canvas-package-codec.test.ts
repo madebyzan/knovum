@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { canvasPackageCodec } from "../canvas/canvas-package-codec";
+import { canvasPackageCodec } from "../canvas-package-codec";
 
 describe("Canvas package codec", () => {
   it("remaps node references in the neutral document", () => {

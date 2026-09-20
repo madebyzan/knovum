@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { MediaImportProgress } from "../media/import/contract";
-import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
-import type { SpaceMediaPayload } from "../model/nodes/capabilities";
-import { captureHarness, importedVideo, pendingImport, POSITION, URL } from "./capture-url-fixture";
+import type { MediaImportProgress } from "../../media/import/contract";
+import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
+import type { SpaceMediaPayload } from "../../model/nodes/capabilities";
+import { captureHarness, importedVideo, pendingImport, POSITION, URL } from "../../__tests__/capture-url-fixture";
 
 type Point = { x: number; y: number };
 type WebsiteCapture = (
@@ -33,17 +33,17 @@ const mocks = vi.hoisted(() => {
 
 vi.mock("@tauri-apps/plugin-log", () => ({ info: mocks.logInfo, warn: mocks.logWarn }));
 vi.mock("vue-sonner", () => ({ toast: { error: mocks.toastError } }));
-vi.mock("../../../foundation/i18n/i18n", () => ({
+vi.mock("../../../../foundation/i18n/i18n", () => ({
   i18n: { global: { t: (key: string) => key } },
 }));
-vi.mock("../assets/asset-operations", () => ({ removeSpaceAssets: mocks.removeSpaceAssets }));
-vi.mock("../media/import/workflow", () => ({
+vi.mock("../../assets/asset-operations", () => ({ removeSpaceAssets: mocks.removeSpaceAssets }));
+vi.mock("../../media/import/workflow", () => ({
   acquireMediaSource: mocks.acquireMediaSource,
   MediaImportCancelledError: mocks.MediaImportCancelledError,
 }));
-vi.mock("../website/capture", () => ({ addSavedWebsite: mocks.addSavedWebsite }));
+vi.mock("../../website/capture", () => ({ addSavedWebsite: mocks.addSavedWebsite }));
 
-import { captureSpaceUrl } from "../sources/capture-url";
+import { captureSpaceUrl } from "../capture-url";
 
 describe("Space URL capture", () => {
   beforeEach(() => {

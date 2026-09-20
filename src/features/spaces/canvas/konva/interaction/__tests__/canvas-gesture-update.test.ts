@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import type { CanvasDocumentV1 } from "../canvas/contract/canvas-document";
+import type { CanvasDocumentV1 } from "../../../contract/canvas-document";
 import {
   applyCanvasGestureUpdates,
   captureCanvasGestureLayouts,
-} from "../canvas/konva/document/canvas-document-mutations";
+} from "../../document/canvas-document-mutations";
 
 const document: CanvasDocumentV1 = {
   version: 1,

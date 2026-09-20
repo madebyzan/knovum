@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import type { CanvasNodeFrame } from "../canvas/contract/canvas-document";
-import { frameSnapCoordinates, nearestCanvasSnap } from "../canvas/konva/interaction/canvas-snapping";
+import type { CanvasNodeFrame } from "../../../contract/canvas-document";
+import { frameSnapCoordinates, nearestCanvasSnap } from "../canvas-snapping";
 import {
   createCanvasTranslationSnapIndex,
   snapCanvasTranslation,
-} from "../canvas/konva/interaction/canvas-translation-snapping";
+} from "../canvas-translation-snapping";
 
 describe("canvas snapping", () => {
   it("aligns node edges within a canvas-space tolerance", () => {

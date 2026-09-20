@@ -10,7 +10,7 @@ vi.mock("@tauri-apps/api/path", () => ({
   join: (...parts: string[]) => Promise.resolve(parts.join("/")),
 }));
 
-import { saveCanvasThumbnailBlob } from "../assets/canvas-thumbnail-file";
+import { saveCanvasThumbnailBlob } from "../canvas-thumbnail-file";
 
 describe("managed canvas thumbnail file", () => {
   beforeEach(() => {

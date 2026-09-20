@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { canvasNodeInteraction } from "../canvas/konva/scene/canvas-node-interaction";
-import { projectSelectionTransformPolicy } from "../canvas/konva/selection/selection-transform-policy";
-import { createSpaceNotePayload, createSpaceTextPayload } from "../editor/tiptap-content";
-import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
+import { canvasNodeInteraction } from "../canvas-node-interaction";
+import { projectSelectionTransformPolicy } from "../../selection/selection-transform-policy";
+import { createSpaceNotePayload, createSpaceTextPayload } from "../../../../editor/tiptap-content";
+import type { SpaceCanvasNode } from "../../../../model/nodes/canvas-node";
 
 describe("canvas node interaction policy", () => {
   it("distinguishes media controls on selection from embedded editing on activation", () => {

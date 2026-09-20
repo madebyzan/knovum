@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import type { CanvasNodeLayoutV1 } from "../canvas/contract/canvas-document";
-import { canvasBaseFontSize, effectiveCanvasFontSize } from "../canvas/document/canvas-typography";
-import { scaledCanvasTextAppearance } from "../canvas/konva/interaction/canvas-text-transform";
+import type { CanvasNodeLayoutV1 } from "../../../contract/canvas-document";
+import { canvasBaseFontSize, effectiveCanvasFontSize } from "../../../document/canvas-typography";
+import { scaledCanvasTextAppearance } from "../canvas-text-transform";
 
 const layout: CanvasNodeLayoutV1 = {
   nodeId: "text",
