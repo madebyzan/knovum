@@ -7,7 +7,7 @@ export const CANVAS_TYPOGRAPHY_SCALE_MAX = 4;
 const finiteNumber = z.number().finite();
 export const CANVAS_TEXT_COLORS = ["ink", "muted", "red", "blue", "green", "purple"] as const;
 export const CANVAS_FILL_PRESETS = ["yellow", "green", "blue", "pink", "gray"] as const;
-const canvasNodeAppearanceSchema = z
+export const canvasNodeAppearanceSchema = z
   .object({
     fill: z.enum(CANVAS_FILL_PRESETS).optional(),
     customFill: z
