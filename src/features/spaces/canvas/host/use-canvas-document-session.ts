@@ -1,106 +1,85 @@
 import { shallowRef } from "vue";
 
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
-import type { SpaceEditorDocument } from "../contract/canvas-document";
-import { createCanvasDocument, reconcileCanvasDocument } from "../document/canvas-document-sync";
+import { emptySpaceEditorDocument, type SpaceEditorDocument } from "../contract/canvas-document";
 import { registerSpaceSessionParticipant } from "../editor-session";
 import {
   acquireCanvasPersistenceLease,
   registerCanvasMutationTarget,
+  registerCanvasTransactionTarget,
 } from "../persistence/canvas-persistence-coordinator";
 import { canvasStateRepository } from "../persistence/canvas-state-repository";
 import { CanvasSnapshotSaveQueue } from "../persistence/snapshot-save-queue";
 import { CanvasDocumentWorkspace } from "./canvas-document-workspace";
-
-interface CanvasDocumentSessionOptions {
+interface Options {
   nodes(): readonly SpaceCanvasNode[];
   reportError(error: unknown): void;
   spaceId(): string;
 }
-
-export function useCanvasDocumentSession(options: CanvasDocumentSessionOptions) {
+export function useCanvasDocumentSession(options: Options) {
   const document = shallowRef<SpaceEditorDocument>();
   const surfaceKey = shallowRef(0);
   let workspace: CanvasDocumentWorkspace | undefined;
-  let persistenceLease: ReturnType<typeof acquireCanvasPersistenceLease> | undefined;
-  let unregisterMutationTarget: (() => void) | undefined;
+  let lease: ReturnType<typeof acquireCanvasPersistenceLease> | undefined;
+  let detachTargets: (() => void)[] = [];
   let generation = 0;
-  const detachSessionCommit = registerSpaceSessionParticipant({
+  const detachSession = registerSpaceSessionParticipant({
     phase: "persistence",
     commit: async () => {
-      try {
-        await workspace?.flush();
-      } catch (error) {
-        options.reportError(error);
-        throw error;
-      }
+      await workspace?.flush();
     },
   });
-
   function commitTransaction<T extends { document: SpaceEditorDocument; revision: number }>(
     commit: (baseRevision: number) => Promise<T>,
-  ): Promise<T> {
-    if (!workspace) return Promise.reject(new Error("Canvas persistence is not ready"));
+  ) {
+    if (!workspace) return Promise.reject(new Error("The Space editor is not ready"));
     return workspace.commit(commit);
   }
-
   async function start() {
-    const expectedGeneration = ++generation;
-    const spaceId = options.spaceId();
-    const previousWorkspace = workspace;
-    const previousLease = persistenceLease;
-    unregisterMutationTarget?.();
-    unregisterMutationTarget = undefined;
+    const expected = ++generation,
+      spaceId = options.spaceId();
+    const old = workspace;
+    detachTargets.forEach((detach) => detach());
+    detachTargets = [];
+    lease?.release(release(old));
     workspace = undefined;
     document.value = undefined;
-    previousLease?.release(release(previousWorkspace));
-    const lease = acquireCanvasPersistenceLease(spaceId);
-    persistenceLease = lease;
+    lease = acquireCanvasPersistenceLease(spaceId);
     await lease.wait();
-    if (!current()) return;
+    if (generation !== expected) return;
     const stored = await canvasStateRepository.load(spaceId);
-    if (!current()) return;
-    const initial = stored
-      ? reconcileCanvasDocument(stored.document, options.nodes())
-      : createCanvasDocument(options.nodes());
+    if (generation !== expected) return;
+    const initial = stored?.document ?? emptySpaceEditorDocument();
     const queue = new CanvasSnapshotSaveQueue({
       spaceId,
-      persistence: canvasStateRepository,
       initialState: stored,
+      persistence: canvasStateRepository,
       reportError: options.reportError,
     });
     const next = new CanvasDocumentWorkspace(initial, queue, {
-      isActive: () => current() && workspace === next,
+      isActive: () => generation === expected && workspace === next,
       publish: (value) => {
         document.value = value;
       },
     });
     workspace = next;
-    unregisterMutationTarget = registerCanvasMutationTarget(spaceId, async (mutation) => {
-      if (!current() || workspace !== next) {
-        throw new Error("Canvas mutation target is no longer active");
-      }
-      next.change(mutation(next.document));
-    });
     document.value = initial;
+    detachTargets = [
+      registerCanvasTransactionTarget(spaceId, (commit) =>
+        next.commit((revision) => commit(next.document, revision)),
+      ),
+      registerCanvasMutationTarget(spaceId, async (mutation) => {
+        await next.commit(async (baseRevision) => {
+          const updated = mutation(next.document);
+          return {
+            document: updated,
+            revision: await canvasStateRepository.save({ spaceId, baseRevision, document: updated }),
+          };
+        });
+      }),
+    ];
     surfaceKey.value += 1;
-    if (!stored || initial !== stored.document) queue.schedule(() => initial);
-
-    function current() {
-      return expectedGeneration === generation && options.spaceId() === spaceId;
-    }
   }
-
-  function synchronizeNodes(nodes: readonly SpaceCanvasNode[]) {
-    if (!workspace) return;
-    const next = reconcileCanvasDocument(workspace.document, nodes);
-    if (next !== workspace.document) workspace.change(next);
-  }
-
-  function documentChanged(next: SpaceEditorDocument) {
-    workspace?.change(next);
-  }
-
   async function release(previous: CanvasDocumentWorkspace | undefined) {
     try {
       await previous?.flush();
@@ -108,16 +87,22 @@ export function useCanvasDocumentSession(options: CanvasDocumentSessionOptions) 
       options.reportError(error);
     }
   }
-
   function dispose() {
     generation += 1;
-    unregisterMutationTarget?.();
-    unregisterMutationTarget = undefined;
-    persistenceLease?.release(release(workspace));
-    persistenceLease = undefined;
+    detachTargets.forEach((detach) => detach());
+    detachTargets = [];
+    lease?.release(release(workspace));
+    lease = undefined;
     workspace = undefined;
-    detachSessionCommit();
+    detachSession();
   }
-
-  return { commitTransaction, dispose, document, documentChanged, start, surfaceKey, synchronizeNodes };
+  return {
+    document,
+    surfaceKey,
+    start,
+    dispose,
+    commitTransaction,
+    documentChanged: (next: SpaceEditorDocument) => workspace?.change(next),
+    synchronizeNodes: (_nodes: readonly SpaceCanvasNode[]) => undefined,
+  };
 }

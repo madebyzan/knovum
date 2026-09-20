@@ -43,8 +43,12 @@ export interface CanvasDeleteSelectionRequest {
 
 export type CanvasDeleteSelectionDraft = Omit<CanvasDeleteSelectionRequest, "baseRevision">;
 
+export interface CanvasSelectionTransfer {
+  document: SpaceEditorDocument;
+  itemIds: readonly string[];
+}
 export interface CanvasCutSelectionRequest extends CanvasDeleteSelectionRequest {
-  nodePlacements: readonly CanvasNodePlacement[];
+  transfer: CanvasSelectionTransfer;
 }
 
 export type CanvasCutSelectionDraft = Omit<CanvasCutSelectionRequest, "baseRevision">;
@@ -85,14 +89,14 @@ export interface CanvasGestureCommitResult {
 
 export interface CanvasHostEvents {
   onCommitGesture(request: CanvasGestureCommitRequest): Promise<CanvasGestureCommitResult>;
-  onCopyNodes(nodes: readonly CanvasNodePlacement[]): Promise<void>;
+  onCopyNodes(transfer: CanvasSelectionTransfer): Promise<void>;
   onPrepareStructureEdit(): Promise<void>;
   onStructureToolFinished(): void;
   onCreateRelation(sourceNodeId: string, targetNodeId: string): Promise<void>;
   onCreateTextNode(kind: "note" | "text", point: CanvasPoint): Promise<string | undefined>;
   onCutSelection(request: CanvasCutSelectionRequest): Promise<CanvasDeleteSelectionResult>;
   onDeleteSelection(request: CanvasDeleteSelectionRequest): Promise<CanvasDeleteSelectionResult>;
-  onDuplicateNodes(nodes: readonly CanvasNodePlacement[]): Promise<void>;
+  onDuplicateNodes(transfer: CanvasSelectionTransfer): Promise<void>;
   onInsertText(text: string, point: CanvasPoint): Promise<void>;
   onInsertUrl(url: string, point: CanvasPoint): Promise<void>;
   onImportFiles(files: readonly CanvasFileImportRequest[]): Promise<readonly CanvasFileImportResult[]>;

@@ -15,6 +15,7 @@ import type { CanvasHostEvents, CanvasSurfaceEvents } from "../contract/canvas-e
 import type { CanvasNodeContentSlotProps } from "../contract/canvas-surface";
 import type { CanvasTool } from "../contract/canvas-tool";
 import KonvaCanvasSurface from "../konva/KonvaCanvasSurface.vue";
+import { rebaseCanvasDocument } from "./canvas-document-rebase";
 import { useCanvasDocumentSession } from "./use-canvas-document-session";
 
 const props = defineProps<{
@@ -38,9 +39,17 @@ const surface = useTemplateRef<InstanceType<typeof KonvaCanvasSurface>>("surface
 
 const surfaceEvents: CanvasSurfaceEvents = {
   ...props.events,
+  onViewportChange(viewport) {
+    if (session.document.value) session.documentChanged({ ...session.document.value, viewport });
+    props.events.onViewportChange(viewport);
+  },
   async onCommitGesture(request) {
     return session.commitTransaction((baseRevision) =>
-      props.events.onCommitGesture({ ...request, baseRevision }),
+      props.events.onCommitGesture({
+        ...request,
+        baseRevision,
+        document: rebaseCanvasDocument(request.baseDocument, session.document.value!, request.document),
+      }),
     );
   },
   async onCutSelection(request) {
@@ -53,10 +62,13 @@ const surfaceEvents: CanvasSurfaceEvents = {
       props.events.onDeleteSelection({ ...request, baseRevision }),
     );
   },
-  onHistoryTransition(nextDocument, transition) {
+  onHistoryTransition(nextDocument, transition, baseDocument) {
     return session.commitTransaction(async (baseRevision) => ({
-      ...(await transition({ baseRevision, document: nextDocument })),
-      document: nextDocument,
+      ...(await transition({
+        baseRevision,
+        document: rebaseCanvasDocument(baseDocument, session.document.value!, nextDocument),
+      })),
+      document: rebaseCanvasDocument(baseDocument, session.document.value!, nextDocument),
     }));
   },
   onReady(editor) {

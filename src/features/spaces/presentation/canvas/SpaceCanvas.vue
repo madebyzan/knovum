@@ -76,7 +76,11 @@ function attachEditor(editor: CanvasEditorPort) {
   detachEditor = registerCanvasEditor(editor);
   let previous = editor.getDocument();
   detachOverviewObserver = editor.observeDocument((document) => {
-    if (document.nodes !== previous.nodes || document.relationStyles !== previous.relationStyles)
+    if (
+      document.structure !== previous.structure ||
+      document.layout !== previous.layout ||
+      document.relationStyles !== previous.relationStyles
+    )
       store.markCanvasOverviewDirty();
     previous = document;
   });
@@ -116,6 +120,8 @@ async function activateNode(nodeId: string) {
 }
 
 const canvasEvents: CanvasHostEvents = {
+  onPrepareStructureEdit: store.ensureActiveSpacePersisted,
+  onStructureToolFinished: tools.resetTool,
   onCreateTextNode: createTextNode,
   onCommitGesture: store.commitGesture,
   onCopyNodes: selection.copyNodes,

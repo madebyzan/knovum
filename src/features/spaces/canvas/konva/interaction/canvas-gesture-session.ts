@@ -1,184 +1,159 @@
-import { isEqual } from "es-toolkit";
 import type Konva from "konva";
-import { shallowRef } from "vue";
+import { nextTick, shallowRef } from "vue";
 
-import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
-import { requireMovableScope, resolveCanvasMovementScope } from "../../../organization/movement-scope";
-import type { CanvasNodeFrameUpdate, CanvasNodeLayoutV1 } from "../../contract/canvas-document";
-import type { CanvasPersistenceHistory, CanvasSurfaceEvents } from "../../contract/canvas-editor";
+import type { StructureCommand } from "../../../organization/structure/commands/contract";
+import { planStructureCommand } from "../../../organization/structure/commands/plan";
+import { resolveSectionDrop } from "../../../organization/structure/section-drop-intent";
+import type { CanvasDisplayNode } from "../../contract/canvas-display-node";
+import type {
+  CanvasNodeFrameUpdate,
+  CanvasNodeLayoutV1,
+  SpaceEditorDocument,
+} from "../../contract/canvas-document";
+import type { CanvasSurfaceEvents } from "../../contract/canvas-editor";
 import type { CanvasPoint } from "../../contract/canvas-editor-port";
-import { expandCanvasMovement } from "../../document/canvas-movement";
+import { replayEditorTransition } from "../../document/editor-history-transition";
+import { projectEditorLayouts } from "../../document/editor-layout-projection";
 import type { CanvasDocumentModel } from "../document/canvas-document-model";
-import {
-  applyCanvasGestureUpdates,
-  captureCanvasGestureLayouts,
-} from "../document/canvas-document-mutations";
-import { sectionAssignments } from "../scene/section-membership";
+import { applyCanvasGestureUpdates } from "../document/canvas-document-mutations";
 import type { CanvasGestureUpdate } from "./canvas-gesture-update";
 import type { CanvasGestureFeedback } from "./canvas-snapping";
 import { NodeGestureController } from "./node-gesture-controller";
-
-interface CanvasGestureSessionOptions {
+interface Options {
   document: CanvasDocumentModel;
   events: CanvasSurfaceEvents;
   layouts(): readonly CanvasNodeLayoutV1[];
-  nodes(): readonly SpaceCanvasNode[];
+  nodes(): readonly CanvasDisplayNode[];
   previewFrames(updates: readonly CanvasGestureUpdate[]): void;
-  sectionNodeIds(): ReadonlySet<string>;
   selectedNodeIds(): ReadonlySet<string>;
+  setSelection(ids: readonly string[]): void;
   stage(): Konva.Stage | undefined;
   zoom(): number;
 }
-
 export type CanvasDirectManipulation = "drag" | "transform";
-type CompletedCanvasGesture = { kind: "drag"; nodeId: string } | { kind: "transform" };
-export function createCanvasGestureSession(options: CanvasGestureSessionOptions) {
-  let mutationTail = Promise.resolve();
-  let pendingMutations = 0;
-  const busy = shallowRef(false);
-  const directManipulation = shallowRef<CanvasDirectManipulation>();
-  const feedback = shallowRef<CanvasGestureFeedback>();
+export function createCanvasGestureSession(options: Options) {
+  const busy = shallowRef(false),
+    directManipulation = shallowRef<CanvasDirectManipulation>();
+  const feedback = shallowRef<CanvasGestureFeedback>(),
+    dropTarget = shallowRef<string | null>();
+  let origin: SpaceEditorDocument | undefined;
+  let ids: readonly string[] = [];
   const controller = new NodeGestureController({
-    layouts: options.layouts,
-    nodes: options.nodes,
-    previewFrames: options.previewFrames,
-    selectedNodeIds: options.selectedNodeIds,
-    stage: options.stage,
-    updateFeedback: (next) => (feedback.value = next),
-    zoom: options.zoom,
+    ...options,
+    document: () => options.document.document,
+    previewFrames: preview,
+    updateFeedback: (value) => {
+      feedback.value = value;
+    },
   });
-
   function beginDirectManipulation(kind: CanvasDirectManipulation) {
+    origin = options.document.document;
+    ids = [...options.selectedNodeIds()];
     directManipulation.value = kind;
     if (kind === "transform") controller.beginTransform();
   }
-  async function finish(gesture: CompletedCanvasGesture) {
-    const { kind } = gesture;
-    try {
-      const updates =
-        gesture.kind === "drag" ? await controller.endDrag(gesture.nodeId) : await controller.endTransform();
-      await enqueue(() => commit(updates, kind));
-    } catch (error) {
-      finishDirectManipulation(kind);
-      throw error;
-    }
+  function preview(updates: readonly CanvasGestureUpdate[]) {
+    options.previewFrames(updates);
+    if (!origin || !ids.length || directManipulation.value !== "drag") return;
+    const point = options.stage()?.getRelativePointerPosition();
+    if (point) dropTarget.value = resolveSectionDrop(origin, ids, point, dropTarget.value, options.zoom());
   }
-
-  function nudge(offset: CanvasPoint) {
-    const targetNodeIds = new Set(options.selectedNodeIds());
-    return enqueue(() => commitNudge(offset, targetNodeIds));
+  async function finish(gesture: { kind: "drag"; nodeId: string } | { kind: "transform" }) {
+    const before = origin;
+    if (!before) return;
+    const selected = ids;
+    const target = dropTarget.value;
+    const updates = gesture.kind === "drag" ? controller.endDrag(gesture.nodeId) : controller.endTransform();
+    await tracked(async () => {
+      try {
+        let after: SpaceEditorDocument;
+        if (gesture.kind === "drag") {
+          const start = projectEditorLayouts(before).find(
+            (layout) => layout.nodeId === gesture.nodeId,
+          )?.frame;
+          const frame = updates.find((update) => update.nodeId === gesture.nodeId)?.frame;
+          if (!start || !frame) return;
+          const delta = { x: frame.x - start.x, y: frame.y - start.y };
+          const command: StructureCommand =
+            target === undefined
+              ? { kind: "move-items", ids: [...selected], delta }
+              : { kind: "drop-items", ids: [...selected], parentId: target, delta };
+          after = { ...before, ...planStructureCommand(before, command).after };
+        } else after = applyCanvasGestureUpdates(before, updates);
+        await options.document.mutate((current) => replayEditorTransition(current, before, after));
+      } finally {
+        await nextTick();
+        controller.restoreFrames(options.layouts());
+        origin = undefined;
+        ids = [];
+        dropTarget.value = undefined;
+        directManipulation.value = undefined;
+        feedback.value = undefined;
+        options.previewFrames([]);
+      }
+    });
   }
-
-  function runFrameMutation(
+  async function runStructureCommand(command: StructureCommand) {
+    return tracked(async () => {
+      const selection = await options.document.execute(command, [...options.selectedNodeIds()]);
+      await nextTick();
+      options.setSelection(selection);
+    });
+  }
+  async function runFrameMutation(
     calculate: () => readonly CanvasNodeFrameUpdate[] | Promise<readonly CanvasNodeFrameUpdate[]>,
   ) {
-    return enqueue(async () => commit(await calculate()));
-  }
-
-  async function commitNudge(offset: CanvasPoint, targetNodeIds: ReadonlySet<string>) {
-    const scope = requireMovableScope(resolveCanvasMovementScope(options.nodes(), targetNodeIds));
-    const layouts = options.layouts();
-    const byId = new Map(layouts.map((layout) => [layout.nodeId, layout]));
-    const roots = [...scope.rootIds].map((nodeId) => {
-      const layout = byId.get(nodeId);
-      if (!layout) throw new Error(`The movement root has no layout: ${nodeId}`);
-      const frame = layout.frame;
-      return { nodeId, frame: { ...frame, x: frame.x + offset.x, y: frame.y + offset.y } };
-    });
-    const updates = expandCanvasMovement(options.nodes(), layouts, roots);
-    await commit(updates);
-  }
-
-  async function commit(updates: readonly CanvasGestureUpdate[], manipulation?: CanvasDirectManipulation) {
-    if (!updates.length) {
-      options.previewFrames([]);
-      finishDirectManipulation(manipulation);
-      return;
-    }
     const before = options.document.document;
-    const after = applyCanvasGestureUpdates(before, updates);
-    if (isEqual(before, after)) {
-      options.previewFrames([]);
-      finishDirectManipulation(manipulation);
-      return;
+    const updates = await calculate();
+    const layouts = new Map(projectEditorLayouts(before).map((layout) => [layout.nodeId, layout.frame]));
+    let after = before;
+    for (const update of updates) {
+      const frame = layouts.get(update.nodeId);
+      if (!frame) throw new Error("Arrangement target disappeared");
+      after = {
+        ...after,
+        ...planStructureCommand(after, {
+          kind: "move-items",
+          ids: [update.nodeId],
+          delta: { x: update.frame.x - frame.x, y: update.frame.y - frame.y },
+        }).after,
+      };
     }
-    const assignments =
-      manipulation === "drag"
-        ? sectionAssignments(
-            [
-              ...requireMovableScope(
-                resolveCanvasMovementScope(options.nodes(), new Set(updates.map(({ nodeId }) => nodeId))),
-              ).rootIds,
-            ],
-            after.nodes,
-            options.sectionNodeIds(),
-            options.nodes(),
-          )
-        : [];
-    const beforeFrames = captureCanvasGestureLayouts(before, updates);
-    options.previewFrames(updates);
-    try {
-      const committed = await options.events.onCommitGesture({ assignments, document: after });
-      options.document.replace({ ...committed.document, viewport: options.document.document.viewport });
-      const afterFrames = captureCanvasGestureLayouts(committed.document, updates);
-      controller.restoreFrames(afterFrames);
-      options.events.onHistoryEntry({
-        undo: () => replay(beforeFrames, committed.history.undo),
-        redo: () => replay(afterFrames, committed.history.redo),
-      });
-    } catch (error) {
-      controller.restoreFrames(captureCanvasGestureLayouts(options.document.document, updates));
-      throw error;
-    } finally {
-      options.previewFrames([]);
-      finishDirectManipulation(manipulation);
-    }
+    await tracked(() => options.document.mutate((current) => replayEditorTransition(current, before, after)));
   }
-
-  function finishDirectManipulation(kind?: CanvasDirectManipulation) {
-    if (directManipulation.value === kind) directManipulation.value = undefined;
-  }
-
   function cancelActiveGesture() {
     const cancelled = controller.cancelActiveGesture();
-    directManipulation.value = undefined;
+    if (!busy.value) {
+      origin = undefined;
+      ids = [];
+      dropTarget.value = undefined;
+      directManipulation.value = undefined;
+    }
     return cancelled;
   }
-
-  function enqueue<T>(mutation: () => Promise<T>) {
-    pendingMutations += 1;
+  async function tracked(work: () => Promise<void>) {
     busy.value = true;
-    if (pendingMutations === 1) options.events.onMutationPendingChange(true);
-    const result = mutationTail.then(mutation);
-    mutationTail = result.then(
-      () => undefined,
-      () => undefined,
-    );
-    return result.finally(() => {
-      pendingMutations -= 1;
-      busy.value = pendingMutations > 0;
-      if (pendingMutations === 0) options.events.onMutationPendingChange(false);
-    });
+    options.events.onMutationPendingChange(true);
+    try {
+      await work();
+    } finally {
+      busy.value = false;
+      options.events.onMutationPendingChange(false);
+    }
   }
-
-  async function replay(
-    updates: readonly CanvasGestureUpdate[],
-    transition: CanvasPersistenceHistory["undo"],
-  ) {
-    const document = applyCanvasGestureUpdates(options.document.document, updates);
-    const result = await options.events.onHistoryTransition(document, transition);
-    options.document.replace({ ...result.document, viewport: options.document.document.viewport });
-  }
-
+  const nudge = (delta: CanvasPoint) =>
+    runStructureCommand({ kind: "move-items", ids: [...options.selectedNodeIds()], delta });
   return {
     busy,
-    beginDirectManipulation,
     controller,
     directManipulation,
     feedback,
+    dropTarget,
+    beginDirectManipulation,
     finish,
-    nudge,
+    runStructureCommand,
     runFrameMutation,
     cancelActiveGesture,
+    nudge,
   };
 }

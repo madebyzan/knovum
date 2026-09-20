@@ -63,3 +63,33 @@ async function persistMutation(spaceId: string, mutation: CanvasDocumentMutation
   if (document === state.document) return;
   await canvasStateRepository.save({ spaceId, baseRevision: state.revision, document });
 }
+
+export interface EditorTransactionTarget {
+  <T extends { document: SpaceEditorDocument; revision: number }>(
+    commit: (document: SpaceEditorDocument, revision: number) => Promise<T>,
+  ): Promise<T>;
+}
+const transactionTargets = new Map<string, EditorTransactionTarget>();
+export function registerCanvasTransactionTarget(spaceId: string, target: EditorTransactionTarget) {
+  if (transactionTargets.has(spaceId))
+    throw new Error(`An editor transaction target already exists for ${spaceId}`);
+  transactionTargets.set(spaceId, target);
+  return () => {
+    if (transactionTargets.get(spaceId) === target) transactionTargets.delete(spaceId);
+  };
+}
+export async function transactSpaceEditor<T extends { document: SpaceEditorDocument; revision: number }>(
+  spaceId: string,
+  commit: (document: SpaceEditorDocument, revision: number) => Promise<T>,
+): Promise<T> {
+  const active = transactionTargets.get(spaceId);
+  if (active) return active(commit);
+  const lease = acquireCanvasPersistenceLease(spaceId);
+  await lease.wait();
+  const operation = (async () => {
+    const stored = await canvasStateRepository.load(spaceId);
+    return commit(stored?.document ?? createCanvasDocument([]), stored?.revision ?? 0);
+  })();
+  lease.release(operation);
+  return operation;
+}

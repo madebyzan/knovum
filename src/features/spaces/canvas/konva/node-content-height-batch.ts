@@ -38,7 +38,7 @@ export function createNodeContentHeightBatch(
         !node ||
         !layout ||
         !spaceNodeUsesContentFitHeight(node.data) ||
-        layout.frame.width !== measurement.width ||
+        Math.abs(layout.frame.width / (layout.contentScale ?? 1) - measurement.width) > 0.01 ||
         (layout.appearance?.typographyScale ?? 1) !== measurement.typographyScale
       ) {
         continue;
