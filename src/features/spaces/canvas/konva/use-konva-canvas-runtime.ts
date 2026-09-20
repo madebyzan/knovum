@@ -30,10 +30,11 @@ export function useKonvaCanvasRuntime(props: CanvasSurfaceProps) {
   const stageComponent = useTemplateRef<VueKonvaRef<Konva.Stage>>("stage");
   const stage = shallowRef<Konva.Stage>();
   const model = new CanvasDocumentModel(props.document, {
-    commitDocument: async (document, before) => {
+    executeCommand: async (request) => {
       await props.events.onPrepareStructureEdit();
-      return props.events.onCommitGesture({ document, baseDocument: before });
+      return props.events.onExecuteSpaceEdit(request);
     },
+    replayCommand: props.events.onReplaySpaceEdit,
     reportError: props.events.onError,
     historyEntry: props.events.onHistoryEntry,
     viewportChanged: props.events.onViewportChange,

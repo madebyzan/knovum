@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { isEqual } from "es-toolkit";
 import { onBeforeUnmount, onMounted, useTemplateRef, watch } from "vue";
 
 import type { CanvasExchangePort } from "../../canvas-exchange/canvas-exchange-port";
@@ -39,6 +40,28 @@ const surface = useTemplateRef<InstanceType<typeof KonvaCanvasSurface>>("surface
 
 const surfaceEvents: CanvasSurfaceEvents = {
   ...props.events,
+  onExecuteSpaceEdit(request) {
+    return session.commitTransaction((baseRevision) => {
+      const current = session.document.value!;
+      if (
+        request.command.kind !== "measure-text" &&
+        (!isEqual(request.baseDocument.structure, current.structure) ||
+          !isEqual(request.baseDocument.layout, current.layout) ||
+          !isEqual(request.baseDocument.relationStyles, current.relationStyles))
+      )
+        throw new Error("The Space changed during this edit. Please retry the operation.");
+      return props.events.onExecuteSpaceEdit({
+        mutationId: request.mutationId,
+        command: request.command,
+        baseRevision,
+      });
+    });
+  },
+  onReplaySpaceEdit(request) {
+    return session.commitTransaction((baseRevision) =>
+      props.events.onReplaySpaceEdit({ ...request, baseRevision }),
+    );
+  },
   onViewportChange(viewport) {
     if (session.document.value) session.documentChanged({ ...session.document.value, viewport });
     props.events.onViewportChange(viewport);

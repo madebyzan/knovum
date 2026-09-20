@@ -6,6 +6,13 @@ import type {
   CanvasSelectionSnapshot,
   CanvasViewport,
 } from "./canvas-editor-port";
+import type {
+  ExecuteSpaceEditRequest,
+  ExecuteSpaceEditDraft,
+  ReplaySpaceEditRequest,
+  ReplaySpaceEditDraft,
+} from "./editor-command";
+import type { SpaceEditResult } from "./editor-result";
 
 export type {
   CanvasEditorPort,
@@ -86,6 +93,8 @@ export interface CanvasGestureCommitResult {
 }
 
 export interface CanvasHostEvents {
+  onExecuteSpaceEdit(request: ExecuteSpaceEditRequest): Promise<SpaceEditResult>;
+  onReplaySpaceEdit(request: ReplaySpaceEditRequest): Promise<SpaceEditResult>;
   onCommitGesture(request: CanvasGestureCommitRequest): Promise<CanvasGestureCommitResult>;
   onCopyNodes(transfer: CanvasSelectionTransfer): Promise<void>;
   onPrepareStructureEdit(): Promise<void>;
@@ -112,8 +121,10 @@ export interface CanvasHostEvents {
 
 export interface CanvasSurfaceEvents extends Omit<
   CanvasHostEvents,
-  "onCommitGesture" | "onCutSelection" | "onDeleteSelection"
+  "onCommitGesture" | "onCutSelection" | "onDeleteSelection" | "onExecuteSpaceEdit" | "onReplaySpaceEdit"
 > {
+  onExecuteSpaceEdit(request: ExecuteSpaceEditDraft): Promise<SpaceEditResult>;
+  onReplaySpaceEdit(request: ReplaySpaceEditDraft): Promise<SpaceEditResult>;
   onCommitGesture(request: CanvasGestureCommitDraft): Promise<CanvasGestureCommitResult>;
   onCutSelection(request: CanvasCutSelectionDraft): Promise<CanvasDeleteSelectionResult>;
   onDeleteSelection(request: CanvasDeleteSelectionDraft): Promise<CanvasDeleteSelectionResult>;

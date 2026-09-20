@@ -2,7 +2,6 @@ import type Konva from "konva";
 import { nextTick, shallowRef } from "vue";
 
 import type { StructureCommand } from "../../../organization/structure/commands/contract";
-import { planStructureCommand } from "../../../organization/structure/commands/plan";
 import { resolveSectionDrop } from "../../../organization/structure/section-drop-intent";
 import type { CanvasDisplayNode } from "../../contract/canvas-display-node";
 import type {
@@ -12,10 +11,8 @@ import type {
 } from "../../contract/canvas-document";
 import type { CanvasSurfaceEvents } from "../../contract/canvas-editor";
 import type { CanvasPoint } from "../../contract/canvas-editor-port";
-import { replayEditorTransition } from "../../document/editor-history-transition";
 import { projectEditorLayouts } from "../../document/editor-layout-projection";
 import type { CanvasDocumentModel } from "../document/canvas-document-model";
-import { applyCanvasGestureUpdates } from "../document/canvas-document-mutations";
 import type { CanvasGestureUpdate } from "./canvas-gesture-update";
 import type { CanvasGestureFeedback } from "./canvas-snapping";
 import { NodeGestureController } from "./node-gesture-controller";
@@ -66,7 +63,6 @@ export function createCanvasGestureSession(options: Options) {
     const updates = gesture.kind === "drag" ? controller.endDrag(gesture.nodeId) : controller.endTransform();
     await tracked(async () => {
       try {
-        let after: SpaceEditorDocument;
         if (gesture.kind === "drag") {
           const start = projectEditorLayouts(before).find(
             (layout) => layout.nodeId === gesture.nodeId,
@@ -78,9 +74,23 @@ export function createCanvasGestureSession(options: Options) {
             target === undefined
               ? { kind: "move-items", ids: [...selected], delta }
               : { kind: "drop-items", ids: [...selected], parentId: target, delta };
-          after = { ...before, ...planStructureCommand(before, command).after };
-        } else after = applyCanvasGestureUpdates(before, updates);
-        await options.document.mutate((current) => replayEditorTransition(current, before, after));
+          await options.document.executeNative({ kind: "structure", command, selection: selected }, before);
+        } else {
+          await options.document.executeNative(
+            {
+              kind: "transform-frames",
+              updates: updates.map((update) => ({
+                nodeId: update.nodeId,
+                frame: update.frame,
+                ...(update.sizeAuthority ? { sizeAuthority: update.sizeAuthority } : {}),
+                ...(update.appearance?.typographyScale !== undefined
+                  ? { typographyScale: update.appearance.typographyScale }
+                  : {}),
+              })),
+            },
+            before,
+          );
+        }
       } finally {
         await nextTick();
         controller.restoreFrames(options.layouts());
@@ -105,22 +115,11 @@ export function createCanvasGestureSession(options: Options) {
   ) {
     const before = options.document.document;
     const updates = await calculate();
-    const layouts = new Map(projectEditorLayouts(before).map((layout) => [layout.nodeId, layout.frame]));
-    let after = before;
-    for (const update of updates) {
-      const frame = layouts.get(update.nodeId);
-      if (!frame) throw new Error("Arrangement target disappeared");
-      after = {
-        ...after,
-        ...planStructureCommand(after, {
-          kind: "move-items",
-          ids: [update.nodeId],
-          delta: { x: update.frame.x - frame.x, y: update.frame.y - frame.y },
-        }).after,
-      };
-    }
-    await tracked(() => options.document.mutate((current) => replayEditorTransition(current, before, after)));
+    await tracked(async () => {
+      await options.document.executeNative({ kind: "arrange-frames", updates }, before);
+    });
   }
+
   function cancelActiveGesture() {
     const cancelled = controller.cancelActiveGesture();
     if (!busy.value) {

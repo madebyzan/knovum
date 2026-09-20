@@ -1,36 +1,30 @@
-import { isEqual } from "es-toolkit";
 import { shallowRef, type ShallowRef } from "vue";
 
 import type { StructureCommand } from "../../../organization/structure/commands/contract";
-import { reorderStructureItems } from "../../../organization/structure/commands/layer-order";
-import { planStructureCommand } from "../../../organization/structure/commands/plan";
 import type {
   CanvasNodeAppearance,
   CanvasRelationColor,
   SpaceEditorDocument,
 } from "../../contract/canvas-document";
-import { parseSpaceEditorDocument } from "../../contract/canvas-document";
+import type { CanvasHistoryEntry, CanvasLayerMove, CanvasViewport } from "../../contract/canvas-editor";
 import type {
-  CanvasGestureCommitResult,
-  CanvasHistoryEntry,
-  CanvasLayerMove,
-  CanvasViewport,
-} from "../../contract/canvas-editor";
-import { setEditorAppearance, setEditorRelationColor } from "../../document/editor-appearance";
-import { replayEditorTransition } from "../../document/editor-history-transition";
+  ExecuteSpaceEditDraft,
+  ReplaySpaceEditDraft,
+  SpaceEditorCommand,
+  EditorTextMeasurement,
+} from "../../contract/editor-command";
+import type { SpaceEditResult } from "../../contract/editor-result";
 import { projectEditorLayouts } from "../../document/editor-layout-projection";
 import { sameCanvasViewport } from "./canvas-document-mutations";
 
 interface CanvasDocumentModelEvents {
-  commitDocument(
-    document: SpaceEditorDocument,
-    before: SpaceEditorDocument,
-  ): Promise<CanvasGestureCommitResult>;
+  executeCommand(request: ExecuteSpaceEditDraft): Promise<SpaceEditResult>;
+  replayCommand(request: ReplaySpaceEditDraft): Promise<SpaceEditResult>;
   viewportChanged(viewport: CanvasViewport): void;
   historyEntry(entry: CanvasHistoryEntry): void;
   reportError(error: unknown): void;
 }
-/** Committed application state only. Gesture previews and the camera are independent. */
+/** A committed renderer projection. Rust owns edit execution and reversible receipts. */
 export class CanvasDocumentModel {
   private readonly current: ShallowRef<SpaceEditorDocument>;
   private readonly sceneCurrent: ShallowRef<SpaceEditorDocument>;
@@ -65,71 +59,46 @@ export class CanvasDocumentModel {
   async flush() {
     await Promise.all([...this.pending]);
   }
-  mutate(calculate: (document: SpaceEditorDocument) => SpaceEditorDocument, record = true): Promise<void> {
-    const operation = this.tail.then(async () => {
-      const before = this.document;
-      const after = parseSpaceEditorDocument(calculate(before));
-      if (
-        isEqual(before.structure, after.structure) &&
-        isEqual(before.layout, after.layout) &&
-        isEqual(before.relationStyles, after.relationStyles)
-      )
-        return;
-      const result = await this.events.commitDocument(after, before);
-      this.assign({ ...result.document, viewport: this.document.viewport });
-      if (record)
+
+  executeNative(command: SpaceEditorCommand, baseDocument?: SpaceEditorDocument, record = true) {
+    return this.enqueue(async () => {
+      const result = await this.events.executeCommand({
+        command,
+        mutationId: crypto.randomUUID(),
+        baseDocument: baseDocument ?? this.document,
+      });
+      this.adopt(result);
+      const receiptId = result.historyReceiptId;
+      if (record && receiptId)
         this.events.historyEntry({
-          undo: () => this.mutate((current) => replayEditorTransition(current, after, before), false),
-          redo: () => this.mutate((current) => replayEditorTransition(current, before, after), false),
+          undo: () => this.replay(receiptId, "undo"),
+          redo: () => this.replay(receiptId, "redo"),
         });
+      return result;
     });
-    this.pending.add(operation);
-    this.tail = operation.then(
-      () => undefined,
-      () => undefined,
-    );
-    void operation.then(
-      () => this.pending.delete(operation),
-      () => this.pending.delete(operation),
-    );
-    return operation;
   }
-  async execute(command: StructureCommand, selection: readonly string[] = []) {
-    let selected = selection;
-    await this.mutate((document) => {
-      const plan = planStructureCommand(document, command, selection);
-      if (plan.effects.removedContentNodeIds.length || plan.effects.contentClones.length)
-        throw new Error("Content lifecycle changes require a Space content transaction");
-      selected = plan.selection;
-      return { ...document, ...plan.after };
+  async execute(command: StructureCommand, selection: readonly string[] = [], record = true) {
+    return (await this.executeNative({ kind: "structure", command, selection }, undefined, record)).selection;
+  }
+  async moveNodes(ids: ReadonlySet<string>, mode: CanvasLayerMove) {
+    await this.executeNative({ kind: "move-layer", ids: [...ids], mode });
+  }
+  async setRelationColor(relationId: string, color: CanvasRelationColor) {
+    await this.executeNative({
+      kind: "set-relation-color",
+      relationId,
+      color: color === "neutral" ? null : color,
     });
-    return selected;
   }
-  moveNodes(ids: ReadonlySet<string>, mode: CanvasLayerMove) {
-    return this.mutate((document) => reorderStructureItems(document, [...ids], mode));
+  async setNodeAppearance(itemId: string, patch: Partial<CanvasNodeAppearance>) {
+    const changes = Object.fromEntries(Object.entries(patch).map(([field, value]) => [field, value ?? null]));
+    await this.executeNative({ kind: "set-appearance", itemId, changes });
   }
-  setRelationColor(id: string, color: CanvasRelationColor) {
-    return this.mutate((document) => setEditorRelationColor(document, id, color));
-  }
-  setNodeAppearance(id: string, patch: Partial<CanvasNodeAppearance>) {
-    return this.mutate((document) => setEditorAppearance(document, id, patch));
-  }
-  fitNodeHeights(heights: ReadonlyMap<string, number>) {
-    return this.mutate(
-      (document) => ({
-        ...document,
-        layout: {
-          version: 1,
-          items: document.layout.items.map((layout) => {
-            const height = heights.get(layout.itemId);
-            return layout.kind === "content" && height !== undefined
-              ? { ...layout, size: { ...layout.size, height: Math.ceil(height) } }
-              : layout;
-          }),
-        },
-      }),
-      false,
-    ).catch(this.events.reportError);
+  fitNodeHeights(measurements: readonly EditorTextMeasurement[]) {
+    if (!measurements.length) return Promise.resolve();
+    return this.executeNative({ kind: "measure-text", measurements }, undefined, false)
+      .then(() => undefined)
+      .catch(this.events.reportError);
   }
   setViewport(viewport: CanvasViewport) {
     if (sameCanvasViewport(this.document.viewport, viewport)) return;
@@ -142,6 +111,27 @@ export class CanvasDocumentModel {
     return () => {
       this.observers.delete(observer);
     };
+  }
+  private replay(receiptId: string, direction: "undo" | "redo") {
+    return this.enqueue(async () => {
+      this.adopt(await this.events.replayCommand({ receiptId, direction, mutationId: crypto.randomUUID() }));
+    });
+  }
+  private adopt(result: SpaceEditResult) {
+    this.assign({ ...result.document, viewport: this.document.viewport });
+  }
+  private enqueue<T>(operation: () => Promise<T>): Promise<T> {
+    const pending = this.tail.then(operation);
+    this.pending.add(pending);
+    this.tail = pending.then(
+      () => undefined,
+      () => undefined,
+    );
+    void pending.then(
+      () => this.pending.delete(pending),
+      () => this.pending.delete(pending),
+    );
+    return pending;
   }
   private assign(document: SpaceEditorDocument) {
     const previous = this.document;

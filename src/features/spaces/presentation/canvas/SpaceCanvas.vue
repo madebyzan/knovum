@@ -120,6 +120,8 @@ async function activateNode(nodeId: string) {
 }
 
 const canvasEvents: CanvasHostEvents = {
+  onExecuteSpaceEdit: store.executeEditorCommand,
+  onReplaySpaceEdit: store.replayEditorCommand,
   onPrepareStructureEdit: store.ensureActiveSpacePersisted,
   onStructureToolFinished: tools.resetTool,
   onCreateTextNode: createTextNode,

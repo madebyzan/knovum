@@ -1,5 +1,7 @@
+import { renderRevision } from "../../knowledge/model/revision";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { CanvasContentHeightMeasurement } from "../contract/canvas-editor-port";
+import type { EditorTextMeasurement } from "../contract/editor-command";
 import { spaceNodeMinimumContentHeight, spaceNodeUsesContentFitHeight } from "../node-size";
 import type { CanvasDocumentModel } from "./document/canvas-document-model";
 
@@ -30,7 +32,7 @@ export function createNodeContentHeightBatch(
   function flush() {
     queued = false;
     if (paused) return false;
-    const fitted = new Map<string, number>();
+    const fitted: EditorTextMeasurement[] = [];
     for (const [id, measurement] of measurements) {
       const node = nodeById(id);
       const layout = model.layout(id);
@@ -43,10 +45,16 @@ export function createNodeContentHeightBatch(
       ) {
         continue;
       }
-      fitted.set(
-        id,
-        Math.max(spaceNodeMinimumContentHeight(node.data, measurement.typographyScale), measurement.height),
-      );
+      fitted.push({
+        itemId: id,
+        width: measurement.width,
+        typographyScale: measurement.typographyScale,
+        height: Math.max(
+          spaceNodeMinimumContentHeight(node.data, measurement.typographyScale),
+          measurement.height,
+        ),
+        contentRevision: renderRevision(node.data),
+      });
     }
     measurements.clear();
     model.fitNodeHeights(fitted);

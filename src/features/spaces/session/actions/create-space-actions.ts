@@ -8,6 +8,7 @@ import type { SpaceSessionContext } from "../../workspace/space-session-actions"
 import type { SpaceState } from "../session-state";
 import { assembleSpaceActions } from "./assemble-space-actions";
 import { createCanvasGestureActions } from "./canvas-gesture-actions";
+import { createEditorCommandActions } from "./editor-command-actions";
 import { createJsonCanvasImportActions } from "./json-canvas-import-actions";
 import { createSpaceNodeLifecycleActions } from "./node-lifecycle-actions";
 import { createSpaceMutations } from "./node-mutations";
@@ -84,6 +85,7 @@ export function createSpaceActions(state: SpaceState, placement: SpacePlacement)
     ensureActiveSpacePersisted: () => materializeActiveSpace(spaceContext),
     ...canvasImport,
     ...createCanvasGestureActions(state),
+    ...createEditorCommandActions(state),
   };
 }
 
