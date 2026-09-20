@@ -18,6 +18,7 @@ import {
 } from "./canvas-session-persistence";
 
 interface CanvasDocumentSessionOptions {
+  isDraft(): boolean;
   nodes(): readonly SpaceCanvasNode[];
   reportError(error: unknown): void;
   spaceId(): string;
@@ -86,7 +87,7 @@ export function useCanvasDocumentSession(options: CanvasDocumentSessionOptions) 
         if (isCurrentCanvasSession(expectedSession, currentSessionIdentity()) && pendingDocument) {
           const pending = pendingDocument;
           pendingDocument = undefined;
-          saveQueue?.schedule(() => pending);
+          if (!options.isDraft()) saveQueue?.schedule(() => pending);
         }
         return undefined;
       },
@@ -134,7 +135,7 @@ export function useCanvasDocumentSession(options: CanvasDocumentSessionOptions) 
     });
     document.value = initial;
     surfaceKey.value += 1;
-    if (!stored || initial !== stored.document) saveQueue.schedule(() => initial);
+    if (!options.isDraft() && (!stored || initial !== stored.document)) saveQueue.schedule(() => initial);
   }
 
   function synchronizeNodes(nodes: readonly SpaceCanvasNode[]) {
@@ -153,7 +154,8 @@ export function useCanvasDocumentSession(options: CanvasDocumentSessionOptions) 
       pendingDocument = next;
       return;
     }
-    saveQueue?.schedule(() => next);
+    // Draft Spaces have no database row yet; their viewport stays in memory until materialization.
+    if (!options.isDraft()) saveQueue?.schedule(() => next);
   }
 
   function dispose() {

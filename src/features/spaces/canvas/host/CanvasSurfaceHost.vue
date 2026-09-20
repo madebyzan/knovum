@@ -18,6 +18,7 @@ import KonvaCanvasSurface from "../konva/KonvaCanvasSurface.vue";
 import { useCanvasDocumentSession } from "./use-canvas-document-session";
 
 const props = defineProps<{
+  draft?: boolean;
   events: CanvasHostEvents;
   importJsonCanvas(request: CanvasJsonImportRequest): Promise<CanvasJsonImportCommitResult>;
   focusNodeIds: readonly string[];
@@ -30,6 +31,7 @@ const props = defineProps<{
 const emit = defineEmits<{ exchangeReady: [exchange: CanvasExchangePort] }>();
 defineSlots<{ "node-content"(props: CanvasNodeContentSlotProps): unknown }>();
 const session = useCanvasDocumentSession({
+  isDraft: () => props.draft ?? false,
   nodes: () => props.nodes,
   reportError: props.events.onError,
   spaceId: () => props.spaceId,
@@ -92,6 +94,12 @@ watch(
   () => props.nodes,
   (nodes) => {
     session.synchronizeNodes(nodes);
+  },
+);
+watch(
+  () => props.draft,
+  (draft) => {
+    if (!draft && session.document.value) session.documentChanged(session.document.value);
   },
 );
 onMounted(() => void session.start().catch(props.events.onError));

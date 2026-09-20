@@ -158,6 +158,7 @@ onBeforeUnmount(() => {
     </div>
     <CanvasSurfaceHost
       :key="spaceId"
+      :draft="store.draftSpace?.id === spaceId"
       :events="canvasEvents"
       :import-json-canvas="imports.importJsonCanvas"
       :focus-node-ids="store.canvasFocusIds"
