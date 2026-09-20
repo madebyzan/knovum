@@ -1,7 +1,7 @@
-import type { CanvasDocumentV1 } from "../../contract/canvas-document";
+import type { SpaceEditorDocument } from "../../contract/canvas-document";
 import type { CanvasLayerMove } from "../../contract/canvas-editor";
 
-type CanvasLayout = CanvasDocumentV1["nodes"][number];
+type CanvasLayout = SpaceEditorDocument["nodes"][number];
 
 export function reorderCanvasNodes(
   nodes: readonly CanvasLayout[],

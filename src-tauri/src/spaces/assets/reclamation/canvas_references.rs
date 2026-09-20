@@ -1,9 +1,9 @@
-use crate::spaces::{canvas_state::CanvasDocumentV1, db};
+use crate::spaces::{canvas_state::SpaceEditorDocument, db};
 
 pub(in crate::spaces) async fn synchronize(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     space_id: &str,
-    document: &CanvasDocumentV1,
+    document: &SpaceEditorDocument,
 ) -> Result<(), String> {
     sqlx::query(
         "DELETE FROM spaces_canvas_asset_references WHERE space_id=$1 AND node_id IN (\

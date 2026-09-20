@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Runtime};
 
 use crate::spaces::{
-    canvas_state::CanvasDocumentV1, commands::relations::SpaceRelationInput,
+    canvas_state::SpaceEditorDocument, commands::relations::SpaceRelationInput,
     nodes::contracts::InsertNode,
 };
 
@@ -13,7 +13,7 @@ use crate::spaces::{
 pub(crate) struct ImportJsonCanvasNodesRequest {
     space_id: String,
     base_revision: i64,
-    document: CanvasDocumentV1,
+    document: SpaceEditorDocument,
     nodes: Vec<JsonCanvasNodeImport>,
     relations: Vec<SpaceRelationInput>,
 }

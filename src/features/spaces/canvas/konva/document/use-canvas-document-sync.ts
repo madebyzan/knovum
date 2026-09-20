@@ -1,14 +1,14 @@
 import { watch } from "vue";
 
-import type { CanvasDocumentV1 } from "../../contract/canvas-document";
+import type { SpaceEditorDocument } from "../../contract/canvas-document";
 import type { CanvasDocumentModel } from "./canvas-document-model";
 import { sameCanvasViewport } from "./canvas-document-mutations";
 
 export function useCanvasDocumentSync(
-  source: () => CanvasDocumentV1,
+  source: () => SpaceEditorDocument,
   model: CanvasDocumentModel,
-  setViewport: (viewport: CanvasDocumentV1["viewport"], notify: boolean) => void,
-  getViewport: () => CanvasDocumentV1["viewport"],
+  setViewport: (viewport: SpaceEditorDocument["viewport"], notify: boolean) => void,
+  getViewport: () => SpaceEditorDocument["viewport"],
 ) {
   watch(source, (next, previous) => {
     if (next === model.document) return;

@@ -1,6 +1,6 @@
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import type { SpaceRelation } from "../../../model/relations/relation";
-import type { CanvasDocumentV1, CanvasNodeLayoutV1 } from "../../contract/canvas-document";
+import type { SpaceEditorDocument, CanvasNodeLayoutV1 } from "../../contract/canvas-document";
 import { spaceNodeDimensions } from "../../node-size";
 import { canvasNodeInteraction } from "./canvas-node-interaction";
 import type { CanvasScene, CanvasSceneNode, CanvasSceneRelation, CanvasSceneSection } from "./canvas-scene";
@@ -10,7 +10,7 @@ import { relationGeometry } from "./relation-path";
 export type { CanvasScene, CanvasSceneNode, CanvasSceneRelation, CanvasSceneSection } from "./canvas-scene";
 
 export function projectCanvasScene(
-  document: CanvasDocumentV1,
+  document: SpaceEditorDocument,
   nodes: readonly SpaceCanvasNode[],
   relations: readonly SpaceRelation[],
 ): CanvasScene {

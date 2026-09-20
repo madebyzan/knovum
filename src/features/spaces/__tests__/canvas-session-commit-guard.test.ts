@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
 
 import type { CanvasJsonImportRequest } from "../canvas-exchange/json-canvas-import-contract";
-import type { CanvasDocumentV1 } from "../canvas/contract/canvas-document";
+import type { SpaceEditorDocument } from "../canvas/contract/canvas-document";
 import { createSpaceNotePayload } from "../editor/tiptap-content";
 import { createCanvasSelectionActions } from "../session/actions/canvas-selection-actions";
 import { createJsonCanvasImportActions } from "../session/actions/json-canvas-import-actions";
@@ -21,7 +21,7 @@ const persistence = vi.hoisted(() => ({
         spaceId: string,
         nodes: readonly unknown[],
         baseRevision: number,
-        document: CanvasDocumentV1,
+        document: SpaceEditorDocument,
       ) => Promise<{ importedNodes: readonly { sourceId: string; nodeId: string }[]; revision: number }>
     >(),
 }));

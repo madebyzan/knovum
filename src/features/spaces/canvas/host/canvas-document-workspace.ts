@@ -1,23 +1,23 @@
-import type { CanvasDocumentV1 } from "../contract/canvas-document";
+import type { SpaceEditorDocument } from "../contract/canvas-document";
 import type { CanvasSnapshotSaveQueue } from "../persistence/snapshot-save-queue";
 import { rebaseCanvasDocument } from "./canvas-document-rebase";
 
 interface WorkspaceEvents {
   isActive(): boolean;
-  publish(document: CanvasDocumentV1): void;
+  publish(document: SpaceEditorDocument): void;
 }
 
 /** Owns the pending edit state of one mounted Space, never of its successor. */
 export class CanvasDocumentWorkspace {
-  private current: CanvasDocumentV1;
-  private committedEcho: CanvasDocumentV1 | undefined;
-  private pendingDocument: CanvasDocumentV1 | undefined;
-  private pendingBase: CanvasDocumentV1 | undefined;
+  private current: SpaceEditorDocument;
+  private committedEcho: SpaceEditorDocument | undefined;
+  private pendingDocument: SpaceEditorDocument | undefined;
+  private pendingBase: SpaceEditorDocument | undefined;
   private pendingCount = 0;
   private transactions = Promise.resolve();
 
   constructor(
-    initial: CanvasDocumentV1,
+    initial: SpaceEditorDocument,
     private readonly queue: CanvasSnapshotSaveQueue,
     private readonly events: WorkspaceEvents,
   ) {
@@ -28,7 +28,7 @@ export class CanvasDocumentWorkspace {
     return this.current;
   }
 
-  change(document: CanvasDocumentV1) {
+  change(document: SpaceEditorDocument) {
     if (!this.events.isActive()) return;
     this.current = document;
     this.events.publish(document);
@@ -40,7 +40,7 @@ export class CanvasDocumentWorkspace {
     else this.queue.schedule(() => document);
   }
 
-  commit<T extends { document: CanvasDocumentV1; revision: number }>(
+  commit<T extends { document: SpaceEditorDocument; revision: number }>(
     persist: (revision: number) => Promise<T>,
   ): Promise<T> {
     if (!this.events.isActive()) {

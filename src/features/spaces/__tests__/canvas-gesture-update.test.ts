@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import type { CanvasDocumentV1 } from "../canvas/contract/canvas-document";
+import type { SpaceEditorDocument } from "../canvas/contract/canvas-document";
 import {
   applyCanvasGestureUpdates,
   captureCanvasGestureLayouts,
 } from "../canvas/konva/document/canvas-document-mutations";
 
-const document: CanvasDocumentV1 = {
+const document: SpaceEditorDocument = {
   version: 1,
   viewport: { x: 0, y: 0, zoom: 1 },
   nodes: [

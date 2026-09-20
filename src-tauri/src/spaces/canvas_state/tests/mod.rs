@@ -1,7 +1,7 @@
-use super::{contract::CanvasDocumentV1, validate_document};
+use super::{contract::SpaceEditorDocument, validate_document};
 use sqlx::sqlite::SqlitePoolOptions;
 
-fn document(source: &str) -> CanvasDocumentV1 {
+fn document(source: &str) -> SpaceEditorDocument {
     serde_json::from_str(source).expect("valid test document shape")
 }
 
@@ -15,7 +15,7 @@ fn validates_current_engine_neutral_document() {
 
 #[test]
 fn rejects_domain_membership_and_lock_state() {
-    let result = serde_json::from_str::<CanvasDocumentV1>(
+    let result = serde_json::from_str::<SpaceEditorDocument>(
         r#"{"version":1,"viewport":{"x":0,"y":0,"zoom":1},"nodes":[{"nodeId":"n","frame":{"x":0,"y":0,"width":1,"height":1,"rotation":0},"sizeAuthority":"frame","parentNodeId":"section","zIndex":0,"locked":true}]}"#,
     );
     assert!(result.is_err());
@@ -23,7 +23,7 @@ fn rejects_domain_membership_and_lock_state() {
 
 #[test]
 fn rejects_engine_specific_or_domain_fields() {
-    let result = serde_json::from_str::<CanvasDocumentV1>(
+    let result = serde_json::from_str::<SpaceEditorDocument>(
         r#"{"version":1,"viewport":{"x":0,"y":0,"zoom":1},"nodes":[],"store":{}}"#,
     );
     assert!(result.is_err());
@@ -35,7 +35,7 @@ fn accepts_only_non_default_relation_presentation_overrides() {
         r#"{"version":1,"viewport":{"x":0,"y":0,"zoom":1},"nodes":[],"relationStyles":[{"relationId":"relation","color":"blue"}]}"#,
     );
     validate_document(&value).expect("relation presentation override must validate");
-    let neutral = serde_json::from_str::<CanvasDocumentV1>(
+    let neutral = serde_json::from_str::<SpaceEditorDocument>(
         r#"{"version":1,"viewport":{"x":0,"y":0,"zoom":1},"nodes":[],"relationStyles":[{"relationId":"relation","color":"neutral"}]}"#,
     );
     assert!(neutral.is_err());

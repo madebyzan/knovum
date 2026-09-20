@@ -1,4 +1,6 @@
-mod contract;
+pub(in crate::spaces) mod contract;
+mod appearance;
+mod structure_contract;
 mod gesture;
 mod repository;
 mod selection;
@@ -8,7 +10,7 @@ use tauri::{AppHandle, Runtime};
 
 use crate::spaces::db;
 
-pub(in crate::spaces) use contract::CanvasDocumentV1;
+pub(in crate::spaces) use contract::SpaceEditorDocument;
 pub(in crate::spaces) use repository::save_in_transaction;
 pub(in crate::spaces) use validation::validate_document;
 

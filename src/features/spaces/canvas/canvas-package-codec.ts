@@ -1,9 +1,9 @@
 import type { CanvasPackageCodec } from "../package/canvas-state-codec";
 import type { PackagedCanvasState } from "../package/core-schema";
-import { parseCanvasDocument } from "./contract/canvas-document";
+import { parseSpaceEditorDocument } from "./contract/canvas-document";
 
 export const canvasPackageCodec: CanvasPackageCodec = {
-  validate: (source) => void parseCanvasDocument(source.document),
+  validate: (source) => void parseSpaceEditorDocument(source.document),
   remap: remapCanvasState,
 };
 
@@ -11,9 +11,9 @@ function remapCanvasState(
   source: PackagedCanvasState,
   context: Parameters<CanvasPackageCodec["remap"]>[1],
 ): PackagedCanvasState {
-  const document = parseCanvasDocument(source.document);
+  const document = parseSpaceEditorDocument(source.document);
   return {
-    document: parseCanvasDocument({
+    document: parseSpaceEditorDocument({
       ...document,
       nodes: document.nodes.map((node) =>
         Object.assign({}, node, { nodeId: mappedNodeId(context.nodeIds, node.nodeId) }),

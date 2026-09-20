@@ -1,55 +1,51 @@
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
-import type { CanvasDocumentV1 } from "../contract/canvas-document";
+import {
+  emptySpaceEditorDocument,
+  parseSpaceEditorDocument,
+  type SpaceEditorDocument,
+} from "../contract/canvas-document";
 import { spaceNodeSizePolicy, spaceNodeSupportsContentSizing } from "../node-size";
 
-type CanvasDocumentNode = CanvasDocumentV1["nodes"][number];
-
-export function createCanvasDocument(nodes: readonly SpaceCanvasNode[]): CanvasDocumentV1 {
-  return {
-    version: 1,
-    viewport: { x: 0, y: 0, zoom: 1 },
-    nodes: nodes.map(createDocumentNode),
-  };
-}
-
-export function reconcileCanvasDocument(
-  document: CanvasDocumentV1,
+/** New content use-case only; existing persisted documents are never repaired from renderer nodes. */
+export function appendEditorContent(
+  document: SpaceEditorDocument,
   nodes: readonly SpaceCanvasNode[],
-): CanvasDocumentV1 {
-  const current = new Map(document.nodes.map((node) => [node.nodeId, node]));
-  const nextNodes = nodes.map((node, index) => synchronizeDocumentNode(node, current.get(node.id), index));
-  if (sameItems(document.nodes, nextNodes)) return document;
-  return { ...document, nodes: nextNodes };
+): SpaceEditorDocument {
+  const first = document.structure.items.filter((item) => item.parentId === null).length;
+  return parseSpaceEditorDocument({
+    ...document,
+    structure: {
+      version: 1,
+      items: [
+        ...document.structure.items,
+        ...nodes.map((node, index) => ({
+          kind: "content",
+          id: node.id,
+          nodeId: node.id,
+          parentId: null,
+          order: first + index,
+          locked: false,
+        })),
+      ],
+    },
+    layout: {
+      version: 1,
+      items: [
+        ...document.layout.items,
+        ...nodes.map((node) => {
+          const { width, height } = spaceNodeSizePolicy(node.data);
+          return {
+            kind: "content",
+            itemId: node.id,
+            transform: { ...node.initialPosition, rotation: 0, scale: 1 },
+            size: { width, height },
+            sizeAuthority: spaceNodeSupportsContentSizing(node.data) ? "content" : "frame",
+          };
+        }),
+      ],
+    },
+  });
 }
-
-function createDocumentNode(node: SpaceCanvasNode, zIndex: number): CanvasDocumentNode {
-  const { width, height } = spaceNodeSizePolicy(node.data);
-  return {
-    nodeId: node.id,
-    frame: { ...node.initialPosition, width, height, rotation: 0 },
-    sizeAuthority: spaceNodeSupportsContentSizing(node.data) ? "content" : "frame",
-    zIndex,
-  };
-}
-
-function synchronizeDocumentNode(
-  node: SpaceCanvasNode,
-  current: CanvasDocumentNode | undefined,
-  zIndex: number,
-): CanvasDocumentNode {
-  if (!current) return createDocumentNode(node, zIndex);
-  if (current.sizeAuthority === "content" && !spaceNodeSupportsContentSizing(node.data)) {
-    throw new Error(`Node ${node.id} does not support content-authoritative sizing`);
-  }
-  if (current.sizeAuthority === "content") {
-    const { width, height } = spaceNodeSizePolicy(node.data);
-    if (width !== current.frame.width || height !== current.frame.height) {
-      return { ...current, frame: { ...current.frame, width, height } };
-    }
-  }
-  return current;
-}
-
-function sameItems(left: readonly unknown[], right: readonly unknown[]) {
-  return left.length === right.length && left.every((item, index) => item === right[index]);
+export function createCanvasDocument(nodes: readonly SpaceCanvasNode[] = []): SpaceEditorDocument {
+  return appendEditorContent(emptySpaceEditorDocument(), nodes);
 }

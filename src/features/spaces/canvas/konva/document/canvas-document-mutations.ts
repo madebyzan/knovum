@@ -1,15 +1,15 @@
 import { sameCanvasNodeAppearance } from "../../contract/canvas-document";
 import type {
-  CanvasDocumentV1,
+  SpaceEditorDocument,
   CanvasNodeFrame,
   CanvasNodeFrameUpdate,
 } from "../../contract/canvas-document";
 import type { CanvasGestureUpdate } from "../interaction/canvas-gesture-update";
 
 export function applyCanvasFrames(
-  document: CanvasDocumentV1,
+  document: SpaceEditorDocument,
   updates: readonly CanvasNodeFrameUpdate[],
-): CanvasDocumentV1 {
+): SpaceEditorDocument {
   const frames = new Map(updates.map((update) => [update.nodeId, update]));
   return {
     ...document,
@@ -24,7 +24,7 @@ export function applyCanvasFrames(
 }
 
 export function applyCanvasGestureUpdates(
-  document: CanvasDocumentV1,
+  document: SpaceEditorDocument,
   updates: readonly CanvasGestureUpdate[],
 ) {
   const layouts = new Map(updates.map((update) => [update.nodeId, update]));
@@ -50,7 +50,7 @@ export function applyCanvasGestureUpdates(
 }
 
 export function captureCanvasGestureLayouts(
-  document: CanvasDocumentV1,
+  document: SpaceEditorDocument,
   updates: readonly CanvasGestureUpdate[],
 ) {
   const ids = new Set(updates.map(({ nodeId }) => nodeId));
@@ -60,9 +60,9 @@ export function captureCanvasGestureLayouts(
 }
 
 export function applyCanvasLayerOrder(
-  document: CanvasDocumentV1,
+  document: SpaceEditorDocument,
   zIndices: ReadonlyMap<string, number>,
-): CanvasDocumentV1 {
+): SpaceEditorDocument {
   return {
     ...document,
     nodes: document.nodes.map((node) => {
@@ -82,6 +82,9 @@ export function sameCanvasFrame(left: CanvasNodeFrame, right: CanvasNodeFrame) {
   );
 }
 
-export function sameCanvasViewport(left: CanvasDocumentV1["viewport"], right: CanvasDocumentV1["viewport"]) {
+export function sameCanvasViewport(
+  left: SpaceEditorDocument["viewport"],
+  right: SpaceEditorDocument["viewport"],
+) {
   return left.x === right.x && left.y === right.y && left.zoom === right.zoom;
 }

@@ -1,14 +1,14 @@
-import type { CanvasDocumentV1 } from "./canvas-document";
+import type { SpaceEditorDocument } from "./canvas-document";
 
 export interface StoredCanvasState {
-  document: CanvasDocumentV1;
+  document: SpaceEditorDocument;
   revision: number;
 }
 
 export interface SaveCanvasStateRequest {
   spaceId: string;
   baseRevision: number;
-  document: CanvasDocumentV1;
+  document: SpaceEditorDocument;
 }
 
 export interface CanvasPersistencePort {

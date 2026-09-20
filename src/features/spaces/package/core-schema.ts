@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { canvasDocumentSchema } from "../canvas/contract/canvas-document";
+import { spaceEditorDocumentSchema } from "../canvas/contract/canvas-document";
 import { KNOWLEDGE_OBJECT_STATUSES } from "../knowledge/model/object-types";
 import { SPACE_NODE_KINDS } from "../model/nodes/node-kind";
 import { SPACE_RELATION_KINDS, SPACE_RELATION_STATUSES } from "../model/relations/relation";
@@ -41,7 +41,7 @@ export const nodeSchema = z
   .strict();
 export const canvasStateSchema = z
   .object({
-    document: canvasDocumentSchema,
+    document: spaceEditorDocumentSchema,
   })
   .strict();
 export type PackagedCanvasState = z.infer<typeof canvasStateSchema>;

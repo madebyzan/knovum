@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { CanvasDocumentV1 } from "../canvas/contract/canvas-document";
+import type { SpaceEditorDocument } from "../canvas/contract/canvas-document";
 import { CanvasDocumentModel } from "../canvas/konva/document/canvas-document-model";
 import { createNodeContentHeightBatch } from "../canvas/konva/node-content-height-batch";
 import { createSpaceTextPayload } from "../editor/tiptap-content";
@@ -84,7 +84,7 @@ function measurement(height: number) {
   return { height, typographyScale: 1, width: 240 };
 }
 
-function textDocument(): CanvasDocumentV1 {
+function textDocument(): SpaceEditorDocument {
   return {
     version: 1,
     viewport: { x: 0, y: 0, zoom: 1 },

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { CanvasDocumentV1 } from "../canvas/contract/canvas-document";
+import type { SpaceEditorDocument } from "../canvas/contract/canvas-document";
 import { projectCanvasScene } from "../canvas/konva/scene/scene-projection";
 import { createSpaceNotePayload } from "../editor/tiptap-content";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
@@ -27,7 +27,7 @@ describe("Konva scene projection", () => {
       data: { ...createSpaceNotePayload("Member", ""), sectionId: "section" },
       initialPosition: { x: 40, y: 80 },
     };
-    const document: CanvasDocumentV1 = {
+    const document: SpaceEditorDocument = {
       version: 1,
       viewport: { x: 0, y: 0, zoom: 1 },
       nodes: [
@@ -60,7 +60,7 @@ describe("Konva scene projection", () => {
       data: { ...createSpaceNotePayload("Member", ""), sectionId: "section" },
       initialPosition: { x: 40, y: 80 },
     };
-    const document: CanvasDocumentV1 = {
+    const document: SpaceEditorDocument = {
       version: 1,
       viewport: { x: 0, y: 0, zoom: 1 },
       nodes: [
@@ -90,7 +90,7 @@ describe("Konva scene projection", () => {
       data: createSpaceNotePayload("Right", ""),
       initialPosition: { x: 400, y: 0 },
     };
-    const document: CanvasDocumentV1 = {
+    const document: SpaceEditorDocument = {
       version: 1,
       viewport: { x: 0, y: 0, zoom: 1 },
       nodes: [
@@ -129,7 +129,7 @@ describe("Konva scene projection", () => {
       data: createSpaceNotePayload("Right", ""),
       initialPosition: { x: 400, y: 0 },
     };
-    const document: CanvasDocumentV1 = {
+    const document: SpaceEditorDocument = {
       version: 1,
       viewport: { x: 0, y: 0, zoom: 1 },
       nodes: [
@@ -180,7 +180,7 @@ describe("Konva scene projection", () => {
       data: createSpaceNotePayload("Outside", ""),
       initialPosition: { x: 500, y: 0 },
     };
-    const document: CanvasDocumentV1 = {
+    const document: SpaceEditorDocument = {
       version: 1,
       viewport: { x: 0, y: 0, zoom: 1 },
       nodes: [
@@ -214,7 +214,7 @@ describe("Konva scene projection", () => {
       initialPosition: { x: 0, y: 0 },
       hidden: true,
     };
-    const document: CanvasDocumentV1 = {
+    const document: SpaceEditorDocument = {
       version: 1,
       viewport: { x: 0, y: 0, zoom: 1 },
       nodes: [{ nodeId: "hidden", frame: frame(0, 0, 300, 220), sizeAuthority: "frame", zIndex: 0 }],

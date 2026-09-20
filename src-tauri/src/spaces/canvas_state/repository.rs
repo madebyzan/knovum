@@ -1,12 +1,12 @@
 use sqlx::Row;
 
-use super::{contract::CanvasDocumentV1, validation::validate_document};
+use super::{contract::SpaceEditorDocument, validation::validate_document};
 use crate::spaces::db;
 
 pub(super) async fn load(
     pool: &sqlx::SqlitePool,
     space_id: &str,
-) -> Result<Option<(CanvasDocumentV1, i64)>, String> {
+) -> Result<Option<(SpaceEditorDocument, i64)>, String> {
     let row = sqlx::query("SELECT document, revision FROM spaces_canvas_state WHERE space_id = $1")
         .bind(space_id)
         .fetch_optional(pool)
@@ -19,7 +19,7 @@ pub(super) async fn save(
     pool: &sqlx::SqlitePool,
     space_id: &str,
     base_revision: i64,
-    document: &CanvasDocumentV1,
+    document: &SpaceEditorDocument,
 ) -> Result<i64, String> {
     let mut tx = db::begin_write(pool).await?;
     let next_revision = save_in_transaction(&mut tx, space_id, base_revision, document).await?;
@@ -31,7 +31,7 @@ pub(in crate::spaces) async fn save_in_transaction(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     space_id: &str,
     base_revision: i64,
-    document: &CanvasDocumentV1,
+    document: &SpaceEditorDocument,
 ) -> Result<i64, String> {
     validate_document(document)?;
     let next_revision = base_revision + 1;
@@ -70,7 +70,7 @@ pub(in crate::spaces) async fn save_in_transaction(
     Ok(next_revision)
 }
 
-fn decode(row: sqlx::sqlite::SqliteRow) -> Result<(CanvasDocumentV1, i64), String> {
+fn decode(row: sqlx::sqlite::SqliteRow) -> Result<(SpaceEditorDocument, i64), String> {
     let document = row
         .try_get::<String, _>("document")
         .map_err(db::sql_error)?;

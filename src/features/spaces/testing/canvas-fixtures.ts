@@ -1,9 +1,9 @@
 import type { CanvasJsonImportRequest } from "../canvas-exchange/json-canvas-import-contract";
-import type { CanvasDocumentV1 } from "../canvas/contract/canvas-document";
+import type { SpaceEditorDocument } from "../canvas/contract/canvas-document";
 import { createSpaceNotePayload } from "../editor/tiptap-content";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 
-export const emptyCanvasDocument: CanvasDocumentV1 = {
+export const emptyCanvasDocument: SpaceEditorDocument = {
   version: 1,
   viewport: { x: 0, y: 0, zoom: 1 },
   nodes: [],

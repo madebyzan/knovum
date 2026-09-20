@@ -6,13 +6,13 @@ import type {
   CanvasJsonImportDraft,
 } from "../canvas-exchange/json-canvas-import-contract";
 import { createJsonCanvasExchangePort } from "../canvas-exchange/json-canvas-service";
-import type { CanvasDocumentV1 } from "../canvas/contract/canvas-document";
+import type { SpaceEditorDocument } from "../canvas/contract/canvas-document";
 import type { CanvasHistoryEntry, CanvasPersistenceHistory } from "../canvas/contract/canvas-editor";
 import type { CanvasEditorPort } from "../canvas/contract/canvas-editor-port";
 
 describe("JSON Canvas application service", () => {
   it("exports file and group background resources and imports the standard paths unchanged", async () => {
-    const document: CanvasDocumentV1 = {
+    const document: SpaceEditorDocument = {
       version: 1,
       viewport: { x: 0, y: 0, zoom: 1 },
       nodes: [
@@ -53,7 +53,7 @@ describe("JSON Canvas application service", () => {
         return () => undefined;
       },
       setRelationColor: vi.fn(),
-      adoptDocument: vi.fn<(document: CanvasDocumentV1) => void>(),
+      adoptDocument: vi.fn<(document: SpaceEditorDocument) => void>(),
     } as unknown as CanvasEditorPort;
     const port = createJsonCanvasExchangePort({
       codec,

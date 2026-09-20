@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { CanvasDocumentV1, CanvasNodeFrameUpdate } from "../canvas/contract/canvas-document";
+import type { SpaceEditorDocument, CanvasNodeFrameUpdate } from "../canvas/contract/canvas-document";
 import type { CanvasPersistenceHistory, CanvasSurfaceEvents } from "../canvas/contract/canvas-editor";
 import { createCanvasDocument } from "../canvas/document/canvas-document-sync";
 import { CanvasDocumentModel } from "../canvas/konva/document/canvas-document-model";
@@ -157,7 +157,7 @@ function harness(nodes: SpaceCanvasNode[]) {
     onMutationPendingChange() {},
     onDirectManipulationChange() {},
     onHistoryTransition: async (
-      document: CanvasDocumentV1,
+      document: SpaceEditorDocument,
       transition: CanvasPersistenceHistory["undo"],
     ) => ({
       ...(await transition({ baseRevision: 1, document })),

@@ -1,6 +1,6 @@
-import type { CanvasDocumentV1 } from "../contract/canvas-document";
+import type { SpaceEditorDocument } from "../contract/canvas-document";
 
-export function contentAddedBetween(before: CanvasDocumentV1, after: CanvasDocumentV1) {
+export function contentAddedBetween(before: SpaceEditorDocument, after: SpaceEditorDocument) {
   const nodeIds = new Set(before.nodes.map(({ nodeId }) => nodeId));
   return {
     nodes: after.nodes.filter(({ nodeId }) => !nodeIds.has(nodeId)),
@@ -8,9 +8,9 @@ export function contentAddedBetween(before: CanvasDocumentV1, after: CanvasDocum
 }
 
 export function removeCanvasContent(
-  document: CanvasDocumentV1,
+  document: SpaceEditorDocument,
   nodeIds: ReadonlySet<string>,
-): CanvasDocumentV1 {
+): SpaceEditorDocument {
   return {
     ...document,
     nodes: document.nodes.filter(({ nodeId }) => !nodeIds.has(nodeId)),
@@ -18,10 +18,10 @@ export function removeCanvasContent(
 }
 
 export function removeCanvasSelection(
-  document: CanvasDocumentV1,
+  document: SpaceEditorDocument,
   nodeIds: ReadonlySet<string>,
   relationIds: ReadonlySet<string>,
-): CanvasDocumentV1 {
+): SpaceEditorDocument {
   const content = removeCanvasContent(document, nodeIds);
   const relationStyles = content.relationStyles?.filter(({ relationId }) => !relationIds.has(relationId));
   const { relationStyles: _current, ...documentWithoutRelationStyles } = content;
@@ -31,8 +31,8 @@ export function removeCanvasSelection(
 }
 
 export function restoreCanvasContent(
-  document: CanvasDocumentV1,
-  target: CanvasDocumentV1,
+  document: SpaceEditorDocument,
+  target: SpaceEditorDocument,
   nodeIds: ReadonlySet<string>,
 ) {
   const nodes = restoreAtTargetIndices(document.nodes, target.nodes, nodeIds, ({ nodeId }) => nodeId);

@@ -1,6 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 
-import type { CanvasDocumentV1 } from "../canvas/contract/canvas-document";
+import type { SpaceEditorDocument } from "../canvas/contract/canvas-document";
 import type { KnowledgeChunkSeed } from "../knowledge/model/schema";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceRelation } from "../model/relations/relation";
@@ -16,7 +16,7 @@ export function importJsonCanvas(input: {
   nodes: readonly PreparedJsonCanvasNode[];
   relations: readonly SpaceRelation[];
   baseRevision: number;
-  document: CanvasDocumentV1;
+  document: SpaceEditorDocument;
 }) {
   const { baseRevision, document, nodes, relations, spaceId } = input;
   return invoke<{ importedNodes: readonly { sourceId: string; nodeId: string }[]; revision: number }>(

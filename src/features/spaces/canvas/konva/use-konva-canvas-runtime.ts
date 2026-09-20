@@ -2,7 +2,7 @@ import type Konva from "konva";
 import { computed, shallowRef, useTemplateRef, watch } from "vue";
 import type { VueKonvaRef } from "vue-konva/core";
 
-import type { CanvasDocumentV1 } from "../contract/canvas-document";
+import type { SpaceEditorDocument } from "../contract/canvas-document";
 import type { CanvasSurfaceProps } from "../contract/canvas-surface";
 import { CanvasDocumentModel } from "./document/canvas-document-model";
 import { useCanvasDocumentSync } from "./document/use-canvas-document-sync";
@@ -25,7 +25,7 @@ import { useStageViewport } from "./viewport/use-stage-viewport";
 
 export function useKonvaCanvasRuntime(
   props: CanvasSurfaceProps,
-  documentChanged: (document: CanvasDocumentV1) => void,
+  documentChanged: (document: SpaceEditorDocument) => void,
 ) {
   const host = useTemplateRef<HTMLElement>("host");
   const stageComponent = useTemplateRef<VueKonvaRef<Konva.Stage>>("stage");

@@ -1,15 +1,15 @@
 import {
   sameCanvasNodeAppearance,
-  type CanvasDocumentV1,
+  type SpaceEditorDocument,
   type CanvasNodeFrame,
   type CanvasNodeLayoutV1,
 } from "../contract/canvas-document";
 
 export function rebaseCanvasDocument(
-  base: CanvasDocumentV1,
-  committed: CanvasDocumentV1,
-  pending: CanvasDocumentV1,
-): CanvasDocumentV1 {
+  base: SpaceEditorDocument,
+  committed: SpaceEditorDocument,
+  pending: SpaceEditorDocument,
+): SpaceEditorDocument {
   return {
     version: 1,
     viewport: sameViewport(pending.viewport, base.viewport) ? committed.viewport : pending.viewport,
@@ -21,9 +21,9 @@ export function rebaseCanvasDocument(
 }
 
 function rebaseRelationStyles(
-  base: CanvasDocumentV1["relationStyles"],
-  committed: CanvasDocumentV1["relationStyles"],
-  pending: CanvasDocumentV1["relationStyles"],
+  base: SpaceEditorDocument["relationStyles"],
+  committed: SpaceEditorDocument["relationStyles"],
+  pending: SpaceEditorDocument["relationStyles"],
 ) {
   const baseById = new Map(base?.map((style) => [style.relationId, style]));
   const committedById = new Map(committed?.map((style) => [style.relationId, style]));
@@ -38,7 +38,7 @@ function rebaseRelationStyles(
   });
 }
 
-function withRelationStyles(relationStyles: NonNullable<CanvasDocumentV1["relationStyles"]>) {
+function withRelationStyles(relationStyles: NonNullable<SpaceEditorDocument["relationStyles"]>) {
   return relationStyles.length ? { relationStyles } : {};
 }
 
@@ -93,6 +93,6 @@ function sameFrame(left: CanvasNodeFrame, right: CanvasNodeFrame) {
   );
 }
 
-function sameViewport(left: CanvasDocumentV1["viewport"], right: CanvasDocumentV1["viewport"]) {
+function sameViewport(left: SpaceEditorDocument["viewport"], right: SpaceEditorDocument["viewport"]) {
   return left.x === right.x && left.y === right.y && left.zoom === right.zoom;
 }

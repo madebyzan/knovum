@@ -1,7 +1,7 @@
-import type { CanvasDocumentV1 } from "../contract/canvas-document";
+import type { SpaceEditorDocument } from "../contract/canvas-document";
 import type { CanvasPersistencePort, StoredCanvasState } from "../contract/canvas-persistence";
 
-type CaptureCanvasDocument = () => CanvasDocumentV1;
+type CaptureCanvasDocument = () => SpaceEditorDocument;
 
 interface CanvasSnapshotSaveQueueOptions {
   spaceId: string;

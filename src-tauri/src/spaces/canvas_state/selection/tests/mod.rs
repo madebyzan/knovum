@@ -124,12 +124,12 @@ async fn seeded_pool(deleted: bool) -> sqlx::SqlitePool {
     pool
 }
 
-fn document_with_node() -> super::super::CanvasDocumentV1 {
+fn document_with_node() -> super::super::SpaceEditorDocument {
     serde_json::from_str(r#"{"version":1,"viewport":{"x":0,"y":0,"zoom":1},"nodes":[{"nodeId":"node","frame":{"x":0,"y":0,"width":100,"height":100,"rotation":0},"sizeAuthority":"frame","zIndex":0}]}"#)
         .expect("canvas")
 }
 
-fn empty_document() -> super::super::CanvasDocumentV1 {
+fn empty_document() -> super::super::SpaceEditorDocument {
     serde_json::from_str(r#"{"version":1,"viewport":{"x":0,"y":0,"zoom":1},"nodes":[]}"#)
         .expect("canvas")
 }

@@ -68,7 +68,7 @@ async fn seeded_pool() -> sqlx::SqlitePool {
 async fn save_document(
     pool: &sqlx::SqlitePool,
     base_revision: i64,
-    document: crate::spaces::canvas_state::CanvasDocumentV1,
+    document: crate::spaces::canvas_state::SpaceEditorDocument,
 ) {
     let mut tx = pool.begin().await.expect("transaction");
     crate::spaces::canvas_state::save_in_transaction(&mut tx, "space", base_revision, &document)
@@ -83,14 +83,14 @@ async fn unreferenced(pool: &sqlx::SqlitePool) -> Vec<String> {
         .expect("asset references")
 }
 
-fn document_with_background() -> crate::spaces::canvas_state::CanvasDocumentV1 {
+fn document_with_background() -> crate::spaces::canvas_state::SpaceEditorDocument {
     serde_json::from_str(&format!(
         r#"{{"version":1,"viewport":{{"x":0,"y":0,"zoom":1}},"nodes":[{{"nodeId":"section","frame":{{"x":0,"y":0,"width":100,"height":100,"rotation":0}},"sizeAuthority":"frame","appearance":{{"background":"{BACKGROUND_PATH}","backgroundStyle":"cover"}},"zIndex":0}}]}}"#
     ))
     .expect("canvas")
 }
 
-fn empty_document() -> crate::spaces::canvas_state::CanvasDocumentV1 {
+fn empty_document() -> crate::spaces::canvas_state::SpaceEditorDocument {
     serde_json::from_str(r#"{"version":1,"viewport":{"x":0,"y":0,"zoom":1},"nodes":[]}"#)
         .expect("canvas")
 }

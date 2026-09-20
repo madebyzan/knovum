@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Stage as KonvaStage } from "vue-konva/core";
 
-import type { CanvasDocumentV1 } from "../contract/canvas-document";
+import type { SpaceEditorDocument } from "../contract/canvas-document";
 import type { CanvasNodeContentSlotProps, CanvasSurfaceProps } from "../contract/canvas-surface";
 import CanvasDomOverlay from "./presentation/CanvasDomOverlay.vue";
 import CanvasGridLayer from "./presentation/CanvasGridLayer.vue";
@@ -10,7 +10,7 @@ import CanvasSceneLayers from "./presentation/CanvasSceneLayers.vue";
 import { useKonvaCanvasRuntime } from "./use-konva-canvas-runtime";
 
 const props = defineProps<CanvasSurfaceProps>();
-const emit = defineEmits<{ documentChange: [document: CanvasDocumentV1] }>();
+const emit = defineEmits<{ documentChange: [document: SpaceEditorDocument] }>();
 defineSlots<{ "node-content"(props: CanvasNodeContentSlotProps): unknown }>();
 const runtime = useKonvaCanvasRuntime(props, (document) => emit("documentChange", document));
 defineExpose({ flushViewport: runtime.viewport.flushViewport });

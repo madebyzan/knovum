@@ -1,6 +1,6 @@
 import {
   MAX_CANVAS_Z_INDEX,
-  type CanvasDocumentV1,
+  type SpaceEditorDocument,
   type CanvasNodeFrame,
   type CanvasNodeLayoutV1,
 } from "../canvas/contract/canvas-document";
@@ -73,9 +73,9 @@ function standardFrame(frame: CanvasNodeFrame) {
 }
 
 export function mergeImportedJsonCanvasDocument(
-  document: CanvasDocumentV1,
+  document: SpaceEditorDocument,
   options: MergeImportedJsonCanvasOptions,
-): CanvasDocumentV1 {
+): SpaceEditorDocument {
   const ids = new Map(options.importedNodes.map(({ sourceId, nodeId }) => [sourceId, nodeId]));
   const zOffset = document.nodes.reduce((maximum, node) => Math.max(maximum, node.zIndex + 1), 0);
   const nodes = options.plan.nodes.map((node) => {

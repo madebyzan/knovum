@@ -2,7 +2,7 @@ import { shallowRef, type ShallowRef } from "vue";
 
 import {
   sameCanvasNodeAppearance,
-  type CanvasDocumentV1,
+  type SpaceEditorDocument,
   type CanvasNodeAppearance,
   type CanvasRelationColor,
 } from "../../contract/canvas-document";
@@ -11,19 +11,19 @@ import { applyCanvasLayerOrder, sameCanvasViewport } from "./canvas-document-mut
 import { reorderCanvasNodes } from "./canvas-layer-order";
 
 interface CanvasDocumentModelEvents {
-  documentChanged(document: CanvasDocumentV1): void;
+  documentChanged(document: SpaceEditorDocument): void;
   historyEntry(entry: CanvasHistoryEntry): void;
   viewportChanged(viewport: CanvasViewport): void;
 }
 
 export class CanvasDocumentModel {
-  private readonly current: ShallowRef<CanvasDocumentV1>;
-  private readonly sceneCurrent: ShallowRef<CanvasDocumentV1>;
-  private readonly observers = new Set<(document: CanvasDocumentV1) => void>();
+  private readonly current: ShallowRef<SpaceEditorDocument>;
+  private readonly sceneCurrent: ShallowRef<SpaceEditorDocument>;
+  private readonly observers = new Set<(document: SpaceEditorDocument) => void>();
   private layoutIndices = new Map<string, number>();
 
   constructor(
-    document: CanvasDocumentV1,
+    document: SpaceEditorDocument,
     private readonly events: CanvasDocumentModelEvents,
   ) {
     this.current = shallowRef(document);
@@ -35,19 +35,19 @@ export class CanvasDocumentModel {
     return this.current.value;
   }
 
-  get documentRef(): Readonly<ShallowRef<CanvasDocumentV1>> {
+  get documentRef(): Readonly<ShallowRef<SpaceEditorDocument>> {
     return this.current;
   }
 
-  get sceneDocumentRef(): Readonly<ShallowRef<CanvasDocumentV1>> {
+  get sceneDocumentRef(): Readonly<ShallowRef<SpaceEditorDocument>> {
     return this.sceneCurrent;
   }
 
-  replace(document: CanvasDocumentV1) {
+  replace(document: SpaceEditorDocument) {
     this.assign(document);
   }
 
-  applyLocalDocument(document: CanvasDocumentV1) {
+  applyLocalDocument(document: SpaceEditorDocument) {
     this.update(document);
   }
 
@@ -111,12 +111,12 @@ export class CanvasDocumentModel {
     this.events.viewportChanged(viewport);
   }
 
-  private update(document: CanvasDocumentV1, reindex = true) {
+  private update(document: SpaceEditorDocument, reindex = true) {
     this.assign(document, reindex);
     this.events.documentChanged(document);
   }
 
-  observe(observer: (document: CanvasDocumentV1) => void) {
+  observe(observer: (document: SpaceEditorDocument) => void) {
     this.observers.add(observer);
     observer(this.document);
     return () => this.observers.delete(observer);
@@ -138,7 +138,7 @@ export class CanvasDocumentModel {
     );
   }
 
-  private assign(document: CanvasDocumentV1, reindex = true) {
+  private assign(document: SpaceEditorDocument, reindex = true) {
     const sceneChanged =
       this.current.value.nodes !== document.nodes ||
       this.current.value.relationStyles !== document.relationStyles;
@@ -153,7 +153,7 @@ export class CanvasDocumentModel {
     return index === undefined ? undefined : this.document.nodes[index];
   }
 
-  private indexLayouts(document: CanvasDocumentV1) {
+  private indexLayouts(document: SpaceEditorDocument) {
     this.layoutIndices = new Map(document.nodes.map(({ nodeId }, index) => [nodeId, index]));
   }
 }
@@ -167,14 +167,14 @@ function mergeAppearance(
   return appearance;
 }
 
-function relationColor(document: CanvasDocumentV1, relationId: string): CanvasRelationColor {
+function relationColor(document: SpaceEditorDocument, relationId: string): CanvasRelationColor {
   return document.relationStyles?.find((style) => style.relationId === relationId)?.color ?? "neutral";
 }
 
 function withRelationStyles(
-  document: CanvasDocumentV1,
-  relationStyles: NonNullable<CanvasDocumentV1["relationStyles"]>,
-): CanvasDocumentV1 {
+  document: SpaceEditorDocument,
+  relationStyles: NonNullable<SpaceEditorDocument["relationStyles"]>,
+): SpaceEditorDocument {
   const { relationStyles: _current, ...content } = document;
   return relationStyles.length ? { ...content, relationStyles } : content;
 }

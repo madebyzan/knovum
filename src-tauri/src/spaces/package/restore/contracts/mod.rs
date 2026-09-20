@@ -5,7 +5,7 @@ mod workflow_run;
 use serde::Deserialize;
 use serde_json::Value;
 
-use crate::spaces::canvas_state::CanvasDocumentV1;
+use crate::spaces::canvas_state::SpaceEditorDocument;
 
 pub use derivation::PackageDerivationRow;
 pub use restore_request::RestorePackageRequest;
@@ -25,7 +25,7 @@ pub struct PackageSpaceRow {
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct PackageCanvasState {
-    pub document: CanvasDocumentV1,
+    pub document: SpaceEditorDocument,
 }
 
 #[derive(Debug, Deserialize)]

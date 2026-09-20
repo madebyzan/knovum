@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Runtime};
 
-use super::CanvasDocumentV1;
+use super::SpaceEditorDocument;
 use crate::spaces::{db, nodes};
 
 #[derive(Deserialize)]
@@ -10,7 +10,7 @@ pub(crate) struct CommitCanvasGestureRequest {
     pub(super) space_id: String,
     pub(super) changes: Vec<nodes::contracts::NodeDataChange>,
     pub(super) base_revision: i64,
-    pub(super) document: CanvasDocumentV1,
+    pub(super) document: SpaceEditorDocument,
 }
 
 #[derive(Debug, Serialize)]

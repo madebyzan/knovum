@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import { canvasOverviewViewport } from "../canvas/canvas-overview-geometry";
-import type { CanvasDocumentV1 } from "../canvas/contract/canvas-document";
+import type { SpaceEditorDocument } from "../canvas/contract/canvas-document";
 import { projectCanvasScene } from "../canvas/konva/scene/scene-projection";
 import { createSpaceNotePayload } from "../editor/tiptap-content";
 
 function sceneAt(x: number, y: number, width: number, height: number, rotation = 0) {
-  const document: CanvasDocumentV1 = {
+  const document: SpaceEditorDocument = {
     version: 1,
     viewport: { x: 0, y: 0, zoom: 1 },
     nodes: [

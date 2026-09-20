@@ -1,4 +1,4 @@
-import type { CanvasDocumentV1, CanvasNodeAppearance, CanvasRelationColor } from "./canvas-document";
+import type { SpaceEditorDocument, CanvasNodeAppearance, CanvasRelationColor } from "./canvas-document";
 
 export interface CanvasPoint {
   x: number;
@@ -63,9 +63,9 @@ export interface CanvasEditorPort {
   flushContentHeightFitting(): boolean;
   setContentHeightFittingPaused(paused: boolean): void;
   getViewport(): CanvasViewport;
-  getDocument(): CanvasDocumentV1;
-  observeDocument(observer: (document: CanvasDocumentV1) => void): () => void;
-  adoptDocument(document: CanvasDocumentV1): void;
+  getDocument(): SpaceEditorDocument;
+  observeDocument(observer: (document: SpaceEditorDocument) => void): () => void;
+  adoptDocument(document: SpaceEditorDocument): void;
   zoomToFit(): void;
   zoomToSelection(): void;
   clearSelection(): void;

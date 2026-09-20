@@ -5,7 +5,7 @@ import type {
   CanvasJsonImportCommitResult,
   CanvasJsonImportRequest,
 } from "../canvas-exchange/json-canvas-import-contract";
-import type { CanvasDocumentV1 } from "../canvas/contract/canvas-document";
+import type { SpaceEditorDocument } from "../canvas/contract/canvas-document";
 import type {
   CanvasDeleteSelectionResult,
   CanvasHostEvents,
@@ -15,7 +15,7 @@ import { createCanvasDocument } from "../canvas/document/canvas-document-sync";
 import { canvasNote, deferred } from "../testing/canvas-fixtures";
 
 const repository = vi.hoisted(() => ({
-  load: vi.fn<(spaceId: string) => Promise<{ document: CanvasDocumentV1; revision: number }>>(),
+  load: vi.fn<(spaceId: string) => Promise<{ document: SpaceEditorDocument; revision: number }>>(),
   save: vi.fn<(request: unknown) => Promise<number>>(),
 }));
 vi.mock("../canvas/persistence/canvas-state-repository", () => ({ canvasStateRepository: repository }));
@@ -45,7 +45,7 @@ afterEach(() => {
 
 describe("CanvasSurfaceHost", () => {
   it("does not install a stale load after the active space changes", async () => {
-    const loads = new Map<string, (state: { document: CanvasDocumentV1; revision: number }) => void>();
+    const loads = new Map<string, (state: { document: SpaceEditorDocument; revision: number }) => void>();
     repository.load.mockImplementation(
       (spaceId: string) => new Promise((resolve) => loads.set(spaceId, resolve)),
     );
@@ -116,7 +116,7 @@ describe("CanvasSurfaceHost", () => {
     await wrapper.setProps({ nodes: [canvasNote("a"), canvasNote("b")] });
     await flushPromises();
     const surface = wrapper.findComponent({ name: "KonvaCanvasSurface" });
-    const presented = surface.props("document") as CanvasDocumentV1;
+    const presented = surface.props("document") as SpaceEditorDocument;
     surface.vm.$emit("documentChange", {
       ...presented,
       nodes: presented.nodes.map((node, index) => (index === 0 ? { ...node, zIndex: 7 } : node)),
@@ -130,7 +130,7 @@ describe("CanvasSurfaceHost", () => {
 
     await transaction;
     await flushPromises();
-    const document = surface.props("document") as CanvasDocumentV1;
+    const document = surface.props("document") as SpaceEditorDocument;
     expect(document.nodes.map(({ nodeId }) => nodeId)).toEqual(["a", "b"]);
     expect(document.nodes[0]?.frame.x).toBe(240);
     expect(document.nodes[0]?.zIndex).toBe(7);

@@ -87,7 +87,7 @@ async fn persist_document(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     space_id: &str,
     base_revision: i64,
-    document: &super::super::CanvasDocumentV1,
+    document: &super::super::SpaceEditorDocument,
     now: i64,
 ) -> Result<i64, String> {
     nodes::touch_updated_at(tx, space_id, now).await?;

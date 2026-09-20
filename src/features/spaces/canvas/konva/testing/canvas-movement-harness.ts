@@ -1,7 +1,7 @@
 import { vi } from "vitest";
 
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
-import type { CanvasDocumentV1 } from "../../contract/canvas-document";
+import type { SpaceEditorDocument } from "../../contract/canvas-document";
 import type { CanvasSurfaceEvents } from "../../contract/canvas-editor";
 import { createCanvasDocument } from "../../document/canvas-document-sync";
 import { createKonvaEditorPort } from "../create-canvas-editor-port";
@@ -10,7 +10,7 @@ import { createCanvasGestureSession } from "../interaction/canvas-gesture-sessio
 import { editorPortHostEvents } from "./editor-port-fixture";
 
 export function movementHarness(nodes: SpaceCanvasNode[], selection = new Set(["s1", "s2"])) {
-  const documentChanged = vi.fn<(document: CanvasDocumentV1) => void>();
+  const documentChanged = vi.fn<(document: SpaceEditorDocument) => void>();
   const model = new CanvasDocumentModel(createCanvasDocument(nodes), {
     documentChanged,
     historyEntry() {},

@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 
 import type { SpaceNodePayload } from "../../model/nodes/node-payload";
-import type { CanvasDocumentV1 } from "../contract/canvas-document";
+import type { SpaceEditorDocument } from "../contract/canvas-document";
 import type { CanvasDeleteSelectionRequest } from "../contract/canvas-editor";
 
 interface CanvasSelectionPersistenceRequest extends CanvasDeleteSelectionRequest {
@@ -23,7 +23,7 @@ export function setImportedCanvasNodesDeleted(request: {
   relationIds: readonly string[];
   deleted: boolean;
   baseRevision: number;
-  document: CanvasDocumentV1;
+  document: SpaceEditorDocument;
 }) {
   return invoke<{ revision: number }>("plugin:spaces|set_imported_canvas_nodes_deleted", { request });
 }

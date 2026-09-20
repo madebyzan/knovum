@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { itemIdSchema, MAX_STRUCTURE_ITEMS } from "../../model/structure/structure-schema";
-import { canvasNodeAppearanceSchema } from "./canvas-document";
+import { canvasNodeAppearanceSchema } from "./canvas-appearance";
 
 export const WORLD_COORDINATE_LIMIT = 1_000_000_000_000;
 export const WORLD_SCALE_MIN = 0.000001;

@@ -1,8 +1,8 @@
 use std::collections::{HashMap, HashSet};
 
-use super::contract::{CanvasDocumentV1, CanvasNodeLayoutV1};
+use super::contract::{SpaceEditorDocument, CanvasNodeLayoutV1};
 
-pub(in crate::spaces) fn validate_document(document: &CanvasDocumentV1) -> Result<(), String> {
+pub(in crate::spaces) fn validate_document(document: &SpaceEditorDocument) -> Result<(), String> {
     if document.version != 1 {
         return Err("Unsupported Canvas document version".into());
     }
@@ -25,7 +25,7 @@ pub(in crate::spaces) fn validate_document(document: &CanvasDocumentV1) -> Resul
     Ok(())
 }
 
-fn validate_relation_styles(document: &CanvasDocumentV1) -> Result<(), String> {
+fn validate_relation_styles(document: &SpaceEditorDocument) -> Result<(), String> {
     let styles = document.relation_styles.as_deref().unwrap_or_default();
     if styles.len() > 100_000 {
         return Err("Canvas document contains too many relation styles".into());

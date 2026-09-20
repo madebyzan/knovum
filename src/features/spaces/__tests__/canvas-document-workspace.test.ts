@@ -1,12 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { CanvasDocumentV1 } from "../canvas/contract/canvas-document";
+import type { SpaceEditorDocument } from "../canvas/contract/canvas-document";
 import type { SaveCanvasStateRequest } from "../canvas/contract/canvas-persistence";
 import { CanvasDocumentWorkspace } from "../canvas/host/canvas-document-workspace";
 import { CanvasSnapshotSaveQueue } from "../canvas/persistence/snapshot-save-queue";
 
 function fixture() {
-  const document: CanvasDocumentV1 = {
+  const document: SpaceEditorDocument = {
     version: 1,
     viewport: { x: 0, y: 0, zoom: 1 },
     nodes: [
@@ -19,7 +19,7 @@ function fixture() {
     ],
   };
   const save = vi.fn<(request: SaveCanvasStateRequest) => Promise<number>>(async () => 2);
-  const publish = vi.fn<(document: CanvasDocumentV1) => void>();
+  const publish = vi.fn<(document: SpaceEditorDocument) => void>();
   const owner = { active: true };
   const queue = new CanvasSnapshotSaveQueue({
     spaceId: "space-a",
@@ -42,14 +42,14 @@ function deferred<T>() {
   return { promise, resolve };
 }
 
-function moved(document: CanvasDocumentV1, x: number): CanvasDocumentV1 {
+function moved(document: SpaceEditorDocument, x: number): SpaceEditorDocument {
   return { ...document, nodes: document.nodes.map((node) => ({ ...node, frame: { ...node.frame, x } })) };
 }
 
 describe("Space-owned document workspace", () => {
   it("keeps a successful database acknowledgement when its renderer is detached", async () => {
     const { workspace, document, owner, publish } = fixture();
-    const pending = deferred<{ document: CanvasDocumentV1; revision: number }>();
+    const pending = deferred<{ document: SpaceEditorDocument; revision: number }>();
     const persist = vi.fn(() => pending.promise);
     const operation = workspace.commit(persist);
     await vi.waitFor(() => expect(persist).toHaveBeenCalledWith(0));
@@ -63,7 +63,7 @@ describe("Space-owned document workspace", () => {
 
   it("rejects queued old-Space work before a second database call", async () => {
     const { workspace, document, owner } = fixture();
-    const pending = deferred<{ document: CanvasDocumentV1; revision: number }>();
+    const pending = deferred<{ document: SpaceEditorDocument; revision: number }>();
     const firstPersist = vi.fn(() => pending.promise);
     const secondPersist = vi.fn(async () => ({ document, revision: 2 }));
     const first = workspace.commit(firstPersist);
@@ -81,7 +81,7 @@ describe("Space-owned document workspace", () => {
   it("does not make a successor's camera wait on the old Space transaction", async () => {
     const first = fixture();
     const second = fixture();
-    const pending = deferred<{ document: CanvasDocumentV1; revision: number }>();
+    const pending = deferred<{ document: SpaceEditorDocument; revision: number }>();
     const persist = vi.fn(() => pending.promise);
     const operation = first.workspace.commit(persist);
     await vi.waitFor(() => expect(persist).toHaveBeenCalledOnce());
@@ -96,7 +96,7 @@ describe("Space-owned document workspace", () => {
 
   it("persists the captured camera at the committed revision even after detachment", async () => {
     const { workspace, document, owner, save } = fixture();
-    const pending = deferred<{ document: CanvasDocumentV1; revision: number }>();
+    const pending = deferred<{ document: SpaceEditorDocument; revision: number }>();
     const persist = vi.fn(() => pending.promise);
     const operation = workspace.commit(persist);
     await vi.waitFor(() => expect(persist).toHaveBeenCalledOnce());

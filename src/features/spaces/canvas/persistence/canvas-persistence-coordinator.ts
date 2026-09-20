@@ -1,4 +1,4 @@
-import type { CanvasDocumentV1 } from "../contract/canvas-document";
+import type { SpaceEditorDocument } from "../contract/canvas-document";
 import { canvasStateRepository } from "./canvas-state-repository";
 
 interface CanvasPersistenceLease {
@@ -9,7 +9,7 @@ interface CanvasPersistenceLease {
 const spaceTails = new Map<string, Promise<void>>();
 const activeMutationTargets = new Map<string, CanvasMutationTarget>();
 
-export type CanvasDocumentMutation = (document: CanvasDocumentV1) => CanvasDocumentV1;
+export type CanvasDocumentMutation = (document: SpaceEditorDocument) => SpaceEditorDocument;
 type CanvasMutationTarget = (mutation: CanvasDocumentMutation) => Promise<void>;
 
 export function registerCanvasMutationTarget(spaceId: string, target: CanvasMutationTarget) {

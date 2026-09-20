@@ -1,4 +1,4 @@
-import type { CanvasDocumentV1 } from "../contract/canvas-document";
+import type { SpaceEditorDocument } from "../contract/canvas-document";
 import type {
   CanvasHistoryEntry,
   CanvasPersistenceHistory,
@@ -7,15 +7,15 @@ import type {
 import { contentAddedBetween, removeCanvasContent, restoreCanvasContent } from "../document/canvas-content";
 
 interface CanvasPersistenceHistoryOptions {
-  before: CanvasDocumentV1;
-  after: CanvasDocumentV1;
+  before: SpaceEditorDocument;
+  after: SpaceEditorDocument;
   persistence: CanvasPersistenceHistory;
-  current(): CanvasDocumentV1;
+  current(): SpaceEditorDocument;
   commit(
-    document: CanvasDocumentV1,
+    document: SpaceEditorDocument,
     transition: CanvasPersistenceHistory["undo"],
-  ): Promise<CanvasPersistenceMutationResult & { document: CanvasDocumentV1 }>;
-  adopt(document: CanvasDocumentV1): void;
+  ): Promise<CanvasPersistenceMutationResult & { document: SpaceEditorDocument }>;
+  adopt(document: SpaceEditorDocument): void;
 }
 
 export function createCanvasPersistenceHistory(options: CanvasPersistenceHistoryOptions): CanvasHistoryEntry {
@@ -25,8 +25,8 @@ export function createCanvasPersistenceHistory(options: CanvasPersistenceHistory
   };
 
   async function replay(
-    source: CanvasDocumentV1,
-    target: CanvasDocumentV1,
+    source: SpaceEditorDocument,
+    target: SpaceEditorDocument,
     transition: CanvasPersistenceHistory["undo"],
   ) {
     const document = applyContentTransition(options.current(), source, target);
@@ -36,9 +36,9 @@ export function createCanvasPersistenceHistory(options: CanvasPersistenceHistory
 }
 
 function applyContentTransition(
-  current: CanvasDocumentV1,
-  source: CanvasDocumentV1,
-  target: CanvasDocumentV1,
+  current: SpaceEditorDocument,
+  source: SpaceEditorDocument,
+  target: SpaceEditorDocument,
 ) {
   const removed = contentAddedBetween(target, source);
   const added = contentAddedBetween(source, target);

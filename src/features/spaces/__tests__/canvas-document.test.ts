@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { parseCanvasDocument } from "../canvas/contract/canvas-document";
+import { parseSpaceEditorDocument } from "../canvas/contract/canvas-document";
 
 function document() {
   return {
@@ -27,13 +27,13 @@ function document() {
 
 describe("CanvasDocument v1", () => {
   it("accepts engine-neutral layout state without domain content", () => {
-    expect(parseCanvasDocument(document())).toEqual(document());
+    expect(parseSpaceEditorDocument(document())).toEqual(document());
   });
 
   it("rejects engine snapshots and copied domain content", () => {
-    expect(() => parseCanvasDocument({ ...document(), store: {} })).toThrow(/unrecognized_keys/u);
+    expect(() => parseSpaceEditorDocument({ ...document(), store: {} })).toThrow(/unrecognized_keys/u);
     expect(() =>
-      parseCanvasDocument({
+      parseSpaceEditorDocument({
         ...document(),
         nodes: [{ ...document().nodes[0], title: "copied domain content" }],
       }),
@@ -42,23 +42,23 @@ describe("CanvasDocument v1", () => {
 
   it("rejects duplicate nodes", () => {
     const node = document().nodes[0];
-    expect(() => parseCanvasDocument({ ...document(), nodes: [node, node] })).toThrow(/unique/u);
+    expect(() => parseSpaceEditorDocument({ ...document(), nodes: [node, node] })).toThrow(/unique/u);
   });
 
   it("requires explicit size ownership instead of inferring it from dimensions", () => {
     const { sizeAuthority: _sizeAuthority, ...node } = document().nodes[0];
-    expect(() => parseCanvasDocument({ ...document(), nodes: [node] })).toThrow();
+    expect(() => parseSpaceEditorDocument({ ...document(), nodes: [node] })).toThrow();
   });
 
   it("uses the same unsigned 32-bit layer range as the Rust contract", () => {
     expect(
-      parseCanvasDocument({
+      parseSpaceEditorDocument({
         ...document(),
         nodes: [{ ...document().nodes[0], zIndex: 0xffff_ffff }],
       }).nodes[0]?.zIndex,
     ).toBe(0xffff_ffff);
     expect(() =>
-      parseCanvasDocument({
+      parseSpaceEditorDocument({
         ...document(),
         nodes: [{ ...document().nodes[0], zIndex: 0x1_0000_0000 }],
       }),
@@ -67,7 +67,7 @@ describe("CanvasDocument v1", () => {
 
   it("rejects duplicated domain membership and lock state", () => {
     expect(() =>
-      parseCanvasDocument({
+      parseSpaceEditorDocument({
         ...document(),
         nodes: [{ ...document().nodes[0], parentNodeId: "section", locked: true }],
       }),
@@ -76,7 +76,7 @@ describe("CanvasDocument v1", () => {
 
   it("accepts only the current semantic appearance contract", () => {
     expect(
-      parseCanvasDocument({
+      parseSpaceEditorDocument({
         ...document(),
         nodes: [
           {
@@ -99,31 +99,31 @@ describe("CanvasDocument v1", () => {
       verticalAlign: "middle",
     });
     expect(() =>
-      parseCanvasDocument({
+      parseSpaceEditorDocument({
         ...document(),
         nodes: [{ ...document().nodes[0], appearance: { typographyScale: 4.01 } }],
       }),
     ).toThrow();
     expect(() =>
-      parseCanvasDocument({
+      parseSpaceEditorDocument({
         ...document(),
         nodes: [{ ...document().nodes[0], appearance: { color: "2" } }],
       }),
     ).toThrow(/unrecognized_keys/u);
     expect(() =>
-      parseCanvasDocument({
+      parseSpaceEditorDocument({
         ...document(),
         nodes: [{ ...document().nodes[0], appearance: { fontSize: 576.1 } }],
       }),
     ).toThrow();
     expect(() =>
-      parseCanvasDocument({
+      parseSpaceEditorDocument({
         ...document(),
         nodes: [{ ...document().nodes[0], appearance: { customFill: "red" } }],
       }),
     ).toThrow();
     expect(() =>
-      parseCanvasDocument({
+      parseSpaceEditorDocument({
         ...document(),
         nodes: [
           {
@@ -136,18 +136,18 @@ describe("CanvasDocument v1", () => {
   });
 
   it("rejects semantic relations embedded in the spatial document", () => {
-    expect(() => parseCanvasDocument({ ...document(), connectors: [] })).toThrow(/unrecognized_keys/u);
+    expect(() => parseSpaceEditorDocument({ ...document(), connectors: [] })).toThrow(/unrecognized_keys/u);
   });
 
   it("stores only non-default relation presentation overrides", () => {
     expect(
-      parseCanvasDocument({
+      parseSpaceEditorDocument({
         ...document(),
         relationStyles: [{ relationId: "relation", color: "blue" }],
       }).relationStyles,
     ).toEqual([{ relationId: "relation", color: "blue" }]);
     expect(() =>
-      parseCanvasDocument({
+      parseSpaceEditorDocument({
         ...document(),
         relationStyles: [{ relationId: "relation", color: "neutral" }],
       }),

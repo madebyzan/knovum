@@ -1,5 +1,5 @@
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
-import type { CanvasDocumentV1 } from "./canvas-document";
+import type { SpaceEditorDocument } from "./canvas-document";
 import type {
   CanvasEditorPort,
   CanvasNodePlacement,
@@ -38,7 +38,7 @@ export interface CanvasDeleteSelectionRequest {
   nodeIds: readonly string[];
   relationIds: readonly string[];
   baseRevision: number;
-  document: CanvasDocumentV1;
+  document: SpaceEditorDocument;
 }
 
 export type CanvasDeleteSelectionDraft = Omit<CanvasDeleteSelectionRequest, "baseRevision">;
@@ -51,7 +51,7 @@ export type CanvasCutSelectionDraft = Omit<CanvasCutSelectionRequest, "baseRevis
 
 export interface CanvasPersistenceMutationRequest {
   baseRevision: number;
-  document: CanvasDocumentV1;
+  document: SpaceEditorDocument;
 }
 
 export interface CanvasPersistenceMutationResult {
@@ -64,7 +64,7 @@ export interface CanvasPersistenceHistory {
 }
 
 export interface CanvasDeleteSelectionResult {
-  document: CanvasDocumentV1;
+  document: SpaceEditorDocument;
   revision: number;
   history: CanvasPersistenceHistory;
 }
@@ -72,13 +72,13 @@ export interface CanvasDeleteSelectionResult {
 export interface CanvasGestureCommitRequest {
   assignments: readonly SectionAssignment[];
   baseRevision: number;
-  document: CanvasDocumentV1;
+  document: SpaceEditorDocument;
 }
 
 export type CanvasGestureCommitDraft = Omit<CanvasGestureCommitRequest, "baseRevision">;
 
 export interface CanvasGestureCommitResult {
-  document: CanvasDocumentV1;
+  document: SpaceEditorDocument;
   revision: number;
   history: CanvasPersistenceHistory;
 }
@@ -114,7 +114,7 @@ export interface CanvasSurfaceEvents extends Omit<
   onCutSelection(request: CanvasCutSelectionDraft): Promise<CanvasDeleteSelectionResult>;
   onDeleteSelection(request: CanvasDeleteSelectionDraft): Promise<CanvasDeleteSelectionResult>;
   onHistoryTransition(
-    document: CanvasDocumentV1,
+    document: SpaceEditorDocument,
     transition: CanvasPersistenceHistory["undo"],
-  ): Promise<CanvasPersistenceMutationResult & { document: CanvasDocumentV1 }>;
+  ): Promise<CanvasPersistenceMutationResult & { document: SpaceEditorDocument }>;
 }

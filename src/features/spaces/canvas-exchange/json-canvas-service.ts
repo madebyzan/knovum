@@ -1,6 +1,6 @@
 import { basename } from "pathe";
 
-import type { CanvasDocumentV1, CanvasNodeLayoutV1 } from "../canvas/contract/canvas-document";
+import type { SpaceEditorDocument, CanvasNodeLayoutV1 } from "../canvas/contract/canvas-document";
 import type { CanvasHistoryEntry, CanvasSurfaceEvents } from "../canvas/contract/canvas-editor";
 import type { CanvasEditorPort } from "../canvas/contract/canvas-editor-port";
 import { createCanvasPersistenceHistory } from "../canvas/persistence/canvas-persistence-history";
@@ -63,7 +63,7 @@ export function createJsonCanvasExchangePort(options: JsonCanvasExchangeOptions)
 }
 
 async function exportDocument(
-  document: CanvasDocumentV1,
+  document: SpaceEditorDocument,
   nodes: readonly SpaceCanvasNode[],
   relations: readonly SpaceRelation[],
   codec: CanvasExchangeCodec,

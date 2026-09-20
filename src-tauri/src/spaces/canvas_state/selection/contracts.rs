@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use super::super::CanvasDocumentV1;
+use super::super::SpaceEditorDocument;
 use crate::spaces::nodes::contracts::NodeDataChange;
 
 #[derive(Deserialize)]
@@ -11,7 +11,7 @@ pub(crate) struct DeleteCanvasSelectionRequest {
     pub(super) relation_ids: Vec<String>,
     pub(super) survivor_changes: Vec<NodeDataChange>,
     pub(super) base_revision: i64,
-    pub(super) document: CanvasDocumentV1,
+    pub(super) document: SpaceEditorDocument,
 }
 
 #[derive(Debug, Serialize)]
@@ -28,7 +28,7 @@ pub(crate) struct RestoreCanvasSelectionRequest {
     pub(super) relation_ids: Vec<String>,
     pub(super) survivor_changes: Vec<NodeDataChange>,
     pub(super) base_revision: i64,
-    pub(super) document: CanvasDocumentV1,
+    pub(super) document: SpaceEditorDocument,
 }
 
 #[derive(Deserialize)]
@@ -39,5 +39,5 @@ pub(crate) struct SetImportedCanvasNodesDeletedRequest {
     pub(super) relation_ids: Vec<String>,
     pub(super) deleted: bool,
     pub(super) base_revision: i64,
-    pub(super) document: CanvasDocumentV1,
+    pub(super) document: SpaceEditorDocument,
 }

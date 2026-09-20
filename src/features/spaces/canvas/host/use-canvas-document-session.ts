@@ -1,7 +1,7 @@
 import { shallowRef } from "vue";
 
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
-import type { CanvasDocumentV1 } from "../contract/canvas-document";
+import type { SpaceEditorDocument } from "../contract/canvas-document";
 import { createCanvasDocument, reconcileCanvasDocument } from "../document/canvas-document-sync";
 import { registerSpaceSessionParticipant } from "../editor-session";
 import {
@@ -19,7 +19,7 @@ interface CanvasDocumentSessionOptions {
 }
 
 export function useCanvasDocumentSession(options: CanvasDocumentSessionOptions) {
-  const document = shallowRef<CanvasDocumentV1>();
+  const document = shallowRef<SpaceEditorDocument>();
   const surfaceKey = shallowRef(0);
   let workspace: CanvasDocumentWorkspace | undefined;
   let persistenceLease: ReturnType<typeof acquireCanvasPersistenceLease> | undefined;
@@ -37,7 +37,7 @@ export function useCanvasDocumentSession(options: CanvasDocumentSessionOptions) 
     },
   });
 
-  function commitTransaction<T extends { document: CanvasDocumentV1; revision: number }>(
+  function commitTransaction<T extends { document: SpaceEditorDocument; revision: number }>(
     commit: (baseRevision: number) => Promise<T>,
   ): Promise<T> {
     if (!workspace) return Promise.reject(new Error("Canvas persistence is not ready"));
@@ -97,7 +97,7 @@ export function useCanvasDocumentSession(options: CanvasDocumentSessionOptions) 
     if (next !== workspace.document) workspace.change(next);
   }
 
-  function documentChanged(next: CanvasDocumentV1) {
+  function documentChanged(next: SpaceEditorDocument) {
     workspace?.change(next);
   }
 

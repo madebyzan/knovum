@@ -5,13 +5,13 @@ import type {
   CanvasJsonImportCommitResult,
   CanvasJsonImportRequest,
 } from "../canvas-exchange/json-canvas-import-contract";
-import type { CanvasDocumentV1 } from "../canvas/contract/canvas-document";
+import type { SpaceEditorDocument } from "../canvas/contract/canvas-document";
 import type { CanvasHostEvents } from "../canvas/contract/canvas-editor";
 import { createCanvasDocument } from "../canvas/document/canvas-document-sync";
 import { canvasNote, deferred } from "../testing/canvas-fixtures";
 
 const repository = vi.hoisted(() => ({
-  load: vi.fn<(spaceId: string) => Promise<{ document: CanvasDocumentV1; revision: number }>>(),
+  load: vi.fn<(spaceId: string) => Promise<{ document: SpaceEditorDocument; revision: number }>>(),
   save: vi.fn<(request: unknown) => Promise<number>>(),
 }));
 vi.mock("../canvas/persistence/canvas-state-repository", () => ({ canvasStateRepository: repository }));
@@ -83,7 +83,7 @@ describe("CanvasSurfaceHost remount persistence", () => {
 
   it("waits for an in-flight formal commit before remounting the same space", async () => {
     const pendingCommit = deferred<{
-      document: CanvasDocumentV1;
+      document: SpaceEditorDocument;
       revision: number;
       history: { undo: () => Promise<{ revision: number }>; redo: () => Promise<{ revision: number }> };
     }>();
@@ -99,7 +99,7 @@ describe("CanvasSurfaceHost remount persistence", () => {
       onDeleteSelection(request: {
         nodeIds: readonly string[];
         relationIds: readonly string[];
-        document: CanvasDocumentV1;
+        document: SpaceEditorDocument;
       }): Promise<unknown>;
     };
     const commit = surfaceEvents.onDeleteSelection({

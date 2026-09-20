@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { CanvasDocumentV1 } from "../canvas/contract/canvas-document";
+import type { SpaceEditorDocument } from "../canvas/contract/canvas-document";
 import type {
   CanvasHistoryEntry,
   CanvasPersistenceHistory,
@@ -35,7 +35,7 @@ describe("canvas section gestures", () => {
       onMutationPendingChange() {},
       onDirectManipulationChange() {},
       onHistoryTransition: async (
-        document: CanvasDocumentV1,
+        document: SpaceEditorDocument,
         transition: CanvasPersistenceHistory["undo"],
       ) => ({ ...(await transition({ baseRevision: 1, document })), document }),
     } as unknown as CanvasSurfaceEvents;

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { CanvasDocumentV1 } from "../canvas/contract/canvas-document";
+import type { SpaceEditorDocument } from "../canvas/contract/canvas-document";
 import { commitCanvasGesture } from "../canvas/persistence/canvas-gesture-repository";
 
 const tauri = vi.hoisted(() => ({
@@ -9,7 +9,7 @@ const tauri = vi.hoisted(() => ({
 
 vi.mock("@tauri-apps/api/core", () => ({ invoke: tauri.invoke }));
 
-const document: CanvasDocumentV1 = {
+const document: SpaceEditorDocument = {
   version: 1,
   viewport: { x: 0, y: 0, zoom: 1 },
   nodes: [],
