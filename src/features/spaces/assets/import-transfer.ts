@@ -1,5 +1,6 @@
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
+import { isSpaceManagedAssetPayload } from "../model/nodes/capabilities";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
 import { runSpaceAssetTransfer } from "../session/actions/work-scheduler";
 import {
@@ -62,7 +63,11 @@ export async function commitManagedImport(options: CommitManagedImportOptions) {
     tasks.fail(taskId, String(error));
     throw error;
   }
-  scheduleSpaceAssetProcessing(context, spaceId, imported.node.id, imported.data, taskId);
+  if (isSpaceManagedAssetPayload(imported.data) && imported.data.processingState === "processing") {
+    scheduleSpaceAssetProcessing(context, spaceId, imported.node.id, imported.data, taskId);
+  } else {
+    tasks.succeed(taskId);
+  }
   return [imported.node];
 }
 

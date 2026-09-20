@@ -35,11 +35,7 @@ impl TranscriptAssembly {
         self.language.as_deref().unwrap_or("unknown")
     }
 
-    pub fn finish(
-        mut self,
-        waveform: Vec<f32>,
-        duration_ms: u64,
-    ) -> Result<MediaTranscript, String> {
+    pub fn finish(mut self, duration_ms: u64) -> Result<MediaTranscript, String> {
         self.segments.sort_by_key(|segment| segment.start_ms);
         self.subtitle_cues = cues::sanitize(self.subtitle_cues, duration_ms);
         let text = self
@@ -54,7 +50,6 @@ impl TranscriptAssembly {
             text,
             segments: self.segments,
             subtitle_cues: self.subtitle_cues,
-            waveform,
         })
     }
 

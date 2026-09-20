@@ -18,6 +18,7 @@
   "reanalyze": "重新分析",
   "analysisTask": "音视频分析",
   "analysisPreparing": "正在准备媒体文件",
+  "analysisUnavailable": "时长与波形尚不可用",
   "audioPreparing": "正在准备音频",
   "transcribing": "Whisper 本地转写",
   "organizing": "正在生成章节与摘要",

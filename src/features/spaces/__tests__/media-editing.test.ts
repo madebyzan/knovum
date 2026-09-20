@@ -25,10 +25,9 @@ function knowledge(): SpaceMediaKnowledge {
         { startMs: 3_000, endMs: 6_000, text: "two" },
         { startMs: 6_000, endMs: 9_000, text: "three" },
       ],
-      waveform: [0.2, 0.6, 0.4],
     },
     sourceRevision: "sha256:source",
-    schemaVersion: 3,
+    schemaVersion: 4,
     insights: {
       summary: "Original",
       chapters: [

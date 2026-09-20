@@ -12,7 +12,7 @@ use crate::{
         transcript::{MediaTranscript, TranscriptSegment},
         workspace::AnalysisWorkspace,
     },
-    spaces::assets::authorize_spaces_asset,
+    spaces::assets::{authorize_spaces_asset, media_analysis},
 };
 use pipeline::TranscriptionPipeline;
 
@@ -51,12 +51,7 @@ pub async fn transcribe_media(
 ) -> Result<MediaTranscript, String> {
     let source = authorize_spaces_asset(&app, Path::new(&source_path))?;
     let (cancellation, _lease) = registry::acquire(job_id.clone())?;
-    let execution_id = job_id.clone();
-    let transcript = blocking::run(move || {
-        transcribe(&app, &execution_id, &source, &on_progress, &cancellation)
-    })
-    .await;
-    transcript
+    blocking::run(move || transcribe(&app, &job_id, &source, &on_progress, &cancellation)).await
 }
 
 #[tauri::command]
@@ -74,7 +69,8 @@ fn transcribe(
     let started = Instant::now();
     log::info!("media_transcription job={job_id} event=started");
     send_progress(progress, "preparing", 3)?;
-    let ffmpeg = required_tool(app, "KNOVUM_FFMPEG_PATH", tools::ffmpeg_name(), "FFmpeg")?;
+    let revision = crate::file_inspection::content_revision(source)?;
+    let audio = media_analysis::prepare(app, source, &revision, cancellation)?;
     let whisper = required_tool(
         app,
         "KNOVUM_WHISPER_PATH",
@@ -83,19 +79,25 @@ fn transcribe(
     )?;
     let model = models::require_verified_path(app, catalog::TRANSCRIPTION)?;
     let vad_model = models::require_verified_path(app, catalog::TRANSCRIPTION_VAD)?;
+    let compute_budget = ComputeBudget::detect()?;
     let paths = AnalysisWorkspace::new(app)?;
     let pipeline = TranscriptionPipeline {
         job_id,
         progress,
         cancellation,
-        ffmpeg: &ffmpeg,
         whisper_cli: &whisper,
         model: &model,
         vad_model: &vad_model,
         paths: &paths,
-        compute_budget: ComputeBudget::detect()?,
+        compute_budget,
     };
-    let transcribed = pipeline.run(source);
+    let transcribed = pipeline.run(&audio).and_then(|transcript| {
+        if cancellation.is_cancelled() {
+            return Err(crate::media::TRANSCRIPTION_CANCELLED.into());
+        }
+        crate::file_inspection::verify_content_revision(source, &revision)?;
+        Ok(transcript)
+    });
     let cleanup = paths.cleanup();
     match (transcribed, cleanup) {
         (Ok(transcript), Ok(())) => {
@@ -106,7 +108,10 @@ fn transcribe(
             );
             Ok(transcript)
         }
-        (Err(error), _) => {
+        (Err(error), cleanup) => {
+            if let Err(cleanup_error) = cleanup {
+                log::warn!("media_transcription job={job_id} cleanup failed: {cleanup_error}");
+            }
             log::error!(
                 "media_transcription job={job_id} event=failed elapsed_ms={} error={error}",
                 started.elapsed().as_millis()
@@ -133,11 +138,7 @@ pub(crate) fn send_progress(
     progress: u8,
 ) -> Result<(), String> {
     channel
-        .send(MediaTranscriptionProgress {
-            stage: stage.to_owned(),
-            progress,
-            partial: None,
-        })
+        .send(MediaTranscriptionProgress::stage(stage, progress))
         .map_err(|error| error.to_string())
 }
 

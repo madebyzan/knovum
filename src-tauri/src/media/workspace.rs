@@ -1,10 +1,10 @@
 use std::{
     fs,
-    path::PathBuf,
-    time::{SystemTime, UNIX_EPOCH},
+    path::{Path, PathBuf},
 };
 
 use tauri::Manager;
+use uuid::Uuid;
 
 pub(crate) struct AnalysisWorkspace {
     directory: PathBuf,
@@ -15,27 +15,34 @@ pub(crate) struct AnalysisWorkspace {
 
 impl AnalysisWorkspace {
     pub fn new(app: &tauri::AppHandle) -> Result<Self, String> {
-        let root = analysis_directory(app)?;
-        let nonce = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .map_err(|error| error.to_string())?
-            .as_nanos();
-        let directory = root.join(format!("media-{}-{nonce}", std::process::id()));
+        Self::create(&analysis_directory(app)?)
+    }
+
+    pub(super) fn create(root: &Path) -> Result<Self, String> {
+        let directory = root.join(format!("media-{}", Uuid::new_v4()));
         fs::create_dir(&directory).map_err(|error| error.to_string())?;
-        Ok(Self {
+        Ok(Self::at(directory))
+    }
+
+    pub(super) fn at(directory: PathBuf) -> Self {
+        Self {
             wav: directory.join("source.wav"),
             waveform: directory.join("waveform.f32"),
             transcript: directory.join("transcript"),
             directory,
-        })
+        }
+    }
+
+    pub(super) fn directory(&self) -> &Path {
+        &self.directory
     }
 
     pub fn cleanup(&self) -> Result<(), String> {
-        if self.directory.exists() {
-            fs::remove_dir_all(&self.directory)
-                .map_err(|error| format!("failed to remove media analysis directory: {error}"))?;
+        match fs::remove_dir_all(&self.directory) {
+            Ok(()) => Ok(()),
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
+            Err(error) => Err(format!("failed to remove media analysis directory: {error}")),
         }
-        Ok(())
     }
 }
 
@@ -52,7 +59,7 @@ pub fn cleanup_stale(app: &tauri::AppHandle) -> Result<(), String> {
     Ok(())
 }
 
-fn analysis_directory(app: &tauri::AppHandle) -> Result<PathBuf, String> {
+pub(crate) fn analysis_directory(app: &tauri::AppHandle) -> Result<PathBuf, String> {
     let directory = app
         .path()
         .app_cache_dir()

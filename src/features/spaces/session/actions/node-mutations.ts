@@ -1,4 +1,8 @@
 import { createSpaceNode, snapshotSpaceNode } from "../../canvas/node";
+import {
+  resumePendingEnrichmentJobs,
+  type SpaceEnrichmentSchedulerContext,
+} from "../../enrichment/job-scheduler";
 import { createSpaceHistoryMutations } from "../../history/mutation-actions";
 import { createAddHistory, createDeleteHistory } from "../../history/mutation-application";
 import { beginSpaceMutation } from "../../history/mutation-barrier";
@@ -20,14 +24,15 @@ import { createNodeDataMutations } from "./node-data-mutations";
 export type { NodeDataChange } from "../../history/mutation-types";
 
 export function createSpaceMutations(context: SpaceMutationContext) {
+  const dataMutations = createNodeDataMutations(context);
   return {
-    ...createItemMutations(context),
-    ...createNodeDataMutations(context),
+    ...createItemMutations(context, { applyNodeDataForSpace: dataMutations.applyNodeDataForSpace }),
+    ...dataMutations,
     ...createSpaceHistoryMutations(context),
   };
 }
 
-function createItemMutations(context: SpaceMutationContext) {
+function createItemMutations(context: SpaceMutationContext, enrichment: SpaceEnrichmentSchedulerContext) {
   const { nodes, history } = context;
 
   async function addItem(
@@ -108,6 +113,7 @@ function createItemMutations(context: SpaceMutationContext) {
       spaceId,
       items.map((item) => item.id),
     );
+    void resumePendingEnrichmentJobs(enrichment, spaceId);
     return historyMode === "return" ? entry : undefined;
   }
 

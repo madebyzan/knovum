@@ -5,6 +5,7 @@
   "enrichmentJobType": {
     "embed_text": "文本向量索引",
     "analyze_image": "图像视觉分析",
+    "analyze_media": "媒体时长与波形分析",
     "transcribe_media": "音频 Whisper 转写",
     "analyze_video_first_frame": "视频首帧抽取",
     "embed_media_transcript": "转写向量索引",

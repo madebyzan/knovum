@@ -8,7 +8,6 @@ pub(crate) struct MediaTranscript {
     pub(crate) text: String,
     pub(crate) segments: Vec<TranscriptSegment>,
     pub(crate) subtitle_cues: Vec<SubtitleCue>,
-    pub(crate) waveform: Vec<f32>,
 }
 
 #[derive(Serialize)]

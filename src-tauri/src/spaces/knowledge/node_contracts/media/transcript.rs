@@ -3,7 +3,9 @@ use std::collections::HashSet;
 use serde_json::{Map, Value};
 
 use super::nonnegative;
-use crate::spaces::knowledge::node_contracts::scalars::required_string;
+use crate::spaces::knowledge::node_contracts::scalars::{
+    required_string, required_string_allow_empty,
+};
 use crate::spaces::knowledge::node_contracts::validation::reject_unknown;
 
 const MAX_TEXT: usize = 4 * 1024 * 1024;
@@ -21,25 +23,17 @@ pub(super) fn validate(object: &Map<String, Value>) -> Result<TranscriptContract
         .ok_or_else(|| "mediaKnowledge transcript is required".to_string())?;
     reject_unknown(
         transcript,
-        [
-            "language",
-            "durationMs",
-            "text",
-            "segments",
-            "subtitleCues",
-            "waveform",
-        ],
+        ["language", "durationMs", "text", "segments", "subtitleCues"],
         "media transcript",
     )?;
     required_string(transcript, "language", 64)?;
     let duration = nonnegative(transcript, "durationMs")?;
-    required_string(transcript, "text", MAX_TEXT)?;
-    validate_waveform(transcript)?;
+    required_string_allow_empty(transcript, "text", MAX_TEXT)?;
     let segments = transcript
         .get("segments")
         .and_then(Value::as_array)
         .ok_or_else(|| "Transcript segments must be an array".to_string())?;
-    if segments.is_empty() || segments.len() > 100_000 {
+    if segments.len() > 100_000 {
         return Err("Transcript segments count is invalid".into());
     }
     let mut previous = 0_i64;
@@ -67,7 +61,7 @@ fn validate_subtitle_cues(transcript: &Map<String, Value>, duration: i64) -> Res
         .get("subtitleCues")
         .and_then(Value::as_array)
         .ok_or_else(|| "Transcript subtitleCues must be an array".to_string())?;
-    if cues.is_empty() || cues.len() > 100_000 {
+    if cues.len() > 100_000 {
         return Err("Transcript subtitleCues count is invalid".into());
     }
     let mut previous = 0;
@@ -83,23 +77,6 @@ fn validate_subtitle_cues(transcript: &Map<String, Value>, duration: i64) -> Res
             return Err("Subtitle cues must be ordered and bounded".into());
         }
         previous = start;
-    }
-    Ok(())
-}
-
-fn validate_waveform(transcript: &Map<String, Value>) -> Result<(), String> {
-    let waveform = transcript
-        .get("waveform")
-        .and_then(Value::as_array)
-        .ok_or_else(|| "Transcript waveform must be an array".to_string())?;
-    let invalid = waveform.len() > 1_200
-        || waveform.iter().any(|value| {
-            value
-                .as_f64()
-                .is_none_or(|sample| !sample.is_finite() || !(0.0..=1.0).contains(&sample))
-        });
-    if invalid {
-        return Err("Transcript waveform samples must be finite values between 0 and 1".into());
     }
     Ok(())
 }

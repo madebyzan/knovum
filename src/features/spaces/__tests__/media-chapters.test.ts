@@ -7,7 +7,6 @@ const transcript: SpaceMediaTranscript = {
   language: "en",
   durationMs: 30_000,
   text: "Intro Topic Closing",
-  waveform: [],
   segments: [
     { startMs: 0, endMs: 8_000, text: "Intro" },
     { startMs: 8_000, endMs: 20_000, text: "Topic" },

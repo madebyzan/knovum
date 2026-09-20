@@ -74,6 +74,54 @@ Tab transitions await admitted transactions, storage readiness and pending snaps
 Rust distinguishes an absent owning Space from a compare-and-swap conflict within the write
 transaction. Neither error permits a forced overwrite, automatic reload-and-retry, or compatibility path.
 
+## Media assets and derived analysis
+
+Acquisition and analysis have different owners. Recording owns microphone sessions and ordered
+chunk writes; file import owns source authorization and copying. Both construct their completed
+assets through `assets::snapshot_to_imported`, with the actual file name, size, modification time
+and content revision. A completed recording is not a synthetic path-only asset. Its IPC result is
+validated as a ready audio asset; the Renderer does not invent missing identity fields.
+
+Node insertion and updates synchronize durable enrichment intents inside the same Rust write
+transaction. The normal node mutation boundary wakes pending work only after commit. Failed
+dispatch has its own retryable Task Center entry and cannot roll back an already published file.
+Pending import mutations do not dispatch until their acquisition is finalized.
+
+`mediaAnalysis` owns decoded audio duration and waveform. Its strict current schema is
+`{ schemaVersion: 1, sourceRevision, durationMs, waveform }`. Duration is a positive integer number
+of milliseconds derived from the decoded 16 kHz mono sample count; waveform is a nonempty,
+bounded sequence of finite peaks in `[0, 1]`. Silence is valid analysis, not missing analysis.
+
+The `analyze_media` job requires the existing FFmpeg runtime, not Whisper, a speech model or an AI
+connection. It publishes only `mediaAnalysis`, guarded by the current node source revision and
+running job. Rust then records the dependent transcription intent. `mediaKnowledge` uses current
+schema version `4`: transcript text, timing and optional insights, but no waveform. Transcript
+duration bounds transcript timestamps; it is not an alternative audio-card duration source.
+Acquisition-supplied `durationSeconds` is source metadata, not the decoded audio-card authority.
+
+The audio card consumes only analysis belonging to its current source revision. Unknown/stale
+analysis displays an unavailable state and an unknown duration, never a fabricated zero-length
+recording or a waveform copied out of an obsolete transcript. Pending, running, failed and retry
+state remain in the durable jobs and Task Center rather than being mirrored into node metadata.
+
+`media::prepared_audio` owns a disposable decoded-audio cache keyed by source revision and decode
+policy version. Analysis and transcription reuse the same WAV/PCM outputs; they do not independently
+decode the recording. Preparation publishes a completed scratch directory atomically and verifies
+source identity before publishing its cache key. Existing startup analysis-cache cleanup removes
+these disposable artifacts before work resumes. Cache paths are never persisted into node payloads
+or exported packages, and a damaged cache is reported rather than treated as valid media.
+
+Renderer submission uses the existing `p-limit` dependency to sequence projections per node, including
+retries. It has no global batch-completion barrier: another node's long transcription cannot prevent
+new audio analysis from being submitted. Rust retains the analysis/transcription/vision compute lanes.
+The media engine and its cache do not depend on Space node types, model configuration or Vue state.
+
+This is a pre-release contract change, not a compatibility upgrade. The existing job-table definition
+and its checksum change; incompatible development databases are rejected before pool exposure. Old
+media-knowledge payloads are not read, converted, or silently deleted. Use separate development data
+when validating this branch; do not edit `_sqlx_migrations` to bypass validation. Original working
+data must be backed up before any explicit development-data reset.
+
 ## Cross-resource cleanup
 
 SQLite cannot atomically commit filesystem or Keychain side effects.

@@ -23,9 +23,13 @@ const { t } = useI18n();
 
 const mediaElement = useTemplateRef<HTMLMediaElement>("mediaElement");
 const source = computed(() => versionedMediaSource(props.data.assetPath, props.data.sourceRevision));
-const waveform = computed(() => compactWaveform(props.data.mediaKnowledge?.transcript.waveform));
+const analysis = computed(() => {
+  const current = props.data.mediaAnalysis;
+  return current?.sourceRevision === props.data.sourceRevision ? current : undefined;
+});
+const waveform = computed(() => compactWaveform(analysis.value?.waveform));
 
-const { loaded, playing, currentMs, durationMs, togglePlayback, seekTo, seekFromControl, unload } =
+const { loaded, playing, currentMs, togglePlayback, seekTo, seekFromControl, unload } =
   useMediaPlayback(mediaElement, {
     sourceRevision: () => props.data.sourceRevision,
     onPlayback: (state) => emit("playback", state),
@@ -33,14 +37,11 @@ const { loaded, playing, currentMs, durationMs, togglePlayback, seekTo, seekFrom
     onUnload: () => emit("unload"),
   });
 
-const displayDurationMs = computed(
-  () =>
-    durationMs.value ||
-    props.data.mediaKnowledge?.transcript.durationMs ||
-    (props.data.durationSeconds ?? 0) * 1000,
+const durationLabel = computed(() =>
+  analysis.value ? formatDurationMs(analysis.value.durationMs) : "—",
 );
 const playedRatio = computed(() =>
-  displayDurationMs.value > 0 ? Math.min(currentMs.value / displayDurationMs.value, 1) : 0,
+  analysis.value ? Math.min(currentMs.value / analysis.value.durationMs, 1) : 0,
 );
 
 function seekFromSlider(event: Event) {
@@ -83,8 +84,7 @@ defineExpose({ seekTo, togglePlayback });
         {{ mediaProviderDisplayName(data.origin.provider) }}
       </span>
       <span class="shrink-0 text-micro text-foreground-tertiary tabular-nums">
-        <template v-if="loaded">{{ formatDurationMs(currentMs) }} / </template
-        >{{ formatDurationMs(displayDurationMs) }}
+        <template v-if="loaded">{{ formatDurationMs(currentMs) }} / </template>{{ durationLabel }}
       </span>
       <UiIconButton
         v-if="loaded"
@@ -98,7 +98,7 @@ defineExpose({ seekTo, togglePlayback });
     </div>
 
     <div class="relative min-w-0 rounded-sm focus-within:ring-1 focus-within:ring-accent">
-      <span v-if="waveform.length" class="audio-waveform" aria-hidden="true">
+      <span v-if="analysis" class="audio-waveform" aria-hidden="true">
         <span
           v-for="(amplitude, index) in waveform"
           :key="index"
@@ -107,12 +107,15 @@ defineExpose({ seekTo, togglePlayback });
           :style="{ height: `${Math.round(5 + amplitude * 27)}px` }"
         />
       </span>
-      <span v-else class="absolute inset-x-0 top-1/2 h-0.5 rounded-full bg-border" aria-hidden="true" />
+      <span v-else class="flex h-full items-center text-micro text-foreground-tertiary" role="status">
+        {{ t("spaces.media.analysisUnavailable") }}
+      </span>
       <input
+        v-if="analysis"
         class="nodrag pointer-events-auto absolute inset-0 size-full cursor-pointer opacity-0 disabled:cursor-default"
         type="range"
         min="0"
-        :max="Math.max(displayDurationMs, 1)"
+        :max="analysis.durationMs"
         :value="currentMs"
         :disabled="!loaded"
         :aria-label="t('spaces.media.timeline')"
