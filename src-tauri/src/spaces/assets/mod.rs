@@ -6,6 +6,7 @@ pub(crate) mod external_open;
 pub(crate) mod files;
 pub(crate) mod image;
 pub(crate) mod import;
+pub(crate) mod media_analysis;
 mod reclamation;
 mod recovery;
 mod references;
@@ -56,6 +57,8 @@ pub struct PreparedAsset {
     pub(crate) entries: Option<Vec<crate::file_inspection::InspectedEntry>>,
 }
 
+/// Shared post-acquisition mapping for imported copies, recordings and resource inspection.
+/// Audio analysis is a durable node job, not document/thumbnail enrichment.
 fn snapshot_to_imported(
     snapshot: InspectedFile,
     revision: String,

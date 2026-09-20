@@ -3,12 +3,14 @@ use std::time::{Duration, Instant};
 use serde::Serialize;
 use tauri::ipc::Channel;
 
-use super::super::{transfer::remove_path, PreparedAsset};
+use super::super::{snapshot_to_imported, transfer::remove_path, PreparedAsset};
 use super::{
     copy::{copy_resource, CopiedResource},
     registry::{self, PendingImport},
 };
-use crate::file_inspection::{read_html_preview, read_text_preview, ResourceClassification};
+use crate::file_inspection::{
+    read_html_preview, read_text_preview, InspectedFile, ResourceClassification,
+};
 
 #[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -103,31 +105,19 @@ impl ProgressState {
 
 fn copied_asset(job: &PendingImport, summary: CopiedResource) -> Result<PreparedAsset, String> {
     let (preview_text, preview_language, entries) = copied_preview(job);
-    let kind = job.classification.node_kind();
-    let geometry = if job.classification == ResourceClassification::Image {
-        super::geometry::visual_geometry(&job.target, "image")?
-    } else {
-        None
-    };
-    Ok(PreparedAsset {
+    let snapshot = InspectedFile {
         name: job.name.clone(),
-        path: Some(job.target.to_string_lossy().into_owned()),
-        kind,
-        text: None,
+        path: job.target.to_string_lossy().into_owned(),
+        kind: job.classification.node_kind(),
         preview_text,
         preview_language,
-        preview_path: None,
-        extracted_text: None,
-        size: Some(summary.size),
-        modified_at: Some(summary.modified_at),
-        source_revision: Some(summary.revision),
-        processing_state: Some("processing"),
-        intrinsic_width: geometry.map(|value| value.0),
-        intrinsic_height: geometry.map(|value| value.1),
-        knowledge_chunks: None,
-        document_coverage: None,
+        size: summary.size,
+        modified_at: summary.modified_at,
         entries,
-    })
+    };
+    let mut asset = snapshot_to_imported(snapshot, summary.revision)?;
+    asset.processing_state = (asset.kind != "audio").then_some("processing");
+    Ok(asset)
 }
 
 fn copied_preview(

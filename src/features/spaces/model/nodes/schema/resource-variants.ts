@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { spaceMediaAnalysisSchema } from "../../../media/analysis-schema";
 import { spaceMediaOriginSchema } from "../../../media/origin";
 import { spaceMediaKnowledgeSchema } from "../../../media/schema";
 import { spaceVisualKnowledgeSchema } from "../../../media/visual-knowledge-schema";
@@ -37,6 +38,13 @@ const visualFields = {
   ...intrinsicSizeFields,
   visualKnowledge: spaceVisualKnowledgeSchema.optional(),
 };
+const mediaFields = {
+  origin: spaceMediaOriginSchema.optional(),
+  creator: z.string().trim().min(1).max(512).optional(),
+  durationSeconds: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER).optional(),
+  mediaAnalysis: spaceMediaAnalysisSchema.optional(),
+  mediaKnowledge: spaceMediaKnowledgeSchema.optional(),
+};
 
 export const spaceResourceNodeSchemas = [
   z.object({ ...baseSpaceNodeFields, ...assetFields, ...visualFields, kind: z.literal("image") }).strict(),
@@ -45,22 +53,16 @@ export const spaceResourceNodeSchemas = [
       ...baseSpaceNodeFields,
       ...assetFields,
       ...visualFields,
+      ...mediaFields,
       kind: z.literal("video"),
-      origin: spaceMediaOriginSchema.optional(),
-      creator: z.string().trim().min(1).max(512).optional(),
-      durationSeconds: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER).optional(),
-      mediaKnowledge: spaceMediaKnowledgeSchema.optional(),
     })
     .strict(),
   z
     .object({
       ...baseSpaceNodeFields,
       ...assetFields,
+      ...mediaFields,
       kind: z.literal("audio"),
-      origin: spaceMediaOriginSchema.optional(),
-      creator: z.string().trim().min(1).max(512).optional(),
-      durationSeconds: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER).optional(),
-      mediaKnowledge: spaceMediaKnowledgeSchema.optional(),
     })
     .strict(),
   z

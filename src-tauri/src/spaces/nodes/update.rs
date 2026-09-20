@@ -141,6 +141,7 @@ async fn apply_node_change(
         || [
             "previewPath",
             "processingState",
+            "mediaAnalysis",
             "mediaKnowledge",
             "visualKnowledge",
             "documentCoverage",

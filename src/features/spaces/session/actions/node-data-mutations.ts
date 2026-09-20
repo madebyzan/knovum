@@ -1,5 +1,6 @@
 import { cleanupDeletedSpaceAssets } from "../../assets/asset-operations";
 import { applySpaceNodeData } from "../../canvas/node";
+import { resumePendingEnrichmentJobs } from "../../enrichment/job-scheduler";
 import { beginSpaceMutation } from "../../history/mutation-barrier";
 import { requireActiveSpaceId, type SpaceMutationContext } from "../../history/mutation-types";
 import { scheduleKnowledgeIndex } from "../../knowledge/indexing/index-scheduler";
@@ -31,6 +32,7 @@ export function createNodeDataMutations(context: SpaceMutationContext) {
   ) {
     await savePendingNodeDataForSpace(spaceId, id, data, sourceChunks);
     scheduleKnowledgeIndex(spaceId, [id]);
+    void resumePendingEnrichmentJobs({ applyNodeDataForSpace }, spaceId);
   }
 
   async function savePendingNodeDataForSpace(

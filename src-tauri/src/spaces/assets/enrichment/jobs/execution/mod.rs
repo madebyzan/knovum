@@ -1,3 +1,4 @@
+mod media;
 mod node;
 mod visual;
 
@@ -58,8 +59,7 @@ pub async fn execute_job(
     };
     match execute(&app, &job_id, request, progress, &cancellation).await {
         Ok(output) => {
-            // A job cancelled mid-run keeps its cancelled row; the node data the execution already
-            // persisted is returned so the caller does not fall behind the database.
+            // A job cancelled mid-run keeps its cancelled row; already committed data remains valid.
             super::mark_succeeded(&app, &job_id).await?;
             Ok(output)
         }
@@ -132,8 +132,11 @@ async fn execute(
             .map_err(|error| error.to_string())?;
             visual::analyze(app, &request, &mut data, target, cancellation).await?;
         }
+        EnrichmentJobType::AnalyzeMedia => {
+            media::analyze(app, &request, &mut data, &progress, cancellation).await?;
+        }
         EnrichmentJobType::TranscribeMedia => {
-            node::transcribe(app, job_id, &request, &mut data, progress).await?;
+            media::transcribe(app, job_id, &request, &mut data, progress).await?;
         }
         EnrichmentJobType::EmbedText | EnrichmentJobType::EmbedMediaTranscript => {
             return Err("Embedding jobs are owned by the retrieval index".to_owned());
@@ -147,10 +150,12 @@ async fn execute(
 }
 
 async fn lane(job_type: EnrichmentJobType) -> Result<OwnedSemaphorePermit, String> {
+    static ANALYSIS: OnceLock<Arc<Semaphore>> = OnceLock::new();
     static MEDIA: OnceLock<Arc<Semaphore>> = OnceLock::new();
     static VISUAL: OnceLock<Arc<Semaphore>> = OnceLock::new();
     static DOCUMENT: OnceLock<Arc<Semaphore>> = OnceLock::new();
     let semaphore = match job_type {
+        EnrichmentJobType::AnalyzeMedia => ANALYSIS.get_or_init(|| Arc::new(Semaphore::new(1))),
         EnrichmentJobType::TranscribeMedia => MEDIA.get_or_init(|| Arc::new(Semaphore::new(1))),
         EnrichmentJobType::ParseDocument => DOCUMENT.get_or_init(|| Arc::new(Semaphore::new(1))),
         _ => VISUAL.get_or_init(|| Arc::new(Semaphore::new(1))),

@@ -16,6 +16,7 @@ pub(crate) const FROM_LIVE: &str = "'pending','running','awaiting_configuration'
 pub enum EnrichmentJobType {
     EmbedText,
     AnalyzeImage,
+    AnalyzeMedia,
     TranscribeMedia,
     AnalyzeVideoFirstFrame,
     EmbedMediaTranscript,
@@ -28,6 +29,7 @@ impl EnrichmentJobType {
         match self {
             Self::EmbedText => "embed_text",
             Self::AnalyzeImage => "analyze_image",
+            Self::AnalyzeMedia => "analyze_media",
             Self::TranscribeMedia => "transcribe_media",
             Self::AnalyzeVideoFirstFrame => "analyze_video_first_frame",
             Self::EmbedMediaTranscript => "embed_media_transcript",

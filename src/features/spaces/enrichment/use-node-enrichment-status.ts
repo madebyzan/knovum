@@ -3,8 +3,8 @@ import { computed, shallowRef, type Ref } from "vue";
 import { toast } from "vue-sonner";
 
 import { useSpaceStore } from "../session/space-store";
-import { listEnrichmentJobs, runEnrichmentJob, type SpaceEnrichmentJobRecord } from "./enrichment-jobs";
-import { resumePendingEnrichmentJobs } from "./job-scheduler";
+import { listEnrichmentJobs, type SpaceEnrichmentJobRecord } from "./enrichment-jobs";
+import { retrySpaceEnrichmentJob } from "./job-scheduler";
 
 export interface NodeEnrichmentStatus {
   pending: number;
@@ -59,24 +59,14 @@ export function useNodeEnrichmentStatus(spaceId: Ref<string | undefined>, nodeId
 
   async function retryFailed() {
     const failed = jobs.value.filter((job) => job.status === "failed");
-    const currentSpaceId = spaceId.value;
-    if (!failed.length || !currentSpaceId || retrying.value) return;
+    if (!failed.length || !spaceId.value || retrying.value) return;
     retrying.value = true;
     try {
+      const context = { applyNodeDataForSpace: store.applyNodeDataForSpace };
       for (const job of failed) {
-        const output = await runEnrichmentJob({
-          id: job.id,
-          spaceId: currentSpaceId,
-          nodeId: job.nodeId,
-          type: job.jobType,
-          sourceRevision: job.sourceRevision,
-        });
-        if (output) store.applyNodeDataForSpace(currentSpaceId, output.nodeId, output.data);
+        // oxlint-disable-next-line eslint/no-await-in-loop -- Retries share the node's projection stream.
+        await retrySpaceEnrichmentJob(context, job);
       }
-      await resumePendingEnrichmentJobs(
-        { applyNodeDataForSpace: store.applyNodeDataForSpace },
-        currentSpaceId,
-      );
     } catch (error) {
       toast.error(String(error));
     } finally {

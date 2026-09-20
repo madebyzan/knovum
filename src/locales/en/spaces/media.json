@@ -18,6 +18,7 @@
   "reanalyze": "Reanalyze",
   "analysisTask": "Media Analysis",
   "analysisPreparing": "Preparing Media",
+  "analysisUnavailable": "Duration and waveform are not available yet",
   "audioPreparing": "Preparing Audio",
   "transcribing": "Whisper Local Transcription",
   "organizing": "Creating Chapters & Summary",

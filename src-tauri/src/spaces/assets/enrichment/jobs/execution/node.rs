@@ -1,11 +1,8 @@
 use serde_json::Value;
 use sqlx::Row;
-use tauri::{ipc::Channel, AppHandle};
+use tauri::AppHandle;
 
-use crate::spaces::{
-    assets::transcription::{self, MediaTranscriptionProgress},
-    db,
-};
+use crate::spaces::db;
 
 use super::RunEnrichmentJobRequest;
 
@@ -32,41 +29,13 @@ pub(super) async fn load_current(
     Ok(data)
 }
 
-pub(super) async fn transcribe(
-    app: &AppHandle,
-    job_id: &str,
-    request: &RunEnrichmentJobRequest,
-    data: &mut Value,
-    progress: Channel<MediaTranscriptionProgress>,
-) -> Result<(), String> {
-    let source_path = required_string(data, "assetPath")?;
-    let transcript = transcription::transcribe_media(
-        app.clone(),
-        job_id.to_owned(),
-        source_path.to_owned(),
-        progress,
-    )
-    .await?;
-    let object = data
-        .as_object_mut()
-        .ok_or_else(|| "Space node data must be an object".to_owned())?;
-    object.insert(
-        "mediaKnowledge".to_owned(),
-        serde_json::json!({
-            "transcript": transcript,
-            "sourceRevision": request.source_revision,
-            "schemaVersion": 3,
-        }),
-    );
-    Ok(())
-}
-
 pub(super) async fn save(
     app: &AppHandle,
     request: &RunEnrichmentJobRequest,
     data: Value,
 ) -> Result<Value, String> {
     let field = match request.job_type {
+        super::EnrichmentJobType::AnalyzeMedia => "mediaAnalysis",
         super::EnrichmentJobType::TranscribeMedia => "mediaKnowledge",
         super::EnrichmentJobType::AnalyzeImage
         | super::EnrichmentJobType::AnalyzeVideoFirstFrame => "visualKnowledge",

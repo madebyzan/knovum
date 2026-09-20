@@ -1,19 +1,21 @@
 import { invoke } from "@tauri-apps/api/core";
+import { z } from "zod";
 
-import type { ImportedSpaceAsset } from "../assets/imported-asset";
+const recordingSessionSchema = z.object({ sessionId: z.uuid() }).strict();
+const recordedAssetSchema = z
+  .object({
+    name: z.string().trim().min(1).max(512),
+    path: z.string().min(1).max(4096),
+    kind: z.literal("audio"),
+    size: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
+    modifiedAt: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
+    sourceRevision: z.string().regex(/^sha256:[a-f0-9]{64}$/u),
+  })
+  .strict();
 
-export type PersistedAudioSpaceAsset = ImportedSpaceAsset & { path: string };
+export type PersistedAudioSpaceAsset = z.infer<typeof recordedAssetSchema>;
 
 const RECORDING_MIME_TYPES = ["audio/webm;codecs=opus", "audio/mp4", "audio/webm"] as const;
-
-interface AudioRecordingStartAck {
-  sessionId: string;
-}
-
-interface PersistedAudioRecording {
-  path: string;
-  extension: string;
-}
 
 export interface SpaceAudioRecordingSession {
   id: string;
@@ -21,7 +23,12 @@ export interface SpaceAudioRecordingSession {
 }
 
 export async function startSpaceAudioRecording(mimeType: string): Promise<SpaceAudioRecordingSession> {
-  const session = await invoke<AudioRecordingStartAck>("plugin:spaces|start_audio_recording", { mimeType });
+  const stamp = new Date().toISOString().replaceAll(/[:.]/gu, "-");
+  const result = await invoke<unknown>("plugin:spaces|start_audio_recording", {
+    mimeType,
+    displayName: `Audio ${stamp}`,
+  });
+  const session = recordingSessionSchema.parse(result);
   return { id: session.sessionId, mimeType };
 }
 
@@ -39,11 +46,10 @@ export async function appendSpaceAudioRecording(
 export async function finishSpaceAudioRecording(
   session: SpaceAudioRecordingSession,
 ): Promise<PersistedAudioSpaceAsset> {
-  const recording = await invoke<PersistedAudioRecording>("plugin:spaces|finalize_audio_recording", {
+  const result = await invoke<unknown>("plugin:spaces|finalize_audio_recording", {
     sessionId: session.id,
   });
-  const stamp = new Date().toISOString().replaceAll(/[:.]/gu, "-");
-  return { name: `Audio ${stamp}.${recording.extension}`, path: recording.path, kind: "audio" };
+  return recordedAssetSchema.parse(result);
 }
 
 export function cancelSpaceAudioRecording(session: SpaceAudioRecordingSession): Promise<void> {

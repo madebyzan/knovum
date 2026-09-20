@@ -15,10 +15,9 @@ const mediaKnowledge = {
       { startMs: 0, endMs: 4_000, text: "Hello" },
       { startMs: 4_000, endMs: 10_000, text: "world" },
     ],
-    waveform: [0.1, 0.4, 0.2],
   },
   sourceRevision: "sha256:test",
-  schemaVersion: 3,
+  schemaVersion: 4,
   insights: {
     summary: "Greeting",
     chapters: [{ startMs: 0, endMs: 10_000, title: "Greeting", summary: "A greeting" }],

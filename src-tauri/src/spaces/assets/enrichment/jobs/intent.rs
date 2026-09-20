@@ -51,17 +51,26 @@ fn required_jobs(data: &Value, source_revision: &str) -> Vec<EnrichmentJobType> 
             .into_iter()
             .collect(),
         Some("video") => video_jobs(data, source_revision),
-        Some("audio") => (!knowledge_is_current(data, "mediaKnowledge", source_revision))
-            .then_some(EnrichmentJobType::TranscribeMedia)
-            .into_iter()
-            .collect(),
+        Some("audio") => media_jobs(data, source_revision),
         Some("file") => document_jobs(data, source_revision),
         _ => Vec::new(),
     }
 }
 
+fn media_jobs(data: &Value, source_revision: &str) -> Vec<EnrichmentJobType> {
+    // Publishing technical analysis creates the transcription intent in the same node transaction.
+    // A missing model or a failed/cancelled transcription can never withhold duration/waveform.
+    if !knowledge_is_current(data, "mediaAnalysis", source_revision) {
+        return vec![EnrichmentJobType::AnalyzeMedia];
+    }
+    (!knowledge_is_current(data, "mediaKnowledge", source_revision))
+        .then_some(EnrichmentJobType::TranscribeMedia)
+        .into_iter()
+        .collect()
+}
+
 fn video_jobs(data: &Value, source_revision: &str) -> Vec<EnrichmentJobType> {
-    let mut jobs = Vec::new();
+    let mut jobs = media_jobs(data, source_revision);
     if data
         .get("previewPath")
         .and_then(Value::as_str)
@@ -69,9 +78,6 @@ fn video_jobs(data: &Value, source_revision: &str) -> Vec<EnrichmentJobType> {
         && !visual_knowledge_is_current(data, source_revision)
     {
         jobs.push(EnrichmentJobType::AnalyzeVideoFirstFrame);
-    }
-    if !knowledge_is_current(data, "mediaKnowledge", source_revision) {
-        jobs.push(EnrichmentJobType::TranscribeMedia);
     }
     jobs
 }

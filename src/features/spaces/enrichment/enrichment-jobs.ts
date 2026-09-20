@@ -9,12 +9,13 @@ import type { SpaceNodePayload } from "../model/nodes/node-payload";
 export type SpaceEnrichmentJobType =
   | "analyze_image"
   | "analyze_video_first_frame"
+  | "analyze_media"
   | "transcribe_media"
   | "parse_document"
   | "analyze_document";
 
 export type SpaceEnrichmentJobProgress = Omit<SpaceMediaTranscriptionProgress, "stage"> & {
-  stage: SpaceMediaTranscriptionProgress["stage"] | "document_visual";
+  stage: SpaceMediaTranscriptionProgress["stage"] | "analyzing" | "document_visual";
 };
 
 export interface SpaceEnrichmentJob {
@@ -51,7 +52,7 @@ export async function runEnrichmentJob(
   onProgressUpdate?: (progress: SpaceEnrichmentJobProgress) => void,
 ) {
   let target: ExecutionTarget | null = null;
-  const visual = job.type !== "transcribe_media" && job.type !== "parse_document";
+  const visual = ["analyze_image", "analyze_video_first_frame", "analyze_document"].includes(job.type);
   if (visual) {
     const settings = useAiSettingsStore();
     await settings.ensureLoaded();

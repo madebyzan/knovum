@@ -26,7 +26,6 @@ const spaceMediaTranscriptSchema = z
       .max(4 * 1024 * 1024),
     segments: z.array(spaceTranscriptSegmentSchema).max(100_000),
     subtitleCues: z.array(spaceSubtitleCueSchema).max(100_000),
-    waveform: z.array(z.number().min(0).max(1)).max(1_200),
   })
   .strict();
 
@@ -55,7 +54,7 @@ export const spaceMediaKnowledgeSchema = z
   .object({
     transcript: spaceMediaTranscriptSchema,
     sourceRevision: z.string().trim().min(1).max(128),
-    schemaVersion: z.literal(3),
+    schemaVersion: z.literal(4),
     insights: insightsSchema.optional(),
   })
   .strict()

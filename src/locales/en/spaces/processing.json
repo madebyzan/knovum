@@ -5,6 +5,7 @@
   "enrichmentJobType": {
     "embed_text": "Text Vector Indexing",
     "analyze_image": "Visual Image Analysis",
+    "analyze_media": "Media duration and waveform",
     "transcribe_media": "Audio Whisper Transcription",
     "analyze_video_first_frame": "Video First Frame Extraction",
     "embed_media_transcript": "Transcript Vector Indexing",

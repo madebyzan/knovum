@@ -24,7 +24,7 @@ export function createLocalMediaKnowledge(
   transcript: SpaceMediaTranscript,
   sourceRevision: string,
 ): SpaceMediaKnowledge {
-  return { transcript, sourceRevision, schemaVersion: 3 };
+  return { transcript, sourceRevision, schemaVersion: 4 };
 }
 
 export async function generateSpaceMediaInsights(

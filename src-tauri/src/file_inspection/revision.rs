@@ -19,6 +19,13 @@ pub fn content_revision(path: &Path) -> Result<String, String> {
     Ok(format!("sha256:{digest:x}"))
 }
 
+pub fn verify_content_revision(path: &Path, expected: &str) -> Result<(), String> {
+    if content_revision(path)? != expected {
+        return Err("Resource content revision changed during processing".into());
+    }
+    Ok(())
+}
+
 fn file_digest(path: &Path) -> Result<sha2::digest::Output<Sha256>, String> {
     let mut file = File::open(path).map_err(|error| error.to_string())?;
     let mut hasher = Sha256::new();
