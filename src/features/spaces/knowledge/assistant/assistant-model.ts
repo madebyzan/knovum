@@ -1,7 +1,7 @@
 import { computed, watch } from "vue";
 import type { ComputedRef, Ref } from "vue";
 
-import { useCanvasSelectionProjection } from "../../canvas/editor-session";
+import { useCanvasEditorSession } from "../../canvas/editor-session";
 import type { useSpaceStore } from "../../session/space-store";
 import type { GroundedMessage } from "../model/grounded-message";
 import type { GroundedScope } from "../model/grounded-scope";
@@ -9,6 +9,7 @@ import type { GroundedThread } from "../model/grounded-thread";
 import type { KnowledgeSearchResponse } from "../model/knowledge-search-response";
 import { isSpaceSemanticNode } from "../model/semantic-node";
 import { activeThreadNodeIds, knowledgeScopeNodeIds, suggestedKnowledgeScope } from "./assistant-state";
+import { resolveStructureKnowledgeScope } from "./structure-scope";
 
 type SpaceStore = ReturnType<typeof useSpaceStore>;
 
@@ -23,21 +24,19 @@ interface KnowledgeAssistantModelInput {
 }
 
 export function useKnowledgeAssistantModel(input: KnowledgeAssistantModelInput) {
+  const session = useCanvasEditorSession();
   const contentNodes = computed(() => input.store.nodes.filter(isSpaceSemanticNode));
-  const { selectedNodes } = useCanvasSelectionProjection(() => input.store.nodes);
-  const selectedContentIds = computed(() =>
-    selectedNodes.value.filter(isSpaceSemanticNode).map((node) => node.id),
-  );
-  const sectionId = computed(
-    () =>
-      selectedNodes.value.find((node) => node.data.kind === "section")?.id ??
-      selectedNodes.value[0]?.data.sectionId,
-  );
-  const sectionIds = computed(() =>
-    sectionId.value
-      ? contentNodes.value.filter((node) => node.data.sectionId === sectionId.value).map((node) => node.id)
-      : [],
-  );
+  const structuralScope = computed(() => {
+    const document = session.document.value;
+    if (!document) return { selection: [], section: [] };
+    return resolveStructureKnowledgeScope(
+      document.structure,
+      session.selection.value.nodeIds,
+      new Set(contentNodes.value.map((node) => node.id)),
+    );
+  });
+  const selectedContentIds = computed(() => structuralScope.value.selection);
+  const sectionIds = computed(() => structuralScope.value.section);
   const activeThread = computed(() =>
     input.threads.value.find((thread) => thread.id === input.threadId.value),
   );
