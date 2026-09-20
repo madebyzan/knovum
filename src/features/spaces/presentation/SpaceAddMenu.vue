@@ -28,6 +28,7 @@ const {
   agentCreationOpen,
   website,
   normalizedWebsite,
+  addSection,
   addMarkdown,
   addKnowledgeObject,
   addCredential,
@@ -59,6 +60,7 @@ async function beginAudioRecording() {
       </ToolbarButton>
     </template>
     <SpaceAddMenuContent
+      @section="addSection"
       @markdown="addMarkdown"
       @knowledge="addKnowledgeObject"
       @custom-knowledge="customObjectOpen = true"

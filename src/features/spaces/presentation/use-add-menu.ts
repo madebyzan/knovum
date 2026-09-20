@@ -3,6 +3,7 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { importSpaceFromPicker } from "../assets/import-flow";
+import { currentCanvasEditor } from "../canvas/editor-session";
 import { createSystemKnowledgeObjectPayload } from "../knowledge/model/object-factory";
 import { useSpaceStore } from "../session/space-store";
 import { addSavedWebsite } from "../website/capture";
@@ -18,6 +19,23 @@ export function useAddMenu() {
   const agentCreationOpen = ref(false);
   const website = ref("");
   const normalizedWebsite = computed(() => normalizeSpaceUrl(website.value));
+  async function addSection() {
+    try {
+      const editor = currentCanvasEditor();
+      if (!editor) throw new Error("The canvas editor is not ready");
+      await store.ensureActiveSpacePersisted();
+      const id = crypto.randomUUID();
+      await editor.executeStructureCommand({
+        kind: "create-empty-section",
+        id,
+        title: t("spaces.structure.untitledSection"),
+        bounds: { ...store.nextInsertionPoint(), width: 640, height: 400 },
+      });
+      editor.requestContainerRename(id);
+    } catch (error) {
+      toast.error(String(error));
+    }
+  }
   const addMarkdown = () =>
     void store.addItem({ kind: "markdown", title: t("spaces.editor.untitledMarkdown"), text: "" });
   const addKnowledgeObject = (
@@ -67,6 +85,7 @@ export function useAddMenu() {
     agentCreationOpen,
     website,
     normalizedWebsite,
+    addSection,
     addMarkdown,
     addKnowledgeObject,
     addCredential,

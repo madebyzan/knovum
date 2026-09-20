@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {
+  Frame,
   Boxes,
   Bot,
   ChevronRight,
@@ -25,6 +26,7 @@ import UiSeparator from "../../../shared/ui/UiSeparator.vue";
 import type { SystemKnowledgeObjectKind } from "../knowledge/model/object-types";
 
 const emit = defineEmits<{
+  section: [];
   markdown: [];
   knowledge: [kind: SystemKnowledgeObjectKind];
   customKnowledge: [];
@@ -99,6 +101,9 @@ const knowledgeItems = [
     <Bot class="size-(--knovum-icon-size-sm)" />{{ t("spaces.creation.createWithAgent") }}…
   </UiDropdownMenuItem>
   <UiSeparator class="my-1" />
+  <UiDropdownMenuItem data-testid="add-section" @select="emit('section')">
+    <Frame class="size-(--knovum-icon-size-sm)" />{{ t("spaces.structure.newSection") }}
+  </UiDropdownMenuItem>
   <UiDropdownMenuItem @select="emit('portal')">
     <Boxes class="size-(--knovum-icon-size-sm)" />{{ t("spaces.nodeTypes.portal") }}…
   </UiDropdownMenuItem>

@@ -13,6 +13,7 @@ import { useWorkspaceTabCommands } from "../workspace/tab-commands";
 import { useSpaceLibraryCommands } from "../workspace/use-space-library-commands";
 import { createCanvasEditingCommands } from "./canvas-editing-commands";
 import { NUDGE_COMMANDS } from "./nudge-commands";
+import { useStructureCommands } from "./structure-commands";
 import { useCanvasNavigationCommands } from "./use-canvas-navigation-commands";
 
 export function useSpaceCommands() {
@@ -24,6 +25,7 @@ export function useSpaceCommands() {
   const workspaceTabCommands = useWorkspaceTabCommands();
   const libraryCommands = useSpaceLibraryCommands();
   const canvasNavigationCommands = useCanvasNavigationCommands();
+  const structureCommands = useStructureCommands();
   return computed<readonly AppCommand[]>(() => {
     const selectedIds = () => selection.value.nodeIds;
     const previewPath = () => {
@@ -149,6 +151,7 @@ export function useSpaceCommands() {
       ...exchangeCommands,
       ...nudgeCommands,
       ...canvasNavigationCommands.value,
+      ...structureCommands.value,
       ...previewCommands,
     ];
   });
