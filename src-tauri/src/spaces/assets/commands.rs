@@ -1,6 +1,25 @@
-use std::{collections::BTreeSet, path::PathBuf};
+use std::{collections::BTreeSet, fs, path::PathBuf};
 
 use crate::spaces::assets::{access, enrichment, external_open, files, reclamation};
+
+#[tauri::command]
+pub async fn persist_canvas_thumbnail(
+    app: tauri::AppHandle,
+    bytes: Vec<u8>,
+) -> Result<String, String> {
+    crate::blocking::run(move || {
+        if image::guess_format(&bytes).map_err(|error| error.to_string())? != image::ImageFormat::Jpeg {
+            return Err("Canvas thumbnail must contain JPEG bytes".to_owned());
+        }
+        let path = access::asset_directory(&app)?.join(format!(
+            "canvas-thumbnail-{}.jpg",
+            uuid::Uuid::new_v4()
+        ));
+        fs::write(&path, bytes).map_err(|error| error.to_string())?;
+        Ok(path.to_string_lossy().into_owned())
+    })
+    .await
+}
 
 #[tauri::command]
 pub async fn refresh_asset(

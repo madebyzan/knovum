@@ -56,6 +56,7 @@ fn main() {
                         "cancel_audio_recording",
                         "persist_editor_image",
                         "persist_clipboard_image",
+                        "persist_canvas_thumbnail",
                         "import_editor_image",
                         "stage_asset_import",
                         "commit_asset_import",

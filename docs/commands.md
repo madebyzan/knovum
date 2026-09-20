@@ -27,6 +27,7 @@ points each namespace requires and the invariants the gates assert live in
 Space persistence is entirely Rust-owned. Reads and writes cross typed Rust commands; multi-statement invariants execute on one SQLx transaction. These commands accept domain-shaped payloads and none accepts arbitrary SQL from the WebView.
 
 - `plugin:spaces|create_nodes` — insert one user action's node batch, supplemental knowledge and Space timestamp atomically;
+- `plugin:spaces|persist_canvas_thumbnail` — validate Renderer-produced JPEG bytes and persist the generated canvas thumbnail under the Space-owned asset directory;
 - `plugin:spaces|update_nodes` — update node data and any affected source/derived/media knowledge atomically;
 - `plugin:spaces|trash_nodes` and `plugin:spaces|restore_nodes` — move a node batch into or out of the reversible bin together with the Space timestamp;
 - `plugin:spaces|load_canvas_state` and `plugin:spaces|save_canvas_state` — load and compare-and-swap strict `CanvasDocumentV1`; node rows do not duplicate current canvas geometry;

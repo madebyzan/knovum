@@ -27,6 +27,7 @@ pub fn plugin() -> tauri::plugin::TauriPlugin<tauri::Wry> {
             crate::spaces::assets::audio::commands::cancel_audio_recording,
             crate::spaces::assets::image::commands::persist_editor_image,
             crate::spaces::assets::image::commands::persist_clipboard_image,
+            crate::spaces::assets::commands::persist_canvas_thumbnail,
             crate::spaces::assets::image::commands::import_editor_image,
             crate::spaces::assets::import::commands::stage_asset_import,
             crate::spaces::assets::import::commands::commit_asset_import,

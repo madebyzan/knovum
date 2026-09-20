@@ -1,14 +1,7 @@
-import { appDataDir, join } from "@tauri-apps/api/path";
-import { BaseDirectory, mkdir, writeFile } from "@tauri-apps/plugin-fs";
-
-const DIRECTORY = "spaces/assets";
+import { invoke } from "@tauri-apps/api/core";
 
 export async function saveCanvasThumbnailBlob(blob: Blob): Promise<string> {
   if (blob.type !== "image/jpeg") throw new Error("Canvas thumbnail must be a JPEG image");
-  const name = `canvas-thumbnail-${crypto.randomUUID()}.jpg`;
-  await mkdir(DIRECTORY, { baseDir: BaseDirectory.AppData, recursive: true });
-  await writeFile(`${DIRECTORY}/${name}`, new Uint8Array(await blob.arrayBuffer()), {
-    baseDir: BaseDirectory.AppData,
-  });
-  return join(await appDataDir(), DIRECTORY, name);
+  const bytes = Array.from(new Uint8Array(await blob.arrayBuffer()));
+  return invoke<string>("plugin:spaces|persist_canvas_thumbnail", { bytes });
 }

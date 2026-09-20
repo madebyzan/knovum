@@ -2,7 +2,9 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "spaces",
   "description": "Permissions owned by the Spaces bounded context.",
-  "windows": ["main"],
+  "windows": [
+    "main"
+  ],
   "permissions": [
     "core:menu:allow-popup",
     "core:menu:allow-new",
@@ -21,14 +23,6 @@
           "path": "$APPDATA/spaces/assets/**/*"
         }
       ]
-    },
-    {
-      "identifier": "fs:allow-mkdir",
-      "allow": [{ "path": "$APPDATA/spaces" }, { "path": "$APPDATA/spaces/assets" }]
-    },
-    {
-      "identifier": "fs:allow-write-file",
-      "allow": [{ "path": "$APPDATA/spaces/assets/canvas-thumbnail-*.jpg" }]
     },
     "spaces:default"
   ]
