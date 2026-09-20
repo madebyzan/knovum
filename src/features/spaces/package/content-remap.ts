@@ -44,7 +44,6 @@ export function remapNodePayload(
   objectTypes: readonly PackageObjectType[],
 ): SpaceNodePayload {
   const copy = structuredClone(data);
-  if (copy.sectionId) copy.sectionId = requiredMap(maps.nodes, copy.sectionId, "section");
   if (copy.kind === "object") remapObject(copy, maps, objectTypes);
   if (copy.kind === "portal") remapPortal(copy, maps);
   return copy;

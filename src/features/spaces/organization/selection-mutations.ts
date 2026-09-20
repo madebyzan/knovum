@@ -23,20 +23,16 @@ export async function updateSelected(
   context: SelectionActionContext,
   ids: readonly string[],
   mutate: (data: SpaceNodePayload) => SpaceNodePayload,
-  options: { includeSections?: boolean } = {},
 ) {
   const selected = new Set(ids);
   const changes = context.nodes.value.flatMap<NodeDataChange>((node) => {
-    if (!selected.has(node.id) || (!options.includeSections && node.data.kind === "section")) return [];
+    if (!selected.has(node.id)) return [];
     const before = validateSpaceNodePayload(node.data);
     return [{ id: node.id, before, after: mutate(validateSpaceNodePayload(node.data)) }];
   });
   await context.updateManyData(changes);
 }
 
-export function omit(
-  data: SpaceNodePayload,
-  key: "sectionId" | "tags" | "locked" | "collapsed",
-): SpaceNodePayload {
+export function omit(data: SpaceNodePayload, key: "tags"): SpaceNodePayload {
   return esOmit(data as unknown as Record<string, unknown>, [key]) as SpaceNodePayload;
 }

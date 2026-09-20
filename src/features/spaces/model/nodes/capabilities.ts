@@ -6,7 +6,6 @@ import type {
   SpaceMarkdownPayload,
   SpaceNodePayload,
   SpaceNotePayload,
-  SpaceSectionPayload,
   SpaceTextPayload,
   SpaceVideoPayload,
   SpaceWebsitePayload,
@@ -41,8 +40,4 @@ export function isSpaceWebsitePayload(data: SpaceNodePayload): data is SpaceWebs
 
 export function isSpaceMarkdownPayload(data: SpaceNodePayload): data is SpaceMarkdownPayload {
   return data.kind === "markdown";
-}
-
-export function isSpaceSectionPayload(data: SpaceNodePayload): data is SpaceSectionPayload {
-  return data.kind === "section";
 }

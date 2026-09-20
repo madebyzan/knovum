@@ -56,8 +56,8 @@ export function useCanvasDocumentSession(options: Options) {
       persistence: canvasStateRepository,
       reportError: options.reportError,
     });
-    const next = new CanvasDocumentWorkspace(initial, queue, {
-      isActive: () => generation === expected && workspace === next,
+    const next: CanvasDocumentWorkspace = new CanvasDocumentWorkspace(initial, queue, {
+      isActive: (): boolean => generation === expected && workspace === next,
       publish: (value) => {
         document.value = value;
       },

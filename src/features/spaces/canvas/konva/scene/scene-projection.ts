@@ -3,7 +3,7 @@ import type { SpaceRelation } from "../../../model/relations/relation";
 import { structureAncestors } from "../../../model/structure/structure-index";
 import { indexStructureSnapshot } from "../../../organization/structure/structure-context";
 import {
-  structureContentNodeIds,
+  structureContentIds,
   structureSelectionTarget,
 } from "../../../organization/structure/structure-selection";
 import { visibleStructureRepresentative } from "../../../organization/structure/structure-visibility";
@@ -48,7 +48,7 @@ export function projectCanvasScene(
         node = source;
       } else {
         const local = context.layouts.get(item.id)!;
-        const contentCount = structureContentNodeIds(context.tree, [item.id]).length;
+        const contentCount = structureContentIds(context.tree, [item.id]).length;
         node =
           item.kind === "group"
             ? { id: item.id, data: { kind: "group", title: item.title, collapsed: false, contentCount } }
@@ -98,7 +98,7 @@ export function projectCanvasScene(
       .filter((item) => item.node.data.kind === "section")
       .map((section) => ({
         ...section,
-        members: structureContentNodeIds(context.tree, [section.node.id]).flatMap((id) => {
+        members: structureContentIds(context.tree, [section.node.id]).flatMap((id) => {
           const node = content.get(id);
           const layout = layoutsById.get(id);
           return node && layout

@@ -1,5 +1,5 @@
 import { indexStructure } from "../../../model/structure/structure-index";
-import { structureContentNodeIds } from "../../../organization/structure/structure-selection";
+import { structureContentIds } from "../../../organization/structure/structure-selection";
 import { removeCanvasSelection } from "../../document/canvas-content";
 import { createCanvasPersistenceHistory } from "../../persistence/canvas-persistence-history";
 import type { KonvaEditorPortOptions } from "../canvas-editor-port-options";
@@ -7,7 +7,7 @@ export function createCanvasSelectionDeletion(options: KonvaEditorPortOptions) {
   return async (ids: readonly string[], relationIds: readonly string[], cut = false) => {
     if ((!ids.length && !relationIds.length) || (cut && !ids.length)) return;
     const before = options.model.document;
-    const nodeIds = structureContentNodeIds(indexStructure(before.structure), ids);
+    const nodeIds = structureContentIds(indexStructure(before.structure), ids);
     const content = new Set(nodeIds),
       selectedRelations = new Set(relationIds);
     for (const relation of options.relations())

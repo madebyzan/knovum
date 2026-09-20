@@ -51,9 +51,6 @@ export function spaceNodeSizePolicy(data: SpaceNodePayload): SpaceNodeSizePolicy
 export function spaceNodeDimensions(data: SpaceNodePayload) {
   const size = spaceNodeSizePolicy(data);
   if (size.resizeMode === "fixed") return { width: size.width, height: size.height };
-  if (data.kind === "section" && data.collapsed) {
-    return { width: 288, height: 36 };
-  }
   return { width: size.width, height: size.height };
 }
 

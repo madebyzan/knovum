@@ -42,6 +42,6 @@ export function useCanvasSceneLayerProjection(props: CanvasSceneLayerProjectionI
         .filter(({ node }) => !props.selectedNodeIds.has(node.id))
         .map(({ layout }) => layout.frame),
     ),
-    selectedFrames: selectedLayouts,
+    selectedFrames: computed(() => selectedLayouts.value.map((layout) => layout.frame)),
   };
 }

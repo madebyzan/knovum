@@ -1,7 +1,7 @@
 import { indexStructure } from "../../model/structure/structure-index";
 import {
   structureOperationRoots,
-  structureContentNodeIds,
+  structureContentIds,
 } from "../../organization/structure/structure-selection";
 import { captureCanvasOverview, captureCanvasViewport } from "../canvas-overview-capture";
 import type { CanvasEditorPort } from "../contract/canvas-editor-port";
@@ -73,7 +73,7 @@ export function createKonvaEditorPort(options: KonvaEditorPortOptions): CanvasEd
       const roots = structureOperationRoots(tree, selected());
       const representatives = new Map<string, string>();
       for (const root of roots)
-        for (const nodeId of structureContentNodeIds(tree, [root.id])) representatives.set(nodeId, root.id);
+        for (const nodeId of structureContentIds(tree, [root.id])) representatives.set(nodeId, root.id);
       const edges = options.relations().flatMap((relation) => {
         const sourceId = representatives.get(relation.sourceId),
           targetId = representatives.get(relation.targetId);

@@ -16,12 +16,7 @@ export function useFind(open: Ref<boolean>, close: () => void) {
   const query = ref("");
   const debouncedQuery = refDebounced(query, 300);
 
-  const defaultNodes = computed(() =>
-    take(
-      store.nodes.filter((node) => node.data.kind !== "section"),
-      10,
-    ),
-  );
+  const defaultNodes = computed(() => take(store.nodes, 10));
 
   watch(open, (value) => {
     if (value) query.value = "";

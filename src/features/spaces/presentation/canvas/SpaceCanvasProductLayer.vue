@@ -37,7 +37,7 @@ const { t } = useI18n();
 const editorSession = useCanvasEditorSession();
 const scenesCollapsed = shallowRef(false);
 const { selectedNodes } = useCanvasSelectionProjection(() => store.nodes);
-const selection = computed(() => selectedNodes.value.filter((node) => node.data.kind !== "section"));
+const selection = computed(() => selectedNodes.value);
 const derivations = useSelectionDerivations({ store, selection });
 const emit = defineEmits<{
   dismissError: [];

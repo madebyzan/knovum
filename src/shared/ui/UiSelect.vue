@@ -64,9 +64,11 @@ const selectedLabel = computed(() => props.options.find((option) => option.value
         )
       "
     >
-      <SelectValue :placeholder="placeholder" class="min-w-0 flex-1 truncate text-left">{{
-        selectedLabel
-      }}</SelectValue>
+      <SelectValue
+        v-bind="placeholder === undefined ? {} : { placeholder }"
+        class="min-w-0 flex-1 truncate text-left"
+        >{{ selectedLabel }}</SelectValue
+      >
       <ChevronDown class="size-(--knovum-icon-size-xs) shrink-0 text-foreground-tertiary" />
     </SelectTrigger>
     <SelectPortal>

@@ -1,3 +1,4 @@
+import { emptySpaceEditorDocument } from "../contract/canvas-document";
 import type { SpaceEditorDocument } from "../contract/canvas-document";
 import { canvasStateRepository } from "./canvas-state-repository";
 
@@ -88,7 +89,7 @@ export async function transactSpaceEditor<T extends { document: SpaceEditorDocum
   await lease.wait();
   const operation = (async () => {
     const stored = await canvasStateRepository.load(spaceId);
-    return commit(stored?.document ?? createCanvasDocument([]), stored?.revision ?? 0);
+    return commit(stored?.document ?? emptySpaceEditorDocument(), stored?.revision ?? 0);
   })();
   lease.release(operation);
   return operation;

@@ -114,7 +114,7 @@ async function duplicateScene(scene: SpaceScene) {
       </template>
       <SpaceCanvasScenePanel
         :scenes="scenes"
-        :recent-scene-id="recentSceneId"
+        v-bind="recentSceneId ? { recentSceneId } : {}"
         :saving="saving"
         v-bind="activeSceneId ? { activeSceneId } : {}"
         @create="saveScene"

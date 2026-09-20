@@ -3,6 +3,7 @@ import type { SpaceRelation } from "../../../model/relations/relation";
 import type { CanvasDisplayNode } from "../../contract/canvas-display-node";
 import type { CanvasNodeLayoutV1, CanvasRelationColor } from "../../contract/canvas-document";
 import type { CanvasNodeInteraction } from "./canvas-node-interaction";
+import type { CanvasRelationGeometry } from "./relation-path";
 export interface CanvasSceneNode {
   node: CanvasDisplayNode;
   layout: CanvasNodeLayoutV1;
@@ -15,7 +16,7 @@ export interface CanvasSceneContentNode extends CanvasSceneNode {
 export interface CanvasSceneSection extends CanvasSceneNode {
   members: readonly CanvasSceneContentNode[];
 }
-export interface CanvasSceneRelation {
+export interface CanvasSceneRelation extends CanvasRelationGeometry {
   id: string;
   key: string;
   kind: "relation";
@@ -25,9 +26,6 @@ export interface CanvasSceneRelation {
   sourceNodeId: string;
   targetNodeId: string;
   parallelOffset: number;
-  points: number[];
-  midpoint: { x: number; y: number };
-  bounds: { x: number; y: number; width: number; height: number };
 }
 export interface CanvasScene {
   nodes: readonly CanvasSceneNode[];

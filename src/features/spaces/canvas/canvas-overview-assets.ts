@@ -8,7 +8,9 @@ export async function loadCanvasOverviewImages(scene: CanvasScene, scale: number
     if (layout.frame.width * scale < 16 || layout.frame.height * scale < 16) return [];
     const source = layout.appearance?.background
       ? spaceAssetSource(layout.appearance.background)
-      : spaceCanvasOverviewSource(node.data);
+      : node.data.kind === "group" || node.data.kind === "section"
+        ? undefined
+        : spaceCanvasOverviewSource(node.data);
     return source ? [{ id: node.id, source }] : [];
   });
   const images = new Map<string, HTMLImageElement>();

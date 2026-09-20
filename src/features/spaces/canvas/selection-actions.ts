@@ -7,7 +7,7 @@ import { scheduleSpaceAssetProcessing } from "../assets/processing-scheduler";
 import { cloneClipboardNodes, duplicateSpaceNodes } from "../clipboard/node-cloning";
 import { readSpaceClipboardHtml, writeSpaceClipboardDirect } from "../clipboard/transfer";
 import type { PositionedSpaceNode, SpaceCanvasNode } from "../model/nodes/canvas-node";
-import { isSpaceManagedAssetPayload, isSpaceSectionPayload } from "../model/nodes/capabilities";
+import { isSpaceManagedAssetPayload } from "../model/nodes/capabilities";
 import type { SpaceNodeKind } from "../model/nodes/node-payload";
 import type { useSpaceStore } from "../session/space-store";
 import { useCanvasEditorSession } from "./editor-session";
@@ -76,7 +76,7 @@ const OPEN_HANDLERS: Partial<Record<SpaceNodeKind, OpenHandler>> = {
 };
 
 export async function openSpaceNode(store: ReturnType<typeof useSpaceStore>, node?: SpaceCanvasNode) {
-  if (!node || isSpaceSectionPayload(node.data)) return;
+  if (!node) return;
   const handler = OPEN_HANDLERS[node.data.kind];
   if (handler) {
     await handler(store, node);

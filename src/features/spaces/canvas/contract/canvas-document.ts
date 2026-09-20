@@ -3,7 +3,6 @@ import { z } from "zod";
 
 import { spaceStructureSchema } from "../../model/structure/structure-schema";
 import { validateStructureSnapshot } from "../../organization/structure/structure-snapshot-validation";
-import { canvasNodeAppearanceSchema } from "./canvas-appearance";
 import { structureLayoutSchema } from "./structure-layout";
 export {
   CANVAS_FILL_PRESETS,
@@ -67,9 +66,9 @@ export interface CanvasNodeLayoutV1 {
   frame: CanvasNodeFrame;
   sizeAuthority: CanvasNodeSizeAuthority;
   zIndex: number;
-  contentScale?: number;
-  appearance?: CanvasNodeAppearance;
-  fileSubpath?: string;
+  contentScale?: number | undefined;
+  appearance?: CanvasNodeAppearance | undefined;
+  fileSubpath?: string | undefined;
 }
 export interface CanvasNodeFrameUpdate {
   nodeId: string;

@@ -2,7 +2,6 @@ import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceEditorDocument } from "./canvas-document";
 import type {
   CanvasEditorPort,
-  CanvasNodePlacement,
   CanvasPoint,
   CanvasSelectionSnapshot,
   CanvasViewport,
@@ -11,7 +10,6 @@ import type {
 export type {
   CanvasEditorPort,
   CanvasLayerMove,
-  CanvasNodePlacement,
   CanvasPoint,
   CanvasSelectionSnapshot,
   CanvasViewport,

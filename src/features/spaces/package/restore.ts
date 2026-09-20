@@ -13,7 +13,7 @@ export async function restoreSpacePackage(
   canvasCodec: CanvasPackageCodec,
 ) {
   const manifest = parseSpacePackageManifest(manifestJson, canvasCodec);
-  const nodeCount = manifest.nodes.filter((node) => node.kind !== "section").length;
+  const nodeCount = manifest.nodes.length;
   const space = importedSpace(manifest.space, nodeCount);
   const maps = createPackageIdMaps(manifest, space.id);
   const context = {

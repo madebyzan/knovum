@@ -12,6 +12,7 @@ export function drawCanvasOverviewNode(
 ) {
   const { frame, appearance } = item.layout;
   const { data } = item.node;
+  if (data.kind === "group") return;
   const group = new Konva.Group({
     x: frame.x,
     y: frame.y,
@@ -81,7 +82,7 @@ export function drawCanvasOverviewNode(
 
   if (data.kind === "audio") drawAudioWave(group, frame.width, frame.height, palette);
   const content = note ? data.plainText.trim() || data.title : data.title;
-  const footer = image && data.kind !== "image";
+  const footer = Boolean(image);
   group.add(
     new Konva.Text({
       x: 10,
