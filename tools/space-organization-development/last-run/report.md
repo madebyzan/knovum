@@ -1,6 +1,6 @@
 ## Organization development verification
 
-Source commit: `3bf00ead08abaadfbcef294a85715c32646f4f31`. Actual runner results; not a complete product acceptance.
+Source commit: `ac3b8f0c3d7219df6f27cd49d49da80a6390c140`. Actual runner results; not a complete product acceptance.
 
 | Check | Result |
 | --- | --- |
@@ -85,7 +85,7 @@ Frontend source structure gate failed (7):
 <details><summary>Frontend tests failures</summary>
 
 ```text
-517 passed, 19 failed
+529 passed, 18 failed
 /home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-surface-host.test.ts :: CanvasSurfaceHost rejects an in-flight commit after the active space changes
 Error: expected [Function] to throw error including 'Canvas transaction target changed' but got 'Canvas workspace changed during persi…'
     at _Assertion.__VITEST_REJECTS__ (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+expect@4.1.10/node_modules/@vitest/expect/dist/index.js:1747:17)
