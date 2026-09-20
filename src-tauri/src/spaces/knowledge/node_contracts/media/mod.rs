@@ -1,3 +1,4 @@
+mod analysis;
 mod insights;
 mod transcript;
 
@@ -26,4 +27,8 @@ pub(super) fn validate(value: Option<&Value>) -> Result<(), String> {
         insights::validate(value, &transcript)?;
     }
     Ok(())
+}
+
+pub(super) fn validate_analysis(value: Option<&Value>) -> Result<(), String> {
+    analysis::validate(value)
 }

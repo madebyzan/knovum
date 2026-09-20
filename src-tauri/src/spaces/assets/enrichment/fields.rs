@@ -51,24 +51,8 @@ fn apply_intrinsic_geometry(
 }
 
 #[cfg(test)]
-mod tests {
-    use serde_json::{json, Map};
+mod tests;
 
-    use super::apply_intrinsic_geometry;
-
-    #[test]
-    fn removes_visual_geometry_from_audio_projection() {
-        let mut object = Map::from_iter([
-            ("intrinsicWidth".into(), json!(640)),
-            ("intrinsicHeight".into(), json!(480)),
-        ]);
-
-        apply_intrinsic_geometry(&mut object, "audio", Some(640), Some(480)).unwrap();
-
-        assert!(!object.contains_key("intrinsicWidth"));
-        assert!(!object.contains_key("intrinsicHeight"));
-    }
-}
 
 fn set_optional_u32(object: &mut serde_json::Map<String, Value>, key: &str, value: Option<u32>) {
     if let Some(value) = value {

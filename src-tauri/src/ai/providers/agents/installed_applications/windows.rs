@@ -72,7 +72,7 @@ fn installed_agent(hive: HKEY, key: &str) -> AiResult<Option<AgentKind>> {
     let Some(name) = read_string(hive, key, "DisplayName")? else {
         return Ok(None);
     };
-    let agent = super::catalog::AGENTS.iter().find(|agent| {
+    let agent = super::super::catalog::AGENTS.iter().find(|agent| {
         agent
             .desktop_application
             .as_ref()

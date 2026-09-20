@@ -1,6 +1,5 @@
 mod json_value;
 mod media;
-mod media_analysis;
 mod object;
 mod payload;
 mod projection;

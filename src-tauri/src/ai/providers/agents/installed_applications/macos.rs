@@ -10,7 +10,7 @@ pub(super) fn detect() -> AiResult<HashSet<AgentKind>> {
     // Objective-C reference counting; these are the documented NSWorkspace signatures.
     let workspace: Retained<AnyObject> = unsafe { msg_send![class!(NSWorkspace), sharedWorkspace] };
     let mut installed = HashSet::new();
-    for agent in super::catalog::AGENTS {
+    for agent in super::super::catalog::AGENTS {
         let Some(application) = &agent.desktop_application else {
             continue;
         };
