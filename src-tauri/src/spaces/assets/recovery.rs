@@ -15,33 +15,34 @@ pub async fn reconcile(app: &tauri::AppHandle) -> Result<(), String> {
     .fetch_all(pool)
     .await
     .map_err(db::sql_error)?;
+    let mut failures = Vec::new();
 
     for row in rows {
         let node_id: String = match row.try_get("id") {
             Ok(id) => id,
             Err(error) => {
-                log::warn!("failed to read node id during recovery: {error}");
+                failures.push(format!("failed to read node id during recovery: {error}"));
                 continue;
             }
         };
         let space_id: String = match row.try_get("space_id") {
             Ok(id) => id,
             Err(error) => {
-                log::warn!("failed to read space id for node {node_id}: {error}");
+                failures.push(format!("failed to read space id for node {node_id}: {error}"));
                 continue;
             }
         };
         let raw: String = match row.try_get("data") {
             Ok(data) => data,
             Err(error) => {
-                log::warn!("failed to read data for node {node_id}: {error}");
+                failures.push(format!("failed to read data for node {node_id}: {error}"));
                 continue;
             }
         };
         let mut data: Value = match serde_json::from_str(&raw) {
-            Ok(val) => val,
+            Ok(value) => value,
             Err(error) => {
-                log::warn!("failed to parse JSON data for node {node_id}: {error}");
+                failures.push(format!("failed to parse JSON data for node {node_id}: {error}"));
                 continue;
             }
         };
@@ -55,22 +56,34 @@ pub async fn reconcile(app: &tauri::AppHandle) -> Result<(), String> {
             _ => Ok(()),
         };
         if let Err(error) = recovery {
-            log::warn!("failed to recover interrupted state for node {node_id}: {error}");
+            failures.push(format!("failed to recover interrupted state for node {node_id}: {error}"));
         }
     }
 
-    if let Err(error) = audio::cleanup_stale(app) {
-        log::warn!("failed to clean up stale audio: {error}");
+    collect_cleanup_error(&mut failures, "stale audio", audio::cleanup_stale(app));
+    collect_cleanup_error(
+        &mut failures,
+        "stale media analysis",
+        crate::media::workspace::cleanup_stale(app),
+    );
+    collect_cleanup_error(
+        &mut failures,
+        "stale media imports",
+        crate::spaces::assets::import::media::cleanup_stale_workspaces(app),
+    );
+
+    if failures.is_empty() {
+        Ok(())
+    } else {
+        Err(format!("Space asset recovery failed: {}", failures.join("; ")))
     }
-    if let Err(error) = crate::media::workspace::cleanup_stale(app) {
-        log::warn!("failed to clean up stale media analysis: {error}");
-    }
-    if let Err(error) = crate::spaces::assets::import::media::cleanup_stale_workspaces(app) {
-        log::warn!("failed to clean up stale media imports: {error}");
-    }
-    Ok(())
 }
 
+fn collect_cleanup_error(failures: &mut Vec<String>, label: &str, result: Result<(), String>) {
+    if let Err(error) = result {
+        failures.push(format!("failed to clean up {label}: {error}"));
+    }
+}
 async fn recover_interrupted_import(
     app: &tauri::AppHandle,
     space_id: &str,
