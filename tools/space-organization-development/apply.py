@@ -1,342 +1,375 @@
-"""Reviewed renderer and geometry cutover. Temporary PR-14 execution recipe."""
+"""Reviewed hierarchical canvas integration; only the declared PR branch runs this recipe."""
 from pathlib import Path
+import re
 ROOT=Path('.')
 files={}
-def read(name):
-    if name in files: return files[name]
-    return (ROOT/name).read_text()
-def write(name,text): files[name]=text.strip()+'\n'
-def replace(name,old,new):
-    text=read(name)
-    if old not in text: raise RuntimeError(f'Expected source not found in {name}: {old[:90]}')
-    write(name,text.replace(old,new))
+def read(path):
+    return files[path] if path in files else (ROOT/path).read_text()
+def write(path,text): files[path]=text.strip()+'\n'
+def replace(path,old,new):
+    text=read(path)
+    if old not in text: raise RuntimeError(f'Missing expected source in {path}: {old[:80]}')
+    write(path,text.replace(old,new))
 
-write('src/features/spaces/canvas/document/editor-frame-edit.ts', '''
-import type { CanvasNodeFrameUpdate, SpaceEditorDocument } from "../contract/canvas-document";
-import { parseSpaceEditorDocument } from "../contract/canvas-document";
-import { indexStructureSnapshot } from "../../organization/structure/structure-context";
-import { projectStructure, structureBoundsInParent } from "../../organization/structure/structure-projection";
-import { assertStructureEditable, structureOperationRoots } from "../../organization/structure/structure-selection";
-import { planStructureCommand } from "../../organization/structure/commands/plan";
-import { composeStructureTransforms, invertStructureTransform, normalizeStructureRotation, transformStructurePoint, IDENTITY_STRUCTURE_TRANSFORM } from "./structure-transform";
+# Container display handles have no knowledge identity or content lifecycle.
+write('src/features/spaces/canvas/konva/scene/canvas-scene.ts', '''
+import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
+import type { SpaceRelation } from "../../../model/relations/relation";
+import type { CanvasNodeLayoutV1, CanvasRelationColor } from "../../contract/canvas-document";
+import type { CanvasDisplayNode } from "../../contract/canvas-display-node";
+import type { CanvasNodeInteraction } from "./canvas-node-interaction";
+export interface CanvasSceneNode { node: CanvasDisplayNode; layout: CanvasNodeLayoutV1; interaction: CanvasNodeInteraction; paintOrder: number }
+export interface CanvasSceneContentNode extends CanvasSceneNode { node: SpaceCanvasNode }
+export interface CanvasSceneSection extends CanvasSceneNode { members: readonly CanvasSceneContentNode[] }
+export interface CanvasSceneRelation {
+  id: string; key: string; kind: "relation"; label: string; color: CanvasRelationColor; relation: SpaceRelation;
+  sourceNodeId: string; targetNodeId: string; parallelOffset: number;
+  points: number[]; midpoint: { x: number; y: number }; bounds: { x: number; y: number; width: number; height: number };
+}
+export interface CanvasScene {
+  nodes: readonly CanvasSceneNode[]; nodesById: ReadonlyMap<string, CanvasSceneNode>;
+  contentNodes: readonly CanvasSceneContentNode[]; sections: readonly CanvasSceneSection[];
+  groups: readonly CanvasSceneNode[]; relations: readonly CanvasSceneRelation[];
+}
+''')
+write('src/features/spaces/organization/structure/structure-visibility.ts', '''
+import { requireStructureItem, structureAncestors } from "../../model/structure/structure-index";
+import type { StructureContext } from "./structure-context";
+export function visibleStructureRepresentative(context: StructureContext, id: string): string {
+  requireStructureItem(context.tree, id);
+  const section = structureAncestors(context.tree, id).find((item) => item.kind === "section");
+  if (!section) return id;
+  const layout = context.layouts.get(section.id)!;
+  return layout.kind === "section" && layout.collapsed ? section.id : id;
+}
+''')
+write('src/features/spaces/canvas/konva/scene/scene-projection.ts', '''
+import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
+import type { SpaceRelation } from "../../../model/relations/relation";
+import { structureAncestors } from "../../../model/structure/structure-index";
+import type { CanvasDisplayNode } from "../../contract/canvas-display-node";
+import type { SpaceEditorDocument } from "../../contract/canvas-document";
+import { projectEditorLayouts } from "../../document/editor-layout-projection";
+import { indexStructureSnapshot } from "../../../organization/structure/structure-context";
+import { structureContentNodeIds, structureSelectionTarget } from "../../../organization/structure/structure-selection";
+import { visibleStructureRepresentative } from "../../../organization/structure/structure-visibility";
+import { canvasNodeInteraction } from "./canvas-node-interaction";
+import type { CanvasScene, CanvasSceneNode, CanvasSceneContentNode, CanvasSceneRelation } from "./canvas-scene";
+import { parallelRelationOffsets } from "./parallel-relation-offsets";
+import { relationGeometry } from "./relation-path";
+export type { CanvasScene, CanvasSceneNode, CanvasSceneContentNode, CanvasSceneRelation, CanvasSceneSection } from "./canvas-scene";
 
-/** Transform gestures are converted once into local records, never into inferred membership. */
-export function applyEditorFrames(document: SpaceEditorDocument, updates: readonly CanvasNodeFrameUpdate[]): SpaceEditorDocument {
+export function projectCanvasScene(document: SpaceEditorDocument, nodes: readonly SpaceCanvasNode[], relations: readonly SpaceRelation[], scopeGroupId: string | null = null): CanvasScene {
   const context = indexStructureSnapshot(document);
-  const projection = projectStructure(context);
-  const byId = new Map(updates.map((update) => [update.nodeId, update]));
-  const roots = structureOperationRoots(context.tree, [...byId.keys()]);
-  assertStructureEditable(context.tree, roots.map((item) => item.id));
-  let after = document;
-  for (const item of roots) {
-    const update = byId.get(item.id)!;
-    const frame = update.frame;
-    if (item.kind === "section") {
-      if (frame.rotation !== 0) throw new Error("Sections cannot rotate");
-      after = { ...after, ...planStructureCommand(after, { kind: "resize-section", id: item.id, bounds: { x: frame.x, y: frame.y, width: frame.width, height: frame.height } }).after };
-    } else if (item.kind === "group") {
-      const bounds = structureBoundsInParent(context, projection, [item.id], item.id)!;
-      const scale = frame.width / bounds.width;
-      if (Math.abs(scale - frame.height / bounds.height) > 1e-6 * Math.max(1, scale)) throw new Error("Groups support uniform scaling only");
-      const transform = { x: 0, y: 0, rotation: normalizeStructureRotation(frame.rotation), scale };
-      const offset = transformStructurePoint(transform, bounds);
-      after = { ...after, ...planStructureCommand(after, { kind: "transform-group", id: item.id, worldTransform: { ...transform, x: frame.x - offset.x, y: frame.y - offset.y } }).after };
+  const content = new Map(nodes.map((node) => [node.id, node]));
+  const layouts = projectEditorLayouts(document);
+  const layoutsById = new Map(layouts.map((layout) => [layout.nodeId, layout]));
+  const projected = layouts.flatMap<CanvasSceneNode>((layout) => {
+    const item = context.tree.items.get(layout.nodeId)!;
+    if (visibleStructureRepresentative(context, item.id) !== item.id) return [];
+    let node: CanvasDisplayNode;
+    if (item.kind === "content") {
+      const source = content.get(item.nodeId);
+      if (!source || source.hidden) return [];
+      node = source;
     } else {
-      const world = projection.transforms.get(item.id)!;
-      const parent = item.parentId === null ? IDENTITY_STRUCTURE_TRANSFORM : projection.transforms.get(item.parentId)!;
-      const transform = composeStructureTransforms(invertStructureTransform(parent), { ...world, x: frame.x, y: frame.y, rotation: normalizeStructureRotation(frame.rotation) });
-      after = { ...after, layout: { version: 1, items: after.layout.items.map((layout) => layout.kind === "content" && layout.itemId === item.id
-        ? { ...layout, transform, size: { width: frame.width / world.scale, height: frame.height / world.scale }, sizeAuthority: update.sizeAuthority ?? layout.sizeAuthority } : layout) } };
+      const local = context.layouts.get(item.id)!;
+      const contentCount = structureContentNodeIds(context.tree, [item.id]).length;
+      node = item.kind === "group" ? { id: item.id, data: { kind: "group", title: item.title, collapsed: false, contentCount } }
+        : { id: item.id, data: { kind: "section", title: item.title, collapsed: local.kind === "section" && local.collapsed, contentCount } };
     }
+    const targetId = structureSelectionTarget(context.tree, item.id, scopeGroupId);
+    const target = targetId ? context.tree.items.get(targetId) : undefined;
+    const locked = !target || target.locked || structureAncestors(context.tree, target.id).some((parent) => parent.locked);
+    const interaction = canvasNodeInteraction(node, locked);
+    if (targetId !== item.id) interaction.connectable = false;
+    return [{ node, layout, paintOrder: layout.zIndex, interaction }];
+  }).toSorted((left, right) => left.paintOrder - right.paintOrder);
+  const ordered = [...projected.filter((item) => item.node.data.kind === "section"), ...projected.filter((item) => item.node.data.kind !== "section")];
+  const byId = new Map(ordered.map((item) => [item.node.id, item]));
+  const endpoints = new Map<string, CanvasSceneNode>();
+  for (const item of document.structure.items) {
+    if (item.kind !== "content") continue;
+    const representative = byId.get(visibleStructureRepresentative(context, item.id));
+    if (representative && !content.get(item.nodeId)?.hidden) endpoints.set(item.nodeId, representative);
   }
-  return parseSpaceEditorDocument(after);
+  const offsets = parallelRelationOffsets(relations, endpoints);
+  const styles = new Map(document.relationStyles?.map((style) => [style.relationId, style.color]));
+  return { nodes: ordered, nodesById: byId,
+    contentNodes: ordered.filter((item): item is CanvasSceneContentNode => item.node.data.kind !== "group" && item.node.data.kind !== "section"),
+    groups: ordered.filter((item) => item.node.data.kind === "group"),
+    sections: ordered.filter((item) => item.node.data.kind === "section").map((section) => ({ ...section,
+      members: structureContentNodeIds(context.tree, [section.node.id]).flatMap((id) => {
+        const node = content.get(id); const layout = layoutsById.get(id);
+        return node && layout ? [{ node, layout, interaction: canvasNodeInteraction(node), paintOrder: layout.zIndex }] : [];
+      }),
+    })),
+    relations: relations.flatMap((relation) => projectRelation(relation, endpoints, styles.get(relation.id) ?? "neutral", offsets.get(relation.id) ?? 0)),
+  };
+}
+function projectRelation(relation: SpaceRelation, nodes: ReadonlyMap<string, CanvasSceneNode>, color: CanvasSceneRelation["color"], parallelOffset: number): CanvasSceneRelation[] {
+  const source = nodes.get(relation.sourceId), target = nodes.get(relation.targetId);
+  if (!source || !target || source.node.id === target.node.id || relation.status === "invalidated") return [];
+  const geometry = relationGeometry(source.layout.frame, target.layout.frame, parallelOffset);
+  return [{ ...geometry, id: relation.id, key: `relation:${relation.id}`, kind: "relation", label: relation.kind, relation, color, sourceNodeId: source.node.id, targetNodeId: target.node.id, parallelOffset }];
 }
 ''')
-write('src/features/spaces/canvas/document/editor-history-transition.ts', '''
-import { isEqual } from "es-toolkit";
-import { applyStructureChanges, diffStructureSnapshots } from "../../organization/structure/commands/changes";
-import { parseSpaceEditorDocument, type SpaceEditorDocument } from "../contract/canvas-document";
-
-/** Replays exact committed records, preserving the live camera and disjoint later edits. */
-export function replayEditorTransition(current: SpaceEditorDocument, before: SpaceEditorDocument, after: SpaceEditorDocument) {
-  const snapshot = applyStructureChanges(current, diffStructureSnapshots(before, after));
-  const previous = new Map(before.relationStyles?.map((style) => [style.relationId, style]));
-  const target = new Map(after.relationStyles?.map((style) => [style.relationId, style]));
-  const styles = new Map(current.relationStyles?.map((style) => [style.relationId, style]));
-  for (const id of new Set([...previous.keys(), ...target.keys()])) {
-    if (isEqual(previous.get(id), target.get(id))) continue;
-    if (!isEqual(styles.get(id), previous.get(id))) throw new Error("Relation appearance changed after this edit");
-    const next = target.get(id);
-    if (next) styles.set(id, structuredClone(next)); else styles.delete(id);
-  }
-  return parseSpaceEditorDocument({ ...current, ...snapshot, relationStyles: [...styles.values()] });
+write('src/features/spaces/canvas/konva/scene/canvas-node-interaction.ts', '''
+import type { CanvasDisplayNode } from "../../contract/canvas-display-node";
+import { spaceNodeResizePolicy, type SpaceNodeResizeMode } from "../../node-size";
+export interface CanvasNodeInteraction {
+  activationMode: "activate-to-interact" | "primary" | "select-to-interact";
+  connectable: boolean; movable: boolean;
+  transform: { resizeMode: SpaceNodeResizeMode; maxHeight: number; maxWidth: number; minHeight: number; minWidth: number; contentAspect?: { ratio: number; fixedVerticalChrome: number } };
+}
+const SELECT = new Set(["audio", "credential", "video"]);
+const ACTIVATE = new Set(["code", "note", "text", "website"]);
+export function canvasNodeInteraction(node: CanvasDisplayNode, locked = false): CanvasNodeInteraction {
+  const data = node.data;
+  if (data.kind === "group" || data.kind === "section") return {
+    activationMode: "primary", connectable: false, movable: !locked,
+    transform: { resizeMode: locked || data.kind === "section" && data.collapsed ? "fixed" : data.kind === "group" ? "proportional" : "free",
+      minWidth: data.kind === "section" ? 240 : 1, minHeight: data.kind === "section" ? 160 : 1, maxWidth: Infinity, maxHeight: Infinity },
+  };
+  const resize = spaceNodeResizePolicy(data);
+  const activationMode = SELECT.has(data.kind) || data.kind === "file" && Boolean(data.entries?.length) ? "select-to-interact" : ACTIVATE.has(data.kind) ? "activate-to-interact" : "primary";
+  return { activationMode, connectable: !["credential", "portal"].includes(data.kind), movable: !locked,
+    transform: { ...resize, minHeight: data.kind === "text" ? 1 : resize.minHeight, resizeMode: locked ? "fixed" : resize.resizeMode } };
 }
 ''')
-write('src/features/spaces/canvas/document/editor-appearance.ts', '''
-import { indexStructureSnapshot } from "../../organization/structure/structure-context";
-import { assertStructureEditable } from "../../organization/structure/structure-selection";
-import { parseSpaceEditorDocument, type CanvasNodeAppearance, type CanvasRelationColor, type SpaceEditorDocument } from "../contract/canvas-document";
-
-export function setEditorAppearance(document: SpaceEditorDocument, id: string, patch: Partial<CanvasNodeAppearance>) {
-  assertStructureEditable(indexStructureSnapshot(document).tree, [id]);
-  const items = document.layout.items.map((layout) => {
-    if (layout.itemId !== id) return layout;
-    if (layout.kind === "group") throw new Error("Groups have no independent content appearance");
-    const appearance = { ...layout.appearance, ...patch };
-    if (patch.fill) delete appearance.customFill;
-    if (patch.customFill) delete appearance.fill;
-    for (const key of Object.keys(appearance) as (keyof CanvasNodeAppearance)[]) if (appearance[key] === undefined) delete appearance[key];
-    return { ...layout, appearance };
+write('src/features/spaces/canvas/konva/selection/use-structure-scope.ts', '''
+import { shallowRef, watch } from "vue";
+import type { SpaceEditorDocument } from "../../contract/canvas-document";
+import { indexStructure, requireStructureItem, structureAncestors } from "../../../model/structure/structure-index";
+import { structureSelectionTarget } from "../../../organization/structure/structure-selection";
+export function useStructureScope(document: () => SpaceEditorDocument, select: (ids: readonly string[]) => void) {
+  const groupId = shallowRef<string | null>(null);
+  const renameId = shallowRef<string>();
+  function enter(id: string) {
+    const tree = indexStructure(document().structure);
+    const item = requireStructureItem(tree, id);
+    if (item.kind !== "group" || item.locked || structureAncestors(tree, id).some((parent) => parent.locked)) return;
+    groupId.value = id; select([]);
+  }
+  function exit() {
+    const id = groupId.value; if (!id) return;
+    groupId.value = structureAncestors(indexStructure(document().structure), id).find((parent) => parent.kind === "group")?.id ?? null;
+    select([id]);
+  }
+  function setForSelection(ids: readonly string[]) {
+    const tree = indexStructure(document().structure);
+    const paths = ids.filter((id) => tree.items.has(id)).map((id) => structureAncestors(tree, id).filter((item) => item.kind === "group"));
+    groupId.value = paths[0]?.find((item) => paths.every((path) => path.some((parent) => parent.id === item.id)))?.id ?? null;
+  }
+  function resolveHit(id: string) {
+    const tree = indexStructure(document().structure);
+    const target = structureSelectionTarget(tree, id, groupId.value);
+    if (target !== undefined) return target;
+    groupId.value = null;
+    return structureSelectionTarget(tree, id, null)!;
+  }
+  watch(document, (current) => {
+    if (groupId.value && !current.structure.items.some((item) => item.id === groupId.value && item.kind === "group")) { groupId.value = null; select([]); }
+    if (renameId.value && !current.structure.items.some((item) => item.id === renameId.value)) renameId.value = undefined;
   });
-  return parseSpaceEditorDocument({ ...document, layout: { version: 1, items } });
-}
-export function setEditorRelationColor(document: SpaceEditorDocument, relationId: string, color: CanvasRelationColor): SpaceEditorDocument {
-  const retained = document.relationStyles?.filter((style) => style.relationId !== relationId) ?? [];
-  return { ...document, relationStyles: color === "neutral" ? retained : [...retained, { relationId, color }] };
+  return { groupId, renameId, enter, exit, setForSelection, resolveHit };
 }
 ''')
-write('src/features/spaces/organization/structure/commands/layer-order.ts', '''
-import type { CanvasLayerMove } from "../../../canvas/contract/canvas-editor-port";
-import type { SpaceEditorDocument } from "../../../canvas/contract/canvas-document";
+write('src/features/spaces/canvas/konva/selection/use-canvas-selection.ts', '''
+import type Konva from "konva";
+import { computed, shallowRef, watch, type Ref } from "vue";
+import type { CanvasNodeLayoutV1, SpaceEditorDocument } from "../../contract/canvas-document";
+import type { CanvasRect, CanvasSelectionSnapshot } from "../../contract/canvas-editor-port";
+import { createCanvasSelectionSnapshot } from "../../document/canvas-selection-snapshot";
+import { transformedStructureBounds } from "../../document/structure-transform";
 import { indexStructure } from "../../../model/structure/structure-index";
-import { assertStructureEditable, structureOperationRoots } from "../structure-selection";
-
-export function reorderStructureItems(document: SpaceEditorDocument, ids: readonly string[], mode: CanvasLayerMove): SpaceEditorDocument {
-  const tree = indexStructure(document.structure);
-  const roots = structureOperationRoots(tree, ids);
-  assertStructureEditable(tree, roots.map((item) => item.id));
-  const selected = new Set(roots.map((item) => item.id));
-  const orders = new Map<string, number>();
-  for (const parentId of new Set(roots.map((item) => item.parentId))) {
-    const siblings = (tree.children.get(parentId) ?? []).map((item) => item.id);
-    reorder(siblings, selected, mode).forEach((id, order) => orders.set(id, order));
-  }
-  return { ...document, structure: { version: 1, items: document.structure.items.map((item) => orders.has(item.id) ? { ...item, order: orders.get(item.id)! } : item) } };
+import { structureOperationRoots, structureSelectionTarget } from "../../../organization/structure/structure-selection";
+interface SelectionOptions {
+  document(): SpaceEditorDocument; scopeGroupId(): string | null;
+  layouts: Readonly<Ref<readonly CanvasNodeLayoutV1[]>>;
+  relationBounds: Readonly<Ref<ReadonlyMap<string, CanvasRect>>>;
+  changed(selection: CanvasSelectionSnapshot): void;
 }
-function reorder(ids: string[], selected: ReadonlySet<string>, mode: CanvasLayerMove) {
-  const chosen = ids.filter((id) => selected.has(id));
-  const others = ids.filter((id) => !selected.has(id));
-  if (mode === "front") return [...others, ...chosen];
-  if (mode === "back") return [...chosen, ...others];
-  const direction = mode === "forward" ? -1 : 1;
-  for (let index = direction < 0 ? ids.length - 2 : 1; index >= 0 && index < ids.length; index += direction) {
-    const other = index - direction;
-    if (selected.has(ids[index]!) && !selected.has(ids[other]!)) [ids[index], ids[other]] = [ids[other]!, ids[index]!];
+export function useCanvasSelection(options: SelectionOptions) {
+  const nodeIds = shallowRef(new Set<string>()), relationIds = shallowRef(new Set<string>());
+  const marquee = shallowRef<{ start: { x: number; y: number }; end: { x: number; y: number } }>();
+  const marqueeRect = computed(() => marquee.value ? { x: Math.min(marquee.value.start.x, marquee.value.end.x), y: Math.min(marquee.value.start.y, marquee.value.end.y), width: Math.abs(marquee.value.end.x - marquee.value.start.x), height: Math.abs(marquee.value.end.y - marquee.value.start.y) } : undefined);
+  function selectNode(id: string, event: PointerEvent) {
+    const additive = event.ctrlKey || event.metaKey || event.shiftKey;
+    if (!additive && nodeIds.value.has(id)) return;
+    const selected = new Set(additive ? nodeIds.value : []);
+    if (additive && selected.has(id)) selected.delete(id); else selected.add(id);
+    setNodeIds([...selected]);
   }
-  return ids;
+  function selectRelation(id: string, event: PointerEvent) {
+    const additive = event.ctrlKey || event.metaKey || event.shiftKey;
+    const selected = new Set(additive ? relationIds.value : []);
+    if (additive && selected.has(id)) selected.delete(id); else selected.add(id);
+    nodeIds.value = new Set(); relationIds.value = selected; notify();
+  }
+  function beginMarquee(event: Konva.KonvaEventObject<PointerEvent>) {
+    if (event.evt.button !== 0 || event.target !== event.target.getStage()) return false;
+    const point = event.target.getStage()?.getRelativePointerPosition(); if (!point) return false;
+    marquee.value = { start: point, end: point };
+    if (!(event.evt.ctrlKey || event.evt.metaKey || event.evt.shiftKey)) clear();
+    return true;
+  }
+  function moveMarquee(event: Konva.KonvaEventObject<PointerEvent>) { const point = event.target.getStage()?.getRelativePointerPosition(); if (marquee.value && point) marquee.value = { ...marquee.value, end: point }; }
+  function endMarquee() {
+    const bounds = marqueeRect.value; marquee.value = undefined;
+    if (!bounds || bounds.width < 1 || bounds.height < 1) return;
+    const tree = indexStructure(options.document().structure);
+    const selected = new Set(nodeIds.value);
+    for (const layout of options.layouts.value) {
+      const item = tree.items.get(layout.nodeId)!;
+      if (item.kind === "group") continue;
+      const frame = transformedStructureBounds({ ...layout.frame, scale: 1 }, layout.frame);
+      const inside = frame.x >= bounds.x && frame.y >= bounds.y && frame.x + frame.width <= bounds.x + bounds.width && frame.y + frame.height <= bounds.y + bounds.height;
+      const overlap = frame.x <= bounds.x + bounds.width && frame.y <= bounds.y + bounds.height && frame.x + frame.width >= bounds.x && frame.y + frame.height >= bounds.y;
+      if (!(item.kind === "section" ? inside : overlap)) continue;
+      const target = structureSelectionTarget(tree, item.id, options.scopeGroupId()); if (target) selected.add(target);
+    }
+    setNodeIds([...selected]);
+  }
+  function setNodeIds(ids: readonly string[]) {
+    const tree = indexStructure(options.document().structure);
+    nodeIds.value = new Set(structureOperationRoots(tree, ids.filter((id) => tree.items.has(id))).map((item) => item.id)); relationIds.value = new Set(); notify();
+  }
+  function clear() { nodeIds.value = new Set(); relationIds.value = new Set(); notify(); }
+  function notify() { options.changed({ ...createCanvasSelectionSnapshot(options.layouts.value, nodeIds.value, relationIds.value, options.relationBounds.value), scopeGroupId: options.scopeGroupId() }); }
+  watch(options.layouts, (layouts) => { const visible = new Set(layouts.map((layout) => layout.nodeId)); nodeIds.value = new Set([...nodeIds.value].filter((id) => visible.has(id))); notify(); });
+  watch(options.relationBounds, (bounds) => { relationIds.value = new Set([...relationIds.value].filter((id) => bounds.has(id))); notify(); });
+  return { nodeIds, relationIds, marqueeRect, selectNode, selectRelation, setNodeIds, clear, beginMarquee, moveMarquee, endMarquee, cancelMarquee: () => { marquee.value = undefined; } };
 }
 ''')
-write('src/features/spaces/canvas/konva/document/canvas-document-mutations.ts', '''
-import type { CanvasNodeFrame, CanvasNodeFrameUpdate, SpaceEditorDocument } from "../../contract/canvas-document";
-import { applyEditorFrames } from "../../document/editor-frame-edit";
-import { projectEditorLayouts } from "../../document/editor-layout-projection";
-import type { CanvasGestureUpdate } from "../interaction/canvas-gesture-update";
-export function applyCanvasFrames(document: SpaceEditorDocument, updates: readonly CanvasNodeFrameUpdate[]) { return applyEditorFrames(document, updates); }
-export function applyCanvasGestureUpdates(document: SpaceEditorDocument, updates: readonly CanvasGestureUpdate[]) {
-  const result = applyEditorFrames(document, updates);
-  const byId = new Map(updates.map((update) => [update.nodeId, update]));
-  return { ...result, layout: { version: 1 as const, items: result.layout.items.map((layout) => {
-    const update = byId.get(layout.itemId);
-    if (!update || !("appearance" in update) || layout.kind === "group") return layout;
-    const { appearance: _appearance, ...rest } = layout;
-    return update.appearance ? { ...rest, appearance: update.appearance } : rest;
-  }) } };
-}
-export function captureCanvasGestureLayouts(document: SpaceEditorDocument, updates: readonly CanvasGestureUpdate[]) {
-  const selected = new Set(updates.map((update) => update.nodeId));
-  return projectEditorLayouts(document).filter((layout) => selected.has(layout.nodeId));
-}
-export function sameCanvasFrame(left: CanvasNodeFrame, right: CanvasNodeFrame) { return left.x === right.x && left.y === right.y && left.width === right.width && left.height === right.height && left.rotation === right.rotation; }
-export function sameCanvasViewport(left: SpaceEditorDocument["viewport"], right: SpaceEditorDocument["viewport"]) { return left.x === right.x && left.y === right.y && left.zoom === right.zoom; }
-''')
-write('src/features/spaces/canvas/konva/document/canvas-document-model.ts', '''
-import { isEqual } from "es-toolkit";
-import { shallowRef, type ShallowRef } from "vue";
-import type { CanvasNodeAppearance, CanvasRelationColor, SpaceEditorDocument } from "../../contract/canvas-document";
-import { parseSpaceEditorDocument } from "../../contract/canvas-document";
-import type { CanvasGestureCommitResult, CanvasHistoryEntry, CanvasLayerMove, CanvasViewport } from "../../contract/canvas-editor";
-import type { StructureCommand } from "../../../organization/structure/commands/contract";
-import { planStructureCommand } from "../../../organization/structure/commands/plan";
-import { reorderStructureItems } from "../../../organization/structure/commands/layer-order";
-import { setEditorAppearance, setEditorRelationColor } from "../../document/editor-appearance";
-import { replayEditorTransition } from "../../document/editor-history-transition";
-import { projectEditorLayouts } from "../../document/editor-layout-projection";
-import { sameCanvasViewport } from "./canvas-document-mutations";
-
-interface CanvasDocumentModelEvents {
-  commitDocument(document: SpaceEditorDocument, before: SpaceEditorDocument): Promise<CanvasGestureCommitResult>;
-  viewportChanged(viewport: CanvasViewport): void;
-  historyEntry(entry: CanvasHistoryEntry): void;
-  reportError(error: unknown): void;
-}
-/** Committed application state only. Gesture previews and the camera are independent. */
-export class CanvasDocumentModel {
-  private readonly current: ShallowRef<SpaceEditorDocument>;
-  private readonly sceneCurrent: ShallowRef<SpaceEditorDocument>;
-  private readonly observers = new Set<(document: SpaceEditorDocument) => void>();
-  private readonly pending = new Set<Promise<unknown>>();
-  private tail = Promise.resolve();
-  constructor(document: SpaceEditorDocument, private readonly events: CanvasDocumentModelEvents) {
-    this.current = shallowRef(document); this.sceneCurrent = shallowRef(document);
-  }
-  get document() { return this.current.value; }
-  get documentRef(): Readonly<ShallowRef<SpaceEditorDocument>> { return this.current; }
-  get sceneDocumentRef(): Readonly<ShallowRef<SpaceEditorDocument>> { return this.sceneCurrent; }
-  replace(document: SpaceEditorDocument) { this.assign(document); }
-  applyLocalDocument(document: SpaceEditorDocument) { this.assign(document); }
-  layout(id: string) { return projectEditorLayouts(this.document).find((layout) => layout.nodeId === id); }
-  async flush() { await Promise.all([...this.pending]); }
-  mutate(calculate: (document: SpaceEditorDocument) => SpaceEditorDocument, record = true): Promise<void> {
-    const operation = this.tail.then(async () => {
-      const before = this.document;
-      const after = parseSpaceEditorDocument(calculate(before));
-      if (isEqual(before.structure, after.structure) && isEqual(before.layout, after.layout) && isEqual(before.relationStyles, after.relationStyles)) return;
-      const result = await this.events.commitDocument(after, before);
-      this.assign({ ...result.document, viewport: this.document.viewport });
-      if (record) this.events.historyEntry({
-        undo: () => this.mutate((current) => replayEditorTransition(current, after, before), false),
-        redo: () => this.mutate((current) => replayEditorTransition(current, before, after), false),
-      });
-    });
-    this.pending.add(operation);
-    this.tail = operation.then(() => undefined, () => undefined);
-    void operation.then(() => this.pending.delete(operation), () => this.pending.delete(operation));
-    return operation;
-  }
-  async execute(command: StructureCommand, selection: readonly string[] = []) {
-    let selected = selection;
-    await this.mutate((document) => {
-      const plan = planStructureCommand(document, command, selection);
-      if (plan.effects.removedContentNodeIds.length || plan.effects.contentClones.length) throw new Error("Content lifecycle changes require a Space content transaction");
-      selected = plan.selection;
-      return { ...document, ...plan.after };
-    });
-    return selected;
-  }
-  moveNodes(ids: ReadonlySet<string>, mode: CanvasLayerMove) { return this.mutate((document) => reorderStructureItems(document, [...ids], mode)); }
-  setRelationColor(id: string, color: CanvasRelationColor) { return this.mutate((document) => setEditorRelationColor(document, id, color)); }
-  setNodeAppearance(id: string, patch: Partial<CanvasNodeAppearance>) { return this.mutate((document) => setEditorAppearance(document, id, patch)); }
-  fitNodeHeights(heights: ReadonlyMap<string, number>) {
-    return this.mutate((document) => ({ ...document, layout: { version: 1, items: document.layout.items.map((layout) => {
-      const height = heights.get(layout.itemId);
-      return layout.kind === "content" && height !== undefined ? { ...layout, size: { ...layout.size, height: Math.ceil(height) } } : layout;
-    }) } }), false).catch(this.events.reportError);
-  }
-  setViewport(viewport: CanvasViewport) {
-    if (sameCanvasViewport(this.document.viewport, viewport)) return;
-    this.assign({ ...this.document, viewport: { ...viewport } }); this.events.viewportChanged(viewport);
-  }
-  observe(observer: (document: SpaceEditorDocument) => void) { this.observers.add(observer); observer(this.document); return () => { this.observers.delete(observer); }; }
-  private assign(document: SpaceEditorDocument) {
-    const previous = this.document; this.current.value = document;
-    if (previous.structure !== document.structure || previous.layout !== document.layout || previous.relationStyles !== document.relationStyles) this.sceneCurrent.value = document;
-    for (const observer of this.observers) observer(document);
-  }
-}
-''')
-write('src/features/spaces/canvas/host/canvas-document-rebase.ts', '''
-import { isEqual } from "es-toolkit";
-import { parseSpaceEditorDocument, type SpaceEditorDocument } from "../contract/canvas-document";
-/** Merge disjoint edits; shared-record conflicts fail instead of overwriting topology. */
-export function rebaseCanvasDocument(base: SpaceEditorDocument, committed: SpaceEditorDocument, pending: SpaceEditorDocument): SpaceEditorDocument {
-  return parseSpaceEditorDocument({ ...committed,
-    viewport: isEqual(base.viewport, pending.viewport) ? committed.viewport : pending.viewport,
-    structure: { version: 1, items: merge(base.structure.items, committed.structure.items, pending.structure.items, (item) => item.id) },
-    layout: { version: 1, items: merge(base.layout.items, committed.layout.items, pending.layout.items, (item) => item.itemId) },
-    relationStyles: merge(base.relationStyles ?? [], committed.relationStyles ?? [], pending.relationStyles ?? [], (style) => style.relationId),
-  });
-}
-function merge<T>(before: readonly T[], committed: readonly T[], pending: readonly T[], identity: (item: T) => string) {
-  const base = new Map(before.map((item) => [identity(item), item]));
-  const remote = new Map(committed.map((item) => [identity(item), item]));
-  const local = new Map(pending.map((item) => [identity(item), item]));
-  return [...new Set([...remote.keys(), ...local.keys()])].flatMap((id) => {
-    const changed = !isEqual(base.get(id), local.get(id));
-    if (changed && !isEqual(base.get(id), remote.get(id)) && !isEqual(local.get(id), remote.get(id))) throw new Error(`Concurrent editor change at ${id}`);
-    const item = changed ? local.get(id) : remote.get(id);
-    return item === undefined ? [] : [item];
-  });
-}
-''')
-write('src/features/spaces/canvas/persistence/canvas-persistence-history.ts', '''
-import type { SpaceEditorDocument } from "../contract/canvas-document";
-import type { CanvasHistoryEntry, CanvasPersistenceHistory, CanvasPersistenceMutationResult } from "../contract/canvas-editor";
-import { replayEditorTransition } from "../document/editor-history-transition";
-interface CanvasPersistenceHistoryOptions {
-  before: SpaceEditorDocument; after: SpaceEditorDocument; persistence: CanvasPersistenceHistory;
-  current(): SpaceEditorDocument;
-  commit(document: SpaceEditorDocument, transition: CanvasPersistenceHistory["undo"], baseDocument: SpaceEditorDocument): Promise<CanvasPersistenceMutationResult & { document: SpaceEditorDocument }>;
-  adopt(document: SpaceEditorDocument): void;
-}
-export function createCanvasPersistenceHistory(options: CanvasPersistenceHistoryOptions): CanvasHistoryEntry {
-  async function replay(before: SpaceEditorDocument, after: SpaceEditorDocument, transition: CanvasPersistenceHistory["undo"]) {
-    const base = options.current();
-    const result = await options.commit(replayEditorTransition(base, before, after), transition, base);
-    options.adopt(result.document);
-  }
-  return { undo: () => replay(options.after, options.before, options.persistence.undo), redo: () => replay(options.before, options.after, options.persistence.redo) };
-}
-''')
-write('src/features/spaces/canvas/document/canvas-content.ts', '''
-import type { SpaceEditorDocument } from "../contract/canvas-document";
-import { planStructureCommand } from "../../organization/structure/commands/plan";
-export function removeCanvasContent(document: SpaceEditorDocument, ids: ReadonlySet<string>) {
-  return ids.size ? { ...document, ...planStructureCommand(document, { kind: "delete-subtrees", ids: [...ids] }).after } : document;
-}
-export function removeCanvasSelection(document: SpaceEditorDocument, ids: ReadonlySet<string>, relationIds: ReadonlySet<string>) {
-  const after = removeCanvasContent(document, ids);
-  return { ...after, relationStyles: after.relationStyles?.filter((style) => !relationIds.has(style.relationId)) ?? [] };
-}
-''')
-# Canonical snapshots are exposed read-only to Outline, Ask and inspectors through the existing session.
-name='src/features/spaces/canvas/editor-session.ts'
-text=read(name)
-if 'const document = shallowRef<SpaceEditorDocument>();' not in text:
-    text='import type { SpaceEditorDocument } from "./contract/canvas-document";\n'+text
-    text=text.replace('const viewport =','const document = shallowRef<SpaceEditorDocument>();\nconst viewport =',1)
-    text=text.replace('    activeEditor,','    activeEditor,\n    document: computed(() => document.value),',1)
-    text=text.replace('  viewport.value = editor.getViewport();','  const detachDocument = editor.observeDocument((next) => { document.value = next; });\n  viewport.value = editor.getViewport();',1)
-    text=text.replace('  return () => {\n    if (suspendedEditor','  return () => {\n    detachDocument();\n    if (suspendedEditor',1)
-    text=text.replace('    viewport.value = undefined;','    viewport.value = undefined;\n    document.value = undefined;',1)
-    write(name,text)
-# Transport distinguishes the originating edit snapshot from its proposed after-state.
-name='src/features/spaces/canvas/contract/canvas-editor.ts'; text=read(name)
-text=text.replace('import type { SectionAssignment } from "./section-membership";\n','')
-text=text.replace('  assignments: readonly SectionAssignment[];\n','')
-text=text.replace('export interface CanvasGestureCommitRequest {','export interface CanvasGestureCommitRequest {\n  baseDocument: SpaceEditorDocument;')
-text=text.replace('export interface CanvasDeleteSelectionRequest {','export interface CanvasDeleteSelectionRequest {\n  baseDocument: SpaceEditorDocument;')
-text=text.replace('  onCreateRelation(', '  onPrepareStructureEdit(): Promise<void>;\n  onStructureToolFinished(): void;\n  onCreateRelation(',1)
-text=text.replace('    transition: CanvasPersistenceHistory["undo"],\n','    transition: CanvasPersistenceHistory["undo"],\n    baseDocument: SpaceEditorDocument,\n')
+# Selection snapshots now expose the current editing scope, rather than guessing it from payloads.
+name='src/features/spaces/canvas/contract/canvas-editor-port.ts';text=read(name)
+text='import type { StructureCommand } from "../../organization/structure/commands/contract";\n'+text
+text=text.replace('export interface CanvasSelectionSnapshot {','export interface CanvasSelectionSnapshot {\n  scopeGroupId?: string | null;')
+text=text.replace('  cancelInteraction(): void;', '  cancelInteraction(): void;\n  executeStructureCommand(command: StructureCommand): Promise<void>;\n  enterGroup(id: string): void;\n  exitGroup(): void;\n  requestContainerRename(id: string): void;\n  deleteItems(ids: readonly string[], relationIds?: readonly string[]): Promise<void>;')
+text=text.replace('nudgeSelection(offset: CanvasPoint): void','nudgeSelection(offset: CanvasPoint): Promise<void>')
+text=text.replace('moveSelectionLayer(mode: CanvasLayerMove): void','moveSelectionLayer(mode: CanvasLayerMove): Promise<void>')
+text=text.replace('setRelationColor(relationId: string, color: CanvasRelationColor): void','setRelationColor(relationId: string, color: CanvasRelationColor): Promise<void>')
+text=text.replace('setNodeAppearance(nodeId: string, patch: Partial<CanvasNodeAppearance>): void','setNodeAppearance(nodeId: string, patch: Partial<CanvasNodeAppearance>): Promise<void>')
 write(name,text)
-write('src/features/spaces/session/actions/canvas-gesture-actions.ts', '''
-import type { CanvasGestureCommitRequest, CanvasPersistenceMutationRequest } from "../../canvas/contract/canvas-editor";
-import { commitCanvasGesture } from "../../canvas/persistence/canvas-gesture-repository";
-import type { SpaceState } from "../session-state";
-export function createCanvasGestureActions(state: SpaceState) {
-  async function commitGesture(request: CanvasGestureCommitRequest) {
-    const spaceId = state.activeSpaceId.value;
-    if (!spaceId) throw new Error("An active Space is required for editing");
-    const persist = (input: CanvasPersistenceMutationRequest) => commitCanvasGesture(input, spaceId);
-    const result = await persist(request);
-    return { ...result, document: request.document, history: { undo: persist, redo: persist } };
-  }
-  return { commitGesture };
+# Node dragging resolves the whole selected subtree once per gesture.
+write('src/features/spaces/canvas/konva/interaction/canvas-node-drag-state.ts', '''
+import type Konva from "konva";
+import type { CanvasNodeFrameUpdate, CanvasNodeLayoutV1, SpaceEditorDocument } from "../../contract/canvas-document";
+import { indexStructure, structureSubtree, structureAncestors } from "../../../model/structure/structure-index";
+import { assertStructureEditable, structureOperationRoots } from "../../../organization/structure/structure-selection";
+import { captureCanvasNodeRefs } from "./canvas-node-access";
+import { createCanvasTranslationSnapIndex, type CanvasTranslationGestureState } from "./canvas-translation-snapping";
+export function captureCanvasNodeDragState(layouts: readonly CanvasNodeLayoutV1[], document: SpaceEditorDocument, selectedIds: ReadonlySet<string>, primaryId: string, stage: Konva.Stage | undefined) {
+  const tree = indexStructure(document.structure);
+  const roots = structureOperationRoots(tree, [...selectedIds, primaryId]);
+  assertStructureEditable(tree, roots.map((item) => item.id));
+  const affected = new Set(structureSubtree(tree, roots.map((item) => item.id)).map((item) => item.id));
+  const ancestors = new Set(roots.flatMap((item) => structureAncestors(tree, item.id).filter((parent) => parent.kind === "group").map((parent) => parent.id)));
+  const frames = new Map(layouts.filter((layout) => affected.has(layout.nodeId)).map((layout) => [layout.nodeId, { ...layout.frame }]));
+  const origin = frames.get(primaryId); if (!origin) return undefined;
+  const state: CanvasTranslationGestureState = { primaryId, origin, frames, snapIndex: createCanvasTranslationSnapIndex(layouts.filter((layout) => !affected.has(layout.nodeId) && !ancestors.has(layout.nodeId)).map((layout) => layout.frame)) };
+  return { state, nodeRefs: captureCanvasNodeRefs(stage, frames.keys()) };
+}
+export function restoreCanvasNodeFrames(updates: readonly CanvasNodeFrameUpdate[], nodes: ReadonlyMap<string, Konva.Node>) {
+  for (const { nodeId, frame } of updates) { const node = nodes.get(nodeId); node?.position({ x: frame.x, y: frame.y }); node?.rotation(frame.rotation); node?.scale({ x: 1, y: 1 }); }
 }
 ''')
-write('src/features/spaces/canvas/persistence/canvas-gesture-repository.ts', '''
-import { invoke } from "@tauri-apps/api/core";
-import type { CanvasPersistenceMutationRequest } from "../contract/canvas-editor";
-export function commitCanvasGesture(mutation: CanvasPersistenceMutationRequest, spaceId: string) {
-  return invoke<{ revision: number }>("plugin:spaces|commit_canvas_gesture", { request: { spaceId, baseRevision: mutation.baseRevision, document: mutation.document } });
-}
-''')
-# Runtime wiring is deliberate: no autosave for geometry, a single host transaction for edits.
+name='src/features/spaces/canvas/konva/interaction/node-gesture-controller.ts';text=read(name)
+text=text.replace('import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";', 'import type { CanvasDisplayNode } from "../../contract/canvas-display-node";\nimport type { SpaceEditorDocument } from "../../contract/canvas-document";').replace('SpaceCanvasNode','CanvasDisplayNode')
+text=text.replace('  layouts():', '  document(): SpaceEditorDocument;\n  layouts():',1)
+text=text.replace('      this.options.nodes(),\n      this.options.selectedNodeIds(),\n      primaryId,','      this.options.document(),\n      this.options.selectedNodeIds(),\n      primaryId,')
+write(name,text)
+name='src/features/spaces/canvas/konva/interaction/canvas-transform-projection.ts';text=read(name)
+text=text.replace('import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";', 'import type { CanvasDisplayNode } from "../../contract/canvas-display-node";').replace('SpaceCanvasNode','CanvasDisplayNode')
+text=text.replace('    if (content.data.locked) return [];\n','')
+write(name,text)
+# Pointer-down collapses/selects the resolved Group, not the physically hit child.
+name='src/features/spaces/canvas/konva/interaction/use-pointer-interactions.ts';text=read(name)
+text=text.replace('  cancelActiveGesture(): boolean;','  cancelActiveGesture(): boolean;\n  resolveHit(id: string): string;')
+text=text.replace('    const additive = event.evt.metaKey', '    nodeId = options.resolveHit(nodeId);\n    const additive = event.evt.metaKey')
+write(name,text)
+# Scope-aware activation cannot enter Group and edit content in the same double-click.
+name='src/features/spaces/canvas/konva/interaction/use-node-content-activation.ts';text=read(name)
+text=text.replace('    if (!item) return;', '    if (!item || !item.interaction.movable) return;')
+text=text.replace('if (selected?.interaction.activationMode === "select-to-interact")','if (selected?.interaction.movable && selected.interaction.activationMode === "select-to-interact")')
+write(name,text)
+# DOM carries the very same world transform, while text measures and reflows in local coordinates.
+name='src/features/spaces/canvas/konva/presentation/CanvasDomNodeOverlay.vue';text=read(name)
+text=text.replace('CanvasSceneNode','CanvasSceneContentNode')
+text=text.replace('const effectiveFrame =', 'const contentScale = computed(() => effectiveLayout.value.contentScale ?? 1);\nconst contentLayout = computed(() => ({ ...effectiveLayout.value, frame: { ...effectiveLayout.value.frame, width: effectiveLayout.value.frame.width / contentScale.value, height: effectiveLayout.value.frame.height / contentScale.value } }));\nconst effectiveFrame =')
+text=text.replace('`${effectiveFrame.value.width}px`','`${effectiveFrame.value.width / contentScale.value}px`').replace('`${effectiveFrame.value.height}px`','`${effectiveFrame.value.height / contentScale.value}px`')
+text=text.replace('`rotate(${effectiveFrame.value.rotation}deg)`','`rotate(${effectiveFrame.value.rotation}deg) scale(${contentScale.value})`').replace(':layout="effectiveLayout"', ':layout="contentLayout"')
+write(name,text)
+name='src/features/spaces/canvas/konva/presentation/CanvasDomOverlay.vue';write(name,read(name).replace('props.scene.nodes.filter','props.scene.contentNodes.filter'))
+name='src/features/spaces/canvas/konva/interaction/canvas-gesture-update.ts';write(name,read(name).replace('export interface CanvasGestureUpdate extends CanvasNodeFrameUpdate {','export interface CanvasGestureUpdate extends CanvasNodeFrameUpdate {\n  contentScale?: number;'))
+name='src/features/spaces/canvas/konva/scene/scene-preview.ts';write(name,read(name).replace('    frame: update.frame,','    frame: update.frame,\n    contentScale: update.contentScale ?? layout.contentScale,'))
+# Ready registration returns the actual editor for container chrome instead of exporting a second authority.
+for name in ('src/features/spaces/canvas/konva/canvas-editor-port-options.ts','src/features/spaces/canvas/konva/use-editor-registration.ts'):
+    text=read(name)
+    text='import type { StructureCommand } from "../../organization/structure/commands/contract";\n'+text
+    text=text.replace('  cancelInteraction(): void;', '  cancelInteraction(): void;\n  executeStructureCommand(command: StructureCommand): Promise<void>;\n  enterGroup(id: string): void;\n  exitGroup(): void;\n  scopeGroupId(): string | null;\n  setEditingScope(ids: readonly string[]): void;\n  requestContainerRename(id: string): void;')
+    text=text.replace('      cancelInteraction: options.cancelInteraction,','      cancelInteraction: options.cancelInteraction,\n      executeStructureCommand: options.executeStructureCommand,\n      enterGroup: options.enterGroup,\n      exitGroup: options.exitGroup,\n      scopeGroupId: options.scopeGroupId,\n      setEditingScope: options.setEditingScope,\n      requestContainerRename: options.requestContainerRename,')
+    if name.endswith('use-editor-registration.ts'):
+        text=text.replace('nextTick, onMounted, watch,','nextTick, onMounted, shallowRef, watch,')
+        text=text.replace('  let editor:', '  const editorRef = shallowRef<ReturnType<typeof createKonvaEditorPort>>();\n  let editor:')
+        text=text.replace('    options.events.onReady(editor);','    editorRef.value = editor;\n    options.events.onReady(editor);')
+        last=text.rfind('\n}')
+        text=text[:last]+'\n  return editorRef;'+text[last:]
+    write(name,text)
+# Group rotation is distinct from ordinary card resizing.
+name='src/features/spaces/canvas/konva/selection/selection-transform-policy.ts';text=read(name)
+text=text.replace('export interface CanvasSelectionTransformPolicy {','export interface CanvasSelectionTransformPolicy {\n  rotateEnabled?: boolean;')
+text=text.replace('    nodeIds: [node.node.id],','    nodeIds: [node.node.id],\n    rotateEnabled: node.node.data.kind === "group",')
+for field in ('minWidth','minHeight','maxWidth','maxHeight'):
+    text=text.replace(f'{field}: transform.{field},',f'{field}: transform.{field} * (node.layout.contentScale ?? 1),')
+write(name,text)
+name='src/features/spaces/canvas/konva/presentation/CanvasSelectionTransformer.vue';text=read(name).replace('rotateEnabled: false,','rotateEnabled: policy.rotateEnabled === true,').replace('function isResizeAnchorVisible(anchor: Konva.Rect)', 'function isResizeAnchorVisible(anchor: Konva.Node)')
+text=text.replace('  return enabled &&','  if (anchor.hasName("rotater")) return props.policy.rotateEnabled === true;\n  return enabled &&')
+write(name,text)
+# Runtime consumes one canonical scene and publishes scope through the established selection channel.
 name='src/features/spaces/canvas/konva/use-konva-canvas-runtime.ts';text=read(name)
-text='import { projectEditorLayouts } from "../document/editor-layout-projection";\n'+text
-text=text.replace('    documentChanged,\n    historyEntry:', '    commitDocument: (document, before) => props.events.onCommitGesture({ document, baseDocument: before }),\n    reportError: props.events.onError,\n    historyEntry:')
-text=text.replace('const layouts = computed(() => sceneDocument.value.nodes);', 'const layouts = computed(() => projectEditorLayouts(sceneDocument.value));')
+text='import { useStructureScope } from "./selection/use-structure-scope";\n'+text
+text=text.replace('  const sceneDocument = model.sceneDocumentRef;', '  const scope = useStructureScope(() => model.documentRef.value, (ids) => selection.setNodeIds(ids));\n  const sceneDocument = model.sceneDocumentRef;')
+text=text.replace('projectCanvasScene(sceneDocument.value, props.nodes, props.relations)', 'projectCanvasScene(sceneDocument.value, props.nodes, props.relations, scope.groupId.value)')
+text=text.replace('  const selection = useCanvasSelection({','  const selection = useCanvasSelection({\n    document: () => model.document,\n    scopeGroupId: () => scope.groupId.value,')
+text=text.replace('    nodes: () => props.nodes,\n    palette: () => palette.value,\n    previewFrames:', '    nodes: () => canonicalScene.value.nodes.map((item) => item.node),\n    previewFrames:')
+text=re.sub(r'    sectionNodeIds: \(\) =>\n      new Set\([^\n]+\),\n', '', text)
+text=text.replace('    selectedNodeIds: () => selection.nodeIds.value,','    selectedNodeIds: () => selection.nodeIds.value,\n    setSelection: selection.setNodeIds,',1)
+text=text.replace('  const { activateNode, capturesCanvasInteraction, createTextNode, interactiveNodeId } =','  const { activateNode: activateContent, capturesCanvasInteraction, createTextNode, interactiveNodeId } =')
+text=text.replace('  const pointer = usePointerInteractions({','''  function activateNode(id: string) {
+    const target = scope.resolveHit(id);
+    const item = model.document.structure.items.find((candidate) => candidate.id === target);
+    if (item?.kind === "group") scope.enter(target);
+    else if (item?.kind === "section") scope.renameId.value = target;
+    else activateContent(target);
+  }
+  const pointer = usePointerInteractions({
+    resolveHit: scope.resolveHit,''')
+text=text.replace('    if (!gestures.cancelActiveGesture()) selection.clear();','    if (!gestures.cancelActiveGesture()) { if (scope.renameId.value) scope.renameId.value = undefined; else if (scope.groupId.value) scope.exit(); else selection.clear(); }')
+text=text.replace('  useEditorRegistration({','''  const editor = useEditorRegistration({
+    executeStructureCommand: gestures.runStructureCommand,
+    enterGroup: scope.enter, exitGroup: scope.exit, scopeGroupId: () => scope.groupId.value,
+    setEditingScope: scope.setForSelection,
+    requestContainerRename: (id) => { scope.renameId.value = id; },''')
+text=text.replace('nodeById: (id) => canonicalScene.value.nodesById.get(id)?.node','nodeById: (id) => props.nodes.find((node) => node.id === id)')
+text=text.replace('selectableNodeIds: () => canonicalScene.value.nodes.map(({ node }) => node.id)', 'selectableNodeIds: () => model.document.structure.items.filter((item) => item.parentId === scope.groupId.value).map((item) => item.id)')
+text=text.replace('  return {\n    activateNode,','  return {\n    editor, scope, model,\n    activateNode,')
+write(name,text)
+# Strict content no longer admits organizational payload fields or synthetic Section content.
+name='src/features/spaces/model/nodes/schema/base-fields.ts';write(name,re.sub(r'^  (sectionId|locked):[^\n]*\n','',read(name),flags=re.M))
+name='src/features/spaces/model/nodes/schema/node-variants.ts';text=read(name)
+start=text.find('  z\n    .object({\n      ...baseSpaceNodeFields,\n      kind: z.literal("section")')
+if start >= 0:
+    end=text.index('\n]);',start)
+    text=text[:start]+text[end:]
+write(name,text)
+name='src/features/spaces/model/nodes/node-payload.ts';write(name,re.sub(r'^export type SpaceSectionPayload[^\n]*\n','',read(name),flags=re.M))
+name='src/features/spaces/canvas/node-size.ts';text=read(name)
+text=re.sub(r'^  section:[^\n]*\n','',text,flags=re.M)
+text=re.sub(r'  if \(data.kind === "section" && data.collapsed\) \{[^}]*}\n','',text)
 write(name,text)
 for name,text in files.items():
     path=ROOT/name;path.parent.mkdir(parents=True,exist_ok=True)
     if not path.exists() or path.read_text()!=text:path.write_text(text)
-print('Applied structure-owned geometry and committed-state model.')
+print('Integrated structural scene, scope, and local-to-world content rendering.')
