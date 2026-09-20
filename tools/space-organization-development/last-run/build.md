@@ -1,13 +1,13 @@
 # Build
 
-Source: `c19dca0aeebcac2901adf70bbb48443c8fa7908a`. Exit code: 1.
+Source: `338a721ed95500572ba8288605180a0e93e2d122`. Exit code: 1.
 
 ```text
 $ vite build
 vite v8.2.2 building client environment for production...
 transforming...
-✓ 4064 modules transformed.
-✗ Build failed in 1.89s
+✓ 4068 modules transformed.
+✗ Build failed in 3.19s
 error during build:
 Build failed with 1 error:
 

@@ -710,6 +710,18 @@ ZodError: [
     at runWithCancel (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
     at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
     at new Promise (<anonymous>)
+/home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-persistence-history.test.ts :: canvas persistence history writes the clipboard before one atomic cut command
+ReferenceError: placements is not defined
+    at nodesAtPlacements (/home/runner/work/knovum/knovum/src/features/spaces/session/actions/canvas-selection-actions.ts:23:31)
+    at Object.cutSelection (/home/runner/work/knovum/knovum/src/features/spaces/session/actions/canvas-selection-actions.ts:121:19)
+    at /home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-persistence-history.test.ts:46:47
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
 /home/runner/work/knovum/knovum/src/features/spaces/__tests__/canvas-section-gesture.test.ts :: canvas section gestures moves section members and preserves a newer viewport on undo
 TypeError: Cannot destructure property 'width' of '(0 , __vite_ssr_import_1__.spaceNodeSizePolicy)(...)' as it is undefined.
     at /home/runner/work/knovum/knovum/src/features/spaces/canvas/document/canvas-document-sync.ts:36:19
@@ -871,29 +883,127 @@ TypeError: Cannot destructure property 'type' of 'vnode' as it is null.
     at Object.unmount (/home/runner/work/knovum/knovum/node_modules/.pnpm/@vue+runtime-core@3.5.42/node_modules/@vue/runtime-core/dist/runtime-core.cjs.js:4367:11)
     at VueWrapper.unmount (/home/runner/work/knovum/knovum/node_modules/.pnpm/@vue+test-utils@2.5.0_@vue+compiler-dom@3.5.42_@vue+server-renderer@3.5.42_vue@3.5.42_typescript@6.0.3_/node_modules/@vue/test-utils/dist/vue-test-utils.cjs.js:7857:20)
 /home/runner/work/knovum/knovum/src/features/spaces/__tests__/clipboard-transfer.test.ts :: spaces clipboard round-trips the structured HTML marker while keeping useful plain text
-TypeError: (0 , __vite_ssr_import_2__.isSpaceSectionPayload) is not a function
-    at /home/runner/work/knovum/knovum/src/features/spaces/clipboard/transfer.ts:80:26
-    at Array.filter (<anonymous>)
-    at clipboardText (/home/runner/work/knovum/knovum/src/features/spaces/clipboard/transfer.ts:80:8)
-    at writeSpaceClipboard (/home/runner/work/knovum/knovum/src/features/spaces/clipboard/transfer.ts:15:45)
+ZodError: [
+  {
+    "expected": "object",
+    "code": "invalid_type",
+    "path": [],
+    "message": "Invalid input: expected object, received array"
+  }
+]
+    at parseSpaceClipboardPayload (/home/runner/work/knovum/knovum/src/features/spaces/clipboard/payload-schema.ts:53:47)
+    at clipboardHtml (/home/runner/work/knovum/knovum/src/features/spaces/clipboard/transfer.ts:31:33)
+    at writeSpaceClipboard (/home/runner/work/knovum/knovum/src/features/spaces/clipboard/transfer.ts:13:44)
     at /home/runner/work/knovum/knovum/src/features/spaces/__tests__/clipboard-transfer.test.ts:27:12
     at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
     at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
     at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
     at new Promise (<anonymous>)
     at runWithCancel (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
 /home/runner/work/knovum/knovum/src/features/spaces/__tests__/clipboard-transfer.test.ts :: spaces clipboard copies reactive node data without structured-clone failures
-TypeError: (0 , __vite_ssr_import_2__.isSpaceSectionPayload) is not a function
-    at /home/runner/work/knovum/knovum/src/features/spaces/clipboard/transfer.ts:80:26
-    at Array.filter (<anonymous>)
-    at clipboardText (/home/runner/work/knovum/knovum/src/features/spaces/clipboard/transfer.ts:80:8)
-    at writeSpaceClipboard (/home/runner/work/knovum/knovum/src/features/spaces/clipboard/transfer.ts:15:45)
+ZodError: [
+  {
+    "expected": "object",
+    "code": "invalid_type",
+    "path": [],
+    "message": "Invalid input: expected object, received array"
+  }
+]
+    at parseSpaceClipboardPayload (/home/runner/work/knovum/knovum/src/features/spaces/clipboard/payload-schema.ts:53:47)
+    at clipboardHtml (/home/runner/work/knovum/knovum/src/features/spaces/clipboard/transfer.ts:31:33)
+    at writeSpaceClipboard (/home/runner/work/knovum/knovum/src/features/spaces/clipboard/transfer.ts:13:44)
     at /home/runner/work/knovum/knovum/src/features/spaces/__tests__/clipboard-transfer.test.ts:44:12
     at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
     at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
     at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
     at new Promise (<anonymous>)
     at runWithCancel (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+/home/runner/work/knovum/knovum/src/features/spaces/__tests__/clipboard-transfer.test.ts :: spaces clipboard rejects any clipboard payload that is not version 1
+ZodError: [
+  {
+    "code": "invalid_value",
+    "values": [
+      1
+    ],
+    "path": [
+      "version"
+    ],
+    "message": "Invalid input: expected 1"
+  },
+  {
+    "code": "invalid_value",
+    "values": [
+      "space-selection"
+    ],
+    "path": [
+      "kind"
+    ],
+    "message": "Invalid input: expected \"space-selection\""
+  },
+  {
+    "expected": "string",
+    "code": "invalid_type",
+    "path": [
+      "sourceSpaceId"
+    ],
+    "message": "Invalid input: expected string, received undefined"
+  },
+  {
+    "expected": "object",
+    "code": "invalid_type",
+    "path": [
+      "structure"
+    ],
+    "message": "Invalid input: expected object, received undefined"
+  },
+  {
+    "expected": "object",
+    "code": "invalid_type",
+    "path": [
+      "layout"
+    ],
+    "message": "Invalid input: expected object, received undefined"
+  },
+  {
+    "code": "unrecognized_keys",
+    "keys": [
+      "position"
+    ],
+    "path": [
+      "nodes",
+      0
+    ],
+    "message": "Unrecognized key: \"position\""
+  },
+  {
+    "expected": "array",
+    "code": "invalid_type",
+    "path": [
+      "objectTypes"
+    ],
+    "message": "Invalid input: expected array, received undefined"
+  },
+  {
+    "expected": "array",
+    "code": "invalid_type",
+    "path": [
+      "relations"
+    ],
+    "message": "Invalid input: expected array, received undefined"
+  }
+]
+    at parseSpaceClipboardPayload (/home/runner/work/knovum/knovum/src/features/spaces/clipboard/payload-schema.ts:53:47)
+    at readSpaceClipboardHtml (/home/runner/work/knovum/knovum/src/features/spaces/clipboard/transfer.ts:28:10)
+    at readSpaceClipboard (/home/runner/work/knovum/knovum/src/features/spaces/clipboard/transfer.ts:18:10)
+    at /home/runner/work/knovum/knovum/src/features/spaces/__tests__/clipboard-transfer.test.ts:61:12
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel (file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+    at file:///home/runner/work/knovum/knovum/node_modules/.pnpm/@vitest+runner@4.1.10/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
 /home/runner/work/knovum/knovum/src/features/spaces/__tests__/derivation-schema.test.ts :: knowledge video package metadata accepts complete generated video metadata
 AssertionError: expected false to be true // Object.is equality
     at /home/runner/work/knovum/knovum/src/features/spaces/__tests__/derivation-schema.test.ts:32:76

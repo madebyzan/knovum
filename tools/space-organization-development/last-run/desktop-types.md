@@ -1,6 +1,6 @@
 # Desktop types
 
-Source: `c19dca0aeebcac2901adf70bbb48443c8fa7908a`. Exit code: 0.
+Source: `338a721ed95500572ba8288605180a0e93e2d122`. Exit code: 0.
 
 ```text
 $ tsc --noEmit -p tsconfig.e2e.json
