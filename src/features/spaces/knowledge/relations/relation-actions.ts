@@ -6,7 +6,7 @@ import {
   removeRelation,
   restoreRelation,
   updateRelation,
-} from "../../knowledge/relations/relation-repository";
+} from "./relation-repository";
 import { canonicalRelationEndpoints } from "../../model/relations/relation";
 import type { SpaceRelation, SpaceRelationKind } from "../../model/relations/relation";
 

@@ -1,8 +1,8 @@
 import type { Ref } from "vue";
 
-import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
-import type { SpaceRelation } from "../../model/relations/relation";
-import { moveNodesBetweenSpaces } from "../../nodes/node-repository";
+import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
+import type { SpaceRelation } from "../model/relations/relation";
+import { moveNodesBetweenSpaces } from "./node-repository";
 
 interface NodeLifecycleContext {
   activeSpaceId: Ref<string | undefined>;

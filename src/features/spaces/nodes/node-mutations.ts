@@ -1,27 +1,27 @@
-import { createSpaceNode, snapshotSpaceNode } from "../../canvas/node";
+import { createSpaceNode, snapshotSpaceNode } from "../canvas/node";
 import {
   resumePendingEnrichmentJobs,
   type SpaceEnrichmentSchedulerContext,
-} from "../../enrichment/job-scheduler";
-import { createSpaceHistoryMutations } from "../../history/mutation-actions";
-import { createAddHistory, createDeleteHistory } from "../../history/mutation-application";
-import { beginSpaceMutation } from "../../history/mutation-barrier";
+} from "../enrichment/job-scheduler";
+import { createSpaceHistoryMutations } from "../history/mutation-actions";
+import { createAddHistory, createDeleteHistory } from "../history/mutation-application";
+import { beginSpaceMutation } from "../history/mutation-barrier";
 import {
   assertSpacePosition,
   requireActiveSpaceId,
   type SpaceMutationContext,
-} from "../../history/mutation-types";
-import { recordSpaceHistory } from "../../history/stack";
-import { scheduleKnowledgeIndex } from "../../knowledge/indexing/index-scheduler";
-import { prepareSpaceKnowledgePayload } from "../../knowledge/model/node-knowledge";
-import type { KnowledgeChunkSeed } from "../../knowledge/model/schema";
-import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
-import type { SpaceNodePayload } from "../../model/nodes/node-payload";
-import { validateSpaceNodePayload } from "../../model/nodes/schema/node-payload";
-import { createNodes, setNodesDeleted } from "../../nodes/node-repository";
+} from "../history/mutation-types";
+import { recordSpaceHistory } from "../history/stack";
+import { scheduleKnowledgeIndex } from "../knowledge/indexing/index-scheduler";
+import { prepareSpaceKnowledgePayload } from "../knowledge/model/node-knowledge";
+import type { KnowledgeChunkSeed } from "../knowledge/model/schema";
+import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
+import type { SpaceNodePayload } from "../model/nodes/node-payload";
+import { validateSpaceNodePayload } from "../model/nodes/schema/node-payload";
+import { createNodes, setNodesDeleted } from "./node-repository";
 import { createNodeDataMutations } from "./node-data-mutations";
 
-export type { NodeDataChange } from "../../history/mutation-types";
+export type { NodeDataChange } from "../history/mutation-types";
 
 export function createSpaceMutations(context: SpaceMutationContext) {
   const dataMutations = createNodeDataMutations(context);

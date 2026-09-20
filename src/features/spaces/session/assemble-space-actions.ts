@@ -1,9 +1,9 @@
-import { commitActiveCanvasThumbnail } from "../../canvas/thumbnail-scheduler";
-import { resumePendingEnrichmentJobs } from "../../enrichment/job-scheduler";
-import { withEnrichmentTriggers } from "../../enrichment/mutation-triggers";
-import type { createInspectorActions } from "../../inspector/inspector-actions";
-import type { createSpaceMediaActions } from "../../media/actions";
-import type { createSelectionActions } from "../../organization/selection-actions";
+import { commitActiveCanvasThumbnail } from "../canvas/thumbnail-scheduler";
+import { resumePendingEnrichmentJobs } from "../enrichment/job-scheduler";
+import { withEnrichmentTriggers } from "../enrichment/mutation-triggers";
+import type { createInspectorActions } from "../inspector/inspector-actions";
+import type { createSpaceMediaActions } from "../media/actions";
+import type { createSelectionActions } from "../organization/selection-actions";
 import {
   createSpaceScene,
   duplicateSpaceScene,
@@ -11,11 +11,11 @@ import {
   reorderSpaceScenes,
   removeSpaceScene,
   updateSpaceScene,
-} from "../../scenes/scene-actions";
-import { searchSpace } from "../../search/search-actions";
-import { archiveSpace, permanentlyDeleteSpace, unarchiveSpace } from "../../workspace/archive-actions";
-import { showSpaceLibrary } from "../../workspace/library-actions";
-import { setSpaceFavorite } from "../../workspace/space-repository";
+} from "../scenes/scene-actions";
+import { searchSpace } from "../search/search-actions";
+import { archiveSpace, permanentlyDeleteSpace, unarchiveSpace } from "../workspace/archive-actions";
+import { showSpaceLibrary } from "../workspace/library-actions";
+import { setSpaceFavorite } from "../workspace/space-repository";
 import {
   closeOtherSpaceTabs,
   closeSpaceTab,
@@ -28,12 +28,12 @@ import {
   reopenClosedSpaceTab,
   renameSpace,
   type SpaceSessionContext,
-} from "../../workspace/space-session-actions";
-import { commitActiveSpaceSession } from "../../workspace/space-transition";
-import type { SpaceState } from "../session-state";
-import type { createSpaceNodeLifecycleActions } from "./node-lifecycle-actions";
-import type { createSpaceMutations } from "./node-mutations";
-import type { createPlacementActions } from "./placement-actions";
+} from "../workspace/space-session-actions";
+import { commitActiveSpaceSession } from "../workspace/space-transition";
+import type { SpaceState } from "./session-state";
+import type { createSpaceNodeLifecycleActions } from "../nodes/node-lifecycle-actions";
+import type { createSpaceMutations } from "../nodes/node-mutations";
+import type { createPlacementActions } from "../canvas/placement-actions";
 import {
   changeSpaceRelationKind,
   createSpaceRelation,
@@ -41,8 +41,8 @@ import {
   removeSpaceRelation,
   updateSpaceRelation,
   type RelationContext,
-} from "./relation-actions";
-import type { createSpaceViewActions } from "./view-actions";
+} from "../knowledge/relations/relation-actions";
+import type { createSpaceViewActions } from "./actions/view-actions";
 
 interface Input {
   state: SpaceState;

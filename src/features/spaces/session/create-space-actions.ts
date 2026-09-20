@@ -1,19 +1,19 @@
-import type { SpacePlacement } from "../../canvas/navigation-requests";
-import { createInspectorActions } from "../../inspector/inspector-actions";
-import { createSpaceMediaActions } from "../../media/actions";
-import { createSpaceAudioRecordingActions } from "../../media/audio-recording-actions";
-import { createSelectionActions } from "../../organization/selection-actions";
-import { materializeActiveSpace } from "../../workspace/draft-space-actions";
-import type { SpaceSessionContext } from "../../workspace/space-session-actions";
-import type { SpaceState } from "../session-state";
+import type { SpacePlacement } from "../canvas/navigation-requests";
+import { createInspectorActions } from "../inspector/inspector-actions";
+import { createSpaceMediaActions } from "../media/actions";
+import { createSpaceAudioRecordingActions } from "../media/audio-recording-actions";
+import { createSelectionActions } from "../organization/selection-actions";
+import { materializeActiveSpace } from "../workspace/draft-space-actions";
+import type { SpaceSessionContext } from "../workspace/space-session-actions";
+import type { SpaceState } from "./session-state";
 import { assembleSpaceActions } from "./assemble-space-actions";
-import { createCanvasGestureActions } from "./canvas-gesture-actions";
-import { createJsonCanvasImportActions } from "./json-canvas-import-actions";
-import { createSpaceNodeLifecycleActions } from "./node-lifecycle-actions";
-import { createSpaceMutations } from "./node-mutations";
-import { createPlacementActions } from "./placement-actions";
-import { removeSpaceRelations, type RelationContext } from "./relation-actions";
-import { createSpaceViewActions } from "./view-actions";
+import { createCanvasGestureActions } from "../canvas/canvas-gesture-actions";
+import { createJsonCanvasImportActions } from "./actions/json-canvas-import-actions";
+import { createSpaceNodeLifecycleActions } from "../nodes/node-lifecycle-actions";
+import { createSpaceMutations } from "../nodes/node-mutations";
+import { createPlacementActions } from "../canvas/placement-actions";
+import { removeSpaceRelations, type RelationContext } from "../knowledge/relations/relation-actions";
+import { createSpaceViewActions } from "./actions/view-actions";
 
 export function createSpaceActions(state: SpaceState, placement: SpacePlacement) {
   const spaceContext = createSpaceContext(state);

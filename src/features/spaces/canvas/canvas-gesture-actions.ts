@@ -1,11 +1,11 @@
 import type {
   CanvasGestureCommitRequest,
   CanvasPersistenceMutationRequest,
-} from "../../canvas/contract/canvas-editor";
-import { commitCanvasGesture } from "../../canvas/persistence/canvas-gesture-repository";
-import { validateSpaceNodePayload } from "../../model/nodes/schema/node-payload";
-import { omit } from "../../organization/selection-mutations";
-import type { SpaceState } from "../session-state";
+} from "./contract/canvas-editor";
+import { commitCanvasGesture } from "./persistence/canvas-gesture-repository";
+import { validateSpaceNodePayload } from "../model/nodes/schema/node-payload";
+import { omit } from "../organization/selection-mutations";
+import type { SpaceState } from "../session/session-state";
 
 export function createCanvasGestureActions(state: SpaceState) {
   async function commitGesture(request: CanvasGestureCommitRequest) {

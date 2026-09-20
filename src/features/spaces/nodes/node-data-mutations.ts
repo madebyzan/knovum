@@ -1,14 +1,14 @@
-import { cleanupDeletedSpaceAssets } from "../../assets/asset-operations";
-import { applySpaceNodeData } from "../../canvas/node";
-import { resumePendingEnrichmentJobs } from "../../enrichment/job-scheduler";
-import { beginSpaceMutation } from "../../history/mutation-barrier";
-import { requireActiveSpaceId, type SpaceMutationContext } from "../../history/mutation-types";
-import { scheduleKnowledgeIndex } from "../../knowledge/indexing/index-scheduler";
-import { prepareSpaceKnowledgePayload } from "../../knowledge/model/node-knowledge";
-import type { KnowledgeChunkSeed } from "../../knowledge/model/schema";
-import type { SpaceNodePayload } from "../../model/nodes/node-payload";
-import { validateSpaceNodePayload } from "../../model/nodes/schema/node-payload";
-import { permanentlyDeleteNodes, setNodesDeleted, updateNodePayload } from "../../nodes/node-repository";
+import { cleanupDeletedSpaceAssets } from "../assets/asset-operations";
+import { applySpaceNodeData } from "../canvas/node";
+import { resumePendingEnrichmentJobs } from "../enrichment/job-scheduler";
+import { beginSpaceMutation } from "../history/mutation-barrier";
+import { requireActiveSpaceId, type SpaceMutationContext } from "../history/mutation-types";
+import { scheduleKnowledgeIndex } from "../knowledge/indexing/index-scheduler";
+import { prepareSpaceKnowledgePayload } from "../knowledge/model/node-knowledge";
+import type { KnowledgeChunkSeed } from "../knowledge/model/schema";
+import type { SpaceNodePayload } from "../model/nodes/node-payload";
+import { validateSpaceNodePayload } from "../model/nodes/schema/node-payload";
+import { permanentlyDeleteNodes, setNodesDeleted, updateNodePayload } from "./node-repository";
 
 export function createNodeDataMutations(context: SpaceMutationContext) {
   async function saveNodeData(

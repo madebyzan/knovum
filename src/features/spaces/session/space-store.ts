@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import { watch } from "vue";
 
 import { createSpacePlacement } from "../canvas/navigation-requests";
-import { createSpaceActions } from "./actions/create-space-actions";
+import { createSpaceActions } from "./create-space-actions";
 import { createSpaceState, publicSpaceState } from "./session-state";
 
 export const useSpaceStore = defineStore("spaces", () => {
