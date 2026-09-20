@@ -12,12 +12,38 @@ on:
 permissions:
   contents: read
 
+env:
+  GIT_LFS_SKIP_SMUDGE: '1'
+
 jobs:
+  snapshot:
+    if: github.repository == 'madebyzan/knovum' && github.ref == 'refs/heads/refactor/space-organization'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Capture the exact tracked source without materializing runtime LFS assets
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/source-checkpoint"
+          git rev-parse HEAD > "$RUNNER_TEMP/source-checkpoint/commit.txt"
+          git rev-parse 'HEAD^{tree}' > "$RUNNER_TEMP/source-checkpoint/tree.txt"
+          git -c filter.lfs.process= -c filter.lfs.smudge= -c filter.lfs.required=false archive --format=tar.gz --output="$RUNNER_TEMP/source-checkpoint/source.tar.gz" HEAD
+      - uses: actions/upload-artifact@v4
+        with:
+          name: organization-source-${{ github.sha }}
+          path: ${{ runner.temp }}/source-checkpoint
+          retention-days: 7
+          if-no-files-found: error
+
   verify:
     if: github.repository == 'madebyzan/knovum' && github.ref == 'refs/heads/refactor/space-organization'
     concurrency:
       group: space-organization-source
-      cancel-in-progress: false
+      cancel-in-progress: true
     runs-on: ubuntu-latest
     timeout-minutes: 35
     permissions:
@@ -111,7 +137,6 @@ jobs:
       CARGO_BUILD_JOBS: '2'
       CARGO_PROFILE_DEV_DEBUG: '0'
       CARGO_PROFILE_TEST_DEBUG: '0'
-      # cargo check emits no runtime binary. Product/profile optimization settings remain unchanged.
       CARGO_PROFILE_DEV_OPT_LEVEL: '0'
       CARGO_INCREMENTAL: '0'
       SOURCE_SHA: ${{ needs.verify.outputs.source }}
