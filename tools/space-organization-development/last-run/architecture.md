@@ -1,6 +1,6 @@
 # Architecture
 
-Source: `a9c6bb781622093bf6415df2bbbb5eecd1a5a013`. Exit code: 1.
+Source: `c01d30518258230c3f3ca3398346fa43231b6845`. Exit code: 1.
 
 ```text
 $ node tools/check-frontend-source-structure.mjs && node tools/check-ai-provider-catalog.mjs && depcruise --config .dependency-cruiser.cjs src
