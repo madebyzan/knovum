@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { resolveImportedRelations } from "../canvas-exchange/json-canvas-relations";
+import { resolveImportedRelations } from "../json-canvas-relations";
 
 describe("JSON Canvas relation mapping", () => {
   it("maps standard edges into the authoritative semantic relation model", () => {

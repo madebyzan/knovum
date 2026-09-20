@@ -1,14 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { CanvasExchangeCodec } from "../canvas-exchange/canvas-exchange-port";
+import type { CanvasExchangeCodec } from "../canvas-exchange-port";
 import type {
   CanvasJsonImportCommitResult,
   CanvasJsonImportDraft,
-} from "../canvas-exchange/json-canvas-import-contract";
-import { createJsonCanvasExchangePort } from "../canvas-exchange/json-canvas-service";
-import type { CanvasDocumentV1 } from "../canvas/contract/canvas-document";
-import type { CanvasHistoryEntry, CanvasPersistenceHistory } from "../canvas/contract/canvas-editor";
-import type { CanvasEditorPort } from "../canvas/contract/canvas-editor-port";
+} from "../json-canvas-import-contract";
+import { createJsonCanvasExchangePort } from "../json-canvas-service";
+import type { CanvasDocumentV1 } from "../../canvas/contract/canvas-document";
+import type { CanvasHistoryEntry, CanvasPersistenceHistory } from "../../canvas/contract/canvas-editor";
+import type { CanvasEditorPort } from "../../canvas/contract/canvas-editor-port";
 
 describe("JSON Canvas application service", () => {
   it("exports file and group background resources and imports the standard paths unchanged", async () => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { isMediaPlatformContentUrl } from "../sources/media-platform-url";
+import { isMediaPlatformContentUrl } from "../media-platform-url";
 
 describe("automatic media platform routing", () => {
   it.each([

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { spaceNodeDimensions, spaceNodeResizePolicy, spaceNodeSizePolicy } from "../canvas/node-size";
-import type { SpaceNodePayload } from "../model/nodes/node-payload";
+import { spaceNodeDimensions, spaceNodeResizePolicy, spaceNodeSizePolicy } from "../node-size";
+import type { SpaceNodePayload } from "../../model/nodes/node-payload";
 
 function visual(kind: "image" | "video", width: number, height: number): SpaceNodePayload {
   return {

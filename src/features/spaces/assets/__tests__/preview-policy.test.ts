@@ -4,7 +4,7 @@ import {
   spaceCanvasDetailLevel,
   richPreviewZoomThreshold,
   shouldRenderRichCanvasPreview,
-} from "../assets/preview-policy";
+} from "../preview-policy";
 
 describe("spaces preview policy", () => {
   it("raises the rich-preview threshold as the canvas grows", () => {

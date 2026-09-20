@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { extractImportedMarkdownDocument, formatExportMarkdown } from "../assets/markdown-document";
+import { extractImportedMarkdownDocument, formatExportMarkdown } from "../markdown-document";
 
 describe("markdown-document codec", () => {
   describe("extractImportedMarkdownDocument", () => {

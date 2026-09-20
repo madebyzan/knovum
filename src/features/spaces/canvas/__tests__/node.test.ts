@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { reactive } from "vue";
 
-import { createSpaceNode } from "../canvas/node";
-import { createSpaceNotePayload } from "../editor/tiptap-content";
-import { validateSpaceNodePayload } from "../model/nodes/schema/node-payload";
+import { createSpaceNode } from "../node";
+import { createSpaceNotePayload } from "../../editor/tiptap-content";
+import { validateSpaceNodePayload } from "../../model/nodes/schema/node-payload";
 
 describe("createSpaceNode", () => {
   it("keeps renderer state out of the domain node contract", () => {

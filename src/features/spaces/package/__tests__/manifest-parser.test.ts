@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { canvasPackageCodec } from "../canvas/canvas-package-codec";
-import { prepareSpaceKnowledgePayload } from "../knowledge/model/node-knowledge";
-import type { SpaceNodePayload } from "../model/nodes/node-payload";
-import { parseSpacePackageManifest } from "../package/manifest-parser";
+import { canvasPackageCodec } from "../../canvas/canvas-package-codec";
+import { prepareSpaceKnowledgePayload } from "../../knowledge/model/node-knowledge";
+import type { SpaceNodePayload } from "../../model/nodes/node-payload";
+import { parseSpacePackageManifest } from "../manifest-parser";
 
 function manifest() {
   const data = prepareSpaceKnowledgePayload({
