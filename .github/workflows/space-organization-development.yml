@@ -1,0 +1,87 @@
+name: Space organization development
+
+# Temporary integration runner for PR #14. Never executes fork or default-branch code.
+on:
+  push:
+    branches: [refactor/space-organization]
+    paths:
+      - .github/workflows/space-organization-development.yml
+      - tools/space-organization-development/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: space-organization-development
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    if: github.repository == 'madebyzan/knovum' && github.ref == 'refs/heads/refactor/space-organization'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 2
+          persist-credentials: true
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Install locked dependencies
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.17.0 --activate
+          pnpm install --frozen-lockfile
+      - name: Apply the reviewed integration step
+        run: python3 tools/space-organization-development/apply.py
+      - name: Format edited frontend files
+        run: |
+          git ls-files -m -o --exclude-standard -z -- '*.ts' '*.vue' '*.mjs' '*.json' '*.md' | xargs -0 -r pnpm exec oxfmt
+      - name: Save changes on the same development branch
+        id: save
+        run: |
+          git add -- src src-tauri docs tools package.json pnpm-lock.yaml
+          if ! git diff --cached --quiet; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git commit -m 'refactor(spaces): apply reviewed organization integration step'
+            # No force push: stop rather than overwrite a newer user or assistant commit.
+            git push origin HEAD:refs/heads/refactor/space-organization
+          fi
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Run checks and preserve complete output
+        id: verification
+        env:
+          REPORT_DIRECTORY: ${{ runner.temp }}/organization-report
+          NO_COLOR: '1'
+        run: python3 tools/space-organization-development/verify.py
+      - name: Upload verification evidence
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: organization-${{ steps.save.outputs.sha }}
+          path: ${{ runner.temp }}/organization-report
+          retention-days: 7
+          if-no-files-found: ignore
+      - name: Report the actual results on PR 14
+        if: ${{ !cancelled() && steps.save.outcome == 'success' }}
+        uses: actions/github-script@v9
+        env:
+          REPORT_DIRECTORY: ${{ runner.temp }}/organization-report
+        with:
+          script: |
+            const fs = require('node:fs');
+            const path = require('node:path');
+            const report = path.join(process.env.REPORT_DIRECTORY, 'report.md');
+            if (!fs.existsSync(report)) {
+              core.setFailed('Verification did not produce a report');
+              return;
+            }
+            const body = fs.readFileSync(report, 'utf8');
+            await github.rest.issues.createComment({ ...context.repo, issue_number: 14, body });
