@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Globe2, LockKeyhole } from "@lucide/vue";
+import { Globe2 } from "@lucide/vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -56,7 +56,6 @@ const emptyMessage = computed(() => {
         </p>
         <p class="truncate text-micro text-foreground-tertiary">{{ host }}</p>
       </div>
-      <LockKeyhole v-if="data.locked" class="size-(--knovum-icon-size-xs) text-foreground-tertiary" />
       <SpaceCanvasNodeStatus :id="id" :data="data" />
     </div>
     <div class="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden px-3 py-3">

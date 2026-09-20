@@ -47,7 +47,7 @@ function fitContentHeight(height: number) {
   <div
     class="flex size-full min-h-0 flex-col items-center overflow-hidden leading-tight"
     :class="[verticalClass, editing ? 'pointer-events-auto' : 'select-none']"
-    :tabindex="interactive && !data.locked ? 0 : undefined"
+    :tabindex="interactive ? 0 : undefined"
     @dblclick.stop="beginEditing"
     @keydown.enter="beginEditing"
   >

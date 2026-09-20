@@ -8,6 +8,7 @@ import UiInput from "../../../shared/ui/UiInput.vue";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { isSpaceManagedAssetPayload } from "../model/nodes/capabilities";
 import { nodeIcon } from "./node-icon";
+import { useSelectedStructure } from "./use-selected-structure";
 
 const props = defineProps<{ node: SpaceCanvasNode }>();
 const emit = defineEmits<{ titleChange: [value: string] }>();
@@ -28,6 +29,7 @@ const previewUrl = computed(() => {
   const previewPath = isSpaceManagedAssetPayload(data) ? data.previewPath : undefined;
   return previewPath ? convertFileSrc(previewPath) : undefined;
 });
+const { selected: structureSelection } = useSelectedStructure();
 const kindIcon = computed(() => nodeIcon(props.node.data.kind));
 
 function submit() {
@@ -79,7 +81,7 @@ function cancel() {
       </div>
       <div class="flex items-center gap-2">
         <span class="text-micro text-foreground-tertiary">{{ typeLabel }}</span>
-        <span v-if="node.data.locked" class="text-micro text-foreground-tertiary">{{
+        <span v-if="structureSelection?.locked" class="text-micro text-foreground-tertiary">{{
           t("spaces.canvas.lock")
         }}</span>
       </div>

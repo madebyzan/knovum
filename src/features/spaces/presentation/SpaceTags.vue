@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Tag, X } from "@lucide/vue";
-import { compact, countBy, take, uniq } from "es-toolkit";
+import { countBy, take } from "es-toolkit";
 import { search } from "fast-fuzzy";
 import { storeToRefs } from "pinia";
 import { computed, ref } from "vue";
@@ -19,7 +19,7 @@ const editorSession = useCanvasEditorSession();
 const { selectedNodes } = useCanvasSelectionProjection(nodes);
 const { t } = useI18n();
 const draft = ref("");
-const selectedItems = computed(() => selectedNodes.value.filter((node) => node.data.kind !== "section"));
+const selectedItems = computed(() => selectedNodes.value);
 const selectedIds = computed(() => selectedItems.value.map((node) => node.id));
 const selectionTagCounts = computed(
   () =>
@@ -35,7 +35,7 @@ const selectionTagCounts = computed(
 const tagCounts = computed(() =>
   Object.entries(
     countBy(
-      nodes.value.filter((node) => node.data.kind !== "section").flatMap((node) => node.data.tags ?? []),
+      nodes.value.flatMap((node) => node.data.tags ?? []),
       (tag) => tag,
     ),
   ).toSorted(([left], [right]) => left.localeCompare(right)),
@@ -59,16 +59,7 @@ async function applyTag(tag = draft.value) {
 async function revealTag(tag: string) {
   const spaceId = store.activeSpaceId;
   if (!spaceId) return;
-  const matches = nodes.value.filter((node) => node.data.kind !== "section" && node.data.tags?.includes(tag));
-  const sectionIds = uniq(compact(matches.map((node) => node.data.sectionId)));
-  await Promise.all(
-    sectionIds.map((id) => {
-      const section = nodes.value.find((node) => node.id === id);
-      return section?.data.kind === "section" && section.data.collapsed
-        ? store.setSectionCollapsed(id, false)
-        : Promise.resolve();
-    }),
-  );
+  const matches = nodes.value.filter((node) => node.data.tags?.includes(tag));
   if (store.activeSpaceId !== spaceId) return;
   const ids = matches.map((node) => node.id);
   editorSession.reveal(ids, "focus");

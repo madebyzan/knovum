@@ -34,7 +34,7 @@ const { beginEditing, cancelEditing, editing, editor, save } = useCanvasTextEdit
   <div
     class="flex size-full min-h-0 flex-col overflow-hidden p-4 leading-relaxed"
     :class="[verticalClass, editing ? 'pointer-events-auto' : 'select-none']"
-    :tabindex="interactive && !data.locked ? 0 : undefined"
+    :tabindex="interactive ? 0 : undefined"
     @dblclick.stop="beginEditing"
     @keydown.enter="beginEditing"
   >

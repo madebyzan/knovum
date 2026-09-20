@@ -29,7 +29,7 @@ const emit = defineEmits<{ pointerDown: [id: string, event: PointerEvent] }>();
       :item="relation"
       :palette="palette"
       :previews="relationPreviews"
-      :selected="selectedRelationIds.has(relation.key)"
+      :selected="selectedRelationIds.has(relation.id)"
       :zoom="zoom"
       @pointer-down="(id, event) => emit('pointerDown', id, event)"
     />

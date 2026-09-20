@@ -74,10 +74,12 @@ export function useCanvasNavigationCommands() {
       run: () => store.requestAsk("space", { restart: true }),
     }),
     command("spaces.focus-selection", t("spaces.navigation.focusSelection"), {
-      isEnabled: () => selectedNodes().length > 0,
+      isEnabled: () => session.selection.value.nodeIds.length > 0,
       run: () => {
         const nodes = selectedNodes();
-        const section = nodes.find(({ data }) => data.kind === "section");
+        const section = session.document.value?.structure.items.find(
+          (item) => item.kind === "section" && session.selection.value.nodeIds.includes(item.id),
+        );
         if (section) store.focusSection(section.id);
         else if (nodes[0]) store.focusNeighborhood(nodes[0].id);
       },
@@ -93,13 +95,11 @@ export function useCanvasNavigationCommands() {
     command("spaces.toggle-selection-lock", t("spaces.canvas.actions.toggleSelectionLock"), {
       shortcut: SPACE_COMMAND_SHORTCUTS.lockSelection,
       category: "editing",
-      isEnabled: () => selectedNodes().length > 0,
+      isEnabled: () => session.selection.value.nodeIds.length > 0,
       run: async () => {
-        const nodes = selectedNodes();
-        await store.setLocked(
-          nodes.map(({ id }) => id),
-          !nodes.every(({ data }) => Boolean(data.locked)),
-        );
+        const ids = session.selection.value.nodeIds;
+        const items = session.document.value?.structure.items.filter((item) => ids.includes(item.id)) ?? [];
+        await store.setLocked(ids, !items.every((item) => item.locked));
       },
     }),
   ]);

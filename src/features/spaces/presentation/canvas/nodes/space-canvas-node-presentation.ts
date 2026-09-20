@@ -60,7 +60,6 @@ const NODE_ICONS: Readonly<Record<SpaceNodeKind, Component>> = {
   credential: KeyRound,
   object: Sparkles,
   portal: Boxes,
-  section: FolderOpen,
 };
 
 const NODE_LABELS: Readonly<Record<SpaceNodeKind, string>> = {
@@ -77,7 +76,6 @@ const NODE_LABELS: Readonly<Record<SpaceNodeKind, string>> = {
   credential: "Credential",
   object: "Knowledge object",
   portal: "Portal",
-  section: "Section",
 };
 
 function nodeSubtitle(data: SpaceNodePayload) {

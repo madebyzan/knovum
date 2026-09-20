@@ -79,7 +79,7 @@ pub async fn detect_agent_installations() -> AiResult<Vec<AgentInstallation>> {
         #[cfg(any(target_os = "macos", windows))]
         let applications = super::installed_applications::detect()?;
         #[cfg(not(any(target_os = "macos", windows)))]
-        let applications = std::collections::HashSet::new();
+        let applications = std::collections::HashSet::<crate::ai::contracts::AgentKind>::new();
         Ok(super::registry::descriptors()
             .into_iter()
             .map(|descriptor| {

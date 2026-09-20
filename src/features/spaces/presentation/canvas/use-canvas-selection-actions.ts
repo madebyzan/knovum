@@ -1,4 +1,4 @@
-import { computed, nextTick } from "vue";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
@@ -9,14 +9,14 @@ import type {
   CanvasDistributeMode,
   CanvasLayerMove,
 } from "../../canvas/contract/canvas-editor-port";
-import { useCanvasEditorSession, useCanvasSelectionProjection } from "../../canvas/editor-session";
+import { useCanvasEditorSession } from "../../canvas/editor-session";
 import { openSpaceNode } from "../../canvas/selection-actions";
 import { useContextDock } from "../../canvas/use-context-dock";
-import { isSpaceSemanticNode } from "../../knowledge/model/semantic-node";
+import type { StructureCommand } from "../../organization/structure/commands/contract";
 import { useSpaceStore } from "../../session/space-store";
 import { canvasSelectionProductState } from "./selection-product-state";
 
-function runCanvasAction(operation: () => Promise<unknown>) {
+function run(operation: () => Promise<unknown>) {
   void Promise.resolve()
     .then(operation)
     .catch((error) => toast.error(String(error)));
@@ -25,144 +25,100 @@ function runCanvasAction(operation: () => Promise<unknown>) {
 export function useCanvasSelectionActions() {
   const store = useSpaceStore();
   const dock = useContextDock();
-  const editorSession = useCanvasEditorSession();
-  const { selection, selectedNodes } = useCanvasSelectionProjection(() => store.nodes);
-  const state = computed(() => canvasSelectionProductState(store.nodes, selection.value.nodeIds));
+  const session = useCanvasEditorSession();
   const { t } = useI18n();
-  const visible = computed(
-    () => selection.value.nodeIds.length > 0 || selection.value.relationIds.length > 0,
+  const structure = computed(() => session.document.value?.structure ?? { version: 1 as const, items: [] });
+  const state = computed(() =>
+    canvasSelectionProductState(store.nodes, session.selection.value.nodeIds, structure.value),
   );
-  const selectedAppearance = computed(() => selection.value.singleNodeAppearance);
-
-  function setAppearance(patch: Partial<CanvasNodeAppearance>) {
-    const nodeId = selection.value.nodeIds.length === 1 ? selection.value.nodeIds[0] : undefined;
-    if (!nodeId) return;
-    editorSession.activeEditor.value?.setNodeAppearance(nodeId, patch);
+  const selectedNodes = computed(() => state.value.directContent);
+  const selectedAppearance = computed(() => session.selection.value.singleNodeAppearance);
+  const visible = computed(
+    () => state.value.roots.length > 0 || session.selection.value.relationIds.length > 0,
+  );
+  const ids = () => state.value.roots.map((item) => item.id);
+  function command(command: StructureCommand) {
+    const editor = session.activeEditor.value;
+    if (editor) run(() => editor.executeStructureCommand(command));
   }
-
-  function open() {
-    runCanvasAction(() => openSpaceNode(store, selectedNodes.value[0]));
-  }
-
-  function inspect() {
-    dock.openInspect();
-  }
-
-  function ask() {
-    dock.openAsk(state.value.askScope, { restart: true });
-  }
-
-  function connect() {
-    const [source, target] = state.value.content.filter(isSpaceSemanticNode);
-    if (source && target) runCanvasAction(() => store.createRelation(source.id, target.id, "related"));
-  }
-
-  function focus() {
-    const section = state.value.section;
-    if (section) store.focusSection(section.id);
-    else if (state.value.content[0]) store.focusNeighborhood(state.value.content[0].id);
-  }
-
-  function duplicate() {
-    const editor = editorSession.activeEditor.value;
-    if (editor) runCanvasAction(() => editor.duplicateSelection());
-  }
-
   function createSection() {
-    const editor = editorSession.activeEditor.value;
-    const bounds = editor?.getSelectionBounds();
-    if (!editor || !bounds) return;
-    runCanvasAction(async () => {
-      const section = await store.createSection(
-        state.value.content.map(({ id }) => id),
-        bounds,
-        t("spaces.canvas.untitledSection"),
-      );
-      if (!section) return;
-      editor.selectNodes([section.id]);
-      await nextTick();
-      await editor.fitSection(section.id);
+    const editor = session.activeEditor.value;
+    if (!editor || !state.value.canSection) return;
+    const id = crypto.randomUUID();
+    run(async () => {
+      await editor.executeStructureCommand({
+        kind: "section-around-selection",
+        id,
+        title: t("spaces.structure.untitledSection"),
+        ids: ids(),
+      });
+      editor.requestContainerRename(id);
     });
   }
-
+  function group() {
+    command({
+      kind: "group-selection",
+      id: crypto.randomUUID(),
+      title: t("spaces.structure.untitledGroup"),
+      ids: ids(),
+    });
+  }
   function ungroup() {
-    runCanvasAction(() =>
-      store.assignSections(
-        state.value.content.filter(({ data }) => data.sectionId).map(({ id }) => ({ id })),
-      ),
-    );
+    if (state.value.group) command({ kind: "dissolve-container", id: state.value.group.id });
   }
-
-  function fitSection() {
-    const section = state.value.section;
-    const editor = editorSession.activeEditor.value;
-    if (section && editor) runCanvasAction(() => editor.fitSection(section.id));
-  }
-
-  function align(mode: CanvasAlignMode) {
-    const editor = editorSession.activeEditor.value;
-    if (editor) runCanvasAction(() => editor.alignSelection(mode));
-  }
-
-  function distribute(mode: CanvasDistributeMode) {
-    const editor = editorSession.activeEditor.value;
-    if (editor) runCanvasAction(() => editor.distributeSelection(mode));
-  }
-
-  function autoLayout(direction: CanvasAutoLayoutDirection) {
-    const editor = editorSession.activeEditor.value;
-    if (editor) runCanvasAction(() => editor.autoLayoutSelection(direction));
-  }
-
-  function moveLayer(mode: CanvasLayerMove) {
-    editorSession.activeEditor.value?.moveSelectionLayer(mode);
-  }
-
-  function toggleLock() {
-    runCanvasAction(() => store.setLocked(selection.value.nodeIds, !state.value.allLocked));
-  }
-
   function removeSection() {
-    const section = state.value.section;
-    if (section) runCanvasAction(() => store.removeSection(section.id));
+    if (state.value.section) command({ kind: "dissolve-container", id: state.value.section.id });
   }
-
-  function moveToSpace(spaceId: string) {
-    runCanvasAction(() =>
-      store.moveNodes(
-        selectedNodes.value.filter((node) => node.data.kind !== "section").map((node) => node.id),
-        spaceId,
-      ),
-    );
+  function fitSection() {
+    if (state.value.section) command({ kind: "fit-section", id: state.value.section.id });
   }
-
-  function remove() {
-    const editor = editorSession.activeEditor.value;
-    if (editor) runCanvasAction(() => editor.deleteSelection());
+  function setAppearance(patch: Partial<CanvasNodeAppearance>) {
+    const editor = session.activeEditor.value;
+    const [id] = ids();
+    if (editor && id && state.value.roots.length === 1) run(() => editor.setNodeAppearance(id, patch));
   }
-
+  function connect() {
+    const [source, target] = state.value.directContent;
+    if (state.value.canConnect && source && target)
+      run(() => store.createRelation(source.id, target.id, "related"));
+  }
+  function focus() {
+    if (state.value.section) store.focusSection(state.value.section.id);
+    else if (state.value.group) store.focusItems([state.value.group.id]);
+    else if (state.value.directContent[0]) store.focusNeighborhood(state.value.directContent[0].id);
+  }
+  function editorAction(
+    action: (editor: NonNullable<typeof session.activeEditor.value>) => Promise<unknown>,
+  ) {
+    const editor = session.activeEditor.value;
+    if (editor) run(() => action(editor));
+  }
   return {
-    align,
-    autoLayout,
-    ask,
-    connect,
-    createSection,
-    distribute,
-    duplicate,
-    focus,
-    fitSection,
-    inspect,
-    moveToSpace,
-    moveLayer,
-    open,
-    remove,
-    removeSection,
+    state,
     selectedNodes,
     selectedAppearance,
-    setAppearance,
-    state,
-    toggleLock,
-    ungroup,
     visible,
+    setAppearance,
+    connect,
+    focus,
+    group,
+    ungroup,
+    createSection,
+    fitSection,
+    removeSection,
+    inspect: () => dock.openInspect(),
+    ask: () => dock.openAsk(state.value.askScope, { restart: true }),
+    open: () => run(() => openSpaceNode(store, state.value.directContent[0])),
+    duplicate: () => editorAction((editor) => editor.duplicateSelection()),
+    remove: () => editorAction((editor) => editor.deleteSelection()),
+    toggleLock: () => command({ kind: "set-items-locked", ids: ids(), locked: !state.value.allLocked }),
+    moveToRoot: () => command({ kind: "reparent-items", ids: ids(), parentId: null }),
+    moveToSpace: (spaceId: string) => run(() => store.moveNodes(ids(), spaceId)),
+    align: (mode: CanvasAlignMode) => editorAction((editor) => editor.alignSelection(mode)),
+    distribute: (mode: CanvasDistributeMode) => editorAction((editor) => editor.distributeSelection(mode)),
+    autoLayout: (direction: CanvasAutoLayoutDirection) =>
+      editorAction((editor) => editor.autoLayoutSelection(direction)),
+    moveLayer: (mode: CanvasLayerMove) => editorAction((editor) => editor.moveSelectionLayer(mode)),
   };
 }
+export type CanvasSelectionActions = ReturnType<typeof useCanvasSelectionActions>;

@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 use super::contract::{SpaceStructure, StructureItem, StructureKind};
 pub(super) const MAX_ITEMS: usize = 100_000;
 pub(super) const MAX_DEPTH: usize = 64;
-pub(super) fn valid_id(id: &str) -> bool { !id.is_empty() && id.encode_utf16().count() <= 128 && !id.chars().any(|character| character.is_whitespace() || character as u32 == 0xfeff) }
+pub(in crate::spaces) fn valid_id(id: &str) -> bool { !id.is_empty() && id.encode_utf16().count() <= 128 && !id.chars().any(|character| character.is_whitespace() || character as u32 == 0xfeff) }
 pub(super) fn validate(structure: &SpaceStructure) -> Result<(), String> {
     if structure.version != 1 || structure.items.len() > MAX_ITEMS { return Err("Unsupported or oversized Space structure".into()); }
     let mut items = HashMap::with_capacity(structure.items.len());

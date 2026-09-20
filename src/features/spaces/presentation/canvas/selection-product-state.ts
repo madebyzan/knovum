@@ -2,36 +2,42 @@ import { isSpaceNodeOpenable } from "../../canvas/selection-actions";
 import { isSpaceSemanticNode } from "../../knowledge/model/semantic-node";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { isSpaceManagedAssetPayload } from "../../model/nodes/capabilities";
-
-export interface CanvasSelectionProductState {
-  allLocked: boolean;
-  askScope: "section" | "selection";
-  canConnect: boolean;
-  canOpen: boolean;
-  opensSystemPreview: boolean;
-  hasSectionMembership: boolean;
-  content: SpaceCanvasNode[];
-  section?: SpaceCanvasNode;
-}
+import { indexStructure } from "../../model/structure/structure-index";
+import type { SpaceStructure } from "../../model/structure/structure-schema";
+import { structureSelectionEligibility } from "../../organization/structure/structure-eligibility";
+import { structureContentIds } from "../../organization/structure/structure-selection";
 
 export function canvasSelectionProductState(
   nodes: readonly SpaceCanvasNode[],
   selectedIds: readonly string[],
-): CanvasSelectionProductState {
-  const selected = new Set(selectedIds);
-  const selection = nodes.filter((node) => selected.has(node.id));
-  const section = selection.find((node) => node.data.kind === "section");
-  const content = selection.filter((node) => node.data.kind !== "section");
-  const semantic = content.filter(isSpaceSemanticNode);
+  structure: SpaceStructure,
+) {
+  const state = structureSelectionEligibility(structure, selectedIds);
+  const selected = new Set(state.roots.map((item) => item.id));
+  const directContent = nodes.filter((node) => selected.has(node.id));
+  const contentIds = new Set(structureContentIds(indexStructure(structure), [...selected]));
+  const content = nodes.filter((node) => contentIds.has(node.id));
+  const single = state.roots.length === 1 ? state.roots[0] : undefined;
+  const section = single?.kind === "section" ? single : undefined;
+  const group = single?.kind === "group" ? single : undefined;
+  const data = single?.kind === "content" ? directContent[0]?.data : undefined;
+  const textKind = data?.kind === "note" || data?.kind === "text" ? data.kind : undefined;
   return {
-    allLocked: selection.length > 0 && selection.every((node) => Boolean(node.data.locked)),
-    askScope: section ? "section" : "selection",
-    canConnect: !section && content.length === 2 && semantic.length === 2,
-    canOpen: selection.length === 1 && isSpaceNodeOpenable(selection[0]),
-    opensSystemPreview:
-      selection.length === 1 && Boolean(selection[0] && isSpaceManagedAssetPayload(selection[0].data)),
-    hasSectionMembership: content.some(({ data }) => Boolean(data.sectionId)),
+    ...state,
+    section,
+    group,
     content,
-    ...(section ? { section } : {}),
+    directContent,
+    textKind,
+    allLocked: state.roots.length > 0 && state.roots.every((item) => item.locked),
+    askScope: section ? ("section" as const) : ("selection" as const),
+    canConnect:
+      state.editable &&
+      state.roots.length === 2 &&
+      directContent.length === 2 &&
+      directContent.every(isSpaceSemanticNode),
+    canOpen: single?.kind === "content" && isSpaceNodeOpenable(directContent[0]),
+    opensSystemPreview: Boolean(data && isSpaceManagedAssetPayload(data)),
+    hasParent: state.roots.some((item) => item.parentId !== null),
   };
 }

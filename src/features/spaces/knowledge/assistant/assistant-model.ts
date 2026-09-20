@@ -26,11 +26,12 @@ interface KnowledgeAssistantModelInput {
 export function useKnowledgeAssistantModel(input: KnowledgeAssistantModelInput) {
   const session = useCanvasEditorSession();
   const contentNodes = computed(() => input.store.nodes.filter(isSpaceSemanticNode));
+  const structure = computed(() => session.document.value?.structure);
   const structuralScope = computed(() => {
-    const document = session.document.value;
-    if (!document) return { selection: [], section: [] };
+    const documentStructure = structure.value;
+    if (!documentStructure) return { selection: [], section: [] };
     return resolveStructureKnowledgeScope(
-      document.structure,
+      documentStructure,
       session.selection.value.nodeIds,
       new Set(contentNodes.value.map((node) => node.id)),
     );
