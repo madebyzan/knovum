@@ -18,6 +18,8 @@ pub struct InsertNode {
 #[serde(rename_all = "camelCase")]
 pub struct InsertNodesRequest {
     pub space_id: String,
+    pub base_revision: i64,
+    pub document: crate::spaces::canvas_state::SpaceEditorDocument,
     pub nodes: Vec<InsertNode>,
 }
 
@@ -42,3 +44,7 @@ pub struct NodeSelectionRequest {
     pub space_id: String,
     pub ids: Vec<String>,
 }
+
+#[derive(Debug, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NodeEditorMutationResult { pub revision: i64 }

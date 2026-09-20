@@ -14,16 +14,18 @@ use crate::spaces::{
 pub async fn insert_many<R: Runtime>(
     app: &AppHandle<R>,
     request: InsertNodesRequest,
-) -> Result<(), String> {
+) -> Result<super::contracts::NodeEditorMutationResult, String> {
     if request.nodes.is_empty() {
-        return Ok(());
+        return Err("Content insertion requires a non-empty selection".into());
     }
     let now = crate::clock::unix_time_millis()?;
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
     insert_many_in_transaction(&mut tx, &request.space_id, &request.nodes, now).await?;
     touch_updated_at(&mut tx, &request.space_id, now).await?;
-    tx.commit().await.map_err(db::sql_error)
+    let revision = crate::spaces::canvas_state::save_in_transaction(&mut tx, &request.space_id, request.base_revision, &request.document).await?;
+    tx.commit().await.map_err(db::sql_error)?;
+    Ok(super::contracts::NodeEditorMutationResult { revision })
 }
 
 pub(in crate::spaces) async fn insert_many_in_transaction(

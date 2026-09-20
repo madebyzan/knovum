@@ -1,6 +1,8 @@
 import { invoke } from "@tauri-apps/api/core";
 
+import { appendEditorContent } from "../canvas/document/canvas-document-sync";
 import { createSpaceNode } from "../canvas/node";
+import { transactSpaceEditor } from "../canvas/persistence/canvas-persistence-coordinator";
 import type { SpaceDeletedNode } from "../deletion/deleted-node";
 import type { KnowledgeChunkSeed } from "../knowledge/model/schema";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
@@ -27,18 +29,24 @@ export async function createNodes(
   sourceChunks: ReadonlyMap<string, readonly KnowledgeChunkSeed[]> = new Map(),
 ): Promise<void> {
   if (!nodes.length) return;
-  await invoke("plugin:spaces|create_nodes", {
-    request: {
-      spaceId,
-      nodes: nodes.map((node) => ({
-        id: node.id,
-        kind: node.data.kind,
-        initialX: node.initialPosition.x,
-        initialY: node.initialPosition.y,
-        data: node.data,
-        sourceChunks: sourceChunks.get(node.id) ?? [],
-      })),
-    },
+  await transactSpaceEditor(spaceId, async (before, baseRevision) => {
+    const document = appendEditorContent(before, nodes);
+    const saved = await invoke<{ revision: number }>("plugin:spaces|create_nodes", {
+      request: {
+        spaceId,
+        baseRevision,
+        document,
+        nodes: nodes.map((node) => ({
+          id: node.id,
+          kind: node.data.kind,
+          initialX: node.initialPosition.x,
+          initialY: node.initialPosition.y,
+          data: node.data,
+          sourceChunks: sourceChunks.get(node.id) ?? [],
+        })),
+      },
+    });
+    return { document, revision: saved.revision };
   });
 }
 

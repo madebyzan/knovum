@@ -8,7 +8,6 @@ use crate::spaces::{db, nodes};
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub(crate) struct CommitCanvasGestureRequest {
     pub(super) space_id: String,
-    pub(super) changes: Vec<nodes::contracts::NodeDataChange>,
     pub(super) base_revision: i64,
     pub(super) document: SpaceEditorDocument,
 }
@@ -33,8 +32,6 @@ pub(super) async fn commit_in_transaction(
 ) -> Result<CommitCanvasGestureResult, String> {
     let mut tx = db::begin_write(pool).await?;
     let now = crate::clock::unix_time_millis()?;
-    nodes::update_many_in_transaction(&mut tx, &request.space_id, &request.changes, "human", now)
-        .await?;
     let revision = super::save_in_transaction(
         &mut tx,
         &request.space_id,

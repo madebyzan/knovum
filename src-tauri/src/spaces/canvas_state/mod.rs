@@ -5,13 +5,16 @@ mod gesture;
 mod repository;
 mod selection;
 mod validation;
+mod structure_validation;
+mod layout_validation;
+pub(in crate::spaces) mod geometry;
 
 use tauri::{AppHandle, Runtime};
 
 use crate::spaces::db;
 
 pub(in crate::spaces) use contract::SpaceEditorDocument;
-pub(in crate::spaces) use repository::save_in_transaction;
+pub(in crate::spaces) use repository::{save_in_transaction, load_in_transaction};
 pub(in crate::spaces) use validation::validate_document;
 
 use contract::{SaveCanvasStateRequest, StoredCanvasState};

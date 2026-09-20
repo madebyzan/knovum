@@ -6,7 +6,7 @@ use super::contracts::{InsertNodesRequest, NodeSelectionRequest, UpdateNodesRequ
 pub async fn create_nodes<R: Runtime>(
     app: AppHandle<R>,
     request: InsertNodesRequest,
-) -> Result<(), String> {
+) -> Result<super::contracts::NodeEditorMutationResult, String> {
     super::insert_many(&app, request).await
 }
 

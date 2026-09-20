@@ -33,7 +33,7 @@ pub(super) async fn validate_node(
             Ok(None)
         }
         "note" | "text" | "website" | "markdown" | "image" | "video" | "audio" | "file"
-        | "code" | "credential" | "section" => Ok(None),
+        | "code" | "credential" => Ok(None),
         _ => Err("Unsupported Space node kind".into()),
     }
 }
