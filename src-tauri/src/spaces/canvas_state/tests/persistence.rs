@@ -32,7 +32,10 @@ async fn missing_space_is_not_reported_as_a_revision_conflict() {
             .expect_err("an absent aggregate cannot own a canvas snapshot");
         assert_eq!(error, "Cannot save canvas state for missing Space space");
     }
-    assert!(repository::load(&pool, "space").await.expect("load").is_none());
+    assert!(repository::load(&pool, "space")
+        .await
+        .expect("load")
+        .is_none());
 }
 
 #[tokio::test]

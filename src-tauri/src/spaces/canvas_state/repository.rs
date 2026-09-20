@@ -64,13 +64,16 @@ pub(in crate::spaces) async fn save_in_transaction(
         .map_err(db::sql_error)?
     };
     if changed.rows_affected() != 1 {
-        let space_exists: bool = sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM spaces WHERE id=$1)")
-            .bind(space_id)
-            .fetch_one(&mut **tx)
-            .await
-            .map_err(db::sql_error)?;
+        let space_exists: bool =
+            sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM spaces WHERE id=$1)")
+                .bind(space_id)
+                .fetch_one(&mut **tx)
+                .await
+                .map_err(db::sql_error)?;
         if !space_exists {
-            return Err(format!("Cannot save canvas state for missing Space {space_id}"));
+            return Err(format!(
+                "Cannot save canvas state for missing Space {space_id}"
+            ));
         }
         return Err("Canvas state revision conflict".into());
     }
