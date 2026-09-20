@@ -1,21 +1,16 @@
-"""Reviewed Rust structure validation and persistence cutover; no compatibility reader."""
+"""Reviewed native structure and geometry implementation, executed once on the PR branch."""
 from pathlib import Path
 import re
 ROOT=Path('.')
 files={}
 def read(path): return files[path] if path in files else (ROOT/path).read_text()
 def write(path,text): files[path]=text.strip()+'\n'
-def replace(path,old,new):
-    source=read(path)
-    if old not in source: raise RuntimeError(f'Missing source in {path}: {old[:70]}')
-    write(path,source.replace(old,new))
-
 write('src-tauri/src/spaces/canvas_state/structure_validation.rs', '''
 use std::collections::{HashMap, HashSet};
 use super::contract::{SpaceStructure, StructureItem, StructureKind};
 pub(super) const MAX_ITEMS: usize = 100_000;
 pub(super) const MAX_DEPTH: usize = 64;
-pub(super) fn valid_id(id: &str) -> bool { !id.is_empty() && id.encode_utf16().count() <= 128 && !id.chars().any(|character| character.is_whitespace() || character == '\u{feff}') }
+pub(super) fn valid_id(id: &str) -> bool { !id.is_empty() && id.encode_utf16().count() <= 128 && !id.chars().any(|character| character.is_whitespace() || character as u32 == 0xfeff) }
 pub(super) fn validate(structure: &SpaceStructure) -> Result<(), String> {
     if structure.version != 1 || structure.items.len() > MAX_ITEMS { return Err("Unsupported or oversized Space structure".into()); }
     let mut items = HashMap::with_capacity(structure.items.len());
@@ -53,7 +48,7 @@ fn validate_item(item: &StructureItem) -> Result<(), String> {
         }
         StructureKind::Group | StructureKind::Section => {
             let title = item.title.as_deref().ok_or("Containers require titles")?;
-            if item.node_id.is_some() || title.is_empty() || title.encode_utf16().count() > 512 || title.trim_matches(|character: char| character.is_whitespace() || character == '\u{feff}') != title { return Err("Container titles must be trimmed and have 1 to 512 characters".into()); }
+            if item.node_id.is_some() || title.is_empty() || title.encode_utf16().count() > 512 || title.trim_matches(|character: char| character.is_whitespace() || character as u32 == 0xfeff) != title { return Err("Container titles must be trimmed and have 1 to 512 characters".into()); }
             if item.kind == StructureKind::Section && item.parent_id.is_some() { return Err("Sections belong directly to the Space root".into()); }
         }
     }
@@ -74,9 +69,9 @@ pub(in crate::spaces) fn compose(parent: StructureTransform, local: StructureTra
         rotation: normalize_rotation(parent.rotation + local.rotation), scale: parent.scale * local.scale }
 }
 pub(in crate::spaces) fn inverse(value: StructureTransform) -> StructureTransform {
-    let mut inverse = StructureTransform { x: 0.0, y: 0.0, rotation: -value.rotation, scale: 1.0 / value.scale };
+    let inverse = StructureTransform { x: 0.0, y: 0.0, rotation: -value.rotation, scale: 1.0 / value.scale };
     let translated = compose(inverse, StructureTransform { x: -value.x, y: -value.y, ..identity() });
-    inverse.x = translated.x; inverse.y = translated.y; inverse
+    StructureTransform { x: translated.x, y: translated.y, ..inverse }
 }
 pub(in crate::spaces) fn coordinate(value: f64) -> bool { value.is_finite() && value.abs() <= COORDINATE_LIMIT }
 pub(in crate::spaces) fn valid_transform(value: StructureTransform) -> bool {
@@ -94,7 +89,7 @@ pub(in crate::spaces) fn transformed_bounds(transform: StructureTransform, size:
     Bounds { x, y, width: right - x, height: bottom - y }
 }
 pub(in crate::spaces) struct Projection { pub world: HashMap<String, StructureTransform>, pub bounds: HashMap<String, Bounds>, pub order: Vec<String> }
-/** Input topology is validated before projection; no application state is read from an engine. */
+/** Input topology is validated before projection; no engine owns this geometry. */
 pub(in crate::spaces) fn project(document: &SpaceEditorDocument) -> Result<Projection, String> {
     let items: HashMap<_,_> = document.structure.items.iter().map(|item| (item.id.as_str(), item)).collect();
     let layouts: HashMap<_,_> = document.layout.items.iter().map(|layout| (layout.id(), layout)).collect();
@@ -196,7 +191,6 @@ pub(in crate::spaces) async fn validate_content_references(tx: &mut sqlx::Transa
     Ok(())
 }
 ''')
-# Current snapshot load/save checks the actual DB content set, not the renderer's available nodes.
 name='src-tauri/src/spaces/canvas_state/repository.rs';text=read(name)
 text=text.replace('    let next_revision = base_revision + 1;', '''    if !(0..9_007_199_254_740_991).contains(&base_revision) { return Err("Invalid editor revision".into()); }
     super::validation::validate_content_references(tx, space_id, document).await?;
@@ -221,10 +215,8 @@ name='src-tauri/src/spaces/canvas_state/gesture.rs';text=read(name)
 text=re.sub(r'^    pub\(super\) changes: Vec<nodes::contracts::NodeDataChange>,\n','',text,flags=re.M)
 text=re.sub(r'    nodes::update_many_in_transaction\([\s\S]*?\.await\?;\n','',text,count=1)
 write(name,text)
-# Content payloads carry neither layout membership nor edit locks. Wrong fields fail schema validation.
 name='src-tauri/src/spaces/knowledge/node_contracts/payload/mod.rs';text=read(name)
-text=text.replace('use serde_json::{Map, Value};','use serde_json::Value;')
-text=text.replace('optional_bool, optional_string','optional_string')
+text=text.replace('use serde_json::{Map, Value};','use serde_json::Value;').replace('optional_bool, optional_string','optional_string')
 text=text.replace('    "sectionId",\n','').replace('    "locked",\n','')
 text=text.replace('    optional_string(object, "sectionId", 128, false)?;\n','').replace('    optional_bool(object, "locked")?;\n','')
 text=text.replace('        "section" => validate_section(object),\n','')
@@ -232,13 +224,10 @@ text=re.sub(r'fn validate_section\([^)]*\)[\s\S]*?\n}\n','',text,count=1)
 write(name,text)
 name='src-tauri/src/spaces/knowledge/node_contracts/payload/fields.rs';write(name,read(name).replace('        "section" => Ok(&["collapsed"]),\n',''))
 name='src-tauri/src/spaces/knowledge/node_contracts/mod.rs';write(name,read(name).replace(' | "section"',''))
-# Asset references describe editor items. Organization ownership is checked against committed layout, not a fabricated content FK.
 name='src-tauri/src/spaces/assets/reclamation/canvas_references.rs';text=read(name)
 text=text.replace('document.nodes','document.layout.items').replace('node.node_id','node.id()')
-text=re.sub(r'node\s*\.appearance\s*\.as_ref\(\)', 'node.appearance()', text)
-text=text.replace('node_id','item_id')
+text=re.sub(r'node\s*\.appearance\s*\.as_ref\(\)', 'node.appearance()', text).replace('node_id','item_id')
 write(name,text)
-# Record layout+structure in the content insertion request. It is a typed content use case, not a renderer write.
 name='src-tauri/src/spaces/nodes/contracts.rs';text=read(name)
 text=text.replace('pub struct InsertNodesRequest {\n    pub space_id: String,','pub struct InsertNodesRequest {\n    pub space_id: String,\n    pub base_revision: i64,\n    pub document: crate::spaces::canvas_state::SpaceEditorDocument,')
 text+='''
@@ -260,17 +249,12 @@ text=text.replace(') -> Result<(), String> {\n    super::insert_many', ') -> Res
 write(name,text)
 name='src/features/spaces/nodes/node-repository.ts';text=read(name)
 text='import { transactSpaceEditor } from "../canvas/persistence/canvas-persistence-coordinator";\nimport { appendEditorContent } from "../canvas/document/canvas-document-sync";\n'+text
-start=text.index('  await invoke("plugin:spaces|create_nodes", {')
-end=text.index('\n}',start)
-body=text[start:end]
-body=body.replace('  await invoke("plugin:spaces|create_nodes", {','  const document = appendEditorContent(before, nodes);\n  const saved = await invoke<{ revision: number }>("plugin:spaces|create_nodes", {')
-body=body.replace('      spaceId,','      spaceId, baseRevision, document,',1)
+start=text.index('  await invoke("plugin:spaces|create_nodes", {');end=text.index('\n}',start)
+body=text[start:end].replace('  await invoke("plugin:spaces|create_nodes", {','  const document = appendEditorContent(before, nodes);\n  const saved = await invoke<{ revision: number }>("plugin:spaces|create_nodes", {').replace('      spaceId,','      spaceId, baseRevision, document,',1)
 text=text[:start]+'  await transactSpaceEditor(spaceId, async (before, baseRevision) => {\n'+body+'\n    return { document, revision: saved.revision };\n  });'+text[end:]
 write(name,text)
-# Baseline edits are done in a separate explicit step after native lifecycle tables are finalized.
 for name,text in files.items():
     path=ROOT/name;path.parent.mkdir(parents=True,exist_ok=True)
     if not path.exists() or path.read_text()!=text:path.write_text(text)
-# Clear this reviewed one-shot recipe. Later verification must never silently repeat code modifications.
 Path(__file__).write_text('"""No pending source edits. The branch is verified as committed."""\nprint("No pending source edits")\n')
-print('Applied authoritative structural and geometric validation plus atomic content placement.')
+print('Applied native structure validation and atomic content placement.')
