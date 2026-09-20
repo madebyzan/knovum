@@ -1,18 +1,10 @@
-"""Capture the exact committed source for offline verification; do not rewrite product code."""
-import json
+"""Apply reviewed, branch-local integration changes before running the real gates."""
 import os
 from pathlib import Path
-import subprocess
+import runpy
 
 if os.environ.get("GITHUB_REF") != "refs/heads/refactor/space-organization":
-    raise SystemExit("This development checkpoint is restricted to the organization branch")
+    raise SystemExit("This development runner is restricted to the organization branch")
 
-out = Path(os.environ["RUNNER_TEMP"]) / "organization-report"
-out.mkdir(parents=True, exist_ok=True)
-identity = {
-    "commit": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
-    "tree": subprocess.check_output(["git", "rev-parse", "HEAD^{tree}"], text=True).strip(),
-}
-subprocess.run(["git", "archive", "--format=tar.gz", f"--output={out / 'source.tar.gz'}", "HEAD"], check=True)
-(out / "source-identity.json").write_text(json.dumps(identity, indent=2) + "\n")
-print("Captured committed source", identity["commit"], "without modifying the worktree")
+for name in ("native_bindings.py",):
+    runpy.run_path(str(Path(__file__).with_name(name)), run_name="__main__")
