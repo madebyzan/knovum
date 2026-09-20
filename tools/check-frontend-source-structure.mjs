@@ -1,20 +1,16 @@
-import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { join, relative } from "node:path";
+import { existsSync, readdirSync } from "node:fs";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { checkFrontendSourceNaming } from "./frontend-source-naming.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const sourceRoot = join(root, "src");
-const MAX_FILE_LINES = 180;
-
 const sourceFiles = filesUnder(sourceRoot);
-const failures = sourceFiles
-  .map((file) => ({ file, lines: effectiveLines(readFileSync(file, "utf8")) }))
-  .filter(({ lines }) => lines > MAX_FILE_LINES)
-  .map(({ file, lines }) => `${relative(root, file)}: ${lines} effective lines exceeds ${MAX_FILE_LINES}`);
-failures.push(...checkFrontendSourceNaming(root, sourceRoot, sourceFiles));
-failures.push(...checkRetiredArchitecturePaths(root));
+const failures = [
+  ...checkFrontendSourceNaming(root, sourceRoot, sourceFiles),
+  ...checkRetiredArchitecturePaths(root),
+];
 
 if (failures.length) {
   console.error(
@@ -23,7 +19,7 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log("Frontend source structure gate: file size and naming rules are clean");
+console.log("Frontend source structure gate: naming, test ownership and retired paths are clean");
 
 function filesUnder(directory) {
   const files = [];
@@ -35,16 +31,13 @@ function filesUnder(directory) {
   return files;
 }
 
-function effectiveLines(source) {
-  return source.split(/\r?\n/u).filter((line) => line.trim().length > 0).length;
-}
-
 function checkRetiredArchitecturePaths(repositoryRoot) {
   const retiredPaths = [
     "src/foundation/integrations",
     "src/features/spaces/components",
     "src/features/spaces/navigation",
     "src/features/spaces/application",
+    "src/features/spaces/session/actions",
   ];
   return retiredPaths
     .filter((path) => existsSync(join(repositoryRoot, path)))

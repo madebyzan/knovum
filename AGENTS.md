@@ -39,7 +39,7 @@ Forbidden by default:
 - rename-only wrappers around vendor APIs;
 - a universal service/composable that owns unrelated responsibilities.
 
-Keep files small and responsibilities explicit. Current gates are ceilings, not targets: 180 lines per TS/Vue file and complexity 10. Function length is reviewed by responsibility and complexity rather than a physical line-count limit.
+Keep files small and responsibilities explicit. Current gates are ceilings, not targets: 300 lines per TS/Vue file and complexity 10. Prefer cohesive ownership over splitting a responsibility only to satisfy a line count. Function length is reviewed by responsibility and complexity rather than a physical line-count limit.
 
 ## Vue and TypeScript
 

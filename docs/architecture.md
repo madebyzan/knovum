@@ -202,7 +202,7 @@ Knovum targets Tauri desktop only. Required startup infrastructure fails explici
 
 ## Size/complexity gates
 
-Oxlint fails at 180 non-blank/non-comment lines per TS/Vue file, complexity above 10 and other correctness rules. These are ceilings, not targets. Function length is reviewed through responsibility, dependency direction and complexity instead of a physical line-count limit. dependency-cruiser, Knip and jscpd catch architecture violations, dead code and substantial copy/paste duplication.
+Oxlint fails at 300 non-blank/non-comment lines per TS/Vue file, complexity above 10 and other correctness rules. The line limit is only a coarse ceiling: cohesive ownership takes priority over splitting one responsibility into several tiny files. Function length is reviewed through responsibility, dependency direction and complexity instead of a physical line-count target. dependency-cruiser, Knip and jscpd catch architecture violations, dead code and substantial copy/paste duplication.
 
 No source path alias is configured. Relative paths intentionally expose ownership and dependency direction.
 

@@ -3,7 +3,7 @@ import { basename, dirname, join, relative, sep } from "node:path";
 
 import { maskRust } from "./rust-source-mask.mjs";
 
-const MAX_FILE_LINES = 180;
+const MAX_FILE_LINES = 300;
 const MAX_FUNCTION_PARAMS = 7;
 
 export function checkRustSourceStructure(root, files) {

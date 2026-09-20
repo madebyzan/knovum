@@ -309,9 +309,7 @@ exactly one `#[cfg(test)] mod tests;` declaration. Inline test modules, `tests.r
 reserved for integration tests of cross-module or externally visible crate behavior.
 
 Vue/TypeScript tests live under the nearest common owner's `__tests__/` directory and use the exact
-`.test.ts` suffix. A unit test uses the tested source basename with identical casing, so
-`UiButton.vue` maps to `UiButton.test.ts`. A test covering an integration scenario across several
-owners uses a kebab-case user-capability basename instead of pretending to map to one file.
+`.test.ts` suffix. A unit test uses the tested source basename with identical casing and lives directly under that source owner's `__tests__` directory, so `shared/ui/UiButton.vue` maps to `shared/ui/__tests__/UiButton.test.ts`. The naming gate enforces this when a test basename has one unambiguous source owner. A test covering an integration scenario across several owners may live at the bounded-context `__tests__` directory and uses a kebab-case user-capability basename instead of pretending to map to one file.
 
 ## Automated boundary
 
@@ -329,7 +327,7 @@ toolchain owns, or states a ceiling cheaply enough that nobody argues with it. W
 - no capability grants WebView SQL, `fs:default` to the main window, or persistent filesystem
   mutation to `spaces`;
 - `local_resources/tools/mod.rs` does not depend on product capabilities, and `ai/` does not depend on `spaces`;
-- 180 effective lines per file and 7 parameters per function, in Rust and in the Renderer;
+- 300 effective lines per file and 7 parameters per Rust function; Renderer file size is owned by Oxlint;
 - Rust module layout: snake_case paths, no inline `mod tests`, no `#[path]` indirection, no
   file/directory module collision; frontend path casing, forbidden `index.ts`, test location and
   `.test.ts` suffix.
