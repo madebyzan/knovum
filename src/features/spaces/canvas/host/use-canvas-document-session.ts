@@ -28,8 +28,12 @@ export function useCanvasDocumentSession(options: CanvasDocumentSessionOptions) 
   const detachSessionCommit = registerSpaceSessionParticipant({
     phase: "persistence",
     commit: async () => {
-      try { await workspace?.flush(); }
-      catch (error) { options.reportError(error); throw error; }
+      try {
+        await workspace?.flush();
+      } catch (error) {
+        options.reportError(error);
+        throw error;
+      }
     },
   });
 
@@ -67,7 +71,9 @@ export function useCanvasDocumentSession(options: CanvasDocumentSessionOptions) 
     });
     const next = new CanvasDocumentWorkspace(initial, queue, {
       isActive: () => current() && workspace === next,
-      publish: (value) => { document.value = value; },
+      publish: (value) => {
+        document.value = value;
+      },
     });
     workspace = next;
     unregisterMutationTarget = registerCanvasMutationTarget(spaceId, async (mutation) => {
@@ -96,8 +102,11 @@ export function useCanvasDocumentSession(options: CanvasDocumentSessionOptions) 
   }
 
   async function release(previous: CanvasDocumentWorkspace | undefined) {
-    try { await previous?.flush(); }
-    catch (error) { options.reportError(error); }
+    try {
+      await previous?.flush();
+    } catch (error) {
+      options.reportError(error);
+    }
   }
 
   function dispose() {

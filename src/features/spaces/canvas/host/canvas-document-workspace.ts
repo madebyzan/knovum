@@ -56,9 +56,10 @@ export class CanvasDocumentWorkspace {
         }
         return persist(revision);
       });
-      const document = this.pendingDocument && this.pendingBase
-        ? rebaseCanvasDocument(this.pendingBase, committed.document, this.pendingDocument)
-        : committed.document;
+      const document =
+        this.pendingDocument && this.pendingBase
+          ? rebaseCanvasDocument(this.pendingBase, committed.document, this.pendingDocument)
+          : committed.document;
       this.pendingBase = this.pendingCount > 1 ? committed.document : undefined;
       this.pendingDocument = this.pendingCount > 1 ? document : undefined;
       this.current = document;
@@ -70,7 +71,9 @@ export class CanvasDocumentWorkspace {
       return { ...committed, document };
     });
     this.transactions = result.then(
-      () => { this.pendingCount -= 1; },
+      () => {
+        this.pendingCount -= 1;
+      },
       () => {
         this.pendingCount -= 1;
         if (!this.pendingCount && this.pendingDocument) {
