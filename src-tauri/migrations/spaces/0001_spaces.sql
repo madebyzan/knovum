@@ -5,7 +5,7 @@ CREATE TABLE spaces (
   title TEXT NOT NULL,
   archived_at INTEGER,
   favorite INTEGER NOT NULL DEFAULT 0 CHECK (favorite IN (0, 1)),
-  thumbnail_data_url TEXT,
+  thumbnail_path TEXT,
   last_opened_at INTEGER NOT NULL DEFAULT 0,
   created_at INTEGER NOT NULL,
   updated_at INTEGER NOT NULL
@@ -105,7 +105,7 @@ CREATE TABLE spaces_scenes (
   viewport_x REAL NOT NULL,
   viewport_y REAL NOT NULL,
   viewport_zoom REAL NOT NULL,
-  thumbnail_data_url TEXT NOT NULL,
+  thumbnail_path TEXT,
   order_index INTEGER NOT NULL DEFAULT 0,
   focus_node_ids TEXT NOT NULL DEFAULT '[]' CHECK (json_valid(focus_node_ids)),
   relation_kinds TEXT NOT NULL DEFAULT '[]' CHECK (json_valid(relation_kinds)),
@@ -174,16 +174,27 @@ CREATE INDEX spaces_derivations_space_status ON spaces_knowledge_derivations(spa
 CREATE TABLE spaces_knowledge_derivation_inputs (
   derivation_id TEXT NOT NULL,
   position INTEGER NOT NULL CHECK (position >= 0),
-  node_id TEXT NOT NULL,
+  node_id TEXT,
+  source_identity TEXT NOT NULL CHECK (length(source_identity) > 0),
+  source_snapshot TEXT NOT NULL CHECK (
+    json_valid(source_snapshot) AND json_type(source_snapshot) = 'object'
+    AND json_type(source_snapshot, '$.title') IS 'text'
+    AND json_type(source_snapshot, '$.kind') IS 'text'
+    AND json_type(source_snapshot, '$.originalUrl') IN ('text', 'null')
+    AND json_type(source_snapshot, '$.platform') IN ('text', 'null')
+  ),
   role TEXT NOT NULL CHECK (role IN ('primary', 'source', 'context', 'style-reference')),
   source_revision TEXT NOT NULL,
   PRIMARY KEY (derivation_id, position),
-  UNIQUE (derivation_id, node_id, role),
+  UNIQUE (derivation_id, source_identity, role),
   FOREIGN KEY (derivation_id) REFERENCES spaces_knowledge_derivations(id) ON DELETE CASCADE,
-  FOREIGN KEY (node_id) REFERENCES spaces_nodes(id) ON DELETE CASCADE
+  FOREIGN KEY (node_id) REFERENCES spaces_nodes(id) ON DELETE SET NULL
 );
 
-CREATE INDEX spaces_derivation_inputs_node ON spaces_knowledge_derivation_inputs(node_id, derivation_id);
+CREATE INDEX spaces_derivation_inputs_node
+  ON spaces_knowledge_derivation_inputs(node_id, derivation_id);
+CREATE UNIQUE INDEX spaces_derivation_inputs_live_identity
+  ON spaces_knowledge_derivation_inputs(derivation_id, node_id, role) WHERE node_id IS NOT NULL;
 
 CREATE TABLE spaces_creation_workflow_runs (
   id TEXT PRIMARY KEY NOT NULL,
@@ -420,7 +431,7 @@ BEFORE UPDATE OF space_id, output_node_id ON spaces_knowledge_derivations BEGIN
 END;
 
 CREATE TRIGGER spaces_derivation_inputs_same_space_insert
-BEFORE INSERT ON spaces_knowledge_derivation_inputs BEGIN
+BEFORE INSERT ON spaces_knowledge_derivation_inputs WHEN NEW.node_id IS NOT NULL BEGIN
   SELECT CASE WHEN NOT EXISTS (
     SELECT 1 FROM spaces_knowledge_derivations d JOIN spaces_nodes n
       ON n.id = NEW.node_id AND n.space_id = d.space_id
@@ -429,7 +440,7 @@ BEFORE INSERT ON spaces_knowledge_derivation_inputs BEGIN
 END;
 
 CREATE TRIGGER spaces_derivation_inputs_same_space_update
-BEFORE UPDATE OF derivation_id, node_id ON spaces_knowledge_derivation_inputs BEGIN
+BEFORE UPDATE OF derivation_id, node_id ON spaces_knowledge_derivation_inputs WHEN NEW.node_id IS NOT NULL BEGIN
   SELECT CASE WHEN NOT EXISTS (
     SELECT 1 FROM spaces_knowledge_derivations d JOIN spaces_nodes n
       ON n.id = NEW.node_id AND n.space_id = d.space_id
@@ -508,8 +519,15 @@ CREATE TABLE spaces_enrichment_jobs (
   id TEXT PRIMARY KEY NOT NULL,
   space_id TEXT NOT NULL,
   node_id TEXT NOT NULL,
-  job_type TEXT NOT NULL CHECK (job_type IN ('embed_text', 'analyze_image', 'transcribe_media', 'analyze_video_first_frame', 'embed_media_transcript')),
-  status TEXT NOT NULL CHECK (status IN ('pending', 'running', 'succeeded', 'failed', 'cancelled')),
+  job_type TEXT NOT NULL CHECK (
+    job_type IN (
+      'embed_text', 'analyze_image', 'analyze_media', 'transcribe_media',
+      'analyze_video_first_frame', 'embed_media_transcript', 'parse_document', 'analyze_document'
+    )
+  ),
+  status TEXT NOT NULL CHECK (
+    status IN ('pending', 'running', 'succeeded', 'failed', 'cancelled', 'awaiting_configuration')
+  ),
   source_revision TEXT NOT NULL,
   attempts INTEGER NOT NULL DEFAULT 0 CHECK (attempts >= 0),
   error TEXT,
@@ -521,9 +539,17 @@ CREATE TABLE spaces_enrichment_jobs (
 
 CREATE UNIQUE INDEX spaces_enrichment_jobs_unique_pending
   ON spaces_enrichment_jobs(space_id, node_id, job_type, source_revision)
-  WHERE status IN ('pending', 'running');
+  WHERE status IN ('pending', 'running', 'awaiting_configuration');
 
 CREATE INDEX spaces_enrichment_jobs_status ON spaces_enrichment_jobs(status, updated_at);
+
+CREATE TABLE spaces_document_visual_checkpoints (
+  job_id TEXT NOT NULL REFERENCES spaces_enrichment_jobs(id) ON DELETE CASCADE,
+  occurrence_id TEXT NOT NULL,
+  occurrence TEXT NOT NULL CHECK (json_valid(occurrence)),
+  resource TEXT CHECK (resource IS NULL OR json_valid(resource)),
+  PRIMARY KEY (job_id, occurrence_id)
+);
 
 CREATE TRIGGER spaces_chunk_embedding_invalidate AFTER UPDATE OF text, source_revision ON spaces_knowledge_chunks
 WHEN old.text <> new.text OR old.source_revision <> new.source_revision BEGIN
