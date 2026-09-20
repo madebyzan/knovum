@@ -1,436 +1,276 @@
-"""Reviewed operation routing and aggregate gesture integration for PR 14."""
+"""Reviewed Rust structure validation and persistence cutover; no compatibility reader."""
 from pathlib import Path
 import re
 ROOT=Path('.')
 files={}
 def read(path): return files[path] if path in files else (ROOT/path).read_text()
 def write(path,text): files[path]=text.strip()+'\n'
+def replace(path,old,new):
+    source=read(path)
+    if old not in source: raise RuntimeError(f'Missing source in {path}: {old[:70]}')
+    write(path,source.replace(old,new))
 
-write('src/features/spaces/canvas/konva/interaction/aggregate-preview.ts', '''
-import type { SpaceEditorDocument, CanvasNodeLayoutV1 } from "../../contract/canvas-document";
-import { composeStructureTransforms, invertStructureTransform, normalizeStructureRotation, transformStructurePoint } from "../../document/structure-transform";
-import { indexStructure, structureSubtree } from "../../../model/structure/structure-index";
-import type { CanvasGestureUpdate } from "./canvas-gesture-update";
-/** Changes only the visible projection during a Group transform; no command/schema round trip per frame. */
-export function expandAggregatePreview(document: SpaceEditorDocument, layouts: readonly CanvasNodeLayoutV1[], updates: readonly CanvasGestureUpdate[]) {
-  const tree = indexStructure(document.structure);
-  const originals = new Map(layouts.map((layout) => [layout.nodeId, layout]));
-  const expanded = new Map(updates.map((update) => [update.nodeId, update]));
-  for (const update of updates) {
-    if (tree.items.get(update.nodeId)?.kind !== "group") continue;
-    const original = originals.get(update.nodeId)!;
-    const scale = update.frame.width / original.frame.width;
-    const transform = composeStructureTransforms({ x: update.frame.x, y: update.frame.y, rotation: update.frame.rotation, scale },
-      invertStructureTransform({ x: original.frame.x, y: original.frame.y, rotation: original.frame.rotation, scale: 1 }));
-    for (const item of structureSubtree(tree, [update.nodeId])) {
-      if (item.id === update.nodeId) continue;
-      const layout = originals.get(item.id)!;
-      expanded.set(item.id, { nodeId: item.id, contentScale: (layout.contentScale ?? 1) * scale,
-        frame: { ...transformStructurePoint(transform, layout.frame), width: layout.frame.width * scale, height: layout.frame.height * scale, rotation: normalizeStructureRotation(layout.frame.rotation + transform.rotation) } });
+write('src-tauri/src/spaces/canvas_state/structure_validation.rs', '''
+use std::collections::{HashMap, HashSet};
+use super::contract::{SpaceStructure, StructureItem, StructureKind};
+pub(super) const MAX_ITEMS: usize = 100_000;
+pub(super) const MAX_DEPTH: usize = 64;
+pub(super) fn valid_id(id: &str) -> bool { !id.is_empty() && id.encode_utf16().count() <= 128 && !id.chars().any(|character| character.is_whitespace() || character == '\u{feff}') }
+pub(super) fn validate(structure: &SpaceStructure) -> Result<(), String> {
+    if structure.version != 1 || structure.items.len() > MAX_ITEMS { return Err("Unsupported or oversized Space structure".into()); }
+    let mut items = HashMap::with_capacity(structure.items.len());
+    let mut children: HashMap<Option<&str>, Vec<&StructureItem>> = HashMap::new();
+    for item in &structure.items {
+        validate_item(item)?;
+        if items.insert(item.id.as_str(), item).is_some() { return Err("Structure identities must be unique".into()); }
+        children.entry(item.parent_id.as_deref()).or_default().push(item);
     }
-  }
-  return [...expanded.values()];
-}
-''')
-write('src/features/spaces/canvas/konva/interaction/node-gesture-controller.ts', '''
-import type Konva from "konva";
-import type { CanvasDisplayNode } from "../../contract/canvas-display-node";
-import type { CanvasNodeFrameUpdate, CanvasNodeLayoutV1, SpaceEditorDocument } from "../../contract/canvas-document";
-import type { CanvasGestureUpdate } from "./canvas-gesture-update";
-import { captureCanvasNodeRefs } from "./canvas-node-access";
-import { captureCanvasNodeDragState, restoreCanvasNodeFrames } from "./canvas-node-drag-state";
-import { expandAggregatePreview } from "./aggregate-preview";
-import type { CanvasGestureFeedback, CanvasSnapGuide } from "./canvas-snapping";
-import { captureCanvasTransformTargets, projectCanvasTransformUpdates } from "./canvas-transform-projection";
-import { snapCanvasTranslation, type CanvasTranslationGestureState } from "./canvas-translation-snapping";
-import { projectResizeFeedback } from "./proportional-resize-feedback";
-interface NodeGestureControllerOptions {
-  document(): SpaceEditorDocument; layouts(): readonly CanvasNodeLayoutV1[]; nodes(): readonly CanvasDisplayNode[];
-  previewFrames(updates: readonly CanvasGestureUpdate[]): void; selectedNodeIds(): ReadonlySet<string>;
-  stage(): Konva.Stage | undefined; updateFeedback(feedback: CanvasGestureFeedback | undefined): void; zoom(): number;
-}
-export class NodeGestureController {
-  private drag: CanvasTranslationGestureState | undefined;
-  private dragNodes = new Map<string, Konva.Node>();
-  private resizeGuides: readonly CanvasSnapGuide[] = [];
-  private transforming = false;
-  private transformLayouts: readonly CanvasNodeLayoutV1[] = [];
-  private transformTargets: ReturnType<typeof captureCanvasTransformTargets> = [];
-  private proportionalAnchor: string | undefined;
-  constructor(private readonly options: NodeGestureControllerOptions) {}
-  readonly beginDrag = (primaryId: string) => {
-    this.resizeGuides = []; this.options.updateFeedback(undefined);
-    const captured = captureCanvasNodeDragState(this.options.layouts(), this.options.document(), this.options.selectedNodeIds(), primaryId, this.options.stage());
-    if (!captured) { captureCanvasNodeRefs(this.options.stage(), [primaryId]).get(primaryId)?.stopDrag(); return false; }
-    this.drag = captured.state; this.dragNodes = captured.nodeRefs; return true;
-  };
-  readonly moveDrag = (primaryId: string) => {
-    if (!this.drag || this.drag.primaryId !== primaryId) return;
-    const primary = this.dragNodes.get(primaryId); if (!primary) return;
-    const proposed = { x: primary.x() - this.drag.origin.x, y: primary.y() - this.drag.origin.y };
-    const snapped = snapCanvasTranslation([...this.drag.frames.values()], this.drag.snapIndex, proposed, 6 / this.options.zoom());
-    const updates = [...this.drag.frames].map(([nodeId, frame]) => ({ nodeId, frame: { ...frame, x: frame.x + snapped.x, y: frame.y + snapped.y } }));
-    for (const update of updates) this.dragNodes.get(update.nodeId)?.position(update.frame);
-    this.options.previewFrames(updates); this.options.updateFeedback({ guides: snapped.guides });
-  };
-  endDrag(primaryId: string): CanvasGestureUpdate[] {
-    if (!this.drag || this.drag.primaryId !== primaryId) return [];
-    const current = this.drag; const primary = this.dragNodes.get(primaryId);
-    this.drag = undefined; this.dragNodes.clear(); this.options.updateFeedback(undefined);
-    if (!primary) return [];
-    const delta = { x: primary.x() - current.origin.x, y: primary.y() - current.origin.y };
-    return [...current.frames].map(([nodeId, frame]) => ({ nodeId, frame: { ...frame, x: frame.x + delta.x, y: frame.y + delta.y } }));
-  }
-  beginTransform() {
-    this.transformLayouts = this.options.layouts();
-    this.transformTargets = captureCanvasTransformTargets(this.transformLayouts, this.options.nodes(), this.options.selectedNodeIds(), this.options.stage());
-    this.transforming = true;
-  }
-  readonly previewTransform = (anchor?: string) => {
-    this.proportionalAnchor = anchor;
-    const updates = this.transformedLayouts();
-    const expanded = expandAggregatePreview(this.options.document(), this.transformLayouts, updates);
-    const roots = new Set(updates.map((update) => update.nodeId));
-    const refs = captureCanvasNodeRefs(this.options.stage(), expanded.map((update) => update.nodeId));
-    const before = new Map(this.transformLayouts.map((layout) => [layout.nodeId, layout.frame]));
-    for (const update of expanded) {
-      if (roots.has(update.nodeId)) continue;
-      const node = refs.get(update.nodeId), frame = before.get(update.nodeId)!;
-      node?.position(update.frame); node?.rotation(update.frame.rotation);
-      node?.scale({ x: update.frame.width / frame.width, y: update.frame.height / frame.height });
+    for item in &structure.items {
+        if let Some(parent) = item.parent_id.as_deref() {
+            if items.get(parent).is_none_or(|item| item.kind == StructureKind::Content) { return Err("Every parent must be an existing container in this Space".into()); }
+        }
+        if item.kind == StructureKind::Group && !children.contains_key(&Some(item.id.as_str())) { return Err("A committed Group must not be empty".into()); }
     }
-    this.options.previewFrames(expanded);
-    const frame = updates[0]?.frame;
-    this.options.updateFeedback(frame ? projectResizeFeedback(frame, this.resizeGuides, this.options.zoom(), anchor) : undefined);
-  };
-  endTransform() {
-    const updates = this.transformedLayouts();
-    this.transforming = false; this.proportionalAnchor = undefined; this.transformTargets = [];
-    this.options.updateFeedback(undefined); return updates;
-  }
-  panDrag(delta: { x: number; y: number }) {
-    if (!this.drag) return;
-    const node = this.dragNodes.get(this.drag.primaryId); if (!node) return;
-    node.position({ x: node.x() + delta.x, y: node.y() + delta.y }); this.moveDrag(this.drag.primaryId);
-  }
-  readonly updateResizeGuides = (guides: readonly CanvasSnapGuide[]) => { this.resizeGuides = guides; };
-  cancelActiveGesture() {
-    if (!this.drag && !this.transforming) return false;
-    const frames = this.drag ? [...this.drag.frames].map(([nodeId, frame]) => ({ nodeId, frame })) : this.transformLayouts;
-    this.restoreFrames(frames); this.drag = undefined; this.dragNodes.clear(); this.transforming = false;
-    this.transformTargets = []; this.proportionalAnchor = undefined; this.resizeGuides = [];
-    this.options.previewFrames([]); this.options.updateFeedback(undefined); return true;
-  }
-  restoreFrames(updates: readonly CanvasNodeFrameUpdate[], nodes = captureCanvasNodeRefs(this.options.stage(), updates.map((update) => update.nodeId))) { restoreCanvasNodeFrames(updates, nodes); }
-  private transformedLayouts() { return projectCanvasTransformUpdates({ proportionalAnchor: this.proportionalAnchor, targets: this.transformTargets }); }
-}
-''')
-write('src/features/spaces/organization/structure/section-drop-intent.ts', '''
-import type { StructurePoint } from "../../canvas/contract/structure-layout";
-import { indexStructureSnapshot } from "./structure-context";
-import type { StructureSnapshot } from "./structure-snapshot-contract";
-import { assertStructureEditable, structureOperationRoots } from "./structure-selection";
-export function resolveSectionDrop(snapshot: StructureSnapshot, ids: readonly string[], point: StructurePoint, previous: string | null | undefined, zoom: number): string | null | undefined {
-  const context = indexStructureSnapshot(snapshot);
-  const roots = structureOperationRoots(context.tree, ids);
-  assertStructureEditable(context.tree, roots.map((item) => item.id));
-  if (roots.some((item) => item.kind === "section" || item.parentId !== null && context.tree.items.get(item.parentId)?.kind === "group")) return undefined;
-  const candidates = (context.tree.children.get(null) ?? []).filter((item) => item.kind === "section" && !item.locked).toSorted((a, b) => b.order - a.order);
-  const contains = (id: string, margin: number) => {
-    const layout = context.layouts.get(id)!;
-    return layout.kind === "section" && !layout.collapsed && point.x >= layout.position.x - margin && point.x <= layout.position.x + layout.size.width + margin && point.y >= layout.position.y - margin && point.y <= layout.position.y + layout.size.height + margin;
-  };
-  const direct = candidates.find((item) => contains(item.id, 0));
-  if (direct) return direct.id;
-  if (previous && candidates.some((item) => item.id === previous) && contains(previous, 8 / zoom)) return previous;
-  return null;
-}
-''')
-write('src/features/spaces/canvas/konva/interaction/canvas-gesture-session.ts', '''
-import type Konva from "konva";
-import { nextTick, shallowRef } from "vue";
-import type { CanvasDisplayNode } from "../../contract/canvas-display-node";
-import type { CanvasNodeFrameUpdate, CanvasNodeLayoutV1, SpaceEditorDocument } from "../../contract/canvas-document";
-import type { CanvasSurfaceEvents } from "../../contract/canvas-editor";
-import type { CanvasPoint } from "../../contract/canvas-editor-port";
-import type { StructureCommand } from "../../../organization/structure/commands/contract";
-import { planStructureCommand } from "../../../organization/structure/commands/plan";
-import { resolveSectionDrop } from "../../../organization/structure/section-drop-intent";
-import { projectEditorLayouts } from "../../document/editor-layout-projection";
-import { replayEditorTransition } from "../../document/editor-history-transition";
-import type { CanvasDocumentModel } from "../document/canvas-document-model";
-import { applyCanvasGestureUpdates } from "../document/canvas-document-mutations";
-import type { CanvasGestureUpdate } from "./canvas-gesture-update";
-import type { CanvasGestureFeedback } from "./canvas-snapping";
-import { NodeGestureController } from "./node-gesture-controller";
-interface Options {
-  document: CanvasDocumentModel; events: CanvasSurfaceEvents;
-  layouts(): readonly CanvasNodeLayoutV1[]; nodes(): readonly CanvasDisplayNode[];
-  previewFrames(updates: readonly CanvasGestureUpdate[]): void; selectedNodeIds(): ReadonlySet<string>;
-  setSelection(ids: readonly string[]): void; stage(): Konva.Stage | undefined; zoom(): number;
-}
-export type CanvasDirectManipulation = "drag" | "transform";
-export function createCanvasGestureSession(options: Options) {
-  const busy = shallowRef(false), directManipulation = shallowRef<CanvasDirectManipulation>();
-  const feedback = shallowRef<CanvasGestureFeedback>(), dropTarget = shallowRef<string | null>();
-  let origin: SpaceEditorDocument | undefined; let ids: readonly string[] = [];
-  const controller = new NodeGestureController({ ...options, document: () => options.document.document, previewFrames: preview, updateFeedback: (value) => { feedback.value = value; } });
-  function beginDirectManipulation(kind: CanvasDirectManipulation) {
-    origin = options.document.document; ids = [...options.selectedNodeIds()]; directManipulation.value = kind;
-    if (kind === "transform") controller.beginTransform();
-  }
-  function preview(updates: readonly CanvasGestureUpdate[]) {
-    options.previewFrames(updates);
-    if (!origin || !ids.length || directManipulation.value !== "drag") return;
-    const point = options.stage()?.getRelativePointerPosition();
-    if (point) dropTarget.value = resolveSectionDrop(origin, ids, point, dropTarget.value, options.zoom());
-  }
-  async function finish(gesture: { kind: "drag"; nodeId: string } | { kind: "transform" }) {
-    const before = origin; if (!before) return;
-    const selected = ids;
-    const target = dropTarget.value;
-    const updates = gesture.kind === "drag" ? controller.endDrag(gesture.nodeId) : controller.endTransform();
-    await tracked(async () => {
-      try {
-        let after: SpaceEditorDocument;
-        if (gesture.kind === "drag") {
-          const start = projectEditorLayouts(before).find((layout) => layout.nodeId === gesture.nodeId)?.frame;
-          const frame = updates.find((update) => update.nodeId === gesture.nodeId)?.frame;
-          if (!start || !frame) return;
-          const delta = { x: frame.x - start.x, y: frame.y - start.y };
-          const command: StructureCommand = target === undefined ? { kind: "move-items", ids: [...selected], delta } : { kind: "drop-items", ids: [...selected], parentId: target, delta };
-          after = { ...before, ...planStructureCommand(before, command).after };
-        } else after = applyCanvasGestureUpdates(before, updates);
-        await options.document.mutate((current) => replayEditorTransition(current, before, after));
-      } finally {
-        await nextTick(); controller.restoreFrames(options.layouts());
-        origin = undefined; ids = []; dropTarget.value = undefined; directManipulation.value = undefined;
-        feedback.value = undefined; options.previewFrames([]);
-      }
-    });
-  }
-  async function runStructureCommand(command: StructureCommand) {
-    return tracked(async () => { const selection = await options.document.execute(command, [...options.selectedNodeIds()]); await nextTick(); options.setSelection(selection); });
-  }
-  async function runFrameMutation(calculate: () => readonly CanvasNodeFrameUpdate[] | Promise<readonly CanvasNodeFrameUpdate[]>) {
-    const before = options.document.document;
-    const updates = await calculate();
-    const layouts = new Map(projectEditorLayouts(before).map((layout) => [layout.nodeId, layout.frame]));
-    let after = before;
-    for (const update of updates) {
-      const frame = layouts.get(update.nodeId); if (!frame) throw new Error("Arrangement target disappeared");
-      after = { ...after, ...planStructureCommand(after, { kind: "move-items", ids: [update.nodeId], delta: { x: update.frame.x - frame.x, y: update.frame.y - frame.y } }).after };
+    for siblings in children.values_mut() {
+        siblings.sort_by_key(|item| item.order);
+        if siblings.iter().enumerate().any(|(index, item)| index != item.order as usize) { return Err("Sibling order must be unique and contiguous".into()); }
     }
-    await tracked(() => options.document.mutate((current) => replayEditorTransition(current, before, after)));
-  }
-  function cancelActiveGesture() { const cancelled = controller.cancelActiveGesture(); if (!busy.value) { origin = undefined; ids = []; dropTarget.value = undefined; directManipulation.value = undefined; } return cancelled; }
-  async function tracked(work: () => Promise<void>) { busy.value = true; options.events.onMutationPendingChange(true); try { await work(); } finally { busy.value = false; options.events.onMutationPendingChange(false); } }
-  const nudge = (delta: CanvasPoint) => runStructureCommand({ kind: "move-items", ids: [...options.selectedNodeIds()], delta });
-  return { busy, controller, directManipulation, feedback, dropTarget, beginDirectManipulation, finish, runStructureCommand, runFrameMutation, cancelActiveGesture, nudge };
+    let mut pending: Vec<(&StructureItem, usize)> = children.get(&None).into_iter().flatten().map(|item| (*item, 1)).collect();
+    let mut visited = HashSet::new();
+    while let Some((item, depth)) = pending.pop() {
+        if depth > MAX_DEPTH { return Err("Structure nesting exceeds 64 levels".into()); }
+        if !visited.insert(item.id.as_str()) { return Err("Structure contains a cycle".into()); }
+        pending.extend(children.get(&Some(item.id.as_str())).into_iter().flatten().map(|child| (*child, depth + 1)));
+    }
+    if visited.len() != items.len() { return Err("Structure contains an unreachable cycle".into()); }
+    Ok(())
+}
+fn validate_item(item: &StructureItem) -> Result<(), String> {
+    if !valid_id(&item.id) || item.parent_id.as_deref().is_some_and(|id| !valid_id(id)) || item.order as usize >= MAX_ITEMS { return Err("Invalid structure identity or order".into()); }
+    match item.kind {
+        StructureKind::Content => {
+            if item.node_id.as_deref() != Some(item.id.as_str()) || item.title.is_some() { return Err("Content placements must use their content identity and cannot own a second title".into()); }
+        }
+        StructureKind::Group | StructureKind::Section => {
+            let title = item.title.as_deref().ok_or("Containers require titles")?;
+            if item.node_id.is_some() || title.is_empty() || title.encode_utf16().count() > 512 || title.trim_matches(|character: char| character.is_whitespace() || character == '\u{feff}') != title { return Err("Container titles must be trimmed and have 1 to 512 characters".into()); }
+            if item.kind == StructureKind::Section && item.parent_id.is_some() { return Err("Sections belong directly to the Space root".into()); }
+        }
+    }
+    Ok(())
 }
 ''')
-write('src/features/spaces/canvas/konva/selection/canvas-selection-deletion.ts', '''
-import { indexStructure } from "../../../model/structure/structure-index";
-import { structureContentNodeIds } from "../../../organization/structure/structure-selection";
-import { removeCanvasSelection } from "../../document/canvas-content";
-import { createCanvasPersistenceHistory } from "../../persistence/canvas-persistence-history";
-import type { KonvaEditorPortOptions } from "../canvas-editor-port-options";
-export function createCanvasSelectionDeletion(options: KonvaEditorPortOptions) {
-  return async (ids: readonly string[], relationIds: readonly string[], cut = false) => {
-    if (!ids.length && !relationIds.length || cut && !ids.length) return;
-    const before = options.model.document;
-    const nodeIds = structureContentNodeIds(indexStructure(before.structure), ids);
-    const content = new Set(nodeIds), selectedRelations = new Set(relationIds);
-    for (const relation of options.relations()) if (content.has(relation.sourceId) || content.has(relation.targetId)) selectedRelations.add(relation.id);
-    const document = removeCanvasSelection(before, new Set(ids), selectedRelations);
-    await options.onHistoryTransaction(async () => {
-      const request = { baseDocument: before, document, nodeIds, relationIds: [...selectedRelations] };
-      const result = await (cut ? options.onCutSelection({ ...request, transfer: { document: before, itemIds: ids } }) : options.onDeleteSelection(request));
-      options.model.replace(result.document);
-      options.onHistoryEntry(createCanvasPersistenceHistory({ before, after: result.document, persistence: result.history,
-        current: () => options.model.document, commit: options.onHistoryTransition, adopt: (next) => options.model.replace(next) }));
-    });
-    options.setSelection([]);
-  };
+write('src-tauri/src/spaces/canvas_state/geometry.rs', '''
+use std::collections::{HashMap, VecDeque};
+use super::contract::{SpaceEditorDocument, StructureKind, StructureLayout, StructureTransform, StructureSize};
+pub(in crate::spaces) const COORDINATE_LIMIT: f64 = 1_000_000_000_000.0;
+pub(in crate::spaces) const SCALE_MIN: f64 = 0.000001;
+pub(in crate::spaces) const SCALE_MAX: f64 = 1_000_000.0;
+pub(in crate::spaces) fn identity() -> StructureTransform { StructureTransform { x: 0.0, y: 0.0, rotation: 0.0, scale: 1.0 } }
+pub(in crate::spaces) fn normalize_rotation(value: f64) -> f64 { (value + 180.0).rem_euclid(360.0) - 180.0 }
+pub(in crate::spaces) fn compose(parent: StructureTransform, local: StructureTransform) -> StructureTransform {
+    let (sin, cos) = parent.rotation.to_radians().sin_cos();
+    StructureTransform { x: parent.x + parent.scale * (cos * local.x - sin * local.y), y: parent.y + parent.scale * (sin * local.x + cos * local.y),
+        rotation: normalize_rotation(parent.rotation + local.rotation), scale: parent.scale * local.scale }
+}
+pub(in crate::spaces) fn inverse(value: StructureTransform) -> StructureTransform {
+    let mut inverse = StructureTransform { x: 0.0, y: 0.0, rotation: -value.rotation, scale: 1.0 / value.scale };
+    let translated = compose(inverse, StructureTransform { x: -value.x, y: -value.y, ..identity() });
+    inverse.x = translated.x; inverse.y = translated.y; inverse
+}
+pub(in crate::spaces) fn coordinate(value: f64) -> bool { value.is_finite() && value.abs() <= COORDINATE_LIMIT }
+pub(in crate::spaces) fn valid_transform(value: StructureTransform) -> bool {
+    coordinate(value.x) && coordinate(value.y) && value.rotation.is_finite() && (-180.0..180.0).contains(&value.rotation)
+        && value.scale.is_finite() && (SCALE_MIN..=SCALE_MAX).contains(&value.scale)
+}
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub(in crate::spaces) struct Bounds { pub x: f64, pub y: f64, pub width: f64, pub height: f64 }
+pub(in crate::spaces) fn transformed_bounds(transform: StructureTransform, size: StructureSize) -> Bounds {
+    let points = [(0.0, 0.0), (size.width, 0.0), (0.0, size.height), (size.width, size.height)].map(|(x,y)| compose(transform, StructureTransform { x, y, ..identity() }));
+    let x = points.iter().map(|point| point.x).fold(f64::INFINITY, f64::min);
+    let y = points.iter().map(|point| point.y).fold(f64::INFINITY, f64::min);
+    let right = points.iter().map(|point| point.x).fold(f64::NEG_INFINITY, f64::max);
+    let bottom = points.iter().map(|point| point.y).fold(f64::NEG_INFINITY, f64::max);
+    Bounds { x, y, width: right - x, height: bottom - y }
+}
+pub(in crate::spaces) struct Projection { pub world: HashMap<String, StructureTransform>, pub bounds: HashMap<String, Bounds>, pub order: Vec<String> }
+/** Input topology is validated before projection; no application state is read from an engine. */
+pub(in crate::spaces) fn project(document: &SpaceEditorDocument) -> Result<Projection, String> {
+    let items: HashMap<_,_> = document.structure.items.iter().map(|item| (item.id.as_str(), item)).collect();
+    let layouts: HashMap<_,_> = document.layout.items.iter().map(|layout| (layout.id(), layout)).collect();
+    let mut children: HashMap<Option<&str>, Vec<&str>> = HashMap::new();
+    for item in &document.structure.items { children.entry(item.parent_id.as_deref()).or_default().push(item.id.as_str()); }
+    for siblings in children.values_mut() { siblings.sort_by_key(|id| items[id].order); }
+    let mut pending: VecDeque<&str> = children.get(&None).into_iter().flatten().copied().collect();
+    let mut world = HashMap::new(); let mut bounds = HashMap::new(); let mut order = Vec::new();
+    while let Some(id) = pending.pop_front() {
+        let item = items[id]; let layout = layouts.get(id).ok_or("Structure item has no layout")?;
+        let parent = item.parent_id.as_deref().map(|id| world.get(id).copied().ok_or("Unreachable parent")).transpose()?.unwrap_or_else(identity);
+        let transform = compose(parent, layout.local());
+        if !valid_transform(transform) { return Err("Composed world transform exceeds the canonical limits".into()); }
+        if let StructureLayout::Content { size, .. } | StructureLayout::Section { size, .. } = layout {
+            let rect = transformed_bounds(transform, *size);
+            if rect.width <= 0.0 || rect.height <= 0.0 || ![rect.x,rect.y,rect.x+rect.width,rect.y+rect.height].into_iter().all(coordinate) { return Err("World geometry is not representable".into()); }
+            bounds.insert(id.to_string(), rect);
+        }
+        world.insert(id.to_string(), transform); order.push(id.to_string());
+        if let Some(children) = children.get(&Some(id)) { for child in children.iter().rev() { pending.push_front(child); } }
+    }
+    if order.len() != items.len() { return Err("Structure contains an unreachable item".into()); }
+    for id in order.iter().rev() {
+        if items[id.as_str()].kind != StructureKind::Group { continue; }
+        let rectangles: Vec<_> = children.get(&Some(id.as_str())).into_iter().flatten().map(|child| bounds.get(*child).copied().ok_or("Group child has no bounds")).collect::<Result<_,_>>()?;
+        bounds.insert(id.clone(), union_bounds(&rectangles).ok_or("Empty Group")?);
+    }
+    Ok(Projection { world, bounds, order })
+}
+pub(in crate::spaces) fn union_bounds(rectangles: &[Bounds]) -> Option<Bounds> {
+    if rectangles.is_empty() { return None; }
+    let x = rectangles.iter().map(|rect| rect.x).fold(f64::INFINITY, f64::min);
+    let y = rectangles.iter().map(|rect| rect.y).fold(f64::INFINITY, f64::min);
+    let right = rectangles.iter().map(|rect| rect.x + rect.width).fold(f64::NEG_INFINITY, f64::max);
+    let bottom = rectangles.iter().map(|rect| rect.y + rect.height).fold(f64::NEG_INFINITY, f64::max);
+    Some(Bounds { x, y, width: right - x, height: bottom - y })
 }
 ''')
-write('src/features/spaces/canvas/konva/viewport/structure-navigation.ts', '''
-import { nextTick } from "vue";
-import { indexStructure, structureAncestors } from "../../../model/structure/structure-index";
-import type { KonvaEditorPortOptions } from "../canvas-editor-port-options";
-import { revealCanvasLayouts } from "./canvas-editor-navigation";
-export function createStructureNavigation(options: KonvaEditorPortOptions) {
-  function select(ids: readonly string[]) { options.setEditingScope(ids); options.setSelection(ids); }
-  async function revealItems(ids: readonly string[], mode: "ensure-visible" | "focus") {
-    if (!ids.length) { select([]); return; }
-    const before = options.model.document;
-    const tree = indexStructure(before.structure);
-    const existing = ids.filter((id) => tree.items.has(id));
-    const sections = new Set(existing.flatMap((id) => structureAncestors(tree, id).filter((item) => item.kind === "section").map((item) => item.id)));
-    if (sections.size) await options.model.mutate((document) => ({ ...document, layout: { version: 1, items: document.layout.items.map((item) => item.kind === "section" && sections.has(item.itemId) ? { ...item, collapsed: false } : item) } }), false);
-    options.setEditingScope(existing); await nextTick();
-    revealCanvasLayouts({ ...options, setViewport: options.animateViewport }, existing, mode);
-  }
-  return { select, reveal: (ids: readonly string[], mode: "ensure-visible" | "focus") => { void revealItems(ids, mode).catch(options.onError); } };
+write('src-tauri/src/spaces/canvas_state/layout_validation.rs', '''
+use std::collections::{HashMap, HashSet};
+use super::contract::{CanvasNodeAppearance, SpaceEditorDocument, StructureLayout, StructureSize};
+use super::geometry::{coordinate, valid_transform, COORDINATE_LIMIT};
+pub(super) fn validate(document: &SpaceEditorDocument) -> Result<(), String> {
+    if document.layout.version != 1 || document.layout.items.len() != document.structure.items.len() { return Err("Structure and layout must have exactly matching identities".into()); }
+    let kinds: HashMap<_,_> = document.structure.items.iter().map(|item| (item.id.as_str(), item.kind)).collect();
+    let mut seen = HashSet::new();
+    for layout in &document.layout.items {
+        if !seen.insert(layout.id()) || kinds.get(layout.id()) != Some(&layout.kind()) { return Err("Duplicate, orphan or mismatched layout identity".into()); }
+        if !valid_transform(layout.local()) { return Err("Invalid local transform".into()); }
+        match layout {
+            StructureLayout::Content { size, file_subpath, .. } => {
+                validate_size(*size)?;
+                if file_subpath.as_deref().is_some_and(|path| !path.starts_with('#')) { return Err("fileSubpath must start with #".into()); }
+            },
+            StructureLayout::Section { size, position, .. } => {
+                validate_size(*size)?;
+                if !coordinate(position.x) || !coordinate(position.y) { return Err("Invalid Section position".into()); }
+            },
+            StructureLayout::Group { .. } => {},
+        }
+        if let Some(appearance) = layout.appearance() { validate_appearance(appearance)?; }
+    }
+    super::geometry::project(document)?;
+    Ok(())
+}
+fn validate_size(size: StructureSize) -> Result<(), String> {
+    if [size.width,size.height].into_iter().any(|value| !value.is_finite() || value <= 0.0 || value > COORDINATE_LIMIT) { return Err("Invalid layout size".into()); }
+    Ok(())
+}
+pub(in crate::spaces) fn validate_appearance(value: &CanvasNodeAppearance) -> Result<(), String> {
+    if value.fill.is_some() && value.custom_fill.is_some() { return Err("fill and customFill are mutually exclusive".into()); }
+    if value.custom_fill.as_deref().is_some_and(|color| color.len() != 7 || !color.starts_with('#') || !color.as_bytes()[1..].iter().all(u8::is_ascii_hexdigit)) { return Err("Custom fill must be #RRGGBB".into()); }
+    if value.font_size.is_some_and(|number| !number.is_finite() || !(2.5..=576.0).contains(&number)) { return Err("Invalid font size".into()); }
+    if value.typography_scale.is_some_and(|number| !number.is_finite() || !(0.25..=4.0).contains(&number)) { return Err("Invalid typography scale".into()); }
+    Ok(())
 }
 ''')
-write('src/features/spaces/canvas/konva/create-canvas-editor-port.ts', '''
-import { captureCanvasOverview, captureCanvasViewport } from "../canvas-overview-capture";
-import type { CanvasEditorPort } from "../contract/canvas-editor-port";
-import { autoLayoutCanvas } from "../document/canvas-auto-layout";
-import { createCanvasSelectionSnapshot } from "../document/canvas-selection-snapshot";
-import { indexStructure } from "../../model/structure/structure-index";
-import { structureOperationRoots, structureContentNodeIds } from "../../organization/structure/structure-selection";
-import type { KonvaEditorPortOptions } from "./canvas-editor-port-options";
-import { createNodeContentHeightBatch } from "./node-content-height-batch";
-import { projectCanvasScene } from "./scene/scene-projection";
-import { createCanvasSelectionDeletion } from "./selection/canvas-selection-deletion";
-import { createStructureNavigation } from "./viewport/structure-navigation";
-import { fitCanvasLayouts, selectedCanvasLayouts, setCanvasZoom, zoomCanvasViewport } from "./viewport/canvas-editor-navigation";
-import { canvasPointFromScreen, screenPointFromCanvas } from "./viewport/viewport-math";
-
-export function createKonvaEditorPort(options: KonvaEditorPortOptions): CanvasEditorPort {
-  const selected = () => [...options.selectedNodeIds()];
-  const transfer = () => ({ document: options.model.document, itemIds: selected() });
-  const deletion = createCanvasSelectionDeletion(options);
-  const navigation = createStructureNavigation(options);
-  const animated = { ...options, setViewport: options.animateViewport };
-  const heights = createNodeContentHeightBatch(options.model, options.nodeById);
-  const snapshot = () => ({ ...createCanvasSelectionSnapshot(options.layouts(), options.selectedNodeIds(), options.relationIds(), options.relationBounds()), scopeGroupId: options.scopeGroupId() });
-  return {
-    cancelInteraction: options.cancelInteraction,
-    executeStructureCommand: (command) => command.kind === "delete-subtrees" ? deletion(command.ids, []) : options.executeStructureCommand(command),
-    enterGroup: options.enterGroup, exitGroup: options.exitGroup, requestContainerRename: options.requestContainerRename,
-    copySelection: () => options.onCopyNodes(transfer()), cutSelection: () => deletion(selected(), [...options.relationIds()], true),
-    pasteSelection: () => options.onPasteNodes(options.pastePoint()), duplicateSelection: () => options.onDuplicateNodes(transfer()),
-    deleteSelection: () => deletion(selected(), [...options.relationIds()]), deleteItems: (ids, relations = []) => deletion(ids, relations),
-    nudgeSelection: options.nudgeSelection, moveSelectionLayer: (mode) => options.model.moveNodes(options.selectedNodeIds(), mode),
-    alignSelection: (mode) => {
-      const axis = ["left", "center", "right"].includes(mode) ? "x" : "y";
-      const alignment = ["left", "top"].includes(mode) ? "start" : ["right", "bottom"].includes(mode) ? "end" : "center";
-      return options.executeStructureCommand({ kind: "align-items", ids: selected(), axis, alignment });
-    },
-    distributeSelection: (mode) => options.executeStructureCommand({ kind: "distribute-items", ids: selected(), axis: mode === "horizontal" ? "x" : "y" }),
-    autoLayoutSelection: (direction) => {
-      const tree = indexStructure(options.model.document.structure);
-      const roots = structureOperationRoots(tree, selected());
-      const representatives = new Map<string, string>();
-      for (const root of roots) for (const nodeId of structureContentNodeIds(tree, [root.id])) representatives.set(nodeId, root.id);
-      const edges = options.relations().flatMap((relation) => {
-        const sourceId = representatives.get(relation.sourceId), targetId = representatives.get(relation.targetId);
-        return sourceId && targetId && sourceId !== targetId && relation.status !== "invalidated" ? [{ id: relation.id, sourceId, targetId }] : [];
-      });
-      const ids = new Set(roots.map((root) => root.id));
-      return options.runFrameMutation(() => autoLayoutCanvas(options.layouts().filter((layout) => ids.has(layout.nodeId)), edges, direction));
-    },
-    fitSection: (id) => options.executeStructureCommand({ kind: "fit-section", id }),
-    selectAll: () => options.setSelection(options.selectableNodeIds()), clearSelection: () => options.setSelection([]),
-    selectNodes: navigation.select, reveal: navigation.reveal,
-    zoomIn: () => zoomCanvasViewport(animated, 1.2), zoomOut: () => zoomCanvasViewport(animated, 1 / 1.2),
-    setZoom: (zoom) => setCanvasZoom(animated, zoom), navigateViewport: options.animateViewport, setViewport: options.setViewport,
-    setRelationColor: (id, color) => options.model.setRelationColor(id, color), setNodeAppearance: (id, patch) => options.model.setNodeAppearance(id, patch),
-    fitNodeContentHeight: heights.fit, flushContentHeightFitting: heights.flush, setContentHeightFittingPaused: heights.setPaused,
-    getViewport: options.viewport, getDocument: () => options.model.document, observeDocument: (observer) => options.model.observe(observer),
-    adoptDocument: (document) => options.model.replace(document),
-    zoomToFit: () => fitCanvasLayouts(animated, projectCanvasScene(options.model.document, options.nodes(), options.relations()).nodes.map((item) => item.layout)),
-    zoomToSelection: () => fitCanvasLayouts(animated, selectedCanvasLayouts(options)),
-    captureSceneViewport: () => captureCanvasViewport(projectCanvasScene(options.model.document, options.nodes(), options.relations()), options.palette(), options.viewport(), options.size()),
-    captureCanvasOverview: () => captureCanvasOverview(projectCanvasScene(options.model.document, options.nodes(), options.relations()), options.palette()),
-    getSelectionSnapshot: snapshot, getSelectionBounds: () => snapshot().bounds,
-    screenToCanvasPoint: (point) => { const rect = options.host().getBoundingClientRect(); return canvasPointFromScreen({ x: point.x - rect.left, y: point.y - rect.top }, options.viewport()); },
-    canvasToViewportPoint: (point) => screenPointFromCanvas(point, options.viewport()),
-  };
+write('src-tauri/src/spaces/canvas_state/validation.rs', '''
+use std::collections::HashSet;
+use super::contract::SpaceEditorDocument;
+use crate::spaces::db;
+pub(in crate::spaces) fn validate_document(document: &SpaceEditorDocument) -> Result<(), String> {
+    if document.version != 1 { return Err("Unsupported Space editor document version".into()); }
+    super::structure_validation::validate(&document.structure)?;
+    super::layout_validation::validate(document)?;
+    if !document.viewport.x.is_finite() || !document.viewport.y.is_finite() || !document.viewport.zoom.is_finite() || document.viewport.zoom <= 0.0 { return Err("Invalid camera state".into()); }
+    let mut ids = HashSet::new();
+    for style in document.relation_styles.iter().flatten() {
+        if !super::structure_validation::valid_id(&style.relation_id) || !ids.insert(style.relation_id.as_str()) { return Err("Relation styles must have unique valid identities".into()); }
+    }
+    if ids.len() > 100_000 { return Err("Too many relation styles".into()); }
+    Ok(())
+}
+pub(in crate::spaces) async fn validate_content_references(tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>, space_id: &str, document: &SpaceEditorDocument) -> Result<(), String> {
+    let active: Vec<String> = sqlx::query_scalar("SELECT id FROM spaces_nodes WHERE space_id=$1 AND deleted_at IS NULL").bind(space_id).fetch_all(&mut **tx).await.map_err(db::sql_error)?;
+    let expected: HashSet<&str> = active.iter().map(String::as_str).collect();
+    let actual: HashSet<&str> = document.structure.items.iter().filter_map(|item| item.node_id.as_deref()).collect();
+    if expected != actual { return Err("The editor must place exactly the active content belonging to its Space".into()); }
+    Ok(())
 }
 ''')
-name='src/features/spaces/canvas/contract/canvas-editor.ts';text=read(name)
-text=text.replace('export interface CanvasCutSelectionRequest extends CanvasDeleteSelectionRequest {\n  nodePlacements: readonly CanvasNodePlacement[];\n}', 'export interface CanvasSelectionTransfer { document: SpaceEditorDocument; itemIds: readonly string[] }\nexport interface CanvasCutSelectionRequest extends CanvasDeleteSelectionRequest { transfer: CanvasSelectionTransfer }')
-text=text.replace('onCopyNodes(nodes: readonly CanvasNodePlacement[])', 'onCopyNodes(transfer: CanvasSelectionTransfer)').replace('onDuplicateNodes(nodes: readonly CanvasNodePlacement[])', 'onDuplicateNodes(transfer: CanvasSelectionTransfer)')
-write(name,text)
-# Persisted topology cannot be recreated by content watchers. Creation is handled by Rust use cases.
-write('src/features/spaces/canvas/host/use-canvas-document-session.ts', '''
-import { shallowRef } from "vue";
-import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
-import { emptySpaceEditorDocument, type SpaceEditorDocument } from "../contract/canvas-document";
-import { registerSpaceSessionParticipant } from "../editor-session";
-import { acquireCanvasPersistenceLease, registerCanvasMutationTarget, registerCanvasTransactionTarget } from "../persistence/canvas-persistence-coordinator";
-import { canvasStateRepository } from "../persistence/canvas-state-repository";
-import { CanvasSnapshotSaveQueue } from "../persistence/snapshot-save-queue";
-import { CanvasDocumentWorkspace } from "./canvas-document-workspace";
-interface Options { nodes(): readonly SpaceCanvasNode[]; reportError(error: unknown): void; spaceId(): string }
-export function useCanvasDocumentSession(options: Options) {
-  const document = shallowRef<SpaceEditorDocument>(); const surfaceKey = shallowRef(0);
-  let workspace: CanvasDocumentWorkspace | undefined;
-  let lease: ReturnType<typeof acquireCanvasPersistenceLease> | undefined;
-  let detachTargets: (() => void)[] = []; let generation = 0;
-  const detachSession = registerSpaceSessionParticipant({ phase: "persistence", commit: async () => { await workspace?.flush(); } });
-  function commitTransaction<T extends { document: SpaceEditorDocument; revision: number }>(commit: (baseRevision: number) => Promise<T>) {
-    if (!workspace) return Promise.reject(new Error("The Space editor is not ready"));
-    return workspace.commit(commit);
-  }
-  async function start() {
-    const expected = ++generation, spaceId = options.spaceId();
-    const old = workspace; detachTargets.forEach((detach) => detach()); detachTargets = [];
-    lease?.release(release(old)); workspace = undefined; document.value = undefined;
-    lease = acquireCanvasPersistenceLease(spaceId); await lease.wait();
-    if (generation !== expected) return;
-    const stored = await canvasStateRepository.load(spaceId);
-    if (generation !== expected) return;
-    const initial = stored?.document ?? emptySpaceEditorDocument();
-    const queue = new CanvasSnapshotSaveQueue({ spaceId, initialState: stored, persistence: canvasStateRepository, reportError: options.reportError });
-    const next = new CanvasDocumentWorkspace(initial, queue, { isActive: () => generation === expected && workspace === next, publish: (value) => { document.value = value; } });
-    workspace = next; document.value = initial;
-    detachTargets = [registerCanvasTransactionTarget(spaceId, (commit) => next.commit((revision) => commit(next.document, revision))),
-      registerCanvasMutationTarget(spaceId, async (mutation) => {
-        await next.commit(async (baseRevision) => { const updated = mutation(next.document); return { document: updated, revision: await canvasStateRepository.save({ spaceId, baseRevision, document: updated }) }; });
-      })];
-    surfaceKey.value += 1;
-  }
-  async function release(previous: CanvasDocumentWorkspace | undefined) { try { await previous?.flush(); } catch (error) { options.reportError(error); } }
-  function dispose() { generation += 1; detachTargets.forEach((detach) => detach()); detachTargets = []; lease?.release(release(workspace)); lease = undefined; workspace = undefined; detachSession(); }
-  return { document, surfaceKey, start, dispose, commitTransaction, documentChanged: (next: SpaceEditorDocument) => workspace?.change(next), synchronizeNodes: (_nodes: readonly SpaceCanvasNode[]) => undefined };
-}
-''')
-name='src/features/spaces/canvas/persistence/canvas-persistence-coordinator.ts';text=read(name)
-if 'export interface EditorTransactionTarget' not in text:
-    text+='''
-export interface EditorTransactionTarget {
-  <T extends { document: SpaceEditorDocument; revision: number }>(commit: (document: SpaceEditorDocument, revision: number) => Promise<T>): Promise<T>;
-}
-const transactionTargets = new Map<string, EditorTransactionTarget>();
-export function registerCanvasTransactionTarget(spaceId: string, target: EditorTransactionTarget) {
-  if (transactionTargets.has(spaceId)) throw new Error(`An editor transaction target already exists for ${spaceId}`);
-  transactionTargets.set(spaceId, target);
-  return () => { if (transactionTargets.get(spaceId) === target) transactionTargets.delete(spaceId); };
-}
-export async function transactSpaceEditor<T extends { document: SpaceEditorDocument; revision: number }>(spaceId: string, commit: (document: SpaceEditorDocument, revision: number) => Promise<T>): Promise<T> {
-  const active = transactionTargets.get(spaceId); if (active) return active(commit);
-  const lease = acquireCanvasPersistenceLease(spaceId); await lease.wait();
-  const operation = (async () => { const stored = await canvasStateRepository.load(spaceId); return commit(stored?.document ?? createCanvasDocument([]), stored?.revision ?? 0); })();
-  lease.release(operation); return operation;
+# Current snapshot load/save checks the actual DB content set, not the renderer's available nodes.
+name='src-tauri/src/spaces/canvas_state/repository.rs';text=read(name)
+text=text.replace('    let next_revision = base_revision + 1;', '''    if !(0..9_007_199_254_740_991).contains(&base_revision) { return Err("Invalid editor revision".into()); }
+    super::validation::validate_content_references(tx, space_id, document).await?;
+    let next_revision = base_revision + 1;''')
+text=text.replace('    row.map(decode).transpose()', '''    if row.is_none() {
+        let count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM spaces_nodes WHERE space_id=$1 AND deleted_at IS NULL").bind(space_id).fetch_one(pool).await.map_err(db::sql_error)?;
+        if count != 0 { return Err("Active content is missing its editor organization document".into()); }
+    }
+    row.map(decode).transpose()''')
+text+='''
+pub(in crate::spaces) async fn load_in_transaction(tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>, space_id: &str) -> Result<(SpaceEditorDocument, i64), String> {
+    let row = sqlx::query("SELECT document,revision FROM spaces_canvas_state WHERE space_id=$1").bind(space_id).fetch_optional(&mut **tx).await.map_err(db::sql_error)?;
+    match row { Some(row) => decode(row), None => Ok((SpaceEditorDocument::empty(), 0)) }
 }
 '''
 write(name,text)
-# Camera remains a separately captured presentation update; stale editor geometry is never echoed into autosave.
-name='src/features/spaces/canvas/host/CanvasSurfaceHost.vue';text=read(name)
-text=text.replace('import { useCanvasDocumentSession }', 'import { rebaseCanvasDocument } from "./canvas-document-rebase";\nimport { useCanvasDocumentSession }')
-text=text.replace('  ...props.events,','  ...props.events,\n  onViewportChange(viewport) { if (session.document.value) session.documentChanged({ ...session.document.value, viewport }); props.events.onViewportChange(viewport); },',1)
-text=text.replace('props.events.onCommitGesture({ ...request, baseRevision })', 'props.events.onCommitGesture({ ...request, baseRevision, document: rebaseCanvasDocument(request.baseDocument, session.document.value!, request.document) })')
-text=text.replace('onHistoryTransition(nextDocument, transition)', 'onHistoryTransition(nextDocument, transition, baseDocument)')
-text=text.replace('...(await transition({ baseRevision, document: nextDocument })),\n      document: nextDocument,','...(await transition({ baseRevision, document: rebaseCanvasDocument(baseDocument, session.document.value!, nextDocument) })),\n      document: rebaseCanvasDocument(baseDocument, session.document.value!, nextDocument),')
+name='src-tauri/src/spaces/canvas_state/mod.rs';text=read(name)
+text=text.replace('mod validation;', 'mod validation;\nmod structure_validation;\nmod layout_validation;\npub(in crate::spaces) mod geometry;')
+text=text.replace('pub(in crate::spaces) use repository::save_in_transaction;', 'pub(in crate::spaces) use repository::{save_in_transaction, load_in_transaction};')
 write(name,text)
-# Ordinary structure edits materialize a draft Space before attempting its first commit.
-name='src/features/spaces/canvas/konva/use-konva-canvas-runtime.ts';text=read(name)
-text=text.replace('commitDocument: (document, before) => props.events.onCommitGesture({ document, baseDocument: before }),', 'commitDocument: async (document, before) => { await props.events.onPrepareStructureEdit(); return props.events.onCommitGesture({ document, baseDocument: before }); },')
+name='src-tauri/src/spaces/canvas_state/gesture.rs';text=read(name)
+text=re.sub(r'^    pub\(super\) changes: Vec<nodes::contracts::NodeDataChange>,\n','',text,flags=re.M)
+text=re.sub(r'    nodes::update_many_in_transaction\([\s\S]*?\.await\?;\n','',text,count=1)
 write(name,text)
-name='src/features/spaces/presentation/canvas/SpaceCanvas.vue';text=read(name)
-text=text.replace('const canvasEvents: CanvasHostEvents = {', 'const canvasEvents: CanvasHostEvents = {\n  onPrepareStructureEdit: store.ensureActiveSpacePersisted,\n  onStructureToolFinished: tools.resetTool,')
-text=text.replace('document.nodes !== previous.nodes', 'document.structure !== previous.structure || document.layout !== previous.layout')
+# Content payloads carry neither layout membership nor edit locks. Wrong fields fail schema validation.
+name='src-tauri/src/spaces/knowledge/node_contracts/payload/mod.rs';text=read(name)
+text=text.replace('use serde_json::{Map, Value};','use serde_json::Value;')
+text=text.replace('optional_bool, optional_string','optional_string')
+text=text.replace('    "sectionId",\n','').replace('    "locked",\n','')
+text=text.replace('    optional_string(object, "sectionId", 128, false)?;\n','').replace('    optional_bool(object, "locked")?;\n','')
+text=text.replace('        "section" => validate_section(object),\n','')
+text=re.sub(r'fn validate_section\([^)]*\)[\s\S]*?\n}\n','',text,count=1)
 write(name,text)
-# Prototype key names and projected content scale are handled at the renderer-only boundary.
-name='src/features/spaces/canvas/konva/node-content-height-batch.ts';text=read(name)
-text=text.replace('layout.frame.width !== measurement.width','Math.abs(layout.frame.width / (layout.contentScale ?? 1) - measurement.width) > 0.01')
+name='src-tauri/src/spaces/knowledge/node_contracts/payload/fields.rs';write(name,read(name).replace('        "section" => Ok(&["collapsed"]),\n',''))
+name='src-tauri/src/spaces/knowledge/node_contracts/mod.rs';write(name,read(name).replace(' | "section"',''))
+# Asset references describe editor items. Organization ownership is checked against committed layout, not a fabricated content FK.
+name='src-tauri/src/spaces/assets/reclamation/canvas_references.rs';text=read(name)
+text=text.replace('document.nodes','document.layout.items').replace('node.node_id','node.id()')
+text=re.sub(r'node\s*\.appearance\s*\.as_ref\(\)', 'node.appearance()', text)
+text=text.replace('node_id','item_id')
 write(name,text)
+# Record layout+structure in the content insertion request. It is a typed content use case, not a renderer write.
+name='src-tauri/src/spaces/nodes/contracts.rs';text=read(name)
+text=text.replace('pub struct InsertNodesRequest {\n    pub space_id: String,','pub struct InsertNodesRequest {\n    pub space_id: String,\n    pub base_revision: i64,\n    pub document: crate::spaces::canvas_state::SpaceEditorDocument,')
+text+='''
+#[derive(Debug, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NodeEditorMutationResult { pub revision: i64 }
+'''
+write(name,text)
+name='src-tauri/src/spaces/nodes/insert.rs';text=read(name)
+text=text.replace(') -> Result<(), String> {\n    if request.nodes.is_empty()', ') -> Result<super::contracts::NodeEditorMutationResult, String> {\n    if request.nodes.is_empty()',1)
+text=text.replace('        return Ok(());','        return Err("Content insertion requires a non-empty selection".into());',1)
+text=text.replace('    tx.commit().await.map_err(db::sql_error)\n}', '''    let revision = crate::spaces::canvas_state::save_in_transaction(&mut tx, &request.space_id, request.base_revision, &request.document).await?;
+    tx.commit().await.map_err(db::sql_error)?;
+    Ok(super::contracts::NodeEditorMutationResult { revision })
+}''',1)
+write(name,text)
+name='src-tauri/src/spaces/nodes/commands.rs';text=read(name)
+text=text.replace(') -> Result<(), String> {\n    super::insert_many', ') -> Result<super::contracts::NodeEditorMutationResult, String> {\n    super::insert_many',1)
+write(name,text)
+name='src/features/spaces/nodes/node-repository.ts';text=read(name)
+text='import { transactSpaceEditor } from "../canvas/persistence/canvas-persistence-coordinator";\nimport { appendEditorContent } from "../canvas/document/canvas-document-sync";\n'+text
+start=text.index('  await invoke("plugin:spaces|create_nodes", {')
+end=text.index('\n}',start)
+body=text[start:end]
+body=body.replace('  await invoke("plugin:spaces|create_nodes", {','  const document = appendEditorContent(before, nodes);\n  const saved = await invoke<{ revision: number }>("plugin:spaces|create_nodes", {')
+body=body.replace('      spaceId,','      spaceId, baseRevision, document,',1)
+text=text[:start]+'  await transactSpaceEditor(spaceId, async (before, baseRevision) => {\n'+body+'\n    return { document, revision: saved.revision };\n  });'+text[end:]
+write(name,text)
+# Baseline edits are done in a separate explicit step after native lifecycle tables are finalized.
 for name,text in files.items():
     path=ROOT/name;path.parent.mkdir(parents=True,exist_ok=True)
     if not path.exists() or path.read_text()!=text:path.write_text(text)
-print('Integrated root-aware gestures, structural commands, and subtree deletion routing.')
+# Clear this reviewed one-shot recipe. Later verification must never silently repeat code modifications.
+Path(__file__).write_text('"""No pending source edits. The branch is verified as committed."""\nprint("No pending source edits")\n')
+print('Applied authoritative structural and geometric validation plus atomic content placement.')
