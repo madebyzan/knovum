@@ -8,13 +8,13 @@ pub async fn persist_canvas_thumbnail(
     bytes: Vec<u8>,
 ) -> Result<String, String> {
     crate::blocking::run(move || {
-        if image::guess_format(&bytes).map_err(|error| error.to_string())? != image::ImageFormat::Jpeg {
+        if image::guess_format(&bytes).map_err(|error| error.to_string())?
+            != image::ImageFormat::Jpeg
+        {
             return Err("Canvas thumbnail must contain JPEG bytes".to_owned());
         }
-        let path = access::asset_directory(&app)?.join(format!(
-            "canvas-thumbnail-{}.jpg",
-            uuid::Uuid::new_v4()
-        ));
+        let path = access::asset_directory(&app)?
+            .join(format!("canvas-thumbnail-{}.jpg", uuid::Uuid::new_v4()));
         fs::write(&path, bytes).map_err(|error| error.to_string())?;
         Ok(path.to_string_lossy().into_owned())
     })

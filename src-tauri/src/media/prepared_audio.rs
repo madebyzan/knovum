@@ -40,7 +40,10 @@ pub fn prepare(
         return Err(TRANSCRIPTION_CANCELLED.into());
     }
     verify_content_revision(source, source_revision)?;
-    let key = format!("decoded-v1-{:x}", Sha256::digest(source_revision.as_bytes()));
+    let key = format!(
+        "decoded-v1-{:x}",
+        Sha256::digest(source_revision.as_bytes())
+    );
     let target = root.join(key);
     if target.exists() {
         let paths = AnalysisWorkspace::at(target);

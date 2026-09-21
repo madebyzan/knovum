@@ -81,4 +81,3 @@ pub(crate) fn is_http_url(value: &str) -> bool {
 
 #[cfg(test)]
 mod tests;
-

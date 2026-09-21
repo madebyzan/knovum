@@ -52,13 +52,9 @@ pub(super) async fn transcribe(
     if data["mediaAnalysis"]["sourceRevision"].as_str() != Some(request.source_revision.as_str()) {
         return Err("Transcription requires current media analysis".into());
     }
-    let transcript = transcription::transcribe_media(
-        app.clone(),
-        job_id.to_owned(),
-        source.clone(),
-        progress,
-    )
-    .await?;
+    let transcript =
+        transcription::transcribe_media(app.clone(), job_id.to_owned(), source.clone(), progress)
+            .await?;
     let revision = request.source_revision.clone();
     crate::blocking::run(move || {
         crate::file_inspection::verify_content_revision(Path::new(&source), &revision)

@@ -53,7 +53,6 @@ fn apply_intrinsic_geometry(
 #[cfg(test)]
 mod tests;
 
-
 fn set_optional_u32(object: &mut serde_json::Map<String, Value>, key: &str, value: Option<u32>) {
     if let Some(value) = value {
         object.insert(key.into(), Value::from(value));
