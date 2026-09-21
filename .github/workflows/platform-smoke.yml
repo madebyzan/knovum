@@ -43,6 +43,13 @@ jobs:
         run: |
           test -f pnpm-lock.yaml
           test -f src-tauri/Cargo.lock
+      - name: Install Protocol Buffers compiler (macOS)
+        if: runner.os == 'macOS'
+        run: brew install protobuf
+      - name: Install Protocol Buffers compiler (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: choco install protoc --no-progress -y
       - name: Install web dependencies
         run: pnpm install --frozen-lockfile
       - name: Run web gates

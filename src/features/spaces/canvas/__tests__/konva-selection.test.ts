@@ -1,0 +1,59 @@
+import { describe, expect, it, vi } from "vitest";
+import { nextTick, shallowRef } from "vue";
+
+import type { CanvasNodeLayoutV1 } from "../contract/canvas-document";
+import type { CanvasSelectionSnapshot } from "../contract/canvas-editor";
+import { useCanvasSelection } from "../konva/selection/use-canvas-selection";
+
+const layouts: CanvasNodeLayoutV1[] = [
+  {
+    nodeId: "a",
+    frame: { x: 0, y: 0, width: 100, height: 80, rotation: 0 },
+    sizeAuthority: "frame",
+    zIndex: 0,
+  },
+  {
+    nodeId: "b",
+    frame: { x: 140, y: 0, width: 100, height: 80, rotation: 0 },
+    sizeAuthority: "frame",
+    zIndex: 1,
+  },
+];
+
+describe("Konva canvas selection", () => {
+  it("preserves a multi-selection when an already-selected node begins a drag", () => {
+    const changed = vi.fn<(selection: CanvasSelectionSnapshot) => void>();
+    const selection = useCanvasSelection({
+      changed,
+      layouts: shallowRef(layouts),
+      relationBounds: shallowRef(new Map()),
+    });
+
+    selection.selectNode("a", pointer());
+    selection.selectNode("b", pointer({ shiftKey: true }));
+    selection.selectNode("b", pointer());
+
+    expect(selection.nodeIds.value).toEqual(new Set(["a", "b"]));
+  });
+
+  it("removes selected nodes that leave the projected scene", async () => {
+    const changed = vi.fn<(selection: CanvasSelectionSnapshot) => void>();
+    const currentLayouts = shallowRef(layouts);
+    const selection = useCanvasSelection({
+      changed,
+      layouts: currentLayouts,
+      relationBounds: shallowRef(new Map()),
+    });
+    selection.setNodeIds(["a", "b"]);
+
+    currentLayouts.value = [layouts[0]!];
+    await nextTick();
+
+    expect(selection.nodeIds.value).toEqual(new Set(["a"]));
+    expect(changed).toHaveBeenLastCalledWith(expect.objectContaining({ nodeIds: ["a"] }));
+  });
+});
+
+function pointer(init: PointerEventInit = {}) {
+  return new PointerEvent("pointerdown", init);
+}
