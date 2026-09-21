@@ -82,4 +82,3 @@ fn validate_section(object: &Map<String, Value>) -> Result<(), String> {
 
 #[cfg(test)]
 mod tests;
-

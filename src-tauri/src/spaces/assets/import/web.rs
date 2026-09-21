@@ -78,4 +78,3 @@ fn web_image_extension(media_type: &mime::Mime) -> Result<&'static str, String> 
 
 #[cfg(test)]
 mod tests;
-

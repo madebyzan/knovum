@@ -32,7 +32,10 @@ pub async fn reconcile_workspace(app: tauri::AppHandle) -> Result<(), String> {
     if failures.is_empty() {
         Ok(())
     } else {
-        Err(format!("Workspace recovery failed: {}", failures.join("; ")))
+        Err(format!(
+            "Workspace recovery failed: {}",
+            failures.join("; ")
+        ))
     }
 }
 

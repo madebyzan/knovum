@@ -16,7 +16,6 @@ pub async fn save_creation_workflow_run<R: Runtime>(
     persistence::save(&app, request).await
 }
 
-
 #[tauri::command]
 pub fn plan_creation_workflow_step(
     request: SaveWorkflowRunRequest,

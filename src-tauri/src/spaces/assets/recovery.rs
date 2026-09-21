@@ -28,7 +28,9 @@ pub async fn reconcile(app: &tauri::AppHandle) -> Result<(), String> {
         let space_id: String = match row.try_get("space_id") {
             Ok(id) => id,
             Err(error) => {
-                failures.push(format!("failed to read space id for node {node_id}: {error}"));
+                failures.push(format!(
+                    "failed to read space id for node {node_id}: {error}"
+                ));
                 continue;
             }
         };
@@ -42,7 +44,9 @@ pub async fn reconcile(app: &tauri::AppHandle) -> Result<(), String> {
         let mut data: Value = match serde_json::from_str(&raw) {
             Ok(value) => value,
             Err(error) => {
-                failures.push(format!("failed to parse JSON data for node {node_id}: {error}"));
+                failures.push(format!(
+                    "failed to parse JSON data for node {node_id}: {error}"
+                ));
                 continue;
             }
         };
@@ -56,7 +60,9 @@ pub async fn reconcile(app: &tauri::AppHandle) -> Result<(), String> {
             _ => Ok(()),
         };
         if let Err(error) = recovery {
-            failures.push(format!("failed to recover interrupted state for node {node_id}: {error}"));
+            failures.push(format!(
+                "failed to recover interrupted state for node {node_id}: {error}"
+            ));
         }
     }
 
@@ -75,7 +81,10 @@ pub async fn reconcile(app: &tauri::AppHandle) -> Result<(), String> {
     if failures.is_empty() {
         Ok(())
     } else {
-        Err(format!("Space asset recovery failed: {}", failures.join("; ")))
+        Err(format!(
+            "Space asset recovery failed: {}",
+            failures.join("; ")
+        ))
     }
 }
 

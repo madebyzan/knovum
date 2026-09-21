@@ -78,4 +78,3 @@ fn reject_source(metadata: &fs::Metadata) -> Result<(), String> {
 
 #[cfg(test)]
 mod tests;
-
