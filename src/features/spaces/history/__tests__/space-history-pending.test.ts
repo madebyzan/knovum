@@ -1,11 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { createSpaceHistoryState } from "../history-state";
-import {
-  beginSpaceMutation,
-  closeSpaceMutationAdmission,
-  waitForSpaceMutations,
-} from "../mutation-barrier";
+import { beginSpaceMutation, closeSpaceMutationAdmission, waitForSpaceMutations } from "../mutation-barrier";
 import { recordSpaceHistory, redoSpaceHistory, undoSpaceHistory } from "../stack";
 
 describe("space history pending mutations", () => {

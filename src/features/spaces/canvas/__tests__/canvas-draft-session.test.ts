@@ -5,10 +5,10 @@ import type { CanvasDocumentV1 } from "../contract/canvas-document";
 import type { SaveCanvasStateRequest, StoredCanvasState } from "../contract/canvas-persistence";
 
 type CanvasCommitResult = { document: CanvasDocumentV1; revision: number };
-import { flushSpaceSessionPersistence, runCanvasSessionTransition } from "../editor-session";
-import { useCanvasDocumentSession } from "../host/use-canvas-document-session";
 import { deferred, emptyCanvasDocument } from "../../testing/canvas-fixtures";
 import { createCanvasPersistenceFixture } from "../../testing/canvas-persistence-fixture";
+import { flushSpaceSessionPersistence, runCanvasSessionTransition } from "../editor-session";
+import { useCanvasDocumentSession } from "../host/use-canvas-document-session";
 
 const repository = vi.hoisted(() => ({
   load: vi.fn<(spaceId: string) => Promise<StoredCanvasState | null>>(),

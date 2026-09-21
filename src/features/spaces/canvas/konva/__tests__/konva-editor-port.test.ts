@@ -1,14 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { CanvasSurfaceEvents } from "../../contract/canvas-editor";
-import { createKonvaEditorPort } from "../create-canvas-editor-port";
-import { CanvasDocumentModel } from "../document/canvas-document-model";
 import {
   documentElement,
   editorPortDocument as document,
   editorPortHistory as history,
   editorPortHostEvents as hostEvents,
 } from "../../../__tests__/konva-editor-port-fixture";
+import type { CanvasSurfaceEvents } from "../../contract/canvas-editor";
+import { createKonvaEditorPort } from "../create-canvas-editor-port";
+import { CanvasDocumentModel } from "../document/canvas-document-model";
 
 describe("Konva editor port", () => {
   it("routes clipboard operations through product ports and uses the last canvas pointer", async () => {

@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  importJsonCanvasDocument,
-  mergeImportedJsonCanvasDocument,
-} from "../json-canvas-mapping";
+import { importJsonCanvasDocument, mergeImportedJsonCanvasDocument } from "../json-canvas-mapping";
 
 describe("JSON Canvas group backgrounds", () => {
   it.each(["cover", "ratio", "repeat"] as const)(

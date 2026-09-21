@@ -1,9 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import {
-  ConnectorGestureController,
-  type CanvasConnectorDraft,
-} from "../connector-gesture-controller";
+import { ConnectorGestureController, type CanvasConnectorDraft } from "../connector-gesture-controller";
 
 const layouts = [
   {
