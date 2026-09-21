@@ -10,8 +10,8 @@ import { useSelectionDerivations } from "../../knowledge-derivations/selection/u
 import { useSpaceStore } from "../../session/space-store";
 import type { SpaceUrlCaptureProjection } from "../../sources/url-capture-projection";
 import SpaceDerivationDialogs from "../derivations/SpaceDerivationDialogs.vue";
-import SpaceFind from "../SpaceFind.vue";
-import SpaceGlobalFind from "../SpaceGlobalFind.vue";
+import SpaceFind from "../search/SpaceFind.vue";
+import SpaceGlobalFind from "../search/SpaceGlobalFind.vue";
 import SpaceCanvasFeedback from "./SpaceCanvasFeedback.vue";
 import SpaceCanvasFocusBadge from "./SpaceCanvasFocusBadge.vue";
 import SpaceCanvasRelationBar from "./SpaceCanvasRelationBar.vue";

@@ -6,7 +6,7 @@ import { useI18n } from "vue-i18n";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import { useCanvasToolStore } from "../../canvas/canvas-tool-store";
 import { CANVAS_TOOL_COMMANDS } from "../../commands/canvas-tool-commands";
-import SpaceAddMenu from "../SpaceAddMenu.vue";
+import SpaceAddMenu from "../workspace/SpaceAddMenu.vue";
 
 const tools = useCanvasToolStore();
 const icons = { select: MousePointer2, pan: Hand, note: StickyNote, text: Type };
