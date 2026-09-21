@@ -28,13 +28,13 @@ export class NodeGestureController {
   readonly beginDrag = (primaryId: string) => {
     this.resizeGuides = [];
     this.options.updateFeedback(undefined);
-    const captured = captureCanvasNodeDragState(
-      this.options.layouts(),
-      this.options.nodes(),
-      this.options.selectedNodeIds(),
+    const captured = captureCanvasNodeDragState({
+      layouts: this.options.layouts(),
+      nodes: this.options.nodes(),
+      selectedNodeIds: this.options.selectedNodeIds(),
       primaryId,
-      this.options.stage(),
-    );
+      stage: this.options.stage(),
+    });
     if (!captured) return;
     this.drag = captured.state;
     this.dragNodes = captured.nodeRefs;

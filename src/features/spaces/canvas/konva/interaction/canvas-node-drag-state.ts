@@ -8,13 +8,16 @@ import {
   type CanvasTranslationGestureState,
 } from "./canvas-translation-snapping";
 
-export function captureCanvasNodeDragState(
-  layouts: readonly CanvasNodeLayoutV1[],
-  nodes: readonly SpaceCanvasNode[],
-  selectedNodeIds: ReadonlySet<string>,
-  primaryId: string,
-  stage: Konva.Stage | undefined,
-) {
+interface CaptureCanvasNodeDragStateOptions {
+  layouts: readonly CanvasNodeLayoutV1[];
+  nodes: readonly SpaceCanvasNode[];
+  selectedNodeIds: ReadonlySet<string>;
+  primaryId: string;
+  stage: Konva.Stage | undefined;
+}
+
+export function captureCanvasNodeDragState(options: CaptureCanvasNodeDragStateOptions) {
+  const { layouts, nodes, selectedNodeIds, primaryId, stage } = options;
   const locked = new Set(nodes.filter(({ data }) => data.locked).map(({ id }) => id));
   if (locked.has(primaryId)) return undefined;
   const selected = new Set(selectedNodeIds).add(primaryId);

@@ -46,46 +46,74 @@ function axisSnap(
   return spacingSnap(moving, index.tree, axis, tolerance) ?? alignmentSnap(moving, index, axis, tolerance);
 }
 
+type SnapAxis = "x" | "y";
+
 function alignmentSnap(
   moving: CanvasBounds,
   index: CanvasTranslationSnapIndex,
-  axis: "x" | "y",
+  axis: SnapAxis,
   tolerance: number,
 ) {
-  const targets = axis === "x" ? index.x : index.y;
-  const points =
-    axis === "x" ? [moving.left, moving.centerX, moving.right] : [moving.top, moving.centerY, moving.bottom];
-  let match: { offset: number; value: number } | undefined;
-  for (const point of points) {
-    const target = nearestSortedCanvasSnap(point, targets, tolerance);
-    if (target === undefined) continue;
-    const offset = target - point;
-    if (!match || Math.abs(offset) < Math.abs(match.offset)) match = { offset, value: target };
-  }
+  const match = nearestAlignment(
+    alignmentPoints(moving, axis),
+    axis === "x" ? index.x : index.y,
+    tolerance,
+  );
   if (!match) return undefined;
   const moved = translateCanvasBounds(
     moving,
     axis === "x" ? { x: match.offset, y: 0 } : { x: 0, y: match.offset },
   );
-  const extent = (axis === "x" ? index.xExtents : index.yExtents).get(match.value);
-  const guide: CanvasSnapGuide = {
-    kind: "alignment",
-    points:
-      axis === "x"
-        ? [
-            match.value,
-            Math.min(moved.top, extent?.[0] ?? moved.top),
-            match.value,
-            Math.max(moved.bottom, extent?.[1] ?? moved.bottom),
-          ]
-        : [
-            Math.min(moved.left, extent?.[0] ?? moved.left),
-            match.value,
-            Math.max(moved.right, extent?.[1] ?? moved.right),
-            match.value,
-          ],
+  return {
+    guides: [alignmentGuide(moved, index, axis, match.value)],
+    offset: match.offset,
   };
-  return { guides: [guide], offset: match.offset };
+}
+
+function alignmentPoints(moving: CanvasBounds, axis: SnapAxis) {
+  return axis === "x"
+    ? [moving.left, moving.centerX, moving.right]
+    : [moving.top, moving.centerY, moving.bottom];
+}
+
+function nearestAlignment(points: readonly number[], targets: readonly number[], tolerance: number) {
+  let match: { offset: number; value: number } | undefined;
+  for (const point of points) {
+    const target = nearestSortedCanvasSnap(point, targets, tolerance);
+    if (target === undefined) continue;
+    const candidate = { offset: target - point, value: target };
+    if (!match || Math.abs(candidate.offset) < Math.abs(match.offset)) match = candidate;
+  }
+  return match;
+}
+
+function alignmentGuide(
+  moved: CanvasBounds,
+  index: CanvasTranslationSnapIndex,
+  axis: SnapAxis,
+  value: number,
+): CanvasSnapGuide {
+  const extent = (axis === "x" ? index.xExtents : index.yExtents).get(value);
+  if (axis === "x") {
+    return {
+      kind: "alignment",
+      points: [
+        value,
+        Math.min(moved.top, extent?.[0] ?? moved.top),
+        value,
+        Math.max(moved.bottom, extent?.[1] ?? moved.bottom),
+      ],
+    };
+  }
+  return {
+    kind: "alignment",
+    points: [
+      Math.min(moved.left, extent?.[0] ?? moved.left),
+      value,
+      Math.max(moved.right, extent?.[1] ?? moved.right),
+      value,
+    ],
+  };
 }
 
 function spacingSnap(
