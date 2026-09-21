@@ -5,7 +5,8 @@ import type { CanvasDocumentV1 } from "../contract/canvas-document";
 import { projectCanvasScene } from "../konva/scene/scene-projection";
 import { createSpaceNotePayload } from "../../editor/tiptap-content";
 
-function sceneAt(x: number, y: number, width: number, height: number, rotation = 0) {
+function sceneAt(frame: { x: number; y: number; width: number; height: number; rotation?: number }) {
+  const { x, y, width, height, rotation = 0 } = frame;
   const document: CanvasDocumentV1 = {
     version: 1,
     viewport: { x: 0, y: 0, zoom: 1 },
@@ -34,12 +35,12 @@ function sceneAt(x: number, y: number, width: number, height: number, rotation =
 
 describe("canvas overview geometry", () => {
   it("fits the whole document independently of editor viewport", () => {
-    const scene = sceneAt(-500, 700, 1000, 500);
+    const scene = sceneAt({ x: -500, y: 700, width: 1000, height: 500 });
     expect(canvasOverviewViewport(scene, 480, 270)).toEqual({ x: 240, y: -283, scale: 0.44 });
   });
 
   it("includes rotated node corners", () => {
-    const viewport = canvasOverviewViewport(sceneAt(0, 0, 100, 200, 90), 480, 270);
+    const viewport = canvasOverviewViewport(sceneAt({ x: 0, y: 0, width: 100, height: 200, rotation: 90 }), 480, 270);
     expect(viewport.scale).toBe(1);
     expect(viewport.x).toBe(340);
     expect(viewport.y).toBe(85);

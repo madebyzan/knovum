@@ -14,7 +14,7 @@ describe("canvas content layout coordinator", () => {
         calls.push("flush");
         return true;
       },
-      setContentHeightFittingPaused: vi.fn(),
+      setContentHeightFittingPaused: vi.fn<(paused: boolean) => void>(),
     } as unknown as CanvasEditorPort;
     const coordinator = createCanvasContentLayoutCoordinator({
       directManipulation: () => false,

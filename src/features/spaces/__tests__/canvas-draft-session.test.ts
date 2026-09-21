@@ -1,7 +1,10 @@
 import { flushPromises } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { CanvasDocumentV1 } from "../canvas/contract/canvas-document";
 import type { SaveCanvasStateRequest, StoredCanvasState } from "../canvas/contract/canvas-persistence";
+
+type CanvasCommitResult = { document: CanvasDocumentV1; revision: number };
 import { flushSpaceSessionPersistence, runCanvasSessionTransition } from "../canvas/editor-session";
 import { useCanvasDocumentSession } from "../canvas/host/use-canvas-document-session";
 import { deferred, emptyCanvasDocument } from "../testing/canvas-fixtures";
@@ -71,7 +74,7 @@ describe("draft canvas persistence lifecycle", () => {
     const key = session.surfaceKey.value;
     const document = { ...emptyCanvasDocument, viewport: { x: 80, y: 120, zoom: 1.5 } };
     session.documentChanged(document);
-    const commit = vi.fn(async (baseRevision: number) => ({
+    const commit = vi.fn<(baseRevision: number) => Promise<CanvasCommitResult>>(async (baseRevision) => ({
       document,
       revision: await repository.save({ spaceId: "draft", baseRevision, document }),
     }));
@@ -107,7 +110,7 @@ describe("draft canvas persistence lifecycle", () => {
   it("propagates parent creation failure without turning an empty draft flush into a write", async () => {
     ensurePersisted.mockRejectedValue(new Error("Space creation failed"));
     await session.start();
-    const commit = vi.fn(async () => ({ document: emptyCanvasDocument, revision: 1 }));
+    const commit = vi.fn<() => Promise<CanvasCommitResult>>(async () => ({ document: emptyCanvasDocument, revision: 1 }));
     await expect(session.commitTransaction(commit)).rejects.toThrow("Space creation failed");
     await flushSpaceSessionPersistence();
     expect(commit).not.toHaveBeenCalled();
@@ -119,13 +122,15 @@ describe("draft canvas persistence lifecycle", () => {
     const parent = deferred<void>();
     ensurePersisted.mockReturnValue(parent.promise);
     await session.start();
-    const commit = vi.fn(async () => ({ document: emptyCanvasDocument, revision: 1 }));
+    const commit = vi.fn<() => Promise<CanvasCommitResult>>(async () => ({ document: emptyCanvasDocument, revision: 1 }));
     const result = session.commitTransaction(commit);
-    const rejected = expect(result).rejects.toThrow("Canvas transaction target changed");
+    const rejected = result.catch((error: unknown) => error);
     await flushPromises();
     session.dispose();
     parent.resolve(undefined);
-    await rejected;
+    await expect(rejected).resolves.toEqual(
+      expect.objectContaining({ message: "Canvas transaction target changed" }),
+    );
     expect(commit).not.toHaveBeenCalled();
     expect(repository.save).not.toHaveBeenCalled();
     expect(repository.load).not.toHaveBeenCalled();

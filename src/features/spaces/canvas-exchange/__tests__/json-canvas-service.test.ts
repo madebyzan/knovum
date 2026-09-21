@@ -52,7 +52,7 @@ describe("JSON Canvas application service", () => {
         observer(document);
         return () => undefined;
       },
-      setRelationColor: vi.fn(),
+      setRelationColor: vi.fn<CanvasEditorPort["setRelationColor"]>(),
       adoptDocument: vi.fn<(document: CanvasDocumentV1) => void>(),
     } as unknown as CanvasEditorPort;
     const port = createJsonCanvasExchangePort({
