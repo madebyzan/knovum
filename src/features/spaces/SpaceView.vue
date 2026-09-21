@@ -10,8 +10,8 @@ import SpaceCanvas from "./presentation/canvas/SpaceCanvas.vue";
 import SpaceTiptapEditor from "./presentation/editor/SpaceTiptapEditor.vue";
 import SpaceLibrary from "./presentation/library/SpaceLibrary.vue";
 import SpaceAudioRecordingDock from "./presentation/media/SpaceAudioRecordingDock.vue";
-import SpaceEditorLoading from "./presentation/SpaceEditorLoading.vue";
-import SpaceRecentlyDeleted from "./presentation/SpaceRecentlyDeleted.vue";
+import SpaceEditorLoading from "./presentation/editor/SpaceEditorLoading.vue";
+import SpaceRecentlyDeleted from "./presentation/deletion/SpaceRecentlyDeleted.vue";
 import { useSpaceStore } from "./session/space-store";
 import { useSpaceSessionLifecycle } from "./workspace/use-space-session-lifecycle";
 

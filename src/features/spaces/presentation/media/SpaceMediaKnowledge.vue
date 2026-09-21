@@ -5,7 +5,7 @@ import { useI18n } from "vue-i18n";
 
 import { useMediaKnowledge } from "../../media/use-media-knowledge";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
-import SpaceNodeEnrichmentStatus from "../SpaceNodeEnrichmentStatus.vue";
+import SpaceNodeEnrichmentStatus from "../inspector/SpaceNodeEnrichmentStatus.vue";
 import SpaceMediaChapterEditor from "./SpaceMediaChapterEditor.vue";
 import SpaceMediaLiveTranscript from "./SpaceMediaLiveTranscript.vue";
 import SpaceMediaSummaryEditor from "./SpaceMediaSummaryEditor.vue";
