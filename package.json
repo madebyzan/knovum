@@ -87,7 +87,6 @@
     "rbush": "4.0.1",
     "reka-ui": "^2.10.4",
     "tailwind-merge": "^3.6.0",
-    "tauri-plugin-clipboard-api": "^2.1.11",
     "tinykeys": "^4.0.0",
     "ufo": "^1.6.4",
     "vue": "^3.5.42",

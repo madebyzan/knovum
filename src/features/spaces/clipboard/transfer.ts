@@ -1,5 +1,5 @@
+import { invoke } from "@tauri-apps/api/core";
 import { compact, isString } from "es-toolkit";
-import { writeHtmlAndText } from "tauri-plugin-clipboard-api";
 
 import type { PositionedSpaceNode, SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { isSpaceSectionPayload } from "../model/nodes/capabilities";
@@ -19,10 +19,10 @@ export function writeSpaceClipboard(event: ClipboardEvent, nodes: readonly Posit
 
 export async function writeSpaceClipboardDirect(nodes: readonly PositionedSpaceNode[]) {
   if (!nodes.length) return false;
-  await writeHtmlAndText(
-    clipboardHtml(createSpaceClipboardPayload(nodes)),
-    clipboardText(nodes.map(({ node }) => node)),
-  );
+  await invoke<void>("plugin:clipboard|write_html_and_text", {
+    html: clipboardHtml(createSpaceClipboardPayload(nodes)),
+    text: clipboardText(nodes.map(({ node }) => node)),
+  });
   return true;
 }
 

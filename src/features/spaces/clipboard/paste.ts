@@ -1,6 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
 import { info as logInfo, warn as logWarn } from "@tauri-apps/plugin-log";
-import { hasFiles, readFiles } from "tauri-plugin-clipboard-api";
 
 import type { ImportedSpaceAsset } from "../assets/imported-asset";
 import { importSpaceClipboardImage } from "./image-import";
@@ -47,8 +46,8 @@ export async function pasteSpaceClipboard(handlers: SpaceClipboardPasteHandlers)
 }
 
 async function pasteClipboardFiles(handlers: SpaceClipboardPasteHandlers, setStage: (stage: string) => void) {
-  if (!(await hasFiles())) return false;
-  const paths = await readFiles();
+  if (!(await invoke<boolean>("plugin:clipboard|has_files"))) return false;
+  const paths = await invoke<string[]>("plugin:clipboard|read_files");
   await logInfo(`[spaces.paste] clipboard files detected; count=${paths.length}`);
   if (!paths.length) return false;
   setStage("import-files");

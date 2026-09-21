@@ -9,12 +9,15 @@ const clipboard = vi.hoisted(() => ({
   logWarn: vi.fn<(message: string) => Promise<void>>().mockResolvedValue(undefined),
 }));
 
-vi.mock("tauri-plugin-clipboard-api", () => ({
-  hasFiles: clipboard.hasFiles,
-  readFiles: clipboard.readFiles,
-}));
 vi.mock("../clipboard/image-import", () => ({ importSpaceClipboardImage: clipboard.importImage }));
-vi.mock("@tauri-apps/api/core", () => ({ invoke: clipboard.readContent }));
+vi.mock("@tauri-apps/api/core", () => ({
+  invoke: (command: string) => {
+    if (command === "plugin:spaces|read_space_clipboard_content") return clipboard.readContent();
+    if (command === "plugin:clipboard|has_files") return clipboard.hasFiles();
+    if (command === "plugin:clipboard|read_files") return clipboard.readFiles();
+    throw new Error(`Unexpected command: ${command}`);
+  },
+}));
 vi.mock("@tauri-apps/plugin-log", () => ({ info: clipboard.logInfo, warn: clipboard.logWarn }));
 
 import { pasteSpaceClipboard } from "../clipboard/paste";
