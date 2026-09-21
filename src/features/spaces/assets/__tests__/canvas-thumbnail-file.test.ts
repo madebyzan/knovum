@@ -1,40 +1,30 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const fs = vi.hoisted(() => ({
-  mkdir: vi.fn<(...args: unknown[]) => Promise<void>>(),
-  writeFile: vi.fn<(...args: unknown[]) => Promise<void>>(),
-}));
-vi.mock("@tauri-apps/plugin-fs", () => ({ ...fs, BaseDirectory: { AppData: 1 } }));
-vi.mock("@tauri-apps/api/path", () => ({
-  appDataDir: () => Promise.resolve("/managed"),
-  join: (...parts: string[]) => Promise.resolve(parts.join("/")),
-}));
+const invoke = vi.hoisted(() =>
+  vi.fn<(command: string, args?: { bytes?: number[] }) => Promise<string>>(),
+);
+vi.mock("@tauri-apps/api/core", () => ({ invoke }));
 
 import { saveCanvasThumbnailBlob } from "../canvas-thumbnail-file";
 
 describe("managed canvas thumbnail file", () => {
   beforeEach(() => {
-    fs.mkdir.mockReset();
-    fs.writeFile.mockReset();
-    vi.stubGlobal("crypto", { randomUUID: () => "thumbnail-id" });
+    invoke.mockReset().mockResolvedValue("/managed/spaces/assets/canvas-thumbnail.jpg");
   });
 
-  it("persists JPEG bytes rather than a Data URL", async () => {
+  it("sends JPEG bytes to the Space-owned Rust persistence boundary", async () => {
     const path = await saveCanvasThumbnailBlob(
-      new Blob([new Uint8Array([1, 2, 3])], {
-        type: "image/jpeg",
-      }),
+      new Blob([new Uint8Array([1, 2, 3])], { type: "image/jpeg" }),
     );
-    expect(path).toBe("/managed/spaces/assets/canvas-thumbnail-thumbnail-id.jpg");
-    expect(fs.writeFile).toHaveBeenCalledWith(
-      "spaces/assets/canvas-thumbnail-thumbnail-id.jpg",
-      new Uint8Array([1, 2, 3]),
-      { baseDir: 1 },
-    );
+
+    expect(path).toBe("/managed/spaces/assets/canvas-thumbnail.jpg");
+    expect(invoke).toHaveBeenCalledWith("plugin:spaces|persist_canvas_thumbnail", {
+      bytes: [1, 2, 3],
+    });
   });
 
-  it("rejects an unexpected encoding", async () => {
+  it("rejects an unexpected encoding before invoking persistence", async () => {
     await expect(saveCanvasThumbnailBlob(new Blob(["png"], { type: "image/png" }))).rejects.toThrow("JPEG");
-    expect(fs.writeFile).not.toHaveBeenCalled();
+    expect(invoke).not.toHaveBeenCalled();
   });
 });

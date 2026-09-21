@@ -115,7 +115,20 @@ describe("Space package manifest parser", () => {
       id: "d",
       spaceId: "s",
       outputNodeId: "missing",
-      inputs: [{ nodeId: "n", role: "primary", sourceRevision: "node1:source" }],
+      inputs: [
+        {
+          nodeId: "n",
+          sourceIdentity: "node:n",
+          sourceSnapshot: {
+            title: "N",
+            kind: "markdown",
+            originalUrl: null,
+            platform: null,
+          },
+          role: "primary",
+          sourceRevision: "node1:source",
+        },
+      ],
       actionKind: "image-background-removal",
       actionVersion: 1,
       engine: "u2netp-tract:1",

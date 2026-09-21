@@ -45,7 +45,7 @@ describe("Konva rich node interactions", () => {
         },
       ],
     });
-    await wrapper.get(".ProseMirror").trigger("blur");
+    await wrapper.setProps({ interactive: false });
     await flushPromises();
     expect(persist).toHaveBeenCalledWith(
       "note",

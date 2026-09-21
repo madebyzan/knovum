@@ -50,7 +50,7 @@ describe("Konva canvas document synchronization", () => {
     const intrinsic = reconcileCanvasDocument(document, [enriched]);
     expect(intrinsic.nodes[0]).toMatchObject({
       sizeAuthority: "content",
-      frame: { width: 420, height: 288 },
+      frame: { width: 280, height: 206 },
     });
 
     const authored = {

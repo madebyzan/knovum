@@ -26,10 +26,10 @@ describe("Space knowledge locations", () => {
       assetPath: "/managed/doc.pdf",
       fileName: "doc.pdf",
       sourceRevision: "sha256:source",
-      knowledgeRevision: "node:editor",
+      knowledgeRevision: "node1:editor",
     } as const;
     expect(isLocatorCurrent(locator({ kind: "pdf", page: 1 }), data)).toBe(true);
-    expect(isLocatorCurrent(locator({ kind: "node" }, "node:editor"), data)).toBe(true);
+    expect(isLocatorCurrent(locator({ kind: "node" }, "node1:editor"), data)).toBe(true);
     expect(isLocatorCurrent(locator({ kind: "pdf", page: 1 }, "sha256:old"), data)).toBe(false);
   });
 

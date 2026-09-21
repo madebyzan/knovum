@@ -19,11 +19,13 @@ const localeFragments = import.meta.glob("/src/locales/{en,zh-cn}/**/*.json", {
 // These namespaces key their messages by a serialized domain value, so the key carries that value's
 // own casing rather than the naming convention every other message key follows.
 const serializedValueMaps = new Set([
+  "settings.ai.agentConnections",
   "spaces.assistant.aiScope",
   "spaces.knowledge.knowledgeFieldKindLabel",
   "spaces.knowledge.knowledgeHealthIssue",
   "spaces.knowledge.relation",
   "spaces.processing.enrichmentJobType",
+  "spaces.processing.documentWarnings",
 ]);
 
 function flattenLocale(tree: LocaleTree, parent = "", keys = new Set<string>()) {

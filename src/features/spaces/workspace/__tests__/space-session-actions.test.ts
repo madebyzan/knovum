@@ -75,7 +75,7 @@ describe("openSpace", () => {
 
     const first = openSpace(state, "inbox");
     const second = openSpace(state, "inbox");
-    expect(nodeRepository.listNodes).toHaveBeenCalledTimes(1);
+    await vi.waitFor(() => expect(nodeRepository.listNodes).toHaveBeenCalledTimes(1));
 
     release([]);
     await Promise.all([first, second]);

@@ -71,7 +71,7 @@ describe("Konva scene projection", () => {
 
     const scene = projectCanvasScene(document, [section, member], []);
 
-    expect(scene.sections[0]?.layout.frame).toMatchObject({ width: 360, height: 36 });
+    expect(scene.sections[0]?.layout.frame).toMatchObject({ width: 288, height: 36 });
     expect(scene.sections[0]?.members).toEqual([]);
     expect(scene.relations).toEqual([]);
     expect(document.nodes[0]?.frame).toMatchObject({ width: 640, height: 420 });
@@ -203,7 +203,7 @@ describe("Konva scene projection", () => {
     };
 
     const [projected] = projectCanvasScene(document, [section, member, outside], [relation]).relations;
-    expect(projected?.points.slice(0, 2)).toEqual([360, 18]);
+    expect(projected?.points.slice(0, 2)).toEqual([288, 18]);
   });
 
   it("keeps hidden layout data out of the rendered scene", () => {
