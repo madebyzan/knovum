@@ -34,6 +34,17 @@ jobs:
         run: pnpm security:web
       - name: Run web gates
         run: pnpm check:web
+      - name: Generate formatter patch
+        if: failure()
+        run: |
+          pnpm exec oxfmt .
+          git diff --no-color > format.patch
+      - name: Upload formatter patch
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: format-patch
+          path: format.patch
 
   rust:
     name: Rust quality
