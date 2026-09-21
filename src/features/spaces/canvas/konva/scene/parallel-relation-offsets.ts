@@ -1,5 +1,5 @@
 import type { SpaceRelation } from "../../../model/relations/relation";
-import type { CanvasSceneNode } from "./scene-projection";
+import type { CanvasSceneNode } from "./canvas-scene";
 
 export function parallelRelationOffsets(
   relations: readonly SpaceRelation[],

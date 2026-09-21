@@ -1,9 +1,11 @@
-import type { SpaceHistoryState } from "./stack";
+interface SpaceMutationState {
+  pendingMutations: number;
+}
 
-const idleWaiters = new WeakMap<SpaceHistoryState, Set<() => void>>();
-const closedAdmissions = new WeakSet<SpaceHistoryState>();
+const idleWaiters = new WeakMap<SpaceMutationState, Set<() => void>>();
+const closedAdmissions = new WeakSet<SpaceMutationState>();
 
-export function beginSpaceMutation(history: SpaceHistoryState) {
+export function beginSpaceMutation(history: SpaceMutationState) {
   if (closedAdmissions.has(history)) throw new Error("Space session is transitioning");
   history.pendingMutations += 1;
   let active = true;
@@ -14,7 +16,7 @@ export function beginSpaceMutation(history: SpaceHistoryState) {
   };
 }
 
-function endSpaceMutation(history: SpaceHistoryState) {
+function endSpaceMutation(history: SpaceMutationState) {
   history.pendingMutations -= 1;
   if (history.pendingMutations !== 0) return;
   const waiters = idleWaiters.get(history);
@@ -23,7 +25,7 @@ function endSpaceMutation(history: SpaceHistoryState) {
   for (const resolve of waiters) resolve();
 }
 
-export async function waitForSpaceMutations(history: SpaceHistoryState) {
+export async function waitForSpaceMutations(history: SpaceMutationState) {
   if (history.pendingMutations === 0) return;
   await new Promise<void>((resolve) => {
     const waiters = idleWaiters.get(history) ?? new Set();
@@ -32,7 +34,7 @@ export async function waitForSpaceMutations(history: SpaceHistoryState) {
   });
 }
 
-export function closeSpaceMutationAdmission(history: SpaceHistoryState) {
+export function closeSpaceMutationAdmission(history: SpaceMutationState) {
   closedAdmissions.add(history);
   return () => closedAdmissions.delete(history);
 }

@@ -1,7 +1,7 @@
 import Konva from "konva";
 
-import type { CanvasPalette } from "./konva/presentation/use-canvas-palette";
-import type { CanvasSceneNode } from "./konva/scene/scene-projection";
+import type { CanvasPalette } from "../presentation/use-canvas-palette";
+import type { CanvasSceneNode } from "../scene/canvas-scene";
 
 interface CanvasOverviewNodeOptions {
   parent: Konva.Group;

@@ -1,7 +1,7 @@
 import { warn as logWarn } from "@tauri-apps/plugin-log";
 
-import { spaceAssetSource, spaceCanvasOverviewSource } from "../assets/node-preview-source";
-import type { CanvasScene } from "./konva/scene/scene-projection";
+import { spaceAssetSource, spaceCanvasOverviewSource } from "../../../assets/node-preview-source";
+import type { CanvasScene } from "../scene/canvas-scene";
 
 export async function loadCanvasOverviewImages(scene: CanvasScene, scale: number) {
   const candidates = scene.nodes.flatMap(({ layout, node }) => {

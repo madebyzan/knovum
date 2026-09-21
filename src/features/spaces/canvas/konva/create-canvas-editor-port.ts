@@ -1,4 +1,4 @@
-import { captureCanvasOverview, captureCanvasViewport } from "../canvas-overview-capture";
+import { captureCanvasOverview, captureCanvasViewport } from "./overview/canvas-overview-capture";
 import type { CanvasEditorPort } from "../contract/canvas-editor-port";
 import {
   alignCanvasLayouts,

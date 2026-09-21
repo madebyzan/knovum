@@ -3,9 +3,9 @@ import Konva from "konva";
 import { loadCanvasOverviewImages } from "./canvas-overview-assets";
 import { canvasOverviewViewport, canvasViewportThumbnail } from "./canvas-overview-geometry";
 import { drawCanvasOverviewNode } from "./canvas-overview-nodes";
-import type { CanvasViewport } from "./contract/canvas-editor-port";
-import type { CanvasPalette } from "./konva/presentation/use-canvas-palette";
-import type { CanvasScene } from "./konva/scene/scene-projection";
+import type { CanvasViewport } from "../../contract/canvas-editor-port";
+import type { CanvasPalette } from "../presentation/use-canvas-palette";
+import type { CanvasScene } from "../scene/canvas-scene";
 
 const WIDTH = 480;
 const HEIGHT = 270;

@@ -6,7 +6,7 @@ import type { TiptapJsonNode } from "../tiptap-document";
 import { createCanvasTextExtensions } from "../tiptap-extensions";
 import { tiptapContentSchema } from "../../model/nodes/schema/content";
 import { validateSpaceNodePayload } from "../../model/nodes/schema/node-payload";
-import { canvasTextHtml } from "../../presentation/canvas/nodes/canvas-text-html";
+import { canvasTextHtml } from "../canvas-text-html";
 
 describe("spaces Tiptap content", () => {
   it("creates Notes as structured Tiptap content instead of Markdown strings", () => {

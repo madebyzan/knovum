@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import { canvasOverviewViewport } from "../canvas-overview-geometry";
-import type { CanvasDocumentV1 } from "../contract/canvas-document";
-import { projectCanvasScene } from "../konva/scene/scene-projection";
-import { createSpaceNotePayload } from "../../editor/tiptap-content";
+import type { CanvasDocumentV1 } from "../../../contract/canvas-document";
+import { projectCanvasScene } from "../../scene/scene-projection";
+import { createSpaceNotePayload } from "../../../../editor/tiptap-content";
 
 function sceneAt(frame: { x: number; y: number; width: number; height: number; rotation?: number }) {
   const { x, y, width, height, rotation = 0 } = frame;

@@ -2,7 +2,7 @@
 import { computed } from "vue";
 
 import type { TiptapJsonNode } from "../../../editor/tiptap-document";
-import { canvasTextHtml } from "./canvas-text-html";
+import { canvasTextHtml } from "../../../editor/canvas-text-html";
 
 const props = defineProps<{
   content: TiptapJsonNode;

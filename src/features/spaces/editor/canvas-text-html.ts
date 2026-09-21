@@ -1,8 +1,8 @@
 import { generateHTML } from "@tiptap/core";
 import DOMPurify from "dompurify";
 
-import type { TiptapJsonNode } from "../../../editor/tiptap-document";
-import { createCanvasTextExtensions } from "../../../editor/tiptap-extensions";
+import type { TiptapJsonNode } from "./tiptap-document";
+import { createCanvasTextExtensions } from "./tiptap-extensions";
 
 const extensions = createCanvasTextExtensions("");
 const htmlByContent = new WeakMap<TiptapJsonNode, string>();
