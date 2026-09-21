@@ -10,12 +10,12 @@ import UiDropdownMenu from "../../../../shared/ui/UiDropdownMenu.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiInput from "../../../../shared/ui/UiInput.vue";
 import { useCanvasToolStore } from "../../canvas/canvas-tool-store";
-import { useAddMenu } from "./use-add-menu";
 import AgentCreationDialog from "../AgentCreationDialog.vue";
-import SpaceKnowledgeTypeManager from "../knowledge/SpaceKnowledgeTypeManager.vue";
-import SpaceAddMenuContent from "./SpaceAddMenuContent.vue";
 import SpaceCustomKnowledgeObjectDialog from "../knowledge/SpaceCustomKnowledgeObjectDialog.vue";
+import SpaceKnowledgeTypeManager from "../knowledge/SpaceKnowledgeTypeManager.vue";
 import SpacePortalDialog from "../SpacePortalDialog.vue";
+import SpaceAddMenuContent from "./SpaceAddMenuContent.vue";
+import { useAddMenu } from "./use-add-menu";
 
 const { t } = useI18n();
 const tools = useCanvasToolStore();

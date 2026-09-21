@@ -9,9 +9,9 @@ import { useDerivationMetadata } from "../../knowledge-derivations/use-derivatio
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { isSpaceManagedAssetPayload } from "../../model/nodes/capabilities";
 import { useSpaceStore } from "../../session/space-store";
-import SpaceGroundedDocumentDetails from "../knowledge/SpaceGroundedDocumentDetails.vue";
 import SpaceDerivationFailureDetails from "../derivations/SpaceDerivationFailureDetails.vue";
 import SpaceDerivationMetadataView from "../derivations/SpaceDerivationMetadataView.vue";
+import SpaceGroundedDocumentDetails from "../knowledge/SpaceGroundedDocumentDetails.vue";
 import SpaceInspectorSection from "./SpaceInspectorSection.vue";
 
 const props = defineProps<{ node: SpaceCanvasNode }>();
