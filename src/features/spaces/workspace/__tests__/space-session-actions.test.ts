@@ -40,8 +40,8 @@ vi.mock("../../knowledge/relations/relation-repository", () => ({
   listRelations: relationRepository.listRelations,
 }));
 vi.mock("../../knowledge/indexing/index-scheduler", () => ({
-  releaseKnowledgeIndex: vi.fn(),
-  scheduleSpaceKnowledgeIndex: vi.fn(),
+  releaseKnowledgeIndex: vi.fn<(spaceId: string) => void>(),
+  scheduleSpaceKnowledgeIndex: vi.fn<(spaceId: string) => void>(),
 }));
 
 function context(activeSpaceId = "inbox"): SpaceSessionContext {

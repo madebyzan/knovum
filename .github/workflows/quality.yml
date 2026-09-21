@@ -43,7 +43,7 @@ jobs:
       - name: Install Tauri Linux prerequisites
         run: |
           sudo apt-get update
-          sudo apt-get install -y             libwebkit2gtk-4.1-dev             build-essential             curl             wget             file             libxdo-dev             libssl-dev             libayatana-appindicator3-dev             librsvg2-dev
+          sudo apt-get install -y             libwebkit2gtk-4.1-dev             build-essential             curl             wget             file             libxdo-dev             libssl-dev             libayatana-appindicator3-dev             librsvg2-dev             protobuf-compiler
       - name: Require committed lockfile
         run: test -f src-tauri/Cargo.lock
       - name: Verify Rust architecture boundaries
