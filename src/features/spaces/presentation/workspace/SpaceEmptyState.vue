@@ -3,10 +3,10 @@ import { FilePlus2, Inbox, StickyNote } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import UiButton from "../../../shared/ui/UiButton.vue";
-import { importSpaceFromPicker } from "../assets/import-flow";
-import { createSpaceNotePayload } from "../editor/tiptap-content";
-import { useSpaceStore } from "../session/space-store";
+import UiButton from "../../../../shared/ui/UiButton.vue";
+import { importSpaceFromPicker } from "../../assets/import-flow";
+import { createSpaceNotePayload } from "../../editor/tiptap-content";
+import { useSpaceStore } from "../../session/space-store";
 
 const store = useSpaceStore();
 const { t } = useI18n();

@@ -4,8 +4,8 @@ import { storeToRefs } from "pinia";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { useSpaceStore } from "../session/space-store";
-import { useSpaceManagementMenu } from "../workspace/use-space-management-menu";
+import { useSpaceStore } from "../../session/space-store";
+import { useSpaceManagementMenu } from "../../workspace/use-space-management-menu";
 import SpaceSidebarOutline from "./SpaceSidebarOutline.vue";
 
 const store = useSpaceStore();

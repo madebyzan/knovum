@@ -3,14 +3,14 @@ import { computed, reactive, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import UiButton from "../../../shared/ui/UiButton.vue";
-import UiNumberField from "../../../shared/ui/UiNumberField.vue";
-import UiTextarea from "../../../shared/ui/UiTextarea.vue";
-import { createSubtitledVideo, subtitleVideoInputs } from "../knowledge-derivations/subtitled-video";
-import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
-import type { SpaceSubtitlePayload } from "../model/nodes/node-payload";
-import { useSpaceStore } from "../session/space-store";
-import SpaceSubtitleCueList from "./media/SpaceSubtitleCueList.vue";
+import UiButton from "../../../../shared/ui/UiButton.vue";
+import UiNumberField from "../../../../shared/ui/UiNumberField.vue";
+import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
+import { createSubtitledVideo, subtitleVideoInputs } from "../../knowledge-derivations/subtitled-video";
+import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
+import type { SpaceSubtitlePayload } from "../../model/nodes/node-payload";
+import { useSpaceStore } from "../../session/space-store";
+import SpaceSubtitleCueList from "../media/SpaceSubtitleCueList.vue";
 
 const props = defineProps<{ node: SpaceCanvasNode }>();
 const store = useSpaceStore();

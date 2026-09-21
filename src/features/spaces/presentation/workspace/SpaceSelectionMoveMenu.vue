@@ -5,9 +5,9 @@ import { storeToRefs } from "pinia";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import UiDropdownMenu from "../../../shared/ui/UiDropdownMenu.vue";
-import UiIconButton from "../../../shared/ui/UiIconButton.vue";
-import { useSpaceStore } from "../session/space-store";
+import UiDropdownMenu from "../../../../shared/ui/UiDropdownMenu.vue";
+import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
+import { useSpaceStore } from "../../session/space-store";
 
 const emit = defineEmits<{ move: [spaceId: string] }>();
 const store = useSpaceStore();

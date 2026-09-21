@@ -6,11 +6,11 @@ import { storeToRefs } from "pinia";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import UiBadge from "../../../shared/ui/UiBadge.vue";
-import UiInput from "../../../shared/ui/UiInput.vue";
-import { useCanvasEditorSession, useCanvasSelectionProjection } from "../canvas/editor-session";
-import { useSpaceStore } from "../session/space-store";
-import { popupSpaceContextMenu, spaceMenuItem } from "../workspace/space-menu";
+import UiBadge from "../../../../shared/ui/UiBadge.vue";
+import UiInput from "../../../../shared/ui/UiInput.vue";
+import { useCanvasEditorSession, useCanvasSelectionProjection } from "../../canvas/editor-session";
+import { useSpaceStore } from "../../session/space-store";
+import { popupSpaceContextMenu, spaceMenuItem } from "../../workspace/space-menu";
 
 withDefaults(defineProps<{ mode?: "both" | "browse" | "selection" }>(), { mode: "both" });
 const store = useSpaceStore();

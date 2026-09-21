@@ -2,9 +2,9 @@
 import { inject, nextTick, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { workspaceSidebarKey } from "../../../shared/contracts/workspace-sidebar";
-import UiScrollArea from "../../../shared/ui/UiScrollArea.vue";
-import { useSpaceStore } from "../session/space-store";
+import { workspaceSidebarKey } from "../../../../shared/contracts/workspace-sidebar";
+import UiScrollArea from "../../../../shared/ui/UiScrollArea.vue";
+import { useSpaceStore } from "../../session/space-store";
 import SpaceOutline from "./SpaceOutline.vue";
 
 const store = useSpaceStore();

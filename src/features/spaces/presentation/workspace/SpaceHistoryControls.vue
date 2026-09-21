@@ -3,8 +3,8 @@ import { ChevronLeft, ChevronRight } from "@lucide/vue";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
 
-import UiIconButton from "../../../shared/ui/UiIconButton.vue";
-import { useSpaceStore } from "../session/space-store";
+import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
+import { useSpaceStore } from "../../session/space-store";
 
 const store = useSpaceStore();
 const { canNavigateBack, canNavigateForward, workspaceMode } = storeToRefs(store);

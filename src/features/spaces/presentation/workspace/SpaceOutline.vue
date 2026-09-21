@@ -6,12 +6,12 @@ import { storeToRefs } from "pinia";
 import { computed, inject, ref, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { workspaceSidebarKey } from "../../../shared/contracts/workspace-sidebar";
-import { useCanvasEditorSession } from "../canvas/editor-session";
-import { openSpaceNode, selectAndRevealSpaceNode } from "../canvas/selection-actions";
-import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
-import { useSpaceStore } from "../session/space-store";
-import { popupSpaceContextMenu, spaceMenuItem } from "../workspace/space-menu";
+import { workspaceSidebarKey } from "../../../../shared/contracts/workspace-sidebar";
+import { useCanvasEditorSession } from "../../canvas/editor-session";
+import { openSpaceNode, selectAndRevealSpaceNode } from "../../canvas/selection-actions";
+import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
+import { useSpaceStore } from "../../session/space-store";
+import { popupSpaceContextMenu, spaceMenuItem } from "../../workspace/space-menu";
 import SpaceOutlineRow from "./SpaceOutlineRow.vue";
 
 const store = useSpaceStore();

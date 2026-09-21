@@ -2,8 +2,8 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import UiBadge from "../../../shared/ui/UiBadge.vue";
-import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
+import UiBadge from "../../../../shared/ui/UiBadge.vue";
+import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 
 const props = defineProps<{ node: SpaceCanvasNode }>();
 const { t } = useI18n();
