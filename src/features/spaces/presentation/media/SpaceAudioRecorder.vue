@@ -46,16 +46,22 @@ function reportLifecycleError(error: unknown) {
   emit("failed");
 }
 
+async function synchronizeRecording(isOpen: boolean, spaceId: string | undefined) {
+  await controller.invalidate();
+  if (!disposed && isOpen && open.value && props.spaceId === spaceId) {
+    await controller.start();
+  }
+}
+
 watch(
   () => [open.value, props.spaceId] as const,
   ([isOpen, spaceId]) => {
     transition = transition
-      .then(async () => {
-        await controller.invalidate();
-        if (!disposed && isOpen && open.value && props.spaceId === spaceId)
-          void controller.start().catch(reportLifecycleError);
+      .catch((error) => {
+        reportLifecycleError(error);
+        return undefined;
       })
-      .catch(reportLifecycleError);
+      .then(() => synchronizeRecording(isOpen, spaceId));
   },
   { immediate: true },
 );

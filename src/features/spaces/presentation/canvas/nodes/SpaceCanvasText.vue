@@ -34,7 +34,7 @@ const { beginEditing, cancelEditing, editing, editor, save } = useCanvasTextEdit
   persist: props.persist,
 });
 
-function fitContentHeight(height: number) {
+function reportContentHeight(height: number) {
   props.fitContentHeight(props.id, {
     height,
     typographyScale: props.typographyScale,
@@ -58,7 +58,7 @@ function fitContentHeight(height: number) {
       :default-alignment="textAlign"
       :typography-scale="typographyScale"
     />
-    <SpaceCanvasTextPlane :scale="typographyScale" @content-height="fitContentHeight">
+    <SpaceCanvasTextPlane :scale="typographyScale" @content-height="reportContentHeight">
       <EditorContent
         v-if="editing && editor"
         :editor="editor"

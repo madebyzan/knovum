@@ -79,11 +79,11 @@ export function useCanvasDocumentSession(options: CanvasDocumentSessionOptions) 
   function persist() {
     if (persistenceReady) return persistenceReady;
     const expectedSession = currentSessionIdentity();
-    const pending = Promise.resolve().then(async () => {
+    const pending = (async () => {
       await options.ensurePersisted();
       requireCurrentCanvasSession(expectedSession, currentSessionIdentity());
       await openStorage("create");
-    });
+    })();
     persistenceReady = pending;
     // A failed parent creation remains an action failure, not a permanently poisoned draft session.
     void pending.catch(() => {

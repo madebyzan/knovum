@@ -125,8 +125,8 @@ export function useKnowledgeTypeManager(open: Ref<boolean>) {
       await refreshTypes(spaceId);
       saving.value = false;
       if (activeSpaceId.value === spaceId) reset();
-    } catch (error) {
-      toast.error(String(error));
+    } catch (cause) {
+      toast.error(String(cause));
     } finally {
       saving.value = false;
     }

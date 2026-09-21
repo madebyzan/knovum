@@ -10,20 +10,20 @@ import { useSpacePackageTransfer } from "../package/use-space-package-transfer";
 import { useSpaceStore } from "../session/space-store";
 import { popupSpaceContextMenu, spaceMenuItem, spaceSubmenu, type SpaceMenuItem } from "./space-menu";
 
+async function exchange(operation: () => Promise<boolean>, success: string) {
+  try {
+    if (await operation()) toast.success(success);
+  } catch (error) {
+    toast.error(String(error));
+  }
+}
+
 export function useSpaceManagementMenu() {
   const store = useSpaceStore();
   const dock = useContextDock();
   const packages = useSpacePackageTransfer();
   const { activePort } = useCanvasExchangeSession();
   const { t } = useI18n();
-
-  async function exchange(operation: () => Promise<boolean>, success: string) {
-    try {
-      if (await operation()) toast.success(success);
-    } catch (error) {
-      toast.error(String(error));
-    }
-  }
 
   async function exportCanvas(space: Space, port: CanvasExchangePort) {
     await store.commitActiveSession();

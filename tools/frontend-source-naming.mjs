@@ -17,7 +17,7 @@ export function checkFrontendSourceNaming(root, sourceRoot, files) {
     const suffix = suffixFailure(root, file, name, segments);
     if (suffix) failures.push(suffix);
     if (name.endsWith(".test.ts")) {
-      checkTestOwner(root, file, name, sourceOwners, failures);
+      checkTestOwner({ root, file, name, sourceOwners, failures });
     }
   }
 
@@ -45,7 +45,7 @@ function sourceStem(name) {
   return undefined;
 }
 
-function checkTestOwner(root, file, name, sourceOwners, failures) {
+function checkTestOwner({ root, file, name, sourceOwners, failures }) {
   const stem = name.slice(0, -".test.ts".length);
   const owners = sourceOwners.get(stem) ?? [];
   if (owners.length !== 1) return;

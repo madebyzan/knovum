@@ -60,6 +60,7 @@ export function createCanvasDocumentTransactions(options: CanvasDocumentTransact
     tail = result.then(
       () => {
         count -= 1;
+        return undefined;
       },
       () => {
         count -= 1;
@@ -68,6 +69,7 @@ export function createCanvasDocumentTransactions(options: CanvasDocumentTransact
           pendingDocument = undefined;
           queue?.schedule(() => pending);
         }
+        return undefined;
       },
     );
     const committed = await result;
