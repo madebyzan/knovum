@@ -1,14 +1,14 @@
 import type { Ref } from "vue";
 
 import { recordSpaceHistory, type SpaceHistoryState } from "../../history/stack";
+import { canonicalRelationEndpoints } from "../../model/relations/relation";
+import type { SpaceRelation, SpaceRelationKind } from "../../model/relations/relation";
 import {
   createRelation as persistRelation,
   removeRelation,
   restoreRelation,
   updateRelation,
 } from "./relation-repository";
-import { canonicalRelationEndpoints } from "../../model/relations/relation";
-import type { SpaceRelation, SpaceRelationKind } from "../../model/relations/relation";
 
 export interface RelationContext {
   activeSpaceId: Ref<string | undefined>;

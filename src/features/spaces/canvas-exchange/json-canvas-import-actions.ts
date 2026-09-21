@@ -1,23 +1,20 @@
 import { scheduleSpaceAssetProcessing } from "../assets/processing-scheduler";
-import type {
-  CanvasJsonImportCommitResult,
-  CanvasJsonImportRequest,
-} from "./json-canvas-import-contract";
-import { importJsonCanvas as persistJsonCanvas } from "./json-canvas-import-repository";
-import { mergeImportedJsonCanvasDocument } from "./json-canvas-mapping";
-import { resolveImportedRelations } from "./json-canvas-relations";
 import type { SpacePlacement } from "../canvas/navigation-requests";
 import { setImportedCanvasNodesDeleted } from "../canvas/persistence/canvas-selection-repository";
 import { prepareSpaceKnowledgePayload } from "../knowledge/model/node-knowledge";
 import { isSpaceManagedAssetPayload } from "../model/nodes/capabilities";
 import { validateSpaceNodePayload } from "../model/nodes/schema/node-payload";
+import type { createSpaceMutations } from "../nodes/node-mutations";
 import type { SpaceState } from "../session/session-state";
+import type { CanvasJsonImportCommitResult, CanvasJsonImportRequest } from "./json-canvas-import-contract";
+import { importJsonCanvas as persistJsonCanvas } from "./json-canvas-import-repository";
+import { mergeImportedJsonCanvasDocument } from "./json-canvas-mapping";
 import {
   completeJsonCanvasPreparation,
   discardJsonCanvasPreparation,
   prepareJsonCanvasNodes,
 } from "./json-canvas-node-preparation";
-import type { createSpaceMutations } from "../nodes/node-mutations";
+import { resolveImportedRelations } from "./json-canvas-relations";
 
 interface JsonCanvasImportContext {
   ensureActiveSpacePersisted(): Promise<void>;

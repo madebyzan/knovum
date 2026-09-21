@@ -1,3 +1,4 @@
+import { formatOptionalBytes } from "../../../foundation/format/bytes";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { isSpaceManagedAssetPayload } from "../model/nodes/capabilities";
@@ -9,7 +10,6 @@ import {
   removeSpaceAsset,
   type PreparedSpaceImport,
 } from "./asset-operations";
-import { formatOptionalBytes } from "../../../foundation/format/bytes";
 import type { SpaceImportContext, SpaceImportSource } from "./import-contract";
 import { importedSpaceNodePayload } from "./imported-asset-payload";
 import { scheduleSpaceAssetProcessing } from "./processing-scheduler";

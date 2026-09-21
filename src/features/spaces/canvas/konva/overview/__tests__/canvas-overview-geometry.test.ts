@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { canvasOverviewViewport } from "../canvas-overview-geometry";
+import { createSpaceNotePayload } from "../../../../editor/tiptap-content";
 import type { CanvasDocumentV1 } from "../../../contract/canvas-document";
 import { projectCanvasScene } from "../../scene/scene-projection";
-import { createSpaceNotePayload } from "../../../../editor/tiptap-content";
+import { canvasOverviewViewport } from "../canvas-overview-geometry";
 
 function sceneAt(frame: { x: number; y: number; width: number; height: number; rotation?: number }) {
   const { x, y, width, height, rotation = 0 } = frame;
@@ -40,7 +40,11 @@ describe("canvas overview geometry", () => {
   });
 
   it("includes rotated node corners", () => {
-    const viewport = canvasOverviewViewport(sceneAt({ x: 0, y: 0, width: 100, height: 200, rotation: 90 }), 480, 270);
+    const viewport = canvasOverviewViewport(
+      sceneAt({ x: 0, y: 0, width: 100, height: 200, rotation: 90 }),
+      480,
+      270,
+    );
     expect(viewport.scale).toBe(1);
     expect(viewport.x).toBe(340);
     expect(viewport.y).toBe(85);

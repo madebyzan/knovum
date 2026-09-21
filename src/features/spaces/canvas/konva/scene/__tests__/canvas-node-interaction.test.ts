@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { canvasNodeInteraction } from "../canvas-node-interaction";
-import { projectSelectionTransformPolicy } from "../../selection/selection-transform-policy";
 import { createSpaceNotePayload, createSpaceTextPayload } from "../../../../editor/tiptap-content";
 import type { SpaceCanvasNode } from "../../../../model/nodes/canvas-node";
 import type { SpaceNodePayload } from "../../../../model/nodes/node-payload";
 import type { CanvasNodeLayoutV1 } from "../../../contract/canvas-document";
+import { projectSelectionTransformPolicy } from "../../selection/selection-transform-policy";
+import { canvasNodeInteraction } from "../canvas-node-interaction";
 
 describe("canvas node interaction policy", () => {
   it("distinguishes media controls on selection from embedded editing on activation", () => {
@@ -36,9 +36,11 @@ describe("canvas node interaction policy", () => {
         }),
       ).activationMode,
     ).toBe("select-to-interact");
-    expect(canvasNodeInteraction(canvasNode("file", { kind: "file", title: "doc.pdf", fileName: "doc.pdf", assetPath: "/doc.pdf" })).activationMode).toBe(
-      "primary",
-    );
+    expect(
+      canvasNodeInteraction(
+        canvasNode("file", { kind: "file", title: "doc.pdf", fileName: "doc.pdf", assetPath: "/doc.pdf" }),
+      ).activationMode,
+    ).toBe("primary");
     expect(
       canvasNodeInteraction(canvasNode("section", { kind: "section", title: "Section" })).activationMode,
     ).toBe("primary");

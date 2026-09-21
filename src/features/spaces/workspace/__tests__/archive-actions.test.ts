@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
 
+import { createTestSessionContext, createTestSpace } from "../../__tests__/test-session-context.test";
 import type { SpaceCredential } from "../../model/credential";
 import type { Space } from "../../model/space";
 import { archiveSpace, permanentlyDeleteSpace, unarchiveSpace } from "../archive-actions";
 import type { SpaceSessionContext } from "../space-session-actions";
-import { createTestSessionContext, createTestSpace } from "../../__tests__/test-session-context.test";
 
 const lifecycleRepository = vi.hoisted(() => ({
   archiveSpace: vi.fn<(id: string) => Promise<void>>(),

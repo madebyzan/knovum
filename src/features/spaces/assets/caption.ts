@@ -1,6 +1,6 @@
+import { formatOptionalBytes } from "../../../foundation/format/bytes";
 import type { SpaceCodePayload, SpaceFilePayload } from "../model/nodes/node-payload";
 import { classifyFilePresentation, fileCaptionKey, type SpaceCaptionKey } from "./file-presentation";
-import { formatOptionalBytes } from "../../../foundation/format/bytes";
 
 /**
  * Media is deliberately absent: an image, a video or an audio player already says what it is, and

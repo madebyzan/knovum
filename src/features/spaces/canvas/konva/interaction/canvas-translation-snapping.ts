@@ -54,11 +54,7 @@ function alignmentSnap(
   axis: SnapAxis,
   tolerance: number,
 ) {
-  const match = nearestAlignment(
-    alignmentPoints(moving, axis),
-    axis === "x" ? index.x : index.y,
-    tolerance,
-  );
+  const match = nearestAlignment(alignmentPoints(moving, axis), axis === "x" ? index.x : index.y, tolerance);
   if (!match) return undefined;
   const moved = translateCanvasBounds(
     moving,

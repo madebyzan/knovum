@@ -45,7 +45,9 @@ describe("Konva editor port", () => {
       selectedNodeIds: () => new Set(["selected"]),
       setSelection() {},
       setViewport() {},
-      palette: () => { throw new Error("Palette is unused in this test"); },
+      palette: () => {
+        throw new Error("Palette is unused in this test");
+      },
       size: () => ({ width: 800, height: 600 }),
       viewport: () => document.viewport,
       onCommitGesture: async (request) => ({ document: request.document, revision: 1, history }),
@@ -121,7 +123,9 @@ describe("Konva editor port", () => {
       selectedNodeIds: () => new Set(["selected"]),
       setSelection,
       setViewport,
-      palette: () => { throw new Error("Palette is unused in this test"); },
+      palette: () => {
+        throw new Error("Palette is unused in this test");
+      },
       size: () => ({ width: 800, height: 600 }),
       viewport: () => document.viewport,
       ...hostEvents(),

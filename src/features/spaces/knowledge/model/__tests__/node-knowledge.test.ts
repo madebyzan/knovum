@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
+import type { SpaceNodePayload } from "../../../model/nodes/node-payload";
 import { prepareSpaceKnowledgePayload } from "../node-knowledge";
 import { knowledgeRevision } from "../revision";
-import type { SpaceNodePayload } from "../../../model/nodes/node-payload";
 
 describe("Knowledge revision preparation", () => {
   it("ignores local Tiptap asset paths and changes when semantic text changes", () => {

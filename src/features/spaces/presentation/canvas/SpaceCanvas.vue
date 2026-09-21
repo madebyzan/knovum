@@ -4,6 +4,7 @@ import { useI18n } from "vue-i18n";
 
 import type { CanvasExchangePort } from "../../canvas-exchange/canvas-exchange-port";
 import { registerCanvasExchangePort } from "../../canvas-exchange/canvas-exchange-session";
+import { createCanvasSelectionActions } from "../../canvas/canvas-selection-actions";
 import { useCanvasToolStore } from "../../canvas/canvas-tool-store";
 import type { CanvasHostEvents } from "../../canvas/contract/canvas-editor";
 import type { CanvasEditorPort } from "../../canvas/contract/canvas-editor-port";
@@ -18,7 +19,6 @@ import {
 import CanvasSurfaceHost from "../../canvas/host/CanvasSurfaceHost.vue";
 import { isSpaceNodeOpenable, openSpaceNode } from "../../canvas/selection-actions";
 import { useContextDock } from "../../canvas/use-context-dock";
-import { createCanvasSelectionActions } from "../../canvas/canvas-selection-actions";
 import { useSpaceStore } from "../../session/space-store";
 import { createCanvasContentLayoutCoordinator } from "./canvas-content-layout-coordinator";
 import { createCanvasNodeContentPersistence } from "./canvas-node-content-persistence";

@@ -1,4 +1,3 @@
-import type { SpacePlacement } from "./navigation-requests";
 import type { SpaceSavedViewFilter } from "../knowledge/model/projections";
 import { snapshotSpaceQueryFilter } from "../knowledge/model/query-filter";
 import {
@@ -8,6 +7,7 @@ import {
 } from "../knowledge/model/relation-graph";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceState } from "../session/session-state";
+import type { SpacePlacement } from "./navigation-requests";
 
 export function createCanvasFocusActions(state: SpaceState, placement: SpacePlacement) {
   function focusSection(id: string) {

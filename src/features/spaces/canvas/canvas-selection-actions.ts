@@ -1,13 +1,3 @@
-import type {
-  CanvasCutSelectionRequest,
-  CanvasDeleteSelectionRequest,
-  CanvasNodePlacement,
-} from "./contract/canvas-editor";
-import {
-  deleteCanvasSelection,
-  restoreCanvasSelection,
-} from "./persistence/canvas-selection-repository";
-import { copySpaceSelectionToClipboard, duplicateSpaceSelection } from "./selection-actions";
 import { writeSpaceClipboardDirect } from "../clipboard/transfer";
 import { scheduleKnowledgeIndex } from "../knowledge/indexing/index-scheduler";
 import { prepareSpaceKnowledgePayload } from "../knowledge/model/node-knowledge";
@@ -15,6 +5,13 @@ import type { PositionedSpaceNode } from "../model/nodes/canvas-node";
 import { validateSpaceNodePayload } from "../model/nodes/schema/node-payload";
 import { omit } from "../organization/selection-mutations";
 import type { useSpaceStore } from "../session/space-store";
+import type {
+  CanvasCutSelectionRequest,
+  CanvasDeleteSelectionRequest,
+  CanvasNodePlacement,
+} from "./contract/canvas-editor";
+import { deleteCanvasSelection, restoreCanvasSelection } from "./persistence/canvas-selection-repository";
+import { copySpaceSelectionToClipboard, duplicateSpaceSelection } from "./selection-actions";
 
 type SpaceStore = ReturnType<typeof useSpaceStore>;
 

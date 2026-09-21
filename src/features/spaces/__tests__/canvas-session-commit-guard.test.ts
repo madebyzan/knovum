@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
 
+import { createJsonCanvasImportActions } from "../canvas-exchange/json-canvas-import-actions";
 import type { CanvasJsonImportRequest } from "../canvas-exchange/json-canvas-import-contract";
+import type { JsonCanvasNodePreparation } from "../canvas-exchange/json-canvas-node-preparation";
+import { createCanvasSelectionActions } from "../canvas/canvas-selection-actions";
 import type { CanvasDocumentV1 } from "../canvas/contract/canvas-document";
 import { createSpaceNotePayload } from "../editor/tiptap-content";
-import { createCanvasSelectionActions } from "../canvas/canvas-selection-actions";
-import { createJsonCanvasImportActions } from "../canvas-exchange/json-canvas-import-actions";
-import type { JsonCanvasNodePreparation } from "../canvas-exchange/json-canvas-node-preparation";
 import type { SpaceState } from "../session/session-state";
 import type { useSpaceStore } from "../session/space-store";
 import { deferred, emptyCanvasDocument, jsonCanvasTextImportRequest } from "../testing/canvas-fixtures";

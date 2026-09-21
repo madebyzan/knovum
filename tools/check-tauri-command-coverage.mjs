@@ -72,7 +72,10 @@ for (const permission of granted) {
 // A command address is recognised anywhere in a Renderer file, not only inside
 // `invoke(...)`, because a caller may hold it in a constant or a lookup table.
 const owners = new Set(handlerPaths.map((path) => path.split("::")[1]));
-const keys = new Set([...pluginSurface.byKey.keys(), ...[...pluginCommands].map((address) => address.split("|")[0])]);
+const keys = new Set([
+  ...pluginSurface.byKey.keys(),
+  ...[...pluginCommands].map((address) => address.split("|")[0]),
+]);
 const pluginAddress = tokenPattern(`plugin:[a-z0-9_-]+\\|[a-z0-9_]+`);
 const appAddress = owners.size > 0 ? tokenPattern(`(?:${[...owners].join("|")})_[a-z0-9_]+`) : null;
 const legacyAddress = keys.size > 0 ? tokenPattern(`(?:${[...keys].join("|")})_[a-z0-9_]+`) : null;

@@ -18,8 +18,8 @@ import type { KnowledgeChunkSeed } from "../knowledge/model/schema";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
 import { validateSpaceNodePayload } from "../model/nodes/schema/node-payload";
-import { createNodes, setNodesDeleted } from "./node-repository";
 import { createNodeDataMutations } from "./node-data-mutations";
+import { createNodes, setNodesDeleted } from "./node-repository";
 
 export type { NodeDataChange } from "../history/mutation-types";
 

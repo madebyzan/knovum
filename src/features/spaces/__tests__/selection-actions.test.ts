@@ -10,8 +10,8 @@ import {
 } from "../history/stack";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
-import { createSelectionActions } from "../organization/selection-actions";
 import type { NodeDataChange } from "../nodes/node-mutations";
+import { createSelectionActions } from "../organization/selection-actions";
 
 function harness(locked = false) {
   const section = createSpaceNode(

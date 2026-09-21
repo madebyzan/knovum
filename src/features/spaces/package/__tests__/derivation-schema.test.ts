@@ -7,7 +7,8 @@ function generatedVideoDerivation() {
     id: "derivation",
     spaceId: "space",
     outputNodeId: "video",
-    inputs: [{
+    inputs: [
+      {
         nodeId: "markdown",
         sourceIdentity: "node:markdown",
         sourceSnapshot: {
@@ -18,7 +19,8 @@ function generatedVideoDerivation() {
         },
         role: "primary",
         sourceRevision: "node1:source",
-      }],
+      },
+    ],
     actionKind: "knowledge-video",
     actionVersion: 1,
     engine: "qwen:wan3.0-video",
@@ -62,18 +64,20 @@ describe("document export package metadata", () => {
         id: "pdf-export",
         spaceId: "space",
         outputNodeId: "pdf",
-        inputs: [{
-        nodeId: "markdown",
-        sourceIdentity: "node:markdown",
-        sourceSnapshot: {
-          title: "Markdown",
-          kind: "markdown",
-          originalUrl: null,
-          platform: null,
-        },
-        role: "primary",
-        sourceRevision: "node1:source",
-      }],
+        inputs: [
+          {
+            nodeId: "markdown",
+            sourceIdentity: "node:markdown",
+            sourceSnapshot: {
+              title: "Markdown",
+              kind: "markdown",
+              originalUrl: null,
+              platform: null,
+            },
+            role: "primary",
+            sourceRevision: "node1:source",
+          },
+        ],
         actionKind: "markdown-pdf-export",
         actionVersion: 1,
         engine: "typst:0.15.1",

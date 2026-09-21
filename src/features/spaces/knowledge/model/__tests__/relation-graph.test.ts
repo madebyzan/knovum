@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { findSemanticRelationPath } from "../relation-graph";
 import {
   canonicalRelationEndpoints,
   compareRelationIdsBinary,
   type SpaceRelation,
 } from "../../../model/relations/relation";
+import { findSemanticRelationPath } from "../relation-graph";
 
 function relation(
   id: string,

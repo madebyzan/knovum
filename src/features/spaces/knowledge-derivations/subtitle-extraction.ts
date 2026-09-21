@@ -18,8 +18,8 @@ export function canCreateSubtitleResource(node: SpaceCanvasNode | undefined): bo
   const knowledge = node.data.mediaKnowledge;
   return Boolean(
     knowledge &&
-      knowledge.sourceRevision === node.data.sourceRevision &&
-      knowledge.transcript.subtitleCues.length > 0,
+    knowledge.sourceRevision === node.data.sourceRevision &&
+    knowledge.transcript.subtitleCues.length > 0,
   );
 }
 

@@ -110,7 +110,10 @@ describe("draft canvas persistence lifecycle", () => {
   it("propagates parent creation failure without turning an empty draft flush into a write", async () => {
     ensurePersisted.mockRejectedValue(new Error("Space creation failed"));
     await session.start();
-    const commit = vi.fn<() => Promise<CanvasCommitResult>>(async () => ({ document: emptyCanvasDocument, revision: 1 }));
+    const commit = vi.fn<() => Promise<CanvasCommitResult>>(async () => ({
+      document: emptyCanvasDocument,
+      revision: 1,
+    }));
     await expect(session.commitTransaction(commit)).rejects.toThrow("Space creation failed");
     await flushSpaceSessionPersistence();
     expect(commit).not.toHaveBeenCalled();
@@ -122,7 +125,10 @@ describe("draft canvas persistence lifecycle", () => {
     const parent = deferred<void>();
     ensurePersisted.mockReturnValue(parent.promise);
     await session.start();
-    const commit = vi.fn<() => Promise<CanvasCommitResult>>(async () => ({ document: emptyCanvasDocument, revision: 1 }));
+    const commit = vi.fn<() => Promise<CanvasCommitResult>>(async () => ({
+      document: emptyCanvasDocument,
+      revision: 1,
+    }));
     const result = session.commitTransaction(commit);
     const rejected = result.catch((error: unknown) => error);
     await flushPromises();

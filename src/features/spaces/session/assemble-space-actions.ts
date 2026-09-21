@@ -1,8 +1,20 @@
+import type { createCanvasFocusActions } from "../canvas/focus-actions";
+import type { createPlacementActions } from "../canvas/placement-actions";
 import { commitActiveCanvasThumbnail } from "../canvas/thumbnail-scheduler";
 import { resumePendingEnrichmentJobs } from "../enrichment/job-scheduler";
 import { withEnrichmentTriggers } from "../enrichment/mutation-triggers";
 import type { createInspectorActions } from "../inspector/inspector-actions";
+import {
+  changeSpaceRelationKind,
+  createSpaceRelation,
+  removeSpaceRelations,
+  removeSpaceRelation,
+  updateSpaceRelation,
+  type RelationContext,
+} from "../knowledge/relations/relation-actions";
 import type { createSpaceMediaActions } from "../media/actions";
+import type { createSpaceNodeLifecycleActions } from "../nodes/node-lifecycle-actions";
+import type { createSpaceMutations } from "../nodes/node-mutations";
 import type { createSelectionActions } from "../organization/selection-actions";
 import {
   createSpaceScene,
@@ -31,18 +43,6 @@ import {
 } from "../workspace/space-session-actions";
 import { commitActiveSpaceSession } from "../workspace/space-transition";
 import type { SpaceState } from "./session-state";
-import type { createSpaceNodeLifecycleActions } from "../nodes/node-lifecycle-actions";
-import type { createSpaceMutations } from "../nodes/node-mutations";
-import type { createPlacementActions } from "../canvas/placement-actions";
-import {
-  changeSpaceRelationKind,
-  createSpaceRelation,
-  removeSpaceRelations,
-  removeSpaceRelation,
-  updateSpaceRelation,
-  type RelationContext,
-} from "../knowledge/relations/relation-actions";
-import type { createCanvasFocusActions } from "../canvas/focus-actions";
 
 interface Input {
   state: SpaceState;

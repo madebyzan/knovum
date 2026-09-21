@@ -16,5 +16,4 @@ describe("Konva node presentation", () => {
     expect(note).toMatchObject({ title: "Note", body: "Body", subtitle: "Note" });
     expect(website).toMatchObject({ title: "Knovum", subtitle: "Example" });
   });
-
 });

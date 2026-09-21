@@ -70,10 +70,7 @@ function applyGroupAppearance(
   if (backgroundStyle) node.backgroundStyle = backgroundStyle;
 }
 
-function applyFileSubpath(
-  node: Extract<JsonCanvasNodeV1, { type: "file" }>,
-  layout: CanvasNodeLayoutV1,
-) {
+function applyFileSubpath(node: Extract<JsonCanvasNodeV1, { type: "file" }>, layout: CanvasNodeLayoutV1) {
   if (layout.fileSubpath) node.subpath = layout.fileSubpath;
 }
 

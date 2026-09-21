@@ -1,8 +1,8 @@
 import { info as logInfo } from "@tauri-apps/plugin-log";
 
+import { formatOptionalBytes } from "../../../../foundation/format/bytes";
 import { i18n } from "../../../../foundation/i18n/i18n";
 import { useTaskStore } from "../../../../foundation/tasks/task-store";
-import { formatOptionalBytes } from "../../../../foundation/format/bytes";
 import type { SpaceMediaPayload } from "../../model/nodes/capabilities";
 import type { ImportedMedia, MediaImportProgress } from "./contract";
 import { cancelMediaImport, requestMediaImport } from "./ipc";

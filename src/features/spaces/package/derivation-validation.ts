@@ -38,11 +38,7 @@ function validateDerivationInputs(derivation: PackageDerivation, nodeIds: Readon
   }
 }
 
-function requireAvailableInput(
-  nodeId: string | null,
-  outputNodeId: string,
-  nodeIds: ReadonlySet<string>,
-) {
+function requireAvailableInput(nodeId: string | null, outputNodeId: string, nodeIds: ReadonlySet<string>) {
   if (nodeId !== null && (!nodeIds.has(nodeId) || nodeId === outputNodeId)) {
     throw new Error("Space package derivation references an unavailable node");
   }

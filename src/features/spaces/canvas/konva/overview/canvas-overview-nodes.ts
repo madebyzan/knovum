@@ -88,8 +88,7 @@ function drawCardBackground(context: CanvasOverviewNodeContext) {
   const { frame, appearance } = context.item.layout;
   const note = context.item.node.data.kind === "note";
   const selectedFill =
-    appearance?.customFill ??
-    (appearance?.fill ? context.palette.noteFill[appearance.fill] : undefined);
+    appearance?.customFill ?? (appearance?.fill ? context.palette.noteFill[appearance.fill] : undefined);
   context.group.add(
     new Konva.Rect({
       width: frame.width,
@@ -142,9 +141,7 @@ function drawCardLabel(context: CanvasOverviewNodeContext, hasImage: boolean) {
 }
 
 function cardLabelPosition(height: number, hasImage: boolean) {
-  return hasImage
-    ? { y: height * 0.76, height: height * 0.22 }
-    : { y: 10, height: height - 20 };
+  return hasImage ? { y: height * 0.76, height: height * 0.22 } : { y: 10, height: height - 20 };
 }
 
 function cardLabelText(context: CanvasOverviewNodeContext) {

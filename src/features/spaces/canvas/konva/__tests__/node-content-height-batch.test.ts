@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
+import { createSpaceTextPayload } from "../../../editor/tiptap-content";
 import type { CanvasDocumentV1 } from "../../contract/canvas-document";
 import { CanvasDocumentModel } from "../document/canvas-document-model";
 import { createNodeContentHeightBatch } from "../node-content-height-batch";
-import { createSpaceTextPayload } from "../../../editor/tiptap-content";
 
 describe("node content height batch", () => {
   it("fits text height in both directions without creating history", async () => {

@@ -61,11 +61,7 @@ function constrainedSize({ geometry, activeAnchor, policy }: ConstrainedSizeInpu
     const ratio = baseline
       ? baseline.baseWidth / baseline.baseHeight
       : geometry.currentWidth / geometry.currentHeight;
-    return proportionalSize(
-      proportionalGestureWidth(geometry.width, geometry.height, policy),
-      ratio,
-      policy,
-    );
+    return proportionalSize(proportionalGestureWidth(geometry.width, geometry.height, policy), ratio, policy);
   }
   return {
     width: clamp(geometry.width, policy.minWidth, policy.maxWidth),
@@ -93,22 +89,14 @@ function contentAspectSize(geometry: ResizeGeometry, policy: CanvasSelectionTran
     squaredLength === 0
       ? 1
       : (geometry.width * geometry.currentWidth + contentHeight * currentContentHeight) / squaredLength;
-  const constrainedWidth = clamp(
-    geometry.currentWidth * gestureScale,
-    minimumWidth,
-    maximumWidth,
-  );
+  const constrainedWidth = clamp(geometry.currentWidth * gestureScale, minimumWidth, maximumWidth);
   return {
     width: constrainedWidth,
     height: constrainedWidth / aspect.ratio + aspect.fixedVerticalChrome,
   };
 }
 
-function proportionalGestureWidth(
-  width: number,
-  height: number,
-  policy: CanvasSelectionTransformPolicy,
-) {
+function proportionalGestureWidth(width: number, height: number, policy: CanvasSelectionTransformPolicy) {
   const baseline = policy.proportionalScale;
   if (!baseline) return width;
   const squaredLength = baseline.baseWidth ** 2 + baseline.baseHeight ** 2;

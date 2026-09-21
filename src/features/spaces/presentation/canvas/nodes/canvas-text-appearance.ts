@@ -51,9 +51,7 @@ export function canvasTextAppearanceStyle(
 }
 
 function textColor(kind: "note" | "text", appearance: CanvasNodeAppearance | undefined) {
-  return kind === "note"
-    ? "var(--knovum-canvas-note-ink)"
-    : TEXT_COLORS[appearance?.textColor ?? "ink"];
+  return kind === "note" ? "var(--knovum-canvas-note-ink)" : TEXT_COLORS[appearance?.textColor ?? "ink"];
 }
 
 function resolvedTextAlign(kind: "note" | "text", appearance: CanvasNodeAppearance | undefined) {

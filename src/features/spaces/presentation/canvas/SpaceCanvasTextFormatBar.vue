@@ -9,7 +9,15 @@ const emit = defineEmits<{ update: [patch: Partial<CanvasNodeAppearance>] }>();
 </script>
 
 <template>
-  <SpaceCanvasColorPicker :kind="kind" v-bind="appearance ? { appearance } : {}" @update="emit('update', $event)" />
-  <SpaceCanvasTypographyPanel :kind="kind" v-bind="appearance ? { appearance } : {}" @update="emit('update', $event)" />
+  <SpaceCanvasColorPicker
+    :kind="kind"
+    v-bind="appearance ? { appearance } : {}"
+    @update="emit('update', $event)"
+  />
+  <SpaceCanvasTypographyPanel
+    :kind="kind"
+    v-bind="appearance ? { appearance } : {}"
+    @update="emit('update', $event)"
+  />
   <UiSeparator orientation="vertical" class="mx-0.5 h-4" />
 </template>

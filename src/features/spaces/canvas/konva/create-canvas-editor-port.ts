@@ -1,4 +1,3 @@
-import { captureCanvasOverview, captureCanvasViewport } from "./overview/canvas-overview-capture";
 import type { CanvasEditorPort } from "../contract/canvas-editor-port";
 import {
   alignCanvasLayouts,
@@ -16,6 +15,7 @@ import { createCanvasPersistenceHistory } from "../persistence/canvas-persistenc
 import type { KonvaEditorPortOptions } from "./canvas-editor-port-options";
 import { canvasAutoLayoutEdges } from "./document/canvas-auto-layout-edges";
 import { createNodeContentHeightBatch } from "./node-content-height-batch";
+import { captureCanvasOverview, captureCanvasViewport } from "./overview/canvas-overview-capture";
 import { projectCanvasScene } from "./scene/scene-projection";
 import {
   fitCanvasLayouts,

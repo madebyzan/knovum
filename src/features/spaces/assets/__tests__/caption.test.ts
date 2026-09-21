@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { spaceNodeCaption } from "../caption";
 import type { SpaceCodePayload, SpaceFilePayload } from "../../model/nodes/node-payload";
+import { spaceNodeCaption } from "../caption";
 
 const DOCX_BYTES = 2_726_298;
 

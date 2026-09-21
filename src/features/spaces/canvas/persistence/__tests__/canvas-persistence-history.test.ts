@@ -1,12 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
 
-import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
-import { createCanvasSelectionActions } from "../../canvas-selection-actions";
 import { createJsonCanvasImportActions } from "../../../canvas-exchange/json-canvas-import-actions";
+import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import type { SpaceState } from "../../../session/session-state";
 import type { useSpaceStore } from "../../../session/space-store";
-import { canvasNote, emptyCanvasDocument, jsonCanvasTextImportRequest } from "../../../testing/canvas-fixtures";
+import {
+  canvasNote,
+  emptyCanvasDocument,
+  jsonCanvasTextImportRequest,
+} from "../../../testing/canvas-fixtures";
+import { createCanvasSelectionActions } from "../../canvas-selection-actions";
 
 const persistence = vi.hoisted(() => ({
   deleteSelection: vi.fn<(request: unknown) => Promise<{ revision: number }>>(),
@@ -27,7 +31,9 @@ vi.mock("../../../canvas-exchange/json-canvas-import-repository", () => ({
   importJsonCanvas: persistence.importJsonCanvas,
 }));
 vi.mock("../../../clipboard/transfer", () => ({ writeSpaceClipboardDirect: clipboard.write }));
-vi.mock("../../../knowledge/indexing/index-scheduler", () => ({ scheduleKnowledgeIndex: vi.fn<() => void>() }));
+vi.mock("../../../knowledge/indexing/index-scheduler", () => ({
+  scheduleKnowledgeIndex: vi.fn<() => void>(),
+}));
 vi.mock("../../../canvas-exchange/json-canvas-node-preparation", () => ({
   completeJsonCanvasPreparation: vi.fn<() => void>(),
   discardJsonCanvasPreparation: vi.fn<() => void>(),

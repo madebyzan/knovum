@@ -3,9 +3,9 @@ import { AlertCircle, Clapperboard, LoaderCircle, X } from "@lucide/vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { formatOptionalBytes } from "../../../../foundation/format/bytes";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
-import { formatOptionalBytes } from "../../../../foundation/format/bytes";
 import type { SpaceUrlCaptureProjection } from "../../sources/url-capture-projection";
 
 const props = defineProps<{ capture: SpaceUrlCaptureProjection }>();

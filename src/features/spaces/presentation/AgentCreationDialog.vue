@@ -3,6 +3,7 @@ import { Bot, Eye, File, Image, Music, Paperclip, Trash2, Video, X } from "@luci
 import { useI18n } from "vue-i18n";
 
 import type { AgentArtifact } from "../../../foundation/ai/agents";
+import { formatOptionalBytes } from "../../../foundation/format/bytes";
 import { isSystemPreviewAvailable } from "../../../foundation/system-preview/system-preview";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiCheckbox from "../../../shared/ui/UiCheckbox.vue";
@@ -11,7 +12,6 @@ import UiSelect from "../../../shared/ui/UiSelect.vue";
 import UiTextarea from "../../../shared/ui/UiTextarea.vue";
 import { useAgentAttachments } from "../agent-creation/use-agent-attachments";
 import { useAgentCreation } from "../agent-creation/use-agent-creation";
-import { formatOptionalBytes } from "../../../foundation/format/bytes";
 
 const open = defineModel<boolean>("open", { required: true });
 const { t } = useI18n();

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
 
+import { createTestSpace, createTestSessionContext } from "../../__tests__/test-session-context.test";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceRelation } from "../../model/relations/relation";
 import type { SpaceScene } from "../../scenes/scene";
@@ -10,7 +11,6 @@ import {
   openSpace,
   type SpaceSessionContext,
 } from "../space-session-actions";
-import { createTestSpace, createTestSessionContext } from "../../__tests__/test-session-context.test";
 
 const nodeRepository = vi.hoisted(() => ({
   listNodes: vi.fn<(spaceId: string) => Promise<SpaceCanvasNode[]>>(),

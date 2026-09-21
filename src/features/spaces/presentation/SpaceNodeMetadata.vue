@@ -5,8 +5,8 @@ import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import UiButton from "../../../shared/ui/UiButton.vue";
 import { formatOptionalBytes } from "../../../foundation/format/bytes";
+import UiButton from "../../../shared/ui/UiButton.vue";
 import { mediaProviderDisplayName } from "../media/provider-display-name";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import {

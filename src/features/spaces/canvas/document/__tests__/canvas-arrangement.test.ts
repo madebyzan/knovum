@@ -1,11 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { CanvasNodeLayoutV1 } from "../../contract/canvas-document";
-import {
-  alignCanvasLayouts,
-  distributeCanvasLayouts,
-  fitSectionLayout,
-} from "../canvas-arrangement";
+import { alignCanvasLayouts, distributeCanvasLayouts, fitSectionLayout } from "../canvas-arrangement";
 
 describe("canvas arrangement", () => {
   it("aligns selected layouts without changing their dimensions", () => {

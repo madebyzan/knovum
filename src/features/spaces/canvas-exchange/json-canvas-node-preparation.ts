@@ -1,5 +1,6 @@
 import { isAbsolute, resolve, sep } from "@tauri-apps/api/path";
 
+import { formatOptionalBytes } from "../../../foundation/format/bytes";
 import { i18n } from "../../../foundation/i18n/i18n";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import {
@@ -8,18 +9,14 @@ import {
   prepareSpaceAssetImport,
   removeSpaceAssets,
 } from "../assets/asset-operations";
-import { formatOptionalBytes } from "../../../foundation/format/bytes";
 import type { ImportedSpaceAsset } from "../assets/imported-asset";
 import { importedSpaceNodePayload } from "../assets/imported-asset-payload";
-import type {
-  CanvasJsonImportRequest,
-  JsonCanvasImportNodeV1,
-} from "./json-canvas-import-contract";
-import type { PreparedJsonCanvasNode } from "./json-canvas-import-repository";
 import { createSpaceNode } from "../canvas/node";
 import { noteFromPlainText } from "../canvas/text-import";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
 import { normalizeSpaceUrl, websiteDefaultTitle } from "../website/url";
+import type { CanvasJsonImportRequest, JsonCanvasImportNodeV1 } from "./json-canvas-import-contract";
+import type { PreparedJsonCanvasNode } from "./json-canvas-import-repository";
 
 export interface JsonCanvasNodePreparation {
   nodes: PreparedJsonCanvasNode[];

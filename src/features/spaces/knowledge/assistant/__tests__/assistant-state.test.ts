@@ -1,11 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  activeThreadNodeIds,
-  knowledgeScopeNodeIds,
-  suggestedKnowledgeScope,
-} from "../assistant-state";
 import type { GroundedThread } from "../../model/grounded-thread";
+import { activeThreadNodeIds, knowledgeScopeNodeIds, suggestedKnowledgeScope } from "../assistant-state";
 
 describe("grounded assistant scope", () => {
   it("keeps persisted thread scope authoritative", () => {

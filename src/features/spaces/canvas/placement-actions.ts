@@ -1,9 +1,9 @@
-import type { SpacePlacement } from "./navigation-requests";
 import type { KnowledgeChunkSeed } from "../knowledge/model/schema";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
-import type { SpaceState } from "../session/session-state";
 import type { createSpaceMutations } from "../nodes/node-mutations";
+import type { SpaceState } from "../session/session-state";
+import type { SpacePlacement } from "./navigation-requests";
 
 type SpaceMutations = ReturnType<typeof createSpaceMutations>;
 

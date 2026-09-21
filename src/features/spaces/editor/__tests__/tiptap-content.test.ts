@@ -1,12 +1,12 @@
 import { Editor } from "@tiptap/core";
 import { describe, expect, it } from "vitest";
 
-import { createSpaceNotePayload, createSpaceTextPayload } from "../tiptap-content";
-import type { TiptapJsonNode } from "../tiptap-document";
-import { createCanvasTextExtensions } from "../tiptap-extensions";
 import { tiptapContentSchema } from "../../model/nodes/schema/content";
 import { validateSpaceNodePayload } from "../../model/nodes/schema/node-payload";
 import { canvasTextHtml } from "../canvas-text-html";
+import { createSpaceNotePayload, createSpaceTextPayload } from "../tiptap-content";
+import type { TiptapJsonNode } from "../tiptap-document";
+import { createCanvasTextExtensions } from "../tiptap-extensions";
 
 describe("spaces Tiptap content", () => {
   it("creates Notes as structured Tiptap content instead of Markdown strings", () => {
