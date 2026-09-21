@@ -4,6 +4,11 @@ mod macos;
 mod windows;
 
 #[cfg(target_os = "macos")]
-pub(super) use macos::detect;
+pub(super) fn detect() -> crate::ai::error::AiResult<std::collections::HashSet<crate::ai::contracts::AgentKind>> {
+    macos::detect()
+}
+
 #[cfg(windows)]
-pub(super) use windows::detect;
+pub(super) fn detect() -> crate::ai::error::AiResult<std::collections::HashSet<crate::ai::contracts::AgentKind>> {
+    windows::detect()
+}
