@@ -80,6 +80,21 @@ export type CanvasDocumentV1 = z.infer<typeof canvasDocumentSchema>;
 export type CanvasRelationColor = (typeof CANVAS_RELATION_COLORS)[number];
 export type CanvasRelationOverrideColor = (typeof CANVAS_RELATION_OVERRIDE_COLORS)[number];
 
+const CANVAS_APPEARANCE_KEYS = [
+  "fill",
+  "customFill",
+  "textColor",
+  "fontSize",
+  "typographyScale",
+  "fontWeight",
+  "fontStyle",
+  "textDecoration",
+  "textAlign",
+  "verticalAlign",
+  "background",
+  "backgroundStyle",
+] as const satisfies readonly (keyof CanvasNodeAppearance)[];
+
 export interface CanvasNodeFrameUpdate {
   nodeId: string;
   frame: CanvasNodeFrame;
@@ -94,20 +109,7 @@ export function sameCanvasNodeAppearance(
   left: CanvasNodeAppearance | undefined,
   right: CanvasNodeAppearance | undefined,
 ) {
-  return (
-    left?.fill === right?.fill &&
-    left?.customFill === right?.customFill &&
-    left?.textColor === right?.textColor &&
-    left?.fontSize === right?.fontSize &&
-    left?.typographyScale === right?.typographyScale &&
-    left?.fontWeight === right?.fontWeight &&
-    left?.fontStyle === right?.fontStyle &&
-    left?.textDecoration === right?.textDecoration &&
-    left?.textAlign === right?.textAlign &&
-    left?.verticalAlign === right?.verticalAlign &&
-    left?.background === right?.background &&
-    left?.backgroundStyle === right?.backgroundStyle
-  );
+  return CANVAS_APPEARANCE_KEYS.every((key) => left?.[key] === right?.[key]);
 }
 
 function validateCanvasReferences(document: CanvasDocumentV1, context: z.RefinementCtx) {

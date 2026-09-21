@@ -16,20 +16,22 @@ const TEXT_COLORS = {
   green: "var(--knovum-canvas-text-green)",
   purple: "var(--knovum-canvas-text-purple)",
 } as const;
+const TEXT_ALIGN_CLASSES = {
+  left: "text-left",
+  center: "text-center",
+  right: "text-right",
+} as const;
 
 export function canvasTextAppearanceClasses(
   kind: "note" | "text",
   appearance: CanvasNodeAppearance | undefined,
 ) {
+  const textAlign = resolvedTextAlign(kind, appearance);
   return [
     appearance?.fontWeight === "bold" ? "font-bold" : undefined,
     appearance?.fontStyle === "italic" ? "italic" : undefined,
     appearance?.textDecoration === "underline" ? "underline" : undefined,
-    appearance?.textAlign === "left" || (!appearance?.textAlign && kind === "note") ? "text-left" : undefined,
-    appearance?.textAlign === "center" || (!appearance?.textAlign && kind === "text")
-      ? "text-center"
-      : undefined,
-    appearance?.textAlign === "right" ? "text-right" : undefined,
+    TEXT_ALIGN_CLASSES[textAlign],
   ];
 }
 
@@ -37,13 +39,25 @@ export function canvasTextAppearanceStyle(
   kind: "note" | "text",
   appearance: CanvasNodeAppearance | undefined,
 ) {
-  return {
+  const base = {
     fontSize: `${appearance?.fontSize ?? DEFAULT_CANVAS_TEXT_FONT_SIZE}pt`,
-    color: kind === "note" ? "var(--knovum-canvas-note-ink)" : TEXT_COLORS[appearance?.textColor ?? "ink"],
-    ...(kind === "note"
-      ? { backgroundColor: appearance?.customFill ?? FILL_COLORS[appearance?.fill ?? "yellow"] }
-      : {}),
+    color: textColor(kind, appearance),
   };
+  if (kind !== "note") return base;
+  return {
+    ...base,
+    backgroundColor: appearance?.customFill ?? FILL_COLORS[appearance?.fill ?? "yellow"],
+  };
+}
+
+function textColor(kind: "note" | "text", appearance: CanvasNodeAppearance | undefined) {
+  return kind === "note"
+    ? "var(--knovum-canvas-note-ink)"
+    : TEXT_COLORS[appearance?.textColor ?? "ink"];
+}
+
+function resolvedTextAlign(kind: "note" | "text", appearance: CanvasNodeAppearance | undefined) {
+  return appearance?.textAlign ?? (kind === "note" ? "left" : "center");
 }
 
 export function canvasTextVerticalClass(kind: "note" | "text", appearance: CanvasNodeAppearance | undefined) {
@@ -60,6 +74,6 @@ export function canvasTextPresentation(kind: "note" | "text", appearance: Canvas
     style: canvasTextAppearanceStyle(kind, appearance),
     verticalClass: canvasTextVerticalClass(kind, appearance),
     fontSize: appearance?.fontSize ?? DEFAULT_CANVAS_TEXT_FONT_SIZE,
-    textAlign: appearance?.textAlign ?? (kind === "note" ? "left" : "center"),
+    textAlign: resolvedTextAlign(kind, appearance),
   } as const;
 }

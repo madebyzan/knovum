@@ -75,15 +75,24 @@ function validPosition(position: { x?: number; y?: number } | undefined) {
 }
 
 function clipboardText(nodes: readonly SpaceCanvasNode[]) {
-  return compact(
-    nodes
-      .filter((node) => !isSpaceSectionPayload(node.data))
-      .map(({ data }) => {
-        if (data.kind === "website") return data.url ?? data.title;
-        if ((data.kind === "video" || data.kind === "audio") && data.origin) return data.origin.url;
-        if (data.kind === "note" || data.kind === "text") return data.plainText ?? data.title;
-        if (data.kind === "markdown") return data.text ?? data.title;
-        return data.title;
-      }),
-  ).join("\n\n");
+  return compact(nodes.filter((node) => !isSpaceSectionPayload(node.data)).map(clipboardNodeText)).join(
+    "\n\n",
+  );
+}
+
+function clipboardNodeText({ data }: SpaceCanvasNode) {
+  switch (data.kind) {
+    case "website":
+      return data.url ?? data.title;
+    case "video":
+    case "audio":
+      return data.origin?.url ?? data.title;
+    case "note":
+    case "text":
+      return data.plainText ?? data.title;
+    case "markdown":
+      return data.text ?? data.title;
+    default:
+      return data.title;
+  }
 }

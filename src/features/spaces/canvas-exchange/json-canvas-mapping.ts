@@ -49,14 +49,32 @@ export function exportJsonCanvasDocument(
 
 function exportNode({ layout, content }: JsonCanvasExportNodeV1): JsonCanvasNodeV1 {
   const node = { id: layout.nodeId, ...standardFrame(layout.frame), ...content } as JsonCanvasNodeV1;
-  if (layout.appearance?.fill) node.color = jsonColorForCanvasFill(layout.appearance.fill);
-  if (layout.appearance?.customFill) node.color = layout.appearance.customFill;
-  if (node.type === "group") {
-    if (layout.appearance?.background) node.background = layout.appearance.background;
-    if (layout.appearance?.backgroundStyle) node.backgroundStyle = layout.appearance.backgroundStyle;
-  }
-  if (node.type === "file" && layout.fileSubpath) node.subpath = layout.fileSubpath;
+  applyExportColor(node, layout);
+  if (node.type === "group") applyGroupAppearance(node, layout);
+  if (node.type === "file") applyFileSubpath(node, layout);
   return node;
+}
+
+function applyExportColor(node: JsonCanvasNodeV1, layout: CanvasNodeLayoutV1) {
+  const color = layout.appearance?.customFill ?? layout.appearance?.fill;
+  if (!color) return;
+  node.color = layout.appearance?.customFill ? color : jsonColorForCanvasFill(layout.appearance!.fill!);
+}
+
+function applyGroupAppearance(
+  node: Extract<JsonCanvasNodeV1, { type: "group" }>,
+  layout: CanvasNodeLayoutV1,
+) {
+  const { background, backgroundStyle } = layout.appearance ?? {};
+  if (background) node.background = background;
+  if (backgroundStyle) node.backgroundStyle = backgroundStyle;
+}
+
+function applyFileSubpath(
+  node: Extract<JsonCanvasNodeV1, { type: "file" }>,
+  layout: CanvasNodeLayoutV1,
+) {
+  if (layout.fileSubpath) node.subpath = layout.fileSubpath;
 }
 
 function standardFrame(frame: CanvasNodeFrame) {
