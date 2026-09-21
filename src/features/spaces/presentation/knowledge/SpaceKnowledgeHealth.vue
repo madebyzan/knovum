@@ -12,7 +12,7 @@ import { rebuildKnowledgeRetrievalIndex } from "../../knowledge/indexing/rebuild
 import type { SpaceKnowledgeHealthIssue } from "../../knowledge/model/health";
 import { useSpaceKnowledgeHealthQuery } from "../../knowledge/queries/queries";
 import { useSpaceStore } from "../../session/space-store";
-import SpaceEnrichmentQueuePanel from "../SpaceEnrichmentQueuePanel.vue";
+import SpaceEnrichmentQueuePanel from "./SpaceEnrichmentQueuePanel.vue";
 
 const props = defineProps<{ compact?: boolean }>();
 const store = useSpaceStore();

@@ -2,7 +2,7 @@
 import { useI18n } from "vue-i18n";
 
 import type { GroundedDocumentMetadata } from "../../knowledge-derivations/document/metadata";
-import SpaceDerivationSources from "../SpaceDerivationSources.vue";
+import SpaceDerivationSources from "../derivations/SpaceDerivationSources.vue";
 
 defineProps<{ metadata: GroundedDocumentMetadata }>();
 const { t } = useI18n();
