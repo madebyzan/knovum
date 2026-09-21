@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ArrowRightLeft, MessageSquareQuote, ScanText, Sparkles } from "@lucide/vue";
 
-import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
-import SpaceKnowledgeObjectDetails from "./knowledge/SpaceKnowledgeObjectDetails.vue";
-import SpaceMediaKnowledge from "./media/SpaceMediaKnowledge.vue";
+import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
+import SpaceKnowledgeObjectDetails from "../knowledge/SpaceKnowledgeObjectDetails.vue";
+import SpaceMediaKnowledge from "../media/SpaceMediaKnowledge.vue";
 import SpaceDocumentCoverage from "./SpaceDocumentCoverage.vue";
 import SpaceInspectorSection from "./SpaceInspectorSection.vue";
 import SpacePortalDetails from "./SpacePortalDetails.vue";

@@ -3,11 +3,11 @@ import { storeToRefs } from "pinia";
 import { computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { useCanvasSelectionProjection } from "../canvas/editor-session";
-import { useContextDock } from "../canvas/use-context-dock";
-import { knowledgeLocationLabel } from "../knowledge/model/location";
-import { useSpaceStore } from "../session/space-store";
-import SpaceKnowledgeAssistant from "./knowledge/SpaceKnowledgeAssistant.vue";
+import { useCanvasSelectionProjection } from "../../canvas/editor-session";
+import { useContextDock } from "../../canvas/use-context-dock";
+import { knowledgeLocationLabel } from "../../knowledge/model/location";
+import { useSpaceStore } from "../../session/space-store";
+import SpaceKnowledgeAssistant from "../knowledge/SpaceKnowledgeAssistant.vue";
 import SpaceContextHeader from "./SpaceContextHeader.vue";
 import SpaceInspectorDetails from "./SpaceInspectorDetails.vue";
 import SpaceSourcePeek from "./SpaceSourcePeek.vue";

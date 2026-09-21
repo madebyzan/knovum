@@ -2,7 +2,7 @@
 import { ArrowLeft, X } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 
-import UiIconButton from "../../../shared/ui/UiIconButton.vue";
+import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 
 defineProps<{ title: string; subtitle?: string; back?: boolean }>();
 const emit = defineEmits<{ back: []; close: [] }>();

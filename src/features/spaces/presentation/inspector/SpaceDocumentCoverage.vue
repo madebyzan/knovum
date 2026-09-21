@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
+import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 
 const props = defineProps<{ node: SpaceCanvasNode }>();
 const report = computed(() =>

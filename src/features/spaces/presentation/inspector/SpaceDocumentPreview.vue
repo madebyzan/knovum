@@ -3,7 +3,7 @@ import { FileText, Search } from "@lucide/vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { truncateUtf16 } from "../model/text";
+import { truncateUtf16 } from "../../model/text";
 import SpaceThumbnailPreview from "./SpaceThumbnailPreview.vue";
 
 const props = defineProps<{

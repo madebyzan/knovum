@@ -3,13 +3,13 @@ import { computed, ref, toRaw, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import UiButton from "../../../shared/ui/UiButton.vue";
-import UiInput from "../../../shared/ui/UiInput.vue";
-import UiSelect from "../../../shared/ui/UiSelect.vue";
-import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
-import type { SpacePortalPayload } from "../model/nodes/node-payload";
-import { spaceTargetOptions } from "../model/space";
-import { useSpaceStore } from "../session/space-store";
+import UiButton from "../../../../shared/ui/UiButton.vue";
+import UiInput from "../../../../shared/ui/UiInput.vue";
+import UiSelect from "../../../../shared/ui/UiSelect.vue";
+import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
+import type { SpacePortalPayload } from "../../model/nodes/node-payload";
+import { spaceTargetOptions } from "../../model/space";
+import { useSpaceStore } from "../../session/space-store";
 
 const props = defineProps<{ node: SpaceCanvasNode }>();
 const store = useSpaceStore();

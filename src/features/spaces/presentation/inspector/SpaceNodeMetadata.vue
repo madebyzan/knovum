@@ -5,18 +5,18 @@ import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import { formatOptionalBytes } from "../../../foundation/format/bytes";
-import UiButton from "../../../shared/ui/UiButton.vue";
-import { mediaProviderDisplayName } from "../media/provider-display-name";
-import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
+import { formatOptionalBytes } from "../../../../foundation/format/bytes";
+import UiButton from "../../../../shared/ui/UiButton.vue";
+import { mediaProviderDisplayName } from "../../media/provider-display-name";
+import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import {
   isSpaceManagedAssetPayload,
   isSpaceMediaPayload,
   isSpaceWebsitePayload,
-} from "../model/nodes/capabilities";
-import type { SpaceNodePayload } from "../model/nodes/node-payload";
-import { useSpaceStore } from "../session/space-store";
-import { refreshSavedWebsite } from "../website/capture";
+} from "../../model/nodes/capabilities";
+import type { SpaceNodePayload } from "../../model/nodes/node-payload";
+import { useSpaceStore } from "../../session/space-store";
+import { refreshSavedWebsite } from "../../website/capture";
 
 interface MetadataRow {
   label: string;

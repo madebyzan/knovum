@@ -4,8 +4,8 @@ import { storeToRefs } from "pinia";
 import { computed, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { useNodeEnrichmentStatus } from "../enrichment/use-node-enrichment-status";
-import { useSpaceStore } from "../session/space-store";
+import { useNodeEnrichmentStatus } from "../../enrichment/use-node-enrichment-status";
+import { useSpaceStore } from "../../session/space-store";
 
 const props = defineProps<{ nodeId: string }>();
 const { t } = useI18n();

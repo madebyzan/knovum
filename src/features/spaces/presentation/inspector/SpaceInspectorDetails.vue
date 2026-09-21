@@ -2,9 +2,9 @@
 import { FileText, Tag } from "@lucide/vue";
 import { computed } from "vue";
 
-import { useCanvasSelectionProjection } from "../canvas/editor-session";
-import { useSpaceStore } from "../session/space-store";
-import SpaceKnowledgeHealth from "./knowledge/SpaceKnowledgeHealth.vue";
+import { useCanvasSelectionProjection } from "../../canvas/editor-session";
+import { useSpaceStore } from "../../session/space-store";
+import SpaceKnowledgeHealth from "../knowledge/SpaceKnowledgeHealth.vue";
 import SpaceDerivedInspection from "./SpaceDerivedInspection.vue";
 import SpaceInspectorSection from "./SpaceInspectorSection.vue";
 import SpaceNodeIdentity from "./SpaceNodeIdentity.vue";

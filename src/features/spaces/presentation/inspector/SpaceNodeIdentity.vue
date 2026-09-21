@@ -4,10 +4,10 @@ import { camelCase } from "es-toolkit";
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import UiInput from "../../../shared/ui/UiInput.vue";
-import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
-import { isSpaceManagedAssetPayload } from "../model/nodes/capabilities";
-import { nodeIcon } from "./node-icon";
+import UiInput from "../../../../shared/ui/UiInput.vue";
+import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
+import { isSpaceManagedAssetPayload } from "../../model/nodes/capabilities";
+import { nodeIcon } from "../node-icon";
 
 const props = defineProps<{ node: SpaceCanvasNode }>();
 const emit = defineEmits<{ titleChange: [value: string] }>();

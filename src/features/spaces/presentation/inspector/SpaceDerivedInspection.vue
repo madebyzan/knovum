@@ -4,14 +4,14 @@ import { computed, ref, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import { refreshSpaceAsset } from "../assets/asset-operations";
-import { useDerivationMetadata } from "../knowledge-derivations/use-derivation-metadata";
-import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
-import { isSpaceManagedAssetPayload } from "../model/nodes/capabilities";
-import { useSpaceStore } from "../session/space-store";
-import SpaceGroundedDocumentDetails from "./knowledge/SpaceGroundedDocumentDetails.vue";
-import SpaceDerivationFailureDetails from "./SpaceDerivationFailureDetails.vue";
-import SpaceDerivationMetadataView from "./SpaceDerivationMetadataView.vue";
+import { refreshSpaceAsset } from "../../assets/asset-operations";
+import { useDerivationMetadata } from "../../knowledge-derivations/use-derivation-metadata";
+import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
+import { isSpaceManagedAssetPayload } from "../../model/nodes/capabilities";
+import { useSpaceStore } from "../../session/space-store";
+import SpaceGroundedDocumentDetails from "../knowledge/SpaceGroundedDocumentDetails.vue";
+import SpaceDerivationFailureDetails from "../derivations/SpaceDerivationFailureDetails.vue";
+import SpaceDerivationMetadataView from "../derivations/SpaceDerivationMetadataView.vue";
 import SpaceInspectorSection from "./SpaceInspectorSection.vue";
 
 const props = defineProps<{ node: SpaceCanvasNode }>();
