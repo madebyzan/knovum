@@ -20,7 +20,7 @@ import { refreshSavedWebsite } from "../website/capture";
 
 interface MetadataRow {
   label: string;
-  value?: string;
+  value: string | undefined;
   multiline?: boolean;
 }
 
@@ -92,7 +92,7 @@ async function refreshWebsite() {
       {
         activeSpaceId,
         nodes: store.nodes,
-        addItem: store.addItem,
+        addContent: store.addContent,
         saveNodeDataForSpace: store.saveNodeDataForSpace,
       },
       props.node.id,

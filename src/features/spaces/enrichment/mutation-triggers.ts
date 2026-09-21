@@ -26,8 +26,8 @@ export function withEnrichmentTriggers(
 
   return {
     context: enrichmentContext,
-    addItem: placementActions.addItem,
-    addItems: placementActions.addItems,
+    addContent: placementActions.addContent,
+    addContents: placementActions.addContents,
     saveNodeData: mutations.saveNodeData,
     saveNodeDataForSpace: mutations.saveNodeDataForSpace,
     applyNodeDataForSpace: mutations.applyNodeDataForSpace,

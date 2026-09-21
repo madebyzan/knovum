@@ -4,7 +4,7 @@ import { removeSpaceAsset } from "./asset-operations";
 import type { ImportedSpaceAsset } from "./imported-asset";
 import { importedSpaceNodePayload } from "./imported-asset-payload";
 
-type AddImportedItem = (
+type AddImportedContent = (
   data: SpaceNodePayload,
   position: { x: number; y: number },
 ) => Promise<SpaceCanvasNode[]>;
@@ -12,11 +12,11 @@ type AddImportedItem = (
 export async function addImportedSpaceAsset(
   asset: ImportedSpaceAsset,
   position: { x: number; y: number },
-  addItem: AddImportedItem,
+  addContent: AddImportedContent,
 ) {
   const data = importedSpaceNodePayload(asset);
   try {
-    return await addItem(data, position);
+    return await addContent(data, position);
   } catch (error) {
     if (!asset.path) throw error;
     try {

@@ -30,13 +30,13 @@ const icons = {
   scan: ScanLine,
   sparkles: Sparkles,
 } satisfies Record<CreationIntentIcon, Component>;
-const menuItems = computed(() =>
+const derivationActions = computed(() =>
   creationIntentDefinitions.filter(({ id }) => {
     const decision = props.derivations[id];
     return decision.available || decision.reason;
   }),
 );
-const hasActions = computed(() => menuItems.value.length > 0);
+const hasActions = computed(() => derivationActions.value.length > 0);
 
 function reasonLabel(reason: DerivationUnavailableReason | undefined) {
   if (reason === "too-many-video-images") return t("spaces.creation.tooManyVideoImages");
@@ -55,14 +55,14 @@ function reasonLabel(reason: DerivationUnavailableReason | undefined) {
     <DropdownMenuPortal>
       <DropdownMenuSubContent :side-offset="4" :align-offset="-4" :class="props.submenuClass">
         <UiDropdownMenuItem
-          v-for="item in menuItems"
-          :key="item.id"
+          v-for="action in derivationActions"
+          :key="action.id"
           :class="props.rowClass"
-          :disabled="!props.derivations[item.id].available"
-          :title="reasonLabel(props.derivations[item.id].reason)"
-          @select="emit('invoke', item.id)"
+          :disabled="!props.derivations[action.id].available"
+          :title="reasonLabel(props.derivations[action.id].reason)"
+          @select="emit('invoke', action.id)"
         >
-          <component :is="icons[item.icon]" class="size-(--knovum-icon-size-sm)" />{{ t(item.labelKey) }}
+          <component :is="icons[action.icon]" class="size-(--knovum-icon-size-sm)" />{{ t(action.labelKey) }}
         </UiDropdownMenuItem>
       </DropdownMenuSubContent>
     </DropdownMenuPortal>

@@ -43,7 +43,7 @@ The sidebar keeps Space navigation fixed above a directly visible Outline and Re
 
 Truncated Outline titles scroll in one direction after a short hover delay and remain at the end until the pointer leaves. They never reverse or loop. Titles that fit stay still. Measurement and resize observation are limited to the hovered row; unchanged geometry does not restart the animation. Leaving or unmounting cancels the native animation and restores truncation. Reduced-motion preferences disable scrolling, while the original full title remains available to accessibility and the native title hint.
 
-Recently Deleted has one workbench dialog and one entry in the persistent sidebar footer. It opens with all Spaces; Space filtering belongs inside the dialog, not Space context menus. One query returns only deleted-node summaries, including their Space title, without a hidden 100-item truncation. The same dialog filters by Space and uses the existing TanStack virtualizer to bound rendered rows. Single-item and Delete All actions submit explicit per-Space ID selections through one Rust deletion transaction. The transaction validates lifecycle and retained references across the whole selection before deleting; filesystem cleanup removes only unreferenced resources after commit and reports failures visibly. Confirmation identifies the exact scope and count; items deleted after confirmation began are not silently added to the selection. Tasks remain Shell-owned and appear as a compact bottom-right content overlay, opening the existing Task Center upward. Space import placeholders continue to show their own progress at the target canvas coordinates; no second task store or job engine is introduced.
+Recently Deleted has one workbench dialog and one entry in the persistent sidebar footer. It opens with all Spaces; Space filtering belongs inside the dialog. The query returns deleted Structure roots with deletion-batch identity, kind, title, Space and time. Deleting several effective roots creates one batch. A row can restore one root, while the batch action restores the complete user operation; both preserve StructureNodeIds, hierarchy, local transforms, content identities, internal relations and history semantics. Permanent deletion validates retained Portal targets and removes complete subtrees plus empty deleted containers in one Rust transaction. Filesystem cleanup receives only post-commit candidates and removes a file only after the asset command confirms it is unreferenced. The list remains virtualized and does not hide an arbitrary result limit.
 
 The Add menu complements, rather than duplicates, Note and Text tools. Separators distinguish direct creation (Markdown and Structured Knowledge), content acquisition (Add Website, Import Files and Audio Note), Agent creation, and association/configuration (Space Portal and Credentials). This order describes entry purpose, not an assumed ranking of usage frequency. Acquisition actions remain directly visible rather than being nested under a content type. Structured Knowledge contains Concept, Question, Claim, Evidence, Experiment and Decision, followed by custom object creation and type management. Credentials contains API Key and Account Password. Only these meaningful type categories use a second level; there is no miscellaneous More submenu. Entries requiring a dialog or picker carry an ellipsis; immediate creation entries and submenu triggers do not. Agent creation retains its actual desktop Agent identity and shares the same translated name between entry and dialog. Structured system labels use the dedicated `spaces.knowledgeObjectTypes` translation namespace, also used when creating their titles. Presentation emits explicit actions to the existing creation/dialog owner; menu ordering does not introduce a separate command or persistence layer.
 
@@ -51,9 +51,9 @@ The viewport controller owns the live camera. Pointer panning applies and publis
 
 The organizational concepts are deliberately orthogonal:
 
-- **Group** means “operate on these items together”. Copy, cut, duplicate and drag expand through the group.
-- **Section** means “this visible region of the canvas is about this subject”. A Section has a title and spatial bounds; Sections do not recursively nest.
-- **Saved View (Scene)** is a named projection over the same Space. It owns no knowledge and stores viewport plus focus, relation filters and an optional dynamic query filter.
+- **Group** is a real Structure node and transform boundary. It can nest, move, rotate, scale, rename and define an editing scope; selection operations act on effective roots.
+- **Section** is a non-nesting Structure container with a title and explicit spatial frame. Membership changes only through explicit creation, reparenting or a completed drop.
+- **Saved View (Scene)** is a named projection over the same Space. It owns no knowledge and stores viewport plus focus StructureNodeIds, relation filters and an optional dynamic query filter.
 - **Tag** describes meaning independently of location.
 - **Find** retrieves content when the user remembers what it said but not where it lives.
 
@@ -220,19 +220,16 @@ A document the system could render takes that page's own proportions, so a portr
 
 Resources whose bytes cannot speak for themselves — files and code — close with a caption strip naming the resource type and its size. The strip replaces metadata scattered through the card header, stays at a fixed height across every canvas detail level so zooming never resizes the card, and is withheld from media: an image, a video or a player already says what it is.
 
-Sections are spatial containers rather than decorative rectangles:
+Group and Section are Structure nodes rather than content-node variants:
 
-- creating a Section fits a padded frame around the selected measured nodes;
-- dragging content into or out of a Section updates membership from spatial containment;
-- creating, pasting or dropping content into a Section records domain `sectionId`, so the item immediately participates in subsequent section movement;
-- selecting a Section selects the frame as one object; clipboard duplication/cut explicitly expands the operation to its current members;
-- dragging a Section operates on the Section and its members as one interaction unit while preserving absolute Space coordinates;
-- Konva owns mounted resize handles and drag gestures; Spaces owns section membership;
-- resizing a Section changes only its visual frame and never changes knowledge membership; membership changes only when content itself is dropped across a Section boundary. `Fit section to content` rebuilds the frame around existing members without capturing nearby items;
-- deleting/removing a Section detaches surviving members so no item keeps a dangling Section identity;
-- position and dimensions remain `CanvasDocumentV1` operations; membership mutations join the same command-history transaction so one physical interaction remains one Undo step.
+- Structure owns `StructureNodeId`, parent, sibling order, lock and container title; Layout owns local transforms, Section frames, appearance and relation-style overrides; content rows own knowledge payloads.
+- Group creation uses effective selected roots and preserves world geometry while converting children to local transforms. Entering a Group establishes the explicit editing scope; ordinary internal movement does not infer migration out of that Group.
+- Section creation supports an empty drawn frame, fitting selected roots and drawing around fully contained roots. Creation decides membership once; later Section movement and resize never capture nearby structure.
+- Dragging content or a whole Group across a Section boundary creates one explicit move-to-container command. A collapsed Section must be hovered for about 600 ms before it temporarily expands as a drop preview. Leaving, cancelling, Escape, pointer cancellation or window blur clears the preview; a successful drop commits movement, expansion and reparenting in one Rust transaction and one history entry.
+- `Fit Section to content` changes its frame around existing descendants. `Remove Section only` reparents descendants while preserving world geometry. Deleting a Section deletes its subtree into one recoverable batch.
+- Clipboard, duplicate, cut, cross-Space move, package transfer and Recently Deleted operate on complete effective-root subtrees. No path reconstructs membership from visual overlap after the user action.
 
-Sections never nest. When overlapping Sections contain an item, the smallest containing Section owns it, giving the result a deterministic spatial rule.
+Sections never nest. Groups may nest and may belong to a Section. A Structure node has at most one parent; overlapping Section geometry never creates ambiguous ownership.
 
 ## Large-canvas retrieval
 
@@ -241,15 +238,15 @@ An infinite canvas must not require users to remember coordinates.
 Spaces currently provides four complementary retrieval paths:
 
 1. **Find in Space** — Knowledge Chunk retrieval combines deterministic SQLite FTS5/BM25 with local Qwen3 semantic search. The FTS index uses the built-in trigram tokenizer so Chinese, English and code fragments share one literal substring-capable index; one- and two-character terms use a bounded current-Space substring query. Results carry snippets and canonical source locators, so selecting a hit reveals the exact page, slide, sheet context, block, code position or media timestamp.
-2. **Outline** — a structural list of Sections, their members and unsectioned items. Selecting a row reveals the item on the canvas.
+2. **Outline** — a structural list of Sections, their members and unsectioned structure. Selecting a row reveals the item on the canvas.
 3. **Saved Views** — named projections that restore viewport/focus/relation filters and recompute optional dynamic Smart Queries against current knowledge.
 4. **Tags** — semantic facets independent of visual placement.
 
 Space library covers and Saved View previews are disposable local JPEG resources. SQLite stores only their managed file paths; image bytes and Base64 Data URLs do not enter the Space or Saved View rows. A dirty Space cover is committed before opening or creating another Space and when entering the library, while Saved View preview updates follow explicit view captures. Space export carries the view projection but omits these derived thumbnails; restored views start without a preview. Thumbnail paths participate in the managed-asset reference graph, so replacing or deleting a view or Space removes a file only when no remaining record references it. Orphan reconciliation runs once during Space database bootstrap, never during an active library query or thumbnail write.
 
-Each Space persists one strict current `CanvasDocumentV1`: viewport, node frames, explicit content/frame size authority, z-order, and visual appearance. Imported visual nodes remain content-sized while intrinsic geometry is resolved; the first authored resize transfers authority to the persisted frame. The document references domain node IDs without copying node content, Section membership, lock state, or relations. `SpaceRelation` is the only relation authority. The active canvas engine reads and writes the neutral canvas document through the canvas port; no vendor snapshot or second viewport or relation record is persisted.
+Each Space persists one strict current Structure/Layout/Edit-State aggregate plus a separate disposable camera. Structure/Layout owns hierarchy, local transforms, frame size authority, order, lock, appearance and relation-style overrides. Imported visual content remains content-sized while intrinsic geometry is resolved; the first authored resize transfers authority to the frame. `SpaceRelation` remains the semantic relation authority. The Konva document is an ephemeral projection adapter generated from Structure/Layout and never becomes a second persistence authority.
 
-Text is a content-height object with two distinct resize gestures. Its side handles change only the reflow width, after which measured content owns the exact height in either direction. Its single bottom-right handle scales the complete typography plane—default and inline type, line spacing, list indentation and text insets—from one immutable gesture baseline; frame and typography scale preview and commit atomically, and Undo restores both. Empty Text stores an empty document and presents its localized prompt only as transient UI. Text edits commit through node-data history, while derived height fitting remains history-neutral and rejects measurements from stale width or typography-scale states.
+Text is a content-height object with two distinct resize gestures. Its side handles change only the reflow width, after which measured content owns the exact height in either direction. Its single bottom-right handle scales the complete typography plane—default and inline type, line spacing, list indentation and text insets—from one immutable gesture baseline; frame and typography scale preview and commit atomically, and Undo restores both. Empty Text stores an empty document and presents its localized prompt only as transient UI. Text edits commit through node-data history, while derived height fitting remains history-neutral. Each batch carries the content revision, measured width, size authority and typography scale; Rust revalidates that read set in the write transaction and rejects stale measurements.
 
 Canvas appearance stores semantic Knovum fill presets or one mutually exclusive `#RRGGBB` custom
 fill. JSON Canvas preset and hexadecimal colors therefore cross the exchange boundary without being
@@ -257,7 +254,7 @@ silently discarded or converted to an unrelated preset.
 
 The mounted canvas editor is the sole owner of transient camera interaction and selection. Outline, Find and Saved View actions publish typed workbench intents consumed through `CanvasEditorPort`; product components never acquire or retain a vendor editor instance.
 
-Zoom, fit, reveal, geometry replay and selection clearing cross one small editor port and delegate to the mounted engine. `CanvasDocumentV1` is the only durable visual state; Pinia does not mirror vendor records. Canvas history and domain inverse commands remain coordinated in one user-visible Undo/Redo timeline. System preview is a workbench command for one selected managed asset and opens the platform preview directly; it is not a canvas input-mode protocol.
+Zoom, fit, reveal and selection clearing cross one small editor port and delegate to the mounted engine. Pinia holds the current aggregate projection and session selection but does not mirror vendor records. Rust owns revision-checked structural history; Renderer history groups related native edits so one physical action remains one Undo/Redo step. Camera movement stays outside structural history. System preview is a workbench command for one selected managed asset and opens the platform preview directly; it is not a canvas input-mode protocol.
 
 On macOS one selected managed resource can open in the system Quick Look panel — the same non-modal preview Finder shows for a file. Content without private file bytes has nothing to hand to the platform and therefore does not expose the command. Space remains the focused canvas pan modifier; preview never delays or intercepts it.
 
@@ -265,11 +262,11 @@ On macOS one selected managed resource can open in the system Quick Look panel �
 
 Spaces follows desktop content-editing expectations:
 
-- Copy/Cut/Paste work on selected items.
+- Copy/Cut/Paste work on selected structure nodes.
 - Paste lands where the pointer last was inside the canvas, converted through the viewport at paste time rather than at pointer-move time, and falls back to the canvas center when the pointer never entered the canvas.
 - Duplicate preserves relative layout.
 - Copying a Group expands to the whole operation unit.
-- Copying a Section includes its contained items.
+- Copying a Section includes its contained structure.
 - Binary assets are duplicated so pasted items do not share a file whose lifecycle belongs to another item.
 - Knovum-to-Knovum clipboard fidelity uses one private structured marker embedded in `text/html`, plus useful `text/plain` for interoperability. There is no second compatibility protocol or silent downgrade path.
 - Pasting an OS clipboard image reads pixels through Tauri's clipboard API, then a typed Rust command validates and persists the PNG as a managed Space asset; pasted binary assets enter the same lifecycle as dragged/imported files.
@@ -297,14 +294,12 @@ editable field keys. Switching or closing confirms unsaved changes; saving locks
 retains failed drafts. Type deletion is confirmed, and the database refuses deletion of types
 still referenced by knowledge objects. This editor does not introduce a second type model.
 
-Spaces owns `spaces.db` and its ordered SQLx migrations in
-`src-tauri/migrations/spaces/`. The embedded migrator applies them before repositories receive
-the pool. Applied migration files remain immutable; subsequent schema changes use a new migration.
-Migration 0006 preserves existing derivation inputs and revisions while capturing source metadata
-at migration time; it cannot recover previously deleted history or generation-time metadata.
-New derivations capture their immutable source metadata when created. Rebuildable projections may
-be explicitly reset when their schema changes; the removed Canvas connector projection is one
-such reset, and surviving nodes plus `SpaceRelation` rows remain authoritative.
+Spaces owns `spaces.db` and its single pre-release SQLx v1 baseline at
+`src-tauri/migrations/spaces/0001_spaces.sql`. The embedded migrator installs that complete schema
+before repositories receive the pool. During pre-release development, schema changes are folded
+back into this baseline and obsolete development databases are deleted instead of receiving
+compatibility migrations. New derivations capture immutable source metadata when created.
+Rebuildable projections remain derived from their owning nodes and relations.
 
 Structured state lives in SQLite. Imported binary assets and cached website assets live under Knovum's app-data `spaces/assets` directory. Markdown imports are read as UTF-8 text into SQLite instead of being copied as opaque attachments.
 
@@ -314,7 +309,7 @@ WebView access to private assets is limited to that app-data subtree through Tau
 
 The feature follows `AGENTS.md` and `docs/oss-first.md`:
 
-- The selected canvas engine owns rendering and transient interaction behind `CanvasEditorPort`; Knovum owns the engine-neutral `CanvasDocumentV1` persistence contract. **JSON Canvas 1.0** is an exchange boundary only: imported groups seed Section membership by deterministic geometric containment, while imported edges become the same semantic `SpaceRelation` records used everywhere else. Nodes, relations, and canvas state are committed atomically.
+- The selected canvas engine owns rendering and transient interaction behind `CanvasEditorPort`; Knovum owns the engine-neutral Structure/Layout persistence contract. **JSON Canvas 1.0** is an explicitly lossy exchange boundary: visual groups import as Sections only when membership is unambiguous, while unsupported Groups, transforms, locks, folding and relation semantics are rejected instead of flattened. Imported edges become the same semantic `SpaceRelation` records used everywhere else.
 - **Tiptap** (`@tiptap/vue-3`, StarterKit, Markdown, task-list, table, placeholder and character-count extensions) owns the shared editing engine. The official Vue `BubbleMenu` handles selection-local formatting while Knovum keeps compact desktop chrome. Knovum Notes persist Knovum's validated structured document tree plus derived plain text; Markdown persists Markdown text and only enable round-trippable capabilities.
 - **MediaRecorder** owns local audio capture while a typed Rust command validates and persists the resulting container; a media framework is not introduced for a capability already covered by stable platform APIs.
 - **Tauri Menu** owns right-click context menus on non-editable desktop workspace surfaces so macOS/Windows render native menu typography, separators, highlighting, keyboard interaction and placement. Canvas-background Paste uses Tauri's predefined native Paste role; the keyboard shortcut uses the existing application command and clipboard pipeline. Editable text deliberately keeps the platform/WebView text-editing menu. **Reka UI** remains appropriate for in-app left-click Dropdown/Dialog/Listbox behavior.

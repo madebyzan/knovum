@@ -5,7 +5,6 @@ import { isString } from "es-toolkit";
 import { removeSpaceAssets } from "../assets/asset-operations";
 import type { Space } from "../model/space";
 import { truncateUtf16 } from "../model/text";
-import type { CanvasPackageCodec } from "./canvas-state-codec";
 import type { ImportedSpacePackage } from "./contract";
 import { parseSpacePackageManifest } from "./manifest-parser";
 import { restoreSpacePackage } from "./restore";
@@ -30,11 +29,7 @@ export interface SpacePackageProgress {
 
 type ProgressListener = (progress: SpacePackageProgress) => void;
 
-export async function exportSpacePackage(
-  context: SpacePackageExportContext,
-  canvasCodec: CanvasPackageCodec,
-  onProgress?: ProgressListener,
-) {
+export async function exportSpacePackage(context: SpacePackageExportContext, onProgress?: ProgressListener) {
   const destination = await save({
     defaultPath: `${fileName(context.space.title)}.knovumspace`,
     filters: [{ name: "Knovum Space", extensions: ["knovumspace"] }],
@@ -44,18 +39,14 @@ export async function exportSpacePackage(
   const { manifest, assets } = await collectSpacePackageSnapshot(context.space.id);
   await invoke("plugin:spaces|export_space_package", {
     destinationPath: destination,
-    manifest: currentManifestJson(manifest, canvasCodec),
+    manifest: currentManifestJson(manifest),
     assets,
     onProgress: progressChannel(onProgress),
   });
   return true;
 }
 
-export async function importSpacePackage(
-  context: SpacePackageImportContext,
-  canvasCodec: CanvasPackageCodec,
-  onProgress?: ProgressListener,
-) {
+export async function importSpacePackage(context: SpacePackageImportContext, onProgress?: ProgressListener) {
   const source = await open({
     multiple: false,
     directory: false,
@@ -66,7 +57,7 @@ export async function importSpacePackage(
     sourcePath: source,
     onProgress: progressChannel(onProgress),
   });
-  const space = await restoreSpacePackage(unpacked.manifest, unpacked.assets, canvasCodec).catch((error) =>
+  const space = await restoreSpacePackage(unpacked.manifest, unpacked.assets).catch((error) =>
     cleanupImportedAssets(
       unpacked.assets.map((asset) => asset.path),
       error,
@@ -107,6 +98,6 @@ function fileName(title: string) {
   return value;
 }
 
-function currentManifestJson(manifest: unknown, canvasCodec: CanvasPackageCodec) {
-  return JSON.stringify(parseSpacePackageManifest(JSON.stringify(manifest), canvasCodec));
+function currentManifestJson(manifest: unknown) {
+  return JSON.stringify(parseSpacePackageManifest(JSON.stringify(manifest)));
 }

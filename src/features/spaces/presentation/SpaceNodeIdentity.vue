@@ -77,12 +77,7 @@ function cancel() {
           @keydown.esc.prevent="cancel"
         />
       </div>
-      <div class="flex items-center gap-2">
-        <span class="text-micro text-foreground-tertiary">{{ typeLabel }}</span>
-        <span v-if="node.data.locked" class="text-micro text-foreground-tertiary">{{
-          t("spaces.canvas.lock")
-        }}</span>
-      </div>
+      <span class="text-micro text-foreground-tertiary">{{ typeLabel }}</span>
     </div>
   </div>
 </template>

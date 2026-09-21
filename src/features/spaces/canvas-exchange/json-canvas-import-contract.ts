@@ -1,26 +1,37 @@
-import type { CanvasDocumentV1, CanvasNodeAppearance } from "../canvas/contract/canvas-document";
-import type { CanvasPersistenceHistory } from "../canvas/contract/canvas-editor";
+import type { SpaceEditSnapshot } from "../canvas/contract/space-edit-snapshot";
 import type { SpaceRelation } from "../model/relations/relation";
+import type { StructureLayout } from "../model/structure/structure-contract";
 import type { JsonCanvasEdgeV1 } from "./json-canvas-contract";
+
+type ContentAppearance = Extract<StructureLayout, { kind: "content" }>["appearance"];
+type SectionAppearance = Extract<StructureLayout, { kind: "section" }>["appearance"];
 
 export type JsonCanvasNodeContentV1 =
   | { type: "text"; text: string }
   | { type: "file"; file: string }
-  | { type: "link"; url: string }
-  | { type: "group"; label?: string };
+  | { type: "link"; url: string };
 
-export interface JsonCanvasImportNodeV1 {
+export interface JsonCanvasImportContentV1 {
   sourceId: string;
-  frame: { x: number; y: number; width: number; height: number; rotation: 0 };
-  appearance?: CanvasNodeAppearance;
+  frame: { x: number; y: number; width: number; height: number };
+  appearance?: ContentAppearance;
   fileSubpath?: string;
-  parentSourceId?: string;
-  zIndex: number;
+  parentSectionSourceId?: string;
+  order: number;
   content: JsonCanvasNodeContentV1;
 }
 
+export interface JsonCanvasImportSectionV1 {
+  sourceId: string;
+  frame: { x: number; y: number; width: number; height: number };
+  title?: string;
+  appearance?: SectionAppearance;
+  order: number;
+}
+
 export interface JsonCanvasImportPlanV1 {
-  nodes: readonly JsonCanvasImportNodeV1[];
+  contents: readonly JsonCanvasImportContentV1[];
+  sections: readonly JsonCanvasImportSectionV1[];
   edges: readonly JsonCanvasEdgeV1[];
 }
 
@@ -28,7 +39,6 @@ export interface CanvasJsonImportRequest {
   sourceDirectory: string;
   plan: JsonCanvasImportPlanV1;
   baseRevision: number;
-  document: CanvasDocumentV1;
 }
 
 export type CanvasJsonImportDraft = Omit<CanvasJsonImportRequest, "baseRevision">;
@@ -36,10 +46,8 @@ export type CanvasJsonImportDraft = Omit<CanvasJsonImportRequest, "baseRevision"
 export interface CanvasJsonImportResult {
   importedNodes: readonly { sourceId: string; nodeId: string }[];
   importedRelations: readonly SpaceRelation[];
-  document: CanvasDocumentV1;
+  snapshot: SpaceEditSnapshot;
   revision: number;
 }
 
-export interface CanvasJsonImportCommitResult extends CanvasJsonImportResult {
-  history: CanvasPersistenceHistory;
-}
+export type CanvasJsonImportCommitResult = CanvasJsonImportResult;

@@ -1,4 +1,4 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Runtime};
 
 use crate::spaces::{
@@ -6,7 +6,9 @@ use crate::spaces::{
     knowledge::{contracts, events, invalidation},
 };
 
-#[derive(Debug, Deserialize)]
+pub(crate) mod batch;
+
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct SpaceRelationInput {
     pub(crate) id: String,

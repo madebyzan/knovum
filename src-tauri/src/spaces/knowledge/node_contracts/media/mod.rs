@@ -10,7 +10,8 @@ pub(super) fn validate(value: Option<&Value>) -> Result<(), String> {
     let Some(value) = value else {
         return Ok(());
     };
-    let object = value.as_object()
+    let object = value
+        .as_object()
         .ok_or_else(|| "mediaKnowledge must be an object".to_string())?;
     reject_unknown(
         object,

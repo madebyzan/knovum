@@ -3,52 +3,52 @@ import { describe, expect, it } from "vitest";
 import type { CanvasJsonImportRequest } from "../canvas-exchange/json-canvas-import-contract";
 import { prepareJsonCanvasNodes } from "../session/actions/json-canvas-node-preparation";
 
-const frame = { x: 10, y: 20, width: 320, height: 180, rotation: 0 } as const;
+describe("JSON Canvas content preparation", () => {
+  it("creates content payloads and keeps Section membership in the separate import plan", async () => {
+    const preparation = await prepareJsonCanvasNodes(request());
 
-describe("JSON Canvas domain node preparation", () => {
-  it("maps standard content into domain nodes and preserves group membership", async () => {
-    const preparation = await prepareJsonCanvasNodes(
-      request([
+    expect(preparation.sectionIds.get("group")).toEqual(expect.any(String));
+    expect(preparation.nodes.map(({ node }) => node.data)).toEqual([
+      expect.objectContaining({ kind: "note", plainText: "Evidence" }),
+      expect.objectContaining({ kind: "website", url: "https://example.com/research" }),
+    ]);
+    for (const { node } of preparation.nodes) {
+      expect(node.data).not.toHaveProperty("sectionId");
+      expect(node.data).not.toHaveProperty("locked");
+    }
+  });
+});
+
+function request(): CanvasJsonImportRequest {
+  return {
+    sourceDirectory: "/unused",
+    baseRevision: 0,
+    plan: {
+      sections: [
         {
           sourceId: "group",
-          frame,
-          zIndex: 0,
-          appearance: { fill: "blue" },
-          content: { type: "group", label: "Sources" },
+          frame: { x: 0, y: 0, width: 400, height: 300 },
+          title: "Sources",
+          order: 0,
         },
+      ],
+      contents: [
         {
           sourceId: "text",
-          parentSourceId: "group",
-          frame,
-          zIndex: 1,
+          parentSectionSourceId: "group",
+          frame: { x: 20, y: 50, width: 200, height: 120 },
+          order: 1,
           content: { type: "text", text: "Evidence" },
         },
         {
           sourceId: "link",
-          parentSourceId: "group",
-          frame,
-          zIndex: 2,
+          parentSectionSourceId: "group",
+          frame: { x: 20, y: 180, width: 200, height: 100 },
+          order: 2,
           content: { type: "link", url: "https://example.com/research" },
         },
-      ]),
-    );
-
-    const [group, text, link] = preparation.nodes.map(({ node }) => node);
-    expect(group?.data).toEqual({ kind: "section", title: "Sources" });
-    expect(text?.data).toMatchObject({ kind: "note", plainText: "Evidence", sectionId: group?.id });
-    expect(link?.data).toMatchObject({
-      kind: "website",
-      url: "https://example.com/research",
-      sectionId: group?.id,
-    });
-  });
-});
-
-function request(nodes: CanvasJsonImportRequest["plan"]["nodes"]): CanvasJsonImportRequest {
-  return {
-    sourceDirectory: "/unused",
-    plan: { nodes, edges: [] },
-    baseRevision: 0,
-    document: { version: 1, viewport: { x: 0, y: 0, zoom: 1 }, nodes: [] },
+      ],
+      edges: [],
+    },
   };
 }

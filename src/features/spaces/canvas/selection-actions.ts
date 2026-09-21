@@ -1,14 +1,14 @@
 import { openUrl } from "@tauri-apps/plugin-opener";
 
 import { openSystemPreview } from "../../../foundation/system-preview/system-preview";
-import { removeSpaceAssets } from "../assets/asset-operations";
-import { assetPathsForNodes } from "../assets/node-asset-paths";
-import { scheduleSpaceAssetProcessing } from "../assets/processing-scheduler";
-import { cloneClipboardNodes, duplicateSpaceNodes } from "../clipboard/node-cloning";
+import type { SpaceClipboardPayload } from "../clipboard/payload-types";
+import { importStructureClipboard } from "../clipboard/structure-clipboard-repository";
 import { readSpaceClipboardHtml, writeSpaceClipboardDirect } from "../clipboard/transfer";
 import type { PositionedSpaceNode, SpaceCanvasNode } from "../model/nodes/canvas-node";
-import { isSpaceManagedAssetPayload, isSpaceSectionPayload } from "../model/nodes/capabilities";
+import { isSpaceManagedAssetPayload } from "../model/nodes/capabilities";
 import type { SpaceNodeKind } from "../model/nodes/node-payload";
+import { createStructureIndex } from "../model/structure/structure-index";
+import { groupScopePathFor } from "../model/structure/structure-queries";
 import type { useSpaceStore } from "../session/space-store";
 import { useCanvasEditorSession } from "./editor-session";
 
@@ -16,20 +16,28 @@ export async function duplicateSpaceSelection(
   store: ReturnType<typeof useSpaceStore>,
   selectedNodes: readonly PositionedSpaceNode[],
 ) {
-  const copies = await duplicateSpaceNodes(selectedNodes);
-  if (!copies.length) return;
-  try {
-    await store.addItems(copies);
-  } catch (error) {
-    await removeSpaceAssets(assetPathsForNodes(copies));
-    throw error;
-  }
-  scheduleManagedCopies(store, copies);
-  useCanvasEditorSession().selectNodes(copies.map((node) => node.id));
+  const structureNodeIdByContentId = new Map(
+    store.editSnapshot.structure.flatMap((structureNode) =>
+      structureNode.kind === "content" ? [[structureNode.nodeId, structureNode.id] as const] : [],
+    ),
+  );
+  const rootIds = selectedNodes.map(({ node }) => {
+    const structureNodeId = structureNodeIdByContentId.get(node.id);
+    if (!structureNodeId)
+      throw new Error(`Duplicate content is unavailable in the Space structure: ${node.id}`);
+    return structureNodeId;
+  });
+  if (!rootIds.length) return;
+  await store.executeSpaceEdit({
+    kind: "structure.clone",
+    rootIds,
+    targetParentId: null,
+    offset: { x: 24, y: 24 },
+  });
 }
 
-export async function copySpaceSelectionToClipboard(selectedNodes: readonly PositionedSpaceNode[]) {
-  await writeSpaceSelectionToClipboard(selectedNodes);
+export async function copySpaceSelectionToClipboard(payload: SpaceClipboardPayload) {
+  await writeSpaceClipboardDirect(payload);
 }
 
 export async function pasteSpaceClipboardAt(
@@ -40,21 +48,26 @@ export async function pasteSpaceClipboardAt(
   if (html) {
     const payload = readSpaceClipboardHtml(html);
     if (!payload) return false;
-    const copies = await cloneClipboardNodes(payload, point);
-    try {
-      await store.addItems(copies);
-    } catch (error) {
-      await removeSpaceAssets(assetPathsForNodes(copies));
-      throw error;
-    }
-    scheduleManagedCopies(store, copies);
+    await store.ensureActiveSpacePersisted();
+    const spaceId = store.activeSpaceId;
+    if (!spaceId) throw new Error("A Space must be active to paste structured content");
+    const result = await importStructureClipboard({
+      spaceId,
+      mutationId: crypto.randomUUID(),
+      expectedEditRevision: store.editSnapshot.editRevision,
+      targetParentId: store.groupScopePath.at(-1) ?? null,
+      anchor: point,
+      payload,
+    });
+    if (store.activeSpaceId !== spaceId) throw new Error("Structured clipboard paste target changed");
+    store.nodes = [...store.nodes, ...result.nodes];
+    store.relations = [...store.relations, ...result.relations];
+    store.editSnapshot = result.snapshot;
+    store.recordCommittedSpaceEdit();
+    useCanvasEditorSession().selectStructureNodes(result.selectionSuggestion);
     return true;
   }
   return false;
-}
-
-async function writeSpaceSelectionToClipboard(nodes: readonly PositionedSpaceNode[]) {
-  await writeSpaceClipboardDirect(nodes);
 }
 
 type OpenHandler = (store: ReturnType<typeof useSpaceStore>, node: SpaceCanvasNode) => void | Promise<void>;
@@ -71,12 +84,12 @@ const OPEN_HANDLERS: Partial<Record<SpaceNodeKind, OpenHandler>> = {
   },
   portal: (store, node) => {
     if (node.data.kind !== "portal") return;
-    return openPortalNode(store, node.data.targetSpaceId, node.data.targetSceneId, node.data.targetNodeId);
+    return openPortalNode(store, node.data);
   },
 };
 
 export async function openSpaceNode(store: ReturnType<typeof useSpaceStore>, node?: SpaceCanvasNode) {
-  if (!node || isSpaceSectionPayload(node.data)) return;
+  if (!node) return;
   const handler = OPEN_HANDLERS[node.data.kind];
   if (handler) {
     await handler(store, node);
@@ -99,21 +112,24 @@ export function selectAndRevealSpaceNode(id: string, mode: "focus" | "ensure-vis
 
 export async function openPortalNode(
   store: ReturnType<typeof useSpaceStore>,
-  spaceId: string,
-  sceneId?: string,
-  nodeId?: string,
+  target: Extract<SpaceCanvasNode["data"], { kind: "portal" }>,
 ) {
+  const {
+    targetSpaceId: spaceId,
+    targetSceneId: sceneId,
+    targetNodeId: nodeId,
+    targetStructureNodeId: structureNodeId,
+  } = target;
   await store.openSpace(spaceId);
   if (sceneId) await store.openSceneView(sceneId);
-  if (nodeId) useCanvasEditorSession().reveal([nodeId], "focus");
-}
-
-function scheduleManagedCopies(store: ReturnType<typeof useSpaceStore>, nodes: readonly SpaceCanvasNode[]) {
-  const spaceId = store.activeSpaceId;
-  if (!spaceId) return;
-  const context = { applyNodeDataForSpace: store.applyNodeDataForSpace };
-  for (const node of nodes) {
-    if (!isSpaceManagedAssetPayload(node.data)) continue;
-    scheduleSpaceAssetProcessing(context, spaceId, node.id, node.data);
-  }
+  const editor = useCanvasEditorSession();
+  if (nodeId) editor.reveal([nodeId], "focus");
+  if (!structureNodeId) return;
+  const index = createStructureIndex(store.editSnapshot.structure);
+  const structureNode = index.structureById.get(structureNodeId);
+  if (!structureNode || structureNode.kind === "content")
+    throw new Error("Portal structure target is unavailable");
+  store.groupScopePath = groupScopePathFor(structureNodeId, index);
+  editor.selectStructureNodes([structureNodeId]);
+  editor.reveal([structureNodeId], "focus");
 }

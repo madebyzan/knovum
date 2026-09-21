@@ -44,7 +44,6 @@ export function remapNodePayload(
   objectTypes: readonly PackageObjectType[],
 ): SpaceNodePayload {
   const copy = structuredClone(data);
-  if (copy.sectionId) copy.sectionId = requiredMap(maps.nodes, copy.sectionId, "section");
   if (copy.kind === "object") remapObject(copy, maps, objectTypes);
   if (copy.kind === "portal") remapPortal(copy, maps);
   return copy;
@@ -55,6 +54,12 @@ function remapPortal(data: Extract<SpaceNodePayload, { kind: "portal" }>, maps: 
   data.targetSpaceId = maps.targetSpaceId;
   if (data.targetSceneId) data.targetSceneId = requiredMap(maps.scenes, data.targetSceneId, "portal Scene");
   if (data.targetNodeId) data.targetNodeId = requiredMap(maps.nodes, data.targetNodeId, "portal node");
+  if (data.targetStructureNodeId)
+    data.targetStructureNodeId = requiredMap(
+      maps.structureNodes,
+      data.targetStructureNodeId,
+      "portal structure node",
+    );
 }
 
 export function remapGroundedCitation(

@@ -101,6 +101,3 @@ pub(super) async fn reject_live_dependents(
     }
     Ok(())
 }
-
-#[cfg(test)]
-mod tests;

@@ -15,14 +15,13 @@ export function useCanvasSceneLayerProjection(props: CanvasSceneLayerProjectionI
   const canonicalVisibleRelations = computed(() =>
     props.scene.relations.filter(({ key }) => props.visibleRelationIds.has(key)),
   );
-  const selectedLayouts = computed(() =>
-    props.scene.nodes.filter(({ node }) => props.selectedNodeIds.has(node.id)).map(({ layout }) => layout),
+  const selectedFrames = computed(() =>
+    props.scene.nodes
+      .filter(({ node }) => props.selectedNodeIds.has(node.id))
+      .map(({ layout }) => layout.frame),
   );
   return {
     visibleRelations: canonicalVisibleRelations,
-    visibleSections: computed(() =>
-      props.scene.sections.filter(({ node }) => props.visibleNodeIds.has(node.id)),
-    ),
     visibleContentNodes: computed(() =>
       props.scene.contentNodes.filter(({ node }) => props.visibleNodeIds.has(node.id)),
     ),
@@ -42,6 +41,6 @@ export function useCanvasSceneLayerProjection(props: CanvasSceneLayerProjectionI
         .filter(({ node }) => !props.selectedNodeIds.has(node.id))
         .map(({ layout }) => layout.frame),
     ),
-    selectedFrames: selectedLayouts,
+    selectedFrames,
   };
 }

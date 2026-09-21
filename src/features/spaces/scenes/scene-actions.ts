@@ -2,9 +2,11 @@ import { maxBy, sortBy } from "es-toolkit";
 import type { Ref } from "vue";
 
 import { cleanupDeletedSpaceAssets } from "../assets/asset-operations";
+import type { SpaceEditSnapshot } from "../canvas/contract/space-edit-snapshot";
 import type { SpaceSavedViewFilter } from "../knowledge/model/projections";
 import { snapshotSpaceQueryFilter } from "../knowledge/model/query-filter";
 import type { SpaceRelationKind, SpaceRelationStatus } from "../model/relations/relation";
+import { createStructureIndex } from "../model/structure/structure-index";
 import type { SpaceScene } from "./scene";
 import { deleteScene, createScene as persistScene, updateSceneOrders, updateScene } from "./scene-repository";
 import type { SpaceViewport } from "./viewport";
@@ -12,6 +14,7 @@ import type { SpaceViewport } from "./viewport";
 interface SceneActionContext {
   activeSpaceId: Ref<string | undefined>;
   scenes: Ref<SpaceScene[]>;
+  editSnapshot: Ref<SpaceEditSnapshot>;
   focusNodeIds: Ref<string[]>;
   relationKinds: Ref<SpaceRelationKind[]>;
   relationStatuses: Ref<SpaceRelationStatus[]>;
@@ -32,13 +35,13 @@ export async function createSpaceScene(
     spaceId,
     title,
     thumbnailPath,
-    orderIndex: (maxBy(context.scenes.value, (item) => item.orderIndex)?.orderIndex ?? 0) + 100,
+    orderIndex: (maxBy(context.scenes.value, (candidate) => candidate.orderIndex)?.orderIndex ?? 0) + 100,
     createdAt: now,
     updatedAt: now,
     viewportX: viewport.x,
     viewportY: viewport.y,
     viewportZoom: viewport.zoom,
-    focusNodeIds: [...context.focusNodeIds.value],
+    focusStructureNodeIds: currentFocusStructureNodeIds(context),
     relationKinds: [...context.relationKinds.value],
     relationStatuses: [...context.relationStatuses.value],
     queryFilter: snapshotSpaceQueryFilter(context.queryFilter.value),
@@ -80,11 +83,11 @@ export async function duplicateSpaceScene(context: SceneActionContext, id: strin
   const duplicate: SpaceScene = {
     ...source,
     id: crypto.randomUUID(),
-    focusNodeIds: [...source.focusNodeIds],
+    focusStructureNodeIds: [...source.focusStructureNodeIds],
     relationKinds: [...source.relationKinds],
     relationStatuses: [...source.relationStatuses],
     queryFilter: snapshotSpaceQueryFilter(source.queryFilter),
-    orderIndex: (maxBy(context.scenes.value, (item) => item.orderIndex)?.orderIndex ?? 0) + 100,
+    orderIndex: (maxBy(context.scenes.value, (scene) => scene.orderIndex)?.orderIndex ?? 0) + 100,
     createdAt: now,
     updatedAt: now,
   };
@@ -104,7 +107,7 @@ async function persistReorderedScenes(context: SceneActionContext, ordered: Spac
   if (context.activeSpaceId.value === spaceId) context.scenes.value = next;
 }
 
-function moveItemInArray<T>(array: readonly T[], fromIndex: number, toIndex: number): T[] {
+function moveArrayEntry<T>(array: readonly T[], fromIndex: number, toIndex: number): T[] {
   const copy = [...array];
   const [moved] = copy.splice(fromIndex, 1);
   if (moved) copy.splice(toIndex, 0, moved);
@@ -116,7 +119,7 @@ export async function moveSpaceScene(context: SceneActionContext, id: string, di
   const from = ordered.findIndex((scene) => scene.id === id);
   const to = from + direction;
   if (from < 0 || to < 0 || to >= ordered.length) return;
-  await persistReorderedScenes(context, moveItemInArray(ordered, from, to));
+  await persistReorderedScenes(context, moveArrayEntry(ordered, from, to));
 }
 
 export async function reorderSpaceScenes(context: SceneActionContext, sourceId: string, targetId: string) {
@@ -124,7 +127,7 @@ export async function reorderSpaceScenes(context: SceneActionContext, sourceId: 
   const from = ordered.findIndex((s) => s.id === sourceId);
   const to = ordered.findIndex((s) => s.id === targetId);
   if (from < 0 || to < 0 || from === to) return;
-  await persistReorderedScenes(context, moveItemInArray(ordered, from, to));
+  await persistReorderedScenes(context, moveArrayEntry(ordered, from, to));
 }
 
 function reindexScene(scene: SpaceScene, order: number, updatedAt: number): SpaceScene {
@@ -143,9 +146,18 @@ export async function removeSpaceScene(context: SceneActionContext, id: string) 
 
 function currentView(context: SceneActionContext) {
   return {
-    focusNodeIds: [...context.focusNodeIds.value],
+    focusStructureNodeIds: currentFocusStructureNodeIds(context),
     relationKinds: [...context.relationKinds.value],
     relationStatuses: [...context.relationStatuses.value],
     queryFilter: snapshotSpaceQueryFilter(context.queryFilter.value),
   };
+}
+
+function currentFocusStructureNodeIds(context: SceneActionContext) {
+  const index = createStructureIndex(context.editSnapshot.value.structure);
+  return context.focusNodeIds.value.map((nodeId) => {
+    const structureNodeId = index.nodeIdToStructureNodeId.get(nodeId);
+    if (!structureNodeId) throw new Error(`Saved View focus node has no structure node: ${nodeId}`);
+    return structureNodeId;
+  });
 }

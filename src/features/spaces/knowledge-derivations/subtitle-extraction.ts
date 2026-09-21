@@ -17,7 +17,7 @@ export function canCreateSubtitleResource(node: SpaceCanvasNode | undefined): bo
   if (node?.data.kind !== "video" || !node.data.sourceRevision) return false;
   const knowledge = node.data.mediaKnowledge;
   return (
-    knowledge?.schemaVersion === 3 &&
+    knowledge?.schemaVersion === 4 &&
     knowledge.sourceRevision === node.data.sourceRevision &&
     knowledge.transcript.subtitleCues.length > 0
   );
@@ -42,7 +42,7 @@ export async function createSubtitleResource(store: SpaceStore, source: SpaceCan
       cues: transcript.subtitleCues.map(({ startMs, endMs, text }) => ({ startMs, endMs, text })),
     };
     phase = "create-node";
-    const [output] = await store.createPendingItemForSpace(
+    const [output] = await store.createPendingContentForSpace(
       spaceId,
       data,
       derivedNodePosition([source], useCanvasEditorSession().selection.value.nodePlacements),
@@ -64,12 +64,12 @@ export async function createSubtitleResource(store: SpaceStore, source: SpaceCan
     });
     phase = "refresh-space";
     await store.refreshActiveSpace();
-    store.finalizePendingItems(spaceId, [output]);
+    store.finalizePendingContent(spaceId, [output]);
     store.requestReveal([output.id], "ensure-visible");
     return output;
   } catch (error) {
     void logError(`[subtitle-extraction] phase=${phase} error=${String(error)}`);
-    if (outputId) await store.discardPendingItem(spaceId, outputId);
+    if (outputId) await store.discardPendingContent(spaceId, outputId);
     toast.error(`${i18n.global.t("spaces.creation.subtitleResourceFailed")}: ${String(error)}`);
     return undefined;
   } finally {

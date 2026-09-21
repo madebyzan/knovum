@@ -122,6 +122,6 @@ fn required_string<'a>(value: &'a Value, key: &str) -> Result<&'a str, String> {
     value
         .get(key)
         .and_then(Value::as_str)
-        .filter(|item| !item.is_empty())
+        .filter(|text| !text.is_empty())
         .ok_or_else(|| format!("Video {key} is unavailable"))
 }

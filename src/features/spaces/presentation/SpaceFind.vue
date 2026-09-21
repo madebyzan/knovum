@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Search } from "@lucide/vue";
+import { Group, LayoutPanelTop, Search } from "@lucide/vue";
 import {
   DialogContent,
   DialogOverlay,
@@ -26,12 +26,10 @@ import { nodeIcon } from "./node-icon";
 
 const open = defineModel<boolean>("open", { required: true });
 const { t } = useI18n();
-const { query, matches, semantic, searching, searchFailed, defaultNodes, select, retry } = useFind(
-  open,
-  () => {
+const { query, matches, structureMatches, semantic, searching, searchFailed, defaultNodes, select, retry } =
+  useFind(open, () => {
     open.value = false;
-  },
-);
+  });
 
 function matchBadgeLabel(match: KnowledgeSearchMatch): string | null {
   if (match.metadata?.role === "document_ocr") return t("spaces.processing.matchBadge.documentOcr");
@@ -101,6 +99,26 @@ function matchBadgeLabel(match: KnowledgeSearchMatch): string | null {
               >
             </ListboxItem>
             <ListboxItem
+              v-for="match in query.trim() ? structureMatches : []"
+              :key="match.structureNodeId"
+              :value="match"
+              :text-value="match.title"
+              class="flex min-h-(--knovum-command-item-height) w-full cursor-default items-center gap-2.5 rounded-control px-2.5 py-2 text-left outline-none data-highlighted:bg-(--knovum-sidebar-item-background-selected)"
+            >
+              <span
+                class="grid size-7 shrink-0 place-items-center rounded-control bg-control text-foreground-secondary"
+              >
+                <LayoutPanelTop v-if="match.nodeKind === 'section'" class="size-(--knovum-icon-size-sm)" />
+                <Group v-else class="size-(--knovum-icon-size-sm)" />
+              </span>
+              <span class="min-w-0 flex-1">
+                <strong class="block truncate text-label font-medium">{{ match.title }}</strong>
+                <span class="block text-caption text-foreground-tertiary">{{
+                  match.nodeKind === "section" ? t("spaces.canvas.section") : t("spaces.canvas.group")
+                }}</span>
+              </span>
+            </ListboxItem>
+            <ListboxItem
               v-for="match in query.trim() ? matches : []"
               :key="match.chunkId"
               :value="match"
@@ -140,7 +158,7 @@ function matchBadgeLabel(match: KnowledgeSearchMatch): string | null {
               <UiButton size="sm" variant="secondary" @click="retry">{{ t("common.retry") }}</UiButton>
             </div>
             <p
-              v-else-if="query.trim() && !searching && matches.length === 0"
+              v-else-if="query.trim() && !searching && matches.length === 0 && structureMatches.length === 0"
               class="px-3 py-8 text-center text-caption text-foreground-tertiary"
             >
               {{ t("spaces.navigation.noFindResults") }}

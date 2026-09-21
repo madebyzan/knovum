@@ -7,7 +7,7 @@ import { truncateUtf16 } from "../model/text";
 import { formatExportMarkdown } from "./markdown-document";
 
 export async function exportSpaceAsset(data: SpaceNodePayload): Promise<boolean> {
-  if (!isSpaceManagedAssetPayload(data)) throw new Error("This item has no exportable asset");
+  if (!isSpaceManagedAssetPayload(data)) throw new Error("This node has no exportable asset");
   const destinationPath = await save({ defaultPath: data.fileName });
   if (!destinationPath) return false;
   await invoke("plugin:spaces|export_asset", { sourcePath: data.assetPath, destinationPath });

@@ -8,7 +8,11 @@ import { prepareSpaceKnowledgePayload } from "../../knowledge/model/node-knowled
 import type { KnowledgeChunkSeed } from "../../knowledge/model/schema";
 import type { SpaceNodePayload } from "../../model/nodes/node-payload";
 import { validateSpaceNodePayload } from "../../model/nodes/schema/node-payload";
-import { permanentlyDeleteNodes, setNodesDeleted, updateNodePayload } from "../../nodes/node-repository";
+import {
+  discardPendingContent as persistPendingContentDiscard,
+  updateNodePayload,
+} from "../../nodes/node-repository";
+import { spaceEditRepository } from "../../structure/space-edit-repository";
 
 export function createNodeDataMutations(context: SpaceMutationContext) {
   async function saveNodeData(
@@ -52,13 +56,24 @@ export function createNodeDataMutations(context: SpaceMutationContext) {
     scheduleKnowledgeIndex(spaceId, [id]);
   }
 
-  async function discardPendingItem(spaceId: string, id: string) {
-    await setNodesDeleted(spaceId, [id], true);
-    const paths = await permanentlyDeleteNodes([{ spaceId, ids: [id] }]);
+  async function discardPendingContent(spaceId: string, id: string) {
+    const snapshot =
+      context.activeSpaceId.value === spaceId
+        ? context.editSnapshot.value
+        : await spaceEditRepository.load(spaceId);
+    const result = await persistPendingContentDiscard({
+      spaceId,
+      nodeId: id,
+      expectedEditRevision: snapshot.editRevision,
+      mutationId: crypto.randomUUID(),
+    });
     if (context.activeSpaceId.value === spaceId) {
       context.nodes.value = context.nodes.value.filter((node) => node.id !== id);
+      context.editSnapshot.value = await spaceEditRepository.load(spaceId);
     }
-    if (paths.length) await cleanupDeletedSpaceAssets(paths);
+    if (result.assetCleanupCandidates.length) {
+      await cleanupDeletedSpaceAssets(result.assetCleanupCandidates);
+    }
   }
 
   function patchActiveNodeData(spaceId: string, id: string, data: SpaceNodePayload) {
@@ -70,7 +85,7 @@ export function createNodeDataMutations(context: SpaceMutationContext) {
 
   return {
     applyNodeDataForSpace,
-    discardPendingItem,
+    discardPendingContent,
     saveNodeData,
     saveNodeDataForSpace,
     savePendingNodeDataForSpace,

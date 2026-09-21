@@ -1,5 +1,6 @@
 import type { Ref } from "vue";
 
+import type { SpaceEditSnapshot } from "../canvas/contract/space-edit-snapshot";
 import type { SpaceHistoryState } from "../history/stack";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceRelation } from "../model/relations/relation";
@@ -11,6 +12,8 @@ export interface SpaceSessionContext {
   draftSpace: Ref<Space | undefined>;
   activeSpaceId: Ref<string | undefined>;
   nodes: Ref<SpaceCanvasNode[]>;
+  editSnapshot: Ref<SpaceEditSnapshot>;
+  groupScopePath: Ref<string[]>;
   scenes: Ref<SpaceScene[]>;
   relations: Ref<SpaceRelation[]>;
   ready: Ref<boolean>;

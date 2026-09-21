@@ -23,6 +23,7 @@ const { scenes, activeSceneId, recentSceneId, createScene, getTargetScene, openS
 const open = shallowRef(false);
 const saving = shallowRef(false);
 const canStep = computed(() => scenes.value.length > 1);
+const availableStructureNodeIds = computed(() => new Set(store.editSnapshot.structure.map(({ id }) => id)));
 
 function sceneLabel(direction: -1 | 1) {
   const label = t(direction === -1 ? "spaces.navigation.previousView" : "spaces.navigation.nextView");
@@ -114,9 +115,10 @@ async function duplicateScene(scene: SpaceScene) {
       </template>
       <SpaceCanvasScenePanel
         :scenes="scenes"
+        :available-structure-node-ids="availableStructureNodeIds"
+        :active-scene-id="activeSceneId"
         :recent-scene-id="recentSceneId"
         :saving="saving"
-        v-bind="activeSceneId ? { activeSceneId } : {}"
         @create="saveScene"
         @duplicate="duplicateScene"
         @open="selectScene"

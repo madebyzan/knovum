@@ -2,16 +2,19 @@ import type Konva from "konva";
 import { shallowRef } from "vue";
 
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
+import { sectionDropMoveCommand } from "../../../organization/section-drop-reparent";
 import type { CanvasNodeFrameUpdate, CanvasNodeLayoutV1 } from "../../contract/canvas-document";
-import type { CanvasPersistenceHistory, CanvasSurfaceEvents } from "../../contract/canvas-editor";
+import type { CanvasSurfaceEvents } from "../../contract/canvas-editor";
 import type { CanvasPoint } from "../../contract/canvas-editor-port";
+import type { SpaceEditSnapshot } from "../../contract/space-edit-snapshot";
+import { commandForCanvasGesture } from "../../document/structure-gesture-command";
 import type { CanvasDocumentModel } from "../document/canvas-document-model";
 import {
   applyCanvasGestureUpdates,
   captureCanvasGestureLayouts,
 } from "../document/canvas-document-mutations";
-import { sectionAssignments } from "../scene/section-membership";
 import type { CanvasGestureUpdate } from "./canvas-gesture-update";
+import { movableCanvasSelectionNodeIds } from "./canvas-node-drag-state";
 import type { CanvasGestureFeedback } from "./canvas-snapping";
 import { NodeGestureController } from "./node-gesture-controller";
 
@@ -21,8 +24,10 @@ interface CanvasGestureSessionOptions {
   layouts(): readonly CanvasNodeLayoutV1[];
   nodes(): readonly SpaceCanvasNode[];
   previewFrames(updates: readonly CanvasGestureUpdate[]): void;
-  sectionNodeIds(): ReadonlySet<string>;
+  lockedNodeIds(): ReadonlySet<string>;
   selectedNodeIds(): ReadonlySet<string>;
+  snapshot(): SpaceEditSnapshot;
+  temporarilyExpandedSectionId(): string | undefined;
   stage(): Konva.Stage | undefined;
   zoom(): number;
 }
@@ -38,6 +43,7 @@ export function createCanvasGestureSession(options: CanvasGestureSessionOptions)
   const controller = new NodeGestureController({
     layouts: options.layouts,
     nodes: options.nodes,
+    lockedNodeIds: options.lockedNodeIds,
     previewFrames: options.previewFrames,
     selectedNodeIds: options.selectedNodeIds,
     stage: options.stage,
@@ -62,7 +68,7 @@ export function createCanvasGestureSession(options: CanvasGestureSessionOptions)
   }
 
   function nudge(offset: CanvasPoint) {
-    const targetNodeIds = movableSelectionNodeIds();
+    const targetNodeIds = movableCanvasSelectionNodeIds(options.selectedNodeIds(), options.lockedNodeIds());
     return enqueue(() => commitNudge(offset, targetNodeIds));
   }
 
@@ -83,16 +89,6 @@ export function createCanvasGestureSession(options: CanvasGestureSessionOptions)
     await commit(updates);
   }
 
-  function movableSelectionNodeIds() {
-    const nodes = options.nodes();
-    const selected = new Set(options.selectedNodeIds());
-    for (const node of nodes) {
-      if (node.data.sectionId && selected.has(node.data.sectionId)) selected.add(node.id);
-    }
-    const locked = new Set(nodes.filter(({ data }) => data.locked).map(({ id }) => id));
-    return new Set([...selected].filter((id) => !locked.has(id)));
-  }
-
   async function commit(updates: readonly CanvasGestureUpdate[], manipulation?: CanvasDirectManipulation) {
     if (!updates.length) {
       options.previewFrames([]);
@@ -101,25 +97,19 @@ export function createCanvasGestureSession(options: CanvasGestureSessionOptions)
     }
     const before = options.document.document;
     const after = applyCanvasGestureUpdates(before, updates);
-    const assignments = sectionAssignments(
-      updates.map(({ nodeId: movedNodeId }) => movedNodeId),
-      after.nodes,
-      options.sectionNodeIds(),
-      options.nodes(),
-    );
     const beforeFrames = captureCanvasGestureLayouts(before, updates);
     options.document.applyLocalDocument(after);
+    const expandedSectionId = options.temporarilyExpandedSectionId();
     options.previewFrames([]);
     finishDirectManipulation(manipulation);
     try {
-      const committed = await options.events.onCommitGesture({ assignments, document: after });
-      options.document.applyLocalDocument(committed.document);
-      const afterFrames = captureCanvasGestureLayouts(committed.document, updates);
-      controller.restoreFrames(afterFrames);
-      options.events.onHistoryEntry({
-        undo: () => replay(beforeFrames, committed.history.undo),
-        redo: () => replay(afterFrames, committed.history.redo),
-      });
+      const command = commandForCanvasGesture(options.snapshot(), before, after);
+      const committed =
+        command?.kind === "structure.move"
+          ? sectionDropMoveCommand(options.snapshot(), command.rootIds, command.delta, expandedSectionId)
+          : command;
+      if (committed) await options.events.onExecuteSpaceEdit(committed);
+      controller.restoreFrames(captureCanvasGestureLayouts(after, updates));
     } catch (error) {
       options.document.applyLocalDocument(before);
       controller.restoreFrames(beforeFrames);
@@ -151,15 +141,6 @@ export function createCanvasGestureSession(options: CanvasGestureSessionOptions)
       busy.value = pendingMutations > 0;
       if (pendingMutations === 0) options.events.onMutationPendingChange(false);
     });
-  }
-
-  async function replay(
-    updates: readonly CanvasGestureUpdate[],
-    transition: CanvasPersistenceHistory["undo"],
-  ) {
-    const document = applyCanvasGestureUpdates(options.document.document, updates);
-    const result = await options.events.onHistoryTransition(document, transition);
-    options.document.applyLocalDocument(result.document);
   }
 
   return {

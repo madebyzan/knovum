@@ -105,7 +105,7 @@ owned files/models/temporaries, `trash`/`restore` for the reversible bin, and `r
 relation. Do not use them interchangeably.
 
 Reversible state bits get a domain verb pair, never `set_<thing>(true)`: `archive_space` /
-`unarchive_space`, `trash_nodes` / `restore_nodes`. A private helper may still take the boolean
+`unarchive_space`, `delete-subtrees` / `restore_deleted_structure`. A private helper may still take the boolean
 (`set_archived(app, space_id, true)`) because the flag does not cross a module boundary.
 
 Avoid generic `process`, `manage`, `do`, and `execute` unless the word is part of an external

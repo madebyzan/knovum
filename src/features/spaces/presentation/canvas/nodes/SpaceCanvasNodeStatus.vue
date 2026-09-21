@@ -26,7 +26,7 @@ const status = computed(() => {
   return {
     label:
       props.data.processingState === "importing"
-        ? t("spaces.transfer.importingItem")
+        ? t("spaces.transfer.importingResource")
         : t("spaces.transfer.importProcessing"),
   };
 });

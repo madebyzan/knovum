@@ -1,4 +1,9 @@
-import type { CanvasDocumentV1, CanvasNodeAppearance, CanvasRelationColor } from "./canvas-document";
+import type {
+  CanvasDocumentV1,
+  CanvasNodeAppearance,
+  CanvasNodeSizeAuthority,
+  CanvasRelationColor,
+} from "./canvas-document";
 
 export interface CanvasPoint {
   x: number;
@@ -15,6 +20,7 @@ export interface CanvasNodePlacement extends CanvasPoint {
 
 export interface CanvasSelectionSnapshot {
   nodeIds: readonly string[];
+  structureNodeIds: readonly string[];
   nodePlacements: readonly CanvasNodePlacement[];
   relationIds: readonly string[];
   singleNodeAppearance?: CanvasNodeAppearance;
@@ -32,7 +38,9 @@ export interface CanvasRect extends CanvasPoint {
 }
 
 export interface CanvasContentHeightMeasurement {
+  contentRevision: string | null;
   height: number;
+  sizeAuthority: CanvasNodeSizeAuthority;
   typographyScale: number;
   width: number;
 }
@@ -49,7 +57,6 @@ export interface CanvasEditorPort {
   alignSelection(mode: CanvasAlignMode): Promise<void>;
   autoLayoutSelection(direction: CanvasAutoLayoutDirection): Promise<void>;
   distributeSelection(mode: CanvasDistributeMode): Promise<void>;
-  fitSection(sectionId: string): Promise<void>;
   selectAll(): void;
   zoomIn(): void;
   zoomOut(): void;
@@ -74,6 +81,7 @@ export interface CanvasEditorPort {
   getSelectionSnapshot(): CanvasSelectionSnapshot;
   getSelectionBounds(): CanvasRect | undefined;
   selectNodes(nodeIds: readonly string[]): void;
+  selectStructureNodes(structureNodeIds: readonly string[]): void;
   screenToCanvasPoint(point: CanvasPoint): CanvasPoint;
   canvasToViewportPoint(point: CanvasPoint): CanvasPoint;
 }

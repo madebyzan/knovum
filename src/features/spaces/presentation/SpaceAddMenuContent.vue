@@ -11,6 +11,7 @@ import {
   Globe2,
   KeyRound,
   Lightbulb,
+  LayoutPanelTop,
   LockKeyhole,
   Mic,
   Quote,
@@ -35,10 +36,11 @@ const emit = defineEmits<{
   recordAudio: [];
   credential: [kind: "api-key" | "account-password"];
   agent: [];
+  section: [];
 }>();
 const { t } = useI18n();
 const submenuClass = "material-overlay z-50 min-w-48 rounded-panel p-1 shadow-popover ring-1 ring-border";
-const knowledgeItems = [
+const knowledgeOptions = [
   { kind: "concept", icon: Shapes },
   { kind: "question", icon: CircleHelp },
   { kind: "claim", icon: Lightbulb },
@@ -63,12 +65,12 @@ const knowledgeItems = [
     <DropdownMenuPortal>
       <DropdownMenuSubContent :side-offset="4" :align-offset="-4" :class="submenuClass">
         <UiDropdownMenuItem
-          v-for="item in knowledgeItems"
-          :key="item.kind"
-          @select="emit('knowledge', item.kind)"
+          v-for="option in knowledgeOptions"
+          :key="option.kind"
+          @select="emit('knowledge', option.kind)"
         >
-          <component :is="item.icon" class="size-(--knovum-icon-size-sm)" />{{
-            t(`spaces.knowledgeObjectTypes.${item.kind}`)
+          <component :is="option.icon" class="size-(--knovum-icon-size-sm)" />{{
+            t(`spaces.knowledgeObjectTypes.${option.kind}`)
           }}
         </UiDropdownMenuItem>
         <UiSeparator class="my-1" />
@@ -84,6 +86,10 @@ const knowledgeItems = [
     </DropdownMenuPortal>
   </DropdownMenuSub>
 
+  <UiSeparator class="my-1" />
+  <UiDropdownMenuItem @select="emit('section')">
+    <LayoutPanelTop class="size-(--knovum-icon-size-sm)" />{{ t("spaces.canvas.createEmptySection") }}
+  </UiDropdownMenuItem>
   <UiSeparator class="my-1" />
   <UiDropdownMenuItem @select="emit('website')">
     <Globe2 class="size-(--knovum-icon-size-sm)" />{{ t("spaces.transfer.addWebsite") }}…

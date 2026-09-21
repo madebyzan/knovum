@@ -13,7 +13,7 @@ const websiteCaptureConcurrency = pLimit(3);
 interface WebsiteCaptureContext {
   activeSpaceId?: string;
   nodes: SpaceCanvasNode[];
-  addItem: (data: SpaceNodePayload, position?: { x: number; y: number }) => Promise<SpaceCanvasNode[]>;
+  addContent: (data: SpaceNodePayload, position?: { x: number; y: number }) => Promise<SpaceCanvasNode[]>;
   saveNodeDataForSpace(spaceId: string, id: string, data: SpaceNodePayload): Promise<void>;
 }
 
@@ -31,7 +31,7 @@ export async function addSavedWebsite(
 ) {
   const spaceId = requireSpace(context);
   const defaultTitle = websiteDefaultTitle(url);
-  const [node] = await context.addItem(
+  const [node] = await context.addContent(
     { kind: "website", title: defaultTitle, url, siteName: defaultTitle, metadataState: "loading" },
     position,
   );

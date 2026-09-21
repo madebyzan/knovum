@@ -22,8 +22,16 @@ export function removeRelation(relationId: string): Promise<void> {
   return invoke("plugin:spaces|revoke_relation", { relationId });
 }
 
+export function removeRelations(relationIds: readonly string[]): Promise<void> {
+  return invoke("plugin:spaces|revoke_relations", { relationIds });
+}
+
 export function restoreRelation(relationId: string): Promise<void> {
   return invoke("plugin:spaces|restore_relation", { relationId });
+}
+
+export function restoreRelations(relationIds: readonly string[]): Promise<void> {
+  return invoke("plugin:spaces|restore_relations", { relationIds });
 }
 
 export function updateRelation(relation: SpaceRelation): Promise<void> {

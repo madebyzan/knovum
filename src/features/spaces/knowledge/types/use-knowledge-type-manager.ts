@@ -54,7 +54,7 @@ export function useKnowledgeTypeManager(open: Ref<boolean>) {
   function selectType(id: string) {
     if (saving.value) return;
     error.value = "";
-    const type = types.value.find((item) => item.id === id);
+    const type = types.value.find((knowledgeType) => knowledgeType.id === id);
     if (!type) return reset();
     editingId.value = type.id;
     name.value = type.name;
@@ -125,8 +125,8 @@ export function useKnowledgeTypeManager(open: Ref<boolean>) {
       await refreshTypes(spaceId);
       saving.value = false;
       if (activeSpaceId.value === spaceId) reset();
-    } catch (error) {
-      toast.error(String(error));
+    } catch (cause) {
+      toast.error(String(cause));
     } finally {
       saving.value = false;
     }
@@ -162,7 +162,7 @@ function updateKind(field: SpaceObjectFieldDefinition, kind: SpaceObjectFieldKin
 }
 
 function updateOptions(field: SpaceObjectFieldDefinition, value: string) {
-  field.options = compact(value.split(",").map((item) => item.trim()));
+  field.options = compact(value.split(",").map((option) => option.trim()));
 }
 
 function updateRequired(field: SpaceObjectFieldDefinition, required: boolean) {

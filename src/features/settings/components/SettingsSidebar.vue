@@ -18,7 +18,7 @@ const groups = computed(() =>
   Object.entries(settingsGroupTitleKeys).map(([group, titleKey]) => ({
     id: group,
     label: t(titleKey),
-    items: settingsRegistry
+    settings: settingsRegistry
       .filter((definition) => definition.group === group)
       .map((definition) => ({
         id: definition.id,
@@ -34,7 +34,7 @@ const groups = computed(() =>
 
 function fuzzySettings<T extends { searchText: string }>(value: string, candidates: T[]) {
   return search(value, candidates, {
-    keySelector: (item) => item.searchText,
+    keySelector: (setting) => setting.searchText,
     threshold: 0.8,
   });
 }
@@ -45,35 +45,35 @@ const visibleGroups = computed(() => {
   const normalizedValue = value.toLocaleLowerCase();
   const candidateGroups = groups.value.map((group) =>
     Object.assign({}, group, {
-      items: group.items.flatMap((item) =>
-        item.locations?.length
-          ? item.locations.map((location) => ({
-              id: item.id,
-              icon: item.icon,
-              locations: item.locations,
+      settings: group.settings.flatMap((setting) =>
+        setting.locations?.length
+          ? setting.locations.map((location) => ({
+              id: setting.id,
+              icon: setting.icon,
+              locations: setting.locations,
               location: location.id,
               label: t(location.labelKey),
               description: t(location.descriptionKey),
-              searchText: `${t(location.labelKey)} ${t(location.descriptionKey)} ${item.label}`,
+              searchText: `${t(location.labelKey)} ${t(location.descriptionKey)} ${setting.label}`,
             }))
-          : [item],
+          : [setting],
       ),
     }),
   );
   const hasExactMatch = candidateGroups.some((group) =>
-    group.items.some((item) => item.searchText.toLocaleLowerCase().includes(normalizedValue)),
+    group.settings.some((setting) => setting.searchText.toLocaleLowerCase().includes(normalizedValue)),
   );
 
   return compact(
     candidateGroups.map((group) => {
-      const items = hasExactMatch
-        ? group.items.filter((item) => item.searchText.toLocaleLowerCase().includes(normalizedValue))
-        : fuzzySettings(value, group.items);
-      return items.length > 0 ? Object.assign({}, group, { items }) : null;
+      const settings = hasExactMatch
+        ? group.settings.filter((setting) => setting.searchText.toLocaleLowerCase().includes(normalizedValue))
+        : fuzzySettings(value, group.settings);
+      return settings.length > 0 ? Object.assign({}, group, { settings }) : null;
     }),
   );
 });
-const searchResults = computed(() => visibleGroups.value.flatMap((group) => group.items));
+const searchResults = computed(() => visibleGroups.value.flatMap((group) => group.settings));
 </script>
 
 <template>
@@ -100,25 +100,25 @@ const searchResults = computed(() => visibleGroups.value.flatMap((group) => grou
           <section v-for="group in visibleGroups" :key="group.id" class="mb-4">
             <p class="mb-1.5 px-2 text-caption font-medium text-foreground-tertiary">{{ group.label }}</p>
             <button
-              v-for="item in group.items"
-              :key="`${item.id}:${item.location ?? ''}`"
+              v-for="setting in group.settings"
+              :key="`${setting.id}:${setting.location ?? ''}`"
               type="button"
               class="mb-1 flex min-h-14 w-full items-start gap-2.5 rounded-control px-2 py-2 text-left transition-colors duration-100 hover:bg-(--knovum-sidebar-item-background-hover) data-[active=true]:bg-(--knovum-sidebar-item-background-selected)"
               :data-active="
-                props.activePane === item.id &&
-                (item.location ? props.activeSetting === item.location : !props.activeSetting)
+                props.activePane === setting.id &&
+                (setting.location ? props.activeSetting === setting.location : !props.activeSetting)
               "
-              @click="emit('select', item.id, item.location)"
+              @click="emit('select', setting.id, setting.location)"
             >
               <component
-                :is="item.icon"
+                :is="setting.icon"
                 class="mt-0.5 size-(--knovum-icon-size-sm) shrink-0 text-foreground-secondary"
                 :stroke-width="1.6"
               />
               <span class="min-w-0 flex-1">
-                <span class="block truncate text-label font-medium text-foreground">{{ item.label }}</span>
+                <span class="block truncate text-label font-medium text-foreground">{{ setting.label }}</span>
                 <span class="mt-0.5 line-clamp-2 block text-caption leading-snug text-foreground-tertiary">
-                  {{ item.description }}
+                  {{ setting.description }}
                 </span>
               </span>
             </button>
@@ -128,18 +128,18 @@ const searchResults = computed(() => visibleGroups.value.flatMap((group) => grou
           <section v-for="group in visibleGroups" :key="group.id" class="mb-4">
             <p class="mb-1.5 px-2 text-caption font-medium text-foreground-tertiary">{{ group.label }}</p>
             <button
-              v-for="item in group.items"
-              :key="item.id"
+              v-for="setting in group.settings"
+              :key="setting.id"
               type="button"
               class="mb-0.5 flex h-(--knovum-control-height-md) w-full items-center gap-2.5 rounded-control px-2 text-left text-body-lg text-foreground-secondary transition-colors duration-100 hover:bg-(--knovum-sidebar-item-background-hover) hover:text-foreground data-[active=true]:bg-(--knovum-sidebar-item-background-selected) data-[active=true]:font-medium data-[active=true]:text-foreground"
-              :data-active="props.activePane === item.id"
-              @click="emit('select', item.id)"
+              :data-active="props.activePane === setting.id"
+              @click="emit('select', setting.id)"
             >
               <component
-                :is="item.icon"
+                :is="setting.icon"
                 class="size-(--knovum-icon-size-md) shrink-0"
                 :stroke-width="1.6"
-              /><span>{{ item.label }}</span>
+              /><span>{{ setting.label }}</span>
             </button>
           </section>
         </template>

@@ -56,12 +56,12 @@ fn package_targets(
     index: &[AssetIndex],
 ) -> Result<HashMap<String, (PathBuf, bool)>, String> {
     let mut targets = HashMap::new();
-    for item in index {
-        let target = root.join(format!("{}-{}", item.token, item.name));
+    for asset in index {
+        let target = root.join(format!("{}-{}", asset.token, asset.name));
         if target.exists() {
             return Err("Package import namespace unexpectedly contains an existing asset".into());
         }
-        targets.insert(item.token.clone(), (target, item.directory));
+        targets.insert(asset.token.clone(), (target, asset.directory));
     }
     Ok(targets)
 }

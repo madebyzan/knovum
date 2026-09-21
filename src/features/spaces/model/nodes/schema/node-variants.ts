@@ -16,7 +16,7 @@ const semanticNumberSchema = z
     "Semantic integers must be within the JavaScript safe integer range",
   );
 
-export const spaceNodePayloadSchema = z.discriminatedUnion("kind", [
+export const spaceNodePayloadDiscriminatedSchema = z.discriminatedUnion("kind", [
   z
     .object({
       ...baseSpaceNodeFields,
@@ -97,13 +97,17 @@ export const spaceNodePayloadSchema = z.discriminatedUnion("kind", [
       targetSpaceId: z.string().min(1).max(128),
       targetSceneId: z.string().min(1).max(128).optional(),
       targetNodeId: z.string().min(1).max(128).optional(),
-    })
-    .strict(),
-  z
-    .object({
-      ...baseSpaceNodeFields,
-      kind: z.literal("section"),
-      collapsed: z.boolean().optional(),
+      targetStructureNodeId: z.string().min(1).max(128).optional(),
     })
     .strict(),
 ]);
+
+export const spaceNodePayloadSchema = spaceNodePayloadDiscriminatedSchema.superRefine((value, context) => {
+  if (value.kind !== "portal") return;
+  const targets = [value.targetSceneId, value.targetNodeId, value.targetStructureNodeId].filter(Boolean);
+  if (targets.length > 1)
+    context.addIssue({
+      code: "custom",
+      message: "A Portal can target one Saved View, content node, or structure container",
+    });
+});

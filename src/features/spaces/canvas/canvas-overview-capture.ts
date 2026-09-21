@@ -59,8 +59,19 @@ async function renderCanvasThumbnail(
       listening: false,
     });
     layer.add(world);
-    for (const section of scene.sections) {
-      drawCanvasOverviewNode(world, section, palette, viewport.scale);
+    for (const section of scene.sectionBackdrops) {
+      const appearance = section.appearance;
+      world.add(
+        new Konva.Rect({
+          ...section.bounds,
+          fill:
+            appearance?.customFill ??
+            (appearance?.fill ? palette.noteFill[appearance.fill] : palette.surface),
+          opacity: 0.26,
+          cornerRadius: 8,
+          listening: false,
+        }),
+      );
     }
     for (const relation of scene.relations) {
       world.add(
@@ -74,8 +85,15 @@ async function renderCanvasThumbnail(
         }),
       );
     }
-    for (const item of scene.contentNodes) {
-      drawCanvasOverviewNode(world, item, palette, viewport.scale, images.get(item.node.id));
+    for (const sceneNode of scene.contentNodes) {
+      const image = images.get(sceneNode.node.id);
+      drawCanvasOverviewNode({
+        parent: world,
+        sceneNode,
+        palette,
+        scale: viewport.scale,
+        ...(image ? { image } : {}),
+      });
     }
     layer.draw();
     return stage.toBlob({ mimeType: "image/jpeg", quality: 0.86, pixelRatio: 1 });

@@ -14,22 +14,21 @@ export async function loadCanvasOverviewImages(scene: CanvasScene, scale: number
   const images = new Map<string, HTMLImageElement>();
   let next = 0;
   let unavailable = 0;
-  await Promise.all(
-    Array.from({ length: Math.min(4, candidates.length) }, async () => {
-      while (next < candidates.length) {
-        const candidate = candidates[next++]!;
-        try {
-          const image = new Image();
-          image.crossOrigin = "anonymous";
-          image.src = candidate.source;
-          await image.decode();
-          images.set(candidate.id, image);
-        } catch {
-          unavailable += 1;
-        }
-      }
-    }),
-  );
+  async function loadNext(): Promise<void> {
+    const candidate = candidates[next++];
+    if (!candidate) return;
+    try {
+      const image = new Image();
+      image.crossOrigin = "anonymous";
+      image.src = candidate.source;
+      await image.decode();
+      images.set(candidate.id, image);
+    } catch {
+      unavailable += 1;
+    }
+    await loadNext();
+  }
+  await Promise.all(Array.from({ length: Math.min(4, candidates.length) }, loadNext));
   if (unavailable) {
     void logWarn(`Canvas overview could not load ${unavailable} preview image(s)`);
   }

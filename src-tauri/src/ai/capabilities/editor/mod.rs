@@ -73,7 +73,7 @@ fn instruction(action: EditorTransformAction) -> &'static str {
             "Continue the text naturally from where it stops. Match the existing language, voice, formatting, and level of detail. Return only the continuation, not the source text."
         }
         EditorTransformAction::Summarize => {
-            "Summarize the text into a concise, information-dense version. Preserve decisions, constraints, numbers, names, and action items."
+            "Summarize the text into a concise, information-dense version. Preserve decisions, constraints, numbers, names, and action structure."
         }
         EditorTransformAction::ToneAcademic => {
             "Rewrite in a rigorous academic tone: precise, neutral, structured, and evidence-oriented without unnecessary jargon."

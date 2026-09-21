@@ -53,7 +53,7 @@ export async function createVisualization(context: CreateVisualizationContext) {
     assetPath,
     processingState: "processing",
   };
-  const [output] = await store.addItem(
+  const [output] = await store.addContent(
     pending,
     derivedNodePosition(selected, useCanvasEditorSession().selection.value.nodePlacements),
     {

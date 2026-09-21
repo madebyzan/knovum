@@ -1,28 +1,16 @@
-import { compact, isString } from "es-toolkit";
+import { compact, isPlainObject } from "es-toolkit";
 import { writeHtmlAndText } from "tauri-plugin-clipboard-api";
 
-import type { PositionedSpaceNode, SpaceCanvasNode } from "../model/nodes/canvas-node";
-import { isSpaceSectionPayload } from "../model/nodes/capabilities";
 import { validateSpaceNodePayload } from "../model/nodes/schema/node-payload";
-import { createSpaceClipboardPayload } from "./payload";
+import { structureLayoutSchema, structureNodeSchema } from "../model/structure/structure-contract";
+import { validateStructureSnapshot } from "../model/structure/structure-validation";
 import type { SpaceClipboardPayload } from "./payload-types";
 
 const HTML_MARKER = /<!--knovum-spaces:([^>]*)-->/u;
 
-export function writeSpaceClipboard(event: ClipboardEvent, nodes: readonly PositionedSpaceNode[]) {
-  if (!event.clipboardData || nodes.length === 0) return false;
-  const payload = createSpaceClipboardPayload(nodes);
-  event.clipboardData.setData("text/plain", clipboardText(nodes.map(({ node }) => node)));
-  event.clipboardData.setData("text/html", clipboardHtml(payload));
-  return true;
-}
-
-export async function writeSpaceClipboardDirect(nodes: readonly PositionedSpaceNode[]) {
-  if (!nodes.length) return false;
-  await writeHtmlAndText(
-    clipboardHtml(createSpaceClipboardPayload(nodes)),
-    clipboardText(nodes.map(({ node }) => node)),
-  );
+export async function writeSpaceClipboardDirect(payload: SpaceClipboardPayload) {
+  if (!payload.structure.length) return false;
+  await writeHtmlAndText(clipboardHtml(payload), clipboardText(payload));
   return true;
 }
 
@@ -46,44 +34,93 @@ function clipboardHtml(payload: SpaceClipboardPayload) {
 
 function parsePayload(value: string): SpaceClipboardPayload | undefined {
   if (value.length > 8 * 1024 * 1024) return undefined;
-  try {
-    const parsed = JSON.parse(value) as Partial<SpaceClipboardPayload>;
-    if (parsed.version !== 1 || !Array.isArray(parsed.nodes) || !validNodeCount(parsed.nodes.length))
-      return undefined;
-    const nodes = parsed.nodes.map((node) => {
-      if (!isString(node?.id) || !node.id || node.id.length > 128 || !validPosition(node.position)) {
-        throw new Error("Invalid clipboard node");
-      }
-      return {
-        id: node.id,
-        position: { x: node.position.x, y: node.position.y },
-        data: validateSpaceNodePayload(node.data),
-      };
-    });
-    return { version: 1, nodes };
-  } catch {
+  const source: unknown = JSON.parse(value);
+  if (!isClipboardEnvelope(source)) return undefined;
+  if (!validCount(source.structure.length) || source.layouts.length !== source.structure.length)
     return undefined;
-  }
+  const structure = source.structure.map((structureNode) => structureNodeSchema.parse(structureNode));
+  const layouts = source.layouts.map((layout) => structureLayoutSchema.parse(layout));
+  validateStructureSnapshot(structure, layouts);
+  const nodes = source.nodes.map(parseClipboardNode);
+  const nodeIds = new Set(nodes.map(({ id }) => id));
+  const expected = new Set(
+    structure.flatMap((structureNode) => (structureNode.kind === "content" ? [structureNode.nodeId] : [])),
+  );
+  validateClipboardIdentities(nodeIds, nodes.length, expected);
+  const relations = source.relations as SpaceClipboardPayload["relations"];
+  validateClipboardRelations(relations, nodeIds);
+  return { version: 1, structure, layouts, nodes, relations };
 }
 
-function validNodeCount(count: number) {
-  return count > 0 && count <= 200;
+function isClipboardEnvelope(source: unknown): source is Record<string, unknown> & {
+  version: 1;
+  structure: unknown[];
+  layouts: unknown[];
+  nodes: unknown[];
+  relations: unknown[];
+} {
+  return Boolean(
+    isPlainObject(source) &&
+    source.version === 1 &&
+    Array.isArray(source.structure) &&
+    Array.isArray(source.layouts) &&
+    Array.isArray(source.nodes) &&
+    Array.isArray(source.relations),
+  );
 }
 
-function validPosition(position: { x?: number; y?: number } | undefined) {
-  return Boolean(position && Number.isFinite(position.x) && Number.isFinite(position.y));
+function parseClipboardNode(node: unknown) {
+  if (!isPlainObject(node) || typeof node.id !== "string" || !node.id)
+    throw new Error("Invalid clipboard node");
+  return { id: node.id, data: validateSpaceNodePayload(node.data) };
 }
 
-function clipboardText(nodes: readonly SpaceCanvasNode[]) {
-  return compact(
-    nodes
-      .filter((node) => !isSpaceSectionPayload(node.data))
-      .map(({ data }) => {
-        if (data.kind === "website") return data.url ?? data.title;
-        if ((data.kind === "video" || data.kind === "audio") && data.origin) return data.origin.url;
-        if (data.kind === "note" || data.kind === "text") return data.plainText ?? data.title;
-        if (data.kind === "markdown") return data.text ?? data.title;
-        return data.title;
-      }),
-  ).join("\n\n");
+function validateClipboardIdentities(
+  nodeIds: ReadonlySet<string>,
+  count: number,
+  expected: ReadonlySet<string>,
+) {
+  if (
+    nodeIds.size !== count ||
+    nodeIds.size !== expected.size ||
+    [...nodeIds].some((id) => !expected.has(id))
+  )
+    throw new Error("Clipboard content identity mismatch");
+}
+
+function validateClipboardRelations(
+  relations: SpaceClipboardPayload["relations"],
+  nodeIds: ReadonlySet<string>,
+) {
+  const invalid = relations.some(
+    (relation) =>
+      !isPlainObject(relation) ||
+      typeof relation.id !== "string" ||
+      !nodeIds.has(relation.sourceId) ||
+      !nodeIds.has(relation.targetId),
+  );
+  if (invalid) throw new Error("Invalid clipboard relation");
+}
+
+function validCount(count: number) {
+  return count > 0 && count <= 100_000;
+}
+
+function clipboardText(payload: SpaceClipboardPayload) {
+  return compact(payload.nodes.map(({ data }) => clipboardNodeText(data))).join("\n\n");
+}
+
+function clipboardNodeText(data: SpaceClipboardPayload["nodes"][number]["data"]) {
+  if (data.kind === "website") return data.url ?? data.title;
+  return mediaOriginUrl(data) ?? editableText(data) ?? data.title;
+}
+
+function mediaOriginUrl(data: SpaceClipboardPayload["nodes"][number]["data"]) {
+  if (data.kind !== "video" && data.kind !== "audio") return undefined;
+  return data.origin?.url;
+}
+
+function editableText(data: SpaceClipboardPayload["nodes"][number]["data"]) {
+  if (data.kind === "note" || data.kind === "text") return data.plainText || undefined;
+  return data.kind === "markdown" ? data.text || undefined : undefined;
 }

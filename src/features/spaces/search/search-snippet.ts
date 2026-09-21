@@ -14,7 +14,7 @@ export function markSpaceSubstring(text: string, terms: readonly string[]): stri
       return index >= 0 ? { index, length: term.length } : undefined;
     }),
   );
-  const match = minBy(candidates, (item) => item.index);
+  const match = minBy(candidates, (candidate) => candidate.index);
   if (!match) return truncateUtf16(text, 320);
   const start = Math.max(0, match.index - 120);
   const end = Math.min(text.length, match.index + match.length + 180);

@@ -26,14 +26,21 @@ points each namespace requires and the invariants the gates assert live in
 
 Space persistence is entirely Rust-owned. Reads and writes cross typed Rust commands; multi-statement invariants execute on one SQLx transaction. These commands accept domain-shaped payloads and none accepts arbitrary SQL from the WebView.
 
-- `plugin:spaces|create_nodes` — insert one user action's node batch, supplemental knowledge and Space timestamp atomically;
+- `plugin:spaces|load_space_edit_snapshot` — load the authoritative Structure/Layout/Edit-State projection and edit revision;
+- `plugin:spaces|execute_space_edit` — validate and commit one typed structure command with optimistic revision and idempotent mutation receipt;
+- `plugin:spaces|undo_space_edit` and `plugin:spaces|redo_space_edit` — replay Rust-owned aggregate history with revision checks;
+- `plugin:spaces|search_structure_global` — search active Group and Section titles across non-archived Spaces without treating containers as knowledge content;
+- `plugin:spaces|revoke_relations` / `plugin:spaces|restore_relations` — revoke or restore one relation selection in a single database transaction;
+- `plugin:spaces|get_space_edit_receipt_result` — resolve an ambiguous IPC result by mutation identity without retrying a business operation;
+- `plugin:spaces|create_nodes` — atomically insert content rows and their Structure nodes and layouts at an explicit parent;
 - `plugin:spaces|update_nodes` — update node data and any affected source/derived/media knowledge atomically;
-- `plugin:spaces|trash_nodes` and `plugin:spaces|restore_nodes` — move a node batch into or out of the reversible bin together with the Space timestamp;
-- `plugin:spaces|load_canvas_state` and `plugin:spaces|save_canvas_state` — load and compare-and-swap strict `CanvasDocumentV1`; node rows do not duplicate current canvas geometry;
+- `plugin:spaces|discard_pending_content` — abandon one failed pending creation by deleting its content and Structure/Layout atomically without creating a Recently Deleted entry;
+- `plugin:spaces|load_canvas_view_state` and `plugin:spaces|save_canvas_view_state` — persist only the disposable camera;
+- `plugin:spaces|import_structure_clipboard` — validate and commit a remapped structure subtree, content and internal relations as one mutation;
 - `plugin:spaces|index_knowledge` — index current knowledge for a Space or a selected set of nodes;
 - `plugin:spaces|answer_grounded_question` — run one grounded answer over the hybrid retrieval result and stream its completion;
-- `plugin:spaces|move_space_selection` — move nodes, reconcile affected relations/knowledge and touch both Spaces atomically;
-- `plugin:spaces|delete_deleted_nodes` — validate exact deleted-node selections across Spaces, check retained references and delete their associated data in one transaction; collect only unreferenced owned assets for subsequent filesystem cleanup;
+- `plugin:spaces|move_structure_selection` — move explicit Structure roots, content and affected relations between two revision-checked Spaces atomically;
+- `plugin:spaces|list_recently_deleted_structure`, `plugin:spaces|restore_deleted_structure` and `plugin:spaces|permanently_delete_structure` — list, restore or purge deletion batches and selected structure roots while preserving subtree identity and retained-reference rules;
 - `plugin:spaces|delete_space_permanently` — require an archived user Space, collect all owned asset paths and cascade-delete the Space atomically;
 - `plugin:spaces|restore_space_package` — restore one validated/remapped Space package as one transaction.
 

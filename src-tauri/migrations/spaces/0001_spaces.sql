@@ -5,7 +5,7 @@ CREATE TABLE spaces (
   title TEXT NOT NULL,
   archived_at INTEGER,
   favorite INTEGER NOT NULL DEFAULT 0 CHECK (favorite IN (0, 1)),
-  thumbnail_data_url TEXT,
+  thumbnail_path TEXT,
   last_opened_at INTEGER NOT NULL DEFAULT 0,
   created_at INTEGER NOT NULL,
   updated_at INTEGER NOT NULL
@@ -37,7 +37,7 @@ CREATE TABLE spaces_nodes (
   kind TEXT NOT NULL CHECK (
     kind IN (
       'note', 'text', 'website', 'markdown', 'image', 'video', 'audio', 'subtitle', 'file', 'code',
-      'folder', 'archive', 'credential', 'section', 'object', 'portal'
+      'folder', 'archive', 'credential', 'object', 'portal'
     )
   ),
   object_type_id TEXT,
@@ -63,40 +63,175 @@ CREATE INDEX spaces_nodes_space_created ON spaces_nodes(space_id, deleted_at, cr
 
 CREATE INDEX spaces_nodes_object_type ON spaces_nodes(space_id, object_type_id, deleted_at);
 
-CREATE TABLE spaces_canvas_state (
+CREATE UNIQUE INDEX spaces_nodes_space_id ON spaces_nodes(space_id, id);
+
+-- Current Space structure and layout are separate from content and canvas camera state.
+CREATE TABLE spaces_structure_nodes (
+  id TEXT PRIMARY KEY NOT NULL CHECK (length(id) > 0),
+  space_id TEXT NOT NULL,
+  kind TEXT NOT NULL CHECK (kind IN ('content', 'group', 'section')),
+  node_id TEXT,
+  parent_id TEXT,
+  order_index INTEGER NOT NULL CHECK (order_index >= 0),
+  title TEXT,
+  locked INTEGER NOT NULL DEFAULT 0 CHECK (locked IN (0, 1)),
+  deleted_at INTEGER,
+  FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE,
+  FOREIGN KEY (space_id, node_id) REFERENCES spaces_nodes(space_id, id)
+    ON DELETE NO ACTION DEFERRABLE INITIALLY DEFERRED,
+  FOREIGN KEY (space_id, parent_id) REFERENCES spaces_structure_nodes(space_id, id)
+    ON DELETE NO ACTION DEFERRABLE INITIALLY DEFERRED,
+  CHECK (parent_id IS NULL OR parent_id <> id),
+  CHECK (
+    (kind = 'content' AND node_id IS NOT NULL AND title IS NULL) OR
+    (kind IN ('group', 'section') AND node_id IS NULL AND title IS NOT NULL)
+  )
+);
+
+CREATE UNIQUE INDEX spaces_structure_space_id ON spaces_structure_nodes(space_id, id);
+CREATE UNIQUE INDEX spaces_structure_space_id_kind ON spaces_structure_nodes(space_id, id, kind);
+CREATE UNIQUE INDEX spaces_structure_active_content ON spaces_structure_nodes(node_id)
+  WHERE deleted_at IS NULL AND node_id IS NOT NULL;
+CREATE UNIQUE INDEX spaces_structure_active_order
+  ON spaces_structure_nodes(space_id, COALESCE(parent_id, ''), order_index)
+  WHERE deleted_at IS NULL;
+CREATE INDEX spaces_structure_children
+  ON spaces_structure_nodes(space_id, parent_id, deleted_at, order_index);
+
+CREATE VIRTUAL TABLE spaces_structure_title_fts USING fts5(
+  structure_node_id UNINDEXED, space_id UNINDEXED, kind UNINDEXED, title, tokenize='unicode61'
+);
+CREATE TRIGGER spaces_structure_title_fts_insert AFTER INSERT ON spaces_structure_nodes
+WHEN NEW.deleted_at IS NULL AND NEW.kind IN ('group','section')
+BEGIN
+  INSERT INTO spaces_structure_title_fts(structure_node_id,space_id,kind,title)
+  VALUES(NEW.id,NEW.space_id,NEW.kind,NEW.title);
+END;
+CREATE TRIGGER spaces_structure_title_fts_update AFTER UPDATE ON spaces_structure_nodes
+BEGIN
+  DELETE FROM spaces_structure_title_fts WHERE structure_node_id=OLD.id;
+  INSERT INTO spaces_structure_title_fts(structure_node_id,space_id,kind,title)
+  SELECT NEW.id,NEW.space_id,NEW.kind,NEW.title
+  WHERE NEW.deleted_at IS NULL AND NEW.kind IN ('group','section');
+END;
+CREATE TRIGGER spaces_structure_title_fts_delete AFTER DELETE ON spaces_structure_nodes
+BEGIN
+  DELETE FROM spaces_structure_title_fts WHERE structure_node_id=OLD.id;
+END;
+
+CREATE TABLE spaces_structure_layouts (
+  space_id TEXT NOT NULL,
+  structure_node_id TEXT NOT NULL,
+  kind TEXT NOT NULL CHECK (kind IN ('content', 'group', 'section')),
+  data TEXT NOT NULL CHECK (
+    json_valid(data) AND json_type(data) = 'object' AND
+    COALESCE(json_extract(data, '$.kind'), '') = kind AND
+    COALESCE(json_extract(data, '$.structureNodeId'), '') = structure_node_id AND
+    (kind <> 'section' OR (
+      json_type(data, '$.size.width') IN ('integer', 'real') AND
+      json_type(data, '$.size.height') IN ('integer', 'real') AND
+      json_extract(data, '$.size.width') >= 240 AND
+      json_extract(data, '$.size.height') >= 160
+    ))
+  ),
+  PRIMARY KEY (space_id, structure_node_id),
+  FOREIGN KEY (space_id, structure_node_id, kind)
+    REFERENCES spaces_structure_nodes(space_id, id, kind) ON DELETE CASCADE
+);
+
+CREATE TABLE spaces_edit_state (
   space_id TEXT PRIMARY KEY NOT NULL,
-  document TEXT NOT NULL CHECK (json_valid(document)),
-  revision INTEGER NOT NULL CHECK (revision > 0),
+  revision INTEGER NOT NULL DEFAULT 0 CHECK (revision >= 0),
   updated_at INTEGER NOT NULL,
   FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE
 );
 
-CREATE TABLE spaces_canvas_asset_references (
-  space_id TEXT NOT NULL,
-  node_id TEXT NOT NULL,
-  path TEXT NOT NULL CHECK (length(path) > 0),
-  PRIMARY KEY (space_id, node_id),
-  FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE,
-  FOREIGN KEY (node_id) REFERENCES spaces_nodes(id) ON DELETE CASCADE
+CREATE TABLE spaces_canvas_view_state (
+  space_id TEXT PRIMARY KEY NOT NULL,
+  x REAL NOT NULL,
+  y REAL NOT NULL,
+  zoom REAL NOT NULL CHECK (zoom >= 0.05 AND zoom <= 16),
+  updated_at INTEGER NOT NULL,
+  FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE
 );
 
-CREATE TRIGGER spaces_canvas_asset_reference_same_space_insert
-BEFORE INSERT ON spaces_canvas_asset_references BEGIN
-  SELECT CASE WHEN NOT EXISTS (
-    SELECT 1 FROM spaces_nodes WHERE id = NEW.node_id AND space_id = NEW.space_id
-  ) THEN RAISE(ABORT, 'Canvas asset reference node must belong to Canvas Space') END;
-END;
+CREATE TABLE spaces_edit_receipts (
+  mutation_id TEXT PRIMARY KEY NOT NULL CHECK (length(mutation_id) > 0),
+  space_id TEXT NOT NULL,
+  request_digest TEXT NOT NULL CHECK (length(request_digest) = 64),
+  applied_revision INTEGER NOT NULL CHECK (applied_revision > 0),
+  selection_suggestion TEXT NOT NULL CHECK (
+    json_valid(selection_suggestion) AND json_type(selection_suggestion) = 'array'
+  ),
+  result_json TEXT NOT NULL CHECK (json_valid(result_json)),
+  created_at INTEGER NOT NULL,
+  FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE
+);
 
-CREATE TRIGGER spaces_canvas_asset_reference_same_space_update
-BEFORE UPDATE OF space_id, node_id ON spaces_canvas_asset_references BEGIN
-  SELECT CASE WHEN NOT EXISTS (
-    SELECT 1 FROM spaces_nodes WHERE id = NEW.node_id AND space_id = NEW.space_id
-  ) THEN RAISE(ABORT, 'Canvas asset reference node must belong to Canvas Space') END;
-END;
+CREATE INDEX spaces_edit_receipts_space_revision
+  ON spaces_edit_receipts(space_id, applied_revision);
+
+CREATE TABLE spaces_deleted_structure_batches (
+  id TEXT PRIMARY KEY NOT NULL,
+  space_id TEXT NOT NULL,
+  root_structure_node_ids TEXT NOT NULL CHECK (json_valid(root_structure_node_ids) AND json_type(root_structure_node_ids) = 'array'),
+  deleted_at INTEGER NOT NULL,
+  restored_at INTEGER,
+  FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE
+);
+
+CREATE INDEX spaces_deleted_structure_batches_space
+  ON spaces_deleted_structure_batches(space_id, deleted_at DESC);
+
+CREATE TABLE spaces_deleted_structure_nodes (
+  batch_id TEXT NOT NULL,
+  structure_node_id TEXT NOT NULL,
+  data TEXT NOT NULL CHECK (json_valid(data) AND json_type(data) = 'object'),
+  PRIMARY KEY (batch_id, structure_node_id),
+  FOREIGN KEY (batch_id) REFERENCES spaces_deleted_structure_batches(id) ON DELETE CASCADE
+);
+
+CREATE TABLE spaces_deleted_structure_layouts (
+  batch_id TEXT NOT NULL,
+  structure_node_id TEXT NOT NULL,
+  data TEXT NOT NULL CHECK (json_valid(data) AND json_type(data) = 'object'),
+  PRIMARY KEY (batch_id, structure_node_id),
+  FOREIGN KEY (batch_id) REFERENCES spaces_deleted_structure_batches(id) ON DELETE CASCADE
+);
+
+CREATE TABLE spaces_deleted_structure_relations (
+  batch_id TEXT NOT NULL,
+  relation_id TEXT NOT NULL,
+  status TEXT NOT NULL CHECK (status IN ('active','contested','invalidated')),
+  status_before_invalidation TEXT CHECK (status_before_invalidation IN ('active','contested')),
+  color TEXT CHECK (color IN ('blue','green','amber','red','purple')),
+  PRIMARY KEY (batch_id, relation_id),
+  FOREIGN KEY (batch_id) REFERENCES spaces_deleted_structure_batches(id) ON DELETE CASCADE
+);
+
+CREATE TABLE spaces_edit_history (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  space_id TEXT NOT NULL,
+  before_snapshot TEXT NOT NULL CHECK (json_valid(before_snapshot)),
+  after_snapshot TEXT NOT NULL CHECK (json_valid(after_snapshot)),
+  before_node_ids TEXT NOT NULL CHECK (json_valid(before_node_ids) AND json_type(before_node_ids) = 'array'),
+  after_node_ids TEXT NOT NULL CHECK (json_valid(after_node_ids) AND json_type(after_node_ids) = 'array'),
+  before_relations TEXT NOT NULL CHECK (json_valid(before_relations) AND json_type(before_relations) = 'array'),
+  after_relations TEXT NOT NULL CHECK (json_valid(after_relations) AND json_type(after_relations) = 'array'),
+  deletion_batch_id TEXT,
+  deletion_batch_restored_after INTEGER CHECK (deletion_batch_restored_after IN (0,1)),
+  history_group_id TEXT,
+  expected_revision INTEGER NOT NULL CHECK (expected_revision >= 0),
+  undone INTEGER NOT NULL DEFAULT 0 CHECK (undone IN (0,1)),
+  created_at INTEGER NOT NULL,
+  FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE
+);
+
+CREATE INDEX spaces_edit_history_cursor ON spaces_edit_history(space_id, undone, id);
 
 CREATE VIEW spaces_semantic_nodes AS
   SELECT * FROM spaces_nodes
-  WHERE deleted_at IS NULL AND kind NOT IN ('credential','section','portal');
+  WHERE deleted_at IS NULL AND kind NOT IN ('credential','portal','text');
 
 CREATE TABLE spaces_scenes (
   id TEXT PRIMARY KEY NOT NULL,
@@ -105,9 +240,9 @@ CREATE TABLE spaces_scenes (
   viewport_x REAL NOT NULL,
   viewport_y REAL NOT NULL,
   viewport_zoom REAL NOT NULL,
-  thumbnail_data_url TEXT NOT NULL,
+  thumbnail_path TEXT,
   order_index INTEGER NOT NULL DEFAULT 0,
-  focus_node_ids TEXT NOT NULL DEFAULT '[]' CHECK (json_valid(focus_node_ids)),
+  focus_structure_node_ids TEXT NOT NULL DEFAULT '[]' CHECK (json_valid(focus_structure_node_ids)),
   relation_kinds TEXT NOT NULL DEFAULT '[]' CHECK (json_valid(relation_kinds)),
   relation_statuses TEXT NOT NULL DEFAULT '["active","contested"]' CHECK (json_valid(relation_statuses)),
   query_filter TEXT NOT NULL DEFAULT '{}' CHECK (json_valid(query_filter)),
@@ -148,6 +283,16 @@ CREATE UNIQUE INDEX spaces_relations_unique_active
 
 CREATE INDEX spaces_relations_space_status ON spaces_relations(space_id, status, created_at);
 
+CREATE UNIQUE INDEX spaces_relations_space_id ON spaces_relations(space_id, id);
+
+CREATE TABLE spaces_relation_styles (
+  space_id TEXT NOT NULL,
+  relation_id TEXT NOT NULL,
+  color TEXT NOT NULL CHECK (color IN ('blue', 'green', 'amber', 'red', 'purple')),
+  PRIMARY KEY (space_id, relation_id),
+  FOREIGN KEY (space_id, relation_id) REFERENCES spaces_relations(space_id, id) ON DELETE CASCADE
+);
+
 -- Knowledge derivations, workflow runs, and generated artifact metadata.
 CREATE TABLE spaces_knowledge_derivations (
   id TEXT PRIMARY KEY NOT NULL,
@@ -174,16 +319,26 @@ CREATE INDEX spaces_derivations_space_status ON spaces_knowledge_derivations(spa
 CREATE TABLE spaces_knowledge_derivation_inputs (
   derivation_id TEXT NOT NULL,
   position INTEGER NOT NULL CHECK (position >= 0),
-  node_id TEXT NOT NULL,
+  node_id TEXT,
+  source_identity TEXT NOT NULL CHECK (length(source_identity) > 0),
+  source_snapshot TEXT NOT NULL CHECK (
+    json_valid(source_snapshot) AND json_type(source_snapshot) = 'object'
+    AND json_type(source_snapshot, '$.title') IS 'text'
+    AND json_type(source_snapshot, '$.kind') IS 'text'
+    AND json_type(source_snapshot, '$.originalUrl') IN ('text', 'null')
+    AND json_type(source_snapshot, '$.platform') IN ('text', 'null')
+  ),
   role TEXT NOT NULL CHECK (role IN ('primary', 'source', 'context', 'style-reference')),
   source_revision TEXT NOT NULL,
   PRIMARY KEY (derivation_id, position),
-  UNIQUE (derivation_id, node_id, role),
+  UNIQUE (derivation_id, source_identity, role),
   FOREIGN KEY (derivation_id) REFERENCES spaces_knowledge_derivations(id) ON DELETE CASCADE,
-  FOREIGN KEY (node_id) REFERENCES spaces_nodes(id) ON DELETE CASCADE
+  FOREIGN KEY (node_id) REFERENCES spaces_nodes(id) ON DELETE SET NULL
 );
 
 CREATE INDEX spaces_derivation_inputs_node ON spaces_knowledge_derivation_inputs(node_id, derivation_id);
+CREATE UNIQUE INDEX spaces_derivation_inputs_live_identity
+  ON spaces_knowledge_derivation_inputs(derivation_id, node_id, role) WHERE node_id IS NOT NULL;
 
 CREATE TABLE spaces_creation_workflow_runs (
   id TEXT PRIMARY KEY NOT NULL,
@@ -420,7 +575,7 @@ BEFORE UPDATE OF space_id, output_node_id ON spaces_knowledge_derivations BEGIN
 END;
 
 CREATE TRIGGER spaces_derivation_inputs_same_space_insert
-BEFORE INSERT ON spaces_knowledge_derivation_inputs BEGIN
+BEFORE INSERT ON spaces_knowledge_derivation_inputs WHEN NEW.node_id IS NOT NULL BEGIN
   SELECT CASE WHEN NOT EXISTS (
     SELECT 1 FROM spaces_knowledge_derivations d JOIN spaces_nodes n
       ON n.id = NEW.node_id AND n.space_id = d.space_id
@@ -429,7 +584,7 @@ BEFORE INSERT ON spaces_knowledge_derivation_inputs BEGIN
 END;
 
 CREATE TRIGGER spaces_derivation_inputs_same_space_update
-BEFORE UPDATE OF derivation_id, node_id ON spaces_knowledge_derivation_inputs BEGIN
+BEFORE UPDATE OF derivation_id, node_id ON spaces_knowledge_derivation_inputs WHEN NEW.node_id IS NOT NULL BEGIN
   SELECT CASE WHEN NOT EXISTS (
     SELECT 1 FROM spaces_knowledge_derivations d JOIN spaces_nodes n
       ON n.id = NEW.node_id AND n.space_id = d.space_id
@@ -508,8 +663,8 @@ CREATE TABLE spaces_enrichment_jobs (
   id TEXT PRIMARY KEY NOT NULL,
   space_id TEXT NOT NULL,
   node_id TEXT NOT NULL,
-  job_type TEXT NOT NULL CHECK (job_type IN ('embed_text', 'analyze_image', 'transcribe_media', 'analyze_video_first_frame', 'embed_media_transcript')),
-  status TEXT NOT NULL CHECK (status IN ('pending', 'running', 'succeeded', 'failed', 'cancelled')),
+  job_type TEXT NOT NULL CHECK (job_type IN ('embed_text', 'analyze_image', 'analyze_media', 'transcribe_media', 'analyze_video_first_frame', 'embed_media_transcript', 'parse_document', 'analyze_document')),
+  status TEXT NOT NULL CHECK (status IN ('pending', 'running', 'succeeded', 'failed', 'cancelled', 'awaiting_configuration')),
   source_revision TEXT NOT NULL,
   attempts INTEGER NOT NULL DEFAULT 0 CHECK (attempts >= 0),
   error TEXT,
@@ -521,9 +676,17 @@ CREATE TABLE spaces_enrichment_jobs (
 
 CREATE UNIQUE INDEX spaces_enrichment_jobs_unique_pending
   ON spaces_enrichment_jobs(space_id, node_id, job_type, source_revision)
-  WHERE status IN ('pending', 'running');
+  WHERE status IN ('pending', 'running', 'awaiting_configuration');
 
 CREATE INDEX spaces_enrichment_jobs_status ON spaces_enrichment_jobs(status, updated_at);
+
+CREATE TABLE spaces_document_visual_checkpoints (
+  job_id TEXT NOT NULL REFERENCES spaces_enrichment_jobs(id) ON DELETE CASCADE,
+  occurrence_id TEXT NOT NULL,
+  occurrence TEXT NOT NULL CHECK (json_valid(occurrence)),
+  resource TEXT CHECK (resource IS NULL OR json_valid(resource)),
+  PRIMARY KEY (job_id, occurrence_id)
+);
 
 CREATE TRIGGER spaces_chunk_embedding_invalidate AFTER UPDATE OF text, source_revision ON spaces_knowledge_chunks
 WHEN old.text <> new.text OR old.source_revision <> new.source_revision BEGIN
@@ -531,7 +694,7 @@ WHEN old.text <> new.text OR old.source_revision <> new.source_revision BEGIN
 END;
 
 CREATE TRIGGER spaces_node_chunk_insert AFTER INSERT ON spaces_nodes
-WHEN new.deleted_at IS NULL AND new.kind NOT IN ('section','credential','portal') BEGIN
+WHEN new.deleted_at IS NULL AND new.kind NOT IN ('credential','portal','text') BEGIN
   INSERT INTO spaces_knowledge_chunks(
     id, space_id, node_id, origin, kind, source_revision, text, locator, metadata, created_at, updated_at
   ) VALUES (
@@ -555,7 +718,7 @@ WHEN new.deleted_at IS NULL AND new.kind NOT IN ('section','credential','portal'
 END;
 
 CREATE TRIGGER spaces_node_chunk_update AFTER UPDATE OF data, space_id, deleted_at ON spaces_nodes
-WHEN new.deleted_at IS NULL AND new.kind NOT IN ('section','credential','portal') BEGIN
+WHEN new.deleted_at IS NULL AND new.kind NOT IN ('credential','portal','text') BEGIN
   INSERT INTO spaces_knowledge_chunks(
     id, space_id, node_id, origin, kind, source_revision, text, locator, metadata, created_at, updated_at
   ) VALUES (

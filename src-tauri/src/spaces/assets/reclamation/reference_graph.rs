@@ -13,12 +13,19 @@ pub(super) async fn all(pool: &sqlx::SqlitePool) -> Result<BTreeSet<String>, Str
         .await
         .map_err(db::sql_error)?;
     collect_node_rows(rows, &mut paths)?;
-    let canvas_paths =
-        sqlx::query_scalar::<_, String>("SELECT path FROM spaces_canvas_asset_references")
-            .fetch_all(pool)
-            .await
-            .map_err(db::sql_error)?;
-    paths.extend(canvas_paths);
+    let layout_paths = sqlx::query_scalar::<_, String>(
+        "SELECT json_extract(data,'$.appearance.background') FROM spaces_structure_layouts \
+         WHERE json_type(data,'$.appearance.background')='text' \
+         UNION ALL \
+         SELECT json_extract(l.data,'$.appearance.background') \
+         FROM spaces_deleted_structure_layouts l \
+         JOIN spaces_deleted_structure_batches b ON b.id=l.batch_id \
+         WHERE b.restored_at IS NULL AND json_type(l.data,'$.appearance.background')='text'",
+    )
+    .fetch_all(pool)
+    .await
+    .map_err(db::sql_error)?;
+    paths.extend(layout_paths);
     let thumbnails = sqlx::query_scalar::<_, String>(
         "SELECT thumbnail_path FROM spaces WHERE thumbnail_path IS NOT NULL \
          UNION ALL SELECT thumbnail_path FROM spaces_scenes WHERE thumbnail_path IS NOT NULL",
@@ -67,16 +74,27 @@ pub(crate) async fn for_nodes(
     .await
     .map_err(db::sql_error)?;
     paths.extend(checkpoints);
-    let canvas_paths = sqlx::query_scalar::<_, String>(
-        "SELECT path FROM spaces_canvas_asset_references \
-         WHERE space_id=$1 AND node_id IN (SELECT value FROM json_each($2))",
+    let layout_paths = sqlx::query_scalar::<_, String>(
+        "SELECT json_extract(l.data,'$.appearance.background') \
+         FROM spaces_structure_layouts l \
+         JOIN spaces_structure_nodes i ON i.space_id=l.space_id AND i.id=l.structure_node_id \
+         WHERE l.space_id=$1 AND i.node_id IN (SELECT value FROM json_each($2)) \
+           AND json_type(l.data,'$.appearance.background')='text' \
+         UNION ALL \
+         SELECT json_extract(l.data,'$.appearance.background') \
+         FROM spaces_deleted_structure_layouts l \
+         JOIN spaces_deleted_structure_nodes i ON i.batch_id=l.batch_id AND i.structure_node_id=l.structure_node_id \
+         JOIN spaces_deleted_structure_batches b ON b.id=l.batch_id \
+         WHERE b.space_id=$1 AND b.restored_at IS NULL \
+           AND json_extract(i.data,'$.nodeId') IN (SELECT value FROM json_each($2)) \
+           AND json_type(l.data,'$.appearance.background')='text'",
     )
     .bind(space_id)
     .bind(ids)
     .fetch_all(&mut **tx)
     .await
     .map_err(db::sql_error)?;
-    paths.extend(canvas_paths);
+    paths.extend(layout_paths);
     Ok(paths)
 }
 
@@ -96,14 +114,21 @@ pub(crate) async fn for_space(
          JOIN spaces_enrichment_jobs j ON j.id=c.job_id WHERE j.space_id=$1 AND c.resource IS NOT NULL",
     ).bind(space_id).fetch_all(&mut **tx).await.map_err(db::sql_error)?;
     paths.extend(checkpoints);
-    let canvas_paths = sqlx::query_scalar::<_, String>(
-        "SELECT path FROM spaces_canvas_asset_references WHERE space_id=$1",
+    let layout_paths = sqlx::query_scalar::<_, String>(
+        "SELECT json_extract(data,'$.appearance.background') FROM spaces_structure_layouts \
+         WHERE space_id=$1 AND json_type(data,'$.appearance.background')='text' \
+         UNION ALL \
+         SELECT json_extract(l.data,'$.appearance.background') \
+         FROM spaces_deleted_structure_layouts l \
+         JOIN spaces_deleted_structure_batches b ON b.id=l.batch_id \
+         WHERE b.space_id=$1 AND b.restored_at IS NULL \
+           AND json_type(l.data,'$.appearance.background')='text'",
     )
     .bind(space_id)
     .fetch_all(&mut **tx)
     .await
     .map_err(db::sql_error)?;
-    paths.extend(canvas_paths);
+    paths.extend(layout_paths);
     let thumbnails = sqlx::query_scalar::<_, String>(
         "SELECT thumbnail_path FROM spaces WHERE id=$1 AND thumbnail_path IS NOT NULL \
          UNION ALL SELECT thumbnail_path FROM spaces_scenes WHERE space_id=$1 AND thumbnail_path IS NOT NULL",

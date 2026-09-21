@@ -13,7 +13,7 @@ import { canvasRelationArrowheads, connectorLabelPosition } from "./connector-pr
 import type { CanvasPalette } from "./use-canvas-palette";
 
 const props = defineProps<{
-  item: CanvasSceneRelation;
+  sourceRelation: CanvasSceneRelation;
   palette: CanvasPalette;
   previews: ReadonlyMap<string, CanvasSceneRelation>;
   selected: boolean;
@@ -21,7 +21,7 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{ pointerDown: [id: string, event: PointerEvent] }>();
 const { t } = useI18n();
-const relation = computed(() => props.previews.get(props.item.id) ?? props.item);
+const relation = computed(() => props.previews.get(props.sourceRelation.id) ?? props.sourceRelation);
 
 function select(event: Konva.KonvaEventObject<PointerEvent>) {
   event.cancelBubble = true;

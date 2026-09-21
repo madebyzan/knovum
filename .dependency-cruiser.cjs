@@ -72,7 +72,7 @@ module.exports = {
       comment: "Space presentation consumes capability and query contracts, never persistence adapters.",
       from: { path: "^src/features/spaces/presentation(?:/|$)" },
       to: {
-        path: "^src/features/spaces/(?:canvas/persistence|credentials/credential-repository|knowledge/(?:persistence|relations/relation-repository)|nodes/node-repository|scenes/scene-repository|search/global-search-repository|workspace/space-repository)(?:/|$|\\.ts$)",
+        path: "^src/features/spaces/(?:canvas/persistence|structure|credentials/credential-repository|knowledge/(?:persistence|relations/relation-repository)|nodes/node-repository|scenes/scene-repository|search/global-search-repository|workspace/space-repository)(?:/|$|\\.ts$)",
       },
     },
     {
@@ -98,7 +98,7 @@ module.exports = {
       severity: "error",
       comment: "Capability-owned repositories and persistence adapters cannot depend on Space UI.",
       from: {
-        path: "^src/features/spaces/(?:canvas/persistence|credentials/credential-repository|knowledge/(?:persistence|relations/relation-repository)|nodes/node-repository|scenes/scene-repository|search/global-search-repository|workspace/space-repository)(?:/|$|\\.ts$)",
+        path: "^src/features/spaces/(?:canvas/persistence|structure|credentials/credential-repository|knowledge/(?:persistence|relations/relation-repository)|nodes/node-repository|scenes/scene-repository|search/global-search-repository|workspace/space-repository)(?:/|$|\\.ts$)",
       },
       to: { path: "^src/features/spaces/presentation(?:/|$)" },
     },

@@ -4,10 +4,10 @@ mod subtitle;
 mod tiptap;
 mod website;
 
-use serde_json::{Map, Value};
+use serde_json::Value;
 
 use super::{
-    scalars::{optional_bool, optional_string, optional_string_array, required_string},
+    scalars::{optional_string, optional_string_array, required_string},
     validation::reject_unknown,
 };
 
@@ -17,8 +17,6 @@ const COMMON_FIELDS: &[&str] = &[
     "kind",
     "title",
     "tags",
-    "sectionId",
-    "locked",
     "sourceRevision",
     "knowledgeRevision",
 ];
@@ -32,8 +30,6 @@ pub(super) fn validate_base_fields(kind: &str, data: &Value) -> Result<(), Strin
     }
     required_string(object, "title", 512)?;
     optional_string_array(object, "tags", 64, 80)?;
-    optional_string(object, "sectionId", 128, false)?;
-    optional_bool(object, "locked")?;
     optional_string(object, "sourceRevision", 128, false)?;
     optional_string(object, "knowledgeRevision", 128, false)?;
     Ok(())
@@ -69,15 +65,9 @@ pub(super) fn validate_payload_shape(kind: &str, data: &Value) -> Result<(), Str
         "file" => resource::validate_file(object),
         "code" => resource::validate_code(object),
         "credential" => resource::validate_credential(object),
-        "section" => validate_section(object),
         "object" | "portal" => Ok(()),
         _ => Err("Unsupported Space node kind".into()),
     }
-}
-
-fn validate_section(object: &Map<String, Value>) -> Result<(), String> {
-    optional_bool(object, "collapsed")?;
-    Ok(())
 }
 
 #[cfg(test)]

@@ -1,6 +1,12 @@
-import type { KnowledgeSearchMatch } from "./knowledge-search-match";
+import { z } from "zod";
 
-export interface KnowledgeSearchResponse {
-  matches: KnowledgeSearchMatch[];
-  semantic: "ready" | "unavailable" | "empty";
-}
+import { knowledgeSearchMatchSchema } from "./knowledge-search-match";
+
+export const knowledgeSearchResponseSchema = z
+  .object({
+    matches: z.array(knowledgeSearchMatchSchema),
+    semantic: z.enum(["ready", "unavailable", "empty"]),
+  })
+  .strict();
+
+export type KnowledgeSearchResponse = z.infer<typeof knowledgeSearchResponseSchema>;

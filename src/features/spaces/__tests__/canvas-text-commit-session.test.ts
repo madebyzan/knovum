@@ -6,8 +6,8 @@ import { deferred } from "../testing/canvas-fixtures";
 describe("canvas text commit session", () => {
   it("waits for every registered editor commit", async () => {
     const firstSave = deferred<void>();
-    const first = vi.fn(() => firstSave.promise);
-    const second = vi.fn(async () => {});
+    const first = vi.fn<() => Promise<void>>(() => firstSave.promise);
+    const second = vi.fn<() => Promise<void>>(async () => {});
     const detachFirst = registerSpaceSessionParticipant({ commit: first });
     const detachSecond = registerSpaceSessionParticipant({ commit: second });
 

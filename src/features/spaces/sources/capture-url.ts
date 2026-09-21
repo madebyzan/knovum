@@ -26,7 +26,7 @@ export interface UrlCaptureContext {
     >,
   ): void;
   finishUrlCapture(id: string): void;
-  addItem(data: SpaceNodePayload, position?: { x: number; y: number }): Promise<SpaceCanvasNode[]>;
+  addContent(data: SpaceNodePayload, position?: { x: number; y: number }): Promise<SpaceCanvasNode[]>;
   saveNodeDataForSpace(spaceId: string, id: string, data: SpaceNodePayload): Promise<void>;
 }
 
@@ -104,7 +104,7 @@ async function importMediaSource(
     if (acquisition.outcome === "imported") {
       try {
         void logInfo(`[spaces.url-capture] media acquired; kind=${acquisition.payload.kind}; saving node`);
-        const [node] = await context.addItem(acquisition.payload, input.target);
+        const [node] = await context.addContent(acquisition.payload, input.target);
         void logInfo(`[spaces.url-capture] media node saved; created=${Boolean(node)}`);
         return { failed: false, node };
       } catch (error) {

@@ -20,18 +20,20 @@ const options = computed(() => spaceTargetOptions(store.spaces, t("spaces.space.
 watch(open, (value) => {
   if (!value) return;
   targetSpaceId.value =
-    options.value.find((item) => item.value !== store.activeSpaceId)?.value ?? options.value[0]?.value ?? "";
-  title.value = options.value.find((item) => item.value === targetSpaceId.value)?.label ?? "";
+    options.value.find((option) => option.value !== store.activeSpaceId)?.value ??
+    options.value[0]?.value ??
+    "";
+  title.value = options.value.find((option) => option.value === targetSpaceId.value)?.label ?? "";
 });
 watch(targetSpaceId, (value) => {
-  const label = options.value.find((item) => item.value === value)?.label;
+  const label = options.value.find((option) => option.value === value)?.label;
   if (label && !title.value.trim()) title.value = label;
 });
 
 async function create() {
   if (!targetSpaceId.value) return;
   try {
-    await store.addItem({
+    await store.addContent({
       kind: "portal",
       title: title.value.trim() || t("spaces.nodeTypes.portal"),
       targetSpaceId: targetSpaceId.value,

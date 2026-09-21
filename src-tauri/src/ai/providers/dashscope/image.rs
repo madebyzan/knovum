@@ -18,23 +18,23 @@ struct ResponsePayload {
 
 #[derive(Deserialize)]
 struct OutputPayload {
-    choices: Option<Vec<ChoiceItem>>,
+    choices: Option<Vec<GenerationChoice>>,
     #[serde(rename = "results")]
     artifacts: Option<Vec<ImageArtifact>>,
 }
 
 #[derive(Deserialize)]
-struct ChoiceItem {
-    message: ChoiceMessageItem,
+struct GenerationChoice {
+    message: GenerationMessage,
 }
 
 #[derive(Deserialize)]
-struct ChoiceMessageItem {
-    content: Vec<ContentItem>,
+struct GenerationMessage {
+    content: Vec<ImageContentPart>,
 }
 
 #[derive(Deserialize)]
-struct ContentItem {
+struct ImageContentPart {
     image: Option<String>,
 }
 
@@ -133,7 +133,10 @@ pub(super) fn dashscope_endpoint(endpoint: &str) -> AiResult<String> {
 }
 
 fn extract_image(output: OutputPayload) -> Option<(String, Option<String>)> {
-    if let Some(image) = output.artifacts.and_then(|items| items.into_iter().next()) {
+    if let Some(image) = output
+        .artifacts
+        .and_then(|artifacts| artifacts.into_iter().next())
+    {
         return Some((image.url, image.actual_prompt));
     }
     output

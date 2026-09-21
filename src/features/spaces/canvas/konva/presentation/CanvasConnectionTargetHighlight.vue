@@ -10,7 +10,7 @@ import type { CanvasSceneNode } from "../scene/scene-projection";
 import type { CanvasPalette } from "./use-canvas-palette";
 
 defineProps<{
-  item: CanvasSceneNode;
+  sceneNode: CanvasSceneNode;
   palette: CanvasPalette;
   target: CanvasConnectorTarget;
   zoom: number;
@@ -21,14 +21,14 @@ defineProps<{
   <KonvaGroup :config="{ listening: false }">
     <KonvaRect
       :config="{
-        x: item.layout.frame.x,
-        y: item.layout.frame.y,
-        width: item.layout.frame.width,
-        height: item.layout.frame.height,
-        rotation: item.layout.frame.rotation,
+        x: sceneNode.layout.frame.x,
+        y: sceneNode.layout.frame.y,
+        width: sceneNode.layout.frame.width,
+        height: sceneNode.layout.frame.height,
+        rotation: sceneNode.layout.frame.rotation,
         stroke: palette.accent,
         strokeWidth: 2 / zoom,
-        cornerRadius: item.node.data.kind === 'section' ? 8 : 10,
+        cornerRadius: 10,
       }"
     />
     <KonvaCircle

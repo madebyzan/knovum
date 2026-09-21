@@ -30,5 +30,5 @@ export function findGroundedCitation(
   targetIndex: number,
 ): GroundedCitation | undefined {
   if (!citations?.length) return undefined;
-  return citations.find((item) => item.index === targetIndex);
+  return citations.find((citation) => citation.index === targetIndex);
 }

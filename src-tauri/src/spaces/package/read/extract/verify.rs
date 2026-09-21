@@ -6,14 +6,14 @@ pub(super) fn verify_assets(
     targets: &HashMap<String, (PathBuf, bool)>,
     index: &[AssetIndex],
 ) -> Result<(), String> {
-    for item in index {
+    for asset in index {
         let (path, directory) = targets
-            .get(&item.token)
+            .get(&asset.token)
             .ok_or("Package asset target is missing")?;
         if (*directory && !path.is_dir()) || (!*directory && !path.is_file()) {
             return Err("Space package asset did not materialize".into());
         }
-        let expected = item
+        let expected = asset
             .source_revision
             .as_deref()
             .ok_or("Space package asset digest is missing")?;

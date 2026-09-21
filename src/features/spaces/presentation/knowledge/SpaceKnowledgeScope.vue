@@ -13,7 +13,7 @@ import { useI18n } from "vue-i18n";
 
 import type { GroundedScope } from "../../knowledge/model/grounded-scope";
 
-interface ScopeItem {
+interface ScopeOption {
   value: GroundedScope;
   count?: number;
 }
@@ -28,16 +28,18 @@ const props = defineProps<{
   compact?: boolean;
 }>();
 const { t } = useI18n();
-const items = computed<ScopeItem[]>(() => [
+const scopeOptions = computed<ScopeOption[]>(() => [
   { value: "selection" as const, count: props.selectionCount },
   { value: "section" as const, count: props.sectionCount },
   { value: "space" as const, count: props.spaceCount },
   { value: "all-spaces" as const },
 ]);
-const active = computed(() => items.value.find((item) => item.value === modelValue.value) ?? items.value[2]!);
-function scopeLabel(item: ScopeItem) {
-  const label = t(`spaces.assistant.aiScope.${item.value}`);
-  return item.count === undefined ? label : `${label} · ${item.count}`;
+const activeScope = computed(
+  () => scopeOptions.value.find((option) => option.value === modelValue.value) ?? scopeOptions.value[2]!,
+);
+function scopeLabel(option: ScopeOption) {
+  const label = t(`spaces.assistant.aiScope.${option.value}`);
+  return option.count === undefined ? label : `${label} · ${option.count}`;
 }
 </script>
 
@@ -50,7 +52,7 @@ function scopeLabel(item: ScopeItem) {
         :class="compact ? 'bg-transparent' : 'bg-control/35'"
       >
         <LibraryBig class="size-(--knovum-icon-size-xs) shrink-0" :stroke-width="1.55" />
-        <span class="min-w-0 flex-1 truncate">{{ scopeLabel(active) }}</span>
+        <span class="min-w-0 flex-1 truncate">{{ scopeLabel(activeScope) }}</span>
         <LockKeyhole
           class="size-(--knovum-icon-size-xs) shrink-0 text-foreground-tertiary"
           :stroke-width="1.55"
@@ -64,7 +66,7 @@ function scopeLabel(item: ScopeItem) {
             :class="compact ? 'bg-transparent' : 'bg-control/30'"
           >
             <LibraryBig class="size-(--knovum-icon-size-xs) shrink-0" :stroke-width="1.55" />
-            <span class="min-w-0 flex-1 truncate text-left">{{ scopeLabel(active) }}</span>
+            <span class="min-w-0 flex-1 truncate text-left">{{ scopeLabel(activeScope) }}</span>
             <ChevronDown
               class="size-(--knovum-icon-size-xs) shrink-0 text-foreground-tertiary"
               :stroke-width="1.55"
@@ -78,21 +80,21 @@ function scopeLabel(item: ScopeItem) {
             class="z-50 min-w-52 rounded-panel bg-overlay p-1 shadow-popover ring-1 ring-border"
           >
             <DropdownMenuItem
-              v-for="item in items"
-              :key="item.value"
+              v-for="option in scopeOptions"
+              :key="option.value"
               class="flex h-(--knovum-compact-item-height) cursor-default items-center gap-2 rounded-control px-2 text-label outline-none data-disabled:opacity-35 data-highlighted:bg-control-hover"
-              :disabled="(item.value === 'selection' || item.value === 'section') && item.count === 0"
-              @select="modelValue = item.value"
+              :disabled="(option.value === 'selection' || option.value === 'section') && option.count === 0"
+              @select="modelValue = option.value"
             >
               <Check
                 class="size-(--knovum-icon-size-xs)"
-                :class="modelValue === item.value ? 'opacity-100' : 'opacity-0'"
+                :class="modelValue === option.value ? 'opacity-100' : 'opacity-0'"
               />
-              <span class="min-w-0 flex-1">{{ t(`spaces.assistant.aiScope.${item.value}`) }}</span>
+              <span class="min-w-0 flex-1">{{ t(`spaces.assistant.aiScope.${option.value}`) }}</span>
               <span
-                v-if="item.count !== undefined"
+                v-if="option.count !== undefined"
                 class="text-micro text-foreground-tertiary tabular-nums"
-                >{{ item.count }}</span
+                >{{ option.count }}</span
               >
             </DropdownMenuItem>
           </DropdownMenuContent>

@@ -4,11 +4,14 @@ import type { SpaceRelation } from "../../model/relations/relation";
 import type { CanvasDocumentV1, CanvasNodeLayoutV1 } from "./canvas-document";
 import type { CanvasSurfaceEvents } from "./canvas-editor";
 import type { CanvasTool } from "./canvas-tool";
+import type { SpaceEditSnapshot } from "./space-edit-snapshot";
 
 export interface CanvasSurfaceProps {
   document: CanvasDocumentV1;
+  editSnapshot: SpaceEditSnapshot;
   events: CanvasSurfaceEvents;
   focusNodeIds: readonly string[];
+  groupScopePath: readonly string[];
   interactionEnabled: boolean;
   tool: CanvasTool;
   nodes: readonly SpaceCanvasNode[];

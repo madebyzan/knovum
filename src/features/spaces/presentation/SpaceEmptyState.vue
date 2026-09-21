@@ -12,13 +12,13 @@ const store = useSpaceStore();
 const { t } = useI18n();
 
 function addNote() {
-  void store.addItem(createSpaceNotePayload(t("spaces.editor.newNote")));
+  void store.addContent(createSpaceNotePayload(t("spaces.editor.newNote")));
 }
 
 async function importFile() {
   try {
     await importSpaceFromPicker(store, {
-      title: t("spaces.transfer.importingItem"),
+      title: t("spaces.transfer.importingResource"),
       preparing: t("spaces.transfer.importPreparing"),
     });
   } catch (error) {

@@ -34,13 +34,13 @@ const worldStyle = computed(() => ({
   >
     <div class="absolute top-0 left-0 origin-top-left" :style="worldStyle">
       <CanvasDomNodeOverlay
-        v-for="item in visibleNodes"
-        :key="item.node.id"
+        v-for="sceneNode in visibleNodes"
+        :key="sceneNode.node.id"
         :detail-level="detailLevel"
-        :interactive="interactiveNodeId === item.node.id"
-        :item="item"
+        :interactive="interactiveNodeId === sceneNode.node.id"
+        :scene-node="sceneNode"
         :layout-previews="layoutPreviews"
-        :selected="selectedNodeIds.has(item.node.id)"
+        :selected="selectedNodeIds.has(sceneNode.node.id)"
       >
         <template #default="content">
           <slot v-bind="content" />

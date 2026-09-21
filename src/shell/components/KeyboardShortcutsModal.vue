@@ -12,7 +12,7 @@ import UiIconButton from "../../shared/ui/UiIconButton.vue";
 import UiKbd from "../../shared/ui/UiKbd.vue";
 import UiSearchInput from "../../shared/ui/UiSearchInput.vue";
 
-interface ShortcutItem {
+interface ShortcutListing {
   id: string;
   title: string;
   shortcut: string;
@@ -40,8 +40,8 @@ whenever(
   },
 );
 
-const allShortcuts = computed<ShortcutItem[]>(() => {
-  const list: ShortcutItem[] = [];
+const allShortcuts = computed<ShortcutListing[]>(() => {
+  const list: ShortcutListing[] = [];
   const listedGroups = new Set<string>();
   for (const cmd of props.commands) {
     if (!cmd.shortcut) continue;
@@ -71,17 +71,17 @@ const filteredShortcuts = computed(() => {
   const needle = query.value.trim();
   if (!needle) return allShortcuts.value;
   return search(needle, [...allShortcuts.value], {
-    keySelector: (item) => `${item.title} ${item.shortcut}`,
+    keySelector: (shortcut) => `${shortcut.title} ${shortcut.shortcut}`,
     threshold: 0.6,
   });
 });
 
 const groupedSections = computed(() => {
-  const groups = groupBy(filteredShortcuts.value, (item) => item.category);
+  const groups = groupBy(filteredShortcuts.value, (shortcut) => shortcut.category);
   return CATEGORY_ORDER.filter((cat) => groups[cat]?.length).map((cat) => ({
     category: cat,
     title: t(CATEGORY_LOCALE_KEYS[cat]),
-    items: groups[cat]!,
+    shortcuts: groups[cat]!,
   }));
 });
 </script>
@@ -123,12 +123,12 @@ const groupedSections = computed(() => {
             </h3>
             <div class="space-y-0.5">
               <div
-                v-for="item in section.items"
-                :key="item.id"
+                v-for="shortcut in section.shortcuts"
+                :key="shortcut.id"
                 class="flex h-7.5 items-center justify-between py-0.5 text-label"
               >
-                <span class="truncate pr-2 font-normal text-foreground">{{ item.title }}</span>
-                <UiKbd :shortcut="item.shortcut" variant="badge" class="shrink-0" />
+                <span class="truncate pr-2 font-normal text-foreground">{{ shortcut.title }}</span>
+                <UiKbd :shortcut="shortcut.shortcut" variant="badge" class="shrink-0" />
               </div>
             </div>
           </section>

@@ -94,7 +94,6 @@ pub(crate) use access::asset_directory;
 pub(crate) use access::{
     authorize_canvas_thumbnail, authorize_destination, authorize_source, authorize_spaces_asset,
 };
-pub(in crate::spaces) use reclamation::synchronize_canvas_references;
 pub(crate) use reclamation::{
     reclaim_orphan_managed_assets, referenced_paths_for_nodes, referenced_paths_for_space,
     unreferenced_paths,

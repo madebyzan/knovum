@@ -53,7 +53,7 @@ async function consumeSeekRequest(request: typeof mediaSeekRequest.value) {
   <div class="relative flex min-h-0 flex-1 flex-col overflow-hidden">
     <SpaceCanvasProcessingState
       v-if="data.processingState === 'importing'"
-      :label="t('spaces.transfer.importingItem')"
+      :label="t('spaces.transfer.importingResource')"
     />
     <SpaceMediaPlayer
       v-else

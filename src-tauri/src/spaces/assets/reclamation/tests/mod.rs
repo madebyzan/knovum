@@ -1,7 +1,5 @@
 use super::*;
 
-mod canvas_reference_lifecycle;
-
 #[test]
 fn referenced_descendant_keeps_parent_namespace() {
     let referenced = BTreeSet::from(["/data/spaces/assets/web/favicon.png".to_owned()]);

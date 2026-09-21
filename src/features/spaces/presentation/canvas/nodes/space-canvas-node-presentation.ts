@@ -4,7 +4,6 @@ import {
   Captions,
   Code2,
   File,
-  FolderOpen,
   Globe2,
   Image,
   KeyRound,
@@ -60,7 +59,6 @@ const NODE_ICONS: Readonly<Record<SpaceNodeKind, Component>> = {
   credential: KeyRound,
   object: Sparkles,
   portal: Boxes,
-  section: FolderOpen,
 };
 
 const NODE_LABELS: Readonly<Record<SpaceNodeKind, string>> = {
@@ -77,7 +75,6 @@ const NODE_LABELS: Readonly<Record<SpaceNodeKind, string>> = {
   credential: "Credential",
   object: "Knowledge object",
   portal: "Portal",
-  section: "Section",
 };
 
 function nodeSubtitle(data: SpaceNodePayload) {
@@ -110,7 +107,7 @@ function mediaIdentity(data: Extract<SpaceNodePayload, { kind: "audio" | "video"
 function fileSubtitle(data: SpaceNodePayload) {
   switch (data.kind) {
     case "file":
-      return data.entries ? `${data.entries.length} items` : data.fileName;
+      return data.entries ? `${data.entries.length} entries` : data.fileName;
     case "code":
       return data.previewLanguage;
     case "subtitle":

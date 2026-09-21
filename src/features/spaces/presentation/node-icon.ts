@@ -9,7 +9,6 @@ import {
   Globe2,
   Image,
   KeyRound,
-  LayoutGrid,
   MessageSquareQuote,
   StickyNote,
   Type,
@@ -30,7 +29,6 @@ const NODE_ICONS = {
   subtitle: Captions,
   object: MessageSquareQuote,
   portal: ArrowRightLeft,
-  section: LayoutGrid,
   file: File,
 } satisfies Record<SpaceNodeKind, typeof File>;
 

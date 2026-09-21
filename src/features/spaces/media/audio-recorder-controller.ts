@@ -8,14 +8,14 @@ import {
 } from "./audio-permission";
 import type { AudioRecorderControllerOptions } from "./audio-recorder-contract";
 import {
-  appendSpaceAudioRecording,
   cancelSpaceAudioRecording,
   finishSpaceAudioRecording,
-  preferredAudioRecordingMimeType,
-  startSpaceAudioRecording,
   type SpaceAudioRecordingSession,
 } from "./audio-recording";
+import { prepareAudioRecording, type PreparedAudioRecording } from "./audio-recording-start";
+import { createAudioRecordingWriter } from "./audio-recording-writer";
 import { formatDurationMs } from "./format-duration";
+import { stopMediaRecorder } from "./media-recorder-operations";
 
 export function createSpaceAudioRecorderController(options: AudioRecorderControllerOptions) {
   const isRecording = ref(false);
@@ -28,8 +28,7 @@ export function createSpaceAudioRecorderController(options: AudioRecorderControl
   let recorder: MediaRecorder | undefined;
   let stream: MediaStream | undefined;
   let recorderSession: SpaceAudioRecordingSession | undefined;
-  let writeQueue = Promise.resolve();
-  let writeFailure: unknown;
+  const recordingWriter = createAudioRecordingWriter();
   let timer = 0;
   let generation = 0;
   let recordingSpaceId: string | undefined;
@@ -37,40 +36,18 @@ export function createSpaceAudioRecorderController(options: AudioRecorderControl
   async function start() {
     if (isRecording.value || isRequestingPermission.value || isSaving.value) return;
     const availability = requireAudioRecordingSpace(options.spaceId.value);
-    if ("problem" in availability) {
-      captureProblem.value = availability.problem;
-      return;
-    }
-    const { spaceId } = availability;
+    if ("problem" in availability) return reportCaptureProblem(availability.problem);
     const sessionGeneration = ++generation;
     isRequestingPermission.value = true;
     captureProblem.value = undefined;
-    let candidate: MediaStream | undefined;
-    let session: SpaceAudioRecordingSession | undefined;
+    await beginRecording(availability.spaceId, sessionGeneration);
+  }
+
+  async function beginRecording(spaceId: string, sessionGeneration: number) {
     try {
-      candidate = await navigator.mediaDevices.getUserMedia({ audio: true });
-      if (!isCurrent(sessionGeneration, spaceId)) return stopAudioCapture(candidate);
-      const mime = preferredAudioRecordingMimeType();
-      const transport = new MediaRecorder(candidate, mime ? { mimeType: mime } : undefined);
-      session = await startSpaceAudioRecording(transport.mimeType);
-      if (!isCurrent(sessionGeneration, spaceId)) {
-        stopAudioCapture(candidate);
-        await cancelSpaceAudioRecording(session);
-        return;
-      }
-      stream = candidate;
-      recordingSpaceId = spaceId;
-      recorder = transport;
-      recorderSession = session;
-      writeQueue = Promise.resolve();
-      writeFailure = undefined;
-      recorder.addEventListener("dataavailable", queueChunk);
-      recorder.start(4_000);
-      isRecording.value = true;
-      timer = globalThis.setInterval(() => !isPaused.value && (elapsedSeconds.value += 1), 1_000);
+      const prepared = await prepareAudioRecording(() => isCurrent(sessionGeneration, spaceId));
+      if (prepared) activateRecording(prepared, spaceId);
     } catch (error) {
-      if (candidate) stopAudioCapture(candidate);
-      if (session) await cancelSpaceAudioRecording(session);
       if (sessionGeneration === generation) {
         recorderSession = undefined;
         cleanupMedia();
@@ -88,24 +65,23 @@ export function createSpaceAudioRecorderController(options: AudioRecorderControl
     const session = recorderSession;
     if (!current || current.state === "inactive" || !spaceId || !session || isSaving.value) return;
     isSaving.value = true;
-    const stopped = new Promise<void>((resolve) =>
-      current.addEventListener("stop", () => resolve(), { once: true }),
-    );
-    current.stop();
-    await stopped;
-    await writeQueue;
+    await completeRecording({ current, session, sessionGeneration, spaceId });
+  }
+
+  async function completeRecording(input: {
+    current: MediaRecorder;
+    session: SpaceAudioRecordingSession;
+    sessionGeneration: number;
+    spaceId: string;
+  }) {
+    const { current, session, sessionGeneration, spaceId } = input;
+    await stopMediaRecorder(current);
+    await recordingWriter.settle();
     cleanupMedia();
     if (!isCurrent(sessionGeneration, spaceId)) return;
     try {
-      if (writeFailure) throw writeFailure;
-      const asset = await finishSpaceAudioRecording(session);
-      recorderSession = undefined;
-      if (!isCurrent(sessionGeneration, spaceId)) {
-        await removeSpaceAsset(asset.path);
-        return;
-      }
-      await options.save(asset, spaceId);
-      options.close();
+      if (recordingWriter.failure()) throw recordingWriter.failure();
+      await saveRecording(session, sessionGeneration, spaceId);
     } catch {
       await cancelRecorderSession();
       if (sessionGeneration === generation) captureProblem.value = "unknown";
@@ -113,6 +89,34 @@ export function createSpaceAudioRecorderController(options: AudioRecorderControl
     } finally {
       if (sessionGeneration === generation) isSaving.value = false;
     }
+  }
+
+  function reportCaptureProblem(problem: NonNullable<typeof captureProblem.value>) {
+    captureProblem.value = problem;
+  }
+
+  function activateRecording(input: PreparedAudioRecording, spaceId: string) {
+    stream = input.stream;
+    recordingSpaceId = spaceId;
+    recorder = input.recorder;
+    recorderSession = input.session;
+    recordingWriter.reset();
+    recorder.addEventListener("dataavailable", queueChunk);
+    recorder.start(4_000);
+    isRecording.value = true;
+    timer = globalThis.setInterval(() => !isPaused.value && (elapsedSeconds.value += 1), 1_000);
+  }
+
+  async function saveRecording(
+    session: SpaceAudioRecordingSession,
+    sessionGeneration: number,
+    spaceId: string,
+  ) {
+    const asset = await finishSpaceAudioRecording(session);
+    recorderSession = undefined;
+    if (!isCurrent(sessionGeneration, spaceId)) return removeSpaceAsset(asset.path);
+    await options.save(asset, spaceId);
+    options.close();
   }
 
   function togglePause() {
@@ -124,26 +128,15 @@ export function createSpaceAudioRecorderController(options: AudioRecorderControl
 
   function queueChunk(event: BlobEvent) {
     if (!event.data.size || !recorderSession) return;
-    const session = recorderSession;
-    writeQueue = writeQueue
-      .then(() => appendSpaceAudioRecording(session, event.data))
-      .catch((error) => {
-        writeFailure = error;
-      });
+    recordingWriter.append(recorderSession, event.data);
   }
 
   async function invalidate() {
     generation += 1;
     const current = recorder;
     recordingSpaceId = undefined;
-    if (current && current.state !== "inactive") {
-      const stopped = new Promise<void>((resolve) =>
-        current.addEventListener("stop", () => resolve(), { once: true }),
-      );
-      current.stop();
-      await stopped;
-    }
-    await writeQueue;
+    if (current && current.state !== "inactive") await stopMediaRecorder(current);
+    await recordingWriter.settle();
     cleanupMedia();
     await cancelRecorderSession();
     isSaving.value = false;

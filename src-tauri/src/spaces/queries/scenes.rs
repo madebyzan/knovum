@@ -11,7 +11,7 @@ pub async fn list_scenes<R: Runtime>(
 ) -> Result<Vec<Value>, String> {
     let pool = db::pool(&app).await?;
     let rows = sqlx::query(
-        "SELECT id,space_id,title,viewport_x,viewport_y,viewport_zoom,thumbnail_path,order_index,focus_node_ids,\
+        "SELECT id,space_id,title,viewport_x,viewport_y,viewport_zoom,thumbnail_path,order_index,focus_structure_node_ids,\
          relation_kinds,relation_statuses,query_filter,created_at,updated_at \
          FROM spaces_scenes WHERE space_id=$1 ORDER BY order_index,created_at",
     )
@@ -36,7 +36,7 @@ fn row_to_json(row: sqlx::sqlite::SqliteRow) -> Result<Value, String> {
         "viewportZoom": row.try_get::<f64,_>("viewport_zoom").map_err(db::sql_error)?,
         "thumbnailPath": row.try_get::<Option<String>,_>("thumbnail_path").map_err(db::sql_error)?,
         "orderIndex": row.try_get::<i64,_>("order_index").map_err(db::sql_error)?,
-        "focusNodeIds": parse("focus_node_ids")?,
+        "focusStructureNodeIds": parse("focus_structure_node_ids")?,
         "relationKinds": parse("relation_kinds")?,
         "relationStatuses": parse("relation_statuses")?,
         "queryFilter": parse("query_filter")?,

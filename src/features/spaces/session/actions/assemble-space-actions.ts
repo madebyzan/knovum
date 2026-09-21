@@ -3,7 +3,6 @@ import { resumePendingEnrichmentJobs } from "../../enrichment/job-scheduler";
 import { withEnrichmentTriggers } from "../../enrichment/mutation-triggers";
 import type { createInspectorActions } from "../../inspector/inspector-actions";
 import type { createSpaceMediaActions } from "../../media/actions";
-import type { createSelectionActions } from "../../organization/selection-actions";
 import {
   createSpaceScene,
   duplicateSpaceScene,
@@ -31,7 +30,6 @@ import {
 } from "../../workspace/space-session-actions";
 import { commitActiveSpaceSession } from "../../workspace/space-transition";
 import type { SpaceState } from "../session-state";
-import type { createSpaceNodeLifecycleActions } from "./node-lifecycle-actions";
 import type { createSpaceMutations } from "./node-mutations";
 import type { createPlacementActions } from "./placement-actions";
 import {
@@ -42,6 +40,7 @@ import {
   updateSpaceRelation,
   type RelationContext,
 } from "./relation-actions";
+import type { createStructureTransferActions } from "./structure-transfer-actions";
 import type { createSpaceViewActions } from "./view-actions";
 
 interface Input {
@@ -49,9 +48,8 @@ interface Input {
   mutations: ReturnType<typeof createSpaceMutations>;
   relation: RelationContext;
   placementActions: ReturnType<typeof createPlacementActions>;
-  organization: ReturnType<typeof createSelectionActions>;
   media: ReturnType<typeof createSpaceMediaActions>;
-  lifecycle: ReturnType<typeof createSpaceNodeLifecycleActions>;
+  structureTransfer: ReturnType<typeof createStructureTransferActions>;
   context: ReturnType<typeof createInspectorActions>;
   spaceContext: SpaceSessionContext;
   view: ReturnType<typeof createSpaceViewActions>;
@@ -63,9 +61,8 @@ export function assembleSpaceActions(input: Input) {
     mutations,
     relation,
     placementActions,
-    organization,
     media,
-    lifecycle,
+    structureTransfer,
     context,
     spaceContext,
     view,
@@ -73,6 +70,7 @@ export function assembleSpaceActions(input: Input) {
   const navigation = {
     activeSpaceId: state.activeSpaceId,
     scenes: state.scenes,
+    editSnapshot: state.editSnapshot,
     focusNodeIds: state.canvasFocusIds,
     relationKinds: state.relationKindFilter,
     relationStatuses: state.relationStatusFilter,
@@ -104,7 +102,7 @@ export function assembleSpaceActions(input: Input) {
     return projection;
   };
   const finishUrlCapture = (id: string) => {
-    state.urlCaptures.value = state.urlCaptures.value.filter((item) => item.id !== id);
+    state.urlCaptures.value = state.urlCaptures.value.filter((capture) => capture.id !== id);
   };
   const updateUrlCapture = (
     id: string,
@@ -115,8 +113,8 @@ export function assembleSpaceActions(input: Input) {
       >
     >,
   ) => {
-    state.urlCaptures.value = state.urlCaptures.value.map((item) =>
-      item.id === id ? { ...item, ...patch } : item,
+    state.urlCaptures.value = state.urlCaptures.value.map((capture) =>
+      capture.id === id ? { ...capture, ...patch } : capture,
     );
   };
   return {
@@ -171,9 +169,8 @@ export function assembleSpaceActions(input: Input) {
       updateSpaceRelation(relation, id, patch),
     ...mutations,
     ...placementActions,
-    ...organization,
     ...media,
-    ...lifecycle,
+    ...structureTransfer,
     ...context,
     ...view,
     ...enrichmentActions,

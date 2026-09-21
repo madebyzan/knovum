@@ -3,6 +3,7 @@ import { EditorContent } from "@tiptap/vue-3";
 import { toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
+import type { CanvasNodeSizeAuthority } from "../../../canvas/contract/canvas-document";
 import type { CanvasContentHeightMeasurement } from "../../../canvas/contract/canvas-editor-port";
 import type { SpaceCanvasTextPayload } from "../../../model/nodes/capabilities";
 import type { SpaceTextPayload } from "../../../model/nodes/node-payload";
@@ -21,6 +22,7 @@ const props = defineProps<{
   frameWidth: number;
   textAlign: "left" | "center" | "right";
   persist: (id: string, data: SpaceCanvasTextPayload) => Promise<void>;
+  sizeAuthority: CanvasNodeSizeAuthority;
   typographyScale: number;
 }>();
 const { t } = useI18n();
@@ -34,9 +36,11 @@ const { beginEditing, cancelEditing, editing, editor, save } = useCanvasTextEdit
   persist: props.persist,
 });
 
-function fitContentHeight(height: number) {
+function reportContentHeight(height: number) {
   props.fitContentHeight(props.id, {
+    contentRevision: props.data.knowledgeRevision ?? null,
     height,
+    sizeAuthority: props.sizeAuthority,
     typographyScale: props.typographyScale,
     width: props.frameWidth,
   });
@@ -47,7 +51,7 @@ function fitContentHeight(height: number) {
   <div
     class="flex size-full min-h-0 flex-col items-center overflow-hidden leading-tight"
     :class="[verticalClass, editing ? 'pointer-events-auto' : 'select-none']"
-    :tabindex="interactive && !data.locked ? 0 : undefined"
+    :tabindex="interactive ? 0 : undefined"
     @dblclick.stop="beginEditing"
     @keydown.enter="beginEditing"
   >
@@ -58,7 +62,7 @@ function fitContentHeight(height: number) {
       :default-alignment="textAlign"
       :typography-scale="typographyScale"
     />
-    <SpaceCanvasTextPlane :scale="typographyScale" @content-height="fitContentHeight">
+    <SpaceCanvasTextPlane :scale="typographyScale" @content-height="reportContentHeight">
       <EditorContent
         v-if="editing && editor"
         :editor="editor"

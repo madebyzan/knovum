@@ -129,7 +129,7 @@ impl VideoGenerationCapability for TogetherVideoAdapter {
                 "completed" | "succeeded" => {
                     let video_url = query_response
                         .outputs
-                        .and_then(|mut items| items.pop())
+                        .and_then(|mut videos| videos.pop())
                         .and_then(|out| out.url)
                         .ok_or_else(|| {
                             AiError::new(

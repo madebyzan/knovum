@@ -7,10 +7,12 @@ import type { SpaceRelation } from "../../model/relations/relation";
 import type { CanvasNodeLayoutV1 } from "../contract/canvas-document";
 import type { CanvasSurfaceEvents } from "../contract/canvas-editor";
 import type { CanvasPoint, CanvasRect } from "../contract/canvas-editor-port";
+import type { SpaceEditSnapshot } from "../contract/space-edit-snapshot";
 import type { CanvasFrameMutation } from "./canvas-editor-port-options";
 import { createKonvaEditorPort } from "./create-canvas-editor-port";
 import type { CanvasDocumentModel } from "./document/canvas-document-model";
 import type { CanvasPalette } from "./presentation/use-canvas-palette";
+import type { CanvasScene } from "./scene/scene-projection";
 import type { useCanvasSelection } from "./selection/use-canvas-selection";
 import type { useStageViewport } from "./viewport/use-stage-viewport";
 
@@ -20,6 +22,7 @@ interface EditorRegistrationOptions {
   focusNodeIds(): readonly string[];
   host: Readonly<Ref<HTMLElement | null>>;
   layouts: Readonly<Ref<readonly CanvasNodeLayoutV1[]>>;
+  lockedNodeIds(): ReadonlySet<string>;
   model: CanvasDocumentModel;
   nodeById(id: string): SpaceCanvasNode | undefined;
   runFrameMutation(mutation: CanvasFrameMutation): Promise<void>;
@@ -30,6 +33,9 @@ interface EditorRegistrationOptions {
   relationBounds(): ReadonlyMap<string, CanvasRect>;
   pastePoint(): CanvasPoint;
   selectableNodeIds(): readonly string[];
+  scene(): CanvasScene;
+  snapshot(): SpaceEditSnapshot;
+  structureBounds(): ReadonlyMap<string, CanvasRect>;
   selection: ReturnType<typeof useCanvasSelection>;
   stage: Ref<Konva.Stage | undefined>;
   stageComponent: Readonly<Ref<VueKonvaRef<Konva.Stage> | null>>;
@@ -49,6 +55,7 @@ export function useEditorRegistration(options: EditorRegistrationOptions) {
       runFrameMutation: options.runFrameMutation,
       host: () => options.host.value!,
       layouts: () => options.layouts.value,
+      lockedNodeIds: options.lockedNodeIds,
       model: options.model,
       nodeById: options.nodeById,
       nudgeSelection: options.nudgeSelection,
@@ -58,9 +65,14 @@ export function useEditorRegistration(options: EditorRegistrationOptions) {
       relationIds: () => options.selection.relationIds.value,
       relationBounds: options.relationBounds,
       relations: options.relations,
+      scene: options.scene,
       selectableNodeIds: options.selectableNodeIds,
       selectedNodeIds: () => options.selection.nodeIds.value,
+      selectedStructureNodeIds: () => options.selection.structureNodeIds.value,
       setSelection: options.selection.setNodeIds,
+      setStructureSelection: options.selection.setStructureNodeIds,
+      snapshot: options.snapshot,
+      structureBounds: options.structureBounds,
       animateViewport: options.viewport.animateViewport,
       setViewport: options.viewport.setViewport,
       size: () => options.viewport.size,

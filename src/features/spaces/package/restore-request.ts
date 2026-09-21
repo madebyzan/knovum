@@ -2,20 +2,19 @@ import { isString } from "es-toolkit";
 
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
 import type { Space } from "../model/space";
-import type { CanvasPackageCodec } from "./canvas-state-codec";
 import { remapGroundedCitation, remapObjectTypes, remapQueryFilter } from "./content-remap";
 import { remapEventEntity, remapEventPayload } from "./event-remap";
-import { requiredMap } from "./id-maps";
+import { referenceMap, requiredMap } from "./id-maps";
 import { restorePackageNodes } from "./node-restore";
 import type { SpacePackageRestoreContext } from "./restore-context";
 import { packageSpace, restoreOwnedRow } from "./restore-row";
 import type { SpacePackageRestoreRequest } from "./restore-transport";
+import { restorePackageStructure } from "./structure-restore";
 import { restoreWorkflowRuns } from "./workflow-run-restore";
 
 export function buildSpacePackageRestoreRequest(
   context: SpacePackageRestoreContext,
   space: Space,
-  canvasCodec: CanvasPackageCodec,
 ): SpacePackageRestoreRequest {
   const nodes = restorePackageNodes(context);
   const nodeRevisions = new Map(
@@ -26,9 +25,7 @@ export function buildSpacePackageRestoreRequest(
   );
   return {
     space: packageSpace(space),
-    canvasState: canvasCodec.remap(context.manifest.canvasState, {
-      nodeIds: context.maps.nodes,
-    }),
+    ...restorePackageStructure(context),
     objectTypes: remapObjectTypes(context.manifest.objectTypes, context.maps),
     nodes,
     scenes: restoreScenes(context),
@@ -70,11 +67,12 @@ function restoreScenes(context: SpacePackageRestoreContext): SpacePackageRestore
   return context.manifest.scenes.map((scene) => ({
     id: requiredMap(maps.scenes, scene.id, "Scene"),
     title: scene.title,
+    thumbnailPath: null,
     viewportX: scene.viewportX,
     viewportY: scene.viewportY,
     viewportZoom: scene.viewportZoom,
     orderIndex: scene.orderIndex,
-    focusNodeIds: scene.focusNodeIds.map((id) => requiredMap(maps.nodes, id, "Scene focus node")),
+    focusStructureNodeIds: scene.focusStructureNodeIds.map((id) => referenceMap(maps.structureNodes, id)),
     relationKinds: scene.relationKinds,
     relationStatuses: scene.relationStatuses,
     queryFilter: remapQueryFilter(scene.queryFilter, maps),
@@ -140,15 +138,15 @@ function restoreMessages(
 function restoreProvenance(context: SpacePackageRestoreContext): SpacePackageRestoreRequest["provenance"] {
   const { maps } = context;
   return context.manifest.provenance.map((source) => {
-    const { actorId, ...item } = restoreOwnedRow(source, maps.sourceSpaceId);
+    const { actorId, ...provenance } = restoreOwnedRow(source, maps.sourceSpaceId);
     return {
-      ...item,
-      id: requiredMap(maps.provenance, item.id, "provenance"),
+      ...provenance,
+      id: requiredMap(maps.provenance, provenance.id, "provenance"),
       targetId:
-        item.targetKind === "node"
-          ? requiredMap(maps.nodes, item.targetId, "provenance node")
-          : requiredMap(maps.relations, item.targetId, "provenance relation"),
-      sourceNodeId: requiredMap(maps.nodes, item.sourceNodeId, "provenance source"),
+        provenance.targetKind === "node"
+          ? requiredMap(maps.nodes, provenance.targetId, "provenance node")
+          : requiredMap(maps.relations, provenance.targetId, "provenance relation"),
+      sourceNodeId: requiredMap(maps.nodes, provenance.sourceNodeId, "provenance source"),
       ...(actorId == null ? {} : { actorId }),
     };
   });

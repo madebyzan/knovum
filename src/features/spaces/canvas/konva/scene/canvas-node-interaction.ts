@@ -19,14 +19,14 @@ export interface CanvasNodeInteraction {
   };
 }
 
-const NON_CONNECTABLE_KINDS = new Set<SpaceNodeKind>(["credential", "portal", "section"]);
+const NON_CONNECTABLE_KINDS = new Set<SpaceNodeKind>(["credential", "portal"]);
 const ACTIVATE_TO_INTERACT_KINDS = new Set<SpaceNodeKind>(["code", "note", "text", "website"]);
 const SELECT_TO_INTERACT_KINDS = new Set<SpaceNodeKind>(["audio", "credential", "video"]);
 
-export function canvasNodeInteraction(node: SpaceCanvasNode): CanvasNodeInteraction {
+export function canvasNodeInteraction(node: SpaceCanvasNode, locked = false): CanvasNodeInteraction {
   const resize = spaceNodeResizePolicy(node.data);
   const textLayout = node.data.kind === "text";
-  const movable = !(node.data.locked ?? false);
+  const movable = !locked;
   return {
     activationMode: nodeActivationMode(node),
     connectable: !NON_CONNECTABLE_KINDS.has(node.data.kind),
@@ -35,8 +35,7 @@ export function canvasNodeInteraction(node: SpaceCanvasNode): CanvasNodeInteract
       ...resize,
       minHeight: textLayout ? 1 : resize.minHeight,
       maxHeight: textLayout ? Number.POSITIVE_INFINITY : resize.maxHeight,
-      resizeMode:
-        movable && !(node.data.kind === "section" && node.data.collapsed) ? resize.resizeMode : "fixed",
+      resizeMode: movable ? resize.resizeMode : "fixed",
     },
   };
 }

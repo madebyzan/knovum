@@ -1,18 +1,11 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, shallowRef, watch } from "vue";
+import { computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import type { CanvasExchangePort } from "../../canvas-exchange/canvas-exchange-port";
-import { registerCanvasExchangePort } from "../../canvas-exchange/canvas-exchange-session";
 import { useCanvasToolStore } from "../../canvas/canvas-tool-store";
-import type { CanvasHostEvents } from "../../canvas/contract/canvas-editor";
-import type { CanvasEditorPort } from "../../canvas/contract/canvas-editor-port";
 import {
   currentCanvasEditor,
-  registerCanvasEditor,
   updateCanvasDirectManipulationProjection,
-  updateCanvasSelectionProjection,
-  updateCanvasViewportProjection,
   useCanvasEditorSession,
 } from "../../canvas/editor-session";
 import CanvasSurfaceHost from "../../canvas/host/CanvasSurfaceHost.vue";
@@ -27,7 +20,9 @@ import SpaceCanvasProductLayer from "./SpaceCanvasProductLayer.vue";
 import { useCanvasContentLayoutSession } from "./use-canvas-content-layout-session";
 import { useCanvasNavigationRequests } from "./use-canvas-navigation-requests";
 import { useCanvasTextCreation } from "./use-canvas-text-creation";
+import { createSpaceCanvasEvents } from "./use-space-canvas-events";
 import { useSpaceCanvasImports } from "./use-space-canvas-imports";
+import { useSpaceCanvasLifecycle } from "./use-space-canvas-lifecycle";
 import { useVisibleCanvasContent } from "./use-visible-canvas-content";
 
 const store = useSpaceStore();
@@ -36,10 +31,6 @@ const createTextNode = useCanvasTextCreation();
 const editorSession = useCanvasEditorSession();
 const dock = useContextDock();
 const { t } = useI18n();
-let detachEditor: (() => void) | undefined;
-let detachOverviewObserver: (() => void) | undefined;
-let detachExchange: (() => void) | undefined;
-const canvasError = shallowRef<string>();
 const selection = createCanvasSelectionActions(store);
 const persistNodeContent = createCanvasNodeContentPersistence(store);
 const { visibleNodes, visibleRelations } = useVisibleCanvasContent(
@@ -65,46 +56,24 @@ const spaceId = computed(() => {
   if (!store.activeSpaceId) throw new Error("An active space is required to mount its canvas");
   return store.activeSpaceId;
 });
-
-function reportCanvasError(error: unknown) {
-  canvasError.value = error instanceof Error ? error.message : String(error);
-}
-
-function attachEditor(editor: CanvasEditorPort) {
-  detachOverviewObserver?.();
-  detachEditor?.();
-  detachEditor = registerCanvasEditor(editor);
-  let previous = editor.getDocument();
-  detachOverviewObserver = editor.observeDocument((document) => {
-    if (document.nodes !== previous.nodes || document.relationStyles !== previous.relationStyles)
-      store.markCanvasOverviewDirty();
-    previous = document;
-  });
-  contentLayout.sync();
-  canvasError.value = undefined;
-  navigationRequests.consumePending();
-}
-
-function attachExchange(exchange: CanvasExchangePort) {
-  detachExchange?.();
-  detachExchange = registerCanvasExchangePort(exchange);
-}
-
-watch(spaceId, () => {
-  tools.resetTool();
-  detachOverviewObserver?.();
-  detachOverviewObserver = undefined;
-  detachEditor?.();
-  detachEditor = undefined;
-  detachExchange?.();
-  detachExchange = undefined;
-  canvasError.value = undefined;
+const lifecycle = useSpaceCanvasLifecycle({
+  contentLayout,
+  navigation: navigationRequests,
+  spaceId,
+  store,
+  tools,
 });
+watch(
+  () => tools.tool,
+  (tool) => {
+    if (tool === "section") store.groupScopePath = [];
+  },
+);
 const imports = useSpaceCanvasImports({
   store,
   editorSession,
   newNoteTitle: t("spaces.editor.newNote"),
-  reportError: reportCanvasError,
+  reportError: lifecycle.reportError,
 });
 
 async function activateNode(nodeId: string) {
@@ -115,46 +84,27 @@ async function activateNode(nodeId: string) {
   else dock.openInspect();
 }
 
-const canvasEvents: CanvasHostEvents = {
-  onCreateTextNode: createTextNode,
-  onCommitGesture: store.commitGesture,
-  onCopyNodes: selection.copyNodes,
-  onCreateRelation: async (sourceNodeId, targetNodeId) => {
-    await store.createRelation(sourceNodeId, targetNodeId, "related");
-  },
-  onCutSelection: selection.cutSelection,
-  onDeleteSelection: selection.deleteSelection,
-  onDuplicateNodes: selection.duplicateNodes,
-  onInsertText: imports.insertText,
-  onInsertUrl: imports.insertUrl,
-  onImportFiles: imports.importFiles,
-  onNodeActivate: activateNode,
-  onPasteNodes: imports.pasteNodes,
-  onError: reportCanvasError,
-  onHistoryEntry: store.recordCanvasHistory,
-  onHistoryTransaction: store.recordHistoryMutation,
-  onDirectManipulationChange: contentLayout.updateDirectManipulation,
-  onMutationPendingChange: contentLayout.updateMutationPending,
-  onReady: attachEditor,
-  onSelectionChange: updateCanvasSelectionProjection,
-  onViewportChange: updateCanvasViewportProjection,
-};
-
-onBeforeUnmount(() => {
-  tools.resetTool();
-  detachOverviewObserver?.();
-  detachEditor?.();
-  detachExchange?.();
+const canvasEvents = createSpaceCanvasEvents({
+  activateNode,
+  attachEditor: lifecycle.attachEditor,
+  contentLayout,
+  createTextNode,
+  imports,
+  reportError: lifecycle.reportError,
+  selection,
+  store,
+  tools,
+  untitledSection: t("spaces.canvas.untitledSection"),
 });
 </script>
 
 <template>
   <section class="relative h-full min-h-0 overflow-hidden bg-canvas select-none">
     <div
-      v-if="canvasError && !editorSession.activeEditor.value"
+      v-if="lifecycle.error.value && !editorSession.activeEditor.value"
       class="pointer-events-none absolute inset-0 z-20 grid place-items-center p-6 text-foreground-secondary"
     >
-      <p class="max-w-md text-center text-sm">{{ canvasError }}</p>
+      <p class="max-w-md text-center text-sm">{{ lifecycle.error.value }}</p>
     </div>
     <CanvasSurfaceHost
       :key="spaceId"
@@ -163,12 +113,15 @@ onBeforeUnmount(() => {
       :ensure-persisted="store.ensureActiveSpacePersisted"
       :import-json-canvas="imports.importJsonCanvas"
       :focus-node-ids="store.canvasFocusIds"
+      :group-scope-path="store.groupScopePath"
       :interaction-enabled="!editorSession.transitioning.value"
       :tool="tools.tool"
       :space-id="spaceId"
+      :snapshot="store.editSnapshot"
       :nodes="store.nodes"
       :relations="visibleRelations"
-      @exchange-ready="attachExchange"
+      :exchange-relations="store.relations"
+      @exchange-ready="lifecycle.attachExchange"
     >
       <template #node-content="{ interactive, layout, node, detailLevel }">
         <SpaceCanvasNodeContent
@@ -189,10 +142,10 @@ onBeforeUnmount(() => {
       :file-hover="imports.fileHover.value"
       :space-id="spaceId"
       v-bind="{
-        ...(canvasError ? { error: canvasError } : {}),
+        ...(lifecycle.error.value ? { error: lifecycle.error.value } : {}),
         ...(imports.fileHoverPosition.value ? { fileHoverPosition: imports.fileHoverPosition.value } : {}),
       }"
-      @dismiss-error="canvasError = undefined"
+      @dismiss-error="lifecycle.error.value = undefined"
       @dismiss-capture="store.finishUrlCapture"
       @retry-capture="imports.retryCapture"
     />

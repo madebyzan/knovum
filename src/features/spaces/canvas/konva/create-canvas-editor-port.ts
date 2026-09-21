@@ -1,85 +1,80 @@
+import type { StructureLayout } from "../../model/structure/structure-contract";
+import { createStructureIndex } from "../../model/structure/structure-index";
 import { captureCanvasOverview, captureCanvasViewport } from "../canvas-overview-capture";
-import type { CanvasEditorPort, CanvasPoint, CanvasRect } from "../contract/canvas-editor-port";
-import {
-  alignCanvasLayouts,
-  distributeCanvasLayouts,
-  fitSectionLayout,
-} from "../document/canvas-arrangement";
-import { autoLayoutCanvas } from "../document/canvas-auto-layout";
-import { removeCanvasSelection } from "../document/canvas-content";
-import {
-  canvasNodePlacements,
-  createCanvasSelectionSnapshot,
-  movableCanvasNodeIds,
-} from "../document/canvas-selection-snapshot";
-import { createCanvasPersistenceHistory } from "../persistence/canvas-persistence-history";
+import type { CanvasNodeAppearance } from "../contract/canvas-document";
+import type { CanvasEditorPort } from "../contract/canvas-editor-port";
 import type { KonvaEditorPortOptions } from "./canvas-editor-port-options";
-import { canvasAutoLayoutEdges } from "./document/canvas-auto-layout-edges";
-import type { CanvasDocumentModel } from "./document/canvas-document-model";
-import { createNodeContentHeightBatch } from "./node-content-height-batch";
-import { projectCanvasScene } from "./scene/scene-projection";
+import { createCanvasEditorSelection } from "./canvas-editor-selection";
+import { createNodeContentHeightBatch, type FittedContentHeight } from "./node-content-height-batch";
 import {
+  fitCanvasBounds,
   fitCanvasLayouts,
-  revealCanvasLayouts,
-  selectedCanvasLayouts,
+  revealCanvasTargets,
   setCanvasZoom,
   zoomCanvasViewport,
 } from "./viewport/canvas-editor-navigation";
 import { canvasPointFromScreen, screenPointFromCanvas } from "./viewport/viewport-math";
 
+type ContentLayout = Extract<StructureLayout, { kind: "content" }>;
+
 export function createKonvaEditorPort(options: KonvaEditorPortOptions): CanvasEditorPort {
-  const selectedPlacements = () => canvasNodePlacements(options.layouts(), options.selectedNodeIds());
   const animatedNavigation = { ...options, setViewport: options.animateViewport };
-  const contentHeight = createNodeContentHeightBatch(options.model, options.nodeById);
+  const selection = createCanvasEditorSelection(options);
+  const report = (operation: Promise<unknown>) => void operation.catch(options.onError);
+  let contentHeightTail = Promise.resolve();
+  const contentHeight = createNodeContentHeightBatch(
+    options.nodeById,
+    (id) => options.layouts().find(({ nodeId }) => nodeId === id),
+    updateContentHeights,
+  );
   return {
     cancelInteraction: options.cancelInteraction,
-    copySelection: () => options.onCopyNodes(selectedPlacements()),
-    cutSelection: () => deleteSelection(true),
+    copySelection: () => options.onCopyNodes(selection.placements()),
+    cutSelection: async () => {
+      await options.onCopyNodes(selection.placements());
+      await deleteSelection();
+    },
     pasteSelection: () => options.onPasteNodes(options.pastePoint()),
-    deleteSelection: () => deleteSelection(false),
-    duplicateSelection: () => options.onDuplicateNodes(selectedPlacements()),
+    deleteSelection,
+    duplicateSelection: async () => {
+      const roots = selection.roots();
+      if (!roots.length) return;
+      const targetParentId = roots.every((root) => root.parentId === roots[0]?.parentId)
+        ? (roots[0]?.parentId ?? null)
+        : null;
+      await options.onExecuteSpaceEdit({
+        kind: "structure.clone",
+        rootIds: roots.map(({ id }) => id),
+        targetParentId,
+        offset: { x: 32, y: 32 },
+      });
+    },
     nudgeSelection: (offset) => void options.nudgeSelection(offset).catch(options.onError),
-    moveSelectionLayer: (mode) => options.model.moveNodes(options.selectedNodeIds(), mode),
-    alignSelection: (mode) => {
-      const nodeIds = movableSelectedNodeIds();
-      return options.runFrameMutation(() => alignCanvasLayouts(layoutsFor(nodeIds), mode));
-    },
-    autoLayoutSelection: (direction) => {
-      const nodeIds = movableSelectedNodeIds();
-      return options.runFrameMutation(() => {
-        const targetLayouts = layoutsFor(nodeIds);
-        return autoLayoutCanvas(targetLayouts, canvasAutoLayoutEdges(options.relations()), direction);
-      });
-    },
-    distributeSelection: (mode) => {
-      const nodeIds = movableSelectedNodeIds();
-      return options.runFrameMutation(() => distributeCanvasLayouts(layoutsFor(nodeIds), mode));
-    },
-    fitSection: (sectionId) => {
-      const memberIds = new Set(
-        options
-          .nodes()
-          .filter(({ data }) => data.sectionId === sectionId)
-          .map(({ id }) => id),
-      );
-      return options.runFrameMutation(() => {
-        const section = options.layouts().find(({ nodeId }) => nodeId === sectionId);
-        if (!section) return [];
-        return fitSectionLayout(
-          section,
-          options.layouts().filter(({ nodeId }) => memberIds.has(nodeId)),
-        );
-      });
-    },
+    moveSelectionLayer: (direction) => report(executeForSelection({ kind: "structure.reorder", direction })),
+    alignSelection: (edge) => executeForSelection({ kind: "structure.align", edge }),
+    autoLayoutSelection: (direction) =>
+      executeForSelection({
+        kind: "structure.auto-layout",
+        direction: direction === "RIGHT" ? "right" : "down",
+        gap: 32,
+      }),
+    distributeSelection: (axis) => executeForSelection({ kind: "structure.distribute", axis }),
     selectAll: () => options.setSelection(options.selectableNodeIds()),
     zoomIn: () => zoomCanvasViewport(animatedNavigation, 1.2),
     zoomOut: () => zoomCanvasViewport(animatedNavigation, 1 / 1.2),
     setZoom: (zoom) => setCanvasZoom(animatedNavigation, zoom),
-    reveal: (ids, mode) => revealCanvasLayouts(animatedNavigation, ids, mode),
+    reveal: (ids, mode) => revealCanvasTargets(animatedNavigation, ids, mode, options.structureBounds()),
     navigateViewport: options.animateViewport,
     setViewport: options.setViewport,
-    setRelationColor: (relationId, color) => options.model.setRelationColor(relationId, color),
-    setNodeAppearance: (nodeId, appearance) => options.model.setNodeAppearance(nodeId, appearance),
+    setRelationColor: (relationId, color) =>
+      report(
+        options.onExecuteSpaceEdit({
+          kind: "relation.set-style",
+          relationId,
+          color: color === "neutral" ? null : color,
+        }),
+      ),
+    setNodeAppearance: (nodeId, patch) => updateAppearance(nodeId, patch),
     fitNodeContentHeight: contentHeight.fit,
     flushContentHeightFitting: contentHeight.flush,
     setContentHeightFittingPaused: contentHeight.setPaused,
@@ -88,35 +83,18 @@ export function createKonvaEditorPort(options: KonvaEditorPortOptions): CanvasEd
     observeDocument: (observer) => options.model.observe(observer),
     adoptDocument: (document) => options.model.applyLocalDocument(document),
     zoomToFit: () => fitCanvasLayouts(animatedNavigation, options.layouts()),
-    zoomToSelection: () => fitCanvasLayouts(animatedNavigation, selectedCanvasLayouts(options)),
-    clearSelection: () => options.setSelection([]),
+    zoomToSelection: () => {
+      const bounds = selection.bounds();
+      if (bounds) fitCanvasBounds(animatedNavigation, bounds);
+    },
+    clearSelection: selection.clear,
     captureSceneViewport: () =>
-      captureCanvasViewport(
-        projectCanvasScene(options.model.document, options.nodes(), options.relations()),
-        options.palette(),
-        options.viewport(),
-        options.size(),
-      ),
-    captureCanvasOverview: () =>
-      captureCanvasOverview(
-        projectCanvasScene(options.model.document, options.nodes(), options.relations()),
-        options.palette(),
-      ),
-    getSelectionSnapshot: () =>
-      createCanvasSelectionSnapshot(
-        options.layouts(),
-        options.selectedNodeIds(),
-        options.relationIds(),
-        options.relationBounds(),
-      ),
-    getSelectionBounds: () =>
-      createCanvasSelectionSnapshot(
-        options.layouts(),
-        options.selectedNodeIds(),
-        options.relationIds(),
-        options.relationBounds(),
-      ).bounds,
+      captureCanvasViewport(options.scene(), options.palette(), options.viewport(), options.size()),
+    captureCanvasOverview: () => captureCanvasOverview(options.scene(), options.palette()),
+    getSelectionSnapshot: selection.snapshot,
+    getSelectionBounds: selection.bounds,
     selectNodes: options.setSelection,
+    selectStructureNodes: options.setStructureSelection,
     screenToCanvasPoint: (point) => {
       const bounds = options.host().getBoundingClientRect();
       return canvasPointFromScreen({ x: point.x - bounds.left, y: point.y - bounds.top }, options.viewport());
@@ -124,42 +102,87 @@ export function createKonvaEditorPort(options: KonvaEditorPortOptions): CanvasEd
     canvasToViewportPoint: (point) => screenPointFromCanvas(point, options.viewport()),
   };
 
-  async function deleteSelection(cut: boolean) {
-    const nodeIds = [...options.selectedNodeIds()];
+  async function deleteSelection() {
+    const roots = selection.roots();
     const relationIds = [...options.relationIds()];
-    if (!nodeIds.length && !relationIds.length) return;
-    if (cut && !nodeIds.length) return;
-    await options.onHistoryTransaction(async () => {
-      const before = options.model.document;
-      const document = removeCanvasSelection(before, new Set(nodeIds), new Set(relationIds));
-      const result = cut
-        ? await options.onCutSelection({
-            nodeIds,
-            nodePlacements: selectedPlacements(),
-            relationIds,
-            document,
-          })
-        : await options.onDeleteSelection({ nodeIds, relationIds, document });
-      options.model.applyLocalDocument(result.document);
-      options.onHistoryEntry(
-        createCanvasPersistenceHistory({
-          before,
-          after: result.document,
-          persistence: result.history,
-          current: () => options.model.document,
-          commit: options.onHistoryTransition,
-          adopt: (next) => options.model.applyLocalDocument(next),
-        }),
+    if (!roots.length && !relationIds.length) return;
+    if (relationIds.length) await options.onDeleteRelations(relationIds);
+    else {
+      await options.onExecuteSpaceEdit({
+        kind: "structure.delete-subtrees",
+        rootIds: roots.map(({ id }) => id),
+      });
+    }
+    selection.clear();
+  }
+
+  async function executeForSelection(command: AlignOrDistributeCommand) {
+    const rootIds = selection.roots().map(({ id }) => id);
+    if (rootIds.length) await options.onExecuteSpaceEdit({ ...command, rootIds });
+  }
+
+  function updateAppearance(nodeId: string, patch: Partial<CanvasNodeAppearance>) {
+    const snapshot = options.snapshot();
+    const index = createStructureIndex(snapshot.structure);
+    const structureNodeId = index.nodeIdToStructureNodeId.get(nodeId);
+    const layout = structureNodeId
+      ? snapshot.layouts.find((candidate) => candidate.structureNodeId === structureNodeId)
+      : undefined;
+    if (!structureNodeId || layout?.kind !== "content")
+      throw new Error(`Content layout is unavailable: ${nodeId}`);
+    const appearance = cleanAppearance({ ...layout.appearance, ...patch });
+    report(
+      options.onExecuteSpaceEdit({
+        kind: "content.update-layout",
+        structureNodeId,
+        appearance: Object.keys(appearance).length
+          ? { kind: "set", value: appearance as NonNullable<ContentLayout["appearance"]> }
+          : { kind: "clear" },
+      }),
+    );
+  }
+
+  function updateContentHeights(heights: ReadonlyMap<string, FittedContentHeight>) {
+    const result = contentHeightTail.then(async () => {
+      const snapshot = options.snapshot();
+      const index = createStructureIndex(snapshot.structure);
+      const updates = [...heights].flatMap(([nodeId, measurement]) =>
+        contentHeightUpdate(nodeId, measurement, snapshot, index),
       );
+      if (updates.length) await options.onExecuteSpaceEdit({ kind: "content.update-heights", updates });
+      return undefined;
     });
-    options.setSelection([]);
+    contentHeightTail = result.catch(() => undefined);
+    report(result);
   }
 
-  function movableSelectedNodeIds() {
-    return movableCanvasNodeIds(options.nodes(), options.selectedNodeIds());
+  function contentHeightUpdate(
+    nodeId: string,
+    measurement: FittedContentHeight,
+    snapshot: ReturnType<KonvaEditorPortOptions["snapshot"]>,
+    index: ReturnType<typeof createStructureIndex>,
+  ) {
+    const structureNodeId = index.nodeIdToStructureNodeId.get(nodeId);
+    const layout = structureNodeId
+      ? snapshot.layouts.find((candidate) => candidate.structureNodeId === structureNodeId)
+      : undefined;
+    if (!structureNodeId || layout?.kind !== "content") return [];
+    const matchesSource = [
+      (options.nodeById(nodeId)?.data.knowledgeRevision ?? null) === measurement.contentRevision,
+      layout.sizeAuthority === measurement.sizeAuthority,
+      layout.size.width === measurement.measuredWidth,
+      (layout.appearance?.typographyScale ?? 1) === measurement.typographyScale,
+    ].every(Boolean);
+    return matchesSource ? [{ structureNodeId, ...measurement }] : [];
   }
+}
 
-  function layoutsFor(nodeIds: ReadonlySet<string>) {
-    return options.layouts().filter(({ nodeId }) => nodeIds.has(nodeId));
-  }
+type AlignOrDistributeCommand =
+  | { kind: "structure.align"; edge: Parameters<CanvasEditorPort["alignSelection"]>[0] }
+  | { kind: "structure.distribute"; axis: Parameters<CanvasEditorPort["distributeSelection"]>[0] }
+  | { kind: "structure.reorder"; direction: Parameters<CanvasEditorPort["moveSelectionLayer"]>[0] }
+  | { kind: "structure.auto-layout"; direction: "right" | "down"; gap: number };
+
+function cleanAppearance(appearance: CanvasNodeAppearance) {
+  return Object.fromEntries(Object.entries(appearance).filter(([, value]) => value !== undefined));
 }

@@ -35,7 +35,8 @@ const failure = computed(() =>
         : undefined,
 );
 
-const installation = (kind: AgentKind) => installations.value.find((item) => item.kind === kind);
+const installation = (kind: AgentKind) =>
+  installations.value.find((agentInstallation) => agentInstallation.kind === kind);
 const isEnabled = (kind: AgentKind) => settings.value.desktopAgents.some((agent) => agent.kind === kind);
 
 watch(saveError, (error) => {

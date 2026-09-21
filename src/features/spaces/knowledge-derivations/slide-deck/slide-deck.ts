@@ -45,7 +45,7 @@ export async function createPresentationFromDocument({ store, nodes, inputs }: C
   const spaceId = store.activeSpaceId;
   const title = `${inputs.document.data.title}.pptx`;
   const assetPath = await invoke<string>("plugin:spaces|allocate_presentation_pptx_path");
-  const [output] = await store.addItem(
+  const [output] = await store.addContent(
     { kind: "file", title, fileName: title, assetPath, processingState: "processing" },
     derivedNodePosition(nodes, useCanvasEditorSession().selection.value.nodePlacements),
     { reveal: true },

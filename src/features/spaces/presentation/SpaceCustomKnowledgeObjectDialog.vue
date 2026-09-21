@@ -71,7 +71,7 @@ function setProperty(key: string, value: ObjectPropertyValue | undefined) {
 async function create() {
   if (!valid.value || !selectedType.value) return;
   try {
-    await store.addItem({
+    await store.addContent({
       kind: "object",
       objectTypeId: selectedType.value.id,
       title: title.value.trim(),

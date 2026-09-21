@@ -5,13 +5,19 @@ import { openSystemPreview } from "../../../foundation/system-preview/system-pre
 import type { AppCommand } from "../../../shared/contracts/app-command";
 import { workspaceSidebarKey } from "../../../shared/contracts/workspace-sidebar";
 import { useCanvasExchangeSession } from "../canvas-exchange/canvas-exchange-session";
-import { exportJsonCanvasFile, importJsonCanvasFile } from "../canvas-exchange/transfer";
 import { useCanvasEditorSession } from "../canvas/editor-session";
 import { isSpaceManagedAssetPayload } from "../model/nodes/capabilities";
+import { createStructureIndex, effectiveOperationRoots } from "../model/structure/structure-index";
+import {
+  canRenameStructureNode,
+  dissolveGroupCapability,
+  groupCapability,
+} from "../organization/structure-capabilities";
 import { useSpaceStore } from "../session/space-store";
 import { useWorkspaceTabCommands } from "../workspace/tab-commands";
 import { useSpaceLibraryCommands } from "../workspace/use-space-library-commands";
 import { createCanvasEditingCommands } from "./canvas-editing-commands";
+import { createCanvasExchangeCommands } from "./canvas-exchange-commands";
 import { NUDGE_COMMANDS } from "./nudge-commands";
 import { useCanvasNavigationCommands } from "./use-canvas-navigation-commands";
 
@@ -26,6 +32,17 @@ export function useSpaceCommands() {
   const canvasNavigationCommands = useCanvasNavigationCommands();
   return computed<readonly AppCommand[]>(() => {
     const selectedIds = () => selection.value.nodeIds;
+    const selectedStructureNodeIds = () => {
+      const index = createStructureIndex(store.editSnapshot.structure);
+      const contentStructureNodeIds = selectedIds().flatMap((nodeId) => {
+        const structureNodeId = index.nodeIdToStructureNodeId.get(nodeId);
+        return structureNodeId ? [structureNodeId] : [];
+      });
+      return effectiveOperationRoots(
+        [...selection.value.structureNodeIds, ...contentStructureNodeIds],
+        index,
+      ).map(({ id }) => id);
+    };
     const previewPath = () => {
       const selected = new Set(selectedIds());
       const node = store.nodes.find(
@@ -45,18 +62,42 @@ export function useSpaceCommands() {
     if (store.workspaceMode === "library") return [...workspaceTabCommands.value, ...libraryCommands.value];
     if (!store.activeSpaceId) return [...workspaceTabCommands.value, searchAllCommand];
 
-    const hasNodeSelection = selection.value.nodeIds.length > 0;
+    const hasStructureSelection = selectedStructureNodeIds().length > 0;
     const editingCommands: AppCommand[] = [
+      {
+        id: "spaces.group-selection",
+        title: t("spaces.canvas.groupSelection"),
+        shortcut: "$mod+G",
+        category: "canvas",
+        isEnabled: () => groupCapability(store.editSnapshot, selectedStructureNodeIds()).enabled,
+        run: async () => {
+          await store.executeSpaceEdit({
+            kind: "group.create",
+            groupId: crypto.randomUUID(),
+            rootIds: selectedStructureNodeIds(),
+            title: t("spaces.canvas.untitledGroup"),
+          });
+        },
+      },
+      {
+        id: "spaces.dissolve-group",
+        title: t("spaces.canvas.ungroupSelection"),
+        shortcut: "$mod+Shift+G",
+        category: "canvas",
+        isEnabled: () => dissolveGroupCapability(store.editSnapshot, selectedStructureNodeIds()).enabled,
+        run: async () => {
+          await store.executeSpaceEdit({ kind: "group.dissolve", rootIds: selectedStructureNodeIds() });
+        },
+      },
       {
         id: "spaces.rename-node",
         title: t("spaces.navigation.renameNode"),
         shortcut: "F2",
         category: "canvas",
-        isEnabled: () =>
-          selectedIds().length === 1 && store.nodes.some((node) => node.id === selectedIds()[0]),
+        isEnabled: () => canRenameStructureNode(store.editSnapshot, selectedStructureNodeIds()),
         run: () => {
           sidebar.reveal();
-          store.outlineRenameNodeId = selectedIds()[0]!;
+          store.outlineRenameStructureNodeId = selectedStructureNodeIds()[0]!;
         },
       },
       {
@@ -82,8 +123,8 @@ export function useSpaceCommands() {
         canRedo: () => store.canRedo,
         canUndo: () => store.canUndo,
         editor: () => activeEditor.value,
-        hasNodeSelection: () => selection.value.nodeIds.length > 0,
-        hasSelection: () => selection.value.nodeIds.length > 0 || selection.value.relationIds.length > 0,
+        hasNodeSelection: () => selectedStructureNodeIds().length > 0,
+        hasSelection: () => selectedStructureNodeIds().length > 0 || selection.value.relationIds.length > 0,
         labels: {
           copy: t("common.copy"),
           cut: t("common.cut"),
@@ -98,28 +139,13 @@ export function useSpaceCommands() {
         undo: () => store.undo(),
       }),
     ];
-    const exchangeCommands: AppCommand[] = [
-      {
-        id: "spaces.import-json-canvas",
-        title: t("spaces.transfer.importJsonCanvas"),
-        category: "canvas",
-        run: async () => {
-          if (!activeExchange.value) throw new Error("Canvas exchange is not available");
-          await importJsonCanvasFile(activeExchange.value);
-        },
-      },
-      {
-        id: "spaces.export-json-canvas",
-        title: t("spaces.transfer.exportJsonCanvas"),
-        category: "canvas",
-        run: async () => {
-          if (!activeExchange.value || !store.activeSpace)
-            throw new Error("Canvas exchange is not available");
-          await exportJsonCanvasFile(activeExchange.value, store.activeSpace.title);
-        },
-      },
-    ];
-    const nudgeCommands = hasNodeSelection
+    const exchangeCommands = createCanvasExchangeCommands({
+      exchange: () => activeExchange.value,
+      spaceTitle: () => store.activeSpace?.title,
+      importTitle: t("spaces.transfer.importJsonCanvas"),
+      exportTitle: t("spaces.transfer.exportJsonCanvas"),
+    });
+    const nudgeCommands = hasStructureSelection
       ? NUDGE_COMMANDS.map<AppCommand>((input) => ({
           id: input.id,
           title: t(input.titleKey),

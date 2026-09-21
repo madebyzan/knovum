@@ -37,7 +37,7 @@ const compactRemaining = computed(() => Math.max(0, props.entries.length - displ
       </span>
     </div>
     <div v-if="isCompact && compactRemaining > 0" class="px-1 pt-1 text-micro text-foreground-tertiary">
-      +{{ compactRemaining }} more items
+      +{{ compactRemaining }} more entries
     </div>
   </div>
 </template>

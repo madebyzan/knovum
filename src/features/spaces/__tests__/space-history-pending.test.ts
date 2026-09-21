@@ -40,8 +40,8 @@ describe("space history pending mutations", () => {
 
   it("keeps history intact while mutation admission is closed", async () => {
     const { history } = createSpaceHistoryState();
-    const undo = vi.fn(async () => {});
-    const redo = vi.fn(async () => {});
+    const undo = vi.fn<() => Promise<void>>(async () => {});
+    const redo = vi.fn<() => Promise<void>>(async () => {});
     recordSpaceHistory(history, { undo, redo });
     const reopen = closeSpaceMutationAdmission(history);
 

@@ -12,7 +12,7 @@ export async function importDroppedFiles(payload: FileDrop, store: SpaceStore, o
   const spaceId = store.activeSpaceId;
   if (!spaceId) return;
   const labels = {
-    title: i18n.global.t("spaces.transfer.importingItem"),
+    title: i18n.global.t("spaces.transfer.importingResource"),
     preparing: i18n.global.t("spaces.transfer.importPreparing"),
   };
   const outcomes = await importSpaceBatch({

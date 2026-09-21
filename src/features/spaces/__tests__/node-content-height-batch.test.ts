@@ -1,100 +1,88 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-import type { CanvasDocumentV1 } from "../canvas/contract/canvas-document";
-import { CanvasDocumentModel } from "../canvas/konva/document/canvas-document-model";
-import { createNodeContentHeightBatch } from "../canvas/konva/node-content-height-batch";
+import type { CanvasNodeLayoutV1 } from "../canvas/contract/canvas-document";
+import {
+  createNodeContentHeightBatch,
+  type FittedContentHeight,
+} from "../canvas/konva/node-content-height-batch";
+import { createSpaceNode } from "../canvas/node";
 import { createSpaceTextPayload } from "../editor/tiptap-content";
 
+const node = createSpaceNode(createSpaceTextPayload("Text"), { x: 0, y: 0 }, "text");
+const layout: CanvasNodeLayoutV1 = {
+  nodeId: "text",
+  frame: { x: 0, y: 0, width: 240, height: 220, rotation: 0 },
+  sizeAuthority: "frame",
+  zIndex: 0,
+};
+
 describe("node content height batch", () => {
-  it("fits text height in both directions without creating history", async () => {
-    let historyEntries = 0;
-    const model = new CanvasDocumentModel(textDocument(), {
-      documentChanged() {},
-      historyEntry() {
-        historyEntries += 1;
-      },
-      viewportChanged() {},
-    });
-    const contentHeight = createNodeContentHeightBatch(model, (id) =>
-      id === "text"
-        ? {
-            id: "text",
-            type: "text",
-            data: createSpaceTextPayload("Text"),
-            initialPosition: { x: 0, y: 0 },
-          }
-        : undefined,
+  it("commits the latest valid content measurement", async () => {
+    const commit = vi.fn<(heights: ReadonlyMap<string, FittedContentHeight>) => void>();
+    const batch = createNodeContentHeightBatch(
+      (id) => (id === "text" ? node : undefined),
+      (id) => (id === "text" ? layout : undefined),
+      commit,
     );
 
-    contentHeight.fit("text", measurement(80));
-    await Promise.resolve();
-    expect(model.document.nodes[0]?.frame.height).toBe(80);
-    contentHeight.fit("text", measurement(48));
-    contentHeight.fit("text", measurement(32));
-    await Promise.resolve();
-    expect(model.document.nodes[0]?.frame.height).toBe(40);
-    contentHeight.fit("text", measurement(160));
-    await Promise.resolve();
-    expect(model.document.nodes[0]?.frame.height).toBe(160);
-    contentHeight.fit("text", measurement(720));
-    await Promise.resolve();
-    expect(model.document.nodes[0]?.frame.height).toBe(720);
-    model.applyLocalDocument({
-      ...model.document,
-      nodes: model.document.nodes.map((layout) => ({
-        ...layout,
-        frame: { ...layout.frame, height: 10 },
-        appearance: { typographyScale: 0.25 },
-      })),
+    batch.fit("text", {
+      contentRevision: null,
+      height: 96,
+      sizeAuthority: "frame",
+      typographyScale: 1,
+      width: 240,
     });
-    contentHeight.fit("text", { ...measurement(8), typographyScale: 0.25 });
+    batch.fit("text", {
+      contentRevision: null,
+      height: 120,
+      sizeAuthority: "frame",
+      typographyScale: 1,
+      width: 240,
+    });
     await Promise.resolve();
-    expect(model.document.nodes[0]?.frame.height).toBe(10);
-    expect(historyEntries).toBe(0);
+
+    expect(commit).toHaveBeenCalledOnce();
+    expect(commit.mock.calls[0]?.[0].get("text")?.height).toBe(120);
   });
 
-  it("defers content layout while a direct resize owns the frame", async () => {
-    const model = new CanvasDocumentModel(textDocument(), {
-      documentChanged() {},
-      historyEntry() {},
-      viewportChanged() {},
-    });
-    const contentHeight = createNodeContentHeightBatch(model, (id) =>
-      id === "text"
-        ? {
-            id: "text",
-            type: "text",
-            data: createSpaceTextPayload("Text"),
-            initialPosition: { x: 0, y: 0 },
-          }
-        : undefined,
+  it("defers work while a direct resize owns the frame", async () => {
+    const commit = vi.fn<(heights: ReadonlyMap<string, FittedContentHeight>) => void>();
+    const batch = createNodeContentHeightBatch(
+      () => node,
+      () => layout,
+      commit,
     );
+    batch.setPaused(true);
+    batch.fit("text", {
+      contentRevision: null,
+      height: 96,
+      sizeAuthority: "frame",
+      typographyScale: 1,
+      width: 240,
+    });
+    await Promise.resolve();
+    expect(commit).not.toHaveBeenCalled();
 
-    contentHeight.setPaused(true);
-    contentHeight.fit("text", measurement(96));
+    batch.setPaused(false);
     await Promise.resolve();
-    expect(model.document.nodes[0]?.frame.height).toBe(220);
-    contentHeight.setPaused(false);
+    expect(commit.mock.calls[0]?.[0].get("text")?.height).toBe(96);
+  });
+
+  it("drops measurements captured for a stale width", async () => {
+    const commit = vi.fn<(heights: ReadonlyMap<string, FittedContentHeight>) => void>();
+    const batch = createNodeContentHeightBatch(
+      () => node,
+      () => layout,
+      commit,
+    );
+    batch.fit("text", {
+      contentRevision: null,
+      height: 96,
+      sizeAuthority: "frame",
+      typographyScale: 1,
+      width: 200,
+    });
     await Promise.resolve();
-    expect(model.document.nodes[0]?.frame.height).toBe(96);
+    expect(commit.mock.calls[0]?.[0].size).toBe(0);
   });
 });
-
-function measurement(height: number) {
-  return { height, typographyScale: 1, width: 240 };
-}
-
-function textDocument(): CanvasDocumentV1 {
-  return {
-    version: 1,
-    viewport: { x: 0, y: 0, zoom: 1 },
-    nodes: [
-      {
-        nodeId: "text",
-        frame: { x: 0, y: 0, width: 240, height: 220, rotation: 0 },
-        sizeAuthority: "frame",
-        zIndex: 0,
-      },
-    ],
-  };
-}

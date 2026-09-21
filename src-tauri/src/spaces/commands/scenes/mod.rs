@@ -18,7 +18,7 @@ pub struct SpaceSceneInput {
     viewport_zoom: f64,
     thumbnail_path: Option<String>,
     order_index: i64,
-    focus_node_ids: Value,
+    focus_structure_node_ids: Value,
     relation_kinds: Value,
     relation_statuses: Value,
     query_filter: Value,
@@ -43,7 +43,7 @@ pub async fn create_scene<R: Runtime>(
     validate_scene(&mut tx, &scene).await?;
     sqlx::query(
         "INSERT INTO spaces_scenes(id,space_id,title,viewport_x,viewport_y,viewport_zoom,thumbnail_path,order_index,\
-         focus_node_ids,relation_kinds,relation_statuses,query_filter,created_at,updated_at) \
+         focus_structure_node_ids,relation_kinds,relation_statuses,query_filter,created_at,updated_at) \
          VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$13)",
     )
     .bind(&scene.id)
@@ -54,7 +54,7 @@ pub async fn create_scene<R: Runtime>(
     .bind(scene.viewport_zoom)
     .bind(&scene.thumbnail_path)
     .bind(scene.order_index)
-    .bind(json(&scene.focus_node_ids)?)
+    .bind(json(&scene.focus_structure_node_ids)?)
     .bind(json(&scene.relation_kinds)?)
     .bind(json(&scene.relation_statuses)?)
     .bind(json(&scene.query_filter)?)
@@ -86,7 +86,7 @@ pub async fn update_scene<R: Runtime>(
     .ok_or("Space Saved View no longer exists")?;
     let executed = sqlx::query(
         "UPDATE spaces_scenes SET title=$1,viewport_x=$2,viewport_y=$3,viewport_zoom=$4,thumbnail_path=$5,order_index=$6,\
-         focus_node_ids=$7,relation_kinds=$8,relation_statuses=$9,query_filter=$10,updated_at=$11 \
+         focus_structure_node_ids=$7,relation_kinds=$8,relation_statuses=$9,query_filter=$10,updated_at=$11 \
          WHERE id=$12 AND space_id=$13",
     )
     .bind(&scene.title)
@@ -95,7 +95,7 @@ pub async fn update_scene<R: Runtime>(
     .bind(scene.viewport_zoom)
     .bind(&scene.thumbnail_path)
     .bind(scene.order_index)
-    .bind(json(&scene.focus_node_ids)?)
+    .bind(json(&scene.focus_structure_node_ids)?)
     .bind(json(&scene.relation_kinds)?)
     .bind(json(&scene.relation_statuses)?)
     .bind(json(&scene.query_filter)?)

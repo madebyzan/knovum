@@ -89,7 +89,9 @@ const failed = computed(() => "processingState" in props.data && props.data.proc
   <SpaceCanvasProcessingState
     v-else-if="processing"
     :label="
-      processing === 'importing' ? t('spaces.transfer.importingItem') : t('spaces.transfer.importProcessing')
+      processing === 'importing'
+        ? t('spaces.transfer.importingResource')
+        : t('spaces.transfer.importProcessing')
     "
   />
   <SpaceCanvasProcessingState v-else-if="failed" :label="t('spaces.processing.processingFailed')" failed />

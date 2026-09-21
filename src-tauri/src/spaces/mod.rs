@@ -1,7 +1,7 @@
 mod agent_artifacts;
 pub(crate) mod assets;
 mod canvas_exchange;
-mod canvas_state;
+mod canvas_view_state;
 mod clipboard_content;
 pub(crate) mod commands;
 pub(crate) mod db;
@@ -12,6 +12,7 @@ pub(crate) mod package;
 mod previews;
 pub(crate) mod queries;
 mod recovery;
+pub(crate) mod structure;
 
 pub fn plugin() -> tauri::plugin::TauriPlugin<tauri::Wry> {
     tauri::plugin::Builder::new("spaces")
@@ -54,28 +55,34 @@ pub fn plugin() -> tauri::plugin::TauriPlugin<tauri::Wry> {
             crate::spaces::clipboard_content::read_space_clipboard_content,
             crate::spaces::assets::import::media::import_media_from_url,
             crate::spaces::assets::import::media::cancel_media_import,
-            crate::spaces::canvas_state::load_canvas_state,
-            crate::spaces::canvas_state::save_canvas_state,
-            crate::spaces::canvas_state::commit_canvas_gesture,
-            crate::spaces::canvas_state::delete_canvas_selection,
-            crate::spaces::canvas_state::restore_canvas_selection,
-            crate::spaces::canvas_state::set_imported_canvas_nodes_deleted,
+            crate::spaces::canvas_view_state::load_canvas_view_state,
+            crate::spaces::canvas_view_state::save_canvas_view_state,
+            crate::spaces::structure::support_commands::load_space_edit_snapshot,
+            crate::spaces::structure::support_commands::get_space_edit_receipt_result,
+            crate::spaces::structure::support_commands::import_structure_clipboard,
+            crate::spaces::structure::commands::execute_space_edit,
+            crate::spaces::structure::commands::undo_space_edit,
+            crate::spaces::structure::commands::redo_space_edit,
+            crate::spaces::structure::search::search_structure_global,
+            crate::spaces::structure::support_commands::list_recently_deleted_structure,
+            crate::spaces::structure::support_commands::restore_deleted_structure,
+            crate::spaces::structure::support_commands::permanently_delete_structure,
+            crate::spaces::structure::support_commands::discard_pending_content,
             crate::spaces::canvas_exchange::parse_json_canvas,
             crate::spaces::canvas_exchange::serialize_json_canvas,
             crate::spaces::canvas_exchange::export_json_canvas_file,
             crate::spaces::canvas_exchange::import_json_canvas_nodes,
             crate::spaces::nodes::commands::create_nodes,
             crate::spaces::nodes::commands::update_nodes,
-            crate::spaces::nodes::commands::trash_nodes,
-            crate::spaces::nodes::commands::restore_nodes,
-            crate::spaces::commands::delete_deleted_nodes,
             crate::spaces::commands::delete_space_permanently,
-            crate::spaces::commands::move_space_selection,
+            crate::spaces::commands::move_structure_selection,
             crate::spaces::package::restore_space_package,
             crate::spaces::commands::relations::create_relation,
             crate::spaces::commands::relations::update_relation,
             crate::spaces::commands::relations::revoke_relation,
+            crate::spaces::commands::relations::batch::revoke_relations,
             crate::spaces::commands::relations::restore_relation,
+            crate::spaces::commands::relations::batch::restore_relations,
             crate::spaces::commands::grounded::answer::answer_grounded_question,
             crate::spaces::commands::grounded::thread_lifecycle::update_grounded_thread_title,
             crate::spaces::commands::grounded::thread_lifecycle::delete_grounded_thread,
@@ -95,7 +102,6 @@ pub fn plugin() -> tauri::plugin::TauriPlugin<tauri::Wry> {
             crate::spaces::queries::catalog::list_spaces,
             crate::spaces::queries::catalog::list_credential_node_ids,
             crate::spaces::queries::nodes::list_nodes,
-            crate::spaces::queries::nodes::list_recently_deleted_items,
             crate::spaces::queries::scenes::list_scenes,
             crate::spaces::queries::relations::list_relations,
             crate::spaces::queries::grounded::list_grounded_threads,

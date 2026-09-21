@@ -37,7 +37,7 @@ export async function commitManagedImport(options: CommitManagedImportOptions) {
     await cancelSpaceAssetImport(jobId);
   });
   try {
-    [node] = await context.createPendingItemForSpace(
+    [node] = await context.createPendingContentForSpace(
       spaceId,
       importedSpaceNodePayload(prepared.asset),
       position,
@@ -53,11 +53,11 @@ export async function commitManagedImport(options: CommitManagedImportOptions) {
     await context.savePendingNodeDataForSpace(spaceId, node.id, copiedData);
     node.data = copiedData;
     if (typeof source !== "string") await source.finalize();
-    context.finalizePendingItems(spaceId, [node], reveal);
+    context.finalizePendingContent(spaceId, [node], reveal);
     imported = { node, data: copiedData };
   } catch (error) {
     await cancelSpaceAssetImport(jobId);
-    if (node) await context.discardPendingItem(spaceId, node.id);
+    if (node) await context.discardPendingContent(spaceId, node.id);
     if (copiedPath) await removeSpaceAsset(copiedPath);
     if (cancelRequested) return [];
     tasks.fail(taskId, String(error));

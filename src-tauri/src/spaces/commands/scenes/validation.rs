@@ -15,9 +15,26 @@ pub(super) async fn validate_scene(
     {
         return Err("Saved View title or viewport is invalid".into());
     }
-    let focus_ids = string_array(&scene.focus_node_ids, "Saved View focus nodes", 100_000)?;
-    for node_id in focus_ids {
-        contracts::validate_same_space_node(tx, &scene.space_id, "", node_id).await?;
+    let focus_ids = string_array(
+        &scene.focus_structure_node_ids,
+        "Saved View focus nodes",
+        100_000,
+    )?;
+    for structure_node_id in focus_ids {
+        let exists: bool = sqlx::query_scalar(
+            "SELECT EXISTS(SELECT 1 FROM spaces_structure_nodes \
+             WHERE space_id=$1 AND id=$2 AND deleted_at IS NULL)",
+        )
+        .bind(&scene.space_id)
+        .bind(structure_node_id)
+        .fetch_one(&mut **tx)
+        .await
+        .map_err(db::sql_error)?;
+        if !exists {
+            return Err(format!(
+                "Saved View references a missing structure node: {structure_node_id}"
+            ));
+        }
     }
     for kind in string_array(&scene.relation_kinds, "Saved View relation kinds", 32)? {
         contracts::validate_relation_kind(kind)?;

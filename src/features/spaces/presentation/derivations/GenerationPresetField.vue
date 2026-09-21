@@ -2,7 +2,7 @@
 import { useI18n } from "vue-i18n";
 
 import type { ExecutionTarget, GenerationPreset } from "../../../../foundation/ai/ai-models";
-import PresetSelectField from "./PresetSelectField.vue";
+import CreationLibraryRecordField from "./CreationLibraryRecordField.vue";
 
 interface GenerationPresetFieldProps {
   actionId: string;
@@ -28,16 +28,16 @@ function createPreset(): GenerationPreset | undefined {
 </script>
 
 <template>
-  <PresetSelectField
+  <CreationLibraryRecordField
     :label="t('spaces.creation.preset')"
     :empty-label="t('spaces.creation.noPresets')"
     :placeholder="t('spaces.creation.selectPreset')"
     :save-label="t('spaces.creation.savePreset')"
     :saved-success-message="t('spaces.creation.presetSaved')"
     :save-disabled="!target || !name.trim()"
-    :filter-items="(s) => s.generationPresets.filter((p) => p.actionId === actionId)"
-    :create-item="createPreset"
-    :add-item-to-settings="(s, item) => s.generationPresets.push(item)"
+    :filter-records="(library) => library.generationPresets.filter((preset) => preset.actionId === actionId)"
+    :create-record="createPreset"
+    :add-record-to-library="(library, preset) => library.generationPresets.push(preset)"
     @apply="(preset) => emit('apply', preset)"
   />
 </template>

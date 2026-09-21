@@ -39,6 +39,23 @@ pub(super) fn parse(manifest: &str) -> Result<ManifestAssets, String> {
             }
         }
     }
+    for layout in value
+        .get("layouts")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+    {
+        let Some(reference) = layout
+            .get("appearance")
+            .and_then(|appearance| appearance.get("background"))
+            .and_then(Value::as_str)
+        else {
+            continue;
+        };
+        if let Some(token) = package_token(reference)? {
+            used_tokens.insert(token.to_owned());
+        }
+    }
     Ok(ManifestAssets {
         used_tokens,
         source_revisions,

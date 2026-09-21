@@ -77,8 +77,8 @@ fn node_text(node: &Value) -> String {
     };
     node.get("content")
         .and_then(Value::as_array)
-        .map(|items| {
-            items
+        .map(|children| {
+            children
                 .iter()
                 .map(node_text)
                 .collect::<Vec<_>>()

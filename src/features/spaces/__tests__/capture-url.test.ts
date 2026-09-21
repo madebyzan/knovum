@@ -69,13 +69,13 @@ describe("Space URL capture", () => {
       processedMs: null,
       durationMs: null,
     });
-    expect(harness.addItem).not.toHaveBeenCalled();
+    expect(harness.addContent).not.toHaveBeenCalled();
     expect(mocks.logInfo).toHaveBeenCalledWith("[spaces.url-capture] route=media");
 
     deferred.resolve({ outcome: "imported", payload: importedVideo() });
     await capture;
-    expect(harness.addItem).toHaveBeenCalledOnce();
-    expect(harness.addItem).toHaveBeenCalledWith(importedVideo(), POSITION);
+    expect(harness.addContent).toHaveBeenCalledOnce();
+    expect(harness.addContent).toHaveBeenCalledWith(importedVideo(), POSITION);
     expect(mocks.logInfo).toHaveBeenCalledWith("[spaces.url-capture] media node saved; created=true");
     expect(harness.finish).toHaveBeenCalledWith("import-1");
   });
@@ -119,7 +119,7 @@ describe("Space URL capture", () => {
     await captureSpaceUrl(harness.context, URL, POSITION);
     expect(harness.update).toHaveBeenCalledWith("import-1", { status: "failed" });
     expect(harness.finish).not.toHaveBeenCalled();
-    expect(harness.addItem).not.toHaveBeenCalled();
+    expect(harness.addContent).not.toHaveBeenCalled();
     expect(mocks.toastError).toHaveBeenCalledWith("spaces.mediaImport.importFailed");
   });
 
@@ -164,7 +164,7 @@ describe("Space URL capture", () => {
     harness.setActiveSpace("space-2");
     deferred.resolve({ outcome: "imported", payload: importedVideo() });
     await capture;
-    expect(harness.addItem).not.toHaveBeenCalled();
+    expect(harness.addContent).not.toHaveBeenCalled();
     expect(mocks.removeSpaceAssets).toHaveBeenCalledWith(["/spaces/assets/video.mp4"]);
     expect(harness.finish).toHaveBeenCalledWith("import-1");
   });
@@ -172,7 +172,7 @@ describe("Space URL capture", () => {
   it("removes downloaded assets when the media node cannot be persisted", async () => {
     mocks.acquireMediaSource.mockResolvedValue({ outcome: "imported", payload: importedVideo() });
     const harness = captureHarness();
-    harness.addItem.mockRejectedValue(new Error("revision rejected"));
+    harness.addContent.mockRejectedValue(new Error("revision rejected"));
     await captureSpaceUrl(harness.context, URL, POSITION);
     expect(mocks.removeSpaceAssets).toHaveBeenCalledWith(["/spaces/assets/video.mp4"]);
     expect(harness.update).toHaveBeenCalledWith("import-1", { status: "failed" });

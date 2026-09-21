@@ -47,7 +47,7 @@ export async function exportMarkdownDocument({ store, source, format }: ExportMa
   const spaceId = store.activeSpaceId;
   const title = `${source.data.title}.${format}`;
   const assetPath = await invoke<string>(descriptor.pathCommand);
-  const [output] = await store.addItem(
+  const [output] = await store.addContent(
     { kind: "file", title, fileName: title, assetPath, processingState: "processing" },
     derivedNodePosition([source], useCanvasEditorSession().selection.value.nodePlacements),
     { reveal: true },

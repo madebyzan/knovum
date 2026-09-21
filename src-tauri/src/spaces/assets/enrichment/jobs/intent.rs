@@ -100,10 +100,10 @@ fn document_jobs(data: &Value, source_revision: &str) -> Vec<EnrichmentJobType> 
     }
     let pending = data["documentCoverage"]["occurrences"]
         .as_array()
-        .is_some_and(|items| {
-            items
-                .iter()
-                .any(|item| matches!(item["state"].as_str(), Some("pending" | "failed")))
+        .is_some_and(|occurrences| {
+            occurrences.iter().any(|occurrence| {
+                matches!(occurrence["state"].as_str(), Some("pending" | "failed"))
+            })
         });
     if pending {
         vec![EnrichmentJobType::AnalyzeDocument]

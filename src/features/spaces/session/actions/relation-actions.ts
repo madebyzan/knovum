@@ -4,7 +4,9 @@ import { recordSpaceHistory, type SpaceHistoryState } from "../../history/stack"
 import {
   createRelation as persistRelation,
   removeRelation,
+  removeRelations,
   restoreRelation,
+  restoreRelations,
   updateRelation,
 } from "../../knowledge/relations/relation-repository";
 import { canonicalRelationEndpoints } from "../../model/relations/relation";
@@ -55,10 +57,10 @@ export async function createSpaceRelation(context: RelationContext, input: Creat
 }
 
 export async function changeSpaceRelationKind(context: RelationContext, id: string, kind: SpaceRelationKind) {
-  const current = context.relations.value.find((item) => item.id === id);
+  const current = context.relations.value.find((relation) => relation.id === id);
   if (!current || current.kind === kind) return;
   const duplicate = findDuplicate(
-    context.relations.value.filter((item) => item.id !== id),
+    context.relations.value.filter((relation) => relation.id !== id),
     current.sourceId,
     current.targetId,
     kind,
@@ -75,7 +77,7 @@ export async function updateSpaceRelation(
   id: string,
   patch: Partial<Pick<SpaceRelation, "kind" | "rationale" | "status" | "confidence">>,
 ) {
-  const current = context.relations.value.find((item) => item.id === id);
+  const current = context.relations.value.find((relation) => relation.id === id);
   if (!current) return;
   const next: SpaceRelation = { ...current, ...patch, updatedAt: Date.now() };
   [next.sourceId, next.targetId] = canonicalRelationEndpoints(next.sourceId, next.targetId, next.kind);
@@ -91,40 +93,48 @@ export async function updateSpaceRelation(
 }
 
 export async function removeSpaceRelation(context: RelationContext, id: string) {
-  const relation = context.relations.value.find((item) => item.id === id);
-  if (!relation) return;
-  await removeRelation(id);
-  if (context.activeSpaceId.value !== relation.spaceId) return;
-  removeRelationFromState(context, relation);
+  await removeSpaceRelations(context, [id]);
+}
+
+export async function removeSpaceRelations(context: RelationContext, ids: readonly string[]) {
+  const uniqueIds = [...new Set(ids)];
+  const selected = uniqueIds.flatMap((id) => {
+    const relation = context.relations.value.find((candidate) => candidate.id === id);
+    return relation ? [relation] : [];
+  });
+  if (!selected.length) return;
+  if (selected.length !== uniqueIds.length) throw new Error("Selected Space Relation no longer exists");
+  const activeSpaceId = context.activeSpaceId.value;
+  if (!activeSpaceId || selected.some(({ spaceId }) => spaceId !== activeSpaceId))
+    throw new Error("Selected Space Relations must belong to the active Space");
+  await removeRelations(uniqueIds);
+  removeRelationsFromState(context, uniqueIds);
   recordSpaceHistory(context.history, {
     undo: async () => {
-      await restoreRelation(id);
-      addRelation(context, relation);
+      await restoreRelations(uniqueIds);
+      for (const relation of selected) addRelation(context, relation);
     },
     redo: async () => {
-      await removeRelation(id);
-      removeRelationFromState(context, relation);
+      await removeRelations(uniqueIds);
+      removeRelationsFromState(context, uniqueIds);
     },
   });
 }
 
-export async function removeSpaceRelations(context: RelationContext, ids: readonly string[]) {
-  for (const id of ids) {
-    // oxlint-disable-next-line eslint/no-await-in-loop -- One rewritten relations array, so removals must not race.
-    await removeSpaceRelation(context, id);
-  }
-}
-
 function findDuplicate(
-  items: readonly SpaceRelation[],
+  relations: readonly SpaceRelation[],
   source: string,
   target: string,
   kind: SpaceRelationKind,
 ) {
   const [left, right] = canonicalRelationEndpoints(source, target, kind);
-  return items.find((item) => {
-    if (item.kind !== kind || item.status === "invalidated") return false;
-    const [existingLeft, existingRight] = canonicalRelationEndpoints(item.sourceId, item.targetId, kind);
+  return relations.find((relation) => {
+    if (relation.kind !== kind || relation.status === "invalidated") return false;
+    const [existingLeft, existingRight] = canonicalRelationEndpoints(
+      relation.sourceId,
+      relation.targetId,
+      kind,
+    );
     return existingLeft === left && existingRight === right;
   });
 }
@@ -150,7 +160,7 @@ async function persistState(context: RelationContext, relation: SpaceRelation) {
 function addRelation(context: RelationContext, relation: SpaceRelation) {
   if (
     context.activeSpaceId.value === relation.spaceId &&
-    !context.relations.value.some((item) => item.id === relation.id)
+    !context.relations.value.some((candidate) => candidate.id === relation.id)
   ) {
     context.relations.value = [...context.relations.value, relation];
   }
@@ -158,10 +168,17 @@ function addRelation(context: RelationContext, relation: SpaceRelation) {
 
 function removeRelationFromState(context: RelationContext, relation: SpaceRelation) {
   if (context.activeSpaceId.value !== relation.spaceId) return;
-  context.relations.value = context.relations.value.filter((item) => item.id !== relation.id);
+  context.relations.value = context.relations.value.filter((candidate) => candidate.id !== relation.id);
+}
+
+function removeRelationsFromState(context: RelationContext, ids: readonly string[]) {
+  const removed = new Set(ids);
+  context.relations.value = context.relations.value.filter(({ id }) => !removed.has(id));
 }
 
 function replaceRelation(context: RelationContext, next: SpaceRelation) {
   if (context.activeSpaceId.value !== next.spaceId) return;
-  context.relations.value = context.relations.value.map((item) => (item.id === next.id ? next : item));
+  context.relations.value = context.relations.value.map((relation) =>
+    relation.id === next.id ? next : relation,
+  );
 }

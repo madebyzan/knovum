@@ -59,7 +59,7 @@ export async function createKnowledgeVideoFromDocument({
   if (!store.activeSpaceId) return;
   const spaceId = store.activeSpaceId;
   const assetPath = await invoke<string>("plugin:spaces|allocate_knowledge_video_path");
-  const [output] = await store.addItem(
+  const [output] = await store.addContent(
     {
       kind: "video",
       title: draft.title,

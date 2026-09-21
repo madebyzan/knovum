@@ -115,25 +115,25 @@ const verticalOptions = [
       </UiDropdownMenu>
       <UiSeparator orientation="vertical" class="mx-0.5 h-4" />
       <UiIconButton
-        v-for="item in horizontalOptions"
-        :key="item.value"
-        :label="t(`spaces.canvas.textAlignments.${item.value}`)"
+        v-for="option in horizontalOptions"
+        :key="option.value"
+        :label="t(`spaces.canvas.textAlignments.${option.value}`)"
         size="sm"
-        :active="textAlign === item.value"
-        @click="emit('update', { textAlign: item.value })"
+        :active="textAlign === option.value"
+        @click="emit('update', { textAlign: option.value })"
       >
-        <component :is="item.icon" class="size-(--knovum-icon-size-sm)" :stroke-width="1.7" />
+        <component :is="option.icon" class="size-(--knovum-icon-size-sm)" :stroke-width="1.7" />
       </UiIconButton>
       <UiSeparator orientation="vertical" class="mx-0.5 h-4" />
       <UiIconButton
-        v-for="item in verticalOptions"
-        :key="item.value"
-        :label="t(`spaces.canvas.verticalAlignments.${item.value}`)"
+        v-for="option in verticalOptions"
+        :key="option.value"
+        :label="t(`spaces.canvas.verticalAlignments.${option.value}`)"
         size="sm"
-        :active="verticalAlign === item.value"
-        @click="emit('update', { verticalAlign: item.value })"
+        :active="verticalAlign === option.value"
+        @click="emit('update', { verticalAlign: option.value })"
       >
-        <component :is="item.icon" class="size-(--knovum-icon-size-sm)" :stroke-width="1.7" />
+        <component :is="option.icon" class="size-(--knovum-icon-size-sm)" :stroke-width="1.7" />
       </UiIconButton>
     </div>
   </UiPopover>

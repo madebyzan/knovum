@@ -12,12 +12,6 @@ fn markdown_offsets_follow_crlf_utf16_positions() {
 }
 
 #[test]
-fn section_without_knowledge_revision_has_no_derived_chunks() {
-    let data = json!({"kind":"section","title":"Research"});
-    assert!(derived_chunks(&data).unwrap().is_empty());
-}
-
-#[test]
 fn image_visual_knowledge_generates_derived_chunk() {
     let data = json!({
         "kind":"image",

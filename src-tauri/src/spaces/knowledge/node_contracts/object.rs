@@ -109,9 +109,9 @@ fn validate_field_shape(
         "text" | "date" => value.is_string(),
         "number" => is_javascript_safe_number(value),
         "boolean" => value.is_boolean(),
-        "enum" => value
-            .as_str()
-            .is_some_and(|item| field.options.iter().any(|option| option == item)),
+        "enum" => value.as_str().is_some_and(|selected_option| {
+            field.options.iter().any(|option| option == selected_option)
+        }),
         "node-ref" => {
             let id = value
                 .as_str()
@@ -147,7 +147,7 @@ async fn validate_node_refs(
     let json = serde_json::to_string(&refs).map_err(db::json_error)?;
     let count = sqlx::query_scalar::<_, i64>(
         "SELECT COUNT(*) FROM spaces_nodes WHERE space_id=$1 AND deleted_at IS NULL \
-         AND kind NOT IN ('section','credential','portal') AND id IN (SELECT value FROM json_each($2))",
+         AND kind NOT IN ('credential','portal') AND id IN (SELECT value FROM json_each($2))",
     )
     .bind(space_id)
     .bind(json)

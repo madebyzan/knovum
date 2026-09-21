@@ -4,35 +4,38 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { useSpaceStore } from "../session/space-store";
-import type { SpaceDeletedNode } from "./deleted-node";
-import { permanentlyDeleteItems, restoreDeletedNode } from "./deleted-node-actions";
+import type { SpaceDeletedStructureRoot } from "./deleted-structure";
+import { permanentlyDeleteStructure, restoreDeletedStructure } from "./deleted-structure-actions";
 
 export function useRecentlyDeletedActions() {
   const store = useSpaceStore();
   const { t } = useI18n();
   const busy = shallowRef(false);
 
-  async function restore(item: SpaceDeletedNode) {
+  async function restore(deletedRoot: SpaceDeletedStructureRoot, wholeBatch = false) {
     if (busy.value) return;
     busy.value = true;
     try {
-      await restoreDeletedNode(item.spaceId, item.id);
-      if (store.activeSpaceId === item.spaceId) await store.refreshActiveSpace();
+      await restoreDeletedStructure(deletedRoot, wholeBatch);
+      if (store.activeSpaceId === deletedRoot.spaceId) {
+        await store.refreshActiveSpace();
+        store.recordCommittedSpaceEdit();
+      }
     } catch (error) {
-      toast.error(t("spaces.navigation.restoreItemFailed"), { description: String(error) });
+      toast.error(t("spaces.navigation.restoreStructureFailed"), { description: String(error) });
     } finally {
       busy.value = false;
     }
   }
 
-  async function remove(items: readonly SpaceDeletedNode[], scope?: string) {
-    if (busy.value || !items.length) return;
-    const selected = [...items];
+  async function remove(deletedRoots: readonly SpaceDeletedStructureRoot[], scope?: string) {
+    if (busy.value || !deletedRoots.length) return;
+    const selected = [...deletedRoots];
     busy.value = true;
     try {
       const confirmed = await ask(
         scope === undefined
-          ? t("spaces.navigation.permanentlyDeleteItemDescription", { title: selected[0]!.title })
+          ? t("spaces.navigation.permanentlyDeleteStructureDescription", { title: selected[0]!.title })
           : t("spaces.navigation.deleteAllDescription", { count: selected.length, scope }),
         {
           title: t(
@@ -44,10 +47,10 @@ export function useRecentlyDeletedActions() {
         },
       );
       if (!confirmed) return;
-      await permanentlyDeleteItems(selected);
-      toast.success(t("spaces.navigation.itemsPermanentlyDeleted", { count: selected.length }));
+      await permanentlyDeleteStructure(selected, scope !== undefined);
+      toast.success(t("spaces.navigation.structureNodesPermanentlyDeleted", { count: selected.length }));
     } catch (error) {
-      toast.error(t("spaces.navigation.deleteItemFailed"), { description: String(error) });
+      toast.error(t("spaces.navigation.permanentlyDeleteStructureFailed"), { description: String(error) });
     } finally {
       busy.value = false;
     }

@@ -28,9 +28,9 @@ export function useNodeContentActivation(options: NodeContentActivationOptions) 
   }
 
   function activateNode(id: string) {
-    const item = options.scene.value.nodes.find(({ node }) => node.id === id);
-    if (!item) return;
-    if (item.interaction.activationMode !== "primary") {
+    const sceneNode = options.scene.value.nodes.find(({ node }) => node.id === id);
+    if (!sceneNode) return;
+    if (sceneNode.interaction.activationMode !== "primary") {
       options.selection.setNodeIds([id]);
       interactiveNodeId.value = id;
       return;

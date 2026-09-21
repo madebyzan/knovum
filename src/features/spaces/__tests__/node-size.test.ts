@@ -72,16 +72,6 @@ describe("spaces node size policy", () => {
     expect(spaceNodeDimensions(rendered())).toEqual({ width: 256, height: 192 });
   });
 
-  it("uses the rendered compact geometry for collapsed sections", () => {
-    expect(
-      spaceNodeDimensions({
-        kind: "section",
-        title: "Collapsed section",
-        collapsed: true,
-      }),
-    ).toEqual({ width: 288, height: 36 });
-  });
-
   it("keeps compact utility nodes fixed", () => {
     const portal = {
       kind: "portal",
@@ -121,12 +111,11 @@ describe("spaces node size policy", () => {
     }
   });
 
-  it("keeps document and section geometry independently resizable", () => {
+  it("keeps document geometry independently resizable", () => {
     for (const data of [
       { kind: "note", title: "Note" },
       { kind: "markdown", title: "Document" },
       { kind: "subtitle", title: "Transcript" },
-      { kind: "section", title: "Section" },
     ] as SpaceNodePayload[]) {
       expect(spaceNodeResizePolicy(data)).toMatchObject({ resizeMode: "free" });
     }

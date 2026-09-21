@@ -120,11 +120,11 @@ function saveChanges() {
         </div>
         <div class="overflow-hidden rounded-control border border-border bg-raised">
           <AiModelRow
-            v-for="(item, index) in draft.models"
-            :key="item.id"
-            :model-value="item"
-            :removable="!props.protectedModelTargets.includes(`${connection.id}:${item.id}`)"
-            :protected="props.protectedModelTargets.includes(`${connection.id}:${item.id}`)"
+            v-for="(model, index) in draft.models"
+            :key="model.id"
+            :model-value="model"
+            :removable="!props.protectedModelTargets.includes(`${connection.id}:${model.id}`)"
+            :protected="props.protectedModelTargets.includes(`${connection.id}:${model.id}`)"
             :allowed-capabilities="selectedProvider.capabilities"
             @update:model-value="replaceModel(index, $event)"
             @remove="draft.models.splice(index, 1)"

@@ -4,10 +4,18 @@ import { take } from "es-toolkit";
 import { computed, ref, watch, type Ref } from "vue";
 
 import { useCanvasEditorSession } from "../canvas/editor-session";
+import { revealContentNode, revealStructureNode } from "../canvas/structure-navigation";
 import { useContextDock } from "../canvas/use-context-dock";
 import type { KnowledgeSearchMatch } from "../knowledge/model/knowledge-search-match";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { useSpaceStore } from "../session/space-store";
+
+export interface StructureTitleMatch {
+  kind: "structure";
+  structureNodeId: string;
+  nodeKind: "group" | "section";
+  title: string;
+}
 
 export function useFind(open: Ref<boolean>, close: () => void) {
   const store = useSpaceStore();
@@ -16,12 +24,7 @@ export function useFind(open: Ref<boolean>, close: () => void) {
   const query = ref("");
   const debouncedQuery = refDebounced(query, 300);
 
-  const defaultNodes = computed(() =>
-    take(
-      store.nodes.filter((node) => node.data.kind !== "section"),
-      10,
-    ),
-  );
+  const defaultNodes = computed(() => take(store.nodes, 10));
 
   watch(open, (value) => {
     if (value) query.value = "";
@@ -39,16 +42,38 @@ export function useFind(open: Ref<boolean>, close: () => void) {
   );
 
   const matches = computed(() => (trimmed.value ? (searchQuery.data.value?.matches ?? []) : []));
+  const structureMatches = computed<StructureTitleMatch[]>(() => {
+    if (!trimmed.value) return [];
+    const term = trimmed.value.toLocaleLowerCase();
+    return store.editSnapshot.structure
+      .flatMap((structureNode) =>
+        structureNode.kind !== "content" && structureNode.title.toLocaleLowerCase().includes(term)
+          ? [
+              {
+                kind: "structure" as const,
+                structureNodeId: structureNode.id,
+                nodeKind: structureNode.kind,
+                title: structureNode.title,
+              },
+            ]
+          : [],
+      )
+      .slice(0, 20);
+  });
   const semantic = computed(() => searchQuery.data.value?.semantic ?? "empty");
   const searching = computed(() => searchQuery.isFetching.value);
   const searchFailed = computed(() => searchQuery.isError.value);
 
-  function select(value: unknown) {
+  async function select(value: unknown) {
     if (!value) return;
     close();
+    if (isStructureTitleMatch(value)) {
+      await revealStructureNode(store, editorSession, value.structureNodeId);
+      return;
+    }
     if (query.value.trim()) {
       const match = value as KnowledgeSearchMatch;
-      editorSession.reveal([match.nodeId], "focus");
+      await revealContentNode(store, editorSession, match.nodeId);
       dock.openSource({
         nodeId: match.nodeId,
         nodeTitle: match.nodeTitle,
@@ -56,12 +81,13 @@ export function useFind(open: Ref<boolean>, close: () => void) {
         locator: match.locator,
         text: match.text,
       });
-    } else editorSession.reveal([(value as SpaceCanvasNode).id], "focus");
+    } else await revealContentNode(store, editorSession, (value as SpaceCanvasNode).id);
   }
 
   return {
     query,
     matches,
+    structureMatches,
     semantic,
     searching,
     searchFailed,
@@ -69,4 +95,8 @@ export function useFind(open: Ref<boolean>, close: () => void) {
     select,
     retry: () => searchQuery.refetch(),
   };
+}
+
+function isStructureTitleMatch(value: unknown): value is StructureTitleMatch {
+  return typeof value === "object" && value !== null && "kind" in value && value.kind === "structure";
 }

@@ -96,9 +96,14 @@ function previewRelation(
   canonicalLayouts: ReadonlyMap<string, CanvasNodeLayoutV1>,
   previewLayouts: ReadonlyMap<string, CanvasNodeLayoutV1>,
 ) {
-  const source = previewLayouts.get(relation.sourceNodeId) ?? canonicalLayouts.get(relation.sourceNodeId);
-  const target = previewLayouts.get(relation.targetNodeId) ?? canonicalLayouts.get(relation.targetNodeId);
-  if (!source || !target) return undefined;
-  const geometry = relationGeometry(source.frame, target.frame, relation.parallelOffset);
+  const source =
+    previewLayouts.get(relation.sourceNodeId)?.frame ??
+    canonicalLayouts.get(relation.sourceNodeId)?.frame ??
+    relation.sourceFrame;
+  const target =
+    previewLayouts.get(relation.targetNodeId)?.frame ??
+    canonicalLayouts.get(relation.targetNodeId)?.frame ??
+    relation.targetFrame;
+  const geometry = relationGeometry(source, target, relation.parallelOffset);
   return { ...relation, ...geometry };
 }

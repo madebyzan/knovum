@@ -4,7 +4,7 @@ use super::scalars::is_javascript_safe_number;
 
 const MAX_JSON_DEPTH: usize = 64;
 const MAX_JSON_VALUES: usize = 100_000;
-const MAX_JSON_CONTAINER_ITEMS: usize = 10_000;
+const MAX_JSON_CONTAINER_ENTRIES: usize = 10_000;
 const MAX_JSON_KEY_UTF16: usize = 128;
 
 pub(super) fn validate_json_object(value: &Value, label: &str) -> Result<(), String> {
@@ -39,30 +39,30 @@ fn validate_json_value(
                 ))
             }
         }
-        Value::Array(items) => {
-            if items.len() > MAX_JSON_CONTAINER_ITEMS {
+        Value::Array(entries) => {
+            if entries.len() > MAX_JSON_CONTAINER_ENTRIES {
                 return Err(format!(
-                    "{label} array exceeds {MAX_JSON_CONTAINER_ITEMS} items"
+                    "{label} array exceeds {MAX_JSON_CONTAINER_ENTRIES} entries"
                 ));
             }
-            for item in items {
-                validate_json_value(item, depth + 1, values, label)?;
+            for value in entries {
+                validate_json_value(value, depth + 1, values, label)?;
             }
             Ok(())
         }
         Value::Object(object) => {
-            if object.len() > MAX_JSON_CONTAINER_ITEMS {
+            if object.len() > MAX_JSON_CONTAINER_ENTRIES {
                 return Err(format!(
-                    "{label} object exceeds {MAX_JSON_CONTAINER_ITEMS} fields"
+                    "{label} object exceeds {MAX_JSON_CONTAINER_ENTRIES} fields"
                 ));
             }
-            for (key, item) in object {
+            for (key, value) in object {
                 if key.encode_utf16().count() > MAX_JSON_KEY_UTF16 {
                     return Err(format!(
                         "{label} JSON key exceeds {MAX_JSON_KEY_UTF16} characters"
                     ));
                 }
-                validate_json_value(item, depth + 1, values, label)?;
+                validate_json_value(value, depth + 1, values, label)?;
             }
             Ok(())
         }

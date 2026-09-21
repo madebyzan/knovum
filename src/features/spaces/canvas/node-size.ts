@@ -35,7 +35,6 @@ const POLICIES: Record<SpaceNodeKind, SpaceNodeSizePolicy> = {
   file: policy([256, 192], [224, 152], "proportional"),
   code: policy([304, 224], [264, 168]),
   credential: policy([220, 56], [220, 56], "fixed"),
-  section: policy([432, 288], [304, 192]),
   object: policy([256, 176], [224, 144]),
   portal: policy([256, 88], [256, 88], "fixed"),
 };
@@ -52,9 +51,6 @@ export function spaceNodeSizePolicy(data: SpaceNodePayload): SpaceNodeSizePolicy
 export function spaceNodeDimensions(data: SpaceNodePayload) {
   const size = spaceNodeSizePolicy(data);
   if (size.resizeMode === "fixed") return { width: size.width, height: size.height };
-  if (data.kind === "section" && data.collapsed) {
-    return { width: 288, height: 36 };
-  }
   return { width: size.width, height: size.height };
 }
 

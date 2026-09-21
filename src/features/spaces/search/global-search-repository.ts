@@ -1,23 +1,50 @@
 import { invoke } from "@tauri-apps/api/core";
+import { z } from "zod";
 
-import type { KnowledgeSearchMatch } from "../knowledge/model/knowledge-search-match";
+import { knowledgeSearchMatchSchema } from "../knowledge/model/knowledge-search-match";
 import { markSpaceSubstring, searchTerms } from "./search-snippet";
 
-export interface GlobalKnowledgeSearchMatch extends KnowledgeSearchMatch {
-  spaceId: string;
-  spaceTitle: string;
-}
+const globalKnowledgeSearchMatchSchema = knowledgeSearchMatchSchema.extend({
+  spaceId: z.string().min(1),
+  spaceTitle: z.string(),
+});
 
-export async function searchKnowledgeAcrossSpaces(value: string): Promise<GlobalKnowledgeSearchMatch[]> {
+const globalStructureSearchMatchSchema = z
+  .object({
+    structureNodeId: z.string().min(1),
+    nodeKind: z.enum(["group", "section"]),
+    title: z.string(),
+    spaceId: z.string().min(1),
+    spaceTitle: z.string(),
+  })
+  .strict();
+
+export type GlobalKnowledgeSearchMatch = z.infer<typeof globalKnowledgeSearchMatchSchema> & {
+  kind: "content";
+};
+export type GlobalStructureSearchMatch = z.infer<typeof globalStructureSearchMatchSchema> & {
+  kind: "structure";
+};
+
+export type GlobalSearchMatch = GlobalKnowledgeSearchMatch | GlobalStructureSearchMatch;
+
+export async function searchAcrossSpaces(value: string): Promise<GlobalSearchMatch[]> {
   if (!value.trim()) return [];
-  const rows: GlobalKnowledgeSearchMatch[] = await invoke<GlobalKnowledgeSearchMatch[]>(
-    "plugin:spaces|search_knowledge_global",
-    {
-      request: { query: value },
-    },
-  );
+  const request = { request: { query: value } };
+  const [knowledgeSource, structureSource] = await Promise.all([
+    invoke<unknown>("plugin:spaces|search_knowledge_global", request),
+    invoke<unknown>("plugin:spaces|search_structure_global", request),
+  ]);
+  const knowledge = z.array(globalKnowledgeSearchMatchSchema).parse(knowledgeSource);
+  const structure = z.array(globalStructureSearchMatchSchema).parse(structureSource);
   const terms = searchTerms(value);
-  return rows.map((row) =>
-    row.snippet === row.text ? Object.assign({}, row, { snippet: markSpaceSubstring(row.text, terms) }) : row,
-  );
+  return [
+    ...structure.map((row) => Object.assign({}, row, { kind: "structure" as const })),
+    ...knowledge.map((row) =>
+      Object.assign({}, row, {
+        kind: "content" as const,
+        snippet: row.snippet === row.text ? markSpaceSubstring(row.text, terms) : row.snippet,
+      }),
+    ),
+  ];
 }

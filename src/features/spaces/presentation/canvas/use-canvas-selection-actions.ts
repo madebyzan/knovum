@@ -1,4 +1,4 @@
-import { computed, nextTick } from "vue";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
@@ -15,6 +15,8 @@ import { useContextDock } from "../../canvas/use-context-dock";
 import { isSpaceSemanticNode } from "../../knowledge/model/semantic-node";
 import { useSpaceStore } from "../../session/space-store";
 import { canvasSelectionProductState } from "./selection-product-state";
+import { useCanvasReparentActions } from "./use-canvas-reparent-actions";
+import { useCanvasStructureSelectionActions } from "./use-canvas-structure-selection-actions";
 
 function runCanvasAction(operation: () => Promise<unknown>) {
   void Promise.resolve()
@@ -27,12 +29,34 @@ export function useCanvasSelectionActions() {
   const dock = useContextDock();
   const editorSession = useCanvasEditorSession();
   const { selection, selectedNodes } = useCanvasSelectionProjection(() => store.nodes);
-  const state = computed(() => canvasSelectionProductState(store.nodes, selection.value.nodeIds));
+  const state = computed(() =>
+    canvasSelectionProductState(
+      store.nodes,
+      selection.value.nodeIds,
+      selection.value.structureNodeIds,
+      store.editSnapshot,
+    ),
+  );
   const { t } = useI18n();
   const visible = computed(
-    () => selection.value.nodeIds.length > 0 || selection.value.relationIds.length > 0,
+    () =>
+      selection.value.nodeIds.length > 0 ||
+      selection.value.structureNodeIds.length > 0 ||
+      selection.value.relationIds.length > 0,
   );
   const selectedAppearance = computed(() => selection.value.singleNodeAppearance);
+  const reparentActions = useCanvasReparentActions(
+    store,
+    state,
+    t("spaces.canvas.spaceRoot"),
+    runCanvasAction,
+  );
+  const structureActions = useCanvasStructureSelectionActions(
+    store,
+    state,
+    { group: t("spaces.canvas.untitledGroup"), section: t("spaces.canvas.untitledSection") },
+    runCanvasAction,
+  );
 
   function setAppearance(patch: Partial<CanvasNodeAppearance>) {
     const nodeId = selection.value.nodeIds.length === 1 ? selection.value.nodeIds[0] : undefined;
@@ -58,45 +82,12 @@ export function useCanvasSelectionActions() {
   }
 
   function focus() {
-    const section = state.value.section;
-    if (section) store.focusSection(section.id);
-    else if (state.value.content[0]) store.focusNeighborhood(state.value.content[0].id);
+    store.canvasFocusIds = state.value.content.map(({ id }) => id);
   }
 
   function duplicate() {
     const editor = editorSession.activeEditor.value;
     if (editor) runCanvasAction(() => editor.duplicateSelection());
-  }
-
-  function createSection() {
-    const editor = editorSession.activeEditor.value;
-    const bounds = editor?.getSelectionBounds();
-    if (!editor || !bounds) return;
-    runCanvasAction(async () => {
-      const section = await store.createSection(
-        state.value.content.map(({ id }) => id),
-        bounds,
-        t("spaces.canvas.untitledSection"),
-      );
-      if (!section) return;
-      editor.selectNodes([section.id]);
-      await nextTick();
-      await editor.fitSection(section.id);
-    });
-  }
-
-  function ungroup() {
-    runCanvasAction(() =>
-      store.assignSections(
-        state.value.content.filter(({ data }) => data.sectionId).map(({ id }) => ({ id })),
-      ),
-    );
-  }
-
-  function fitSection() {
-    const section = state.value.section;
-    const editor = editorSession.activeEditor.value;
-    if (section && editor) runCanvasAction(() => editor.fitSection(section.id));
   }
 
   function align(mode: CanvasAlignMode) {
@@ -119,21 +110,17 @@ export function useCanvasSelectionActions() {
   }
 
   function toggleLock() {
-    runCanvasAction(() => store.setLocked(selection.value.nodeIds, !state.value.allLocked));
-  }
-
-  function removeSection() {
-    const section = state.value.section;
-    if (section) runCanvasAction(() => store.removeSection(section.id));
+    runCanvasAction(() =>
+      store.executeSpaceEdit({
+        kind: "structure.set-lock",
+        rootIds: state.value.structureNodeIds,
+        locked: !state.value.allLocked,
+      }),
+    );
   }
 
   function moveToSpace(spaceId: string) {
-    runCanvasAction(() =>
-      store.moveNodes(
-        selectedNodes.value.filter((node) => node.data.kind !== "section").map((node) => node.id),
-        spaceId,
-      ),
-    );
+    runCanvasAction(() => store.moveStructureNodes(state.value.structureNodeIds, spaceId));
   }
 
   function remove() {
@@ -146,23 +133,27 @@ export function useCanvasSelectionActions() {
     autoLayout,
     ask,
     connect,
-    createSection,
+    createGroup: structureActions.createGroup,
+    createSection: structureActions.createSection,
+    dissolveGroup: structureActions.dissolveGroup,
+    dissolveSection: structureActions.dissolveSection,
     distribute,
     duplicate,
     focus,
-    fitSection,
+    fitSection: structureActions.fitSection,
     inspect,
     moveToSpace,
     moveLayer,
     open,
+    parentTargets: reparentActions.targets,
+    reparent: reparentActions.reparent,
     remove,
-    removeSection,
     selectedNodes,
     selectedAppearance,
     setAppearance,
     state,
     toggleLock,
-    ungroup,
+    toggleSectionCollapsed: structureActions.toggleSectionCollapsed,
     visible,
   };
 }

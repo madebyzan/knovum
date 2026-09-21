@@ -70,13 +70,11 @@ watch(
 );
 
 const constrainResize: NonNullable<Konva.TransformerConfig["boundBoxFunc"]> = (current, next) => {
-  return constrainSelectionTransform(
-    current,
-    next,
-    transformer.value?.getNode()?.getActiveAnchor() ?? null,
-    props.policy,
-    props.stage.getAbsoluteScale(),
-  );
+  return constrainSelectionTransform(current, next, {
+    activeAnchor: transformer.value?.getNode()?.getActiveAnchor() ?? null,
+    policy: props.policy,
+    stageScale: props.stage.getAbsoluteScale(),
+  });
 };
 
 const snapAnchor: NonNullable<Konva.TransformerConfig["anchorDragBoundFunc"]> = (_, next) => {
@@ -104,7 +102,7 @@ const styleResizeAnchor: NonNullable<Konva.TransformerConfig["anchorStyleFunc"]>
   anchor.hitStrokeWidth(metrics.value.hitStrokeWidth);
   anchor.visible(isResizeAnchorVisible(anchor));
 };
-function isResizeAnchorVisible(anchor: Konva.Rect) {
+function isResizeAnchorVisible(anchor: Konva.Node) {
   const enabled = enabledResizeAnchors.value.some((name) => anchor.hasName(name));
   return enabled && (activeResizeAnchor === undefined || anchor.hasName(activeResizeAnchor));
 }

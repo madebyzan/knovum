@@ -62,7 +62,9 @@ The Spaces Rust boundary is divided by responsibility, not CRUD mechanics:
 - `commands/`: Space-level state-changing application operations that do not have a more specific
   capability owner;
 - `queries/`: read-only database projections and response mapping;
-- `nodes/`: node mutation, lifecycle and node-owned derived-state updates; current canvas geometry belongs only to `canvas_state`;
+- `nodes/`: content mutation, lifecycle and node-owned derived-state updates; it does not own structure or layout;
+- `structure/`: the authoritative Structure/Layout/Edit-State aggregate, validation, mutation planning, history, clipboard, deletion and cross-Space structural integrity;
+- `canvas_view_state.rs`: disposable per-Space camera persistence; camera state is intentionally outside Structure/Layout history;
 - `assets/`: Space asset authorization, import, enrichment, references and lifecycle;
 - `assets/transcription/`: the Space-owned transcription use case, including asset authorization and knowledge persistence;
 - `previews/`: Space preview-cache paths and mapping of neutral engine results into `PreparedAsset`;
@@ -145,9 +147,10 @@ and pure presentation transforms live in `model/`; this does not imply an indepe
 UI shape (`components`, `views`) and technical lifecycle (`state`, `runtime`) remain subordinate to
 their business owner; they do not become peer product domains.
 
-Within Spaces, workspace persistence belongs to `workspace/`, node persistence to `nodes/`, relation
+Within Spaces, workspace persistence belongs to `workspace/`, content persistence to `nodes/`,
+Structure/Layout persistence to `structure/`, camera persistence to `canvas/persistence/`, relation
 persistence to `knowledge/relations/`, scene persistence to `scenes/`, credential persistence to
-`credentials/`, search transport to `search/`, and canvas snapshots to `canvas/persistence/`.
+`credentials/`, and search transport to `search/`.
 `session/` may assemble their contracts but does not become their implementation owner.
 
 The Spaces UI composition root keeps cross-capability visual composition under `presentation/`.
@@ -191,6 +194,12 @@ Rename-only wrappers are rejected. `readClipboardText()` around Tauri `readText(
 - long Rust work: feature-owned Rust implementation streamed to the shared Task Center through Tauri Channels.
 
 Do not mirror the same state across several stores without an explicit synchronization design.
+
+For Spaces, SQLite Structure/Layout is the only authority for item identity, parentage, order,
+local transforms, Section frames, lock state, appearance and relation-style overrides. Content rows
+own knowledge payloads and source state. The Konva document is an ephemeral projection adapter and
+the camera is separate disposable view state. Renderer mutations submit one typed intent with an
+expected edit revision and mutation identity; Rust validates and commits the complete invariant.
 
 ## Validation boundary
 

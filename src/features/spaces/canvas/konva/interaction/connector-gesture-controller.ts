@@ -42,7 +42,7 @@ export class ConnectorGestureController {
   ) {}
 
   begin(nodeId: string, side: CanvasConnectorSide) {
-    const layout = this.layouts().find((item) => item.nodeId === nodeId);
+    const layout = this.layouts().find((candidate) => candidate.nodeId === nodeId);
     if (!layout) return;
     const from = connectorAnchor(layout.frame, side);
     this.current = { sourceNodeId: nodeId, sourceSide: side, from, to: from };

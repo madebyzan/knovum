@@ -1,5 +1,6 @@
 import { computed, ref, shallowRef } from "vue";
 
+import type { SpaceEditSnapshot } from "../canvas/contract/space-edit-snapshot";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceRelation } from "../model/relations/relation";
 import type { Space, SpaceLibraryScope } from "../model/space";
@@ -11,6 +12,13 @@ export function createSpaceContentState() {
   const draftSpace = ref<Space>();
   const activeSpaceId = ref<string>();
   const nodes = shallowRef<SpaceCanvasNode[]>([]);
+  const editSnapshot = shallowRef<SpaceEditSnapshot>({
+    editRevision: 0,
+    structure: [],
+    layouts: [],
+    relationStyles: [],
+  });
+  const groupScopePath = shallowRef<string[]>([]);
   const urlCaptures = shallowRef<SpaceUrlCaptureProjection[]>([]);
   const scenes = ref<SpaceScene[]>([]);
   const relations = ref<SpaceRelation[]>([]);
@@ -32,6 +40,8 @@ export function createSpaceContentState() {
     draftSpace,
     activeSpaceId,
     nodes,
+    editSnapshot,
+    groupScopePath,
     urlCaptures,
     scenes,
     relations,

@@ -1,38 +1,32 @@
-import {
-  MAX_CANVAS_Z_INDEX,
-  type CanvasDocumentV1,
-  type CanvasNodeFrame,
-  type CanvasNodeLayoutV1,
-} from "../canvas/contract/canvas-document";
 import type { SpaceRelation } from "../model/relations/relation";
+import { SECTION_MINIMUM_SIZE } from "../model/structure/section-metrics";
+import type { StructureLayout } from "../model/structure/structure-contract";
 import { canvasFillForJsonColor, jsonColorForCanvasFill } from "./json-canvas-colors";
 import type { JsonCanvasDocumentV1, JsonCanvasNodeV1 } from "./json-canvas-contract";
 import type {
-  JsonCanvasImportNodeV1,
+  JsonCanvasImportContentV1,
   JsonCanvasImportPlanV1,
+  JsonCanvasImportSectionV1,
   JsonCanvasNodeContentV1,
 } from "./json-canvas-import-contract";
 
 export interface JsonCanvasExportNodeV1 {
-  layout: CanvasNodeLayoutV1;
-  content: JsonCanvasNodeContentV1;
-}
-
-interface MergeImportedJsonCanvasOptions {
-  plan: JsonCanvasImportPlanV1;
-  importedNodes: readonly { sourceId: string; nodeId: string }[];
-  backgroundPaths?: ReadonlyMap<string, string>;
+  id: string;
+  frame: { x: number; y: number; width: number; height: number };
+  appearance?: Extract<StructureLayout, { kind: "content" | "section" }>["appearance"];
+  fileSubpath?: string;
+  content: JsonCanvasNodeContentV1 | { type: "group"; label?: string };
 }
 
 export function exportJsonCanvasDocument(
   nodes: readonly JsonCanvasExportNodeV1[],
   relations: readonly SpaceRelation[],
 ): JsonCanvasDocumentV1 {
-  const nodeIds = new Set(nodes.map(({ layout }) => layout.nodeId));
+  const nodeIds = new Set(nodes.filter(({ content }) => content.type !== "group").map(({ id }) => id));
   return {
-    nodes: nodes.toSorted((left, right) => left.layout.zIndex - right.layout.zIndex).map(exportNode),
+    nodes: nodes.map(exportNode),
     edges: relations.flatMap((relation) =>
-      relation.status !== "invalidated" && nodeIds.has(relation.sourceId) && nodeIds.has(relation.targetId)
+      relation.status === "active" && nodeIds.has(relation.sourceId) && nodeIds.has(relation.targetId)
         ? [
             {
               id: relation.id,
@@ -47,94 +41,99 @@ export function exportJsonCanvasDocument(
   };
 }
 
-function exportNode({ layout, content }: JsonCanvasExportNodeV1): JsonCanvasNodeV1 {
-  const node = { id: layout.nodeId, ...standardFrame(layout.frame), ...content } as JsonCanvasNodeV1;
-  if (layout.appearance?.fill) node.color = jsonColorForCanvasFill(layout.appearance.fill);
-  if (layout.appearance?.customFill) node.color = layout.appearance.customFill;
-  if (node.type === "group") {
-    if (layout.appearance?.background) node.background = layout.appearance.background;
-    if (layout.appearance?.backgroundStyle) node.backgroundStyle = layout.appearance.backgroundStyle;
-  }
-  if (node.type === "file" && layout.fileSubpath) node.subpath = layout.fileSubpath;
+function exportNode(source: JsonCanvasExportNodeV1): JsonCanvasNodeV1 {
+  const node = { id: source.id, ...standardFrame(source.frame), ...source.content } as JsonCanvasNodeV1;
+  applyExportAppearance(node, source);
+  applyExportFileSubpath(node, source.fileSubpath);
   return node;
 }
 
-function standardFrame(frame: CanvasNodeFrame) {
-  const geometry = {
-    x: Math.round(frame.x),
-    y: Math.round(frame.y),
-    width: Math.round(frame.width),
-    height: Math.round(frame.height),
-  };
-  if (!Object.values(geometry).every(Number.isSafeInteger) || geometry.width <= 0 || geometry.height <= 0) {
-    throw new Error("Canvas frame cannot be represented by JSON Canvas 1.0 integer geometry");
-  }
-  return geometry;
+function applyExportAppearance(node: JsonCanvasNodeV1, source: JsonCanvasExportNodeV1) {
+  const appearance = source.appearance;
+  if (appearance?.fill) node.color = jsonColorForCanvasFill(appearance.fill);
+  if (appearance?.customFill) node.color = appearance.customFill;
+  if (node.type !== "group") return;
+  if (appearance?.background) node.background = appearance.background;
+  if (appearance?.backgroundStyle) node.backgroundStyle = appearance.backgroundStyle;
 }
 
-export function mergeImportedJsonCanvasDocument(
-  document: CanvasDocumentV1,
-  options: MergeImportedJsonCanvasOptions,
-): CanvasDocumentV1 {
-  const ids = new Map(options.importedNodes.map(({ sourceId, nodeId }) => [sourceId, nodeId]));
-  const zOffset = document.nodes.reduce((maximum, node) => Math.max(maximum, node.zIndex + 1), 0);
-  const nodes = options.plan.nodes.map((node) => {
-    const zIndex = node.zIndex + zOffset;
-    const background = options.backgroundPaths?.get(node.sourceId);
-    if (zIndex > MAX_CANVAS_Z_INDEX) throw new Error("Imported canvas exceeds the supported layer range");
-    return {
-      nodeId: importedNodeId(ids, node.sourceId),
-      frame: { ...node.frame },
-      sizeAuthority: "frame" as const,
-      ...(node.appearance
-        ? {
-            appearance: {
-              ...node.appearance,
-              ...(background ? { background } : {}),
-            },
-          }
-        : {}),
-      ...(node.fileSubpath ? { fileSubpath: node.fileSubpath } : {}),
-      zIndex,
-    };
-  });
-  return {
-    ...document,
-    nodes: [...document.nodes, ...nodes],
-  };
+function applyExportFileSubpath(node: JsonCanvasNodeV1, subpath: string | undefined) {
+  if (node.type === "file" && subpath) node.subpath = subpath;
+}
+
+function standardFrame(frame: JsonCanvasExportNodeV1["frame"]) {
+  const geometry = Object.fromEntries(
+    Object.entries(frame).map(([key, value]) => [key, Math.round(value)]),
+  ) as JsonCanvasExportNodeV1["frame"];
+  if (!Object.values(geometry).every(Number.isSafeInteger) || geometry.width <= 0 || geometry.height <= 0)
+    throw new Error("Canvas frame cannot be represented by JSON Canvas 1.0 integer geometry");
+  return geometry;
 }
 
 export function importJsonCanvasDocument(document: JsonCanvasDocumentV1): JsonCanvasImportPlanV1 {
   const nodes = document.nodes ?? [];
+  const groups = nodes.filter(isGroup);
+  for (const group of groups) {
+    if (group.width < SECTION_MINIMUM_SIZE.width || group.height < SECTION_MINIMUM_SIZE.height)
+      throw new Error(`JSON Canvas group is too small to become a Section: ${group.id}`);
+  }
+  const contents = nodes.filter(
+    (node): node is Exclude<JsonCanvasNodeV1, { type: "group" }> => !isGroup(node),
+  );
+  const contentIds = new Set(contents.map(({ id }) => id));
+  for (const edge of document.edges ?? []) {
+    if (!contentIds.has(edge.fromNode) || !contentIds.has(edge.toNode))
+      throw new Error("JSON Canvas edges cannot target visual groups when importing as Sections");
+  }
   return {
-    nodes: nodes.map((node, zIndex) => importNode(node, zIndex, nodes)),
+    sections: nodes.flatMap((node, order) => (isGroup(node) ? [importSection(node, order)] : [])),
+    contents: nodes.flatMap((node, order) => (isGroup(node) ? [] : [importContent(node, order, groups)])),
     edges: document.edges ?? [],
   };
 }
 
-function importNode(node: JsonCanvasNodeV1, zIndex: number, nodes: readonly JsonCanvasNodeV1[]) {
-  const imported: JsonCanvasImportNodeV1 = {
-    sourceId: node.id,
-    frame: { x: node.x, y: node.y, width: node.width, height: node.height, rotation: 0 },
-    zIndex,
-    content: nodeContent(node),
-  };
+function importSection(
+  node: Extract<JsonCanvasNodeV1, { type: "group" }>,
+  order: number,
+): JsonCanvasImportSectionV1 {
   const appearance = nodeAppearance(node);
-  const parentSourceId = containingGroupId(node, nodes);
-  if (appearance) imported.appearance = appearance;
-  if (node.type === "file" && node.subpath) imported.fileSubpath = node.subpath;
-  if (parentSourceId) imported.parentSourceId = parentSourceId;
-  return imported;
+  return {
+    sourceId: node.id,
+    frame: frameOf(node),
+    order,
+    ...(node.label ? { title: node.label } : {}),
+    ...(appearance ? { appearance } : {}),
+  };
 }
 
-function containingGroupId(node: JsonCanvasNodeV1, nodes: readonly JsonCanvasNodeV1[]) {
-  if (node.type === "group") return undefined;
-  return nodes
-    .filter(
-      (candidate): candidate is Extract<JsonCanvasNodeV1, { type: "group" }> =>
-        candidate.type === "group" && contains(candidate, node),
-    )
-    .toSorted(compareContainingGroups)[0]?.id;
+function importContent(
+  node: Exclude<JsonCanvasNodeV1, { type: "group" }>,
+  order: number,
+  groups: readonly Extract<JsonCanvasNodeV1, { type: "group" }>[],
+): JsonCanvasImportContentV1 {
+  const appearance = nodeAppearance(node);
+  const containingGroups = groups.filter((group) => contains(group, node));
+  if (containingGroups.length > 1) {
+    throw new Error(`JSON Canvas content has ambiguous visual group membership: ${node.id}`);
+  }
+  const parentSectionSourceId = containingGroups[0]?.id;
+  return {
+    sourceId: node.id,
+    frame: frameOf(node),
+    order,
+    content: nodeContent(node),
+    ...(appearance ? { appearance } : {}),
+    ...(node.type === "file" && node.subpath ? { fileSubpath: node.subpath } : {}),
+    ...(parentSectionSourceId ? { parentSectionSourceId } : {}),
+  };
+}
+
+function frameOf(node: JsonCanvasNodeV1) {
+  return { x: node.x, y: node.y, width: node.width, height: node.height };
+}
+
+function isGroup(node: JsonCanvasNodeV1): node is Extract<JsonCanvasNodeV1, { type: "group" }> {
+  return node.type === "group";
 }
 
 function contains(parent: JsonCanvasNodeV1, child: JsonCanvasNodeV1) {
@@ -146,22 +145,10 @@ function contains(parent: JsonCanvasNodeV1, child: JsonCanvasNodeV1) {
   );
 }
 
-function importedNodeId(nodeIds: ReadonlyMap<string, string>, sourceId: string) {
-  const nodeId = nodeIds.get(sourceId);
-  if (!nodeId) throw new Error(`Imported node ${sourceId} is unavailable`);
-  return nodeId;
-}
-
-function compareContainingGroups(left: JsonCanvasNodeV1, right: JsonCanvasNodeV1) {
-  const areaDifference = left.width * left.height - right.width * right.height;
-  return areaDifference || left.id.localeCompare(right.id);
-}
-
-function nodeContent(node: JsonCanvasNodeV1): JsonCanvasNodeContentV1 {
+function nodeContent(node: Exclude<JsonCanvasNodeV1, { type: "group" }>): JsonCanvasNodeContentV1 {
   if (node.type === "text") return { type: "text", text: node.text };
   if (node.type === "file") return { type: "file", file: node.file };
-  if (node.type === "link") return { type: "link", url: node.url };
-  return { type: "group", ...(node.label ? { label: node.label } : {}) };
+  return { type: "link", url: node.url };
 }
 
 function nodeAppearance(node: JsonCanvasNodeV1) {

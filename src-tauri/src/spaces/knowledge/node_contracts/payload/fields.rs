@@ -84,8 +84,12 @@ pub(super) fn specific_fields_for_kind(kind: &str) -> Result<&'static [&'static 
         "code" => Ok(CODE_ASSET_FIELDS),
         "credential" => Ok(&["credentialKind", "credentialConfigured"]),
         "object" => Ok(&["objectTypeId", "summary", "status", "properties"]),
-        "portal" => Ok(&["targetSpaceId", "targetSceneId", "targetNodeId"]),
-        "section" => Ok(&["collapsed"]),
+        "portal" => Ok(&[
+            "targetSpaceId",
+            "targetSceneId",
+            "targetNodeId",
+            "targetStructureNodeId",
+        ]),
         _ => Err("Unsupported Space node kind".into()),
     }
 }

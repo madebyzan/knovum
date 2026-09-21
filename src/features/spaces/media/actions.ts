@@ -49,7 +49,7 @@ export function createSpaceMediaActions(context: Context) {
       labels,
       async (node, taskId) => {
         const tasks = useTaskStore();
-        if (!isSpaceMediaPayload(node.data)) throw new Error("Media item type changed during analysis");
+        if (!isSpaceMediaPayload(node.data)) throw new Error("Media node type changed during analysis");
         const data = node.data;
         const revision = requireMediaSource(data);
         const transcript = await runSpaceMediaInference(() => {
@@ -77,7 +77,7 @@ export function createSpaceMediaActions(context: Context) {
   }
   async function generateMediaInsights(id: string, labels: SpaceMediaAnalysisLabels) {
     return runKnowledgeTask(id, labels, async (node, taskId) => {
-      if (!isSpaceMediaPayload(node.data)) throw new Error("Media item type changed during analysis");
+      if (!isSpaceMediaPayload(node.data)) throw new Error("Media node type changed during analysis");
       const data = node.data;
       const revision = requireMediaSource(data);
       const knowledge = data.mediaKnowledge;
@@ -97,7 +97,7 @@ export function createSpaceMediaActions(context: Context) {
   ) {
     if (context.analysisIds.value.includes(id)) return;
     const node = context.nodes.value.find((candidate) => candidate.id === id);
-    if (!node) throw new Error("Media item no longer exists");
+    if (!node) throw new Error("Media node no longer exists");
     context.analysisIds.value = [...context.analysisIds.value, id];
     clearSpaceMediaAnalysisPreview(context.analysisPreviews, id);
     const tasks = useTaskStore();

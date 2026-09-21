@@ -1,7 +1,7 @@
 use serde::Deserialize;
 use tauri::{AppHandle, Runtime};
 
-use crate::spaces::db;
+use crate::spaces::{db, structure};
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -18,20 +18,22 @@ pub async fn create_space<R: Runtime>(app: AppHandle<R>, space: SpaceInput) -> R
     }
     let now = crate::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
+    let mut tx = db::begin_write(pool).await?;
     sqlx::query(
         "INSERT INTO spaces(id, kind, title, archived_at, last_opened_at, created_at, updated_at) \
          VALUES (?, ?, ?, NULL, ?, ?, ?)",
     )
-    .bind(space.id)
+    .bind(&space.id)
     .bind(space.kind)
     .bind(space.title)
     .bind(now)
     .bind(now)
     .bind(now)
-    .execute(pool)
+    .execute(&mut *tx)
     .await
     .map_err(db::sql_error)?;
-    Ok(())
+    structure::initialize_empty_in_transaction(&mut tx, &space.id).await?;
+    tx.commit().await.map_err(db::sql_error)
 }
 
 #[tauri::command]

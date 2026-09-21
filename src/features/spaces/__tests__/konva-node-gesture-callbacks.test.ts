@@ -26,6 +26,7 @@ describe("Konva node gesture callbacks", () => {
           initialPosition: { x: 0, y: 0 },
         },
       ],
+      lockedNodeIds: () => new Set(),
       previewFrames,
       selectedNodeIds: () => new Set(["note"]),
       stage: () => ({ find: () => [node], findOne: () => node }) as unknown as Konva.Stage,

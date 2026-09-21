@@ -38,7 +38,7 @@
   "spaceExported": "空间包已导出",
   "spaceImported": "空间已成功导入",
   "localPrivateCopy": "由知生知管理的本地副本",
-  "importingItem": "正在导入资源",
+  "importingResource": "正在导入资源",
   "importPreparing": "正在复制并校验资源…",
   "refreshWebsite": "刷新网页内容",
   "urlCaptureResolving": "正在识别链接内容…",

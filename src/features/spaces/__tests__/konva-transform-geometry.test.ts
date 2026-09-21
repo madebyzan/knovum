@@ -18,7 +18,11 @@ const scale = { x: 1, y: 1 };
 describe("Konva transform geometry", () => {
   it("changes only width from a text side handle", () => {
     expect(
-      constrainSelectionTransform(current, { ...current, width: 320 }, "middle-right", policy, scale),
+      constrainSelectionTransform(
+        current,
+        { ...current, width: 320 },
+        { activeAnchor: "middle-right", policy, stageScale: scale },
+      ),
     ).toEqual({ ...current, width: 320 });
   });
 
@@ -27,9 +31,7 @@ describe("Konva transform geometry", () => {
       constrainSelectionTransform(
         current,
         { ...current, width: 480, height: 128 },
-        "bottom-right",
-        policy,
-        scale,
+        { activeAnchor: "bottom-right", policy, stageScale: scale },
       ),
     ).toEqual({ ...current, width: 480, height: 128 });
   });
@@ -39,9 +41,7 @@ describe("Konva transform geometry", () => {
       constrainSelectionTransform(
         current,
         { ...current, width: 60, height: 16 },
-        "bottom-right",
-        policy,
-        scale,
+        { activeAnchor: "bottom-right", policy, stageScale: scale },
       ),
     ).toEqual({ ...current, width: 60, height: 16 });
   });
@@ -50,16 +50,12 @@ describe("Konva transform geometry", () => {
     const first = constrainSelectionTransform(
       current,
       { ...current, width: 360, height: 129 },
-      "bottom-right",
-      policy,
-      scale,
+      { activeAnchor: "bottom-right", policy, stageScale: scale },
     );
     const second = constrainSelectionTransform(
       current,
       { ...current, width: 361, height: 95 },
-      "bottom-right",
-      policy,
-      scale,
+      { activeAnchor: "bottom-right", policy, stageScale: scale },
     );
     expect(first.width / first.height).toBeCloseTo(240 / 64);
     expect(second.width / second.height).toBeCloseTo(240 / 64);
@@ -71,9 +67,7 @@ describe("Konva transform geometry", () => {
     const result = constrainSelectionTransform(
       current,
       { ...current, height: 128 },
-      "bottom-right",
-      policy,
-      scale,
+      { activeAnchor: "bottom-right", policy, stageScale: scale },
     );
     expect(result.width).toBeGreaterThan(current.width);
     expect(result.width / result.height).toBeCloseTo(240 / 64);
@@ -93,9 +87,7 @@ describe("Konva transform geometry", () => {
     const result = constrainSelectionTransform(
       video,
       { ...video, height: 604 },
-      "bottom-right",
-      videoPolicy,
-      scale,
+      { activeAnchor: "bottom-right", policy: videoPolicy, stageScale: scale },
     );
 
     expect(result.width).toBeGreaterThan(video.width);

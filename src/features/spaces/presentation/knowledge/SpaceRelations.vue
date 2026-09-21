@@ -47,10 +47,10 @@ function toggleExpand(id: string) {
 }
 
 function editRelation(id: string) {
-  const item = [...incoming.value, ...outgoing.value].find((candidate) => candidate.relation.id === id);
-  if (!item) return;
+  const neighbor = [...incoming.value, ...outgoing.value].find((candidate) => candidate.relation.id === id);
+  if (!neighbor) return;
   void showSpaceRelationMenu(
-    item.relation.kind,
+    neighbor.relation.kind,
     async (kind) => {
       await store.updateRelationKind(id, kind);
     },
@@ -72,7 +72,7 @@ function editRelation(id: string) {
     <template v-else>
       <SpaceRelationGroup
         v-if="incoming.length"
-        :items="incoming"
+        :relations="incoming"
         :icon="ArrowDownLeft"
         label-key="spaces.knowledge.incomingRelations"
         direction-key="spaces.canvas.actions.incoming"
@@ -85,7 +85,7 @@ function editRelation(id: string) {
       <SpaceRelationGroup
         v-if="outgoing.length"
         :class="incoming.length && 'mt-4'"
-        :items="outgoing"
+        :relations="outgoing"
         :icon="ArrowUpRight"
         label-key="spaces.knowledge.outgoingRelations"
         direction-key="spaces.canvas.actions.outgoing"

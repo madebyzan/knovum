@@ -1,9 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  importJsonCanvasDocument,
-  mergeImportedJsonCanvasDocument,
-} from "../canvas-exchange/json-canvas-mapping";
+import { importJsonCanvasDocument } from "../canvas-exchange/json-canvas-mapping";
+import { mergeImportedJsonCanvasStructure } from "../canvas-exchange/json-canvas-structure-import";
 
 describe("JSON Canvas group backgrounds", () => {
   it.each(["cover", "ratio", "repeat"] as const)(
@@ -23,18 +21,20 @@ describe("JSON Canvas group backgrounds", () => {
           },
         ],
       });
-      const document = mergeImportedJsonCanvasDocument(
-        { version: 1, viewport: { x: 0, y: 0, zoom: 1 }, nodes: [] },
+      const snapshot = mergeImportedJsonCanvasStructure(
+        { editRevision: 0, structure: [], layouts: [], relationStyles: [] },
+        plan,
         {
-          plan,
-          importedNodes: [{ sourceId: "group", nodeId: "section" }],
+          contentIds: new Map(),
+          sectionIds: new Map([["group", "section"]]),
           backgroundPaths: new Map([["group", "/managed/background.png"]]),
+          defaultSectionTitle: "Section",
         },
       );
 
-      expect(document.nodes[0]?.appearance).toEqual({
-        background: "/managed/background.png",
-        backgroundStyle,
+      expect(snapshot.layouts[0]).toMatchObject({
+        kind: "section",
+        appearance: { background: "/managed/background.png", backgroundStyle },
       });
     },
   );

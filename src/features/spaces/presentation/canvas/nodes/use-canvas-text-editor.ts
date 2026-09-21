@@ -28,12 +28,6 @@ export function useCanvasTextEditor(options: CanvasTextEditorOptions) {
   let detachCommit: (() => void) | undefined;
   let savePromise: Promise<void> | undefined;
 
-  watch(
-    () => options.data.value.locked,
-    (locked) => {
-      if (locked) void saveQuietly();
-    },
-  );
   watch(options.interactive, (interactive) => (interactive ? void beginEditing() : void saveQuietly()));
   onBeforeUnmount(() => {
     updateCanvasTextSelectionProjection(options.id, false);
@@ -43,7 +37,7 @@ export function useCanvasTextEditor(options: CanvasTextEditorOptions) {
   });
 
   async function beginEditing() {
-    if (editing.value || !options.interactive.value || options.data.value.locked) return;
+    if (editing.value || !options.interactive.value) return;
     editing.value = true;
     editor.value = new Editor({
       content: options.data.value.tiptapContent,

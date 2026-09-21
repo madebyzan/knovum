@@ -96,7 +96,7 @@ impl ImageGenerationCapability for MiniMaxImageAdapter {
                 .or_else(|| {
                     generation_response
                         .data
-                        .and_then(|mut items| items.pop())
+                        .and_then(|mut images| images.pop())
                         .and_then(|item| item.url)
                 })
                 .ok_or_else(|| {

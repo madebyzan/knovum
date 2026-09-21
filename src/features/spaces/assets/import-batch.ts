@@ -37,19 +37,19 @@ export async function importSpaceBatch<Key>(input: {
   const { context, labels, origin, requests, spaceId } = input;
   await context.ensureImportTarget(spaceId);
   const prepared = await Promise.all(
-    requests.map((request) => importConcurrency(() => prepareBatchItem(request, labels))),
+    requests.map((request) => importConcurrency(() => prepareBatchSource(request, labels))),
   );
   const positions = batchPositions(prepared, origin);
   return Promise.all(
-    prepared.map((item, index) =>
-      item.status === "failed"
-        ? item
+    prepared.map((preparedSource, index) =>
+      preparedSource.status === "failed"
+        ? preparedSource
         : importConcurrency(() =>
-            commitBatchItem({
+            commitBatchSource({
               context,
-              operation: item.operation,
-              position: batchItemPosition(item, index, positions),
-              request: item.request,
+              operation: preparedSource.operation,
+              position: batchSourcePosition(preparedSource, index, positions),
+              request: preparedSource.request,
               spaceId,
             }),
           ),
@@ -57,32 +57,34 @@ export async function importSpaceBatch<Key>(input: {
   );
 }
 
-function batchPositions<Key>(items: readonly PreparedBatchItem<Key>[], origin: { x: number; y: number }) {
-  const automatic = items.flatMap((item, index) =>
-    item.status === "prepared" && item.request.position === undefined ? [{ index, item }] : [],
+function batchPositions<Key>(sources: readonly PreparedBatchSource<Key>[], origin: { x: number; y: number }) {
+  const automatic = sources.flatMap((source, index) =>
+    source.status === "prepared" && source.request.position === undefined ? [{ index, source }] : [],
   );
   const positions = layoutImportGrid(
-    automatic.map(({ item }) => spaceNodeDimensions(importedSpaceNodePayload(item.operation.prepared.asset))),
+    automatic.map(({ source }) =>
+      spaceNodeDimensions(importedSpaceNodePayload(source.operation.prepared.asset)),
+    ),
     origin,
   );
   return new Map(automatic.map(({ index }, positionIndex) => [index, positions[positionIndex]!]));
 }
 
-function batchItemPosition<Key>(
-  item: PreparedBatchSuccess<Key>,
+function batchSourcePosition<Key>(
+  source: PreparedBatchSuccess<Key>,
   index: number,
   positions: ReadonlyMap<number, { x: number; y: number }>,
 ) {
-  if (item.request.position) return item.request.position;
+  if (source.request.position) return source.request.position;
   const position = positions.get(index);
   if (!position) throw new Error("Prepared import has no automatic canvas position");
   return position;
 }
 
-async function prepareBatchItem<Key>(
+async function prepareBatchSource<Key>(
   request: SpaceImportBatchRequest<Key>,
   labels: SpaceImportSessionLabels,
-): Promise<PreparedBatchItem<Key>> {
+): Promise<PreparedBatchSource<Key>> {
   try {
     return {
       status: "prepared",
@@ -94,7 +96,7 @@ async function prepareBatchItem<Key>(
   }
 }
 
-async function commitBatchItem<Key>(input: {
+async function commitBatchSource<Key>(input: {
   context: SpaceImportContext;
   spaceId: string;
   request: SpaceImportBatchRequest<Key>;
@@ -125,6 +127,6 @@ interface PreparedBatchSuccess<Key> {
   operation: PreparedSpaceImportOperation;
 }
 
-type PreparedBatchItem<Key> =
+type PreparedBatchSource<Key> =
   | PreparedBatchSuccess<Key>
   | Extract<SpaceImportBatchOutcome<Key>, { status: "failed" }>;

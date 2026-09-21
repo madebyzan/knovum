@@ -2,6 +2,8 @@ import { computed, watch } from "vue";
 import type { ComputedRef, Ref } from "vue";
 
 import { useCanvasSelectionProjection } from "../../canvas/editor-session";
+import { createStructureIndex, effectiveOperationRoots } from "../../model/structure/structure-index";
+import { contentNodeIdsWithin, sectionAncestorOf } from "../../model/structure/structure-queries";
 import type { useSpaceStore } from "../../session/space-store";
 import type { GroundedMessage } from "../model/grounded-message";
 import type { GroundedScope } from "../model/grounded-scope";
@@ -24,19 +26,34 @@ interface KnowledgeAssistantModelInput {
 
 export function useKnowledgeAssistantModel(input: KnowledgeAssistantModelInput) {
   const contentNodes = computed(() => input.store.nodes.filter(isSpaceSemanticNode));
-  const { selectedNodes } = useCanvasSelectionProjection(() => input.store.nodes);
-  const selectedContentIds = computed(() =>
-    selectedNodes.value.filter(isSpaceSemanticNode).map((node) => node.id),
-  );
-  const sectionId = computed(
-    () =>
-      selectedNodes.value.find((node) => node.data.kind === "section")?.id ??
-      selectedNodes.value[0]?.data.sectionId,
-  );
+  const { selection } = useCanvasSelectionProjection(() => input.store.nodes);
+  const structureIndex = computed(() => createStructureIndex(input.store.editSnapshot.structure));
+  const selectedStructureNodeIds = computed(() => {
+    const contentStructureNodeIds = selection.value.nodeIds.flatMap((nodeId) => {
+      const structureNodeId = structureIndex.value.nodeIdToStructureNodeId.get(nodeId);
+      return structureNodeId ? [structureNodeId] : [];
+    });
+    return effectiveOperationRoots(
+      [...selection.value.structureNodeIds, ...contentStructureNodeIds],
+      structureIndex.value,
+    ).map(({ id }) => id);
+  });
+  const selectedContentIds = computed(() => {
+    const eligible = new Set(contentNodes.value.map(({ id }) => id));
+    return contentNodeIdsWithin(selectedStructureNodeIds.value, structureIndex.value).filter((id) =>
+      eligible.has(id),
+    );
+  });
+  const sectionId = computed(() => {
+    if (selectedStructureNodeIds.value.length !== 1) return undefined;
+    const structureNodeId = selectedStructureNodeIds.value[0]!;
+    const structureNode = structureIndex.value.structureById.get(structureNodeId);
+    return structureNode?.kind === "section"
+      ? structureNode.id
+      : sectionAncestorOf(structureNodeId, structureIndex.value)?.id;
+  });
   const sectionIds = computed(() =>
-    sectionId.value
-      ? contentNodes.value.filter((node) => node.data.sectionId === sectionId.value).map((node) => node.id)
-      : [],
+    sectionId.value ? contentNodeIdsWithin([sectionId.value], structureIndex.value) : [],
   );
   const activeThread = computed(() =>
     input.threads.value.find((thread) => thread.id === input.threadId.value),
@@ -68,7 +85,7 @@ export function useKnowledgeAssistantModel(input: KnowledgeAssistantModelInput) 
   }
   function selectThread(value: string) {
     if (value === "new") return resetThread();
-    const thread = input.threads.value.find((item) => item.id === value);
+    const thread = input.threads.value.find((candidate) => candidate.id === value);
     if (!thread) return;
     input.generation.value += 1;
     input.threadId.value = thread.id;

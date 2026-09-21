@@ -47,20 +47,21 @@ describe("JSON Canvas resource preparation", () => {
     const preparation = await prepareJsonCanvasNodes({
       sourceDirectory: "/source",
       baseRevision: 0,
-      document: { version: 1, viewport: { x: 0, y: 0, zoom: 1 }, nodes: [] },
       plan: {
-        nodes: [
+        sections: [
           {
             sourceId: "group",
-            frame: { x: 0, y: 0, width: 400, height: 300, rotation: 0 },
-            zIndex: 0,
+            frame: { x: 0, y: 0, width: 400, height: 300 },
+            order: 0,
             appearance: { background: "assets/bg.png", backgroundStyle: "ratio" },
-            content: { type: "group", label: "Group" },
           },
+        ],
+        contents: [
           {
             sourceId: "file",
-            frame: { x: 20, y: 20, width: 200, height: 120, rotation: 0 },
-            zIndex: 1,
+            parentSectionSourceId: "group",
+            frame: { x: 20, y: 20, width: 200, height: 120 },
+            order: 1,
             content: { type: "file", file: "assets/doc.pdf" },
           },
         ],
@@ -73,7 +74,7 @@ describe("JSON Canvas resource preparation", () => {
       "/source/assets/doc.pdf",
     ]);
     expect(preparation.backgroundPaths.get("group")).toBe("/managed/bg.png");
-    expect(preparation.nodes[1]?.node.data).toMatchObject({ assetPath: "/managed/doc.pdf" });
+    expect(preparation.nodes[0]?.node.data).toMatchObject({ assetPath: "/managed/doc.pdf" });
     expect(preparation.assetPaths).toEqual(["/managed/bg.png", "/managed/doc.pdf"]);
   });
 });

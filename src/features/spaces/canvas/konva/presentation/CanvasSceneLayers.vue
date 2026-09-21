@@ -61,7 +61,6 @@ const {
   selectedFrames,
   visibleContentNodes,
   visibleRelations,
-  visibleSections,
 } = projection;
 
 function beginSelectionTransform() {
@@ -98,23 +97,10 @@ onMounted(() => void nextTick(syncInteractionCanvas));
   />
   <KonvaLayer :config="{ id: 'canvas-node-layer' }">
     <CanvasNodeShape
-      v-for="item in visibleSections"
-      :key="item.node.id"
       :interactive="interactive"
-      :item="item"
-      :palette="palette"
-      :zoom="zoom"
-      @activate="emit('activate', $event)"
-      @drag-end="emit('dragEnd', $event)"
-      @drag-move="(nodeId, event) => emit('dragMove', nodeId, event)"
-      @drag-start="emit('dragStart', $event)"
-      @pointer-down="relayPointerDown"
-    />
-    <CanvasNodeShape
-      :interactive="interactive"
-      v-for="item in visibleContentNodes"
-      :key="item.node.id"
-      :item="item"
+      v-for="sceneNode in visibleContentNodes"
+      :key="sceneNode.node.id"
+      :scene-node="sceneNode"
       :palette="palette"
       :zoom="zoom"
       @activate="emit('activate', $event)"
@@ -151,7 +137,7 @@ onMounted(() => void nextTick(syncInteractionCanvas));
     />
     <CanvasConnectionTargetHighlight
       v-if="connectorDraft?.target && connectorTargetNode"
-      :item="connectorTargetNode"
+      :scene-node="connectorTargetNode"
       :palette="palette"
       :target="connectorDraft.target"
       :zoom="zoom"

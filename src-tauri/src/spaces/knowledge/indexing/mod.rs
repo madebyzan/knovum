@@ -17,7 +17,7 @@ pub struct KnowledgeChunkSeed {
     pub metadata: Value,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct KnowledgeChunkInput {
     pub kind: String,

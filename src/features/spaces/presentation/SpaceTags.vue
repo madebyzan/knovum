@@ -1,14 +1,17 @@
 <script setup lang="ts">
 import { Tag, X } from "@lucide/vue";
-import { compact, countBy, take, uniq } from "es-toolkit";
+import { countBy, take } from "es-toolkit";
 import { search } from "fast-fuzzy";
 import { storeToRefs } from "pinia";
-import { computed, ref } from "vue";
+import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiBadge from "../../../shared/ui/UiBadge.vue";
 import UiInput from "../../../shared/ui/UiInput.vue";
 import { useCanvasEditorSession, useCanvasSelectionProjection } from "../canvas/editor-session";
+import { createTagChanges } from "../model/nodes/tag-changes";
+import { createStructureIndex } from "../model/structure/structure-index";
+import { sectionAncestorOf } from "../model/structure/structure-queries";
 import { useSpaceStore } from "../session/space-store";
 import { popupSpaceContextMenu, spaceMenuItem } from "../workspace/space-menu";
 
@@ -18,15 +21,15 @@ const { nodes } = storeToRefs(store);
 const editorSession = useCanvasEditorSession();
 const { selectedNodes } = useCanvasSelectionProjection(nodes);
 const { t } = useI18n();
-const draft = ref("");
-const selectedItems = computed(() => selectedNodes.value.filter((node) => node.data.kind !== "section"));
-const selectedIds = computed(() => selectedItems.value.map((node) => node.id));
+const draft = shallowRef("");
+const selectedContentNodes = computed(() => selectedNodes.value);
+const selectedIds = computed(() => selectedContentNodes.value.map((node) => node.id));
 const selectionTagCounts = computed(
   () =>
     new Map(
       Object.entries(
         countBy(
-          selectedItems.value.flatMap((node) => node.data.tags ?? []),
+          selectedContentNodes.value.flatMap((node) => node.data.tags ?? []),
           (tag) => tag,
         ),
       ),
@@ -35,7 +38,7 @@ const selectionTagCounts = computed(
 const tagCounts = computed(() =>
   Object.entries(
     countBy(
-      nodes.value.filter((node) => node.data.kind !== "section").flatMap((node) => node.data.tags ?? []),
+      nodes.value.flatMap((node) => node.data.tags ?? []),
       (tag) => tag,
     ),
   ).toSorted(([left], [right]) => left.localeCompare(right)),
@@ -53,19 +56,35 @@ async function applyTag(tag = draft.value) {
   const spaceId = store.activeSpaceId;
   const initialDraft = draft.value;
   if (!value || ids.length === 0 || !spaceId) return;
-  await store.addTag(ids, value);
+  await updateTags((tags) => [...new Set([...tags, value])]);
   if (store.activeSpaceId === spaceId && draft.value === initialDraft) draft.value = "";
+}
+
+async function removeTag(tag: string) {
+  await updateTags((tags) => tags.filter((candidate) => candidate !== tag));
+}
+
+async function updateTags(update: (tags: readonly string[]) => string[]) {
+  const changes = createTagChanges(selectedContentNodes.value, update);
+  if (changes.length) await store.updateManyData(changes);
 }
 async function revealTag(tag: string) {
   const spaceId = store.activeSpaceId;
   if (!spaceId) return;
-  const matches = nodes.value.filter((node) => node.data.kind !== "section" && node.data.tags?.includes(tag));
-  const sectionIds = uniq(compact(matches.map((node) => node.data.sectionId)));
+  const matches = nodes.value.filter((node) => node.data.tags?.includes(tag));
+  const index = createStructureIndex(store.editSnapshot.structure);
+  const sectionIds = new Set(
+    matches.flatMap((node) => {
+      const structureNodeId = index.nodeIdToStructureNodeId.get(node.id);
+      const section = structureNodeId ? sectionAncestorOf(structureNodeId, index) : undefined;
+      return section ? [section.id] : [];
+    }),
+  );
   await Promise.all(
-    sectionIds.map((id) => {
-      const section = nodes.value.find((node) => node.id === id);
-      return section?.data.kind === "section" && section.data.collapsed
-        ? store.setSectionCollapsed(id, false)
+    [...sectionIds].map((id) => {
+      const layout = store.editSnapshot.layouts.find((candidate) => candidate.structureNodeId === id);
+      return layout?.kind === "section" && layout.collapsed
+        ? store.executeSpaceEdit({ kind: "section.set-collapsed", structureNodeId: id, collapsed: false })
         : Promise.resolve();
     }),
   );
@@ -75,7 +94,7 @@ async function revealTag(tag: string) {
 }
 async function showTagMenu(tag: string) {
   await popupSpaceContextMenu([
-    [spaceMenuItem(t("spaces.navigation.showTaggedItems"), () => revealTag(tag))],
+    [spaceMenuItem(t("spaces.navigation.showTaggedNodes"), () => revealTag(tag))],
   ]);
 }
 </script>
@@ -146,7 +165,7 @@ async function showTagMenu(tag: string) {
             type="button"
             class="grid size-5 place-items-center rounded-control hover:bg-control-hover"
             :aria-label="t('spaces.navigation.removeTag', { tag })"
-            @click="store.removeTag(selectedIds, tag)"
+            @click="removeTag(tag)"
           >
             <X class="size-(--knovum-icon-size-xs)" />
           </button>

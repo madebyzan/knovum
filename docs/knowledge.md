@@ -56,19 +56,13 @@ is checked between operations; running vendor/native calls are not forcibly inte
 
 ## Database migrations
 
-`spaces.db` is created from the SQLx migrations in
-`src-tauri/migrations/spaces/`. SQLx records its version and checksum in `_sqlx_migrations`; there is
-no parallel `user_version`, schema-contract table, repair table, or compatibility reader.
-Applied migrations are immutable. The document job contract is appended in
-`0007_document_visual_jobs.sql`: it expands job kinds/statuses and queues existing active
-documents for reparsing without deleting original files or nodes.
-`0008_document_region_inputs.sql` supersedes obsolete development-only plans. Before exposing
-the pool, its explicit data reset discards those manifests, recomputes canonical node revisions,
-detaches obsolete references and clears derived chunks transactionally. It does not deserialize
-or upgrade old manifests. Interrupted reset completion can safely resume before readers run.
+`spaces.db` is created from the single pre-release SQLx v1 baseline at
+`src-tauri/migrations/spaces/0001_spaces.sql`. SQLx records its version and checksum in
+`_sqlx_migrations`; there is no parallel `user_version`, schema-contract table, repair table, or
+compatibility reader. Schema changes are folded into the baseline while the product remains in
+pre-release development, and obsolete development databases are deleted explicitly. The baseline
+contains the complete document job, visual checkpoint and derivation source snapshot contracts.
 There are no duplicate resource tables: the bounded document manifest belongs to the existing node aggregate.
-The normal database quality gate exercises the embedded migrations; it was not run during
-this implementation at the user's request.
 
 ## Authoritative Knowledge revision
 

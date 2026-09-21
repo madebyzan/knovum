@@ -103,7 +103,7 @@ async fn validate_object_type_ids(
 fn validate_string_array<'a>(
     value: Option<&'a Value>,
     label: &str,
-    max_items: usize,
+    max_entries: usize,
     max_chars: usize,
 ) -> Result<Option<Vec<&'a str>>, String> {
     let Some(value) = value else {
@@ -112,13 +112,13 @@ fn validate_string_array<'a>(
     let values = value
         .as_array()
         .ok_or_else(|| format!("{label} must be an array"))?;
-    if values.len() > max_items {
-        return Err(format!("{label} exceeds the maximum of {max_items}"));
+    if values.len() > max_entries {
+        return Err(format!("{label} exceeds the maximum of {max_entries}"));
     }
     values
         .iter()
-        .map(|item| {
-            let text = item
+        .map(|candidate| {
+            let text = candidate
                 .as_str()
                 .filter(|text| !text.is_empty())
                 .ok_or_else(|| format!("{label} must contain non-empty strings"))?;

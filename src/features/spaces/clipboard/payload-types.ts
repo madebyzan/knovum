@@ -1,12 +1,16 @@
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
+import type { SpaceRelation } from "../model/relations/relation";
+import type { StructureLayout, StructureNode } from "../model/structure/structure-contract";
 
 export interface SpaceClipboardNode {
   id: string;
-  position: { x: number; y: number };
   data: SpaceNodePayload;
 }
 
 export interface SpaceClipboardPayload {
   version: 1;
+  structure: StructureNode[];
+  layouts: StructureLayout[];
   nodes: SpaceClipboardNode[];
+  relations: SpaceRelation[];
 }

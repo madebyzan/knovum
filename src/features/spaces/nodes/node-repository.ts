@@ -1,11 +1,12 @@
 import { invoke } from "@tauri-apps/api/core";
 
 import { createSpaceNode } from "../canvas/node";
-import type { SpaceDeletedNode } from "../deletion/deleted-node";
+import { spaceNodeSizePolicy, spaceNodeSupportsContentSizing } from "../canvas/node-size";
 import type { KnowledgeChunkSeed } from "../knowledge/model/schema";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
 import { validateSpaceNodePayload } from "../model/nodes/schema/node-payload";
+import { invokeConfirmedMutation } from "../organization/confirmed-mutation";
 
 interface NodeRecord {
   id: string;
@@ -24,41 +25,41 @@ export async function listNodes(spaceId: string): Promise<SpaceCanvasNode[]> {
 export async function createNodes(
   spaceId: string,
   nodes: readonly SpaceCanvasNode[],
+  edit: {
+    mutationId: string;
+    expectedEditRevision: number;
+    targetParentId: string | null;
+  },
   sourceChunks: ReadonlyMap<string, readonly KnowledgeChunkSeed[]> = new Map(),
-): Promise<void> {
-  if (!nodes.length) return;
-  await invoke("plugin:spaces|create_nodes", {
-    request: {
-      spaceId,
-      nodes: nodes.map((node) => ({
-        id: node.id,
-        kind: node.data.kind,
-        initialX: node.initialPosition.x,
-        initialY: node.initialPosition.y,
-        data: node.data,
-        sourceChunks: sourceChunks.get(node.id) ?? [],
-      })),
+): Promise<number> {
+  return invokeConfirmedMutation<number>(
+    "plugin:spaces|create_nodes",
+    {
+      request: {
+        spaceId,
+        ...edit,
+        nodes: nodes.map((node) => ({
+          ...spaceNodeLayoutInput(node),
+          id: node.id,
+          kind: node.data.kind,
+          initialX: node.initialPosition.x,
+          initialY: node.initialPosition.y,
+          data: node.data,
+          sourceChunks: sourceChunks.get(node.id) ?? [],
+        })),
+      },
     },
-  });
+    edit.mutationId,
+  );
 }
 
-export async function trashNodes(spaceId: string, ids: readonly string[]): Promise<void> {
-  if (!ids.length) return;
-  await invoke("plugin:spaces|trash_nodes", { request: { spaceId, ids } });
-}
-
-export async function restoreNodes(spaceId: string, ids: readonly string[]): Promise<void> {
-  if (!ids.length) return;
-  await invoke("plugin:spaces|restore_nodes", { request: { spaceId, ids } });
-}
-
-export async function setNodesDeleted(
-  spaceId: string,
-  ids: readonly string[],
-  deleted: boolean,
-): Promise<void> {
-  if (deleted) await trashNodes(spaceId, ids);
-  else await restoreNodes(spaceId, ids);
+function spaceNodeLayoutInput(node: SpaceCanvasNode) {
+  const size = spaceNodeSizePolicy(node.data);
+  return {
+    width: size.width,
+    height: size.height,
+    sizeAuthority: spaceNodeSupportsContentSizing(node.data) ? ("content" as const) : ("frame" as const),
+  };
 }
 
 export async function updateNodePayload(
@@ -94,24 +95,21 @@ export async function updateNodePayloadMany(
   });
 }
 
-export function listRecentlyDeletedNodes(spaceId: string | null): Promise<SpaceDeletedNode[]> {
-  return invoke("plugin:spaces|list_recently_deleted_items", { spaceId });
+export interface DiscardPendingContentResponse {
+  mutationId: string;
+  appliedAtRevision: number;
+  assetCleanupCandidates: string[];
 }
 
-export async function permanentlyDeleteNodes(
-  selections: readonly { spaceId: string; ids: readonly string[] }[],
-): Promise<string[]> {
-  if (!selections.length) return [];
-  return invoke<string[]>("plugin:spaces|delete_deleted_nodes", { request: { selections } });
-}
-
-export async function moveNodesBetweenSpaces(
-  sourceSpaceId: string,
-  targetSpaceId: string,
-  ids: readonly string[],
-): Promise<string[]> {
-  if (sourceSpaceId === targetSpaceId || !ids.length) return [];
-  return invoke<string[]>("plugin:spaces|move_space_selection", {
-    request: { sourceSpaceId, targetSpaceId, ids },
-  });
+export function discardPendingContent(request: {
+  spaceId: string;
+  nodeId: string;
+  expectedEditRevision: number;
+  mutationId: string;
+}) {
+  return invokeConfirmedMutation<DiscardPendingContentResponse>(
+    "plugin:spaces|discard_pending_content",
+    { request },
+    request.mutationId,
+  );
 }

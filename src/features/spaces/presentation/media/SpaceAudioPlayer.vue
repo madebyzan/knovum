@@ -29,17 +29,17 @@ const analysis = computed(() => {
 });
 const waveform = computed(() => compactWaveform(analysis.value?.waveform));
 
-const { loaded, playing, currentMs, togglePlayback, seekTo, seekFromControl, unload } =
-  useMediaPlayback(mediaElement, {
+const { loaded, playing, currentMs, togglePlayback, seekTo, seekFromControl, unload } = useMediaPlayback(
+  mediaElement,
+  {
     sourceRevision: () => props.data.sourceRevision,
     onPlayback: (state) => emit("playback", state),
     onPlaybackError: (msg) => emit("playbackError", msg),
     onUnload: () => emit("unload"),
-  });
-
-const durationLabel = computed(() =>
-  analysis.value ? formatDurationMs(analysis.value.durationMs) : "—",
+  },
 );
+
+const durationLabel = computed(() => (analysis.value ? formatDurationMs(analysis.value.durationMs) : "—"));
 const playedRatio = computed(() =>
   analysis.value ? Math.min(currentMs.value / analysis.value.durationMs, 1) : 0,
 );

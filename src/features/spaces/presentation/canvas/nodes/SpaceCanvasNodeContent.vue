@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-import { spaceAssetSource } from "../../../assets/node-preview-source";
 import type { CanvasNodeLayoutV1 } from "../../../canvas/contract/canvas-document";
 import type { CanvasContentHeightMeasurement } from "../../../canvas/contract/canvas-editor-port";
 import { CANVAS_NODE_HEADER_HEIGHT, PREVIEW_CAPTION_HEIGHT } from "../../../canvas/node-size";
@@ -29,21 +28,9 @@ const props = defineProps<{
   fitContentHeight: (id: string, measurement: CanvasContentHeightMeasurement) => void;
 }>();
 const presentation = computed(() => spaceCanvasNodePresentation(props.node.data));
-const isSection = computed(() => props.node.data.kind === "section");
 const isText = computed(() => props.node.data.kind === "text");
 const isNote = computed(() => props.node.data.kind === "note");
 const hasCredentialAction = computed(() => props.node.data.kind === "credential");
-const sectionBackground = computed(() => {
-  const appearance = props.layout.appearance;
-  if (!isSection.value || !appearance?.background) return undefined;
-  const mode = appearance.backgroundStyle ?? "cover";
-  return {
-    backgroundImage: `url("${spaceAssetSource(appearance.background)}")`,
-    backgroundPosition: "center",
-    backgroundRepeat: mode === "repeat" ? "repeat" : "no-repeat",
-    backgroundSize: mode === "ratio" ? "contain" : mode === "cover" ? "cover" : "auto",
-  };
-});
 const contentDetailLevel = computed(() => (props.interactive ? "full" : props.detailLevel));
 const interactiveMedia = computed(
   () => props.interactive && (props.node.data.kind === "audio" || props.node.data.kind === "video"),
@@ -62,17 +49,15 @@ const textPresentation = computed(() =>
   <article
     class="flex size-full min-h-0 flex-col overflow-hidden text-foreground select-none"
     :class="[
-      isSection
-        ? 'rounded-canvas-object border border-transparent bg-transparent'
-        : isText
-          ? 'bg-transparent'
-          : isNote
-            ? 'rounded-sm shadow-canvas-object'
-            : 'rounded-canvas-object border border-border bg-panel shadow-canvas-object',
+      isText
+        ? 'bg-transparent'
+        : isNote
+          ? 'rounded-sm shadow-canvas-object'
+          : 'rounded-canvas-object border border-border bg-panel shadow-canvas-object',
       (isNote || isText) && textPresentation.classes,
       interactive && !interactiveMedia && !hasCredentialAction && 'pointer-events-auto',
     ]"
-    :style="[sectionBackground, (isNote || isText) && textPresentation.style]"
+    :style="(isNote || isText) && textPresentation.style"
     :data-kind="node.data.kind"
     :aria-hidden="interactive ? undefined : true"
     :inert="interactive ? undefined : true"
@@ -104,6 +89,7 @@ const textPresentation = computed(() =>
       :fit-content-height="fitContentHeight"
       :font-size="textPresentation.fontSize"
       :frame-width="layout.frame.width"
+      :size-authority="layout.sizeAuthority"
       :text-align="textPresentation.textAlign"
       :typography-scale="layout.appearance?.typographyScale ?? 1"
     />
@@ -127,7 +113,6 @@ const textPresentation = computed(() =>
             >{{ presentation.subtitle }}</span
           >
         </span>
-        <span v-if="node.data.locked" class="text-micro text-foreground-tertiary">Locked</span>
         <SpaceCanvasNodeStatus :id="node.id" :data="node.data" />
       </header>
       <SpaceCanvasNodeBody

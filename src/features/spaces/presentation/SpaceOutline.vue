@@ -1,190 +1,142 @@
 <script setup lang="ts">
-import { ChevronDown, ChevronRight } from "@lucide/vue";
-import { xor } from "es-toolkit";
-import { storeToRefs } from "pinia";
-import { computed, inject, ref, shallowRef, watch } from "vue";
+import { computed, inject, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { workspaceSidebarKey } from "../../../shared/contracts/workspace-sidebar";
 import { useCanvasEditorSession } from "../canvas/editor-session";
-import { openSpaceNode, selectAndRevealSpaceNode } from "../canvas/selection-actions";
-import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
-import { confirmDeleteSpaceSectionContents } from "../session/actions/destructive-actions";
+import { openSpaceNode } from "../canvas/selection-actions";
+import { projectStructureOutline } from "../model/structure/outline-projection";
+import { groupScopePathFor } from "../model/structure/structure-queries";
+import { validateStructureSnapshot } from "../model/structure/structure-validation";
 import { useSpaceStore } from "../session/space-store";
-import { popupSpaceContextMenu, spaceMenuItem } from "../workspace/space-menu";
-import SpaceOutlineRow from "./SpaceOutlineRow.vue";
+import SpaceStructureOutlineRow from "./SpaceStructureOutlineRow.vue";
+import { useOutlineTreeNavigation } from "./use-outline-tree-navigation";
+import { useStructureOutlineMenu } from "./use-structure-outline-menu";
 
 const store = useSpaceStore();
-const { nodes } = storeToRefs(store);
-const editorSession = useCanvasEditorSession();
-const { t } = useI18n();
-const collapsed = ref<string[]>([]);
-const editingId = shallowRef<string | null>(null);
+const editor = useCanvasEditorSession();
 const sidebar = inject(workspaceSidebarKey)!;
-const sections = computed(() => nodes.value.filter((node) => node.data.kind === "section"));
-const ungrouped = computed(() =>
-  nodes.value.filter((node) => node.data.kind !== "section" && !node.data.sectionId),
+const { t } = useI18n();
+const expandedIds = shallowRef(new Set<string>());
+const editingId = shallowRef<string>();
+const tree = shallowRef<HTMLElement | null>(null);
+const index = computed(() =>
+  validateStructureSnapshot(store.editSnapshot.structure, store.editSnapshot.layouts),
+);
+const nodeById = computed(() => new Map(store.nodes.map((node) => [node.id, node])));
+const rows = computed(() =>
+  projectStructureOutline(
+    index.value,
+    new Map(store.nodes.map((node) => [node.id, node.data.title])),
+    expandedIds.value,
+  ),
 );
 
-function members(sectionId: string) {
-  return nodes.value.filter((node) => node.data.sectionId === sectionId);
+const treeNavigation = useOutlineTreeNavigation({ expandedIds, rows, root: tree, toggle });
+
+function toggle(id: string) {
+  const next = new Set(expandedIds.value);
+  if (next.has(id)) next.delete(id);
+  else next.add(id);
+  expandedIds.value = next;
 }
-function reveal(node: SpaceCanvasNode) {
-  selectAndRevealSpaceNode(node.id);
+
+function isSelected(id: string) {
+  if (editor.selection.value.structureNodeIds.includes(id)) return true;
+  const structureNode = index.value.structureById.get(id);
+  return structureNode?.kind === "content" && editor.selection.value.nodeIds.includes(structureNode.nodeId);
 }
-function rename(node: SpaceCanvasNode) {
+
+function select(id: string) {
+  const structureNode = index.value.structureById.get(id);
+  if (structureNode?.kind === "content") {
+    editor.selectNodes([structureNode.nodeId]);
+    editor.reveal([structureNode.nodeId], "ensure-visible");
+  } else if (structureNode) {
+    editor.selectStructureNodes([structureNode.id]);
+    editor.reveal([structureNode.id], "ensure-visible");
+  }
+}
+
+async function open(id: string) {
+  const structureNode = index.value.structureById.get(id);
+  if (!structureNode) return;
+  if (structureNode.kind === "group") {
+    store.groupScopePath = [...groupScopePathFor(structureNode.id, index.value), structureNode.id];
+    expandedIds.value = new Set([...expandedIds.value, structureNode.id]);
+    editor.selectStructureNodes([structureNode.id]);
+    return;
+  }
+  if (structureNode.kind === "section") {
+    editor.reveal([structureNode.id], "focus");
+    return;
+  }
+  const node = nodeById.value.get(structureNode.nodeId);
+  if (node) await openSpaceNode(store, node);
+}
+
+function rename(id: string) {
   sidebar.reveal();
-  if (node.data.sectionId) collapsed.value = collapsed.value.filter((id) => id !== node.data.sectionId);
-  editingId.value = node.id;
+  for (const ancestor of groupScopePathFor(id, index.value)) {
+    expandedIds.value = new Set([...expandedIds.value, ancestor]);
+  }
+  editingId.value = id;
 }
+
+async function saveName(id: string, title: string) {
+  const structureNode = index.value.structureById.get(id);
+  if (!structureNode) throw new Error("Structure node no longer exists");
+  if (structureNode.kind === "content") return store.renameNode(structureNode.nodeId, title);
+  return store.executeSpaceEdit({ kind: "container.rename", structureNodeId: id, title });
+}
+
+const outlineMenu = useStructureOutlineMenu({
+  index,
+  rename,
+  reveal: select,
+  snapshot: () => store.editSnapshot,
+  store,
+});
+
 watch(
-  () => store.outlineRenameNodeId,
-  (id) => {
-    if (id === null) return;
-    store.outlineRenameNodeId = null;
-    const node = nodes.value.find((candidate) => candidate.id === id);
-    if (node) rename(node);
+  () => store.outlineRenameStructureNodeId,
+  (structureNodeId) => {
+    if (!structureNodeId) return;
+    store.outlineRenameStructureNodeId = null;
+    if (index.value.structureById.has(structureNodeId)) rename(structureNodeId);
   },
   { immediate: true },
 );
 watch(
   () => store.activeSpaceId,
   () => {
-    editingId.value = null;
+    editingId.value = undefined;
+    expandedIds.value = new Set();
   },
 );
-watch(nodes, () => {
-  if (!nodes.value.some((node) => node.id === editingId.value)) editingId.value = null;
-});
-async function showNodeMenu(node: SpaceCanvasNode) {
-  if (!editorSession.selection.value.nodeIds.includes(node.id)) editorSession.selectNodes([node.id]);
-  const open =
-    node.data.kind === "section"
-      ? spaceMenuItem(t("spaces.canvas.revealInCanvas"), () => reveal(node))
-      : spaceMenuItem(t("common.open"), () => openSpaceNode(store, node));
-  const section =
-    node.data.kind === "section"
-      ? [
-          spaceMenuItem(
-            node.data.collapsed ? t("spaces.canvas.expandSection") : t("spaces.canvas.collapseSection"),
-            () => store.setSectionCollapsed(node.id, node.data.kind === "section" && !node.data.collapsed),
-          ),
-        ]
-      : [];
-  const state = [
-    spaceMenuItem(node.data.locked ? t("spaces.canvas.unlock") : t("spaces.canvas.lock"), () =>
-      store.setLocked([node.id], !node.data.locked),
-    ),
-  ];
-  const remove =
-    node.data.kind === "section"
-      ? [
-          spaceMenuItem(t("spaces.canvas.removeSection"), () => store.removeSection(node.id)),
-          spaceMenuItem(t("spaces.canvas.deleteSectionWithContents"), () =>
-            confirmDeleteSpaceSectionContents(() => store.deleteSectionWithContents(node.id)),
-          ),
-        ]
-      : [spaceMenuItem(t("spaces.navigation.deleteSelection"), () => store.deleteSelection([node.id]))];
-  await popupSpaceContextMenu([
-    [open, spaceMenuItem(t("spaces.navigation.renameNode"), () => rename(node))],
-    section,
-    state,
-    remove,
-  ]);
-}
-
-function selected(id: string) {
-  return editorSession.selection.value.nodeIds.includes(id);
-}
-function toggleOutline(id: string) {
-  collapsed.value = xor(collapsed.value, [id]);
-}
 </script>
 
 <template>
-  <section>
-    <div v-if="sections.length" class="mt-2 space-y-0.5">
-      <div v-for="section in sections" :key="section.id">
-        <div
-          class="flex items-center rounded-control hover:bg-control-hover"
-          :data-active="selected(section.id)"
-        >
-          <button
-            type="button"
-            class="grid size-6 shrink-0 place-items-center rounded-control text-foreground-tertiary hover:text-foreground"
-            :aria-label="
-              collapsed.includes(section.id)
-                ? t('spaces.canvas.expandSection')
-                : t('spaces.canvas.collapseSection')
-            "
-            :aria-expanded="!collapsed.includes(section.id)"
-            @click="toggleOutline(section.id)"
-          >
-            <ChevronRight v-if="collapsed.includes(section.id)" class="size-(--knovum-icon-size-xs)" />
-            <ChevronDown v-else class="size-(--knovum-icon-size-xs)" />
-          </button>
-          <SpaceOutlineRow
-            class="min-w-0 flex-1 pr-2 text-label text-foreground-secondary data-[active=true]:text-foreground"
-            :node="section"
-            :selected="selected(section.id)"
-            :editing="editingId === section.id"
-            :save-name="(title) => store.renameNode(section.id, title)"
-            @reveal="reveal(section)"
-            @open="reveal(section)"
-            @menu="showNodeMenu(section)"
-            @finish="editingId = null"
-          >
-            <span class="text-micro text-foreground-tertiary tabular-nums">{{
-              members(section.id).length
-            }}</span>
-          </SpaceOutlineRow>
-        </div>
-        <div class="mt-0.5 space-y-0.5">
-          <SpaceOutlineRow
-            v-for="node in collapsed.includes(section.id) ? [] : members(section.id)"
-            :key="node.id"
-            class="w-full rounded-control pr-2 pl-7 text-caption text-foreground-secondary hover:bg-control-hover hover:text-foreground data-[active=true]:bg-(--knovum-sidebar-item-background-selected) data-[active=true]:text-foreground"
-            :node="node"
-            :selected="selected(node.id)"
-            :editing="editingId === node.id"
-            :save-name="(title) => store.renameNode(node.id, title)"
-            @reveal="reveal(node)"
-            @open="openSpaceNode(store, node)"
-            @menu="showNodeMenu(node)"
-            @finish="editingId = null"
-          />
-        </div>
-      </div>
-    </div>
-    <div v-if="ungrouped.length" class="mt-2 space-y-0.5">
-      <p
-        v-if="sections.length"
-        class="px-2 py-1 text-micro font-medium tracking-uppercase text-foreground-tertiary uppercase"
-      >
-        {{ t("spaces.canvas.ungrouped") }}
-      </p>
-      <SpaceOutlineRow
-        v-for="node in ungrouped"
-        :key="node.id"
-        class="w-full rounded-control px-2 text-caption text-foreground-secondary hover:bg-control-hover hover:text-foreground data-[active=true]:bg-(--knovum-sidebar-item-background-selected) data-[active=true]:text-foreground"
-        :node="node"
-        :selected="selected(node.id)"
-        :editing="editingId === node.id"
-        :save-name="(title) => store.renameNode(node.id, title)"
-        @reveal="reveal(node)"
-        @open="openSpaceNode(store, node)"
-        @menu="showNodeMenu(node)"
-        @finish="editingId = null"
-      />
-    </div>
-    <p v-if="nodes.length === 0" class="mt-2 px-1 text-caption text-foreground-tertiary">
+  <section ref="tree" class="mt-2 space-y-0.5" role="tree" :aria-label="t('spaces.navigation.outline')">
+    <SpaceStructureOutlineRow
+      v-for="(row, index) in rows"
+      :key="row.id"
+      :row="row"
+      :tab-index="treeNavigation.tabIndex(row.id, index)"
+      :selected="isSelected(row.id)"
+      :expanded="expandedIds.has(row.id)"
+      :editing="editingId === row.id"
+      :save-name="(title) => saveName(row.id, title)"
+      @select="select(row.id)"
+      @open="open(row.id)"
+      @menu="outlineMenu.show(row.id)"
+      @toggle="toggle(row.id)"
+      @finish="editingId = undefined"
+      @focus="treeNavigation.setFocusedId(row.id)"
+      @navigate="treeNavigation.handleKeydown($event, row, index)"
+    />
+    <p v-if="rows.length === 0" class="px-1 text-caption text-foreground-tertiary">
       {{ t("spaces.navigation.outlineEmpty") }}
-    </p>
-    <p
-      v-else-if="!sections.length && !ungrouped.length"
-      class="mt-2 px-1 text-caption text-foreground-tertiary"
-    >
-      {{ t("spaces.navigation.noOutlineResults") }}
     </p>
   </section>
 </template>

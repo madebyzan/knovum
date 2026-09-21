@@ -33,4 +33,4 @@ Business feature work may start against this RC. Freeze the foundation as 1.0 af
 - provider-specific release channel policy and rollout UX beyond the installed signed updater foundation
 - release signing and notarization
 
-No speculative capabilities are granted for feature-owned items.
+No speculative capabilities are granted for feature-owned structure.
