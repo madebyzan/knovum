@@ -6,7 +6,7 @@ on:
     branches: [main]
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: quality-${{ github.ref }}
@@ -34,17 +34,22 @@ jobs:
         run: pnpm security:web
       - name: Run web gates
         run: pnpm check:web
-      - name: Generate formatter patch
-        if: failure()
+      - name: Apply canonical formatting to PR branch
+        if: failure() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          HEAD_REF: ${{ github.head_ref }}
         run: |
+          git fetch origin "$HEAD_REF"
+          git checkout -B "$HEAD_REF" "origin/$HEAD_REF"
           pnpm exec oxfmt .
-          git diff --no-color > format.patch
-      - name: Upload formatter patch
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: format-patch
-          path: format.patch
+          if git diff --quiet; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "style: apply oxfmt"
+          git push origin "HEAD:$HEAD_REF"
 
   rust:
     name: Rust quality
