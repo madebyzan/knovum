@@ -44,7 +44,7 @@ describe("Konva editor port", () => {
       selectableNodeIds: () => ["selected"],
       selectedNodeIds: () => new Set(["selected"]),
       setSelection() {},
-      setViewport,
+      setViewport() {},
       palette: () => { throw new Error("Palette is unused in this test"); },
       size: () => ({ width: 800, height: 600 }),
       viewport: () => document.viewport,
