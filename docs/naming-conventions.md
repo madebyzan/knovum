@@ -35,6 +35,18 @@ product, so it separates nothing; name the mechanism that actually differs, such
 `bundled-runtime`, `menu` or `system`. Prose keeps the word only for operating-system provided UI and
 services, as in native window controls, native traffic lights or OS-native dialogs.
 
+## Product concept glossary
+
+Use one term for each creation concept:
+
+- **Creation** is the user-facing umbrella for choosing or starting a way to create an artifact.
+- **Workflow** is an ordered, registered execution plan that coordinates multiple named steps.
+- **Derivation** is a traceable operation that produces an output from one or more Space sources.
+
+Do not introduce parallel synonyms such as `generation workflow`, `artifact workflow`, or `creation derivation`
+unless they represent a genuinely different product concept. UI wording may say “create”, but code ownership
+uses `workflow` for orchestration and `derivation` for traceable produced outputs.
+
 ## Domain verbs
 
 ### Command verbs
