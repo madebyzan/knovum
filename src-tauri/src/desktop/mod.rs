@@ -9,6 +9,8 @@ use std::sync::atomic::{AtomicBool, Ordering};
 #[cfg(target_os = "macos")]
 use tauri::menu::{Menu, MenuEvent};
 use tauri::Emitter;
+#[cfg(not(any(target_os = "macos", target_os = "windows")))]
+use tauri::Manager;
 use tauri::{plugin::TauriPlugin, AppHandle, RunEvent, Runtime, Window, WindowEvent, Wry};
 
 const MAIN_WINDOW_LABEL: &str = "main";

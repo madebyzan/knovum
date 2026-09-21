@@ -5,7 +5,7 @@ mod revision;
 mod text_preview;
 
 pub use archive::archive_entries;
-pub use classification::{classify_file, is_sensitive_file, ResourceClassification};
+pub use classification::{classify_file, ResourceClassification};
 pub use inspect::inspect_file;
 pub use revision::{content_revision, verify_content_revision};
 use serde::{Deserialize, Serialize};

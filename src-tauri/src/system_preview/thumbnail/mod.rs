@@ -1,3 +1,4 @@
+#[cfg(any(target_os = "macos", target_os = "windows"))]
 use std::path::Path;
 
 use tokio_util::sync::CancellationToken;
