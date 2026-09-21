@@ -35,7 +35,7 @@ export function useSpaceCanvasImports(options: SpaceCanvasImportOptions) {
   async function insertText(text: string, point: { x: number; y: number }) {
     const source = classifySpaceUrl(text.trim());
     if (source) return insertUrl(source.url, point);
-    await options.store.addItem(noteFromPlainText(text, options.newNoteTitle), point);
+    await options.store.addContent(noteFromPlainText(text, options.newNoteTitle), point);
   }
 
   async function insertUrl(url: string, point: { x: number; y: number }) {
@@ -63,7 +63,7 @@ export function useSpaceCanvasImports(options: SpaceCanvasImportOptions) {
       addImage: async (image) => {
         const nodes = await addImportedSpaceAsset(image, point, (data, position) => {
           if (options.store.activeSpaceId !== spaceId) throw new Error("Canvas paste target changed");
-          return options.store.addItem(data, position);
+          return options.store.addContent(data, position);
         });
         for (const node of nodes) {
           scheduleSpaceAssetProcessing(options.store, spaceId, node.id, node.data);
@@ -100,7 +100,7 @@ export function useSpaceCanvasImports(options: SpaceCanvasImportOptions) {
     const spaceId = options.store.activeSpaceId;
     if (!spaceId) throw new Error("A Space must be active to import files");
     const labels = {
-      title: i18n.global.t("spaces.transfer.importingItem"),
+      title: i18n.global.t("spaces.transfer.importingResource"),
       preparing: i18n.global.t("spaces.transfer.importPreparing"),
     };
     const outcomes = await importSpaceBatch({

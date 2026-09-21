@@ -1,7 +1,6 @@
-import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { CanvasNodeLayoutV1 } from "../contract/canvas-document";
 import type { CanvasRect, CanvasSelectionSnapshot } from "../contract/canvas-editor-port";
-import { canvasLayoutBounds } from "./canvas-arrangement";
+import { canvasLayoutBounds } from "./canvas-layout-bounds";
 
 export function createCanvasSelectionSnapshot(
   layouts: readonly CanvasNodeLayoutV1[],
@@ -13,6 +12,7 @@ export function createCanvasSelectionSnapshot(
   const bounds = canvasLayoutBounds(selectedLayouts) ?? selectedRelationBounds(relationIds, relationBounds);
   return {
     nodeIds: [...nodeIds],
+    structureNodeIds: [],
     nodePlacements: selectedLayouts.map(({ nodeId, frame }) => ({ id: nodeId, x: frame.x, y: frame.y })),
     relationIds: [...relationIds],
     ...(selectedLayouts.length === 1 && selectedLayouts[0]?.appearance
@@ -41,7 +41,6 @@ export function canvasNodePlacements(layouts: readonly CanvasNodeLayoutV1[], nod
   );
 }
 
-export function movableCanvasNodeIds(nodes: readonly SpaceCanvasNode[], selectedIds: ReadonlySet<string>) {
-  const lockedIds = new Set(nodes.filter(({ data }) => data.locked).map(({ id }) => id));
+export function movableCanvasNodeIds(lockedIds: ReadonlySet<string>, selectedIds: ReadonlySet<string>) {
   return new Set([...selectedIds].filter((id) => !lockedIds.has(id)));
 }

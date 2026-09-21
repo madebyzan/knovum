@@ -9,7 +9,7 @@ import UiSelect from "../../../shared/ui/UiSelect.vue";
 import { useRecentlyDeletedActions } from "../deletion/use-recently-deleted-actions";
 import { useRecentlyDeletedQuery } from "../knowledge/queries/queries";
 import { useSpaceStore } from "../session/space-store";
-import SpaceDeletedNodeList from "./SpaceDeletedNodeList.vue";
+import SpaceDeletedStructureList from "./SpaceDeletedStructureList.vue";
 
 const props = defineProps<{ spaceId: string | null }>();
 const open = defineModel<boolean>("open", { required: true });
@@ -23,11 +23,14 @@ const options = computed(() => [
 ]);
 const scopeLabel = computed(() => options.value.find((option) => option.value === filter.value)!.label);
 const deletedQuery = useRecentlyDeletedQuery(scope, open);
-const items = computed(() => deletedQuery.data.value ?? []);
+const deletedRoots = computed(() => deletedQuery.data.value ?? []);
 const { busy, restore, remove } = useRecentlyDeletedActions();
 const canDeleteAll = computed(
   () =>
-    !busy.value && !deletedQuery.isFetching.value && !deletedQuery.isError.value && items.value.length > 0,
+    !busy.value &&
+    !deletedQuery.isFetching.value &&
+    !deletedQuery.isError.value &&
+    deletedRoots.value.length > 0,
 );
 </script>
 
@@ -54,11 +57,12 @@ const canDeleteAll = computed(
       </p>
       <UiButton size="sm" @click="deletedQuery.refetch()">{{ t("common.retry") }}</UiButton>
     </div>
-    <SpaceDeletedNodeList
-      v-else-if="items.length"
-      :items="items"
+    <SpaceDeletedStructureList
+      v-else-if="deletedRoots.length"
+      :deleted-roots="deletedRoots"
       :busy="busy || deletedQuery.isFetching.value"
       @restore="restore"
+      @restore-batch="restore($event, true)"
       @remove="remove([$event])"
     />
     <div v-else class="grid h-72 content-center justify-items-center gap-2 text-foreground-tertiary">
@@ -69,11 +73,16 @@ const canDeleteAll = computed(
       <span role="status" class="mr-auto self-center text-caption text-foreground-secondary">
         {{
           busy
-            ? t("spaces.navigation.processingDeletedItems")
-            : t("spaces.navigation.deletedItemCount", { count: items.length })
+            ? t("spaces.navigation.processingDeletedStructure")
+            : t("spaces.navigation.deletedStructureCount", { count: deletedRoots.length })
         }}
       </span>
-      <UiButton size="sm" variant="dangerSubtle" :disabled="!canDeleteAll" @click="remove(items, scopeLabel)">
+      <UiButton
+        size="sm"
+        variant="dangerSubtle"
+        :disabled="!canDeleteAll"
+        @click="remove(deletedRoots, scopeLabel)"
+      >
         {{ t("spaces.navigation.deleteAll") }}
       </UiButton>
     </template>

@@ -57,7 +57,7 @@ export function createSpaceUiState() {
     editorLocateRequest: ref<EditorLocateRequest>(),
     canvasFocusIds: ref<string[]>([]),
     outlineFocusRequest: shallowRef(0),
-    outlineRenameNodeId: shallowRef<string | null>(null),
+    outlineRenameStructureNodeId: shallowRef<string | null>(null),
     recentlyDeletedSpaceId: shallowRef<string | null>(),
     thumbnailCaptureActive: ref(false),
     thumbnailDirty: ref(true),

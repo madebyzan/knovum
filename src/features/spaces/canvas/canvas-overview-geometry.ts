@@ -34,6 +34,10 @@ export function canvasOverviewViewport(
   for (const { layout } of scene.nodes) {
     for (const point of rotatedCorners(layout.frame)) include(point);
   }
+  for (const { bounds } of scene.sectionBackdrops) {
+    include({ x: bounds.x, y: bounds.y });
+    include({ x: bounds.x + bounds.width, y: bounds.y + bounds.height });
+  }
   for (const { bounds } of scene.relations) {
     include({ x: bounds.x, y: bounds.y });
     include({ x: bounds.x + bounds.width, y: bounds.y + bounds.height });

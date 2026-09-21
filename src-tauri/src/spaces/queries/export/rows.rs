@@ -23,25 +23,12 @@ pub(super) async fn space(
     crate::sqlite::row_to_json(&row)
 }
 
-pub(super) async fn canvas_state(
-    tx: &mut Transaction<'_, Sqlite>,
-    space_id: &str,
-) -> Result<Value, String> {
-    let row = sqlx::query("SELECT document FROM spaces_canvas_state WHERE space_id = ? LIMIT 1")
-        .bind(space_id)
-        .fetch_optional(&mut **tx)
-        .await
-        .map_err(db::sql_error)?
-        .ok_or_else(|| "Space canvas state is unavailable".to_owned())?;
-    Ok(serde_json::json!({ "document": parse_json(&row, "document")? }))
-}
-
 pub(super) async fn scenes(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
 ) -> Result<Vec<Value>, String> {
     let rows = sqlx::query(
-        "SELECT id,space_id,title,viewport_x,viewport_y,viewport_zoom,order_index,focus_node_ids,relation_kinds,relation_statuses,query_filter,created_at,updated_at \
+        "SELECT id,space_id,title,viewport_x,viewport_y,viewport_zoom,order_index,focus_structure_node_ids,relation_kinds,relation_statuses,query_filter,created_at,updated_at \
          FROM spaces_scenes WHERE space_id=? ORDER BY order_index,created_at",
     ).bind(space_id).fetch_all(&mut **tx).await.map_err(db::sql_error)?;
     rows.into_iter().map(|row| Ok(serde_json::json!({
@@ -52,7 +39,7 @@ pub(super) async fn scenes(
         "viewportY": row.try_get::<f64,_>("viewport_y").map_err(db::sql_error)?,
         "viewportZoom": row.try_get::<f64,_>("viewport_zoom").map_err(db::sql_error)?,
         "orderIndex": row.try_get::<i64,_>("order_index").map_err(db::sql_error)?,
-        "focusNodeIds": parse_json(&row,"focus_node_ids")?, "relationKinds": parse_json(&row,"relation_kinds")?,
+        "focusStructureNodeIds": parse_json(&row,"focus_structure_node_ids")?, "relationKinds": parse_json(&row,"relation_kinds")?,
         "relationStatuses": parse_json(&row,"relation_statuses")?, "queryFilter": parse_json(&row,"query_filter")?,
         "createdAt": row.try_get::<i64,_>("created_at").map_err(db::sql_error)?,
         "updatedAt": row.try_get::<i64,_>("updated_at").map_err(db::sql_error)?,
@@ -92,6 +79,31 @@ pub(super) async fn nodes(
         nodes.push(node(row, assets)?);
     }
     Ok(nodes)
+}
+
+pub(super) fn package_layout_assets(
+    layouts: &mut [crate::spaces::structure::StructureLayout],
+    assets: &mut PackageAssets,
+) -> Result<(), String> {
+    for layout in layouts {
+        let appearance = match layout {
+            crate::spaces::structure::StructureLayout::Content { appearance, .. }
+            | crate::spaces::structure::StructureLayout::Section { appearance, .. } => appearance,
+            crate::spaces::structure::StructureLayout::Group { .. } => continue,
+        };
+        let Some(appearance) = appearance.as_mut() else {
+            continue;
+        };
+        let Some(background) = appearance.get_mut("background") else {
+            continue;
+        };
+        let path = background
+            .as_str()
+            .filter(|value| !value.is_empty())
+            .ok_or("Structure background asset path must be a non-empty string")?;
+        *background = Value::String(assets.reference(path));
+    }
+    Ok(())
 }
 
 pub(super) async fn chunks(

@@ -94,20 +94,21 @@ export function sameCanvasNodeAppearance(
   left: CanvasNodeAppearance | undefined,
   right: CanvasNodeAppearance | undefined,
 ) {
-  return (
-    left?.fill === right?.fill &&
-    left?.customFill === right?.customFill &&
-    left?.textColor === right?.textColor &&
-    left?.fontSize === right?.fontSize &&
-    left?.typographyScale === right?.typographyScale &&
-    left?.fontWeight === right?.fontWeight &&
-    left?.fontStyle === right?.fontStyle &&
-    left?.textDecoration === right?.textDecoration &&
-    left?.textAlign === right?.textAlign &&
-    left?.verticalAlign === right?.verticalAlign &&
-    left?.background === right?.background &&
-    left?.backgroundStyle === right?.backgroundStyle
-  );
+  const keys: readonly (keyof CanvasNodeAppearance)[] = [
+    "fill",
+    "customFill",
+    "textColor",
+    "fontSize",
+    "typographyScale",
+    "fontWeight",
+    "fontStyle",
+    "textDecoration",
+    "textAlign",
+    "verticalAlign",
+    "background",
+    "backgroundStyle",
+  ];
+  return keys.every((key) => left?.[key] === right?.[key]);
 }
 
 function validateCanvasReferences(document: CanvasDocumentV1, context: z.RefinementCtx) {

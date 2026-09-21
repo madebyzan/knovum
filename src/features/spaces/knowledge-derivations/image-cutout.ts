@@ -78,7 +78,7 @@ async function createPendingNode(store: SpaceStore, source: SpaceCanvasNode) {
     useCanvasEditorSession().selection.value.nodePlacements,
     source.id,
   );
-  const [node] = await store.addItem(
+  const [node] = await store.addContent(
     data,
     { x: sourcePosition.x + dimensions.width + 48, y: sourcePosition.y },
     { reveal: true },

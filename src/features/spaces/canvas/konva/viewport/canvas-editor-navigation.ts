@@ -36,9 +36,36 @@ export function revealCanvasLayouts(
   }
 }
 
+export function revealCanvasTargets(
+  context: CanvasNavigationContext & { setStructureSelection(ids: readonly string[]): void },
+  ids: readonly string[],
+  mode: "ensure-visible" | "focus",
+  structureBounds: ReadonlyMap<string, { x: number; y: number; width: number; height: number }>,
+) {
+  const layouts = context.layouts().filter(({ nodeId }) => ids.includes(nodeId));
+  if (layouts.length) return revealCanvasLayouts(context, ids, mode);
+  const bounds = mergeBounds(
+    ids.flatMap((id) => {
+      const value = structureBounds.get(id);
+      return value ? [value] : [];
+    }),
+  );
+  if (!bounds) return;
+  context.setStructureSelection(ids);
+  if (mode === "focus") fitCanvasBounds(context, bounds);
+  else if (!isVisible(bounds, context.viewport(), context.size()))
+    context.setViewport(ensureBoundsVisible(bounds, context.viewport(), context.size()));
+}
+
 export function fitCanvasLayouts(context: CanvasNavigationContext, layouts: readonly CanvasNodeLayoutV1[]) {
   if (!layouts.length) return;
-  const bounds = layoutBounds(layouts);
+  fitCanvasBounds(context, layoutBounds(layouts));
+}
+
+export function fitCanvasBounds(
+  context: Pick<CanvasNavigationContext, "setViewport" | "size" | "viewport">,
+  bounds: { x: number; y: number; width: number; height: number },
+) {
   const size = context.size();
   const padding = 80;
   const zoom = Math.min(
@@ -51,6 +78,15 @@ export function fitCanvasLayouts(context: CanvasNavigationContext, layouts: read
     y: (size.height - bounds.height * zoom) / 2 - bounds.y * zoom,
     zoom,
   });
+}
+
+function mergeBounds(bounds: readonly { x: number; y: number; width: number; height: number }[]) {
+  if (!bounds.length) return undefined;
+  const left = Math.min(...bounds.map(({ x }) => x));
+  const top = Math.min(...bounds.map(({ y }) => y));
+  const right = Math.max(...bounds.map(({ x, width }) => x + width));
+  const bottom = Math.max(...bounds.map(({ y, height }) => y + height));
+  return { x: left, y: top, width: Math.max(1, right - left), height: Math.max(1, bottom - top) };
 }
 
 export function selectedCanvasLayouts(context: CanvasNavigationContext) {

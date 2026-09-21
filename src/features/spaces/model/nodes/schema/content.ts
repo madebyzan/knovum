@@ -4,7 +4,7 @@ import { z } from "zod";
 import type { TiptapJsonNode } from "../../../editor/tiptap-document";
 
 const MAX_JSON_DEPTH = 64;
-const MAX_JSON_CONTAINER_ITEMS = 10_000;
+const MAX_JSON_CONTAINER_ENTRIES = 10_000;
 const MAX_JSON_VALUES = 100_000;
 const MAX_TIPTAP_DEPTH = 64;
 const MAX_TIPTAP_NODES = 100_000;
@@ -16,11 +16,11 @@ function jsonValueSchemaAt(depth: number): z.ZodType<unknown> {
     const child = jsonValueSchemaAt(depth + 1);
     return z.union([
       jsonPrimitiveSchema,
-      z.array(child).max(MAX_JSON_CONTAINER_ITEMS),
+      z.array(child).max(MAX_JSON_CONTAINER_ENTRIES),
       z
         .record(z.string().max(128), child)
         .refine(
-          (value) => Object.keys(value).length <= MAX_JSON_CONTAINER_ITEMS,
+          (value) => Object.keys(value).length <= MAX_JSON_CONTAINER_ENTRIES,
           "JSON object has too many fields",
         ),
     ]);
@@ -41,7 +41,10 @@ function countJsonValues(value: unknown, remaining = MAX_JSON_VALUES + 1): numbe
 
 const jsonAttrsSchema = z
   .record(z.string().max(128), jsonValueSchemaAt(1))
-  .refine((value) => Object.keys(value).length <= MAX_JSON_CONTAINER_ITEMS, "JSON object has too many fields")
+  .refine(
+    (value) => Object.keys(value).length <= MAX_JSON_CONTAINER_ENTRIES,
+    "JSON object has too many fields",
+  )
   .refine((value) => countJsonValues(value) <= MAX_JSON_VALUES, "JSON object contains too many values");
 const tiptapMarkSchema = z
   .object({

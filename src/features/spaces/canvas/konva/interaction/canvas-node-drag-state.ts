@@ -1,6 +1,5 @@
 import type Konva from "konva";
 
-import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import type { CanvasNodeFrameUpdate, CanvasNodeLayoutV1 } from "../../contract/canvas-document";
 import { captureCanvasNodeRefs } from "./canvas-node-access";
 import {
@@ -8,21 +7,20 @@ import {
   type CanvasTranslationGestureState,
 } from "./canvas-translation-snapping";
 
-export function captureCanvasNodeDragState(
-  layouts: readonly CanvasNodeLayoutV1[],
-  nodes: readonly SpaceCanvasNode[],
-  selectedNodeIds: ReadonlySet<string>,
-  primaryId: string,
-  stage: Konva.Stage | undefined,
-) {
-  const locked = new Set(nodes.filter(({ data }) => data.locked).map(({ id }) => id));
-  if (locked.has(primaryId)) return undefined;
-  const selected = new Set(selectedNodeIds).add(primaryId);
-  for (const node of nodes) if (node.data.sectionId === primaryId) selected.add(node.id);
+export function captureCanvasNodeDragState(options: {
+  layouts: readonly CanvasNodeLayoutV1[];
+  selectedNodeIds: ReadonlySet<string>;
+  lockedNodeIds: ReadonlySet<string>;
+  primaryId: string;
+  stage: Konva.Stage | undefined;
+}) {
+  const { layouts, selectedNodeIds, lockedNodeIds, primaryId, stage } = options;
+  if (lockedNodeIds.has(primaryId)) return undefined;
+  const movable = movableCanvasSelectionNodeIds(new Set(selectedNodeIds).add(primaryId), lockedNodeIds);
   const byId = new Map(layouts.map((layout) => [layout.nodeId, layout]));
   const frames = new Map(
-    [...selected].flatMap((id) => {
-      const frame = locked.has(id) ? undefined : byId.get(id)?.frame;
+    [...movable].flatMap((id) => {
+      const frame = byId.get(id)?.frame;
       return frame ? [[id, { ...frame }] as const] : [];
     }),
   );
@@ -37,6 +35,13 @@ export function captureCanvasNodeDragState(
   };
   const nodeRefs = captureCanvasNodeRefs(stage, frames.keys());
   return { nodeRefs, state };
+}
+
+export function movableCanvasSelectionNodeIds(
+  selectedNodeIds: ReadonlySet<string>,
+  lockedNodeIds: ReadonlySet<string>,
+) {
+  return new Set([...selectedNodeIds].filter((id) => !lockedNodeIds.has(id)));
 }
 
 export function restoreCanvasNodeFrames(

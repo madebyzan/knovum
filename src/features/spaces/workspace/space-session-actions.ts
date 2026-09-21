@@ -5,6 +5,7 @@ import { releaseKnowledgeIndex, scheduleSpaceKnowledgeIndex } from "../knowledge
 import { listRelations } from "../knowledge/relations/relation-repository";
 import { listNodes } from "../nodes/node-repository";
 import { listScenes } from "../scenes/scene-repository";
+import { spaceEditRepository } from "../structure/space-edit-repository";
 import { activateDraftSpace, createDraftSpace } from "./draft-space-actions";
 import { recordWorkspaceNavigation, removeWorkspaceNavigation } from "./navigation-history";
 import { createAndTrackSpace, markSpaceOpenedAndTrack } from "./space-creation";
@@ -139,10 +140,11 @@ async function loadSpace(context: SpaceSessionContext, id: string, options: Load
     context.runtime.pendingSpaceId = id;
     context.loading.value = true;
     try {
-      const [nodes, scenes, relations] = await Promise.all([
+      const [nodes, scenes, relations, editSnapshot] = await Promise.all([
         listNodes(id),
         listScenes(id),
         listRelations(id),
+        spaceEditRepository.load(id),
       ]);
       if (generation !== context.runtime.openGeneration) return false;
       if (options.resetHistory) clearSpaceHistory(context.history);
@@ -154,6 +156,8 @@ async function loadSpace(context: SpaceSessionContext, id: string, options: Load
       context.nodes.value = nodes;
       context.scenes.value = scenes;
       context.relations.value = relations;
+      context.editSnapshot.value = editSnapshot;
+      context.groupScopePath.value = [];
       if (options.markOpened) await markSpaceOpenedAndTrack(context, id);
       scheduleSpaceKnowledgeIndex(id);
       return true;

@@ -26,6 +26,8 @@ function defaultSessionContext(): SpaceSessionContext {
     draftSpace: ref(),
     activeSpaceId: ref("inbox"),
     nodes: ref([]),
+    editSnapshot: ref({ editRevision: 0, structure: [], layouts: [], relationStyles: [] }),
+    groupScopePath: ref([]),
     scenes: ref([]),
     relations: ref([]),
     ready: ref(true),

@@ -1,39 +1,44 @@
-import type Konva from "konva";
-import { computed, shallowRef, watch, type Ref } from "vue";
+import { shallowRef, watch, type Ref } from "vue";
 
 import type { CanvasNodeLayoutV1 } from "../../contract/canvas-document";
 import type { CanvasSelectionSnapshot } from "../../contract/canvas-editor";
 import { createCanvasSelectionSnapshot } from "../../document/canvas-selection-snapshot";
+import { useCanvasMarqueeSelection } from "./use-canvas-marquee-selection";
 
 interface CanvasSelectionOptions {
+  availableStructureNodeIds: Readonly<Ref<ReadonlySet<string>>>;
   layouts: Readonly<Ref<readonly CanvasNodeLayoutV1[]>>;
   relationBounds: Readonly<Ref<ReadonlyMap<string, { x: number; y: number; width: number; height: number }>>>;
   changed(selection: CanvasSelectionSnapshot): void;
+  structureSelectionForNode(nodeId: string): string | undefined;
 }
 
 export function useCanvasSelection(options: CanvasSelectionOptions) {
   const nodeIds = shallowRef(new Set<string>());
+  const structureNodeIds = shallowRef(new Set<string>());
   const relationIds = shallowRef(new Set<string>());
-  const marquee = shallowRef<{ start: { x: number; y: number }; end: { x: number; y: number } }>();
-
-  const marqueeRect = computed(() => {
-    const value = marquee.value;
-    if (!value) return undefined;
-    return {
-      x: Math.min(value.start.x, value.end.x),
-      y: Math.min(value.start.y, value.end.y),
-      width: Math.abs(value.end.x - value.start.x),
-      height: Math.abs(value.end.y - value.start.y),
-    };
+  const marquee = useCanvasMarqueeSelection({
+    clear,
+    layouts: options.layouts,
+    nodeIds,
+    notify,
+    structureNodeIds,
+    structureSelectionForNode: options.structureSelectionForNode,
   });
 
   function selectNode(nodeId: string, event: PointerEvent) {
+    const structureNodeId = options.structureSelectionForNode(nodeId);
+    if (structureNodeId) {
+      selectStructureNode(structureNodeId, event);
+      return;
+    }
     const additive = event.metaKey || event.ctrlKey || event.shiftKey;
     if (!additive && nodeIds.value.has(nodeId)) return;
     const next = new Set(additive ? nodeIds.value : []);
     if (next.has(nodeId) && additive) next.delete(nodeId);
     else next.add(nodeId);
     nodeIds.value = next;
+    if (!additive) structureNodeIds.value = new Set();
     relationIds.value = new Set();
     notify();
   }
@@ -44,61 +49,53 @@ export function useCanvasSelection(options: CanvasSelectionOptions) {
     if (next.has(id) && additive) next.delete(id);
     else next.add(id);
     nodeIds.value = new Set();
+    structureNodeIds.value = new Set();
     relationIds.value = next;
     notify();
   }
 
-  function beginMarquee(event: Konva.KonvaEventObject<PointerEvent>) {
-    if (event.evt.button !== 0 || event.target !== event.target.getStage()) return false;
-    const point = event.target.getStage()?.getRelativePointerPosition();
-    if (!point) return false;
-    marquee.value = { start: point, end: point };
-    if (!(event.evt.metaKey || event.evt.ctrlKey || event.evt.shiftKey)) clear();
-    return true;
-  }
-
-  function moveMarquee(event: Konva.KonvaEventObject<PointerEvent>) {
-    if (!marquee.value) return;
-    const point = event.target.getStage()?.getRelativePointerPosition();
-    if (point) marquee.value = { ...marquee.value, end: point };
-  }
-
-  function endMarquee() {
-    const bounds = marqueeRect.value;
-    marquee.value = undefined;
-    if (!bounds) return;
-    nodeIds.value = new Set([
-      ...nodeIds.value,
-      ...options.layouts.value.filter(({ frame }) => intersects(frame, bounds)).map(({ nodeId }) => nodeId),
-    ]);
+  function setNodeIds(ids: readonly string[]) {
+    nodeIds.value = new Set(ids);
+    structureNodeIds.value = new Set();
+    relationIds.value = new Set();
     notify();
   }
 
-  function cancelMarquee() {
-    marquee.value = undefined;
-  }
-
-  function setNodeIds(ids: readonly string[]) {
-    nodeIds.value = new Set(ids);
+  function setStructureNodeIds(ids: readonly string[]) {
+    structureNodeIds.value = new Set(ids);
+    nodeIds.value = new Set();
     relationIds.value = new Set();
     notify();
   }
 
   function clear() {
     nodeIds.value = new Set();
+    structureNodeIds.value = new Set();
     relationIds.value = new Set();
     notify();
   }
 
   function notify() {
-    options.changed(
-      createCanvasSelectionSnapshot(
+    options.changed({
+      ...createCanvasSelectionSnapshot(
         options.layouts.value,
         nodeIds.value,
         relationIds.value,
         options.relationBounds.value,
       ),
-    );
+      structureNodeIds: [...structureNodeIds.value],
+    });
+  }
+
+  function selectStructureNode(structureNodeId: string, event: PointerEvent) {
+    const additive = event.metaKey || event.ctrlKey || event.shiftKey;
+    const next = new Set(additive ? structureNodeIds.value : []);
+    if (next.has(structureNodeId) && additive) next.delete(structureNodeId);
+    else next.add(structureNodeId);
+    structureNodeIds.value = next;
+    if (!additive) nodeIds.value = new Set();
+    relationIds.value = new Set();
+    notify();
   }
 
   watch(options.layouts, (currentLayouts) => {
@@ -115,30 +112,28 @@ export function useCanvasSelection(options: CanvasSelectionOptions) {
     relationIds.value = retained;
     notify();
   });
+  watch(options.availableStructureNodeIds, (availableIds) => {
+    if (!structureNodeIds.value.size) return;
+    const retained = new Set([...structureNodeIds.value].filter((id) => availableIds.has(id)));
+    if (retained.size === structureNodeIds.value.size) return;
+    structureNodeIds.value = retained;
+    notify();
+  });
 
   return {
-    beginMarquee,
-    cancelMarquee,
+    beginMarquee: marquee.begin,
+    cancelMarquee: marquee.cancel,
     clear,
-    endMarquee,
-    marqueeRect,
-    moveMarquee,
+    endMarquee: marquee.end,
+    marqueeRect: marquee.marqueeRect,
+    moveMarquee: marquee.move,
     nodeIds,
     relationIds,
     selectNode,
     selectRelation,
+    selectStructureNode,
     setNodeIds,
+    setStructureNodeIds,
+    structureNodeIds,
   };
-}
-
-function intersects(
-  left: { x: number; y: number; width: number; height: number },
-  right: { x: number; y: number; width: number; height: number },
-) {
-  return (
-    left.x <= right.x + right.width &&
-    left.x + left.width >= right.x &&
-    left.y <= right.y + right.height &&
-    left.y + left.height >= right.y
-  );
 }

@@ -5,8 +5,8 @@ const clipboard = vi.hoisted(() => ({
   readFiles: vi.fn<() => Promise<string[]>>(),
   readContent: vi.fn<() => Promise<{ html: string | null; text: string | null }>>(),
   importImage: vi.fn<() => Promise<{ kind: "image"; name: string; path: string } | undefined>>(),
-  logInfo: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
-  logWarn: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
+  logInfo: vi.fn<(message: string) => Promise<void>>().mockResolvedValue(undefined),
+  logWarn: vi.fn<(message: string) => Promise<void>>().mockResolvedValue(undefined),
 }));
 
 vi.mock("tauri-plugin-clipboard-api", () => ({

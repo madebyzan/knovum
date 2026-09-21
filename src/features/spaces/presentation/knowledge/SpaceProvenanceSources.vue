@@ -56,13 +56,13 @@ async function remove(id: string) {
     targetId: props.targetId,
   });
 }
-function openSource(item: (typeof provenance.value)[number]) {
+function openSource(record: (typeof provenance.value)[number]) {
   dock.openSource(
     {
-      nodeId: item.sourceNodeId,
-      nodeTitle: sourceTitle(item.sourceNodeId),
-      locator: item.locator,
-      text: item.quote,
+      nodeId: record.sourceNodeId,
+      nodeTitle: sourceTitle(record.sourceNodeId),
+      locator: record.locator,
+      text: record.quote,
     },
     { reveal: false },
   );
@@ -85,29 +85,29 @@ function openSource(item: (typeof provenance.value)[number]) {
       </UiIconButton>
     </div>
     <div v-if="provenance.length" class="mt-1.5 space-y-1.5">
-      <div v-for="item in provenance" :key="item.id" class="flex items-start gap-1">
+      <div v-for="record in provenance" :key="record.id" class="flex items-start gap-1">
         <button
           type="button"
           class="min-w-0 flex-1 rounded-control px-1.5 py-1.5 text-left hover:bg-control-hover"
-          @click="openSource(item)"
+          @click="openSource(record)"
         >
           <span class="flex items-center gap-1.5 text-caption text-foreground">
             <Link2 class="size-(--knovum-icon-size-xs) shrink-0 text-foreground-tertiary" />
-            <span class="truncate">{{ sourceTitle(item.sourceNodeId) }}</span>
+            <span class="truncate">{{ sourceTitle(record.sourceNodeId) }}</span>
             <ExternalLink class="size-(--knovum-icon-size-xs) shrink-0 text-foreground-tertiary" />
           </span>
           <span class="mt-0.5 block truncate pl-5 text-micro text-foreground-tertiary">
-            {{ knowledgeLocationLabel(item.locator) }}
+            {{ knowledgeLocationLabel(record.locator) }}
           </span>
-          <span v-if="item.quote" class="mt-1 line-clamp-2 block pl-5 text-micro text-foreground-secondary">
-            “{{ item.quote }}”
+          <span v-if="record.quote" class="mt-1 line-clamp-2 block pl-5 text-micro text-foreground-secondary">
+            “{{ record.quote }}”
           </span>
         </button>
         <UiIconButton
-          v-if="removable && item.status === 'active'"
+          v-if="removable && record.status === 'active'"
           :label="t('spaces.assistant.removeEvidence')"
           size="sm"
-          @click="remove(item.id)"
+          @click="remove(record.id)"
         >
           <X class="size-(--knovum-icon-size-xs)" />
         </UiIconButton>

@@ -7,10 +7,8 @@ use std::{
 use sqlx::SqlitePool;
 use tauri::{AppHandle, Manager, Runtime};
 
-mod canvas_references;
 mod reference_graph;
 
-pub(in crate::spaces) use canvas_references::synchronize as synchronize_canvas_references;
 pub(crate) use reference_graph::{
     for_nodes as referenced_paths_for_nodes, for_space as referenced_paths_for_space,
 };

@@ -10,7 +10,7 @@ export interface SpaceScene {
   viewportY: number;
   viewportZoom: number;
   orderIndex: number;
-  focusNodeIds: string[];
+  focusStructureNodeIds: string[];
   relationKinds: SpaceRelationKind[];
   relationStatuses: SpaceRelationStatus[];
   queryFilter: SpaceSavedViewFilter;

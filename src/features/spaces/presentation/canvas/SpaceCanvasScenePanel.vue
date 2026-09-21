@@ -5,13 +5,14 @@ import { useI18n } from "vue-i18n";
 
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import type { SpaceScene } from "../../scenes/scene";
-import SpaceCanvasSceneItem from "./SpaceCanvasSceneItem.vue";
+import SpaceCanvasSceneRow from "./SpaceCanvasSceneRow.vue";
 
 const { activeSceneId, recentSceneId, saving, scenes } = defineProps<{
-  activeSceneId?: string;
-  recentSceneId?: string;
+  activeSceneId: string | undefined;
+  recentSceneId: string | undefined;
   saving: boolean;
   scenes: readonly SpaceScene[];
+  availableStructureNodeIds: ReadonlySet<string>;
 }>();
 const emit = defineEmits<{
   create: [];
@@ -53,16 +54,17 @@ watch(
       </UiIconButton>
     </header>
     <div v-if="scenes.length" ref="sceneList" class="scene-list max-h-80 overflow-y-auto p-1.5">
-      <SpaceCanvasSceneItem
+      <SpaceCanvasSceneRow
         v-for="scene in scenes"
         :key="scene.id"
         :scene="scene"
+        :invalid="scene.focusStructureNodeIds.some((id) => !availableStructureNodeIds.has(id))"
         :active="activeSceneId === scene.id"
         :recent="recentSceneId === scene.id"
         @duplicate="emit('duplicate', $event)"
         @open="emit('open', $event)"
         @remove="emit('remove', $event)"
-        @rename="(item, title) => emit('rename', item, title)"
+        @rename="(scene, title) => emit('rename', scene, title)"
         @update="emit('update', $event)"
       />
     </div>

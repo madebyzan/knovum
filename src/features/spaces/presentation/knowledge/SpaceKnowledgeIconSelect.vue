@@ -79,7 +79,7 @@ const activeEntry = computed(() => {
       >
         <SelectViewport class="space-y-0.5">
           <SelectItem
-            v-for="(item, key) in ICON_MAP"
+            v-for="(iconOption, key) in ICON_MAP"
             :key="key"
             :value="key"
             class="relative flex h-(--knovum-compact-item-height) cursor-default items-center rounded-control pr-2 pl-7 text-label outline-none data-highlighted:bg-control-hover"
@@ -89,11 +89,11 @@ const activeEntry = computed(() => {
             /></SelectItemIndicator>
             <div class="flex min-w-0 flex-1 items-center gap-2">
               <component
-                :is="item.icon"
+                :is="iconOption.icon"
                 class="size-(--knovum-icon-size-sm) shrink-0 text-foreground-secondary"
                 :stroke-width="1.6"
               />
-              <SelectItemText class="min-w-0 flex-1 truncate">{{ t(item.labelKey) }}</SelectItemText>
+              <SelectItemText class="min-w-0 flex-1 truncate">{{ t(iconOption.labelKey) }}</SelectItemText>
             </div>
           </SelectItem>
         </SelectViewport>

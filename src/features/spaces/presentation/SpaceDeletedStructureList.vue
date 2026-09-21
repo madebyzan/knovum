@@ -1,0 +1,102 @@
+<script setup lang="ts">
+import { Boxes, FileText, LayoutPanelTop, RotateCcw, Trash2 } from "@lucide/vue";
+import { useVirtualizer } from "@tanstack/vue-virtual";
+import { computed, useTemplateRef, type ComponentPublicInstance } from "vue";
+import { useI18n } from "vue-i18n";
+
+import UiIconButton from "../../../shared/ui/UiIconButton.vue";
+import type { SpaceDeletedStructureRoot } from "../deletion/deleted-structure";
+
+const props = defineProps<{ deletedRoots: readonly SpaceDeletedStructureRoot[]; busy: boolean }>();
+const emit = defineEmits<{
+  restore: [deletedRoot: SpaceDeletedStructureRoot];
+  restoreBatch: [deletedRoot: SpaceDeletedStructureRoot];
+  remove: [deletedRoot: SpaceDeletedStructureRoot];
+}>();
+const { locale, t } = useI18n();
+const scroller = useTemplateRef<HTMLDivElement>("scroller");
+const dates = computed(
+  () => new Intl.DateTimeFormat(locale.value, { dateStyle: "short", timeStyle: "short" }),
+);
+const virtualizer = useVirtualizer(
+  computed(() => ({
+    count: props.deletedRoots.length,
+    getScrollElement: () => scroller.value,
+    getItemKey: (index: number) =>
+      `${props.deletedRoots[index]!.batchId}:${props.deletedRoots[index]!.rootStructureNodeId}`,
+    estimateSize: () => 48,
+    overscan: 6,
+  })),
+);
+const rows = computed(() =>
+  virtualizer.value.getVirtualItems().map((row) => ({ row, deletedRoot: props.deletedRoots[row.index]! })),
+);
+const totalSize = computed(() => virtualizer.value.getTotalSize());
+const batchCounts = computed(() => {
+  const counts = new Map<string, number>();
+  for (const deletedRoot of props.deletedRoots) {
+    counts.set(deletedRoot.batchId, (counts.get(deletedRoot.batchId) ?? 0) + 1);
+  }
+  return counts;
+});
+
+function deletedIcon(kind: SpaceDeletedStructureRoot["kind"]) {
+  return kind === "group" ? Boxes : kind === "section" ? LayoutPanelTop : FileText;
+}
+
+function measureElement(element: Element | ComponentPublicInstance | null) {
+  const row = element instanceof Element ? element : element?.$el;
+  if (row instanceof Element) virtualizer.value.measureElement(row);
+}
+</script>
+
+<template>
+  <div ref="scroller" class="h-72 overflow-y-auto" :aria-busy="busy">
+    <div class="relative w-full" :style="{ height: `${totalSize}px` }">
+      <div
+        v-for="{ row, deletedRoot } in rows"
+        :key="`${deletedRoot.batchId}:${deletedRoot.rootStructureNodeId}`"
+        :ref="measureElement"
+        :data-index="row.index"
+        class="absolute top-0 left-0 flex min-h-12 w-full items-center gap-2 rounded-control px-2 py-1 hover:bg-control-hover"
+        :style="{ transform: `translateY(${row.start}px)` }"
+      >
+        <component
+          :is="deletedIcon(deletedRoot.kind)"
+          class="size-(--knovum-icon-size-sm) shrink-0 text-foreground-secondary"
+        />
+        <div class="min-w-0 flex-1">
+          <p class="truncate text-label font-medium">{{ deletedRoot.title }}</p>
+          <p class="truncate text-micro text-foreground-tertiary">
+            {{ deletedRoot.spaceTitle }} · {{ dates.format(deletedRoot.deletedAt) }}
+          </p>
+        </div>
+        <UiIconButton
+          :disabled="busy"
+          :label="t('spaces.navigation.restoreStructureNode')"
+          size="sm"
+          @click="emit('restore', deletedRoot)"
+        >
+          <RotateCcw class="size-(--knovum-icon-size-xs)" />
+        </UiIconButton>
+        <UiIconButton
+          v-if="(batchCounts.get(deletedRoot.batchId) ?? 0) > 1"
+          :disabled="busy"
+          :label="t('spaces.navigation.restoreDeletionOperation')"
+          size="sm"
+          @click="emit('restoreBatch', deletedRoot)"
+        >
+          <RotateCcw class="size-(--knovum-icon-size-xs)" />
+        </UiIconButton>
+        <UiIconButton
+          :disabled="busy"
+          :label="t('spaces.navigation.deletePermanently')"
+          size="sm"
+          @click="emit('remove', deletedRoot)"
+        >
+          <Trash2 class="size-(--knovum-icon-size-xs) text-danger" />
+        </UiIconButton>
+      </div>
+    </div>
+  </div>
+</template>

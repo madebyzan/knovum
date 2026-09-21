@@ -125,7 +125,7 @@ pub fn validate_actor_kind(kind: &str) -> Result<(), String> {
 }
 
 pub fn validate_confidence(value: Option<f64>) -> Result<(), String> {
-    if value.is_some_and(|item| !(0.0..=1.0).contains(&item)) {
+    if value.is_some_and(|confidence| !(0.0..=1.0).contains(&confidence)) {
         return Err("Relation confidence must be between 0 and 1".into());
     }
     Ok(())

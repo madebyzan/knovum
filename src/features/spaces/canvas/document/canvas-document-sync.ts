@@ -18,7 +18,7 @@ export function reconcileCanvasDocument(
 ): CanvasDocumentV1 {
   const current = new Map(document.nodes.map((node) => [node.nodeId, node]));
   const nextNodes = nodes.map((node, index) => synchronizeDocumentNode(node, current.get(node.id), index));
-  if (sameItems(document.nodes, nextNodes)) return document;
+  if (sameNodeSequence(document.nodes, nextNodes)) return document;
   return { ...document, nodes: nextNodes };
 }
 
@@ -50,6 +50,6 @@ function synchronizeDocumentNode(
   return current;
 }
 
-function sameItems(left: readonly unknown[], right: readonly unknown[]) {
-  return left.length === right.length && left.every((item, index) => item === right[index]);
+function sameNodeSequence(left: readonly unknown[], right: readonly unknown[]) {
+  return left.length === right.length && left.every((value, index) => value === right[index]);
 }

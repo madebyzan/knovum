@@ -6,7 +6,7 @@ import type { SpaceNodePayload } from "../model/nodes/node-payload";
 import type { SpaceUrlCaptureProjection } from "../sources/url-capture-projection";
 
 type Point = { x: number; y: number };
-type AddItem = (data: SpaceNodePayload, position?: Point) => Promise<SpaceCanvasNode[]>;
+type AddContent = (data: SpaceNodePayload, position?: Point) => Promise<SpaceCanvasNode[]>;
 type SaveNodeData = (spaceId: string, id: string, data: SpaceNodePayload) => Promise<void>;
 
 export const URL = "https://www.youtube.com/watch?v=abc123";
@@ -31,7 +31,7 @@ export function captureHarness() {
   );
   const finish = vi.fn<(id: string) => void>();
   const update = vi.fn<(id: string, patch: object) => void>();
-  const addItem = vi.fn<AddItem>(async (data, position = POSITION) => [mediaNode(data, position)]);
+  const addContent = vi.fn<AddContent>(async (data, position = POSITION) => [mediaNode(data, position)]);
   return {
     context: {
       getActiveSpaceId: () => activeSpaceId,
@@ -39,13 +39,13 @@ export function captureHarness() {
       beginUrlCapture: begin,
       updateUrlCapture: update,
       finishUrlCapture: finish,
-      addItem,
+      addContent,
       saveNodeDataForSpace: vi.fn<SaveNodeData>(),
     },
     begin,
     finish,
     update,
-    addItem,
+    addContent,
     setActiveSpace: (spaceId: string) => {
       activeSpaceId = spaceId;
     },

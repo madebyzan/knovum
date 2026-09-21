@@ -3,7 +3,6 @@ import { toast } from "vue-sonner";
 
 import { formatBytes } from "../../../foundation/format/bytes";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
-import { canvasPackageCodec } from "../canvas/canvas-package-codec";
 import type { Space } from "../model/space";
 import { useSpaceStore } from "../session/space-store";
 import { exportSpacePackage, importSpacePackage, type SpacePackageProgress } from "./transfer";
@@ -46,7 +45,6 @@ export function useSpacePackageTransfer() {
             space: target,
             commitActiveSession: store.commitActiveSession,
           },
-          canvasPackageCodec,
           progress,
         ),
       t("spaces.transfer.spaceExported"),
@@ -62,7 +60,6 @@ export function useSpacePackageTransfer() {
             spaces: store.spaces,
             openSpace: store.openSpace,
           },
-          canvasPackageCodec,
           progress,
         ),
       t("spaces.transfer.spaceImported"),

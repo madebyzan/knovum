@@ -4,7 +4,7 @@ import { computed } from "vue";
 export type FilterChipOption<V extends string = string> = V | { label: string; value: V };
 
 const props = defineProps<{
-  items: readonly (T | { label: string; value: T })[];
+  options: readonly (T | { label: string; value: T })[];
   selected?: readonly T[] | undefined;
 }>();
 
@@ -12,26 +12,26 @@ const emit = defineEmits<{
   toggle: [value: T];
 }>();
 
-const normalizedItems = computed(() =>
-  props.items.map((item) => (typeof item === "string" ? { label: item, value: item } : item)),
+const normalizedOptions = computed(() =>
+  props.options.map((option) => (typeof option === "string" ? { label: option, value: option } : option)),
 );
 </script>
 
 <template>
   <div class="flex flex-wrap gap-1">
     <button
-      v-for="item in normalizedItems"
-      :key="item.value"
+      v-for="option in normalizedOptions"
+      :key="option.value"
       type="button"
       class="rounded-control px-2 py-1 text-micro"
       :class="
-        selected?.includes(item.value)
+        selected?.includes(option.value)
           ? 'bg-selected text-foreground'
           : 'bg-control text-foreground-secondary'
       "
-      @click="emit('toggle', item.value)"
+      @click="emit('toggle', option.value)"
     >
-      {{ item.label }}
+      {{ option.label }}
     </button>
   </div>
 </template>

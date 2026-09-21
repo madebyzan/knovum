@@ -52,19 +52,6 @@ export function captureCanvasGestureLayouts(
   );
 }
 
-export function applyCanvasLayerOrder(
-  document: CanvasDocumentV1,
-  zIndices: ReadonlyMap<string, number>,
-): CanvasDocumentV1 {
-  return {
-    ...document,
-    nodes: document.nodes.map((node) => {
-      const zIndex = zIndices.get(node.nodeId);
-      return zIndex === undefined || zIndex === node.zIndex ? node : { ...node, zIndex };
-    }),
-  };
-}
-
 export function sameCanvasFrame(left: CanvasNodeFrame, right: CanvasNodeFrame) {
   return (
     left.x === right.x &&

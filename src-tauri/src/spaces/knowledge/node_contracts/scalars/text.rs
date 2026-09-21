@@ -63,7 +63,7 @@ pub(in crate::spaces::knowledge::node_contracts) fn optional_string_allow_empty(
 pub(in crate::spaces::knowledge::node_contracts) fn optional_string_array(
     object: &Map<String, Value>,
     key: &str,
-    max_items: usize,
+    max_entries: usize,
     max_chars: usize,
 ) -> Result<(), String> {
     let Some(value) = object.get(key) else {
@@ -72,8 +72,10 @@ pub(in crate::spaces::knowledge::node_contracts) fn optional_string_array(
     let values = value
         .as_array()
         .ok_or_else(|| format!("Space node data.{key} must be an array"))?;
-    if values.len() > max_items {
-        return Err(format!("Space node data.{key} exceeds {max_items} entries"));
+    if values.len() > max_entries {
+        return Err(format!(
+            "Space node data.{key} exceeds {max_entries} entries"
+        ));
     }
     for value in values {
         let text = value

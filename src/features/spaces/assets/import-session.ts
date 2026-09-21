@@ -94,15 +94,15 @@ async function finalizePreparedImport(options: FinalizePreparedImportOptions) {
   const tasks = useTaskStore();
   let nodes: SpaceCanvasNode[] = [];
   try {
-    nodes = await context.createPendingItemForSpace(
+    nodes = await context.createPendingContentForSpace(
       spaceId,
       importedSpaceNodePayload(prepared.asset),
       position,
     );
     if (typeof source !== "string") await source.finalize();
-    context.finalizePendingItems(spaceId, nodes, reveal);
+    context.finalizePendingContent(spaceId, nodes, reveal);
   } catch (error) {
-    await Promise.all(nodes.map((node) => context.discardPendingItem(spaceId, node.id)));
+    await Promise.all(nodes.map((node) => context.discardPendingContent(spaceId, node.id)));
     tasks.fail(taskId, String(error));
     throw error;
   }

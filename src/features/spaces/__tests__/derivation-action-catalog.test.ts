@@ -47,7 +47,7 @@ const indexedVideo = () =>
       assetPath: "/spaces/assets/interview.mp4",
       sourceRevision: "video:current",
       mediaKnowledge: {
-        schemaVersion: 3,
+        schemaVersion: 4,
         sourceRevision: "video:current",
         transcript: {
           language: "en",
@@ -55,7 +55,6 @@ const indexedVideo = () =>
           text: "Hello",
           segments: [{ startMs: 0, endMs: 1_000, text: "Hello" }],
           subtitleCues: [{ startMs: 0, endMs: 1_000, text: "Hello" }],
-          waveform: [],
         },
       },
     },

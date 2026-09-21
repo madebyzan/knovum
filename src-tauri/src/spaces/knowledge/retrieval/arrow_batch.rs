@@ -34,7 +34,7 @@ fn build_vector_array(
         .flat_map(|record| record.vector.iter().copied())
         .collect::<Vec<f32>>();
     let vector_values = Float32Array::from(vectors);
-    let field = Arc::new(Field::new("item", DataType::Float32, true));
+    let field = Arc::new(Field::new("value", DataType::Float32, true));
     FixedSizeListArray::try_new(field, dimensions, Arc::new(vector_values), None)
         .map_err(|error| format!("Failed to build LanceDB vector array: {error}"))
 }

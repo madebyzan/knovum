@@ -8,15 +8,18 @@ type TransformBox = Parameters<NonNullable<Konva.TransformerConfig["boundBoxFunc
 export function constrainSelectionTransform(
   currentBox: TransformBox,
   box: TransformBox,
-  activeAnchor: string | null,
-  policy: CanvasSelectionTransformPolicy,
-  stageScale: Konva.Vector2d,
+  options: {
+    activeAnchor: string | null;
+    policy: CanvasSelectionTransformPolicy;
+    stageScale: Konva.Vector2d;
+  },
 ) {
+  const { activeAnchor, policy, stageScale } = options;
   const width = Math.abs(box.width / stageScale.x);
   const height = Math.abs(box.height / stageScale.y);
   const currentWidth = Math.abs(currentBox.width / stageScale.x);
   const currentHeight = Math.abs(currentBox.height / stageScale.y);
-  const size = constrainedSize(width, height, currentWidth, currentHeight, activeAnchor, policy);
+  const size = constrainedSize({ width, height, currentWidth, currentHeight, activeAnchor, policy });
   const nextWidth = Math.sign(box.width) * size.width * stageScale.x;
   const nextHeight = Math.sign(box.height) * size.height * stageScale.y;
   return {
@@ -28,16 +31,17 @@ export function constrainSelectionTransform(
   };
 }
 
-function constrainedSize(
-  width: number,
-  height: number,
-  currentWidth: number,
-  currentHeight: number,
-  activeAnchor: string | null,
-  policy: CanvasSelectionTransformPolicy,
-) {
+function constrainedSize(options: {
+  width: number;
+  height: number;
+  currentWidth: number;
+  currentHeight: number;
+  activeAnchor: string | null;
+  policy: CanvasSelectionTransformPolicy;
+}) {
+  const { width, height, currentWidth, currentHeight, activeAnchor, policy } = options;
   if (policy.contentAspect) {
-    return contentAspectSize(width, height, currentWidth, currentHeight, policy);
+    return contentAspectSize({ width, height, currentWidth, currentHeight, policy });
   }
   if (isProportionalResizeAnchor(policy.resizeMode, activeAnchor)) {
     const baseline = policy.proportionalScale;
@@ -53,13 +57,14 @@ function constrainedSize(
   };
 }
 
-function contentAspectSize(
-  width: number,
-  height: number,
-  currentWidth: number,
-  currentHeight: number,
-  policy: CanvasSelectionTransformPolicy,
-) {
+function contentAspectSize(options: {
+  width: number;
+  height: number;
+  currentWidth: number;
+  currentHeight: number;
+  policy: CanvasSelectionTransformPolicy;
+}) {
+  const { width, height, currentWidth, currentHeight, policy } = options;
   const aspect = policy.contentAspect!;
   const minimumWidth = Math.max(
     policy.minWidth,

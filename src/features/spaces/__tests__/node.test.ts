@@ -7,19 +7,20 @@ import { validateSpaceNodePayload } from "../model/nodes/schema/node-payload";
 
 describe("createSpaceNode", () => {
   it("keeps renderer state out of the domain node contract", () => {
-    const node = createSpaceNode({ kind: "section", title: "Reference" }, { x: 40, y: 80 }, "section-1");
+    const data = createSpaceNotePayload("Reference", "Body");
+    const node = createSpaceNode(data, { x: 40, y: 80 }, "note-1");
 
     expect(node).toEqual({
-      id: "section-1",
-      type: "section",
+      id: "note-1",
+      type: "note",
       initialPosition: { x: 40, y: 80 },
-      data: { kind: "section", title: "Reference" },
+      data,
     });
   });
 
-  it("rejects current section geometry in domain data", () => {
+  it("rejects Structure fields in content data", () => {
     expect(() =>
-      validateSpaceNodePayload({ kind: "section", title: "Reference", width: 720, height: 440 }),
+      validateSpaceNodePayload({ ...createSpaceNotePayload("Reference"), sectionId: "section" }),
     ).toThrow("Unrecognized keys");
   });
 
@@ -37,10 +38,9 @@ describe("createSpaceNode", () => {
             text: "Hello",
             segments: [{ startMs: 0, endMs: 1_000, text: "Hello" }],
             subtitleCues: [{ startMs: 0, endMs: 1_000, text: "Hello" }],
-            waveform: [0.2, 0.7],
           },
           sourceRevision: "sha256:test",
-          schemaVersion: 3,
+          schemaVersion: 4,
           insights: {
             summary: "Greeting",
             chapters: [{ startMs: 0, endMs: 1_000, title: "Intro", summary: "Greeting" }],

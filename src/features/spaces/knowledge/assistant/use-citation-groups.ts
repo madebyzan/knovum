@@ -74,7 +74,9 @@ function createGroup(
   store: ReturnType<typeof useSpaceStore>,
 ): CitationGroup {
   const node =
-    citation.state === "current" ? store.nodes.find((item) => item.id === citation.nodeId) : undefined;
+    citation.state === "current"
+      ? store.nodes.find((candidate) => candidate.id === citation.nodeId)
+      : undefined;
   const fileName = node && "fileName" in node.data ? node.data.fileName : undefined;
   return omitBy(
     {

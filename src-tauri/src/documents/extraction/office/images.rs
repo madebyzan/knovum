@@ -161,10 +161,17 @@ fn collect_list(
     if depth > 64 {
         return Err("Office list nesting exceeds the processing budget".into());
     }
-    for (index, item) in list.items.iter().enumerate() {
+    for (index, entry) in list.items.iter().enumerate() {
         let prefix = format!("{prefix}/i{index}");
-        collect(&item.content, location, context, &prefix, output, depth + 1)?;
-        if let Some(nested) = &item.nested {
+        collect(
+            &entry.content,
+            location,
+            context,
+            &prefix,
+            output,
+            depth + 1,
+        )?;
+        if let Some(nested) = &entry.nested {
             collect_list(nested, location, context, &prefix, output, depth + 1)?;
         }
     }

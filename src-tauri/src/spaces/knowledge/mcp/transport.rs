@@ -25,7 +25,7 @@ pub(super) fn router(
     actor_id: String,
     cancellation: CancellationToken,
 ) -> Router {
-    let service: StreamableHttpService<SpaceMcpServer, LocalSessionManager> =
+    let mcp_transport: StreamableHttpService<SpaceMcpServer, LocalSessionManager> =
         StreamableHttpService::new(
             move || {
                 Ok(SpaceMcpServer {
@@ -40,7 +40,7 @@ pub(super) fn router(
                 .with_cancellation_token(cancellation),
         );
     Router::new()
-        .nest_service(MCP_PATH, service)
+        .nest_service(MCP_PATH, mcp_transport)
         .layer(middleware::from_fn_with_state(token, require_bearer))
 }
 

@@ -3,7 +3,6 @@ mod node_contracts;
 
 use std::collections::HashSet;
 
-use super::contracts::TransferSelectionRequest;
 use crate::spaces::db;
 
 pub(super) async fn ensure_target_space(
@@ -20,39 +19,6 @@ pub(super) async fn ensure_target_space(
     (count == 1)
         .then_some(())
         .ok_or_else(|| "Target Space does not exist or is archived".into())
-}
-
-pub(super) async fn selected_nodes(
-    tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
-    request: &TransferSelectionRequest,
-) -> Result<Vec<String>, String> {
-    let unique = super::super::dedup_and_validate_node_ids(
-        &request.ids,
-        "Space move item ID cannot be empty",
-    )?;
-    let requested_json = serde_json::to_string(&unique).map_err(db::json_error)?;
-    let rows = sqlx::query_scalar::<_, String>(
-        "SELECT id FROM spaces_nodes WHERE space_id=$1 AND deleted_at IS NULL AND kind <> 'section' \
-         AND id IN (SELECT value FROM json_each($2))",
-    )
-    .bind(&request.source_space_id)
-    .bind(requested_json)
-    .fetch_all(&mut **tx)
-    .await
-    .map_err(db::sql_error)?;
-    let found: HashSet<String> = rows.into_iter().collect();
-    if found.len() != unique.len() {
-        let missing = unique
-            .iter()
-            .filter(|id| !found.contains(*id))
-            .cloned()
-            .collect::<Vec<_>>();
-        return Err(format!(
-            "Cannot move items because these IDs are not active movable nodes in the source Space: {}",
-            missing.join(", ")
-        ));
-    }
-    Ok(unique)
 }
 
 pub(super) async fn validate_dependencies(

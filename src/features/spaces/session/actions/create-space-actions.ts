@@ -2,27 +2,37 @@ import type { SpacePlacement } from "../../canvas/navigation-requests";
 import { createInspectorActions } from "../../inspector/inspector-actions";
 import { createSpaceMediaActions } from "../../media/actions";
 import { createSpaceAudioRecordingActions } from "../../media/audio-recording-actions";
-import { createSelectionActions } from "../../organization/selection-actions";
 import { materializeActiveSpace } from "../../workspace/draft-space-actions";
 import type { SpaceSessionContext } from "../../workspace/space-session-actions";
 import type { SpaceState } from "../session-state";
 import { assembleSpaceActions } from "./assemble-space-actions";
-import { createCanvasGestureActions } from "./canvas-gesture-actions";
 import { createJsonCanvasImportActions } from "./json-canvas-import-actions";
-import { createSpaceNodeLifecycleActions } from "./node-lifecycle-actions";
 import { createSpaceMutations } from "./node-mutations";
 import { createPlacementActions } from "./placement-actions";
-import { removeSpaceRelations, type RelationContext } from "./relation-actions";
+import type { RelationContext } from "./relation-actions";
+import { createStructureActions } from "./structure-actions";
+import { createStructureTransferActions } from "./structure-transfer-actions";
 import { createSpaceViewActions } from "./view-actions";
 
 export function createSpaceActions(state: SpaceState, placement: SpacePlacement) {
   const spaceContext = createSpaceContext(state);
+  const structure = createStructureActions({
+    activeSpaceId: state.activeSpaceId,
+    editSnapshot: state.editSnapshot,
+    nodes: state.nodes,
+    relations: state.relations,
+    history: state.history,
+    ensureActiveSpacePersisted: () => materializeActiveSpace(spaceContext),
+  });
   const mutations = createSpaceMutations({
     nodes: state.nodes,
+    editSnapshot: state.editSnapshot,
+    groupScopePath: state.groupScopePath,
     activeSpaceId: state.activeSpaceId,
     history: state.history,
     nextInsertionPoint: placement.nextInsertionPoint,
     ensureActiveSpacePersisted: () => materializeActiveSpace(spaceContext),
+    recordCommittedSpaceEdit: structure.recordCommittedSpaceEdit,
   });
   const placementActions = createPlacementActions(mutations, placement, state.activeSpaceId);
   const relation: RelationContext = {
@@ -30,12 +40,6 @@ export function createSpaceActions(state: SpaceState, placement: SpacePlacement)
     relations: state.relations,
     history: state.history,
   };
-  const organization = createSelectionActions({
-    nodes: state.nodes,
-    ...mutations,
-    addItem: placementActions.addItem,
-    removeRelations: (ids) => removeSpaceRelations(relation, ids),
-  });
   const media = createSpaceMediaActions({
     nodes: state.nodes,
     analysisIds: state.mediaAnalysisIds,
@@ -50,13 +54,15 @@ export function createSpaceActions(state: SpaceState, placement: SpacePlacement)
     target: state.audioRecordingTarget,
     nextInsertionPoint: placement.nextInsertionPoint,
     ensureActiveSpacePersisted: () => materializeActiveSpace(spaceContext),
-    createPendingItemForSpace: mutations.createPendingItemForSpace,
-    finalizePendingItems: placementActions.finalizePendingItems,
+    createPendingContentForSpace: mutations.createPendingContentForSpace,
+    finalizePendingContent: placementActions.finalizePendingContent,
   });
-  const lifecycle = createSpaceNodeLifecycleActions({
+  const structureTransfer = createStructureTransferActions({
     activeSpaceId: state.activeSpaceId,
+    editSnapshot: state.editSnapshot,
     nodes: state.nodes,
     relations: state.relations,
+    recordCommittedSpaceEdit: structure.recordCommittedSpaceEdit,
   });
   const context = createInspectorActions(state, placement, media.requestMediaSeek);
   const view = createSpaceViewActions(state, placement);
@@ -65,9 +71,8 @@ export function createSpaceActions(state: SpaceState, placement: SpacePlacement)
     mutations,
     relation,
     placementActions,
-    organization,
     media,
-    lifecycle,
+    structureTransfer,
     context,
     spaceContext,
     view,
@@ -83,7 +88,7 @@ export function createSpaceActions(state: SpaceState, placement: SpacePlacement)
     ...audioRecording,
     ensureActiveSpacePersisted: () => materializeActiveSpace(spaceContext),
     ...canvasImport,
-    ...createCanvasGestureActions(state),
+    ...structure,
   };
 }
 
@@ -93,6 +98,8 @@ function createSpaceContext(state: SpaceState): SpaceSessionContext {
     draftSpace: state.draftSpace,
     activeSpaceId: state.activeSpaceId,
     nodes: state.nodes,
+    editSnapshot: state.editSnapshot,
+    groupScopePath: state.groupScopePath,
     scenes: state.scenes,
     relations: state.relations,
     ready: state.ready,

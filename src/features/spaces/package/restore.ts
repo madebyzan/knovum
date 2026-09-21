@@ -1,5 +1,4 @@
 import type { Space } from "../model/space";
-import type { CanvasPackageCodec } from "./canvas-state-codec";
 import type { ImportedSpacePackageAsset } from "./contract";
 import { createPackageIdMaps } from "./id-maps";
 import { parseSpacePackageManifest } from "./manifest-parser";
@@ -7,21 +6,17 @@ import type { SpacePackageManifest } from "./manifest-schema";
 import { buildSpacePackageRestoreRequest } from "./restore-request";
 import { restoreSpacePackageData } from "./restore-transport";
 
-export async function restoreSpacePackage(
-  manifestJson: string,
-  importedAssets: ImportedSpacePackageAsset[],
-  canvasCodec: CanvasPackageCodec,
-) {
-  const manifest = parseSpacePackageManifest(manifestJson, canvasCodec);
-  const nodeCount = manifest.nodes.filter((node) => node.kind !== "section").length;
+export async function restoreSpacePackage(manifestJson: string, importedAssets: ImportedSpacePackageAsset[]) {
+  const manifest = parseSpacePackageManifest(manifestJson);
+  const nodeCount = manifest.nodes.length;
   const space = importedSpace(manifest.space, nodeCount);
   const maps = createPackageIdMaps(manifest, space.id);
   const context = {
     manifest,
     maps,
-    assets: new Map(importedAssets.map((item) => [item.token, item.path])),
+    assets: new Map(importedAssets.map((asset) => [asset.token, asset.path])),
   };
-  await restoreSpacePackageData(buildSpacePackageRestoreRequest(context, space, canvasCodec));
+  await restoreSpacePackageData(buildSpacePackageRestoreRequest(context, space));
   return space;
 }
 

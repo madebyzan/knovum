@@ -15,12 +15,12 @@ interface AudioRecordingActionContext {
   target: Ref<SpaceAudioRecordingTarget | undefined>;
   nextInsertionPoint(): { x: number; y: number };
   ensureActiveSpacePersisted(): Promise<void>;
-  createPendingItemForSpace(
+  createPendingContentForSpace(
     spaceId: string,
     data: SpaceNodePayload,
     position: { x: number; y: number },
   ): Promise<SpaceCanvasNode[]>;
-  finalizePendingItems(spaceId: string, items: readonly SpaceCanvasNode[]): void;
+  finalizePendingContent(spaceId: string, contentNodes: readonly SpaceCanvasNode[]): void;
 }
 
 export function createSpaceAudioRecordingActions(context: AudioRecordingActionContext) {
@@ -41,9 +41,9 @@ export function createSpaceAudioRecordingActions(context: AudioRecordingActionCo
     if (!target || target.spaceId !== spaceId)
       throw new Error("Audio recording target changed before the recording was saved");
     await addImportedSpaceAsset(asset, target.position, async (data, position) => {
-      const items = await context.createPendingItemForSpace(spaceId, data, position);
-      context.finalizePendingItems(spaceId, items);
-      return items;
+      const contentNodes = await context.createPendingContentForSpace(spaceId, data, position);
+      context.finalizePendingContent(spaceId, contentNodes);
+      return contentNodes;
     });
   }
 

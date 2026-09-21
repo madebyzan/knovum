@@ -7,7 +7,7 @@ import type { createSpaceMutations } from "./node-mutations";
 
 type SpaceMutations = ReturnType<typeof createSpaceMutations>;
 
-export interface AddSpaceItemOptions {
+export interface AddSpaceContentOptions {
   reveal?: boolean;
   sourceChunks?: readonly KnowledgeChunkSeed[];
 }
@@ -17,36 +17,36 @@ export function createPlacementActions(
   placement: SpacePlacement,
   activeSpaceId: SpaceState["activeSpaceId"],
 ) {
-  async function addItem(
+  async function addContent(
     data: SpaceNodePayload,
     position?: { x: number; y: number },
-    options: AddSpaceItemOptions = {},
+    options: AddSpaceContentOptions = {},
   ) {
     const spaceId = activeSpaceId.value;
-    const items = await mutations.addItem(data, position, options.sourceChunks);
-    const ids = items.map((item) => item.id);
+    const contentNodes = await mutations.addContent(data, position, options.sourceChunks);
+    const ids = contentNodes.map((node) => node.id);
     if (activeSpaceId.value === spaceId) {
       if (options.reveal !== false) placement.requestReveal(ids);
     }
-    return items;
+    return contentNodes;
   }
-  async function addItems(
-    items: SpaceCanvasNode[],
+  async function addContents(
+    contentNodes: SpaceCanvasNode[],
     sourceChunks = new Map<string, readonly KnowledgeChunkSeed[]>(),
   ) {
     const spaceId = activeSpaceId.value;
-    const added = await mutations.addItems(items, sourceChunks);
-    const ids = added.map((item) => item.id);
+    const addedNodes = await mutations.addContents(contentNodes, sourceChunks);
+    const ids = addedNodes.map((node) => node.id);
     if (activeSpaceId.value === spaceId) {
       placement.requestReveal(ids);
     }
-    return added;
+    return addedNodes;
   }
-  function finalizePendingItems(spaceId: string, items: readonly SpaceCanvasNode[], reveal = true) {
-    mutations.commitPendingItems(spaceId, items);
+  function finalizePendingContent(spaceId: string, contentNodes: readonly SpaceCanvasNode[], reveal = true) {
+    mutations.commitPendingContent(spaceId, contentNodes);
     if (activeSpaceId.value !== spaceId) return;
-    const ids = items.map((item) => item.id);
+    const ids = contentNodes.map((node) => node.id);
     if (reveal) placement.requestReveal(ids);
   }
-  return { addItem, addItems, finalizePendingItems };
+  return { addContent, addContents, finalizePendingContent };
 }

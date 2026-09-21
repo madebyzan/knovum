@@ -44,6 +44,8 @@ export async function activateDraftSpace(
     clearSpaceHistory(context.history);
     context.activeSpaceId.value = space.id;
     context.nodes.value = [];
+    context.editSnapshot.value = { editRevision: 0, structure: [], layouts: [], relationStyles: [] };
+    context.groupScopePath.value = [];
     context.scenes.value = [];
     context.relations.value = [];
     if (!context.openSpaceIds.value.includes(space.id)) context.openSpaceIds.value.push(space.id);

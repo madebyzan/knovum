@@ -36,7 +36,7 @@ function context() {
     nodes: [
       { id: "website-1", type: "website" as const, data: { ...saved }, initialPosition: { x: 0, y: 0 } },
     ] satisfies SpaceCanvasNode[],
-    addItem: vi
+    addContent: vi
       .fn<(data: SpaceNodePayload, position?: { x: number; y: number }) => Promise<SpaceCanvasNode[]>>()
       .mockResolvedValue([]),
     saveNodeDataForSpace,

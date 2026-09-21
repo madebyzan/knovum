@@ -44,15 +44,15 @@ fn validate_index(index: &[AssetIndex], manifest: &ManifestAssets) -> Result<(),
     }
     let mut tokens = HashSet::new();
     let mut revisions = HashMap::new();
-    for item in index {
-        validation::validate_token(&item.token)?;
-        validation::validate_basename(&item.name)?;
-        if !tokens.insert(item.token.clone()) {
+    for asset in index {
+        validation::validate_token(&asset.token)?;
+        validation::validate_basename(&asset.name)?;
+        if !tokens.insert(asset.token.clone()) {
             return Err("Space package contains duplicate asset tokens".into());
         }
-        match item.source_revision.as_deref() {
+        match asset.source_revision.as_deref() {
             Some(value) if value.starts_with("sha256:") && value.len() == 71 => {
-                revisions.insert(item.token.as_str(), value);
+                revisions.insert(asset.token.as_str(), value);
             }
             _ => return Err("Space package asset index requires a SHA-256 sourceRevision".into()),
         }

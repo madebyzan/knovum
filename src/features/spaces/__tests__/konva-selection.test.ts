@@ -24,9 +24,11 @@ describe("Konva canvas selection", () => {
   it("preserves a multi-selection when an already-selected node begins a drag", () => {
     const changed = vi.fn<(selection: CanvasSelectionSnapshot) => void>();
     const selection = useCanvasSelection({
+      availableStructureNodeIds: shallowRef(new Set()),
       changed,
       layouts: shallowRef(layouts),
       relationBounds: shallowRef(new Map()),
+      structureSelectionForNode: () => undefined,
     });
 
     selection.selectNode("a", pointer());
@@ -40,9 +42,11 @@ describe("Konva canvas selection", () => {
     const changed = vi.fn<(selection: CanvasSelectionSnapshot) => void>();
     const currentLayouts = shallowRef(layouts);
     const selection = useCanvasSelection({
+      availableStructureNodeIds: shallowRef(new Set()),
       changed,
       layouts: currentLayouts,
       relationBounds: shallowRef(new Map()),
+      structureSelectionForNode: () => undefined,
     });
     selection.setNodeIds(["a", "b"]);
 

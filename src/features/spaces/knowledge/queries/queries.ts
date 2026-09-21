@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/vue-query";
 import { computed, toValue, type MaybeRefOrGetter } from "vue";
 
-import { listRecentlyDeletedNodes } from "../../nodes/node-repository";
+import { listRecentlyDeletedStructure } from "../../deletion/deleted-structure-actions";
 import {
   listKnowledgeEvents,
   listKnowledgeHealthIssues,
@@ -78,7 +78,7 @@ export function useRecentlyDeletedQuery(
   return useQuery(
     computed(() => ({
       queryKey: spaceKnowledgeQueryKeys.deleted(toValue(spaceId)),
-      queryFn: () => listRecentlyDeletedNodes(toValue(spaceId)),
+      queryFn: () => listRecentlyDeletedStructure(toValue(spaceId)),
       enabled: toValue(enabled),
     })),
   );

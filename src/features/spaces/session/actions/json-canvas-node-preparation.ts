@@ -13,7 +13,7 @@ import type { ImportedSpaceAsset } from "../../assets/imported-asset";
 import { importedSpaceNodePayload } from "../../assets/imported-asset-payload";
 import type {
   CanvasJsonImportRequest,
-  JsonCanvasImportNodeV1,
+  JsonCanvasImportContentV1,
 } from "../../canvas-exchange/json-canvas-import-contract";
 import type { PreparedJsonCanvasNode } from "../../canvas-exchange/json-canvas-import-repository";
 import { createSpaceNode } from "../../canvas/node";
@@ -23,6 +23,8 @@ import { normalizeSpaceUrl, websiteDefaultTitle } from "../../website/url";
 
 export interface JsonCanvasNodePreparation {
   nodes: PreparedJsonCanvasNode[];
+  contentIds: Map<string, string>;
+  sectionIds: Map<string, string>;
   assetPaths: string[];
   backgroundPaths: Map<string, string>;
   taskIds: string[];
@@ -33,29 +35,44 @@ export async function prepareJsonCanvasNodes(
 ): Promise<JsonCanvasNodePreparation> {
   const preparation: JsonCanvasNodePreparation = {
     nodes: [],
+    contentIds: new Map(request.plan.contents.map(({ sourceId }) => [sourceId, crypto.randomUUID()])),
+    sectionIds: new Map(request.plan.sections.map(({ sourceId }) => [sourceId, crypto.randomUUID()])),
     assetPaths: [],
     backgroundPaths: new Map(),
     taskIds: [],
   };
-  const nodeIds = new Map(request.plan.nodes.map(({ sourceId }) => [sourceId, crypto.randomUUID()]));
   try {
-    for (const source of request.plan.nodes) {
-      // oxlint-disable-next-line no-await-in-loop -- Serialization keeps every committed asset cleanup-addressable.
+    await runInOrder(request.plan.sections, async (source) => {
+      const background = source.appearance?.background;
+      if (!background) return;
+      const asset = await importCanvasResource(
+        source.sourceId,
+        request.sourceDirectory,
+        background,
+        preparation,
+      );
+      if (!asset.path) throw new Error(`JSON Canvas group ${source.sourceId} background has no managed path`);
+      preparation.backgroundPaths.set(source.sourceId, asset.path);
+    });
+    await runInOrder(request.plan.contents, async (source) => {
       const data = await nodePayload(source, request.sourceDirectory, preparation);
-      const sectionId = source.parentSourceId ? requiredNodeId(nodeIds, source.parentSourceId) : undefined;
       preparation.nodes.push({
         sourceId: source.sourceId,
         node: createSpaceNode(
-          { ...data, ...(sectionId ? { sectionId } : {}) } as SpaceNodePayload,
+          data,
           { x: source.frame.x, y: source.frame.y },
-          requiredNodeId(nodeIds, source.sourceId),
+          requiredNodeId(preparation.contentIds, source.sourceId),
         ),
       });
-    }
+    });
     return preparation;
   } catch (error) {
     return discardJsonCanvasPreparation(preparation, error);
   }
+}
+
+function runInOrder<T>(values: readonly T[], operation: (value: T) => Promise<void>) {
+  return values.reduce((previous, value) => previous.then(() => operation(value)), Promise.resolve());
 }
 
 export function completeJsonCanvasPreparation(preparation: JsonCanvasNodePreparation) {
@@ -80,25 +97,13 @@ export async function discardJsonCanvasPreparation(
 }
 
 async function nodePayload(
-  source: JsonCanvasImportNodeV1,
+  source: JsonCanvasImportContentV1,
   sourceDirectory: string,
   preparation: JsonCanvasNodePreparation,
 ): Promise<SpaceNodePayload> {
   const content = source.content;
   if (content.type === "text") return noteFromPlainText(content.text, i18n.global.t("spaces.editor.newNote"));
   if (content.type === "link") return websitePayload(content.url);
-  if (content.type === "group") {
-    const background = source.appearance?.background;
-    if (background) {
-      const asset = await importCanvasResource(source.sourceId, sourceDirectory, background, preparation);
-      if (!asset.path) throw new Error(`JSON Canvas group ${source.sourceId} background has no managed path`);
-      preparation.backgroundPaths.set(source.sourceId, asset.path);
-    }
-    return {
-      kind: "section",
-      title: content.label?.trim() || i18n.global.t("spaces.canvas.untitledSection"),
-    };
-  }
   return importFilePayload(source.sourceId, sourceDirectory, content.file, preparation);
 }
 
@@ -128,7 +133,7 @@ async function importCanvasResource(
 ): Promise<ImportedSpaceAsset> {
   const sourcePath = await resolveCanvasFile(sourceId, sourceDirectory, relativePath);
   const tasks = useTaskStore();
-  const taskId = tasks.start(i18n.global.t("spaces.transfer.importingItem"));
+  const taskId = tasks.start(i18n.global.t("spaces.transfer.importingResource"));
   preparation.taskIds.push(taskId);
   const prepared = await prepareSpaceAssetImport(sourcePath, "scoped");
   tasks.title(taskId, prepared.asset.name);

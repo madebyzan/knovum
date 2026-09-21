@@ -4,8 +4,6 @@ use tokio::sync::OnceCell;
 
 static SPACE_DATABASE: OnceCell<SqlitePool> = OnceCell::const_new();
 static MIGRATOR: sqlx::migrate::Migrator = sqlx::migrate!("./migrations/spaces");
-mod document_reset;
-
 pub async fn pool<R: Runtime>(app: &AppHandle<R>) -> Result<&'static SqlitePool, String> {
     SPACE_DATABASE
         .get_or_try_init(|| async {
@@ -13,7 +11,6 @@ pub async fn pool<R: Runtime>(app: &AppHandle<R>) -> Result<&'static SqlitePool,
             migrate(&pool)
                 .await
                 .map_err(|error| format!("Failed to migrate Spaces database: {error}"))?;
-            document_reset::complete(&pool).await?;
             crate::spaces::assets::reclaim_orphan_managed_assets(app, &pool).await?;
             Ok(pool)
         })

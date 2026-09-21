@@ -23,7 +23,7 @@ function locationLabel(location: KnowledgeLocation) {
   if (location.kind === "markdown") return markdownLocationLabel(location);
   if (location.kind === "website") return websiteLocationLabel(location);
   if (location.kind === "code") return codeLocationLabel(location);
-  return location.kind === "note" ? "Note" : "Space item";
+  return location.kind === "note" ? "Note" : "Space content";
 }
 
 function wordLocationLabel(location: Extract<KnowledgeLocation, { kind: "word" }>) {

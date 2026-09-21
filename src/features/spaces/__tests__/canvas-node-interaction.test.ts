@@ -28,21 +28,21 @@ describe("canvas node interaction policy", () => {
         canvasNode("file", {
           kind: "file",
           title: "archive.zip",
+          assetPath: "/archive.zip",
+          fileName: "archive.zip",
           entries: [{ path: "file.txt", kind: "file" }],
         }),
       ).activationMode,
     ).toBe("select-to-interact");
-    expect(canvasNodeInteraction(canvasNode("file", { kind: "file", title: "doc.pdf" })).activationMode).toBe(
-      "primary",
-    );
     expect(
-      canvasNodeInteraction(canvasNode("section", { kind: "section", title: "Section" })).activationMode,
+      canvasNodeInteraction(
+        canvasNode("file", { kind: "file", title: "doc.pdf", assetPath: "/doc.pdf", fileName: "doc.pdf" }),
+      ).activationMode,
     ).toBe("primary");
   });
 
-  it("keeps section and navigation nodes out of connector creation", () => {
+  it("keeps navigation and secure nodes out of connector creation", () => {
     for (const node of [
-      canvasNode("section", { kind: "section", title: "Section" }),
       canvasNode("portal", { kind: "portal", title: "Portal", targetSpaceId: "space" }),
       canvasNode("credential", { kind: "credential", title: "Credential", credentialKind: "api-key" }),
     ]) {
@@ -54,17 +54,14 @@ describe("canvas node interaction policy", () => {
     expect(canvasNodeInteraction(canvasNode("text", createSpaceTextPayload("Text"))).connectable).toBe(true);
   });
 
-  it("projects fixed and collapsed nodes as move-only selections", () => {
+  it("projects fixed nodes as move-only selections", () => {
     const fixed = canvasNode("audio", {
       kind: "audio",
       title: "Audio",
       assetPath: "/audio.wav",
       fileName: "audio.wav",
     });
-    const collapsed = canvasNode("section", { kind: "section", title: "Section", collapsed: true });
-
     expect(canvasNodeInteraction(fixed).transform.resizeMode).toBe("fixed");
-    expect(canvasNodeInteraction(collapsed).transform.resizeMode).toBe("fixed");
   });
 
   it("uses the selected node's semantic bounds and aspect policy", () => {
@@ -126,7 +123,7 @@ function layout(nodeId: string) {
   return {
     nodeId,
     frame: { x: 0, y: 0, width: 300, height: 220, rotation: 0 },
-    sizeAuthority: "frame",
+    sizeAuthority: "frame" as const,
     zIndex: 0,
   };
 }

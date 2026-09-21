@@ -6,19 +6,20 @@ import {
   queryMatchingNodes,
   relationNeighborhood,
 } from "../../knowledge/model/relation-graph";
-import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
+import { createStructureIndex } from "../../model/structure/structure-index";
+import { contentNodeIdsWithin } from "../../model/structure/structure-queries";
 import type { SpaceState } from "../session-state";
 
 export function createSpaceViewActions(state: SpaceState, placement: SpacePlacement) {
   function focusSection(id: string) {
-    state.canvasFocusIds.value = state.nodes.value
-      .filter((node) => node.id === id || node.data.sectionId === id)
-      .map((node) => node.id);
+    state.canvasFocusIds.value = contentNodeIdsWithin(
+      [id],
+      createStructureIndex(state.editSnapshot.value.structure),
+    );
   }
 
   function focusNeighborhood(id: string, depth = 1) {
     const ids = relationNeighborhood(state.relations.value, [id], depth);
-    includeParentSections(ids, state.nodes.value);
     state.canvasFocusIds.value = [...ids];
   }
 
@@ -26,7 +27,6 @@ export function createSpaceViewActions(state: SpaceState, placement: SpacePlacem
     const path = findSemanticRelationPath(state.relations.value, sourceId, targetId);
     if (!path.length) return false;
     const ids = new Set(path);
-    includeParentSections(ids, state.nodes.value);
     state.canvasFocusIds.value = [...ids];
     return true;
   }
@@ -40,9 +40,11 @@ export function createSpaceViewActions(state: SpaceState, placement: SpacePlacem
     state.savedQueryFilter.value = snapshotSpaceQueryFilter(scene.queryFilter);
     const dynamicIds = hasQueryFilter(scene.queryFilter)
       ? queryMatchingNodes(state.nodes.value, state.relations.value, scene.queryFilter).map((node) => node.id)
-      : scene.focusNodeIds;
+      : contentNodeIdsWithin(
+          scene.focusStructureNodeIds,
+          createStructureIndex(state.editSnapshot.value.structure),
+        );
     const ids = new Set<string>(dynamicIds as string[]);
-    includeParentSections(ids, state.nodes.value);
     state.canvasFocusIds.value = [...ids];
     placement.requestViewport(viewport);
     placement.announceScene(scene, "opened");
@@ -57,12 +59,6 @@ export function createSpaceViewActions(state: SpaceState, placement: SpacePlacem
     },
     openSceneView,
   };
-}
-
-function includeParentSections(ids: Set<string>, nodes: readonly SpaceCanvasNode[]) {
-  for (const node of nodes) {
-    if (ids.has(node.id) && node.data.sectionId) ids.add(node.data.sectionId);
-  }
 }
 
 function hasQueryFilter(filter: SpaceSavedViewFilter) {

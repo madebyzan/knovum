@@ -44,12 +44,12 @@ fn citations_include_explicit_index() {
     ];
     let generated = prompt::citations("Claims from [C2] and [C1].", &sources, "space")
         .expect("citations to parse");
-    let items = generated.as_array().expect("array of citations");
-    assert_eq!(items.len(), 2);
-    assert_eq!(items[0]["index"], 2);
-    assert_eq!(items[0]["nodeTitle"], "Title 2");
-    assert_eq!(items[1]["index"], 1);
-    assert_eq!(items[1]["nodeTitle"], "Title 1");
+    let citations = generated.as_array().expect("array of citations");
+    assert_eq!(citations.len(), 2);
+    assert_eq!(citations[0]["index"], 2);
+    assert_eq!(citations[0]["nodeTitle"], "Title 2");
+    assert_eq!(citations[1]["index"], 1);
+    assert_eq!(citations[1]["nodeTitle"], "Title 1");
 }
 
 #[test]
@@ -64,8 +64,8 @@ fn citations_drop_indices_that_reference_no_source() {
     })];
     let generated = prompt::citations("Under [C0], valid [C1], beyond [C7].", &sources, "space")
         .expect("citations to parse");
-    let items = generated.as_array().expect("array of citations");
-    assert_eq!(items.len(), 1);
-    assert_eq!(items[0]["index"], 1);
-    assert_eq!(items[0]["nodeTitle"], "Title 1");
+    let citations = generated.as_array().expect("array of citations");
+    assert_eq!(citations.len(), 1);
+    assert_eq!(citations[0]["index"], 1);
+    assert_eq!(citations[0]["nodeTitle"], "Title 1");
 }

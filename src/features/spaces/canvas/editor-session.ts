@@ -11,6 +11,7 @@ const activeEditor = shallowRef<CanvasEditorPort>();
 const viewport = shallowRef<CanvasViewport>();
 const emptySelection: CanvasSelectionSnapshot = {
   nodeIds: [],
+  structureNodeIds: [],
   nodePlacements: [],
   relationIds: [],
 };
@@ -39,10 +40,12 @@ export function useCanvasEditorSession() {
     transitioning: readonly(transitioning),
     selection: readonly(selection),
     viewport,
-    clearSelection: () => activeEditor.value?.selectNodes([]),
+    clearSelection: () => activeEditor.value?.clearSelection(),
     reveal: (nodeIds: readonly string[], mode: "ensure-visible" | "focus") =>
       activeEditor.value?.reveal(nodeIds, mode),
     selectNodes: (nodeIds: readonly string[]) => activeEditor.value?.selectNodes(nodeIds),
+    selectStructureNodes: (structureNodeIds: readonly string[]) =>
+      activeEditor.value?.selectStructureNodes(structureNodeIds),
   };
 }
 

@@ -150,7 +150,7 @@ fn add_ranked(target: &mut HashMap<String, (Value, f64)>, values: Vec<Value>, sc
             continue;
         };
         let Some(original_score) = value.get("score").and_then(Value::as_f64) else {
-            log::warn!("retrieval result item for chunk {chunk_id} missing valid score");
+            log::warn!("retrieval result for chunk {chunk_id} is missing a valid score");
             continue;
         };
         let rank_score = 1.0 / (61.0 + index as f64);

@@ -28,7 +28,5 @@ export function spaceNodeSummary(data: SpaceNodePayload) {
       return data.summary ?? data.objectTypeId;
     case "portal":
       return data.targetSceneId ? "Linked scene" : "Linked space";
-    case "section":
-      return "";
   }
 }

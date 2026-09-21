@@ -2,7 +2,8 @@ import { useEventListener } from "@vueuse/core";
 import type Konva from "konva";
 import { onScopeDispose, shallowRef, watch, type Ref } from "vue";
 
-import type { CanvasPoint } from "../../contract/canvas-editor";
+import { SECTION_DEFAULT_SIZE, SECTION_MINIMUM_SIZE } from "../../../model/structure/section-metrics";
+import type { CanvasPoint, CanvasRect } from "../../contract/canvas-editor-port";
 import type { CanvasTool } from "../../contract/canvas-tool";
 import type { useCanvasSelection } from "../selection/use-canvas-selection";
 import type { useStageViewport } from "../viewport/use-stage-viewport";
@@ -14,11 +15,14 @@ interface PointerInteractionOptions {
   viewport: ReturnType<typeof useStageViewport>;
   tool: Readonly<Ref<CanvasTool>>;
   createTextNode(kind: "note" | "text", point: CanvasPoint): Promise<void>;
+  createSection(frame: CanvasRect): Promise<void>;
   reportError(error: unknown): void;
 }
 
 export function usePointerInteractions(options: PointerInteractionOptions) {
   const lastCanvasPoint = shallowRef<CanvasPoint>();
+  const sectionDraft = shallowRef<CanvasRect>();
+  let sectionOrigin: CanvasPoint | undefined;
   let capturedPointer: { element: Element; id: number } | undefined;
   let pressedSelection: { id: number; nodeId: string; origin: CanvasPoint; moved: boolean } | undefined;
   let creating = false;
@@ -53,11 +57,14 @@ export function usePointerInteractions(options: PointerInteractionOptions) {
       if (distance >= 3) pressedSelection.moved = true;
     }
     if (options.viewport.panning.value) options.viewport.movePan(event);
+    else if (sectionOrigin && lastCanvasPoint.value)
+      sectionDraft.value = sectionFrame(sectionOrigin, lastCanvasPoint.value);
     else options.selection.moveMarquee(event);
   }
   function pointerUp(event?: PointerEvent) {
     if (event && capturedPointer && capturedPointer.id !== event.pointerId) return;
     if (options.viewport.panning.value) options.viewport.endPan(event);
+    else if (sectionOrigin) finishSection();
     else options.selection.endMarquee();
     if (pressedSelection && (!event || pressedSelection.id === event.pointerId)) {
       if (!pressedSelection.moved) options.selection.setNodeIds([pressedSelection.nodeId]);
@@ -70,6 +77,8 @@ export function usePointerInteractions(options: PointerInteractionOptions) {
     options.cancelActiveGesture();
     options.viewport.endPan();
     options.selection.cancelMarquee();
+    sectionOrigin = undefined;
+    sectionDraft.value = undefined;
     pressedSelection = undefined;
     releaseCapture();
   }
@@ -97,16 +106,22 @@ export function usePointerInteractions(options: PointerInteractionOptions) {
     const tool = options.tool.value;
     if (event.evt.button !== 0 || tool === "select" || tool === "pan") return false;
     const point = lastCanvasPoint.value;
-    if (point && !creating) {
-      creating = true;
-      void options
-        .createTextNode(tool, point)
-        .catch(options.reportError)
-        .finally(() => {
-          creating = false;
-        });
-    }
+    if (tool === "section" && point) beginSection(point);
+    else if (point && !creating && isTextCreationTool(tool)) createTextNode(tool, point);
     return true;
+  }
+  function beginSection(point: CanvasPoint) {
+    sectionOrigin = { ...point };
+    sectionDraft.value = { ...point, ...SECTION_DEFAULT_SIZE };
+  }
+  function createTextNode(tool: "note" | "text", point: CanvasPoint) {
+    creating = true;
+    void options
+      .createTextNode(tool, point)
+      .catch(options.reportError)
+      .finally(() => {
+        creating = false;
+      });
   }
   function capture(event: PointerEvent) {
     const element = event.currentTarget;
@@ -126,5 +141,44 @@ export function usePointerInteractions(options: PointerInteractionOptions) {
     capturedPointer = undefined;
     if (element.hasPointerCapture(id)) element.releasePointerCapture(id);
   }
-  return { lastCanvasPoint, nodePointerDown, pointerCancel, pointerDown, pointerMove, pointerUp };
+  function finishSection() {
+    const frame = sectionDraft.value;
+    sectionOrigin = undefined;
+    sectionDraft.value = undefined;
+    if (!frame || creating) return;
+    creating = true;
+    void options
+      .createSection(frame)
+      .catch(options.reportError)
+      .finally(() => {
+        creating = false;
+      });
+  }
+  return {
+    lastCanvasPoint,
+    nodePointerDown,
+    pointerCancel,
+    pointerDown,
+    pointerMove,
+    pointerUp,
+    sectionDraft,
+  };
+}
+
+function isTextCreationTool(tool: CanvasTool): tool is "note" | "text" {
+  return tool === "note" || tool === "text";
+}
+
+function sectionFrame(origin: CanvasPoint, point: CanvasPoint): CanvasRect {
+  const dx = point.x - origin.x;
+  const dy = point.y - origin.y;
+  if (Math.hypot(dx, dy) < 4) return { ...origin, ...SECTION_DEFAULT_SIZE };
+  const width = Math.max(Math.abs(dx), SECTION_MINIMUM_SIZE.width);
+  const height = Math.max(Math.abs(dy), SECTION_MINIMUM_SIZE.height);
+  return {
+    x: dx < 0 ? origin.x - width : origin.x,
+    y: dy < 0 ? origin.y - height : origin.y,
+    width,
+    height,
+  };
 }

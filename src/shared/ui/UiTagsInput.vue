@@ -65,9 +65,9 @@ const rootProps = computed(() => ({
     "
   >
     <TagsInputItem
-      v-for="(item, index) in model"
+      v-for="(tag, index) in model"
       :key="index"
-      :value="item"
+      :value="tag"
       class="inline-flex h-(--knovum-control-height-sm) items-center gap-1 rounded-control bg-control pr-1 pl-2 text-caption text-foreground select-none data-disabled:opacity-40"
     >
       <TagsInputItemText class="text-caption font-medium" />

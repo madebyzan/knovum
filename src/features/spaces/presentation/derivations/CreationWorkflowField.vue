@@ -2,7 +2,7 @@
 import { useI18n } from "vue-i18n";
 
 import type { CreationWorkflow } from "../../../../foundation/ai/ai-models";
-import PresetSelectField from "./PresetSelectField.vue";
+import CreationLibraryRecordField from "./CreationLibraryRecordField.vue";
 
 interface CreationWorkflowFieldProps {
   workflowId: string;
@@ -31,21 +31,21 @@ function createWorkflow(): CreationWorkflow | undefined {
 </script>
 
 <template>
-  <PresetSelectField
+  <CreationLibraryRecordField
     :label="t('spaces.creation.workflow')"
     :empty-label="t('spaces.creation.noWorkflows')"
     :placeholder="t('spaces.creation.selectWorkflow')"
     :save-label="t('spaces.creation.saveWorkflow')"
     :saved-success-message="t('spaces.creation.workflowSaved')"
     :save-disabled="!name.trim() || !complete"
-    :filter-items="
-      (s) =>
-        s.creationWorkflows.filter(
-          (item) => item.workflowId === workflowId && item.workflowVersion === workflowVersion,
+    :filter-records="
+      (library) =>
+        library.creationWorkflows.filter(
+          (workflow) => workflow.workflowId === workflowId && workflow.workflowVersion === workflowVersion,
         )
     "
-    :create-item="createWorkflow"
-    :add-item-to-settings="(s, item) => s.creationWorkflows.push(item)"
+    :create-record="createWorkflow"
+    :add-record-to-library="(library, workflow) => library.creationWorkflows.push(workflow)"
     @apply="(workflow) => emit('apply', workflow)"
   />
 </template>

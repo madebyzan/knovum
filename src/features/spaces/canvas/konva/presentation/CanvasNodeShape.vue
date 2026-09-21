@@ -10,7 +10,7 @@ import type { CanvasPalette } from "./use-canvas-palette";
 
 const props = defineProps<{
   interactive: boolean;
-  item: CanvasSceneNode;
+  sceneNode: CanvasSceneNode;
   palette: CanvasPalette;
   zoom: number;
 }>();
@@ -22,22 +22,15 @@ const emit = defineEmits<{
   pointerDown: [nodeId: string, event: Konva.KonvaEventObject<PointerEvent>];
 }>();
 
-const frame = computed(() => props.item.layout.frame);
-const isSection = computed(() => props.item.node.data.kind === "section");
-const appearanceColor = computed(() => {
-  const appearance = props.item.layout.appearance;
-  if (appearance?.customFill) return appearance.customFill;
-  const fill = appearance?.fill;
-  return fill ? props.palette.noteFill[fill] : undefined;
-});
+const frame = computed(() => props.sceneNode.layout.frame);
 const groupConfig = computed(() => ({
-  id: `canvas-node-${props.item.node.id}`,
+  id: `canvas-node-${props.sceneNode.node.id}`,
   name: "canvas-node",
-  nodeId: props.item.node.id,
+  nodeId: props.sceneNode.node.id,
   x: frame.value.x,
   y: frame.value.y,
   rotation: frame.value.rotation,
-  draggable: props.interactive && props.item.interaction.movable,
+  draggable: props.interactive && props.sceneNode.interaction.movable,
 }));
 
 function moveToLayer(event: Konva.KonvaEventObject<DragEvent>, layerId: string) {
@@ -47,35 +40,30 @@ function moveToLayer(event: Konva.KonvaEventObject<DragEvent>, layerId: string) 
 
 function beginDrag(event: Konva.KonvaEventObject<DragEvent>) {
   moveToLayer(event, "canvas-drag-layer");
-  emit("dragStart", props.item.node.id);
+  emit("dragStart", props.sceneNode.node.id);
 }
 
 function finishDrag(event: Konva.KonvaEventObject<DragEvent>) {
   moveToLayer(event, "canvas-node-layer");
-  emit("dragEnd", props.item.node.id);
+  emit("dragEnd", props.sceneNode.node.id);
 }
 </script>
 
 <template>
   <KonvaGroup
     :config="groupConfig"
-    @dblclick="interactive && emit('activate', item.node.id)"
+    @dblclick="interactive && emit('activate', sceneNode.node.id)"
     @dragend="finishDrag"
-    @dragmove="emit('dragMove', item.node.id, $event)"
+    @dragmove="emit('dragMove', sceneNode.node.id, $event)"
     @dragstart="beginDrag"
-    @pointerdown="emit('pointerDown', item.node.id, $event)"
+    @pointerdown="emit('pointerDown', sceneNode.node.id, $event)"
   >
     <KonvaRect
       :config="{
         width: frame.width,
         height: frame.height,
-        fill: isSection ? (appearanceColor ?? palette.surface) : 'transparent',
-        opacity: isSection && appearanceColor ? 0.14 : 1,
-        stroke: appearanceColor ?? palette.border,
-        strokeEnabled: isSection,
-        strokeWidth: 1 / zoom,
-        cornerRadius: isSection ? 8 : 10,
-        dash: isSection ? [7 / zoom, 5 / zoom] : undefined,
+        fill: 'transparent',
+        cornerRadius: 10,
         perfectDrawEnabled: false,
       }"
     />

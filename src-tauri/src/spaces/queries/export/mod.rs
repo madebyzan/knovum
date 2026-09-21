@@ -36,7 +36,9 @@ pub async fn collect_space_package_snapshot<R: Runtime>(
     let creation_workflow_runs = workflow_runs::rows(&mut tx, &space_id).await?;
     let mut assets = package_assets::PackageAssets::default();
     let nodes = rows::nodes(&mut tx, &space_id, &mut assets).await?;
-    let canvas_state = rows::canvas_state(&mut tx, &space_id).await?;
+    let (mut structure, _) =
+        crate::spaces::structure::repository::load_in_transaction(&mut tx, &space_id).await?;
+    rows::package_layout_assets(&mut structure.layouts, &mut assets)?;
     let chunks = rows::chunks(&mut tx, &space_id).await?;
     let ai_threads = rows::threads(&mut tx, &space_id).await?;
     let ai_messages = rows::messages(&mut tx, &space_id).await?;
@@ -64,7 +66,9 @@ pub async fn collect_space_package_snapshot<R: Runtime>(
         "version": PACKAGE_VERSION,
         "exportedAt": exported_at,
         "space": space,
-        "canvasState": canvas_state,
+        "structureNodes": structure.structure,
+        "layouts": structure.layouts,
+        "relationStyles": structure.relation_styles,
         "nodes": nodes,
         "scenes": scenes,
         "relations": relations,

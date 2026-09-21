@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 
-import { canvasPackageCodec } from "../canvas/canvas-package-codec";
 import { prepareSpaceKnowledgePayload } from "../knowledge/model/node-knowledge";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
 import { parseSpacePackageManifest } from "../package/manifest-parser";
@@ -16,20 +15,17 @@ function manifest() {
     format: "knovum-space",
     version: 1,
     exportedAt: 10,
-    canvasState: {
-      document: {
-        version: 1,
-        viewport: { x: 0, y: 0, zoom: 1 },
-        nodes: [
-          {
-            nodeId: "n",
-            frame: { x: 0, y: 0, width: 320, height: 180, rotation: 0 },
-            sizeAuthority: "frame",
-            zIndex: 0,
-          },
-        ],
+    structureNodes: [{ id: "n", parentId: null, order: 0, locked: false, kind: "content", nodeId: "n" }],
+    layouts: [
+      {
+        structureNodeId: "n",
+        kind: "content",
+        transform: { x: 0, y: 0, rotation: 0, scale: 1 },
+        size: { width: 320, height: 180 },
+        sizeAuthority: "frame",
       },
-    },
+    ],
+    relationStyles: [],
     space: {
       id: "s",
       kind: "space",
@@ -86,7 +82,7 @@ function manifest() {
 
 describe("Space package manifest parser", () => {
   it("accepts regenerated canonical citations and detached historical snapshots", () => {
-    const parsed = parseSpacePackageManifest(JSON.stringify(manifest()), canvasPackageCodec);
+    const parsed = parseSpacePackageManifest(JSON.stringify(manifest()));
     expect(parsed.version).toBe(1);
     expect(parsed.aiMessages[0]?.citations.map((citation) => citation.state)).toEqual([
       "current",
@@ -97,16 +93,14 @@ describe("Space package manifest parser", () => {
   it("accepts All-Spaces threads with detached external citation snapshots", () => {
     const value = manifest();
     value.aiThreads[0]!.scope = "all-spaces";
-    expect(() => parseSpacePackageManifest(JSON.stringify(value), canvasPackageCodec)).not.toThrow();
+    expect(() => parseSpacePackageManifest(JSON.stringify(value))).not.toThrow();
   });
 
   it("rejects a canonical citation whose snapshot revision is stale", () => {
     const value = manifest();
     value.aiMessages[0]!.citations[0]!.sourceRevision = "node1:stale";
     value.aiMessages[0]!.citations[0]!.locator.sourceRevision = "node1:stale";
-    expect(() => parseSpacePackageManifest(JSON.stringify(value), canvasPackageCodec)).toThrow(
-      /canonical citation revision/u,
-    );
+    expect(() => parseSpacePackageManifest(JSON.stringify(value))).toThrow(/canonical citation revision/u);
   });
 
   it("rejects derivations that reference unavailable nodes", () => {
@@ -125,17 +119,13 @@ describe("Space package manifest parser", () => {
       updatedAt: 2,
       completedAt: 2,
     });
-    expect(() => parseSpacePackageManifest(JSON.stringify(value), canvasPackageCodec)).toThrow(
-      /unavailable node/u,
-    );
+    expect(() => parseSpacePackageManifest(JSON.stringify(value))).toThrow(/unavailable node/u);
   });
 
-  it("rejects canvas state that copies domain content into the layout document", () => {
+  it("rejects layout data that copies domain content into the structure contract", () => {
     const value = manifest();
-    Object.assign(value.canvasState.document.nodes[0]!, { title: "duplicated content" });
+    Object.assign(value.layouts[0]!, { title: "duplicated content" });
 
-    expect(() => parseSpacePackageManifest(JSON.stringify(value), canvasPackageCodec)).toThrow(
-      /unrecognized_keys/u,
-    );
+    expect(() => parseSpacePackageManifest(JSON.stringify(value))).toThrow(/unrecognized_keys/u);
   });
 });

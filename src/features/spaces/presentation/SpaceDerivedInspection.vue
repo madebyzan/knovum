@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Sparkles, TriangleAlert } from "@lucide/vue";
-import { computed, ref, toRef } from "vue";
+import { computed, shallowRef, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
@@ -8,6 +8,7 @@ import { refreshSpaceAsset } from "../assets/asset-operations";
 import { useDerivationMetadata } from "../knowledge-derivations/use-derivation-metadata";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { isSpaceManagedAssetPayload } from "../model/nodes/capabilities";
+import { createStructureIndex } from "../model/structure/structure-index";
 import { useSpaceStore } from "../session/space-store";
 import SpaceGroundedDocumentDetails from "./knowledge/SpaceGroundedDocumentDetails.vue";
 import SpaceDerivationFailureDetails from "./SpaceDerivationFailureDetails.vue";
@@ -20,7 +21,7 @@ const store = useSpaceStore();
 const nodeRef = toRef(props, "node");
 const { documentMetadata, imageMetadata, videoMetadata, failure } = useDerivationMetadata(nodeRef);
 
-const retrying = ref(false);
+const retrying = shallowRef(false);
 const canRetry = computed(() => {
   if (!props.node) return false;
   return isSpaceManagedAssetPayload(props.node.data) || props.node.data.kind === "markdown";
@@ -51,6 +52,14 @@ async function onRetry() {
     retrying.value = false;
   }
 }
+
+async function removeFailedOutput() {
+  const structureNodeId = createStructureIndex(store.editSnapshot.structure).nodeIdToStructureNodeId.get(
+    props.node.id,
+  );
+  if (!structureNodeId) throw new Error("Derived output is unavailable in the Space structure");
+  await store.executeSpaceEdit({ kind: "structure.delete-subtrees", rootIds: [structureNodeId] });
+}
 </script>
 
 <template>
@@ -65,7 +74,7 @@ async function onRetry() {
       :can-retry="canRetry"
       :retrying="retrying"
       @retry="onRetry"
-      @remove="store.deleteSelection([node.id])"
+      @remove="removeFailedOutput"
     />
   </SpaceInspectorSection>
 

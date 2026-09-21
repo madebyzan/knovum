@@ -41,7 +41,7 @@ pub(crate) fn schema(dimensions: i32) -> Schema {
         Field::new(
             VECTOR_COLUMN,
             DataType::FixedSizeList(
-                Arc::new(Field::new("item", DataType::Float32, true)),
+                Arc::new(Field::new("value", DataType::Float32, true)),
                 dimensions,
             ),
             false,

@@ -9,7 +9,7 @@ pub(crate) fn authoritative(data: &Value) -> Result<Option<String>, String> {
             "Space node data.kind is required before computing its Knowledge revision".into(),
         );
     };
-    if matches!(kind, "credential" | "section" | "portal" | "text") {
+    if matches!(kind, "credential" | "portal" | "text") {
         return Ok(None);
     }
     let object = data
@@ -123,7 +123,7 @@ fn insert_if_present(target: &mut Map<String, Value>, source: &Map<String, Value
 
 fn sanitize(value: &Value) -> Value {
     match value {
-        Value::Array(items) => Value::Array(items.iter().map(sanitize).collect()),
+        Value::Array(values) => Value::Array(values.iter().map(sanitize).collect()),
         Value::Object(object) => {
             let image_node = object.get("type").and_then(Value::as_str) == Some("image");
             let mut sanitized = Map::new();

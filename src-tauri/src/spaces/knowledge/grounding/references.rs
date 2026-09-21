@@ -76,11 +76,11 @@ async fn detach_matching_citations(
         let id: String = row.try_get("id").map_err(db::sql_error)?;
         let raw: String = row.try_get("citations").map_err(db::sql_error)?;
         let mut citations: Value = serde_json::from_str(&raw).map_err(db::json_error)?;
-        let Some(items) = citations.as_array_mut() else {
+        let Some(citation_records) = citations.as_array_mut() else {
             continue;
         };
         let mut changed = false;
-        for citation in items {
+        for citation in citation_records {
             if citation.get("state").and_then(Value::as_str) == Some("detached") {
                 continue;
             }

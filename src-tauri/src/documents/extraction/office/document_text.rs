@@ -75,7 +75,7 @@ fn append_element(text: &mut Text, element: &Element, depth: usize) -> Result<()
 
 fn append_list(text: &mut Text, list: &List, depth: usize) -> Result<(), String> {
     ensure_depth(depth)?;
-    for (index, item) in list.items.iter().enumerate() {
+    for (index, entry) in list.items.iter().enumerate() {
         text.line()?;
         if list.ordered {
             text.append(&format!(
@@ -85,8 +85,8 @@ fn append_list(text: &mut Text, list: &List, depth: usize) -> Result<(), String>
         } else {
             text.append("• ")?;
         }
-        append_elements(text, &item.content, depth + 1)?;
-        if let Some(nested) = &item.nested {
+        append_elements(text, &entry.content, depth + 1)?;
+        if let Some(nested) = &entry.nested {
             append_list(text, nested, depth + 1)?;
         }
     }

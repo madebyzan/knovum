@@ -26,10 +26,10 @@ const emit = defineEmits<{
 }>();
 const { t } = useI18n();
 const editorSession = useCanvasEditorSession();
-const visibleCaptures = computed(() => props.captures.filter((item) => item.spaceId === props.spaceId));
+const visibleCaptures = computed(() => props.captures.filter((capture) => capture.spaceId === props.spaceId));
 
-function captureStyle(item: SpaceUrlCaptureProjection) {
-  const position = props.canvasToViewportPoint(item.position);
+function captureStyle(capture: SpaceUrlCaptureProjection) {
+  const position = props.canvasToViewportPoint(capture.position);
   const zoom = editorSession.viewport.value?.zoom ?? 1;
   return {
     transform: `translate(${position.x}px, ${position.y}px) scale(${Math.min(1, Math.max(0.75, zoom))})`,
@@ -49,13 +49,13 @@ function captureStyle(item: SpaceUrlCaptureProjection) {
     leave-to-class="opacity-0"
   >
     <SpaceCanvasMediaImport
-      v-for="item in visibleCaptures"
-      :key="item.id"
+      v-for="capture in visibleCaptures"
+      :key="capture.id"
       class="pointer-events-auto absolute top-0 left-0 z-20 origin-top-left"
-      :style="captureStyle(item)"
-      :capture="item"
-      @dismiss="emit('dismissCapture', item.id)"
-      @retry="emit('retryCapture', item)"
+      :style="captureStyle(capture)"
+      :capture="capture"
+      @dismiss="emit('dismissCapture', capture.id)"
+      @retry="emit('retryCapture', capture)"
     />
   </TransitionGroup>
   <div

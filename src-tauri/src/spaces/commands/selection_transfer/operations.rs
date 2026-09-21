@@ -51,6 +51,7 @@ pub(super) async fn update_portals(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     request: &TransferSelectionRequest,
     selected: &HashSet<&str>,
+    selected_structure_nodes: &HashSet<&str>,
     now: i64,
 ) -> Result<(), String> {
     let rows =
@@ -71,7 +72,11 @@ pub(super) async fn update_portals(
             .get("targetNodeId")
             .and_then(Value::as_str)
             .is_some_and(|target| selected.contains(target));
-        if !follows_moved_node {
+        let follows_moved_structure_node = data
+            .get("targetStructureNodeId")
+            .and_then(Value::as_str)
+            .is_some_and(|target| selected_structure_nodes.contains(target));
+        if !follows_moved_node && !follows_moved_structure_node {
             continue;
         }
         if data.get("targetSceneId").is_some() {
@@ -128,27 +133,32 @@ pub(super) async fn remove_scene_focus(
     selected: &HashSet<&str>,
     now: i64,
 ) -> Result<(), String> {
-    let rows = sqlx::query("SELECT id,focus_node_ids FROM spaces_scenes WHERE space_id=$1")
-        .bind(space_id)
-        .fetch_all(&mut **tx)
-        .await
-        .map_err(db::sql_error)?;
+    let rows =
+        sqlx::query("SELECT id,focus_structure_node_ids FROM spaces_scenes WHERE space_id=$1")
+            .bind(space_id)
+            .fetch_all(&mut **tx)
+            .await
+            .map_err(db::sql_error)?;
     for row in rows {
         let id: String = row.try_get("id").map_err(db::sql_error)?;
-        let raw: String = row.try_get("focus_node_ids").map_err(db::sql_error)?;
+        let raw: String = row
+            .try_get("focus_structure_node_ids")
+            .map_err(db::sql_error)?;
         let mut focus: Vec<String> = serde_json::from_str(&raw).map_err(db::json_error)?;
         let before = focus.len();
-        focus.retain(|node_id| !selected.contains(node_id.as_str()));
+        focus.retain(|structure_node_id| !selected.contains(structure_node_id.as_str()));
         if before == focus.len() {
             continue;
         }
-        sqlx::query("UPDATE spaces_scenes SET focus_node_ids=$1,updated_at=$2 WHERE id=$3")
-            .bind(serde_json::to_string(&focus).map_err(db::json_error)?)
-            .bind(now)
-            .bind(id)
-            .execute(&mut **tx)
-            .await
-            .map_err(db::sql_error)?;
+        sqlx::query(
+            "UPDATE spaces_scenes SET focus_structure_node_ids=$1,updated_at=$2 WHERE id=$3",
+        )
+        .bind(serde_json::to_string(&focus).map_err(db::json_error)?)
+        .bind(now)
+        .bind(id)
+        .execute(&mut **tx)
+        .await
+        .map_err(db::sql_error)?;
     }
     Ok(())
 }

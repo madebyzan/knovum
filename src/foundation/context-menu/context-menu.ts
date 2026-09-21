@@ -69,7 +69,7 @@ function wrapAction(scope: string, action?: ((id: string) => void | Promise<void
 
 function processMenuItem(item: ContextMenuItem, scope: string): ContextMenuItem {
   if ("items" in item && Array.isArray(item.items)) {
-    return { ...item, items: item.items.map((sub) => processMenuItem(sub as ContextMenuItem, scope)) };
+    return { ...item, items: item.items.map((child) => processMenuItem(child as ContextMenuItem, scope)) };
   }
   const processed = { ...item };
   if ("accelerator" in item && item.accelerator) {
@@ -91,18 +91,18 @@ export function flattenMenuGroups(
   entries: readonly (ContextMenuItem | ContextMenuGroup)[],
   scope = "ContextMenu",
 ): ContextMenuItem[] {
-  const items: ContextMenuItem[] = [];
+  const menuEntries: ContextMenuItem[] = [];
   const separator: PredefinedMenuItemOptions = { item: "Separator" };
   for (const entry of entries) {
     if (isMenuGroup(entry)) {
       if (!entry.length) continue;
-      if (items.length > 0) items.push(separator);
-      for (const item of entry) items.push(processMenuItem(item, scope));
+      if (menuEntries.length > 0) menuEntries.push(separator);
+      for (const groupEntry of entry) menuEntries.push(processMenuItem(groupEntry, scope));
     } else {
-      items.push(processMenuItem(entry, scope));
+      menuEntries.push(processMenuItem(entry, scope));
     }
   }
-  return items;
+  return menuEntries;
 }
 
 function toMenuPosition(pos?: PopupMenuPosition): PhysicalPosition | LogicalPosition | Position | undefined {

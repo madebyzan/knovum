@@ -10,12 +10,15 @@ import type { KnowledgeChunkKind, KnowledgeLocator } from "../knowledge/model/sc
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
 import type { SpaceRelationKind, SpaceRelationStatus } from "../model/relations/relation";
 import type { Space } from "../model/space";
+import type { StructureLayout, StructureNode } from "../model/structure/structure-contract";
 import type { SpaceScene } from "../scenes/scene";
-import type { PackagedCanvasState } from "./core-schema";
+import type { PackageRelationStyle } from "./structure-schema";
 
 export interface SpacePackageRestoreRequest {
   space: Pick<Space, "id" | "kind" | "title" | "lastOpenedAt" | "createdAt" | "updatedAt">;
-  canvasState: PackagedCanvasState;
+  structureNodes: readonly StructureNode[];
+  layouts: readonly StructureLayout[];
+  relationStyles: readonly PackageRelationStyle[];
   objectTypes: readonly Omit<SpaceKnowledgeObjectType, "spaceId" | "system">[];
   nodes: readonly {
     id: string;

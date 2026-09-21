@@ -3,17 +3,15 @@ import { z } from "zod";
 import { groundedMessageSchema } from "../knowledge/model/grounded-message";
 import { groundedThreadSchema } from "../knowledge/model/grounded-thread";
 import { SPACE_PACKAGE_FORMAT, SPACE_PACKAGE_VERSION } from "./contract";
-import {
-  canvasStateSchema,
-  nodeSchema,
-  packageTimeSchema,
-  relationSchema,
-  sceneSchema,
-  spaceSchema,
-} from "./core-schema";
+import { nodeSchema, packageTimeSchema, relationSchema, sceneSchema, spaceSchema } from "./core-schema";
 import { derivationSchema } from "./derivation-schema";
 import { eventSchema, objectTypeSchema, provenanceSchema } from "./knowledge-contract-schema";
 import { chunkSchema } from "./knowledge-schema";
+import {
+  packageLayoutsSchema,
+  packageRelationStylesSchema,
+  packageStructureNodesSchema,
+} from "./structure-schema";
 import { workflowRunSchema } from "./workflow-run-schema";
 
 export const manifestSchema = z
@@ -22,7 +20,9 @@ export const manifestSchema = z
     version: z.literal(SPACE_PACKAGE_VERSION),
     exportedAt: packageTimeSchema,
     space: spaceSchema,
-    canvasState: canvasStateSchema,
+    structureNodes: packageStructureNodesSchema,
+    layouts: packageLayoutsSchema,
+    relationStyles: packageRelationStylesSchema,
     nodes: z.array(nodeSchema).max(100_000),
     scenes: z.array(sceneSchema).max(10_000),
     relations: z.array(relationSchema).max(200_000),

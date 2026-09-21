@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Search } from "@lucide/vue";
+import { Group, LayoutPanelTop, Search } from "@lucide/vue";
 import {
   DialogContent,
   DialogOverlay,
@@ -17,12 +17,25 @@ import UiButton from "../../../shared/ui/UiButton.vue";
 import UiKbd from "../../../shared/ui/UiKbd.vue";
 import UiSpinner from "../../../shared/ui/UiSpinner.vue";
 import { highlightedSnippet, knowledgeLocationLabel } from "../knowledge/model/location";
+import type { GlobalSearchMatch } from "../search/global-search-repository";
 import { useGlobalFind } from "../search/use-global-find";
 import { nodeIcon } from "./node-icon";
 
 const open = defineModel<boolean>("open", { required: true });
 const { t } = useI18n();
 const { query, matches, searching, failed, retry, select } = useGlobalFind(open);
+
+function matchKey(match: GlobalSearchMatch) {
+  return match.kind === "structure"
+    ? `${match.spaceId}:structure:${match.structureNodeId}`
+    : `${match.spaceId}:content:${match.chunkId}`;
+}
+
+function matchText(match: GlobalSearchMatch) {
+  return match.kind === "structure"
+    ? `${match.title} ${match.spaceTitle}`
+    : `${match.nodeTitle} ${match.spaceTitle} ${match.text}`;
+}
 </script>
 
 <template>
@@ -41,6 +54,7 @@ const { query, matches, searching, failed, retry, select } = useGlobalFind(open)
             <ListboxFilter
               v-model="query"
               autofocus
+              maxlength="512"
               :placeholder="t('spaces.navigation.searchAllSpacesPlaceholder')"
               class="h-full min-w-0 flex-1 border-0 bg-transparent text-body-lg outline-none placeholder:text-foreground-tertiary"
             />
@@ -55,27 +69,41 @@ const { query, matches, searching, failed, retry, select } = useGlobalFind(open)
             </p>
             <ListboxItem
               v-for="match in matches"
-              :key="`${match.spaceId}:${match.chunkId}`"
+              :key="matchKey(match)"
               :value="match"
-              :text-value="`${match.nodeTitle} ${match.spaceTitle} ${match.text}`"
+              :text-value="matchText(match)"
               class="flex min-h-(--knovum-command-item-height) w-full cursor-default items-start gap-2.5 rounded-control px-2.5 py-2.5 text-left outline-none data-highlighted:bg-(--knovum-sidebar-item-background-selected)"
             >
               <span
                 class="mt-0.5 grid size-7 shrink-0 place-items-center rounded-control bg-control text-foreground-secondary"
               >
-                <component :is="nodeIcon(match.nodeKind)" class="size-(--knovum-icon-size-sm)" />
+                <LayoutPanelTop
+                  v-if="match.kind === 'structure' && match.nodeKind === 'section'"
+                  class="size-(--knovum-icon-size-sm)"
+                />
+                <Group v-else-if="match.kind === 'structure'" class="size-(--knovum-icon-size-sm)" />
+                <component v-else :is="nodeIcon(match.nodeKind)" class="size-(--knovum-icon-size-sm)" />
               </span>
               <span class="min-w-0 flex-1">
                 <span class="flex min-w-0 items-center gap-2">
-                  <strong class="truncate text-label font-medium">{{ match.nodeTitle }}</strong>
-                  <span class="shrink-0 text-micro text-foreground-tertiary">{{
-                    knowledgeLocationLabel(match.locator)
-                  }}</span>
+                  <strong class="truncate text-label font-medium">{{
+                    match.kind === "structure" ? match.title : match.nodeTitle
+                  }}</strong>
+                  <span v-if="match.kind === 'content'" class="shrink-0 text-micro text-foreground-tertiary">
+                    {{ knowledgeLocationLabel(match.locator) }}
+                  </span>
                 </span>
                 <span class="mt-0.5 block truncate text-micro text-foreground-tertiary">{{
                   match.spaceTitle
                 }}</span>
                 <span
+                  v-if="match.kind === 'structure'"
+                  class="mt-0.5 block text-caption text-foreground-secondary"
+                >
+                  {{ match.nodeKind === "section" ? t("spaces.canvas.section") : t("spaces.canvas.group") }}
+                </span>
+                <span
+                  v-else
                   class="mt-0.5 line-clamp-2 block text-caption leading-relaxed text-foreground-secondary"
                 >
                   <template v-for="(part, index) in highlightedSnippet(match.snippet)" :key="index">

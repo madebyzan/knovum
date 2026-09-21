@@ -7,6 +7,10 @@ import CanvasDomOverlay from "./presentation/CanvasDomOverlay.vue";
 import CanvasGridLayer from "./presentation/CanvasGridLayer.vue";
 import CanvasMarquee from "./presentation/CanvasMarquee.vue";
 import CanvasSceneLayers from "./presentation/CanvasSceneLayers.vue";
+import CanvasSectionCandidateFeedback from "./presentation/CanvasSectionCandidateFeedback.vue";
+import CanvasStructureHud from "./presentation/CanvasStructureHud.vue";
+import CanvasStructureInteractionLayer from "./presentation/CanvasStructureInteractionLayer.vue";
+import CanvasStructureSectionsLayer from "./presentation/CanvasStructureSectionsLayer.vue";
 import { useKonvaCanvasRuntime } from "./use-konva-canvas-runtime";
 
 const props = defineProps<CanvasSurfaceProps>();
@@ -27,7 +31,7 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
         ? 'cursor-grabbing'
         : runtime.viewport.spacePressed.value || tool === 'pan'
           ? 'cursor-grab'
-          : tool === 'note' || tool === 'text'
+          : tool === 'note' || tool === 'text' || tool === 'section'
             ? 'cursor-crosshair'
             : '',
     ]"
@@ -54,6 +58,10 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
         :palette="runtime.palette.value"
         :size="runtime.viewport.size"
         :viewport="runtime.viewport.viewport.value"
+      />
+      <CanvasStructureSectionsLayer
+        :palette="runtime.palette.value"
+        :sections="runtime.structure.structureScene.value.sections"
       />
       <CanvasSceneLayers
         :interactive="
@@ -95,8 +103,36 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
         @transform-end="runtime.finishTransform"
         @transform-start="runtime.gestures.beginDirectManipulation('transform')"
       />
+      <CanvasSectionCandidateFeedback
+        :bounds="runtime.sectionCandidateBounds.value"
+        :palette="runtime.palette.value"
+        :zoom="runtime.viewport.viewport.value.zoom"
+      />
+      <CanvasStructureInteractionLayer
+        :groups="runtime.structure.structureScene.value.groups"
+        :group-scope-path="groupScopePath"
+        :interactive="interactionEnabled && tool === 'select' && !runtime.viewport.panning.value"
+        :palette="runtime.palette.value"
+        :sections="runtime.structure.structureScene.value.sections"
+        :selected-ids="runtime.selection.structureNodeIds.value"
+        :drop-target-id="runtime.structureInteractions.dropTargetId.value"
+        :zoom="runtime.viewport.viewport.value.zoom"
+        @collapse="runtime.structureInteractions.collapse"
+        @enter-group="runtime.structureInteractions.enterGroup"
+        @move="runtime.structureInteractions.move"
+        @move-preview="runtime.structureInteractions.previewMove"
+        @rename="runtime.structureInteractions.beginRename"
+        @resize="runtime.structureInteractions.resize"
+        @select="runtime.selection.selectStructureNode"
+        @transform="runtime.structureInteractions.transform"
+      />
       <CanvasMarquee
         :bounds="runtime.selection.marqueeRect.value"
+        :palette="runtime.palette.value"
+        :zoom="runtime.viewport.viewport.value.zoom"
+      />
+      <CanvasMarquee
+        :bounds="runtime.pointer.sectionDraft.value"
         :palette="runtime.palette.value"
         :zoom="runtime.viewport.viewport.value.zoom"
       />
@@ -121,6 +157,15 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
         </template>
       </CanvasDomOverlay>
     </Teleport>
+    <CanvasStructureHud
+      :group-scope-titles="runtime.structure.groupScopeTitles.value"
+      :rename-target="runtime.structureInteractions.renameTarget.value"
+      :rename-error="runtime.structureInteractions.renameError.value"
+      :viewport="runtime.viewport.viewport.value"
+      @back="runtime.structureInteractions.exitGroup"
+      @cancel-rename="runtime.structureInteractions.cancelRename"
+      @save-rename="runtime.structureInteractions.commitRename"
+    />
   </div>
 </template>
 

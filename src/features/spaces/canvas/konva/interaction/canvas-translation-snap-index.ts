@@ -22,12 +22,12 @@ export function createCanvasTranslationSnapIndex(frames: readonly CanvasNodeFram
   const bounds = frames.map(canvasFrameBounds);
   return {
     tree: new RBush<IndexedCanvasBounds>().load(
-      bounds.map((item) => ({
-        ...item,
-        minX: item.left,
-        minY: item.top,
-        maxX: item.right,
-        maxY: item.bottom,
+      bounds.map((box) => ({
+        ...box,
+        minX: box.left,
+        minY: box.top,
+        maxX: box.right,
+        maxY: box.bottom,
       })),
     ),
     x: bounds.flatMap(({ left, centerX, right }) => [left, centerX, right]).toSorted(ascending),
@@ -39,10 +39,10 @@ export function createCanvasTranslationSnapIndex(frames: readonly CanvasNodeFram
 
 function alignmentExtents(bounds: readonly CanvasBounds[], axis: "x" | "y") {
   const extents = new Map<number, readonly [number, number]>();
-  for (const item of bounds) {
+  for (const box of bounds) {
     const coordinates =
-      axis === "x" ? [item.left, item.centerX, item.right] : [item.top, item.centerY, item.bottom];
-    const cross: readonly [number, number] = axis === "x" ? [item.top, item.bottom] : [item.left, item.right];
+      axis === "x" ? [box.left, box.centerX, box.right] : [box.top, box.centerY, box.bottom];
+    const cross: readonly [number, number] = axis === "x" ? [box.top, box.bottom] : [box.left, box.right];
     for (const coordinate of coordinates) {
       const current = extents.get(coordinate);
       extents.set(

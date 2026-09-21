@@ -26,7 +26,7 @@ const emit = defineEmits<{ pointerDown: [id: string, event: PointerEvent] }>();
     <CanvasRelationShape
       v-for="relation in relations"
       :key="relation.key"
-      :item="relation"
+      :source-relation="relation"
       :palette="palette"
       :previews="relationPreviews"
       :selected="selectedRelationIds.has(relation.key)"

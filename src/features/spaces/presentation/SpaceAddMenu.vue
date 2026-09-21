@@ -29,6 +29,7 @@ const {
   website,
   normalizedWebsite,
   addMarkdown,
+  addSection,
   addKnowledgeObject,
   addCredential,
   importFromPicker,
@@ -53,13 +54,14 @@ async function beginAudioRecording() {
   >
     <template #trigger>
       <ToolbarButton as-child>
-        <UiIconButton :label="t('spaces.canvas.actions.addItem')" size="sm" tooltip-side="bottom">
+        <UiIconButton :label="t('spaces.canvas.actions.addContent')" size="sm" tooltip-side="bottom">
           <Plus class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
         </UiIconButton>
       </ToolbarButton>
     </template>
     <SpaceAddMenuContent
       @markdown="addMarkdown"
+      @section="addSection"
       @knowledge="addKnowledgeObject"
       @custom-knowledge="customObjectOpen = true"
       @portal="portalOpen = true"

@@ -52,6 +52,15 @@ pub(super) async fn validate_portal(
     if count != 1 {
         return Err("Portal target Space does not exist".into());
     }
+    let target_count = ["targetSceneId", "targetNodeId", "targetStructureNodeId"]
+        .into_iter()
+        .filter(|field| data.get(*field).is_some())
+        .count();
+    if target_count > 1 {
+        return Err(
+            "A Portal can target one Saved View, content node, or structure container".into(),
+        );
+    }
     if let Some(scene_id) =
         optional_nonempty_string(data.get("targetSceneId"), "Portal target Saved View", 128)?
     {
@@ -71,6 +80,24 @@ pub(super) async fn validate_portal(
         optional_nonempty_string(data.get("targetNodeId"), "Portal target node", 128)?
     {
         validate_same_space_node(tx, target_space_id, "", node_id).await?;
+    }
+    if let Some(structure_node_id) = optional_nonempty_string(
+        data.get("targetStructureNodeId"),
+        "Portal target structure node",
+        128,
+    )? {
+        let count = sqlx::query_scalar::<_, i64>(
+            "SELECT COUNT(*) FROM spaces_structure_nodes \
+             WHERE id=$1 AND space_id=$2 AND deleted_at IS NULL AND kind IN ('group','section')",
+        )
+        .bind(structure_node_id)
+        .bind(target_space_id)
+        .fetch_one(&mut **tx)
+        .await
+        .map_err(db::sql_error)?;
+        if count != 1 {
+            return Err("Portal target structure container does not exist in target Space".into());
+        }
     }
     Ok(())
 }

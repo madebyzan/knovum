@@ -5,8 +5,6 @@ mod workflow_run;
 use serde::Deserialize;
 use serde_json::Value;
 
-use crate::spaces::canvas_state::CanvasDocumentV1;
-
 pub use derivation::PackageDerivationRow;
 pub use restore_request::RestorePackageRequest;
 pub use workflow_run::PackageWorkflowRunRow;
@@ -20,12 +18,6 @@ pub struct PackageSpaceRow {
     pub last_opened_at: i64,
     pub created_at: i64,
     pub updated_at: i64,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct PackageCanvasState {
-    pub document: CanvasDocumentV1,
 }
 
 #[derive(Debug, Deserialize)]
@@ -59,7 +51,7 @@ pub struct PackageSceneRow {
     pub viewport_y: f64,
     pub viewport_zoom: f64,
     pub order_index: i64,
-    pub focus_node_ids: Vec<String>,
+    pub focus_structure_node_ids: Vec<String>,
     pub relation_kinds: Vec<String>,
     pub relation_statuses: Vec<String>,
     pub query_filter: Value,

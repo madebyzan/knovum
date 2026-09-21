@@ -93,7 +93,7 @@ async function revealScene(context: SceneListContext, id: string) {
 }
 
 async function showSceneMenu(context: SceneListContext, scene: SpaceScene) {
-  const index = context.scenes.value.findIndex((item) => item.id === scene.id);
+  const index = context.scenes.value.findIndex((candidate) => candidate.id === scene.id);
   await popupSpaceContextMenu([
     [spaceMenuItem(t("spaces.navigation.openScene"), () => void context.store.openSceneView(scene.id))],
     [

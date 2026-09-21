@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-import { canvasDocumentSchema } from "../canvas/contract/canvas-document";
 import { KNOWLEDGE_OBJECT_STATUSES } from "../knowledge/model/object-types";
 import { SPACE_NODE_KINDS } from "../model/nodes/node-kind";
 import { SPACE_RELATION_KINDS, SPACE_RELATION_STATUSES } from "../model/relations/relation";
@@ -38,13 +37,11 @@ export const nodeSchema = z
     createdAt: packageTimeSchema,
     updatedAt: packageTimeSchema,
   })
-  .strict();
-export const canvasStateSchema = z
-  .object({
-    document: canvasDocumentSchema,
-  })
-  .strict();
-export type PackagedCanvasState = z.infer<typeof canvasStateSchema>;
+  .strict()
+  .refine(({ kind }) => String(kind) !== "section", {
+    message: "Legacy Section content nodes are not supported",
+    path: ["kind"],
+  });
 export const sceneSchema = z
   .object({
     id: z.string().min(1),
@@ -54,7 +51,7 @@ export const sceneSchema = z
     viewportY: z.number().finite(),
     viewportZoom: z.number().finite().positive(),
     orderIndex: z.number().int(),
-    focusNodeIds: z.array(z.string()).max(100_000),
+    focusStructureNodeIds: z.array(z.string()).max(100_000),
     relationKinds: z.array(relationKindSchema).max(32),
     relationStatuses: z.array(relationStatusSchema).max(8),
     queryFilter: queryFilterSchema,

@@ -53,15 +53,8 @@ function alignmentSnap(
   tolerance: number,
 ) {
   const targets = axis === "x" ? index.x : index.y;
-  const points =
-    axis === "x" ? [moving.left, moving.centerX, moving.right] : [moving.top, moving.centerY, moving.bottom];
-  let match: { offset: number; value: number } | undefined;
-  for (const point of points) {
-    const target = nearestSortedCanvasSnap(point, targets, tolerance);
-    if (target === undefined) continue;
-    const offset = target - point;
-    if (!match || Math.abs(offset) < Math.abs(match.offset)) match = { offset, value: target };
-  }
+  const points = alignmentPoints(moving, axis);
+  const match = nearestAlignment(points, targets, tolerance);
   if (!match) return undefined;
   const moved = translateCanvasBounds(
     moving,
@@ -70,22 +63,45 @@ function alignmentSnap(
   const extent = (axis === "x" ? index.xExtents : index.yExtents).get(match.value);
   const guide: CanvasSnapGuide = {
     kind: "alignment",
-    points:
-      axis === "x"
-        ? [
-            match.value,
-            Math.min(moved.top, extent?.[0] ?? moved.top),
-            match.value,
-            Math.max(moved.bottom, extent?.[1] ?? moved.bottom),
-          ]
-        : [
-            Math.min(moved.left, extent?.[0] ?? moved.left),
-            match.value,
-            Math.max(moved.right, extent?.[1] ?? moved.right),
-            match.value,
-          ],
+    points: alignmentGuidePoints(moved, extent, match.value, axis),
   };
   return { guides: [guide], offset: match.offset };
+}
+
+function alignmentPoints(bounds: CanvasBounds, axis: "x" | "y") {
+  return axis === "x"
+    ? [bounds.left, bounds.centerX, bounds.right]
+    : [bounds.top, bounds.centerY, bounds.bottom];
+}
+
+function nearestAlignment(points: readonly number[], targets: readonly number[], tolerance: number) {
+  return points.reduce<{ offset: number; value: number } | undefined>((nearest, point) => {
+    const target = nearestSortedCanvasSnap(point, targets, tolerance);
+    if (target === undefined) return nearest;
+    const candidate = { offset: target - point, value: target };
+    return !nearest || Math.abs(candidate.offset) < Math.abs(nearest.offset) ? candidate : nearest;
+  }, undefined);
+}
+
+function alignmentGuidePoints(
+  bounds: CanvasBounds,
+  extent: readonly [number, number] | undefined,
+  value: number,
+  axis: "x" | "y",
+): [number, number, number, number] {
+  return axis === "x"
+    ? [
+        value,
+        Math.min(bounds.top, extent?.[0] ?? bounds.top),
+        value,
+        Math.max(bounds.bottom, extent?.[1] ?? bounds.bottom),
+      ]
+    : [
+        Math.min(bounds.left, extent?.[0] ?? bounds.left),
+        value,
+        Math.max(bounds.right, extent?.[1] ?? bounds.right),
+        value,
+      ];
 }
 
 function spacingSnap(

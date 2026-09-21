@@ -20,7 +20,7 @@ describe("Konva scene preview", () => {
       nodes: [left, right, unrelated],
       nodesById: new Map([left, right, unrelated].map((item) => [item.node.id, item])),
       contentNodes: [left, right, unrelated],
-      sections: [],
+      sectionBackdrops: [],
       relations: [adjacent, detached],
     };
     const preview = projectCanvasScenePreview(
@@ -67,6 +67,8 @@ function sceneNode(id: string, x: number) {
 }
 
 function relation(id: string, sourceNodeId: string, targetNodeId: string): CanvasSceneRelation {
+  const sourceFrame = { x: 0, y: 0, width: 240, height: 40, rotation: 0 };
+  const targetFrame = { x: 320, y: 0, width: 240, height: 40, rotation: 0 };
   return {
     id,
     key: `relation:${id}`,
@@ -86,7 +88,9 @@ function relation(id: string, sourceNodeId: string, targetNodeId: string): Canva
       updatedAt: 0,
     },
     sourceNodeId,
+    sourceFrame,
     targetNodeId,
+    targetFrame,
     parallelOffset: 0,
     bounds: { x: 0, y: 0, width: 320, height: 40 },
     midpoint: { x: 160, y: 20 },

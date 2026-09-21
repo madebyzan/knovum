@@ -10,6 +10,9 @@ pub(super) fn validate_request_shape(request: &RestorePackageRequest) -> Result<
     }
     let limits = [
         (request.nodes.len(), 100_000usize, "nodes"),
+        (request.structure_nodes.len(), 100_000, "structure nodes"),
+        (request.layouts.len(), 100_000, "structure layouts"),
+        (request.relation_styles.len(), 100_000, "relation styles"),
         (request.scenes.len(), 10_000, "Saved Views"),
         (request.relations.len(), 200_000, "Relations"),
         (request.derivations.len(), 100_000, "knowledge derivations"),

@@ -5,14 +5,14 @@ import type { SpaceAssetProcessingContext } from "./processing-scheduler";
 
 export interface SpaceImportContext extends SpaceAssetProcessingContext {
   ensureImportTarget(spaceId: string): Promise<void>;
-  createPendingItemForSpace(
+  createPendingContentForSpace(
     spaceId: string,
     data: SpaceNodePayload,
     position?: { x: number; y: number },
   ): Promise<SpaceCanvasNode[]>;
   savePendingNodeDataForSpace(spaceId: string, id: string, data: SpaceNodePayload): Promise<void>;
-  finalizePendingItems(spaceId: string, items: readonly SpaceCanvasNode[], reveal?: boolean): void;
-  discardPendingItem(spaceId: string, id: string): Promise<void>;
+  finalizePendingContent(spaceId: string, contentNodes: readonly SpaceCanvasNode[], reveal?: boolean): void;
+  discardPendingContent(spaceId: string, id: string): Promise<void>;
 }
 
 export interface SpaceImportSessionLabels {

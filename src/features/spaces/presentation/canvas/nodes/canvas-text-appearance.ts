@@ -21,15 +21,12 @@ export function canvasTextAppearanceClasses(
   kind: "note" | "text",
   appearance: CanvasNodeAppearance | undefined,
 ) {
+  const alignment = appearance?.textAlign ?? (kind === "note" ? "left" : "center");
   return [
     appearance?.fontWeight === "bold" ? "font-bold" : undefined,
     appearance?.fontStyle === "italic" ? "italic" : undefined,
     appearance?.textDecoration === "underline" ? "underline" : undefined,
-    appearance?.textAlign === "left" || (!appearance?.textAlign && kind === "note") ? "text-left" : undefined,
-    appearance?.textAlign === "center" || (!appearance?.textAlign && kind === "text")
-      ? "text-center"
-      : undefined,
-    appearance?.textAlign === "right" ? "text-right" : undefined,
+    { left: "text-left", center: "text-center", right: "text-right" }[alignment],
   ];
 }
 
@@ -37,13 +34,20 @@ export function canvasTextAppearanceStyle(
   kind: "note" | "text",
   appearance: CanvasNodeAppearance | undefined,
 ) {
-  return {
+  const style = {
     fontSize: `${appearance?.fontSize ?? DEFAULT_CANVAS_TEXT_FONT_SIZE}pt`,
-    color: kind === "note" ? "var(--knovum-canvas-note-ink)" : TEXT_COLORS[appearance?.textColor ?? "ink"],
-    ...(kind === "note"
-      ? { backgroundColor: appearance?.customFill ?? FILL_COLORS[appearance?.fill ?? "yellow"] }
-      : {}),
+    color: canvasTextColor(kind, appearance),
   };
+  return Object.assign(style, canvasTextBackground(kind, appearance));
+}
+
+function canvasTextColor(kind: "note" | "text", appearance: CanvasNodeAppearance | undefined) {
+  return kind === "note" ? "var(--knovum-canvas-note-ink)" : TEXT_COLORS[appearance?.textColor ?? "ink"];
+}
+
+function canvasTextBackground(kind: "note" | "text", appearance: CanvasNodeAppearance | undefined) {
+  if (kind !== "note") return {};
+  return { backgroundColor: appearance?.customFill ?? FILL_COLORS[appearance?.fill ?? "yellow"] };
 }
 
 export function canvasTextVerticalClass(kind: "note" | "text", appearance: CanvasNodeAppearance | undefined) {

@@ -30,11 +30,11 @@ struct StatusResponse {
 
 #[derive(Deserialize)]
 struct VideoPayload {
-    videos: Option<Vec<VideoItem>>,
+    videos: Option<Vec<GeneratedVideoArtifact>>,
 }
 
 #[derive(Deserialize)]
-struct VideoItem {
+struct GeneratedVideoArtifact {
     url: String,
 }
 
@@ -120,7 +120,7 @@ impl VideoGenerationCapability for SiliconFlowVideoAdapter {
                     let video_url = query_response
                         .video_payload
                         .and_then(|payload| payload.videos)
-                        .and_then(|mut items| items.pop())
+                        .and_then(|mut videos| videos.pop())
                         .map(|item| item.url)
                         .ok_or_else(|| {
                             AiError::new(

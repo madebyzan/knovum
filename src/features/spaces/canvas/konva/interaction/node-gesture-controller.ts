@@ -13,6 +13,7 @@ import { projectResizeFeedback } from "./proportional-resize-feedback";
 interface NodeGestureControllerOptions {
   layouts(): readonly CanvasNodeLayoutV1[];
   nodes(): readonly SpaceCanvasNode[];
+  lockedNodeIds(): ReadonlySet<string>;
   previewFrames(updates: readonly CanvasGestureUpdate[]): void;
   selectedNodeIds(): ReadonlySet<string>;
   stage(): Konva.Stage | undefined;
@@ -28,13 +29,13 @@ export class NodeGestureController {
   readonly beginDrag = (primaryId: string) => {
     this.resizeGuides = [];
     this.options.updateFeedback(undefined);
-    const captured = captureCanvasNodeDragState(
-      this.options.layouts(),
-      this.options.nodes(),
-      this.options.selectedNodeIds(),
+    const captured = captureCanvasNodeDragState({
+      layouts: this.options.layouts(),
+      selectedNodeIds: this.options.selectedNodeIds(),
+      lockedNodeIds: this.options.lockedNodeIds(),
       primaryId,
-      this.options.stage(),
-    );
+      stage: this.options.stage(),
+    });
     if (!captured) return;
     this.drag = captured.state;
     this.dragNodes = captured.nodeRefs;

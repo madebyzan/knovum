@@ -22,9 +22,9 @@ pub(super) fn stable_json(value: &Value) -> String {
         Value::String(value) => {
             serde_json::to_string(value).expect("string serialization cannot fail")
         }
-        Value::Array(items) => format!(
+        Value::Array(values) => format!(
             "[{}]",
-            items.iter().map(stable_json).collect::<Vec<_>>().join(",")
+            values.iter().map(stable_json).collect::<Vec<_>>().join(",")
         ),
         Value::Object(object) => {
             let mut keys = object.keys().collect::<Vec<_>>();

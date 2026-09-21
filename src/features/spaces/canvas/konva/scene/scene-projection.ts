@@ -1,113 +1,95 @@
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import type { SpaceRelation } from "../../../model/relations/relation";
 import type { CanvasDocumentV1, CanvasNodeLayoutV1 } from "../../contract/canvas-document";
-import { spaceNodeDimensions } from "../../node-size";
+import type { StructureScene } from "../../document/structure-scene";
 import { canvasNodeInteraction } from "./canvas-node-interaction";
-import type { CanvasScene, CanvasSceneNode, CanvasSceneRelation, CanvasSceneSection } from "./canvas-scene";
-import { parallelRelationOffsets } from "./parallel-relation-offsets";
+import type { CanvasScene, CanvasSceneNode, CanvasSceneRelation } from "./canvas-scene";
 import { relationGeometry } from "./relation-path";
 
-export type { CanvasScene, CanvasSceneNode, CanvasSceneRelation, CanvasSceneSection } from "./canvas-scene";
+export type { CanvasScene, CanvasSceneNode, CanvasSceneRelation } from "./canvas-scene";
 
 export function projectCanvasScene(
   document: CanvasDocumentV1,
   nodes: readonly SpaceCanvasNode[],
   relations: readonly SpaceRelation[],
+  options: { lockedNodeIds?: ReadonlySet<string>; structure?: StructureScene } = {},
 ): CanvasScene {
+  const lockedNodeIds = options.lockedNodeIds ?? new Set<string>();
+  const structure = options.structure;
   const content = new Map(nodes.map((node) => [node.id, node]));
+  const visibleStructureNodeIds = structure
+    ? new Set(structure.content.filter(({ visible }) => visible).map(({ node }) => node.id))
+    : undefined;
   const projected = document.nodes
     .flatMap<Omit<CanvasSceneNode, "paintOrder">>((layout) => {
       const node = content.get(layout.nodeId);
-      return node && !node.hidden
+      return node && !node.hidden && (!visibleStructureNodeIds || visibleStructureNodeIds.has(node.id))
         ? [
             {
-              interaction: canvasNodeInteraction(node),
-              layout: effectiveLayout(layout, node),
+              interaction: canvasNodeInteraction(node, lockedNodeIds.has(node.id)),
+              layout,
               node,
             },
           ]
         : [];
     })
     .toSorted((left, right) => left.layout.zIndex - right.layout.zIndex);
-  const collapsedSections = new Set(
-    projected
-      .filter(({ node }) => node.data.kind === "section" && node.data.collapsed)
-      .map(({ node }) => node.id),
-  );
-  const visibleNodes = projected.filter(
-    ({ node }) => !node.data.sectionId || !collapsedSections.has(node.data.sectionId),
-  );
-  const backgroundNodes = visibleNodes.filter(({ node }) => node.data.kind === "section");
-  const contentNodes = visibleNodes.filter(({ node }) => node.data.kind !== "section");
-  const paintOrderedNodes = [...backgroundNodes, ...contentNodes].map((node, paintOrder) =>
-    Object.assign({}, node, { paintOrder }),
-  );
-  const byId = new Map(paintOrderedNodes.map((item) => [item.node.id, item]));
-  const relationEndpoints = relationEndpointNodes(projected, byId, collapsedSections);
+  const paintOrderedNodes = projected.map((node, paintOrder) => Object.assign({}, node, { paintOrder }));
+  const byId = new Map(paintOrderedNodes.map((sceneNode) => [sceneNode.node.id, sceneNode]));
   const relationStyles = new Map(document.relationStyles?.map((style) => [style.relationId, style.color]));
-  const relationOffsets = parallelRelationOffsets(relations, relationEndpoints);
-  const membersBySection = new Map<string, CanvasSceneNode[]>();
-  for (const item of paintOrderedNodes) {
-    if (!item.node.data.sectionId) continue;
-    const members = membersBySection.get(item.node.data.sectionId) ?? [];
-    members.push(item);
-    membersBySection.set(item.node.data.sectionId, members);
-  }
-  const sections = backgroundNodes
-    .filter((item) => item.node.data.kind === "section")
-    .map((section): CanvasSceneSection =>
-      Object.assign({}, byId.get(section.node.id)!, {
-        members: membersBySection.get(section.node.id) ?? [],
-      }),
-    );
+  const relationEndpoints = structure
+    ? structureRelationEndpoints(structure)
+    : contentRelationEndpoints(projected, byId);
+  const projectedRelations =
+    structure?.relations ??
+    relations.map((relation) => ({
+      relation,
+      sourceStructureNodeId: relation.sourceId,
+      targetStructureNodeId: relation.targetId,
+    }));
+  const relationOffsets = representativeRelationOffsets(projectedRelations);
   return {
-    contentNodes: paintOrderedNodes.filter(({ node }) => node.data.kind !== "section"),
+    contentNodes: paintOrderedNodes,
     nodes: paintOrderedNodes,
     nodesById: byId,
-    sections,
-    relations: relations.flatMap((relation) =>
-      projectRelation(
+    sectionBackdrops:
+      structure?.sections.map(({ bounds, section, layout, temporarilyExpanded }) => ({
+        id: section.id,
+        appearance: layout.appearance,
+        bounds: {
+          x: bounds.left,
+          y: bounds.top,
+          width: bounds.right - bounds.left,
+          height: layout.collapsed && !temporarilyExpanded ? 40 : bounds.bottom - bounds.top,
+        },
+      })) ?? [],
+    relations: projectedRelations.flatMap(({ relation, sourceStructureNodeId, targetStructureNodeId }) =>
+      projectRelation({
         relation,
-        relationEndpoints,
-        relationStyles.get(relation.id) ?? "neutral",
-        relationOffsets.get(relation.id) ?? 0,
-      ),
+        endpoints: relationEndpoints,
+        sourceStructureNodeId,
+        targetStructureNodeId,
+        color: relationStyles.get(relation.id) ?? "neutral",
+        parallelOffset: relationOffsets.get(relation.id) ?? 0,
+      }),
     ),
   };
 }
 
-function relationEndpointNodes(
-  nodes: readonly Omit<CanvasSceneNode, "paintOrder">[],
-  visibleById: ReadonlyMap<string, CanvasSceneNode>,
-  collapsedSections: ReadonlySet<string>,
-) {
-  const endpoints = new Map<string, CanvasSceneNode>();
-  for (const item of nodes) {
-    const sectionId = item.node.data.sectionId;
-    const representativeId = sectionId && collapsedSections.has(sectionId) ? sectionId : item.node.id;
-    const representative = visibleById.get(representativeId);
-    if (representative) endpoints.set(item.node.id, representative);
-  }
-  return endpoints;
-}
-
-function effectiveLayout(layout: CanvasNodeLayoutV1, node: SpaceCanvasNode): CanvasNodeLayoutV1 {
-  if (node.data.kind !== "section" || !node.data.collapsed) return layout;
-  return { ...layout, frame: { ...layout.frame, ...spaceNodeDimensions(node.data) } };
-}
-
-function projectRelation(
-  relation: SpaceRelation,
-  nodes: ReadonlyMap<string, CanvasSceneNode>,
-  color: CanvasSceneRelation["color"],
-  parallelOffset: number,
-): CanvasSceneRelation[] {
-  const source = nodes.get(relation.sourceId)?.layout.frame;
-  const target = nodes.get(relation.targetId)?.layout.frame;
-  const sourceNodeId = nodes.get(relation.sourceId)?.node.id;
-  const targetNodeId = nodes.get(relation.targetId)?.node.id;
-  if (!source || !target || !sourceNodeId || !targetNodeId || sourceNodeId === targetNodeId) return [];
-  const geometry = relationGeometry(source, target, parallelOffset);
+function projectRelation(options: {
+  relation: SpaceRelation;
+  endpoints: ReadonlyMap<string, RelationEndpoint>;
+  sourceStructureNodeId: string;
+  targetStructureNodeId: string;
+  color: CanvasSceneRelation["color"];
+  parallelOffset: number;
+}): CanvasSceneRelation[] {
+  const { relation, endpoints, sourceStructureNodeId, targetStructureNodeId, color, parallelOffset } =
+    options;
+  const source = endpoints.get(sourceStructureNodeId);
+  const target = endpoints.get(targetStructureNodeId);
+  if (!source || !target || sourceStructureNodeId === targetStructureNodeId) return [];
+  const geometry = relationGeometry(source.frame, target.frame, parallelOffset);
   return [
     {
       id: relation.id,
@@ -119,9 +101,85 @@ function projectRelation(
       bounds: geometry.bounds,
       midpoint: geometry.midpoint,
       points: geometry.points,
-      sourceNodeId,
-      targetNodeId,
+      sourceNodeId: source.previewId,
+      sourceFrame: source.frame,
+      targetNodeId: target.previewId,
+      targetFrame: target.frame,
       parallelOffset,
     },
   ];
+}
+
+interface RelationEndpoint {
+  frame: CanvasNodeLayoutV1["frame"];
+  previewId: string;
+}
+
+function contentRelationEndpoints(
+  projected: readonly Omit<CanvasSceneNode, "paintOrder">[],
+  byId: ReadonlyMap<string, CanvasSceneNode>,
+) {
+  return new Map(
+    projected.flatMap(({ node }) => {
+      const visible = byId.get(node.id);
+      return visible ? [[node.id, { frame: visible.layout.frame, previewId: node.id }] as const] : [];
+    }),
+  );
+}
+
+function structureRelationEndpoints(scene: StructureScene) {
+  const endpoints = new Map<string, RelationEndpoint>();
+  for (const { bounds, structureNode } of scene.content)
+    endpoints.set(structureNode.id, {
+      frame: boundsFrame(bounds),
+      previewId: structureNode.nodeId,
+    });
+  for (const { bounds, section, layout, temporarilyExpanded } of scene.sections)
+    endpoints.set(section.id, {
+      frame: boundsFrame(
+        layout.collapsed && !temporarilyExpanded ? { ...bounds, bottom: bounds.top + 40 } : bounds,
+      ),
+      previewId: `structure:${section.id}`,
+    });
+  return endpoints;
+}
+
+function boundsFrame(bounds: { left: number; top: number; right: number; bottom: number }) {
+  return {
+    x: bounds.left,
+    y: bounds.top,
+    width: bounds.right - bounds.left,
+    height: bounds.bottom - bounds.top,
+    rotation: 0,
+  };
+}
+
+function representativeRelationOffsets(
+  relations: readonly {
+    relation: SpaceRelation;
+    sourceStructureNodeId: string;
+    targetStructureNodeId: string;
+  }[],
+) {
+  type ProjectedRelation = (typeof relations)[number];
+  const groups = new Map<string, ProjectedRelation[]>();
+  for (const projected of relations) {
+    const key = [projected.sourceStructureNodeId, projected.targetStructureNodeId].toSorted().join("\u0000");
+    const group = groups.get(key) ?? [];
+    group.push(projected);
+    groups.set(key, group);
+  }
+  const offsets = new Map<string, number>();
+  for (const group of groups.values())
+    group
+      .toSorted((a, b) => a.relation.id.localeCompare(b.relation.id))
+      .forEach((projected, index) => {
+        const direction =
+          projected.sourceStructureNodeId ===
+          [projected.sourceStructureNodeId, projected.targetStructureNodeId].toSorted()[0]
+            ? 1
+            : -1;
+        offsets.set(projected.relation.id, (index - (group.length - 1) / 2) * 20 * direction);
+      });
+  return offsets;
 }

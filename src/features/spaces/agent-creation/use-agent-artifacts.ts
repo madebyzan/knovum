@@ -98,7 +98,7 @@ export function useAgentArtifacts(open: Ref<boolean>) {
           },
           store.nextInsertionPoint(),
           {
-            title: t("spaces.transfer.importingItem"),
+            title: t("spaces.transfer.importingResource"),
             preparing: t("spaces.transfer.importPreparing"),
           },
         );

@@ -1,5 +1,5 @@
 import type Konva from "konva";
-import { computed, shallowRef, useTemplateRef, watch } from "vue";
+import { computed, shallowRef, useTemplateRef } from "vue";
 import type { VueKonvaRef } from "vue-konva/core";
 
 import type { CanvasDocumentV1 } from "../contract/canvas-document";
@@ -7,22 +7,22 @@ import type { CanvasSurfaceProps } from "../contract/canvas-surface";
 import { CanvasDocumentModel } from "./document/canvas-document-model";
 import { useCanvasDocumentSync } from "./document/use-canvas-document-sync";
 import { createCanvasGestureSession } from "./interaction/canvas-gesture-session";
+import { useCanvasInteractionCancellation } from "./interaction/use-canvas-interaction-cancellation";
 import { useConnectorCreation } from "./interaction/use-connector-creation";
-import { useExternalContentDrop } from "./interaction/use-external-content-drop";
 import { useLayoutPreview } from "./interaction/use-layout-preview";
 import { useNodeContentActivation } from "./interaction/use-node-content-activation";
 import { useNodeDragAutoPan } from "./interaction/use-node-drag-auto-pan";
 import { usePointerInteractions } from "./interaction/use-pointer-interactions";
 import { useCanvasPalette } from "./presentation/use-canvas-palette";
 import { createCanvasScenePreviewIndex, useCanvasScenePreview } from "./scene/scene-preview";
-import { projectCanvasScene } from "./scene/scene-projection";
 import { useSceneVisibility } from "./scene/use-scene-visibility";
 import { projectSelectionTransformPolicy } from "./selection/selection-transform-policy";
 import { useCanvasSelection } from "./selection/use-canvas-selection";
-import { useEditorRegistration } from "./use-editor-registration";
-import { canvasPastePoint } from "./viewport/canvas-paste-point";
-import { useStageViewport } from "./viewport/use-stage-viewport";
-
+import { useCanvasSceneProjections } from "./use-canvas-scene-projections";
+import { useRuntimeEditorRegistration } from "./use-runtime-editor-registration";
+import { useRuntimeViewport } from "./use-runtime-viewport";
+import { useSectionDrawCandidateBounds } from "./use-section-draw-candidates";
+import { useStructureCanvasInteractions } from "./use-structure-canvas-interactions";
 export function useKonvaCanvasRuntime(
   props: CanvasSurfaceProps,
   documentChanged: (document: CanvasDocumentV1) => void,
@@ -32,42 +32,34 @@ export function useKonvaCanvasRuntime(
   const stage = shallowRef<Konva.Stage>();
   const model = new CanvasDocumentModel(props.document, {
     documentChanged,
-    historyEntry: props.events.onHistoryEntry,
     viewportChanged: props.events.onViewportChange,
   });
   const sceneDocument = model.sceneDocumentRef;
   const layouts = computed(() => sceneDocument.value.nodes);
-  const viewport = useStageViewport({
-    host,
-    initialViewport: model.document.viewport,
-    update: (next) => model.setViewport(next),
-  });
-  useExternalContentDrop({
-    host,
-    viewport: () => viewport.viewport.value,
-    insertText: props.events.onInsertText,
-    insertUrl: props.events.onInsertUrl,
-    reportError: props.events.onError,
-  });
+  const viewport = useRuntimeViewport(props, host, model);
   const preview = useLayoutPreview();
-  const canonicalScene = computed(() =>
-    projectCanvasScene(sceneDocument.value, props.nodes, props.relations),
-  );
+  const temporarilyExpandedSectionId = shallowRef<string>();
+  const projections = useCanvasSceneProjections(props, sceneDocument, temporarilyExpandedSectionId);
+  const canonicalScene = projections.scene;
+  const lockedNodeIds = projections.lockedNodeIds;
   const previewIndex = computed(() => createCanvasScenePreviewIndex(canonicalScene.value));
   const scenePreview = useCanvasScenePreview(previewIndex, preview.layouts);
-  const relationBounds = computed(
-    () =>
-      new Map(
-        canonicalScene.value.relations.map(({ id, midpoint }) => [
-          id,
-          { x: midpoint.x, y: midpoint.y, width: 0, height: 0 },
-        ]),
-      ),
-  );
+  const relationBounds = projections.relationBounds;
   const selection = useCanvasSelection({
+    availableStructureNodeIds: computed(() => new Set(props.editSnapshot.structure.map(({ id }) => id))),
     layouts: computed(() => canonicalScene.value.nodes.map(({ layout }) => layout)),
     relationBounds,
     changed: props.events.onSelectionChange,
+    structureSelectionForNode: projections.structureSelectionForNode,
+  });
+  const structureInteractions = useStructureCanvasInteractions({
+    clearSelection: selection.clear,
+    events: props.events,
+    scene: projections.structureScene,
+    selectedIds: selection.structureNodeIds,
+    setStructureSelection: selection.setStructureNodeIds,
+    snapshot: () => props.editSnapshot,
+    temporarilyExpandedSectionId,
   });
   const palette = useCanvasPalette();
   const visibility = useSceneVisibility({
@@ -80,16 +72,17 @@ export function useKonvaCanvasRuntime(
   const transformPolicy = computed(() =>
     projectSelectionTransformPolicy(canonicalScene.value.nodes, selection.nodeIds.value),
   );
+  const previewFrames = structureInteractions.withContentDropPreview(preview.update);
   const gestures = createCanvasGestureSession({
     document: model,
     events: props.events,
     layouts: () => layouts.value,
+    lockedNodeIds: () => lockedNodeIds.value,
     nodes: () => props.nodes,
-    palette: () => palette.value,
-    previewFrames: preview.update,
-    sectionNodeIds: () =>
-      new Set(props.nodes.filter(({ data }) => data.kind === "section").map(({ id }) => id)),
+    previewFrames,
     selectedNodeIds: () => selection.nodeIds.value,
+    snapshot: () => props.editSnapshot,
+    temporarilyExpandedSectionId: () => temporarilyExpandedSectionId.value,
     stage: () => stage.value,
     zoom: () => viewport.viewport.value.zoom,
   });
@@ -110,9 +103,9 @@ export function useKonvaCanvasRuntime(
     tool: computed(() => props.tool),
     reportError: props.events.onError,
     createTextNode,
+    createSection: props.events.onCreateSection,
   });
   const nodeDrag = useNodeDragAutoPan({ gestures, viewport });
-  watch(() => gestures.directManipulation.value !== undefined, props.events.onDirectManipulationChange);
   const connectors = useConnectorCreation({
     createRelation: props.events.onCreateRelation,
     reportError: props.events.onError,
@@ -120,50 +113,47 @@ export function useKonvaCanvasRuntime(
     scene: canonicalScene,
     viewport,
   });
-  watch(
-    () => [props.tool, props.interactionEnabled] as const,
-    () => {
-      pointer.pointerCancel();
-      connectors.cancel();
-      interactiveNodeId.value = undefined;
-    },
+  const { cancelInteraction } = useCanvasInteractionCancellation({
+    cancelConnector: connectors.cancel,
+    cancelGesture: gestures.cancelActiveGesture,
+    cancelNodeDrag: nodeDrag.cancel,
+    cancelPointer: pointer.pointerCancel,
+    cancelStructurePreview: structureInteractions.clearExpansionPreview,
+    clearSelection: selection.clear,
+    connectorDraft: connectors.draft,
+    directManipulation: gestures.directManipulation,
+    directManipulationChanged: props.events.onDirectManipulationChange,
+    enterableContentId: interactiveNodeId,
+    exitGroup: structureInteractions.exitGroup,
+    groupScopePath: () => props.groupScopePath,
+    interactionEnabled: () => props.interactionEnabled,
+    marquee: selection.marqueeRect,
+    panning: viewport.panning,
+    tool: () => props.tool,
+  });
+  const sectionCandidateBounds = useSectionDrawCandidateBounds(
+    pointer.sectionDraft,
+    () => props.editSnapshot,
+    projections.structureBounds,
   );
-
-  function cancelInteraction() {
-    if (interactiveNodeId.value) {
-      interactiveNodeId.value = undefined;
-      return;
-    }
-    if (connectors.draft.value) return connectors.cancel();
-    if (selection.marqueeRect.value || viewport.panning.value) return pointer.pointerCancel();
-    nodeDrag.cancel();
-    if (!gestures.cancelActiveGesture()) selection.clear();
-  }
   const report = (operation: Promise<unknown>) => void operation.catch(props.events.onError);
-
   useCanvasDocumentSync(() => props.document, model, viewport.setViewport, viewport.getViewport);
-  useEditorRegistration({
+  useRuntimeEditorRegistration({
     cancelInteraction,
-    events: props.events,
-    focusNodeIds: () => props.focusNodeIds,
+    gestures,
     host,
     layouts,
     model,
-    nodeById: (id) => canonicalScene.value.nodesById.get(id)?.node,
-    runFrameMutation: gestures.runFrameMutation,
-    nudgeSelection: gestures.nudge,
-    nodes: () => props.nodes,
-    palette: () => palette.value,
-    relations: () => props.relations,
-    relationBounds: () => relationBounds.value,
-    pastePoint: () => canvasPastePoint(pointer.lastCanvasPoint.value, viewport.viewport.value, viewport.size),
+    palette,
+    pointer,
+    projections,
+    props,
+    scene: canonicalScene,
     selection,
-    selectableNodeIds: () => canonicalScene.value.nodes.map(({ node }) => node.id),
     stage,
     stageComponent,
     viewport,
   });
-
   return {
     activateNode,
     capturesCanvasInteraction,
@@ -178,7 +168,10 @@ export function useKonvaCanvasRuntime(
     pointer,
     preview,
     scene: canonicalScene,
+    structure: projections,
+    structureInteractions,
     scenePreview,
+    sectionCandidateBounds,
     selection,
     stage,
     transformPolicy,

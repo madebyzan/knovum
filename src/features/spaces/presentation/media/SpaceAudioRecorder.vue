@@ -53,7 +53,8 @@ watch(
       .then(async () => {
         await controller.invalidate();
         if (!disposed && isOpen && open.value && props.spaceId === spaceId)
-          void controller.start().catch(reportLifecycleError);
+          return controller.start().catch(reportLifecycleError);
+        return undefined;
       })
       .catch(reportLifecycleError);
   },

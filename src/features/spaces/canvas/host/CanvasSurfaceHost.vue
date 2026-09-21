@@ -2,40 +2,44 @@
 import { onBeforeUnmount, onMounted, useTemplateRef, watch } from "vue";
 
 import type { CanvasExchangePort } from "../../canvas-exchange/canvas-exchange-port";
+import { createJsonCanvasExchangePort } from "../../canvas-exchange/json-canvas-exchange";
 import type {
   CanvasJsonImportCommitResult,
   CanvasJsonImportDraft,
   CanvasJsonImportRequest,
 } from "../../canvas-exchange/json-canvas-import-contract";
 import { jsonCanvasCodec } from "../../canvas-exchange/json-canvas-repository";
-import { createJsonCanvasExchangePort } from "../../canvas-exchange/json-canvas-service";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceRelation } from "../../model/relations/relation";
 import type { CanvasHostEvents, CanvasSurfaceEvents } from "../contract/canvas-editor";
-import type { CanvasSpacePersistence } from "../contract/canvas-persistence";
 import type { CanvasNodeContentSlotProps } from "../contract/canvas-surface";
 import type { CanvasTool } from "../contract/canvas-tool";
+import type { SpaceEditSnapshot } from "../contract/space-edit-snapshot";
+import type { SpacePersistenceState } from "../contract/space-persistence-state";
 import KonvaCanvasSurface from "../konva/KonvaCanvasSurface.vue";
 import { useCanvasDocumentSession } from "./use-canvas-document-session";
 
 const props = defineProps<{
   events: CanvasHostEvents;
-  persistence: CanvasSpacePersistence;
+  persistence: SpacePersistenceState;
   ensurePersisted(): Promise<void>;
   importJsonCanvas(request: CanvasJsonImportRequest): Promise<CanvasJsonImportCommitResult>;
   focusNodeIds: readonly string[];
+  groupScopePath: readonly string[];
   interactionEnabled: boolean;
   tool: CanvasTool;
   nodes: readonly SpaceCanvasNode[];
   relations: readonly SpaceRelation[];
+  exchangeRelations: readonly SpaceRelation[];
   spaceId: string;
+  snapshot: SpaceEditSnapshot;
 }>();
 const emit = defineEmits<{ exchangeReady: [exchange: CanvasExchangePort] }>();
 defineSlots<{ "node-content"(props: CanvasNodeContentSlotProps): unknown }>();
 const session = useCanvasDocumentSession({
+  snapshot: () => props.snapshot,
   persistence: () => props.persistence,
   ensurePersisted: () => props.ensurePersisted(),
-  nodes: () => props.nodes,
   reportError: props.events.onError,
   spaceId: () => props.spaceId,
 });
@@ -43,26 +47,9 @@ const surface = useTemplateRef<InstanceType<typeof KonvaCanvasSurface>>("surface
 
 const surfaceEvents: CanvasSurfaceEvents = {
   ...props.events,
-  async onCommitGesture(request) {
-    return session.commitTransaction((baseRevision) =>
-      props.events.onCommitGesture({ ...request, baseRevision }),
-    );
-  },
-  async onCutSelection(request) {
-    return session.commitTransaction((baseRevision) =>
-      props.events.onCutSelection({ ...request, baseRevision }),
-    );
-  },
-  async onDeleteSelection(request) {
-    return session.commitTransaction((baseRevision) =>
-      props.events.onDeleteSelection({ ...request, baseRevision }),
-    );
-  },
-  onHistoryTransition(nextDocument, transition) {
-    return session.commitTransaction(async (baseRevision) => ({
-      ...(await transition({ baseRevision, document: nextDocument })),
-      document: nextDocument,
-    }));
+  onViewportChange(viewport) {
+    session.viewportChanged(viewport);
+    props.events.onViewportChange(viewport);
   },
   onReady(editor) {
     props.events.onReady(editor);
@@ -70,20 +57,18 @@ const surfaceEvents: CanvasSurfaceEvents = {
       "exchangeReady",
       createJsonCanvasExchangePort({
         codec: jsonCanvasCodec,
-        editor,
+        snapshot: () => props.snapshot,
         nodes: () => props.nodes,
-        relations: () => props.relations,
+        relations: () => props.exchangeRelations,
         commitImport: commitJsonCanvasImport,
-        historyEntry: props.events.onHistoryEntry,
-        historyTransition: surfaceEvents.onHistoryTransition,
-        historyTransaction: props.events.onHistoryTransaction,
+        transaction: props.events.onHistoryTransaction,
       }),
     );
   },
 };
 
 function commitJsonCanvasImport(request: CanvasJsonImportDraft) {
-  return session.commitTransaction((baseRevision) => props.importJsonCanvas({ ...request, baseRevision }));
+  return props.importJsonCanvas({ ...request, baseRevision: props.snapshot.editRevision });
 }
 
 watch(
@@ -100,10 +85,8 @@ watch(
   },
 );
 watch(
-  () => props.nodes,
-  (nodes) => {
-    session.synchronizeNodes(nodes);
-  },
+  () => props.snapshot,
+  () => session.synchronizeSnapshot(),
 );
 onMounted(() => void session.start().catch(props.events.onError));
 onBeforeUnmount(() => {
@@ -118,8 +101,10 @@ onBeforeUnmount(() => {
     v-if="session.document.value"
     :key="session.surfaceKey.value"
     :document="session.document.value"
+    :edit-snapshot="snapshot"
     :events="surfaceEvents"
     :focus-node-ids="focusNodeIds"
+    :group-scope-path="groupScopePath"
     :interaction-enabled="interactionEnabled"
     :tool="tool"
     :nodes="nodes"

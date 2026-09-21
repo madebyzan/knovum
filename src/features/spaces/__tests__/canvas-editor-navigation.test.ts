@@ -36,7 +36,7 @@ function layout(nodeId: string, x: number, y: number) {
   return {
     nodeId,
     frame: { x, y, width: 300, height: 220, rotation: 0 },
-    sizeAuthority: "frame",
+    sizeAuthority: "frame" as const,
     zIndex: 0,
   };
 }

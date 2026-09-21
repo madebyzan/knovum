@@ -3,9 +3,10 @@ import { refDebounced } from "@vueuse/core";
 import { computed, shallowRef, watch, type Ref } from "vue";
 
 import { useCanvasEditorSession } from "../canvas/editor-session";
+import { revealContentNode, revealStructureNode } from "../canvas/structure-navigation";
 import { useContextDock } from "../canvas/use-context-dock";
 import { useSpaceStore } from "../session/space-store";
-import { searchKnowledgeAcrossSpaces, type GlobalKnowledgeSearchMatch } from "./global-search-repository";
+import { searchAcrossSpaces, type GlobalSearchMatch } from "./global-search-repository";
 
 export function useGlobalFind(open: Ref<boolean>) {
   const store = useSpaceStore();
@@ -22,17 +23,21 @@ export function useGlobalFind(open: Ref<boolean>) {
   const result = useQuery(
     computed(() => ({
       queryKey: ["spaces", "global-search", normalizedQuery.value],
-      queryFn: () => searchKnowledgeAcrossSpaces(normalizedQuery.value),
+      queryFn: () => searchAcrossSpaces(normalizedQuery.value),
       enabled: Boolean(normalizedQuery.value),
       staleTime: 30_000,
     })),
   );
 
-  async function select(match: GlobalKnowledgeSearchMatch | undefined) {
+  async function select(match: GlobalSearchMatch | undefined) {
     if (!match) return;
     open.value = false;
     if (store.activeSpaceId !== match.spaceId) await store.openSpace(match.spaceId);
-    editorSession.reveal([match.nodeId], "focus");
+    if (match.kind === "structure") {
+      await revealStructureNode(store, editorSession, match.structureNodeId);
+      return;
+    }
+    await revealContentNode(store, editorSession, match.nodeId);
     dock.openSource({
       nodeId: match.nodeId,
       nodeTitle: match.nodeTitle,

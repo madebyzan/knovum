@@ -7,10 +7,10 @@ export function spaceImportContext(store: ReturnType<typeof useSpaceStore>): Spa
       if (store.activeSpaceId !== spaceId) return;
       await store.ensureActiveSpacePersisted();
     },
-    createPendingItemForSpace: store.createPendingItemForSpace,
+    createPendingContentForSpace: store.createPendingContentForSpace,
     savePendingNodeDataForSpace: store.savePendingNodeDataForSpace,
-    finalizePendingItems: store.finalizePendingItems,
+    finalizePendingContent: store.finalizePendingContent,
     applyNodeDataForSpace: store.applyNodeDataForSpace,
-    discardPendingItem: store.discardPendingItem,
+    discardPendingContent: store.discardPendingContent,
   };
 }

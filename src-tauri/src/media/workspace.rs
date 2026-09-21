@@ -41,7 +41,9 @@ impl AnalysisWorkspace {
         match fs::remove_dir_all(&self.directory) {
             Ok(()) => Ok(()),
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
-            Err(error) => Err(format!("failed to remove media analysis directory: {error}")),
+            Err(error) => Err(format!(
+                "failed to remove media analysis directory: {error}"
+            )),
         }
     }
 }

@@ -49,8 +49,8 @@ exposed to the WebView.
 
 A business invariant spanning multiple statements must execute in one Rust SQLx transaction. Never reproduce a transaction by issuing multiple IPC commands and never move a generic transaction/SQL bridge into Foundation.
 
-Examples include Space node batches, soft-delete/restore, position batches, grounded messages,
-cross-Space movement and Space-package restore.
+Examples include Structure/Layout edits, content creation, subtree delete/restore, grounded messages,
+linked two-Space movement and Space-package restore.
 
 Read bundles that must represent one coherent point in time also use a Rust read transaction. Space
 package export reads the Space row, Object Types, Saved Views, Relations, Nodes, Provenance,
@@ -58,21 +58,21 @@ Knowledge Events, Knowledge chunks, AI threads and AI messages inside one Rust
 SQLx read transaction; the Renderer receives one complete manifest and never supplies authoritative
 database state for export.
 
-## Draft canvas lifecycle
+## Structure, camera and draft lifecycle
 
 A workspace draft is an in-memory Space, not a persisted aggregate. The canvas host receives its
-explicit `draft` or `persisted` lifecycle from the workspace. Draft viewport changes and tab flushes
-must not load or save canvas state, acquire a persistence lease, or materialize an empty Space.
+explicit `draft` or `persisted` lifecycle from the workspace. Draft camera changes and tab flushes
+must not load or save camera state or materialize an empty Space.
 
-The first durable action materializes the Space before opening its canvas storage. Promotion shares
-one readiness promise, retains the current document and surface, and creates a revision-zero save
-queue. Transaction admission tracks local changes even while materialization is pending. Opening
-an already persisted Space instead loads its authoritative revision under the existing storage lease.
-Transaction bookkeeping belongs to the logical session generation, not to the storage readiness state.
+The first durable action materializes the Space before committing Structure/Layout. Promotion shares
+one readiness promise and retains the current surface. Opening a persisted Space loads its current
+Structure/Layout snapshot and separate camera. The Renderer never saves an authoritative canvas
+document: it projects an ephemeral Konva adapter document from the committed aggregate.
 
-Tab transitions await admitted transactions, storage readiness and pending snapshots before leaving.
-Rust distinguishes an absent owning Space from a compare-and-swap conflict within the write
-transaction. Neither error permits a forced overwrite, automatic reload-and-retry, or compatibility path.
+Tab transitions await admitted mutations and pending camera writes before leaving. Every structural
+mutation carries `expectedEditRevision` and `mutationId`; Rust distinguishes an absent Space from a
+revision conflict and records a typed receipt in the same transaction. Neither error permits forced
+overwrite, automatic reload-and-retry, or a compatibility path.
 
 ## Media assets and derived analysis
 

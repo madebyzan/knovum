@@ -139,7 +139,7 @@ async function createPendingNode(store: SpaceStore, source: SpaceCanvasNode, sub
     fileName: `${base}-subtitled.mp4`,
     processingState: "processing",
   };
-  const [node] = await store.addItem(
+  const [node] = await store.addContent(
     data,
     derivedNodePosition([source, subtitles], useCanvasEditorSession().selection.value.nodePlacements),
     { reveal: true },

@@ -60,7 +60,7 @@ fn validate_field(field: &Value, keys: &mut HashSet<String>) -> Result<(), Strin
     let key = field
         .get("key")
         .and_then(Value::as_str)
-        .filter(|item| !item.is_empty())
+        .filter(|key| !key.is_empty())
         .ok_or_else(|| "Knowledge Type field key is required".to_string())?;
     validate_required_text(key, 128, "Knowledge Type field key")?;
     if !keys.insert(key.to_owned()) {
@@ -73,10 +73,13 @@ fn validate_field_contract(field: &Value, key: &str) -> Result<(), String> {
     let label = field
         .get("label")
         .and_then(Value::as_str)
-        .filter(|item| !item.is_empty())
+        .filter(|label| !label.is_empty())
         .ok_or_else(|| format!("Knowledge Type field '{key}' label is required"))?;
     validate_required_text(label, 128, "Knowledge Type field label")?;
-    if field.get("required").is_some_and(|item| !item.is_boolean()) {
+    if field
+        .get("required")
+        .is_some_and(|required| !required.is_boolean())
+    {
         return Err(format!(
             "Knowledge Type field '{key}' required flag must be boolean"
         ));
@@ -112,7 +115,7 @@ fn validate_enum_options(key: &str, value: &Value) -> Result<(), String> {
     for option in options {
         let text = option
             .as_str()
-            .filter(|item| !item.trim().is_empty())
+            .filter(|option| !option.trim().is_empty())
             .ok_or_else(|| format!("Enum field '{key}' options must be non-empty strings"))?;
         validate_required_text(text, 128, "Enum option")?;
         if !unique.insert(text) {

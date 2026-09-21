@@ -77,7 +77,7 @@ export async function createSourceEvidence(input: {
   const { store, target, title, sourceLine, rationale } = input;
   const spaceId = requiredSpaceId(store);
   const quote = target.locator.quote?.exact ?? target.text ?? "";
-  const [evidence] = await store.addItem({
+  const [evidence] = await store.addContent({
     kind: "object",
     objectTypeId: SYSTEM_OBJECT_TYPE_IDS.evidence,
     title,

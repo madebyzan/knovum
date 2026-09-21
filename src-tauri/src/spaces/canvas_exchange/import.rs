@@ -4,35 +4,39 @@ use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Runtime};
 
 use crate::spaces::{
-    canvas_state::CanvasDocumentV1, commands::relations::SpaceRelationInput,
+    commands::relations::SpaceRelationInput,
     nodes::contracts::InsertNode,
+    structure::{RelationStyle, StructureLayout, StructureNode},
 };
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub(crate) struct ImportJsonCanvasNodesRequest {
     space_id: String,
+    mutation_id: String,
     base_revision: i64,
-    document: CanvasDocumentV1,
+    structure_nodes: Vec<StructureNode>,
+    layouts: Vec<StructureLayout>,
+    relation_styles: Vec<RelationStyle>,
     nodes: Vec<JsonCanvasNodeImport>,
     relations: Vec<SpaceRelationInput>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub(super) struct JsonCanvasNodeImport {
     source_id: String,
     node: InsertNode,
 }
 
-#[derive(Serialize)]
+#[derive(Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct ImportedJsonCanvasNode {
     source_id: String,
     node_id: String,
 }
 
-#[derive(Serialize)]
+#[derive(Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct ImportJsonCanvasResult {
     imported_nodes: Vec<ImportedJsonCanvasNode>,
@@ -44,23 +48,40 @@ pub(crate) async fn import_nodes<R: Runtime>(
     request: ImportJsonCanvasNodesRequest,
 ) -> Result<ImportJsonCanvasResult, String> {
     validate_source_ids(&request.nodes)?;
+    let digest = crate::spaces::structure::receipts::digest(&request)?;
     let imported_nodes = request
         .nodes
         .iter()
-        .map(|item| ImportedJsonCanvasNode {
-            source_id: item.source_id.clone(),
-            node_id: item.node.id.clone(),
+        .map(|prepared_node| ImportedJsonCanvasNode {
+            source_id: prepared_node.source_id.clone(),
+            node_id: prepared_node.node.id.clone(),
         })
         .collect();
     let nodes = request
         .nodes
         .into_iter()
-        .map(|item| item.node)
+        .map(|prepared_node| prepared_node.node)
         .collect::<Vec<_>>();
     let pool = crate::spaces::db::pool(&app).await?;
     let mut tx = crate::spaces::db::begin_write(pool).await?;
+    if let Some(result) =
+        crate::spaces::structure::receipts::find_typed(&mut tx, &request.mutation_id, &digest)
+            .await?
+    {
+        tx.commit().await.map_err(crate::spaces::db::sql_error)?;
+        return Ok(result);
+    }
+    let (before_snapshot, current_revision) =
+        crate::spaces::structure::repository::load_in_transaction(&mut tx, &request.space_id)
+            .await?;
+    if current_revision != request.base_revision {
+        return Err("Space edit revision conflict".into());
+    }
+    let before =
+        crate::spaces::structure::history::capture(&mut tx, &request.space_id, &before_snapshot)
+            .await?;
     let now = crate::clock::unix_time_millis()?;
-    crate::spaces::nodes::insert_many_in_transaction(&mut tx, &request.space_id, &nodes, now)
+    crate::spaces::nodes::insert_rows_in_transaction(&mut tx, &request.space_id, &nodes, now)
         .await?;
     for relation in &request.relations {
         if relation.space_id != request.space_id {
@@ -72,18 +93,47 @@ pub(crate) async fn import_nodes<R: Runtime>(
         .await?;
     }
     crate::spaces::nodes::touch_updated_at(&mut tx, &request.space_id, now).await?;
-    let revision = crate::spaces::canvas_state::save_in_transaction(
+    let snapshot = crate::spaces::structure::repository::SpaceStructureSnapshot {
+        structure: request.structure_nodes,
+        layouts: request.layouts,
+        relation_styles: request.relation_styles,
+    };
+    let revision = crate::spaces::structure::repository::save_in_transaction(
         &mut tx,
         &request.space_id,
-        request.base_revision,
-        &request.document,
+        current_revision,
+        &snapshot,
+    )
+    .await?;
+    crate::spaces::structure::portal_integrity::validate_structure_targets(&mut tx).await?;
+    let after =
+        crate::spaces::structure::history::capture(&mut tx, &request.space_id, &snapshot).await?;
+    crate::spaces::structure::history::record(
+        &mut tx,
+        &request.space_id,
+        &before,
+        &after,
+        None,
+        None,
+        revision,
+    )
+    .await?;
+    let result = ImportJsonCanvasResult {
+        imported_nodes,
+        revision,
+    };
+    crate::spaces::structure::receipts::insert_typed(
+        &mut tx,
+        &request.mutation_id,
+        &request.space_id,
+        &digest,
+        revision,
+        &[],
+        &result,
     )
     .await?;
     tx.commit().await.map_err(crate::spaces::db::sql_error)?;
-    Ok(ImportJsonCanvasResult {
-        imported_nodes,
-        revision,
-    })
+    Ok(result)
 }
 
 pub(super) fn validate_source_ids(nodes: &[JsonCanvasNodeImport]) -> Result<(), String> {

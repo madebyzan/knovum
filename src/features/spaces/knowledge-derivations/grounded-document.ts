@@ -37,7 +37,7 @@ export async function createGroundedDocument(context: CreateGroundedDocumentCont
   const { store, selected, sources, draft } = context;
   const spaceId = store.activeSpaceId;
   if (!spaceId) return;
-  const [pending] = await store.addItem(
+  const [pending] = await store.addContent(
     { kind: "markdown", title: draft.title.trim(), text: "", derivationState: "pending" },
     derivedNodePosition(selected, useCanvasEditorSession().selection.value.nodePlacements),
     { reveal: true },

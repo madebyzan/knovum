@@ -1,19 +1,25 @@
-import type { KnowledgeChunkKind, KnowledgeLocator } from "./schema";
+import { z } from "zod";
 
-export interface KnowledgeSearchMatch {
-  chunkId: string;
-  nodeId: string;
-  nodeKind: string;
-  nodeTitle: string;
-  chunkKind: KnowledgeChunkKind;
-  metadata?: Record<string, string | number | boolean | null>;
-  sourceRevision: string;
-  locator: KnowledgeLocator;
-  snippet: string;
-  text: string;
-  score: number;
-  lexicalScore?: number;
-  semanticScore?: number;
-  spaceId?: string;
-  spaceTitle?: string;
-}
+import { knowledgeChunkKindSchema, knowledgeChunkMetadataSchema, knowledgeLocatorSchema } from "./schema";
+
+export const knowledgeSearchMatchSchema = z
+  .object({
+    chunkId: z.string().min(1),
+    nodeId: z.string().min(1),
+    nodeKind: z.string().min(1),
+    nodeTitle: z.string(),
+    chunkKind: knowledgeChunkKindSchema,
+    metadata: knowledgeChunkMetadataSchema.optional(),
+    sourceRevision: z.string().min(1),
+    locator: knowledgeLocatorSchema,
+    snippet: z.string(),
+    text: z.string(),
+    score: z.number().finite(),
+    lexicalScore: z.number().finite().optional(),
+    semanticScore: z.number().finite().optional(),
+    spaceId: z.string().min(1).optional(),
+    spaceTitle: z.string().optional(),
+  })
+  .strict();
+
+export type KnowledgeSearchMatch = z.infer<typeof knowledgeSearchMatchSchema>;

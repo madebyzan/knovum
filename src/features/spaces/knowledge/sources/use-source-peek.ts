@@ -19,7 +19,7 @@ export function useSourcePeek() {
   const { t } = useI18n();
   const sourceContext = ref<KnowledgeChunk[]>([]);
   let generation = 0;
-  const node = computed(() => store.nodes.find((item) => item.id === sourcePeek.value?.nodeId));
+  const node = computed(() => store.nodes.find((candidate) => candidate.id === sourcePeek.value?.nodeId));
   const location = computed(() => sourcePeek.value?.locator.location);
   const preciseExternal = computed(
     () => platform() === "windows" && ["word", "slides", "sheet"].includes(location.value?.kind ?? ""),

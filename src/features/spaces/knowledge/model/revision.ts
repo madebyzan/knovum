@@ -136,9 +136,9 @@ function stableJson(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
   if (isPlainObject(value)) {
     const fields = Object.entries(value as Record<string, unknown>)
-      .filter(([, item]) => item !== undefined)
+      .filter(([, fieldValue]) => fieldValue !== undefined)
       .toSorted(([left], [right]) => compareUtf8Binary(left, right))
-      .map(([key, item]) => `${JSON.stringify(key)}:${stableJson(item)}`);
+      .map(([key, fieldValue]) => `${JSON.stringify(key)}:${stableJson(fieldValue)}`);
     return `{${fields.join(",")}}`;
   }
   return "null";

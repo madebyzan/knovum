@@ -37,7 +37,7 @@ export function shiftMediaChapterStart(knowledge: SpaceMediaKnowledge, index: nu
   const lower = insights.chapters[index - 1]!.startMs;
   const upper = insights.chapters[index + 1]?.startMs ?? knowledge.transcript.durationMs;
   if (nextStart === undefined || nextStart <= lower || nextStart >= upper) return knowledge;
-  const chapters = insights.chapters.map((item) => Object.assign({}, item));
+  const chapters = insights.chapters.map((candidate) => Object.assign({}, candidate));
   chapters[index]!.startMs = nextStart;
   return editInsights(knowledge, {
     chapters: normalizeChapterEnds(chapters, knowledge.transcript.durationMs),

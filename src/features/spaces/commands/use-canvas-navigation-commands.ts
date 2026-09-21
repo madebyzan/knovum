@@ -5,6 +5,11 @@ import type { AppCommand, CommandCategory } from "../../../shared/contracts/app-
 import { useCanvasToolStore } from "../canvas/canvas-tool-store";
 import { useCanvasEditorSession } from "../canvas/editor-session";
 import { isSpaceSemanticNode } from "../knowledge/model/semantic-node";
+import {
+  ancestorsOf,
+  createStructureIndex,
+  effectiveOperationRoots,
+} from "../model/structure/structure-index";
 import { useSceneList } from "../scenes/use-scene-list";
 import { useSpaceStore } from "../session/space-store";
 import { CANVAS_TOOL_COMMANDS } from "./canvas-tool-commands";
@@ -20,12 +25,23 @@ export function useCanvasNavigationCommands() {
     const selected = new Set(session.selection.value.nodeIds);
     return store.nodes.filter(({ id }) => selected.has(id));
   };
+  const selectedStructureNodeIds = () => {
+    const index = createStructureIndex(store.editSnapshot.structure);
+    const contentStructureNodeIds = session.selection.value.nodeIds.flatMap((nodeId) => {
+      const structureNodeId = index.nodeIdToStructureNodeId.get(nodeId);
+      return structureNodeId ? [structureNodeId] : [];
+    });
+    return effectiveOperationRoots(
+      [...session.selection.value.structureNodeIds, ...contentStructureNodeIds],
+      index,
+    ).map(({ id }) => id);
+  };
 
   return computed<readonly AppCommand[]>(() => [
-    ...CANVAS_TOOL_COMMANDS.map((item) =>
-      command(`spaces.tool-${item.tool}`, t(item.title), {
-        shortcut: item.shortcut,
-        run: () => tools.selectTool(item.tool),
+    ...CANVAS_TOOL_COMMANDS.map((toolCommand) =>
+      command(`spaces.tool-${toolCommand.tool}`, t(toolCommand.title), {
+        shortcut: toolCommand.shortcut,
+        run: () => tools.selectTool(toolCommand.tool),
       }),
     ),
     command("spaces.cancel-canvas-interaction", t("spaces.canvas.actions.cancelInteraction"), {
@@ -54,7 +70,12 @@ export function useCanvasNavigationCommands() {
     command("spaces.zoom-to-selection", t("spaces.canvas.actions.zoomToSelection"), {
       shortcut: SPACE_COMMAND_SHORTCUTS.zoomToSelection,
       keybindings: SPACE_COMMAND_KEYBINDINGS.zoomToSelection,
-      isEnabled: () => session.selection.value.nodeIds.length > 0,
+      isEnabled: () => {
+        const selection = session.selection.value;
+        return Boolean(
+          selection.nodeIds.length || selection.structureNodeIds.length || selection.relationIds.length,
+        );
+      },
       run: () => session.activeEditor.value?.zoomToSelection(),
     }),
     command("spaces.previous-scene", t("shell.previousScene"), {
@@ -77,9 +98,7 @@ export function useCanvasNavigationCommands() {
       isEnabled: () => selectedNodes().length > 0,
       run: () => {
         const nodes = selectedNodes();
-        const section = nodes.find(({ data }) => data.kind === "section");
-        if (section) store.focusSection(section.id);
-        else if (nodes[0]) store.focusNeighborhood(nodes[0].id);
+        if (nodes[0]) store.focusNeighborhood(nodes[0].id);
       },
     }),
     command("spaces.connect-selection", t("spaces.canvas.connect"), {
@@ -93,13 +112,23 @@ export function useCanvasNavigationCommands() {
     command("spaces.toggle-selection-lock", t("spaces.canvas.actions.toggleSelectionLock"), {
       shortcut: SPACE_COMMAND_SHORTCUTS.lockSelection,
       category: "editing",
-      isEnabled: () => selectedNodes().length > 0,
-      run: async () => {
-        const nodes = selectedNodes();
-        await store.setLocked(
-          nodes.map(({ id }) => id),
-          !nodes.every(({ data }) => Boolean(data.locked)),
+      isEnabled: () => {
+        const index = createStructureIndex(store.editSnapshot.structure);
+        const structureNodeIds = selectedStructureNodeIds();
+        return (
+          structureNodeIds.length > 0 &&
+          structureNodeIds.every((id) => !ancestorsOf(id, index).some(({ locked }) => locked))
         );
+      },
+      run: async () => {
+        const index = createStructureIndex(store.editSnapshot.structure);
+        const structureNodeIds = selectedStructureNodeIds();
+        const locked = structureNodeIds.every((id) => index.structureById.get(id)?.locked);
+        await store.executeSpaceEdit({
+          kind: "structure.set-lock",
+          rootIds: structureNodeIds,
+          locked: !locked,
+        });
       },
     }),
   ]);

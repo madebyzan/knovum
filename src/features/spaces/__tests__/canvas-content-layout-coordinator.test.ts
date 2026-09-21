@@ -14,7 +14,7 @@ describe("canvas content layout coordinator", () => {
         calls.push("flush");
         return true;
       },
-      setContentHeightFittingPaused: vi.fn(),
+      setContentHeightFittingPaused: vi.fn<(paused: boolean) => void>(),
     } as unknown as CanvasEditorPort;
     const coordinator = createCanvasContentLayoutCoordinator({
       directManipulation: () => false,
@@ -24,7 +24,13 @@ describe("canvas content layout coordinator", () => {
     });
     coordinator.measurements.register(() => {
       calls.push("measure");
-      coordinator.fit("text", { height: 64, typographyScale: 1, width: 240 });
+      coordinator.fit("text", {
+        contentRevision: null,
+        height: 64,
+        sizeAuthority: "frame",
+        typographyScale: 1,
+        width: 240,
+      });
     });
 
     await coordinator.settle();

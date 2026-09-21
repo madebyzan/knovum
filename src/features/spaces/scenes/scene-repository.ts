@@ -17,7 +17,7 @@ function sceneInput(scene: SpaceScene) {
     "viewportY",
     "viewportZoom",
     "orderIndex",
-    "focusNodeIds",
+    "focusStructureNodeIds",
     "relationKinds",
     "relationStatuses",
     "queryFilter",

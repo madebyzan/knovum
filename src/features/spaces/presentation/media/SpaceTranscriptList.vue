@@ -29,7 +29,7 @@ const visibleIndices = computed(() => {
   const matched = search(needle, indexed, {
     keySelector: ({ segment }) => segment.text,
   });
-  return matched.map((item) => item.index);
+  return matched.map((match) => match.index);
 });
 const activeIndex = computed(() => {
   const current = props.currentMs;

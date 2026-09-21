@@ -4,28 +4,36 @@ export function validatePackageDerivations(manifest: SpacePackageManifest) {
   const nodeIds = new Set(manifest.nodes.map((node) => node.id));
   const outputs = new Set<string>();
   for (const derivation of manifest.derivations) {
-    if (!nodeIds.has(derivation.outputNodeId)) {
-      throw new Error("Space package derivation references an unavailable node");
-    }
-    const inputIds = new Set<string>();
-    const linkedInputs = new Set<string>();
-    for (const input of derivation.inputs) {
-      if (input.nodeId !== null && (!nodeIds.has(input.nodeId) || input.nodeId === derivation.outputNodeId)) {
-        throw new Error("Space package derivation references an unavailable node");
-      }
-      const identity = `${input.role}:${input.sourceIdentity}`;
-      if (inputIds.has(identity)) throw new Error("Space package derivation contains a duplicate input");
-      inputIds.add(identity);
-      if (input.nodeId !== null) {
-        const link = `${input.role}:${input.nodeId}`;
-        if (linkedInputs.has(link))
-          throw new Error("Space package derivation contains a duplicate node link");
-        linkedInputs.add(link);
-      }
-    }
+    validateDerivationInputs(derivation, nodeIds);
     if (outputs.has(derivation.outputNodeId)) {
       throw new Error("Space package contains multiple derivations for one output");
     }
     outputs.add(derivation.outputNodeId);
   }
+}
+
+function validateDerivationInputs(
+  derivation: SpacePackageManifest["derivations"][number],
+  nodeIds: ReadonlySet<string>,
+) {
+  if (!nodeIds.has(derivation.outputNodeId))
+    throw new Error("Space package derivation references an unavailable node");
+  const inputIds = new Set<string>();
+  const linkedInputs = new Set<string>();
+  for (const input of derivation.inputs) {
+    validateInputNode(input.nodeId, derivation.outputNodeId, nodeIds);
+    registerUnique(inputIds, `${input.role}:${input.sourceIdentity}`, "duplicate input");
+    if (input.nodeId !== null)
+      registerUnique(linkedInputs, `${input.role}:${input.nodeId}`, "duplicate node link");
+  }
+}
+
+function validateInputNode(nodeId: string | null, outputNodeId: string, nodeIds: ReadonlySet<string>) {
+  if (nodeId !== null && (!nodeIds.has(nodeId) || nodeId === outputNodeId))
+    throw new Error("Space package derivation references an unavailable node");
+}
+
+function registerUnique(identities: Set<string>, identity: string, problem: string) {
+  if (identities.has(identity)) throw new Error(`Space package derivation contains a ${problem}`);
+  identities.add(identity);
 }

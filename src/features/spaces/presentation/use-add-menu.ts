@@ -19,12 +19,26 @@ export function useAddMenu() {
   const website = ref("");
   const normalizedWebsite = computed(() => normalizeSpaceUrl(website.value));
   const addMarkdown = () =>
-    void store.addItem({ kind: "markdown", title: t("spaces.editor.untitledMarkdown"), text: "" });
+    void store.addContent({ kind: "markdown", title: t("spaces.editor.untitledMarkdown"), text: "" });
+  const addSection = () => {
+    const position = store.nextInsertionPoint();
+    const rootOrder = store.editSnapshot.structure.filter(
+      (structureNode) => structureNode.parentId === null,
+    ).length;
+    return store.executeSpaceEdit({
+      kind: "section.create-empty",
+      sectionId: crypto.randomUUID(),
+      title: t("spaces.canvas.untitledSection"),
+      frame: { ...position, width: 640, height: 400 },
+      rootOrder,
+    });
+  };
   const addKnowledgeObject = (
     type: "claim" | "evidence" | "question" | "decision" | "concept" | "experiment",
-  ) => void store.addItem(createSystemKnowledgeObjectPayload(type, t(`spaces.knowledgeObjectTypes.${type}`)));
+  ) =>
+    void store.addContent(createSystemKnowledgeObjectPayload(type, t(`spaces.knowledgeObjectTypes.${type}`)));
   function addCredential(kind: "api-key" | "account-password") {
-    void store.addItem({
+    void store.addContent({
       kind: "credential",
       title: kind === "api-key" ? t("spaces.credentials.apiKey") : t("spaces.credentials.accountPassword"),
       credentialKind: kind,
@@ -35,7 +49,7 @@ export function useAddMenu() {
     if (!store.activeSpaceId) return;
     try {
       await importSpaceFromPicker(store, {
-        title: t("spaces.transfer.importingItem"),
+        title: t("spaces.transfer.importingResource"),
         preparing: t("spaces.transfer.importPreparing"),
       });
     } catch (error) {
@@ -50,7 +64,7 @@ export function useAddMenu() {
       {
         activeSpaceId,
         nodes: store.nodes,
-        addItem: store.addItem,
+        addContent: store.addContent,
         saveNodeDataForSpace: store.saveNodeDataForSpace,
       },
       url,
@@ -68,6 +82,7 @@ export function useAddMenu() {
     website,
     normalizedWebsite,
     addMarkdown,
+    addSection,
     addKnowledgeObject,
     addCredential,
     importFromPicker,

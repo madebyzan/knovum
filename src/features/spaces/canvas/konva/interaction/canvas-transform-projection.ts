@@ -38,7 +38,6 @@ export function projectCanvasTransformUpdates(
 ): CanvasGestureUpdate[] {
   return options.targets.flatMap<CanvasGestureUpdate>(({ content, layout, node }) => {
     const nodeId = content.id;
-    if (content.data.locked) return [];
     const frame = {
       x: node.x(),
       y: node.y(),

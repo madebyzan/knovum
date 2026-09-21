@@ -7,7 +7,8 @@ import { defineComponent, nextTick } from "vue";
 
 import { i18n } from "../../../foundation/i18n/i18n";
 import { createSpaceNotePayload } from "../editor/tiptap-content";
-import type { SpaceNotePayload, SpaceVideoPayload } from "../model/nodes/node-payload";
+import type { SpaceCanvasTextPayload } from "../model/nodes/capabilities";
+import type { SpaceVideoPayload } from "../model/nodes/node-payload";
 import SpaceCanvasMedia from "../presentation/canvas/nodes/SpaceCanvasMedia.vue";
 import SpaceCanvasNodeStatus from "../presentation/canvas/nodes/SpaceCanvasNodeStatus.vue";
 import SpaceCanvasNote from "../presentation/canvas/nodes/SpaceCanvasNote.vue";
@@ -16,15 +17,18 @@ import { useSpaceStore } from "../session/space-store";
 describe("Konva rich node interactions", () => {
   beforeEach(() => setActivePinia(createPinia()));
 
-  it("persists direct note editing and refuses editing for locked notes", async () => {
-    const persist = vi.fn<(id: string, data: SpaceNotePayload) => Promise<void>>(async () => {});
+  it("persists direct note editing", async () => {
+    const persist = vi.fn<(id: string, data: SpaceCanvasTextPayload) => Promise<void>>(async () => {});
     const wrapper = mount(SpaceCanvasNote, {
       props: {
         id: "note",
         data: createSpaceNotePayload("First", "First\nBody"),
         detailLevel: "full",
+        fontSize: 16,
         interactive: false,
         persist,
+        textAlign: "left",
+        verticalClass: "justify-start",
       },
       global: { plugins: [i18n] },
     });
@@ -59,10 +63,6 @@ describe("Konva rich node interactions", () => {
         }),
       }),
     );
-
-    await wrapper.setProps({ data: { ...createSpaceNotePayload("Locked", "Body"), locked: true } });
-    expect(wrapper.find('[tabindex="0"]').exists()).toBe(false);
-    expect(wrapper.find(".ProseMirror[contenteditable='true']").exists()).toBe(false);
   });
 
   it("consumes media requests and synchronizes playback state", async () => {

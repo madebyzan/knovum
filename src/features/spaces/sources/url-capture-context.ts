@@ -10,7 +10,7 @@ export function urlCaptureContext(store: ReturnType<typeof useSpaceStore>): UrlC
     beginUrlCapture: store.beginUrlCapture,
     updateUrlCapture: store.updateUrlCapture,
     finishUrlCapture: store.finishUrlCapture,
-    addItem: store.addItem,
+    addContent: store.addContent,
     saveNodeDataForSpace: store.saveNodeDataForSpace,
   };
 }

@@ -29,6 +29,11 @@ describe("Konva node presentation", () => {
       bounds: { x: 0, y: 0, width: 100, height: 100 },
       midpoint: { x: 50, y: 50 },
       points: [0, 0, 30, 0, 70, 100, 100, 100],
+      sourceNodeId: "a",
+      sourceFrame: { x: 0, y: 0, width: 100, height: 80, rotation: 0 },
+      targetNodeId: "b",
+      targetFrame: { x: 100, y: 100, width: 100, height: 80, rotation: 0 },
+      parallelOffset: 0,
       relation: {
         id: "edge",
         spaceId: "space",
