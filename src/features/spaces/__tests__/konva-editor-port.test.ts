@@ -26,8 +26,7 @@ describe("Konva editor port", () => {
       viewportChanged() {},
     });
     const port = createKonvaEditorPort({
-      animateViewport: (viewport) => setViewport(viewport),
-      animateViewport: (viewport) => setViewport(viewport),
+      animateViewport() {},
       cancelInteraction() {},
       runFrameMutation: async (mutation) => {
         await mutation();
@@ -99,6 +98,7 @@ describe("Konva editor port", () => {
     }));
     const historyTransaction = vi.fn<CanvasSurfaceEvents["onHistoryTransaction"]>(async (action) => action());
     const port = createKonvaEditorPort({
+      animateViewport: (viewport) => setViewport(viewport),
       cancelInteraction() {},
       runFrameMutation: async (mutation) => {
         await mutation();
