@@ -15,52 +15,48 @@ const policy: CanvasSelectionTransformPolicy = {
 const current = { x: 100, y: 100, width: 240, height: 64, rotation: 0 };
 const scale = { x: 1, y: 1 };
 
+function constrain(
+  box: typeof current,
+  activeAnchor: string | null,
+  transformPolicy: CanvasSelectionTransformPolicy = policy,
+) {
+  return constrainSelectionTransform({
+    currentBox: current,
+    box,
+    activeAnchor,
+    policy: transformPolicy,
+    stageScale: scale,
+  });
+}
+
 describe("Konva transform geometry", () => {
   it("changes only width from a text side handle", () => {
-    expect(
-      constrainSelectionTransform({ currentBox: current, box: { ...current, activeAnchor: width: 320 }, policy: "middle-right", stageScale: policy, scale }),
-    ).toEqual({ ...current, width: 320 });
+    expect(constrain({ ...current, width: 320 }, "middle-right")).toEqual({
+      ...current,
+      width: 320,
+    });
   });
 
   it("preserves the current text ratio from its bottom-right scale handle", () => {
-    expect(
-      constrainSelectionTransform(
-        current,
-        { ...current, width: 480, height: 128 },
-        "bottom-right",
-        policy,
-        scale,
-      ),
-    ).toEqual({ ...current, width: 480, height: 128 });
+    expect(constrain({ ...current, width: 480, height: 128 }, "bottom-right")).toEqual({
+      ...current,
+      width: 480,
+      height: 128,
+    });
   });
 
   it("scales text below its reflow minimum from the proportional handle", () => {
-    expect(
-      constrainSelectionTransform(
-        current,
-        { ...current, width: 60, height: 16 },
-        "bottom-right",
-        policy,
-        scale,
-      ),
-    ).toEqual({ ...current, width: 60, height: 16 });
+    expect(constrain({ ...current, width: 60, height: 16 }, "bottom-right")).toEqual({
+      ...current,
+      width: 60,
+      height: 16,
+    });
   });
 
   it("projects noisy pointer movement onto one stable proportional axis", () => {
-    const first = constrainSelectionTransform(
-      current,
-      { ...current, width: 360, height: 129 },
-      "bottom-right",
-      policy,
-      scale,
-    );
-    const second = constrainSelectionTransform(
-      current,
-      { ...current, width: 361, height: 95 },
-      "bottom-right",
-      policy,
-      scale,
-    );
+    const first = constrain({ ...current, width: 360, height: 129 }, "bottom-right");
+    const second = constrain({ ...current, width: 361, height: 95 }, "bottom-right");
+
     expect(first.width / first.height).toBeCloseTo(240 / 64);
     expect(second.width / second.height).toBeCloseTo(240 / 64);
     expect(first.width).toBeGreaterThan(360);
@@ -68,13 +64,8 @@ describe("Konva transform geometry", () => {
   });
 
   it("responds naturally when a proportional handle moves mostly vertically", () => {
-    const result = constrainSelectionTransform(
-      current,
-      { ...current, height: 128 },
-      "bottom-right",
-      policy,
-      scale,
-    );
+    const result = constrain({ ...current, height: 128 }, "bottom-right");
+
     expect(result.width).toBeGreaterThan(current.width);
     expect(result.width / result.height).toBeCloseTo(240 / 64);
   });
@@ -90,13 +81,13 @@ describe("Konva transform geometry", () => {
       contentAspect: { ratio: 16 / 9, fixedVerticalChrome: 64 },
     };
     const video = { x: 0, y: 0, width: 480, height: 334, rotation: 0 };
-    const result = constrainSelectionTransform(
-      video,
-      { ...video, height: 604 },
-      "bottom-right",
-      videoPolicy,
-      scale,
-    );
+    const result = constrainSelectionTransform({
+      currentBox: video,
+      box: { ...video, height: 604 },
+      activeAnchor: "bottom-right",
+      policy: videoPolicy,
+      stageScale: scale,
+    });
 
     expect(result.width).toBeGreaterThan(video.width);
     expect(result.height).toBeCloseTo(result.width / (16 / 9) + 64);
