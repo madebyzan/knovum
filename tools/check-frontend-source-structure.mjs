@@ -36,7 +36,7 @@ function checkRootIntegrationTestOwnership(repositoryRoot, files) {
   const spacesRoot = join(repositoryRoot, "src", "features", "spaces");
   const rootTests = join(spacesRoot, "__tests__");
   const sourcePaths = new Set(files);
-  const failures = [];
+  const ownershipFailures = [];
 
   for (const file of files) {
     if (dirname(file) !== rootTests || !file.endsWith(".test.ts")) continue;
@@ -54,12 +54,12 @@ function checkRootIntegrationTestOwnership(repositoryRoot, files) {
     }
     if (capabilities.size === 1) {
       const [owner] = capabilities;
-      failures.push(
+      ownershipFailures.push(
         `${relative(repositoryRoot, file)}: single-capability test belongs under the ${owner} owner, not the Spaces integration-test root`,
       );
     }
   }
-  return failures;
+  return ownershipFailures;
 }
 
 function resolveSourceImport(file, specifier, sourcePaths) {

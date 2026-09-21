@@ -9,12 +9,12 @@ const environment = { ...process.env };
 
 if (args[0] === "dev") configureDevelopmentRuntime(environment);
 
-const windows = process.platform === "win32";
-const pnpm = windows ? "pnpm.cmd" : "pnpm";
+const windowsHost = process.platform === "win32";
+const pnpm = windowsHost ? "pnpm.cmd" : "pnpm";
 execFileSync(pnpm, ["exec", "tauri", ...args], {
   cwd: repository,
   env: environment,
-  shell: windows,
+  shell: windowsHost,
   stdio: "inherit",
 });
 
