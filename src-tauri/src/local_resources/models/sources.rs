@@ -1,6 +1,6 @@
 use super::ModelDescriptor;
 
-const DEFAULT_ENDPOINT = "https://huggingface.co";
+const DEFAULT_ENDPOINT: &str = "https://huggingface.co";
 
 pub(super) fn download_urls(descriptor: ModelDescriptor) -> Result<Vec<reqwest::Url>, String> {
     let endpoint = std::env::var("KNOVUM_MODEL_ENDPOINT").or_else(|error| match error {

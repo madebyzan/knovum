@@ -321,7 +321,7 @@ exactly one `#[cfg(test)] mod tests;` declaration. Inline test modules, `tests.r
 reserved for integration tests of cross-module or externally visible crate behavior.
 
 Vue/TypeScript tests live under the nearest common owner's `__tests__/` directory and use the exact
-`.test.ts` suffix. A unit test uses the tested source basename with identical casing and lives directly under that source owner's `__tests__` directory, so `shared/ui/UiButton.vue` maps to `shared/ui/__tests__/UiButton.test.ts`. The naming gate enforces this when a test basename has one unambiguous source owner. A test covering an integration scenario across several owners may live at the bounded-context `__tests__` directory and uses a kebab-case user-capability basename instead of pretending to map to one file.
+`.test.ts` suffix. A unit test uses the tested source basename with identical casing and lives directly under that source owner's `__tests__` directory, so `shared/ui/UiButton.vue` maps to `shared/ui/__tests__/UiButton.test.ts`. The naming gate enforces this when a test basename has one unambiguous source owner. A test covering an integration scenario across several owners may live at the bounded-context `__tests__` directory and uses a kebab-case user-capability basename instead of pretending to map to one file. Shared test support may use the explicit `*.fixture.ts` suffix under `__tests__`; fixture files are not executable tests.
 
 ## Automated boundary
 

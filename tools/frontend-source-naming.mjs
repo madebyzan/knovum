@@ -72,8 +72,8 @@ function suffixFailure(root, file, name, segments) {
       ? undefined
       : `${relative(root, file)}: unit tests must live under an __tests__ directory`;
   }
-  if (segments.includes("__tests__")) {
-    return `${relative(root, file)}: files under __tests__ must use the exact .test.ts suffix`;
+  if (segments.includes("__tests__") && !name.endsWith(".fixture.ts")) {
+    return `${relative(root, file)}: files under __tests__ must use .test.ts or .fixture.ts`;
   }
   if (name.endsWith(".ts") && !isTypeScriptName(name)) {
     return `${relative(root, file)}: TypeScript source files must use kebab-case`;
