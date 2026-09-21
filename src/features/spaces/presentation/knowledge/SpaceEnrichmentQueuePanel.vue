@@ -7,7 +7,7 @@ import {
   cancelEnrichmentJob,
   listEnrichmentJobs,
   type SpaceEnrichmentJobRecord,
-} from "../enrichment/enrichment-jobs";
+} from "../../enrichment/enrichment-jobs";
 
 const props = defineProps<{ spaceId: string }>();
 
