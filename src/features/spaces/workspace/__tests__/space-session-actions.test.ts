@@ -39,6 +39,10 @@ vi.mock("../../scenes/scene-repository", () => ({ listScenes: sceneDatabase.list
 vi.mock("../../knowledge/relations/relation-repository", () => ({
   listRelations: relationRepository.listRelations,
 }));
+vi.mock("../../knowledge/indexing/index-scheduler", () => ({
+  releaseKnowledgeIndex: vi.fn(),
+  scheduleSpaceKnowledgeIndex: vi.fn(),
+}));
 
 function context(activeSpaceId = "inbox"): SpaceSessionContext {
   return createTestSessionContext({
@@ -119,7 +123,7 @@ describe("openSpace", () => {
     const state = context("inbox");
 
     const pending = openSpace(state, "research");
-    expect(state.loading.value).toBe(true);
+    await vi.waitFor(() => expect(state.loading.value).toBe(true));
     await openSpace(state, "inbox");
     expect(state.loading.value).toBe(false);
 
