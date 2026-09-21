@@ -1,3 +1,5 @@
+overrides:
+  image-size: 2.0.4
 allowBuilds:
   edgedriver: false
   esbuild: true
