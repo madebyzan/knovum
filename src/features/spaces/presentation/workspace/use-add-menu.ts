@@ -2,11 +2,11 @@ import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import { importSpaceFromPicker } from "../assets/import-flow";
-import { createSystemKnowledgeObjectPayload } from "../knowledge/model/object-factory";
-import { useSpaceStore } from "../session/space-store";
-import { addSavedWebsite } from "../website/capture";
-import { normalizeSpaceUrl } from "../website/url";
+import { importSpaceFromPicker } from "../../assets/import-flow";
+import { createSystemKnowledgeObjectPayload } from "../../knowledge/model/object-factory";
+import { useSpaceStore } from "../../session/space-store";
+import { addSavedWebsite } from "../../website/capture";
+import { normalizeSpaceUrl } from "../../website/url";
 
 export function useAddMenu() {
   const store = useSpaceStore();

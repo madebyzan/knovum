@@ -4,16 +4,16 @@ import { DropdownMenuPortal, DropdownMenuSub, DropdownMenuSubContent, DropdownMe
 import { computed, type Component } from "vue";
 import { useI18n } from "vue-i18n";
 
-import UiDropdownMenuItem from "../../../shared/ui/UiDropdownMenuItem.vue";
+import UiDropdownMenuItem from "../../../../shared/ui/UiDropdownMenuItem.vue";
 import type {
   CreationIntentIcon,
   DerivationUnavailableReason,
-} from "../knowledge-derivations/catalog/creation-intent-contract";
+} from "../../knowledge-derivations/catalog/creation-intent-contract";
 import {
   creationIntentDefinitions,
   type CreationIntentId,
   type CreationIntentDecisions,
-} from "../knowledge-derivations/catalog/creation-intent-definitions";
+} from "../../knowledge-derivations/catalog/creation-intent-definitions";
 
 const props = defineProps<{
   derivations: CreationIntentDecisions;

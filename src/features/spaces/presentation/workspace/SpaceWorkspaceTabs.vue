@@ -7,13 +7,13 @@ import { computed, nextTick, useTemplateRef, watch, watchEffect } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute } from "vue-router";
 
-import { syncWorkspaceMenuState } from "../../../foundation/desktop/workspace-menu";
-import UiIconButton from "../../../shared/ui/UiIconButton.vue";
-import type { Space } from "../model/space";
-import { useSpaceStore } from "../session/space-store";
-import { spaceMenuItem } from "../workspace/space-menu";
-import { useSpaceManagementMenu } from "../workspace/use-space-management-menu";
-import SpaceLibraryToolbar from "./library/SpaceLibraryToolbar.vue";
+import { syncWorkspaceMenuState } from "../../../../foundation/desktop/workspace-menu";
+import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
+import type { Space } from "../../model/space";
+import { useSpaceStore } from "../../session/space-store";
+import { spaceMenuItem } from "../../workspace/space-menu";
+import { useSpaceManagementMenu } from "../../workspace/use-space-management-menu";
+import SpaceLibraryToolbar from "../library/SpaceLibraryToolbar.vue";
 import SpaceWorkspaceTab from "./SpaceWorkspaceTab.vue";
 
 const store = useSpaceStore();

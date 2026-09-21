@@ -2,8 +2,8 @@
 import { RefreshCw, Trash2 } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 
-import UiButton from "../../../shared/ui/UiButton.vue";
-import type { DerivationFailure } from "../knowledge-derivations/failure-metadata";
+import UiButton from "../../../../shared/ui/UiButton.vue";
+import type { DerivationFailure } from "../../knowledge-derivations/failure-metadata";
 
 defineProps<{
   failure: DerivationFailure;

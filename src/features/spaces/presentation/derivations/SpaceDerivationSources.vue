@@ -3,9 +3,9 @@ import { CircleAlert, ExternalLink } from "@lucide/vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import UiIconButton from "../../../shared/ui/UiIconButton.vue";
-import { selectAndRevealSpaceNode } from "../canvas/selection-actions";
-import type { DerivationSource } from "../knowledge-derivations/derivation-source";
+import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
+import { selectAndRevealSpaceNode } from "../../canvas/selection-actions";
+import type { DerivationSource } from "../../knowledge-derivations/derivation-source";
 
 const props = defineProps<{ sources: readonly DerivationSource[] }>();
 const { t } = useI18n();

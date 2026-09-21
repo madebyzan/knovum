@@ -2,7 +2,7 @@
 import { FileText } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 
-import UiSpinner from "../../../shared/ui/UiSpinner.vue";
+import UiSpinner from "../../../../shared/ui/UiSpinner.vue";
 
 const { t } = useI18n();
 const toolbarPlaceholders = ["w-8", "w-8", "w-12", "w-8", "w-8", "w-8", "w-16"];

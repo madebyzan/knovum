@@ -2,8 +2,8 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import type { VisualizationMetadata } from "../knowledge-derivations/image/metadata";
-import type { GeneratedVideoMetadata } from "../knowledge-derivations/video/metadata";
+import type { VisualizationMetadata } from "../../knowledge-derivations/image/metadata";
+import type { GeneratedVideoMetadata } from "../../knowledge-derivations/video/metadata";
 import SpaceDerivationSources from "./SpaceDerivationSources.vue";
 
 const props = defineProps<{ metadata: VisualizationMetadata | GeneratedVideoMetadata }>();

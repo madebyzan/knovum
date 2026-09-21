@@ -4,9 +4,9 @@ import { useVirtualizer } from "@tanstack/vue-virtual";
 import { computed, useTemplateRef, type ComponentPublicInstance } from "vue";
 import { useI18n } from "vue-i18n";
 
-import UiIconButton from "../../../shared/ui/UiIconButton.vue";
-import type { SpaceDeletedNode } from "../deletion/deleted-node";
-import { nodeIcon } from "./node-icon";
+import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
+import type { SpaceDeletedNode } from "../../deletion/deleted-node";
+import { nodeIcon } from "../node-icon";
 
 const props = defineProps<{ items: readonly SpaceDeletedNode[]; busy: boolean }>();
 const emit = defineEmits<{ restore: [item: SpaceDeletedNode]; remove: [item: SpaceDeletedNode] }>();

@@ -3,12 +3,12 @@ import { LoaderCircle, Trash2 } from "@lucide/vue";
 import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
-import UiButton from "../../../shared/ui/UiButton.vue";
-import UiDialog from "../../../shared/ui/UiDialog.vue";
-import UiSelect from "../../../shared/ui/UiSelect.vue";
-import { useRecentlyDeletedActions } from "../deletion/use-recently-deleted-actions";
-import { useRecentlyDeletedQuery } from "../knowledge/queries/queries";
-import { useSpaceStore } from "../session/space-store";
+import UiButton from "../../../../shared/ui/UiButton.vue";
+import UiDialog from "../../../../shared/ui/UiDialog.vue";
+import UiSelect from "../../../../shared/ui/UiSelect.vue";
+import { useRecentlyDeletedActions } from "../../deletion/use-recently-deleted-actions";
+import { useRecentlyDeletedQuery } from "../../knowledge/queries/queries";
+import { useSpaceStore } from "../../session/space-store";
 import SpaceDeletedNodeList from "./SpaceDeletedNodeList.vue";
 
 const props = defineProps<{ spaceId: string | null }>();

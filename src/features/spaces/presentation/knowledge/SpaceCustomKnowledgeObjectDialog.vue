@@ -5,16 +5,16 @@ import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import UiButton from "../../../shared/ui/UiButton.vue";
-import UiDialog from "../../../shared/ui/UiDialog.vue";
-import UiInput from "../../../shared/ui/UiInput.vue";
-import UiSelect from "../../../shared/ui/UiSelect.vue";
-import UiTextarea from "../../../shared/ui/UiTextarea.vue";
-import { isSpaceSemanticNode } from "../knowledge/model/semantic-node";
-import { useSpaceObjectTypesQuery } from "../knowledge/queries/queries";
-import type { SpaceKnowledgeObjectPayload } from "../model/nodes/node-payload";
-import { useSpaceStore } from "../session/space-store";
-import SpaceKnowledgeFieldEditor from "./knowledge/SpaceKnowledgeFieldEditor.vue";
+import UiButton from "../../../../shared/ui/UiButton.vue";
+import UiDialog from "../../../../shared/ui/UiDialog.vue";
+import UiInput from "../../../../shared/ui/UiInput.vue";
+import UiSelect from "../../../../shared/ui/UiSelect.vue";
+import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
+import { isSpaceSemanticNode } from "../../knowledge/model/semantic-node";
+import { useSpaceObjectTypesQuery } from "../../knowledge/queries/queries";
+import type { SpaceKnowledgeObjectPayload } from "../../model/nodes/node-payload";
+import { useSpaceStore } from "../../session/space-store";
+import SpaceKnowledgeFieldEditor from "./SpaceKnowledgeFieldEditor.vue";
 
 const open = defineModel<boolean>("open", { required: true });
 const store = useSpaceStore();

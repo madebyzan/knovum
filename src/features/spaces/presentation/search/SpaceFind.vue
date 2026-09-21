@@ -13,16 +13,16 @@ import {
 } from "reka-ui";
 import { useI18n } from "vue-i18n";
 
-import UiBadge from "../../../shared/ui/UiBadge.vue";
-import UiButton from "../../../shared/ui/UiButton.vue";
-import UiKbd from "../../../shared/ui/UiKbd.vue";
-import UiSpinner from "../../../shared/ui/UiSpinner.vue";
-import type { KnowledgeSearchMatch } from "../knowledge/model/knowledge-search-match";
-import { highlightedSnippet, knowledgeLocationLabel } from "../knowledge/model/location";
-import { matchLocatorFor, type SpaceMatchLocator } from "../knowledge/model/match-locator";
-import { formatDurationMs } from "../media/format-duration";
-import { useFind } from "../search/use-find";
-import { nodeIcon } from "./node-icon";
+import UiBadge from "../../../../shared/ui/UiBadge.vue";
+import UiButton from "../../../../shared/ui/UiButton.vue";
+import UiKbd from "../../../../shared/ui/UiKbd.vue";
+import UiSpinner from "../../../../shared/ui/UiSpinner.vue";
+import type { KnowledgeSearchMatch } from "../../knowledge/model/knowledge-search-match";
+import { highlightedSnippet, knowledgeLocationLabel } from "../../knowledge/model/location";
+import { matchLocatorFor, type SpaceMatchLocator } from "../../knowledge/model/match-locator";
+import { formatDurationMs } from "../../media/format-duration";
+import { useFind } from "../../search/use-find";
+import { nodeIcon } from "../node-icon";
 
 const open = defineModel<boolean>("open", { required: true });
 const { t } = useI18n();

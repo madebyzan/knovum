@@ -13,12 +13,12 @@ import {
 } from "reka-ui";
 import { useI18n } from "vue-i18n";
 
-import UiButton from "../../../shared/ui/UiButton.vue";
-import UiKbd from "../../../shared/ui/UiKbd.vue";
-import UiSpinner from "../../../shared/ui/UiSpinner.vue";
-import { highlightedSnippet, knowledgeLocationLabel } from "../knowledge/model/location";
-import { useGlobalFind } from "../search/use-global-find";
-import { nodeIcon } from "./node-icon";
+import UiButton from "../../../../shared/ui/UiButton.vue";
+import UiKbd from "../../../../shared/ui/UiKbd.vue";
+import UiSpinner from "../../../../shared/ui/UiSpinner.vue";
+import { highlightedSnippet, knowledgeLocationLabel } from "../../knowledge/model/location";
+import { useGlobalFind } from "../../search/use-global-find";
+import { nodeIcon } from "../node-icon";
 
 const open = defineModel<boolean>("open", { required: true });
 const { t } = useI18n();
