@@ -18,7 +18,7 @@ const scale = { x: 1, y: 1 };
 describe("Konva transform geometry", () => {
   it("changes only width from a text side handle", () => {
     expect(
-      constrainSelectionTransform(current, { ...current, width: 320 }, "middle-right", policy, scale),
+      constrainSelectionTransform({ currentBox: current, box: { ...current, activeAnchor: width: 320 }, policy: "middle-right", stageScale: policy, scale }),
     ).toEqual({ ...current, width: 320 });
   });
 

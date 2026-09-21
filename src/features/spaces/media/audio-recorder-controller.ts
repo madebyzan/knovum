@@ -25,8 +25,8 @@ interface RecordingStopTarget {
 }
 
 interface StartFailureContext {
-  candidate?: MediaStream;
-  session?: SpaceAudioRecordingSession;
+  candidate: MediaStream | undefined;
+  session: SpaceAudioRecordingSession | undefined;
   sessionGeneration: number;
   error: unknown;
 }
