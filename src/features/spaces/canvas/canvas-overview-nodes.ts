@@ -3,95 +3,140 @@ import Konva from "konva";
 import type { CanvasPalette } from "./konva/presentation/use-canvas-palette";
 import type { CanvasSceneNode } from "./konva/scene/scene-projection";
 
-export function drawCanvasOverviewNode(
-  parent: Konva.Group,
-  item: CanvasSceneNode,
-  palette: CanvasPalette,
-  scale: number,
-  image?: HTMLImageElement,
-) {
-  const { frame, appearance } = item.layout;
-  const { data } = item.node;
+interface CanvasOverviewNodeOptions {
+  parent: Konva.Group;
+  item: CanvasSceneNode;
+  palette: CanvasPalette;
+  scale: number;
+  image: HTMLImageElement | undefined;
+}
+
+interface CanvasOverviewNodeContext extends Omit<CanvasOverviewNodeOptions, "parent"> {
+  group: Konva.Group;
+}
+
+export function drawCanvasOverviewNode(options: CanvasOverviewNodeOptions) {
+  const { frame } = options.item.layout;
   const group = new Konva.Group({
     x: frame.x,
     y: frame.y,
     rotation: frame.rotation,
     listening: false,
   });
-  parent.add(group);
+  options.parent.add(group);
+  const context = { ...options, group };
 
-  if (data.kind === "section") {
-    group.add(
-      new Konva.Rect({
-        width: frame.width,
-        height: frame.height,
-        fill:
-          appearance?.customFill ?? (appearance?.fill ? palette.noteFill[appearance.fill] : palette.surface),
-        opacity: 0.22,
-        cornerRadius: 8,
-        listening: false,
-      }),
-    );
+  if (options.item.node.data.kind === "section") {
+    drawSection(context);
     return;
   }
-  if (data.kind === "text") {
-    const content = data.plainText.trim() || data.title;
-    if (frame.width * scale >= 28) {
-      group.add(
-        new Konva.Text({
-          text: content.slice(0, 300),
-          width: frame.width,
-          height: frame.height,
-          fontSize: (appearance?.fontSize ?? 18) * (appearance?.typographyScale ?? 1),
-          fontStyle: appearance?.fontWeight === "bold" ? "bold" : "normal",
-          fill: palette.foreground,
-          listening: false,
-        }),
-      );
-    }
+  if (options.item.node.data.kind === "text") {
+    drawText(context);
     return;
   }
+  drawCard(context);
+}
 
-  const note = data.kind === "note";
-  const fill = appearance?.customFill ?? (appearance?.fill ? palette.noteFill[appearance.fill] : undefined);
-  group.add(
+function drawSection(context: CanvasOverviewNodeContext) {
+  const { frame, appearance } = context.item.layout;
+  const fill =
+    appearance?.customFill ??
+    (appearance?.fill ? context.palette.noteFill[appearance.fill] : context.palette.surface);
+  context.group.add(
     new Konva.Rect({
       width: frame.width,
       height: frame.height,
-      fill: fill ?? (note ? palette.noteFill.yellow : palette.surface),
+      fill,
+      opacity: 0.22,
+      cornerRadius: 8,
+      listening: false,
+    }),
+  );
+}
+
+function drawText(context: CanvasOverviewNodeContext) {
+  const { frame, appearance } = context.item.layout;
+  const data = context.item.node.data;
+  if (data.kind !== "text" || frame.width * context.scale < 28) return;
+  context.group.add(
+    new Konva.Text({
+      text: (data.plainText.trim() || data.title).slice(0, 300),
+      width: frame.width,
+      height: frame.height,
+      fontSize: (appearance?.fontSize ?? 18) * (appearance?.typographyScale ?? 1),
+      fontStyle: appearance?.fontWeight === "bold" ? "bold" : "normal",
+      fill: context.palette.foreground,
+      listening: false,
+    }),
+  );
+}
+
+function drawCard(context: CanvasOverviewNodeContext) {
+  const { data } = context.item.node;
+  drawCardBackground(context);
+  const hasImage = drawPreviewImage(context);
+  if (data.kind === "image") return;
+  if (!hasReadableLabel(context)) return;
+  if (data.kind === "audio") {
+    const { frame } = context.item.layout;
+    drawAudioWave(context.group, frame.width, frame.height, context.palette);
+  }
+  drawCardLabel(context, hasImage);
+}
+
+function drawCardBackground(context: CanvasOverviewNodeContext) {
+  const { frame, appearance } = context.item.layout;
+  const note = context.item.node.data.kind === "note";
+  const selectedFill =
+    appearance?.customFill ??
+    (appearance?.fill ? context.palette.noteFill[appearance.fill] : undefined);
+  context.group.add(
+    new Konva.Rect({
+      width: frame.width,
+      height: frame.height,
+      fill: selectedFill ?? (note ? context.palette.noteFill.yellow : context.palette.surface),
       cornerRadius: note ? 3 : 7,
       listening: false,
     }),
   );
+}
 
-  if (image) {
-    const imageHeight = data.kind === "image" ? frame.height : frame.height * 0.72;
-    group.add(
-      new Konva.Image({
-        image,
-        width: frame.width,
-        height: imageHeight,
-        crop: coverCrop(image, frame.width, imageHeight),
-        listening: false,
-      }),
-    );
-  }
-  if (data.kind === "image") return;
-  if (frame.width * scale < 38 || frame.height * scale < 24) return;
+function drawPreviewImage(context: CanvasOverviewNodeContext) {
+  if (!context.image) return false;
+  const { frame } = context.item.layout;
+  const imageHeight = context.item.node.data.kind === "image" ? frame.height : frame.height * 0.72;
+  context.group.add(
+    new Konva.Image({
+      image: context.image,
+      width: frame.width,
+      height: imageHeight,
+      crop: coverCrop(context.image, frame.width, imageHeight),
+      listening: false,
+    }),
+  );
+  return true;
+}
 
-  if (data.kind === "audio") drawAudioWave(group, frame.width, frame.height, palette);
+function hasReadableLabel(context: CanvasOverviewNodeContext) {
+  const { frame } = context.item.layout;
+  return frame.width * context.scale >= 38 && frame.height * context.scale >= 24;
+}
+
+function drawCardLabel(context: CanvasOverviewNodeContext, hasImage: boolean) {
+  const { frame, appearance } = context.item.layout;
+  const data = context.item.node.data;
+  const note = data.kind === "note";
   const content = note ? data.plainText.trim() || data.title : data.title;
-  const footer = Boolean(image);
-  group.add(
+  context.group.add(
     new Konva.Text({
       x: 10,
-      y: footer ? frame.height * 0.76 : 10,
+      y: hasImage ? frame.height * 0.76 : 10,
       width: frame.width - 20,
-      height: footer ? frame.height * 0.22 : frame.height - 20,
+      height: hasImage ? frame.height * 0.22 : frame.height - 20,
       text: content.slice(0, note ? 350 : 140),
       fontSize: note ? (appearance?.fontSize ?? 18) * (appearance?.typographyScale ?? 1) : 14,
       fontStyle: note && appearance?.fontWeight === "bold" ? "bold" : "normal",
-      fill: palette.foreground,
+      fill: context.palette.foreground,
       listening: false,
     }),
   );

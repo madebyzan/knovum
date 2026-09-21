@@ -60,7 +60,13 @@ async function renderCanvasThumbnail(
     });
     layer.add(world);
     for (const section of scene.sections) {
-      drawCanvasOverviewNode(world, section, palette, viewport.scale);
+      drawCanvasOverviewNode({
+        parent: world,
+        item: section,
+        palette,
+        scale: viewport.scale,
+        image: undefined,
+      });
     }
     for (const relation of scene.relations) {
       world.add(
@@ -75,7 +81,13 @@ async function renderCanvasThumbnail(
       );
     }
     for (const item of scene.contentNodes) {
-      drawCanvasOverviewNode(world, item, palette, viewport.scale, images.get(item.node.id));
+      drawCanvasOverviewNode({
+        parent: world,
+        item,
+        palette,
+        scale: viewport.scale,
+        image: images.get(item.node.id),
+      });
     }
     layer.draw();
     return stage.toBlob({ mimeType: "image/jpeg", quality: 0.86, pixelRatio: 1 });
