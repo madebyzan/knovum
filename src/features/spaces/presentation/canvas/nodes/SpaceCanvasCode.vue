@@ -6,7 +6,7 @@ import { useI18n } from "vue-i18n";
 
 import UiIconButton from "../../../../../shared/ui/UiIconButton.vue";
 import type { SpaceCodePayload } from "../../../model/nodes/node-payload";
-import SpaceHtmlPreview from "../../SpaceHtmlPreview.vue";
+import SpaceHtmlPreview from "../../inspector/SpaceHtmlPreview.vue";
 
 const props = defineProps<{
   data: SpaceCodePayload;
