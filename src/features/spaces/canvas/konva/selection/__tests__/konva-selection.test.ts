@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import { nextTick, shallowRef } from "vue";
 
-import type { CanvasNodeLayoutV1 } from "../contract/canvas-document";
-import type { CanvasSelectionSnapshot } from "../contract/canvas-editor";
-import { useCanvasSelection } from "../konva/selection/use-canvas-selection";
+import type { CanvasNodeLayoutV1 } from "../../../contract/canvas-document";
+import type { CanvasSelectionSnapshot } from "../../../contract/canvas-editor";
+import { useCanvasSelection } from "../use-canvas-selection";
 
 const layouts: CanvasNodeLayoutV1[] = [
   {
