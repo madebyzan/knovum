@@ -58,10 +58,21 @@ for (const file of capabilityFiles) {
   }
 }
 
+// Third-party Tauri plugins are registered outside this crate, so their Rust
+// command implementations are not discoverable from src-tauri/src. An explicit
+// capability grant is still a repository-owned declaration of that command
+// surface. Derive only allow-* commands; broad/default grants do not invent
+// individual commands.
+for (const permission of granted) {
+  const match = permission.match(/^([a-z0-9_-]+):allow-([a-z0-9-]+)$/u);
+  if (!match) continue;
+  pluginCommands.add(`${match[1]}|${match[2].replaceAll("-", "_")}`);
+}
+
 // A command address is recognised anywhere in a Renderer file, not only inside
 // `invoke(...)`, because a caller may hold it in a constant or a lookup table.
 const owners = new Set(handlerPaths.map((path) => path.split("::")[1]));
-const keys = new Set(pluginSurface.byKey.keys());
+const keys = new Set([...pluginSurface.byKey.keys(), ...[...pluginCommands].map((address) => address.split("|")[0])]);
 const pluginAddress = tokenPattern(`plugin:[a-z0-9_-]+\\|[a-z0-9_]+`);
 const appAddress = owners.size > 0 ? tokenPattern(`(?:${[...owners].join("|")})_[a-z0-9_]+`) : null;
 const legacyAddress = keys.size > 0 ? tokenPattern(`(?:${[...keys].join("|")})_[a-z0-9_]+`) : null;
