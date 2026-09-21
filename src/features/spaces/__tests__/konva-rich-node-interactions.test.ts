@@ -23,8 +23,10 @@ describe("Konva rich node interactions", () => {
       props: {
         id: "note",
         data: createSpaceNotePayload("First", "First\nBody"),
-        detailLevel: "full",
         interactive: false,
+        verticalClass: "justify-start",
+        fontSize: 18,
+        textAlign: "left",
         persist,
       },
       global: { plugins: [i18n] },

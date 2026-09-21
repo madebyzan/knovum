@@ -26,6 +26,8 @@ describe("Konva editor port", () => {
       viewportChanged() {},
     });
     const port = createKonvaEditorPort({
+      animateViewport: (viewport) => setViewport(viewport),
+      animateViewport: (viewport) => setViewport(viewport),
       cancelInteraction() {},
       runFrameMutation: async (mutation) => {
         await mutation();
@@ -43,7 +45,8 @@ describe("Konva editor port", () => {
       selectableNodeIds: () => ["selected"],
       selectedNodeIds: () => new Set(["selected"]),
       setSelection() {},
-      setViewport() {},
+      setViewport,
+      palette: () => { throw new Error("Palette is unused in this test"); },
       size: () => ({ width: 800, height: 600 }),
       viewport: () => document.viewport,
       onCommitGesture: async (request) => ({ document: request.document, revision: 1, history }),
@@ -88,6 +91,7 @@ describe("Konva editor port", () => {
 
   it("commits node and semantic relation deletion through one host transaction", async () => {
     const setSelection = vi.fn<(ids: readonly string[]) => void>();
+    const setViewport = vi.fn<(viewport: { x: number; y: number; zoom: number }) => void>();
     const deleteSelection = vi.fn<CanvasSurfaceEvents["onDeleteSelection"]>(async (request) => ({
       document: request.document,
       revision: 2,
@@ -116,7 +120,8 @@ describe("Konva editor port", () => {
       selectableNodeIds: () => ["selected", "visible-offscreen"],
       selectedNodeIds: () => new Set(["selected"]),
       setSelection,
-      setViewport() {},
+      setViewport,
+      palette: () => { throw new Error("Palette is unused in this test"); },
       size: () => ({ width: 800, height: 600 }),
       viewport: () => document.viewport,
       ...hostEvents(),

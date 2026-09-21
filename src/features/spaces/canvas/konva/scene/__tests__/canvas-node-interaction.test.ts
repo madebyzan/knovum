@@ -30,11 +30,13 @@ describe("canvas node interaction policy", () => {
         canvasNode("file", {
           kind: "file",
           title: "archive.zip",
+          fileName: "archive.zip",
+          assetPath: "/archive.zip",
           entries: [{ path: "file.txt", kind: "file" }],
         }),
       ).activationMode,
     ).toBe("select-to-interact");
-    expect(canvasNodeInteraction(canvasNode("file", { kind: "file", title: "doc.pdf" })).activationMode).toBe(
+    expect(canvasNodeInteraction(canvasNode("file", { kind: "file", title: "doc.pdf", fileName: "doc.pdf", assetPath: "/doc.pdf" })).activationMode).toBe(
       "primary",
     );
     expect(
