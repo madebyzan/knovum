@@ -1,3 +1,10 @@
+[advisories]
+unmaintained = "workspace"
+ignore = [
+  { id = "RUSTSEC-2026-0194", reason = "quick-xml 0.38.3 is locked by the published citationberg 0.7.0 in Typst's bibliography stack; Knovum does not expose bibliography/CSL input and its Typst source generator never emits bibliography constructs. Remove when the published Typst/Hayagriva/Citationberg chain accepts quick-xml >=0.41." },
+  { id = "RUSTSEC-2026-0195", reason = "quick-xml 0.38.3 is locked by the published citationberg 0.7.0 in Typst's bibliography stack; Knovum does not expose bibliography/CSL input and its Typst source generator never emits bibliography constructs. Remove when the published Typst/Hayagriva/Citationberg chain accepts quick-xml >=0.41." },
+]
+
 [licenses]
 confidence-threshold = 0.8
 allow = [
@@ -12,8 +19,12 @@ allow = [
   "MIT",
   "MIT-0",
   "MPL-2.0",
+  "NCSA",
   "OpenSSL",
   "Unicode-3.0",
   "Unicode-DFS-2016",
   "Zlib",
 ]
+
+[licenses.private]
+ignore = true

@@ -3,6 +3,7 @@ name = "knovum"
 version = "1.0.0-beta4"
 description = "Local-first desktop workbench for delegated AI work"
 authors = ["Knovum Team"]
+publish = false
 edition = "2021"
 rust-version = "1.92"
 
