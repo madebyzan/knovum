@@ -81,18 +81,13 @@ function clipboardText(nodes: readonly SpaceCanvasNode[]) {
 }
 
 function clipboardNodeText({ data }: SpaceCanvasNode) {
-  switch (data.kind) {
-    case "website":
-      return data.url ?? data.title;
-    case "video":
-    case "audio":
-      return data.origin?.url ?? data.title;
-    case "note":
-    case "text":
-      return data.plainText ?? data.title;
-    case "markdown":
-      return data.text ?? data.title;
-    default:
-      return data.title;
-  }
+  if (data.kind === "website") return data.url ?? data.title;
+  if (data.kind === "video" || data.kind === "audio") return data.origin?.url ?? data.title;
+  return clipboardDocumentText(data);
+}
+
+function clipboardDocumentText(data: SpaceCanvasNode["data"]) {
+  if (data.kind === "note" || data.kind === "text") return data.plainText ?? data.title;
+  if (data.kind === "markdown") return data.text ?? data.title;
+  return data.title;
 }

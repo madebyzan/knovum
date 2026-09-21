@@ -123,23 +123,45 @@ function hasReadableLabel(context: CanvasOverviewNodeContext) {
 }
 
 function drawCardLabel(context: CanvasOverviewNodeContext, hasImage: boolean) {
-  const { frame, appearance } = context.item.layout;
-  const data = context.item.node.data;
-  const note = data.kind === "note";
-  const content = note ? data.plainText.trim() || data.title : data.title;
+  const { frame } = context.item.layout;
+  const position = cardLabelPosition(frame.height, hasImage);
+  const typography = cardLabelTypography(context);
   context.group.add(
     new Konva.Text({
       x: 10,
-      y: hasImage ? frame.height * 0.76 : 10,
+      y: position.y,
       width: frame.width - 20,
-      height: hasImage ? frame.height * 0.22 : frame.height - 20,
-      text: content.slice(0, note ? 350 : 140),
-      fontSize: note ? (appearance?.fontSize ?? 18) * (appearance?.typographyScale ?? 1) : 14,
-      fontStyle: note && appearance?.fontWeight === "bold" ? "bold" : "normal",
+      height: position.height,
+      text: cardLabelText(context).slice(0, typography.maxLength),
+      fontSize: typography.fontSize,
+      fontStyle: typography.fontStyle,
       fill: context.palette.foreground,
       listening: false,
     }),
   );
+}
+
+function cardLabelPosition(height: number, hasImage: boolean) {
+  return hasImage
+    ? { y: height * 0.76, height: height * 0.22 }
+    : { y: 10, height: height - 20 };
+}
+
+function cardLabelText(context: CanvasOverviewNodeContext) {
+  const data = context.item.node.data;
+  return data.kind === "note" ? data.plainText.trim() || data.title : data.title;
+}
+
+function cardLabelTypography(context: CanvasOverviewNodeContext) {
+  const { appearance } = context.item.layout;
+  if (context.item.node.data.kind !== "note") {
+    return { fontSize: 14, fontStyle: "normal" as const, maxLength: 140 };
+  }
+  return {
+    fontSize: (appearance?.fontSize ?? 18) * (appearance?.typographyScale ?? 1),
+    fontStyle: appearance?.fontWeight === "bold" ? ("bold" as const) : ("normal" as const),
+    maxLength: 350,
+  };
 }
 
 function coverCrop(image: HTMLImageElement, width: number, height: number) {

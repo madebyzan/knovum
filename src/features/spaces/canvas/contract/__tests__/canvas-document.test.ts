@@ -47,7 +47,7 @@ describe("CanvasDocument v1", () => {
 
   it("requires explicit size ownership instead of inferring it from dimensions", () => {
     const { sizeAuthority: _sizeAuthority, ...node } = document().nodes[0];
-    expect(() => parseCanvasDocument({ ...document(), nodes: [node] })).toThrow();
+    expect(() => parseCanvasDocument({ ...document(), nodes: [node] })).toThrow(/sizeAuthority/u);
   });
 
   it("uses the same unsigned 32-bit layer range as the Rust contract", () => {
@@ -103,7 +103,7 @@ describe("CanvasDocument v1", () => {
         ...document(),
         nodes: [{ ...document().nodes[0], appearance: { typographyScale: 4.01 } }],
       }),
-    ).toThrow();
+    ).toThrow(/typographyScale/u);
     expect(() =>
       parseCanvasDocument({
         ...document(),
@@ -115,13 +115,13 @@ describe("CanvasDocument v1", () => {
         ...document(),
         nodes: [{ ...document().nodes[0], appearance: { fontSize: 576.1 } }],
       }),
-    ).toThrow();
+    ).toThrow(/fontSize/u);
     expect(() =>
       parseCanvasDocument({
         ...document(),
         nodes: [{ ...document().nodes[0], appearance: { customFill: "red" } }],
       }),
-    ).toThrow();
+    ).toThrow(/customFill/u);
     expect(() =>
       parseCanvasDocument({
         ...document(),
@@ -151,6 +151,6 @@ describe("CanvasDocument v1", () => {
         ...document(),
         relationStyles: [{ relationId: "relation", color: "neutral" }],
       }),
-    ).toThrow();
+    ).toThrow(/color/u);
   });
 });

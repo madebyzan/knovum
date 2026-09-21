@@ -93,18 +93,32 @@ function alignmentGuide(
   axis: SnapAxis,
   value: number,
 ): CanvasSnapGuide {
-  const extent = (axis === "x" ? index.xExtents : index.yExtents).get(value);
-  if (axis === "x") {
-    return {
-      kind: "alignment",
-      points: [
-        value,
-        Math.min(moved.top, extent?.[0] ?? moved.top),
-        value,
-        Math.max(moved.bottom, extent?.[1] ?? moved.bottom),
-      ],
-    };
-  }
+  return axis === "x"
+    ? verticalAlignmentGuide(moved, index.xExtents.get(value), value)
+    : horizontalAlignmentGuide(moved, index.yExtents.get(value), value);
+}
+
+function verticalAlignmentGuide(
+  moved: CanvasBounds,
+  extent: readonly [number, number] | undefined,
+  value: number,
+): CanvasSnapGuide {
+  return {
+    kind: "alignment",
+    points: [
+      value,
+      Math.min(moved.top, extent?.[0] ?? moved.top),
+      value,
+      Math.max(moved.bottom, extent?.[1] ?? moved.bottom),
+    ],
+  };
+}
+
+function horizontalAlignmentGuide(
+  moved: CanvasBounds,
+  extent: readonly [number, number] | undefined,
+  value: number,
+): CanvasSnapGuide {
   return {
     kind: "alignment",
     points: [

@@ -31,6 +31,24 @@ interface StartFailureContext {
   error: unknown;
 }
 
+function createRecorder(candidate: MediaStream) {
+  const mime = preferredAudioRecordingMimeType();
+  return new MediaRecorder(candidate, mime ? { mimeType: mime } : undefined);
+}
+
+async function discardStartedSession(candidate: MediaStream, session: SpaceAudioRecordingSession) {
+  stopAudioCapture(candidate);
+  await cancelSpaceAudioRecording(session);
+}
+
+async function stopRecorder(current: MediaRecorder) {
+  const stopped = new Promise<void>((resolve) =>
+    current.addEventListener("stop", () => resolve(), { once: true }),
+  );
+  current.stop();
+  await stopped;
+}
+
 export function createSpaceAudioRecorderController(options: AudioRecorderControllerOptions) {
   const isRecording = ref(false);
   const isPaused = ref(false);
@@ -88,16 +106,6 @@ export function createSpaceAudioRecorderController(options: AudioRecorderControl
     }
   }
 
-  function createRecorder(candidate: MediaStream) {
-    const mime = preferredAudioRecordingMimeType();
-    return new MediaRecorder(candidate, mime ? { mimeType: mime } : undefined);
-  }
-
-  async function discardStartedSession(candidate: MediaStream, session: SpaceAudioRecordingSession) {
-    stopAudioCapture(candidate);
-    await cancelSpaceAudioRecording(session);
-  }
-
   async function handleStartFailure(context: StartFailureContext) {
     if (context.candidate) stopAudioCapture(context.candidate);
     if (context.session) await cancelSpaceAudioRecording(context.session);
@@ -144,14 +152,6 @@ export function createSpaceAudioRecorderController(options: AudioRecorderControl
     const session = recorderSession;
     if (!current || current.state === "inactive" || !spaceId || !session || isSaving.value) return undefined;
     return { recorder: current, generation, spaceId, session };
-  }
-
-  async function stopRecorder(current: MediaRecorder) {
-    const stopped = new Promise<void>((resolve) =>
-      current.addEventListener("stop", () => resolve(), { once: true }),
-    );
-    current.stop();
-    await stopped;
   }
 
   async function finishRecording(target: RecordingStopTarget) {
