@@ -68,6 +68,7 @@ fn main() {
                         "refresh_asset",
                         "open_asset",
                         "preview_asset",
+                        "preview_image",
                         "open_asset_at_location",
                         "duplicate_asset",
                         "remove_asset",

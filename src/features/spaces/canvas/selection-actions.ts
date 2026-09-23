@@ -1,3 +1,4 @@
+import { invoke } from "@tauri-apps/api/core";
 import { openUrl } from "@tauri-apps/plugin-opener";
 
 import { openSystemPreview } from "../../../foundation/system-preview/system-preview";
@@ -93,6 +94,12 @@ export async function openSpaceNode(store: ReturnType<typeof useSpaceStore>, nod
   const handler = OPEN_HANDLERS[node.data.kind];
   if (handler) {
     await handler(store, node);
+    return;
+  }
+  if (node.data.kind === "image") {
+    const spaceId = store.activeSpaceId;
+    if (!spaceId) throw new Error("Image Space is unavailable");
+    await invoke("plugin:spaces|preview_image", { spaceId, nodeId: node.id });
     return;
   }
   if (isSpaceManagedAssetPayload(node.data)) await openSystemPreview(node.data.assetPath);

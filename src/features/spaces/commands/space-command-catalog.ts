@@ -1,13 +1,11 @@
 import { computed, inject } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { openSystemPreview } from "../../../foundation/system-preview/system-preview";
-import type { AppCommand } from "../../../shared/contracts/app-command";
 import { availableWhen } from "../../../shared/contracts/action-availability";
+import type { AppCommand } from "../../../shared/contracts/app-command";
 import { workspaceSidebarKey } from "../../../shared/contracts/workspace-sidebar";
 import { useCanvasExchangeSession } from "../canvas-exchange/canvas-exchange-session";
 import { useCanvasEditorSession } from "../canvas/editor-session";
-import { isSpaceManagedAssetPayload } from "../model/nodes/capabilities";
 import { createStructureIndex, effectiveOperationRoots } from "../model/structure/structure-index";
 import {
   canRenameStructureNode,
@@ -20,6 +18,7 @@ import { useSpaceLibraryCommands } from "../workspace/use-space-library-commands
 import { createCanvasEditingCommands } from "./canvas-editing-commands";
 import { createCanvasExchangeCommands } from "./canvas-exchange-commands";
 import { NUDGE_COMMANDS } from "./nudge-commands";
+import { spacePreviewCommand } from "./space-preview-command";
 import { useCanvasNavigationCommands } from "./use-canvas-navigation-commands";
 import { videoEditCommands } from "./video-edit-commands";
 
@@ -45,13 +44,6 @@ export function useSpaceCommands() {
         index,
       ).map(({ id }) => id);
     };
-    const previewPath = () => {
-      const selected = new Set(selectedIds());
-      const node = store.nodes.find(
-        (candidate) => selected.has(candidate.id) && isSpaceManagedAssetPayload(candidate.data),
-      );
-      return node && isSpaceManagedAssetPayload(node.data) ? node.data.assetPath : undefined;
-    };
     const searchAllCommand: AppCommand = {
       id: "spaces.find-all",
       title: t("spaces.navigation.searchAllSpaces"),
@@ -72,7 +64,11 @@ export function useSpaceCommands() {
         title: t("spaces.canvas.groupSelection"),
         shortcut: "$mod+G",
         category: "canvas",
-        availability: () => availableWhen(groupCapability(store.editSnapshot, selectedStructureNodeIds()).enabled, "selection_not_eligible"),
+        availability: () =>
+          availableWhen(
+            groupCapability(store.editSnapshot, selectedStructureNodeIds()).enabled,
+            "selection_not_eligible",
+          ),
         run: async () => {
           await store.executeSpaceEdit({
             kind: "group.create",
@@ -87,7 +83,11 @@ export function useSpaceCommands() {
         title: t("spaces.canvas.ungroupSelection"),
         shortcut: "$mod+Shift+G",
         category: "canvas",
-        availability: () => availableWhen(dissolveGroupCapability(store.editSnapshot, selectedStructureNodeIds()).enabled, "selection_not_eligible"),
+        availability: () =>
+          availableWhen(
+            dissolveGroupCapability(store.editSnapshot, selectedStructureNodeIds()).enabled,
+            "selection_not_eligible",
+          ),
         run: async () => {
           await store.executeSpaceEdit({ kind: "group.dissolve", rootIds: selectedStructureNodeIds() });
         },
@@ -97,7 +97,11 @@ export function useSpaceCommands() {
         title: t("spaces.navigation.renameNode"),
         shortcut: "F2",
         category: "canvas",
-        availability: () => availableWhen(canRenameStructureNode(store.editSnapshot, selectedStructureNodeIds()), "selection_not_eligible"),
+        availability: () =>
+          availableWhen(
+            canRenameStructureNode(store.editSnapshot, selectedStructureNodeIds()),
+            "selection_not_eligible",
+          ),
         run: () => {
           sidebar.reveal();
           store.outlineRenameStructureNodeId = selectedStructureNodeIds()[0]!;
@@ -162,23 +166,14 @@ export function useSpaceCommands() {
           run: () => activeEditor.value?.nudgeSelection({ x: input.x, y: input.y }),
         }))
       : [];
-    const previewCommands: AppCommand[] = previewPath()
-      ? [
-          {
-            id: "spaces.system-preview",
-            title: t("spaces.transfer.systemPreview"),
-            category: "canvas",
-            run: () => openSystemPreview(previewPath()!),
-          },
-        ]
-      : [];
+    const preview = spacePreviewCommand(store, selectedIds(), t("spaces.transfer.systemPreview"));
     return [
       ...workspaceTabCommands.value,
       ...editingCommands,
       ...exchangeCommands,
       ...nudgeCommands,
       ...canvasNavigationCommands.value,
-      ...previewCommands,
+      ...(preview ? [preview] : []),
     ];
   });
 }

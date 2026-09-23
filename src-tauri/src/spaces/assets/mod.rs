@@ -6,6 +6,8 @@ pub(crate) mod enrichment;
 pub(crate) mod external_open;
 pub(crate) mod files;
 pub(crate) mod image;
+mod image_document;
+mod image_preview;
 pub(crate) mod import;
 pub(crate) mod media_analysis;
 mod reclamation;
