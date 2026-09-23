@@ -2,12 +2,14 @@
 import { Check } from "@lucide/vue";
 import { computed } from "vue";
 
+import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiPopover from "../../../../shared/ui/UiPopover.vue";
 
 interface CanvasColorOption {
   value: string;
   label: string;
+  labeled?: boolean;
   color: string;
 }
 
@@ -24,7 +26,11 @@ const selectedColor = computed(() => props.options.find(({ value }) => value ===
 <template>
   <UiPopover side="top" align="center" :side-offset="5" class="p-0.5">
     <template #trigger>
-      <UiIconButton :label="label" size="sm">
+      <UiButton v-if="labeled" variant="ghost" size="sm" class="h-(--knovum-control-height-md) shadow-none">
+        <span class="size-(--knovum-icon-size-sm) rounded-full ring-1 ring-border" :style="{ backgroundColor: selectedColor }" />
+        {{ label }}
+      </UiButton>
+      <UiIconButton v-else :label="label" size="sm">
         <span class="size-4 rounded-full ring-1 ring-border" :style="{ backgroundColor: selectedColor }" />
       </UiIconButton>
     </template>

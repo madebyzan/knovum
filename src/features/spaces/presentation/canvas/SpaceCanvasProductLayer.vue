@@ -110,7 +110,7 @@ const selectionBarGap = computed(() => {
       :bounds="editorSession.selection.value.bounds"
       :canvas-to-viewport-point="canvasToViewportPoint"
       :safe-area="canvasChromeInsets"
-      :align="singleCanvasObjectSelected ? 'start' : 'center'"
+      align="center"
       :gap="singleCanvasObjectSelected ? selectionBarGap : 34"
     >
       <SpaceCanvasRelationBar v-if="editorSession.selection.value.relationIds.length === 1" />

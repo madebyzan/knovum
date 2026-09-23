@@ -17,8 +17,10 @@ import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { runAppCommand } from "../../foundation/commands/run-app-command";
+import { canRunAction } from "../../shared/contracts/action-availability";
 import type { AppCommand } from "../../shared/contracts/app-command";
 import UiKbd from "../../shared/ui/UiKbd.vue";
+import UiTooltip from "../../shared/ui/UiTooltip.vue";
 
 const open = defineModel<boolean>("open", { required: true });
 const props = defineProps<{ commands: readonly AppCommand[] }>();
@@ -33,9 +35,10 @@ whenever(
 );
 
 const filteredCommands = computed(() => {
+  const visible = props.commands.filter((command) => command.availability?.().state !== "hidden");
   const needle = query.value.trim();
-  if (!needle) return props.commands;
-  return search(needle, [...props.commands], {
+  if (!needle) return visible;
+  return search(needle, visible, {
     keySelector: (cmd) => `${cmd.title} ${cmd.description ?? ""}`,
     threshold: 0.6,
   });
@@ -44,8 +47,21 @@ const filteredCommands = computed(() => {
 function handleSelect(value: unknown) {
   const command = value as AppCommand | undefined;
   if (!command) return;
+  if (!commandReady(command)) return;
   open.value = false;
   runAppCommand(command);
+}
+
+function commandReady(command: AppCommand) {
+  return !command.availability || canRunAction(command.availability());
+}
+
+function commandReason(command: AppCommand) {
+  const availability = command.availability?.();
+  if (availability?.state === "blocked") return t(`shell.commandUnavailable.${availability.reason}`);
+  if (availability?.state === "checking") return t("shell.commandUnavailable.checking");
+  if (availability?.state === "busy") return t("shell.commandUnavailable.busy");
+  return "";
 }
 </script>
 
@@ -72,26 +88,26 @@ function handleSelect(value: unknown) {
             <UiKbd shortcut="esc" />
           </div>
           <ListboxContent class="max-h-(--knovum-command-list-max-height) space-y-0.5 overflow-y-auto p-1.5">
-            <ListboxItem
-              v-for="command in filteredCommands"
-              :key="command.id"
-              :value="command"
-              :disabled="command.isEnabled ? !command.isEnabled() : false"
-              class="flex h-(--knovum-command-item-height) w-full cursor-default items-center gap-2.5 rounded-control px-2.5 text-left outline-none data-highlighted:bg-(--knovum-sidebar-item-background-selected)"
-            >
-              <span class="grid size-6 place-items-center text-foreground-secondary">
-                <component :is="command.icon" v-if="command.icon" class="size-(--knovum-icon-size-sm)" />
-              </span>
-              <span class="min-w-0 flex-1">
-                <strong class="block truncate text-label font-medium">{{ command.title }}</strong>
-                <span
-                  v-if="command.description"
-                  class="block truncate text-caption text-foreground-tertiary"
-                  >{{ command.description }}</span
-                >
-              </span>
-              <UiKbd v-if="command.shortcut" :shortcut="command.shortcut" />
-            </ListboxItem>
+            <UiTooltip v-for="command in filteredCommands" :key="command.id" :text="commandReason(command)" :disabled="commandReady(command)" side="right">
+              <ListboxItem
+                :value="command"
+                :aria-disabled="!commandReady(command)"
+                class="flex h-(--knovum-command-item-height) w-full cursor-default items-center gap-2.5 rounded-control px-2.5 text-left outline-none aria-disabled:opacity-45 data-highlighted:bg-(--knovum-sidebar-item-background-selected)"
+              >
+                <span class="grid size-6 place-items-center text-foreground-secondary">
+                  <component :is="command.icon" v-if="command.icon" class="size-(--knovum-icon-size-sm)" />
+                </span>
+                <span class="min-w-0 flex-1">
+                  <strong class="block truncate text-label font-medium">{{ command.title }}</strong>
+                  <span
+                    v-if="command.description"
+                    class="block truncate text-caption text-foreground-tertiary"
+                    >{{ command.description }}</span
+                  >
+                </span>
+                <UiKbd v-if="command.shortcut" :shortcut="command.shortcut" />
+              </ListboxItem>
+            </UiTooltip>
             <div v-if="!filteredCommands.length" class="py-8 text-center text-label text-foreground-tertiary">
               {{ t("shell.noMatchingCommands") }}
             </div>

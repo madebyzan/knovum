@@ -3,6 +3,13 @@ import type { SpaceVideoPayload } from "../model/nodes/node-payload";
 export type VideoEditProject = NonNullable<SpaceVideoPayload["videoEditProject"]>;
 export type VideoClip = VideoEditProject["videoTrack"]["clips"][number];
 export type VideoTextOverlay = VideoEditProject["textTrack"]["items"][number];
+export type VideoTextStyle = NonNullable<VideoTextOverlay["style"]>;
+
+export const DEFAULT_VIDEO_TEXT_STYLE: VideoTextStyle = {
+  size: 30,
+  color: "#FFFFFF",
+  preset: "outline",
+};
 
 export function createVideoEditProject(sourceRevision: string, durationMs: number): VideoEditProject {
   return {
@@ -42,9 +49,63 @@ export function splitClip(project: VideoEditProject, timelineMs: number): VideoE
 
 export function removeClip(project: VideoEditProject, clipId: string): VideoEditProject {
   if (project.videoTrack.clips.length === 1) return project;
-  return {
+  const clip = project.videoTrack.clips.find(({ id }) => id === clipId);
+  if (!clip) return project;
+  const timelineStart = clipTimelineStart(project, clipId);
+  return fitTextToDuration({
     ...project,
     videoTrack: { clips: project.videoTrack.clips.filter(({ id }) => id !== clipId) },
+    textTrack: { items: spliceText(project.textTrack.items, timelineStart, clipDuration(clip), 0) },
+  });
+}
+
+export function replaceClip(project: VideoEditProject, edited: VideoClip): VideoEditProject {
+  const original = project.videoTrack.clips.find(({ id }) => id === edited.id);
+  if (!original) return project;
+  const timelineStart = clipTimelineStart(project, edited.id);
+  let text = project.textTrack.items;
+  if (edited.startMs > original.startMs)
+    text = spliceText(text, timelineStart, edited.startMs - original.startMs, 0);
+  else if (edited.startMs < original.startMs)
+    text = spliceText(text, timelineStart, 0, original.startMs - edited.startMs);
+  if (edited.endMs < original.endMs)
+    text = spliceText(text, timelineStart + clipDuration(edited), original.endMs - edited.endMs, 0);
+  else if (edited.endMs > original.endMs)
+    text = spliceText(
+      text,
+      timelineStart + original.endMs - edited.startMs,
+      0,
+      edited.endMs - original.endMs,
+    );
+  return fitTextToDuration({
+    ...project,
+    videoTrack: {
+      clips: project.videoTrack.clips.map((clip) => (clip.id === edited.id ? edited : clip)),
+    },
+    textTrack: { items: text },
+  });
+}
+
+function spliceText(items: VideoTextOverlay[], atMs: number, removedMs: number, insertedMs: number) {
+  const mapTime = (value: number) => {
+    if (value < atMs) return value;
+    if (removedMs > 0 && value <= atMs + removedMs) return atMs;
+    return value - removedMs + insertedMs;
+  };
+  return items
+    .map((item) => ({ ...item, startMs: mapTime(item.startMs), endMs: mapTime(item.endMs) }))
+    .filter((item) => item.endMs > item.startMs);
+}
+
+function fitTextToDuration(project: VideoEditProject): VideoEditProject {
+  const duration = projectDuration(project);
+  return {
+    ...project,
+    textTrack: {
+      items: project.textTrack.items
+        .filter((item) => item.startMs < duration)
+        .map((item) => ({ ...item, endMs: Math.min(item.endMs, duration) })),
+    },
   };
 }
 
@@ -70,13 +131,14 @@ export function clipTimelineStart(project: VideoEditProject, clipId: string) {
 
 export function addTextOverlay(project: VideoEditProject, startMs: number): VideoEditProject {
   const duration = projectDuration(project);
-  const endMs = Math.min(duration, startMs + 3_000);
+  const boundedStart = Math.max(0, Math.min(Math.round(startMs), Math.max(0, duration - 100)));
   const item: VideoTextOverlay = {
     id: crypto.randomUUID(),
-    startMs: Math.min(startMs, Math.max(0, duration - 500)),
-    endMs: Math.max(Math.min(endMs, duration), Math.min(startMs, duration - 500) + 500),
+    startMs: boundedStart,
+    endMs: Math.min(duration, Math.max(boundedStart + 100, boundedStart + 3_000)),
     text: "Text",
     placement: "bottom",
+    style: { ...DEFAULT_VIDEO_TEXT_STYLE },
   };
   return { ...project, textTrack: { items: [...project.textTrack.items, item] } };
 }

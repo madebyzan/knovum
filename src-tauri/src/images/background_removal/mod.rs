@@ -4,7 +4,7 @@ mod pixels;
 #[cfg(test)]
 mod tests;
 
-use std::{fs, io::Cursor, path::Path};
+use std::io::Cursor;
 
 use image::{DynamicImage, GenericImageView, ImageFormat, ImageReader, Limits};
 
@@ -15,13 +15,11 @@ const MAX_IMAGE_PIXELS: u64 = 100_000_000;
 const MAX_IMAGE_DIMENSION: u32 = 10_000;
 const MAX_OUTPUT_BYTES: usize = 64 * 1024 * 1024;
 
-pub(crate) fn remove_background(source: &Path) -> Result<BackgroundRemovalOutput, String> {
-    let metadata = fs::metadata(source).map_err(|error| error.to_string())?;
-    if !metadata.is_file() || metadata.len() == 0 || metadata.len() > MAX_SOURCE_BYTES {
+pub(crate) fn remove_background(source: &[u8]) -> Result<BackgroundRemovalOutput, String> {
+    if source.is_empty() || source.len() as u64 > MAX_SOURCE_BYTES {
         return Err("Background-removal input must be a non-empty image up to 64 MiB".into());
     }
-    let mut reader = ImageReader::open(source)
-        .map_err(|error| error.to_string())?
+    let mut reader = ImageReader::new(Cursor::new(source))
         .with_guessed_format()
         .map_err(|error| error.to_string())?;
     let mut limits = Limits::default();

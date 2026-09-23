@@ -2,6 +2,7 @@ import { info as logInfo } from "@tauri-apps/plugin-log";
 import { platform } from "@tauri-apps/plugin-os";
 
 import type { AppCommand } from "../../../shared/contracts/app-command";
+import { availableWhen } from "../../../shared/contracts/action-availability";
 import type { CanvasEditorPort } from "../canvas/contract/canvas-editor-port";
 
 interface CanvasEditingCommandLabels {
@@ -44,7 +45,7 @@ export function createCanvasEditingCommands(options: CanvasEditingCommandOptions
       title: options.labels.undo,
       shortcut: "$mod+Z",
       category: "editing",
-      isEnabled: options.canUndo,
+      availability: () => availableWhen(options.canUndo(), "nothing_to_undo"),
       run: options.undo,
     },
     {
@@ -52,7 +53,7 @@ export function createCanvasEditingCommands(options: CanvasEditingCommandOptions
       title: options.labels.redo,
       shortcut: "$mod+Shift+Z",
       category: "editing",
-      isEnabled: options.canRedo,
+      availability: () => availableWhen(options.canRedo(), "nothing_to_redo"),
       run: options.redo,
     },
     {
@@ -60,7 +61,7 @@ export function createCanvasEditingCommands(options: CanvasEditingCommandOptions
       title: options.labels.copy,
       shortcut: "$mod+C",
       category: "editing",
-      isEnabled: options.hasNodeSelection,
+      availability: () => availableWhen(options.hasNodeSelection(), "no_selection"),
       run: () => editor()?.copySelection(),
     },
     {
@@ -68,7 +69,7 @@ export function createCanvasEditingCommands(options: CanvasEditingCommandOptions
       title: options.labels.cut,
       shortcut: "$mod+X",
       category: "editing",
-      isEnabled: options.hasNodeSelection,
+      availability: () => availableWhen(options.hasNodeSelection(), "no_selection"),
       run: () => editor()?.cutSelection(),
     },
     {
@@ -89,7 +90,7 @@ export function createCanvasEditingCommands(options: CanvasEditingCommandOptions
       title: options.labels.duplicate,
       shortcut: "$mod+D",
       category: "editing",
-      isEnabled: options.hasNodeSelection,
+      availability: () => availableWhen(options.hasNodeSelection(), "no_selection"),
       run: () => editor()?.duplicateSelection(),
     },
     {
@@ -97,7 +98,7 @@ export function createCanvasEditingCommands(options: CanvasEditingCommandOptions
       title: options.labels.deleteSelection,
       shortcut: platform() === "macos" ? "Backspace" : "Delete",
       category: "editing",
-      isEnabled: options.hasSelection,
+      availability: () => availableWhen(options.hasSelection(), "no_selection"),
       run: () => editor()?.deleteSelection(),
     },
     {

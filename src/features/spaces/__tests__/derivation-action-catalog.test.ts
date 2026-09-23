@@ -80,11 +80,11 @@ describe("selection derivation catalog", () => {
   it("offers document, presentation and video generation from knowledge without requiring Markdown", () => {
     const decisions = creationIntentCatalog([note()]).decisions;
 
-    expect(decisions["draft-document"].available).toBe(true);
-    expect(decisions["export-document-as-pdf"].available).toBe(false);
-    expect(decisions["presentation-production"].available).toBe(true);
-    expect(decisions["video-production"].available).toBe(true);
-    expect(decisions["social-content-package"].available).toBe(true);
+    expect(decisions["draft-document"].state).toBe("ready");
+    expect(decisions["export-document-as-pdf"].state).toBe("hidden");
+    expect(decisions["presentation-production"].state).toBe("ready");
+    expect(decisions["video-production"].state).toBe("ready");
+    expect(decisions["social-content-package"].state).toBe("ready");
   });
 
   it("rejects opaque resources instead of treating every selected file as knowledge", () => {
@@ -95,7 +95,7 @@ describe("selection derivation catalog", () => {
     );
 
     expect(creationIntentCatalog([file]).decisions["draft-document"]).toEqual({
-      available: false,
+      state: "blocked",
       reason: "needs-indexed-knowledge",
     });
   });
@@ -112,15 +112,15 @@ describe("selection derivation catalog", () => {
       "markdown",
     );
 
-    expect(creationIntentCatalog([markdown]).decisions["export-document-as-docx"].available).toBe(true);
-    expect(creationIntentCatalog([note()]).decisions["export-document-as-docx"].available).toBe(false);
+    expect(creationIntentCatalog([markdown]).decisions["export-document-as-docx"].state).toBe("ready");
+    expect(creationIntentCatalog([note()]).decisions["export-document-as-docx"].state).toBe("hidden");
   });
 
   it("keeps the provider reference-image limit explicit", () => {
     const nodes = [note(), ...Array.from({ length: 11 }, (_, index) => image(index))];
 
     expect(creationIntentCatalog(nodes).decisions["video-production"]).toEqual({
-      available: false,
+      state: "blocked",
       reason: "too-many-video-images",
     });
   });
@@ -128,7 +128,7 @@ describe("selection derivation catalog", () => {
   it("offers the complete subtitle Workflow for a current indexed video", () => {
     const decisions = creationIntentCatalog([indexedVideo()]).decisions;
 
-    expect(decisions["subtitled-video-production"].available).toBe(true);
-    expect(decisions["meeting-content-package"].available).toBe(true);
+    expect(decisions["subtitled-video-production"].state).toBe("ready");
+    expect(decisions["meeting-content-package"].state).toBe("ready");
   });
 });

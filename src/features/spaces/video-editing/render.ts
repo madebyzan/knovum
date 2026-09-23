@@ -25,13 +25,6 @@ export async function renderVideoEdit(
   const spaceId = store.activeSpaceId;
   const sourceRevision = source.data.sourceRevision;
   if (!spaceId || !sourceRevision) throw new Error("Video source revision is unavailable");
-  await store.updateManyData([
-    {
-      id: source.id,
-      before: source.data,
-      after: { ...source.data, videoEditProject: project },
-    },
-  ]);
   const { videoEditProject: _project, ...sourceData } = source.data;
   const pendingData: SpaceVideoPayload = {
     ...sourceData,

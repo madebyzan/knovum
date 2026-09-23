@@ -58,6 +58,24 @@ pub struct TextOverlay {
     pub end_ms: u64,
     pub text: String,
     pub placement: TextPlacement,
+    pub style: Option<TextStyle>,
+}
+
+#[derive(Clone, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct TextStyle {
+    pub size: u16,
+    pub color: String,
+    pub preset: TextPreset,
+}
+
+#[derive(Clone, Copy, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum TextPreset {
+    Plain,
+    Outline,
+    Shadow,
+    Badge,
 }
 
 #[derive(Clone, Deserialize)]

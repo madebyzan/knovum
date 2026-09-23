@@ -33,7 +33,9 @@ import type { useCanvasSelectionActions } from "./use-canvas-selection-actions";
 defineProps<{
   actions: ReturnType<typeof useCanvasSelectionActions>;
   derivations: CreationIntentDecisions;
-  promotedDuplicate?: boolean;
+  nodeBar?: boolean;
+  duplicateInBar?: boolean;
+  excludeDirectImageActions?: boolean;
 }>();
 const emit = defineEmits<{ invokeDerivation: [actionId: CreationIntentId] }>();
 const { t } = useI18n();
@@ -41,13 +43,15 @@ const menuRow =
   "flex h-(--knovum-compact-item-height) cursor-default items-center gap-2 rounded-control px-2 text-label text-foreground outline-none data-[highlighted]:bg-control-hover data-[disabled]:text-foreground-tertiary";
 const submenu = "material-overlay z-50 min-w-48 rounded-panel p-1 ring-1 ring-border";
 const deleteShortcut = platform() === "macos" ? "Backspace" : "Delete";
+const directImageActions: readonly CreationIntentId[] = ["remove-image-background"];
+
 </script>
 
 <template>
   <UiDropdownMenu side="top" align="center" :side-offset="6" class="min-w-48">
     <template #trigger>
       <ToolbarButton as-child>
-        <UiIconButton :label="t('common.more')" size="sm">
+        <UiIconButton :label="t('common.more')" :size="nodeBar ? 'md' : 'sm'">
           <MoreHorizontal class="size-(--knovum-icon-size-sm)" />
         </UiIconButton>
       </ToolbarButton>
@@ -56,7 +60,7 @@ const deleteShortcut = platform() === "macos" ? "Backspace" : "Delete";
       <UiDropdownMenuItem v-if="actions.state.value.canAsk" @select="actions.ask">
         <MessageSquareText class="size-(--knovum-icon-size-sm)" />{{ t("spaces.assistant.askSelection") }}
       </UiDropdownMenuItem>
-      <UiDropdownMenuItem v-if="!promotedDuplicate" @select="actions.duplicate">
+      <UiDropdownMenuItem v-if="!duplicateInBar" @select="actions.duplicate">
         <Copy class="size-(--knovum-icon-size-sm)" />{{ t("spaces.navigation.duplicateSelection") }}
         <UiKbd shortcut="$mod+D" class="ml-auto" />
       </UiDropdownMenuItem>
@@ -99,6 +103,7 @@ const deleteShortcut = platform() === "macos" ? "Backspace" : "Delete";
         :derivations="derivations"
         :row-class="menuRow"
         :submenu-class="submenu"
+        :exclude="excludeDirectImageActions ? directImageActions : undefined"
         @invoke="emit('invokeDerivation', $event)"
       />
       <SpaceCanvasArrangeMenu

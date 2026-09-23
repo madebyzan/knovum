@@ -1,0 +1,25 @@
+import { invoke } from "@tauri-apps/api/core";
+import { save } from "@tauri-apps/plugin-dialog";
+
+import type { SpaceImagePayload } from "../model/nodes/node-payload";
+import { safeExportFileName } from "./export";
+
+export async function exportEditedImage(
+  spaceId: string,
+  nodeId: string,
+  data: SpaceImagePayload,
+): Promise<boolean> {
+  const name = safeExportFileName(data.fileName.replace(/\.[^.]+$/u, "")) || "image";
+  const destinationPath = await save({
+    defaultPath: `${name}.png`,
+    filters: [{ name: "PNG", extensions: ["png"] }],
+  });
+  if (!destinationPath) return false;
+
+  await invoke("plugin:spaces|export_image", {
+    spaceId,
+    nodeId,
+    destinationPath,
+  });
+  return true;
+}

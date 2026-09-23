@@ -6,12 +6,16 @@ export type ImageCrop = ImageEdit["crop"];
 
 export function defaultImageEdit(): ImageEdit {
   return {
-    version: 1,
+    version: 5,
     crop: { x: 0, y: 0, width: 1, height: 1 },
     rotation: 0,
     flipHorizontal: false,
     flipVertical: false,
-    adjustments: { brightness: 0, contrast: 0, saturation: 0 },
+    adjustments: {
+      exposure: 0, contrast: 0, highlights: 0, shadows: 0, whites: 0, blacks: 0,
+      saturation: 0, warmth: 0, sharpness: 0, vignette: 0,
+      vibrance: 0, tint: 0, clarity: 0, grain: 0, softLight: 0, glow: 0,
+    },
     eraserStrokes: [],
   };
 }
@@ -29,6 +33,32 @@ export function centeredCrop(sourceAspect: number, targetAspect: number): ImageC
   return { x: 0, y: (1 - height) / 2, width: 1, height };
 }
 
+export function resizeCrop(crop: ImageCrop, width: number, height: number): ImageCrop {
+  const nextWidth = Math.max(0.01, Math.min(1, width));
+  const nextHeight = Math.max(0.01, Math.min(1, height));
+  return {
+    x: Math.max(0, Math.min(1 - nextWidth, crop.x + (crop.width - nextWidth) / 2)),
+    y: Math.max(0, Math.min(1 - nextHeight, crop.y + (crop.height - nextHeight) / 2)),
+    width: nextWidth,
+    height: nextHeight,
+  };
+}
+
+export function scaleCropToPixelSize(
+  crop: ImageCrop,
+  sourceWidth: number,
+  sourceHeight: number,
+  axis: "width" | "height",
+  pixels: number,
+): ImageCrop {
+  const current = axis === "width" ? crop.width * sourceWidth : crop.height * sourceHeight;
+  const factor = Math.max(
+    Math.max(0.01 / crop.width, 0.01 / crop.height),
+    Math.min(Math.min(1 / crop.width, 1 / crop.height), pixels / current),
+  );
+  return resizeCrop(crop, crop.width * factor, crop.height * factor);
+}
+
 export function nextQuarterTurn(rotation: ImageEdit["rotation"]): ImageEdit["rotation"] {
-  return ((rotation + 90) % 360) as ImageEdit["rotation"];
+  return (rotation + 90) % 360;
 }

@@ -4,18 +4,18 @@ import type {
   CreationSelectionContext,
 } from "./creation-intent-contract";
 
-const AVAILABLE: CreationIntentDecision = { available: true };
-const HIDDEN: CreationIntentDecision = { available: false };
+const AVAILABLE: CreationIntentDecision = { state: "ready" };
+const HIDDEN: CreationIntentDecision = { state: "hidden" };
 
 function decideKnowledgeIntent(context: CreationSelectionContext): CreationIntentDecision {
   if (context.hasKnowledgeSources) return AVAILABLE;
-  return context.selectionCount > 0 ? { available: false, reason: "needs-indexed-knowledge" } : HIDDEN;
+  return context.selectionCount > 0 ? { state: "blocked", reason: "needs-indexed-knowledge" } : HIDDEN;
 }
 
 function decideVideoGeneration(context: CreationSelectionContext): CreationIntentDecision {
   const knowledge = decideKnowledgeIntent(context);
-  if (!knowledge.available) return knowledge;
-  return context.imageCount > 10 ? { available: false, reason: "too-many-video-images" } : AVAILABLE;
+  if (knowledge.state !== "ready") return knowledge;
+  return context.imageCount > 10 ? { state: "blocked", reason: "too-many-video-images" } : AVAILABLE;
 }
 
 export const creationIntentDefinitions = [

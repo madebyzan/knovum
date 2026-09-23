@@ -158,3 +158,12 @@ pub fn export_text(
     authorize_destination(app, &destination)?;
     fs::write(destination, text).map_err(|error| error.to_string())
 }
+
+pub fn export_image(
+    app: &tauri::AppHandle,
+    destination: PathBuf,
+    png_bytes: Vec<u8>,
+) -> Result<(), String> {
+    authorize_destination(app, &destination)?;
+    fs::write(destination, png_bytes).map_err(|error| error.to_string())
+}

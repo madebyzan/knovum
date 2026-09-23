@@ -1,4 +1,4 @@
-use super::{TextPlacement, VideoEditProject};
+use super::{TextPlacement, TextPreset, VideoEditProject};
 
 pub fn build(
     project: &VideoEditProject,
@@ -49,7 +49,24 @@ fn visual_filters(project: &VideoEditProject, font_name: &str) -> Result<String,
             TextPlacement::Center => "(h-text_h)/2",
             TextPlacement::Bottom => "h-text_h-h*0.08",
         };
-        filters.push(format!("drawtext=fontfile='{font_name}':text='{}':expansion=none:fontcolor=white:fontsize=h/24:borderw=2:bordercolor=black@0.75:x=(w-text_w)/2:y={y}:enable='between(t,{},{})'", escape_text(&item.text), seconds(item.start_ms), seconds(item.end_ms)));
+        let size = item.style.as_ref().map_or(30, |style| style.size);
+        let color = item
+            .style
+            .as_ref()
+            .map_or("#FFFFFF", |style| style.color.as_str())
+            .strip_prefix('#')
+            .ok_or("Video text color is invalid")?;
+        let preset = item
+            .style
+            .as_ref()
+            .map_or(TextPreset::Outline, |style| style.preset);
+        let effect = match preset {
+            TextPreset::Plain => "borderw=0",
+            TextPreset::Outline => "borderw=2:bordercolor=black@0.75",
+            TextPreset::Shadow => "shadowx=2:shadowy=2:shadowcolor=black@0.8",
+            TextPreset::Badge => "box=1:boxcolor=black@0.55:boxborderw=8",
+        };
+        filters.push(format!("drawtext=fontfile='{font_name}':text='{}':expansion=none:fontcolor=0x{color}:fontsize=h*{size}/720:{effect}:x=(w-text_w)/2:y={y}:enable='between(t,{},{})'", escape_text(&item.text), seconds(item.start_ms), seconds(item.end_ms)));
     }
     if filters.is_empty() {
         filters.push("null".into());

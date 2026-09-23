@@ -2,6 +2,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import type { AppCommand, CommandCategory } from "../../../shared/contracts/app-command";
+import { availableWhen } from "../../../shared/contracts/action-availability";
 import { useCanvasToolStore } from "../canvas/canvas-tool-store";
 import { useCanvasEditorSession } from "../canvas/editor-session";
 import { isSpaceSemanticNode } from "../knowledge/model/semantic-node";
@@ -70,24 +71,24 @@ export function useCanvasNavigationCommands() {
     command("spaces.zoom-to-selection", t("spaces.canvas.actions.zoomToSelection"), {
       shortcut: SPACE_COMMAND_SHORTCUTS.zoomToSelection,
       keybindings: SPACE_COMMAND_KEYBINDINGS.zoomToSelection,
-      isEnabled: () => {
+      availability: () => {
         const selection = session.selection.value;
-        return Boolean(
+        return availableWhen(Boolean(
           selection.nodeIds.length || selection.structureNodeIds.length || selection.relationIds.length,
-        );
+        ), "no_selection");
       },
       run: () => session.activeEditor.value?.zoomToSelection(),
     }),
     command("spaces.previous-scene", t("shell.previousScene"), {
       shortcut: SPACE_COMMAND_SHORTCUTS.previousScene,
       category: "navigation",
-      isEnabled: () => scenes.scenes.value.length > 1,
+      availability: () => availableWhen(scenes.scenes.value.length > 1, "not_enough_scenes"),
       run: () => scenes.stepScene(-1),
     }),
     command("spaces.next-scene", t("shell.nextScene"), {
       shortcut: SPACE_COMMAND_SHORTCUTS.nextScene,
       category: "navigation",
-      isEnabled: () => scenes.scenes.value.length > 1,
+      availability: () => availableWhen(scenes.scenes.value.length > 1, "not_enough_scenes"),
       run: () => scenes.stepScene(1),
     }),
     command("spaces.ask", t("spaces.assistant.askKnowledge"), {
@@ -95,15 +96,17 @@ export function useCanvasNavigationCommands() {
       run: () => store.requestAsk("space", { restart: true }),
     }),
     command("spaces.focus-selection", t("spaces.navigation.focusSelection"), {
-      isEnabled: () => selectedNodes().length > 0,
+      availability: () => availableWhen(selectedNodes().length > 0, "no_selection"),
       run: () => {
         const nodes = selectedNodes();
         if (nodes[0]) store.focusNeighborhood(nodes[0].id);
       },
     }),
     command("spaces.connect-selection", t("spaces.canvas.connect"), {
-      isEnabled: () =>
+      availability: () => availableWhen(
         selectedNodes().length === 2 && selectedNodes().filter(isSpaceSemanticNode).length === 2,
+        "selection_not_eligible",
+      ),
       run: async () => {
         const [source, target] = selectedNodes().filter(isSpaceSemanticNode);
         if (source && target) await store.createRelation(source.id, target.id, "related");
@@ -112,12 +115,13 @@ export function useCanvasNavigationCommands() {
     command("spaces.toggle-selection-lock", t("spaces.canvas.actions.toggleSelectionLock"), {
       shortcut: SPACE_COMMAND_SHORTCUTS.lockSelection,
       category: "editing",
-      isEnabled: () => {
+      availability: () => {
         const index = createStructureIndex(store.editSnapshot.structure);
         const structureNodeIds = selectedStructureNodeIds();
-        return (
+        return availableWhen(
           structureNodeIds.length > 0 &&
-          structureNodeIds.every((id) => !ancestorsOf(id, index).some(({ locked }) => locked))
+          structureNodeIds.every((id) => !ancestorsOf(id, index).some(({ locked }) => locked)),
+          "selection_not_eligible",
         );
       },
       run: async () => {

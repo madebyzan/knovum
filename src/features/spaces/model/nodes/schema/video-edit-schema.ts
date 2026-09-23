@@ -20,6 +20,14 @@ const videoTextOverlaySchema = z
     ...timelineInterval,
     text: z.string().trim().min(1).max(500),
     placement: z.enum(["top", "center", "bottom"]),
+    style: z
+      .object({
+        size: z.number().int().min(16).max(96),
+        color: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+        preset: z.enum(["plain", "outline", "shadow", "badge"]),
+      })
+      .strict()
+      .optional(),
   })
   .strict()
   .refine(({ startMs, endMs }) => endMs > startMs, "A text overlay must have a positive duration");

@@ -3,9 +3,18 @@
 ## Canvas image editing and video workbench reviewed 2026-09-23
 
 - The existing exact-pinned **Konva/vue-konva** canvas stack and browser Canvas 2D primitives own
-  the direct image projection. Crop, rotation, flip, tonal filters and alpha erasing do not justify
-  another image-editor framework or a second scene graph. Rust's maintained `image` crate remains
-  the boundary for encoded image processing.
+  interactive image projection. Crop, rotation, flip, tonal controls and alpha erasing do not
+  justify another image-editor framework or a second scene graph. Rust's maintained `image` crate
+  owns canonical raster materialization and validates encoded outputs before managed persistence
+  or export. The shared strict image-edit contract keeps preview and output behavior aligned.
+- Local U²-Net ONNX inference remains the background removal engine. Mature Rust image crates do
+  not provide the requested generative layer decomposition or viewpoint synthesis. The existing
+  DashScope image provider is extended for [Wan image super-resolution](https://help.aliyun.com/en/model-studio/wanx-image-edit-api-reference)
+  and [Qwen image editing](https://help.aliyun.com/en/model-studio/qwen-image-edit-guide) rather
+  than adding a parallel AI routing stack. [Qwen-Image-Layered via fal](https://fal.ai/models/fal-ai/qwen-image-layered/api)
+  supplies actual separate transparent layers; its credential stays in the OS secret store and
+  layer publishing remains a Rust multi-output transaction. Local Qwen deployment needs a
+  Python/PyTorch/CUDA runtime and does not fit the Tauri desktop packaging contract.
 - The official **FFmpeg filter graph** remains the video rendering engine. It already supplies
   trim/atrim, concat, volume, rotation, flip and timed `drawtext`, while the platform H.264 encoder
   and Task Center cancellation are already provisioned by Knovum.

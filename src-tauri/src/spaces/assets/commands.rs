@@ -78,3 +78,38 @@ pub async fn export_text(
     crate::blocking::run(move || files::export_text(&app, PathBuf::from(destination_path), text))
         .await
 }
+
+#[tauri::command]
+pub async fn export_image(
+    app: tauri::AppHandle,
+    space_id: String,
+    node_id: String,
+    destination_path: String,
+) -> Result<(), String> {
+    let pool = crate::spaces::db::pool(&app).await?;
+    let data: String = sqlx::query_scalar(
+        "SELECT data FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND kind='image' AND deleted_at IS NULL",
+    )
+    .bind(node_id)
+    .bind(space_id)
+    .fetch_optional(pool)
+    .await
+    .map_err(crate::spaces::db::sql_error)?
+    .ok_or_else(|| "Image export source is unavailable".to_string())?;
+    let data: serde_json::Value =
+        serde_json::from_str(&data).map_err(crate::spaces::db::json_error)?;
+    let source_path = data
+        .get("assetPath")
+        .and_then(serde_json::Value::as_str)
+        .ok_or("Image export source path is unavailable")?
+        .to_owned();
+    let edit = data
+        .get("imageEdit")
+        .cloned()
+        .unwrap_or(serde_json::Value::Null);
+    crate::blocking::run(move || {
+        let rendered = crate::images::render_source_png(&app, &source_path, &edit)?;
+        files::export_image(&app, PathBuf::from(destination_path), rendered.png)
+    })
+    .await
+}

@@ -1,6 +1,13 @@
 import type { Component } from "vue";
+import type { ActionAvailability } from "./action-availability";
 
 export type CommandCategory = "general" | "navigation" | "canvas" | "editing";
+export type CommandUnavailableReason =
+  | "nothing_to_undo"
+  | "nothing_to_redo"
+  | "no_selection"
+  | "not_enough_scenes"
+  | "selection_not_eligible";
 
 export interface CommandShortcutListing {
   groupId: string;
@@ -19,6 +26,6 @@ export interface AppCommand {
   category?: CommandCategory;
   appMenuShortcut?: true;
   allowInEditable?: true;
-  isEnabled?: () => boolean;
+  availability?: () => ActionAvailability<CommandUnavailableReason>;
   run: () => void | Promise<void>;
 }

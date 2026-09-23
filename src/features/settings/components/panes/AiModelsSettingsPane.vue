@@ -12,6 +12,7 @@ import { useCreationLibraryStore } from "../../../../foundation/ai/creation-libr
 import { loadProviderDescriptors, type ProviderDescriptor } from "../../../../foundation/ai/providers";
 import { useProtectedExecutionTargets } from "../../use-protected-execution-targets";
 import AiConnectionsSettings from "../AiConnectionsSettings.vue";
+import FalImageLayerSettings from "../FalImageLayerSettings.vue";
 import SettingsLoadFailure from "../SettingsLoadFailure.vue";
 import SpaceRuntimeSettings from "../SpaceRuntimeSettings.vue";
 
@@ -101,6 +102,7 @@ onMounted(load);
         :protected-connection-ids="protectedConnectionIds"
         :protected-model-targets="protectedModelTargets"
       />
+      <FalImageLayerSettings />
     </TabsContent>
     <TabsContent value="onDevice" class="outline-none"><SpaceRuntimeSettings /></TabsContent>
   </TabsRoot>

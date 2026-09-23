@@ -5,9 +5,11 @@ import type { SpaceNodePayload, SpaceSubtitlePayload } from "../model/nodes/node
 import type { StructureIndex } from "../model/structure/structure-index";
 import { validateStructureSnapshot } from "../model/structure/structure-validation";
 import { exportSpaceAsset, exportSpaceTextFile, safeExportFileName, type SpaceTextExport } from "./export";
+import { exportEditedImage } from "./edited-image-export";
 import { formatExportMarkdown } from "./markdown-document";
 
-export async function exportSpaceNode(node: SpaceCanvasNode): Promise<boolean> {
+export async function exportSpaceNode(spaceId: string, node: SpaceCanvasNode): Promise<boolean> {
+  if (node.data.kind === "image") return exportEditedImage(spaceId, node.id, node.data);
   if (isSpaceManagedAssetPayload(node.data)) return exportSpaceAsset(node.data);
   return exportSpaceTextFile(nodeTextExport(node.data));
 }

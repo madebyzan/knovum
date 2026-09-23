@@ -10,6 +10,7 @@ const IMAGE_ASSET_FIELDS: &[&str] = &[
     "intrinsicHeight",
     "visualKnowledge",
     "imageEdit",
+    "comments",
 ];
 const MEDIA_ASSET_FIELDS: &[&str] = &[
     "assetPath",

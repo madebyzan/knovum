@@ -5,7 +5,13 @@ import { useI18n } from "vue-i18n";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 
-defineProps<{ title: string; canSave: boolean; canRender: boolean; preparing: boolean }>();
+defineProps<{
+  title: string;
+  canSave: boolean;
+  canRender: boolean;
+  dirty: boolean;
+  preparing: boolean;
+}>();
 defineEmits<{ close: []; save: []; render: [] }>();
 const { t } = useI18n();
 </script>
@@ -16,7 +22,10 @@ const { t } = useI18n();
       ><X class="size-(--knovum-icon-size-sm)"
     /></UiIconButton>
     <div class="min-w-0 flex-1">
-      <h1 class="truncate text-label font-semibold">{{ title }}</h1>
+      <h1 class="truncate text-label font-semibold">
+        {{ title }}<span v-if="dirty" class="ml-1 text-foreground-tertiary" aria-hidden="true">•</span>
+        <span v-if="dirty" class="sr-only">{{ t("spaces.media.unsavedStatus") }}</span>
+      </h1>
       <p class="text-micro text-foreground-tertiary">
         {{ t(preparing ? "spaces.media.optimizingPreview" : "spaces.media.videoEditor") }}
       </p>

@@ -2,6 +2,7 @@ import { computed, onMounted, shallowRef, watch, type Ref } from "vue";
 
 import type { ExecutionTarget } from "../../../foundation/ai/ai-models";
 import { useCanvasEditorSession } from "../canvas/editor-session";
+import { useImageCommentSession } from "../comments/image-comment-session";
 import { useSpaceStore } from "../session/space-store";
 import {
   cancelAssistantTask,
@@ -18,10 +19,20 @@ import { useAssistantConversationActions } from "./use-assistant-conversation-ac
 export function useBuiltInAssistant(spaceId: Ref<string | undefined>) {
   const store = useSpaceStore();
   const canvas = useCanvasEditorSession();
+  const imageComments = useImageCommentSession();
   const conversations = shallowRef<AssistantConversation[]>([]);
   const messages = shallowRef<AssistantMessage[]>([]);
   const selectedConversationId = shallowRef("");
   const prompt = shallowRef("");
+  watch(
+    imageComments.conversationDraft,
+    (draft) => {
+      if (!draft || !spaceId.value || !store.nodes.some(({ id }) => id === draft.nodeId)) return;
+      prompt.value = [prompt.value.trim(), draft.text].filter(Boolean).join("\n\n");
+      imageComments.takeConversationDraft();
+    },
+    { immediate: true },
+  );
   const mode = shallowRef<AssistantMode>("ask");
   const target = shallowRef<ExecutionTarget>();
   const maxTurns = shallowRef("12");

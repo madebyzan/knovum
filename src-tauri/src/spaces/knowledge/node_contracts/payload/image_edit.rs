@@ -20,20 +20,20 @@ pub(super) fn validate(value: Option<&Value>) -> Result<(), String> {
         ],
         "imageEdit",
     )?;
-    if number(edit, "version", 1.0, 1.0)? != 1.0 {
-        return Err("imageEdit.version must be 1".into());
+    if edit.get("version").and_then(Value::as_u64) != Some(5) {
+        return Err("imageEdit.version must be 5".into());
     }
     let crop = object_field(edit, "crop")?;
     reject_unknown(crop, ["x", "y", "width", "height"], "imageEdit.crop")?;
-    let x = number(crop, "x", 0.0, 1.0)?;
-    let y = number(crop, "y", 0.0, 1.0)?;
-    let width = number(crop, "width", 0.0, 1.0)?;
-    let height = number(crop, "height", 0.0, 1.0)?;
+    let x = number(crop, "x", 0.0, 1.0, "imageEdit.crop")?;
+    let y = number(crop, "y", 0.0, 1.0, "imageEdit.crop")?;
+    let width = number(crop, "width", 0.0, 1.0, "imageEdit.crop")?;
+    let height = number(crop, "height", 0.0, 1.0, "imageEdit.crop")?;
     if width == 0.0 || height == 0.0 || x + width > 1.0 || y + height > 1.0 {
         return Err("imageEdit.crop exceeds the image bounds".into());
     }
-    let rotation = number(edit, "rotation", 0.0, 270.0)?;
-    if ![0.0, 90.0, 180.0, 270.0].contains(&rotation) {
+    let rotation = number(edit, "rotation", 0.0, 360.0, "imageEdit")?;
+    if rotation >= 360.0 {
         return Err("imageEdit.rotation is invalid".into());
     }
     for key in ["flipHorizontal", "flipVertical"] {
@@ -42,13 +42,33 @@ pub(super) fn validate(value: Option<&Value>) -> Result<(), String> {
         }
     }
     let adjustments = object_field(edit, "adjustments")?;
-    reject_unknown(
-        adjustments,
-        ["brightness", "contrast", "saturation"],
-        "imageEdit.adjustments",
-    )?;
-    for key in ["brightness", "contrast", "saturation"] {
-        number(adjustments, key, -100.0, 100.0)?;
+    const ADJUSTMENT_KEYS: [&str; 16] = [
+        "exposure",
+        "contrast",
+        "highlights",
+        "shadows",
+        "whites",
+        "blacks",
+        "saturation",
+        "warmth",
+        "sharpness",
+        "vignette",
+        "vibrance",
+        "tint",
+        "clarity",
+        "grain",
+        "softLight",
+        "glow",
+    ];
+    reject_unknown(adjustments, ADJUSTMENT_KEYS, "imageEdit.adjustments")?;
+    for key in ADJUSTMENT_KEYS {
+        number(
+            adjustments,
+            key,
+            if ["sharpness", "clarity", "grain", "softLight", "glow"].contains(&key) { 0.0 } else { -100.0 },
+            100.0,
+            "imageEdit.adjustments",
+        )?;
     }
     let strokes = edit
         .get("eraserStrokes")
@@ -60,7 +80,8 @@ pub(super) fn validate(value: Option<&Value>) -> Result<(), String> {
     for stroke in strokes {
         let stroke = object(stroke, "imageEdit.eraserStroke")?;
         reject_unknown(stroke, ["diameter", "points"], "imageEdit.eraserStroke")?;
-        if number(stroke, "diameter", 0.0, 0.5)? == 0.0 {
+        let diameter = number(stroke, "diameter", 0.0, 0.5, "imageEdit.eraserStroke")?;
+        if diameter == 0.0 {
             return Err("imageEdit.eraserStroke.diameter must be positive".into());
         }
         let points = stroke
@@ -100,11 +121,19 @@ fn object_field<'a>(
     )
 }
 
-fn number(parent: &Map<String, Value>, key: &str, min: f64, max: f64) -> Result<f64, String> {
+fn number(
+    parent: &Map<String, Value>,
+    key: &str,
+    min: f64,
+    max: f64,
+    label: &str,
+) -> Result<f64, String> {
     let value = parent
         .get(key)
         .and_then(Value::as_f64)
-        .filter(|value| value.is_finite() && *value >= min && *value <= max)
-        .ok_or_else(|| format!("imageEdit.{key} is outside the allowed range"))?;
+        .ok_or_else(|| format!("{label}.{key} must be a finite number"))?;
+    if !value.is_finite() || value < min || value > max {
+        return Err(format!("{label}.{key} must be between {min} and {max}"));
+    }
     Ok(value)
 }

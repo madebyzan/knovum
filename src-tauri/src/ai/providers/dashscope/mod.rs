@@ -1,4 +1,6 @@
 mod image;
+mod image_operation;
+mod image_operation_protocol;
 mod protocol;
 mod upload;
 mod video;
@@ -7,6 +9,7 @@ mod video;
 mod tests;
 
 pub use image::DashScopeImageAdapter;
+pub(crate) use image_operation::{execute_image_operation, SourceImageOperation};
 pub use upload::DashScopeFileUploadAdapter;
 pub use video::DashScopeVideoAdapter;
 
