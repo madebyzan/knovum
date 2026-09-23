@@ -1,5 +1,7 @@
 mod filter_graph;
 mod persistence;
+mod proxy;
+mod proxy_registry;
 mod registry;
 mod render;
 mod start;
@@ -12,6 +14,8 @@ use tauri::{ipc::Channel, AppHandle};
 
 use super::{failure, CompletedDerivationOutput};
 use crate::blocking;
+
+pub use proxy::PrepareRequest;
 
 pub const CANCELLED: &str = "VIDEO_EDIT_RENDER_CANCELLED";
 
@@ -123,6 +127,17 @@ pub async fn create(
 
 pub fn cancel(id: &str) -> Result<(), String> {
     registry::cancel(id)
+}
+
+pub async fn prepare_proxy(
+    app: AppHandle,
+    request: proxy::PrepareRequest,
+) -> Result<String, String> {
+    proxy::prepare(app, request).await
+}
+
+pub fn cancel_proxy(id: &str) -> Result<(), String> {
+    proxy_registry::cancel(id)
 }
 
 fn report(

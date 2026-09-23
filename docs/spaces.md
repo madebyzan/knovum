@@ -243,8 +243,14 @@ source asset immutable; the canvas renderer projects the crop, transform, filter
 eraser strokes. Video editing opens a same-window workbench because transport, playhead, ordered
 clips and timed text require persistent timeline context. A strict v1 `videoEditProject` stores one
 ordered video track, one text track and output transform. Saving records the project on the source
-node through normal Space history. Rendering creates a new derived video node through FFmpeg;
-the source bytes and edit project remain available, and cancellation stays in Task Center.
+node through normal Space history. The editor opens from the managed source immediately while
+Rust prepares a revision-keyed, short-GOP 960×540 editing proxy in the app cache. Once ready, the
+WebView plays that proxy; video frames never cross IPC. Proxy preparation is cancellable when the
+workbench closes, and its failure is shown rather than hidden. The displayed playhead follows
+presented frames instead of the media element's coarse timeupdate event. Rendering reads the
+managed source, seeks to the first retained source interval, reports measured FFmpeg progress and
+creates a new derived video node. The source bytes and edit project remain available, and render
+cancellation stays in Task Center.
 
 URL paste reads clipboard HTML, text and, on macOS, the native `public.url` format in one typed Rust operation before applying an explicit product-owned content-URL policy for selected media platforms: YouTube, Bilibili, Douyin, TikTok, Instagram, Vimeo, X/Twitter, and Facebook. Direct media resources and recognized platform content links enter yt-dlp acquisition. The capture projection appears at the paste location as compact desktop transfer chrome rather than an empty media cover; its screen size is capped when zooming in so temporary feedback does not balloon over the canvas. Resolving shows indeterminate activity; downloading shows measured bytes; finalizing shows measured media time when FFmpeg prepares a playable asset. yt-dlp prefers H.264/AAC streams, and the import stage converts other selected codecs to H.264/AAC in MP4 or AAC in M4A before the asset is committed. The node persists the canonical local asset size and its media origin (platform/extractor, original URL, and source ID); the canvas shows platform identity, while the inspector exposes origin and file details. The projection transitions into the persisted node on success and remains in place with retry/dismiss actions on failure. Platform homepages, profiles, and all other HTTP(S) URLs become Saved Websites immediately. The automatic clipboard path neither enumerates yt-dlp extractors nor probes arbitrary webpages for embedded video; this avoids blocking ordinary website capture on media-tool startup or network timeouts. A recognized media URL that cannot be acquired reports the media failure instead of silently changing node type. Clipboard file paste is a separate trusted import source: Rust verifies each requested path against the current native clipboard file list before staging it; dialog and drop imports continue to require their explicit filesystem scope.
 

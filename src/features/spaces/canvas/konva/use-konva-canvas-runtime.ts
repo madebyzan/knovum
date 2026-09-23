@@ -49,6 +49,7 @@ export function useKonvaCanvasRuntime(
     availableStructureNodeIds: computed(() => new Set(props.editSnapshot.structure.map(({ id }) => id))),
     layouts: computed(() => canonicalScene.value.nodes.map(({ layout }) => layout)),
     relationBounds,
+    structureBounds: projections.structureBounds,
     changed: props.events.onSelectionChange,
     structureSelectionForNode: projections.structureSelectionForNode,
   });

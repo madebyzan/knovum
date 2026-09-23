@@ -39,7 +39,11 @@
       ],
       "assetProtocol": {
         "enable": true,
-        "scope": ["$APPDATA/spaces/assets/**/*", "$APPDATA/spaces/previews/**/*"]
+        "scope": [
+          "$APPDATA/spaces/assets/**/*",
+          "$APPDATA/spaces/previews/**/*",
+          "$APPCACHE/video-edit-proxies/*.mp4"
+        ]
       }
     }
   },

@@ -221,6 +221,8 @@ fn main() {
                         "cancel_subtitled_video",
                         "render_video_edit",
                         "cancel_video_edit_render",
+                        "prepare_video_edit_proxy",
+                        "cancel_video_edit_proxy",
                         "create_document",
                         "create_visualization",
                         "submit_presentation",

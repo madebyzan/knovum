@@ -18,6 +18,7 @@ import { isSpaceSemanticNode } from "../../knowledge/model/semantic-node";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../../model/nodes/node-payload";
 import { useSpaceStore } from "../../session/space-store";
+import { useCanvasNodeDownload } from "./canvas-node-download";
 import { canvasSelectionProductState } from "./selection-product-state";
 import { useCanvasReparentActions } from "./use-canvas-reparent-actions";
 import { useCanvasStructureSelectionActions } from "./use-canvas-structure-selection-actions";
@@ -42,6 +43,7 @@ export function useCanvasSelectionActions() {
     ),
   );
   const { t } = useI18n();
+  const downloadSelected = useCanvasNodeDownload(store, state, selectedNodes);
   const visible = computed(
     () =>
       selection.value.nodeIds.length > 0 ||
@@ -163,6 +165,7 @@ export function useCanvasSelectionActions() {
     dissolveGroup: structureActions.dissolveGroup,
     dissolveSection: structureActions.dissolveSection,
     distribute,
+    download: () => runCanvasAction(downloadSelected),
     duplicate,
     focus,
     fitSection: structureActions.fitSection,

@@ -6,6 +6,8 @@ import { useI18n } from "vue-i18n";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import { useCanvasToolStore } from "../../canvas/canvas-tool-store";
 import { useCanvasEditorSession, useCanvasSelectionProjection } from "../../canvas/editor-session";
+import { canvasChromeMetrics } from "../../canvas/konva/presentation/canvas-chrome-metrics";
+import { isCanvasNodeConnectable } from "../../canvas/konva/scene/canvas-node-interaction";
 import { useSelectionDerivations } from "../../knowledge-derivations/selection/use-selection-derivations";
 import { useSpaceStore } from "../../session/space-store";
 import type { SpaceUrlCaptureProjection } from "../../sources/url-capture-projection";
@@ -45,6 +47,20 @@ const emit = defineEmits<{
   retryCapture: [capture: SpaceUrlCaptureProjection];
 }>();
 const canvasChromeInsets = { top: 56, right: 16, bottom: 56, left: 16 } as const;
+const singleCanvasObjectSelected = computed(
+  () =>
+    editorSession.selection.value.nodeIds.length + editorSession.selection.value.structureNodeIds.length ===
+    1,
+);
+// Chrome metrics at zoom 1 are screen pixels; the connector controls keep this size at every zoom.
+const connectorMetrics = canvasChromeMetrics(1).connector;
+const connectorClearance = Math.ceil(
+  connectorMetrics.offset + connectorMetrics.radius + connectorMetrics.hitExtension / 2 + 4,
+);
+const selectionBarGap = computed(() => {
+  const node = selectedNodes.value.length === 1 ? selectedNodes.value[0] : undefined;
+  return node && isCanvasNodeConnectable(node) ? connectorClearance : 12;
+});
 </script>
 
 <template>
@@ -94,10 +110,15 @@ const canvasChromeInsets = { top: 56, right: 16, bottom: 56, left: 16 } as const
       :bounds="editorSession.selection.value.bounds"
       :canvas-to-viewport-point="canvasToViewportPoint"
       :safe-area="canvasChromeInsets"
+      :align="singleCanvasObjectSelected ? 'start' : 'center'"
+      :gap="singleCanvasObjectSelected ? selectionBarGap : 34"
     >
       <SpaceCanvasRelationBar v-if="editorSession.selection.value.relationIds.length === 1" />
       <SpaceCanvasSelectionBar
-        v-else-if="editorSession.selection.value.nodeIds.length"
+        v-else-if="
+          editorSession.selection.value.nodeIds.length ||
+          editorSession.selection.value.structureNodeIds.length
+        "
         :derivations="derivations.decisions.value"
         @invoke-derivation="derivations.run"
       />

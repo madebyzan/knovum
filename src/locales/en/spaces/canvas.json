@@ -1,5 +1,16 @@
 {
   "tools": { "title": "Canvas tools", "select": "Select", "section": "Draw Section" },
+  "nodeActions": {
+    "label": "Node actions",
+    "openOriginal": "Open Original",
+    "goToTarget": "Go to Target",
+    "viewLarge": "View Image",
+    "openVideo": "Open Video",
+    "openAudio": "Open Audio",
+    "viewCode": "View Code",
+    "openFile": "Open File",
+    "download": "Download"
+  },
   "zoomOut": "Zoom Out",
   "zoomIn": "Zoom In",
   "ungrouped": "Ungrouped",

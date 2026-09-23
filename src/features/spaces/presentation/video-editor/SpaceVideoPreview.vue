@@ -1,18 +1,17 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-import type { SpaceVideoPayload } from "../../model/nodes/node-payload";
 import type { VideoEditProject } from "../../video-editing/project";
 import { versionedMediaSource } from "../media/element";
 
 const props = defineProps<{
-  data: SpaceVideoPayload;
+  sourcePath: string;
   project: VideoEditProject;
   timelineMs: number;
 }>();
 const video = defineModel<HTMLVideoElement | null>("element", { default: null });
-defineEmits<{ playing: [value: boolean] }>();
-const source = computed(() => versionedMediaSource(props.data.assetPath, props.data.sourceRevision));
+defineEmits<{ playing: [value: boolean]; ready: []; failed: [] }>();
+const source = computed(() => versionedMediaSource(props.sourcePath));
 const overlay = computed(() =>
   props.project.textTrack.items.find(
     ({ startMs, endMs }) => props.timelineMs >= startMs && props.timelineMs < endMs,
@@ -32,6 +31,8 @@ const transform = computed(() => {
       class="max-h-full max-w-full object-contain"
       :style="{ transform }"
       preload="metadata"
+      @loadedmetadata="$emit('ready')"
+      @error="$emit('failed')"
       @play="$emit('playing', true)"
       @pause="$emit('playing', false)"
     />

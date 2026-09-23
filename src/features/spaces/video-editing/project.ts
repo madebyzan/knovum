@@ -50,10 +50,10 @@ export function removeClip(project: VideoEditProject, clipId: string): VideoEdit
 
 export function locateTimelineTime(project: VideoEditProject, timelineMs: number) {
   let cursor = 0;
-  for (const clip of project.videoTrack.clips) {
+  for (const [clipIndex, clip] of project.videoTrack.clips.entries()) {
     const duration = clipDuration(clip);
-    if (timelineMs <= cursor + duration)
-      return { clip, clipIndex: project.videoTrack.clips.indexOf(clip), offsetMs: timelineMs - cursor };
+    if (timelineMs < cursor + duration)
+      return { clip, clipIndex, offsetMs: timelineMs - cursor, timelineStartMs: cursor };
     cursor += duration;
   }
   return undefined;

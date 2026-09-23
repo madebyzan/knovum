@@ -4,7 +4,7 @@ import type { CanvasNodeAppearance } from "../../canvas/contract/canvas-document
 import SpaceCanvasColorPicker from "./SpaceCanvasColorPicker.vue";
 import SpaceCanvasTypographyPanel from "./SpaceCanvasTypographyPanel.vue";
 
-defineProps<{ kind: "note" | "text"; appearance?: CanvasNodeAppearance }>();
+defineProps<{ kind: "note" | "text"; appearance?: CanvasNodeAppearance; showSeparator?: boolean }>();
 const emit = defineEmits<{ update: [patch: Partial<CanvasNodeAppearance>] }>();
 </script>
 
@@ -19,5 +19,5 @@ const emit = defineEmits<{ update: [patch: Partial<CanvasNodeAppearance>] }>();
     v-bind="appearance ? { appearance } : {}"
     @update="emit('update', $event)"
   />
-  <UiSeparator orientation="vertical" class="mx-0.5 h-4" />
+  <UiSeparator v-if="showSeparator !== false" orientation="vertical" class="mx-0.5 h-4" />
 </template>
