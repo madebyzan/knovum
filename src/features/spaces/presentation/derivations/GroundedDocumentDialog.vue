@@ -30,7 +30,7 @@ function submit() {
   if (valid.value) emit("submit", { ...form });
 }
 function applyPreset(preset: GenerationPreset) {
-  if (preset.actionId !== "structure-document") return;
+  if (preset.actionId !== "draft-document") return;
   form.target = preset.target;
   if (isString(preset.parameters.purpose)) form.purpose = preset.parameters.purpose;
 }
@@ -64,7 +64,7 @@ function applyPreset(preset: GenerationPreset) {
       </div>
       <AiExecutionTargetField v-model="form.target" purpose="knowledge" />
       <GenerationPresetField
-        action-id="structure-document"
+        action-id="draft-document"
         :name="form.title"
         :target="form.target"
         :parameters="presetParameters"

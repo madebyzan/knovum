@@ -1,0 +1,34 @@
+{
+  "title": "使用情况",
+  "description": "汇总知生知内置 AI 能力中由模型供应商返回的真实 Token 用量。",
+  "totalTokens": "累计 Token 数",
+  "inputTokens": "输入 Token 数",
+  "outputTokens": "输出 Token 数",
+  "requests": "模型响应次数",
+  "currentStreak": "当前连续活跃",
+  "longestStreak": "最长连续活跃",
+  "days": "{count} 天",
+  "activity": "Token 活动",
+  "activityDescription": "按日统计供应商返回的用量 · 单日峰值 {peak} Token",
+  "activityLabel": "{date}：{tokens} Token，{requests} 次响应",
+  "less": "较少",
+  "more": "较多",
+  "weekdayMonday": "周一",
+  "weekdayWednesday": "周三",
+  "weekdayFriday": "周五",
+  "byPurpose": "按能力分类",
+  "noActivity": "该时间段内暂无 Token 活动。",
+  "providerReported": "云模型采用供应商返回的用量，本地向量模型采用实际分词结果；云端未返回时不会估算或补记。",
+  "range": {
+    "quarter": "90 天",
+    "year": "12 个月"
+  },
+  "purpose": {
+    "assistant": "内置助理",
+    "editor": "写作工具",
+    "knowledge": "知识创作",
+    "knowledgeIndexing": "知识索引",
+    "translation": "翻译",
+    "visualAnalysis": "视觉分析"
+  }
+}

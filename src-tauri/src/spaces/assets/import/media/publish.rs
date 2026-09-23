@@ -21,16 +21,16 @@ pub(super) fn commit(
     let downloaded = output::downloaded_path(workspace, &metadata.filepath)?;
     let media_kind = metadata.media_kind()?;
     let downloaded_extension = output::extension(&downloaded)?;
-    let playable = playable_asset::prepare(
-        &downloaded,
+    let playable = playable_asset::prepare(playable_asset::Preparation {
+        source: &downloaded,
         workspace,
         ffmpeg,
-        &metadata,
-        media_kind,
-        &downloaded_extension,
+        metadata: &metadata,
+        kind: media_kind,
+        extension: &downloaded_extension,
         progress,
         cancellation,
-    )?;
+    })?;
     let extension = output::extension(&playable)?;
     let target = assets.join(format!("{id}.{extension}"));
     fs::rename(&playable, &target)

@@ -26,6 +26,7 @@ pub fn request(
         .collect::<Result<Vec<_>, String>>()?
         .join("\n\n---\n\n");
     Ok(CompletionRequest {
+        purpose: crate::ai::usage::UsagePurpose::Knowledge,
         target: target.clone(),
         system_prompt: SYSTEM.into(),
         instruction: format!("Document purpose:\n{}", purpose.trim()),

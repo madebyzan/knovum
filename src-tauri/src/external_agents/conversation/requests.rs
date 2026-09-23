@@ -1,0 +1,145 @@
+use std::{
+    collections::HashMap,
+    sync::{Mutex, OnceLock},
+};
+
+use tokio::sync::{mpsc, oneshot};
+use tokio_util::sync::CancellationToken;
+
+use crate::ai::error::{AiError, AiResult};
+
+pub(super) struct TurnRequest {
+    pub(super) prompt: super::super::prompt::AgentPrompt,
+    pub(super) reply: oneshot::Sender<AiResult<()>>,
+}
+
+pub(super) enum ConversationRequest {
+    Turn(TurnRequest),
+    Configure(ConfigRequest),
+    SetMode(ModeRequest),
+}
+
+pub(super) struct ConfigRequest {
+    pub(super) id: String,
+    pub(super) value: serde_json::Value,
+    pub(super) reply: oneshot::Sender<AiResult<serde_json::Value>>,
+}
+
+pub(super) struct ModeRequest {
+    pub(super) id: String,
+    pub(super) reply: oneshot::Sender<AiResult<()>>,
+}
+
+struct ConversationHandle {
+    requests: mpsc::Sender<ConversationRequest>,
+    cancellation: CancellationToken,
+}
+
+static ACTIVE: OnceLock<Mutex<HashMap<String, ConversationHandle>>> = OnceLock::new();
+
+pub(super) fn register(
+    id: &str,
+    cancellation: CancellationToken,
+) -> AiResult<mpsc::Receiver<ConversationRequest>> {
+    let (requests, receiver) = mpsc::channel(1);
+    active()
+        .lock()
+        .map_err(|_| AiError::internal("ACP conversation registry unavailable"))?
+        .insert(
+            id.to_owned(),
+            ConversationHandle {
+                requests,
+                cancellation,
+            },
+        );
+    Ok(receiver)
+}
+
+pub async fn send(id: &str, prompt: super::super::prompt::AgentPrompt) -> AiResult<()> {
+    let requests = sender(id)?;
+    let (reply, outcome) = oneshot::channel();
+    requests
+        .send(ConversationRequest::Turn(TurnRequest { prompt, reply }))
+        .await
+        .map_err(|_| AiError::internal("ACP conversation channel closed"))?;
+    outcome
+        .await
+        .map_err(|_| AiError::internal("ACP conversation turn ended without a result"))?
+}
+
+pub async fn configure(
+    id: &str,
+    option_id: String,
+    value: serde_json::Value,
+) -> AiResult<serde_json::Value> {
+    let requests = sender(id)?;
+    let (reply, outcome) = oneshot::channel();
+    requests
+        .send(ConversationRequest::Configure(ConfigRequest {
+            id: option_id,
+            value,
+            reply,
+        }))
+        .await
+        .map_err(|_| AiError::internal("ACP conversation channel closed"))?;
+    outcome
+        .await
+        .map_err(|_| AiError::internal("ACP session option ended without a result"))?
+}
+
+pub async fn set_mode(id: &str, mode_id: String) -> AiResult<()> {
+    let requests = sender(id)?;
+    let (reply, outcome) = oneshot::channel();
+    requests
+        .send(ConversationRequest::SetMode(ModeRequest {
+            id: mode_id,
+            reply,
+        }))
+        .await
+        .map_err(|_| AiError::internal("ACP conversation channel closed"))?;
+    outcome
+        .await
+        .map_err(|_| AiError::internal("ACP session mode ended without a result"))?
+}
+
+pub async fn close(id: &str) -> Result<(), String> {
+    let cancellation = active()
+        .lock()
+        .map_err(|_| "ACP conversation registry unavailable")?
+        .get(id)
+        .map(|handle| handle.cancellation.clone())
+        .ok_or("ACP conversation is disconnected")?;
+    cancellation.cancel();
+    tokio::time::timeout(super::super::connection::CANCEL_TIMEOUT, async {
+        while is_active(id) {
+            tokio::time::sleep(std::time::Duration::from_millis(20)).await;
+        }
+    })
+    .await
+    .map_err(|_| "ACP conversation did not close before the cancellation deadline")?;
+    Ok(())
+}
+
+pub fn is_active(id: &str) -> bool {
+    active().lock().is_ok_and(|items| items.contains_key(id))
+}
+
+pub(super) fn remove(id: &str) {
+    if let Ok(mut conversations) = active().lock() {
+        conversations.remove(id);
+    }
+}
+
+fn sender(id: &str) -> AiResult<mpsc::Sender<ConversationRequest>> {
+    let conversations = active()
+        .lock()
+        .map_err(|_| AiError::internal("ACP conversation registry unavailable"))?;
+    conversations
+        .get(id)
+        .map(|handle| handle.requests.clone())
+        .ok_or_else(|| AiError::invalid("ACP conversation is disconnected"))
+}
+
+fn active() -> &'static Mutex<HashMap<String, ConversationHandle>> {
+    ACTIVE.get_or_init(|| Mutex::new(HashMap::new()))
+}

@@ -99,15 +99,17 @@ pub(super) async fn clone_in_transaction(
         ));
         let old_layout = original_layouts[index.layout[old_id]].clone();
         cloned_layouts.push(mapping::clone_layout(
-            &original_structure,
-            &original_layouts,
-            &index,
+            &mapping::LayoutContext {
+                structure: &original_structure,
+                layouts: &original_layouts,
+                index: &index,
+                target_world: &target_world,
+                offset,
+            },
             old_id,
             old_layout,
             new_id,
             is_root,
-            &target_world,
-            offset,
         )?);
     }
     snapshot.structure.extend(cloned_structure);

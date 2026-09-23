@@ -125,7 +125,7 @@ export const knowledgeChunkKindSchema = z.enum([
   "chapter",
   "code",
   "image_description",
-  "video_first_frame",
+  "video_cover",
 ]);
 
 export const knowledgeLocatorSchema = z

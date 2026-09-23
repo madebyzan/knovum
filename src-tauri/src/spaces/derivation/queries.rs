@@ -2,7 +2,7 @@ use serde::Serialize;
 use sqlx::Row;
 use tauri::AppHandle;
 
-use super::{grounded_document, knowledge_video, visualization};
+use super::{grounded_document, video_generation, visualization};
 use crate::spaces::db;
 
 #[derive(Serialize)]
@@ -33,8 +33,8 @@ pub async fn get_visualization_metadata(
 pub async fn get_generated_video_metadata(
     app: AppHandle,
     node_id: String,
-) -> Result<Option<knowledge_video::metadata::GeneratedVideoMetadata>, String> {
-    knowledge_video::metadata::get(&app, &node_id).await
+) -> Result<Option<video_generation::metadata::GeneratedVideoMetadata>, String> {
+    video_generation::metadata::get(&app, &node_id).await
 }
 
 #[tauri::command]

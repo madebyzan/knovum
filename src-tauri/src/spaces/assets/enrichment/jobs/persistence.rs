@@ -36,7 +36,7 @@ pub(crate) async fn defer_for_configuration(
     let executed = sqlx::query(
         "UPDATE spaces_enrichment_jobs SET status=$1,error=$2,updated_at=$3 \
          WHERE id=$4 AND status IN ('pending','failed','awaiting_configuration') \
-         AND job_type IN ('analyze_image','analyze_video_first_frame','analyze_document')",
+         AND job_type IN ('analyze_image','analyze_video_cover','analyze_document')",
     )
     .bind("awaiting_configuration")
     .bind(error)
@@ -103,7 +103,7 @@ pub(crate) async fn list_actionable(
          FROM ranked r JOIN spaces_nodes n ON n.space_id=r.space_id AND n.id=r.node_id AND n.deleted_at IS NULL \
          WHERE r.position=1 AND r.status IN ('pending','running','failed','awaiting_configuration') \
            AND json_extract(n.data,'$.sourceRevision')=r.source_revision \
-           AND (r.job_type!='analyze_video_first_frame' OR NULLIF(json_extract(n.data,'$.previewPath'),'') IS NOT NULL) \
+           AND (r.job_type!='analyze_video_cover' OR NULLIF(json_extract(n.data,'$.previewPath'),'') IS NOT NULL) \
          ORDER BY r.updated_at ASC",
     )
     .bind(space_id)

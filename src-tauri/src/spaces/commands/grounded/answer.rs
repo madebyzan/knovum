@@ -58,6 +58,7 @@ pub async fn answer_grounded_question(
     send_stage(&on_stage, "generating")?;
     let completion = chat::complete_stream(
         CompletionRequest {
+            purpose: crate::ai::usage::UsagePurpose::Knowledge,
             target,
             system_prompt: prompt::SYSTEM.to_owned(),
             instruction: String::new(),

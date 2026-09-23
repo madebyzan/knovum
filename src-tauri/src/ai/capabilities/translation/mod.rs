@@ -18,11 +18,13 @@ pub async fn translate(request: TranslationRequest) -> AiResult<CompletionOutput
             text: String::new(),
             provider: request.execution_target.provider().to_string(),
             model: request.execution_target.model().to_string(),
+            usage: None,
         });
     }
 
     let language = protocol::language_name(&request.target_language)?;
     let chat_req = ChatRequest {
+        purpose: crate::ai::usage::UsagePurpose::Translation,
         system_prompt: Some(format!(
             "Translate the user text into {language}. Preserve meaning, structure, formatting, and proper nouns. Return only the translation."
         )),
@@ -39,6 +41,7 @@ pub async fn translate(request: TranslationRequest) -> AiResult<CompletionOutput
         text: response.text,
         provider: response.provider,
         model: response.model,
+        usage: response.usage,
     })
 }
 
@@ -52,11 +55,13 @@ pub async fn translate_stream(
             text: String::new(),
             provider: request.execution_target.provider().to_string(),
             model: request.execution_target.model().to_string(),
+            usage: None,
         });
     }
 
     let language = protocol::language_name(&request.target_language)?;
     let chat_req = ChatRequest {
+        purpose: crate::ai::usage::UsagePurpose::Translation,
         system_prompt: Some(format!(
             "Translate the user text into {language}. Preserve meaning, structure, formatting, and proper nouns. Return only the translation."
         )),
@@ -73,6 +78,7 @@ pub async fn translate_stream(
     )
     .await?;
     let mut full_text = String::new();
+    let mut token_usage = None;
 
     while let Some(stream_item) = stream.next().await {
         match stream_item? {
@@ -98,6 +104,7 @@ pub async fn translate_stream(
                         total_tokens: usage.total_tokens,
                     },
                 )?;
+                token_usage = Some(usage);
             }
         }
     }
@@ -113,5 +120,6 @@ pub async fn translate_stream(
         text: full_text,
         provider: request.execution_target.provider().to_string(),
         model: request.execution_target.model().to_string(),
+        usage: token_usage,
     })
 }

@@ -70,11 +70,6 @@ function rejectInvalidDefaultTargets(settings: AiModelSettingsShape, context: Se
 
   for (const [target, purpose] of targets) {
     if (!target) continue;
-    if (target.type === "agent") {
-      const enabled = settings.desktopAgents.some((agent) => agent.kind === target.kind);
-      if (!enabled) context.addIssue({ code: "custom", message: `Invalid agent target for ${purpose}` });
-      continue;
-    }
     const capability: AiModelCapability = routingPolicy(purpose).modelCapability;
     if (!resolvesToCapability(settings.connections, target, capability)) {
       context.addIssue({ code: "custom", message: `Invalid ${capability} model target` });

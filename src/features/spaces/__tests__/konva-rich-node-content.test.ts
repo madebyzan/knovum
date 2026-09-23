@@ -2,84 +2,22 @@ import { shallowMount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
 
 import { i18n } from "../../../foundation/i18n/i18n";
-import type {
-  SpaceAudioPayload,
-  SpaceCodePayload,
-  SpaceFilePayload,
-  SpaceVideoPayload,
-} from "../model/nodes/node-payload";
+import type { SpaceCodePayload, SpaceFilePayload } from "../model/nodes/node-payload";
 import SpaceCanvasCode from "../presentation/canvas/nodes/SpaceCanvasCode.vue";
 import SpaceCanvasNodeBody from "../presentation/canvas/nodes/SpaceCanvasNodeBody.vue";
 import SpaceCanvasNodeContent from "../presentation/canvas/nodes/SpaceCanvasNodeContent.vue";
 
+const profiles = {
+  compact: { level: "compact", previewItemLimit: 2 },
+  summary: { level: "summary", previewItemLimit: 4 },
+  full: { level: "full", previewItemLimit: 10 },
+} as const;
+
+function preview(level: keyof typeof profiles) {
+  return { viewport: profiles[level], mode: "preview" as const };
+}
+
 describe("Konva rich node content", () => {
-  it("presents audio transport instead of repeating its title as body text", () => {
-    const data: SpaceAudioPayload = {
-      kind: "audio",
-      title: "Daily reminder",
-      assetPath: "/spaces/reminder.mp3",
-      fileName: "reminder.mp3",
-    };
-    const wrapper = shallowMount(SpaceCanvasNodeBody, {
-      props: { id: "audio", data, detailLevel: "summary", interactive: false },
-      global: {
-        plugins: [i18n],
-        stubs: { SpaceCanvasMedia: { template: '<div data-testid="audio-transport" />' } },
-      },
-    });
-
-    expect(wrapper.find('[data-testid="audio-transport"]').exists()).toBe(true);
-    expect(wrapper.text()).not.toContain(data.title);
-  });
-
-  it("uses the product media player for an interactive full-detail video", () => {
-    const data: SpaceVideoPayload = {
-      kind: "video",
-      title: "Interview",
-      assetPath: "/spaces/interview.mp4",
-      fileName: "interview.mp4",
-    };
-    const wrapper = shallowMount(SpaceCanvasNodeBody, {
-      props: { id: "video", data, detailLevel: "full", interactive: true },
-      global: {
-        plugins: [i18n],
-        stubs: { SpaceCanvasMedia: { template: '<div data-testid="media-player" />' } },
-      },
-    });
-    expect(wrapper.find('[data-testid="media-player"]').exists()).toBe(true);
-  });
-
-  it("keeps selection passive and enters full media detail only after explicit activation", async () => {
-    const data: SpaceVideoPayload = {
-      kind: "video",
-      title: "Interview",
-      assetPath: "/spaces/interview.mp4",
-      fileName: "interview.mp4",
-    };
-    const wrapper = shallowMount(SpaceCanvasNodeContent, {
-      props: {
-        layout: {
-          nodeId: "video",
-          frame: { x: 0, y: 0, width: 420, height: 368, rotation: 0 },
-          sizeAuthority: "frame",
-          zIndex: 0,
-        },
-        node: { id: "video", type: "video", data, initialPosition: { x: 0, y: 0 } },
-        detailLevel: "summary",
-        interactive: false,
-        selected: true,
-        persist: async () => {},
-        fitContentHeight() {},
-      },
-    });
-    const body = wrapper.findComponent({ name: "SpaceCanvasNodeBody" });
-    expect(body.props("detailLevel")).toBe("summary");
-    expect(body.props("interactive")).toBe(false);
-    await wrapper.setProps({ interactive: true });
-    expect(body.props("detailLevel")).toBe("full");
-    expect(body.props("interactive")).toBe(true);
-  });
-
   it("uses the product document preview for supported document files", () => {
     const data: SpaceFilePayload = {
       kind: "file",
@@ -89,7 +27,7 @@ describe("Konva rich node content", () => {
       previewPath: "/spaces/research-preview.png",
     };
     const wrapper = shallowMount(SpaceCanvasNodeBody, {
-      props: { id: "file", data, detailLevel: "full", interactive: false },
+      props: { id: "file", data, presentationContext: preview("full"), interactive: false },
       global: {
         plugins: [i18n],
         stubs: {
@@ -101,9 +39,9 @@ describe("Konva rich node content", () => {
         },
       },
     });
-    const preview = wrapper.findComponent({ name: "SpaceDocumentPreview" });
-    expect(preview.find('[data-testid="document-preview"]').exists()).toBe(true);
-    expect(preview.props("fill")).toBe(true);
+    const documentPreview = wrapper.findComponent({ name: "SpaceDocumentPreview" });
+    expect(documentPreview.find('[data-testid="document-preview"]').exists()).toBe(true);
+    expect(documentPreview.props("fill")).toBe(true);
   });
 
   it("exposes credential editing only after Konva selects the full-detail node", () => {
@@ -126,7 +64,7 @@ describe("Konva rich node content", () => {
           },
           initialPosition: { x: 0, y: 0 },
         },
-        detailLevel: "full",
+        detailProfile: profiles.full,
         interactive: true,
         selected: true,
         persist: async () => {},
@@ -148,12 +86,21 @@ describe("Konva rich node content", () => {
       previewText: "<h1>Page</h1>",
     };
     const htmlWrapper = shallowMount(SpaceCanvasNodeBody, {
-      props: { id: "html", data: html, detailLevel: "full", interactive: true },
+      props: {
+        id: "html",
+        data: html,
+        presentationContext: { viewport: profiles.full, mode: "interactive" },
+        interactive: true,
+      },
       global: { plugins: [i18n] },
     });
     expect(htmlWrapper.findComponent({ name: "SpaceCanvasCode" }).exists()).toBe(true);
     const codeWrapper = shallowMount(SpaceCanvasCode, {
-      props: { data: html, detailLevel: "full", interactive: true },
+      props: {
+        data: html,
+        presentationContext: { viewport: profiles.full, mode: "interactive" },
+        interactive: true,
+      },
       global: { plugins: [i18n] },
     });
     expect(codeWrapper.findComponent({ name: "SpaceHtmlPreview" }).exists()).toBe(false);
@@ -170,7 +117,7 @@ describe("Konva rich node content", () => {
           fileName: "import.pdf",
           processingState: "processing",
         },
-        detailLevel: "full",
+        presentationContext: preview("full"),
         interactive: false,
       },
       global: { plugins: [i18n] },

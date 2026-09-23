@@ -135,11 +135,11 @@ export async function refreshSpace(context: SpaceSessionContext) {
 }
 
 async function loadSpace(context: SpaceSessionContext, id: string, options: LoadSpaceOptions) {
-  return transitionActiveSpaceSession(context, async () => {
-    const generation = ++context.runtime.openGeneration;
-    context.runtime.pendingSpaceId = id;
-    context.loading.value = true;
-    try {
+  const generation = ++context.runtime.openGeneration;
+  context.runtime.pendingSpaceId = id;
+  context.loading.value = true;
+  try {
+    return await transitionActiveSpaceSession(context, async () => {
       const [nodes, scenes, relations, editSnapshot] = await Promise.all([
         listNodes(id),
         listScenes(id),
@@ -161,13 +161,13 @@ async function loadSpace(context: SpaceSessionContext, id: string, options: Load
       if (options.markOpened) await markSpaceOpenedAndTrack(context, id);
       scheduleSpaceKnowledgeIndex(id);
       return true;
-    } finally {
-      if (generation === context.runtime.openGeneration) {
-        context.runtime.pendingSpaceId = undefined;
-        context.loading.value = false;
-      }
+    });
+  } finally {
+    if (generation === context.runtime.openGeneration) {
+      context.runtime.pendingSpaceId = undefined;
+      context.loading.value = false;
     }
-  });
+  }
 }
 
 function cancelPendingSpaceOpen(context: SpaceSessionContext) {

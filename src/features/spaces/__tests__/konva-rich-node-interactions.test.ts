@@ -23,7 +23,10 @@ describe("Konva rich node interactions", () => {
       props: {
         id: "note",
         data: createSpaceNotePayload("First", "First\nBody"),
-        detailLevel: "full",
+        presentationContext: {
+          viewport: { level: "full", previewItemLimit: 10 },
+          mode: "preview",
+        },
         fontSize: 16,
         interactive: false,
         persist,
@@ -39,7 +42,7 @@ describe("Konva rich node interactions", () => {
     editor.commands.setContent({
       type: "doc",
       content: [
-        { type: "heading", attrs: { level: 2 }, content: [{ type: "text", text: "Revised" }] },
+        { type: "paragraph", content: [{ type: "text", text: "Revised" }] },
         {
           type: "paragraph",
           content: [{ type: "text", marks: [{ type: "bold" }], text: "Content" }],
@@ -55,7 +58,7 @@ describe("Konva rich node interactions", () => {
         plainText: "Revised\nContent",
         tiptapContent: expect.objectContaining({
           content: expect.arrayContaining([
-            expect.objectContaining({ type: "heading" }),
+            expect.objectContaining({ type: "paragraph" }),
             expect.objectContaining({
               content: [expect.objectContaining({ marks: [{ type: "bold" }] })],
             }),

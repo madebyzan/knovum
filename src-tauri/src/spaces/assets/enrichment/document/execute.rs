@@ -2,10 +2,7 @@ use serde_json::Value;
 use tauri::{ipc::Channel, AppHandle};
 use tokio_util::sync::CancellationToken;
 
-use super::{
-    model::{DocumentCoverage, VisualState},
-    raster::prepare_raster,
-};
+use super::model::{DocumentCoverage, VisualState};
 use crate::spaces::assets::enrichment::{commit, jobs::RunEnrichmentJobRequest};
 use crate::{
     ai::models::ExecutionTarget,
@@ -59,15 +56,7 @@ pub(in crate::spaces) async fn analyze(
             continue;
         }
         if report.occurrences[index].resource_id.is_none() {
-            if let Err(error) = prepare_raster(app, &source, &mut report, index).await {
-                ensure_active(cancellation)?;
-                fail_occurrence(app, request, &mut report, index, &error).await?;
-                return Err(error);
-            }
-            ensure_active(cancellation)?;
-            require_unchanged_source(&source, &fingerprint)?;
-            // Checkpoint the raster before the provider request; this is not a knowledge revision.
-            super::checkpoint::save(app, request, &report, index).await?;
+            return Err("Document resources must be materialized before visual analysis".into());
         }
         let result =
             super::analysis::analyze_occurrence(app, &report, index, target.clone(), cancellation)

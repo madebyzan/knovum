@@ -1,0 +1,61 @@
+mod request;
+pub(super) mod response;
+
+use futures::future::BoxFuture;
+use genai::{
+    adapter::AdapterKind,
+    resolver::{AuthData, Endpoint},
+    Client, ModelIden, ServiceTarget,
+};
+
+use crate::ai::{
+    contracts::{ModelTurnCapability, ModelTurnRequest, ModelTurnResponse},
+    error::{AiError, AiErrorCode, AiResult},
+    transport::SecurityContext,
+};
+
+pub(crate) use request::{to_genai_options, to_genai_request};
+
+pub struct GenAiModelTurnAdapter {
+    adapter_kind: AdapterKind,
+}
+
+impl GenAiModelTurnAdapter {
+    pub const fn new(adapter_kind: AdapterKind) -> Self {
+        Self { adapter_kind }
+    }
+
+    fn target(&self, context: &SecurityContext) -> ServiceTarget {
+        let auth = context
+            .api_key
+            .as_ref()
+            .map_or(AuthData::None, |key| AuthData::from_single(key.clone()));
+        ServiceTarget {
+            endpoint: Endpoint::from_owned(format!("{}/", context.endpoint.trim_end_matches('/'))),
+            auth,
+            model: ModelIden::new(self.adapter_kind, context.model.clone()),
+        }
+    }
+}
+
+impl ModelTurnCapability for GenAiModelTurnAdapter {
+    fn execute_turn<'a>(
+        &'a self,
+        context: &'a SecurityContext,
+        request: &'a ModelTurnRequest,
+    ) -> BoxFuture<'a, AiResult<ModelTurnResponse>> {
+        Box::pin(async move {
+            let response = Client::default()
+                .exec_chat(
+                    self.target(context),
+                    to_genai_request(request)?,
+                    Some(&to_genai_options(request)),
+                )
+                .await
+                .map_err(|error| {
+                    AiError::new(AiErrorCode::ProviderRequestFailed, error.to_string())
+                })?;
+            response::from_genai_response(context, response)
+        })
+    }
+}

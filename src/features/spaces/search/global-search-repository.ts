@@ -2,6 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { z } from "zod";
 
 import { knowledgeSearchMatchSchema } from "../knowledge/model/knowledge-search-match";
+import type { GlobalSearchMatch } from "./global-search-contract";
 import { markSpaceSubstring, searchTerms } from "./search-snippet";
 
 const globalKnowledgeSearchMatchSchema = knowledgeSearchMatchSchema.extend({
@@ -18,15 +19,6 @@ const globalStructureSearchMatchSchema = z
     spaceTitle: z.string(),
   })
   .strict();
-
-export type GlobalKnowledgeSearchMatch = z.infer<typeof globalKnowledgeSearchMatchSchema> & {
-  kind: "content";
-};
-export type GlobalStructureSearchMatch = z.infer<typeof globalStructureSearchMatchSchema> & {
-  kind: "structure";
-};
-
-export type GlobalSearchMatch = GlobalKnowledgeSearchMatch | GlobalStructureSearchMatch;
 
 export async function searchAcrossSpaces(value: string): Promise<GlobalSearchMatch[]> {
   if (!value.trim()) return [];

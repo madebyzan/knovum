@@ -41,7 +41,7 @@ pub async fn start(
         srt: super::subtitle_text(&subtitle)?,
     };
     let now = crate::clock::unix_time_millis()?;
-    sqlx::query("INSERT INTO spaces_knowledge_derivations(id,space_id,output_node_id,action_kind,action_version,engine,status,created_at,updated_at) VALUES($1,$2,$3,'video-subtitle-burn-in',1,'ffmpeg:libass+platform-h264','running',$4,$4)")
+    sqlx::query("INSERT INTO spaces_knowledge_derivations(id,space_id,output_node_id,action_kind,action_version,engine,status,created_at,updated_at) VALUES($1,$2,$3,'render-subtitled-video',1,'ffmpeg:libass+platform-h264','running',$4,$4)")
         .bind(&request.id).bind(&request.space_id).bind(&request.output_node_id).bind(now)
         .execute(&mut *tx).await.map_err(db::sql_error)?;
     inputs::insert(
@@ -86,7 +86,7 @@ fn validate_video(value: &Value, expected: &str) -> Result<(), String> {
         || value
             .pointer("/mediaKnowledge/schemaVersion")
             .and_then(Value::as_u64)
-            != Some(2)
+            != Some(4)
     {
         return Err("Analyze the current video before creating subtitles".into());
     }

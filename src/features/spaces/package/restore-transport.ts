@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 
+import type { WorkflowDefinition } from "../contracts/generated/WorkflowDefinition";
 import type { GroundedCitation } from "../knowledge/model/grounded-citation";
 import type { GroundedMessage } from "../knowledge/model/grounded-message";
 import type { GroundedScope } from "../knowledge/model/grounded-scope";
@@ -12,6 +13,7 @@ import type { SpaceRelationKind, SpaceRelationStatus } from "../model/relations/
 import type { Space } from "../model/space";
 import type { StructureLayout, StructureNode } from "../model/structure/structure-contract";
 import type { SpaceScene } from "../scenes/scene";
+import type { SpacePackageManifest } from "./manifest-schema";
 import type { PackageRelationStyle } from "./structure-schema";
 
 export interface SpacePackageRestoreRequest {
@@ -53,15 +55,15 @@ export interface SpacePackageRestoreRequest {
       sourceRevision: string;
     }[];
     actionKind:
-      | "image-background-removal"
-      | "knowledge-visualization"
-      | "video-subtitle-extraction"
-      | "video-subtitle-burn-in"
-      | "grounded-document-draft"
-      | "markdown-docx-export"
-      | "markdown-pdf-export"
-      | "knowledge-presentation"
-      | "knowledge-video";
+      | "remove-image-background"
+      | "generate-visualization"
+      | "extract-subtitles"
+      | "render-subtitled-video"
+      | "draft-document"
+      | "export-document-as-docx"
+      | "export-document-as-pdf"
+      | "render-presentation"
+      | "generate-video";
     actionVersion: 1;
     engine: string;
     status: "completed" | "failed" | "cancelled";
@@ -91,26 +93,32 @@ export interface SpacePackageRestoreRequest {
       operationId: string;
     };
   }[];
-  creationWorkflowRuns: readonly {
+  workflowDrafts: readonly {
     id: string;
-    workflowId: string;
-    workflowVersion: number;
-    status: "completed" | "failed" | "cancelled";
-    error: string;
+    revision: number;
+    definition: WorkflowDefinition;
     createdAt: number;
     updatedAt: number;
-    completedAt: number;
-    steps: readonly {
-      id: string;
-      action: string;
-      status: "pending" | "succeeded" | "failed" | "cancelled";
-      outputNodeIds: readonly string[];
-      error: string;
-      createdAt: number;
-      updatedAt: number;
-      completedAt: number | null;
-    }[];
   }[];
+  workflowVersions: readonly {
+    workflowId: string;
+    version: number;
+    definition: WorkflowDefinition;
+    publishedAt: number;
+  }[];
+  runs: SpacePackageManifest["runs"];
+  runSteps: SpacePackageManifest["runSteps"];
+  runBatchItems: SpacePackageManifest["runBatchItems"];
+  runAttempts: SpacePackageManifest["runAttempts"];
+  runEvents: SpacePackageManifest["runEvents"];
+  automationTriggers: SpacePackageManifest["automationTriggers"];
+  automationOccurrences: SpacePackageManifest["automationOccurrences"];
+  externalToolBindings: SpacePackageManifest["externalToolBindings"];
+  externalAgentConversations: SpacePackageManifest["externalAgentConversations"];
+  externalAgentTurns: SpacePackageManifest["externalAgentTurns"];
+  externalAgentMessages: SpacePackageManifest["externalAgentMessages"];
+  assistantConversations: SpacePackageManifest["assistantConversations"];
+  assistantMessages: SpacePackageManifest["assistantMessages"];
   provenance: readonly Omit<SpaceProvenance, "spaceId">[];
   knowledgeEvents: readonly Omit<SpaceKnowledgeEvent, "spaceId">[];
   chunks: readonly {

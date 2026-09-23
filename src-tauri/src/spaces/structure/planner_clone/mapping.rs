@@ -57,16 +57,20 @@ pub(super) fn clone_structure_node(
     }
 }
 
+pub(super) struct LayoutContext<'a> {
+    pub structure: &'a [StructureNode],
+    pub layouts: &'a [StructureLayout],
+    pub index: &'a Index,
+    pub target_world: &'a LocalTransform,
+    pub offset: &'a SpacePoint,
+}
+
 pub(super) fn clone_layout(
-    structure: &[StructureNode],
-    layouts: &[StructureLayout],
-    index: &Index,
+    context: &LayoutContext<'_>,
     old_id: &str,
     layout: StructureLayout,
     structure_node_id: String,
     is_root: bool,
-    target_world: &LocalTransform,
-    offset: &SpacePoint,
 ) -> Result<StructureLayout, String> {
     if let StructureLayout::Section {
         mut position,
@@ -76,8 +80,8 @@ pub(super) fn clone_layout(
         ..
     } = layout
     {
-        position.x += offset.x;
-        position.y += offset.y;
+        position.x += context.offset.x;
+        position.y += context.offset.y;
         return Ok(StructureLayout::Section {
             structure_node_id,
             position,
@@ -87,10 +91,10 @@ pub(super) fn clone_layout(
         });
     }
     let transform = if is_root {
-        let mut world = world_transform(structure, layouts, index, old_id)?;
-        world.x += offset.x;
-        world.y += offset.y;
-        local_from_world(&world, target_world)
+        let mut world = world_transform(context.structure, context.layouts, context.index, old_id)?;
+        world.x += context.offset.x;
+        world.y += context.offset.y;
+        local_from_world(&world, context.target_world)
     } else {
         match &layout {
             StructureLayout::Content { transform, .. }

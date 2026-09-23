@@ -3,12 +3,14 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { classifyFilePresentation, usesDocumentPreview } from "../../../assets/file-presentation";
+import type { CanvasNodePresentationContext } from "../../../canvas/contract/canvas-detail-profile";
 import type { SpaceNodePayload } from "../../../model/nodes/node-payload";
 import SpaceDocumentPreview from "../../SpaceDocumentPreview.vue";
-import { spaceNodeSummary } from "./space-canvas-node-content";
+import { spaceNodePreviewText } from "./space-canvas-node-content";
 import { spaceCanvasNodePresentation } from "./space-canvas-node-presentation";
 import SpaceCanvasArchiveEntries from "./SpaceCanvasArchiveEntries.vue";
 import SpaceCanvasCode from "./SpaceCanvasCode.vue";
+import SpaceCanvasImage from "./SpaceCanvasImage.vue";
 import SpaceCanvasMarkdown from "./SpaceCanvasMarkdown.vue";
 import SpaceCanvasMedia from "./SpaceCanvasMedia.vue";
 import SpaceCanvasProcessingState from "./SpaceCanvasProcessingState.vue";
@@ -16,7 +18,7 @@ import SpaceCanvasProcessingState from "./SpaceCanvasProcessingState.vue";
 const props = defineProps<{
   id: string;
   data: SpaceNodePayload;
-  detailLevel: "compact" | "summary" | "full";
+  presentationContext: CanvasNodePresentationContext;
   interactive: boolean;
 }>();
 const { t } = useI18n();
@@ -37,7 +39,9 @@ const documentPreviewProps = computed(() => {
     ...(data.previewText === undefined ? {} : { previewText: data.previewText }),
   };
 });
-const text = computed(() => spaceNodeSummary(props.data) ?? presentation.value.subtitle);
+const text = computed(
+  () => spaceNodePreviewText(props.data, props.presentationContext) ?? presentation.value.subtitle,
+);
 const processing = computed(() =>
   "processingState" in props.data &&
   (props.data.processingState === "importing" || props.data.processingState === "processing")
@@ -49,20 +53,20 @@ const failed = computed(() => "processingState" in props.data && props.data.proc
 
 <template>
   <SpaceCanvasMedia
-    v-if="data.kind === 'audio' || (data.kind === 'video' && detailLevel === 'full')"
+    v-if="data.kind === 'audio' || (data.kind === 'video' && presentationContext.mode === 'interactive')"
     :id="id"
     :data="data"
   />
+  <SpaceCanvasImage v-else-if="data.kind === 'image'" :id="id" :data="data" :interactive="interactive" />
   <SpaceCanvasArchiveEntries
     v-else-if="entries.length > 0"
     :entries="entries"
-    :detail-level="detailLevel"
-    :interactive="interactive"
+    :presentation-context="presentationContext"
   />
   <SpaceDocumentPreview
     v-else-if="
       documentPreviewProps &&
-      detailLevel === 'full' &&
+      presentationContext.viewport.level === 'full' &&
       (documentPreviewProps.previewPath || documentPreviewProps.previewText)
     "
     v-bind="documentPreviewProps"
@@ -76,14 +80,14 @@ const failed = computed(() => "processingState" in props.data && props.data.proc
     draggable="false"
   />
   <SpaceCanvasMarkdown
-    v-else-if="data.kind === 'markdown' && detailLevel !== 'compact'"
+    v-else-if="data.kind === 'markdown'"
     :data="data"
-    :detail-level="detailLevel"
+    :presentation-context="presentationContext"
   />
   <SpaceCanvasCode
-    v-else-if="data.kind === 'code' && detailLevel !== 'compact'"
+    v-else-if="data.kind === 'code'"
     :data="data"
-    :detail-level="detailLevel"
+    :presentation-context="presentationContext"
     :interactive="interactive"
   />
   <SpaceCanvasProcessingState
@@ -100,7 +104,7 @@ const failed = computed(() => "processingState" in props.data && props.data.proc
       class="leading-relaxed whitespace-pre-wrap text-foreground-secondary"
       :class="[
         presentation.mono && 'font-mono',
-        detailLevel === 'compact' ? 'line-clamp-2 text-caption' : 'line-clamp-8 text-body',
+        presentationContext.viewport.level === 'compact' ? 'text-caption' : 'text-body',
       ]"
     >
       {{ text }}

@@ -1,3 +1,4 @@
+mod completion;
 pub(super) mod contracts;
 mod operations;
 mod validation;
@@ -6,11 +7,7 @@ use std::collections::HashSet;
 
 use tauri::{AppHandle, Runtime};
 
-use crate::spaces::{
-    db,
-    knowledge::{self, events},
-    structure,
-};
+use crate::spaces::{db, knowledge, structure};
 use contracts::TransferSelectionRequest;
 use contracts::TransferSelectionResponse;
 
@@ -149,119 +146,25 @@ pub async fn transfer_selection<R: Runtime>(
     sqlx::query("UPDATE spaces_knowledge_chunks SET space_id=$1,updated_at=$2 WHERE space_id=$3 AND node_id IN (SELECT value FROM json_each($4))")
         .bind(&request.target_space_id).bind(now).bind(&request.source_space_id).bind(&selected_json)
         .execute(&mut *tx).await.map_err(db::sql_error)?;
-    append_moved_events(&mut tx, &request.target_space_id, "node", selected, now).await?;
-    append_moved_events(
+    let result = completion::complete(
         &mut tx,
-        &request.target_space_id,
-        "relation",
-        &moved_relation_ids,
-        now,
-    )
-    .await?;
-    append_moved_events(
-        &mut tx,
-        &request.target_space_id,
-        "provenance",
-        &moved_provenance_ids,
-        now,
-    )
-    .await?;
-    for space_id in [&request.source_space_id, &request.target_space_id] {
-        sqlx::query("UPDATE spaces SET updated_at=$1 WHERE id=$2")
-            .bind(now)
-            .bind(space_id)
-            .execute(&mut *tx)
-            .await
-            .map_err(db::sql_error)?;
-    }
-    crate::spaces::knowledge::retrieval::invalidation_outbox::enqueue_nodes(
-        &mut tx,
-        &request.source_space_id,
-        selected,
-        now,
-    )
-    .await?;
-    let source_edit_revision = structure::repository::save_in_transaction(
-        &mut tx,
-        &request.source_space_id,
-        source_revision,
-        &source_snapshot,
-    )
-    .await?;
-    let target_edit_revision = structure::repository::save_in_transaction(
-        &mut tx,
-        &request.target_space_id,
-        target_revision,
-        &target_snapshot,
-    )
-    .await?;
-    structure::portal_integrity::validate_structure_targets(&mut tx).await?;
-    let source_after =
-        structure::history::capture(&mut tx, &request.source_space_id, &source_snapshot).await?;
-    let target_after =
-        structure::history::capture(&mut tx, &request.target_space_id, &target_snapshot).await?;
-    let group_id = uuid::Uuid::new_v4().to_string();
-    structure::history::record_group(
-        &mut tx,
-        &group_id,
-        &[
-            (
-                &request.source_space_id,
-                &source_before,
-                &source_after,
-                source_edit_revision,
-            ),
-            (
-                &request.target_space_id,
-                &target_before,
-                &target_after,
-                target_edit_revision,
-            ),
-        ],
-    )
-    .await?;
-    let result = TransferSelectionResponse {
-        moved_node_ids: structure_plan.moved_node_ids,
-        moved_structure_node_ids: structure_plan.moved_structure_node_ids,
-        source_edit_revision,
-        target_edit_revision,
-    };
-    structure::receipts::insert_typed(
-        &mut tx,
-        &request.mutation_id,
-        &request.source_space_id,
-        &digest,
-        source_edit_revision,
-        &result.moved_structure_node_ids,
-        &result,
+        completion::TransferCompletion {
+            request: &request,
+            digest: &digest,
+            structure_plan,
+            source_snapshot: &source_snapshot,
+            target_snapshot: &target_snapshot,
+            source_before: &source_before,
+            target_before: &target_before,
+            source_revision,
+            target_revision,
+            moved_relation_ids: &moved_relation_ids,
+            moved_provenance_ids: &moved_provenance_ids,
+            now,
+        },
     )
     .await?;
     tx.commit().await.map_err(db::sql_error)?;
     crate::spaces::knowledge::retrieval::invalidation_outbox::drain_and_report(app, pool).await;
     Ok(result)
-}
-
-async fn append_moved_events(
-    tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
-    space_id: &str,
-    entity_kind: &str,
-    ids: &[String],
-    now: i64,
-) -> Result<(), String> {
-    let empty_payload = serde_json::json!({});
-    for id in ids {
-        events::append(
-            tx,
-            events::EventRecord::new(
-                space_id,
-                events::EventEntity::new(entity_kind, id),
-                "moved",
-                events::EventActor::new("human", None),
-                &empty_payload,
-                now,
-            ),
-        )
-        .await?;
-    }
-    Ok(())
 }

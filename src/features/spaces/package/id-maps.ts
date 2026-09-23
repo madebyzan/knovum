@@ -8,7 +8,18 @@ export interface PackageIdMaps {
   scenes: Map<string, string>;
   relations: Map<string, string>;
   derivations: Map<string, string>;
-  workflowRuns: Map<string, string>;
+  workflows: Map<string, string>;
+  runs: Map<string, string>;
+  runSteps: Map<string, string>;
+  runAttempts: Map<string, string>;
+  automationTriggers: Map<string, string>;
+  automationOccurrences: Map<string, string>;
+  externalTools: Map<string, string>;
+  externalAgentConversations: Map<string, string>;
+  externalAgentTurns: Map<string, string>;
+  externalAgentMessages: Map<string, string>;
+  assistantConversations: Map<string, string>;
+  assistantMessages: Map<string, string>;
   types: Map<string, string>;
   provenance: Map<string, string>;
   chunks: Map<string, string>;
@@ -24,7 +35,25 @@ export function createPackageIdMaps(manifest: SpacePackageManifest, targetSpaceI
     scenes: idMap(manifest.scenes),
     relations: idMap(manifest.relations),
     derivations: idMap(manifest.derivations),
-    workflowRuns: idMap(manifest.creationWorkflowRuns),
+    workflows: new Map(
+      [
+        ...new Set([
+          ...manifest.workflowDrafts.map(({ id }) => id),
+          ...manifest.workflowVersions.map(({ workflowId }) => workflowId),
+        ]),
+      ].map((id) => [id, crypto.randomUUID()]),
+    ),
+    runs: idMap(manifest.runs),
+    runSteps: idMap(manifest.runSteps),
+    runAttempts: idMap(manifest.runAttempts),
+    automationTriggers: idMap(manifest.automationTriggers),
+    automationOccurrences: idMap(manifest.automationOccurrences),
+    externalTools: idMap(manifest.externalToolBindings),
+    externalAgentConversations: idMap(manifest.externalAgentConversations),
+    externalAgentTurns: idMap(manifest.externalAgentTurns),
+    externalAgentMessages: idMap(manifest.externalAgentMessages),
+    assistantConversations: idMap(manifest.assistantConversations),
+    assistantMessages: idMap(manifest.assistantMessages),
     types: idMap(manifest.objectTypes),
     provenance: idMap(manifest.provenance),
     chunks: idMap(manifest.chunks),

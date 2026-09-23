@@ -3,5 +3,5 @@ export type CreationDialogId =
   | "visualization"
   | "video"
   | "presentation"
-  | "meeting-video-package"
-  | "social-content-kit";
+  | "meeting-content-package"
+  | "social-content-package";

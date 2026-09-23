@@ -119,7 +119,7 @@ async fn execute(
                 data,
             });
         }
-        EnrichmentJobType::AnalyzeImage | EnrichmentJobType::AnalyzeVideoFirstFrame => {
+        EnrichmentJobType::AnalyzeImage | EnrichmentJobType::AnalyzeVideoCover => {
             let target = request
                 .vision_target
                 .take()

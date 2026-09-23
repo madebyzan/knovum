@@ -1,20 +1,33 @@
 use super::{model::DocumentCoverage, resource};
 use tauri::AppHandle;
+use tokio_util::sync::CancellationToken;
 
-pub(super) async fn prepare_raster(
+pub(super) fn materialize_all(
     app: &AppHandle,
     source: &std::path::Path,
     report: &mut DocumentCoverage,
-    index: usize,
+    cancellation: &CancellationToken,
 ) -> Result<(), String> {
-    let input = report.occurrences[index]
-        .pdf_input
-        .clone()
-        .ok_or("Document occurrence has no PDF rendering input")?;
-    let app = app.clone();
-    let source = source.to_owned();
-    let resource =
-        crate::blocking::run(move || resource::save_render(&app, &source, &input)).await?;
+    for index in 0..report.occurrences.len() {
+        crate::spaces::assets::enrichment::ensure_active(cancellation)?;
+        if report.occurrences[index].resource_id.is_some() {
+            continue;
+        }
+        let input = report.occurrences[index]
+            .pdf_input
+            .as_ref()
+            .ok_or("Document occurrence has no PDF rendering input")?;
+        let resource = resource::save_render(app, source, input)?;
+        attach_resource(report, index, resource)?;
+    }
+    Ok(())
+}
+
+fn attach_resource(
+    report: &mut DocumentCoverage,
+    index: usize,
+    resource: super::model::DocumentResource,
+) -> Result<(), String> {
     let new_resource = !report.resources.iter().any(|value| value.id == resource.id);
     if new_resource {
         let bytes = report

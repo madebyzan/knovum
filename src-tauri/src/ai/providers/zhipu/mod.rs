@@ -1,20 +1,17 @@
 mod upload;
 mod video;
 
-use genai::adapter::AdapterKind;
 pub use upload::ZhipuFileUploadAdapter;
 pub use video::ZhipuVideoAdapter;
 
 use crate::ai::{
     contracts::{
-        AiProvider, ChatCapability, FileUploadCapability, ImageGenerationCapability,
-        VideoGenerationCapability,
+        AiProvider, FileUploadCapability, ImageGenerationCapability, VideoGenerationCapability,
     },
-    providers::openai::{OpenAiChatAdapter, OpenAiImageAdapter},
+    providers::openai::OpenAiImageAdapter,
 };
 
 pub struct ZhipuProvider {
-    chat: OpenAiChatAdapter,
     image: OpenAiImageAdapter,
     video: ZhipuVideoAdapter,
     upload: ZhipuFileUploadAdapter,
@@ -23,7 +20,6 @@ pub struct ZhipuProvider {
 impl ZhipuProvider {
     pub fn new() -> Self {
         Self {
-            chat: OpenAiChatAdapter::new(AdapterKind::OpenAI),
             image: OpenAiImageAdapter,
             video: ZhipuVideoAdapter,
             upload: ZhipuFileUploadAdapter,
@@ -38,10 +34,6 @@ impl Default for ZhipuProvider {
 }
 
 impl AiProvider for ZhipuProvider {
-    fn as_chat(&self) -> Option<&dyn ChatCapability> {
-        Some(&self.chat)
-    }
-
     fn as_image_generation(&self) -> Option<&dyn ImageGenerationCapability> {
         Some(&self.image)
     }

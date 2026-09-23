@@ -45,7 +45,7 @@ pub async fn start(
         return Err("Visualization output path is outside the Space asset directory".into());
     }
     let now = crate::clock::unix_time_millis()?;
-    sqlx::query("INSERT INTO spaces_knowledge_derivations(id,space_id,output_node_id,action_kind,action_version,engine,status,created_at,updated_at) VALUES($1,$2,$3,'knowledge-visualization',1,$4,'running',$5,$5)")
+    sqlx::query("INSERT INTO spaces_knowledge_derivations(id,space_id,output_node_id,action_kind,action_version,engine,status,created_at,updated_at) VALUES($1,$2,$3,'generate-visualization',1,$4,'running',$5,$5)")
         .bind(&request.id).bind(&request.space_id).bind(&request.output_node_id)
         .bind(format!("{}:{}", target.provider(), target.model())).bind(now)
         .execute(&mut *tx).await.map_err(db::sql_error)?;

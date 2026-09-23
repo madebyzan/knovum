@@ -53,6 +53,9 @@ export function useCanvasTextEditor(options: CanvasTextEditorOptions) {
       onUpdate: () => {
         dirty.value = true;
       },
+      onBlur: () => {
+        void saveQuietly();
+      },
     });
     detachCommit = registerSpaceSessionParticipant({ commit: save });
     await nextTick();

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Bot, Eye, File, Image, Music, Paperclip, Trash2, Video, X } from "@lucide/vue";
+import { watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import type { AgentArtifact } from "../../../foundation/ai/agents";
@@ -21,6 +22,7 @@ const {
   prompt,
   running,
   status,
+  pendingPermission,
   artifacts,
   selectedArtifacts,
   agentOptions,
@@ -29,6 +31,7 @@ const {
   canRun,
   selectedCount,
   run,
+  decidePermission,
   discardCurrent,
   importSelected,
   preview,
@@ -41,7 +44,12 @@ const {
   attachments,
   choose: chooseAttachments,
   remove: removeAttachment,
-} = useAgentAttachments(open);
+  clear: clearAttachments,
+} = useAgentAttachments();
+
+watch(open, (isOpen) => {
+  if (!isOpen) clearAttachments();
+});
 
 function artifactIcon(kind: AgentArtifact["kind"]) {
   return { image: Image, video: Video, audio: Music, document: File, file: File }[kind];
@@ -99,6 +107,32 @@ function artifactIcon(kind: AgentArtifact["kind"]) {
         </span>
       </div>
       <p v-if="status" class="line-clamp-3 text-caption text-foreground-secondary">{{ status }}</p>
+      <section
+        v-if="pendingPermission"
+        class="space-y-3 rounded-panel border border-warning/40 bg-warning/10 p-3"
+        aria-live="assertive"
+      >
+        <div>
+          <p class="text-label text-foreground">{{ pendingPermission.title }}</p>
+          <p class="text-caption text-foreground-secondary">
+            {{ t("spaces.creation.agentPermissionDescription") }}
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <UiButton
+            v-for="option in pendingPermission.options"
+            :key="option.id"
+            size="sm"
+            :variant="option.kind.startsWith('allow') ? 'primary' : 'dangerSubtle'"
+            @click="decidePermission(option.id)"
+          >
+            {{ option.label }}
+          </UiButton>
+          <UiButton size="sm" variant="ghost" @click="decidePermission(null)">
+            {{ t("common.cancel") }}
+          </UiButton>
+        </div>
+      </section>
       <div
         v-if="artifacts.length"
         class="divide-y divide-divider overflow-hidden rounded-panel border border-border"

@@ -77,7 +77,7 @@ pub(crate) async fn restore<R: Runtime>(
         .filter(|structure_node| {
             structure_node
                 .parent_id()
-                .map_or(true, |parent| !restored_ids.contains(parent))
+                .is_none_or(|parent| !restored_ids.contains(parent))
         })
         .map(|structure_node| structure_node.id().to_owned())
         .collect::<Vec<_>>();

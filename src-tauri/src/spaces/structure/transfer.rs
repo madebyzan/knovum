@@ -1,5 +1,7 @@
 use super::planner_spatial::{local_from_world, world_transform};
-use super::planner_support::{effective_roots, remove_empty_groups, require_editable, set_order, Index};
+use super::planner_support::{
+    effective_roots, remove_empty_groups, require_editable, set_order, Index,
+};
 use super::repository::SpaceStructureSnapshot;
 use super::{LocalTransform, StructureNode};
 use std::collections::{HashMap, HashSet};

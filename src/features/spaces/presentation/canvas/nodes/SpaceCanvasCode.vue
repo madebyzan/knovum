@@ -5,12 +5,14 @@ import { computed, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiIconButton from "../../../../../shared/ui/UiIconButton.vue";
+import type { CanvasNodePresentationContext } from "../../../canvas/contract/canvas-detail-profile";
 import type { SpaceCodePayload } from "../../../model/nodes/node-payload";
 import SpaceHtmlPreview from "../../SpaceHtmlPreview.vue";
+import { projectPreviewItems } from "./canvas-preview-budget";
 
 const props = defineProps<{
   data: SpaceCodePayload;
-  detailLevel: "compact" | "summary" | "full";
+  presentationContext: CanvasNodePresentationContext;
   interactive: boolean;
 }>();
 const { t } = useI18n();
@@ -22,15 +24,19 @@ const htmlPreview = computed(() =>
     : undefined,
 );
 
-watch([() => props.detailLevel, () => props.data.modifiedAt], ([detailLevel]) => {
-  if (detailLevel !== "full") rendered.value = false;
+const source = computed(() =>
+  projectPreviewItems((props.data.previewText ?? "").split(/\r?\n/u), props.presentationContext).join("\n"),
+);
+
+watch([() => props.presentationContext.mode, () => props.data.modifiedAt], ([mode]) => {
+  if (mode !== "interactive") rendered.value = false;
 });
 </script>
 
 <template>
   <div class="relative flex min-h-0 flex-1 flex-col overflow-hidden">
     <UiIconButton
-      v-if="detailLevel === 'full' && htmlPreview"
+      v-if="presentationContext.mode === 'interactive' && htmlPreview"
       class="absolute top-2 right-2 z-10"
       :class="interactive && 'pointer-events-auto'"
       :label="rendered ? t('spaces.inspector.showSource') : t('spaces.transfer.showPreview')"
@@ -51,8 +57,9 @@ watch([() => props.detailLevel, () => props.data.modifiedAt], ([detailLevel]) =>
     <pre
       v-else
       data-canvas-scrollable
-      class="min-h-0 flex-1 overflow-auto p-3 font-mono text-caption leading-relaxed whitespace-pre text-foreground-secondary"
+      class="min-h-0 flex-1 p-3 font-mono text-caption leading-relaxed whitespace-pre-wrap text-foreground-secondary"
+      :class="presentationContext.mode === 'interactive' ? 'overflow-auto' : 'overflow-hidden'"
       @wheel.stop
-      >{{ data.previewText ?? "" }}</pre>
+      >{{ source }}</pre>
   </div>
 </template>

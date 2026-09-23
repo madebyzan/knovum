@@ -35,9 +35,6 @@ function decodeSetting<T>(raw: unknown, schema: z.ZodType<T>): T {
 export function decodeAiModelSettings(raw: unknown): AiModelSettings {
   return decodeSetting(raw, aiModelSettingsSchema);
 }
-export function decodeCreationLibrary(raw: unknown): CreationLibrary {
-  return decodeSetting(raw, creationLibrarySchema);
-}
 async function readSetting<T>(key: string, schema: z.ZodType<T>, defaultValue: T): Promise<T> {
   await writeQueue;
   const raw = await settingsStore.get<unknown>(key);
@@ -65,10 +62,6 @@ export const loadCreationLibrary = () =>
   readSetting(settingKeys.creationLibrary, creationLibrarySchema, defaultCreationLibrary);
 export async function saveCreationLibrary(value: CreationLibrary) {
   const parsed = creationLibrarySchema.parse(value);
-  await invoke("plugin:spaces|validate_creation_library", {
-    generationPresets: parsed.generationPresets,
-    workflows: parsed.creationWorkflows,
-  });
   return writeSetting(settingKeys.creationLibrary, creationLibrarySchema, parsed);
 }
 export const resetCreationLibrary = () =>

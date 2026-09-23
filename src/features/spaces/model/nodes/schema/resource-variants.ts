@@ -6,6 +6,8 @@ import { spaceMediaKnowledgeSchema } from "../../../media/schema";
 import { spaceVisualKnowledgeSchema } from "../../../media/visual-knowledge-schema";
 import { baseSpaceNodeFields } from "./base-fields";
 import { documentCoverageSchema } from "./document-coverage";
+import { imageEditSchema } from "./image-edit-schema";
+import { videoEditProjectSchema } from "./video-edit-schema";
 
 const assetFields = {
   assetPath: z.string().min(1).max(4096),
@@ -47,7 +49,15 @@ const mediaFields = {
 };
 
 export const spaceResourceNodeSchemas = [
-  z.object({ ...baseSpaceNodeFields, ...assetFields, ...visualFields, kind: z.literal("image") }).strict(),
+  z
+    .object({
+      ...baseSpaceNodeFields,
+      ...assetFields,
+      ...visualFields,
+      kind: z.literal("image"),
+      imageEdit: imageEditSchema.optional(),
+    })
+    .strict(),
   z
     .object({
       ...baseSpaceNodeFields,
@@ -55,6 +65,7 @@ export const spaceResourceNodeSchemas = [
       ...visualFields,
       ...mediaFields,
       kind: z.literal("video"),
+      videoEditProject: videoEditProjectSchema.optional(),
     })
     .strict(),
   z

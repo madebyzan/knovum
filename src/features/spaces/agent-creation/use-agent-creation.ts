@@ -1,17 +1,21 @@
-import { storeToRefs } from "pinia";
 import { computed, onBeforeUnmount, ref, watch, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { toast } from "vue-sonner";
 
 import type { AgentKind } from "../../../foundation/ai/agent-models";
-import { listRecoverableAgentCreations, runAgentCreation } from "../../../foundation/ai/agents";
+import {
+  decideAgentPermission,
+  listRecoverableAgentCreations,
+  runAgentCreation,
+  type AgentPermissionOption,
+} from "../../../foundation/ai/agents";
 import { cancelAiJob } from "../../../foundation/ai/ai-runtime";
 import { useAiSettingsStore } from "../../../foundation/ai/ai-settings-store";
-import { useExecutionCatalogQuery } from "../../../foundation/ai/execution-catalog-query";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import { useSpaceStore } from "../session/space-store";
 import { useAgentArtifacts } from "./use-agent-artifacts";
+import { useAgentCreationCatalog } from "./use-agent-creation-catalog";
 
 export function useAgentCreation(open: Ref<boolean>) {
   const { t } = useI18n();
@@ -19,33 +23,20 @@ export function useAgentCreation(open: Ref<boolean>) {
   const store = useSpaceStore();
   const tasks = useTaskStore();
   const aiStore = useAiSettingsStore();
-  const { settings } = storeToRefs(aiStore);
-  const catalog = useExecutionCatalogQuery();
+  const catalog = useAgentCreationCatalog();
   const artifactState = useAgentArtifacts(open);
   const selectedAgent = ref("");
   const prompt = ref("");
   const running = ref(false);
   const status = ref("");
+  const pendingPermission = ref<{
+    requestId: string;
+    title: string;
+    options: AgentPermissionOption[];
+  } | null>(null);
   let abandonRequested = false;
 
-  const agents = computed(() => {
-    const enabled = new Set(settings.value.desktopAgents.map(({ kind }) => kind));
-    return (catalog.data.value?.agents ?? []).filter(({ kind }) => enabled.has(kind));
-  });
-  const agentOptions = computed(() =>
-    agents.value.map(({ kind, displayName }) => {
-      const readiness = catalog.data.value?.installations.find((runtime) => runtime.kind === kind);
-      return {
-        value: kind,
-        label: displayName,
-        disabled: false,
-        description:
-          !readiness || readiness.detected
-            ? t("settings.ai.executionTargetAgentWorkflow")
-            : t("settings.ai.desktopAgentNotInstalled"),
-      };
-    }),
-  );
+  const { agents, agentOptions } = catalog;
   const recoveryOptions = computed(() =>
     artifactState.recoveries.value.map((recovery, index) => ({
       value: recovery.sessionId,
@@ -122,6 +113,10 @@ export function useAgentCreation(open: Ref<boolean>) {
         (event) => {
           if (event.type === "thought" || event.type === "message") status.value = event.text;
           if (event.type === "tool_started") status.value = event.title;
+          if (event.type === "permission_requested") {
+            pendingPermission.value = event;
+            status.value = event.title;
+          }
           tasks.detail(taskId, status.value);
         },
       );
@@ -138,8 +133,17 @@ export function useAgentCreation(open: Ref<boolean>) {
       }
       artifactState.clear();
     } finally {
+      pendingPermission.value = null;
       running.value = false;
     }
+  }
+
+  async function decidePermission(optionId: string | null) {
+    const permission = pendingPermission.value;
+    const activeSessionId = artifactState.sessionId.value;
+    if (!permission || !activeSessionId) return;
+    pendingPermission.value = null;
+    await decideAgentPermission(activeSessionId, permission.requestId, optionId);
   }
 
   async function cancelActiveRun() {
@@ -167,11 +171,13 @@ export function useAgentCreation(open: Ref<boolean>) {
     prompt,
     running,
     status,
+    pendingPermission,
     agentOptions,
     recoveryOptions,
     canRun,
     openAgentSettings,
     run,
+    decidePermission,
     ...artifactState,
   };
 }

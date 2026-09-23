@@ -32,13 +32,9 @@ pub async fn list_recoverable_artifact_workspaces(
             .map_err(|_| AiError::invalid("Agent workspace has an invalid session identifier"))?;
         uuid::Uuid::parse_str(&session_id)
             .map_err(|_| AiError::invalid("Agent workspace has an invalid session identifier"))?;
-        let completed_at = super::super::derivation::workflow_runs::agent_runs::completed_at(
-            &app,
-            &space_id,
-            &session_id,
-        )
-        .await
-        .map_err(AiError::internal)?;
+        let completed_at = super::session::completed_at(&app, &space_id, &session_id)
+            .await
+            .map_err(AiError::internal)?;
         let Some(completed_at) = completed_at else {
             continue;
         };
@@ -66,6 +62,11 @@ pub async fn list_recoverable_artifact_workspaces(
 }
 
 pub async fn discard_orphaned_workspaces(app: &AppHandle) -> Result<(), String> {
+    for (session_id, space_id) in super::session::fail_interrupted(app).await? {
+        let workspace = capabilities::agent_artifacts::workspace(app, &space_id, &session_id)
+            .map_err(|error| error.to_string())?;
+        capabilities::agent_artifacts::discard(&workspace).map_err(|error| error.to_string())?;
+    }
     let root = app
         .path()
         .app_data_dir()

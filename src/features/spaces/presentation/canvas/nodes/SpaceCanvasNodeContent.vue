@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
+import {
+  canvasNodePresentationContext,
+  type CanvasViewportDetailProfile,
+} from "../../../canvas/contract/canvas-detail-profile";
 import type { CanvasNodeLayoutV1 } from "../../../canvas/contract/canvas-document";
 import type { CanvasContentHeightMeasurement } from "../../../canvas/contract/canvas-editor-port";
 import { CANVAS_NODE_HEADER_HEIGHT, PREVIEW_CAPTION_HEIGHT } from "../../../canvas/node-size";
@@ -22,7 +26,7 @@ import "./canvas-text-content.css";
 const props = defineProps<{
   layout: CanvasNodeLayoutV1;
   node: SpaceCanvasNode;
-  detailLevel: "compact" | "summary" | "full";
+  detailProfile: CanvasViewportDetailProfile;
   interactive: boolean;
   persist: (id: string, data: SpaceCanvasNode["data"]) => Promise<void>;
   fitContentHeight: (id: string, measurement: CanvasContentHeightMeasurement) => void;
@@ -31,7 +35,10 @@ const presentation = computed(() => spaceCanvasNodePresentation(props.node.data)
 const isText = computed(() => props.node.data.kind === "text");
 const isNote = computed(() => props.node.data.kind === "note");
 const hasCredentialAction = computed(() => props.node.data.kind === "credential");
-const contentDetailLevel = computed(() => (props.interactive ? "full" : props.detailLevel));
+const presentationContext = computed(() =>
+  canvasNodePresentationContext(props.detailProfile, props.interactive),
+);
+const showsSecondaryChrome = computed(() => props.interactive || props.detailProfile.level !== "compact");
 const interactiveMedia = computed(
   () => props.interactive && (props.node.data.kind === "audio" || props.node.data.kind === "video"),
 );
@@ -74,6 +81,7 @@ const textPresentation = computed(() =>
       :id="node.id"
       :data="node.data"
       :interactive="interactive"
+      :presentation-context="presentationContext"
       :persist="persist"
       :vertical-class="textPresentation.verticalClass"
       :font-size="textPresentation.fontSize"
@@ -84,6 +92,7 @@ const textPresentation = computed(() =>
       :id="node.id"
       :data="node.data"
       :interactive="interactive"
+      :presentation-context="presentationContext"
       :persist="persist"
       :vertical-class="textPresentation.verticalClass"
       :fit-content-height="fitContentHeight"
@@ -93,7 +102,12 @@ const textPresentation = computed(() =>
       :text-align="textPresentation.textAlign"
       :typography-scale="layout.appearance?.typographyScale ?? 1"
     />
-    <SpaceCanvasWebsite v-else-if="node.data.kind === 'website'" :id="node.id" :data="node.data" />
+    <SpaceCanvasWebsite
+      v-else-if="node.data.kind === 'website'"
+      :id="node.id"
+      :data="node.data"
+      :presentation-context="presentationContext"
+    />
     <template v-else>
       <header
         v-if="!previewFirst"
@@ -108,7 +122,7 @@ const textPresentation = computed(() =>
         <span class="min-w-0 flex-1">
           <strong class="block truncate text-label font-medium">{{ presentation.title }}</strong>
           <span
-            v-if="contentDetailLevel !== 'compact' && presentation.subtitle"
+            v-if="showsSecondaryChrome && presentation.subtitle"
             class="block truncate text-micro text-foreground-tertiary"
             >{{ presentation.subtitle }}</span
           >
@@ -118,7 +132,7 @@ const textPresentation = computed(() =>
       <SpaceCanvasNodeBody
         :id="node.id"
         :data="node.data"
-        :detail-level="contentDetailLevel"
+        :presentation-context="presentationContext"
         :interactive="interactive"
       />
       <SpaceCanvasVideoCaption v-if="node.data.kind === 'video'" :id="node.id" :data="node.data" />
@@ -139,7 +153,7 @@ const textPresentation = computed(() =>
             >{{ presentation.title }}</strong
           >
           <span
-            v-if="contentDetailLevel !== 'compact' && presentation.subtitle"
+            v-if="showsSecondaryChrome && presentation.subtitle"
             class="mt-0.5 block truncate text-caption text-foreground-tertiary"
             >{{ presentation.subtitle }}</span
           >

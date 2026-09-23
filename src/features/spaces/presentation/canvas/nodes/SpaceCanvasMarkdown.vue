@@ -1,34 +1,49 @@
 <script setup lang="ts">
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiMarkdown from "../../../../../shared/ui/UiMarkdown.vue";
+import type { CanvasNodePresentationContext } from "../../../canvas/contract/canvas-detail-profile";
 import type { SpaceMarkdownPayload } from "../../../model/nodes/node-payload";
+import { projectMarkdownPreview } from "./markdown-preview-projection";
 import SpaceCanvasProcessingState from "./SpaceCanvasProcessingState.vue";
 
-defineProps<{
+const props = defineProps<{
   data: SpaceMarkdownPayload;
-  detailLevel: "compact" | "summary" | "full";
+  presentationContext: CanvasNodePresentationContext;
 }>();
 const { t } = useI18n();
+const projection = computed(() =>
+  props.presentationContext.mode === "interactive"
+    ? { projectedSource: props.data.text, remainingBlockCount: 0 }
+    : projectMarkdownPreview(props.data.text, props.presentationContext.viewport.previewItemLimit),
+);
 </script>
 
 <template>
-  <SpaceCanvasProcessingState
-    v-if="data.derivationState === 'pending'"
-    :label="t('spaces.creation.generatingDocument')"
-  />
-  <SpaceCanvasProcessingState
-    v-else-if="data.derivationState === 'failed'"
-    :label="t('spaces.creation.documentFailed')"
-    failed
-  />
-  <UiMarkdown
-    v-else-if="data.text"
-    :content="data.text"
-    class="min-h-0 flex-1 overflow-hidden px-3 py-2.5 text-caption leading-relaxed text-foreground-secondary"
-    :class="detailLevel === 'full' ? 'line-clamp-8' : 'line-clamp-4'"
-  />
-  <p v-else class="min-h-0 flex-1 px-3 py-2.5 text-caption text-foreground-tertiary">
-    {{ t("spaces.editor.emptyMarkdown") }}
-  </p>
+  <div class="relative flex min-h-0 flex-1 overflow-hidden">
+    <SpaceCanvasProcessingState
+      v-if="data.derivationState === 'pending'"
+      :label="t('spaces.creation.generatingDocument')"
+    />
+    <SpaceCanvasProcessingState
+      v-else-if="data.derivationState === 'failed'"
+      :label="t('spaces.creation.documentFailed')"
+      failed
+    />
+    <UiMarkdown
+      v-else-if="data.text"
+      :content="projection.projectedSource"
+      class="canvas-markdown-preview min-h-0 flex-1 overflow-hidden px-3 py-2.5 text-caption leading-relaxed text-foreground-secondary"
+    />
+    <p v-else class="min-h-0 flex-1 px-3 py-2.5 text-caption text-foreground-tertiary">
+      {{ t("spaces.editor.emptyMarkdown") }}
+    </p>
+    <span
+      v-if="projection.remainingBlockCount > 0"
+      class="pointer-events-none absolute right-2 bottom-1 rounded-control bg-panel/90 px-1.5 text-micro text-foreground-tertiary"
+    >
+      +{{ projection.remainingBlockCount }}
+    </span>
+  </div>
 </template>

@@ -14,18 +14,13 @@ pub struct SecurityContext {
 
 impl SecurityContext {
     pub fn from_target(target: &ExecutionTarget) -> AiResult<Self> {
-        let ExecutionTarget::Model {
+        let ExecutionTarget {
             provider,
             model,
             base_url,
             temperature,
             secret_key,
-        } = target
-        else {
-            return Err(AiError::invalid(
-                "Desktop Agents do not use model HTTP security context",
-            ));
-        };
+        } = target;
         let model = model.trim();
         if model.is_empty() {
             return Err(AiError::not_configured("AI model is not configured."));

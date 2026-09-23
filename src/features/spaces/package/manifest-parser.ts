@@ -7,7 +7,6 @@ import { manifestSchema, type SpacePackageManifest } from "./manifest-schema";
 import { validateManifestOwnership } from "./ownership-validation";
 import { validatePackageRelationSemantics } from "./relation-validation";
 import { validatePackageStructure } from "./structure-validation";
-import { validatePackageWorkflowRuns } from "./workflow-run-validation";
 
 export function parseSpacePackageManifest(value: string): SpacePackageManifest {
   const parsed: unknown = JSON.parse(value);
@@ -24,7 +23,6 @@ export function parseSpacePackageManifest(value: string): SpacePackageManifest {
   validateManifestOwnership(manifest);
   validatePackageRelationSemantics(manifest);
   validatePackageDerivations(manifest);
-  validatePackageWorkflowRuns(manifest);
   validatePackageKnowledgeSemantics(manifest);
   return manifest;
 }

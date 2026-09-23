@@ -7,13 +7,7 @@ pub(super) async fn rows(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
 ) -> Result<Vec<Value>, String> {
-    super::reject_running(
-        tx,
-        "spaces_knowledge_derivations",
-        space_id,
-        "Wait for active knowledge derivations to finish before exporting",
-    )
-    .await?;
+    reject_active(tx, space_id).await?;
     let rows = sqlx::query(
         "SELECT id,space_id AS spaceId,output_node_id AS outputNodeId,\
          action_kind AS actionKind,action_version AS actionVersion,engine,status,error,\
@@ -103,4 +97,19 @@ pub(super) async fn rows(
         }
     }
     Ok(values)
+}
+
+async fn reject_active(tx: &mut Transaction<'_, Sqlite>, space_id: &str) -> Result<(), String> {
+    let active: i64 = sqlx::query_scalar(
+        "SELECT COUNT(*) FROM spaces_knowledge_derivations \
+         WHERE space_id=$1 AND status IN ('queued','running')",
+    )
+    .bind(space_id)
+    .fetch_one(&mut **tx)
+    .await
+    .map_err(db::sql_error)?;
+    if active > 0 {
+        return Err("Wait for active knowledge derivations to finish before exporting".into());
+    }
+    Ok(())
 }

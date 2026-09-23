@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-import { spaceCanvasDetailLevel } from "../../../assets/preview-policy";
+import { canvasViewportDetailProfile } from "../../contract/canvas-detail-profile";
 import type { CanvasNodeLayoutV1 } from "../../contract/canvas-document";
 import type { CanvasViewport } from "../../contract/canvas-editor";
 import type { CanvasScene } from "../scene/scene-projection";
@@ -16,8 +16,8 @@ const props = defineProps<{
   visibleNodeIds: ReadonlySet<string>;
   selectedNodeIds: ReadonlySet<string>;
 }>();
-const detailLevel = computed(() =>
-  spaceCanvasDetailLevel(props.viewport.zoom * 100, props.scene.nodes.length),
+const detailProfile = computed(() =>
+  canvasViewportDetailProfile(props.viewport.zoom * 100, props.scene.nodes.length),
 );
 const visibleNodes = computed(() =>
   props.scene.nodes.filter(({ node }) => props.visibleNodeIds.has(node.id)),
@@ -36,7 +36,7 @@ const worldStyle = computed(() => ({
       <CanvasDomNodeOverlay
         v-for="sceneNode in visibleNodes"
         :key="sceneNode.node.id"
-        :detail-level="detailLevel"
+        :detail-profile="detailProfile"
         :interactive="interactiveNodeId === sceneNode.node.id"
         :scene-node="sceneNode"
         :layout-previews="layoutPreviews"

@@ -38,7 +38,7 @@ pub(super) fn collect(
                     section_index,
                     element_index,
                     section.title.as_deref(),
-                    &headings,
+                    headings,
                     content.part,
                 );
                 let start = images.len();

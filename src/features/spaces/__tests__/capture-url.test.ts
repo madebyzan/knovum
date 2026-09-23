@@ -3,7 +3,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { MediaImportProgress } from "../media/import/contract";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceMediaPayload } from "../model/nodes/capabilities";
-import { captureHarness, importedVideo, pendingImport, POSITION, URL } from "./capture-url-fixture";
+import {
+  captureHarness,
+  importedVideo,
+  pendingImport,
+  POSITION,
+  URL,
+} from "../test-support/capture-url-harness";
 
 type Point = { x: number; y: number };
 type WebsiteCapture = (

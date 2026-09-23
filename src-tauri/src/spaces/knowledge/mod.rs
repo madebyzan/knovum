@@ -1,4 +1,3 @@
-pub(crate) mod actions;
 pub(crate) mod change_commit;
 pub(crate) mod changes;
 pub(crate) mod chunk_store;
@@ -9,7 +8,6 @@ pub(crate) mod health;
 pub(crate) mod indexing;
 pub(crate) mod invalidation;
 pub(crate) mod locator;
-pub(crate) mod mcp;
 mod node_contracts;
 pub(crate) mod object_references;
 pub(crate) mod provenance;
@@ -19,5 +17,6 @@ pub(crate) mod search_plan;
 pub(crate) mod semantic_nodes;
 pub(crate) mod types;
 
+pub(crate) mod action;
 #[cfg(test)]
 mod tests;

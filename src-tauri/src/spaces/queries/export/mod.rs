@@ -7,11 +7,16 @@ use super::super::{
     package::{PackageAsset, PACKAGE_VERSION},
 };
 
+mod assistant;
+mod automations;
 mod derivations;
+mod external_conversations;
+mod external_tools;
 mod knowledge_rows;
 mod package_assets;
 mod rows;
-mod workflow_runs;
+mod runs;
+mod workflows;
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -33,7 +38,17 @@ pub async fn collect_space_package_snapshot<R: Runtime>(
     let scenes = rows::scenes(&mut tx, &space_id).await?;
     let relations = rows::relations(&mut tx, &space_id).await?;
     let derivations = derivations::rows(&mut tx, &space_id).await?;
-    let creation_workflow_runs = workflow_runs::rows(&mut tx, &space_id).await?;
+    reject_active_runs(&mut tx, &space_id).await?;
+    let workflow_drafts = workflows::drafts(&mut tx, &space_id).await?;
+    let workflow_versions = workflows::versions(&mut tx, &space_id).await?;
+    let (runs, run_steps, run_batch_items, run_attempts, run_events) =
+        runs::rows(&mut tx, &space_id).await?;
+    let (automation_triggers, automation_occurrences) =
+        automations::rows(&mut tx, &space_id).await?;
+    let external_tool_bindings = external_tools::rows(&mut tx, &space_id).await?;
+    let (external_agent_conversations, external_agent_turns, external_agent_messages) =
+        external_conversations::rows(&mut tx, &space_id).await?;
+    let (assistant_conversations, assistant_messages) = assistant::rows(&mut tx, &space_id).await?;
     let mut assets = package_assets::PackageAssets::default();
     let nodes = rows::nodes(&mut tx, &space_id, &mut assets).await?;
     let (mut structure, _) =
@@ -73,7 +88,21 @@ pub async fn collect_space_package_snapshot<R: Runtime>(
         "scenes": scenes,
         "relations": relations,
         "derivations": derivations,
-        "creationWorkflowRuns": creation_workflow_runs,
+        "workflowDrafts": workflow_drafts,
+        "workflowVersions": workflow_versions,
+        "runs": runs,
+        "runSteps": run_steps,
+        "runBatchItems": run_batch_items,
+        "runAttempts": run_attempts,
+        "runEvents": run_events,
+        "automationTriggers": automation_triggers,
+        "automationOccurrences": automation_occurrences,
+        "externalToolBindings": external_tool_bindings,
+        "externalAgentConversations": external_agent_conversations,
+        "externalAgentTurns": external_agent_turns,
+        "externalAgentMessages": external_agent_messages,
+        "assistantConversations": assistant_conversations,
+        "assistantMessages": assistant_messages,
         "chunks": chunks,
         "aiThreads": ai_threads,
         "aiMessages": ai_messages,
@@ -93,20 +122,19 @@ pub(super) fn parse_json(row: &sqlx::sqlite::SqliteRow, key: &str) -> Result<Val
     serde_json::from_str(&raw).map_err(db::json_error)
 }
 
-pub(super) async fn reject_running(
+async fn reject_active_runs(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
-    table: &str,
     space_id: &str,
-    error_msg: &'static str,
 ) -> Result<(), String> {
-    let query = format!("SELECT COUNT(*) FROM {table} WHERE space_id=$1 AND status='running'");
-    let running: i64 = sqlx::query_scalar(&query)
-        .bind(space_id)
-        .fetch_one(&mut **tx)
-        .await
-        .map_err(db::sql_error)?;
+    let running: i64 = sqlx::query_scalar(
+        "SELECT COUNT(*) FROM spaces_runs WHERE home_space_id=$1 AND completed_at IS NULL",
+    )
+    .bind(space_id)
+    .fetch_one(&mut **tx)
+    .await
+    .map_err(db::sql_error)?;
     if running > 0 {
-        return Err(error_msg.into());
+        return Err("Active Runs must finish or be cancelled before export".into());
     }
     Ok(())
 }

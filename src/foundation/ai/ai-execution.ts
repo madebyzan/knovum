@@ -1,4 +1,3 @@
-import { agentTargetSchema, type AgentDescriptor, type AgentInstallation } from "./agent-models";
 import type { AiModelTarget, AiRoutingPurpose, ExecutionTarget, ResolvedAiModelTarget } from "./ai-models";
 import { useAiSettingsStore } from "./ai-settings-store";
 import { routingPolicy } from "./execution-routing";
@@ -17,26 +16,22 @@ export interface ExecutionTargetOption {
   value: string;
   label: string;
   target: ExecutionTarget;
-  executorType: "model" | "agent";
-  capabilitySource: "model-native" | "agent-workflow";
-  availability: "ready" | "unverified" | "unavailable";
+  executorType: "model";
+  capabilitySource: "model-native";
+  availability: "ready";
   disabled: boolean;
   disabledReason?: string | undefined;
   statusDetail?: string | undefined;
 }
 
-export type ResolvedAiExecutionTarget =
-  | ResolvedAiModelTarget
-  | { type: "agent"; agent: AiModelSettings["desktopAgents"][number] };
+export type ResolvedAiExecutionTarget = ResolvedAiModelTarget;
 
 function copyExecutionTarget(target: ExecutionTarget): ExecutionTarget {
-  return target.type === "agent"
-    ? { type: "agent", kind: target.kind }
-    : {
-        type: "model",
-        connectionId: target.connectionId,
-        modelId: target.modelId,
-      };
+  return {
+    type: "model",
+    connectionId: target.connectionId,
+    modelId: target.modelId,
+  };
 }
 
 export function defaultExecutionTarget(
@@ -63,17 +58,6 @@ function resolveModelTarget(
   return { type: "model", connection, model };
 }
 
-function resolveExecutionTarget(
-  settings: AiModelSettings,
-  purpose: AiRoutingPurpose,
-  selected: ExecutionTarget,
-): ResolvedAiExecutionTarget {
-  if (selected.type === "model") return resolveModelTarget(settings, purpose, selected);
-  const agent = settings.desktopAgents.find(({ kind }) => kind === selected.kind);
-  if (!agent) throw new Error(`Desktop agent is not enabled: ${selected.kind}`);
-  return { type: "agent", agent };
-}
-
 export async function loadAiExecutionTarget(
   purpose: AiRoutingPurpose,
   target?: ExecutionTarget,
@@ -83,11 +67,10 @@ export async function loadAiExecutionTarget(
   const settings = store.settings;
   const selected = target ?? defaultExecutionTarget(settings, purpose);
   if (!selected) throw new Error(`AI execution target is not configured for ${purpose}`);
-  return resolveExecutionTarget(settings, purpose, selected);
+  return resolveModelTarget(settings, purpose, selected);
 }
 
 export function aiExecutionTargetPayload(target: ResolvedAiExecutionTarget, temperature = 0.2) {
-  if (target.type === "agent") return { type: "agent" as const, kind: target.agent.kind };
   return {
     type: "model" as const,
     connectionId: target.connection.id,
@@ -113,51 +96,17 @@ function modelOptions(settings: AiModelSettings, purpose: AiRoutingPurpose): Exe
   );
 }
 
-function agentAvailability(readiness: AgentInstallation | undefined) {
-  if (!readiness) return "unverified" as const;
-  if (!readiness.detected) return "unavailable" as const;
-  return "unverified" as const;
-}
-
-function agentOptions(
-  settings: AiModelSettings,
-  descriptors: readonly AgentDescriptor[],
-  installations: readonly AgentInstallation[],
-): ExecutionTargetOption[] {
-  return settings.desktopAgents.flatMap((agent) => {
-    const descriptor = descriptors.find(({ kind }) => kind === agent.kind);
-    if (!descriptor) return [];
-    const readiness = installations.find(({ kind }) => kind === agent.kind);
-    return [
-      {
-        value: `agent:${agent.kind}`,
-        label: descriptor.displayName,
-        target: { type: "agent" as const, kind: agent.kind },
-        executorType: "agent" as const,
-        capabilitySource: "agent-workflow" as const,
-        availability: agentAvailability(readiness),
-        disabled: false,
-      },
-    ];
-  });
-}
-
 export function availableExecutionTargets(
   settings: AiModelSettings,
   purpose: AiRoutingPurpose,
-  descriptors: readonly AgentDescriptor[],
-  installations: readonly AgentInstallation[] = [],
 ): ExecutionTargetOption[] {
-  return [...modelOptions(settings, purpose), ...agentOptions(settings, descriptors, installations)];
+  return modelOptions(settings, purpose);
 }
 
 export const encodeExecutionTarget = (target: ExecutionTarget) =>
-  target.type === "agent" ? `agent:${target.kind}` : `model:${target.connectionId}:${target.modelId}`;
+  `model:${target.connectionId}:${target.modelId}`;
 
 export function decodeExecutionTarget(value: string): ExecutionTarget {
-  if (value.startsWith("agent:")) {
-    return agentTargetSchema.parse({ type: "agent", kind: value.slice("agent:".length) });
-  }
   const [type, connectionId, modelId, ...rest] = value.split(":");
   if (type !== "model" || !connectionId || !modelId || rest.length) {
     throw new Error("Invalid AI execution target");

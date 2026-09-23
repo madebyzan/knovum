@@ -15,9 +15,12 @@ use crate::{
         models::{ExecutionTarget, ExecutionTargetSelection},
         settings,
     },
-    spaces::knowledge::{
-        grounding,
-        retrieval::hybrid::{self, HybridSearchRequest},
+    spaces::{
+        db,
+        knowledge::{
+            grounding,
+            retrieval::hybrid::{self, HybridSearchRequest},
+        },
     },
 };
 
@@ -77,7 +80,13 @@ pub async fn create(
         result = execution => result,
     };
     match result {
-        Ok(generated) => completion::complete(&app, &request, generated).await,
+        Ok(generated) => {
+            if let Some(usage) = generated.usage.as_ref() {
+                crate::spaces::runs::record_usage(db::pool(&app).await?, &request.id, usage)
+                    .await?;
+            }
+            completion::complete(&app, &request, generated).await
+        }
         Err(error) => {
             persistence::fail(&app, &request.id, &error).await?;
             Err(error)
@@ -124,6 +133,7 @@ async fn execute(
         text: completion.text,
         provider: completion.provider,
         model: completion.model,
+        usage: completion.usage,
         citations,
     })
 }
@@ -132,5 +142,6 @@ struct GeneratedDocument {
     text: String,
     provider: String,
     model: String,
+    usage: Option<crate::ai::contracts::TokenUsage>,
     citations: Value,
 }

@@ -1,6 +1,6 @@
 use sqlx::{Row, Sqlite, Transaction};
 
-use super::{insert, prune, HistoryState, RelationLifecycle};
+use super::{insert, prune, HistoryInsert, HistoryState, RelationLifecycle};
 use crate::spaces::{db, structure::repository::SpaceStructureSnapshot};
 
 mod portal;
@@ -27,14 +27,16 @@ pub(super) async fn record(
         clear_redo(tx, space_id).await?;
         insert(
             tx,
-            space_id,
-            before,
-            after,
-            None,
-            None,
-            Some(group_id),
-            *revision,
-            now,
+            HistoryInsert {
+                space_id,
+                before,
+                after,
+                deletion_batch_id: None,
+                deletion_restored_after: None,
+                group_id: Some(group_id),
+                revision: *revision,
+                now,
+            },
         )
         .await?;
         prune(tx, space_id).await?;

@@ -1,7 +1,6 @@
-use futures::future::BoxFuture;
 use serde::{Deserialize, Serialize};
 
-use crate::ai::{error::AiResult, transport::SecurityContext};
+use crate::ai::error::AiResult;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -22,6 +21,7 @@ pub enum StreamFrame {
 
 #[derive(Debug, Clone)]
 pub struct ChatRequest {
+    pub purpose: crate::ai::usage::UsagePurpose,
     pub system_prompt: Option<String>,
     pub instruction: Option<String>,
     pub text: String,
@@ -40,18 +40,3 @@ pub struct ChatResponse {
 
 pub type StreamFrameStream =
     std::pin::Pin<Box<dyn futures::Stream<Item = AiResult<StreamFrame>> + Send>>;
-
-pub trait ChatCapability: Send + Sync {
-    fn complete<'a>(
-        &'a self,
-        ctx: &'a SecurityContext,
-        req: &'a ChatRequest,
-    ) -> BoxFuture<'a, AiResult<ChatResponse>>;
-
-    fn stream<'a>(
-        &'a self,
-        ctx: &'a SecurityContext,
-        req: &'a ChatRequest,
-        cancellation: tokio_util::sync::CancellationToken,
-    ) -> BoxFuture<'a, AiResult<StreamFrameStream>>;
-}

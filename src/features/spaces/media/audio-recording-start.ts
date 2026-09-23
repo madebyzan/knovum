@@ -4,10 +4,7 @@ import {
   startSpaceAudioRecording,
   type SpaceAudioRecordingSession,
 } from "./audio-recording";
-import {
-  cancelPendingAudioRecording,
-  createAudioMediaRecorder,
-} from "./media-recorder-operations";
+import { cancelPendingAudioRecording, createAudioMediaRecorder } from "./media-recorder-operations";
 
 export interface PreparedAudioRecording {
   stream: MediaStream;

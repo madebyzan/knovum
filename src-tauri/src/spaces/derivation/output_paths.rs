@@ -1,6 +1,6 @@
 use tauri::AppHandle;
 
-fn reserve(app: &AppHandle, prefix: &str, extension: &str) -> Result<String, String> {
+pub(crate) fn reserve(app: &AppHandle, prefix: &str, extension: &str) -> Result<String, String> {
     Ok(crate::spaces::assets::asset_directory(app)?
         .join(format!("{prefix}-{}.{}", uuid::Uuid::new_v4(), extension))
         .to_string_lossy()
@@ -8,7 +8,7 @@ fn reserve(app: &AppHandle, prefix: &str, extension: &str) -> Result<String, Str
 }
 
 #[tauri::command]
-pub fn allocate_knowledge_image_path(app: AppHandle) -> Result<String, String> {
+pub fn allocate_visualization_output_path(app: AppHandle) -> Result<String, String> {
     reserve(&app, "generated", "png")
 }
 
@@ -28,6 +28,6 @@ pub fn allocate_presentation_pptx_path(app: AppHandle) -> Result<String, String>
 }
 
 #[tauri::command]
-pub fn allocate_knowledge_video_path(app: AppHandle) -> Result<String, String> {
+pub fn allocate_video_output_path(app: AppHandle) -> Result<String, String> {
     reserve(&app, "generated", "mp4")
 }

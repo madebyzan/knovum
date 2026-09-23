@@ -37,8 +37,9 @@ pub(super) async fn save(
     let field = match request.job_type {
         super::EnrichmentJobType::AnalyzeMedia => "mediaAnalysis",
         super::EnrichmentJobType::TranscribeMedia => "mediaKnowledge",
-        super::EnrichmentJobType::AnalyzeImage
-        | super::EnrichmentJobType::AnalyzeVideoFirstFrame => "visualKnowledge",
+        super::EnrichmentJobType::AnalyzeImage | super::EnrichmentJobType::AnalyzeVideoCover => {
+            "visualKnowledge"
+        }
         _ => return Err("Enrichment job does not own node data".to_owned()),
     };
     let value = data

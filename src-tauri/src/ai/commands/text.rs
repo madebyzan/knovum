@@ -21,6 +21,7 @@ pub async fn complete(
     request: models::CompletionCommandRequest,
 ) -> Result<CompletionOutput, AiError> {
     capabilities::chat::complete(models::CompletionRequest {
+        purpose: crate::ai::usage::UsagePurpose::Knowledge,
         target: resolve_target(&app, request.target)?,
         system_prompt: request.system_prompt,
         instruction: request.instruction,
@@ -40,6 +41,7 @@ pub async fn complete_stream(
     let (cancellation, _lease) = executions::acquire(job_id).map_err(AiError::from)?;
     capabilities::chat::complete_stream(
         models::CompletionRequest {
+            purpose: crate::ai::usage::UsagePurpose::Knowledge,
             target: resolve_target(&app, request.target)?,
             system_prompt: request.system_prompt,
             instruction: request.instruction,

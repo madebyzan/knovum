@@ -10,6 +10,7 @@
     "ai:allow-detect-agent-installations",
     "ai:allow-list-agent-descriptors",
     "ai:allow-list-provider-descriptors",
+    "ai:allow-get-token-usage-report",
     "ai:allow-transform-editor",
     "ai:allow-transform-editor-stream",
     "ai:allow-translate-text",

@@ -1,3 +1,4 @@
+import { flushPromises } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
 
@@ -25,6 +26,11 @@ const sceneDatabase = vi.hoisted(() => ({
 const relationRepository = vi.hoisted(() => ({
   listRelations: vi.fn<(spaceId: string) => Promise<SpaceRelation[]>>(),
 }));
+const editRepository = vi.hoisted(() => ({
+  load: vi.fn<
+    () => Promise<{ editRevision: number; structure: never[]; layouts: never[]; relationStyles: never[] }>
+  >(async () => ({ editRevision: 0, structure: [], layouts: [], relationStyles: [] })),
+}));
 
 vi.mock("../nodes/node-repository", () => ({
   listNodes: nodeRepository.listNodes,
@@ -39,6 +45,7 @@ vi.mock("../scenes/scene-repository", () => ({ listScenes: sceneDatabase.listSce
 vi.mock("../knowledge/relations/relation-repository", () => ({
   listRelations: relationRepository.listRelations,
 }));
+vi.mock("../structure/space-edit-repository", () => ({ spaceEditRepository: editRepository }));
 
 function context(activeSpaceId = "inbox"): SpaceSessionContext {
   return createTestSessionContext({
@@ -75,6 +82,7 @@ describe("openSpace", () => {
 
     const first = openSpace(state, "inbox");
     const second = openSpace(state, "inbox");
+    await flushPromises();
     expect(nodeRepository.listNodes).toHaveBeenCalledTimes(1);
 
     release([]);
@@ -98,6 +106,7 @@ describe("openSpace", () => {
 
     const pending = openSpace(state, "research");
     expect(state.nodes.value.map((node) => node.id)).toEqual(["old"]);
+    await flushPromises();
 
     release([
       {
@@ -120,6 +129,7 @@ describe("openSpace", () => {
 
     const pending = openSpace(state, "research");
     expect(state.loading.value).toBe(true);
+    await flushPromises();
     await openSpace(state, "inbox");
     expect(state.loading.value).toBe(false);
 

@@ -1,7 +1,7 @@
 import { storeToRefs } from "pinia";
 import { computed } from "vue";
 
-import type { AgentKind, AgentTarget } from "../../foundation/ai/agent-models";
+import type { AgentKind } from "../../foundation/ai/agent-models";
 import type { AiModelTarget, ExecutionTarget } from "../../foundation/ai/ai-models";
 import { useAiSettingsStore } from "../../foundation/ai/ai-settings-store";
 import { useCreationLibraryStore } from "../../foundation/ai/creation-library-store";
@@ -14,16 +14,8 @@ export function useProtectedExecutionTargets() {
   const targets = computed<ExecutionTarget[]>(() => [
     ...Object.values(settings.value.defaults).filter((target): target is ExecutionTarget => Boolean(target)),
     ...library.value.generationPresets.map(({ target }) => target),
-    ...library.value.creationWorkflows.flatMap((workflow) =>
-      Object.values(workflow.targets).map(({ target }) => target),
-    ),
   ]);
-  const modelTargets = computed(() =>
-    targets.value.filter((target): target is AiModelTarget => target.type === "model"),
-  );
-  const agentTargets = computed(() =>
-    targets.value.filter((target): target is AgentTarget => target.type === "agent"),
-  );
+  const modelTargets = computed(() => targets.value as AiModelTarget[]);
 
   return {
     protectedConnectionIds: computed(() => [
@@ -32,8 +24,6 @@ export function useProtectedExecutionTargets() {
     protectedModelTargets: computed(() =>
       modelTargets.value.map(({ connectionId, modelId }) => `${connectionId}:${modelId}`),
     ),
-    protectedAgentKinds: computed<AgentKind[]>(() => [
-      ...new Set(agentTargets.value.map(({ kind }) => kind)),
-    ]),
+    protectedAgentKinds: computed<AgentKind[]>(() => []),
   };
 }

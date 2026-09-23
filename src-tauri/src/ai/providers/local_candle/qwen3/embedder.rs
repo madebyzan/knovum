@@ -8,6 +8,11 @@ pub struct TextEmbedding {
     tokenizer: Tokenizer,
 }
 
+pub struct EmbeddingOutput {
+    pub vectors: Vec<Vec<f32>>,
+    pub input_tokens: usize,
+}
+
 const MAX_INFERENCE_ROWS: usize = 8;
 const MAX_PADDED_TOKENS: usize = 2048;
 const MAX_ATTENTION_CELLS: usize = 2048 * 2048;
@@ -22,9 +27,12 @@ impl TextEmbedding {
         Self { model, tokenizer }
     }
 
-    pub fn embed(&self, texts: &[String]) -> Result<Vec<Vec<f32>>> {
+    pub fn embed(&self, texts: &[String]) -> Result<EmbeddingOutput> {
         if texts.is_empty() {
-            return Ok(vec![]);
+            return Ok(EmbeddingOutput {
+                vectors: vec![],
+                input_tokens: 0,
+            });
         }
 
         let encodings = self
@@ -32,6 +40,7 @@ impl TextEmbedding {
             .encode_batch(texts.to_vec(), true)
             .map_err(|e| candle_core::Error::Msg(e.to_string()))?;
 
+        let input_tokens = encodings.iter().map(Encoding::len).sum();
         let mut ordered: Vec<_> = encodings.into_iter().enumerate().collect();
         ordered.sort_by_key(|(_, encoding)| encoding.len());
         let mut output = vec![None; texts.len()];
@@ -69,14 +78,18 @@ impl TextEmbedding {
             }
             start = end;
         }
-        output
+        let vectors = output
             .into_iter()
             .map(|vector| {
                 vector.ok_or_else(|| {
                     candle_core::Error::Msg("Embedding batch omitted an input".into())
                 })
             })
-            .collect()
+            .collect::<Result<Vec<_>>>()?;
+        Ok(EmbeddingOutput {
+            vectors,
+            input_tokens,
+        })
     }
 
     fn embed_batch(&self, encodings: &[Encoding]) -> Result<Vec<Vec<f32>>> {

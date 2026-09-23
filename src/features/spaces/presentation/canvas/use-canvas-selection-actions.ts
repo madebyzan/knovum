@@ -12,7 +12,11 @@ import type {
 import { useCanvasEditorSession, useCanvasSelectionProjection } from "../../canvas/editor-session";
 import { openSpaceNode } from "../../canvas/selection-actions";
 import { useContextDock } from "../../canvas/use-context-dock";
+import type { ImageEdit } from "../../image-editing/image-edit";
+import { imageEditOf } from "../../image-editing/image-edit";
 import { isSpaceSemanticNode } from "../../knowledge/model/semantic-node";
+import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
+import type { SpaceImagePayload } from "../../model/nodes/node-payload";
 import { useSpaceStore } from "../../session/space-store";
 import { canvasSelectionProductState } from "./selection-product-state";
 import { useCanvasReparentActions } from "./use-canvas-reparent-actions";
@@ -45,6 +49,14 @@ export function useCanvasSelectionActions() {
       selection.value.relationIds.length > 0,
   );
   const selectedAppearance = computed(() => selection.value.singleNodeAppearance);
+  const selectedImageNode = computed(() => {
+    const node = selectedNodes.value.length === 1 ? selectedNodes.value[0] : undefined;
+    return node && isImageNode(node) ? node : undefined;
+  });
+  const selectedVideoNode = computed(() => {
+    const node = selectedNodes.value.length === 1 ? selectedNodes.value[0] : undefined;
+    return node?.data.kind === "video" ? node : undefined;
+  });
   const reparentActions = useCanvasReparentActions(
     store,
     state,
@@ -62,6 +74,19 @@ export function useCanvasSelectionActions() {
     const nodeId = selection.value.nodeIds.length === 1 ? selection.value.nodeIds[0] : undefined;
     if (!nodeId) return;
     editorSession.activeEditor.value?.setNodeAppearance(nodeId, patch);
+  }
+
+  function setImageEdit(edit: ImageEdit) {
+    const node = selectedImageNode.value;
+    if (!node) return;
+    runCanvasAction(() =>
+      store.updateManyData([{ id: node.id, before: node.data, after: { ...node.data, imageEdit: edit } }]),
+    );
+  }
+
+  function editVideo() {
+    const node = selectedVideoNode.value;
+    if (node) store.openVideoEditor(node.id);
   }
 
   function open() {
@@ -142,6 +167,7 @@ export function useCanvasSelectionActions() {
     focus,
     fitSection: structureActions.fitSection,
     inspect,
+    editVideo,
     moveToSpace,
     moveLayer,
     open,
@@ -150,10 +176,21 @@ export function useCanvasSelectionActions() {
     remove,
     selectedNodes,
     selectedAppearance,
+    selectedImageNode,
+    selectedVideoNode,
+    setImageEdit,
+    imageEdit: computed(() => {
+      const node = selectedImageNode.value;
+      return node ? imageEditOf(node.data) : undefined;
+    }),
     setAppearance,
     state,
     toggleLock,
     toggleSectionCollapsed: structureActions.toggleSectionCollapsed,
     visible,
   };
+}
+
+function isImageNode(node: SpaceCanvasNode): node is SpaceCanvasNode<SpaceImagePayload> {
+  return node.data.kind === "image";
 }

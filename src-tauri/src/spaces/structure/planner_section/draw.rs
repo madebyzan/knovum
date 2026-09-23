@@ -27,7 +27,7 @@ pub(in crate::spaces::structure) fn draw(
             &original_structure,
             &original_layouts,
             &index,
-            &[id.clone()],
+            std::slice::from_ref(id),
         )? {
             if bounds.left >= frame.x - 0.5
                 && bounds.top >= frame.y - 0.5

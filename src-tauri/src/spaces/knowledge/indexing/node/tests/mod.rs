@@ -57,6 +57,6 @@ fn video_visual_knowledge_uses_node_locator() {
     });
     let chunks = derived_chunks(&data).unwrap();
     assert_eq!(chunks.len(), 1);
-    assert_eq!(chunks[0].kind, "video_first_frame");
+    assert_eq!(chunks[0].kind, "video_cover");
     assert_eq!(chunks[0].locator["location"]["kind"], "node");
 }

@@ -1,7 +1,6 @@
 mod persistence;
 mod registry;
 mod render;
-mod scratch;
 pub(super) mod srt;
 mod start;
 

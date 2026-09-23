@@ -3,7 +3,7 @@ use tauri::{AppHandle, Runtime};
 use super::edit_contract::{
     ExecuteSpaceEditRequest, SpaceEditHistoryReceipt, SpaceEditHistoryRequest, SpaceEditReceipt,
 };
-use super::{history, planner, planner_clone, receipts, repository};
+use super::{history, planner, planner_clone, receipts, repository, validation};
 use crate::spaces::db;
 
 #[tauri::command]
@@ -11,25 +11,33 @@ pub(crate) async fn execute_space_edit<R: Runtime>(
     app: AppHandle<R>,
     request: ExecuteSpaceEditRequest,
 ) -> Result<SpaceEditReceipt, String> {
-    validate_id("Space ID", &request.space_id)?;
-    validate_id("Mutation ID", &request.mutation_id)?;
+    let pool = db::pool(&app).await?;
+    let mut tx = db::begin_write(pool).await?;
+    let receipt = execute_in_transaction(&mut tx, request).await?;
+    tx.commit().await.map_err(db::sql_error)?;
+    Ok(receipt)
+}
+
+pub(crate) async fn execute_in_transaction(
+    tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
+    request: ExecuteSpaceEditRequest,
+) -> Result<SpaceEditReceipt, String> {
+    validation::validate_id("Space ID", &request.space_id)?;
+    validation::validate_id("Mutation ID", &request.mutation_id)?;
     if request.expected_edit_revision < 0 {
         return Err("Expected edit revision must be nonnegative".into());
     }
     let digest = receipts::request_digest(&request)?;
-    let pool = db::pool(&app).await?;
-    let mut tx = db::begin_write(pool).await?;
-    if let Some(receipt) = receipts::find(&mut tx, &request.mutation_id, &digest).await? {
-        tx.commit().await.map_err(db::sql_error)?;
+    if let Some(receipt) = receipts::find(tx, &request.mutation_id, &digest).await? {
         return Ok(receipt);
     }
     let (mut snapshot, edit_revision) =
-        repository::load_in_transaction(&mut tx, &request.space_id).await?;
+        repository::load_in_transaction(tx, &request.space_id).await?;
     if edit_revision != request.expected_edit_revision {
         return Err("Space edit revision conflict".into());
     }
     super::content_height_read_set::validate(
-        &mut tx,
+        &mut *tx,
         &request.space_id,
         &snapshot,
         &request.command,
@@ -37,7 +45,7 @@ pub(crate) async fn execute_space_edit<R: Runtime>(
     .await?;
     let records_history = request.command.records_history();
     let before = if records_history {
-        Some(history::capture(&mut tx, &request.space_id, &snapshot).await?)
+        Some(history::capture(&mut *tx, &request.space_id, &snapshot).await?)
     } else {
         None
     };
@@ -53,7 +61,7 @@ pub(crate) async fn execute_space_edit<R: Runtime>(
             offset,
         } => {
             let selection = planner_clone::clone_in_transaction(
-                &mut tx,
+                &mut *tx,
                 &request.space_id,
                 &mut snapshot,
                 root_ids,
@@ -69,57 +77,20 @@ pub(crate) async fn execute_space_edit<R: Runtime>(
         command => planner::plan(command, &mut snapshot)?,
     };
     if let Some(deletion) = &plan.deletion {
-        let now = crate::clock::unix_time_millis()?;
-        repository::store_deletion_in_transaction(
-            &mut tx,
-            &request.space_id,
-            &request.mutation_id,
-            &deletion.root_ids,
-            &deletion.structure,
-            &deletion.layouts,
-            &deletion.node_ids,
-            now,
-        )
-        .await?;
-        let trashed = crate::spaces::nodes::trash_in_transaction(
-            &mut tx,
-            &request.space_id,
-            &deletion.node_ids,
-            now,
-        )
-        .await?;
-        let expected: std::collections::HashSet<&str> =
-            deletion.node_ids.iter().map(String::as_str).collect();
-        let actual: std::collections::HashSet<&str> = trashed.iter().map(String::as_str).collect();
-        if expected != actual {
-            return Err("Deletion node set changed during transaction".into());
-        }
-        let deleted_nodes = serde_json::to_string(&deletion.node_ids).map_err(db::json_error)?;
-        let invalidated: Vec<String> = sqlx::query_scalar(
-            "SELECT id FROM spaces_relations WHERE space_id=$1 AND status='invalidated' AND (source_id IN (SELECT value FROM json_each($2)) OR target_id IN (SELECT value FROM json_each($2)))",
-        )
-        .bind(&request.space_id)
-        .bind(deleted_nodes)
-        .fetch_all(&mut *tx)
-        .await
-        .map_err(db::sql_error)?;
-        let invalidated: std::collections::HashSet<String> = invalidated.into_iter().collect();
-        snapshot
-            .relation_styles
-            .retain(|style| !invalidated.contains(&style.relation_id));
+        super::deletion_transaction::apply(tx, &request, &mut snapshot, deletion).await?;
     }
     let applied_at_revision = repository::save_in_transaction(
-        &mut tx,
+        &mut *tx,
         &request.space_id,
         request.expected_edit_revision,
         &snapshot,
     )
     .await?;
-    super::portal_integrity::validate_structure_targets(&mut tx).await?;
+    super::portal_integrity::validate_structure_targets(&mut *tx).await?;
     if let Some(before) = before {
-        let after = history::capture(&mut tx, &request.space_id, &snapshot).await?;
+        let after = history::capture(&mut *tx, &request.space_id, &snapshot).await?;
         history::record(
-            &mut tx,
+            &mut *tx,
             &request.space_id,
             &before,
             &after,
@@ -134,8 +105,7 @@ pub(crate) async fn execute_space_edit<R: Runtime>(
         applied_at_revision,
         selection_suggestion: plan.selection,
     };
-    receipts::insert(&mut tx, &request.space_id, &digest, &receipt).await?;
-    tx.commit().await.map_err(db::sql_error)?;
+    receipts::insert(tx, &request.space_id, &digest, &receipt).await?;
     Ok(receipt)
 }
 
@@ -160,7 +130,7 @@ async fn apply_history<R: Runtime>(
     request: SpaceEditHistoryRequest,
     redo: bool,
 ) -> Result<SpaceEditHistoryReceipt, String> {
-    validate_id("Space ID", &request.space_id)?;
+    validation::validate_id("Space ID", &request.space_id)?;
     if request.expected_edit_revision < 0 {
         return Err("Expected edit revision must be nonnegative".into());
     }
@@ -177,11 +147,4 @@ async fn apply_history<R: Runtime>(
         applied_at_revision,
         selection_suggestion: Vec::new(),
     })
-}
-
-fn validate_id(label: &str, id: &str) -> Result<(), String> {
-    if id.is_empty() || id.encode_utf16().count() > 128 {
-        return Err(format!("{label} must contain 1 to 128 characters"));
-    }
-    Ok(())
 }

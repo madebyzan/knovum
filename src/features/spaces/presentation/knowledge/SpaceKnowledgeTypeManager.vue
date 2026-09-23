@@ -9,10 +9,9 @@ import UiDialog from "../../../../shared/ui/UiDialog.vue";
 import UiInput from "../../../../shared/ui/UiInput.vue";
 import UiScrollArea from "../../../../shared/ui/UiScrollArea.vue";
 import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
-import type { SpaceObjectFieldDefinition } from "../../knowledge/model/object-types";
 import { useKnowledgeTypeManager } from "../../knowledge/types/use-knowledge-type-manager";
 import SpaceKnowledgeIconSelect from "./SpaceKnowledgeIconSelect.vue";
-import SpaceKnowledgeTypeFieldRow from "./SpaceKnowledgeTypeFieldRow.vue";
+import SpaceKnowledgeTypeFields from "./SpaceKnowledgeTypeFields.vue";
 
 const open = defineModel<boolean>("open", { required: true });
 const { t } = useI18n();
@@ -38,15 +37,6 @@ const {
   save,
   remove,
 } = useKnowledgeTypeManager(toRef(() => open.value));
-const fieldIds = new WeakMap<SpaceObjectFieldDefinition, string>();
-function fieldIdentity(field: SpaceObjectFieldDefinition) {
-  let id = fieldIds.get(field);
-  if (!id) {
-    id = crypto.randomUUID();
-    fieldIds.set(field, id);
-  }
-  return id;
-}
 const confirming = shallowRef(false);
 async function changeEditor(action: () => void) {
   if (saving.value || confirming.value) return;
@@ -139,55 +129,18 @@ async function changeEditor(action: () => void) {
             <span>{{ t("spaces.knowledge.knowledgeTypeDescription") }}</span>
             <UiTextarea v-model="description" :rows="2" maxlength="4096" class="resize-none" />
           </label>
-          <div class="mt-4">
-            <h3 class="mb-2 text-label font-medium">{{ t("spaces.knowledge.knowledgeField") }}</h3>
-            <p v-if="!fields.length" class="py-3 text-caption text-foreground-secondary">
-              {{ t("spaces.knowledge.emptyTypeFields") }}
-            </p>
-            <div class="overflow-x-auto">
-              <div
-                class="grid min-w-[30rem] grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)_8rem_3rem_var(--knovum-control-height-md)] items-center gap-2"
-              >
-                <template v-if="fields.length">
-                  <span class="text-caption text-foreground-secondary">{{
-                    t("spaces.knowledge.knowledgeFieldLabel")
-                  }}</span>
-                  <span class="text-caption text-foreground-secondary">{{
-                    t("spaces.knowledge.knowledgeFieldKey")
-                  }}</span>
-                  <span class="text-caption text-foreground-secondary">{{
-                    t("spaces.knowledge.knowledgeFieldKind")
-                  }}</span>
-                  <span class="text-center text-caption text-foreground-secondary">{{
-                    t("spaces.knowledge.knowledgeFieldRequired")
-                  }}</span>
-                  <span aria-hidden="true"></span>
-                </template>
-                <SpaceKnowledgeTypeFieldRow
-                  v-for="(field, index) in fields"
-                  :key="fieldIdentity(field)"
-                  :field="field"
-                  :disabled="saving"
-                  :field-kinds="fieldKinds"
-                  @kind="updateKind(field, $event)"
-                  @options="updateOptions(field, $event)"
-                  @required="updateRequired(field, $event)"
-                  @label="field.label = $event"
-                  @key="field.key = $event"
-                  @remove="fields.splice(index, 1)"
-                />
-              </div>
-            </div>
-            <UiButton
-              class="mt-2"
-              :disabled="fields.length >= 64"
-              size="sm"
-              variant="ghost"
-              @click="addField"
-            >
-              <Plus class="size-(--knovum-icon-size-xs)" />{{ t("spaces.knowledge.addKnowledgeField") }}
-            </UiButton>
-          </div>
+          <SpaceKnowledgeTypeFields
+            :fields="fields"
+            :field-kinds="fieldKinds"
+            :disabled="saving"
+            @add="addField"
+            @kind="updateKind"
+            @options="updateOptions"
+            @required="updateRequired"
+            @label="(field, value) => (field.label = value)"
+            @key="(field, value) => (field.key = value)"
+            @remove="fields.splice($event, 1)"
+          />
           <p v-if="error" role="alert" class="mt-3 text-caption text-danger">{{ error }}</p>
           <UiButton v-if="editingId" class="mt-5 text-danger" size="sm" variant="ghost" @click="remove">
             <Trash2 class="size-(--knovum-icon-size-sm)" />{{ t("spaces.knowledge.deleteKnowledgeType") }}

@@ -22,14 +22,6 @@
         }
       ]
     },
-    {
-      "identifier": "fs:allow-mkdir",
-      "allow": [{ "path": "$APPDATA/spaces" }, { "path": "$APPDATA/spaces/assets" }]
-    },
-    {
-      "identifier": "fs:allow-write-file",
-      "allow": [{ "path": "$APPDATA/spaces/assets/canvas-thumbnail-*.jpg" }]
-    },
     "spaces:default"
   ]
 }

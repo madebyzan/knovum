@@ -70,14 +70,14 @@ pub(crate) async fn discard_pending_content<R: Runtime>(
     crate::spaces::knowledge::retrieval::invalidation_outbox::enqueue_nodes(
         &mut tx,
         &request.space_id,
-        &[request.node_id.clone()],
+        std::slice::from_ref(&request.node_id),
         now,
     )
     .await?;
     crate::spaces::knowledge::grounding::references::detach_nodes(
         &mut tx,
         &request.space_id,
-        &[request.node_id.clone()],
+        std::slice::from_ref(&request.node_id),
     )
     .await?;
     cleanup::delete_related(&mut tx, &relations, &provenance, &request.node_id).await?;
@@ -106,7 +106,7 @@ pub(crate) async fn discard_pending_content<R: Runtime>(
     super::super::repository::invalidate_history_for_nodes(
         &mut tx,
         &request.space_id,
-        &[request.node_id.clone()],
+        std::slice::from_ref(&request.node_id),
     )
     .await?;
     let applied = super::super::repository::save_in_transaction(

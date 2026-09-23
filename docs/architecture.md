@@ -50,11 +50,20 @@ not permitted before the first public release.
 
 The Spaces Rust boundary is divided by responsibility, not CRUD mechanics:
 
+- `actions/`: the versioned `SpaceAction` contract and read-only catalog; concrete action behavior
+  remains in the domain owner that validates and commits it;
+- `authorization/`: principals, scopes, grants and effect-specific approvals;
+- `runs/`: durable Run, StepInstance and Attempt state, scheduling, recovery and events;
+- `workflows/`: versioned definitions, compilation and execution over SpaceActions;
+- `workflows/external_tools/`: reviewed MCP client bindings, endpoint policy, schema fingerprints and result validation;
+- `assistant/`: Space-specific conversations, context, tasks, tool calls and checkpoints;
+- `automation/`: trigger definitions, schedule/event occurrences, authorization expiry and causality limits;
+- `mcp/`: inbound Space protocol projection over Actions and Authorization, never direct mutation;
 - `knowledge/`: semantic contracts, provenance, patches, events and knowledge governance;
 - `knowledge/indexing/`: extraction of revisions, passages and knowledge chunks from Space nodes;
 - `knowledge/chunk_store/`: transactional persistence and revision rules for derived knowledge chunks;
 - `knowledge/retrieval/`: Space-owned vector indexing, semantic search and hybrid ranking;
-- `knowledge/grounding/`: grounded-answer contracts, prompt construction, citations and reference cleanup;
+- `knowledge/grounding/`: answer-with-sources contracts, prompt construction, citations and reference cleanup;
 - `derivation/`: application use cases that transform current Space resources into
   traceable derivative resources. Each capability owns its preparation, engine orchestration,
   completion and failure lifecycle; shared lifecycle policy stays at this boundary rather than in
@@ -107,11 +116,11 @@ Spaces processing and retrieval are Rust application use cases, not WebView work
 
 Raw persistence transitions, embedding vectors and partial grounded-AI steps are not IPC contracts.
 
-Creation Workflows may combine Rust derivations with named Renderer adapters such as Web Worker
-document rendering. Rust owns the registered definition, dependency planning, legal state transitions,
-durable run persistence and interrupted-run reconciliation. The Renderer executes only the next step ID
-authorized by Rust, presents progress and returns the named adapter output. Workflow adapters never
-receive SQL, raw persistence transitions or engine-owned mutable state.
+Workflows compile and execute entirely through the Rust-owned Run scheduler. A Workflow Action invokes
+the same domain use case as UI or MCP, under a persisted grant and idempotency key. Renderer-only
+document assembly remains an implementation detail of its owning derivation rather than a second
+Workflow coordinator. Vue owns draft interaction and observation only; it never receives SQL, raw
+persistence transitions, leases or authority to mark a step complete.
 
 The knowledge embedding model and vector dimensions form one Spaces retrieval-index contract. They are intentionally not a user-switchable generation preference: changing either requires an explicit index-contract change and complete rebuild. The generic `ai::embedding` adapter accepts a resolved target and dimensions but does not own the selected model identity.
 
@@ -225,7 +234,14 @@ Source dependency direction is intentionally separate from process/runtime topol
 
 ## Integration settings and Rust engines
 
-Provider and Desktop Agent configuration shared by otherwise isolated features belongs to `foundation/ai/`. It owns the strict current v1, non-secret `ai.models` contract and the tagged `ModelTarget | AgentTarget` execution-routing contract. Provider connections own user-editable endpoints and model definitions; official OpenAI and OpenAI-compatible endpoints are explicit protocol choices. Agent runtimes own installation readiness and enabled state and are not `AiProvider` implementations. Model and Agent are peer execution-target types: routing has no built-in type priority, the user selects per-intent defaults, and cross-type fallback requires explicit user configuration. Compatibility is derived from the intent's input/output contract plus runtime capability evidence; it must not be encoded as a permanent text-only Agent allowlist. An Agent may satisfy media creation through a verified native/tool capability or a scoped workspace-artifact workflow. Reusable generation presets and versioned creation workflows use the separate `creation.library` contract. Rust registries project Provider, Agent, Knowledge Action and Workflow definitions to the Renderer; Rust resolves stable target IDs to endpoint, credential and adapter at execution time. Secret values are persisted only through `foundation/secrets/` and the OS credential store.
+Model connection settings shared by otherwise isolated features belong to `foundation/ai/`. Provider
+connections own user-editable endpoints and model definitions; official OpenAI and
+OpenAI-compatible endpoints are explicit protocol choices. External Agent discovery and sessions are
+owned by the crate-level `external_agents/` boundary and are not `AiProvider` implementations or model
+fallbacks. SpaceAction execution requirements resolve independently to a model, deterministic
+processor or explicitly delegated external session. Rust catalogs project Provider, External Agent,
+SpaceAction and Workflow definitions to the Renderer. Secret values are persisted only through
+`foundation/secrets/` and the OS credential store.
 
 Image processing, media processing, AI execution and storage are Rust or foundation engines consumed by
 Spaces capabilities. They are not independent Renderer products. Each engine exposes only the commands and

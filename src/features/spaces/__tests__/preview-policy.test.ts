@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  spaceCanvasDetailLevel,
+  canvasViewportDetailProfile,
   richPreviewZoomThreshold,
   shouldRenderRichCanvasPreview,
-} from "../assets/preview-policy";
+} from "../canvas/contract/canvas-detail-profile";
 
 describe("spaces preview policy", () => {
   it("raises the rich-preview threshold as the canvas grows", () => {
@@ -20,9 +20,9 @@ describe("spaces preview policy", () => {
   });
 
   it("changes information density instead of merely scaling full cards", () => {
-    expect(spaceCanvasDetailLevel(30, 100)).toBe("compact");
-    expect(spaceCanvasDetailLevel(55, 100)).toBe("summary");
-    expect(spaceCanvasDetailLevel(78, 100)).toBe("full");
-    expect(spaceCanvasDetailLevel(75, 900)).toBe("summary");
+    expect(canvasViewportDetailProfile(30, 100)).toEqual({ level: "compact", previewItemLimit: 2 });
+    expect(canvasViewportDetailProfile(55, 100)).toEqual({ level: "summary", previewItemLimit: 4 });
+    expect(canvasViewportDetailProfile(78, 100)).toEqual({ level: "full", previewItemLimit: 10 });
+    expect(canvasViewportDetailProfile(75, 900)).toEqual({ level: "summary", previewItemLimit: 4 });
   });
 });

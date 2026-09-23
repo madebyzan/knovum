@@ -19,6 +19,12 @@ export const useSpaceStore = defineStore("spaces", () => {
     if (focusedEditorId && !nodes.some((node) => node.id === focusedEditorId))
       state.focusedEditorId.value = undefined;
   });
+  watch(state.nodes, (nodes) => {
+    if (state.videoEditorNodeId.value && !nodes.some(({ id }) => id === state.videoEditorNodeId.value))
+      state.videoEditorNodeId.value = undefined;
+    if (state.imageEraserNodeId.value && !nodes.some(({ id }) => id === state.imageEraserNodeId.value))
+      state.imageEraserNodeId.value = undefined;
+  });
   watch([state.nodes, state.relations], () => {
     state.thumbnailDirty.value = true;
   });
@@ -28,6 +34,15 @@ export const useSpaceStore = defineStore("spaces", () => {
     ...createSpaceActions(state, placement),
     markCanvasOverviewDirty: () => {
       state.thumbnailDirty.value = true;
+    },
+    openVideoEditor: (nodeId: string) => {
+      state.videoEditorNodeId.value = nodeId;
+    },
+    closeVideoEditor: () => {
+      state.videoEditorNodeId.value = undefined;
+    },
+    toggleImageEraser: (nodeId: string) => {
+      state.imageEraserNodeId.value = state.imageEraserNodeId.value === nodeId ? undefined : nodeId;
     },
   };
 });

@@ -19,30 +19,11 @@ use crate::ai::{
 };
 
 pub async fn analyze_image(
-    app: &AppHandle,
+    _app: &AppHandle,
     request: ImageAnalysisRequest,
     cancellation: &CancellationToken,
 ) -> AiResult<CompletionOutput> {
     validate(&request)?;
-    if let crate::ai::models::ExecutionTarget::Agent { kind, .. } = &request.target {
-        let text = super::agent_task::analyze_image(
-            app,
-            *kind,
-            request.system_prompt.trim(),
-            &request.instruction,
-            &request.image_path,
-            request.max_tokens,
-            cancellation.clone(),
-        )
-        .await?;
-        return Ok(CompletionOutput {
-            text,
-            provider: kind.as_str().to_owned(),
-            model: crate::ai::providers::agents::registry::descriptor(*kind)
-                .display_name
-                .to_owned(),
-        });
-    }
     let ctx = SecurityContext::from_target(&request.target)?;
     let target = service_target(&ctx, request.target.model_provider_kind()?)?;
 
@@ -93,11 +74,22 @@ pub async fn analyze_image(
         .ok_or_else(|| AiError::new(AiErrorCode::EmptyResponse, "AI provider returned no text."))?;
 
     let text = super::response_text::strip_markdown_fences(raw_text).to_string();
+    let usage = crate::ai::usage::from_provider_usage(response.usage);
+    if let Some(usage) = usage.as_ref() {
+        crate::ai::usage::record(
+            crate::ai::usage::UsagePurpose::VisualAnalysis,
+            request.target.provider(),
+            request.target.model(),
+            usage,
+        )
+        .await?;
+    }
 
     Ok(CompletionOutput {
         text,
         provider: request.target.provider().to_string(),
         model: request.target.model().to_string(),
+        usage,
     })
 }
 

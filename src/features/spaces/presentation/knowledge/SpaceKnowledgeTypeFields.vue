@@ -1,0 +1,80 @@
+<script setup lang="ts">
+import { Plus } from "@lucide/vue";
+import { useI18n } from "vue-i18n";
+
+import UiButton from "../../../../shared/ui/UiButton.vue";
+import type { SpaceObjectFieldDefinition, SpaceObjectFieldKind } from "../../knowledge/model/object-types";
+import SpaceKnowledgeTypeFieldRow from "./SpaceKnowledgeTypeFieldRow.vue";
+
+defineProps<{
+  fields: readonly SpaceObjectFieldDefinition[];
+  fieldKinds: readonly SpaceObjectFieldKind[];
+  disabled: boolean;
+}>();
+const emit = defineEmits<{
+  add: [];
+  kind: [field: SpaceObjectFieldDefinition, kind: SpaceObjectFieldKind];
+  options: [field: SpaceObjectFieldDefinition, value: string];
+  required: [field: SpaceObjectFieldDefinition, value: boolean];
+  label: [field: SpaceObjectFieldDefinition, value: string];
+  key: [field: SpaceObjectFieldDefinition, value: string];
+  remove: [index: number];
+}>();
+const { t } = useI18n();
+const identities = new WeakMap<SpaceObjectFieldDefinition, string>();
+
+function identity(field: SpaceObjectFieldDefinition) {
+  let id = identities.get(field);
+  if (!id) {
+    id = crypto.randomUUID();
+    identities.set(field, id);
+  }
+  return id;
+}
+</script>
+
+<template>
+  <div class="mt-4">
+    <h3 class="mb-2 text-label font-medium">{{ t("spaces.knowledge.knowledgeField") }}</h3>
+    <p v-if="!fields.length" class="py-3 text-caption text-foreground-secondary">
+      {{ t("spaces.knowledge.emptyTypeFields") }}
+    </p>
+    <div class="overflow-x-auto">
+      <div
+        class="grid min-w-[30rem] grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)_8rem_3rem_var(--knovum-control-height-md)] items-center gap-2"
+      >
+        <template v-if="fields.length">
+          <span class="text-caption text-foreground-secondary">{{
+            t("spaces.knowledge.knowledgeFieldLabel")
+          }}</span>
+          <span class="text-caption text-foreground-secondary">{{
+            t("spaces.knowledge.knowledgeFieldKey")
+          }}</span>
+          <span class="text-caption text-foreground-secondary">{{
+            t("spaces.knowledge.knowledgeFieldKind")
+          }}</span>
+          <span class="text-center text-caption text-foreground-secondary">{{
+            t("spaces.knowledge.knowledgeFieldRequired")
+          }}</span>
+          <span aria-hidden="true"></span>
+        </template>
+        <SpaceKnowledgeTypeFieldRow
+          v-for="(field, index) in fields"
+          :key="identity(field)"
+          :field="field"
+          :disabled="disabled"
+          :field-kinds="fieldKinds"
+          @kind="emit('kind', field, $event)"
+          @options="emit('options', field, $event)"
+          @required="emit('required', field, $event)"
+          @label="emit('label', field, $event)"
+          @key="emit('key', field, $event)"
+          @remove="emit('remove', index)"
+        />
+      </div>
+    </div>
+    <UiButton class="mt-2" :disabled="fields.length >= 64" size="sm" variant="ghost" @click="emit('add')">
+      <Plus class="size-(--knovum-icon-size-xs)" />{{ t("spaces.knowledge.addKnowledgeField") }}
+    </UiButton>
+  </div>
+</template>

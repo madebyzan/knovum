@@ -1,18 +1,21 @@
 <script setup lang="ts">
 import { EditorContent } from "@tiptap/vue-3";
-import { toRef } from "vue";
+import { computed, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
+import type { CanvasNodePresentationContext } from "../../../canvas/contract/canvas-detail-profile";
 import type { SpaceCanvasTextPayload } from "../../../model/nodes/capabilities";
 import type { SpaceNotePayload } from "../../../model/nodes/node-payload";
 import SpaceCanvasRichText from "./SpaceCanvasRichText.vue";
 import SpaceCanvasTextSelectionBar from "./SpaceCanvasTextSelectionBar.vue";
+import { projectTiptapPreview } from "./tiptap-preview-projection";
 import { useCanvasTextEditor } from "./use-canvas-text-editor";
 
 const props = defineProps<{
   id: string;
   data: SpaceNotePayload;
   interactive: boolean;
+  presentationContext: CanvasNodePresentationContext;
   verticalClass: string;
   fontSize: number;
   textAlign: "left" | "center" | "right";
@@ -20,6 +23,9 @@ const props = defineProps<{
 }>();
 const { t } = useI18n();
 const placeholder = t("spaces.editor.notePlaceholder");
+const previewContent = computed(() =>
+  projectTiptapPreview(props.data.tiptapContent, props.presentationContext),
+);
 const { beginEditing, cancelEditing, editing, editor, save } = useCanvasTextEditor({
   id: props.id,
   data: toRef(props, "data"),
@@ -55,7 +61,7 @@ const { beginEditing, cancelEditing, editing, editor, save } = useCanvasTextEdit
     />
     <SpaceCanvasRichText
       v-else
-      :content="data.tiptapContent"
+      :content="previewContent"
       :empty="data.plainText.length === 0"
       kind="note"
       :placeholder="placeholder"

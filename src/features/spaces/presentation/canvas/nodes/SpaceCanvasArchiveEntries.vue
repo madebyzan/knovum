@@ -2,23 +2,26 @@
 import { File, Folder } from "@lucide/vue";
 import { computed } from "vue";
 
+import type { CanvasNodePresentationContext } from "../../../canvas/contract/canvas-detail-profile";
 import type { SpaceResourceEntry } from "../../../model/nodes/node-payload";
+import { projectPreviewItems, remainingPreviewItemCount } from "./canvas-preview-budget";
 
 const props = defineProps<{
   entries: SpaceResourceEntry[];
-  detailLevel: "compact" | "summary" | "full";
-  interactive?: boolean;
+  presentationContext: CanvasNodePresentationContext;
 }>();
 
-const isCompact = computed(() => props.detailLevel === "compact");
-const displayEntries = computed(() => (isCompact.value ? props.entries.slice(0, 3) : props.entries));
-const compactRemaining = computed(() => Math.max(0, props.entries.length - displayEntries.value.length));
+const interactive = computed(() => props.presentationContext.mode === "interactive");
+const displayEntries = computed(() => projectPreviewItems(props.entries, props.presentationContext));
+const remaining = computed(() =>
+  remainingPreviewItemCount(props.entries.length, displayEntries.value.length),
+);
 </script>
 
 <template>
   <div
     class="min-h-0 flex-1 px-2 py-1.5 select-none"
-    :class="isCompact ? 'overflow-hidden' : 'overflow-y-auto'"
+    :class="interactive ? 'overflow-y-auto' : 'overflow-hidden'"
     data-canvas-scrollable
     @wheel.stop
   >
@@ -36,8 +39,8 @@ const compactRemaining = computed(() => Math.max(0, props.entries.length - displ
         {{ entry.path }}
       </span>
     </div>
-    <div v-if="isCompact && compactRemaining > 0" class="px-1 pt-1 text-micro text-foreground-tertiary">
-      +{{ compactRemaining }} more entries
+    <div v-if="remaining > 0" class="px-1 pt-1 text-micro text-foreground-tertiary">
+      +{{ remaining }} more entries
     </div>
   </div>
 </template>

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { canvasOverviewViewport } from "../canvas/canvas-overview-geometry";
 import type { CanvasDocumentV1 } from "../canvas/contract/canvas-document";
+import { canvasOverviewViewport } from "../canvas/konva/overview/geometry";
 import { projectCanvasScene } from "../canvas/konva/scene/scene-projection";
 import { createSpaceNotePayload } from "../editor/tiptap-content";
 

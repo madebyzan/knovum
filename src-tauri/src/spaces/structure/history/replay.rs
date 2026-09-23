@@ -72,8 +72,7 @@ pub(in crate::spaces::structure) async fn apply(
         serde_json::from_str(&relations_json).map_err(db::json_error)?;
     apply_nodes(tx, space_id, &node_ids).await?;
     apply_relations(tx, &relations).await?;
-    let next =
-        repository::save_in_transaction(tx, space_id, current_revision, &snapshot).await?;
+    let next = repository::save_in_transaction(tx, space_id, current_revision, &snapshot).await?;
     portal_integrity::validate_structure_targets(tx).await?;
     let deletion_batch_id: Option<String> =
         row.try_get("deletion_batch_id").map_err(db::sql_error)?;

@@ -41,7 +41,7 @@ pub(super) fn plan(
             collapsed,
         } => super::planner_metadata::collapse(snapshot, structure_node_id, *collapsed),
         SpaceEditCommand::SectionDissolve { structure_node_id } => {
-            super::planner_section::dissolve(snapshot, &[structure_node_id.clone()])
+            super::planner_section::dissolve(snapshot, std::slice::from_ref(structure_node_id))
         }
         SpaceEditCommand::GroupCreate {
             group_id,

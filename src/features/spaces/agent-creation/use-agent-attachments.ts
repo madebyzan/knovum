@@ -1,12 +1,12 @@
 import { open } from "@tauri-apps/plugin-dialog";
-import { computed, shallowRef, watch, type Ref } from "vue";
+import { computed, shallowRef } from "vue";
 
 export interface AgentAttachment {
   name: string;
   path: string;
 }
 
-export function useAgentAttachments(openState: Ref<boolean>) {
+export function useAgentAttachments() {
   const paths = shallowRef<string[]>([]);
   const attachments = computed<AgentAttachment[]>(() =>
     paths.value.map((path) => ({ path, name: path.split(/[\\/]/).at(-1) ?? path })),
@@ -23,9 +23,9 @@ export function useAgentAttachments(openState: Ref<boolean>) {
     paths.value = paths.value.filter((candidate) => candidate !== path);
   }
 
-  watch(openState, (isOpen) => {
-    if (!isOpen) paths.value = [];
-  });
+  function clear() {
+    paths.value = [];
+  }
 
-  return { paths, attachments, choose, remove };
+  return { paths, attachments, choose, remove, clear };
 }

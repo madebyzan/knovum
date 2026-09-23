@@ -52,7 +52,10 @@ pub(in crate::spaces::structure) fn resize(
     Ok(vec![id.to_owned()])
 }
 
-pub(in crate::spaces::structure) fn fit(snapshot: &mut SpaceStructureSnapshot, id: &str) -> Result<Vec<String>, String> {
+pub(in crate::spaces::structure) fn fit(
+    snapshot: &mut SpaceStructureSnapshot,
+    id: &str,
+) -> Result<Vec<String>, String> {
     let index = Index::new(&snapshot.structure, &snapshot.layouts);
     if index.node(&snapshot.structure, id)?.kind_name() != "section" {
         return Err(format!("Section not found: {id}"));

@@ -8,7 +8,7 @@ use candle_core::{DType, Device};
 use candle_nn::VarBuilder;
 use tauri::{AppHandle, Runtime};
 
-use super::qwen3::{Config, Qwen3Model, Qwen3TextEmbedding};
+use super::qwen3::{Config, EmbeddingOutput, Qwen3Model, Qwen3TextEmbedding};
 use crate::local_resources::models::{self, catalog};
 
 static ENGINE: OnceLock<Mutex<Option<Arc<Qwen3TextEmbedding>>>> = OnceLock::new();
@@ -71,7 +71,7 @@ fn load_model(
 pub async fn embed<R: Runtime>(
     app: AppHandle<R>,
     texts: Vec<String>,
-) -> Result<Vec<Vec<f32>>, String> {
+) -> Result<EmbeddingOutput, String> {
     let permit = INFERENCE
         .get_or_init(|| Arc::new(tokio::sync::Semaphore::new(1)))
         .clone()

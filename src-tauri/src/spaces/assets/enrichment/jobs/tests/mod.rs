@@ -10,8 +10,8 @@ fn job_type_maps_to_snake_case_strings() {
         "transcribe_media"
     );
     assert_eq!(
-        EnrichmentJobType::AnalyzeVideoFirstFrame.as_str(),
-        "analyze_video_first_frame",
+        EnrichmentJobType::AnalyzeVideoCover.as_str(),
+        "analyze_video_cover",
     );
     assert_eq!(
         EnrichmentJobType::EmbedMediaTranscript.as_str(),

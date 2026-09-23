@@ -1,0 +1,102 @@
+mod stream;
+mod wire;
+
+use crate::ai::{
+    contracts::{ModelTurnCapability, ModelTurnRequest, ModelTurnResponse, ProviderKind},
+    error::AiResult,
+    models::ExecutionTarget,
+    transport::SecurityContext,
+};
+
+use genai::adapter::AdapterKind;
+use tokio_util::sync::CancellationToken;
+
+static OPENAI: GenAiModelTurnAdapter = GenAiModelTurnAdapter::new(AdapterKind::OpenAI);
+static ANTHROPIC: GenAiModelTurnAdapter = GenAiModelTurnAdapter::new(AdapterKind::Anthropic);
+static GEMINI: GenAiModelTurnAdapter = GenAiModelTurnAdapter::new(AdapterKind::Gemini);
+static ALIYUN: GenAiModelTurnAdapter = GenAiModelTurnAdapter::new(AdapterKind::Aliyun);
+static DEEPSEEK: GenAiModelTurnAdapter = GenAiModelTurnAdapter::new(AdapterKind::DeepSeek);
+static GROQ: GenAiModelTurnAdapter = GenAiModelTurnAdapter::new(AdapterKind::Groq);
+static OLLAMA: GenAiModelTurnAdapter = GenAiModelTurnAdapter::new(AdapterKind::Ollama);
+
+pub async fn execute(
+    target: &ExecutionTarget,
+    request: &ModelTurnRequest,
+) -> AiResult<ModelTurnResponse> {
+    let context = SecurityContext::from_target(target)?;
+    let capability = adapter(target.model_provider_kind()?)?;
+    let response = capability.execute_turn(&context, request).await?;
+    crate::ai::usage::record_turn(request.purpose, &response).await?;
+    Ok(response)
+}
+
+pub async fn stream_text(
+    target: &ExecutionTarget,
+    request: &ModelTurnRequest,
+    cancellation: CancellationToken,
+) -> AiResult<crate::ai::contracts::StreamFrameStream> {
+    let context = SecurityContext::from_target(target)?;
+    let adapter = adapter_kind(target.model_provider_kind()?)?;
+    stream::stream_text(adapter, context, request.clone(), cancellation).await
+}
+
+pub async fn stream_turn(
+    target: &ExecutionTarget,
+    request: &ModelTurnRequest,
+    cancellation: CancellationToken,
+    deltas: tokio::sync::mpsc::UnboundedSender<String>,
+) -> AiResult<ModelTurnResponse> {
+    let context = SecurityContext::from_target(target)?;
+    let adapter = adapter_kind(target.model_provider_kind()?)?;
+    let response =
+        stream::stream_turn(adapter, context, request.clone(), cancellation, deltas).await?;
+    crate::ai::usage::record_turn(request.purpose, &response).await?;
+    Ok(response)
+}
+
+fn adapter(provider: ProviderKind) -> AiResult<&'static dyn ModelTurnCapability> {
+    let adapter = match provider {
+        ProviderKind::Anthropic => &ANTHROPIC as &dyn ModelTurnCapability,
+        ProviderKind::Gemini => &GEMINI,
+        ProviderKind::DashScope => &ALIYUN,
+        ProviderKind::DeepSeek => &DEEPSEEK,
+        ProviderKind::Groq => &GROQ,
+        ProviderKind::Ollama => &OLLAMA,
+        ProviderKind::Kling => {
+            return Err(crate::ai::error::AiError::unsupported(
+                "Kling does not provide the ModelTurn text protocol",
+            ));
+        }
+        ProviderKind::OpenAi
+        | ProviderKind::OpenAiCompatible
+        | ProviderKind::OpenRouter
+        | ProviderKind::Zhipu
+        | ProviderKind::SiliconFlow
+        | ProviderKind::Grok
+        | ProviderKind::Mistral
+        | ProviderKind::Together
+        | ProviderKind::StepFun
+        | ProviderKind::Moonshot
+        | ProviderKind::Doubao
+        | ProviderKind::MiniMax => &OPENAI,
+    };
+    Ok(adapter)
+}
+
+fn adapter_kind(provider: ProviderKind) -> AiResult<AdapterKind> {
+    match provider {
+        ProviderKind::Anthropic => Ok(AdapterKind::Anthropic),
+        ProviderKind::Gemini => Ok(AdapterKind::Gemini),
+        ProviderKind::DashScope => Ok(AdapterKind::Aliyun),
+        ProviderKind::DeepSeek => Ok(AdapterKind::DeepSeek),
+        ProviderKind::Groq => Ok(AdapterKind::Groq),
+        ProviderKind::Ollama => Ok(AdapterKind::Ollama),
+        ProviderKind::Kling => Err(crate::ai::error::AiError::unsupported(
+            "Kling does not provide the ModelTurn text protocol",
+        )),
+        _ => Ok(AdapterKind::OpenAI),
+    }
+}
+
+pub(crate) use wire::GenAiModelTurnAdapter;
+pub(crate) use wire::{to_genai_options, to_genai_request};
