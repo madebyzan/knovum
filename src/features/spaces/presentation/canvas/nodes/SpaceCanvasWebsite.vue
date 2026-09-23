@@ -4,6 +4,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { spaceAssetSource } from "../../../assets/node-preview-source";
+import type { CanvasNodePresentationContext } from "../../../canvas/contract/canvas-detail-profile";
 import type { SpaceWebsitePayload } from "../../../model/nodes/node-payload";
 import { truncateUtf16 } from "../../../model/text";
 import SpaceCanvasNodeStatus from "./SpaceCanvasNodeStatus.vue";
@@ -11,6 +12,7 @@ import SpaceCanvasNodeStatus from "./SpaceCanvasNodeStatus.vue";
 const props = defineProps<{
   id: string;
   data: SpaceWebsitePayload;
+  presentationContext: CanvasNodePresentationContext;
 }>();
 const { t } = useI18n();
 const host = computed(() => new URL(props.data.url).hostname.replace(/^www\./u, ""));
@@ -27,6 +29,16 @@ const faviconSource = computed(() =>
 );
 const previewSource = computed(() =>
   props.data.previewImagePath ? spaceAssetSource(props.data.previewImagePath) : undefined,
+);
+const showsSummary = computed(
+  () =>
+    props.presentationContext.mode === "interactive" ||
+    props.presentationContext.viewport.previewItemLimit >= 2,
+);
+const showsPreview = computed(
+  () =>
+    props.presentationContext.mode === "interactive" ||
+    props.presentationContext.viewport.previewItemLimit >= 4,
 );
 const emptyMessage = computed(() => {
   if (props.data.metadataState === "loading") return t("spaces.transfer.websiteLoading");
@@ -63,7 +75,7 @@ const emptyMessage = computed(() => {
         data.title
       }}</strong>
       <p
-        v-if="summary"
+        v-if="showsSummary && summary"
         class="text-caption leading-relaxed text-foreground-secondary"
         :class="previewSource ? 'line-clamp-3' : 'line-clamp-7'"
       >
@@ -72,7 +84,7 @@ const emptyMessage = computed(() => {
       <p v-else-if="emptyMessage" class="text-caption text-foreground-tertiary">{{ emptyMessage }}</p>
     </div>
     <img
-      v-if="previewSource"
+      v-if="showsPreview && previewSource"
       :src="previewSource"
       alt=""
       class="block h-1/4 w-full shrink-0 border-t border-divider object-cover object-center"

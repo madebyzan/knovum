@@ -43,7 +43,7 @@ pub(in crate::spaces) fn validate_origin(origin: &str) -> Result<(), String> {
 pub(in crate::spaces) fn validate_kind(kind: &str) -> Result<(), String> {
     match kind {
         "node" | "text" | "heading" | "page" | "slide" | "sheet" | "table" | "transcript"
-        | "chapter" | "code" | "image_description" | "video_first_frame" => Ok(()),
+        | "chapter" | "code" | "image_description" | "video_cover" => Ok(()),
         _ => Err("Unsupported knowledge chunk kind".to_owned()),
     }
 }

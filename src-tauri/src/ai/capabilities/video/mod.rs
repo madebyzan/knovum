@@ -23,27 +23,12 @@ pub struct VideoGenerationRequest {
 }
 
 pub async fn generate(
-    app: &AppHandle,
+    _app: &AppHandle,
     request: VideoGenerationRequest,
     cancellation: &CancellationToken,
     stage: impl Fn(&str) -> Result<(), String> + Send + Sync + 'static,
 ) -> AiResult<GeneratedVideo> {
     validate(&request)?;
-    if let ExecutionTarget::Agent { kind, .. } = &request.target {
-        stage("generatingVideo").map_err(AiError::invalid)?;
-        let generated = super::agent_task::generate_video(
-            app,
-            *kind,
-            &request.prompt,
-            &request.ratio,
-            request.duration,
-            request.reference_images,
-            cancellation.clone(),
-        )
-        .await?;
-        stage("downloadingVideo").map_err(AiError::invalid)?;
-        return Ok(generated);
-    }
     let kind = request.target.model_provider_kind()?;
     let provider = resolve_provider(kind);
     let video_generation = provider.as_video_generation().ok_or_else(|| {

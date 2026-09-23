@@ -77,7 +77,7 @@ fn video_jobs(data: &Value, source_revision: &str) -> Vec<EnrichmentJobType> {
         .is_some_and(|path| !path.is_empty())
         && !visual_knowledge_is_current(data, source_revision)
     {
-        jobs.push(EnrichmentJobType::AnalyzeVideoFirstFrame);
+        jobs.push(EnrichmentJobType::AnalyzeVideoCover);
     }
     jobs
 }
@@ -98,13 +98,22 @@ fn document_jobs(data: &Value, source_revision: &str) -> Vec<EnrichmentJobType> 
     if !knowledge_is_current(data, "documentCoverage", source_revision) {
         return vec![EnrichmentJobType::ParseDocument];
     }
-    let pending = data["documentCoverage"]["occurrences"]
-        .as_array()
-        .is_some_and(|occurrences| {
-            occurrences.iter().any(|occurrence| {
-                matches!(occurrence["state"].as_str(), Some("pending" | "failed"))
-            })
-        });
+    let occurrences = data["documentCoverage"]["occurrences"].as_array();
+    let missing_pdf_resources = occurrences.is_some_and(|occurrences| {
+        occurrences.iter().any(|occurrence| {
+            !occurrence["pdfInput"].is_null()
+                && occurrence["resourceId"].is_null()
+                && matches!(occurrence["state"].as_str(), Some("pending" | "failed"))
+        })
+    });
+    if missing_pdf_resources {
+        return vec![EnrichmentJobType::ParseDocument];
+    }
+    let pending = occurrences.is_some_and(|occurrences| {
+        occurrences
+            .iter()
+            .any(|occurrence| matches!(occurrence["state"].as_str(), Some("pending" | "failed")))
+    });
     if pending {
         vec![EnrichmentJobType::AnalyzeDocument]
     } else {
@@ -156,3 +165,6 @@ async fn enqueue(
     .map_err(crate::spaces::db::sql_error)?;
     Ok(())
 }
+
+#[cfg(test)]
+mod tests;

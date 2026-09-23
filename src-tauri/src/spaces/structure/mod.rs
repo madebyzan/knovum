@@ -5,6 +5,7 @@ mod content_height_read_set;
 mod contract;
 pub(crate) mod creation;
 mod deleted_commands;
+mod deletion_transaction;
 mod edit_contract;
 mod geometry;
 pub(crate) mod history;
@@ -32,6 +33,7 @@ pub(crate) use contract::{
     LocalTransform, Point, RelationColor, RelationStyle, Size, SizeAuthority, StructureLayout,
     StructureNode,
 };
+pub(crate) use edit_contract::ExecuteSpaceEditRequest;
 pub(crate) use repository::initialize_empty_in_transaction;
 pub(crate) use validation::{validate_content_coverage, validate_space_snapshot};
 

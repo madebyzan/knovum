@@ -21,7 +21,7 @@ describe("createSpaceNode", () => {
   it("rejects Structure fields in content data", () => {
     expect(() =>
       validateSpaceNodePayload({ ...createSpaceNotePayload("Reference"), sectionId: "section" }),
-    ).toThrow("Unrecognized keys");
+    ).toThrow(/unrecognized_key/u);
   });
 
   it("deep-clones media knowledge for independent duplicated nodes", () => {

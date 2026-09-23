@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::ai::contracts::{AgentKind, ProviderKind};
+use crate::ai::contracts::ProviderKind;
 use crate::ai::error::{AiError, AiResult};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -13,9 +13,6 @@ pub enum ExecutionTargetRef {
     Model {
         connection_id: String,
         model_id: String,
-    },
-    Agent {
-        kind: AgentKind,
     },
 }
 
@@ -30,12 +27,11 @@ impl ExecutionTargetRef {
                 model_id,
                 temperature,
             },
-            Self::Agent { kind } => ExecutionTargetSelection::Agent { kind },
         }
     }
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(
     tag = "type",
     rename_all = "snake_case",
@@ -48,62 +44,33 @@ pub enum ExecutionTargetSelection {
         model_id: String,
         temperature: f64,
     },
-    Agent {
-        kind: AgentKind,
-    },
 }
 
 #[derive(Clone, Debug)]
-pub enum ExecutionTarget {
-    Model {
-        provider: String,
-        model: String,
-        base_url: String,
-        temperature: f64,
-        secret_key: String,
-    },
-    Agent {
-        kind: AgentKind,
-    },
+pub struct ExecutionTarget {
+    pub provider: String,
+    pub model: String,
+    pub base_url: String,
+    pub temperature: f64,
+    pub secret_key: String,
 }
 
 impl ExecutionTarget {
     pub fn model_provider_kind(&self) -> AiResult<ProviderKind> {
-        match self {
-            Self::Model { provider, .. } => ProviderKind::parse(provider).ok_or_else(|| {
-                AiError::unsupported(format!("Unsupported AI provider: {provider}"))
-            }),
-            Self::Agent { .. } => Err(AiError::unsupported(
-                "Desktop Agents are not model providers",
-            )),
-        }
-    }
-
-    pub fn agent_kind(&self) -> Option<AgentKind> {
-        match self {
-            Self::Agent { kind, .. } => Some(*kind),
-            Self::Model { .. } => None,
-        }
+        ProviderKind::parse(&self.provider).ok_or_else(|| {
+            AiError::unsupported(format!("Unsupported AI provider: {}", self.provider))
+        })
     }
 
     pub fn provider(&self) -> &str {
-        match self {
-            Self::Model { provider, .. } => provider,
-            Self::Agent { kind, .. } => kind.as_str(),
-        }
+        &self.provider
     }
 
     pub fn model(&self) -> &str {
-        match self {
-            Self::Model { model, .. } => model,
-            Self::Agent { kind, .. } => kind.as_str(),
-        }
+        &self.model
     }
 
     pub fn temperature(&self) -> Option<f64> {
-        match self {
-            Self::Model { temperature, .. } => Some(*temperature),
-            Self::Agent { .. } => None,
-        }
+        Some(self.temperature)
     }
 }

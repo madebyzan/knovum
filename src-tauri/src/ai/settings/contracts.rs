@@ -56,3 +56,20 @@ pub(super) struct Defaults {
     pub image_generation: Option<ExecutionTargetRef>,
     pub video_generation: Option<ExecutionTargetRef>,
 }
+
+impl Defaults {
+    pub(super) fn target(
+        &self,
+        purpose: crate::ai::contracts::RoutingPurpose,
+    ) -> Option<ExecutionTargetRef> {
+        use crate::ai::contracts::RoutingPurpose;
+        match purpose {
+            RoutingPurpose::Writing => self.writing.clone(),
+            RoutingPurpose::Knowledge => self.knowledge.clone(),
+            RoutingPurpose::VisualUnderstanding => self.visual_understanding.clone(),
+            RoutingPurpose::Translation => self.translation.clone(),
+            RoutingPurpose::ImageGeneration => self.image_generation.clone(),
+            RoutingPurpose::VideoGeneration => self.video_generation.clone(),
+        }
+    }
+}

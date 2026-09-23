@@ -6,6 +6,7 @@ const settingsPaneIds = [
   "aiModels",
   "desktopAgents",
   "executionRouting",
+  "usage",
   "creation",
   "archivedSpaces",
   "about",

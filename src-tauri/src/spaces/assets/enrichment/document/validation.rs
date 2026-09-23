@@ -19,9 +19,13 @@ pub(super) fn validate(report: &DocumentCoverage) -> Result<(), String> {
         return Err("Document visual resources exceed 256 MiB".into());
     }
     let mut occurrence_ids = BTreeSet::new();
+    let mut referenced_resource_ids = BTreeSet::new();
     let mut text_width = 0_usize;
     for occurrence in &report.occurrences {
         validate_occurrence(occurrence, report, &resource_ids)?;
+        if let Some(resource_id) = occurrence.resource_id.as_deref() {
+            referenced_resource_ids.insert(resource_id);
+        }
         if !occurrence_ids.insert(occurrence.id.as_str()) {
             return Err("Document occurrence IDs must be unique".into());
         }
@@ -30,6 +34,9 @@ pub(super) fn validate(report: &DocumentCoverage) -> Result<(), String> {
             text_width += analysis.description.encode_utf16().count()
                 + analysis.detected_text.encode_utf16().count();
         }
+    }
+    if resource_ids != referenced_resource_ids {
+        return Err("Document resources must belong to at least one occurrence".into());
     }
     if text_width > 4 * 1024 * 1024 {
         return Err("Document visual text exceeds 4 Mi UTF-16 units".into());

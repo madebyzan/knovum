@@ -6,7 +6,6 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { useCreationLibraryStore } from "../../../../foundation/ai/creation-library-store";
-import SavedCreationWorkflows from "../SavedCreationWorkflows.vue";
 import SavedGenerationPresets from "../SavedGenerationPresets.vue";
 import SettingsLoadFailure from "../SettingsLoadFailure.vue";
 
@@ -43,6 +42,5 @@ onMounted(store.ensureLoaded);
       {{ t("settings.creation.description") }}
     </p>
     <SavedGenerationPresets v-model="library.generationPresets" />
-    <SavedCreationWorkflows v-model="library.creationWorkflows" />
   </div>
 </template>

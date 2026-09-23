@@ -24,6 +24,17 @@ pub(crate) struct HistoryState {
     relations: Vec<RelationLifecycle>,
 }
 
+pub(super) struct HistoryInsert<'a> {
+    pub space_id: &'a str,
+    pub before: &'a HistoryState,
+    pub after: &'a HistoryState,
+    pub deletion_batch_id: Option<&'a str>,
+    pub deletion_restored_after: Option<bool>,
+    pub group_id: Option<&'a str>,
+    pub revision: i64,
+    pub now: i64,
+}
+
 pub(crate) async fn capture(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
@@ -80,14 +91,16 @@ pub(crate) async fn record(
     let now = crate::clock::unix_time_millis()?;
     insert(
         tx,
-        space_id,
-        before,
-        after,
-        deletion_batch_id,
-        deletion_batch_restored_after,
-        None,
-        applied_revision,
-        now,
+        HistoryInsert {
+            space_id,
+            before,
+            after,
+            deletion_batch_id,
+            deletion_restored_after: deletion_batch_restored_after,
+            group_id: None,
+            revision: applied_revision,
+            now,
+        },
     )
     .await?;
     prune(tx, space_id).await
@@ -101,17 +114,17 @@ pub(crate) async fn record_group(
     group::record(tx, group_id, entries).await
 }
 
-async fn insert(
-    tx: &mut Transaction<'_, Sqlite>,
-    space_id: &str,
-    before: &HistoryState,
-    after: &HistoryState,
-    deletion_batch_id: Option<&str>,
-    deletion_restored_after: Option<bool>,
-    group_id: Option<&str>,
-    revision: i64,
-    now: i64,
-) -> Result<(), String> {
+async fn insert(tx: &mut Transaction<'_, Sqlite>, entry: HistoryInsert<'_>) -> Result<(), String> {
+    let HistoryInsert {
+        space_id,
+        before,
+        after,
+        deletion_batch_id,
+        deletion_restored_after,
+        group_id,
+        revision,
+        now,
+    } = entry;
     sqlx::query("INSERT INTO spaces_edit_history(space_id,before_snapshot,after_snapshot,before_node_ids,after_node_ids,before_relations,after_relations,deletion_batch_id,deletion_batch_restored_after,history_group_id,expected_revision,undone,created_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,0,$12)")
         .bind(space_id)
         .bind(serde_json::to_string(&before.snapshot).map_err(db::json_error)?)

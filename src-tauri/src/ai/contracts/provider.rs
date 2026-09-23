@@ -2,7 +2,6 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 
 use super::{
-    chat::ChatCapability,
     files::FileUploadCapability,
     media::{ImageGenerationCapability, VideoGenerationCapability},
 };
@@ -132,10 +131,6 @@ impl fmt::Display for ProviderKind {
 }
 
 pub trait AiProvider: Send + Sync {
-    fn as_chat(&self) -> Option<&dyn ChatCapability> {
-        None
-    }
-
     fn as_image_generation(&self) -> Option<&dyn ImageGenerationCapability> {
         None
     }

@@ -44,7 +44,7 @@ pub(super) fn validate_visual_asset(object: &Map<String, Value>) -> Result<(), S
 }
 
 pub(super) fn validate_media_metadata(object: &Map<String, Value>) -> Result<(), String> {
-    super::super::media_analysis::validate(object.get("mediaAnalysis"))?;
+    super::super::media::analysis::validate(object.get("mediaAnalysis"))?;
     optional_string(object, "creator", 512, false)?;
     optional_safe_nonnegative_integer(object, "durationSeconds")?;
     let Some(origin) = object.get("origin") else {

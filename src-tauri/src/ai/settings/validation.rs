@@ -103,33 +103,17 @@ fn validate_default(
         return Ok(());
     };
     let capability = purpose.execution_capability();
-    match target {
-        ExecutionTargetRef::Agent { kind } => {
-            if !settings
-                .desktop_agents
-                .iter()
-                .any(|agent| agent.kind == *kind)
-            {
-                return Err(AiError::invalid(
-                    "AI default references an invalid Desktop Agent",
-                ));
-            }
-        }
-        ExecutionTargetRef::Model {
-            connection_id,
-            model_id,
-        } => {
-            let model = settings
-                .connections
-                .iter()
-                .find(|connection| connection.id == *connection_id)
-                .and_then(|connection| {
-                    connection.models.iter().find(|model| model.id == *model_id)
-                });
-            if model.is_none_or(|model| !model.capabilities.contains(&capability)) {
-                return Err(AiError::invalid("AI default references an invalid model"));
-            }
-        }
+    let ExecutionTargetRef::Model {
+        connection_id,
+        model_id,
+    } = target;
+    let model = settings
+        .connections
+        .iter()
+        .find(|connection| connection.id == *connection_id)
+        .and_then(|connection| connection.models.iter().find(|model| model.id == *model_id));
+    if model.is_none_or(|model| !model.capabilities.contains(&capability)) {
+        return Err(AiError::invalid("AI default references an invalid model"));
     }
     Ok(())
 }

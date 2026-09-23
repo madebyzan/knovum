@@ -30,15 +30,15 @@
   "agentEntryNames": "所需命令：{commands}",
   "agentDetectionBoundary": "检测仅确认命令入口，不验证登录或 ACP 连接。",
   "agentConnections": {
-    "native_cli": {
+    "nativeCli": {
       "title": "原生 ACP",
       "requirements": "安装支持 ACP 的官方 CLI，并将命令目录加入 PATH。"
     },
-    "node_adapter": {
+    "nodeAdapter": {
       "title": "ACP 适配器",
       "requirements": "需要官方 CLI 和 Node.js（npx）。首次运行可能联网下载 ACP 适配器。"
     },
-    "standalone_server": {
+    "standaloneServer": {
       "title": "独立 ACP 服务端",
       "requirements": "需单独下载官方 ACP 包，保留配套文件，并将服务端目录加入 PATH。"
     }

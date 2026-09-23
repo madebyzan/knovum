@@ -5,6 +5,7 @@ const DECLARED_PLUGIN =
   /\.plugin\(\s*"([a-z0-9_-]+)"\s*,\s*tauri_build::InlinedPlugin::new\(\)\s*\.commands\(&\[([\s\S]*?)\]\s*\)/gu;
 const PLUGIN_BUILDER = /tauri::plugin::Builder::new\(\s*"([a-z0-9_-]+)"\s*\)([\s\S]*?)\.build\(\)/gu;
 const HANDLER_LIST = /generate_handler!\[([\s\S]*?)\]/gu;
+const HANDLER_FACTORY = /\b([A-Za-z0-9_:]+)::handler\(\)/gu;
 const COMMAND_DECL =
   /#\[tauri::command\][\s\S]{0,240}?\bpub(?:\(crate\))?\s+(?:async\s+)?fn\s+([A-Za-z0-9_]+)/gu;
 
@@ -40,14 +41,12 @@ function readDeclaredPlugins(buildScript, errors) {
 
 function registerPlugin(context, file, key, chain) {
   const { rustRoot, sources, state } = context;
-  const lists = [...chain.matchAll(HANDLER_LIST)];
-  if (lists.length !== 1) {
-    state.errors.push(
-      `plugin "${key}": must register exactly one generate_handler! list, found ${lists.length}`,
-    );
+  const entries = collectHandlers(context, file, chain, new Set());
+  if (entries.length === 0) {
+    state.errors.push(`plugin "${key}": invoke handler registers no generate_handler! commands`);
     return;
   }
-  for (const entry of splitHandlers(lists[0][1])) {
+  for (const entry of entries) {
     const resolved = resolveHandler(rustRoot, file, entry);
     if (resolved.error) {
       state.errors.push(resolved.error);
@@ -63,6 +62,23 @@ function registerPlugin(context, file, key, chain) {
     if (!state.byFile.has(resolved.file)) state.byFile.set(resolved.file, new Map());
     state.byFile.get(resolved.file).set(resolved.name, key);
   }
+}
+
+function collectHandlers(context, file, source, visited) {
+  if (visited.has(file)) return [];
+  visited.add(file);
+  const entries = [...source.matchAll(HANDLER_LIST)].flatMap((match) => splitHandlers(match[1]));
+  for (const match of source.matchAll(HANDLER_FACTORY)) {
+    const resolved = resolveHandler(context.rustRoot, file, `${match[1]}::handler`);
+    if (resolved.error) {
+      context.state.errors.push(resolved.error);
+      continue;
+    }
+    entries.push(
+      ...collectHandlers(context, resolved.file, context.sources.get(resolved.file) ?? "", visited),
+    );
+  }
+  return entries;
 }
 
 function splitHandlers(body) {
@@ -90,7 +106,7 @@ function resolveHandler(rustRoot, file, entry) {
     }
     if (segments[0] === "self") segments.shift();
   } else {
-    return { error: `plugin handler ${entry}: only crate::/self::/super:: paths are supported` };
+    baseDir = dirname(file);
   }
 
   segments.pop();

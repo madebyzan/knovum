@@ -20,8 +20,6 @@ mod root;
 mod store;
 
 pub(crate) use merge::merge_restored_snapshot;
-pub(crate) use restore::{
-    mark_restored, prepare_restore_batch, remove_tombstones,
-};
+pub(crate) use restore::{mark_restored, prepare_restore_batch, remove_tombstones};
 pub(crate) use root::prepare_restore_root;
-pub(crate) use store::store_deletion_in_transaction;
+pub(crate) use store::{store_deletion_in_transaction, DeletionRecord};

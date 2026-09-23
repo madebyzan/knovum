@@ -37,7 +37,7 @@ function matchBadgeLabel(match: KnowledgeSearchMatch): string | null {
     return t("spaces.processing.matchBadge.documentInterpretation");
   const locator: SpaceMatchLocator = matchLocatorFor(match);
   if (locator.kind === "image-description") return t("spaces.processing.matchBadge.imageDescription");
-  if (locator.kind === "video-first-frame") return t("spaces.processing.matchBadge.videoFirstFrame");
+  if (locator.kind === "video-cover") return t("spaces.processing.matchBadge.videoCover");
   if (locator.kind === "media-time-range")
     return t("spaces.processing.matchBadge.mediaTimeRange", {
       start: formatDurationMs(locator.startMs),

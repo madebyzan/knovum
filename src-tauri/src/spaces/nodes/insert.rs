@@ -85,8 +85,19 @@ pub(in crate::spaces) async fn insert_rows_in_transaction(
     nodes: &[InsertNode],
     now: i64,
 ) -> Result<(), String> {
+    insert_rows_with_actor(tx, space_id, nodes, "human", None, now).await
+}
+
+pub(in crate::spaces) async fn insert_rows_with_actor(
+    tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
+    space_id: &str,
+    nodes: &[InsertNode],
+    actor_kind: &str,
+    actor_id: Option<&str>,
+    now: i64,
+) -> Result<(), String> {
     for node in nodes {
-        insert_single_node(tx, space_id, node, now).await?;
+        insert_single_node(tx, space_id, node, actor_kind, actor_id, now).await?;
     }
     Ok(())
 }
@@ -95,6 +106,8 @@ async fn insert_single_node(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     space_id: &str,
     node: &InsertNode,
+    actor_kind: &str,
+    actor_id: Option<&str>,
     now: i64,
 ) -> Result<(), String> {
     if node.kind == "section" {
@@ -132,7 +145,7 @@ async fn insert_single_node(
             space_id,
             events::EventEntity::new("node", &node.id),
             "created",
-            events::EventActor::new("human", None),
+            events::EventActor::new(actor_kind, actor_id),
             &serde_json::json!({"kind": node.kind}),
             now,
         ),
@@ -145,7 +158,7 @@ async fn insert_single_node(
             &node.id,
             &serde_json::json!({}),
             &node.data,
-            events::EventActor::new("human", None),
+            events::EventActor::new(actor_kind, actor_id),
             now,
         )
         .await?;

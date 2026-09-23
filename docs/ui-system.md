@@ -219,6 +219,32 @@ Canvas nodes are desktop objects, not floating web cards. Every movable content 
 
 Every imported visual asset, and every plain document the system renderer could draw, carries intrinsic width/height through the Rust import boundary. A node may appear with a neutral processing placeholder while bytes are copied, but once intrinsic geometry is known the canvas must recompute its designed initial geometry rather than preserving an arbitrary placeholder ratio.
 
+### Space canvas adaptive detail
+
+Canvas zoom changes information density, not node geometry. The viewport resolves one shared detail profile:
+
+| Profile | Preview item budget | Meaning                                       |
+| ------- | ------------------- | --------------------------------------------- |
+| compact | 2                   | recognition and primary identity              |
+| summary | 4                   | recognition plus a short structured preview   |
+| full    | 10                  | the normal non-interactive reading projection |
+
+The item budget is semantic: Tiptap and Markdown count root blocks, subtitles count cues, code counts lines,
+archives count entries, and structured objects count fields. Markdown is projected from source block ranges before
+rendering; rendered rich DOM must never be line-clamped as the primary density mechanism. Media and fixed utility
+nodes keep their type-owned representation instead of pretending every kind contains a list.
+
+Viewport detail and interaction are independent state. Activating a node switches it from `preview` to
+`interactive` content without rewriting the viewport profile; editors, complete source and embedded controls may
+then reveal the canonical content. Zooming alone must not persist a frame, derived height or content mutation.
+Text may keep an invisible canonical measurement plane while presenting a projected preview, so display density
+cannot feed back into persisted geometry.
+
+Every canvas node kind declares its projection strategy exhaustively. New kinds must choose a strategy when they
+enter the node union; there is no generic compatibility fallback and no component-local zoom threshold. The
+viewport owns the shared profile, the node type owns physical layout and content projection, and the interaction
+state owns whether the projection or canonical content is shown.
+
 ### Space canvas object interaction model
 
 Canvas objects follow a desktop direct-manipulation model. Content, selection chrome and spatial geometry are separate responsibilities:
@@ -294,6 +320,12 @@ Each node layout represents the object's job instead of reusing a universal head
 | section        | Spatial grouping container                                      | Compact title strip                                                         | Member content remains independent                                                      |
 
 Canvas nodes display only information required for recognition and direct manipulation. Rich analysis is contextual detail, not extra card content. A transcript becoming ready, chapters being generated or OCR completing must not append a new region, create blank space or change the object's position or size.
+
+Document resources belong to selection detail. The Inspector presents deduplicated visual resources as a compact
+thumbnail grid; selecting a thumbnail opens the shared dialog viewer with every occurrence, source location,
+nearby context and optional analysis. Office resources are identified as extracted embedded images. PDF resources
+are identified as rendered page regions or recognition pages and are never described as original embedded files.
+Resource visibility depends on document parsing and native rendering, not on AI configuration.
 
 ## Window and shell layout
 

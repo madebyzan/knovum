@@ -6,6 +6,13 @@ use super::geometry::{validate_layout, validate_world_transform};
 const MAX_STRUCTURE_NODES: usize = 100_000;
 const MAX_DEPTH: usize = 64;
 
+pub(super) fn validate_id(label: &str, id: &str) -> Result<(), String> {
+    if id.is_empty() || id.encode_utf16().count() > 128 {
+        return Err(format!("{label} must contain 1 to 128 characters"));
+    }
+    Ok(())
+}
+
 pub(crate) fn validate_space_snapshot(
     structure: &[StructureNode],
     layouts: &[StructureLayout],

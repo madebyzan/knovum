@@ -19,21 +19,11 @@ pub struct ImageGenerationRequest {
 }
 
 pub async fn generate(
-    app: &AppHandle,
+    _app: &AppHandle,
     request: ImageGenerationRequest,
     cancellation: &CancellationToken,
 ) -> AiResult<GeneratedImage> {
     validate(&request)?;
-    if let ExecutionTarget::Agent { kind, .. } = &request.target {
-        return super::agent_task::generate_image(
-            app,
-            *kind,
-            &request.prompt,
-            &request.aspect_ratio,
-            cancellation.clone(),
-        )
-        .await;
-    }
     let kind = request.target.model_provider_kind()?;
     let provider = resolve_provider(kind);
     let image_generation = provider.as_image_generation().ok_or_else(|| {

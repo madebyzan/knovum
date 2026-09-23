@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
+use ts_rs::TS;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 pub enum AgentKind {
     Codex,
@@ -107,15 +108,37 @@ pub struct AgentCreationRequest {
     pub session_id: String,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(
     tag = "type",
     rename_all = "snake_case",
     rename_all_fields = "camelCase"
 )]
 pub enum AgentCreationEvent {
-    Thought { text: String },
-    Message { text: String },
-    ToolStarted { id: String, title: String },
-    ToolUpdated { id: String },
+    Thought {
+        text: String,
+    },
+    Message {
+        text: String,
+    },
+    ToolStarted {
+        id: String,
+        title: String,
+    },
+    ToolUpdated {
+        id: String,
+    },
+    PermissionRequested {
+        request_id: String,
+        title: String,
+        options: Vec<AgentPermissionOption>,
+    },
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AgentPermissionOption {
+    pub id: String,
+    pub label: String,
+    pub kind: String,
 }

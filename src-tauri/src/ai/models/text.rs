@@ -4,6 +4,7 @@ use super::{ExecutionTarget, ExecutionTargetSelection};
 
 #[derive(Debug)]
 pub struct CompletionRequest {
+    pub purpose: crate::ai::usage::UsagePurpose,
     pub target: ExecutionTarget,
     pub system_prompt: String,
     pub instruction: String,
@@ -81,6 +82,7 @@ pub struct CompletionOutput {
     pub text: String,
     pub provider: String,
     pub model: String,
+    pub usage: Option<crate::ai::contracts::TokenUsage>,
 }
 
 #[derive(Debug, Serialize)]

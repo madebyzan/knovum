@@ -49,31 +49,15 @@ const routeRows = computed(() =>
     purpose,
     label: t(`settings.ai.${translationKey}`),
     description: t(`settings.ai.${translationKey}Description`),
-    options: availableExecutionTargets(
-      settings.value,
-      purpose,
-      props.agentDescriptors,
-      props.agentInstallations,
-    ).map((option) =>
+    options: availableExecutionTargets(settings.value, purpose).map((option) =>
       Object.assign({}, option, {
         description:
-          option.disabledReason ??
-          option.statusDetail ??
-          t(
-            option.capabilitySource === "model-native"
-              ? "settings.ai.executionTargetModelNative"
-              : option.availability === "unverified"
-                ? "settings.ai.executionTargetAgentWorkflow"
-                : "settings.ai.executionTargetAgentReady",
-          ),
+          option.disabledReason ?? option.statusDetail ?? t("settings.ai.executionTargetModelNative"),
       }),
     ),
   })),
 );
-const hasTargets = computed(
-  () =>
-    props.connections.some((connection) => connection.models.length > 0) || props.desktopAgents.length > 0,
-);
+const hasTargets = computed(() => props.connections.some((connection) => connection.models.length > 0));
 
 function update(key: keyof AiRoutingDefaults, value: string) {
   const target = value ? decodeExecutionTarget(value) : null;

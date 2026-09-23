@@ -12,6 +12,7 @@ import SpaceLibrary from "./presentation/library/SpaceLibrary.vue";
 import SpaceAudioRecordingDock from "./presentation/media/SpaceAudioRecordingDock.vue";
 import SpaceEditorLoading from "./presentation/SpaceEditorLoading.vue";
 import SpaceRecentlyDeleted from "./presentation/SpaceRecentlyDeleted.vue";
+import SpaceVideoEditor from "./presentation/video-editor/SpaceVideoEditor.vue";
 import { useSpaceStore } from "./session/space-store";
 import { useSpaceSessionLifecycle } from "./workspace/use-space-session-lifecycle";
 
@@ -67,6 +68,7 @@ onMounted(() => void initialize());
         :open="true"
         @update:open="!$event && (store.recentlyDeletedSpaceId = undefined)"
       />
+      <SpaceVideoEditor v-if="store.videoEditorNodeId" />
     </template>
   </main>
 </template>

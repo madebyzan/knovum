@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Copy, Eye, ExternalLink, Group, Info, Link2, Sparkles } from "@lucide/vue";
+import { Copy, Eye, ExternalLink, Group, Info, Link2, Scissors, Sparkles } from "@lucide/vue";
 import { ToolbarButton, ToolbarRoot } from "reka-ui";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
@@ -14,6 +14,7 @@ import type {
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceCanvasTextPayload } from "../../model/nodes/capabilities";
 import SpaceSelectionMoveMenu from "../SpaceSelectionMoveMenu.vue";
+import SpaceCanvasImageTools from "./SpaceCanvasImageTools.vue";
 import SpaceCanvasSelectionMenu from "./SpaceCanvasSelectionMenu.vue";
 import SpaceCanvasTextFormatBar from "./SpaceCanvasTextFormatBar.vue";
 import { useCanvasSelectionActions } from "./use-canvas-selection-actions";
@@ -50,6 +51,12 @@ function isCanvasTextNode(node: SpaceCanvasNode): node is SpaceCanvasNode<SpaceC
       v-bind="actions.selectedAppearance.value ? { appearance: actions.selectedAppearance.value } : {}"
       @update="actions.setAppearance"
     />
+    <SpaceCanvasImageTools v-if="actions.selectedImageNode.value" :actions="actions" />
+    <ToolbarButton v-if="actions.selectedVideoNode.value" as-child>
+      <UiIconButton :label="t('spaces.media.editVideo')" size="sm" @click="actions.editVideo">
+        <Scissors class="size-(--knovum-icon-size-sm)" :stroke-width="1.55" />
+      </UiIconButton>
+    </ToolbarButton>
     <ToolbarButton v-if="actions.state.value.canOpen" as-child>
       <UiIconButton
         :label="t(actions.state.value.opensSystemPreview ? 'spaces.transfer.systemPreview' : 'common.open')"

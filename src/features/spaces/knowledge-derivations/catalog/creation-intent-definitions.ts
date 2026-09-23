@@ -7,97 +7,97 @@ import type {
 const AVAILABLE: CreationIntentDecision = { available: true };
 const HIDDEN: CreationIntentDecision = { available: false };
 
-function decideKnowledgeAction(context: CreationSelectionContext): CreationIntentDecision {
+function decideKnowledgeIntent(context: CreationSelectionContext): CreationIntentDecision {
   if (context.hasKnowledgeSources) return AVAILABLE;
   return context.selectionCount > 0 ? { available: false, reason: "needs-indexed-knowledge" } : HIDDEN;
 }
 
-function decideKnowledgeVideo(context: CreationSelectionContext): CreationIntentDecision {
-  const knowledge = decideKnowledgeAction(context);
+function decideVideoGeneration(context: CreationSelectionContext): CreationIntentDecision {
+  const knowledge = decideKnowledgeIntent(context);
   if (!knowledge.available) return knowledge;
   return context.imageCount > 10 ? { available: false, reason: "too-many-video-images" } : AVAILABLE;
 }
 
 export const creationIntentDefinitions = [
   {
-    id: "grounded-document",
+    id: "draft-document",
     kind: "atomic",
     labelKey: "spaces.creation.generateDocument",
     icon: "file-pen",
-    decide: decideKnowledgeAction,
+    decide: decideKnowledgeIntent,
   },
   {
-    id: "knowledge-visualization",
+    id: "generate-visualization",
     kind: "atomic",
     labelKey: "spaces.creation.visualize",
     icon: "image",
-    decide: decideKnowledgeAction,
+    decide: decideKnowledgeIntent,
   },
   {
-    id: "docx-export",
+    id: "export-document-as-docx",
     kind: "atomic",
     labelKey: "spaces.creation.exportDocx",
     icon: "file-output",
     decide: ({ canExportDocument }) => (canExportDocument ? AVAILABLE : HIDDEN),
   },
   {
-    id: "pdf-export",
+    id: "export-document-as-pdf",
     kind: "atomic",
     labelKey: "spaces.creation.exportPdf",
     icon: "file-output",
     decide: ({ canExportDocument }) => (canExportDocument ? AVAILABLE : HIDDEN),
   },
   {
-    id: "presentation",
+    id: "presentation-production",
     kind: "workflow",
     labelKey: "spaces.creation.createPresentation",
     icon: "file-output",
-    decide: decideKnowledgeAction,
+    decide: decideKnowledgeIntent,
   },
   {
-    id: "knowledge-video",
+    id: "video-production",
     kind: "workflow",
     labelKey: "spaces.creation.generateVideo",
     icon: "sparkles",
-    decide: decideKnowledgeVideo,
+    decide: decideVideoGeneration,
   },
   {
-    id: "social-content-kit",
+    id: "social-content-package",
     kind: "workflow",
-    labelKey: "spaces.creation.socialContentKit",
+    labelKey: "spaces.creation.socialContentPackage",
     icon: "sparkles",
-    decide: decideKnowledgeAction,
+    decide: decideKnowledgeIntent,
   },
   {
-    id: "background-removal",
+    id: "remove-image-background",
     kind: "atomic",
     labelKey: "spaces.creation.removeBackground",
     icon: "scan",
     decide: ({ canRemoveBackground }) => (canRemoveBackground ? AVAILABLE : HIDDEN),
   },
   {
-    id: "video-with-subtitles",
+    id: "subtitled-video-production",
     kind: "workflow",
-    labelKey: "spaces.creation.videoWithSubtitlesWorkflow",
+    labelKey: "spaces.creation.subtitledVideoProduction",
     icon: "captions",
     decide: ({ canExtractSubtitles }) => (canExtractSubtitles ? AVAILABLE : HIDDEN),
   },
   {
-    id: "meeting-video-package",
+    id: "meeting-content-package",
     kind: "workflow",
-    labelKey: "spaces.creation.meetingVideoPackage",
+    labelKey: "spaces.creation.meetingContentPackage",
     icon: "sparkles",
     decide: ({ canCreateMeetingPackage }) => (canCreateMeetingPackage ? AVAILABLE : HIDDEN),
   },
   {
-    id: "subtitle-burn-in",
+    id: "render-subtitled-video",
     kind: "atomic",
     labelKey: "spaces.creation.createSubtitledVideo",
     icon: "captions",
     decide: ({ canBurnSubtitles }) => (canBurnSubtitles ? AVAILABLE : HIDDEN),
   },
   {
-    id: "subtitle-extraction",
+    id: "extract-subtitles",
     kind: "atomic",
     labelKey: "spaces.creation.createSubtitleResource",
     icon: "captions",

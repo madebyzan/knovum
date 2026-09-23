@@ -4,6 +4,11 @@ import { describe, expect, it } from "vitest";
 import { i18n } from "../../../foundation/i18n/i18n";
 import SpaceCanvasWebsite from "../presentation/canvas/nodes/SpaceCanvasWebsite.vue";
 
+const presentationContext = {
+  viewport: { level: "full", previewItemLimit: 10 },
+  mode: "preview",
+} as const;
+
 describe("saved website canvas card", () => {
   it("presents source, page title and description as one knowledge card", () => {
     const wrapper = mount(SpaceCanvasWebsite, {
@@ -17,6 +22,7 @@ describe("saved website canvas card", () => {
           description: "A concise introduction to the article.",
           metadataState: "ready",
         },
+        presentationContext,
       },
       global: { plugins: [i18n], stubs: { SpaceCanvasNodeStatus: true } },
     });
@@ -38,6 +44,7 @@ describe("saved website canvas card", () => {
           contentPreview: "This guide explains the main concepts.",
           metadataState: "ready",
         },
+        presentationContext,
       },
       global: { plugins: [i18n], stubs: { SpaceCanvasNodeStatus: true } },
     });
@@ -54,6 +61,7 @@ describe("saved website canvas card", () => {
           url: "https://example.com/",
           metadataState: "failed",
         },
+        presentationContext,
       },
       global: { plugins: [i18n], stubs: { SpaceCanvasNodeStatus: true } },
     });

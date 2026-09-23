@@ -1,13 +1,29 @@
+mod assistant;
+mod automation;
 mod derivation;
+mod external_conversation;
+mod external_tool;
 mod restore_request;
-mod workflow_run;
+mod run;
+mod workflow;
 
 use serde::Deserialize;
 use serde_json::Value;
 
+pub use assistant::{PackageAssistantConversationRow, PackageAssistantMessageRow};
+pub use automation::{PackageAutomationOccurrenceRow, PackageAutomationTriggerRow};
 pub use derivation::PackageDerivationRow;
+pub use external_conversation::{
+    PackageExternalAgentConversationRow, PackageExternalAgentMessageRow,
+    PackageExternalAgentTurnRow,
+};
+pub use external_tool::PackageExternalToolBindingRow;
 pub use restore_request::RestorePackageRequest;
-pub use workflow_run::PackageWorkflowRunRow;
+pub use run::{
+    PackageRunAttemptRow, PackageRunBatchItemRow, PackageRunEventRow, PackageRunRow,
+    PackageRunStepRow,
+};
+pub use workflow::{PackageWorkflowDraftRow, PackageWorkflowVersionRow};
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]

@@ -72,7 +72,7 @@ pub async fn create(
     }
     let execution = execute(&app, &request, &target, &stages, &cancellation);
     let result = tokio::select! {
-        _ = cancellation.cancelled() => Err("Knowledge visualization was cancelled".to_owned()),
+        _ = cancellation.cancelled() => Err("Visualization generation was cancelled".to_owned()),
         result = execution => result,
     };
     match result {

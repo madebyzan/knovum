@@ -5,12 +5,16 @@ use super::{
     resource,
 };
 use crate::documents::extraction::{pdf::PdfDocumentContent, visual::DocumentImage};
+use std::path::Path;
 use tauri::AppHandle;
 
 pub(in crate::spaces::assets::enrichment) fn pdf(
+    app: &AppHandle,
+    source: &Path,
     document: &PdfDocumentContent,
     revision: &str,
-) -> DocumentCoverage {
+    cancellation: &tokio_util::sync::CancellationToken,
+) -> Result<DocumentCoverage, String> {
     let mut report = DocumentCoverage {
         schema_version: 1,
         parser: DocumentParser::PdfInspector,
@@ -36,7 +40,9 @@ pub(in crate::spaces::assets::enrichment) fn pdf(
             analysis: None,
         });
     }
-    report
+    super::raster::materialize_all(app, source, &mut report, cancellation)?;
+    report.validate()?;
+    Ok(report)
 }
 
 pub(in crate::spaces::assets::enrichment) fn office(

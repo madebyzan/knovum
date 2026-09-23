@@ -1,13 +1,16 @@
-use crate::ai::{contracts, error::AiError, providers};
+use crate::{
+    ai::{contracts, error::AiError, providers},
+    external_agents,
+};
 
 #[tauri::command]
 pub async fn detect_agent_installations() -> Result<Vec<contracts::AgentInstallation>, AiError> {
-    providers::agents::detect_agent_installations().await
+    external_agents::detect_agent_installations().await
 }
 
 #[tauri::command]
 pub fn list_agent_descriptors() -> Vec<contracts::AgentDescriptor> {
-    providers::agents::registry::descriptors()
+    external_agents::registry::descriptors()
 }
 
 #[tauri::command]

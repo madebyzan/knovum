@@ -32,7 +32,7 @@ pub(super) async fn analyze(
             app,
             std::path::Path::new(required_string(data, "assetPath")?),
         )?,
-        super::EnrichmentJobType::AnalyzeVideoFirstFrame => {
+        super::EnrichmentJobType::AnalyzeVideoCover => {
             let path = std::path::Path::new(required_string(data, "previewPath")?);
             if web_media_preview(data) {
                 authorize_spaces_asset(app, path)?

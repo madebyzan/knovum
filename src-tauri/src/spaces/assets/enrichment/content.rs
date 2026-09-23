@@ -32,7 +32,8 @@ pub(in crate::spaces::assets) fn extract(
     }
     if pdf_source {
         let document = pdf::extract(source, cancellation)?;
-        let coverage = super::document::prepare::pdf(&document, revision);
+        let coverage =
+            super::document::prepare::pdf(app, source, &document, revision, cancellation)?;
         asset.preview_text = document.preview_text;
         asset.extracted_text = document.extracted_text;
         asset.knowledge_chunks = Some(source_chunks(document.segments, revision));

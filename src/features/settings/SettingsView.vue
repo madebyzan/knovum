@@ -15,6 +15,7 @@ import DesktopAgentsSettingsAction from "./components/panes/DesktopAgentsSetting
 import DesktopAgentsSettingsPane from "./components/panes/DesktopAgentsSettingsPane.vue";
 import ExecutionRoutingSettingsPane from "./components/panes/ExecutionRoutingSettingsPane.vue";
 import StartupSettingsPane from "./components/panes/StartupSettingsPane.vue";
+import UsageSettingsPane from "./components/panes/UsageSettingsPane.vue";
 import SettingsSidebar from "./components/SettingsSidebar.vue";
 import { resolveSettingsPaneId, type SettingsPaneId } from "./settings-pane";
 import { settingsDefinition } from "./settings-registry";
@@ -57,6 +58,7 @@ const paneComponentMap = {
   aiModels: AiModelsSettingsPane,
   desktopAgents: DesktopAgentsSettingsPane,
   executionRouting: ExecutionRoutingSettingsPane,
+  usage: UsageSettingsPane,
   creation: CreationSettingsPane,
   archivedSpaces: ArchivedSpacesSettingsPane,
   about: AboutSettingsPane,

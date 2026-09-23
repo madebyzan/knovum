@@ -1,155 +1,37 @@
+mod action_execution;
+pub(crate) mod actions;
 mod agent_artifacts;
 pub(crate) mod assets;
+pub(crate) mod assistant;
+pub(crate) mod authorization;
+pub(crate) mod automation;
 mod canvas_exchange;
 mod canvas_view_state;
 mod clipboard_content;
+mod command_registry;
 pub(crate) mod commands;
 pub(crate) mod db;
 pub(crate) mod derivation;
+pub(crate) mod external_conversations;
 pub(crate) mod knowledge;
+pub(crate) mod mcp;
 pub(crate) mod nodes;
 pub(crate) mod package;
 mod previews;
 pub(crate) mod queries;
 mod recovery;
+pub(crate) mod runs;
 pub(crate) mod structure;
+pub(crate) mod workflows;
 
 pub fn plugin() -> tauri::plugin::TauriPlugin<tauri::Wry> {
     tauri::plugin::Builder::new("spaces")
-        .invoke_handler(tauri::generate_handler![
-            crate::spaces::agent_artifacts::discard_artifact_workspace,
-            crate::spaces::agent_artifacts::recovery::list_recoverable_artifact_workspaces,
-            crate::spaces::agent_artifacts::preview_generated_artifact,
-            crate::spaces::agent_artifacts::create_agent_artifacts,
-            crate::spaces::agent_artifacts::import::stage_generated_artifact_import,
-            crate::spaces::assets::audio::commands::start_audio_recording,
-            crate::spaces::assets::audio::commands::append_audio_chunk,
-            crate::spaces::assets::audio::commands::finalize_audio_recording,
-            crate::spaces::assets::audio::commands::cancel_audio_recording,
-            crate::spaces::assets::image::commands::persist_editor_image,
-            crate::spaces::assets::image::commands::persist_clipboard_image,
-            crate::spaces::assets::image::commands::import_editor_image,
-            crate::spaces::assets::import::commands::stage_asset_import,
-            crate::spaces::assets::import::commands::commit_asset_import,
-            crate::spaces::assets::import::commands::enrich_asset,
-            crate::spaces::assets::import::commands::cancel_asset_import,
-            crate::spaces::assets::import::commands::cancel_asset_enrichment,
-            crate::spaces::assets::commands::refresh_asset,
-            crate::spaces::assets::commands::open_asset,
-            crate::spaces::assets::commands::preview_asset,
-            crate::spaces::assets::commands::open_asset_at_location,
-            crate::spaces::assets::commands::duplicate_asset,
-            crate::spaces::assets::commands::remove_asset,
-            crate::spaces::assets::commands::export_asset,
-            crate::spaces::assets::commands::export_text,
-            crate::spaces::package::export_space_package,
-            crate::spaces::package::import_space_package,
-            crate::spaces::assets::transcription::transcribe_media,
-            crate::spaces::assets::transcription::cancel_media_transcription,
-            crate::spaces::assets::enrichment::jobs::run_enrichment_job,
-            crate::spaces::assets::enrichment::jobs::cancel_enrichment_job,
-            crate::spaces::assets::enrichment::jobs::list_enrichment_jobs,
-            crate::spaces::assets::enrichment::jobs::defer_enrichment_for_configuration,
-            crate::spaces::assets::import::web::fetch_webpage,
-            crate::spaces::assets::import::web::cache_web_asset,
-            crate::spaces::clipboard_content::read_space_clipboard_content,
-            crate::spaces::assets::import::media::import_media_from_url,
-            crate::spaces::assets::import::media::cancel_media_import,
-            crate::spaces::canvas_view_state::load_canvas_view_state,
-            crate::spaces::canvas_view_state::save_canvas_view_state,
-            crate::spaces::structure::support_commands::load_space_edit_snapshot,
-            crate::spaces::structure::support_commands::get_space_edit_receipt_result,
-            crate::spaces::structure::support_commands::import_structure_clipboard,
-            crate::spaces::structure::commands::execute_space_edit,
-            crate::spaces::structure::commands::undo_space_edit,
-            crate::spaces::structure::commands::redo_space_edit,
-            crate::spaces::structure::search::search_structure_global,
-            crate::spaces::structure::support_commands::list_recently_deleted_structure,
-            crate::spaces::structure::support_commands::restore_deleted_structure,
-            crate::spaces::structure::support_commands::permanently_delete_structure,
-            crate::spaces::structure::support_commands::discard_pending_content,
-            crate::spaces::canvas_exchange::parse_json_canvas,
-            crate::spaces::canvas_exchange::serialize_json_canvas,
-            crate::spaces::canvas_exchange::export_json_canvas_file,
-            crate::spaces::canvas_exchange::import_json_canvas_nodes,
-            crate::spaces::nodes::commands::create_nodes,
-            crate::spaces::nodes::commands::update_nodes,
-            crate::spaces::commands::delete_space_permanently,
-            crate::spaces::commands::move_structure_selection,
-            crate::spaces::package::restore_space_package,
-            crate::spaces::commands::relations::create_relation,
-            crate::spaces::commands::relations::update_relation,
-            crate::spaces::commands::relations::revoke_relation,
-            crate::spaces::commands::relations::batch::revoke_relations,
-            crate::spaces::commands::relations::restore_relation,
-            crate::spaces::commands::relations::batch::restore_relations,
-            crate::spaces::commands::grounded::answer::answer_grounded_question,
-            crate::spaces::commands::grounded::thread_lifecycle::update_grounded_thread_title,
-            crate::spaces::commands::grounded::thread_lifecycle::delete_grounded_thread,
-            crate::spaces::commands::catalog::create_space,
-            crate::spaces::commands::catalog::update_space_title,
-            crate::spaces::commands::catalog::archive_space,
-            crate::spaces::commands::catalog::unarchive_space,
-            crate::spaces::commands::catalog::mark_space_opened,
-            crate::spaces::commands::catalog::set_space_favorite,
-            crate::spaces::commands::catalog::update_space_thumbnail,
-            crate::spaces::commands::scenes::create_scene,
-            crate::spaces::commands::scenes::update_scene,
-            crate::spaces::commands::scenes::update_scene_orders,
-            crate::spaces::commands::scenes::delete_scene,
-            crate::spaces::commands::retrieval::index_knowledge,
-            crate::spaces::commands::retrieval::rebuild_knowledge_retrieval_index,
-            crate::spaces::queries::catalog::list_spaces,
-            crate::spaces::queries::catalog::list_credential_node_ids,
-            crate::spaces::queries::nodes::list_nodes,
-            crate::spaces::queries::scenes::list_scenes,
-            crate::spaces::queries::relations::list_relations,
-            crate::spaces::queries::grounded::list_grounded_threads,
-            crate::spaces::queries::grounded::list_grounded_messages,
-            crate::spaces::queries::knowledge::list_knowledge_chunks,
-            crate::spaces::queries::knowledge::search_knowledge_global,
-            crate::spaces::queries::retrieval::search_knowledge_hybrid,
-            crate::spaces::queries::export::collect_space_package_snapshot,
-            crate::spaces::knowledge::types::list_object_types,
-            crate::spaces::knowledge::types::create_object_type,
-            crate::spaces::knowledge::types::update_object_type,
-            crate::spaces::knowledge::types::delete_object_type,
-            crate::spaces::knowledge::provenance::list_provenance,
-            crate::spaces::knowledge::provenance::create_provenance,
-            crate::spaces::knowledge::provenance::revoke_provenance,
-            crate::spaces::knowledge::provenance::list_knowledge_events,
-            crate::spaces::knowledge::changes::commit_knowledge_changes,
-            crate::spaces::knowledge::actions::list_knowledge_actions,
-            crate::spaces::derivation::workflows::list_creation_workflows,
-            crate::spaces::derivation::workflows::validate_creation_library,
-            crate::spaces::knowledge::health::list_knowledge_health_issues,
-            crate::spaces::recovery::reconcile_workspace,
-            crate::spaces::derivation::commands::start_image_cutout_derivation,
-            crate::spaces::derivation::commands::submit_image_cutout_derivation,
-            crate::spaces::derivation::commands::fail_image_cutout_derivation,
-            crate::spaces::derivation::commands::create_subtitled_video,
-            crate::spaces::derivation::commands::create_subtitle_resource,
-            crate::spaces::derivation::commands::cancel_subtitled_video,
-            crate::spaces::derivation::commands::create_grounded_document,
-            crate::spaces::derivation::commands::create_knowledge_visualization,
-            crate::spaces::derivation::commands::submit_presentation,
-            crate::spaces::derivation::commands::create_knowledge_video,
-            crate::spaces::derivation::commands::cancel_knowledge_video,
-            crate::spaces::derivation::commands::export_document_as_docx,
-            crate::spaces::derivation::commands::export_document_as_pdf,
-            crate::spaces::derivation::workflow_runs::save_creation_workflow_run,
-            crate::spaces::derivation::workflow_runs::list_creation_workflow_runs,
-            crate::spaces::derivation::workflow_runs::plan_creation_workflow_step,
-            crate::spaces::derivation::output_paths::allocate_knowledge_image_path,
-            crate::spaces::derivation::output_paths::allocate_document_docx_path,
-            crate::spaces::derivation::output_paths::allocate_document_pdf_path,
-            crate::spaces::derivation::output_paths::allocate_presentation_pptx_path,
-            crate::spaces::derivation::output_paths::allocate_knowledge_video_path,
-            crate::spaces::derivation::queries::get_grounded_document_metadata,
-            crate::spaces::derivation::queries::get_visualization_metadata,
-            crate::spaces::derivation::queries::get_generated_video_metadata,
-            crate::spaces::derivation::queries::get_derivation_failure,
-            crate::spaces::agent_artifacts::consume_agent_artifact,
-        ])
+        .setup(|app, _api| {
+            runs::start_scheduler(app.clone());
+            assistant::recover_tasks(app.clone());
+            external_conversations::recover(app.clone());
+            Ok(())
+        })
+        .invoke_handler(command_registry::handler())
         .build()
 }

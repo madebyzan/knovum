@@ -27,10 +27,9 @@ pub fn resolve<R: Runtime>(
     selection: ExecutionTargetSelection,
     capability: ExecutionCapability,
 ) -> AiResult<ExecutionTarget> {
-    if let ExecutionTargetSelection::Model { temperature, .. } = &selection {
-        if !temperature.is_finite() || !(0.0..=2.0).contains(temperature) {
-            return Err(AiError::invalid("AI temperature must be between 0 and 2"));
-        }
+    let ExecutionTargetSelection::Model { temperature, .. } = &selection;
+    if !temperature.is_finite() || !(0.0..=2.0).contains(temperature) {
+        return Err(AiError::invalid("AI temperature must be between 0 and 2"));
     }
     let settings = load(app)?;
     match selection {
@@ -39,11 +38,20 @@ pub fn resolve<R: Runtime>(
             model_id,
             temperature,
         } => resolve_model(settings, &connection_id, &model_id, temperature, capability),
-        ExecutionTargetSelection::Agent { kind } => {
-            ensure_enabled(&settings, kind)?;
-            Ok(ExecutionTarget::Agent { kind })
-        }
     }
+}
+
+pub fn default_selection<R: Runtime>(
+    app: &AppHandle<R>,
+    purpose: crate::ai::contracts::RoutingPurpose,
+) -> AiResult<ExecutionTargetSelection> {
+    load(app)?
+        .defaults
+        .target(purpose)
+        .map(|target| target.with_temperature(0.2))
+        .ok_or_else(|| {
+            AiError::invalid(format!("No default model is configured for {:?}", purpose))
+        })
 }
 
 pub fn ensure_agent_enabled<R: Runtime>(
@@ -103,7 +111,7 @@ fn resolve_model(
     }
     let provider = ProviderKind::parse(&connection.provider)
         .ok_or_else(|| AiError::unsupported("AI provider is not registered"))?;
-    Ok(ExecutionTarget::Model {
+    Ok(ExecutionTarget {
         provider: provider.as_str().to_owned(),
         model: model.model,
         base_url: connection.base_url,

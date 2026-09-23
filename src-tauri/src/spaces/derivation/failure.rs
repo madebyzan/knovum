@@ -18,7 +18,7 @@ impl PendingNodeState {
 }
 
 pub fn state_field_for(action_kind: &str) -> &'static str {
-    if action_kind == "grounded-document-draft" {
+    if action_kind == "draft-document" {
         "derivationState"
     } else {
         "processingState"

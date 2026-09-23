@@ -1,5 +1,7 @@
 use super::contracts::RestorePackageRequest;
 
+mod references;
+
 pub(super) fn validate_request_shape(request: &RestorePackageRequest) -> Result<(), String> {
     let space = &request.space;
     if space.kind != "space"
@@ -16,10 +18,56 @@ pub(super) fn validate_request_shape(request: &RestorePackageRequest) -> Result<
         (request.scenes.len(), 10_000, "Saved Views"),
         (request.relations.len(), 200_000, "Relations"),
         (request.derivations.len(), 100_000, "knowledge derivations"),
+        (request.workflow_drafts.len(), 10_000, "Workflow drafts"),
         (
-            request.creation_workflow_runs.len(),
+            request.workflow_versions.len(),
             100_000,
-            "Creation Workflow runs",
+            "Workflow versions",
+        ),
+        (request.runs.len(), 100_000, "Runs"),
+        (request.run_steps.len(), 1_000_000, "Run steps"),
+        (request.run_batch_items.len(), 2_000_000, "Run batch items"),
+        (request.run_attempts.len(), 2_000_000, "Run attempts"),
+        (request.run_events.len(), 5_000_000, "Run events"),
+        (
+            request.automation_triggers.len(),
+            100_000,
+            "Automation triggers",
+        ),
+        (
+            request.automation_occurrences.len(),
+            1_000_000,
+            "Automation occurrences",
+        ),
+        (
+            request.external_tool_bindings.len(),
+            100_000,
+            "external tool bindings",
+        ),
+        (
+            request.external_agent_conversations.len(),
+            100_000,
+            "external Agent conversations",
+        ),
+        (
+            request.external_agent_turns.len(),
+            1_000_000,
+            "external Agent turns",
+        ),
+        (
+            request.external_agent_messages.len(),
+            2_000_000,
+            "external Agent messages",
+        ),
+        (
+            request.assistant_conversations.len(),
+            100_000,
+            "Assistant conversations",
+        ),
+        (
+            request.assistant_messages.len(),
+            1_000_000,
+            "Assistant messages",
         ),
         (request.chunks.len(), 1_000_000, "knowledge chunks"),
         (request.threads.len(), 100_000, "AI threads"),
@@ -35,5 +83,5 @@ pub(super) fn validate_request_shape(request: &RestorePackageRequest) -> Result<
     if let Some((_, _, label)) = limits.into_iter().find(|(actual, limit, _)| actual > limit) {
         return Err(format!("Package contains too many {label}"));
     }
-    Ok(())
+    references::validate(request)
 }

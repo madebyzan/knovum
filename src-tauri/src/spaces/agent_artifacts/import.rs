@@ -9,12 +9,7 @@ pub async fn stage_generated_artifact_import(
     session_id: String,
     relative_path: String,
 ) -> Result<crate::spaces::assets::import::PreparedSpaceImport, String> {
-    let completed = crate::spaces::derivation::workflow_runs::agent_runs::completed_at(
-        &app,
-        &space_id,
-        &session_id,
-    )
-    .await?;
+    let completed = super::session::completed_at(&app, &space_id, &session_id).await?;
     if completed.is_none() {
         return Err("Agent artifact session is not ready for import".to_owned());
     }

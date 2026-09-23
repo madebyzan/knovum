@@ -123,11 +123,11 @@ const canvasEvents = createSpaceCanvasEvents({
       :exchange-relations="store.relations"
       @exchange-ready="lifecycle.attachExchange"
     >
-      <template #node-content="{ interactive, layout, node, detailLevel }">
+      <template #node-content="{ interactive, layout, node, detailProfile }">
         <SpaceCanvasNodeContent
           :layout="layout"
           :node="node"
-          :detail-level="detailLevel"
+          :detail-profile="detailProfile"
           :interactive="interactive"
           :persist="persistNodeContent"
           :fit-content-height="contentLayout.fit"

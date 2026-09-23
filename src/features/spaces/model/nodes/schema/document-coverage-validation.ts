@@ -18,6 +18,12 @@ export function validateDocumentCoverage(report: DocumentCoverage, context: z.Re
     validateDocumentInput(occurrence, report, context);
     validateCompletion(occurrence, ids, context);
   }
+  const referencedIds = new Set(
+    report.occurrences.flatMap(({ resourceId }) => (resourceId === null ? [] : [resourceId])),
+  );
+  if (ids.size !== referencedIds.size || [...ids].some((id) => !referencedIds.has(id))) {
+    context.addIssue({ code: "custom", message: "Document resources must belong to an occurrence" });
+  }
 }
 
 function validatePages(report: DocumentCoverage, context: z.RefinementCtx) {

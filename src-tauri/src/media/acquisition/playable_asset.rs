@@ -13,16 +13,28 @@ use super::{
 };
 use crate::media::subprocess;
 
-pub(crate) fn prepare(
-    source: &Path,
-    workspace: &Path,
-    ffmpeg: &Path,
-    metadata: &YtDlpMetadata,
-    kind: MediaKind,
-    extension: &str,
-    progress: &Channel<AcquisitionProgress>,
-    cancellation: &CancellationToken,
-) -> Result<PathBuf, String> {
+pub(crate) struct Preparation<'a> {
+    pub source: &'a Path,
+    pub workspace: &'a Path,
+    pub ffmpeg: &'a Path,
+    pub metadata: &'a YtDlpMetadata,
+    pub kind: MediaKind,
+    pub extension: &'a str,
+    pub progress: &'a Channel<AcquisitionProgress>,
+    pub cancellation: &'a CancellationToken,
+}
+
+pub(crate) fn prepare(request: Preparation<'_>) -> Result<PathBuf, String> {
+    let Preparation {
+        source,
+        workspace,
+        ffmpeg,
+        metadata,
+        kind,
+        extension,
+        progress,
+        cancellation,
+    } = request;
     if metadata.is_playable(kind, extension)? {
         return Ok(source.to_path_buf());
     }

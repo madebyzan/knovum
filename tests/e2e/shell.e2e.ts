@@ -44,6 +44,9 @@ describe("desktop shell", () => {
   it("returns from Settings to the persistent knowledge workspace", async () => {
     await runAppCommand("navigate.settings");
     await expect($("[data-testid='settings-view']")).toBeDisplayed();
+    await $("[data-testid='settings-pane-usage']").click();
+    await expect($("[data-testid='usage-settings-pane']")).toBeDisplayed();
+    await expect($("[data-testid='token-activity-calendar']")).toBeDisplayed();
     await $("[data-testid='settings-back']").click();
     await expect($("[data-testid='spaces-workspace']")).toBeDisplayed();
   });

@@ -10,5 +10,11 @@
   "oxc.lint.run": "onType",
   "typescript.tsdk": "node_modules/typescript/lib",
   "vue.server.hybridMode": true,
+  "rust-analyzer.check.extraEnv": {
+    "CARGO_BUILD_JOBS": "4"
+  },
+  "rust-analyzer.cargo.extraEnv": {
+    "CARGO_BUILD_JOBS": "4"
+  },
   "cSpell.words": ["KNOVUM", "lucide", "reka", "tauri", "vueuse", "wdio"]
 }

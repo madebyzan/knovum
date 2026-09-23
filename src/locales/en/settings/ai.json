@@ -30,15 +30,15 @@
   "agentEntryNames": "Required command: {commands}",
   "agentDetectionBoundary": "Detection confirms command entries, not sign-in or ACP connectivity.",
   "agentConnections": {
-    "native_cli": {
+    "nativeCli": {
       "title": "Native ACP",
       "requirements": "Install an official CLI with ACP support and add its command directory to PATH."
     },
-    "node_adapter": {
+    "nodeAdapter": {
       "title": "ACP adapter",
       "requirements": "Requires the official CLI and Node.js (npx). First use may download the ACP adapter."
     },
-    "standalone_server": {
+    "standaloneServer": {
       "title": "Standalone ACP server",
       "requirements": "Download the official ACP archive, keep its companion files, and add the server directory to PATH."
     }

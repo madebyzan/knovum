@@ -64,7 +64,7 @@ export async function createGroundedDocument(context: CreateGroundedDocumentCont
         stages.onmessage = (stage) => tasks.detail(taskId, i18n.global.t(`spaces.creation.${stage}`));
       }
       const target = await loadAiExecutionTarget("knowledge", draft.target);
-      return invoke<CompletedDocument>("plugin:spaces|create_grounded_document", {
+      return invoke<CompletedDocument>("plugin:spaces|create_document", {
         request: {
           id: jobId,
           spaceId,

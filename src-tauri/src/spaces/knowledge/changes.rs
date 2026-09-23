@@ -45,13 +45,3 @@ pub async fn commit_knowledge_changes<R: Runtime>(
     tx.commit().await.map_err(db::sql_error)?;
     Ok(result)
 }
-
-impl KnowledgeChangeSet {
-    pub(crate) fn new(space_id: String, actor: String, operations: Vec<KnowledgeChange>) -> Self {
-        Self {
-            space_id,
-            actor,
-            operations,
-        }
-    }
-}

@@ -1,5 +1,21 @@
 # OSS-first gate
 
+## Canvas image editing and video workbench reviewed 2026-09-23
+
+- The existing exact-pinned **Konva/vue-konva** canvas stack and browser Canvas 2D primitives own
+  the direct image projection. Crop, rotation, flip, tonal filters and alpha erasing do not justify
+  another image-editor framework or a second scene graph. Rust's maintained `image` crate remains
+  the boundary for encoded image processing.
+- The official **FFmpeg filter graph** remains the video rendering engine. It already supplies
+  trim/atrim, concat, volume, rotation, flip and timed `drawtext`, while the platform H.264 encoder
+  and Task Center cancellation are already provisioned by Knovum.
+- `vue-timeline-editor`, `vue-video-editor`, WebCut and small draggable timeline packages were
+  reviewed. The focused timeline packages are immature, while the larger editors introduce their
+  own WebCodecs/Pixi media engine and project model. Either choice would create a competing media
+  source of truth beside Knovum's managed assets and FFmpeg pipeline. Knovum therefore owns only
+  its small typed timeline/project interaction layer and delegates media decoding/rendering to the
+  existing browser element and FFmpeg.
+
 ## Desktop Agent installation discovery reviewed 2026-09-17
 
 - Installation discovery and ACP execution are distinct requirements. Google publishes the [Antigravity ACP server separately](https://github.com/agentclientprotocol/registry/blob/main/antigravity-acp/agent.json); the GUI application's presence is not evidence that the ACP server is in PATH.
@@ -83,6 +99,7 @@ PDF parser choice: [upstream Rust API](https://github.com/firecrawl/pdf-inspecto
 - Local speech transcription uses the maintained whisper.cpp `whisper-cli` full JSON contract. FFmpeg normalizes imported audio/video once to 16 kHz mono PCM, then one accelerated Whisper process transcribes the complete track with built-in Silero VAD. The media domain persists token-timed subtitle cues split only at speech pauses, sentence boundaries, or elapsed-audio boundaries. FFmpeg's libass renderer owns glyph measurement and Unicode line wrapping against the real video frame; Knovum does not estimate line width from character counts. This keeps the model resident for the job, avoids intermediate chunk files, preserves original-timeline timestamps, and drives Task Center progress through the CLI callback. Browser speech APIs and cloud media-upload transcription are intentionally not part of the architecture.
 - Semantic Knowledge Search executes locally in-process using `Qwen3-Embedding-0.6B` through `fastembed` and `candle` at 1,024 dimensions. This keeps vector generation 100% offline, private, and removes external API/cloud dependencies for knowledge indexing and semantic search.
 - Translation uses the shared maintained `genai` multi-provider boundary and the same connection/model capability settings as other AI actions. Qwen-MT targets use Alibaba's documented `translation_options`; other explicitly translation-capable chat models use a provider-neutral translation-only chat protocol. Protocol selection is explicit from provider/model identity rather than a fallback, and Rust does not select a product-default model.
+- Token usage accounting reuses `genai`'s provider response usage instead of installing a second tokenizer or approximating vendor billing. For the local embedding model, the existing Hugging Face `tokenizers` encoding reports its exact post-truncation input count during inference. Provider omissions stay explicit; Knovum does not synthesize cloud usage from prompt text.
 - Background removal executes the bundled U2Net ONNX model directly with Tract's ONNX API. This avoids an incomplete ONNX Runtime C-API compatibility layer and preserves one pure-Rust inference implementation across Intel/Apple Silicon macOS, Windows and Linux.
 - Chapter/Summary generation reuses Knovum's existing Rust generative-AI provider integration. It is opt-in, receives timestamped text rather than media binaries, and Chapter timestamps must resolve to real Transcript segment starts before persistence.
 - Desktop Agent sessions reuse `agent-client-protocol` v1 MCP server declarations and the existing `rmcp` streamable-HTTP server. Each creation session receives a loopback-only, bearer-authenticated, Space-scoped endpoint that is cancelled with the ACP session; no Agent-specific knowledge protocol or direct database access is implemented.
@@ -93,8 +110,21 @@ PDF parser choice: [upstream Rust API](https://github.com/firecrawl/pdf-inspecto
 - Space transactions use the already selected `sqlx` dependency in Rust. A generic renderer-to-Rust SQL transaction bridge was rejected because it would widen authority and obscure domain invariants; commands are named for their business mutation.
 - `tract-onnx` remains exact-pinned. Runtime or model upgrades require cross-platform release builds, checksum/license review, representative-image fixtures, and a real inference smoke on macOS and Windows.
 - Editable Word export uses `docx-rs` in the Rust layer. Fixed-layout PDF export uses Typst's official compiler and PDF exporter through exact-pinned `typst-as-lib`; the adapter receives only Knovum-generated source and the bundled Noto CJK font, with filesystem/package/network resolvers disabled. Presentation export uses `PptxGenJS` inside a dedicated Web Worker so slide assembly cannot monopolize the canvas event loop. Knovum owns the semantic mapping from an editable grounded document; none of these dependencies becomes a general office-document abstraction.
-- Knowledge video generation reuses the existing provider adapters, including the built-in Qwen ecosystem, and the existing FFmpeg runtime for deterministic media work. A generated editable script is an explicit intermediate knowledge resource; selected images are optional references, not a prerequisite or substitute for the script.
+- Video production reuses the existing provider adapters, including the built-in Qwen ecosystem, and the existing FFmpeg runtime for deterministic media work. A generated editable script is an explicit intermediate knowledge resource; selected images are optional references, not a prerequisite or substitute for the script.
 - SQLite mutations that read before writing start with `BEGIN IMMEDIATE` through the Spaces-owned transaction boundary. This gives one explicit write-serialization policy without retry loops, busy-error fallbacks or a renderer-visible generic database service.
+
+## Knowledge work system selections reviewed 2026-09-22
+
+- `rig-core` and `rig-agent` 0.42.0 provide only the built-in Assistant's stepwise model/tool control state. Knovum retains its `genai` model transport, durable transcript, tool Invocation/Receipt, authorization and Run checkpoints; Rig provider, MCP, memory and vector-store features remain disabled. Serialized Rig state is never the long-term product contract.
+- `petgraph` 0.8.3 owns topological sorting and cycle detection for Workflow compilation. Knovum owns typed ports, branch coverage, execution policy and persistence because graph libraries do not define those product semantics.
+- `cel` 0.14.5 evaluates bounded pure conditions and data transforms. The exposed environment contains only recorded input data; file, network, secrets, implicit clock and arbitrary code are unavailable.
+- `cron` 0.17.0 and the existing `chrono-tz` timezone database parse and enumerate schedule candidates. Knovum owns authorization expiry, DST choice, overlap, misfire windows, deduplication and occurrence persistence.
+- `rmcp` 3.1.3 remains the official Rust MCP transport for inbound Space tools and reviewed external tools. `agent-client-protocol` 2.1.0 remains the external desktop-Agent protocol. Both are exact-pinned because protocol or SDK changes require contract and recovery verification.
+- `schemars` 1.2.2, `ts-rs` 12.0.1 and `jsonschema` 0.56.0 share Rust-owned static contracts with TypeScript and validate untrusted dynamic tool schemas in Rust. Remote schema references are not fetched, and Vue does not become a second dynamic-schema authority.
+- Space Action parameters are generated from typed Rust contracts with `schemars`, emitted as JSON Schema 2020-12 and validated by `jsonschema`. The former hand-written `text/number/json` descriptor was removed because it duplicated the standard while losing enums, ranges and object structure.
+- Automation event types follow the CloudEvents reverse-DNS convention (`dev.knovum.space.action.<action-id>.committed.v1`). The official Rust CloudEvents SDK was reviewed but not added because its own project documentation still marks all APIs unstable; Knovum does not claim that its local SQL outbox is a full CloudEvents transport envelope.
+- `@vue-flow/core` 1.48.2 owns controlled graph interaction in Workflow Studio. The graph and keyboard-accessible outline edit one draft; Knovum does not infer state from undocumented viewport/change events.
+- Apalis, Temporal and a second Agent framework were rejected: their queue, persistence or provider abstractions would create competing truths for the existing SQLx/Tokio Run scheduler and `genai` transport. The custom code is limited to Knovum-specific Run, authorization, publication and recovery semantics that these libraries cannot own without violating domain boundaries.
 
 ## Space catalog thumbnails reviewed 2026-09-16
 

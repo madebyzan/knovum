@@ -1,19 +1,10 @@
-use genai::adapter::AdapterKind;
+use crate::ai::contracts::AiProvider;
 
-use crate::ai::{
-    contracts::{AiProvider, ChatCapability},
-    providers::openai::OpenAiChatAdapter,
-};
-
-pub struct DeepSeekProvider {
-    chat: OpenAiChatAdapter,
-}
+pub struct DeepSeekProvider;
 
 impl DeepSeekProvider {
     pub fn new() -> Self {
-        Self {
-            chat: OpenAiChatAdapter::new(AdapterKind::DeepSeek),
-        }
+        Self
     }
 }
 
@@ -23,8 +14,4 @@ impl Default for DeepSeekProvider {
     }
 }
 
-impl AiProvider for DeepSeekProvider {
-    fn as_chat(&self) -> Option<&dyn ChatCapability> {
-        Some(&self.chat)
-    }
-}
+impl AiProvider for DeepSeekProvider {}

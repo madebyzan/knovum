@@ -7,7 +7,7 @@
     "analyze_image": "Visual Image Analysis",
     "analyze_media": "Media duration and waveform",
     "transcribe_media": "Audio Whisper Transcription",
-    "analyze_video_first_frame": "Video First Frame Extraction",
+    "analyze_video_cover": "Video Cover Analysis",
     "embed_media_transcript": "Transcript Vector Indexing",
     "parse_document": "Document extraction",
     "analyze_document": "Document visual analysis"
@@ -16,7 +16,7 @@
     "documentOcr": "Recognized document text",
     "documentInterpretation": "Document visual interpretation",
     "imageDescription": "Image Description",
-    "videoFirstFrame": "Video First Frame",
+    "videoCover": "Video Cover",
     "mediaTimeRange": "{start} – {end}"
   },
   "rebuildRetrievalIndex": "Rebuild Retrieval Index",
@@ -35,13 +35,19 @@
   "documentRecognitionRequired": "Pages requiring recognition: {pages}",
   "documentVisualCoverage": "Visual analysis: {count} of {total} sources completed.",
   "documentVisualUnavailable": "{count} referenced images cannot be decoded by the document parser.",
+  "documentResources": "Document resources",
+  "openDocumentResource": "Open document resource {index}",
+  "documentResourceOccurrences": "Used {count} time | Used {count} times",
+  "documentResourceEmbedded": "Embedded image extracted from the document.",
+  "documentResourceRendered": "Page or visual region rendered from the PDF.",
+  "documentResourceDetectedText": "Detected text",
   "visualWaitingConfiguration": "Visual analysis is waiting for visual understanding to be configured.",
   "documentWarnings": {
-    "office_vector_drawings_unsupported": "Office vector drawings are not visually analyzed; they remain in the original file.",
-    "spreadsheet_image_cell_anchors_unavailable": "Spreadsheet images are located by worksheet, not by cell.",
-    "spreadsheet_chart_rendering_unsupported": "Available chart text is extracted; chart appearance is not analyzed.",
-    "legacy_office_visual_occurrence_coverage_limited": "This legacy Office format does not expose complete image positions.",
-    "legacy_spreadsheet_formulas_unavailable": "Legacy spreadsheets expose cached values, not formula expressions.",
-    "pdf_visual_coverage_limited": "PDF image regions use the parser's public position data. Inline images and vector graphics are not guaranteed to be fully covered; the original file retains all content."
+    "officeVectorDrawingsUnsupported": "Office vector drawings are not visually analyzed; they remain in the original file.",
+    "spreadsheetImageCellAnchorsUnavailable": "Spreadsheet images are located by worksheet, not by cell.",
+    "spreadsheetChartRenderingUnsupported": "Available chart text is extracted; chart appearance is not analyzed.",
+    "legacyOfficeVisualOccurrenceCoverageLimited": "This legacy Office format does not expose complete image positions.",
+    "legacySpreadsheetFormulasUnavailable": "Legacy spreadsheets expose cached values, not formula expressions.",
+    "pdfVisualCoverageLimited": "PDF image regions use the parser's public position data. Inline images and vector graphics are not guaranteed to be fully covered; the original file retains all content."
   }
 }

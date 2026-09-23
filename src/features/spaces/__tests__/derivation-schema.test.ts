@@ -7,8 +7,8 @@ function generatedVideoDerivation() {
     id: "derivation",
     spaceId: "space",
     outputNodeId: "video",
-    inputs: [{ nodeId: "markdown", role: "primary", sourceRevision: "node1:source" }],
-    actionKind: "knowledge-video",
+    inputs: [derivationInput("markdown")],
+    actionKind: "generate-video",
     actionVersion: 1,
     engine: "qwen:wan3.0-video",
     status: "completed",
@@ -27,12 +27,22 @@ function generatedVideoDerivation() {
   } as const;
 }
 
-describe("knowledge video package metadata", () => {
+function derivationInput(nodeId: string) {
+  return {
+    nodeId,
+    sourceIdentity: nodeId,
+    sourceSnapshot: { title: "Source", kind: "markdown", originalUrl: null, platform: null },
+    role: "primary",
+    sourceRevision: "node1:source",
+  } as const;
+}
+
+describe("video package metadata", () => {
   it("accepts complete generated video metadata", () => {
     expect(derivationSchema.safeParse(generatedVideoDerivation()).success).toBe(true);
   });
 
-  it("requires metadata for a completed knowledge video", () => {
+  it("requires metadata for a completed video", () => {
     const { generatedVideo: _generatedVideo, ...derivation } = generatedVideoDerivation();
     expect(derivationSchema.safeParse(derivation).success).toBe(false);
   });
@@ -48,11 +58,11 @@ describe("document export package metadata", () => {
   it("accepts a completed Markdown PDF export without provider metadata", () => {
     expect(
       derivationSchema.safeParse({
-        id: "pdf-export",
+        id: "export-document-as-pdf",
         spaceId: "space",
         outputNodeId: "pdf",
-        inputs: [{ nodeId: "markdown", role: "primary", sourceRevision: "node1:source" }],
-        actionKind: "markdown-pdf-export",
+        inputs: [derivationInput("markdown")],
+        actionKind: "export-document-as-pdf",
         actionVersion: 1,
         engine: "typst:0.15.1",
         status: "completed",

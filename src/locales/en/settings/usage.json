@@ -1,0 +1,34 @@
+{
+  "title": "Usage",
+  "description": "Provider-reported token usage across Knovum's built-in AI capabilities.",
+  "totalTokens": "Total tokens",
+  "inputTokens": "Input tokens",
+  "outputTokens": "Output tokens",
+  "requests": "Model responses",
+  "currentStreak": "Current active streak",
+  "longestStreak": "Longest active streak",
+  "days": "{count} days",
+  "activity": "Token activity",
+  "activityDescription": "Daily provider-reported usage · peak {peak} tokens",
+  "activityLabel": "{date}: {tokens} tokens across {requests} responses",
+  "less": "Less",
+  "more": "More",
+  "weekdayMonday": "Mon",
+  "weekdayWednesday": "Wed",
+  "weekdayFriday": "Fri",
+  "byPurpose": "Usage by capability",
+  "noActivity": "No token activity in this period.",
+  "providerReported": "Cloud usage comes from model providers; local embedding usage comes from its actual tokenizer pass. Missing cloud usage is never estimated.",
+  "range": {
+    "quarter": "90 days",
+    "year": "12 months"
+  },
+  "purpose": {
+    "assistant": "Assistant",
+    "editor": "Writing tools",
+    "knowledge": "Knowledge creation",
+    "knowledgeIndexing": "Knowledge indexing",
+    "translation": "Translation",
+    "visualAnalysis": "Visual analysis"
+  }
+}

@@ -3,8 +3,8 @@ use super::RestoredStructure;
 mod support;
 use crate::spaces::db;
 use sqlx::{Sqlite, Transaction};
-pub(crate) use support::{mark_restored, remove_tombstones};
 use support::reject_restore_conflicts;
+pub(crate) use support::{mark_restored, remove_tombstones};
 
 pub(crate) async fn prepare_restore_batch(
     tx: &mut Transaction<'_, Sqlite>,

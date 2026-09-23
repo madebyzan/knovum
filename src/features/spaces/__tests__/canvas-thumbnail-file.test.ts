@@ -1,22 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const fs = vi.hoisted(() => ({
-  mkdir: vi.fn<(...args: unknown[]) => Promise<void>>(),
-  writeFile: vi.fn<(...args: unknown[]) => Promise<void>>(),
+const mocks = vi.hoisted(() => ({
+  invoke: vi.fn<(...args: unknown[]) => Promise<unknown>>(),
 }));
-vi.mock("@tauri-apps/plugin-fs", () => ({ ...fs, BaseDirectory: { AppData: 1 } }));
-vi.mock("@tauri-apps/api/path", () => ({
-  appDataDir: () => Promise.resolve("/managed"),
-  join: (...parts: string[]) => Promise.resolve(parts.join("/")),
-}));
+vi.mock("@tauri-apps/api/core", () => ({ invoke: mocks.invoke }));
 
 import { saveCanvasThumbnailBlob } from "../assets/canvas-thumbnail-file";
 
 describe("managed canvas thumbnail file", () => {
   beforeEach(() => {
-    fs.mkdir.mockReset();
-    fs.writeFile.mockReset();
-    vi.stubGlobal("crypto", { randomUUID: () => "thumbnail-id" });
+    mocks.invoke.mockReset().mockResolvedValue("/managed/spaces/assets/canvas-thumbnail-thumbnail-id.jpg");
   });
 
   it("persists JPEG bytes rather than a Data URL", async () => {
@@ -26,15 +19,13 @@ describe("managed canvas thumbnail file", () => {
       }),
     );
     expect(path).toBe("/managed/spaces/assets/canvas-thumbnail-thumbnail-id.jpg");
-    expect(fs.writeFile).toHaveBeenCalledWith(
-      "spaces/assets/canvas-thumbnail-thumbnail-id.jpg",
-      new Uint8Array([1, 2, 3]),
-      { baseDir: 1 },
-    );
+    expect(mocks.invoke).toHaveBeenCalledWith("plugin:spaces|persist_canvas_thumbnail", {
+      bytes: [1, 2, 3],
+    });
   });
 
   it("rejects an unexpected encoding", async () => {
     await expect(saveCanvasThumbnailBlob(new Blob(["png"], { type: "image/png" }))).rejects.toThrow("JPEG");
-    expect(fs.writeFile).not.toHaveBeenCalled();
+    expect(mocks.invoke).not.toHaveBeenCalled();
   });
 });

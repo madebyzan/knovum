@@ -1,7 +1,5 @@
 import { z } from "zod";
 
-import { agentTargetSchema } from "./agent-models";
-
 export const aiProviderSchema = z.enum([
   "openai",
   "openai-compatible",
@@ -71,7 +69,7 @@ const aiModelTargetSchema = z
   .object({ type: z.literal("model"), connectionId: z.string().min(1), modelId: z.string().min(1) })
   .strict();
 
-const executionTargetSchema = z.union([aiModelTargetSchema, agentTargetSchema]);
+const executionTargetSchema = aiModelTargetSchema;
 
 export const aiDefaultsSchema = z
   .object({
@@ -94,24 +92,6 @@ export const generationPresetSchema = z
   })
   .strict();
 
-export const creationWorkflowSchema = z
-  .object({
-    id: z.string().min(1),
-    name: z.string().min(1),
-    workflowId: z.string().min(1),
-    workflowVersion: z.number().int().positive(),
-    targets: z.record(
-      z.string().min(1),
-      z.object({ actionId: z.string().min(1), target: executionTargetSchema }).strict(),
-    ),
-    parameters: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])),
-  })
-  .strict()
-  .superRefine((workflow, context) => {
-    if (Object.keys(workflow.targets).length === 0)
-      context.addIssue({ code: "custom", path: ["targets"], message: "Workflow requires execution targets" });
-  });
-
 export type AiProvider = z.infer<typeof aiProviderSchema>;
 export type AiModelCapability = z.infer<typeof aiCapabilitySchema>;
 export type AiRoutingPurpose = z.infer<typeof aiRoutingPurposeSchema>;
@@ -121,7 +101,6 @@ export type AiModelTarget = z.infer<typeof aiModelTargetSchema>;
 export type ExecutionTarget = z.infer<typeof executionTargetSchema>;
 export type AiRoutingDefaults = z.infer<typeof aiDefaultsSchema>;
 export type GenerationPreset = z.infer<typeof generationPresetSchema>;
-export type CreationWorkflow = z.infer<typeof creationWorkflowSchema>;
 
 export interface ResolvedAiModelTarget {
   type: "model";

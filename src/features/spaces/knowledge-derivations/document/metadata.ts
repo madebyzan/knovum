@@ -4,7 +4,7 @@ import type { GroundedCitation } from "../../knowledge/model/grounded-citation";
 import type { DerivationSource } from "../derivation-source";
 
 export interface GroundedDocumentMetadata {
-  actionKind: "grounded-document-draft";
+  actionKind: "draft-document";
   provider: string;
   model: string;
   createdAt: number;

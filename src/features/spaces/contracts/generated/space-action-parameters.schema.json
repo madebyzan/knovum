@@ -1,0 +1,324 @@
+{
+  "create-note": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "NoteParameters",
+    "type": "object",
+    "properties": {
+      "title": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 512
+      },
+      "content": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 4194304
+      }
+    },
+    "additionalProperties": false,
+    "required": ["title", "content"]
+  },
+  "commit-knowledge-changes": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "KnowledgeChangesParameters",
+    "type": "object",
+    "properties": {
+      "operations": {
+        "type": "array",
+        "items": true
+      }
+    },
+    "additionalProperties": false,
+    "required": ["operations"]
+  },
+  "edit-space-structure": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "SpaceEditParameters",
+    "type": "object",
+    "properties": {
+      "expectedEditRevision": {
+        "type": "integer",
+        "format": "uint64",
+        "minimum": 0
+      },
+      "command": true
+    },
+    "additionalProperties": false,
+    "required": ["expectedEditRevision", "command"]
+  },
+  "save-workflow-draft": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "WorkflowDraftParameters",
+    "type": "object",
+    "properties": {
+      "draft": true
+    },
+    "additionalProperties": false,
+    "required": ["draft"]
+  },
+  "publish-workflow": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "WorkflowPublicationParameters",
+    "type": "object",
+    "properties": {
+      "workflowId": {
+        "type": "string",
+        "minLength": 1
+      },
+      "expectedRevision": {
+        "type": "integer",
+        "format": "uint64",
+        "minimum": 0
+      }
+    },
+    "additionalProperties": false,
+    "required": ["workflowId", "expectedRevision"]
+  },
+  "search-knowledge": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "SearchParameters",
+    "type": "object",
+    "properties": {
+      "query": {
+        "type": "string",
+        "minLength": 1
+      },
+      "limit": {
+        "type": "integer",
+        "format": "uint8",
+        "minimum": 1,
+        "maximum": 100
+      }
+    },
+    "additionalProperties": false,
+    "required": ["query", "limit"]
+  },
+  "read-node": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "NodeParameters",
+    "type": "object",
+    "properties": {
+      "nodeId": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "additionalProperties": false,
+    "required": ["nodeId"]
+  },
+  "answer-with-sources": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "QuestionParameters",
+    "type": "object",
+    "properties": {
+      "question": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "additionalProperties": false,
+    "required": ["question"]
+  },
+  "draft-document": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "PurposeParameters",
+    "type": "object",
+    "properties": {
+      "title": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 512
+      },
+      "purpose": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "additionalProperties": false,
+    "required": ["title", "purpose"]
+  },
+  "draft-script": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "ScriptParameters",
+    "type": "object",
+    "properties": {
+      "title": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 512
+      },
+      "prompt": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "additionalProperties": false,
+    "required": ["title", "prompt"]
+  },
+  "summarize-meeting": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "MeetingSummaryParameters",
+    "type": "object",
+    "properties": {
+      "title": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 512
+      },
+      "summaryPurpose": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "additionalProperties": false,
+    "required": ["title", "summaryPurpose"]
+  },
+  "draft-social-post": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "SocialCopyParameters",
+    "type": "object",
+    "properties": {
+      "title": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 512
+      },
+      "platform": {
+        "$ref": "#/$defs/SocialPlatform"
+      },
+      "audience": {
+        "type": "string",
+        "minLength": 1
+      },
+      "goal": {
+        "type": "string",
+        "minLength": 1
+      },
+      "tone": {
+        "$ref": "#/$defs/SocialTone"
+      }
+    },
+    "additionalProperties": false,
+    "required": ["title", "platform", "audience", "goal", "tone"],
+    "$defs": {
+      "SocialPlatform": {
+        "type": "string",
+        "enum": ["generic", "xiaohongshu", "linkedin"]
+      },
+      "SocialTone": {
+        "type": "string",
+        "enum": ["professional", "friendly", "energetic"]
+      }
+    }
+  },
+  "generate-visualization": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "VisualizationParameters",
+    "type": "object",
+    "properties": {
+      "title": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 512
+      },
+      "intent": {
+        "type": "string",
+        "minLength": 1
+      },
+      "style": {
+        "type": "string",
+        "minLength": 1
+      },
+      "aspectRatio": {
+        "$ref": "#/$defs/ImageAspectRatio"
+      }
+    },
+    "additionalProperties": false,
+    "required": ["title", "intent", "style", "aspectRatio"],
+    "$defs": {
+      "ImageAspectRatio": {
+        "type": "string",
+        "enum": ["1:1", "3:2", "2:3", "16:9", "9:16"]
+      }
+    }
+  },
+  "generate-image": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "ImageParameters",
+    "type": "object",
+    "properties": {
+      "title": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 512
+      },
+      "imageStyle": {
+        "type": "string",
+        "minLength": 1
+      },
+      "aspectRatio": {
+        "$ref": "#/$defs/ImageAspectRatio"
+      }
+    },
+    "additionalProperties": false,
+    "required": ["title", "imageStyle", "aspectRatio"],
+    "$defs": {
+      "ImageAspectRatio": {
+        "type": "string",
+        "enum": ["1:1", "3:2", "2:3", "16:9", "9:16"]
+      }
+    }
+  },
+  "generate-video": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "VideoParameters",
+    "type": "object",
+    "properties": {
+      "title": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 512
+      },
+      "prompt": {
+        "type": "string",
+        "minLength": 1
+      },
+      "aspectRatio": {
+        "$ref": "#/$defs/VideoAspectRatio"
+      },
+      "durationSeconds": {
+        "type": "integer",
+        "format": "uint16",
+        "minimum": 5,
+        "maximum": 15,
+        "enum": [5, 10, 15]
+      }
+    },
+    "additionalProperties": false,
+    "required": ["title", "prompt", "aspectRatio", "durationSeconds"],
+    "$defs": {
+      "VideoAspectRatio": {
+        "type": "string",
+        "enum": ["1:1", "16:9", "9:16"]
+      }
+    }
+  },
+  "extract-subtitles": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "EmptyParameters",
+    "type": "object",
+    "additionalProperties": false
+  },
+  "render-subtitled-video": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "EmptyParameters",
+    "type": "object",
+    "additionalProperties": false
+  },
+  "render-presentation": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "EmptyParameters",
+    "type": "object",
+    "additionalProperties": false
+  }
+}

@@ -1,8 +1,8 @@
 use tauri::AppHandle;
 
 use super::{
-    document_export, grounded_document, image_cutout, knowledge_video, presentation_export,
-    subtitle_extraction, subtitled_video, visualization, CompletedDerivationOutput,
+    document_export, grounded_document, image_cutout, presentation_export, subtitle_extraction,
+    subtitled_video, video_edit, video_generation, visualization, CompletedDerivationOutput,
     DerivationRelation,
 };
 
@@ -53,7 +53,21 @@ pub async fn cancel_subtitled_video(job_id: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub async fn create_grounded_document(
+pub async fn render_video_edit(
+    app: AppHandle,
+    request: video_edit::RenderVideoEditRequest,
+    on_progress: tauri::ipc::Channel<video_edit::VideoEditProgress>,
+) -> Result<CompletedDerivationOutput, String> {
+    video_edit::create(app, request, on_progress).await
+}
+
+#[tauri::command]
+pub async fn cancel_video_edit_render(job_id: String) -> Result<(), String> {
+    video_edit::cancel(&job_id)
+}
+
+#[tauri::command]
+pub async fn create_document(
     app: AppHandle,
     request: grounded_document::CreateGroundedDocumentRequest,
     on_stage: tauri::ipc::Channel<String>,
@@ -62,7 +76,7 @@ pub async fn create_grounded_document(
 }
 
 #[tauri::command]
-pub async fn create_knowledge_visualization(
+pub async fn create_visualization(
     app: AppHandle,
     request: visualization::CreateVisualizationRequest,
     on_stage: tauri::ipc::Channel<String>,
@@ -79,17 +93,17 @@ pub async fn submit_presentation(
 }
 
 #[tauri::command]
-pub async fn create_knowledge_video(
+pub async fn create_video(
     app: AppHandle,
-    request: knowledge_video::CreateVideoRequest,
+    request: video_generation::CreateVideoRequest,
     on_stage: tauri::ipc::Channel<String>,
-) -> Result<knowledge_video::VideoOutput, String> {
-    knowledge_video::create(app, request, on_stage).await
+) -> Result<video_generation::VideoOutput, String> {
+    video_generation::create(app, request, on_stage).await
 }
 
 #[tauri::command]
-pub async fn cancel_knowledge_video(job_id: String) -> Result<(), String> {
-    knowledge_video::registry::cancel(&job_id)
+pub async fn cancel_video_generation(job_id: String) -> Result<(), String> {
+    video_generation::registry::cancel(&job_id)
 }
 
 #[tauri::command]

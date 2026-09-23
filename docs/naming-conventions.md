@@ -1,5 +1,29 @@
 # Naming conventions
 
+## Knowledge-work execution language
+
+- `SpaceAction` is the only name for a stable business capability shared by UI, Workflow, Assistant
+  and MCP. Do not introduce `KnowledgeAction`, generic `Capability` or `Task` synonyms.
+- `Invocation` identifies one authenticated SpaceAction call; `Receipt` identifies its committed
+  result.
+- `Run`, `StepInstance` and `Attempt` describe durable execution. `Job` remains local to an engine or
+  process.
+- `Workflow` is the only product term for a user-owned published program. Do not use `Pipeline` or
+  `Flow` for the same object.
+- `Assistant` means Knovum's built-in collaborator. `Agent Runtime` means its replaceable control
+  mechanism. `External Agent` means an ACP or equivalent external controller.
+- `Authorization` covers principals, scopes, grants and approvals. Content review is a separate
+  concept.
+- Space Action IDs use one imperative verb-object phrase (`draft-document`, `generate-video`,
+  `render-presentation`). Resource type names stay nouns (`video`, `presentation`); do not prefix
+  them with `knowledge-` merely because they live in a Space.
+- Built-in Workflow IDs name the delivered outcome (`video-production`, `meeting-content-package`),
+  not an implementation example. Durable event types use the CloudEvents reverse-DNS convention;
+  local Run event names are closed Rust enums serialized as `snake_case`.
+
+Use `manager`, `service`, `helper`, `utils`, `harness` and generic `engine` only when the term names a
+real, narrow responsibility described by the module contract. A rename-only wrapper is not an owner.
+
 Names are part of the architecture contract. Prefer domain language over implementation details and keep one term for one concept.
 
 ## Source paths and files

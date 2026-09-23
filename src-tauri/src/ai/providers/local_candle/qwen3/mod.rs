@@ -8,5 +8,6 @@ mod norm;
 mod rotary;
 
 pub use config::Config;
+pub use embedder::EmbeddingOutput;
 pub use embedder::TextEmbedding as Qwen3TextEmbedding;
 pub use model::Model as Qwen3Model;

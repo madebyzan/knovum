@@ -1,11 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  decodeAiModelSettings,
-  decodeCreationLibrary,
-  defaultAiModelSettings,
-  defaultCreationLibrary,
-} from "../integration-settings";
+import { decodeAiModelSettings, defaultAiModelSettings } from "../integration-settings";
 
 describe("integration settings persisted contracts", () => {
   it("defaults without built-in AI models or connections", () => {
@@ -48,19 +43,17 @@ describe("integration settings persisted contracts", () => {
     expect(value.connections[0]).not.toHaveProperty("apiKey");
   });
 
-  it("accepts an enabled Agent as every current execution route", () => {
-    const value = structuredClone(defaultAiModelSettings);
-    value.desktopAgents.push({ kind: "codex", enabled: true });
-    const target = { type: "agent" as const, kind: "codex" as const };
+  it("rejects desktop Agent identities in model routing defaults", () => {
+    const value = structuredClone(defaultAiModelSettings) as unknown as Record<string, unknown>;
     value.defaults = {
-      writing: target,
-      knowledge: target,
-      visualUnderstanding: target,
-      translation: target,
-      imageGeneration: target,
-      videoGeneration: target,
+      writing: { type: "agent", kind: "codex" },
+      knowledge: null,
+      visualUnderstanding: null,
+      translation: null,
+      imageGeneration: null,
+      videoGeneration: null,
     };
-    expect(decodeAiModelSettings({ schemaVersion: 1, value })).toEqual(value);
+    expect(() => decodeAiModelSettings({ schemaVersion: 1, value })).toThrow(/./u);
   });
 
   it("leaves provider capability authority to Rust validation", () => {
@@ -92,29 +85,6 @@ describe("integration settings persisted contracts", () => {
       models: [],
     });
     expect(() => decodeAiModelSettings({ schemaVersion: 1, value })).toThrow(/./u);
-  });
-
-  it("persists multi-model Creation Workflows against one exact Workflow version", () => {
-    const value = structuredClone(defaultCreationLibrary);
-    value.creationWorkflows.push({
-      id: "social",
-      name: "Product launch",
-      workflowId: "social-content-kit",
-      workflowVersion: 1,
-      targets: {
-        text: {
-          actionId: "write-social-copy",
-          target: { type: "model", connectionId: "custom-qwen", modelId: "qwen-plus" },
-        },
-        image: {
-          actionId: "create-companion-image",
-          target: { type: "model", connectionId: "custom-qwen", modelId: "qwen-image" },
-        },
-      },
-      parameters: { platform: "xiaohongshu", aspectRatio: "9:16" },
-    });
-
-    expect(decodeCreationLibrary({ schemaVersion: 1, value })).toEqual(value);
   });
 
   it("rejects unversioned or non-current envelopes", () => {

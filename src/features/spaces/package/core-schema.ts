@@ -5,6 +5,7 @@ import { SPACE_NODE_KINDS } from "../model/nodes/node-kind";
 import { SPACE_RELATION_KINDS, SPACE_RELATION_STATUSES } from "../model/relations/relation";
 
 export const packageTimeSchema = z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER);
+export const packageIdSchema = z.string().min(1).max(256);
 export const relationKindSchema = z.enum(SPACE_RELATION_KINDS);
 const relationStatusSchema = z.enum(SPACE_RELATION_STATUSES);
 export const objectStatusSchema = z.enum(KNOWLEDGE_OBJECT_STATUSES);

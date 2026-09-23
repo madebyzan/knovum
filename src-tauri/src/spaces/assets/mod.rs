@@ -1,5 +1,6 @@
 mod access;
 pub(crate) mod audio;
+pub(crate) mod canvas_thumbnail;
 pub(crate) mod commands;
 pub(crate) mod enrichment;
 pub(crate) mod external_open;

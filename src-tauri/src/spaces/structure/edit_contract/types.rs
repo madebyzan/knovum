@@ -34,18 +34,15 @@ pub(crate) struct SpaceEditHistoryReceipt {
     pub selection_suggestion: Vec<String>,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[serde(tag = "kind", rename_all = "lowercase", deny_unknown_fields)]
 pub(crate) enum FieldUpdate<T> {
+    #[default]
     Keep,
-    Set { value: T },
+    Set {
+        value: T,
+    },
     Clear,
-}
-
-impl<T> Default for FieldUpdate<T> {
-    fn default() -> Self {
-        Self::Keep
-    }
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]

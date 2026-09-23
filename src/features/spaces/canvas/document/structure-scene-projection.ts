@@ -10,12 +10,7 @@ import { validateStructureSnapshot } from "../../model/structure/structure-valid
 import { contentWorldBounds, mergeWorldBounds, type WorldBounds } from "../../model/structure/world-bounds";
 import { composeTransforms, localTransformOf } from "../../model/structure/world-transform";
 import type { SpaceEditSnapshot } from "../contract/space-edit-snapshot";
-import type {
-  ProjectedContent,
-  ProjectedGroup,
-  ProjectedSection,
-  StructureScene,
-} from "./structure-scene";
+import type { ProjectedContent, ProjectedGroup, ProjectedSection, StructureScene } from "./structure-scene";
 import { projectStructureRelations } from "./structure-scene-relations";
 
 type ContentStructureNode = Extract<StructureNode, { kind: "content" }>;
@@ -55,7 +50,12 @@ export function projectStructureScene(
       inheritedLocked: false,
     });
   sections.sort((left, right) => left.section.order - right.section.order);
-  const projectedRelations = projectStructureRelations(relations, index, layouts, temporarilyExpandedSectionIds);
+  const projectedRelations = projectStructureRelations(
+    relations,
+    index,
+    layouts,
+    temporarilyExpandedSectionIds,
+  );
   return { content, groups, sections, relations: projectedRelations };
 }
 

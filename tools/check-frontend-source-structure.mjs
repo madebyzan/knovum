@@ -9,11 +9,12 @@ const sourceRoot = join(root, "src");
 const MAX_FILE_LINES = 180;
 
 const sourceFiles = filesUnder(sourceRoot);
-const failures = sourceFiles
+const authoredFiles = sourceFiles.filter((file) => !file.includes(`${join("contracts", "generated")}`));
+const failures = authoredFiles
   .map((file) => ({ file, lines: effectiveLines(readFileSync(file, "utf8")) }))
   .filter(({ lines }) => lines > MAX_FILE_LINES)
   .map(({ file, lines }) => `${relative(root, file)}: ${lines} effective lines exceeds ${MAX_FILE_LINES}`);
-failures.push(...checkFrontendSourceNaming(root, sourceRoot, sourceFiles));
+failures.push(...checkFrontendSourceNaming(root, sourceRoot, authoredFiles));
 failures.push(...checkRetiredArchitecturePaths(root));
 
 if (failures.length) {

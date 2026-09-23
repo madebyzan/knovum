@@ -6,7 +6,8 @@ import { useCanvasEditorSession } from "../canvas/editor-session";
 import { revealContentNode, revealStructureNode } from "../canvas/structure-navigation";
 import { useContextDock } from "../canvas/use-context-dock";
 import { useSpaceStore } from "../session/space-store";
-import { searchAcrossSpaces, type GlobalSearchMatch } from "./global-search-repository";
+import type { GlobalSearchMatch } from "./global-search-contract";
+import { searchAcrossSpaces } from "./global-search-repository";
 
 export function useGlobalFind(open: Ref<boolean>) {
   const store = useSpaceStore();

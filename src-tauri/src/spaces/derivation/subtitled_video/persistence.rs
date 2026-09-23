@@ -1,6 +1,7 @@
 use serde_json::Value;
 use tauri::AppHandle;
 
+use super::super::video_output::RenderedVideo;
 use super::super::{relations, CompletedDerivationOutput};
 use crate::spaces::{
     db,
@@ -10,12 +11,6 @@ use crate::spaces::{
 pub struct VideoSubtitleSource {
     pub path: String,
     pub srt: String,
-}
-
-pub struct RenderedVideo {
-    pub path: String,
-    pub size: i64,
-    pub revision: String,
 }
 
 pub async fn complete(

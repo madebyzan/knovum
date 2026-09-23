@@ -54,7 +54,7 @@ pub async fn start(app: &AppHandle, request: StartImageCutoutRequest) -> Result<
         return Err("Image source changed before background removal started".into());
     }
     let now = crate::clock::unix_time_millis()?;
-    sqlx::query("INSERT INTO spaces_knowledge_derivations(id,space_id,output_node_id,action_kind,action_version,engine,status,created_at,updated_at) VALUES($1,$2,$3,'image-background-removal',1,'u2netp-tract:1','running',$4,$4)")
+    sqlx::query("INSERT INTO spaces_knowledge_derivations(id,space_id,output_node_id,action_kind,action_version,engine,status,created_at,updated_at) VALUES($1,$2,$3,'remove-image-background',1,'u2netp-tract:1','running',$4,$4)")
         .bind(&request.id)
         .bind(&request.space_id)
         .bind(&request.output_node_id)

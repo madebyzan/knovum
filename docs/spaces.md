@@ -69,16 +69,35 @@ Implemented action families currently include image background removal and video
 
 Spaces treats generation and media transformation as **Knowledge Derivation**: selected knowledge produces a new durable resource without losing its source context. The product entry is **Create from selection**, followed by an intent such as Summarize, Compare, Visualize, Remove background, Create subtitles or Turn into a document. Provider connections remain infrastructure configuration. Compatible model selection is available at the creation surface, defaults by capability, and can be captured with bounded generation parameters as a reusable **Generation Preset**. Models are execution targets, not ordinary knowledge nodes and not the canvas information architecture.
 
-A **Creation Workflow** is a versioned dependency graph with named input bindings between derivation steps. Current Workflows include `video-with-subtitles` (indexed video → editable subtitles → subtitled video), `meeting-video-package` (meeting video → editable subtitles + grounded summary + subtitled video), `knowledge-presentation` (selected knowledge → structured Markdown → PPTX), `knowledge-video` (selected knowledge → editable script → generated video), and `social-content-kit` (selected knowledge → editable social copy → companion image). Each step creates an ordinary durable resource and its own Provenance relations; Workflows never hide useful intermediate knowledge or replace their sources. Workflow runs and step outputs are persisted, exported, and restored with the Space.
+A **Workflow** is an editable, published and version-pinned dependency graph over the stable Space Action catalog. Knovum ships five production recipes: presentation production, video production, social content package, subtitled-video production and meeting content package. These are common knowledge-work starting points, not samples or private executors. Each recipe creates the same editable Workflow definition used by user-authored graphs and places a content-review gate before an expensive or irreversible rendering step. Runs, step inputs and outputs, per-item batch lineage, attempts and events are durable, exported with terminal history, and restored without replaying side effects. Batch retries retain stable item keys, reuse successful items and create new attempts only for failed or unavailable items.
 
-The Workflow coordinator is session orchestration, not a second persistence authority. It sequences
-typed action adapters and publishes progress; Rust validates and commits every durable transition.
-This allows a Workflow to include a Web Worker renderer such as PPTX generation without moving Space
-invariants, lineage or run-state authority into Vue.
+The Rust Run scheduler is the only execution authority. It compiles immutable Workflow versions,
+leases ready steps, fences stale workers, records checkpoints and events, and delegates business
+effects to their owning Space Actions. Vue edits one structured draft through graph and outline views
+and observes Run state; it never advances a step or commits a result because a component reported success.
 
 A **Creation Intent** is the user-facing catalog entry. It owns selection availability, localized presentation, and whether execution dispatches one atomic derivation or a versioned Workflow. The canvas uses one intent catalog and one creation-dialog session, so adding a Workflow does not add another event chain or independent boolean state through the component tree.
 
-A saved **Creation Workflow** configuration binds one exact Workflow definition version. Unlike a single-model generation preset, it may bind several named AI capabilities and the reusable transformation parameters for the complete outcome. A saved Workflow never stores source node identities, output titles, credentials, runtime state, or generated outputs. Meeting packages, knowledge presentations, knowledge videos, and social content kits expose the relevant model choices at creation time and can save those complete settings for reuse.
+Published Workflow versions are immutable. Subworkflows bind exact versions, while drafts remain
+incomplete and autosaved. Execution bindings, credentials, approvals and trigger grants are not part
+of the portable definition. Imported triggers and external-tool bindings are disabled until the user
+reviews their destination, current schema fingerprint and authorization.
+
+Personal Workflow templates carry the complete fixed-version subworkflow closure. Copying one into a
+Space assigns new Workflow identities, publishes dependency versions in child-first order and rewrites
+the root definition atomically. Space-owned external-tool bindings are deliberately rejected from
+personal templates instead of being copied as ambient authority; the user must bind and review those
+tools in the destination Space.
+
+External Agent conversations are distinct from one-shot artifact creation and from the built-in
+Assistant. A connected conversation owns one ACP runtime session and accepts multiple turns through
+that session; each turn can include user-selected local attachments, and the UI derives mode, model
+and other configuration controls from the actual ACP session response. Local conversation, turn
+and message identities remain durable. Tool activity is recorded
+as reported Run events, while Space changes still require Knovum MCP receipts. An application or runtime
+disconnect marks the conversation disconnected and preserves history; only an explicit new conversation
+starts another runtime session. Closing a conversation exposes any workspace artifacts through the
+existing reviewed artifact-import path.
 
 DOCX and PDF export consume one explicit current Markdown resource. They do not silently synthesize a hidden document from an arbitrary selection; users create or choose the editable Markdown knowledge first, then export it. Multi-stage outcomes remain Workflows and keep their independently useful intermediate resources visible.
 
@@ -104,7 +123,10 @@ Transformation lineage and epistemic Provenance are different contracts. A Deriv
 
 Long derivations create a pending output node immediately. The pending node reserves the eventual result position and mirrors the feature-owned Rust job's meaningful stage and progress through Task Center. Success replaces it in place; failure remains inspectable and retryable but does not create a false completed resource or semantic lineage.
 
-The canvas is not a low-level execution-graph editor. Repeated successful derivations may be saved as user-named Creation Workflows, but model nodes, samplers and engine plumbing remain implementation detail. The canonical interaction and conceptual contract live in `../DESIGN.md`.
+Workflow control and data dependencies are edited in the dedicated Workflow Studio rather than on the
+knowledge canvas. Studio provides one graph/outline draft, compiler diagnostics, readiness preflight,
+version history, isolated whole-flow or selected-step tests, persistent breakpoints and Run Center
+inspection. Model samplers and provider plumbing remain execution bindings rather than canvas nodes.
 
 ## Item identity and titles
 
@@ -213,6 +235,16 @@ Current Markdown knowledge can be exported as DOCX or PDF. DOCX remains an edita
 Native website layers do not take initial keyboard focus from the canvas. During canvas motion or direct manipulation, the child WebView is suspended while the node shows its saved site identity or preview image; after the viewport settles, the browser is placed at the final bounds and shown again. Native placement requests coalesce to the latest frame rather than queuing obsolete coordinates. Browser content bounds are projected from the same scene frame and viewport that paint the canvas, using the host rectangle only as the origin; they are not sampled from CSS-transformed node DOM. The main WebView origin is then converted to the parent window's client-area logical pixels at the Rust boundary. Rotated or partially clipped website content stays on its saved preview because a native child WebView cannot rotate or clip with the canvas. Resizable nodes have semantic minimum sizes but no arbitrary presentation maximum; persisted frames must remain finite and positive.
 
 Canvas items are **content-first spatial representations**, not a grid of generic file cards. Notes and Markdown remain bounded summaries because their full body has a Knovum editor. Images and document snapshots expose content directly; media stays an inert cover until activated. A video cover carries its duration; a separate, fixed-height caption shows at most two title lines and then platform and creator, without letting a long title push the source out of view. Code shows source. Saved Websites persist the URL immediately and enrich metadata in a bounded background queue. Website nodes render a stable local preview or site identity; the original URL remains available for opening in the system browser. The canvas does not host independent browser surfaces. Opaque specialist formats keep a restrained resource identity until a maintained renderer is selected.
+
+Image and video editing deliberately use different product surfaces. One selected image exposes
+non-destructive crop presets, quarter-turn rotation, horizontal/vertical flip, tonal adjustments
+and an eraser directly in the canvas selection bar. The persisted `imageEdit` contract keeps the
+source asset immutable; the canvas renderer projects the crop, transform, filter and normalized
+eraser strokes. Video editing opens a same-window workbench because transport, playhead, ordered
+clips and timed text require persistent timeline context. A strict v1 `videoEditProject` stores one
+ordered video track, one text track and output transform. Saving records the project on the source
+node through normal Space history. Rendering creates a new derived video node through FFmpeg;
+the source bytes and edit project remain available, and cancellation stays in Task Center.
 
 URL paste reads clipboard HTML, text and, on macOS, the native `public.url` format in one typed Rust operation before applying an explicit product-owned content-URL policy for selected media platforms: YouTube, Bilibili, Douyin, TikTok, Instagram, Vimeo, X/Twitter, and Facebook. Direct media resources and recognized platform content links enter yt-dlp acquisition. The capture projection appears at the paste location as compact desktop transfer chrome rather than an empty media cover; its screen size is capped when zooming in so temporary feedback does not balloon over the canvas. Resolving shows indeterminate activity; downloading shows measured bytes; finalizing shows measured media time when FFmpeg prepares a playable asset. yt-dlp prefers H.264/AAC streams, and the import stage converts other selected codecs to H.264/AAC in MP4 or AAC in M4A before the asset is committed. The node persists the canonical local asset size and its media origin (platform/extractor, original URL, and source ID); the canvas shows platform identity, while the inspector exposes origin and file details. The projection transitions into the persisted node on success and remains in place with retry/dismiss actions on failure. Platform homepages, profiles, and all other HTTP(S) URLs become Saved Websites immediately. The automatic clipboard path neither enumerates yt-dlp extractors nor probes arbitrary webpages for embedded video; this avoids blocking ordinary website capture on media-tool startup or network timeouts. A recognized media URL that cannot be acquired reports the media failure instead of silently changing node type. Clipboard file paste is a separate trusted import source: Rust verifies each requested path against the current native clipboard file list before staging it; dialog and drop imports continue to require their explicit filesystem scope.
 

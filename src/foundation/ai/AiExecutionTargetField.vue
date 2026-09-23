@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { AlertTriangle } from "@lucide/vue";
 import { storeToRefs } from "pinia";
 import { computed, onMounted, watch, type HTMLAttributes } from "vue";
 import { useI18n } from "vue-i18n";
@@ -16,7 +15,6 @@ import {
 } from "./ai-execution";
 import type { AiRoutingPurpose, ExecutionTarget } from "./ai-models";
 import { useAiSettingsStore } from "./ai-settings-store";
-import { useExecutionCatalogQuery } from "./execution-catalog-query";
 
 const props = defineProps<{
   purpose: AiRoutingPurpose;
@@ -29,15 +27,8 @@ const { t } = useI18n();
 const router = useRouter();
 const store = useAiSettingsStore();
 const { settings, ready: settingsReady, loadError: settingsError } = storeToRefs(store);
-const catalog = useExecutionCatalogQuery();
-const agentWarning = computed(() => catalog.descriptorError.value ?? catalog.installationError.value);
 const options = computed(() =>
-  availableExecutionTargets(
-    settings.value,
-    props.purpose,
-    catalog.data.value?.agents ?? [],
-    catalog.data.value?.installations ?? [],
-  ).map((option) =>
+  availableExecutionTargets(settings.value, props.purpose).map((option) =>
     Object.assign({}, option, {
       description: executionTargetDescription(option),
     }),
@@ -48,17 +39,9 @@ const loadError = computed(() => settingsError.value);
 const value = computed(() => (target.value ? encodeExecutionTarget(target.value) : ""));
 
 function executionTargetDescription(option: ExecutionTargetOption): string {
-  if (option.executorType === "agent" && agentWarning.value) {
-    return `${t("spaces.assistant.aiSettingsUnavailable")}: ${String(agentWarning.value)}`;
-  }
   if (option.disabledReason) return option.disabledReason;
   if (option.statusDetail) return option.statusDetail;
-  if (option.capabilitySource === "model-native") return t("settings.ai.executionTargetModelNative");
-  return t(
-    option.availability === "unverified"
-      ? "settings.ai.executionTargetAgentWorkflow"
-      : "settings.ai.executionTargetAgentReady",
-  );
+  return t("settings.ai.executionTargetModelNative");
 }
 
 function isSelectableExecutionTarget(encodedTarget: string): boolean {
@@ -71,25 +54,19 @@ function currentTargetIsSelectable(): boolean {
   return target.value !== undefined && isSelectableExecutionTarget(encodeExecutionTarget(target.value));
 }
 
-function catalogIsPendingForAgent(candidate: ExecutionTarget | undefined): boolean {
-  return candidate?.type === "agent" && !catalog.data.value;
-}
-
 function resolveConfiguredTarget(): ExecutionTarget | undefined {
   const configured = defaultExecutionTarget(settings.value, props.purpose) ?? undefined;
-  if (catalogIsPendingForAgent(configured)) return configured;
   if (!configured) return;
   return isSelectableExecutionTarget(encodeExecutionTarget(configured)) ? configured : undefined;
 }
 
 function synchronizeTarget() {
-  if (!ready.value || currentTargetIsSelectable() || catalogIsPendingForAgent(target.value)) return;
+  if (!ready.value || currentTargetIsSelectable()) return;
   target.value = resolveConfiguredTarget();
 }
 
 async function load() {
   await store.ensureLoaded();
-  if (catalog.descriptorError.value) await catalog.refetchDescriptors();
 }
 
 watch([ready, options, () => props.purpose], synchronizeTarget, { immediate: true });
@@ -126,11 +103,6 @@ onMounted(load);
         class="min-w-0 flex-1 border-transparent bg-transparent shadow-none hover:bg-control-hover"
         @update:model-value="target = decodeExecutionTarget($event)"
       />
-      <AlertTriangle
-        v-if="agentWarning"
-        class="size-(--knovum-icon-size-xs) shrink-0 text-warning"
-        :aria-label="`${t('spaces.assistant.aiSettingsUnavailable')}: ${String(agentWarning)}`"
-      />
     </template>
     <div
       v-else-if="ready && options.length === 0"
@@ -150,13 +122,6 @@ onMounted(load);
         >
           {{ t("spaces.assistant.openAiSettings") }}
         </UiButton>
-        <UiButton
-          size="sm"
-          variant="secondary"
-          @click="router.push({ name: 'settings', query: { pane: 'desktopAgents' } })"
-        >
-          {{ t("spaces.assistant.openAgentSettings") }}
-        </UiButton>
       </div>
     </div>
     <label v-else class="block space-y-1.5 text-label font-medium">
@@ -169,9 +134,6 @@ onMounted(load);
         :placeholder="t('settings.ai.noCompatibleTarget')"
         @update:model-value="target = decodeExecutionTarget($event)"
       />
-      <span v-if="agentWarning" class="block text-caption font-normal text-warning">
-        {{ t("spaces.assistant.aiSettingsUnavailable") }}: {{ String(agentWarning) }}
-      </span>
     </label>
   </div>
 </template>

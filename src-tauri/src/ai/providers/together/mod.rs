@@ -2,15 +2,12 @@ mod video;
 
 pub use video::TogetherVideoAdapter;
 
-use genai::adapter::AdapterKind;
-
 use crate::ai::{
-    contracts::{AiProvider, ChatCapability, ImageGenerationCapability, VideoGenerationCapability},
-    providers::openai::{OpenAiChatAdapter, OpenAiImageAdapter},
+    contracts::{AiProvider, ImageGenerationCapability, VideoGenerationCapability},
+    providers::openai::OpenAiImageAdapter,
 };
 
 pub struct TogetherProvider {
-    chat: OpenAiChatAdapter,
     image: OpenAiImageAdapter,
     video: TogetherVideoAdapter,
 }
@@ -18,7 +15,6 @@ pub struct TogetherProvider {
 impl TogetherProvider {
     pub fn new() -> Self {
         Self {
-            chat: OpenAiChatAdapter::new(AdapterKind::OpenAI),
             image: OpenAiImageAdapter,
             video: TogetherVideoAdapter,
         }
@@ -32,10 +28,6 @@ impl Default for TogetherProvider {
 }
 
 impl AiProvider for TogetherProvider {
-    fn as_chat(&self) -> Option<&dyn ChatCapability> {
-        Some(&self.chat)
-    }
-
     fn as_image_generation(&self) -> Option<&dyn ImageGenerationCapability> {
         Some(&self.image)
     }

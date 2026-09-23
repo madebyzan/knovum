@@ -3,7 +3,7 @@ import { computed, inject, onMounted, onUnmounted, useTemplateRef } from "vue";
 
 import { canvasContentMeasurementKey } from "../canvas-content-measurement";
 
-const props = defineProps<{ scale: number }>();
+const props = withDefaults(defineProps<{ measure?: boolean; scale: number }>(), { measure: true });
 const emit = defineEmits<{ contentHeight: [height: number] }>();
 const plane = useTemplateRef<HTMLElement>("plane");
 const measurements = inject(canvasContentMeasurementKey);
@@ -14,16 +14,17 @@ const style = computed(() => ({
 
 let observer: ResizeObserver | undefined;
 let detachMeasurement: (() => void) | undefined;
-function measure() {
+function reportContentHeight() {
   const element = plane.value;
   if (element) emit("contentHeight", element.scrollHeight * props.scale);
 }
 onMounted(() => {
+  if (!props.measure) return;
   const element = plane.value;
   if (!element) return;
-  observer = new ResizeObserver(measure);
+  observer = new ResizeObserver(reportContentHeight);
   observer.observe(element);
-  detachMeasurement = measurements?.register(measure);
+  detachMeasurement = measurements?.register(reportContentHeight);
 });
 onUnmounted(() => {
   observer?.disconnect();

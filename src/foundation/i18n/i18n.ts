@@ -9,6 +9,10 @@ export const i18n = createI18n({
   locale: systemLocale(globalThis.navigator.language),
   fallbackLocale: false,
   messages: localeMessages,
+  numberFormats: {
+    en: { compact: { notation: "compact", maximumFractionDigits: 1 } },
+    "zh-CN": { compact: { notation: "compact", maximumFractionDigits: 1 } },
+  },
 });
 
 export function systemLocale(locale: string | null): AppLocale {

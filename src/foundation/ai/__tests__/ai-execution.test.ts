@@ -1,28 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { isProxy, reactive } from "vue";
 
-import type { AgentDescriptor, AgentInstallation } from "../agent-models";
 import { availableExecutionTargets, defaultExecutionTarget } from "../ai-execution";
 import { defaultAiModelSettings } from "../integration-settings";
-
-const descriptor: AgentDescriptor = {
-  kind: "codex",
-  displayName: "OpenAI Codex",
-  executableNames: ["codex"],
-  help: {
-    connection: "node_adapter",
-    documentationUrl: "https://github.com/agentclientprotocol/codex-acp",
-    setupUrl: "https://github.com/agentclientprotocol/registry/blob/main/codex-acp/agent.json",
-  },
-};
-
-function installation(): AgentInstallation {
-  return {
-    kind: "codex",
-    detected: true,
-    executablePath: "/usr/local/bin/codex",
-  };
-}
 
 describe("execution target options", () => {
   it("returns a plain default target when settings are reactive", () => {
@@ -45,37 +25,35 @@ describe("execution target options", () => {
   });
 
   it.each(["visual-understanding", "image-generation", "video-generation"] as const)(
-    "offers an installed Agent for %s without asserting protocol readiness",
+    "offers a configured model with the capability required by %s",
     (purpose) => {
       const settings = structuredClone(defaultAiModelSettings);
-      settings.desktopAgents.push({ kind: "codex", enabled: true });
-      const [option] = availableExecutionTargets(settings, purpose, [descriptor], [installation()]);
+      settings.connections.push({
+        id: "media",
+        name: "Media",
+        provider: "openai",
+        baseUrl: "https://api.openai.com/v1/",
+        models: [
+          {
+            id: "omni",
+            name: "Omni",
+            model: "omni",
+            capabilities: ["vision-understanding", "image-generation", "video-generation"],
+          },
+        ],
+      });
+      const [option] = availableExecutionTargets(settings, purpose);
       expect(option).toMatchObject({
-        target: { type: "agent", kind: "codex" },
-        executorType: "agent",
+        target: { type: "model", connectionId: "media", modelId: "omni" },
+        executorType: "model",
         disabled: false,
       });
     },
   );
 
-  it("does not treat installation as verified execution capability", () => {
+  it("does not mix desktop Agents into model execution routes", () => {
     const settings = structuredClone(defaultAiModelSettings);
     settings.desktopAgents.push({ kind: "codex", enabled: true });
-    const [option] = availableExecutionTargets(settings, "image-generation", [descriptor], [installation()]);
-    expect(option).toMatchObject({
-      disabled: false,
-      availability: "unverified",
-    });
-  });
-
-  it("keeps an enabled Agent selectable when it is not found in the inspected PATH", () => {
-    const settings = structuredClone(defaultAiModelSettings);
-    settings.desktopAgents.push({ kind: "codex", enabled: true });
-    const missing = { ...installation(), detected: false, executablePath: null };
-    const [option] = availableExecutionTargets(settings, "visual-understanding", [descriptor], [missing]);
-    expect(option).toMatchObject({
-      disabled: false,
-      availability: "unavailable",
-    });
+    expect(availableExecutionTargets(settings, "image-generation")).toEqual([]);
   });
 });

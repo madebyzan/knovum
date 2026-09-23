@@ -3,7 +3,7 @@ import type { SpaceNodePayload } from "../../model/nodes/node-payload";
 import type { KnowledgeLocation, KnowledgeLocator } from "./schema";
 
 export function knowledgeLocationLabel(locator: KnowledgeLocator): string {
-  return locationLabel(locator.location);
+  return knowledgeLocationLabelFromLocation(locator.location);
 }
 
 export function isLocatorCurrent(locator: KnowledgeLocator, data?: SpaceNodePayload) {
@@ -14,7 +14,7 @@ export function isLocatorCurrent(locator: KnowledgeLocator, data?: SpaceNodePayl
   return expected === locator.sourceRevision;
 }
 
-function locationLabel(location: KnowledgeLocation) {
+export function knowledgeLocationLabelFromLocation(location: KnowledgeLocation) {
   if (location.kind === "media") return formatDurationMs(location.startMs);
   if (location.kind === "pdf") return `PDF · p.${location.page}`;
   if (location.kind === "word") return wordLocationLabel(location);

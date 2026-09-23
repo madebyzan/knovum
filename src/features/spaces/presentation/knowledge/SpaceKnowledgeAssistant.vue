@@ -1,114 +1,94 @@
 <script setup lang="ts">
-import { computed, useTemplateRef } from "vue";
-import { useI18n } from "vue-i18n";
+import { shallowRef } from "vue";
 
-import { useSpaceKnowledgeAssistant } from "../../knowledge/assistant/use-assistant";
-import { useAssistantScroll } from "../../knowledge/assistant/use-assistant-scroll";
-import SpaceKnowledgeAssistantComposer from "./SpaceKnowledgeAssistantComposer.vue";
-import SpaceKnowledgeAssistantEmpty from "./SpaceKnowledgeAssistantEmpty.vue";
-import SpaceKnowledgeConversation from "./SpaceKnowledgeConversation.vue";
-import SpaceKnowledgeIndexStatus from "./SpaceKnowledgeIndexStatus.vue";
-import SpaceKnowledgeThreadMenu from "./SpaceKnowledgeThreadMenu.vue";
-import SpaceKnowledgeThreadPicker from "./SpaceKnowledgeThreadPicker.vue";
+import UiButton from "../../../../shared/ui/UiButton.vue";
+import SpaceActionCatalog from "../actions/SpaceActionCatalog.vue";
+import SpaceBuiltInAssistant from "../assistant/SpaceBuiltInAssistant.vue";
+import SpaceExternalAgentConversation from "../assistant/SpaceExternalAgentConversation.vue";
+import SpaceAutomationCenter from "../automation/SpaceAutomationCenter.vue";
+import SpaceRunCenter from "../runs/SpaceRunCenter.vue";
+import SpaceExternalTools from "../workflows/SpaceExternalTools.vue";
+import SpaceWorkflowStudio from "../workflows/SpaceWorkflowStudio.vue";
+import SpaceGroundedAssistant from "./SpaceGroundedAssistant.vue";
 
-const { t } = useI18n();
-const {
-  store,
-  scope,
-  question,
-  executionTarget,
-  busy,
-  messages,
-  pendingQuestion,
-  streamedAnswer,
-  answerStage,
-  semantic,
-  activeThread,
-  activeScope,
-  scopeCounts,
-  scopeTitles,
-  threadOptions,
-  selectedThread,
-  askKnowledge,
-  cancelAsk,
-  renameThread,
-  deleteThread,
-  saveAsKnowledge,
-} = useSpaceKnowledgeAssistant();
-const messageViewport = useTemplateRef<HTMLElement>("messageViewport");
-const { onScroll } = useAssistantScroll({
-  viewport: messageViewport,
-  busy,
-  pendingQuestion,
-  streamedAnswer,
-  messageCount: computed(() => messages.value.length),
-});
-
-function useSuggestedPrompt(prompt: string) {
-  question.value = prompt;
-}
+type AssistantSurface =
+  | "grounded"
+  | "built-in"
+  | "externalAgent"
+  | "actions"
+  | "workflows"
+  | "runs"
+  | "automation"
+  | "externalTools";
+const surface = shallowRef<AssistantSurface>("built-in");
 </script>
 
 <template>
   <section class="flex h-full min-h-0 flex-col bg-panel">
-    <header class="shrink-0 px-3 py-2.5">
-      <div class="flex min-w-0 items-center gap-1">
-        <SpaceKnowledgeThreadPicker v-model="selectedThread" :options="threadOptions" :disabled="busy" />
-        <SpaceKnowledgeThreadMenu
-          v-if="activeThread"
-          :title="activeThread.title"
-          :disabled="busy"
-          @rename="renameThread"
-          @delete="deleteThread"
-        />
-      </div>
-      <p v-if="activeScope === 'all-spaces'" class="mt-1.5 px-1 text-micro text-foreground-tertiary">
-        {{ t("spaces.assistant.allSpacesReadOnly") }}
-      </p>
-      <SpaceKnowledgeIndexStatus
-        v-if="store.activeSpaceId && activeScope !== 'all-spaces'"
-        class="mt-1.5"
-        :space-id="store.activeSpaceId"
-      />
-    </header>
-    <div
-      ref="messageViewport"
-      class="min-h-0 flex-1 overflow-y-auto border-t border-divider"
-      @scroll.passive="onScroll"
+    <nav
+      class="flex shrink-0 gap-1 overflow-x-auto border-b border-divider p-2"
+      :aria-label="$t('spaces.assistant.surfaceLabel')"
     >
-      <SpaceKnowledgeAssistantEmpty
-        v-if="messages.length === 0 && !busy"
-        :busy="busy"
-        @select="useSuggestedPrompt"
-      />
-      <SpaceKnowledgeConversation
-        v-else
-        class="px-3 py-3"
-        :messages="messages"
-        :pending-question="pendingQuestion"
-        :streamed-answer="streamedAnswer"
-        :answer-stage="answerStage"
-        :busy="busy"
-        :can-save-as-knowledge="activeScope !== 'all-spaces'"
-        @save-as-knowledge="saveAsKnowledge"
-      />
-      <p v-if="semantic === 'unavailable'" class="px-3 py-2 text-micro text-warning">
-        {{ t("spaces.processing.semanticUnavailable") }}
-      </p>
-    </div>
-
-    <SpaceKnowledgeAssistantComposer
-      v-model="question"
-      v-model:execution-target="executionTarget"
-      v-model:scope="scope"
-      :busy="busy"
-      :scope-locked="Boolean(activeThread)"
-      :selection-count="scopeCounts.selection"
-      :section-count="scopeCounts.section"
-      :space-count="scopeCounts.space"
-      :scope-titles="scopeTitles"
-      @ask="askKnowledge()"
-      @cancel="cancelAsk"
-    />
+      <UiButton
+        size="sm"
+        :variant="surface === 'built-in' ? 'secondary' : 'ghost'"
+        @click="surface = 'built-in'"
+      >
+        {{ $t("spaces.assistant.builtIn") }}
+      </UiButton>
+      <UiButton
+        size="sm"
+        :variant="surface === 'grounded' ? 'secondary' : 'ghost'"
+        @click="surface = 'grounded'"
+      >
+        {{ $t("spaces.assistant.grounded") }}
+      </UiButton>
+      <UiButton
+        size="sm"
+        :variant="surface === 'externalAgent' ? 'secondary' : 'ghost'"
+        @click="surface = 'externalAgent'"
+      >
+        {{ $t("spaces.assistant.externalAgent") }}
+      </UiButton>
+      <UiButton
+        size="sm"
+        :variant="surface === 'actions' ? 'secondary' : 'ghost'"
+        @click="surface = 'actions'"
+      >
+        {{ $t("spaces.assistant.actions") }}
+      </UiButton>
+      <UiButton
+        size="sm"
+        :variant="surface === 'workflows' ? 'secondary' : 'ghost'"
+        @click="surface = 'workflows'"
+      >
+        {{ $t("spaces.assistant.workflows") }}
+      </UiButton>
+      <UiButton size="sm" :variant="surface === 'runs' ? 'secondary' : 'ghost'" @click="surface = 'runs'">
+        {{ $t("spaces.assistant.runs") }}
+      </UiButton>
+      <UiButton
+        size="sm"
+        :variant="surface === 'automation' ? 'secondary' : 'ghost'"
+        @click="surface = 'automation'"
+      >
+        {{ $t("spaces.assistant.automation") }}
+      </UiButton>
+      <UiButton
+        size="sm"
+        :variant="surface === 'externalTools' ? 'secondary' : 'ghost'"
+        @click="surface = 'externalTools'"
+      >
+        {{ $t("spaces.assistant.externalTools") }}
+      </UiButton>
+    </nav>
+    <SpaceBuiltInAssistant v-if="surface === 'built-in'" class="min-h-0 flex-1" />
+    <SpaceGroundedAssistant v-else-if="surface === 'grounded'" class="min-h-0 flex-1" />
+    <SpaceExternalAgentConversation v-else-if="surface === 'externalAgent'" class="min-h-0 flex-1" />
+    <SpaceActionCatalog v-else-if="surface === 'actions'" class="min-h-0 flex-1" />
+    <SpaceWorkflowStudio v-else-if="surface === 'workflows'" class="min-h-0 flex-1" />
+    <SpaceRunCenter v-else-if="surface === 'runs'" class="min-h-0 flex-1" />
+    <SpaceAutomationCenter v-else-if="surface === 'automation'" class="min-h-0 flex-1" />
+    <SpaceExternalTools v-else class="min-h-0 flex-1" />
   </section>
 </template>

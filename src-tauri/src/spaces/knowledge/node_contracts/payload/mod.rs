@@ -1,4 +1,5 @@
 mod fields;
+mod image_edit;
 mod resource;
 mod subtitle;
 mod tiptap;
@@ -48,6 +49,7 @@ pub(super) fn validate_payload_shape(kind: &str, data: &Value) -> Result<(), Str
         "website" => website::validate(object),
         "image" => {
             resource::validate_visual_asset(object)?;
+            image_edit::validate(object.get("imageEdit"))?;
             super::visual::validate(object.get("visualKnowledge"))
         }
         "video" => {
@@ -71,18 +73,4 @@ pub(super) fn validate_payload_shape(kind: &str, data: &Value) -> Result<(), Str
 }
 
 #[cfg(test)]
-mod tests {
-    use super::validate_payload_shape;
-    use serde_json::json;
-
-    #[test]
-    fn directory_and_archive_node_kinds_are_not_space_contracts() {
-        for kind in ["folder", "archive"] {
-            let data = json!({"kind": kind, "title": "Project", "fileName": "Project", "assetPath": "/assets/project"});
-            assert_eq!(
-                validate_payload_shape(kind, &data).unwrap_err(),
-                "Unsupported Space node kind"
-            );
-        }
-    }
-}
+mod tests;

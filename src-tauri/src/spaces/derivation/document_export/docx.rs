@@ -9,7 +9,7 @@ pub async fn export(
     let prepared = lifecycle::prepare(
         app,
         &request,
-        "markdown-docx-export",
+        "export-document-as-docx",
         "docx-rs:0.4.22",
         "docx",
     )

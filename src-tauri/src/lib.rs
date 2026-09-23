@@ -1,10 +1,13 @@
+mod agent_runtime;
 mod ai;
 mod app_builder;
 mod app_window;
 mod blocking;
 mod clock;
+pub mod contract_codegen;
 mod desktop;
 mod documents;
+mod external_agents;
 mod file_inspection;
 mod images;
 mod job_registry;

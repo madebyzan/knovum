@@ -1,4 +1,14 @@
-import { Archive, Boxes, Info, MonitorCog, Power, Route, Terminal, WandSparkles } from "@lucide/vue";
+import {
+  Activity,
+  Archive,
+  Boxes,
+  Info,
+  MonitorCog,
+  Power,
+  Route,
+  Terminal,
+  WandSparkles,
+} from "@lucide/vue";
 import type { Component } from "vue";
 
 import type { SettingsPaneId } from "./settings-pane";
@@ -103,6 +113,14 @@ export const settingsRegistry: readonly SettingsDefinition[] = [
         descriptionKey: "settings.ai.defaultRoutesDescription",
       },
     ],
+  },
+  {
+    id: "usage",
+    group: "intelligence",
+    titleKey: "settings.usage.title",
+    descriptionKey: "settings.usage.description",
+    searchKeys: ["settings.usage.activity", "settings.usage.totalTokens"],
+    icon: Activity,
   },
   {
     id: "creation",

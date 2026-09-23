@@ -108,7 +108,7 @@ async fn persist(
     revision::apply(data)?;
     contracts::validate_node(tx, &request.space_id, &request.output_node_id, "file", data).await?;
     super::persist_output_node(tx, &request.output_node_id, data, now).await?;
-    sqlx::query("INSERT INTO spaces_knowledge_derivations(id,space_id,output_node_id,action_kind,action_version,engine,status,created_at,updated_at,completed_at) VALUES($1,$2,$3,'knowledge-presentation',1,'pptxgenjs:4.0.1','completed',$4,$4,$4)")
+    sqlx::query("INSERT INTO spaces_knowledge_derivations(id,space_id,output_node_id,action_kind,action_version,engine,status,created_at,updated_at,completed_at) VALUES($1,$2,$3,'render-presentation',1,'pptxgenjs:4.0.1','completed',$4,$4,$4)")
         .bind(&request.id).bind(&request.space_id).bind(&request.output_node_id).bind(now).execute(&mut **tx).await.map_err(db::sql_error)?;
     let values = request
         .inputs

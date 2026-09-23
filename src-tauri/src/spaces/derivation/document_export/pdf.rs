@@ -6,8 +6,14 @@ pub async fn export(
     app: &AppHandle,
     request: ExportDocumentRequest,
 ) -> Result<ExportDocumentOutput, String> {
-    let prepared =
-        lifecycle::prepare(app, &request, "markdown-pdf-export", "typst:0.15.1", "pdf").await?;
+    let prepared = lifecycle::prepare(
+        app,
+        &request,
+        "export-document-as-pdf",
+        "typst:0.15.1",
+        "pdf",
+    )
+    .await?;
     let path = prepared.path.clone();
     let exported = async {
         let bytes = tokio::task::spawn_blocking(move || {

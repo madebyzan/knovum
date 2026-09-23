@@ -25,7 +25,7 @@ pub(super) fn visual_chunks(data: &Value) -> Result<Vec<KnowledgeChunkSeed>, Str
     let text = visual_text(&knowledge);
     let kind = match data.get("kind").and_then(Value::as_str) {
         Some("image") => "image_description",
-        Some("video") => "video_first_frame",
+        Some("video") => "video_cover",
         _ => return Ok(Vec::new()),
     };
     Ok(indexing::chunks(

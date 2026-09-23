@@ -21,7 +21,7 @@ pub async fn start(app: &AppHandle, request: &CreateGroundedDocumentRequest) -> 
     }
     let now = crate::clock::unix_time_millis()?;
     sqlx::query(
-        "INSERT INTO spaces_knowledge_derivations(id,space_id,output_node_id,action_kind,action_version,engine,status,created_at,updated_at) VALUES($1,$2,$3,'grounded-document-draft',1,'knovum-grounded-ai:1','running',$4,$4)",
+        "INSERT INTO spaces_knowledge_derivations(id,space_id,output_node_id,action_kind,action_version,engine,status,created_at,updated_at) VALUES($1,$2,$3,'draft-document',1,'knovum-grounded-ai:1','running',$4,$4)",
     )
     .bind(&request.id)
     .bind(&request.space_id)

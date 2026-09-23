@@ -59,15 +59,16 @@ pub(super) async fn insert(
 fn validate(row: &PackageDerivationRow) -> Result<(), String> {
     let action = matches!(
         row.action_kind.as_str(),
-        "image-background-removal"
-            | "knowledge-visualization"
-            | "video-subtitle-extraction"
-            | "video-subtitle-burn-in"
-            | "grounded-document-draft"
-            | "markdown-docx-export"
-            | "markdown-pdf-export"
-            | "knowledge-presentation"
-            | "knowledge-video"
+        "remove-image-background"
+            | "generate-visualization"
+            | "extract-subtitles"
+            | "render-subtitled-video"
+            | "render-video-edit"
+            | "draft-document"
+            | "export-document-as-docx"
+            | "export-document-as-pdf"
+            | "render-presentation"
+            | "generate-video"
     ) && row.action_version == 1;
     let state = (row.status == "completed" && row.error.is_empty())
         || (row.status == "failed" && !row.error.trim().is_empty());
@@ -82,28 +83,28 @@ fn validate(row: &PackageDerivationRow) -> Result<(), String> {
             .first()
             .is_some_and(|input| input.role == "primary");
     let document = match (&row.action_kind[..], &row.grounded_document) {
-        ("grounded-document-draft", Some(metadata)) => {
+        ("draft-document", Some(metadata)) => {
             metadata.citations.is_array()
                 && !metadata.provider.trim().is_empty()
                 && !metadata.model.trim().is_empty()
         }
-        ("grounded-document-draft", None) => row.status == "failed",
+        ("draft-document", None) => row.status == "failed",
         (_, None) => true,
         (_, Some(_)) => false,
     };
     let image = match (&row.action_kind[..], &row.generated_image) {
-        ("knowledge-visualization", Some(metadata)) => {
+        ("generate-visualization", Some(metadata)) => {
             !metadata.intent.trim().is_empty()
                 && !metadata.aspect_ratio.trim().is_empty()
                 && !metadata.provider.trim().is_empty()
                 && !metadata.model.trim().is_empty()
         }
-        ("knowledge-visualization", None) => row.status == "failed",
+        ("generate-visualization", None) => row.status == "failed",
         (_, None) => true,
         (_, Some(_)) => false,
     };
     let video = match (&row.action_kind[..], &row.generated_video) {
-        ("knowledge-video", Some(metadata)) => {
+        ("generate-video", Some(metadata)) => {
             !metadata.prompt.trim().is_empty()
                 && matches!(metadata.aspect_ratio.as_str(), "1:1" | "16:9" | "9:16")
                 && (5..=15).contains(&metadata.duration_seconds)
@@ -111,7 +112,7 @@ fn validate(row: &PackageDerivationRow) -> Result<(), String> {
                 && !metadata.model.trim().is_empty()
                 && !metadata.operation_id.trim().is_empty()
         }
-        ("knowledge-video", None) => row.status == "failed",
+        ("generate-video", None) => row.status == "failed",
         (_, None) => true,
         (_, Some(_)) => false,
     };

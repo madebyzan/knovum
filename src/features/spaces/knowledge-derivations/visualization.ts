@@ -45,7 +45,7 @@ export async function createVisualization(context: CreateVisualizationContext) {
   const { store, selected, sources, draft } = context;
   const spaceId = store.activeSpaceId;
   if (!spaceId) return;
-  const assetPath = await invoke<string>("plugin:spaces|allocate_knowledge_image_path");
+  const assetPath = await invoke<string>("plugin:spaces|allocate_visualization_output_path");
   const pending: SpaceImagePayload = {
     kind: "image",
     title: draft.title.trim(),
@@ -82,7 +82,7 @@ export async function createVisualization(context: CreateVisualizationContext) {
         stages.onmessage = (stage) => tasks.detail(taskId, i18n.global.t(`spaces.creation.${stage}`));
       }
       const target = await loadAiExecutionTarget("image-generation", draft.target);
-      return invoke<VisualizationOutput>("plugin:spaces|create_knowledge_visualization", {
+      return invoke<VisualizationOutput>("plugin:spaces|create_visualization", {
         request: {
           id: jobId,
           spaceId,

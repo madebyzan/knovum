@@ -20,6 +20,32 @@ forbid(
   "Shared bundled runtime must not depend on product capabilities",
 );
 forbid(join(rustRoot, "ai"), /crate::spaces\b/, "AI infrastructure must not depend on the Space feature");
+forbid(join(rustRoot, "agent_runtime"), /crate::spaces\b/, "Agent Runtime must not depend on Space policy");
+forbid(
+  join(rustRoot, "external_agents"),
+  /crate::spaces\b/,
+  "External Agent protocol adapters must not depend on Space policy",
+);
+if (existsSync(join(rustRoot, "ai", "providers", "agents"))) {
+  failures.push("src-tauri/src/ai/providers/agents: External Agents must not be modeled as AI providers");
+}
+for (const file of rustFiles) {
+  const source = readFileSync(file, "utf8");
+  const relativePath = relative(rustRoot, file);
+  if (!relativePath.startsWith("agent_runtime/rig/") && /\brig_agent::/.test(source)) {
+    failures.push(`${relative(root, file)}: Rig vendor types must stay inside agent_runtime/rig`);
+  }
+}
+forbid(
+  join(rustRoot, "spaces", "workflows"),
+  /crate::spaces::assistant\b|super::(?:super::)?assistant\b/,
+  "Workflows must not depend on the Assistant implementation",
+);
+forbid(
+  join(rustRoot, "spaces", "mcp"),
+  /crate::spaces::db\b|super::(?:super::)?db\b/,
+  "MCP adapters must use Space use cases instead of the database adapter",
+);
 forbid(
   join(rustRoot, "spaces", "queries"),
   /crate::spaces::commands\b|super::(?:super::)?commands\b/,
@@ -29,6 +55,11 @@ forbid(
   join(rustRoot, "spaces", "knowledge"),
   /crate::spaces::knowledge_derivations\b|super::(?:super::)?knowledge_derivations\b/,
   "Space knowledge policy must not depend on derivation use cases",
+);
+forbid(
+  join(rustRoot, "spaces", "actions"),
+  /crate::spaces::(?:nodes|structure|knowledge|assets|derivation)::/,
+  "SpaceAction definitions cannot absorb concrete domain implementations",
 );
 
 for (const failure of capabilityFailures(join(root, "src-tauri", "capabilities"))) failures.push(failure);

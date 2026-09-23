@@ -2,15 +2,24 @@ import { isString } from "es-toolkit";
 
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
 import type { Space } from "../model/space";
-import { remapGroundedCitation, remapObjectTypes, remapQueryFilter } from "./content-remap";
-import { remapEventEntity, remapEventPayload } from "./event-remap";
-import { referenceMap, requiredMap } from "./id-maps";
+import { requiredMap } from "./id-maps";
 import { restorePackageNodes } from "./node-restore";
+import {
+  remapObjectTypes,
+  remapWorkflowDefinition,
+  restoreChunks,
+  restoreDerivations,
+  restoreKnowledgeEvents,
+  restoreMessages,
+  restoreProvenance,
+  restoreRelations,
+  restoreScenes,
+  restoreThreads,
+} from "./restore-content-records";
 import type { SpacePackageRestoreContext } from "./restore-context";
-import { packageSpace, restoreOwnedRow } from "./restore-row";
+import { packageSpace } from "./restore-row";
 import type { SpacePackageRestoreRequest } from "./restore-transport";
 import { restorePackageStructure } from "./structure-restore";
-import { restoreWorkflowRuns } from "./workflow-run-restore";
 
 export function buildSpacePackageRestoreRequest(
   context: SpacePackageRestoreContext,
@@ -31,7 +40,105 @@ export function buildSpacePackageRestoreRequest(
     scenes: restoreScenes(context),
     relations: restoreRelations(context),
     derivations: restoreDerivations(context),
-    creationWorkflowRuns: restoreWorkflowRuns(context),
+    workflowDrafts: context.manifest.workflowDrafts.map((row) => ({
+      ...row,
+      id: requiredMap(context.maps.workflows, row.id, "Workflow"),
+      definition: remapWorkflowDefinition(row.definition, context.maps),
+    })),
+    workflowVersions: context.manifest.workflowVersions.map((row) => ({
+      ...row,
+      workflowId: requiredMap(context.maps.workflows, row.workflowId, "Workflow"),
+      definition: remapWorkflowDefinition(row.definition, context.maps),
+    })),
+    runs: context.manifest.runs.map((row) => ({
+      ...row,
+      id: requiredMap(context.maps.runs, row.id, "Run"),
+      parentRunId: remapOptional(context.maps.runs, row.parentRunId, "parent Run"),
+      retryOfRunId: remapOptional(context.maps.runs, row.retryOfRunId, "retry Run"),
+      forkOfRunId: remapOptional(context.maps.runs, row.forkOfRunId, "fork Run"),
+      policySnapshot: remapRunPolicy(row.policySnapshot, context.maps.runs),
+    })),
+    runSteps: context.manifest.runSteps.map((row) => ({
+      ...row,
+      id: requiredMap(context.maps.runSteps, row.id, "Run step"),
+      runId: requiredMap(context.maps.runs, row.runId, "Run"),
+    })),
+    runBatchItems: context.manifest.runBatchItems.map((row) => ({
+      ...row,
+      lineageRunId: requiredMap(context.maps.runs, row.lineageRunId, "Run"),
+      latestRunId: requiredMap(context.maps.runs, row.latestRunId, "Run"),
+      latestStepInstanceId: requiredMap(context.maps.runSteps, row.latestStepInstanceId, "Run step"),
+      childRunId: remapOptional(context.maps.runs, row.childRunId, "child Run"),
+    })),
+    runAttempts: context.manifest.runAttempts.map((row) => ({
+      ...row,
+      id: requiredMap(context.maps.runAttempts, row.id, "Run attempt"),
+      runId: requiredMap(context.maps.runs, row.runId, "Run"),
+      stepInstanceId: requiredMap(context.maps.runSteps, row.stepInstanceId, "Run step"),
+    })),
+    runEvents: context.manifest.runEvents.map((row) => ({
+      ...row,
+      runId: requiredMap(context.maps.runs, row.runId, "Run"),
+      stepInstanceId: remapOptional(context.maps.runSteps, row.stepInstanceId, "Run step"),
+      attemptId: remapOptional(context.maps.runAttempts, row.attemptId, "Run attempt"),
+    })),
+    automationTriggers: context.manifest.automationTriggers.map((row) => ({
+      ...row,
+      id: requiredMap(context.maps.automationTriggers, row.id, "Automation"),
+      workflowId: requiredMap(context.maps.workflows, row.workflowId, "Workflow"),
+    })),
+    automationOccurrences: context.manifest.automationOccurrences.map((row) => ({
+      ...row,
+      id: requiredMap(context.maps.automationOccurrences, row.id, "Automation occurrence"),
+      triggerId: requiredMap(context.maps.automationTriggers, row.triggerId, "Automation"),
+      runId: remapOptional(context.maps.runs, row.runId, "Run"),
+    })),
+    externalToolBindings: context.manifest.externalToolBindings.map((row) => ({
+      ...row,
+      id: requiredMap(context.maps.externalTools, row.id, "external tool"),
+    })),
+    externalAgentConversations: context.manifest.externalAgentConversations.map((row) => ({
+      ...row,
+      id: requiredMap(context.maps.externalAgentConversations, row.id, "external Agent conversation"),
+      runId: requiredMap(context.maps.runs, row.runId, "external Agent conversation Run"),
+    })),
+    externalAgentTurns: context.manifest.externalAgentTurns.map((row) => ({
+      ...row,
+      id: requiredMap(context.maps.externalAgentTurns, row.id, "external Agent turn"),
+      conversationId: requiredMap(
+        context.maps.externalAgentConversations,
+        row.conversationId,
+        "external Agent conversation",
+      ),
+    })),
+    externalAgentMessages: context.manifest.externalAgentMessages.map((row) => ({
+      ...row,
+      id: requiredMap(context.maps.externalAgentMessages, row.id, "external Agent message"),
+      conversationId: requiredMap(
+        context.maps.externalAgentConversations,
+        row.conversationId,
+        "external Agent conversation",
+      ),
+      turnId: requiredMap(context.maps.externalAgentTurns, row.turnId, "external Agent turn"),
+    })),
+    assistantConversations: context.manifest.assistantConversations.map((row) => ({
+      ...row,
+      id: requiredMap(context.maps.assistantConversations, row.id, "Assistant conversation"),
+    })),
+    assistantMessages: context.manifest.assistantMessages.map((row) => ({
+      ...row,
+      id: requiredMap(context.maps.assistantMessages, row.id, "Assistant message"),
+      conversationId: requiredMap(
+        context.maps.assistantConversations,
+        row.conversationId,
+        "Assistant conversation",
+      ),
+      parentMessageId: remapOptional(
+        context.maps.assistantMessages,
+        row.parentMessageId,
+        "Assistant parent message",
+      ),
+    })),
     provenance: restoreProvenance(context),
     knowledgeEvents: restoreKnowledgeEvents(context),
     chunks: restoreChunks(context),
@@ -40,129 +147,15 @@ export function buildSpacePackageRestoreRequest(
   };
 }
 
-function restoreDerivations(context: SpacePackageRestoreContext): SpacePackageRestoreRequest["derivations"] {
-  const { maps } = context;
-  return context.manifest.derivations.map((derivation) => {
-    const { groundedDocument, generatedImage, generatedVideo, ...row } = restoreOwnedRow(
-      derivation,
-      maps.sourceSpaceId,
-    );
-    return {
-      ...row,
-      id: requiredMap(maps.derivations, derivation.id, "knowledge derivation"),
-      outputNodeId: requiredMap(maps.nodes, derivation.outputNodeId, "derivation output"),
-      inputs: derivation.inputs.map((input) => ({
-        ...input,
-        nodeId: input.nodeId === null ? null : requiredMap(maps.nodes, input.nodeId, "derivation input"),
-      })),
-      ...(groundedDocument ? { groundedDocument } : {}),
-      ...(generatedImage ? { generatedImage } : {}),
-      ...(generatedVideo ? { generatedVideo } : {}),
-    };
-  });
+function remapOptional(map: Map<string, string>, id: string | null, kind: string): string | null {
+  return id === null ? null : requiredMap(map, id, kind);
 }
 
-function restoreScenes(context: SpacePackageRestoreContext): SpacePackageRestoreRequest["scenes"] {
-  const { maps } = context;
-  return context.manifest.scenes.map((scene) => ({
-    id: requiredMap(maps.scenes, scene.id, "Scene"),
-    title: scene.title,
-    thumbnailPath: null,
-    viewportX: scene.viewportX,
-    viewportY: scene.viewportY,
-    viewportZoom: scene.viewportZoom,
-    orderIndex: scene.orderIndex,
-    focusStructureNodeIds: scene.focusStructureNodeIds.map((id) => referenceMap(maps.structureNodes, id)),
-    relationKinds: scene.relationKinds,
-    relationStatuses: scene.relationStatuses,
-    queryFilter: remapQueryFilter(scene.queryFilter, maps),
-    createdAt: scene.createdAt,
-    updatedAt: scene.updatedAt,
-  }));
-}
-
-function restoreRelations(context: SpacePackageRestoreContext): SpacePackageRestoreRequest["relations"] {
-  const { maps } = context;
-  return context.manifest.relations.map((relation) => ({
-    ...restoreOwnedRow(relation, maps.sourceSpaceId),
-    id: requiredMap(maps.relations, relation.id, "relation"),
-    sourceId: requiredMap(maps.nodes, relation.sourceId, "relation source"),
-    targetId: requiredMap(maps.nodes, relation.targetId, "relation target"),
-    confidence: relation.confidence ?? null,
-    actorId: relation.actorId ?? null,
-  }));
-}
-
-function restoreChunks(context: SpacePackageRestoreContext): SpacePackageRestoreRequest["chunks"] {
-  return context.manifest.chunks.map((source) => {
-    const chunk = restoreOwnedRow(source, context.maps.sourceSpaceId);
-    return {
-      ...chunk,
-      id: requiredMap(context.maps.chunks, chunk.id, "chunk"),
-      nodeId: requiredMap(context.maps.nodes, chunk.nodeId, "chunk node"),
-      metadata: chunk.metadata ?? {},
-    };
-  });
-}
-
-function restoreThreads(context: SpacePackageRestoreContext): SpacePackageRestoreRequest["threads"] {
-  return context.manifest.aiThreads.map((source) => {
-    const thread = restoreOwnedRow(source, context.maps.sourceSpaceId);
-    return {
-      ...thread,
-      id: requiredMap(context.maps.threads, thread.id, "AI thread"),
-      scopeNodeIds: thread.scopeNodeIds.map((id) => requiredMap(context.maps.nodes, id, "AI scope node")),
-    };
-  });
-}
-
-function restoreMessages(
-  context: SpacePackageRestoreContext,
-  nodeRevisions: Map<string, string>,
-): SpacePackageRestoreRequest["messages"] {
-  return context.manifest.aiMessages.map((message) => {
-    const { provider, model, ...content } = message;
-    return {
-      ...content,
-      id: crypto.randomUUID(),
-      threadId: requiredMap(context.maps.threads, message.threadId, "AI message thread"),
-      citations: message.citations.map((citation) =>
-        remapGroundedCitation(citation, context.maps, nodeRevisions),
-      ),
-      ...(provider === undefined ? {} : { provider }),
-      ...(model === undefined ? {} : { model }),
-    };
-  });
-}
-
-function restoreProvenance(context: SpacePackageRestoreContext): SpacePackageRestoreRequest["provenance"] {
-  const { maps } = context;
-  return context.manifest.provenance.map((source) => {
-    const { actorId, ...provenance } = restoreOwnedRow(source, maps.sourceSpaceId);
-    return {
-      ...provenance,
-      id: requiredMap(maps.provenance, provenance.id, "provenance"),
-      targetId:
-        provenance.targetKind === "node"
-          ? requiredMap(maps.nodes, provenance.targetId, "provenance node")
-          : requiredMap(maps.relations, provenance.targetId, "provenance relation"),
-      sourceNodeId: requiredMap(maps.nodes, provenance.sourceNodeId, "provenance source"),
-      ...(actorId == null ? {} : { actorId }),
-    };
-  });
-}
-
-function restoreKnowledgeEvents(
-  context: SpacePackageRestoreContext,
-): SpacePackageRestoreRequest["knowledgeEvents"] {
-  return context.manifest.knowledgeEvents.map((source) => {
-    const { actorId, ...event } = restoreOwnedRow(source, context.maps.sourceSpaceId);
-    return {
-      ...event,
-      id: crypto.randomUUID(),
-      entityId: remapEventEntity(event.entityKind, event.entityId, context.maps),
-      payload: remapEventPayload(event.entityKind, event.eventKind, event.payload, context.maps),
-      ...(actorId == null ? {} : { actorId }),
-    };
-  });
+function remapRunPolicy(value: unknown, runs: Map<string, string>): unknown {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return value;
+  const policy = structuredClone(value) as Record<string, unknown>;
+  if (typeof policy.retryRootRunId === "string") {
+    policy.retryRootRunId = requiredMap(runs, policy.retryRootRunId, "retry root Run");
+  }
+  return policy;
 }

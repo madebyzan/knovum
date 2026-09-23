@@ -36,7 +36,14 @@ export type AgentCreationEvent =
   | { type: "thought"; text: string }
   | { type: "message"; text: string }
   | { type: "tool_started"; id: string; title: string }
-  | { type: "tool_updated"; id: string };
+  | { type: "tool_updated"; id: string }
+  | { type: "permission_requested"; requestId: string; title: string; options: AgentPermissionOption[] };
+
+export interface AgentPermissionOption {
+  id: string;
+  label: string;
+  kind: "allow_once" | "allow_always" | "reject_once" | "reject_always";
+}
 
 export function runAgentCreation(
   request: {
@@ -54,6 +61,16 @@ export function runAgentCreation(
   channel.onmessage = onEvent;
   return withAiError(() =>
     invoke<AgentArtifact[]>("plugin:spaces|create_agent_artifacts", { request, onEvent: channel }),
+  );
+}
+
+export function decideAgentPermission(
+  sessionId: string,
+  requestId: string,
+  optionId: string | null,
+): Promise<void> {
+  return withAiError(() =>
+    invoke<void>("plugin:spaces|decide_external_agent_permission", { sessionId, requestId, optionId }),
   );
 }
 

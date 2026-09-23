@@ -22,9 +22,25 @@ pub async fn embed<R: Runtime>(
     let provider = active_text_provider();
     validate_inputs(&texts, provider)?;
     let expected = texts.len();
-    let vectors = local_candle::engine::embed(app.clone(), texts).await?;
-    validate_vectors(&vectors, expected, provider.dimensions())?;
-    Ok(EmbeddingResponse { vectors })
+    let output = local_candle::engine::embed(app.clone(), texts).await?;
+    validate_vectors(&output.vectors, expected, provider.dimensions())?;
+    let input_tokens = u32::try_from(output.input_tokens)
+        .map_err(|_| "Embedding input token count exceeds the supported range".to_owned())?;
+    crate::ai::usage::record(
+        crate::ai::usage::UsagePurpose::KnowledgeIndexing,
+        "local",
+        provider.model_id(),
+        &crate::ai::contracts::TokenUsage {
+            prompt_tokens: input_tokens,
+            completion_tokens: 0,
+            total_tokens: input_tokens,
+        },
+    )
+    .await
+    .map_err(|error| error.to_string())?;
+    Ok(EmbeddingResponse {
+        vectors: output.vectors,
+    })
 }
 
 fn validate_inputs(texts: &[String], provider: &dyn EmbeddingCapability) -> Result<(), String> {

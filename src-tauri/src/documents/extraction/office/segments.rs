@@ -40,7 +40,7 @@ pub(super) fn extract(
                         section_index,
                         element_index,
                         section.title.as_deref(),
-                        &headings,
+                        headings,
                         content.part,
                     );
                     result.extend(tables::segments(table, owner, cancellation, budget)?);
@@ -59,7 +59,7 @@ pub(super) fn extract(
                     section_index,
                     element_index,
                     section.title.as_deref(),
-                    &headings,
+                    headings,
                     content.part,
                 );
                 if is_word(format) && matches!(element, Element::Paragraph(_)) {

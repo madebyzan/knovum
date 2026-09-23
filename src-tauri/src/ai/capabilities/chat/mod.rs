@@ -1,3 +1,4 @@
+mod request;
 mod telemetry;
 
 use futures::StreamExt;
@@ -6,21 +7,22 @@ use tauri::ipc::Channel;
 use tokio_util::sync::CancellationToken;
 
 use crate::ai::{
-    contracts::{ChatCapability, ChatRequest, StreamFrame},
+    contracts::StreamFrame,
     error::{send_channel_event, AiError, AiErrorCode, AiResult},
-    models::{CompletionOutput, CompletionRequest, CompletionStreamEvent, ExecutionTarget},
-    providers::resolve_provider,
-    transport::SecurityContext,
+    models::{CompletionOutput, CompletionRequest, CompletionStreamEvent},
 };
 
-pub async fn complete(request: CompletionRequest) -> AiResult<CompletionOutput> {
-    let (target, chat_req) = prepare_request(request);
+pub(crate) use request::{complete_target, stream_target};
 
-    let response = complete_target(&target, &chat_req).await?;
+pub async fn complete(request: CompletionRequest) -> AiResult<CompletionOutput> {
+    let (target, chat_req) = request::prepare(request);
+
+    let response = request::complete_target(&target, &chat_req).await?;
     Ok(CompletionOutput {
         text: response.text,
         provider: response.provider,
         model: response.model,
+        usage: response.usage,
     })
 }
 
@@ -28,17 +30,19 @@ pub async fn complete_cancellable(
     request: CompletionRequest,
     cancellation: CancellationToken,
 ) -> AiResult<CompletionOutput> {
-    let (target, chat_req) = prepare_request(request);
+    let (target, chat_req) = request::prepare(request);
     let mut stream = stream_target(&target, &chat_req, cancellation).await?;
     let mut text = String::new();
     let mut execution_metadata = None;
+    let mut usage = None;
     while let Some(frame) = stream.next().await {
         match frame? {
             StreamFrame::Started { provider, model } => {
                 execution_metadata = Some((provider, model));
             }
             StreamFrame::ContentDelta(delta) => text.push_str(&delta),
-            StreamFrame::ReasoningDelta(_) | StreamFrame::Usage(_) => {}
+            StreamFrame::ReasoningDelta(_) => {}
+            StreamFrame::Usage(value) => usage = Some(value),
         }
     }
     if text.trim().is_empty() {
@@ -52,6 +56,7 @@ pub async fn complete_cancellable(
         text: text.trim().to_owned(),
         provider,
         model,
+        usage,
     })
 }
 
@@ -64,7 +69,7 @@ pub async fn complete_stream(
     let prompt_bytes = request.text.len();
     telemetry::stream_request_started(&request.target, prompt_bytes);
 
-    let (target, chat_req) = prepare_request(request);
+    let (target, chat_req) = request::prepare(request);
 
     let mut stream = stream_target(&target, &chat_req, cancellation).await?;
     telemetry::stream_opened(&target, started_at);
@@ -72,6 +77,7 @@ pub async fn complete_stream(
     let mut full_text = String::new();
     let mut chunk_count = 0_u64;
     let mut execution_metadata = None;
+    let mut usage = None;
 
     while let Some(frame_outcome) = stream.next().await {
         match frame_outcome? {
@@ -93,15 +99,23 @@ pub async fn complete_stream(
                 full_text.push_str(&delta);
                 send_channel_event(&events, CompletionStreamEvent::Delta { text: delta })?;
             }
-            StreamFrame::Usage(usage) => {
+            StreamFrame::Usage(value) => {
+                let prompt_tokens = value.prompt_tokens;
+                let completion_tokens = value.completion_tokens;
+                let total_tokens = value.total_tokens;
                 send_channel_event(
                     &events,
                     CompletionStreamEvent::Usage {
-                        prompt_tokens: usage.prompt_tokens,
-                        completion_tokens: usage.completion_tokens,
-                        total_tokens: usage.total_tokens,
+                        prompt_tokens,
+                        completion_tokens,
+                        total_tokens,
                     },
                 )?;
+                usage = Some(crate::ai::contracts::TokenUsage {
+                    prompt_tokens,
+                    completion_tokens,
+                    total_tokens,
+                });
             }
         }
     }
@@ -121,6 +135,7 @@ pub async fn complete_stream(
         text: full_text,
         provider,
         model,
+        usage,
     })
 }
 
@@ -131,49 +146,4 @@ fn require_execution_metadata(metadata: Option<(String, String)>) -> AiResult<(S
             "AI execution stream did not identify its provider and model.",
         )
     })
-}
-
-fn prepare_request(request: CompletionRequest) -> (ExecutionTarget, ChatRequest) {
-    let chat_request = ChatRequest {
-        system_prompt: (!request.system_prompt.trim().is_empty()).then_some(request.system_prompt),
-        instruction: (!request.instruction.trim().is_empty()).then_some(request.instruction),
-        text: request.text,
-        temperature: request.target.temperature(),
-        max_tokens: request.max_tokens,
-    };
-    (request.target, chat_request)
-}
-
-pub(crate) async fn complete_target(
-    target: &ExecutionTarget,
-    request: &ChatRequest,
-) -> AiResult<crate::ai::contracts::ChatResponse> {
-    if let Some(kind) = target.agent_kind() {
-        return crate::ai::providers::agents::chat::complete(kind, request).await;
-    }
-    let context = SecurityContext::from_target(target)?;
-    resolve_model_chat(target)?
-        .complete(&context, request)
-        .await
-}
-
-pub(crate) async fn stream_target(
-    target: &ExecutionTarget,
-    request: &ChatRequest,
-    cancellation: CancellationToken,
-) -> AiResult<crate::ai::contracts::StreamFrameStream> {
-    if let Some(kind) = target.agent_kind() {
-        return crate::ai::providers::agents::chat::stream(kind, request, cancellation).await;
-    }
-    let context = SecurityContext::from_target(target)?;
-    resolve_model_chat(target)?
-        .stream(&context, request, cancellation)
-        .await
-}
-
-fn resolve_model_chat(target: &ExecutionTarget) -> AiResult<&'static dyn ChatCapability> {
-    let provider = resolve_provider(target.model_provider_kind()?);
-    provider
-        .as_chat()
-        .ok_or_else(|| AiError::capability_not_supported(target.provider(), "chat"))
 }

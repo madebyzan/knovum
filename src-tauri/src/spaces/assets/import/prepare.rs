@@ -47,28 +47,7 @@ fn clipboard_contains_source(source: &Path, clipboard_paths: &[String]) -> bool 
 }
 
 #[cfg(test)]
-mod clipboard_tests {
-    use super::clipboard_contains_source;
-    use std::path::Path;
-
-    #[test]
-    fn authorizes_only_the_exact_clipboard_resource() {
-        let paths = vec!["/tmp/knowledge-source.pdf".to_owned()];
-        assert!(clipboard_contains_source(
-            Path::new("/tmp/knowledge-source.pdf"),
-            &paths
-        ));
-        assert!(!clipboard_contains_source(
-            Path::new("/tmp/other.pdf"),
-            &paths
-        ));
-        let windows_path = r"C:\Knowledge\report.pdf";
-        assert!(clipboard_contains_source(
-            Path::new(windows_path),
-            &[windows_path.to_owned()]
-        ));
-    }
-}
+mod tests;
 
 pub(super) fn prepare_owned_asset(
     app: &tauri::AppHandle,

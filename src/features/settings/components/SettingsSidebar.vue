@@ -130,6 +130,7 @@ const searchResults = computed(() => visibleGroups.value.flatMap((group) => grou
             <button
               v-for="setting in group.settings"
               :key="setting.id"
+              :data-testid="`settings-pane-${setting.id}`"
               type="button"
               class="mb-0.5 flex h-(--knovum-control-height-md) w-full items-center gap-2.5 rounded-control px-2 text-left text-body-lg text-foreground-secondary transition-colors duration-100 hover:bg-(--knovum-sidebar-item-background-hover) hover:text-foreground data-[active=true]:bg-(--knovum-sidebar-item-background-selected) data-[active=true]:font-medium data-[active=true]:text-foreground"
               :data-active="props.activePane === setting.id"

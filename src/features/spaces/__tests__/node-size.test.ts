@@ -36,7 +36,6 @@ describe("spaces node size policy", () => {
     ["file", 256, 192],
     ["code", 304, 224],
     ["credential", 220, 56],
-    ["section", 432, 288],
     ["object", 256, 176],
     ["portal", 256, 88],
   ] as const)("gives %s a semantic desktop default", (kind, width, height) => {

@@ -1,19 +1,26 @@
 use std::{
     fs,
-    io::Read,
-    path::{Path, PathBuf},
+    path::Path,
     process::{Command, Stdio},
 };
 
-use sha2::{Digest, Sha256};
 use tauri::ipc::Channel;
 use tokio_util::sync::CancellationToken;
 use uuid::Uuid;
 
-use super::persistence::{RenderedVideo, VideoSubtitleSource};
-use super::scratch::ScratchFile;
+use super::persistence::VideoSubtitleSource;
 use super::{progress, SubtitledVideoProgress, CANCELLED};
-use crate::{local_resources::tools, media::subprocess, spaces::assets::asset_directory};
+use crate::{
+    local_resources::tools,
+    media::subprocess,
+    spaces::{
+        assets::asset_directory,
+        derivation::{
+            scratch_file::ScratchFile,
+            video_output::{self, RenderedVideo},
+        },
+    },
+};
 
 pub fn render(
     app: &tauri::AppHandle,
@@ -35,7 +42,7 @@ pub fn render(
         cancellation,
     )?;
     progress(channel, "savingResource", 94)?;
-    inspect_output(output.retain())
+    video_output::inspect(output.retain())
 }
 
 fn burn_in_subtitles(
@@ -120,7 +127,7 @@ pub(super) fn ffmpeg_arguments(source: &str, subtitle_name: &str) -> Result<Vec<
         "-map".into(),
         "0:a?".into(),
         "-c:v".into(),
-        platform_h264_encoder()?.into(),
+        video_output::platform_h264_encoder()?.into(),
         "-b:v".into(),
         "8M".into(),
         "-maxrate".into(),
@@ -134,36 +141,4 @@ pub(super) fn ffmpeg_arguments(source: &str, subtitle_name: &str) -> Result<Vec<
         "-movflags".into(),
         "+faststart".into(),
     ])
-}
-
-fn platform_h264_encoder() -> Result<&'static str, String> {
-    #[cfg(target_os = "macos")]
-    return Ok("h264_videotoolbox");
-    #[cfg(target_os = "windows")]
-    return Ok("h264_mf");
-    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
-    Err("Subtitle video rendering is supported only on macOS and Windows".into())
-}
-
-fn inspect_output(path: PathBuf) -> Result<RenderedVideo, String> {
-    let metadata = fs::metadata(&path).map_err(|error| error.to_string())?;
-    let size = metadata.len();
-    if size == 0 {
-        return Err("FFmpeg created an empty subtitled video".into());
-    }
-    let mut file = fs::File::open(&path).map_err(|error| error.to_string())?;
-    let mut hasher = Sha256::new();
-    let mut buffer = [0u8; 65536];
-    loop {
-        let read = file.read(&mut buffer).map_err(|error| error.to_string())?;
-        if read == 0 {
-            break;
-        }
-        hasher.update(&buffer[..read]);
-    }
-    Ok(RenderedVideo {
-        path: path.to_string_lossy().into_owned(),
-        size: size as i64,
-        revision: format!("sha256:{:x}", hasher.finalize()),
-    })
 }

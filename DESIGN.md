@@ -3,11 +3,14 @@
 ## Source of truth
 
 - Status: Active
-- Last refreshed: 2026-09-01
-- Primary product surfaces: desktop knowledge-space shell, infinite canvas, document editors, selection Inspector, contextual Task Center and Settings.
-- Evidence reviewed: `AGENTS.md`, `CANVAS_VISUAL_REDESIGN.md`, `docs/spaces.md`, `docs/knowledge.md`, `docs/ui-system.md`, `docs/background-tasks.md`, `docs/system-architecture.md`, `docs/architecture.md`, `docs/oss-first.md`, `src/features/spaces/*`, `src-tauri/src/spaces/*`, and `src-tauri/migrations/spaces/*`.
+- Last refreshed: 2026-09-21
+- Primary product surfaces: desktop knowledge-space shell, infinite canvas, object actions, editors, Inspector, Assistant workspace, Workflow editor, Run Center, Automation, external connections and Settings.
+- Evidence reviewed: `/Users/zand/Downloads/knovum-final-design.md`, `AGENTS.md`, `docs/spaces.md`, `docs/knowledge.md`, `docs/ui-system.md`, `docs/background-tasks.md`, `docs/system-architecture.md`, `docs/architecture.md`, `docs/naming-conventions.md`, `docs/oss-first.md`, `src/features/spaces/*`, `src-tauri/src/spaces/*`, `src-tauri/src/ai/*`, and `src-tauri/src/external_agents/*`.
 
-This file is the durable product and interaction design contract. Domain and persistence details remain authoritative in their owning documents; this file defines how those capabilities should feel and behave as one product.
+This file is the durable product and interaction design contract. The complete domain, execution,
+security and delivery baseline is `docs/rfcs/knowledge-work-system.md`. Domain and persistence details
+remain authoritative in their owning documents; this file defines how those capabilities should feel
+and behave as one product.
 
 The canvas and node visual system is specified in `CANVAS_VISUAL_REDESIGN.md`. That scoped specification refines this contract without replacing its product principles.
 
@@ -25,7 +28,7 @@ The canvas and node visual system is specified in `CANVAS_VISUAL_REDESIGN.md`. T
   - Preserve the relationship between an output, its source material and the operation that produced it.
   - Keep the canvas useful for thinking and recall rather than turning it into a generic workflow builder.
 - Non-goals:
-  - Recreating ComfyUI or exposing model execution graphs as the default product experience.
+  - Recreating ComfyUI or exposing provider execution graphs as the default product experience.
   - Becoming a generic prompt playground, media editor or provider chat client.
   - Treating every generated artifact as verified knowledge or evidence.
   - Hiding long-running work, silently replacing source material or creating uncontrolled canvas clutter.
@@ -99,10 +102,12 @@ The canvas may reveal source-to-result lineage and a compact pending state, but 
 
 ### Tradeoffs
 
-- Prefer a small set of high-confidence contextual actions over an exhaustive action catalog.
+- Prefer discoverable, typed `SpaceAction` families with focused contextual surfaces over a single
+  universal “AI process” action.
 - Prefer durable lineage and inspectability over instant but disposable generation.
 - Prefer a quiet canvas with collapsible lineage over displaying the complete execution graph.
-- Prefer Workflows only after repeated real derivations prove a reusable sequence; do not begin with a universal workflow engine.
+- Keep Workflow as a first-class, typed user program while keeping one-click object operations direct;
+  not every click creates a Run or Workflow instance.
 
 ## Visual language
 
@@ -122,7 +127,10 @@ The canvas may reveal source-to-result lineage and a compact pending state, but 
   - **Pending derivative node** occupying the output’s future canvas position.
   - **Derivation details** Inspector section for lineage, execution and source-freshness information.
   - **Lineage controls** for reveal, collapse, compare, rerun and inspect sources.
-  - **Workflow action** only after a completed derivation or sequence is demonstrably reusable.
+  - **Workflow editor** with graph and outline projections over one `WorkflowDraft`.
+  - **Assistant workspace** with explicit Ask, Plan and Execute modes.
+  - **Run Center** with Run, StepInstance and Attempt detail, recovery and selective rerun.
+  - **Connection diagnostics** for model, external Agent and external tool bindings.
 - Variants and states: ready, configuring, queued, running, cancelling, failed, completed and superseded.
 - Token/component ownership: Spaces owns derivation orchestration and canvas presentation; Foundation owns only existing cross-feature task and integration policy; reusable processing engines live behind explicit neutral desktop capabilities rather than feature-to-feature imports.
 
@@ -169,7 +177,8 @@ The canvas may reveal source-to-result lineage and a compact pending state, but 
 - Framework/styling system: Tauri 2, Vue 3 Composition API with `<script setup lang="ts">`, a feature-local Konva canvas adapter, Tailwind CSS v4 semantic utilities, Reka primitives and Oxc tooling.
 - Design-token constraints: `src/styles/tokens.css` remains the only token source; derivation UI extends existing Space and Task Center roles.
 - Performance constraints: opening configuration and creating pending feedback must not wait for heavy parsing, model loading or Rust processing. Long jobs run outside the WebView main thread and stream progress through Tauri Channels.
-- Compatibility constraints: no generic fallback or compatibility layer. Unsupported inputs or unavailable required infrastructure fail visibly at the action boundary.
+- Compatibility constraints: no generic fallback, dual-write path or old-format runtime reader.
+  Unsupported inputs or unavailable required infrastructure fail visibly at the action boundary.
 - Test/screenshot expectations: capability filtering, immediate pending feedback, cancellation, failure retention, successful in-place replacement, lineage creation, keyboard operation and large-canvas behavior require regression coverage. Visual changes follow the existing desktop language and need representative macOS/Windows verification.
 
 ## Knowledge Derivation contract
@@ -183,7 +192,8 @@ Knowledge Derivation is the product capability by which one or more Space resour
 - **Relation**: the semantic `derives-from` edge connecting each output to its inputs.
 - **Provenance**: evidence supporting a Knowledge claim or relation. Provenance is not reused as the transformation audit log.
 - **KnowledgeChangeSet**: a temporary, validated set of factual or semantic operations committed atomically by Rust.
-- **Creation Workflow**: a versioned sequence of registered Knowledge Actions with user-owned parameters and execution-target bindings, not a low-level model graph.
+- **Workflow**: a user-owned, versioned typed program over registered SpaceActions with explicit
+  inputs, outputs, conditions, review points and execution bindings; never a low-level provider graph.
 
 ### Action families
 
@@ -279,4 +289,5 @@ Placement uses the measured bounds of the full source selection. A single-source
 - [x] Generated documents remain directly usable artifacts; durable Knowledge-claim mutations use strict KnowledgeChangeSet validation, atomic commit and provenance presentation.
 - [ ] Decide when multiple source relations collapse into one lineage bundle on dense canvases / Spaces design / large-canvas readability.
 - [x] DOCX uses `docx-rs`, PDF uses the official Typst compiler/PDF exporter through a pinned embedding adapter, and PPTX uses `PptxGenJS` in a worker. All three remain derived delivery artifacts rather than editable knowledge sources.
-- [x] Creation Workflow definitions are code-owned and versioned; saved bindings and durable runs are included in the current `.knovumspace` contract.
+- [x] Published Workflow definitions are immutable and versioned; saved bindings and durable Runs are
+      included in the `.knovumspace` contract.

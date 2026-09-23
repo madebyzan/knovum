@@ -7,7 +7,7 @@
     "analyze_image": "图像视觉分析",
     "analyze_media": "媒体时长与波形分析",
     "transcribe_media": "音频 Whisper 转写",
-    "analyze_video_first_frame": "视频首帧抽取",
+    "analyze_video_cover": "视频封面分析",
     "embed_media_transcript": "转写向量索引",
     "parse_document": "文档内容提取",
     "analyze_document": "文档图片分析"
@@ -16,7 +16,7 @@
     "documentOcr": "文档识别文字",
     "documentInterpretation": "文档视觉解释",
     "imageDescription": "图像描述",
-    "videoFirstFrame": "视频首帧",
+    "videoCover": "视频封面",
     "mediaTimeRange": "{start} – {end}"
   },
   "rebuildRetrievalIndex": "重建向量检索索引",
@@ -35,13 +35,19 @@
   "documentRecognitionRequired": "需要识别的页面：{pages}",
   "documentVisualCoverage": "已完成 {count} / {total} 项图片分析。",
   "documentVisualUnavailable": "{count} 张引用图片无法由文档解析器解码。",
+  "documentResources": "文档资源",
+  "openDocumentResource": "查看第 {index} 个文档资源",
+  "documentResourceOccurrences": "出现 {count} 次 | 出现 {count} 次",
+  "documentResourceEmbedded": "从文档中提取的嵌入图片。",
+  "documentResourceRendered": "从 PDF 页面视觉区域渲染的图片。",
+  "documentResourceDetectedText": "识别文字",
   "visualWaitingConfiguration": "尚未配置视觉理解，此项分析等待配置。",
   "documentWarnings": {
-    "office_vector_drawings_unsupported": "Office 矢量绘图不参与视觉分析，完整内容保留在原文件中。",
-    "spreadsheet_image_cell_anchors_unavailable": "表格图片按工作表定位，不提供单元格锚点。",
-    "spreadsheet_chart_rendering_unsupported": "已提取可用图表文字，未分析图表外观。",
-    "legacy_office_visual_occurrence_coverage_limited": "此旧版 Office 格式无法提供完整的图片位置。",
-    "legacy_spreadsheet_formulas_unavailable": "旧版表格提取缓存值，不提供公式表达式。",
-    "pdf_visual_coverage_limited": "PDF 图片区域来自解析器公开的位置数据；行内图片、矢量图形等内容不保证完整覆盖，完整内容保留在原文件中。"
+    "officeVectorDrawingsUnsupported": "Office 矢量绘图不参与视觉分析，完整内容保留在原文件中。",
+    "spreadsheetImageCellAnchorsUnavailable": "表格图片按工作表定位，不提供单元格锚点。",
+    "spreadsheetChartRenderingUnsupported": "已提取可用图表文字，未分析图表外观。",
+    "legacyOfficeVisualOccurrenceCoverageLimited": "此旧版 Office 格式无法提供完整的图片位置。",
+    "legacySpreadsheetFormulasUnavailable": "旧版表格提取缓存值，不提供公式表达式。",
+    "pdfVisualCoverageLimited": "PDF 图片区域来自解析器公开的位置数据；行内图片、矢量图形等内容不保证完整覆盖，完整内容保留在原文件中。"
   }
 }

@@ -1,18 +1,10 @@
-mod chat;
+use crate::ai::contracts::AiProvider;
 
-pub use chat::OllamaChatAdapter;
-
-use crate::ai::contracts::{AiProvider, ChatCapability};
-
-pub struct OllamaProvider {
-    chat: OllamaChatAdapter,
-}
+pub struct OllamaProvider;
 
 impl OllamaProvider {
     pub fn new() -> Self {
-        Self {
-            chat: OllamaChatAdapter,
-        }
+        Self
     }
 }
 
@@ -22,8 +14,4 @@ impl Default for OllamaProvider {
     }
 }
 
-impl AiProvider for OllamaProvider {
-    fn as_chat(&self) -> Option<&dyn ChatCapability> {
-        Some(&self.chat)
-    }
-}
+impl AiProvider for OllamaProvider {}

@@ -18,6 +18,7 @@ pub async fn transform(request: EditorTransformRequest) -> AiResult<CompletionOu
         ));
     }
     let req = CompletionRequest {
+        purpose: crate::ai::usage::UsagePurpose::Editor,
         target: request.target,
         system_prompt: EDITOR_SYSTEM.to_string(),
         instruction: inst.to_string(),
@@ -40,6 +41,7 @@ pub async fn transform_stream(
         ));
     }
     let req = CompletionRequest {
+        purpose: crate::ai::usage::UsagePurpose::Editor,
         target: request.target,
         system_prompt: EDITOR_SYSTEM.to_string(),
         instruction: inst.to_string(),

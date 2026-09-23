@@ -1,3 +1,4 @@
+pub(super) mod analysis;
 mod insights;
 mod transcript;
 

@@ -1,11 +1,11 @@
 import type { StructureLayout } from "../../model/structure/structure-contract";
 import { createStructureIndex } from "../../model/structure/structure-index";
-import { captureCanvasOverview, captureCanvasViewport } from "../canvas-overview-capture";
 import type { CanvasNodeAppearance } from "../contract/canvas-document";
 import type { CanvasEditorPort } from "../contract/canvas-editor-port";
 import type { KonvaEditorPortOptions } from "./canvas-editor-port-options";
 import { createCanvasEditorSelection } from "./canvas-editor-selection";
 import { createNodeContentHeightBatch, type FittedContentHeight } from "./node-content-height-batch";
+import { captureCanvasOverview, captureCanvasViewport } from "./overview/capture";
 import {
   fitCanvasBounds,
   fitCanvasLayouts,

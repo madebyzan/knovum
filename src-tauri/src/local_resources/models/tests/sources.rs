@@ -44,7 +44,7 @@ fn server(status: &str) -> (reqwest::Url, std::thread::JoinHandle<()>) {
         stream
             .set_read_timeout(Some(std::time::Duration::from_secs(5)))
             .unwrap();
-        stream.read(&mut [0; 4096]).unwrap();
+        let _ = stream.read(&mut [0; 4096]).unwrap();
         stream.write_all(response.as_bytes()).unwrap();
     });
     (url, thread)

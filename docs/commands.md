@@ -46,6 +46,18 @@ Space persistence is entirely Rust-owned. Reads and writes cross typed Rust comm
 
 Agent artifact commands never accept an app-owned absolute source path from the Renderer. `plugin:spaces|stage_generated_artifact_import` resolves a validated Space/session/relative artifact identity in Rust and enters the same prepared Space import pipeline used by user-selected sources; `plugin:spaces|consume_agent_artifact` removes that source only after import succeeds. Preview, discard, recovery listing and creation use the same identity boundary.
 
+## Governed execution commands
+
+- `plugin:spaces|list_space_actions` projects the single versioned Action catalog; Action execution is internal to Assistant, Workflow and MCP adapters rather than a second renderer dispatcher.
+- Workflow commands save one optimistic-revision draft, compile/preflight it, publish immutable versions, instantiate built-in templates, copy personal templates with their fixed-version subworkflow closure, and start whole-flow or isolated selected-step Runs.
+- External conversation commands start one explicit ACP runtime session, expose and update only its actual ACP mode/configuration options, send additional turns with explicitly selected attachments only while that exact session remains connected, list durable history and close the session without silent reconnection.
+- Run commands list Runs, steps, per-item batch facts and ordered events; request pause/resume/cancel; continue a persisted debug breakpoint; provide human input/review; reconcile unknown external outcomes; retry selected steps into a new Run; and produce a content-redacted diagnostic bundle.
+- Assistant commands own conversations, branching, archive/search/export and durable tasks. Closing a view does not own task lifetime.
+- Automation commands own schedule preview, persisted triggers, occurrences, explicit renewal and enable/disable. Import never enables a trigger or restores its grant.
+- External-tool commands test a connection without persistence, save a reviewed schema fingerprint, disable a binding, or delete it only when no Workflow definition references it.
+- The Space MCP surface composes independent read, Action, Workflow and Run routers. Mutations still enter SpaceAction authorization; Run control additionally requires the same external principal that created the Run.
+- `plugin:spaces|decide_external_agent_permission` resolves one actual ACP permission request using only an option advertised by that request; absence of a decision is cancellation, never implicit approval.
+
 Saved Website networking is Rust-owned: the crate-level web capture module performs HTTP fetching and returns a neutral document/image result; `plugin:spaces|fetch_webpage` maps it into a Space response and persists direct images. `plugin:spaces|cache_web_asset` persists optional favicon/preview-image URLs discovered inside a saved document.
 
 ## System preview command
@@ -59,5 +71,3 @@ These declared commands have no production Renderer consumer. The list is docume
 registry: nothing enforces it, so it is only as true as the last review that read it. Treat each
 entry as authorized debt and prefer deleting an unused command — an unreachable command still
 widens the WebView ACL, which `AGENTS.md` forbids granting preemptively.
-
-- `plugin:spaces|list_creation_workflow_runs`: Workflow runs are written by `plugin:spaces|save_creation_workflow_run`; no history view reads them yet.
