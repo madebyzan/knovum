@@ -23,13 +23,17 @@ const NON_CONNECTABLE_KINDS = new Set<SpaceNodeKind>(["credential", "portal"]);
 const ACTIVATE_TO_INTERACT_KINDS = new Set<SpaceNodeKind>(["code", "note", "text", "website"]);
 const SELECT_TO_INTERACT_KINDS = new Set<SpaceNodeKind>(["audio", "credential", "video"]);
 
+export function isCanvasNodeConnectable(node: SpaceCanvasNode) {
+  return !NON_CONNECTABLE_KINDS.has(node.data.kind);
+}
+
 export function canvasNodeInteraction(node: SpaceCanvasNode, locked = false): CanvasNodeInteraction {
   const resize = spaceNodeResizePolicy(node.data);
   const textLayout = node.data.kind === "text";
   const movable = !locked;
   return {
     activationMode: nodeActivationMode(node),
-    connectable: !NON_CONNECTABLE_KINDS.has(node.data.kind),
+    connectable: isCanvasNodeConnectable(node),
     movable,
     transform: {
       ...resize,

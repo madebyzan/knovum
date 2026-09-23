@@ -2,6 +2,7 @@ import { shallowRef, watch, type Ref } from "vue";
 
 import type { CanvasNodeLayoutV1 } from "../../contract/canvas-document";
 import type { CanvasSelectionSnapshot } from "../../contract/canvas-editor";
+import type { CanvasRect } from "../../contract/canvas-editor-port";
 import { createCanvasSelectionSnapshot } from "../../document/canvas-selection-snapshot";
 import { useCanvasMarqueeSelection } from "./use-canvas-marquee-selection";
 
@@ -9,6 +10,7 @@ interface CanvasSelectionOptions {
   availableStructureNodeIds: Readonly<Ref<ReadonlySet<string>>>;
   layouts: Readonly<Ref<readonly CanvasNodeLayoutV1[]>>;
   relationBounds: Readonly<Ref<ReadonlyMap<string, { x: number; y: number; width: number; height: number }>>>;
+  structureBounds: Readonly<Ref<ReadonlyMap<string, CanvasRect>>>;
   changed(selection: CanvasSelectionSnapshot): void;
   structureSelectionForNode(nodeId: string): string | undefined;
 }
@@ -76,14 +78,17 @@ export function useCanvasSelection(options: CanvasSelectionOptions) {
   }
 
   function notify() {
+    const snapshot = createCanvasSelectionSnapshot(
+      options.layouts.value,
+      nodeIds.value,
+      relationIds.value,
+      options.relationBounds.value,
+    );
+    const bounds = selectedStructureBounds(structureNodeIds.value, options.structureBounds.value);
     options.changed({
-      ...createCanvasSelectionSnapshot(
-        options.layouts.value,
-        nodeIds.value,
-        relationIds.value,
-        options.relationBounds.value,
-      ),
+      ...snapshot,
       structureNodeIds: [...structureNodeIds.value],
+      ...(bounds ? { bounds } : {}),
     });
   }
 
@@ -119,6 +124,9 @@ export function useCanvasSelection(options: CanvasSelectionOptions) {
     structureNodeIds.value = retained;
     notify();
   });
+  watch(options.structureBounds, () => {
+    if (structureNodeIds.value.size) notify();
+  });
 
   return {
     beginMarquee: marquee.begin,
@@ -136,4 +144,17 @@ export function useCanvasSelection(options: CanvasSelectionOptions) {
     setStructureNodeIds,
     structureNodeIds,
   };
+}
+
+function selectedStructureBounds(ids: ReadonlySet<string>, available: ReadonlyMap<string, CanvasRect>) {
+  const frames = [...ids].flatMap((id) => {
+    const bounds = available.get(id);
+    return bounds ? [bounds] : [];
+  });
+  if (!frames.length) return undefined;
+  const left = Math.min(...frames.map(({ x }) => x));
+  const top = Math.min(...frames.map(({ y }) => y));
+  const right = Math.max(...frames.map(({ x, width }) => x + width));
+  const bottom = Math.max(...frames.map(({ y, height }) => y + height));
+  return { x: left, y: top, width: right - left, height: bottom - top };
 }

@@ -9,12 +9,18 @@
 - The official **FFmpeg filter graph** remains the video rendering engine. It already supplies
   trim/atrim, concat, volume, rotation, flip and timed `drawtext`, while the platform H.264 encoder
   and Task Center cancellation are already provisioned by Knovum.
+- GStreamer Editing Services is a credible full nonlinear editing engine with official Rust
+  bindings, but would require a new native runtime and macOS/Windows packaging pipeline. The
+  current product contract is one managed source, ordered cuts and timed text. FFmpeg remains
+  the selected execution engine for that bounded scope; a future multi-source, multi-track
+  realtime editor requires a new engine decision rather than a second concurrent timeline model.
 - `vue-timeline-editor`, `vue-video-editor`, WebCut and small draggable timeline packages were
   reviewed. The focused timeline packages are immature, while the larger editors introduce their
   own WebCodecs/Pixi media engine and project model. Either choice would create a competing media
   source of truth beside Knovum's managed assets and FFmpeg pipeline. Knovum therefore owns only
-  its small typed timeline/project interaction layer and delegates media decoding/rendering to the
-  existing browser element and FFmpeg.
+  its small typed timeline/project interaction layer and delegates proxy preparation and final
+  rendering to the existing Rust/FFmpeg boundary. The browser media element plays only managed
+  source media during initial proxy preparation and the short-GOP proxy afterward.
 
 ## Desktop Agent installation discovery reviewed 2026-09-17
 

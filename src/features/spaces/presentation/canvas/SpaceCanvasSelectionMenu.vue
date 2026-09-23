@@ -1,5 +1,14 @@
 <script setup lang="ts">
-import { Focus, Group, LockKeyhole, MoreHorizontal, Trash2, UnlockKeyhole } from "@lucide/vue";
+import {
+  Copy,
+  Focus,
+  Group,
+  LockKeyhole,
+  MessageSquareText,
+  MoreHorizontal,
+  Trash2,
+  UnlockKeyhole,
+} from "@lucide/vue";
 import { platform } from "@tauri-apps/plugin-os";
 import { ToolbarButton } from "reka-ui";
 import { useI18n } from "vue-i18n";
@@ -15,6 +24,7 @@ import type {
   CreationIntentId,
 } from "../../knowledge-derivations/catalog/creation-intent-definitions";
 import SpaceDerivationMenuItems from "../SpaceDerivationMenuItems.vue";
+import SpaceSelectionMoveMenu from "../SpaceSelectionMoveMenu.vue";
 import SpaceCanvasArrangeMenu from "./SpaceCanvasArrangeMenu.vue";
 import SpaceCanvasLayerMenu from "./SpaceCanvasLayerMenu.vue";
 import SpaceCanvasParentMenu from "./SpaceCanvasParentMenu.vue";
@@ -23,6 +33,7 @@ import type { useCanvasSelectionActions } from "./use-canvas-selection-actions";
 defineProps<{
   actions: ReturnType<typeof useCanvasSelectionActions>;
   derivations: CreationIntentDecisions;
+  promotedDuplicate?: boolean;
 }>();
 const emit = defineEmits<{ invokeDerivation: [actionId: CreationIntentId] }>();
 const { t } = useI18n();
@@ -40,6 +51,23 @@ const deleteShortcut = platform() === "macos" ? "Backspace" : "Delete";
           <MoreHorizontal class="size-(--knovum-icon-size-sm)" />
         </UiIconButton>
       </ToolbarButton>
+    </template>
+    <template v-if="actions.state.value.structureNodeIds.length === 1">
+      <UiDropdownMenuItem v-if="actions.state.value.canAsk" @select="actions.ask">
+        <MessageSquareText class="size-(--knovum-icon-size-sm)" />{{ t("spaces.assistant.askSelection") }}
+      </UiDropdownMenuItem>
+      <UiDropdownMenuItem v-if="!promotedDuplicate" @select="actions.duplicate">
+        <Copy class="size-(--knovum-icon-size-sm)" />{{ t("spaces.navigation.duplicateSelection") }}
+        <UiKbd shortcut="$mod+D" class="ml-auto" />
+      </UiDropdownMenuItem>
+      <SpaceSelectionMoveMenu submenu @move="actions.moveToSpace" />
+      <UiDropdownMenuItem v-if="actions.state.value.canCreateGroup" @select="actions.createGroup">
+        <Group class="size-(--knovum-icon-size-sm)" />{{ t("spaces.canvas.groupSelection") }}
+      </UiDropdownMenuItem>
+      <UiDropdownMenuItem v-if="actions.state.value.canCreateSection" @select="actions.createSection">
+        <Group class="size-(--knovum-icon-size-sm)" />{{ t("spaces.canvas.createSection") }}
+      </UiDropdownMenuItem>
+      <UiSeparator class="my-1" />
     </template>
     <template v-if="actions.state.value.structureNodeIds.length">
       <UiDropdownMenuItem v-if="actions.state.value.canDissolveGroup" @select="actions.dissolveGroup">

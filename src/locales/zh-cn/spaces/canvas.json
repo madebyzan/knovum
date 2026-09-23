@@ -1,5 +1,16 @@
 {
   "tools": { "title": "画布工具", "select": "选择", "section": "绘制分区" },
+  "nodeActions": {
+    "label": "节点操作",
+    "openOriginal": "打开原文",
+    "goToTarget": "前往目标",
+    "viewLarge": "查看大图",
+    "openVideo": "打开视频",
+    "openAudio": "打开音频",
+    "viewCode": "查看代码",
+    "openFile": "打开文件",
+    "download": "下载"
+  },
   "zoomOut": "缩小",
   "zoomIn": "放大",
   "ungrouped": "未归类",

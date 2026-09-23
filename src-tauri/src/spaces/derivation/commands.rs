@@ -67,6 +67,19 @@ pub async fn cancel_video_edit_render(job_id: String) -> Result<(), String> {
 }
 
 #[tauri::command]
+pub async fn prepare_video_edit_proxy(
+    app: AppHandle,
+    request: video_edit::PrepareRequest,
+) -> Result<String, String> {
+    video_edit::prepare_proxy(app, request).await
+}
+
+#[tauri::command]
+pub async fn cancel_video_edit_proxy(job_id: String) -> Result<(), String> {
+    video_edit::cancel_proxy(&job_id)
+}
+
+#[tauri::command]
 pub async fn create_document(
     app: AppHandle,
     request: grounded_document::CreateGroundedDocumentRequest,

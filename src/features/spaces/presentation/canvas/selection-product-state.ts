@@ -20,6 +20,7 @@ export interface CanvasSelectionProductState {
   allLocked: boolean;
   askScope: "selection";
   canConnect: boolean;
+  canAsk: boolean;
   canCreateGroup: boolean;
   canCreateSection: boolean;
   canDissolveGroup: boolean;
@@ -75,6 +76,7 @@ export function canvasSelectionProductState(
     allLocked:
       structureNodeIds.length > 0 && structureNodeIds.every((id) => index.structureById.get(id)?.locked),
     askScope: "selection",
+    canAsk: content.some(isSpaceSemanticNode),
     ...capabilities,
     hasSectionMembership: structureNodeIds.some((id) =>
       ancestorsOf(id, index).some((ancestor) => ancestor.kind === "section"),

@@ -70,6 +70,8 @@ pub(super) fn handler() -> impl Fn(Invoke<tauri::Wry>) -> bool + Send + Sync + '
         crate::spaces::derivation::commands::cancel_subtitled_video,
         crate::spaces::derivation::commands::render_video_edit,
         crate::spaces::derivation::commands::cancel_video_edit_render,
+        crate::spaces::derivation::commands::prepare_video_edit_proxy,
+        crate::spaces::derivation::commands::cancel_video_edit_proxy,
         crate::spaces::derivation::commands::create_document,
         crate::spaces::derivation::commands::create_visualization,
         crate::spaces::derivation::commands::submit_presentation,

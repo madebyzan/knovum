@@ -15,23 +15,39 @@ export async function exportSpaceAsset(data: SpaceNodePayload): Promise<boolean>
 }
 
 export async function exportSpaceMarkdown(title: string, markdown: string): Promise<boolean> {
-  const destinationPath = await save({
-    defaultPath: `${safeFileName(title) || "markdown"}.md`,
+  return exportSpaceTextFile({
+    defaultPath: `${safeExportFileName(title) || "markdown"}.md`,
     filters: [{ name: "Markdown", extensions: ["md", "markdown"] }],
+    text: formatExportMarkdown(title, markdown),
   });
+}
+
+export interface SpaceTextExport {
+  defaultPath: string;
+  filters: { name: string; extensions: string[] }[];
+  text: string;
+}
+
+export async function exportSpaceTextFile(file: SpaceTextExport): Promise<boolean> {
+  const destinationPath = await save({ defaultPath: file.defaultPath, filters: file.filters });
   if (!destinationPath) return false;
   await invoke("plugin:spaces|export_text", {
     destinationPath,
-    text: formatExportMarkdown(title, markdown),
+    text: file.text,
   });
   return true;
 }
 
-function safeFileName(value: string) {
-  return truncateUtf16([...value].map(safeFileNameCharacter).join("").trim(), 160);
+export function safeExportFileName(value: string) {
+  const sanitized = truncateUtf16([...value].map(safeFileNameCharacter).join("").trim(), 160).replace(
+    /[. ]+$/u,
+    "",
+  );
+  return WINDOWS_RESERVED_FILE_NAME.test(sanitized) ? `_${sanitized}` : sanitized;
 }
 
-const INVALID_FILE_NAME_CHARACTERS = new Set(["/", ":", "*", "?", '"', "<", ">", "|"]);
+const INVALID_FILE_NAME_CHARACTERS = new Set(["/", "\\", ":", "*", "?", '"', "<", ">", "|"]);
+const WINDOWS_RESERVED_FILE_NAME = /^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/iu;
 
 function safeFileNameCharacter(character: string) {
   const codePoint = character.codePointAt(0)!;

@@ -51,6 +51,7 @@
   "editVideo": "Edit Video",
   "videoEditor": "Video Editor",
   "loadingEditor": "Loading video editor…",
+  "optimizingPreview": "Optimizing preview in background…",
   "videoTrack": "Video",
   "textTrack": "Text",
   "seekTimeline": "Seek timeline",

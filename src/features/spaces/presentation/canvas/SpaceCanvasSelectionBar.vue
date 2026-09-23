@@ -15,6 +15,7 @@ import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceCanvasTextPayload } from "../../model/nodes/capabilities";
 import SpaceSelectionMoveMenu from "../SpaceSelectionMoveMenu.vue";
 import SpaceCanvasImageTools from "./SpaceCanvasImageTools.vue";
+import SpaceCanvasNodeActionBar from "./SpaceCanvasNodeActionBar.vue";
 import SpaceCanvasSelectionMenu from "./SpaceCanvasSelectionMenu.vue";
 import SpaceCanvasTextFormatBar from "./SpaceCanvasTextFormatBar.vue";
 import { useCanvasSelectionActions } from "./use-canvas-selection-actions";
@@ -28,6 +29,13 @@ const selectedTextNode = computed(() => {
   const node = actions.selectedNodes.value[0];
   return node && isCanvasTextNode(node) ? node : undefined;
 });
+const singleNode = computed(() => {
+  if (actions.state.value.structureNodeIds.length !== 1) return undefined;
+  return actions.selectedNodes.value.length === 1 ? actions.selectedNodes.value[0] : undefined;
+});
+const singleSection = computed(
+  () => actions.state.value.structureNodeIds.length === 1 && Boolean(actions.state.value.section),
+);
 
 function isCanvasTextNode(node: SpaceCanvasNode): node is SpaceCanvasNode<SpaceCanvasTextPayload> {
   return node.data.kind === "note" || node.data.kind === "text";
@@ -35,8 +43,15 @@ function isCanvasTextNode(node: SpaceCanvasNode): node is SpaceCanvasNode<SpaceC
 </script>
 
 <template>
+  <SpaceCanvasNodeActionBar
+    v-if="singleNode || singleSection"
+    :actions="actions"
+    :derivations="derivations"
+    :node="singleNode"
+    @invoke-derivation="emit('invokeDerivation', $event)"
+  />
   <ToolbarRoot
-    v-if="actions.visible.value"
+    v-else-if="actions.visible.value"
     class="flex h-7 cursor-default items-center gap-0.5 rounded-control border border-border bg-overlay select-none"
     orientation="horizontal"
     :loop="false"
@@ -81,7 +96,7 @@ function isCanvasTextNode(node: SpaceCanvasNode): node is SpaceCanvasNode<SpaceC
         <Link2 class="size-(--knovum-icon-size-sm)" :stroke-width="1.55" />
       </UiIconButton>
     </ToolbarButton>
-    <ToolbarButton v-if="actions.state.value.content.length" as-child>
+    <ToolbarButton v-if="actions.state.value.canAsk" as-child>
       <UiIconButton :label="t('spaces.assistant.askSelection')" size="sm" @click="actions.ask">
         <Sparkles class="size-(--knovum-icon-size-sm)" :stroke-width="1.55" />
       </UiIconButton>

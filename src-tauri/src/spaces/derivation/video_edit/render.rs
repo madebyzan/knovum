@@ -42,13 +42,38 @@ pub fn render(
         .and_then(|name| name.to_str())
         .ok_or("Video editor font path is invalid")?;
     let has_audio = source_has_audio(&ffmpeg, &source.path);
-    let filter = filter_graph::build(&source.project, has_audio, font_name)?;
+    let mut project = source.project.clone();
+    let first_source_ms = project
+        .video_track
+        .clips
+        .iter()
+        .map(|clip| clip.start_ms)
+        .min()
+        .ok_or("Video edit has no clips")?;
+    let output_duration_ms: u64 = project
+        .video_track
+        .clips
+        .iter()
+        .map(|clip| clip.end_ms - clip.start_ms)
+        .sum();
+    for clip in &mut project.video_track.clips {
+        clip.start_ms -= first_source_ms;
+        clip.end_ms -= first_source_ms;
+    }
+    let filter = filter_graph::build(&project, has_audio, font_name)?;
+    let source_seek = format!("{:.3}", first_source_ms as f64 / 1000.0);
     report(progress, "renderingVideoEdit", 20)?;
     let mut args = vec![
         "-hide_banner",
         "-loglevel",
         "error",
+        "-stats_period",
+        "0.5",
+        "-progress",
+        "pipe:1",
         "-y",
+        "-ss",
+        &source_seek,
         "-i",
         &source.path,
         "-filter_complex",
@@ -79,11 +104,31 @@ pub fn render(
         .arg(output.path())
         .current_dir(directory)
         .stdin(Stdio::null())
-        .stdout(Stdio::null())
+        .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
         .map_err(|error| format!("failed to launch FFmpeg: {error}"))?;
-    let run = subprocess::wait_with_stderr(child, cancellation, CANCELLED, |_| Ok(()))?;
+    let run = subprocess::wait_with_output(
+        child,
+        cancellation,
+        CANCELLED,
+        |line| {
+            if let Some(processed_us) = line
+                .strip_prefix("out_time_ms=")
+                .and_then(|value| value.parse::<u64>().ok())
+            {
+                let percent = 20
+                    + (processed_us / 1000)
+                        .saturating_mul(70)
+                        .checked_div(output_duration_ms.max(1))
+                        .unwrap_or(0)
+                        .min(70) as u8;
+                report(progress, "renderingVideoEdit", percent)?;
+            }
+            Ok(())
+        },
+        |_| Ok(()),
+    )?;
     if !run.status.success() {
         return Err(subprocess::diagnostic_error(
             &run.diagnostics,
