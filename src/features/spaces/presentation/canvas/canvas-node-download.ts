@@ -19,7 +19,7 @@ export function useCanvasNodeDownload(
     const node = selectedNodes.value.length === 1 ? selectedNodes.value[0] : undefined;
     let saved: boolean;
     if (sectionId) saved = await exportSpaceSection(store.editSnapshot, store.nodes, sectionId);
-    else if (node) saved = await exportSpaceNode(node);
+    else if (node && store.activeSpaceId) saved = await exportSpaceNode(store.activeSpaceId, node);
     else return;
     if (saved) toast.success(t("spaces.transfer.exportComplete"));
   };

@@ -1,99 +1,111 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { X } from "@lucide/vue";
+import { TabsContent, TabsList, TabsRoot, TabsTrigger } from "reka-ui";
+import { computed, shallowRef, watch } from "vue";
 
-import UiButton from "../../../../shared/ui/UiButton.vue";
-import UiInput from "../../../../shared/ui/UiInput.vue";
-import UiSlider from "../../../../shared/ui/UiSlider.vue";
+import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
+import UiScrollArea from "../../../../shared/ui/UiScrollArea.vue";
 import type { VideoEditProject } from "../../video-editing/project";
+import SpaceVideoCaptionList from "./SpaceVideoCaptionList.vue";
+import SpaceVideoClipInspector from "./SpaceVideoClipInspector.vue";
+import SpaceVideoTextInspector from "./SpaceVideoTextInspector.vue";
 
-const project = defineModel<VideoEditProject>({ required: true });
 const props = defineProps<{
+  modelValue: VideoEditProject;
+  sourceDurationMs: number;
   selectedClipId?: string | undefined;
   selectedTextId?: string | undefined;
 }>();
+const emit = defineEmits<{
+  edit: [project: VideoEditProject, mergeKey?: string];
+  close: [];
+  selectText: [id: string];
+  addText: [];
+}>();
 const selectedClip = computed(() =>
-  project.value.videoTrack.clips.find(({ id }) => id === props.selectedClipId),
+  props.modelValue.videoTrack.clips.find(({ id }) => id === props.selectedClipId),
 );
 const selectedText = computed(() =>
-  project.value.textTrack.items.find(({ id }) => id === props.selectedTextId),
+  props.modelValue.textTrack.items.find(({ id }) => id === props.selectedTextId),
 );
-
-function patchClip(patch: Partial<NonNullable<typeof selectedClip.value>>) {
-  project.value = {
-    ...project.value,
-    videoTrack: {
-      clips: project.value.videoTrack.clips.map((clip) =>
-        clip.id === props.selectedClipId ? { ...clip, ...patch } : clip,
-      ),
-    },
-  };
+const tab = shallowRef<"captions" | "text">("text");
+watch(
+  () => !!props.selectedTextId,
+  (isText, wasText) => {
+    if (isText && !wasText) tab.value = "text";
+  },
+);
+function setTab(value: unknown) {
+  if (value === "captions" || value === "text") tab.value = value;
 }
-
-function patchText(patch: Partial<NonNullable<typeof selectedText.value>>) {
-  project.value = {
-    ...project.value,
-    textTrack: {
-      items: project.value.textTrack.items.map((item) =>
-        item.id === props.selectedTextId ? { ...item, ...patch } : item,
-      ),
-    },
-  };
-}
-
-function rotate() {
-  const rotation = ((project.value.transform.rotation + 90) % 360) as 0 | 90 | 180 | 270;
-  project.value = { ...project.value, transform: { ...project.value.transform, rotation } };
+function addText() {
+  tab.value = "text";
+  emit("addText");
 }
 </script>
 
 <template>
-  <aside class="w-64 shrink-0 overflow-y-auto border-l border-border bg-panel p-3">
-    <h2 class="text-label font-semibold">{{ $t("spaces.media.videoSettings") }}</h2>
-    <div class="mt-2 grid grid-cols-2 gap-1">
-      <UiButton size="sm" @click="rotate"
-        >{{ $t("spaces.media.rotate") }} {{ project.transform.rotation }}°</UiButton
-      >
-      <UiButton
-        size="sm"
-        @click="
-          project = {
-            ...project,
-            transform: { ...project.transform, flipHorizontal: !project.transform.flipHorizontal },
-          }
-        "
-        >{{ $t("spaces.media.flipHorizontal") }}</UiButton
-      >
-    </div>
-    <template v-if="selectedClip">
-      <h3 class="mt-5 text-caption font-semibold">{{ $t("spaces.media.selectedClip") }}</h3>
-      <label class="mt-2 block text-caption text-foreground-secondary">{{ $t("spaces.media.volume") }}</label>
-      <UiSlider
-        :model-value="selectedClip.volume"
-        :label="$t('spaces.media.volume')"
-        :min="0"
-        :max="2"
-        :step="0.05"
-        @update:model-value="patchClip({ volume: $event })"
-      />
-    </template>
-    <template v-if="selectedText">
-      <h3 class="mt-5 text-caption font-semibold">{{ $t("spaces.media.selectedText") }}</h3>
-      <UiInput
-        class="mt-2"
-        size="sm"
-        :model-value="selectedText.text"
-        @update:model-value="patchText({ text: $event })"
-      />
-      <div class="mt-2 grid grid-cols-3 gap-1">
-        <UiButton
-          v-for="placement in ['top', 'center', 'bottom'] as const"
-          :key="placement"
-          size="sm"
-          :variant="selectedText.placement === placement ? 'primary' : 'secondary'"
-          @click="patchText({ placement })"
-          >{{ $t(`spaces.media.${placement}`) }}</UiButton
-        >
+  <aside
+    class="absolute inset-y-3 right-3 z-30 flex min-h-0 w-80 flex-col overflow-hidden rounded-section border border-border bg-overlay shadow-popover"
+    :aria-label="$t('spaces.media.videoSettings')"
+    @keydown.esc.prevent.stop="emit('close')"
+  >
+    <TabsRoot
+      v-if="selectedText"
+      :model-value="tab"
+      class="flex min-h-0 flex-1 flex-col"
+      @update:model-value="setTab"
+    >
+      <div class="flex h-11 shrink-0 items-center border-b border-divider px-3">
+        <TabsList :aria-label="$t('spaces.media.textTools')" class="flex h-full flex-1 items-stretch gap-5">
+          <TabsTrigger
+            value="captions"
+            class="border-b-2 border-transparent px-1 text-caption text-foreground-secondary outline-none focus-visible:ring-2 focus-visible:ring-focus-ring data-[state=active]:border-foreground data-[state=active]:font-semibold data-[state=active]:text-foreground"
+            >{{ $t("spaces.media.captionsTab") }}</TabsTrigger
+          >
+          <TabsTrigger
+            value="text"
+            class="border-b-2 border-transparent px-1 text-caption text-foreground-secondary outline-none focus-visible:ring-2 focus-visible:ring-focus-ring data-[state=active]:border-foreground data-[state=active]:font-semibold data-[state=active]:text-foreground"
+            >{{ $t("spaces.media.textTab") }}</TabsTrigger
+          >
+        </TabsList>
+        <UiIconButton :label="$t('spaces.media.closeInspector')" size="sm" @click="emit('close')">
+          <X class="size-(--knovum-icon-size-sm)" />
+        </UiIconButton>
       </div>
+      <TabsContent value="captions" class="flex min-h-0 flex-1 flex-col outline-none">
+        <SpaceVideoCaptionList
+          :items="modelValue.textTrack.items"
+          :selected-text-id="selectedTextId"
+          @select="emit('selectText', $event)"
+          @add="addText"
+        />
+      </TabsContent>
+      <TabsContent value="text" class="min-h-0 flex-1 outline-none">
+        <UiScrollArea class="h-full">
+          <SpaceVideoTextInspector
+            :project="modelValue"
+            :item="selectedText"
+            @edit="(project, mergeKey) => emit('edit', project, mergeKey)"
+          />
+        </UiScrollArea>
+      </TabsContent>
+    </TabsRoot>
+    <template v-else-if="selectedClip">
+      <div class="flex h-11 shrink-0 items-center justify-between border-b border-divider px-3">
+        <h2 class="text-caption font-semibold">{{ $t("spaces.media.selectedClip") }}</h2>
+        <UiIconButton :label="$t('spaces.media.closeInspector')" size="sm" @click="emit('close')">
+          <X class="size-(--knovum-icon-size-sm)" />
+        </UiIconButton>
+      </div>
+      <UiScrollArea class="min-h-0 flex-1">
+        <SpaceVideoClipInspector
+          :project="modelValue"
+          :clip="selectedClip"
+          :source-duration-ms="sourceDurationMs"
+          @edit="(project, mergeKey) => emit('edit', project, mergeKey)"
+        />
+      </UiScrollArea>
     </template>
   </aside>
 </template>

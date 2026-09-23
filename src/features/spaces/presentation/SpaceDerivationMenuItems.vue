@@ -4,7 +4,9 @@ import { DropdownMenuPortal, DropdownMenuSub, DropdownMenuSubContent, DropdownMe
 import { computed, type Component } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { canRunAction, showsAction } from "../../../shared/contracts/action-availability";
 import UiDropdownMenuItem from "../../../shared/ui/UiDropdownMenuItem.vue";
+import UiTooltip from "../../../shared/ui/UiTooltip.vue";
 import type {
   CreationIntentIcon,
   DerivationUnavailableReason,
@@ -19,6 +21,7 @@ const props = defineProps<{
   derivations: CreationIntentDecisions;
   rowClass: string;
   submenuClass: string;
+  exclude?: readonly CreationIntentId[];
 }>();
 const emit = defineEmits<{ invoke: [actionId: CreationIntentId] }>();
 const { t } = useI18n();
@@ -32,8 +35,9 @@ const icons = {
 } satisfies Record<CreationIntentIcon, Component>;
 const derivationActions = computed(() =>
   creationIntentDefinitions.filter(({ id }) => {
+    if (props.exclude?.includes(id)) return false;
     const decision = props.derivations[id];
-    return decision.available || decision.reason;
+    return showsAction(decision);
   }),
 );
 const hasActions = computed(() => derivationActions.value.length > 0);
@@ -42,6 +46,19 @@ function reasonLabel(reason: DerivationUnavailableReason | undefined) {
   if (reason === "too-many-video-images") return t("spaces.creation.tooManyVideoImages");
   if (reason === "needs-indexed-knowledge") return t("spaces.creation.needsIndexedKnowledge");
   return undefined;
+}
+
+function actionReason(actionId: CreationIntentId) {
+  const availability = props.derivations[actionId];
+  return availability.state === "blocked" ? reasonLabel(availability.reason) ?? "" : "";
+}
+
+function selectAction(event: Event, actionId: CreationIntentId) {
+  if (!canRunAction(props.derivations[actionId])) {
+    event.preventDefault();
+    return;
+  }
+  emit("invoke", actionId);
 }
 </script>
 
@@ -54,16 +71,17 @@ function reasonLabel(reason: DerivationUnavailableReason | undefined) {
     </DropdownMenuSubTrigger>
     <DropdownMenuPortal>
       <DropdownMenuSubContent :side-offset="4" :align-offset="-4" :class="props.submenuClass">
-        <UiDropdownMenuItem
+        <UiTooltip
           v-for="action in derivationActions"
           :key="action.id"
-          :class="props.rowClass"
-          :disabled="!props.derivations[action.id].available"
-          :title="reasonLabel(props.derivations[action.id].reason)"
-          @select="emit('invoke', action.id)"
+          :text="actionReason(action.id)"
+          :disabled="canRunAction(props.derivations[action.id])"
+          side="right"
         >
-          <component :is="icons[action.icon]" class="size-(--knovum-icon-size-sm)" />{{ t(action.labelKey) }}
-        </UiDropdownMenuItem>
+          <UiDropdownMenuItem :class="props.rowClass" :aria-disabled="!canRunAction(props.derivations[action.id])" @select="selectAction($event, action.id)">
+            <component :is="icons[action.icon]" class="size-(--knovum-icon-size-sm)" />{{ t(action.labelKey) }}
+          </UiDropdownMenuItem>
+        </UiTooltip>
       </DropdownMenuSubContent>
     </DropdownMenuPortal>
   </DropdownMenuSub>

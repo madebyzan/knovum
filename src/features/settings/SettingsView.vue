@@ -50,7 +50,7 @@ watch(
     element?.scrollIntoView({ block: "center", behavior: "smooth" });
     element?.focus({ preventScroll: true });
   },
-  { flush: "post" },
+  { flush: "post", immediate: true },
 );
 
 const paneComponentMap = {

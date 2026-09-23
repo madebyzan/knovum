@@ -1,4 +1,4 @@
-import { shallowRef, type Ref } from "vue";
+import { shallowRef, watch, type Ref } from "vue";
 
 import { removeClip, type VideoEditProject } from "../../video-editing/project";
 
@@ -16,8 +16,8 @@ export function useVideoEditSelection(project: Ref<VideoEditProject | undefined>
     selectedClipId.value = undefined;
   }
 
-  function reset() {
-    selectedClipId.value = project.value?.videoTrack.clips[0]?.id;
+  function clear() {
+    selectedClipId.value = undefined;
     selectedTextId.value = undefined;
   }
 
@@ -32,8 +32,16 @@ export function useVideoEditSelection(project: Ref<VideoEditProject | undefined>
         },
       };
     }
-    reset();
+    clear();
   }
 
-  return { selectedClipId, selectedTextId, selectClip, selectText, removeSelection, reset };
+  watch(project, (current) => {
+    if (!current) return;
+    if (selectedClipId.value && !current.videoTrack.clips.some(({ id }) => id === selectedClipId.value))
+      clear();
+    if (selectedTextId.value && !current.textTrack.items.some(({ id }) => id === selectedTextId.value))
+      clear();
+  });
+
+  return { selectedClipId, selectedTextId, selectClip, selectText, removeSelection, clear };
 }

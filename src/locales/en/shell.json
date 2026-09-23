@@ -4,6 +4,15 @@
   "searchCommands": "Search or Run Command",
   "searchPlaceholder": "Search commands…",
   "noMatchingCommands": "No matching commands",
+  "commandUnavailable": {
+    "nothing_to_undo": "Nothing to undo",
+    "nothing_to_redo": "Nothing to redo",
+    "no_selection": "Select content first",
+    "not_enough_scenes": "There is no other scene",
+    "selection_not_eligible": "This selection cannot use the action",
+    "checking": "Checking availability",
+    "busy": "An operation is in progress"
+  },
   "toggleInspector": "Show or Hide Details",
   "inspector": "Details",
   "details": "Details",

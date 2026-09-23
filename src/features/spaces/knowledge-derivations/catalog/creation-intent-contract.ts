@@ -1,11 +1,10 @@
+import type { ActionAvailability } from "../../../../shared/contracts/action-availability";
+
 export type CreationIntentKind = "atomic" | "workflow";
 export type CreationIntentIcon = "captions" | "file-output" | "file-pen" | "image" | "scan" | "sparkles";
 export type DerivationUnavailableReason = "needs-indexed-knowledge" | "too-many-video-images";
 
-export interface CreationIntentDecision {
-  readonly available: boolean;
-  readonly reason?: DerivationUnavailableReason;
-}
+export type CreationIntentDecision = ActionAvailability<DerivationUnavailableReason>;
 
 export interface CreationSelectionContext {
   readonly selectionCount: number;

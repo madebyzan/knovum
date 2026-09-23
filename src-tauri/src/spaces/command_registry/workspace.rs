@@ -30,6 +30,7 @@ pub(super) fn handler() -> impl Fn(Invoke<tauri::Wry>) -> bool + Send + Sync + '
         crate::spaces::assets::commands::remove_asset,
         crate::spaces::assets::commands::export_asset,
         crate::spaces::assets::commands::export_text,
+        crate::spaces::assets::commands::export_image,
         crate::spaces::package::export_space_package,
         crate::spaces::package::import_space_package,
         crate::spaces::package::restore_space_package,

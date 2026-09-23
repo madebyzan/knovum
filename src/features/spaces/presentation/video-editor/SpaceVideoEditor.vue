@@ -1,28 +1,32 @@
 <script setup lang="ts">
-import { computed, shallowRef, watch } from "vue";
-import { useI18n } from "vue-i18n";
-import { toast } from "vue-sonner";
+import { computed, nextTick, shallowRef, watch } from "vue";
 
-import type { SpaceVideoPayload } from "../../model/nodes/node-payload";
 import { useSpaceStore } from "../../session/space-store";
-import { addTextOverlay, splitClip } from "../../video-editing/project";
-import { renderVideoEdit } from "../../video-editing/render";
-import { versionedMediaSource } from "../media/element";
 import SpaceVideoEditorHeader from "./SpaceVideoEditorHeader.vue";
+import SpaceVideoEditorState from "./SpaceVideoEditorState.vue";
 import SpaceVideoInspector from "./SpaceVideoInspector.vue";
 import SpaceVideoPreview from "./SpaceVideoPreview.vue";
 import SpaceVideoTimeline from "./SpaceVideoTimeline.vue";
 import SpaceVideoTransportBar from "./SpaceVideoTransportBar.vue";
+import SpaceVideoUnsavedDialog from "./SpaceVideoUnsavedDialog.vue";
+import { useVideoEditActions } from "./use-video-edit-actions";
+import { useVideoEditHistory } from "./use-video-edit-history";
+import { useVideoEditPreviewSource } from "./use-video-edit-preview-source";
 import { useVideoEditProject } from "./use-video-edit-project";
 import { useVideoEditProxy } from "./use-video-edit-proxy";
 import { useVideoEditSelection } from "./use-video-edit-selection";
+import { useVideoEditorInspector } from "./use-video-editor-inspector";
+import { useVideoEditorMedia } from "./use-video-editor-media";
 import { useVideoProjectPlayback } from "./use-video-project-playback";
 
 const store = useSpaceStore();
-const { t } = useI18n();
 const node = computed(() => store.nodes.find(({ id }) => id === store.videoEditorNodeId));
 const data = computed(() => (node.value?.data.kind === "video" ? node.value.data : undefined));
-const { path: proxyPath, error: prepareError } = useVideoEditProxy(
+const {
+  path: proxyPath,
+  error: prepareError,
+  retry: retryProxy,
+} = useVideoEditProxy(
   computed(() => node.value?.id),
   computed(() => data.value?.sourceRevision),
   computed(() => store.activeSpaceId),
@@ -33,128 +37,141 @@ const { project, metadataError, initializeFromMetadata } = useVideoEditProject(
   proxyPath,
 );
 const video = shallowRef<HTMLVideoElement | null>(null);
-const previewPath = shallowRef<string>();
-const editorError = computed(() => prepareError.value ?? metadataError.value);
-const { selectedClipId, selectedTextId, selectClip, selectText, removeSelection, reset } =
-  useVideoEditSelection(project);
+const editorRoot = shallowRef<HTMLElement | null>(null);
+const timelineZoom = shallowRef(1);
+const selection = useVideoEditSelection(project);
+const { selectedClipId, selectedTextId } = selection;
 const playback = useVideoProjectPlayback(video, project);
-
-watch(
-  [() => data.value?.assetPath, () => data.value?.sourceRevision],
-  ([path]) => {
-    previewPath.value = path;
-    metadataError.value = undefined;
-  },
-  { immediate: true },
-);
-watch([proxyPath, playback.playing], ([prepared, playing]) => {
-  if (prepared && !playing) previewPath.value = prepared;
+const {
+  visible: inspectorVisible,
+  selectText: onSelectText,
+  selectClip: onSelectClip,
+  close: closeInspector,
+} = useVideoEditorInspector({ project, video, editorRoot, selection, playback });
+const editorError = computed(() => prepareError.value ?? metadataError.value ?? playback.audioError.value);
+const { previewPath, onMetadataError } = useVideoEditPreviewSource({
+  data,
+  proxyPath,
+  playing: playback.playing,
+  metadataError,
 });
+const history = useVideoEditHistory(project);
+const actions = useVideoEditActions({ store, node, data, project, video, history, selection, playback });
+const { canDelete, closeDialogOpen, rendering, saving } = actions;
+const { sourceDurationMs, onMetadataReady, onPreviewReady } = useVideoEditorMedia({
+  nodeId: computed(() => node.value?.id),
+  data,
+  project,
+  video,
+  timelineZoom,
+  history,
+  selection,
+  playback,
+  initializeFromMetadata,
+});
+
 watch(project, () => playback.seek(playback.timelineMs.value));
 
-watch(
-  [() => node.value?.id, () => data.value?.sourceRevision],
-  () => {
-    reset();
-    playback.seek(0);
-  },
-  { immediate: true },
-);
-
-function onMetadataReady(event: Event) {
-  initializeFromMetadata(event);
-  if (project.value) {
-    reset();
-    playback.seek(0);
-  }
-}
-
-function onMetadataError() {
-  if (!proxyPath.value) return;
-  if (previewPath.value !== proxyPath.value) {
-    previewPath.value = proxyPath.value;
-    return;
-  }
-  metadataError.value = "Video preview cannot be opened";
-}
-
-async function save() {
-  if (!node.value || !data.value || !project.value) return;
-  const after: SpaceVideoPayload = { ...data.value, videoEditProject: project.value };
-  await store.updateManyData([{ id: node.value.id, before: data.value, after }]);
-  toast.success(t("spaces.media.projectSaved"));
-}
-
-async function render() {
-  if (!node.value || node.value.data.kind !== "video" || !project.value) return;
-  await renderVideoEdit(store, { ...node.value, data: node.value.data }, project.value);
+async function onAddText() {
+  actions.addText();
+  await nextTick();
+  const input = editorRoot.value?.querySelector<HTMLTextAreaElement>("#video-edit-text");
+  input?.focus();
+  input?.select();
 }
 </script>
 
 <template>
-  <section v-if="data" class="absolute inset-0 z-60 flex min-h-0 flex-col bg-canvas">
+  <section
+    v-if="data"
+    :ref="(value) => (editorRoot = value as HTMLElement | null)"
+    class="absolute inset-0 z-60 flex min-h-0 flex-col bg-canvas"
+  >
     <SpaceVideoEditorHeader
       :title="data.title"
-      :can-save="!!project"
-      :can-render="!!project && !editorError"
+      :can-save="!!project && history.dirty.value && !saving && !rendering"
+      :can-render="!!project && !editorError && !saving && !rendering"
       :preparing="!proxyPath && !prepareError"
-      @close="store.closeVideoEditor"
-      @save="save()"
-      @render="render"
+      :dirty="history.dirty.value"
+      @close="actions.requestClose"
+      @save="actions.save()"
+      @render="actions.render"
     />
-    <div v-if="project && !editorError" class="flex min-h-0 flex-1">
-      <div class="flex min-w-0 flex-1 flex-col">
+    <div v-if="project && !editorError" class="flex min-h-0 flex-1 flex-col">
+      <div class="relative flex min-h-0 flex-1 bg-control/25" :class="inspectorVisible && 'pr-84'">
         <SpaceVideoPreview
           v-model:element="video"
           :source-path="previewPath ?? data.assetPath"
           :project="project"
           :timeline-ms="playback.timelineMs.value"
+          :selected-text-id="selectedTextId"
           @playing="playback.playing.value = $event"
-          @ready="playback.onSourceReady"
+          @ready="onPreviewReady"
           @failed="onMetadataError"
+          @select-text="onSelectText"
         />
-        <SpaceVideoTransportBar
-          :playing="playback.playing.value"
-          :current-ms="playback.timelineMs.value"
-          :duration-ms="playback.durationMs.value"
-          :can-delete="!!selectedClipId || !!selectedTextId"
-          @split="project = splitClip(project, playback.timelineMs.value)"
-          @add-text="project = addTextOverlay(project, playback.timelineMs.value)"
-          @remove="removeSelection"
-          @toggle="playback.toggle"
-          @seek="playback.seek"
-        />
-        <SpaceVideoTimeline
-          :project="project"
-          :playhead-ms="playback.timelineMs.value"
+        <SpaceVideoInspector
+          v-if="inspectorVisible"
+          :model-value="project"
+          :source-duration-ms="sourceDurationMs"
           :selected-clip-id="selectedClipId"
           :selected-text-id="selectedTextId"
-          @seek="playback.seek"
-          @select-clip="selectClip"
-          @select-text="selectText"
+          @edit="history.commit"
+          @close="closeInspector"
+          @select-text="onSelectText"
+          @add-text="onAddText"
         />
       </div>
-      <SpaceVideoInspector
-        v-model="project"
+      <SpaceVideoTransportBar
+        :playing="playback.playing.value"
+        :current-ms="playback.timelineMs.value"
+        :duration-ms="playback.durationMs.value"
+        :can-delete="canDelete"
+        :can-undo="history.canUndo.value"
+        :can-redo="history.canRedo.value"
+        :zoom="timelineZoom"
+        @split="actions.split"
+        @add-text="onAddText"
+        @remove="actions.remove"
+        @undo="history.undo"
+        @redo="history.redo"
+        @toggle="actions.togglePlayback"
+        @step="actions.step"
+        @zoom="timelineZoom = $event"
+      />
+      <SpaceVideoTimeline
+        :project="project"
+        :source-duration-ms="sourceDurationMs"
+        :playhead-ms="playback.timelineMs.value"
         :selected-clip-id="selectedClipId"
         :selected-text-id="selectedTextId"
+        :zoom="timelineZoom"
+        :playing="playback.playing.value"
+        :thumbnail-source="proxyPath"
+        :waveform="
+          data.mediaAnalysis?.sourceRevision === data.sourceRevision ? data.mediaAnalysis.waveform : undefined
+        "
+        @seek="playback.seek"
+        @select-clip="onSelectClip"
+        @select-text="onSelectText"
+        @edit="history.commit($event)"
       />
     </div>
-    <div v-else-if="editorError" class="grid min-h-0 flex-1 place-items-center text-body text-danger">
-      {{ editorError }}
-    </div>
-    <div v-else class="grid min-h-0 flex-1 place-items-center text-body text-foreground-secondary">
-      <video
-        v-if="!project"
-        class="pointer-events-none absolute size-px opacity-0"
-        :src="versionedMediaSource(proxyPath ?? data.assetPath, data.sourceRevision)"
-        preload="metadata"
-        aria-hidden="true"
-        tabindex="-1"
-        @loadedmetadata="onMetadataReady"
-        @error="onMetadataError"
-      />
-      {{ t("spaces.media.loadingEditor") }}
-    </div>
+    <SpaceVideoEditorState
+      v-else
+      :data="data"
+      :proxy-path="proxyPath"
+      :error="editorError"
+      :can-retry="!!prepareError"
+      @metadata-ready="onMetadataReady"
+      @metadata-error="onMetadataError"
+      @retry="retryProxy"
+    />
   </section>
+  <SpaceVideoUnsavedDialog
+    v-model:open="closeDialogOpen"
+    :saving="saving"
+    @discard="store.closeVideoEditor"
+    @save="actions.saveAndClose"
+  />
 </template>

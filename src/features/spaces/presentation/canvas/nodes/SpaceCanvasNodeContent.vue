@@ -8,6 +8,7 @@ import {
 import type { CanvasNodeLayoutV1 } from "../../../canvas/contract/canvas-document";
 import type { CanvasContentHeightMeasurement } from "../../../canvas/contract/canvas-editor-port";
 import { CANVAS_NODE_HEADER_HEIGHT, PREVIEW_CAPTION_HEIGHT } from "../../../canvas/node-size";
+import { useImageEditSession } from "../../../image-editing/image-edit-session";
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import { canvasTextPresentation } from "./canvas-text-appearance";
 import { spaceCanvasNodePresentation } from "./space-canvas-node-presentation";
@@ -31,6 +32,15 @@ const props = defineProps<{
   persist: (id: string, data: SpaceCanvasNode["data"]) => Promise<void>;
   fitContentHeight: (id: string, measurement: CanvasContentHeightMeasurement) => void;
 }>();
+const imageEditSession = useImageEditSession();
+const contentInteractive = computed(() => {
+  const active = imageEditSession.active;
+  return props.interactive || (
+    props.node.data.kind === "image" &&
+    active?.nodeId === props.node.id &&
+    (active.tool === "eraser" || active.tool === "crop")
+  );
+});
 const presentation = computed(() => spaceCanvasNodePresentation(props.node.data));
 const isText = computed(() => props.node.data.kind === "text");
 const isNote = computed(() => props.node.data.kind === "note");
@@ -62,12 +72,12 @@ const textPresentation = computed(() =>
           ? 'rounded-sm shadow-canvas-object'
           : 'rounded-canvas-object border border-border bg-panel shadow-canvas-object',
       (isNote || isText) && textPresentation.classes,
-      interactive && !interactiveMedia && !hasCredentialAction && 'pointer-events-auto',
+      contentInteractive && !interactiveMedia && !hasCredentialAction && 'pointer-events-auto',
     ]"
     :style="(isNote || isText) && textPresentation.style"
     :data-kind="node.data.kind"
-    :aria-hidden="interactive ? undefined : true"
-    :inert="interactive ? undefined : true"
+    :aria-hidden="contentInteractive ? undefined : true"
+    :inert="contentInteractive ? undefined : true"
   >
     <SpaceCanvasCredential
       v-if="node.data.kind === 'credential'"
@@ -133,7 +143,7 @@ const textPresentation = computed(() =>
         :id="node.id"
         :data="node.data"
         :presentation-context="presentationContext"
-        :interactive="interactive"
+        :interactive="contentInteractive"
       />
       <SpaceCanvasVideoCaption v-if="node.data.kind === 'video'" :id="node.id" :data="node.data" />
       <footer

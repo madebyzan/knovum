@@ -34,6 +34,7 @@ const props = withDefaults(
     disabled?: boolean | undefined;
     placeholder?: string | undefined;
     size?: "sm" | "md" | undefined;
+    width?: "normal" | "compact" | undefined;
     class?: HTMLAttributes["class"];
   }>(),
   {
@@ -41,6 +42,7 @@ const props = withDefaults(
     disabled: false,
     placeholder: undefined,
     size: "md",
+    width: "normal",
   },
 );
 
@@ -55,7 +57,8 @@ const selectedLabel = computed(() => props.options.find((option) => option.value
       :aria-label="label"
       :class="
         cn(
-          'flex w-full min-w-32 items-center justify-between gap-2 text-label data-placeholder:text-foreground-tertiary data-[state=open]:border-focus-ring',
+          'flex items-center justify-between gap-2 text-label data-placeholder:text-foreground-tertiary data-[state=open]:border-focus-ring',
+          width === 'compact' ? 'w-20 min-w-20' : 'w-full min-w-32',
           INPUT_BASE_CLASSES,
           size === 'sm'
             ? 'h-(--knovum-control-height-sm) px-2 text-caption'

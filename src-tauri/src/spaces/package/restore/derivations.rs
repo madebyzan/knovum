@@ -60,6 +60,9 @@ fn validate(row: &PackageDerivationRow) -> Result<(), String> {
     let action = matches!(
         row.action_kind.as_str(),
         "remove-image-background"
+            | "split-image-layers"
+            | "upscale-image"
+            | "generate-image-angle"
             | "generate-visualization"
             | "extract-subtitles"
             | "render-subtitled-video"

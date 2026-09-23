@@ -2,6 +2,7 @@ mod completion;
 mod source;
 
 use serde::Deserialize;
+use serde_json::Value;
 use tauri::AppHandle;
 
 use super::{failure, inputs, CompletedDerivationOutput};
@@ -15,12 +16,14 @@ pub struct StartImageCutoutRequest {
     source_node_id: String,
     output_node_id: String,
     source_revision: String,
+    source_edit: Value,
 }
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct CompleteImageCutoutRequest {
     id: String,
+    source_edit: Value,
 }
 
 #[derive(Deserialize)]
@@ -41,16 +44,20 @@ pub async fn start(app: &AppHandle, request: StartImageCutoutRequest) -> Result<
         &request.output_node_id,
     )
     .await?;
-    let source_revision: Option<String> = sqlx::query_scalar(
-        "SELECT json_extract(data, '$.sourceRevision') FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND kind='image' AND deleted_at IS NULL",
+    let source_data: Option<String> = sqlx::query_scalar(
+        "SELECT data FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND kind='image' AND deleted_at IS NULL",
     )
     .bind(&request.source_node_id)
     .bind(&request.space_id)
     .fetch_optional(&mut *tx)
     .await
-    .map_err(db::sql_error)?
-    .flatten();
-    if source_revision.as_deref() != Some(request.source_revision.as_str()) {
+    .map_err(db::sql_error)?;
+    let source_data: Value = serde_json::from_str(&source_data.ok_or("Image source is unavailable")?)
+        .map_err(db::json_error)?;
+    if source_data.get("sourceRevision").and_then(Value::as_str)
+        != Some(request.source_revision.as_str())
+        || source_data.get("imageEdit").unwrap_or(&Value::Null) != &request.source_edit
+    {
         return Err("Image source changed before background removal started".into());
     }
     let now = crate::clock::unix_time_millis()?;
@@ -93,6 +100,9 @@ fn validate_request(request: &StartImageCutoutRequest) -> Result<(), String> {
     if request.source_node_id == request.output_node_id || request.source_revision.trim().is_empty()
     {
         return Err("Background removal source is invalid".into());
+    }
+    if !request.source_edit.is_null() && !request.source_edit.is_object() {
+        return Err("Background removal image edit is invalid".into());
     }
     Ok(())
 }

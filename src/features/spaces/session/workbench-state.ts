@@ -47,7 +47,6 @@ export function createSpaceUiState() {
     inspectorMode: ref<"inspect" | "ask" | "source">("inspect"),
     focusedEditorId: ref<string>(),
     videoEditorNodeId: ref<string>(),
-    imageEraserNodeId: ref<string>(),
     insertionPoint: ref({ x: 96, y: 84 }),
     revealRequest: ref<RevealRequest>(),
     viewportRequest: ref<ViewportRequest>(),

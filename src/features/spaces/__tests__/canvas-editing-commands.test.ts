@@ -28,7 +28,7 @@ describe("canvas editing commands", () => {
 
     expect(copy.shortcut).toBe("$mod+C");
     expect(copy.allowInEditable).toBeUndefined();
-    expect(copy.isEnabled?.()).toBe(false);
+    expect(copy.availability?.()).toEqual({ state: "blocked", reason: "no_selection" });
     expect(paste.shortcut).toBe("$mod+V");
     await paste.run();
     expect(pasteSelection).toHaveBeenCalledOnce();
@@ -36,7 +36,7 @@ describe("canvas editing commands", () => {
 
   it("routes copy through the neutral editor port", async () => {
     const copy = command(createCanvasEditingCommands(options(true)), "spaces.copy");
-    expect(copy.isEnabled?.()).toBe(true);
+    expect(copy.availability?.()).toEqual({ state: "ready" });
     await copy.run();
     expect(copySelection).toHaveBeenCalledOnce();
   });

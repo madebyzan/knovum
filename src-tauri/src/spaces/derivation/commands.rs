@@ -1,10 +1,45 @@
 use tauri::AppHandle;
 
 use super::{
-    document_export, grounded_document, image_cutout, presentation_export, subtitle_extraction,
-    subtitled_video, video_edit, video_generation, visualization, CompletedDerivationOutput,
-    DerivationRelation,
+    document_export, grounded_document, image_cutout, image_layers, image_operations,
+    presentation_export, subtitle_extraction, subtitled_video, video_edit, video_generation,
+    visualization, CompletedDerivationOutput, DerivationRelation,
 };
+
+#[tauri::command]
+pub fn get_image_layer_capability() -> image_layers::ImageLayerCapability {
+    image_layers::capability()
+}
+
+#[tauri::command]
+pub async fn create_image_layers(
+    app: AppHandle,
+    request: image_layers::CreateImageLayersRequest,
+    on_stage: tauri::ipc::Channel<String>,
+) -> Result<Vec<CompletedDerivationOutput>, String> {
+    image_layers::create(app, request, on_stage).await
+}
+
+#[tauri::command]
+pub fn cancel_image_layers(id: String) -> Result<(), String> {
+    image_layers::cancel(&id)
+}
+
+#[tauri::command]
+pub fn get_image_operation_capabilities(
+    app: AppHandle,
+) -> image_operations::ImageOperationCapabilities {
+    image_operations::capabilities(&app)
+}
+
+#[tauri::command]
+pub async fn create_image_operation(
+    app: AppHandle,
+    request: image_operations::CreateImageOperationRequest,
+    on_stage: tauri::ipc::Channel<String>,
+) -> Result<CompletedDerivationOutput, String> {
+    image_operations::create(app, request, on_stage).await
+}
 
 #[tauri::command]
 pub async fn start_image_cutout_derivation(

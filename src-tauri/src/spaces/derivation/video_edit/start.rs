@@ -80,6 +80,14 @@ fn validate_request(request: &RenderVideoEditRequest) -> Result<(), String> {
             || item.end_ms <= item.start_ms
             || item.text.trim().is_empty()
             || item.text.len() > 500
+            || item.style.as_ref().is_some_and(|style| {
+                !(16..=96).contains(&style.size)
+                    || style.color.len() != 7
+                    || !style.color.starts_with('#')
+                    || !style.color[1..]
+                        .bytes()
+                        .all(|byte| byte.is_ascii_hexdigit())
+            })
     }) {
         return Err("Video edit project contains invalid timed text".into());
     }

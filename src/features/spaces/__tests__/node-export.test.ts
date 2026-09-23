@@ -33,7 +33,7 @@ describe("Space node export", () => {
       ],
     });
 
-    await expect(exportSpaceNode(node)).resolves.toBe(true);
+    await expect(exportSpaceNode("space", node)).resolves.toBe(true);
 
     expect(mocks.save).toHaveBeenCalledWith({
       defaultPath: "Interview - captions.srt",
@@ -55,7 +55,7 @@ describe("Space node export", () => {
       token: "must-not-leave-the-keychain",
     } as const;
 
-    await exportSpaceNode(canvasNode("credential", data as SpaceCanvasNode["data"]));
+    await exportSpaceNode("space", canvasNode("credential", data as SpaceCanvasNode["data"]));
 
     const call = mocks.invoke.mock.calls[0]?.[1] as { text: string };
     expect(JSON.parse(call.text)).toEqual({
@@ -70,6 +70,7 @@ describe("Space node export", () => {
 
   it("exports a rich note as plain text without implying its formatting is preserved", async () => {
     await exportSpaceNode(
+      "space",
       canvasNode("note", {
         kind: "note",
         title: "Meeting notes",
@@ -91,7 +92,7 @@ describe("Space node export", () => {
     });
   });
 
-  it("delegates managed assets to the existing asset export command", async () => {
+  it("exports image nodes through the Rust canonical renderer", async () => {
     const node = canvasNode("image", {
       kind: "image",
       title: "Cover",
@@ -99,11 +100,15 @@ describe("Space node export", () => {
       fileName: "cover.png",
     });
 
-    await exportSpaceNode(node);
+    await exportSpaceNode("space", node);
 
-    expect(mocks.save).toHaveBeenCalledWith({ defaultPath: "cover.png" });
-    expect(mocks.invoke).toHaveBeenCalledWith("plugin:spaces|export_asset", {
-      sourcePath: "/managed/cover.png",
+    expect(mocks.save).toHaveBeenCalledWith({
+      defaultPath: "cover.png",
+      filters: [{ name: "PNG", extensions: ["png"] }],
+    });
+    expect(mocks.invoke).toHaveBeenCalledWith("plugin:spaces|export_image", {
+      spaceId: "space",
+      nodeId: "image",
       destinationPath: "/exports/result",
     });
   });

@@ -2,7 +2,6 @@ import type { SpaceEditSnapshot } from "../../canvas/contract/space-edit-snapsho
 import { isSpaceNodeOpenable } from "../../canvas/selection-actions";
 import { isSpaceSemanticNode } from "../../knowledge/model/semantic-node";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
-import { isSpaceManagedAssetPayload } from "../../model/nodes/capabilities";
 import type { StructureNode } from "../../model/structure/structure-contract";
 import {
   ancestorsOf,
@@ -26,7 +25,6 @@ export interface CanvasSelectionProductState {
   canDissolveGroup: boolean;
   canToggleLock: boolean;
   canOpen: boolean;
-  opensSystemPreview: boolean;
   hasSectionMembership: boolean;
   content: SpaceCanvasNode[];
   structureNodeIds: string[];
@@ -124,9 +122,6 @@ function selectionCapabilities(context: SelectionCapabilityContext) {
     ),
     canCreateSection: canCreateSection(context),
     canOpen: Boolean(singleContent && singleExplicitContent && isSpaceNodeOpenable(singleExplicitContent)),
-    opensSystemPreview: Boolean(
-      singleContent && singleExplicitContent && isSpaceManagedAssetPayload(singleExplicitContent.data),
-    ),
   };
 }
 

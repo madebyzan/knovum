@@ -17,11 +17,18 @@ pub(super) async fn complete(
     app: AppHandle,
     request: CompleteImageCutoutRequest,
 ) -> Result<CompletedDerivationOutput, String> {
-    let source = source::path(&app, &request.id).await?;
     let path = asset_directory(&app)?.join(format!("derived-{}.png", Uuid::new_v4()));
+    let source_path = super::super::source_snapshot::image_path(
+        &app,
+        &request.id,
+        &request.source_edit,
+    )
+    .await?;
+    let source_edit = request.source_edit.clone();
     let processed = crate::blocking::run({
+        let app = app.clone();
         let path = path.clone();
-        move || process(source, path)
+        move || process(&app, &source_path, &source_edit, path)
     })
     .await?;
     match persist_completion(
@@ -51,10 +58,13 @@ struct ProcessedCutout {
 }
 
 fn process(
-    source: std::path::PathBuf,
+    app: &AppHandle,
+    source_path: &str,
+    source_edit: &Value,
     output: std::path::PathBuf,
 ) -> Result<ProcessedCutout, String> {
-    let cutout = crate::images::remove_background(&source)?;
+    let source = crate::images::render_source_png(app, source_path, source_edit)?;
+    let cutout = crate::images::remove_background(&source.png)?;
     let digest = format!("sha256:{:x}", Sha256::digest(&cutout.png));
     if let Err(error) = fs::write(&output, &cutout.png) {
         let _ = fs::remove_file(output);
@@ -93,7 +103,7 @@ async fn persist_completion(
     let Some((space_id, source_id, output_id, data)) = row else {
         return Err("Background removal is no longer running".into());
     };
-    source::revalidate(&mut tx, &request.id, &space_id, &source_id).await?;
+    source::revalidate(&mut tx, &request.id, &space_id, &source_id, &request.source_edit).await?;
     let now = crate::clock::unix_time_millis()?;
     let mut value: Value = serde_json::from_str(&data).map_err(db::json_error)?;
     apply_output_data(&mut value, path, digest, size, width, height, now)?;
@@ -141,6 +151,8 @@ fn apply_output_data(
     object.insert("modifiedAt".into(), Value::from(now));
     object.insert("intrinsicWidth".into(), Value::from(width));
     object.insert("intrinsicHeight".into(), Value::from(height));
+    object.remove("imageEdit");
+    object.remove("previewPath");
     object.remove("processingState");
     revision::apply(value)?;
     Ok(())

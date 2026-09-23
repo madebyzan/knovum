@@ -14,6 +14,7 @@ const props = withDefaults(
     sideOffset?: number | undefined;
     alignOffset?: number | undefined;
     collisionPadding?: number | undefined;
+    persistent?: boolean | undefined;
     class?: HTMLAttributes["class"];
   }>(),
   {
@@ -24,6 +25,10 @@ const props = withDefaults(
     collisionPadding: 8,
   },
 );
+
+function handleOutsideInteraction(event: Event) {
+  if (props.persistent) event.preventDefault();
+}
 </script>
 
 <template>
@@ -39,6 +44,7 @@ const props = withDefaults(
         :align-offset="alignOffset"
         :collision-padding="collisionPadding"
         avoid-collisions
+        @interact-outside="handleOutsideInteraction"
         :class="
           cn(
             POPUP_ANIMATE_CLASSES,

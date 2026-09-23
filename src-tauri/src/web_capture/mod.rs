@@ -77,6 +77,73 @@ pub(crate) async fn capture_image(raw_url: &str) -> Result<(Url, mime::Mime, Vec
     }
 }
 
+pub(crate) async fn capture_image_bounded(
+    raw_url: &str,
+    max_bytes: usize,
+    allowed_host_suffix: &'static str,
+) -> Result<(Url, mime::Mime, Vec<u8>), String> {
+    if max_bytes == 0 {
+        return Err("Web image size limit must be positive".into());
+    }
+    let url = parse_url(raw_url)?;
+    validate_asset_url(&url)?;
+    validate_host_suffix(&url, allowed_host_suffix)?;
+    let client = Client::builder()
+        .timeout(Duration::from_secs(180))
+        .redirect(reqwest::redirect::Policy::custom(move |attempt| {
+            if attempt.previous().len() >= 10
+                || validate_asset_url(attempt.url()).is_err()
+                || validate_host_suffix(attempt.url(), allowed_host_suffix).is_err()
+            {
+                attempt.stop()
+            } else {
+                attempt.follow()
+            }
+        }))
+        .build()
+        .map_err(|error| error.to_string())?;
+    let mut response = client
+        .get(url)
+        .header(ACCEPT_ENCODING, "identity")
+        .send()
+        .await
+        .map_err(|error| error.to_string())?
+        .error_for_status()
+        .map_err(|error| error.to_string())?;
+    let final_url = response.url().clone();
+    validate_asset_url(&final_url)?;
+    validate_host_suffix(&final_url, allowed_host_suffix)?;
+    let response_type = media_type::response_media_type(&response);
+    let (mut bytes, overflow) =
+        body::read_body_prefix(&mut response, max_bytes.min(MAX_DOCUMENT_BYTES)).await?;
+    bytes.extend_from_slice(&overflow);
+    body::read_body_remainder(&mut response, &mut bytes, max_bytes).await?;
+    let media_type = media_type::detect_image_media_type(response_type, &final_url, &bytes)
+        .ok_or("Web resource is not an image")?;
+    Ok((final_url, media_type, bytes))
+}
+
+fn validate_host_suffix(url: &Url, suffix: &str) -> Result<(), String> {
+    let host = url.host_str().ok_or("Web image URL has no host")?;
+    let suffix = suffix.trim_start_matches('.');
+    if host == suffix || host.ends_with(&format!(".{suffix}")) {
+        Ok(())
+    } else {
+        Err("Web image URL host is not approved".into())
+    }
+}
+
+fn validate_asset_url(url: &Url) -> Result<(), String> {
+    if url.scheme() != "https"
+        || url.host_str().is_none()
+        || !url.username().is_empty()
+        || url.password().is_some()
+    {
+        return Err("Web image URL must be credential-free HTTPS".into());
+    }
+    Ok(())
+}
+
 fn parse_url(raw_url: &str) -> Result<Url, String> {
     let url = Url::parse(raw_url).map_err(|error| error.to_string())?;
     if !matches!(url.scheme(), "http" | "https") {

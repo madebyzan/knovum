@@ -12,8 +12,6 @@ import type {
 import { useCanvasEditorSession, useCanvasSelectionProjection } from "../../canvas/editor-session";
 import { openSpaceNode } from "../../canvas/selection-actions";
 import { useContextDock } from "../../canvas/use-context-dock";
-import type { ImageEdit } from "../../image-editing/image-edit";
-import { imageEditOf } from "../../image-editing/image-edit";
 import { isSpaceSemanticNode } from "../../knowledge/model/semantic-node";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../../model/nodes/node-payload";
@@ -24,9 +22,7 @@ import { useCanvasReparentActions } from "./use-canvas-reparent-actions";
 import { useCanvasStructureSelectionActions } from "./use-canvas-structure-selection-actions";
 
 function runCanvasAction(operation: () => Promise<unknown>) {
-  void Promise.resolve()
-    .then(operation)
-    .catch((error) => toast.error(String(error)));
+  void Promise.resolve().then(operation).catch((error) => toast.error(String(error)));
 }
 
 export function useCanvasSelectionActions() {
@@ -46,9 +42,9 @@ export function useCanvasSelectionActions() {
   const downloadSelected = useCanvasNodeDownload(store, state, selectedNodes);
   const visible = computed(
     () =>
-      selection.value.nodeIds.length > 0 ||
-      selection.value.structureNodeIds.length > 0 ||
-      selection.value.relationIds.length > 0,
+      Boolean(selection.value.nodeIds.length) ||
+      Boolean(selection.value.structureNodeIds.length) ||
+      Boolean(selection.value.relationIds.length),
   );
   const selectedAppearance = computed(() => selection.value.singleNodeAppearance);
   const selectedImageNode = computed(() => {
@@ -76,14 +72,6 @@ export function useCanvasSelectionActions() {
     const nodeId = selection.value.nodeIds.length === 1 ? selection.value.nodeIds[0] : undefined;
     if (!nodeId) return;
     editorSession.activeEditor.value?.setNodeAppearance(nodeId, patch);
-  }
-
-  function setImageEdit(edit: ImageEdit) {
-    const node = selectedImageNode.value;
-    if (!node) return;
-    runCanvasAction(() =>
-      store.updateManyData([{ id: node.id, before: node.data, after: { ...node.data, imageEdit: edit } }]),
-    );
   }
 
   function editVideo() {
@@ -154,7 +142,6 @@ export function useCanvasSelectionActions() {
     const editor = editorSession.activeEditor.value;
     if (editor) runCanvasAction(() => editor.deleteSelection());
   }
-
   return {
     align,
     autoLayout,
@@ -181,11 +168,6 @@ export function useCanvasSelectionActions() {
     selectedAppearance,
     selectedImageNode,
     selectedVideoNode,
-    setImageEdit,
-    imageEdit: computed(() => {
-      const node = selectedImageNode.value;
-      return node ? imageEditOf(node.data) : undefined;
-    }),
     setAppearance,
     state,
     toggleLock,
@@ -193,7 +175,6 @@ export function useCanvasSelectionActions() {
     visible,
   };
 }
-
 function isImageNode(node: SpaceCanvasNode): node is SpaceCanvasNode<SpaceImagePayload> {
   return node.data.kind === "image";
 }

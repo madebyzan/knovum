@@ -1,5 +1,6 @@
 import { shallowRef, watch, type Ref } from "vue";
 
+import { i18n } from "../../../../foundation/i18n/i18n";
 import type { SpaceVideoPayload } from "../../model/nodes/node-payload";
 import { createVideoEditProject, type VideoEditProject } from "../../video-editing/project";
 
@@ -25,7 +26,7 @@ export function useVideoEditProject(
     if (project.value || !data.value) return;
     const element = event.currentTarget as HTMLVideoElement;
     if (!Number.isFinite(element.duration) || element.duration <= 0) {
-      if (proxyPath.value) metadataError.value = "Video duration is unavailable";
+      if (proxyPath.value) metadataError.value = i18n.global.t("spaces.media.durationUnavailable");
       return;
     }
     project.value = createVideoEditProject(

@@ -240,9 +240,17 @@ Image and video editing deliberately use different product surfaces. One selecte
 non-destructive crop presets, quarter-turn rotation, horizontal/vertical flip, tonal adjustments
 and an eraser directly in the canvas selection bar. The persisted `imageEdit` contract keeps the
 source asset immutable; the canvas renderer projects the crop, transform, filter and normalized
-eraser strokes. Video editing opens a same-window workbench because transport, playhead, ordered
-clips and timed text require persistent timeline context. A strict v1 `videoEditProject` stores one
-ordered video track, one text track and output transform. Saving records the project on the source
+eraser strokes. Image comments are normalized positions on the displayed image, saved in the
+image node payload with their text and creation time. A comment may target a point, a freehand
+stroke or a rectangular region; all three modes render a numbered pin, while strokes and regions
+retain their image-relative geometry. Adding a comment to the built-in conversation stages its
+text in the composer rather than starting an assistant task. Multi-angle generation accepts
+subject or camera movement, yaw from -90 to 90 degrees, pitch from -30 to 60 degrees, and
+close-up, medium or wide-angle framing. Its preview is an interactive orientation guide; the
+model generates the actual new view. Video editing opens a same-window workbench because
+transport, playhead, ordered clips and timed text require persistent timeline context. A strict
+v1 `videoEditProject` stores one ordered video track, one text track and output transform. Saving
+records the project on the source
 node through normal Space history. The editor opens from the managed source immediately while
 Rust prepares a revision-keyed, short-GOP 960×540 editing proxy in the app cache. Once ready, the
 WebView plays that proxy; video frames never cross IPC. Proxy preparation is cancellable when the
@@ -251,6 +259,35 @@ presented frames instead of the media element's coarse timeupdate event. Renderi
 managed source, seeks to the first retained source interval, reports measured FFmpeg progress and
 creates a new derived video node. The source bytes and edit project remain available, and render
 cancellation stays in Task Center.
+
+The light editor keeps one continuous, ripple-joined video track and one timed-text track. The
+time ruler supports pointer scrubbing; clip-edge handles trim against the original source with
+100 ms snapping, and Alt temporarily enables millisecond precision. Focused trim handles also
+accept arrow keys. No inspector is shown until a clip or timed-text item is selected. Its floating
+panel sits over the preview stage while transport and timeline keep the full workbench width; Escape
+or the close control clears selection and returns focus to the ruler. Timed text is selectable from
+the preview and timeline. The panel offers a searchable subtitle list, live text edits, placement,
+size, color and four export-backed styles; clip selection exposes source in/out times, volume,
+rotation and both flips. Text size is expressed in 720p-relative pixels, and rendering uses the
+bundled Noto Sans CJK font. A local edit history owns undo and redo until Save commits one
+project snapshot through Space history. The workbench shows unsaved state and requires an explicit
+Save or Discard choice on close. Application commands provide the editor's keyboard shortcuts;
+there are no feature-level global key listeners. The preview places timed text within the visible
+video frame and uses the same relative vertical placement as final rendering.
+
+Desktop acceptance for this workbench follows Apple's guidance on
+[undo and redo](https://developer.apple.com/design/human-interface-guidelines/undo-and-redo),
+[focus and selection](https://developer.apple.com/design/human-interface-guidelines/focus-and-selection/),
+and [designing for macOS](https://developer.apple.com/design/human-interface-guidelines/designing-for-macos/):
+
+- Every edit has an immediately visible selection, preview, and reversible result; a no-op such as
+  deleting the final clip is disabled rather than silently accepted.
+- Pointer and keyboard can seek and trim; focused controls have names and visible focus. Timecode
+  uses millisecond precision and never calls an arbitrary 100 ms step a video frame.
+- Save is explicit, asynchronous work cannot be started twice, and closing with a dirty project
+  offers Save, Discard, and Cancel. Failed preview preparation remains visible and retryable.
+- Preview and export share clip ranges, per-clip volume, orientation, and timed-text placement;
+  a removed or shortened interval ripples the text track by the same duration.
 
 URL paste reads clipboard HTML, text and, on macOS, the native `public.url` format in one typed Rust operation before applying an explicit product-owned content-URL policy for selected media platforms: YouTube, Bilibili, Douyin, TikTok, Instagram, Vimeo, X/Twitter, and Facebook. Direct media resources and recognized platform content links enter yt-dlp acquisition. The capture projection appears at the paste location as compact desktop transfer chrome rather than an empty media cover; its screen size is capped when zooming in so temporary feedback does not balloon over the canvas. Resolving shows indeterminate activity; downloading shows measured bytes; finalizing shows measured media time when FFmpeg prepares a playable asset. yt-dlp prefers H.264/AAC streams, and the import stage converts other selected codecs to H.264/AAC in MP4 or AAC in M4A before the asset is committed. The node persists the canonical local asset size and its media origin (platform/extractor, original URL, and source ID); the canvas shows platform identity, while the inspector exposes origin and file details. The projection transitions into the persisted node on success and remains in place with retry/dismiss actions on failure. Platform homepages, profiles, and all other HTTP(S) URLs become Saved Websites immediately. The automatic clipboard path neither enumerates yt-dlp extractors nor probes arbitrary webpages for embedded video; this avoids blocking ordinary website capture on media-tool startup or network timeouts. A recognized media URL that cannot be acquired reports the media failure instead of silently changing node type. Clipboard file paste is a separate trusted import source: Rust verifies each requested path against the current native clipboard file list before staging it; dialog and drop imports continue to require their explicit filesystem scope.
 

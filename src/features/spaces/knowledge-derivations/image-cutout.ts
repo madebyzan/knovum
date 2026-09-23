@@ -38,11 +38,12 @@ export async function createImageCutout(store: SpaceStore, source: SpaceCanvasNo
   let started = false;
   try {
     await yieldToCanvas();
-    await startDerivation(derivationId, spaceId, source, pending.id);
+    const sourceEdit = source.data.imageEdit ?? null;
+    await startDerivation(derivationId, spaceId, source, pending.id, sourceEdit);
     started = true;
     tasks.detail(taskId, t("spaces.creation.segmenting"));
     const completed = await invoke<CompletedCutout>("plugin:spaces|submit_image_cutout_derivation", {
-      request: { id: derivationId },
+      request: { id: derivationId, sourceEdit },
     });
     store.applyNodeDataForSpace(spaceId, completed.nodeId, completed.data);
     await store.refreshActiveSpace();
@@ -69,9 +70,10 @@ async function createPendingNode(store: SpaceStore, source: SpaceCanvasNode) {
   const dimensions = spaceNodeDimensions(source.data);
   const base = baseNameFromNode(source);
   const data: SpaceImagePayload = {
-    ...source.data,
+    kind: "image",
     title: `${base}-cutout.png`,
     fileName: `${base}-cutout.png`,
+    assetPath: source.data.assetPath,
     processingState: "importing",
   };
   const sourcePosition = requiredNodePosition(
@@ -86,7 +88,13 @@ async function createPendingNode(store: SpaceStore, source: SpaceCanvasNode) {
   return node;
 }
 
-function startDerivation(id: string, spaceId: string, source: SpaceCanvasNode, outputNodeId: string) {
+function startDerivation(
+  id: string,
+  spaceId: string,
+  source: SpaceCanvasNode,
+  outputNodeId: string,
+  sourceEdit: SpaceImagePayload["imageEdit"] | null,
+) {
   if (source.data.kind !== "image" || !source.data.sourceRevision)
     throw new Error("Image revision is missing");
   return invoke("plugin:spaces|start_image_cutout_derivation", {
@@ -96,6 +104,7 @@ function startDerivation(id: string, spaceId: string, source: SpaceCanvasNode, o
       sourceNodeId: source.id,
       outputNodeId,
       sourceRevision: source.data.sourceRevision,
+      sourceEdit,
     },
   });
 }

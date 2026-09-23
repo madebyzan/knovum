@@ -26,16 +26,29 @@ const imageEraserStrokeSchema = z
 
 export const imageEditSchema = z
   .object({
-    version: z.literal(1),
+    version: z.literal(5),
     crop: imageCropSchema,
-    rotation: z.union([z.literal(0), z.literal(90), z.literal(180), z.literal(270)]),
+    rotation: z.number().finite().min(0).lt(360),
     flipHorizontal: z.boolean(),
     flipVertical: z.boolean(),
     adjustments: z
       .object({
-        brightness: z.number().min(-100).max(100),
+        exposure: z.number().min(-100).max(100),
         contrast: z.number().min(-100).max(100),
+        highlights: z.number().min(-100).max(100),
+        shadows: z.number().min(-100).max(100),
+        whites: z.number().min(-100).max(100),
+        blacks: z.number().min(-100).max(100),
         saturation: z.number().min(-100).max(100),
+        warmth: z.number().min(-100).max(100),
+        sharpness: z.number().min(0).max(100),
+        vignette: z.number().min(-100).max(100),
+        vibrance: z.number().min(-100).max(100),
+        tint: z.number().min(-100).max(100),
+        clarity: z.number().min(0).max(100),
+        grain: z.number().min(0).max(100),
+        softLight: z.number().min(0).max(100),
+        glow: z.number().min(0).max(100),
       })
       .strict(),
     eraserStrokes: z.array(imageEraserStrokeSchema).max(500),

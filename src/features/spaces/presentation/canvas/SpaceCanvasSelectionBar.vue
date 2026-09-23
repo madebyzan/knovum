@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Copy, Eye, ExternalLink, Group, Info, Link2, Scissors, Sparkles } from "@lucide/vue";
+import { Copy, Group, Info, Link2, Sparkles } from "@lucide/vue";
 import { ToolbarButton, ToolbarRoot } from "reka-ui";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
@@ -11,24 +11,16 @@ import type {
   CreationIntentDecisions,
   CreationIntentId,
 } from "../../knowledge-derivations/catalog/creation-intent-definitions";
-import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
-import type { SpaceCanvasTextPayload } from "../../model/nodes/capabilities";
 import SpaceSelectionMoveMenu from "../SpaceSelectionMoveMenu.vue";
-import SpaceCanvasImageTools from "./SpaceCanvasImageTools.vue";
+import SpaceCanvasImageActionBar from "./SpaceCanvasImageActionBar.vue";
 import SpaceCanvasNodeActionBar from "./SpaceCanvasNodeActionBar.vue";
 import SpaceCanvasSelectionMenu from "./SpaceCanvasSelectionMenu.vue";
-import SpaceCanvasTextFormatBar from "./SpaceCanvasTextFormatBar.vue";
 import { useCanvasSelectionActions } from "./use-canvas-selection-actions";
 
 defineProps<{ derivations: CreationIntentDecisions }>();
 const emit = defineEmits<{ invokeDerivation: [actionId: CreationIntentId] }>();
 const actions = useCanvasSelectionActions();
 const { t } = useI18n();
-const selectedTextNode = computed(() => {
-  if (actions.selectedNodes.value.length !== 1) return undefined;
-  const node = actions.selectedNodes.value[0];
-  return node && isCanvasTextNode(node) ? node : undefined;
-});
 const singleNode = computed(() => {
   if (actions.state.value.structureNodeIds.length !== 1) return undefined;
   return actions.selectedNodes.value.length === 1 ? actions.selectedNodes.value[0] : undefined;
@@ -36,15 +28,18 @@ const singleNode = computed(() => {
 const singleSection = computed(
   () => actions.state.value.structureNodeIds.length === 1 && Boolean(actions.state.value.section),
 );
-
-function isCanvasTextNode(node: SpaceCanvasNode): node is SpaceCanvasNode<SpaceCanvasTextPayload> {
-  return node.data.kind === "note" || node.data.kind === "text";
-}
 </script>
 
 <template>
+  <SpaceCanvasImageActionBar
+    v-if="actions.selectedImageNode.value && singleNode?.id === actions.selectedImageNode.value.id"
+    :actions="actions"
+    :derivations="derivations"
+    :node="actions.selectedImageNode.value"
+    @invoke-derivation="emit('invokeDerivation', $event)"
+  />
   <SpaceCanvasNodeActionBar
-    v-if="singleNode || singleSection"
+    v-else-if="singleNode || singleSection"
     :actions="actions"
     :derivations="derivations"
     :node="singleNode"
@@ -60,32 +55,6 @@ function isCanvasTextNode(node: SpaceCanvasNode): node is SpaceCanvasNode<SpaceC
     <UiBadge v-if="actions.state.value.structureNodeIds.length > 1" size="sm" class="mx-1">
       {{ actions.state.value.structureNodeIds.length }}
     </UiBadge>
-    <SpaceCanvasTextFormatBar
-      v-if="selectedTextNode"
-      :kind="selectedTextNode.data.kind"
-      v-bind="actions.selectedAppearance.value ? { appearance: actions.selectedAppearance.value } : {}"
-      @update="actions.setAppearance"
-    />
-    <SpaceCanvasImageTools v-if="actions.selectedImageNode.value" :actions="actions" />
-    <ToolbarButton v-if="actions.selectedVideoNode.value" as-child>
-      <UiIconButton :label="t('spaces.media.editVideo')" size="sm" @click="actions.editVideo">
-        <Scissors class="size-(--knovum-icon-size-sm)" :stroke-width="1.55" />
-      </UiIconButton>
-    </ToolbarButton>
-    <ToolbarButton v-if="actions.state.value.canOpen" as-child>
-      <UiIconButton
-        :label="t(actions.state.value.opensSystemPreview ? 'spaces.transfer.systemPreview' : 'common.open')"
-        size="sm"
-        @click="actions.open"
-      >
-        <Eye
-          v-if="actions.state.value.opensSystemPreview"
-          class="size-(--knovum-icon-size-sm)"
-          :stroke-width="1.55"
-        />
-        <ExternalLink v-else class="size-(--knovum-icon-size-sm)" :stroke-width="1.55" />
-      </UiIconButton>
-    </ToolbarButton>
     <ToolbarButton as-child>
       <UiIconButton :label="t('spaces.navigation.inspect')" size="sm" @click="actions.inspect">
         <Info class="size-(--knovum-icon-size-sm)" :stroke-width="1.55" />

@@ -3,6 +3,7 @@ import { useI18n } from "vue-i18n";
 
 import { openSystemPreview } from "../../../foundation/system-preview/system-preview";
 import type { AppCommand } from "../../../shared/contracts/app-command";
+import { availableWhen } from "../../../shared/contracts/action-availability";
 import { workspaceSidebarKey } from "../../../shared/contracts/workspace-sidebar";
 import { useCanvasExchangeSession } from "../canvas-exchange/canvas-exchange-session";
 import { useCanvasEditorSession } from "../canvas/editor-session";
@@ -20,6 +21,7 @@ import { createCanvasEditingCommands } from "./canvas-editing-commands";
 import { createCanvasExchangeCommands } from "./canvas-exchange-commands";
 import { NUDGE_COMMANDS } from "./nudge-commands";
 import { useCanvasNavigationCommands } from "./use-canvas-navigation-commands";
+import { videoEditCommands } from "./video-edit-commands";
 
 export function useSpaceCommands() {
   const { t } = useI18n();
@@ -61,6 +63,7 @@ export function useSpaceCommands() {
     };
     if (store.workspaceMode === "library") return [...workspaceTabCommands.value, ...libraryCommands.value];
     if (!store.activeSpaceId) return [...workspaceTabCommands.value, searchAllCommand];
+    if (store.videoEditorNodeId) return videoEditCommands(t);
 
     const hasStructureSelection = selectedStructureNodeIds().length > 0;
     const editingCommands: AppCommand[] = [
@@ -69,7 +72,7 @@ export function useSpaceCommands() {
         title: t("spaces.canvas.groupSelection"),
         shortcut: "$mod+G",
         category: "canvas",
-        isEnabled: () => groupCapability(store.editSnapshot, selectedStructureNodeIds()).enabled,
+        availability: () => availableWhen(groupCapability(store.editSnapshot, selectedStructureNodeIds()).enabled, "selection_not_eligible"),
         run: async () => {
           await store.executeSpaceEdit({
             kind: "group.create",
@@ -84,7 +87,7 @@ export function useSpaceCommands() {
         title: t("spaces.canvas.ungroupSelection"),
         shortcut: "$mod+Shift+G",
         category: "canvas",
-        isEnabled: () => dissolveGroupCapability(store.editSnapshot, selectedStructureNodeIds()).enabled,
+        availability: () => availableWhen(dissolveGroupCapability(store.editSnapshot, selectedStructureNodeIds()).enabled, "selection_not_eligible"),
         run: async () => {
           await store.executeSpaceEdit({ kind: "group.dissolve", rootIds: selectedStructureNodeIds() });
         },
@@ -94,7 +97,7 @@ export function useSpaceCommands() {
         title: t("spaces.navigation.renameNode"),
         shortcut: "F2",
         category: "canvas",
-        isEnabled: () => canRenameStructureNode(store.editSnapshot, selectedStructureNodeIds()),
+        availability: () => availableWhen(canRenameStructureNode(store.editSnapshot, selectedStructureNodeIds()), "selection_not_eligible"),
         run: () => {
           sidebar.reveal();
           store.outlineRenameStructureNodeId = selectedStructureNodeIds()[0]!;

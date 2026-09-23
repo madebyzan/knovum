@@ -22,8 +22,6 @@ export const useSpaceStore = defineStore("spaces", () => {
   watch(state.nodes, (nodes) => {
     if (state.videoEditorNodeId.value && !nodes.some(({ id }) => id === state.videoEditorNodeId.value))
       state.videoEditorNodeId.value = undefined;
-    if (state.imageEraserNodeId.value && !nodes.some(({ id }) => id === state.imageEraserNodeId.value))
-      state.imageEraserNodeId.value = undefined;
   });
   watch([state.nodes, state.relations], () => {
     state.thumbnailDirty.value = true;
@@ -40,9 +38,6 @@ export const useSpaceStore = defineStore("spaces", () => {
     },
     closeVideoEditor: () => {
       state.videoEditorNodeId.value = undefined;
-    },
-    toggleImageEraser: (nodeId: string) => {
-      state.imageEraserNodeId.value = state.imageEraserNodeId.value === nodeId ? undefined : nodeId;
     },
   };
 });

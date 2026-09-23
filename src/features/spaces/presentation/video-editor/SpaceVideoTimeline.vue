@@ -2,96 +2,143 @@
 import { Captions, Film, Volume2 } from "@lucide/vue";
 import { computed } from "vue";
 
-import { formatDurationMs } from "../../media/format-duration";
-import { clipDuration, projectDuration, type VideoEditProject } from "../../video-editing/project";
+import type { VideoEditProject, VideoTextOverlay } from "../../video-editing/project";
+import { formatVideoEditTime, formatVideoTimelineTime } from "../../video-editing/timecode";
+import SpaceVideoTimelineClip from "./SpaceVideoTimelineClip.vue";
+import SpaceVideoTimelineText from "./SpaceVideoTimelineText.vue";
+import { useVideoTimelineInteraction, type VideoTimelineProps } from "./use-video-timeline-interaction";
+import { useVideoTimelineThumbnails } from "./use-video-timeline-thumbnails";
 
-const props = defineProps<{
-  project: VideoEditProject;
-  playheadMs: number;
-  selectedClipId?: string | undefined;
-  selectedTextId?: string | undefined;
-}>();
+const props = defineProps<VideoTimelineProps>();
 const emit = defineEmits<{
   seek: [milliseconds: number];
+  edit: [project: VideoEditProject];
   selectClip: [id: string];
   selectText: [id: string];
 }>();
-const duration = computed(() => Math.max(projectDuration(props.project), 1));
-const ticks = computed(() => Array.from({ length: 11 }, (_, index) => (duration.value * index) / 10));
-const clipStyle = (milliseconds: number) => ({ width: `${(milliseconds / duration.value) * 100}%` });
-const rangeStyle = (startMs: number, endMs: number) => ({
-  left: `${(startMs / duration.value) * 100}%`,
-  width: `${((endMs - startMs) / duration.value) * 100}%`,
+const {
+  visibleProject,
+  viewport,
+  duration,
+  ticks,
+  contentStyle,
+  clipStyle,
+  startScrub,
+  moveScrub,
+  startTrim,
+  moveTrim,
+  finishTrim,
+  cancelTrim,
+  nudgeTrim,
+} = useVideoTimelineInteraction(props, {
+  seek: (milliseconds) => emit("seek", milliseconds),
+  trim: (project) => emit("edit", project),
+  selectClip: (id) => emit("selectClip", id),
 });
+const thumbnailSource = computed(() => props.thumbnailSource);
+const sourceDuration = computed(() => props.sourceDurationMs);
+const { frames, error: thumbnailError } = useVideoTimelineThumbnails(thumbnailSource, sourceDuration);
 
-function seek(event: MouseEvent) {
-  const bounds = (event.currentTarget as HTMLElement).getBoundingClientRect();
-  emit("seek", ((event.clientX - bounds.left) / bounds.width) * duration.value);
+function editText(edited: VideoTextOverlay) {
+  emit("edit", {
+    ...props.project,
+    textTrack: {
+      items: props.project.textTrack.items.map((item) => (item.id === edited.id ? edited : item)),
+    },
+  });
 }
 </script>
 
 <template>
-  <section class="relative h-52 shrink-0 border-t border-border bg-panel">
-    <div class="grid h-7 grid-cols-[7rem_1fr] border-b border-divider text-micro text-foreground-tertiary">
-      <div class="border-r border-divider" />
-      <button
-        type="button"
-        class="relative cursor-default"
-        :aria-label="$t('spaces.media.seekTimeline')"
-        @click="seek"
-      >
-        <span
-          v-for="tick in ticks"
-          :key="tick"
-          class="absolute top-0 h-full border-l border-divider"
-          :style="{ left: `${(tick / duration) * 100}%` }"
-        >
-          <span class="ml-1 tabular-nums">{{ formatDurationMs(tick) }}</span>
-        </span>
-      </button>
-    </div>
-    <div class="relative grid h-16 grid-cols-[7rem_1fr] border-b border-divider">
-      <div class="flex items-center gap-2 border-r border-divider px-3 text-caption">
-        <Film class="size-(--knovum-icon-size-sm)" /><span>{{ $t("spaces.media.videoTrack") }}</span
-        ><Volume2 class="ml-auto size-(--knovum-icon-size-xs)" />
+  <section
+    class="grid h-48 shrink-0 grid-cols-[6rem_minmax(0,1fr)] border-t border-border bg-panel"
+    :aria-label="$t('spaces.media.timeline')"
+  >
+    <div class="border-r border-divider text-caption text-foreground-secondary">
+      <div class="h-8 border-b border-divider" />
+      <div class="flex h-11 items-center gap-2 border-b border-divider px-3">
+        <Captions class="size-(--knovum-icon-size-sm)" />{{ $t("spaces.media.textTrack") }}
       </div>
-      <div class="relative flex items-center gap-px overflow-hidden px-1">
-        <button
-          v-for="clip in project.videoTrack.clips"
-          :key="clip.id"
-          type="button"
-          class="h-10 min-w-2 overflow-hidden rounded-grid-cell border bg-accent-subtle px-2 text-left text-caption text-accent"
-          :class="selectedClipId === clip.id ? 'border-accent ring-1 ring-accent' : 'border-accent/25'"
-          :style="clipStyle(clipDuration(clip))"
-          @click="$emit('selectClip', clip.id)"
+      <div class="flex h-16 items-center gap-2 border-b border-divider px-3">
+        <Film class="size-(--knovum-icon-size-sm)" />{{ $t("spaces.media.videoTrack") }}
+      </div>
+      <div class="flex h-8 items-center gap-2 px-3">
+        <Volume2 class="size-(--knovum-icon-size-sm)" />{{ $t("spaces.media.audioTrack") }}
+      </div>
+    </div>
+    <div
+      :ref="(value) => (viewport = value as HTMLElement | null)"
+      class="min-w-0 overflow-x-auto overflow-y-hidden"
+    >
+      <div class="relative h-full min-w-full" :style="contentStyle">
+        <div
+          role="slider"
+          data-video-timeline-seek
+          tabindex="0"
+          class="relative h-8 cursor-crosshair touch-none border-b border-divider outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+          :aria-label="$t('spaces.media.seekTimeline')"
+          aria-valuemin="0"
+          :aria-valuemax="Math.round(duration)"
+          :aria-valuenow="Math.round(playheadMs)"
+          :aria-valuetext="formatVideoEditTime(playheadMs)"
+          @pointerdown="startScrub"
+          @pointermove="moveScrub"
+          @keydown.left.prevent="$emit('seek', Math.max(0, playheadMs - 100))"
+          @keydown.right.prevent="$emit('seek', Math.min(duration, playheadMs + 100))"
         >
-          <span class="block truncate"
-            >{{ formatDurationMs(clip.startMs) }} – {{ formatDurationMs(clip.endMs) }}</span
+          <span
+            v-for="tick in ticks"
+            :key="tick"
+            class="pointer-events-none absolute top-2 bottom-0 border-l border-divider"
+            :style="{ left: `${(tick / duration) * 100}%` }"
           >
-        </button>
-      </div>
-    </div>
-    <div class="grid h-16 grid-cols-[7rem_1fr] border-b border-divider">
-      <div class="flex items-center gap-2 border-r border-divider px-3 text-caption">
-        <Captions class="size-(--knovum-icon-size-sm)" /><span>{{ $t("spaces.media.textTrack") }}</span>
-      </div>
-      <div class="relative m-1">
-        <button
-          v-for="item in project.textTrack.items"
-          :key="item.id"
-          type="button"
-          class="absolute top-2 h-9 overflow-hidden rounded-grid-cell border bg-selected px-2 text-left text-caption text-accent"
-          :class="selectedTextId === item.id ? 'border-accent ring-1 ring-accent' : 'border-accent/20'"
-          :style="rangeStyle(item.startMs, item.endMs)"
-          @click="$emit('selectText', item.id)"
+            <span class="absolute -top-1 left-1 text-micro text-foreground-tertiary tabular-nums">
+              {{ tick % 1_000 === 0 ? formatVideoTimelineTime(tick) : formatVideoEditTime(tick) }}
+            </span>
+          </span>
+        </div>
+        <div data-text-track class="relative h-11 border-b border-divider bg-canvas/40">
+          <SpaceVideoTimelineText
+            v-for="item in visibleProject.textTrack.items"
+            :key="item.id"
+            :item="item"
+            :duration-ms="duration"
+            :selected="selectedTextId === item.id"
+            @select="$emit('selectText', item.id)"
+            @edit="editText"
+          />
+        </div>
+        <div data-video-track class="relative flex h-24 border-b border-divider">
+          <SpaceVideoTimelineClip
+            v-for="clip in visibleProject.videoTrack.clips"
+            :key="clip.id"
+            :clip="clip"
+            :selected="selectedClipId === clip.id"
+            :frames="frames"
+            :waveform="waveform"
+            :source-duration-ms="sourceDurationMs"
+            :style="clipStyle(clip.endMs - clip.startMs)"
+            @select="$emit('selectClip', clip.id)"
+            @trim-start="(event, edge) => startTrim(event, clip, edge)"
+            @trim-move="moveTrim"
+            @trim-end="finishTrim"
+            @trim-cancel="cancelTrim"
+            @nudge="(edge, delta) => nudgeTrim(clip, edge, delta)"
+          />
+          <span
+            v-if="thumbnailError"
+            class="pointer-events-none absolute right-2 bottom-9 z-20 rounded-control bg-panel/90 px-2 py-0.5 text-micro text-danger"
+          >
+            {{ $t("spaces.media.thumbnailFailed") }}
+          </span>
+        </div>
+        <span
+          class="pointer-events-none absolute inset-y-0 z-20 w-px bg-danger"
+          :style="{ left: `${(playheadMs / duration) * 100}%` }"
         >
-          {{ item.text }}
-        </button>
+          <span class="absolute top-0 -left-1 size-2 rotate-45 bg-danger" />
+        </span>
       </div>
     </div>
-    <span
-      class="pointer-events-none absolute top-7 bottom-0 z-10 w-px bg-danger"
-      :style="{ left: `calc(7rem + (100% - 7rem) * ${playheadMs / duration})` }"
-    />
   </section>
 </template>

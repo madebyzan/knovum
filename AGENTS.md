@@ -1,135 +1,52 @@
 # Knovum agent instructions
 
-This file is the repository-level contract for coding agents and AI-assisted changes. It applies to the entire repository unless a deeper `AGENTS.md` explicitly narrows a rule for a real subsystem.
+Knovum is a Tauri 2 + Vue 3 local-first desktop knowledge space: one desktop product, not a browser dashboard or a container for peer apps. Product work belongs to the owning capability in `src/features/*`.
 
-## Product
+## Working in this repository
 
-Knovum is a Tauri 2 + Vue 3 local-first desktop knowledge space. It is one desktop product,
-not a browser dashboard or a container for peer applications. Product work belongs to the owning
-capability under `src/features/*`.
+Understand the affected capability and its contracts, then make the requested change through implementation and relevant verification. Use the authoritative documents below when the change touches their subject; a small, local edit does not require a full repository review.
 
-## Required workflow
+Before adding a non-trivial capability or custom subsystem, follow `docs/oss-first.md` and `docs/dependency-policy.md`: compare maintained GitHub and npm/crates.io options, prefer Tauri official plugins for OS integration and Reka/TanStack/Vue primitives for frontend behavior, and record meaningful choices in the PR evidence fields. Import vendor APIs directly unless Knovum needs policy, validation, security, domain translation, or orchestration; build custom infrastructure only when mature candidates fail an explicit requirement. Do not add speculative dependencies. Spaces' exact-pinned Konva and vue-konva releases were selected by a canvas-platform benchmark; replacing them requires a fresh benchmark.
 
-1. Understand the feature requirements and the owning module before changing code.
-2. For every non-trivial capability, research stable, actively maintained solutions on GitHub and npm/crates.io first.
-3. Prefer Tauri official plugins for OS integration and Reka/TanStack/Vue ecosystem primitives for frontend behavior.
-4. Record meaningful dependency choices or custom implementations in the PR using the OSS-first evidence fields.
-5. Add only the minimum Tauri capability/scope required by the feature.
-6. Run the relevant quality gates before handoff.
+## Architecture
 
-Do not implement custom infrastructure because it is "small" or because a library API name is inconvenient. Custom code is justified only when mature candidates fail an explicit requirement.
+`docs/architecture.md` and `.dependency-cruiser.cjs` own dependency rules:
 
-## Architecture boundaries
+- `app/` composes the product and sets application-wide policy; `foundation/` owns cross-cutting infrastructure; `shell/` owns desktop workbench chrome.
+- `features/<name>/` owns business behavior; `shared/contracts/` holds stable neutral contracts; `shared/ui/` holds durable Knovum visual compositions.
+- Features do not import other features, `app/`, or `shell/`. Avoid catch-all `services`, `utils`, `helpers`, `composables`, or `platform` directories, barrel `index.ts` files, rename-only vendor wrappers, and universal services/composables spanning unrelated responsibilities.
+- Keep files focused. Existing gates cap TS/Vue files at 180 lines and complexity at 10; review function size by responsibility and complexity.
 
-Authoritative dependency rules live in `docs/architecture.md` and `.dependency-cruiser.cjs`.
+## Vue, data, and security
 
-- `app/`: composition root and application-wide policy.
-- `foundation/`: cross-cutting product infrastructure.
-- `shell/`: desktop workbench chrome.
-- `features/<name>/`: business ownership.
-- `shared/contracts/`: stable neutral contracts.
-- `shared/ui/`: durable Knovum visual compositions only.
+- Use Vue 3 Composition API with `<script setup lang="ts">`. Keep visual state local, cross-view session state in Pinia, and remote/async cache in TanStack Vue Query.
+- Persist non-secret preferences in the strict current v1 Tauri Store envelope. The last workspace route is a disposable localStorage session value. Feature structured data uses feature-owned SQLite v1 baselines, one per database before first public release; do not create a global `DatabaseService`. Credentials and tokens use the OS credential store through foundation secret commands; never put them in Pinia persistence, localStorage, SQLite, logs, or query cache.
+- Validate user input and disk, network, IPC, and external-file boundaries. Static data owned and typed by this repository does not need defensive runtime checks.
+- Required infrastructure fails visibly. Handle expected cancel, permission denial, unavailable-shortcut, and malformed-input outcomes. Reject or explicitly reset obsolete pre-release data; do not silently reinterpret it or add compatibility readers, migrations, or generic fallback layers.
 
-Forbidden by default:
+## UI and desktop behavior
 
-- feature-to-feature imports;
-- feature imports from `app/` or `shell/`;
-- catch-all `services`, `utils`, `helpers`, `composables`, or `platform` directories;
-- barrel `index.ts` files;
-- rename-only wrappers around vendor APIs;
-- a universal service/composable that owns unrelated responsibilities.
+For UI work, use `docs/ui-system.md` and its token source, `src/styles/tokens.css`. Prefer Tailwind v4 semantic utilities; add tokens for repeated roles and reserve arbitrary values for instance-specific geometry. Reka owns primitive behavior; add `shared/ui` only for durable Knovum visual compositions. Keep the compact, low-chroma, keyboard-first desktop language without marketing-page layouts.
 
-Keep files small and responsibilities explicit. Current gates are ceilings, not targets: 180 lines per TS/Vue file and complexity 10. Function length is reviewed by responsibility and complexity rather than a physical line-count limit.
+- macOS is Dock-first with the native Application Menu. Windows uses Taskbar + Tray and has no legacy File/Edit menu bar by default.
+- Preserve native window controls: macOS may use the documented overlay titlebar/material profile, while Windows keeps the native caption. Replacing traffic lights or caption buttons with HTML controls requires an ADR.
+- Use OS-native dialogs, notifications, credential stores, menus, taskbar/Dock progress, and shortcuts when Tauri exposes them. Scope Shell, filesystem, HTTP, WebSocket, updater, and custom-command permissions to the feature's needs. A new window needs a use case, lifecycle, routing/context model, and dedicated capability scope.
+- The main window starts hidden. Reveal it only after bootstrap reaches a usable state or the recoverable bootstrap-error state. Launch feedback belongs to the Dock/taskbar; do not add a splash WebView.
+- `AppCommand` is the command-palette and application-local shortcut contract; features do not add global `keydown` listeners for those commands. Long Rust jobs use Tauri Channels and the shared Task Center bridge; the starting feature/engine owns cancellation. Extend that bridge only for concrete cross-feature needs.
 
-## Vue and TypeScript
+## Verification and documentation
 
-- Use Vue 3 Composition API with `<script setup lang="ts">`.
-- Use direct vendor imports unless Knovum owns real policy or orchestration.
-- Component-local visual state stays local.
-- Cross-view session state uses Pinia.
-- Remote/async cache uses TanStack Vue Query.
-- Persisted non-secret preferences use the strict current v1 Tauri Store schema during pre-release development.
-- Secrets never enter Pinia persistence, localStorage, SQLite, logs, or query cache.
-- Validate real boundaries: user input, disk, network, IPC, and external files.
-- Do not add defensive runtime checks for static data entirely owned and typed by this repository.
+Use Oxc tooling; do not add ESLint or Prettier. Run focused checks for the changed behavior and fix failures caused by the change. For substantial web or Rust changes, use `pnpm check:web` or `pnpm check:rust` respectively; `pnpm check` covers both. Release and desktop-lifecycle changes also need real Tauri builds on macOS and Windows. E2E selectors must not depend on translated visible strings.
 
-## UI and Tailwind CSS v4
+Update the authoritative document when its contract changes:
 
-`src/styles/tokens.css` is the design-token source. Follow `docs/ui-system.md`.
+| Change | Document |
+| --- | --- |
+| System/runtime topology | `docs/system-architecture.md` |
+| Dependency boundaries | `docs/architecture.md` |
+| UI/design tokens | `docs/ui-system.md` |
+| Desktop behavior | `docs/desktop-foundation.md`, `docs/platform-matrix.md` |
+| Dependency policy | `docs/oss-first.md`, `docs/dependency-policy.md` |
+| Packaging/release | `docs/packaging.md`, `docs/release.md` |
 
-- Use Tailwind v4 semantic utilities generated from `@theme` tokens.
-- Prefer `bg-canvas`, `text-body`, `text-foreground-secondary`, `rounded-control` and `shadow-popover`.
-- Do not use raw `var()` utilities when a token exists.
-- Do not introduce arbitrary pixel typography or icon sizes.
-- Add a semantic token when a size/color/elevation is a repeated desktop role.
-- Arbitrary values are only for genuinely instance-specific geometry or runtime values owned by a primitive.
-- Reka owns focus, keyboard behavior, ARIA, portals, collision, and primitive state. Do not reimplement these behaviors.
-- Do not wrap Reka only to rename props/events. Add `shared/ui` only for a durable Knovum visual composition.
-- Preserve the Apple/Linear-like desktop language: compact, low-chroma, low-radius, restrained elevation, keyboard-first, no marketing-page layouts.
-
-## Desktop platform behavior
-
-- macOS is Dock-first and uses the native Application Menu.
-- Windows uses Taskbar + Tray and does not show a legacy File/Edit menu bar by default.
-- Preserve native window controls. macOS may use the documented overlay titlebar/material profile; Windows keeps the native caption. Do not replace traffic lights/caption buttons with HTML controls without a new ADR.
-- Use OS-native dialogs, notifications, credential stores, menus, taskbar/Dock progress, and shortcuts where Tauri already exposes them.
-- Do not broaden Shell, filesystem, HTTP, WebSocket, updater, or custom-command permissions preemptively.
-- New windows require a real use case, explicit lifecycle, routing/context model, and dedicated capability scope.
-
-## Startup
-
-The main window starts hidden. Bootstrap must always reach either a usable application state or the recoverable bootstrap-error state before revealing it. Do not add an intermediate splash WebView; Dock/taskbar launch feedback remains platform-owned.
-
-## Commands and background work
-
-- `AppCommand` is the single command contract for command palette and application-local shortcuts.
-- Do not add feature-level global `keydown` listeners for application commands.
-- Long Rust jobs use Tauri Channels and the shared Task Center bridge.
-- Cancellation remains owned by the feature/engine that started the job.
-- Do not create a universal background-job framework unless concrete cross-feature requirements prove the current bridge insufficient.
-
-## Persistence and data
-
-- Preferences: strict current v1 Tauri Store envelope; no pre-release compatibility readers/migrations.
-- Last workspace route: disposable localStorage session value.
-- Feature structured data: feature-owned SQLite v1 baseline; one baseline per database before first public release.
-- Credentials/tokens: OS credential store through the foundation secret commands.
-- Never create a global `DatabaseService` for all product domains.
-
-## Dependencies
-
-Follow `docs/oss-first.md` and `docs/dependency-policy.md`.
-
-Do not install speculative Git, editor, AI, CRDT, search, or alternative canvas engines before feature requirements are known. Spaces uses exact-pinned Konva and vue-konva releases selected by the canvas-platform benchmark; replacing them still requires a fresh benchmark. "May use later" is not a dependency requirement.
-
-## Errors and compatibility
-
-- No generic compatibility/fallback layer.
-- Required infrastructure fails visibly.
-- Expected platform/user outcomes are handled normally: cancel, permission denial, unavailable shortcut, malformed external input.
-- Never silently reinterpret incompatible persisted data. Before first public release, reject/reset obsolete development data explicitly; do not add compatibility migrations or readers.
-
-## Quality gates
-
-Use Oxc tooling only; do not add ESLint or Prettier.
-
-```bash
-pnpm check:web
-pnpm check:rust
-pnpm check
-```
-
-Before release or desktop-lifecycle changes, also validate a real Tauri build on macOS and Windows. E2E selectors must not depend on translated visible strings.
-
-## Documentation
-
-Update the authoritative document when a contract changes:
-
-- system/runtime topology: `docs/system-architecture.md`;
-- dependency rules: `docs/architecture.md`;
-- UI/design tokens: `docs/ui-system.md`;
-- desktop behavior: `docs/desktop-foundation.md` and `docs/platform-matrix.md`;
-- dependency policy: `docs/oss-first.md` / `docs/dependency-policy.md`;
-- packaging/release: `docs/packaging.md` / `docs/release.md`.
-
-Do not create a second document that restates the same rules with different terminology.
+Keep each contract in its owning document rather than creating a second version.

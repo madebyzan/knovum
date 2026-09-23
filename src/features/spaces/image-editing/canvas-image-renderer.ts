@@ -1,9 +1,27 @@
 import type { ImageEdit } from "./image-edit";
+import { applyImageTone } from "./image-tone";
 
 export interface ImageCanvasSize {
   width: number;
   height: number;
   pixelRatio: number;
+}
+
+export function displayedImageRect(
+  size: ImageCanvasSize,
+  naturalSize: { width: number; height: number },
+  edit: ImageEdit,
+) {
+  if (!naturalSize.width || !naturalSize.height) return undefined;
+  const rendered = rotatedImageSize(
+    naturalSize.width * edit.crop.width,
+    naturalSize.height * edit.crop.height,
+    edit.rotation,
+  );
+  const scale = Math.min(size.width / rendered.width, size.height / rendered.height);
+  const width = rendered.width * scale;
+  const height = rendered.height * scale;
+  return { left: (size.width - width) / 2, top: (size.height - height) / 2, width, height };
 }
 
 export function renderEditedImage(
@@ -16,13 +34,14 @@ export function renderEditedImage(
   const height = size.height * size.pixelRatio;
   context.clearRect(0, 0, width, height);
   context.save();
-  context.filter = imageFilter(edit);
   const crop = edit.crop;
   const sourceWidth = image.naturalWidth * crop.width;
   const sourceHeight = image.naturalHeight * crop.height;
-  const quarterTurn = edit.rotation === 90 || edit.rotation === 270;
-  const rotatedWidth = quarterTurn ? sourceHeight : sourceWidth;
-  const rotatedHeight = quarterTurn ? sourceWidth : sourceHeight;
+  const { width: rotatedWidth, height: rotatedHeight } = rotatedImageSize(
+    sourceWidth,
+    sourceHeight,
+    edit.rotation,
+  );
   const scale = Math.min(width / rotatedWidth, height / rotatedHeight);
   context.translate(width / 2, height / 2);
   context.scale(edit.flipHorizontal ? -scale : scale, edit.flipVertical ? -scale : scale);
@@ -40,11 +59,24 @@ export function renderEditedImage(
   );
   eraseStrokes(context, image, edit);
   context.restore();
+  renderToneAdjustments(context, edit, {
+    left: (width - rotatedWidth * scale) / 2,
+    top: (height - rotatedHeight * scale) / 2,
+    width: rotatedWidth * scale,
+    height: rotatedHeight * scale,
+  });
 }
 
-function imageFilter(edit: ImageEdit) {
-  const { brightness, contrast, saturation } = edit.adjustments;
-  return `brightness(${100 + brightness}%) contrast(${100 + contrast}%) saturate(${100 + saturation}%)`;
+function renderToneAdjustments(
+  context: CanvasRenderingContext2D,
+  edit: ImageEdit,
+  imageRect: { left: number; top: number; width: number; height: number },
+) {
+  if (Object.values(edit.adjustments).every((value) => value === 0)) return;
+  const { width, height } = context.canvas;
+  const frame = context.getImageData(0, 0, width, height);
+  const pixels = applyImageTone(frame.data, edit.adjustments, width, height, imageRect);
+  context.putImageData(new ImageData(pixels, width, height), 0, 0);
 }
 
 function eraseStrokes(context: CanvasRenderingContext2D, image: HTMLImageElement, edit: ImageEdit) {
@@ -56,6 +88,22 @@ function eraseStrokes(context: CanvasRenderingContext2D, image: HTMLImageElement
   for (const stroke of edit.eraserStrokes) {
     context.lineWidth = stroke.diameter * Math.min(image.naturalWidth, image.naturalHeight);
     context.beginPath();
+    if (
+      stroke.points.length === 2 ||
+      (stroke.points.length === 4 &&
+        stroke.points[0] === stroke.points[2] &&
+        stroke.points[1] === stroke.points[3])
+    ) {
+      context.arc(
+        stroke.points[0]! * image.naturalWidth - cropCenterX,
+        stroke.points[1]! * image.naturalHeight - cropCenterY,
+        context.lineWidth / 2,
+        0,
+        Math.PI * 2,
+      );
+      context.fill();
+      continue;
+    }
     for (let index = 0; index < stroke.points.length; index += 2) {
       const x = stroke.points[index]! * image.naturalWidth - cropCenterX;
       const y = stroke.points[index + 1]! * image.naturalHeight - cropCenterY;
@@ -74,10 +122,10 @@ export function canvasPointToImage(
 ) {
   const cropWidth = image.naturalWidth * edit.crop.width;
   const cropHeight = image.naturalHeight * edit.crop.height;
-  const quarterTurn = edit.rotation === 90 || edit.rotation === 270;
+  const rotated = rotatedImageSize(cropWidth, cropHeight, edit.rotation);
   const scale = Math.min(
-    (size.width * size.pixelRatio) / (quarterTurn ? cropHeight : cropWidth),
-    (size.height * size.pixelRatio) / (quarterTurn ? cropWidth : cropHeight),
+    (size.width * size.pixelRatio) / rotated.width,
+    (size.height * size.pixelRatio) / rotated.height,
   );
   const transform = new DOMMatrix()
     .translate((size.width * size.pixelRatio) / 2, (size.height * size.pixelRatio) / 2)
@@ -92,4 +140,11 @@ export function canvasPointToImage(
     Math.max(0, Math.min(1, sourceX / image.naturalWidth)),
     Math.max(0, Math.min(1, sourceY / image.naturalHeight)),
   ];
+}
+
+export function rotatedImageSize(width: number, height: number, rotation: number) {
+  const radians = (rotation * Math.PI) / 180;
+  const cosine = Math.abs(Math.cos(radians));
+  const sine = Math.abs(Math.sin(radians));
+  return { width: width * cosine + height * sine, height: width * sine + height * cosine };
 }

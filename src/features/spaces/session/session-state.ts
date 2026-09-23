@@ -52,7 +52,6 @@ export function publicSpaceState(state: SpaceState) {
     inspectorMode: state.inspectorMode,
     focusedEditorId: state.focusedEditorId,
     videoEditorNodeId: state.videoEditorNodeId,
-    imageEraserNodeId: state.imageEraserNodeId,
     insertionPoint: state.insertionPoint,
     revealRequest: state.revealRequest,
     viewportRequest: state.viewportRequest,

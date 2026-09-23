@@ -1,5 +1,6 @@
 mod fields;
 mod image_edit;
+mod image_comments;
 mod resource;
 mod subtitle;
 mod tiptap;
@@ -50,6 +51,7 @@ pub(super) fn validate_payload_shape(kind: &str, data: &Value) -> Result<(), Str
         "image" => {
             resource::validate_visual_asset(object)?;
             image_edit::validate(object.get("imageEdit"))?;
+            image_comments::validate(object.get("comments"))?;
             super::visual::validate(object.get("visualKnowledge"))
         }
         "video" => {

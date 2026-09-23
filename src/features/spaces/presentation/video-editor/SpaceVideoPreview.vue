@@ -1,57 +1,131 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, onBeforeUnmount, onMounted, shallowRef, watch } from "vue";
 
-import type { VideoEditProject } from "../../video-editing/project";
+import {
+  DEFAULT_VIDEO_TEXT_STYLE,
+  type VideoEditProject,
+  type VideoTextOverlay,
+} from "../../video-editing/project";
 import { versionedMediaSource } from "../media/element";
 
 const props = defineProps<{
   sourcePath: string;
   project: VideoEditProject;
   timelineMs: number;
+  selectedTextId?: string | undefined;
 }>();
+const emit = defineEmits<{ playing: [value: boolean]; ready: []; failed: []; selectText: [id: string] }>();
 const video = defineModel<HTMLVideoElement | null>("element", { default: null });
-defineEmits<{ playing: [value: boolean]; ready: []; failed: [] }>();
+const viewport = shallowRef<HTMLElement | null>(null);
+const frame = shallowRef<{ width: number; height: number; videoWidth: number; videoHeight: number }>();
 const source = computed(() => versionedMediaSource(props.sourcePath));
-const overlay = computed(() =>
-  props.project.textTrack.items.find(
+const overlays = computed(() =>
+  props.project.textTrack.items.filter(
     ({ startMs, endMs }) => props.timelineMs >= startMs && props.timelineMs < endMs,
   ),
 );
-const transform = computed(() => {
+const rotation = computed(() => props.project.transform.rotation);
+const frameStyle = computed(() =>
+  frame.value ? { width: `${frame.value.width}px`, height: `${frame.value.height}px` } : undefined,
+);
+const videoStyle = computed(() => {
+  if (!frame.value) return undefined;
   const value = props.project.transform;
-  return `rotate(${value.rotation}deg) scale(${value.flipHorizontal ? -1 : 1}, ${value.flipVertical ? -1 : 1})`;
+  return {
+    width: `${frame.value.videoWidth}px`,
+    height: `${frame.value.videoHeight}px`,
+    transform: `translate(-50%, -50%) scale(${value.flipHorizontal ? -1 : 1}, ${value.flipVertical ? -1 : 1}) rotate(${value.rotation}deg)`,
+  };
 });
+function textStyle(overlay: VideoTextOverlay) {
+  const style = overlay.style ?? DEFAULT_VIDEO_TEXT_STYLE;
+  const scale = (frame.value?.height ?? 0) / 720;
+  const edge = Math.max(0.5, 2 * scale);
+  const outline = `${edge}px ${edge}px 0 rgba(0,0,0,.75), -${edge}px ${edge}px 0 rgba(0,0,0,.75), ${edge}px -${edge}px 0 rgba(0,0,0,.75), -${edge}px -${edge}px 0 rgba(0,0,0,.75)`;
+  return {
+    color: style.color,
+    fontSize: `${Math.max(1, style.size * scale)}px`,
+    textShadow:
+      style.preset === "outline"
+        ? outline
+        : style.preset === "shadow"
+          ? `${edge}px ${edge}px ${edge * 2}px rgba(0,0,0,.8)`
+          : undefined,
+    backgroundColor: style.preset === "badge" ? "rgba(0,0,0,.55)" : undefined,
+    padding: style.preset === "badge" ? `${8 * scale}px` : undefined,
+  };
+}
+
+function updateGeometry() {
+  const element = video.value;
+  const bounds = viewport.value?.getBoundingClientRect();
+  if (!element?.videoWidth || !element.videoHeight || !bounds?.width || !bounds.height) return;
+  const quarterTurn = rotation.value === 90 || rotation.value === 270;
+  const orientedWidth = quarterTurn ? element.videoHeight : element.videoWidth;
+  const orientedHeight = quarterTurn ? element.videoWidth : element.videoHeight;
+  const scale = Math.min(bounds.width / orientedWidth, bounds.height / orientedHeight);
+  frame.value = {
+    width: orientedWidth * scale,
+    height: orientedHeight * scale,
+    videoWidth: element.videoWidth * scale,
+    videoHeight: element.videoHeight * scale,
+  };
+}
+
+function onReady() {
+  updateGeometry();
+  emit("ready");
+}
+
+let observer: ResizeObserver | undefined;
+onMounted(() => {
+  observer = new ResizeObserver(updateGeometry);
+  if (viewport.value) observer.observe(viewport.value);
+});
+onBeforeUnmount(() => observer?.disconnect());
+watch(rotation, updateGeometry);
 </script>
 
 <template>
-  <div class="relative grid min-h-0 flex-1 place-items-center overflow-hidden bg-control/25">
-    <video
-      :ref="(value) => (video = value as HTMLVideoElement | null)"
-      :src="source"
-      class="max-h-full max-w-full object-contain"
-      :style="{ transform }"
-      preload="metadata"
-      @loadedmetadata="$emit('ready')"
-      @error="$emit('failed')"
-      @play="$emit('playing', true)"
-      @pause="$emit('playing', false)"
-    />
-    <div
-      v-if="overlay"
-      class="pointer-events-none absolute inset-x-8 flex justify-center"
-      :class="
-        overlay.placement === 'top'
-          ? 'top-8'
-          : overlay.placement === 'center'
-            ? 'top-1/2 -translate-y-1/2'
-            : 'bottom-8'
-      "
-    >
-      <span
-        class="max-w-3xl rounded-control bg-scrim/75 px-3 py-1.5 text-center text-title font-semibold text-white shadow-control"
+  <div
+    :ref="(value) => (viewport = value as HTMLElement | null)"
+    class="relative grid min-h-0 flex-1 place-items-center overflow-hidden bg-control/25"
+  >
+    <div class="relative max-h-full max-w-full" :style="frameStyle">
+      <video
+        :ref="(value) => (video = value as HTMLVideoElement | null)"
+        :src="source"
+        class="absolute top-1/2 left-1/2 object-contain"
+        :style="videoStyle"
+        preload="metadata"
+        @loadedmetadata="onReady"
+        @error="$emit('failed')"
+        @play="$emit('playing', true)"
+        @pause="$emit('playing', false)"
+      />
+      <div
+        v-for="overlay in frame ? overlays : []"
+        :key="overlay.id"
+        class="pointer-events-none absolute inset-x-[8%] flex justify-center text-center"
+        :class="
+          overlay.placement === 'top'
+            ? 'top-[8%]'
+            : overlay.placement === 'center'
+              ? 'top-1/2 -translate-y-1/2'
+              : 'bottom-[8%]'
+        "
       >
-        {{ overlay.text }}
-      </span>
+        <button
+          type="button"
+          class="pointer-events-auto max-w-full cursor-pointer font-normal focus-visible:outline-2 focus-visible:outline-focus-ring"
+          :class="selectedTextId === overlay.id && 'ring-1 ring-accent'"
+          :style="textStyle(overlay)"
+          :aria-label="overlay.text"
+          @click="$emit('selectText', overlay.id)"
+        >
+          {{ overlay.text }}
+        </button>
+      </div>
     </div>
   </div>
 </template>

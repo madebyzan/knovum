@@ -30,6 +30,7 @@ fn project() -> VideoEditProject {
                 end_ms: 2_000,
                 text: "Title".into(),
                 placement: TextPlacement::Bottom,
+                style: None,
             }],
         },
         transform: VideoTransform {

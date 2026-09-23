@@ -36,6 +36,39 @@ const intrinsicSizeFields = {
   intrinsicWidth: z.number().int().positive().max(100_000).optional(),
   intrinsicHeight: z.number().int().positive().max(100_000).optional(),
 };
+const imageCommentCoordinate = z.number().min(0).max(1);
+const imageCommentShapeSchema = z.discriminatedUnion("kind", [
+  z
+    .object({
+      kind: z.literal("stroke"),
+      points: z
+        .array(imageCommentCoordinate)
+        .min(4)
+        .max(1024)
+        .refine((points) => points.length % 2 === 0),
+    })
+    .strict(),
+  z
+    .object({
+      kind: z.literal("region"),
+      x: imageCommentCoordinate,
+      y: imageCommentCoordinate,
+      width: imageCommentCoordinate.positive(),
+      height: imageCommentCoordinate.positive(),
+    })
+    .strict()
+    .refine(({ x, y, width, height }) => x + width <= 1 && y + height <= 1),
+]);
+const imageCommentSchema = z
+  .object({
+    id: z.uuid(),
+    x: imageCommentCoordinate,
+    y: imageCommentCoordinate,
+    shape: imageCommentShapeSchema.optional(),
+    text: z.string().trim().min(1).max(2000),
+    createdAt: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
+  })
+  .strict();
 const visualFields = {
   ...intrinsicSizeFields,
   visualKnowledge: spaceVisualKnowledgeSchema.optional(),
@@ -56,6 +89,7 @@ export const spaceResourceNodeSchemas = [
       ...visualFields,
       kind: z.literal("image"),
       imageEdit: imageEditSchema.optional(),
+      comments: z.array(imageCommentSchema).max(200).optional(),
     })
     .strict(),
   z

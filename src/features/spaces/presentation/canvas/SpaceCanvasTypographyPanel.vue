@@ -52,10 +52,11 @@ const verticalOptions = [
     <template #trigger>
       <button
         type="button"
-        class="grid h-(--knovum-control-height-sm) min-w-8 place-items-center rounded-control px-1.5 text-body font-medium text-foreground-secondary transition-colors duration-100 outline-none hover:bg-control-hover hover:text-foreground focus-visible:ring-2 focus-visible:ring-focus-ring"
+        class="inline-flex h-(--knovum-control-height-md) min-w-8 items-center justify-center gap-1.5 rounded-control px-2.5 text-label font-medium text-foreground-secondary transition-colors duration-100 outline-none hover:bg-control-hover hover:text-foreground focus-visible:ring-2 focus-visible:ring-focus-ring"
         :aria-label="t('spaces.canvas.typography')"
       >
         Aa
+        <span>{{ t("spaces.canvas.typography") }}</span>
       </button>
     </template>
 
