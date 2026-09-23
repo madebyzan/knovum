@@ -22,8 +22,8 @@ pub(super) async fn load_current(
     .ok_or_else(|| "Asset enrichment target no longer exists".to_owned())?;
     let raw: String = row.try_get("data").map_err(db::sql_error)?;
     let data: Value = serde_json::from_str(&raw).map_err(db::json_error)?;
-    let revision = data.get("sourceRevision").and_then(Value::as_str);
-    if revision != Some(request.source_revision.as_str()) {
+    let revision = super::super::revision::expected_revision(&data, request.job_type)?;
+    if revision.as_deref() != Some(request.source_revision.as_str()) {
         return Err("Enrichment source revision is obsolete".to_owned());
     }
     Ok(data)

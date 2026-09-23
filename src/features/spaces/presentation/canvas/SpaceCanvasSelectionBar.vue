@@ -17,7 +17,7 @@ import SpaceCanvasNodeActionBar from "./SpaceCanvasNodeActionBar.vue";
 import SpaceCanvasSelectionMenu from "./SpaceCanvasSelectionMenu.vue";
 import { useCanvasSelectionActions } from "./use-canvas-selection-actions";
 
-defineProps<{ derivations: CreationIntentDecisions }>();
+defineProps<{ derivations: CreationIntentDecisions; availableWidth: number }>();
 const emit = defineEmits<{ invokeDerivation: [actionId: CreationIntentId] }>();
 const actions = useCanvasSelectionActions();
 const { t } = useI18n();
@@ -36,6 +36,7 @@ const singleSection = computed(
     :actions="actions"
     :derivations="derivations"
     :node="actions.selectedImageNode.value"
+    :available-width="availableWidth"
     @invoke-derivation="emit('invokeDerivation', $event)"
   />
   <SpaceCanvasNodeActionBar
@@ -43,6 +44,7 @@ const singleSection = computed(
     :actions="actions"
     :derivations="derivations"
     :node="singleNode"
+    :available-width="availableWidth"
     @invoke-derivation="emit('invokeDerivation', $event)"
   />
   <ToolbarRoot

@@ -14,7 +14,7 @@ export function groundedDocumentSources(
   if (nodes.length === 0 || nodes.length > 32) return;
   const sources: GroundedDocumentSource[] = [];
   for (const [index, node] of nodes.entries()) {
-    const revision = node.data.knowledgeRevision ?? node.data.sourceRevision;
+    const revision = node.data.knowledgeRevision;
     if (!hasDerivableKnowledge(node.data) || !revision) return;
     sources.push({
       nodeId: node.id,

@@ -23,12 +23,12 @@ fn job_type_maps_to_snake_case_strings() {
 fn preview_failure_does_not_block_independent_enrichment_jobs() {
     let data = json!({"sourceRevision": "revision-1", "processingState": "failed"});
 
-    assert_eq!(super::intent::source_revision(&data), Some("revision-1"));
+    assert_eq!(super::revision::source_revision(&data), Some("revision-1"));
 }
 
 #[test]
 fn unfinished_asset_copy_does_not_schedule_enrichment_jobs() {
     let data = json!({"sourceRevision": "revision-1", "processingState": "processing"});
 
-    assert_eq!(super::intent::source_revision(&data), None);
+    assert_eq!(super::revision::source_revision(&data), None);
 }

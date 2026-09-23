@@ -20,7 +20,14 @@ pub async fn complete(
         .bind(&request.id).fetch_optional(&mut *tx).await.map_err(db::sql_error)?
         .ok_or("Grounded document derivation is no longer running")?;
     for input in &request.inputs {
-        source_validation::validate(&mut tx, &input.node_id, &input.source_revision).await?;
+        source_validation::validate(
+            &mut tx,
+            &request.space_id,
+            &input.node_id,
+            &input.source_revision,
+            crate::spaces::derivation::inputs::RevisionBasis::Knowledge,
+        )
+        .await?;
     }
     let now = crate::clock::unix_time_millis()?;
     let mut data: Value = serde_json::from_str(&data).map_err(db::json_error)?;

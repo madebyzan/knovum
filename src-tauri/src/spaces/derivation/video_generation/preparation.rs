@@ -10,7 +10,6 @@ use crate::spaces::{assets::asset_directory, db, knowledge::contracts};
 
 pub struct PreparedVideo {
     pub path: String,
-    pub data: Value,
     pub reference_images: Vec<String>,
     pub provider_prompt: String,
 }
@@ -32,17 +31,23 @@ pub async fn start(
             &request.output_node_id,
         )
         .await?;
-        source_validation::validate(&mut tx, &input.node_id, &input.source_revision).await?;
+        source_validation::validate(
+            &mut tx,
+            &request.space_id,
+            &input.node_id,
+            &input.source_revision,
+            input_basis(&input.role)?,
+        )
+        .await?;
     }
     let script = validate_primary(&mut tx, request).await?;
     let provider_prompt = super::prompt::assemble(&script, &request.prompt)?;
     let references = load_references(&mut tx, request, &asset_directory).await?;
-    let (path, data) = output(&mut tx, request, &asset_directory).await?;
+    let path = output(&mut tx, request, &asset_directory).await?;
     persist_start(&mut tx, request, target).await?;
     tx.commit().await.map_err(db::sql_error)?;
     Ok(PreparedVideo {
         path,
-        data,
         reference_images: references,
         provider_prompt,
     })
@@ -120,7 +125,7 @@ async fn output(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     request: &CreateVideoRequest,
     directory: &Path,
-) -> Result<(String, Value), String> {
+) -> Result<String, String> {
     let encoded: String = sqlx::query_scalar(
         "SELECT data FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND kind='video'",
     )
@@ -145,7 +150,7 @@ async fn output(
     if parent != expected_dir {
         return Err("Generated video output path is outside the Space asset directory".into());
     }
-    Ok((path, data))
+    Ok(path)
 }
 
 async fn persist_start(
@@ -161,12 +166,22 @@ async fn persist_start(
     let values = request
         .inputs
         .iter()
-        .map(|input| inputs::DerivationInput {
-            node_id: &input.node_id,
-            role: &input.role,
-            source_revision: &input.source_revision,
-            revision_basis: inputs::RevisionBasis::Knowledge,
+        .map(|input| {
+            Ok(inputs::DerivationInput {
+                node_id: &input.node_id,
+                role: &input.role,
+                source_revision: &input.source_revision,
+                revision_basis: input_basis(&input.role)?,
+            })
         })
-        .collect::<Vec<_>>();
+        .collect::<Result<Vec<_>, String>>()?;
     inputs::insert(tx, &request.id, &values).await
+}
+
+pub(super) fn input_basis(role: &str) -> Result<inputs::RevisionBasis, String> {
+    match role {
+        "primary" => Ok(inputs::RevisionBasis::Knowledge),
+        "source" => Ok(inputs::RevisionBasis::Asset),
+        _ => Err("Video generation input role is invalid".into()),
+    }
 }

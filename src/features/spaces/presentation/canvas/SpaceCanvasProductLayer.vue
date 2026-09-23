@@ -112,6 +112,7 @@ const selectionBarGap = computed(() => {
       :safe-area="canvasChromeInsets"
       align="center"
       :gap="singleCanvasObjectSelected ? selectionBarGap : 34"
+      v-slot="{ availableWidth }"
     >
       <SpaceCanvasRelationBar v-if="editorSession.selection.value.relationIds.length === 1" />
       <SpaceCanvasSelectionBar
@@ -120,6 +121,7 @@ const selectionBarGap = computed(() => {
           editorSession.selection.value.structureNodeIds.length
         "
         :derivations="derivations.decisions.value"
+        :available-width="availableWidth"
         @invoke-derivation="derivations.run"
       />
     </SpaceCanvasSelectionAnchor>

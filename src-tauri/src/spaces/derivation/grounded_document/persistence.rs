@@ -17,7 +17,14 @@ pub async fn start(app: &AppHandle, request: &CreateGroundedDocumentRequest) -> 
             &request.output_node_id,
         )
         .await?;
-        source_validation::validate(&mut tx, &input.node_id, &input.source_revision).await?;
+        source_validation::validate(
+            &mut tx,
+            &request.space_id,
+            &input.node_id,
+            &input.source_revision,
+            inputs::RevisionBasis::Knowledge,
+        )
+        .await?;
     }
     let now = crate::clock::unix_time_millis()?;
     sqlx::query(

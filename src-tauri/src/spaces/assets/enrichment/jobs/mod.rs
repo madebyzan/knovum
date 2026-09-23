@@ -2,6 +2,7 @@ mod execution;
 pub(crate) mod intent;
 mod job;
 mod persistence;
+pub(crate) mod revision;
 
 #[cfg(test)]
 mod tests;

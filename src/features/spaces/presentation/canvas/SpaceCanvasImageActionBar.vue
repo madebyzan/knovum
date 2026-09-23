@@ -1,143 +1,154 @@
 <script setup lang="ts">
-import { Download, MessageCircle, ScanLine } from "@lucide/vue";
+import { MessageCircle, ScanLine } from "@lucide/vue";
 import { ToolbarButton, ToolbarRoot } from "reka-ui";
-import { computed, onBeforeUnmount, watch } from "vue";
+import { computed, toRef, useTemplateRef } from "vue";
 import { useI18n } from "vue-i18n";
-import { toast } from "vue-sonner";
 
-import { availableWhen, canRunAction } from "../../../../shared/contracts/action-availability";
+import { canRunAction, showsAction } from "../../../../shared/contracts/action-availability";
 import UiTooltip from "../../../../shared/ui/UiTooltip.vue";
-import { useImageCommentSession } from "../../comments/image-comment-session";
-import { useImageEditSession } from "../../image-editing/image-edit-session";
 import type {
   CreationIntentDecisions,
   CreationIntentId,
 } from "../../knowledge-derivations/catalog/creation-intent-definitions";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../../model/nodes/node-payload";
-import { imageActionHelp } from "./image-action-help";
-import SpaceCanvasImageToolPanels from "./SpaceCanvasImageToolPanels.vue";
+import { nodeActionLabelClass, nodeActionLabelState } from "./node-action-label";
+import SpaceCanvasImageActivePanel from "./SpaceCanvasImageActivePanel.vue";
+import SpaceCanvasImageToolTrigger from "./SpaceCanvasImageToolTrigger.vue";
 import SpaceCanvasSelectionMenu from "./SpaceCanvasSelectionMenu.vue";
 import SpaceImageGeneratePanels from "./SpaceImageGeneratePanels.vue";
 import SpaceImageLayerPanel from "./SpaceImageLayerPanel.vue";
-import SpaceImageTransformPanel from "./SpaceImageTransformPanel.vue";
+import SpaceNodeBarCommonActions from "./SpaceNodeBarCommonActions.vue";
 import type { useCanvasSelectionActions } from "./use-canvas-selection-actions";
+import { useImageNodeBarState } from "./use-image-node-bar-state";
+import { useNodeActionBarDensity } from "./use-node-action-bar-density";
 
 const props = defineProps<{
   actions: ReturnType<typeof useCanvasSelectionActions>;
   derivations: CreationIntentDecisions;
   node: SpaceCanvasNode<SpaceImagePayload>;
+  availableWidth: number;
 }>();
 const emit = defineEmits<{ invokeDerivation: [actionId: CreationIntentId] }>();
-const { t } = useI18n();
-const imageEditSession = useImageEditSession();
-const comments = useImageCommentSession();
-const directAvailability = computed(() =>
-  availableWhen(imageEditSession.active?.nodeId !== props.node.id, "finish_image_edit"),
+const { t, locale } = useI18n();
+const {
+  comments,
+  openPopover,
+  activeTool,
+  commenting,
+  directAvailability,
+  directReason,
+  dimensionsReady,
+  beginTool,
+  setPopover,
+  beginComment,
+  removeBackground,
+} = useImageNodeBarState(toRef(props, "node"), toRef(props, "derivations"), () =>
+  emit("invokeDerivation", "remove-image-background"),
 );
-const directReason = computed(() => imageActionHelp(directAvailability.value, t)?.label ?? "");
-const transformEdit = computed(() => {
-  const active = imageEditSession.active;
-  return active?.nodeId === props.node.id && active.tool === "transform" ? active.draft : null;
-});
-watch(
-  () => props.node.id,
-  (_next, previous) => {
-    if (imageEditSession.active?.nodeId === previous) imageEditSession.cancel();
-    if (comments.activeNodeId === previous) comments.cancel();
-  },
+const bar = useTemplateRef<HTMLElement>("bar");
+const densityIdentity = computed(
+  () => `${locale.value}:${props.node.id}:${activeTool.value ?? ""}:${commenting.value}`,
 );
-onBeforeUnmount(() => {
-  if (imageEditSession.active?.nodeId === props.node.id) imageEditSession.cancel();
-  if (comments.activeNodeId === props.node.id) comments.cancel();
-});
-watch(
-  () => imageEditSession.active?.nodeId,
-  (nodeId) => {
-    if (nodeId && comments.activeNodeId === nodeId) comments.cancel();
-  },
-);
-function applyTransform() {
-  void imageEditSession.apply().catch((error) => toast.error(String(error)));
-}
+const { compact } = useNodeActionBarDensity(bar, toRef(props, "availableWidth"), densityIdentity);
 const commandClass =
-  "inline-flex h-(--knovum-control-height-md) shrink-0 items-center gap-1.5 rounded-control px-2.5 text-label text-foreground-secondary outline-none transition-colors duration-100 hover:bg-control-hover hover:text-foreground focus-visible:ring-2 focus-visible:ring-focus-ring disabled:cursor-not-allowed disabled:opacity-45";
+  "inline-flex h-(--knovum-control-height-md) shrink-0 items-center gap-1.5 rounded-control px-2.5 text-label text-foreground-secondary outline-none transition-colors duration-150 ease-standard hover:bg-control-hover hover:text-foreground focus-visible:ring-2 focus-visible:ring-focus-ring motion-reduce:transition-none";
 </script>
 
 <template>
-  <SpaceImageTransformPanel
-    v-if="transformEdit"
-    :edit="transformEdit"
-    :busy="imageEditSession.applying"
-    @update="imageEditSession.update"
-    @cancel="imageEditSession.cancel"
-    @apply="applyTransform"
-  />
+  <SpaceCanvasImageActivePanel v-if="activeTool" :node="node" />
   <ToolbarRoot
-    v-else
-    class="flex h-(--knovum-control-height-lg) w-max max-w-[calc(100vw-2rem)] cursor-default items-center gap-0.5 overflow-x-auto rounded-panel border border-border-strong bg-overlay p-px shadow-control select-none"
-    orientation="horizontal"
-    :loop="false"
-    :aria-label="t('spaces.canvas.nodeActions.label')"
+    v-else-if="commenting"
+    class="flex h-(--knovum-control-height-lg) w-max items-center rounded-panel border border-border-strong bg-overlay p-px shadow-control"
+    :aria-label="t('spaces.media.comment')"
   >
     <ToolbarButton as-child>
-      <button
-        type="button"
-        :class="[commandClass, comments.activeNodeId === node.id && 'bg-control-hover text-foreground']"
-        :aria-pressed="comments.activeNodeId === node.id"
-        :disabled="!canRunAction(directAvailability)"
-        @click="comments.activeNodeId === node.id ? comments.cancel() : comments.begin(node.id)"
-      >
+      <button type="button" :class="commandClass" aria-pressed="true" @click="comments.cancel()">
         <MessageCircle class="size-(--knovum-icon-size-toolbar)" :stroke-width="1.6" />
         {{ t("spaces.media.comment") }}
       </button>
     </ToolbarButton>
-    <SpaceImageGeneratePanels :node="node" mode="upscale" />
-    <UiTooltip
-      v-if="canRunAction(derivations['remove-image-background'])"
-      :text="directReason"
-      :disabled="canRunAction(directAvailability)"
-      side="top"
+  </ToolbarRoot>
+  <div v-else ref="bar" class="w-max" :style="{ maxWidth: `${availableWidth}px` }">
+    <ToolbarRoot
+      class="flex h-(--knovum-control-height-lg) w-max max-w-full cursor-default items-center gap-0.5 overflow-x-auto rounded-panel border border-border-strong bg-overlay p-px shadow-control select-none"
+      orientation="horizontal"
+      :loop="false"
+      :aria-label="t('spaces.canvas.nodeActions.label')"
     >
       <ToolbarButton as-child>
         <button
           type="button"
-          :class="[commandClass, 'aria-disabled:opacity-45']"
-          :aria-disabled="!canRunAction(directAvailability)"
-          @click="canRunAction(directAvailability) && emit('invokeDerivation', 'remove-image-background')"
+          :class="commandClass"
+          :aria-label="t('spaces.media.comment')"
+          :title="compact ? t('spaces.media.comment') : undefined"
+          @click="beginComment"
         >
-          <ScanLine class="size-(--knovum-icon-size-toolbar)" :stroke-width="1.6" />
-          {{ t("spaces.creation.removeBackground") }}
+          <MessageCircle class="size-(--knovum-icon-size-toolbar)" :stroke-width="1.6" />
+          <span :class="[nodeActionLabelClass, nodeActionLabelState(compact)]">{{
+            t("spaces.media.comment")
+          }}</span>
         </button>
       </ToolbarButton>
-    </UiTooltip>
-    <SpaceCanvasImageToolPanels :node="node" mode="eraser" />
-    <SpaceImageLayerPanel :node="node" />
-    <SpaceImageGeneratePanels :node="node" mode="angle" />
-    <SpaceCanvasImageToolPanels :node="node" mode="adjust" />
-    <SpaceCanvasImageToolPanels :node="node" mode="crop" />
-    <SpaceCanvasImageToolPanels :node="node" mode="transform" />
-    <SpaceCanvasSelectionMenu
-      :actions="actions"
-      :derivations="derivations"
-      node-bar
-      exclude-direct-image-actions
-      @invoke-derivation="emit('invokeDerivation', $event)"
-    />
-    <div class="flex h-full items-center border-l border-divider pl-0.5">
-      <UiTooltip :text="directReason" :disabled="canRunAction(directAvailability)" side="top">
+      <SpaceImageGeneratePanels
+        :node="node"
+        mode="upscale"
+        :compact="compact"
+        :open="openPopover === 'upscale'"
+        @update:open="setPopover('upscale', $event)"
+      />
+      <UiTooltip
+        v-if="showsAction(directAvailability)"
+        :text="directReason"
+        :disabled="canRunAction(directAvailability)"
+        side="top"
+      >
         <ToolbarButton as-child>
           <button
             type="button"
-            :class="[commandClass, 'font-medium text-foreground aria-disabled:opacity-45']"
+            :class="commandClass"
             :aria-disabled="!canRunAction(directAvailability)"
-            @click="canRunAction(directAvailability) && actions.download()"
+            :aria-label="t('spaces.creation.removeBackground')"
+            :title="compact ? t('spaces.creation.removeBackground') : undefined"
+            @click="removeBackground"
           >
-            <Download class="size-(--knovum-icon-size-toolbar)" :stroke-width="1.6" />
-            {{ t("spaces.canvas.nodeActions.download") }}
+            <ScanLine class="size-(--knovum-icon-size-toolbar)" :stroke-width="1.6" />
+            <span :class="[nodeActionLabelClass, nodeActionLabelState(compact)]">{{
+              t("spaces.creation.removeBackground")
+            }}</span>
           </button>
         </ToolbarButton>
       </UiTooltip>
-    </div>
-  </ToolbarRoot>
+      <SpaceCanvasImageToolTrigger mode="eraser" :compact="compact" @begin="beginTool" />
+      <SpaceImageLayerPanel
+        :node="node"
+        :compact="compact"
+        :open="openPopover === 'layers'"
+        @update:open="setPopover('layers', $event)"
+      />
+      <SpaceImageGeneratePanels
+        :node="node"
+        mode="angle"
+        :compact="compact"
+        :open="openPopover === 'angle'"
+        @update:open="setPopover('angle', $event)"
+      />
+      <SpaceCanvasImageToolTrigger mode="adjust" :compact="compact" @begin="beginTool" />
+      <SpaceCanvasImageToolTrigger
+        mode="crop"
+        :compact="compact"
+        :disabled="!dimensionsReady"
+        @begin="beginTool"
+      />
+      <SpaceCanvasImageToolTrigger mode="transform" :compact="compact" @begin="beginTool" />
+      <SpaceCanvasSelectionMenu
+        :actions="actions"
+        :derivations="derivations"
+        node-bar
+        exclude-direct-image-actions
+        @invoke-derivation="emit('invokeDerivation', $event)"
+      />
+      <SpaceNodeBarCommonActions @inspect="actions.inspect" @download="actions.download" />
+    </ToolbarRoot>
+  </div>
 </template>

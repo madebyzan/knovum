@@ -13,13 +13,35 @@ use crate::spaces::{
 pub async fn complete(
     app: &AppHandle,
     request: &CreateVideoRequest,
-    mut data: Value,
+    expected_path: &str,
     generated: GeneratedVideo,
 ) -> Result<VideoOutput, String> {
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
+    let encoded: String = sqlx::query_scalar(
+        "SELECT n.data FROM spaces_knowledge_derivations d JOIN spaces_nodes n \
+         ON n.id=d.output_node_id AND n.space_id=d.space_id \
+         WHERE d.id=$1 AND d.space_id=$2 AND d.status='running' AND n.deleted_at IS NULL",
+    )
+    .bind(&request.id)
+    .bind(&request.space_id)
+    .fetch_optional(&mut *tx)
+    .await
+    .map_err(db::sql_error)?
+    .ok_or("Generated video is no longer running")?;
+    let mut data: Value = serde_json::from_str(&encoded).map_err(db::json_error)?;
+    if data.get("assetPath").and_then(Value::as_str) != Some(expected_path) {
+        return Err("Generated video output path changed while rendering".into());
+    }
     for input in &request.inputs {
-        source_validation::validate(&mut tx, &input.node_id, &input.source_revision).await?;
+        source_validation::validate(
+            &mut tx,
+            &request.space_id,
+            &input.node_id,
+            &input.source_revision,
+            super::preparation::input_basis(&input.role)?,
+        )
+        .await?;
     }
     let now = crate::clock::unix_time_millis()?;
     let object = data
