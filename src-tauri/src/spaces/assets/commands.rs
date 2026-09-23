@@ -1,6 +1,8 @@
 use std::{collections::BTreeSet, path::PathBuf};
 
-use crate::spaces::assets::{access, enrichment, external_open, files, reclamation};
+use crate::spaces::assets::{
+    access, enrichment, external_open, files, image_document, image_preview, reclamation,
+};
 
 #[tauri::command]
 pub async fn refresh_asset(
@@ -20,6 +22,18 @@ pub async fn open_asset(app: tauri::AppHandle, source_path: String) -> Result<()
 pub async fn preview_asset(app: tauri::AppHandle, source_path: String) -> Result<(), String> {
     let source = access::authorize_spaces_asset(&app, &PathBuf::from(source_path))?;
     crate::system_preview::open(app, source).await
+}
+
+#[tauri::command]
+pub async fn preview_image(
+    app: tauri::AppHandle,
+    space_id: String,
+    node_id: String,
+) -> Result<(), String> {
+    let document = image_document::load(&app, &space_id, &node_id).await?;
+    let render_app = app.clone();
+    let path = crate::blocking::run(move || image_preview::prepare(&render_app, document)).await?;
+    crate::system_preview::open(app, path).await
 }
 
 #[tauri::command]
@@ -86,29 +100,10 @@ pub async fn export_image(
     node_id: String,
     destination_path: String,
 ) -> Result<(), String> {
-    let pool = crate::spaces::db::pool(&app).await?;
-    let data: String = sqlx::query_scalar(
-        "SELECT data FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND kind='image' AND deleted_at IS NULL",
-    )
-    .bind(node_id)
-    .bind(space_id)
-    .fetch_optional(pool)
-    .await
-    .map_err(crate::spaces::db::sql_error)?
-    .ok_or_else(|| "Image export source is unavailable".to_string())?;
-    let data: serde_json::Value =
-        serde_json::from_str(&data).map_err(crate::spaces::db::json_error)?;
-    let source_path = data
-        .get("assetPath")
-        .and_then(serde_json::Value::as_str)
-        .ok_or("Image export source path is unavailable")?
-        .to_owned();
-    let edit = data
-        .get("imageEdit")
-        .cloned()
-        .unwrap_or(serde_json::Value::Null);
+    let document = image_document::load(&app, &space_id, &node_id).await?;
     crate::blocking::run(move || {
-        let rendered = crate::images::render_source_png(&app, &source_path, &edit)?;
+        let rendered =
+            crate::images::render_source_png(&app, &document.source_path, &document.edit)?;
         files::export_image(&app, PathBuf::from(destination_path), rendered.png)
     })
     .await

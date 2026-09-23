@@ -240,8 +240,10 @@ Image and video editing deliberately use different product surfaces. One selecte
 non-destructive crop presets, quarter-turn rotation, horizontal/vertical flip, tonal adjustments
 and an eraser directly in the canvas selection bar. The persisted `imageEdit` contract keeps the
 source asset immutable; the canvas renderer projects the crop, transform, filter and normalized
-eraser strokes. Image comments are normalized positions on the displayed image, saved in the
-image node payload with their text and creation time. A comment may target a point, a freehand
+eraser strokes. System preview and PNG export render the same saved edit through Rust; opening
+an image never hands the unedited source to the system preview. Image comments are normalized
+positions on the displayed image, saved in the image node payload with their text and creation
+time. A comment may target a point, a freehand
 stroke or a rectangular region; all three modes render a numbered pin, while strokes and regions
 retain their image-relative geometry. Adding a comment to the built-in conversation stages its
 text in the composer rather than starting an assistant task. Multi-angle generation accepts
