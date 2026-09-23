@@ -19,7 +19,7 @@ const selectedNode = computed(() => (selectedNodes.value.length === 1 ? selected
 
 function saveTitle(value: string) {
   if (!selectedNode.value) return;
-  void store.saveNodeData(selectedNode.value.id, { ...selectedNode.value.data, title: value });
+  void store.saveNodeData(selectedNode.value.id, selectedNode.value.data, { ...selectedNode.value.data, title: value });
 }
 </script>
 

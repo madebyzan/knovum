@@ -19,7 +19,7 @@ pub use proxy::PrepareRequest;
 
 pub const CANCELLED: &str = "VIDEO_EDIT_RENDER_CANCELLED";
 
-#[derive(Clone, Deserialize)]
+#[derive(Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct VideoEditProject {
     pub version: u8,
@@ -29,13 +29,13 @@ pub struct VideoEditProject {
     pub transform: VideoTransform,
 }
 
-#[derive(Clone, Deserialize)]
+#[derive(Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct VideoTrack {
     pub clips: Vec<VideoClip>,
 }
 
-#[derive(Clone, Deserialize)]
+#[derive(Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct VideoClip {
     pub id: String,
@@ -44,13 +44,13 @@ pub struct VideoClip {
     pub volume: f64,
 }
 
-#[derive(Clone, Deserialize)]
+#[derive(Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct TextTrack {
     pub items: Vec<TextOverlay>,
 }
 
-#[derive(Clone, Deserialize)]
+#[derive(Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct TextOverlay {
     pub id: String,
@@ -61,7 +61,7 @@ pub struct TextOverlay {
     pub style: Option<TextStyle>,
 }
 
-#[derive(Clone, Deserialize)]
+#[derive(Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct TextStyle {
     pub size: u16,
@@ -69,7 +69,7 @@ pub struct TextStyle {
     pub preset: TextPreset,
 }
 
-#[derive(Clone, Copy, Deserialize)]
+#[derive(Clone, Copy, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub enum TextPreset {
     Plain,
@@ -78,7 +78,7 @@ pub enum TextPreset {
     Badge,
 }
 
-#[derive(Clone, Deserialize)]
+#[derive(Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct VideoTransform {
     pub rotation: u16,
@@ -86,7 +86,7 @@ pub struct VideoTransform {
     pub flip_vertical: bool,
 }
 
-#[derive(Clone, Deserialize)]
+#[derive(Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub enum TextPlacement {
     Top,

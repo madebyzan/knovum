@@ -17,12 +17,13 @@ import { spaceEditRepository } from "../../structure/space-edit-repository";
 export function createNodeDataMutations(context: SpaceMutationContext) {
   async function saveNodeData(
     id: string,
+    expectedData: SpaceNodePayload,
     data: SpaceNodePayload,
     sourceChunks?: readonly KnowledgeChunkSeed[],
   ) {
     const releaseMutation = beginSpaceMutation(context.history);
     try {
-      return await saveNodeDataForSpace(requireActiveSpaceId(context.activeSpaceId), id, data, sourceChunks);
+      return await saveNodeDataForSpace(requireActiveSpaceId(context.activeSpaceId), id, expectedData, data, sourceChunks);
     } finally {
       releaseMutation();
     }
@@ -31,10 +32,11 @@ export function createNodeDataMutations(context: SpaceMutationContext) {
   async function saveNodeDataForSpace(
     spaceId: string,
     id: string,
+    expectedData: SpaceNodePayload,
     data: SpaceNodePayload,
     sourceChunks?: readonly KnowledgeChunkSeed[],
   ) {
-    await savePendingNodeDataForSpace(spaceId, id, data, sourceChunks);
+    await savePendingNodeDataForSpace(spaceId, id, expectedData, data, sourceChunks);
     scheduleKnowledgeIndex(spaceId, [id]);
     void resumePendingEnrichmentJobs({ applyNodeDataForSpace }, spaceId);
   }
@@ -42,11 +44,12 @@ export function createNodeDataMutations(context: SpaceMutationContext) {
   async function savePendingNodeDataForSpace(
     spaceId: string,
     id: string,
+    expectedData: SpaceNodePayload,
     data: SpaceNodePayload,
     sourceChunks?: readonly KnowledgeChunkSeed[],
   ) {
     const validated = prepareSpaceKnowledgePayload(validateSpaceNodePayload(data));
-    await updateNodePayload(spaceId, id, validated, sourceChunks);
+    await updateNodePayload(spaceId, id, expectedData, validated, sourceChunks);
     patchActiveNodeData(spaceId, id, validated);
   }
 

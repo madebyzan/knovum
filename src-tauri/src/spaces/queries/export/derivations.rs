@@ -26,7 +26,7 @@ pub(super) async fn rows(
             .ok_or("Exported derivation ID is unavailable")?
             .to_owned();
         let rows = sqlx::query(
-            "SELECT CASE WHEN n.deleted_at IS NULL AND n.space_id=d.space_id THEN i.node_id ELSE NULL END AS nodeId,i.role,i.source_revision AS sourceRevision,i.source_identity AS sourceIdentity,i.source_snapshot AS sourceSnapshot \
+            "SELECT CASE WHEN n.deleted_at IS NULL AND n.space_id=d.space_id THEN i.node_id ELSE NULL END AS nodeId,i.role,i.source_revision AS sourceRevision,i.revision_basis AS revisionBasis,i.input_revision AS inputRevision,i.input_snapshot AS inputSnapshot,i.source_identity AS sourceIdentity,i.source_snapshot AS sourceSnapshot \
              FROM spaces_knowledge_derivation_inputs i JOIN spaces_knowledge_derivations d ON d.id=i.derivation_id LEFT JOIN spaces_nodes n ON n.id=i.node_id WHERE i.derivation_id=? ORDER BY i.position",
         )
         .bind(&id)
@@ -42,6 +42,9 @@ pub(super) async fn rows(
                     "sourceSnapshot": super::parse_json(&row, "sourceSnapshot")?,
                     "role": row.try_get::<String, _>("role").map_err(db::sql_error)?,
                     "sourceRevision": row.try_get::<String, _>("sourceRevision").map_err(db::sql_error)?,
+                    "revisionBasis": row.try_get::<String, _>("revisionBasis").map_err(db::sql_error)?,
+                    "inputRevision": row.try_get::<String, _>("inputRevision").map_err(db::sql_error)?,
+                    "inputSnapshot": super::parse_json(&row, "inputSnapshot")?,
                 }))
             })
             .collect::<Result<Vec<_>, String>>()?;

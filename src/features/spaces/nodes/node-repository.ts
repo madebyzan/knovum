@@ -65,19 +65,20 @@ function spaceNodeLayoutInput(node: SpaceCanvasNode) {
 export async function updateNodePayload(
   spaceId: string,
   id: string,
+  expectedData: SpaceNodePayload,
   data: SpaceNodePayload,
   sourceChunks?: readonly KnowledgeChunkSeed[],
 ): Promise<void> {
   await updateNodePayloadMany(
     spaceId,
-    [{ id, data }],
+    [{ id, expectedData, data }],
     sourceChunks ? new Map([[id, sourceChunks]]) : undefined,
   );
 }
 
 export async function updateNodePayloadMany(
   spaceId: string,
-  changes: readonly { id: string; data: SpaceNodePayload }[],
+  changes: readonly { id: string; expectedData: SpaceNodePayload; data: SpaceNodePayload }[],
   sourceChunks?: ReadonlyMap<string, readonly KnowledgeChunkSeed[]>,
 ): Promise<void> {
   if (!changes.length) return;

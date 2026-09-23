@@ -4,5 +4,7 @@ export interface DerivationSource {
   title: string;
   role: string;
   sourceRevision: string;
+  revisionBasis: "asset" | "rendered" | "knowledge";
+  inputRevision: string;
   current: boolean;
 }

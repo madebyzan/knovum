@@ -58,6 +58,9 @@ pub struct PackageDerivationInputRow {
     pub source_snapshot: PackageSourceSnapshot,
     pub role: String,
     pub source_revision: String,
+    pub revision_basis: String,
+    pub input_revision: String,
+    pub input_snapshot: Value,
 }
 
 #[derive(Debug, Deserialize, serde::Serialize)]

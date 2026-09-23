@@ -75,6 +75,7 @@ pub async fn prepare(
             node_id: &request.source_node_id,
             role: "primary",
             source_revision: &request.source_revision,
+            revision_basis: inputs::RevisionBasis::Knowledge,
         }],
     )
     .await?;

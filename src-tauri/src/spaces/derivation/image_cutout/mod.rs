@@ -52,8 +52,9 @@ pub async fn start(app: &AppHandle, request: StartImageCutoutRequest) -> Result<
     .fetch_optional(&mut *tx)
     .await
     .map_err(db::sql_error)?;
-    let source_data: Value = serde_json::from_str(&source_data.ok_or("Image source is unavailable")?)
-        .map_err(db::json_error)?;
+    let source_data: Value =
+        serde_json::from_str(&source_data.ok_or("Image source is unavailable")?)
+            .map_err(db::json_error)?;
     if source_data.get("sourceRevision").and_then(Value::as_str)
         != Some(request.source_revision.as_str())
         || source_data.get("imageEdit").unwrap_or(&Value::Null) != &request.source_edit
@@ -76,6 +77,7 @@ pub async fn start(app: &AppHandle, request: StartImageCutoutRequest) -> Result<
             node_id: &request.source_node_id,
             role: "primary",
             source_revision: &request.source_revision,
+            revision_basis: inputs::RevisionBasis::Rendered,
         }],
     )
     .await?;

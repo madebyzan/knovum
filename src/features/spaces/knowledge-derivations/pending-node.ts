@@ -5,5 +5,5 @@ type Store = ReturnType<typeof useSpaceStore>;
 
 export async function markProcessingNodeFailed(store: Store, spaceId: string, node: SpaceCanvasNode) {
   if (!("processingState" in node.data)) return;
-  await store.saveNodeDataForSpace(spaceId, node.id, { ...node.data, processingState: "failed" });
+  await store.saveNodeDataForSpace(spaceId, node.id, node.data, { ...node.data, processingState: "failed" });
 }

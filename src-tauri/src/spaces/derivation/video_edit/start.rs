@@ -31,6 +31,11 @@ pub async fn start(
     if data.get("sourceRevision").and_then(Value::as_str) != Some(&request.source_revision) {
         return Err("Video source changed before rendering".into());
     }
+    if data.get("videoEditProject")
+        != Some(&serde_json::to_value(&request.project).map_err(db::json_error)?)
+    {
+        return Err("Video edit project changed before rendering".into());
+    }
     let path = data
         .get("assetPath")
         .and_then(Value::as_str)
@@ -47,6 +52,7 @@ pub async fn start(
             node_id: &request.source_node_id,
             role: "primary",
             source_revision: &request.source_revision,
+            revision_basis: inputs::RevisionBasis::Rendered,
         }],
     )
     .await?;

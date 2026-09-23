@@ -50,7 +50,7 @@ export async function commitManagedImport(options: CommitManagedImportOptions) {
     if (cancelRequested) throw new Error("Space import cancelled");
     copiedPath = copied.path;
     const copiedData = importedSpaceNodePayload(copied);
-    await context.savePendingNodeDataForSpace(spaceId, node.id, copiedData);
+    await context.savePendingNodeDataForSpace(spaceId, node.id, node.data, copiedData);
     node.data = copiedData;
     if (typeof source !== "string") await source.finalize();
     context.finalizePendingContent(spaceId, [node], reveal);

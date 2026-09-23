@@ -53,12 +53,19 @@ export interface SpacePackageRestoreRequest {
       sourceSnapshot: { title: string; kind: string; originalUrl: string | null; platform: string | null };
       role: "primary" | "source" | "context" | "style-reference";
       sourceRevision: string;
+      revisionBasis: "asset" | "rendered" | "knowledge";
+      inputRevision: string;
+      inputSnapshot: null | Record<string, unknown>;
     }[];
     actionKind:
       | "remove-image-background"
+      | "split-image-layers"
+      | "upscale-image"
+      | "generate-image-angle"
       | "generate-visualization"
       | "extract-subtitles"
       | "render-subtitled-video"
+      | "render-video-edit"
       | "draft-document"
       | "export-document-as-docx"
       | "export-document-as-pdf"

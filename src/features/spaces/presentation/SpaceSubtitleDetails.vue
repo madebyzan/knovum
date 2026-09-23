@@ -71,7 +71,7 @@ async function save() {
   }
 }
 function persist(subtitle: SpaceSubtitlePayload) {
-  return store.saveNodeData(props.node.id, subtitle);
+  return store.saveNodeData(props.node.id, props.node.data, subtitle);
 }
 function createVideo() {
   if (burnInInputs.value) void createSubtitledVideo(store, burnInInputs.value);
