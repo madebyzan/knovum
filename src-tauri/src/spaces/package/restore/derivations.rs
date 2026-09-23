@@ -1,7 +1,10 @@
 use sqlx::{Sqlite, Transaction};
 
 use super::contracts::{PackageDerivationRow, RestorePackageRequest};
-use crate::spaces::db;
+use crate::spaces::{
+    db,
+    derivation::input_revision::{self, RevisionBasis},
+};
 
 pub(super) async fn insert(
     tx: &mut Transaction<'_, Sqlite>,
@@ -28,9 +31,21 @@ pub(super) async fn insert(
             {
                 return Err("Package derivation source is invalid".into());
             }
-            sqlx::query("INSERT INTO spaces_knowledge_derivation_inputs(derivation_id,position,node_id,role,source_revision,source_identity,source_snapshot) VALUES($1,$2,$3,$4,$5,$6,$7)")
+            let basis = RevisionBasis::parse(&input.revision_basis)?;
+            if input_revision::from_snapshot(
+                &input.source_snapshot.kind,
+                &input.source_revision,
+                basis,
+                &input.input_snapshot,
+            )? != input.input_revision
+            {
+                return Err("Package derivation input revision is invalid".into());
+            }
+            sqlx::query("INSERT INTO spaces_knowledge_derivation_inputs(derivation_id,position,node_id,role,source_revision,revision_basis,input_revision,input_snapshot,source_identity,source_snapshot) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)")
                 .bind(&row.id).bind(position as i64).bind(&input.node_id).bind(&input.role)
-                .bind(&input.source_revision).bind(&input.source_identity)
+                .bind(&input.source_revision).bind(&input.revision_basis).bind(&input.input_revision)
+                .bind(serde_json::to_string(&input.input_snapshot).map_err(db::json_error)?)
+                .bind(&input.source_identity)
                 .bind(serde_json::to_string(&input.source_snapshot).map_err(db::json_error)?)
                 .execute(&mut **tx).await.map_err(db::sql_error)?;
         }

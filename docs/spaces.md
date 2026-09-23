@@ -69,6 +69,11 @@ Implemented action families currently include image background removal and video
 
 Spaces treats generation and media transformation as **Knowledge Derivation**: selected knowledge produces a new durable resource without losing its source context. The product entry is **Create from selection**, followed by an intent such as Summarize, Compare, Visualize, Remove background, Create subtitles or Turn into a document. Provider connections remain infrastructure configuration. Compatible model selection is available at the creation surface, defaults by capability, and can be captured with bounded generation parameters as a reusable **Generation Preset**. Models are execution targets, not ordinary knowledge nodes and not the canvas information architecture.
 
+Editing an existing node keeps its identity; Create from selection publishes a separate resource.
+Duplicate copies a node without claiming derivation provenance, while Download writes an external
+file. The exact effect and revision rules for every node kind live in `docs/architecture.md` under
+“Space operation effects and source identity”.
+
 A **Workflow** is an editable, published and version-pinned dependency graph over the stable Space Action catalog. Knovum ships five production recipes: presentation production, video production, social content package, subtitled-video production and meeting content package. These are common knowledge-work starting points, not samples or private executors. Each recipe creates the same editable Workflow definition used by user-authored graphs and places a content-review gate before an expensive or irreversible rendering step. Runs, step inputs and outputs, per-item batch lineage, attempts and events are durable, exported with terminal history, and restored without replaying side effects. Batch retries retain stable item keys, reuse successful items and create new attempts only for failed or unavailable items.
 
 The Rust Run scheduler is the only execution authority. It compiles immutable Workflow versions,

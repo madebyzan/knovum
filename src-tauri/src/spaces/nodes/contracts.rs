@@ -36,6 +36,7 @@ pub struct InsertNodesRequest {
 #[serde(rename_all = "camelCase")]
 pub struct NodeDataChange {
     pub id: String,
+    pub expected_data: Value,
     pub data: Value,
     pub source_chunks: Option<Vec<KnowledgeChunkInput>>,
 }

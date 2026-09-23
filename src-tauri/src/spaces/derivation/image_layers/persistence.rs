@@ -45,6 +45,7 @@ pub async fn start(app: &AppHandle, request: &CreateImageLayersRequest) -> Resul
                 node_id: &request.source_node_id,
                 role: "primary",
                 source_revision: &request.source_revision,
+                revision_basis: inputs::RevisionBasis::Rendered,
             }],
         )
         .await?;
@@ -77,22 +78,26 @@ pub async fn complete(
         relations::insert(&mut tx, &relation).await?;
         sqlx::query("UPDATE spaces_knowledge_derivations SET status='completed',completed_at=$1,updated_at=$1 WHERE id=$2 AND status='running'")
             .bind(now).bind(derivation_id(&request.id, index)).execute(&mut *tx).await.map_err(db::sql_error)?;
-        completed.push(CompletedDerivationOutput { node_id: output_id.clone(), data, relation });
+        completed.push(CompletedDerivationOutput {
+            node_id: output_id.clone(),
+            data,
+            relation,
+        });
     }
     sqlx::query("UPDATE spaces SET updated_at=$1 WHERE id=$2")
-        .bind(now).bind(&request.space_id).execute(&mut *tx).await.map_err(db::sql_error)?;
+        .bind(now)
+        .bind(&request.space_id)
+        .execute(&mut *tx)
+        .await
+        .map_err(db::sql_error)?;
     tx.commit().await.map_err(db::sql_error)?;
     Ok(completed)
 }
 
 pub async fn fail(app: &AppHandle, request: &CreateImageLayersRequest, error: &str) {
     for index in 0..request.output_node_ids.len() {
-        let _ = super::super::failure::fail_message(
-            app,
-            &derivation_id(&request.id, index),
-            error,
-        )
-        .await;
+        let _ = super::super::failure::fail_message(app, &derivation_id(&request.id, index), error)
+            .await;
     }
 }
 
@@ -109,14 +114,24 @@ async fn load_pending_output(
 }
 
 fn apply_layer_data(data: &mut Value, layer: &PreparedLayer, now: i64) -> Result<(), String> {
-    let object = data.as_object_mut().ok_or("Image layer output data is invalid")?;
-    object.insert("assetPath".into(), layer.path.to_string_lossy().into_owned().into());
+    let object = data
+        .as_object_mut()
+        .ok_or("Image layer output data is invalid")?;
+    object.insert(
+        "assetPath".into(),
+        layer.path.to_string_lossy().into_owned().into(),
+    );
     object.insert("sourceRevision".into(), layer.digest.clone().into());
     object.insert("size".into(), (layer.size as u64).into());
     object.insert("modifiedAt".into(), now.into());
     object.insert("intrinsicWidth".into(), layer.width.into());
     object.insert("intrinsicHeight".into(), layer.height.into());
-    for field in ["processingState", "imageEdit", "previewPath", "visualKnowledge"] {
+    for field in [
+        "processingState",
+        "imageEdit",
+        "previewPath",
+        "visualKnowledge",
+    ] {
         object.remove(field);
     }
     revision::apply(data)?;

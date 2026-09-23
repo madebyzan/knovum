@@ -24,6 +24,9 @@ export const derivationSchema = z
               .strict(),
             role: z.enum(["primary", "source", "context", "style-reference"]),
             sourceRevision: z.string().min(1),
+            revisionBasis: z.enum(["asset", "rendered", "knowledge"]),
+            inputRevision: z.string().min(1),
+            inputSnapshot: z.union([z.null(), z.record(z.string(), z.unknown())]),
           })
           .strict(),
       )
@@ -31,9 +34,13 @@ export const derivationSchema = z
       .max(1_000),
     actionKind: z.enum([
       "remove-image-background",
+      "split-image-layers",
+      "upscale-image",
+      "generate-image-angle",
       "generate-visualization",
       "extract-subtitles",
       "render-subtitled-video",
+      "render-video-edit",
       "draft-document",
       "export-document-as-docx",
       "export-document-as-pdf",

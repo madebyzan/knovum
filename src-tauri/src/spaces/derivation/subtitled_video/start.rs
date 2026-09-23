@@ -52,11 +52,13 @@ pub async fn start(
                 node_id: &request.source_node_id,
                 role: "primary",
                 source_revision: &request.source_revision,
+                revision_basis: inputs::RevisionBasis::Asset,
             },
             inputs::DerivationInput {
                 node_id: &request.subtitle_node_id,
                 role: "source",
                 source_revision: &request.subtitle_revision,
+                revision_basis: inputs::RevisionBasis::Knowledge,
             },
         ],
     )

@@ -1,9 +1,9 @@
 mod contract;
+mod detail;
 mod eraser;
 mod geometry;
 mod glow;
 mod pixels;
-mod detail;
 mod tone;
 
 use std::{fs, io::Cursor, path::Path};
@@ -19,6 +19,10 @@ const MAX_SOURCE_PIXELS: u64 = 100_000_000;
 const MAX_SOURCE_DIMENSION: u32 = 10_000;
 const MAX_OUTPUT_BYTES: usize = 64 * 1024 * 1024;
 
+pub(crate) fn validate_edit(value: &Value) -> Result<(), String> {
+    ImageEdit::parse(value).map(|_| ())
+}
+
 pub(crate) fn render_source_png<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
     source_path: &str,
@@ -31,7 +35,9 @@ pub(crate) fn render_source_png<R: tauri::Runtime>(
     }
     let edit = ImageEdit::parse(edit)?;
     let mut reader = ImageReader::open(source).map_err(|error| error.to_string())?;
-    reader = reader.with_guessed_format().map_err(|error| error.to_string())?;
+    reader = reader
+        .with_guessed_format()
+        .map_err(|error| error.to_string())?;
     let mut limits = Limits::default();
     limits.max_image_width = Some(MAX_SOURCE_DIMENSION);
     limits.max_image_height = Some(MAX_SOURCE_DIMENSION);

@@ -40,7 +40,7 @@ async function onRetry() {
         ...props.node.data,
         derivationState: undefined,
       });
-      await store.saveNodeDataForSpace(spaceId, props.node.id, {
+      await store.saveNodeDataForSpace(spaceId, props.node.id, props.node.data, {
         ...props.node.data,
         derivationState: undefined,
       });

@@ -23,7 +23,7 @@ export function createSpaceHistoryMutations(context: SpaceMutationContext) {
       ...change,
       after: prepareSpaceKnowledgePayload(validateSpaceNodePayload(change.after)),
     }));
-    const apply = (entries: readonly { id: string; data: NodeDataChange["after"] }[]) =>
+    const apply = (entries: readonly { id: string; expectedData: NodeDataChange["before"]; data: NodeDataChange["after"] }[]) =>
       applyData({ spaceId, changes: entries, nodes, activeSpaceId: context.activeSpaceId }).then(() =>
         scheduleKnowledgeIndex(
           spaceId,
@@ -32,10 +32,10 @@ export function createSpaceHistoryMutations(context: SpaceMutationContext) {
       );
     const releaseMutation = beginSpaceMutation(history);
     try {
-      await apply(prepared.map(({ id, after }) => ({ id, data: after })));
+      await apply(prepared.map(({ id, before, after }) => ({ id, expectedData: before, data: after })));
       recordSpaceHistory(history, {
-        undo: () => apply(prepared.map(({ id, before }) => ({ id, data: before }))),
-        redo: () => apply(prepared.map(({ id, after }) => ({ id, data: after }))),
+        undo: () => apply(prepared.map(({ id, before, after }) => ({ id, expectedData: after, data: before }))),
+        redo: () => apply(prepared.map(({ id, before, after }) => ({ id, expectedData: before, data: after }))),
       });
     } finally {
       releaseMutation();

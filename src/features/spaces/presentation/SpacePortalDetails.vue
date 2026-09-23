@@ -26,7 +26,7 @@ watch(
 async function save() {
   if (!draft.value) return;
   try {
-    await store.saveNodeData(props.node.id, draft.value);
+    await store.saveNodeData(props.node.id, props.node.data, draft.value);
   } catch (error) {
     toast.error(String(error));
   }

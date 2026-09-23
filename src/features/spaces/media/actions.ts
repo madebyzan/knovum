@@ -35,7 +35,7 @@ interface Context {
   seekRequest: Ref<SpaceMediaSeekRequest | undefined>;
   toggleRequest: Ref<SpaceMediaToggleRequest | undefined>;
   playback: Ref<{ id: string; state: SpaceMediaPlaybackState } | undefined>;
-  saveNodeData: (id: string, data: SpaceNodePayload) => Promise<void>;
+  saveNodeData: (id: string, expectedData: SpaceNodePayload, data: SpaceNodePayload) => Promise<void>;
 }
 
 export function createSpaceMediaActions(context: Context) {
@@ -122,7 +122,7 @@ export function createSpaceMediaActions(context: Context) {
     const current = context.nodes.value.find((candidate) => candidate.id === id);
     if (!current || !isSpaceMediaPayload(current.data) || current.data.sourceRevision !== revision)
       throw new Error("Media source changed during analysis");
-    await context.saveNodeData(id, { ...current.data, mediaKnowledge: knowledge });
+    await context.saveNodeData(id, current.data, { ...current.data, mediaKnowledge: knowledge });
   }
   function requestMediaSeek(id: string, positionMs: number) {
     context.seekRequest.value = { id, positionMs, nonce: ++seekNonce };

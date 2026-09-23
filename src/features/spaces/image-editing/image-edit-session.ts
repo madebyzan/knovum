@@ -73,8 +73,16 @@ export const useImageEditSession = defineStore("spaces-image-edit-session", () =
       const space = useSpaceStore();
       const node = space.nodes.find(({ id }) => id === current.nodeId);
       if (!node || node.data.kind !== "image") throw new Error("Selected image is unavailable");
+      if (JSON.stringify(imageEditOf(node.data)) === JSON.stringify(current.draft)) {
+        active.value = undefined;
+        return;
+      }
       await space.updateManyData([
-        { id: node.id, before: node.data, after: { ...node.data, imageEdit: current.draft } },
+        {
+          id: node.id,
+          before: node.data,
+          after: { ...node.data, imageEdit: current.draft, visualKnowledge: undefined },
+        },
       ]);
       if (active.value === current) active.value = undefined;
       cropAspectRatio.value = undefined;

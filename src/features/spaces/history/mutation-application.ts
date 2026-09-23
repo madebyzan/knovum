@@ -12,7 +12,7 @@ interface MutationProjection {
 
 interface ApplyDataInput extends MutationProjection {
   spaceId: string;
-  changes: readonly { id: string; data: SpaceNodePayload }[];
+  changes: readonly { id: string; expectedData: SpaceNodePayload; data: SpaceNodePayload }[];
 }
 
 export async function applyData(input: ApplyDataInput) {

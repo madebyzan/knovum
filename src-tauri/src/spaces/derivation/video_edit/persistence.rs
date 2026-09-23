@@ -1,7 +1,7 @@
 use serde_json::Value;
 use tauri::AppHandle;
 
-use super::super::{relations, video_output::RenderedVideo, CompletedDerivationOutput};
+use super::super::{inputs, relations, video_output::RenderedVideo, CompletedDerivationOutput};
 use crate::spaces::{
     db,
     knowledge::{contracts, indexing::revision},
@@ -19,7 +19,7 @@ pub async fn complete(
          JOIN spaces_knowledge_derivation_inputs i ON i.derivation_id=d.id AND i.position=0 AND i.role='primary' \
          JOIN spaces_nodes n ON n.id=d.output_node_id WHERE d.id=$1 AND d.status='running'",
     ).bind(id).fetch_optional(&mut *tx).await.map_err(db::sql_error)?.ok_or("Video edit is no longer rendering")?;
-    revalidate(&mut tx, id).await?;
+    inputs::validate_current(&mut tx, id).await?;
     let now = crate::clock::unix_time_millis()?;
     let mut data: Value = serde_json::from_str(&row.3).map_err(db::json_error)?;
     apply_output(&mut data, &output, now)?;
@@ -57,14 +57,4 @@ fn apply_output(data: &mut Value, output: &RenderedVideo, now: i64) -> Result<()
     object.remove("mediaKnowledge");
     object.remove("mediaAnalysis");
     revision::apply(data).map(|_| ())
-}
-
-async fn revalidate(tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>, id: &str) -> Result<(), String> {
-    let valid: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM spaces_knowledge_derivations d JOIN spaces_knowledge_derivation_inputs i ON i.derivation_id=d.id AND i.position=0 AND i.role='primary' JOIN spaces_nodes n ON n.id=i.node_id WHERE d.id=$1 AND n.deleted_at IS NULL AND n.kind='video' AND json_extract(n.data,'$.sourceRevision')=i.source_revision")
-        .bind(id).fetch_one(&mut **tx).await.map_err(db::sql_error)?;
-    if valid == 1 {
-        Ok(())
-    } else {
-        Err("Video source changed during rendering".into())
-    }
 }

@@ -52,7 +52,7 @@ export async function createImageCutout(store: SpaceStore, source: SpaceCanvasNo
   } catch (error) {
     if (started) await failDerivation(derivationId, error);
     else if (pending.data.kind === "image") {
-      await store.saveNodeDataForSpace(spaceId, pending.id, {
+      await store.saveNodeDataForSpace(spaceId, pending.id, pending.data, {
         ...pending.data,
         processingState: "failed",
       });

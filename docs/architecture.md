@@ -210,6 +210,94 @@ own knowledge payloads and source state. The Konva document is an ephemeral proj
 the camera is separate disposable view state. Renderer mutations submit one typed intent with an
 expected edit revision and mutation identity; Rust validates and commits the complete invariant.
 
+## Space operation effects and source identity
+
+Classify an operation by its durable effect and identity contract, not by the toolbar that exposes
+it, whether it uses AI, or whether it runs in Rust. This classification is policy for each owning
+capability; it is not a new universal executor or a second action catalog.
+
+| Effect | Identity and persistence | Product surface |
+| --- | --- | --- |
+| Inspect | Reads current state; may create disposable cache files, never Space history or lineage | Open, preview, search |
+| Edit existing | Retains the target node, relation or Structure identity; commits a validated change with undo/history where supported | Edit, adjust, annotate, arrange |
+| Create primary | Gives an independently authored or acquired resource a new identity, without `derives-from` | Add, import, capture |
+| Clone | Gives a copy a new identity and preserves the copied state; it does not claim transformation provenance | Duplicate |
+| Derive | Creates one or more new ordinary resource nodes from pinned inputs; records a Derivation and `derives-from` relations | Create from selection, generate, render |
+| Export external | Writes outside the Space through an explicit destination or system handoff; does not create a Space node or Derivation | Download, export file |
+
+An image or media transformation either edits its input node or publishes a separate resource; a
+command that does both must be split into separately named intents. A KnowledgeChangeSet may
+atomically contain several validated knowledge mutations without becoming a media Derivation. A
+derived output may later be edited as its
+own node; editing it does not rewrite the input or its historical Derivation. A failed or cancelled
+Derivation may leave a clearly failed pending output, never a completed lineage claim. Cheap local
+processing is not automatically an edit, and AI processing is not automatically a Derivation.
+
+The node-kind decision is explicit:
+
+| Kind | Edits the same identity | Creates a derivative when requested |
+| --- | --- | --- |
+| Note, text, Markdown | Body, title and tags | Summary, drafted document, visualization or other independently useful output |
+| Image | Crop, rotation, flip, tone, eraser recipe and comments | Background removal, upscale, new angle, separated layers or generated image |
+| Video | Edit project, title, tags and annotations | Rendered video, subtitle resource, burn-in output or generated clip |
+| Audio | Title, tags and corrected node-owned transcript/analysis | Separately published subtitle, transcript or document resource |
+| Subtitle | Language, cues and corrections | Burned-in video or a separately authored document |
+| Website | URL, captured metadata and annotations of that saved resource | Summary, document or visualization grounded in its captured revision |
+| File, code | Title, tags and other node metadata; an explicit source replacement changes its asset revision | Converted document, generated code or other new resource |
+| Knowledge object | Typed properties, status, title and evidence relations | A new knowledge resource only when the intent explicitly creates one |
+| Credential | Metadata and OS-vault secret reference | No credential derivative; generated artifacts may consume an authorized credential |
+| Portal | Target and presentation metadata | No content derivative; duplicate is a clone |
+
+Groups and Sections are Structure entities rather than content nodes. Move, resize, reorder, lock,
+align, reparent, rename and dissolve mutate Structure. Saved Views mutate their own scene record;
+Relations mutate their own relation record. Creating a blank node, importing a file or capturing a
+website is primary creation. Duplicating any of these is a clone. Indexing, thumbnails, proxy media
+and node-owned enrichment are projections or maintained state, not user-facing Derivations. The
+existing `SpaceActionImpact` (`read_only`, `mutates_resource`, `creates_resource`) remains the
+authorization level; `creates_resource` alone does not imply derivation lineage.
+
+Revision selection follows the data actually consumed:
+
+- `sourceRevision` identifies immutable managed source bytes. It does not change when an image
+  edit recipe, video edit project or comment changes.
+- A rendered-content revision identifies the canonical source bytes plus the normalized edit
+  recipe used to render them. Image crop/flip/tone/eraser and video render projects change this
+  revision. Comments, title, canvas position and selection do not.
+- `knowledgeRevision` identifies semantic node content used for retrieval and grounding. It is
+  distinct from rendered pixels and from the raw asset revision. A knowledge-producing edit must
+  invalidate or recompute the knowledge derived from the affected content.
+- Structure's `editRevision` fences layout and membership mutations; it is never substituted for a
+  resource revision.
+
+Derivation inputs declare which revision basis they consume (`asset`, `rendered` or
+`knowledge`) and persist that basis, the consumed revision and its edit/project snapshot. Rust
+validates the base revision when recording the input. The snapshot contains the edit/project
+parameters required to identify a rendered input. Source-current status compares the declared
+basis, never just the
+raw file revision. A newer source edit marks an older output as historical; it does not mutate or
+silently regenerate that output. Preview and external export consume the current rendered content
+and share its renderer. Unifying preview-cache keys with the persisted rendered revision remains
+an implementation task.
+For example, background removal and upscale consume an image's `rendered` revision; analysis of
+untouched video frames consumes `asset`; subtitle burn-in consumes the video's chosen visual
+revision and the subtitle node's `knowledge` revision. A canvas move consumes none of these.
+
+Node content updates submit the complete expected persisted payload alongside the replacement.
+Rust compares them and commits the edit in one transaction; a stale editor fails visibly instead
+of overwriting a newer edit or comment. Structure retains its separate numeric `editRevision`.
+Field-scoped node mutations remain a possible future refinement when a concrete operation needs
+independent concurrent edits. Derivation requests carry source identity and base revision, while
+Rust resolves and records the consumed revision and snapshot;
+the WebView never becomes the authority for rendered bytes or provenance. Capability owners keep
+their own implementation modules (`nodes/`, `structure/`, `derivation/`, `assets/`); presentation
+only selects the correct intent and shows its availability.
+
+The input revision contract applies to new records in the current pre-release SQLite baseline;
+obsolete development databases and packages are rejected instead of being silently interpreted.
+Image and video rendering also recheck the edit/project while work is running. The remaining
+cross-capability work is to use the same rendered revision for preview caches and visual-knowledge
+jobs, then audit operation-specific writers that bypass general node content updates.
+
 ## Validation boundary
 
 Validate data that crosses a real trust or persistence boundary: user input, Store/SQLite data, filesystem/network data and Rust IPC payloads. Do not add runtime assertions for static registries and other invariants entirely owned by this repository when TypeScript/Rust structure already guarantees them.

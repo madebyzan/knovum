@@ -3,7 +3,9 @@ use std::path::Path;
 use serde_json::Value;
 use tauri::AppHandle;
 
-use super::{contracts::CreateImageOperationRequest, output::CanonicalImage, output_file, validation};
+use super::{
+    contracts::CreateImageOperationRequest, output::CanonicalImage, output_file, validation,
+};
 use crate::spaces::{
     db,
     derivation::{inputs, relations, source_validation, CompletedDerivationOutput},
@@ -53,6 +55,7 @@ pub async fn start(app: &AppHandle, request: &CreateImageOperationRequest) -> Re
             node_id: &request.source_node_id,
             role: "primary",
             source_revision: &request.source_revision,
+            revision_basis: inputs::RevisionBasis::Rendered,
         }],
     )
     .await?;
@@ -109,7 +112,10 @@ async fn persist(
     let object = data
         .as_object_mut()
         .ok_or("Image operation node data is invalid")?;
-    object.insert("assetPath".into(), path.to_string_lossy().into_owned().into());
+    object.insert(
+        "assetPath".into(),
+        path.to_string_lossy().into_owned().into(),
+    );
     object.insert("sourceRevision".into(), image.digest.clone().into());
     object.insert("size".into(), (image.png.len() as u64).into());
     object.insert("modifiedAt".into(), now.into());

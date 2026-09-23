@@ -108,7 +108,7 @@ export async function createImageOperation(
     },
     onError: async () => {
       if (pending.data.kind === "image")
-        await store.saveNodeDataForSpace(spaceId, pending.id, {
+        await store.saveNodeDataForSpace(spaceId, pending.id, pending.data, {
           ...pending.data,
           processingState: "failed",
         });

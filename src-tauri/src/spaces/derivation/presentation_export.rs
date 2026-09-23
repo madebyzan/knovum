@@ -117,6 +117,7 @@ async fn persist(
             node_id: &input.node_id,
             role: &input.role,
             source_revision: &input.source_revision,
+            revision_basis: inputs::RevisionBasis::Knowledge,
         })
         .collect::<Vec<_>>();
     inputs::insert(tx, &request.id, &values).await?;
