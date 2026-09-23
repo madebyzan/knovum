@@ -108,7 +108,7 @@ async fn execute(
         super::failure::fail_message(app, &request.id, &message).await?;
         return Err(message);
     }
-    let completion = completion::complete(app, request, prepared.data, generated).await;
+    let completion = completion::complete(app, request, &prepared.path, generated).await;
     if let Err(error) = &completion {
         let _ = tokio::fs::remove_file(prepared.path).await;
         super::failure::fail_message(app, &request.id, error).await?;

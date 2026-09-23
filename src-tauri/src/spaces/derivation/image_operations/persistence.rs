@@ -34,7 +34,14 @@ pub async fn start(app: &AppHandle, request: &CreateImageOperationRequest) -> Re
     if source_kind.as_deref() != Some("image") {
         return Err("Image operation source is unavailable".into());
     }
-    source_validation::validate(&mut tx, &request.source_node_id, &request.source_revision).await?;
+    source_validation::validate(
+        &mut tx,
+        &request.space_id,
+        &request.source_node_id,
+        &request.source_revision,
+        inputs::RevisionBasis::Asset,
+    )
+    .await?;
     validation::source_edit(&mut tx, request).await?;
     let output: String = sqlx::query_scalar("SELECT data FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND kind='image' AND deleted_at IS NULL")
         .bind(&request.output_node_id).bind(&request.space_id).fetch_optional(&mut *tx).await.map_err(db::sql_error)?
@@ -83,7 +90,14 @@ async fn complete_persistence(
 ) -> Result<CompletedDerivationOutput, String> {
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
-    source_validation::validate(&mut tx, &request.source_node_id, &request.source_revision).await?;
+    source_validation::validate(
+        &mut tx,
+        &request.space_id,
+        &request.source_node_id,
+        &request.source_revision,
+        inputs::RevisionBasis::Asset,
+    )
+    .await?;
     validation::source_edit(&mut tx, request).await?;
     let encoded: String = sqlx::query_scalar("SELECT n.data FROM spaces_knowledge_derivations d JOIN spaces_nodes n ON n.id=d.output_node_id AND n.space_id=d.space_id WHERE d.id=$1 AND d.status='running' AND n.kind='image' AND n.deleted_at IS NULL")
         .bind(&request.id).fetch_optional(&mut *tx).await.map_err(db::sql_error)?

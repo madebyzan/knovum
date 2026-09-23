@@ -5,7 +5,7 @@ use tauri::AppHandle;
 use crate::{
     ai::{
         capabilities::vision,
-        models::{ExecutionTarget, ImageAnalysisRequest},
+        models::{ExecutionTarget, ImageAnalysisRequest, ImageAnalysisSource},
     },
     spaces::{assets::authorize_spaces_asset, previews::authorize_generated_preview},
 };
@@ -28,23 +28,36 @@ pub(super) async fn analyze(
     cancellation: &tokio_util::sync::CancellationToken,
 ) -> Result<(), String> {
     let source = match request.job_type {
-        super::EnrichmentJobType::AnalyzeImage => authorize_spaces_asset(
-            app,
-            std::path::Path::new(required_string(data, "assetPath")?),
-        )?,
+        super::EnrichmentJobType::AnalyzeImage => {
+            let app = app.clone();
+            let path = required_string(data, "assetPath")?.to_owned();
+            let edit = data.get("imageEdit").cloned().unwrap_or(Value::Null);
+            let rendered =
+                crate::blocking::run(move || crate::images::render_source_png(&app, &path, &edit))
+                    .await?;
+            ImageAnalysisSource::Png(rendered.png)
+        }
         super::EnrichmentJobType::AnalyzeVideoCover => {
             let path = std::path::Path::new(required_string(data, "previewPath")?);
             if web_media_preview(data) {
-                authorize_spaces_asset(app, path)?
+                ImageAnalysisSource::FilePath(
+                    authorize_spaces_asset(app, path)?
+                        .to_string_lossy()
+                        .into_owned(),
+                )
             } else {
-                authorize_generated_preview(app, path)?
+                ImageAnalysisSource::FilePath(
+                    authorize_generated_preview(app, path)?
+                        .to_string_lossy()
+                        .into_owned(),
+                )
             }
         }
         _ => return Err("Visual analysis received a non-visual job".to_owned()),
     };
     let completion = vision::analyze_image(app, ImageAnalysisRequest {
             target,
-            image_path: source.to_string_lossy().into_owned(),
+            source,
             system_prompt: "You analyze images for a local-first knowledge space. Return strict JSON only.".to_owned(),
             instruction: "Analyze this image for semantic retrieval. Return JSON with fields description, detectedText, and tags. detectedText must be an array of visible text segments in reading order.".to_owned(),
             max_tokens: None,

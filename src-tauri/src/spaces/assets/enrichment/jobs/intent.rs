@@ -2,6 +2,7 @@ use serde_json::Value;
 use sqlx::{Sqlite, Transaction};
 
 use super::job::{EnrichmentJobType, STATUS_CANCELLED, STATUS_PENDING};
+use super::revision::{expected_revision, source_revision};
 
 pub(crate) async fn synchronize_for_node(
     tx: &mut Transaction<'_, Sqlite>,
@@ -13,40 +14,46 @@ pub(crate) async fn synchronize_for_node(
     let Some(source_revision) = source_revision(data) else {
         return Ok(());
     };
+    let image_revision = if data.get("kind").and_then(Value::as_str) == Some("image") {
+        expected_revision(data, EnrichmentJobType::AnalyzeImage)?
+    } else {
+        None
+    };
+    let visual_revision = image_revision.as_deref().unwrap_or(source_revision);
     sqlx::query(
         "UPDATE spaces_enrichment_jobs SET status=$1,updated_at=$2 \
-         WHERE space_id=$3 AND node_id=$4 AND source_revision<>$5 AND status IN ('pending','running','awaiting_configuration')",
+         WHERE space_id=$3 AND node_id=$4 AND \
+           ((job_type='analyze_image' AND source_revision<>$5) OR (job_type!='analyze_image' AND source_revision<>$6)) \
+           AND status IN ('pending','running','awaiting_configuration')",
     )
     .bind(STATUS_CANCELLED)
     .bind(now)
     .bind(space_id)
     .bind(node_id)
+    .bind(visual_revision)
     .bind(source_revision)
     .execute(&mut **tx)
     .await
     .map_err(crate::spaces::db::sql_error)?;
 
-    for job_type in required_jobs(data, source_revision) {
-        enqueue(tx, space_id, node_id, source_revision, job_type, now).await?;
+    for job_type in required_jobs(data, visual_revision, source_revision) {
+        let revision = if job_type == EnrichmentJobType::AnalyzeImage {
+            visual_revision
+        } else {
+            source_revision
+        };
+        enqueue(tx, space_id, node_id, revision, job_type, now).await?;
     }
     Ok(())
 }
 
-pub(super) fn source_revision(data: &Value) -> Option<&str> {
-    if matches!(
-        data.get("processingState").and_then(Value::as_str),
-        Some("importing" | "processing")
-    ) {
-        return None;
-    }
-    data.get("sourceRevision")
-        .and_then(Value::as_str)
-        .filter(|value| !value.trim().is_empty())
-}
-
-fn required_jobs(data: &Value, source_revision: &str) -> Vec<EnrichmentJobType> {
+fn required_jobs(
+    data: &Value,
+    image_revision: &str,
+    source_revision: &str,
+) -> Vec<EnrichmentJobType> {
     match data.get("kind").and_then(Value::as_str) {
-        Some("image") => (!visual_knowledge_is_current(data, source_revision))
+        Some("image") => (!visual_knowledge_is_current(data, image_revision))
             .then_some(EnrichmentJobType::AnalyzeImage)
             .into_iter()
             .collect(),

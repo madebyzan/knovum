@@ -45,3 +45,10 @@ export function upscaleAvailability(
     return { state: "blocked", reason: "upscale_target_too_small" };
   return base;
 }
+
+export function promptedLayerAvailability(
+  base: ImageActionAvailability,
+  prompt: string,
+): ImageActionAvailability {
+  return base.state === "ready" && !prompt.trim() ? { state: "blocked", reason: "prompt_required" } : base;
+}

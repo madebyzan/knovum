@@ -48,7 +48,14 @@ pub async fn complete(
             &request.output_node_id,
         )
         .await?;
-        source_validation::validate(&mut tx, &input.node_id, &input.source_revision).await?;
+        source_validation::validate(
+            &mut tx,
+            &request.space_id,
+            &input.node_id,
+            &input.source_revision,
+            input_basis(&input.role)?,
+        )
+        .await?;
     }
     let encoded: String = sqlx::query_scalar(
         "SELECT data FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND kind='file'",
@@ -113,13 +120,15 @@ async fn persist(
     let values = request
         .inputs
         .iter()
-        .map(|input| inputs::DerivationInput {
-            node_id: &input.node_id,
-            role: &input.role,
-            source_revision: &input.source_revision,
-            revision_basis: inputs::RevisionBasis::Knowledge,
+        .map(|input| {
+            Ok(inputs::DerivationInput {
+                node_id: &input.node_id,
+                role: &input.role,
+                source_revision: &input.source_revision,
+                revision_basis: input_basis(&input.role)?,
+            })
         })
-        .collect::<Vec<_>>();
+        .collect::<Result<Vec<_>, String>>()?;
     inputs::insert(tx, &request.id, &values).await?;
     for input in &request.inputs {
         relations::insert(
@@ -135,6 +144,14 @@ async fn persist(
         .await?;
     }
     Ok(())
+}
+
+fn input_basis(role: &str) -> Result<inputs::RevisionBasis, String> {
+    match role {
+        "primary" => Ok(inputs::RevisionBasis::Knowledge),
+        "source" => Ok(inputs::RevisionBasis::Asset),
+        _ => Err("Presentation input role is invalid".into()),
+    }
 }
 
 fn validate(request: &CompletePresentationRequest) -> Result<(), String> {

@@ -216,14 +216,14 @@ Classify an operation by its durable effect and identity contract, not by the to
 it, whether it uses AI, or whether it runs in Rust. This classification is policy for each owning
 capability; it is not a new universal executor or a second action catalog.
 
-| Effect | Identity and persistence | Product surface |
-| --- | --- | --- |
-| Inspect | Reads current state; may create disposable cache files, never Space history or lineage | Open, preview, search |
-| Edit existing | Retains the target node, relation or Structure identity; commits a validated change with undo/history where supported | Edit, adjust, annotate, arrange |
-| Create primary | Gives an independently authored or acquired resource a new identity, without `derives-from` | Add, import, capture |
-| Clone | Gives a copy a new identity and preserves the copied state; it does not claim transformation provenance | Duplicate |
-| Derive | Creates one or more new ordinary resource nodes from pinned inputs; records a Derivation and `derives-from` relations | Create from selection, generate, render |
-| Export external | Writes outside the Space through an explicit destination or system handoff; does not create a Space node or Derivation | Download, export file |
+| Effect          | Identity and persistence                                                                                               | Product surface                         |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| Inspect         | Reads current state; may create disposable cache files, never Space history or lineage                                 | Open, preview, search                   |
+| Edit existing   | Retains the target node, relation or Structure identity; commits a validated change with undo/history where supported  | Edit, adjust, annotate, arrange         |
+| Create primary  | Gives an independently authored or acquired resource a new identity, without `derives-from`                            | Add, import, capture                    |
+| Clone           | Gives a copy a new identity and preserves the copied state; it does not claim transformation provenance                | Duplicate                               |
+| Derive          | Creates one or more new ordinary resource nodes from pinned inputs; records a Derivation and `derives-from` relations  | Create from selection, generate, render |
+| Export external | Writes outside the Space through an explicit destination or system handoff; does not create a Space node or Derivation | Download, export file                   |
 
 An image or media transformation either edits its input node or publishes a separate resource; a
 command that does both must be split into separately named intents. A KnowledgeChangeSet may
@@ -235,18 +235,18 @@ processing is not automatically an edit, and AI processing is not automatically 
 
 The node-kind decision is explicit:
 
-| Kind | Edits the same identity | Creates a derivative when requested |
-| --- | --- | --- |
-| Note, text, Markdown | Body, title and tags | Summary, drafted document, visualization or other independently useful output |
-| Image | Crop, rotation, flip, tone, eraser recipe and comments | Background removal, upscale, new angle, separated layers or generated image |
-| Video | Edit project, title, tags and annotations | Rendered video, subtitle resource, burn-in output or generated clip |
-| Audio | Title, tags and corrected node-owned transcript/analysis | Separately published subtitle, transcript or document resource |
-| Subtitle | Language, cues and corrections | Burned-in video or a separately authored document |
-| Website | URL, captured metadata and annotations of that saved resource | Summary, document or visualization grounded in its captured revision |
-| File, code | Title, tags and other node metadata; an explicit source replacement changes its asset revision | Converted document, generated code or other new resource |
-| Knowledge object | Typed properties, status, title and evidence relations | A new knowledge resource only when the intent explicitly creates one |
-| Credential | Metadata and OS-vault secret reference | No credential derivative; generated artifacts may consume an authorized credential |
-| Portal | Target and presentation metadata | No content derivative; duplicate is a clone |
+| Kind                 | Edits the same identity                                                                        | Creates a derivative when requested                                                |
+| -------------------- | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Note, text, Markdown | Body, title and tags                                                                           | Summary, drafted document, visualization or other independently useful output      |
+| Image                | Crop, rotation, flip, tone, eraser recipe and comments                                         | Background removal, upscale, new angle, separated layers or generated image        |
+| Video                | Edit project, title, tags and annotations                                                      | Rendered video, subtitle resource, burn-in output or generated clip                |
+| Audio                | Title, tags and corrected node-owned transcript/analysis                                       | Separately published subtitle, transcript or document resource                     |
+| Subtitle             | Language, cues and corrections                                                                 | Burned-in video or a separately authored document                                  |
+| Website              | URL, captured metadata and annotations of that saved resource                                  | Summary, document or visualization grounded in its captured revision               |
+| File, code           | Title, tags and other node metadata; an explicit source replacement changes its asset revision | Converted document, generated code or other new resource                           |
+| Knowledge object     | Typed properties, status, title and evidence relations                                         | A new knowledge resource only when the intent explicitly creates one               |
+| Credential           | Metadata and OS-vault secret reference                                                         | No credential derivative; generated artifacts may consume an authorized credential |
+| Portal               | Target and presentation metadata                                                               | No content derivative; duplicate is a clone                                        |
 
 Groups and Sections are Structure entities rather than content nodes. Move, resize, reorder, lock,
 align, reparent, rename and dissolve mutate Structure. Saved Views mutate their own scene record;
@@ -273,14 +273,16 @@ Derivation inputs declare which revision basis they consume (`asset`, `rendered`
 `knowledge`) and persist that basis, the consumed revision and its edit/project snapshot. Rust
 validates the base revision when recording the input. The snapshot contains the edit/project
 parameters required to identify a rendered input. Source-current status compares the declared
-basis, never just the
-raw file revision. A newer source edit marks an older output as historical; it does not mutate or
+basis, never just the raw file revision. Source validation requires callers to name the consumed
+basis instead of guessing between knowledge and asset revisions. Image operations also compare
+their captured edit recipe before publishing. A newer source edit marks an older output as historical; it does not mutate or
 silently regenerate that output. Preview and external export consume the current rendered content
-and share its renderer. Unifying preview-cache keys with the persisted rendered revision remains
-an implementation task.
+and share its renderer.
 For example, background removal and upscale consume an image's `rendered` revision; analysis of
-untouched video frames consumes `asset`; subtitle burn-in consumes the video's chosen visual
-revision and the subtitle node's `knowledge` revision. A canvas move consumes none of these.
+untouched video frames consumes `asset`; subtitle burn-in consumes the video's asset
+revision and the subtitle node's `knowledge` revision. Presentation and video generation consume
+the document's `knowledge` revision and unedited image reference files by `asset` revision. A canvas
+move consumes none of these.
 
 Node content updates submit the complete expected persisted payload alongside the replacement.
 Rust compares them and commits the edit in one transaction; a stale editor fails visibly instead
@@ -294,9 +296,11 @@ only selects the correct intent and shows its availability.
 
 The input revision contract applies to new records in the current pre-release SQLite baseline;
 obsolete development databases and packages are rejected instead of being silently interpreted.
-Image and video rendering also recheck the edit/project while work is running. The remaining
-cross-capability work is to use the same rendered revision for preview caches and visual-knowledge
-jobs, then audit operation-specific writers that bypass general node content updates.
+Image and video rendering also recheck the edit/project while work is running. Image visual-
+knowledge jobs use the same rendered revision and Rust image renderer as image Derivations, so an
+edit invalidates stale jobs and the analysis sees displayed pixels. Operation-specific writers that
+bypass general node content updates still need an audit. Video generation completion reloads the current pending output in its write
+transaction and verifies the output path, preserving node metadata edits made during generation.
 
 ## Validation boundary
 

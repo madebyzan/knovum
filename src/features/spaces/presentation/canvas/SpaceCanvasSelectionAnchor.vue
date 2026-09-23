@@ -63,7 +63,7 @@ function clamp(value: number, minimum: number, maximum: number) {
       :class="[position ? 'visible' : 'invisible', align === 'start' ? '' : '-translate-x-1/2']"
       :style="position"
     >
-      <slot />
+      <slot :available-width="Math.max(0, hostSize.width.value - safeArea.left - safeArea.right)" />
     </div>
   </div>
 </template>

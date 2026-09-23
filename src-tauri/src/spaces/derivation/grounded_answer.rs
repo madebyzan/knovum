@@ -49,7 +49,14 @@ pub(super) async fn answer(
     let pool = crate::spaces::db::pool(app).await?;
     let mut tx = crate::spaces::db::begin_write(pool).await?;
     for input in &request.inputs {
-        super::source_validation::validate(&mut tx, &input.node_id, &input.source_revision).await?;
+        super::source_validation::validate(
+            &mut tx,
+            &request.space_id,
+            &input.node_id,
+            &input.source_revision,
+            super::inputs::RevisionBasis::Knowledge,
+        )
+        .await?;
     }
     tx.commit().await.map_err(crate::spaces::db::sql_error)?;
     let target = settings::resolve(

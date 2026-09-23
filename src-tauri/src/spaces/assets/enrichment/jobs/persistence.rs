@@ -99,10 +99,9 @@ pub(crate) async fn list_actionable(
              ) AS position \
            FROM spaces_enrichment_jobs WHERE space_id=$1 \
          ) \
-         SELECT r.id,r.space_id,r.node_id,r.job_type,r.status,r.source_revision,r.attempts,r.error,r.created_at,r.updated_at \
+         SELECT r.id,r.space_id,r.node_id,r.job_type,r.status,r.source_revision,r.attempts,r.error,r.created_at,r.updated_at,n.data \
          FROM ranked r JOIN spaces_nodes n ON n.space_id=r.space_id AND n.id=r.node_id AND n.deleted_at IS NULL \
          WHERE r.position=1 AND r.status IN ('pending','running','failed','awaiting_configuration') \
-           AND json_extract(n.data,'$.sourceRevision')=r.source_revision \
            AND (r.job_type!='analyze_video_cover' OR NULLIF(json_extract(n.data,'$.previewPath'),'') IS NOT NULL) \
          ORDER BY r.updated_at ASC",
     )
@@ -110,7 +109,20 @@ pub(crate) async fn list_actionable(
     .fetch_all(pool)
     .await
     .map_err(db::sql_error)?;
-    rows.into_iter().map(job_from_row).collect()
+    let mut actionable = Vec::new();
+    for row in rows {
+        let data: String = row.try_get("data").map_err(db::sql_error)?;
+        let data: serde_json::Value = serde_json::from_str(&data).map_err(db::json_error)?;
+        let kind: String = row.try_get("job_type").map_err(db::sql_error)?;
+        let kind: super::job::EnrichmentJobType =
+            serde_json::from_value(serde_json::Value::String(kind)).map_err(db::json_error)?;
+        let revision = super::revision::expected_revision(&data, kind)?;
+        let job_revision: String = row.try_get("source_revision").map_err(db::sql_error)?;
+        if revision.as_deref() == Some(job_revision.as_str()) {
+            actionable.push(job_from_row(row)?);
+        }
+    }
+    Ok(actionable)
 }
 
 fn job_from_row(row: sqlx::sqlite::SqliteRow) -> Result<EnrichmentJobRecord, String> {

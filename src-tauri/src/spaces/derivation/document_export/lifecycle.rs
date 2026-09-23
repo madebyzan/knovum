@@ -37,7 +37,14 @@ pub async fn prepare(
 ) -> Result<PreparedDocumentExport, String> {
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
-    source_validation::validate(&mut tx, &request.source_node_id, &request.source_revision).await?;
+    source_validation::validate(
+        &mut tx,
+        &request.space_id,
+        &request.source_node_id,
+        &request.source_revision,
+        inputs::RevisionBasis::Knowledge,
+    )
+    .await?;
     contracts::validate_same_space_node(
         &mut tx,
         &request.space_id,
@@ -123,7 +130,14 @@ pub async fn complete(
 ) -> Result<ExportDocumentOutput, String> {
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
-    source_validation::validate(&mut tx, &request.source_node_id, &request.source_revision).await?;
+    source_validation::validate(
+        &mut tx,
+        &request.space_id,
+        &request.source_node_id,
+        &request.source_revision,
+        inputs::RevisionBasis::Knowledge,
+    )
+    .await?;
     let encoded: String = sqlx::query_scalar(
         "SELECT data FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND kind='file'",
     )

@@ -8,4 +8,4 @@ pub use text::{
     EditorTransformAction, EditorTransformCommandRequest, EditorTransformRequest,
     TranslationCommandRequest, TranslationRequest,
 };
-pub use vision::ImageAnalysisRequest;
+pub use vision::{ImageAnalysisRequest, ImageAnalysisSource};

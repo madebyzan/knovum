@@ -85,11 +85,14 @@ export async function createPresentationFromDocument({ store, nodes, inputs }: C
 }
 
 function presentationInputsForPersistence(inputs: PresentationInputs) {
-  return [inputs.document, ...inputs.images].map((node, index) => ({
-    nodeId: node.id,
-    role: index === 0 ? "primary" : "source",
-    sourceRevision: node.data.knowledgeRevision ?? node.data.sourceRevision,
-  }));
+  return [
+    { nodeId: inputs.document.id, role: "primary", sourceRevision: inputs.document.data.knowledgeRevision },
+    ...inputs.images.map((image) => ({
+      nodeId: image.id,
+      role: "source",
+      sourceRevision: image.data.sourceRevision,
+    })),
+  ];
 }
 
 async function render(inputs: PresentationInputs): Promise<Uint8Array> {

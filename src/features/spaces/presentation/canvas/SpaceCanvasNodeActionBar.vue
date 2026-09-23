@@ -3,7 +3,6 @@ import {
   ArrowUpRight,
   Code2,
   Copy,
-  Download,
   ExternalLink,
   FileText,
   Focus,
@@ -15,7 +14,7 @@ import {
   Volume2,
 } from "@lucide/vue";
 import { ToolbarButton, ToolbarRoot } from "reka-ui";
-import { computed, type Component } from "vue";
+import { computed, toRef, useTemplateRef, type Component } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiSeparator from "../../../../shared/ui/UiSeparator.vue";
@@ -25,17 +24,27 @@ import type {
 } from "../../knowledge-derivations/catalog/creation-intent-definitions";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceNodeKind } from "../../model/nodes/node-payload";
+import { nodeActionLabelClass, nodeActionLabelState } from "./node-action-label";
 import SpaceCanvasSelectionMenu from "./SpaceCanvasSelectionMenu.vue";
 import SpaceCanvasTextFormatBar from "./SpaceCanvasTextFormatBar.vue";
+import SpaceNodeBarCommonActions from "./SpaceNodeBarCommonActions.vue";
 import type { useCanvasSelectionActions } from "./use-canvas-selection-actions";
+import { useNodeActionBarDensity } from "./use-node-action-bar-density";
 
 const props = defineProps<{
   actions: ReturnType<typeof useCanvasSelectionActions>;
   derivations: CreationIntentDecisions;
   node?: SpaceCanvasNode | undefined;
+  availableWidth: number;
 }>();
 const emit = defineEmits<{ invokeDerivation: [actionId: CreationIntentId] }>();
-const { t } = useI18n();
+const { t, locale } = useI18n();
+const bar = useTemplateRef<HTMLElement>("bar");
+const densityIdentity = computed(
+  () =>
+    `${locale.value}:${props.node?.data.kind}:${props.actions.state.value.canOpen}:${Boolean(props.actions.selectedVideoNode.value)}:${Boolean(props.actions.state.value.section)}`,
+);
+const { compact } = useNodeActionBarDensity(bar, toRef(props, "availableWidth"), densityIdentity);
 const commandClass =
   "inline-flex h-(--knovum-control-height-md) shrink-0 items-center gap-1.5 rounded-control px-2.5 text-label text-foreground-secondary outline-none transition-colors duration-100 hover:bg-control-hover hover:text-foreground focus-visible:ring-2 focus-visible:ring-focus-ring data-[state=open]:bg-control-hover";
 const openLabels = {
@@ -79,6 +88,13 @@ const primaryIcon = computed(() => {
   const kind = props.node?.data.kind;
   return kind && props.actions.state.value.canOpen ? openIcons[kind] : Info;
 });
+const showPrimary = computed(() => {
+  if (props.actions.state.value.section && props.actions.state.value.content.length) return true;
+  const kind = props.node?.data.kind;
+  return Boolean(
+    kind && props.actions.state.value.canOpen && openLabels[kind] !== "spaces.navigation.inspect",
+  );
+});
 const textKind = computed(() => {
   const kind = props.node?.data.kind;
   return kind === "note" || kind === "text" ? kind : undefined;
@@ -92,62 +108,72 @@ function runPrimaryAction() {
 </script>
 
 <template>
-  <ToolbarRoot
-    class="flex h-(--knovum-control-height-lg) w-max cursor-default items-center gap-0.5 rounded-panel border border-border-strong bg-overlay p-px shadow-control select-none"
-    orientation="horizontal"
-    :loop="false"
-    :aria-label="t('spaces.canvas.nodeActions.label')"
-  >
-    <ToolbarButton as-child>
-      <button
-        type="button"
-        :class="[commandClass, 'font-medium text-foreground']"
-        @click="runPrimaryAction"
-      >
-        <component :is="primaryIcon" class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
-        {{ primaryLabel }}
-      </button>
-    </ToolbarButton>
-    <UiSeparator v-if="actions.state.value.canOpen" orientation="vertical" class="mx-0.5 h-4" />
-    <ToolbarButton v-if="actions.state.value.canOpen" as-child>
-      <button type="button" :class="commandClass" @click="actions.inspect">
-        <Info class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
-        {{ t("spaces.navigation.inspect") }}
-      </button>
-    </ToolbarButton>
-    <SpaceCanvasTextFormatBar
-      v-if="textKind"
-      :kind="textKind"
-      v-bind="actions.selectedAppearance.value ? { appearance: actions.selectedAppearance.value } : {}"
-      @update="actions.setAppearance"
-    />
-    <ToolbarButton v-if="actions.selectedVideoNode.value" as-child>
-      <button type="button" :class="commandClass" @click="actions.editVideo">
-        <Scissors class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
-        {{ t("spaces.media.editVideo") }}
-      </button>
-    </ToolbarButton>
-    <UiSeparator orientation="vertical" class="mx-0.5 h-4" />
-    <ToolbarButton as-child>
-      <button type="button" :class="commandClass" @click="actions.duplicate">
-        <Copy class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
-        {{ t("spaces.navigation.duplicateSelection") }}
-      </button>
-    </ToolbarButton>
-    <SpaceCanvasSelectionMenu
-      :actions="actions"
-      :derivations="derivations"
-      node-bar
-      duplicate-in-bar
-      @invoke-derivation="emit('invokeDerivation', $event)"
-    />
-    <div class="flex h-full items-center border-l border-divider pl-0.5">
-      <ToolbarButton as-child>
-        <button type="button" :class="[commandClass, 'font-medium text-foreground']" @click="actions.download">
-          <Download class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
-          {{ t("spaces.canvas.nodeActions.download") }}
+  <div ref="bar" class="w-max" :style="{ maxWidth: `${availableWidth}px` }">
+    <ToolbarRoot
+      class="flex h-(--knovum-control-height-lg) w-max max-w-full cursor-default items-center gap-0.5 overflow-x-auto rounded-panel border border-border-strong bg-overlay p-px shadow-control select-none"
+      orientation="horizontal"
+      :loop="false"
+      :aria-label="t('spaces.canvas.nodeActions.label')"
+    >
+      <ToolbarButton v-if="showPrimary" as-child>
+        <button
+          type="button"
+          :class="[commandClass, 'font-medium text-foreground']"
+          :aria-label="primaryLabel"
+          :title="compact ? primaryLabel : undefined"
+          @click="runPrimaryAction"
+        >
+          <component :is="primaryIcon" class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
+          <span :class="[nodeActionLabelClass, nodeActionLabelState(compact)]">{{ primaryLabel }}</span>
         </button>
       </ToolbarButton>
-    </div>
-  </ToolbarRoot>
+      <SpaceCanvasTextFormatBar
+        v-if="textKind"
+        :kind="textKind"
+        v-bind="actions.selectedAppearance.value ? { appearance: actions.selectedAppearance.value } : {}"
+        @update="actions.setAppearance"
+      />
+      <ToolbarButton v-if="actions.selectedVideoNode.value" as-child>
+        <button
+          type="button"
+          :class="commandClass"
+          :aria-label="t('spaces.media.editVideo')"
+          :title="compact ? t('spaces.media.editVideo') : undefined"
+          @click="actions.editVideo"
+        >
+          <Scissors class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
+          <span :class="[nodeActionLabelClass, nodeActionLabelState(compact)]">{{
+            t("spaces.media.editVideo")
+          }}</span>
+        </button>
+      </ToolbarButton>
+      <UiSeparator
+        v-if="showPrimary || textKind || actions.selectedVideoNode.value"
+        orientation="vertical"
+        class="mx-0.5 h-4"
+      />
+      <ToolbarButton as-child>
+        <button
+          type="button"
+          :class="commandClass"
+          :aria-label="t('spaces.navigation.duplicateSelection')"
+          :title="compact ? t('spaces.navigation.duplicateSelection') : undefined"
+          @click="actions.duplicate"
+        >
+          <Copy class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
+          <span :class="[nodeActionLabelClass, nodeActionLabelState(compact)]">{{
+            t("spaces.navigation.duplicateSelection")
+          }}</span>
+        </button>
+      </ToolbarButton>
+      <SpaceCanvasSelectionMenu
+        :actions="actions"
+        :derivations="derivations"
+        node-bar
+        duplicate-in-bar
+        @invoke-derivation="emit('invokeDerivation', $event)"
+      />
+      <SpaceNodeBarCommonActions @inspect="actions.inspect" @download="actions.download" />
+    </ToolbarRoot>
+  </div>
 </template>

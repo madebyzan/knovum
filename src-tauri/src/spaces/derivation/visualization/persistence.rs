@@ -31,7 +31,14 @@ pub async fn start(
             &request.output_node_id,
         )
         .await?;
-        source_validation::validate(&mut tx, &input.node_id, &input.source_revision).await?;
+        source_validation::validate(
+            &mut tx,
+            &request.space_id,
+            &input.node_id,
+            &input.source_revision,
+            inputs::RevisionBasis::Knowledge,
+        )
+        .await?;
     }
     let output: String = sqlx::query_scalar("SELECT data FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND kind='image' AND deleted_at IS NULL")
         .bind(&request.output_node_id).bind(&request.space_id).fetch_optional(&mut *tx).await.map_err(db::sql_error)?
@@ -74,7 +81,14 @@ pub async fn complete(
     let encoded: String = sqlx::query_scalar("SELECT n.data FROM spaces_knowledge_derivations d JOIN spaces_nodes n ON n.id=d.output_node_id WHERE d.id=$1 AND d.status='running'")
         .bind(&request.id).fetch_optional(&mut *tx).await.map_err(db::sql_error)?.ok_or("Visualization is no longer running")?;
     for input in &request.inputs {
-        source_validation::validate(&mut tx, &input.node_id, &input.source_revision).await?;
+        source_validation::validate(
+            &mut tx,
+            &request.space_id,
+            &input.node_id,
+            &input.source_revision,
+            inputs::RevisionBasis::Knowledge,
+        )
+        .await?;
     }
     let mut data: Value = serde_json::from_str(&encoded).map_err(db::json_error)?;
     let path = data
