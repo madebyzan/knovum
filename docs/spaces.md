@@ -205,7 +205,7 @@ Audio/video knowledge is a first-class Space record. Analysis accepts only Knovu
 
 ## Sensitive information
 
-A Sensitive Information card is either an API Key or an Account & password record. SQLite stores only non-secret metadata (`title`, `credentialKind`, `credentialConfigured`). Secret values live exclusively in the OS credential store. The card never exposes the value in its collapsed state, duplication does not copy a secret, and permanent Space deletion cleans the corresponding credential entries.
+A Sensitive Information card is either an API Key or an Account & password record. Spaces SQLite stores only non-secret metadata (`title`, `credentialKind`, `credentialConfigured`). Secret values live exclusively in the separate local credential database. The card never exposes the value in its collapsed state, duplication does not copy a secret, and permanent Space deletion cleans the corresponding credential entries.
 
 ## Import, preview/edit and export matrix
 

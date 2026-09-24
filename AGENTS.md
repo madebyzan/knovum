@@ -20,7 +20,7 @@ Before adding a non-trivial capability or custom subsystem, follow `docs/oss-fir
 ## Vue, data, and security
 
 - Use Vue 3 Composition API with `<script setup lang="ts">`. Keep visual state local, cross-view session state in Pinia, and remote/async cache in TanStack Vue Query.
-- Persist non-secret preferences in the strict current v1 Tauri Store envelope. The last workspace route is a disposable localStorage session value. Feature structured data uses feature-owned SQLite v1 baselines, one per database before first public release; do not create a global `DatabaseService`. Credentials and tokens use the OS credential store through foundation secret commands; never put them in Pinia persistence, localStorage, SQLite, logs, or query cache.
+- Persist non-secret preferences in the strict current v1 Tauri Store envelope. The last workspace route is a disposable localStorage session value. Feature structured data uses feature-owned SQLite v1 baselines, one per database before first public release; do not create a global `DatabaseService`. Product credentials and tokens use the dedicated `secrets.db` database through foundation secret commands; never put them in Pinia persistence, localStorage, feature data tables, logs, or query cache. This database is not application-encrypted; a copy exposes its credentials.
 - Validate user input and disk, network, IPC, and external-file boundaries. Static data owned and typed by this repository does not need defensive runtime checks.
 - Required infrastructure fails visibly. Handle expected cancel, permission denial, unavailable-shortcut, and malformed-input outcomes. Reject or explicitly reset obsolete pre-release data; do not silently reinterpret it or add compatibility readers, migrations, or generic fallback layers.
 
@@ -30,7 +30,7 @@ For UI work, use `docs/ui-system.md` and its token source, `src/styles/tokens.cs
 
 - macOS is Dock-first with the native Application Menu. Windows uses Taskbar + Tray and has no legacy File/Edit menu bar by default.
 - Preserve native window controls: macOS may use the documented overlay titlebar/material profile, while Windows keeps the native caption. Replacing traffic lights or caption buttons with HTML controls requires an ADR.
-- Use OS-native dialogs, notifications, credential stores, menus, taskbar/Dock progress, and shortcuts when Tauri exposes them. Scope Shell, filesystem, HTTP, WebSocket, updater, and custom-command permissions to the feature's needs. A new window needs a use case, lifecycle, routing/context model, and dedicated capability scope.
+- Use OS-native dialogs, notifications, menus, taskbar/Dock progress, and shortcuts when Tauri exposes them. Scope Shell, filesystem, HTTP, WebSocket, updater, and custom-command permissions to the feature's needs. A new window needs a use case, lifecycle, routing/context model, and dedicated capability scope.
 - The main window starts hidden. Reveal it only after bootstrap reaches a usable state or the recoverable bootstrap-error state. Launch feedback belongs to the Dock/taskbar; do not add a splash WebView.
 - `AppCommand` is the command-palette and application-local shortcut contract; features do not add global `keydown` listeners for those commands. Long Rust jobs use Tauri Channels and the shared Task Center bridge; the starting feature/engine owns cancellation. Extend that bridge only for concrete cross-feature needs.
 

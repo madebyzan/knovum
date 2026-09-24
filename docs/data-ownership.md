@@ -124,8 +124,8 @@ data must be backed up before any explicit development-data reset.
 
 ## Cross-resource cleanup
 
-SQLite cannot atomically commit filesystem or Keychain side effects.
+Separate SQLite databases and filesystem changes cannot commit atomically together.
 
 Permanent Space deletion therefore treats the committed database mutation as authoritative and performs returned managed-file cleanup afterward. Cleanup failures are reported/logged as cleanup failures rather than pretending that the database transaction rolled back.
 
-Credential deletion keeps an explicit read-backup/restore compensation path because a Keychain secret can be restored if the following database deletion fails.
+Credential deletion keeps an explicit read-backup/restore compensation path because the credential database and Spaces database have separate transactions.

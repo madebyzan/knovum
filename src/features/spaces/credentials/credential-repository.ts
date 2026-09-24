@@ -23,7 +23,7 @@ export async function deleteSpaceCredential(nodeId: string): Promise<void> {
 
 export async function deleteSpaceCredentials(nodeIds: readonly string[]): Promise<void> {
   for (const nodeId of nodeIds) {
-    // Vault cleanup is ordered so a failure cannot silently skip over an undeleted credential.
+    // Stop at the first deletion failure so credential cleanup cannot be reported as complete.
     // oxlint-disable-next-line no-await-in-loop
     await deleteSpaceCredential(nodeId);
   }

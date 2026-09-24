@@ -109,7 +109,7 @@
   "imageCredentialUnavailable": "The image model credential could not be read",
   "layerKeyMissing": "Layer splitting requires a fal API key",
   "layerPromptRequired": "Describe what should be separated first",
-  "secretVaultUnavailable": "The system credential store is temporarily unavailable",
+  "secretDatabaseUnavailable": "The local credential database is unavailable",
   "capabilityFailed": "Could not check whether this action is available",
   "actionBusy": "An operation is in progress",
   "openAiSettings": "Open AI settings",

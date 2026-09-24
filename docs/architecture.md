@@ -199,7 +199,7 @@ Rename-only wrappers are rejected. `readClipboardText()` around Tauri `readText(
 - durable non-secret preferences: Tauri Store through the strict current v1 preferences schema;
 - structured local product data/indexes: feature-owned SQLite; before the first public release each
   database has one current SQLx v1 baseline and no compatibility migration chain;
-- credentials/tokens/secrets: foundation keyring commands backed by OS credential stores;
+- credentials/tokens/secrets: foundation commands backed by the dedicated local `secrets.db`;
 - long Rust work: feature-owned Rust implementation streamed to the shared Task Center through Tauri Channels.
 
 Do not mirror the same state across several stores without an explicit synchronization design.
@@ -334,7 +334,7 @@ No source path alias is configured. Relative paths intentionally expose ownershi
 
 ## Persistence split
 
-Preferences use a strict v1 Tauri Store envelope. Before first public release, only the current v1 schema is accepted; incompatible development data is reset explicitly instead of carrying compatibility readers or migration chains. The same rule applies to other internal Store/package/protocol envelopes. The first public release must explicitly replace this development policy with a production migration policy if persisted compatibility becomes a supported product contract. The non-sensitive last-workspace route is a single WebView `localStorage` string so optional session restore cannot make the Store file a bootstrap dependency. Feature structured data belongs to feature-owned SQLite schemas. Secrets belong only in the OS credential store.
+Preferences use a strict v1 Tauri Store envelope. Before first public release, only the current v1 schema is accepted; incompatible development data is reset explicitly instead of carrying compatibility readers or migration chains. The same rule applies to other internal Store/package/protocol envelopes. The first public release must explicitly replace this development policy with a production migration policy if persisted compatibility becomes a supported product contract. The non-sensitive last-workspace route is a single WebView `localStorage` string so optional session restore cannot make the Store file a bootstrap dependency. Feature structured data belongs to feature-owned SQLite schemas. Credentials belong only in the foundation-owned `secrets.db`.
 
 ## Runtime architecture
 
@@ -349,7 +349,7 @@ owned by the crate-level `external_agents/` boundary and are not `AiProvider` im
 fallbacks. SpaceAction execution requirements resolve independently to a model, deterministic
 processor or explicitly delegated external session. Rust catalogs project Provider, External Agent,
 SpaceAction and Workflow definitions to the Renderer. Secret values are persisted only through
-`foundation/secrets/` and the OS credential store.
+`foundation/secrets/` and its dedicated local credential database.
 
 Image processing, media processing, AI execution and storage are Rust or foundation engines consumed by
 Spaces capabilities. They are not independent Renderer products. Each engine exposes only the commands and

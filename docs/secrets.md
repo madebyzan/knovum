@@ -1,10 +1,10 @@
 # Secrets and credentials
 
-Never put npm tokens, Git credentials, AI API keys or other secrets in Pinia, Tauri Store, localStorage or ordinary SQLite columns.
+Never put npm tokens, Git credentials, AI API keys or other secrets in Pinia, Tauri Store, localStorage or feature data tables. Store product credentials only in the dedicated `secrets.db` database through the secret commands.
 
-Knovum stores product secrets in one encrypted vault. The maintained Rust `keyring` crate holds only its unlock key, using macOS Keychain Services or Windows Credential Manager. Rust loads that key at most once per process and keeps the unlocked vault in memory for the session. The WebView reaches secrets only through the scoped `plugin:secrets` get, set and delete commands; it never receives a generic credential-store capability.
+Knovum stores product credentials as ordinary values in the foundation-owned `secrets.db` SQLite database under the application's configuration directory. The database is protected by the user's local account and disk security, not by application encryption. On Unix the database file is restricted to its owner. A copy of the database exposes its credentials; do not describe this as encrypted storage. The WebView reaches credentials only through the scoped `plugin:secrets` get, set and delete commands; it never receives raw SQL access to this database.
 
-`foundation/secrets/secret-store.ts` is intentionally a domain boundary rather than a rename-only vendor wrapper: it is the only guest entry point to the product-owned Rust commands and preserves one key namespace/security policy.
+`foundation/secrets/secret-store.ts` is the only guest entry point to the product-owned Rust commands and preserves one key namespace and validation policy.
 
 Rules:
 
@@ -16,10 +16,10 @@ Rules:
 
 ## Spaces sensitive-information nodes
 
-Spaces supports two credential node types: **API Key** and **Account & password**. Their SQLite node payload contains only the title, credential type and a configured-status flag. The API key, username and password are serialized only into the encrypted vault under a key derived from the node UUID.
+Spaces supports two credential node types: **API Key** and **Account & password**. Their Spaces database node payload contains only the title, credential type and a configured-status flag. The API key, username and password are serialized into `secrets.db` under a key derived from the node UUID.
 
-The editor loads plaintext only while the credential dialog is open and clears those Vue refs when it closes. Clipboard/duplicate operations copy only the non-secret node metadata and reset the configured flag, so duplicating a card never duplicates its secret. Search/FTS indexes the title only. A normal node delete is a soft delete so undo can restore the node; its vault entry is therefore retained until the credential is explicitly cleared or the Space is permanently deleted. Permanent Space deletion removes the vault entries first and restores backups if either credential cleanup or database deletion fails, preventing a half-deleted Space from silently losing credentials.
+The editor reads `secrets.db` whenever the credential dialog opens; the node's configured flag is metadata, not the authority for whether a value exists. It clears plaintext Vue refs when the dialog closes. Clipboard/duplicate operations copy only the non-secret node metadata and reset the configured flag, so duplicating a card never duplicates its secret. Search/FTS indexes the title only. A normal node delete is a soft delete so undo can restore the node; its credential database entry is retained until the credential is explicitly cleared or the Space is permanently deleted. Permanent Space deletion removes the credential entries first and restores backups if either credential cleanup or Space database deletion fails, preventing a half-deleted Space from silently losing credentials.
 
 Credential nodes must never gain `text`, `plainText`, `document`, URL or asset fields as an alternate persistence route. The item schema rejects those combinations.
 
-Capability checks that need a credential run when the user opens the relevant action, not when a canvas node or toolbar mounts. They do not retry or refresh on window focus: an OS authorization dialog itself changes focus and must not trigger another vault read. macOS development and release executables require a stable code-signing identity. The development launcher signs every rebuilt executable before launch; an unsigned or ad-hoc identity would change Keychain authorization across builds. Do not weaken Keychain access controls or duplicate the unlock key outside the OS credential store.
+Capability checks that need a credential run when the user opens the relevant action, not when a canvas node or toolbar mounts. Credential database reads require no OS authorization dialog. The former Keychain-backed `secrets.vault` is not read or migrated by the new contract; users must re-enter credentials. Do not silently import obsolete credentials or delete the old file as a side effect of opening the new database.

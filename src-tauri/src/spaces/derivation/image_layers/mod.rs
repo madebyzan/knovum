@@ -11,15 +11,15 @@ use tauri::{ipc::Channel, AppHandle};
 use super::CompletedDerivationOutput;
 pub use contracts::{CreateImageLayersRequest, ImageLayerCapability};
 
-pub(crate) fn capability() -> ImageLayerCapability {
+pub(crate) async fn capability() -> ImageLayerCapability {
     use contracts::ImageLayerBlockReason;
-    match crate::secrets::read_secret(contracts::FAL_SECRET_KEY) {
+    match crate::secrets::read_secret(contracts::FAL_SECRET_KEY).await {
         Ok(Some(secret)) if !secret.trim().is_empty() => ImageLayerCapability::Ready,
         Ok(_) => ImageLayerCapability::Blocked {
             reason: ImageLayerBlockReason::MissingCredential,
         },
         Err(_) => ImageLayerCapability::Blocked {
-            reason: ImageLayerBlockReason::SecretVaultUnavailable,
+            reason: ImageLayerBlockReason::SecretDatabaseUnavailable,
         },
     }
 }
@@ -30,7 +30,7 @@ pub async fn create(
     on_stage: Channel<String>,
 ) -> Result<Vec<CompletedDerivationOutput>, String> {
     contracts::validate(&request)?;
-    let api_key = require_api_key()?;
+    let api_key = require_api_key().await?;
     let (cancellation, _lease) = registry::acquire(&request.id)?;
     persistence::start(&app, &request).await?;
     let source_data_uri = match source::data_uri(&app, &request).await {
@@ -70,8 +70,9 @@ pub fn cancel(id: &str) -> Result<(), String> {
     registry::cancel(id)
 }
 
-fn require_api_key() -> Result<String, String> {
-    crate::secrets::read_secret(contracts::FAL_SECRET_KEY)?
+async fn require_api_key() -> Result<String, String> {
+    crate::secrets::read_secret(contracts::FAL_SECRET_KEY)
+        .await?
         .filter(|secret| !secret.trim().is_empty())
         .ok_or_else(|| "Image layer API credential is missing".into())
 }

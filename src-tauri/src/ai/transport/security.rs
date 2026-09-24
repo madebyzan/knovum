@@ -13,7 +13,7 @@ pub struct SecurityContext {
 }
 
 impl SecurityContext {
-    pub fn from_target(target: &ExecutionTarget) -> AiResult<Self> {
+    pub async fn from_target(target: &ExecutionTarget) -> AiResult<Self> {
         let ExecutionTarget {
             provider,
             model,
@@ -26,7 +26,7 @@ impl SecurityContext {
             return Err(AiError::not_configured("AI model is not configured."));
         }
         let endpoint = normalize_endpoint(base_url)?;
-        let api_key = resolve_secret(provider, secret_key)?;
+        let api_key = resolve_secret(provider, secret_key).await?;
         Ok(Self {
             provider: provider.clone(),
             model: model.to_string(),
@@ -56,13 +56,14 @@ fn normalize_endpoint(base_url: &str) -> AiResult<String> {
     Ok(trimmed.to_string())
 }
 
-fn resolve_secret(provider: &str, secret_key: &str) -> AiResult<Option<String>> {
+async fn resolve_secret(provider: &str, secret_key: &str) -> AiResult<Option<String>> {
     let key_name = secret_key.trim();
     let is_local = provider == "ollama";
     if is_local && key_name.is_empty() {
         return Ok(None);
     }
     let secret = crate::secrets::read_secret(key_name)
+        .await
         .map_err(|err| AiError::new(AiErrorCode::ProviderRequestFailed, err.to_string()))?;
     match secret.filter(|v| !v.trim().is_empty()) {
         Some(val) => Ok(Some(val)),

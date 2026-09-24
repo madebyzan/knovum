@@ -11,7 +11,7 @@ const reasonKeys: Record<ImageActionReason, string> = {
   finish_image_edit: "spaces.media.finishImageEdit",
   capability_failed: "spaces.media.capabilityFailed",
   missing_credential: "spaces.media.layerKeyMissing",
-  secret_vault_unavailable: "spaces.media.secretVaultUnavailable",
+  secret_database_unavailable: "spaces.media.secretDatabaseUnavailable",
   configuration_incomplete: "spaces.media.imageModelUnavailable",
   provider_unsupported: "spaces.media.imageProviderUnsupported",
   credential_unavailable: "spaces.media.imageCredentialUnavailable",
@@ -20,11 +20,15 @@ const reasonKeys: Record<ImageActionReason, string> = {
   prompt_required: "spaces.media.layerPromptRequired",
 };
 
-export function imageActionHelp(availability: ImageActionAvailability, t: Translate): ImageActionHelp | undefined {
+export function imageActionHelp(
+  availability: ImageActionAvailability,
+  t: Translate,
+): ImageActionHelp | undefined {
   if (availability.state === "ready" || availability.state === "hidden") return undefined;
   if (availability.state === "checking") return { label: t("spaces.media.capabilityChecking") };
   if (availability.state === "busy") return { label: t("spaces.media.actionBusy") };
-  const setup = availability.reason === "missing_credential" ||
+  const setup =
+    availability.reason === "missing_credential" ||
     availability.reason === "configuration_incomplete" ||
     availability.reason === "provider_unsupported";
   return {

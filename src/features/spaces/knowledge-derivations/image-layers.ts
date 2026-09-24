@@ -16,7 +16,7 @@ import { runDerivation } from "./run-derivation";
 type SpaceStore = ReturnType<typeof useSpaceStore>;
 export type LayerCapability =
   | { state: "ready" }
-  | { state: "blocked"; reason: "missing_credential" | "secret_vault_unavailable" };
+  | { state: "blocked"; reason: "missing_credential" | "secret_database_unavailable" };
 interface LayerOutput {
   nodeId: string;
   data: SpaceImagePayload;
@@ -68,7 +68,8 @@ export async function createImageLayers(
       const onStage = new Channel<string>();
       if (taskId) {
         const tasks = useTaskStore();
-        onStage.onmessage = (stage) => tasks.detail(taskId, i18n.global.t(`spaces.media.layerStage.${stage}`));
+        onStage.onmessage = (stage) =>
+          tasks.detail(taskId, i18n.global.t(`spaces.media.layerStage.${stage}`));
       }
       return invoke<LayerOutput[]>("plugin:spaces|create_image_layers", {
         request: {
@@ -91,7 +92,10 @@ export async function createImageLayers(
     onError: async () => {
       for (const node of pending)
         if (node.data.kind === "image")
-          await store.saveNodeDataForSpace(spaceId, node.id, node.data, { ...node.data, processingState: "failed" });
+          await store.saveNodeDataForSpace(spaceId, node.id, node.data, {
+            ...node.data,
+            processingState: "failed",
+          });
       await store.refreshActiveSpace();
     },
   });

@@ -109,7 +109,7 @@
   "imageCredentialUnavailable": "无法读取图片模型的凭证",
   "layerKeyMissing": "图层拆分需要配置 fal 密钥",
   "layerPromptRequired": "请先描述需要拆分的内容",
-  "secretVaultUnavailable": "系统凭证存储暂时不可用",
+  "secretDatabaseUnavailable": "本地凭据数据库不可用",
   "capabilityFailed": "无法检查操作是否可用",
   "actionBusy": "操作正在进行中",
   "openAiSettings": "前往 AI 设置",

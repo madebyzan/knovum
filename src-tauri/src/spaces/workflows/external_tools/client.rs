@@ -23,7 +23,7 @@ pub(super) async fn discover(
     let endpoint = validate_endpoint(endpoint).await?;
     let transport = StreamableHttpClientTransport::with_client(
         endpoint.client,
-        config(&endpoint.url, secret_key)?,
+        config(&endpoint.url, secret_key).await?,
     );
     let service = tokio::time::timeout(
         Duration::from_secs(15),
@@ -64,7 +64,7 @@ pub(super) async fn call(
     let endpoint = validate_endpoint(endpoint).await?;
     let transport = StreamableHttpClientTransport::with_client(
         endpoint.client,
-        config(&endpoint.url, secret_key)?,
+        config(&endpoint.url, secret_key).await?,
     );
     let service = tokio::time::timeout(
         Duration::from_secs(15),
@@ -88,14 +88,15 @@ pub(super) async fn call(
     serde_json::to_value(result).map_err(crate::spaces::db::json_error)
 }
 
-fn config(
+async fn config(
     endpoint: &str,
     secret_key: Option<&str>,
 ) -> Result<StreamableHttpClientTransportConfig, String> {
     let mut config = StreamableHttpClientTransportConfig::with_uri(endpoint.to_owned())
         .max_sse_event_size(MAX_RESULT_BYTES);
     if let Some(key) = secret_key.filter(|key| !key.trim().is_empty()) {
-        let token = crate::secrets::read_secret(key)?
+        let token = crate::secrets::read_secret(key)
+            .await?
             .ok_or("external-tool-credential-missing: configured credential is unavailable")?;
         config = config.auth_header(token);
     }

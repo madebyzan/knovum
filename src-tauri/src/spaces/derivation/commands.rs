@@ -7,8 +7,8 @@ use super::{
 };
 
 #[tauri::command]
-pub fn get_image_layer_capability() -> image_layers::ImageLayerCapability {
-    image_layers::capability()
+pub async fn get_image_layer_capability() -> image_layers::ImageLayerCapability {
+    image_layers::capability().await
 }
 
 #[tauri::command]
@@ -26,10 +26,10 @@ pub fn cancel_image_layers(id: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn get_image_operation_capabilities(
+pub async fn get_image_operation_capabilities(
     app: AppHandle,
 ) -> image_operations::ImageOperationCapabilities {
-    image_operations::capabilities(&app)
+    image_operations::capabilities(&app).await
 }
 
 #[tauri::command]
