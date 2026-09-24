@@ -71,7 +71,7 @@ const commandClass =
   </ToolbarRoot>
   <div v-else ref="bar" class="w-max" :style="{ maxWidth: `${availableWidth}px` }">
     <ToolbarRoot
-      class="flex h-(--knovum-control-height-lg) w-max max-w-full cursor-default items-center gap-0.5 overflow-x-auto rounded-panel border border-border-strong bg-overlay p-px shadow-control select-none"
+      class="flex h-(--knovum-control-height-lg) w-max max-w-full cursor-default items-center gap-0.5 overflow-clip rounded-panel border border-border-strong bg-overlay p-px shadow-control select-none"
       orientation="horizontal"
       :loop="false"
       :aria-label="t('spaces.canvas.nodeActions.label')"
