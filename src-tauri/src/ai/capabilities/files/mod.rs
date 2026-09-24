@@ -50,7 +50,7 @@ pub async fn upload_file_bytes(
         .as_file_upload()
         .ok_or_else(|| AiError::capability_not_supported(target.provider(), "file upload"))?;
 
-    let ctx = SecurityContext::from_target(target)?;
+    let ctx = SecurityContext::from_target(target).await?;
     uploader
         .upload_ephemeral_file(&ctx, bytes, mime_type, file_name)
         .await

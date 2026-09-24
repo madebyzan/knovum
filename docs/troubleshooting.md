@@ -33,7 +33,7 @@ Do not grant a broad default capability. Define the exact paths/origins/commands
 
 ## Browser preview behaves differently from desktop
 
-Browser-only runtime is not supported. Use `pnpm desktop:dev` so Tauri IPC, window APIs, system locale, capabilities, credential store and lifecycle behavior are present.
+Browser-only runtime is not supported. Use `pnpm desktop:dev` so Tauri IPC, window APIs, system locale, capabilities, local credential database and lifecycle behavior are present.
 
 ## A development database uses an obsolete baseline
 

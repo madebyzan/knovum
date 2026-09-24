@@ -18,7 +18,7 @@ use crate::{
     spaces::derivation::CompletedDerivationOutput,
 };
 
-pub fn capabilities(app: &AppHandle) -> ImageOperationCapabilities {
+pub async fn capabilities(app: &AppHandle) -> ImageOperationCapabilities {
     use contracts::{ImageOperationBlockReason as Reason, ImageOperationCapability as Capability};
     let configured = match resolve_target(app) {
         Err(_) => Capability::Blocked {
@@ -27,7 +27,7 @@ pub fn capabilities(app: &AppHandle) -> ImageOperationCapabilities {
         Ok(target) if target.provider() != "qwen" => Capability::Blocked {
             reason: Reason::ProviderUnsupported,
         },
-        Ok(target) => match crate::ai::transport::SecurityContext::from_target(&target) {
+        Ok(target) => match crate::ai::transport::SecurityContext::from_target(&target).await {
             Ok(_) => Capability::Ready,
             Err(error) if error.code == crate::ai::error::AiErrorCode::NotConfigured => {
                 Capability::Blocked {
@@ -64,10 +64,11 @@ pub async fn create(
     if let Err(error) = super::stage(&stages, "renderingSource") {
         return fail_running(&app, &request, error).await;
     }
-    let source_path = match super::source_snapshot::image_path(&app, &request.id, &request.source_edit).await {
-        Ok(value) => value,
-        Err(error) => return fail_running(&app, &request, error).await,
-    };
+    let source_path =
+        match super::source_snapshot::image_path(&app, &request.id, &request.source_edit).await {
+            Ok(value) => value,
+            Err(error) => return fail_running(&app, &request, error).await,
+        };
     let rendered = crate::blocking::run({
         let render_app = app.clone();
         let source_edit = request.source_edit.clone();

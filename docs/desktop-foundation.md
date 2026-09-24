@@ -63,7 +63,7 @@ Only the `main` window is authorized today. A multi-window feature must define i
 
 ## Networking and processes
 
-- AI provider traffic is owned by the Rust `ai` module through `genai`; the WebView passes a resolved execution target plus a stable Keyring identifier, never the secret value.
+- AI provider traffic is owned by the Rust `ai` module through `genai`; the WebView passes a resolved execution target plus a stable credential identifier, never the secret value.
 - Translation and editor AI reuse the shared model-provider runtime.
 - WebSocket and Shell plugins are not registered until a concrete feature requires them.
 

@@ -30,7 +30,7 @@ pub async fn generate(
         AiError::capability_not_supported(request.target.provider(), "image generation")
     })?;
 
-    let ctx = SecurityContext::from_target(&request.target)?;
+    let ctx = SecurityContext::from_target(&request.target).await?;
     let req = ImageGenerationInput {
         prompt: request.prompt,
         aspect_ratio: request.aspect_ratio,

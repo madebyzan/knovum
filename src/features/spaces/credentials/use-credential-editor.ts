@@ -60,14 +60,12 @@ export function useCredentialEditor(options: CredentialEditorOptions) {
     clearDraft();
     title.value = options.data.title;
     open.value = true;
-    if (!options.data.credentialConfigured) return;
     loading.value = true;
     try {
       const stored = await loadSpaceCredential(options.id);
       if (currentRequest !== request) return;
-      if (!stored) throw new Error("Stored credential is unavailable");
       applyStoredCredential(stored);
-      loaded.value = true;
+      loaded.value = Boolean(stored);
     } catch (error) {
       if (currentRequest !== request) return;
       open.value = false;

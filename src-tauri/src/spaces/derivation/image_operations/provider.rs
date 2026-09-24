@@ -19,13 +19,17 @@ pub async fn execute(
             target.provider()
         ));
     }
-    let ctx = SecurityContext::from_target(target).map_err(|error| error.to_string())?;
+    let ctx = SecurityContext::from_target(target)
+        .await
+        .map_err(|error| error.to_string())?;
     let bytes = match operation {
         ImageOperation::Upscale { target_long_edge } => {
             upscale(&ctx, source, *target_long_edge, cancellation).await?
         }
         ImageOperation::MultiAngle { .. } => {
-            let prompt = operation.view_prompt().ok_or("Image view prompt is unavailable")?;
+            let prompt = operation
+                .view_prompt()
+                .ok_or("Image view prompt is unavailable")?;
             execute_image_operation(
                 &ctx,
                 SourceImageOperation::View {

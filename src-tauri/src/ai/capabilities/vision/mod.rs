@@ -25,7 +25,7 @@ pub async fn analyze_image(
     cancellation: &CancellationToken,
 ) -> AiResult<CompletionOutput> {
     validate(&request)?;
-    let ctx = SecurityContext::from_target(&request.target)?;
+    let ctx = SecurityContext::from_target(&request.target).await?;
     let target = service_target(&ctx, request.target.model_provider_kind()?)?;
 
     let image = match &request.source {

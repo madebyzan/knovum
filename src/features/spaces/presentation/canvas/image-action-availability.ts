@@ -7,7 +7,7 @@ export type ImageActionReason =
   | "finish_image_edit"
   | "capability_failed"
   | "missing_credential"
-  | "secret_vault_unavailable"
+  | "secret_database_unavailable"
   | "configuration_incomplete"
   | "provider_unsupported"
   | "credential_unavailable"

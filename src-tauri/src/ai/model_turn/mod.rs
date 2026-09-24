@@ -23,7 +23,7 @@ pub async fn execute(
     target: &ExecutionTarget,
     request: &ModelTurnRequest,
 ) -> AiResult<ModelTurnResponse> {
-    let context = SecurityContext::from_target(target)?;
+    let context = SecurityContext::from_target(target).await?;
     let capability = adapter(target.model_provider_kind()?)?;
     let response = capability.execute_turn(&context, request).await?;
     crate::ai::usage::record_turn(request.purpose, &response).await?;
@@ -35,7 +35,7 @@ pub async fn stream_text(
     request: &ModelTurnRequest,
     cancellation: CancellationToken,
 ) -> AiResult<crate::ai::contracts::StreamFrameStream> {
-    let context = SecurityContext::from_target(target)?;
+    let context = SecurityContext::from_target(target).await?;
     let adapter = adapter_kind(target.model_provider_kind()?)?;
     stream::stream_text(adapter, context, request.clone(), cancellation).await
 }
@@ -46,7 +46,7 @@ pub async fn stream_turn(
     cancellation: CancellationToken,
     deltas: tokio::sync::mpsc::UnboundedSender<String>,
 ) -> AiResult<ModelTurnResponse> {
-    let context = SecurityContext::from_target(target)?;
+    let context = SecurityContext::from_target(target).await?;
     let adapter = adapter_kind(target.model_provider_kind()?)?;
     let response =
         stream::stream_turn(adapter, context, request.clone(), cancellation, deltas).await?;

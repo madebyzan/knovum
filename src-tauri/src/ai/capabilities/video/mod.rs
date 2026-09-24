@@ -37,7 +37,7 @@ pub async fn generate(
 
     let prepared_images =
         prepare_reference_images(&request.target, request.reference_images).await?;
-    let ctx = SecurityContext::from_target(&request.target)?;
+    let ctx = SecurityContext::from_target(&request.target).await?;
     let req = VideoGenerationInput {
         prompt: request.prompt,
         ratio: request.ratio,

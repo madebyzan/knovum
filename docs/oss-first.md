@@ -79,7 +79,7 @@ Why custom code is necessary (custom only):
 - TanStack Virtual and stable TanStack Table v8 for high-volume list/grid work.
 - Oxlint + Oxfmt for lint/format; dependency-cruiser for Vue-aware dependency-graph rules; Knip + jscpd for dead/duplicate code.
 - tinykeys for application-local shortcut matching instead of a custom keyboard parser.
-- keyring-rs for OS credential storage rather than custom encryption/keychain code.
+- SQLx for the local credential database; no separate key-management subsystem or operating-system credential prompt.
 
 Feature engines remain deliberately deferred until their business requirements are concrete.
 
@@ -103,7 +103,7 @@ PDF parser choice: [upstream Rust API](https://github.com/firecrawl/pdf-inspecto
 - Rust background removal uses exact-pinned `tract-onnx` 0.23.5 and the existing `image` crate. The U²-Net small model is embedded with an explicit source, license record, engine version, and SHA-256. Browser-only `modern-rembg` and `onnxruntime-web` were removed because CPU inference and image compositing in the WebView made the desktop shell unresponsive.
 - Subtitled-video derivation reuses Knovum's provisioned FFmpeg runtime and current Whisper transcript contract. FFmpeg's libass `subtitles` filter plus the macOS VideoToolbox or Windows Media Foundation H.264 encoder own local subtitle burn-in, avoiding a GPL x264 distribution dependency. Knovum owns SubRip serialization, Space-scoped cancellation, source-revision validation, output persistence and lineage. No wrapper crate is added because the repository already has a bounded Rust process-control adapter.
 - Spaces binary document/media import/export uses Tauri dialog/filesystem/opener boundaries and preserves original bytes. Native PDF page rasters and supported Office images are private document resources for background analysis, not source-page previews. Their durable manifest participates in the existing package and asset-reference lifecycle. FFmpeg generates persistent video posters. Audio/video playback remains activation-only while heavy editing stays a professional-app handoff.
-- Sensitive Information nodes reuse the existing `keyring`-backed secret store. SQLite stores only non-secret metadata, avoiding a parallel encryption subsystem or application-managed master key.
+- Sensitive Information nodes keep only non-secret metadata in Spaces SQLite and store values in the foundation-owned credential database. No parallel encryption subsystem or application-managed master key is introduced.
 - Spaces resource ingestion uses Rust `std::fs` for bounded private copies. The file-inspection boundary rejects directories before a canvas import job exists, while archive formats remain opaque binary file assets; workspace package ZIP transfer remains separate. Code/text preview is a bounded Rust read. Imported HTML runs only inside a sandboxed asset-protocol frame backed by Knovum-owned AppData; site-directory import is not supported.
 - External professional editing stays an explicit opener handoff. Resource refresh occurs when the Knovum window resumes rather than adding a file-watcher dependency solely for this workflow.
 

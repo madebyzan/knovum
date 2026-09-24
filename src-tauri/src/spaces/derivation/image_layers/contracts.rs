@@ -28,7 +28,7 @@ pub enum ImageLayerCapability {
 #[serde(rename_all = "snake_case")]
 pub enum ImageLayerBlockReason {
     MissingCredential,
-    SecretVaultUnavailable,
+    SecretDatabaseUnavailable,
 }
 
 pub fn validate(request: &CreateImageLayersRequest) -> Result<(), String> {
@@ -52,16 +52,12 @@ pub fn validate(request: &CreateImageLayersRequest) -> Result<(), String> {
         ));
     }
     let mut unique = std::collections::HashSet::new();
-    if request
-        .output_node_ids
-        .iter()
-        .any(|id| {
-            id.trim().is_empty()
-                || id.len() > 128
-                || id == &request.source_node_id
-                || !unique.insert(id)
-        })
-    {
+    if request.output_node_ids.iter().any(|id| {
+        id.trim().is_empty()
+            || id.len() > 128
+            || id == &request.source_node_id
+            || !unique.insert(id)
+    }) {
         return Err("Image layer output nodes must be unique and differ from the source".into());
     }
     if request

@@ -16,7 +16,7 @@ Search Tauri/Vue first-party options, GitHub, npm and/or crates.io. Record maint
 ## 3. Data/security
 
 - validate external data with Zod or Rust types at the boundary;
-- Store for preferences, SQLite for structured local data, and the foundation keyring commands for secrets;
+- Store for preferences, SQLite for structured local data, and foundation credential database commands for secrets;
 - add only the exact Tauri capability scopes the feature uses;
 - never grant arbitrary filesystem, Shell or network access for convenience.
 

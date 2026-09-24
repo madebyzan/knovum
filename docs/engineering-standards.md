@@ -35,7 +35,7 @@ This is the review baseline. Detailed rules remain in their authoritative docume
 - Prefer official Tauri plugins.
 - macOS and Windows behavior are designed separately where platform conventions differ.
 - Long-running Rust work streams through Tauri Channels into the Task Center.
-- Credentials use OS credential stores.
+- Credentials use the dedicated local SQLite database through Rust secret commands.
 - Capabilities are least privilege and window-scoped.
 
 ## Testing and gates

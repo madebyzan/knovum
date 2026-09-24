@@ -8,7 +8,7 @@ Knovum is one knowledge-space desktop application process with a Tauri/Rust host
 macOS / Windows
       |
       +-- window lifecycle / menu / tray / taskbar / dock
-      +-- encrypted secret vault / OS keychain / notifications / dialogs / filesystem
+      +-- local credential database / notifications / dialogs / filesystem
       |
 Tauri 2 Rust host
       |
@@ -108,7 +108,7 @@ shared command registry
 
 There is no second menu action implementation. Application menu events emit the same command IDs used by the WebView registry.
 
-Action availability is a neutral shared contract with `ready`, `checking`, `busy`, `blocked(reason)`, and `hidden` states. The same `AppCommand.availability` is read by command execution and the palette; a disabled visual state never replaces the execution guard. Feature modules combine local selection, source revision, edit session, and native capability results into that contract. Rust reports machine-readable capability states and reason codes for provider, credential, and vault conditions; it never returns UI copy. Vue owns localization, help placement, and settings navigation. Image operation and layer capability checks refresh when their menus open, so returning from settings does not leave an old decision in view. Product-specific reason mapping remains in the owning feature rather than shared UI.
+Action availability is a neutral shared contract with `ready`, `checking`, `busy`, `blocked(reason)`, and `hidden` states. The same `AppCommand.availability` is read by command execution and the palette; a disabled visual state never replaces the execution guard. Feature modules combine local selection, source revision, edit session, and native capability results into that contract. Rust reports machine-readable capability states and reason codes for provider, credential, and database conditions; it never returns UI copy. Vue owns localization, help placement, and settings navigation. Image operation and layer capability checks refresh when their menus open, so returning from settings does not leave an old decision in view. Product-specific reason mapping remains in the owning feature rather than shared UI.
 
 ## Long-running task flow
 
@@ -159,16 +159,16 @@ packages include those item facts, so restored history remains inspectable witho
 
 ## State and storage ownership
 
-| Data                           | Owner/storage                                                      |
-| ------------------------------ | ------------------------------------------------------------------ |
-| local component UI state       | Vue component refs                                                 |
-| cross-view session state       | Pinia                                                              |
-| remote/async cache             | TanStack Vue Query                                                 |
-| durable non-secret preferences | strict current v1 Tauri Store                                      |
-| last workspace route           | disposable localStorage value                                      |
-| structured product data        | feature-owned SQLite with embedded SQLx migrations                 |
-| credentials/tokens             | Knovum encrypted vault; one OS-keychain unlock key per app session |
-| logs                           | Tauri log plugin with rotation                                     |
+| Data                           | Owner/storage                                               |
+| ------------------------------ | ----------------------------------------------------------- |
+| local component UI state       | Vue component refs                                          |
+| cross-view session state       | Pinia                                                       |
+| remote/async cache             | TanStack Vue Query                                          |
+| durable non-secret preferences | strict current v1 Tauri Store                               |
+| last workspace route           | disposable localStorage value                               |
+| structured product data        | feature-owned SQLite with embedded SQLx migrations          |
+| credentials/tokens             | separate local `secrets.db`; user account and disk security |
+| logs                           | Tauri log plugin with rotation                              |
 
 Do not mirror one fact across several stores without an explicit synchronization design.
 
@@ -183,7 +183,7 @@ entry presence only, not authentication or successful ACP negotiation. Help disc
 Node/npm/npx requirements and SDK-owned first-use adapter fetching where applicable;
 Knovum does not own Agent installation, updates or credential provisioning.
 
-Common desktop capabilities are not owned by UI components. Interactive image editing lives in the Vue Canvas preview and one strict `imageEdit` v5 draft contract. `src-tauri/src/images` replays that contract from an authorized managed source to produce the canonical PNG for download, local U²-Net background removal, DashScope image operations and fal layer splitting. The WebView sends node identity and edit metadata, never full image buffers for processing. Spaces owns revision checks, pending nodes, derivation provenance, cancellation and output publication; Rust provider modules own networking, credentials and bounded result decoding. Layer splitting uses a separate fal credential from the OS-backed vault and publishes its transparent outputs atomically. LLM transport is owned by `src-tauri/src/ai` through the shared `genai` provider layer. The WebView sends only a stable connection/model or Agent reference; Rust loads the strict current settings, resolves the user-configured Base URL and model ID, derives the credential key, validates capability, reads the secret and owns provider networking. The vault keeps one random unlock key in the OS credential store, loads it at most once per process, and retains only the unlocked in-memory session afterward.
+Common desktop capabilities are not owned by UI components. Interactive image editing lives in the Vue Canvas preview and one strict `imageEdit` v5 draft contract. `src-tauri/src/images` replays that contract from an authorized managed source to produce the canonical PNG for download, local U²-Net background removal, DashScope image operations and fal layer splitting. The WebView sends node identity and edit metadata, never full image buffers for processing. Spaces owns revision checks, pending nodes, derivation provenance, cancellation and output publication; Rust provider modules own networking, credentials and bounded result decoding. Layer splitting uses a separate fal credential from the credential database and publishes its transparent outputs atomically. LLM transport is owned by `src-tauri/src/ai` through the shared `genai` provider layer. The WebView sends only a stable connection/model or Agent reference; Rust loads the strict current settings, resolves the user-configured Base URL and model ID, derives the credential key, validates capability, reads the secret and owns provider networking. The credential database stores values separately from Spaces data and is read only by Rust through validated credential identifiers.
 
 AI token accounting is part of that same Rust-owned provider boundary. Successful model turns persist only
 provider-reported input, output, and total Token counts to the AI-owned `ai-usage.db` v1 database, together with
