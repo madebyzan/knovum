@@ -34,7 +34,6 @@ defineProps<{
   actions: ReturnType<typeof useCanvasSelectionActions>;
   derivations: CreationIntentDecisions;
   nodeBar?: boolean;
-  duplicateInBar?: boolean;
   excludeDirectImageActions?: boolean;
 }>();
 const emit = defineEmits<{ invokeDerivation: [actionId: CreationIntentId] }>();
@@ -60,10 +59,6 @@ const directImageActions: readonly CreationIntentId[] = ["remove-image-backgroun
       <UiDropdownMenuItem v-if="actions.state.value.canAsk" @select="actions.ask">
         <MessageSquareText class="size-(--knovum-icon-size-sm)" />{{ t("spaces.assistant.askSelection") }}
       </UiDropdownMenuItem>
-      <UiDropdownMenuItem v-if="!duplicateInBar" @select="actions.duplicate">
-        <Copy class="size-(--knovum-icon-size-sm)" />{{ t("spaces.navigation.duplicateSelection") }}
-        <UiKbd shortcut="$mod+D" class="ml-auto" />
-      </UiDropdownMenuItem>
       <SpaceSelectionMoveMenu submenu @move="actions.moveToSpace" />
       <UiDropdownMenuItem v-if="actions.state.value.canCreateGroup" @select="actions.createGroup">
         <Group class="size-(--knovum-icon-size-sm)" />{{ t("spaces.canvas.groupSelection") }}
@@ -74,6 +69,10 @@ const directImageActions: readonly CreationIntentId[] = ["remove-image-backgroun
       <UiSeparator class="my-1" />
     </template>
     <template v-if="actions.state.value.structureNodeIds.length">
+      <UiDropdownMenuItem @select="actions.duplicate">
+        <Copy class="size-(--knovum-icon-size-sm)" />{{ t("spaces.navigation.duplicateSelection") }}
+        <UiKbd shortcut="$mod+D" class="ml-auto" />
+      </UiDropdownMenuItem>
       <UiDropdownMenuItem v-if="actions.state.value.canDissolveGroup" @select="actions.dissolveGroup">
         <Group class="size-(--knovum-icon-size-sm)" />{{ t("spaces.canvas.ungroupSelection") }}
         <UiKbd shortcut="$mod+Shift+G" class="ml-auto" />

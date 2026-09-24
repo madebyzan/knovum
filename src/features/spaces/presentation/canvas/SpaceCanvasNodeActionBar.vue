@@ -2,7 +2,6 @@
 import {
   ArrowUpRight,
   Code2,
-  Copy,
   ExternalLink,
   FileText,
   Focus,
@@ -152,25 +151,10 @@ function runPrimaryAction() {
         orientation="vertical"
         class="mx-0.5 h-4"
       />
-      <ToolbarButton as-child>
-        <button
-          type="button"
-          :class="commandClass"
-          :aria-label="t('spaces.navigation.duplicateSelection')"
-          :title="compact ? t('spaces.navigation.duplicateSelection') : undefined"
-          @click="actions.duplicate"
-        >
-          <Copy class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
-          <span :class="[nodeActionLabelClass, nodeActionLabelState(compact)]">{{
-            t("spaces.navigation.duplicateSelection")
-          }}</span>
-        </button>
-      </ToolbarButton>
       <SpaceCanvasSelectionMenu
         :actions="actions"
         :derivations="derivations"
         node-bar
-        duplicate-in-bar
         @invoke-derivation="emit('invokeDerivation', $event)"
       />
       <SpaceNodeBarCommonActions @inspect="actions.inspect" @download="actions.download" />

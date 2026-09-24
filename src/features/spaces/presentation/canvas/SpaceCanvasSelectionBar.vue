@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Copy, Group, Info, Link2, Sparkles } from "@lucide/vue";
+import { Group, Info, Link2, Sparkles } from "@lucide/vue";
 import { ToolbarButton, ToolbarRoot } from "reka-ui";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
@@ -70,16 +70,6 @@ const singleSection = computed(
     <ToolbarButton v-if="actions.state.value.canAsk" as-child>
       <UiIconButton :label="t('spaces.assistant.askSelection')" size="sm" @click="actions.ask">
         <Sparkles class="size-(--knovum-icon-size-sm)" :stroke-width="1.55" />
-      </UiIconButton>
-    </ToolbarButton>
-    <ToolbarButton v-if="actions.state.value.structureNodeIds.length" as-child>
-      <UiIconButton
-        :label="t('spaces.navigation.duplicateSelection')"
-        shortcut="$mod+D"
-        size="sm"
-        @click="actions.duplicate"
-      >
-        <Copy class="size-(--knovum-icon-size-sm)" :stroke-width="1.55" />
       </UiIconButton>
     </ToolbarButton>
     <SpaceSelectionMoveMenu v-if="actions.state.value.structureNodeIds.length" @move="actions.moveToSpace" />
