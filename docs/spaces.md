@@ -243,7 +243,10 @@ Canvas items are **content-first spatial representations**, not a grid of generi
 
 Image and video editing deliberately use different product surfaces. One selected image exposes
 non-destructive crop presets, quarter-turn rotation, horizontal/vertical flip, tonal adjustments
-and an eraser directly in the canvas selection bar. The persisted `imageEdit` contract keeps the
+and an eraser directly in the canvas selection bar. The active control panel sits beside the
+selected image when the canvas has room on either side. Otherwise, the panel uses the larger free
+area above or below and scrolls within that area. The selection surface owns this placement rule
+for other long node controls as well. The persisted `imageEdit` contract keeps the
 source asset immutable; the canvas renderer projects the crop, transform, filter and normalized
 eraser strokes. System preview and PNG export render the same saved edit through Rust; opening
 an image never hands the unedited source to the system preview. Image comments are normalized
