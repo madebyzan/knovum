@@ -156,7 +156,9 @@
   "noCaptions": "暂无字幕。点击上方按钮添加。",
   "noMatchingCaptions": "没有匹配的字幕。",
   "fontFamily": "字体",
-  "bundledFont": "内置",
+  "fontWeight": "字重",
+  "fontUnavailable": "本机未安装字体「{family}」，请重新选择。",
+  "fontCatalogEmpty": "本机没有可用字体。",
   "fontSize": "字号（720p）",
   "fontColor": "字体颜色",
   "invalidTextColor": "请输入六位十六进制颜色，例如 #FFFFFF。",
@@ -211,6 +213,7 @@
   "sourceUnavailable": "视频源文件不可用，请重新导入后编辑。",
   "proxyFailed": "无法准备流畅预览",
   "durationUnavailable": "无法读取视频时长",
+  "videoMetadataUnavailable": "无法读取视频画面尺寸",
   "previewUnavailable": "无法打开视频预览",
   "audioPreviewUnavailable": "无法准备音频预览"
 }

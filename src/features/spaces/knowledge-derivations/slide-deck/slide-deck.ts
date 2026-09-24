@@ -3,6 +3,7 @@ import { readFile } from "@tauri-apps/plugin-fs";
 import { extname } from "pathe";
 
 import { i18n } from "../../../../foundation/i18n/i18n";
+import { systemSansFamily } from "../../../../foundation/typography/system-font";
 import { useCanvasEditorSession } from "../../canvas/editor-session";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceFilePayload, SpaceImagePayload } from "../../model/nodes/node-payload";
@@ -128,7 +129,12 @@ async function render(inputs: PresentationInputs): Promise<Uint8Array> {
       { once: true },
     );
     worker.postMessage(
-      { title: inputs.document.data.title, markdown: inputs.document.data.text, images },
+      {
+        title: inputs.document.data.title,
+        markdown: inputs.document.data.text,
+        fontFamily: systemSansFamily(),
+        images,
+      },
       images.map(({ bytes }) => bytes),
     );
   });

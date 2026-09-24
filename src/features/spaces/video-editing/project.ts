@@ -3,18 +3,29 @@ import type { SpaceVideoPayload } from "../model/nodes/node-payload";
 export type VideoEditProject = NonNullable<SpaceVideoPayload["videoEditProject"]>;
 export type VideoClip = VideoEditProject["videoTrack"]["clips"][number];
 export type VideoTextOverlay = VideoEditProject["textTrack"]["items"][number];
-export type VideoTextStyle = NonNullable<VideoTextOverlay["style"]>;
+export type VideoTextStyle = VideoTextOverlay["style"];
 
-export const DEFAULT_VIDEO_TEXT_STYLE: VideoTextStyle = {
-  size: 30,
-  color: "#FFFFFF",
-  preset: "outline",
-};
+export function defaultVideoTextStyle(family: string): VideoTextStyle {
+  return {
+    family,
+    weight: 400,
+    size: 30,
+    color: "#FFFFFF",
+    preset: "outline",
+  };
+}
 
-export function createVideoEditProject(sourceRevision: string, durationMs: number): VideoEditProject {
+export function createVideoEditProject(
+  sourceRevision: string,
+  durationMs: number,
+  sourceWidth: number,
+  sourceHeight: number,
+): VideoEditProject {
   return {
     version: 1,
     sourceRevision,
+    sourceWidth,
+    sourceHeight,
     videoTrack: {
       clips: [{ id: crypto.randomUUID(), startMs: 0, endMs: durationMs, volume: 1 }],
     },
@@ -129,7 +140,7 @@ export function clipTimelineStart(project: VideoEditProject, clipId: string) {
   return 0;
 }
 
-export function addTextOverlay(project: VideoEditProject, startMs: number): VideoEditProject {
+export function addTextOverlay(project: VideoEditProject, startMs: number, family: string): VideoEditProject {
   const duration = projectDuration(project);
   const boundedStart = Math.max(0, Math.min(Math.round(startMs), Math.max(0, duration - 100)));
   const item: VideoTextOverlay = {
@@ -138,7 +149,7 @@ export function addTextOverlay(project: VideoEditProject, startMs: number): Vide
     endMs: Math.min(duration, Math.max(boundedStart + 100, boundedStart + 3_000)),
     text: "Text",
     placement: "bottom",
-    style: { ...DEFAULT_VIDEO_TEXT_STYLE },
+    style: defaultVideoTextStyle(family),
   };
   return { ...project, textTrack: { items: [...project.textTrack.items, item] } };
 }

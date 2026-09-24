@@ -5,6 +5,7 @@ import pptxgen from "pptxgenjs";
 interface PresentationRequest {
   title: string;
   markdown: string;
+  fontFamily: string;
   images: Array<{ title: string; mime: string; bytes: ArrayBuffer }>;
 }
 interface SlideSection {
@@ -30,8 +31,8 @@ async function build(request: PresentationRequest) {
   presentation.subject = "Knowledge derivation";
   presentation.title = request.title;
   presentation.theme = {
-    headFontFace: "Aptos Display",
-    bodyFontFace: "Aptos",
+    headFontFace: request.fontFamily,
+    bodyFontFace: request.fontFamily,
   };
   const cover = presentation.addSlide();
   cover.background = { color: "F7F7F8" };

@@ -1,12 +1,14 @@
 use super::{
-    filter_graph, TextOverlay, TextPlacement, TextTrack, VideoClip, VideoEditProject, VideoTrack,
-    VideoTransform,
+    filter_graph, TextOverlay, TextPlacement, TextPreset, TextStyle, TextTrack, VideoClip,
+    VideoEditProject, VideoTrack, VideoTransform,
 };
 
 fn project() -> VideoEditProject {
     VideoEditProject {
         version: 1,
         source_revision: "sha256:source".into(),
+        source_width: 1080,
+        source_height: 1920,
         video_track: VideoTrack {
             clips: vec![
                 VideoClip {
@@ -30,7 +32,13 @@ fn project() -> VideoEditProject {
                 end_ms: 2_000,
                 text: "Title".into(),
                 placement: TextPlacement::Bottom,
-                style: None,
+                style: TextStyle {
+                    family: crate::system_font::SYSTEM_SANS_FAMILY.into(),
+                    weight: 400,
+                    size: 30,
+                    color: "#FFFFFF".into(),
+                    preset: TextPreset::Outline,
+                },
             }],
         },
         transform: VideoTransform {
@@ -43,16 +51,17 @@ fn project() -> VideoEditProject {
 
 #[test]
 fn builds_trim_concat_transform_and_text_filter() {
-    let filter = filter_graph::build(&project(), true, "font.otf").expect("filter graph");
+    let filter = filter_graph::build(&project(), true, Some("captions.ass")).expect("filter graph");
     assert!(filter.contains("trim=start=1.000:end=3.000"));
     assert!(filter.contains("concat=n=2:v=1:a=1"));
     assert!(filter.contains("transpose=clock,hflip"));
-    assert!(filter.contains("drawtext=text='Title'"));
+    assert!(filter.contains("ass=filename=captions.ass"));
 }
 
 #[test]
 fn omits_audio_graph_when_source_has_no_audio() {
-    let filter = filter_graph::build(&project(), false, "font.otf").expect("filter graph");
+    let filter =
+        filter_graph::build(&project(), false, Some("captions.ass")).expect("filter graph");
     assert!(filter.contains("concat=n=2:v=1:a=0"));
     assert!(!filter.contains("atrim="));
 }

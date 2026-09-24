@@ -156,7 +156,9 @@
   "noCaptions": "No captions yet. Add one above.",
   "noMatchingCaptions": "No matching captions.",
   "fontFamily": "Font",
-  "bundledFont": "Built in",
+  "fontWeight": "Weight",
+  "fontUnavailable": "Font {family} is not installed on this computer. Choose another font.",
+  "fontCatalogEmpty": "No installed fonts are available.",
   "fontSize": "Size (720p)",
   "fontColor": "Text color",
   "invalidTextColor": "Enter a six-digit hex color, such as #FFFFFF.",
@@ -211,6 +213,7 @@
   "sourceUnavailable": "The video source is unavailable. Reimport the video to edit it.",
   "proxyFailed": "Could not prepare a responsive preview",
   "durationUnavailable": "Could not read the video's duration",
+  "videoMetadataUnavailable": "Could not read the video's frame dimensions",
   "previewUnavailable": "Could not open the video preview",
   "audioPreviewUnavailable": "Could not prepare audio preview"
 }

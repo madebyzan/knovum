@@ -115,6 +115,11 @@ pub async fn cancel_video_edit_proxy(job_id: String) -> Result<(), String> {
 }
 
 #[tauri::command]
+pub async fn list_video_fonts() -> Result<Vec<video_edit::fonts::InstalledFont>, String> {
+    crate::blocking::run(|| Ok(video_edit::fonts::installed())).await
+}
+
+#[tauri::command]
 pub async fn create_document(
     app: AppHandle,
     request: grounded_document::CreateGroundedDocumentRequest,

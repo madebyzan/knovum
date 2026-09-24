@@ -20,7 +20,6 @@ requireRuntime(target);
 const bundleResources = [
   "resources/bundled-runtime/README.md",
   "resources/bundled-runtime/media-import-manifest.json",
-  "resources/bundled-runtime/fonts/**/*",
   `resources/bundled-runtime/${target}/**/*`,
 ];
 const releaseConfig = release ? readJson("src-tauri/tauri.release.conf.json") : undefined;
@@ -43,8 +42,6 @@ function requireRuntime(runtimeTarget) {
     binary("deno", "deno.exe"),
     binary("whisper-cli", "whisper-cli.exe"),
     join(runtimeRoot, "media-import-manifest.json"),
-    join(runtimeRoot, "fonts", "LICENSE.txt"),
-    join(runtimeRoot, "fonts", "NotoSansCJKsc-Regular.otf"),
   ];
   const missing = required.filter((path) => !existsSync(path));
   if (missing.length > 0) {

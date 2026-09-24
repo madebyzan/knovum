@@ -35,7 +35,6 @@ fn provisioned_local_resources_starts() {
     );
     assert_command_contains(&root.join(executable("deno")), &["--version"], "deno 2.9.6");
     assert_ffmpeg_subtitle_burn_in(&ffmpeg);
-    assert_bundled_subtitle_font(&root);
     let whisper = root.join(executable("whisper-cli"));
     assert_command_starts(&whisper, &["--help"]);
     assert_whisper_capabilities(&whisper);
@@ -61,15 +60,6 @@ fn assert_ffmpeg_subtitle_burn_in(path: &Path) {
         !configuration.contains("--enable-nonfree"),
         "FFmpeg release runtime must remain redistributable"
     );
-}
-
-fn assert_bundled_subtitle_font(target_root: &Path) {
-    let font = target_root
-        .parent()
-        .expect("bundled runtime target must have a shared root")
-        .join("fonts")
-        .join("NotoSansCJKsc-Regular.otf");
-    assert!(font.is_file(), "bundled CJK subtitle font is missing");
 }
 
 fn command_text(path: &Path, args: &[&str]) -> String {

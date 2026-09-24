@@ -64,9 +64,10 @@ rig-agent = { version = "=0.42.0", default-features = false }
 async-openai = { version = "=0.41.3", default-features = false, features = ["image", "rustls"] }
 docx-rs = { version = "=0.4.22", default-features = false, features = ["image"] }
 pulldown-cmark = "=0.13.0"
-typst-as-lib = { version = "=0.16.0", default-features = false }
+typst-as-lib = { version = "=0.16.0", default-features = false, features = ["typst-kit-fonts"] }
 typst-layout = "=0.15.1"
 typst-pdf = "=0.15.1"
+fontdb = "=0.23.0"
 futures = "0.3"
 office_oxide = { version = "=0.1.8", default-features = false }
 pdf-inspector = { version = "=1.20.0", default-features = false }

@@ -1,4 +1,6 @@
+mod ass;
 mod filter_graph;
+pub(crate) mod fonts;
 mod persistence;
 mod proxy;
 mod proxy_registry;
@@ -24,6 +26,8 @@ pub const CANCELLED: &str = "VIDEO_EDIT_RENDER_CANCELLED";
 pub struct VideoEditProject {
     pub version: u8,
     pub source_revision: String,
+    pub source_width: u32,
+    pub source_height: u32,
     pub video_track: VideoTrack,
     pub text_track: TextTrack,
     pub transform: VideoTransform,
@@ -58,12 +62,14 @@ pub struct TextOverlay {
     pub end_ms: u64,
     pub text: String,
     pub placement: TextPlacement,
-    pub style: Option<TextStyle>,
+    pub style: TextStyle,
 }
 
 #[derive(Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct TextStyle {
+    pub family: String,
+    pub weight: u16,
     pub size: u16,
     pub color: String,
     pub preset: TextPreset,

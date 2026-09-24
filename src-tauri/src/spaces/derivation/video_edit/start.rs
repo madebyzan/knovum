@@ -2,7 +2,7 @@ use serde_json::Value;
 use tauri::AppHandle;
 use uuid::Uuid;
 
-use super::{RenderVideoEditRequest, VideoEditProject};
+use super::{fonts, RenderVideoEditRequest, VideoEditProject};
 use crate::spaces::{db, derivation::inputs, knowledge::contracts};
 
 pub struct VideoEditSource {
@@ -68,6 +68,10 @@ fn validate_request(request: &RenderVideoEditRequest) -> Result<(), String> {
         return Err("Video edit request is invalid".into());
     }
     if request.project.source_revision != request.source_revision
+        || !(1..=16_384).contains(&request.project.source_width)
+        || !(1..=16_384).contains(&request.project.source_height)
+        || request.project.source_width > request.project.source_height * 10
+        || request.project.source_height > request.project.source_width * 10
         || request.project.video_track.clips.is_empty()
         || request.project.video_track.clips.len() > 500
         || request.project.text_track.items.len() > 500
@@ -86,16 +90,26 @@ fn validate_request(request: &RenderVideoEditRequest) -> Result<(), String> {
             || item.end_ms <= item.start_ms
             || item.text.trim().is_empty()
             || item.text.len() > 500
-            || item.style.as_ref().is_some_and(|style| {
-                !(16..=96).contains(&style.size)
-                    || style.color.len() != 7
-                    || !style.color.starts_with('#')
-                    || !style.color[1..]
-                        .bytes()
-                        .all(|byte| byte.is_ascii_hexdigit())
-            })
+            || !(16..=96).contains(&item.style.size)
+            || item.style.color.len() != 7
+            || !item.style.color.starts_with('#')
+            || !item.style.color[1..]
+                .bytes()
+                .all(|byte| byte.is_ascii_hexdigit())
     }) {
         return Err("Video edit project contains invalid timed text".into());
+    }
+    if let Some(item) = request
+        .project
+        .text_track
+        .items
+        .iter()
+        .find(|item| !fonts::is_available(&item.style.family, item.style.weight))
+    {
+        return Err(format!(
+            "Font {} at weight {} is not installed on this computer",
+            item.style.family, item.style.weight
+        ));
     }
     if !matches!(request.project.transform.rotation, 0 | 90 | 180 | 270) {
         return Err("Video rotation is invalid".into());

@@ -2,6 +2,7 @@ import { computed, onMounted, onUnmounted, shallowRef, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
+import { systemSansFamily } from "../../../../foundation/typography/system-font";
 import { registerVideoEditCommands } from "../../commands/video-edit-commands";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceVideoPayload } from "../../model/nodes/node-payload";
@@ -84,7 +85,7 @@ export function useVideoEditActions(options: Options) {
 
   function addText() {
     if (!project.value) return;
-    const next = addTextOverlay(project.value, playback.timelineMs.value);
+    const next = addTextOverlay(project.value, playback.timelineMs.value, systemSansFamily());
     history.commit(next);
     const added = next.textTrack.items.at(-1);
     if (added) selection.selectText(added.id);
