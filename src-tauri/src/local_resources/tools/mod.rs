@@ -22,11 +22,6 @@ pub fn resolve_tool(app: &tauri::AppHandle, env_key: &str, file_name: &str) -> O
     candidate.is_file().then_some(candidate)
 }
 
-pub fn resolve_shared_file(app: &tauri::AppHandle, relative_path: &str) -> Option<PathBuf> {
-    let candidate = bundled_runtime_dir(app)?.join(relative_path);
-    candidate.is_file().then_some(candidate)
-}
-
 pub const fn ffmpeg_name() -> &'static str {
     executable("ffmpeg", "ffmpeg.exe")
 }
