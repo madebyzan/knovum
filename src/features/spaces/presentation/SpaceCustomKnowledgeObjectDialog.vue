@@ -10,6 +10,7 @@ import UiDialog from "../../../shared/ui/UiDialog.vue";
 import UiInput from "../../../shared/ui/UiInput.vue";
 import UiSelect from "../../../shared/ui/UiSelect.vue";
 import UiTextarea from "../../../shared/ui/UiTextarea.vue";
+import { useNodeOperationGate } from "../canvas/node-operation-gate";
 import { isSpaceSemanticNode } from "../knowledge/model/semantic-node";
 import { useSpaceObjectTypesQuery } from "../knowledge/queries/queries";
 import type { SpaceKnowledgeObjectPayload } from "../model/nodes/node-payload";
@@ -18,6 +19,7 @@ import SpaceKnowledgeFieldEditor from "./knowledge/SpaceKnowledgeFieldEditor.vue
 
 const open = defineModel<boolean>("open", { required: true });
 const store = useSpaceStore();
+const operations = useNodeOperationGate();
 const { activeSpaceId } = storeToRefs(store);
 const { t } = useI18n();
 const typesQuery = useSpaceObjectTypesQuery(activeSpaceId);
@@ -69,7 +71,7 @@ function setProperty(key: string, value: ObjectPropertyValue | undefined) {
     value === undefined ? omit(properties.value, [key]) : { ...properties.value, [key]: value };
 }
 async function create() {
-  if (!valid.value || !selectedType.value) return;
+  if (!valid.value || !selectedType.value || !operations.allows("create")) return;
   try {
     await store.addContent({
       kind: "object",
@@ -110,7 +112,9 @@ async function create() {
     </div>
     <template #footer>
       <UiButton variant="ghost" @click="open = false">{{ t("common.cancel") }}</UiButton>
-      <UiButton variant="primary" :disabled="!valid" @click="create">{{ t("common.create") }}</UiButton>
+      <UiButton variant="primary" :disabled="!valid || !operations.allows('create')" @click="create">{{
+        t("common.create")
+      }}</UiButton>
     </template>
   </UiDialog>
 </template>

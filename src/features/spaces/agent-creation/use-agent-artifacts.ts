@@ -12,11 +12,13 @@ import {
 import { prepareAgentArtifactImport } from "../assets/asset-operations";
 import { spaceImportContext } from "../assets/import-context";
 import { importSpaceSource } from "../assets/import-session";
+import { useNodeOperationGate } from "../canvas/node-operation-gate";
 import { useSpaceStore } from "../session/space-store";
 
 export function useAgentArtifacts(open: Ref<boolean>) {
   const { t } = useI18n();
   const store = useSpaceStore();
+  const operations = useNodeOperationGate();
   const sessionId = ref<string>();
   const artifacts = ref<AgentArtifact[]>([]);
   const recoveries = ref<RecoverableAgentCreation[]>([]);
@@ -83,11 +85,12 @@ export function useAgentArtifacts(open: Ref<boolean>) {
   async function importSelected() {
     const spaceId = store.activeSpaceId;
     const currentSessionId = sessionId.value;
-    if (!spaceId || !currentSessionId) return;
+    if (!spaceId || !currentSessionId || !operations.allows("create")) return;
     try {
       for (const artifact of artifacts.value.filter(({ relativePath }) =>
         selectedArtifacts.has(relativePath),
       )) {
+        if (!operations.allows("create")) return;
         // oxlint-disable-next-line eslint/no-await-in-loop -- Managed Space imports are intentionally serialized.
         const imported = await importSpaceSource(
           spaceImportContext(store),

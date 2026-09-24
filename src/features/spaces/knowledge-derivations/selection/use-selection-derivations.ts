@@ -1,7 +1,13 @@
-import { shallowRef, type Ref } from "vue";
+import { computed, shallowRef, type Ref } from "vue";
 
+import { canRunAction } from "../../../../shared/contracts/action-availability";
+import { useNodeOperationGate } from "../../canvas/node-operation-gate";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { useSpaceStore } from "../../session/space-store";
+import {
+  creationIntentDefinitions,
+  type CreationIntentDecisions,
+} from "../catalog/creation-intent-definitions";
 import type { CreationDialogId } from "./creation-dialog";
 import { useDerivationActions } from "./use-derivation-actions";
 import { useDerivationCatalog } from "./use-derivation-catalog";
@@ -14,6 +20,21 @@ interface SelectionDerivationsOptions {
 export function useSelectionDerivations({ store, selection }: SelectionDerivationsOptions) {
   const dialog = shallowRef<CreationDialogId>();
   const catalogState = useDerivationCatalog(selection);
+  const gate = useNodeOperationGate();
+  const decisions = computed<CreationIntentDecisions>(
+    () =>
+      Object.fromEntries(
+        creationIntentDefinitions.map((definition) => {
+          const decision = catalogState.decisions.value[definition.id];
+          return [
+            definition.id,
+            canRunAction(decision) && !gate.allows(definition.effect)
+              ? { state: "blocked", reason: "active-node-operation" }
+              : decision,
+          ];
+        }),
+      ) as CreationIntentDecisions,
+  );
   const actions = useDerivationActions({
     store,
     selection,
@@ -21,11 +42,13 @@ export function useSelectionDerivations({ store, selection }: SelectionDerivatio
     sources: catalogState.sources,
     subtitleInputs: catalogState.subtitleInputs,
     dialog,
+    canRun: (actionId) => canRunAction(decisions.value[actionId]),
+    canSubmit: () => gate.allows("derive"),
   });
 
   return {
     single: catalogState.single,
-    decisions: catalogState.decisions,
+    decisions,
     sourceTitle: catalogState.sourceTitle,
     sources: catalogState.sources,
     dialog,

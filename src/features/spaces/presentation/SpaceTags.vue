@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { Tag, X } from "@lucide/vue";
-import { countBy, take } from "es-toolkit";
-import { search } from "fast-fuzzy";
 import { storeToRefs } from "pinia";
 import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
@@ -9,46 +7,27 @@ import { useI18n } from "vue-i18n";
 import UiBadge from "../../../shared/ui/UiBadge.vue";
 import UiInput from "../../../shared/ui/UiInput.vue";
 import { useCanvasEditorSession, useCanvasSelectionProjection } from "../canvas/editor-session";
+import { useNodeOperationGate } from "../canvas/node-operation-gate";
 import { createTagChanges } from "../model/nodes/tag-changes";
 import { createStructureIndex } from "../model/structure/structure-index";
 import { sectionAncestorOf } from "../model/structure/structure-queries";
 import { useSpaceStore } from "../session/space-store";
 import { popupSpaceContextMenu, spaceMenuItem } from "../workspace/space-menu";
+import { selectedTagCounts, spaceTagCounts, suggestTags } from "./tag-projections";
 
 withDefaults(defineProps<{ mode?: "both" | "browse" | "selection" }>(), { mode: "both" });
 const store = useSpaceStore();
 const { nodes } = storeToRefs(store);
 const editorSession = useCanvasEditorSession();
+const nodeOperations = useNodeOperationGate();
 const { selectedNodes } = useCanvasSelectionProjection(nodes);
 const { t } = useI18n();
 const draft = shallowRef("");
 const selectedContentNodes = computed(() => selectedNodes.value);
 const selectedIds = computed(() => selectedContentNodes.value.map((node) => node.id));
-const selectionTagCounts = computed(
-  () =>
-    new Map(
-      Object.entries(
-        countBy(
-          selectedContentNodes.value.flatMap((node) => node.data.tags ?? []),
-          (tag) => tag,
-        ),
-      ),
-    ),
-);
-const tagCounts = computed(() =>
-  Object.entries(
-    countBy(
-      nodes.value.flatMap((node) => node.data.tags ?? []),
-      (tag) => tag,
-    ),
-  ).toSorted(([left], [right]) => left.localeCompare(right)),
-);
-const suggestions = computed(() => {
-  const query = draft.value.trim();
-  if (!query) return [];
-  const candidates = tagCounts.value.filter(([tag]) => !selectionTagCounts.value.has(tag));
-  return take(search(query, candidates, { keySelector: ([tag]) => tag }), 5);
-});
+const selectionTagCounts = computed(() => selectedTagCounts(selectedContentNodes.value));
+const tagCounts = computed(() => spaceTagCounts(nodes.value));
+const suggestions = computed(() => suggestTags(draft.value, tagCounts.value, selectionTagCounts.value));
 
 async function applyTag(tag = draft.value) {
   const value = tag.trim();
@@ -65,10 +44,12 @@ async function removeTag(tag: string) {
 }
 
 async function updateTags(update: (tags: readonly string[]) => string[]) {
+  if (!nodeOperations.allows("edit")) return;
   const changes = createTagChanges(selectedContentNodes.value, update);
   if (changes.length) await store.updateManyData(changes);
 }
 async function revealTag(tag: string) {
+  if (!nodeOperations.allows("structure")) return;
   const spaceId = store.activeSpaceId;
   if (!spaceId) return;
   const matches = nodes.value.filter((node) => node.data.tags?.includes(tag));
@@ -109,6 +90,7 @@ async function showTagMenu(tag: string) {
         v-for="[tag, count] in tagCounts"
         :key="tag"
         type="button"
+        :disabled="!nodeOperations.allows('structure')"
         class="flex h-(--knovum-list-item-height) w-full items-center gap-2 rounded-control px-2 text-left text-caption text-foreground-secondary hover:bg-control-hover hover:text-foreground"
         @click="revealTag(tag)"
         @contextmenu.prevent="showTagMenu(tag)"
@@ -131,6 +113,7 @@ async function showTagMenu(tag: string) {
       <div class="relative">
         <UiInput
           v-model="draft"
+          :disabled="!nodeOperations.allows('edit')"
           class="w-full"
           :placeholder="t('spaces.navigation.addTag')"
           @keydown.enter="applyTag()"
@@ -143,6 +126,7 @@ async function showTagMenu(tag: string) {
             v-for="[tag, count] in suggestions"
             :key="tag"
             type="button"
+            :disabled="!nodeOperations.allows('edit')"
             class="flex h-(--knovum-compact-item-height) w-full items-center justify-between rounded-control px-2 text-left text-caption hover:bg-control-hover"
             @click="applyTag(tag)"
           >
@@ -163,6 +147,7 @@ async function showTagMenu(tag: string) {
           >
           <button
             type="button"
+            :disabled="!nodeOperations.allows('edit')"
             class="grid size-5 place-items-center rounded-control hover:bg-control-hover"
             :aria-label="t('spaces.navigation.removeTag', { tag })"
             @click="removeTag(tag)"

@@ -3,6 +3,7 @@ import { useI18n } from "vue-i18n";
 
 import type { SpaceEditSnapshot } from "../canvas/contract/space-edit-snapshot";
 import { useCanvasEditorSession } from "../canvas/editor-session";
+import { useNodeOperationGate } from "../canvas/node-operation-gate";
 import { ancestorsOf, type StructureIndex } from "../model/structure/structure-index";
 import { isStructureNodeEffectivelyLocked } from "../model/structure/structure-queries";
 import { structureParentTargets } from "../organization/structure-capabilities";
@@ -20,8 +21,10 @@ interface StructureOutlineMenuOptions {
 export function useStructureOutlineMenu(options: StructureOutlineMenuOptions) {
   const { t } = useI18n();
   const editor = useCanvasEditorSession();
+  const operations = useNodeOperationGate();
 
   async function show(id: string) {
+    if (!operations.allows("structure")) return;
     const index = options.index.value;
     const structureNode = index.structureById.get(id);
     if (!structureNode) return;
@@ -102,6 +105,7 @@ export function useStructureOutlineMenu(options: StructureOutlineMenuOptions) {
   }
 
   async function execute(command: Parameters<typeof options.store.executeSpaceEdit>[0]) {
+    if (!operations.allows("structure")) return;
     await options.store.executeSpaceEdit(command);
   }
 

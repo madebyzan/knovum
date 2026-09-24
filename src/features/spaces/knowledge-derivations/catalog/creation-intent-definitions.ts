@@ -22,6 +22,7 @@ export const creationIntentDefinitions = [
   {
     id: "draft-document",
     kind: "atomic",
+    effect: "derive",
     labelKey: "spaces.creation.generateDocument",
     icon: "file-pen",
     decide: decideKnowledgeIntent,
@@ -29,6 +30,7 @@ export const creationIntentDefinitions = [
   {
     id: "generate-visualization",
     kind: "atomic",
+    effect: "derive",
     labelKey: "spaces.creation.visualize",
     icon: "image",
     decide: decideKnowledgeIntent,
@@ -36,6 +38,7 @@ export const creationIntentDefinitions = [
   {
     id: "export-document-as-docx",
     kind: "atomic",
+    effect: "export",
     labelKey: "spaces.creation.exportDocx",
     icon: "file-output",
     decide: ({ canExportDocument }) => (canExportDocument ? AVAILABLE : HIDDEN),
@@ -43,6 +46,7 @@ export const creationIntentDefinitions = [
   {
     id: "export-document-as-pdf",
     kind: "atomic",
+    effect: "export",
     labelKey: "spaces.creation.exportPdf",
     icon: "file-output",
     decide: ({ canExportDocument }) => (canExportDocument ? AVAILABLE : HIDDEN),
@@ -50,6 +54,7 @@ export const creationIntentDefinitions = [
   {
     id: "presentation-production",
     kind: "workflow",
+    effect: "derive",
     labelKey: "spaces.creation.createPresentation",
     icon: "file-output",
     decide: decideKnowledgeIntent,
@@ -57,6 +62,7 @@ export const creationIntentDefinitions = [
   {
     id: "video-production",
     kind: "workflow",
+    effect: "derive",
     labelKey: "spaces.creation.generateVideo",
     icon: "sparkles",
     decide: decideVideoGeneration,
@@ -64,6 +70,7 @@ export const creationIntentDefinitions = [
   {
     id: "social-content-package",
     kind: "workflow",
+    effect: "derive",
     labelKey: "spaces.creation.socialContentPackage",
     icon: "sparkles",
     decide: decideKnowledgeIntent,
@@ -71,6 +78,7 @@ export const creationIntentDefinitions = [
   {
     id: "remove-image-background",
     kind: "atomic",
+    effect: "derive",
     labelKey: "spaces.creation.removeBackground",
     icon: "scan",
     decide: ({ canRemoveBackground }) => (canRemoveBackground ? AVAILABLE : HIDDEN),
@@ -78,6 +86,7 @@ export const creationIntentDefinitions = [
   {
     id: "subtitled-video-production",
     kind: "workflow",
+    effect: "derive",
     labelKey: "spaces.creation.subtitledVideoProduction",
     icon: "captions",
     decide: ({ canExtractSubtitles }) => (canExtractSubtitles ? AVAILABLE : HIDDEN),
@@ -85,6 +94,7 @@ export const creationIntentDefinitions = [
   {
     id: "meeting-content-package",
     kind: "workflow",
+    effect: "derive",
     labelKey: "spaces.creation.meetingContentPackage",
     icon: "sparkles",
     decide: ({ canCreateMeetingPackage }) => (canCreateMeetingPackage ? AVAILABLE : HIDDEN),
@@ -92,6 +102,7 @@ export const creationIntentDefinitions = [
   {
     id: "render-subtitled-video",
     kind: "atomic",
+    effect: "derive",
     labelKey: "spaces.creation.createSubtitledVideo",
     icon: "captions",
     decide: ({ canBurnSubtitles }) => (canBurnSubtitles ? AVAILABLE : HIDDEN),
@@ -99,6 +110,7 @@ export const creationIntentDefinitions = [
   {
     id: "extract-subtitles",
     kind: "atomic",
+    effect: "derive",
     labelKey: "spaces.creation.createSubtitleResource",
     icon: "captions",
     decide: ({ canExtractSubtitles }) => (canExtractSubtitles ? AVAILABLE : HIDDEN),

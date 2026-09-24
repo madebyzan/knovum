@@ -19,6 +19,7 @@ const selection = shallowRef<CanvasSelectionSnapshot>(emptySelection);
 const directManipulation = shallowRef(false);
 const transitioning = shallowRef(false);
 const activeTextSelectionNodeId = shallowRef<string>();
+const activeTextEditorNodeId = shallowRef<string>();
 export interface SpaceSessionParticipant {
   commit(): Promise<void>;
   phase?: "content" | "layout" | "persistence";
@@ -36,6 +37,7 @@ export function useCanvasEditorSession() {
   return {
     activeEditor,
     activeTextSelectionNodeId: readonly(activeTextSelectionNodeId),
+    activeTextEditorNodeId: readonly(activeTextEditorNodeId),
     directManipulation: readonly(directManipulation),
     transitioning: readonly(transitioning),
     selection: readonly(selection),
@@ -66,6 +68,7 @@ export function registerCanvasEditor(editor: CanvasEditorPort) {
     selection.value = emptySelection;
     directManipulation.value = false;
     activeTextSelectionNodeId.value = undefined;
+    activeTextEditorNodeId.value = undefined;
   };
 }
 
@@ -87,6 +90,11 @@ export function updateCanvasTextSelectionProjection(nodeId: string, active: bool
   } else if (activeTextSelectionNodeId.value === nodeId) {
     activeTextSelectionNodeId.value = undefined;
   }
+}
+
+export function updateCanvasTextEditorProjection(nodeId: string, active: boolean) {
+  if (active) activeTextEditorNodeId.value = nodeId;
+  else if (activeTextEditorNodeId.value === nodeId) activeTextEditorNodeId.value = undefined;
 }
 
 export function registerSpaceSessionParticipant(participant: SpaceSessionParticipant) {

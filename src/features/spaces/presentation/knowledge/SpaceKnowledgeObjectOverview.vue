@@ -12,9 +12,12 @@ import { useSpaceObjectTypesQuery } from "../../knowledge/queries/queries";
 import type { SpaceKnowledgeObjectPayload } from "../../model/nodes/node-payload";
 import { useSpaceStore } from "../../session/space-store";
 
-const props = withDefaults(defineProps<{ data: SpaceKnowledgeObjectPayload; editable?: boolean }>(), {
-  editable: true,
-});
+const props = withDefaults(
+  defineProps<{ data: SpaceKnowledgeObjectPayload; editable?: boolean; editDisabled?: boolean }>(),
+  {
+    editable: true,
+  },
+);
 const emit = defineEmits<{ edit: [] }>();
 const { t } = useI18n();
 const store = useSpaceStore();
@@ -55,7 +58,14 @@ function reveal(nodeId: string) {
       <UiBadge size="sm" variant="accent">
         {{ t(`spaces.knowledge.knowledgeStatusLabel.${data.status}`) }}
       </UiBadge>
-      <UiButton v-if="editable" size="sm" variant="ghost" class="ml-auto shrink-0" @click="emit('edit')">
+      <UiButton
+        v-if="editable"
+        size="sm"
+        variant="ghost"
+        class="ml-auto shrink-0"
+        :disabled="editDisabled"
+        @click="emit('edit')"
+      >
         <Pencil class="size-(--knovum-icon-size-xs)" />{{ t("common.edit") }}
       </UiButton>
     </div>

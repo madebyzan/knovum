@@ -2,6 +2,7 @@ import type { useCanvasToolStore } from "../../canvas/canvas-tool-store";
 import type { CanvasHostEvents } from "../../canvas/contract/canvas-editor";
 import type { CanvasEditorPort } from "../../canvas/contract/canvas-editor-port";
 import { updateCanvasSelectionProjection, updateCanvasViewportProjection } from "../../canvas/editor-session";
+import { useNodeOperationGate } from "../../canvas/node-operation-gate";
 import { createStructureIndex } from "../../model/structure/structure-index";
 import { groupScopePathFor } from "../../model/structure/structure-queries";
 import { sectionDrawCandidateIds } from "../../organization/section-draw-candidates";
@@ -23,9 +24,12 @@ export function createSpaceCanvasEvents(options: {
   untitledSection: string;
 }): CanvasHostEvents {
   const { store } = options;
+  const operations = useNodeOperationGate();
   return {
-    onCreateTextNode: options.createTextNode,
+    onCreateTextNode: (kind, point) =>
+      operations.allowsGestureCommit() ? options.createTextNode(kind, point) : Promise.resolve(undefined),
     async onCreateSection(frame) {
+      if (!operations.allowsGestureCommit()) return;
       await store.executeSpaceEdit({
         kind: "section.draw",
         sectionId: crypto.randomUUID(),
@@ -35,7 +39,8 @@ export function createSpaceCanvasEvents(options: {
       });
       options.tools.resetTool();
     },
-    onExecuteSpaceEdit: store.executeSpaceEdit,
+    onExecuteSpaceEdit: (command) =>
+      operations.allowsGestureCommit() ? store.executeSpaceEdit(command) : Promise.resolve(),
     onEnterGroup(structureNodeId) {
       store.groupScopePath = groupScopePathFor(
         structureNodeId,
@@ -48,8 +53,10 @@ export function createSpaceCanvasEvents(options: {
       return true;
     },
     onCopyNodes: options.selection.copyNodes,
-    onDeleteRelations: store.removeRelations,
+    onDeleteRelations: (ids) =>
+      operations.allowsGestureCommit() ? store.removeRelations(ids) : Promise.resolve(),
     onCreateRelation: async (sourceNodeId, targetNodeId) => {
+      if (!operations.allowsGestureCommit()) return;
       await store.createRelation(sourceNodeId, targetNodeId, "related");
     },
     onInsertText: options.imports.insertText,

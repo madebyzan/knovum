@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ChevronRight, Eye, EyeOff, KeyRound, LockKeyhole } from "@lucide/vue";
-import { computed } from "vue";
+import { computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiButton from "../../../../../shared/ui/UiButton.vue";
@@ -9,6 +9,7 @@ import UiIconButton from "../../../../../shared/ui/UiIconButton.vue";
 import UiInput from "../../../../../shared/ui/UiInput.vue";
 import { useCredentialEditor } from "../../../credentials/use-credential-editor";
 import type { SpaceCredentialPayload } from "../../../model/nodes/node-payload";
+import { useNodeDraft } from "../../use-node-draft";
 
 const props = defineProps<{
   id: string;
@@ -27,10 +28,20 @@ const {
   username,
   password,
   canSave,
-  openEditor,
+  openEditor: openCredentialEditor,
   toggleReveal,
   save,
 } = useCredentialEditor(props);
+const nodeDraft = useNodeDraft(
+  computed(() => props.id),
+  "credential",
+);
+watch(open, (value) => {
+  if (!value) nodeDraft.end();
+});
+function beginEditor() {
+  if (nodeDraft.begin()) void openCredentialEditor();
+}
 const kindLabel = computed(() =>
   props.data.credentialKind === "api-key"
     ? t("spaces.credentials.apiKey")
@@ -57,12 +68,12 @@ const kindLabel = computed(() =>
     <UiIconButton
       class="shrink-0"
       :class="interactive && 'pointer-events-auto'"
-      :disabled="!interactive"
+      :disabled="!interactive || !nodeDraft.available.value"
       :label="t('spaces.credentials.editCredential')"
       size="sm"
       @pointerdown.stop
       @dblclick.stop
-      @click.stop="openEditor"
+      @click.stop="beginEditor"
     >
       <ChevronRight class="size-(--knovum-icon-size-sm)" :stroke-width="1.5" />
     </UiIconButton>

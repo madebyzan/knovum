@@ -6,19 +6,22 @@ import type { AppCommand } from "../../../shared/contracts/app-command";
 import { workspaceSidebarKey } from "../../../shared/contracts/workspace-sidebar";
 import { useCanvasExchangeSession } from "../canvas-exchange/canvas-exchange-session";
 import { useCanvasEditorSession } from "../canvas/editor-session";
+import { useNodeOperationGate } from "../canvas/node-operation-gate";
 import { createStructureIndex, effectiveOperationRoots } from "../model/structure/structure-index";
-import {
-  canRenameStructureNode,
-  dissolveGroupCapability,
-  groupCapability,
-} from "../organization/structure-capabilities";
 import { useSpaceStore } from "../session/space-store";
 import { useWorkspaceTabCommands } from "../workspace/tab-commands";
 import { useSpaceLibraryCommands } from "../workspace/use-space-library-commands";
 import { createCanvasEditingCommands } from "./canvas-editing-commands";
 import { createCanvasExchangeCommands } from "./canvas-exchange-commands";
+import {
+  guardAllCommands,
+  guardCanvasExchangeCommands,
+  guardNavigationCommands,
+  guardSelectionCommands,
+} from "./node-operation-command-policy";
 import { NUDGE_COMMANDS } from "./nudge-commands";
 import { spacePreviewCommand } from "./space-preview-command";
+import { createSpaceStructureCommands } from "./space-structure-commands";
 import { useCanvasNavigationCommands } from "./use-canvas-navigation-commands";
 import { videoEditCommands } from "./video-edit-commands";
 
@@ -27,6 +30,7 @@ export function useSpaceCommands() {
   const store = useSpaceStore();
   const sidebar = inject(workspaceSidebarKey)!;
   const { activeEditor, selection } = useCanvasEditorSession();
+  const nodeOperations = useNodeOperationGate();
   const { activePort: activeExchange } = useCanvasExchangeSession();
   const workspaceTabCommands = useWorkspaceTabCommands();
   const libraryCommands = useSpaceLibraryCommands();
@@ -59,54 +63,7 @@ export function useSpaceCommands() {
 
     const hasStructureSelection = selectedStructureNodeIds().length > 0;
     const editingCommands: AppCommand[] = [
-      {
-        id: "spaces.group-selection",
-        title: t("spaces.canvas.groupSelection"),
-        shortcut: "$mod+G",
-        category: "canvas",
-        availability: () =>
-          availableWhen(
-            groupCapability(store.editSnapshot, selectedStructureNodeIds()).enabled,
-            "selection_not_eligible",
-          ),
-        run: async () => {
-          await store.executeSpaceEdit({
-            kind: "group.create",
-            groupId: crypto.randomUUID(),
-            rootIds: selectedStructureNodeIds(),
-            title: t("spaces.canvas.untitledGroup"),
-          });
-        },
-      },
-      {
-        id: "spaces.dissolve-group",
-        title: t("spaces.canvas.ungroupSelection"),
-        shortcut: "$mod+Shift+G",
-        category: "canvas",
-        availability: () =>
-          availableWhen(
-            dissolveGroupCapability(store.editSnapshot, selectedStructureNodeIds()).enabled,
-            "selection_not_eligible",
-          ),
-        run: async () => {
-          await store.executeSpaceEdit({ kind: "group.dissolve", rootIds: selectedStructureNodeIds() });
-        },
-      },
-      {
-        id: "spaces.rename-node",
-        title: t("spaces.navigation.renameNode"),
-        shortcut: "F2",
-        category: "canvas",
-        availability: () =>
-          availableWhen(
-            canRenameStructureNode(store.editSnapshot, selectedStructureNodeIds()),
-            "selection_not_eligible",
-          ),
-        run: () => {
-          sidebar.reveal();
-          store.outlineRenameStructureNodeId = selectedStructureNodeIds()[0]!;
-        },
-      },
+      ...createSpaceStructureCommands(store, selectedStructureNodeIds, t, sidebar),
       {
         id: "spaces.focus-outline",
         title: t("spaces.navigation.outline"),
@@ -169,10 +126,10 @@ export function useSpaceCommands() {
     const preview = spacePreviewCommand(store, selectedIds(), t("spaces.transfer.systemPreview"));
     return [
       ...workspaceTabCommands.value,
-      ...editingCommands,
-      ...exchangeCommands,
-      ...nudgeCommands,
-      ...canvasNavigationCommands.value,
+      ...guardSelectionCommands(editingCommands, nodeOperations.allows),
+      ...guardCanvasExchangeCommands(exchangeCommands, nodeOperations.allows),
+      ...guardAllCommands(nudgeCommands, "structure", nodeOperations.allows),
+      ...guardNavigationCommands(canvasNavigationCommands.value, nodeOperations.allows),
       ...(preview ? [preview] : []),
     ];
   });

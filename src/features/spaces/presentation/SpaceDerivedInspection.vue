@@ -5,6 +5,7 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { refreshSpaceAsset } from "../assets/asset-operations";
+import { useNodeOperationGate } from "../canvas/node-operation-gate";
 import { useDerivationMetadata } from "../knowledge-derivations/use-derivation-metadata";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { isSpaceManagedAssetPayload } from "../model/nodes/capabilities";
@@ -18,6 +19,7 @@ import SpaceInspectorSection from "./SpaceInspectorSection.vue";
 const props = defineProps<{ node: SpaceCanvasNode }>();
 const { t } = useI18n();
 const store = useSpaceStore();
+const operations = useNodeOperationGate();
 const nodeRef = toRef(props, "node");
 const { documentMetadata, imageMetadata, videoMetadata, failure } = useDerivationMetadata(nodeRef);
 
@@ -29,7 +31,7 @@ const canRetry = computed(() => {
 
 async function onRetry() {
   const spaceId = store.activeSpaceId;
-  if (!spaceId || retrying.value) return;
+  if (!spaceId || retrying.value || !operations.allows("edit")) return;
   retrying.value = true;
   try {
     if (isSpaceManagedAssetPayload(props.node.data)) {
@@ -54,6 +56,7 @@ async function onRetry() {
 }
 
 async function removeFailedOutput() {
+  if (!operations.allows("structure")) return;
   const structureNodeId = createStructureIndex(store.editSnapshot.structure).nodeIdToStructureNodeId.get(
     props.node.id,
   );
@@ -71,7 +74,7 @@ async function removeFailedOutput() {
   >
     <SpaceDerivationFailureDetails
       :failure="failure"
-      :can-retry="canRetry"
+      :can-retry="canRetry && operations.allows('edit')"
       :retrying="retrying"
       @retry="onRetry"
       @remove="removeFailedOutput"

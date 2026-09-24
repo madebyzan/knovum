@@ -5,17 +5,21 @@ import { toast } from "vue-sonner";
 
 import UiButton from "../../../shared/ui/UiButton.vue";
 import { importSpaceFromPicker } from "../assets/import-flow";
+import { useNodeOperationGate } from "../canvas/node-operation-gate";
 import { createSpaceNotePayload } from "../editor/tiptap-content";
 import { useSpaceStore } from "../session/space-store";
 
 const store = useSpaceStore();
+const operations = useNodeOperationGate();
 const { t } = useI18n();
 
 function addNote() {
+  if (!operations.allows("create")) return;
   void store.addContent(createSpaceNotePayload(t("spaces.editor.newNote")));
 }
 
 async function importFile() {
+  if (!operations.allows("create")) return;
   try {
     await importSpaceFromPicker(store, {
       title: t("spaces.transfer.importingResource"),
@@ -34,10 +38,10 @@ async function importFile() {
       <p class="mt-3 text-body-lg font-medium">{{ t("spaces.space.emptyTitle") }}</p>
       <p class="mt-1 text-caption text-foreground-tertiary">{{ t("spaces.space.emptyDescription") }}</p>
       <div class="mt-4 flex justify-center gap-2">
-        <UiButton size="sm" variant="secondary" @click="addNote">
+        <UiButton size="sm" variant="secondary" :disabled="!operations.allows('create')" @click="addNote">
           <StickyNote class="mr-1.5 size-(--knovum-icon-size-xs)" />{{ t("spaces.editor.newNote") }}
         </UiButton>
-        <UiButton size="sm" variant="secondary" @click="importFile">
+        <UiButton size="sm" variant="secondary" :disabled="!operations.allows('create')" @click="importFile">
           <FilePlus2 class="mr-1.5 size-(--knovum-icon-size-xs)" />{{ t("spaces.transfer.import") }}
         </UiButton>
       </div>

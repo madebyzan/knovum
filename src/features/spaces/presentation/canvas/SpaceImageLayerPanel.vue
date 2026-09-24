@@ -9,7 +9,7 @@ import { toast } from "vue-sonner";
 import { canRunAction } from "../../../../shared/contracts/action-availability";
 import UiActionHelp from "../../../../shared/ui/UiActionHelp.vue";
 import UiPopover from "../../../../shared/ui/UiPopover.vue";
-import { useImageEditSession } from "../../image-editing/image-edit-session";
+import { useNodeOperationGate } from "../../canvas/node-operation-gate";
 import { useImageLayerCapability } from "../../knowledge-derivations/image-capabilities";
 import { createImageLayers } from "../../knowledge-derivations/image-layers";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
@@ -23,7 +23,7 @@ import SpaceImageCustomLayerForm from "./SpaceImageCustomLayerForm.vue";
 const props = defineProps<{ node: SpaceCanvasNode<SpaceImagePayload>; compact?: boolean; open: boolean }>();
 const emit = defineEmits<{ "update:open": [open: boolean] }>();
 const store = useSpaceStore();
-const imageEditSession = useImageEditSession();
+const nodeOperations = useNodeOperationGate();
 const { t } = useI18n();
 const router = useRouter();
 const capability = useImageLayerCapability();
@@ -39,7 +39,7 @@ const busy = shallowRef(false);
 const availability = computed(() =>
   imageActionAvailability(
     Boolean(props.node.data.sourceRevision),
-    imageEditSession.active?.nodeId === props.node.id,
+    !nodeOperations.allows("derive"),
     capability.isFetching.value ? undefined : capability.data.value,
     capability.isError.value && !capability.isFetching.value,
     busy.value,
@@ -53,7 +53,7 @@ const commandClass =
   "inline-flex h-(--knovum-control-height-md) shrink-0 items-center gap-1.5 rounded-control px-2.5 text-label text-foreground-secondary outline-none transition-colors duration-100 hover:bg-control-hover hover:text-foreground focus-visible:ring-2 focus-visible:ring-focus-ring disabled:cursor-not-allowed disabled:opacity-45";
 
 async function submit(mode: "automatic" | "custom") {
-  if (busy.value || !canSubmit.value) return;
+  if (busy.value || !nodeOperations.allows("derive") || !canSubmit.value) return;
   if (mode === "custom" && !prompt.value.trim()) return;
   setOpen(false);
   busy.value = true;
