@@ -3,14 +3,17 @@
 ## Source of truth
 
 - Status: Active
-- Last refreshed: 2026-09-21
-- Primary product surfaces: desktop knowledge-space shell, infinite canvas, object actions, editors, Inspector, Assistant workspace, Workflow editor, Run Center, Automation, external connections and Settings.
+- Last refreshed: 2026-09-24
+- Primary product surfaces: desktop knowledge-space shell, infinite canvas, object actions, editors, Inspector, one conversation surface, canvas-derived reusable workflows, contextual task feedback and Settings.
 - Evidence reviewed: `/Users/zand/Downloads/knovum-final-design.md`, `AGENTS.md`, `docs/spaces.md`, `docs/knowledge.md`, `docs/ui-system.md`, `docs/background-tasks.md`, `docs/system-architecture.md`, `docs/architecture.md`, `docs/naming-conventions.md`, `docs/oss-first.md`, `src/features/spaces/*`, `src-tauri/src/spaces/*`, `src-tauri/src/ai/*`, and `src-tauri/src/external_agents/*`.
 
-This file is the durable product and interaction design contract. The complete domain, execution,
-security and delivery baseline is `docs/rfcs/knowledge-work-system.md`. Domain and persistence details
-remain authoritative in their owning documents; this file defines how those capabilities should feel
-and behave as one product.
+This file is the durable product and interaction design contract. The implemented 2026-09-21 domain,
+execution and delivery baseline is recorded in `docs/rfcs/knowledge-work-system.md`. The target redesign
+for conversations, workflows, task presentation and external-tool configuration is
+[`ASSISTANT_WORKFLOW_REDESIGN.md`](ASSISTANT_WORKFLOW_REDESIGN.md). It supersedes the earlier separate
+Assistant surfaces, Workflow Studio, Run Center and user Automation product direction. That redesign
+is specified but not yet implemented. Domain and persistence documents continue to describe the current
+implementation until their owning capability is replaced; they must be updated with that replacement.
 
 The canvas and node visual system is specified in `CANVAS_VISUAL_REDESIGN.md`. That scoped specification refines this contract without replacing its product principles.
 
@@ -53,6 +56,12 @@ The canvas and node visual system is specified in `CANVAS_VISUAL_REDESIGN.md`. T
 
 - Primary navigation: the Spaces sidebar selects a Space or its internal navigator; the unified toolbar owns canvas and application-level actions. Settings is a temporary route, not a peer product module.
 - Core routes/screens: Space canvas, full Note/Markdown editor, selection Inspector, Knowledge history, Task Center and Settings.
+- Conversations have one history, message timeline and composer. Grounded retrieval is a conversation
+  capability; API models and desktop Agents are execution targets with distinct native session behavior.
+- Reusable workflows are captured from actual canvas derivations and applied to new selections. Their
+  library and contextual editing belong to the canvas work area. External-tool connections belong in Settings.
+- Task progress and required decisions appear at the initiating message or canvas result, with the existing
+  Task Center providing a shared projection. There is no separate Run Center or Automation destination.
 - Content hierarchy:
   1. A Space is the durable knowledge boundary.
   2. Resources and Knowledge Objects are the durable semantic material.
@@ -98,7 +107,7 @@ A new output is justified only when it improves understanding, expression, reuse
 
 ### The canvas shows knowledge, not execution plumbing
 
-The canvas may reveal source-to-result lineage and a compact pending state, but it does not expose model nodes, samplers, codecs or provider request graphs as ordinary knowledge objects. Advanced reusable sequences become named Workflows presented through intent and outcome. Their internal execution graph belongs in an inspector or dedicated editor only when real user needs prove it necessary.
+The canvas may reveal source-to-result lineage and a compact pending state, but it does not expose model nodes, samplers, codecs or provider request graphs as ordinary knowledge objects. Reusable sequences become named Workflows captured from recorded derivations. The existing canvas previews their resources and steps; contextual panels edit input bindings, parameters and outputs. Template editing has separate draft and undo state and does not create ordinary Space nodes or a second canvas engine.
 
 ### Tradeoffs
 
@@ -106,8 +115,9 @@ The canvas may reveal source-to-result lineage and a compact pending state, but 
   universal “AI process” action.
 - Prefer durable lineage and inspectability over instant but disposable generation.
 - Prefer a quiet canvas with collapsible lineage over displaying the complete execution graph.
-- Keep Workflow as a first-class, typed user program while keeping one-click object operations direct;
-  not every click creates a Run or Workflow instance.
+- Keep Workflow as a reusable, typed derivation definition while keeping one-click object operations direct;
+  not every click creates a Run or Workflow instance. Arbitrary scripts, scheduling and general programming
+  controls are outside the target workflow product.
 
 ## Visual language
 
@@ -127,9 +137,9 @@ The canvas may reveal source-to-result lineage and a compact pending state, but 
   - **Pending derivative node** occupying the output’s future canvas position.
   - **Derivation details** Inspector section for lineage, execution and source-freshness information.
   - **Lineage controls** for reveal, collapse, compare, rerun and inspect sources.
-  - **Workflow editor** with graph and outline projections over one `WorkflowDraft`.
-  - **Assistant workspace** with explicit Ask, Plan and Execute modes.
-  - **Run Center** with Run, StepInstance and Attempt detail, recovery and selective rerun.
+  - **Canvas Workflow capture and reuse** with typed inputs, explicit binding and contextual parameter editing.
+  - **Conversation surface** with one history and composer, visible resource context, citations and task messages.
+  - **Contextual task feedback** with cancellation, required input and selective retry, projected into Task Center.
   - **Connection diagnostics** for model, external Agent and external tool bindings.
 - Variants and states: ready, configuring, queued, running, cancelling, failed, completed and superseded.
 - Token/component ownership: Spaces owns derivation orchestration and canvas presentation; Foundation owns only existing cross-feature task and integration policy; reusable processing engines live behind explicit neutral desktop capabilities rather than feature-to-feature imports.
@@ -192,8 +202,9 @@ Knowledge Derivation is the product capability by which one or more Space resour
 - **Relation**: the semantic `derives-from` edge connecting each output to its inputs.
 - **Provenance**: evidence supporting a Knowledge claim or relation. Provenance is not reused as the transformation audit log.
 - **KnowledgeChangeSet**: a temporary, validated set of factual or semantic operations committed atomically by Rust.
-- **Workflow**: a user-owned, versioned typed program over registered SpaceActions with explicit
-  inputs, outputs, conditions, review points and execution bindings; never a low-level provider graph.
+- **Workflow**: a user-owned, versioned definition extracted from replayable derivations over registered
+  SpaceActions, with explicit resource inputs, step dependencies, parameters and outputs. Runtime execution
+  binds fresh resources and exact targets; ordinary canvas relations do not become executable steps.
 
 ### Action families
 
@@ -285,7 +296,7 @@ Placement uses the measured bounds of the full source selection. A single-source
 
 ## Open questions
 
-- [ ] Define which derivation parameters are safe and useful to persist for reproducibility without storing secrets or provider-private data / Spaces + Foundation / persistence contract.
+- [ ] Audit each derivation action against the replay contract in `ASSISTANT_WORKFLOW_REDESIGN.md`: exact normalized parameters, named inputs/outputs, revision semantics and non-secret execution evidence / Spaces + Foundation / implementation evidence.
 - [x] Generated documents remain directly usable artifacts; durable Knowledge-claim mutations use strict KnowledgeChangeSet validation, atomic commit and provenance presentation.
 - [ ] Decide when multiple source relations collapse into one lineage bundle on dense canvases / Spaces design / large-canvas readability.
 - [x] DOCX uses `docx-rs`, PDF uses the official Typst compiler/PDF exporter through a pinned embedding adapter, and PPTX uses `PptxGenJS` in a worker. All three remain derived delivery artifacts rather than editable knowledge sources.

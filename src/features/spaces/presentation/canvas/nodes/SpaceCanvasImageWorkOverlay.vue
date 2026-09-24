@@ -4,9 +4,9 @@ import { useI18n } from "vue-i18n";
 
 import { useImageEditSession } from "../../../image-editing/image-edit-session";
 import type { SpaceImagePayload } from "../../../model/nodes/node-payload";
-import { nodePayloadWork } from "./canvas-node-work";
+import { nodePayloadWork, type CanvasNodeWork } from "./canvas-node-work";
 import SpaceCanvasProcessingState from "./SpaceCanvasProcessingState.vue";
-import SpaceCanvasWorkDots from "./SpaceCanvasWorkDots.vue";
+import SpaceCanvasWorkEffect from "./SpaceCanvasWorkEffect.vue";
 
 const props = defineProps<{
   id: string;
@@ -17,7 +17,7 @@ const props = defineProps<{
 const { t } = useI18n();
 const session = useImageEditSession();
 const work = computed(() => nodePayloadWork(props.data));
-const unavailableWork = computed(() => {
+const unavailableWork = computed<Pick<CanvasNodeWork, "phase" | "labelKey"> | undefined>(() => {
   if (props.loadState === "failed")
     return { phase: "failed", labelKey: "spaces.processing.imageUnavailable" };
   if (props.loadState === "loading") return { phase: "active", labelKey: "spaces.processing.loadingImage" };
@@ -38,13 +38,19 @@ const applyingRegion = computed<CSSProperties | undefined>(() => {
 </script>
 
 <template>
-  <div v-if="unavailableWork" class="pointer-events-none absolute inset-0 flex">
-    <SpaceCanvasProcessingState
-      :label="t(unavailableWork.labelKey)"
-      :failed="unavailableWork.phase === 'failed'"
-    />
-  </div>
+  <Transition
+    leave-active-class="transition-opacity duration-200 motion-reduce:transition-none"
+    leave-to-class="opacity-0"
+  >
+    <div
+      v-if="unavailableWork"
+      :key="unavailableWork.phase"
+      class="pointer-events-none absolute inset-0 flex"
+    >
+      <SpaceCanvasProcessingState :label="t(unavailableWork.labelKey)" :phase="unavailableWork.phase" />
+    </div>
+  </Transition>
   <div v-if="applyingRegion" class="pointer-events-none absolute overflow-hidden" :style="applyingRegion">
-    <SpaceCanvasWorkDots placement="selection" />
+    <SpaceCanvasWorkEffect placement="selection" />
   </div>
 </template>

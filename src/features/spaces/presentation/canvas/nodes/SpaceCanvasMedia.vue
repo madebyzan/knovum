@@ -53,18 +53,24 @@ async function consumeSeekRequest(request: typeof mediaSeekRequest.value) {
 
 <template>
   <div class="relative flex min-h-0 flex-1 flex-col overflow-hidden">
-    <SpaceCanvasProcessingState
-      v-if="work?.surface === 'content'"
-      :label="t(work.labelKey)"
-      :failed="work.phase === 'failed'"
-    />
     <SpaceMediaPlayer
-      v-else
+      v-if="work?.surface !== 'content'"
       ref="player"
       :data="data"
       @playback="store.updateMediaPlayback(id, $event)"
       @unload="store.clearMediaPlayback(id)"
       @playback-error="toast.error($event)"
     />
+    <Transition
+      leave-active-class="transition-opacity duration-200 motion-reduce:transition-none"
+      leave-to-class="opacity-0"
+    >
+      <SpaceCanvasProcessingState
+        v-if="work?.surface === 'content'"
+        class="absolute inset-0"
+        :label="t(work.labelKey)"
+        :phase="work.phase"
+      />
+    </Transition>
   </div>
 </template>
