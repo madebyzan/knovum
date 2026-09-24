@@ -41,6 +41,7 @@ Required before public distribution:
 6. install and first-launch smoke test on a clean machine/user profile.
 
 CI secrets normally include the Apple certificate material and either App Store Connect API credentials or Apple ID notarization credentials. Do not commit certificate/private-key material.
+The macOS release packaging command rejects missing and ad-hoc signing identities. Keep the same organization-controlled signing identity across updates so Keychain authorization does not recur because the application identity changed.
 
 ## Windows production distribution
 

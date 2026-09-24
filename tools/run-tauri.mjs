@@ -7,7 +7,10 @@ const repository = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const args = process.argv.slice(2);
 const environment = { ...process.env };
 
-if (args[0] === "dev") configureDevelopmentRuntime(environment);
+if (args[0] === "dev") {
+  configureDevelopmentRuntime(environment);
+  if (process.platform === "darwin") configureMacOsDevelopmentSigning(environment);
+}
 
 const pnpm = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
 execFileSync(pnpm, ["exec", "tauri", ...args], {
@@ -32,6 +35,27 @@ function configureDevelopmentRuntime(targetEnvironment) {
     if (!existsSync(path)) throw new Error(`Development runtime is missing ${path}`);
     targetEnvironment[key] = path;
   }
+}
+
+function configureMacOsDevelopmentSigning(targetEnvironment) {
+  const identity = targetEnvironment.KNOVUM_DEV_SIGNING_IDENTITY?.trim();
+  if (!identity || identity === "-") {
+    throw new Error(
+      "macOS desktop development requires KNOVUM_DEV_SIGNING_IDENTITY with a stable code-signing certificate; ad-hoc signing cannot preserve Keychain authorization",
+    );
+  }
+  const identities = execFileSync("security", ["find-identity", "-v", "-p", "codesigning"], {
+    encoding: "utf8",
+  });
+  if (!identities.includes(identity)) {
+    throw new Error(`Code-signing identity ${identity} is unavailable in the macOS keychain`);
+  }
+  const architecture = process.arch === "arm64" ? "AARCH64" : "X86_64";
+  targetEnvironment[`CARGO_TARGET_${architecture}_APPLE_DARWIN_RUNNER`] = join(
+    repository,
+    "tools",
+    "run-signed-tauri-dev.mjs",
+  );
 }
 
 function hostTarget() {

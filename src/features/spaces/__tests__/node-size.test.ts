@@ -44,15 +44,16 @@ describe("spaces node size policy", () => {
   });
 
   it("fits standard and long-form image ratios without cropping or distortion", () => {
-    expect(spaceNodeDimensions(visual("image", 1920, 1080))).toEqual({ width: 280, height: 206 });
-    expect(spaceNodeDimensions(visual("image", 1080, 1920))).toEqual({ width: 158, height: 328 });
-    expect(spaceNodeDimensions(visual("image", 1080, 3840))).toEqual({ width: 128, height: 503 });
+    expect(spaceNodeDimensions(visual("image", 1920, 1080))).toEqual({ width: 280, height: 158 });
+    expect(spaceNodeDimensions(visual("image", 1080, 1920))).toEqual({ width: 158, height: 280 });
+    expect(spaceNodeDimensions(visual("image", 1080, 3840))).toEqual({ width: 128, height: 455 });
   });
 
-  it("reserves stable desktop chrome around video presentation geometry", () => {
-    expect(spaceNodeDimensions(visual("video", 1920, 1080))).toEqual({ width: 304, height: 223 });
-    expect(spaceNodeDimensions(visual("video", 1080, 1920))).toEqual({ width: 171, height: 356 });
-    expect(spaceNodeSizePolicy(visual("video", 1920, 1080)).contentAspect?.fixedVerticalChrome).toBe(52);
+  it("uses the full card for image and video content", () => {
+    expect(spaceNodeDimensions(visual("video", 1920, 1080))).toEqual({ width: 304, height: 171 });
+    expect(spaceNodeDimensions(visual("video", 1080, 1920))).toEqual({ width: 171, height: 304 });
+    expect(spaceNodeSizePolicy(visual("image", 1920, 1080)).contentAspect?.fixedVerticalChrome).toBe(0);
+    expect(spaceNodeSizePolicy(visual("video", 1920, 1080)).contentAspect?.fixedVerticalChrome).toBe(0);
   });
 
   it("sizes a rendered document card from the page's own ratio", () => {
@@ -124,7 +125,7 @@ describe("spaces node size policy", () => {
   });
 
   it("derives initial visual dimensions only from intrinsic content", () => {
-    expect(spaceNodeDimensions(visual("image", 1920, 1080))).toEqual({ width: 280, height: 206 });
-    expect(spaceNodeDimensions(visual("video", 1920, 1080))).toEqual({ width: 304, height: 223 });
+    expect(spaceNodeDimensions(visual("image", 1920, 1080))).toEqual({ width: 280, height: 158 });
+    expect(spaceNodeDimensions(visual("video", 1920, 1080))).toEqual({ width: 304, height: 171 });
   });
 });

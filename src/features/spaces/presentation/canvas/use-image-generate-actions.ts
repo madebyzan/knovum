@@ -19,6 +19,7 @@ import { imageActionHelp } from "./image-action-help";
 export function useImageGenerateActions(
   node: Readonly<Ref<SpaceCanvasNode<SpaceImagePayload>>>,
   mode: Readonly<Ref<"upscale" | "angle">>,
+  open: Readonly<Ref<boolean>>,
   close: () => void,
 ) {
   const { t } = useI18n();
@@ -26,7 +27,7 @@ export function useImageGenerateActions(
   const store = useSpaceStore();
   const session = useImageEditSession();
   const nodeOperations = useNodeOperationGate();
-  const capabilities = useImageOperationCapabilities();
+  const capabilities = useImageOperationCapabilities(open);
   const busy = shallowRef(false);
   const dimensions = computed(() => {
     const loaded = session.dimensionsFor(node.value.id);
@@ -82,7 +83,6 @@ export function useImageGenerateActions(
   }
 
   return {
-    capabilities,
     busy,
     availability,
     help,

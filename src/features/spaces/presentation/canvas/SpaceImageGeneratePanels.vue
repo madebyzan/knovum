@@ -25,7 +25,6 @@ const props = defineProps<{
 const emit = defineEmits<{ "update:open": [open: boolean] }>();
 const { t } = useI18n();
 const {
-  capabilities,
   busy,
   availability: baseAvailability,
   help,
@@ -33,7 +32,9 @@ const {
   optionAvailability,
   openAiSettings,
   run,
-} = useImageGenerateActions(toRef(props, "node"), toRef(props, "mode"), () => emit("update:open", false));
+} = useImageGenerateActions(toRef(props, "node"), toRef(props, "mode"), toRef(props, "open"), () =>
+  emit("update:open", false),
+);
 const sizes = [2048, 4096, 8192] as const;
 </script>
 
@@ -44,12 +45,7 @@ const sizes = [2048, 4096, 8192] as const;
     side="bottom"
     align="start"
     class="w-48 p-1"
-    @update:open="
-      (value: boolean) => {
-        emit('update:open', value);
-        if (value) void capabilities.refetch();
-      }
-    "
+    @update:open="emit('update:open', $event)"
   >
     <template #trigger>
       <ToolbarButton as-child>
@@ -102,12 +98,7 @@ const sizes = [2048, 4096, 8192] as const;
     side="bottom"
     align="center"
     class="p-3"
-    @update:open="
-      (value: boolean) => {
-        emit('update:open', value);
-        if (value) void capabilities.refetch();
-      }
-    "
+    @update:open="emit('update:open', $event)"
   >
     <template #trigger>
       <ToolbarButton as-child>

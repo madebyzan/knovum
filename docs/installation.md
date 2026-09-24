@@ -21,6 +21,8 @@ cargo generate-lockfile --manifest-path src-tauri/Cargo.toml
 pnpm desktop:dev
 ```
 
+On macOS, install a stable Apple Development code-signing identity in the login Keychain and set `KNOVUM_DEV_SIGNING_IDENTITY` to its certificate name or SHA-1 hash before `pnpm desktop:dev`. Find available identities with `security find-identity -v -p codesigning`. The development launcher signs each rebuilt executable before Cargo runs it; it refuses an absent or ad-hoc (`-`) identity. This keeps macOS Keychain authorization tied to the same application identity across rebuilds. The first access to the vault may still require one OS approval.
+
 Commit both lockfiles after the first successful resolution:
 
 ```text
