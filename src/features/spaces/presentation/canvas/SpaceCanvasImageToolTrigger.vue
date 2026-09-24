@@ -3,10 +3,20 @@ import { Crop, Eraser, RotateCw, SlidersHorizontal } from "@lucide/vue";
 import { ToolbarButton } from "reka-ui";
 import { useI18n } from "vue-i18n";
 
+import UiDropdownMenuItem from "../../../../shared/ui/UiDropdownMenuItem.vue";
 import type { ImageEditTool } from "../../image-editing/image-edit-session";
+import { CANVAS_ACTION_BUTTON_CLASSES } from "./canvas-action-classes";
 import { nodeActionLabelClass, nodeActionLabelState } from "./node-action-label";
 
-const props = defineProps<{ mode: ImageEditTool; compact: boolean; disabled?: boolean }>();
+const props = withDefaults(
+  defineProps<{
+    mode: ImageEditTool;
+    compact?: boolean;
+    disabled?: boolean;
+    menuItem?: boolean;
+  }>(),
+  { compact: false, disabled: false, menuItem: false },
+);
 const emit = defineEmits<{ begin: [tool: ImageEditTool] }>();
 const { t } = useI18n();
 const labels: Record<ImageEditTool, string> = {
@@ -16,15 +26,16 @@ const labels: Record<ImageEditTool, string> = {
   transform: "spaces.media.transformImage",
 };
 const icons = { eraser: Eraser, adjust: SlidersHorizontal, crop: Crop, transform: RotateCw };
-const commandClass =
-  "inline-flex h-(--knovum-control-height-md) shrink-0 items-center gap-1.5 rounded-control px-2.5 text-label text-foreground-secondary outline-none transition-colors duration-150 ease-standard hover:bg-control-hover hover:text-foreground focus-visible:ring-2 focus-visible:ring-focus-ring disabled:cursor-not-allowed disabled:opacity-45 motion-reduce:transition-none";
 </script>
 
 <template>
-  <ToolbarButton as-child>
+  <UiDropdownMenuItem v-if="menuItem" :disabled="disabled" @select="emit('begin', props.mode)">
+    <component :is="icons[props.mode]" class="size-(--knovum-icon-size-sm)" />{{ t(labels[props.mode]) }}
+  </UiDropdownMenuItem>
+  <ToolbarButton v-else as-child>
     <button
       type="button"
-      :class="commandClass"
+      :class="CANVAS_ACTION_BUTTON_CLASSES"
       :aria-label="t(labels[props.mode])"
       :title="compact ? t(labels[props.mode]) : undefined"
       :disabled="disabled"

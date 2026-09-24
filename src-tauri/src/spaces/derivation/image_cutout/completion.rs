@@ -6,7 +6,7 @@ use tauri::AppHandle;
 use uuid::Uuid;
 
 use super::{source, CompleteImageCutoutRequest, CompletedDerivationOutput};
-use crate::spaces::derivation::relations;
+use crate::spaces::derivation::{pending_output, relations};
 use crate::spaces::{
     assets::asset_directory,
     db,
@@ -18,12 +18,8 @@ pub(super) async fn complete(
     request: CompleteImageCutoutRequest,
 ) -> Result<CompletedDerivationOutput, String> {
     let path = asset_directory(&app)?.join(format!("derived-{}.png", Uuid::new_v4()));
-    let source_path = super::super::source_snapshot::image_path(
-        &app,
-        &request.id,
-        &request.source_edit,
-    )
-    .await?;
+    let source_path =
+        super::super::source_snapshot::image_path(&app, &request.id, &request.source_edit).await?;
     let source_edit = request.source_edit.clone();
     let processed = crate::blocking::run({
         let app = app.clone();
@@ -103,9 +99,17 @@ async fn persist_completion(
     let Some((space_id, source_id, output_id, data)) = row else {
         return Err("Background removal is no longer running".into());
     };
-    source::revalidate(&mut tx, &request.id, &space_id, &source_id, &request.source_edit).await?;
+    source::revalidate(
+        &mut tx,
+        &request.id,
+        &space_id,
+        &source_id,
+        &request.source_edit,
+    )
+    .await?;
     let now = crate::clock::unix_time_millis()?;
     let mut value: Value = serde_json::from_str(&data).map_err(db::json_error)?;
+    pending_output::validate_unpublished_asset(&value)?;
     apply_output_data(&mut value, path, digest, size, width, height, now)?;
     contracts::validate_node(&mut tx, &space_id, &output_id, "image", &value).await?;
     let relation = relations::derives_from(

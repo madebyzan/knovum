@@ -10,15 +10,15 @@ import {
   type VideoTextOverlay,
   type VideoTextStyle,
 } from "../../video-editing/project";
-import SpaceVideoTextTiming from "./SpaceVideoTextTiming.vue";
 import SpaceVideoFontControls from "./SpaceVideoFontControls.vue";
+import SpaceVideoTextColorField from "./SpaceVideoTextColorField.vue";
+import SpaceVideoTextTiming from "./SpaceVideoTextTiming.vue";
 
 const props = defineProps<{ project: VideoEditProject; item: VideoTextOverlay }>();
 const emit = defineEmits<{ edit: [project: VideoEditProject, mergeKey?: string] }>();
 const duration = computed(() => projectDuration(props.project));
 const style = computed(() => props.item.style);
 const textDraft = shallowRef(props.item.text);
-const colorError = shallowRef(false);
 const presets = ["plain", "outline", "shadow", "badge"] as const;
 const placements = ["top", "center", "bottom"] as const;
 watch(
@@ -56,17 +56,6 @@ function changeSize(event: Event) {
   if (Number.isInteger(value) && value >= 16 && value <= 96) patchStyle({ size: value });
   input.value = String(style.value.size);
 }
-
-function changeColor(value: string) {
-  colorError.value = !/^#[0-9A-Fa-f]{6}$/.test(value);
-  if (!colorError.value) patchStyle({ color: value.toUpperCase() }, `text-color:${props.item.id}`);
-}
-
-function commitColor(event: Event) {
-  const input = event.currentTarget as HTMLInputElement;
-  changeColor(input.value);
-  if (colorError.value) input.value = style.value.color;
-}
 </script>
 
 <template>
@@ -102,26 +91,11 @@ function commitColor(event: Event) {
       </label>
     </section>
     <section>
-      <label class="mb-1.5 block text-caption text-foreground-secondary" for="video-edit-text-color">
-        {{ $t("spaces.media.fontColor") }}
-      </label>
-      <div class="flex items-center gap-2 rounded-control border border-border bg-field px-2">
-        <input
-          :value="style.color"
-          type="color"
-          class="size-7 shrink-0 cursor-pointer border-0 bg-transparent"
-          :aria-label="$t('spaces.media.fontColor')"
-          @input="changeColor(($event.target as HTMLInputElement).value)"
-        />
-        <UiInput
-          id="video-edit-text-color"
-          class="border-0 bg-transparent font-mono shadow-none"
-          size="sm"
-          :model-value="style.color"
-          @change="commitColor"
-        />
-      </div>
-      <p v-if="colorError" class="mt-1 text-micro text-danger">{{ $t("spaces.media.invalidTextColor") }}</p>
+      <SpaceVideoTextColorField
+        :key="item.id"
+        :color="style.color"
+        @change="patchStyle({ color: $event }, `text-color:${item.id}`)"
+      />
     </section>
     <section>
       <h3 class="mb-2 text-caption text-foreground-secondary">{{ $t("spaces.media.textPresets") }}</h3>

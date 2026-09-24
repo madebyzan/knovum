@@ -1,7 +1,61 @@
+use std::{fs, io::ErrorKind, path::Path};
+
 use serde_json::Value;
 use sqlx::{Sqlite, Transaction};
+use tauri::AppHandle;
 
-use crate::spaces::db;
+use crate::spaces::{assets::authorize_spaces_asset, db};
+
+pub(super) async fn available(
+    app: &AppHandle,
+    space_id: &str,
+    source_id: &str,
+    source_revision: &str,
+    source_edit: &Value,
+) -> Result<bool, String> {
+    let pool = db::pool(app).await?;
+    let encoded: String = sqlx::query_scalar(
+        "SELECT data FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND kind='image' AND deleted_at IS NULL",
+    )
+    .bind(source_id)
+    .bind(space_id)
+    .fetch_optional(pool)
+    .await
+    .map_err(db::sql_error)?
+    .ok_or("Image source is unavailable")?;
+    let data: Value = serde_json::from_str(&encoded).map_err(db::json_error)?;
+    validate_current(&data, source_revision, source_edit)?;
+    asset_available(app, &data)
+}
+
+pub(super) fn validate_current(
+    data: &Value,
+    source_revision: &str,
+    source_edit: &Value,
+) -> Result<(), String> {
+    if data.get("sourceRevision").and_then(Value::as_str) != Some(source_revision)
+        || data.get("imageEdit").unwrap_or(&Value::Null) != source_edit
+    {
+        return Err("Image source changed before background removal started".into());
+    }
+    Ok(())
+}
+
+pub(super) fn asset_available(app: &AppHandle, data: &Value) -> Result<bool, String> {
+    let path = data
+        .get("assetPath")
+        .and_then(Value::as_str)
+        .ok_or("Image source path is unavailable")?;
+    match fs::metadata(path) {
+        Ok(metadata) if metadata.is_file() => {
+            authorize_spaces_asset(app, Path::new(path))?;
+            Ok(true)
+        }
+        Ok(_) => Err("Image source asset must be a regular file".into()),
+        Err(error) if error.kind() == ErrorKind::NotFound => Ok(false),
+        Err(error) => Err(format!("Unable to inspect image source asset: {error}")),
+    }
+}
 
 pub(super) async fn revalidate(
     tx: &mut Transaction<'_, Sqlite>,

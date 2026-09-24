@@ -3,6 +3,7 @@ use tauri::AppHandle;
 
 use super::{persistence::VideoSubtitleSource, CreateSubtitledVideoRequest};
 use crate::spaces::derivation::inputs;
+use crate::spaces::derivation::pending_output;
 use crate::spaces::{db, knowledge::contracts};
 
 pub async fn start(
@@ -28,6 +29,8 @@ pub async fn start(
     .await?;
     let video = node_data(&mut tx, &request.space_id, &request.source_node_id, "video").await?;
     validate_video(&video, &request.source_revision)?;
+    let output = node_data(&mut tx, &request.space_id, &request.output_node_id, "video").await?;
+    pending_output::validate_separate_asset(&output, required_string(&video, "assetPath")?)?;
     let subtitle = node_data(
         &mut tx,
         &request.space_id,

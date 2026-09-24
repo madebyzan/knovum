@@ -5,7 +5,7 @@ use serde::Deserialize;
 use serde_json::Value;
 use tauri::AppHandle;
 
-use super::{failure, inputs, CompletedDerivationOutput};
+use super::{failure, inputs, pending_output, CompletedDerivationOutput};
 use crate::spaces::{db, knowledge::contracts};
 
 #[derive(Deserialize)]
@@ -33,6 +33,29 @@ pub struct FailImageCutoutRequest {
     error: String,
 }
 
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct CheckImageCutoutSourceRequest {
+    space_id: String,
+    source_node_id: String,
+    source_revision: String,
+    source_edit: Value,
+}
+
+pub async fn check_source(
+    app: &AppHandle,
+    request: CheckImageCutoutSourceRequest,
+) -> Result<bool, String> {
+    source::available(
+        app,
+        &request.space_id,
+        &request.source_node_id,
+        &request.source_revision,
+        &request.source_edit,
+    )
+    .await
+}
+
 pub async fn start(app: &AppHandle, request: StartImageCutoutRequest) -> Result<(), String> {
     validate_request(&request)?;
     let pool = db::pool(app).await?;
@@ -55,12 +78,27 @@ pub async fn start(app: &AppHandle, request: StartImageCutoutRequest) -> Result<
     let source_data: Value =
         serde_json::from_str(&source_data.ok_or("Image source is unavailable")?)
             .map_err(db::json_error)?;
-    if source_data.get("sourceRevision").and_then(Value::as_str)
-        != Some(request.source_revision.as_str())
-        || source_data.get("imageEdit").unwrap_or(&Value::Null) != &request.source_edit
-    {
-        return Err("Image source changed before background removal started".into());
+    source::validate_current(&source_data, &request.source_revision, &request.source_edit)?;
+    if !source::asset_available(app, &source_data)? {
+        return Err("Original image asset is missing".into());
     }
+    let output_data: String = sqlx::query_scalar(
+        "SELECT data FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND kind='image' AND deleted_at IS NULL",
+    )
+    .bind(&request.output_node_id)
+    .bind(&request.space_id)
+    .fetch_optional(&mut *tx)
+    .await
+    .map_err(db::sql_error)?
+    .ok_or("Background removal output is unavailable")?;
+    let output_data: Value = serde_json::from_str(&output_data).map_err(db::json_error)?;
+    pending_output::validate_separate_asset(
+        &output_data,
+        source_data
+            .get("assetPath")
+            .and_then(Value::as_str)
+            .ok_or("Image source path is unavailable")?,
+    )?;
     let now = crate::clock::unix_time_millis()?;
     sqlx::query("INSERT INTO spaces_knowledge_derivations(id,space_id,output_node_id,action_kind,action_version,engine,status,created_at,updated_at) VALUES($1,$2,$3,'remove-image-background',1,'u2netp-tract:1','running',$4,$4)")
         .bind(&request.id)

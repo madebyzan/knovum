@@ -42,6 +42,14 @@ pub async fn create_image_operation(
 }
 
 #[tauri::command]
+pub async fn check_image_cutout_source(
+    app: AppHandle,
+    request: image_cutout::CheckImageCutoutSourceRequest,
+) -> Result<bool, String> {
+    image_cutout::check_source(&app, request).await
+}
+
+#[tauri::command]
 pub async fn start_image_cutout_derivation(
     app: AppHandle,
     request: image_cutout::StartImageCutoutRequest,

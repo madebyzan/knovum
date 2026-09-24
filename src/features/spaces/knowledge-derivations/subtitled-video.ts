@@ -119,6 +119,7 @@ export async function createSubtitledVideo(
     return store.nodes.find((node) => node.id === completed.nodeId);
   } catch (error) {
     await store.refreshActiveSpace();
+    await markPendingVideoFailed(store, spaceId, pending.id);
     if (isVideoSubtitleCancelled(error)) tasks.dismiss(taskId);
     else {
       tasks.fail(taskId, String(error));
@@ -130,13 +131,25 @@ export async function createSubtitledVideo(
   }
 }
 
+async function markPendingVideoFailed(store: SpaceStore, spaceId: string, nodeId: string) {
+  const current = store.nodes.find((node) => node.id === nodeId);
+  if (current?.data.kind !== "video" || current.data.processingState !== "processing") return;
+  await store.saveNodeDataForSpace(spaceId, nodeId, current.data, {
+    ...current.data,
+    processingState: "failed",
+  });
+  await store.refreshActiveSpace();
+}
+
 async function createPendingNode(store: SpaceStore, source: SpaceCanvasNode, subtitles: SpaceCanvasNode) {
   if (source.data.kind !== "video") return;
   const base = baseNameFromNode(source);
+  const assetPath = await invoke<string>("plugin:spaces|allocate_video_output_path");
   const data: SpaceVideoPayload = {
-    ...source.data,
+    kind: "video",
     title: `${base}-subtitled.mp4`,
     fileName: `${base}-subtitled.mp4`,
+    assetPath,
     processingState: "processing",
   };
   const [node] = await store.addContent(

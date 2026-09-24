@@ -28,3 +28,6 @@ target
 *.sln
 *.sw?
 .pnpm-store
+
+.tmp
+.playwright-cli

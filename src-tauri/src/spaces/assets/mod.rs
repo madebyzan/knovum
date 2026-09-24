@@ -98,8 +98,7 @@ pub(crate) use access::{
     authorize_canvas_thumbnail, authorize_destination, authorize_source, authorize_spaces_asset,
 };
 pub(crate) use reclamation::{
-    reclaim_orphan_managed_assets, referenced_paths_for_nodes, referenced_paths_for_space,
-    unreferenced_paths,
+    referenced_paths_for_nodes, referenced_paths_for_space, unreferenced_paths,
 };
 pub(crate) use references::{
     rewrite_node_asset_paths, visit_asset_references, AssetReference, PACKAGE_ASSET_PREFIX,

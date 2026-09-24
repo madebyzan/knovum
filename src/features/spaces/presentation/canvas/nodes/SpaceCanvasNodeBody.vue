@@ -6,6 +6,7 @@ import { classifyFilePresentation, usesDocumentPreview } from "../../../assets/f
 import type { CanvasNodePresentationContext } from "../../../canvas/contract/canvas-detail-profile";
 import type { SpaceNodePayload } from "../../../model/nodes/node-payload";
 import SpaceDocumentPreview from "../../SpaceDocumentPreview.vue";
+import { nodePayloadWork } from "./canvas-node-work";
 import { spaceNodePreviewText } from "./space-canvas-node-content";
 import { spaceCanvasNodePresentation } from "./space-canvas-node-presentation";
 import SpaceCanvasArchiveEntries from "./SpaceCanvasArchiveEntries.vue";
@@ -42,13 +43,7 @@ const documentPreviewProps = computed(() => {
 const text = computed(
   () => spaceNodePreviewText(props.data, props.presentationContext) ?? presentation.value.subtitle,
 );
-const processing = computed(() =>
-  "processingState" in props.data &&
-  (props.data.processingState === "importing" || props.data.processingState === "processing")
-    ? props.data.processingState
-    : undefined,
-);
-const failed = computed(() => "processingState" in props.data && props.data.processingState === "failed");
+const work = computed(() => nodePayloadWork(props.data));
 </script>
 
 <template>
@@ -84,21 +79,17 @@ const failed = computed(() => "processingState" in props.data && props.data.proc
     :data="data"
     :presentation-context="presentationContext"
   />
+  <SpaceCanvasProcessingState
+    v-else-if="work?.surface === 'content'"
+    :label="t(work.labelKey)"
+    :failed="work.phase === 'failed'"
+  />
   <SpaceCanvasCode
     v-else-if="data.kind === 'code'"
     :data="data"
     :presentation-context="presentationContext"
     :interactive="interactive"
   />
-  <SpaceCanvasProcessingState
-    v-else-if="processing"
-    :label="
-      processing === 'importing'
-        ? t('spaces.transfer.importingResource')
-        : t('spaces.transfer.importProcessing')
-    "
-  />
-  <SpaceCanvasProcessingState v-else-if="failed" :label="t('spaces.processing.processingFailed')" failed />
   <div v-else class="min-h-0 flex-1 overflow-hidden px-3 py-2.5">
     <p
       class="leading-relaxed whitespace-pre-wrap text-foreground-secondary"

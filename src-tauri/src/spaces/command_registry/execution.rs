@@ -62,6 +62,7 @@ pub(super) fn handler() -> impl Fn(Invoke<tauri::Wry>) -> bool + Send + Sync + '
         crate::spaces::workflows::external_tools::commands::delete_external_tool_binding,
         crate::spaces::workflows::external_tools::commands::disable_external_tool_binding,
         crate::spaces::workflows::external_tools::commands::test_external_tool_connection,
+        crate::spaces::derivation::commands::check_image_cutout_source,
         crate::spaces::derivation::commands::start_image_cutout_derivation,
         crate::spaces::derivation::commands::submit_image_cutout_derivation,
         crate::spaces::derivation::commands::fail_image_cutout_derivation,

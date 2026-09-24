@@ -8,8 +8,8 @@ import { useCanvasToolStore } from "../../canvas/canvas-tool-store";
 import { useCanvasEditorSession, useCanvasSelectionProjection } from "../../canvas/editor-session";
 import { canvasChromeMetrics } from "../../canvas/konva/presentation/canvas-chrome-metrics";
 import { isCanvasNodeConnectable } from "../../canvas/konva/scene/canvas-node-interaction";
-import { useImageEditSession } from "../../image-editing/image-edit-session";
 import { useNodeOperationGate } from "../../canvas/node-operation-gate";
+import { useImageEditSession } from "../../image-editing/image-edit-session";
 import { useSelectionDerivations } from "../../knowledge-derivations/selection/use-selection-derivations";
 import { useSpaceStore } from "../../session/space-store";
 import type { SpaceUrlCaptureProjection } from "../../sources/url-capture-projection";
@@ -41,6 +41,11 @@ const { t } = useI18n();
 const editorSession = useCanvasEditorSession();
 const nodeOperations = useNodeOperationGate();
 const imageEdit = useImageEditSession();
+const selectionSurfaceKind = computed(() => {
+  const tool = imageEdit.active?.tool;
+  if (tool === "adjust" || tool === "crop") return "inspector";
+  return tool ? "compact-editor" : "actions";
+});
 const showSelectionActions = computed(() => {
   const operation = nodeOperations.active.value;
   return !operation || operation.kind === "image-edit" || operation.kind === "image-comment";
@@ -114,8 +119,7 @@ const selectionBarGap = computed(() => {
       :bounds="editorSession.selection.value.bounds"
       :canvas-to-viewport-point="canvasToViewportPoint"
       :safe-area="canvasChromeInsets"
-      align="center"
-      :placement="imageEdit.active ? 'adjacent' : 'toolbar'"
+      :kind="selectionSurfaceKind"
       :gap="imageEdit.active ? 12 : singleCanvasObjectSelected ? selectionBarGap : 34"
       v-slot="{ availableWidth }"
     >

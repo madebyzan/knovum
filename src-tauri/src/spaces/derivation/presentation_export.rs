@@ -3,7 +3,7 @@ use serde_json::Value;
 use sha2::{Digest, Sha256};
 use tauri::AppHandle;
 
-use super::{inputs, relations, source_validation};
+use super::{inputs, pending_output, relations, source_validation};
 use crate::spaces::{
     assets::asset_directory,
     db,
@@ -66,11 +66,7 @@ pub async fn complete(
     .await
     .map_err(db::sql_error)?;
     let mut data: Value = serde_json::from_str(&encoded).map_err(db::json_error)?;
-    let path = data
-        .get("assetPath")
-        .and_then(Value::as_str)
-        .ok_or("Presentation output path is unavailable")?
-        .to_owned();
+    let path = pending_output::validate_unpublished_asset(&data)?.to_owned();
     let parent = std::path::Path::new(&path)
         .parent()
         .ok_or("Presentation output path is invalid")?

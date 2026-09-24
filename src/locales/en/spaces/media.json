@@ -156,6 +156,7 @@
   "noCaptions": "No captions yet. Add one above.",
   "noMatchingCaptions": "No matching captions.",
   "fontFamily": "Font",
+  "fontSearchEmpty": "No matching fonts.",
   "fontWeight": "Weight",
   "fontUnavailable": "Font {family} is not installed on this computer. Choose another font.",
   "fontCatalogEmpty": "No installed fonts are available.",

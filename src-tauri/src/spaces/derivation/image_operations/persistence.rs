@@ -8,7 +8,7 @@ use super::{
 };
 use crate::spaces::{
     db,
-    derivation::{inputs, relations, source_validation, CompletedDerivationOutput},
+    derivation::{inputs, pending_output, relations, source_validation, CompletedDerivationOutput},
     knowledge::{contracts, indexing::revision},
 };
 
@@ -42,14 +42,12 @@ pub async fn start(app: &AppHandle, request: &CreateImageOperationRequest) -> Re
         inputs::RevisionBasis::Asset,
     )
     .await?;
-    validation::source_edit(&mut tx, request).await?;
+    let source_path = validation::source_edit(&mut tx, request).await?;
     let output: String = sqlx::query_scalar("SELECT data FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND kind='image' AND deleted_at IS NULL")
         .bind(&request.output_node_id).bind(&request.space_id).fetch_optional(&mut *tx).await.map_err(db::sql_error)?
         .ok_or("Image operation output node is unavailable")?;
     let output: Value = serde_json::from_str(&output).map_err(db::json_error)?;
-    if output.get("processingState").and_then(Value::as_str) != Some("processing") {
-        return Err("Image operation output must be a pending image node".into());
-    }
+    pending_output::validate_separate_asset(&output, &source_path)?;
     let now = crate::clock::unix_time_millis()?;
     sqlx::query("INSERT INTO spaces_knowledge_derivations(id,space_id,output_node_id,action_kind,action_version,engine,status,created_at,updated_at) VALUES($1,$2,$3,$4,1,$5,'running',$6,$6)")
         .bind(&request.id).bind(&request.space_id).bind(&request.output_node_id)
@@ -103,9 +101,7 @@ async fn complete_persistence(
         .bind(&request.id).fetch_optional(&mut *tx).await.map_err(db::sql_error)?
         .ok_or("Image operation is no longer running")?;
     let mut data: Value = serde_json::from_str(&encoded).map_err(db::json_error)?;
-    if data.get("processingState").and_then(Value::as_str) != Some("processing") {
-        return Err("Image operation output is no longer pending".into());
-    }
+    pending_output::validate_unpublished_asset(&data)?;
     let relation = persist(&mut tx, request, &mut data, image, path).await?;
     tx.commit().await.map_err(db::sql_error)?;
     Ok(CompletedDerivationOutput {

@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
-import { nextTick, useTemplateRef, watch } from "vue";
+import { computed, nextTick, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import type { SpaceMediaPayload } from "../../../model/nodes/capabilities";
 import { useSpaceStore } from "../../../session/space-store";
 import SpaceMediaPlayer from "../../media/SpaceMediaPlayer.vue";
+import { nodePayloadWork } from "./canvas-node-work";
 import SpaceCanvasProcessingState from "./SpaceCanvasProcessingState.vue";
 
 const props = defineProps<{ id: string; data: SpaceMediaPayload }>();
@@ -14,6 +15,7 @@ const store = useSpaceStore();
 const { t } = useI18n();
 const { mediaSeekRequest, mediaToggleRequest } = storeToRefs(store);
 const player = useTemplateRef<InstanceType<typeof SpaceMediaPlayer>>("player");
+const work = computed(() => nodePayloadWork(props.data));
 
 watch([mediaToggleRequest, player], ([request]) => void consumeToggleRequest(request), {
   immediate: true,
@@ -52,8 +54,9 @@ async function consumeSeekRequest(request: typeof mediaSeekRequest.value) {
 <template>
   <div class="relative flex min-h-0 flex-1 flex-col overflow-hidden">
     <SpaceCanvasProcessingState
-      v-if="data.processingState === 'importing'"
-      :label="t('spaces.transfer.importingResource')"
+      v-if="work?.surface === 'content'"
+      :label="t(work.labelKey)"
+      :failed="work.phase === 'failed'"
     />
     <SpaceMediaPlayer
       v-else

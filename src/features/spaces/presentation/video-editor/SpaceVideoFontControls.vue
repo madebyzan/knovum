@@ -5,6 +5,7 @@ import { useI18n } from "vue-i18n";
 
 import UiSelect from "../../../../shared/ui/UiSelect.vue";
 import type { VideoTextStyle } from "../../video-editing/project";
+import SpaceVideoFontPicker from "./SpaceVideoFontPicker.vue";
 
 interface InstalledFont {
   family: string;
@@ -28,7 +29,7 @@ const fonts = shallowRef<InstalledFont[]>([]);
 const error = shallowRef("");
 const loading = shallowRef(true);
 const selectedFont = computed(() => fonts.value.find(({ family }) => family === props.style.family));
-const families = computed(() => fonts.value.map(({ family }) => ({ value: family, label: family })));
+const families = computed(() => fonts.value.map(({ family }) => family));
 const weights = computed(() =>
   (selectedFont.value?.weights ?? []).map((weight) => ({
     value: String(weight),
@@ -85,18 +86,13 @@ onMounted(async () => {
 
 <template>
   <div class="grid grid-cols-2 gap-2">
-    <div class="min-w-0">
-      <span class="mb-1.5 block text-caption text-foreground-secondary">{{
-        $t("spaces.media.fontFamily")
-      }}</span>
-      <UiSelect
-        v-model="family"
-        :label="$t('spaces.media.fontFamily')"
-        :options="families"
-        :disabled="loading || !!error"
-        size="sm"
-      />
-    </div>
+    <SpaceVideoFontPicker
+      v-model="family"
+      :families="families"
+      :label="$t('spaces.media.fontFamily')"
+      :empty-label="$t('spaces.media.fontSearchEmpty')"
+      :disabled="loading || !!error"
+    />
     <div class="min-w-0">
       <span class="mb-1.5 block text-caption text-foreground-secondary">{{
         $t("spaces.media.fontWeight")
