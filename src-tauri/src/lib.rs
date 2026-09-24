@@ -16,6 +16,7 @@ mod media;
 mod secrets;
 mod spaces;
 mod sqlite;
+mod system_font;
 mod system_preview;
 mod updater;
 mod utf16;

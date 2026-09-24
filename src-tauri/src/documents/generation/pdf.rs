@@ -1,18 +1,23 @@
 use pulldown_cmark::{Event, HeadingLevel, Options, Parser, Tag, TagEnd};
-use typst_as_lib::TypstEngine;
+use typst_as_lib::{typst_kit_options::TypstKitFontOptions, TypstEngine};
 use typst_layout::PagedDocument;
 
-static NOTO_CJK: &[u8] =
-    include_bytes!("../../../resources/bundled-runtime/fonts/NotoSansCJKsc-Regular.otf");
+use crate::system_font::SYSTEM_SANS_FAMILY;
 
 pub(crate) fn render(markdown: &str) -> Result<Vec<u8>, String> {
     let source = typst_source(markdown);
     let engine = TypstEngine::builder()
         .main_file(source)
-        .fonts([NOTO_CJK])
+        .search_fonts_with(TypstKitFontOptions::default())
         .build();
-    let document: PagedDocument = engine
-        .compile()
+    let compilation = engine.compile();
+    if !compilation.warnings.is_empty() {
+        return Err(format!(
+            "PDF typesetting warnings: {:?}",
+            compilation.warnings
+        ));
+    }
+    let document: PagedDocument = compilation
         .output
         .map_err(|errors| format!("PDF typesetting failed: {errors:?}"))?;
     typst_pdf::pdf(&document, &Default::default())
@@ -20,9 +25,7 @@ pub(crate) fn render(markdown: &str) -> Result<Vec<u8>, String> {
 }
 
 fn typst_source(markdown: &str) -> String {
-    let mut output = String::from(
-        "#set page(paper: \"a4\", margin: (x: 24mm, y: 22mm))\n#set text(font: \"Noto Sans CJK SC\", size: 10.5pt, lang: \"zh\")\n#set par(justify: true, leading: 0.72em)\n#set heading(numbering: none)\n\n",
-    );
+    let mut output = format!("#set page(paper: \"a4\", margin: (x: 24mm, y: 22mm))\n#set text(font: \"{SYSTEM_SANS_FAMILY}\", size: 10.5pt, lang: \"zh\")\n#set par(justify: true, leading: 0.72em)\n#set heading(numbering: none)\n\n");
     let mut lists = Vec::<Option<u64>>::new();
     let mut code_block = false;
     for event in Parser::new_ext(markdown, Options::all()) {

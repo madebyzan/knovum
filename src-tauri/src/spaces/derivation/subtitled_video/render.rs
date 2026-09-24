@@ -20,6 +20,7 @@ use crate::{
             video_output::{self, RenderedVideo},
         },
     },
+    system_font::SYSTEM_SANS_FAMILY,
 };
 
 pub fn render(
@@ -55,11 +56,7 @@ fn burn_in_subtitles(
     cancellation: &CancellationToken,
 ) -> Result<(), String> {
     let subtitle = ScratchFile::new(directory.join(format!("subtitle-{id}.srt")));
-    let font = ScratchFile::new(directory.join(format!("subtitle-font-{id}.otf")));
-    let bundled_font = tools::resolve_shared_file(app, "fonts/NotoSansCJKsc-Regular.otf")
-        .ok_or("Bundled subtitle font is unavailable")?;
     fs::write(subtitle.path(), &source.srt).map_err(|error| error.to_string())?;
-    fs::copy(bundled_font, font.path()).map_err(|error| error.to_string())?;
     run_ffmpeg(
         app,
         &source.path,
@@ -111,7 +108,7 @@ fn run_ffmpeg(
 
 pub(super) fn ffmpeg_arguments(source: &str, subtitle_name: &str) -> Result<Vec<String>, String> {
     let filter = format!(
-        "subtitles={subtitle_name}:fontsdir=.:force_style='FontName=Noto Sans CJK SC,Alignment=2,MarginL=36,MarginR=36,MarginV=28,FontSize=14,Outline=1.5,Shadow=0,WrapStyle=0'"
+        "subtitles={subtitle_name}:force_style='FontName={SYSTEM_SANS_FAMILY},Alignment=2,MarginL=36,MarginR=36,MarginV=28,FontSize=14,Outline=1.5,Shadow=0,WrapStyle=0'"
     );
     Ok(vec![
         "-hide_banner".into(),

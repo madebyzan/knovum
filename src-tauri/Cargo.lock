@@ -5853,6 +5853,7 @@ dependencies = [
  "encoding_rs",
  "flate2",
  "fnv",
+ "fontdb",
  "futures",
  "futures-util",
  "genai",
@@ -12567,6 +12568,7 @@ dependencies = [
  "ecow",
  "thiserror 2.0.20",
  "typst",
+ "typst-kit",
 ]
 
 [[package]]
@@ -12619,6 +12621,27 @@ dependencies = [
  "typst-timing",
  "typst-utils",
  "unicode-math-class",
+]
+
+[[package]]
+name = "typst-kit"
+version = "0.15.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "27ee52e27dfab0da5ac3d19e7e43a21fbc7ff83af9301119468bae89fa857a8b"
+dependencies = [
+ "dirs 6.0.0",
+ "ecow",
+ "fontdb",
+ "once_cell",
+ "parking_lot",
+ "rustc-hash",
+ "serde",
+ "serde_json",
+ "typst-library",
+ "typst-syntax",
+ "typst-timing",
+ "typst-utils",
+ "url",
 ]
 
 [[package]]

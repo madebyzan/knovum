@@ -230,6 +230,7 @@ fn main() {
                         "cancel_video_edit_render",
                         "prepare_video_edit_proxy",
                         "cancel_video_edit_proxy",
+                        "list_video_fonts",
                         "create_document",
                         "create_visualization",
                         "submit_presentation",

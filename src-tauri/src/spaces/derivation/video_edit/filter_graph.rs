@@ -1,9 +1,9 @@
-use super::{TextPlacement, TextPreset, VideoEditProject};
+use super::VideoEditProject;
 
 pub fn build(
     project: &VideoEditProject,
     has_audio: bool,
-    font_name: &str,
+    ass_file: Option<&str>,
 ) -> Result<String, String> {
     let mut filters = Vec::new();
     let mut inputs = String::new();
@@ -30,12 +30,12 @@ pub fn build(
     }
     filters.push(format!(
         "[joinedv]{}[outv]",
-        visual_filters(project, font_name)?
+        visual_filters(project, ass_file)?
     ));
     Ok(filters.join(";"))
 }
 
-fn visual_filters(project: &VideoEditProject, font_name: &str) -> Result<String, String> {
+fn visual_filters(project: &VideoEditProject, ass_file: Option<&str>) -> Result<String, String> {
     let mut filters = rotation_filters(project.transform.rotation)?;
     if project.transform.flip_horizontal {
         filters.push("hflip".into());
@@ -43,30 +43,10 @@ fn visual_filters(project: &VideoEditProject, font_name: &str) -> Result<String,
     if project.transform.flip_vertical {
         filters.push("vflip".into());
     }
-    for item in &project.text_track.items {
-        let y = match item.placement {
-            TextPlacement::Top => "h*0.08",
-            TextPlacement::Center => "(h-text_h)/2",
-            TextPlacement::Bottom => "h-text_h-h*0.08",
-        };
-        let size = item.style.as_ref().map_or(30, |style| style.size);
-        let color = item
-            .style
-            .as_ref()
-            .map_or("#FFFFFF", |style| style.color.as_str())
-            .strip_prefix('#')
-            .ok_or("Video text color is invalid")?;
-        let preset = item
-            .style
-            .as_ref()
-            .map_or(TextPreset::Outline, |style| style.preset);
-        let effect = match preset {
-            TextPreset::Plain => "borderw=0",
-            TextPreset::Outline => "borderw=2:bordercolor=black@0.75",
-            TextPreset::Shadow => "shadowx=2:shadowy=2:shadowcolor=black@0.8",
-            TextPreset::Badge => "box=1:boxcolor=black@0.55:boxborderw=8",
-        };
-        filters.push(format!("drawtext=fontfile='{font_name}':text='{}':expansion=none:fontcolor=0x{color}:fontsize=h*{size}/720:{effect}:x=(w-text_w)/2:y={y}:enable='between(t,{},{})'", escape_text(&item.text), seconds(item.start_ms), seconds(item.end_ms)));
+    if let Some(file) = ass_file {
+        filters.push(format!("ass=filename={file}"));
+    } else if !project.text_track.items.is_empty() {
+        return Err("Video edit subtitle track is missing".into());
     }
     if filters.is_empty() {
         filters.push("null".into());
@@ -82,13 +62,6 @@ fn rotation_filters(rotation: u16) -> Result<Vec<String>, String> {
         270 => Ok(vec!["transpose=cclock".into()]),
         _ => Err("Video rotation is invalid".into()),
     }
-}
-
-fn escape_text(value: &str) -> String {
-    value
-        .replace('\\', "\\\\")
-        .replace('\'', "\\'")
-        .replace(':', "\\:")
 }
 
 fn seconds(milliseconds: u64) -> String {

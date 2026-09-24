@@ -24,6 +24,7 @@ This is the framework-level contract for macOS and Windows. Business features sh
 | Autostart                  | LaunchAgent                                                                | platform autostart                                               | Settings                                                                           |
 | Locale                     | OS BCP-47 locale                                                           | OS BCP-47 locale                                                 | system/en/zh-CN mapping                                                            |
 | Font stack                 | system/SF family                                                           | Segoe UI Variable                                                | tokenized                                                                          |
+| Generated text             | PingFang SC via Core Text                                                  | Microsoft YaHei UI via DirectWrite                               | installed system fonts; no packaged font file                                      |
 | Release trust              | signing + notarization                                                     | code-signed installer recommended                                | release configuration, credentials external                                        |
 
 ## Scope-dependent integrations

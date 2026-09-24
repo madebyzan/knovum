@@ -29,9 +29,22 @@ export function useVideoEditProject(
       if (proxyPath.value) metadataError.value = i18n.global.t("spaces.media.durationUnavailable");
       return;
     }
+    if (
+      !element.videoWidth ||
+      !element.videoHeight ||
+      element.videoWidth > 16_384 ||
+      element.videoHeight > 16_384 ||
+      element.videoWidth > element.videoHeight * 10 ||
+      element.videoHeight > element.videoWidth * 10
+    ) {
+      metadataError.value = i18n.global.t("spaces.media.videoMetadataUnavailable");
+      return;
+    }
     project.value = createVideoEditProject(
       data.value.sourceRevision ?? data.value.assetPath,
       Math.max(1, Math.round(element.duration * 1000)),
+      element.videoWidth,
+      element.videoHeight,
     );
   }
 

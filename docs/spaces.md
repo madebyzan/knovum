@@ -256,7 +256,8 @@ subject or camera movement, yaw from -90 to 90 degrees, pitch from -30 to 60 deg
 close-up, medium or wide-angle framing. Its preview is an interactive orientation guide; the
 model generates the actual new view. Video editing opens a same-window workbench because
 transport, playhead, ordered clips and timed text require persistent timeline context. A strict
-v1 `videoEditProject` stores one ordered video track, one text track and output transform. Saving
+v1 `videoEditProject` stores source frame dimensions, one ordered video track, one text track and
+output transform. Saving
 records the project on the source
 node through normal Space history. The editor opens from the managed source immediately while
 Rust prepares a revision-keyed, short-GOP 960×540 editing proxy in the app cache. Once ready, the
@@ -274,9 +275,13 @@ accept arrow keys. No inspector is shown until a clip or timed-text item is sele
 panel sits over the preview stage while transport and timeline keep the full workbench width; Escape
 or the close control clears selection and returns focus to the ruler. Timed text is selectable from
 the preview and timeline. The panel offers a searchable subtitle list, live text edits, placement,
-size, color and four export-backed styles; clip selection exposes source in/out times, volume,
-rotation and both flips. Text size is expressed in 720p-relative pixels, and rendering uses the
-bundled Noto Sans CJK font. A local edit history owns undo and redo until Save commits one
+font family, available face weights, size, color and four export-backed styles; clip selection exposes source in/out times, volume,
+rotation and both flips. Text size is expressed in 720p-relative pixels. The native font catalog
+reads installed upright faces once and exposes their families and weights to the inspector. Each
+text overlay saves its selected family and weight; WebView preview and libass export read the same
+values. A font missing from the current computer blocks export explicitly. The ASS script resolution follows the source
+frame aspect ratio after output rotation, including portrait video. Every timed-text item stores its complete
+style; projects missing it fail validation. A local edit history owns undo and redo until Save commits one
 project snapshot through Space history. The workbench shows unsaved state and requires an explicit
 Save or Discard choice on close. Application commands provide the editor's keyboard shortcuts;
 there are no feature-level global key listeners. The preview places timed text within the visible

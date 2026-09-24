@@ -2,6 +2,8 @@ use std::io::{Cursor, Write};
 
 use zip::{write::SimpleFileOptions, CompressionMethod, ZipWriter};
 
+use crate::system_font::SYSTEM_SANS_FAMILY;
+
 pub(super) fn render(title: &str, markdown: &str) -> Result<Vec<u8>, String> {
     let slides = slide_text(title, markdown);
     let mut archive = ZipWriter::new(Cursor::new(Vec::new()));
@@ -61,7 +63,7 @@ pub(super) fn render(title: &str, markdown: &str) -> Result<Vec<u8>, String> {
         "ppt/slideLayouts/_rels/slideLayout1.xml.rels",
         LAYOUT_RELS,
     )?;
-    write(&mut archive, options, "ppt/theme/theme1.xml", THEME)?;
+    write(&mut archive, options, "ppt/theme/theme1.xml", &theme())?;
     for (index, (heading, body)) in slides.iter().enumerate() {
         write(
             &mut archive,
@@ -169,4 +171,8 @@ const MASTER_RELS: &str = r#"<?xml version="1.0" encoding="UTF-8"?><Relationship
 const LAYOUT_RELS: &str = r#"<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideMaster" Target="../slideMasters/slideMaster1.xml"/></Relationships>"#;
 const SLIDE_LAYOUT: &str = r#"<?xml version="1.0" encoding="UTF-8"?><p:sldLayout xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" type="blank"><p:cSld name="Blank"><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr/></p:spTree></p:cSld></p:sldLayout>"#;
 const SLIDE_MASTER: &str = r#"<?xml version="1.0" encoding="UTF-8"?><p:sldMaster xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"><p:cSld><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr/></p:spTree></p:cSld><p:clrMap accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" bg1="lt1" bg2="lt2" folHlink="folHlink" hlink="hlink" tx1="dk1" tx2="dk2"/><p:sldLayoutIdLst><p:sldLayoutId id="1" r:id="rId1"/></p:sldLayoutIdLst></p:sldMaster>"#;
-const THEME: &str = r#"<?xml version="1.0" encoding="UTF-8"?><a:theme xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" name="Knovum"><a:themeElements><a:clrScheme name="Knovum"><a:dk1><a:srgbClr val="17191C"/></a:dk1><a:lt1><a:srgbClr val="FFFFFF"/></a:lt1><a:dk2><a:srgbClr val="444444"/></a:dk2><a:lt2><a:srgbClr val="F5F5F5"/></a:lt2><a:accent1><a:srgbClr val="5B6ACB"/></a:accent1><a:accent2><a:srgbClr val="76845E"/></a:accent2><a:accent3><a:srgbClr val="A66A4A"/></a:accent3><a:accent4><a:srgbClr val="6B7180"/></a:accent4><a:accent5><a:srgbClr val="8D6A9F"/></a:accent5><a:accent6><a:srgbClr val="4F7C7A"/></a:accent6><a:hlink><a:srgbClr val="0563C1"/></a:hlink><a:folHlink><a:srgbClr val="954F72"/></a:folHlink></a:clrScheme><a:fontScheme name="Knovum"><a:majorFont><a:latin typeface="Aptos Display"/></a:majorFont><a:minorFont><a:latin typeface="Aptos"/></a:minorFont></a:fontScheme><a:fmtScheme name="Knovum"><a:fillStyleLst/><a:lnStyleLst/><a:effectStyleLst/><a:bgFillStyleLst/></a:fmtScheme></a:themeElements></a:theme>"#;
+fn theme() -> String {
+    format!(
+        r#"<?xml version="1.0" encoding="UTF-8"?><a:theme xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" name="Knovum"><a:themeElements><a:clrScheme name="Knovum"><a:dk1><a:srgbClr val="17191C"/></a:dk1><a:lt1><a:srgbClr val="FFFFFF"/></a:lt1><a:dk2><a:srgbClr val="444444"/></a:dk2><a:lt2><a:srgbClr val="F5F5F5"/></a:lt2><a:accent1><a:srgbClr val="5B6ACB"/></a:accent1><a:accent2><a:srgbClr val="76845E"/></a:accent2><a:accent3><a:srgbClr val="A66A4A"/></a:accent3><a:accent4><a:srgbClr val="6B7180"/></a:accent4><a:accent5><a:srgbClr val="8D6A9F"/></a:accent5><a:accent6><a:srgbClr val="4F7C7A"/></a:accent6><a:hlink><a:srgbClr val="0563C1"/></a:hlink><a:folHlink><a:srgbClr val="954F72"/></a:folHlink></a:clrScheme><a:fontScheme name="Knovum"><a:majorFont><a:latin typeface="{SYSTEM_SANS_FAMILY}"/></a:majorFont><a:minorFont><a:latin typeface="{SYSTEM_SANS_FAMILY}"/></a:minorFont></a:fontScheme><a:fmtScheme name="Knovum"><a:fillStyleLst/><a:lnStyleLst/><a:effectStyleLst/><a:bgFillStyleLst/></a:fmtScheme></a:themeElements></a:theme>"#
+    )
+}

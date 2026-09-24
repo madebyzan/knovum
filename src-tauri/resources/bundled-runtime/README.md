@@ -1,7 +1,7 @@
 # Bundled runtime resources
 
 The repository may contain development binaries for multiple targets. A release package contains
-only its current target directory plus the shared media import manifest and fonts.
+only its current target directory plus the shared media import manifest.
 
 ```text
 bundled-runtime/
@@ -16,7 +16,7 @@ Release target names are `macos-arm64`, `macos-x64`, `windows-x64`, and `windows
 
 Development may point to explicit binaries with `KNOVUM_FFMPEG_PATH`, `KNOVUM_YT_DLP_PATH`, `KNOVUM_DENO_PATH`, and `KNOVUM_WHISPER_PATH`. These overrides are for development and do not satisfy release packaging.
 
-Every supported target must provide libass `ass`/`subtitles` filters plus `h264_videotoolbox` on macOS or `h264_mf` on Windows. `fonts/NotoSansCJKsc-Regular.otf` is the single cross-platform subtitle typeface; derivation jobs copy it into their isolated render workspace so output never depends on host-installed fonts.
+Every supported target must provide libass `ass`/`subtitles` filters with the native system font provider (Core Text on macOS, DirectWrite on Windows), plus `h264_videotoolbox` on macOS or `h264_mf` on Windows. Video and document export use the fonts installed on the current computer; no typeface is packaged with the runtime.
 
 `media-import-manifest.json` pins the official yt-dlp and Deno release assets, checksums,
 and yt-dlp corresponding source. `pnpm runtime:provision` is the only provisioning

@@ -5,30 +5,28 @@ import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiInput from "../../../../shared/ui/UiInput.vue";
 import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
 import {
-  DEFAULT_VIDEO_TEXT_STYLE,
   projectDuration,
   type VideoEditProject,
   type VideoTextOverlay,
   type VideoTextStyle,
 } from "../../video-editing/project";
 import SpaceVideoTextTiming from "./SpaceVideoTextTiming.vue";
+import SpaceVideoFontControls from "./SpaceVideoFontControls.vue";
 
 const props = defineProps<{ project: VideoEditProject; item: VideoTextOverlay }>();
 const emit = defineEmits<{ edit: [project: VideoEditProject, mergeKey?: string] }>();
 const duration = computed(() => projectDuration(props.project));
-const style = computed(() => props.item.style ?? DEFAULT_VIDEO_TEXT_STYLE);
+const style = computed(() => props.item.style);
 const textDraft = shallowRef(props.item.text);
 const colorError = shallowRef(false);
 const presets = ["plain", "outline", "shadow", "badge"] as const;
 const placements = ["top", "center", "bottom"] as const;
-
 watch(
   () => props.item.text,
   (value) => {
     textDraft.value = value;
   },
 );
-
 function patch(patch: Partial<VideoTextOverlay>, mergeKey?: string) {
   const next = { ...props.item, ...patch };
   if (
@@ -86,20 +84,8 @@ function commitColor(event: Event) {
         @blur="textDraft = item.text"
       />
     </section>
+    <SpaceVideoFontControls :style="style" @change="patchStyle" />
     <section class="grid grid-cols-2 gap-2">
-      <div>
-        <span class="mb-1.5 block text-caption text-foreground-secondary">{{
-          $t("spaces.media.fontFamily")
-        }}</span>
-        <div
-          class="flex h-(--knovum-control-height-sm) items-center rounded-control border border-border bg-field px-2 text-caption text-foreground-secondary"
-        >
-          Noto Sans CJK
-          <span class="ml-auto text-micro text-foreground-tertiary">{{
-            $t("spaces.media.bundledFont")
-          }}</span>
-        </div>
-      </div>
       <label class="text-caption text-foreground-secondary" for="video-edit-text-size">
         {{ $t("spaces.media.fontSize") }}
         <UiInput

@@ -1,11 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, shallowRef, watch } from "vue";
 
-import {
-  DEFAULT_VIDEO_TEXT_STYLE,
-  type VideoEditProject,
-  type VideoTextOverlay,
-} from "../../video-editing/project";
+import { type VideoEditProject, type VideoTextOverlay } from "../../video-editing/project";
 import { versionedMediaSource } from "../media/element";
 
 const props = defineProps<{
@@ -38,11 +34,13 @@ const videoStyle = computed(() => {
   };
 });
 function textStyle(overlay: VideoTextOverlay) {
-  const style = overlay.style ?? DEFAULT_VIDEO_TEXT_STYLE;
+  const style = overlay.style;
   const scale = (frame.value?.height ?? 0) / 720;
   const edge = Math.max(0.5, 2 * scale);
   const outline = `${edge}px ${edge}px 0 rgba(0,0,0,.75), -${edge}px ${edge}px 0 rgba(0,0,0,.75), ${edge}px -${edge}px 0 rgba(0,0,0,.75), -${edge}px -${edge}px 0 rgba(0,0,0,.75)`;
   return {
+    fontFamily: style.family,
+    fontWeight: style.weight,
     color: style.color,
     fontSize: `${Math.max(1, style.size * scale)}px`,
     textShadow:
@@ -117,7 +115,7 @@ watch(rotation, updateGeometry);
       >
         <button
           type="button"
-          class="pointer-events-auto max-w-full cursor-pointer font-normal focus-visible:outline-2 focus-visible:outline-focus-ring"
+          class="pointer-events-auto max-w-full cursor-pointer font-normal whitespace-pre-line focus-visible:outline-2 focus-visible:outline-focus-ring"
           :class="selectedTextId === overlay.id && 'ring-1 ring-accent'"
           :style="textStyle(overlay)"
           :aria-label="overlay.text"

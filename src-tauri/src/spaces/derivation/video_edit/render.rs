@@ -8,7 +8,7 @@ use tauri::ipc::Channel;
 use tokio_util::sync::CancellationToken;
 use uuid::Uuid;
 
-use super::{filter_graph, report, start::VideoEditSource, VideoEditProgress, CANCELLED};
+use super::{ass, filter_graph, report, start::VideoEditSource, VideoEditProgress, CANCELLED};
 use crate::{
     local_resources::tools,
     media::subprocess,
@@ -32,15 +32,6 @@ pub fn render(
         .ok_or("FFmpeg is required to render a video edit")?;
     let directory = asset_directory(app)?;
     let output = ScratchFile::new(directory.join(format!("edited-{}.mp4", Uuid::new_v4())));
-    let font = ScratchFile::new(directory.join(format!("video-edit-font-{}.otf", Uuid::new_v4())));
-    let bundled_font = tools::resolve_shared_file(app, "fonts/NotoSansCJKsc-Regular.otf")
-        .ok_or("Bundled video editor font is unavailable")?;
-    fs::copy(bundled_font, font.path()).map_err(|error| error.to_string())?;
-    let font_name = font
-        .path()
-        .file_name()
-        .and_then(|name| name.to_str())
-        .ok_or("Video editor font path is invalid")?;
     let has_audio = source_has_audio(&ffmpeg, &source.path);
     let mut project = source.project.clone();
     let first_source_ms = project
@@ -60,7 +51,23 @@ pub fn render(
         clip.start_ms -= first_source_ms;
         clip.end_ms -= first_source_ms;
     }
-    let filter = filter_graph::build(&project, has_audio, font_name)?;
+    let subtitle = if project.text_track.items.is_empty() {
+        None
+    } else {
+        let file = ScratchFile::new(directory.join(format!("video-edit-{}.ass", Uuid::new_v4())));
+        fs::write(file.path(), ass::render(&project)).map_err(|error| error.to_string())?;
+        Some(file)
+    };
+    let subtitle_name = subtitle
+        .as_ref()
+        .map(|file| {
+            file.path()
+                .file_name()
+                .and_then(|name| name.to_str())
+                .ok_or("Video edit subtitle path is invalid")
+        })
+        .transpose()?;
+    let filter = filter_graph::build(&project, has_audio, subtitle_name)?;
     let source_seek = format!("{:.3}", first_source_ms as f64 / 1000.0);
     report(progress, "renderingVideoEdit", 20)?;
     let mut args = vec![

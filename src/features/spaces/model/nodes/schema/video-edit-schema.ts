@@ -22,12 +22,13 @@ const videoTextOverlaySchema = z
     placement: z.enum(["top", "center", "bottom"]),
     style: z
       .object({
+        family: z.string().min(1).max(128),
+        weight: z.number().int().min(100).max(900),
         size: z.number().int().min(16).max(96),
         color: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
         preset: z.enum(["plain", "outline", "shadow", "badge"]),
       })
-      .strict()
-      .optional(),
+      .strict(),
   })
   .strict()
   .refine(({ startMs, endMs }) => endMs > startMs, "A text overlay must have a positive duration");
@@ -36,6 +37,8 @@ export const videoEditProjectSchema = z
   .object({
     version: z.literal(1),
     sourceRevision: z.string().min(1),
+    sourceWidth: z.number().int().min(1).max(16_384),
+    sourceHeight: z.number().int().min(1).max(16_384),
     videoTrack: z.object({ clips: z.array(videoClipSchema).min(1).max(500) }).strict(),
     textTrack: z.object({ items: z.array(videoTextOverlaySchema).max(500) }).strict(),
     transform: z
@@ -46,4 +49,8 @@ export const videoEditProjectSchema = z
       })
       .strict(),
   })
-  .strict();
+  .strict()
+  .refine(
+    ({ sourceWidth, sourceHeight }) => sourceWidth <= sourceHeight * 10 && sourceHeight <= sourceWidth * 10,
+    "Video source aspect ratio is invalid",
+  );
