@@ -8,6 +8,7 @@ import { useCanvasToolStore } from "../../canvas/canvas-tool-store";
 import { useCanvasEditorSession, useCanvasSelectionProjection } from "../../canvas/editor-session";
 import { canvasChromeMetrics } from "../../canvas/konva/presentation/canvas-chrome-metrics";
 import { isCanvasNodeConnectable } from "../../canvas/konva/scene/canvas-node-interaction";
+import { useImageEditSession } from "../../image-editing/image-edit-session";
 import { useNodeOperationGate } from "../../canvas/node-operation-gate";
 import { useSelectionDerivations } from "../../knowledge-derivations/selection/use-selection-derivations";
 import { useSpaceStore } from "../../session/space-store";
@@ -39,6 +40,7 @@ const tools = useCanvasToolStore();
 const { t } = useI18n();
 const editorSession = useCanvasEditorSession();
 const nodeOperations = useNodeOperationGate();
+const imageEdit = useImageEditSession();
 const showSelectionActions = computed(() => {
   const operation = nodeOperations.active.value;
   return !operation || operation.kind === "image-edit" || operation.kind === "image-comment";
@@ -113,7 +115,8 @@ const selectionBarGap = computed(() => {
       :canvas-to-viewport-point="canvasToViewportPoint"
       :safe-area="canvasChromeInsets"
       align="center"
-      :gap="singleCanvasObjectSelected ? selectionBarGap : 34"
+      :placement="imageEdit.active ? 'adjacent' : 'toolbar'"
+      :gap="imageEdit.active ? 12 : singleCanvasObjectSelected ? selectionBarGap : 34"
       v-slot="{ availableWidth }"
     >
       <SpaceCanvasRelationBar v-if="editorSession.selection.value.relationIds.length === 1" />
