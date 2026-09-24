@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Layers3, PencilLine, WandSparkles } from "@lucide/vue";
 import { ToolbarButton } from "reka-ui";
-import { computed, shallowRef, watch } from "vue";
+import { computed, shallowRef, toRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { toast } from "vue-sonner";
@@ -27,7 +27,7 @@ const store = useSpaceStore();
 const nodeOperations = useNodeOperationGate();
 const { t } = useI18n();
 const router = useRouter();
-const capability = useImageLayerCapability();
+const capability = useImageLayerCapability(toRef(props, "open"));
 const prompt = shallowRef("");
 const custom = shallowRef(false);
 watch(
@@ -68,7 +68,6 @@ async function submit(mode: "automatic" | "custom") {
 function setOpen(value: boolean) {
   emit("update:open", value);
   if (!value) custom.value = false;
-  if (value) void capability.refetch();
 }
 
 function openAiSettings() {

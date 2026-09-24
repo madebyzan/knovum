@@ -15,6 +15,13 @@ if (explicitRuntimeTarget && buildRuntimeTarget && explicitRuntimeTarget !== bui
 const target = explicitRuntimeTarget ?? buildRuntimeTarget ?? hostTarget();
 const release = takeFlag("--release");
 
+if (release && target.startsWith("macos-")) {
+  const identity = process.env.APPLE_SIGNING_IDENTITY?.trim();
+  if (!identity || identity === "-") {
+    fail("macOS release packaging requires a stable Apple code-signing identity");
+  }
+}
+
 requireRuntime(target);
 
 const bundleResources = [

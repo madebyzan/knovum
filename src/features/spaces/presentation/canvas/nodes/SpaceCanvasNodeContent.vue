@@ -17,7 +17,6 @@ import SpaceCanvasNodeBody from "./SpaceCanvasNodeBody.vue";
 import SpaceCanvasNodeStatus from "./SpaceCanvasNodeStatus.vue";
 import SpaceCanvasNote from "./SpaceCanvasNote.vue";
 import SpaceCanvasText from "./SpaceCanvasText.vue";
-import SpaceCanvasVideoCaption from "./SpaceCanvasVideoCaption.vue";
 import SpaceCanvasWebsite from "./SpaceCanvasWebsite.vue";
 
 // Canvas text styles are deliberately loaded for this composition surface.
@@ -35,10 +34,11 @@ const props = defineProps<{
 const imageEditSession = useImageEditSession();
 const contentInteractive = computed(() => {
   const active = imageEditSession.active;
-  return props.interactive || (
-    props.node.data.kind === "image" &&
-    active?.nodeId === props.node.id &&
-    (active.tool === "eraser" || active.tool === "crop")
+  return (
+    props.interactive ||
+    (props.node.data.kind === "image" &&
+      active?.nodeId === props.node.id &&
+      (active.tool === "eraser" || active.tool === "crop"))
   );
 });
 const presentation = computed(() => spaceCanvasNodePresentation(props.node.data));
@@ -52,11 +52,8 @@ const showsSecondaryChrome = computed(() => props.interactive || props.detailPro
 const interactiveMedia = computed(
   () => props.interactive && (props.node.data.kind === "audio" || props.node.data.kind === "video"),
 );
+const visualOnly = computed(() => props.node.data.kind === "image" || props.node.data.kind === "video");
 const previewFirst = computed(() => ["audio", "file", "image", "video"].includes(props.node.data.kind));
-const usesMultilinePreviewCaption = computed(() => ["file", "image"].includes(props.node.data.kind));
-const previewCaptionStyle = computed(() =>
-  usesMultilinePreviewCaption.value ? { height: `${PREVIEW_CAPTION_HEIGHT}px` } : undefined,
-);
 const textPresentation = computed(() =>
   canvasTextPresentation(isNote.value ? "note" : "text", props.layout.appearance),
 );
@@ -66,6 +63,7 @@ const textPresentation = computed(() =>
   <article
     class="flex size-full min-h-0 flex-col overflow-hidden text-foreground select-none"
     :class="[
+      visualOnly && 'relative',
       isText
         ? 'bg-transparent'
         : isNote
@@ -145,23 +143,21 @@ const textPresentation = computed(() =>
         :presentation-context="presentationContext"
         :interactive="contentInteractive"
       />
-      <SpaceCanvasVideoCaption v-if="node.data.kind === 'video'" :id="node.id" :data="node.data" />
+      <div
+        v-if="visualOnly"
+        class="pointer-events-none absolute top-2 right-2 rounded-control bg-panel/85 p-1 shadow-popover empty:hidden"
+      >
+        <SpaceCanvasNodeStatus :id="node.id" :data="node.data" />
+      </div>
       <footer
-        v-if="previewFirst && node.data.kind !== 'audio' && node.data.kind !== 'video'"
+        v-if="node.data.kind === 'file'"
         class="pointer-events-none flex shrink-0 items-center gap-2 border-t border-divider px-3 py-1.5"
-        :class="!usesMultilinePreviewCaption && 'h-13'"
-        :style="previewCaptionStyle"
+        :style="{ height: `${PREVIEW_CAPTION_HEIGHT}px` }"
       >
         <span class="min-w-0 flex-1">
-          <strong
-            class="wrap-break-word"
-            :class="
-              usesMultilinePreviewCaption
-                ? 'line-clamp-2 text-body leading-snug font-semibold'
-                : 'block truncate text-label font-medium'
-            "
-            >{{ presentation.title }}</strong
-          >
+          <strong class="line-clamp-2 text-body leading-snug font-semibold wrap-break-word">{{
+            presentation.title
+          }}</strong>
           <span
             v-if="showsSecondaryChrome && presentation.subtitle"
             class="mt-0.5 block truncate text-caption text-foreground-tertiary"
@@ -170,7 +166,7 @@ const textPresentation = computed(() =>
         </span>
         <SpaceCanvasNodeStatus :id="node.id" :data="node.data" />
       </footer>
-      <div v-if="layout.fileSubpath" class="shrink-0 px-3 pb-2">
+      <div v-if="layout.fileSubpath && !visualOnly" class="shrink-0 px-3 pb-2">
         <p class="mt-2 truncate text-micro text-foreground-tertiary">{{ layout.fileSubpath }}</p>
       </div>
     </template>

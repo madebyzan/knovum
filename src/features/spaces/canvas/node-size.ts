@@ -19,7 +19,6 @@ export interface SpaceNodeSizePolicy {
 }
 
 export const PREVIEW_CAPTION_HEIGHT = 48;
-export const VIDEO_CAPTION_HEIGHT = 52;
 export const CANVAS_NODE_HEADER_HEIGHT = 40;
 export const DEFAULT_CANVAS_TEXT_FONT_SIZE = 18;
 
@@ -28,8 +27,8 @@ const POLICIES: Record<SpaceNodeKind, SpaceNodeSizePolicy> = {
   text: policy([220, 40], [96, 40], "width-and-proportional"),
   markdown: policy([260, 184], [224, 144]),
   website: policy([288, 208], [248, 168], "proportional"),
-  image: policy([256, 204], [144, 120], "proportional"),
-  video: policy([304, 222], [232, 184], "proportional"),
+  image: policy([256, 156], [144, 72], "proportional"),
+  video: policy([304, 170], [232, 132], "proportional"),
   audio: policy([288, 80], [288, 80], "fixed"),
   subtitle: policy([272, 192], [232, 152]),
   file: policy([256, 192], [224, 152], "proportional"),
@@ -102,11 +101,11 @@ function policy(
 
 function fitImageNode(ratio: number) {
   const preview = fitIntrinsicRatio(ratio, 280, 128, 480);
-  return previewCard(preview);
+  return previewCard(preview, 0);
 }
 
 function fitVideoNode(ratio: number) {
-  return previewCard(fitIntrinsicRatio(ratio, 304, 156, 560), VIDEO_CAPTION_HEIGHT);
+  return previewCard(fitIntrinsicRatio(ratio, 304, 156, 560), 0);
 }
 
 function fitDocumentNode(ratio: number) {
