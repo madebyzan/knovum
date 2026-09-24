@@ -24,6 +24,8 @@ const {
   insights,
   playback,
   stale,
+  canEdit,
+  canDerive,
   canGenerateInsights,
   insightsDisabledReason,
   analyze,
@@ -42,7 +44,7 @@ const {
       <button
         type="button"
         class="flex h-(--knovum-control-height-sm) shrink-0 items-center gap-1 rounded-control px-2 text-caption text-foreground-secondary hover:bg-control-hover hover:text-foreground disabled:opacity-55"
-        :disabled="analyzing"
+        :disabled="analyzing || !canDerive"
         @click="analyze"
       >
         <LoaderCircle v-if="analyzing" class="size-(--knovum-icon-size-xs) animate-spin" />
@@ -76,8 +78,9 @@ const {
       <SpaceMediaSummaryEditor
         v-if="insights"
         class="mt-3"
+        :node-id="nodeId"
         :summary="insights.summary"
-        :disabled="stale"
+        :disabled="stale || !canEdit"
         @save="saveSummary"
       />
       <div v-if="insights" class="mt-4">
@@ -88,12 +91,13 @@ const {
           <SpaceMediaChapterEditor
             v-for="(chapter, index) in insights.chapters"
             :key="chapter.startMs"
+            :node-id="nodeId"
             :chapter="chapter"
             :index="index"
             :active="
               !!playback && playback.currentMs >= chapter.startMs && playback.currentMs < chapter.endMs
             "
-            :disabled="stale"
+            :disabled="stale || !canEdit"
             @seek="seek"
             @save="saveChapter"
             @shift="shiftChapter"
@@ -125,9 +129,10 @@ const {
         <SpaceTranscriptList
           v-if="transcriptOpen"
           class="mt-2"
+          :node-id="nodeId"
           :segments="knowledge.transcript.segments"
           v-bind="playback ? { currentMs: playback.currentMs } : {}"
-          :disabled="stale"
+          :disabled="stale || !canEdit"
           @seek="seek"
           @save="saveSegment"
         />

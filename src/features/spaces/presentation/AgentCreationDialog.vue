@@ -1,21 +1,21 @@
 <script setup lang="ts">
-import { Bot, Eye, File, Image, Music, Paperclip, Trash2, Video, X } from "@lucide/vue";
+import { Bot, Paperclip, Trash2, X } from "@lucide/vue";
 import { watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import type { AgentArtifact } from "../../../foundation/ai/agents";
 import { isSystemPreviewAvailable } from "../../../foundation/system-preview/system-preview";
 import UiButton from "../../../shared/ui/UiButton.vue";
-import UiCheckbox from "../../../shared/ui/UiCheckbox.vue";
 import UiDialog from "../../../shared/ui/UiDialog.vue";
 import UiSelect from "../../../shared/ui/UiSelect.vue";
 import UiTextarea from "../../../shared/ui/UiTextarea.vue";
 import { useAgentAttachments } from "../agent-creation/use-agent-attachments";
 import { useAgentCreation } from "../agent-creation/use-agent-creation";
-import { formatByteSize } from "../assets/format-byte-size";
+import { useNodeOperationGate } from "../canvas/node-operation-gate";
+import SpaceAgentArtifactList from "./SpaceAgentArtifactList.vue";
 
 const open = defineModel<boolean>("open", { required: true });
 const { t } = useI18n();
+const operations = useNodeOperationGate();
 const {
   agents,
   selectedAgent,
@@ -50,10 +50,6 @@ const {
 watch(open, (isOpen) => {
   if (!isOpen) clearAttachments();
 });
-
-function artifactIcon(kind: AgentArtifact["kind"]) {
-  return { image: Image, video: Video, audio: Music, document: File, file: File }[kind];
-}
 </script>
 
 <template>
@@ -133,39 +129,13 @@ function artifactIcon(kind: AgentArtifact["kind"]) {
           </UiButton>
         </div>
       </section>
-      <div
+      <SpaceAgentArtifactList
         v-if="artifacts.length"
-        class="divide-y divide-divider overflow-hidden rounded-panel border border-border"
-      >
-        <div
-          v-for="artifact in artifacts"
-          :key="artifact.relativePath"
-          class="flex items-center gap-3 px-3 py-2.5"
-        >
-          <UiCheckbox
-            :model-value="selectedArtifacts.has(artifact.relativePath)"
-            :label="artifact.name"
-            @update:model-value="
-              $event
-                ? selectedArtifacts.add(artifact.relativePath)
-                : selectedArtifacts.delete(artifact.relativePath)
-            "
-          />
-          <component
-            :is="artifactIcon(artifact.kind)"
-            class="size-(--knovum-icon-size-sm) text-foreground-secondary"
-          />
-          <div class="min-w-0 flex-1">
-            <div class="truncate text-label text-foreground">{{ artifact.name }}</div>
-            <div class="truncate text-caption text-foreground-tertiary">
-              {{ artifact.relativePath }} · {{ formatByteSize(artifact.size) }}
-            </div>
-          </div>
-          <UiButton v-if="canPreview" size="sm" variant="ghost" @click="preview(artifact)">
-            <Eye class="size-(--knovum-icon-size-xs)" />{{ t("spaces.transfer.systemPreview") }}
-          </UiButton>
-        </div>
-      </div>
+        :artifacts="artifacts"
+        :can-preview="canPreview"
+        :selected-artifacts="selectedArtifacts"
+        @preview="preview"
+      />
     </div>
     <template #footer>
       <UiButton variant="ghost" @click="open = false">{{ t("common.cancel") }}</UiButton>
@@ -173,7 +143,12 @@ function artifactIcon(kind: AgentArtifact["kind"]) {
         <Trash2 class="size-(--knovum-icon-size-sm)" />
         {{ t("spaces.creation.discardAgentArtifacts") }}
       </UiButton>
-      <UiButton v-if="artifacts.length" variant="primary" :disabled="!selectedCount" @click="importSelected">
+      <UiButton
+        v-if="artifacts.length"
+        variant="primary"
+        :disabled="!selectedCount || !operations.allows('create')"
+        @click="importSelected"
+      >
         {{ t("spaces.creation.importAgentArtifacts", { count: selectedCount }) }}
       </UiButton>
       <UiButton v-else variant="primary" :disabled="!canRun || running" @click="run(attachmentPaths)">

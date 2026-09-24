@@ -9,6 +9,7 @@ import {
   useCanvasEditorSession,
 } from "../../canvas/editor-session";
 import CanvasSurfaceHost from "../../canvas/host/CanvasSurfaceHost.vue";
+import { useNodeOperationGate } from "../../canvas/node-operation-gate";
 import { isSpaceNodeOpenable, openSpaceNode } from "../../canvas/selection-actions";
 import { useContextDock } from "../../canvas/use-context-dock";
 import { createCanvasSelectionActions } from "../../session/actions/canvas-selection-actions";
@@ -29,6 +30,7 @@ const store = useSpaceStore();
 const tools = useCanvasToolStore();
 const createTextNode = useCanvasTextCreation();
 const editorSession = useCanvasEditorSession();
+const operations = useNodeOperationGate();
 const dock = useContextDock();
 const { t } = useI18n();
 const selection = createCanvasSelectionActions(store);
@@ -79,6 +81,8 @@ const imports = useSpaceCanvasImports({
 async function activateNode(nodeId: string) {
   const node = store.nodes.find((candidate) => candidate.id === nodeId);
   if (!node) return;
+  if (!operations.allows(node.data.kind === "note" || node.data.kind === "markdown" ? "edit" : "inspect"))
+    return;
   editorSession.selectNodes([nodeId]);
   if (isSpaceNodeOpenable(node)) await openSpaceNode(store, node);
   else dock.openInspect();

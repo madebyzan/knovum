@@ -10,6 +10,7 @@ import UiDropdownMenu from "../../../shared/ui/UiDropdownMenu.vue";
 import UiIconButton from "../../../shared/ui/UiIconButton.vue";
 import UiInput from "../../../shared/ui/UiInput.vue";
 import { useCanvasToolStore } from "../canvas/canvas-tool-store";
+import { useNodeOperationGate } from "../canvas/node-operation-gate";
 import { useAddMenu } from "../presentation/use-add-menu";
 import AgentCreationDialog from "./AgentCreationDialog.vue";
 import SpaceKnowledgeTypeManager from "./knowledge/SpaceKnowledgeTypeManager.vue";
@@ -19,6 +20,7 @@ import SpacePortalDialog from "./SpacePortalDialog.vue";
 
 const { t } = useI18n();
 const tools = useCanvasToolStore();
+const nodeOperations = useNodeOperationGate();
 const {
   store,
   websiteOpen,
@@ -37,6 +39,7 @@ const {
 } = useAddMenu();
 
 async function beginAudioRecording() {
+  if (!nodeOperations.allows("create")) return;
   try {
     await store.beginAudioRecording();
   } catch (error) {
@@ -50,11 +53,16 @@ async function beginAudioRecording() {
     side="bottom"
     align="start"
     :side-offset="6"
-    @update:open="($event) => $event && tools.selectTool('select')"
+    @update:open="($event) => $event && nodeOperations.allows('create') && tools.selectTool('select')"
   >
     <template #trigger>
       <ToolbarButton as-child>
-        <UiIconButton :label="t('spaces.canvas.actions.addContent')" size="sm" tooltip-side="bottom">
+        <UiIconButton
+          :label="t('spaces.canvas.actions.addContent')"
+          :disabled="!nodeOperations.allows('create')"
+          size="sm"
+          tooltip-side="bottom"
+        >
           <Plus class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
         </UiIconButton>
       </ToolbarButton>
@@ -82,9 +90,12 @@ async function beginAudioRecording() {
     <UiInput v-model="website" type="url" placeholder="example.com/article" @keydown.enter="addWebsite" />
     <template #footer>
       <UiButton variant="ghost" @click="websiteOpen = false">{{ t("common.cancel") }}</UiButton>
-      <UiButton variant="primary" :disabled="!normalizedWebsite" @click="addWebsite">{{
-        t("common.continue")
-      }}</UiButton>
+      <UiButton
+        variant="primary"
+        :disabled="!normalizedWebsite || !nodeOperations.allows('create')"
+        @click="addWebsite"
+        >{{ t("common.continue") }}</UiButton
+      >
     </template>
   </UiDialog>
   <SpaceCustomKnowledgeObjectDialog v-model:open="customObjectOpen" />

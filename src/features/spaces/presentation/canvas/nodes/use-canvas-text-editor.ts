@@ -4,6 +4,7 @@ import { toast } from "vue-sonner";
 
 import {
   registerSpaceSessionParticipant,
+  updateCanvasTextEditorProjection,
   updateCanvasTextSelectionProjection,
 } from "../../../canvas/editor-session";
 import { createCanvasTextExtensions } from "../../../editor/tiptap-extensions";
@@ -30,6 +31,7 @@ export function useCanvasTextEditor(options: CanvasTextEditorOptions) {
 
   watch(options.interactive, (interactive) => (interactive ? void beginEditing() : void saveQuietly()));
   onBeforeUnmount(() => {
+    updateCanvasTextEditorProjection(options.id, false);
     updateCanvasTextSelectionProjection(options.id, false);
     editor.value?.destroy();
     editor.value = undefined;
@@ -39,6 +41,7 @@ export function useCanvasTextEditor(options: CanvasTextEditorOptions) {
   async function beginEditing() {
     if (editing.value || !options.interactive.value) return;
     editing.value = true;
+    updateCanvasTextEditorProjection(options.id, true);
     editor.value = new Editor({
       content: options.data.value.tiptapContent,
       editable: true,
@@ -109,6 +112,7 @@ export function useCanvasTextEditor(options: CanvasTextEditorOptions) {
   function finishEditing() {
     const instance = editor.value;
     editing.value = false;
+    updateCanvasTextEditorProjection(options.id, false);
     editor.value = undefined;
     updateCanvasTextSelectionProjection(options.id, false);
     detachCommit?.();

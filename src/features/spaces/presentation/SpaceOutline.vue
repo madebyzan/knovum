@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import { computed, inject, shallowRef, watch } from "vue";
+import { computed, inject, onBeforeUnmount, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { workspaceSidebarKey } from "../../../shared/contracts/workspace-sidebar";
 import { useCanvasEditorSession } from "../canvas/editor-session";
+import { useNodeOperationGate } from "../canvas/node-operation-gate";
 import { openSpaceNode } from "../canvas/selection-actions";
 import { projectStructureOutline } from "../model/structure/outline-projection";
 import { groupScopePathFor } from "../model/structure/structure-queries";
 import { validateStructureSnapshot } from "../model/structure/structure-validation";
+import { useNodeOperationDrafts } from "../session/node-operation-drafts";
 import { useSpaceStore } from "../session/space-store";
 import SpaceStructureOutlineRow from "./SpaceStructureOutlineRow.vue";
 import { useOutlineTreeNavigation } from "./use-outline-tree-navigation";
@@ -15,6 +17,9 @@ import { useStructureOutlineMenu } from "./use-structure-outline-menu";
 
 const store = useSpaceStore();
 const editor = useCanvasEditorSession();
+const operations = useNodeOperationGate();
+const drafts = useNodeOperationDrafts();
+let renameLease: number | undefined;
 const sidebar = inject(workspaceSidebarKey)!;
 const { t } = useI18n();
 const expandedIds = shallowRef(new Set<string>());
@@ -72,10 +77,18 @@ async function open(id: string) {
     return;
   }
   const node = nodeById.value.get(structureNode.nodeId);
-  if (node) await openSpaceNode(store, node);
+  if (
+    node &&
+    operations.allows(node.data.kind === "note" || node.data.kind === "markdown" ? "edit" : "inspect")
+  )
+    await openSpaceNode(store, node);
 }
 
 function rename(id: string) {
+  if (!operations.allows("edit")) return;
+  finishRename();
+  renameLease = drafts.begin(id, "outline-title");
+  if (!renameLease) return;
   sidebar.reveal();
   for (const ancestor of groupScopePathFor(id, index.value)) {
     expandedIds.value = new Set([...expandedIds.value, ancestor]);
@@ -83,7 +96,14 @@ function rename(id: string) {
   editingId.value = id;
 }
 
+function finishRename() {
+  if (renameLease !== undefined) drafts.end(renameLease);
+  renameLease = undefined;
+  editingId.value = undefined;
+}
+
 async function saveName(id: string, title: string) {
+  if (editingId.value !== id || renameLease === undefined) return;
   const structureNode = index.value.structureById.get(id);
   if (!structureNode) throw new Error("Structure node no longer exists");
   if (structureNode.kind === "content") return store.renameNode(structureNode.nodeId, title);
@@ -110,10 +130,11 @@ watch(
 watch(
   () => store.activeSpaceId,
   () => {
-    editingId.value = undefined;
+    finishRename();
     expandedIds.value = new Set();
   },
 );
+onBeforeUnmount(finishRename);
 </script>
 
 <template>
@@ -131,7 +152,7 @@ watch(
       @open="open(row.id)"
       @menu="outlineMenu.show(row.id)"
       @toggle="toggle(row.id)"
-      @finish="editingId = undefined"
+      @finish="finishRename"
       @focus="treeNavigation.setFocusedId(row.id)"
       @navigate="treeNavigation.handleKeydown($event, row, index)"
     />

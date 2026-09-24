@@ -11,6 +11,7 @@ import { scheduleSpaceAssetProcessing } from "../../assets/processing-scheduler"
 import type { CanvasFileImportRequest, CanvasFileImportResult } from "../../canvas/contract/canvas-editor";
 import { importDroppedFiles } from "../../canvas/drop";
 import type { useCanvasEditorSession } from "../../canvas/editor-session";
+import { useNodeOperationGate } from "../../canvas/node-operation-gate";
 import { pasteSpaceClipboardAt } from "../../canvas/selection-actions";
 import { noteFromPlainText } from "../../canvas/text-import";
 import { pasteSpaceClipboard } from "../../clipboard/paste";
@@ -28,26 +29,31 @@ interface SpaceCanvasImportOptions {
 }
 
 export function useSpaceCanvasImports(options: SpaceCanvasImportOptions) {
+  const operations = useNodeOperationGate();
   const fileDropListener = createAsyncDisposer();
   const fileHover = shallowRef(false);
   const fileHoverPosition = shallowRef<{ x: number; y: number }>();
 
   async function insertText(text: string, point: { x: number; y: number }) {
+    if (!operations.allows("create")) return;
     const source = classifySpaceUrl(text.trim());
     if (source) return insertUrl(source.url, point);
     await options.store.addContent(noteFromPlainText(text, options.newNoteTitle), point);
   }
 
   async function insertUrl(url: string, point: { x: number; y: number }) {
+    if (!operations.allows("create")) return;
     void captureSpaceUrl(urlCaptureContext(options.store), url, point).catch(options.reportError);
   }
 
   function retryCapture(capture: SpaceUrlCaptureProjection) {
+    if (!operations.allows("create")) return;
     options.store.finishUrlCapture(capture.id);
     void insertUrl(capture.url, capture.position);
   }
 
   async function pasteClipboard(point: { x: number; y: number }) {
+    if (!operations.allows("create")) return;
     const spaceId = options.store.activeSpaceId;
     if (!spaceId) throw new Error("A Space must be active to paste canvas content");
     return pasteSpaceClipboard({
@@ -73,6 +79,7 @@ export function useSpaceCanvasImports(options: SpaceCanvasImportOptions) {
   }
 
   async function importFiles(files: readonly CanvasFileImportRequest[]) {
+    if (!operations.allows("create")) return [];
     const outcomes = await importBatch(
       files.map((file) => ({
         key: file.sourceId,
@@ -135,6 +142,7 @@ export function useSpaceCanvasImports(options: SpaceCanvasImportOptions) {
             fileHoverPosition.value = active ? position : undefined;
           },
           async drop(payload) {
+            if (!operations.allows("create")) return;
             const editor = options.editorSession.activeEditor.value;
             if (!editor) return;
             await importDroppedFiles(

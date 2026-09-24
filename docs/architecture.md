@@ -225,6 +225,22 @@ capability; it is not a new universal executor or a second action catalog.
 | Derive          | Creates one or more new ordinary resource nodes from pinned inputs; records a Derivation and `derives-from` relations  | Create from selection, generate, render |
 | Export external | Writes outside the Space through an explicit destination or system handoff; does not create a Space node or Derivation | Download, export file                   |
 
+Temporary interaction occupancy is separate from durable effect. A node editor, image tool,
+comment gesture, video editor or canvas drag owns the current interactive draft until Apply,
+Cancel or gesture completion. Read-only inspection and viewport navigation may continue. Starting
+another edit, structural mutation, primary creation, clone, export or derivation while that draft is active is
+blocked at the originating UI action **and** the command/submit entry point. The gate projects
+existing feature session state; it does not store a second copy of an editor's draft. A submitted
+background derivation releases the interactive gate and runs against its pinned input revision;
+Rust revision validation remains the authority at commit. Image tool switching replaces the
+node bar with the active tool panel, while image generation popovers share one open state.
+
+The same rule applies to every node kind: note/text/Markdown editing, image editing and comments,
+video editing, and structured knowledge editing are exclusive interactive work; details and
+read-only previews are inspection. Groups and Sections use Structure interaction occupancy rather
+than content-node editing. A new operation must declare both its durable effect above and whether
+it holds an interactive draft before it is exposed in a bar, menu, shortcut or automation surface.
+
 An image or media transformation either edits its input node or publishes a separate resource; a
 command that does both must be split into separately named intents. A KnowledgeChangeSet may
 atomically contain several validated knowledge mutations without becoming a media Derivation. A

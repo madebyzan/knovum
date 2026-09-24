@@ -7,11 +7,13 @@ import UiButton from "../../../shared/ui/UiButton.vue";
 import UiDialog from "../../../shared/ui/UiDialog.vue";
 import UiInput from "../../../shared/ui/UiInput.vue";
 import UiSelect from "../../../shared/ui/UiSelect.vue";
+import { useNodeOperationGate } from "../canvas/node-operation-gate";
 import { spaceTargetOptions } from "../model/space";
 import { useSpaceStore } from "../session/space-store";
 
 const open = defineModel<boolean>("open", { required: true });
 const store = useSpaceStore();
+const operations = useNodeOperationGate();
 const { t } = useI18n();
 const targetSpaceId = ref("");
 const title = ref("");
@@ -31,7 +33,7 @@ watch(targetSpaceId, (value) => {
 });
 
 async function create() {
-  if (!targetSpaceId.value) return;
+  if (!targetSpaceId.value || !operations.allows("create")) return;
   try {
     await store.addContent({
       kind: "portal",
@@ -57,9 +59,12 @@ async function create() {
     </div>
     <template #footer>
       <UiButton variant="ghost" @click="open = false">{{ t("common.cancel") }}</UiButton>
-      <UiButton variant="primary" :disabled="!targetSpaceId" @click="create">{{
-        t("common.create")
-      }}</UiButton>
+      <UiButton
+        variant="primary"
+        :disabled="!targetSpaceId || !operations.allows('create')"
+        @click="create"
+        >{{ t("common.create") }}</UiButton
+      >
     </template>
   </UiDialog>
 </template>

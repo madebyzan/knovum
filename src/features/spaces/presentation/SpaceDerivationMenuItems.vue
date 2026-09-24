@@ -43,6 +43,7 @@ const derivationActions = computed(() =>
 const hasActions = computed(() => derivationActions.value.length > 0);
 
 function reasonLabel(reason: DerivationUnavailableReason | undefined) {
+  if (reason === "active-node-operation") return t("spaces.creation.finishNodeOperation");
   if (reason === "too-many-video-images") return t("spaces.creation.tooManyVideoImages");
   if (reason === "needs-indexed-knowledge") return t("spaces.creation.needsIndexedKnowledge");
   return undefined;
@@ -50,7 +51,7 @@ function reasonLabel(reason: DerivationUnavailableReason | undefined) {
 
 function actionReason(actionId: CreationIntentId) {
   const availability = props.derivations[actionId];
-  return availability.state === "blocked" ? reasonLabel(availability.reason) ?? "" : "";
+  return availability.state === "blocked" ? (reasonLabel(availability.reason) ?? "") : "";
 }
 
 function selectAction(event: Event, actionId: CreationIntentId) {
@@ -78,8 +79,14 @@ function selectAction(event: Event, actionId: CreationIntentId) {
           :disabled="canRunAction(props.derivations[action.id])"
           side="right"
         >
-          <UiDropdownMenuItem :class="props.rowClass" :aria-disabled="!canRunAction(props.derivations[action.id])" @select="selectAction($event, action.id)">
-            <component :is="icons[action.icon]" class="size-(--knovum-icon-size-sm)" />{{ t(action.labelKey) }}
+          <UiDropdownMenuItem
+            :class="props.rowClass"
+            :aria-disabled="!canRunAction(props.derivations[action.id])"
+            @select="selectAction($event, action.id)"
+          >
+            <component :is="icons[action.icon]" class="size-(--knovum-icon-size-sm)" />{{
+              t(action.labelKey)
+            }}
           </UiDropdownMenuItem>
         </UiTooltip>
       </DropdownMenuSubContent>

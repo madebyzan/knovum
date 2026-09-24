@@ -5,12 +5,17 @@ import { useI18n } from "vue-i18n";
 
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import { useCanvasToolStore } from "../../canvas/canvas-tool-store";
+import { useNodeOperationGate, type NodeOperationEffect } from "../../canvas/node-operation-gate";
 import { CANVAS_TOOL_COMMANDS } from "../../commands/canvas-tool-commands";
 import SpaceAddMenu from "../SpaceAddMenu.vue";
 
 const tools = useCanvasToolStore();
+const nodeOperations = useNodeOperationGate();
 const icons = { select: MousePointer2, pan: Hand, note: StickyNote, text: Type, section: SquareDashed };
 const { t } = useI18n();
+function toolEffect(tool: keyof typeof icons): NodeOperationEffect {
+  return tool === "select" || tool === "pan" ? "structure" : "create";
+}
 </script>
 
 <template>
@@ -25,10 +30,11 @@ const { t } = useI18n();
           :label="t(toolCommand.title)"
           :shortcut="toolCommand.shortcut"
           :active="tools.tool === toolCommand.tool"
+          :disabled="!nodeOperations.allows(toolEffect(toolCommand.tool))"
           class="data-[active=true]:bg-selected data-[active=true]:text-accent"
           tooltip-side="bottom"
           size="sm"
-          @click="tools.selectTool(toolCommand.tool)"
+          @click="nodeOperations.allows(toolEffect(toolCommand.tool)) && tools.selectTool(toolCommand.tool)"
         >
           <component :is="icons[toolCommand.tool]" class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
         </UiIconButton>

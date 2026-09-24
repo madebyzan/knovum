@@ -2,7 +2,10 @@ import type { ActionAvailability } from "../../../../shared/contracts/action-ava
 
 export type CreationIntentKind = "atomic" | "workflow";
 export type CreationIntentIcon = "captions" | "file-output" | "file-pen" | "image" | "scan" | "sparkles";
-export type DerivationUnavailableReason = "needs-indexed-knowledge" | "too-many-video-images";
+export type DerivationUnavailableReason =
+  | "needs-indexed-knowledge"
+  | "too-many-video-images"
+  | "active-node-operation";
 
 export type CreationIntentDecision = ActionAvailability<DerivationUnavailableReason>;
 
@@ -20,6 +23,7 @@ export interface CreationSelectionContext {
 export interface CreationIntentDefinition {
   readonly id: string;
   readonly kind: CreationIntentKind;
+  readonly effect: "derive" | "export";
   readonly labelKey: string;
   readonly icon: CreationIntentIcon;
   readonly decide: (context: CreationSelectionContext) => CreationIntentDecision;

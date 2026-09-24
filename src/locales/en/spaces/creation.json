@@ -92,6 +92,7 @@
   "videoScriptPurpose": "Create a concise visual video script from the selected knowledge. Establish a clear narrative, scenes, and the key facts that must remain accurate.",
   "tooManyVideoImages": "Select no more than 10 reference images for video generation.",
   "needsIndexedKnowledge": "The selected items don’t contain searchable text yet.",
+  "finishNodeOperation": "Finish or cancel the current node operation first.",
   "submittingVideo": "Submitting video generation",
   "videoGenerationSubmitted": "Video generation submitted",
   "generatingVideo": "Generating video",

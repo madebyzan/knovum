@@ -10,6 +10,7 @@ import type { SpaceTranscriptEdit, SpaceTranscriptSegment } from "../../media/sc
 import SpaceTranscriptRow from "./SpaceTranscriptRow.vue";
 
 const props = defineProps<{
+  nodeId: string;
   segments: SpaceTranscriptSegment[];
   currentMs?: number;
   disabled?: boolean;
@@ -83,6 +84,7 @@ async function remeasure() {
         <SpaceTranscriptRow
           v-for="row in rows"
           :key="visibleIndices[row.index]!"
+          :node-id="nodeId"
           :ref="measureElement"
           :data-index="row.index"
           class="absolute top-0 left-0 w-full"

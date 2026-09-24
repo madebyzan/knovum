@@ -7,6 +7,7 @@ import { toast } from "vue-sonner";
 
 import UiButton from "../../../shared/ui/UiButton.vue";
 import { formatByteSize } from "../assets/format-byte-size";
+import { useNodeOperationGate } from "../canvas/node-operation-gate";
 import { mediaProviderDisplayName } from "../media/provider-display-name";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import {
@@ -26,6 +27,7 @@ interface MetadataRow {
 
 const props = defineProps<{ node: SpaceCanvasNode }>();
 const store = useSpaceStore();
+const nodeOperations = useNodeOperationGate();
 const { t } = useI18n();
 const refreshing = ref(false);
 
@@ -83,7 +85,7 @@ function sourceUrl(data: SpaceNodePayload) {
 }
 
 async function refreshWebsite() {
-  if (props.node.data.kind !== "website" || !props.node.data.url || refreshing.value) return;
+  if (!nodeOperations.allows("edit") || props.node.data.kind !== "website" || !props.node.data.url || refreshing.value) return;
   const activeSpaceId = store.activeSpaceId;
   if (!activeSpaceId) return;
   refreshing.value = true;
@@ -118,7 +120,7 @@ async function refreshWebsite() {
     </div>
   </dl>
   <div v-if="node.data.kind === 'website'" class="mt-2">
-    <UiButton size="sm" variant="secondary" :disabled="refreshing" @click="refreshWebsite">
+    <UiButton size="sm" variant="secondary" :disabled="refreshing || !nodeOperations.allows('edit')" @click="refreshWebsite">
       <RefreshCw class="size-(--knovum-icon-size-xs)" :class="refreshing && 'animate-spin'" />
       {{ node.data.metadataState === "failed" ? t("common.retry") : t("spaces.transfer.refreshWebsite") }}
     </UiButton>

@@ -92,6 +92,7 @@
   "videoScriptPurpose": "将选中知识整理为简洁、画面导向的视频脚本，建立清晰叙事、场景和必须准确保留的关键信息。",
   "tooManyVideoImages": "生成视频最多可选择 10 张参考图片。",
   "needsIndexedKnowledge": "选中项暂时没有可供读取的文本。",
+  "finishNodeOperation": "请先完成或取消当前节点操作。",
   "submittingVideo": "正在提交视频生成",
   "videoGenerationSubmitted": "视频生成已提交",
   "generatingVideo": "正在生成视频",

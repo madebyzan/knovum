@@ -4,6 +4,7 @@ import { useRouter } from "vue-router";
 import { toast } from "vue-sonner";
 
 import { canRunAction } from "../../../../shared/contracts/action-availability";
+import { useNodeOperationGate } from "../../canvas/node-operation-gate";
 import { rotatedImageSize } from "../../image-editing/canvas-image-renderer";
 import { imageEditOf } from "../../image-editing/image-edit";
 import { useImageEditSession } from "../../image-editing/image-edit-session";
@@ -24,6 +25,7 @@ export function useImageGenerateActions(
   const router = useRouter();
   const store = useSpaceStore();
   const session = useImageEditSession();
+  const nodeOperations = useNodeOperationGate();
   const capabilities = useImageOperationCapabilities();
   const busy = shallowRef(false);
   const dimensions = computed(() => {
@@ -37,7 +39,7 @@ export function useImageGenerateActions(
   const availability = computed(() =>
     imageActionAvailability(
       Boolean(node.value.data.sourceRevision),
-      session.active?.nodeId === node.value.id,
+      !nodeOperations.allows("derive"),
       capabilities.isFetching.value
         ? undefined
         : mode.value === "upscale"
@@ -66,7 +68,7 @@ export function useImageGenerateActions(
   }
 
   async function run(operation: ImageOperation) {
-    if (!canRunAction(availability.value)) return;
+    if (!nodeOperations.allows("derive") || !canRunAction(availability.value)) return;
     if (operation.kind === "upscale" && !canRunAction(optionAvailability(operation.targetLongEdge))) return;
     close();
     busy.value = true;

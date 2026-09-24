@@ -1,6 +1,5 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { toast } from "vue-sonner";
 
 import type { CanvasNodeAppearance } from "../../canvas/contract/canvas-document";
 import type {
@@ -13,22 +12,22 @@ import { useCanvasEditorSession, useCanvasSelectionProjection } from "../../canv
 import { openSpaceNode } from "../../canvas/selection-actions";
 import { useContextDock } from "../../canvas/use-context-dock";
 import { isSpaceSemanticNode } from "../../knowledge/model/semantic-node";
-import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
-import type { SpaceImagePayload } from "../../model/nodes/node-payload";
 import { useSpaceStore } from "../../session/space-store";
 import { useCanvasNodeDownload } from "./canvas-node-download";
 import { canvasSelectionProductState } from "./selection-product-state";
+import { useCanvasOperationRunner } from "./use-canvas-operation-runner";
 import { useCanvasReparentActions } from "./use-canvas-reparent-actions";
+import { useCanvasSelectedMedia } from "./use-canvas-selected-media";
 import { useCanvasStructureSelectionActions } from "./use-canvas-structure-selection-actions";
-
-function runCanvasAction(operation: () => Promise<unknown>) {
-  void Promise.resolve().then(operation).catch((error) => toast.error(String(error)));
-}
 
 export function useCanvasSelectionActions() {
   const store = useSpaceStore();
   const dock = useContextDock();
   const editorSession = useCanvasEditorSession();
+  const nodeOperations = useCanvasOperationRunner();
+  const runNodeOperation = nodeOperations.run;
+  const runSelectionMutation = (operation: () => Promise<unknown>) =>
+    runNodeOperation("structure", operation);
   const { selection, selectedNodes } = useCanvasSelectionProjection(() => store.nodes);
   const state = computed(() =>
     canvasSelectionProductState(
@@ -47,40 +46,37 @@ export function useCanvasSelectionActions() {
       Boolean(selection.value.relationIds.length),
   );
   const selectedAppearance = computed(() => selection.value.singleNodeAppearance);
-  const selectedImageNode = computed(() => {
-    const node = selectedNodes.value.length === 1 ? selectedNodes.value[0] : undefined;
-    return node && isImageNode(node) ? node : undefined;
-  });
-  const selectedVideoNode = computed(() => {
-    const node = selectedNodes.value.length === 1 ? selectedNodes.value[0] : undefined;
-    return node?.data.kind === "video" ? node : undefined;
-  });
+  const { selectedImageNode, selectedVideoNode } = useCanvasSelectedMedia(selectedNodes);
   const reparentActions = useCanvasReparentActions(
     store,
     state,
     t("spaces.canvas.spaceRoot"),
-    runCanvasAction,
+    runSelectionMutation,
   );
   const structureActions = useCanvasStructureSelectionActions(
     store,
     state,
     { group: t("spaces.canvas.untitledGroup"), section: t("spaces.canvas.untitledSection") },
-    runCanvasAction,
+    runSelectionMutation,
   );
 
   function setAppearance(patch: Partial<CanvasNodeAppearance>) {
+    if (!nodeOperations.allows("edit")) return;
     const nodeId = selection.value.nodeIds.length === 1 ? selection.value.nodeIds[0] : undefined;
     if (!nodeId) return;
     editorSession.activeEditor.value?.setNodeAppearance(nodeId, patch);
   }
 
   function editVideo() {
+    if (!nodeOperations.allows("edit")) return;
     const node = selectedVideoNode.value;
     if (node) store.openVideoEditor(node.id);
   }
 
   function open() {
-    runCanvasAction(() => openSpaceNode(store, selectedNodes.value[0]));
+    const node = selectedNodes.value[0];
+    const effect = node?.data.kind === "note" || node?.data.kind === "markdown" ? "edit" : "inspect";
+    runNodeOperation(effect, () => openSpaceNode(store, node));
   }
 
   function inspect() {
@@ -93,7 +89,8 @@ export function useCanvasSelectionActions() {
 
   function connect() {
     const [source, target] = state.value.content.filter(isSpaceSemanticNode);
-    if (source && target) runCanvasAction(() => store.createRelation(source.id, target.id, "related"));
+    if (source && target)
+      runNodeOperation("structure", () => store.createRelation(source.id, target.id, "related"));
   }
 
   function focus() {
@@ -102,30 +99,31 @@ export function useCanvasSelectionActions() {
 
   function duplicate() {
     const editor = editorSession.activeEditor.value;
-    if (editor) runCanvasAction(() => editor.duplicateSelection());
+    if (editor) runNodeOperation("clone", () => editor.duplicateSelection());
   }
 
   function align(mode: CanvasAlignMode) {
     const editor = editorSession.activeEditor.value;
-    if (editor) runCanvasAction(() => editor.alignSelection(mode));
+    if (editor) runSelectionMutation(() => editor.alignSelection(mode));
   }
 
   function distribute(mode: CanvasDistributeMode) {
     const editor = editorSession.activeEditor.value;
-    if (editor) runCanvasAction(() => editor.distributeSelection(mode));
+    if (editor) runSelectionMutation(() => editor.distributeSelection(mode));
   }
 
   function autoLayout(direction: CanvasAutoLayoutDirection) {
     const editor = editorSession.activeEditor.value;
-    if (editor) runCanvasAction(() => editor.autoLayoutSelection(direction));
+    if (editor) runSelectionMutation(() => editor.autoLayoutSelection(direction));
   }
 
   function moveLayer(mode: CanvasLayerMove) {
+    if (!nodeOperations.allows("structure")) return;
     editorSession.activeEditor.value?.moveSelectionLayer(mode);
   }
 
   function toggleLock() {
-    runCanvasAction(() =>
+    runSelectionMutation(() =>
       store.executeSpaceEdit({
         kind: "structure.set-lock",
         rootIds: state.value.structureNodeIds,
@@ -135,12 +133,12 @@ export function useCanvasSelectionActions() {
   }
 
   function moveToSpace(spaceId: string) {
-    runCanvasAction(() => store.moveStructureNodes(state.value.structureNodeIds, spaceId));
+    runSelectionMutation(() => store.moveStructureNodes(state.value.structureNodeIds, spaceId));
   }
 
   function remove() {
     const editor = editorSession.activeEditor.value;
-    if (editor) runCanvasAction(() => editor.deleteSelection());
+    if (editor) runSelectionMutation(() => editor.deleteSelection());
   }
   return {
     align,
@@ -152,7 +150,7 @@ export function useCanvasSelectionActions() {
     dissolveGroup: structureActions.dissolveGroup,
     dissolveSection: structureActions.dissolveSection,
     distribute,
-    download: () => runCanvasAction(downloadSelected),
+    download: () => runNodeOperation("export", downloadSelected),
     duplicate,
     focus,
     fitSection: structureActions.fitSection,
@@ -174,7 +172,4 @@ export function useCanvasSelectionActions() {
     toggleSectionCollapsed: structureActions.toggleSectionCollapsed,
     visible,
   };
-}
-function isImageNode(node: SpaceCanvasNode): node is SpaceCanvasNode<SpaceImagePayload> {
-  return node.data.kind === "image";
 }

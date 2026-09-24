@@ -8,6 +8,7 @@ import { useCanvasToolStore } from "../../canvas/canvas-tool-store";
 import { useCanvasEditorSession, useCanvasSelectionProjection } from "../../canvas/editor-session";
 import { canvasChromeMetrics } from "../../canvas/konva/presentation/canvas-chrome-metrics";
 import { isCanvasNodeConnectable } from "../../canvas/konva/scene/canvas-node-interaction";
+import { useNodeOperationGate } from "../../canvas/node-operation-gate";
 import { useSelectionDerivations } from "../../knowledge-derivations/selection/use-selection-derivations";
 import { useSpaceStore } from "../../session/space-store";
 import type { SpaceUrlCaptureProjection } from "../../sources/url-capture-projection";
@@ -37,6 +38,11 @@ const store = useSpaceStore();
 const tools = useCanvasToolStore();
 const { t } = useI18n();
 const editorSession = useCanvasEditorSession();
+const nodeOperations = useNodeOperationGate();
+const showSelectionActions = computed(() => {
+  const operation = nodeOperations.active.value;
+  return !operation || operation.kind === "image-edit" || operation.kind === "image-comment";
+});
 const scenesCollapsed = shallowRef(false);
 const { selectedNodes } = useCanvasSelectionProjection(() => store.nodes);
 const selection = computed(() => selectedNodes.value);
@@ -102,11 +108,7 @@ const selectionBarGap = computed(() => {
       </div>
     </div>
     <SpaceCanvasSelectionAnchor
-      v-if="
-        tools.tool === 'select' &&
-        !editorSession.directManipulation.value &&
-        !editorSession.activeTextSelectionNodeId.value
-      "
+      v-if="tools.tool === 'select' && showSelectionActions"
       :bounds="editorSession.selection.value.bounds"
       :canvas-to-viewport-point="canvasToViewportPoint"
       :safe-area="canvasChromeInsets"

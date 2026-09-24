@@ -3,6 +3,7 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { importSpaceFromPicker } from "../assets/import-flow";
+import { useNodeOperationGate } from "../canvas/node-operation-gate";
 import { createSystemKnowledgeObjectPayload } from "../knowledge/model/object-factory";
 import { useSpaceStore } from "../session/space-store";
 import { addSavedWebsite } from "../website/capture";
@@ -10,6 +11,7 @@ import { normalizeSpaceUrl } from "../website/url";
 
 export function useAddMenu() {
   const store = useSpaceStore();
+  const operations = useNodeOperationGate();
   const { t } = useI18n();
   const websiteOpen = ref(false);
   const customObjectOpen = ref(false);
@@ -18,9 +20,12 @@ export function useAddMenu() {
   const agentCreationOpen = ref(false);
   const website = ref("");
   const normalizedWebsite = computed(() => normalizeSpaceUrl(website.value));
-  const addMarkdown = () =>
-    void store.addContent({ kind: "markdown", title: t("spaces.editor.untitledMarkdown"), text: "" });
+  const addMarkdown = () => {
+    if (operations.allows("create"))
+      void store.addContent({ kind: "markdown", title: t("spaces.editor.untitledMarkdown"), text: "" });
+  };
   const addSection = () => {
+    if (!operations.allows("create")) return;
     const position = store.nextInsertionPoint();
     const rootOrder = store.editSnapshot.structure.filter(
       (structureNode) => structureNode.parentId === null,
@@ -35,9 +40,14 @@ export function useAddMenu() {
   };
   const addKnowledgeObject = (
     type: "claim" | "evidence" | "question" | "decision" | "concept" | "experiment",
-  ) =>
-    void store.addContent(createSystemKnowledgeObjectPayload(type, t(`spaces.knowledgeObjectTypes.${type}`)));
+  ) => {
+    if (operations.allows("create"))
+      void store.addContent(
+        createSystemKnowledgeObjectPayload(type, t(`spaces.knowledgeObjectTypes.${type}`)),
+      );
+  };
   function addCredential(kind: "api-key" | "account-password") {
+    if (!operations.allows("create")) return;
     void store.addContent({
       kind: "credential",
       title: kind === "api-key" ? t("spaces.credentials.apiKey") : t("spaces.credentials.accountPassword"),
@@ -46,7 +56,7 @@ export function useAddMenu() {
     });
   }
   async function importFromPicker() {
-    if (!store.activeSpaceId) return;
+    if (!store.activeSpaceId || !operations.allows("create")) return;
     try {
       await importSpaceFromPicker(store, {
         title: t("spaces.transfer.importingResource"),
@@ -59,7 +69,7 @@ export function useAddMenu() {
   async function addWebsite() {
     const url = normalizedWebsite.value;
     const activeSpaceId = store.activeSpaceId;
-    if (!url || !activeSpaceId) return;
+    if (!url || !activeSpaceId || !operations.allows("create")) return;
     await addSavedWebsite(
       {
         activeSpaceId,

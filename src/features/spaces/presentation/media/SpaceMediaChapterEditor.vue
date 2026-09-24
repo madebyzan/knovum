@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Pencil } from "@lucide/vue";
-import { reactive, ref } from "vue";
+import { computed, reactive, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
@@ -10,8 +10,10 @@ import UiInput from "../../../../shared/ui/UiInput.vue";
 import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
 import { formatDurationMs } from "../../media/format-duration";
 import type { SpaceMediaChapter } from "../../media/schema";
+import { useNodeDraft } from "../use-node-draft";
 
 const props = defineProps<{
+  nodeId: string;
   chapter: SpaceMediaChapter;
   index: number;
   active?: boolean;
@@ -25,9 +27,21 @@ const emit = defineEmits<{
 const { t } = useI18n();
 
 const dialogOpen = ref(false);
+const nodeDraft = useNodeDraft(
+  computed(() => props.nodeId),
+  "media-chapter",
+);
+watch(dialogOpen, (open) => {
+  if (!open) nodeDraft.end();
+});
+watch(
+  () => props.nodeId,
+  () => (dialogOpen.value = false),
+);
 const draft = reactive({ title: props.chapter.title, summary: props.chapter.summary });
 
 function openEdit() {
+  if (!nodeDraft.begin()) return;
   draft.title = props.chapter.title;
   draft.summary = props.chapter.summary;
   dialogOpen.value = true;
@@ -35,11 +49,13 @@ function openEdit() {
 
 function cancel() {
   dialogOpen.value = false;
+  nodeDraft.end();
 }
 
 function save() {
   const cleanTitle = draft.title.trim();
   if (!cleanTitle) return;
+  nodeDraft.end();
   emit("save", props.index, cleanTitle, draft.summary.trim());
   dialogOpen.value = false;
 }
@@ -78,7 +94,7 @@ function save() {
     <UiIconButton
       :label="t('common.edit')"
       size="sm"
-      :disabled="disabled"
+      :disabled="disabled || !nodeDraft.available.value"
       class="shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
       @click="openEdit"
     >

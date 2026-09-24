@@ -3,6 +3,7 @@ import { useI18n } from "vue-i18n";
 
 import { availableWhen, canRunAction } from "../../../../shared/contracts/action-availability";
 import { useImageCommentSession } from "../../comments/image-comment-session";
+import { useNodeOperationGate } from "../../canvas/node-operation-gate";
 import { useImageEditSession, type ImageEditTool } from "../../image-editing/image-edit-session";
 import type { CreationIntentDecisions } from "../../knowledge-derivations/catalog/creation-intent-definitions";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
@@ -18,6 +19,7 @@ export function useImageNodeBarState(
 ) {
   const { t } = useI18n();
   const session = useImageEditSession();
+  const nodeOperations = useNodeOperationGate();
   const comments = useImageCommentSession();
   const openPopover = shallowRef<ImagePopover>();
   const activeTool = computed(() =>
@@ -39,25 +41,25 @@ export function useImageNodeBarState(
   });
 
   function beginTool(tool: ImageEditTool) {
-    if (session.active || session.applying || (tool === "crop" && !dimensionsReady.value)) return;
+    if (!nodeOperations.allows("edit") || session.applying || (tool === "crop" && !dimensionsReady.value)) return;
     if (commenting.value) comments.cancel();
     openPopover.value = undefined;
     session.begin(node.value.id, tool);
   }
 
   function setPopover(mode: ImagePopover, open: boolean) {
-    if (session.active || commenting.value) return;
+    if (!nodeOperations.allows("derive")) return;
     openPopover.value = open ? mode : openPopover.value === mode ? undefined : openPopover.value;
   }
 
   function beginComment() {
-    if (session.active || session.applying) return;
+    if (!nodeOperations.allows("edit") || session.applying) return;
     openPopover.value = undefined;
     comments.begin(node.value.id);
   }
 
   function removeBackground() {
-    if (!canRunAction(directAvailability.value)) return;
+    if (!nodeOperations.allows("derive") || !canRunAction(directAvailability.value)) return;
     openPopover.value = undefined;
     invokeBackgroundRemoval();
   }

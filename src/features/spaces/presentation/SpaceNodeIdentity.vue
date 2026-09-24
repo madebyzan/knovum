@@ -3,17 +3,26 @@ import { convertFileSrc } from "@tauri-apps/api/core";
 import { camelCase } from "es-toolkit";
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import { toast } from "vue-sonner";
 
 import UiInput from "../../../shared/ui/UiInput.vue";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { isSpaceManagedAssetPayload } from "../model/nodes/capabilities";
 import { nodeIcon } from "./node-icon";
+import { useNodeDraft } from "./use-node-draft";
 
-const props = defineProps<{ node: SpaceCanvasNode }>();
-const emit = defineEmits<{ titleChange: [value: string] }>();
+const props = defineProps<{
+  node: SpaceCanvasNode;
+  saveTitle: (node: SpaceCanvasNode, value: string) => Promise<void>;
+}>();
 const { t } = useI18n();
 const draft = ref(props.node.data.title);
 const editing = ref(false);
+const saving = ref(false);
+const nodeDraft = useNodeDraft(
+  computed(() => props.node.id),
+  "title",
+);
 
 watch(
   () => props.node.data.title,
@@ -21,6 +30,14 @@ watch(
     draft.value = value;
   },
 );
+watch(
+  () => props.node.id,
+  () => (editing.value = false),
+);
+
+function beginEdit() {
+  if (nodeDraft.begin()) editing.value = true;
+}
 
 const typeLabel = computed(() => t(`spaces.nodeTypes.${camelCase(props.node.data.kind)}`));
 const previewUrl = computed(() => {
@@ -30,18 +47,29 @@ const previewUrl = computed(() => {
 });
 const kindIcon = computed(() => nodeIcon(props.node.data.kind));
 
-function submit() {
+async function submit() {
+  if (!editing.value || saving.value) return;
   const value = draft.value.trim();
-  editing.value = false;
   if (!value || value === props.node.data.title) {
-    draft.value = props.node.data.title;
+    cancel();
     return;
   }
-  emit("titleChange", value);
+  saving.value = true;
+  try {
+    await props.saveTitle(props.node, value);
+    editing.value = false;
+    nodeDraft.end();
+  } catch (error) {
+    toast.error(String(error));
+  } finally {
+    saving.value = false;
+  }
 }
 
 function cancel() {
+  if (!editing.value || saving.value) return;
   editing.value = false;
+  nodeDraft.end();
   draft.value = props.node.data.title;
 }
 </script>
@@ -62,7 +90,13 @@ function cancel() {
     </div>
     <div class="min-w-0 flex-1">
       <div class="flex min-h-(--knovum-control-height-sm) items-center">
-        <button v-if="!editing" type="button" class="min-w-0 flex-1 text-left" @click="editing = true">
+        <button
+          v-if="!editing"
+          type="button"
+          class="min-w-0 flex-1 text-left disabled:cursor-not-allowed"
+          :disabled="!nodeDraft.available.value"
+          @click="beginEdit"
+        >
           <h2 class="truncate text-body-lg font-semibold tracking-title text-foreground">
             {{ node.data.title }}
           </h2>
@@ -70,6 +104,7 @@ function cancel() {
         <UiInput
           v-else
           v-model="draft"
+          :disabled="saving"
           size="sm"
           class="text-body-lg font-semibold tracking-title"
           @blur="submit"

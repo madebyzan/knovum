@@ -4,6 +4,7 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { useCanvasEditorSession } from "../canvas/editor-session";
+import { useNodeOperationGate } from "../canvas/node-operation-gate";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { isSpaceMediaPayload } from "../model/nodes/capabilities";
 import { useSpaceStore } from "../session/space-store";
@@ -19,6 +20,7 @@ import type { SpaceTranscriptEdit } from "./schema";
 
 export function useMediaKnowledge(node: Ref<SpaceCanvasNode>) {
   const store = useSpaceStore();
+  const nodeOperations = useNodeOperationGate();
   const { mediaAnalysisIds, mediaAnalysisPreviews, mediaPlayback } = storeToRefs(store);
   const { t } = useI18n();
   const transcriptOpen = ref(false);
@@ -33,7 +35,10 @@ export function useMediaKnowledge(node: Ref<SpaceCanvasNode>) {
   const stale = computed(() =>
     knowledge.value ? mediaKnowledgeIsStale(knowledge.value, mediaData.value?.sourceRevision) : false,
   );
+  const canEdit = computed(() => nodeOperations.allows("edit"));
+  const canDerive = computed(() => nodeOperations.allows("derive"));
   const canGenerateInsights = computed(() => {
+    if (!canDerive.value) return false;
     if (analyzing.value) return false;
     if (stale.value) return false;
     if (!knowledge.value) return false;
@@ -47,6 +52,7 @@ export function useMediaKnowledge(node: Ref<SpaceCanvasNode>) {
     return undefined;
   });
   async function analyze() {
+    if (!canDerive.value) return;
     try {
       await store.analyzeMedia(node.value.id, spaceMediaAnalysisLabels());
     } catch (error) {
@@ -66,6 +72,10 @@ export function useMediaKnowledge(node: Ref<SpaceCanvasNode>) {
     }
   }
   async function saveKnowledge(next: NonNullable<typeof knowledge.value>) {
+    if (!canEdit.value) {
+      toast.error(t("spaces.creation.finishNodeOperation"));
+      return;
+    }
     if (stale.value) throw new Error(t("spaces.media.knowledgeStale"));
     const data = node.value.data;
     if (!isSpaceMediaPayload(data)) throw new Error(t("spaces.media.knowledgeStale"));
@@ -92,6 +102,8 @@ export function useMediaKnowledge(node: Ref<SpaceCanvasNode>) {
     insights,
     playback,
     stale,
+    canEdit,
+    canDerive,
     canGenerateInsights,
     insightsDisabledReason,
     analyze,

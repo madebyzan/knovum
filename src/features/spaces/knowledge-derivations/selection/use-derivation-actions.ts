@@ -30,6 +30,8 @@ import type { CreationDialogId } from "./creation-dialog";
 type SpaceStore = ReturnType<typeof useSpaceStore>;
 
 interface UseDerivationActionsOptions {
+  canRun(actionId: CreationIntentId): boolean;
+  canSubmit(): boolean;
   store: SpaceStore;
   selection: Ref<SpaceCanvasNode[]>;
   single: Ref<SpaceCanvasNode | undefined>;
@@ -39,6 +41,8 @@ interface UseDerivationActionsOptions {
 }
 
 export function useDerivationActions({
+  canRun,
+  canSubmit,
   store,
   selection,
   single,
@@ -73,7 +77,7 @@ export function useDerivationActions({
   }
 
   function submitDocument(draft: GroundedDocumentDraft) {
-    if (!sources.value) return;
+    if (!canSubmit() || !sources.value) return;
     dialog.value = undefined;
     void createGroundedDocument({
       store,
@@ -84,7 +88,7 @@ export function useDerivationActions({
   }
 
   function submitVisualization(draft: VisualizationDraft) {
-    if (!sources.value) return;
+    if (!canSubmit() || !sources.value) return;
     dialog.value = undefined;
     void createVisualization({
       store,
@@ -95,7 +99,7 @@ export function useDerivationActions({
   }
 
   function submitVideo(draft: VideoDraft) {
-    if (!sources.value) return;
+    if (!canSubmit() || !sources.value) return;
     dialog.value = undefined;
     void generateVideoFromSources({
       store,
@@ -105,7 +109,7 @@ export function useDerivationActions({
   }
 
   function submitSocial(draft: SocialContentPackageDraft) {
-    if (!sources.value) return;
+    if (!canSubmit() || !sources.value) return;
     dialog.value = undefined;
     void createSocialContentPackage({
       store,
@@ -115,13 +119,13 @@ export function useDerivationActions({
   }
 
   function submitMeetingPackage(draft: MeetingContentPackageDraft) {
-    if (!single.value) return;
+    if (!canSubmit() || !single.value) return;
     dialog.value = undefined;
     void createMeetingContentPackage(store, single.value, draft);
   }
 
   function submitPresentation(draft: PresentationGenerationDraft) {
-    if (!sources.value) return;
+    if (!canSubmit() || !sources.value) return;
     dialog.value = undefined;
     void generatePresentationFromSources({
       store,
@@ -131,7 +135,9 @@ export function useDerivationActions({
   }
 
   return {
-    run: (actionId: CreationIntentId) => handlers[actionId](),
+    run: (actionId: CreationIntentId) => {
+      if (canRun(actionId)) handlers[actionId]();
+    },
     submitDocument,
     submitVisualization,
     submitVideo,

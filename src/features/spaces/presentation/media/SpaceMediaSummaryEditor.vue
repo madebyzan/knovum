@@ -1,16 +1,25 @@
 <script setup lang="ts">
 import { Check, Pencil, X } from "@lucide/vue";
-import { ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
+import { useNodeDraft } from "../use-node-draft";
 
-const props = defineProps<{ summary: string; disabled?: boolean }>();
+const props = defineProps<{ nodeId: string; summary: string; disabled?: boolean }>();
 const emit = defineEmits<{ save: [summary: string] }>();
 const { t } = useI18n();
 const editing = ref(false);
 const draft = ref(props.summary);
+const nodeDraft = useNodeDraft(
+  computed(() => props.nodeId),
+  "media-summary",
+);
+watch(
+  () => props.nodeId,
+  () => (editing.value = false),
+);
 watch(
   () => props.summary,
   (value) => {
@@ -18,14 +27,17 @@ watch(
   },
 );
 function start() {
+  if (!nodeDraft.begin()) return;
   draft.value = props.summary;
   editing.value = true;
 }
 function cancel() {
+  nodeDraft.end();
   draft.value = props.summary;
   editing.value = false;
 }
 function save() {
+  nodeDraft.end();
   emit("save", draft.value);
   editing.value = false;
 }
@@ -45,7 +57,12 @@ function save() {
           ><Check class="size-(--knovum-icon-size-xs)"
         /></UiIconButton>
       </template>
-      <UiIconButton v-else :label="t('common.edit')" size="sm" :disabled="disabled" @click="start"
+      <UiIconButton
+        v-else
+        :label="t('common.edit')"
+        size="sm"
+        :disabled="disabled || !nodeDraft.available.value"
+        @click="start"
         ><Pencil class="size-(--knovum-icon-size-xs)"
       /></UiIconButton>
     </div>
