@@ -13,6 +13,7 @@ pub(crate) mod input_revision;
 pub(crate) mod inputs;
 mod metadata_sources;
 pub(crate) mod output_paths;
+mod pending_output;
 mod presentation_export;
 mod presentation_renderer;
 pub(crate) mod queries;

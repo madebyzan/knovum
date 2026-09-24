@@ -23,6 +23,7 @@ import type {
 } from "../../knowledge-derivations/catalog/creation-intent-definitions";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceNodeKind } from "../../model/nodes/node-payload";
+import { CANVAS_ACTION_BAR_CLASSES, CANVAS_ACTION_BUTTON_CLASSES } from "./canvas-action-classes";
 import { nodeActionLabelClass, nodeActionLabelState } from "./node-action-label";
 import SpaceCanvasSelectionMenu from "./SpaceCanvasSelectionMenu.vue";
 import SpaceCanvasTextFormatBar from "./SpaceCanvasTextFormatBar.vue";
@@ -44,8 +45,6 @@ const densityIdentity = computed(
     `${locale.value}:${props.node?.data.kind}:${props.actions.state.value.canOpen}:${Boolean(props.actions.selectedVideoNode.value)}:${Boolean(props.actions.state.value.section)}`,
 );
 const { compact } = useNodeActionBarDensity(bar, toRef(props, "availableWidth"), densityIdentity);
-const commandClass =
-  "inline-flex h-(--knovum-control-height-md) shrink-0 items-center gap-1.5 rounded-control px-2.5 text-label text-foreground-secondary outline-none transition-colors duration-100 hover:bg-control-hover hover:text-foreground focus-visible:ring-2 focus-visible:ring-focus-ring data-[state=open]:bg-control-hover";
 const openLabels = {
   note: "common.edit",
   text: "spaces.navigation.inspect",
@@ -109,7 +108,7 @@ function runPrimaryAction() {
 <template>
   <div ref="bar" class="w-max" :style="{ maxWidth: `${availableWidth}px` }">
     <ToolbarRoot
-      class="flex h-(--knovum-control-height-lg) w-max max-w-full cursor-default items-center gap-0.5 overflow-clip rounded-panel border border-border-strong bg-overlay p-px shadow-control select-none"
+      :class="CANVAS_ACTION_BAR_CLASSES"
       orientation="horizontal"
       :loop="false"
       :aria-label="t('spaces.canvas.nodeActions.label')"
@@ -117,7 +116,7 @@ function runPrimaryAction() {
       <ToolbarButton v-if="showPrimary" as-child>
         <button
           type="button"
-          :class="[commandClass, 'font-medium text-foreground']"
+          :class="[CANVAS_ACTION_BUTTON_CLASSES, 'font-medium text-foreground']"
           :aria-label="primaryLabel"
           :title="compact ? primaryLabel : undefined"
           @click="runPrimaryAction"
@@ -135,7 +134,7 @@ function runPrimaryAction() {
       <ToolbarButton v-if="actions.selectedVideoNode.value" as-child>
         <button
           type="button"
-          :class="commandClass"
+          :class="CANVAS_ACTION_BUTTON_CLASSES"
           :aria-label="t('spaces.media.editVideo')"
           :title="compact ? t('spaces.media.editVideo') : undefined"
           @click="actions.editVideo"

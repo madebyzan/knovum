@@ -11,7 +11,6 @@ pub async fn pool<R: Runtime>(app: &AppHandle<R>) -> Result<&'static SqlitePool,
             migrate(&pool)
                 .await
                 .map_err(|error| format!("Failed to migrate Spaces database: {error}"))?;
-            crate::spaces::assets::reclaim_orphan_managed_assets(app, &pool).await?;
             Ok(pool)
         })
         .await

@@ -15,6 +15,7 @@ import { createImageLayers } from "../../knowledge-derivations/image-layers";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../../model/nodes/node-payload";
 import { useSpaceStore } from "../../session/space-store";
+import { CANVAS_ACTION_BUTTON_CLASSES } from "./canvas-action-classes";
 import { imageActionAvailability, promptedLayerAvailability } from "./image-action-availability";
 import { imageActionHelp } from "./image-action-help";
 import { nodeActionLabelClass, nodeActionLabelState } from "./node-action-label";
@@ -49,8 +50,6 @@ const help = computed(() => imageActionHelp(availability.value, t));
 const canSubmit = computed(() => canRunAction(availability.value));
 const customAvailability = computed(() => promptedLayerAvailability(availability.value, prompt.value));
 const customHelp = computed(() => imageActionHelp(customAvailability.value, t));
-const commandClass =
-  "inline-flex h-(--knovum-control-height-md) shrink-0 items-center gap-1.5 rounded-control px-2.5 text-label text-foreground-secondary outline-none transition-colors duration-100 hover:bg-control-hover hover:text-foreground focus-visible:ring-2 focus-visible:ring-focus-ring disabled:cursor-not-allowed disabled:opacity-45";
 
 async function submit(mode: "automatic" | "custom") {
   if (busy.value || !nodeOperations.allows("derive") || !canSubmit.value) return;
@@ -90,7 +89,7 @@ function openAiSettings() {
       <ToolbarButton as-child>
         <button
           type="button"
-          :class="commandClass"
+          :class="CANVAS_ACTION_BUTTON_CLASSES"
           :disabled="busy"
           :aria-label="t('spaces.media.layerSplit')"
           :title="compact ? t('spaces.media.layerSplit') : undefined"

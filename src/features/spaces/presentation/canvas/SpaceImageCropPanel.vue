@@ -4,7 +4,13 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
-import { centeredCrop, resizeCrop, scaleCropToPixelSize, type ImageCrop } from "../../image-editing/image-edit";
+import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
+import {
+  centeredCrop,
+  resizeCrop,
+  scaleCropToPixelSize,
+  type ImageCrop,
+} from "../../image-editing/image-edit";
 import SpaceImageCropPresets from "./SpaceImageCropPresets.vue";
 
 const props = defineProps<{
@@ -13,7 +19,12 @@ const props = defineProps<{
   sourceHeight: number;
   lockedAspect?: number;
 }>();
-const emit = defineEmits<{ update: [crop: ImageCrop]; updateLockedAspect: [ratio?: number]; cancel: []; apply: [] }>();
+const emit = defineEmits<{
+  update: [crop: ImageCrop];
+  updateLockedAspect: [ratio?: number];
+  cancel: [];
+  apply: [];
+}>();
 const { t } = useI18n();
 const widthPixels = computed(() => Math.max(1, Math.round(props.crop.width * props.sourceWidth)));
 const heightPixels = computed(() => Math.max(1, Math.round(props.crop.height * props.sourceHeight)));
@@ -41,12 +52,17 @@ function setPixels(axis: "width" | "height", event: Event) {
 }
 
 function setAspect(ratio?: number) {
-  emit("update", ratio ? centeredCrop(props.sourceWidth / props.sourceHeight, ratio) : {
-    x: 0,
-    y: 0,
-    width: 1,
-    height: 1,
-  });
+  emit(
+    "update",
+    ratio
+      ? centeredCrop(props.sourceWidth / props.sourceHeight, ratio)
+      : {
+          x: 0,
+          y: 0,
+          width: 1,
+          height: 1,
+        },
+  );
   emit("updateLockedAspect", ratio);
 }
 
@@ -64,35 +80,38 @@ function toggleAspect() {
   <section class="w-60 text-foreground" :aria-label="t('spaces.media.crop')">
     <h3 class="px-1 pb-3 text-body-lg font-semibold">{{ t("spaces.media.crop") }}</h3>
     <div class="flex items-center gap-2 pb-3">
-      <label class="flex h-(--knovum-control-height-lg) min-w-0 flex-1 items-center gap-1 rounded-control bg-control px-2 text-label text-foreground-secondary">
+      <label
+        class="flex h-(--knovum-control-height-lg) min-w-0 flex-1 items-center gap-1 rounded-control bg-control px-2 text-label text-foreground-secondary focus-within:ring-2 focus-within:ring-focus-ring"
+      >
         <span>W</span>
         <input
           type="number"
           :min="Math.ceil(sourceWidth * 0.01)"
           :max="sourceWidth"
           :value="widthPixels"
-          class="crop-dimension min-w-0 flex-1 bg-transparent text-label tabular-nums text-foreground outline-none"
+          class="crop-dimension min-w-0 flex-1 bg-transparent text-label text-foreground tabular-nums outline-none"
           @change="setPixels('width', $event)"
         />
       </label>
-      <button
-        type="button"
-        class="flex size-(--knovum-control-height-lg) shrink-0 items-center justify-center rounded-control text-foreground-secondary hover:bg-control-hover focus-visible:ring-2 focus-visible:ring-focus-ring"
-        :aria-label="t('spaces.media.lockAspect')"
-        :aria-pressed="Boolean(lockedAspect)"
+      <UiIconButton
+        :label="t('spaces.media.lockAspect')"
+        :active="Boolean(lockedAspect)"
+        class="size-(--knovum-control-height-lg)"
         @click="toggleAspect"
       >
         <Link2 v-if="lockedAspect" class="size-(--knovum-icon-size-sm)" />
         <Unlink2 v-else class="size-(--knovum-icon-size-sm)" />
-      </button>
-      <label class="flex h-(--knovum-control-height-lg) min-w-0 flex-1 items-center gap-1 rounded-control bg-control px-2 text-label text-foreground-secondary">
+      </UiIconButton>
+      <label
+        class="flex h-(--knovum-control-height-lg) min-w-0 flex-1 items-center gap-1 rounded-control bg-control px-2 text-label text-foreground-secondary focus-within:ring-2 focus-within:ring-focus-ring"
+      >
         <span>H</span>
         <input
           type="number"
           :min="Math.ceil(sourceHeight * 0.01)"
           :max="sourceHeight"
           :value="heightPixels"
-          class="crop-dimension min-w-0 flex-1 bg-transparent text-label tabular-nums text-foreground outline-none"
+          class="crop-dimension min-w-0 flex-1 bg-transparent text-label text-foreground tabular-nums outline-none"
           @change="setPixels('height', $event)"
         />
       </label>
@@ -103,8 +122,20 @@ function toggleAspect() {
       @select="setAspect"
     />
     <footer class="mt-3 flex gap-2 border-t border-divider pt-3">
-      <UiButton variant="secondary" size="sm" class="min-w-0 flex-1 border border-border bg-raised" @click="emit('cancel')">{{ t("common.cancel") }}</UiButton>
-      <UiButton variant="primary" size="sm" class="min-w-0 flex-1 bg-foreground text-canvas hover:bg-foreground hover:opacity-90" @click="emit('apply')">{{ t("spaces.media.cropComplete") }}</UiButton>
+      <UiButton
+        variant="secondary"
+        size="sm"
+        class="min-w-0 flex-1 border border-border bg-raised"
+        @click="emit('cancel')"
+        >{{ t("common.cancel") }}</UiButton
+      >
+      <UiButton
+        variant="primary"
+        size="sm"
+        class="min-w-0 flex-1 bg-foreground text-canvas hover:bg-foreground hover:opacity-90"
+        @click="emit('apply')"
+        >{{ t("spaces.media.cropComplete") }}</UiButton
+      >
     </footer>
   </section>
 </template>

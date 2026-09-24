@@ -156,6 +156,7 @@
   "noCaptions": "暂无字幕。点击上方按钮添加。",
   "noMatchingCaptions": "没有匹配的字幕。",
   "fontFamily": "字体",
+  "fontSearchEmpty": "未找到匹配的字体。",
   "fontWeight": "字重",
   "fontUnavailable": "本机未安装字体「{family}」，请重新选择。",
   "fontCatalogEmpty": "本机没有可用字体。",

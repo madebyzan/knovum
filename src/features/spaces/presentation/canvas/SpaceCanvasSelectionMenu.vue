@@ -55,6 +55,10 @@ const directImageActions: readonly CreationIntentId[] = ["remove-image-backgroun
         </UiIconButton>
       </ToolbarButton>
     </template>
+    <template v-if="$slots['node-tools']">
+      <slot name="node-tools" />
+      <UiSeparator class="my-1" />
+    </template>
     <template v-if="actions.state.value.structureNodeIds.length === 1">
       <UiDropdownMenuItem v-if="actions.state.value.canAsk" @select="actions.ask">
         <MessageSquareText class="size-(--knovum-icon-size-sm)" />{{ t("spaces.assistant.askSelection") }}

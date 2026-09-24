@@ -215,6 +215,7 @@ fn main() {
                         "disable_external_tool_binding",
                         "test_external_tool_connection",
                         "reconcile_workspace",
+                        "check_image_cutout_source",
                         "start_image_cutout_derivation",
                         "submit_image_cutout_derivation",
                         "fail_image_cutout_derivation",

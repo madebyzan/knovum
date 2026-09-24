@@ -5,14 +5,14 @@ use tauri::AppHandle;
 use super::{assets::PreparedLayer, contracts::CreateImageLayersRequest, source};
 use crate::spaces::{
     db,
-    derivation::{inputs, relations, CompletedDerivationOutput},
+    derivation::{inputs, pending_output, relations, CompletedDerivationOutput},
     knowledge::{contracts, indexing::revision},
 };
 
 pub async fn start(app: &AppHandle, request: &CreateImageLayersRequest) -> Result<(), String> {
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
-    source::validate(&mut tx, request).await?;
+    let source_path = source::validate(&mut tx, request).await?;
     for output_id in &request.output_node_ids {
         contracts::validate_same_space_node(
             &mut tx,
@@ -21,17 +21,17 @@ pub async fn start(app: &AppHandle, request: &CreateImageLayersRequest) -> Resul
             output_id,
         )
         .await?;
-        let pending: i64 = sqlx::query_scalar(
-            "SELECT COUNT(*) FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND kind='image' AND deleted_at IS NULL AND json_extract(data,'$.processingState')='processing'",
+        let encoded: String = sqlx::query_scalar(
+            "SELECT data FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND kind='image' AND deleted_at IS NULL",
         )
         .bind(output_id)
         .bind(&request.space_id)
-        .fetch_one(&mut *tx)
+        .fetch_optional(&mut *tx)
         .await
-        .map_err(db::sql_error)?;
-        if pending != 1 {
-            return Err("Image layer output must be a pending image node".into());
-        }
+        .map_err(db::sql_error)?
+        .ok_or("Image layer output node is unavailable")?;
+        let output: Value = serde_json::from_str(&encoded).map_err(db::json_error)?;
+        pending_output::validate_separate_asset(&output, &source_path)?;
     }
     for (index, output_id) in request.output_node_ids.iter().enumerate() {
         let derivation_id = derivation_id(&request.id, index);
@@ -65,6 +65,7 @@ pub async fn complete(
     let mut completed = Vec::with_capacity(layers.len());
     for (index, (output_id, layer)) in request.output_node_ids.iter().zip(layers).enumerate() {
         let mut data = load_pending_output(&mut tx, &derivation_id(&request.id, index)).await?;
+        pending_output::validate_unpublished_asset(&data)?;
         apply_layer_data(&mut data, layer, now)?;
         contracts::validate_node(&mut tx, &request.space_id, output_id, "image", &data).await?;
         crate::spaces::derivation::persist_output_node(&mut tx, output_id, &data, now).await?;

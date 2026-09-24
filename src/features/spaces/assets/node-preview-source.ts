@@ -4,17 +4,32 @@ import { withQuery } from "ufo";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
 
 export function spaceNodePreviewSource(data: SpaceNodePayload) {
-  if ("processingState" in data && data.processingState === "importing") return "";
-  if (data.kind === "image") return spaceAssetSource(data.assetPath, data.sourceRevision);
-  if (data.kind === "video" || data.kind === "file") {
-    return data.previewPath ? spaceAssetSource(data.previewPath, data.sourceRevision) : "";
+  switch (data.kind) {
+    case "image":
+      return publishedPreview(data.assetPath, data.sourceRevision);
+    case "video":
+      return publishedPreview(data.previewPath, data.sourceRevision);
+    case "file":
+      return data.processingState === "importing"
+        ? ""
+        : optionalPreview(data.previewPath, data.sourceRevision);
+    case "website":
+      return optionalPreview(data.previewImagePath);
+    default:
+      return "";
   }
-  if (data.kind === "website" && data.previewImagePath) return spaceAssetSource(data.previewImagePath);
-  return "";
+}
+
+function publishedPreview(path: string | undefined, revision: string | undefined) {
+  return path && revision ? spaceAssetSource(path, revision) : "";
+}
+
+function optionalPreview(path: string | undefined, revision?: string) {
+  return path ? spaceAssetSource(path, revision) : "";
 }
 
 export function spaceCanvasOverviewSource(data: SpaceNodePayload) {
-  if (data.kind === "image" && data.previewPath) {
+  if (data.kind === "image" && data.previewPath && data.sourceRevision) {
     return spaceAssetSource(data.previewPath, data.sourceRevision);
   }
   return spaceNodePreviewSource(data);

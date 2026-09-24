@@ -116,6 +116,7 @@
   "cutoutTask": "Creating Transparent Image",
   "segmenting": "Identifying foreground…",
   "cutoutFailed": "Could not remove background",
+  "cutoutSourceMissing": "The original image file is missing. Reimport it before removing the background.",
   "createWithAgent": "Agent Creation",
   "createWithAgentDescription": "Give a desktop Agent a brief, review the files it creates, then import selected results into this Space.",
   "agentUnavailable": "Enable an installed desktop Agent before starting an Agent creation.",

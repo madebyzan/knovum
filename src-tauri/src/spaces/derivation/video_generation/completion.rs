@@ -4,7 +4,7 @@ use tauri::AppHandle;
 
 use super::{CreateVideoRequest, VideoOutput};
 use crate::ai::capabilities::video::GeneratedVideo;
-use crate::spaces::derivation::{relations, source_validation};
+use crate::spaces::derivation::{pending_output, relations, source_validation};
 use crate::spaces::{
     db,
     knowledge::{contracts, indexing::revision},
@@ -30,6 +30,7 @@ pub async fn complete(
     .map_err(db::sql_error)?
     .ok_or("Generated video is no longer running")?;
     let mut data: Value = serde_json::from_str(&encoded).map_err(db::json_error)?;
+    pending_output::validate_unpublished_asset(&data)?;
     if data.get("assetPath").and_then(Value::as_str) != Some(expected_path) {
         return Err("Generated video output path changed while rendering".into());
     }

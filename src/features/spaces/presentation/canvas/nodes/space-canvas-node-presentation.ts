@@ -32,7 +32,7 @@ export interface CanvasNodeOverlayPresentation {
 
 export function spaceCanvasNodePresentation(data: SpaceNodePayload): CanvasNodeOverlayPresentation {
   const subtitle = nodeSubtitle(data);
-  const mediaReady = !("processingState" in data && data.processingState === "importing");
+  const mediaReady = (data.kind === "video" || data.kind === "audio") && Boolean(data.sourceRevision);
   return {
     icon: NODE_ICONS[data.kind],
     title: data.title,

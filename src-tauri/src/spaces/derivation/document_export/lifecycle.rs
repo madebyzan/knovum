@@ -3,7 +3,7 @@ use serde_json::Value;
 use tauri::AppHandle;
 
 use super::completion;
-use crate::spaces::derivation::{failure, inputs, source_validation};
+use crate::spaces::derivation::{failure, inputs, pending_output, source_validation};
 use crate::spaces::{assets::asset_directory, db, knowledge::contracts};
 
 #[derive(Deserialize)]
@@ -147,6 +147,7 @@ pub async fn complete(
     .await
     .map_err(db::sql_error)?;
     let mut data: Value = serde_json::from_str(&encoded).map_err(db::json_error)?;
+    pending_output::validate_unpublished_asset(&data)?;
     completion::apply(&mut tx, request, &mut data, bytes, rationale).await?;
     tx.commit().await.map_err(db::sql_error)?;
     Ok(ExportDocumentOutput {
@@ -182,9 +183,7 @@ pub async fn handle_failure(
 }
 
 fn validated_path(app: &AppHandle, output: &Value, extension: &str) -> Result<String, String> {
-    let path = output["assetPath"]
-        .as_str()
-        .ok_or("Document output path is unavailable")?;
+    let path = pending_output::validate_unpublished_asset(output)?;
     let value = std::path::Path::new(path);
     if value.parent() != Some(asset_directory(app)?.as_path())
         || value.extension().and_then(|part| part.to_str()) != Some(extension)

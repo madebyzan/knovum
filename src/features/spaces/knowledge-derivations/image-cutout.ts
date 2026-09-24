@@ -29,6 +29,8 @@ export async function createImageCutout(store: SpaceStore, source: SpaceCanvasNo
   if (!canRemoveImageBackground(source) || source.data.kind !== "image") return;
   const spaceId = store.activeSpaceId;
   if (!spaceId) return;
+  const sourceEdit = source.data.imageEdit ?? null;
+  if (!(await checkCutoutSource(spaceId, source, sourceEdit))) return;
   const pending = await createPendingNode(store, source);
   if (!pending) return;
   beginPendingDerivation(pending.id, [source.id]);
@@ -38,8 +40,7 @@ export async function createImageCutout(store: SpaceStore, source: SpaceCanvasNo
   let started = false;
   try {
     await yieldToCanvas();
-    const sourceEdit = source.data.imageEdit ?? null;
-    await startDerivation(derivationId, spaceId, source, pending.id, sourceEdit);
+    await startDerivation({ id: derivationId, spaceId, source, outputNodeId: pending.id, sourceEdit });
     started = true;
     tasks.detail(taskId, t("spaces.creation.segmenting"));
     const completed = await invoke<CompletedCutout>("plugin:spaces|submit_image_cutout_derivation", {
@@ -65,16 +66,39 @@ export async function createImageCutout(store: SpaceStore, source: SpaceCanvasNo
   }
 }
 
+async function checkCutoutSource(
+  spaceId: string,
+  source: SpaceCanvasNode,
+  sourceEdit: SpaceImagePayload["imageEdit"] | null,
+): Promise<boolean> {
+  try {
+    const available = await invoke<boolean>("plugin:spaces|check_image_cutout_source", {
+      request: {
+        spaceId,
+        sourceNodeId: source.id,
+        sourceRevision: source.data.sourceRevision,
+        sourceEdit,
+      },
+    });
+    if (available) return true;
+    toast.error(i18n.global.t("spaces.creation.cutoutSourceMissing"));
+  } catch (error) {
+    toast.error(`${i18n.global.t("spaces.creation.cutoutFailed")}: ${String(error)}`);
+  }
+  return false;
+}
+
 async function createPendingNode(store: SpaceStore, source: SpaceCanvasNode) {
   if (source.data.kind !== "image") return;
   const dimensions = spaceNodeDimensions(source.data);
   const base = baseNameFromNode(source);
+  const assetPath = await invoke<string>("plugin:spaces|allocate_visualization_output_path");
   const data: SpaceImagePayload = {
     kind: "image",
     title: `${base}-cutout.png`,
     fileName: `${base}-cutout.png`,
-    assetPath: source.data.assetPath,
-    processingState: "importing",
+    assetPath,
+    processingState: "processing",
   };
   const sourcePosition = requiredNodePosition(
     useCanvasEditorSession().selection.value.nodePlacements,
@@ -88,13 +112,19 @@ async function createPendingNode(store: SpaceStore, source: SpaceCanvasNode) {
   return node;
 }
 
-function startDerivation(
-  id: string,
-  spaceId: string,
-  source: SpaceCanvasNode,
-  outputNodeId: string,
-  sourceEdit: SpaceImagePayload["imageEdit"] | null,
-) {
+function startDerivation({
+  id,
+  spaceId,
+  source,
+  outputNodeId,
+  sourceEdit,
+}: {
+  id: string;
+  spaceId: string;
+  source: SpaceCanvasNode;
+  outputNodeId: string;
+  sourceEdit: SpaceImagePayload["imageEdit"] | null;
+}) {
   if (source.data.kind !== "image" || !source.data.sourceRevision)
     throw new Error("Image revision is missing");
   return invoke("plugin:spaces|start_image_cutout_derivation", {

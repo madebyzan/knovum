@@ -5,7 +5,7 @@ use sha2::{Digest, Sha256};
 use tauri::AppHandle;
 
 use super::{validation, CreateVisualizationRequest, VisualizationOutput};
-use crate::spaces::derivation::{inputs, relations, source_validation};
+use crate::spaces::derivation::{inputs, pending_output, relations, source_validation};
 use crate::{
     ai::{capabilities::image::GeneratedImage, models::ExecutionTarget},
     spaces::{
@@ -44,10 +44,7 @@ pub async fn start(
         .bind(&request.output_node_id).bind(&request.space_id).fetch_optional(&mut *tx).await.map_err(db::sql_error)?
         .ok_or("Visualization output node is unavailable")?;
     let output: Value = serde_json::from_str(&output).map_err(db::json_error)?;
-    let path = output
-        .get("assetPath")
-        .and_then(Value::as_str)
-        .ok_or("Visualization output path is unavailable")?;
+    let path = pending_output::validate_unpublished_asset(&output)?;
     if Path::new(path).parent() != Some(asset_directory(app)?.as_path()) {
         return Err("Visualization output path is outside the Space asset directory".into());
     }
@@ -91,11 +88,7 @@ pub async fn complete(
         .await?;
     }
     let mut data: Value = serde_json::from_str(&encoded).map_err(db::json_error)?;
-    let path = data
-        .get("assetPath")
-        .and_then(Value::as_str)
-        .ok_or("Visualization output path is unavailable")?
-        .to_owned();
+    let path = pending_output::validate_unpublished_asset(&data)?.to_owned();
     tokio::fs::write(&path, &bytes)
         .await
         .map_err(|error| error.to_string())?;

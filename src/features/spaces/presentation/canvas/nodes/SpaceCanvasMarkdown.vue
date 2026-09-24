@@ -5,6 +5,7 @@ import { useI18n } from "vue-i18n";
 import UiMarkdown from "../../../../../shared/ui/UiMarkdown.vue";
 import type { CanvasNodePresentationContext } from "../../../canvas/contract/canvas-detail-profile";
 import type { SpaceMarkdownPayload } from "../../../model/nodes/node-payload";
+import { nodePayloadWork } from "./canvas-node-work";
 import { projectMarkdownPreview } from "./markdown-preview-projection";
 import SpaceCanvasProcessingState from "./SpaceCanvasProcessingState.vue";
 
@@ -13,6 +14,7 @@ const props = defineProps<{
   presentationContext: CanvasNodePresentationContext;
 }>();
 const { t } = useI18n();
+const work = computed(() => nodePayloadWork(props.data));
 const projection = computed(() =>
   props.presentationContext.mode === "interactive"
     ? { projectedSource: props.data.text, remainingBlockCount: 0 }
@@ -23,13 +25,9 @@ const projection = computed(() =>
 <template>
   <div class="relative flex min-h-0 flex-1 overflow-hidden">
     <SpaceCanvasProcessingState
-      v-if="data.derivationState === 'pending'"
-      :label="t('spaces.creation.generatingDocument')"
-    />
-    <SpaceCanvasProcessingState
-      v-else-if="data.derivationState === 'failed'"
-      :label="t('spaces.creation.documentFailed')"
-      failed
+      v-if="work?.surface === 'content'"
+      :label="t(work.labelKey)"
+      :failed="work.phase === 'failed'"
     />
     <UiMarkdown
       v-else-if="data.text"

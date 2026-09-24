@@ -28,6 +28,12 @@ import {
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
+import {
+  INPUT_BASE_CLASSES,
+  POPUP_ANIMATE_CLASSES,
+  POPOVER_SURFACE_CLASSES,
+} from "../../../../shared/ui/ui-classes";
+
 const model = defineModel<string>({ required: true });
 defineProps<{ disabled?: boolean }>();
 const { t } = useI18n();
@@ -59,7 +65,10 @@ const activeEntry = computed(() => {
   <SelectRoot v-model="model" :disabled="disabled">
     <SelectTrigger
       :aria-label="t('spaces.knowledge.knowledgeIcons.select')"
-      class="flex h-(--knovum-control-height-md) w-full min-w-32 items-center justify-between gap-2 rounded-control border border-border bg-raised px-2.5 text-label transition-colors duration-100 outline-none hover:border-border-strong focus-visible:border-focus-ring focus-visible:outline-none"
+      :class="[
+        INPUT_BASE_CLASSES,
+        'flex h-(--knovum-control-height-md) w-full min-w-32 items-center justify-between gap-2 px-2.5 text-label data-[state=open]:border-focus-ring',
+      ]"
     >
       <div class="flex min-w-0 flex-1 items-center gap-2 text-left">
         <component
@@ -75,7 +84,13 @@ const activeEntry = computed(() => {
       <SelectContent
         position="popper"
         :side-offset="6"
-        class="z-50 max-h-60 max-w-xs min-w-(--reka-select-trigger-width) overflow-y-auto rounded-panel border border-border material-overlay p-1 shadow-popover"
+        :collision-padding="8"
+        avoid-collisions
+        :class="[
+          POPUP_ANIMATE_CLASSES,
+          POPOVER_SURFACE_CLASSES,
+          'z-50 max-h-60 max-w-xs min-w-(--reka-select-trigger-width) overflow-y-auto p-1 duration-100 ease-standard',
+        ]"
       >
         <SelectViewport class="space-y-0.5">
           <SelectItem

@@ -2,7 +2,7 @@ use serde_json::Value;
 use tauri::AppHandle;
 
 use super::super::video_output::RenderedVideo;
-use super::super::{relations, CompletedDerivationOutput};
+use super::super::{pending_output, relations, CompletedDerivationOutput};
 use crate::spaces::{
     db,
     knowledge::{contracts, indexing::revision},
@@ -29,6 +29,7 @@ pub async fn complete(
     revalidate(&mut tx, id).await?;
     let now = crate::clock::unix_time_millis()?;
     let mut data: Value = serde_json::from_str(&row.3).map_err(db::json_error)?;
+    pending_output::validate_unpublished_asset(&data)?;
     apply_output(&mut data, &output, now)?;
     contracts::validate_node(&mut tx, &row.0, &row.2, "video", &data).await?;
     let relation = relations::derives_from(

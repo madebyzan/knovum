@@ -5,7 +5,7 @@ use tauri::AppHandle;
 
 use super::CreateVideoRequest;
 use crate::ai::models::ExecutionTarget;
-use crate::spaces::derivation::{inputs, source_validation};
+use crate::spaces::derivation::{inputs, pending_output, source_validation};
 use crate::spaces::{assets::asset_directory, db, knowledge::contracts};
 
 pub struct PreparedVideo {
@@ -135,10 +135,7 @@ async fn output(
     .await
     .map_err(db::sql_error)?;
     let data: Value = serde_json::from_str(&encoded).map_err(db::json_error)?;
-    let path = data["assetPath"]
-        .as_str()
-        .ok_or("Generated video output path is unavailable")?
-        .to_owned();
+    let path = pending_output::validate_unpublished_asset(&data)?.to_owned();
     let parent = Path::new(&path)
         .parent()
         .ok_or("Generated video output path is invalid")?

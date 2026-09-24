@@ -12,6 +12,7 @@ import type {
 } from "../../knowledge-derivations/catalog/creation-intent-definitions";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../../model/nodes/node-payload";
+import { CANVAS_ACTION_BAR_CLASSES, CANVAS_ACTION_BUTTON_CLASSES } from "./canvas-action-classes";
 import { nodeActionLabelClass, nodeActionLabelState } from "./node-action-label";
 import SpaceCanvasImageActivePanel from "./SpaceCanvasImageActivePanel.vue";
 import SpaceCanvasImageToolTrigger from "./SpaceCanvasImageToolTrigger.vue";
@@ -51,19 +52,22 @@ const densityIdentity = computed(
   () => `${locale.value}:${props.node.id}:${activeTool.value ?? ""}:${commenting.value}`,
 );
 const { compact } = useNodeActionBarDensity(bar, toRef(props, "availableWidth"), densityIdentity);
-const commandClass =
-  "inline-flex h-(--knovum-control-height-md) shrink-0 items-center gap-1.5 rounded-control px-2.5 text-label text-foreground-secondary outline-none transition-colors duration-150 ease-standard hover:bg-control-hover hover:text-foreground focus-visible:ring-2 focus-visible:ring-focus-ring motion-reduce:transition-none";
 </script>
 
 <template>
   <SpaceCanvasImageActivePanel v-if="activeTool" :node="node" />
   <ToolbarRoot
     v-else-if="commenting"
-    class="flex h-(--knovum-control-height-lg) w-max items-center rounded-panel border border-border-strong bg-overlay p-px shadow-control"
+    :class="CANVAS_ACTION_BAR_CLASSES"
     :aria-label="t('spaces.media.comment')"
   >
     <ToolbarButton as-child>
-      <button type="button" :class="commandClass" aria-pressed="true" @click="comments.cancel()">
+      <button
+        type="button"
+        :class="CANVAS_ACTION_BUTTON_CLASSES"
+        aria-pressed="true"
+        @click="comments.cancel()"
+      >
         <MessageCircle class="size-(--knovum-icon-size-toolbar)" :stroke-width="1.6" />
         {{ t("spaces.media.comment") }}
       </button>
@@ -71,7 +75,7 @@ const commandClass =
   </ToolbarRoot>
   <div v-else ref="bar" class="w-max" :style="{ maxWidth: `${availableWidth}px` }">
     <ToolbarRoot
-      class="flex h-(--knovum-control-height-lg) w-max max-w-full cursor-default items-center gap-0.5 overflow-clip rounded-panel border border-border-strong bg-overlay p-px shadow-control select-none"
+      :class="CANVAS_ACTION_BAR_CLASSES"
       orientation="horizontal"
       :loop="false"
       :aria-label="t('spaces.canvas.nodeActions.label')"
@@ -79,7 +83,7 @@ const commandClass =
       <ToolbarButton as-child>
         <button
           type="button"
-          :class="commandClass"
+          :class="CANVAS_ACTION_BUTTON_CLASSES"
           :aria-label="t('spaces.media.comment')"
           :title="compact ? t('spaces.media.comment') : undefined"
           @click="beginComment"
@@ -106,7 +110,7 @@ const commandClass =
         <ToolbarButton as-child>
           <button
             type="button"
-            :class="commandClass"
+            :class="CANVAS_ACTION_BUTTON_CLASSES"
             :aria-disabled="!canRunAction(directAvailability)"
             :aria-label="t('spaces.creation.removeBackground')"
             :title="compact ? t('spaces.creation.removeBackground') : undefined"
@@ -133,21 +137,24 @@ const commandClass =
         :open="openPopover === 'angle'"
         @update:open="setPopover('angle', $event)"
       />
-      <SpaceCanvasImageToolTrigger mode="adjust" :compact="compact" @begin="beginTool" />
-      <SpaceCanvasImageToolTrigger
-        mode="crop"
-        :compact="compact"
-        :disabled="!dimensionsReady"
-        @begin="beginTool"
-      />
-      <SpaceCanvasImageToolTrigger mode="transform" :compact="compact" @begin="beginTool" />
       <SpaceCanvasSelectionMenu
         :actions="actions"
         :derivations="derivations"
         node-bar
         exclude-direct-image-actions
         @invoke-derivation="emit('invokeDerivation', $event)"
-      />
+      >
+        <template #node-tools>
+          <SpaceCanvasImageToolTrigger mode="adjust" menu-item @begin="beginTool" />
+          <SpaceCanvasImageToolTrigger
+            mode="crop"
+            menu-item
+            :disabled="!dimensionsReady"
+            @begin="beginTool"
+          />
+          <SpaceCanvasImageToolTrigger mode="transform" menu-item @begin="beginTool" />
+        </template>
+      </SpaceCanvasSelectionMenu>
       <SpaceNodeBarCommonActions @inspect="actions.inspect" @download="actions.download" />
     </ToolbarRoot>
   </div>

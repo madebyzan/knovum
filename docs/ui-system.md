@@ -136,6 +136,15 @@ shell and component enter/leave states; do not add a motion runtime for simple o
   the global reduced-motion rule;
 - `prefers-reduced-motion` disables all nonessential transitions globally.
 
+Canvas node work uses one blue dot language. The node payload and feature session own lifecycle state;
+the canvas projects those states into presentation without persisting animation state. An unavailable
+content region shows a compact centered dot cluster and a short status label, available content stays
+visible with a three-dot status in its chrome,
+and an image edit being applied shows subdued dots only over the edited image region. Completion removes
+the dots. Failure uses a static semantic indicator. Do not combine this language with shimmer, spinners,
+or a bottom progress bar, and do not display a percentage unless the operation reports real progress.
+The dots stop animating under reduced motion.
+
 ## Typography roles
 
 The type scale is semantic; components choose a role, never a pixel size.
@@ -407,6 +416,16 @@ Interactive WebView controls remain ordinary controls, not drag regions. Feature
 Reka UI owns behavior: focus, keyboard navigation, ARIA, portals, collision and primitive state. `shared/ui` owns only durable Knovum visual compositions.
 
 Do not wrap Reka merely to rename props/events. For richer WebView-owned structures such as Tree, Dropdown Menu, Combobox and Toolbar, compose Reka directly until a repeated Knovum visual composition is proven. Right-click desktop context menus are platform-owned through Tauri Menu and are not a Reka surface.
+
+Choose component ownership by interaction contract, not markup similarity:
+
+1. Use an existing `shared/ui` component when its meaning, keyboard behavior, state and density match the control. Do not recreate its visual classes inside a feature.
+2. Keep a control in its feature when it depends on domain geometry, commands or editing state. Repeated controls within one feature share a feature-owned visual contract while composing Reka behavior directly.
+3. Promote a feature control to `shared/ui` only when at least two independent features need the same meaning, behavior and visual treatment. A second use with a different interaction contract is not proof of reuse.
+
+Review desktop controls in their default, hover, pressed, focused, disabled, invalid and busy states. Verify keyboard operation, tooltip and accessible names for icon actions, long localized labels, compact widths and reduced motion. Popup surfaces remain anchored to their control and use collision handling; canvas geometry tools own their placement separately from ordinary trigger popovers.
+
+Canvas selection surfaces declare their interaction kind: ordinary actions, compact editing controls, or a sustained inspector. Actions and compact controls attach above or below the selected object; inspectors attach to its left or right. The canvas selection anchor owns placement for every node type. It reads the current selection and visible canvas objects itself, excluding selected and hidden objects, so individual node tools only declare their interaction kind and spacing. Placement considers the safe canvas viewport and nearby objects; a clear position on the preferred axis wins, followed by a clear position on the other axis. When every adjacent position intersects another object, choose the position with the least overlap and keep editing controls scrollable within the available canvas space. A panel never changes ownership or becomes a trailing sidebar merely because its anchor is crowded.
 
 ## Native materials
 

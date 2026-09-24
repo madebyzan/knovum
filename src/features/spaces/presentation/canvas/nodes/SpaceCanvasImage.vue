@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useResizeObserver } from "@vueuse/core";
-import { computed, onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vue";
+import { computed, shallowRef, useTemplateRef, watch } from "vue";
 
 import {
   canvasPointToImage,
@@ -15,16 +15,29 @@ import { versionedMediaSource } from "../../media/element";
 import SpaceCanvasImageComments from "./SpaceCanvasImageComments.vue";
 import SpaceCanvasImageCropOverlay from "./SpaceCanvasImageCropOverlay.vue";
 import SpaceCanvasImageEraserCursor from "./SpaceCanvasImageEraserCursor.vue";
+import SpaceCanvasImageWorkOverlay from "./SpaceCanvasImageWorkOverlay.vue";
+import { useCanvasImageSource } from "./use-canvas-image-source";
 const props = defineProps<{ id: string; data: SpaceImagePayload; interactive: boolean }>();
 const session = useImageEditSession();
 const canvas = useTemplateRef<HTMLCanvasElement>("canvas");
 const size = shallowRef<ImageCanvasSize>({ width: 1, height: 1, pixelRatio: 1 });
-const image = new Image();
-image.crossOrigin = "anonymous";
-const naturalSize = shallowRef({ width: 0, height: 0 });
 const draftStroke = shallowRef<number[]>();
 const brushCursor = shallowRef<{ x: number; y: number }>();
-const source = computed(() => versionedMediaSource(props.data.previewPath ?? props.data.assetPath));
+const source = computed(() =>
+  props.data.sourceRevision
+    ? versionedMediaSource(props.data.previewPath ?? props.data.assetPath, props.data.sourceRevision)
+    : undefined,
+);
+const { image, naturalSize, loadState } = useCanvasImageSource(source, {
+  onReady: (loaded) => {
+    session.setImageDimensions(props.id, loaded.naturalWidth, loaded.naturalHeight);
+    draw();
+  },
+  onReset: () => {
+    const context = canvas.value?.getContext("2d");
+    if (context && canvas.value) context.clearRect(0, 0, canvas.value.width, canvas.value.height);
+  },
+});
 const edit = computed(() => session.previewFor(props.id) ?? imageEditOf(props.data));
 const erasing = computed(
   () => props.interactive && session.active?.nodeId === props.id && session.active.tool === "eraser",
@@ -58,29 +71,10 @@ useResizeObserver(canvas, ([entry]) => {
   }
   draw();
 });
-
-image.addEventListener("load", imageLoaded);
-watch(
-  source,
-  (value) => {
-    naturalSize.value = { width: 0, height: 0 };
-    const context = canvas.value?.getContext("2d");
-    if (context && canvas.value) context.clearRect(0, 0, canvas.value.width, canvas.value.height);
-    if (value) image.src = value;
-  },
-  { immediate: true },
-);
 watch(previewEdit, draw, { deep: true });
-function imageLoaded() {
-  naturalSize.value = { width: image.naturalWidth, height: image.naturalHeight };
-  session.setImageDimensions(props.id, image.naturalWidth, image.naturalHeight);
-  draw();
-}
-onBeforeUnmount(() => image.removeEventListener("load", imageLoaded));
-
 function draw() {
   const context = canvas.value?.getContext("2d", { willReadFrequently: true });
-  if (!context || !image.complete || !image.naturalWidth) return;
+  if (!context || loadState.value !== "ready") return;
   const next: ImageEdit = draftStroke.value
     ? {
         ...edit.value,
@@ -154,9 +148,10 @@ function commitStroke() {
       @pointerup.stop="commitStroke"
       @pointercancel="commitStroke"
     />
+    <SpaceCanvasImageWorkOverlay :id="id" :data="data" :load-state="loadState" :image-rect="imageRect" />
     <SpaceCanvasImageEraserCursor
       v-if="erasing"
-      :position="brushCursor"
+      v-bind="brushCursor ? { position: brushCursor } : {}"
       :size="size"
       :natural-size="naturalSize"
       :edit="edit"
@@ -166,7 +161,7 @@ function commitStroke() {
       v-if="cropping && imageRect"
       :crop="edit.crop"
       :image-rect="imageRect"
-      :locked-aspect="session.cropAspectRatio"
+      v-bind="session.cropAspectRatio === undefined ? {} : { lockedAspect: session.cropAspectRatio }"
       @update="(crop) => session.update({ crop })"
     />
     <SpaceCanvasImageComments

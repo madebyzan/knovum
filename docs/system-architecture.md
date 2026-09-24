@@ -127,6 +127,25 @@ Pinia Task Center
 
 The bridge transports task presentation state. Cancellation and domain semantics stay with the feature engine.
 
+Space asset publication and node persistence are separate steps. Database initialization must not sweep
+unreferenced asset-directory entries: an asset can be written before its node is committed, including
+clipboard images and staged imports. Asset deletion uses the explicit post-commit candidate path and
+checks that durable node state no longer references it. A startup sweep cannot distinguish an orphan
+from a valid in-flight publication and risks deleting the source before its node is saved.
+
+Canvas node work state has two authorities: persisted node payload state for import, derivation and metadata,
+and feature session state for an in-flight edit or media analysis. Rust and the owning feature publish their
+own transitions; the canvas never infers job completion from an animation or a timer. The canvas presentation
+projects these sources into one active/failed view, then places the same dot visual in unavailable content,
+node chrome beside available content, or the selected image region during an edit apply. The Task Center
+remains the place for cancellation and real task progress. No canvas-only status is persisted.
+An asset revision marks published bytes; a pending derived node owns a distinct reserved output path and
+does not copy the source revision or preview. The Rust derivation boundary rejects unpublished asset
+outputs that already carry a revision or preview, both when work starts and before completion writes
+back to the node. Operations with a primary asset source must use a different path from that source.
+Canvas image decoding
+has a separate local loading/error state and cannot make a pending output look complete.
+
 Durable knowledge work uses the Space-owned Run scheduler rather than the presentation Task Center as
 its state authority. A Run freezes its principal, grant, definition/binding identity, input snapshot
 and budgets. StepInstances and Attempts carry resolved inputs, outputs, leases, checkpoints and

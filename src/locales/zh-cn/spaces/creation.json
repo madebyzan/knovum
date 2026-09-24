@@ -116,6 +116,7 @@
   "cutoutTask": "正在创建透明背景图片",
   "segmenting": "正在识别前景主体…",
   "cutoutFailed": "智能抠图失败",
+  "cutoutSourceMissing": "原始图片文件已丢失，请重新导入图片后再抠图",
   "createWithAgent": "Agent 创作",
   "createWithAgentDescription": "向桌面 Agent 描述创作要求，检查其生成的文件，再将选中的结果导入当前 Space。",
   "agentUnavailable": "请先启用一个已安装的桌面 Agent。",

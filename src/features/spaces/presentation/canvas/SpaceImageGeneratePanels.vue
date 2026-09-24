@@ -10,6 +10,7 @@ import UiTooltip from "../../../../shared/ui/UiTooltip.vue";
 import { imageEditOf } from "../../image-editing/image-edit";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../../model/nodes/node-payload";
+import { CANVAS_ACTION_BUTTON_CLASSES } from "./canvas-action-classes";
 import { imageActionHelp } from "./image-action-help";
 import { nodeActionLabelClass, nodeActionLabelState } from "./node-action-label";
 import SpaceImageAnglePanel from "./SpaceImageAnglePanel.vue";
@@ -34,8 +35,6 @@ const {
   run,
 } = useImageGenerateActions(toRef(props, "node"), toRef(props, "mode"), () => emit("update:open", false));
 const sizes = [2048, 4096, 8192] as const;
-const commandClass =
-  "inline-flex h-(--knovum-control-height-md) shrink-0 items-center gap-1.5 rounded-control px-2.5 text-label text-foreground-secondary outline-none transition-colors duration-100 hover:bg-control-hover hover:text-foreground focus-visible:ring-2 focus-visible:ring-focus-ring disabled:cursor-not-allowed disabled:opacity-45";
 </script>
 
 <template>
@@ -56,7 +55,7 @@ const commandClass =
       <ToolbarButton as-child>
         <button
           type="button"
-          :class="commandClass"
+          :class="CANVAS_ACTION_BUTTON_CLASSES"
           :disabled="busy"
           :aria-label="t('spaces.media.upscale')"
           :title="compact ? t('spaces.media.upscale') : undefined"
@@ -114,7 +113,7 @@ const commandClass =
       <ToolbarButton as-child>
         <button
           type="button"
-          :class="commandClass"
+          :class="CANVAS_ACTION_BUTTON_CLASSES"
           :disabled="busy"
           :aria-label="t('spaces.media.multiAngle')"
           :title="compact ? t('spaces.media.multiAngle') : undefined"

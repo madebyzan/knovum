@@ -23,7 +23,7 @@ pub fn request(request: &CreateImageOperationRequest) -> Result<(), String> {
 pub async fn source_edit(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     request: &CreateImageOperationRequest,
-) -> Result<(), String> {
+) -> Result<String, String> {
     let data: String = sqlx::query_scalar(
         "SELECT data FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND kind='image' AND deleted_at IS NULL",
     )
@@ -38,5 +38,8 @@ pub async fn source_edit(
     if current != request.source_edit {
         return Err("Image edits changed during image operation".into());
     }
-    Ok(())
+    data.get("assetPath")
+        .and_then(Value::as_str)
+        .map(str::to_owned)
+        .ok_or_else(|| "Image operation source path is unavailable".into())
 }

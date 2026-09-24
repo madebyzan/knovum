@@ -41,7 +41,6 @@ const showsPreview = computed(
     props.presentationContext.viewport.previewItemLimit >= 4,
 );
 const emptyMessage = computed(() => {
-  if (props.data.metadataState === "loading") return t("spaces.transfer.websiteLoading");
   if (props.data.metadataState === "failed") return t("spaces.transfer.websitePreviewUnavailable");
   return undefined;
 });
