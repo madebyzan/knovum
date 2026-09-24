@@ -8,7 +8,7 @@ import { useImageEditSession } from "../../../image-editing/image-edit-session";
 import type { SpaceNodePayload } from "../../../model/nodes/node-payload";
 import { useSpaceStore } from "../../../session/space-store";
 import { canvasNodeWork } from "./canvas-node-work";
-import SpaceCanvasWorkDots from "./SpaceCanvasWorkDots.vue";
+import SpaceCanvasWorkEffect from "./SpaceCanvasWorkEffect.vue";
 
 const props = defineProps<{ id: string; data: SpaceNodePayload }>();
 const { t } = useI18n();
@@ -30,7 +30,7 @@ const label = computed(() => (work.value ? t(work.value.labelKey) : ""));
       class="size-(--knovum-icon-size-xs) text-danger"
       :stroke-width="1.6"
     />
-    <SpaceCanvasWorkDots v-else placement="inline" />
+    <SpaceCanvasWorkEffect v-else placement="inline" />
   </span>
   <span v-else-if="work?.surface === 'selection'" class="text-micro text-accent" role="status">
     {{ label }}

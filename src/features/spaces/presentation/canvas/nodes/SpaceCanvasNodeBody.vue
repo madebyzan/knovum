@@ -82,7 +82,7 @@ const work = computed(() => nodePayloadWork(props.data));
   <SpaceCanvasProcessingState
     v-else-if="work?.surface === 'content'"
     :label="t(work.labelKey)"
-    :failed="work.phase === 'failed'"
+    :phase="work.phase"
   />
   <SpaceCanvasCode
     v-else-if="data.kind === 'code'"

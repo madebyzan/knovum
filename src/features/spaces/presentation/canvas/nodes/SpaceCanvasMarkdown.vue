@@ -24,19 +24,28 @@ const projection = computed(() =>
 
 <template>
   <div class="relative flex min-h-0 flex-1 overflow-hidden">
-    <SpaceCanvasProcessingState
-      v-if="work?.surface === 'content'"
-      :label="t(work.labelKey)"
-      :failed="work.phase === 'failed'"
-    />
     <UiMarkdown
-      v-else-if="data.text"
+      v-if="work?.surface !== 'content' && data.text"
       :content="projection.projectedSource"
       class="canvas-markdown-preview min-h-0 flex-1 overflow-hidden px-3 py-2.5 text-caption leading-relaxed text-foreground-secondary"
     />
-    <p v-else class="min-h-0 flex-1 px-3 py-2.5 text-caption text-foreground-tertiary">
+    <p
+      v-else-if="work?.surface !== 'content'"
+      class="min-h-0 flex-1 px-3 py-2.5 text-caption text-foreground-tertiary"
+    >
       {{ t("spaces.editor.emptyMarkdown") }}
     </p>
+    <Transition
+      leave-active-class="transition-opacity duration-200 motion-reduce:transition-none"
+      leave-to-class="opacity-0"
+    >
+      <SpaceCanvasProcessingState
+        v-if="work?.surface === 'content'"
+        class="absolute inset-0"
+        :label="t(work.labelKey)"
+        :phase="work.phase"
+      />
+    </Transition>
     <span
       v-if="projection.remainingBlockCount > 0"
       class="pointer-events-none absolute right-2 bottom-1 rounded-control bg-panel/90 px-1.5 text-micro text-foreground-tertiary"

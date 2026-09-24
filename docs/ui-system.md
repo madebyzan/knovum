@@ -136,14 +136,15 @@ shell and component enter/leave states; do not add a motion runtime for simple o
   the global reduced-motion rule;
 - `prefers-reduced-motion` disables all nonessential transitions globally.
 
-Canvas node work uses one blue dot language. The node payload and feature session own lifecycle state;
-the canvas projects those states into presentation without persisting animation state. An unavailable
-content region shows a compact centered dot cluster and a short status label, available content stays
-visible with a three-dot status in its chrome,
-and an image edit being applied shows subdued dots only over the edited image region. Completion removes
-the dots. Failure uses a static semantic indicator. Do not combine this language with shimmer, spinners,
-or a bottom progress bar, and do not display a percentage unless the operation reports real progress.
-The dots stop animating under reduced motion.
+Canvas node work uses one quiet silver-light language. The node payload and feature session own lifecycle
+state; the canvas projects those states into presentation without persisting animation state. An unavailable
+content region remains a plain panel with one broad, slow diffuse light and a centered status capsule.
+Available content stays legible; its chrome uses a three-stroke breathing mark, while an image edit being
+applied shows the same diffuse light only over the edited image region. Completion replaces the placeholder
+after real content is ready; image, media and markdown surfaces fade out the outgoing state. Failure is static
+and keeps a short semantic label. Do not add a dot field,
+spinner, bottom progress bar or percentage unless the operation reports real progress. Reduced motion
+stops the light and mark animations.
 
 ## Typography roles
 
