@@ -1,71 +1,85 @@
+mod inlines;
+mod lists;
+mod styles;
+mod tables;
+
 use std::io::Cursor;
 
 use docx_rs::{Docx, Paragraph, Run};
-use pulldown_cmark::{Event, HeadingLevel, Options, Parser, Tag, TagEnd};
 
-pub(crate) fn render(markdown: &str) -> Result<Vec<u8>, String> {
-    let mut document = Docx::new();
-    let mut paragraph = Paragraph::new();
-    let mut has_content = false;
-    let mut heading = None;
-    let mut bold = false;
-    let mut italic = false;
-    for event in Parser::new_ext(markdown, Options::all()) {
-        match event {
-            Event::Start(Tag::Heading { level, .. }) => heading = Some(level),
-            Event::Start(Tag::Strong) => bold = true,
-            Event::Start(Tag::Emphasis) => italic = true,
-            Event::Text(text) | Event::Code(text) => {
-                let mut run = Run::new().add_text(text.into_string());
-                if bold {
-                    run = run.bold();
-                }
-                if italic {
-                    run = run.italic();
-                }
-                paragraph = paragraph.add_run(run);
-                has_content = true;
-            }
-            Event::SoftBreak => paragraph = paragraph.add_run(Run::new().add_text(" ")),
-            Event::HardBreak => {
-                paragraph =
-                    paragraph.add_run(Run::new().add_break(docx_rs::BreakType::TextWrapping));
-            }
-            Event::End(TagEnd::Strong) => bold = false,
-            Event::End(TagEnd::Emphasis) => italic = false,
-            Event::End(TagEnd::Heading(_))
-            | Event::End(TagEnd::Paragraph)
-            | Event::End(TagEnd::Item)
-                if has_content =>
-            {
-                if let Some(level) = heading.take() {
-                    paragraph = paragraph.style(heading_style(level));
-                }
-                document = document.add_paragraph(paragraph);
-                paragraph = Paragraph::new();
-                has_content = false;
-            }
-            _ => {}
-        }
-    }
-    if has_content {
-        document = document.add_paragraph(paragraph);
-    }
+use super::document::{Block, Document, DocumentSource};
+
+pub(crate) fn render(source: &DocumentSource) -> Result<Vec<u8>, String> {
+    let document = super::markdown::parse(source)?;
     let mut cursor = Cursor::new(Vec::new());
-    document
+    build_document(&document)?
         .build()
         .pack(&mut cursor)
         .map_err(|error| error.to_string())?;
     Ok(cursor.into_inner())
 }
 
-fn heading_style(level: HeadingLevel) -> &'static str {
-    match level {
-        HeadingLevel::H1 => "Heading1",
-        HeadingLevel::H2 => "Heading2",
-        HeadingLevel::H3 => "Heading3",
-        HeadingLevel::H4 => "Heading4",
-        HeadingLevel::H5 => "Heading5",
-        HeadingLevel::H6 => "Heading6",
+pub(super) fn build_document(document: &Document) -> Result<Docx, String> {
+    let mut writer = Writer {
+        document: styles::document(),
+        next_numbering: 1,
+    };
+    if !document.title.is_empty() {
+        writer.paragraph(
+            Paragraph::new()
+                .style("Title")
+                .keep_next(true)
+                .add_run(inlines::text_run(&document.title)),
+        );
+    }
+    writer.blocks(&document.blocks, 0)?;
+    Ok(writer.document)
+}
+
+struct Writer {
+    document: Docx,
+    next_numbering: usize,
+}
+
+impl Writer {
+    fn blocks(&mut self, blocks: &[Block], indent: i32) -> Result<(), String> {
+        for block in blocks {
+            match block {
+                Block::Paragraph(content) => {
+                    let paragraph = inlines::paragraph(content)?
+                        .style("Normal")
+                        .indent(Some(indent), None, None, None);
+                    self.paragraph(paragraph);
+                }
+                Block::Heading { level, content } => {
+                    let paragraph = inlines::paragraph(content)?
+                        .style(&format!("Heading{level}"))
+                        .outline_lvl(usize::from(*level - 1))
+                        .keep_next(true)
+                        .indent(Some(indent), None, None, None);
+                    self.paragraph(paragraph);
+                }
+                Block::Code { text, .. } => {
+                    let paragraph = inlines::code_paragraph(text)
+                        .style("KnovumCodeBlock")
+                        .indent(Some(indent), None, None, None);
+                    self.paragraph(paragraph);
+                }
+                Block::Quote(children) => self.blocks(children, indent + 360)?,
+                Block::List { start, items } => self.list(*start, items, indent)?,
+                Block::Table(value) => {
+                    let table = tables::render(value)?;
+                    self.document = std::mem::take(&mut self.document).add_table(table);
+                }
+                Block::Rule => {
+                    self.paragraph(Paragraph::new().add_run(Run::new().add_text("────────")));
+                }
+            }
+        }
+        Ok(())
+    }
+
+    fn paragraph(&mut self, paragraph: Paragraph) {
+        self.document = std::mem::take(&mut self.document).add_paragraph(paragraph);
     }
 }

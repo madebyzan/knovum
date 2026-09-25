@@ -1,11 +1,11 @@
 mod citations;
-use citations::append_citation_sources;
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tauri::AppHandle;
 
 use super::completion;
+use crate::documents::generation::document::DocumentSource;
 use crate::spaces::derivation::{failure, inputs, pending_output, source_validation};
 use crate::spaces::{assets::asset_directory, db, knowledge::contracts};
 
@@ -26,12 +26,12 @@ pub struct ExportDocumentOutput {
     pub data: Value,
 }
 
-pub struct PreparedDocumentExport {
-    pub markdown: String,
+pub(super) struct PreparedDocumentExport {
+    pub source: DocumentSource,
     pub path: String,
 }
 
-pub async fn prepare(
+pub(super) async fn prepare(
     app: &AppHandle,
     request: &ExportDocumentRequest,
     action: &str,
@@ -68,12 +68,13 @@ pub async fn prepare(
     let source: Value = serde_json::from_str(&source).map_err(db::json_error)?;
     let output: Value = serde_json::from_str(&output).map_err(db::json_error)?;
     let path = validated_path(app, &output, extension)?;
-    let markdown = source["text"]
-        .as_str()
-        .filter(|value| !value.trim().is_empty())
-        .ok_or("Document export requires non-empty Markdown")?
-        .to_owned();
-    let markdown = append_citation_sources(&mut tx, &request.source_node_id, markdown).await?;
+    let title = source["title"].as_str().ok_or("Document title is invalid")?.to_owned();
+    let markdown = source["text"].as_str().ok_or("Document Markdown is invalid")?.to_owned();
+    if title.trim().is_empty() && markdown.trim().is_empty() {
+        return Err("Document export requires a title or Markdown content".into());
+    }
+    let citations = citations::load(&mut tx, &request.source_node_id).await?;
+    let source = DocumentSource { title, markdown, citations };
     let now = crate::clock::unix_time_millis()?;
     sqlx::query("INSERT INTO spaces_knowledge_derivations(id,space_id,output_node_id,action_kind,action_version,engine,status,created_at,updated_at) VALUES($1,$2,$3,$4,1,$5,'running',$6,$6)")
         .bind(&request.id).bind(&request.space_id).bind(&request.output_node_id).bind(action).bind(engine).bind(now)
@@ -90,10 +91,10 @@ pub async fn prepare(
     )
     .await?;
     tx.commit().await.map_err(db::sql_error)?;
-    Ok(PreparedDocumentExport { markdown, path })
+    Ok(PreparedDocumentExport { source, path })
 }
 
-pub async fn complete(
+pub(super) async fn complete(
     app: &AppHandle,
     request: &ExportDocumentRequest,
     bytes: &[u8],
@@ -121,13 +122,10 @@ pub async fn complete(
     pending_output::validate_unpublished_asset(&data)?;
     completion::apply(&mut tx, request, &mut data, bytes, rationale).await?;
     tx.commit().await.map_err(db::sql_error)?;
-    Ok(ExportDocumentOutput {
-        node_id: request.output_node_id.clone(),
-        data,
-    })
+    Ok(ExportDocumentOutput { node_id: request.output_node_id.clone(), data })
 }
 
-pub async fn handle_failure(
+pub(super) async fn handle_failure(
     app: &AppHandle,
     request: &ExportDocumentRequest,
     path: &str,
@@ -142,15 +140,8 @@ pub async fn handle_failure(
         .await
         .err()
         .map(|error| format!("failure status update failed: {error}"));
-    [
-        Some(export_error.to_owned()),
-        cleanup_error,
-        persistence_error,
-    ]
-    .into_iter()
-    .flatten()
-    .collect::<Vec<_>>()
-    .join("; ")
+    [Some(export_error.to_owned()), cleanup_error, persistence_error]
+        .into_iter().flatten().collect::<Vec<_>>().join("; ")
 }
 
 fn validated_path(app: &AppHandle, output: &Value, extension: &str) -> Result<String, String> {
