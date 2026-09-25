@@ -148,6 +148,14 @@
   transition-duration: 0ms;
 }
 
+.spaces-workspace:has([data-state="drag"]) .workspace-toolbar-content {
+  transition-duration: 0ms;
+}
+
+.spaces-workspace:has([data-state="drag"]) .workspace-frame {
+  transition-duration: 0ms;
+}
+
 @media (prefers-reduced-transparency: reduce) {
   .material-overlay {
     backdrop-filter: none;
@@ -180,6 +188,11 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .workspace-splitter-group.is-motion-ready > [data-panel],
+  .workspace-toolbar-content,
+  .workspace-frame {
+    transition-duration: 0ms;
+  }
   *,
   *::before,
   *::after {

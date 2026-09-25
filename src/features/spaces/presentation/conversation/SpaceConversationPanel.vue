@@ -7,7 +7,6 @@ import SpaceConversationHeader from "./SpaceConversationHeader.vue";
 import SpaceConversationMessages from "./SpaceConversationMessages.vue";
 import SpaceConversationRunStatus from "./SpaceConversationRunStatus.vue";
 
-const emit = defineEmits<{ close: [] }>();
 const conversationSession = useConversationSessionStore();
 const {
   messages,
@@ -38,7 +37,7 @@ const {
 
 <template>
   <section class="flex h-full min-h-0 min-w-0 flex-col bg-panel">
-    <SpaceConversationHeader @close="emit('close')" />
+    <SpaceConversationHeader />
     <button
       v-if="(pendingPermission || approvals.length) && activeConversationId !== selectedConversationId"
       type="button"

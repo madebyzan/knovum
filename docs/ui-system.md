@@ -130,7 +130,9 @@ shell and component enter/leave states; do not add a motion runtime for simple o
 - scrim: opacity only, 200ms enter and 150ms exit;
 - view swaps: at most 150ms with a 4px directional offset;
 - controls: 100–150ms paint transitions; toolbar controls never change geometry when pressed;
-- never animate canvas-object geometry, sidebar resize, or layout dimensions, and never interpolate a persisted
+- panel visibility changes animate the split width and its matching toolbar region over 220ms; direct splitter
+  resizing never animates, so the content boundary remains under the pointer;
+- never animate canvas-object geometry or other layout dimensions, and never interpolate a persisted
   node position while it is dragged, undone or restored; the single exception is a command-initiated rearrange
   (align, distribute, auto layout), which may transition the rendered transform for 150ms and stays subject to
   the global reduced-motion rule;
@@ -192,20 +194,26 @@ presentation. Neither tasks nor document actions are appended to the tab strip.
 This keeps application preferences, space navigation and document/object navigation distinct without
 presenting the product as a collection of unrelated tools.
 
-The toolbar is a full-width window drag surface. Only concrete interactive controls opt back into pointer
-input; empty layout space remains draggable even when it lies inside a feature toolbar's grid area.
+One unified 40px toolbar spans the window above the workspace split. Its empty area is the Tauri drag target;
+interactive controls alone receive pointer input. A subtle highlight separates the chrome from the inset work area.
+Resizing the panes updates the corresponding toolbar regions from the same shell width state without animation.
 
-The leading toolbar region matches the live sidebar width and contains only the sidebar visibility control.
-Outline and feature actions begin at the workspace edge. Resizing the sidebar updates both regions from one
-shell-owned width value.
+The leading toolbar region shares the left navigation panel's width and keeps navigation and history controls in
+place when the sidebar is previewed. Space tabs begin after a 12px inset in the main region. Leading and right
+chrome actions follow the established compact control size; the right view switcher uses the medium control token
+to keep its contextual modes distinct from Space navigation.
 
 The Spaces sidebar uses a consistent 224px default width in both pinned and transient-preview states. A
 pinned sidebar remains resizable between 200px and 320px. Its resize feedback is painted on the workspace
-surface boundary, never inside the navigation background or the window gutter. The right workspace sidebar is a
-full-height resizable pane in the work-area split; it keeps the canvas visible instead of covering it. Its stable
-toolbar control toggles visibility and opens Conversation as the default view. Explicit object actions open Details;
+surface boundary, never inside the navigation background or the window gutter. Closing it preserves the
+navigation affordance and hover preview; it is application navigation, not a context panel. The right workspace sidebar is a
+full-height resizable pane in the workspace split; it keeps the canvas visible instead of covering it. Its view
+controls sit in the right toolbar region, while the pane content begins directly below it. That region ends with
+the stable visibility toggle; content headers do not repeat that close action. That toggle opens Conversation as the
+default view. Explicit object actions open Details;
 the document editor can open its heading Outline. Source opens as a temporary drill-in and returns to its originating
 view. Selection alone never changes the active view. The right pane does not change the leading sidebar width.
+Closing it releases workspace width and suspends its content until reopened; it has no hover preview.
 
 The Details view uses a content-first hierarchy: editable identity and direct actions, the
 content preview and type-specific details, derivation and knowledge relationships, related content, then
@@ -214,10 +222,10 @@ persisted as a relation; selecting a result reveals it on the canvas without cre
 unindexed content, indexing, no matches and retrieval failure. It does not display synthetic similarity
 percentages. Details uses the sidebar's scrolling area rather than a settings-page layout.
 
-The primary workspace surface is flush with the toolbar bottom. It is flush with the leading sidebar edge while
-the sidebar is pinned; when the sidebar is collapsed, an 8px leading window inset matches the trailing and bottom
-insets. Hover preview remains an overlay and does not change this geometry. The surface uses a 12px workspace
-radius and one real hairline border; elevation does not substitute for any edge.
+The primary workspace surface is inset 8px from the window bottom and right edge, and from the left edge when
+navigation is collapsed. A single outer frame owns its quiet border, radius and shallow elevation. The canvas
+and right context pane split inside that frame; the context pane draws only their internal hairline. Hover
+preview remains an overlay below the toolbar and does not change split geometry.
 
 ### Space canvas object geometry
 
@@ -388,7 +396,8 @@ The leading and right sidebar widths remain stable while the workspace is open. 
 
 On macOS, the unified toolbar owns the entire traffic-light band. Its leading controls begin after one native-control exclusion zone and never jump when the Feature Sidebar opens or closes. All splitters begin below the toolbar, so neither their lines nor resize hit targets cross the native controls.
 
-The unified toolbar, leading sidebar boundary and right sidebar header use the same window hairline token. Do not combine an inset toolbar shadow with independent panel borders; the shell must read as one aligned split view.
+The window chrome and the inset workspace frame define separate depth planes. The canvas and right pane meet at
+one hairline, and both retain the same bottom inset so the work area reads as one frame.
 
 ### Platform-owned window chrome
 

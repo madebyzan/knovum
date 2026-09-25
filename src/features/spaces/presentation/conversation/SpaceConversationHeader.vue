@@ -12,7 +12,6 @@ import { useConversationSessionStore } from "../../conversation/conversation-ses
 import SpaceContextHeader from "../SpaceContextHeader.vue";
 import SpaceConversationHistory from "./SpaceConversationHistory.vue";
 
-const emit = defineEmits<{ close: [] }>();
 const { t } = useI18n();
 const session = useConversationSessionStore();
 const { conversations, selectedConversationId, loading, conversationQuery, showingArchived } =
@@ -51,10 +50,7 @@ async function saveTitle() {
 </script>
 
 <template>
-  <SpaceContextHeader
-    :title="selectedConversation?.title || t('spaces.assistant.title')"
-    @close="emit('close')"
-  >
+  <SpaceContextHeader :title="selectedConversation?.title || t('spaces.assistant.title')">
     <template #actions>
       <SpaceConversationHistory
         v-model:open="historyOpen"

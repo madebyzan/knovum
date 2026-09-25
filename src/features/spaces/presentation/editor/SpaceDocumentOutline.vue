@@ -4,7 +4,6 @@ import { useI18n } from "vue-i18n";
 import { useSpaceStore } from "../../session/space-store";
 import SpaceContextHeader from "../SpaceContextHeader.vue";
 
-const emit = defineEmits<{ close: [] }>();
 const store = useSpaceStore();
 const { t } = useI18n();
 
@@ -18,7 +17,7 @@ function reveal(position: number) {
 
 <template>
   <section class="flex min-h-0 flex-col">
-    <SpaceContextHeader :title="t('spaces.navigation.editorOutline')" @close="emit('close')" />
+    <SpaceContextHeader :title="t('spaces.navigation.editorOutline')" />
     <nav
       class="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 py-3"
       :aria-label="t('spaces.navigation.editorOutline')"
