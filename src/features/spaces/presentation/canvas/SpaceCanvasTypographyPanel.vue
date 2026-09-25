@@ -23,8 +23,9 @@ import type { CanvasNodeAppearance } from "../../canvas/contract/canvas-document
 import { canvasBaseFontSize, effectiveCanvasFontSize } from "../../canvas/document/canvas-typography";
 import { DEFAULT_CANVAS_TEXT_FONT_SIZE } from "../../canvas/node-size";
 import { CANVAS_FONT_SIZES } from "./canvas-typography-options";
+import { nodeActionLabelClass, nodeActionLabelState } from "./node-action-label";
 
-const props = defineProps<{ kind: "note" | "text"; appearance?: CanvasNodeAppearance }>();
+const props = defineProps<{ kind: "note" | "text"; appearance?: CanvasNodeAppearance; compact: boolean }>();
 const emit = defineEmits<{ update: [patch: Partial<CanvasNodeAppearance>] }>();
 const { t } = useI18n();
 const typographyScale = computed(() => props.appearance?.typographyScale ?? 1);
@@ -48,7 +49,13 @@ const verticalOptions = [
 </script>
 
 <template>
-  <UiPopover side="top" align="center" :side-offset="6" class="p-0.5">
+  <UiPopover
+    side="top"
+    align="center"
+    :side-offset="6"
+    :trigger-tooltip="compact ? t('spaces.canvas.typography') : undefined"
+    class="p-0.5"
+  >
     <template #trigger>
       <button
         type="button"
@@ -56,7 +63,9 @@ const verticalOptions = [
         :aria-label="t('spaces.canvas.typography')"
       >
         Aa
-        <span>{{ t("spaces.canvas.typography") }}</span>
+        <span :class="[nodeActionLabelClass, nodeActionLabelState(compact)]">{{
+          t("spaces.canvas.typography")
+        }}</span>
       </button>
     </template>
 

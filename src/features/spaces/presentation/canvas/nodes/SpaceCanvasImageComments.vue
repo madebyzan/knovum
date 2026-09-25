@@ -2,11 +2,13 @@
 import { Trash2 } from "@lucide/vue";
 
 import UiPopover from "../../../../../shared/ui/UiPopover.vue";
+import { useImageCommentSession } from "../../../comments/image-comment-session";
 import { useImageComments, type ImageCommentCanvas } from "../../../comments/use-image-comments";
 import SpaceImageCommentModeBar from "./SpaceImageCommentModeBar.vue";
 import SpaceImageCommentShape from "./SpaceImageCommentShape.vue";
 
 const props = defineProps<ImageCommentCanvas>();
+const commentSession = useImageCommentSession();
 const {
   t,
   adding,
@@ -168,6 +170,11 @@ const {
         </button>
       </div>
     </UiPopover>
-    <SpaceImageCommentModeBar v-if="adding" :mode="mode" @change="setMode" />
+    <SpaceImageCommentModeBar
+      v-if="adding"
+      :mode="mode"
+      @change="setMode"
+      @cancel="commentSession.cancel()"
+    />
   </div>
 </template>

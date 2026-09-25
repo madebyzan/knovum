@@ -79,6 +79,7 @@ function openAiSettings() {
 <template>
   <UiPopover
     :open="open"
+    :trigger-tooltip="compact ? t('spaces.media.layerSplit') : undefined"
     side="bottom"
     align="center"
     :class="custom ? 'w-72 p-3 shadow-popover' : 'w-52 p-1.5'"
@@ -91,7 +92,6 @@ function openAiSettings() {
           :class="CANVAS_ACTION_BUTTON_CLASSES"
           :disabled="busy"
           :aria-label="t('spaces.media.layerSplit')"
-          :title="compact ? t('spaces.media.layerSplit') : undefined"
         >
           <Layers3 class="size-(--knovum-icon-size-toolbar)" :stroke-width="1.6" />
           <span :class="[nodeActionLabelClass, nodeActionLabelState(Boolean(compact))]">{{

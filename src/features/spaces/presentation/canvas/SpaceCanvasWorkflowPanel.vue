@@ -8,11 +8,13 @@ import { useSpaceStore } from "../../session/space-store";
 import SpaceContextHeader from "../SpaceContextHeader.vue";
 import SpaceWorkflowCapture from "../workflows/SpaceWorkflowCapture.vue";
 import SpaceWorkflowPicker from "../workflows/SpaceWorkflowPicker.vue";
+import type { SurfaceRect } from "./selection-surface-geometry";
 import SpaceCanvasSelectionAnchor from "./SpaceCanvasSelectionAnchor.vue";
 
 defineProps<{
   canvasToViewportPoint(point: CanvasPoint): CanvasPoint;
   safeArea: { top: number; right: number; bottom: number; left: number };
+  reserved: readonly SurfaceRect[];
 }>();
 
 const store = useSpaceStore();
@@ -55,20 +57,26 @@ function focusPanel() {
 <template>
   <SpaceCanvasSelectionAnchor
     :bounds="editor.selection.value.bounds"
+    :members="editor.selection.value.members"
     :canvas-to-viewport-point="canvasToViewportPoint"
     :safe-area="safeArea"
+    :reserved="reserved"
+    :selection-key="openingSelection"
     kind="inspector"
     :gap="16"
     @ready="focusPanel"
   >
-    <template #default="{ availableHeight }">
+    <template #default="{ availableHeight, availableWidth }">
       <section
         ref="panel"
         role="region"
         :aria-label="title"
         tabindex="-1"
         class="flex h-[min(34rem,calc(100vh-7rem))] w-[min(23.75rem,calc(100vw-2rem))] min-w-0 flex-col overflow-hidden rounded-workspace border border-window-hairline bg-panel shadow-panel"
-        :style="availableHeight ? { maxHeight: `${availableHeight}px` } : undefined"
+        :style="{
+          maxHeight: availableHeight ? `${availableHeight}px` : undefined,
+          maxWidth: `${availableWidth}px`,
+        }"
         @keydown.esc.stop="close"
       >
         <SpaceContextHeader :title="title" :window-drag-region="false" @close="close" />

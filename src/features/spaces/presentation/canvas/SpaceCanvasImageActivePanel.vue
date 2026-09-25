@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, nextTick, useTemplateRef, watch } from "vue";
 import { toast } from "vue-sonner";
 
 import { defaultImageEdit, imageEditOf, type ImageEdit } from "../../image-editing/image-edit";
@@ -13,6 +13,7 @@ import SpaceImageTransformPanel from "./SpaceImageTransformPanel.vue";
 
 const props = defineProps<{ node: SpaceCanvasNode<SpaceImagePayload> }>();
 const session = useImageEditSession();
+const panel = useTemplateRef<HTMLElement>("panel");
 const active = computed(() => (session.active?.nodeId === props.node.id ? session.active : undefined));
 const edit = computed<ImageEdit>(
   () => structuredClone(active.value?.draft ?? imageEditOf(props.node.data)) as ImageEdit,
@@ -27,49 +28,62 @@ const dimensions = computed(() => {
 function apply() {
   void session.apply().catch((error) => toast.error(String(error)));
 }
+watch(
+  () => active.value?.tool,
+  async (tool) => {
+    if (!tool) return;
+    await nextTick();
+    panel.value
+      ?.querySelector<HTMLElement>("input:not(:disabled), button:not(:disabled)")
+      ?.focus({ preventScroll: true });
+  },
+  { immediate: true, flush: "post" },
+);
 </script>
 
 <template>
-  <SpaceImageTransformPanel
-    v-if="active?.tool === 'transform'"
-    :edit="edit"
-    :busy="session.applying"
-    @update="session.update"
-    @cancel="session.cancel"
-    @apply="apply"
-  />
-  <div
-    v-else
-    class="w-max max-w-[calc(100vw-2rem)] rounded-panel border border-border-strong bg-overlay p-3 shadow-popover"
-  >
-    <SpaceImageAdjustPanel
-      v-if="active?.tool === 'adjust'"
-      :adjustments="edit.adjustments"
-      @update="(key, value) => session.update({ adjustments: { ...edit.adjustments, [key]: value } })"
-      @reset="session.update({ adjustments: defaultImageEdit().adjustments })"
+  <div ref="panel">
+    <SpaceImageTransformPanel
+      v-if="active?.tool === 'transform'"
+      :edit="edit"
+      :busy="session.applying"
+      @update="session.update"
       @cancel="session.cancel"
       @apply="apply"
     />
-    <SpaceImageCropPanel
-      v-else-if="active?.tool === 'crop' && dimensions"
-      :crop="edit.crop"
-      :source-width="dimensions.width"
-      :source-height="dimensions.height"
-      :locked-aspect="session.cropAspectRatio"
-      @update="(crop) => session.update({ crop })"
-      @update-locked-aspect="session.setCropAspectRatio"
-      @cancel="session.cancel"
-      @apply="apply"
-    />
-    <SpaceImageEraserPanel
-      v-else-if="active?.tool === 'eraser'"
-      :diameter="session.brushDiameter"
-      :can-undo="edit.eraserStrokes.length > imageEditOf(node.data).eraserStrokes.length"
-      :can-apply="edit.eraserStrokes.length !== imageEditOf(node.data).eraserStrokes.length"
-      @update-diameter="session.setBrushDiameter"
-      @undo="session.undoEraserStroke"
-      @cancel="session.cancel"
-      @apply="apply"
-    />
+    <div
+      v-else
+      class="w-max max-w-[calc(100vw-2rem)] rounded-panel border border-border-strong bg-overlay p-3 shadow-popover"
+    >
+      <SpaceImageAdjustPanel
+        v-if="active?.tool === 'adjust'"
+        :adjustments="edit.adjustments"
+        @update="(key, value) => session.update({ adjustments: { ...edit.adjustments, [key]: value } })"
+        @reset="session.update({ adjustments: defaultImageEdit().adjustments })"
+        @cancel="session.cancel"
+        @apply="apply"
+      />
+      <SpaceImageCropPanel
+        v-else-if="active?.tool === 'crop' && dimensions"
+        :crop="edit.crop"
+        :source-width="dimensions.width"
+        :source-height="dimensions.height"
+        :locked-aspect="session.cropAspectRatio"
+        @update="(crop) => session.update({ crop })"
+        @update-locked-aspect="session.setCropAspectRatio"
+        @cancel="session.cancel"
+        @apply="apply"
+      />
+      <SpaceImageEraserPanel
+        v-else-if="active?.tool === 'eraser'"
+        :diameter="session.brushDiameter"
+        :can-undo="edit.eraserStrokes.length > imageEditOf(node.data).eraserStrokes.length"
+        :can-apply="edit.eraserStrokes.length !== imageEditOf(node.data).eraserStrokes.length"
+        @update-diameter="session.setBrushDiameter"
+        @undo="session.undoEraserStroke"
+        @cancel="session.cancel"
+        @apply="apply"
+      />
+    </div>
   </div>
 </template>

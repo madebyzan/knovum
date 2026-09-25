@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { MessageCircle, Pencil, ScanLine } from "@lucide/vue";
+import { MessageCircle, Pencil, ScanLine, X } from "@lucide/vue";
 
 import type { ImageCommentMode } from "../../../comments/image-comment-session";
 
 defineProps<{ mode: ImageCommentMode }>();
-const emit = defineEmits<{ change: [mode: ImageCommentMode] }>();
+const emit = defineEmits<{ change: [mode: ImageCommentMode]; cancel: [] }>();
 const modes = [
   { id: "point", icon: MessageCircle, label: "spaces.media.commentPoint" },
   { id: "draw", icon: Pencil, label: "spaces.media.commentDraw" },
@@ -29,6 +29,15 @@ const modes = [
       @click.stop="emit('change', item.id)"
     >
       <component :is="item.icon" class="size-(--knovum-icon-size-toolbar)" :stroke-width="1.7" />
+    </button>
+    <span aria-hidden="true" class="mx-0.5 h-4 w-px bg-border" />
+    <button
+      type="button"
+      class="flex size-9 items-center justify-center rounded-control text-foreground-secondary transition-colors outline-none hover:bg-control-hover hover:text-foreground focus-visible:ring-2 focus-visible:ring-focus-ring"
+      :aria-label="$t('common.cancel')"
+      @click.stop="emit('cancel')"
+    >
+      <X class="size-(--knovum-icon-size-toolbar)" :stroke-width="1.7" />
     </button>
   </div>
 </template>

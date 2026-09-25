@@ -9,7 +9,7 @@ import {
 } from "../../canvas/contract/canvas-document";
 import SpaceCanvasColorSwatches from "./SpaceCanvasColorSwatches.vue";
 
-const props = defineProps<{ kind: "note" | "text"; appearance?: CanvasNodeAppearance }>();
+const props = defineProps<{ kind: "note" | "text"; appearance?: CanvasNodeAppearance; compact: boolean }>();
 const emit = defineEmits<{ update: [patch: Partial<CanvasNodeAppearance>] }>();
 const { t } = useI18n();
 const fillColors = {
@@ -59,5 +59,12 @@ function select(value: string) {
 </script>
 
 <template>
-  <SpaceCanvasColorSwatches :label="label" labeled :options="options" :selected="selected" @select="select" />
+  <SpaceCanvasColorSwatches
+    :label="label"
+    labeled
+    :compact="compact"
+    :options="options"
+    :selected="selected"
+    @select="select"
+  />
 </template>

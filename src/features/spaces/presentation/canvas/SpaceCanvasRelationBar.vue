@@ -15,6 +15,7 @@ import { CANVAS_RELATION_COLORS, type CanvasRelationColor } from "../../canvas/c
 import { useCanvasEditorSession } from "../../canvas/editor-session";
 import { SPACE_RELATION_KINDS, type SpaceRelationKind } from "../../model/relations/relation";
 import { useSpaceStore } from "../../session/space-store";
+import { CANVAS_ACTION_BAR_CLASSES } from "./canvas-action-classes";
 import SpaceCanvasColorSwatches from "./SpaceCanvasColorSwatches.vue";
 
 const store = useSpaceStore();
@@ -103,7 +104,7 @@ function setColor(value: string) {
 <template>
   <div
     v-if="selected"
-    class="flex h-7 cursor-default items-center gap-0.5 rounded-control border border-border bg-overlay select-none"
+    :class="CANVAS_ACTION_BAR_CLASSES"
     :aria-label="t('spaces.knowledge.relations')"
     :aria-busy="mutationPending"
   >

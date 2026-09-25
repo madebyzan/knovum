@@ -35,6 +35,7 @@ defineProps<{
   actions: ReturnType<typeof useCanvasSelectionActions>;
   derivations: CreationIntentDecisions;
   nodeBar?: boolean;
+  nodeToolsVisible?: boolean;
   excludeDirectImageActions?: boolean;
 }>();
 const emit = defineEmits<{ invokeDerivation: [actionId: CreationIntentId] }>();
@@ -55,7 +56,7 @@ const directImageActions: readonly CreationIntentId[] = ["remove-image-backgroun
         </UiIconButton>
       </ToolbarButton>
     </template>
-    <template v-if="$slots['node-tools']">
+    <template v-if="$slots['node-tools'] && nodeToolsVisible">
       <slot name="node-tools" />
       <UiSeparator class="my-1" />
     </template>
