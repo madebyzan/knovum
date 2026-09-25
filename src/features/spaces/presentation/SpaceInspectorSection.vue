@@ -1,14 +1,19 @@
 <script setup lang="ts">
 import { ChevronDown } from "@lucide/vue";
 import { useToggle } from "@vueuse/core";
-import { ref, watch } from "vue";
+import { shallowRef, watch } from "vue";
 
 const props = withDefaults(
   defineProps<{ title: string; icon?: unknown; defaultExpanded?: boolean; padded?: boolean }>(),
   { defaultExpanded: true, padded: true },
 );
-const expanded = ref(props.defaultExpanded);
+const expanded = shallowRef(props.defaultExpanded);
+const mounted = shallowRef(props.defaultExpanded);
 const toggleExpanded = useToggle(expanded);
+
+watch(expanded, (value) => {
+  if (value) mounted.value = true;
+});
 
 watch(
   () => props.defaultExpanded,
@@ -19,10 +24,10 @@ watch(
 </script>
 
 <template>
-  <div class="border-t border-divider first:border-t-0">
+  <section class="mx-4 border-t border-divider">
     <button
       type="button"
-      class="flex h-(--knovum-compact-item-height) w-full items-center gap-2 px-3 text-left hover:bg-control-hover"
+      class="flex min-h-(--knovum-compact-item-height) w-full items-center gap-2 py-2 text-left hover:text-foreground"
       :aria-expanded="expanded"
       @click="toggleExpanded()"
     >
@@ -32,7 +37,7 @@ watch(
         class="size-(--knovum-icon-size-xs) shrink-0 text-foreground-tertiary"
         :stroke-width="1.6"
       />
-      <span class="min-w-0 flex-1 text-caption font-semibold text-foreground-secondary">{{ title }}</span>
+      <span class="min-w-0 flex-1 text-caption font-semibold text-foreground">{{ title }}</span>
       <ChevronDown
         class="size-(--knovum-icon-size-xs) shrink-0 text-foreground-tertiary transition-transform duration-150 ease-standard"
         :class="expanded ? 'rotate-180' : ''"
@@ -40,11 +45,12 @@ watch(
       />
     </button>
     <div
+      v-if="mounted"
       v-show="expanded"
       class="transition-all duration-150 ease-standard"
-      :class="padded ? 'px-3 pt-0.5 pb-3' : 'pb-3'"
+      :class="padded ? 'pt-1 pb-4' : 'pb-4'"
     >
       <slot />
     </div>
-  </div>
+  </section>
 </template>

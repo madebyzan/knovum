@@ -85,7 +85,7 @@ async function removeFailedOutput() {
     v-if="imageMetadata"
     :title="$t('spaces.creation.knowledgeDerivation')"
     :icon="Sparkles"
-    :default-expanded="true"
+    :default-expanded="false"
   >
     <SpaceDerivationMetadataView :metadata="imageMetadata" />
   </SpaceInspectorSection>
@@ -94,7 +94,7 @@ async function removeFailedOutput() {
     v-if="videoMetadata"
     :title="$t('spaces.creation.knowledgeDerivation')"
     :icon="Sparkles"
-    :default-expanded="true"
+    :default-expanded="false"
   >
     <SpaceDerivationMetadataView :metadata="videoMetadata" />
   </SpaceInspectorSection>
@@ -103,7 +103,7 @@ async function removeFailedOutput() {
     v-if="documentMetadata"
     :title="$t('spaces.creation.knowledgeDerivation')"
     :icon="Sparkles"
-    :default-expanded="true"
+    :default-expanded="false"
   >
     <SpaceGroundedDocumentDetails :metadata="documentMetadata" />
   </SpaceInspectorSection>

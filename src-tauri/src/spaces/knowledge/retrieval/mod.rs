@@ -8,6 +8,7 @@ pub(crate) mod lancedb_store;
 pub(crate) mod predicates;
 pub(crate) mod rebuild;
 pub(crate) mod record_loader;
+pub(crate) mod related;
 pub(crate) mod schema;
 pub(crate) mod search;
 
