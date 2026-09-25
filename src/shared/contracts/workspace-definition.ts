@@ -5,12 +5,15 @@ import type { AppCommand } from "./app-command";
 export interface WorkspaceDefinition {
   view: Component;
   sidebar: Component;
-  inspector: Component;
+  rightSidebar: Component;
   toolbarLeading: Component;
   toolbar: Component;
-  inspectorLayout: {
+  rightSidebarLayout: {
+    defaultSize: number;
     minSize: number;
     maxSize: number;
   };
+  openDefaultRightSidebar: () => void;
+  rightSidebarAvailable: ComputedRef<boolean>;
   commands: ComputedRef<readonly AppCommand[]>;
 }

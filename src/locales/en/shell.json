@@ -13,7 +13,7 @@
     "checking": "Checking availability",
     "busy": "An operation is in progress"
   },
-  "toggleInspector": "Show or Hide Details",
+  "toggleRightSidebar": "Show or Hide Right Sidebar",
   "inspector": "Details",
   "details": "Details",
   "closeInspector": "Close Details",

@@ -1,7 +1,7 @@
 import { listen } from "@tauri-apps/api/event";
 import { error as logError } from "@tauri-apps/plugin-log";
 import { useTimeoutFn } from "@vueuse/core";
-import { computed, onMounted, onUnmounted, provide, shallowRef, watchEffect } from "vue";
+import { computed, nextTick, onMounted, onUnmounted, provide, shallowRef, watchEffect } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 
@@ -9,10 +9,7 @@ import { bindCommandShortcuts } from "../foundation/commands/command-shortcuts";
 import { runAppCommand } from "../foundation/commands/run-app-command";
 import { createAsyncDisposer } from "../foundation/lifecycle/async-disposer";
 import type { WorkspaceDefinition } from "../shared/contracts/workspace-definition";
-import {
-  workspaceInspectorKey,
-  type WorkspaceInspectorPresentation,
-} from "../shared/contracts/workspace-inspector";
+import { workspaceRightSidebarKey } from "../shared/contracts/workspace-right-sidebar";
 import { workspaceSidebarKey } from "../shared/contracts/workspace-sidebar";
 import { createShellCommands } from "./commands";
 import { workspaceSidebarGeometry } from "./sidebar-geometry";
@@ -26,9 +23,8 @@ export function useShellController(workspace: WorkspaceDefinition) {
   const sidebarWidth = shallowRef<number>(workspaceSidebarGeometry.defaultSize);
   const sidebarPreview = shallowRef(false);
   const sidebarPreviewArmed = shallowRef(true);
-  const inspectorOpen = shallowRef(false);
-  const inspectorWidth = shallowRef(workspace.inspectorLayout.minSize);
-  const inspectorPresentation = shallowRef<WorkspaceInspectorPresentation>("floating");
+  const rightSidebarOpen = shallowRef(false);
+  const rightSidebarWidth = shallowRef(workspace.rightSidebarLayout.defaultSize);
   const workspaceActive = computed(() => route.name === "spaces");
   const sidebarVisible = computed(
     () => workspaceActive.value && (sidebarPinned.value || sidebarPreview.value),
@@ -73,26 +69,30 @@ export function useShellController(workspace: WorkspaceDefinition) {
     cancelSidebarPreviewClose();
     sidebarPreview.value = false;
   }
-  function toggleInspectorPanel() {
-    if (!workspaceActive.value) return;
-    inspectorOpen.value = !inspectorOpen.value;
+  function toggleRightSidebar() {
+    if (!workspaceActive.value || !workspace.rightSidebarAvailable.value) return;
+    if (rightSidebarOpen.value) {
+      rightSidebarOpen.value = false;
+    } else {
+      workspace.openDefaultRightSidebar();
+      rightSidebarOpen.value = true;
+    }
   }
-  function openInspectorPanel(
-    preferredSize?: number,
-    presentation: WorkspaceInspectorPresentation = "floating",
-  ) {
-    if (!workspaceActive.value) return;
-    if (preferredSize !== undefined) inspectorWidth.value = preferredSize;
-    inspectorPresentation.value = presentation;
-    inspectorOpen.value = true;
+  function openRightSidebar() {
+    if (!workspaceActive.value || !workspace.rightSidebarAvailable.value) return;
+    rightSidebarOpen.value = true;
   }
-  function setInspectorWidth(value: number) {
-    inspectorWidth.value = value;
+  function setRightSidebarWidth(value: number) {
+    rightSidebarWidth.value = value;
   }
-  function closeInspectorPanel() {
-    inspectorOpen.value = false;
+  function closeRightSidebar() {
+    rightSidebarOpen.value = false;
+    void nextTick(() => document.getElementById("workspace-right-sidebar-toggle")?.focus());
   }
-  provide(workspaceInspectorKey, { open: openInspectorPanel, close: closeInspectorPanel });
+  provide(workspaceRightSidebarKey, { open: openRightSidebar, close: closeRightSidebar });
+  watchEffect(() => {
+    if (!workspace.rightSidebarAvailable.value) rightSidebarOpen.value = false;
+  });
   provide(workspaceSidebarKey, { reveal: () => setSidebarPinned(true) });
   const shortcutsOpen = shallowRef(false);
   const commands = computed(() =>
@@ -102,14 +102,14 @@ export function useShellController(workspace: WorkspaceDefinition) {
         openSettings: () => void router.push("/settings"),
         openShortcuts: () => (shortcutsOpen.value = true),
         toggleSidebar: toggleSidebarPanel,
-        toggleInspector: toggleInspectorPanel,
+        toggleRightSidebar,
       },
       labels: {
         settings: t("settings.general.title"),
         commandPalette: t("shell.commandPalette"),
         shortcuts: t("shell.keyboardShortcuts"),
         toggleSidebar: t("shell.toggleSidebar"),
-        toggleInspector: t("shell.toggleInspector"),
+        toggleRightSidebar: t("shell.toggleRightSidebar"),
       },
     }),
   );
@@ -133,21 +133,20 @@ export function useShellController(workspace: WorkspaceDefinition) {
     sidebarPinned,
     sidebarWidth,
     sidebarPreview,
-    inspectorOpen,
-    inspectorWidth,
-    inspectorPresentation,
+    rightSidebarOpen,
+    rightSidebarWidth,
     workspaceActive,
     commands,
     toggleSidebarPanel,
     toggleSidebarFromControl,
     setSidebarPinned,
     setSidebarWidth,
-    setInspectorWidth,
+    setRightSidebarWidth,
     openSidebarPreview,
     armSidebarPreview,
     scheduleSidebarPreviewClose,
     closeSidebarPreview,
-    toggleInspectorPanel,
-    closeInspectorPanel,
+    toggleRightSidebar,
+    closeRightSidebar,
   };
 }

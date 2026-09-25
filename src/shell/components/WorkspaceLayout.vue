@@ -4,12 +4,11 @@ import { computed, onMounted, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import type { WorkspaceDefinition } from "../../shared/contracts/workspace-definition";
-import type { WorkspaceInspectorPresentation } from "../../shared/contracts/workspace-inspector";
 import UiSplitterHandle from "../../shared/ui/UiSplitterHandle.vue";
 import FeatureErrorBoundary from "../FeatureErrorBoundary.vue";
 import { workspaceSidebarGeometry } from "../sidebar-geometry";
-import InspectorPanel from "./InspectorPanel.vue";
 import TaskCenter from "./TaskCenter.vue";
+import WorkspaceRightSidebar from "./WorkspaceRightSidebar.vue";
 import WorkspaceSidebar from "./WorkspaceSidebar.vue";
 
 const props = defineProps<{
@@ -18,27 +17,25 @@ const props = defineProps<{
   sidebarPinned: boolean;
   sidebarWidth: number;
   sidebarPreview: boolean;
-  inspectorOpen: boolean;
-  inspectorWidth: number;
-  inspectorPresentation: WorkspaceInspectorPresentation;
+  rightSidebarOpen: boolean;
+  rightSidebarWidth: number;
 }>();
 const emit = defineEmits<{
   "set-sidebar-pinned": [value: boolean];
   "set-sidebar-width": [value: number];
-  "set-inspector-width": [value: number];
+  "set-right-sidebar-width": [value: number];
   "open-sidebar-preview": [];
   "schedule-sidebar-close": [];
   "close-sidebar-preview": [];
 }>();
 const { t } = useI18n();
 const motionReady = shallowRef(false);
-const inspectorWidth = computed(() =>
+const rightSidebarWidth = computed(() =>
   Math.min(
-    props.workspace.inspectorLayout.maxSize,
-    Math.max(props.workspace.inspectorLayout.minSize, props.inspectorWidth),
+    props.workspace.rightSidebarLayout.maxSize,
+    Math.max(props.workspace.rightSidebarLayout.minSize, props.rightSidebarWidth),
   ),
 );
-const inspectorDocked = computed(() => props.inspectorOpen && props.inspectorPresentation === "dock");
 
 onMounted(() => {
   requestAnimationFrame(() => requestAnimationFrame(() => (motionReady.value = true)));
@@ -80,40 +77,35 @@ function updateSidebarWidth(size: number) {
       <SplitterPanel id="spaces-work-area" :order="2" :min-size="35">
         <main
           class="h-full min-w-0 transition-[padding-left] duration-200 ease-standard select-text"
-          :class="[sidebarPinned ? 'pb-2' : 'pb-2 pl-2', inspectorDocked ? '' : 'pr-2']"
+          :class="[sidebarPinned ? 'pb-2' : 'pb-2 pl-2', rightSidebarOpen ? '' : 'pr-2']"
         >
           <div
             class="relative h-full min-h-0 overflow-hidden border border-window-hairline bg-canvas shadow-workspace"
-            :class="inspectorDocked ? 'rounded-l-workspace border-r-0' : 'rounded-workspace'"
+            :class="rightSidebarOpen ? 'rounded-l-workspace border-r-0' : 'rounded-workspace'"
           >
             <FeatureErrorBoundary reset-key="spaces">
               <component :is="workspace.view" />
             </FeatureErrorBoundary>
-            <div
-              class="absolute bottom-3 z-30"
-              :style="{
-                right: `${inspectorOpen && inspectorPresentation === 'floating' ? inspectorWidth + 24 : 12}px`,
-              }"
-            >
+            <div class="absolute right-3 bottom-3 z-30">
               <TaskCenter />
             </div>
           </div>
         </main>
       </SplitterPanel>
 
-      <template v-if="inspectorDocked">
+      <template v-if="rightSidebarOpen">
         <UiSplitterHandle />
         <SplitterPanel
-          id="spaces-inspector"
+          id="spaces-right-sidebar"
           :order="3"
           size-unit="px"
-          :default-size="inspectorWidth"
-          :min-size="workspace.inspectorLayout.minSize"
-          :max-size="workspace.inspectorLayout.maxSize"
-          @resize="emit('set-inspector-width', $event)"
+          :default-size="rightSidebarWidth"
+          :min-size="workspace.rightSidebarLayout.minSize"
+          :max-size="workspace.rightSidebarLayout.maxSize"
+          @resize="emit('set-right-sidebar-width', $event)"
         >
           <div class="h-full min-h-0 pr-4 pb-2">
-            <InspectorPanel class="h-full min-h-0" :workspace="workspace" />
+            <WorkspaceRightSidebar class="h-full min-h-0" :workspace="workspace" />
           </div>
         </SplitterPanel>
       </template>
@@ -132,18 +124,6 @@ function updateSidebarWidth(size: number) {
       @pointerenter="emit('open-sidebar-preview')"
       @pointerleave="emit('schedule-sidebar-close')"
     />
-
-    <Transition name="workspace-inspector">
-      <div
-        v-if="inspectorOpen && inspectorPresentation === 'floating'"
-        class="workspace-inspector-panel absolute inset-y-0 right-4 z-20 min-h-0 pb-2"
-        :style="{ width: `${inspectorWidth}px` }"
-        :aria-hidden="!inspectorOpen || inspectorPresentation !== 'floating'"
-        :inert="!inspectorOpen || inspectorPresentation !== 'floating'"
-      >
-        <InspectorPanel class="h-full min-h-0" :workspace="workspace" />
-      </div>
-    </Transition>
 
     <div
       v-if="!sidebarPinned && !sidebarPreview"

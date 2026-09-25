@@ -1,7 +1,8 @@
 import type { SpacePlacement } from "../../canvas/navigation-requests";
-import { createInspectorActions } from "../../inspector/inspector-actions";
+import { createWorkflowPanelActions } from "../../canvas/workflow-panel-actions";
 import { createSpaceMediaActions } from "../../media/actions";
 import { createSpaceAudioRecordingActions } from "../../media/audio-recording-actions";
+import { createRightSidebarActions } from "../../right-sidebar/right-sidebar-actions";
 import { materializeActiveSpace } from "../../workspace/draft-space-actions";
 import type { SpaceSessionContext } from "../../workspace/space-session-actions";
 import type { SpaceState } from "../session-state";
@@ -64,7 +65,7 @@ export function createSpaceActions(state: SpaceState, placement: SpacePlacement)
     relations: state.relations,
     recordCommittedSpaceEdit: structure.recordCommittedSpaceEdit,
   });
-  const context = createInspectorActions(state, placement, media.requestMediaSeek);
+  const context = createRightSidebarActions(state, placement, media.requestMediaSeek);
   const view = createSpaceViewActions(state, placement);
   const actions = assembleSpaceActions({
     state,
@@ -85,6 +86,7 @@ export function createSpaceActions(state: SpaceState, placement: SpacePlacement)
   });
   return {
     ...actions,
+    ...createWorkflowPanelActions(state),
     ...audioRecording,
     ensureActiveSpacePersisted: () => materializeActiveSpace(spaceContext),
     ...canvasImport,

@@ -46,6 +46,8 @@
   "filterOutline": "筛选大纲",
   "noOutlineResults": "未找到匹配的大纲节点。",
   "editorOutline": "文档大纲",
+  "editorOutlineEmpty": "这篇文档还没有标题。",
+  "rightSidebarViews": "右侧栏视图",
   "scenes": "场景",
   "collapseScenes": "收起场景控制",
   "expandScenes": "展开场景控制",

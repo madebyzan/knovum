@@ -46,6 +46,8 @@
   "filterOutline": "Filter Outline",
   "noOutlineResults": "No matching outline nodes.",
   "editorOutline": "Document Outline",
+  "editorOutlineEmpty": "This document has no headings yet.",
+  "rightSidebarViews": "Right sidebar views",
   "scenes": "Scenes",
   "collapseScenes": "Collapse Scene Controls",
   "expandScenes": "Expand Scene Controls",

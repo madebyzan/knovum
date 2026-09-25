@@ -2,8 +2,9 @@ import type { SpacePlacement } from "../canvas/navigation-requests";
 import type { ConversationScope } from "../conversation/conversation-scope";
 import type { KnowledgePeekTarget } from "../knowledge/model/knowledge-peek-target";
 import type { SpaceState } from "../session/session-state";
+import type { RightSidebarPrimaryView } from "../session/workbench-state";
 
-export interface AskInspectorOptions {
+export interface AskSidebarOptions {
   restart?: boolean;
   nodeIds?: string[];
 }
@@ -12,31 +13,19 @@ export interface OpenSourceOptions {
   reveal?: boolean;
 }
 
-export function createInspectorActions(
+export function createRightSidebarActions(
   state: SpaceState,
   placement: SpacePlacement,
   requestMediaSeek: (nodeId: string, timeMs: number) => void,
 ) {
-  function setInspectorMode(mode: "inspect" | "ask") {
+  function setRightSidebarView(mode: RightSidebarPrimaryView) {
     state.sourcePeek.value = undefined;
-    state.inspectorMode.value = mode;
+    state.rightSidebarView.value = mode;
   }
 
-  function openWorkflowCapture(nodeIds: string[]) {
+  function requestAsk(scope: ConversationScope, options: AskSidebarOptions = {}) {
     state.sourcePeek.value = undefined;
-    state.workflowCaptureSelection.value = [...nodeIds];
-    state.inspectorMode.value = "workflow";
-  }
-
-  function openWorkflowUse(nodeIds: string[]) {
-    state.sourcePeek.value = undefined;
-    state.workflowCaptureSelection.value = [...nodeIds];
-    state.inspectorMode.value = "workflow-use";
-  }
-
-  function requestAsk(scope: ConversationScope, options: AskInspectorOptions = {}) {
-    state.sourcePeek.value = undefined;
-    state.inspectorMode.value = "ask";
+    state.rightSidebarView.value = "ask";
     state.askScopeRequest.value = {
       scope,
       restart: options.restart ?? false,
@@ -50,11 +39,10 @@ export function createInspectorActions(
   }
 
   function openSource(target: KnowledgePeekTarget, options: OpenSourceOptions = {}) {
-    if (state.inspectorMode.value !== "source") {
-      state.sourceReturnMode.value = state.inspectorMode.value === "ask" ? "ask" : "inspect";
-    }
+    const currentView = state.rightSidebarView.value;
+    if (currentView !== "source") state.sourceReturnView.value = currentView;
     state.sourcePeek.value = target;
-    state.inspectorMode.value = "source";
+    state.rightSidebarView.value = "source";
     if (options.reveal !== false) placement.requestReveal([target.nodeId], "ensure-visible");
     if (target.locator.location.kind === "media") {
       requestMediaSeek(target.nodeId, target.locator.location.startMs);
@@ -63,7 +51,7 @@ export function createInspectorActions(
 
   function closeSource() {
     state.sourcePeek.value = undefined;
-    state.inspectorMode.value = state.sourceReturnMode.value;
+    state.rightSidebarView.value = state.sourceReturnView.value;
   }
 
   function openEditorAtSource(target: KnowledgePeekTarget) {
@@ -76,9 +64,7 @@ export function createInspectorActions(
   }
 
   return {
-    setInspectorMode,
-    openWorkflowCapture,
-    openWorkflowUse,
+    setRightSidebarView,
     requestAsk,
     clearAskScopeRequest,
     openSource,

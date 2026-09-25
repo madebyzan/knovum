@@ -8,7 +8,7 @@ defineProps<{ workspace: WorkspaceDefinition }>();
   <div class="flex h-full min-w-0 flex-col items-stretch overflow-hidden select-none">
     <div class="flex min-h-0 flex-1 items-start overflow-hidden select-text">
       <KeepAlive :max="4">
-        <component :is="workspace.inspector" />
+        <component :is="workspace.rightSidebar" />
       </KeepAlive>
     </div>
   </div>

@@ -47,7 +47,7 @@ const selectionSurfaceKind = computed(() => {
   return tool ? "compact-editor" : "actions";
 });
 const showSelectionActions = computed(() => {
-  if (store.inspectorMode === "workflow" || store.inspectorMode === "workflow-use") return false;
+  if (store.workflowMode) return false;
   const operation = nodeOperations.active.value;
   return !operation || operation.kind === "image-edit" || operation.kind === "image-comment";
 });
@@ -143,7 +143,7 @@ const selectionBarGap = computed(() => {
       />
     </SpaceCanvasSelectionAnchor>
     <SpaceCanvasWorkflowPanel
-      v-if="store.inspectorMode === 'workflow' || store.inspectorMode === 'workflow-use'"
+      v-if="store.workflowMode"
       :canvas-to-viewport-point="canvasToViewportPoint"
       :safe-area="canvasChromeInsets"
       :reserved="chromeRects"

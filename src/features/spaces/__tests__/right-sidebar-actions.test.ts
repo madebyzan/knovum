@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { createSpacePlacement } from "../canvas/navigation-requests";
-import { createInspectorActions } from "../inspector/inspector-actions";
+import { createRightSidebarActions } from "../right-sidebar/right-sidebar-actions";
 import { createSpaceState } from "../session/session-state";
 
 function setup() {
@@ -17,22 +17,38 @@ function setup() {
   const requestMediaSeek = vi.fn<(nodeId: string, timeMs: number) => void>();
   return {
     state,
-    actions: createInspectorActions(state, placement, requestMediaSeek),
+    actions: createRightSidebarActions(state, placement, requestMediaSeek),
     requestMediaSeek,
   };
 }
 
 describe("Space context dock actions", () => {
+  it("defaults to Conversation and returns a source to the document Outline", () => {
+    const { state, actions } = setup();
+    expect(state.rightSidebarView.value).toBe("ask");
+    actions.setRightSidebarView("document-outline");
+    actions.openSource(
+      {
+        nodeId: "note-1",
+        nodeTitle: "Research",
+        locator: { sourceRevision: "1", location: { kind: "note" } },
+      },
+      { reveal: false },
+    );
+    actions.closeSource();
+    expect(state.rightSidebarView.value).toBe("document-outline");
+  });
+
   it("opens Ask with an explicit contextual scope request", () => {
     const { state, actions } = setup();
     actions.requestAsk("selection");
-    expect(state.inspectorMode.value).toBe("ask");
+    expect(state.rightSidebarView.value).toBe("ask");
     expect(state.askScopeRequest.value).toMatchObject({ scope: "selection", restart: false });
   });
 
   it("returns a citation source to the previous Ask mode", () => {
     const { state, actions } = setup();
-    actions.setInspectorMode("ask");
+    actions.setRightSidebarView("ask");
     actions.openSource(
       {
         nodeId: "note-1",
@@ -45,13 +61,14 @@ describe("Space context dock actions", () => {
       },
       { reveal: false },
     );
-    expect(state.inspectorMode.value).toBe("source");
+    expect(state.rightSidebarView.value).toBe("source");
     actions.closeSource();
-    expect(state.inspectorMode.value).toBe("ask");
+    expect(state.rightSidebarView.value).toBe("ask");
   });
 
   it("returns inspector evidence to Inspect mode and seeks media evidence", () => {
     const { state, actions, requestMediaSeek } = setup();
+    actions.setRightSidebarView("inspect");
     actions.openSource(
       {
         nodeId: "video-1",
@@ -65,7 +82,7 @@ describe("Space context dock actions", () => {
     );
     expect(requestMediaSeek).toHaveBeenCalledWith("video-1", 1200);
     actions.closeSource();
-    expect(state.inspectorMode.value).toBe("inspect");
+    expect(state.rightSidebarView.value).toBe("inspect");
   });
 
   it("reveals cited nodes without changing the user's canvas scale", () => {

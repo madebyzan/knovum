@@ -18,15 +18,15 @@ const {
   sidebarPinned,
   sidebarWidth,
   sidebarPreview,
-  inspectorOpen,
-  inspectorWidth,
-  inspectorPresentation,
+  rightSidebarOpen,
+  rightSidebarWidth,
   workspaceActive,
   commands,
   toggleSidebarFromControl,
+  toggleRightSidebar,
   setSidebarPinned,
   setSidebarWidth,
-  setInspectorWidth,
+  setRightSidebarWidth,
   openSidebarPreview,
   armSidebarPreview,
   scheduleSidebarPreviewClose,
@@ -56,6 +56,8 @@ const {
       :workspace="workspace"
       :sidebar-pinned="sidebarPinned"
       :sidebar-width="sidebarWidth"
+      :right-sidebar-open="rightSidebarOpen"
+      @toggle-right-sidebar="toggleRightSidebar"
       @toggle-sidebar="toggleSidebarFromControl"
       @preview-sidebar="openSidebarPreview"
       @cancel-sidebar-preview="armSidebarPreview"
@@ -67,12 +69,11 @@ const {
       :sidebar-pinned="sidebarPinned"
       :sidebar-width="sidebarWidth"
       :sidebar-preview="sidebarPreview"
-      :inspector-open="inspectorOpen"
-      :inspector-width="inspectorWidth"
-      :inspector-presentation="inspectorPresentation"
+      :right-sidebar-open="rightSidebarOpen"
+      :right-sidebar-width="rightSidebarWidth"
       @set-sidebar-pinned="setSidebarPinned"
       @set-sidebar-width="setSidebarWidth"
-      @set-inspector-width="setInspectorWidth"
+      @set-right-sidebar-width="setRightSidebarWidth"
       @open-sidebar-preview="openSidebarPreview"
       @schedule-sidebar-close="scheduleSidebarPreviewClose"
       @close-sidebar-preview="closeSidebarPreview"
