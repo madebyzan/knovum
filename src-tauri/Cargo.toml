@@ -59,7 +59,7 @@ encoding_rs = "0.8.35"
 genai = "=0.6.5"
 rig-core = { version = "=0.42.0", default-features = false }
 rig-agent = { version = "=0.42.0", default-features = false }
-async-openai = { version = "=0.41.3", default-features = false, features = ["image", "rustls"] }
+async-openai = { version = "=0.42.0", default-features = false, features = ["image", "rustls"] }
 docx-rs = { version = "=0.4.22", default-features = false, features = ["image"] }
 pulldown-cmark = "=0.13.0"
 typst-as-lib = { version = "=0.16.0", default-features = false, features = ["typst-kit-fonts"] }
