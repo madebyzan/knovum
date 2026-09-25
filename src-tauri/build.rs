@@ -134,6 +134,7 @@ fn main() {
                         "list_knowledge_chunks",
                         "search_knowledge_global",
                         "search_knowledge_hybrid",
+                        "list_related_content",
                         "index_knowledge",
                         "rebuild_knowledge_retrieval_index",
                         "collect_space_package_snapshot",

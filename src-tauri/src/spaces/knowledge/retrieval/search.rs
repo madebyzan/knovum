@@ -35,11 +35,17 @@ pub(crate) async fn search_semantic_vector<R: Runtime>(
     space_id: &str,
     query: &[f32],
     node_ids: Option<&[String]>,
+    exclude_node_id: Option<&str>,
     limit: i64,
 ) -> Result<Vec<Value>, String> {
     validate_query_vector(query, limit)?;
     let table = open_knowledge_table(app).await?;
-    let filter = build_filter(space_id, embedding_contract::active_model_id(), node_ids);
+    let filter = build_filter(
+        space_id,
+        embedding_contract::active_model_id(),
+        node_ids,
+        exclude_node_id,
+    );
     let batches = table
         .vector_search(query.to_vec())
         .map_err(|error| format!("Failed to prepare LanceDB vector search: {error}"))?
@@ -57,7 +63,12 @@ pub(crate) async fn search_semantic_vector<R: Runtime>(
     current_chunks::filter(pool, space_id, values).await
 }
 
-fn build_filter(space_id: &str, model: &str, node_ids: Option<&[String]>) -> String {
+fn build_filter(
+    space_id: &str,
+    model: &str,
+    node_ids: Option<&[String]>,
+    exclude_node_id: Option<&str>,
+) -> String {
     let mut filter = format!(
         "space_id = '{}' AND model = '{}'",
         escape_sql_literal(space_id),
@@ -72,6 +83,11 @@ fn build_filter(space_id: &str, model: &str, node_ids: Option<&[String]>) -> Str
         filter.push_str(" AND node_id IN (");
         filter.push_str(&quoted_ids);
         filter.push(')');
+    }
+    if let Some(id) = exclude_node_id {
+        filter.push_str(" AND node_id != '");
+        filter.push_str(&escape_sql_literal(id));
+        filter.push('\'');
     }
     filter
 }

@@ -208,6 +208,13 @@ Source modes use a full-height resizable trailing dock that participates in the 
 canvas visible instead of covering it. Neither presentation participates in the navigation splitter or changes
 the sidebar width, preserving the user's spatial frame.
 
+The floating Details inspector uses a content-first hierarchy: editable identity and direct actions, the
+content preview and type-specific details, derivation and knowledge relationships, related content, then
+collapsible file metadata. Related content is discovered from the current Space's semantic index rather than
+persisted as a relation; selecting a result reveals it on the canvas without creating a line. The UI separates
+unindexed content, indexing, no matches and retrieval failure. It does not display synthetic similarity
+percentages. Details remains a compact workbench surface rather than a full-height settings page.
+
 The primary workspace surface is flush with the toolbar bottom. It is flush with the leading sidebar edge while
 the sidebar is pinned; when the sidebar is collapsed, an 8px leading window inset matches the trailing and bottom
 insets. Hover preview remains an overlay and does not change this geometry. The surface uses a 12px workspace

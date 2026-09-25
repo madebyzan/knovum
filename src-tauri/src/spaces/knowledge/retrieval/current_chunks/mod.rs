@@ -30,9 +30,10 @@ pub(super) async fn filter(
         return Ok(Vec::new());
     }
     let rows = sqlx::query(
-        "SELECT c.space_id, c.id FROM spaces_current_knowledge_chunks c \
+        "SELECT c.space_id, c.id, c.source_revision FROM spaces_current_knowledge_chunks c \
+         JOIN spaces_nodes n ON n.id=c.node_id AND n.space_id=c.space_id \
          WHERE c.space_id IN (SELECT value FROM json_each($1)) \
-           AND c.id IN (SELECT value FROM json_each($2))",
+           AND c.id IN (SELECT value FROM json_each($2)) AND n.deleted_at IS NULL",
     )
     .bind(serde_json::to_string(&space_ids).map_err(db::json_error)?)
     .bind(serde_json::to_string(&chunk_ids).map_err(db::json_error)?)
@@ -44,7 +45,8 @@ pub(super) async fn filter(
         .map(|row| {
             let space_id: String = row.try_get("space_id").map_err(db::sql_error)?;
             let chunk_id: String = row.try_get("id").map_err(db::sql_error)?;
-            Ok(format!("{space_id}:{chunk_id}"))
+            let revision: String = row.try_get("source_revision").map_err(db::sql_error)?;
+            Ok(format!("{space_id}:{chunk_id}:{revision}"))
         })
         .collect::<Result<HashSet<_>, String>>()?;
     Ok(values
@@ -54,11 +56,14 @@ pub(super) async fn filter(
                 .get("chunkId")
                 .and_then(Value::as_str)
                 .is_some_and(|chunk_id| {
+                    let Some(revision) = value.get("sourceRevision").and_then(Value::as_str) else {
+                        return false;
+                    };
                     let space_id = value
                         .get("spaceId")
                         .and_then(Value::as_str)
                         .unwrap_or(default_space_id);
-                    valid.contains(&format!("{space_id}:{chunk_id}"))
+                    valid.contains(&format!("{space_id}:{chunk_id}:{revision}"))
                 })
         })
         .collect())

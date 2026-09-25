@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import { convertFileSrc } from "@tauri-apps/api/core";
+import { ArrowUpRight, LocateFixed } from "@lucide/vue";
 import { camelCase } from "es-toolkit";
-import { computed, ref, watch } from "vue";
+import { computed, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
+import UiButton from "../../../shared/ui/UiButton.vue";
 import UiInput from "../../../shared/ui/UiInput.vue";
+import { isSpaceNodeOpenable, openSpaceNode, selectAndRevealSpaceNode } from "../canvas/selection-actions";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
-import { isSpaceManagedAssetPayload } from "../model/nodes/capabilities";
+import { useSpaceStore } from "../session/space-store";
 import { nodeIcon } from "./node-icon";
 import { useNodeDraft } from "./use-node-draft";
 
@@ -16,19 +18,26 @@ const props = defineProps<{
   saveTitle: (node: SpaceCanvasNode, value: string) => Promise<void>;
 }>();
 const { t } = useI18n();
-const draft = ref(props.node.data.title);
-const editing = ref(false);
-const saving = ref(false);
+const store = useSpaceStore();
+const draft = shallowRef(props.node.data.title);
+const editing = shallowRef(false);
+const saving = shallowRef(false);
 const nodeDraft = useNodeDraft(
   computed(() => props.node.id),
   "title",
 );
+const typeLabel = computed(() => t(`spaces.nodeTypes.${camelCase(props.node.data.kind)}`));
+const kindIcon = computed(() => nodeIcon(props.node.data.kind));
+const modifiedAt = computed(() => {
+  const data = props.node.data;
+  return "modifiedAt" in data && typeof data.modifiedAt === "number"
+    ? new Date(data.modifiedAt).toLocaleString()
+    : undefined;
+});
 
 watch(
   () => props.node.data.title,
-  (value) => {
-    draft.value = value;
-  },
+  (value) => (draft.value = value),
 );
 watch(
   () => props.node.id,
@@ -38,14 +47,6 @@ watch(
 function beginEdit() {
   if (nodeDraft.begin()) editing.value = true;
 }
-
-const typeLabel = computed(() => t(`spaces.nodeTypes.${camelCase(props.node.data.kind)}`));
-const previewUrl = computed(() => {
-  const data = props.node.data;
-  const previewPath = isSpaceManagedAssetPayload(data) ? data.previewPath : undefined;
-  return previewPath ? convertFileSrc(previewPath) : undefined;
-});
-const kindIcon = computed(() => nodeIcon(props.node.data.kind));
 
 async function submit() {
   if (!editing.value || saving.value) return;
@@ -72,47 +73,55 @@ function cancel() {
   nodeDraft.end();
   draft.value = props.node.data.title;
 }
+
+async function open() {
+  try {
+    await openSpaceNode(store, props.node);
+  } catch (error) {
+    toast.error(String(error));
+  }
+}
 </script>
 
 <template>
-  <div class="flex items-center gap-2.5 px-3 py-3">
-    <div
-      class="relative shrink-0 overflow-hidden rounded-control border border-divider bg-control"
-      :class="previewUrl ? 'size-10' : 'grid size-9 place-items-center'"
-    >
-      <img v-if="previewUrl" :src="previewUrl" alt="" class="size-full object-contain" />
-      <component
-        :is="kindIcon"
-        v-else
-        class="size-(--knovum-icon-size-md) text-foreground-tertiary"
-        :stroke-width="1.5"
-      />
+  <div class="px-4 pt-5 pb-4">
+    <div class="flex items-center gap-1.5 text-caption text-foreground-tertiary">
+      <component :is="kindIcon" class="size-(--knovum-icon-size-xs)" :stroke-width="1.6" />
+      <span>{{ typeLabel }}</span>
     </div>
-    <div class="min-w-0 flex-1">
-      <div class="flex min-h-(--knovum-control-height-sm) items-center">
-        <button
-          v-if="!editing"
-          type="button"
-          class="min-w-0 flex-1 text-left disabled:cursor-not-allowed"
-          :disabled="!nodeDraft.available.value"
-          @click="beginEdit"
-        >
-          <h2 class="truncate text-body-lg font-semibold tracking-title text-foreground">
-            {{ node.data.title }}
-          </h2>
-        </button>
-        <UiInput
-          v-else
-          v-model="draft"
-          :disabled="saving"
-          size="sm"
-          class="text-body-lg font-semibold tracking-title"
-          @blur="submit"
-          @keydown.enter.prevent="submit"
-          @keydown.esc.prevent="cancel"
-        />
-      </div>
-      <span class="text-micro text-foreground-tertiary">{{ typeLabel }}</span>
+    <button
+      v-if="!editing"
+      type="button"
+      class="mt-2 block w-full text-left disabled:cursor-default"
+      :disabled="!nodeDraft.available.value"
+      :title="t('spaces.inspector.renameHint')"
+      @click="beginEdit"
+    >
+      <h2 class="text-title leading-snug font-semibold tracking-title wrap-break-word text-foreground">
+        {{ node.data.title }}
+      </h2>
+    </button>
+    <UiInput
+      v-else
+      v-model="draft"
+      :disabled="saving"
+      class="mt-2 w-full text-title font-semibold"
+      @blur="submit"
+      @keydown.enter.prevent="submit"
+      @keydown.esc.prevent="cancel"
+    />
+    <p v-if="modifiedAt" class="mt-1 text-caption text-foreground-tertiary">
+      {{ t("spaces.inspector.detailModified") }} · {{ modifiedAt }}
+    </p>
+    <div class="mt-3 flex flex-wrap items-center gap-1.5">
+      <UiButton v-if="isSpaceNodeOpenable(node)" size="sm" @click="open">
+        {{ t("spaces.inspector.openContent") }}
+        <ArrowUpRight class="size-(--knovum-icon-size-xs)" />
+      </UiButton>
+      <UiButton size="sm" variant="ghost" @click="selectAndRevealSpaceNode(node.id)">
+        <LocateFixed class="size-(--knovum-icon-size-xs)" />
+        {{ t("spaces.inspector.locateOnCanvas") }}
+      </UiButton>
     </div>
   </div>
 </template>

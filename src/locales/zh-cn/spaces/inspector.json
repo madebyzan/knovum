@@ -19,5 +19,20 @@
   "source": "来源",
   "basedOn": "推导基于",
   "targetSpace": "目标空间",
-  "none": "未设置"
+  "none": "未设置",
+  "renameHint": "点击重命名",
+  "openContent": "打开内容",
+  "locateOnCanvas": "在画布中定位",
+  "content": "内容",
+  "excerpt": "内容摘录",
+  "playVideo": "播放视频",
+  "relatedContent": "相关内容",
+  "showRelated": "查看更多",
+  "relatedUnavailable": "相关内容暂时无法检索。",
+  "relatedIndexing": "正在建立内容索引，完成后会显示相关内容。",
+  "relatedNotIndexed": "当前内容尚未准备好相关内容检索。",
+  "prepareRelated": "开始准备",
+  "relatedNoContent": "当前内容尚无可检索的信息。",
+  "relatedEmpty": "当前空间暂无相关内容。",
+  "relatedExplanation": "根据内容语义在当前空间中发现关联；结果不会自动建立连线。"
 }

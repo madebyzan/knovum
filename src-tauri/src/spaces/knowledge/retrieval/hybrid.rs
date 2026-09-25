@@ -59,6 +59,7 @@ pub async fn search<R: Runtime>(
                     space_id,
                     &vector,
                     request.node_ids.as_deref(),
+                    None,
                     MATCH_LIMIT as i64,
                 )
                 .await
@@ -95,21 +96,16 @@ async fn search_all_spaces<R: Runtime>(
     for row in rows {
         let space_id: String = row.try_get("id").map_err(db::sql_error)?;
         let space_title: String = row.try_get("title").map_err(db::sql_error)?;
-        let mut space_matches = match search_semantic_vector(
-            app,
-            &space_id,
-            vector,
-            None,
-            SPACE_SEMANTIC_LIMIT,
-        )
-        .await
-        {
-            Ok(found) => found,
-            Err(error) => {
-                log::warn!("semantic vector search failed for space {space_id}: {error}");
-                continue;
-            }
-        };
+        let mut space_matches =
+            match search_semantic_vector(app, &space_id, vector, None, None, SPACE_SEMANTIC_LIMIT)
+                .await
+            {
+                Ok(found) => found,
+                Err(error) => {
+                    log::warn!("semantic vector search failed for space {space_id}: {error}");
+                    continue;
+                }
+            };
         for value in &mut space_matches {
             let object = value
                 .as_object_mut()

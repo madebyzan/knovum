@@ -8,7 +8,7 @@ import { useSpaceStore } from "../session/space-store";
 import { useCanvasEditorSession } from "./editor-session";
 
 const DOCK_WIDTH = {
-  inspect: 300,
+  inspect: 380,
   ask: 420,
   source: 420,
 } as const;

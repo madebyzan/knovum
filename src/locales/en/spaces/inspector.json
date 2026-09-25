@@ -19,5 +19,20 @@
   "source": "Source",
   "basedOn": "Inferred From",
   "targetSpace": "Target Space",
-  "none": "Not Set"
+  "none": "Not Set",
+  "renameHint": "Click to rename",
+  "openContent": "Open content",
+  "locateOnCanvas": "Locate on canvas",
+  "content": "Content",
+  "excerpt": "Content excerpt",
+  "playVideo": "Play video",
+  "relatedContent": "Related content",
+  "showRelated": "Show more",
+  "relatedUnavailable": "Related content is temporarily unavailable.",
+  "relatedIndexing": "Building the content index. Related content will appear when it is ready.",
+  "relatedNotIndexed": "Related content is not prepared for this item yet.",
+  "prepareRelated": "Prepare now",
+  "relatedNoContent": "This item has no searchable content yet.",
+  "relatedEmpty": "No related content in this Space yet.",
+  "relatedExplanation": "Discover related content in this Space by meaning. Results do not create connections."
 }

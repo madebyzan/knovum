@@ -16,13 +16,11 @@ const knowledge = computed(() => {
 <template>
   <div>
     <template v-if="knowledge">
-      <p
-        class="rounded-control bg-accent-subtle/50 px-2.5 py-2 text-caption leading-relaxed text-foreground select-text"
-      >
+      <p class="text-body leading-relaxed text-foreground-secondary select-text">
         {{ knowledge.description }}
       </p>
       <div v-if="knowledge.detectedText" class="mt-3">
-        <h4 class="text-micro font-semibold tracking-wide text-foreground-tertiary uppercase">
+        <h4 class="text-caption font-medium text-foreground-tertiary">
           {{ t("spaces.inspector.visualDetectedText") }}
         </h4>
         <pre

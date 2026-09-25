@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowRightLeft, MessageSquareQuote, ScanText, Sparkles } from "@lucide/vue";
+import { ArrowRightLeft, MessageSquareQuote, ScanText } from "@lucide/vue";
 
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import SpaceKnowledgeObjectDetails from "./knowledge/SpaceKnowledgeObjectDetails.vue";
@@ -8,7 +8,6 @@ import SpaceDocumentCoverage from "./SpaceDocumentCoverage.vue";
 import SpaceInspectorSection from "./SpaceInspectorSection.vue";
 import SpacePortalDetails from "./SpacePortalDetails.vue";
 import SpaceSubtitleDetails from "./SpaceSubtitleDetails.vue";
-import SpaceVisualKnowledgeDetails from "./SpaceVisualKnowledgeDetails.vue";
 
 defineProps<{ node: SpaceCanvasNode }>();
 </script>
@@ -18,6 +17,7 @@ defineProps<{ node: SpaceCanvasNode }>();
     v-if="node.data.kind === 'file' && node.data.documentCoverage"
     :title="$t('spaces.processing.documentCoverage')"
     :icon="ScanText"
+    :default-expanded="false"
   >
     <SpaceDocumentCoverage :node="node" />
   </SpaceInspectorSection>
@@ -41,16 +41,9 @@ defineProps<{ node: SpaceCanvasNode }>();
     v-if="node.data.kind === 'audio' || node.data.kind === 'video'"
     :title="$t('spaces.media.knowledge')"
     :icon="ScanText"
+    :default-expanded="false"
   >
     <SpaceMediaKnowledge :node="node" />
-  </SpaceInspectorSection>
-
-  <SpaceInspectorSection
-    v-if="node.data.kind === 'image' || node.data.kind === 'video'"
-    :title="$t('spaces.knowledge.visualKnowledge')"
-    :icon="Sparkles"
-  >
-    <SpaceVisualKnowledgeDetails :node="node" />
   </SpaceInspectorSection>
 
   <SpaceInspectorSection
