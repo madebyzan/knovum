@@ -1,14 +1,19 @@
 <script setup lang="ts">
+import { PanelRightClose, PanelRightOpen } from "@lucide/vue";
+
 import type { WorkspaceDefinition } from "../../shared/contracts/workspace-definition";
+import UiIconButton from "../../shared/ui/UiIconButton.vue";
 import WorkspaceNavigationControls from "./WorkspaceNavigationControls.vue";
 
 defineProps<{
   workspace: WorkspaceDefinition;
   sidebarPinned: boolean;
   sidebarWidth: number;
+  rightSidebarOpen: boolean;
 }>();
 const emit = defineEmits<{
   "toggle-sidebar": [];
+  "toggle-right-sidebar": [];
   "preview-sidebar": [];
   "cancel-sidebar-preview": [];
 }>();
@@ -38,6 +43,24 @@ const emit = defineEmits<{
       </div>
       <div class="flex min-w-0 items-center gap-1 pr-3">
         <component :is="workspace.toolbar" class="min-w-0 flex-1" />
+        <UiIconButton
+          id="workspace-right-sidebar-toggle"
+          class="shrink-0"
+          :label="$t('shell.toggleRightSidebar')"
+          aria-controls="spaces-right-sidebar"
+          :aria-expanded="rightSidebarOpen"
+          shortcut="$mod+Shift+B"
+          :active="rightSidebarOpen"
+          :disabled="!workspace.rightSidebarAvailable.value"
+          size="sm"
+          @click="emit('toggle-right-sidebar')"
+        >
+          <component
+            :is="rightSidebarOpen ? PanelRightClose : PanelRightOpen"
+            class="size-(--knovum-icon-size-sm)"
+            :stroke-width="1.55"
+          />
+        </UiIconButton>
       </div>
     </div>
   </header>

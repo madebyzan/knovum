@@ -201,19 +201,18 @@ shell-owned width value.
 
 The Spaces sidebar uses a consistent 224px default width in both pinned and transient-preview states. A
 pinned sidebar remains resizable between 200px and 320px. Its resize feedback is painted on the workspace
-surface boundary, never inside the navigation background or the window gutter. The contextual Inspector is an
-independently animated trailing overlay on the canvas. Object and Space properties use a compact floating Inspector
-inset from the upper trailing edge, separated by spacing and a hairline rather than elevation. Long-form Ask and
-Source modes use a full-height resizable trailing dock that participates in the work-area split, keeping the
-canvas visible instead of covering it. Neither presentation participates in the navigation splitter or changes
-the sidebar width, preserving the user's spatial frame.
+surface boundary, never inside the navigation background or the window gutter. The right workspace sidebar is a
+full-height resizable pane in the work-area split; it keeps the canvas visible instead of covering it. Its stable
+toolbar control toggles visibility and opens Conversation as the default view. Explicit object actions open Details;
+the document editor can open its heading Outline. Source opens as a temporary drill-in and returns to its originating
+view. Selection alone never changes the active view. The right pane does not change the leading sidebar width.
 
-The floating Details inspector uses a content-first hierarchy: editable identity and direct actions, the
+The Details view uses a content-first hierarchy: editable identity and direct actions, the
 content preview and type-specific details, derivation and knowledge relationships, related content, then
 collapsible file metadata. Related content is discovered from the current Space's semantic index rather than
 persisted as a relation; selecting a result reveals it on the canvas without creating a line. The UI separates
 unindexed content, indexing, no matches and retrieval failure. It does not display synthetic similarity
-percentages. Details remains a compact workbench surface rather than a full-height settings page.
+percentages. Details uses the sidebar's scrolling area rather than a settings-page layout.
 
 The primary workspace surface is flush with the toolbar bottom. It is flush with the leading sidebar edge while
 the sidebar is pinned; when the sidebar is collapsed, an 8px leading window inset matches the trailing and bottom
@@ -361,20 +360,20 @@ OS window
     ├── Unified Toolbar
     │   ├── workspace navigation controls
     │   ├── active Space controls
-    │   └── task / inspector controls
+    │   └── task / right sidebar controls
     └── Knowledge Space Split View
         ├── optional Feature Sidebar
         ├── Workspace
-        └── optional contextual Inspector
+        └── optional resizable right sidebar
 ```
 
 The toolbar is part of the knowledge-space workflow. It contains Space navigation, canvas actions,
 task progress and contextual controls; it is not an application switcher. Settings temporarily
 replaces the workspace and returns to the last knowledge-space route.
 
-In the Spaces app, one Space is one knowledge context and one infinite canvas; there is no intermediate Board entity. The single leading sidebar switches between the Spaces Browser and the current Space Navigator; these views never appear as adjacent columns. The Browser contains Inbox and one active Spaces list ordered by most recently opened. The Navigator contains Outline and Scenes, preserves the sidebar width, and provides an explicit return to the Browser. Recents and Favorites are not separate user-facing concepts. Archived Spaces leave the workspace sidebar and are managed from Settings, where they can be restored or permanently deleted; there is no second Recently Deleted stage for Spaces. Tags are classification/filtering, not a peer view mode. The trailing Inspector is optional selection detail, defaults closed, and never opens merely because selection changed. High-frequency selection actions stay in the contextual canvas selection bar.
+In the Spaces app, one Space is one knowledge context and one infinite canvas; there is no intermediate Board entity. The leading sidebar owns Space navigation and the canvas structure Outline; the latter selects and reveals canvas objects. The current document's heading Outline belongs to the right sidebar because it navigates only that document. Recents and Favorites are not separate user-facing concepts. Archived Spaces leave the workspace sidebar and are managed from Settings, where they can be restored or permanently deleted; there is no second Recently Deleted stage for Spaces. Tags are classification/filtering, not a peer view mode. The right sidebar defaults closed and never opens merely because selection changed. High-frequency selection actions stay in the contextual canvas selection bar.
 
-The default canvas layout shows the Spaces Sidebar and canvas. Navigator replaces the Browser within that same resizable sidebar rather than opening another pane. Inspector starts collapsed and yields before the leading sidebar when width becomes constrained.
+The default canvas layout shows the Spaces Sidebar and canvas. The right sidebar starts closed. Its Conversation, Details and document Outline views share one pane; contextual image and workflow edit panels remain anchored to their canvas objects.
 
 There is no permanent global status bar. Task progress appears contextually in the top toolbar;
 offline state appears only when offline. Toolbar controls are limited to knowledge-space or truly
@@ -385,13 +384,11 @@ command palette instead of a second persistent magnifying-glass button in the si
 to the active Space and belongs in the Add menu. Space package import/export/backup are contextual data
 operations exposed through the Space overflow menu; they are not application preferences.
 
-The sidebar and inspector persist one versioned Spaces layout. Settings does not read or write that splitter state.
-
-The splitter persistence key is versioned with the pane topology. A shell redesign that changes which pane owns titlebar chrome must advance that version instead of replaying stale collapsed/width state into a new layout contract.
+The leading and right sidebar widths remain stable while the workspace is open. Settings does not control these panes.
 
 On macOS, the unified toolbar owns the entire traffic-light band. Its leading controls begin after one native-control exclusion zone and never jump when the Feature Sidebar opens or closes. All splitters begin below the toolbar, so neither their lines nor resize hit targets cross the native controls.
 
-The unified toolbar, leading sidebar boundary and Inspector header use the same window hairline token. Do not combine an inset toolbar shadow with independent panel borders; the shell must read as one aligned split view.
+The unified toolbar, leading sidebar boundary and right sidebar header use the same window hairline token. Do not combine an inset toolbar shadow with independent panel borders; the shell must read as one aligned split view.
 
 ### Platform-owned window chrome
 

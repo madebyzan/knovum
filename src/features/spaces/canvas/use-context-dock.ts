@@ -1,26 +1,21 @@
 import { inject } from "vue";
 
-import { workspaceInspectorKey } from "../../../shared/contracts/workspace-inspector";
+import { workspaceRightSidebarKey } from "../../../shared/contracts/workspace-right-sidebar";
 import type { ConversationScope } from "../conversation/conversation-scope";
-import type { AskInspectorOptions, OpenSourceOptions } from "../inspector/inspector-actions";
 import type { KnowledgePeekTarget } from "../knowledge/model/knowledge-peek-target";
+import type { AskSidebarOptions, OpenSourceOptions } from "../right-sidebar/right-sidebar-actions";
 import { useSpaceStore } from "../session/space-store";
 import { useCanvasEditorSession } from "./editor-session";
-
-const DOCK_WIDTH = {
-  inspect: 380,
-  ask: 420,
-  source: 420,
-} as const;
 
 export function useContextDock() {
   const store = useSpaceStore();
   const editorSession = useCanvasEditorSession();
-  const inspector = inject(workspaceInspectorKey);
+  const rightSidebar = inject(workspaceRightSidebarKey);
 
   function openInspect() {
-    store.setInspectorMode("inspect");
-    inspector?.open(DOCK_WIDTH.inspect, "floating");
+    store.workflowMode = undefined;
+    store.setRightSidebarView("inspect");
+    rightSidebar?.open();
   }
 
   function openKnowledgeHealth() {
@@ -28,30 +23,38 @@ export function useContextDock() {
     openInspect();
   }
 
-  function openAsk(scope?: ConversationScope, options: AskInspectorOptions = {}) {
+  function openAsk(scope?: ConversationScope, options: AskSidebarOptions = {}) {
+    store.workflowMode = undefined;
     if (scope) store.requestAsk(scope, options);
-    else store.setInspectorMode("ask");
-    inspector?.open(DOCK_WIDTH.ask, "dock");
+    else store.setRightSidebarView("ask");
+    rightSidebar?.open();
   }
 
   function openSource(target: KnowledgePeekTarget, options: OpenSourceOptions = {}) {
+    store.workflowMode = undefined;
     store.openSource(target, options);
-    inspector?.open(DOCK_WIDTH.source, "dock");
+    rightSidebar?.open();
+  }
+
+  function openDocumentOutline() {
+    store.workflowMode = undefined;
+    store.setRightSidebarView("document-outline");
+    rightSidebar?.open();
   }
 
   function openWorkflowCapture(nodeIds: string[]) {
     store.openWorkflowCapture(nodeIds);
-    inspector?.close();
+    rightSidebar?.close();
   }
 
   function openWorkflowUse(nodeIds: string[]) {
     store.openWorkflowUse(nodeIds);
-    inspector?.close();
+    rightSidebar?.close();
   }
 
   function closeDock() {
-    if (store.inspectorMode === "source") store.closeSource();
-    inspector?.close();
+    if (store.rightSidebarView === "source") store.closeSource();
+    rightSidebar?.close();
   }
 
   return {
@@ -59,6 +62,7 @@ export function useContextDock() {
     openKnowledgeHealth,
     openAsk,
     openSource,
+    openDocumentOutline,
     openWorkflowCapture,
     openWorkflowUse,
     closeDock,

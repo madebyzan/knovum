@@ -13,7 +13,7 @@
     "checking": "正在检查可用性",
     "busy": "操作正在进行中"
   },
-  "toggleInspector": "显示或隐藏详情",
+  "toggleRightSidebar": "显示或隐藏右侧栏",
   "inspector": "详情",
   "details": "详细信息",
   "closeInspector": "关闭详情",

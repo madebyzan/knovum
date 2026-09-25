@@ -28,14 +28,14 @@ const openingSelection = selectedNodes.value
   .join("\u0000");
 const title = computed(() =>
   t(
-    store.inspectorMode === "workflow"
+    store.workflowMode === "capture"
       ? "spaces.creation.createWorkflowFromSelection"
       : "spaces.creation.useSavedWorkflow",
   ),
 );
 
 function close() {
-  store.setInspectorMode("inspect");
+  store.workflowMode = undefined;
 }
 
 watch(
@@ -81,7 +81,7 @@ function focusPanel() {
       >
         <SpaceContextHeader :title="title" :window-drag-region="false" @close="close" />
         <div class="min-h-0 flex-1 overflow-hidden">
-          <SpaceWorkflowCapture v-if="store.inspectorMode === 'workflow'" class="h-full" />
+          <SpaceWorkflowCapture v-if="store.workflowMode === 'capture'" class="h-full" />
           <SpaceWorkflowPicker v-else class="h-full" />
         </div>
       </section>

@@ -1,23 +1,45 @@
 <script setup lang="ts">
-import { ArrowLeft, Download, FileText, ImagePlus, StickyNote } from "@lucide/vue";
+import { ArrowLeft, Download, FileText, ImagePlus, ListTree, StickyNote } from "@lucide/vue";
 import { EditorContent } from "@tiptap/vue-3";
+import { onBeforeUnmount, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import { exportSpaceMarkdown } from "../../assets/export";
+import { useContextDock } from "../../canvas/use-context-dock";
 import { useSpaceTiptapEditor } from "../../editor/tiptap-editor";
 import { useSpaceTiptapImageDrop } from "../../editor/tiptap-image-drop";
+import { useSpaceStore } from "../../session/space-store";
 import SpaceTiptapBubbleMenu from "./SpaceTiptapBubbleMenu.vue";
-import SpaceTiptapOutline from "./SpaceTiptapOutline.vue";
 import SpaceTiptapSearch from "./SpaceTiptapSearch.vue";
 import SpaceTiptapToolbar from "./SpaceTiptapToolbar.vue";
 
 const { t } = useI18n();
+const store = useSpaceStore();
+const dock = useContextDock();
 const state = useSpaceTiptapEditor();
 const { activeHeadingId, characterCount, close, editorLabel, editorNode, editor, headings } = state;
 const { persist, revealHeading, saveStatus, scrollRoot, syncActiveHeading, title, wordCount } = state;
 const imageDragging = useSpaceTiptapImageDrop(editor, scrollRoot, () => t("editor.imageUploadFailed"));
+watch(
+  [headings, activeHeadingId],
+  ([items, activeId]) => {
+    store.documentOutlineHeadings = items;
+    store.documentActiveHeadingId = activeId;
+  },
+  { immediate: true },
+);
+watch(
+  () => store.documentOutlineRequest,
+  (request) => {
+    if (request) revealHeading(request.position);
+  },
+);
+onBeforeUnmount(() => {
+  store.documentOutlineHeadings = [];
+  store.documentActiveHeadingId = undefined;
+});
 async function exportMarkdown() {
   if (!editor.value) return;
   try {
@@ -55,6 +77,13 @@ async function exportMarkdown() {
         }}
       </span>
       <SpaceTiptapSearch v-if="editor" :editor="editor" />
+      <UiIconButton
+        :label="t('spaces.navigation.editorOutline')"
+        size="sm"
+        @click="dock.openDocumentOutline()"
+      >
+        <ListTree class="size-(--knovum-icon-size-sm)" :stroke-width="1.55" />
+      </UiIconButton>
       <UiIconButton :label="t('spaces.transfer.exportMarkdown')" size="sm" @click="exportMarkdown">
         <Download class="size-(--knovum-icon-size-sm)" />
       </UiIconButton>
@@ -89,7 +118,6 @@ async function exportMarkdown() {
           <EditorContent v-if="editor" :editor="editor" class="mt-7" />
         </article>
       </div>
-      <SpaceTiptapOutline :headings="headings" :active-id="activeHeadingId" @select="revealHeading" />
     </div>
   </section>
 </template>

@@ -1,8 +1,8 @@
 import { commitActiveCanvasThumbnail } from "../../canvas/thumbnail-scheduler";
 import { resumePendingEnrichmentJobs } from "../../enrichment/job-scheduler";
 import { withEnrichmentTriggers } from "../../enrichment/mutation-triggers";
-import type { createInspectorActions } from "../../inspector/inspector-actions";
 import type { createSpaceMediaActions } from "../../media/actions";
+import type { createRightSidebarActions } from "../../right-sidebar/right-sidebar-actions";
 import {
   createSpaceScene,
   duplicateSpaceScene,
@@ -50,7 +50,7 @@ interface Input {
   placementActions: ReturnType<typeof createPlacementActions>;
   media: ReturnType<typeof createSpaceMediaActions>;
   structureTransfer: ReturnType<typeof createStructureTransferActions>;
-  context: ReturnType<typeof createInspectorActions>;
+  context: ReturnType<typeof createRightSidebarActions>;
   spaceContext: SpaceSessionContext;
   view: ReturnType<typeof createSpaceViewActions>;
 }

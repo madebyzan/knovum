@@ -6,7 +6,7 @@ interface ShellCommandActions {
   openSettings: () => void;
   openShortcuts?: () => void;
   toggleSidebar: () => void;
-  toggleInspector: () => void;
+  toggleRightSidebar: () => void;
 }
 
 interface ShellCommandLabels {
@@ -14,7 +14,7 @@ interface ShellCommandLabels {
   commandPalette: string;
   shortcuts?: string;
   toggleSidebar: string;
-  toggleInspector: string;
+  toggleRightSidebar: string;
 }
 
 interface ShellCommandContext {
@@ -37,12 +37,16 @@ export function createShellCommands(
       category: "navigation",
       run: actions.toggleSidebar,
     });
-    viewCommands.push({
-      id: "view.toggle-inspector",
-      title: labels.toggleInspector,
-      category: "navigation",
-      run: actions.toggleInspector,
-    });
+    if (workspace.rightSidebarAvailable.value) {
+      viewCommands.push({
+        id: "view.toggle-right-sidebar",
+        title: labels.toggleRightSidebar,
+        shortcut: "$mod+Shift+B",
+        allowInEditable: true,
+        category: "navigation",
+        run: actions.toggleRightSidebar,
+      });
+    }
   }
 
   const baseCommands: AppCommand[] = [

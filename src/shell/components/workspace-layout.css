@@ -17,23 +17,6 @@
   box-shadow: var(--shadow-dialog);
 }
 
-.workspace-inspector-panel {
-  transition: width 180ms var(--ease-standard);
-}
-
-.workspace-inspector-enter-active,
-.workspace-inspector-leave-active {
-  transition:
-    transform 220ms var(--ease-standard),
-    opacity 160ms ease-out;
-}
-
-.workspace-inspector-enter-from,
-.workspace-inspector-leave-to {
-  opacity: 0;
-  transform: translate3d(24px, 0, 0);
-}
-
 .workspace-scrim-enter-active,
 .workspace-scrim-leave-active {
   transition: opacity 180ms ease-out;
