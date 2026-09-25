@@ -10,7 +10,7 @@ import { derivedNodePosition } from "../placement";
 import { runDerivation } from "../run-derivation";
 
 type Store = ReturnType<typeof useSpaceStore>;
-type DocumentFormat = "docx" | "pdf";
+export type DocumentFormat = "docx" | "pdf" | "txt";
 interface ExportOutput {
   nodeId: string;
   data: SpaceFilePayload;
@@ -38,6 +38,12 @@ const formats = {
     exportCommand: "plugin:spaces|export_document_as_pdf",
     taskKey: "spaces.creation.pdfTask",
     failureKey: "spaces.creation.pdfFailed",
+  },
+  txt: {
+    pathCommand: "plugin:spaces|allocate_document_txt_path",
+    exportCommand: "plugin:spaces|export_document_as_txt",
+    taskKey: "spaces.documentExport.txtTask",
+    failureKey: "spaces.documentExport.txtFailed",
   },
 } as const;
 
