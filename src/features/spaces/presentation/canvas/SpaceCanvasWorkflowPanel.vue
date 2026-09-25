@@ -79,7 +79,7 @@ function focusPanel() {
         }"
         @keydown.esc.stop="close"
       >
-        <SpaceContextHeader :title="title" :window-drag-region="false" @close="close" />
+        <SpaceContextHeader :title="title" closable @close="close" />
         <div class="min-h-0 flex-1 overflow-hidden">
           <SpaceWorkflowCapture v-if="store.workflowMode === 'capture'" class="h-full" />
           <SpaceWorkflowPicker v-else class="h-full" />

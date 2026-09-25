@@ -1,12 +1,9 @@
 <script setup lang="ts">
-import { FileText, Info, MessageSquareText } from "@lucide/vue";
 import { storeToRefs } from "pinia";
 import { computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import UiIconButton from "../../../shared/ui/UiIconButton.vue";
 import { useCanvasSelectionProjection } from "../canvas/editor-session";
-import { useContextDock } from "../canvas/use-context-dock";
 import { knowledgeLocationLabel } from "../knowledge/model/location";
 import { useSpaceStore } from "../session/space-store";
 import SpaceConversationPanel from "./conversation/SpaceConversationPanel.vue";
@@ -19,7 +16,6 @@ const store = useSpaceStore();
 const { rightSidebarView, sourcePeek } = storeToRefs(store);
 const { selectedNodes } = useCanvasSelectionProjection(() => store.nodes);
 const { t } = useI18n();
-const dock = useContextDock();
 
 watch(
   () => store.activeSpaceId,
@@ -54,46 +50,8 @@ const subtitle = computed(() =>
 <template>
   <aside
     :data-sidebar-view="rightSidebarView"
-    class="pointer-events-auto flex h-full w-full min-w-0 flex-col overflow-hidden rounded-r-workspace border-y border-r border-l border-window-hairline bg-panel select-none"
+    class="pointer-events-auto flex h-full w-full min-w-0 flex-col overflow-hidden bg-panel select-none"
   >
-    <nav
-      class="flex h-9 shrink-0 items-center gap-0.5 border-b border-divider px-2"
-      :aria-label="t('spaces.navigation.rightSidebarViews')"
-    >
-      <UiIconButton
-        :label="t('spaces.assistant.title')"
-        :active="
-          rightSidebarView === 'ask' || (rightSidebarView === 'source' && store.sourceReturnView === 'ask')
-        "
-        size="sm"
-        @click="dock.openAsk()"
-      >
-        <MessageSquareText class="size-(--knovum-icon-size-sm)" :stroke-width="1.55" />
-      </UiIconButton>
-      <UiIconButton
-        :label="t('spaces.navigation.details')"
-        :active="
-          rightSidebarView === 'inspect' ||
-          (rightSidebarView === 'source' && store.sourceReturnView === 'inspect')
-        "
-        size="sm"
-        @click="dock.openInspect()"
-      >
-        <Info class="size-(--knovum-icon-size-sm)" :stroke-width="1.55" />
-      </UiIconButton>
-      <UiIconButton
-        v-if="store.focusedEditorId"
-        :label="t('spaces.navigation.editorOutline')"
-        :active="
-          rightSidebarView === 'document-outline' ||
-          (rightSidebarView === 'source' && store.sourceReturnView === 'document-outline')
-        "
-        size="sm"
-        @click="dock.openDocumentOutline()"
-      >
-        <FileText class="size-(--knovum-icon-size-sm)" :stroke-width="1.55" />
-      </UiIconButton>
-    </nav>
     <section class="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
       <SpaceContextHeader
         v-if="rightSidebarView === 'inspect' || rightSidebarView === 'source'"
@@ -101,20 +59,11 @@ const subtitle = computed(() =>
         v-bind="subtitle === undefined ? {} : { subtitle }"
         :back="rightSidebarView === 'source'"
         @back="store.closeSource()"
-        @close="dock.closeDock()"
       />
       <div class="min-h-0 flex-1 overflow-hidden select-text">
         <SpaceInspectorDetails v-if="rightSidebarView === 'inspect'" class="h-full" />
-        <SpaceConversationPanel
-          v-else-if="rightSidebarView === 'ask'"
-          class="h-full"
-          @close="dock.closeDock()"
-        />
-        <SpaceDocumentOutline
-          v-else-if="rightSidebarView === 'document-outline'"
-          class="h-full"
-          @close="dock.closeDock()"
-        />
+        <SpaceConversationPanel v-else-if="rightSidebarView === 'ask'" class="h-full" />
+        <SpaceDocumentOutline v-else-if="rightSidebarView === 'document-outline'" class="h-full" />
         <SpaceSourcePeek v-if="rightSidebarView === 'source' && sourcePeek" class="h-full" />
       </div>
     </section>

@@ -49,7 +49,7 @@ export function useShellController(workspace: WorkspaceDefinition) {
     cancelSidebarPreviewClose();
   }
   function setSidebarWidth(value: number) {
-    sidebarWidth.value = value;
+    sidebarWidth.value = Math.round(value);
   }
   function openSidebarPreview() {
     if (sidebarPinned.value || !sidebarPreviewArmed.value) return;
@@ -83,7 +83,7 @@ export function useShellController(workspace: WorkspaceDefinition) {
     rightSidebarOpen.value = true;
   }
   function setRightSidebarWidth(value: number) {
-    rightSidebarWidth.value = value;
+    rightSidebarWidth.value = Math.round(value);
   }
   function closeRightSidebar() {
     rightSidebarOpen.value = false;

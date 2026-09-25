@@ -6,6 +6,7 @@ export interface WorkspaceDefinition {
   view: Component;
   sidebar: Component;
   rightSidebar: Component;
+  rightSidebarToolbar: Component;
   toolbarLeading: Component;
   toolbar: Component;
   rightSidebarLayout: {
