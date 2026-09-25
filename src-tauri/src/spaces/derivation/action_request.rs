@@ -4,10 +4,7 @@ mod output;
 use serde_json::{Map, Value};
 use tauri::AppHandle;
 
-use crate::{
-    ai::{contracts::RoutingPurpose, settings},
-    spaces::actions,
-};
+use crate::spaces::actions;
 
 pub(crate) async fn prepare(
     app: &AppHandle,
@@ -25,15 +22,18 @@ pub(crate) async fn prepare(
     if let Some(primary) = resolved.items.first() {
         request.insert("primary".into(), primary.clone());
     }
-    if let Some(purpose) = definition.routing_purpose {
-        let target = find_target(snapshot, action_id)
-            .map(serde_json::from_value)
-            .transpose()
-            .map_err(crate::spaces::db::json_error)?
-            .unwrap_or(
-                settings::default_selection(app, purpose_for(action_id, purpose))
-                    .map_err(|error| error.to_string())?,
-            );
+    if definition.routing_purpose.is_some() {
+        let target = snapshot
+            .get("targets")
+            .and_then(|targets| targets.get(action_id))
+            .ok_or("action-target-missing: select an execution target for this Action")?;
+        let target: crate::ai::models::ExecutionTargetSelection =
+            serde_json::from_value(target.clone()).map_err(crate::spaces::db::json_error)?;
+        let capability = definition
+            .execution_capability
+            .ok_or("action-target-invalid: Action has no execution capability")?;
+        crate::ai::settings::resolve(app, target.clone(), capability)
+            .map_err(|error| format!("action-target-unavailable: {error}"))?;
         request.insert(
             "target".into(),
             serde_json::to_value(target).map_err(crate::spaces::db::json_error)?,
@@ -50,34 +50,4 @@ pub(crate) async fn prepare(
     )
     .await?;
     Ok(Value::Object(request))
-}
-
-fn find_target(value: &Value, action_id: &str) -> Option<Value> {
-    match value {
-        Value::Object(values) => {
-            if values.get("type").and_then(Value::as_str) == Some("model") {
-                return Some(value.clone());
-            }
-            if let Some(target) = values
-                .get("targets")
-                .and_then(|targets| targets.get(action_id))
-            {
-                return Some(target.clone());
-            }
-            values
-                .values()
-                .find_map(|value| find_target(value, action_id))
-        }
-        Value::Array(values) => values
-            .iter()
-            .find_map(|value| find_target(value, action_id)),
-        _ => None,
-    }
-}
-
-fn purpose_for(action_id: &str, fallback: RoutingPurpose) -> RoutingPurpose {
-    match action_id {
-        "draft-script" | "draft-social-post" => RoutingPurpose::Writing,
-        _ => fallback,
-    }
 }

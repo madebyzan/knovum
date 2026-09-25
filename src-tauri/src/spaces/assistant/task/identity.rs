@@ -52,23 +52,7 @@ pub(super) fn grant(
         action_ids: catalog
             .by_wire_name
             .values()
-            .filter_map(|binding| match binding {
-                crate::spaces::assistant::tools::ToolBinding::Action(definition) => {
-                    Some(definition.id.to_owned())
-                }
-                crate::spaces::assistant::tools::ToolBinding::External(_) => None,
-            })
-            .collect(),
-        egress_targets: catalog
-            .by_wire_name
-            .values()
-            .filter_map(|binding| match binding {
-                crate::spaces::assistant::tools::ToolBinding::External(tool) => {
-                    Some(format!("external-tool:{}", tool.id))
-                }
-                crate::spaces::assistant::tools::ToolBinding::Action(_) => None,
-            })
-            .chain(std::iter::once("configured-model".into()))
+            .map(|definition| definition.id.to_owned())
             .collect(),
         valid_until: now + 2 * 60 * 60 * 1_000,
     }

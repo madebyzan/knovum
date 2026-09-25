@@ -8,7 +8,6 @@ pub enum RunKind {
     Workflow,
     Assistant,
     ExternalAgent,
-    Automation,
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize, TS)]
@@ -44,15 +43,8 @@ pub enum StepState {
 pub enum WaitReason {
     Approval,
     ContentReview,
-    UserInput,
-    Delay,
     Executor,
-    Configuration,
-    Authorization,
     ExternalReconciliation,
-    Capacity,
-    Budget,
-    DebugBreakpoint,
 }
 
 #[derive(Clone, Debug, Serialize, TS)]

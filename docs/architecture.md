@@ -55,9 +55,7 @@ The Spaces Rust boundary is divided by responsibility, not CRUD mechanics:
 - `authorization/`: principals, scopes, grants and effect-specific approvals;
 - `runs/`: durable Run, StepInstance and Attempt state, scheduling, recovery and events;
 - `workflows/`: versioned definitions, compilation and execution over SpaceActions;
-- `workflows/external_tools/`: reviewed MCP client bindings, endpoint policy, schema fingerprints and result validation;
 - `assistant/`: Space-specific conversations, context, tasks, tool calls and checkpoints;
-- `automation/`: trigger definitions, schedule/event occurrences, authorization expiry and causality limits;
 - `mcp/`: inbound Space protocol projection over Actions and Authorization, never direct mutation;
 - `knowledge/`: semantic contracts, provenance, patches, events and knowledge governance;
 - `knowledge/indexing/`: extraction of revisions, passages and knowledge chunks from Space nodes;
@@ -143,7 +141,7 @@ side effect. Shared policy moves inward; adapters remain separate at their exter
 Directories express ownership and stable boundaries, not temporary implementation steps. A small
 capability stays flat. Split it into a directory only after it owns at least two distinct
 responsibilities; once split, all of its implementation moves under that owner instead of remaining
-as prefixed siblings. Renderer features use capability names such as `canvas/`, `assistant/`,
+as prefixed siblings. Renderer features use capability names such as `canvas/`, `conversation/`,
 `indexing/` and `queries/`. Persistence adapters live with the capability whose data contract they
 implement; a feature-wide `persistence/` directory that collects unrelated aggregates is forbidden.
 They do not mirror backend architecture layers with generic `application/`, `domain/` or

@@ -1,5 +1,5 @@
 export const SPACE_PACKAGE_FORMAT = "knovum-space" as const;
-export const SPACE_PACKAGE_VERSION = 1 as const;
+export const SPACE_PACKAGE_VERSION = 5 as const;
 export const PACKAGE_ASSET_PREFIX = "knovum-package-asset:";
 
 export interface SpacePackageAsset {

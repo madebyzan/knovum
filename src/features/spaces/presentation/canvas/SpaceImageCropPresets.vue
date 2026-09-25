@@ -6,7 +6,7 @@ import { useI18n } from "vue-i18n";
 import UiScrollArea from "../../../../shared/ui/UiScrollArea.vue";
 import { cropPresetGroups, type CropPreset } from "../../image-editing/crop-presets";
 
-const props = defineProps<{ activeRatio?: number; fullCrop: boolean }>();
+const props = defineProps<{ activeRatio?: number | undefined; fullCrop: boolean }>();
 const emit = defineEmits<{ select: [ratio?: number] }>();
 const { t } = useI18n();
 
@@ -32,9 +32,18 @@ function glyphStyle(ratio = 1): CSSProperties {
   <div>
     <p class="px-1 pb-2 text-caption text-foreground-tertiary">{{ t("spaces.media.cropPresets") }}</p>
     <UiScrollArea class="h-80">
-      <details v-for="group in cropPresetGroups" :key="group.id" :open="group.id === 'general'" class="group pr-3">
-        <summary class="flex h-(--knovum-control-height-md) cursor-pointer list-none items-center gap-2 rounded-control px-2 text-label text-foreground hover:bg-control-hover focus-visible:ring-2 focus-visible:ring-focus-ring">
-          <ChevronRight class="size-(--knovum-icon-size-xs) shrink-0 text-foreground-tertiary transition-transform group-open:rotate-90" />
+      <details
+        v-for="group in cropPresetGroups"
+        :key="group.id"
+        :open="group.id === 'general'"
+        class="group pr-3"
+      >
+        <summary
+          class="flex h-(--knovum-control-height-md) cursor-pointer list-none items-center gap-2 rounded-control px-2 text-label text-foreground hover:bg-control-hover focus-visible:ring-2 focus-visible:ring-focus-ring"
+        >
+          <ChevronRight
+            class="size-(--knovum-icon-size-xs) shrink-0 text-foreground-tertiary transition-transform group-open:rotate-90"
+          />
           {{ group.id === "general" ? t("spaces.media.cropGeneral") : group.id }}
         </summary>
         <div class="pb-1 pl-4">
@@ -53,8 +62,14 @@ function glyphStyle(ratio = 1): CSSProperties {
                 :style="glyphStyle(preset.ratio)"
               />
             </span>
-            <span class="min-w-0 flex-1 truncate">{{ preset.labelKey ? t(`spaces.media.${preset.labelKey}`) : preset.id }}</span>
-            <span v-if="preset.referenceSize" class="shrink-0 text-caption tabular-nums text-foreground-tertiary" :title="t('spaces.media.cropReferenceSize')">
+            <span class="min-w-0 flex-1 truncate">{{
+              preset.labelKey ? t(`spaces.media.${preset.labelKey}`) : preset.id
+            }}</span>
+            <span
+              v-if="preset.referenceSize"
+              class="shrink-0 text-caption text-foreground-tertiary tabular-nums"
+              :title="t('spaces.media.cropReferenceSize')"
+            >
               {{ preset.referenceSize }}
             </span>
           </button>

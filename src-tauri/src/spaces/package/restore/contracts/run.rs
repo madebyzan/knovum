@@ -47,23 +47,6 @@ pub struct PackageRunStepRow {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct PackageRunBatchItemRow {
-    pub lineage_run_id: String,
-    pub definition_node_id: String,
-    pub item_key: String,
-    pub latest_run_id: String,
-    pub latest_step_instance_id: String,
-    pub state: String,
-    pub attempt_count: i64,
-    pub input: Value,
-    pub output: Option<Value>,
-    pub error: Option<String>,
-    pub child_run_id: Option<String>,
-    pub updated_at: i64,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct PackageRunAttemptRow {
     pub id: String,
     pub run_id: String,

@@ -1,9 +1,9 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 use serde_json::Value;
 use sqlx::{Row, Sqlite, Transaction};
 
-use super::{db, GroundedThreadContract};
+use crate::spaces::db;
 
 mod shape;
 
@@ -14,39 +14,26 @@ struct CurrentCitationRef {
     revision: String,
 }
 
-pub async fn validate_current_citations(
+pub async fn validate_assistant_citations(
     tx: &mut Transaction<'_, Sqlite>,
-    contract: &GroundedThreadContract,
-    citations: &Value,
-) -> Result<(), String> {
-    let refs = shape::citation_shapes(citations, contract.scope == "all-spaces")?;
-    validate_live_refs(tx, contract, refs).await
-}
-
-pub async fn validate_historical_citations(
-    tx: &mut Transaction<'_, Sqlite>,
-    contract: &GroundedThreadContract,
+    space_id: &str,
     citations: &Value,
 ) -> Result<(), String> {
     let refs = shape::citation_shapes(citations, true)?;
-    validate_live_refs(tx, contract, refs).await
+    validate_live_refs(tx, space_id, refs).await
+}
+
+pub fn validate_citation_snapshots(citations: &Value) -> Result<(), String> {
+    shape::citation_shapes(citations, true).map(|_| ())
 }
 
 async fn validate_live_refs(
     tx: &mut Transaction<'_, Sqlite>,
-    contract: &GroundedThreadContract,
+    space_id: &str,
     refs: Vec<CurrentCitationRef>,
 ) -> Result<(), String> {
     if refs.is_empty() {
         return Ok(());
-    }
-    let allowed_nodes: HashSet<&str> = contract.node_ids.iter().map(String::as_str).collect();
-    if !matches!(contract.scope.as_str(), "space" | "all-spaces")
-        && refs
-            .iter()
-            .any(|citation| !allowed_nodes.contains(citation.node_id.as_str()))
-    {
-        return Err("Grounded AI citation is outside the persisted thread scope".into());
     }
     let chunk_ids = refs
         .iter()
@@ -57,7 +44,7 @@ async fn validate_live_refs(
         "SELECT c.id,c.node_id,c.source_revision FROM spaces_current_knowledge_chunks c \
          WHERE c.space_id=$1 AND c.id IN (SELECT value FROM json_each($2))",
     )
-    .bind(&contract.space_id)
+    .bind(space_id)
     .bind(chunk_ids_json)
     .fetch_all(&mut **tx)
     .await

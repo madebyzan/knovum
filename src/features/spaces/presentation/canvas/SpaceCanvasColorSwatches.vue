@@ -9,7 +9,6 @@ import UiPopover from "../../../../shared/ui/UiPopover.vue";
 interface CanvasColorOption {
   value: string;
   label: string;
-  labeled?: boolean;
   color: string;
 }
 
@@ -17,6 +16,7 @@ const props = defineProps<{
   label: string;
   options: readonly CanvasColorOption[];
   selected: string;
+  labeled?: boolean;
   columns?: 6;
 }>();
 const emit = defineEmits<{ select: [value: string] }>();
@@ -27,7 +27,10 @@ const selectedColor = computed(() => props.options.find(({ value }) => value ===
   <UiPopover side="top" align="center" :side-offset="5" class="p-0.5">
     <template #trigger>
       <UiButton v-if="labeled" variant="ghost" size="sm" class="h-(--knovum-control-height-md) shadow-none">
-        <span class="size-(--knovum-icon-size-sm) rounded-full ring-1 ring-border" :style="{ backgroundColor: selectedColor }" />
+        <span
+          class="size-(--knovum-icon-size-sm) rounded-full ring-1 ring-border"
+          :style="{ backgroundColor: selectedColor }"
+        />
         {{ label }}
       </UiButton>
       <UiIconButton v-else :label="label" size="sm">

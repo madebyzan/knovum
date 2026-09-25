@@ -15,8 +15,8 @@ const emit = defineEmits<{ edit: [project: VideoEditProject, mergeKey?: string] 
 const seconds = (milliseconds: number) => (milliseconds / 1_000).toFixed(3);
 const maximum = computed(() => Math.max(props.sourceDurationMs, props.clip.endMs));
 
-function patch(patch: Partial<VideoClip>, mergeKey?: string) {
-  const next = { ...props.clip, ...patch };
+function patch(change: Partial<VideoClip>, mergeKey?: string) {
+  const next = { ...props.clip, ...change };
   if (next.endMs - next.startMs < 100) return;
   emit("edit", replaceClip(props.project, next), mergeKey);
 }

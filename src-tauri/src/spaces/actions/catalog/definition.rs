@@ -139,6 +139,7 @@ const fn definition(
         execution_capability: binding.capability,
         routing_purpose: binding.purpose,
         input_roles,
+        collection_input: None,
         parameters_schema,
         output_contract,
     }

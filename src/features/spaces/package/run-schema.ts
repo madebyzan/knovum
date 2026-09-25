@@ -10,9 +10,9 @@ export const packageRunSchema = z
     parentRunId: z.string().min(1).nullable(),
     retryOfRunId: z.string().min(1).nullable(),
     forkOfRunId: z.string().min(1).nullable(),
-    principalKind: z.enum(["user", "assistant", "external_agent", "automation"]),
+    principalKind: z.enum(["user", "assistant", "external_agent"]),
     principalId: z.string().min(1),
-    kind: z.enum(["action", "workflow", "assistant", "external_agent", "automation"]),
+    kind: z.enum(["action", "workflow", "assistant", "external_agent"]),
     state: z.enum(["succeeded", "completed_with_errors", "failed", "cancelled"]),
     stateVersion: z.number().int().nonnegative(),
     policySnapshot: jsonValue,
@@ -66,23 +66,6 @@ export const packageRunAttemptSchema = z
   })
   .strict();
 
-export const packageRunBatchItemSchema = z
-  .object({
-    lineageRunId: z.string().min(1),
-    definitionNodeId: z.string().min(1),
-    itemKey: z.string().min(1),
-    latestRunId: z.string().min(1),
-    latestStepInstanceId: z.string().min(1),
-    state: z.enum(["failed", "running", "succeeded", "waiting"]),
-    attemptCount: z.number().int().positive(),
-    input: jsonValue,
-    output: jsonValue.nullable(),
-    error: z.string().nullable(),
-    childRunId: z.string().nullable(),
-    updatedAt: packageTimeSchema,
-  })
-  .strict();
-
 export const packageRunEventSchema = z
   .object({
     runId: z.string().min(1),
@@ -91,8 +74,6 @@ export const packageRunEventSchema = z
     kind: z.enum([
       "assistant_paused_checkpoint",
       "attempt_claimed",
-      "debug_breakpoint_continued",
-      "debug_breakpoint_reached",
       "external_agent_message",
       "external_agent_permission_requested",
       "external_agent_tool_started",

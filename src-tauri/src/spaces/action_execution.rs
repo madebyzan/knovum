@@ -50,43 +50,6 @@ pub(crate) async fn execute_immediate(
             .await?;
             serde_json::to_value(receipt).map_err(db::json_error)
         }
-        "save-workflow-draft" => {
-            let draft: crate::spaces::workflows::WorkflowDraft = serde_json::from_value(
-                parameters
-                    .get("draft")
-                    .cloned()
-                    .ok_or("workflow-draft-input-invalid: draft is required")?,
-            )
-            .map_err(db::json_error)?;
-            if draft.space_id != space_id {
-                return Err("permission-denied: Workflow draft belongs to another Space".into());
-            }
-            let saved =
-                crate::spaces::workflows::repository::save_draft_in_transaction(tx, draft, now)
-                    .await?;
-            serde_json::to_value(saved).map_err(db::json_error)
-        }
-        "publish-workflow" => {
-            let workflow_id = parameters
-                .get("workflowId")
-                .and_then(Value::as_str)
-                .ok_or("workflow-publication-input-invalid: workflowId is required")?;
-            let expected_revision = parameters
-                .get("expectedRevision")
-                .and_then(Value::as_i64)
-                .ok_or("workflow-publication-input-invalid: expectedRevision must be an integer")?;
-            let version = crate::spaces::workflows::repository::publish_in_transaction(
-                tx,
-                workflow_id,
-                expected_revision,
-                now,
-            )
-            .await?;
-            if version.space_id != space_id {
-                return Err("permission-denied: Workflow belongs to another Space".into());
-            }
-            serde_json::to_value(version).map_err(db::json_error)
-        }
         "search-knowledge" => {
             crate::spaces::knowledge::action::search(tx, space_id, parameters).await
         }

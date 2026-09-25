@@ -40,13 +40,13 @@ export function useKonvaCanvasRuntime(
   const preview = useLayoutPreview();
   const temporarilyExpandedSectionId = shallowRef<string>();
   const projections = useCanvasSceneProjections(props, sceneDocument, temporarilyExpandedSectionId);
-  const canonicalScene = projections.scene;
-  const lockedNodeIds = projections.lockedNodeIds;
+  const { scene: canonicalScene, lockedNodeIds, relationBounds } = projections;
   const previewIndex = computed(() => createCanvasScenePreviewIndex(canonicalScene.value));
   const scenePreview = useCanvasScenePreview(previewIndex, preview.layouts);
-  const relationBounds = projections.relationBounds;
   const selection = useCanvasSelection({
-    availableStructureNodeIds: computed(() => new Set(props.editSnapshot.structure.map(({ id }) => id))),
+    availableStructureNodeIds: computed(
+      () => new Set(props.sceneInput.editSnapshot.structure.map(({ id }) => id)),
+    ),
     layouts: computed(() => canonicalScene.value.nodes.map(({ layout }) => layout)),
     relationBounds,
     structureBounds: projections.structureBounds,
@@ -59,7 +59,7 @@ export function useKonvaCanvasRuntime(
     scene: projections.structureScene,
     selectedIds: selection.structureNodeIds,
     setStructureSelection: selection.setStructureNodeIds,
-    snapshot: () => props.editSnapshot,
+    snapshot: () => props.sceneInput.editSnapshot,
     temporarilyExpandedSectionId,
   });
   const palette = useCanvasPalette();
@@ -79,10 +79,10 @@ export function useKonvaCanvasRuntime(
     events: props.events,
     layouts: () => layouts.value,
     lockedNodeIds: () => lockedNodeIds.value,
-    nodes: () => props.nodes,
+    nodes: () => props.sceneInput.nodes,
     previewFrames,
     selectedNodeIds: () => selection.nodeIds.value,
-    snapshot: () => props.editSnapshot,
+    snapshot: () => props.sceneInput.editSnapshot,
     temporarilyExpandedSectionId: () => temporarilyExpandedSectionId.value,
     stage: () => stage.value,
     zoom: () => viewport.viewport.value.zoom,
@@ -134,10 +134,9 @@ export function useKonvaCanvasRuntime(
   });
   const sectionCandidateBounds = useSectionDrawCandidateBounds(
     pointer.sectionDraft,
-    () => props.editSnapshot,
+    () => props.sceneInput.editSnapshot,
     projections.structureBounds,
   );
-  const report = (operation: Promise<unknown>) => void operation.catch(props.events.onError);
   useCanvasDocumentSync(() => props.document, model, viewport.setViewport, viewport.getViewport);
   useRuntimeEditorRegistration({
     cancelInteraction,
@@ -159,8 +158,8 @@ export function useKonvaCanvasRuntime(
     activateNode,
     capturesCanvasInteraction,
     connectors,
-    finishDrag: (id: string) => report(nodeDrag.end(id)),
-    finishTransform: () => report(gestures.finish({ kind: "transform" })),
+    finishDrag: (id: string) => void nodeDrag.end(id).catch(props.events.onError),
+    finishTransform: () => void gestures.finish({ kind: "transform" }).catch(props.events.onError),
     gestures,
     host,
     interactiveNodeId,

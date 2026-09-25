@@ -12,6 +12,7 @@ const emit = defineEmits<{
   cancel: [taskId: string];
   dismiss: [taskId: string];
   retry: [taskId: string];
+  open: [taskId: string];
 }>();
 const { t } = useI18n();
 </script>
@@ -36,7 +37,16 @@ const { t } = useI18n();
         class="size-(--knovum-icon-size-xs) text-foreground-secondary"
       />
       <CircleX v-else class="size-(--knovum-icon-size-xs) text-danger" />
-      <span class="min-w-0 truncate text-label">{{ task.title }}</span>
+      <button
+        v-if="task.openable"
+        type="button"
+        :title="task.title"
+        class="min-w-0 truncate rounded-control text-left text-label hover:text-accent focus-visible:outline-2 focus-visible:outline-focus-ring"
+        @click="emit('open', task.id)"
+      >
+        {{ task.title }}
+      </button>
+      <span v-else class="min-w-0 truncate text-label" :title="task.title">{{ task.title }}</span>
       <UiIconButton
         v-if="task.status === 'running' && task.cancellable"
         :label="t('tasks.cancel')"

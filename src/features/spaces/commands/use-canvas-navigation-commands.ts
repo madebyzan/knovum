@@ -1,16 +1,14 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import type { AppCommand, CommandCategory } from "../../../shared/contracts/app-command";
 import { availableWhen } from "../../../shared/contracts/action-availability";
+import type { AppCommand, CommandCategory } from "../../../shared/contracts/app-command";
 import { useCanvasToolStore } from "../canvas/canvas-tool-store";
 import { useCanvasEditorSession } from "../canvas/editor-session";
+import { currentSelectionRoots } from "../canvas/selection/selection-roots";
+import { useContextDock } from "../canvas/use-context-dock";
 import { isSpaceSemanticNode } from "../knowledge/model/semantic-node";
-import {
-  ancestorsOf,
-  createStructureIndex,
-  effectiveOperationRoots,
-} from "../model/structure/structure-index";
+import { ancestorsOf, createStructureIndex } from "../model/structure/structure-index";
 import { useSceneList } from "../scenes/use-scene-list";
 import { useSpaceStore } from "../session/space-store";
 import { CANVAS_TOOL_COMMANDS } from "./canvas-tool-commands";
@@ -19,6 +17,7 @@ import { SPACE_COMMAND_KEYBINDINGS, SPACE_COMMAND_SHORTCUTS } from "./space-comm
 export function useCanvasNavigationCommands() {
   const { t } = useI18n();
   const store = useSpaceStore();
+  const dock = useContextDock();
   const session = useCanvasEditorSession();
   const tools = useCanvasToolStore();
   const scenes = useSceneList();
@@ -28,12 +27,9 @@ export function useCanvasNavigationCommands() {
   };
   const selectedStructureNodeIds = () => {
     const index = createStructureIndex(store.editSnapshot.structure);
-    const contentStructureNodeIds = session.selection.value.nodeIds.flatMap((nodeId) => {
-      const structureNodeId = index.nodeIdToStructureNodeId.get(nodeId);
-      return structureNodeId ? [structureNodeId] : [];
-    });
-    return effectiveOperationRoots(
-      [...session.selection.value.structureNodeIds, ...contentStructureNodeIds],
+    return currentSelectionRoots(
+      session.selection.value.nodeIds,
+      session.selection.value.structureNodeIds,
       index,
     ).map(({ id }) => id);
   };
@@ -73,9 +69,12 @@ export function useCanvasNavigationCommands() {
       keybindings: SPACE_COMMAND_KEYBINDINGS.zoomToSelection,
       availability: () => {
         const selection = session.selection.value;
-        return availableWhen(Boolean(
-          selection.nodeIds.length || selection.structureNodeIds.length || selection.relationIds.length,
-        ), "no_selection");
+        return availableWhen(
+          Boolean(
+            selection.nodeIds.length || selection.structureNodeIds.length || selection.relationIds.length,
+          ),
+          "no_selection",
+        );
       },
       run: () => session.activeEditor.value?.zoomToSelection(),
     }),
@@ -93,7 +92,7 @@ export function useCanvasNavigationCommands() {
     }),
     command("spaces.ask", t("spaces.assistant.askKnowledge"), {
       shortcut: SPACE_COMMAND_SHORTCUTS.ask,
-      run: () => store.requestAsk("space", { restart: true }),
+      run: () => dock.openAsk("space", { restart: true }),
     }),
     command("spaces.focus-selection", t("spaces.navigation.focusSelection"), {
       availability: () => availableWhen(selectedNodes().length > 0, "no_selection"),
@@ -103,10 +102,11 @@ export function useCanvasNavigationCommands() {
       },
     }),
     command("spaces.connect-selection", t("spaces.canvas.connect"), {
-      availability: () => availableWhen(
-        selectedNodes().length === 2 && selectedNodes().filter(isSpaceSemanticNode).length === 2,
-        "selection_not_eligible",
-      ),
+      availability: () =>
+        availableWhen(
+          selectedNodes().length === 2 && selectedNodes().filter(isSpaceSemanticNode).length === 2,
+          "selection_not_eligible",
+        ),
       run: async () => {
         const [source, target] = selectedNodes().filter(isSpaceSemanticNode);
         if (source && target) await store.createRelation(source.id, target.id, "related");
@@ -120,7 +120,7 @@ export function useCanvasNavigationCommands() {
         const structureNodeIds = selectedStructureNodeIds();
         return availableWhen(
           structureNodeIds.length > 0 &&
-          structureNodeIds.every((id) => !ancestorsOf(id, index).some(({ locked }) => locked)),
+            structureNodeIds.every((id) => !ancestorsOf(id, index).some(({ locked }) => locked)),
           "selection_not_eligible",
         );
       },

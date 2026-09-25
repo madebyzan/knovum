@@ -1,8 +1,8 @@
 import { info as logInfo } from "@tauri-apps/plugin-log";
 import { platform } from "@tauri-apps/plugin-os";
 
-import type { AppCommand } from "../../../shared/contracts/app-command";
 import { availableWhen } from "../../../shared/contracts/action-availability";
+import type { AppCommand } from "../../../shared/contracts/app-command";
 import type { CanvasEditorPort } from "../canvas/contract/canvas-editor-port";
 
 interface CanvasEditingCommandLabels {

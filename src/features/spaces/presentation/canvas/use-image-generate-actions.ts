@@ -38,17 +38,17 @@ export function useImageGenerateActions(
     return rotatedImageSize(width * edit.crop.width, height * edit.crop.height, edit.rotation);
   });
   const availability = computed(() =>
-    imageActionAvailability(
-      Boolean(node.value.data.sourceRevision),
-      !nodeOperations.allows("derive"),
-      capabilities.isFetching.value
+    imageActionAvailability({
+      sourceReady: Boolean(node.value.data.sourceRevision),
+      editing: !nodeOperations.allows("derive"),
+      capability: capabilities.isFetching.value
         ? undefined
         : mode.value === "upscale"
           ? capabilities.data.value?.upscale
           : capabilities.data.value?.multiAngle,
-      capabilities.isError.value && !capabilities.isFetching.value,
-      busy.value,
-    ),
+      failed: capabilities.isError.value && !capabilities.isFetching.value,
+      busy: busy.value,
+    }),
   );
   const help = computed(() => imageActionHelp(availability.value, t));
 

@@ -1,7 +1,7 @@
 use serde_json::Value;
 use sqlx::{sqlite::SqliteRow, Row, Sqlite, Transaction};
 
-use super::super::{grounded, knowledge};
+use super::super::knowledge;
 use super::parse_json;
 use crate::spaces::{assets, db};
 
@@ -122,27 +122,6 @@ pub(super) async fn chunks(
     rows.into_iter().map(knowledge::chunk_row).collect()
 }
 
-pub(super) async fn threads(
-    tx: &mut Transaction<'_, Sqlite>,
-    space_id: &str,
-) -> Result<Vec<Value>, String> {
-    let rows = sqlx::query(
-        "SELECT id,space_id,scope,scope_node_ids,title,created_at,updated_at FROM spaces_ai_threads WHERE space_id=$1 ORDER BY created_at",
-    ).bind(space_id).fetch_all(&mut **tx).await.map_err(db::sql_error)?;
-    rows.into_iter().map(grounded::thread_row).collect()
-}
-
-pub(super) async fn messages(
-    tx: &mut Transaction<'_, Sqlite>,
-    space_id: &str,
-) -> Result<Vec<Value>, String> {
-    let rows = sqlx::query(
-        "SELECT m.id,m.thread_id,m.role,m.content,m.citations,m.provider,m.model,m.created_at \
-         FROM spaces_ai_messages m JOIN spaces_ai_threads t ON t.id=m.thread_id WHERE t.space_id=$1 ORDER BY m.created_at",
-    ).bind(space_id).fetch_all(&mut **tx).await.map_err(db::sql_error)?;
-    rows.into_iter().map(message).collect()
-}
-
 fn node(row: SqliteRow, assets: &mut PackageAssets) -> Result<Value, String> {
     let raw: String = row.try_get("data").map_err(db::sql_error)?;
     let mut data: Value = serde_json::from_str(&raw).map_err(db::json_error)?;
@@ -154,18 +133,4 @@ fn node(row: SqliteRow, assets: &mut PackageAssets) -> Result<Value, String> {
         "createdAt": row.try_get::<i64, _>("created_at").map_err(db::sql_error)?,
         "updatedAt": row.try_get::<i64, _>("updated_at").map_err(db::sql_error)?,
     }))
-}
-
-fn message(row: SqliteRow) -> Result<Value, String> {
-    let mut value = grounded::message_row(row)?;
-    let object = value
-        .as_object_mut()
-        .ok_or_else(|| "Grounded message row must serialize to an object".to_owned())?;
-    if object.get("provider") == Some(&Value::Null) {
-        object.remove("provider");
-    }
-    if object.get("model") == Some(&Value::Null) {
-        object.remove("model");
-    }
-    Ok(value)
 }

@@ -17,13 +17,14 @@ export type ImageActionReason =
 
 export type ImageActionAvailability = ActionAvailability<ImageActionReason>;
 
-export function imageActionAvailability(
-  sourceReady: boolean,
-  editing: boolean,
-  capability: LayerCapability | ImageOperationCapability | undefined,
-  failed = false,
-  busy = false,
-): ImageActionAvailability {
+export function imageActionAvailability(input: {
+  sourceReady: boolean;
+  editing: boolean;
+  capability: LayerCapability | ImageOperationCapability | undefined;
+  failed: boolean;
+  busy: boolean;
+}): ImageActionAvailability {
+  const { sourceReady, editing, capability, failed, busy } = input;
   if (busy) return { state: "busy" };
   if (editing) return { state: "blocked", reason: "finish_image_edit" };
   if (!sourceReady) return { state: "blocked", reason: "image_preparing" };

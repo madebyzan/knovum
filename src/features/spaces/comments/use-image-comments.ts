@@ -2,6 +2,7 @@ import { computed, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
+import { useContextDock } from "../canvas/use-context-dock";
 import type { SpaceImagePayload } from "../model/nodes/node-payload";
 import { useSpaceStore } from "../session/space-store";
 import { useImageCommentSession } from "./image-comment-session";
@@ -15,9 +16,14 @@ export interface ImageCommentCanvas {
   interactive: boolean;
 }
 
+function positionStyle(position: { x: number; y: number }) {
+  return { left: `${position.x * 100}%`, top: `${position.y * 100}%` };
+}
+
 export function useImageComments(props: ImageCommentCanvas) {
   const { t } = useI18n();
   const store = useSpaceStore();
+  const dock = useContextDock();
   const session = useImageCommentSession();
   const adding = computed(() => props.interactive && session.activeNodeId === props.id);
   const hintLabel = computed(() =>
@@ -40,9 +46,6 @@ export function useImageComments(props: ImageCommentCanvas) {
     width: `${props.imageRect.width}px`,
     height: `${props.imageRect.height}px`,
   }));
-  function positionStyle(position: { x: number; y: number }) {
-    return { left: `${position.x * 100}%`, top: `${position.y * 100}%` };
-  }
   function complete(mark: CommentMark) {
     if (!adding.value || comments.value.length >= 200) return;
     draft.value = mark;
@@ -93,7 +96,7 @@ export function useImageComments(props: ImageCommentCanvas) {
     const value = await saveDraft();
     if (!value) return;
     session.addToConversation(props.id, value);
-    store.requestAsk("selection");
+    dock.openAsk("selection", { nodeIds: [props.id] });
   }
   function remove(comment: ImageComment) {
     if (!busy.value) void persist(comments.value.filter(({ id }) => id !== comment.id));
@@ -101,7 +104,7 @@ export function useImageComments(props: ImageCommentCanvas) {
   function discuss(comment: ImageComment) {
     session.addToConversation(props.id, comment.text);
     selectedId.value = undefined;
-    store.requestAsk("selection");
+    dock.openAsk("selection", { nodeIds: [props.id] });
   }
   function close(open: boolean, id: string) {
     selectedId.value = open ? id : undefined;

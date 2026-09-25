@@ -6,7 +6,7 @@ import { renderEditedImage } from "../../image-editing/canvas-image-renderer";
 import type { ImageEdit } from "../../image-editing/image-edit";
 import { versionedMediaSource } from "../media/element";
 
-const props = defineProps<{ path: string; revision?: string; edit: ImageEdit }>();
+const props = defineProps<{ path: string; revision?: string | undefined; edit: ImageEdit }>();
 const canvas = useTemplateRef<HTMLCanvasElement>("canvas");
 const image = new Image();
 image.crossOrigin = "anonymous";
@@ -14,12 +14,25 @@ image.crossOrigin = "anonymous";
 function draw() {
   const element = canvas.value;
   const context = element?.getContext("2d", { willReadFrequently: true });
-  if (!context || !element || !element.clientWidth || !element.clientHeight || !image.complete || !image.naturalWidth) return;
-  renderEditedImage(context, image, {
-    width: element.clientWidth,
-    height: element.clientHeight,
-    pixelRatio: element.width / Math.max(1, element.clientWidth),
-  }, props.edit);
+  if (
+    !context ||
+    !element ||
+    !element.clientWidth ||
+    !element.clientHeight ||
+    !image.complete ||
+    !image.naturalWidth
+  )
+    return;
+  renderEditedImage(
+    context,
+    image,
+    {
+      width: element.clientWidth,
+      height: element.clientHeight,
+      pixelRatio: element.width / Math.max(1, element.clientWidth),
+    },
+    props.edit,
+  );
 }
 
 function loaded() {

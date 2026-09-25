@@ -3,8 +3,6 @@
 export type RunEventKind =
   | "assistant_paused_checkpoint"
   | "attempt_claimed"
-  | "debug_breakpoint_continued"
-  | "debug_breakpoint_reached"
   | "external_agent_message"
   | "external_agent_permission_requested"
   | "external_agent_tool_started"

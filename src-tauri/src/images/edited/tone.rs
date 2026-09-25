@@ -21,10 +21,22 @@ pub(super) struct ToneAdjuster {
 impl ToneAdjuster {
     pub(super) fn new(value: &Adjustments) -> Self {
         Self {
-            active: [value.exposure, value.contrast, value.shadows, value.highlights, value.blacks, value.whites,
-                value.saturation, value.vibrance, value.warmth, value.tint, value.vignette, value.soft_light]
-                .iter()
-                .any(|value| *value != 0.0),
+            active: [
+                value.exposure,
+                value.contrast,
+                value.shadows,
+                value.highlights,
+                value.blacks,
+                value.whites,
+                value.saturation,
+                value.vibrance,
+                value.warmth,
+                value.tint,
+                value.vignette,
+                value.soft_light,
+            ]
+            .iter()
+            .any(|value| *value != 0.0),
             exposure: 2.0_f64.powf((value.exposure / 100.0) * 2.0),
             contrast: 2.0_f64.powf((value.contrast / 100.0) * 1.5),
             shadows: value.shadows / 100.0 * 0.55,
@@ -58,20 +70,25 @@ impl ToneAdjuster {
             1.0 - smoothstep(0.0, 0.3, luminance),
             smoothstep(0.7, 1.0, luminance),
         ];
-        for index in 0..3 {
-            channels[index] = adjust_range(channels[index], self.shadows, weights[0]);
-            channels[index] = adjust_range(channels[index], self.highlights, weights[1]);
-            channels[index] = adjust_range(channels[index], self.blacks, weights[2]);
-            channels[index] = adjust_range(channels[index], self.whites, weights[3]);
+        for channel in &mut channels {
+            *channel = adjust_range(*channel, self.shadows, weights[0]);
+            *channel = adjust_range(*channel, self.highlights, weights[1]);
+            *channel = adjust_range(*channel, self.blacks, weights[2]);
+            *channel = adjust_range(*channel, self.whites, weights[3]);
         }
         let luminance = 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
         let chroma = channels.iter().copied().fold(f64::NEG_INFINITY, f64::max)
             - channels.iter().copied().fold(f64::INFINITY, f64::min);
         let color_strength = self.saturation * (1.0 + self.vibrance * (1.0 - chroma));
         for (index, channel) in channels.iter_mut().enumerate() {
-            let warmth = match index { 0 => self.warmth, 2 => -self.warmth, _ => 0.0 };
+            let warmth = match index {
+                0 => self.warmth,
+                2 => -self.warmth,
+                _ => 0.0,
+            };
             let tint = if index == 1 { -self.tint } else { self.tint };
-            *channel = (luminance + (*channel - luminance) * color_strength + warmth + tint).clamp(0.0, 1.0);
+            *channel = (luminance + (*channel - luminance) * color_strength + warmth + tint)
+                .clamp(0.0, 1.0);
             *channel += self.soft_light * *channel * (1.0 - *channel);
         }
         if self.vignette != 0.0 {
@@ -79,8 +96,11 @@ impl ToneAdjuster {
             let dy = (f64::from(y) + 0.5 - f64::from(height) / 2.0) / (f64::from(height) / 2.0);
             let edge = smoothstep(0.2, 1.1, dx.hypot(dy)) * self.vignette.abs() * 0.75;
             for channel in &mut channels {
-                *channel = if self.vignette > 0.0 { *channel * (1.0 - edge) }
-                    else { *channel + (1.0 - *channel) * edge };
+                *channel = if self.vignette > 0.0 {
+                    *channel * (1.0 - edge)
+                } else {
+                    *channel + (1.0 - *channel) * edge
+                };
             }
         }
         for index in 0..3 {

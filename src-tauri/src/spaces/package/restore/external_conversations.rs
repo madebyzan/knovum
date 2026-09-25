@@ -16,13 +16,15 @@ pub(super) async fn insert(
         });
         sqlx::query(
             "INSERT INTO spaces_external_agent_conversations(
-             id,run_id,space_id,runtime_kind,runtime_session_id,session_capabilities,
-             title,state,error,created_at,updated_at)
-             VALUES($1,$2,$3,$4,$5,$6,$7,'disconnected',$8,$9,$10)",
+             id,run_id,space_id,assistant_conversation_id,branch_id,runtime_kind,
+             runtime_session_id,session_capabilities,title,state,error,created_at,updated_at)
+             VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,'disconnected',$10,$11,$12)",
         )
         .bind(&row.id)
         .bind(&row.run_id)
         .bind(&request.space.id)
+        .bind(&row.assistant_conversation_id)
+        .bind(&row.branch_id)
         .bind(&row.runtime_kind)
         .bind(&row.runtime_session_id)
         .bind(
@@ -48,10 +50,12 @@ pub(super) async fn insert(
         };
         sqlx::query(
             "INSERT INTO spaces_external_agent_turns(
-             id,conversation_id,state,error,created_at,completed_at) VALUES($1,$2,$3,$4,$5,$6)",
+             id,conversation_id,assistant_message_id,state,error,created_at,completed_at)
+             VALUES($1,$2,$3,$4,$5,$6,$7)",
         )
         .bind(&row.id)
         .bind(&row.conversation_id)
+        .bind(&row.assistant_message_id)
         .bind(state)
         .bind(
             row.error
@@ -63,21 +67,6 @@ pub(super) async fn insert(
             row.completed_at
                 .or((row.state == "running").then_some(row.created_at)),
         )
-        .execute(&mut **tx)
-        .await
-        .map_err(db::sql_error)?;
-    }
-    for row in &request.external_agent_messages {
-        sqlx::query(
-            "INSERT INTO spaces_external_agent_messages(
-             id,conversation_id,turn_id,role,content,created_at) VALUES($1,$2,$3,$4,$5,$6)",
-        )
-        .bind(&row.id)
-        .bind(&row.conversation_id)
-        .bind(&row.turn_id)
-        .bind(&row.role)
-        .bind(&row.content)
-        .bind(row.created_at)
         .execute(&mut **tx)
         .await
         .map_err(db::sql_error)?;

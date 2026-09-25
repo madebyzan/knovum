@@ -82,18 +82,6 @@ async fn execute(
                 now,
             )
             .await?;
-            if impact != SpaceActionImpact::ReadOnly {
-                crate::spaces::automation::record_action_event(
-                    tx,
-                    &request.invocation_id,
-                    &request.space_id,
-                    &request.action_id,
-                    &result,
-                    request.parent_run_id.as_deref(),
-                    now,
-                )
-                .await?;
-            }
             Ok(if impact == SpaceActionImpact::ReadOnly {
                 ActionInvocationOutcome::QueryResult { result }
             } else {

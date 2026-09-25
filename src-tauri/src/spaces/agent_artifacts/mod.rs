@@ -15,22 +15,13 @@ pub async fn create_agent_artifacts(
     request: contracts::AgentCreationRequest,
     on_event: Channel<contracts::AgentCreationEvent>,
 ) -> Result<Vec<contracts::AgentArtifact>, AiError> {
-    create_agent_artifacts_scoped(app, request, on_event, true).await
-}
-
-pub(crate) async fn create_isolated_agent_artifacts(
-    app: AppHandle,
-    request: contracts::AgentCreationRequest,
-    on_event: Channel<contracts::AgentCreationEvent>,
-) -> Result<Vec<contracts::AgentArtifact>, AiError> {
-    create_agent_artifacts_scoped(app, request, on_event, false).await
+    create_agent_artifacts_scoped(app, request, on_event).await
 }
 
 async fn create_agent_artifacts_scoped(
     app: AppHandle,
     request: contracts::AgentCreationRequest,
     on_event: Channel<contracts::AgentCreationEvent>,
-    knowledge_access: bool,
 ) -> Result<Vec<contracts::AgentArtifact>, AiError> {
     if request.prompt.trim().is_empty() {
         return Err(AiError::invalid("Agent creation prompt cannot be empty"));
@@ -48,7 +39,7 @@ async fn create_agent_artifacts_scoped(
     .await
     .map_err(AiError::internal)?;
     let session_id = request.session_id.clone();
-    match execution::run(&app, request, on_event, &workspace, knowledge_access).await {
+    match execution::run(&app, request, on_event, &workspace).await {
         Ok(artifacts) => {
             if let Err(error) = session::succeed(&app, &session_id).await {
                 capabilities::agent_artifacts::discard(&workspace)?;

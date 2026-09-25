@@ -1,7 +1,7 @@
 import { shallowRef } from "vue";
 
-import type { AppCommand } from "../../../shared/contracts/app-command";
 import { availableWhen } from "../../../shared/contracts/action-availability";
+import type { AppCommand } from "../../../shared/contracts/app-command";
 
 export interface VideoEditCommandPort {
   canUndo(): boolean;

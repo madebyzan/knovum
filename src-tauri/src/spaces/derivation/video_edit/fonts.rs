@@ -23,7 +23,9 @@ fn catalog() -> &'static [InstalledFont] {
             };
             let weight = face.weight.0;
             if family.is_empty()
-                || family.chars().any(|character| matches!(character, ',' | '\n' | '\r'))
+                || family
+                    .chars()
+                    .any(|character| matches!(character, ',' | '\n' | '\r'))
                 || !(100..=900).contains(&weight)
             {
                 continue;

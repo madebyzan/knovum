@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useElementSize } from "@vueuse/core";
-import { computed, useTemplateRef } from "vue";
+import { computed, useTemplateRef, watch } from "vue";
 
 import type { CanvasPoint, CanvasRect } from "../../canvas/contract/canvas-editor-port";
 import { useCanvasEditorSession } from "../../canvas/editor-session";
@@ -14,6 +14,7 @@ const props = defineProps<{
   gap?: number;
   kind: "actions" | "compact-editor" | "inspector";
 }>();
+const emit = defineEmits<{ ready: [] }>();
 const editorSession = useCanvasEditorSession();
 const canvasObstacles = useCanvasSurfaceObstacles();
 const host = useTemplateRef<HTMLElement>("host");
@@ -68,6 +69,13 @@ const position = computed(() => {
     maxHeight: `${placed.maxHeight}px`,
   };
 });
+watch(
+  position,
+  (value, previous) => {
+    if (value && !previous) emit("ready");
+  },
+  { flush: "post" },
+);
 </script>
 
 <template>
@@ -82,7 +90,10 @@ const position = computed(() => {
       ]"
       :style="position"
     >
-      <slot :available-width="Math.max(0, hostSize.width.value - safeArea.left - safeArea.right)" />
+      <slot
+        :available-width="Math.max(0, hostSize.width.value - safeArea.left - safeArea.right)"
+        :available-height="position ? Number.parseFloat(position.maxHeight) : undefined"
+      />
     </div>
   </div>
 </template>

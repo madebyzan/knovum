@@ -1,12 +1,12 @@
 import type { SpaceEditSnapshot } from "../../canvas/contract/space-edit-snapshot";
 import { isSpaceNodeOpenable } from "../../canvas/selection-actions";
+import { currentSelectionRoots } from "../../canvas/selection/selection-roots";
 import { isSpaceSemanticNode } from "../../knowledge/model/semantic-node";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { StructureNode } from "../../model/structure/structure-contract";
 import {
   ancestorsOf,
   createStructureIndex,
-  effectiveOperationRoots,
   type StructureIndex,
 } from "../../model/structure/structure-index";
 import {
@@ -40,12 +40,9 @@ export function canvasSelectionProductState(
   const selected = new Set(selectedIds);
   const explicitlySelectedContent = nodes.filter((node) => selected.has(node.id));
   const index = createStructureIndex(snapshot.structure);
-  const contentStructureNodeIds = explicitlySelectedContent.flatMap(({ id }) => {
-    const structureNodeId = index.nodeIdToStructureNodeId.get(id);
-    return structureNodeId ? [structureNodeId] : [];
-  });
-  const structureNodeIds = effectiveOperationRoots(
-    [...selectedStructureNodeIds, ...contentStructureNodeIds],
+  const structureNodeIds = currentSelectionRoots(
+    explicitlySelectedContent.map(({ id }) => id),
+    selectedStructureNodeIds,
     index,
   ).map(({ id }) => id);
   const selectedNodeIds = new Set(contentNodeIdsWithin(structureNodeIds, index));

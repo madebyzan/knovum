@@ -56,12 +56,12 @@ pub async fn split<F: FnOnce()>(
         _ = cancellation.cancelled() => return Err("Image layer split was cancelled".into()),
         response = submission => response,
     }
-        .map_err(request_error)?
-        .error_for_status()
-        .map_err(request_error)?
-        .json::<Submission>()
-        .await
-        .map_err(request_error)?;
+    .map_err(request_error)?
+    .error_for_status()
+    .map_err(request_error)?
+    .json::<Submission>()
+    .await
+    .map_err(request_error)?;
     validate_request_id(&response.request_id)?;
     wait_for_completion(api_key, &response.request_id, cancellation).await?;
     let result = fetch_result(api_key, &response.request_id, cancellation).await?;
@@ -108,12 +108,12 @@ async fn wait_for_completion(
             }
             response = request => response,
         }
-            .map_err(request_error)?
-            .error_for_status()
-            .map_err(request_error)?
-            .json::<Status>()
-            .await
-            .map_err(request_error)?;
+        .map_err(request_error)?
+        .error_for_status()
+        .map_err(request_error)?
+        .json::<Status>()
+        .await
+        .map_err(request_error)?;
         match status.status.as_str() {
             "IN_QUEUE" | "IN_PROGRESS" => continue,
             "COMPLETED" if status.error.is_none() => return Ok(()),
@@ -136,12 +136,12 @@ async fn fetch_result(
         _ = cancellation.cancelled() => return Err("Image layer split was cancelled".into()),
         response = request => response,
     }
-        .map_err(request_error)?
-        .error_for_status()
-        .map_err(request_error)?
-        .json()
-        .await
-        .map_err(request_error)
+    .map_err(request_error)?
+    .error_for_status()
+    .map_err(request_error)?
+    .json()
+    .await
+    .map_err(request_error)
 }
 
 async fn cancel_remote(api_key: &str, request_id: &str) {

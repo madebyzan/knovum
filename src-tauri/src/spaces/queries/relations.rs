@@ -1,22 +1,18 @@
-use serde_json::Value;
-use sqlx::Row;
-use tauri::{AppHandle, Runtime};
-
 use crate::spaces::db;
+use serde_json::Value;
+use sqlx::{Row, Sqlite, Transaction};
 
-#[tauri::command]
-pub async fn list_relations<R: Runtime>(
-    app: AppHandle<R>,
-    space_id: String,
+pub(crate) async fn list_in_transaction(
+    tx: &mut Transaction<'_, Sqlite>,
+    space_id: &str,
 ) -> Result<Vec<Value>, String> {
-    let pool = db::pool(&app).await?;
     let rows = sqlx::query(
         "SELECT id, space_id, source_id, target_id, kind, rationale, status, status_before_invalidation, confidence, \
          actor_kind, actor_id, created_at, updated_at FROM spaces_relations \
          WHERE space_id = ? AND status <> 'invalidated' ORDER BY created_at",
     )
     .bind(space_id)
-    .fetch_all(pool)
+    .fetch_all(&mut **tx)
     .await
     .map_err(db::sql_error)?;
     rows.into_iter().map(relation_row).collect()

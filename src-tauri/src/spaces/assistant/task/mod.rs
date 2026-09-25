@@ -1,14 +1,12 @@
 mod cancellation;
 mod completion;
-mod context;
+pub(crate) mod context;
 mod driver;
-mod external_tool;
 mod identity;
 mod persistence;
 mod recovery;
 mod tool_execution;
 
-use serde_json::json;
 use tauri::ipc::Channel;
 use tauri::AppHandle;
 
@@ -18,7 +16,7 @@ use crate::spaces::{
     runs::{transition_run, RunState},
 };
 
-pub(super) const ASSISTANT_PROFILE_VERSION: u16 = 1;
+pub(super) const ASSISTANT_PROFILE_VERSION: u16 = 2;
 
 pub(super) struct NewAssistantTask<'a> {
     pub task_id: &'a str,
@@ -45,30 +43,12 @@ pub async fn start(
     };
     let target = crate::ai::settings::resolve(&app, request.target.clone(), capability)
         .map_err(|error| error.to_string())?;
-    let catalog = tools::project(pool, &request.space_id, request.mode).await?;
+    let catalog = tools::project(request.mode)?;
     let ids = identity::TaskIds::new(&request);
     let conversation_context =
         repository::build_context(pool, &ids.conversation_id, &ids.branch_id).await?;
     let now = crate::clock::unix_time_millis()?;
     let grant = identity::grant(&request, &ids, &catalog, now);
-    persistence::create_records(
-        pool,
-        &request,
-        &ids,
-        &grant,
-        &catalog,
-        &context.manifest,
-        now,
-    )
-    .await?;
-    repository::append_message(
-        pool,
-        &ids.conversation_id,
-        &ids.branch_id,
-        "user",
-        &json!({"parts": [{"type": "text", "text": request.prompt}]}),
-    )
-    .await?;
     let mut checkpoint = crate::agent_runtime::start(
         context.initial_message(&request.prompt, conversation_context.as_deref()),
         request.max_turns,
@@ -77,7 +57,19 @@ pub async fn start(
         uuid::Uuid::new_v4().to_string(),
         catalog.digest.clone(),
     )?;
-    repository::save_checkpoint(pool, &ids.task_id, &checkpoint).await?;
+    persistence::create_records(
+        pool,
+        persistence::NewAssistantRecords {
+            request: &request,
+            ids: &ids,
+            grant: &grant,
+            catalog: &catalog,
+            context_manifest: &context.manifest,
+            checkpoint: &checkpoint,
+            now,
+        },
+    )
+    .await?;
     transition_run(pool, &ids.run_id, 0, RunState::Running, None).await?;
     let accepted = AssistantTaskAccepted {
         task_id: ids.task_id.clone(),
@@ -105,8 +97,11 @@ pub async fn start(
             Ok(output) => {
                 if let Err(error) = completion::complete(pool, &ids, output).await {
                     log::error!("Assistant task completion failed: {error}");
+                    if let Err(write_error) = completion::fail(pool, &ids.run_id, &error).await {
+                        log::error!("Assistant failure recording failed: {write_error}");
+                    }
                     let _ = updates.send(super::AssistantTaskUpdate::Finished {
-                        state: "failed".into(),
+                        state: completion::stopped_state(pool, &ids.run_id).await,
                     });
                 } else {
                     let _ = updates.send(super::AssistantTaskUpdate::Finished {
@@ -115,7 +110,9 @@ pub async fn start(
                 }
             }
             Err(error) => {
-                completion::fail(pool, &ids.run_id).await;
+                if let Err(write_error) = completion::fail(pool, &ids.run_id, &error).await {
+                    log::error!("Assistant failure recording failed: {write_error}");
+                }
                 let _ = updates.send(super::AssistantTaskUpdate::Finished {
                     state: completion::stopped_state(pool, &ids.run_id).await,
                 });

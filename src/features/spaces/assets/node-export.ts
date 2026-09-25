@@ -4,8 +4,8 @@ import { isSpaceManagedAssetPayload } from "../model/nodes/capabilities";
 import type { SpaceNodePayload, SpaceSubtitlePayload } from "../model/nodes/node-payload";
 import type { StructureIndex } from "../model/structure/structure-index";
 import { validateStructureSnapshot } from "../model/structure/structure-validation";
-import { exportSpaceAsset, exportSpaceTextFile, safeExportFileName, type SpaceTextExport } from "./export";
 import { exportEditedImage } from "./edited-image-export";
+import { exportSpaceAsset, exportSpaceTextFile, safeExportFileName, type SpaceTextExport } from "./export";
 import { formatExportMarkdown } from "./markdown-document";
 
 export async function exportSpaceNode(spaceId: string, node: SpaceCanvasNode): Promise<boolean> {

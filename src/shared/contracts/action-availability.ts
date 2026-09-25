@@ -13,6 +13,9 @@ export function showsAction(availability: ActionAvailability): boolean {
   return availability.state !== "hidden";
 }
 
-export function availableWhen<Reason extends string>(condition: boolean, reason: Reason): ActionAvailability<Reason> {
+export function availableWhen<Reason extends string>(
+  condition: boolean,
+  reason: Reason,
+): ActionAvailability<Reason> {
   return condition ? { state: "ready" } : { state: "blocked", reason };
 }

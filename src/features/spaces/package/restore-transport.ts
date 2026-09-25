@@ -1,9 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
 
-import type { WorkflowDefinition } from "../contracts/generated/WorkflowDefinition";
-import type { GroundedCitation } from "../knowledge/model/grounded-citation";
-import type { GroundedMessage } from "../knowledge/model/grounded-message";
-import type { GroundedScope } from "../knowledge/model/grounded-scope";
 import type { KnowledgeChunkOrigin } from "../knowledge/model/knowledge-chunk";
 import type { SpaceKnowledgeObjectType } from "../knowledge/model/object-types";
 import type { SpaceKnowledgeEvent, SpaceProvenance } from "../knowledge/model/provenance";
@@ -100,30 +96,12 @@ export interface SpacePackageRestoreRequest {
       operationId: string;
     };
   }[];
-  workflowDrafts: readonly {
-    id: string;
-    revision: number;
-    definition: WorkflowDefinition;
-    createdAt: number;
-    updatedAt: number;
-  }[];
-  workflowVersions: readonly {
-    workflowId: string;
-    version: number;
-    definition: WorkflowDefinition;
-    publishedAt: number;
-  }[];
   runs: SpacePackageManifest["runs"];
   runSteps: SpacePackageManifest["runSteps"];
-  runBatchItems: SpacePackageManifest["runBatchItems"];
   runAttempts: SpacePackageManifest["runAttempts"];
   runEvents: SpacePackageManifest["runEvents"];
-  automationTriggers: SpacePackageManifest["automationTriggers"];
-  automationOccurrences: SpacePackageManifest["automationOccurrences"];
-  externalToolBindings: SpacePackageManifest["externalToolBindings"];
   externalAgentConversations: SpacePackageManifest["externalAgentConversations"];
   externalAgentTurns: SpacePackageManifest["externalAgentTurns"];
-  externalAgentMessages: SpacePackageManifest["externalAgentMessages"];
   assistantConversations: SpacePackageManifest["assistantConversations"];
   assistantMessages: SpacePackageManifest["assistantMessages"];
   provenance: readonly Omit<SpaceProvenance, "spaceId">[];
@@ -139,24 +117,6 @@ export interface SpacePackageRestoreRequest {
     metadata: Record<string, string | number | boolean | null>;
     createdAt: number;
     updatedAt: number;
-  }[];
-  threads: readonly {
-    id: string;
-    scope: GroundedScope;
-    scopeNodeIds: readonly string[];
-    title: string;
-    createdAt: number;
-    updatedAt: number;
-  }[];
-  messages: readonly {
-    id: string;
-    threadId: string;
-    role: GroundedMessage["role"];
-    content: string;
-    citations: readonly GroundedCitation[];
-    provider?: string;
-    model?: string;
-    createdAt: number;
   }[];
 }
 

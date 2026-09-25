@@ -12,7 +12,6 @@ pub(super) fn validate(definition: &WorkflowDefinition, diagnostics: &mut Vec<Wo
         .iter()
         .map(|node| (node.id(), node))
         .collect::<HashMap<_, _>>();
-    let mut branches = HashSet::new();
     let mut edge_ids = HashSet::new();
     let mut incoming = HashMap::<&str, usize>::new();
     for edge in &definition.edges {
@@ -36,13 +35,13 @@ pub(super) fn validate(definition: &WorkflowDefinition, diagnostics: &mut Vec<Wo
                 &edge.id,
             ));
         }
-        validate_branch(
-            source,
-            edge.branch.as_deref(),
-            &edge.id,
-            &mut branches,
-            diagnostics,
-        );
+        if edge.branch.is_some() {
+            diagnostics.push(edge_diagnostic(
+                "branch_unsupported",
+                "Workflow edges cannot declare branches",
+                &edge.id,
+            ));
+        }
         if !assignable(output_type(source), input_type(target)) {
             diagnostics.push(edge_diagnostic(
                 "port_type",
@@ -51,21 +50,6 @@ pub(super) fn validate(definition: &WorkflowDefinition, diagnostics: &mut Vec<Wo
             ));
         }
         *incoming.entry(target.id()).or_default() += 1;
-    }
-    for node in definition
-        .nodes
-        .iter()
-        .filter(|node| matches!(node, WorkflowNode::Condition { .. }))
-    {
-        for required in ["true", "false"] {
-            if !branches.contains(&(node.id().to_owned(), required.to_owned())) {
-                diagnostics.push(node_diagnostic(
-                    "condition_branch_missing",
-                    &format!("Condition requires a {required} branch"),
-                    node.id(),
-                ));
-            }
-        }
     }
     for (node_id, count) in incoming {
         let node = nodes[node_id];
@@ -84,44 +68,9 @@ pub(super) fn validate(definition: &WorkflowDefinition, diagnostics: &mut Vec<Wo
     }
 }
 
-fn validate_branch(
-    source: &WorkflowNode,
-    branch: Option<&str>,
-    edge_id: &str,
-    branches: &mut HashSet<(String, String)>,
-    diagnostics: &mut Vec<WorkflowDiagnostic>,
-) {
-    if matches!(source, WorkflowNode::Condition { .. }) {
-        if !matches!(branch, Some("true" | "false")) {
-            diagnostics.push(edge_diagnostic(
-                "condition_branch",
-                "Condition edges require true or false branch labels",
-                edge_id,
-            ));
-        } else if !branches.insert((
-            source.id().to_owned(),
-            branch.unwrap_or_default().to_owned(),
-        )) {
-            diagnostics.push(edge_diagnostic(
-                "condition_branch_duplicate",
-                "Condition branch labels must be unique",
-                edge_id,
-            ));
-        }
-    } else if branch.is_some() {
-        diagnostics.push(edge_diagnostic(
-            "branch_owner",
-            "Only Condition edges may declare a branch",
-            edge_id,
-        ));
-    }
-}
-
 fn output_type(node: &WorkflowNode) -> &str {
     match node {
         WorkflowNode::Input { output_type, .. } => output_type.as_str(),
-        WorkflowNode::Condition { .. } => "boolean",
-        WorkflowNode::ForEach { .. } => "collection",
         WorkflowNode::Action { action_id, .. } => crate::spaces::actions::require(action_id)
             .map(|definition| definition.output_contract.as_str())
             .unwrap_or("value"),
@@ -132,7 +81,6 @@ fn output_type(node: &WorkflowNode) -> &str {
 fn input_type(node: &WorkflowNode) -> &str {
     match node {
         WorkflowNode::Output { input_type, .. } => input_type.as_str(),
-        WorkflowNode::ForEach { .. } => "collection",
         _ => "value",
     }
 }

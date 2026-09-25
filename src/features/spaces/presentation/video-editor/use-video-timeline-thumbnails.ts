@@ -17,7 +17,7 @@ export function useVideoTimelineThumbnails(sourcePath: Ref<string | undefined>, 
 
   watch(
     [sourcePath, durationMs],
-    async ([path, duration], _previous, onCleanup) => {
+    ([path, duration], _previous, onCleanup) => {
       frames.value = [];
       error.value = false;
       if (!path || duration <= 0) return;
@@ -38,49 +38,74 @@ export function useVideoTimelineThumbnails(sourcePath: Ref<string | undefined>, 
       video.crossOrigin = "anonymous";
       video.muted = true;
       video.preload = "auto";
-
-      try {
-        await waitForVideo(video, "loadedmetadata", abort.signal, () => {
-          video.src = versionedMediaSource(path)!;
-          video.load();
-        });
-        const mediaDuration = Math.min(duration, Math.floor(video.duration * 1_000));
-        if (!Number.isFinite(mediaDuration) || mediaDuration <= 0) return;
-        const canvas = document.createElement("canvas");
-        canvas.width = 96;
-        canvas.height = 54;
-        const context = canvas.getContext("2d");
-        if (!context) return;
-
-        const count = Math.min(MAX_FRAMES, Math.max(1, Math.ceil(mediaDuration / 2_500)));
-        for (let index = 0; index < count && !abort.signal.aborted; index++) {
-          const startMs = (index / count) * mediaDuration;
-          const endMs = ((index + 1) / count) * mediaDuration;
-          const sourceMs = Math.min(mediaDuration - 1, (startMs + endMs) / 2);
-          await waitForVideo(video, "seeked", abort.signal, () => {
-            video.currentTime = sourceMs / 1_000;
-          });
-          context.drawImage(video, 0, 0, canvas.width, canvas.height);
-          frames.value = [...frames.value, { startMs, endMs, image: canvas.toDataURL("image/jpeg", 0.62) }];
-        }
-        if (!abort.signal.aborted) {
-          if (frameCache.size >= 8) frameCache.delete(frameCache.keys().next().value!);
-          frameCache.set(cacheKey, frames.value);
-        }
-      } catch {
-        if (!abort.signal.aborted) {
-          frames.value = [];
-          error.value = true;
-        }
-      } finally {
-        video.removeAttribute("src");
-        video.load();
-      }
+      void loadFrames({ video, path, duration, cacheKey, abort, frames, error });
     },
     { immediate: true },
   );
 
   return { frames, error };
+}
+
+interface FrameLoad {
+  video: HTMLVideoElement;
+  path: string;
+  duration: number;
+  cacheKey: string;
+  abort: AbortController;
+  frames: Ref<TimelineFrame[]>;
+  error: Ref<boolean>;
+}
+
+async function loadFrames(load: FrameLoad) {
+  const { video, path, duration, cacheKey, abort, frames, error } = load;
+  try {
+    await waitForVideo(video, "loadedmetadata", abort.signal, () => {
+      video.src = versionedMediaSource(path)!;
+      video.load();
+    });
+    const mediaDuration = Math.min(duration, Math.floor(video.duration * 1_000));
+    if (!Number.isFinite(mediaDuration) || mediaDuration <= 0) return;
+    const canvas = document.createElement("canvas");
+    canvas.width = 96;
+    canvas.height = 54;
+    const context = canvas.getContext("2d");
+    if (!context) return;
+    const count = Math.min(MAX_FRAMES, Math.max(1, Math.ceil(mediaDuration / 2_500)));
+    await sampleFrames(load, { canvas, context, duration: mediaDuration, count }, 0);
+    if (!abort.signal.aborted) {
+      if (frameCache.size >= 8) frameCache.delete(frameCache.keys().next().value!);
+      frameCache.set(cacheKey, frames.value);
+    }
+  } catch {
+    if (!abort.signal.aborted) {
+      frames.value = [];
+      error.value = true;
+    }
+  } finally {
+    video.removeAttribute("src");
+    video.load();
+  }
+}
+
+interface FrameSampler {
+  canvas: HTMLCanvasElement;
+  context: CanvasRenderingContext2D;
+  duration: number;
+  count: number;
+}
+
+async function sampleFrames(load: FrameLoad, sampler: FrameSampler, index: number): Promise<void> {
+  if (index >= sampler.count || load.abort.signal.aborted) return;
+  const { canvas, context, duration, count } = sampler;
+  const startMs = (index / count) * duration;
+  const endMs = ((index + 1) / count) * duration;
+  const sourceMs = Math.min(duration - 1, (startMs + endMs) / 2);
+  await waitForVideo(load.video, "seeked", load.abort.signal, () => {
+    load.video.currentTime = sourceMs / 1_000;
+  });
+  context.drawImage(load.video, 0, 0, canvas.width, canvas.height);
+  load.frames.value = [...load.frames.value, { startMs, endMs, image: canvas.toDataURL("image/jpeg", 0.62) }];
+  await sampleFrames(load, sampler, index + 1);
 }
 
 function waitForVideo(

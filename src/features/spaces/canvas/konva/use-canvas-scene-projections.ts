@@ -13,9 +13,9 @@ export function useCanvasSceneProjections(
   temporarilyExpandedSectionId: Readonly<Ref<string | undefined>>,
 ) {
   const lockedNodeIds = computed(() => {
-    const index = createStructureIndex(props.editSnapshot.structure);
+    const index = createStructureIndex(props.sceneInput.editSnapshot.structure);
     return new Set(
-      props.nodes.flatMap(({ id }) => {
+      props.sceneInput.nodes.flatMap(({ id }) => {
         const structureNodeId = index.nodeIdToStructureNodeId.get(id);
         if (!structureNodeId) return [];
         return isStructureNodeEffectivelyLocked(structureNodeId, index) ? [id] : [];
@@ -24,14 +24,14 @@ export function useCanvasSceneProjections(
   });
   const structureScene = computed(() =>
     projectStructureScene(
-      props.editSnapshot,
-      props.nodes,
-      props.relations,
+      props.sceneInput.editSnapshot,
+      props.sceneInput.nodes,
+      props.sceneInput.relations,
       temporarilyExpandedSectionId.value ? new Set([temporarilyExpandedSectionId.value]) : new Set(),
     ),
   );
   const scene = computed(() =>
-    projectCanvasScene(document.value, props.nodes, props.relations, {
+    projectCanvasScene(document.value, props.sceneInput.nodes, props.sceneInput.relations, {
       lockedNodeIds: lockedNodeIds.value,
       structure: structureScene.value,
     }),
@@ -66,7 +66,7 @@ export function useCanvasSceneProjections(
       ]),
   );
   const groupScopeTitles = computed(() => {
-    const index = createStructureIndex(props.editSnapshot.structure);
+    const index = createStructureIndex(props.sceneInput.editSnapshot.structure);
     return props.groupScopePath.map((structureNodeId) => {
       const group = index.structureById.get(structureNodeId);
       if (group?.kind !== "group") throw new Error(`Group scope is unavailable: ${structureNodeId}`);
@@ -74,7 +74,7 @@ export function useCanvasSceneProjections(
     });
   });
   function structureSelectionForNode(nodeId: string) {
-    const index = createStructureIndex(props.editSnapshot.structure);
+    const index = createStructureIndex(props.sceneInput.editSnapshot.structure);
     const structureNodeId = index.nodeIdToStructureNodeId.get(nodeId);
     if (!structureNodeId) throw new Error(`Content structure is unavailable: ${nodeId}`);
     const ancestors = ancestorsOf(structureNodeId, index);

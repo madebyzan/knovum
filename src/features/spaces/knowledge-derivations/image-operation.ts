@@ -25,7 +25,10 @@ export type ImageOperation =
 
 export type ImageOperationCapability =
   | { state: "ready" }
-  | { state: "blocked"; reason: "configuration_incomplete" | "provider_unsupported" | "credential_unavailable" };
+  | {
+      state: "blocked";
+      reason: "configuration_incomplete" | "provider_unsupported" | "credential_unavailable";
+    };
 
 interface ImageOperationCapabilities {
   upscale: ImageOperationCapability;
@@ -81,11 +84,11 @@ export async function createImageOperation(
     },
     failureMessageKey: "spaces.media.imageOperationFailed",
     execute: async ({ taskId }) => {
-      const stages = new Channel<string>();
-      if (taskId) {
-        const tasks = useTaskStore();
-        stages.onmessage = (stage) => tasks.detail(taskId, i18n.global.t(`spaces.media.operationStage.${stage}`));
-      }
+      const stages = new Channel<string>(
+        taskId
+          ? (stage) => useTaskStore().detail(taskId, i18n.global.t(`spaces.media.operationStage.${stage}`))
+          : undefined,
+      );
       return invoke<ImageOperationOutput>("plugin:spaces|create_image_operation", {
         request: {
           id,

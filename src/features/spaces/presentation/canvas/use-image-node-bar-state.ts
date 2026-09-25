@@ -2,8 +2,8 @@ import { computed, onBeforeUnmount, shallowRef, watch, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { availableWhen, canRunAction } from "../../../../shared/contracts/action-availability";
-import { useImageCommentSession } from "../../comments/image-comment-session";
 import { useNodeOperationGate } from "../../canvas/node-operation-gate";
+import { useImageCommentSession } from "../../comments/image-comment-session";
 import { useImageEditSession, type ImageEditTool } from "../../image-editing/image-edit-session";
 import type { CreationIntentDecisions } from "../../knowledge-derivations/catalog/creation-intent-definitions";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
@@ -41,7 +41,8 @@ export function useImageNodeBarState(
   });
 
   function beginTool(tool: ImageEditTool) {
-    if (!nodeOperations.allows("edit") || session.applying || (tool === "crop" && !dimensionsReady.value)) return;
+    if (!nodeOperations.allows("edit") || session.applying || (tool === "crop" && !dimensionsReady.value))
+      return;
     if (commenting.value) comments.cancel();
     openPopover.value = undefined;
     session.begin(node.value.id, tool);

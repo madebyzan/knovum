@@ -127,18 +127,13 @@ export const settingsRegistry: readonly SettingsDefinition[] = [
     group: "intelligence",
     titleKey: "settings.creation.title",
     descriptionKey: "settings.creation.description",
-    searchKeys: ["settings.creation.description", "settings.creation.presets", "settings.creation.workflows"],
+    searchKeys: ["settings.creation.description", "settings.creation.presets"],
     icon: WandSparkles,
     locations: [
       {
         id: "settings-generation-presets",
         labelKey: "settings.creation.presets",
         descriptionKey: "settings.creation.presetsDescription",
-      },
-      {
-        id: "settings-creation-workflows",
-        labelKey: "settings.creation.workflows",
-        descriptionKey: "settings.creation.workflowsDescription",
       },
     ],
   },

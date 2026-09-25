@@ -24,6 +24,7 @@ pub enum AgentSessionUpdate {
     },
 }
 
+#[derive(Clone)]
 pub struct AgentPermissionOption {
     pub id: String,
     pub label: String,

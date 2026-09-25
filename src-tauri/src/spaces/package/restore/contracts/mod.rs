@@ -1,29 +1,17 @@
 mod assistant;
-mod automation;
 mod derivation;
 mod external_conversation;
-mod external_tool;
 mod restore_request;
 mod run;
-mod workflow;
 
 use serde::Deserialize;
 use serde_json::Value;
 
 pub use assistant::{PackageAssistantConversationRow, PackageAssistantMessageRow};
-pub use automation::{PackageAutomationOccurrenceRow, PackageAutomationTriggerRow};
 pub use derivation::PackageDerivationRow;
-pub use external_conversation::{
-    PackageExternalAgentConversationRow, PackageExternalAgentMessageRow,
-    PackageExternalAgentTurnRow,
-};
-pub use external_tool::PackageExternalToolBindingRow;
+pub use external_conversation::{PackageExternalAgentConversationRow, PackageExternalAgentTurnRow};
 pub use restore_request::RestorePackageRequest;
-pub use run::{
-    PackageRunAttemptRow, PackageRunBatchItemRow, PackageRunEventRow, PackageRunRow,
-    PackageRunStepRow,
-};
-pub use workflow::{PackageWorkflowDraftRow, PackageWorkflowVersionRow};
+pub use run::{PackageRunAttemptRow, PackageRunEventRow, PackageRunRow, PackageRunStepRow};
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -135,30 +123,6 @@ pub struct PackageChunkRow {
     pub metadata: Value,
     pub created_at: i64,
     pub updated_at: i64,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct PackageThreadRow {
-    pub id: String,
-    pub scope: String,
-    pub scope_node_ids: Vec<String>,
-    pub title: String,
-    pub created_at: i64,
-    pub updated_at: i64,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct PackageMessageRow {
-    pub id: String,
-    pub thread_id: String,
-    pub role: String,
-    pub content: String,
-    pub citations: Value,
-    pub provider: Option<String>,
-    pub model: Option<String>,
-    pub created_at: i64,
 }
 
 #[cfg(test)]

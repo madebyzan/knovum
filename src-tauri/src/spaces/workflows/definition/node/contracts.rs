@@ -1,8 +1,7 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use ts_rs::TS;
 
-#[derive(Clone, Copy, Debug, Deserialize, JsonSchema, Serialize, TS)]
+#[derive(Clone, Copy, Debug, Deserialize, JsonSchema, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum WorkflowValueType {
     Value,
@@ -38,7 +37,7 @@ impl WorkflowValueType {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, TS)]
+#[derive(Clone, Debug, Deserialize, JsonSchema, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct WorkflowEdge {
     pub id: String,
@@ -49,32 +48,17 @@ pub struct WorkflowEdge {
     pub branch: Option<String>,
 }
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, JsonSchema, PartialEq, Serialize, TS)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, JsonSchema, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum WorkflowPort {
     Input,
     Output,
 }
 
-#[derive(Clone, Copy, Debug, Deserialize, JsonSchema, Serialize, TS)]
+#[derive(Clone, Copy, Debug, Deserialize, JsonSchema, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum JoinPolicy {
     AllSucceeded,
     ActiveBranches,
     CollectResults,
-}
-
-#[derive(Clone, Copy, Debug, Deserialize, JsonSchema, Serialize, TS)]
-#[serde(rename_all = "snake_case")]
-pub enum ItemErrorPolicy {
-    Stop,
-    CollectErrors,
-}
-
-#[derive(Clone, Copy, Debug, Deserialize, JsonSchema, Serialize, TS)]
-#[serde(rename_all = "snake_case")]
-pub enum PublicationMode {
-    CreateResource,
-    UpdateExpectedRevision,
-    Export,
 }

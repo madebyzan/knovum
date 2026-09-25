@@ -7,10 +7,10 @@ import "konva/lib/shapes/Arrow";
 // oxlint-disable-next-line import/no-unassigned-import
 import "konva/lib/shapes/Circle";
 
+import { canvasChromeMetrics } from "../../canvas-chrome-metrics";
 import type { CanvasConnectorSide } from "../interaction/connector-gesture-controller";
 import { connectorControlCenter } from "../scene/connector-geometry";
 import type { CanvasSceneNode } from "../scene/scene-projection";
-import { canvasChromeMetrics } from "./canvas-chrome-metrics";
 import type { CanvasPalette } from "./use-canvas-palette";
 
 const SIDES: readonly CanvasConnectorSide[] = ["top", "right", "bottom", "left"];

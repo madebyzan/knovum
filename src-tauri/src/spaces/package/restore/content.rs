@@ -1,8 +1,8 @@
 use sqlx::{Sqlite, Transaction};
 
 use super::contracts::{PackageChunkRow, RestorePackageRequest};
+use crate::spaces::db;
 use crate::spaces::knowledge::chunk_store;
-use crate::spaces::{db, knowledge::grounding};
 
 pub(super) async fn insert_chunks(
     tx: &mut Transaction<'_, Sqlite>,
@@ -100,48 +100,5 @@ async fn insert_packaged_chunk(
     ).bind(&row.id).bind(&request.space.id).bind(&row.node_id).bind(&row.origin).bind(&row.kind)
         .bind(&row.source_revision).bind(&row.text).bind(locator).bind(metadata).bind(row.created_at).bind(row.updated_at)
         .execute(&mut **tx).await.map_err(db::sql_error)?;
-    Ok(())
-}
-
-pub(super) async fn insert_threads(
-    tx: &mut Transaction<'_, Sqlite>,
-    request: &RestorePackageRequest,
-) -> Result<(), String> {
-    for row in &request.threads {
-        grounding::validate_title(&row.title)?;
-        grounding::validate_scope_nodes(tx, &request.space.id, &row.scope, &row.scope_node_ids)
-            .await?;
-        let ids = serde_json::to_string(&row.scope_node_ids).map_err(db::json_error)?;
-        sqlx::query(
-            "INSERT INTO spaces_ai_threads(id,space_id,scope,scope_node_ids,title,created_at,updated_at) VALUES($1,$2,$3,$4,$5,$6,$7)",
-        ).bind(&row.id).bind(&request.space.id).bind(&row.scope).bind(ids).bind(&row.title)
-            .bind(row.created_at).bind(row.updated_at).execute(&mut **tx).await.map_err(db::sql_error)?;
-    }
-    Ok(())
-}
-
-pub(super) async fn insert_messages(
-    tx: &mut Transaction<'_, Sqlite>,
-    request: &RestorePackageRequest,
-) -> Result<(), String> {
-    for row in &request.messages {
-        grounding::validate_role(&row.role)?;
-        grounding::validate_message_metadata(
-            &row.content,
-            row.provider.as_deref(),
-            row.model.as_deref(),
-        )?;
-        let contract = grounding::thread_contract(tx, &row.thread_id).await?;
-        if contract.space_id != request.space.id {
-            return Err("Package grounded message thread belongs to another Space".into());
-        }
-        grounding::validate_historical_citations(tx, &contract, &row.citations).await?;
-        let citations = serde_json::to_string(&row.citations).map_err(db::json_error)?;
-        sqlx::query(
-            "INSERT INTO spaces_ai_messages(id,thread_id,role,content,citations,provider,model,created_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8)",
-        ).bind(&row.id).bind(&row.thread_id).bind(&row.role).bind(&row.content).bind(citations)
-            .bind(row.provider.as_deref()).bind(row.model.as_deref()).bind(row.created_at)
-            .execute(&mut **tx).await.map_err(db::sql_error)?;
-    }
     Ok(())
 }

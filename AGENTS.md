@@ -40,13 +40,13 @@ Use Oxc tooling; do not add ESLint or Prettier. Run focused checks for the chang
 
 Update the authoritative document when its contract changes:
 
-| Change | Document |
-| --- | --- |
-| System/runtime topology | `docs/system-architecture.md` |
-| Dependency boundaries | `docs/architecture.md` |
-| UI/design tokens | `docs/ui-system.md` |
-| Desktop behavior | `docs/desktop-foundation.md`, `docs/platform-matrix.md` |
-| Dependency policy | `docs/oss-first.md`, `docs/dependency-policy.md` |
-| Packaging/release | `docs/packaging.md`, `docs/release.md` |
+| Change                  | Document                                                |
+| ----------------------- | ------------------------------------------------------- |
+| System/runtime topology | `docs/system-architecture.md`                           |
+| Dependency boundaries   | `docs/architecture.md`                                  |
+| UI/design tokens        | `docs/ui-system.md`                                     |
+| Desktop behavior        | `docs/desktop-foundation.md`, `docs/platform-matrix.md` |
+| Dependency policy       | `docs/oss-first.md`, `docs/dependency-policy.md`        |
+| Packaging/release       | `docs/packaging.md`, `docs/release.md`                  |
 
 Keep each contract in its owning document rather than creating a second version.

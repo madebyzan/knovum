@@ -7,7 +7,7 @@ import SpaceImageEditedThumbnail from "./SpaceImageEditedThumbnail.vue";
 
 const props = defineProps<{
   path: string;
-  revision?: string;
+  revision?: string | undefined;
   edit: ImageEdit;
   yaw: number;
   pitch: number;

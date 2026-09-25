@@ -8,6 +8,13 @@ use crate::ai::error::{AiError, AiResult};
 pub(super) struct AgentAttachments(Vec<PathBuf>);
 
 impl AgentAttachments {
+    pub(super) fn from_authorized_assets(
+        attachments: Vec<PathBuf>,
+        authorize: impl Fn(&std::path::Path) -> AiResult<()>,
+    ) -> AiResult<Self> {
+        validate(attachments, authorize).map(Self)
+    }
+
     pub(super) fn from_renderer<R: Runtime>(
         app: &AppHandle<R>,
         attachments: Vec<PathBuf>,

@@ -54,40 +54,8 @@ pub(super) struct CommitKnowledgeArgs {
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]
-pub(super) struct WorkflowSpaceArgs {
+pub(super) struct SpaceArgs {
     pub(super) space_id: String,
-}
-
-#[derive(Debug, Deserialize, JsonSchema)]
-pub(super) struct SaveWorkflowDraftArgs {
-    pub(super) space_id: String,
-    pub(super) idempotency_key: String,
-    pub(super) draft: crate::spaces::workflows::WorkflowDraft,
-    #[serde(default)]
-    pub(super) approval_id: Option<String>,
-}
-
-#[derive(Debug, Deserialize, JsonSchema)]
-pub(super) struct ValidateWorkflowArgs {
-    pub(super) definition: crate::spaces::workflows::WorkflowDefinition,
-}
-
-#[derive(Debug, Deserialize, JsonSchema)]
-pub(super) struct StartWorkflowArgs {
-    pub(super) space_id: String,
-    pub(super) workflow_id: String,
-    pub(super) version: i64,
-    pub(super) input: Value,
-}
-
-#[derive(Debug, Deserialize, JsonSchema)]
-pub(super) struct PublishWorkflowArgs {
-    pub(super) space_id: String,
-    pub(super) workflow_id: String,
-    pub(super) expected_revision: i64,
-    pub(super) idempotency_key: String,
-    #[serde(default)]
-    pub(super) approval_id: Option<String>,
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]

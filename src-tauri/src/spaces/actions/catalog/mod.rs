@@ -4,7 +4,8 @@ mod parameters;
 use crate::ai::contracts::{ExecutionCapability, RoutingPurpose};
 
 use super::{
-    SpaceActionDefinition, SpaceActionInputRole as Input, SpaceActionOutputContract as Output,
+    SpaceActionCollectionInput, SpaceActionDefinition, SpaceActionInputRole as Input,
+    SpaceActionOutputContract as Output,
 };
 use definition::{
     action, durable_query_action, immediate_action, immediate_mutation_action, query_action,
@@ -20,12 +21,6 @@ pub(super) const ACTIONS: &[SpaceActionDefinition] = &[
         Output::KnowledgeChangeReceipt,
     ),
     immediate_mutation_action("edit-space-structure", space_edit, Output::SpaceEditReceipt),
-    immediate_mutation_action("save-workflow-draft", workflow_draft, Output::WorkflowDraft),
-    immediate_mutation_action(
-        "publish-workflow",
-        workflow_publication,
-        Output::WorkflowVersion,
-    ),
     query_action(
         "search-knowledge",
         None,
@@ -98,13 +93,20 @@ pub(super) const ACTIONS: &[SpaceActionDefinition] = &[
         image,
         Output::Image,
     ),
-    action(
-        "generate-video",
-        Some(ExecutionCapability::VideoGeneration),
-        Some(RoutingPurpose::VideoGeneration),
-        &[Input::Document],
-        video,
-        Output::Video,
+    collection_action(
+        action(
+            "generate-video",
+            Some(ExecutionCapability::VideoGeneration),
+            Some(RoutingPurpose::VideoGeneration),
+            &[Input::Document],
+            video,
+            Output::Video,
+        ),
+        SpaceActionCollectionInput {
+            kind: "image",
+            role: "source",
+            max_items: 10,
+        },
     ),
     action(
         "extract-subtitles",
@@ -131,3 +133,11 @@ pub(super) const ACTIONS: &[SpaceActionDefinition] = &[
         Output::Presentation,
     ),
 ];
+
+const fn collection_action(
+    mut definition: SpaceActionDefinition,
+    collection: SpaceActionCollectionInput,
+) -> SpaceActionDefinition {
+    definition.collection_input = Some(collection);
+    definition
+}

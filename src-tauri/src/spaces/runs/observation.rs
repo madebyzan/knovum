@@ -6,9 +6,6 @@ use ts_rs::TS;
 use super::{RunEventKind, StepState, WaitReason};
 use crate::spaces::db;
 
-mod batch_items;
-pub use batch_items::{list as list_batch_items, BatchItemSummary};
-
 #[derive(Clone, Debug, Serialize, TS)]
 #[ts(export_to = "RunStep.ts")]
 #[serde(rename_all = "camelCase")]
@@ -72,7 +69,6 @@ pub async fn list_events(
 pub async fn diagnostic_bundle(pool: &SqlitePool, run_id: &str) -> Result<Value, String> {
     let run = super::repository::load_run(pool, run_id).await?;
     let steps = list_steps(pool, run_id).await?;
-    let batch_items = list_batch_items(pool, run_id).await?;
     let events = list_events(pool, run_id, 0).await?;
     Ok(serde_json::json!({
         "schemaVersion": 1,
@@ -89,17 +85,6 @@ pub async fn diagnostic_bundle(pool: &SqlitePool, run_id: &str) -> Result<Value,
             "resolvedInput": value_fingerprint(&step.resolved_input),
             "output": step.output.as_ref().map(value_fingerprint),
             "updatedAt": step.updated_at,
-        })).collect::<Vec<_>>(),
-        "batchItems": batch_items.into_iter().map(|item| serde_json::json!({
-            "definitionNodeId": item.definition_node_id,
-            "itemKey": item.item_key,
-            "state": item.state,
-            "attemptCount": item.attempt_count,
-            "input": value_fingerprint(&item.input),
-            "output": item.output.as_ref().map(value_fingerprint),
-            "errorPresent": item.error.is_some(),
-            "childRunId": item.child_run_id,
-            "updatedAt": item.updated_at,
         })).collect::<Vec<_>>(),
         "events": events.into_iter().map(|event| serde_json::json!({
             "sequence": event.sequence,

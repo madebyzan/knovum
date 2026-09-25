@@ -1,10 +1,11 @@
 import type { SpacePlacement } from "../canvas/navigation-requests";
-import type { GroundedScope } from "../knowledge/model/grounded-scope";
+import type { ConversationScope } from "../conversation/conversation-scope";
 import type { KnowledgePeekTarget } from "../knowledge/model/knowledge-peek-target";
 import type { SpaceState } from "../session/session-state";
 
 export interface AskInspectorOptions {
   restart?: boolean;
+  nodeIds?: string[];
 }
 
 export interface OpenSourceOptions {
@@ -21,12 +22,25 @@ export function createInspectorActions(
     state.inspectorMode.value = mode;
   }
 
-  function requestAsk(scope: GroundedScope, options: AskInspectorOptions = {}) {
+  function openWorkflowCapture(nodeIds: string[]) {
+    state.sourcePeek.value = undefined;
+    state.workflowCaptureSelection.value = [...nodeIds];
+    state.inspectorMode.value = "workflow";
+  }
+
+  function openWorkflowUse(nodeIds: string[]) {
+    state.sourcePeek.value = undefined;
+    state.workflowCaptureSelection.value = [...nodeIds];
+    state.inspectorMode.value = "workflow-use";
+  }
+
+  function requestAsk(scope: ConversationScope, options: AskInspectorOptions = {}) {
     state.sourcePeek.value = undefined;
     state.inspectorMode.value = "ask";
     state.askScopeRequest.value = {
       scope,
       restart: options.restart ?? false,
+      nodeIds: options.nodeIds ?? [],
       nonce: ++state.askScopeNonce.value,
     };
   }
@@ -61,5 +75,14 @@ export function createInspectorActions(
     state.editorLocateRequest.value = { nodeId: node.id, locator: target.locator, nonce: Date.now() };
   }
 
-  return { setInspectorMode, requestAsk, clearAskScopeRequest, openSource, closeSource, openEditorAtSource };
+  return {
+    setInspectorMode,
+    openWorkflowCapture,
+    openWorkflowUse,
+    requestAsk,
+    clearAskScopeRequest,
+    openSource,
+    closeSource,
+    openEditorAtSource,
+  };
 }

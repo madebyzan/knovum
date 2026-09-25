@@ -64,7 +64,12 @@ impl ImageEdit {
     fn identity() -> Self {
         Self {
             version: 5,
-            crop: Crop { x: 0.0, y: 0.0, width: 1.0, height: 1.0 },
+            crop: Crop {
+                x: 0.0,
+                y: 0.0,
+                width: 1.0,
+                height: 1.0,
+            },
             rotation: 0.0,
             flip_horizontal: false,
             flip_vertical: false,
@@ -111,7 +116,13 @@ impl ImageEdit {
         }
         for (name, value) in self.adjustments.values() {
             let min = if ["sharpness", "clarity", "grain", "softLight", "glow"]
-                .iter().any(|key| name.ends_with(key)) { 0.0 } else { -100.0 };
+                .iter()
+                .any(|key| name.ends_with(key))
+            {
+                0.0
+            } else {
+                -100.0
+            };
             finite_range(value, min, 100.0, name)?;
         }
         if self.eraser_strokes.len() > 500 {
@@ -122,7 +133,8 @@ impl ImageEdit {
             if stroke.diameter == 0.0 {
                 return Err("imageEdit.eraserStroke.diameter must be positive".into());
             }
-            if stroke.points.len() < 4 || stroke.points.len() > 4096 || stroke.points.len() % 2 != 0 {
+            if stroke.points.len() < 4 || stroke.points.len() > 4096 || stroke.points.len() % 2 != 0
+            {
                 return Err("imageEdit.eraserStroke.points length is invalid".into());
             }
             for point in &stroke.points {

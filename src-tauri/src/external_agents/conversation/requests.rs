@@ -15,19 +15,6 @@ pub(super) struct TurnRequest {
 
 pub(super) enum ConversationRequest {
     Turn(TurnRequest),
-    Configure(ConfigRequest),
-    SetMode(ModeRequest),
-}
-
-pub(super) struct ConfigRequest {
-    pub(super) id: String,
-    pub(super) value: serde_json::Value,
-    pub(super) reply: oneshot::Sender<AiResult<serde_json::Value>>,
-}
-
-pub(super) struct ModeRequest {
-    pub(super) id: String,
-    pub(super) reply: oneshot::Sender<AiResult<()>>,
 }
 
 struct ConversationHandle {
@@ -65,41 +52,6 @@ pub async fn send(id: &str, prompt: super::super::prompt::AgentPrompt) -> AiResu
     outcome
         .await
         .map_err(|_| AiError::internal("ACP conversation turn ended without a result"))?
-}
-
-pub async fn configure(
-    id: &str,
-    option_id: String,
-    value: serde_json::Value,
-) -> AiResult<serde_json::Value> {
-    let requests = sender(id)?;
-    let (reply, outcome) = oneshot::channel();
-    requests
-        .send(ConversationRequest::Configure(ConfigRequest {
-            id: option_id,
-            value,
-            reply,
-        }))
-        .await
-        .map_err(|_| AiError::internal("ACP conversation channel closed"))?;
-    outcome
-        .await
-        .map_err(|_| AiError::internal("ACP session option ended without a result"))?
-}
-
-pub async fn set_mode(id: &str, mode_id: String) -> AiResult<()> {
-    let requests = sender(id)?;
-    let (reply, outcome) = oneshot::channel();
-    requests
-        .send(ConversationRequest::SetMode(ModeRequest {
-            id: mode_id,
-            reply,
-        }))
-        .await
-        .map_err(|_| AiError::internal("ACP conversation channel closed"))?;
-    outcome
-        .await
-        .map_err(|_| AiError::internal("ACP session mode ended without a result"))?
 }
 
 pub async fn close(id: &str) -> Result<(), String> {

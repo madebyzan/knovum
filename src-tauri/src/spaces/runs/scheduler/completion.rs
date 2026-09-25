@@ -11,7 +11,9 @@ use crate::spaces::{
 
 mod resumption;
 
-pub(crate) use resumption::{resume_approved_step, resume_step_with_output, settle_waiting_step};
+pub(crate) use resumption::{
+    resume_approved_step, settle_waiting_step, settle_waiting_step_in_transaction,
+};
 
 pub(crate) async fn complete_step(
     pool: &SqlitePool,

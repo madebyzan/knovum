@@ -53,7 +53,7 @@ export function useSpaceCanvasImports(options: SpaceCanvasImportOptions) {
   }
 
   async function pasteClipboard(point: { x: number; y: number }) {
-    if (!operations.allows("create")) return;
+    if (!operations.allows("create")) return false;
     const spaceId = options.store.activeSpaceId;
     if (!spaceId) throw new Error("A Space must be active to paste canvas content");
     return pasteSpaceClipboard({

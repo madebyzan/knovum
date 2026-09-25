@@ -20,6 +20,15 @@ pub struct AgentPrompt {
 }
 
 impl AgentPrompt {
+    pub(crate) fn from_authorized_assets(
+        text: String,
+        attachments: Vec<PathBuf>,
+        authorize: impl Fn(&std::path::Path) -> AiResult<()>,
+    ) -> AiResult<Self> {
+        AgentAttachments::from_authorized_assets(attachments, authorize)
+            .map(|attachments| Self { text, attachments })
+    }
+
     pub fn from_renderer<R: Runtime>(
         app: &AppHandle<R>,
         text: String,

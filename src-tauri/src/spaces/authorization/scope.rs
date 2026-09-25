@@ -6,7 +6,6 @@ pub enum PrincipalKind {
     User,
     Assistant,
     ExternalAgent,
-    Automation,
 }
 
 impl PrincipalKind {
@@ -15,7 +14,6 @@ impl PrincipalKind {
             Self::User => "user",
             Self::Assistant => "assistant",
             Self::ExternalAgent => "external_agent",
-            Self::Automation => "automation",
         }
     }
 
@@ -24,7 +22,6 @@ impl PrincipalKind {
             Self::User => "human",
             Self::Assistant => "assistant",
             Self::ExternalAgent => "agent",
-            Self::Automation => "system",
         }
     }
 }
@@ -45,7 +42,6 @@ pub struct AuthorizationContext {
     pub read_space_ids: Vec<String>,
     pub write_space_ids: Vec<String>,
     pub action_ids: Vec<String>,
-    pub egress_targets: Vec<String>,
     pub valid_until: i64,
 }
 
@@ -80,19 +76,6 @@ impl AuthorizationContext {
             return Err("permission-denied: SpaceAction is not granted".into());
         }
         Ok(())
-    }
-
-    pub fn require_egress(&self, target: &str, now: i64) -> Result<(), String> {
-        self.require_active(now)?;
-        if self
-            .egress_targets
-            .iter()
-            .any(|candidate| candidate == target)
-        {
-            Ok(())
-        } else {
-            Err("permission-denied: external destination is not granted".into())
-        }
     }
 
     fn require_active(&self, now: i64) -> Result<(), String> {

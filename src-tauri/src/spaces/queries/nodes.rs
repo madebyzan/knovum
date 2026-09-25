@@ -1,24 +1,41 @@
+use crate::spaces::db;
 use serde_json::Value;
-use sqlx::Row;
+use sqlx::{Row, Sqlite, Transaction};
+
 use tauri::{AppHandle, Runtime};
 
-use crate::spaces::db;
-
-#[tauri::command]
-pub async fn list_nodes<R: Runtime>(
-    app: AppHandle<R>,
-    space_id: String,
+pub(crate) async fn list_in_transaction(
+    tx: &mut Transaction<'_, Sqlite>,
+    space_id: &str,
 ) -> Result<Vec<Value>, String> {
-    let pool = db::pool(&app).await?;
     let rows = sqlx::query(
         "SELECT id, initial_x, initial_y, data FROM spaces_nodes \
          WHERE space_id = ? AND deleted_at IS NULL ORDER BY created_at",
     )
     .bind(space_id)
-    .fetch_all(pool)
+    .fetch_all(&mut **tx)
     .await
     .map_err(db::sql_error)?;
     rows.into_iter().map(node_row).collect()
+}
+
+#[tauri::command]
+pub async fn get_node<R: Runtime>(
+    app: AppHandle<R>,
+    space_id: String,
+    node_id: String,
+) -> Result<Value, String> {
+    let row = sqlx::query(
+        "SELECT id, initial_x, initial_y, data FROM spaces_nodes
+         WHERE id=$1 AND space_id=$2 AND deleted_at IS NULL",
+    )
+    .bind(node_id)
+    .bind(space_id)
+    .fetch_optional(db::pool(&app).await?)
+    .await
+    .map_err(db::sql_error)?
+    .ok_or("node-unavailable: resource is unavailable")?;
+    node_row(row)
 }
 
 fn node_row(row: sqlx::sqlite::SqliteRow) -> Result<Value, String> {

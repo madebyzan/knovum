@@ -1,9 +1,9 @@
-import { clamp } from "es-toolkit";
 import { defineStore } from "pinia";
 import { computed, onScopeDispose, ref } from "vue";
 
-import { TaskExecutionHandlers, type CancelTask } from "./task-execution-handlers";
+import { TaskExecutionHandlers, type CancelTask, type OpenTask } from "./task-execution-handlers";
 import type { AppTask, TaskStatus } from "./task-model";
+import { createTaskProgress } from "./task-progress";
 import { createTaskRetryController } from "./task-retry";
 
 const SUCCESS_DISMISS_DELAY_MS = 10_000;
@@ -13,8 +13,10 @@ export type { AppTask } from "./task-model";
 
 export const useTaskStore = defineStore("tasks", () => {
   const tasks = ref<AppTask[]>([]);
+  const { progress, detail, title } = createTaskProgress(tasks);
   const completionTimers = new Map<string, ReturnType<typeof setTimeout>>();
   const handlers = new TaskExecutionHandlers();
+  const externallySettled = new Set<string>();
   const running = computed(() => tasks.value.filter((task) => task.status === "running"));
   const failed = computed(() => tasks.value.filter((task) => task.status === "failed"));
   const completed = computed(() => tasks.value.filter((task) => task.status === "succeeded"));
@@ -25,6 +27,7 @@ export const useTaskStore = defineStore("tasks", () => {
     if (timer) clearTimeout(timer);
     completionTimers.delete(id);
     handlers.delete(id);
+    externallySettled.delete(id);
     retryController.delete(id);
     tasks.value = tasks.value.filter((task) => task.id !== id);
   }
@@ -62,32 +65,17 @@ export const useTaskStore = defineStore("tasks", () => {
   function restoreRunning(task: Omit<AppTask, "status">, cancelTask?: CancelTask) {
     if (tasks.value.some(({ id }) => id === task.id)) return false;
     tasks.value.unshift({ ...task, status: "running", cancellable: Boolean(cancelTask) });
+    externallySettled.add(task.id);
     if (cancelTask) handlers.setCancellation(task.id, cancelTask);
     trimHistory();
     return true;
-  }
-
-  function progress(id: string, value: number, taskDetail?: string) {
-    const task = tasks.value.find((candidate) => candidate.id === id);
-    if (!task || task.status !== "running") return;
-    task.progress = clamp(value, 0, 100);
-    if (taskDetail !== undefined) task.detail = taskDetail;
-  }
-
-  function detail(id: string, value: string) {
-    const task = tasks.value.find((candidate) => candidate.id === id);
-    if (task?.status === "running") task.detail = value;
-  }
-
-  function title(id: string, value: string) {
-    const task = tasks.value.find((candidate) => candidate.id === id);
-    if (task?.status === "running") task.title = value;
   }
 
   function finish(id: string, status: Exclude<TaskStatus, "running">, taskDetail?: string) {
     const task = tasks.value.find((candidate) => candidate.id === id);
     if (!task || task.status !== "running") return undefined;
     handlers.deleteCancellation(id);
+    externallySettled.delete(id);
     task.status = status;
     if (taskDetail !== undefined) task.detail = taskDetail;
     task.cancellable = false;
@@ -103,9 +91,13 @@ export const useTaskStore = defineStore("tasks", () => {
     task.cancellable = false;
     try {
       await handler();
-      finish(id, "cancelled");
+      if (!externallySettled.has(id)) finish(id, "cancelled");
     } catch (error) {
-      finish(id, "failed", String(error));
+      if (externallySettled.has(id)) {
+        task.cancelling = false;
+        task.cancellable = true;
+        task.detail = String(error);
+      } else finish(id, "failed", String(error));
     }
   }
 
@@ -115,6 +107,13 @@ export const useTaskStore = defineStore("tasks", () => {
     handlers.setCancellation(id, handler);
     task.cancellable = Boolean(handler);
     task.cancelling = false;
+  }
+
+  function setOpen(id: string, handler?: OpenTask) {
+    const task = tasks.value.find((candidate) => candidate.id === id);
+    if (!task) return;
+    handlers.setOpen(id, handler);
+    task.openable = Boolean(handler);
   }
 
   function succeed(id: string) {
@@ -137,6 +136,10 @@ export const useTaskStore = defineStore("tasks", () => {
     completionTimers.delete(id);
   }
 
+  function cancelled(id: string) {
+    finish(id, "cancelled");
+  }
+
   function clearCompleted() {
     for (const task of tasks.value.slice()) {
       if (task.status === "succeeded") dismiss(task.id);
@@ -147,6 +150,7 @@ export const useTaskStore = defineStore("tasks", () => {
     for (const timer of completionTimers.values()) clearTimeout(timer);
     completionTimers.clear();
     handlers.clear();
+    externallySettled.clear();
     retryController.clear();
   });
 
@@ -163,8 +167,11 @@ export const useTaskStore = defineStore("tasks", () => {
     title,
     cancel,
     setCancellation,
+    setOpen,
+    open: (id: string) => handlers.open(id),
     succeed,
     fail,
+    cancelled,
     setRetry: retryController.setRetry,
     retry: retryController.retry,
     dismiss,

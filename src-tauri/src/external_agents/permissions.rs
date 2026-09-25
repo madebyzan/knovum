@@ -14,8 +14,31 @@ use super::session::AgentUpdateHandler;
 use super::updates::{AgentPermissionOption, AgentSessionUpdate};
 
 struct PendingDecision {
+    title: String,
+    options: Vec<super::updates::AgentPermissionOption>,
     option_ids: Vec<String>,
     sender: oneshot::Sender<Option<String>>,
+}
+
+pub(crate) struct PendingAgentPermission {
+    pub request_id: String,
+    pub title: String,
+    pub options: Vec<super::updates::AgentPermissionOption>,
+}
+
+pub(crate) fn pending_for_session(session_id: &str) -> Result<Vec<PendingAgentPermission>, String> {
+    let decisions = pending()
+        .lock()
+        .map_err(|_| "permission-broker-unavailable")?;
+    Ok(decisions
+        .iter()
+        .filter(|((id, _), _)| id == session_id)
+        .map(|((_, request_id), decision)| PendingAgentPermission {
+            request_id: request_id.clone(),
+            title: decision.title.clone(),
+            options: decision.options.clone(),
+        })
+        .collect())
 }
 
 static PENDING: OnceLock<Mutex<HashMap<(String, String), PendingDecision>>> = OnceLock::new();
@@ -43,7 +66,17 @@ pub(super) async fn request_decision(
         .expect("permission broker poisoned")
         .insert(
             (task_id.to_owned(), request_id.clone()),
-            PendingDecision { option_ids, sender },
+            PendingDecision {
+                title: request
+                    .tool_call
+                    .fields
+                    .title
+                    .clone()
+                    .unwrap_or_else(|| "External Agent operation".to_owned()),
+                options: options.clone(),
+                option_ids,
+                sender,
+            },
         );
     let update = AgentSessionUpdate::PermissionRequested {
         request_id: request_id.clone(),
@@ -74,17 +107,20 @@ pub fn decide_external_agent_permission(
     option_id: Option<String>,
 ) -> Result<(), String> {
     let key = (session_id, request_id);
-    let decision = pending()
+    let mut pending = pending()
         .lock()
-        .map_err(|_| "permission-broker-unavailable")?
-        .remove(&key)
-        .ok_or("permission-request-unavailable")?;
+        .map_err(|_| "permission-broker-unavailable")?;
+    let decision = pending.get(&key).ok_or("permission-request-unavailable")?;
     if option_id
         .as_ref()
         .is_some_and(|id| !decision.option_ids.contains(id))
     {
         return Err("permission-option-invalid".into());
     }
+    let decision = pending
+        .remove(&key)
+        .ok_or("permission-request-unavailable")?;
+    drop(pending);
     decision
         .sender
         .send(option_id)

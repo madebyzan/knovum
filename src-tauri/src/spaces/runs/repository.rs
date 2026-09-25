@@ -138,17 +138,3 @@ pub(crate) async fn durable_action_id(
         })
         .transpose()
 }
-
-pub(crate) async fn active_delegate_ids(
-    pool: &SqlitePool,
-    run_id: &str,
-) -> Result<Vec<String>, String> {
-    sqlx::query_scalar(
-        "SELECT id FROM spaces_run_steps WHERE run_id=$1 AND node_kind='delegate_task'
-         AND state='running'",
-    )
-    .bind(run_id)
-    .fetch_all(pool)
-    .await
-    .map_err(db::sql_error)
-}

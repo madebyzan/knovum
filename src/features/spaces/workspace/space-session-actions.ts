@@ -2,10 +2,7 @@ import { nextTick } from "vue";
 
 import { clearSpaceHistory } from "../history/stack";
 import { releaseKnowledgeIndex, scheduleSpaceKnowledgeIndex } from "../knowledge/indexing/index-scheduler";
-import { listRelations } from "../knowledge/relations/relation-repository";
-import { listNodes } from "../nodes/node-repository";
-import { listScenes } from "../scenes/scene-repository";
-import { spaceEditRepository } from "../structure/space-edit-repository";
+import { loadSpaceSessionProjection } from "../session/space-projection-repository";
 import { activateDraftSpace, createDraftSpace } from "./draft-space-actions";
 import { recordWorkspaceNavigation, removeWorkspaceNavigation } from "./navigation-history";
 import { createAndTrackSpace, markSpaceOpenedAndTrack } from "./space-creation";
@@ -140,12 +137,7 @@ async function loadSpace(context: SpaceSessionContext, id: string, options: Load
   context.loading.value = true;
   try {
     return await transitionActiveSpaceSession(context, async () => {
-      const [nodes, scenes, relations, editSnapshot] = await Promise.all([
-        listNodes(id),
-        listScenes(id),
-        listRelations(id),
-        spaceEditRepository.load(id),
-      ]);
+      const { nodes, scenes, relations, editSnapshot } = await loadSpaceSessionProjection(id);
       if (generation !== context.runtime.openGeneration) return false;
       if (options.resetHistory) clearSpaceHistory(context.history);
       if (context.focusedEditorId.value) {

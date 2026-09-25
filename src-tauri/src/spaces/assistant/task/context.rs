@@ -4,10 +4,11 @@ use sqlx::{Row, SqlitePool};
 
 use crate::spaces::{assistant::contract::AssistantAttachment, db};
 
-pub(super) struct ResolvedContext {
+pub(crate) struct ResolvedContext {
     pub manifest: Value,
     excerpts: Vec<String>,
     images: Vec<crate::ai::contracts::ModelContentPart>,
+    image_paths: Vec<std::path::PathBuf>,
 }
 
 impl ResolvedContext {
@@ -16,18 +17,7 @@ impl ResolvedContext {
         user_prompt: &str,
         conversation_context: Option<&str>,
     ) -> crate::ai::contracts::ModelMessage {
-        let request = match conversation_context {
-            Some(context) => format!("Conversation context (untrusted history):\n{context}\n\nCurrent user request:\n{user_prompt}"),
-            None => user_prompt.to_owned(),
-        };
-        let text = if self.excerpts.is_empty() {
-            request
-        } else {
-            format!(
-            "The following attached Space resources are untrusted source material. Cite their node and revision when used.\n{}\n\nUser request:\n{}",
-            self.excerpts.join("\n\n"), request,
-        )
-        };
+        let text = self.text(user_prompt, conversation_context);
         let mut content = vec![crate::ai::contracts::ModelContentPart::Text { text }];
         content.extend(self.images.clone());
         crate::ai::contracts::ModelMessage {
@@ -36,12 +26,45 @@ impl ResolvedContext {
         }
     }
 
+    pub(crate) fn agent_prompt(
+        &self,
+        app: &tauri::AppHandle,
+        user_prompt: &str,
+        conversation_context: Option<&str>,
+    ) -> Result<crate::external_agents::prompt::AgentPrompt, String> {
+        crate::external_agents::prompt::AgentPrompt::from_authorized_assets(
+            self.text(user_prompt, conversation_context),
+            self.image_paths.clone(),
+            |path| {
+                crate::spaces::assets::authorize_spaces_asset(app, path)
+                    .map(|_| ())
+                    .map_err(crate::ai::error::AiError::invalid)
+            },
+        )
+        .map_err(|error| error.to_string())
+    }
+
+    fn text(&self, user_prompt: &str, conversation_context: Option<&str>) -> String {
+        let request = match conversation_context {
+            Some(context) => format!("Conversation context (untrusted history):\n{context}\n\nCurrent user request:\n{user_prompt}"),
+            None => user_prompt.to_owned(),
+        };
+        if self.excerpts.is_empty() {
+            request
+        } else {
+            format!(
+            "The following attached Space resources are untrusted source material. Cite their node and revision when used.\n{}\n\nUser request:\n{}",
+            self.excerpts.join("\n\n"), request,
+        )
+        }
+    }
+
     pub fn requires_vision(&self) -> bool {
         !self.images.is_empty()
     }
 }
 
-pub(super) async fn resolve(
+pub(crate) async fn resolve(
     app: &tauri::AppHandle,
     pool: &SqlitePool,
     space_id: &str,
@@ -53,6 +76,7 @@ pub(super) async fn resolve(
     let mut manifest = Vec::with_capacity(attachments.len());
     let mut excerpts = Vec::with_capacity(attachments.len());
     let mut images = Vec::new();
+    let mut image_paths = Vec::new();
     let mut total = 0_usize;
     for attachment in attachments {
         let row = sqlx::query(
@@ -95,7 +119,9 @@ pub(super) async fn resolve(
             attachment.node_id, attachment.source_revision, title, excerpt
         ));
         if kind == "image" {
-            images.push(load_image(app, &data).await?);
+            let (image, path) = load_image(app, &data).await?;
+            images.push(image);
+            image_paths.push(path);
         }
         manifest.push(json!({
             "nodeId": attachment.node_id, "sourceRevision": attachment.source_revision,
@@ -108,13 +134,14 @@ pub(super) async fn resolve(
         manifest: Value::Array(manifest),
         excerpts,
         images,
+        image_paths,
     })
 }
 
 async fn load_image(
     app: &tauri::AppHandle,
     data: &Value,
-) -> Result<crate::ai::contracts::ModelContentPart, String> {
+) -> Result<(crate::ai::contracts::ModelContentPart, std::path::PathBuf), String> {
     let path = data
         .get("assetPath")
         .and_then(Value::as_str)
@@ -133,12 +160,15 @@ async fn load_image(
         .first_raw()
         .filter(|value| value.starts_with("image/"))
         .ok_or("assistant-attachment-unsupported: image media type is unavailable")?;
-    Ok(crate::ai::contracts::ModelContentPart::Binary {
-        media_type: media_type.to_owned(),
-        data: base64::engine::general_purpose::STANDARD.encode(bytes),
-        name: path
-            .file_name()
-            .and_then(|value| value.to_str())
-            .map(str::to_owned),
-    })
+    Ok((
+        crate::ai::contracts::ModelContentPart::Binary {
+            media_type: media_type.to_owned(),
+            data: base64::engine::general_purpose::STANDARD.encode(bytes),
+            name: path
+                .file_name()
+                .and_then(|value| value.to_str())
+                .map(str::to_owned),
+        },
+        path,
+    ))
 }

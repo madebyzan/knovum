@@ -14,7 +14,6 @@ pub use operations::{
 
 pub struct ToolCallRecord {
     pub id: String,
-    pub resumed: bool,
     pub result: Option<Value>,
 }
 

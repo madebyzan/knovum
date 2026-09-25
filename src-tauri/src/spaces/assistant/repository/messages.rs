@@ -21,6 +21,18 @@ pub struct AssistantMessage {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct AssistantMessageContent {
     pub parts: Vec<crate::ai::contracts::ModelContentPart>,
+    #[serde(default)]
+    #[ts(type = "Array<unknown>")]
+    pub citations: Vec<Value>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<AssistantMessageStatus>,
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, Serialize, TS)]
+#[serde(rename_all = "snake_case")]
+pub enum AssistantMessageStatus {
+    Stopped,
+    Incomplete,
 }
 
 pub async fn append_message(
@@ -107,8 +119,8 @@ pub async fn branch(
     through_message_id: &str,
     include_boundary: bool,
 ) -> Result<String, String> {
-    let boundary: i64 = sqlx::query_scalar(
-        "SELECT created_at FROM spaces_assistant_messages WHERE id=$1 AND conversation_id=$2
+    let boundary: (i64, String) = sqlx::query_as(
+        "SELECT created_at,id FROM spaces_assistant_messages WHERE id=$1 AND conversation_id=$2
          AND branch_id=$3",
     )
     .bind(through_message_id)
@@ -121,12 +133,14 @@ pub async fn branch(
     let comparison = if include_boundary { "<=" } else { "<" };
     let query = format!(
         "SELECT role,content,created_at FROM spaces_assistant_messages
-         WHERE conversation_id=$1 AND branch_id=$2 AND created_at {comparison} $3 ORDER BY created_at,id",
+         WHERE conversation_id=$1 AND branch_id=$2 AND (created_at,id) {comparison} ($3,$4)
+         ORDER BY created_at,id",
     );
     let rows = sqlx::query(&query)
         .bind(conversation_id)
         .bind(source_branch_id)
-        .bind(boundary)
+        .bind(boundary.0)
+        .bind(&boundary.1)
         .fetch_all(pool)
         .await
         .map_err(db::sql_error)?;
@@ -144,24 +158,32 @@ pub async fn branch(
             .bind(now + i64::try_from(index).map_err(|_| "assistant-branch-limit")?)
             .execute(&mut *tx).await.map_err(db::sql_error)?;
     }
-    sqlx::query("UPDATE spaces_assistant_conversations SET updated_at=$1 WHERE id=$2")
-        .bind(now + i64::try_from(message_count).map_err(|_| "assistant-branch-limit")?)
-        .bind(conversation_id)
-        .execute(&mut *tx)
-        .await
-        .map_err(db::sql_error)?;
+    sqlx::query(
+        "UPDATE spaces_assistant_conversations SET updated_at=$1,active_branch_id=$2 WHERE id=$3",
+    )
+    .bind(now + i64::try_from(message_count).map_err(|_| "assistant-branch-limit")?)
+    .bind(&branch_id)
+    .bind(conversation_id)
+    .execute(&mut *tx)
+    .await
+    .map_err(db::sql_error)?;
     tx.commit().await.map_err(db::sql_error)?;
     Ok(branch_id)
 }
 
 fn parse(row: sqlx::sqlite::SqliteRow) -> Result<AssistantMessage, String> {
     let content: String = row.try_get("content").map_err(db::sql_error)?;
+    let content: AssistantMessageContent =
+        serde_json::from_str(&content).map_err(db::json_error)?;
+    crate::spaces::knowledge::grounding::validate_citation_snapshots(&Value::Array(
+        content.citations.clone(),
+    ))?;
     Ok(AssistantMessage {
         id: row.try_get("id").map_err(db::sql_error)?,
         conversation_id: row.try_get("conversation_id").map_err(db::sql_error)?,
         branch_id: row.try_get("branch_id").map_err(db::sql_error)?,
         role: row.try_get("role").map_err(db::sql_error)?,
-        content: serde_json::from_str(&content).map_err(db::json_error)?,
+        content,
         created_at: row.try_get("created_at").map_err(db::sql_error)?,
     })
 }

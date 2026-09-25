@@ -10,4 +10,5 @@ export interface AppTask {
   cancellable?: boolean;
   cancelling?: boolean;
   retryable?: boolean;
+  openable?: boolean;
 }

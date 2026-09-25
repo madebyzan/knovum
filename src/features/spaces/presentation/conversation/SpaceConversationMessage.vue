@@ -1,0 +1,155 @@
+<script setup lang="ts">
+import { writeText } from "tauri-plugin-clipboard-api";
+import { computed, shallowRef } from "vue";
+import { useI18n } from "vue-i18n";
+
+import UiDropdownMenu from "../../../../shared/ui/UiDropdownMenu.vue";
+import UiMarkdown from "../../../../shared/ui/UiMarkdown.vue";
+import type { AssistantMessage } from "../../conversation/conversation-ipc";
+import { groundedCitationSchema } from "../../knowledge/model/grounded-citation";
+import { useSpaceStore } from "../../session/space-store";
+import { captureActionLabels } from "../workflows/workflow-capture-labels";
+import SpaceConversationSearchResults from "./SpaceConversationSearchResults.vue";
+
+const props = defineProps<{ message: AssistantMessage }>();
+const emit = defineEmits<{ branch: []; regenerate: [] }>();
+const { t } = useI18n();
+const store = useSpaceStore();
+const copyFailed = shallowRef(false);
+const messageText = computed(() =>
+  props.message.content.parts
+    .filter((part) => part.type === "text")
+    .map((part) => part.text)
+    .join("\n\n"),
+);
+const citations = computed(() => groundedCitationSchema.array().parse(props.message.content.citations));
+const actions = computed(() => [
+  ...(messageText.value
+    ? [{ label: t("spaces.assistant.copyMessage"), onSelect: () => void copyMessage() }]
+    : []),
+  { label: t("spaces.assistant.branchConversation"), onSelect: () => emit("branch") },
+  { label: t("spaces.assistant.regenerate"), onSelect: () => emit("regenerate") },
+]);
+
+async function copyMessage() {
+  try {
+    await writeText(messageText.value);
+    copyFailed.value = false;
+  } catch {
+    copyFailed.value = true;
+  }
+}
+
+function actionName(id: string) {
+  const label = captureActionLabels[id];
+  return label ? t(`spaces.creation.captureActions.${label}`) : id;
+}
+
+function createdNodeId(result: unknown): string | undefined {
+  if (!result || typeof result !== "object" || Array.isArray(result)) return;
+  const value = result as Record<string, unknown>;
+  if (value.type === "accepted_run" && typeof value.nodeId === "string") return value.nodeId;
+  if (value.type === "committed_receipt" && value.receipt && typeof value.receipt === "object") {
+    const receipt = value.receipt as Record<string, unknown>;
+    return typeof receipt.nodeId === "string" ? receipt.nodeId : undefined;
+  }
+}
+</script>
+
+<template>
+  <div class="flex min-w-0 flex-col gap-2" :class="message.role === 'user' ? 'items-end' : 'items-start'">
+    <div
+      class="max-w-full min-w-0 space-y-2 text-body leading-relaxed text-foreground"
+      :class="message.role === 'user' ? 'w-fit rounded-panel bg-control px-3 py-2.5' : 'w-full'"
+    >
+      <template v-for="(part, index) in message.content.parts" :key="index">
+        <UiMarkdown v-if="part.type === 'text'" :content="part.text" class="wrap-break-word" />
+        <p v-else-if="part.type === 'binary'" class="text-caption text-foreground-secondary">
+          {{ part.name || part.mediaType }}
+        </p>
+        <SpaceConversationSearchResults
+          v-else-if="part.type === 'tool_result' && part.name === 'search-knowledge'"
+          :value="part.result"
+        />
+        <p v-else-if="part.type === 'tool_call'" class="text-caption text-foreground-secondary">
+          {{ t("spaces.assistant.workingAction") }}
+        </p>
+        <div
+          v-else-if="part.type === 'tool_result'"
+          class="rounded-control bg-control px-2.5 py-2 text-caption text-foreground-secondary"
+        >
+          <span>{{ t("spaces.assistant.completedAction", { name: actionName(part.name) }) }}</span>
+          <button
+            v-if="createdNodeId(part.result)"
+            type="button"
+            class="ml-2 font-medium text-accent hover:underline"
+            @click="store.requestReveal([createdNodeId(part.result)!], 'focus')"
+          >
+            {{ t("spaces.assistant.viewCreatedResource") }}
+          </button>
+        </div>
+      </template>
+    </div>
+    <details
+      v-if="citations.length"
+      class="w-full rounded-control border border-divider px-2 py-1.5 text-caption"
+    >
+      <summary class="cursor-pointer text-foreground-secondary select-none">
+        {{ t("spaces.assistant.sources", { count: citations.length }) }}
+      </summary>
+      <ul class="mt-2 space-y-1.5">
+        <li
+          v-for="citation in citations"
+          :key="citation.index"
+          class="rounded-control bg-control px-2 py-1.5"
+        >
+          <button
+            v-if="citation.state === 'current'"
+            type="button"
+            class="text-left font-medium text-accent hover:underline"
+            @click="
+              store.openSource({
+                nodeId: citation.nodeId,
+                nodeTitle: citation.nodeTitle,
+                chunkId: citation.chunkId,
+                locator: citation.locator,
+                text: citation.quote,
+              })
+            "
+          >
+            {{ citation.index }}. {{ citation.nodeTitle }}
+          </button>
+          <span v-else class="font-medium text-foreground-secondary"
+            >{{ citation.index }}. {{ citation.nodeTitle }}</span
+          >
+          <span v-if="citation.state === 'detached'" class="ml-1 text-foreground-tertiary">
+            · {{ t("spaces.assistant.staleEvidence") }}
+          </span>
+          <p class="mt-1 line-clamp-3 whitespace-pre-wrap text-foreground-secondary">{{ citation.quote }}</p>
+        </li>
+      </ul>
+    </details>
+    <span v-if="message.content.status" class="text-micro text-foreground-tertiary">
+      {{
+        t(
+          message.content.status === "stopped"
+            ? "spaces.assistant.responseStopped"
+            : "spaces.assistant.responseIncomplete",
+        )
+      }}
+    </span>
+    <p v-if="copyFailed" role="alert" class="text-caption text-danger">
+      {{ t("spaces.assistant.copyMessageFailed") }}
+    </p>
+    <UiDropdownMenu v-if="message.role === 'assistant'" :items="actions">
+      <template #trigger>
+        <button
+          type="button"
+          class="rounded-control px-1.5 py-0.5 text-micro text-foreground-tertiary hover:bg-control-hover hover:text-foreground"
+        >
+          {{ t("spaces.assistant.messageActions") }}
+        </button>
+      </template>
+    </UiDropdownMenu>
+  </div>
+</template>

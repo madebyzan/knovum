@@ -4,7 +4,6 @@ mod agent_artifacts;
 pub(crate) mod assets;
 pub(crate) mod assistant;
 pub(crate) mod authorization;
-pub(crate) mod automation;
 mod canvas_exchange;
 mod canvas_view_state;
 mod clipboard_content;

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { canvasNodeInteraction } from "../canvas/konva/scene/canvas-node-interaction";
+import { canvasNodeInteraction } from "../canvas/canvas-node-interaction";
 import type { CanvasScene, CanvasSceneRelation } from "../canvas/konva/scene/canvas-scene";
 import {
   createCanvasScenePreviewIndex,

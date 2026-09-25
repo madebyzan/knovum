@@ -1,7 +1,9 @@
 use std::{collections::BTreeSet, path::PathBuf};
 
 use crate::spaces::assets::{
-    access, enrichment, external_open, files, image_document, image_preview, reclamation,
+    access, enrichment, external_open, files,
+    image::{document, preview},
+    reclamation,
 };
 
 #[tauri::command]
@@ -30,9 +32,9 @@ pub async fn preview_image(
     space_id: String,
     node_id: String,
 ) -> Result<(), String> {
-    let document = image_document::load(&app, &space_id, &node_id).await?;
+    let document = document::load(&app, &space_id, &node_id).await?;
     let render_app = app.clone();
-    let path = crate::blocking::run(move || image_preview::prepare(&render_app, document)).await?;
+    let path = crate::blocking::run(move || preview::prepare(&render_app, document)).await?;
     crate::system_preview::open(app, path).await
 }
 
@@ -100,7 +102,7 @@ pub async fn export_image(
     node_id: String,
     destination_path: String,
 ) -> Result<(), String> {
-    let document = image_document::load(&app, &space_id, &node_id).await?;
+    let document = document::load(&app, &space_id, &node_id).await?;
     crate::blocking::run(move || {
         let rendered =
             crate::images::render_source_png(&app, &document.source_path, &document.edit)?;

@@ -65,12 +65,11 @@ export async function createImageLayers(
     },
     failureMessageKey: "spaces.media.layerSplitFailed",
     execute: async ({ taskId }) => {
-      const onStage = new Channel<string>();
-      if (taskId) {
-        const tasks = useTaskStore();
-        onStage.onmessage = (stage) =>
-          tasks.detail(taskId, i18n.global.t(`spaces.media.layerStage.${stage}`));
-      }
+      const onStage = new Channel<string>(
+        taskId
+          ? (stage) => useTaskStore().detail(taskId, i18n.global.t(`spaces.media.layerStage.${stage}`))
+          : undefined,
+      );
       return invoke<LayerOutput[]>("plugin:spaces|create_image_layers", {
         request: {
           id,

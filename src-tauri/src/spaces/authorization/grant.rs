@@ -11,8 +11,8 @@ pub(crate) async fn create_grant(
     sqlx::query(
         "INSERT INTO spaces_authorization_grants(
           id,principal_kind,principal_id,home_space_id,read_space_ids,write_space_ids,
-          action_ids,egress_targets,valid_until,revoked_at,created_at
-        ) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,NULL,$10)",
+          action_ids,valid_until,revoked_at,created_at
+        ) VALUES($1,$2,$3,$4,$5,$6,$7,$8,NULL,$9)",
     )
     .bind(&context.grant_id)
     .bind(context.principal.kind.as_str())
@@ -21,7 +21,6 @@ pub(crate) async fn create_grant(
     .bind(serde_json::to_string(&context.read_space_ids).map_err(db::json_error)?)
     .bind(serde_json::to_string(&context.write_space_ids).map_err(db::json_error)?)
     .bind(serde_json::to_string(&context.action_ids).map_err(db::json_error)?)
-    .bind(serde_json::to_string(&context.egress_targets).map_err(db::json_error)?)
     .bind(context.valid_until)
     .bind(now)
     .execute(&mut **tx)
@@ -36,7 +35,7 @@ pub(crate) async fn load_grant(
 ) -> Result<AuthorizationContext, String> {
     let row = sqlx::query(
         "SELECT principal_kind,principal_id,home_space_id,read_space_ids,write_space_ids,
-         action_ids,egress_targets,valid_until,revoked_at
+         action_ids,valid_until,revoked_at
          FROM spaces_authorization_grants WHERE id=$1",
     )
     .bind(grant_id)
@@ -65,7 +64,6 @@ pub(crate) async fn load_grant(
         read_space_ids: parse_array(&row, "read_space_ids")?,
         write_space_ids: parse_array(&row, "write_space_ids")?,
         action_ids: parse_array(&row, "action_ids")?,
-        egress_targets: parse_array(&row, "egress_targets")?,
         valid_until: row.try_get("valid_until").map_err(db::sql_error)?,
     })
 }

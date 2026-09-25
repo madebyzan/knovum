@@ -7,7 +7,7 @@ import { useCanvasSelectionProjection } from "../canvas/editor-session";
 import { useContextDock } from "../canvas/use-context-dock";
 import { knowledgeLocationLabel } from "../knowledge/model/location";
 import { useSpaceStore } from "../session/space-store";
-import SpaceKnowledgeAssistant from "./knowledge/SpaceKnowledgeAssistant.vue";
+import SpaceConversationPanel from "./conversation/SpaceConversationPanel.vue";
 import SpaceContextHeader from "./SpaceContextHeader.vue";
 import SpaceInspectorDetails from "./SpaceInspectorDetails.vue";
 import SpaceSourcePeek from "./SpaceSourcePeek.vue";
@@ -33,7 +33,6 @@ watch(
 );
 
 const title = computed(() => {
-  if (inspectorMode.value === "ask") return t("spaces.assistant.title");
   if (inspectorMode.value === "source") return sourcePeek.value?.nodeTitle ?? t("spaces.inspector.source");
   if (selectedNodes.value.length === 1) return t("spaces.navigation.details");
   return selectedNodes.value.length
@@ -60,6 +59,7 @@ const panelClasses = computed(() =>
   >
     <section class="flex max-h-full min-w-0 flex-1 flex-col overflow-hidden">
       <SpaceContextHeader
+        v-if="inspectorMode !== 'ask'"
         :title="title"
         v-bind="subtitle === undefined ? {} : { subtitle }"
         :back="inspectorMode === 'source'"
@@ -68,7 +68,11 @@ const panelClasses = computed(() =>
       />
       <div class="min-h-0 flex-1 overflow-hidden select-text">
         <SpaceInspectorDetails v-if="inspectorMode === 'inspect'" class="h-full" />
-        <SpaceKnowledgeAssistant v-else-if="inspectorMode === 'ask'" class="h-full" />
+        <SpaceConversationPanel
+          v-else-if="inspectorMode === 'ask'"
+          class="h-full"
+          @close="dock.closeDock()"
+        />
         <SpaceSourcePeek v-if="inspectorMode === 'source' && sourcePeek" class="h-full" />
       </div>
     </section>

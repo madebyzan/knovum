@@ -90,28 +90,6 @@ async fn change_failure_rolls_back_objects_created_earlier_in_transaction() {
 }
 
 #[tokio::test]
-async fn grounded_scope_rejects_nonsemantic_nodes() {
-    let pool = database().await;
-    sqlx::query("INSERT INTO spaces(id,kind,title,created_at,updated_at,last_opened_at) VALUES ('space','space','Space',1,1,1)")
-        .execute(&pool).await.expect("space");
-    sqlx::query("INSERT INTO spaces_nodes(id,space_id,kind,initial_x,initial_y,data,created_at,updated_at) VALUES ('secret','space','credential',0,0,'{\"kind\":\"credential\",\"title\":\"Secret\",\"credentialKind\":\"api-key\"}',1,1)")
-        .execute(&pool).await.expect("credential");
-    let mut tx = pool.begin().await.expect("begin");
-    let error = super::super::grounding::validate_new_scope_nodes(
-        &mut tx,
-        "space",
-        "selection",
-        &["secret".to_string()],
-    )
-    .await
-    .expect_err("credential must not enter grounded AI scope");
-    assert_eq!(
-        error,
-        "Grounded AI scope contains a node that is unavailable in this Space"
-    );
-}
-
-#[tokio::test]
 async fn grounded_citation_requires_matching_chunk_revision() {
     let pool = database().await;
     sqlx::query("INSERT INTO spaces(id,kind,title,created_at,updated_at,last_opened_at) VALUES ('space','space','Space',1,1,1)")
@@ -128,12 +106,7 @@ async fn grounded_citation_requires_matching_chunk_revision() {
         "quote": "evidence"
     }]);
     let mut tx = pool.begin().await.expect("begin");
-    let contract = super::super::grounding::GroundedThreadContract {
-        space_id: "space".to_string(),
-        scope: "space".to_string(),
-        node_ids: Vec::new(),
-    };
-    let error = super::super::grounding::validate_current_citations(&mut tx, &contract, &citation)
+    let error = super::super::grounding::validate_assistant_citations(&mut tx, "space", &citation)
         .await
         .expect_err("citation revision must match canonical chunk");
     assert!(error.contains("source revision"));
@@ -152,13 +125,8 @@ async fn all_spaces_scope_accepts_detached_external_citations() {
         "locator": {"sourceRevision":"node1:external","location":{"kind":"node"}},
         "quote": "external evidence"
     }]);
-    let contract = super::super::grounding::GroundedThreadContract {
-        space_id: "space".to_string(),
-        scope: "all-spaces".to_string(),
-        node_ids: Vec::new(),
-    };
     let mut tx = pool.begin().await.expect("begin");
-    super::super::grounding::validate_current_citations(&mut tx, &contract, &citation)
+    super::super::grounding::validate_assistant_citations(&mut tx, "space", &citation)
         .await
         .expect("All-Spaces retrieval may persist detached external snapshots");
 }

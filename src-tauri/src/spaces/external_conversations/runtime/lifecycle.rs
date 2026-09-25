@@ -1,56 +1,10 @@
+mod create;
+pub(super) use create::create_records;
+
 use tauri::AppHandle;
 
-use super::{repository, StartExternalConversationRequest};
-use crate::spaces::{
-    authorization::{Principal, PrincipalKind},
-    db,
-    runs::{NewRun, RunKind},
-};
-
-pub(super) async fn create_records(
-    app: &AppHandle,
-    request: &StartExternalConversationRequest,
-    id: &str,
-    run_id: &str,
-) -> Result<(), String> {
-    let now = crate::clock::unix_time_millis()?;
-    let principal = Principal {
-        kind: PrincipalKind::ExternalAgent,
-        id: id.to_owned(),
-    };
-    let pool = db::pool(app).await?;
-    let mut tx = db::begin_write(pool).await?;
-    crate::spaces::runs::create_run_in_transaction(
-        &mut tx,
-        &NewRun {
-            id: run_id,
-            home_space_id: &request.space_id,
-            parent_run_id: None,
-            principal: &principal,
-            kind: RunKind::ExternalAgent,
-            policy_snapshot: &serde_json::json!({"runtimeKind": request.runtime_kind}),
-            input_snapshot: &serde_json::json!({}),
-            budget: &serde_json::json!({"maxDurationSeconds": request.max_duration_seconds}),
-        },
-        now,
-    )
-    .await?;
-    sqlx::query(
-        "INSERT INTO spaces_external_agent_conversations(
-         id,run_id,space_id,runtime_kind,title,state,created_at,updated_at)
-         VALUES($1,$2,$3,$4,$5,'connecting',$6,$6)",
-    )
-    .bind(id)
-    .bind(run_id)
-    .bind(&request.space_id)
-    .bind(request.runtime_kind.as_str())
-    .bind(request.title.trim())
-    .bind(now)
-    .execute(&mut *tx)
-    .await
-    .map_err(db::sql_error)?;
-    tx.commit().await.map_err(db::sql_error)
-}
+use super::StartExternalConversationRequest;
+use crate::spaces::db;
 
 pub(super) async fn mark_connected(
     pool: &sqlx::SqlitePool,
@@ -78,7 +32,9 @@ pub(super) async fn mark_connected(
         .execute(&mut *tx)
         .await
         .map_err(db::sql_error)?;
-    tx.commit().await.map_err(db::sql_error)
+    tx.commit().await.map_err(db::sql_error)?;
+    crate::spaces::runs::announce_change();
+    Ok(())
 }
 
 pub(crate) async fn mark_disconnected(
@@ -87,6 +43,7 @@ pub(crate) async fn mark_disconnected(
     run_id: &str,
     error: &str,
 ) -> Result<(), String> {
+    super::super::updates::release(id);
     let now = crate::clock::unix_time_millis()?;
     let mut tx = db::begin_write(pool).await?;
     sqlx::query("UPDATE spaces_external_agent_conversations SET state='disconnected',error=$1,updated_at=$2 WHERE id=$3")
@@ -100,25 +57,29 @@ pub(crate) async fn mark_disconnected(
     .execute(&mut *tx)
     .await
     .map_err(db::sql_error)?;
-    tx.commit().await.map_err(db::sql_error)
+    tx.commit().await.map_err(db::sql_error)?;
+    crate::spaces::runs::announce_change();
+    Ok(())
 }
 
 pub(super) async fn load(
     pool: &sqlx::SqlitePool,
     id: &str,
-) -> Result<super::super::ExternalConversationSummary, String> {
-    let space_id = sqlx::query_scalar::<_, String>(
-        "SELECT space_id FROM spaces_external_agent_conversations WHERE id=$1",
+) -> Result<super::super::AgentSessionBinding, String> {
+    let row: (String, String, String, String) = sqlx::query_as(
+        "SELECT id,run_id,assistant_conversation_id,branch_id
+         FROM spaces_external_agent_conversations WHERE id=$1",
     )
     .bind(id)
     .fetch_one(pool)
     .await
     .map_err(db::sql_error)?;
-    repository::list(pool, &space_id)
-        .await?
-        .into_iter()
-        .find(|item| item.id == id)
-        .ok_or("external-conversation-unavailable".into())
+    Ok(super::super::AgentSessionBinding {
+        id: row.0,
+        run_id: row.1,
+        assistant_conversation_id: row.2,
+        branch_id: row.3,
+    })
 }
 
 pub(super) fn validate(request: &StartExternalConversationRequest) -> Result<(), String> {

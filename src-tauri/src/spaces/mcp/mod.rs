@@ -10,7 +10,6 @@ mod relation_path;
 mod run_tools;
 mod support;
 mod transport;
-mod workflow_tools;
 
 use super::authorization;
 use support::mcp_error;
@@ -24,7 +23,7 @@ struct SpaceMcpServer {
 
 impl SpaceMcpServer {
     fn tool_router() -> rmcp::handler::server::router::tool::ToolRouter<Self> {
-        Self::read_router() + Self::action_router() + Self::workflow_router() + Self::run_router()
+        Self::read_router() + Self::action_router() + Self::run_router()
     }
 }
 

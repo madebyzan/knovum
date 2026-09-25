@@ -12,9 +12,22 @@ export function defaultImageEdit(): ImageEdit {
     flipHorizontal: false,
     flipVertical: false,
     adjustments: {
-      exposure: 0, contrast: 0, highlights: 0, shadows: 0, whites: 0, blacks: 0,
-      saturation: 0, warmth: 0, sharpness: 0, vignette: 0,
-      vibrance: 0, tint: 0, clarity: 0, grain: 0, softLight: 0, glow: 0,
+      exposure: 0,
+      contrast: 0,
+      highlights: 0,
+      shadows: 0,
+      whites: 0,
+      blacks: 0,
+      saturation: 0,
+      warmth: 0,
+      sharpness: 0,
+      vignette: 0,
+      vibrance: 0,
+      tint: 0,
+      clarity: 0,
+      grain: 0,
+      softLight: 0,
+      glow: 0,
     },
     eraserStrokes: [],
   };
@@ -44,13 +57,14 @@ export function resizeCrop(crop: ImageCrop, width: number, height: number): Imag
   };
 }
 
-export function scaleCropToPixelSize(
-  crop: ImageCrop,
-  sourceWidth: number,
-  sourceHeight: number,
-  axis: "width" | "height",
-  pixels: number,
-): ImageCrop {
+export function scaleCropToPixelSize(input: {
+  crop: ImageCrop;
+  sourceWidth: number;
+  sourceHeight: number;
+  axis: "width" | "height";
+  pixels: number;
+}): ImageCrop {
+  const { crop, sourceWidth, sourceHeight, axis, pixels } = input;
   const current = axis === "width" ? crop.width * sourceWidth : crop.height * sourceHeight;
   const factor = Math.max(
     Math.max(0.01 / crop.width, 0.01 / crop.height),

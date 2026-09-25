@@ -9,7 +9,7 @@ export interface CropDragOrigin {
   clientY: number;
   viewportWidth: number;
   viewportHeight: number;
-  lockedAspect?: number;
+  lockedAspect?: number | undefined;
 }
 
 export interface CropDrawOrigin {
@@ -17,7 +17,7 @@ export interface CropDrawOrigin {
   y: number;
   viewportWidth: number;
   viewportHeight: number;
-  lockedAspect?: number;
+  lockedAspect?: number | undefined;
 }
 
 const MIN_CROP_SIZE = 0.01;
@@ -57,7 +57,7 @@ export function drawCropFromPointer(
   let width = Math.abs(dx);
   let height = Math.abs(dy);
   if (origin.lockedAspect) {
-    const ratio = origin.lockedAspect * origin.viewportHeight / origin.viewportWidth;
+    const ratio = (origin.lockedAspect * origin.viewportHeight) / origin.viewportWidth;
     width = Math.max(width, height * ratio);
     width = Math.min(width, directionX < 0 ? x : 1 - x, (directionY < 0 ? y : 1 - y) * ratio);
     height = width / ratio;
@@ -71,45 +71,75 @@ export function drawCropFromPointer(
   };
 }
 
-function lockedCropFromPointer(origin: CropDragOrigin, deltaX: number, deltaY: number, aspect: number): ImageCrop {
-  const crop = origin.crop;
+function lockedCropFromPointer(
+  origin: CropDragOrigin,
+  deltaX: number,
+  deltaY: number,
+  aspect: number,
+): ImageCrop {
   const handle = origin.handle;
-  const ratio = aspect * origin.viewportHeight / origin.viewportWidth;
-  const minimumWidth = Math.max(MIN_CROP_SIZE, MIN_CROP_SIZE * ratio);
+  const ratio = (aspect * origin.viewportHeight) / origin.viewportWidth;
   const west = handle.includes("w");
   const north = handle.includes("n");
   const horizontal = west || handle.includes("e");
   const vertical = north || handle.includes("s");
-  const anchorX = west ? crop.x + crop.width : crop.x;
-  const anchorY = north ? crop.y + crop.height : crop.y;
+  const context = {
+    crop: origin.crop,
+    deltaX,
+    deltaY,
+    ratio,
+    minimumWidth: Math.max(MIN_CROP_SIZE, MIN_CROP_SIZE * ratio),
+    west,
+    north,
+    anchorX: west ? origin.crop.x + origin.crop.width : origin.crop.x,
+    anchorY: north ? origin.crop.y + origin.crop.height : origin.crop.y,
+  };
+  if (horizontal && vertical) return lockedCornerCrop(context);
+  return horizontal ? lockedHorizontalCrop(context) : lockedVerticalCrop(context);
+}
 
-  if (horizontal && vertical) {
-    const widthFromX = crop.width + (west ? -deltaX : deltaX);
-    const heightFromY = crop.height + (north ? -deltaY : deltaY);
-    const width = Math.abs(deltaX / crop.width) >= Math.abs(deltaY / crop.height)
-      ? widthFromX
-      : heightFromY * ratio;
-    const maxWidth = Math.min(west ? anchorX : 1 - anchorX, (north ? anchorY : 1 - anchorY) * ratio);
-    const nextWidth = clamp(width, minimumWidth, maxWidth);
-    const nextHeight = nextWidth / ratio;
-    return {
-      x: west ? anchorX - nextWidth : anchorX,
-      y: north ? anchorY - nextHeight : anchorY,
-      width: nextWidth,
-      height: nextHeight,
-    };
-  }
+type LockedCropContext = {
+  crop: ImageCrop;
+  deltaX: number;
+  deltaY: number;
+  ratio: number;
+  minimumWidth: number;
+  west: boolean;
+  north: boolean;
+  anchorX: number;
+  anchorY: number;
+};
 
-  if (horizontal) {
-    const centerY = crop.y + crop.height / 2;
-    const maxWidth = Math.min(west ? anchorX : 1 - anchorX, 2 * Math.min(centerY, 1 - centerY) * ratio);
-    const width = clamp(crop.width + (west ? -deltaX : deltaX), minimumWidth, maxWidth);
-    const height = width / ratio;
-    return { x: west ? anchorX - width : anchorX, y: centerY - height / 2, width, height };
-  }
+function lockedCornerCrop(context: LockedCropContext): ImageCrop {
+  const { crop, deltaX, deltaY, ratio, minimumWidth, west, north, anchorX, anchorY } = context;
+  const widthFromX = crop.width + (west ? -deltaX : deltaX);
+  const heightFromY = crop.height + (north ? -deltaY : deltaY);
+  const width =
+    Math.abs(deltaX / crop.width) >= Math.abs(deltaY / crop.height) ? widthFromX : heightFromY * ratio;
+  const maxWidth = Math.min(west ? anchorX : 1 - anchorX, (north ? anchorY : 1 - anchorY) * ratio);
+  const nextWidth = clamp(width, minimumWidth, maxWidth);
+  const nextHeight = nextWidth / ratio;
+  return {
+    x: west ? anchorX - nextWidth : anchorX,
+    y: north ? anchorY - nextHeight : anchorY,
+    width: nextWidth,
+    height: nextHeight,
+  };
+}
 
+function lockedHorizontalCrop(context: LockedCropContext): ImageCrop {
+  const { crop, deltaX, ratio, minimumWidth, west, anchorX } = context;
+  const centerY = crop.y + crop.height / 2;
+  const maxWidth = Math.min(west ? anchorX : 1 - anchorX, 2 * Math.min(centerY, 1 - centerY) * ratio);
+  const width = clamp(crop.width + (west ? -deltaX : deltaX), minimumWidth, maxWidth);
+  const height = width / ratio;
+  return { x: west ? anchorX - width : anchorX, y: centerY - height / 2, width, height };
+}
+
+function lockedVerticalCrop(context: LockedCropContext): ImageCrop {
+  const { crop, deltaY, ratio, minimumWidth, north, anchorY } = context;
   const centerX = crop.x + crop.width / 2;
-  const maxHeight = Math.min(north ? anchorY : 1 - anchorY, 2 * Math.min(centerX, 1 - centerX) / ratio);
+  const maxHeight = Math.min(north ? anchorY : 1 - anchorY, (2 * Math.min(centerX, 1 - centerX)) / ratio);
   const height = clamp(crop.height + (north ? -deltaY : deltaY), minimumWidth / ratio, maxHeight);
   const width = height * ratio;
   return { x: centerX - width / 2, y: north ? anchorY - height : anchorY, width, height };

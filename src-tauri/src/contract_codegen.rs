@@ -11,35 +11,19 @@ pub fn export(project_root: &Path) -> Result<(), String> {
 }
 
 fn export_types(config: &Config) -> Result<(), String> {
-    use crate::spaces::{
-        assistant, authorization, automation, external_conversations, runs, workflows,
-    };
+    use crate::spaces::{assistant, authorization, runs, workflows};
 
-    workflows::WorkflowDefinition::export_all(config).map_err(export_error)?;
-    workflows::WorkflowDraft::export_all(config).map_err(export_error)?;
-    workflows::WorkflowVersion::export_all(config).map_err(export_error)?;
-    workflows::WorkflowTemplate::export_all(config).map_err(export_error)?;
-    workflows::SaveWorkflowTemplateRequest::export_all(config).map_err(export_error)?;
     workflows::BuiltInWorkflowTemplateId::export_all(config).map_err(export_error)?;
-    workflows::InstantiateWorkflowTemplateRequest::export_all(config).map_err(export_error)?;
-    workflows::external_tools::ExternalToolBinding::export_all(config).map_err(export_error)?;
-    workflows::external_tools::SaveExternalToolBindingRequest::export_all(config)
-        .map_err(export_error)?;
     runs::RunSummary::export_all(config).map_err(export_error)?;
     runs::StepSummary::export_all(config).map_err(export_error)?;
     runs::RunEvent::export_all(config).map_err(export_error)?;
-    runs::BatchItemSummary::export_all(config).map_err(export_error)?;
     authorization::ApprovalSummary::export_all(config).map_err(export_error)?;
-    automation::AutomationTrigger::export_all(config).map_err(export_error)?;
-    automation::SaveAutomationTriggerRequest::export_all(config).map_err(export_error)?;
-    automation::AutomationOccurrence::export_all(config).map_err(export_error)?;
     assistant::ConversationSummary::export_all(config).map_err(export_error)?;
     assistant::AssistantTaskAccepted::export_all(config).map_err(export_error)?;
     assistant::AssistantTaskUpdate::export_all(config).map_err(export_error)?;
+    assistant::AssistantPermissionOption::export_all(config).map_err(export_error)?;
     assistant::AssistantMessage::export_all(config).map_err(export_error)?;
-    external_conversations::ExternalConversationSummary::export_all(config)
-        .map_err(export_error)?;
-    external_conversations::ExternalConversationMessage::export_all(config).map_err(export_error)
+    Ok(())
 }
 
 fn export_schemas(output: &Path) -> Result<(), String> {

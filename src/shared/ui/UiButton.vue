@@ -14,6 +14,7 @@ const props = withDefaults(
     disabled?: boolean | undefined;
     asChild?: boolean | undefined;
     as?: string | object | undefined;
+    type?: "button" | "submit" | "reset" | undefined;
     class?: HTMLAttributes["class"];
   }>(),
   {
@@ -22,6 +23,7 @@ const props = withDefaults(
     disabled: false,
     asChild: false,
     as: "button",
+    type: "button",
   },
 );
 
@@ -43,7 +45,7 @@ const variantClass = computed(
   <Primitive
     :as="as"
     :as-child="asChild"
-    :type="as === 'button' ? 'button' : undefined"
+    :type="as === 'button' ? type : undefined"
     :disabled="disabled"
     :class="
       cn(

@@ -1,5 +1,4 @@
-import type { WorkflowDefinition } from "../contracts/generated/WorkflowDefinition";
-import { remapGroundedCitation, remapObjectTypes, remapQueryFilter } from "./content-remap";
+import { remapObjectTypes, remapQueryFilter } from "./content-remap";
 import { remapEventEntity, remapEventPayload } from "./event-remap";
 import { referenceMap, requiredMap } from "./id-maps";
 import type { SpacePackageRestoreContext } from "./restore-context";
@@ -7,22 +6,6 @@ import { restoreOwnedRow } from "./restore-row";
 import type { SpacePackageRestoreRequest } from "./restore-transport";
 
 export { remapObjectTypes };
-
-export function remapWorkflowDefinition(
-  definition: WorkflowDefinition,
-  maps: SpacePackageRestoreContext["maps"],
-): WorkflowDefinition {
-  const copy = structuredClone(definition);
-  for (const node of copy.nodes) {
-    if (node.kind === "subworkflow") {
-      node.workflowId = requiredMap(maps.workflows, node.workflowId, "subworkflow");
-    }
-    if (node.kind === "external_tool") {
-      node.bindingId = requiredMap(maps.externalTools, node.bindingId, "external tool");
-    }
-  }
-  return copy;
-}
 
 export function restoreDerivations(
   context: SpacePackageRestoreContext,
@@ -89,36 +72,6 @@ export function restoreChunks(context: SpacePackageRestoreContext): SpacePackage
       id: requiredMap(context.maps.chunks, chunk.id, "chunk"),
       nodeId: requiredMap(context.maps.nodes, chunk.nodeId, "chunk node"),
       metadata: chunk.metadata ?? {},
-    };
-  });
-}
-
-export function restoreThreads(context: SpacePackageRestoreContext): SpacePackageRestoreRequest["threads"] {
-  return context.manifest.aiThreads.map((source) => {
-    const thread = restoreOwnedRow(source, context.maps.sourceSpaceId);
-    return {
-      ...thread,
-      id: requiredMap(context.maps.threads, thread.id, "AI thread"),
-      scopeNodeIds: thread.scopeNodeIds.map((id) => requiredMap(context.maps.nodes, id, "AI scope node")),
-    };
-  });
-}
-
-export function restoreMessages(
-  context: SpacePackageRestoreContext,
-  nodeRevisions: Map<string, string>,
-): SpacePackageRestoreRequest["messages"] {
-  return context.manifest.aiMessages.map((message) => {
-    const { provider, model, ...content } = message;
-    return {
-      ...content,
-      id: crypto.randomUUID(),
-      threadId: requiredMap(context.maps.threads, message.threadId, "AI message thread"),
-      citations: message.citations.map((citation) =>
-        remapGroundedCitation(citation, context.maps, nodeRevisions),
-      ),
-      ...(provider === undefined ? {} : { provider }),
-      ...(model === undefined ? {} : { model }),
     };
   });
 }

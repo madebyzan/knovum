@@ -35,7 +35,7 @@ pub(super) fn definition(definition: &WorkflowDefinition) -> Vec<WorkflowDiagnos
                 node.id(),
             ));
         }
-        validate_node(node, &mut diagnostics);
+        validate_action(node, &mut diagnostics);
     }
     if !definition
         .nodes
@@ -59,67 +59,6 @@ pub(super) fn definition(definition: &WorkflowDefinition) -> Vec<WorkflowDiagnos
     }
     limits::validate(definition, &mut diagnostics);
     diagnostics
-}
-
-fn validate_node(node: &WorkflowNode, diagnostics: &mut Vec<WorkflowDiagnostic>) {
-    let expression = match node {
-        WorkflowNode::Condition { expression, .. }
-        | WorkflowNode::DataTransform { expression, .. }
-        | WorkflowNode::Iterate {
-            stop_expression: expression,
-            ..
-        } => Some(expression),
-        _ => None,
-    };
-    if let Some(expression) = expression {
-        if let Err(message) = crate::spaces::workflows::expressions::validate(expression) {
-            diagnostics.push(node_diagnostic("expression_invalid", &message, node.id()));
-        }
-    }
-    validate_action(node, diagnostics);
-    match node {
-        WorkflowNode::ForEach {
-            max_items,
-            parallelism,
-            ..
-        } if !(1..=1_000).contains(max_items) || !(1..=64).contains(parallelism) => {
-            diagnostics.push(node_diagnostic(
-                "foreach_limits",
-                "ForEach limits are invalid",
-                node.id(),
-            ));
-        }
-        WorkflowNode::Iterate { max_iterations, .. } if !(1..=20).contains(max_iterations) => {
-            diagnostics.push(node_diagnostic(
-                "iterate_limit",
-                "Iterate maxIterations must be 1 to 20",
-                node.id(),
-            ));
-        }
-        WorkflowNode::Subworkflow {
-            workflow_id,
-            version,
-            ..
-        } if workflow_id.trim().is_empty() || *version == 0 => {
-            diagnostics.push(node_diagnostic(
-                "subworkflow_binding",
-                "Subworkflow binding is invalid",
-                node.id(),
-            ));
-        }
-        WorkflowNode::ExternalTool {
-            binding_id,
-            schema_fingerprint,
-            ..
-        } if binding_id.trim().is_empty() || schema_fingerprint.len() != 64 => {
-            diagnostics.push(node_diagnostic(
-                "external_tool_binding",
-                "External tool binding is invalid",
-                node.id(),
-            ));
-        }
-        _ => {}
-    }
 }
 
 fn validate_action(node: &WorkflowNode, diagnostics: &mut Vec<WorkflowDiagnostic>) {

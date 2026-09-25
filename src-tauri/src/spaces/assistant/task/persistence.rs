@@ -2,38 +2,41 @@ use serde_json::json;
 use sqlx::SqlitePool;
 
 use super::{identity, NewAssistantTask, ASSISTANT_PROFILE_VERSION};
-use crate::spaces::{
-    assistant::{repository, tools, StartAssistantTaskRequest},
-    authorization::{create_grant, AuthorizationContext},
-    db,
-    runs::{create_run_in_transaction, NewRun, RunKind},
+use crate::{
+    agent_runtime::ControlCheckpoint,
+    spaces::{
+        assistant::{repository, tools, StartAssistantTaskRequest},
+        authorization::{create_grant, AuthorizationContext},
+        db,
+        runs::{create_run_in_transaction, NewRun, RunKind},
+    },
 };
+
+pub(super) struct NewAssistantRecords<'a> {
+    pub request: &'a StartAssistantTaskRequest,
+    pub ids: &'a identity::TaskIds,
+    pub grant: &'a AuthorizationContext,
+    pub catalog: &'a tools::ToolCatalog,
+    pub context_manifest: &'a serde_json::Value,
+    pub checkpoint: &'a ControlCheckpoint,
+    pub now: i64,
+}
 
 pub(super) async fn create_records(
     pool: &SqlitePool,
-    request: &StartAssistantTaskRequest,
-    ids: &identity::TaskIds,
-    grant: &AuthorizationContext,
-    catalog: &tools::ToolCatalog,
-    context_manifest: &serde_json::Value,
-    now: i64,
+    records: NewAssistantRecords<'_>,
 ) -> Result<(), String> {
+    let NewAssistantRecords {
+        request,
+        ids,
+        grant,
+        catalog,
+        context_manifest,
+        checkpoint,
+        now,
+    } = records;
     let mut tx = db::begin_write(pool).await?;
-    let active: i64 = sqlx::query_scalar(
-        "SELECT COUNT(*) FROM spaces_assistant_tasks t JOIN spaces_runs r ON r.id=t.run_id \
-         WHERE t.conversation_id=$1 AND t.branch_id=$2 AND r.completed_at IS NULL",
-    )
-    .bind(&ids.conversation_id)
-    .bind(&ids.branch_id)
-    .fetch_one(&mut *tx)
-    .await
-    .map_err(db::sql_error)?;
-    if active != 0 {
-        return Err(
-            "assistant-branch-busy: finish or cancel the active task before sending a follow-up"
-                .into(),
-        );
-    }
+    repository::ensure_branch_idle(&mut tx, &ids.conversation_id, &ids.branch_id).await?;
     repository::ensure_conversation(
         &mut tx,
         &ids.conversation_id,
@@ -43,6 +46,12 @@ pub(super) async fn create_records(
         now,
     )
     .await?;
+    sqlx::query("UPDATE spaces_assistant_conversations SET active_branch_id=$1 WHERE id=$2")
+        .bind(&ids.branch_id)
+        .bind(&ids.conversation_id)
+        .execute(&mut *tx)
+        .await
+        .map_err(db::sql_error)?;
     create_grant(&mut tx, grant, now).await?;
     let policy = json!({
         "mode": request.mode, "grantId": grant.grant_id,
@@ -84,6 +93,24 @@ pub(super) async fn create_records(
         now,
     )
     .await?;
+    repository::append_message_in_transaction(
+        &mut tx,
+        &ids.conversation_id,
+        &ids.branch_id,
+        "user",
+        &json!({"parts": [{"type": "text", "text": request.prompt}]}),
+        now,
+    )
+    .await?;
+    sqlx::query(
+        "INSERT INTO spaces_assistant_checkpoints(task_id,envelope,updated_at) VALUES($1,$2,$3)",
+    )
+    .bind(&ids.task_id)
+    .bind(serde_json::to_string(checkpoint).map_err(db::json_error)?)
+    .bind(now)
+    .execute(&mut *tx)
+    .await
+    .map_err(db::sql_error)?;
     tx.commit().await.map_err(db::sql_error)?;
     crate::spaces::runs::announce_change();
     Ok(())

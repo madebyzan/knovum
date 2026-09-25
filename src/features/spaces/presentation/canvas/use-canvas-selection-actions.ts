@@ -83,8 +83,21 @@ export function useCanvasSelectionActions() {
     dock.openInspect();
   }
 
+  function inspectWorkflow() {
+    const ids = selectedNodes.value.map(({ id }) => id);
+    if (ids.length) dock.openWorkflowCapture(ids);
+  }
+
+  function useWorkflow() {
+    const ids = selectedNodes.value.map(({ id }) => id);
+    if (ids.length) dock.openWorkflowUse(ids);
+  }
+
   function ask() {
-    dock.openAsk(state.value.askScope, { restart: true });
+    dock.openAsk(state.value.askScope, {
+      restart: true,
+      nodeIds: state.value.content.map(({ id }) => id),
+    });
   }
 
   function connect() {
@@ -155,6 +168,8 @@ export function useCanvasSelectionActions() {
     focus,
     fitSection: structureActions.fitSection,
     inspect,
+    inspectWorkflow,
+    useWorkflow,
     editVideo,
     moveToSpace,
     moveLayer,

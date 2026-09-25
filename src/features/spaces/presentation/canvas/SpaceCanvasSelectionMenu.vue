@@ -8,6 +8,7 @@ import {
   MoreHorizontal,
   Trash2,
   UnlockKeyhole,
+  Workflow,
 } from "@lucide/vue";
 import { platform } from "@tauri-apps/plugin-os";
 import { ToolbarButton } from "reka-ui";
@@ -43,7 +44,6 @@ const menuRow =
 const submenu = "material-overlay z-50 min-w-48 rounded-panel p-1 ring-1 ring-border";
 const deleteShortcut = platform() === "macos" ? "Backspace" : "Delete";
 const directImageActions: readonly CreationIntentId[] = ["remove-image-background"];
-
 </script>
 
 <template>
@@ -106,9 +106,17 @@ const directImageActions: readonly CreationIntentId[] = ["remove-image-backgroun
         :derivations="derivations"
         :row-class="menuRow"
         :submenu-class="submenu"
-        :exclude="excludeDirectImageActions ? directImageActions : undefined"
+        v-bind="excludeDirectImageActions ? { exclude: directImageActions } : {}"
         @invoke="emit('invokeDerivation', $event)"
       />
+      <UiDropdownMenuItem v-if="actions.selectedNodes.value.length" @select="actions.inspectWorkflow">
+        <Workflow class="size-(--knovum-icon-size-sm)" />{{
+          t("spaces.creation.createWorkflowFromSelection")
+        }}
+      </UiDropdownMenuItem>
+      <UiDropdownMenuItem v-if="actions.selectedNodes.value.length" @select="actions.useWorkflow">
+        <Workflow class="size-(--knovum-icon-size-sm)" />{{ t("spaces.creation.useSavedWorkflow") }}
+      </UiDropdownMenuItem>
       <SpaceCanvasArrangeMenu
         :count="actions.state.value.structureNodeIds.length"
         :row-class="menuRow"

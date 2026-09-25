@@ -1,0 +1,77 @@
+<script setup lang="ts">
+import { computed } from "vue";
+import { useI18n } from "vue-i18n";
+
+import UiButton from "../../../../shared/ui/UiButton.vue";
+
+const props = defineProps<{
+  runId: string;
+  runState: string;
+  cancelling: boolean;
+  retrying: boolean;
+  allowNew: boolean;
+  outputs: { outputSlotId: string; name: string; nodeId: string }[];
+}>();
+const emit = defineEmits<{
+  locate: [nodeId: string];
+  cancel: [];
+  retry: [];
+  newRun: [];
+}>();
+const { t } = useI18n();
+const terminal = computed(() =>
+  ["succeeded", "completed_with_errors", "failed", "cancelled"].includes(props.runState),
+);
+const stateText = computed(() =>
+  t(`spaces.creation.workflowStates.${props.cancelling ? "cancelling" : props.runState}`),
+);
+const statusTone = computed(() => {
+  if (props.runState === "failed") return "text-danger";
+  if (props.runState === "completed_with_errors") return "text-warning";
+  if (props.runState === "succeeded") return "text-success";
+  return "text-foreground-secondary";
+});
+</script>
+
+<template>
+  <template v-if="runId">
+    <div class="max-h-40 space-y-2 overflow-y-auto px-3 py-3">
+      <p role="status" class="text-caption" :class="statusTone">
+        {{ t("spaces.creation.workflowRunState", { state: stateText }) }}
+      </p>
+      <UiButton
+        v-for="output in outputs"
+        :key="output.outputSlotId"
+        variant="secondary"
+        class="w-full justify-start"
+        @click="emit('locate', output.nodeId)"
+      >
+        {{ t("spaces.creation.locateWorkflowOutput", { name: output.name }) }}
+      </UiButton>
+    </div>
+    <div class="border-t border-border px-3 py-3">
+      <UiButton
+        v-if="!terminal"
+        variant="secondary"
+        class="w-full"
+        :disabled="cancelling"
+        @click="emit('cancel')"
+      >
+        {{ t("spaces.creation.cancelWorkflowRun") }}
+      </UiButton>
+      <template v-else>
+        <UiButton
+          v-if="runState === 'failed' || runState === 'completed_with_errors'"
+          variant="secondary"
+          class="w-full"
+          :disabled="retrying"
+          @click="emit('retry')"
+          >{{ t("spaces.creation.retryFailedWorkflowSteps") }}</UiButton
+        >
+        <UiButton v-if="allowNew" variant="ghost" class="mt-2 w-full" @click="emit('newRun')">
+          {{ t("spaces.creation.newWorkflowRun") }}
+        </UiButton>
+      </template>
+    </div>
+  </template>
+</template>

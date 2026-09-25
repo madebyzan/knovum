@@ -74,35 +74,35 @@ Duplicate copies a node without claiming derivation provenance, while Download w
 file. The exact effect and revision rules for every node kind live in `docs/architecture.md` under
 “Space operation effects and source identity”.
 
-A **Workflow** is an editable, published and version-pinned dependency graph over the stable Space Action catalog. Knovum ships five production recipes: presentation production, video production, social content package, subtitled-video production and meeting content package. These are common knowledge-work starting points, not samples or private executors. Each recipe creates the same editable Workflow definition used by user-authored graphs and places a content-review gate before an expensive or irreversible rendering step. Runs, step inputs and outputs, per-item batch lineage, attempts and events are durable, exported with terminal history, and restored without replaying side effects. Batch retries retain stable item keys, reuse successful items and create new attempts only for failed or unavailable items.
+A **Workflow** is a durable dependency graph over the Space Action catalog. Five built-in production recipes compile directly into an immutable Run snapshot: presentation production, video production, social content package, subtitled-video production and meeting content package. A personal canvas workflow is captured from verified derivation facts as an ordered action graph with typed resource slots. Runs, step inputs and outputs, attempts and events are durable and resume without replaying committed side effects.
 
-The Rust Run scheduler is the only execution authority. It compiles immutable Workflow versions,
-leases ready steps, fences stale workers, records checkpoints and events, and delegates business
-effects to their owning Space Actions. Vue edits one structured draft through graph and outline views
-and observes Run state; it never advances a step or commits a result because a component reported success.
+The Rust Run scheduler is the only execution authority. It leases ready steps, fences stale workers,
+records checkpoints and events, and delegates business effects to their owning Space Actions. The
+five built-in recipes use the narrowed Workflow compiler. Personal canvas workflows use
+captured action steps and a floating inspector; Vue observes Run state but does not advance a step
+or commit a result because a component reported success.
 
 A **Creation Intent** is the user-facing catalog entry. It owns selection availability, localized presentation, and whether execution dispatches one atomic derivation or a versioned Workflow. The canvas uses one intent catalog and one creation-dialog session, so adding a Workflow does not add another event chain or independent boolean state through the component tree.
 
-Published Workflow versions are immutable. Subworkflows bind exact versions, while drafts remain
-incomplete and autosaved. Execution bindings, credentials, approvals and trigger grants are not part
-of the portable definition. Imported triggers and external-tool bindings are disabled until the user
-reviews their destination, current schema fingerprint and authorization.
+Built-in recipes have no draft or published-copy repository. Personal canvas captures have
+immutable numbered definitions in the workflow library. Each user-started Run creates its own
+execution grant; a selective retry creates a new grant and reuses only successful predecessor
+steps whose recorded resources remain valid.
 
-Personal Workflow templates carry the complete fixed-version subworkflow closure. Copying one into a
-Space assigns new Workflow identities, publishes dependency versions in child-first order and rewrites
-the root definition atomically. Space-owned external-tool bindings are deliberately rejected from
-personal templates instead of being copied as ambient authority; the user must bind and review those
-tools in the destination Space.
+Personal canvas workflows contain no executable reference to their sample Space nodes. Each Run
+binds the named input slots to new resources, freezes their data digest, and checks the recorded
+revision basis before dispatching each action. The old personal-template commands and obsolete
+definitions are removed by the pre-release data transition.
 
-External Agent conversations are distinct from one-shot artifact creation and from the built-in
-Assistant. A connected conversation owns one ACP runtime session and accepts multiple turns through
-that session; each turn can include user-selected local attachments, and the UI derives mode, model
-and other configuration controls from the actual ACP session response. Local conversation, turn
-and message identities remain durable. Tool activity is recorded
-as reported Run events, while Space changes still require Knovum MCP receipts. An application or runtime
-disconnect marks the conversation disconnected and preserves history; only an explicit new conversation
-starts another runtime session. Closing a conversation exposes any workspace artifacts through the
-existing reviewed artifact-import path.
+The Assistant has one visible conversation and message store for API models and desktop Agents.
+The input chooses an enabled target for each turn. A desktop Agent turn creates a separate ACP
+execution session and Run, receives the selected Space resources through validated asset paths,
+and writes its streamed reply into the shared conversation. A later turn receives the visible
+history as context; it does not claim to resume hidden native session memory. Tool activity is
+recorded as Run events, while Space changes still require Knovum MCP receipts. The former
+grounded-answer threads and messages are moved into the Assistant store by a one-time local
+database migration; their verified source snapshots remain attached to the corresponding reply.
+Closing an Agent session exposes workspace artifacts through the existing reviewed import path.
 
 DOCX and PDF export consume one explicit current Markdown resource. They do not silently synthesize a hidden document from an arbitrary selection; users create or choose the editable Markdown knowledge first, then export it. Multi-stage outcomes remain Workflows and keep their independently useful intermediate resources visible.
 
@@ -128,10 +128,40 @@ Transformation lineage and epistemic Provenance are different contracts. A Deriv
 
 Long derivations create a pending output node immediately. The pending node reserves the eventual result position and mirrors the feature-owned Rust job's meaningful stage and progress through Task Center. Success replaces it in place; failure remains inspectable and retryable but does not create a false completed resource or semantic lineage.
 
-Workflow control and data dependencies are edited in the dedicated Workflow Studio rather than on the
-knowledge canvas. Studio provides one graph/outline draft, compiler diagnostics, readiness preflight,
-version history, isolated whole-flow or selected-step tests, persistent breakpoints and Run Center
-inspection. Model samplers and provider plumbing remain execution bindings rather than canvas nodes.
+The dedicated Workflow Studio has been removed. The canvas selection menu opens a floating
+derivation inspector anchored to the selection through the canvas surface placement rule. It
+closes when the user changes the selection; its header does not drag the native window. It
+matches Action Run source identities to derivation inputs, then reads
+verified parameters, ordered source inputs and disconnected selection groups without changing
+canvas resources. Selecting a step or input reveals its node on the existing canvas. A validated
+capture can be saved to the personal workflow library; the same canvas menu binds new resources
+and starts a durable Run. Image sequences can be reordered before execution. The inspector lists
+recent Runs from SQLite, allowing a closed panel to reopen one and locate its completed outputs.
+Renaming a captured workflow changes its library label; deleting it leaves prior Runs and their
+published resources intact because each Run holds its own definition snapshot.
+Editing a captured workflow saves a new immutable definition version. The editor can adjust
+step parameters, omit terminal steps, and select and name which verified step results are
+returned. Rust revalidates action versions, typed bindings and dependencies before committing
+the new version. Runs already accepted keep their original definition snapshot.
+Execution dependencies must come from validated action records, not visual proximity or hand-drawn
+relations. Model samplers and provider plumbing remain execution bindings rather than canvas nodes.
+Built-in recipes compile directly into an immutable Run snapshot. They no longer create a
+Workflow Studio draft and published copy for every invocation. Their runtime is limited to
+Input, Action, Review, Join and Output. Generic condition, iteration, delay, delegation,
+debug breakpoint and publication nodes are no longer accepted.
+Personal workflows use captured derivation steps and explicit resource slots rather than that
+recipe graph.
+The built-in assistant calls Knovum Space Actions. Desktop Agents manage external tools in their
+own runtime; the Space package does not export Agent tool configuration.
+The model conversation exposes read Actions and resource creation Actions through one tool
+catalog. Each non-read Action pauses for the existing exact-plan approval in the conversation;
+structure mutations and bulk knowledge edits are outside the model tool catalog. Built-in
+recipe Runs that need content review appear in Task Center. The reviewer can inspect the
+current draft or subtitles, edit the resource on the canvas, then approve the revision actually
+displayed. Rust validates that revision and settles the waiting step in one transaction.
+Assistant failures retain their reason with the task record, and interrupted model streams
+retain any received text as an explicitly stopped or incomplete message. Returning to a
+conversation after an interruption does not turn partial text into a completed answer.
 
 ## Item identity and titles
 
@@ -254,7 +284,8 @@ positions on the displayed image, saved in the image node payload with their tex
 time. A comment may target a point, a freehand
 stroke or a rectangular region; all three modes render a numbered pin, while strokes and regions
 retain their image-relative geometry. Adding a comment to the built-in conversation stages its
-text in the composer rather than starting an assistant task. Multi-angle generation accepts
+text and attaches the source image in the composer rather than starting an assistant task.
+Multi-angle generation accepts
 subject or camera movement, yaw from -90 to 90 degrees, pitch from -30 to 60 degrees, and
 close-up, medium or wide-angle framing. Its preview is an interactive orientation guide; the
 model generates the actual new view. Video editing opens a same-window workbench because
@@ -386,10 +417,27 @@ still referenced by knowledge objects. This editor does not introduce a second t
 
 Spaces owns `spaces.db` and its single pre-release SQLx v1 baseline at
 `src-tauri/migrations/spaces/0001_spaces.sql`. The embedded migrator installs that complete schema
-before repositories receive the pool. During pre-release development, schema changes are folded
-back into this baseline and obsolete development databases are deleted instead of receiving
-compatibility migrations. New derivations capture immutable source metadata when created.
+before repositories receive the pool. During pre-release development, schema changes belong in
+this baseline, with an explicit data transition for existing local databases; the application must
+not silently delete a user's Space data. New derivations capture immutable source metadata when created.
 Rebuildable projections remain derived from their owning nodes and relations.
+
+Canvas workflow capture reads completed derivations and the matching successful action Run in one
+SQLite snapshot. Its candidate rewrites source resources to ordered, typed input slots and internal
+resources to step-output bindings; the executable candidate contains no canvas node IDs. Capture
+rejects incomplete records, mismatched source order, missing execution targets, and action
+parameters that directly reference source node IDs. A source digest covers the selected graph and
+current node contents so a later save can reject a changed preview. The existing personal-template
+table stores only current `schemaVersion: 3` personal definitions; the pre-release transition removes
+obsolete rows. Saving
+recomputes capture within the same write transaction and checks its digest; a request UUID makes
+retries idempotent. Starting a Run checks action versions, binds distinct new resources, grants
+the selected actions, and records a fixed definition and input snapshot. `captured_action` steps
+resolve only bound slots or successful earlier step outputs. Rust Run changes stream to the
+Task Center through a Tauri Channel. Active workflow Runs are reattached on startup; closing the
+inspector does not cancel the Run. The selected model target is checked when a Run starts. Durable
+Action outputs reserve canvas space beside their actual sources through the shared structure
+placement rule, searching for a non-overlapping location before publishing the placeholder.
 
 Structured state lives in SQLite. Imported binary assets and cached website assets live under Knovum's app-data `spaces/assets` directory. Markdown imports are read as UTF-8 text into SQLite instead of being copied as opaque attachments.
 

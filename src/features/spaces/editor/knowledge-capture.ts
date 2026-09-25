@@ -1,71 +1,9 @@
-import { uniqBy } from "es-toolkit";
-
-import type { KnowledgeChange } from "../knowledge/model/change-set";
-import type { GroundedCitation } from "../knowledge/model/grounded-citation";
-import type { GroundedMessage } from "../knowledge/model/grounded-message";
 import type { KnowledgePeekTarget } from "../knowledge/model/knowledge-peek-target";
 import { SYSTEM_OBJECT_TYPE_IDS } from "../knowledge/model/object-types";
-import { commitKnowledgeChanges, createProvenance } from "../knowledge/persistence/knowledge-repository";
+import { createProvenance } from "../knowledge/persistence/knowledge-repository";
 import type { useSpaceStore } from "../session/space-store";
 
 type SpaceStore = ReturnType<typeof useSpaceStore>;
-
-export async function commitGroundedAnswerKnowledge(
-  store: SpaceStore,
-  answer: GroundedMessage,
-  title: string,
-  rationale: string,
-) {
-  const spaceId = requiredSpaceId(store);
-  const claimId = "claim";
-  const operations: KnowledgeChange[] = [
-    {
-      op: "create-object",
-      tempId: claimId,
-      objectTypeId: SYSTEM_OBJECT_TYPE_IDS.claim,
-      title,
-      summary: answer.content,
-      status: "draft",
-      properties: { statement: answer.content },
-    },
-  ];
-  uniqueCurrentCitations(answer).forEach((citation, index) => {
-    const evidenceId = `evidence-${index}`;
-    operations.push(
-      {
-        op: "create-object",
-        tempId: evidenceId,
-        objectTypeId: SYSTEM_OBJECT_TYPE_IDS.evidence,
-        title: citation.nodeTitle,
-        summary: citation.quote,
-        status: "draft",
-        properties: { observation: citation.quote },
-      },
-      {
-        op: "add-provenance",
-        targetKind: "node",
-        targetId: evidenceId,
-        sourceNodeId: citation.nodeId,
-        locator: citation.locator,
-        sourceRevision: citation.sourceRevision,
-        quote: citation.quote,
-      },
-      {
-        op: "create-relation",
-        tempId: `supports-${index}`,
-        sourceId: evidenceId,
-        targetId: claimId,
-        kind: "supports",
-        rationale,
-      },
-    );
-  });
-  return commitKnowledgeChanges({
-    spaceId,
-    actor: answer.model ?? answer.provider ?? "knovum-grounded-assistant",
-    operations,
-  });
-}
 
 export async function createSourceEvidence(input: {
   store: SpaceStore;
@@ -98,13 +36,6 @@ export async function createSourceEvidence(input: {
   });
   await store.createRelation(evidence.id, target.nodeId, "derives-from", { rationale, spaceId });
   return evidence;
-}
-
-function uniqueCurrentCitations(answer: GroundedMessage) {
-  const current = answer.citations.filter(
-    (citation): citation is Extract<GroundedCitation, { state: "current" }> => citation.state === "current",
-  );
-  return uniqBy(current, (citation) => citation.chunkId);
 }
 
 function requiredSpaceId(store: SpaceStore) {

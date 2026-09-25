@@ -42,7 +42,7 @@ pub(crate) async fn claim_ready_step(
                 WHERE active.run_id=r.id AND active.state='running')
                < COALESCE(CAST(json_extract(r.budget,'$.maxParallelism') AS INTEGER),1)
          ORDER BY CASE r.kind WHEN 'assistant' THEN 0 WHEN 'action' THEN 1
-                  WHEN 'workflow' THEN 2 WHEN 'automation' THEN 3 ELSE 4 END,
+                  WHEN 'workflow' THEN 2 ELSE 4 END,
                   r.created_at,s.created_at LIMIT 1",
     )
     .bind(now).fetch_optional(&mut *tx).await.map_err(db::sql_error)?;

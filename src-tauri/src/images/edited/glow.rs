@@ -12,7 +12,8 @@ pub(super) fn apply_glow(output: &mut RgbaImage, amount: f64) {
         if pixel[3] == 0 {
             return Luma([0]);
         }
-        let luminance = 0.2126 * f64::from(pixel[0]) + 0.7152 * f64::from(pixel[1])
+        let luminance = 0.2126 * f64::from(pixel[0])
+            + 0.7152 * f64::from(pixel[1])
             + 0.0722 * f64::from(pixel[2]);
         Luma([to_byte((luminance - 140.0).max(0.0))])
     });

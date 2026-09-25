@@ -14,7 +14,6 @@ pub(super) async fn run(
     request: contracts::AgentCreationRequest,
     on_event: Channel<contracts::AgentCreationEvent>,
     workspace: &std::path::Path,
-    knowledge_access: bool,
 ) -> AiResult<Vec<contracts::AgentArtifact>> {
     capabilities::agent_artifacts::prepare(workspace)?;
     let (cancellation, _lease) =
@@ -37,26 +36,17 @@ pub(super) async fn run(
     });
     let prompt = external_agents::prompt::AgentPrompt::from_renderer(
         app,
-        creation_prompt(&request, knowledge_access),
+        creation_prompt(&request),
         request.attachments,
     )?;
-    let mcp_binding = if knowledge_access {
-        Some(
-            super::super::mcp::agent_server::start(
-                app.clone(),
-                request.space_id.clone(),
-                request.kind.as_str().to_owned(),
-            )
-            .await
-            .map_err(AiError::internal)?,
-        )
-    } else {
-        None
-    };
-    let mcp_servers = mcp_binding
-        .as_ref()
-        .map(|binding| vec![binding.server()])
-        .unwrap_or_default();
+    let mcp_binding = super::super::mcp::agent_server::start(
+        app.clone(),
+        request.space_id.clone(),
+        request.kind.as_str().to_owned(),
+    )
+    .await
+    .map_err(AiError::internal)?;
+    let mcp_servers = vec![mcp_binding.server()];
     external_agents::session::run(
         request.session_id.clone(),
         request.kind,
@@ -159,18 +149,14 @@ fn event_from_update(
     }
 }
 
-fn creation_prompt(request: &contracts::AgentCreationRequest, knowledge_access: bool) -> String {
+fn creation_prompt(request: &contracts::AgentCreationRequest) -> String {
     let attachments = match request.attachments.len() {
         0 => String::new(),
         count => format!(
             " The request includes {count} attached local resources; inspect them as source material."
         ),
     };
-    let knowledge = if knowledge_access {
-        format!(" The attached Knovum Knowledge MCP server is scoped by tool arguments; use Space ID `{}` for every knowledge read or write in this session. Commit knowledge changes only when they are part of the requested result. A commit may return requires_approval; wait for the user to approve it, then retry the unchanged request with the same idempotency key and returned approvalId.", request.space_id)
-    } else {
-        " This is an isolated Workflow delegation. No Knovum knowledge server is attached; return artifacts only through the working directory.".to_owned()
-    };
+    let knowledge = format!(" The attached Knovum Knowledge MCP server is scoped by tool arguments; use Space ID `{}` for every knowledge read or write in this session. Commit knowledge changes only when they are part of the requested result. A commit may return requires_approval; wait for the user to approve it, then retry the unchanged request with the same idempotency key and returned approvalId.", request.space_id);
     format!(
         "Work only inside the current working directory. Save every final artifact the user requested as a file in this directory. Do not write temporary dependencies, caches, or project scaffolding here unless they are themselves requested deliverables.{knowledge}{attachments}\n\nUser request:\n{}",
         request.prompt.trim()

@@ -85,7 +85,6 @@ pub(crate) async fn create_external_agent_grant(
             .iter()
             .map(|definition| definition.id.to_owned())
             .collect(),
-        egress_targets: Vec::new(),
         valid_until: now + 8 * 60 * 60 * 1_000,
     };
     let pool = crate::spaces::db::pool(app).await?;

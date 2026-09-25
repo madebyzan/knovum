@@ -1,10 +1,7 @@
 use sqlx::{Row, Sqlite, Transaction};
 
-use super::{
-    dependency_facts, dependency_input, join_policy, next_state, run_failure_policy,
-    run_has_breakpoint,
-};
-use crate::spaces::{db, runs::RunEventKind};
+use super::{dependency_facts, dependency_input, join_policy, next_state, run_failure_policy};
+use crate::spaces::db;
 
 pub(crate) async fn resolve_dependents(
     tx: &mut Transaction<'_, Sqlite>,
@@ -12,7 +9,7 @@ pub(crate) async fn resolve_dependents(
     now: i64,
 ) -> Result<(), String> {
     loop {
-        let rows = sqlx::query("SELECT id,definition_node_id,depends_on,node_kind,configuration FROM spaces_run_steps WHERE run_id=$1 AND state='pending'")
+        let rows = sqlx::query("SELECT id,depends_on,node_kind,configuration FROM spaces_run_steps WHERE run_id=$1 AND state='pending'")
             .bind(run_id).fetch_all(&mut **tx).await.map_err(db::sql_error)?;
         let mut changed = false;
         for row in rows {
@@ -32,7 +29,6 @@ async fn resolve_dependent(
     now: i64,
 ) -> Result<bool, String> {
     let id: String = row.try_get("id").map_err(db::sql_error)?;
-    let node_id: String = row.try_get("definition_node_id").map_err(db::sql_error)?;
     let encoded: String = row.try_get("depends_on").map_err(db::sql_error)?;
     let node_kind: String = row.try_get("node_kind").map_err(db::sql_error)?;
     let configuration: String = row.try_get("configuration").map_err(db::sql_error)?;
@@ -52,24 +48,7 @@ async fn resolve_dependent(
     let input = (state == "ready")
         .then(|| dependency_input(&dependencies, &facts, collect_results))
         .transpose()?;
-    let breakpoint = state == "ready" && run_has_breakpoint(tx, run_id, &node_id).await?;
-    let next_state = if breakpoint { "paused" } else { state };
-    let result = sqlx::query("UPDATE spaces_run_steps SET state=$1,resolved_input=COALESCE($2,resolved_input),wait_reason=$3,state_version=state_version+1,updated_at=$4 WHERE id=$5 AND state='pending'")
-        .bind(next_state).bind(input).bind(breakpoint.then_some("debug_breakpoint"))
-        .bind(now).bind(&id).execute(&mut **tx).await.map_err(db::sql_error)?;
-    if result.rows_affected() == 1 && breakpoint {
-        sqlx::query("UPDATE spaces_runs SET state='paused',wait_reason='debug_breakpoint',state_version=state_version+1,updated_at=$1 WHERE id=$2 AND completed_at IS NULL")
-            .bind(now).bind(run_id).execute(&mut **tx).await.map_err(db::sql_error)?;
-        super::super::super::append_event(
-            tx,
-            run_id,
-            Some(&id),
-            None,
-            RunEventKind::DebugBreakpointReached,
-            &serde_json::json!({"nodeId": node_id}),
-            now,
-        )
-        .await?;
-    }
+    let result = sqlx::query("UPDATE spaces_run_steps SET state=$1,resolved_input=COALESCE($2,resolved_input),state_version=state_version+1,updated_at=$3 WHERE id=$4 AND state='pending'")
+        .bind(state).bind(input).bind(now).bind(&id).execute(&mut **tx).await.map_err(db::sql_error)?;
     Ok(result.rows_affected() == 1)
 }

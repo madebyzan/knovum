@@ -2,7 +2,7 @@ use rmcp::{handler::server::wrapper::Parameters, tool, tool_router, ErrorData as
 use serde_json::json;
 
 use super::{
-    arguments::{CommitKnowledgeArgs, InvokeActionArgs, WorkflowSpaceArgs},
+    arguments::{CommitKnowledgeArgs, InvokeActionArgs, SpaceArgs},
     support::{json_text, mcp_error},
     SpaceMcpServer,
 };
@@ -13,7 +13,7 @@ impl SpaceMcpServer {
     #[tool(description = "List the authoritative Space Action catalog")]
     async fn list_space_actions(
         &self,
-        Parameters(args): Parameters<WorkflowSpaceArgs>,
+        Parameters(args): Parameters<SpaceArgs>,
     ) -> Result<String, McpError> {
         self.require_space(&args.space_id)?;
         self.authorize_read(&args.space_id).await?;

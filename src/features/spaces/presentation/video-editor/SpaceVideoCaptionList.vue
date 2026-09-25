@@ -19,7 +19,7 @@ const visibleItems = computed(() => {
   const query = search.value.trim().toLocaleLowerCase();
   return props.items
     .filter((item) => !query || item.text.toLocaleLowerCase().includes(query))
-    .sort((a, b) => a.startMs - b.startMs);
+    .toSorted((a, b) => a.startMs - b.startMs);
 });
 
 async function revealSelection() {
