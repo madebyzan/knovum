@@ -98,7 +98,10 @@ pub(super) async fn create_records(
         &ids.conversation_id,
         &ids.branch_id,
         "user",
-        &json!({"parts": [{"type": "text", "text": request.prompt}]}),
+        &json!({
+            "parts": [{"type": "text", "text": request.prompt}],
+            "attachments": repository::attachment_summaries(context_manifest)?,
+        }),
         now,
     )
     .await?;

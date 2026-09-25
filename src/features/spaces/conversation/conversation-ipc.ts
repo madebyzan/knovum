@@ -53,7 +53,20 @@ export interface StartAssistantTaskInput {
   target:
     | { type: "model"; connectionId: string; modelId: string; temperature: number }
     | { type: "agent"; runtimeKind: AgentKind };
-  attachments?: Array<{ nodeId: string; sourceRevision: string; role: string; locator?: unknown }>;
+  attachments?: AssistantAttachment[];
+}
+
+export type AssistantAttachment =
+  | { kind: "node"; nodeId: string; sourceRevision: string; role: string; locator?: unknown }
+  | { kind: "file"; path: string; sourceRevision: string };
+
+export interface InspectedAssistantUpload {
+  path: string;
+  sourceRevision: string;
+}
+
+export function inspectAssistantUpload(path: string): Promise<InspectedAssistantUpload> {
+  return invoke("plugin:spaces|inspect_assistant_upload", { path });
 }
 
 export function listAssistantConversations(

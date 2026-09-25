@@ -86,13 +86,24 @@ impl SubmitAssistantTaskRequest {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, TS)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct AssistantAttachment {
-    pub node_id: String,
-    pub source_revision: String,
-    pub role: String,
-    #[ts(type = "unknown")]
-    pub locator: Option<serde_json::Value>,
+#[serde(
+    tag = "kind",
+    rename_all = "snake_case",
+    rename_all_fields = "camelCase",
+    deny_unknown_fields
+)]
+pub enum AssistantAttachment {
+    Node {
+        node_id: String,
+        source_revision: String,
+        role: String,
+        #[ts(type = "unknown")]
+        locator: Option<serde_json::Value>,
+    },
+    File {
+        path: String,
+        source_revision: String,
+    },
 }
 
 #[derive(Clone, Debug, Serialize, TS)]

@@ -6,6 +6,7 @@ pub async fn start_turn(
     pool: &SqlitePool,
     conversation_id: &str,
     prompt: &str,
+    attachments: &[crate::spaces::assistant::AssistantMessageAttachment],
 ) -> Result<String, String> {
     let id = uuid::Uuid::new_v4().to_string();
     let now = crate::clock::unix_time_millis()?;
@@ -42,7 +43,16 @@ pub async fn start_turn(
     .execute(&mut *tx)
     .await
     .map_err(db::sql_error)?;
-    append_message(&mut tx, &assistant_id, &branch_id, "user", prompt, now).await?;
+    append_message(
+        &mut tx,
+        &assistant_id,
+        &branch_id,
+        "user",
+        prompt,
+        attachments,
+        now,
+    )
+    .await?;
     sqlx::query(
         "INSERT INTO spaces_assistant_messages(id,conversation_id,branch_id,role,content,created_at)
          VALUES($1,$2,$3,'assistant',$4,$5)",
@@ -135,6 +145,7 @@ async fn append_message(
     branch_id: &str,
     role: &str,
     content: &str,
+    attachments: &[crate::spaces::assistant::AssistantMessageAttachment],
     now: i64,
 ) -> Result<(), String> {
     sqlx::query(
@@ -145,7 +156,10 @@ async fn append_message(
     .bind(conversation_id)
     .bind(branch_id)
     .bind(role)
-    .bind(serde_json::json!({"parts":[{"type":"text","text":content}]}).to_string())
+    .bind(
+        serde_json::json!({"parts":[{"type":"text","text":content}], "attachments": attachments})
+            .to_string(),
+    )
     .bind(now)
     .execute(&mut **tx)
     .await

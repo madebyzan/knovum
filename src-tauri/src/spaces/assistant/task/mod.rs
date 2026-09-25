@@ -35,7 +35,14 @@ pub async fn start(
 ) -> Result<AssistantTaskAccepted, String> {
     identity::validate(&request)?;
     let pool = db::pool(&app).await?;
-    let context = context::resolve(&app, pool, &request.space_id, &request.attachments).await?;
+    let context = context::resolve(
+        &app,
+        pool,
+        &request.space_id,
+        &request.attachments,
+        context::ContextTarget::Model,
+    )
+    .await?;
     let capability = if context.requires_vision() {
         crate::ai::contracts::ExecutionCapability::VisionUnderstanding
     } else {

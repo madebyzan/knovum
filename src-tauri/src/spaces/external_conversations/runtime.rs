@@ -107,9 +107,10 @@ pub async fn send_prepared(
     conversation_id: &str,
     prompt: &str,
     prepared: crate::external_agents::prompt::AgentPrompt,
+    attachments: &[crate::spaces::assistant::AssistantMessageAttachment],
 ) -> Result<(), String> {
     let pool = db::pool(&app).await?;
-    let turn_id = repository::start_turn(pool, conversation_id, prompt).await?;
+    let turn_id = repository::start_turn(pool, conversation_id, prompt, attachments).await?;
     let outcome = crate::external_agents::conversation::send(conversation_id, prepared).await;
     if let Err(error) = super::updates::flush(conversation_id).await {
         repository::finish_turn(pool, &turn_id, "failed", Some(&error)).await?;

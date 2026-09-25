@@ -4,6 +4,7 @@ mod contract;
 mod repository;
 mod task;
 mod tools;
+pub(crate) mod upload;
 
 pub(crate) fn recover_tasks(app: tauri::AppHandle) {
     task::recover(app);
@@ -26,6 +27,8 @@ pub use contract::{
     StartAssistantTaskRequest, SubmitAssistantTaskRequest,
 };
 pub(crate) use repository::ensure_branch_idle;
-pub(crate) use repository::{AssistantMessage, AssistantMessageContent};
+pub(crate) use repository::{
+    AssistantMessage, AssistantMessageAttachment, AssistantMessageContent,
+};
 
 pub(crate) use commands::cancel_task;

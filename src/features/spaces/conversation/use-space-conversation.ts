@@ -16,14 +16,8 @@ import { useImageCommentDraft } from "./use-image-comment-draft";
 
 export function useSpaceConversation(spaceId: Ref<string | undefined>) {
   const store = useSpaceStore();
-  const {
-    attachments,
-    visibleAttachments,
-    attachmentCandidates,
-    addSelectedAttachments,
-    addNodeAttachments,
-    removeAttachment,
-  } = useConversationAttachments();
+  const attachmentSession = useConversationAttachments();
+  const { attachments, addNodeAttachments } = attachmentSession;
   const conversations = shallowRef<ConversationSummary[]>([]);
   const messages = shallowRef<AssistantMessage[]>([]);
   const selectedConversationId = shallowRef("");
@@ -34,6 +28,13 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
   const conversationQuery = shallowRef("");
   const showingArchived = shallowRef(false);
   const scrollPositions = shallowRef<Record<string, number>>({});
+  function chooseFiles() {
+    const selectedSpace = spaceId.value;
+    const selectedConversation = selectedConversationId.value;
+    return attachmentSession.chooseFiles(
+      () => spaceId.value === selectedSpace && selectedConversationId.value === selectedConversation,
+    );
+  }
   const selectedConversation = computed(() =>
     conversations.value.find(({ id }) => id === selectedConversationId.value),
   );
@@ -159,12 +160,8 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
     visiblePermission: task.visiblePermission,
     decidingPermission: task.decidingPermission,
     visibleStreamedText: task.visibleStreamedText,
-    attachments,
-    visibleAttachments,
-    attachmentCandidates,
-    addSelectedAttachments,
-    addNodeAttachments,
-    removeAttachment,
+    ...attachmentSession,
+    chooseFiles,
     send: task.send,
     cancel: task.cancel,
     resume: task.resume,
