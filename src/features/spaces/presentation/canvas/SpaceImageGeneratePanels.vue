@@ -42,6 +42,7 @@ const sizes = [2048, 4096, 8192] as const;
   <UiPopover
     v-if="mode === 'upscale'"
     :open="open"
+    :trigger-tooltip="compact ? t('spaces.media.upscale') : undefined"
     side="bottom"
     align="start"
     class="w-48 p-1"
@@ -54,7 +55,6 @@ const sizes = [2048, 4096, 8192] as const;
           :class="CANVAS_ACTION_BUTTON_CLASSES"
           :disabled="busy"
           :aria-label="t('spaces.media.upscale')"
-          :title="compact ? t('spaces.media.upscale') : undefined"
         >
           <Maximize2 class="size-(--knovum-icon-size-toolbar)" :stroke-width="1.6" />
           <span :class="[nodeActionLabelClass, nodeActionLabelState(Boolean(compact))]">{{
@@ -95,6 +95,7 @@ const sizes = [2048, 4096, 8192] as const;
   <UiPopover
     v-if="mode === 'angle'"
     :open="open"
+    :trigger-tooltip="compact ? t('spaces.media.multiAngle') : undefined"
     side="bottom"
     align="center"
     class="p-3"
@@ -107,7 +108,6 @@ const sizes = [2048, 4096, 8192] as const;
           :class="CANVAS_ACTION_BUTTON_CLASSES"
           :disabled="busy"
           :aria-label="t('spaces.media.multiAngle')"
-          :title="compact ? t('spaces.media.multiAngle') : undefined"
         >
           <Box class="size-(--knovum-icon-size-toolbar)" :stroke-width="1.6" />
           <span :class="[nodeActionLabelClass, nodeActionLabelState(Boolean(compact))]">{{

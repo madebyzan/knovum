@@ -232,6 +232,8 @@ existing feature session state; it does not store a second copy of an editor's d
 background derivation releases the interactive gate and runs against its pinned input revision;
 Rust revision validation remains the authority at commit. Image tool switching replaces the
 node bar with the active tool panel, while image generation popovers share one open state.
+Image comment placement uses one toolbar inside the image for point, drawing, region and exit;
+the selection action bar is hidden for that session without cancelling its draft.
 
 The same rule applies to every node kind: note/text/Markdown editing, image editing and comments,
 video editing, and structured knowledge editing are exclusive interactive work; details and

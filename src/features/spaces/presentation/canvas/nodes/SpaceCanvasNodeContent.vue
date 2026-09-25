@@ -8,6 +8,7 @@ import {
 import type { CanvasNodeLayoutV1 } from "../../../canvas/contract/canvas-document";
 import type { CanvasContentHeightMeasurement } from "../../../canvas/contract/canvas-editor-port";
 import { CANVAS_NODE_HEADER_HEIGHT, PREVIEW_CAPTION_HEIGHT } from "../../../canvas/node-size";
+import { useImageCommentSession } from "../../../comments/image-comment-session";
 import { useImageEditSession } from "../../../image-editing/image-edit-session";
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import { canvasTextPresentation } from "./canvas-text-appearance";
@@ -32,13 +33,14 @@ const props = defineProps<{
   fitContentHeight: (id: string, measurement: CanvasContentHeightMeasurement) => void;
 }>();
 const imageEditSession = useImageEditSession();
+const imageComments = useImageCommentSession();
 const contentInteractive = computed(() => {
   const active = imageEditSession.active;
   return (
     props.interactive ||
     (props.node.data.kind === "image" &&
-      active?.nodeId === props.node.id &&
-      (active.tool === "eraser" || active.tool === "crop"))
+      (imageComments.activeNodeId === props.node.id ||
+        (active?.nodeId === props.node.id && (active.tool === "eraser" || active.tool === "crop"))))
   );
 });
 const presentation = computed(() => spaceCanvasNodePresentation(props.node.data));

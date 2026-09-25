@@ -1,29 +1,20 @@
 <script setup lang="ts">
-import {
-  ArrowUpRight,
-  Code2,
-  ExternalLink,
-  FileText,
-  Focus,
-  Image as ImageIcon,
-  Info,
-  Pencil,
-  Play,
-  Scissors,
-  Volume2,
-} from "@lucide/vue";
+import { Focus, Info, Scissors } from "@lucide/vue";
 import { ToolbarButton, ToolbarRoot } from "reka-ui";
-import { computed, toRef, useTemplateRef, type Component } from "vue";
+import { computed, toRef, useTemplateRef } from "vue";
 import { useI18n } from "vue-i18n";
 
+import UiDropdownMenuItem from "../../../../shared/ui/UiDropdownMenuItem.vue";
 import UiSeparator from "../../../../shared/ui/UiSeparator.vue";
+import UiTooltip from "../../../../shared/ui/UiTooltip.vue";
 import type {
   CreationIntentDecisions,
   CreationIntentId,
 } from "../../knowledge-derivations/catalog/creation-intent-definitions";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
-import type { SpaceNodeKind } from "../../model/nodes/node-payload";
 import { CANVAS_ACTION_BAR_CLASSES, CANVAS_ACTION_BUTTON_CLASSES } from "./canvas-action-classes";
+import { canvasBarPlacement } from "./canvas-bar-density-policy";
+import { nodeOpenIcons, nodeOpenLabels } from "./canvas-node-open-actions";
 import { nodeActionLabelClass, nodeActionLabelState } from "./node-action-label";
 import SpaceCanvasSelectionMenu from "./SpaceCanvasSelectionMenu.vue";
 import SpaceCanvasTextFormatBar from "./SpaceCanvasTextFormatBar.vue";
@@ -44,53 +35,27 @@ const densityIdentity = computed(
   () =>
     `${locale.value}:${props.node?.data.kind}:${props.actions.state.value.canOpen}:${Boolean(props.actions.selectedVideoNode.value)}:${Boolean(props.actions.state.value.section)}`,
 );
-const { compact } = useNodeActionBarDensity(bar, toRef(props, "availableWidth"), densityIdentity);
-const openLabels = {
-  note: "common.edit",
-  text: "spaces.navigation.inspect",
-  markdown: "common.edit",
-  subtitle: "spaces.navigation.inspect",
-  website: "spaces.canvas.nodeActions.openOriginal",
-  portal: "spaces.canvas.nodeActions.goToTarget",
-  image: "spaces.canvas.nodeActions.viewLarge",
-  video: "spaces.canvas.nodeActions.openVideo",
-  audio: "spaces.canvas.nodeActions.openAudio",
-  file: "spaces.canvas.nodeActions.openFile",
-  code: "spaces.canvas.nodeActions.viewCode",
-  credential: "spaces.navigation.inspect",
-  object: "spaces.navigation.inspect",
-} satisfies Record<SpaceNodeKind, string>;
-const openIcons = {
-  note: Pencil,
-  text: Info,
-  markdown: Pencil,
-  subtitle: Info,
-  website: ExternalLink,
-  portal: ArrowUpRight,
-  image: ImageIcon,
-  video: Play,
-  audio: Volume2,
-  file: FileText,
-  code: Code2,
-  credential: Info,
-  object: Info,
-} satisfies Record<SpaceNodeKind, Component>;
+const { compact, minimal, ready } = useNodeActionBarDensity(
+  bar,
+  toRef(props, "availableWidth"),
+  densityIdentity,
+);
 const primaryLabel = computed(() => {
   if (props.actions.state.value.section && props.actions.state.value.content.length)
     return t("spaces.navigation.focusSelection");
   const kind = props.node?.data.kind;
-  return t(kind && props.actions.state.value.canOpen ? openLabels[kind] : "spaces.navigation.inspect");
+  return t(kind && props.actions.state.value.canOpen ? nodeOpenLabels[kind] : "spaces.navigation.inspect");
 });
 const primaryIcon = computed(() => {
   if (props.actions.state.value.section && props.actions.state.value.content.length) return Focus;
   const kind = props.node?.data.kind;
-  return kind && props.actions.state.value.canOpen ? openIcons[kind] : Info;
+  return kind && props.actions.state.value.canOpen ? nodeOpenIcons[kind] : Info;
 });
 const showPrimary = computed(() => {
   if (props.actions.state.value.section && props.actions.state.value.content.length) return true;
   const kind = props.node?.data.kind;
   return Boolean(
-    kind && props.actions.state.value.canOpen && openLabels[kind] !== "spaces.navigation.inspect",
+    kind && props.actions.state.value.canOpen && nodeOpenLabels[kind] !== "spaces.navigation.inspect",
   );
 });
 const textKind = computed(() => {
@@ -106,47 +71,69 @@ function runPrimaryAction() {
 </script>
 
 <template>
-  <div ref="bar" class="w-max" :style="{ maxWidth: `${availableWidth}px` }">
+  <div
+    ref="bar"
+    class="w-max"
+    :class="ready ? 'visible' : 'invisible'"
+    :style="{ maxWidth: `${availableWidth}px` }"
+  >
     <ToolbarRoot
       :class="CANVAS_ACTION_BAR_CLASSES"
       orientation="horizontal"
       :loop="false"
       :aria-label="t('spaces.canvas.nodeActions.label')"
     >
-      <ToolbarButton v-if="showPrimary" as-child>
-        <button
-          type="button"
-          :class="[CANVAS_ACTION_BUTTON_CLASSES, 'font-medium text-foreground']"
-          :aria-label="primaryLabel"
-          :title="compact ? primaryLabel : undefined"
-          @click="runPrimaryAction"
-        >
-          <component :is="primaryIcon" class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
-          <span :class="[nodeActionLabelClass, nodeActionLabelState(compact)]">{{ primaryLabel }}</span>
-        </button>
-      </ToolbarButton>
+      <UiTooltip
+        v-if="showPrimary && canvasBarPlacement('node-primary', minimal) === 'bar'"
+        :text="primaryLabel"
+        :disabled="!compact"
+        side="top"
+      >
+        <ToolbarButton as-child>
+          <button
+            type="button"
+            :class="[CANVAS_ACTION_BUTTON_CLASSES, 'font-medium text-foreground']"
+            :aria-label="primaryLabel"
+            @click="runPrimaryAction"
+          >
+            <component :is="primaryIcon" class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
+            <span :class="[nodeActionLabelClass, nodeActionLabelState(compact)]">{{ primaryLabel }}</span>
+          </button>
+        </ToolbarButton>
+      </UiTooltip>
       <SpaceCanvasTextFormatBar
         v-if="textKind"
         :kind="textKind"
+        :compact="compact"
         v-bind="actions.selectedAppearance.value ? { appearance: actions.selectedAppearance.value } : {}"
         @update="actions.setAppearance"
       />
-      <ToolbarButton v-if="actions.selectedVideoNode.value" as-child>
-        <button
-          type="button"
-          :class="CANVAS_ACTION_BUTTON_CLASSES"
-          :aria-label="t('spaces.media.editVideo')"
-          :title="compact ? t('spaces.media.editVideo') : undefined"
-          @click="actions.editVideo"
-        >
-          <Scissors class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
-          <span :class="[nodeActionLabelClass, nodeActionLabelState(compact)]">{{
-            t("spaces.media.editVideo")
-          }}</span>
-        </button>
-      </ToolbarButton>
+      <UiTooltip
+        v-if="actions.selectedVideoNode.value && canvasBarPlacement('video-edit', minimal) === 'bar'"
+        :text="t('spaces.media.editVideo')"
+        :disabled="!compact"
+        side="top"
+      >
+        <ToolbarButton as-child>
+          <button
+            type="button"
+            :class="CANVAS_ACTION_BUTTON_CLASSES"
+            :aria-label="t('spaces.media.editVideo')"
+            @click="actions.editVideo"
+          >
+            <Scissors class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
+            <span :class="[nodeActionLabelClass, nodeActionLabelState(compact)]">{{
+              t("spaces.media.editVideo")
+            }}</span>
+          </button>
+        </ToolbarButton>
+      </UiTooltip>
       <UiSeparator
-        v-if="showPrimary || textKind || actions.selectedVideoNode.value"
+        v-if="
+          (showPrimary && canvasBarPlacement('node-primary', minimal) === 'bar') ||
+          textKind ||
+          (actions.selectedVideoNode.value && canvasBarPlacement('video-edit', minimal) === 'bar')
+        "
         orientation="vertical"
         class="mx-0.5 h-4"
       />
@@ -154,8 +141,31 @@ function runPrimaryAction() {
         :actions="actions"
         :derivations="derivations"
         node-bar
+        :node-tools-visible="
+          canvasBarPlacement('node-primary', minimal) === 'menu' &&
+          ((showPrimary && !actions.state.value.section) || Boolean(actions.selectedVideoNode.value))
+        "
         @invoke-derivation="emit('invokeDerivation', $event)"
-      />
+      >
+        <template #node-tools>
+          <UiDropdownMenuItem
+            v-if="
+              showPrimary &&
+              !actions.state.value.section &&
+              canvasBarPlacement('node-primary', minimal) === 'menu'
+            "
+            @select="runPrimaryAction"
+          >
+            <component :is="primaryIcon" class="size-(--knovum-icon-size-sm)" />{{ primaryLabel }}
+          </UiDropdownMenuItem>
+          <UiDropdownMenuItem
+            v-if="actions.selectedVideoNode.value && canvasBarPlacement('video-edit', minimal) === 'menu'"
+            @select="actions.editVideo"
+          >
+            <Scissors class="size-(--knovum-icon-size-sm)" />{{ t("spaces.media.editVideo") }}
+          </UiDropdownMenuItem>
+        </template>
+      </SpaceCanvasSelectionMenu>
       <SpaceNodeBarCommonActions @inspect="actions.inspect" @download="actions.download" />
     </ToolbarRoot>
   </div>

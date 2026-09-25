@@ -5,6 +5,7 @@ import { computed } from "vue";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiPopover from "../../../../shared/ui/UiPopover.vue";
+import { nodeActionLabelClass, nodeActionLabelState } from "./node-action-label";
 
 interface CanvasColorOption {
   value: string;
@@ -17,6 +18,7 @@ const props = defineProps<{
   options: readonly CanvasColorOption[];
   selected: string;
   labeled?: boolean;
+  compact?: boolean;
   columns?: 6;
 }>();
 const emit = defineEmits<{ select: [value: string] }>();
@@ -24,14 +26,26 @@ const selectedColor = computed(() => props.options.find(({ value }) => value ===
 </script>
 
 <template>
-  <UiPopover side="top" align="center" :side-offset="5" class="p-0.5">
+  <UiPopover
+    side="top"
+    align="center"
+    :side-offset="5"
+    :trigger-tooltip="labeled && compact ? label : undefined"
+    class="p-0.5"
+  >
     <template #trigger>
-      <UiButton v-if="labeled" variant="ghost" size="sm" class="h-(--knovum-control-height-md) shadow-none">
+      <UiButton
+        v-if="labeled"
+        variant="ghost"
+        size="sm"
+        class="h-(--knovum-control-height-md) shadow-none"
+        :aria-label="label"
+      >
         <span
           class="size-(--knovum-icon-size-sm) rounded-full ring-1 ring-border"
           :style="{ backgroundColor: selectedColor }"
         />
-        {{ label }}
+        <span :class="[nodeActionLabelClass, nodeActionLabelState(Boolean(compact))]">{{ label }}</span>
       </UiButton>
       <UiIconButton v-else :label="label" size="sm">
         <span class="size-4 rounded-full ring-1 ring-border" :style="{ backgroundColor: selectedColor }" />

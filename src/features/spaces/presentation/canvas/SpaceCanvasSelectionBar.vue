@@ -12,6 +12,7 @@ import type {
   CreationIntentId,
 } from "../../knowledge-derivations/catalog/creation-intent-definitions";
 import SpaceSelectionMoveMenu from "../SpaceSelectionMoveMenu.vue";
+import { CANVAS_ACTION_BAR_CLASSES } from "./canvas-action-classes";
 import SpaceCanvasImageActionBar from "./SpaceCanvasImageActionBar.vue";
 import SpaceCanvasNodeActionBar from "./SpaceCanvasNodeActionBar.vue";
 import SpaceCanvasSelectionMenu from "./SpaceCanvasSelectionMenu.vue";
@@ -49,7 +50,7 @@ const singleSection = computed(
   />
   <ToolbarRoot
     v-else-if="actions.visible.value"
-    class="flex h-7 cursor-default items-center gap-0.5 rounded-control border border-border bg-overlay select-none"
+    :class="CANVAS_ACTION_BAR_CLASSES"
     orientation="horizontal"
     :loop="false"
     :aria-label="t('spaces.navigation.selection')"

@@ -79,7 +79,6 @@ export function useImageNodeBarState(
   });
 
   return {
-    comments,
     openPopover,
     activeTool,
     commenting,

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { MessageCircle, ScanLine } from "@lucide/vue";
+import { ScanLine } from "@lucide/vue";
 import { ToolbarButton, ToolbarRoot } from "reka-ui";
-import { computed, toRef, useTemplateRef } from "vue";
+import { computed, nextTick, shallowRef, toRef, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { canRunAction, showsAction } from "../../../../shared/contracts/action-availability";
@@ -13,9 +13,11 @@ import type {
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../../model/nodes/node-payload";
 import { CANVAS_ACTION_BAR_CLASSES, CANVAS_ACTION_BUTTON_CLASSES } from "./canvas-action-classes";
+import { canvasBarPlacement } from "./canvas-bar-density-policy";
 import { nodeActionLabelClass, nodeActionLabelState } from "./node-action-label";
 import SpaceCanvasImageActivePanel from "./SpaceCanvasImageActivePanel.vue";
-import SpaceCanvasImageToolTrigger from "./SpaceCanvasImageToolTrigger.vue";
+import SpaceCanvasImageEditActions from "./SpaceCanvasImageEditActions.vue";
+import SpaceCanvasImageOverflowActions from "./SpaceCanvasImageOverflowActions.vue";
 import SpaceCanvasSelectionMenu from "./SpaceCanvasSelectionMenu.vue";
 import SpaceImageGeneratePanels from "./SpaceImageGeneratePanels.vue";
 import SpaceImageLayerPanel from "./SpaceImageLayerPanel.vue";
@@ -33,7 +35,6 @@ const props = defineProps<{
 const emit = defineEmits<{ invokeDerivation: [actionId: CreationIntentId] }>();
 const { t, locale } = useI18n();
 const {
-  comments,
   openPopover,
   activeTool,
   commenting,
@@ -51,49 +52,48 @@ const bar = useTemplateRef<HTMLElement>("bar");
 const densityIdentity = computed(
   () => `${locale.value}:${props.node.id}:${activeTool.value ?? ""}:${commenting.value}`,
 );
-const { compact } = useNodeActionBarDensity(bar, toRef(props, "availableWidth"), densityIdentity);
+const { compact, minimal, ready } = useNodeActionBarDensity(
+  bar,
+  toRef(props, "availableWidth"),
+  densityIdentity,
+);
+const restoreFocus = shallowRef(false);
+watch(activeTool, (tool, previous) => {
+  if (!tool && previous) restoreFocus.value = true;
+});
+watch(commenting, (active, previous) => {
+  if (!active && previous) restoreFocus.value = true;
+});
+watch(ready, async (isReady) => {
+  if (!isReady || !restoreFocus.value) return;
+  await nextTick();
+  bar.value?.querySelector<HTMLElement>("button")?.focus({ preventScroll: true });
+  restoreFocus.value = false;
+});
 </script>
 
 <template>
   <SpaceCanvasImageActivePanel v-if="activeTool" :node="node" />
-  <ToolbarRoot
-    v-else-if="commenting"
-    :class="CANVAS_ACTION_BAR_CLASSES"
-    :aria-label="t('spaces.media.comment')"
+  <div
+    v-if="!activeTool && !commenting"
+    ref="bar"
+    class="w-max"
+    :class="ready ? 'visible' : 'invisible'"
+    :style="{ maxWidth: `${availableWidth}px` }"
   >
-    <ToolbarButton as-child>
-      <button
-        type="button"
-        :class="CANVAS_ACTION_BUTTON_CLASSES"
-        aria-pressed="true"
-        @click="comments.cancel()"
-      >
-        <MessageCircle class="size-(--knovum-icon-size-toolbar)" :stroke-width="1.6" />
-        {{ t("spaces.media.comment") }}
-      </button>
-    </ToolbarButton>
-  </ToolbarRoot>
-  <div v-else ref="bar" class="w-max" :style="{ maxWidth: `${availableWidth}px` }">
     <ToolbarRoot
       :class="CANVAS_ACTION_BAR_CLASSES"
       orientation="horizontal"
       :loop="false"
       :aria-label="t('spaces.canvas.nodeActions.label')"
     >
-      <ToolbarButton as-child>
-        <button
-          type="button"
-          :class="CANVAS_ACTION_BUTTON_CLASSES"
-          :aria-label="t('spaces.media.comment')"
-          :title="compact ? t('spaces.media.comment') : undefined"
-          @click="beginComment"
-        >
-          <MessageCircle class="size-(--knovum-icon-size-toolbar)" :stroke-width="1.6" />
-          <span :class="[nodeActionLabelClass, nodeActionLabelState(compact)]">{{
-            t("spaces.media.comment")
-          }}</span>
-        </button>
-      </ToolbarButton>
+      <SpaceCanvasImageEditActions
+        v-if="canvasBarPlacement('image-edit', minimal) === 'bar'"
+        :compact="compact"
+        :dimensions-ready="dimensionsReady"
+        @begin-tool="beginTool"
+        @begin-comment="beginComment"
+      />
       <SpaceImageGeneratePanels
         :node="node"
         mode="upscale"
@@ -102,9 +102,11 @@ const { compact } = useNodeActionBarDensity(bar, toRef(props, "availableWidth"),
         @update:open="setPopover('upscale', $event)"
       />
       <UiTooltip
-        v-if="showsAction(directAvailability)"
-        :text="directReason"
-        :disabled="canRunAction(directAvailability)"
+        v-if="
+          canvasBarPlacement('image-remove-background', minimal) === 'bar' && showsAction(directAvailability)
+        "
+        :text="canRunAction(directAvailability) ? t('spaces.creation.removeBackground') : directReason"
+        :disabled="canRunAction(directAvailability) && !compact"
         side="top"
       >
         <ToolbarButton as-child>
@@ -113,7 +115,6 @@ const { compact } = useNodeActionBarDensity(bar, toRef(props, "availableWidth"),
             :class="CANVAS_ACTION_BUTTON_CLASSES"
             :aria-disabled="!canRunAction(directAvailability)"
             :aria-label="t('spaces.creation.removeBackground')"
-            :title="compact ? t('spaces.creation.removeBackground') : undefined"
             @click="removeBackground"
           >
             <ScanLine class="size-(--knovum-icon-size-toolbar)" :stroke-width="1.6" />
@@ -123,7 +124,6 @@ const { compact } = useNodeActionBarDensity(bar, toRef(props, "availableWidth"),
           </button>
         </ToolbarButton>
       </UiTooltip>
-      <SpaceCanvasImageToolTrigger mode="eraser" :compact="compact" @begin="beginTool" />
       <SpaceImageLayerPanel
         :node="node"
         :compact="compact"
@@ -141,18 +141,17 @@ const { compact } = useNodeActionBarDensity(bar, toRef(props, "availableWidth"),
         :actions="actions"
         :derivations="derivations"
         node-bar
-        exclude-direct-image-actions
+        :node-tools-visible="canvasBarPlacement('image-edit', minimal) === 'menu'"
+        :exclude-direct-image-actions="canvasBarPlacement('image-remove-background', minimal) === 'bar'"
         @invoke-derivation="emit('invokeDerivation', $event)"
       >
         <template #node-tools>
-          <SpaceCanvasImageToolTrigger mode="adjust" menu-item @begin="beginTool" />
-          <SpaceCanvasImageToolTrigger
-            mode="crop"
-            menu-item
-            :disabled="!dimensionsReady"
-            @begin="beginTool"
+          <SpaceCanvasImageOverflowActions
+            v-if="canvasBarPlacement('image-edit', minimal) === 'menu'"
+            :dimensions-ready="dimensionsReady"
+            @begin-tool="beginTool"
+            @begin-comment="beginComment"
           />
-          <SpaceCanvasImageToolTrigger mode="transform" menu-item @begin="beginTool" />
         </template>
       </SpaceCanvasSelectionMenu>
       <SpaceNodeBarCommonActions @inspect="actions.inspect" @download="actions.download" />

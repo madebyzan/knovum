@@ -4,8 +4,6 @@ import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
-import { canvasChromeMetrics } from "../../canvas/canvas-chrome-metrics";
-import { isCanvasNodeConnectable } from "../../canvas/canvas-node-interaction";
 import { useCanvasToolStore } from "../../canvas/canvas-tool-store";
 import { useCanvasEditorSession, useCanvasSelectionProjection } from "../../canvas/editor-session";
 import { useNodeOperationGate } from "../../canvas/node-operation-gate";
@@ -16,6 +14,7 @@ import type { SpaceUrlCaptureProjection } from "../../sources/url-capture-projec
 import SpaceDerivationDialogs from "../derivations/SpaceDerivationDialogs.vue";
 import SpaceFind from "../SpaceFind.vue";
 import SpaceGlobalFind from "../SpaceGlobalFind.vue";
+import { canvasSelectionGap } from "./canvas-selection-gap";
 import SpaceCanvasFeedback from "./SpaceCanvasFeedback.vue";
 import SpaceCanvasFocusBadge from "./SpaceCanvasFocusBadge.vue";
 import SpaceCanvasRelationBar from "./SpaceCanvasRelationBar.vue";
@@ -25,6 +24,7 @@ import SpaceCanvasSelectionBar from "./SpaceCanvasSelectionBar.vue";
 import SpaceCanvasToolbar from "./SpaceCanvasToolbar.vue";
 import SpaceCanvasViewControls from "./SpaceCanvasViewControls.vue";
 import SpaceCanvasWorkflowPanel from "./SpaceCanvasWorkflowPanel.vue";
+import { useCanvasChromeRects } from "./use-canvas-chrome-rects";
 
 defineProps<{
   canvasToViewportPoint(point: { x: number; y: number }): { x: number; y: number };
@@ -35,7 +35,6 @@ defineProps<{
   fileHoverPosition?: { x: number; y: number };
   spaceId: string;
 }>();
-
 const store = useSpaceStore();
 const tools = useCanvasToolStore();
 const { t } = useI18n();
@@ -61,34 +60,38 @@ const emit = defineEmits<{
   dismissCapture: [id: string];
   retryCapture: [capture: SpaceUrlCaptureProjection];
 }>();
-const canvasChromeInsets = { top: 56, right: 16, bottom: 56, left: 16 } as const;
+const canvasChromeInsets = { top: 8, right: 16, bottom: 8, left: 16 } as const;
+const { chromeRects } = useCanvasChromeRects();
+const selectionKey = computed(() => {
+  const { nodeIds, structureNodeIds, relationIds } = editorSession.selection.value;
+  return [...nodeIds, ...structureNodeIds, ...relationIds].join("|");
+});
 const singleCanvasObjectSelected = computed(
   () =>
     editorSession.selection.value.nodeIds.length + editorSession.selection.value.structureNodeIds.length ===
     1,
 );
-// Chrome metrics at zoom 1 are screen pixels; the connector controls keep this size at every zoom.
-const connectorMetrics = canvasChromeMetrics(1).connector;
-const connectorClearance = Math.ceil(
-  connectorMetrics.offset + connectorMetrics.radius + connectorMetrics.hitExtension / 2 + 4,
-);
 const selectionBarGap = computed(() => {
   const node = selectedNodes.value.length === 1 ? selectedNodes.value[0] : undefined;
-  return node && isCanvasNodeConnectable(node) ? connectorClearance : 12;
+  return canvasSelectionGap(node);
 });
 </script>
 
 <template>
-  <div class="pointer-events-none absolute inset-0 z-30 overflow-hidden">
-    <SpaceCanvasToolbar class="pointer-events-auto absolute top-4 left-1/2 -translate-x-1/2" />
-    <SpaceCanvasFocusBadge
+  <div ref="chromeRoot" class="pointer-events-none absolute inset-0 z-30 overflow-hidden">
+    <div ref="topChrome" class="pointer-events-auto absolute top-4 left-1/2 -translate-x-1/2">
+      <SpaceCanvasToolbar />
+    </div>
+    <div
       v-if="store.canvasFocusIds.length"
+      ref="focusChrome"
       class="pointer-events-auto absolute top-14 left-4"
-      :count="store.canvasFocusIds.length"
-      @exit="store.clearCanvasFocus"
-    />
+    >
+      <SpaceCanvasFocusBadge :count="store.canvasFocusIds.length" @exit="store.clearCanvasFocus" />
+    </div>
     <div
       v-if="!empty"
+      ref="viewChrome"
       class="pointer-events-auto absolute bottom-1 left-1 flex h-6 items-center overflow-hidden rounded-control border border-border-strong bg-canvas"
     >
       <SpaceCanvasViewControls />
@@ -119,8 +122,11 @@ const selectionBarGap = computed(() => {
     <SpaceCanvasSelectionAnchor
       v-if="tools.tool === 'select' && showSelectionActions"
       :bounds="editorSession.selection.value.bounds"
+      :members="editorSession.selection.value.members"
       :canvas-to-viewport-point="canvasToViewportPoint"
       :safe-area="canvasChromeInsets"
+      :reserved="chromeRects"
+      :selection-key="selectionKey"
       :kind="selectionSurfaceKind"
       :gap="imageEdit.active ? 12 : singleCanvasObjectSelected ? selectionBarGap : 34"
       v-slot="{ availableWidth }"
@@ -140,6 +146,7 @@ const selectionBarGap = computed(() => {
       v-if="store.inspectorMode === 'workflow' || store.inspectorMode === 'workflow-use'"
       :canvas-to-viewport-point="canvasToViewportPoint"
       :safe-area="canvasChromeInsets"
+      :reserved="chromeRects"
     />
     <SpaceCanvasFeedback
       :canvas-to-viewport-point="canvasToViewportPoint"

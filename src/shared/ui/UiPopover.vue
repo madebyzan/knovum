@@ -4,6 +4,7 @@ import type { HTMLAttributes } from "vue";
 
 import { cn } from "./cn";
 import { POPUP_ANIMATE_CLASSES, POPOVER_SURFACE_CLASSES } from "./ui-classes";
+import UiTooltip from "./UiTooltip.vue";
 
 const open = defineModel<boolean>("open", { default: false });
 
@@ -15,6 +16,7 @@ const props = withDefaults(
     alignOffset?: number | undefined;
     collisionPadding?: number | undefined;
     persistent?: boolean | undefined;
+    triggerTooltip?: string | undefined;
     class?: HTMLAttributes["class"];
   }>(),
   {
@@ -33,7 +35,10 @@ function handleOutsideInteraction(event: Event) {
 
 <template>
   <PopoverRoot v-model:open="open">
-    <PopoverTrigger v-if="$slots.trigger" as-child>
+    <UiTooltip v-if="$slots.trigger && triggerTooltip" :text="triggerTooltip" side="top">
+      <PopoverTrigger as-child><slot name="trigger" /></PopoverTrigger>
+    </UiTooltip>
+    <PopoverTrigger v-else-if="$slots.trigger" as-child>
       <slot name="trigger" />
     </PopoverTrigger>
     <PopoverPortal>

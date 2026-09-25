@@ -43,9 +43,15 @@ export function createCanvasEditorSelection(options: KonvaEditorPortOptions) {
 
   function snapshot() {
     const selectionBounds = bounds();
+    const content = contentSnapshot();
+    const structureMembers = roots().flatMap(({ id }) => {
+      const frame = options.structureBounds().get(id);
+      return frame ? [frame] : [];
+    });
     return {
-      ...contentSnapshot(),
+      ...content,
       structureNodeIds: [...options.selectedStructureNodeIds()],
+      members: structureMembers.length ? structureMembers : content.members,
       ...(selectionBounds ? { bounds: selectionBounds } : {}),
     };
   }
