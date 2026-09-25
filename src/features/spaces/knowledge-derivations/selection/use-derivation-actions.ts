@@ -4,7 +4,7 @@ import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { useSpaceStore } from "../../session/space-store";
 import type { CreationIntentId } from "../catalog/creation-intent-catalog";
 import type { GroundedDocumentSource } from "../catalog/grounded-document";
-import { exportMarkdownDocument, isKnowledgeMarkdown } from "../document/export";
+import { exportMarkdownDocument, isKnowledgeMarkdown, type DocumentFormat } from "../document/export";
 import { createGroundedDocument, type GroundedDocumentDraft } from "../grounded-document";
 import { createImageCutout } from "../image-cutout";
 import { createSubtitleResource } from "../subtitle-extraction";
@@ -62,12 +62,13 @@ export function useDerivationActions({
     "generate-visualization": () => (dialog.value = "visualization"),
     "export-document-as-docx": () => void exportDocument("docx"),
     "export-document-as-pdf": () => void exportDocument("pdf"),
+    "export-document-as-txt": () => void exportDocument("txt"),
     "presentation-production": () => (dialog.value = "presentation"),
     "video-production": () => (dialog.value = "video"),
     "social-content-package": () => (dialog.value = "social-content-package"),
   };
 
-  function exportDocument(format: "docx" | "pdf") {
+  function exportDocument(format: DocumentFormat) {
     if (!single.value || !isKnowledgeMarkdown(single.value)) return;
     return exportMarkdownDocument({
       store,

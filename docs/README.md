@@ -21,6 +21,7 @@ Use one authoritative document per concern.
 - `data-ownership.md` — Store/SQLite/session/secret ownership.
 - `spaces.md` — Space/Space product model, capture behavior and persistence boundary.
 - `knowledge.md` — current Spaces Knowledge, SQLx migrations, revision/citation/package contracts.
+- `document-export.md` — Markdown export subset, backend behavior, limitations and verification.
 - `secrets.md` — OS credential-store rules.
 - `platform-matrix.md` — macOS/Windows behavior matrix.
 
