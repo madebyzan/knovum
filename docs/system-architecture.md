@@ -170,6 +170,10 @@ capabilities and turn state remain execution records. Model and Agent turns shar
 while each Agent turn starts a fresh native session with explicit context. Historical grounded
 answers and citation snapshots are migrated once into the same conversation store. Space packages
 export this history once and reject older package formats.
+An Agent turn commits the user's message and its reply slot before the start command is accepted;
+the renderer shows a temporary outbound message while the native session initializes, then replaces
+it with the committed history. Conversation reads, context, branches and exports use insertion order
+to resolve messages sharing a millisecond timestamp, so a reply cannot precede its question.
 Conversation attachments have two explicit sources. Canvas references carry a node ID and stable
 revision; Rust resolves them inside the active Space. Local files come from the native file dialog
 and carry a scoped path plus content digest in the in-memory draft. Rust checks the dialog scope,

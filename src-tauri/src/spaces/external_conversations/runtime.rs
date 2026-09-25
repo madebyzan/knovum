@@ -102,22 +102,29 @@ pub async fn start(
     }
 }
 
-pub async fn send_prepared(
+pub async fn begin_turn(
     app: AppHandle,
     conversation_id: &str,
     prompt: &str,
-    prepared: crate::external_agents::prompt::AgentPrompt,
     attachments: &[crate::spaces::assistant::AssistantMessageAttachment],
+) -> Result<String, String> {
+    repository::start_turn(db::pool(&app).await?, conversation_id, prompt, attachments).await
+}
+
+pub async fn send_prepared(
+    app: AppHandle,
+    conversation_id: &str,
+    turn_id: &str,
+    prepared: crate::external_agents::prompt::AgentPrompt,
 ) -> Result<(), String> {
     let pool = db::pool(&app).await?;
-    let turn_id = repository::start_turn(pool, conversation_id, prompt, attachments).await?;
     let outcome = crate::external_agents::conversation::send(conversation_id, prepared).await;
     if let Err(error) = super::updates::flush(conversation_id).await {
-        repository::finish_turn(pool, &turn_id, "failed", Some(&error)).await?;
+        repository::finish_turn(pool, turn_id, "failed", Some(&error)).await?;
         return Err(error);
     }
     match outcome {
-        Ok(()) => repository::finish_turn(pool, &turn_id, "completed", None).await,
+        Ok(()) => repository::finish_turn(pool, turn_id, "completed", None).await,
         Err(error) => {
             let message = error.to_string();
             let state = if error.code == crate::ai::error::AiErrorCode::Cancelled {
@@ -125,7 +132,7 @@ pub async fn send_prepared(
             } else {
                 "failed"
             };
-            repository::finish_turn(pool, &turn_id, state, Some(&message)).await?;
+            repository::finish_turn(pool, turn_id, state, Some(&message)).await?;
             if !crate::external_agents::conversation::is_active(conversation_id) {
                 let run_id: String = sqlx::query_scalar(
                     "SELECT run_id FROM spaces_external_agent_conversations WHERE id=$1",

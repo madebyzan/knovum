@@ -4,6 +4,7 @@ import type { AssistantTaskUpdate } from "../contracts/generated/AssistantTaskUp
 import type { WaitReason } from "../contracts/generated/WaitReason";
 import {
   cancelAssistantTask,
+  type AssistantMessage,
   type ConversationSummary,
   type StartAssistantTaskInput,
 } from "./conversation-ipc";
@@ -22,6 +23,7 @@ export function useConversationTask(input: {
   prompt: Ref<string>;
   target: Ref<ConversationTarget | undefined>;
   attachments: Ref<Attachment[]>;
+  messages: ShallowRef<AssistantMessage[]>;
   refresh: () => Promise<void>;
   select: (id: string, skipRemember?: boolean, branchId?: string) => Promise<void>;
   moveDraft: (fromId: string, toId: string) => void;

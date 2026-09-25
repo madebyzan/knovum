@@ -5,6 +5,7 @@ import type { WaitReason } from "../contracts/generated/WaitReason";
 import {
   getAssistantTaskError,
   startAssistantTask,
+  type AssistantMessage,
   type ConversationSummary,
   type StartAssistantTaskInput,
 } from "./conversation-ipc";
@@ -37,6 +38,7 @@ export function createConversationTaskSubmission(options: {
     prompt: Ref<string>;
     target: Ref<ConversationTarget | undefined>;
     attachments: Ref<Attachment[]>;
+    messages: ShallowRef<AssistantMessage[]>;
     clearDraft: (request: StartAssistantTaskInput) => void;
   };
   state: ConversationSubmissionState;
@@ -80,9 +82,9 @@ export function createConversationTaskSubmission(options: {
     const outcome = await task.settled;
     if (submitted !== generation) return;
     state.taskState.value = outcome;
-    state.streamedText.value = "";
     state.permission.value = undefined;
     await options.settled(task.accepted, selection.spaceId);
+    state.streamedText.value = "";
     state.error.value = undefined;
     if (outcome === "succeeded" || outcome === "paused" || outcome === "cancelled") return;
     const reason = await getAssistantTaskError(task.accepted.runId);
@@ -116,6 +118,18 @@ export function createConversationTaskSubmission(options: {
     if (!request) return;
     const submitted = ++generation;
     const selection = { spaceId: request.spaceId, conversationId: input.selectedConversationId.value };
+    const pendingId = `pending:${crypto.randomUUID()}`;
+    input.messages.value = [
+      ...input.messages.value,
+      {
+        id: pendingId,
+        conversationId: selection.conversationId,
+        branchId: input.conversation.value?.branchId ?? "",
+        role: "user",
+        content: { parts: [{ type: "text", text: request.prompt }], citations: [] },
+        createdAt: Date.now(),
+      },
+    ];
     state.activeSpaceId.value = selection.spaceId;
     state.activeConversationId.value = selection.conversationId;
     state.loading.value = true;
@@ -138,6 +152,8 @@ export function createConversationTaskSubmission(options: {
     } catch (reason) {
       if (submitted === generation) state.error.value = String(reason);
     } finally {
+      if (input.messages.value.some(({ id }) => id === pendingId))
+        input.messages.value = input.messages.value.filter(({ id }) => id !== pendingId);
       await finish(submitted);
     }
   }

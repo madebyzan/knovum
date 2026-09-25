@@ -47,6 +47,7 @@ function submit(event?: KeyboardEvent) {
   <footer class="min-w-0 shrink-0 border-t border-divider bg-panel p-3">
     <div class="min-w-0 rounded-panel border border-border bg-raised focus-within:border-focus-ring">
       <UiTextarea
+        v-if="!busy"
         ref="input"
         v-model="prompt"
         :rows="3"
@@ -56,6 +57,9 @@ function submit(event?: KeyboardEvent) {
         @keydown.meta.enter="submit"
         @keydown.ctrl.enter="submit"
       />
+      <div v-else class="min-h-24 px-3 py-3 text-body text-foreground-tertiary">
+        {{ $t("spaces.assistant.builtInPlaceholder") }}
+      </div>
       <div v-if="attachments.length" class="flex min-w-0 flex-wrap gap-1.5 px-3 pb-2">
         <SpaceConversationAttachment
           v-for="attachment in attachments"

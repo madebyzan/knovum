@@ -14,7 +14,7 @@ import { captureActionLabels } from "../workflows/workflow-capture-labels";
 import SpaceConversationMessageAttachments from "./SpaceConversationMessageAttachments.vue";
 import SpaceConversationSearchResults from "./SpaceConversationSearchResults.vue";
 
-const props = defineProps<{ message: AssistantMessage }>();
+const props = defineProps<{ message: AssistantMessage; streamedText?: string }>();
 const emit = defineEmits<{ branch: []; regenerate: [] }>();
 const { t } = useI18n();
 const store = useSpaceStore();
@@ -72,7 +72,7 @@ function createdNodeId(result: unknown): string | undefined {
       :class="message.role === 'user' ? 'w-fit rounded-panel bg-control px-3 py-2.5' : 'w-full'"
     >
       <template v-for="(part, index) in message.content.parts" :key="index">
-        <UiMarkdown v-if="part.type === 'text'" :content="part.text" class="wrap-break-word" />
+        <UiMarkdown v-if="part.type === 'text' && !streamedText" :content="part.text" class="wrap-break-word" />
         <p v-else-if="part.type === 'binary'" class="text-caption text-foreground-secondary">
           {{ part.name || part.mediaType }}
         </p>
@@ -98,6 +98,7 @@ function createdNodeId(result: unknown): string | undefined {
           </button>
         </div>
       </template>
+      <p v-if="streamedText" class="wrap-break-word whitespace-pre-wrap">{{ streamedText }}</p>
     </div>
     <SpaceConversationMessageAttachments
       v-if="message.role === 'user' && message.content.attachments?.length"

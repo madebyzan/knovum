@@ -69,6 +69,7 @@ async function useSuggestion(value: string) {
         :saved-scroll-top="scrollPositions[selectedConversationId] ?? 0"
         :messages="messages"
         :busy="loading"
+        :preparing="loading && !activeRunId"
         :error="visibleError"
         :streamed-text="visibleStreamedText"
         :has-older="hasOlder"

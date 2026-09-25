@@ -14,7 +14,7 @@ pub async fn build(
 ) -> Result<Option<String>, String> {
     let rows = sqlx::query(
         "SELECT id,role,content FROM spaces_assistant_messages
-         WHERE conversation_id=$1 AND branch_id=$2 ORDER BY created_at DESC,id DESC LIMIT 200",
+         WHERE conversation_id=$1 AND branch_id=$2 ORDER BY created_at DESC,rowid DESC LIMIT 200",
     )
     .bind(conversation_id)
     .bind(branch_id)

@@ -18,7 +18,7 @@ pub(super) async fn rows(
     let messages = sqlx::query(
         "SELECT m.id,m.conversation_id,m.branch_id,m.parent_message_id,m.role,m.content,m.created_at
          FROM spaces_assistant_messages m JOIN spaces_assistant_conversations c ON c.id=m.conversation_id
-         WHERE c.space_id=$1 ORDER BY m.created_at,m.id",
+         WHERE c.space_id=$1 ORDER BY m.created_at,m.rowid",
     ).bind(space_id).fetch_all(&mut **tx).await.map_err(db::sql_error)?;
     Ok((
         conversations

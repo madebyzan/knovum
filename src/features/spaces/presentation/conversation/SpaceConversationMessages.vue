@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { AlertCircle, ArrowUpRight, Sparkles } from "@lucide/vue";
-import type { ComponentPublicInstance } from "vue";
+import { computed, type ComponentPublicInstance } from "vue";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import type { ApprovalSummary } from "../../contracts/generated/ActionApproval";
@@ -13,6 +13,7 @@ import SpaceConversationPendingActions from "./SpaceConversationPendingActions.v
 const props = defineProps<{
   messages: readonly AssistantMessage[];
   busy: boolean;
+  preparing: boolean;
   error?: string | undefined;
   streamedText: string;
   hasOlder: boolean;
@@ -38,6 +39,10 @@ const { scroller, atTail, rows, totalSize, measureElement, updateScrollPosition,
     loadOlder: () => emit("loadOlder"),
     remember: (key, top) => emit("scrollPosition", key, top),
   });
+const streamingMessageId = computed(() => {
+  const last = props.messages.at(-1);
+  return last?.role === "assistant" ? last.id : undefined;
+});
 
 function bindScroller(element: Element | ComponentPublicInstance | null) {
   scroller.value = element instanceof HTMLDivElement ? element : null;
@@ -97,13 +102,20 @@ const starters = ["summarize", "plan"] as const;
         >
           <SpaceConversationMessage
             :message="messages[row.index]!"
+            :streamed-text="messages[row.index]!.id === streamingMessageId ? streamedText : ''"
             @branch="emit('branch', messages[row.index]!)"
             @regenerate="emit('regenerate', messages[row.index]!)"
           />
         </article>
       </div>
-      <article v-if="streamedText" class="pb-5 text-body leading-relaxed whitespace-pre-wrap text-foreground">
-        {{ streamedText }}
+      <article
+        v-if="streamedText && !streamingMessageId"
+        class="pb-5 text-body leading-relaxed text-foreground"
+      >
+        <span class="mb-2 block text-caption font-semibold text-foreground-secondary">
+          {{ $t("spaces.assistant.role.assistant") }}
+        </span>
+        <p class="whitespace-pre-wrap">{{ streamedText }}</p>
       </article>
       <SpaceConversationPendingActions
         :permission="permission"
@@ -119,7 +131,7 @@ const starters = ["summarize", "plan"] as const;
         class="flex items-center gap-2 py-3 text-caption text-foreground-secondary"
       >
         <span class="size-1.5 shrink-0 rounded-full bg-accent" />
-        {{ $t("spaces.assistant.agentWorking") }}
+        {{ $t(preparing ? "spaces.assistant.preparingConversation" : "spaces.assistant.agentWorking") }}
       </p>
       <div
         v-if="error"
