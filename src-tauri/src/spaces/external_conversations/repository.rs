@@ -32,17 +32,6 @@ pub async fn start_turn(
         .map_err(db::sql_error)?;
     let branch_id: String = binding.try_get("branch_id").map_err(db::sql_error)?;
     let assistant_message_id = uuid::Uuid::new_v4().to_string();
-    sqlx::query(
-        "INSERT INTO spaces_external_agent_turns(id,conversation_id,assistant_message_id,state,created_at)
-         VALUES($1,$2,$3,'running',$4)",
-    )
-    .bind(&id)
-    .bind(conversation_id)
-    .bind(&assistant_message_id)
-    .bind(now)
-    .execute(&mut *tx)
-    .await
-    .map_err(db::sql_error)?;
     append_message(
         &mut tx,
         &assistant_id,
@@ -61,6 +50,17 @@ pub async fn start_turn(
     .bind(&assistant_id)
     .bind(&branch_id)
     .bind(serde_json::json!({"parts":[{"type":"text","text":""}]}).to_string())
+    .bind(now)
+    .execute(&mut *tx)
+    .await
+    .map_err(db::sql_error)?;
+    sqlx::query(
+        "INSERT INTO spaces_external_agent_turns(id,conversation_id,assistant_message_id,state,created_at)
+         VALUES($1,$2,$3,'running',$4)",
+    )
+    .bind(&id)
+    .bind(conversation_id)
+    .bind(&assistant_message_id)
     .bind(now)
     .execute(&mut *tx)
     .await

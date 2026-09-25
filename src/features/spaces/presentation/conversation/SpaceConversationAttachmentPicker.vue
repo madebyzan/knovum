@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowLeft, Check, FileUp, Link2, Plus } from "@lucide/vue";
+import { ArrowLeft, ArrowRight, Check, FileUp, Link2, Plus } from "@lucide/vue";
 import { computed, shallowRef, watch } from "vue";
 
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
@@ -9,6 +9,7 @@ import UiSearchInput from "../../../../shared/ui/UiSearchInput.vue";
 interface Candidate {
   nodeId: string;
   title: string;
+  previewSource: string;
   selected: boolean;
   attached: boolean;
 }
@@ -55,37 +56,42 @@ function chooseFiles() {
 </script>
 
 <template>
-  <UiPopover v-model:open="open" side="top" align="start" class="w-72 max-w-[calc(100vw-24px)] p-1.5">
+  <UiPopover v-model:open="open" side="top" align="start" class="w-80 max-w-[calc(100vw-24px)] p-2">
     <template #trigger>
       <UiIconButton :label="$t('spaces.assistant.addResource')" size="sm">
         <Plus class="size-(--knovum-icon-size-sm)" />
       </UiIconButton>
     </template>
     <template v-if="view === 'sources'">
-      <p class="px-2 py-1 text-micro font-medium text-foreground-tertiary">
+      <p class="px-2 py-1.5 text-micro font-medium text-foreground-tertiary">
         {{ $t("spaces.assistant.attachmentSource") }}
       </p>
       <button
         type="button"
-        class="flex w-full items-center gap-2 rounded-control px-2 py-2 text-left text-caption hover:bg-control-hover focus-visible:outline-2 focus-visible:outline-focus-ring"
+        class="flex w-full items-center gap-3 rounded-control px-2 py-2.5 text-left hover:bg-control-hover focus-visible:outline-2 focus-visible:outline-focus-ring"
         @click="view = 'nodes'"
       >
-        <Link2 class="size-(--knovum-icon-size-sm) shrink-0 text-accent" />
-        <span class="min-w-0">
+        <span class="flex size-9 shrink-0 items-center justify-center rounded-control bg-accent-subtle text-accent">
+          <Link2 class="size-(--knovum-icon-size-sm)" />
+        </span>
+        <span class="min-w-0 flex-1">
           <span class="block text-caption font-medium">{{ $t("spaces.assistant.citeCanvasNode") }}</span>
           <span class="block text-micro text-foreground-tertiary">{{
             $t("spaces.assistant.citeCanvasNodeHint")
           }}</span>
         </span>
+        <ArrowRight class="size-(--knovum-icon-size-xs) shrink-0 text-foreground-tertiary" />
       </button>
       <button
         type="button"
-        class="flex w-full items-center gap-2 rounded-control px-2 py-2 text-left text-caption hover:bg-control-hover focus-visible:outline-2 focus-visible:outline-focus-ring disabled:opacity-50"
+        class="flex w-full items-center gap-3 rounded-control px-2 py-2.5 text-left hover:bg-control-hover focus-visible:outline-2 focus-visible:outline-focus-ring disabled:opacity-50"
         :disabled="pickingFiles"
         @click="chooseFiles"
       >
-        <FileUp class="size-(--knovum-icon-size-sm) shrink-0 text-accent" />
-        <span class="min-w-0">
+        <span class="flex size-9 shrink-0 items-center justify-center rounded-control bg-control text-foreground-secondary">
+          <FileUp class="size-(--knovum-icon-size-sm)" />
+        </span>
+        <span class="min-w-0 flex-1">
           <span class="block text-caption font-medium">{{ $t("spaces.assistant.uploadLocalFile") }}</span>
           <span class="block text-micro text-foreground-tertiary">{{
             $t("spaces.assistant.uploadLocalFileHint")
@@ -127,7 +133,15 @@ function chooseFiles() {
           :disabled="candidate.attached"
           @click="addOne(candidate.nodeId)"
         >
-          <Link2 class="size-(--knovum-icon-size-xs) shrink-0 text-foreground-tertiary" />
+          <img
+            v-if="candidate.previewSource"
+            :src="candidate.previewSource"
+            alt=""
+            class="size-8 shrink-0 rounded-control object-cover"
+          />
+          <span v-else class="flex size-8 shrink-0 items-center justify-center rounded-control bg-accent-subtle text-accent">
+            <Link2 class="size-(--knovum-icon-size-xs)" />
+          </span>
           <span class="min-w-0 flex-1 truncate">{{ candidate.title }}</span>
           <Check v-if="candidate.attached" class="size-(--knovum-icon-size-xs) shrink-0" />
         </button>

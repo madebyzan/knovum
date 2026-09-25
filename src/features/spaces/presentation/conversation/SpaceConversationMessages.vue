@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { AlertCircle, Sparkles } from "@lucide/vue";
+import { AlertCircle, ArrowUpRight, Sparkles } from "@lucide/vue";
 import type { ComponentPublicInstance } from "vue";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
@@ -31,6 +31,7 @@ const emit = defineEmits<{
   decidePermission: [optionId: string | null];
   decideApproval: [approvalId: string, approved: boolean];
   scrollPosition: [key: string, top: number];
+  suggest: [prompt: string];
 }>();
 const { scroller, atTail, rows, totalSize, measureElement, updateScrollPosition, scrollToTail, loadOlder } =
   useConversationScroll(props, {
@@ -41,6 +42,7 @@ const { scroller, atTail, rows, totalSize, measureElement, updateScrollPosition,
 function bindScroller(element: Element | ComponentPublicInstance | null) {
   scroller.value = element instanceof HTMLDivElement ? element : null;
 }
+const starters = ["summarize", "plan"] as const;
 </script>
 
 <template>
@@ -57,15 +59,29 @@ function bindScroller(element: Element | ComponentPublicInstance | null) {
     >
       <div
         v-if="messages.length === 0 && !busy && !error && !permission && !approvals.length"
-        class="flex min-h-full flex-col justify-center px-2 pb-16"
+        class="flex min-h-full flex-col justify-center px-1 pb-10"
       >
-        <div class="max-w-72">
-          <Sparkles class="mb-4 size-(--knovum-icon-size-md) text-accent" />
+        <div class="max-w-80">
+          <span class="mb-4 flex size-9 items-center justify-center rounded-panel border border-divider bg-raised text-accent">
+            <Sparkles class="size-(--knovum-icon-size-md)" :stroke-width="1.6" />
+          </span>
           <h2 class="text-title-sm font-semibold text-foreground">{{ $t("spaces.assistant.emptyTitle") }}</h2>
           <p class="mt-2 text-body leading-relaxed text-foreground-secondary">
             {{ $t("spaces.assistant.builtInEmpty") }}
           </p>
-          <p class="mt-4 text-caption text-foreground-tertiary">
+          <div class="mt-6 space-y-1">
+            <button
+              v-for="starter in starters"
+              :key="starter"
+              type="button"
+              class="group flex w-full items-center justify-between gap-3 rounded-control border border-divider bg-raised px-3 py-2.5 text-left text-caption text-foreground transition-colors hover:border-border-strong hover:bg-control-hover focus-visible:outline-2 focus-visible:outline-focus-ring"
+              @click="emit('suggest', $t(`spaces.assistant.starter.${starter}Prompt`))"
+            >
+              <span>{{ $t(`spaces.assistant.starter.${starter}`) }}</span>
+              <ArrowUpRight class="size-(--knovum-icon-size-sm) shrink-0 text-foreground-tertiary group-hover:text-foreground" />
+            </button>
+          </div>
+          <p class="mt-5 text-caption leading-relaxed text-foreground-tertiary">
             {{ $t("spaces.assistant.emptyAttachmentHint") }}
           </p>
         </div>

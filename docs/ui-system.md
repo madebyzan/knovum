@@ -203,6 +203,10 @@ place when the sidebar is previewed. Space tabs align with the main work surface
 chrome actions follow the established compact control size; the right view switcher uses the medium control token
 to keep its contextual modes distinct from Space navigation.
 
+The right pane's divider continues through the toolbar at the same horizontal coordinate as its content
+divider. The right view controls and content use one surface color, so the pane reads as a full-height
+column of the desktop workbench rather than a card attached below the toolbar.
+
 The Spaces sidebar uses a consistent 224px default width in both pinned and transient-preview states. A
 pinned sidebar remains resizable between 200px and 320px. Its resize feedback is painted on the workspace
 surface boundary, never inside the navigation background or the window gutter. Closing it preserves the
@@ -214,6 +218,9 @@ default view. Explicit object actions open Details;
 the document editor can open its heading Outline. Source opens as a temporary drill-in and returns to its originating
 view. Selection alone never changes the active view. The right pane does not change the leading sidebar width.
 Closing it releases workspace width and suspends its content until reopened; it has no hover preview.
+An empty Conversation offers short prompts that fill and focus the composer without sending. Composer
+references stay next to the text they accompany: canvas references identify their Space source and can
+preview visual content, while local files retain a separate file identity. Both can be removed before sending.
 
 The Details view uses a content-first hierarchy: editable identity and direct actions, the
 content preview and type-specific details, derivation and knowledge relationships, related content, then
