@@ -52,6 +52,14 @@ export const creationIntentDefinitions = [
     decide: ({ canExportDocument }) => (canExportDocument ? AVAILABLE : HIDDEN),
   },
   {
+    id: "export-document-as-txt",
+    kind: "atomic",
+    effect: "export",
+    labelKey: "spaces.documentExport.exportTxt",
+    icon: "file-output",
+    decide: ({ canExportDocument }) => (canExportDocument ? AVAILABLE : HIDDEN),
+  },
+  {
     id: "presentation-production",
     kind: "workflow",
     effect: "derive",

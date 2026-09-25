@@ -1,0 +1,5 @@
+#set page(paper: "a4", margin: (x: 24mm, y: 22mm))
+#set par(justify: true, leading: 0.72em)
+#set heading(numbering: none)
+#show heading: set block(above: 1.2em, below: 0.6em)
+#set table(inset: 5pt, stroke: 0.5pt + luma(180))
