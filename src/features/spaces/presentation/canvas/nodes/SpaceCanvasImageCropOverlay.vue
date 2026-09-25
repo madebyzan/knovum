@@ -69,27 +69,33 @@ const shadeStyles = computed<CSSProperties[]>(() => {
 
 function begin(handle: CropDragHandle, event: PointerEvent) {
   (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
-  drag.value = { kind: "handle", origin: {
-    handle,
-    crop: props.crop,
-    clientX: event.clientX,
-    clientY: event.clientY,
-    viewportWidth: props.imageRect.width,
-    viewportHeight: props.imageRect.height,
-    lockedAspect: props.lockedAspect,
-  } };
+  drag.value = {
+    kind: "handle",
+    origin: {
+      handle,
+      crop: props.crop,
+      clientX: event.clientX,
+      clientY: event.clientY,
+      viewportWidth: props.imageRect.width,
+      viewportHeight: props.imageRect.height,
+      lockedAspect: props.lockedAspect,
+    },
+  };
 }
 
 function beginDraw(event: PointerEvent) {
   const bounds = root.value!.getBoundingClientRect();
   (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
-  drag.value = { kind: "draw", origin: {
-    x: (event.clientX - bounds.left) / bounds.width,
-    y: (event.clientY - bounds.top) / bounds.height,
-    viewportWidth: bounds.width,
-    viewportHeight: bounds.height,
-    lockedAspect: props.lockedAspect,
-  } };
+  drag.value = {
+    kind: "draw",
+    origin: {
+      x: (event.clientX - bounds.left) / bounds.width,
+      y: (event.clientY - bounds.top) / bounds.height,
+      viewportWidth: bounds.width,
+      viewportHeight: bounds.height,
+      lockedAspect: props.lockedAspect,
+    },
+  };
 }
 
 function beginInterior(event: PointerEvent) {
@@ -132,17 +138,12 @@ function complete(event: PointerEvent) {
       @pointerup.stop="complete"
       @pointercancel="finish"
     />
-    <div
-      v-for="(style, index) in shadeStyles"
-      :key="index"
-      class="absolute bg-scrim"
-      :style="style"
-    />
+    <div v-for="(style, index) in shadeStyles" :key="index" class="absolute bg-scrim" :style="style" />
     <div class="absolute border border-raised shadow-control" :style="cropStyle">
       <span class="pointer-events-none absolute top-0 bottom-0 left-1/3 border-l border-raised/60" />
       <span class="pointer-events-none absolute top-0 bottom-0 left-2/3 border-l border-raised/60" />
-      <span class="pointer-events-none absolute right-0 left-0 top-1/3 border-t border-raised/60" />
-      <span class="pointer-events-none absolute right-0 left-0 top-2/3 border-t border-raised/60" />
+      <span class="pointer-events-none absolute top-1/3 right-0 left-0 border-t border-raised/60" />
+      <span class="pointer-events-none absolute top-2/3 right-0 left-0 border-t border-raised/60" />
       <div
         class="pointer-events-auto absolute inset-0 cursor-move touch-none"
         @pointerdown.stop.prevent="beginInterior"

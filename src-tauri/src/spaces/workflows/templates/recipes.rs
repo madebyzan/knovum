@@ -28,6 +28,7 @@ pub(super) fn reviewed_pair(recipe: ReviewedPair<'_>) -> Result<WorkflowDefiniti
         ],
         edges(&[
             ("input", draft_id),
+            ("input", "approved"),
             (draft_id, "review"),
             (draft_id, "approved"),
             ("review", "approved"),
@@ -57,6 +58,7 @@ pub(super) fn social(parameters: &Value) -> Result<WorkflowDefinition, String> {
         ],
         edges(&[
             ("input", "copy"),
+            ("input", "approved"),
             ("copy", "review"),
             ("copy", "approved"),
             ("review", "approved"),

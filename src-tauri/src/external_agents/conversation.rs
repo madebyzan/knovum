@@ -3,7 +3,7 @@ use std::{path::PathBuf, sync::Arc};
 use agent_client_protocol::{
     schema::v1::{
         CancelNotification, McpServer, NewSessionRequest, PromptRequest, RequestPermissionRequest,
-        SessionConfigOptionValue, SetSessionConfigOptionRequest, SetSessionModeRequest, StopReason,
+        StopReason,
     },
     Agent, Client, ConnectionTo,
 };
@@ -20,7 +20,7 @@ mod requests;
 mod start;
 
 use requests::ConversationRequest;
-pub use requests::{close, configure, is_active, send, set_mode};
+pub use requests::{close, is_active, send};
 pub use start::start;
 
 pub struct ConversationSession {
@@ -91,40 +91,7 @@ async fn serve(
                         _ = session_cancel.cancelled() => return Ok(true),
                         request = requests.recv() => match request { Some(value) => value, None => return Ok(false) },
                     };
-                    let request = match request {
-                        ConversationRequest::Turn(request) => request,
-                        ConversationRequest::Configure(request) => {
-                            let value = match request.value {
-                                serde_json::Value::Bool(value) => SessionConfigOptionValue::boolean(value),
-                                serde_json::Value::String(value) => SessionConfigOptionValue::value_id(value),
-                                _ => {
-                                    let _ = request.reply.send(Err(AiError::invalid(
-                                        "ACP session option value must be a string or boolean",
-                                    )));
-                                    continue;
-                                }
-                            };
-                            let response = session.connection().send_request(
-                                SetSessionConfigOptionRequest::new(
-                                    session.session_id().clone(), request.id, value,
-                                ),
-                            ).block_task().await;
-                            let result = response.map_err(|error| AiError::internal(error.to_string()))
-                                .and_then(|response| serde_json::to_value(response.config_options)
-                                    .map_err(|error| AiError::internal(error.to_string())));
-                            let _ = request.reply.send(result);
-                            continue;
-                        }
-                        ConversationRequest::SetMode(request) => {
-                            let result = session.connection().send_request(SetSessionModeRequest::new(
-                                session.session_id().clone(), request.id,
-                            )).block_task().await
-                                .map(|_| ())
-                                .map_err(|error| AiError::internal(error.to_string()));
-                            let _ = request.reply.send(result);
-                            continue;
-                        }
-                    };
+                    let ConversationRequest::Turn(request) = request;
                     let content = request.prompt.into_content(&workspace, prompt_capabilities.clone()).await
                         .map_err(|error| agent_client_protocol::Error::invalid_params().data(error.to_string()))?;
                     let prompt = session.connection().send_request(

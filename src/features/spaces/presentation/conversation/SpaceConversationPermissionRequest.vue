@@ -1,0 +1,33 @@
+<script setup lang="ts">
+import UiButton from "../../../../shared/ui/UiButton.vue";
+import type { AssistantPermissionOption } from "../../contracts/generated/AssistantPermissionOption";
+
+defineProps<{
+  title: string;
+  options: readonly AssistantPermissionOption[];
+  busy: boolean;
+}>();
+const emit = defineEmits<{ decide: [optionId: string | null] }>();
+</script>
+
+<template>
+  <section class="bg-warning-subtle rounded-panel border border-warning/40 p-3 text-caption" role="group">
+    <h3 class="font-semibold text-foreground">{{ $t("spaces.assistant.permissionRequest") }}</h3>
+    <p class="mt-1 text-foreground-secondary">{{ title }}</p>
+    <div class="mt-3 flex flex-wrap gap-2">
+      <UiButton
+        v-for="option in options"
+        :key="option.id"
+        size="sm"
+        variant="secondary"
+        :disabled="busy"
+        @click="emit('decide', option.id)"
+      >
+        {{ option.label }}
+      </UiButton>
+      <UiButton size="sm" variant="ghost" :disabled="busy" @click="emit('decide', null)">
+        {{ $t("spaces.assistant.denyPermission") }}
+      </UiButton>
+    </div>
+  </section>
+</template>

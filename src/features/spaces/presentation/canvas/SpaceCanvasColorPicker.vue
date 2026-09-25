@@ -59,11 +59,5 @@ function select(value: string) {
 </script>
 
 <template>
-  <SpaceCanvasColorSwatches
-    :label="label"
-    labeled
-    :options="options"
-    :selected="selected"
-    @select="select"
-  />
+  <SpaceCanvasColorSwatches :label="label" labeled :options="options" :selected="selected" @select="select" />
 </template>

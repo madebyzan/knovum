@@ -9,12 +9,10 @@ import type {
   CanvasJsonImportRequest,
 } from "../../canvas-exchange/json-canvas-import-contract";
 import { jsonCanvasCodec } from "../../canvas-exchange/json-canvas-repository";
-import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceRelation } from "../../model/relations/relation";
 import type { CanvasHostEvents, CanvasSurfaceEvents } from "../contract/canvas-editor";
-import type { CanvasNodeContentSlotProps } from "../contract/canvas-surface";
+import type { CanvasNodeContentSlotProps, CanvasSceneInput } from "../contract/canvas-surface";
 import type { CanvasTool } from "../contract/canvas-tool";
-import type { SpaceEditSnapshot } from "../contract/space-edit-snapshot";
 import type { SpacePersistenceState } from "../contract/space-persistence-state";
 import KonvaCanvasSurface from "../konva/KonvaCanvasSurface.vue";
 import { useCanvasDocumentSession } from "./use-canvas-document-session";
@@ -28,16 +26,14 @@ const props = defineProps<{
   groupScopePath: readonly string[];
   interactionEnabled: boolean;
   tool: CanvasTool;
-  nodes: readonly SpaceCanvasNode[];
-  relations: readonly SpaceRelation[];
+  sceneInput: CanvasSceneInput;
   exchangeRelations: readonly SpaceRelation[];
   spaceId: string;
-  snapshot: SpaceEditSnapshot;
 }>();
 const emit = defineEmits<{ exchangeReady: [exchange: CanvasExchangePort] }>();
 defineSlots<{ "node-content"(props: CanvasNodeContentSlotProps): unknown }>();
 const session = useCanvasDocumentSession({
-  snapshot: () => props.snapshot,
+  snapshot: () => props.sceneInput.editSnapshot,
   persistence: () => props.persistence,
   ensurePersisted: () => props.ensurePersisted(),
   reportError: props.events.onError,
@@ -57,8 +53,8 @@ const surfaceEvents: CanvasSurfaceEvents = {
       "exchangeReady",
       createJsonCanvasExchangePort({
         codec: jsonCanvasCodec,
-        snapshot: () => props.snapshot,
-        nodes: () => props.nodes,
+        snapshot: () => props.sceneInput.editSnapshot,
+        nodes: () => props.sceneInput.nodes,
         relations: () => props.exchangeRelations,
         commitImport: commitJsonCanvasImport,
         transaction: props.events.onHistoryTransaction,
@@ -68,7 +64,7 @@ const surfaceEvents: CanvasSurfaceEvents = {
 };
 
 function commitJsonCanvasImport(request: CanvasJsonImportDraft) {
-  return props.importJsonCanvas({ ...request, baseRevision: props.snapshot.editRevision });
+  return props.importJsonCanvas({ ...request, baseRevision: props.sceneInput.editSnapshot.editRevision });
 }
 
 watch(
@@ -85,7 +81,7 @@ watch(
   },
 );
 watch(
-  () => props.snapshot,
+  () => props.sceneInput.editSnapshot,
   () => session.synchronizeSnapshot(),
 );
 onMounted(() => void session.start().catch(props.events.onError));
@@ -101,14 +97,12 @@ onBeforeUnmount(() => {
     v-if="session.document.value"
     :key="session.surfaceKey.value"
     :document="session.document.value"
-    :edit-snapshot="snapshot"
+    :scene-input="sceneInput"
     :events="surfaceEvents"
     :focus-node-ids="focusNodeIds"
     :group-scope-path="groupScopePath"
     :interaction-enabled="interactionEnabled"
     :tool="tool"
-    :nodes="nodes"
-    :relations="relations"
     @document-change="session.documentChanged"
   >
     <template #node-content="content">

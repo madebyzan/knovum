@@ -14,9 +14,10 @@ pub async fn ensure_conversation(
     mode: AssistantMode,
     now: i64,
 ) -> Result<(), String> {
-    sqlx::query(
-        "INSERT INTO spaces_assistant_conversations(id,space_id,title,mode,created_at,updated_at)
-         VALUES($1,$2,$3,$4,$5,$5) ON CONFLICT(id) DO UPDATE SET updated_at=excluded.updated_at",
+    let result = sqlx::query(
+        "INSERT INTO spaces_assistant_conversations(id,space_id,title,mode,active_branch_id,created_at,updated_at)
+         VALUES($1,$2,$3,$4,$1,$5,$5) ON CONFLICT(id) DO UPDATE SET updated_at=excluded.updated_at
+         WHERE spaces_assistant_conversations.space_id=excluded.space_id",
     )
     .bind(id)
     .bind(space_id)
@@ -26,6 +27,32 @@ pub async fn ensure_conversation(
     .execute(&mut **tx)
     .await
     .map_err(db::sql_error)?;
+    db::require_one(result, "assistant-conversation-unavailable")
+}
+
+pub async fn ensure_branch_idle(
+    tx: &mut Transaction<'_, Sqlite>,
+    conversation_id: &str,
+    branch_id: &str,
+) -> Result<(), String> {
+    let active: i64 = sqlx::query_scalar(
+        "SELECT COUNT(*) FROM spaces_runs r WHERE r.completed_at IS NULL AND (
+           EXISTS (SELECT 1 FROM spaces_assistant_tasks t WHERE t.run_id=r.id
+             AND t.conversation_id=$1 AND t.branch_id=$2)
+           OR EXISTS (SELECT 1 FROM spaces_external_agent_conversations e WHERE e.run_id=r.id
+             AND e.assistant_conversation_id=$1 AND e.branch_id=$2))",
+    )
+    .bind(conversation_id)
+    .bind(branch_id)
+    .fetch_one(&mut **tx)
+    .await
+    .map_err(db::sql_error)?;
+    if active != 0 {
+        return Err(
+            "assistant-branch-busy: finish or cancel the active task before sending a follow-up"
+                .into(),
+        );
+    }
     Ok(())
 }
 
@@ -37,8 +64,7 @@ pub async fn list_conversations(
 ) -> Result<Vec<ConversationSummary>, String> {
     let query = query.map(str::trim).filter(|value| !value.is_empty());
     let pattern = query.map(|value| format!("%{value}%"));
-    let rows = sqlx::query("SELECT c.id,c.space_id,c.title,c.mode,c.updated_at,
-         (SELECT m.branch_id FROM spaces_assistant_messages m WHERE m.conversation_id=c.id ORDER BY m.created_at DESC,m.id DESC LIMIT 1) branch_id
+    let rows = sqlx::query("SELECT c.id,c.space_id,c.title,c.mode,c.updated_at,c.active_branch_id AS branch_id
          FROM spaces_assistant_conversations c
          WHERE space_id=$1 AND (($2=1 AND archived_at IS NOT NULL) OR ($2=0 AND archived_at IS NULL))
          AND ($3 IS NULL OR c.title LIKE $3 ESCAPE '\\' OR EXISTS (

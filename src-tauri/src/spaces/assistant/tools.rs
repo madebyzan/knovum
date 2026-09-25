@@ -9,29 +9,23 @@ use crate::{
     spaces::actions::{self, SpaceActionDefinition},
 };
 
-pub enum ToolBinding {
-    Action(&'static SpaceActionDefinition),
-    External(Box<crate::spaces::workflows::external_tools::ExternalToolBinding>),
-}
-
 pub struct ToolCatalog {
     pub tools: Vec<ModelToolDefinition>,
-    pub by_wire_name: HashMap<String, ToolBinding>,
+    pub by_wire_name: HashMap<String, &'static SpaceActionDefinition>,
     pub digest: String,
 }
 
-pub async fn project(
-    pool: &sqlx::SqlitePool,
-    space_id: &str,
-    mode: AssistantMode,
-) -> Result<ToolCatalog, String> {
+pub fn project(mode: AssistantMode) -> Result<ToolCatalog, String> {
     let definitions = actions::definitions()
         .iter()
         .filter(|definition| match mode {
             AssistantMode::Ask | AssistantMode::Plan => {
                 definition.impact == actions::SpaceActionImpact::ReadOnly
             }
-            AssistantMode::Execute => true,
+            AssistantMode::Execute => {
+                definition.impact != actions::SpaceActionImpact::MutatesResource
+                    && definition.id != "commit-knowledge-changes"
+            }
         })
         .collect::<Vec<_>>();
     let mut by_wire_name = HashMap::new();
@@ -47,26 +41,7 @@ pub async fn project(
             description: description(definition),
             input_schema: schema(definition),
         });
-        by_wire_name.insert(wire_name, ToolBinding::Action(definition));
-    }
-    if matches!(mode, AssistantMode::Execute) {
-        for binding in
-            crate::spaces::workflows::external_tools::list_enabled(pool, space_id).await?
-        {
-            let wire_name = external_wire_name(&binding);
-            if !names.insert(wire_name.clone()) {
-                return Err("tool-schema-invalid: deterministic tool name collision".into());
-            }
-            tools.push(ModelToolDefinition {
-                name: wire_name.clone(),
-                description: format!(
-                    "Call reviewed external tool {}. Egress destination and schema are fixed.",
-                    binding.name
-                ),
-                input_schema: binding.input_schema.clone(),
-            });
-            by_wire_name.insert(wire_name, ToolBinding::External(Box::new(binding)));
-        }
+        by_wire_name.insert(wire_name, definition);
     }
     let encoded = serde_json::to_vec(&tools).map_err(|error| error.to_string())?;
     Ok(ToolCatalog {
@@ -74,16 +49,6 @@ pub async fn project(
         by_wire_name,
         digest: format!("{:x}", Sha256::digest(encoded)),
     })
-}
-
-fn external_wire_name(
-    binding: &crate::spaces::workflows::external_tools::ExternalToolBinding,
-) -> String {
-    let digest = Sha256::digest(format!(
-        "external:{}:{}",
-        binding.id, binding.schema_fingerprint
-    ));
-    format!("knovum_external_{:x}", digest)[..40].to_owned()
 }
 
 fn wire_name(definition: &SpaceActionDefinition) -> String {
@@ -95,11 +60,27 @@ fn wire_name(definition: &SpaceActionDefinition) -> String {
 fn description(definition: &SpaceActionDefinition) -> String {
     match definition.id {
         "create-note" => "Create an editable note in the current Space.".into(),
+        "answer-with-sources" => {
+            "Answer a question using selected knowledge sources and return verified citations."
+                .into()
+        }
         "search-knowledge" => {
             "Search grounded knowledge in the current Space and return revision-aware excerpts."
                 .into()
         }
         "read-node" => "Read one exact knowledge node from the current Space by ID.".into(),
+        "draft-document" => "Create an editable document from selected knowledge resources.".into(),
+        "draft-script" => "Draft an editable video script from selected resources.".into(),
+        "summarize-meeting" => "Create an editable summary from a meeting transcript.".into(),
+        "draft-social-post" => "Create editable social copy grounded in selected knowledge.".into(),
+        "generate-visualization" => "Generate an image that visualizes selected knowledge.".into(),
+        "generate-image" => "Generate an image from an editable document brief.".into(),
+        "generate-video" => "Generate a video from a document or ordered image sequence.".into(),
+        "extract-subtitles" => "Create editable subtitle cues from a selected video.".into(),
+        "render-subtitled-video" => {
+            "Render a new video using a video and its edited subtitles.".into()
+        }
+        "render-presentation" => "Render a presentation from an editable document outline.".into(),
         _ => format!("Execute Knovum Space Action {}.", definition.id),
     }
 }

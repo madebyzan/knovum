@@ -3,10 +3,6 @@ import { pick } from "es-toolkit";
 
 import type { SpaceRelation } from "../../model/relations/relation";
 
-export function listRelations(spaceId: string): Promise<SpaceRelation[]> {
-  return invoke("plugin:spaces|list_relations", { spaceId });
-}
-
 function relationInput(relation: SpaceRelation) {
   return {
     ...pick(relation, ["id", "spaceId", "sourceId", "targetId", "kind", "rationale", "status"]),

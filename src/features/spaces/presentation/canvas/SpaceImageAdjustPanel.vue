@@ -19,7 +19,13 @@ const emit = defineEmits<{
 const { t } = useI18n();
 const list = useTemplateRef<{ viewportElement: HTMLElement }>("list");
 const active = shallowRef<ImageAdjustmentGroupId>("light");
-const positiveControls = new Set<keyof ImageAdjustments>(["sharpness", "clarity", "grain", "softLight", "glow"]);
+const positiveControls = new Set<keyof ImageAdjustments>([
+  "sharpness",
+  "clarity",
+  "grain",
+  "softLight",
+  "glow",
+]);
 
 function navigate(id: ImageAdjustmentGroupId) {
   const viewport = list.value?.viewportElement;
@@ -28,14 +34,14 @@ function navigate(id: ImageAdjustmentGroupId) {
   active.value = id;
   viewport.scrollTo({
     top: section.offsetTop,
-    behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+    behavior: globalThis.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
   });
 }
 
 function syncActive() {
   const container = list.value?.viewportElement;
   if (!container) return;
-  for (const group of [...imageAdjustmentGroups].reverse()) {
+  for (const group of imageAdjustmentGroups.toReversed()) {
     const section = container.querySelector<HTMLElement>(`[data-adjust-group="${group.id}"]`);
     if (section && section.offsetTop <= container.scrollTop + 80) {
       active.value = group.id;
@@ -51,10 +57,20 @@ function syncActive() {
     <header class="flex items-center justify-between px-1 pb-2">
       <h3 class="text-body-lg font-semibold">{{ t("spaces.media.adjustImage") }}</h3>
       <div class="flex items-center gap-1">
-        <button type="button" class="flex size-(--knovum-control-height-md) items-center justify-center rounded-control text-foreground-secondary hover:bg-control-hover focus-visible:ring-2 focus-visible:ring-focus-ring" :aria-label="t('common.reset')" @click="emit('reset')">
+        <button
+          type="button"
+          class="flex size-(--knovum-control-height-md) items-center justify-center rounded-control text-foreground-secondary hover:bg-control-hover focus-visible:ring-2 focus-visible:ring-focus-ring"
+          :aria-label="t('common.reset')"
+          @click="emit('reset')"
+        >
           <RotateCcw class="size-(--knovum-icon-size-sm)" />
         </button>
-        <button type="button" class="flex size-(--knovum-control-height-md) items-center justify-center rounded-control text-foreground-secondary hover:bg-control-hover focus-visible:ring-2 focus-visible:ring-focus-ring" :aria-label="t('common.cancel')" @click="emit('cancel')">
+        <button
+          type="button"
+          class="flex size-(--knovum-control-height-md) items-center justify-center rounded-control text-foreground-secondary hover:bg-control-hover focus-visible:ring-2 focus-visible:ring-focus-ring"
+          :aria-label="t('common.cancel')"
+          @click="emit('cancel')"
+        >
           <X class="size-(--knovum-icon-size-sm)" />
         </button>
       </div>
@@ -74,9 +90,16 @@ function syncActive() {
       </button>
     </nav>
     <UiScrollArea ref="list" class="h-80" @scroll="syncActive">
-      <div class="pl-1 pr-3">
-        <section v-for="group in imageAdjustmentGroups" :key="group.id" :data-adjust-group="group.id" class="pb-3 pt-2 last:min-h-80">
-          <h4 class="mb-2 text-label font-medium text-foreground-secondary">{{ t(`spaces.media.adjustGroups.${group.id}`) }}</h4>
+      <div class="pr-3 pl-1">
+        <section
+          v-for="group in imageAdjustmentGroups"
+          :key="group.id"
+          :data-adjust-group="group.id"
+          class="pt-2 pb-3 last:min-h-80"
+        >
+          <h4 class="mb-2 text-label font-medium text-foreground-secondary">
+            {{ t(`spaces.media.adjustGroups.${group.id}`) }}
+          </h4>
           <div class="space-y-2">
             <SpaceImageToneSlider
               v-for="key in group.keys"
@@ -92,8 +115,20 @@ function syncActive() {
       </div>
     </UiScrollArea>
     <footer class="mt-3 flex gap-2 border-t border-divider pt-3">
-      <UiButton variant="secondary" size="sm" class="min-w-0 flex-1 border border-border bg-raised" @click="emit('cancel')">{{ t("common.cancel") }}</UiButton>
-      <UiButton variant="primary" size="sm" class="min-w-0 flex-1 bg-foreground text-canvas hover:bg-foreground hover:opacity-90" @click="emit('apply')">{{ t("common.apply") }}</UiButton>
+      <UiButton
+        variant="secondary"
+        size="sm"
+        class="min-w-0 flex-1 border border-border bg-raised"
+        @click="emit('cancel')"
+        >{{ t("common.cancel") }}</UiButton
+      >
+      <UiButton
+        variant="primary"
+        size="sm"
+        class="min-w-0 flex-1 bg-foreground text-canvas hover:bg-foreground hover:opacity-90"
+        @click="emit('apply')"
+        >{{ t("common.apply") }}</UiButton
+      >
     </footer>
   </section>
 </template>

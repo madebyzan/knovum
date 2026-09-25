@@ -1,8 +1,8 @@
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import type { SpaceRelation } from "../../../model/relations/relation";
 import type { StructureLayout } from "../../../model/structure/structure-contract";
+import type { CanvasNodeInteraction } from "../../canvas-node-interaction";
 import type { CanvasNodeLayoutV1, CanvasRelationColor } from "../../contract/canvas-document";
-import type { CanvasNodeInteraction } from "./canvas-node-interaction";
 import type { CanvasRelationPath } from "./relation-path";
 
 export interface CanvasSceneNode {

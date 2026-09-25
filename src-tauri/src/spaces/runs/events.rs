@@ -9,8 +9,6 @@ use crate::spaces::db;
 pub enum RunEventKind {
     AssistantPausedCheckpoint,
     AttemptClaimed,
-    DebugBreakpointContinued,
-    DebugBreakpointReached,
     ExternalAgentMessage,
     ExternalAgentPermissionRequested,
     ExternalAgentToolStarted,
@@ -28,8 +26,6 @@ impl RunEventKind {
         match self {
             Self::AssistantPausedCheckpoint => "assistant_paused_checkpoint",
             Self::AttemptClaimed => "attempt_claimed",
-            Self::DebugBreakpointContinued => "debug_breakpoint_continued",
-            Self::DebugBreakpointReached => "debug_breakpoint_reached",
             Self::ExternalAgentMessage => "external_agent_message",
             Self::ExternalAgentPermissionRequested => "external_agent_permission_requested",
             Self::ExternalAgentToolStarted => "external_agent_tool_started",

@@ -4,6 +4,7 @@ mod contract;
 mod events;
 mod intervention;
 pub(crate) mod observation;
+pub(crate) mod observe;
 mod repository;
 mod retry;
 mod run_rows;
@@ -12,21 +13,14 @@ mod scheduler;
 mod signals;
 
 pub(crate) use attempt::{AttemptClaim, StepOutcome};
-pub(crate) use budget::{
-    record_usage, reserve_expanded_steps, reserve_expanded_steps_in_transaction,
-    reserve_output_bytes,
-};
+pub(crate) use budget::{record_usage, reserve_output_bytes};
 pub(crate) use contract::{RunKind, RunState, RunSummary, StepState, WaitReason};
 pub(crate) use events::append_event;
 pub use events::RunEventKind;
-pub(crate) use observation::BatchItemSummary;
 pub(crate) use observation::{RunEvent, StepSummary};
 pub(crate) use repository::{create_run_in_transaction, load_run, transition_run, NewRun};
+pub(crate) use runtime::start as start_scheduler;
 pub(crate) use signals::{announce as announce_change, subscribe as subscribe_to_changes};
-
-pub(crate) fn start_scheduler(app: tauri::AppHandle) {
-    runtime::start(app);
-}
 
 #[tauri::command]
 pub async fn list_runs(app: tauri::AppHandle, space_id: String) -> Result<Vec<RunSummary>, String> {
@@ -45,9 +39,6 @@ pub async fn cancel_run(app: tauri::AppHandle, run_id: String) -> Result<(), Str
     repository::request_control(pool, &run_id, "cancel").await?;
     if let Some(action_id) = repository::durable_action_id(pool, &run_id).await? {
         crate::spaces::derivation::action_execution::cancel(&action_id, &run_id).await?;
-    }
-    for execution_id in repository::active_delegate_ids(pool, &run_id).await? {
-        crate::ai::executions::cancel(&execution_id)?;
     }
     if run.kind == RunKind::ExternalAgent
         && !crate::spaces::external_conversations::cancel_by_run(&app, &run_id).await?
@@ -104,14 +95,6 @@ pub async fn list_run_steps(
 }
 
 #[tauri::command]
-pub async fn list_run_batch_items(
-    app: tauri::AppHandle,
-    run_id: String,
-) -> Result<Vec<observation::BatchItemSummary>, String> {
-    observation::list_batch_items(crate::spaces::db::pool(&app).await?, &run_id).await
-}
-
-#[tauri::command]
 pub async fn list_run_events(
     app: tauri::AppHandle,
     run_id: String,
@@ -134,32 +117,18 @@ pub async fn get_run_diagnostics(
 }
 
 #[tauri::command]
-pub async fn submit_run_step_input(
-    app: tauri::AppHandle,
-    step_id: String,
-    expected_version: i64,
-    value: serde_json::Value,
-) -> Result<(), String> {
-    intervention::submit_input(
-        crate::spaces::db::pool(&app).await?,
-        &step_id,
-        expected_version,
-        &value,
-    )
-    .await
-}
-
-#[tauri::command]
 pub async fn decide_run_step_review(
     app: tauri::AppHandle,
     step_id: String,
     expected_version: i64,
+    reviewed_revision: String,
     approved: bool,
 ) -> Result<(), String> {
     intervention::decide_review(
         crate::spaces::db::pool(&app).await?,
         &step_id,
         expected_version,
+        &reviewed_revision,
         approved,
     )
     .await
@@ -177,20 +146,6 @@ pub async fn reconcile_run_step(
         &step_id,
         expected_version,
         decision,
-    )
-    .await
-}
-
-#[tauri::command]
-pub async fn continue_run_step(
-    app: tauri::AppHandle,
-    step_id: String,
-    expected_version: i64,
-) -> Result<(), String> {
-    intervention::continue_debug_step(
-        crate::spaces::db::pool(&app).await?,
-        &step_id,
-        expected_version,
     )
     .await
 }

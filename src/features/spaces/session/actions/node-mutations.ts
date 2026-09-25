@@ -18,6 +18,7 @@ import type { SpaceNodePayload } from "../../model/nodes/node-payload";
 import { validateSpaceNodePayload } from "../../model/nodes/schema/node-payload";
 import { createNodes } from "../../nodes/node-repository";
 import { spaceEditRepository } from "../../structure/space-edit-repository";
+import { loadSpaceSessionProjection } from "../space-projection-repository";
 import { createNodeDataMutations } from "./node-data-mutations";
 
 export type { NodeDataChange } from "../../history/mutation-types";
@@ -105,8 +106,11 @@ function createContentMutations(context: SpaceMutationContext, enrichment: Space
         sourceChunks,
       );
       persisted = true;
-      const committedSnapshot = await spaceEditRepository.load(spaceId);
-      if (context.activeSpaceId.value === spaceId) context.editSnapshot.value = committedSnapshot;
+      const projection = await loadSpaceSessionProjection(spaceId);
+      if (context.activeSpaceId.value === spaceId) {
+        context.nodes.value = projection.nodes;
+        context.editSnapshot.value = projection.editSnapshot;
+      }
     } catch (error) {
       if (!persisted && isActive && context.activeSpaceId.value === spaceId) {
         const pendingIds = new Set(contentNodes.map(({ id }) => id));

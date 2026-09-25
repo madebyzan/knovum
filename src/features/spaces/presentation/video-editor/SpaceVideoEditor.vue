@@ -149,7 +149,9 @@ async function onAddText() {
         :playing="playback.playing.value"
         :thumbnail-source="proxyPath"
         :waveform="
-          data.mediaAnalysis?.sourceRevision === data.sourceRevision ? data.mediaAnalysis.waveform : undefined
+          data.mediaAnalysis?.sourceRevision === data.sourceRevision
+            ? data.mediaAnalysis?.waveform
+            : undefined
         "
         @seek="playback.seek"
         @select-clip="onSelectClip"

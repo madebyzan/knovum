@@ -3,12 +3,11 @@ import type { Ref } from "vue";
 import type { SpaceEditSnapshot } from "../../canvas/contract/space-edit-snapshot";
 import { beginSpaceMutation } from "../../history/mutation-barrier";
 import { recordSpaceHistory, type SpaceHistoryState } from "../../history/stack";
-import { listRelations } from "../../knowledge/relations/relation-repository";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceRelation } from "../../model/relations/relation";
-import { listNodes } from "../../nodes/node-repository";
 import { spaceEditCommandRecordsHistory, type SpaceEditCommand } from "../../organization/space-edit-command";
 import { spaceEditRepository } from "../../structure/space-edit-repository";
+import { loadSpaceSessionProjection } from "../space-projection-repository";
 
 export function createStructureActions(context: {
   activeSpaceId: Ref<string | undefined>;
@@ -59,15 +58,11 @@ export function createStructureActions(context: {
   }
 
   async function reloadProjection(spaceId: string) {
-    const [snapshot, nodes, relations] = await Promise.all([
-      spaceEditRepository.load(spaceId),
-      listNodes(spaceId),
-      listRelations(spaceId),
-    ]);
+    const { editSnapshot, nodes, relations } = await loadSpaceSessionProjection(spaceId);
     if (context.activeSpaceId.value !== spaceId) return;
-    context.editSnapshot.value = snapshot;
     context.nodes.value = nodes;
     context.relations.value = relations;
+    context.editSnapshot.value = editSnapshot;
   }
 
   return { executeSpaceEdit, recordCommittedSpaceEdit };

@@ -16,13 +16,28 @@ pub(super) async fn create_retry(
     selected_step_ids: &[String],
 ) -> Result<RunSummary, String> {
     let source = load_source(pool, source_run_id).await?;
+    if source.kind != "workflow" || source.principal_kind != "user" {
+        return Err("run-retry-unsupported: only user-started workflows can be retried".into());
+    }
     let steps = load_steps(pool, source_run_id).await?;
     let selected = selected_nodes(&steps, selected_step_ids)?;
-    let affected = affected_nodes(&source.policy, &steps, selected)?;
+    let affected = affected_nodes(&steps, selected)?;
     let now = crate::clock::unix_time_millis()?;
     let run_id = uuid::Uuid::new_v4().to_string();
-    let retry_policy = retry_policy(&source.policy, source_run_id)?;
     let mut tx = db::begin_write(pool).await?;
+    let source_policy: Value = serde_json::from_str(&source.policy).map_err(db::json_error)?;
+    let grant_id = source_policy
+        .get("grantId")
+        .and_then(Value::as_str)
+        .ok_or("run-retry-invalid: source grant is missing")?;
+    let mut grant = crate::spaces::authorization::load_grant(&mut tx, grant_id).await?;
+    if grant.home_space_id != source.space_id {
+        return Err("run-retry-invalid: source grant belongs to another Space".into());
+    }
+    grant.grant_id = uuid::Uuid::new_v4().to_string();
+    grant.valid_until = now + 7 * 24 * 60 * 60 * 1_000;
+    crate::spaces::authorization::create_grant(&mut tx, &grant, now).await?;
+    let retry_policy = retry_policy(&source.policy, source_run_id, &grant.grant_id)?;
     sqlx::query(
         "INSERT INTO spaces_runs(id,home_space_id,parent_run_id,retry_of_run_id,principal_kind,
          principal_id,kind,state,state_version,execution_epoch,policy_snapshot,input_snapshot,budget,
@@ -49,12 +64,13 @@ pub(super) async fn create_retry(
     super::repository::load_run(pool, &run_id).await
 }
 
-fn retry_policy(encoded: &str, source_run_id: &str) -> Result<String, String> {
+fn retry_policy(encoded: &str, source_run_id: &str, grant_id: &str) -> Result<String, String> {
     let mut policy: serde_json::Map<String, Value> =
         serde_json::from_str(encoded).map_err(db::json_error)?;
     policy
         .entry("retryRootRunId")
         .or_insert_with(|| Value::String(source_run_id.to_owned()));
+    policy.insert("grantId".into(), Value::String(grant_id.to_owned()));
     serde_json::to_string(&policy).map_err(db::json_error)
 }
 
@@ -85,32 +101,22 @@ fn selected_nodes(
 }
 
 fn affected_nodes(
-    policy: &str,
     steps: &[SourceStep],
     selected: HashSet<String>,
 ) -> Result<HashSet<String>, String> {
     if selected.is_empty() {
         return Err("run-retry-invalid: Run has no failed or selected steps to retry".into());
     }
-    let policy: Value = serde_json::from_str(policy).map_err(db::json_error)?;
-    let edges = policy
-        .pointer("/definition/edges")
-        .and_then(Value::as_array);
     let mut children = HashMap::<String, Vec<String>>::new();
-    if let Some(edges) = edges {
-        for edge in edges {
-            if let (Some(source), Some(target)) = (
-                edge.get("sourceNodeId").and_then(Value::as_str),
-                edge.get("targetNodeId").and_then(Value::as_str),
-            ) {
-                children
-                    .entry(source.to_owned())
-                    .or_default()
-                    .push(target.to_owned());
-            }
+    for step in steps {
+        let dependencies: Vec<String> =
+            serde_json::from_str(&step.depends_on).map_err(db::json_error)?;
+        for dependency in dependencies {
+            children
+                .entry(dependency)
+                .or_default()
+                .push(step.node_id.clone());
         }
-    } else if steps.len() > 1 {
-        return Err("run-retry-invalid: Run has no dependency graph for selective retry".into());
     }
     let mut affected = selected;
     let mut queue = affected.iter().cloned().collect::<VecDeque<_>>();

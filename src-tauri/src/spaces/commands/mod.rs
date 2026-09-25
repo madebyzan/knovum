@@ -1,5 +1,4 @@
 pub(crate) mod catalog;
-pub(crate) mod grounded;
 mod permanent_deletion;
 pub(crate) mod relations;
 pub(crate) mod retrieval;

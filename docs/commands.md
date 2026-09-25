@@ -38,7 +38,6 @@ Space persistence is entirely Rust-owned. Reads and writes cross typed Rust comm
 - `plugin:spaces|load_canvas_view_state` and `plugin:spaces|save_canvas_view_state` — persist only the disposable camera;
 - `plugin:spaces|import_structure_clipboard` — validate and commit a remapped structure subtree, content and internal relations as one mutation;
 - `plugin:spaces|index_knowledge` — index current knowledge for a Space or a selected set of nodes;
-- `plugin:spaces|answer_grounded_question` — run one grounded answer over the hybrid retrieval result and stream its completion;
 - `plugin:spaces|move_structure_selection` — move explicit Structure roots, content and affected relations between two revision-checked Spaces atomically;
 - `plugin:spaces|list_recently_deleted_structure`, `plugin:spaces|restore_deleted_structure` and `plugin:spaces|permanently_delete_structure` — list, restore or purge deletion batches and selected structure roots while preserving subtree identity and retained-reference rules;
 - `plugin:spaces|delete_space_permanently` — require an archived user Space, collect all owned asset paths and cascade-delete the Space atomically;
@@ -49,13 +48,11 @@ Agent artifact commands never accept an app-owned absolute source path from the 
 ## Governed execution commands
 
 - `plugin:spaces|list_space_actions` projects the single versioned Action catalog; Action execution is internal to Assistant, Workflow and MCP adapters rather than a second renderer dispatcher.
-- Workflow commands save one optimistic-revision draft, compile/preflight it, publish immutable versions, instantiate built-in templates, copy personal templates with their fixed-version subworkflow closure, and start whole-flow or isolated selected-step Runs.
-- External conversation commands start one explicit ACP runtime session, expose and update only its actual ACP mode/configuration options, send additional turns with explicitly selected attachments only while that exact session remains connected, list durable history and close the session without silent reconnection.
-- Run commands list Runs, steps, per-item batch facts and ordered events; request pause/resume/cancel; continue a persisted debug breakpoint; provide human input/review; reconcile unknown external outcomes; retry selected steps into a new Run; and produce a content-redacted diagnostic bundle.
+- Workflow commands save and revise personal workflows captured from canvas derivations, start a selected personal or built-in workflow, and inspect its Run.
+- External conversation commands start one explicit ACP runtime session, send additional turns with explicitly selected attachments only while that exact session remains connected, list durable history and close the session without silent reconnection.
+- Run commands list Runs, steps and ordered events; request pause/resume/cancel; resolve a resource review; reconcile unknown external outcomes; retry failed workflow steps into a new Run; and produce a content-redacted diagnostic bundle.
 - Assistant commands own conversations, branching, archive/search/export and durable tasks. Closing a view does not own task lifetime.
-- Automation commands own schedule preview, persisted triggers, occurrences, explicit renewal and enable/disable. Import never enables a trigger or restores its grant.
-- External-tool commands test a connection without persistence, save a reviewed schema fingerprint, disable a binding, or delete it only when no Workflow definition references it.
-- The Space MCP surface composes independent read, Action, Workflow and Run routers. Mutations still enter SpaceAction authorization; Run control additionally requires the same external principal that created the Run.
+- The Space MCP surface exposes explicit read, Action and Run routes. Mutations enter SpaceAction authorization; Run control additionally requires the same external principal that created the Run.
 - `plugin:spaces|decide_external_agent_permission` resolves one actual ACP permission request using only an option advertised by that request; absence of a decision is cancellation, never implicit approval.
 
 Saved Website networking is Rust-owned: the crate-level web capture module performs HTTP fetching and returns a neutral document/image result; `plugin:spaces|fetch_webpage` maps it into a Space response and persists direct images. `plugin:spaces|cache_web_asset` persists optional favicon/preview-image URLs discovered inside a saved document.

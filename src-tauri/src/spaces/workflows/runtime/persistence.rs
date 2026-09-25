@@ -12,7 +12,6 @@ pub(super) struct StepPlan<'a> {
     pub edges: &'a [WorkflowEdge],
     pub order: &'a [String],
     pub input: &'a Value,
-    pub breakpoint_node_ids: &'a [String],
 }
 
 pub(super) fn validate_input_budget(input: &Value, max_bytes: u64) -> Result<(), String> {
@@ -41,19 +40,15 @@ pub(super) async fn insert_steps(
             .get(node_id.as_str())
             .cloned()
             .unwrap_or_default();
-        let breakpoint = plan
-            .breakpoint_node_ids
-            .iter()
-            .any(|candidate| candidate == node_id);
-        let state = match (depends_on.is_empty(), breakpoint) {
-            (true, true) => "paused",
-            (true, false) => "ready",
-            (false, _) => "pending",
+        let state = if depends_on.is_empty() {
+            "ready"
+        } else {
+            "pending"
         };
         sqlx::query(
             "INSERT INTO spaces_run_steps(id,run_id,definition_node_id,instance_path,node_kind,
-             depends_on,configuration,state,state_version,resolved_input,wait_reason,created_at,updated_at)
-             VALUES($1,$2,$3,$4,$5,$6,$7,$8,0,$9,$10,$11,$11)",
+             depends_on,configuration,state,state_version,resolved_input,created_at,updated_at)
+             VALUES($1,$2,$3,$4,$5,$6,$7,$8,0,$9,$10,$10)",
         )
         .bind(uuid::Uuid::new_v4().to_string())
         .bind(run_id)
@@ -64,51 +59,10 @@ pub(super) async fn insert_steps(
         .bind(serde_json::to_string(node).map_err(db::json_error)?)
         .bind(state)
         .bind(serde_json::to_string(plan.input).map_err(db::json_error)?)
-        .bind(breakpoint.then_some("debug_breakpoint"))
         .bind(now)
         .execute(&mut **tx)
         .await
         .map_err(db::sql_error)?;
-    }
-    Ok(())
-}
-
-pub(super) async fn pause_at_initial_breakpoint(
-    tx: &mut Transaction<'_, Sqlite>,
-    run_id: &str,
-    now: i64,
-) -> Result<(), String> {
-    let steps = sqlx::query_scalar::<_, String>(
-        "SELECT id FROM spaces_run_steps WHERE run_id=$1 AND state='paused'
-         AND wait_reason='debug_breakpoint'",
-    )
-    .bind(run_id)
-    .fetch_all(&mut **tx)
-    .await
-    .map_err(db::sql_error)?;
-    if steps.is_empty() {
-        return Ok(());
-    }
-    sqlx::query(
-        "UPDATE spaces_runs SET state='paused',wait_reason='debug_breakpoint',
-         state_version=state_version+1,updated_at=$1 WHERE id=$2",
-    )
-    .bind(now)
-    .bind(run_id)
-    .execute(&mut **tx)
-    .await
-    .map_err(db::sql_error)?;
-    for step_id in steps {
-        crate::spaces::runs::append_event(
-            tx,
-            run_id,
-            Some(&step_id),
-            None,
-            crate::spaces::runs::RunEventKind::DebugBreakpointReached,
-            &serde_json::json!({}),
-            now,
-        )
-        .await?;
     }
     Ok(())
 }

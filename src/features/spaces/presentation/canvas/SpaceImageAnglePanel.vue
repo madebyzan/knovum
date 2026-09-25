@@ -15,11 +15,11 @@ import SpaceImageRangeSlider from "./SpaceImageRangeSlider.vue";
 
 defineProps<{
   path: string;
-  revision?: string;
+  revision?: string | undefined;
   edit: ImageEdit;
   busy: boolean;
   availability: ImageActionAvailability;
-  help?: { label: string; actionLabel?: string };
+  help?: { label: string; actionLabel?: string | undefined } | undefined;
 }>();
 const emit = defineEmits<{ cancel: []; apply: [operation: ImageOperation]; openSettings: [] }>();
 const { t } = useI18n();

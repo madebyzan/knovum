@@ -77,7 +77,6 @@ pub async fn start_tool_call(
         .map(|value| serde_json::from_str(&value).map_err(db::json_error))
         .transpose()?;
     Ok(ToolCallRecord {
-        resumed: stored_id != id,
         id: stored_id,
         result,
     })

@@ -42,11 +42,25 @@ impl ImageOperation {
     }
 
     pub fn view_prompt(&self) -> Option<String> {
-        let Self::MultiAngle { mode, yaw, pitch, zoom } = self else {
+        let Self::MultiAngle {
+            mode,
+            yaw,
+            pitch,
+            zoom,
+        } = self
+        else {
             return None;
         };
-        let horizontal = if *yaw >= 0 { "clockwise" } else { "counterclockwise" };
-        let vertical = if *pitch >= 0 { "upward from" } else { "downward from" };
+        let horizontal = if *yaw >= 0 {
+            "clockwise"
+        } else {
+            "counterclockwise"
+        };
+        let vertical = if *pitch >= 0 {
+            "upward from"
+        } else {
+            "downward from"
+        };
         let orientation = match mode {
             ImageViewMode::Subject => format!(
                 "Rotate the subject {} degrees {horizontal} around its vertical axis and tilt it {} degrees {vertical} its original orientation while the camera remains fixed.",
@@ -69,7 +83,12 @@ impl ImageOperation {
 
     fn view_key(&self) -> String {
         match self {
-            Self::MultiAngle { mode, yaw, pitch, zoom } => {
+            Self::MultiAngle {
+                mode,
+                yaw,
+                pitch,
+                zoom,
+            } => {
                 let mode = match mode {
                     ImageViewMode::Subject => "subject",
                     ImageViewMode::Camera => "camera",

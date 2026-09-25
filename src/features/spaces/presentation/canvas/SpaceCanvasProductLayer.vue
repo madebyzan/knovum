@@ -4,10 +4,10 @@ import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
+import { canvasChromeMetrics } from "../../canvas/canvas-chrome-metrics";
+import { isCanvasNodeConnectable } from "../../canvas/canvas-node-interaction";
 import { useCanvasToolStore } from "../../canvas/canvas-tool-store";
 import { useCanvasEditorSession, useCanvasSelectionProjection } from "../../canvas/editor-session";
-import { canvasChromeMetrics } from "../../canvas/konva/presentation/canvas-chrome-metrics";
-import { isCanvasNodeConnectable } from "../../canvas/konva/scene/canvas-node-interaction";
 import { useNodeOperationGate } from "../../canvas/node-operation-gate";
 import { useImageEditSession } from "../../image-editing/image-edit-session";
 import { useSelectionDerivations } from "../../knowledge-derivations/selection/use-selection-derivations";
@@ -24,6 +24,7 @@ import SpaceCanvasSelectionAnchor from "./SpaceCanvasSelectionAnchor.vue";
 import SpaceCanvasSelectionBar from "./SpaceCanvasSelectionBar.vue";
 import SpaceCanvasToolbar from "./SpaceCanvasToolbar.vue";
 import SpaceCanvasViewControls from "./SpaceCanvasViewControls.vue";
+import SpaceCanvasWorkflowPanel from "./SpaceCanvasWorkflowPanel.vue";
 
 defineProps<{
   canvasToViewportPoint(point: { x: number; y: number }): { x: number; y: number };
@@ -47,6 +48,7 @@ const selectionSurfaceKind = computed(() => {
   return tool ? "compact-editor" : "actions";
 });
 const showSelectionActions = computed(() => {
+  if (store.inspectorMode === "workflow" || store.inspectorMode === "workflow-use") return false;
   const operation = nodeOperations.active.value;
   return !operation || operation.kind === "image-edit" || operation.kind === "image-comment";
 });
@@ -134,6 +136,11 @@ const selectionBarGap = computed(() => {
         @invoke-derivation="derivations.run"
       />
     </SpaceCanvasSelectionAnchor>
+    <SpaceCanvasWorkflowPanel
+      v-if="store.inspectorMode === 'workflow' || store.inspectorMode === 'workflow-use'"
+      :canvas-to-viewport-point="canvasToViewportPoint"
+      :safe-area="canvasChromeInsets"
+    />
     <SpaceCanvasFeedback
       :canvas-to-viewport-point="canvasToViewportPoint"
       :captures="captures"

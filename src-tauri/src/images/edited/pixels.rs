@@ -2,10 +2,10 @@ use image::{Rgba, RgbaImage};
 
 use super::{
     contract::ImageEdit,
+    detail::apply_detail,
     eraser::EraserIndex,
     geometry::{crop_contains, RenderGeometry},
     glow::apply_glow,
-    detail::apply_detail,
     tone::{to_byte, ToneAdjuster},
 };
 
@@ -19,16 +19,33 @@ pub(super) fn render(source: &RgbaImage, edit: &ImageEdit) -> Result<RgbaImage, 
             let Some((source_x, source_y)) = geometry.source_point(x, y) else {
                 continue;
             };
-            if !crop_contains(&edit.crop, source_x, source_y, source.width(), source.height()) {
+            if !crop_contains(
+                &edit.crop,
+                source_x,
+                source_y,
+                source.width(),
+                source.height(),
+            ) {
                 continue;
             }
             let mut pixel = sample_bilinear(source, source_x, source_y);
             pixel[3] = to_byte(f64::from(pixel[3]) * eraser.opacity_at(source_x, source_y));
-            tone.apply(&mut pixel, x, y, geometry.output_width, geometry.output_height);
+            tone.apply(
+                &mut pixel,
+                x,
+                y,
+                geometry.output_width,
+                geometry.output_height,
+            );
             output.put_pixel(x, y, pixel);
         }
     }
-    apply_detail(&mut output, edit.adjustments.sharpness, edit.adjustments.clarity, edit.adjustments.grain);
+    apply_detail(
+        &mut output,
+        edit.adjustments.sharpness,
+        edit.adjustments.clarity,
+        edit.adjustments.grain,
+    );
     apply_glow(&mut output, edit.adjustments.glow);
     Ok(output)
 }

@@ -30,16 +30,20 @@ pub async fn restore<R: Runtime>(
     insert_scenes(&mut tx, &request).await?;
     validate_nodes(&mut tx, &request).await?;
     derivations::insert(&mut tx, &request).await?;
-    workflows::insert(&mut tx, &request).await?;
-    external_tools::insert(&mut tx, &request).await?;
     runs::insert(&mut tx, &request).await?;
-    external_conversations::insert(&mut tx, &request).await?;
-    automations::insert(&mut tx, &request).await?;
     assistant::insert(&mut tx, &request).await?;
+    external_conversations::insert(&mut tx, &request).await?;
     knowledge::insert_provenance(&mut tx, &request).await?;
     content::insert_chunks(&mut tx, &request).await?;
-    content::insert_threads(&mut tx, &request).await?;
-    content::insert_messages(&mut tx, &request).await?;
+    for message in &request.assistant_messages {
+        let citations = serde_json::Value::Array(message.content.citations.clone());
+        crate::spaces::knowledge::grounding::validate_assistant_citations(
+            &mut tx,
+            &request.space.id,
+            &citations,
+        )
+        .await?;
+    }
     knowledge::insert_events(&mut tx, &request).await?;
     tx.commit().await.map_err(db::sql_error)
 }
@@ -61,17 +65,14 @@ async fn insert_structure(
 }
 
 mod assistant;
-mod automations;
 mod content;
 mod derivations;
 mod derived_chunks;
 mod external_conversations;
-mod external_tools;
 mod knowledge;
 mod runs;
 mod scenes;
 mod validation;
-mod workflows;
 use scenes::insert_scenes;
 
 async fn insert_space(

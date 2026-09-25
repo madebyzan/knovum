@@ -35,7 +35,12 @@ pub(super) async fn reserve(
         return Ok(());
     }
     revision::apply(&mut data)?;
-    insert_output(app, space_id, run_id, node_id, kind, data).await
+    let sources = inputs
+        .nodes
+        .iter()
+        .map(|node| node.id.clone())
+        .collect::<Vec<_>>();
+    insert_output(app, space_id, run_id, node_id, kind, data, &sources).await
 }
 
 fn output_data(
@@ -102,18 +107,25 @@ async fn insert_output(
     node_id: String,
     kind: &str,
     data: Value,
+    sources: &[String],
 ) -> Result<(), String> {
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
     let (mut snapshot, base) =
         structure::repository::load_in_transaction(&mut tx, space_id).await?;
     let before = structure::history::capture(&mut tx, space_id, &snapshot).await?;
-    let index = snapshot.structure.len();
+    let (x, y) = structure::place_new_content(
+        &snapshot.structure,
+        &snapshot.layouts,
+        sources,
+        320.0,
+        220.0,
+    )?;
     let node = InsertNode {
         id: node_id,
         kind: kind.into(),
-        initial_x: 80.0 + (index % 6) as f64 * 360.0,
-        initial_y: 80.0 + (index / 6) as f64 * 260.0,
+        initial_x: x,
+        initial_y: y,
         width: 320.0,
         height: 220.0,
         size_authority: SizeAuthority::Content,

@@ -1,16 +1,12 @@
-import { createStructureIndex, effectiveOperationRoots } from "../../model/structure/structure-index";
+import { createStructureIndex } from "../../model/structure/structure-index";
 import { canvasNodePlacements, createCanvasSelectionSnapshot } from "../document/canvas-selection-snapshot";
+import { currentSelectionRoots } from "../selection/selection-roots";
 import type { KonvaEditorPortOptions } from "./canvas-editor-port-options";
 
 export function createCanvasEditorSelection(options: KonvaEditorPortOptions) {
   function roots() {
     const index = createStructureIndex(options.snapshot().structure);
-    const contentStructureNodeIds = [...options.selectedNodeIds()].flatMap((nodeId) => {
-      const structureNodeId = index.nodeIdToStructureNodeId.get(nodeId);
-      return structureNodeId ? [structureNodeId] : [];
-    });
-    const selectedStructureNodeIds = [...options.selectedStructureNodeIds(), ...contentStructureNodeIds];
-    return effectiveOperationRoots(selectedStructureNodeIds, index);
+    return currentSelectionRoots(options.selectedNodeIds(), options.selectedStructureNodeIds(), index);
   }
 
   function placements() {

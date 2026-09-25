@@ -57,7 +57,7 @@ function textStyle(overlay: VideoTextOverlay) {
 function updateGeometry() {
   const element = video.value;
   const bounds = viewport.value?.getBoundingClientRect();
-  if (!element?.videoWidth || !element.videoHeight || !bounds?.width || !bounds.height) return;
+  if (!element || !bounds || !hasGeometry(element, bounds)) return;
   const quarterTurn = rotation.value === 90 || rotation.value === 270;
   const orientedWidth = quarterTurn ? element.videoHeight : element.videoWidth;
   const orientedHeight = quarterTurn ? element.videoWidth : element.videoHeight;
@@ -68,6 +68,10 @@ function updateGeometry() {
     videoWidth: element.videoWidth * scale,
     videoHeight: element.videoHeight * scale,
   };
+}
+
+function hasGeometry(element: HTMLVideoElement, bounds: DOMRect) {
+  return element.videoWidth > 0 && element.videoHeight > 0 && bounds.width > 0 && bounds.height > 0;
 }
 
 function onReady() {

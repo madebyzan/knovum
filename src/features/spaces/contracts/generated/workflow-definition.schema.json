@@ -104,35 +104,6 @@
             "id": {
               "type": "string"
             },
-            "expression": {
-              "type": "string"
-            },
-            "kind": {
-              "type": "string",
-              "const": "condition"
-            }
-          },
-          "required": ["kind", "id", "expression"]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "string"
-            },
-            "kind": {
-              "type": "string",
-              "const": "parallel"
-            }
-          },
-          "required": ["kind", "id"]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "string"
-            },
             "policy": {
               "$ref": "#/$defs/JoinPolicy"
             },
@@ -149,90 +120,6 @@
             "id": {
               "type": "string"
             },
-            "maxItems": {
-              "type": "integer",
-              "format": "uint32",
-              "minimum": 0
-            },
-            "parallelism": {
-              "type": "integer",
-              "format": "uint16",
-              "minimum": 0,
-              "maximum": 65535
-            },
-            "errorPolicy": {
-              "$ref": "#/$defs/ItemErrorPolicy"
-            },
-            "kind": {
-              "type": "string",
-              "const": "for_each"
-            }
-          },
-          "required": ["kind", "id", "maxItems", "parallelism", "errorPolicy"]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "string"
-            },
-            "maxIterations": {
-              "type": "integer",
-              "format": "uint16",
-              "minimum": 0,
-              "maximum": 65535
-            },
-            "stopExpression": {
-              "type": "string"
-            },
-            "kind": {
-              "type": "string",
-              "const": "iterate"
-            }
-          },
-          "required": ["kind", "id", "maxIterations", "stopExpression"]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "string"
-            },
-            "workflowId": {
-              "type": "string"
-            },
-            "version": {
-              "type": "integer",
-              "format": "uint32",
-              "minimum": 0
-            },
-            "kind": {
-              "type": "string",
-              "const": "subworkflow"
-            }
-          },
-          "required": ["kind", "id", "workflowId", "version"]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "string"
-            },
-            "schema": true,
-            "kind": {
-              "type": "string",
-              "const": "human_input"
-            }
-          },
-          "required": ["kind", "id", "schema"]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "string"
-            },
             "purpose": {
               "type": "string"
             },
@@ -242,94 +129,6 @@
             }
           },
           "required": ["kind", "id", "purpose"]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "string"
-            },
-            "durationSeconds": {
-              "type": "integer",
-              "format": "uint64",
-              "minimum": 0
-            },
-            "kind": {
-              "type": "string",
-              "const": "delay"
-            }
-          },
-          "required": ["kind", "id", "durationSeconds"]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "string"
-            },
-            "expression": {
-              "type": "string"
-            },
-            "kind": {
-              "type": "string",
-              "const": "data_transform"
-            }
-          },
-          "required": ["kind", "id", "expression"]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "string"
-            },
-            "bindingId": {
-              "type": "string"
-            },
-            "schemaFingerprint": {
-              "type": "string"
-            },
-            "kind": {
-              "type": "string",
-              "const": "external_tool"
-            }
-          },
-          "required": ["kind", "id", "bindingId", "schemaFingerprint"]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "string"
-            },
-            "runtimeId": {
-              "type": "string"
-            },
-            "kind": {
-              "type": "string",
-              "const": "delegate_task"
-            }
-          },
-          "required": ["kind", "id", "runtimeId"]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "string"
-            },
-            "mode": {
-              "$ref": "#/$defs/PublicationMode"
-            },
-            "destination": {
-              "type": ["string", "null"]
-            },
-            "kind": {
-              "type": "string",
-              "const": "publish"
-            }
-          },
-          "required": ["kind", "id", "mode"]
         }
       ]
     },
@@ -353,14 +152,6 @@
     "JoinPolicy": {
       "type": "string",
       "enum": ["all_succeeded", "active_branches", "collect_results"]
-    },
-    "ItemErrorPolicy": {
-      "type": "string",
-      "enum": ["stop", "collect_errors"]
-    },
-    "PublicationMode": {
-      "type": "string",
-      "enum": ["create_resource", "update_expected_revision", "export"]
     },
     "WorkflowEdge": {
       "type": "object",

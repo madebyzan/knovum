@@ -31,20 +31,29 @@ pub(super) fn apply_detail(output: &mut RgbaImage, sharpness: f64, clarity: f64,
             if let Some(row) = &next {
                 add_neighbor(row[x], &mut sum, &mut count);
             }
-            let luminance = 0.2126 * f64::from(center[0]) + 0.7152 * f64::from(center[1])
+            let luminance = 0.2126 * f64::from(center[0])
+                + 0.7152 * f64::from(center[1])
                 + 0.0722 * f64::from(center[2]);
             let neighbor_luminance = if count > 0.0 {
                 0.2126 * sum[0] / count + 0.7152 * sum[1] / count + 0.0722 * sum[2] / count
-            } else { luminance };
+            } else {
+                luminance
+            };
             let mid_weight = 1.0 - (luminance / 127.5 - 1.0).abs();
-            let clarity_shift = (luminance - neighbor_luminance) * clarity / 100.0 * 0.8 * mid_weight;
+            let clarity_shift =
+                (luminance - neighbor_luminance) * clarity / 100.0 * 0.8 * mid_weight;
             let hash = (x as u32).wrapping_mul(73_856_093) ^ y.wrapping_mul(19_349_663);
             let grain_shift = (f64::from(hash & 255) / 255.0 - 0.5) * grain / 100.0 * 38.0;
             let pixel = output.get_pixel_mut(x as u32, y);
             for channel in 0..3 {
                 let original = f64::from(center[channel]);
-                let mean = if count > 0.0 { sum[channel] / count } else { original };
-                pixel[channel] = to_byte(original + strength * (original - mean) + clarity_shift + grain_shift);
+                let mean = if count > 0.0 {
+                    sum[channel] / count
+                } else {
+                    original
+                };
+                pixel[channel] =
+                    to_byte(original + strength * (original - mean) + clarity_shift + grain_shift);
             }
         }
         if let Some(row) = next {
@@ -55,7 +64,9 @@ pub(super) fn apply_detail(output: &mut RgbaImage, sharpness: f64, clarity: f64,
 }
 
 fn read_row(image: &RgbaImage, y: u32) -> Vec<[u8; 4]> {
-    (0..image.width()).map(|x| image.get_pixel(x, y).0).collect()
+    (0..image.width())
+        .map(|x| image.get_pixel(x, y).0)
+        .collect()
 }
 
 fn add_neighbor(pixel: [u8; 4], sum: &mut [f64; 3], count: &mut f64) {

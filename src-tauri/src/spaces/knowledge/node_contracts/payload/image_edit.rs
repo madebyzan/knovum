@@ -65,7 +65,11 @@ pub(super) fn validate(value: Option<&Value>) -> Result<(), String> {
         number(
             adjustments,
             key,
-            if ["sharpness", "clarity", "grain", "softLight", "glow"].contains(&key) { 0.0 } else { -100.0 },
+            if ["sharpness", "clarity", "grain", "softLight", "glow"].contains(&key) {
+                0.0
+            } else {
+                -100.0
+            },
             100.0,
             "imageEdit.adjustments",
         )?;

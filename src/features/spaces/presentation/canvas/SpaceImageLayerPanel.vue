@@ -38,13 +38,13 @@ watch(
 );
 const busy = shallowRef(false);
 const availability = computed(() =>
-  imageActionAvailability(
-    Boolean(props.node.data.sourceRevision),
-    !nodeOperations.allows("derive"),
-    capability.isFetching.value ? undefined : capability.data.value,
-    capability.isError.value && !capability.isFetching.value,
-    busy.value,
-  ),
+  imageActionAvailability({
+    sourceReady: Boolean(props.node.data.sourceRevision),
+    editing: !nodeOperations.allows("derive"),
+    capability: capability.isFetching.value ? undefined : capability.data.value,
+    failed: capability.isError.value && !capability.isFetching.value,
+    busy: busy.value,
+  }),
 );
 const help = computed(() => imageActionHelp(availability.value, t));
 const canSubmit = computed(() => canRunAction(availability.value));

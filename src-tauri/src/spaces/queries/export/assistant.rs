@@ -8,7 +8,7 @@ pub(super) async fn rows(
     space_id: &str,
 ) -> Result<(Vec<Value>, Vec<Value>), String> {
     let conversations = sqlx::query(
-        "SELECT id,title,mode,archived_at,created_at,updated_at
+        "SELECT id,title,mode,active_branch_id,archived_at,created_at,updated_at
          FROM spaces_assistant_conversations WHERE space_id=$1 ORDER BY created_at,id",
     )
     .bind(space_id)
@@ -37,6 +37,7 @@ fn conversation(row: sqlx::sqlite::SqliteRow) -> Result<Value, String> {
         "id": row.try_get::<String, _>("id").map_err(db::sql_error)?,
         "title": row.try_get::<String, _>("title").map_err(db::sql_error)?,
         "mode": row.try_get::<String, _>("mode").map_err(db::sql_error)?,
+        "activeBranchId": row.try_get::<String, _>("active_branch_id").map_err(db::sql_error)?,
         "archivedAt": row.try_get::<Option<i64>, _>("archived_at").map_err(db::sql_error)?,
         "createdAt": row.try_get::<i64, _>("created_at").map_err(db::sql_error)?,
         "updatedAt": row.try_get::<i64, _>("updated_at").map_err(db::sql_error)?,

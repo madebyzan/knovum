@@ -9,6 +9,7 @@ mod deletion_transaction;
 mod edit_contract;
 mod geometry;
 pub(crate) mod history;
+mod placement;
 mod planner;
 mod planner_alignment;
 mod planner_arrangement;
@@ -33,7 +34,8 @@ pub(crate) use contract::{
     LocalTransform, Point, RelationColor, RelationStyle, Size, SizeAuthority, StructureLayout,
     StructureNode,
 };
-pub(crate) use edit_contract::ExecuteSpaceEditRequest;
+pub(crate) use edit_contract::{ExecuteSpaceEditRequest, SpaceEditSnapshotResponse};
+pub(crate) use placement::place_new_content;
 pub(crate) use repository::initialize_empty_in_transaction;
 pub(crate) use validation::{validate_content_coverage, validate_space_snapshot};
 

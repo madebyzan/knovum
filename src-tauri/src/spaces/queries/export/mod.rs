@@ -8,15 +8,12 @@ use super::super::{
 };
 
 mod assistant;
-mod automations;
 mod derivations;
 mod external_conversations;
-mod external_tools;
 mod knowledge_rows;
 mod package_assets;
 mod rows;
 mod runs;
-mod workflows;
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -39,14 +36,8 @@ pub async fn collect_space_package_snapshot<R: Runtime>(
     let relations = rows::relations(&mut tx, &space_id).await?;
     let derivations = derivations::rows(&mut tx, &space_id).await?;
     reject_active_runs(&mut tx, &space_id).await?;
-    let workflow_drafts = workflows::drafts(&mut tx, &space_id).await?;
-    let workflow_versions = workflows::versions(&mut tx, &space_id).await?;
-    let (runs, run_steps, run_batch_items, run_attempts, run_events) =
-        runs::rows(&mut tx, &space_id).await?;
-    let (automation_triggers, automation_occurrences) =
-        automations::rows(&mut tx, &space_id).await?;
-    let external_tool_bindings = external_tools::rows(&mut tx, &space_id).await?;
-    let (external_agent_conversations, external_agent_turns, external_agent_messages) =
+    let (runs, run_steps, run_attempts, run_events) = runs::rows(&mut tx, &space_id).await?;
+    let (external_agent_conversations, external_agent_turns) =
         external_conversations::rows(&mut tx, &space_id).await?;
     let (assistant_conversations, assistant_messages) = assistant::rows(&mut tx, &space_id).await?;
     let mut assets = package_assets::PackageAssets::default();
@@ -55,8 +46,6 @@ pub async fn collect_space_package_snapshot<R: Runtime>(
         crate::spaces::structure::repository::load_in_transaction(&mut tx, &space_id).await?;
     rows::package_layout_assets(&mut structure.layouts, &mut assets)?;
     let chunks = rows::chunks(&mut tx, &space_id).await?;
-    let ai_threads = rows::threads(&mut tx, &space_id).await?;
-    let ai_messages = rows::messages(&mut tx, &space_id).await?;
     let object_types = knowledge_rows::object_types(&mut tx, &space_id).await?;
     let provenance = knowledge_rows::provenance(&mut tx, &space_id).await?;
     let mut entities = std::collections::HashSet::new();
@@ -88,24 +77,15 @@ pub async fn collect_space_package_snapshot<R: Runtime>(
         "scenes": scenes,
         "relations": relations,
         "derivations": derivations,
-        "workflowDrafts": workflow_drafts,
-        "workflowVersions": workflow_versions,
         "runs": runs,
         "runSteps": run_steps,
-        "runBatchItems": run_batch_items,
         "runAttempts": run_attempts,
         "runEvents": run_events,
-        "automationTriggers": automation_triggers,
-        "automationOccurrences": automation_occurrences,
-        "externalToolBindings": external_tool_bindings,
         "externalAgentConversations": external_agent_conversations,
         "externalAgentTurns": external_agent_turns,
-        "externalAgentMessages": external_agent_messages,
         "assistantConversations": assistant_conversations,
         "assistantMessages": assistant_messages,
         "chunks": chunks,
-        "aiThreads": ai_threads,
-        "aiMessages": ai_messages,
         "objectTypes": object_types,
         "provenance": provenance,
         "knowledgeEvents": knowledge_events,

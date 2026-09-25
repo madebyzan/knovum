@@ -6,16 +6,20 @@ import type { CanvasSurfaceEvents } from "./canvas-editor";
 import type { CanvasTool } from "./canvas-tool";
 import type { SpaceEditSnapshot } from "./space-edit-snapshot";
 
+export interface CanvasSceneInput {
+  editSnapshot: SpaceEditSnapshot;
+  nodes: readonly SpaceCanvasNode[];
+  relations: readonly SpaceRelation[];
+}
+
 export interface CanvasSurfaceProps {
   document: CanvasDocumentV1;
-  editSnapshot: SpaceEditSnapshot;
   events: CanvasSurfaceEvents;
   focusNodeIds: readonly string[];
   groupScopePath: readonly string[];
   interactionEnabled: boolean;
   tool: CanvasTool;
-  nodes: readonly SpaceCanvasNode[];
-  relations: readonly SpaceRelation[];
+  sceneInput: CanvasSceneInput;
 }
 
 export interface CanvasNodeContentSlotProps {

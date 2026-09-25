@@ -1,5 +1,5 @@
 import type { useSpaceStore } from "../../session/space-store";
-import { runWorkflowTemplate } from "../../workflows/template-client";
+import { startBuiltinWorkflow } from "../../workflows/run-builtin-workflow";
 import type { GroundedDocumentSource } from "../catalog/grounded-document";
 import type { VideoDraft } from "../video/generation";
 
@@ -12,7 +12,7 @@ export async function generateVideoFromSources(options: {
 }) {
   const spaceId = options.store.activeSpaceId;
   if (!spaceId) return;
-  return runWorkflowTemplate({
+  return startBuiltinWorkflow({
     spaceId,
     templateId: "video-production",
     inputNodeIds: options.sources.map(({ nodeId }) => nodeId),

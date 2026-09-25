@@ -9,23 +9,6 @@ mod dependencies;
 pub(super) use branches::skip_unselected_branches;
 pub(super) use dependencies::resolve_dependents;
 
-async fn run_has_breakpoint(
-    tx: &mut Transaction<'_, Sqlite>,
-    run_id: &str,
-    node_id: &str,
-) -> Result<bool, String> {
-    let policy: String = sqlx::query_scalar("SELECT policy_snapshot FROM spaces_runs WHERE id=$1")
-        .bind(run_id)
-        .fetch_one(&mut **tx)
-        .await
-        .map_err(db::sql_error)?;
-    let policy: Value = serde_json::from_str(&policy).map_err(db::json_error)?;
-    Ok(policy
-        .get("breakpointNodeIds")
-        .and_then(Value::as_array)
-        .is_some_and(|ids| ids.iter().any(|id| id.as_str() == Some(node_id))))
-}
-
 async fn dependency_facts(
     tx: &mut Transaction<'_, Sqlite>,
     run_id: &str,

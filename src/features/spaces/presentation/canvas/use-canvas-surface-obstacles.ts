@@ -1,9 +1,9 @@
 import { computed, shallowRef, watch } from "vue";
 
+import { canvasFrameBounds } from "../../canvas/canvas-snap-geometry";
 import type { CanvasDocumentV1 } from "../../canvas/contract/canvas-document";
 import type { CanvasRect } from "../../canvas/contract/canvas-editor-port";
 import { useCanvasEditorSession } from "../../canvas/editor-session";
-import { canvasFrameBounds } from "../../canvas/konva/interaction/canvas-snap-geometry";
 import { useSpaceStore } from "../../session/space-store";
 import type { SurfaceRect } from "./selection-surface-placement";
 

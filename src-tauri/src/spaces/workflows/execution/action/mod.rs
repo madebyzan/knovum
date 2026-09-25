@@ -1,14 +1,8 @@
-mod batch;
-pub(super) mod batch_items;
-
 use serde_json::{json, Value};
 use sqlx::SqlitePool;
 use tauri::AppHandle;
 
-use super::{
-    iteration,
-    shared::{completed, required_str, waiting},
-};
+use super::shared::{completed, required_str, waiting};
 use crate::spaces::{
     actions::{self, ActionInvocationOutcome, ActionInvocationRequest},
     runs::{AttemptClaim, StepOutcome, WaitReason},
@@ -16,7 +10,6 @@ use crate::spaces::{
 
 pub(super) async fn execute_run(
     app: &AppHandle,
-    pool: &SqlitePool,
     claim: &AttemptClaim,
     input: &Value,
 ) -> Result<StepOutcome, String> {
@@ -34,19 +27,6 @@ pub(super) async fn execute_run(
         inputs,
     )
     .await?;
-    let now = crate::clock::unix_time_millis()?;
-    let mut tx = crate::spaces::db::begin_write(pool).await?;
-    crate::spaces::automation::record_action_event(
-        &mut tx,
-        &claim.attempt_id,
-        &claim.home_space_id,
-        action_id,
-        &output,
-        Some(&claim.run_id),
-        now,
-    )
-    .await?;
-    tx.commit().await.map_err(crate::spaces::db::sql_error)?;
     completed(output)
 }
 
@@ -63,31 +43,16 @@ pub(super) async fn execute(
             "input": claim.resolved_input, "parameters": parameters,
         }));
     }
-    if let Some(items) = claim
-        .resolved_input
-        .get("foreachItems")
-        .and_then(Value::as_array)
-    {
-        return batch::execute(pool, claim, action_id, action_version, parameters, items).await;
-    }
-    if let Some(specification) = claim.resolved_input.get("iteration") {
-        return iteration::execute(
-            pool,
-            claim,
-            action_id,
-            action_version,
-            parameters,
-            specification,
-        )
-        .await;
-    }
     execute_invocation(
         pool,
         claim,
         action_id,
         action_version,
         parameters,
-        claim.resolved_input.clone(),
+        json!({
+            "inputs": &claim.resolved_input,
+            "targets": claim.policy_snapshot.get("targets"),
+        }),
     )
     .await
 }

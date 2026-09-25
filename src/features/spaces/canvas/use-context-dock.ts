@@ -1,8 +1,8 @@
 import { inject } from "vue";
 
 import { workspaceInspectorKey } from "../../../shared/contracts/workspace-inspector";
+import type { ConversationScope } from "../conversation/conversation-scope";
 import type { AskInspectorOptions, OpenSourceOptions } from "../inspector/inspector-actions";
-import type { GroundedScope } from "../knowledge/model/grounded-scope";
 import type { KnowledgePeekTarget } from "../knowledge/model/knowledge-peek-target";
 import { useSpaceStore } from "../session/space-store";
 import { useCanvasEditorSession } from "./editor-session";
@@ -28,7 +28,7 @@ export function useContextDock() {
     openInspect();
   }
 
-  function openAsk(scope?: GroundedScope, options: AskInspectorOptions = {}) {
+  function openAsk(scope?: ConversationScope, options: AskInspectorOptions = {}) {
     if (scope) store.requestAsk(scope, options);
     else store.setInspectorMode("ask");
     inspector?.open(DOCK_WIDTH.ask, "dock");
@@ -39,10 +39,28 @@ export function useContextDock() {
     inspector?.open(DOCK_WIDTH.source, "dock");
   }
 
+  function openWorkflowCapture(nodeIds: string[]) {
+    store.openWorkflowCapture(nodeIds);
+    inspector?.close();
+  }
+
+  function openWorkflowUse(nodeIds: string[]) {
+    store.openWorkflowUse(nodeIds);
+    inspector?.close();
+  }
+
   function closeDock() {
     if (store.inspectorMode === "source") store.closeSource();
     inspector?.close();
   }
 
-  return { openInspect, openKnowledgeHealth, openAsk, openSource, closeDock };
+  return {
+    openInspect,
+    openKnowledgeHealth,
+    openAsk,
+    openSource,
+    openWorkflowCapture,
+    openWorkflowUse,
+    closeDock,
+  };
 }

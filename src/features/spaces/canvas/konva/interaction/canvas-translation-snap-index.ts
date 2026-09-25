@@ -1,7 +1,7 @@
 import RBush from "rbush";
 
+import { canvasFrameBounds, type CanvasBounds } from "../../canvas-snap-geometry";
 import type { CanvasNodeFrame } from "../../contract/canvas-document";
-import { canvasFrameBounds, type CanvasBounds } from "./canvas-snap-geometry";
 
 export interface IndexedCanvasBounds extends CanvasBounds {
   maxX: number;

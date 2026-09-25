@@ -17,7 +17,7 @@ const props = defineProps<{
   crop: ImageCrop;
   sourceWidth: number;
   sourceHeight: number;
-  lockedAspect?: number;
+  lockedAspect?: number | undefined;
 }>();
 const emit = defineEmits<{
   update: [crop: ImageCrop];
@@ -38,7 +38,16 @@ function setPixels(axis: "width" | "height", event: Event) {
     return;
   }
   if (props.lockedAspect) {
-    emit("update", scaleCropToPixelSize(props.crop, props.sourceWidth, props.sourceHeight, axis, value));
+    emit(
+      "update",
+      scaleCropToPixelSize({
+        crop: props.crop,
+        sourceWidth: props.sourceWidth,
+        sourceHeight: props.sourceHeight,
+        axis,
+        pixels: value,
+      }),
+    );
     return;
   }
   emit(

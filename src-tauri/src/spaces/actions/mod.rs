@@ -4,6 +4,7 @@ use serde_json::Value;
 use crate::ai::contracts::{ExecutionCapability, RoutingPurpose};
 
 mod catalog;
+pub(crate) mod input_selection;
 mod invocation;
 
 #[cfg(test)]
@@ -21,9 +22,18 @@ pub struct SpaceActionDefinition {
     pub execution_capability: Option<ExecutionCapability>,
     pub routing_purpose: Option<RoutingPurpose>,
     pub input_roles: &'static [SpaceActionInputRole],
+    pub collection_input: Option<SpaceActionCollectionInput>,
     #[serde(serialize_with = "serialize_parameter_schema")]
     pub parameters_schema: ParameterSchemaFactory,
     pub output_contract: SpaceActionOutputContract,
+}
+
+#[derive(Clone, Copy, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SpaceActionCollectionInput {
+    pub kind: &'static str,
+    pub role: &'static str,
+    pub max_items: usize,
 }
 
 #[derive(Clone, Copy, Eq, PartialEq, Serialize)]
@@ -80,8 +90,6 @@ pub enum SpaceActionOutputContract {
     SpaceEditReceipt,
     Subtitle,
     Video,
-    WorkflowDraft,
-    WorkflowVersion,
 }
 
 impl SpaceActionOutputContract {
@@ -98,8 +106,6 @@ impl SpaceActionOutputContract {
             Self::SpaceEditReceipt => "space_edit_receipt",
             Self::Subtitle => "subtitle",
             Self::Video => "video",
-            Self::WorkflowDraft => "workflow_draft",
-            Self::WorkflowVersion => "workflow_version",
         }
     }
 }

@@ -9,7 +9,7 @@ use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
 use tauri::ipc::Channel;
 
-pub(crate) const PACKAGE_VERSION: u64 = 1;
+pub(crate) const PACKAGE_VERSION: u64 = 5;
 
 #[derive(Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]

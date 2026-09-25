@@ -6,23 +6,21 @@ use crate::spaces::db;
 pub(super) async fn rows(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
-) -> Result<(Vec<Value>, Vec<Value>, Vec<Value>, Vec<Value>, Vec<Value>), String> {
+) -> Result<(Vec<Value>, Vec<Value>, Vec<Value>, Vec<Value>), String> {
     let runs = sqlx::query("SELECT * FROM spaces_runs WHERE home_space_id=$1 AND completed_at IS NOT NULL ORDER BY created_at,id")
         .bind(space_id).fetch_all(&mut **tx).await.map_err(db::sql_error)?;
     let mut run_rows = Vec::with_capacity(runs.len());
     let mut steps = Vec::new();
     let mut attempts = Vec::new();
-    let mut batch_items = Vec::new();
     let mut events = Vec::new();
     for row in runs {
         let id: String = row.try_get("id").map_err(db::sql_error)?;
         run_rows.push(run(&row)?);
         steps.extend(step_rows(tx, &id).await?);
-        batch_items.extend(batch_item_rows(tx, &id).await?);
         attempts.extend(attempt_rows(tx, &id).await?);
         events.extend(event_rows(tx, &id).await?);
     }
-    Ok((run_rows, steps, batch_items, attempts, events))
+    Ok((run_rows, steps, attempts, events))
 }
 
 fn run(row: &sqlx::sqlite::SqliteRow) -> Result<Value, String> {
@@ -75,22 +73,6 @@ async fn attempt_rows(
         "externalTaskId": optional_text(row,"external_task_id")?, "checkpoint": optional_parsed(row,"checkpoint")?,
         "result": optional_parsed(row,"result")?, "errorCode": optional_text(row,"error_code")?,
         "startedAt": integer(row,"started_at")?, "finishedAt": optional_integer(row,"finished_at")?,
-    }))).collect()
-}
-
-async fn batch_item_rows(
-    tx: &mut Transaction<'_, Sqlite>,
-    run_id: &str,
-) -> Result<Vec<Value>, String> {
-    let rows = sqlx::query("SELECT * FROM spaces_run_batch_items WHERE latest_run_id=$1 ORDER BY definition_node_id,item_key")
-        .bind(run_id).fetch_all(&mut **tx).await.map_err(db::sql_error)?;
-    rows.iter().map(|row| Ok(json!({
-        "lineageRunId": text(row,"lineage_run_id")?, "definitionNodeId": text(row,"definition_node_id")?,
-        "itemKey": text(row,"item_key")?, "latestRunId": text(row,"latest_run_id")?,
-        "latestStepInstanceId": text(row,"latest_step_instance_id")?, "state": text(row,"state")?,
-        "attemptCount": integer(row,"attempt_count")?, "input": parsed(row,"input")?,
-        "output": optional_parsed(row,"output")?, "error": optional_text(row,"error")?,
-        "childRunId": optional_text(row,"child_run_id")?, "updatedAt": integer(row,"updated_at")?,
     }))).collect()
 }
 

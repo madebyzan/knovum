@@ -50,6 +50,7 @@ export function publicSpaceState(state: SpaceState) {
     globalFindOpen: state.globalFindOpen,
     askScopeRequest: state.askScopeRequest,
     inspectorMode: state.inspectorMode,
+    workflowCaptureSelection: state.workflowCaptureSelection,
     focusedEditorId: state.focusedEditorId,
     videoEditorNodeId: state.videoEditorNodeId,
     insertionPoint: state.insertionPoint,

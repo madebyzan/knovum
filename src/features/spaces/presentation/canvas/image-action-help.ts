@@ -3,7 +3,7 @@ import type { ImageActionAvailability, ImageActionReason } from "./image-action-
 type Translate = (key: string) => string;
 export interface ImageActionHelp {
   label: string;
-  actionLabel?: string;
+  actionLabel?: string | undefined;
 }
 
 const reasonKeys: Record<ImageActionReason, string> = {

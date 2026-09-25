@@ -1,6 +1,6 @@
 import type { ExecutionTarget } from "../../../../foundation/ai/ai-models";
 import type { useSpaceStore } from "../../session/space-store";
-import { runWorkflowTemplate } from "../../workflows/template-client";
+import { startBuiltinWorkflow } from "../../workflows/run-builtin-workflow";
 import type { GroundedDocumentSource } from "../catalog/grounded-document";
 import type { ImageAspectRatio } from "../visualization";
 
@@ -27,7 +27,7 @@ export async function createSocialContentPackage(context: {
   const spaceId = context.store.activeSpaceId;
   if (!spaceId) return;
   const { draft } = context;
-  return runWorkflowTemplate({
+  return startBuiltinWorkflow({
     spaceId,
     templateId: "social-content-package",
     inputNodeIds: context.sources.map(({ nodeId }) => nodeId),

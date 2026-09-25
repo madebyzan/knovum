@@ -13,7 +13,7 @@ function manifest() {
   const revision = data.knowledgeRevision as string;
   return {
     format: "knovum-space",
-    version: 1,
+    version: 5,
     exportedAt: 10,
     structureNodes: [{ id: "n", parentId: null, order: 0, locked: false, kind: "content", nodeId: "n" }],
     layouts: [
@@ -39,81 +39,71 @@ function manifest() {
     scenes: [],
     relations: [],
     derivations: [],
-    workflowDrafts: [],
-    workflowVersions: [],
     runs: [],
     runSteps: [],
-    runBatchItems: [],
     runAttempts: [],
     runEvents: [],
-    automationTriggers: [],
-    automationOccurrences: [],
-    externalToolBindings: [],
     externalAgentConversations: [],
     externalAgentTurns: [],
-    externalAgentMessages: [],
-    assistantConversations: [],
-    assistantMessages: [],
+    assistantConversations: [
+      { id: "t", title: "T", mode: "ask", activeBranchId: "t", archivedAt: null, createdAt: 1, updatedAt: 1 },
+    ],
+    assistantMessages: [
+      {
+        id: "m",
+        conversationId: "t",
+        branchId: "t",
+        parentMessageId: null,
+        role: "assistant",
+        createdAt: 1,
+        content: {
+          parts: [{ type: "text", text: "answer" }],
+          citations: [
+            {
+              index: 1,
+              state: "current",
+              chunkId: "node:n",
+              nodeId: "n",
+              nodeTitle: "N",
+              sourceRevision: revision,
+              locator: { sourceRevision: revision, location: { kind: "node" } },
+              quote: "N",
+            },
+            {
+              index: 2,
+              state: "detached",
+              sourceSpaceTitle: "Archive",
+              nodeTitle: "Old",
+              sourceRevision: "node1:old",
+              locator: { sourceRevision: "node1:old", location: { kind: "node" } },
+              quote: "historical",
+            },
+          ],
+        },
+      },
+    ],
     chunks: [],
     objectTypes: [],
     provenance: [],
     knowledgeEvents: [],
-    aiThreads: [
-      { id: "t", spaceId: "s", scope: "space", scopeNodeIds: [], title: "T", createdAt: 1, updatedAt: 1 },
-    ],
-    aiMessages: [
-      {
-        id: "m",
-        threadId: "t",
-        role: "assistant",
-        content: "answer",
-        createdAt: 1,
-        citations: [
-          {
-            index: 1,
-            state: "current",
-            chunkId: "node:n",
-            nodeId: "n",
-            nodeTitle: "N",
-            sourceRevision: revision,
-            locator: { sourceRevision: revision, location: { kind: "node" } },
-            quote: "N",
-          },
-          {
-            index: 2,
-            state: "detached",
-            sourceSpaceTitle: "Archive",
-            nodeTitle: "Old",
-            sourceRevision: "node1:old",
-            locator: { sourceRevision: "node1:old", location: { kind: "node" } },
-            quote: "historical",
-          },
-        ],
-      },
-    ],
   };
 }
 
 describe("Space package manifest parser", () => {
   it("accepts regenerated canonical citations and detached historical snapshots", () => {
     const parsed = parseSpacePackageManifest(JSON.stringify(manifest()));
-    expect(parsed.version).toBe(1);
-    expect(parsed.aiMessages[0]?.citations.map((citation) => citation.state)).toEqual([
-      "current",
-      "detached",
-    ]);
-  });
-
-  it("accepts All-Spaces threads with detached external citation snapshots", () => {
-    const value = manifest();
-    value.aiThreads[0]!.scope = "all-spaces";
-    expect(() => parseSpacePackageManifest(JSON.stringify(value))).not.toThrow();
+    expect(parsed.version).toBe(4);
+    expect(
+      parsed.assistantMessages[0]?.content.citations?.map(
+        (citation) => (citation as { state: string }).state,
+      ),
+    ).toEqual(["current", "detached"]);
   });
 
   it("rejects a canonical citation whose snapshot revision is stale", () => {
     const value = manifest();
-    value.aiMessages[0]!.citations[0]!.sourceRevision = "node1:stale";
-    value.aiMessages[0]!.citations[0]!.locator.sourceRevision = "node1:stale";
+    value.assistantMessages[0]!.content.citations[0]!.sourceRevision = "node1:stale";
+    value.assistantMessages[0]!.content.citations[0]!.locator.sourceRevision = "node1:stale";
     expect(() => parseSpacePackageManifest(JSON.stringify(value))).toThrow(/canonical citation revision/u);
   });
 

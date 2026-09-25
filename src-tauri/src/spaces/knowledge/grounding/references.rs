@@ -5,7 +5,7 @@ use sqlx::Row;
 
 use crate::spaces::db;
 
-/// Removes live scope membership and converts matching citations into immutable historical snapshots.
+/// Converts matching source citations into immutable historical snapshots.
 pub(in crate::spaces) async fn detach_nodes(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     space_id: &str,
@@ -14,23 +14,6 @@ pub(in crate::spaces) async fn detach_nodes(
     if node_ids.is_empty() {
         return Ok(());
     }
-    let node_ids_json = serde_json::to_string(node_ids).map_err(db::json_error)?;
-    sqlx::query(
-        "UPDATE spaces_ai_threads \
-         SET scope_node_ids=COALESCE(( \
-           SELECT json_group_array(s.value) FROM json_each(spaces_ai_threads.scope_node_ids) s \
-           WHERE NOT EXISTS (SELECT 1 FROM json_each($1) moved WHERE moved.value=s.value) \
-         ), '[]') \
-         WHERE space_id=$2 AND EXISTS ( \
-           SELECT 1 FROM json_each(spaces_ai_threads.scope_node_ids) s \
-           WHERE EXISTS (SELECT 1 FROM json_each($1) moved WHERE moved.value=s.value) \
-         )",
-    )
-    .bind(&node_ids_json)
-    .bind(space_id)
-    .execute(&mut **tx)
-    .await
-    .map_err(db::sql_error)?;
     detach_matching_citations(tx, space_id, "nodeId", node_ids).await
 }
 
@@ -58,9 +41,9 @@ async fn detach_matching_citations(
     };
     let ids_json = serde_json::to_string(ids).map_err(db::json_error)?;
     let rows = sqlx::query(
-        "SELECT m.id,m.citations FROM spaces_ai_messages m \
-         JOIN spaces_ai_threads t ON t.id=m.thread_id WHERE t.space_id=$1 AND EXISTS ( \
-           SELECT 1 FROM json_each(m.citations) c \
+        "SELECT m.id,m.content FROM spaces_assistant_messages m \
+         JOIN spaces_assistant_conversations t ON t.id=m.conversation_id WHERE t.space_id=$1 AND EXISTS ( \
+           SELECT 1 FROM json_each(m.content,'$.citations') c \
            WHERE COALESCE(json_extract(c.value,'$.state'),'current') <> 'detached' \
              AND json_extract(c.value,$2) IN (SELECT value FROM json_each($3)) \
          )",
@@ -74,9 +57,10 @@ async fn detach_matching_citations(
     let ids = ids.iter().map(String::as_str).collect::<HashSet<_>>();
     for row in rows {
         let id: String = row.try_get("id").map_err(db::sql_error)?;
-        let raw: String = row.try_get("citations").map_err(db::sql_error)?;
-        let mut citations: Value = serde_json::from_str(&raw).map_err(db::json_error)?;
-        let Some(citation_records) = citations.as_array_mut() else {
+        let raw: String = row.try_get("content").map_err(db::sql_error)?;
+        let mut content: Value = serde_json::from_str(&raw).map_err(db::json_error)?;
+        let Some(citation_records) = content.get_mut("citations").and_then(Value::as_array_mut)
+        else {
             continue;
         };
         let mut changed = false;
@@ -101,8 +85,8 @@ async fn detach_matching_citations(
         if !changed {
             continue;
         }
-        sqlx::query("UPDATE spaces_ai_messages SET citations=$1 WHERE id=$2")
-            .bind(serde_json::to_string(&citations).map_err(db::json_error)?)
+        sqlx::query("UPDATE spaces_assistant_messages SET content=$1 WHERE id=$2")
+            .bind(serde_json::to_string(&content).map_err(db::json_error)?)
             .bind(id)
             .execute(&mut **tx)
             .await

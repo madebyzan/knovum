@@ -55,20 +55,6 @@ pub(super) struct SpaceEditParameters {
 
 #[derive(Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub(super) struct WorkflowDraftParameters {
-    draft: Value,
-}
-
-#[derive(Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub(super) struct WorkflowPublicationParameters {
-    #[schemars(length(min = 1))]
-    workflow_id: String,
-    expected_revision: u64,
-}
-
-#[derive(Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub(super) struct SearchParameters {
     #[schemars(length(min = 1))]
     query: String,
@@ -157,8 +143,6 @@ schema!(purpose, PurposeParameters);
 schema!(note, NoteParameters);
 schema!(knowledge_changes, KnowledgeChangesParameters);
 schema!(space_edit, SpaceEditParameters);
-schema!(workflow_draft, WorkflowDraftParameters);
-schema!(workflow_publication, WorkflowPublicationParameters);
 schema!(search, SearchParameters);
 schema!(node, NodeParameters);
 schema!(question, QuestionParameters);

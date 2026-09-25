@@ -1,23 +1,17 @@
 import { z } from "zod";
 
-import { groundedMessageSchema } from "../knowledge/model/grounded-message";
-import { groundedThreadSchema } from "../knowledge/model/grounded-thread";
 import { packageAssistantConversationSchema, packageAssistantMessageSchema } from "./assistant-schema";
-import { packageAutomationOccurrenceSchema, packageAutomationTriggerSchema } from "./automation-schema";
 import { SPACE_PACKAGE_FORMAT, SPACE_PACKAGE_VERSION } from "./contract";
 import { nodeSchema, packageTimeSchema, relationSchema, sceneSchema, spaceSchema } from "./core-schema";
 import { derivationSchema } from "./derivation-schema";
 import {
   packageExternalAgentConversationSchema,
-  packageExternalAgentMessageSchema,
   packageExternalAgentTurnSchema,
 } from "./external-conversation-schema";
-import { packageExternalToolBindingSchema } from "./external-tool-schema";
 import { eventSchema, objectTypeSchema, provenanceSchema } from "./knowledge-contract-schema";
 import { chunkSchema } from "./knowledge-schema";
 import {
   packageRunAttemptSchema,
-  packageRunBatchItemSchema,
   packageRunEventSchema,
   packageRunSchema,
   packageRunStepSchema,
@@ -27,7 +21,6 @@ import {
   packageRelationStylesSchema,
   packageStructureNodesSchema,
 } from "./structure-schema";
-import { workflowDraftSchema, workflowVersionSchema } from "./workflow-schema";
 
 export const manifestSchema = z
   .object({
@@ -42,24 +35,15 @@ export const manifestSchema = z
     scenes: z.array(sceneSchema).max(10_000),
     relations: z.array(relationSchema).max(200_000),
     derivations: z.array(derivationSchema).max(100_000),
-    workflowDrafts: z.array(workflowDraftSchema).max(10_000),
-    workflowVersions: z.array(workflowVersionSchema).max(100_000),
     runs: z.array(packageRunSchema).max(100_000),
     runSteps: z.array(packageRunStepSchema).max(1_000_000),
-    runBatchItems: z.array(packageRunBatchItemSchema).max(2_000_000),
     runAttempts: z.array(packageRunAttemptSchema).max(2_000_000),
     runEvents: z.array(packageRunEventSchema).max(5_000_000),
-    automationTriggers: z.array(packageAutomationTriggerSchema).max(100_000),
-    automationOccurrences: z.array(packageAutomationOccurrenceSchema).max(1_000_000),
-    externalToolBindings: z.array(packageExternalToolBindingSchema).max(100_000),
     externalAgentConversations: z.array(packageExternalAgentConversationSchema).max(100_000),
     externalAgentTurns: z.array(packageExternalAgentTurnSchema).max(1_000_000),
-    externalAgentMessages: z.array(packageExternalAgentMessageSchema).max(2_000_000),
     assistantConversations: z.array(packageAssistantConversationSchema).max(100_000),
     assistantMessages: z.array(packageAssistantMessageSchema).max(1_000_000),
     chunks: z.array(chunkSchema).max(1_000_000),
-    aiThreads: z.array(groundedThreadSchema).max(100_000),
-    aiMessages: z.array(groundedMessageSchema).max(1_000_000),
     objectTypes: z.array(objectTypeSchema).max(10_000),
     provenance: z.array(provenanceSchema).max(1_000_000),
     knowledgeEvents: z.array(eventSchema).max(2_000_000),

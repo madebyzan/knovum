@@ -26,13 +26,23 @@ async fn recover_record(
     record: repository::RecoverableTask,
 ) -> Result<(), String> {
     if record.profile_version != super::ASSISTANT_PROFILE_VERSION {
-        completion::fail(pool, &record.run_id).await;
+        completion::fail(
+            pool,
+            &record.run_id,
+            "Assistant profile changed during recovery",
+        )
+        .await?;
         return Ok(());
     }
-    let catalog = tools::project(pool, &record.space_id, record.mode).await?;
+    let catalog = tools::project(record.mode)?;
     if catalog.digest != record.catalog_digest || catalog.digest != record.checkpoint.catalog_digest
     {
-        completion::fail(pool, &record.run_id).await;
+        completion::fail(
+            pool,
+            &record.run_id,
+            "Assistant action catalog changed during recovery",
+        )
+        .await?;
         return Ok(());
     }
     let capability = if record.requires_vision {
@@ -97,10 +107,15 @@ async fn recover_record(
             Ok(output) => {
                 if let Err(error) = completion::complete(pool, &ids, output).await {
                     log::error!("Recovered Assistant completion failed: {error}");
+                    if let Err(write_error) = completion::fail(pool, &ids.run_id, &error).await {
+                        log::error!("Recovered Assistant failure recording failed: {write_error}");
+                    }
                 }
             }
             Err(error) => {
-                completion::fail(pool, &ids.run_id).await;
+                if let Err(write_error) = completion::fail(pool, &ids.run_id, &error).await {
+                    log::error!("Recovered Assistant failure recording failed: {write_error}");
+                }
                 log::error!("Recovered Assistant task failed: {error}");
             }
         }

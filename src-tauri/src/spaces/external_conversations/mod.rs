@@ -4,9 +4,7 @@ mod repository;
 mod runtime;
 mod updates;
 
-pub(crate) use contract::{
-    ExternalConversationMessage, ExternalConversationSummary, StartExternalConversationRequest,
-};
+pub(crate) use contract::{AgentSessionBinding, StartExternalConversationRequest};
 
 pub(crate) fn recover(app: tauri::AppHandle) {
     tauri::async_runtime::spawn(async move {
@@ -20,77 +18,78 @@ pub(crate) async fn cancel_by_run(app: &tauri::AppHandle, run_id: &str) -> Resul
     lifecycle::cancel_by_run(app, run_id).await
 }
 
-#[tauri::command]
-pub async fn start_external_agent_conversation(
+pub(crate) async fn purge_for_assistant(
+    app: &tauri::AppHandle,
+    assistant_conversation_id: &str,
+) -> Result<(), String> {
+    let pool = crate::spaces::db::pool(app).await?;
+    let rows: Vec<(String, String)> = sqlx::query_as(
+        "SELECT id,state FROM spaces_external_agent_conversations
+         WHERE assistant_conversation_id=$1",
+    )
+    .bind(assistant_conversation_id)
+    .fetch_all(pool)
+    .await
+    .map_err(crate::spaces::db::sql_error)?;
+    if rows
+        .iter()
+        .any(|(_, state)| state == "connected" || state == "connecting")
+    {
+        return Err("assistant-conversation-busy".into());
+    }
+    for (id, _) in rows {
+        lifecycle::delete(app, &id).await?;
+    }
+    Ok(())
+}
+
+pub(crate) async fn start_for_assistant(
     app: tauri::AppHandle,
     request: StartExternalConversationRequest,
-) -> Result<ExternalConversationSummary, String> {
-    runtime::start(app, request).await
+    conversation: Option<(String, String)>,
+    updates: tauri::ipc::Channel<crate::spaces::assistant::AssistantTaskUpdate>,
+) -> Result<AgentSessionBinding, String> {
+    runtime::start(app, request, conversation, Some(updates)).await
 }
 
-#[tauri::command]
-pub async fn send_external_agent_message(
+pub(crate) async fn send_for_assistant(
     app: tauri::AppHandle,
-    conversation_id: String,
-    prompt: String,
-    attachments: Vec<std::path::PathBuf>,
+    session_id: &str,
+    prompt: &str,
+    prepared: crate::external_agents::prompt::AgentPrompt,
 ) -> Result<(), String> {
-    runtime::send(app, &conversation_id, &prompt, attachments).await
+    runtime::send_prepared(app, session_id, prompt, prepared).await
 }
 
-#[tauri::command]
-pub async fn set_external_agent_session_option(
+pub(crate) async fn close_for_assistant(
     app: tauri::AppHandle,
-    conversation_id: String,
-    option_id: String,
-    value: serde_json::Value,
-) -> Result<ExternalConversationSummary, String> {
-    runtime::configure(app, &conversation_id, option_id, value).await
-}
-
-#[tauri::command]
-pub async fn set_external_agent_session_mode(
-    app: tauri::AppHandle,
-    conversation_id: String,
-    mode_id: String,
-) -> Result<ExternalConversationSummary, String> {
-    runtime::set_mode(app, &conversation_id, mode_id).await
-}
-
-#[tauri::command]
-pub async fn close_external_agent_conversation(
-    app: tauri::AppHandle,
-    conversation_id: String,
+    session_id: &str,
 ) -> Result<(), String> {
-    lifecycle::close(app, &conversation_id).await
+    lifecycle::close(app, session_id).await
 }
 
-#[tauri::command]
-pub async fn delete_external_agent_conversation(
-    app: tauri::AppHandle,
-    conversation_id: String,
+pub(crate) async fn fail_for_assistant(
+    app: &tauri::AppHandle,
+    session_id: &str,
+    run_id: &str,
+    error: &str,
 ) -> Result<(), String> {
-    lifecycle::delete(&app, &conversation_id).await
-}
-
-#[tauri::command]
-pub async fn list_external_agent_conversations(
-    app: tauri::AppHandle,
-    space_id: String,
-) -> Result<Vec<ExternalConversationSummary>, String> {
-    let pool = crate::spaces::db::pool(&app).await?;
-    let conversations = repository::list(pool, &space_id).await?;
-    if lifecycle::reconcile(pool, &conversations).await? {
-        repository::list(pool, &space_id).await
-    } else {
-        Ok(conversations)
+    let mut close_error = None;
+    if crate::external_agents::conversation::is_active(session_id) {
+        close_error = crate::external_agents::conversation::close(session_id)
+            .await
+            .err()
+            .map(|error| error.to_string());
     }
-}
-
-#[tauri::command]
-pub async fn list_external_agent_messages(
-    app: tauri::AppHandle,
-    conversation_id: String,
-) -> Result<Vec<ExternalConversationMessage>, String> {
-    repository::list_messages(crate::spaces::db::pool(&app).await?, &conversation_id).await
+    runtime::mark_disconnected(
+        crate::spaces::db::pool(app).await?,
+        session_id,
+        run_id,
+        error,
+    )
+    .await?;
+    if let Some(close_error) = close_error {
+        return Err(close_error);
+    }
+    Ok(())
 }

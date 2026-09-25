@@ -3,6 +3,7 @@ import { CircleCheck, CircleStop, CircleX } from "@lucide/vue";
 import { storeToRefs } from "pinia";
 import { computed, onBeforeUnmount, onMounted, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import { toast } from "vue-sonner";
 
 import {
   cancelModelInstall,
@@ -64,6 +65,15 @@ function startRuntimePolling() {
   snapshotTimer = globalThis.setInterval(() => void restoreRuntimeDownloads(), 1_000);
 }
 
+async function openTask(id: string) {
+  try {
+    await store.open(id);
+    open.value = false;
+  } catch (cause) {
+    toast.error(String(cause));
+  }
+}
+
 onMounted(() => {
   void restoreRuntimeDownloads();
 });
@@ -120,6 +130,12 @@ onBeforeUnmount(stopRuntimePolling);
         {{ t("tasks.clearCompleted") }}
       </UiButton>
     </div>
-    <TaskCenterList :tasks="tasks" @cancel="store.cancel" @dismiss="store.dismiss" @retry="store.retry" />
+    <TaskCenterList
+      :tasks="tasks"
+      @cancel="store.cancel"
+      @dismiss="store.dismiss"
+      @retry="store.retry"
+      @open="openTask"
+    />
   </UiPopover>
 </template>

@@ -41,7 +41,8 @@ impl EraserIndex {
         if self.segments.is_empty() {
             return 1.0;
         }
-        let column = ((x / CELL_SIZE).floor() as isize).clamp(0, self.columns as isize - 1) as usize;
+        let column =
+            ((x / CELL_SIZE).floor() as isize).clamp(0, self.columns as isize - 1) as usize;
         let row = ((y / CELL_SIZE).floor() as isize).clamp(0, self.rows as isize - 1) as usize;
         let mut opacity = 1.0;
         let mut active_stroke = None;
@@ -67,14 +68,21 @@ impl EraserIndex {
     ) -> Result<(), String> {
         let radius = stroke.diameter * f64::from(width.min(height)) / 2.0;
         let mut points = stroke.points.chunks_exact(2);
-        let first = points.next().expect("validated eraser stroke has two points");
+        let first = points
+            .next()
+            .expect("validated eraser stroke has two points");
         let mut start = scaled(first, width, height);
         for point in points {
             if self.segments.len() >= MAX_SEGMENTS {
                 return Err("Edited image exceeds the eraser complexity limit".into());
             }
             let end = scaled(point, width, height);
-            let segment = Segment { stroke: stroke_index, start, end, radius };
+            let segment = Segment {
+                stroke: stroke_index,
+                start,
+                end,
+                radius,
+            };
             let segment_index = self.segments.len() as u32;
             self.segments.push(segment);
             self.index_segment(segment_index, segment)?;
@@ -111,7 +119,10 @@ fn cell(coordinate: f64, count: usize) -> usize {
 }
 
 fn coverage(point: (f64, f64), segment: Segment) -> f64 {
-    let delta = (segment.end.0 - segment.start.0, segment.end.1 - segment.start.1);
+    let delta = (
+        segment.end.0 - segment.start.0,
+        segment.end.1 - segment.start.1,
+    );
     let length_squared = delta.0 * delta.0 + delta.1 * delta.1;
     let position = if length_squared == 0.0 {
         0.0

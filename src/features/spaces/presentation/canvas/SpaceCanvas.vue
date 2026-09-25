@@ -3,6 +3,7 @@ import { computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { useCanvasToolStore } from "../../canvas/canvas-tool-store";
+import type { CanvasSceneInput } from "../../canvas/contract/canvas-surface";
 import {
   currentCanvasEditor,
   updateCanvasDirectManipulationProjection,
@@ -41,6 +42,11 @@ const { visibleNodes, visibleRelations } = useVisibleCanvasContent(
   () => store.relationKindFilter,
   () => store.relationStatusFilter,
 );
+const sceneInput = computed<CanvasSceneInput>(() => ({
+  editSnapshot: store.editSnapshot,
+  nodes: store.nodes,
+  relations: visibleRelations.value,
+}));
 const navigationRequests = useCanvasNavigationRequests(store, editorSession);
 const contentLayout = createCanvasContentLayoutCoordinator({
   directManipulation: () => editorSession.directManipulation.value,
@@ -121,9 +127,7 @@ const canvasEvents = createSpaceCanvasEvents({
       :interaction-enabled="!editorSession.transitioning.value"
       :tool="tools.tool"
       :space-id="spaceId"
-      :snapshot="store.editSnapshot"
-      :nodes="store.nodes"
-      :relations="visibleRelations"
+      :scene-input="sceneInput"
       :exchange-relations="store.relations"
       @exchange-ready="lifecycle.attachExchange"
     >

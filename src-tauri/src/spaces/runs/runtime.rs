@@ -7,7 +7,7 @@ use super::{scheduler, StepOutcome};
 const IDLE_INTERVAL: Duration = Duration::from_millis(350);
 const MAX_CONCURRENT_STEPS: usize = 4;
 
-pub(super) fn start(app: AppHandle) {
+pub(crate) fn start(app: AppHandle) {
     tauri::async_runtime::spawn(async move {
         let executor_id = format!("desktop:{}", uuid::Uuid::new_v4());
         let capacity = Arc::new(tokio::sync::Semaphore::new(MAX_CONCURRENT_STEPS));
@@ -46,7 +46,6 @@ pub(super) fn start(app: AppHandle) {
 
 async fn maintain(app: &AppHandle) -> Result<(), String> {
     let pool = crate::spaces::db::pool(app).await?;
-    crate::spaces::automation::run_due(pool).await?;
     scheduler::recover(pool).await?;
     scheduler::apply_requested_controls(pool).await?;
     scheduler::resume_waiting_steps(pool).await?;

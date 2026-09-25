@@ -73,7 +73,6 @@
     "@tiptap/pm": "3.31.1",
     "@tiptap/starter-kit": "3.31.1",
     "@tiptap/vue-3": "3.31.1",
-    "@vue-flow/core": "1.48.2",
     "@vueuse/core": "^14.4.0",
     "clsx": "^2.1.1",
     "dompurify": "^3.4.14",

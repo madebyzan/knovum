@@ -1,5 +1,5 @@
-import type { ImageAdjustments } from "./image-edit";
 import { applyImageDetail } from "./image-detail";
+import type { ImageAdjustments } from "./image-edit";
 import { applyImageGlow } from "./image-glow";
 
 const BYTE_MAX = 255;
@@ -7,13 +7,20 @@ const BYTE_MAX = 255;
 export function applyImageTone(
   source: Uint8ClampedArray,
   adjustments: ImageAdjustments,
-  width: number,
-  height: number,
-  imageRect: { left: number; top: number; width: number; height: number },
+  size: {
+    width: number;
+    height: number;
+    imageRect: { left: number; top: number; width: number; height: number };
+  },
 ): Uint8ClampedArray {
+  const { width, imageRect } = size;
   const output = new Uint8ClampedArray(source);
-  if (Object.entries(adjustments).every(([key, value]) => ["sharpness", "clarity", "grain", "glow"].includes(key) || value === 0)) {
-    return finishSpatialAdjustments(output, width, height, adjustments, imageRect);
+  if (
+    Object.entries(adjustments).every(
+      ([key, value]) => ["sharpness", "clarity", "grain", "glow"].includes(key) || value === 0,
+    )
+  ) {
+    return finishSpatialAdjustments(output, adjustments, size);
   }
   const exposure = 2 ** ((adjustments.exposure / 100) * 2);
   const contrast = 2 ** ((adjustments.contrast / 100) * 1.5);
@@ -38,12 +45,12 @@ export function applyImageTone(
     const blackWeight = 1 - smoothstep(0, 0.3, luminance);
     const whiteWeight = smoothstep(0.7, 1, luminance);
 
-    red = toneChannel(red, shadows, shadowWeight, highlights, highlightWeight);
-    green = toneChannel(green, shadows, shadowWeight, highlights, highlightWeight);
-    blue = toneChannel(blue, shadows, shadowWeight, highlights, highlightWeight);
-    red = toneChannel(red, blacks, blackWeight, whites, whiteWeight);
-    green = toneChannel(green, blacks, blackWeight, whites, whiteWeight);
-    blue = toneChannel(blue, blacks, blackWeight, whites, whiteWeight);
+    red = adjustRange(adjustRange(red, shadows, shadowWeight), highlights, highlightWeight);
+    green = adjustRange(adjustRange(green, shadows, shadowWeight), highlights, highlightWeight);
+    blue = adjustRange(adjustRange(blue, shadows, shadowWeight), highlights, highlightWeight);
+    red = adjustRange(adjustRange(red, blacks, blackWeight), whites, whiteWeight);
+    green = adjustRange(adjustRange(green, blacks, blackWeight), whites, whiteWeight);
+    blue = adjustRange(adjustRange(blue, blacks, blackWeight), whites, whiteWeight);
     const colorLuminance = 0.2126 * red + 0.7152 * green + 0.0722 * blue;
     const chroma = Math.max(red, green, blue) - Math.min(red, green, blue);
     const colorStrength = saturation * (1 + vibrance * (1 - chroma));
@@ -78,32 +85,31 @@ export function applyImageTone(
     output[offset + 1] = clamp(green) * BYTE_MAX;
     output[offset + 2] = clamp(blue) * BYTE_MAX;
   }
-  return finishSpatialAdjustments(output, width, height, adjustments, imageRect);
+  return finishSpatialAdjustments(output, adjustments, size);
 }
 
 function finishSpatialAdjustments(
   pixels: Uint8ClampedArray,
-  width: number,
-  height: number,
   adjustments: ImageAdjustments,
-  imageRect: { width: number; height: number },
+  size: { width: number; height: number; imageRect: { width: number; height: number } },
 ) {
-  const detailed = applyImageDetail(pixels, width, height, adjustments.sharpness, adjustments.clarity, adjustments.grain);
-  return applyImageGlow(detailed, width, height, adjustments.glow, imageRect);
+  const detailed = applyImageDetail(pixels, {
+    width: size.width,
+    height: size.height,
+    sharpness: adjustments.sharpness,
+    clarity: adjustments.clarity,
+    grain: adjustments.grain,
+  });
+  return applyImageGlow(detailed, {
+    width: size.width,
+    height: size.height,
+    amount: adjustments.glow,
+    visibleSize: size.imageRect,
+  });
 }
 
 function contrastChannel(value: number, contrast: number) {
   return clamp((value - 0.5) * contrast + 0.5);
-}
-
-function toneChannel(
-  value: number,
-  lowerAmount: number,
-  lowerWeight: number,
-  upperAmount: number,
-  upperWeight: number,
-) {
-  return adjustRange(adjustRange(value, lowerAmount, lowerWeight), upperAmount, upperWeight);
 }
 
 function adjustRange(value: number, amount: number, weight: number) {

@@ -29,14 +29,7 @@ export function useVideoEditProject(
       if (proxyPath.value) metadataError.value = i18n.global.t("spaces.media.durationUnavailable");
       return;
     }
-    if (
-      !element.videoWidth ||
-      !element.videoHeight ||
-      element.videoWidth > 16_384 ||
-      element.videoHeight > 16_384 ||
-      element.videoWidth > element.videoHeight * 10 ||
-      element.videoHeight > element.videoWidth * 10
-    ) {
+    if (!validVideoDimensions(element)) {
       metadataError.value = i18n.global.t("spaces.media.videoMetadataUnavailable");
       return;
     }
@@ -49,4 +42,16 @@ export function useVideoEditProject(
   }
 
   return { project, metadataError, initializeFromMetadata };
+}
+
+function validVideoDimensions(element: HTMLVideoElement) {
+  const { videoWidth: width, videoHeight: height } = element;
+  return (
+    width > 0 &&
+    height > 0 &&
+    width <= 16_384 &&
+    height <= 16_384 &&
+    width <= height * 10 &&
+    height <= width * 10
+  );
 }

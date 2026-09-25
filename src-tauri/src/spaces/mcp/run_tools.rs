@@ -16,10 +16,7 @@ impl SpaceMcpServer {
         let steps = runs::list_run_steps(self.app.clone(), args.run_id.clone())
             .await
             .map_err(mcp_error)?;
-        let batch_items = runs::list_run_batch_items(self.app.clone(), args.run_id)
-            .await
-            .map_err(mcp_error)?;
-        json_text(json!({ "run": run, "steps": steps, "batchItems": batch_items }))
+        json_text(json!({ "run": run, "steps": steps }))
     }
 
     #[tool(description = "Read durable Run events after a sequence cursor")]

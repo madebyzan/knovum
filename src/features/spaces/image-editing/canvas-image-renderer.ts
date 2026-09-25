@@ -75,8 +75,8 @@ function renderToneAdjustments(
   if (Object.values(edit.adjustments).every((value) => value === 0)) return;
   const { width, height } = context.canvas;
   const frame = context.getImageData(0, 0, width, height);
-  const pixels = applyImageTone(frame.data, edit.adjustments, width, height, imageRect);
-  context.putImageData(new ImageData(pixels, width, height), 0, 0);
+  const pixels = applyImageTone(frame.data, edit.adjustments, { width, height, imageRect });
+  context.putImageData(new ImageData(new Uint8ClampedArray(pixels), width, height), 0, 0);
 }
 
 function eraseStrokes(context: CanvasRenderingContext2D, image: HTMLImageElement, edit: ImageEdit) {

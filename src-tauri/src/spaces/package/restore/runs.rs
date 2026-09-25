@@ -36,24 +36,8 @@ pub(super) async fn insert(
             .bind(optional_json(row.output.as_ref())?).bind(row.created_at).bind(row.updated_at)
             .execute(&mut **tx).await.map_err(db::sql_error)?;
     }
-    insert_batch_items(tx, request).await?;
     insert_attempts(tx, request).await?;
     insert_events(tx, request).await
-}
-
-async fn insert_batch_items(
-    tx: &mut Transaction<'_, Sqlite>,
-    request: &RestorePackageRequest,
-) -> Result<(), String> {
-    for row in &request.run_batch_items {
-        sqlx::query("INSERT INTO spaces_run_batch_items(lineage_run_id,definition_node_id,item_key,latest_run_id,latest_step_instance_id,state,attempt_count,input,output,error,child_run_id,updated_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)")
-            .bind(&row.lineage_run_id).bind(&row.definition_node_id).bind(&row.item_key)
-            .bind(&row.latest_run_id).bind(&row.latest_step_instance_id).bind(&row.state)
-            .bind(row.attempt_count).bind(json(&row.input)?).bind(optional_json(row.output.as_ref())?)
-            .bind(&row.error).bind(&row.child_run_id).bind(row.updated_at)
-            .execute(&mut **tx).await.map_err(db::sql_error)?;
-    }
-    Ok(())
 }
 
 async fn insert_attempts(

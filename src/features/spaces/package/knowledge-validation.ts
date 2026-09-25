@@ -1,6 +1,6 @@
 import { isString, keyBy } from "es-toolkit";
 
-import type { GroundedCitation } from "../knowledge/model/grounded-citation";
+import { groundedCitationSchema, type GroundedCitation } from "../knowledge/model/grounded-citation";
 import { knowledgeRevision } from "../knowledge/model/revision";
 import { validateSpaceNodePayload } from "../model/nodes/schema/node-payload";
 import type { SpacePackageManifest } from "./manifest-schema";
@@ -8,7 +8,6 @@ import type { SpacePackageManifest } from "./manifest-schema";
 type NodeRevisions = Map<string, { knowledge?: string; source?: string }>;
 type CurrentCitation = Extract<GroundedCitation, { state: "current" }>;
 type CitationIndexes = {
-  threads: Record<string, SpacePackageManifest["aiThreads"][number]>;
   nodeRevisions: Map<string, string | undefined>;
   chunks: Record<string, SpacePackageManifest["chunks"][number]>;
 };
@@ -53,12 +52,15 @@ function validateChunkRevision(chunk: SpacePackageManifest["chunks"][number], re
 
 function validateSpacePackageCitationSemantics(manifest: SpacePackageManifest) {
   const indexes = buildCitationIndexes(manifest);
-  for (const message of manifest.aiMessages) validateMessageCitations(message, indexes);
+  for (const message of manifest.assistantMessages) {
+    for (const source of message.content.citations ?? []) {
+      validateCitation(groundedCitationSchema.parse(source), indexes);
+    }
+  }
 }
 
 function buildCitationIndexes(manifest: SpacePackageManifest): CitationIndexes {
   return {
-    threads: keyBy(manifest.aiThreads, (thread) => thread.id),
     nodeRevisions: new Map(
       manifest.nodes.map((node) => {
         const data = validateSpaceNodePayload(node.data);
@@ -69,48 +71,24 @@ function buildCitationIndexes(manifest: SpacePackageManifest): CitationIndexes {
   };
 }
 
-function validateMessageCitations(
-  message: SpacePackageManifest["aiMessages"][number],
-  indexes: CitationIndexes,
-) {
-  const thread = indexes.threads[message.threadId];
-  if (!thread) throw new Error("Space package Grounded AI message references an unavailable thread");
-  const scopedNodes =
-    thread.scope === "space" || thread.scope === "all-spaces" ? undefined : new Set(thread.scopeNodeIds);
-  for (const citation of message.citations) validateCitation(citation, scopedNodes, indexes);
-}
-
-function validateCitation(
-  citation: SpacePackageManifest["aiMessages"][number]["citations"][number],
-  scopedNodes: Set<string> | undefined,
-  indexes: CitationIndexes,
-) {
+function validateCitation(citation: GroundedCitation, indexes: CitationIndexes) {
   validateCitationLocatorRevision(citation);
   if (citation.state === "detached") return;
-  validateCurrentCitationNode(citation.nodeId, scopedNodes, indexes.nodeRevisions);
+  validateCurrentCitationNode(citation.nodeId, indexes.nodeRevisions);
   if (citation.chunkId === `node:${citation.nodeId}`)
     return validateCanonicalCitation(citation, indexes.nodeRevisions);
   validatePassageCitation(citation, indexes.chunks);
 }
 
-function validateCitationLocatorRevision(
-  citation: SpacePackageManifest["aiMessages"][number]["citations"][number],
-) {
+function validateCitationLocatorRevision(citation: GroundedCitation) {
   if (citation.locator.sourceRevision !== citation.sourceRevision) {
     throw new Error("Space package citation source revision does not match its locator");
   }
 }
 
-function validateCurrentCitationNode(
-  nodeId: string,
-  scopedNodes: Set<string> | undefined,
-  nodeRevisions: Map<string, string | undefined>,
-) {
+function validateCurrentCitationNode(nodeId: string, nodeRevisions: Map<string, string | undefined>) {
   if (!nodeRevisions.has(nodeId))
     throw new Error("Space package current citation references a missing packaged node");
-  if (scopedNodes && !scopedNodes.has(nodeId)) {
-    throw new Error("Space package current citation falls outside its persisted Grounded AI scope");
-  }
 }
 
 function validateCanonicalCitation(

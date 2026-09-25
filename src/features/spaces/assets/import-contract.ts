@@ -10,7 +10,12 @@ export interface SpaceImportContext extends SpaceAssetProcessingContext {
     data: SpaceNodePayload,
     position?: { x: number; y: number },
   ): Promise<SpaceCanvasNode[]>;
-  savePendingNodeDataForSpace(spaceId: string, id: string, expectedData: SpaceNodePayload, data: SpaceNodePayload): Promise<void>;
+  savePendingNodeDataForSpace(
+    spaceId: string,
+    id: string,
+    expectedData: SpaceNodePayload,
+    data: SpaceNodePayload,
+  ): Promise<void>;
   finalizePendingContent(spaceId: string, contentNodes: readonly SpaceCanvasNode[], reveal?: boolean): void;
   discardPendingContent(spaceId: string, id: string): Promise<void>;
 }

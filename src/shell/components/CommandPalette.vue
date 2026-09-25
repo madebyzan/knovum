@@ -88,7 +88,13 @@ function commandReason(command: AppCommand) {
             <UiKbd shortcut="esc" />
           </div>
           <ListboxContent class="max-h-(--knovum-command-list-max-height) space-y-0.5 overflow-y-auto p-1.5">
-            <UiTooltip v-for="command in filteredCommands" :key="command.id" :text="commandReason(command)" :disabled="commandReady(command)" side="right">
+            <UiTooltip
+              v-for="command in filteredCommands"
+              :key="command.id"
+              :text="commandReason(command)"
+              :disabled="commandReady(command)"
+              side="right"
+            >
               <ListboxItem
                 :value="command"
                 :aria-disabled="!commandReady(command)"

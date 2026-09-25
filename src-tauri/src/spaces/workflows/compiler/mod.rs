@@ -54,7 +54,7 @@ pub fn compile(
         Err(cycle) => {
             diagnostics.push(node_diagnostic(
                 "cycle_forbidden",
-                "Workflow graph contains a cycle; use Iterate for bounded repetition",
+                "Workflow graph contains a cycle",
                 graph[cycle.node_id()],
             ));
             Vec::new()
@@ -67,24 +67,11 @@ pub fn compile(
     Ok(WorkflowExecutionPlan {
         compiler_version: COMPILER_VERSION,
         ordered_node_ids: ordered,
-        dependency_digest: dependency_digest(definition),
+        dependency_digest: dependency_digest(),
     })
 }
 
-fn dependency_digest(definition: &WorkflowDefinition) -> String {
+fn dependency_digest() -> String {
     use sha2::Digest;
-    let mut dependencies = definition
-        .nodes
-        .iter()
-        .filter_map(|node| match node {
-            super::definition::WorkflowNode::Subworkflow {
-                workflow_id,
-                version,
-                ..
-            } => Some(format!("{workflow_id}:{version}")),
-            _ => None,
-        })
-        .collect::<Vec<_>>();
-    dependencies.sort();
-    format!("{:x}", sha2::Sha256::digest(dependencies.join("\n")))
+    format!("{:x}", sha2::Sha256::digest([]))
 }

@@ -1,6 +1,6 @@
 import { ref, shallowRef } from "vue";
 
-import type { GroundedScope } from "../knowledge/model/grounded-scope";
+import type { ConversationScope } from "../conversation/conversation-scope";
 import type { KnowledgePeekTarget } from "../knowledge/model/knowledge-peek-target";
 import type { SpaceSavedViewFilter } from "../knowledge/model/projections";
 import type { KnowledgeLocator } from "../knowledge/model/schema";
@@ -42,9 +42,10 @@ export function createSpaceUiState() {
   return {
     findOpen: ref(false),
     globalFindOpen: ref(false),
-    askScopeRequest: ref<{ scope: GroundedScope; restart: boolean; nonce: number }>(),
+    askScopeRequest: ref<{ scope: ConversationScope; restart: boolean; nodeIds: string[]; nonce: number }>(),
     askScopeNonce: ref(0),
-    inspectorMode: ref<"inspect" | "ask" | "source">("inspect"),
+    inspectorMode: ref<"inspect" | "ask" | "source" | "workflow" | "workflow-use">("inspect"),
+    workflowCaptureSelection: ref<string[]>([]),
     focusedEditorId: ref<string>(),
     videoEditorNodeId: ref<string>(),
     insertionPoint: ref({ x: 96, y: 84 }),

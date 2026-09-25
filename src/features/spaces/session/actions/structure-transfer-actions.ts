@@ -5,6 +5,7 @@ import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceRelation } from "../../model/relations/relation";
 import { spaceEditRepository } from "../../structure/space-edit-repository";
 import { moveStructureSelectionBetweenSpaces } from "../../structure/structure-transfer-repository";
+import { loadSpaceSessionProjection } from "../space-projection-repository";
 
 interface StructureTransferContext {
   activeSpaceId: Ref<string | undefined>;
@@ -32,14 +33,13 @@ export function createStructureTransferActions(context: StructureTransferContext
       expectedTargetEditRevision: targetSnapshot.editRevision,
     });
     if (context.activeSpaceId.value === sourceSpaceId && result.movedNodeIds.length) {
-      const refreshedSnapshot = await spaceEditRepository.load(sourceSpaceId);
-      const movedNodeIds = new Set(result.movedNodeIds);
-      context.editSnapshot.value = refreshedSnapshot;
-      context.nodes.value = context.nodes.value.filter((node) => !movedNodeIds.has(node.id));
-      context.relations.value = context.relations.value.filter(
-        (relation) => !movedNodeIds.has(relation.sourceId) && !movedNodeIds.has(relation.targetId),
-      );
-      context.recordCommittedSpaceEdit();
+      const projection = await loadSpaceSessionProjection(sourceSpaceId);
+      if (context.activeSpaceId.value === sourceSpaceId) {
+        context.nodes.value = projection.nodes;
+        context.relations.value = projection.relations;
+        context.editSnapshot.value = projection.editSnapshot;
+        context.recordCommittedSpaceEdit();
+      }
     }
     return result.movedStructureNodeIds;
   }

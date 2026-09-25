@@ -1,0 +1,41 @@
+use serde::Serialize;
+use serde_json::Value;
+use tauri::{AppHandle, Runtime};
+
+use super::{nodes, relations, scenes};
+use crate::spaces::{db, structure};
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct SpaceSessionProjection {
+    nodes: Vec<Value>,
+    scenes: Vec<Value>,
+    relations: Vec<Value>,
+    edit_snapshot: structure::SpaceEditSnapshotResponse,
+}
+
+#[tauri::command]
+pub(crate) async fn load_space_session_projection<R: Runtime>(
+    app: AppHandle<R>,
+    space_id: String,
+) -> Result<SpaceSessionProjection, String> {
+    let pool = db::pool(&app).await?;
+    let mut tx = pool.begin().await.map_err(db::sql_error)?;
+    let (snapshot, edit_revision) =
+        structure::repository::load_in_transaction(&mut tx, &space_id).await?;
+    let nodes = nodes::list_in_transaction(&mut tx, &space_id).await?;
+    let scenes = scenes::list_in_transaction(&mut tx, &space_id).await?;
+    let relations = relations::list_in_transaction(&mut tx, &space_id).await?;
+    tx.commit().await.map_err(db::sql_error)?;
+    Ok(SpaceSessionProjection {
+        nodes,
+        scenes,
+        relations,
+        edit_snapshot: structure::SpaceEditSnapshotResponse {
+            edit_revision,
+            structure: snapshot.structure,
+            layouts: snapshot.layouts,
+            relation_styles: snapshot.relation_styles,
+        },
+    })
+}

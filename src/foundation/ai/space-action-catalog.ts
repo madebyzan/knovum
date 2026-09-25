@@ -17,8 +17,6 @@ const spaceActionOutputContractSchema = z.enum([
   "space_edit_receipt",
   "subtitle",
   "video",
-  "workflow_draft",
-  "workflow_version",
 ]);
 
 const spaceActionDefinitionSchema = z
@@ -32,6 +30,9 @@ const spaceActionDefinitionSchema = z
     executionCapability: aiCapabilitySchema.nullable(),
     routingPurpose: aiRoutingPurposeSchema.nullable(),
     inputRoles: z.array(spaceActionInputRoleSchema),
+    collectionInput: z
+      .object({ kind: z.string(), role: z.string(), maxItems: z.number().int().positive() })
+      .nullable(),
     parametersSchema: z.record(z.string(), z.unknown()),
     outputContract: spaceActionOutputContractSchema,
   })

@@ -1,16 +1,20 @@
-use serde::Deserialize;
+use std::collections::{HashMap, HashSet};
+
+use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use sqlx::SqlitePool;
 use ts_rs::TS;
 
-use super::{repository, WorkflowDefinition, WorkflowDraft, WorkflowVersion};
+use super::{definition::WorkflowNode, WorkflowDefinition};
+use crate::ai::models::ExecutionTargetSelection;
+use crate::spaces::runs::RunSummary;
 
 mod recipes;
 
 #[cfg(test)]
 mod tests;
 
-#[derive(Clone, Copy, Deserialize, TS)]
+#[derive(Clone, Copy, Deserialize, Serialize, TS)]
 #[ts(export_to = "BuiltInWorkflowTemplateId.ts")]
 #[serde(rename_all = "kebab-case")]
 pub(crate) enum BuiltInWorkflowTemplateId {
@@ -21,34 +25,60 @@ pub(crate) enum BuiltInWorkflowTemplateId {
     MeetingContentPackage,
 }
 
-#[derive(Deserialize, TS)]
-#[ts(export_to = "InstantiateWorkflowTemplateRequest.ts")]
+#[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub(crate) struct InstantiateWorkflowTemplateRequest {
-    space_id: String,
-    template_id: BuiltInWorkflowTemplateId,
-    parameters: Value,
+pub(crate) struct StartBuiltInWorkflowRequest {
+    pub request_id: String,
+    pub space_id: String,
+    pub template_id: BuiltInWorkflowTemplateId,
+    pub parameters: Value,
+    pub input_node_ids: Vec<String>,
+    pub targets: HashMap<String, ExecutionTargetSelection>,
 }
 
-pub(crate) async fn instantiate(
+pub(crate) async fn start(
+    app: &tauri::AppHandle,
     pool: &SqlitePool,
-    request: InstantiateWorkflowTemplateRequest,
-) -> Result<WorkflowVersion, String> {
+    request: StartBuiltInWorkflowRequest,
+) -> Result<RunSummary, String> {
     let definition = definition(request.template_id, &request.parameters)?;
-    let workflow_id = uuid::Uuid::new_v4().to_string();
-    repository::save_draft(
+    let mut required_targets = HashSet::new();
+    for node in &definition.nodes {
+        let WorkflowNode::Action { action_id, .. } = node else {
+            continue;
+        };
+        let action = crate::spaces::actions::require(action_id)?;
+        if let Some(capability) = action.execution_capability {
+            required_targets.insert(action_id.as_str());
+            let target = request
+                .targets
+                .get(action_id)
+                .ok_or("workflow-target-missing: select a target for each model Action")?;
+            crate::ai::settings::resolve(app, target.clone(), capability)
+                .map_err(|error| format!("workflow-target-unavailable: {error}"))?;
+        }
+    }
+    if request
+        .targets
+        .keys()
+        .any(|id| !required_targets.contains(id.as_str()))
+    {
+        return Err("workflow-target-invalid: target does not belong to this recipe".into());
+    }
+    let input = json!({"inputNodeIds": request.input_node_ids, "targets": request.targets});
+    let template_id =
+        serde_json::to_value(request.template_id).map_err(crate::spaces::db::json_error)?;
+    super::runtime::start(
         pool,
-        WorkflowDraft {
-            id: workflow_id.clone(),
-            space_id: request.space_id,
-            revision: 0,
-            definition,
-            created_at: 0,
-            updated_at: 0,
-        },
+        &request.space_id,
+        &request.request_id,
+        template_id
+            .as_str()
+            .ok_or("workflow-template-invalid: template identity is invalid")?,
+        definition,
+        input,
     )
-    .await?;
-    repository::publish(pool, &workflow_id, 0).await
+    .await
 }
 
 fn definition(

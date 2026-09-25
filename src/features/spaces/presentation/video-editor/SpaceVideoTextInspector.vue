@@ -27,8 +27,8 @@ watch(
     textDraft.value = value;
   },
 );
-function patch(patch: Partial<VideoTextOverlay>, mergeKey?: string) {
-  const next = { ...props.item, ...patch };
+function patch(change: Partial<VideoTextOverlay>, mergeKey?: string) {
+  const next = { ...props.item, ...change };
   if (
     !next.text.trim() ||
     next.text.length > 500 ||

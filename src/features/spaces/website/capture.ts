@@ -14,7 +14,12 @@ interface WebsiteCaptureContext {
   activeSpaceId?: string;
   nodes: SpaceCanvasNode[];
   addContent: (data: SpaceNodePayload, position?: { x: number; y: number }) => Promise<SpaceCanvasNode[]>;
-  saveNodeDataForSpace(spaceId: string, id: string, expectedData: SpaceNodePayload, data: SpaceNodePayload): Promise<void>;
+  saveNodeDataForSpace(
+    spaceId: string,
+    id: string,
+    expectedData: SpaceNodePayload,
+    data: SpaceNodePayload,
+  ): Promise<void>;
 }
 
 interface WebsiteBinding {

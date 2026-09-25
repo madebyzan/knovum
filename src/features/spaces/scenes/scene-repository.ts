@@ -3,10 +3,6 @@ import { pick } from "es-toolkit";
 
 import type { SpaceScene } from "./scene";
 
-export function listScenes(spaceId: string): Promise<SpaceScene[]> {
-  return invoke("plugin:spaces|list_scenes", { spaceId });
-}
-
 function sceneInput(scene: SpaceScene) {
   return pick(scene, [
     "id",

@@ -115,7 +115,7 @@ function fitTextToDuration(project: VideoEditProject): VideoEditProject {
     textTrack: {
       items: project.textTrack.items
         .filter((item) => item.startMs < duration)
-        .map((item) => ({ ...item, endMs: Math.min(item.endMs, duration) })),
+        .map((item) => Object.assign({}, item, { endMs: Math.min(item.endMs, duration) })),
     },
   };
 }

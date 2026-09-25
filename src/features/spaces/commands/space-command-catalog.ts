@@ -1,13 +1,13 @@
 import { computed, inject } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { availableWhen } from "../../../shared/contracts/action-availability";
 import type { AppCommand } from "../../../shared/contracts/app-command";
 import { workspaceSidebarKey } from "../../../shared/contracts/workspace-sidebar";
 import { useCanvasExchangeSession } from "../canvas-exchange/canvas-exchange-session";
 import { useCanvasEditorSession } from "../canvas/editor-session";
 import { useNodeOperationGate } from "../canvas/node-operation-gate";
-import { createStructureIndex, effectiveOperationRoots } from "../model/structure/structure-index";
+import { currentSelectionRoots } from "../canvas/selection/selection-roots";
+import { createStructureIndex } from "../model/structure/structure-index";
 import { useSpaceStore } from "../session/space-store";
 import { useWorkspaceTabCommands } from "../workspace/tab-commands";
 import { useSpaceLibraryCommands } from "../workspace/use-space-library-commands";
@@ -39,14 +39,9 @@ export function useSpaceCommands() {
     const selectedIds = () => selection.value.nodeIds;
     const selectedStructureNodeIds = () => {
       const index = createStructureIndex(store.editSnapshot.structure);
-      const contentStructureNodeIds = selectedIds().flatMap((nodeId) => {
-        const structureNodeId = index.nodeIdToStructureNodeId.get(nodeId);
-        return structureNodeId ? [structureNodeId] : [];
-      });
-      return effectiveOperationRoots(
-        [...selection.value.structureNodeIds, ...contentStructureNodeIds],
-        index,
-      ).map(({ id }) => id);
+      return currentSelectionRoots(selectedIds(), selection.value.structureNodeIds, index).map(
+        ({ id }) => id,
+      );
     };
     const searchAllCommand: AppCommand = {
       id: "spaces.find-all",

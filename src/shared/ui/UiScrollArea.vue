@@ -19,7 +19,12 @@ defineExpose({
 
 <template>
   <ScrollAreaRoot :class="cn('relative overflow-hidden', props.class)">
-    <ScrollAreaViewport ref="viewport" class="relative size-full overscroll-contain" @scroll.passive="emit('scroll')"><slot /></ScrollAreaViewport>
+    <ScrollAreaViewport
+      ref="viewport"
+      class="relative size-full overscroll-contain"
+      @scroll.passive="emit('scroll')"
+      ><slot
+    /></ScrollAreaViewport>
     <ScrollAreaScrollbar
       orientation="vertical"
       class="flex w-(--knovum-scrollbar-size) touch-none rounded-full bg-transparent p-(--knovum-scrollbar-inset) opacity-0 transition-[background-color,opacity] duration-150 select-none hover:bg-control hover:opacity-100 data-[state=visible]:opacity-100"

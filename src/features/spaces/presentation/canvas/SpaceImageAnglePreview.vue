@@ -10,7 +10,7 @@ import SpaceImageAngleSubjectGuide from "./SpaceImageAngleSubjectGuide.vue";
 
 const props = defineProps<{
   path: string;
-  revision?: string;
+  revision?: string | undefined;
   edit: ImageEdit;
   mode: "subject" | "camera";
   yaw: number;

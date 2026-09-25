@@ -10,7 +10,7 @@ import UiTooltip from "../../../../shared/ui/UiTooltip.vue";
 import type { ImageActionAvailability } from "./image-action-availability";
 import type { ImageActionHelp } from "./image-action-help";
 
-const props = defineProps<{ availability: ImageActionAvailability; help?: ImageActionHelp }>();
+const props = defineProps<{ availability: ImageActionAvailability; help?: ImageActionHelp | undefined }>();
 const prompt = defineModel<string>("prompt", { required: true });
 const emit = defineEmits<{ cancel: []; submit: []; openSettings: [] }>();
 const { t } = useI18n();

@@ -4,14 +4,19 @@ import { useI18n } from "vue-i18n";
 
 import UiIconButton from "../../../shared/ui/UiIconButton.vue";
 
-defineProps<{ title: string; subtitle?: string; back?: boolean }>();
+withDefaults(
+  defineProps<{ title: string; subtitle?: string; back?: boolean; windowDragRegion?: boolean }>(),
+  {
+    windowDragRegion: true,
+  },
+);
 const emit = defineEmits<{ back: []; close: [] }>();
 const { t } = useI18n();
 </script>
 
 <template>
   <header
-    data-tauri-drag-region
+    :data-tauri-drag-region="windowDragRegion ? '' : undefined"
     class="flex h-(--knovum-window-chrome-height) shrink-0 items-center gap-2 border-b border-divider bg-panel px-2.5"
   >
     <UiIconButton v-if="back" :label="t('common.back')" size="sm" @click="emit('back')">

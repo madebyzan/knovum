@@ -1,0 +1,106 @@
+use tauri::AppHandle;
+
+use super::super::StartExternalConversationRequest;
+use crate::spaces::{
+    authorization::{Principal, PrincipalKind},
+    db,
+    runs::{NewRun, RunKind},
+};
+
+pub(crate) async fn create_records(
+    app: &AppHandle,
+    request: &StartExternalConversationRequest,
+    id: &str,
+    run_id: &str,
+    conversation: Option<(&str, &str)>,
+) -> Result<(), String> {
+    let now = crate::clock::unix_time_millis()?;
+    let principal = Principal {
+        kind: PrincipalKind::ExternalAgent,
+        id: id.to_owned(),
+    };
+    let pool = db::pool(app).await?;
+    let mut tx = db::begin_write(pool).await?;
+    let (assistant_id, branch_id) = conversation.unwrap_or((id, id));
+    if conversation.is_some() {
+        let owns_conversation: Option<i64> = sqlx::query_scalar(
+            "SELECT 1 FROM spaces_assistant_conversations WHERE id=$1 AND space_id=$2",
+        )
+        .bind(assistant_id)
+        .bind(&request.space_id)
+        .fetch_optional(&mut *tx)
+        .await
+        .map_err(db::sql_error)?;
+        if owns_conversation.is_none() {
+            return Err(
+                "assistant-conversation-unavailable: conversation belongs to another Space".into(),
+            );
+        }
+        let latest_branch: Option<String> = sqlx::query_scalar(
+            "SELECT active_branch_id FROM spaces_assistant_conversations WHERE id=$1",
+        )
+        .bind(assistant_id)
+        .fetch_optional(&mut *tx)
+        .await
+        .map_err(db::sql_error)?;
+        if latest_branch.as_deref() != Some(branch_id) {
+            return Err("assistant-branch-stale: select the current conversation branch".into());
+        }
+        crate::spaces::assistant::ensure_branch_idle(&mut tx, assistant_id, branch_id).await?;
+    }
+    crate::spaces::runs::create_run_in_transaction(
+        &mut tx,
+        &NewRun {
+            id: run_id,
+            home_space_id: &request.space_id,
+            parent_run_id: None,
+            principal: &principal,
+            kind: RunKind::ExternalAgent,
+            policy_snapshot: &serde_json::json!({"runtimeKind": request.runtime_kind}),
+            input_snapshot: &request.input_snapshot,
+            budget: &serde_json::json!({"maxDurationSeconds": request.max_duration_seconds}),
+        },
+        now,
+    )
+    .await?;
+    if conversation.is_none() {
+        sqlx::query(
+            "INSERT INTO spaces_assistant_conversations(id,space_id,title,mode,active_branch_id,created_at,updated_at)
+             VALUES($1,$2,$3,'ask',$1,$4,$4)",
+        )
+        .bind(assistant_id)
+        .bind(&request.space_id)
+        .bind(request.title.trim())
+        .bind(now)
+        .execute(&mut *tx)
+        .await
+        .map_err(db::sql_error)?;
+    }
+    if conversation.is_some() {
+        sqlx::query("UPDATE spaces_assistant_conversations SET active_branch_id=$1 WHERE id=$2")
+            .bind(branch_id)
+            .bind(assistant_id)
+            .execute(&mut *tx)
+            .await
+            .map_err(db::sql_error)?;
+    }
+    sqlx::query(
+        "INSERT INTO spaces_external_agent_conversations(
+         id,run_id,space_id,assistant_conversation_id,branch_id,runtime_kind,title,state,created_at,updated_at)
+         VALUES($1,$2,$3,$4,$5,$6,$7,'connecting',$8,$8)",
+    )
+    .bind(id)
+    .bind(run_id)
+    .bind(&request.space_id)
+    .bind(assistant_id)
+    .bind(branch_id)
+    .bind(request.runtime_kind.as_str())
+    .bind(request.title.trim())
+    .bind(now)
+    .execute(&mut *tx)
+    .await
+    .map_err(db::sql_error)?;
+    tx.commit().await.map_err(db::sql_error)?;
+    crate::spaces::runs::announce_change();
+    Ok(())
+}

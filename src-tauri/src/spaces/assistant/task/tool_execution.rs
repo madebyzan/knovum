@@ -22,14 +22,11 @@ pub(super) async fn execute(
     let mut results = Vec::with_capacity(calls.len());
     for call in calls {
         ensure_active(pool, &ids.run_id).await?;
-        let binding = catalog
+        let definition = catalog
             .by_wire_name
             .get(&call.name)
             .ok_or("tool-not-allowed: model requested an unavailable tool")?;
-        let action_id = match binding {
-            tools::ToolBinding::Action(definition) => definition.id.to_owned(),
-            tools::ToolBinding::External(tool) => format!("external-tool:{}", tool.id),
-        };
+        let action_id = definition.id.to_owned();
         let invocation_id = format!("{}:{}", ids.task_id, call.call_id);
         let record = repository::start_tool_call(
             pool,
@@ -50,39 +47,15 @@ pub(super) async fn execute(
             continue;
         }
         let mut parameters = call.arguments.clone();
-        if let tools::ToolBinding::External(tool) = binding {
-            if record.resumed {
-                return Err(
-                    "external-tool-outcome-unknown: reconcile the previous call before continuing"
-                        .into(),
-                );
-            }
-            super::external_tool::approve_if_needed(pool, ids, tool, &parameters).await?;
-            let value = crate::spaces::workflows::external_tools::execute_direct(
-                pool,
-                &request.space_id,
-                &ids.grant_id,
-                &tool.id,
-                &tool.schema_fingerprint,
-                &parameters,
-            )
-            .await?;
-            complete_tool(pool, ids, &call, &record.id, value.clone()).await?;
-            results.push(RuntimeToolResult {
-                call_id: call.call_id,
-                name: call.name,
-                result: value,
-            });
-            continue;
-        }
-        let tools::ToolBinding::Action(definition) = binding else {
-            unreachable!()
-        };
-        let input_snapshot = parameters
+        let mut input_snapshot = parameters
             .as_object_mut()
             .and_then(|values| values.remove("inputNodeIds"))
             .map(|node_ids| json!({"inputNodeIds": node_ids}))
-            .unwrap_or(Value::Null);
+            .unwrap_or_else(|| json!({}));
+        if definition.routing_purpose.is_some() {
+            input_snapshot["targets"] = json!({});
+            input_snapshot["targets"][definition.id] = json!(&request.target);
+        }
         let mut invocation = ActionInvocationRequest {
             invocation_id: invocation_id.clone(),
             idempotency_key: invocation_id,
@@ -98,7 +71,7 @@ pub(super) async fn execute(
         };
         let outcome = actions::invoke(pool, invocation.clone()).await?;
         let value = settlement::settle(pool, &ids.run_id, &mut invocation, outcome).await?;
-        complete_tool(pool, ids, &call, &record.id, value.clone()).await?;
+        complete_tool(pool, ids, &call, &record.id, &action_id, value.clone()).await?;
         results.push(RuntimeToolResult {
             call_id: call.call_id,
             name: call.name,
@@ -113,6 +86,7 @@ async fn complete_tool(
     ids: &TaskIds,
     call: &RuntimeToolCall,
     row_id: &str,
+    action_id: &str,
     value: Value,
 ) -> Result<(), String> {
     repository::complete_tool_call(
@@ -121,7 +95,7 @@ async fn complete_tool(
         &ids.conversation_id,
         &ids.branch_id,
         &call.call_id,
-        &call.name,
+        action_id,
         &value,
     )
     .await

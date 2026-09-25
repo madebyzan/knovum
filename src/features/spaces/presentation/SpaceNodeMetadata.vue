@@ -85,7 +85,13 @@ function sourceUrl(data: SpaceNodePayload) {
 }
 
 async function refreshWebsite() {
-  if (!nodeOperations.allows("edit") || props.node.data.kind !== "website" || !props.node.data.url || refreshing.value) return;
+  if (
+    !nodeOperations.allows("edit") ||
+    props.node.data.kind !== "website" ||
+    !props.node.data.url ||
+    refreshing.value
+  )
+    return;
   const activeSpaceId = store.activeSpaceId;
   if (!activeSpaceId) return;
   refreshing.value = true;
@@ -120,7 +126,12 @@ async function refreshWebsite() {
     </div>
   </dl>
   <div v-if="node.data.kind === 'website'" class="mt-2">
-    <UiButton size="sm" variant="secondary" :disabled="refreshing || !nodeOperations.allows('edit')" @click="refreshWebsite">
+    <UiButton
+      size="sm"
+      variant="secondary"
+      :disabled="refreshing || !nodeOperations.allows('edit')"
+      @click="refreshWebsite"
+    >
       <RefreshCw class="size-(--knovum-icon-size-xs)" :class="refreshing && 'animate-spin'" />
       {{ node.data.metadataState === "failed" ? t("common.retry") : t("spaces.transfer.refreshWebsite") }}
     </UiButton>

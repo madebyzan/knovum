@@ -57,8 +57,15 @@ async fn await_child(
             ).bind(child_run_id).fetch_optional(pool).await.map_err(db::sql_error)?.flatten()
                 .map(|encoded| serde_json::from_str(&encoded).map_err(db::json_error)).transpose()?
                 .unwrap_or(Value::Null);
+            let node_id: Option<String> = sqlx::query_scalar(
+                "SELECT output_node_id FROM spaces_knowledge_derivations WHERE id=$1 AND status='completed'",
+            )
+            .bind(child_run_id)
+            .fetch_optional(pool)
+            .await
+            .map_err(db::sql_error)?;
             return Ok(json!({"type": "accepted_run", "runId": child_run_id,
-                "state": state_text(run.state), "output": output}));
+                "state": state_text(run.state), "output": output, "nodeId": node_id}));
         }
         changes
             .changed()

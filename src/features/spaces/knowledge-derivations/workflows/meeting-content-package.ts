@@ -1,7 +1,7 @@
 import type { ExecutionTarget } from "../../../../foundation/ai/ai-models";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { useSpaceStore } from "../../session/space-store";
-import { runWorkflowTemplate } from "../../workflows/template-client";
+import { startBuiltinWorkflow } from "../../workflows/run-builtin-workflow";
 
 type Store = ReturnType<typeof useSpaceStore>;
 export interface MeetingContentPackageDraft {
@@ -17,7 +17,7 @@ export async function createMeetingContentPackage(
 ) {
   const spaceId = store.activeSpaceId;
   if (!spaceId) return;
-  return runWorkflowTemplate({
+  return startBuiltinWorkflow({
     spaceId,
     templateId: "meeting-content-package",
     inputNodeIds: [source.id],

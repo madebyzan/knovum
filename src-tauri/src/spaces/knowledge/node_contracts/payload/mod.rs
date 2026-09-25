@@ -1,6 +1,6 @@
 mod fields;
-mod image_edit;
 mod image_comments;
+mod image_edit;
 mod resource;
 mod subtitle;
 mod tiptap;

@@ -1,10 +1,10 @@
 use tauri::AppHandle;
 
-use super::runtime::mark_disconnected;
 use crate::{ai::capabilities, spaces::db};
 
 pub async fn close(app: AppHandle, conversation_id: &str) -> Result<(), String> {
     crate::external_agents::conversation::close(conversation_id).await?;
+    super::updates::release(conversation_id);
     let pool = db::pool(&app).await?;
     let row = sqlx::query_as::<_, (String, String, String)>(
         "SELECT run_id,space_id,runtime_kind FROM spaces_external_agent_conversations WHERE id=$1",
@@ -54,7 +54,9 @@ pub async fn close(app: AppHandle, conversation_id: &str) -> Result<(), String> 
     } else {
         capabilities::agent_artifacts::discard(&workspace).map_err(|error| error.to_string())?;
     }
-    tx.commit().await.map_err(db::sql_error)
+    tx.commit().await.map_err(db::sql_error)?;
+    crate::spaces::runs::announce_change();
+    Ok(())
 }
 
 pub async fn cancel_by_run(app: &AppHandle, run_id: &str) -> Result<bool, String> {
@@ -72,6 +74,7 @@ pub async fn cancel_by_run(app: &AppHandle, run_id: &str) -> Result<bool, String
     if crate::external_agents::conversation::is_active(&conversation_id) {
         crate::external_agents::conversation::close(&conversation_id).await?;
     }
+    super::updates::release(&conversation_id);
     let now = crate::clock::unix_time_millis()?;
     let mut tx = db::begin_write(pool).await?;
     sqlx::query(
@@ -93,6 +96,7 @@ pub async fn cancel_by_run(app: &AppHandle, run_id: &str) -> Result<bool, String
     .await
     .map_err(db::sql_error)?;
     tx.commit().await.map_err(db::sql_error)?;
+    crate::spaces::runs::announce_change();
     let workspace = capabilities::agent_artifacts::workspace(app, &space_id, &conversation_id)
         .map_err(|error| error.to_string())?;
     capabilities::agent_artifacts::discard(&workspace).map_err(|error| error.to_string())?;
@@ -154,27 +158,6 @@ pub async fn recover(app: AppHandle) -> Result<(), String> {
     .execute(pool)
     .await
     .map_err(db::sql_error)?;
+    crate::spaces::runs::announce_change();
     Ok(())
-}
-
-pub async fn reconcile(
-    pool: &sqlx::SqlitePool,
-    conversations: &[super::ExternalConversationSummary],
-) -> Result<bool, String> {
-    let mut changed = false;
-    for conversation in conversations {
-        if conversation.state == "connected"
-            && !crate::external_agents::conversation::is_active(&conversation.id)
-        {
-            mark_disconnected(
-                pool,
-                &conversation.id,
-                &conversation.run_id,
-                "External Agent runtime disconnected",
-            )
-            .await?;
-            changed = true;
-        }
-    }
-    Ok(changed)
 }

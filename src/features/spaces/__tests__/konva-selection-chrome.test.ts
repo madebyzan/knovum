@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { canvasChromeMetrics } from "../canvas/konva/presentation/canvas-chrome-metrics";
+import { canvasChromeMetrics } from "../canvas/canvas-chrome-metrics";
 import { connectorControlCenter } from "../canvas/konva/scene/connector-geometry";
 import {
   CANVAS_FREE_RESIZE_ANCHORS,

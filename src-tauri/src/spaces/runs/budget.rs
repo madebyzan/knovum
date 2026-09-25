@@ -1,5 +1,4 @@
-use serde_json::Value;
-use sqlx::{Row, Sqlite, SqlitePool, Transaction};
+use sqlx::{Row, SqlitePool};
 
 use crate::spaces::db;
 
@@ -90,62 +89,4 @@ pub(crate) async fn reserve_output_bytes(
         .map_err(db::sql_error)?;
     }
     tx.commit().await.map_err(db::sql_error)
-}
-
-pub(crate) async fn reserve_expanded_steps(
-    pool: &SqlitePool,
-    run_id: &str,
-    count: usize,
-) -> Result<(), String> {
-    let count =
-        i64::try_from(count).map_err(|_| "budget-exhausted: expanded Step count overflow")?;
-    let mut tx = db::begin_write(pool).await?;
-    reserve_expanded_steps_in_transaction(&mut tx, run_id, count).await?;
-    tx.commit().await.map_err(db::sql_error)
-}
-
-pub(crate) async fn reserve_expanded_steps_in_transaction(
-    tx: &mut Transaction<'_, Sqlite>,
-    run_id: &str,
-    count: i64,
-) -> Result<(), String> {
-    let rows = sqlx::query(
-        "WITH RECURSIVE ancestors(id,parent_run_id,expanded_steps,budget) AS (
-           SELECT id,parent_run_id,expanded_steps,budget FROM spaces_runs WHERE id=$1
-           UNION ALL
-           SELECT parent.id,parent.parent_run_id,parent.expanded_steps,parent.budget
-           FROM spaces_runs parent JOIN ancestors child ON child.parent_run_id=parent.id
-         ) SELECT id,expanded_steps,budget FROM ancestors",
-    )
-    .bind(run_id)
-    .fetch_all(&mut **tx)
-    .await
-    .map_err(db::sql_error)?;
-    let now = crate::clock::unix_time_millis()?;
-    for row in &rows {
-        let used: i64 = row.try_get("expanded_steps").map_err(db::sql_error)?;
-        let budget: Value =
-            serde_json::from_str(&row.try_get::<String, _>("budget").map_err(db::sql_error)?)
-                .map_err(db::json_error)?;
-        let limit = budget
-            .get("maxExpandedSteps")
-            .and_then(Value::as_i64)
-            .unwrap_or(i64::MAX);
-        if used.saturating_add(count) > limit {
-            return Err("budget-exhausted: maxExpandedSteps exceeded".into());
-        }
-    }
-    for row in rows {
-        let id: String = row.try_get("id").map_err(db::sql_error)?;
-        sqlx::query(
-            "UPDATE spaces_runs SET expanded_steps=expanded_steps+$1,updated_at=$2 WHERE id=$3",
-        )
-        .bind(count)
-        .bind(now)
-        .bind(id)
-        .execute(&mut **tx)
-        .await
-        .map_err(db::sql_error)?;
-    }
-    Ok(())
 }

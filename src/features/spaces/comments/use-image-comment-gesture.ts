@@ -19,6 +19,12 @@ function point(event: PointerEvent): { x: number; y: number } {
   };
 }
 
+function completeMark(mark: CommentMark | undefined): mark is CommentMark {
+  if (mark?.shape?.kind === "stroke") return mark.shape.points.length >= 4;
+  if (mark?.shape?.kind === "region") return mark.shape.width >= 0.01 && mark.shape.height >= 0.01;
+  return false;
+}
+
 export function useImageCommentGesture(complete: (mark: CommentMark) => void) {
   const session = useImageCommentSession();
   const gesture = shallowRef<Gesture>();
@@ -58,10 +64,10 @@ export function useImageCommentGesture(complete: (mark: CommentMark) => void) {
     if (gesture.value) return;
     event.preventDefault();
     event.stopPropagation();
-    const start = point(event);
+    const origin = point(event);
     (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
-    gesture.value = { pointerId: event.pointerId, start, points: [start.x, start.y] };
-    preview.value = session.mode === "point" ? start : undefined;
+    gesture.value = { pointerId: event.pointerId, start: origin, points: [origin.x, origin.y] };
+    preview.value = session.mode === "point" ? origin : undefined;
   }
 
   function finish(event: PointerEvent) {
@@ -73,9 +79,7 @@ export function useImageCommentGesture(complete: (mark: CommentMark) => void) {
     else {
       move(event);
       const mark = preview.value;
-      if (mark?.shape?.kind === "stroke" && mark.shape.points.length >= 4) complete(mark);
-      if (mark?.shape?.kind === "region" && mark.shape.width >= 0.01 && mark.shape.height >= 0.01)
-        complete(mark);
+      if (completeMark(mark)) complete(mark);
     }
     gesture.value = undefined;
     preview.value = undefined;

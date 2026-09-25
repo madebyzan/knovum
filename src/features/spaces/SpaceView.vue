@@ -1,10 +1,17 @@
 <script setup lang="ts">
 import { AlertTriangle } from "@lucide/vue";
 import { storeToRefs } from "pinia";
-import { onMounted, shallowRef } from "vue";
+import { nextTick, onBeforeUnmount, onMounted, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
+import { toast } from "vue-sonner";
 
 import UiButton from "../../shared/ui/UiButton.vue";
+import { useContextDock } from "./canvas/use-context-dock";
+import {
+  registerConversationRunNavigation,
+  restoreConversationRuns,
+} from "./conversation/conversation-run-observation";
+import { useConversationSessionStore } from "./conversation/conversation-session-store";
 import { useDeferredEditorMount } from "./editor/use-deferred-editor-mount";
 import SpaceCanvas from "./presentation/canvas/SpaceCanvas.vue";
 import SpaceTiptapEditor from "./presentation/editor/SpaceTiptapEditor.vue";
@@ -13,7 +20,9 @@ import SpaceAudioRecordingDock from "./presentation/media/SpaceAudioRecordingDoc
 import SpaceEditorLoading from "./presentation/SpaceEditorLoading.vue";
 import SpaceRecentlyDeleted from "./presentation/SpaceRecentlyDeleted.vue";
 import SpaceVideoEditor from "./presentation/video-editor/SpaceVideoEditor.vue";
+import SpaceWorkflowReviewDialog from "./presentation/workflows/SpaceWorkflowReviewDialog.vue";
 import { useSpaceStore } from "./session/space-store";
+import { closeWorkflowReview, restoreWorkflowRuns, reviewRunId } from "./workflows/workflow-run-observation";
 import { useSpaceSessionLifecycle } from "./workspace/use-space-session-lifecycle";
 
 const store = useSpaceStore();
@@ -23,6 +32,18 @@ const initializationError = shallowRef<Error>();
 const initializing = shallowRef(false);
 const mountedEditorId = useDeferredEditorMount(focusedEditorId);
 useSpaceSessionLifecycle(store.commitActiveSession);
+const dock = useContextDock();
+const unregisterConversationNavigation = registerConversationRunNavigation(
+  async (spaceId, conversationId) => {
+    await store.openSpace(spaceId);
+    await nextTick();
+    dock.openAsk();
+    const assistant = useConversationSessionStore();
+    await assistant.refreshConversations();
+    await assistant.selectConversation(conversationId);
+  },
+);
+onBeforeUnmount(unregisterConversationNavigation);
 
 async function initialize() {
   if (initializing.value) return;
@@ -30,6 +51,12 @@ async function initialize() {
   initializationError.value = undefined;
   try {
     await store.initialize(t("spaces.space.inbox"));
+    void restoreWorkflowRuns(t("spaces.creation.workflow")).catch((caught: unknown) => {
+      toast.error(String(caught));
+    });
+    void restoreConversationRuns().catch((caught: unknown) => {
+      toast.error(String(caught));
+    });
   } catch (caught) {
     initializationError.value = caught instanceof Error ? caught : new Error(String(caught));
   } finally {
@@ -69,6 +96,7 @@ onMounted(() => void initialize());
         @update:open="!$event && (store.recentlyDeletedSpaceId = undefined)"
       />
       <SpaceVideoEditor v-if="store.videoEditorNodeId" />
+      <SpaceWorkflowReviewDialog v-if="reviewRunId" :run-id="reviewRunId" @close="closeWorkflowReview" />
     </template>
   </main>
 </template>

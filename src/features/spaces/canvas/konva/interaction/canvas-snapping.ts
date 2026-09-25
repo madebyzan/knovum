@@ -1,5 +1,5 @@
+import { canvasFrameBounds } from "../../canvas-snap-geometry";
 import type { CanvasNodeFrame } from "../../contract/canvas-document";
-import { canvasFrameBounds } from "./canvas-snap-geometry";
 
 export interface CanvasSnapGuide {
   kind: "alignment" | "measurement" | "spacing";
