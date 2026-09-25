@@ -45,7 +45,10 @@ const emit = defineEmits<{
       <div class="flex min-w-0 items-center pr-3">
         <component :is="workspace.toolbar" class="min-w-0 flex-1" />
       </div>
-      <div class="flex min-w-0 items-center gap-1 overflow-hidden px-3">
+      <div
+        class="flex min-w-0 items-center gap-1 overflow-hidden px-3"
+        :class="{ 'border-l border-window-hairline bg-panel': rightSidebarOpen }"
+      >
         <component v-if="rightSidebarOpen" :is="workspace.rightSidebarToolbar" class="min-w-0" />
         <UiIconButton
           id="workspace-right-sidebar-toggle"

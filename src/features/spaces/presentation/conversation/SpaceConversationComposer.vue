@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ArrowUp, CircleStop, FileText, Link2, X } from "@lucide/vue";
-import { computed, ref } from "vue";
+import { ArrowUp, CircleStop } from "@lucide/vue";
+import { computed, ref, useTemplateRef } from "vue";
 
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
 import type { ConversationTarget } from "../../conversation/conversation-target";
+import SpaceConversationAttachment from "./SpaceConversationAttachment.vue";
 import SpaceConversationAttachmentPicker from "./SpaceConversationAttachmentPicker.vue";
 import SpaceConversationTargetField from "./SpaceConversationTargetField.vue";
 
@@ -13,8 +14,8 @@ const target = defineModel<ConversationTarget | undefined>("target");
 const targetAvailable = ref(false);
 const props = defineProps<{
   busy: boolean;
-  attachments: readonly { key: string; kind: "node" | "file"; title: string }[];
-  attachmentCandidates: readonly { nodeId: string; title: string; selected: boolean; attached: boolean }[];
+  attachments: readonly { key: string; kind: "node" | "file"; title: string; previewSource: string }[];
+  attachmentCandidates: readonly { nodeId: string; title: string; previewSource: string; selected: boolean; attached: boolean }[];
   attachmentError?: string | undefined;
   pickingFiles: boolean;
 }>();
@@ -32,6 +33,8 @@ const canSend = computed(
     !props.busy &&
     !props.pickingFiles,
 );
+const input = useTemplateRef<InstanceType<typeof UiTextarea>>("input");
+defineExpose({ focus: () => input.value?.focus() });
 
 function submit(event?: KeyboardEvent) {
   if (event?.isComposing || event?.keyCode === 229) return;
@@ -44,6 +47,7 @@ function submit(event?: KeyboardEvent) {
   <footer class="min-w-0 shrink-0 border-t border-divider bg-panel p-3">
     <div class="min-w-0 rounded-panel border border-border bg-raised focus-within:border-focus-ring">
       <UiTextarea
+        ref="input"
         v-model="prompt"
         :rows="3"
         class="max-h-48 min-h-24 resize-none rounded-b-none border-0 bg-transparent px-3 py-3"
@@ -53,33 +57,12 @@ function submit(event?: KeyboardEvent) {
         @keydown.ctrl.enter="submit"
       />
       <div v-if="attachments.length" class="flex min-w-0 flex-wrap gap-1.5 px-3 pb-2">
-        <span
+        <SpaceConversationAttachment
           v-for="attachment in attachments"
           :key="attachment.key"
-          class="inline-flex max-w-full items-center gap-1.5 rounded-control border border-divider bg-control px-2 py-1 text-caption"
-        >
-          <Link2
-            v-if="attachment.kind === 'node'"
-            class="size-(--knovum-icon-size-xs) shrink-0 text-accent"
-          />
-          <FileText v-else class="size-(--knovum-icon-size-xs) shrink-0 text-foreground-secondary" />
-          <span class="shrink-0 text-foreground-tertiary">{{
-            $t(
-              attachment.kind === "node"
-                ? "spaces.assistant.canvasNodeShort"
-                : "spaces.assistant.localFileShort",
-            )
-          }}</span>
-          <span class="truncate">{{ attachment.title }}</span>
-          <button
-            type="button"
-            class="shrink-0 rounded-control text-foreground-secondary hover:text-foreground focus-visible:outline-2 focus-visible:outline-focus-ring"
-            :aria-label="$t('spaces.assistant.removeAttachedResource', { name: attachment.title })"
-            @click="emit('removeAttachment', attachment.key)"
-          >
-            <X class="size-(--knovum-icon-size-xs)" />
-          </button>
-        </span>
+          :attachment="attachment"
+          @remove="emit('removeAttachment', $event)"
+        />
       </div>
       <div class="flex min-w-0 items-center gap-1 px-2 pb-2">
         <SpaceConversationAttachmentPicker

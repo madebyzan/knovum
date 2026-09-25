@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
+import { nextTick, useTemplateRef } from "vue";
 
 import { useConversationSessionStore } from "../../conversation/conversation-session-store";
 import SpaceConversationComposer from "./SpaceConversationComposer.vue";
@@ -33,6 +34,13 @@ const {
   pickingFiles,
   scrollPositions,
 } = storeToRefs(conversationSession);
+const composer = useTemplateRef<InstanceType<typeof SpaceConversationComposer>>("composer");
+
+async function useSuggestion(value: string) {
+  prompt.value = value;
+  await nextTick();
+  composer.value?.focus();
+}
 </script>
 
 <template>
@@ -75,6 +83,7 @@ const {
         @decide-permission="conversationSession.decidePermission"
         @decide-approval="conversationSession.decideApproval"
         @scroll-position="conversationSession.rememberScroll"
+        @suggest="useSuggestion"
       />
     </div>
     <SpaceConversationRunStatus
@@ -84,6 +93,7 @@ const {
       @resume="conversationSession.resume"
     />
     <SpaceConversationComposer
+      ref="composer"
       v-model="prompt"
       v-model:target="target"
       :attachments="visibleAttachments"

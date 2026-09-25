@@ -1,6 +1,7 @@
 import { open } from "@tauri-apps/plugin-dialog";
 import { computed, shallowRef } from "vue";
 
+import { spaceCanvasOverviewSource } from "../assets/node-preview-source";
 import { useCanvasEditorSession } from "../canvas/editor-session";
 import { currentSelectionRoots } from "../canvas/selection/selection-roots";
 import { createStructureIndex } from "../model/structure/structure-index";
@@ -46,14 +47,22 @@ export function useConversationAttachments() {
     );
   });
   const visibleAttachments = computed(() =>
-    attachments.value.map((attachment) => ({
-      key: attachment.kind === "node" ? `node:${attachment.nodeId}` : `file:${attachment.path}`,
-      kind: attachment.kind,
-      title:
-        attachment.kind === "node"
-          ? (store.nodes.find(({ id }) => id === attachment.nodeId)?.data.title ?? attachment.nodeId)
-          : (attachment.path.split(/[\\/]/).at(-1) ?? attachment.path),
-    })),
+    attachments.value.map((attachment) => {
+      if (attachment.kind === "file")
+        return {
+          key: `file:${attachment.path}`,
+          kind: attachment.kind,
+          title: attachment.path.split(/[\\/]/).at(-1) ?? attachment.path,
+          previewSource: "",
+        };
+      const node = store.nodes.find(({ id }) => id === attachment.nodeId);
+      return {
+        key: `node:${attachment.nodeId}`,
+        kind: attachment.kind,
+        title: node?.data.title ?? attachment.nodeId,
+        previewSource: node ? spaceCanvasOverviewSource(node.data) : "",
+      };
+    }),
   );
   const attachmentCandidates = computed(() => {
     const attachedIds = new Set(
@@ -64,6 +73,7 @@ export function useConversationAttachments() {
       .map((node) => ({
         nodeId: node.id,
         title: node.data.title,
+        previewSource: spaceCanvasOverviewSource(node.data),
         selected: selectedSourceNodeIds.value.has(node.id),
         attached: attachedIds.has(node.id),
       }));
