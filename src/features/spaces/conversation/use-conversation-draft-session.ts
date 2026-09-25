@@ -11,9 +11,12 @@ function sameAttachments(left: readonly Attachment[], right: readonly Attachment
     left.every((item) =>
       right.some(
         (attachment) =>
-          attachment.nodeId === item.nodeId &&
+          attachment.kind === item.kind &&
+          (attachment.kind === "node" && item.kind === "node"
+            ? attachment.nodeId === item.nodeId
+            : attachment.kind === "file" && item.kind === "file" && attachment.path === item.path) &&
           attachment.sourceRevision === item.sourceRevision &&
-          attachment.role === item.role,
+          (attachment.kind === "file" || item.kind === "file" || attachment.role === item.role),
       ),
     )
   );

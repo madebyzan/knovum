@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { AlertCircle, Sparkles } from "@lucide/vue";
 import type { ComponentPublicInstance } from "vue";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
@@ -51,16 +52,23 @@ function bindScroller(element: Element | ComponentPublicInstance | null) {
     </div>
     <div
       :ref="bindScroller"
-      class="min-h-0 flex-1 overflow-y-auto px-3"
+      class="min-h-0 flex-1 overflow-y-auto px-4"
       @scroll.passive="updateScrollPosition"
     >
       <div
         v-if="messages.length === 0 && !busy && !error && !permission && !approvals.length"
-        class="grid min-h-full place-items-center px-6"
+        class="flex min-h-full flex-col justify-center px-2 pb-16"
       >
-        <p class="max-w-56 text-center text-caption leading-relaxed text-foreground-tertiary">
-          {{ $t("spaces.assistant.builtInEmpty") }}
-        </p>
+        <div class="max-w-72">
+          <Sparkles class="mb-4 size-(--knovum-icon-size-md) text-accent" />
+          <h2 class="text-title-sm font-semibold text-foreground">{{ $t("spaces.assistant.emptyTitle") }}</h2>
+          <p class="mt-2 text-body leading-relaxed text-foreground-secondary">
+            {{ $t("spaces.assistant.builtInEmpty") }}
+          </p>
+          <p class="mt-4 text-caption text-foreground-tertiary">
+            {{ $t("spaces.assistant.emptyAttachmentHint") }}
+          </p>
+        </div>
       </div>
       <div class="relative w-full" :style="{ height: `${totalSize}px` }">
         <article
@@ -89,10 +97,22 @@ function bindScroller(element: Element | ComponentPublicInstance | null) {
         @decide-permission="emit('decidePermission', $event)"
         @decide-approval="(id, approved) => emit('decideApproval', id, approved)"
       />
-      <p v-if="busy" role="status" class="text-meta py-2 text-foreground-tertiary">
+      <p
+        v-if="busy"
+        role="status"
+        class="flex items-center gap-2 py-3 text-caption text-foreground-secondary"
+      >
+        <span class="size-1.5 shrink-0 rounded-full bg-accent" />
         {{ $t("spaces.assistant.agentWorking") }}
       </p>
-      <p v-if="error" class="text-meta rounded-control bg-danger-subtle p-2 text-danger">{{ error }}</p>
+      <div
+        v-if="error"
+        role="alert"
+        class="mb-4 flex items-start gap-2 rounded-panel border border-danger/30 bg-danger-subtle p-3 text-caption text-danger"
+      >
+        <AlertCircle class="mt-0.5 size-(--knovum-icon-size-sm) shrink-0" />
+        <span class="min-w-0 wrap-break-word">{{ error }}</span>
+      </div>
     </div>
     <UiButton
       v-if="!atTail && streamedText"

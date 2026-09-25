@@ -27,7 +27,7 @@ const parameters = computed(() => {
 
 <template>
   <section
-    class="bg-warning-subtle mb-4 rounded-panel border border-warning/40 p-3 text-caption"
+    class="mb-4 rounded-panel border border-l-2 border-border border-l-warning bg-surface p-3 text-caption"
     role="group"
     :aria-label="t('spaces.assistant.approvalPlan')"
   >
@@ -35,7 +35,7 @@ const parameters = computed(() => {
       {{ t("spaces.assistant.actionApprovalTitle", { action: actionName }) }}
     </h3>
     <p class="mt-1 text-foreground-secondary">{{ t("spaces.assistant.actionApprovalHint") }}</p>
-    <dl v-if="parameters.length" class="mt-2 space-y-1 border-t border-warning/30 pt-2">
+    <dl v-if="parameters.length" class="mt-2 space-y-1 border-t border-divider pt-2">
       <div
         v-for="parameter in parameters"
         :key="parameter.name"

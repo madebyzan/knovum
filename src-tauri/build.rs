@@ -149,6 +149,7 @@ fn main() {
                         "list_knowledge_health_issues",
                         "list_space_actions",
                         "start_assistant_task",
+                        "inspect_assistant_upload",
                         "list_assistant_conversations",
                         "list_assistant_messages",
                         "get_assistant_task_error",

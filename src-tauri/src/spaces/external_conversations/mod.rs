@@ -57,8 +57,9 @@ pub(crate) async fn send_for_assistant(
     session_id: &str,
     prompt: &str,
     prepared: crate::external_agents::prompt::AgentPrompt,
+    attachments: &[crate::spaces::assistant::AssistantMessageAttachment],
 ) -> Result<(), String> {
-    runtime::send_prepared(app, session_id, prompt, prepared).await
+    runtime::send_prepared(app, session_id, prompt, prepared, attachments).await
 }
 
 pub(crate) async fn close_for_assistant(

@@ -170,6 +170,15 @@ capabilities and turn state remain execution records. Model and Agent turns shar
 while each Agent turn starts a fresh native session with explicit context. Historical grounded
 answers and citation snapshots are migrated once into the same conversation store. Space packages
 export this history once and reject older package formats.
+Conversation attachments have two explicit sources. Canvas references carry a node ID and stable
+revision; Rust resolves them inside the active Space. Local files come from the native file dialog
+and carry a scoped path plus content digest in the in-memory draft. Rust checks the dialog scope,
+regular-file type, supported format, size and digest before each turn. It extracts bounded document
+text or image content into the task context and records only file metadata in the Run manifest;
+the file path is not persisted or converted into a canvas node. User messages retain only a
+source-specific attachment summary for conversation history; canvas summaries can reveal their
+node, while file summaries show the filename without reopening a private path. Desktop Agent
+file inputs enter the Agent protocol's existing scoped attachment staging path.
 
 ## State and storage ownership
 

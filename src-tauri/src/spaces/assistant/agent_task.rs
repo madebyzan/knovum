@@ -44,7 +44,15 @@ pub async fn start(
             );
         }
     }
-    let context = context::resolve(&app, pool, &request.space_id, &request.attachments).await?;
+    let context = context::resolve(
+        &app,
+        pool,
+        &request.space_id,
+        &request.attachments,
+        context::ContextTarget::ExternalAgent,
+    )
+    .await?;
+    let attachment_summaries = repository::attachment_summaries(&context.manifest)?;
     let history = if let Some((id, branch)) = &conversation {
         repository::build_context(pool, id, branch).await?
     } else {
@@ -71,9 +79,14 @@ pub async fn start(
         branch_id: session.branch_id.clone(),
     };
     tauri::async_runtime::spawn(async move {
-        let outcome =
-            external_conversations::send_for_assistant(app.clone(), &session.id, &prompt, prepared)
-                .await;
+        let outcome = external_conversations::send_for_assistant(
+            app.clone(),
+            &session.id,
+            &prompt,
+            prepared,
+            &attachment_summaries,
+        )
+        .await;
         let outcome = match outcome {
             Ok(()) => external_conversations::close_for_assistant(app.clone(), &session.id).await,
             Err(error) => Err(error),

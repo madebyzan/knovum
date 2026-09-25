@@ -1,14 +1,17 @@
 <script setup lang="ts">
+import { MoreHorizontal } from "@lucide/vue";
 import { writeText } from "tauri-plugin-clipboard-api";
 import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiDropdownMenu from "../../../../shared/ui/UiDropdownMenu.vue";
+import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiMarkdown from "../../../../shared/ui/UiMarkdown.vue";
 import type { AssistantMessage } from "../../conversation/conversation-ipc";
 import { groundedCitationSchema } from "../../knowledge/model/grounded-citation";
 import { useSpaceStore } from "../../session/space-store";
 import { captureActionLabels } from "../workflows/workflow-capture-labels";
+import SpaceConversationMessageAttachments from "./SpaceConversationMessageAttachments.vue";
 import SpaceConversationSearchResults from "./SpaceConversationSearchResults.vue";
 
 const props = defineProps<{ message: AssistantMessage }>();
@@ -57,7 +60,13 @@ function createdNodeId(result: unknown): string | undefined {
 </script>
 
 <template>
-  <div class="flex min-w-0 flex-col gap-2" :class="message.role === 'user' ? 'items-end' : 'items-start'">
+  <div
+    class="group flex min-w-0 flex-col gap-2"
+    :class="message.role === 'user' ? 'items-end' : 'items-start'"
+  >
+    <span v-if="message.role === 'assistant'" class="text-caption font-semibold text-foreground-secondary">
+      {{ t("spaces.assistant.role.assistant") }}
+    </span>
     <div
       class="max-w-full min-w-0 space-y-2 text-body leading-relaxed text-foreground"
       :class="message.role === 'user' ? 'w-fit rounded-panel bg-control px-3 py-2.5' : 'w-full'"
@@ -90,6 +99,10 @@ function createdNodeId(result: unknown): string | undefined {
         </div>
       </template>
     </div>
+    <SpaceConversationMessageAttachments
+      v-if="message.role === 'user' && message.content.attachments?.length"
+      :attachments="message.content.attachments"
+    />
     <details
       v-if="citations.length"
       class="w-full rounded-control border border-divider px-2 py-1.5 text-caption"
@@ -143,12 +156,13 @@ function createdNodeId(result: unknown): string | undefined {
     </p>
     <UiDropdownMenu v-if="message.role === 'assistant'" :items="actions">
       <template #trigger>
-        <button
-          type="button"
-          class="rounded-control px-1.5 py-0.5 text-micro text-foreground-tertiary hover:bg-control-hover hover:text-foreground"
+        <UiIconButton
+          :label="t('spaces.assistant.messageActions')"
+          size="sm"
+          class="text-foreground-tertiary"
         >
-          {{ t("spaces.assistant.messageActions") }}
-        </button>
+          <MoreHorizontal class="size-(--knovum-icon-size-sm)" />
+        </UiIconButton>
       </template>
     </UiDropdownMenu>
   </div>
