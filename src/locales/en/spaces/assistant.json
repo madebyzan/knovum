@@ -32,6 +32,7 @@
   },
   "builtInPlaceholder": "Ask, plan, or create in this Space…",
   "agentWorking": "Working…",
+  "preparingConversation": "Starting conversation…",
   "send": "Send",
   "modeLabel": "Assistant mode",
   "taskBudget": "Task budget",

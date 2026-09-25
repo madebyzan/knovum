@@ -99,6 +99,7 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
     prompt,
     target,
     attachments,
+    messages,
     refresh: refreshConversations,
     select: selectConversation,
     moveDraft: draftSession.move,

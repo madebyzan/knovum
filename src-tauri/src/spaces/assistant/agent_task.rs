@@ -72,6 +72,29 @@ pub async fn start(
         updates.clone(),
     )
     .await?;
+    let turn_id = match external_conversations::begin_turn_for_assistant(
+        app.clone(),
+        &session.id,
+        &prompt,
+        &attachment_summaries,
+    )
+    .await
+    {
+        Ok(id) => id,
+        Err(error) => {
+            if let Err(settlement) = external_conversations::fail_for_assistant(
+                &app,
+                &session.id,
+                &session.run_id,
+                &error,
+            )
+            .await
+            {
+                log::error!("Agent task settlement failed: {settlement}");
+            }
+            return Err(error);
+        }
+    };
     let accepted = AssistantTaskAccepted {
         task_id: session.id.clone(),
         run_id: session.run_id.clone(),
@@ -79,14 +102,9 @@ pub async fn start(
         branch_id: session.branch_id.clone(),
     };
     tauri::async_runtime::spawn(async move {
-        let outcome = external_conversations::send_for_assistant(
-            app.clone(),
-            &session.id,
-            &prompt,
-            prepared,
-            &attachment_summaries,
-        )
-        .await;
+        let outcome =
+            external_conversations::send_for_assistant(app.clone(), &session.id, &turn_id, prepared)
+                .await;
         let outcome = match outcome {
             Ok(()) => external_conversations::close_for_assistant(app.clone(), &session.id).await,
             Err(error) => Err(error),

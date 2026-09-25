@@ -52,14 +52,22 @@ pub(crate) async fn start_for_assistant(
     runtime::start(app, request, conversation, Some(updates)).await
 }
 
-pub(crate) async fn send_for_assistant(
+pub(crate) async fn begin_turn_for_assistant(
     app: tauri::AppHandle,
     session_id: &str,
     prompt: &str,
-    prepared: crate::external_agents::prompt::AgentPrompt,
     attachments: &[crate::spaces::assistant::AssistantMessageAttachment],
+) -> Result<String, String> {
+    runtime::begin_turn(app, session_id, prompt, attachments).await
+}
+
+pub(crate) async fn send_for_assistant(
+    app: tauri::AppHandle,
+    session_id: &str,
+    turn_id: &str,
+    prepared: crate::external_agents::prompt::AgentPrompt,
 ) -> Result<(), String> {
-    runtime::send_prepared(app, session_id, prompt, prepared, attachments).await
+    runtime::send_prepared(app, session_id, turn_id, prepared).await
 }
 
 pub(crate) async fn close_for_assistant(

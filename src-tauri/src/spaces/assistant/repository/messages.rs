@@ -121,8 +121,10 @@ pub async fn list_messages(
     let rows = sqlx::query(
         "SELECT id,conversation_id,branch_id,role,content,created_at
         FROM spaces_assistant_messages WHERE conversation_id=$1 AND branch_id=$2
-        AND ($3 IS NULL OR created_at<$3 OR (created_at=$3 AND id<$4))
-        ORDER BY created_at DESC,id DESC LIMIT $5",
+        AND ($3 IS NULL OR (created_at,rowid) <
+             ($3,(SELECT rowid FROM spaces_assistant_messages
+                  WHERE id=$4 AND conversation_id=$1 AND branch_id=$2)))
+        ORDER BY created_at DESC,rowid DESC LIMIT $5",
     )
     .bind(conversation_id)
     .bind(branch_id)
@@ -145,7 +147,7 @@ pub async fn all_messages(
     let rows = sqlx::query(
         "SELECT id,conversation_id,branch_id,role,content,created_at
         FROM spaces_assistant_messages WHERE conversation_id=$1 AND branch_id=$2
-        ORDER BY created_at,id",
+        ORDER BY created_at,rowid",
     )
     .bind(conversation_id)
     .bind(branch_id)
@@ -162,8 +164,8 @@ pub async fn branch(
     through_message_id: &str,
     include_boundary: bool,
 ) -> Result<String, String> {
-    let boundary: (i64, String) = sqlx::query_as(
-        "SELECT created_at,id FROM spaces_assistant_messages WHERE id=$1 AND conversation_id=$2
+    let boundary: (i64, i64) = sqlx::query_as(
+        "SELECT created_at,rowid FROM spaces_assistant_messages WHERE id=$1 AND conversation_id=$2
          AND branch_id=$3",
     )
     .bind(through_message_id)
@@ -176,14 +178,14 @@ pub async fn branch(
     let comparison = if include_boundary { "<=" } else { "<" };
     let query = format!(
         "SELECT role,content,created_at FROM spaces_assistant_messages
-         WHERE conversation_id=$1 AND branch_id=$2 AND (created_at,id) {comparison} ($3,$4)
-         ORDER BY created_at,id",
+         WHERE conversation_id=$1 AND branch_id=$2 AND (created_at,rowid) {comparison} ($3,$4)
+         ORDER BY created_at,rowid",
     );
     let rows = sqlx::query(&query)
         .bind(conversation_id)
         .bind(source_branch_id)
         .bind(boundary.0)
-        .bind(&boundary.1)
+        .bind(boundary.1)
         .fetch_all(pool)
         .await
         .map_err(db::sql_error)?;

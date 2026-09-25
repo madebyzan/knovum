@@ -32,6 +32,7 @@
   },
   "builtInPlaceholder": "在当前空间中询问、规划或创建…",
   "agentWorking": "正在处理…",
+  "preparingConversation": "正在启动会话…",
   "send": "发送",
   "modeLabel": "助手模式",
   "taskBudget": "任务预算",
