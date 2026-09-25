@@ -23,6 +23,11 @@ pub fn allocate_document_pdf_path(app: AppHandle) -> Result<String, String> {
 }
 
 #[tauri::command]
+pub fn allocate_document_txt_path(app: AppHandle) -> Result<String, String> {
+    reserve(&app, "document", "txt")
+}
+
+#[tauri::command]
 pub fn allocate_presentation_pptx_path(app: AppHandle) -> Result<String, String> {
     reserve(&app, "presentation", "pptx")
 }

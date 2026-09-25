@@ -182,3 +182,11 @@ pub async fn export_document_as_pdf(
 ) -> Result<document_export::ExportDocumentOutput, String> {
     document_export::pdf::export(&app, request).await
 }
+
+#[tauri::command]
+pub async fn export_document_as_txt(
+    app: AppHandle,
+    request: document_export::ExportDocumentRequest,
+) -> Result<document_export::ExportDocumentOutput, String> {
+    document_export::text::export(&app, request).await
+}
