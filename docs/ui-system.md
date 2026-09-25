@@ -199,7 +199,7 @@ interactive controls alone receive pointer input. A subtle highlight separates t
 Resizing the panes updates the corresponding toolbar regions from the same shell width state without animation.
 
 The leading toolbar region shares the left navigation panel's width and keeps navigation and history controls in
-place when the sidebar is previewed. Space tabs begin after a 12px inset in the main region. Leading and right
+place when the sidebar is previewed. Space tabs align with the main work surface's leading edge. Leading and right
 chrome actions follow the established compact control size; the right view switcher uses the medium control token
 to keep its contextual modes distinct from Space navigation.
 

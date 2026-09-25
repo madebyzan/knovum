@@ -42,7 +42,7 @@ const emit = defineEmits<{
         />
         <component :is="workspace.toolbarLeading" class="ml-auto shrink-0" />
       </div>
-      <div class="flex min-w-0 items-center px-3">
+      <div class="flex min-w-0 items-center pr-3">
         <component :is="workspace.toolbar" class="min-w-0 flex-1" />
       </div>
       <div class="flex min-w-0 items-center gap-1 overflow-hidden px-3">
