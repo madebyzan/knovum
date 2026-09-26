@@ -214,8 +214,8 @@ importers:
         specifier: ^20.14.0
         version: 20.14.0
       jscpd:
-        specifier: ^5.1.2
-        version: 5.1.2
+        specifier: ^5.3.1
+        version: 5.3.1
       knip:
         specifier: ^6.34.0
         version: 6.34.0
@@ -2822,7 +2822,7 @@ packages:
   glob@8.1.0:
     resolution: {integrity: sha512-r8hpEjiQEYlF2QU0df3dS+nxxSIreXQS1qRhMJM0Q5NDdR386C7jb7Hwwod8Fgiuex+k0GFjgft18yvxm5XoCQ==}
     engines: {node: '>=12'}
-    deprecated: Glob versions prior to v9 are no longer supported
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   global-directory@4.0.1:
     resolution: {integrity: sha512-wHTUcDUoZ1H5/0iVqEudYW4/kAlN5cZ3j/bXn0Dpbizl9iaUVeWSHqiOjsgk6OW2bkLclbBjzewBz6weQ1zA2Q==}
@@ -3066,52 +3066,52 @@ packages:
     resolution: {integrity: sha512-wpxZs9NoxZaJESJGIZTyDEaYpl0FKSA+FB9aJiyemKhMwkxQg63h4T1KJgUGHpTqPDNRcmmYLugrRjJlBtWvRA==}
     hasBin: true
 
-  jscpd-darwin-arm64@5.1.2:
-    resolution: {integrity: sha512-6fYVCBHgE154jVVYcRA+9K17q5AXe0/V9wfPf3hBrDQMxqOiI+99ii2CfMT6OkcEtJULqpi+uJENCsjtYn+nmQ==}
+  jscpd-darwin-arm64@5.3.1:
+    resolution: {integrity: sha512-t2gKgDw8b1tXv8UZW4p5dSFODSSmTVMtlVUIyCab/R8L+EFc/NPvlC0NUvv8P03zU4QENHJwSaQUAoULcGnaLA==}
     cpu: [arm64]
     os: [darwin]
 
-  jscpd-darwin-x64@5.1.2:
-    resolution: {integrity: sha512-udNKAqu7ty6NcHvSwaZ7qCktyN+JwET0Z81e6/s1WmRtHkdd6Hnv0Gix04gRN3aVkfqZzI6YKle0YnYPJe4hOA==}
+  jscpd-darwin-x64@5.3.1:
+    resolution: {integrity: sha512-2/xqNtHoLF2wBzA0g6ynxSuEk758yWEtt1vgEhoOYsDe0gQZLaGdszW0KK05T+30Xst12dkFJzVtgBfMkn5jtg==}
     cpu: [x64]
     os: [darwin]
 
-  jscpd-linux-arm64-gnu@5.1.2:
-    resolution: {integrity: sha512-FYX3IZPXwEooiDn7fQzHEytRbbsSBNqqHUEzxu32EKBXNyQ1Fx1/8hms26X1RFUJ80zpcKkRQCz1J3hPYsYhFA==}
+  jscpd-linux-arm64-gnu@5.3.1:
+    resolution: {integrity: sha512-Nw14CJAbCICjaDYYBmi38gZ8ayuM5E9eLj3xXZQ9swQD7PORY0hHT3CsME0LzGQdeMfzHVJWQUAiar9Bq86BIQ==}
     cpu: [arm64]
     os: [linux]
     libc: [glibc]
 
-  jscpd-linux-arm64-musl@5.1.2:
-    resolution: {integrity: sha512-SuoKN9xv4pIopLS2yPx3E+ysnmZPNAKdxxAYTwvd6ixrEcO36xIKUma+DGKUw1PLXq1HO6A9M3FlqmnrTCnzYA==}
+  jscpd-linux-arm64-musl@5.3.1:
+    resolution: {integrity: sha512-KkHFfEE/8pQfPWT/T4uQCL3xtJqo5Q4OMVnRf5hRPhYuriifAefN90q8/rhevAICgg/UkAVZ78hYMOp/WcgivA==}
     cpu: [arm64]
     os: [linux]
     libc: [musl]
 
-  jscpd-linux-x64-gnu@5.1.2:
-    resolution: {integrity: sha512-1B+rqrw7Jt7/5Sye7ssedRnN8I1qatjUq9tFRcUQvlteR1OgW4lZuGV+DTYOgNaPNzeJN21aLzBGBa9OsxRWMA==}
+  jscpd-linux-x64-gnu@5.3.1:
+    resolution: {integrity: sha512-YG7V1k+ejE3UaQG0voZscCqZg7X1bwRDgxZlRcllEySHtWHiUl2UR4arHR0PdF6uBUGw0rfjOKkKZu0AYQoimw==}
     cpu: [x64]
     os: [linux]
     libc: [glibc]
 
-  jscpd-linux-x64-musl@5.1.2:
-    resolution: {integrity: sha512-46Astr0LnVh/prpqq5/Vehtx18MCvcs0KL8vi49kAIksOe6QdlQ/hdBKH8V61pAAmAgCr64hU9p0dv6DDKHJdg==}
+  jscpd-linux-x64-musl@5.3.1:
+    resolution: {integrity: sha512-Wnz0SJB8rZC3UbRYFKSDR0qXJEYMz5hUufO/SPV++fR5+wk7gqxpdYM+LBWDznaSuXZ1PiLMjN5vE3x8jwBCxA==}
     cpu: [x64]
     os: [linux]
     libc: [musl]
 
-  jscpd-windows-arm64-msvc@5.1.2:
-    resolution: {integrity: sha512-19gpnY+Mid71EGGytBcFwsif/Y1+Vfu2Qp0IJ+L3WFD32Zui9O4vvASwvxocgA7z77kiZNh9zF5sZY9+oQB62A==}
+  jscpd-windows-arm64-msvc@5.3.1:
+    resolution: {integrity: sha512-pk/PRHowDkMx8nPF1FbiMSBEeBECJz8iJ21Ig24AIZmIQKDt0MjshDlEs1UHV7dMbePm56RToBtHw0J4FaxMFg==}
     cpu: [arm64]
     os: [win32]
 
-  jscpd-windows-x64-msvc@5.1.2:
-    resolution: {integrity: sha512-RZlAnXP7Jmx39LBC66IIpFIGl/Bg4FcSkz4Jr6ThrDm5D1NvM201MDG70Z1i+N3wRrfI8UcDkWp5rsHzGHViSA==}
+  jscpd-windows-x64-msvc@5.3.1:
+    resolution: {integrity: sha512-vIQGaPvnMdRLvMyJzvoD3bCJB8Ospv+YEYkdHdq0dZTbqbUKjrHt3arvYJ0G0T5kBYY+8QGmjelMI01p74xZPA==}
     cpu: [x64]
     os: [win32]
 
-  jscpd@5.1.2:
-    resolution: {integrity: sha512-7innyzaMstgJcluIwLxUESsP7znUFtRxiENhcUzv34aDrjzH3mJOF7m/5ecNyQGST8BBlmz8alpTuId0c6OdkQ==}
+  jscpd@5.3.1:
+    resolution: {integrity: sha512-A1A8PqFTpKN+SI5QowA30fmOYkpofQGJQzn5KyIDEYbQ1kC78GK+RBcmdz4KxZ/9QQMe3J01CsFIrtC2dUvekw==}
     engines: {node: '>=18'}
     hasBin: true
 
@@ -4876,7 +4876,7 @@ snapshots:
   '@isaacs/cliui@8.0.2':
     dependencies:
       string-width: 5.1.2
-      string-width-cjs: string-width@4.2.0
+      string-width-cjs: string-width@4.2.3
       strip-ansi: 7.2.0
       strip-ansi-cjs: strip-ansi@6.0.1
       wrap-ansi: 8.1.0
@@ -7294,40 +7294,40 @@ snapshots:
     dependencies:
       argparse: 2.0.1
 
-  jscpd-darwin-arm64@5.1.2:
+  jscpd-darwin-arm64@5.3.1:
     optional: true
 
-  jscpd-darwin-x64@5.1.2:
+  jscpd-darwin-x64@5.3.1:
     optional: true
 
-  jscpd-linux-arm64-gnu@5.1.2:
+  jscpd-linux-arm64-gnu@5.3.1:
     optional: true
 
-  jscpd-linux-arm64-musl@5.1.2:
+  jscpd-linux-arm64-musl@5.3.1:
     optional: true
 
-  jscpd-linux-x64-gnu@5.1.2:
+  jscpd-linux-x64-gnu@5.3.1:
     optional: true
 
-  jscpd-linux-x64-musl@5.1.2:
+  jscpd-linux-x64-musl@5.3.1:
     optional: true
 
-  jscpd-windows-arm64-msvc@5.1.2:
+  jscpd-windows-arm64-msvc@5.3.1:
     optional: true
 
-  jscpd-windows-x64-msvc@5.1.2:
+  jscpd-windows-x64-msvc@5.3.1:
     optional: true
 
-  jscpd@5.1.2:
+  jscpd@5.3.1:
     optionalDependencies:
-      jscpd-darwin-arm64: 5.1.2
-      jscpd-darwin-x64: 5.1.2
-      jscpd-linux-arm64-gnu: 5.1.2
-      jscpd-linux-arm64-musl: 5.1.2
-      jscpd-linux-x64-gnu: 5.1.2
-      jscpd-linux-x64-musl: 5.1.2
-      jscpd-windows-arm64-msvc: 5.1.2
-      jscpd-windows-x64-msvc: 5.1.2
+      jscpd-darwin-arm64: 5.3.1
+      jscpd-darwin-x64: 5.3.1
+      jscpd-linux-arm64-gnu: 5.3.1
+      jscpd-linux-arm64-musl: 5.3.1
+      jscpd-linux-x64-gnu: 5.3.1
+      jscpd-linux-x64-musl: 5.3.1
+      jscpd-windows-arm64-msvc: 5.3.1
+      jscpd-windows-x64-msvc: 5.3.1
 
   json-parse-even-better-errors@3.0.0: {}
 
