@@ -29,10 +29,10 @@ export function useImageComments(props: ImageCommentCanvas) {
   const hintLabel = computed(() =>
     t(
       session.mode === "point"
-        ? "spaces.media.commentHint"
+        ? "spaces.media.imageEditor.comments.hint"
         : session.mode === "draw"
-          ? "spaces.media.commentDraw"
-          : "spaces.media.commentRegion",
+          ? "spaces.media.imageEditor.comments.draw"
+          : "spaces.media.imageEditor.comments.region",
     ),
   );
   const draft = shallowRef<CommentMark>();

@@ -1,0 +1,11 @@
+{
+  "retrieving": "正在读取选中知识…",
+  "generating": "正在撰写有依据的文档…",
+  "generatingImage": "正在生成解释性图片…",
+  "submittingVideo": "正在提交视频生成",
+  "generatingVideo": "正在生成视频",
+  "downloadingVideo": "正在保存视频",
+  "preparingSubtitles": "正在准备字幕…",
+  "renderingSubtitles": "正在将字幕渲染到画面…",
+  "savingResource": "正在保存派生视频…"
+}

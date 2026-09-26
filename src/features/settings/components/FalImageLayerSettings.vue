@@ -12,12 +12,12 @@ const { t } = useI18n();
   <SettingsSection
     id="settings-image-layers"
     tabindex="-1"
-    :title="t('settings.ai.imageLayersTitle')"
-    :description="t('settings.ai.imageLayersDescription')"
+    :title="t('settings.ai.imageLayers.title')"
+    :description="t('settings.ai.imageLayers.description')"
   >
     <SecretSettingsRow
-      :label="t('settings.ai.falApiKey')"
-      :description="t('settings.ai.falApiKeyDescription')"
+      :label="t('settings.ai.imageLayers.apiKey')"
+      :description="t('settings.ai.imageLayers.apiKeyDescription')"
       :secret-key="FAL_IMAGE_LAYER_SECRET_KEY"
     />
   </SettingsSection>

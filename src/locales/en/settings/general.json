@@ -1,26 +1,41 @@
 {
   "title": "Settings",
-  "description": "Customize how Knovum looks and works.",
-  "backToApp": "Back to App",
+  "backToApp": "Back to app",
   "search": "Search settings…",
-  "clearSearch": "Clear Search",
   "preferences": "General",
   "noResults": "No matching settings found.",
-  "settingsLoadFailed": "Settings Could Not Be Loaded",
-  "settingsLoadFailedDescription": "The saved data does not match the current settings format. Retry, or reset only this settings section.",
-  "resetSection": "Reset Section",
-  "resetSectionConfirmation": "Reset the saved data for this settings section? This cannot be undone.",
-  "about": "About",
-  "aboutDescription": "Application version and environment information.",
+  "load": {
+    "failed": "Settings could not be loaded",
+    "failedDescription": "The saved data does not match the current settings format. Retry, or reset only this settings section."
+  },
+  "reset": {
+    "action": "Reset section",
+    "confirmation": "Reset the saved data for this settings section? This cannot be undone."
+  },
+  "about": {
+    "title": "About",
+    "description": "Application version and environment information."
+  },
   "version": "Version {version}",
   "readingVersion": "Reading version…",
-  "data": "Data & Archives",
+  "data": "Data & archives",
   "information": "Information",
-  "archivedSpaces": "Archived Spaces",
-  "archivedSpacesDescription": "Restore or permanently delete archived Spaces.",
-  "deleteAllArchivedSpaces": "Delete All",
-  "deleteAllArchivedSpacesTitle": "Permanently delete all archived Spaces?",
-  "deleteAllArchivedSpacesDescription": "Permanently delete all {count} archived Spaces and their contents? This cannot be undone.",
-  "noArchivedSpaces": "No archived Spaces.",
-  "backToSettings": "Back to Settings"
+  "archived": {
+    "title": "Archived Spaces",
+    "description": "Restore or permanently delete archived Spaces.",
+    "restore": "Restore Space",
+    "delete": {
+      "label": "Delete permanently",
+      "title": "Permanently delete “{title}”?",
+      "description": "This permanently removes the Space and all associated data from this device. This action cannot be undone.",
+      "failed": "Could not delete Space"
+    },
+    "deleteAll": {
+      "label": "Delete all",
+      "title": "Permanently delete all archived Spaces?",
+      "description": "Permanently delete all {count} archived Spaces and their contents? This cannot be undone."
+    },
+    "empty": "No archived Spaces."
+  },
+  "inboxSpace": "Inbox"
 }

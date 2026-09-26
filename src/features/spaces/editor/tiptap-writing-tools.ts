@@ -50,9 +50,9 @@ export function useSpaceTiptapWritingTools(editor: Editor) {
     try {
       const generated = await transform(source.text, jobId);
       if (!applyGeneratedText(editor, actionContext, source, generated))
-        toast.error(t("editor.aiApplyFailed"));
+        toast.error(t("spaces.richtext.ai.applyFailed"));
     } catch (error) {
-      toast.error(t("editor.aiFailed"), { description: String(error) });
+      toast.error(t("spaces.richtext.ai.failed"), { description: String(error) });
     } finally {
       clearReasoningTrace(editor.view);
       runningAction.value = undefined;
@@ -81,7 +81,9 @@ function markReasoning(editor: Editor, source: TransformSource) {
 }
 
 function notifyMissingSource(action: EditorTransformAction) {
-  toast.info(i18n.global.t(action === "complete" ? "editor.aiNeedContext" : "editor.aiSelectText"));
+  toast.info(
+    i18n.global.t(action === "complete" ? "spaces.richtext.ai.needContext" : "spaces.richtext.ai.selectText"),
+  );
 }
 
 function actionSource(editor: Editor, action: EditorTransformAction): TransformSource | undefined {
@@ -126,34 +128,34 @@ function applyGeneratedText(
 function toneOptions() {
   const t = i18n.global.t;
   return [
-    ["tone_academic", t("editor.aiTone.academic")],
-    ["tone_business", t("editor.aiTone.business")],
-    ["tone_casual", t("editor.aiTone.casual")],
-    ["tone_confident", t("editor.aiTone.confident")],
-    ["tone_creative", t("editor.aiTone.creative")],
-    ["tone_friendly", t("editor.aiTone.friendly")],
-    ["tone_humorous", t("editor.aiTone.humorous")],
-    ["tone_informative", t("editor.aiTone.informative")],
-    ["tone_inspirational", t("editor.aiTone.inspirational")],
-    ["tone_objective", t("editor.aiTone.objective")],
-    ["tone_persuasive", t("editor.aiTone.persuasive")],
+    ["tone_academic", t("spaces.richtext.ai.tones.academic")],
+    ["tone_business", t("spaces.richtext.ai.tones.business")],
+    ["tone_casual", t("spaces.richtext.ai.tones.casual")],
+    ["tone_confident", t("spaces.richtext.ai.tones.confident")],
+    ["tone_creative", t("spaces.richtext.ai.tones.creative")],
+    ["tone_friendly", t("spaces.richtext.ai.tones.friendly")],
+    ["tone_humorous", t("spaces.richtext.ai.tones.humorous")],
+    ["tone_informative", t("spaces.richtext.ai.tones.informative")],
+    ["tone_inspirational", t("spaces.richtext.ai.tones.inspirational")],
+    ["tone_objective", t("spaces.richtext.ai.tones.objective")],
+    ["tone_persuasive", t("spaces.richtext.ai.tones.persuasive")],
   ] as const satisfies readonly (readonly [EditorTransformAction, string])[];
 }
 
 function translationOptions() {
   const t = i18n.global.t;
   return [
-    ["zh-CN", t("editor.aiLanguage.zhCn")],
-    ["zh-TW", t("editor.aiLanguage.zhTw")],
-    ["en", t("editor.aiLanguage.en")],
-    ["ja", t("editor.aiLanguage.ja")],
-    ["ko", t("editor.aiLanguage.ko")],
-    ["fr", t("editor.aiLanguage.fr")],
-    ["de", t("editor.aiLanguage.de")],
-    ["es", t("editor.aiLanguage.es")],
-    ["pt", t("editor.aiLanguage.pt")],
-    ["it", t("editor.aiLanguage.it")],
-    ["ru", t("editor.aiLanguage.ru")],
-    ["ar", t("editor.aiLanguage.ar")],
+    ["zh-CN", t("spaces.richtext.ai.languages.zhCn")],
+    ["zh-TW", t("spaces.richtext.ai.languages.zhTw")],
+    ["en", t("spaces.richtext.ai.languages.en")],
+    ["ja", t("spaces.richtext.ai.languages.ja")],
+    ["ko", t("spaces.richtext.ai.languages.ko")],
+    ["fr", t("spaces.richtext.ai.languages.fr")],
+    ["de", t("spaces.richtext.ai.languages.de")],
+    ["es", t("spaces.richtext.ai.languages.es")],
+    ["pt", t("spaces.richtext.ai.languages.pt")],
+    ["it", t("spaces.richtext.ai.languages.it")],
+    ["ru", t("spaces.richtext.ai.languages.ru")],
+    ["ar", t("spaces.richtext.ai.languages.ar")],
   ] as const satisfies readonly (readonly [TranslationTarget, string])[];
 }

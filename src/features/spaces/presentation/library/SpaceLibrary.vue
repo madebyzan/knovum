@@ -23,9 +23,9 @@ const editingId = shallowRef<string>();
 const draftTitle = shallowRef("");
 const libraryRoot = useTemplateRef<HTMLElement>("libraryRoot");
 const titleKeys: Record<SpaceLibraryScope, string> = {
-  all: "spaces.space.allSpaces",
-  recent: "spaces.space.recentSpaces",
-  favorites: "spaces.space.favoriteSpaces",
+  all: "spaces.space.sections.all",
+  recent: "spaces.space.sections.recent",
+  favorites: "spaces.space.sections.favorites",
 };
 const title = computed(() => t(titleKeys[libraryScope.value]));
 const visibleSpaces = computed(() => {
@@ -59,7 +59,7 @@ function finishRenaming() {
 
 async function archiveSpace(space: Space) {
   await store.archiveSpace(space.id);
-  toast.success(t("spaces.navigation.spaceArchived", { title: space.title }), {
+  toast.success(t("spaces.space.archived", { title: space.title }), {
     action: { label: t("common.undo"), onClick: () => void store.unarchiveSpace(space.id) },
   });
 }
@@ -67,15 +67,15 @@ async function archiveSpace(space: Space) {
 function showSpaceMenu(space: Space) {
   if (space.kind === "inbox") return;
   void popupSpaceContextMenu([
-    [spaceMenuItem(t("spaces.space.openSpace"), () => store.openSpace(space.id))],
-    [spaceMenuItem(t("spaces.space.renameSpace"), () => beginRenaming(space))],
+    [spaceMenuItem(t("spaces.space.open"), () => store.openSpace(space.id))],
+    [spaceMenuItem(t("spaces.space.rename"), () => beginRenaming(space))],
     [
-      spaceCheckItem(t("spaces.space.favoriteSpace"), space.favorite, () =>
+      spaceCheckItem(t("spaces.space.favorite"), space.favorite, () =>
         store.setSpaceFavorite(space.id, !space.favorite),
       ),
     ],
     ...management.groups(space),
-    [spaceMenuItem(t("spaces.navigation.archiveSpace"), () => archiveSpace(space))],
+    [spaceMenuItem(t("spaces.space.archive"), () => archiveSpace(space))],
   ]);
 }
 </script>
@@ -129,7 +129,7 @@ function showSpaceMenu(space: Space) {
               class="absolute top-1.5 right-1.5 z-20 opacity-0 group-focus-within:opacity-100 group-hover:opacity-100"
               size="sm"
               :active="space.favorite"
-              :label="t(space.favorite ? 'spaces.space.unfavoriteSpace' : 'spaces.space.favoriteSpace')"
+              :label="t(space.favorite ? 'spaces.space.unfavorite' : 'spaces.space.favorite')"
               @click="store.setSpaceFavorite(space.id, !space.favorite)"
             >
               <Star class="size-(--knovum-icon-size-sm)" :fill="space.favorite ? 'currentColor' : 'none'" />
@@ -154,7 +154,7 @@ function showSpaceMenu(space: Space) {
         </article>
       </div>
       <div v-else class="grid min-h-64 place-items-center text-body text-foreground-tertiary">
-        {{ t("spaces.space.noSpacesFound") }}
+        {{ t("spaces.space.search.noResults") }}
       </div>
     </section>
   </UiScrollArea>

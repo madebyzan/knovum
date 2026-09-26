@@ -22,7 +22,7 @@ export function useAddMenu() {
   const normalizedWebsite = computed(() => normalizeSpaceUrl(website.value));
   const addMarkdown = () => {
     if (operations.allows("create"))
-      void store.addContent({ kind: "markdown", title: t("spaces.editor.untitledMarkdown"), text: "" });
+      void store.addContent({ kind: "markdown", title: t("spaces.editor.markdown.untitled"), text: "" });
   };
   const addSection = () => {
     if (!operations.allows("create")) return;
@@ -33,7 +33,7 @@ export function useAddMenu() {
     return store.executeSpaceEdit({
       kind: "section.create-empty",
       sectionId: crypto.randomUUID(),
-      title: t("spaces.canvas.untitledSection"),
+      title: t("spaces.canvas.sections.untitled"),
       frame: { ...position, width: 640, height: 400 },
       rootOrder,
     });
@@ -59,11 +59,11 @@ export function useAddMenu() {
     if (!store.activeSpaceId || !operations.allows("create")) return;
     try {
       await importSpaceFromPicker(store, {
-        title: t("spaces.transfer.importingResource"),
-        preparing: t("spaces.transfer.importPreparing"),
+        title: t("spaces.importExport.progress.resource"),
+        preparing: t("spaces.importExport.progress.preparing"),
       });
     } catch (error) {
-      toast.error(t("spaces.transfer.importFailed"), { description: String(error) });
+      toast.error(t("spaces.importExport.importFailed"), { description: String(error) });
     }
   }
   async function addWebsite() {

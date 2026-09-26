@@ -20,7 +20,7 @@ const position = computed({
   <div class="min-w-0 flex-1">
     <UiSlider
       v-model="position"
-      :label="t('spaces.media.timeline')"
+      :label="t('spaces.media.player.timeline')"
       :min="0"
       :max="Math.max(durationMs, 1)"
       :step="100"

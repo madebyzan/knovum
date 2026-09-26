@@ -52,18 +52,18 @@ function editText(edited: VideoTextOverlay) {
 <template>
   <section
     class="grid h-48 shrink-0 grid-cols-[6rem_minmax(0,1fr)] border-t border-border bg-panel"
-    :aria-label="$t('spaces.media.timeline')"
+    :aria-label="$t('spaces.media.player.timeline')"
   >
     <div class="border-r border-divider text-caption text-foreground-secondary">
       <div class="h-8 border-b border-divider" />
       <div class="flex h-11 items-center gap-2 border-b border-divider px-3">
-        <Captions class="size-(--knovum-icon-size-sm)" />{{ $t("spaces.media.textTrack") }}
+        <Captions class="size-(--knovum-icon-size-sm)" />{{ $t("spaces.media.videoEditor.tracks.text") }}
       </div>
       <div class="flex h-16 items-center gap-2 border-b border-divider px-3">
-        <Film class="size-(--knovum-icon-size-sm)" />{{ $t("spaces.media.videoTrack") }}
+        <Film class="size-(--knovum-icon-size-sm)" />{{ $t("spaces.media.videoEditor.tracks.video") }}
       </div>
       <div class="flex h-8 items-center gap-2 px-3">
-        <Volume2 class="size-(--knovum-icon-size-sm)" />{{ $t("spaces.media.audioTrack") }}
+        <Volume2 class="size-(--knovum-icon-size-sm)" />{{ $t("spaces.media.videoEditor.tracks.audio") }}
       </div>
     </div>
     <div
@@ -76,7 +76,7 @@ function editText(edited: VideoTextOverlay) {
           data-video-timeline-seek
           tabindex="0"
           class="relative h-8 cursor-crosshair touch-none border-b border-divider outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
-          :aria-label="$t('spaces.media.seekTimeline')"
+          :aria-label="$t('spaces.media.videoEditor.timeline.seek')"
           aria-valuemin="0"
           :aria-valuemax="Math.round(duration)"
           :aria-valuenow="Math.round(playheadMs)"
@@ -129,7 +129,7 @@ function editText(edited: VideoTextOverlay) {
             v-if="thumbnailError"
             class="pointer-events-none absolute right-2 bottom-9 z-20 rounded-control bg-panel/90 px-2 py-0.5 text-micro text-danger"
           >
-            {{ $t("spaces.media.thumbnailFailed") }}
+            {{ $t("spaces.media.videoEditor.timeline.thumbnailFailed") }}
           </span>
         </div>
         <span

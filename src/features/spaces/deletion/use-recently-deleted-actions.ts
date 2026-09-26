@@ -22,7 +22,7 @@ export function useRecentlyDeletedActions() {
         store.recordCommittedSpaceEdit();
       }
     } catch (error) {
-      toast.error(t("spaces.navigation.restoreStructureFailed"), { description: String(error) });
+      toast.error(t("spaces.trash.structure.restoreFailed"), { description: String(error) });
     } finally {
       busy.value = false;
     }
@@ -35,22 +35,20 @@ export function useRecentlyDeletedActions() {
     try {
       const confirmed = await ask(
         scope === undefined
-          ? t("spaces.navigation.permanentlyDeleteStructureDescription", { title: selected[0]!.title })
-          : t("spaces.navigation.deleteAllDescription", { count: selected.length, scope }),
+          ? t("spaces.trash.structure.deleteDescription", { title: selected[0]!.title })
+          : t("spaces.trash.deleteAll.description", { count: selected.length, scope }),
         {
-          title: t(
-            scope === undefined ? "spaces.navigation.deletePermanently" : "spaces.navigation.deleteAllTitle",
-          ),
+          title: t(scope === undefined ? "spaces.trash.deletePermanently" : "spaces.trash.deleteAll.title"),
           kind: "warning",
-          okLabel: t("spaces.navigation.deletePermanently"),
+          okLabel: t("spaces.trash.deletePermanently"),
           cancelLabel: t("common.cancel"),
         },
       );
       if (!confirmed) return;
       await permanentlyDeleteStructure(selected, scope !== undefined);
-      toast.success(t("spaces.navigation.structureNodesPermanentlyDeleted", { count: selected.length }));
+      toast.success(t("spaces.trash.structure.deletedNotice", { count: selected.length }));
     } catch (error) {
-      toast.error(t("spaces.navigation.permanentlyDeleteStructureFailed"), { description: String(error) });
+      toast.error(t("spaces.trash.structure.deleteFailed"), { description: String(error) });
     } finally {
       busy.value = false;
     }

@@ -27,13 +27,13 @@ const desktopAgents = computed(() =>
 const selectedKey = computed(() => (target.value ? conversationTargetKey(target.value) : ""));
 const selectedLabel = computed(() => {
   const model = models.value.find(({ value }) => value === selectedKey.value);
-  if (model) return `${t("spaces.assistant.builtIn")} · ${model.label}`;
+  if (model) return `${t("spaces.assistant.agents.builtIn")} · ${model.label}`;
   const agent = desktopAgents.value.find(({ kind }) => `agent:${kind}` === selectedKey.value);
-  if (agent) return `${t("spaces.assistant.externalAgent")} · ${agent.displayName}`;
-  return t("spaces.assistant.selectAgent");
+  if (agent) return `${t("spaces.assistant.agents.external")} · ${agent.displayName}`;
+  return t("spaces.assistant.agents.select");
 });
 const choices = computed<UiDropdownMenuItemOption[]>(() => [
-  { label: t("spaces.assistant.builtIn"), disabled: true },
+  { label: t("spaces.assistant.agents.builtIn"), disabled: true },
   ...models.value.map((model) => ({
     id: model.value,
     label: model.label,
@@ -41,14 +41,14 @@ const choices = computed<UiDropdownMenuItemOption[]>(() => [
     checked: selectedKey.value === model.value,
     onSelect: () => (target.value = model.target),
   })),
-  ...(!models.value.length ? [{ label: t("spaces.assistant.noBuiltinModel"), disabled: true }] : []),
+  ...(!models.value.length ? [{ label: t("spaces.assistant.agents.noModel"), disabled: true }] : []),
   {
-    label: t("spaces.assistant.openAiSettings"),
+    label: t("ai.openSettings"),
     icon: Settings2,
     onSelect: () => void router.push({ name: "settings", query: { pane: "aiModels" } }),
   },
   { separator: true },
-  { label: t("spaces.assistant.externalAgent"), disabled: true },
+  { label: t("spaces.assistant.agents.external"), disabled: true },
   ...desktopAgents.value.map((agent) => ({
     id: `agent:${agent.kind}`,
     label: agent.displayName,
@@ -58,7 +58,7 @@ const choices = computed<UiDropdownMenuItemOption[]>(() => [
   })),
   ...(catalog.error.value ? [{ label: String(catalog.error.value), disabled: true }] : []),
   {
-    label: t("spaces.assistant.openAgentSettings"),
+    label: t("spaces.assistant.agents.configure"),
     icon: Settings2,
     onSelect: () => void router.push({ name: "settings", query: { pane: "aiModels" } }),
   },
@@ -95,7 +95,7 @@ onMounted(() => void settings.ensureLoaded());
 <template>
   <div class="min-w-0 flex-1">
     <p v-if="settings.loadError" class="text-caption text-danger" role="alert">
-      {{ t("spaces.assistant.aiSettingsUnavailable") }}: {{ String(settings.loadError) }}
+      {{ t("ai.settingsUnavailable") }}: {{ String(settings.loadError) }}
     </p>
     <UiDropdownMenu :items="choices" side="top" align="start" class="max-h-72 max-w-80 overflow-y-auto">
       <template #trigger>

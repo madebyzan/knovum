@@ -54,7 +54,7 @@ export function videoEditCommands(t: (key: string) => string): AppCommand[] {
     },
     {
       id: "video-edit.split",
-      title: t("spaces.media.split"),
+      title: t("spaces.media.videoEditor.clip.split"),
       shortcut: "S",
       category: "editing",
       run: () => port()?.split(),
@@ -70,21 +70,21 @@ export function videoEditCommands(t: (key: string) => string): AppCommand[] {
     },
     {
       id: "video-edit.play",
-      title: t("spaces.media.play"),
+      title: t("spaces.media.player.play"),
       shortcut: "Space",
       category: "editing",
       run: () => port()?.togglePlayback(),
     },
     {
       id: "video-edit.previous-step",
-      title: t("spaces.media.previousStep"),
+      title: t("spaces.media.videoEditor.previousStep"),
       shortcut: "ArrowLeft",
       category: "editing",
       run: () => port()?.step(-100),
     },
     {
       id: "video-edit.next-step",
-      title: t("spaces.media.nextStep"),
+      title: t("spaces.media.videoEditor.nextStep"),
       shortcut: "ArrowRight",
       category: "editing",
       run: () => port()?.step(100),

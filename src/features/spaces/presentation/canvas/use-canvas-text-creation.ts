@@ -12,7 +12,7 @@ export function useCanvasTextCreation() {
 
   return async (kind: "note" | "text", point: CanvasPoint) => {
     const spaceId = store.activeSpaceId;
-    const title = t(kind === "note" ? "spaces.editor.newNote" : "spaces.editor.newText");
+    const title = t(kind === "note" ? "spaces.editor.note.new" : "spaces.editor.text.new");
     const payload = kind === "note" ? createSpaceNotePayload(title) : createSpaceTextPayload(title);
     const [node] = await store.addContent(payload, point, { reveal: false });
     if (!node) throw new Error("Canvas text creation did not produce a node");

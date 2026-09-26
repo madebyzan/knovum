@@ -36,7 +36,7 @@ export async function resumePendingEnrichmentJobs(
     tasks.restoreFailed(
       {
         id: failureId,
-        title: i18n.global.t("spaces.processing.enrichmentQueueTitle"),
+        title: i18n.global.t("spaces.processing.queue.title"),
         detail: String(error),
         startedAt: Date.now(),
       },

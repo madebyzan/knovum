@@ -36,12 +36,12 @@ onMounted(() => {
 <template>
   <SettingsSection :title="t('settings.startup.title')">
     <SettingsRow
-      :label="t('settings.startup.launchAtLogin')"
-      :description="t('settings.startup.launchAtLoginDescription')"
+      :label="t('settings.startup.launchAtLogin.label')"
+      :description="t('settings.startup.launchAtLogin.description')"
     >
       <UiSwitch
         :model-value="autostart"
-        :label="t('settings.startup.launchAtLogin')"
+        :label="t('settings.startup.launchAtLogin.label')"
         @update:model-value="setAutostart"
       />
     </SettingsRow>

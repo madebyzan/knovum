@@ -29,6 +29,6 @@ export async function startBuiltinWorkflow(options: BuiltinWorkflowOptions) {
       targets,
     },
   });
-  observeWorkflowRun(run, i18n.global.t("spaces.creation.workflow"));
+  observeWorkflowRun(run, i18n.global.t("spaces.creation.workflow.title"));
   return run;
 }

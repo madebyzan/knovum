@@ -49,7 +49,7 @@ function doReplaceAll() {
 
 <template>
   <div class="relative flex items-center">
-    <UiIconButton :label="t('editor.search')" size="sm" :active="open" @click="open = !open">
+    <UiIconButton :label="t('spaces.richtext.find.title')" size="sm" :active="open" @click="open = !open">
       <Search class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
     </UiIconButton>
     <div
@@ -65,12 +65,12 @@ function doReplaceAll() {
           ref="searchInput"
           v-model="query"
           class="min-w-0 flex-1 bg-transparent px-1 text-label text-foreground outline-none placeholder:text-foreground-tertiary"
-          :placeholder="t('editor.searchPlaceholder')"
+          :placeholder="t('spaces.richtext.find.placeholder')"
           @keydown.enter.prevent="move($event.shiftKey ? 'previous' : 'next')"
           @keydown.esc.prevent="open = false"
         />
         <UiIconButton
-          :label="t('editor.toggleReplace')"
+          :label="t('spaces.richtext.find.toggleReplace')"
           size="sm"
           :active="showReplace"
           @click="
@@ -82,14 +82,19 @@ function doReplaceAll() {
           <ChevronRight v-else class="size-(--knovum-icon-size-xs)" />
         </UiIconButton>
         <UiIconButton
-          :label="t('editor.previousMatch')"
+          :label="t('spaces.richtext.find.previous')"
           size="sm"
           :disabled="!query"
           @click="move('previous')"
         >
           <ChevronUp class="size-(--knovum-icon-size-xs)" />
         </UiIconButton>
-        <UiIconButton :label="t('editor.nextMatch')" size="sm" :disabled="!query" @click="move('next')">
+        <UiIconButton
+          :label="t('spaces.richtext.find.next')"
+          size="sm"
+          :disabled="!query"
+          @click="move('next')"
+        >
           <ChevronDown class="size-(--knovum-icon-size-xs)" />
         </UiIconButton>
         <UiIconButton :label="t('common.close')" size="sm" @click="open = false">
@@ -105,14 +110,24 @@ function doReplaceAll() {
           ref="replaceInput"
           v-model="replaceTerm"
           class="min-w-0 flex-1 bg-transparent px-1 text-label text-foreground outline-none placeholder:text-foreground-tertiary"
-          :placeholder="t('editor.replacePlaceholder')"
+          :placeholder="t('spaces.richtext.find.replacePlaceholder')"
           @keydown.enter.prevent="doReplace"
           @keydown.esc.prevent="open = false"
         />
-        <UiIconButton :label="t('editor.replace')" size="sm" :disabled="!query" @click="doReplace">
+        <UiIconButton
+          :label="t('spaces.richtext.find.replace')"
+          size="sm"
+          :disabled="!query"
+          @click="doReplace"
+        >
           <ReplaceIcon class="size-(--knovum-icon-size-xs)" />
         </UiIconButton>
-        <UiIconButton :label="t('editor.replaceAll')" size="sm" :disabled="!query" @click="doReplaceAll">
+        <UiIconButton
+          :label="t('spaces.richtext.find.replaceAll')"
+          size="sm"
+          :disabled="!query"
+          @click="doReplaceAll"
+        >
           <ReplaceAll class="size-(--knovum-icon-size-xs)" />
         </UiIconButton>
       </div>

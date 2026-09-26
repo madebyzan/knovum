@@ -23,11 +23,11 @@ const open = shallowRef(false);
 const currentTask = computed(() => (running.value.length === 1 ? running.value[0] : undefined));
 
 const runtimeModelTitleKeys: Record<ModelKind, string> = {
-  transcription: "settings.runtime.whisperStandardModel",
-  transcriptionVad: "settings.runtime.whisperStandardModel",
-  textEmbeddingConfig: "settings.runtime.textEmbeddingModel",
-  textEmbeddingTokenizer: "settings.runtime.textEmbeddingModel",
-  textEmbeddingWeights: "settings.runtime.textEmbeddingModel",
+  transcription: "shell.runtimeModels.transcription",
+  transcriptionVad: "shell.runtimeModels.transcription",
+  textEmbeddingConfig: "shell.runtimeModels.textEmbedding",
+  textEmbeddingTokenizer: "shell.runtimeModels.textEmbedding",
+  textEmbeddingWeights: "shell.runtimeModels.textEmbedding",
 };
 
 let snapshotTimer: ReturnType<typeof setInterval> | undefined;

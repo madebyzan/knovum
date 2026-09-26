@@ -18,10 +18,10 @@ const props = defineProps<{
 const emit = defineEmits<{ remove: [] }>();
 const { t } = useI18n();
 const capabilities = computed<{ value: AiModelCapability; label: string }[]>(() => [
-  { value: "text-generation", label: t("settings.ai.capabilityText") },
-  { value: "vision-understanding", label: t("settings.ai.capabilityVision") },
-  { value: "image-generation", label: t("settings.ai.capabilityImage") },
-  { value: "video-generation", label: t("settings.ai.capabilityVideo") },
+  { value: "text-generation", label: t("settings.ai.capabilities.text") },
+  { value: "vision-understanding", label: t("settings.ai.capabilities.vision") },
+  { value: "image-generation", label: t("settings.ai.capabilities.image") },
+  { value: "video-generation", label: t("settings.ai.capabilities.video") },
 ]);
 
 function setCapability(capability: AiModelCapability, enabled: boolean) {

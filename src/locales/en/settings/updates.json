@@ -1,16 +1,26 @@
 {
-  "title": "Software Update",
+  "title": "Software update",
   "description": "Check and install digitally signed application updates.",
-  "updateChannel": "Release Channel",
-  "updateReady": "Connected to the official release channel.",
-  "updateNotConfigured": "Updates aren’t available in this version.",
-  "checkForUpdates": "Check for Updates",
-  "checkingUpdate": "Checking for updates…",
-  "updateCurrent": "Knovum is up to date",
-  "updateCheckFailed": "Could not check for updates",
-  "updateAvailable": "Version {version} is available",
-  "updateAvailableDescription": "Current version: {current}. Signature will be verified before installation.",
-  "installAndRestart": "Install & Restart",
-  "installingUpdate": "Installing update…",
-  "updateInstallFailed": "Could not install update"
+  "channel": {
+    "label": "Release channel",
+    "connected": "Connected to the official release channel.",
+    "notConfigured": "Updates aren’t available in this version."
+  },
+  "check": {
+    "action": "Check for updates",
+    "checking": "Checking for updates…",
+    "failed": "Could not check for updates"
+  },
+  "current": {
+    "upToDate": "Knovum is up to date"
+  },
+  "available": {
+    "title": "Version {version} is available",
+    "description": "Current version: {current}. Signature will be verified before installation."
+  },
+  "install": {
+    "action": "Install & restart",
+    "installing": "Installing update…",
+    "failed": "Could not install update"
+  }
 }

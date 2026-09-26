@@ -52,12 +52,12 @@ export function useSourcePeek() {
       await createSourceEvidence({
         store,
         target,
-        title: t("spaces.inspector.sourceExcerptTitle", { title: target.nodeTitle }),
-        sourceLine: t("spaces.inspector.sourceExcerptLine", {
+        title: t("spaces.inspector.excerpts.title", { title: target.nodeTitle }),
+        sourceLine: t("spaces.inspector.excerpts.line", {
           title: target.nodeTitle,
           location: knowledgeLocationLabel(target.locator),
         }),
-        rationale: t("spaces.assistant.groundedSourceRationale"),
+        rationale: t("spaces.assistant.evidence.sourceRationale"),
       });
     } catch (error) {
       toast.error(String(error));

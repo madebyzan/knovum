@@ -15,8 +15,8 @@ const { t } = useI18n();
     role="status"
   >
     <Focus class="size-(--knovum-icon-size-xs)" :stroke-width="1.6" />
-    <span>{{ t("spaces.navigation.focusedView", { count }) }}</span>
-    <UiIconButton :label="t('spaces.navigation.exitFocusedView')" size="sm" @click="emit('exit')">
+    <span>{{ t("spaces.scenes.focus.mode", { count }) }}</span>
+    <UiIconButton :label="t('spaces.scenes.focus.exit')" size="sm" @click="emit('exit')">
       <X class="size-(--knovum-icon-size-xs)" :stroke-width="1.7" />
     </UiIconButton>
   </div>

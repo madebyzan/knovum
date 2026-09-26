@@ -15,7 +15,7 @@ const dateFormatter = computed(() => new Intl.DateTimeFormat(locale.value, { dat
 
 function label(date: string, tokens: number, requests: number) {
   const formatted = dateFormatter.value.format(new Date(`${date}T12:00:00`));
-  return t("settings.usage.activityLabel", { date: formatted, tokens: n(tokens), requests: n(requests) });
+  return t("settings.usage.activity.label", { date: formatted, tokens: n(tokens), requests: n(requests) });
 }
 </script>
 
@@ -26,22 +26,22 @@ function label(date: string, tokens: number, requests: number) {
   >
     <header class="mb-4 flex items-end justify-between gap-4">
       <div>
-        <h2 class="text-title-sm font-semibold text-foreground">{{ t("settings.usage.activity") }}</h2>
+        <h2 class="text-title-sm font-semibold text-foreground">{{ t("settings.usage.activity.title") }}</h2>
         <p class="mt-1 text-caption text-foreground-secondary">
           {{
-            t("settings.usage.activityDescription", { peak: n(report.summary.peakDailyTokens, "compact") })
+            t("settings.usage.activity.description", { peak: n(report.summary.peakDailyTokens, "compact") })
           }}
         </p>
       </div>
       <div class="flex items-center gap-1.5 text-micro text-foreground-tertiary" aria-hidden="true">
-        <span>{{ t("settings.usage.less") }}</span>
+        <span>{{ t("settings.usage.activity.less") }}</span>
         <span
           v-for="level in 5"
           :key="level"
           class="rounded-grid size-2.5"
           :class="levelClasses[level - 1]"
         />
-        <span>{{ t("settings.usage.more") }}</span>
+        <span>{{ t("settings.usage.activity.more") }}</span>
       </div>
     </header>
     <div class="overflow-x-auto pb-1">
@@ -51,12 +51,12 @@ function label(date: string, tokens: number, requests: number) {
         </div>
         <div class="flex gap-2">
           <div class="grid grid-rows-7 gap-1 text-micro text-foreground-tertiary" aria-hidden="true">
-            <span /><span>{{ t("settings.usage.weekdayMonday") }}</span
-            ><span /><span>{{ t("settings.usage.weekdayWednesday") }}</span
-            ><span /><span>{{ t("settings.usage.weekdayFriday") }}</span
+            <span /><span>{{ t("settings.usage.activity.weekdays.monday") }}</span
+            ><span /><span>{{ t("settings.usage.activity.weekdays.wednesday") }}</span
+            ><span /><span>{{ t("settings.usage.activity.weekdays.friday") }}</span
             ><span />
           </div>
-          <div class="flex gap-1" role="grid" :aria-label="t('settings.usage.activity')">
+          <div class="flex gap-1" role="grid" :aria-label="t('settings.usage.activity.title')">
             <div v-for="week in weeks" :key="week.key" class="grid grid-rows-7 gap-1" role="row">
               <span
                 v-for="cell in week.cells"

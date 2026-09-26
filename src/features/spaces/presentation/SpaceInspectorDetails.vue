@@ -65,10 +65,10 @@ function saveTitle(node: SpaceCanvasNode, value: string) {
         @click="selectionActions.createGroup"
       >
         <Group class="size-(--knovum-icon-size-xs)" />
-        {{ $t("spaces.canvas.groupSelection") }}
+        {{ $t("spaces.canvas.groups.create") }}
       </UiButton>
     </div>
-    <SpaceInspectorSection :title="$t('spaces.navigation.tags')" :icon="Tag" :default-expanded="true">
+    <SpaceInspectorSection :title="$t('spaces.tags.title')" :icon="Tag" :default-expanded="true">
       <SpaceTags mode="selection" />
     </SpaceInspectorSection>
   </div>

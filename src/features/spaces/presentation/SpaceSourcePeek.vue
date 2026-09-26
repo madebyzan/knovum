@@ -33,13 +33,13 @@ const {
         >
           <p class="mb-1 text-micro text-foreground-tertiary">{{ knowledgeLocationLabel(chunk.locator) }}</p>
           <p v-if="chunk.metadata?.role === 'document_ocr'" class="mb-1 text-micro text-foreground-secondary">
-            {{ t("spaces.processing.documentOcrEvidence") }}
+            {{ t("spaces.processing.document.ocrEvidence") }}
           </p>
           <p
             v-if="chunk.metadata?.role === 'document_interpretation'"
             class="mb-1 text-micro text-foreground-secondary"
           >
-            {{ t("spaces.processing.documentInterpretationEvidence") }}
+            {{ t("spaces.processing.document.interpretationEvidence") }}
           </p>
           <SpaceTextQuote
             :text="chunk.text"
@@ -57,26 +57,26 @@ const {
         v-bind="sourcePeek.locator.quote?.exact ? { exact: sourcePeek.locator.quote.exact } : {}"
       />
       <p v-else class="text-caption text-foreground-tertiary">
-        {{ t("spaces.assistant.sourcePeekNoText") }}
+        {{ t("spaces.assistant.sourcePeek.noText") }}
       </p>
     </div>
 
     <footer class="flex flex-wrap items-center justify-end gap-1 border-t border-window-hairline px-2.5 py-2">
       <UiButton size="sm" variant="ghost" @click="extractSource">
-        <FilePlus2 class="size-(--knovum-icon-size-xs)" />{{ t("spaces.assistant.extractAsEvidence") }}
+        <FilePlus2 class="size-(--knovum-icon-size-xs)" />{{ t("spaces.assistant.evidence.extract") }}
       </UiButton>
       <UiButton size="sm" variant="ghost" @click="revealSource">
         <LocateFixed class="size-(--knovum-icon-size-xs)" />{{ t("spaces.canvas.revealInCanvas") }}
       </UiButton>
       <UiButton v-if="editableSource" size="sm" @click="store.openEditorAtSource(sourcePeek)">
-        {{ t("spaces.transfer.openInEditor") }}
+        {{ t("spaces.importExport.openInEditor") }}
       </UiButton>
       <template v-if="hasAsset">
         <UiButton v-if="preciseExternal" size="sm" variant="secondary" @click="openSourceAtLocation">
-          {{ t("spaces.assistant.openAtSource") }}
+          {{ t("spaces.assistant.sourcePeek.open") }}
         </UiButton>
         <UiButton size="sm" @click="openSourceExternally">
-          <ArrowUpRight class="size-(--knovum-icon-size-xs)" />{{ t("spaces.transfer.openExternally") }}
+          <ArrowUpRight class="size-(--knovum-icon-size-xs)" />{{ t("spaces.importExport.openExternally") }}
         </UiButton>
       </template>
     </footer>

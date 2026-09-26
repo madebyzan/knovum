@@ -40,14 +40,14 @@ const description = computed(
     <aside class="min-h-0 space-y-3 overflow-y-auto text-caption text-foreground-secondary">
       <div>
         <strong class="text-label font-medium text-foreground">
-          {{ t("spaces.processing.documentResourceOccurrences", { count: item.occurrences.length }) }}
+          {{ t("spaces.processing.document.resources.occurrences", { count: item.occurrences.length }) }}
         </strong>
         <p class="mt-1 text-micro text-foreground-tertiary">
           {{
             t(
               item.sourceKind === "embedded"
-                ? "spaces.processing.documentResourceEmbedded"
-                : "spaces.processing.documentResourceRendered",
+                ? "spaces.processing.document.resources.embedded"
+                : "spaces.processing.document.resources.rendered",
             )
           }}
         </p>
@@ -69,7 +69,7 @@ const description = computed(
         </p>
         <div v-if="occurrence.analysis?.detectedText" class="mt-2">
           <strong class="text-micro font-medium text-foreground-tertiary">
-            {{ t("spaces.processing.documentResourceDetectedText") }}
+            {{ t("spaces.processing.document.resources.detectedText") }}
           </strong>
           <p class="mt-1 whitespace-pre-wrap">{{ occurrence.analysis.detectedText }}</p>
         </div>

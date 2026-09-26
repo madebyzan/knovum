@@ -27,7 +27,7 @@ const typeLabel = computed(() => {
   const key = knowledgeObjectTypeKey(props.data.objectTypeId);
   return key
     ? t(`spaces.knowledgeObjectTypes.${key}`)
-    : (objectType.value?.name ?? t("spaces.knowledge.customKnowledgeObject"));
+    : (objectType.value?.name ?? t("spaces.knowledge.objects.custom"));
 });
 const fields = computed(() =>
   (objectType.value?.fields ?? []).flatMap((field) => {
@@ -56,7 +56,7 @@ function reveal(nodeId: string) {
     <div class="flex items-center gap-2">
       <UiBadge size="sm">{{ typeLabel }}</UiBadge>
       <UiBadge size="sm" variant="accent">
-        {{ t(`spaces.knowledge.knowledgeStatusLabel.${data.status}`) }}
+        {{ t(`spaces.knowledge.status.labels.${data.status}`) }}
       </UiBadge>
       <UiButton
         v-if="editable"
@@ -72,7 +72,7 @@ function reveal(nodeId: string) {
 
     <section v-if="data.summary">
       <h4 class="text-micro font-semibold tracking-wide text-foreground-tertiary uppercase">
-        {{ t("spaces.knowledge.knowledgeSummary") }}
+        {{ t("spaces.knowledge.summary") }}
       </h4>
       <p class="mt-1.5 text-caption leading-relaxed whitespace-pre-wrap text-foreground">
         {{ data.summary }}

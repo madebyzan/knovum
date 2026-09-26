@@ -21,6 +21,6 @@ const open = computed({
     v-model:open="open"
     v-bind="store.audioRecordingTarget ? { spaceId: store.audioRecordingTarget.spaceId } : {}"
     :save="store.saveAudioRecording"
-    @failed="toast.error(t('spaces.media.audioRecordingFailed'))"
+    @failed="toast.error(t('spaces.recording.startFailed'))"
   />
 </template>

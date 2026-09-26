@@ -15,7 +15,7 @@ const emit = defineEmits<{ decide: [optionId: string | null] }>();
     class="mb-4 rounded-panel border border-l-2 border-border border-l-warning bg-surface p-3 text-caption"
     role="group"
   >
-    <h3 class="font-semibold text-foreground">{{ $t("spaces.assistant.permissionRequest") }}</h3>
+    <h3 class="font-semibold text-foreground">{{ $t("spaces.assistant.permission.request") }}</h3>
     <p class="mt-1 text-foreground-secondary">{{ title }}</p>
     <div class="mt-3 flex flex-wrap justify-end gap-2">
       <UiButton
@@ -29,7 +29,7 @@ const emit = defineEmits<{ decide: [optionId: string | null] }>();
         {{ option.label }}
       </UiButton>
       <UiButton size="sm" variant="ghost" :disabled="busy" @click="emit('decide', null)">
-        {{ $t("spaces.assistant.denyPermission") }}
+        {{ $t("spaces.assistant.permission.deny") }}
       </UiButton>
     </div>
   </section>

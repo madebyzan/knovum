@@ -105,7 +105,7 @@ watch(ready, async (isReady) => {
         v-if="
           canvasBarPlacement('image-remove-background', minimal) === 'bar' && showsAction(directAvailability)
         "
-        :text="canRunAction(directAvailability) ? t('spaces.creation.removeBackground') : directReason"
+        :text="canRunAction(directAvailability) ? t('spaces.creation.image.removeBackground') : directReason"
         :disabled="canRunAction(directAvailability) && !compact"
         side="top"
       >
@@ -114,12 +114,12 @@ watch(ready, async (isReady) => {
             type="button"
             :class="CANVAS_ACTION_BUTTON_CLASSES"
             :aria-disabled="!canRunAction(directAvailability)"
-            :aria-label="t('spaces.creation.removeBackground')"
+            :aria-label="t('spaces.creation.image.removeBackground')"
             @click="removeBackground"
           >
             <ScanLine class="size-(--knovum-icon-size-toolbar)" :stroke-width="1.6" />
             <span :class="[nodeActionLabelClass, nodeActionLabelState(compact)]">{{
-              t("spaces.creation.removeBackground")
+              t("spaces.creation.image.removeBackground")
             }}</span>
           </button>
         </ToolbarButton>

@@ -35,8 +35,8 @@ async function retry() {
       class="w-full max-w-(--knovum-error-max-width) rounded-dialog border border-border-strong bg-raised p-5"
     >
       <AlertTriangle class="mb-3 size-(--knovum-icon-size-lg) text-danger" />
-      <h1 class="m-0 text-title-sm font-semibold">{{ t("errors.featureTitle") }}</h1>
-      <p class="mt-1.5 text-body text-foreground-secondary">{{ t("errors.featureDescription") }}</p>
+      <h1 class="m-0 text-title-sm font-semibold">{{ t("errors.feature.title") }}</h1>
+      <p class="mt-1.5 text-body text-foreground-secondary">{{ t("errors.feature.description") }}</p>
       <UiButton class="mt-4" @click="retry"
         ><RotateCcw class="size-(--knovum-icon-size-sm)" /> {{ t("common.retry") }}</UiButton
       >

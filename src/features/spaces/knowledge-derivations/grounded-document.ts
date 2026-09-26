@@ -52,17 +52,17 @@ export async function createGroundedDocument(context: CreateGroundedDocumentCont
     sourceNodeIds: sources.map(({ nodeId }) => nodeId),
     task: {
       id: jobId,
-      title: i18n.global.t("spaces.creation.documentTask"),
+      title: i18n.global.t("spaces.creation.document.task"),
       detail: draft.title.trim(),
       cancel: () => cancelAiJob(jobId),
     },
-    failureMessageKey: "spaces.creation.documentFailed",
+    failureMessageKey: "spaces.creation.document.failed",
     execute: async ({ taskId }) => {
       const stages = new Channel<string>();
       if (taskId) {
         const tasks = useTaskStore();
         // oxlint-disable-next-line unicorn/prefer-add-event-listener -- Tauri Channel exposes its events through onmessage.
-        stages.onmessage = (stage) => tasks.detail(taskId, i18n.global.t(`spaces.creation.${stage}`));
+        stages.onmessage = (stage) => tasks.detail(taskId, i18n.global.t(`spaces.creation.stages.${stage}`));
       }
       const target = await loadAiExecutionTarget("knowledge", draft.target);
       return invoke<CompletedDocument>("plugin:spaces|create_document", {

@@ -39,18 +39,18 @@ defineProps<{ disabled?: boolean }>();
 const { t } = useI18n();
 
 const ICON_MAP = {
-  Shapes: { icon: Shapes, labelKey: "spaces.knowledge.knowledgeIcons.general" },
-  Database: { icon: Database, labelKey: "spaces.knowledge.knowledgeIcons.database" },
-  FileText: { icon: FileText, labelKey: "spaces.knowledge.knowledgeIcons.document" },
-  Bookmark: { icon: Bookmark, labelKey: "spaces.knowledge.knowledgeIcons.bookmark" },
-  Tag: { icon: Tag, labelKey: "spaces.knowledge.knowledgeIcons.tag" },
-  Layers: { icon: Layers, labelKey: "spaces.knowledge.knowledgeIcons.layers" },
-  Boxes: { icon: Boxes, labelKey: "spaces.knowledge.knowledgeIcons.container" },
-  Sparkles: { icon: Sparkles, labelKey: "spaces.knowledge.knowledgeIcons.intelligence" },
-  FlaskConical: { icon: FlaskConical, labelKey: "spaces.knowledge.knowledgeIcons.experiment" },
-  GitBranch: { icon: GitBranch, labelKey: "spaces.knowledge.knowledgeIcons.decision" },
-  CircleHelp: { icon: CircleHelp, labelKey: "spaces.knowledge.knowledgeIcons.question" },
-  Lightbulb: { icon: Lightbulb, labelKey: "spaces.knowledge.knowledgeIcons.idea" },
+  Shapes: { icon: Shapes, labelKey: "spaces.knowledge.icons.general" },
+  Database: { icon: Database, labelKey: "spaces.knowledge.icons.database" },
+  FileText: { icon: FileText, labelKey: "spaces.knowledge.icons.document" },
+  Bookmark: { icon: Bookmark, labelKey: "spaces.knowledge.icons.bookmark" },
+  Tag: { icon: Tag, labelKey: "spaces.knowledge.icons.tag" },
+  Layers: { icon: Layers, labelKey: "spaces.knowledge.icons.layers" },
+  Boxes: { icon: Boxes, labelKey: "spaces.knowledge.icons.container" },
+  Sparkles: { icon: Sparkles, labelKey: "spaces.knowledge.icons.intelligence" },
+  FlaskConical: { icon: FlaskConical, labelKey: "spaces.knowledge.icons.experiment" },
+  GitBranch: { icon: GitBranch, labelKey: "spaces.knowledge.icons.decision" },
+  CircleHelp: { icon: CircleHelp, labelKey: "spaces.knowledge.icons.question" },
+  Lightbulb: { icon: Lightbulb, labelKey: "spaces.knowledge.icons.idea" },
 } as const;
 
 type IconName = keyof typeof ICON_MAP;
@@ -64,7 +64,7 @@ const activeEntry = computed(() => {
 <template>
   <SelectRoot v-model="model" :disabled="disabled">
     <SelectTrigger
-      :aria-label="t('spaces.knowledge.knowledgeIcons.select')"
+      :aria-label="t('spaces.knowledge.icons.select')"
       :class="[
         INPUT_BASE_CLASSES,
         'flex h-(--knovum-control-height-md) w-full min-w-32 items-center justify-between gap-2 px-2.5 text-label data-[state=open]:border-focus-ring',

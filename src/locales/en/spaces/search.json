@@ -1,0 +1,17 @@
+{
+  "find": {
+    "title": "Find",
+    "placeholder": "Search notes, websites, transcripts, files, tags…",
+    "noResults": "No matching items in this Space.",
+    "defaultTitle": "Current Space",
+    "defaultDetail": "Canvas content",
+    "emptyHint": "No content available for search in this Space."
+  },
+  "allSpaces": {
+    "title": "Search all Spaces",
+    "placeholder": "Search across all Spaces…",
+    "hint": "Search knowledge globally across all Spaces.",
+    "noResults": "No matching items found across all Spaces."
+  },
+  "failed": "Search failed; please try again."
+}

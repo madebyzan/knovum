@@ -1,0 +1,19 @@
+{
+  "contentPackage": "生成社交文案与配图",
+  "contentDescription": "基于同一组知识生成可编辑文案与语义一致的派生配图。",
+  "contentDefaultTitle": "社交内容方案",
+  "platform": "发布平台",
+  "tone": "表达语气",
+  "audience": "目标受众",
+  "goal": "传播目标",
+  "platforms": {
+    "xiaohongshu": "小红书",
+    "generic": "通用社交平台"
+  },
+  "tones": {
+    "friendly": "亲切自然",
+    "professional": "专业克制",
+    "energetic": "鲜明有活力"
+  },
+  "create": "生成社交内容"
+}

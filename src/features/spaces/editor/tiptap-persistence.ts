@@ -84,7 +84,7 @@ function markdownSave(node: MarkdownNode, context: SaveContext) {
   const { state, editor } = context;
   const text = editor.getMarkdown();
   const title =
-    state.title.value.trim() || firstLine(text) || i18n.global.t("spaces.editor.untitledMarkdown");
+    state.title.value.trim() || firstLine(text) || i18n.global.t("spaces.editor.markdown.untitled");
   if (node.data.title === title && node.data.text === text) return undefined;
   return { id: node.id, data: { ...node.data, title, text }, revision: state.revision.value };
 }
@@ -93,7 +93,7 @@ function noteSave(node: NoteNode, context: SaveContext) {
   const { state, editor } = context;
   const contentChanged = state.revision.value > state.persistedRevision;
   const plainText = editor.state.doc.textBetween(0, editor.state.doc.content.size, "\n", "\n");
-  const title = state.title.value.trim() || firstLine(plainText) || i18n.global.t("spaces.editor.newNote");
+  const title = state.title.value.trim() || firstLine(plainText) || i18n.global.t("spaces.editor.note.new");
   if (!contentChanged && node.data.title === title && node.data.plainText === plainText) return undefined;
   const tiptapContent = tiptapContentSchema.parse(editor.getJSON());
   return {

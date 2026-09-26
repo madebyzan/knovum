@@ -31,8 +31,8 @@ const highlights = [
         :class="
           editor.isActive('highlight') && 'bg-(--knovum-sidebar-item-background-selected) text-foreground'
         "
-        :aria-label="t('editor.highlight')"
-        :title="t('editor.highlight')"
+        :aria-label="t('spaces.richtext.highlight')"
+        :title="t('spaces.richtext.highlight')"
       >
         <Highlighter class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
         <ChevronDown class="size-(--knovum-icon-size-xs)" :stroke-width="1.6" />
@@ -45,7 +45,7 @@ const highlights = [
       @select="editor.chain().focus().setHighlight({ color: option.color }).run()"
     >
       <span class="size-3.5 rounded-control ring-1 ring-border" :style="{ backgroundColor: option.color }" />
-      <span class="min-w-0 flex-1 truncate">{{ t(`editor.highlightColor.${option.name}`) }}</span>
+      <span class="min-w-0 flex-1 truncate">{{ t(`spaces.richtext.highlightColor.${option.name}`) }}</span>
       <Check
         v-if="editor.isActive('highlight', { color: option.color })"
         class="ml-auto size-(--knovum-icon-size-xs) text-accent"
@@ -54,13 +54,13 @@ const highlights = [
     <UiSeparator class="my-1" />
     <UiDropdownMenuItem @select="editor.chain().focus().unsetHighlight().run()">
       <span class="size-3.5 rounded-control bg-canvas ring-1 ring-border" />
-      <span class="min-w-0 flex-1 truncate">{{ t("editor.highlightColor.clear") }}</span>
+      <span class="min-w-0 flex-1 truncate">{{ t("spaces.richtext.highlightColor.clear") }}</span>
     </UiDropdownMenuItem>
   </UiDropdownMenu>
 
   <SpaceTiptapLinkControl :editor="props.editor" />
   <UiIconButton
-    :label="t('editor.superscript')"
+    :label="t('spaces.richtext.superscript')"
     size="sm"
     :active="editor.isActive('superscript')"
     @click="editor.chain().focus().toggleSuperscript().run()"
@@ -68,7 +68,7 @@ const highlights = [
     <Superscript class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
   </UiIconButton>
   <UiIconButton
-    :label="t('editor.subscript')"
+    :label="t('spaces.richtext.subscript')"
     size="sm"
     :active="editor.isActive('subscript')"
     @click="editor.chain().focus().toggleSubscript().run()"

@@ -1,0 +1,137 @@
+{
+  "crop": {
+    "title": "Crop",
+    "complete": "Done",
+    "original": "Original",
+    "presets": "Presets",
+    "general": "General",
+    "square": "Square",
+    "story": "Story",
+    "portrait": "Portrait",
+    "landscape": "Landscape",
+    "referenceSize": "Reference size; exported pixels depend on the source image",
+    "lockAspect": "Lock crop aspect ratio"
+  },
+  "transform": {
+    "rotateClockwise": "Rotate clockwise",
+    "flipHorizontal": "Flip horizontal",
+    "flipVertical": "Flip vertical",
+    "title": "Flip and rotate",
+    "rotationDegrees": "Rotation angle"
+  },
+  "eraser": {
+    "tool": "Eraser",
+    "undo": "Undo eraser stroke",
+    "brushSize": "Brush size"
+  },
+  "adjust": {
+    "title": "Adjust",
+    "sections": "Image adjustment sections"
+  },
+  "adjustGroups": {
+    "light": "Light",
+    "color": "Color",
+    "detail": "Detail",
+    "effects": "Effects"
+  },
+  "upscale": {
+    "action": "Upscale",
+    "minSize": "The source image must be at least 512 pixels wide and high",
+    "targetTooSmall": "This size is not larger than the current image"
+  },
+  "angle": {
+    "title": "Multi-angle",
+    "mode": "Adjust target",
+    "modes": {
+      "subject": "Subject",
+      "camera": "Camera"
+    },
+    "preview": "Drag to adjust the view; hold Shift for precision, or scroll to change framing",
+    "yaw": "Rotation",
+    "pitch": "Tilt",
+    "zoom": "Zoom",
+    "zoomLevels": {
+      "wide": "Wide angle",
+      "medium": "Medium",
+      "close": "Close-up"
+    },
+    "tiltUp": "Tilt up",
+    "tiltDown": "Tilt down",
+    "turnLeft": "Turn left",
+    "turnRight": "Turn right"
+  },
+  "layers": {
+    "title": "Split layers",
+    "panel": "Split layers",
+    "selectContent": "Select region",
+    "selectContentUnavailable": "The current layer model cannot split a selected region",
+    "auto": "Automatic split",
+    "custom": "Custom split",
+    "prompt": "Separation focus",
+    "promptPlaceholder": "Describe what to split into layers",
+    "split": "Split",
+    "task": "Splitting image layers",
+    "failed": "Layer splitting failed",
+    "stage": {
+      "submitting": "Submitting image",
+      "processing": "Splitting layers",
+      "downloading": "Retrieving layers",
+      "publishing": "Saving layers"
+    },
+    "keyMissing": "Layer splitting requires a fal API key",
+    "promptRequired": "Describe what should be separated first"
+  },
+  "comments": {
+    "title": "Comment",
+    "prompt": "Add a description",
+    "send": "Send",
+    "addToConversation": "Add to conversation",
+    "delete": "Delete comment",
+    "hint": "Click an image location to comment",
+    "mode": "Comment annotation mode",
+    "point": "Point comment",
+    "draw": "Draw a comment",
+    "region": "Region comment"
+  },
+  "applyNow": "Use now",
+  "errors": {
+    "modelUnavailable": "Check the image model and credential settings",
+    "providerUnsupported": "The selected image model does not support this operation",
+    "credentialUnavailable": "The image model credential could not be read",
+    "secretDatabaseUnavailable": "The local credential database is unavailable",
+    "capabilityCheckFailed": "Could not check whether this action is available",
+    "busy": "An operation is in progress"
+  },
+  "openAiSettings": "Open AI settings",
+  "status": {
+    "capabilityChecking": "Checking image capabilities…",
+    "imagePreparing": "The image is still being prepared"
+  },
+  "operation": {
+    "task": "Generating image",
+    "failed": "Image generation failed",
+    "stage": {
+      "renderingSource": "Preparing image",
+      "processing": "Generating result"
+    }
+  },
+  "finishImageEdit": "Apply or cancel the current image edit first",
+  "adjustments": {
+    "exposure": "Exposure",
+    "contrast": "Contrast",
+    "highlights": "Highlights",
+    "shadows": "Shadows",
+    "whites": "Whites",
+    "blacks": "Blacks",
+    "saturation": "Saturation",
+    "warmth": "Warmth",
+    "sharpness": "Sharpness",
+    "vignette": "Vignette",
+    "vibrance": "Vibrance",
+    "tint": "Tint",
+    "clarity": "Clarity",
+    "grain": "Grain",
+    "softLight": "Soft light",
+    "glow": "Glow"
+  }
+}

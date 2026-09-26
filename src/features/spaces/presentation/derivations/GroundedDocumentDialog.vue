@@ -23,7 +23,7 @@ const presetParameters = computed(() => ({ purpose: form.purpose }));
 
 watch(open, (isOpen) => {
   if (!isOpen) return;
-  form.title = t("spaces.creation.documentDefaultTitle");
+  form.title = t("spaces.creation.document.defaultTitle");
   form.purpose = "";
 });
 function submit() {
@@ -39,24 +39,24 @@ function applyPreset(preset: GenerationPreset) {
 <template>
   <UiDialog
     v-model:open="open"
-    :title="t('spaces.creation.documentTitle')"
-    :description="t('spaces.creation.documentDescription')"
+    :title="t('spaces.creation.document.title')"
+    :description="t('spaces.creation.document.description')"
   >
     <div class="space-y-4">
       <label class="block space-y-1.5"
-        ><span class="text-label font-medium">{{ t("spaces.inspector.detailTitle") }}</span
+        ><span class="text-label font-medium">{{ t("common.title") }}</span
         ><UiInput v-model="form.title"
       /></label>
       <label class="block space-y-1.5"
-        ><span class="text-label font-medium">{{ t("spaces.creation.documentPurpose") }}</span
+        ><span class="text-label font-medium">{{ t("spaces.creation.document.purpose") }}</span
         ><UiTextarea
           v-model="form.purpose"
           :rows="5"
-          :placeholder="t('spaces.creation.documentPurposePlaceholder')"
+          :placeholder="t('spaces.creation.document.purposePlaceholder')"
       /></label>
       <div>
         <p class="text-micro text-foreground-tertiary">
-          {{ t("spaces.creation.documentSources", { count: sources.length }) }}
+          {{ t("spaces.creation.document.sources", { count: sources.length }) }}
         </p>
         <p class="mt-1 line-clamp-2 text-caption text-foreground-secondary">
           {{ sources.map((source) => source.title).join(" · ") }}
@@ -74,7 +74,7 @@ function applyPreset(preset: GenerationPreset) {
     <template #footer
       ><UiButton variant="ghost" @click="open = false">{{ t("common.cancel") }}</UiButton
       ><UiButton variant="primary" :disabled="!valid" @click="submit">{{
-        t("spaces.creation.generateDocument")
+        t("spaces.creation.document.generate")
       }}</UiButton></template
     >
   </UiDialog>

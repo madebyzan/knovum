@@ -54,8 +54,8 @@ export function useSpaceTiptapEditor() {
 
   const editor = useEditor({
     extensions: createSpaceTiptapExtensions(
-      t("spaces.editor.editorPlaceholder"),
-      (error) => toast.error(t("editor.imageUploadFailed"), { description: String(error) }),
+      t("spaces.editor.placeholder"),
+      (error) => toast.error(t("spaces.richtext.image.uploadFailed"), { description: String(error) }),
       async (index) => {
         const node = editorNode.value;
         if (!node || node.data.kind !== "markdown") return;

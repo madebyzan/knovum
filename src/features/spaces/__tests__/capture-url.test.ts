@@ -114,7 +114,7 @@ describe("Space URL capture", () => {
     const harness = captureHarness();
     await captureSpaceUrl(harness.context, URL, POSITION);
     expect(mocks.addSavedWebsite).not.toHaveBeenCalled();
-    expect(mocks.toastError).toHaveBeenCalledWith("spaces.mediaImport.importFailed");
+    expect(mocks.toastError).toHaveBeenCalledWith("spaces.media.import.failed");
     expect(harness.update).toHaveBeenCalledWith("import-1", { status: "failed" });
     expect(harness.finish).not.toHaveBeenCalled();
   });
@@ -126,7 +126,7 @@ describe("Space URL capture", () => {
     expect(harness.update).toHaveBeenCalledWith("import-1", { status: "failed" });
     expect(harness.finish).not.toHaveBeenCalled();
     expect(harness.addContent).not.toHaveBeenCalled();
-    expect(mocks.toastError).toHaveBeenCalledWith("spaces.mediaImport.importFailed");
+    expect(mocks.toastError).toHaveBeenCalledWith("spaces.media.import.failed");
   });
 
   it("updates canvas capture progress from the media task", async () => {
@@ -183,6 +183,6 @@ describe("Space URL capture", () => {
     expect(mocks.removeSpaceAssets).toHaveBeenCalledWith(["/spaces/assets/video.mp4"]);
     expect(harness.update).toHaveBeenCalledWith("import-1", { status: "failed" });
     expect(harness.finish).not.toHaveBeenCalled();
-    expect(mocks.toastError).toHaveBeenCalledWith("spaces.mediaImport.importFailed");
+    expect(mocks.toastError).toHaveBeenCalledWith("spaces.media.import.failed");
   });
 });

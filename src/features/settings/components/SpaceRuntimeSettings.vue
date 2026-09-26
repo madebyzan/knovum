@@ -30,12 +30,12 @@ const {
   <SettingsSection
     id="settings-local-models"
     tabindex="-1"
-    :title="t('settings.runtime.title')"
-    :description="t('settings.runtime.description')"
+    :title="t('settings.offlineModels.title')"
+    :description="t('settings.offlineModels.description')"
   >
     <RuntimeModelRow
-      :title="t('settings.runtime.textEmbeddingModel')"
-      :description="t('settings.runtime.textEmbeddingModelDescription')"
+      :title="t('settings.offlineModels.models.textEmbedding.label')"
+      :description="t('settings.offlineModels.models.textEmbedding.description')"
       :installed="textEmbeddingInstalled"
       :installed-count="textEmbeddingInstalledCount"
       :total-count="textEmbeddingTotalCount"
@@ -47,7 +47,7 @@ const {
       @remove="removeTextEmbedding"
     />
     <RuntimeModelRow
-      :title="t('settings.runtime.whisperStandardModel')"
+      :title="t('settings.offlineModels.models.whisperStandard')"
       :installed="transcriptionInstalled"
       :installed-count="transcriptionInstalledCount"
       :total-count="transcriptionTotalCount"

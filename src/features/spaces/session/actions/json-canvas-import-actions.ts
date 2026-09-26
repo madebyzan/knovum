@@ -55,7 +55,7 @@ export function createJsonCanvasImportActions(context: JsonCanvasImportContext) 
           contentIds: preparation.contentIds,
           sectionIds: preparation.sectionIds,
           backgroundPaths: preparation.backgroundPaths,
-          defaultSectionTitle: i18n.global.t("spaces.canvas.untitledSection"),
+          defaultSectionTitle: i18n.global.t("spaces.canvas.sections.untitled"),
         });
         const importedRelations = resolveImportedRelations(request.plan.edges, importedNodes, spaceId);
         const persisted = await persistJsonCanvas({

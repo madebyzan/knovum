@@ -38,8 +38,7 @@ async function createScene(context: SceneListContext, thumbnailPath: string) {
   const viewport = currentViewport(context);
   if (!spaceId || !viewport) return;
   const value =
-    context.title.value.trim() ||
-    t("spaces.navigation.sceneDefaultName", { index: context.scenes.value.length + 1 });
+    context.title.value.trim() || t("spaces.scenes.defaultName", { index: context.scenes.value.length + 1 });
   const scene = await context.store.createScene(value, viewport, thumbnailPath);
   if (!scene) return;
   if (context.activeSpace.value?.id !== spaceId || scene.spaceId !== spaceId) return scene;
@@ -95,21 +94,21 @@ async function revealScene(context: SceneListContext, id: string) {
 async function showSceneMenu(context: SceneListContext, scene: SpaceScene) {
   const index = context.scenes.value.findIndex((candidate) => candidate.id === scene.id);
   await popupSpaceContextMenu([
-    [spaceMenuItem(t("spaces.navigation.openScene"), () => void context.store.openSceneView(scene.id))],
+    [spaceMenuItem(t("spaces.scenes.open"), () => void context.store.openSceneView(scene.id))],
     [
-      spaceMenuItem(t("spaces.navigation.updateScene"), () => void updateScene(context, scene)),
-      spaceMenuItem(t("spaces.navigation.duplicateScene"), () => void duplicateScene(context, scene)),
+      spaceMenuItem(t("spaces.scenes.update"), () => void updateScene(context, scene)),
+      spaceMenuItem(t("spaces.scenes.duplicate"), () => void duplicateScene(context, scene)),
     ],
     [
-      spaceMenuItem(t("spaces.navigation.moveSceneUp"), () => context.store.moveScene(scene.id, -1), {
+      spaceMenuItem(t("spaces.scenes.moveUp"), () => context.store.moveScene(scene.id, -1), {
         enabled: index > 0,
       }),
-      spaceMenuItem(t("spaces.navigation.moveSceneDown"), () => context.store.moveScene(scene.id, 1), {
+      spaceMenuItem(t("spaces.scenes.moveDown"), () => context.store.moveScene(scene.id, 1), {
         enabled: index >= 0 && index < context.scenes.value.length - 1,
       }),
     ],
-    [spaceMenuItem(t("spaces.navigation.renameScene"), () => void beginRename(context, scene))],
-    [spaceMenuItem(t("spaces.navigation.deleteScene"), () => context.store.removeScene(scene.id))],
+    [spaceMenuItem(t("spaces.scenes.rename"), () => void beginRename(context, scene))],
+    [spaceMenuItem(t("spaces.scenes.delete"), () => context.store.removeScene(scene.id))],
   ]);
 }
 

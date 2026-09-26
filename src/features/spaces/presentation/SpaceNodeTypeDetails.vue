@@ -15,7 +15,7 @@ defineProps<{ node: SpaceCanvasNode }>();
 <template>
   <SpaceInspectorSection
     v-if="node.data.kind === 'file' && node.data.documentCoverage"
-    :title="$t('spaces.processing.documentCoverage')"
+    :title="$t('spaces.processing.document.coverage')"
     :icon="ScanText"
     :default-expanded="false"
   >
@@ -31,7 +31,7 @@ defineProps<{ node: SpaceCanvasNode }>();
 
   <SpaceInspectorSection
     v-if="node.data.kind === 'subtitle'"
-    :title="$t('spaces.creation.subtitleEditor')"
+    :title="$t('spaces.creation.video.subtitles.editor')"
     :icon="ScanText"
   >
     <SpaceSubtitleDetails :node="node" />
@@ -39,7 +39,7 @@ defineProps<{ node: SpaceCanvasNode }>();
 
   <SpaceInspectorSection
     v-if="node.data.kind === 'audio' || node.data.kind === 'video'"
-    :title="$t('spaces.media.knowledge')"
+    :title="$t('spaces.media.analysis.knowledge.title')"
     :icon="ScanText"
     :default-expanded="false"
   >

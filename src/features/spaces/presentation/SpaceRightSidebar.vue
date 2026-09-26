@@ -35,10 +35,10 @@ watch(
 
 const title = computed(() => {
   if (rightSidebarView.value === "source") return sourcePeek.value?.nodeTitle ?? t("spaces.inspector.source");
-  if (selectedNodes.value.length === 1) return t("spaces.navigation.details");
+  if (selectedNodes.value.length === 1) return t("spaces.inspector.title");
   return selectedNodes.value.length
     ? t("spaces.inspector.itemsSelected", { count: selectedNodes.value.length })
-    : t("spaces.knowledge.knowledgeHealth");
+    : t("spaces.knowledge.health.title");
 });
 const subtitle = computed(() =>
   rightSidebarView.value === "source" && sourcePeek.value

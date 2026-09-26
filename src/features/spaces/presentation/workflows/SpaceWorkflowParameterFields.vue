@@ -27,11 +27,11 @@ const { t } = useI18n();
 
 function actionLabel(id: string) {
   const label = captureActionLabels[id];
-  return label ? t(`spaces.creation.captureActions.${label}`) : id;
+  return label ? t(`spaces.creation.workflow.captureActions.${label}`) : id;
 }
 
 function parameterLabel(key: string) {
-  return t(`spaces.creation.workflowParameters.${key}`);
+  return t(`spaces.creation.workflow.parameters.${key}`);
 }
 </script>
 

@@ -1,0 +1,29 @@
+{
+  "subtitles": {
+    "create": "生成字幕视频副本",
+    "production": "自动添加字幕并生成视频",
+    "render": "生成带字幕视频",
+    "createResource": "添加并编辑字幕…",
+    "resourceTitle": "视频字幕",
+    "resourceFailed": "字幕资源创建失败",
+    "saveFailed": "字幕保存失败",
+    "editor": "字幕编辑",
+    "task": "正在生成字幕视频",
+    "failed": "字幕视频生成失败"
+  },
+  "cues": {
+    "start": "开始时间（毫秒）",
+    "end": "结束时间（毫秒）"
+  },
+  "generation": {
+    "title": "从知识生成视频",
+    "description": "根据选中来源生成可编辑的视频脚本与视频。",
+    "name": "视频名称",
+    "prompt": "描述画面、主体动作、镜头与视觉风格",
+    "duration": "时长",
+    "create": "生成视频",
+    "task": "正在生成视频",
+    "failed": "视频生成失败",
+    "tooManyImages": "生成视频最多可选择 10 张参考图片。"
+  }
+}

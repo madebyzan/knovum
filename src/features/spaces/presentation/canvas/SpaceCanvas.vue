@@ -80,7 +80,7 @@ watch(
 const imports = useSpaceCanvasImports({
   store,
   editorSession,
-  newNoteTitle: t("spaces.editor.newNote"),
+  newNoteTitle: t("spaces.editor.note.new"),
   reportError: lifecycle.reportError,
 });
 
@@ -104,7 +104,7 @@ const canvasEvents = createSpaceCanvasEvents({
   selection,
   store,
   tools,
-  untitledSection: t("spaces.canvas.untitledSection"),
+  untitledSection: t("spaces.canvas.sections.untitled"),
 });
 </script>
 

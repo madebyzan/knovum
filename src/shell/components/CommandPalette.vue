@@ -74,7 +74,7 @@ function commandReason(command: AppCommand) {
       <DialogContent
         class="fixed top-[16%] left-1/2 z-50 w-[calc(100vw-3rem)] max-w-(--knovum-command-max-width) -translate-x-1/2 overflow-hidden rounded-dialog border border-border material-overlay shadow-dialog outline-none"
       >
-        <DialogTitle class="sr-only">{{ t("shell.commandPalette") }}</DialogTitle>
+        <DialogTitle class="sr-only">{{ t("shell.commands.title") }}</DialogTitle>
         <ListboxRoot @update:model-value="handleSelect">
           <div
             class="flex h-(--knovum-command-input-height) items-center gap-2.5 border-b border-divider px-3.5"
@@ -84,7 +84,7 @@ function commandReason(command: AppCommand) {
               v-model="query"
               data-testid="command-palette-input"
               autofocus
-              :placeholder="t('shell.searchPlaceholder')"
+              :placeholder="t('shell.commands.searchPlaceholder')"
               class="h-full min-w-0 flex-1 border-0 bg-transparent text-body-lg outline-none placeholder:text-foreground-tertiary"
             />
             <UiKbd shortcut="esc" />
@@ -117,7 +117,7 @@ function commandReason(command: AppCommand) {
               </ListboxItem>
             </UiTooltip>
             <div v-if="!filteredCommands.length" class="py-8 text-center text-label text-foreground-tertiary">
-              {{ t("shell.noMatchingCommands") }}
+              {{ t("shell.commands.noMatches") }}
             </div>
           </ListboxContent>
         </ListboxRoot>

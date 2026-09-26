@@ -31,7 +31,7 @@ function action(run: () => void) {
 <template>
   <UiPopover v-model:open="open" align="start" :side-offset="6" class="w-72 p-3">
     <template #trigger>
-      <UiIconButton :label="t('editor.table')" size="sm" :active="editor.isActive('table')">
+      <UiIconButton :label="t('spaces.richtext.table.title')" size="sm" :active="editor.isActive('table')">
         <Table2 class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
       </UiIconButton>
     </template>
@@ -66,21 +66,21 @@ function action(run: () => void) {
         type="button"
         @click="action(() => editor.chain().focus().addRowAfter().run())"
       >
-        <Rows3 class="size-(--knovum-icon-size-sm)" />{{ t("editor.addTableRow") }}
+        <Rows3 class="size-(--knovum-icon-size-sm)" />{{ t("spaces.richtext.table.addRow") }}
       </button>
       <button
         class="flex h-(--knovum-control-height-md) items-center gap-2 rounded-control px-2.5 text-left text-label text-foreground hover:bg-control-hover"
         type="button"
         @click="action(() => editor.chain().focus().addColumnAfter().run())"
       >
-        <Columns3 class="size-(--knovum-icon-size-sm)" />{{ t("editor.addTableColumn") }}
+        <Columns3 class="size-(--knovum-icon-size-sm)" />{{ t("spaces.richtext.table.addColumn") }}
       </button>
       <button
         class="flex h-(--knovum-control-height-md) items-center gap-2 rounded-control px-2.5 text-left text-label text-danger hover:bg-control-hover"
         type="button"
         @click="action(() => editor.chain().focus().deleteTable().run())"
       >
-        <Trash2 class="size-(--knovum-icon-size-sm)" />{{ t("editor.deleteTable") }}
+        <Trash2 class="size-(--knovum-icon-size-sm)" />{{ t("spaces.richtext.table.delete") }}
       </button>
     </div>
   </UiPopover>

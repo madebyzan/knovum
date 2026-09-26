@@ -34,7 +34,7 @@ const knowledge = computed(() => {
       </div>
     </template>
     <p v-else class="text-caption leading-relaxed text-foreground-tertiary">
-      {{ t("spaces.knowledge.visualKnowledgePending") }}
+      {{ t("spaces.knowledge.visual.pending") }}
     </p>
   </div>
 </template>

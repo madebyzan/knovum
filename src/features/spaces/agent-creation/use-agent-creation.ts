@@ -40,7 +40,7 @@ export function useAgentCreation(open: Ref<boolean>) {
   const recoveryOptions = computed(() =>
     artifactState.recoveries.value.map((recovery, index) => ({
       value: recovery.sessionId,
-      label: t("spaces.creation.recoveredAgentRun", {
+      label: t("spaces.creation.agent.recovered.run", {
         index: index + 1,
         count: recovery.artifacts.length,
       }),
@@ -82,7 +82,7 @@ export function useAgentCreation(open: Ref<boolean>) {
     const recoveries = await listRecoverableAgentCreations(spaceId);
     if (!recoveries.length) return;
     artifactState.restore(recoveries);
-    status.value = t("spaces.creation.agentArtifactsReady", {
+    status.value = t("spaces.creation.agent.artifacts.ready", {
       count: recoveries[0]?.artifacts.length ?? 0,
     });
   }
@@ -94,9 +94,9 @@ export function useAgentCreation(open: Ref<boolean>) {
     artifactState.begin(sessionId);
     abandonRequested = false;
     running.value = true;
-    status.value = t("spaces.creation.agentStarting");
+    status.value = t("spaces.creation.agent.starting");
     const taskId = tasks.start(
-      t("spaces.creation.agentTask"),
+      t("spaces.creation.agent.task"),
       status.value,
       () => cancelAiJob(sessionId),
       sessionId,
@@ -124,12 +124,12 @@ export function useAgentCreation(open: Ref<boolean>) {
       else artifactState.clear();
       tasks.succeed(taskId);
       status.value = artifacts.length
-        ? t("spaces.creation.agentArtifactsReady", { count: artifacts.length })
-        : t("spaces.creation.agentNoArtifacts");
+        ? t("spaces.creation.agent.artifacts.ready", { count: artifacts.length })
+        : t("spaces.creation.agent.artifacts.none");
     } catch (error) {
       tasks.fail(taskId, String(error));
       if (!abandonRequested) {
-        toast.error(t("spaces.creation.agentFailed"), { description: String(error) });
+        toast.error(t("spaces.creation.agent.failed"), { description: String(error) });
       }
       artifactState.clear();
     } finally {

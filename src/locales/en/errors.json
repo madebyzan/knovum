@@ -1,8 +1,12 @@
 {
-  "title": "Unexpected Error",
+  "title": "Unexpected error",
   "description": "Knovum couldn’t complete the operation. Details were saved to the system log.",
-  "bootstrapTitle": "Startup Failed",
-  "bootstrapDescription": "Knovum couldn’t start because its core services or settings failed to load.",
-  "featureTitle": "Couldn’t Open Workspace",
-  "featureDescription": "The current Space couldn’t be displayed. Try opening it again."
+  "bootstrap": {
+    "title": "Startup failed",
+    "description": "Knovum couldn’t start because its core services or settings failed to load."
+  },
+  "feature": {
+    "title": "Couldn’t open workspace",
+    "description": "The current Space couldn’t be displayed. Try opening it again."
+  }
 }

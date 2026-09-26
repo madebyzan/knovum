@@ -17,10 +17,10 @@ function reveal(position: number) {
 
 <template>
   <section class="flex min-h-0 flex-col">
-    <SpaceContextHeader :title="t('spaces.navigation.editorOutline')" />
+    <SpaceContextHeader :title="t('spaces.sidebar.editorOutline.title')" />
     <nav
       class="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 py-3"
-      :aria-label="t('spaces.navigation.editorOutline')"
+      :aria-label="t('spaces.sidebar.editorOutline.title')"
     >
       <button
         v-for="heading in store.documentOutlineHeadings"
@@ -34,7 +34,7 @@ function reveal(position: number) {
         <span class="truncate">{{ heading.text }}</span>
       </button>
       <p v-if="!store.documentOutlineHeadings.length" class="px-2 py-4 text-caption text-foreground-tertiary">
-        {{ t("spaces.navigation.editorOutlineEmpty") }}
+        {{ t("spaces.sidebar.editorOutline.empty") }}
       </p>
     </nav>
   </section>

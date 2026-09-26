@@ -20,7 +20,7 @@ const editingIndex = shallowRef<number>();
 const editorOpen = shallowRef(false);
 
 async function removePreset(index: number) {
-  const confirmed = await ask(t("settings.creation.deletePresetConfirm"), {
+  const confirmed = await ask(t("settings.creation.presets.deleteConfirm"), {
     title: t("common.delete"),
     kind: "warning",
     okLabel: t("common.delete"),
@@ -52,16 +52,16 @@ function savePreset(preset: GenerationPreset) {
   <SettingsSection
     id="settings-generation-presets"
     tabindex="-1"
-    :title="t('settings.creation.presets')"
-    :description="t('settings.creation.presetsDescription')"
+    :title="t('settings.creation.presets.title')"
+    :description="t('settings.creation.presets.description')"
   >
     <p v-if="presets.length === 0" class="px-4 py-3 text-caption text-foreground-secondary">
-      {{ t("settings.creation.noPresets") }}
+      {{ t("settings.creation.presets.empty") }}
     </p>
     <div v-else class="divide-y divide-divider">
       <div v-for="(preset, index) in presets" :key="preset.id" class="flex items-center gap-3 px-4 py-3">
         <div class="min-w-0 flex-1">
-          <UiInput v-model="preset.name" :aria-label="t('settings.creation.presetName')" />
+          <UiInput v-model="preset.name" :aria-label="t('settings.creation.presets.name')" />
           <p class="mt-0.5 text-caption text-foreground-secondary">
             {{ t(`settings.creation.knowledgeActions.${camelCase(preset.actionId)}`) }}
           </p>

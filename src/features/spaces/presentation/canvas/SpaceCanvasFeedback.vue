@@ -64,7 +64,7 @@ function captureStyle(capture: SpaceUrlCaptureProjection) {
     :style="{ left: `${fileHoverPosition.x}px`, top: `${fileHoverPosition.y}px` }"
   >
     <div class="rounded-control border border-border bg-overlay px-3 py-1.5 text-label font-medium">
-      {{ t("spaces.canvas.actions.dropToSave") }}
+      {{ t("spaces.canvas.dropToSave") }}
     </div>
   </div>
   <div

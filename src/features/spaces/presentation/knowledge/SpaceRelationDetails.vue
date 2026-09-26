@@ -36,13 +36,13 @@ async function saveRationale() {
   <div class="space-y-2 border-t border-divider px-2 py-2.5">
     <div>
       <label class="text-micro font-medium text-foreground-tertiary">{{
-        t("spaces.knowledge.relationRationale")
+        t("spaces.knowledge.relations.rationale")
       }}</label>
       <UiTextarea
         v-model="rationale"
         class="mt-1"
         :rows="3"
-        :placeholder="t('spaces.knowledge.relationRationalePlaceholder')"
+        :placeholder="t('spaces.knowledge.relations.rationalePlaceholder')"
       />
       <div class="mt-1.5 flex justify-end">
         <UiButton size="sm" variant="secondary" @click="saveRationale">

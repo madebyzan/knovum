@@ -1,0 +1,58 @@
+/**
+ * Locale keys resolved at runtime from a domain value, so no translation call names them literally.
+ * Every entry must stay narrow: a prefix here exempts all keys beneath it from the dead-key gate.
+ */
+export const dynamicLocaleKeyPrefixes = [
+  "settings.agents.connections.",
+  "settings.creation.knowledgeActions.",
+  "settings.routing.routes.",
+  "settings.usage.range.",
+  "shell.commandUnavailable.",
+  "spaces.assistant.starter.",
+  "spaces.canvas.align.",
+  "spaces.canvas.distribute.",
+  "spaces.canvas.noteFills.",
+  "spaces.canvas.selectionTextColors.",
+  "spaces.canvas.textAlignments.",
+  "spaces.canvas.textColors.",
+  "spaces.canvas.verticalAlignments.",
+  "spaces.creation.stages.",
+  "spaces.creation.workflow.captureActions.",
+  "spaces.creation.workflow.captureIssues.",
+  "spaces.creation.workflow.parameters.",
+  "spaces.creation.workflow.states.",
+  "spaces.knowledge.fields.kindLabels.",
+  "spaces.knowledge.health.issues.",
+  "spaces.knowledge.history.events.",
+  "spaces.knowledge.relations.colors.",
+  "spaces.knowledge.relations.kinds.",
+  "spaces.knowledge.status.labels.",
+  "spaces.knowledgeObjectTypes.",
+  "spaces.media.imageEditor.adjustGroups.",
+  "spaces.media.imageEditor.adjustments.",
+  "spaces.media.imageEditor.angle.modes.",
+  "spaces.media.imageEditor.angle.zoomLevels.",
+  "spaces.media.imageEditor.crop.",
+  "spaces.media.imageEditor.layers.stage.",
+  "spaces.media.imageEditor.operation.stage.",
+  "spaces.media.videoEditor.text.presets.",
+  "spaces.nodeTypes.",
+  "spaces.processing.enrichmentJobType.",
+  "spaces.recording.problems.",
+  "spaces.richtext.align.",
+  "spaces.richtext.heading",
+  "spaces.richtext.highlightColor.",
+] as const;
+
+/** Runtime-resolved keys that sit directly in a namespace too large to exempt as a prefix. */
+export const dynamicLocaleKeys = [
+  "spaces.media.import.downloading",
+  "spaces.media.import.finalizing",
+  "spaces.media.import.resolving",
+  "spaces.media.videoEditor.bottom",
+  "spaces.media.videoEditor.center",
+  "spaces.media.videoEditor.preparingVideoEdit",
+  "spaces.media.videoEditor.renderingVideoEdit",
+  "spaces.media.videoEditor.savingResource",
+  "spaces.media.videoEditor.top",
+] as const;

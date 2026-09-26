@@ -37,8 +37,8 @@ const emit = defineEmits<{ remove: [key: string] }>();
           <span class="block text-micro text-foreground-tertiary">{{
             $t(
               attachment.kind === "node"
-                ? "spaces.assistant.canvasNodeShort"
-                : "spaces.assistant.localFileShort",
+                ? "spaces.assistant.attachments.canvasNodeShort"
+                : "spaces.assistant.attachments.localFileShort",
             )
           }}</span>
           <span class="block truncate font-medium text-foreground">{{ attachment.title }}</span>
@@ -46,7 +46,7 @@ const emit = defineEmits<{ remove: [key: string] }>();
         <button
           type="button"
           class="ml-0.5 flex size-6 shrink-0 items-center justify-center rounded-control text-foreground-tertiary hover:bg-control-hover hover:text-foreground focus-visible:outline-2 focus-visible:outline-focus-ring"
-          :aria-label="$t('spaces.assistant.removeAttachedResource', { name: attachment.title })"
+          :aria-label="$t('spaces.assistant.attachments.remove', { name: attachment.title })"
           @click="emit('remove', attachment.key)"
         >
           <X class="size-(--knovum-icon-size-xs)" />

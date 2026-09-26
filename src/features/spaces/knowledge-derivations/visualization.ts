@@ -72,17 +72,17 @@ export async function createVisualization(context: CreateVisualizationContext) {
     sourceNodeIds: sources.map(({ nodeId }) => nodeId),
     task: {
       id: jobId,
-      title: i18n.global.t("spaces.creation.visualizationTask"),
+      title: i18n.global.t("spaces.creation.image.visualization.task"),
       detail: draft.title.trim(),
       cancel: () => cancelAiJob(jobId),
     },
-    failureMessageKey: "spaces.creation.visualizationFailed",
+    failureMessageKey: "spaces.creation.image.visualization.failed",
     execute: async ({ taskId }) => {
       const stages = new Channel<string>();
       if (taskId) {
         const tasks = useTaskStore();
         // oxlint-disable-next-line unicorn/prefer-add-event-listener -- Tauri Channel exposes its events through onmessage.
-        stages.onmessage = (stage) => tasks.detail(taskId, i18n.global.t(`spaces.creation.${stage}`));
+        stages.onmessage = (stage) => tasks.detail(taskId, i18n.global.t(`spaces.creation.stages.${stage}`));
       }
       const target = await loadAiExecutionTarget("image-generation", draft.target);
       return invoke<VisualizationOutput>("plugin:spaces|create_visualization", {

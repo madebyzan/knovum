@@ -1,14 +1,18 @@
 {
-  "newNote": "新建便签",
-  "notePlaceholder": "输入内容…",
-  "newText": "文本",
-  "textPlaceholder": "输入文本",
-  "openItem": "打开 {title}",
-  "untitledMarkdown": "未命名 Markdown",
-  "markdownTitle": "Markdown 标题",
-  "emptyMarkdown": "空 Markdown",
-  "markdownPlaceholder": "开始写作…",
-  "editorLoading": "正在准备编辑器…",
-  "editorLoadingHint": "大型文档需要一些时间才能打开。",
-  "editorPlaceholder": "开始写作…"
+  "note": {
+    "new": "新建便签",
+    "placeholder": "输入内容…"
+  },
+  "text": {
+    "new": "文本",
+    "placeholder": "输入文本"
+  },
+  "markdown": {
+    "untitled": "未命名 Markdown",
+    "title": "Markdown 标题",
+    "empty": "空 Markdown"
+  },
+  "loading": "正在准备编辑器…",
+  "loadingHint": "大型文档需要一些时间才能打开。",
+  "placeholder": "开始写作…"
 }

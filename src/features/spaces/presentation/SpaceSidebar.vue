@@ -41,7 +41,7 @@ const inbox = computed(() => spaces.value.find((space) => space.kind === "inbox"
         @click="store.showSpaceLibrary('all')"
       >
         <LayoutGrid class="size-(--knovum-icon-size-sm)" :stroke-width="1.55" />
-        {{ t("spaces.space.allSpaces") }}
+        {{ t("spaces.space.sections.all") }}
       </button>
       <button
         type="button"
@@ -50,7 +50,7 @@ const inbox = computed(() => spaces.value.find((space) => space.kind === "inbox"
         @click="store.showSpaceLibrary('recent')"
       >
         <Clock3 class="size-(--knovum-icon-size-sm)" :stroke-width="1.55" />
-        {{ t("spaces.space.recentSpaces") }}
+        {{ t("spaces.space.sections.recent") }}
       </button>
       <button
         type="button"
@@ -59,7 +59,7 @@ const inbox = computed(() => spaces.value.find((space) => space.kind === "inbox"
         @click="store.showSpaceLibrary('favorites')"
       >
         <Star class="size-(--knovum-icon-size-sm)" :stroke-width="1.55" />
-        {{ t("spaces.space.favoriteSpaces") }}
+        {{ t("spaces.space.sections.favorites") }}
       </button>
     </nav>
     <SpaceSidebarOutline v-if="workspaceMode === 'space' && store.activeSpace" />
@@ -67,7 +67,7 @@ const inbox = computed(() => spaces.value.find((space) => space.kind === "inbox"
     <footer class="shrink-0 px-2.5 py-2">
       <button type="button" :class="rowClass" @click="store.recentlyDeletedSpaceId = null">
         <Trash2 class="size-(--knovum-icon-size-sm)" :stroke-width="1.55" />
-        {{ t("spaces.navigation.recentlyDeleted") }}
+        {{ t("spaces.trash.recent.title") }}
       </button>
     </footer>
   </aside>

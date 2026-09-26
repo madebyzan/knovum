@@ -50,12 +50,12 @@ async function create() {
 <template>
   <UiDialog
     v-model:open="open"
-    :title="t('spaces.knowledge.newPortal')"
-    :description="t('spaces.knowledge.newPortalDescription')"
+    :title="t('spaces.knowledge.portal.create')"
+    :description="t('spaces.knowledge.portal.createDescription')"
   >
     <div class="space-y-3">
       <UiSelect v-model="targetSpaceId" :label="t('spaces.inspector.targetSpace')" :options="options" />
-      <UiInput v-model="title" :placeholder="t('spaces.inspector.detailTitle')" />
+      <UiInput v-model="title" :placeholder="t('common.title')" />
     </div>
     <template #footer>
       <UiButton variant="ghost" @click="open = false">{{ t("common.cancel") }}</UiButton>

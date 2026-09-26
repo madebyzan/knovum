@@ -13,7 +13,7 @@ const { t } = useI18n();
 <template>
   <div class="flex h-full shrink-0 items-center gap-0.5 border-l border-divider px-1">
     <ToolbarButton as-child>
-      <UiIconButton :label="t('spaces.navigation.inspect')" @click="emit('inspect')">
+      <UiIconButton :label="t('spaces.inspector.title')" @click="emit('inspect')">
         <Info class="size-(--knovum-icon-size-toolbar)" :stroke-width="1.6" />
       </UiIconButton>
     </ToolbarButton>

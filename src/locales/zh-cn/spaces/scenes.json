@@ -1,0 +1,26 @@
+{
+  "title": "场景",
+  "previous": "上一个场景",
+  "next": "下一个场景",
+  "focus": {
+    "mode": "聚焦模式 · {count} 项",
+    "exit": "退出聚焦",
+    "selection": "聚焦选中项",
+    "unavailable": "此保存视图引用的结构已不存在"
+  },
+  "collapse": "收起场景控制",
+  "expand": "展开场景控制",
+  "defaultName": "场景 {index}",
+  "saved": "已保存场景“{title}”",
+  "updated": "已更新场景“{title}”",
+  "opened": "已跳转至场景“{title}”",
+  "save": "保存当前场景",
+  "delete": "删除场景",
+  "empty": "保存视口位置后可快速返回特定区域。",
+  "open": "跳转场景",
+  "update": "更新为当前视口",
+  "duplicate": "复制场景",
+  "moveUp": "上移",
+  "moveDown": "下移",
+  "rename": "重命名场景"
+}

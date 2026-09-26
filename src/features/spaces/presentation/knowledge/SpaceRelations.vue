@@ -66,7 +66,7 @@ function editRelation(id: string) {
       class="flex items-start gap-2 text-caption text-foreground-tertiary"
     >
       <Link2 class="mt-0.5 size-(--knovum-icon-size-xs) shrink-0" />
-      <span>{{ t("spaces.knowledge.relationsEmpty") }}</span>
+      <span>{{ t("spaces.knowledge.relations.empty") }}</span>
     </div>
 
     <template v-else>
@@ -74,8 +74,8 @@ function editRelation(id: string) {
         v-if="incoming.length"
         :relations="incoming"
         :icon="ArrowDownLeft"
-        label-key="spaces.knowledge.incomingRelations"
-        direction-key="spaces.canvas.actions.incoming"
+        label-key="spaces.knowledge.relations.incoming"
+        direction-key="spaces.canvas.relations.incoming"
         :expanded-id="expandedId"
         @reveal="reveal"
         @toggle-expand="toggleExpand"
@@ -87,8 +87,8 @@ function editRelation(id: string) {
         :class="incoming.length && 'mt-4'"
         :relations="outgoing"
         :icon="ArrowUpRight"
-        label-key="spaces.knowledge.outgoingRelations"
-        direction-key="spaces.canvas.actions.outgoing"
+        label-key="spaces.knowledge.relations.outgoing"
+        direction-key="spaces.canvas.relations.outgoing"
         :expanded-id="expandedId"
         @reveal="reveal"
         @toggle-expand="toggleExpand"

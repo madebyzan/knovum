@@ -21,6 +21,6 @@ async function refresh() {
       class="size-(--knovum-icon-size-sm)"
       :class="catalog.installationFetching.value && 'animate-spin'"
     />
-    {{ t("settings.ai.checkDesktopAgents") }}
+    {{ t("settings.agents.check") }}
   </UiButton>
 </template>

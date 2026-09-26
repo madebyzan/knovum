@@ -29,20 +29,20 @@ const formats = {
   docx: {
     pathCommand: "plugin:spaces|allocate_document_docx_path",
     exportCommand: "plugin:spaces|export_document_as_docx",
-    taskKey: "spaces.creation.docxTask",
-    failureKey: "spaces.creation.docxFailed",
+    taskKey: "spaces.creation.document.export.docxTask",
+    failureKey: "spaces.creation.document.export.docxFailed",
   },
   pdf: {
     pathCommand: "plugin:spaces|allocate_document_pdf_path",
     exportCommand: "plugin:spaces|export_document_as_pdf",
-    taskKey: "spaces.creation.pdfTask",
-    failureKey: "spaces.creation.pdfFailed",
+    taskKey: "spaces.creation.document.export.pdfTask",
+    failureKey: "spaces.creation.document.export.pdfFailed",
   },
   txt: {
     pathCommand: "plugin:spaces|allocate_document_txt_path",
     exportCommand: "plugin:spaces|export_document_as_txt",
-    taskKey: "spaces.documentExport.txtTask",
-    failureKey: "spaces.documentExport.txtFailed",
+    taskKey: "spaces.creation.document.export.txtTask",
+    failureKey: "spaces.creation.document.export.txtFailed",
   },
 } as const;
 

@@ -31,7 +31,7 @@ async function choose() {
   try {
     if (await chooseSpaceTiptapImages(props.editor)) open.value = false;
   } catch (error) {
-    toast.error(t("editor.imageUploadFailed"), { description: String(error) });
+    toast.error(t("spaces.richtext.image.uploadFailed"), { description: String(error) });
   } finally {
     busy.value = false;
   }
@@ -49,7 +49,7 @@ function insertUrl() {
     })
     .run();
   if (!inserted) {
-    toast.error(t("editor.imageInsertFailed"));
+    toast.error(t("spaces.richtext.image.insertFailed"));
     return;
   }
   url.value = "";
@@ -67,7 +67,7 @@ function insertUrl() {
     class="w-72 overflow-hidden rounded-dialog p-0"
   >
     <template #trigger>
-      <UiIconButton :label="t('editor.insertImage')" size="sm">
+      <UiIconButton :label="t('spaces.richtext.image.insert')" size="sm">
         <ImagePlus class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
       </UiIconButton>
     </template>
@@ -83,7 +83,9 @@ function insertUrl() {
         "
         @click="tab = 'upload'"
       >
-        <Upload class="size-(--knovum-icon-size-xs)" :stroke-width="1.6" />{{ t("editor.imageTabUpload") }}
+        <Upload class="size-(--knovum-icon-size-xs)" :stroke-width="1.6" />{{
+          t("spaces.richtext.image.tabUpload")
+        }}
       </button>
       <button
         type="button"
@@ -95,7 +97,9 @@ function insertUrl() {
         "
         @click="tab = 'url'"
       >
-        <Link2 class="size-(--knovum-icon-size-xs)" :stroke-width="1.6" />{{ t("editor.imageTabUrl") }}
+        <Link2 class="size-(--knovum-icon-size-xs)" :stroke-width="1.6" />{{
+          t("spaces.richtext.image.tabUrl")
+        }}
       </button>
     </div>
 
@@ -107,15 +111,15 @@ function insertUrl() {
         @click="choose"
       >
         <Upload class="size-(--knovum-icon-size-md)" :stroke-width="1.4" />
-        <span class="text-caption">{{ t("editor.chooseImage") }}</span>
+        <span class="text-caption">{{ t("spaces.richtext.image.choose") }}</span>
       </button>
-      <p class="text-micro text-foreground-tertiary">{{ t("editor.imageDropDocumentHint") }}</p>
+      <p class="text-micro text-foreground-tertiary">{{ t("spaces.richtext.image.dropDocumentHint") }}</p>
     </div>
 
     <div v-else class="flex flex-col gap-2.5 px-3 py-3">
       <label class="grid gap-1.5">
         <span class="flex items-center gap-1.5 text-caption font-medium text-foreground-secondary">
-          <Link2 class="size-(--knovum-icon-size-xs)" />{{ t("editor.imageUrl") }}
+          <Link2 class="size-(--knovum-icon-size-xs)" />{{ t("spaces.richtext.image.url") }}
         </span>
         <UiInput
           v-model="url"
@@ -125,18 +129,22 @@ function insertUrl() {
           @keydown.enter.prevent="insertUrl"
         />
       </label>
-      <p v-if="invalidUrl" class="-mt-1 text-caption text-danger">{{ t("editor.imageUrlInvalid") }}</p>
+      <p v-if="invalidUrl" class="-mt-1 text-caption text-danger">
+        {{ t("spaces.richtext.image.urlInvalid") }}
+      </p>
       <label class="grid gap-1.5">
-        <span class="text-caption font-medium text-foreground-secondary">{{ t("editor.imageAlt") }}</span>
+        <span class="text-caption font-medium text-foreground-secondary">{{
+          t("spaces.richtext.image.alt")
+        }}</span>
         <UiInput
           v-model="alt"
-          :placeholder="t('editor.imageAltPlaceholder')"
+          :placeholder="t('spaces.richtext.image.altPlaceholder')"
           @keydown.enter.prevent="insertUrl"
         />
       </label>
       <div class="flex justify-end pt-0.5">
         <UiButton size="sm" variant="primary" :disabled="!normalizedUrl" @click="insertUrl">
-          <Check class="size-(--knovum-icon-size-xs)" />{{ t("editor.insertImage") }}
+          <Check class="size-(--knovum-icon-size-xs)" />{{ t("spaces.richtext.image.insert") }}
         </UiButton>
       </div>
     </div>

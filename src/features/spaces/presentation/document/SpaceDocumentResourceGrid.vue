@@ -54,7 +54,7 @@ function measureRow(element: Element | ComponentPublicInstance | null) {
           :key="item.resource.id"
           type="button"
           class="overflow-hidden rounded-control border border-border bg-surface text-left outline-none hover:border-border-hover focus-visible:ring-2 focus-visible:ring-accent"
-          :aria-label="t('spaces.processing.openDocumentResource', { index: resources.indexOf(item) + 1 })"
+          :aria-label="t('spaces.processing.document.resources.open', { index: resources.indexOf(item) + 1 })"
           @click="emit('select', item)"
         >
           <div class="aspect-4/3 overflow-hidden bg-canvas">

@@ -62,7 +62,7 @@ function changeSize(event: Event) {
   <div class="space-y-5 p-4">
     <section>
       <label class="mb-1.5 block text-caption font-medium" for="video-edit-text">
-        {{ $t("spaces.media.textContent") }}
+        {{ $t("spaces.media.videoEditor.text.content") }}
       </label>
       <UiTextarea
         id="video-edit-text"
@@ -76,7 +76,7 @@ function changeSize(event: Event) {
     <SpaceVideoFontControls :style="style" @change="patchStyle" />
     <section class="grid grid-cols-2 gap-2">
       <label class="text-caption text-foreground-secondary" for="video-edit-text-size">
-        {{ $t("spaces.media.fontSize") }}
+        {{ $t("spaces.media.videoEditor.font.size") }}
         <UiInput
           id="video-edit-text-size"
           class="mt-1 tabular-nums"
@@ -98,7 +98,9 @@ function changeSize(event: Event) {
       />
     </section>
     <section>
-      <h3 class="mb-2 text-caption text-foreground-secondary">{{ $t("spaces.media.textPresets") }}</h3>
+      <h3 class="mb-2 text-caption text-foreground-secondary">
+        {{ $t("spaces.media.videoEditor.text.presets.title") }}
+      </h3>
       <div class="grid grid-cols-4 gap-1.5">
         <button
           v-for="preset in presets"
@@ -118,12 +120,14 @@ function changeSize(event: Event) {
             :class="preset === 'badge' && 'rounded-control bg-foreground px-1 text-canvas'"
             >T</span
           >
-          {{ $t(`spaces.media.textPreset.${preset}`) }}
+          {{ $t(`spaces.media.videoEditor.text.presets.${preset}`) }}
         </button>
       </div>
     </section>
     <section>
-      <h3 class="mb-2 text-caption text-foreground-secondary">{{ $t("spaces.media.textPlacement") }}</h3>
+      <h3 class="mb-2 text-caption text-foreground-secondary">
+        {{ $t("spaces.media.videoEditor.text.placement") }}
+      </h3>
       <div class="grid grid-cols-3 gap-1">
         <UiButton
           v-for="placement in placements"
@@ -131,7 +135,7 @@ function changeSize(event: Event) {
           size="sm"
           :variant="item.placement === placement ? 'primary' : 'secondary'"
           @click="patch({ placement })"
-          >{{ $t(`spaces.media.${placement}`) }}</UiButton
+          >{{ $t(`spaces.media.videoEditor.${placement}`) }}</UiButton
         >
       </div>
     </section>

@@ -1,58 +1,66 @@
 {
-  "enrichmentQueueTitle": "Processing",
-  "enrichmentQueueSubtitle": "{count} items remaining",
-  "enrichmentQueueCancel": "Cancel",
+  "queue": {
+    "title": "Processing",
+    "subtitle": "{count} items remaining",
+    "pending": "Pending {count}",
+    "running": "Processing {count}",
+    "failed": "Failed {count}"
+  },
   "enrichmentJobType": {
-    "embed_text": "Text Vector Indexing",
-    "analyze_image": "Visual Image Analysis",
+    "embed_text": "Text vector indexing",
+    "analyze_image": "Visual image understanding",
     "analyze_media": "Media duration and waveform",
-    "transcribe_media": "Audio Whisper Transcription",
-    "analyze_video_cover": "Video Cover Analysis",
-    "embed_media_transcript": "Transcript Vector Indexing",
+    "transcribe_media": "Audio Whisper transcription",
+    "analyze_video_cover": "Video cover analysis",
+    "embed_media_transcript": "Transcript vector indexing",
     "parse_document": "Document extraction",
     "analyze_document": "Document visual analysis"
   },
   "matchBadge": {
     "documentOcr": "Recognized document text",
     "documentInterpretation": "Document visual interpretation",
-    "imageDescription": "Image Description",
-    "videoCover": "Video Cover",
+    "imageDescription": "Image description",
+    "videoCover": "Video cover",
     "mediaTimeRange": "{start} – {end}"
   },
-  "rebuildRetrievalIndex": "Rebuild Retrieval Index",
-  "rebuildRetrievalIndexDone": "Index rebuilt; generated {count} vector entries.",
-  "nodeEnrichmentPending": "Pending {count}",
-  "nodeEnrichmentRunning": "Processing {count}",
-  "nodeEnrichmentFailed": "Failed {count}",
-  "nodeEnrichmentRetry": "Retry",
+  "index": {
+    "rebuild": "Rebuild retrieval index",
+    "rebuildDone": "Index rebuilt; generated {count} vector entries."
+  },
   "semanticUnavailable": "Smart search is unavailable · Showing text matches only",
-  "processingFailed": "Processing failed",
-  "processingImage": "Processing image",
-  "processingMedia": "Processing media",
+  "failed": "Processing failed",
+  "imageProgress": "Processing image",
+  "mediaProgress": "Processing media",
   "applyingEdit": "Applying edits",
   "loadingImage": "Loading image",
   "imageUnavailable": "Image unavailable",
-  "documentCoverage": "Document processing",
-  "documentOcrEvidence": "Machine-recognized text · Recognition errors are possible",
-  "documentInterpretationEvidence": "AI visual interpretation · Not an original document statement",
-  "documentTextCoverage": "Text extracted from {count} of {total} pages.",
-  "documentUnclassifiedPages": "{count} pages have no extractable body text or known images; they may be blank or contain unsupported content.",
-  "documentRecognitionRequired": "Pages requiring recognition: {pages}",
-  "documentVisualCoverage": "Visual analysis: {count} of {total} sources completed.",
-  "documentVisualUnavailable": "{count} referenced images cannot be decoded by the document parser.",
-  "documentResources": "Document resources",
-  "openDocumentResource": "Open document resource {index}",
-  "documentResourceOccurrences": "Used {count} time | Used {count} times",
-  "documentResourceEmbedded": "Embedded image extracted from the document.",
-  "documentResourceRendered": "Page or visual region rendered from the PDF.",
-  "documentResourceDetectedText": "Detected text",
-  "visualWaitingConfiguration": "Visual analysis is waiting for visual understanding to be configured.",
-  "documentWarnings": {
-    "officeVectorDrawingsUnsupported": "Office vector drawings are not visually analyzed; they remain in the original file.",
-    "spreadsheetImageCellAnchorsUnavailable": "Spreadsheet images are located by worksheet, not by cell.",
-    "spreadsheetChartRenderingUnsupported": "Available chart text is extracted; chart appearance is not analyzed.",
-    "legacyOfficeVisualOccurrenceCoverageLimited": "This legacy Office format does not expose complete image positions.",
-    "legacySpreadsheetFormulasUnavailable": "Legacy spreadsheets expose cached values, not formula expressions.",
-    "pdfVisualCoverageLimited": "PDF image regions use the parser's public position data. Inline images and vector graphics are not guaranteed to be fully covered; the original file retains all content."
+  "document": {
+    "coverage": "Document processing",
+    "ocrEvidence": "Machine-recognized text · Recognition errors are possible",
+    "interpretationEvidence": "AI visual interpretation · Not an original document statement",
+    "textCoverage": "Text extracted from {count} of {total} pages.",
+    "unclassifiedPages": "{count} pages have no extractable body text or known images; they may be blank or contain unsupported content.",
+    "recognitionRequired": "Pages requiring recognition: {pages}",
+    "visualCoverage": "Visual analysis: {count} of {total} sources completed.",
+    "visualUnavailable": "{count} referenced images cannot be decoded by the document parser.",
+    "resources": {
+      "title": "Document resources",
+      "open": "Open document resource {index}",
+      "occurrences": "Used {count} time | Used {count} times",
+      "embedded": "Embedded image extracted from the document.",
+      "rendered": "Page or visual region rendered from the PDF.",
+      "detectedText": "Detected text"
+    },
+    "warnings": {
+      "officeVectorDrawingsUnsupported": "Office vector drawings are not visually analyzed; they remain in the original file.",
+      "spreadsheetImageCellAnchorsUnavailable": "Spreadsheet images are located by worksheet, not by cell.",
+      "spreadsheetChartRenderingUnsupported": "Available chart text is extracted; chart appearance is not analyzed.",
+      "legacyOfficeVisualOccurrenceCoverageLimited": "This legacy Office format does not expose complete image positions.",
+      "legacySpreadsheetFormulasUnavailable": "Legacy spreadsheets expose cached values, not formula expressions.",
+      "pdfVisualCoverageLimited": "PDF image regions use the parser's public position data. Inline images and vector graphics are not guaranteed to be fully covered; the original file retains all content."
+    }
+  },
+  "visual": {
+    "waitingConfiguration": "Visual analysis is waiting for visual understanding to be configured."
   }
 }

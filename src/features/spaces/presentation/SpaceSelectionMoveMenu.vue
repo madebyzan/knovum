@@ -39,7 +39,7 @@ const menuItems = computed(() =>
       class="flex h-(--knovum-compact-item-height) cursor-default items-center gap-2 rounded-control px-2 text-label text-foreground outline-none data-[highlighted]:bg-control-hover"
     >
       <FolderInput class="size-(--knovum-icon-size-sm)" />
-      {{ t("spaces.navigation.moveToSpace") }}
+      {{ t("spaces.space.moveTo") }}
       <ChevronRight class="ml-auto size-(--knovum-icon-size-xs) text-foreground-tertiary" />
     </DropdownMenuSubTrigger>
     <DropdownMenuPortal>
@@ -48,7 +48,7 @@ const menuItems = computed(() =>
           {{ space.kind === "inbox" ? t("spaces.space.inbox") : space.title }}
         </UiDropdownMenuItem>
         <p v-if="!targets.length" class="px-2 py-2 text-caption text-foreground-tertiary">
-          {{ t("spaces.navigation.noMoveTargets") }}
+          {{ t("spaces.space.moveNoTargets") }}
         </p>
       </DropdownMenuSubContent>
     </DropdownMenuPortal>
@@ -61,12 +61,12 @@ const menuItems = computed(() =>
     :items="menuItems.length ? menuItems : undefined"
   >
     <template #trigger>
-      <UiIconButton :label="t('spaces.navigation.moveToSpace')" size="sm">
+      <UiIconButton :label="t('spaces.space.moveTo')" size="sm">
         <FolderInput class="size-(--knovum-icon-size-sm)" :stroke-width="1.55" />
       </UiIconButton>
     </template>
     <p v-if="!targets.length" class="px-2 py-2 text-caption text-foreground-tertiary">
-      {{ t("spaces.navigation.noMoveTargets") }}
+      {{ t("spaces.space.moveNoTargets") }}
     </p>
   </UiDropdownMenu>
 </template>

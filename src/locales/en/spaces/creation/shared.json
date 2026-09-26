@@ -1,0 +1,21 @@
+{
+  "failedAttempt": "Creation failed",
+  "removeFailedOutput": "Remove failed item",
+  "knowledgeDerivation": "Created from knowledge",
+  "generatedWith": "Generated with {provider} · {model}",
+  "presets": {
+    "save": "Save as preset",
+    "saved": "Generation preset saved",
+    "label": "Generation preset",
+    "empty": "No generation presets",
+    "select": "Select a generation preset"
+  },
+  "source": {
+    "knowledge": "Source knowledge",
+    "changed": "Some sources changed after this item was created."
+  },
+  "citations": "Citations · {count}",
+  "createFromSelection": "Create from selection",
+  "needsIndexedKnowledge": "The selected items don’t contain searchable text yet.",
+  "finishNodeOperation": "Finish or cancel the current node operation first."
+}

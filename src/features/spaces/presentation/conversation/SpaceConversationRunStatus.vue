@@ -11,9 +11,9 @@ const { t } = useI18n();
 
 <template>
   <div v-if="state === 'paused'" class="flex shrink-0 items-center gap-2 px-3 py-2 text-caption text-warning">
-    <span class="min-w-0 flex-1">{{ t("spaces.assistant.taskPaused") }}</span>
+    <span class="min-w-0 flex-1">{{ t("spaces.assistant.tasks.paused") }}</span>
     <UiButton size="sm" variant="secondary" @click="emit('resume')">{{
-      t("spaces.assistant.resumeTask")
+      t("spaces.assistant.tasks.resume")
     }}</UiButton>
   </div>
   <p
@@ -23,8 +23,8 @@ const { t } = useI18n();
     {{
       t(
         waitReason === "approval"
-          ? "spaces.assistant.taskNeedsAttention"
-          : "spaces.assistant.taskWaitingForResult",
+          ? "spaces.assistant.tasks.needsAttention"
+          : "spaces.assistant.tasks.waitingForResult",
       )
     }}
   </p>

@@ -1,8 +1,19 @@
 {
-  "startingRecording": "正在启动录音…",
-  "activeRecording": "正在录音",
-  "pausedRecording": "已暂停",
-  "savingRecording": "正在保存录音…",
-  "startRecording": "开始录音",
-  "stopAndSave": "完成录音"
+  "starting": "正在启动录音…",
+  "active": "正在录音",
+  "paused": "已暂停",
+  "saving": "正在保存录音…",
+  "stopAndSave": "完成录音",
+  "note": "录音笔记",
+  "startFailed": "无法启动录音或保存音频。",
+  "microphone": {
+    "settingsHint": "麦克风权限受限，请在系统偏好设置中允许访问。"
+  },
+  "problems": {
+    "denied": "麦克风访问权限被拒绝。",
+    "missing": "未检测到可用麦克风设备。",
+    "busy": "麦克风被其他应用占用。",
+    "unsupported": "当前环境不支持音频采集。",
+    "unknown": "无法打开麦克风设备。"
+  }
 }

@@ -69,7 +69,9 @@ async function play() {
       <SpaceVisualKnowledgeDetails :node="node" />
     </div>
     <div v-if="excerpt" class="mt-4">
-      <h3 class="mb-2 text-caption font-semibold text-foreground">{{ $t("spaces.inspector.excerpt") }}</h3>
+      <h3 class="mb-2 text-caption font-semibold text-foreground">
+        {{ $t("spaces.inspector.excerpts.content") }}
+      </h3>
       <p
         class="line-clamp-4 text-body leading-relaxed whitespace-pre-wrap text-foreground-secondary select-text"
       >

@@ -52,10 +52,10 @@ async function load() {
 }
 
 async function resetSection() {
-  const confirmed = await ask(t("settings.general.resetSectionConfirmation"), {
-    title: t("settings.general.resetSection"),
+  const confirmed = await ask(t("settings.general.reset.confirmation"), {
+    title: t("settings.general.reset.action"),
     kind: "warning",
-    okLabel: t("settings.general.resetSection"),
+    okLabel: t("settings.general.reset.action"),
     cancelLabel: t("common.cancel"),
   });
   if (!confirmed) return;
@@ -75,7 +75,7 @@ onMounted(load);
   />
   <div v-else class="grid gap-5" :class="!ready && 'pointer-events-none opacity-60'">
     <p class="max-w-2xl text-body text-foreground-secondary">
-      {{ t("settings.ai.desktopAgentsDescription") }}
+      {{ t("settings.agents.description") }}
     </p>
     <SettingsSection id="settings-desktop-agents" tabindex="-1">
       <div

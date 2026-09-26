@@ -1,32 +1,44 @@
 {
   "title": "Spaces",
-  "newSpace": "New Space",
-  "untitledSpace": "Untitled Space",
+  "new": "New Space",
+  "untitled": "Untitled Space",
   "inbox": "Inbox",
-  "emptyTitle": "Empty Space",
-  "emptyDescription": "Double-click empty canvas to write · Paste clipboard content · Drop files to import",
-  "backToSpaces": "Back to Spaces",
-  "renameSpace": "Rename Space",
-  "closeTab": "Close Tab",
-  "closeOtherTabs": "Close Other Tabs",
-  "closeTabsToRight": "Close Tabs to the Right",
-  "reopenClosedTab": "Reopen Closed Tab",
-  "previousSpace": "Go Back",
-  "nextSpace": "Go Forward",
-  "switchToTab": "Switch to Tab {number}",
-  "openSpaces": "Open Spaces",
-  "library": "Space Library",
-  "allSpaces": "All Spaces",
-  "recentSpaces": "Recently Opened",
-  "favoriteSpaces": "Favorites",
-  "gridView": "Grid view",
-  "listView": "List view",
-  "searchSpaces": "Search spaces…",
-  "noSpacesFound": "No matching spaces",
+  "empty": {
+    "title": "Empty Space",
+    "description": "Double-click empty canvas to write · Paste clipboard content · Drop files to import"
+  },
+  "rename": "Rename Space",
+  "tabs": {
+    "close": "Close tab",
+    "closeOthers": "Close other tabs",
+    "closeToRight": "Close tabs to the right",
+    "reopen": "Reopen closed tab",
+    "switchTo": "Switch to tab {number}"
+  },
+  "back": "Go back",
+  "forward": "Go forward",
+  "sections": {
+    "open": "Open Spaces",
+    "all": "All Spaces",
+    "recent": "Recently opened",
+    "favorites": "Favorites"
+  },
+  "views": {
+    "grid": "Grid view",
+    "list": "List view"
+  },
+  "search": {
+    "placeholder": "Search spaces…",
+    "noResults": "No matching spaces"
+  },
   "nodeCount": "{count} items",
-  "favoriteSpace": "Favorite space",
-  "unfavoriteSpace": "Remove from favorites",
-  "openSpace": "Open Space",
-  "initializationFailed": "Could Not Open Space",
-  "initializationFailedHint": "Failed to load Space database. Local files are unaffected; please try again."
+  "favorite": "Favorite space",
+  "unfavorite": "Remove from favorites",
+  "open": "Open Space",
+  "loadFailed": "Could not open Space",
+  "loadFailedHint": "Failed to load Space database. Local files are unaffected; please try again.",
+  "archive": "Archive Space",
+  "moveTo": "Move to Space",
+  "moveNoTargets": "No other available Spaces to move to.",
+  "archived": "Archived “{title}”"
 }

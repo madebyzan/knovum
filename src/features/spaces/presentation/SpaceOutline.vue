@@ -138,7 +138,7 @@ onBeforeUnmount(finishRename);
 </script>
 
 <template>
-  <section ref="tree" class="mt-2 space-y-0.5" role="tree" :aria-label="t('spaces.navigation.outline')">
+  <section ref="tree" class="mt-2 space-y-0.5" role="tree" :aria-label="t('spaces.sidebar.outline.title')">
     <SpaceStructureOutlineRow
       v-for="(row, index) in rows"
       :key="row.id"
@@ -157,7 +157,7 @@ onBeforeUnmount(finishRename);
       @navigate="treeNavigation.handleKeydown($event, row, index)"
     />
     <p v-if="rows.length === 0" class="px-1 text-caption text-foreground-tertiary">
-      {{ t("spaces.navigation.outlineEmpty") }}
+      {{ t("spaces.sidebar.outline.empty") }}
     </p>
   </section>
 </template>

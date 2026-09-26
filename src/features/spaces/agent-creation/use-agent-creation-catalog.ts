@@ -21,9 +21,7 @@ export function useAgentCreationCatalog() {
         label: displayName,
         disabled: false,
         description:
-          !runtime || runtime.detected
-            ? t("settings.ai.executionTargetAgentWorkflow")
-            : t("settings.ai.desktopAgentNotInstalled"),
+          !runtime || runtime.detected ? t("ai.targetAgentWorkflow") : t("ai.desktopAgentNotInstalled"),
       };
     }),
   );

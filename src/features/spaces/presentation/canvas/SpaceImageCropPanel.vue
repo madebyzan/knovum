@@ -86,8 +86,8 @@ function toggleAspect() {
 </script>
 
 <template>
-  <section class="w-60 text-foreground" :aria-label="t('spaces.media.crop')">
-    <h3 class="px-1 pb-3 text-body-lg font-semibold">{{ t("spaces.media.crop") }}</h3>
+  <section class="w-60 text-foreground" :aria-label="t('spaces.media.imageEditor.crop.title')">
+    <h3 class="px-1 pb-3 text-body-lg font-semibold">{{ t("spaces.media.imageEditor.crop.title") }}</h3>
     <div class="flex items-center gap-2 pb-3">
       <label
         class="flex h-(--knovum-control-height-lg) min-w-0 flex-1 items-center gap-1 rounded-control bg-control px-2 text-label text-foreground-secondary focus-within:ring-2 focus-within:ring-focus-ring"
@@ -103,7 +103,7 @@ function toggleAspect() {
         />
       </label>
       <UiIconButton
-        :label="t('spaces.media.lockAspect')"
+        :label="t('spaces.media.imageEditor.crop.lockAspect')"
         :active="Boolean(lockedAspect)"
         class="size-(--knovum-control-height-lg)"
         @click="toggleAspect"
@@ -143,7 +143,7 @@ function toggleAspect() {
         size="sm"
         class="min-w-0 flex-1 bg-foreground text-canvas hover:bg-foreground hover:opacity-90"
         @click="emit('apply')"
-        >{{ t("spaces.media.cropComplete") }}</UiButton
+        >{{ t("spaces.media.imageEditor.crop.complete") }}</UiButton
       >
     </footer>
   </section>

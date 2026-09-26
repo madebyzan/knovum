@@ -100,7 +100,13 @@ function nudge(kind: GestureKind, delta: number) {
       type="button"
       class="absolute inset-y-0 w-2 cursor-ew-resize touch-none bg-accent/25 hover:bg-accent/50 focus-visible:outline-2 focus-visible:outline-focus-ring"
       :class="edge === 'start' ? 'left-0 rounded-l-grid-cell' : 'right-0 rounded-r-grid-cell'"
-      :aria-label="$t(edge === 'start' ? 'spaces.media.trimTextStart' : 'spaces.media.trimTextEnd')"
+      :aria-label="
+        $t(
+          edge === 'start'
+            ? 'spaces.media.videoEditor.trim.textStart'
+            : 'spaces.media.videoEditor.trim.textEnd',
+        )
+      "
       @pointerdown="start($event, edge)"
       @pointermove="move"
       @pointerup="finish"

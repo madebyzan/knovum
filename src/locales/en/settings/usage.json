@@ -1,34 +1,42 @@
 {
   "title": "Usage",
   "description": "Provider-reported token usage across Knovum's built-in AI capabilities.",
-  "totalTokens": "Total tokens",
-  "inputTokens": "Input tokens",
-  "outputTokens": "Output tokens",
+  "tokens": {
+    "total": "Total tokens",
+    "input": "Input tokens",
+    "output": "Output tokens"
+  },
   "requests": "Model responses",
-  "currentStreak": "Current active streak",
-  "longestStreak": "Longest active streak",
-  "days": "{count} days",
-  "activity": "Token activity",
-  "activityDescription": "Daily provider-reported usage · peak {peak} tokens",
-  "activityLabel": "{date}: {tokens} tokens across {requests} responses",
-  "less": "Less",
-  "more": "More",
-  "weekdayMonday": "Mon",
-  "weekdayWednesday": "Wed",
-  "weekdayFriday": "Fri",
-  "byPurpose": "Usage by capability",
-  "noActivity": "No token activity in this period.",
-  "providerReported": "Cloud usage comes from model providers; local embedding usage comes from its actual tokenizer pass. Missing cloud usage is never estimated.",
-  "range": {
-    "quarter": "90 days",
-    "year": "12 months"
+  "streak": {
+    "current": "Current active streak",
+    "longest": "Longest active streak",
+    "days": "{count} days"
+  },
+  "activity": {
+    "title": "Token activity",
+    "description": "Daily provider-reported usage · peak {peak} tokens",
+    "label": "{date}: {tokens} tokens across {requests} responses",
+    "less": "Less",
+    "more": "More",
+    "weekdays": {
+      "monday": "Mon",
+      "wednesday": "Wed",
+      "friday": "Fri"
+    },
+    "empty": "No token activity in this period."
   },
   "purpose": {
+    "title": "Usage by capability",
     "assistant": "Assistant",
     "editor": "Writing tools",
     "knowledge": "Knowledge creation",
     "knowledgeIndexing": "Knowledge indexing",
     "translation": "Translation",
-    "visualAnalysis": "Visual analysis"
+    "visualAnalysis": "Visual understanding"
+  },
+  "providerReported": "Cloud usage comes from model providers; local embedding usage comes from its actual tokenizer pass. Missing cloud usage is never estimated.",
+  "range": {
+    "quarter": "90 days",
+    "year": "12 months"
   }
 }

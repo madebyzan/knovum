@@ -1,0 +1,34 @@
+{
+  "title": "执行路由",
+  "description": "为每类任务设置执行目标。模型 API 与兼容的桌面 Agent 是由你选择的平级通道。",
+  "defaultsTitle": "默认执行路由",
+  "defaultsDescription": "为每类任务选择模型或桌面 Agent；系统不会自动偏向任一执行通道。",
+  "unavailable": "暂无可分配的执行目标",
+  "unavailableDescription": "请先添加模型服务商，或启用已检测到的桌面 Agent，再设置默认执行目标。",
+  "routes": {
+    "writing": {
+      "label": "写作",
+      "description": "起草、改写与编辑器辅助。"
+    },
+    "knowledge": {
+      "label": "知识处理",
+      "description": "基于空间知识完成问答、总结与推理。"
+    },
+    "visualUnderstanding": {
+      "label": "视觉理解",
+      "description": "分析图片和视频画面，用于搜索与知识检索。"
+    },
+    "translation": {
+      "label": "翻译",
+      "description": "翻译应用内需要处理的内容。"
+    },
+    "imageGeneration": {
+      "label": "图片创作",
+      "description": "根据创作要求与空间上下文生成图片。"
+    },
+    "videoGeneration": {
+      "label": "视频创作",
+      "description": "根据创作要求与素材生成视频。"
+    }
+  }
+}

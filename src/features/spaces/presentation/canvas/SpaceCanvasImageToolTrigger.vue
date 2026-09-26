@@ -21,10 +21,10 @@ const props = withDefaults(
 const emit = defineEmits<{ begin: [tool: ImageEditTool] }>();
 const { t } = useI18n();
 const labels: Record<ImageEditTool, string> = {
-  eraser: "spaces.media.eraser",
-  adjust: "spaces.media.adjustImage",
-  crop: "spaces.media.crop",
-  transform: "spaces.media.transformImage",
+  eraser: "spaces.media.imageEditor.eraser.tool",
+  adjust: "spaces.media.imageEditor.adjust.title",
+  crop: "spaces.media.imageEditor.crop.title",
+  transform: "spaces.media.imageEditor.transform.title",
 };
 const icons = { eraser: Eraser, adjust: SlidersHorizontal, crop: Crop, transform: RotateCw };
 </script>

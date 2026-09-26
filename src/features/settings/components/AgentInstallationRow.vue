@@ -22,13 +22,15 @@ const needsSetup = computed(() =>
 );
 
 const statusKey = () => {
-  if (props.checking) return "settings.ai.desktopAgentChecking";
-  if (props.checkFailed) return "settings.ai.desktopAgentCheckFailed";
-  if (!props.installation) return "settings.ai.desktopAgentChecking";
+  if (props.checking) return "settings.agents.status.checking";
+  if (props.checkFailed) return "settings.agents.status.checkFailed";
+  if (!props.installation) return "settings.agents.status.checking";
   if (!props.installation.executablePath) {
-    return props.installation.detected ? "settings.ai.agentApplicationOnly" : "settings.ai.agentEntryMissing";
+    return props.installation.detected
+      ? "settings.agents.entry.applicationOnly"
+      : "settings.agents.entry.missing";
   }
-  return "settings.ai.agentCommandDetected";
+  return "settings.agents.entry.commandDetected";
 };
 </script>
 
@@ -49,7 +51,7 @@ const statusKey = () => {
           {{ t(statusKey()) }}
         </UiBadge>
         <UiButton size="sm" :variant="enabled ? 'ghost' : 'secondary'" @click="emit('toggle', !enabled)">
-          {{ t(enabled ? "settings.ai.desktopAgentDisable" : "settings.ai.desktopAgentEnable") }}
+          {{ t(enabled ? "settings.agents.disable" : "settings.agents.enable") }}
         </UiButton>
       </div>
     </div>

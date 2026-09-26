@@ -49,7 +49,7 @@ const { t } = useI18n();
             {{ neighbor.neighbor.data.title }}
           </button>
           <UiIconButton
-            :label="t('spaces.knowledge.relationDetails')"
+            :label="t('spaces.knowledge.relations.details')"
             size="sm"
             :aria-expanded="expandedId === neighbor.relation.id"
             @click="emit('toggleExpand', neighbor.relation.id)"
@@ -67,7 +67,7 @@ const { t } = useI18n();
             class="rounded-control bg-control px-1.5 py-0.5 text-micro text-foreground-secondary hover:bg-control-hover hover:text-foreground"
             @click="emit('editRelation', neighbor.relation.id)"
           >
-            {{ t(`spaces.knowledge.relation.${neighbor.relation.kind}`) }}
+            {{ t(`spaces.knowledge.relations.kinds.${neighbor.relation.kind}`) }}
           </button>
         </div>
       </div>

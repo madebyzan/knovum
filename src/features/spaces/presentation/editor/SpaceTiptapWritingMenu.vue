@@ -38,7 +38,7 @@ const { runningAction, itemClass, submenuClass, tones, translations, run, runTra
       <button
         type="button"
         :disabled="Boolean(runningAction)"
-        :aria-label="t('editor.ai')"
+        :aria-label="t('spaces.richtext.ai.title')"
         class="group inline-flex h-(--knovum-control-height-sm) items-center gap-1.5 rounded-control px-2 text-label font-medium text-accent transition-colors outline-none hover:bg-selected focus-visible:bg-selected focus-visible:outline-none disabled:opacity-45"
         :class="compact && 'px-2.5'"
       >
@@ -47,7 +47,9 @@ const { runningAction, itemClass, submenuClass, tones, translations, run, runTra
           :class="runningAction && 'animate-pulse'"
           :stroke-width="1.7"
         />
-        <span class="whitespace-nowrap">{{ compact ? t("editor.aiAction.improve") : t("editor.ai") }}</span>
+        <span class="whitespace-nowrap">{{
+          compact ? t("spaces.richtext.ai.actions.improve") : t("spaces.richtext.ai.title")
+        }}</span>
       </button>
     </DropdownMenuTrigger>
     <DropdownMenuPortal>
@@ -59,49 +61,49 @@ const { runningAction, itemClass, submenuClass, tones, translations, run, runTra
       >
         <DropdownMenuItem :class="itemClass" @select="run('fix_grammar')">
           <SpellCheck2 class="size-(--knovum-icon-size-sm) text-foreground-secondary" />{{
-            t("editor.aiAction.fixGrammar")
+            t("spaces.richtext.ai.actions.fixGrammar")
           }}
         </DropdownMenuItem>
         <DropdownMenuItem :class="itemClass" @select="run('extend')">
           <ListPlus class="size-(--knovum-icon-size-sm) text-foreground-secondary" />{{
-            t("editor.aiAction.extend")
+            t("spaces.richtext.ai.actions.extend")
           }}
         </DropdownMenuItem>
         <DropdownMenuItem :class="itemClass" @select="run('reduce')">
           <ListCollapse class="size-(--knovum-icon-size-sm) text-foreground-secondary" />{{
-            t("editor.aiAction.reduce")
+            t("spaces.richtext.ai.actions.reduce")
           }}
         </DropdownMenuItem>
         <DropdownMenuItem :class="itemClass" @select="run('simplify')">
           <ScanText class="size-(--knovum-icon-size-sm) text-foreground-secondary" />{{
-            t("editor.aiAction.simplify")
+            t("spaces.richtext.ai.actions.simplify")
           }}
         </DropdownMenuItem>
         <DropdownMenuItem :class="itemClass" @select="run('emojify')">
           <span class="grid size-(--knovum-icon-size-sm) place-items-center text-body-lg">🙂</span
-          >{{ t("editor.aiAction.emojify") }}
+          >{{ t("spaces.richtext.ai.actions.emojify") }}
         </DropdownMenuItem>
         <DropdownMenuSeparator class="my-1 h-px bg-divider" />
         <DropdownMenuItem :class="itemClass" @select="run('improve')">
           <WandSparkles class="size-(--knovum-icon-size-sm) text-foreground-secondary" />{{
-            t("editor.aiAction.improve")
+            t("spaces.richtext.ai.actions.improve")
           }}
         </DropdownMenuItem>
         <DropdownMenuItem :class="itemClass" @select="run('complete')">
           <Sparkles class="size-(--knovum-icon-size-sm) text-foreground-secondary" />{{
-            t("editor.aiAction.complete")
+            t("spaces.richtext.ai.actions.complete")
           }}
         </DropdownMenuItem>
         <DropdownMenuItem :class="itemClass" @select="run('summarize')">
           <ListCollapse class="size-(--knovum-icon-size-sm) text-foreground-secondary" />{{
-            t("editor.aiAction.summarize")
+            t("spaces.richtext.ai.actions.summarize")
           }}
         </DropdownMenuItem>
         <DropdownMenuSeparator class="my-1 h-px bg-divider" />
         <DropdownMenuSub>
           <DropdownMenuSubTrigger :class="itemClass">
             <MessageSquareMore class="size-(--knovum-icon-size-sm) text-foreground-secondary" />
-            <span class="min-w-0 flex-1">{{ t("editor.aiAction.adjustTone") }}</span>
+            <span class="min-w-0 flex-1">{{ t("spaces.richtext.ai.actions.adjustTone") }}</span>
             <ChevronRight class="size-(--knovum-icon-size-xs) text-foreground-tertiary" />
           </DropdownMenuSubTrigger>
           <DropdownMenuPortal>
@@ -120,7 +122,7 @@ const { runningAction, itemClass, submenuClass, tones, translations, run, runTra
         <DropdownMenuSub>
           <DropdownMenuSubTrigger :class="itemClass">
             <Languages class="size-(--knovum-icon-size-sm) text-foreground-secondary" />
-            <span class="min-w-0 flex-1">{{ t("editor.aiAction.translate") }}</span>
+            <span class="min-w-0 flex-1">{{ t("spaces.richtext.ai.actions.translate") }}</span>
             <ChevronRight class="size-(--knovum-icon-size-xs) text-foreground-tertiary" />
           </DropdownMenuSubTrigger>
           <DropdownMenuPortal>

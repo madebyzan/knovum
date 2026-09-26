@@ -33,7 +33,7 @@ function toggleArchived() {
 <template>
   <UiPopover v-model:open="open" side="bottom" align="end" class="w-80 max-w-[calc(100vw-24px)] p-2">
     <template #trigger>
-      <UiIconButton :label="$t('spaces.assistant.conversationHistory')" size="sm">
+      <UiIconButton :label="$t('spaces.assistant.conversations.history')" size="sm">
         <History class="size-(--knovum-icon-size-sm)" />
       </UiIconButton>
     </template>
@@ -41,11 +41,11 @@ function toggleArchived() {
       <UiInput
         v-model="query"
         class="min-w-0 flex-1"
-        :placeholder="$t('spaces.assistant.searchConversations')"
+        :placeholder="$t('spaces.assistant.conversations.search')"
         @update:model-value="emit('refresh')"
       />
       <UiButton size="sm" :variant="archived ? 'secondary' : 'ghost'" @click="toggleArchived">
-        {{ $t("spaces.assistant.archivedConversations") }}
+        {{ $t("spaces.assistant.conversations.archived") }}
       </UiButton>
     </div>
     <div class="mt-2 max-h-80 min-h-0 overflow-y-auto">
@@ -60,7 +60,7 @@ function toggleArchived() {
         <span class="truncate">{{ conversation.title }}</span>
       </button>
       <p v-if="!conversations.length" class="px-2 py-5 text-center text-caption text-foreground-tertiary">
-        {{ $t("spaces.assistant.noConversations") }}
+        {{ $t("spaces.assistant.conversations.none") }}
       </p>
     </div>
   </UiPopover>

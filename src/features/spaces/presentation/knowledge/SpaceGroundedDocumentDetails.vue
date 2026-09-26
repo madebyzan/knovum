@@ -12,14 +12,16 @@ const { t } = useI18n();
   <div class="space-y-4">
     <div class="space-y-1 text-caption text-foreground-secondary">
       <p>
-        {{ t("spaces.creation.generatedWith", { provider: metadata.provider, model: metadata.model }) }}
+        {{
+          t("spaces.creation.shared.generatedWith", { provider: metadata.provider, model: metadata.model })
+        }}
       </p>
       <p class="text-foreground-tertiary">{{ new Date(metadata.createdAt).toLocaleString() }}</p>
     </div>
     <SpaceDerivationSources :sources="metadata.sources" />
     <div>
       <h4 class="mb-1.5 text-micro font-medium text-foreground-tertiary">
-        {{ t("spaces.creation.citations", { count: metadata.citations.length }) }}
+        {{ t("spaces.creation.shared.citations", { count: metadata.citations.length }) }}
       </h4>
       <p
         v-for="citation in metadata.citations"

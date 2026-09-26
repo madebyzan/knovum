@@ -33,7 +33,9 @@ onMounted(revealSelection);
 <template>
   <div class="flex min-h-0 flex-1 flex-col">
     <div class="space-y-2 border-b border-divider p-3">
-      <label class="sr-only" for="video-caption-search">{{ $t("spaces.media.searchCaptions") }}</label>
+      <label class="sr-only" for="video-caption-search">{{
+        $t("spaces.media.videoEditor.captions.search")
+      }}</label>
       <div class="relative">
         <Search
           class="pointer-events-none absolute top-1/2 left-2.5 size-(--knovum-icon-size-sm) -translate-y-1/2 text-foreground-tertiary"
@@ -43,11 +45,11 @@ onMounted(revealSelection);
           v-model="search"
           class="pl-8"
           size="sm"
-          :placeholder="$t('spaces.media.searchCaptions')"
+          :placeholder="$t('spaces.media.videoEditor.captions.search')"
         />
       </div>
       <UiButton class="w-full justify-center" size="sm" @click="$emit('add')">
-        <Plus class="size-(--knovum-icon-size-sm)" />{{ $t("spaces.media.addText") }}
+        <Plus class="size-(--knovum-icon-size-sm)" />{{ $t("spaces.media.videoEditor.text.add") }}
       </UiButton>
     </div>
     <UiScrollArea class="min-h-0 flex-1">
@@ -77,7 +79,13 @@ onMounted(revealSelection);
           <span class="mt-0.5 block truncate text-caption">{{ item.text }}</span>
         </button>
         <p v-if="visibleItems.length === 0" class="px-3 py-4 text-caption text-foreground-secondary">
-          {{ $t(search ? "spaces.media.noMatchingCaptions" : "spaces.media.noCaptions") }}
+          {{
+            $t(
+              search
+                ? "spaces.media.videoEditor.captions.noMatches"
+                : "spaces.media.videoEditor.captions.none",
+            )
+          }}
         </p>
       </div>
     </UiScrollArea>

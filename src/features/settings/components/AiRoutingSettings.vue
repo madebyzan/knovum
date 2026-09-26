@@ -28,27 +28,27 @@ const routes = defineModel<AiRoutingDefaults>({ required: true });
 const emit = defineEmits<{ changed: [] }>();
 const { t } = useI18n();
 const routeDefinitions = [
-  ["writing", "writing", "writingRoute"],
-  ["knowledge", "knowledge", "knowledgeRoute"],
-  ["visualUnderstanding", "visual-understanding", "visualUnderstandingRoute"],
-  ["translation", "translation", "translationRoute"],
-  ["imageGeneration", "image-generation", "imageGenerationRoute"],
-  ["videoGeneration", "video-generation", "videoGenerationRoute"],
-] as const satisfies readonly (readonly [keyof AiRoutingDefaults, AiRoutingPurpose, string])[];
+  ["writing", "writing"],
+  ["knowledge", "knowledge"],
+  ["visualUnderstanding", "visual-understanding"],
+  ["translation", "translation"],
+  ["imageGeneration", "image-generation"],
+  ["videoGeneration", "video-generation"],
+] as const satisfies readonly (readonly [keyof AiRoutingDefaults, AiRoutingPurpose])[];
 const settings = computed(() => ({
   connections: props.connections,
   desktopAgents: props.desktopAgents,
   defaults: routes.value,
 }));
 const routeRows = computed(() =>
-  routeDefinitions.map(([key, purpose, translationKey]) => ({
+  routeDefinitions.map(([key, purpose]) => ({
     key,
     purpose,
-    label: t(`settings.ai.${translationKey}`),
-    description: t(`settings.ai.${translationKey}Description`),
+    label: t(`settings.routing.routes.${key}.label`),
+    description: t(`settings.routing.routes.${key}.description`),
     options: availableExecutionTargets(settings.value, purpose).map((option) =>
       Object.assign({}, option, {
-        description: t("settings.ai.executionTargetModelNative"),
+        description: t("ai.targetModelNative"),
       }),
     ),
   })),
@@ -68,13 +68,13 @@ const selected = (target: AiRoutingDefaults[keyof AiRoutingDefaults]) =>
   <SettingsSection
     id="settings-ai-routing"
     tabindex="-1"
-    :title="t('settings.ai.defaultRoutes')"
-    :description="t('settings.ai.defaultRoutesDescription')"
+    :title="t('settings.routing.defaultsTitle')"
+    :description="t('settings.routing.defaultsDescription')"
   >
     <div v-if="!hasTargets" class="px-4 py-3">
-      <p class="text-body-lg font-medium text-foreground">{{ t("settings.ai.routingUnavailable") }}</p>
+      <p class="text-body-lg font-medium text-foreground">{{ t("settings.routing.unavailable") }}</p>
       <p class="mt-0.5 max-w-xl text-caption leading-normal text-foreground-secondary">
-        {{ t("settings.ai.routingUnavailableDescription") }}
+        {{ t("settings.routing.unavailableDescription") }}
       </p>
     </div>
     <template v-else>
@@ -83,7 +83,7 @@ const selected = (target: AiRoutingDefaults[keyof AiRoutingDefaults]) =>
           :model-value="selected(routes[row.key])"
           :label="row.label"
           :options="row.options"
-          :placeholder="t('settings.ai.noCompatibleTarget')"
+          :placeholder="t('ai.noCompatibleTarget')"
           :disabled="row.options.length === 0"
           @update:model-value="update(row.key, $event)"
         />

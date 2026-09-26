@@ -1,0 +1,26 @@
+{
+  "title": "Scenes",
+  "previous": "Previous scene",
+  "next": "Next scene",
+  "focus": {
+    "mode": "Focused view · {count} items",
+    "exit": "Exit focus",
+    "selection": "Focus selection",
+    "unavailable": "This saved view references structure that no longer exists"
+  },
+  "collapse": "Collapse scene controls",
+  "expand": "Expand scene controls",
+  "defaultName": "Scene {index}",
+  "saved": "Saved scene “{title}”",
+  "updated": "Updated scene “{title}”",
+  "opened": "Navigated to scene “{title}”",
+  "save": "Save current scene",
+  "delete": "Delete scene",
+  "empty": "Save viewport position to return to specific areas quickly.",
+  "open": "Navigate to scene",
+  "update": "Update to current viewport",
+  "duplicate": "Duplicate scene",
+  "moveUp": "Move up",
+  "moveDown": "Move down",
+  "rename": "Rename scene"
+}

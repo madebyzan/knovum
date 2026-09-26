@@ -73,7 +73,7 @@ function measureElement(element: Element | ComponentPublicInstance | null) {
         </div>
         <UiIconButton
           :disabled="busy"
-          :label="t('spaces.navigation.restoreStructureNode')"
+          :label="t('spaces.trash.structure.restoreNode')"
           size="sm"
           @click="emit('restore', deletedRoot)"
         >
@@ -82,7 +82,7 @@ function measureElement(element: Element | ComponentPublicInstance | null) {
         <UiIconButton
           v-if="(batchCounts.get(deletedRoot.batchId) ?? 0) > 1"
           :disabled="busy"
-          :label="t('spaces.navigation.restoreDeletionOperation')"
+          :label="t('spaces.trash.structure.restoreOperation')"
           size="sm"
           @click="emit('restoreBatch', deletedRoot)"
         >
@@ -90,7 +90,7 @@ function measureElement(element: Element | ComponentPublicInstance | null) {
         </UiIconButton>
         <UiIconButton
           :disabled="busy"
-          :label="t('spaces.navigation.deletePermanently')"
+          :label="t('spaces.trash.deletePermanently')"
           size="sm"
           @click="emit('remove', deletedRoot)"
         >

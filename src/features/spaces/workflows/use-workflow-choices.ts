@@ -25,11 +25,11 @@ export function useWorkflowChoices(items: Readonly<Ref<SavedCapturedWorkflow[]>>
         label: item.name,
         disabled: !compatible,
         description: compatible
-          ? t("spaces.creation.workflowSummary", {
+          ? t("spaces.creation.workflow.summary", {
               steps: item.candidate.steps.length,
               outputs: item.candidate.outputSlots.length,
             })
-          : t("spaces.creation.workflowMissingInputs"),
+          : t("spaces.creation.workflow.inputs.missing"),
       };
     });
   });

@@ -21,6 +21,6 @@ export function useCanvasNodeDownload(
     if (sectionId) saved = await exportSpaceSection(store.editSnapshot, store.nodes, sectionId);
     else if (node && store.activeSpaceId) saved = await exportSpaceNode(store.activeSpaceId, node);
     else return;
-    if (saved) toast.success(t("spaces.transfer.exportComplete"));
+    if (saved) toast.success(t("spaces.importExport.exportCompleted"));
   };
 }

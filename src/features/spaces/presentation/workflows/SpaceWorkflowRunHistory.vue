@@ -18,7 +18,7 @@ const { t } = useI18n();
 <template>
   <section v-if="entries.length" class="space-y-2 border-t border-divider pt-3">
     <h3 class="text-caption font-semibold text-foreground-secondary">
-      {{ t("spaces.creation.recentWorkflowRuns") }}
+      {{ t("spaces.creation.workflow.run.recent") }}
     </h3>
     <UiButton
       v-for="entry in entries"
@@ -28,7 +28,8 @@ const { t } = useI18n();
       @click="emit('select', entry)"
     >
       <span class="min-w-0 flex-1 truncate">{{
-        workflows.find((item) => item.workflowId === entry.workflowId)?.name ?? t("spaces.creation.workflow")
+        workflows.find((item) => item.workflowId === entry.workflowId)?.name ??
+        t("spaces.creation.workflow.title")
       }}</span>
       <span class="text-micro text-foreground-tertiary">{{
         t(workflowStateLabelKey(entry.run.id === activeRunId ? activeRunState : entry.run.state))

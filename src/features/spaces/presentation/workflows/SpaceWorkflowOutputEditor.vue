@@ -18,7 +18,7 @@ function outputFor(stepId: string) {
 
 function label(step: Step) {
   const key = captureActionLabels[step.actionId];
-  return key ? t(`spaces.creation.captureActions.${key}`) : step.actionId;
+  return key ? t(`spaces.creation.workflow.captureActions.${key}`) : step.actionId;
 }
 
 function choose(step: Step, selected: boolean) {
@@ -54,12 +54,12 @@ function rename(stepId: string, name: string) {
 <template>
   <fieldset class="space-y-2">
     <legend class="text-caption font-semibold text-foreground">
-      {{ t("spaces.creation.workflowOutputs") }}
+      {{ t("spaces.creation.workflow.outputs.title") }}
     </legend>
     <div v-for="step in steps" :key="step.id" class="space-y-1 rounded-control border border-divider p-2">
       <div class="flex items-center gap-2 text-caption text-foreground">
         <UiCheckbox
-          :label="t('spaces.creation.selectWorkflowOutput', { action: label(step) })"
+          :label="t('spaces.creation.workflow.outputs.select', { action: label(step) })"
           :model-value="Boolean(outputFor(step.id))"
           @update:model-value="choose(step, $event)"
         />
@@ -68,7 +68,7 @@ function rename(stepId: string, name: string) {
       <UiInput
         v-if="outputFor(step.id)"
         :model-value="outputFor(step.id)?.name ?? ''"
-        :aria-label="t('spaces.creation.workflowOutputName', { index: steps.indexOf(step) + 1 })"
+        :aria-label="t('spaces.creation.workflow.outputs.name', { index: steps.indexOf(step) + 1 })"
         size="sm"
         @update:model-value="rename(step.id, $event)"
       />

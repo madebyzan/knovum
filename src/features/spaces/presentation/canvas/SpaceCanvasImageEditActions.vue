@@ -17,17 +17,17 @@ const { t } = useI18n();
 </script>
 
 <template>
-  <UiTooltip :text="t('spaces.media.comment')" :disabled="!compact" side="top">
+  <UiTooltip :text="t('spaces.media.imageEditor.comments.title')" :disabled="!compact" side="top">
     <ToolbarButton as-child>
       <button
         type="button"
         :class="CANVAS_ACTION_BUTTON_CLASSES"
-        :aria-label="t('spaces.media.comment')"
+        :aria-label="t('spaces.media.imageEditor.comments.title')"
         @click="emit('beginComment')"
       >
         <MessageCircle class="size-(--knovum-icon-size-toolbar)" :stroke-width="1.6" />
         <span :class="[nodeActionLabelClass, nodeActionLabelState(compact)]">{{
-          t("spaces.media.comment")
+          t("spaces.media.imageEditor.comments.title")
         }}</span>
       </button>
     </ToolbarButton>

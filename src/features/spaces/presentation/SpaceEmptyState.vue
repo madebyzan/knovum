@@ -15,18 +15,18 @@ const { t } = useI18n();
 
 function addNote() {
   if (!operations.allows("create")) return;
-  void store.addContent(createSpaceNotePayload(t("spaces.editor.newNote")));
+  void store.addContent(createSpaceNotePayload(t("spaces.editor.note.new")));
 }
 
 async function importFile() {
   if (!operations.allows("create")) return;
   try {
     await importSpaceFromPicker(store, {
-      title: t("spaces.transfer.importingResource"),
-      preparing: t("spaces.transfer.importPreparing"),
+      title: t("spaces.importExport.progress.resource"),
+      preparing: t("spaces.importExport.progress.preparing"),
     });
   } catch (error) {
-    toast.error(t("spaces.transfer.importFailed"), { description: String(error) });
+    toast.error(t("spaces.importExport.importFailed"), { description: String(error) });
   }
 }
 </script>
@@ -35,14 +35,14 @@ async function importFile() {
   <div class="pointer-events-none absolute inset-0 grid place-items-center">
     <div class="pointer-events-auto -translate-y-6 text-center">
       <Inbox class="mx-auto size-(--knovum-icon-size-lg) text-foreground-tertiary" :stroke-width="1.5" />
-      <p class="mt-3 text-body-lg font-medium">{{ t("spaces.space.emptyTitle") }}</p>
-      <p class="mt-1 text-caption text-foreground-tertiary">{{ t("spaces.space.emptyDescription") }}</p>
+      <p class="mt-3 text-body-lg font-medium">{{ t("spaces.space.empty.title") }}</p>
+      <p class="mt-1 text-caption text-foreground-tertiary">{{ t("spaces.space.empty.description") }}</p>
       <div class="mt-4 flex justify-center gap-2">
         <UiButton size="sm" variant="secondary" :disabled="!operations.allows('create')" @click="addNote">
-          <StickyNote class="mr-1.5 size-(--knovum-icon-size-xs)" />{{ t("spaces.editor.newNote") }}
+          <StickyNote class="mr-1.5 size-(--knovum-icon-size-xs)" />{{ t("spaces.editor.note.new") }}
         </UiButton>
         <UiButton size="sm" variant="secondary" :disabled="!operations.allows('create')" @click="importFile">
-          <FilePlus2 class="mr-1.5 size-(--knovum-icon-size-xs)" />{{ t("spaces.transfer.import") }}
+          <FilePlus2 class="mr-1.5 size-(--knovum-icon-size-xs)" />{{ t("spaces.importExport.import") }}
         </UiButton>
       </div>
     </div>

@@ -1,0 +1,11 @@
+{
+  "retrieving": "Reading selected knowledge…",
+  "generating": "Drafting grounded document…",
+  "generatingImage": "Generating explanatory image…",
+  "submittingVideo": "Submitting video generation",
+  "generatingVideo": "Generating video",
+  "downloadingVideo": "Saving video",
+  "preparingSubtitles": "Preparing transcript subtitles…",
+  "renderingSubtitles": "Rendering subtitles into the video…",
+  "savingResource": "Saving derived video…"
+}

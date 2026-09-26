@@ -10,10 +10,10 @@ defineProps<{ rowClass: string; submenuClass: string }>();
 const emit = defineEmits<{ move: [mode: CanvasLayerMove] }>();
 const { t } = useI18n();
 const moves: readonly { mode: CanvasLayerMove; label: string; icon: typeof BringToFront }[] = [
-  { mode: "front", label: "spaces.canvas.bringToFront", icon: BringToFront },
-  { mode: "forward", label: "spaces.canvas.actions.bringForward", icon: BringToFront },
-  { mode: "backward", label: "spaces.canvas.sendBackward", icon: SendToBack },
-  { mode: "back", label: "spaces.canvas.actions.sendToBack", icon: SendToBack },
+  { mode: "front", label: "spaces.canvas.arrange.toFront", icon: BringToFront },
+  { mode: "forward", label: "spaces.canvas.arrange.forward", icon: BringToFront },
+  { mode: "backward", label: "spaces.canvas.arrange.backward", icon: SendToBack },
+  { mode: "back", label: "spaces.canvas.arrange.toBack", icon: SendToBack },
 ];
 </script>
 
@@ -21,7 +21,7 @@ const moves: readonly { mode: CanvasLayerMove; label: string; icon: typeof Bring
   <DropdownMenuSub>
     <DropdownMenuSubTrigger :class="rowClass">
       <Layers3 class="size-(--knovum-icon-size-sm)" />
-      <span class="min-w-0 flex-1">{{ t("spaces.canvas.layer") }}</span>
+      <span class="min-w-0 flex-1">{{ t("spaces.canvas.layerOrder") }}</span>
       <ChevronRight class="size-(--knovum-icon-size-xs) text-foreground-tertiary" />
     </DropdownMenuSubTrigger>
     <DropdownMenuPortal>

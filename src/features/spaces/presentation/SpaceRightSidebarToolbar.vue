@@ -14,7 +14,7 @@ const dock = useContextDock();
 </script>
 
 <template>
-  <nav class="flex min-w-0 items-center gap-1" :aria-label="t('spaces.navigation.rightSidebarViews')">
+  <nav class="flex min-w-0 items-center gap-1" :aria-label="t('spaces.sidebar.rightSidebarViews')">
     <UiIconButton
       :label="t('spaces.assistant.title')"
       :active="
@@ -26,7 +26,7 @@ const dock = useContextDock();
       <MessageSquareText class="size-(--knovum-icon-size-toolbar)" :stroke-width="1.55" />
     </UiIconButton>
     <UiIconButton
-      :label="t('spaces.navigation.details')"
+      :label="t('spaces.inspector.title')"
       :active="
         rightSidebarView === 'inspect' ||
         (rightSidebarView === 'source' && store.sourceReturnView === 'inspect')
@@ -38,7 +38,7 @@ const dock = useContextDock();
     </UiIconButton>
     <UiIconButton
       v-if="store.focusedEditorId"
-      :label="t('spaces.navigation.editorOutline')"
+      :label="t('spaces.sidebar.editorOutline.title')"
       :active="
         rightSidebarView === 'document-outline' ||
         (rightSidebarView === 'source' && store.sourceReturnView === 'document-outline')

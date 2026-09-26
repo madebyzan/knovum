@@ -18,7 +18,7 @@ export function useVideoEditProxy(
       path.value = undefined;
       error.value = undefined;
       if (!sourceNodeId || !revision || !currentSpaceId) {
-        error.value = i18n.global.t("spaces.media.sourceUnavailable");
+        error.value = i18n.global.t("spaces.media.videoEditor.preview.sourceUnavailable");
         return;
       }
       const jobId = crypto.randomUUID();
@@ -41,7 +41,8 @@ export function useVideoEditProxy(
         });
         if (active) path.value = prepared;
       } catch (caught) {
-        if (active) error.value = `${i18n.global.t("spaces.media.proxyFailed")}: ${String(caught)}`;
+        if (active)
+          error.value = `${i18n.global.t("spaces.media.videoEditor.preview.proxyFailed")}: ${String(caught)}`;
       } finally {
         pending = false;
       }

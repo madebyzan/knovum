@@ -107,8 +107,8 @@ export function useSpaceCanvasImports(options: SpaceCanvasImportOptions) {
     const spaceId = options.store.activeSpaceId;
     if (!spaceId) throw new Error("A Space must be active to import files");
     const labels = {
-      title: i18n.global.t("spaces.transfer.importingResource"),
-      preparing: i18n.global.t("spaces.transfer.importPreparing"),
+      title: i18n.global.t("spaces.importExport.progress.resource"),
+      preparing: i18n.global.t("spaces.importExport.progress.preparing"),
     };
     const outcomes = await importSpaceBatch({
       context: spaceImportContext(options.store),

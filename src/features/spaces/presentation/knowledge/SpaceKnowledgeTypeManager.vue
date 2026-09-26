@@ -44,8 +44,8 @@ async function changeEditor(action: () => void) {
   try {
     if (
       !dirty.value ||
-      (await ask(t("spaces.knowledge.discardTypeChanges"), {
-        title: t("spaces.knowledge.manageKnowledgeTypes"),
+      (await ask(t("spaces.knowledge.types.discardChanges"), {
+        title: t("spaces.knowledge.types.manage"),
         kind: "warning",
       }))
     )
@@ -64,8 +64,8 @@ async function changeEditor(action: () => void) {
         open = $event;
       })
     "
-    :title="t('spaces.knowledge.manageKnowledgeTypes')"
-    :description="t('spaces.knowledge.manageKnowledgeTypesDescription')"
+    :title="t('spaces.knowledge.types.manage')"
+    :description="t('spaces.knowledge.types.manageDescription')"
     size="wide"
     class="h-[min(40rem,calc(100dvh-5rem))] max-w-[840px] bg-canvas"
     body-class="flex overflow-hidden"
@@ -73,7 +73,7 @@ async function changeEditor(action: () => void) {
     <div class="grid min-h-0 flex-1 grid-cols-[10rem_minmax(0,1fr)] gap-5">
       <aside class="flex min-h-0 min-w-0 flex-col gap-0.5 rounded-control bg-surface p-2">
         <p v-if="loadFailed" role="alert" class="px-2 py-1 text-caption text-danger">
-          {{ t("spaces.knowledge.knowledgeTypesLoadFailed") }}
+          {{ t("spaces.knowledge.types.loadFailed") }}
         </p>
         <p v-else-if="loading" class="px-2 py-1 text-caption text-foreground-secondary">
           {{ t("common.loading") }}
@@ -84,9 +84,7 @@ async function changeEditor(action: () => void) {
           class="flex h-(--knovum-control-height-md) w-full shrink-0 items-center gap-1 rounded-control px-2 text-left text-label text-foreground-secondary outline-none hover:bg-control-hover hover:text-foreground focus-visible:bg-control-hover"
           @click="changeEditor(reset)"
         >
-          <Plus class="mr-1 inline size-(--knovum-icon-size-xs)" />{{
-            t("spaces.knowledge.newKnowledgeType")
-          }}
+          <Plus class="mr-1 inline size-(--knovum-icon-size-xs)" />{{ t("spaces.knowledge.types.create") }}
         </button>
         <UiScrollArea class="min-h-0 flex-1">
           <div class="space-y-0.5">
@@ -117,16 +115,16 @@ async function changeEditor(action: () => void) {
         <fieldset :disabled="saving" class="min-w-0 pr-3 pb-2">
           <div class="grid grid-cols-[minmax(0,1fr)_9rem] gap-3">
             <label class="grid min-w-0 content-start gap-1 text-caption text-foreground-secondary">
-              <span>{{ t("spaces.knowledge.knowledgeTypeName") }}</span>
+              <span>{{ t("spaces.knowledge.types.name") }}</span>
               <UiInput v-model="name" maxlength="128" />
             </label>
             <label class="grid min-w-0 content-start gap-1 text-caption text-foreground-secondary">
-              <span>{{ t("spaces.knowledge.knowledgeTypeIcon") }}</span>
+              <span>{{ t("spaces.knowledge.types.icon") }}</span>
               <SpaceKnowledgeIconSelect v-model="icon" :disabled="saving" />
             </label>
           </div>
           <label class="mt-3 grid gap-1 text-caption text-foreground-secondary">
-            <span>{{ t("spaces.knowledge.knowledgeTypeDescription") }}</span>
+            <span>{{ t("spaces.knowledge.types.description") }}</span>
             <UiTextarea v-model="description" :rows="2" maxlength="4096" class="resize-none" />
           </label>
           <SpaceKnowledgeTypeFields
@@ -143,7 +141,7 @@ async function changeEditor(action: () => void) {
           />
           <p v-if="error" role="alert" class="mt-3 text-caption text-danger">{{ error }}</p>
           <UiButton v-if="editingId" class="mt-5 text-danger" size="sm" variant="ghost" @click="remove">
-            <Trash2 class="size-(--knovum-icon-size-sm)" />{{ t("spaces.knowledge.deleteKnowledgeType") }}
+            <Trash2 class="size-(--knovum-icon-size-sm)" />{{ t("spaces.knowledge.types.delete") }}
           </UiButton>
         </fieldset>
       </UiScrollArea>

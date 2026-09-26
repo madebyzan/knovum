@@ -45,7 +45,7 @@ const colorOptions = computed(() =>
   CANVAS_RELATION_COLORS.map((value) => ({
     value,
     color: colorValues[value],
-    label: t(`spaces.knowledge.relationColors.${value}`),
+    label: t(`spaces.knowledge.relations.colors.${value}`),
   })),
 );
 
@@ -105,12 +105,12 @@ function setColor(value: string) {
   <div
     v-if="selected"
     :class="CANVAS_ACTION_BAR_CLASSES"
-    :aria-label="t('spaces.knowledge.relations')"
+    :aria-label="t('spaces.knowledge.relations.title')"
     :aria-busy="mutationPending"
   >
     <UiDropdownMenu side="top" align="center" :side-offset="6" class="min-w-52">
       <template #trigger>
-        <UiIconButton :label="t('spaces.knowledge.relations')" size="sm">
+        <UiIconButton :label="t('spaces.knowledge.relations.title')" size="sm">
           <GitBranch class="size-(--knovum-icon-size-sm)" :stroke-width="1.55" />
         </UiIconButton>
       </template>
@@ -124,23 +124,23 @@ function setColor(value: string) {
           class="size-(--knovum-icon-size-xs)"
           :class="selected.kind === kind ? 'opacity-100' : 'opacity-0'"
         />
-        {{ t(`spaces.knowledge.relation.${kind}`) }}
+        {{ t(`spaces.knowledge.relations.kinds.${kind}`) }}
       </UiDropdownMenuItem>
     </UiDropdownMenu>
     <UiPopover v-model:open="rationaleOpen" side="top" align="center" :side-offset="8" class="w-72">
       <template #trigger>
-        <UiIconButton :label="t('spaces.knowledge.relationRationale')" size="sm">
+        <UiIconButton :label="t('spaces.knowledge.relations.rationale')" size="sm">
           <MessageSquareText class="size-(--knovum-icon-size-sm)" :stroke-width="1.55" />
         </UiIconButton>
       </template>
       <label class="text-micro font-medium text-foreground-tertiary">
-        {{ t("spaces.knowledge.relationRationale") }}
+        {{ t("spaces.knowledge.relations.rationale") }}
       </label>
       <UiTextarea
         v-model="rationale"
         class="mt-1.5"
         :rows="3"
-        :placeholder="t('spaces.knowledge.relationRationalePlaceholder')"
+        :placeholder="t('spaces.knowledge.relations.rationalePlaceholder')"
       />
       <div class="mt-2 flex justify-end">
         <UiButton size="sm" variant="secondary" :disabled="mutationPending" @click="saveRationale">
@@ -149,7 +149,7 @@ function setColor(value: string) {
       </div>
     </UiPopover>
     <SpaceCanvasColorSwatches
-      :label="t('spaces.knowledge.relationColor')"
+      :label="t('spaces.knowledge.relations.color')"
       :options="colorOptions"
       :selected="selectedColor"
       @select="setColor"

@@ -81,7 +81,7 @@ async function save() {
     await persist({ ...data.value, cues });
     nodeDraft.end();
   } catch (error) {
-    toast.error(`${t("spaces.creation.subtitleSaveFailed")}: ${String(error)}`);
+    toast.error(`${t("spaces.creation.video.subtitles.saveFailed")}: ${String(error)}`);
   }
 }
 function persist(subtitle: SpaceSubtitlePayload) {
@@ -104,7 +104,7 @@ function createVideo() {
     >
       <div class="grid grid-cols-2 gap-2">
         <label class="block text-micro text-foreground-tertiary">
-          <span class="mb-1 block">{{ t("spaces.creation.cueStart") }}</span>
+          <span class="mb-1 block">{{ t("spaces.creation.video.cues.start") }}</span>
           <UiNumberField
             v-model="draft.startMs"
             :disabled="!nodeDraft.canContinue.value"
@@ -113,7 +113,7 @@ function createVideo() {
           />
         </label>
         <label class="block text-micro text-foreground-tertiary">
-          <span class="mb-1 block">{{ t("spaces.creation.cueEnd") }}</span>
+          <span class="mb-1 block">{{ t("spaces.creation.video.cues.end") }}</span>
           <UiNumberField v-model="draft.endMs" :disabled="!nodeDraft.canContinue.value" :min="1" size="sm" />
         </label>
       </div>
@@ -128,7 +128,7 @@ function createVideo() {
       :disabled="dirty || !nodeOperations.allows('derive')"
       @click="createVideo"
     >
-      {{ t("spaces.creation.renderSubtitledVideo") }}
+      {{ t("spaces.creation.video.subtitles.render") }}
     </UiButton>
   </div>
 </template>

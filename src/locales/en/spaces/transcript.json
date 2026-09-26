@@ -1,19 +1,17 @@
 {
-  "mediaChapters": "Chapters",
-  "mediaTranscript": "Transcript Text",
-  "editChapter": "Edit Chapter",
-  "editTranscriptSegment": "Edit Transcript Segment",
-  "transcriptText": "Transcript Text",
-  "chapterStartTime": "Start Time",
-  "chapterSeek": "Jump to Chapter",
-  "chapterTitle": "Chapter Title",
-  "chapterSummary": "Chapter Summary",
-  "chapterEarlier": "Adjust Start (Earlier)",
-  "chapterLater": "Adjust Start (Later)",
-  "chapterEarlierShort": "Earlier",
-  "chapterLaterShort": "Later",
-  "searchTranscript": "Search Transcript",
-  "noTranscriptMatches": "No matching transcript text",
-  "mediaTranscriptLive": "Live Transcription",
-  "mediaTranscriptLiveHint": "Live transcript text will appear here as recognized."
+  "chapters": {
+    "title": "Chapters",
+    "edit": "Edit chapter",
+    "seek": "Jump to chapter",
+    "titleField": "Chapter title",
+    "summary": "Chapter summary"
+  },
+  "text": {
+    "title": "Transcript text",
+    "editSegment": "Edit transcript segment",
+    "search": "Search transcript",
+    "noMatches": "No matching transcript text",
+    "live": "Live transcription",
+    "liveHint": "Live transcript text will appear here as recognized."
+  }
 }

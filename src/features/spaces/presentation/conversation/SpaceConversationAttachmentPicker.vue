@@ -58,13 +58,13 @@ function chooseFiles() {
 <template>
   <UiPopover v-model:open="open" side="top" align="start" class="w-80 max-w-[calc(100vw-24px)] p-2">
     <template #trigger>
-      <UiIconButton :label="$t('spaces.assistant.addResource')" size="sm">
+      <UiIconButton :label="$t('spaces.assistant.attachments.add')" size="sm">
         <Plus class="size-(--knovum-icon-size-sm)" />
       </UiIconButton>
     </template>
     <template v-if="view === 'sources'">
       <p class="px-2 py-1.5 text-micro font-medium text-foreground-tertiary">
-        {{ $t("spaces.assistant.attachmentSource") }}
+        {{ $t("spaces.assistant.attachments.source") }}
       </p>
       <button
         type="button"
@@ -77,9 +77,11 @@ function chooseFiles() {
           <Link2 class="size-(--knovum-icon-size-sm)" />
         </span>
         <span class="min-w-0 flex-1">
-          <span class="block text-caption font-medium">{{ $t("spaces.assistant.citeCanvasNode") }}</span>
+          <span class="block text-caption font-medium">{{
+            $t("spaces.assistant.attachments.citeCanvasNode")
+          }}</span>
           <span class="block text-micro text-foreground-tertiary">{{
-            $t("spaces.assistant.citeCanvasNodeHint")
+            $t("spaces.assistant.attachments.citeCanvasNodeHint")
           }}</span>
         </span>
         <ArrowRight class="size-(--knovum-icon-size-xs) shrink-0 text-foreground-tertiary" />
@@ -96,9 +98,11 @@ function chooseFiles() {
           <FileUp class="size-(--knovum-icon-size-sm)" />
         </span>
         <span class="min-w-0 flex-1">
-          <span class="block text-caption font-medium">{{ $t("spaces.assistant.uploadLocalFile") }}</span>
+          <span class="block text-caption font-medium">{{
+            $t("spaces.assistant.attachments.uploadLocalFile")
+          }}</span>
           <span class="block text-micro text-foreground-tertiary">{{
-            $t("spaces.assistant.uploadLocalFileHint")
+            $t("spaces.assistant.attachments.uploadLocalFileHint")
           }}</span>
         </span>
       </button>
@@ -108,14 +112,14 @@ function chooseFiles() {
         <UiIconButton :label="$t('common.back')" size="sm" @click="view = 'sources'">
           <ArrowLeft class="size-(--knovum-icon-size-sm)" />
         </UiIconButton>
-        <span class="text-caption font-medium">{{ $t("spaces.assistant.citeCanvasNode") }}</span>
+        <span class="text-caption font-medium">{{ $t("spaces.assistant.attachments.citeCanvasNode") }}</span>
       </div>
       <div class="px-1 pb-1">
         <UiSearchInput
           v-model="query"
           autofocus
           size="sm"
-          :placeholder="$t('spaces.assistant.searchResources')"
+          :placeholder="$t('spaces.assistant.attachments.search')"
         />
       </div>
       <button
@@ -125,7 +129,7 @@ function chooseFiles() {
         @click="addSelected"
       >
         <Plus class="size-(--knovum-icon-size-xs) shrink-0" />
-        {{ $t("spaces.assistant.addCurrentSelection", { count: selectedCount }) }}
+        {{ $t("spaces.assistant.attachments.addCurrentSelection", { count: selectedCount }) }}
       </button>
       <div class="mx-1 my-1 border-t border-divider" />
       <div class="max-h-60 overflow-y-auto">
@@ -153,7 +157,7 @@ function chooseFiles() {
           <Check v-if="candidate.attached" class="size-(--knovum-icon-size-xs) shrink-0" />
         </button>
         <p v-if="matching.length === 0" class="px-2 py-4 text-center text-caption text-foreground-tertiary">
-          {{ $t("spaces.assistant.noAttachableResources") }}
+          {{ $t("spaces.assistant.attachments.none") }}
         </p>
       </div>
     </template>

@@ -1,0 +1,8 @@
+{
+  "create": "Create presentation",
+  "description": "Create an editable outline and presentation from the selected content.",
+  "outline": {
+    "title": "Presentation outline",
+    "purpose": "Create a concise presentation-ready outline from the selected knowledge. Preserve important evidence, disagreements, and citations."
+  }
+}

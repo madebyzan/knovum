@@ -16,7 +16,7 @@ export function useWorkflowBindings(workflow: Readonly<Ref<SavedCapturedWorkflow
     () =>
       workflow.value?.candidate.inputSlots.map((slot, index) => ({
         ...slot,
-        label: t("spaces.creation.workflowInputSlot", { index: index + 1 }),
+        label: t("spaces.creation.workflow.inputs.slot", { index: index + 1 }),
         options: selectedNodes.value
           .filter(({ data }) => data.kind === slot.kind)
           .map(({ id, data }) => ({ value: id, label: data.title })),

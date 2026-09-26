@@ -1,0 +1,19 @@
+{
+  "task": "音视频分析",
+  "preparing": "正在准备媒体文件",
+  "unavailable": "时长与波形尚不可用",
+  "audioPreparing": "正在准备音频",
+  "transcribing": "Whisper 本地转写",
+  "organizing": "正在生成章节与摘要",
+  "knowledge": {
+    "title": "媒体知识",
+    "pending": "已提交至后台分析队列。",
+    "stale": "分析数据与原文件版本不一致，请重新分析。"
+  },
+  "summary": "摘要",
+  "inProgress": "正在后台分析音视频…",
+  "insights": {
+    "unavailable": "转写数据不可用，请先分析媒体文件。",
+    "generate": "生成结构化章节与摘要"
+  }
+}

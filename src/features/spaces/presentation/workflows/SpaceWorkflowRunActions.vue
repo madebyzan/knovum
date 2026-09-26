@@ -36,7 +36,7 @@ const statusTone = computed(() => {
   <template v-if="runId">
     <div class="max-h-40 space-y-2 overflow-y-auto px-3 py-3">
       <p role="status" class="text-caption" :class="statusTone">
-        {{ t("spaces.creation.workflowRunState", { state: stateText }) }}
+        {{ t("spaces.creation.workflow.run.state", { state: stateText }) }}
       </p>
       <UiButton
         v-for="output in outputs"
@@ -45,7 +45,7 @@ const statusTone = computed(() => {
         class="w-full justify-start"
         @click="emit('locate', output.nodeId)"
       >
-        {{ t("spaces.creation.locateWorkflowOutput", { name: output.name }) }}
+        {{ t("spaces.creation.workflow.outputs.locate", { name: output.name }) }}
       </UiButton>
     </div>
     <div class="border-t border-border px-3 py-3">
@@ -56,7 +56,7 @@ const statusTone = computed(() => {
         :disabled="cancelling"
         @click="emit('cancel')"
       >
-        {{ t("spaces.creation.cancelWorkflowRun") }}
+        {{ t("spaces.creation.workflow.run.cancel") }}
       </UiButton>
       <template v-else>
         <UiButton
@@ -65,10 +65,10 @@ const statusTone = computed(() => {
           class="w-full"
           :disabled="retrying"
           @click="emit('retry')"
-          >{{ t("spaces.creation.retryFailedWorkflowSteps") }}</UiButton
+          >{{ t("spaces.creation.workflow.run.retryFailedSteps") }}</UiButton
         >
         <UiButton v-if="allowNew" variant="ghost" class="mt-2 w-full" @click="emit('newRun')">
-          {{ t("spaces.creation.newWorkflowRun") }}
+          {{ t("spaces.creation.workflow.run.new") }}
         </UiButton>
       </template>
     </div>

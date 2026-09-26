@@ -1,0 +1,11 @@
+{
+  "target": "Execution target",
+  "targetModelNative": "Model API · native capability",
+  "targetAgentWorkflow": "Desktop Agent · output depends on its current tools and Skills",
+  "noCompatibleTarget": "No compatible execution target",
+  "desktopAgentNotInstalled": "Not detected",
+  "disabledTitle": "No compatible AI target",
+  "disabledDescription": "Configure a compatible model or enable an installed desktop Agent for this action.",
+  "openSettings": "Configure models",
+  "settingsUnavailable": "AI settings could not be loaded"
+}

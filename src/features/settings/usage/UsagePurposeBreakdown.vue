@@ -26,7 +26,7 @@ const rows = computed(() =>
 
 <template>
   <section class="rounded-section border border-border bg-panel p-4 shadow-panel">
-    <h2 class="text-title-sm font-semibold text-foreground">{{ t("settings.usage.byPurpose") }}</h2>
+    <h2 class="text-title-sm font-semibold text-foreground">{{ t("settings.usage.purpose.title") }}</h2>
     <div v-if="rows.length" class="mt-3 grid gap-3">
       <div v-for="row in rows" :key="row.purpose">
         <div class="mb-1.5 flex items-center justify-between gap-4 text-label">
@@ -38,6 +38,6 @@ const rows = computed(() =>
         </div>
       </div>
     </div>
-    <p v-else class="mt-2 text-body text-foreground-secondary">{{ t("settings.usage.noActivity") }}</p>
+    <p v-else class="mt-2 text-body text-foreground-secondary">{{ t("settings.usage.activity.empty") }}</p>
   </section>
 </template>

@@ -62,12 +62,12 @@ function beginDrag(event: DragEvent, id: string) {
       :model-value="modelValue[0] ?? ''"
       :label="label"
       :options="options"
-      :placeholder="t('spaces.creation.selectWorkflowInput')"
+      :placeholder="t('spaces.creation.workflow.inputs.select')"
       @update:model-value="emit('update:modelValue', [$event])"
     />
     <template v-else>
       <p class="text-micro text-foreground-tertiary">
-        {{ t("spaces.creation.workflowSequenceLimit", { count: slot.maxItems }) }}
+        {{ t("spaces.creation.workflow.inputs.sequenceLimit", { count: slot.maxItems }) }}
       </p>
       <div class="space-y-1">
         <label
@@ -102,7 +102,7 @@ function beginDrag(event: DragEvent, id: string) {
             size="sm"
             variant="ghost"
             :disabled="index === 0"
-            :aria-label="t('spaces.creation.moveWorkflowInputUp')"
+            :aria-label="t('spaces.creation.workflow.inputs.moveUp')"
             @click="move(index, -1)"
           >
             <ArrowUp class="size-(--knovum-icon-size-xs)" />
@@ -111,7 +111,7 @@ function beginDrag(event: DragEvent, id: string) {
             size="sm"
             variant="ghost"
             :disabled="index === selectedOptions.length - 1"
-            :aria-label="t('spaces.creation.moveWorkflowInputDown')"
+            :aria-label="t('spaces.creation.workflow.inputs.moveDown')"
             @click="move(index, 1)"
           >
             <ArrowDown class="size-(--knovum-icon-size-xs)" />

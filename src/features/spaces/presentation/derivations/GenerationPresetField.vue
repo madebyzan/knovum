@@ -29,11 +29,11 @@ function createPreset(): GenerationPreset | undefined {
 
 <template>
   <CreationLibraryRecordField
-    :label="t('spaces.creation.preset')"
-    :empty-label="t('spaces.creation.noPresets')"
-    :placeholder="t('spaces.creation.selectPreset')"
-    :save-label="t('spaces.creation.savePreset')"
-    :saved-success-message="t('spaces.creation.presetSaved')"
+    :label="t('spaces.creation.shared.presets.label')"
+    :empty-label="t('spaces.creation.shared.presets.empty')"
+    :placeholder="t('spaces.creation.shared.presets.select')"
+    :save-label="t('spaces.creation.shared.presets.save')"
+    :saved-success-message="t('spaces.creation.shared.presets.saved')"
     :save-disabled="!target || !name.trim()"
     :filter-records="(library) => library.generationPresets.filter((preset) => preset.actionId === actionId)"
     :create-record="createPreset"

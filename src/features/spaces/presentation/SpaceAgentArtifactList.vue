@@ -41,7 +41,7 @@ const icons = { image: Image, video: Video, audio: Music, document: File, file: 
         </div>
       </div>
       <UiButton v-if="canPreview" size="sm" variant="ghost" @click="emit('preview', artifact)">
-        <Eye class="size-(--knovum-icon-size-xs)" />{{ t("spaces.transfer.systemPreview") }}
+        <Eye class="size-(--knovum-icon-size-xs)" />{{ t("spaces.importExport.preview.system") }}
       </UiButton>
     </div>
   </div>

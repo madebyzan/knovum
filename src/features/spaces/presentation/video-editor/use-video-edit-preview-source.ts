@@ -30,7 +30,7 @@ export function useVideoEditPreviewSource(options: {
       previewPath.value = proxyPath.value;
       return;
     }
-    metadataError.value = i18n.global.t("spaces.media.previewUnavailable");
+    metadataError.value = i18n.global.t("spaces.media.videoEditor.preview.unavailable");
   }
 
   return { previewPath, onMetadataError };

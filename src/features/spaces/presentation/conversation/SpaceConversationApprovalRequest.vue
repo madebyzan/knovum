@@ -11,7 +11,7 @@ const emit = defineEmits<{ decide: [approvalId: string, approved: boolean] }>();
 const { t } = useI18n();
 const actionName = computed(() => {
   const label = captureActionLabels[props.approval.actionId];
-  return label ? t(`spaces.creation.captureActions.${label}`) : props.approval.actionId;
+  return label ? t(`spaces.creation.workflow.captureActions.${label}`) : props.approval.actionId;
 });
 const parameters = computed(() => {
   const plan = props.approval.plan;
@@ -29,12 +29,12 @@ const parameters = computed(() => {
   <section
     class="mb-4 rounded-panel border border-l-2 border-border border-l-warning bg-surface p-3 text-caption"
     role="group"
-    :aria-label="t('spaces.assistant.approvalPlan')"
+    :aria-label="t('spaces.assistant.approval.plan')"
   >
     <h3 class="font-semibold text-foreground">
-      {{ t("spaces.assistant.actionApprovalTitle", { action: actionName }) }}
+      {{ t("spaces.assistant.approval.title", { action: actionName }) }}
     </h3>
-    <p class="mt-1 text-foreground-secondary">{{ t("spaces.assistant.actionApprovalHint") }}</p>
+    <p class="mt-1 text-foreground-secondary">{{ t("spaces.assistant.approval.hint") }}</p>
     <dl v-if="parameters.length" class="mt-2 space-y-1 border-t border-divider pt-2">
       <div
         v-for="parameter in parameters"
@@ -46,7 +46,7 @@ const parameters = computed(() => {
       </div>
     </dl>
     <details class="mt-2 text-foreground-secondary">
-      <summary class="cursor-pointer">{{ t("spaces.assistant.approvalPlan") }}</summary>
+      <summary class="cursor-pointer">{{ t("spaces.assistant.approval.plan") }}</summary>
       <pre class="mt-2 max-h-48 overflow-auto wrap-break-word whitespace-pre-wrap select-text">{{
         JSON.stringify(approval.plan, null, 2)
       }}</pre>

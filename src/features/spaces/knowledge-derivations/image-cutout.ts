@@ -36,13 +36,13 @@ export async function createImageCutout(store: SpaceStore, source: SpaceCanvasNo
   beginPendingDerivation(pending.id, [source.id]);
   const derivationId = crypto.randomUUID();
   const tasks = useTaskStore();
-  const taskId = tasks.start(t("spaces.creation.cutoutTask"), source.data.title);
+  const taskId = tasks.start(t("spaces.creation.image.cutout.task"), source.data.title);
   let started = false;
   try {
     await yieldToCanvas();
     await startDerivation({ id: derivationId, spaceId, source, outputNodeId: pending.id, sourceEdit });
     started = true;
-    tasks.detail(taskId, t("spaces.creation.segmenting"));
+    tasks.detail(taskId, t("spaces.creation.image.cutout.segmenting"));
     const completed = await invoke<CompletedCutout>("plugin:spaces|submit_image_cutout_derivation", {
       request: { id: derivationId, sourceEdit },
     });
@@ -60,7 +60,7 @@ export async function createImageCutout(store: SpaceStore, source: SpaceCanvasNo
     }
     await store.refreshActiveSpace();
     tasks.fail(taskId, String(error));
-    toast.error(`${t("spaces.creation.cutoutFailed")}: ${String(error)}`);
+    toast.error(`${t("spaces.creation.image.cutout.failed")}: ${String(error)}`);
   } finally {
     endPendingDerivation(pending.id);
   }
@@ -81,9 +81,9 @@ async function checkCutoutSource(
       },
     });
     if (available) return true;
-    toast.error(i18n.global.t("spaces.creation.cutoutSourceMissing"));
+    toast.error(i18n.global.t("spaces.creation.image.cutout.sourceMissing"));
   } catch (error) {
-    toast.error(`${i18n.global.t("spaces.creation.cutoutFailed")}: ${String(error)}`);
+    toast.error(`${i18n.global.t("spaces.creation.image.cutout.failed")}: ${String(error)}`);
   }
   return false;
 }

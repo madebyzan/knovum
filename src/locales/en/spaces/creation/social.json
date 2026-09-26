@@ -1,0 +1,19 @@
+{
+  "contentPackage": "Create social copy and visual",
+  "contentDescription": "Create editable social copy and a semantically aligned visual from the same knowledge.",
+  "contentDefaultTitle": "Social content kit",
+  "platform": "Publishing platform",
+  "tone": "Voice and tone",
+  "audience": "Target audience",
+  "goal": "Communication goal",
+  "platforms": {
+    "xiaohongshu": "Xiaohongshu",
+    "generic": "General social platform"
+  },
+  "tones": {
+    "friendly": "Friendly",
+    "professional": "Professional",
+    "energetic": "Energetic"
+  },
+  "create": "Create social content"
+}

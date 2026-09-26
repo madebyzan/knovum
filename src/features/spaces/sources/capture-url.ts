@@ -74,7 +74,7 @@ export async function captureSpaceUrl(
     return outcome.node;
   } catch (error) {
     void logWarn(`URL capture failed for ${normalized}: ${String(error)}`);
-    toast.error(i18n.global.t("spaces.transfer.urlCaptureFailed"));
+    toast.error(i18n.global.t("spaces.importExport.website.captureFailed"));
     retainFailure = true;
     context.updateUrlCapture(projection.id, { status: "failed" });
     return undefined;
@@ -121,7 +121,7 @@ async function importMediaSource(
   } catch (error) {
     if (error instanceof MediaImportCancelledError) return { failed: false };
     void logWarn(`Media import failed for ${input.url}: ${String(error)}`);
-    toast.error(i18n.global.t("spaces.mediaImport.importFailed"));
+    toast.error(i18n.global.t("spaces.media.import.failed"));
     context.updateUrlCapture(input.captureId, { status: "failed" });
     return { failed: true };
   }

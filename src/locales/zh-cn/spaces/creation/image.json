@@ -1,0 +1,26 @@
+{
+  "removeBackground": "去背景",
+  "visualize": "可视化知识",
+  "visualization": {
+    "title": "可视化选中知识",
+    "description": "在精确来源旁生成一张解释性图片。",
+    "defaultTitle": "可视化",
+    "intent": "图片内容",
+    "placeholder": "描述要呈现的概念或关系，内容应以选中来源为准。",
+    "task": "正在生成可视化内容",
+    "failed": "知识可视化失败"
+  },
+  "style": "视觉方向",
+  "aspectRatio": "画面比例",
+  "styles": {
+    "editorial": "编辑插画",
+    "diagram": "信息图解",
+    "concept": "概念艺术"
+  },
+  "cutout": {
+    "task": "正在创建透明背景图片",
+    "segmenting": "正在识别前景主体…",
+    "failed": "智能抠图失败",
+    "sourceMissing": "原始图片文件已丢失，请重新导入图片后再抠图"
+  }
+}

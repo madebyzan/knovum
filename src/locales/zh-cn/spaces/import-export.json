@@ -1,0 +1,44 @@
+{
+  "import": "导入",
+  "export": "导出",
+  "importFailed": "导入失败，请检查文件格式。",
+  "website": {
+    "add": "添加网页",
+    "description": "保存网页 URL 并提取标题与摘要。",
+    "previewUnavailable": "未能抓取网站信息，链接已保存。可在详情中重试。",
+    "refresh": "刷新网页内容",
+    "captureFailed": "无法添加此链接",
+    "loading": "正在抓取网页元数据…",
+    "refreshFailed": "网页抓取失败"
+  },
+  "preview": {
+    "system": "预览",
+    "show": "预览视图",
+    "instantUnavailable": "暂无即时预览",
+    "instantUnavailableHint": "未提供即时预览器，提取的文本仍参与检索与引用。"
+  },
+  "markdown": {
+    "export": "导出 Markdown"
+  },
+  "exportCompleted": "导出完成",
+  "fileName": "文件名",
+  "openExternally": "外部应用打开",
+  "space": {
+    "export": "导出空间包…",
+    "import": "导入空间包…",
+    "exported": "空间包已导出",
+    "imported": "空间已成功导入"
+  },
+  "jsonCanvas": {
+    "import": "导入 JSON Canvas…",
+    "export": "导出 JSON Canvas…",
+    "exported": "JSON Canvas 已导出"
+  },
+  "localPrivateCopy": "由知生知管理的本地副本",
+  "progress": {
+    "resource": "正在导入资源",
+    "preparing": "正在复制并校验资源…",
+    "processing": "正在解析资源…"
+  },
+  "openInEditor": "在外部编辑器中打开"
+}

@@ -20,26 +20,26 @@ const valid = computed(() =>
 
 watch(open, (isOpen) => {
   if (!isOpen) return;
-  form.summaryTitle = `${props.sourceTitle} · ${t("spaces.creation.meetingSummaryTitle")}`;
-  form.summaryPurpose = t("spaces.creation.meetingSummaryPurpose");
+  form.summaryTitle = `${props.sourceTitle} · ${t("spaces.creation.meeting.summary.title")}`;
+  form.summaryPurpose = t("spaces.creation.meeting.summary.purpose");
 });
 </script>
 
 <template>
   <UiDialog
     v-model:open="open"
-    :title="t('spaces.creation.meetingContentPackage')"
-    :description="t('spaces.creation.meetingVideoDescription')"
+    :title="t('spaces.creation.meeting.contentPackage')"
+    :description="t('spaces.creation.meeting.videoDescription')"
   >
     <div class="space-y-4">
-      <UiInput v-model="form.summaryTitle" :placeholder="t('spaces.inspector.detailTitle')" />
+      <UiInput v-model="form.summaryTitle" :placeholder="t('common.title')" />
       <UiTextarea v-model="form.summaryPurpose" :rows="4" />
       <AiExecutionTargetField v-model="form.textTarget" purpose="knowledge" />
     </div>
     <template #footer>
       <UiButton variant="ghost" @click="open = false">{{ t("common.cancel") }}</UiButton>
       <UiButton variant="primary" :disabled="!valid" @click="emit('submit', { ...form })">
-        {{ t("spaces.creation.createMeetingPackage") }}
+        {{ t("spaces.creation.meeting.create") }}
       </UiButton>
     </template>
   </UiDialog>

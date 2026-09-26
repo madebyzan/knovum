@@ -39,7 +39,7 @@ watch([() => props.presentationContext.mode, () => props.data.modifiedAt], ([mod
       v-if="presentationContext.mode === 'interactive' && htmlPreview"
       class="absolute top-2 right-2 z-10"
       :class="interactive && 'pointer-events-auto'"
-      :label="rendered ? t('spaces.inspector.showSource') : t('spaces.transfer.showPreview')"
+      :label="rendered ? t('spaces.inspector.showSource') : t('spaces.importExport.preview.show')"
       size="sm"
       @click.stop="toggleRendered()"
     >

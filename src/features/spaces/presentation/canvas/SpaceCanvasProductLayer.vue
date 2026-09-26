@@ -110,7 +110,7 @@ const selectionBarGap = computed(() => {
       </Transition>
       <div class="flex h-full shrink-0 items-center border-l border-border-strong px-0.5">
         <UiIconButton
-          :label="t(scenesCollapsed ? 'spaces.navigation.expandScenes' : 'spaces.navigation.collapseScenes')"
+          :label="t(scenesCollapsed ? 'spaces.scenes.expand' : 'spaces.scenes.collapse')"
           size="sm"
           class="size-5 rounded-grid-cell text-foreground-secondary hover:bg-control-hover hover:text-foreground"
           @click="scenesCollapsed = !scenesCollapsed"

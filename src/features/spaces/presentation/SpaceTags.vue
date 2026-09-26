@@ -74,16 +74,14 @@ async function revealTag(tag: string) {
   editorSession.reveal(ids, "focus");
 }
 async function showTagMenu(tag: string) {
-  await popupSpaceContextMenu([
-    [spaceMenuItem(t("spaces.navigation.showTaggedNodes"), () => revealTag(tag))],
-  ]);
+  await popupSpaceContextMenu([[spaceMenuItem(t("spaces.tags.showNodes"), () => revealTag(tag))]]);
 }
 </script>
 
 <template>
   <section v-if="mode !== 'selection'">
     <h3 class="px-1 text-caption font-semibold text-foreground-secondary">
-      {{ t("spaces.navigation.tags") }}
+      {{ t("spaces.tags.title") }}
     </h3>
     <div v-if="tagCounts.length" class="mt-2 space-y-0.5">
       <button
@@ -101,13 +99,13 @@ async function showTagMenu(tag: string) {
       </button>
     </div>
     <p v-else class="mt-2 px-1 text-caption text-foreground-tertiary">
-      {{ t("spaces.navigation.tagsEmpty") }}
+      {{ t("spaces.tags.empty") }}
     </p>
   </section>
 
   <section v-if="mode !== 'browse'">
     <div v-if="selectedIds.length === 0" class="px-1 text-caption text-foreground-tertiary">
-      {{ t("spaces.navigation.tagsSelectionHint") }}
+      {{ t("spaces.tags.selectionHint") }}
     </div>
     <template v-else>
       <div class="relative">
@@ -115,7 +113,7 @@ async function showTagMenu(tag: string) {
           v-model="draft"
           :disabled="!nodeOperations.allows('edit')"
           class="w-full"
-          :placeholder="t('spaces.navigation.addTag')"
+          :placeholder="t('spaces.tags.add')"
           @keydown.enter="applyTag()"
         />
         <div
@@ -149,7 +147,7 @@ async function showTagMenu(tag: string) {
             type="button"
             :disabled="!nodeOperations.allows('edit')"
             class="grid size-5 place-items-center rounded-control hover:bg-control-hover"
-            :aria-label="t('spaces.navigation.removeTag', { tag })"
+            :aria-label="t('spaces.tags.remove', { tag })"
             @click="removeTag(tag)"
           >
             <X class="size-(--knovum-icon-size-xs)" />

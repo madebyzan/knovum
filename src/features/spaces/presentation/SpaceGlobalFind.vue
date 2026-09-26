@@ -45,7 +45,7 @@ function matchText(match: GlobalSearchMatch) {
       <DialogContent
         class="fixed top-[12%] left-1/2 z-50 w-[calc(100vw-3rem)] max-w-(--knovum-command-max-width) -translate-x-1/2 overflow-hidden rounded-dialog border border-border bg-overlay shadow-dialog outline-none"
       >
-        <DialogTitle class="sr-only">{{ t("spaces.navigation.searchAllSpaces") }}</DialogTitle>
+        <DialogTitle class="sr-only">{{ t("spaces.search.allSpaces.title") }}</DialogTitle>
         <ListboxRoot @update:model-value="select">
           <div
             class="flex h-(--knovum-command-input-height) items-center gap-2.5 border-b border-divider px-3.5"
@@ -55,7 +55,7 @@ function matchText(match: GlobalSearchMatch) {
               v-model="query"
               autofocus
               maxlength="512"
-              :placeholder="t('spaces.navigation.searchAllSpacesPlaceholder')"
+              :placeholder="t('spaces.search.allSpaces.placeholder')"
               class="h-full min-w-0 flex-1 border-0 bg-transparent text-body-lg outline-none placeholder:text-foreground-tertiary"
             />
             <UiSpinner v-if="searching" size="sm" class="text-foreground-tertiary" />
@@ -65,7 +65,7 @@ function matchText(match: GlobalSearchMatch) {
             class="max-h-(--knovum-command-list-max-height) min-h-48 space-y-0.5 overflow-y-auto p-1.5"
           >
             <p v-if="!query.trim()" class="px-3 py-8 text-center text-caption text-foreground-tertiary">
-              {{ t("spaces.navigation.searchAllSpacesHint") }}
+              {{ t("spaces.search.allSpaces.hint") }}
             </p>
             <ListboxItem
               v-for="match in matches"
@@ -100,7 +100,11 @@ function matchText(match: GlobalSearchMatch) {
                   v-if="match.kind === 'structure'"
                   class="mt-0.5 block text-caption text-foreground-secondary"
                 >
-                  {{ match.nodeKind === "section" ? t("spaces.canvas.section") : t("spaces.canvas.group") }}
+                  {{
+                    match.nodeKind === "section"
+                      ? t("spaces.canvas.kinds.section")
+                      : t("spaces.canvas.kinds.group")
+                  }}
                 </span>
                 <span
                   v-else
@@ -116,7 +120,7 @@ function matchText(match: GlobalSearchMatch) {
               </span>
             </ListboxItem>
             <div v-if="query.trim() && failed" class="grid justify-items-center gap-2 px-3 py-8">
-              <p class="text-caption text-danger">{{ t("spaces.navigation.searchFailed") }}</p>
+              <p class="text-caption text-danger">{{ t("spaces.search.failed") }}</p>
               <UiButton size="sm" variant="secondary" @click="retry()">
                 {{ t("common.retry") }}
               </UiButton>
@@ -125,7 +129,7 @@ function matchText(match: GlobalSearchMatch) {
               v-else-if="query.trim() && !searching && matches.length === 0"
               class="px-3 py-8 text-center text-caption text-foreground-tertiary"
             >
-              {{ t("spaces.navigation.noGlobalFindResults") }}
+              {{ t("spaces.search.allSpaces.noResults") }}
             </p>
           </ListboxContent>
         </ListboxRoot>

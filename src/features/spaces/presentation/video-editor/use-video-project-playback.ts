@@ -97,7 +97,7 @@ export function useVideoProjectPlayback(
         audioError.value = undefined;
       } catch (error) {
         disconnectAudio();
-        audioError.value = `${i18n.global.t("spaces.media.audioPreviewUnavailable")}: ${String(error)}`;
+        audioError.value = `${i18n.global.t("spaces.media.videoEditor.preview.audioUnavailable")}: ${String(error)}`;
       }
       element.addEventListener("seeked", onSeeked);
       element.addEventListener("ended", onEnded);

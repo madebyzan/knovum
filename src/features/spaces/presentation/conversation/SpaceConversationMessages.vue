@@ -54,7 +54,7 @@ const starters = ["summarize", "plan"] as const;
   <div class="flex h-full min-h-0 flex-col">
     <div v-if="hasOlder" class="shrink-0 p-2 text-center">
       <UiButton size="sm" variant="ghost" :disabled="loadingOlder" @click="loadOlder">
-        {{ $t("spaces.assistant.loadOlder") }}
+        {{ $t("spaces.assistant.messages.loadOlder") }}
       </UiButton>
     </div>
     <div
@@ -72,9 +72,11 @@ const starters = ["summarize", "plan"] as const;
           >
             <Sparkles class="size-(--knovum-icon-size-md)" :stroke-width="1.6" />
           </span>
-          <h2 class="text-title-sm font-semibold text-foreground">{{ $t("spaces.assistant.emptyTitle") }}</h2>
+          <h2 class="text-title-sm font-semibold text-foreground">
+            {{ $t("spaces.assistant.empty.title") }}
+          </h2>
           <p class="mt-2 text-body leading-relaxed text-foreground-secondary">
-            {{ $t("spaces.assistant.builtInEmpty") }}
+            {{ $t("spaces.assistant.empty.builtIn") }}
           </p>
           <div class="mt-6 space-y-1">
             <button
@@ -91,7 +93,7 @@ const starters = ["summarize", "plan"] as const;
             </button>
           </div>
           <p class="mt-5 text-caption leading-relaxed text-foreground-tertiary">
-            {{ $t("spaces.assistant.emptyAttachmentHint") }}
+            {{ $t("spaces.assistant.empty.attachmentHint") }}
           </p>
         </div>
       </div>
@@ -135,7 +137,7 @@ const starters = ["summarize", "plan"] as const;
         class="flex items-center gap-2 py-3 text-caption text-foreground-secondary"
       >
         <span class="size-1.5 shrink-0 rounded-full bg-accent" />
-        {{ $t(preparing ? "spaces.assistant.preparingConversation" : "spaces.assistant.agentWorking") }}
+        {{ $t(preparing ? "spaces.assistant.conversations.preparing" : "spaces.assistant.agents.working") }}
       </p>
       <div
         v-if="error"
@@ -153,7 +155,7 @@ const starters = ["summarize", "plan"] as const;
       class="mx-auto mb-2"
       @click="scrollToTail"
     >
-      {{ $t("spaces.assistant.newMessages") }}
+      {{ $t("spaces.assistant.messages.new") }}
     </UiButton>
   </div>
 </template>

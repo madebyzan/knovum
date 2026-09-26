@@ -41,20 +41,20 @@ function finishRename() {
 }
 
 const menuItems = computed(() => [
-  { label: t("spaces.navigation.updateScene"), icon: RefreshCw, onSelect: () => emit("update", scene) },
+  { label: t("spaces.scenes.update"), icon: RefreshCw, onSelect: () => emit("update", scene) },
   ...(invalid
     ? []
     : [
         {
-          label: t("spaces.navigation.duplicateScene"),
+          label: t("spaces.scenes.duplicate"),
           icon: Copy,
           onSelect: () => emit("duplicate", scene),
         },
-        { label: t("spaces.navigation.renameScene"), icon: Pencil, onSelect: beginRename },
+        { label: t("spaces.scenes.rename"), icon: Pencil, onSelect: beginRename },
       ]),
   { separator: true },
   {
-    label: t("spaces.navigation.deleteScene"),
+    label: t("spaces.scenes.delete"),
     icon: Trash2,
     destructive: true,
     onSelect: () => emit("remove", scene),
@@ -116,7 +116,7 @@ const menuItems = computed(() => [
       :aria-current="active ? 'true' : undefined"
       :aria-disabled="invalid"
       :disabled="invalid"
-      :title="invalid ? t('spaces.navigation.sceneFocusUnavailable') : undefined"
+      :title="invalid ? t('spaces.scenes.focus.unavailable') : undefined"
       @click="emit('open', scene)"
       @dblclick.stop="beginRename"
     >
@@ -133,7 +133,7 @@ const menuItems = computed(() => [
         <TriangleAlert
           v-if="invalid"
           class="size-(--knovum-icon-size-xs) shrink-0 text-warning"
-          :aria-label="t('spaces.navigation.sceneFocusUnavailable')"
+          :aria-label="t('spaces.scenes.focus.unavailable')"
         />
       </span>
     </button>

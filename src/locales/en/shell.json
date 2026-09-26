@@ -1,9 +1,9 @@
 {
-  "commands": "Commands",
-  "commandPalette": "Command Palette",
-  "searchCommands": "Search or Run Command",
-  "searchPlaceholder": "Search commands…",
-  "noMatchingCommands": "No matching commands",
+  "commands": {
+    "title": "Command palette",
+    "searchPlaceholder": "Search commands…",
+    "noMatches": "No matching commands"
+  },
   "commandUnavailable": {
     "nothingToUndo": "Nothing to undo",
     "nothingToRedo": "Nothing to redo",
@@ -13,29 +13,21 @@
     "checking": "Checking availability",
     "busy": "An operation is in progress"
   },
-  "toggleRightSidebar": "Show or Hide Right Sidebar",
-  "inspector": "Details",
-  "details": "Details",
-  "closeInspector": "Close Details",
-  "applications": "Applications",
-  "toggleSidebar": "Toggle Sidebar",
-  "aiAssistant": "AI Assistant",
-  "openModule": "Open {title}",
-  "keyboardShortcuts": "Keyboard Shortcuts",
-  "searchShortcuts": "Search shortcuts",
-  "shortcutsGeneral": "General",
-  "shortcutsNavigation": "Navigation",
-  "shortcutsCanvas": "Canvas",
-  "shortcutsEditing": "Editing",
-  "noMatchingShortcuts": "No matching shortcuts",
-  "panCanvas": "Pan canvas",
-  "zoomCanvas": "Zoom in / out",
-  "zoomReset": "Reset zoom",
-  "zoomFit": "Zoom to fit",
-  "nudgeSelection": "Nudge selection",
-  "nudgeLarge": "Move by 10px",
-  "previousScene": "Previous scene",
-  "nextScene": "Next scene",
-  "online": "Online",
-  "offline": "Offline"
+  "toggleRightSidebar": "Show or hide right sidebar",
+  "toggleSidebar": "Toggle sidebar",
+  "shortcuts": {
+    "title": "Keyboard shortcuts",
+    "search": "Search shortcuts",
+    "categories": {
+      "general": "General",
+      "navigation": "Navigation",
+      "canvas": "Canvas",
+      "editing": "Editing"
+    },
+    "noMatches": "No matching shortcuts"
+  },
+  "runtimeModels": {
+    "transcription": "Multilingual speech-to-text model (local)",
+    "textEmbedding": "Text embedding model (Qwen3-Embedding-0.6B)"
+  }
 }

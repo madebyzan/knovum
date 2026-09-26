@@ -41,7 +41,7 @@ const showsPreview = computed(
     props.presentationContext.viewport.previewItemLimit >= 4,
 );
 const emptyMessage = computed(() => {
-  if (props.data.metadataState === "failed") return t("spaces.transfer.websitePreviewUnavailable");
+  if (props.data.metadataState === "failed") return t("spaces.importExport.website.previewUnavailable");
   return undefined;
 });
 </script>

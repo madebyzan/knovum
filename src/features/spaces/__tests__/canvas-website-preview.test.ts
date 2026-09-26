@@ -65,7 +65,6 @@ describe("saved website canvas card", () => {
       },
       global: { plugins: [i18n], stubs: { SpaceCanvasNodeStatus: true } },
     });
-    expect(wrapper.text()).toContain("Website details couldn't be fetched");
-    expect(wrapper.text()).toContain("retry from Details");
+    expect(wrapper.text()).toContain(i18n.global.t("spaces.importExport.website.previewUnavailable"));
   });
 });

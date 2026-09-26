@@ -53,7 +53,7 @@ const { t } = useI18n();
         <div class="mt-0.5 text-caption text-foreground-secondary">
           <template v-if="progress.state === 'downloading'">
             {{
-              t("settings.runtime.modelDownloading", {
+              t("settings.offlineModels.download.downloading", {
                 part: `${progress.partIndex}/${progress.partTotal}`,
                 downloaded: formatBytes(progress.downloaded),
                 total: formatBytes(progress.total),
@@ -61,15 +61,20 @@ const { t } = useI18n();
             }}
           </template>
           <template v-else-if="progress.state === 'verifying'">
-            {{ t("settings.runtime.modelVerifying") }}
+            {{ t("settings.offlineModels.download.verifying") }}
           </template>
           <template v-else-if="progress.state === 'error'">
-            <span class="text-danger">{{ progress.error || t("settings.runtime.modelDownloadFailed") }}</span>
+            <span class="text-danger">{{
+              progress.error || t("settings.offlineModels.download.failed")
+            }}</span>
           </template>
           <template v-else>
             {{
               installedCount !== undefined && totalCount !== undefined
-                ? t("settings.runtime.modelsInstalled", { installed: installedCount, total: totalCount })
+                ? t("settings.offlineModels.models.installed", {
+                    installed: installedCount,
+                    total: totalCount,
+                  })
                 : description
             }}
             <template v-if="size"> · {{ formatBytes(size) }}</template>
@@ -86,7 +91,7 @@ const { t } = useI18n();
         </span>
         <UiIconButton
           v-if="progress.state === 'downloading' || progress.state === 'verifying'"
-          :label="t('settings.runtime.cancelDownload')"
+          :label="t('settings.offlineModels.download.cancel')"
           size="sm"
           @click="emit('cancel')"
         >
@@ -99,14 +104,14 @@ const { t } = useI18n();
           :disabled="busy"
           @click="emit('download')"
         >
-          {{ t("settings.runtime.retryDownload") }}
+          {{ t("settings.offlineModels.download.retry") }}
         </UiButton>
         <UiButton v-else-if="!installed" :disabled="busy" size="sm" @click="emit('download')">
-          {{ t("settings.runtime.downloadModel") }}
+          {{ t("settings.offlineModels.download.action") }}
         </UiButton>
         <UiIconButton
           v-else
-          :label="t('settings.runtime.removeModel')"
+          :label="t('settings.offlineModels.models.remove')"
           :disabled="busy"
           size="sm"
           @click="emit('remove')"

@@ -52,9 +52,9 @@ function changeZoom(delta: number) {
 </script>
 
 <template>
-  <section class="w-72 space-y-3 text-foreground" :aria-label="t('spaces.media.multiAngle')">
+  <section class="w-72 space-y-3 text-foreground" :aria-label="t('spaces.media.imageEditor.angle.title')">
     <header class="flex items-center justify-between px-1">
-      <h3 class="text-body-lg font-semibold">{{ t("spaces.media.multiAngle") }}</h3>
+      <h3 class="text-body-lg font-semibold">{{ t("spaces.media.imageEditor.angle.title") }}</h3>
       <UiButton
         variant="ghost"
         size="sm"
@@ -70,7 +70,7 @@ function changeZoom(delta: number) {
     <div
       class="grid grid-cols-2 rounded-panel bg-control p-0.5"
       role="group"
-      :aria-label="t('spaces.media.angleMode')"
+      :aria-label="t('spaces.media.imageEditor.angle.mode')"
     >
       <button
         v-for="item in ['subject', 'camera'] as const"
@@ -86,7 +86,7 @@ function changeZoom(delta: number) {
         :disabled="busy"
         @click="mode = item"
       >
-        {{ t(`spaces.media.angleModes.${item}`) }}
+        {{ t(`spaces.media.imageEditor.angle.modes.${item}`) }}
       </button>
     </div>
     <SpaceImageAnglePreview
@@ -107,22 +107,22 @@ function changeZoom(delta: number) {
     />
     <div class="space-y-2">
       <SpaceImageRangeSlider
-        :label="t('spaces.media.angleYaw')"
+        :label="t('spaces.media.imageEditor.angle.yaw')"
         :value="yaw"
         :min="IMAGE_ANGLE_YAW.min"
         :max="IMAGE_ANGLE_YAW.max"
         @update="yaw = $event"
       />
       <SpaceImageRangeSlider
-        :label="t('spaces.media.anglePitch')"
+        :label="t('spaces.media.imageEditor.angle.pitch')"
         :value="pitch"
         :min="IMAGE_ANGLE_PITCH.min"
         :max="IMAGE_ANGLE_PITCH.max"
         @update="pitch = $event"
       />
       <SpaceImageRangeSlider
-        :label="t('spaces.media.angleZoom')"
-        :display-value="t(`spaces.media.zoomLevels.${zoom}`)"
+        :label="t('spaces.media.imageEditor.angle.zoom')"
+        :display-value="t(`spaces.media.imageEditor.angle.zoomLevels.${zoom}`)"
         :value="zoomIndex"
         :min="0"
         :max="2"
@@ -144,7 +144,7 @@ function changeZoom(delta: number) {
         class="min-w-0 flex-1 bg-foreground text-canvas hover:bg-foreground hover:opacity-90"
         :disabled="busy || !changed || !canRunAction(availability)"
         @click="apply"
-        >{{ t("spaces.media.applyNow") }}</UiButton
+        >{{ t("spaces.media.imageEditor.applyNow") }}</UiButton
       >
       <UiActionHelp
         v-if="help"

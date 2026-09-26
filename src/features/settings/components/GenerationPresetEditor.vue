@@ -50,10 +50,10 @@ function save() {
 </script>
 
 <template>
-  <UiDialog v-model:open="open" :title="t('settings.creation.editPreset')">
+  <UiDialog v-model:open="open" :title="t('settings.creation.presets.edit')">
     <div class="grid gap-4">
       <label class="grid gap-1.5 text-label font-medium">
-        {{ t("settings.creation.presetName") }}
+        {{ t("settings.creation.presets.name") }}
         <UiInput v-model="draft.name" />
       </label>
       <p v-if="actionLoadError" class="text-caption text-danger">{{ String(actionLoadError) }}</p>

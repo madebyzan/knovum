@@ -26,15 +26,13 @@ const controller = createSpaceAudioRecorderController({
   },
 });
 const captureProblemText = computed(() =>
-  controller.captureProblem.value ? t(`spaces.media.audioProblem.${controller.captureProblem.value}`) : "",
+  controller.captureProblem.value ? t(`spaces.recording.problems.${controller.captureProblem.value}`) : "",
 );
 const statusText = computed(() => {
-  if (controller.isSaving.value) return t("spaces.recording.savingRecording");
-  if (controller.isRequestingPermission.value) return t("spaces.recording.startingRecording");
+  if (controller.isSaving.value) return t("spaces.recording.saving");
+  if (controller.isRequestingPermission.value) return t("spaces.recording.starting");
   if (controller.captureProblem.value) return captureProblemText.value;
-  return controller.isPaused.value
-    ? t("spaces.recording.pausedRecording")
-    : t("spaces.recording.activeRecording");
+  return controller.isPaused.value ? t("spaces.recording.paused") : t("spaces.recording.active");
 });
 let transition = Promise.resolve();
 let disposed = false;
@@ -72,10 +70,10 @@ watch(
     <section
       v-if="open"
       class="w-72 overflow-hidden rounded-control border border-border bg-overlay shadow-toolbar"
-      :aria-label="t('spaces.media.recordAudio')"
+      :aria-label="t('spaces.recording.note')"
     >
       <header class="flex h-8 items-center border-b border-divider px-2.5">
-        <span class="text-label font-medium text-foreground">{{ t("spaces.media.recordAudio") }}</span>
+        <span class="text-label font-medium text-foreground">{{ t("spaces.recording.note") }}</span>
         <UiIconButton
           :label="t('common.cancel')"
           :tooltip="false"
@@ -159,7 +157,7 @@ watch(
         v-if="controller.captureProblem.value === 'denied'"
         class="border-t border-divider px-2.5 py-2 text-micro leading-4 text-foreground-secondary"
       >
-        {{ t("spaces.media.microphoneSettingsHint") }}
+        {{ t("spaces.recording.microphone.settingsHint") }}
       </p>
     </section>
   </Transition>

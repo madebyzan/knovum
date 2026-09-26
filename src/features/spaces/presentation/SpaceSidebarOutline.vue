@@ -24,9 +24,9 @@ watch(
 </script>
 
 <template>
-  <section class="flex min-h-0 flex-1 flex-col pt-4" :aria-label="t('spaces.navigation.outline')">
+  <section class="flex min-h-0 flex-1 flex-col pt-4" :aria-label="t('spaces.sidebar.outline.title')">
     <h2 class="shrink-0 px-4.5 pb-1 text-micro font-medium text-foreground-tertiary">
-      {{ t("spaces.navigation.outline") }}
+      {{ t("spaces.sidebar.outline.title") }}
     </h2>
     <UiScrollArea class="min-h-0 flex-1">
       <div

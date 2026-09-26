@@ -23,16 +23,18 @@ const historyOpen = shallowRef(false);
 const renaming = shallowRef(false);
 const titleDraft = shallowRef("");
 const actions = computed(() => [
-  { label: t("spaces.assistant.renameConversation"), onSelect: () => (renaming.value = true) },
-  { label: t("spaces.assistant.exportConversation"), onSelect: () => void session.exportSelected() },
+  { label: t("common.rename"), onSelect: () => (renaming.value = true) },
+  { label: t("spaces.assistant.conversations.export"), onSelect: () => void session.exportSelected() },
   {
     label: t(
-      showingArchived.value ? "spaces.assistant.restoreConversation" : "spaces.assistant.archiveConversation",
+      showingArchived.value
+        ? "spaces.assistant.conversations.restore"
+        : "spaces.assistant.conversations.archive",
     ),
     onSelect: () => void session.archiveSelected(!showingArchived.value),
   },
   {
-    label: t("spaces.assistant.deleteConversation"),
+    label: t("spaces.assistant.conversations.delete"),
     destructive: true,
     onSelect: () => void session.deleteSelected(),
   },
@@ -62,7 +64,7 @@ async function saveTitle() {
         @refresh="session.refreshConversations"
       />
       <UiIconButton
-        :label="t('spaces.assistant.newKnowledgeThread')"
+        :label="t('spaces.assistant.conversations.create')"
         size="sm"
         :disabled="loading"
         @click="session.selectConversation('')"
@@ -71,7 +73,7 @@ async function saveTitle() {
       </UiIconButton>
       <UiDropdownMenu v-if="selectedConversation" :items="actions">
         <template #trigger>
-          <UiIconButton :label="t('spaces.assistant.conversationActions')" size="sm">
+          <UiIconButton :label="t('spaces.assistant.conversations.actions')" size="sm">
             <MoreHorizontal class="size-(--knovum-icon-size-sm)" />
           </UiIconButton>
         </template>

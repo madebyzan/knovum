@@ -22,8 +22,8 @@ export async function acquireMediaSource(
   let cancelRequested = false;
   let loggedStage: MediaImportProgress["stage"] | undefined;
   tasks.start(
-    i18n.global.t("spaces.mediaImport.importTitle"),
-    i18n.global.t("spaces.mediaImport.resolving"),
+    i18n.global.t("spaces.media.import.title"),
+    i18n.global.t("spaces.media.import.resolving"),
     () => {
       cancelRequested = true;
       return cancelMediaImport(jobId);
@@ -83,7 +83,7 @@ export function mediaPayloadFromImport(imported: ImportedMedia): SpaceMediaPaylo
 
 function updateProgress(taskId: string, progress: MediaImportProgress) {
   const tasks = useTaskStore();
-  const detail = i18n.global.t(`spaces.mediaImport.${progress.stage}`);
+  const detail = i18n.global.t(`spaces.media.import.${progress.stage}`);
   const finalizingPercent = finalizingProgressPercent(progress);
   if (finalizingPercent !== null) {
     tasks.progress(taskId, finalizingPercent, detail);

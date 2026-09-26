@@ -49,7 +49,7 @@ const {
       >
         <LoaderCircle v-if="analyzing" class="size-(--knovum-icon-size-xs) animate-spin" />
         <ScanText v-else class="size-(--knovum-icon-size-xs)" />
-        {{ t("spaces.media.reanalyze") }}
+        {{ t("spaces.media.player.reanalyze") }}
       </button>
     </div>
     <SpaceNodeEnrichmentStatus :node-id="nodeId" />
@@ -62,7 +62,7 @@ const {
         class="mt-3 flex gap-2 rounded-panel border border-warning/35 bg-warning/10 p-2.5 text-caption text-warning"
       >
         <AlertTriangle class="mt-0.5 size-(--knovum-icon-size-sm) shrink-0" />
-        <span>{{ t("spaces.media.knowledgeStale") }}</span>
+        <span>{{ t("spaces.media.analysis.knowledge.stale") }}</span>
       </div>
       <div v-if="!insights" class="mt-3">
         <button
@@ -72,7 +72,7 @@ const {
           :title="insightsDisabledReason"
           @click="generateInsights"
         >
-          {{ t("spaces.media.generateInsights") }}
+          {{ t("spaces.media.analysis.insights.generate") }}
         </button>
       </div>
       <SpaceMediaSummaryEditor
@@ -85,7 +85,7 @@ const {
       />
       <div v-if="insights" class="mt-4">
         <h4 class="text-micro font-semibold tracking-wide text-foreground-tertiary uppercase">
-          {{ t("spaces.transcript.mediaChapters") }}
+          {{ t("spaces.transcript.chapters.title") }}
         </h4>
         <div class="mt-1 space-y-1">
           <SpaceMediaChapterEditor
@@ -119,7 +119,7 @@ const {
             v-else
             class="size-(--knovum-icon-size-xs) transition-transform duration-150 ease-standard"
           />
-          {{ t("spaces.transcript.mediaTranscript") }}
+          {{ t("spaces.transcript.text.title") }}
           <span class="ml-auto text-micro font-normal text-foreground-tertiary">
             {{ knowledge.transcript.language }}
             ·
@@ -139,7 +139,7 @@ const {
       </div>
     </template>
     <p v-else class="mt-3 text-caption leading-relaxed text-foreground-tertiary">
-      {{ analyzing ? t("spaces.media.analysisInProgress") : t("spaces.media.knowledgePending") }}
+      {{ analyzing ? t("spaces.media.analysis.inProgress") : t("spaces.media.analysis.knowledge.pending") }}
     </p>
   </section>
 </template>

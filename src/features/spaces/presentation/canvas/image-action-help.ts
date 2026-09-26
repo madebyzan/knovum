@@ -7,17 +7,17 @@ export interface ImageActionHelp {
 }
 
 const reasonKeys: Record<ImageActionReason, string> = {
-  image_preparing: "spaces.media.imagePreparing",
-  finish_image_edit: "spaces.media.finishImageEdit",
-  capability_failed: "spaces.media.capabilityFailed",
-  missing_credential: "spaces.media.layerKeyMissing",
-  secret_database_unavailable: "spaces.media.secretDatabaseUnavailable",
-  configuration_incomplete: "spaces.media.imageModelUnavailable",
-  provider_unsupported: "spaces.media.imageProviderUnsupported",
-  credential_unavailable: "spaces.media.imageCredentialUnavailable",
-  upscale_min_size: "spaces.media.upscaleMinSize",
-  upscale_target_too_small: "spaces.media.upscaleTargetTooSmall",
-  prompt_required: "spaces.media.layerPromptRequired",
+  image_preparing: "spaces.media.imageEditor.status.imagePreparing",
+  finish_image_edit: "spaces.media.imageEditor.finishImageEdit",
+  capability_failed: "spaces.media.imageEditor.errors.capabilityCheckFailed",
+  missing_credential: "spaces.media.imageEditor.layers.keyMissing",
+  secret_database_unavailable: "spaces.media.imageEditor.errors.secretDatabaseUnavailable",
+  configuration_incomplete: "spaces.media.imageEditor.errors.modelUnavailable",
+  provider_unsupported: "spaces.media.imageEditor.errors.providerUnsupported",
+  credential_unavailable: "spaces.media.imageEditor.errors.credentialUnavailable",
+  upscale_min_size: "spaces.media.imageEditor.upscale.minSize",
+  upscale_target_too_small: "spaces.media.imageEditor.upscale.targetTooSmall",
+  prompt_required: "spaces.media.imageEditor.layers.promptRequired",
 };
 
 export function imageActionHelp(
@@ -25,14 +25,15 @@ export function imageActionHelp(
   t: Translate,
 ): ImageActionHelp | undefined {
   if (availability.state === "ready" || availability.state === "hidden") return undefined;
-  if (availability.state === "checking") return { label: t("spaces.media.capabilityChecking") };
-  if (availability.state === "busy") return { label: t("spaces.media.actionBusy") };
+  if (availability.state === "checking")
+    return { label: t("spaces.media.imageEditor.status.capabilityChecking") };
+  if (availability.state === "busy") return { label: t("spaces.media.imageEditor.errors.busy") };
   const setup =
     availability.reason === "missing_credential" ||
     availability.reason === "configuration_incomplete" ||
     availability.reason === "provider_unsupported";
   return {
     label: t(reasonKeys[availability.reason]),
-    ...(setup ? { actionLabel: t("spaces.media.openAiSettings") } : {}),
+    ...(setup ? { actionLabel: t("spaces.media.imageEditor.openAiSettings") } : {}),
   };
 }

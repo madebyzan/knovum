@@ -1,6 +1,7 @@
 import { difference } from "es-toolkit";
 import { describe, expect, it } from "vitest";
 
+import { dynamicLocaleKeyPrefixes, dynamicLocaleKeys } from "../../../locales/dynamic-keys";
 import { localeMessages } from "../../../locales/locale-registry";
 
 type LocaleTree = { readonly [key: string]: LocaleTree | string };
@@ -19,10 +20,9 @@ const localeFragments = import.meta.glob("/src/locales/{en,zh-cn}/**/*.json", {
 // These namespaces key their messages by a serialized domain value, so the key carries that value's
 // own casing rather than the naming convention every other message key follows.
 const serializedValueMaps = new Set([
-  "spaces.assistant.aiScope",
-  "spaces.knowledge.knowledgeFieldKindLabel",
-  "spaces.knowledge.knowledgeHealthIssue",
-  "spaces.knowledge.relation",
+  "spaces.knowledge.fields.kindLabels",
+  "spaces.knowledge.health.issues",
+  "spaces.knowledge.relations.kinds",
   "spaces.processing.enrichmentJobType",
 ]);
 
@@ -73,6 +73,18 @@ function collectStaticTranslationKeys() {
   return keys;
 }
 
+// Any dotted literal naming a locale key, which also covers keys held in a `labelKey`-style map
+// and translated later through a variable.
+function collectReferencedKeyLiterals() {
+  const literal = /["'`]((?:spaces|settings|shell|common|ai|tasks|errors)(?:\.[A-Za-z0-9_-]+)*\.?)["'`]/g;
+  const keys = new Set<string>();
+  for (const [path, source] of Object.entries(sourceModules)) {
+    if (path.includes("/locales/") || path.endsWith("locale-completeness.test.ts")) continue;
+    for (const match of source.matchAll(literal)) keys.add(match[1]!);
+  }
+  return keys;
+}
+
 describe("locale completeness", () => {
   const { en, "zh-CN": zhCN } = localeMessages;
   const enKeys = flattenLocale(en as LocaleTree);
@@ -111,5 +123,25 @@ describe("locale completeness", () => {
   it("uses semantic lowerCamelCase message keys", () => {
     expect(nonCamelCaseKeys(en as unknown as Record<string, unknown>)).toEqual([]);
     expect(nonCamelCaseKeys(zhCN as unknown as Record<string, unknown>)).toEqual([]);
+  });
+
+  it("keeps every message key reachable from product code", () => {
+    const referenced = collectReferencedKeyLiterals();
+    const runtimeResolved: readonly string[] = dynamicLocaleKeys;
+    const unreachable = [...enKeys].filter(
+      (key) =>
+        !referenced.has(key) &&
+        !runtimeResolved.includes(key) &&
+        !dynamicLocaleKeyPrefixes.some((prefix) => key.startsWith(prefix)),
+    );
+    expect(unreachable).toEqual([]);
+  });
+
+  it("keeps the runtime-resolved key allowlist narrowed to real keys", () => {
+    const stalePrefixes = dynamicLocaleKeyPrefixes.filter(
+      (prefix) => ![...enKeys].some((key) => key.startsWith(prefix)),
+    );
+    const staleKeys = dynamicLocaleKeys.filter((key) => !enKeys.has(key));
+    expect([...stalePrefixes, ...staleKeys]).toEqual([]);
   });
 });

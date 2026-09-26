@@ -47,7 +47,7 @@ function save() {
   <div>
     <div class="flex items-center gap-2">
       <h4 class="flex-1 text-micro font-semibold tracking-wide text-foreground-tertiary uppercase">
-        {{ t("spaces.media.summary") }}
+        {{ t("spaces.media.analysis.summary") }}
       </h4>
       <template v-if="editing">
         <UiIconButton :label="t('common.cancel')" size="sm" @click="cancel"

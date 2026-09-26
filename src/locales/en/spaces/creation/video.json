@@ -1,0 +1,29 @@
+{
+  "subtitles": {
+    "create": "Create subtitled copy",
+    "production": "Add subtitles and create video",
+    "render": "Generate subtitled video",
+    "createResource": "Add and edit subtitles…",
+    "resourceTitle": "Video subtitles",
+    "resourceFailed": "Could not create subtitle resource",
+    "saveFailed": "Could not save subtitles",
+    "editor": "Subtitle editor",
+    "task": "Creating subtitled video",
+    "failed": "Could not create subtitled video"
+  },
+  "cues": {
+    "start": "Start (ms)",
+    "end": "End (ms)"
+  },
+  "generation": {
+    "title": "Create video from knowledge",
+    "description": "Create an editable script and video linked to the selected sources.",
+    "name": "Video name",
+    "prompt": "Describe the scene, motion, camera, and visual style",
+    "duration": "Duration",
+    "create": "Generate video",
+    "task": "Generating video",
+    "failed": "Could not generate video",
+    "tooManyImages": "Select no more than 10 reference images for video generation."
+  }
+}

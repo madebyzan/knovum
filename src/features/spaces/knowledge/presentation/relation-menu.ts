@@ -23,8 +23,8 @@ export async function showSpaceRelationMenu(
   const t = i18n.global.t;
   await popupSpaceContextMenu([
     relationKinds.map((kind) =>
-      spaceCheckItem(t(`spaces.knowledge.relation.${kind}`), current === kind, () => update(kind)),
+      spaceCheckItem(t(`spaces.knowledge.relations.kinds.${kind}`), current === kind, () => update(kind)),
     ),
-    [spaceMenuItem(t("spaces.knowledge.removeRelation"), remove)],
+    [spaceMenuItem(t("spaces.knowledge.relations.remove"), remove)],
   ]);
 }

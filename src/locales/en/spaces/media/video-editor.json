@@ -1,0 +1,101 @@
+{
+  "edit": "Edit video",
+  "title": "Video editor",
+  "loading": "Loading video editor…",
+  "preview": {
+    "optimizing": "Optimizing preview in background…",
+    "retry": "Retry preview preparation",
+    "sourceUnavailable": "The video source is unavailable. Reimport the video to edit it.",
+    "proxyFailed": "Could not prepare a responsive preview",
+    "durationUnavailable": "Could not read the video's duration",
+    "metadataUnavailable": "Could not read the video's frame dimensions",
+    "unavailable": "Could not open the video preview",
+    "audioUnavailable": "Could not prepare audio preview"
+  },
+  "tracks": {
+    "video": "Video",
+    "audio": "Audio",
+    "text": "Text"
+  },
+  "timeline": {
+    "thumbnailFailed": "Could not generate timeline thumbnails",
+    "zoomOut": "Zoom out timeline",
+    "zoomIn": "Zoom in timeline",
+    "fit": "Fit entire video",
+    "seek": "Seek timeline"
+  },
+  "text": {
+    "tools": "Text tools",
+    "invalidColor": "Enter a six-digit hex color, such as #FFFFFF.",
+    "presets": {
+      "title": "Presets",
+      "plain": "Plain",
+      "outline": "Outline",
+      "shadow": "Shadow",
+      "badge": "Badge"
+    },
+    "placement": "Position",
+    "add": "Add text",
+    "content": "Text"
+  },
+  "tabs": {
+    "captions": "Captions",
+    "text": "Text"
+  },
+  "closeInspector": "Close edit panel",
+  "captions": {
+    "search": "Search captions",
+    "none": "No captions yet. Add one above.",
+    "noMatches": "No matching captions."
+  },
+  "font": {
+    "family": "Font",
+    "searchEmpty": "No matching fonts.",
+    "weight": "Weight",
+    "unavailable": "Font {family} is not installed on this computer. Choose another font.",
+    "catalogEmpty": "No installed fonts are available.",
+    "size": "Size (720p)",
+    "color": "Text color"
+  },
+  "videoSettings": "Video settings",
+  "clip": {
+    "selected": "Selected clip",
+    "volume": "Volume",
+    "rotate": "Rotate",
+    "split": "Split",
+    "inPoint": "In (seconds)",
+    "outPoint": "Out (seconds)",
+    "startsAt": "Starts (seconds)",
+    "endsAt": "Ends (seconds)"
+  },
+  "top": "Top",
+  "center": "Center",
+  "bottom": "Bottom",
+  "project": {
+    "saved": "Video edit project saved",
+    "saving": "Saving…"
+  },
+  "render": {
+    "action": "Render video",
+    "task": "Video render",
+    "failed": "Video rendering failed"
+  },
+  "preparingVideoEdit": "Preparing edit",
+  "renderingVideoEdit": "Rendering video",
+  "savingResource": "Saving resource",
+  "previousStep": "Step back 0.1 second",
+  "nextStep": "Step forward 0.1 second",
+  "trim": {
+    "start": "Trim clip start",
+    "end": "Trim clip end",
+    "textStart": "Trim text start",
+    "textEnd": "Trim text end",
+    "hint": "Drag a clip edge to trim. Hold Option or Alt for precise adjustment."
+  },
+  "unsaved": {
+    "title": "Save changes to this video?",
+    "status": "Unsaved changes",
+    "description": "Your edits will be lost if you close without saving.",
+    "discard": "Discard changes"
+  }
+}

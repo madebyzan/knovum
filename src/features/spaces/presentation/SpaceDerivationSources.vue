@@ -15,7 +15,7 @@ const hasChangedSource = computed(() => props.sources.some((source) => !source.c
 <template>
   <section v-if="sources.length">
     <h4 class="mb-1.5 text-micro font-medium text-foreground-tertiary">
-      {{ t("spaces.creation.sourceKnowledge") }}
+      {{ t("spaces.creation.shared.source.knowledge") }}
     </h4>
     <div
       v-for="source in sources"
@@ -25,7 +25,7 @@ const hasChangedSource = computed(() => props.sources.some((source) => !source.c
       <CircleAlert
         v-if="!source.current"
         class="size-(--knovum-icon-size-xs) shrink-0 text-warning"
-        :aria-label="t('spaces.creation.sourceChanged')"
+        :aria-label="t('spaces.creation.shared.source.changed')"
       />
       <span class="min-w-0 flex-1 truncate text-caption text-foreground-secondary">{{ source.title }}</span>
       <UiIconButton
@@ -38,7 +38,7 @@ const hasChangedSource = computed(() => props.sources.some((source) => !source.c
       </UiIconButton>
     </div>
     <p v-if="hasChangedSource" class="mt-1 text-micro text-warning">
-      {{ t("spaces.creation.sourceChanged") }}
+      {{ t("spaces.creation.shared.source.changed") }}
     </p>
   </section>
 </template>
