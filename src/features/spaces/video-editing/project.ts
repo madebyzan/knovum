@@ -1,3 +1,5 @@
+import { sumBy } from "es-toolkit";
+
 import type { SpaceVideoPayload } from "../model/nodes/node-payload";
 
 export type VideoEditProject = NonNullable<SpaceVideoPayload["videoEditProject"]>;
@@ -35,7 +37,7 @@ export function createVideoEditProject(
 }
 
 export function projectDuration(project: VideoEditProject) {
-  return project.videoTrack.clips.reduce((duration, clip) => duration + clipDuration(clip), 0);
+  return sumBy(project.videoTrack.clips, clipDuration);
 }
 
 export function clipDuration(clip: VideoClip) {

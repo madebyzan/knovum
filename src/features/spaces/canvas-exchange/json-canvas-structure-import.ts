@@ -1,3 +1,5 @@
+import { sortBy } from "es-toolkit";
+
 import type { SpaceEditSnapshot } from "../canvas/contract/space-edit-snapshot";
 import type { JsonCanvasImportPlanV1 } from "./json-canvas-import-contract";
 
@@ -14,12 +16,15 @@ export function mergeImportedJsonCanvasStructure(
   const structure = [...snapshot.structure];
   const layouts = [...snapshot.layouts];
   const nextRootOrder = structure.filter(({ parentId }) => parentId === null).length;
-  const rootSources = [
-    ...plan.sections.map((section) => ({ sourceId: section.sourceId, order: section.order })),
-    ...plan.contents
-      .filter(({ parentSectionSourceId }) => !parentSectionSourceId)
-      .map((content) => ({ sourceId: content.sourceId, order: content.order })),
-  ].toSorted((left, right) => left.order - right.order);
+  const rootSources = sortBy(
+    [
+      ...plan.sections.map((section) => ({ sourceId: section.sourceId, order: section.order })),
+      ...plan.contents
+        .filter(({ parentSectionSourceId }) => !parentSectionSourceId)
+        .map((content) => ({ sourceId: content.sourceId, order: content.order })),
+    ],
+    [({ order }) => order],
+  );
   const rootOrders = new Map(rootSources.map(({ sourceId }, offset) => [sourceId, nextRootOrder + offset]));
   const childOrders = new Map<string, number>();
   for (const section of plan.sections) appendSection(section);

@@ -1,3 +1,4 @@
+import { sumBy } from "es-toolkit";
 import type { z } from "zod";
 
 import type { DocumentCoverage } from "./document-coverage-fields";
@@ -77,13 +78,12 @@ function validateCompletion(
 }
 
 function validateBudgets(report: DocumentCoverage, context: z.RefinementCtx) {
-  if (report.resources.reduce((bytes, resource) => bytes + resource.byteSize, 0) > 256 * 1024 * 1024) {
+  if (sumBy(report.resources, ({ byteSize }) => byteSize) > 256 * 1024 * 1024) {
     context.addIssue({ code: "custom", message: "Document raster resources exceed 256 MiB" });
   }
-  const units = report.occurrences.reduce(
-    (total, { analysis }) =>
-      total + (analysis?.description.length ?? 0) + (analysis?.detectedText.length ?? 0),
-    0,
+  const units = sumBy(
+    report.occurrences,
+    ({ analysis }) => (analysis?.description.length ?? 0) + (analysis?.detectedText.length ?? 0),
   );
   if (units > 4 * 1024 * 1024) {
     context.addIssue({ code: "custom", message: "Document visual text exceeds 4 Mi UTF-16 units" });

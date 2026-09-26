@@ -1,8 +1,11 @@
+import pLimit from "p-limit";
 import { storeToRefs } from "pinia";
 import { computed } from "vue";
 
 import type { ArchiveSettingsContract } from "../../../shared/contracts/archive-settings";
 import { useSpaceStore } from "../session/space-store";
+
+const permanentDeletions = pLimit(2);
 
 export function createSpaceArchiveSettings(): ArchiveSettingsContract {
   const store = useSpaceStore();
@@ -17,7 +20,7 @@ export function createSpaceArchiveSettings(): ArchiveSettingsContract {
     permanentlyDelete: (id) => store.permanentlyDeleteSpace(id),
     permanentlyDeleteAll: async () => {
       const ids = archivedSpaces.value.map(({ id }) => id);
-      await Promise.all(ids.map((id) => store.permanentlyDeleteSpace(id)));
+      await Promise.all(ids.map((id) => permanentDeletions(() => store.permanentlyDeleteSpace(id))));
     },
   };
 }

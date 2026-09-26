@@ -1,5 +1,6 @@
 import { Readability } from "@mozilla/readability";
 import { take } from "es-toolkit";
+import { z } from "zod";
 
 import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
 import { truncateUtf16 } from "../model/text";
@@ -7,17 +8,34 @@ import { htmlHeadMetadata } from "./html-head-metadata";
 import type { SpaceWebsiteMetadata, SpaceWebsiteSection } from "./metadata";
 import { normalizeSpaceUrl, websiteDefaultTitle } from "./url";
 
-type WebDocumentKind = "html" | "json" | "xml" | "text";
-type WebpageResponse =
-  | { resourceKind: "document"; finalUrl: string; documentKind: WebDocumentKind; content: string }
-  | { resourceKind: "image"; finalUrl: string; assetPath: string };
+const WEB_DOCUMENT_KINDS = ["html", "json", "xml", "text"] as const;
+type WebDocumentKind = (typeof WEB_DOCUMENT_KINDS)[number];
+
+/** Mirrors the Rust `WebpageResponse` serde tag; captured content crosses a network boundary. */
+const webpageResponseSchema = z.discriminatedUnion("resourceKind", [
+  z
+    .object({
+      resourceKind: z.literal("document"),
+      finalUrl: z.string(),
+      documentKind: z.enum(WEB_DOCUMENT_KINDS),
+      content: z.string(),
+    })
+    .strict(),
+  z
+    .object({
+      resourceKind: z.literal("image"),
+      finalUrl: z.string(),
+      assetPath: z.string(),
+    })
+    .strict(),
+]);
 
 export type WebsiteResource =
   | { kind: "document"; metadata: SpaceWebsiteMetadata }
   | { kind: "image"; finalUrl: string; assetPath: string };
 
 export async function fetchWebsiteResource(url: string): Promise<WebsiteResource> {
-  const response = await invoke<WebpageResponse>("plugin:spaces|fetch_webpage", { url });
+  const response = webpageResponseSchema.parse(await invoke<unknown>("plugin:spaces|fetch_webpage", { url }));
   const finalUrl = normalizeSpaceUrl(response.finalUrl);
   if (!finalUrl) throw new Error("The webpage response returned an invalid final URL");
   if (response.resourceKind === "image") return { kind: "image", finalUrl, assetPath: response.assetPath };

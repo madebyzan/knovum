@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ArrowLeft, ArrowRight, Check, FileUp, Link2, Plus } from "@lucide/vue";
+import { search } from "fast-fuzzy";
 import { computed, shallowRef, watch } from "vue";
 
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
@@ -26,11 +27,12 @@ const query = shallowRef("");
 const selectedCount = computed(
   () => props.candidates.filter(({ selected, attached }) => selected && !attached).length,
 );
-const matching = computed(() =>
-  props.candidates.filter(({ title }) =>
-    title.toLocaleLowerCase().includes(query.value.trim().toLocaleLowerCase()),
-  ),
-);
+const matching = computed(() => {
+  const needle = query.value.trim();
+  return needle
+    ? search(needle, [...props.candidates], { keySelector: ({ title }) => title })
+    : props.candidates;
+});
 
 watch(open, (value) => {
   if (!value) {

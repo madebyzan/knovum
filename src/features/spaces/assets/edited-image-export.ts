@@ -1,4 +1,5 @@
 import { save } from "@tauri-apps/plugin-dialog";
+import { parse } from "pathe";
 
 import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
 import type { SpaceImagePayload } from "../model/nodes/node-payload";
@@ -9,7 +10,7 @@ export async function exportEditedImage(
   nodeId: string,
   data: SpaceImagePayload,
 ): Promise<boolean> {
-  const name = safeExportFileName(data.fileName.replace(/\.[^.]+$/u, "")) || "image";
+  const name = safeExportFileName(parse(data.fileName).name) || "image";
   const destinationPath = await save({
     defaultPath: `${name}.png`,
     filters: [{ name: "PNG", extensions: ["png"] }],

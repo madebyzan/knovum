@@ -1,4 +1,5 @@
-import { onBeforeUnmount, onMounted, shallowRef } from "vue";
+import { useMutationObserver } from "@vueuse/core";
+import { onMounted, shallowRef } from "vue";
 
 import type { CanvasNodeAppearance, CanvasRelationColor } from "../../contract/canvas-document";
 
@@ -47,7 +48,6 @@ const INITIAL: CanvasPalette = {
 
 export function useCanvasPalette() {
   const palette = shallowRef(INITIAL);
-  let observer: MutationObserver | undefined;
 
   function read() {
     const styles = getComputedStyle(document.documentElement);
@@ -79,12 +79,11 @@ export function useCanvasPalette() {
     };
   }
 
-  onMounted(() => {
-    read();
-    observer = new MutationObserver(read);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  onMounted(read);
+  useMutationObserver(document.documentElement, read, {
+    attributes: true,
+    attributeFilter: ["data-theme"],
   });
-  onBeforeUnmount(() => observer?.disconnect());
   return palette;
 }
 

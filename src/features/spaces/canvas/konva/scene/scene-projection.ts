@@ -1,3 +1,5 @@
+import { sortBy } from "es-toolkit";
+
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import type { SpaceRelation } from "../../../model/relations/relation";
 import { canvasNodeInteraction } from "../../canvas-node-interaction";
@@ -20,8 +22,8 @@ export function projectCanvasScene(
   const visibleStructureNodeIds = structure
     ? new Set(structure.content.filter(({ visible }) => visible).map(({ node }) => node.id))
     : undefined;
-  const projected = document.nodes
-    .flatMap<Omit<CanvasSceneNode, "paintOrder">>((layout) => {
+  const projected = sortBy(
+    document.nodes.flatMap<Omit<CanvasSceneNode, "paintOrder">>((layout) => {
       const node = content.get(layout.nodeId);
       return node && !node.hidden && (!visibleStructureNodeIds || visibleStructureNodeIds.has(node.id))
         ? [
@@ -32,8 +34,9 @@ export function projectCanvasScene(
             },
           ]
         : [];
-    })
-    .toSorted((left, right) => left.layout.zIndex - right.layout.zIndex);
+    }),
+    [({ layout }) => layout.zIndex],
+  );
   const paintOrderedNodes = projected.map((node, paintOrder) => Object.assign({}, node, { paintOrder }));
   const byId = new Map(paintOrderedNodes.map((sceneNode) => [sceneNode.node.id, sceneNode]));
   const relationStyles = new Map(document.relationStyles?.map((style) => [style.relationId, style.color]));

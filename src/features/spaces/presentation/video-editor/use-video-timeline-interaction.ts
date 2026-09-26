@@ -1,3 +1,4 @@
+import { sumBy } from "es-toolkit";
 import { computed, shallowRef } from "vue";
 
 import {
@@ -117,9 +118,7 @@ export function useVideoTimelineInteraction(
       return;
     const index = props.project.videoTrack.clips.findIndex(({ id }) => id === edited.id);
     if (index < 0) return;
-    const startMs = props.project.videoTrack.clips
-      .slice(0, index)
-      .reduce((sum, clip) => sum + clipDuration(clip), 0);
+    const startMs = sumBy(props.project.videoTrack.clips.slice(0, index), clipDuration);
     actions.trim(replaceClip(props.project, edited));
     actions.seek(startMs + (current.edge === "start" ? 0 : clipDuration(edited)));
   }

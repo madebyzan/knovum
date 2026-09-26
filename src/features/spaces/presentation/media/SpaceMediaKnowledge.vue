@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { AlertTriangle, ChevronDown, ChevronRight, LoaderCircle, ScanText } from "@lucide/vue";
+import { AlertTriangle, ChevronRight, LoaderCircle, ScanText } from "@lucide/vue";
+import { CollapsibleContent, CollapsibleRoot, CollapsibleTrigger } from "reka-ui";
 import { computed, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -104,39 +105,34 @@ const {
           />
         </div>
       </div>
-      <div class="mt-4">
-        <button
-          type="button"
-          class="flex h-(--knovum-compact-item-height) w-full items-center gap-2 rounded-control px-2 text-caption font-semibold text-foreground-secondary hover:bg-control-hover hover:text-foreground"
-          :aria-expanded="transcriptOpen"
-          @click="transcriptOpen = !transcriptOpen"
-        >
-          <ChevronDown
-            v-if="transcriptOpen"
-            class="size-(--knovum-icon-size-xs) transition-transform duration-150 ease-standard"
-          />
-          <ChevronRight
-            v-else
-            class="size-(--knovum-icon-size-xs) transition-transform duration-150 ease-standard"
-          />
-          {{ t("spaces.transcript.text.title") }}
-          <span class="ml-auto text-micro font-normal text-foreground-tertiary">
-            {{ knowledge.transcript.language }}
-            ·
-            {{ knowledge.transcript.segments.length }}
-          </span>
-        </button>
-        <SpaceTranscriptList
-          v-if="transcriptOpen"
-          class="mt-2"
-          :node-id="nodeId"
-          :segments="knowledge.transcript.segments"
-          v-bind="playback ? { currentMs: playback.currentMs } : {}"
-          :disabled="stale || !canEdit"
-          @seek="seek"
-          @save="saveSegment"
-        />
-      </div>
+      <CollapsibleRoot v-model:open="transcriptOpen" as-child>
+        <div class="mt-4">
+          <CollapsibleTrigger
+            class="flex h-(--knovum-compact-item-height) w-full items-center gap-2 rounded-control px-2 text-caption font-semibold text-foreground-secondary hover:bg-control-hover hover:text-foreground"
+          >
+            <ChevronRight
+              class="size-(--knovum-icon-size-xs) transition-transform duration-150 ease-standard"
+              :class="transcriptOpen && 'rotate-90'"
+            />
+            {{ t("spaces.transcript.text.title") }}
+            <span class="ml-auto text-micro font-normal text-foreground-tertiary">
+              {{ knowledge.transcript.language }}
+              ·
+              {{ knowledge.transcript.segments.length }}
+            </span>
+          </CollapsibleTrigger>
+          <CollapsibleContent class="mt-2">
+            <SpaceTranscriptList
+              :node-id="nodeId"
+              :segments="knowledge.transcript.segments"
+              v-bind="playback ? { currentMs: playback.currentMs } : {}"
+              :disabled="stale || !canEdit"
+              @seek="seek"
+              @save="saveSegment"
+            />
+          </CollapsibleContent>
+        </div>
+      </CollapsibleRoot>
     </template>
     <p v-else class="mt-3 text-caption leading-relaxed text-foreground-tertiary">
       {{ analyzing ? t("spaces.media.analysis.inProgress") : t("spaces.media.analysis.knowledge.pending") }}

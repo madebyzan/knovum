@@ -1,4 +1,5 @@
 import { Channel } from "@tauri-apps/api/core";
+import { parse } from "pathe";
 import { toast } from "vue-sonner";
 
 import { i18n } from "../../../foundation/i18n/i18n";
@@ -75,6 +76,5 @@ export async function renderVideoEdit(
 }
 
 function editedName(value: string) {
-  const separator = value.lastIndexOf(".");
-  return separator > 0 ? `${value.slice(0, separator)}-edited.mp4` : `${value}-edited.mp4`;
+  return `${parse(value).name}-edited.mp4`;
 }

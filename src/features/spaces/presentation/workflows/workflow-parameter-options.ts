@@ -1,9 +1,9 @@
+import { isPlainObject, isString } from "es-toolkit";
+
 import type { SpaceActionDefinition } from "../../workflows/action-catalog";
 
 function objectValue(value: unknown): Record<string, unknown> | undefined {
-  return value && typeof value === "object" && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : undefined;
+  return isPlainObject(value) ? value : undefined;
 }
 
 export function workflowParameterOptions(action: SpaceActionDefinition | undefined, key: string) {
@@ -12,7 +12,7 @@ export function workflowParameterOptions(action: SpaceActionDefinition | undefin
   const reference = property.$ref;
   const definitions = objectValue(action?.parametersSchema.$defs);
   const resolved =
-    typeof reference === "string" && reference.startsWith("#/$defs/")
+    isString(reference) && reference.startsWith("#/$defs/")
       ? objectValue(definitions?.[reference.slice(8)])
       : property;
   const values = resolved?.enum;

@@ -1,4 +1,5 @@
-import { onBeforeUnmount, onMounted, type Ref } from "vue";
+import { useEventListener } from "@vueuse/core";
+import type { Ref } from "vue";
 
 import type { CanvasPoint, CanvasViewport } from "../../contract/canvas-editor";
 import { canvasPointFromScreen } from "../viewport/viewport-math";
@@ -40,12 +41,7 @@ export function useExternalContentDrop(options: ExternalContentDropOptions) {
     void operation.catch(options.reportError);
   }
 
-  onMounted(() => {
-    options.host.value?.addEventListener("dragover", dragOver);
-    options.host.value?.addEventListener("drop", drop);
-  });
-  onBeforeUnmount(() => {
-    options.host.value?.removeEventListener("dragover", dragOver);
-    options.host.value?.removeEventListener("drop", drop);
-  });
+  const host = () => options.host.value;
+  useEventListener(host, "dragover", dragOver);
+  useEventListener(host, "drop", drop);
 }

@@ -1,3 +1,4 @@
+import { clamp } from "es-toolkit";
 import type Konva from "konva";
 
 import { isProportionalResizeAnchor } from "./canvas-resize-anchors";
@@ -104,8 +105,4 @@ function proportionalSize(width: number, ratio: number, policy: CanvasSelectionT
   const maximumWidth = Math.min(policy.maxWidth, policy.maxHeight * ratio);
   const constrainedWidth = clamp(width, minimumWidth, maximumWidth);
   return { width: constrainedWidth, height: constrainedWidth / ratio };
-}
-
-function clamp(value: number, minimum: number, maximum: number) {
-  return Math.min(maximum, Math.max(minimum, value));
 }

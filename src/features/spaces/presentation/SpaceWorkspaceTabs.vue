@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Plus } from "@lucide/vue";
 import { error as logError } from "@tauri-apps/plugin-log";
+import { isString } from "es-toolkit";
 import { storeToRefs } from "pinia";
 import { TabsList, TabsRoot } from "reka-ui";
 import { computed, nextTick, useTemplateRef, watch, watchEffect } from "vue";
@@ -53,7 +54,7 @@ function createSpace() {
 }
 
 function activateTab(id: unknown) {
-  if (typeof id !== "string") throw new TypeError("Workspace tab identifiers must be strings");
+  if (!isString(id)) throw new TypeError("Workspace tab identifiers must be strings");
   void store.openSpace(id).catch(reportTabFailure);
 }
 

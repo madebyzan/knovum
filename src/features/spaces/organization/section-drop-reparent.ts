@@ -1,3 +1,5 @@
+import { maxBy } from "es-toolkit";
+
 import type { SpaceEditSnapshot } from "../canvas/contract/space-edit-snapshot";
 import { createStructureIndex, effectiveOperationRoots } from "../model/structure/structure-index";
 import { boundsForOperationRoots } from "../model/structure/world-bounds";
@@ -52,11 +54,10 @@ export function sectionDropReparentCommand(
     bottom: bounds.bottom + delta.y,
   };
   const selected = new Set(roots.map(({ id }) => id));
-  const target = snapshot.layouts
-    .flatMap((layout) =>
-      sectionDropTarget(layout, { structureById: index.structureById, selected, moved, options }),
-    )
-    .toSorted((left, right) => right.paintOrder - left.paintOrder)[0];
+  const targets = snapshot.layouts.flatMap((layout) =>
+    sectionDropTarget(layout, { structureById: index.structureById, selected, moved, options }),
+  );
+  const target = maxBy(targets, (candidate) => candidate.paintOrder);
   const parentId = target?.id ?? null;
   if (parentId === currentParentId) return undefined;
   return {

@@ -1,3 +1,6 @@
+import { groupBy, uniq } from "es-toolkit";
+import pLimit from "p-limit";
+
 import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
 import { queryClient } from "../../../foundation/query/query-client";
 import { cleanupDeletedSpaceAssets } from "../assets/asset-operations";
@@ -6,6 +9,8 @@ import { invokeConfirmedMutation } from "../organization/confirmed-mutation";
 import type { SpaceEditReceipt } from "../organization/space-edit-command";
 import { spaceEditOperations } from "../structure/space-edit-operations";
 import type { SpaceDeletedStructureRoot } from "./deleted-structure";
+
+const permanentDeletions = pLimit(2);
 
 export function listRecentlyDeletedStructure(spaceId: string | null) {
   return invoke<SpaceDeletedStructureRoot[]>("plugin:spaces|list_recently_deleted_structure", {
@@ -36,16 +41,16 @@ export async function permanentlyDeleteStructure(
   deletedRoots: readonly SpaceDeletedStructureRoot[],
   wholeBatches: boolean,
 ) {
-  const batches = new Map<string, SpaceDeletedStructureRoot[]>();
-  for (const deletedRoot of deletedRoots) {
-    const key = `${deletedRoot.spaceId}\u0000${deletedRoot.batchId}`;
-    batches.set(key, [...(batches.get(key) ?? []), deletedRoot]);
-  }
+  const batches = groupBy(deletedRoots, ({ spaceId, batchId }) => `${spaceId}\u0000${batchId}`);
   try {
     const paths = (
-      await Promise.all([...batches.values()].map((roots) => permanentlyDeleteBatch(roots, wholeBatches)))
+      await Promise.all(
+        Object.values(batches).map((roots) =>
+          permanentDeletions(() => permanentlyDeleteBatch(roots, wholeBatches)),
+        ),
+      )
     ).flat();
-    if (paths.length) await cleanupDeletedSpaceAssets([...new Set(paths)]);
+    if (paths.length) await cleanupDeletedSpaceAssets(uniq(paths));
   } finally {
     await refreshDeletedStructure();
   }

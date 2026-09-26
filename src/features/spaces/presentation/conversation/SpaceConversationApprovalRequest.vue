@@ -1,10 +1,15 @@
 <script setup lang="ts">
+import { isString } from "es-toolkit";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
+import { z } from "zod";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import type { ApprovalSummary } from "../../contracts/generated/ActionApproval";
 import { captureActionLabels } from "../workflows/workflow-capture-labels";
+
+/** `ApprovalSummary.plan` is a generated JSON value, so its parameters are an untrusted shape. */
+const approvalPlanSchema = z.object({ parameters: z.record(z.string(), z.unknown()) });
 
 const props = defineProps<{ approval: ApprovalSummary; busy: boolean }>();
 const emit = defineEmits<{ decide: [approvalId: string, approved: boolean] }>();
@@ -14,13 +19,11 @@ const actionName = computed(() => {
   return label ? t(`spaces.creation.workflow.captureActions.${label}`) : props.approval.actionId;
 });
 const parameters = computed(() => {
-  const plan = props.approval.plan;
-  if (!plan || typeof plan !== "object" || Array.isArray(plan)) return [];
-  const value = plan.parameters;
-  if (!value || typeof value !== "object" || Array.isArray(value)) return [];
-  return Object.entries(value).map(([name, parameter]) => ({
+  const plan = approvalPlanSchema.safeParse(props.approval.plan);
+  if (!plan.success) return [];
+  return Object.entries(plan.data.parameters).map(([name, parameter]) => ({
     name,
-    value: typeof parameter === "string" ? parameter : JSON.stringify(parameter),
+    value: isString(parameter) ? parameter : JSON.stringify(parameter),
   }));
 });
 </script>

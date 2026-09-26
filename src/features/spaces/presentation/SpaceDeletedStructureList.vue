@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Boxes, FileText, LayoutPanelTop, RotateCcw, Trash2 } from "@lucide/vue";
 import { useVirtualizer } from "@tanstack/vue-virtual";
+import { countBy } from "es-toolkit";
 import { computed, useTemplateRef, type ComponentPublicInstance } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -32,13 +33,7 @@ const rows = computed(() =>
   virtualizer.value.getVirtualItems().map((row) => ({ row, deletedRoot: props.deletedRoots[row.index]! })),
 );
 const totalSize = computed(() => virtualizer.value.getTotalSize());
-const batchCounts = computed(() => {
-  const counts = new Map<string, number>();
-  for (const deletedRoot of props.deletedRoots) {
-    counts.set(deletedRoot.batchId, (counts.get(deletedRoot.batchId) ?? 0) + 1);
-  }
-  return counts;
-});
+const batchCounts = computed(() => countBy(props.deletedRoots, ({ batchId }) => batchId));
 
 function deletedIcon(kind: SpaceDeletedStructureRoot["kind"]) {
   return kind === "group" ? Boxes : kind === "section" ? LayoutPanelTop : FileText;
@@ -80,7 +75,7 @@ function measureElement(element: Element | ComponentPublicInstance | null) {
           <RotateCcw class="size-(--knovum-icon-size-xs)" />
         </UiIconButton>
         <UiIconButton
-          v-if="(batchCounts.get(deletedRoot.batchId) ?? 0) > 1"
+          v-if="(batchCounts[deletedRoot.batchId] ?? 0) > 1"
           :disabled="busy"
           :label="t('spaces.trash.structure.restoreOperation')"
           size="sm"

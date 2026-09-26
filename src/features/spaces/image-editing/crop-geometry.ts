@@ -1,3 +1,5 @@
+import { clamp } from "es-toolkit";
+
 import type { ImageCrop } from "./image-edit";
 
 export type CropDragHandle = "move" | "n" | "ne" | "e" | "se" | "s" | "sw" | "w" | "nw";
@@ -21,8 +23,6 @@ export interface CropDrawOrigin {
 }
 
 const MIN_CROP_SIZE = 0.01;
-const clamp = (value: number, minimum: number, maximum: number) =>
-  Math.min(maximum, Math.max(minimum, value));
 
 export function cropFromPointer(origin: CropDragOrigin, clientX: number, clientY: number): ImageCrop {
   const deltaX = (clientX - origin.clientX) / origin.viewportWidth;

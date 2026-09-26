@@ -1,3 +1,4 @@
+import pLimit from "p-limit";
 import { z } from "zod";
 
 import { completeGeneralWithMetadata } from "../../../foundation/ai/ai-runtime";
@@ -5,6 +6,8 @@ import { parseStructuredJson } from "../../../foundation/ai/structured-output";
 import { finalizeMediaChapters } from "./chapters";
 import { mediaCandidateText, mediaKnowledgeInstruction, mediaTranscriptChunks } from "./prompts";
 import type { SpaceMediaKnowledge, SpaceMediaTranscript } from "./schema";
+
+const chunkInference = pLimit(3);
 
 const aiKnowledgeSchema = z.object({
   summary: z.string().trim().min(1).max(16_000),
@@ -33,10 +36,12 @@ export async function generateSpaceMediaInsights(
   const chunks = mediaTranscriptChunks(knowledge.transcript);
   const completions = await Promise.all(
     chunks.map((chunk) =>
-      completeGeneralWithMetadata({
-        instruction: mediaKnowledgeInstruction("chunk"),
-        text: chunk,
-      }),
+      chunkInference(() =>
+        completeGeneralWithMetadata({
+          instruction: mediaKnowledgeInstruction("chunk"),
+          text: chunk,
+        }),
+      ),
     ),
   );
   const records = completions.map((completion) => parseStructuredJson(completion.text, aiKnowledgeSchema));

@@ -1,3 +1,5 @@
+import { sumBy } from "es-toolkit";
+
 const IMPORT_GAP = 24;
 
 export function layoutImportGrid(
@@ -17,8 +19,8 @@ export function layoutImportGrid(
     const column = index % columns;
     const row = Math.floor(index / columns);
     return {
-      x: origin.x + columnWidths.slice(0, column).reduce((sum, width) => sum + width + IMPORT_GAP, 0),
-      y: origin.y + rowHeights.slice(0, row).reduce((sum, height) => sum + height + IMPORT_GAP, 0),
+      x: origin.x + sumBy(columnWidths.slice(0, column), (width) => width + IMPORT_GAP),
+      y: origin.y + sumBy(rowHeights.slice(0, row), (height) => height + IMPORT_GAP),
     };
   });
 }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
@@ -18,13 +18,20 @@ import SpaceWorkflowRunHistory from "./SpaceWorkflowRunHistory.vue";
 
 const store = useSpaceStore();
 const { t } = useI18n();
-const library = useCapturedWorkflowLibrary();
-const { items, history, loading } = library;
+const {
+  items,
+  history,
+  loading,
+  error: loadError,
+  renamed,
+  deleted,
+  addRun,
+} = useCapturedWorkflowLibrary(() => store.activeSpaceId);
 const workflowId = ref("");
 const run = useCapturedWorkflowRun();
 const { error, runId, runState, cancelling, submitting, retrying, outputNodes } = run;
 const requestId = ref(crypto.randomUUID());
-let disposed = false;
+let autoSelected = false;
 
 const workflow = computed(() => items.value.find((item) => item.workflowId === workflowId.value));
 const binding = useWorkflowBindings(workflow);
@@ -40,18 +47,14 @@ watch(
   },
 );
 
-onMounted(async () => {
-  try {
-    const spaceId = store.activeSpaceId;
-    if (!spaceId) throw new Error("Space is unavailable");
-    await library.load(spaceId);
-    if (store.activeSpaceId !== spaceId || disposed) return;
-    if (choices.value.length === 1 && !choices.value[0]!.disabled)
-      workflowId.value = items.value[0]!.workflowId;
-  } catch (cause) {
-    error.value = String(cause);
-  }
-});
+watch(loading, autoSelect, { immediate: true });
+
+function autoSelect() {
+  if (autoSelected || loading.value) return;
+  autoSelected = true;
+  if (choices.value.length === 1 && !choices.value[0]!.disabled)
+    workflowId.value = items.value[0]!.workflowId;
+}
 
 function showHistory(entry: CapturedWorkflowRun) {
   run.reset();
@@ -76,7 +79,7 @@ async function start() {
     bindings: bindings.value,
     requestId: selectedRequestId,
     isCurrent: () => requestId.value === selectedRequestId,
-    onStarted: (started) => library.addRun({ run: started, workflowId: selectedWorkflow.workflowId }),
+    onStarted: (started) => addRun({ run: started, workflowId: selectedWorkflow.workflowId }),
   });
 }
 
@@ -86,12 +89,8 @@ async function retry() {
   const title =
     items.value.find((item) => item.workflowId === entry.workflowId)?.name ??
     t("spaces.creation.workflow.title");
-  await run.retry(title, (started) => library.addRun({ run: started, workflowId: entry.workflowId }));
+  await run.retry(title, (started) => addRun({ run: started, workflowId: entry.workflowId }));
 }
-
-onBeforeUnmount(() => {
-  disposed = true;
-});
 
 function setBinding(slotId: string, nodeIds: string[]) {
   binding.set(slotId, nodeIds);
@@ -100,7 +99,7 @@ function setBinding(slotId: string, nodeIds: string[]) {
 }
 
 function deletedWorkflow(id: string) {
-  library.deleted(id);
+  deleted(id);
   if (workflowId.value === id) workflowId.value = "";
 }
 </script>
@@ -155,8 +154,8 @@ function deletedWorkflow(id: string) {
           </section>
           <SpaceWorkflowManagement
             :workflow="workflow"
-            @renamed="library.renamed"
-            @revised="library.renamed"
+            @renamed="renamed"
+            @revised="renamed"
             @deleted="deletedWorkflow"
           />
         </template>
@@ -167,7 +166,9 @@ function deletedWorkflow(id: string) {
           :active-run-state="runState"
           @select="showHistory"
         />
-        <p v-if="error" role="alert" class="text-caption text-danger">{{ error }}</p>
+        <p v-if="error || loadError" role="alert" class="text-caption text-danger">
+          {{ error || loadError }}
+        </p>
       </template>
     </div>
     <div v-if="workflow && !runId" class="border-t border-border px-3 py-3">

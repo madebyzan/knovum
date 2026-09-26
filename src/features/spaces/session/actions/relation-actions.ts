@@ -1,3 +1,4 @@
+import { uniq } from "es-toolkit";
 import type { Ref } from "vue";
 
 import { recordSpaceHistory, type SpaceHistoryState } from "../../history/stack";
@@ -97,7 +98,7 @@ export async function removeSpaceRelation(context: RelationContext, id: string) 
 }
 
 export async function removeSpaceRelations(context: RelationContext, ids: readonly string[]) {
-  const uniqueIds = [...new Set(ids)];
+  const uniqueIds = uniq(ids);
   const selected = uniqueIds.flatMap((id) => {
     const relation = context.relations.value.find((candidate) => candidate.id === id);
     return relation ? [relation] : [];

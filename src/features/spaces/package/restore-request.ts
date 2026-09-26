@@ -1,4 +1,4 @@
-import { isString } from "es-toolkit";
+import { isPlainObject, isString } from "es-toolkit";
 
 import { groundedCitationSchema } from "../knowledge/model/grounded-citation";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
@@ -125,8 +125,8 @@ function remapOptional(map: Map<string, string>, id: string | null, kind: string
 }
 
 function remapRunPolicy(value: unknown, runs: Map<string, string>): unknown {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return value;
-  const policy = structuredClone(value) as Record<string, unknown>;
+  if (!isPlainObject(value)) return value;
+  const policy: Record<string, unknown> = structuredClone(value);
   if (typeof policy.retryRootRunId === "string") {
     policy.retryRootRunId = requiredMap(runs, policy.retryRootRunId, "retry root Run");
   }

@@ -1,4 +1,5 @@
 import { warn as logWarning } from "@tauri-apps/plugin-log";
+import { sortBy } from "es-toolkit";
 import pLimit from "p-limit";
 
 import { i18n } from "../../../foundation/i18n/i18n";
@@ -47,7 +48,7 @@ export async function resumePendingEnrichmentJobs(
 
   async function schedule() {
     const persisted = await listEnrichmentJobs(targetSpaceId);
-    const ordered = persisted.toSorted((left, right) => priority(left.jobType) - priority(right.jobType));
+    const ordered = sortBy(persisted, [(record) => priority(record.jobType)]);
     for (const record of ordered) {
       if (scheduledJobs.has(record.id)) continue;
       const job = jobFromRecord(record);

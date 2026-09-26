@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Tag, X } from "@lucide/vue";
+import { union, without } from "es-toolkit";
 import { storeToRefs } from "pinia";
 import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
@@ -35,12 +36,12 @@ async function applyTag(tag = draft.value) {
   const spaceId = store.activeSpaceId;
   const initialDraft = draft.value;
   if (!value || ids.length === 0 || !spaceId) return;
-  await updateTags((tags) => [...new Set([...tags, value])]);
+  await updateTags((tags) => union(tags, [value]));
   if (store.activeSpaceId === spaceId && draft.value === initialDraft) draft.value = "";
 }
 
 async function removeTag(tag: string) {
-  await updateTags((tags) => tags.filter((candidate) => candidate !== tag));
+  await updateTags((tags) => without(tags, tag));
 }
 
 async function updateTags(update: (tags: readonly string[]) => string[]) {

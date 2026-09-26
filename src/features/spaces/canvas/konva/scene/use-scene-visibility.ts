@@ -31,7 +31,7 @@ export function useSceneVisibility(options: SceneVisibilityOptions) {
 
   function updateVisibility() {
     culledNodeIds.value = visibleSceneNodeIds(
-      options.scene.value.nodes.map(({ layout }) => layout),
+      options.scene.value.nodes,
       options.viewport.value,
       options.size,
     );

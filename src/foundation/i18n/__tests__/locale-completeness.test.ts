@@ -1,4 +1,4 @@
-import { difference } from "es-toolkit";
+import { difference, isPlainObject } from "es-toolkit";
 import { describe, expect, it } from "vitest";
 
 import { dynamicLocaleKeyPrefixes, dynamicLocaleKeys } from "../../../locales/dynamic-keys";
@@ -56,8 +56,8 @@ function nonCamelCaseKeys(tree: Record<string, unknown>, parent = "", keys: stri
   for (const [key, value] of Object.entries(tree)) {
     const path = parent ? `${parent}.${key}` : key;
     if (!serializedValueMaps.has(parent) && !/^[a-z][A-Za-z0-9]*$/u.test(key)) keys.push(path);
-    if (value && typeof value === "object") {
-      nonCamelCaseKeys(value as Record<string, unknown>, path, keys);
+    if (isPlainObject(value)) {
+      nonCamelCaseKeys(value, path, keys);
     }
   }
   return keys;
