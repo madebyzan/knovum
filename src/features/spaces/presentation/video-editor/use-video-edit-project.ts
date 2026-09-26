@@ -26,11 +26,12 @@ export function useVideoEditProject(
     if (project.value || !data.value) return;
     const element = event.currentTarget as HTMLVideoElement;
     if (!Number.isFinite(element.duration) || element.duration <= 0) {
-      if (proxyPath.value) metadataError.value = i18n.global.t("spaces.media.durationUnavailable");
+      if (proxyPath.value)
+        metadataError.value = i18n.global.t("spaces.media.videoEditor.preview.durationUnavailable");
       return;
     }
     if (!validVideoDimensions(element)) {
-      metadataError.value = i18n.global.t("spaces.media.videoMetadataUnavailable");
+      metadataError.value = i18n.global.t("spaces.media.videoEditor.preview.metadataUnavailable");
       return;
     }
     project.value = createVideoEditProject(

@@ -21,7 +21,9 @@ const dock = useContextDock();
 const state = useSpaceTiptapEditor();
 const { activeHeadingId, characterCount, close, editorLabel, editorNode, editor, headings } = state;
 const { persist, revealHeading, saveStatus, scrollRoot, syncActiveHeading, title, wordCount } = state;
-const imageDragging = useSpaceTiptapImageDrop(editor, scrollRoot, () => t("editor.imageUploadFailed"));
+const imageDragging = useSpaceTiptapImageDrop(editor, scrollRoot, () =>
+  t("spaces.richtext.image.uploadFailed"),
+);
 watch(
   [headings, activeHeadingId],
   ([items, activeId]) => {
@@ -45,7 +47,7 @@ async function exportMarkdown() {
   try {
     await persist();
     if (await exportSpaceMarkdown(title.value, editor.value.getMarkdown()))
-      toast.success(t("spaces.transfer.exportComplete"));
+      toast.success(t("spaces.importExport.exportCompleted"));
   } catch (error) {
     toast.error(String(error));
   }
@@ -78,17 +80,18 @@ async function exportMarkdown() {
       </span>
       <SpaceTiptapSearch v-if="editor" :editor="editor" />
       <UiIconButton
-        :label="t('spaces.navigation.editorOutline')"
+        :label="t('spaces.sidebar.editorOutline.title')"
         size="sm"
         @click="dock.openDocumentOutline()"
       >
         <ListTree class="size-(--knovum-icon-size-sm)" :stroke-width="1.55" />
       </UiIconButton>
-      <UiIconButton :label="t('spaces.transfer.exportMarkdown')" size="sm" @click="exportMarkdown">
+      <UiIconButton :label="t('spaces.importExport.markdown.export')" size="sm" @click="exportMarkdown">
         <Download class="size-(--knovum-icon-size-sm)" />
       </UiIconButton>
       <span class="hidden text-micro text-foreground-tertiary sm:block">
-        {{ wordCount }} {{ t("editor.words") }} · {{ characterCount }} {{ t("editor.characters") }}
+        {{ wordCount }} {{ t("spaces.richtext.words") }} · {{ characterCount }}
+        {{ t("spaces.richtext.characters") }}
       </span>
     </header>
     <div v-if="editor" class="border-b border-divider bg-chrome/80">
@@ -100,17 +103,17 @@ async function exportMarkdown() {
           v-if="imageDragging"
           class="pointer-events-none sticky top-2 z-40 mx-2 -mb-18 flex h-16 items-center justify-center gap-2 rounded-panel border border-dashed border-accent bg-overlay/92 text-label font-medium text-accent shadow-popover backdrop-blur"
         >
-          <ImagePlus class="size-(--knovum-icon-size-md)" />{{ t("editor.imageDropNow") }}
+          <ImagePlus class="size-(--knovum-icon-size-md)" />{{ t("spaces.richtext.image.dropNow") }}
         </div>
         <article class="mx-auto min-h-full w-full max-w-3xl px-10 py-12 sm:px-14">
           <input
             v-model="title"
             class="w-full bg-transparent text-display font-semibold tracking-title text-foreground outline-none placeholder:text-foreground-tertiary"
-            :aria-label="t('spaces.editor.markdownTitle')"
+            :aria-label="t('spaces.editor.markdown.title')"
             :placeholder="
               editorNode.data.kind === 'note'
-                ? t('spaces.editor.newNote')
-                : t('spaces.editor.untitledMarkdown')
+                ? t('spaces.editor.note.new')
+                : t('spaces.editor.markdown.untitled')
             "
             @blur="persist"
           />

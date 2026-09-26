@@ -12,7 +12,7 @@ const { t } = useI18n();
 const headings = [1, 2, 3, 4, 5, 6] as const;
 const activeHeading = computed(() => headings.find((level) => props.editor.isActive("heading", { level })));
 const currentLabel = computed(() =>
-  activeHeading.value ? `H${activeHeading.value}` : t("editor.paragraph"),
+  activeHeading.value ? `H${activeHeading.value}` : t("spaces.richtext.paragraph"),
 );
 </script>
 
@@ -22,7 +22,7 @@ const currentLabel = computed(() =>
       <button
         type="button"
         class="flex h-(--knovum-control-height-sm) min-w-16 items-center justify-center gap-1 rounded-control px-2 text-label text-foreground-secondary outline-none hover:bg-control-hover hover:text-foreground data-[state=open]:bg-control-pressed"
-        :aria-label="t('editor.headingMenu')"
+        :aria-label="t('spaces.richtext.headings.menu')"
       >
         <span class="max-w-20 truncate">{{ currentLabel }}</span>
         <ChevronDown class="size-(--knovum-icon-size-xs) text-foreground-tertiary" :stroke-width="1.6" />
@@ -31,7 +31,7 @@ const currentLabel = computed(() =>
 
     <UiDropdownMenuItem @select="editor.chain().focus().setParagraph().run()">
       <span class="w-6 text-caption font-medium">Aa</span>
-      <span class="min-w-0 flex-1 truncate">{{ t("editor.paragraph") }}</span>
+      <span class="min-w-0 flex-1 truncate">{{ t("spaces.richtext.paragraph") }}</span>
       <Check v-if="editor.isActive('paragraph')" class="ml-auto size-(--knovum-icon-size-xs) text-accent" />
     </UiDropdownMenuItem>
     <UiDropdownMenuItem
@@ -40,7 +40,7 @@ const currentLabel = computed(() =>
       @select="editor.chain().focus().toggleHeading({ level }).run()"
     >
       <span class="w-6 text-caption font-semibold">H{{ level }}</span>
-      <span class="min-w-0 flex-1 truncate">{{ t(`editor.heading${level}`) }}</span>
+      <span class="min-w-0 flex-1 truncate">{{ t(`spaces.richtext.heading${level}`) }}</span>
       <Check
         v-if="editor.isActive('heading', { level })"
         class="ml-auto size-(--knovum-icon-size-xs) text-accent"

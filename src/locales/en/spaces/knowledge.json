@@ -1,37 +1,41 @@
 {
-  "knowledgeHealth": "Knowledge Checks",
-  "knowledgeHealthDescription": "Find unsupported, conflicting, or outdated knowledge in this Space.",
-  "knowledgeHealthClean": "No issues found.",
-  "knowledgeHealthCritical": "{count} critical issues detected",
-  "knowledgeHealthIssue": {
-    "unsupported-claim": "Claim lacks a supporting relation (Supports).",
-    "contradicted-claim": "Accepted claim has an active contradiction (Contradicts).",
-    "ungrounded-evidence": "Evidence lacks a valid provenance source.",
-    "answered-open-question": "Open question is associated with an answer relation.",
-    "stale-provenance": "Source version has changed; re-verification required."
+  "health": {
+    "title": "Knowledge checks",
+    "description": "Find unsupported, conflicting, or outdated knowledge in this Space.",
+    "clean": "No issues found.",
+    "critical": "{count} critical issues detected",
+    "issues": {
+      "unsupported-claim": "Claim lacks a supporting relation (Supports).",
+      "contradicted-claim": "Accepted claim has an active contradiction (Contradicts).",
+      "ungrounded-evidence": "Evidence lacks a valid provenance source.",
+      "answered-open-question": "Open question is associated with an answer relation.",
+      "stale-provenance": "Source version has changed; re-verification required."
+    }
   },
-  "knowledgeHistory": "Knowledge Version History",
-  "knowledgeHistoryEmpty": "No changes yet.",
-  "knowledgeActor": "Changed by {actor}",
-  "knowledgeEvent": {
-    "created": "Created",
-    "updated": "Updated",
-    "drafted": "Drafted",
-    "accepted": "Accepted",
-    "contested": "Contested",
-    "superseded": "Superseded",
-    "invalidated": "Invalidated",
-    "opened": "Opened",
-    "resolved": "Resolved",
-    "restored": "Restored",
-    "linked": "Linked",
-    "unlinked": "Unlinked",
-    "applied": "Applied",
-    "rejected": "Rejected",
-    "moved": "Moved"
+  "history": {
+    "title": "Knowledge version history",
+    "empty": "No changes yet.",
+    "actor": "Changed by {actor}",
+    "events": {
+      "created": "Created",
+      "updated": "Updated",
+      "drafted": "Drafted",
+      "accepted": "Accepted",
+      "contested": "Contested",
+      "superseded": "Superseded",
+      "invalidated": "Invalidated",
+      "opened": "Opened",
+      "resolved": "Resolved",
+      "restored": "Restored",
+      "linked": "Linked",
+      "unlinked": "Unlinked",
+      "applied": "Applied",
+      "rejected": "Rejected",
+      "moved": "Moved"
+    },
+    "loadFailed": "Could not load knowledge history"
   },
-  "knowledgeHistoryLoadFailed": "Could not load knowledge history",
-  "knowledgeIcons": {
+  "icons": {
     "select": "Select icon",
     "general": "General",
     "database": "Database",
@@ -46,96 +50,96 @@
     "question": "Question",
     "idea": "Idea"
   },
-  "knowledgeIndex": {
-    "idle": "Search Ready",
-    "scheduled": "Scheduled for indexing…",
-    "indexing": "Building vector index…",
-    "ready": "Vector & Text Search Ready",
-    "unavailable": "Text Search Only"
+  "structuredKnowledge": "Structured knowledge",
+  "relations": {
+    "title": "Knowledge relations",
+    "incoming": "Incoming ({count})",
+    "outgoing": "Outgoing ({count})",
+    "empty": "Drag node anchors or select multiple items to create relations.",
+    "details": "Connection details",
+    "rationale": "Why these are connected",
+    "rationalePlaceholder": "Describe how these items are connected…",
+    "color": "Relation line color",
+    "colors": {
+      "neutral": "Neutral",
+      "blue": "Blue",
+      "green": "Green",
+      "amber": "Amber",
+      "red": "Red",
+      "purple": "Purple"
+    },
+    "remove": "Remove relation",
+    "kinds": {
+      "reference": "Reference",
+      "related": "Related",
+      "supports": "Supports",
+      "contradicts": "Contradicts",
+      "depends-on": "Depends on",
+      "supersedes": "Supersedes",
+      "answers": "Answers",
+      "uses": "Uses",
+      "derives-from": "Derives from",
+      "caused-by": "Caused by"
+    }
   },
-  "relationFilter": "Relation Filters",
-  "structuredKnowledge": "Structured Knowledge",
-  "relations": "Knowledge Relations",
-  "incomingRelations": "Incoming ({count})",
-  "outgoingRelations": "Outgoing ({count})",
-  "relationsEmpty": "Drag node anchors or select multiple items to create relations.",
   "provenance": "Source",
-  "relationDetails": "Connection Details",
-  "relationRationale": "Why These Are Connected",
-  "relationRationalePlaceholder": "Describe how these items are connected…",
-  "relationColor": "Relation line color",
-  "relationColors": {
-    "neutral": "Neutral",
-    "blue": "Blue",
-    "green": "Green",
-    "amber": "Amber",
-    "red": "Red",
-    "purple": "Purple"
+  "portal": {
+    "create": "New Portal node",
+    "createDescription": "Create a portal node for quick navigation to another Space."
   },
-  "focusRelationPath": "Find Relation Path",
-  "newPortal": "New Portal Node",
-  "newPortalDescription": "Create a portal node for quick navigation to another Space.",
-  "removeRelation": "Remove Relation",
-  "editRelation": "Edit Relation",
-  "relation": {
-    "reference": "Reference",
-    "related": "Related",
-    "supports": "Supports",
-    "contradicts": "Contradicts",
-    "depends-on": "Depends On",
-    "supersedes": "Supersedes",
-    "answers": "Answers",
-    "uses": "Uses",
-    "derives-from": "Derives From",
-    "caused-by": "Caused By"
+  "objects": {
+    "custom": "Custom knowledge object",
+    "create": "New custom object",
+    "createDescription": "Create a knowledge object node using a selected schema."
   },
-  "customKnowledgeObject": "Custom Knowledge Object",
-  "addKnowledgeField": "Add Field",
-  "customKnowledgeType": "Custom Knowledge Schema",
-  "knowledgeField": "Property Field",
-  "knowledgeFieldKey": "Field Key",
-  "knowledgeFieldLabel": "Field Name",
-  "knowledgeFieldKind": "Field Type",
-  "knowledgeFieldKindLabel": {
-    "text": "Text",
-    "number": "Number",
-    "boolean": "Boolean",
-    "date": "Date",
-    "node-ref": "Node Reference",
-    "enum": "Enum Options"
+  "fields": {
+    "add": "Add field",
+    "title": "Property field",
+    "key": "Field key",
+    "label": "Field name",
+    "kind": "Field type",
+    "kindLabels": {
+      "text": "Text",
+      "number": "Number",
+      "boolean": "Boolean",
+      "date": "Date",
+      "node-ref": "Node reference",
+      "enum": "Enum options"
+    },
+    "options": "Enum options (comma-separated)",
+    "required": "Required",
+    "invalid": "Each field needs a name and a unique identifier.",
+    "remove": "Remove field"
   },
-  "knowledgeFieldOptions": "Enum options (comma-separated)",
-  "knowledgeFieldRequired": "Required",
-  "knowledgeStatus": "Knowledge Status",
-  "knowledgeStatusLabel": {
-    "draft": "Draft",
-    "accepted": "Accepted",
-    "contested": "Contested",
-    "superseded": "Superseded",
-    "invalidated": "Invalidated",
-    "open": "Open",
-    "resolved": "Resolved"
+  "status": {
+    "label": "Knowledge status",
+    "labels": {
+      "draft": "Draft",
+      "accepted": "Accepted",
+      "contested": "Contested",
+      "superseded": "Superseded",
+      "invalidated": "Invalidated",
+      "open": "Open",
+      "resolved": "Resolved"
+    }
   },
-  "knowledgeSummary": "Summary",
-  "knowledgeType": "Knowledge Type",
-  "knowledgeTypeDescription": "Description",
-  "knowledgeTypeIcon": "Icon",
-  "knowledgeTypeName": "Type Name",
-  "manageKnowledgeTypes": "Knowledge Types",
-  "manageKnowledgeTypesDescription": "Define the properties of structured knowledge in this Space.",
-  "invalidKnowledgeFields": "Each field needs a name and a unique identifier.",
-  "deleteKnowledgeType": "Delete Type…",
-  "discardTypeChanges": "Discard unsaved changes to this type?",
-  "emptyTypeFields": "Add the properties this kind of knowledge needs.",
-  "deleteTypeConfirmation": "Delete “{name}”? Types used by knowledge objects cannot be deleted.",
-  "newCustomKnowledgeObject": "New Custom Object",
-  "newCustomKnowledgeObjectDescription": "Create a knowledge object node using a selected schema.",
-  "newKnowledgeType": "New Type",
-  "noCustomKnowledgeTypes": "No custom schema types.",
-  "systemKnowledgeType": "System Built-in Type",
-  "knowledgeTypesLoadFailed": "Could not load schema types",
-  "removeKnowledgeField": "Remove Field",
-  "visualKnowledge": "Visual & OCR Recognition",
-  "visualKnowledgeDescription": "Extract image subjects and OCR text from images.",
-  "visualKnowledgePending": "Analyzing image content…"
+  "summary": "Summary",
+  "types": {
+    "label": "Knowledge type",
+    "description": "Description",
+    "icon": "Icon",
+    "name": "Type name",
+    "manage": "Manage knowledge types",
+    "manageDescription": "Define the properties of structured knowledge in this Space.",
+    "delete": "Delete type…",
+    "discardChanges": "Discard unsaved changes to this type?",
+    "emptyFields": "Add the properties this kind of knowledge needs.",
+    "deleteConfirmation": "Delete “{name}”? Types used by knowledge objects cannot be deleted.",
+    "create": "New type",
+    "none": "No custom schema types.",
+    "loadFailed": "Could not load schema types"
+  },
+  "visual": {
+    "pending": "Analyzing image content…"
+  }
 }

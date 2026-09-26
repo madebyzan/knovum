@@ -102,7 +102,8 @@ async function nodePayload(
   preparation: JsonCanvasNodePreparation,
 ): Promise<SpaceNodePayload> {
   const content = source.content;
-  if (content.type === "text") return noteFromPlainText(content.text, i18n.global.t("spaces.editor.newNote"));
+  if (content.type === "text")
+    return noteFromPlainText(content.text, i18n.global.t("spaces.editor.note.new"));
   if (content.type === "link") return websitePayload(content.url);
   return importFilePayload(source.sourceId, sourceDirectory, content.file, preparation);
 }
@@ -133,7 +134,7 @@ async function importCanvasResource(
 ): Promise<ImportedSpaceAsset> {
   const sourcePath = await resolveCanvasFile(sourceId, sourceDirectory, relativePath);
   const tasks = useTaskStore();
-  const taskId = tasks.start(i18n.global.t("spaces.transfer.importingResource"));
+  const taskId = tasks.start(i18n.global.t("spaces.importExport.progress.resource"));
   preparation.taskIds.push(taskId);
   const prepared = await prepareSpaceAssetImport(sourcePath, "scoped");
   tasks.title(taskId, prepared.asset.name);

@@ -15,10 +15,10 @@ const { t } = useI18n();
 const draft = reactive({ name: "", model: "", capabilities: [] as AiModelCapability[] });
 const options = computed(() =>
   [
-    ["text-generation", t("settings.ai.capabilityText")],
-    ["vision-understanding", t("settings.ai.capabilityVision")],
-    ["image-generation", t("settings.ai.capabilityImage")],
-    ["video-generation", t("settings.ai.capabilityVideo")],
+    ["text-generation", t("settings.ai.capabilities.text")],
+    ["vision-understanding", t("settings.ai.capabilities.vision")],
+    ["image-generation", t("settings.ai.capabilities.image")],
+    ["video-generation", t("settings.ai.capabilities.video")],
   ].map(([value, label]) => ({ value: value as AiModelCapability, label: label! })),
 );
 const valid = computed(
@@ -89,7 +89,7 @@ function createModel() {
     <template #footer>
       <UiButton variant="ghost" @click="open = false">{{ t("common.cancel") }}</UiButton>
       <UiButton variant="primary" :disabled="!valid" @click="createModel">
-        {{ t("settings.ai.createModel") }}
+        {{ t("settings.ai.addModel") }}
       </UiButton>
     </template>
   </UiDialog>

@@ -18,7 +18,7 @@ const { t } = useI18n();
 const filter = shallowRef(props.spaceId ?? "all");
 const scope = computed(() => (filter.value === "all" ? null : filter.value));
 const options = computed(() => [
-  { value: "all", label: t("spaces.space.allSpaces") },
+  { value: "all", label: t("spaces.space.sections.all") },
   ...store.spaces.map((space) => ({ value: space.id, label: space.title })),
 ]);
 const scopeLabel = computed(() => options.value.find((option) => option.value === filter.value)!.label);
@@ -37,13 +37,13 @@ const canDeleteAll = computed(
 <template>
   <UiDialog
     v-model:open="open"
-    :title="t('spaces.navigation.recentlyDeleted')"
-    :description="t('spaces.navigation.recentlyDeletedDescription')"
+    :title="t('spaces.trash.recent.title')"
+    :description="t('spaces.trash.recent.description')"
   >
     <UiSelect
       v-model="filter"
       :options="options"
-      :label="t('spaces.navigation.deletedSpaceFilter')"
+      :label="t('spaces.trash.filters.space')"
       :disabled="busy"
       size="sm"
       class="mb-3"
@@ -53,7 +53,7 @@ const canDeleteAll = computed(
     </div>
     <div v-else-if="deletedQuery.isError.value" class="grid h-72 content-center justify-items-center gap-3">
       <p class="text-caption text-foreground-secondary">
-        {{ t("spaces.navigation.recentlyDeletedLoadFailed") }}
+        {{ t("spaces.trash.recent.loadFailed") }}
       </p>
       <UiButton size="sm" @click="deletedQuery.refetch()">{{ t("common.retry") }}</UiButton>
     </div>
@@ -67,14 +67,14 @@ const canDeleteAll = computed(
     />
     <div v-else class="grid h-72 content-center justify-items-center gap-2 text-foreground-tertiary">
       <Trash2 class="size-(--knovum-icon-size-lg)" :stroke-width="1.5" />
-      <p class="text-caption">{{ t("spaces.navigation.recentlyDeletedEmpty") }}</p>
+      <p class="text-caption">{{ t("spaces.trash.recent.empty") }}</p>
     </div>
     <template #footer>
       <span role="status" class="mr-auto self-center text-caption text-foreground-secondary">
         {{
           busy
-            ? t("spaces.navigation.processingDeletedStructure")
-            : t("spaces.navigation.deletedStructureCount", { count: deletedRoots.length })
+            ? t("spaces.trash.structure.processing")
+            : t("spaces.trash.structure.deletedCount", { count: deletedRoots.length })
         }}
       </span>
       <UiButton
@@ -83,7 +83,7 @@ const canDeleteAll = computed(
         :disabled="!canDeleteAll"
         @click="remove(deletedRoots, scopeLabel)"
       >
-        {{ t("spaces.navigation.deleteAll") }}
+        {{ t("spaces.trash.deleteAll.action") }}
       </UiButton>
     </template>
   </UiDialog>

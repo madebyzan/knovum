@@ -31,7 +31,7 @@ const objectType = computed(() => typesQuery.data.value?.find((type) => type.id 
 const statusOptions = computed(() =>
   knowledgeObjectStatusesForType(data.value.objectTypeId).map((value) => ({
     value,
-    label: t(`spaces.knowledge.knowledgeStatusLabel.${value}`),
+    label: t(`spaces.knowledge.status.labels.${value}`),
   })),
 );
 const nodeOptions = computed(() =>
@@ -74,14 +74,12 @@ async function save() {
   <div v-if="objectType" class="space-y-3 px-1">
     <label class="block">
       <span class="mb-1 block text-micro text-foreground-tertiary">{{
-        t("spaces.knowledge.knowledgeStatus")
+        t("spaces.knowledge.status.label")
       }}</span>
-      <UiSelect v-model="status" :label="t('spaces.knowledge.knowledgeStatus')" :options="statusOptions" />
+      <UiSelect v-model="status" :label="t('spaces.knowledge.status.label')" :options="statusOptions" />
     </label>
     <label class="block">
-      <span class="mb-1 block text-micro text-foreground-tertiary">{{
-        t("spaces.knowledge.knowledgeSummary")
-      }}</span>
+      <span class="mb-1 block text-micro text-foreground-tertiary">{{ t("spaces.knowledge.summary") }}</span>
       <UiTextarea v-model="summary" :rows="3" />
     </label>
     <SpaceKnowledgeFieldEditor

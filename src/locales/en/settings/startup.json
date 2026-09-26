@@ -1,7 +1,9 @@
 {
-  "title": "System Startup",
+  "title": "System startup",
   "description": "Choose whether Knovum opens when you sign in.",
-  "launchAtLogin": "Launch at Login",
-  "launchAtLoginDescription": "Automatically start Knovum when you sign in.",
+  "launchAtLogin": {
+    "label": "Launch at login",
+    "description": "Automatically start Knovum when you sign in."
+  },
   "launchFailed": "Could not update launch at login setting"
 }

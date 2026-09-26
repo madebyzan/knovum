@@ -29,10 +29,10 @@ const draft = reactive({
 });
 const capabilityOptions = computed(() =>
   [
-    ["text-generation", t("settings.ai.capabilityText")],
-    ["vision-understanding", t("settings.ai.capabilityVision")],
-    ["image-generation", t("settings.ai.capabilityImage")],
-    ["video-generation", t("settings.ai.capabilityVideo")],
+    ["text-generation", t("settings.ai.capabilities.text")],
+    ["vision-understanding", t("settings.ai.capabilities.vision")],
+    ["image-generation", t("settings.ai.capabilities.image")],
+    ["video-generation", t("settings.ai.capabilities.video")],
   ].map(([value, label]) => ({ value: value as AiModelCapability, label: label! })),
 );
 const options = computed(() => providerOptions(props.providers));
@@ -152,7 +152,7 @@ function createConnection() {
     <template #footer>
       <UiButton variant="ghost" @click="open = false">{{ t("common.cancel") }}</UiButton>
       <UiButton variant="primary" :disabled="!valid" @click="createConnection">
-        {{ t("settings.ai.createConnection") }}
+        {{ t("settings.ai.addConnection") }}
       </UiButton>
     </template>
   </UiDialog>

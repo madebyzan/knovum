@@ -100,7 +100,7 @@ onBeforeUnmount(() => {
         class="flex items-center gap-0.5 rounded-control border border-border material-overlay p-0.5 shadow-popover"
       >
         <UiIconButton
-          :label="t('editor.bold')"
+          :label="t('spaces.richtext.bold')"
           size="sm"
           :active="editor.isActive('bold')"
           @click="editor.chain().focus().toggleBold().run()"
@@ -108,7 +108,7 @@ onBeforeUnmount(() => {
           <Bold class="size-(--knovum-icon-size-sm)" :stroke-width="1.7" />
         </UiIconButton>
         <UiIconButton
-          :label="t('editor.italic')"
+          :label="t('spaces.richtext.italic')"
           size="sm"
           :active="editor.isActive('italic')"
           @click="editor.chain().focus().toggleItalic().run()"
@@ -116,7 +116,7 @@ onBeforeUnmount(() => {
           <Italic class="size-(--knovum-icon-size-sm)" :stroke-width="1.7" />
         </UiIconButton>
         <UiIconButton
-          :label="t('editor.underline')"
+          :label="t('spaces.richtext.underline')"
           size="sm"
           :active="editor.isActive('underline')"
           @click="editor.chain().focus().toggleUnderline().run()"
@@ -124,7 +124,7 @@ onBeforeUnmount(() => {
           <Underline class="size-(--knovum-icon-size-sm)" :stroke-width="1.7" />
         </UiIconButton>
         <UiIconButton
-          :label="t('editor.bulletList')"
+          :label="t('spaces.richtext.bulletList')"
           size="sm"
           :active="editor.isActive('bulletList')"
           @click="editor.chain().focus().toggleBulletList().run()"

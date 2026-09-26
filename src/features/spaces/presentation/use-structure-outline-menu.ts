@@ -33,7 +33,7 @@ export function useStructureOutlineMenu(options: StructureOutlineMenuOptions) {
     const effectivelyLocked = isStructureNodeEffectivelyLocked(id, index);
     const primary = [
       spaceMenuItem(t("spaces.canvas.revealInCanvas"), () => options.reveal(id)),
-      spaceMenuItem(t("spaces.navigation.renameNode"), () => options.rename(id), {
+      spaceMenuItem(t("common.rename"), () => options.rename(id), {
         enabled: !effectivelyLocked,
       }),
     ];
@@ -77,16 +77,16 @@ export function useStructureOutlineMenu(options: StructureOutlineMenuOptions) {
     if (kind === "section" && layout?.kind === "section") {
       return [
         spaceMenuItem(
-          t(layout.collapsed ? "spaces.canvas.expandSection" : "spaces.canvas.collapseSection"),
+          t(layout.collapsed ? "spaces.canvas.sections.expand" : "spaces.canvas.sections.collapse"),
           () => execute({ kind: "section.set-collapsed", structureNodeId: id, collapsed: !layout.collapsed }),
         ),
         spaceMenuItem(
-          t("spaces.canvas.fitSectionToContents"),
+          t("spaces.canvas.sections.fitToContents"),
           () => execute({ kind: "section.fit", structureNodeId: id }),
           { enabled: !locked },
         ),
         spaceMenuItem(
-          t("spaces.canvas.removeSectionOnly"),
+          t("spaces.canvas.sections.removeOnly"),
           () => execute({ kind: "section.dissolve", structureNodeId: id }),
           { enabled: !locked },
         ),
@@ -95,7 +95,7 @@ export function useStructureOutlineMenu(options: StructureOutlineMenuOptions) {
     if (kind === "group") {
       return [
         spaceMenuItem(
-          t("spaces.canvas.ungroupSelection"),
+          t("spaces.canvas.groups.ungroup"),
           () => execute({ kind: "group.dissolve", rootIds: [id] }),
           { enabled: !locked },
         ),

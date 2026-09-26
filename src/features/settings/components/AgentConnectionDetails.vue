@@ -9,21 +9,21 @@ import type { AgentDescriptor } from "../../../foundation/ai/agent-models";
 const props = defineProps<{ agent: AgentDescriptor }>();
 const { t } = useI18n();
 const connectionMessageKeys: Record<AgentDescriptor["help"]["connection"], string> = {
-  native_cli: "settings.ai.agentConnections.nativeCli",
-  node_adapter: "settings.ai.agentConnections.nodeAdapter",
-  standalone_server: "settings.ai.agentConnections.standaloneServer",
+  native_cli: "settings.agents.connections.nativeCli",
+  node_adapter: "settings.agents.connections.nodeAdapter",
+  standalone_server: "settings.agents.connections.standaloneServer",
 };
 const guidance = computed(() => connectionMessageKeys[props.agent.help.connection]);
 const links = computed(() => [
-  { label: "settings.ai.agentOfficialDocumentation", url: props.agent.help.documentationUrl },
-  { label: "settings.ai.agentAcpSetup", url: props.agent.help.setupUrl },
+  { label: "settings.agents.officialDocumentation", url: props.agent.help.documentationUrl },
+  { label: "settings.agents.acpSetup", url: props.agent.help.setupUrl },
 ]);
 
 async function visit(url: string) {
   try {
     await openUrl(url);
   } catch (error) {
-    toast.error(t("settings.ai.agentDocumentationOpenFailed"), { description: String(error) });
+    toast.error(t("settings.agents.documentationOpenFailed"), { description: String(error) });
   }
 }
 </script>
@@ -32,8 +32,8 @@ async function visit(url: string) {
   <div class="grid gap-2 text-caption text-foreground-secondary">
     <p class="text-label text-foreground">{{ t(`${guidance}.title`) }}</p>
     <p>{{ t(`${guidance}.requirements`) }}</p>
-    <p>{{ t("settings.ai.agentEntryNames", { commands: agent.executableNames.join(", ") }) }}</p>
-    <p>{{ t("settings.ai.agentDetectionBoundary") }}</p>
+    <p>{{ t("settings.agents.requiredCommands", { commands: agent.executableNames.join(", ") }) }}</p>
+    <p>{{ t("settings.agents.detectionBoundary") }}</p>
     <div class="flex flex-wrap gap-x-3 gap-y-1">
       <a
         v-for="link in links"

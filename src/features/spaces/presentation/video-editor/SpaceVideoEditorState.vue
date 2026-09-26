@@ -22,7 +22,7 @@ const { t } = useI18n();
   >
     <p class="max-w-xl text-center">{{ error }}</p>
     <UiButton v-if="canRetry" size="sm" @click="$emit('retry')">{{
-      t("spaces.media.retryPreview")
+      t("spaces.media.videoEditor.preview.retry")
     }}</UiButton>
   </div>
   <div v-else class="grid min-h-0 flex-1 place-items-center text-body text-foreground-secondary">
@@ -35,6 +35,6 @@ const { t } = useI18n();
       @loadedmetadata="$emit('metadataReady', $event)"
       @error="$emit('metadataError')"
     />
-    {{ t("spaces.media.loadingEditor") }}
+    {{ t("spaces.media.videoEditor.loading") }}
   </div>
 </template>

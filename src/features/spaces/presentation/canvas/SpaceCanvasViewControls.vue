@@ -44,11 +44,11 @@ function zoomToSelection() {
     class="flex h-6 cursor-default items-center gap-0.5 px-0.5 select-none"
     orientation="horizontal"
     :loop="false"
-    :aria-label="t('spaces.canvas.zoomOptions')"
+    :aria-label="t('spaces.canvas.zoom.options')"
   >
     <ToolbarButton as-child>
       <UiIconButton
-        :label="t('spaces.canvas.zoomOut')"
+        :label="t('spaces.canvas.zoom.out')"
         :shortcut="SPACE_COMMAND_SHORTCUTS.zoomOut"
         size="sm"
         class="size-5 rounded-grid-cell"
@@ -64,7 +64,7 @@ function zoomToSelection() {
           <button
             type="button"
             class="flex h-5 min-w-12 items-center justify-center gap-0.5 rounded-grid-cell px-1 text-caption font-medium text-foreground-secondary tabular-nums outline-none hover:bg-control-hover hover:text-foreground focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-inset active:bg-control-pressed"
-            :aria-label="t('spaces.canvas.zoomOptions')"
+            :aria-label="t('spaces.canvas.zoom.options')"
           >
             {{ zoom }}%
             <ChevronDown class="size-2 text-foreground-tertiary" />
@@ -78,18 +78,18 @@ function zoomToSelection() {
       </UiDropdownMenuItem>
       <UiSeparator class="my-1" />
       <UiDropdownMenuItem :disabled="!hasSelection" @select="zoomToSelection">
-        <Scan class="size-(--knovum-icon-size-sm)" />{{ t("spaces.canvas.actions.zoomToSelection") }}
+        <Scan class="size-(--knovum-icon-size-sm)" />{{ t("spaces.canvas.zoom.toSelection") }}
         <UiKbd :shortcut="SPACE_COMMAND_SHORTCUTS.zoomToSelection" class="ml-auto" />
       </UiDropdownMenuItem>
       <UiDropdownMenuItem @select="zoomToFit">
-        <Maximize2 class="size-(--knovum-icon-size-sm)" />{{ t("spaces.canvas.actions.zoomToFitContent") }}
+        <Maximize2 class="size-(--knovum-icon-size-sm)" />{{ t("spaces.canvas.zoom.toFitContent") }}
         <UiKbd :shortcut="SPACE_COMMAND_SHORTCUTS.zoomToFit" class="ml-auto" />
       </UiDropdownMenuItem>
     </UiDropdownMenu>
     <div class="h-4 w-px bg-border" />
     <ToolbarButton as-child>
       <UiIconButton
-        :label="t('spaces.canvas.zoomIn')"
+        :label="t('spaces.canvas.zoom.in')"
         :shortcut="SPACE_COMMAND_SHORTCUTS.zoomIn"
         size="sm"
         class="size-5 rounded-grid-cell"

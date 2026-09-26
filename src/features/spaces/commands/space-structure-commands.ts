@@ -17,7 +17,7 @@ export function createSpaceStructureCommands(
   return [
     {
       id: "spaces.group-selection",
-      title: t("spaces.canvas.groupSelection"),
+      title: t("spaces.canvas.groups.create"),
       shortcut: "$mod+G",
       category: "canvas",
       availability: () =>
@@ -31,13 +31,13 @@ export function createSpaceStructureCommands(
             kind: "group.create",
             groupId: crypto.randomUUID(),
             rootIds: selectedStructureNodeIds(),
-            title: t("spaces.canvas.untitledGroup"),
+            title: t("spaces.canvas.groups.untitled"),
           })
           .then(() => undefined),
     },
     {
       id: "spaces.dissolve-group",
-      title: t("spaces.canvas.ungroupSelection"),
+      title: t("spaces.canvas.groups.ungroup"),
       shortcut: "$mod+Shift+G",
       category: "canvas",
       availability: () =>
@@ -52,7 +52,7 @@ export function createSpaceStructureCommands(
     },
     {
       id: "spaces.rename-node",
-      title: t("spaces.navigation.renameNode"),
+      title: t("common.rename"),
       shortcut: "F2",
       category: "canvas",
       availability: () =>

@@ -101,7 +101,7 @@ export function useRuntimeSettings() {
       });
       progressRef.value.state = "idle";
       tasks.succeed(taskId);
-      toast.success(t("settings.runtime.modelDownloadComplete", { model: title }));
+      toast.success(t("settings.offlineModels.download.complete", { model: title }));
     } catch (error) {
       if (downloadState.cancelled) {
         progressRef.value = initialModelProgress();
@@ -158,14 +158,14 @@ export function useRuntimeSettings() {
     downloadTranscription: () =>
       download(
         "transcription",
-        t("settings.runtime.whisperStandardModel"),
+        t("settings.offlineModels.models.whisperStandard"),
         TRANSCRIPTION_KINDS,
         transcriptionProgress,
       ),
     downloadTextEmbedding: () =>
       download(
         "textEmbedding",
-        t("settings.runtime.textEmbeddingModel"),
+        t("settings.offlineModels.models.textEmbedding.label"),
         TEXT_EMBEDDING_KINDS,
         textEmbeddingProgress,
       ),

@@ -22,17 +22,17 @@ function requireArchiveSettings(): ArchiveSettingsContract {
 
 async function permanentlyDeleteAll() {
   const count = archive.spaces.value.length;
-  const confirmed = await ask(t("settings.general.deleteAllArchivedSpacesDescription", { count }), {
-    title: t("settings.general.deleteAllArchivedSpacesTitle"),
+  const confirmed = await ask(t("settings.general.archived.deleteAll.description", { count }), {
+    title: t("settings.general.archived.deleteAll.title"),
     kind: "warning",
-    okLabel: t("settings.general.deleteAllArchivedSpaces"),
+    okLabel: t("settings.general.archived.deleteAll.label"),
     cancelLabel: t("common.cancel"),
   });
   if (!confirmed) return;
   try {
     await archive.permanentlyDeleteAll();
   } catch (error) {
-    toast.error(t("spaces.navigation.deleteSpaceFailed"), { description: String(error) });
+    toast.error(t("settings.general.archived.delete.failed"), { description: String(error) });
   }
 }
 </script>
@@ -40,6 +40,6 @@ async function permanentlyDeleteAll() {
 <template>
   <UiButton v-if="archive.spaces.value.length" size="sm" variant="dangerSubtle" @click="permanentlyDeleteAll">
     <Trash2 class="size-(--knovum-icon-size-xs)" />
-    {{ t("settings.general.deleteAllArchivedSpaces") }}
+    {{ t("settings.general.archived.deleteAll.label") }}
   </UiButton>
 </template>

@@ -53,9 +53,9 @@ function syncActive() {
 </script>
 
 <template>
-  <section class="w-60 text-foreground" :aria-label="t('spaces.media.adjustImage')">
+  <section class="w-60 text-foreground" :aria-label="t('spaces.media.imageEditor.adjust.title')">
     <header class="flex items-center justify-between px-1 pb-2">
-      <h3 class="text-body-lg font-semibold">{{ t("spaces.media.adjustImage") }}</h3>
+      <h3 class="text-body-lg font-semibold">{{ t("spaces.media.imageEditor.adjust.title") }}</h3>
       <div class="flex items-center gap-1">
         <button
           type="button"
@@ -75,14 +75,17 @@ function syncActive() {
         </button>
       </div>
     </header>
-    <nav class="mb-2 flex rounded-control bg-control p-0.5" :aria-label="t('spaces.media.adjustSections')">
+    <nav
+      class="mb-2 flex rounded-control bg-control p-0.5"
+      :aria-label="t('spaces.media.imageEditor.adjust.sections')"
+    >
       <button
         v-for="group in imageAdjustmentGroups"
         :key="group.id"
         type="button"
         class="flex h-(--knovum-control-height-md) min-w-0 flex-1 items-center justify-center rounded-control text-foreground-secondary transition-[background-color,color,box-shadow] duration-150 ease-standard hover:text-foreground focus-visible:ring-2 focus-visible:ring-focus-ring motion-reduce:transition-none"
         :class="active === group.id ? 'bg-raised text-foreground shadow-control' : ''"
-        :aria-label="t(`spaces.media.adjustGroups.${group.id}`)"
+        :aria-label="t(`spaces.media.imageEditor.adjustGroups.${group.id}`)"
         :aria-current="active === group.id ? 'location' : undefined"
         @click="navigate(group.id)"
       >
@@ -98,13 +101,13 @@ function syncActive() {
           class="pt-2 pb-3 last:min-h-80"
         >
           <h4 class="mb-2 text-label font-medium text-foreground-secondary">
-            {{ t(`spaces.media.adjustGroups.${group.id}`) }}
+            {{ t(`spaces.media.imageEditor.adjustGroups.${group.id}`) }}
           </h4>
           <div class="space-y-2">
             <SpaceImageToneSlider
               v-for="key in group.keys"
               :key="key"
-              :label="t(`spaces.media.adjustments.${key}`)"
+              :label="t(`spaces.media.imageEditor.adjustments.${key}`)"
               :value="props.adjustments[key]"
               :min="positiveControls.has(key) ? 0 : -100"
               :color-track="key === 'warmth' || key === 'tint' ? key : undefined"

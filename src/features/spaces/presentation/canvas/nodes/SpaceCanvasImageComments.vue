@@ -75,7 +75,7 @@ const {
               : '-translate-x-1/2 -translate-y-full'
           "
           :style="positionStyle(comment)"
-          :aria-label="`${t('spaces.media.comment')} ${index + 1}`"
+          :aria-label="`${t('spaces.media.imageEditor.comments.title')} ${index + 1}`"
           @click.stop
         >
           {{ index + 1 }}
@@ -89,7 +89,7 @@ const {
         <button
           type="button"
           class="rounded-control p-1 text-foreground-tertiary hover:bg-control-hover hover:text-foreground"
-          :aria-label="t('spaces.media.commentDelete')"
+          :aria-label="t('spaces.media.imageEditor.comments.delete')"
           :disabled="busy"
           @click="remove(comment)"
         >
@@ -103,7 +103,7 @@ const {
           class="rounded-control bg-control-hover px-3 py-1 text-label text-foreground"
           @click="discuss(comment)"
         >
-          {{ t("spaces.media.commentAddToConversation") }}
+          {{ t("spaces.media.imageEditor.comments.addToConversation") }}
         </button>
       </div>
     </UiPopover>
@@ -125,7 +125,7 @@ const {
               : '-translate-x-1/2 -translate-y-full'
           "
           :style="positionStyle(draft)"
-          :aria-label="t('spaces.media.comment')"
+          :aria-label="t('spaces.media.imageEditor.comments.title')"
           @click.stop
         >
           {{ comments.length + 1 }}
@@ -149,8 +149,8 @@ const {
         rows="2"
         maxlength="2000"
         class="mt-2 block w-full resize-none bg-transparent text-label text-foreground outline-none placeholder:text-foreground-tertiary"
-        :placeholder="t('spaces.media.commentPrompt')"
-        :aria-label="t('spaces.media.commentPrompt')"
+        :placeholder="t('spaces.media.imageEditor.comments.prompt')"
+        :aria-label="t('spaces.media.imageEditor.comments.prompt')"
       />
       <div class="mt-2 flex justify-end gap-1">
         <button
@@ -159,14 +159,14 @@ const {
           :disabled="!text.trim() || busy"
           @click="send"
         >
-          {{ t("spaces.media.commentSend") }}</button
+          {{ t("spaces.media.imageEditor.comments.send") }}</button
         ><button
           type="button"
           class="rounded-control bg-control-hover px-3 py-1 text-label text-foreground disabled:opacity-40"
           :disabled="!text.trim() || busy"
           @click="addToConversation"
         >
-          {{ t("spaces.media.commentAddToConversation") }}
+          {{ t("spaces.media.imageEditor.comments.addToConversation") }}
         </button>
       </div>
     </UiPopover>

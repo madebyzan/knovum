@@ -65,7 +65,7 @@ function wheel(event: WheelEvent) {
   <div
     class="relative flex aspect-square w-full cursor-grab touch-none items-center justify-center overflow-hidden rounded-panel bg-field active:cursor-grabbing"
     role="group"
-    :aria-label="t('spaces.media.anglePreview')"
+    :aria-label="t('spaces.media.imageEditor.angle.preview')"
     @pointerdown="begin"
     @pointermove="move"
     @pointerup="end"
@@ -94,7 +94,7 @@ function wheel(event: WheelEvent) {
       v-if="mode === 'camera'"
       type="button"
       class="absolute top-5 left-1/2 -translate-x-1/2 rounded-control p-1 text-foreground-tertiary outline-none hover:bg-control-hover hover:text-foreground focus-visible:ring-2 focus-visible:ring-focus-ring"
-      :aria-label="t('spaces.media.tiltUp')"
+      :aria-label="t('spaces.media.imageEditor.angle.tiltUp')"
       @pointerdown.stop
       @click="nudge(0, 10)"
     >
@@ -104,7 +104,7 @@ function wheel(event: WheelEvent) {
       v-if="mode === 'camera'"
       type="button"
       class="absolute top-1/2 right-5 -translate-y-1/2 rounded-control p-1 text-foreground-tertiary outline-none hover:bg-control-hover hover:text-foreground focus-visible:ring-2 focus-visible:ring-focus-ring"
-      :aria-label="t('spaces.media.turnRight')"
+      :aria-label="t('spaces.media.imageEditor.angle.turnRight')"
       @pointerdown.stop
       @click="nudge(10, 0)"
     >
@@ -114,7 +114,7 @@ function wheel(event: WheelEvent) {
       v-if="mode === 'camera'"
       type="button"
       class="absolute bottom-5 left-1/2 -translate-x-1/2 rounded-control p-1 text-foreground-tertiary outline-none hover:bg-control-hover hover:text-foreground focus-visible:ring-2 focus-visible:ring-focus-ring"
-      :aria-label="t('spaces.media.tiltDown')"
+      :aria-label="t('spaces.media.imageEditor.angle.tiltDown')"
       @pointerdown.stop
       @click="nudge(0, -10)"
     >
@@ -124,7 +124,7 @@ function wheel(event: WheelEvent) {
       v-if="mode === 'camera'"
       type="button"
       class="absolute top-1/2 left-5 -translate-y-1/2 rounded-control p-1 text-foreground-tertiary outline-none hover:bg-control-hover hover:text-foreground focus-visible:ring-2 focus-visible:ring-focus-ring"
-      :aria-label="t('spaces.media.turnLeft')"
+      :aria-label="t('spaces.media.imageEditor.angle.turnLeft')"
       @pointerdown.stop
       @click="nudge(-10, 0)"
     >

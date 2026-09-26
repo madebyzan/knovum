@@ -12,8 +12,8 @@ export async function importDroppedFiles(payload: FileDrop, store: SpaceStore, o
   const spaceId = store.activeSpaceId;
   if (!spaceId) return;
   const labels = {
-    title: i18n.global.t("spaces.transfer.importingResource"),
-    preparing: i18n.global.t("spaces.transfer.importPreparing"),
+    title: i18n.global.t("spaces.importExport.progress.resource"),
+    preparing: i18n.global.t("spaces.importExport.progress.preparing"),
   };
   const outcomes = await importSpaceBatch({
     context: spaceImportContext(store),
@@ -29,7 +29,7 @@ export async function importDroppedFiles(payload: FileDrop, store: SpaceStore, o
     if (failures.length === 1) throw failures[0]!.error;
     throw new AggregateError(
       failures.map(({ error }) => error),
-      i18n.global.t("spaces.transfer.importFailed"),
+      i18n.global.t("spaces.importExport.importFailed"),
     );
   }
 }

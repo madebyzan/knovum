@@ -72,7 +72,7 @@ const verticalOptions = [
     <div class="flex items-center gap-0.5">
       <div class="flex items-center gap-0.5">
         <UiIconButton
-          :label="t('editor.bold')"
+          :label="t('spaces.richtext.bold')"
           size="sm"
           :active="appearance?.fontWeight === 'bold'"
           @click="emit('update', { fontWeight: appearance?.fontWeight === 'bold' ? 'regular' : 'bold' })"
@@ -80,7 +80,7 @@ const verticalOptions = [
           <Bold class="size-(--knovum-icon-size-sm)" :stroke-width="1.7" />
         </UiIconButton>
         <UiIconButton
-          :label="t('editor.italic')"
+          :label="t('spaces.richtext.italic')"
           size="sm"
           :active="appearance?.fontStyle === 'italic'"
           @click="emit('update', { fontStyle: appearance?.fontStyle === 'italic' ? 'normal' : 'italic' })"
@@ -88,7 +88,7 @@ const verticalOptions = [
           <Italic class="size-(--knovum-icon-size-sm)" :stroke-width="1.7" />
         </UiIconButton>
         <UiIconButton
-          :label="t('editor.underline')"
+          :label="t('spaces.richtext.underline')"
           size="sm"
           :active="appearance?.textDecoration === 'underline'"
           @click="

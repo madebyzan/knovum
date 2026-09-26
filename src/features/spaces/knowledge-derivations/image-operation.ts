@@ -62,15 +62,19 @@ export async function createImageOperation(
     sourceNodeIds: [source.id],
     task: {
       id,
-      title: i18n.global.t("spaces.media.imageOperationTask"),
+      title: i18n.global.t("spaces.media.imageEditor.operation.task"),
       detail: title,
       cancel: () => cancelAiJob(id),
     },
-    failureMessageKey: "spaces.media.imageOperationFailed",
+    failureMessageKey: "spaces.media.imageEditor.operation.failed",
     execute: async ({ taskId }) => {
       const stages = new Channel<string>(
         taskId
-          ? (stage) => useTaskStore().detail(taskId, i18n.global.t(`spaces.media.operationStage.${stage}`))
+          ? (stage) =>
+              useTaskStore().detail(
+                taskId,
+                i18n.global.t(`spaces.media.imageEditor.operation.stage.${stage}`),
+              )
           : undefined,
       );
       return invoke<ImageOperationOutput>("plugin:spaces|create_image_operation", {

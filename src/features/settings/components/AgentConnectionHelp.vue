@@ -14,7 +14,7 @@ const { t } = useI18n();
     <template #trigger>
       <button
         type="button"
-        :aria-label="t('settings.ai.agentConnectionHelp', { name: agent.displayName })"
+        :aria-label="t('settings.agents.connectionHelp', { name: agent.displayName })"
         class="shrink-0 rounded-control text-caption text-foreground-secondary underline decoration-divider underline-offset-2 hover:text-foreground hover:decoration-current focus-visible:outline-2 focus-visible:outline-accent"
       >
         {{ label }}

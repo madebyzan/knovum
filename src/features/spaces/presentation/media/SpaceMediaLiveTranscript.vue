@@ -17,7 +17,7 @@ const recent = computed(() => takeRight(props.preview.segments, 5));
     <header class="flex items-center gap-2 border-b border-divider px-2.5 py-2">
       <LoaderCircle class="size-(--knovum-icon-size-xs) animate-spin text-accent" :stroke-width="1.7" />
       <span class="min-w-0 flex-1 text-caption font-medium text-foreground-secondary">
-        {{ t("spaces.transcript.mediaTranscriptLive") }}
+        {{ t("spaces.transcript.text.live") }}
       </span>
       <span class="text-micro text-foreground-tertiary tabular-nums">{{ preview.progress }}%</span>
     </header>
@@ -36,7 +36,7 @@ const recent = computed(() => takeRight(props.preview.segments, 5));
       </div>
     </div>
     <footer class="border-t border-divider px-2.5 py-1.5 text-micro text-foreground-tertiary">
-      {{ t("spaces.transcript.mediaTranscriptLiveHint", { language: preview.language }) }}
+      {{ t("spaces.transcript.text.liveHint", { language: preview.language }) }}
     </footer>
   </section>
 </template>

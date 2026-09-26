@@ -47,8 +47,8 @@ const transferred = computed(() =>
         <p class="mt-0.5 truncate text-caption text-foreground-secondary">
           <span>{{
             capture.status === "failed"
-              ? t("spaces.transfer.urlCaptureFailed")
-              : t(`spaces.mediaImport.${capture.status}`)
+              ? t("spaces.importExport.website.captureFailed")
+              : t(`spaces.media.import.${capture.status}`)
           }}</span>
           <span v-if="transferred && capture.status === 'downloading'" class="tabular-nums"
             >· {{ transferred }}</span

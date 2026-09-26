@@ -68,7 +68,7 @@ async function removeFailedOutput() {
 <template>
   <SpaceInspectorSection
     v-if="failure"
-    :title="$t('spaces.creation.failedAttempt')"
+    :title="$t('spaces.creation.shared.failedAttempt')"
     :icon="TriangleAlert"
     :default-expanded="true"
   >
@@ -83,7 +83,7 @@ async function removeFailedOutput() {
 
   <SpaceInspectorSection
     v-if="imageMetadata"
-    :title="$t('spaces.creation.knowledgeDerivation')"
+    :title="$t('spaces.creation.shared.knowledgeDerivation')"
     :icon="Sparkles"
     :default-expanded="false"
   >
@@ -92,7 +92,7 @@ async function removeFailedOutput() {
 
   <SpaceInspectorSection
     v-if="videoMetadata"
-    :title="$t('spaces.creation.knowledgeDerivation')"
+    :title="$t('spaces.creation.shared.knowledgeDerivation')"
     :icon="Sparkles"
     :default-expanded="false"
   >
@@ -101,7 +101,7 @@ async function removeFailedOutput() {
 
   <SpaceInspectorSection
     v-if="documentMetadata"
-    :title="$t('spaces.creation.knowledgeDerivation')"
+    :title="$t('spaces.creation.shared.knowledgeDerivation')"
     :icon="Sparkles"
     :default-expanded="false"
   >

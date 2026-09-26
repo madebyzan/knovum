@@ -78,7 +78,8 @@ export async function createSubtitledVideo(
     await invoke("plugin:spaces|cancel_subtitled_video", { jobId });
   };
   const taskId =
-    execution.taskId ?? tasks.start(i18n.global.t("spaces.creation.subtitleTask"), source.data.title, cancel);
+    execution.taskId ??
+    tasks.start(i18n.global.t("spaces.creation.video.subtitles.task"), source.data.title, cancel);
   if (execution.taskId) tasks.setCancellation(taskId, cancel);
   const channel = new Channel<Progress>();
   // oxlint-disable-next-line unicorn/prefer-add-event-listener -- Tauri Channel exposes progress through onmessage.
@@ -88,7 +89,7 @@ export async function createSubtitledVideo(
     tasks.progress(
       taskId,
       start + (progress / 100) * (end - start),
-      i18n.global.t(`spaces.creation.${stage}`),
+      i18n.global.t(`spaces.creation.stages.${stage}`),
     );
   };
   try {
@@ -117,7 +118,7 @@ export async function createSubtitledVideo(
     if (isVideoSubtitleCancelled(error)) tasks.dismiss(taskId);
     else {
       tasks.fail(taskId, String(error));
-      toast.error(`${i18n.global.t("spaces.creation.subtitleFailed")}: ${String(error)}`);
+      toast.error(`${i18n.global.t("spaces.creation.video.subtitles.failed")}: ${String(error)}`);
     }
     return undefined;
   } finally {

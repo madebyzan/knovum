@@ -75,7 +75,7 @@ function weightName(value: number): string {
 onMounted(async () => {
   try {
     fonts.value = await installedFonts();
-    if (fonts.value.length === 0) error.value = t("spaces.media.fontCatalogEmpty");
+    if (fonts.value.length === 0) error.value = t("spaces.media.videoEditor.font.catalogEmpty");
   } catch (cause) {
     error.value = String(cause);
   } finally {
@@ -89,17 +89,17 @@ onMounted(async () => {
     <SpaceVideoFontPicker
       v-model="family"
       :families="families"
-      :label="$t('spaces.media.fontFamily')"
-      :empty-label="$t('spaces.media.fontSearchEmpty')"
+      :label="$t('spaces.media.videoEditor.font.family')"
+      :empty-label="$t('spaces.media.videoEditor.font.searchEmpty')"
       :disabled="loading || !!error"
     />
     <div class="min-w-0">
       <span class="mb-1.5 block text-caption text-foreground-secondary">{{
-        $t("spaces.media.fontWeight")
+        $t("spaces.media.videoEditor.font.weight")
       }}</span>
       <UiSelect
         v-model="weight"
-        :label="$t('spaces.media.fontWeight')"
+        :label="$t('spaces.media.videoEditor.font.weight')"
         :options="weights"
         :disabled="loading || !!error || !selectedFont"
         size="sm"
@@ -107,7 +107,7 @@ onMounted(async () => {
     </div>
     <p v-if="error" class="col-span-2 text-micro text-danger">{{ error }}</p>
     <p v-else-if="!loading && !selectedFont" class="col-span-2 text-micro text-danger">
-      {{ $t("spaces.media.fontUnavailable", { family: style.family }) }}
+      {{ $t("spaces.media.videoEditor.font.unavailable", { family: style.family }) }}
     </p>
   </div>
 </template>

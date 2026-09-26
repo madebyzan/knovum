@@ -1,32 +1,44 @@
 {
   "title": "空间",
-  "newSpace": "新建空间",
-  "untitledSpace": "未命名空间",
+  "new": "新建空间",
+  "untitled": "未命名空间",
   "inbox": "收集箱",
-  "emptyTitle": "空间暂无内容",
-  "emptyDescription": "双击空白处创建笔记 · 粘贴剪贴板内容 · 拖入文件导入",
-  "backToSpaces": "返回空间列表",
-  "renameSpace": "重命名空间",
-  "closeTab": "关闭标签页",
-  "closeOtherTabs": "关闭其他标签页",
-  "closeTabsToRight": "关闭右侧标签页",
-  "reopenClosedTab": "重新打开关闭的标签页",
-  "previousSpace": "后退",
-  "nextSpace": "前进",
-  "switchToTab": "切换到标签页 {number}",
-  "openSpaces": "已打开空间",
-  "library": "空间资料库",
-  "allSpaces": "全部空间",
-  "recentSpaces": "最近打开",
-  "favoriteSpaces": "收藏",
-  "gridView": "网格视图",
-  "listView": "列表视图",
-  "searchSpaces": "搜索空间…",
-  "noSpacesFound": "没有符合条件的空间",
+  "empty": {
+    "title": "空间暂无内容",
+    "description": "双击空白处创建笔记 · 粘贴剪贴板内容 · 拖入文件导入"
+  },
+  "rename": "重命名空间",
+  "tabs": {
+    "close": "关闭标签页",
+    "closeOthers": "关闭其他标签页",
+    "closeToRight": "关闭右侧标签页",
+    "reopen": "重新打开关闭的标签页",
+    "switchTo": "切换到标签页 {number}"
+  },
+  "back": "后退",
+  "forward": "前进",
+  "sections": {
+    "open": "已打开空间",
+    "all": "全部空间",
+    "recent": "最近打开",
+    "favorites": "收藏"
+  },
+  "views": {
+    "grid": "网格视图",
+    "list": "列表视图"
+  },
+  "search": {
+    "placeholder": "搜索空间…",
+    "noResults": "没有符合条件的空间"
+  },
   "nodeCount": "{count} 项内容",
-  "favoriteSpace": "收藏空间",
-  "unfavoriteSpace": "取消收藏",
-  "openSpace": "打开空间",
-  "initializationFailed": "无法打开空间",
-  "initializationFailedHint": "无法加载空间数据库。本地文件不受影响，请重试。"
+  "favorite": "收藏空间",
+  "unfavorite": "取消收藏",
+  "open": "打开空间",
+  "loadFailed": "无法打开空间",
+  "loadFailedHint": "无法加载空间数据库。本地文件不受影响，请重试。",
+  "archive": "归档空间",
+  "moveTo": "移动至空间",
+  "moveNoTargets": "无其他可移动的空间。",
+  "archived": "已归档“{title}”"
 }

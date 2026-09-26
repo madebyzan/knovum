@@ -73,7 +73,7 @@ function save() {
     <button
       type="button"
       class="w-10 shrink-0 pt-0.5 text-left font-mono text-micro font-medium text-foreground-tertiary tabular-nums hover:text-foreground"
-      :title="t('spaces.transcript.chapterSeek')"
+      :title="t('spaces.transcript.chapters.seek')"
       @click="emit('seek', chapter.startMs)"
     >
       {{ formatDurationMs(chapter.startMs) }}
@@ -101,14 +101,14 @@ function save() {
       <Pencil class="size-(--knovum-icon-size-xs) text-foreground-tertiary hover:text-foreground" />
     </UiIconButton>
 
-    <UiDialog v-model:open="dialogOpen" :title="t('spaces.transcript.editChapter')">
+    <UiDialog v-model:open="dialogOpen" :title="t('spaces.transcript.chapters.edit')">
       <div class="space-y-4 py-1">
         <label class="block text-micro font-medium text-foreground-tertiary">
-          {{ t("spaces.transcript.chapterTitle") }}
+          {{ t("spaces.transcript.chapters.titleField") }}
           <UiInput v-model="draft.title" class="mt-1 w-full" />
         </label>
         <label class="block text-micro font-medium text-foreground-tertiary">
-          {{ t("spaces.transcript.chapterSummary") }}
+          {{ t("spaces.transcript.chapters.summary") }}
           <UiTextarea v-model="draft.summary" class="mt-1 w-full resize-none" :rows="4" />
         </label>
       </div>

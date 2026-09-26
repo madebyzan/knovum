@@ -1,5 +1,5 @@
 {
-  "note": "Sticky Note",
+  "note": "Sticky note",
   "text": "Text",
   "markdown": "Markdown",
   "subtitle": "Subtitles",
@@ -10,7 +10,7 @@
   "file": "File",
   "code": "Code",
   "credential": "Credential",
-  "object": "Knowledge Object",
+  "object": "Knowledge object",
   "portal": "Space Portal",
   "section": "Section"
 }

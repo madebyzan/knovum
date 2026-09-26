@@ -41,30 +41,30 @@ export function useCanvasNavigationCommands() {
         run: () => tools.selectTool(toolCommand.tool),
       }),
     ),
-    command("spaces.cancel-canvas-interaction", t("spaces.canvas.actions.cancelInteraction"), {
+    command("spaces.cancel-canvas-interaction", t("spaces.canvas.cancelInteraction"), {
       shortcut: SPACE_COMMAND_SHORTCUTS.cancelInteraction,
       run: () =>
         tools.tool !== "select" ? tools.resetTool() : session.activeEditor.value?.cancelInteraction(),
     }),
-    command("spaces.zoom-in", t("spaces.canvas.zoomIn"), {
+    command("spaces.zoom-in", t("spaces.canvas.zoom.in"), {
       shortcut: SPACE_COMMAND_SHORTCUTS.zoomIn,
       keybindings: SPACE_COMMAND_KEYBINDINGS.zoomIn,
       run: () => session.activeEditor.value?.zoomIn(),
     }),
-    command("spaces.zoom-out", t("spaces.canvas.zoomOut"), {
+    command("spaces.zoom-out", t("spaces.canvas.zoom.out"), {
       shortcut: SPACE_COMMAND_SHORTCUTS.zoomOut,
       run: () => session.activeEditor.value?.zoomOut(),
     }),
-    command("spaces.zoom-reset", t("shell.zoomReset"), {
+    command("spaces.zoom-reset", t("spaces.canvas.shortcuts.zoomReset"), {
       shortcut: SPACE_COMMAND_SHORTCUTS.resetZoom,
       run: () => session.activeEditor.value?.setZoom(1),
     }),
-    command("spaces.zoom-to-fit", t("spaces.canvas.actions.zoomToFitContent"), {
+    command("spaces.zoom-to-fit", t("spaces.canvas.zoom.toFitContent"), {
       shortcut: SPACE_COMMAND_SHORTCUTS.zoomToFit,
       keybindings: SPACE_COMMAND_KEYBINDINGS.zoomToFit,
       run: () => session.activeEditor.value?.zoomToFit(),
     }),
-    command("spaces.zoom-to-selection", t("spaces.canvas.actions.zoomToSelection"), {
+    command("spaces.zoom-to-selection", t("spaces.canvas.zoom.toSelection"), {
       shortcut: SPACE_COMMAND_SHORTCUTS.zoomToSelection,
       keybindings: SPACE_COMMAND_KEYBINDINGS.zoomToSelection,
       availability: () => {
@@ -78,30 +78,30 @@ export function useCanvasNavigationCommands() {
       },
       run: () => session.activeEditor.value?.zoomToSelection(),
     }),
-    command("spaces.previous-scene", t("shell.previousScene"), {
+    command("spaces.previous-scene", t("spaces.scenes.previous"), {
       shortcut: SPACE_COMMAND_SHORTCUTS.previousScene,
       category: "navigation",
       availability: () => availableWhen(scenes.scenes.value.length > 1, "not_enough_scenes"),
       run: () => scenes.stepScene(-1),
     }),
-    command("spaces.next-scene", t("shell.nextScene"), {
+    command("spaces.next-scene", t("spaces.scenes.next"), {
       shortcut: SPACE_COMMAND_SHORTCUTS.nextScene,
       category: "navigation",
       availability: () => availableWhen(scenes.scenes.value.length > 1, "not_enough_scenes"),
       run: () => scenes.stepScene(1),
     }),
-    command("spaces.ask", t("spaces.assistant.askKnowledge"), {
+    command("spaces.ask", t("spaces.assistant.evidence.ask"), {
       shortcut: SPACE_COMMAND_SHORTCUTS.ask,
       run: () => dock.openAsk("space", { restart: true }),
     }),
-    command("spaces.focus-selection", t("spaces.navigation.focusSelection"), {
+    command("spaces.focus-selection", t("spaces.scenes.focus.selection"), {
       availability: () => availableWhen(selectedNodes().length > 0, "no_selection"),
       run: () => {
         const nodes = selectedNodes();
         if (nodes[0]) store.focusNeighborhood(nodes[0].id);
       },
     }),
-    command("spaces.connect-selection", t("spaces.canvas.connect"), {
+    command("spaces.connect-selection", t("spaces.canvas.relations.connect"), {
       availability: () =>
         availableWhen(
           selectedNodes().length === 2 && selectedNodes().filter(isSpaceSemanticNode).length === 2,
@@ -112,7 +112,7 @@ export function useCanvasNavigationCommands() {
         if (source && target) await store.createRelation(source.id, target.id, "related");
       },
     }),
-    command("spaces.toggle-selection-lock", t("spaces.canvas.actions.toggleSelectionLock"), {
+    command("spaces.toggle-selection-lock", t("spaces.canvas.selection.toggleLock"), {
       shortcut: SPACE_COMMAND_SHORTCUTS.lockSelection,
       category: "editing",
       availability: () => {

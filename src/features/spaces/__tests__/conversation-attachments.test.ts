@@ -23,7 +23,7 @@ it("rejects more than 32 attachments visibly and preserves the previous selectio
     })),
   );
   await session.chooseFiles(() => true);
-  expect(session.attachmentError.value).toBe("spaces.assistant.attachmentLimit");
+  expect(session.attachmentError.value).toBe("spaces.assistant.attachments.limit");
   expect(session.attachments.value).toBe(existing);
   expect(session.pickingFiles.value).toBe(false);
 });
@@ -37,7 +37,7 @@ it("selects the localized outcome by wire code even when the backend message cha
     }),
   );
   await session.chooseFiles(() => true);
-  expect(session.attachmentError.value).toBe("spaces.assistant.uploadPermissionError");
+  expect(session.attachmentError.value).toBe("spaces.assistant.uploads.permissionError");
   expect(session.attachments.value).toEqual([]);
 });
 

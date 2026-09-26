@@ -27,8 +27,9 @@ export function scheduleSpaceAssetProcessing(input: {
     cancelRequested = true;
     await cancelSpaceAssetProcessing(jobId);
   };
-  const taskId = existingTaskId ?? tasks.start(data.title, i18n.global.t("spaces.transfer.importProcessing"));
-  tasks.detail(taskId, i18n.global.t("spaces.transfer.importProcessing"));
+  const taskId =
+    existingTaskId ?? tasks.start(data.title, i18n.global.t("spaces.importExport.progress.processing"));
+  tasks.detail(taskId, i18n.global.t("spaces.importExport.progress.processing"));
   tasks.setCancellation(taskId, cancel);
   void run();
 

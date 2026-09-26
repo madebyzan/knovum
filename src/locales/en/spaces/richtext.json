@@ -1,0 +1,129 @@
+{
+  "ai": {
+    "title": "AI assistant",
+    "selectText": "Select text content first.",
+    "failed": "AI generation failed",
+    "applyFailed": "Could not apply AI result",
+    "actions": {
+      "adjustTone": "Adjust tone",
+      "fixGrammar": "Fix grammar & spelling",
+      "extend": "Extend text",
+      "reduce": "Summarize & condense",
+      "simplify": "Simplify phrasing",
+      "emojify": "Add emoji",
+      "improve": "Polish & improve",
+      "complete": "AutoComplete",
+      "summarize": "Summarize",
+      "translate": "Translate"
+    },
+    "tones": {
+      "academic": "Academic",
+      "business": "Professional",
+      "casual": "Casual",
+      "confident": "Confident",
+      "creative": "Creative",
+      "friendly": "Friendly",
+      "humorous": "Humorous",
+      "informative": "Clear & informative",
+      "inspirational": "Inspirational",
+      "objective": "Objective",
+      "persuasive": "Persuasive"
+    },
+    "languages": {
+      "zhCn": "Simplified Chinese",
+      "zhTw": "Traditional Chinese",
+      "en": "English",
+      "ja": "Japanese",
+      "ko": "Korean",
+      "fr": "French",
+      "de": "German",
+      "es": "Spanish",
+      "pt": "Portuguese",
+      "it": "Italian",
+      "ru": "Russian",
+      "ar": "Arabic"
+    },
+    "needContext": "Place cursor after existing text or select text as context."
+  },
+  "find": {
+    "title": "Find text",
+    "placeholder": "Find in document…",
+    "previous": "Previous match",
+    "next": "Next match",
+    "toggleReplace": "Show replace",
+    "replace": "Replace",
+    "replaceAll": "Replace all",
+    "replacePlaceholder": "Replace with…"
+  },
+  "paragraph": "Paragraph",
+  "heading1": "Heading 1",
+  "heading2": "Heading 2",
+  "heading3": "Heading 3",
+  "heading4": "Heading 4",
+  "heading5": "Heading 5",
+  "heading6": "Heading 6",
+  "headings": {
+    "menu": "Typography"
+  },
+  "bold": "Bold",
+  "italic": "Italic",
+  "underline": "Underline",
+  "strike": "Strikethrough",
+  "inlineCode": "Inline code",
+  "horizontalRule": "Divider",
+  "highlight": "Highlight",
+  "superscript": "Superscript",
+  "subscript": "Subscript",
+  "align": {
+    "left": "Align left",
+    "center": "Align center",
+    "right": "Align right",
+    "justify": "Justify"
+  },
+  "highlightColor": {
+    "yellow": "Yellow",
+    "green": "Green",
+    "blue": "Blue",
+    "pink": "Pink",
+    "clear": "Clear highlight"
+  },
+  "image": {
+    "insert": "Insert image",
+    "tabUpload": "Local file",
+    "tabUrl": "URL",
+    "url": "Image URL",
+    "alt": "Image description",
+    "choose": "Select image",
+    "uploadFailed": "Image insertion failed",
+    "dropDocumentHint": "Choose file or drag image into document editor.",
+    "altPlaceholder": "Describe the image for screen readers",
+    "dropNow": "Drop to insert image",
+    "urlInvalid": "Please enter a valid http:// or https:// image address.",
+    "insertFailed": "Could not insert image"
+  },
+  "link": {
+    "label": "Hyperlink",
+    "placeholder": "Enter or paste URL",
+    "remove": "Remove link",
+    "editorTitle": "Edit link",
+    "editorDescription": "Add a web or email link to the selected text.",
+    "url": "Link URL",
+    "invalid": "Please enter a valid HTTP, HTTPS, or mailto link.",
+    "open": "Open link",
+    "updateFailed": "Could not update link",
+    "openFailed": "Could not open link"
+  },
+  "bulletList": "Bullet list",
+  "orderedList": "Ordered list",
+  "taskList": "Task list",
+  "blockquote": "Blockquote",
+  "listMenu": "List styles",
+  "table": {
+    "title": "Table",
+    "addRow": "Insert row below",
+    "addColumn": "Insert column right",
+    "delete": "Delete table"
+  },
+  "words": "words",
+  "characters": "characters"
+}

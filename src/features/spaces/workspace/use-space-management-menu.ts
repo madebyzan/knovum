@@ -39,17 +39,18 @@ export function useSpaceManagementMenu() {
     const port = store.activeSpaceId === spaceId ? activePort.value : undefined;
     return [
       [
-        spaceMenuItem(t("spaces.knowledge.knowledgeHealth"), async () => {
+        spaceMenuItem(t("spaces.knowledge.health.title"), async () => {
           await store.openSpace(spaceId);
           dock.openKnowledgeHealth();
         }),
       ],
       [
-        spaceSubmenu(t("spaces.transfer.export"), [
-          spaceMenuItem(t("spaces.transfer.exportSpace"), () => packages.exportPackage(space)),
+        spaceSubmenu(t("spaces.importExport.export"), [
+          spaceMenuItem(t("spaces.importExport.space.export"), () => packages.exportPackage(space)),
           spaceMenuItem(
-            t("spaces.transfer.exportJsonCanvas"),
-            () => reportExchange(() => exportCanvas(space, port!), t("spaces.transfer.jsonCanvasExported")),
+            t("spaces.importExport.jsonCanvas.export"),
+            () =>
+              reportExchange(() => exportCanvas(space, port!), t("spaces.importExport.jsonCanvas.exported")),
             { enabled: Boolean(port) },
           ),
         ]),

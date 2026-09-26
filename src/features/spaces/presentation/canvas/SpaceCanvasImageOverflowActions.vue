@@ -14,7 +14,7 @@ const { t } = useI18n();
 
 <template>
   <UiDropdownMenuItem @select="emit('beginComment')">
-    <MessageCircle class="size-(--knovum-icon-size-sm)" />{{ t("spaces.media.comment") }}
+    <MessageCircle class="size-(--knovum-icon-size-sm)" />{{ t("spaces.media.imageEditor.comments.title") }}
   </UiDropdownMenuItem>
   <SpaceCanvasImageToolTrigger
     v-for="mode in IMAGE_EDIT_TOOL_ORDER"

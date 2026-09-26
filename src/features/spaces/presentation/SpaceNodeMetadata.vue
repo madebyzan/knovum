@@ -37,21 +37,21 @@ const rows = computed(() => {
   const media = isSpaceMediaPayload(data) ? data : undefined;
   const source = sourceRow(data);
   const allRows: MetadataRow[] = [
-    { label: t("spaces.inspector.detailType"), value: t(`spaces.nodeTypes.${camelCase(data.kind)}`) },
+    { label: t("spaces.inspector.fields.type"), value: t(`spaces.nodeTypes.${camelCase(data.kind)}`) },
     source,
     ...websiteRows(data),
     {
-      label: t("spaces.inspector.detailProvider"),
+      label: t("spaces.inspector.fields.provider"),
       value: media?.origin ? mediaProviderDisplayName(media.origin.provider) : undefined,
     },
-    { label: t("spaces.transfer.detailFileName"), value: asset?.fileName },
+    { label: t("spaces.importExport.fileName"), value: asset?.fileName },
     {
-      label: t("spaces.navigation.detailStorage"),
-      value: asset ? t("spaces.transfer.localPrivateCopy") : undefined,
+      label: t("spaces.inspector.fields.storage"),
+      value: asset ? t("spaces.importExport.localPrivateCopy") : undefined,
     },
-    { label: t("spaces.navigation.detailSize"), value: formatByteSize(asset?.size) },
+    { label: t("spaces.inspector.fields.size"), value: formatByteSize(asset?.size) },
     {
-      label: t("spaces.inspector.detailModified"),
+      label: t("spaces.inspector.fields.modified"),
       value: modifiedAtLabel(asset?.modifiedAt),
     },
   ];
@@ -61,7 +61,7 @@ const rows = computed(() => {
 function sourceRow(data: SpaceNodePayload) {
   const originalUrl = isSpaceMediaPayload(data) && Boolean(data.origin);
   return {
-    label: t(originalUrl ? "spaces.inspector.detailOriginalUrl" : "spaces.navigation.detailSource"),
+    label: t(originalUrl ? "spaces.inspector.fields.originalUrl" : "spaces.inspector.fields.source"),
     value: sourceUrl(data),
   };
 }
@@ -69,9 +69,9 @@ function sourceRow(data: SpaceNodePayload) {
 function websiteRows(data: SpaceNodePayload) {
   if (!isSpaceWebsitePayload(data)) return [];
   return [
-    { label: t("spaces.inspector.detailSiteName"), value: data.siteName },
-    { label: t("spaces.inspector.detailDescription"), value: data.description, multiline: true },
-    { label: t("spaces.inspector.detailCanonicalUrl"), value: data.canonicalUrl },
+    { label: t("spaces.inspector.fields.siteName"), value: data.siteName },
+    { label: t("spaces.inspector.fields.description"), value: data.description, multiline: true },
+    { label: t("spaces.inspector.fields.canonicalUrl"), value: data.canonicalUrl },
   ];
 }
 
@@ -107,7 +107,7 @@ async function refreshWebsite() {
       props.node.data.url,
     );
   } catch (error) {
-    toast.error(t("spaces.transfer.websiteRefreshFailed"), { description: String(error) });
+    toast.error(t("spaces.importExport.website.refreshFailed"), { description: String(error) });
   } finally {
     refreshing.value = false;
   }
@@ -133,7 +133,9 @@ async function refreshWebsite() {
       @click="refreshWebsite"
     >
       <RefreshCw class="size-(--knovum-icon-size-xs)" :class="refreshing && 'animate-spin'" />
-      {{ node.data.metadataState === "failed" ? t("common.retry") : t("spaces.transfer.refreshWebsite") }}
+      {{
+        node.data.metadataState === "failed" ? t("common.retry") : t("spaces.importExport.website.refresh")
+      }}
     </UiButton>
   </div>
 </template>

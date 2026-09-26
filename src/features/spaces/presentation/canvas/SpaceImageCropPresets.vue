@@ -30,7 +30,9 @@ function glyphStyle(ratio = 1): CSSProperties {
 
 <template>
   <div>
-    <p class="px-1 pb-2 text-caption text-foreground-tertiary">{{ t("spaces.media.cropPresets") }}</p>
+    <p class="px-1 pb-2 text-caption text-foreground-tertiary">
+      {{ t("spaces.media.imageEditor.crop.presets") }}
+    </p>
     <UiScrollArea class="h-80">
       <details
         v-for="group in cropPresetGroups"
@@ -44,7 +46,7 @@ function glyphStyle(ratio = 1): CSSProperties {
           <ChevronRight
             class="size-(--knovum-icon-size-xs) shrink-0 text-foreground-tertiary transition-transform group-open:rotate-90"
           />
-          {{ group.id === "general" ? t("spaces.media.cropGeneral") : group.id }}
+          {{ group.id === "general" ? t("spaces.media.imageEditor.crop.general") : group.id }}
         </summary>
         <div class="pb-1 pl-4">
           <button
@@ -63,12 +65,12 @@ function glyphStyle(ratio = 1): CSSProperties {
               />
             </span>
             <span class="min-w-0 flex-1 truncate">{{
-              preset.labelKey ? t(`spaces.media.${preset.labelKey}`) : preset.id
+              preset.labelKey ? t(`spaces.media.imageEditor.${preset.labelKey}`) : preset.id
             }}</span>
             <span
               v-if="preset.referenceSize"
               class="shrink-0 text-caption text-foreground-tertiary tabular-nums"
-              :title="t('spaces.media.cropReferenceSize')"
+              :title="t('spaces.media.imageEditor.crop.referenceSize')"
             >
               {{ preset.referenceSize }}
             </span>

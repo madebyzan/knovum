@@ -29,8 +29,8 @@ const openingSelection = selectedNodes.value
 const title = computed(() =>
   t(
     store.workflowMode === "capture"
-      ? "spaces.creation.createWorkflowFromSelection"
-      : "spaces.creation.useSavedWorkflow",
+      ? "spaces.creation.workflow.createFromSelection"
+      : "spaces.creation.workflow.useSaved",
   ),
 );
 

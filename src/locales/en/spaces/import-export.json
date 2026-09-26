@@ -1,0 +1,44 @@
+{
+  "import": "Import",
+  "export": "Export",
+  "importFailed": "Import failed. Check file format and try again.",
+  "website": {
+    "add": "Add website",
+    "description": "Save web URL and extract title and summary.",
+    "previewUnavailable": "Website details couldn't be fetched. The URL is saved; retry from details.",
+    "refresh": "Refresh web content",
+    "captureFailed": "Could not add this link",
+    "loading": "Fetching web metadata…",
+    "refreshFailed": "Failed to fetch web content"
+  },
+  "preview": {
+    "system": "Preview",
+    "show": "Preview view",
+    "instantUnavailable": "No instant preview",
+    "instantUnavailableHint": "Instant preview is unavailable; extracted text remains searchable."
+  },
+  "markdown": {
+    "export": "Export Markdown"
+  },
+  "exportCompleted": "Export complete",
+  "fileName": "File name",
+  "openExternally": "Open in external app",
+  "space": {
+    "export": "Export Space package…",
+    "import": "Import Space package…",
+    "exported": "Space package exported",
+    "imported": "Space imported successfully"
+  },
+  "jsonCanvas": {
+    "import": "Import JSON Canvas…",
+    "export": "Export JSON Canvas…",
+    "exported": "JSON Canvas exported"
+  },
+  "localPrivateCopy": "Local copy managed by Knovum",
+  "progress": {
+    "resource": "Importing resource",
+    "preparing": "Copying and verifying resources…",
+    "processing": "Parsing resources…"
+  },
+  "openInEditor": "Open in external editor"
+}

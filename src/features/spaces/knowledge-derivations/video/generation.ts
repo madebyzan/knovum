@@ -71,12 +71,12 @@ export async function createVideoFromDocument({ store, inputs, draft }: CreateVi
   beginPendingDerivation(output.id, [source.id, ...inputs.images.map(({ id }) => id)]);
   const tasks = useTaskStore();
   const jobId = crypto.randomUUID();
-  const taskId = tasks.start(i18n.global.t("spaces.creation.videoTask"), draft.title, () =>
+  const taskId = tasks.start(i18n.global.t("spaces.creation.video.generation.task"), draft.title, () =>
     invoke("plugin:spaces|cancel_video_generation", { jobId }),
   );
   const stages = new Channel<string>();
   // oxlint-disable-next-line unicorn/prefer-add-event-listener -- Tauri Channel exposes its events through onmessage.
-  stages.onmessage = (stage) => tasks.detail(taskId, i18n.global.t(`spaces.creation.${stage}`));
+  stages.onmessage = (stage) => tasks.detail(taskId, i18n.global.t(`spaces.creation.stages.${stage}`));
   try {
     await yieldToCanvas();
     const target = await loadAiExecutionTarget("video-generation", draft.target);
@@ -106,7 +106,7 @@ export async function createVideoFromDocument({ store, inputs, draft }: CreateVi
   } catch (error) {
     await store.refreshActiveSpace();
     tasks.fail(taskId, String(error));
-    toast.error(`${i18n.global.t("spaces.creation.videoFailed")}: ${String(error)}`);
+    toast.error(`${i18n.global.t("spaces.creation.video.generation.failed")}: ${String(error)}`);
     return undefined;
   } finally {
     endPendingDerivation(output.id);

@@ -31,7 +31,7 @@ const { t } = useI18n();
     ]"
   >
     <UiIconButton
-      :label="playing ? t('spaces.media.pause') : t('spaces.media.play')"
+      :label="playing ? t('common.pause') : t('spaces.media.player.play')"
       size="sm"
       @click="emit('toggle')"
     >
@@ -49,7 +49,7 @@ const { t } = useI18n();
       :class="density === 'compact' ? 'w-8' : 'w-9'"
       >{{ formatDurationMs(durationMs) }}</span
     >
-    <UiIconButton :label="t('spaces.media.closePlayback')" size="sm" @click="emit('close')">
+    <UiIconButton :label="t('spaces.media.player.closePlayback')" size="sm" @click="emit('close')">
       <X class="size-(--knovum-icon-size-sm)" />
     </UiIconButton>
   </div>

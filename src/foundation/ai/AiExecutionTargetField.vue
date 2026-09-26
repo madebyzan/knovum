@@ -25,7 +25,7 @@ const { settings, ready: settingsReady, loadError: settingsError } = storeToRefs
 const options = computed(() =>
   availableExecutionTargets(settings.value, props.purpose).map((option) =>
     Object.assign({}, option, {
-      description: t("settings.ai.executionTargetModelNative"),
+      description: t("ai.targetModelNative"),
     }),
   ),
 );
@@ -72,7 +72,7 @@ onMounted(load);
       "
     >
       <p :class="compact ? 'truncate' : 'text-label font-medium'">
-        {{ t("spaces.assistant.aiSettingsUnavailable") }}
+        {{ t("ai.settingsUnavailable") }}
       </p>
       <p v-if="!compact" class="text-meta wrap-break-word text-foreground-secondary">
         {{ String(loadError) }}
@@ -82,10 +82,10 @@ onMounted(load);
     <template v-else-if="compact">
       <UiSelect
         :model-value="value"
-        :label="t('settings.ai.executionTarget')"
+        :label="t('ai.target')"
         :options="options"
         :disabled="disabled || !ready || Boolean(loadError) || options.length === 0"
-        :placeholder="t('settings.ai.noCompatibleTarget')"
+        :placeholder="t('ai.noCompatibleTarget')"
         size="sm"
         class="min-w-0 flex-1 border-transparent bg-transparent shadow-none hover:bg-control-hover"
         @update:model-value="target = decodeExecutionTarget($event)"
@@ -96,9 +96,9 @@ onMounted(load);
       class="space-y-2 rounded-control border border-border/70 bg-panel/60 p-3"
     >
       <div class="space-y-0.5">
-        <p class="text-label font-medium text-foreground">{{ t("spaces.assistant.aiDisabledTitle") }}</p>
+        <p class="text-label font-medium text-foreground">{{ t("ai.disabledTitle") }}</p>
         <p class="text-meta leading-relaxed text-foreground-secondary">
-          {{ t("spaces.assistant.aiDisabledDescription") }}
+          {{ t("ai.disabledDescription") }}
         </p>
       </div>
       <div class="flex flex-wrap gap-2">
@@ -107,18 +107,18 @@ onMounted(load);
           variant="secondary"
           @click="router.push({ name: 'settings', query: { pane: 'aiModels' } })"
         >
-          {{ t("spaces.assistant.openAiSettings") }}
+          {{ t("ai.openSettings") }}
         </UiButton>
       </div>
     </div>
     <label v-else class="block space-y-1.5 text-label font-medium">
-      {{ t("settings.ai.executionTarget") }}
+      {{ t("ai.target") }}
       <UiSelect
         :model-value="value"
-        :label="t('settings.ai.executionTarget')"
+        :label="t('ai.target')"
         :options="options"
         :disabled="disabled || !ready || Boolean(loadError) || options.length === 0"
-        :placeholder="t('settings.ai.noCompatibleTarget')"
+        :placeholder="t('ai.noCompatibleTarget')"
         @update:model-value="target = decodeExecutionTarget($event)"
       />
     </label>

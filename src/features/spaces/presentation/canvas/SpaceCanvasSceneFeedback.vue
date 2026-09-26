@@ -27,10 +27,10 @@ const label = computed(() => {
   if (!cue) return "";
   const key =
     cue.action === "opened"
-      ? "spaces.navigation.sceneOpened"
+      ? "spaces.scenes.opened"
       : cue.action === "updated"
-        ? "spaces.navigation.sceneUpdated"
-        : "spaces.navigation.sceneSaved";
+        ? "spaces.scenes.updated"
+        : "spaces.scenes.saved";
   return t(key, { title: cue.title });
 });
 

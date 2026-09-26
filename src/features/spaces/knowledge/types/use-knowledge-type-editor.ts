@@ -68,7 +68,7 @@ export function useKnowledgeTypeEditor(open: Ref<boolean>) {
     while (fields.value.some((field) => field.key === `field${index}`)) index++;
     fields.value.push({
       key: `field${index}`,
-      label: `${t("spaces.knowledge.knowledgeField")} ${index}`,
+      label: `${t("spaces.knowledge.fields.title")} ${index}`,
       kind: "text",
     });
   }
@@ -82,7 +82,7 @@ export function useKnowledgeTypeEditor(open: Ref<boolean>) {
       fields.value.some((field) => !field.label.trim() || !field.key.trim()) ||
       new Set(keys).size !== keys.length
     ) {
-      error.value = t("spaces.knowledge.invalidKnowledgeFields");
+      error.value = t("spaces.knowledge.fields.invalid");
       return;
     }
     const input = {
@@ -115,8 +115,8 @@ export function useKnowledgeTypeEditor(open: Ref<boolean>) {
     saving.value = true;
     try {
       if (
-        !(await ask(t("spaces.knowledge.deleteTypeConfirmation", { name: name.value }), {
-          title: t("spaces.knowledge.manageKnowledgeTypes"),
+        !(await ask(t("spaces.knowledge.types.deleteConfirmation", { name: name.value }), {
+          title: t("spaces.knowledge.types.manage"),
           kind: "warning",
         }))
       )

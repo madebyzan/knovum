@@ -125,7 +125,7 @@ describe("Konva rich node interactions", () => {
     });
 
     expect(wrapper.get('[role="status"]').attributes("aria-label")).toBe(
-      i18n.global.t("spaces.media.analysisInProgress"),
+      i18n.global.t("spaces.media.analysis.inProgress"),
     );
   });
 });

@@ -17,12 +17,12 @@ const history = useSpaceKnowledgeHistoryQuery(activeSpaceId, () => props.node.id
 
 <template>
   <SpaceInspectorSection
-    :title="t('spaces.knowledge.knowledgeHistory')"
+    :title="t('spaces.knowledge.history.title')"
     :icon="Clock3"
     :default-expanded="false"
   >
     <div v-if="history.isError.value" class="rounded-control border border-danger/30 bg-danger/5 p-2">
-      <p class="text-micro text-danger">{{ t("spaces.knowledge.knowledgeHistoryLoadFailed") }}</p>
+      <p class="text-micro text-danger">{{ t("spaces.knowledge.history.loadFailed") }}</p>
       <UiButton
         class="mt-1"
         size="sm"
@@ -41,19 +41,19 @@ const history = useSpaceKnowledgeHistoryQuery(activeSpaceId, () => props.node.id
       >
         <div class="flex items-center justify-between gap-2">
           <span class="text-caption text-foreground-secondary">{{
-            t(`spaces.knowledge.knowledgeEvent.${event.eventKind}`)
+            t(`spaces.knowledge.history.events.${event.eventKind}`)
           }}</span>
           <time class="text-micro text-foreground-tertiary">{{
             new Date(event.createdAt).toLocaleString()
           }}</time>
         </div>
         <p class="mt-0.5 text-micro text-foreground-tertiary">
-          {{ t("spaces.knowledge.knowledgeActor", { actor: event.actorKind }) }}
+          {{ t("spaces.knowledge.history.actor", { actor: event.actorKind }) }}
         </p>
       </div>
     </div>
     <p v-else-if="!history.isFetching.value" class="px-1 text-caption text-foreground-tertiary">
-      {{ t("spaces.knowledge.knowledgeHistoryEmpty") }}
+      {{ t("spaces.knowledge.history.empty") }}
     </p>
   </SpaceInspectorSection>
 </template>

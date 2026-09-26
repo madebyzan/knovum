@@ -72,11 +72,11 @@ async function remeasure() {
       <UiSearchInput
         v-model="query"
         class="min-w-0 flex-1"
-        :placeholder="t('spaces.transcript.searchTranscript')"
+        :placeholder="t('spaces.transcript.text.search')"
       />
       <label class="flex shrink-0 items-center gap-1.5 text-micro text-foreground-tertiary">
-        {{ t("spaces.media.followPlayback") }}
-        <UiSwitch v-model="autoFollow" :label="t('spaces.media.followPlayback')" />
+        {{ t("spaces.media.player.followPlayback") }}
+        <UiSwitch v-model="autoFollow" :label="t('spaces.media.player.followPlayback')" />
       </label>
     </div>
     <div ref="scroller" class="h-80 overflow-y-auto">
@@ -100,7 +100,7 @@ async function remeasure() {
       </div>
     </div>
     <p v-if="!visibleIndices.length" class="p-4 text-center text-caption text-foreground-tertiary">
-      {{ t("spaces.transcript.noTranscriptMatches") }}
+      {{ t("spaces.transcript.text.noMatches") }}
     </p>
   </div>
 </template>

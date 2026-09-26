@@ -33,10 +33,10 @@ async function refreshInstallations() {
 }
 
 async function resetSection() {
-  const confirmed = await ask(t("settings.general.resetSectionConfirmation"), {
-    title: t("settings.general.resetSection"),
+  const confirmed = await ask(t("settings.general.reset.confirmation"), {
+    title: t("settings.general.reset.action"),
     kind: "warning",
-    okLabel: t("settings.general.resetSection"),
+    okLabel: t("settings.general.reset.action"),
     cancelLabel: t("common.cancel"),
   });
   if (confirmed) await store.reset();
@@ -49,7 +49,7 @@ onMounted(load);
   <SettingsLoadFailure v-if="loadError" :message="String(loadError)" @retry="load" @reset="resetSection" />
   <div v-else :class="!ready && 'pointer-events-none opacity-60'">
     <p class="mb-5 max-w-2xl text-body text-foreground-secondary">
-      {{ t("settings.ai.executionRoutingDescription") }}
+      {{ t("settings.routing.description") }}
     </p>
     <div
       v-if="catalog.descriptorError.value"
@@ -68,7 +68,7 @@ onMounted(load);
     >
       <p class="min-w-0 truncate text-caption text-warning">{{ String(catalog.installationError.value) }}</p>
       <UiButton size="sm" variant="secondary" @click="refreshInstallations">
-        {{ t("settings.ai.checkDesktopAgents") }}
+        {{ t("settings.agents.check") }}
       </UiButton>
     </div>
     <AiRoutingSettings

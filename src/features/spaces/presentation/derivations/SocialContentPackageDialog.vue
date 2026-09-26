@@ -29,20 +29,20 @@ const valid = computed(
     Boolean(form.textTarget && form.imageTarget),
 );
 const platforms = computed(() => [
-  { value: "xiaohongshu", label: t("spaces.creation.platformXiaohongshu") },
+  { value: "xiaohongshu", label: t("spaces.creation.social.platforms.xiaohongshu") },
   { value: "linkedin", label: "LinkedIn" },
-  { value: "generic", label: t("spaces.creation.platformGeneric") },
+  { value: "generic", label: t("spaces.creation.social.platforms.generic") },
 ]);
 const tones = computed(() => [
-  { value: "friendly", label: t("spaces.creation.toneFriendly") },
-  { value: "professional", label: t("spaces.creation.toneProfessional") },
-  { value: "energetic", label: t("spaces.creation.toneEnergetic") },
+  { value: "friendly", label: t("spaces.creation.social.tones.friendly") },
+  { value: "professional", label: t("spaces.creation.social.tones.professional") },
+  { value: "energetic", label: t("spaces.creation.social.tones.energetic") },
 ]);
 const ratios = ["1:1", "2:3", "9:16"].map((value) => ({ value, label: value }));
 
 watch(open, (isOpen) => {
   if (!isOpen) return;
-  form.title = t("spaces.creation.socialContentDefaultTitle");
+  form.title = t("spaces.creation.social.contentDefaultTitle");
   form.audience = "";
   form.goal = "";
 });
@@ -51,31 +51,39 @@ watch(open, (isOpen) => {
 <template>
   <UiDialog
     v-model:open="open"
-    :title="t('spaces.creation.socialContentPackage')"
-    :description="t('spaces.creation.socialContentDescription')"
+    :title="t('spaces.creation.social.contentPackage')"
+    :description="t('spaces.creation.social.contentDescription')"
   >
     <div class="space-y-4">
-      <UiInput v-model="form.title" :placeholder="t('spaces.inspector.detailTitle')" />
+      <UiInput v-model="form.title" :placeholder="t('common.title')" />
       <div class="grid grid-cols-2 gap-3">
-        <UiSelect v-model="form.platform" :label="t('spaces.creation.socialPlatform')" :options="platforms" />
-        <UiSelect v-model="form.tone" :label="t('spaces.creation.socialTone')" :options="tones" />
+        <UiSelect
+          v-model="form.platform"
+          :label="t('spaces.creation.social.platform')"
+          :options="platforms"
+        />
+        <UiSelect v-model="form.tone" :label="t('spaces.creation.social.tone')" :options="tones" />
       </div>
-      <UiInput v-model="form.audience" :placeholder="t('spaces.creation.socialAudience')" />
-      <UiInput v-model="form.goal" :placeholder="t('spaces.creation.socialGoal')" />
+      <UiInput v-model="form.audience" :placeholder="t('spaces.creation.social.audience')" />
+      <UiInput v-model="form.goal" :placeholder="t('spaces.creation.social.goal')" />
       <div class="grid grid-cols-2 gap-3">
-        <UiInput v-model="form.imageStyle" :placeholder="t('spaces.creation.visualStyle')" />
-        <UiSelect v-model="form.aspectRatio" :label="t('spaces.creation.aspectRatio')" :options="ratios" />
+        <UiInput v-model="form.imageStyle" :placeholder="t('spaces.creation.image.style')" />
+        <UiSelect
+          v-model="form.aspectRatio"
+          :label="t('spaces.creation.image.aspectRatio')"
+          :options="ratios"
+        />
       </div>
       <AiExecutionTargetField v-model="form.textTarget" purpose="knowledge" />
       <AiExecutionTargetField v-model="form.imageTarget" purpose="image-generation" />
       <p class="text-caption text-foreground-tertiary">
-        {{ t("spaces.creation.documentSources", { count: sources.length }) }}
+        {{ t("spaces.creation.document.sources", { count: sources.length }) }}
       </p>
     </div>
     <template #footer>
       <UiButton variant="ghost" @click="open = false">{{ t("common.cancel") }}</UiButton>
       <UiButton variant="primary" :disabled="!valid" @click="emit('submit', { ...form })">
-        {{ t("spaces.creation.createContentKit") }}
+        {{ t("spaces.creation.social.create") }}
       </UiButton>
     </template>
   </UiDialog>

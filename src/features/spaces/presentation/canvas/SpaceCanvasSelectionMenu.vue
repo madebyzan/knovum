@@ -66,20 +66,20 @@ const directImageActions: readonly CreationIntentId[] = ["remove-image-backgroun
       </UiDropdownMenuItem>
       <SpaceSelectionMoveMenu submenu @move="actions.moveToSpace" />
       <UiDropdownMenuItem v-if="actions.state.value.canCreateGroup" @select="actions.createGroup">
-        <Group class="size-(--knovum-icon-size-sm)" />{{ t("spaces.canvas.groupSelection") }}
+        <Group class="size-(--knovum-icon-size-sm)" />{{ t("spaces.canvas.groups.create") }}
       </UiDropdownMenuItem>
       <UiDropdownMenuItem v-if="actions.state.value.canCreateSection" @select="actions.createSection">
-        <Group class="size-(--knovum-icon-size-sm)" />{{ t("spaces.canvas.createSection") }}
+        <Group class="size-(--knovum-icon-size-sm)" />{{ t("spaces.canvas.sections.create") }}
       </UiDropdownMenuItem>
       <UiSeparator class="my-1" />
     </template>
     <template v-if="actions.state.value.structureNodeIds.length">
       <UiDropdownMenuItem @select="actions.duplicate">
-        <Copy class="size-(--knovum-icon-size-sm)" />{{ t("spaces.navigation.duplicateSelection") }}
+        <Copy class="size-(--knovum-icon-size-sm)" />{{ t("common.duplicate") }}
         <UiKbd shortcut="$mod+D" class="ml-auto" />
       </UiDropdownMenuItem>
       <UiDropdownMenuItem v-if="actions.state.value.canDissolveGroup" @select="actions.dissolveGroup">
-        <Group class="size-(--knovum-icon-size-sm)" />{{ t("spaces.canvas.ungroupSelection") }}
+        <Group class="size-(--knovum-icon-size-sm)" />{{ t("spaces.canvas.groups.ungroup") }}
         <UiKbd shortcut="$mod+Shift+G" class="ml-auto" />
       </UiDropdownMenuItem>
       <template v-if="actions.state.value.section">
@@ -87,20 +87,20 @@ const directImageActions: readonly CreationIntentId[] = ["remove-image-backgroun
           {{
             t(
               actions.state.value.section.collapsed
-                ? "spaces.canvas.expandSection"
-                : "spaces.canvas.collapseSection",
+                ? "spaces.canvas.sections.expand"
+                : "spaces.canvas.sections.collapse",
             )
           }}
         </UiDropdownMenuItem>
         <UiDropdownMenuItem @select="actions.fitSection">{{
-          t("spaces.canvas.fitSectionToContents")
+          t("spaces.canvas.sections.fitToContents")
         }}</UiDropdownMenuItem>
         <UiDropdownMenuItem @select="actions.dissolveSection">{{
-          t("spaces.canvas.removeSectionOnly")
+          t("spaces.canvas.sections.removeOnly")
         }}</UiDropdownMenuItem>
       </template>
       <UiDropdownMenuItem v-if="actions.state.value.content.length" @select="actions.focus">
-        <Focus class="size-(--knovum-icon-size-sm)" />{{ t("spaces.navigation.focusSelection") }}
+        <Focus class="size-(--knovum-icon-size-sm)" />{{ t("spaces.scenes.focus.selection") }}
       </UiDropdownMenuItem>
       <SpaceDerivationMenuItems
         v-if="actions.selectedNodes.value.length"
@@ -112,11 +112,11 @@ const directImageActions: readonly CreationIntentId[] = ["remove-image-backgroun
       />
       <UiDropdownMenuItem v-if="actions.selectedNodes.value.length" @select="actions.inspectWorkflow">
         <Workflow class="size-(--knovum-icon-size-sm)" />{{
-          t("spaces.creation.createWorkflowFromSelection")
+          t("spaces.creation.workflow.createFromSelection")
         }}
       </UiDropdownMenuItem>
       <UiDropdownMenuItem v-if="actions.selectedNodes.value.length" @select="actions.useWorkflow">
-        <Workflow class="size-(--knovum-icon-size-sm)" />{{ t("spaces.creation.useSavedWorkflow") }}
+        <Workflow class="size-(--knovum-icon-size-sm)" />{{ t("spaces.creation.workflow.useSaved") }}
       </UiDropdownMenuItem>
       <SpaceCanvasArrangeMenu
         :count="actions.state.value.structureNodeIds.length"
@@ -146,7 +146,7 @@ const directImageActions: readonly CreationIntentId[] = ["remove-image-backgroun
       <UiKbd :shortcut="SPACE_COMMAND_SHORTCUTS.lockSelection" class="ml-auto" />
     </UiDropdownMenuItem>
     <UiDropdownMenuItem destructive @select="actions.remove">
-      <Trash2 class="size-(--knovum-icon-size-sm)" />{{ t("spaces.navigation.deleteSelection") }}
+      <Trash2 class="size-(--knovum-icon-size-sm)" />{{ t("spaces.canvas.selection.delete") }}
       <UiKbd :shortcut="deleteShortcut" class="ml-auto" />
     </UiDropdownMenuItem>
   </UiDropdownMenu>

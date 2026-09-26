@@ -63,7 +63,7 @@ function retry() {
         <ChevronLeft class="size-(--knovum-icon-size-xs)" />
       </button>
       <h3 class="flex-1 text-caption font-semibold text-foreground">
-        {{ t("spaces.inspector.relatedContent") }}
+        {{ t("spaces.inspector.related.title") }}
       </h3>
       <button
         v-if="!expanded && items.length > 3"
@@ -71,7 +71,7 @@ function retry() {
         class="text-caption text-foreground-secondary hover:text-foreground"
         @click="expanded = true"
       >
-        {{ t("spaces.inspector.showRelated") }}
+        {{ t("spaces.inspector.related.show") }}
       </button>
     </header>
     <div
@@ -80,13 +80,13 @@ function retry() {
     >
       <TriangleAlert class="mt-0.5 size-(--knovum-icon-size-xs) shrink-0" />
       <div>
-        <p>{{ t("spaces.inspector.relatedUnavailable") }}</p>
+        <p>{{ t("spaces.inspector.related.unavailable") }}</p>
         <button type="button" class="mt-1 underline" @click="retry">{{ t("common.retry") }}</button>
       </div>
     </div>
     <div v-else-if="pending" class="py-3">
       <p class="text-caption leading-relaxed text-foreground-tertiary">
-        {{ t("spaces.inspector.relatedIndexing") }}
+        {{ t("spaces.inspector.related.indexing") }}
       </p>
       <div class="mt-3 h-2 w-4/5 rounded-control bg-control" />
       <div class="mt-2 h-2 w-full rounded-control bg-control" />
@@ -96,24 +96,24 @@ function retry() {
       v-else-if="query.data.value?.state === 'unindexed'"
       class="py-3 text-caption leading-relaxed text-foreground-tertiary"
     >
-      <p>{{ t("spaces.inspector.relatedNotIndexed") }}</p>
+      <p>{{ t("spaces.inspector.related.notIndexed") }}</p>
       <button type="button" class="mt-1 text-foreground-secondary underline" @click="startIndex">
-        {{ t("spaces.inspector.prepareRelated") }}
+        {{ t("spaces.inspector.related.prepare") }}
       </button>
     </div>
     <p
       v-else-if="query.data.value?.state === 'no_content'"
       class="py-3 text-caption leading-relaxed text-foreground-tertiary"
     >
-      {{ t("spaces.inspector.relatedNoContent") }}
+      {{ t("spaces.inspector.related.noContent") }}
     </p>
     <div v-else-if="!items.length" class="py-5 text-center text-caption text-foreground-tertiary">
       <Search class="mx-auto mb-2 size-(--knovum-icon-size-sm)" :stroke-width="1.5" />
-      {{ t("spaces.inspector.relatedEmpty") }}
+      {{ t("spaces.inspector.related.empty") }}
     </div>
     <div v-else>
       <p v-if="expanded" class="mb-2 text-caption leading-relaxed text-foreground-tertiary">
-        {{ t("spaces.inspector.relatedExplanation") }}
+        {{ t("spaces.inspector.related.explanation") }}
       </p>
       <button
         v-for="item in visibleItems"

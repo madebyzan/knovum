@@ -124,7 +124,9 @@ async function save() {
 
 <template>
   <form class="space-y-3 border-t border-divider pt-3" @submit.prevent="save">
-    <h3 class="text-caption font-semibold text-foreground">{{ t("spaces.creation.editWorkflow") }}</h3>
+    <h3 class="text-caption font-semibold text-foreground">
+      {{ t("spaces.creation.workflow.edit") }}
+    </h3>
     <SpaceWorkflowStepSelection
       :steps="workflow.candidate.steps"
       :model-value="includedStepIds"
@@ -132,7 +134,7 @@ async function save() {
     />
     <SpaceWorkflowOutputEditor v-model="outputSlots" :steps="steps" />
     <p v-if="!catalog.length && !catalogError" class="text-caption text-foreground-secondary" role="status">
-      {{ t("spaces.creation.derivationLoading") }}
+      {{ t("spaces.creation.workflow.derivation.loading") }}
     </p>
     <SpaceWorkflowParameterFields
       :fields="catalog.length ? fields : []"

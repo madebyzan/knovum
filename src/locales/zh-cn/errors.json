@@ -1,8 +1,12 @@
 {
   "title": "应用遇到意外错误",
   "description": "知生知未能完成当前操作，详细信息已保存到系统日志。",
-  "bootstrapTitle": "启动失败",
-  "bootstrapDescription": "核心服务或设置加载失败，知生知无法启动。",
-  "featureTitle": "无法打开工作区",
-  "featureDescription": "当前空间无法显示，请重新打开。"
+  "bootstrap": {
+    "title": "启动失败",
+    "description": "核心服务或设置加载失败，知生知无法启动。"
+  },
+  "feature": {
+    "title": "无法打开工作区",
+    "description": "当前空间无法显示，请重新打开。"
+  }
 }

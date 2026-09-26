@@ -30,7 +30,9 @@ const metaLine = computed(() => {
   <div class="space-y-4 text-caption">
     <div class="space-y-1 text-foreground-secondary">
       <p>
-        {{ t("spaces.creation.generatedWith", { provider: metadata.provider, model: metadata.model }) }}
+        {{
+          t("spaces.creation.shared.generatedWith", { provider: metadata.provider, model: metadata.model })
+        }}
       </p>
       <p>{{ description }}</p>
       <p class="text-foreground-tertiary">{{ metaLine }}</p>

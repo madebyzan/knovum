@@ -1,57 +1,95 @@
 {
-  "tools": { "title": "Canvas tools", "select": "Select", "section": "Draw Section" },
+  "tools": {
+    "title": "Canvas tools",
+    "select": "Select",
+    "section": "Draw section"
+  },
   "nodeActions": {
     "label": "Node actions",
-    "openOriginal": "Open Original",
-    "goToTarget": "Go to Target",
-    "viewLarge": "View Image",
-    "openVideo": "Open Video",
-    "openAudio": "Open Audio",
-    "viewCode": "View Code",
-    "openFile": "Open File",
+    "openOriginal": "Open original",
+    "goToTarget": "Go to target",
+    "viewLarge": "View image",
+    "openVideo": "Open video",
+    "openAudio": "Open audio",
+    "viewCode": "View code",
+    "openFile": "Open file",
     "download": "Download"
   },
-  "zoomOut": "Zoom Out",
-  "zoomIn": "Zoom In",
-  "ungrouped": "Ungrouped",
-  "group": "Group",
-  "section": "Section",
-  "groupSelection": "Group Selection",
-  "ungroupSelection": "Ungroup Selection",
-  "untitledGroup": "Untitled Group",
-  "createSection": "Create Section",
-  "createEmptySection": "New Section",
-  "removeSection": "Delete Section",
-  "removeSectionOnly": "Remove Section Only",
-  "fitSectionToContents": "Fit Section to Contents",
-  "untitledSection": "Untitled Section",
-  "fitSection": "Fit Section to Content",
+  "zoom": {
+    "out": "Zoom out",
+    "in": "Zoom in",
+    "options": "Zoom options",
+    "toFitContent": "Zoom to fit content",
+    "toSelection": "Zoom to selection"
+  },
+  "arrange": {
+    "title": "Arrange",
+    "toFront": "Bring to front",
+    "forward": "Bring forward",
+    "backward": "Send backward",
+    "toBack": "Send to back",
+    "autoHorizontal": "Auto layout (horizontal)",
+    "autoVertical": "Auto layout (vertical)"
+  },
+  "layerOrder": "Layer ordering",
+  "selection": {
+    "label": "Selection",
+    "selectAll": "Select all",
+    "delete": "Delete selected",
+    "toggleLock": "Lock or unlock selection"
+  },
+  "kinds": {
+    "group": "Group",
+    "section": "Section"
+  },
+  "groups": {
+    "create": "Group selection",
+    "ungroup": "Ungroup selection",
+    "untitled": "Untitled group"
+  },
+  "sections": {
+    "create": "Create section",
+    "createEmpty": "New section",
+    "removeOnly": "Remove section only",
+    "fitToContents": "Fit section to contents",
+    "untitled": "Untitled section",
+    "collapse": "Collapse section",
+    "expand": "Expand section"
+  },
   "lock": "Lock",
   "locked": "Locked",
   "unlock": "Unlock",
-  "collapseSection": "Collapse Section",
-  "expandSection": "Expand Section",
-  "bringToFront": "Bring to Front",
-  "sendBackward": "Send Backward",
   "align": {
     "left": "Left",
-    "center": "Horizontal Center",
+    "center": "Horizontal center",
     "right": "Right",
     "top": "Top",
-    "middle": "Vertical Center",
+    "middle": "Vertical center",
     "bottom": "Bottom"
   },
   "distribute": {
     "horizontal": "Horizontally",
     "vertical": "Vertically"
   },
-  "connect": "Connect",
-  "textStyle": "Text style",
+  "nudge": {
+    "left": "Nudge left",
+    "right": "Nudge right",
+    "up": "Nudge up",
+    "down": "Nudge down",
+    "leftLarge": "Move left 10pt",
+    "rightLarge": "Move right 10pt",
+    "upLarge": "Move up 10pt",
+    "downLarge": "Move down 10pt"
+  },
+  "relations": {
+    "connect": "Connect",
+    "incoming": "Incoming",
+    "outgoing": "Outgoing"
+  },
   "typography": "Typography",
   "noteBackground": "Note background",
   "textColor": "Text color",
   "fontSize": "Font size",
-  "textAlignment": "Text alignment",
   "noteFills": {
     "yellow": "Yellow",
     "green": "Green",
@@ -81,47 +119,30 @@
     "pink": "Pink",
     "white": "White"
   },
-  "textAlignments": { "left": "Left", "center": "Center", "right": "Right" },
-  "verticalAlignments": { "top": "Top", "middle": "Middle", "bottom": "Bottom" },
-  "alignItems": "Align",
-  "distributeItems": "Distribute",
-  "nudgeLeft": "Nudge Left",
-  "nudgeRight": "Nudge Right",
-  "nudgeUp": "Nudge Up",
-  "nudgeDown": "Nudge Down",
-  "nudgeLeftLarge": "Move Left 10pt",
-  "nudgeRightLarge": "Move Right 10pt",
-  "nudgeUpLarge": "Move Up 10pt",
-  "nudgeDownLarge": "Move Down 10pt",
-  "deleteSectionWithContents": "Delete Section and Contents",
-  "emptySectionHint": "Drop nodes into this section",
-  "revealInCanvas": "Reveal in Canvas",
-  "zoomOptions": "Zoom Options",
-  "deleteSectionContentsDescription": "This permanently deletes this section and all card nodes inside it.",
+  "textAlignments": {
+    "left": "Left",
+    "center": "Center",
+    "right": "Right"
+  },
+  "verticalAlignments": {
+    "top": "Top",
+    "middle": "Middle",
+    "bottom": "Bottom"
+  },
+  "revealInCanvas": "Reveal in canvas",
+  "shortcuts": {
+    "panCanvas": "Pan canvas",
+    "zoomReset": "Reset zoom",
+    "nudgeSelection": "Nudge selection",
+    "nudgeLarge": "Move by 10px"
+  },
+  "dropToSave": "Drop to save in current Space",
+  "cancelInteraction": "Cancel canvas interaction",
   "htmlSandboxAssetsBlocked": "Current HTML is missing {count} assets. Importing the complete folder is recommended.",
-  "groupItemsCount": "Group · {count} items",
-  "moveToContainer": "Move to Container",
-  "spaceRoot": "Space Root",
-  "focusSection": "Focus Section",
-  "layer": "Layer Ordering",
-  "autoLayoutHorizontal": "Auto Layout (Horizontal)",
-  "autoLayoutVertical": "Auto Layout (Vertical)",
-  "actions": {
-    "dropToSave": "Drop to save in current Space",
-    "zoomToFitContent": "Zoom to Fit Content",
-    "zoomToSelection": "Zoom to Selection",
-    "cancelInteraction": "Cancel Canvas Interaction",
-    "toggleSelectionLock": "Lock or Unlock Selection",
-    "cutFailed": "Could not cut selected structure.",
-    "pastedImage": "Pasted Image.png",
-    "selectAll": "Select All",
-    "bringForward": "Bring Forward",
-    "sendToBack": "Send to Back",
-    "arrange": "Arrange",
-    "incoming": "Incoming",
-    "outgoing": "Outgoing",
-    "forward": "Forward",
-    "addContent": "Add Content",
-    "importFiles": "Import Files…"
+  "moveToContainer": "Move to container",
+  "spaceRoot": "Space root",
+  "addContent": {
+    "title": "Add content",
+    "importFiles": "Import files…"
   }
 }

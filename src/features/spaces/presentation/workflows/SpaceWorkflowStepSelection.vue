@@ -12,7 +12,7 @@ const { t } = useI18n();
 
 function label(step: Step) {
   const key = captureActionLabels[step.actionId];
-  return key ? t(`spaces.creation.captureActions.${key}`) : step.actionId;
+  return key ? t(`spaces.creation.workflow.captureActions.${key}`) : step.actionId;
 }
 
 function hasDependents(id: string) {
@@ -34,18 +34,18 @@ function choose(id: string, selected: boolean) {
 <template>
   <fieldset class="space-y-2">
     <legend class="text-caption font-semibold text-foreground">
-      {{ t("spaces.creation.workflowSteps") }}
+      {{ t("spaces.creation.workflow.steps.title") }}
     </legend>
     <div v-for="step in steps" :key="step.id" class="flex items-center gap-2 text-caption">
       <UiCheckbox
-        :label="t('spaces.creation.keepWorkflowStep', { action: label(step) })"
+        :label="t('spaces.creation.workflow.steps.keep', { action: label(step) })"
         :model-value="modelValue.includes(step.id)"
         :disabled="hasDependents(step.id)"
         @update:model-value="choose(step.id, $event)"
       />
       <span class="min-w-0 flex-1 truncate text-foreground">{{ label(step) }}</span>
       <span v-if="hasDependents(step.id)" class="text-foreground-tertiary">{{
-        t("spaces.creation.workflowStepRequired")
+        t("spaces.creation.workflow.steps.required")
       }}</span>
     </div>
   </fieldset>

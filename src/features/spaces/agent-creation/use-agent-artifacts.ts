@@ -78,7 +78,7 @@ export function useAgentArtifacts(open: Ref<boolean>) {
     try {
       await discard(store.activeSpaceId);
     } catch (error) {
-      toast.error(t("spaces.creation.discardAgentArtifactsFailed"), { description: String(error) });
+      toast.error(t("spaces.creation.agent.artifacts.discardFailed"), { description: String(error) });
     }
   }
 
@@ -101,22 +101,22 @@ export function useAgentArtifacts(open: Ref<boolean>) {
           },
           position: store.nextInsertionPoint(),
           labels: {
-            title: t("spaces.transfer.importingResource"),
-            preparing: t("spaces.transfer.importPreparing"),
+            title: t("spaces.importExport.progress.resource"),
+            preparing: t("spaces.importExport.progress.preparing"),
           },
         });
         if (!imported.length) return;
         removeConsumed(artifact.relativePath);
       }
     } catch (error) {
-      toast.error(t("spaces.transfer.importFailed"), { description: String(error) });
+      toast.error(t("spaces.importExport.importFailed"), { description: String(error) });
       return;
     }
     open.value = false;
     try {
       await discard(spaceId, currentSessionId);
     } catch (error) {
-      toast.error(t("spaces.creation.discardAgentArtifactsFailed"), { description: String(error) });
+      toast.error(t("spaces.creation.agent.artifacts.discardFailed"), { description: String(error) });
     }
   }
 

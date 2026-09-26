@@ -1,0 +1,19 @@
+{
+  "task": "Media analysis",
+  "preparing": "Preparing media",
+  "unavailable": "Duration and waveform are not available yet",
+  "audioPreparing": "Preparing audio",
+  "transcribing": "Whisper local transcription",
+  "organizing": "Creating chapters & summary",
+  "knowledge": {
+    "title": "Media knowledge",
+    "pending": "Submitted to background analysis queue.",
+    "stale": "Analysis data is out of sync with source file; please reanalyze."
+  },
+  "summary": "Summary",
+  "inProgress": "Analyzing media in background…",
+  "insights": {
+    "unavailable": "Transcript data is unavailable; please analyze the media first.",
+    "generate": "Generate chapters & summary"
+  }
+}

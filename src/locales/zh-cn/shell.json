@@ -1,9 +1,9 @@
 {
-  "commands": "命令",
-  "commandPalette": "命令面板",
-  "searchCommands": "搜索与执行命令",
-  "searchPlaceholder": "搜索命令…",
-  "noMatchingCommands": "未找到匹配的命令",
+  "commands": {
+    "title": "命令面板",
+    "searchPlaceholder": "搜索命令…",
+    "noMatches": "未找到匹配的命令"
+  },
   "commandUnavailable": {
     "nothingToUndo": "没有可撤销的操作",
     "nothingToRedo": "没有可重做的操作",
@@ -14,28 +14,20 @@
     "busy": "操作正在进行中"
   },
   "toggleRightSidebar": "显示或隐藏右侧栏",
-  "inspector": "详情",
-  "details": "详细信息",
-  "closeInspector": "关闭详情",
-  "applications": "应用",
   "toggleSidebar": "切换侧边栏",
-  "aiAssistant": "AI 助手",
-  "openModule": "打开 {title}",
-  "keyboardShortcuts": "快捷键",
-  "searchShortcuts": "搜索快捷键",
-  "shortcutsGeneral": "通用",
-  "shortcutsNavigation": "导航",
-  "shortcutsCanvas": "画布",
-  "shortcutsEditing": "编辑",
-  "noMatchingShortcuts": "未找到匹配的快捷键",
-  "panCanvas": "平移画布",
-  "zoomCanvas": "放大 / 缩小",
-  "zoomReset": "重置缩放",
-  "zoomFit": "适应视口",
-  "nudgeSelection": "微调选中项",
-  "nudgeLarge": "移动 10px",
-  "previousScene": "上一个场景",
-  "nextScene": "下一个场景",
-  "online": "在线",
-  "offline": "离线"
+  "shortcuts": {
+    "title": "快捷键",
+    "search": "搜索快捷键",
+    "categories": {
+      "general": "通用",
+      "navigation": "导航",
+      "canvas": "画布",
+      "editing": "编辑"
+    },
+    "noMatches": "未找到匹配的快捷键"
+  },
+  "runtimeModels": {
+    "transcription": "多语言语音转写模型（本地）",
+    "textEmbedding": "文本向量模型（Qwen3-Embedding-0.6B）"
+  }
 }

@@ -58,13 +58,13 @@ function submit(event?: KeyboardEvent) {
         v-model="prompt"
         :rows="3"
         class="max-h-48 min-h-24 resize-none rounded-b-none border-0 bg-transparent px-3 py-3"
-        :placeholder="$t('spaces.assistant.builtInPlaceholder')"
+        :placeholder="$t('spaces.assistant.input.placeholder')"
         @keydown.enter.exact="submit"
         @keydown.meta.enter="submit"
         @keydown.ctrl.enter="submit"
       />
       <div v-else class="min-h-24 px-3 py-3 text-body text-foreground-tertiary">
-        {{ $t("spaces.assistant.builtInPlaceholder") }}
+        {{ $t("spaces.assistant.input.placeholder") }}
       </div>
       <div v-if="attachments.length" class="flex min-w-0 flex-wrap gap-1.5 px-3 pb-2">
         <SpaceConversationAttachment
@@ -92,8 +92,8 @@ function submit(event?: KeyboardEvent) {
         </UiIconButton>
         <UiIconButton
           v-else
-          :label="$t('spaces.assistant.send')"
-          :shortcut="$t('spaces.assistant.sendShortcutHint')"
+          :label="$t('spaces.assistant.input.send')"
+          :shortcut="$t('spaces.assistant.input.shortcutHint')"
           size="sm"
           class="bg-accent text-on-accent hover:bg-accent-hover hover:text-on-accent disabled:bg-control disabled:text-foreground-secondary"
           :disabled="!canSend"

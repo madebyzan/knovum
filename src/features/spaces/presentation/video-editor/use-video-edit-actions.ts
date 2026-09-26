@@ -49,7 +49,7 @@ export function useVideoEditActions(options: Options) {
     try {
       await store.updateManyData([{ id: node.value.id, before: data.value, after }]);
       history.markSaved(snapshot);
-      toast.success(t("spaces.media.projectSaved"));
+      toast.success(t("spaces.media.videoEditor.project.saved"));
       return true;
     } catch (error) {
       toast.error(String(error));
@@ -117,7 +117,7 @@ export function useVideoEditActions(options: Options) {
       if (history.dirty.value && !(await save())) return;
       await renderVideoEdit(store, { ...node.value, data: node.value.data }, project.value);
     } catch (error) {
-      toast.error(`${t("spaces.media.videoRenderFailed")}: ${String(error)}`);
+      toast.error(`${t("spaces.media.videoEditor.render.failed")}: ${String(error)}`);
     } finally {
       rendering.value = false;
     }

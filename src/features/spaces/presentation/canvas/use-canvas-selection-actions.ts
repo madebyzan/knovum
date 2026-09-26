@@ -56,7 +56,7 @@ export function useCanvasSelectionActions() {
   const structureActions = useCanvasStructureSelectionActions(
     store,
     state,
-    { group: t("spaces.canvas.untitledGroup"), section: t("spaces.canvas.untitledSection") },
+    { group: t("spaces.canvas.groups.untitled"), section: t("spaces.canvas.sections.untitled") },
     runSelectionMutation,
   );
 

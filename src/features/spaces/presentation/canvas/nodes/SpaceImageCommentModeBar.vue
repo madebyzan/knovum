@@ -6,9 +6,9 @@ import type { ImageCommentMode } from "../../../comments/image-comment-session";
 defineProps<{ mode: ImageCommentMode }>();
 const emit = defineEmits<{ change: [mode: ImageCommentMode]; cancel: [] }>();
 const modes = [
-  { id: "point", icon: MessageCircle, label: "spaces.media.commentPoint" },
-  { id: "draw", icon: Pencil, label: "spaces.media.commentDraw" },
-  { id: "region", icon: ScanLine, label: "spaces.media.commentRegion" },
+  { id: "point", icon: MessageCircle, label: "spaces.media.imageEditor.comments.point" },
+  { id: "draw", icon: Pencil, label: "spaces.media.imageEditor.comments.draw" },
+  { id: "region", icon: ScanLine, label: "spaces.media.imageEditor.comments.region" },
 ] as const;
 </script>
 
@@ -16,7 +16,7 @@ const modes = [
   <div
     class="nodrag pointer-events-auto absolute bottom-3 left-1/2 z-30 flex -translate-x-1/2 items-center gap-1 rounded-panel border border-border bg-overlay p-1 shadow-popover"
     role="toolbar"
-    :aria-label="$t('spaces.media.commentMode')"
+    :aria-label="$t('spaces.media.imageEditor.comments.mode')"
   >
     <button
       v-for="item in modes"

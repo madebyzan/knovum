@@ -43,7 +43,7 @@ async function beginAudioRecording() {
   try {
     await store.beginAudioRecording();
   } catch (error) {
-    toast.error(t("spaces.media.audioRecordingFailed"), { description: String(error) });
+    toast.error(t("spaces.recording.startFailed"), { description: String(error) });
   }
 }
 </script>
@@ -58,7 +58,7 @@ async function beginAudioRecording() {
     <template #trigger>
       <ToolbarButton as-child>
         <UiIconButton
-          :label="t('spaces.canvas.actions.addContent')"
+          :label="t('spaces.canvas.addContent.title')"
           :disabled="!nodeOperations.allows('create')"
           size="sm"
           tooltip-side="bottom"
@@ -84,8 +84,8 @@ async function beginAudioRecording() {
 
   <UiDialog
     v-model:open="websiteOpen"
-    :title="t('spaces.transfer.addWebsite')"
-    :description="t('spaces.transfer.addWebsiteDescription')"
+    :title="t('spaces.importExport.website.add')"
+    :description="t('spaces.importExport.website.description')"
   >
     <UiInput v-model="website" type="url" placeholder="example.com/article" @keydown.enter="addWebsite" />
     <template #footer>

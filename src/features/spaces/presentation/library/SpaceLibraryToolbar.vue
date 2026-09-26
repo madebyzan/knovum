@@ -24,16 +24,16 @@ watch(
 
 <template>
   <div class="relative flex min-w-0 flex-1 items-center justify-end gap-1">
-    <UiIconButton size="sm" :label="t('spaces.space.newSpace')" shortcut="$mod+T" @click="emit('create')">
+    <UiIconButton size="sm" :label="t('spaces.space.new')" shortcut="$mod+T" @click="emit('create')">
       <Plus class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
     </UiIconButton>
-    <UiIconButton size="sm" :label="t('spaces.transfer.importSpace')" @click="packages.importPackage">
+    <UiIconButton size="sm" :label="t('spaces.importExport.space.import')" @click="packages.importPackage">
       <FileInput class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
     </UiIconButton>
     <UiIconButton
       size="sm"
       :active="libraryLayout === 'grid'"
-      :label="t('spaces.space.gridView')"
+      :label="t('spaces.space.views.grid')"
       @click="libraryLayout = 'grid'"
     >
       <Grid2X2 class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
@@ -41,7 +41,7 @@ watch(
     <UiIconButton
       size="sm"
       :active="libraryLayout === 'list'"
-      :label="t('spaces.space.listView')"
+      :label="t('spaces.space.views.list')"
       @click="libraryLayout = 'list'"
     >
       <List class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
@@ -51,7 +51,7 @@ watch(
       v-model="libraryQuery"
       size="sm"
       class="w-52"
-      :placeholder="t('spaces.space.searchSpaces')"
+      :placeholder="t('spaces.space.search.placeholder')"
     />
   </div>
 </template>

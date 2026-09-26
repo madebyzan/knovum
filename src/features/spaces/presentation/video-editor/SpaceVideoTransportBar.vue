@@ -52,10 +52,10 @@ const { t } = useI18n();
         <Redo2 class="size-(--knovum-icon-size-sm)" />
       </UiIconButton>
       <span class="mx-1 h-5 w-px bg-divider" aria-hidden="true" />
-      <UiIconButton :label="t('spaces.media.split')" size="sm" @click="$emit('split')"
+      <UiIconButton :label="t('spaces.media.videoEditor.clip.split')" size="sm" @click="$emit('split')"
         ><Scissors class="size-(--knovum-icon-size-sm)"
       /></UiIconButton>
-      <UiIconButton :label="t('spaces.media.addText')" size="sm" @click="$emit('addText')"
+      <UiIconButton :label="t('spaces.media.videoEditor.text.add')" size="sm" @click="$emit('addText')"
         ><Type class="size-(--knovum-icon-size-sm)"
       /></UiIconButton>
       <UiIconButton :label="t('common.delete')" size="sm" :disabled="!canDelete" @click="$emit('remove')"
@@ -66,19 +66,19 @@ const { t } = useI18n();
       <span class="w-12 text-right text-caption font-medium tabular-nums">{{
         formatVideoTimelineTime(currentMs)
       }}</span>
-      <UiIconButton :label="t('spaces.media.previousStep')" size="sm" @click="$emit('step', -100)"
+      <UiIconButton :label="t('spaces.media.videoEditor.previousStep')" size="sm" @click="$emit('step', -100)"
         ><SkipBack class="size-(--knovum-icon-size-sm)"
       /></UiIconButton>
       <UiIconButton
         class="size-9 rounded-full bg-foreground text-canvas hover:bg-foreground-secondary hover:text-canvas active:bg-foreground-secondary active:text-canvas"
-        :label="playing ? t('spaces.media.pause') : t('spaces.media.play')"
+        :label="playing ? t('common.pause') : t('spaces.media.player.play')"
         size="sm"
         @click="$emit('toggle')"
       >
         <Pause v-if="playing" class="size-(--knovum-icon-size-sm)" fill="currentColor" />
         <Play v-else class="size-(--knovum-icon-size-sm)" fill="currentColor" />
       </UiIconButton>
-      <UiIconButton :label="t('spaces.media.nextStep')" size="sm" @click="$emit('step', 100)"
+      <UiIconButton :label="t('spaces.media.videoEditor.nextStep')" size="sm" @click="$emit('step', 100)"
         ><SkipForward class="size-(--knovum-icon-size-sm)"
       /></UiIconButton>
       <span class="w-12 text-caption text-foreground-tertiary tabular-nums">{{
@@ -87,7 +87,7 @@ const { t } = useI18n();
     </div>
     <div class="flex items-center justify-end gap-1">
       <UiIconButton
-        :label="t('spaces.media.zoomOut')"
+        :label="t('spaces.media.videoEditor.timeline.zoomOut')"
         size="sm"
         :disabled="zoom <= 1"
         @click="$emit('zoom', Math.max(1, zoom / 1.5))"
@@ -98,7 +98,7 @@ const { t } = useI18n();
         >{{ Math.round(zoom * 100) }}%</span
       >
       <UiIconButton
-        :label="t('spaces.media.zoomIn')"
+        :label="t('spaces.media.videoEditor.timeline.zoomIn')"
         size="sm"
         :disabled="zoom >= 8"
         @click="$emit('zoom', Math.min(8, zoom * 1.5))"
@@ -106,7 +106,7 @@ const { t } = useI18n();
         <ZoomIn class="size-(--knovum-icon-size-sm)" />
       </UiIconButton>
       <UiIconButton
-        :label="t('spaces.media.fitTimeline')"
+        :label="t('spaces.media.videoEditor.timeline.fit')"
         size="sm"
         :disabled="zoom === 1"
         @click="$emit('zoom', 1)"

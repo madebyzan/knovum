@@ -49,7 +49,7 @@ function handleKeydown(event: KeyboardEvent) {
 <template>
   <div>
     <label class="mb-1.5 block text-caption text-foreground-secondary" :for="inputId">
-      {{ t("spaces.media.fontColor") }}
+      {{ t("spaces.media.videoEditor.font.color") }}
     </label>
     <div
       class="flex items-center gap-2 rounded-control border border-border bg-field px-2"
@@ -59,7 +59,7 @@ function handleKeydown(event: KeyboardEvent) {
         :value="color"
         type="color"
         class="size-7 shrink-0 cursor-pointer border-0 bg-transparent"
-        :aria-label="t('spaces.media.fontColor')"
+        :aria-label="t('spaces.media.videoEditor.font.color')"
         @input="pick"
       />
       <UiInput
@@ -74,7 +74,7 @@ function handleKeydown(event: KeyboardEvent) {
       />
     </div>
     <p v-if="invalid" :id="errorId" class="mt-1 text-micro text-danger">
-      {{ t("spaces.media.invalidTextColor") }}
+      {{ t("spaces.media.videoEditor.text.invalidColor") }}
     </p>
   </div>
 </template>

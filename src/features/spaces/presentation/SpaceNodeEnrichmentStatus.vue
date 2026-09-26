@@ -26,15 +26,11 @@ const visible = computed(
       v-if="status.running"
       class="size-(--knovum-icon-size-xs) animate-spin text-foreground-tertiary"
     />
-    <span v-if="status.pending">{{
-      t("spaces.processing.nodeEnrichmentPending", { count: status.pending })
-    }}</span>
-    <span v-if="status.waiting">{{ t("spaces.processing.visualWaitingConfiguration") }}</span>
-    <span v-if="status.running">{{
-      t("spaces.processing.nodeEnrichmentRunning", { count: status.running })
-    }}</span>
+    <span v-if="status.pending">{{ t("spaces.processing.queue.pending", { count: status.pending }) }}</span>
+    <span v-if="status.waiting">{{ t("spaces.processing.visual.waitingConfiguration") }}</span>
+    <span v-if="status.running">{{ t("spaces.processing.queue.running", { count: status.running }) }}</span>
     <span v-if="status.failed" class="text-danger">
-      {{ t("spaces.processing.nodeEnrichmentFailed", { count: status.failed }) }}
+      {{ t("spaces.processing.queue.failed", { count: status.failed }) }}
     </span>
     <button
       v-if="status.failed"
@@ -45,7 +41,7 @@ const visible = computed(
     >
       <LoaderCircle v-if="retrying" class="size-(--knovum-icon-size-xs) animate-spin" />
       <RefreshCw v-else class="size-(--knovum-icon-size-xs)" />
-      {{ t("spaces.processing.nodeEnrichmentRetry") }}
+      {{ t("common.retry") }}
     </button>
     <p v-if="status.failed && status.lastError" class="basis-full text-micro text-danger">
       {{ status.lastError }}

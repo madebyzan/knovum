@@ -47,7 +47,7 @@ async function save() {
   if (saving.value) return;
   const title = draft.value.trim();
   if (!title) {
-    error.value = t("spaces.navigation.nodeNameRequired");
+    error.value = t("spaces.sidebar.rename.nameRequired");
     return;
   }
   saving.value = true;
@@ -55,7 +55,7 @@ async function save() {
     await props.saveName(title);
     emit("finish");
   } catch (cause) {
-    error.value = t("spaces.navigation.nodeRenameFailed");
+    error.value = t("spaces.sidebar.rename.failed");
     void logError(`Structure node rename failed: ${String(cause)}`);
     await nextTick();
     input.value?.focus({ preventScroll: true });

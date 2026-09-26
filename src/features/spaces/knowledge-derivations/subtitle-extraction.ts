@@ -34,7 +34,7 @@ export async function createSubtitleResource(store: SpaceStore, source: SpaceCan
     const transcript = source.data.mediaKnowledge!.transcript;
     const data: SpaceSubtitlePayload = {
       kind: "subtitle",
-      title: i18n.global.t("spaces.creation.subtitleResourceTitle"),
+      title: i18n.global.t("spaces.creation.video.subtitles.resourceTitle"),
       sourceVideoNodeId: source.id,
       sourceVideoRevision: source.data.sourceRevision,
       language: transcript.language,
@@ -70,7 +70,7 @@ export async function createSubtitleResource(store: SpaceStore, source: SpaceCan
   } catch (error) {
     void logError(`[subtitle-extraction] phase=${phase} error=${String(error)}`);
     if (outputId) await store.discardPendingContent(spaceId, outputId);
-    toast.error(`${i18n.global.t("spaces.creation.subtitleResourceFailed")}: ${String(error)}`);
+    toast.error(`${i18n.global.t("spaces.creation.video.subtitles.resourceFailed")}: ${String(error)}`);
     return undefined;
   } finally {
     if (outputId) endPendingDerivation(outputId);

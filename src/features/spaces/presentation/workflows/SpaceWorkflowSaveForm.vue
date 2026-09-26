@@ -19,7 +19,7 @@ const outputNames = ref<Record<string, string>>(
   Object.fromEntries(
     props.candidate.outputSlots.map((slot, index) => [
       slot.id,
-      t("spaces.creation.workflowOutputName", { index: index + 1 }),
+      t("spaces.creation.workflow.outputs.name", { index: index + 1 }),
     ]),
   ),
 );
@@ -47,16 +47,16 @@ function submit() {
     @submit.prevent="submit"
   >
     <label class="block text-caption text-foreground-secondary" for="capture-workflow-name">{{
-      t("spaces.creation.workflowName")
+      t("spaces.creation.workflow.name")
     }}</label>
     <UiInput
       id="capture-workflow-name"
       v-model="save.name.value"
-      :placeholder="t('spaces.creation.workflowNamePlaceholder')"
+      :placeholder="t('spaces.creation.workflow.namePlaceholder')"
     />
     <div v-for="(output, index) in candidate.outputSlots" :key="output.id" class="space-y-1">
       <label class="block text-caption text-foreground-secondary" :for="`capture-output-${output.id}`">
-        {{ t("spaces.creation.workflowOutputName", { index: index + 1 }) }}
+        {{ t("spaces.creation.workflow.outputs.name", { index: index + 1 }) }}
       </label>
       <UiInput
         :id="`capture-output-${output.id}`"
@@ -65,7 +65,7 @@ function submit() {
       />
     </div>
     <p v-if="!outputsNamed" class="text-caption text-warning">
-      {{ t("spaces.creation.workflowOutputNamesUnique") }}
+      {{ t("spaces.creation.workflow.outputs.namesUnique") }}
     </p>
     <p v-if="save.error.value" class="text-caption text-danger" role="alert">{{ save.error.value }}</p>
     <UiButton
@@ -74,10 +74,10 @@ function submit() {
       class="w-full"
       :disabled="!save.name.value.trim() || !outputsNamed || save.saving.value"
     >
-      {{ t("spaces.creation.saveCapturedWorkflow") }}
+      {{ t("spaces.creation.workflow.saveCaptured") }}
     </UiButton>
   </form>
   <p v-else class="border-t border-border px-3 py-3 text-caption text-success" role="status">
-    {{ t("spaces.creation.workflowSaved") }}
+    {{ t("spaces.creation.workflow.saved") }}
   </p>
 </template>

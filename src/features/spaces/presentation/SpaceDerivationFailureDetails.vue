@@ -25,7 +25,7 @@ const { t } = useI18n();
         }}
       </UiButton>
       <UiButton size="sm" variant="danger" :disabled="retrying" @click="emit('remove')">
-        <Trash2 class="size-(--knovum-icon-size-xs)" />{{ t("spaces.creation.removeFailedOutput") }}
+        <Trash2 class="size-(--knovum-icon-size-xs)" />{{ t("spaces.creation.shared.removeFailedOutput") }}
       </UiButton>
     </div>
   </div>

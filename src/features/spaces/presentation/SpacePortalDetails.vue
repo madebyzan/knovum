@@ -54,7 +54,7 @@ function cancel() {
     <UiInput
       v-model="draft.title"
       :disabled="!nodeDraft.canContinue.value"
-      :placeholder="t('spaces.inspector.detailTitle')"
+      :placeholder="t('common.title')"
     />
     <UiSelect
       v-model="draft.targetSpaceId"

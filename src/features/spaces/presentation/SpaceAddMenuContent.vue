@@ -75,12 +75,10 @@ const knowledgeOptions = [
         </UiDropdownMenuItem>
         <UiSeparator class="my-1" />
         <UiDropdownMenuItem @select="emit('customKnowledge')">
-          <Shapes class="size-(--knovum-icon-size-sm)" />{{ t("spaces.knowledge.customKnowledgeObject") }}…
+          <Shapes class="size-(--knovum-icon-size-sm)" />{{ t("spaces.knowledge.objects.custom") }}…
         </UiDropdownMenuItem>
         <UiDropdownMenuItem @select="emit('manageTypes')">
-          <SlidersHorizontal class="size-(--knovum-icon-size-sm)" />{{
-            t("spaces.knowledge.manageKnowledgeTypes")
-          }}…
+          <SlidersHorizontal class="size-(--knovum-icon-size-sm)" />{{ t("spaces.knowledge.types.manage") }}…
         </UiDropdownMenuItem>
       </DropdownMenuSubContent>
     </DropdownMenuPortal>
@@ -88,21 +86,21 @@ const knowledgeOptions = [
 
   <UiSeparator class="my-1" />
   <UiDropdownMenuItem @select="emit('section')">
-    <LayoutPanelTop class="size-(--knovum-icon-size-sm)" />{{ t("spaces.canvas.createEmptySection") }}
+    <LayoutPanelTop class="size-(--knovum-icon-size-sm)" />{{ t("spaces.canvas.sections.createEmpty") }}
   </UiDropdownMenuItem>
   <UiSeparator class="my-1" />
   <UiDropdownMenuItem @select="emit('website')">
-    <Globe2 class="size-(--knovum-icon-size-sm)" />{{ t("spaces.transfer.addWebsite") }}…
+    <Globe2 class="size-(--knovum-icon-size-sm)" />{{ t("spaces.importExport.website.add") }}…
   </UiDropdownMenuItem>
   <UiDropdownMenuItem @select="emit('importFile')">
-    <FileInput class="size-(--knovum-icon-size-sm)" />{{ t("spaces.canvas.actions.importFiles") }}
+    <FileInput class="size-(--knovum-icon-size-sm)" />{{ t("spaces.canvas.addContent.importFiles") }}
   </UiDropdownMenuItem>
   <UiDropdownMenuItem @select="emit('recordAudio')">
-    <Mic class="size-(--knovum-icon-size-sm)" />{{ t("spaces.media.recordAudio") }}…
+    <Mic class="size-(--knovum-icon-size-sm)" />{{ t("spaces.recording.note") }}…
   </UiDropdownMenuItem>
   <UiSeparator class="my-1" />
   <UiDropdownMenuItem @select="emit('agent')">
-    <Bot class="size-(--knovum-icon-size-sm)" />{{ t("spaces.creation.createWithAgent") }}…
+    <Bot class="size-(--knovum-icon-size-sm)" />{{ t("spaces.creation.agent.create") }}…
   </UiDropdownMenuItem>
   <UiSeparator class="my-1" />
   <UiDropdownMenuItem @select="emit('portal')">

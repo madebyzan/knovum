@@ -77,7 +77,7 @@ function openSource(record: (typeof provenance.value)[number]) {
       }}</span>
       <UiIconButton
         v-if="attachable"
-        :label="t('spaces.assistant.useCurrentEvidence')"
+        :label="t('spaces.assistant.evidence.useCurrent')"
         size="sm"
         @click="attachCurrent"
       >
@@ -105,7 +105,7 @@ function openSource(record: (typeof provenance.value)[number]) {
         </button>
         <UiIconButton
           v-if="removable && record.status === 'active'"
-          :label="t('spaces.assistant.removeEvidence')"
+          :label="t('spaces.assistant.evidence.remove')"
           size="sm"
           @click="remove(record.id)"
         >

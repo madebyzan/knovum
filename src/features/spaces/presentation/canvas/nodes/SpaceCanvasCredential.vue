@@ -69,7 +69,7 @@ const kindLabel = computed(() =>
       class="shrink-0"
       :class="interactive && 'pointer-events-auto'"
       :disabled="!interactive || !nodeDraft.available.value"
-      :label="t('spaces.credentials.editCredential')"
+      :label="t('spaces.credentials.edit')"
       size="sm"
       @pointerdown.stop
       @dblclick.stop
@@ -81,7 +81,7 @@ const kindLabel = computed(() =>
 
   <UiDialog
     :open="open"
-    :title="t('spaces.credentials.editCredential')"
+    :title="t('spaces.credentials.edit')"
     class="bg-canvas"
     @update:open="
       (value) => {
@@ -91,7 +91,7 @@ const kindLabel = computed(() =>
   >
     <div class="grid gap-3">
       <label class="grid gap-1.5 text-caption text-foreground-secondary">
-        <span>{{ t("spaces.credentials.credentialTitle") }}</span>
+        <span>{{ t("spaces.credentials.title") }}</span>
         <UiInput v-model="title" :disabled="loading || saving" />
       </label>
       <label
@@ -124,7 +124,7 @@ const kindLabel = computed(() =>
           />
           <UiIconButton
             :disabled="loading || saving"
-            :label="reveal ? t('spaces.credentials.hideSecret') : t('spaces.credentials.showSecret')"
+            :label="reveal ? t('common.hideSecret') : t('common.showSecret')"
             @click="toggleReveal()"
           >
             <EyeOff v-if="reveal" class="size-(--knovum-icon-size-sm)" />

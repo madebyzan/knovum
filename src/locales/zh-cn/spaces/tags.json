@@ -1,0 +1,8 @@
+{
+  "title": "标签",
+  "selectionHint": "选中画布节点以管理标签。",
+  "add": "添加标签",
+  "empty": "当前空间暂无标签。",
+  "showNodes": "筛选此标签节点",
+  "remove": "移除标签 {tag}"
+}

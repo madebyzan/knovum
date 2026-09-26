@@ -56,7 +56,8 @@ onMounted(async () => {
 function showHistory(entry: CapturedWorkflowRun) {
   run.reset();
   const title =
-    items.value.find((item) => item.workflowId === entry.workflowId)?.name ?? t("spaces.creation.workflow");
+    items.value.find((item) => item.workflowId === entry.workflowId)?.name ??
+    t("spaces.creation.workflow.title");
   run.attach(entry.run, title, true);
 }
 
@@ -83,7 +84,8 @@ async function retry() {
   const entry = history.value.find(({ run: item }) => item.id === runId.value);
   if (!entry) return;
   const title =
-    items.value.find((item) => item.workflowId === entry.workflowId)?.name ?? t("spaces.creation.workflow");
+    items.value.find((item) => item.workflowId === entry.workflowId)?.name ??
+    t("spaces.creation.workflow.title");
   await run.retry(title, (started) => library.addRun({ run: started, workflowId: entry.workflowId }));
 }
 
@@ -107,7 +109,7 @@ function deletedWorkflow(id: string) {
   <div class="flex h-full min-h-0 flex-col text-label">
     <div class="min-h-0 flex-1 space-y-4 overflow-y-auto px-3 py-3">
       <p v-if="loading" role="status" class="text-foreground-secondary">
-        {{ t("spaces.creation.derivationLoading") }}
+        {{ t("spaces.creation.workflow.derivation.loading") }}
       </p>
       <template v-else>
         <UiButton
@@ -116,27 +118,27 @@ function deletedWorkflow(id: string) {
           class="w-full"
           @click="store.openWorkflowCapture(store.workflowCaptureSelection)"
         >
-          {{ t("spaces.creation.createWorkflowFromSelection") }}
+          {{ t("spaces.creation.workflow.createFromSelection") }}
         </UiButton>
         <UiSelect
           v-else
           v-model="workflowId"
-          :label="t('spaces.creation.selectWorkflow')"
+          :label="t('spaces.creation.workflow.select')"
           :options="choices"
-          :placeholder="t('spaces.creation.selectWorkflow')"
+          :placeholder="t('spaces.creation.workflow.select')"
         />
         <p
           v-if="items.length && choices.every((choice) => choice.disabled)"
           class="text-caption text-warning"
         >
-          {{ t("spaces.creation.workflowMissingInputs") }}
+          {{ t("spaces.creation.workflow.inputs.missing") }}
         </p>
         <template v-if="workflow">
           <p class="text-micro text-foreground-tertiary tabular-nums">v{{ workflow.version }}</p>
           <SpaceWorkflowOutputs :outputs="workflow.candidate.outputSlots" />
           <section class="space-y-3">
             <h3 class="text-caption font-semibold text-foreground-secondary">
-              {{ t("spaces.creation.bindWorkflowInputs") }}
+              {{ t("spaces.creation.workflow.inputs.bind") }}
             </h3>
             <SpaceWorkflowBinding
               v-for="slot in slots"
@@ -148,7 +150,7 @@ function deletedWorkflow(id: string) {
               @update:model-value="setBinding(slot.id, $event)"
             />
             <p v-if="slots.some((slot) => !slot.options.length)" class="text-caption text-warning">
-              {{ t("spaces.creation.workflowMissingInputs") }}
+              {{ t("spaces.creation.workflow.inputs.missing") }}
             </p>
           </section>
           <SpaceWorkflowManagement
@@ -170,7 +172,7 @@ function deletedWorkflow(id: string) {
     </div>
     <div v-if="workflow && !runId" class="border-t border-border px-3 py-3">
       <UiButton variant="primary" class="w-full" :disabled="!ready || submitting" @click="start">
-        {{ t("spaces.creation.runWorkflow") }}
+        {{ t("spaces.creation.workflow.run.start") }}
       </UiButton>
     </div>
     <SpaceWorkflowRunActions

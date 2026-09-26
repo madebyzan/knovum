@@ -54,7 +54,7 @@ function matchBadgeLabel(match: KnowledgeSearchMatch): string | null {
       <DialogContent
         class="fixed top-[14%] left-1/2 z-50 w-[calc(100vw-3rem)] max-w-(--knovum-command-max-width) -translate-x-1/2 overflow-hidden rounded-dialog border border-border bg-overlay shadow-dialog outline-none"
       >
-        <DialogTitle class="sr-only">{{ t("spaces.navigation.findInSpace") }}</DialogTitle>
+        <DialogTitle class="sr-only">{{ t("spaces.search.find.title") }}</DialogTitle>
         <ListboxRoot @update:model-value="select">
           <div
             class="flex h-(--knovum-command-input-height) items-center gap-2.5 border-b border-divider px-3.5"
@@ -63,7 +63,7 @@ function matchBadgeLabel(match: KnowledgeSearchMatch): string | null {
             <ListboxFilter
               v-model="query"
               autofocus
-              :placeholder="t('spaces.navigation.findPlaceholder')"
+              :placeholder="t('spaces.search.find.placeholder')"
               class="h-full min-w-0 flex-1 border-0 bg-transparent text-body-lg outline-none placeholder:text-foreground-tertiary"
             />
             <UiSpinner v-if="searching" class="text-foreground-tertiary" />
@@ -76,7 +76,7 @@ function matchBadgeLabel(match: KnowledgeSearchMatch): string | null {
               v-if="!query.trim() && defaultNodes.length"
               class="px-2.5 py-1 text-micro font-medium tracking-uppercase text-foreground-tertiary uppercase"
             >
-              {{ t("spaces.navigation.findDefaultTitle") }}
+              {{ t("spaces.search.find.defaultTitle") }}
             </p>
             <ListboxItem
               v-for="node in !query.trim() ? defaultNodes : []"
@@ -94,7 +94,7 @@ function matchBadgeLabel(match: KnowledgeSearchMatch): string | null {
                 ><span class="block truncate text-caption text-foreground-tertiary">{{
                   ("fileName" in node.data && node.data.fileName) ||
                   ("siteName" in node.data && node.data.siteName) ||
-                  t("spaces.navigation.findDefaultDetail")
+                  t("spaces.search.find.defaultDetail")
                 }}</span></span
               >
             </ListboxItem>
@@ -114,7 +114,9 @@ function matchBadgeLabel(match: KnowledgeSearchMatch): string | null {
               <span class="min-w-0 flex-1">
                 <strong class="block truncate text-label font-medium">{{ match.title }}</strong>
                 <span class="block text-caption text-foreground-tertiary">{{
-                  match.nodeKind === "section" ? t("spaces.canvas.section") : t("spaces.canvas.group")
+                  match.nodeKind === "section"
+                    ? t("spaces.canvas.kinds.section")
+                    : t("spaces.canvas.kinds.group")
                 }}</span>
               </span>
             </ListboxItem>
@@ -154,20 +156,20 @@ function matchBadgeLabel(match: KnowledgeSearchMatch): string | null {
               {{ t("spaces.processing.semanticUnavailable") }}
             </p>
             <div v-if="query.trim() && searchFailed" class="grid justify-items-center gap-2 px-3 py-8">
-              <p class="text-caption text-danger">{{ t("spaces.navigation.searchFailed") }}</p>
+              <p class="text-caption text-danger">{{ t("spaces.search.failed") }}</p>
               <UiButton size="sm" variant="secondary" @click="retry">{{ t("common.retry") }}</UiButton>
             </div>
             <p
               v-else-if="query.trim() && !searching && matches.length === 0 && structureMatches.length === 0"
               class="px-3 py-8 text-center text-caption text-foreground-tertiary"
             >
-              {{ t("spaces.navigation.noFindResults") }}
+              {{ t("spaces.search.find.noResults") }}
             </p>
             <p
               v-else-if="!query.trim() && defaultNodes.length === 0"
               class="px-3 py-8 text-center text-caption text-foreground-tertiary"
             >
-              {{ t("spaces.navigation.findEmptyHint") }}
+              {{ t("spaces.search.find.emptyHint") }}
             </p>
           </ListboxContent>
         </ListboxRoot>

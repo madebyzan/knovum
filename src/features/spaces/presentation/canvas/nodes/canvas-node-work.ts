@@ -26,7 +26,7 @@ function markdownWork(
     kind: "derivation",
     phase: state === "pending" ? "active" : "failed",
     surface: hasContent ? "chrome" : "content",
-    labelKey: state === "pending" ? "spaces.creation.generatingDocument" : "spaces.creation.documentFailed",
+    labelKey: state === "pending" ? "spaces.creation.document.generating" : "spaces.creation.document.failed",
   };
 }
 
@@ -38,21 +38,21 @@ function assetWork(data: ResourceNode): CanvasNodeWork | undefined {
       kind: "asset",
       phase: "failed",
       surface: assetContentAvailable(data) ? "chrome" : "content",
-      labelKey: "spaces.processing.processingFailed",
+      labelKey: "spaces.processing.failed",
     };
   }
   return {
     kind: "asset",
     phase: "active",
     surface: state === "importing" || !assetContentAvailable(data) ? "content" : "chrome",
-    labelKey: state === "importing" ? "spaces.transfer.importingResource" : processingLabel(data.kind),
+    labelKey: state === "importing" ? "spaces.importExport.progress.resource" : processingLabel(data.kind),
   };
 }
 
 function processingLabel(kind: ResourceNode["kind"]): string {
-  if (kind === "image") return "spaces.processing.processingImage";
-  if (kind === "video" || kind === "audio") return "spaces.processing.processingMedia";
-  return "spaces.transfer.importProcessing";
+  if (kind === "image") return "spaces.processing.imageProgress";
+  if (kind === "video" || kind === "audio") return "spaces.processing.mediaProgress";
+  return "spaces.importExport.progress.processing";
 }
 
 function assetContentAvailable(data: ResourceNode): boolean {
@@ -74,7 +74,7 @@ function websiteWork(state: "idle" | "loading" | "ready" | "failed" | undefined)
       kind: "website",
       phase: "active",
       surface: "chrome",
-      labelKey: "spaces.transfer.websiteLoading",
+      labelKey: "spaces.importExport.website.loading",
     };
   }
   if (state === "failed") {
@@ -82,7 +82,7 @@ function websiteWork(state: "idle" | "loading" | "ready" | "failed" | undefined)
       kind: "website",
       phase: "failed",
       surface: "chrome",
-      labelKey: "spaces.transfer.websitePreviewUnavailable",
+      labelKey: "spaces.importExport.website.previewUnavailable",
     };
   }
   return undefined;
@@ -107,7 +107,7 @@ export function canvasNodeWork(
       kind: "analysis",
       phase: "active",
       surface: "chrome",
-      labelKey: "spaces.media.analysisInProgress",
+      labelKey: "spaces.media.analysis.inProgress",
     };
   }
   return undefined;

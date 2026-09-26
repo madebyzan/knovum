@@ -52,12 +52,12 @@ export function observeConversationRun(
       else if (next.state === "cancelled") tasks.cancelled(next.id);
       else if (next.completedAt !== null) {
         void getAssistantTaskError(next.id)
-          .then((reason) => tasks.fail(next.id, reason ?? i18n.global.t("spaces.assistant.taskFailed")))
+          .then((reason) => tasks.fail(next.id, reason ?? i18n.global.t("spaces.assistant.tasks.failed")))
           .catch((cause: unknown) => tasks.fail(next.id, String(cause)));
       } else if (next.state === "paused" || next.waitReason === "approval") {
-        tasks.detail(next.id, i18n.global.t("spaces.assistant.taskNeedsAttention"));
+        tasks.detail(next.id, i18n.global.t("spaces.assistant.tasks.needsAttention"));
       } else if (next.state === "waiting") {
-        tasks.detail(next.id, i18n.global.t("spaces.assistant.taskWaitingForResult"));
+        tasks.detail(next.id, i18n.global.t("spaces.assistant.tasks.waitingForResult"));
       } else tasks.detail(next.id, "");
     },
     error: (cause) => tasks.fail(run.id, String(cause)),

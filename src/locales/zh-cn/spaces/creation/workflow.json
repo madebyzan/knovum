@@ -1,0 +1,114 @@
+{
+  "title": "创作工作流",
+  "select": "选择创作工作流",
+  "createFromSelection": "从所选派生创建工作流",
+  "derivation": {
+    "loading": "正在整理派生过程…",
+    "separateChains": "选中内容包含 {count} 条互不相连的派生链。请分别选择需要的产物。",
+    "chain": "派生链 {index}",
+    "steps": "已验证的操作",
+    "inputs": "工作流输入",
+    "issues": "无法复用的部分",
+    "empty": "选中内容没有可重放的派生操作。"
+  },
+  "name": "工作流名称",
+  "namePlaceholder": "为这个工作流命名",
+  "saveCaptured": "保存为工作流",
+  "saved": "已保存到个人工作流库",
+  "useSaved": "使用工作流",
+  "inputs": {
+    "slot": "输入 {index}",
+    "bind": "将选中素材绑定到工作流输入",
+    "select": "选择素材",
+    "sequenceLimit": "按下面的顺序处理，最多 {count} 项",
+    "moveUp": "上移素材",
+    "moveDown": "下移素材",
+    "missing": "选中内容缺少该工作流所需的素材类型。"
+  },
+  "summary": "{steps} 个操作 · {outputs} 个产物",
+  "outputs": {
+    "title": "将生成",
+    "select": "保留“{action}”的结果",
+    "locate": "定位“{name}”",
+    "name": "结果 {index}",
+    "namesUnique": "每个结果都需要不同的名称，最多 120 个字。"
+  },
+  "steps": {
+    "title": "处理步骤",
+    "keep": "保留步骤“{action}”",
+    "required": "被后续步骤使用"
+  },
+  "run": {
+    "start": "运行工作流",
+    "state": "运行状态：{state}。关闭面板后仍可在任务中心查看。",
+    "recent": "最近运行",
+    "new": "新建运行",
+    "retryFailedSteps": "重试失败步骤",
+    "cancel": "取消运行"
+  },
+  "edit": "编辑工作流",
+  "parameters": {
+    "title": "标题",
+    "purpose": "用途",
+    "content": "正文",
+    "question": "问题",
+    "prompt": "描述",
+    "summaryPurpose": "摘要用途",
+    "audience": "受众",
+    "goal": "目标",
+    "tone": "语气",
+    "intent": "创作意图",
+    "style": "风格",
+    "imageStyle": "图像风格",
+    "aspectRatio": "画面比例",
+    "durationSeconds": "时长（秒）",
+    "platform": "平台"
+  },
+  "delete": "删除工作流",
+  "deleteConfirm": "删除“{name}”？已完成的运行记录和产物仍会保留。",
+  "review": {
+    "required": "等待你审核内容",
+    "title": "审核生成的内容",
+    "unavailable": "待审核内容已不可用，请检查运行状态。",
+    "changed": "审核期间内容发生变化，请重新查看后批准。",
+    "edited": "这份内容已编辑；批准后将使用当前版本继续。",
+    "edit": "在画布编辑",
+    "reject": "拒绝并停止",
+    "approve": "批准并继续"
+  },
+  "states": {
+    "queued": "排队中",
+    "running": "正在运行",
+    "waiting": "等待处理",
+    "paused": "已暂停",
+    "succeeded": "已完成",
+    "completedWithErrors": "部分失败",
+    "failed": "失败",
+    "cancelled": "已取消",
+    "cancelling": "正在取消"
+  },
+  "captureIssues": {
+    "resourceUnavailable": "资源已删除或不属于当前空间。",
+    "derivationIncomplete": "派生操作尚未成功完成。",
+    "executionSpecUnavailable": "缺少经过验证的操作参数或处理目标，无法重放。",
+    "derivationInputsUnavailable": "没有可验证的来源输入。",
+    "sourceUnavailable": "来源资源已不可用。",
+    "sourceMismatch": "派生记录的来源或顺序与执行记录不一致，不能重放。",
+    "sourceIdentityUnavailable": "来源记录缺少资源身份。",
+    "parameterInstanceReference": "操作参数引用了原画布的资源，无法直接作为可复用工作流。",
+    "candidateBindingUnavailable": "步骤的输入无法绑定到工作流输入或前置产物。",
+    "noDerivedOutputSelected": "请选择一个由操作生成的产物。"
+  },
+  "captureActions": {
+    "draftDocument": "生成文档",
+    "draftScript": "编写视频脚本",
+    "summarizeMeeting": "整理会议摘要",
+    "draftSocialPost": "编写社交文案",
+    "generateVisualization": "生成可视化图片",
+    "generateImage": "生成图片",
+    "generateVideo": "生成视频",
+    "extractSubtitles": "提取字幕",
+    "renderSubtitledVideo": "合成带字幕视频",
+    "renderPresentation": "生成演示文稿"
+  }
+}

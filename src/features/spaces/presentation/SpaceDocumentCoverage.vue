@@ -36,16 +36,16 @@ watch(
 );
 type DocumentWarning = DocumentCoverage["warnings"][number];
 const warningMessageKeys: Record<DocumentWarning, string> = {
-  office_vector_drawings_unsupported: "spaces.processing.documentWarnings.officeVectorDrawingsUnsupported",
+  office_vector_drawings_unsupported: "spaces.processing.document.warnings.officeVectorDrawingsUnsupported",
   spreadsheet_image_cell_anchors_unavailable:
-    "spaces.processing.documentWarnings.spreadsheetImageCellAnchorsUnavailable",
+    "spaces.processing.document.warnings.spreadsheetImageCellAnchorsUnavailable",
   spreadsheet_chart_rendering_unsupported:
-    "spaces.processing.documentWarnings.spreadsheetChartRenderingUnsupported",
+    "spaces.processing.document.warnings.spreadsheetChartRenderingUnsupported",
   legacy_office_visual_occurrence_coverage_limited:
-    "spaces.processing.documentWarnings.legacyOfficeVisualOccurrenceCoverageLimited",
+    "spaces.processing.document.warnings.legacyOfficeVisualOccurrenceCoverageLimited",
   legacy_spreadsheet_formulas_unavailable:
-    "spaces.processing.documentWarnings.legacySpreadsheetFormulasUnavailable",
-  pdf_visual_coverage_limited: "spaces.processing.documentWarnings.pdfVisualCoverageLimited",
+    "spaces.processing.document.warnings.legacySpreadsheetFormulasUnavailable",
+  pdf_visual_coverage_limited: "spaces.processing.document.warnings.pdfVisualCoverageLimited",
 };
 </script>
 
@@ -53,7 +53,7 @@ const warningMessageKeys: Record<DocumentWarning, string> = {
   <div v-if="report" class="space-y-2 text-body text-foreground-secondary">
     <p v-if="report.pageCount !== null">
       {{
-        $t("spaces.processing.documentTextCoverage", {
+        $t("spaces.processing.document.textCoverage", {
           count: report.pagesWithExtractedText.length,
           total: report.pageCount,
         })
@@ -61,31 +61,34 @@ const warningMessageKeys: Record<DocumentWarning, string> = {
     </p>
     <p v-if="report.pagesWithoutExtractableContent.length">
       {{
-        $t("spaces.processing.documentUnclassifiedPages", {
+        $t("spaces.processing.document.unclassifiedPages", {
           count: report.pagesWithoutExtractableContent.length,
         })
       }}
     </p>
     <p v-if="report.pagesRequiringRecognition.length">
       {{
-        $t("spaces.processing.documentRecognitionRequired", {
+        $t("spaces.processing.document.recognitionRequired", {
           pages: report.pagesRequiringRecognition.join(", "),
         })
       }}
     </p>
     <p v-if="report.occurrences.length">
       {{
-        $t("spaces.processing.documentVisualCoverage", { count: completed, total: report.occurrences.length })
+        $t("spaces.processing.document.visualCoverage", {
+          count: completed,
+          total: report.occurrences.length,
+        })
       }}
     </p>
-    <p v-if="unsupported">{{ $t("spaces.processing.documentVisualUnavailable", { count: unsupported }) }}</p>
+    <p v-if="unsupported">{{ $t("spaces.processing.document.visualUnavailable", { count: unsupported }) }}</p>
     <p v-for="warning in report.warnings" :key="warning">
       {{ $t(warningMessageKeys[warning]) }}
     </p>
     <section v-if="resources.length" class="space-y-2 pt-1">
       <header class="flex items-baseline justify-between gap-2">
         <strong class="text-label font-medium text-foreground">
-          {{ $t("spaces.processing.documentResources") }}
+          {{ $t("spaces.processing.document.resources.title") }}
         </strong>
         <span class="text-micro text-foreground-tertiary">{{ resources.length }}</span>
       </header>

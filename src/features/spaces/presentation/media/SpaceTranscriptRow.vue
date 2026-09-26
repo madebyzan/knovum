@@ -108,10 +108,10 @@ function save() {
       </UiIconButton>
     </div>
 
-    <UiDialog v-model:open="dialogOpen" :title="t('spaces.transcript.editTranscriptSegment')">
+    <UiDialog v-model:open="dialogOpen" :title="t('spaces.transcript.text.editSegment')">
       <div class="space-y-4 py-1">
         <label class="block text-micro font-medium text-foreground-tertiary">
-          {{ t("spaces.transcript.transcriptText") }}
+          {{ t("spaces.transcript.text.title") }}
           <UiTextarea v-model="draft.text" class="mt-1 w-full resize-none" :rows="4" />
         </label>
       </div>

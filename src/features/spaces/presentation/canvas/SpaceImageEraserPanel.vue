@@ -21,16 +21,16 @@ const brushSize = computed({
 </script>
 
 <template>
-  <section class="w-56 space-y-3 text-foreground" :aria-label="t('spaces.media.eraser')">
+  <section class="w-56 space-y-3 text-foreground" :aria-label="t('spaces.media.imageEditor.eraser.tool')">
     <header class="flex items-center justify-between px-1">
-      <h3 class="text-body-lg font-semibold">{{ t("spaces.media.eraser") }}</h3>
+      <h3 class="text-body-lg font-semibold">{{ t("spaces.media.imageEditor.eraser.tool") }}</h3>
       <UiButton
         variant="ghost"
         size="sm"
         class="shadow-none"
         :disabled="!canUndo"
-        :title="t('spaces.media.undoEraser')"
-        :aria-label="t('spaces.media.undoEraser')"
+        :title="t('spaces.media.imageEditor.eraser.undo')"
+        :aria-label="t('spaces.media.imageEditor.eraser.undo')"
         @click="emit('undo')"
       >
         <Undo2 class="size-(--knovum-icon-size-sm)" />
@@ -38,7 +38,7 @@ const brushSize = computed({
     </header>
     <SpaceImageRangeSlider
       minimal
-      :label="t('spaces.media.brushSize')"
+      :label="t('spaces.media.imageEditor.eraser.brushSize')"
       :value="brushSize"
       :min="5"
       :max="150"
@@ -58,7 +58,7 @@ const brushSize = computed({
         class="min-w-0 flex-1 bg-foreground text-canvas hover:bg-foreground hover:opacity-90"
         :disabled="!canApply"
         @click="emit('apply')"
-        >{{ t("spaces.media.applyNow") }}</UiButton
+        >{{ t("spaces.media.imageEditor.applyNow") }}</UiButton
       >
     </footer>
   </section>

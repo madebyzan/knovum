@@ -1,26 +1,41 @@
 {
   "title": "设置",
-  "description": "调整知生知的外观与使用方式。",
   "backToApp": "返回应用",
   "search": "搜索设置项…",
-  "clearSearch": "清除搜索",
   "preferences": "通用",
   "noResults": "未找到匹配的设置项。",
-  "settingsLoadFailed": "无法载入设置",
-  "settingsLoadFailedDescription": "已保存的数据不符合当前设置格式。请重试，或仅重置此设置区域。",
-  "resetSection": "重置此区域",
-  "resetSectionConfirmation": "要重置此设置区域保存的数据吗？此操作无法撤销。",
-  "about": "关于",
-  "aboutDescription": "应用版本与系统信息。",
+  "load": {
+    "failed": "无法载入设置",
+    "failedDescription": "已保存的数据不符合当前设置格式。请重试，或仅重置此设置区域。"
+  },
+  "reset": {
+    "action": "重置此区域",
+    "confirmation": "要重置此设置区域保存的数据吗？此操作无法撤销。"
+  },
+  "about": {
+    "title": "关于",
+    "description": "应用版本与系统信息。"
+  },
   "version": "版本 {version}",
   "readingVersion": "正在读取版本…",
   "data": "数据与归档",
   "information": "信息",
-  "archivedSpaces": "已归档空间",
-  "archivedSpacesDescription": "恢复或永久删除归档的空间。",
-  "deleteAllArchivedSpaces": "全部删除",
-  "deleteAllArchivedSpacesTitle": "永久删除所有已归档空间？",
-  "deleteAllArchivedSpacesDescription": "永久删除全部 {count} 个已归档空间及其中的内容？此操作无法撤销。",
-  "noArchivedSpaces": "暂无已归档的空间。",
-  "backToSettings": "返回设置"
+  "archived": {
+    "title": "已归档空间",
+    "description": "恢复或永久删除归档的空间。",
+    "restore": "恢复空间",
+    "delete": {
+      "label": "永久删除",
+      "title": "永久删除“{title}”？",
+      "description": "此操作将从设备中彻底清除该空间及其所有关联数据，不可恢复。",
+      "failed": "删除空间失败"
+    },
+    "deleteAll": {
+      "label": "全部删除",
+      "title": "永久删除所有已归档空间？",
+      "description": "永久删除全部 {count} 个已归档空间及其中的内容？此操作无法撤销。"
+    },
+    "empty": "暂无已归档的空间。"
+  },
+  "inboxSpace": "收集箱"
 }

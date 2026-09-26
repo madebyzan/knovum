@@ -32,9 +32,9 @@ useIntervalFn(refresh, 2_000, { immediate: true });
     class="rounded-panel border border-divider bg-surface/45 p-3 text-caption text-foreground-secondary"
   >
     <header class="mb-2 flex items-center justify-between">
-      <span class="font-semibold text-foreground">{{ t("spaces.processing.enrichmentQueueTitle") }}</span>
+      <span class="font-semibold text-foreground">{{ t("spaces.processing.queue.title") }}</span>
       <span class="text-micro text-foreground-tertiary">{{
-        t("spaces.processing.enrichmentQueueSubtitle", { count: jobs.length })
+        t("spaces.processing.queue.subtitle", { count: jobs.length })
       }}</span>
     </header>
     <ul class="space-y-1.5">
@@ -48,7 +48,7 @@ useIntervalFn(refresh, 2_000, { immediate: true });
           class="text-micro text-foreground-tertiary hover:text-foreground"
           @click="cancel(job.id)"
         >
-          {{ t("spaces.processing.enrichmentQueueCancel") }}
+          {{ t("common.cancel") }}
         </button>
       </li>
     </ul>

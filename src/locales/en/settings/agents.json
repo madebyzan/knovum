@@ -1,0 +1,36 @@
+{
+  "title": "Desktop Agents",
+  "description": "Use supported AI agents already installed and signed in on this computer. Enabled agents run with their available tools, MCP servers, and skills without per-action confirmation.",
+  "check": "Check Agents",
+  "enable": "Enable",
+  "disable": "Disable",
+  "status": {
+    "checking": "Checking",
+    "checkFailed": "Check failed"
+  },
+  "entry": {
+    "missing": "Command entry not detected",
+    "applicationOnly": "App only",
+    "commandDetected": "Command detected"
+  },
+  "requiredCommands": "Required command: {commands}",
+  "connectionHelp": "{name} connection help",
+  "officialDocumentation": "Official guidance",
+  "acpSetup": "ACP setup",
+  "detectionBoundary": "Detection confirms command entries, not sign-in or ACP connectivity.",
+  "documentationOpenFailed": "Could not open the Agent's official link",
+  "connections": {
+    "nativeCli": {
+      "title": "Native ACP",
+      "requirements": "Install an official CLI with ACP support and add its command directory to PATH."
+    },
+    "nodeAdapter": {
+      "title": "ACP adapter",
+      "requirements": "Requires the official CLI and Node.js (npx). First use may download the ACP adapter."
+    },
+    "standaloneServer": {
+      "title": "Standalone ACP server",
+      "requirements": "Download the official ACP archive, keep its companion files, and add the server directory to PATH."
+    }
+  }
+}

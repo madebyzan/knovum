@@ -31,14 +31,14 @@ const presetParameters = computed(() => ({
 }));
 const valid = computed(() => Boolean(form.title.trim() && form.intent.trim() && form.target));
 const styles = computed(() => [
-  { value: "explanatory editorial illustration", label: t("spaces.creation.styleEditorial") },
-  { value: "clean information diagram", label: t("spaces.creation.styleDiagram") },
-  { value: "cinematic concept art", label: t("spaces.creation.styleConcept") },
+  { value: "explanatory editorial illustration", label: t("spaces.creation.image.styles.editorial") },
+  { value: "clean information diagram", label: t("spaces.creation.image.styles.diagram") },
+  { value: "cinematic concept art", label: t("spaces.creation.image.styles.concept") },
 ]);
 const ratios = ["1:1", "3:2", "2:3", "16:9", "9:16"].map((value) => ({ value, label: value }));
 watch(open, (isOpen) => {
   if (!isOpen) return;
-  form.title = t("spaces.creation.visualizationDefaultTitle");
+  form.title = t("spaces.creation.image.visualization.defaultTitle");
   form.intent = "";
 });
 function applyPreset(preset: GenerationPreset) {
@@ -55,31 +55,34 @@ function applyPreset(preset: GenerationPreset) {
 <template>
   <UiDialog
     v-model:open="open"
-    :title="t('spaces.creation.visualizationTitle')"
-    :description="t('spaces.creation.visualizationDescription')"
+    :title="t('spaces.creation.image.visualization.title')"
+    :description="t('spaces.creation.image.visualization.description')"
   >
     <div class="space-y-4">
       <label class="block space-y-1.5"
-        ><span class="text-label font-medium">{{ t("spaces.inspector.detailTitle") }}</span
+        ><span class="text-label font-medium">{{ t("common.title") }}</span
         ><UiInput v-model="form.title"
       /></label>
       <label class="block space-y-1.5"
-        ><span class="text-label font-medium">{{ t("spaces.creation.visualizationIntent") }}</span
+        ><span class="text-label font-medium">{{ t("spaces.creation.image.visualization.intent") }}</span
         ><UiTextarea
           v-model="form.intent"
           :rows="4"
-          :placeholder="t('spaces.creation.visualizationPlaceholder')"
+          :placeholder="t('spaces.creation.image.visualization.placeholder')"
       /></label>
       <div class="grid grid-cols-2 gap-3">
         <label class="space-y-1.5 text-label font-medium"
-          >{{ t("spaces.creation.visualStyle")
+          >{{ t("spaces.creation.image.style")
           }}<UiSelect
             v-model="form.style"
-            :label="t('spaces.creation.visualStyle')"
+            :label="t('spaces.creation.image.style')"
             :options="styles" /></label
         ><label class="space-y-1.5 text-label font-medium"
-          >{{ t("spaces.creation.aspectRatio")
-          }}<UiSelect v-model="form.aspectRatio" :label="t('spaces.creation.aspectRatio')" :options="ratios"
+          >{{ t("spaces.creation.image.aspectRatio")
+          }}<UiSelect
+            v-model="form.aspectRatio"
+            :label="t('spaces.creation.image.aspectRatio')"
+            :options="ratios"
         /></label>
       </div>
       <AiExecutionTargetField v-model="form.target" purpose="image-generation" />
@@ -91,13 +94,13 @@ function applyPreset(preset: GenerationPreset) {
         @apply="applyPreset"
       />
       <p class="text-caption text-foreground-tertiary">
-        {{ t("spaces.creation.documentSources", { count: sources.length }) }}
+        {{ t("spaces.creation.document.sources", { count: sources.length }) }}
       </p>
     </div>
     <template #footer
       ><UiButton variant="ghost" @click="open = false">{{ t("common.cancel") }}</UiButton
       ><UiButton variant="primary" :disabled="!valid" @click="emit('submit', { ...form })">{{
-        t("spaces.creation.visualize")
+        t("spaces.creation.image.visualize")
       }}</UiButton></template
     >
   </UiDialog>

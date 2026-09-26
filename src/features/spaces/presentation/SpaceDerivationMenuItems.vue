@@ -43,9 +43,9 @@ const derivationActions = computed(() =>
 const hasActions = computed(() => derivationActions.value.length > 0);
 
 function reasonLabel(reason: DerivationUnavailableReason | undefined) {
-  if (reason === "active-node-operation") return t("spaces.creation.finishNodeOperation");
-  if (reason === "too-many-video-images") return t("spaces.creation.tooManyVideoImages");
-  if (reason === "needs-indexed-knowledge") return t("spaces.creation.needsIndexedKnowledge");
+  if (reason === "active-node-operation") return t("spaces.creation.shared.finishNodeOperation");
+  if (reason === "too-many-video-images") return t("spaces.creation.video.generation.tooManyImages");
+  if (reason === "needs-indexed-knowledge") return t("spaces.creation.shared.needsIndexedKnowledge");
   return undefined;
 }
 
@@ -67,7 +67,7 @@ function selectAction(event: Event, actionId: CreationIntentId) {
   <DropdownMenuSub v-if="hasActions">
     <DropdownMenuSubTrigger :class="props.rowClass">
       <Sparkles class="size-(--knovum-icon-size-sm)" />
-      <span class="min-w-0 flex-1">{{ t("spaces.creation.createFromSelection") }}</span>
+      <span class="min-w-0 flex-1">{{ t("spaces.creation.shared.createFromSelection") }}</span>
       <ChevronRight class="size-(--knovum-icon-size-xs) text-foreground-tertiary" />
     </DropdownMenuSubTrigger>
     <DropdownMenuPortal>

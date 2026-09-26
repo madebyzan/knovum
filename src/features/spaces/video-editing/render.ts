@@ -39,9 +39,13 @@ export async function renderVideoEdit(
   const jobId = crypto.randomUUID();
   const tasks = useTaskStore();
   const cancel = () => invoke<void>("plugin:spaces|cancel_video_edit_render", { jobId });
-  const taskId = tasks.start(i18n.global.t("spaces.media.videoRenderTask"), source.data.title, cancel);
+  const taskId = tasks.start(
+    i18n.global.t("spaces.media.videoEditor.render.task"),
+    source.data.title,
+    cancel,
+  );
   const progress = new Channel<Progress>(({ stage, progress: value }) => {
-    tasks.progress(taskId, value, i18n.global.t(`spaces.media.${stage}`));
+    tasks.progress(taskId, value, i18n.global.t(`spaces.media.videoEditor.${stage}`));
   });
   try {
     const completed = await invoke<CompletedVideo>("plugin:spaces|render_video_edit", {
@@ -65,7 +69,7 @@ export async function renderVideoEdit(
     if (decodeCommandError(error)?.code === "video_edit_render_cancelled") tasks.dismiss(taskId);
     else {
       tasks.fail(taskId, String(error));
-      toast.error(`${i18n.global.t("spaces.media.videoRenderFailed")}: ${String(error)}`);
+      toast.error(`${i18n.global.t("spaces.media.videoEditor.render.failed")}: ${String(error)}`);
     }
   }
 }

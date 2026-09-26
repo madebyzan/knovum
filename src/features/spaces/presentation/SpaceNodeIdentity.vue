@@ -111,7 +111,7 @@ async function open() {
       @keydown.esc.prevent="cancel"
     />
     <p v-if="modifiedAt" class="mt-1 text-caption text-foreground-tertiary">
-      {{ t("spaces.inspector.detailModified") }} · {{ modifiedAt }}
+      {{ t("spaces.inspector.fields.modified") }} · {{ modifiedAt }}
     </p>
     <div class="mt-3 flex flex-wrap items-center gap-1.5">
       <UiButton v-if="isSpaceNodeOpenable(node)" size="sm" @click="open">
@@ -120,7 +120,7 @@ async function open() {
       </UiButton>
       <UiButton size="sm" variant="ghost" @click="selectAndRevealSpaceNode(node.id)">
         <LocateFixed class="size-(--knovum-icon-size-xs)" />
-        {{ t("spaces.inspector.locateOnCanvas") }}
+        {{ t("spaces.canvas.revealInCanvas") }}
       </UiButton>
     </div>
   </div>

@@ -13,7 +13,7 @@ export function failedEnrichmentTask(record: SpaceEnrichmentJobRecord) {
   return {
     id: record.id,
     title: enrichmentJobTitle(record.jobType),
-    detail: record.error ?? i18n.global.t("spaces.processing.processingFailed"),
+    detail: record.error ?? i18n.global.t("spaces.processing.failed"),
     startedAt: record.createdAt,
   };
 }

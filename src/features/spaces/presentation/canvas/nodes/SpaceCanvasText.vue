@@ -29,7 +29,7 @@ const props = defineProps<{
   typographyScale: number;
 }>();
 const { t } = useI18n();
-const placeholder = t("spaces.editor.textPlaceholder");
+const placeholder = t("spaces.editor.text.placeholder");
 const previewContent = computed(() =>
   projectTiptapPreview(props.data.tiptapContent, props.presentationContext),
 );
@@ -38,7 +38,7 @@ const { beginEditing, cancelEditing, editing, editor, save } = useCanvasTextEdit
   data: toRef(props, "data"),
   interactive: toRef(props, "interactive"),
   placeholder: "",
-  defaultTitle: t("spaces.editor.newText"),
+  defaultTitle: t("spaces.editor.text.new"),
   persist: props.persist,
 });
 

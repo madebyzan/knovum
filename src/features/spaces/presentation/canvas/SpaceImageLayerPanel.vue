@@ -79,7 +79,7 @@ function openAiSettings() {
 <template>
   <UiPopover
     :open="open"
-    :trigger-tooltip="compact ? t('spaces.media.layerSplit') : undefined"
+    :trigger-tooltip="compact ? t('spaces.media.imageEditor.layers.title') : undefined"
     side="bottom"
     align="center"
     :class="custom ? 'w-72 p-3 shadow-popover' : 'w-52 p-1.5'"
@@ -91,11 +91,11 @@ function openAiSettings() {
           type="button"
           :class="CANVAS_ACTION_BUTTON_CLASSES"
           :disabled="busy"
-          :aria-label="t('spaces.media.layerSplit')"
+          :aria-label="t('spaces.media.imageEditor.layers.title')"
         >
           <Layers3 class="size-(--knovum-icon-size-toolbar)" :stroke-width="1.6" />
           <span :class="[nodeActionLabelClass, nodeActionLabelState(Boolean(compact))]">{{
-            t("spaces.media.layerSplit")
+            t("spaces.media.imageEditor.layers.title")
           }}</span>
         </button>
       </ToolbarButton>
@@ -109,7 +109,7 @@ function openAiSettings() {
           @click="submit('automatic')"
         >
           <WandSparkles class="size-(--knovum-icon-size-md)" :stroke-width="1.6" />
-          {{ t("spaces.media.autoSplit") }}
+          {{ t("spaces.media.imageEditor.layers.auto") }}
         </button>
         <UiActionHelp
           v-if="help"
@@ -124,7 +124,7 @@ function openAiSettings() {
         @click="custom = true"
       >
         <PencilLine class="size-(--knovum-icon-size-md)" :stroke-width="1.6" />
-        {{ t("spaces.media.customSplit") }}
+        {{ t("spaces.media.imageEditor.layers.custom") }}
       </button>
     </template>
     <SpaceImageCustomLayerForm

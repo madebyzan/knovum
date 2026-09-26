@@ -1,0 +1,29 @@
+{
+  "create": "Agent creation",
+  "description": "Give a desktop Agent a brief, review the files it creates, then import selected results into this Space.",
+  "unavailable": "Enable an installed desktop Agent before starting an Agent creation.",
+  "configure": "Configure desktop Agents",
+  "desktopAgent": "Desktop Agent",
+  "prompt": "Describe the document, image, video, or other files you want the Agent to create.",
+  "context": {
+    "add": "Attach context",
+    "remove": "Remove {name}"
+  },
+  "knowledgeConnected": "Current Space knowledge is connected automatically through MCP.",
+  "starting": "Starting Agent…",
+  "task": "Creating with desktop Agent",
+  "artifacts": {
+    "ready": "{count} files are ready to review.",
+    "none": "The Agent completed without creating any files.",
+    "import": "Import {count} files",
+    "discard": "Discard results",
+    "discardFailed": "Could not discard Agent results"
+  },
+  "recovered": {
+    "runs": "Recovered Agent runs",
+    "run": "Recovered run {index} · {count} files"
+  },
+  "failed": "Agent creation failed",
+  "permissionDescription": "The external Agent is waiting for your permission. Review and choose an explicit option to continue.",
+  "run": "Run Agent"
+}

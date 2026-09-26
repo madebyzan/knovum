@@ -35,26 +35,20 @@ function identity(field: SpaceObjectFieldDefinition) {
 
 <template>
   <div class="mt-4">
-    <h3 class="mb-2 text-label font-medium">{{ t("spaces.knowledge.knowledgeField") }}</h3>
+    <h3 class="mb-2 text-label font-medium">{{ t("spaces.knowledge.fields.title") }}</h3>
     <p v-if="!fields.length" class="py-3 text-caption text-foreground-secondary">
-      {{ t("spaces.knowledge.emptyTypeFields") }}
+      {{ t("spaces.knowledge.types.emptyFields") }}
     </p>
     <div class="overflow-x-auto">
       <div
         class="grid min-w-[30rem] grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)_8rem_3rem_var(--knovum-control-height-md)] items-center gap-2"
       >
         <template v-if="fields.length">
-          <span class="text-caption text-foreground-secondary">{{
-            t("spaces.knowledge.knowledgeFieldLabel")
-          }}</span>
-          <span class="text-caption text-foreground-secondary">{{
-            t("spaces.knowledge.knowledgeFieldKey")
-          }}</span>
-          <span class="text-caption text-foreground-secondary">{{
-            t("spaces.knowledge.knowledgeFieldKind")
-          }}</span>
+          <span class="text-caption text-foreground-secondary">{{ t("spaces.knowledge.fields.label") }}</span>
+          <span class="text-caption text-foreground-secondary">{{ t("spaces.knowledge.fields.key") }}</span>
+          <span class="text-caption text-foreground-secondary">{{ t("spaces.knowledge.fields.kind") }}</span>
           <span class="text-center text-caption text-foreground-secondary">{{
-            t("spaces.knowledge.knowledgeFieldRequired")
+            t("spaces.knowledge.fields.required")
           }}</span>
           <span aria-hidden="true"></span>
         </template>
@@ -74,7 +68,7 @@ function identity(field: SpaceObjectFieldDefinition) {
       </div>
     </div>
     <UiButton class="mt-2" :disabled="fields.length >= 64" size="sm" variant="ghost" @click="emit('add')">
-      <Plus class="size-(--knovum-icon-size-xs)" />{{ t("spaces.knowledge.addKnowledgeField") }}
+      <Plus class="size-(--knovum-icon-size-xs)" />{{ t("spaces.knowledge.fields.add") }}
     </UiButton>
   </div>
 </template>

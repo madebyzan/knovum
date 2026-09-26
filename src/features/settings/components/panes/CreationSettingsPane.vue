@@ -21,10 +21,10 @@ watch(saveError, (error) => {
 });
 
 async function resetSection() {
-  const confirmed = await ask(t("settings.general.resetSectionConfirmation"), {
-    title: t("settings.general.resetSection"),
+  const confirmed = await ask(t("settings.general.reset.confirmation"), {
+    title: t("settings.general.reset.action"),
     kind: "warning",
-    okLabel: t("settings.general.resetSection"),
+    okLabel: t("settings.general.reset.action"),
     cancelLabel: t("common.cancel"),
   });
   if (confirmed) await store.reset();

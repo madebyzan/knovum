@@ -26,7 +26,7 @@ const canStep = computed(() => scenes.value.length > 1);
 const availableStructureNodeIds = computed(() => new Set(store.editSnapshot.structure.map(({ id }) => id)));
 
 function sceneLabel(direction: -1 | 1) {
-  const label = t(direction === -1 ? "spaces.navigation.previousView" : "spaces.navigation.nextView");
+  const label = t(direction === -1 ? "spaces.scenes.previous" : "spaces.scenes.next");
   const target = canStep.value ? getTargetScene(direction) : undefined;
   return target ? `${label}: ${target.title}` : label;
 }
@@ -91,7 +91,7 @@ async function duplicateScene(scene: SpaceScene) {
     class="flex h-full cursor-default items-center gap-0.5 select-none"
     orientation="horizontal"
     :loop="false"
-    :aria-label="t('spaces.navigation.scenes')"
+    :aria-label="t('spaces.scenes.title')"
   >
     <ToolbarButton as-child>
       <UiIconButton
@@ -108,7 +108,7 @@ async function duplicateScene(scene: SpaceScene) {
     <UiPopover v-model:open="open" side="top" align="center" :side-offset="6" class="p-0">
       <template #trigger>
         <ToolbarButton as-child>
-          <UiIconButton :label="t('spaces.navigation.scenes')" size="sm" class="size-5 rounded-grid-cell">
+          <UiIconButton :label="t('spaces.scenes.title')" size="sm" class="size-5 rounded-grid-cell">
             <List class="size-(--knovum-icon-size-xs)" :stroke-width="1.55" />
           </UiIconButton>
         </ToolbarButton>

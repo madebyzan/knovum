@@ -105,9 +105,9 @@ export function useShellController(workspace: WorkspaceDefinition) {
         toggleRightSidebar,
       },
       labels: {
-        settings: t("settings.general.title"),
-        commandPalette: t("shell.commandPalette"),
-        shortcuts: t("shell.keyboardShortcuts"),
+        settings: t("common.settings"),
+        commandPalette: t("shell.commands.title"),
+        shortcuts: t("shell.shortcuts.title"),
         toggleSidebar: t("shell.toggleSidebar"),
         toggleRightSidebar: t("shell.toggleRightSidebar"),
       },

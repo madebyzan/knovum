@@ -1,0 +1,8 @@
+{
+  "title": "Tags",
+  "selectionHint": "Select canvas nodes to manage tags.",
+  "add": "Add tag",
+  "empty": "No tags in this Space.",
+  "showNodes": "Filter tagged nodes",
+  "remove": "Remove tag {tag}"
+}

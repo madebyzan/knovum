@@ -66,7 +66,7 @@ async function toggleReveal() {
       />
       <UiIconButton
         class="absolute top-1/2 right-1 -translate-y-1/2"
-        :label="reveal ? t('spaces.credentials.hideSecret') : t('spaces.credentials.showSecret')"
+        :label="reveal ? t('common.hideSecret') : t('common.showSecret')"
         size="sm"
         @pointerdown.prevent
         @click="toggleReveal"

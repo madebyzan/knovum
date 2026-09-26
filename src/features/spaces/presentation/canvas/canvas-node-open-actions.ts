@@ -15,9 +15,9 @@ import type { SpaceNodeKind } from "../../model/nodes/node-payload";
 
 export const nodeOpenLabels = {
   note: "common.edit",
-  text: "spaces.navigation.inspect",
+  text: "spaces.inspector.title",
   markdown: "common.edit",
-  subtitle: "spaces.navigation.inspect",
+  subtitle: "spaces.inspector.title",
   website: "spaces.canvas.nodeActions.openOriginal",
   portal: "spaces.canvas.nodeActions.goToTarget",
   image: "spaces.canvas.nodeActions.viewLarge",
@@ -25,8 +25,8 @@ export const nodeOpenLabels = {
   audio: "spaces.canvas.nodeActions.openAudio",
   file: "spaces.canvas.nodeActions.openFile",
   code: "spaces.canvas.nodeActions.viewCode",
-  credential: "spaces.navigation.inspect",
-  object: "spaces.navigation.inspect",
+  credential: "spaces.inspector.title",
+  object: "spaces.inspector.title",
 } satisfies Record<SpaceNodeKind, string>;
 
 export const nodeOpenIcons = {

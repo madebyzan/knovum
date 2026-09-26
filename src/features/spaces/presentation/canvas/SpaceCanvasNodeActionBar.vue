@@ -42,9 +42,9 @@ const { compact, minimal, ready } = useNodeActionBarDensity(
 );
 const primaryLabel = computed(() => {
   if (props.actions.state.value.section && props.actions.state.value.content.length)
-    return t("spaces.navigation.focusSelection");
+    return t("spaces.scenes.focus.selection");
   const kind = props.node?.data.kind;
-  return t(kind && props.actions.state.value.canOpen ? nodeOpenLabels[kind] : "spaces.navigation.inspect");
+  return t(kind && props.actions.state.value.canOpen ? nodeOpenLabels[kind] : "spaces.inspector.title");
 });
 const primaryIcon = computed(() => {
   if (props.actions.state.value.section && props.actions.state.value.content.length) return Focus;
@@ -55,7 +55,7 @@ const showPrimary = computed(() => {
   if (props.actions.state.value.section && props.actions.state.value.content.length) return true;
   const kind = props.node?.data.kind;
   return Boolean(
-    kind && props.actions.state.value.canOpen && nodeOpenLabels[kind] !== "spaces.navigation.inspect",
+    kind && props.actions.state.value.canOpen && nodeOpenLabels[kind] !== "spaces.inspector.title",
   );
 });
 const textKind = computed(() => {
@@ -110,7 +110,7 @@ function runPrimaryAction() {
       />
       <UiTooltip
         v-if="actions.selectedVideoNode.value && canvasBarPlacement('video-edit', minimal) === 'bar'"
-        :text="t('spaces.media.editVideo')"
+        :text="t('spaces.media.videoEditor.edit')"
         :disabled="!compact"
         side="top"
       >
@@ -118,12 +118,12 @@ function runPrimaryAction() {
           <button
             type="button"
             :class="CANVAS_ACTION_BUTTON_CLASSES"
-            :aria-label="t('spaces.media.editVideo')"
+            :aria-label="t('spaces.media.videoEditor.edit')"
             @click="actions.editVideo"
           >
             <Scissors class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
             <span :class="[nodeActionLabelClass, nodeActionLabelState(compact)]">{{
-              t("spaces.media.editVideo")
+              t("spaces.media.videoEditor.edit")
             }}</span>
           </button>
         </ToolbarButton>
@@ -162,7 +162,7 @@ function runPrimaryAction() {
             v-if="actions.selectedVideoNode.value && canvasBarPlacement('video-edit', minimal) === 'menu'"
             @select="actions.editVideo"
           >
-            <Scissors class="size-(--knovum-icon-size-sm)" />{{ t("spaces.media.editVideo") }}
+            <Scissors class="size-(--knovum-icon-size-sm)" />{{ t("spaces.media.videoEditor.edit") }}
           </UiDropdownMenuItem>
         </template>
       </SpaceCanvasSelectionMenu>

@@ -81,7 +81,7 @@ describe("Markdown document export", () => {
 
   it("registers a localized TXT export action", () => {
     const action = creationIntentDefinitions.find((entry) => entry.id === "export-document-as-txt");
-    expect(action?.labelKey).toBe("spaces.documentExport.exportTxt");
+    expect(action?.labelKey).toBe("spaces.creation.document.export.txt");
     expect(action?.effect).toBe("export");
   });
 });

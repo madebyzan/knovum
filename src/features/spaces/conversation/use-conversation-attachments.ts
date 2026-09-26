@@ -15,11 +15,11 @@ type Attachment = NonNullable<StartAssistantTaskInput["attachments"]>[number];
 function attachmentErrorMessage(error: unknown) {
   const code = decodeCommandError(error)?.code;
   const known: Readonly<Record<string, string>> = {
-    assistant_context_limit: "spaces.assistant.attachmentLimit",
-    assistant_upload_size: "spaces.assistant.uploadSizeError",
-    assistant_upload_unsupported: "spaces.assistant.uploadTypeError",
-    assistant_upload_invalid: "spaces.assistant.uploadInvalidError",
-    assistant_upload_unauthorized: "spaces.assistant.uploadPermissionError",
+    assistant_context_limit: "spaces.assistant.attachments.limit",
+    assistant_upload_size: "spaces.assistant.uploads.sizeError",
+    assistant_upload_unsupported: "spaces.assistant.uploads.typeError",
+    assistant_upload_invalid: "spaces.assistant.uploads.invalidError",
+    assistant_upload_unauthorized: "spaces.assistant.uploads.permissionError",
   };
   return (code ? known[code] : undefined) ?? (error instanceof Error ? error.message : String(error));
 }
@@ -103,7 +103,7 @@ export function useConversationAttachments() {
         });
     }
     if (next.size > 32) {
-      attachmentError.value = "spaces.assistant.attachmentLimit";
+      attachmentError.value = "spaces.assistant.attachments.limit";
       return;
     }
     attachmentError.value = undefined;
@@ -130,7 +130,7 @@ export function useConversationAttachments() {
           sourceRevision: file.sourceRevision,
         });
       if (next.size > 32) {
-        attachmentError.value = "spaces.assistant.attachmentLimit";
+        attachmentError.value = "spaces.assistant.attachments.limit";
         return;
       }
       attachments.value = [...next.values()];

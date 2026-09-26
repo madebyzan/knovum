@@ -53,18 +53,18 @@ const singleSection = computed(
     :class="CANVAS_ACTION_BAR_CLASSES"
     orientation="horizontal"
     :loop="false"
-    :aria-label="t('spaces.navigation.selection')"
+    :aria-label="t('spaces.canvas.selection.label')"
   >
     <UiBadge v-if="actions.state.value.structureNodeIds.length > 1" size="sm" class="mx-1">
       {{ actions.state.value.structureNodeIds.length }}
     </UiBadge>
     <ToolbarButton as-child>
-      <UiIconButton :label="t('spaces.navigation.inspect')" size="sm" @click="actions.inspect">
+      <UiIconButton :label="t('spaces.inspector.title')" size="sm" @click="actions.inspect">
         <Info class="size-(--knovum-icon-size-sm)" :stroke-width="1.55" />
       </UiIconButton>
     </ToolbarButton>
     <ToolbarButton v-if="actions.state.value.canConnect" as-child>
-      <UiIconButton :label="t('spaces.canvas.connect')" size="sm" @click="actions.connect">
+      <UiIconButton :label="t('spaces.canvas.relations.connect')" size="sm" @click="actions.connect">
         <Link2 class="size-(--knovum-icon-size-sm)" :stroke-width="1.55" />
       </UiIconButton>
     </ToolbarButton>
@@ -76,7 +76,7 @@ const singleSection = computed(
     <SpaceSelectionMoveMenu v-if="actions.state.value.structureNodeIds.length" @move="actions.moveToSpace" />
     <ToolbarButton v-if="actions.state.value.canCreateGroup" as-child>
       <UiIconButton
-        :label="t('spaces.canvas.groupSelection')"
+        :label="t('spaces.canvas.groups.create')"
         shortcut="$mod+G"
         size="sm"
         @click="actions.createGroup"
@@ -85,7 +85,7 @@ const singleSection = computed(
       </UiIconButton>
     </ToolbarButton>
     <ToolbarButton v-if="actions.state.value.canCreateSection" as-child>
-      <UiIconButton :label="t('spaces.canvas.createSection')" size="sm" @click="actions.createSection">
+      <UiIconButton :label="t('spaces.canvas.sections.create')" size="sm" @click="actions.createSection">
         <Group class="size-(--knovum-icon-size-sm)" :stroke-width="1.55" />
       </UiIconButton>
     </ToolbarButton>

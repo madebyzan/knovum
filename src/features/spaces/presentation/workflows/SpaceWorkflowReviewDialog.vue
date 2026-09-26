@@ -48,7 +48,7 @@ async function load() {
   } catch (cause) {
     error.value =
       decodeCommandError(cause)?.code === "workflow_review_unavailable"
-        ? t("spaces.creation.workflowReviewUnavailable")
+        ? t("spaces.creation.workflow.review.unavailable")
         : String(cause);
   } finally {
     loading.value = false;
@@ -71,7 +71,7 @@ async function decide(approved: boolean) {
     await load();
     error.value =
       decodeCommandError(cause)?.code === "reviewed_revision_changed"
-        ? t("spaces.creation.workflowReviewChanged")
+        ? t("spaces.creation.workflow.review.changed")
         : String(cause);
   } finally {
     deciding.value = false;
@@ -93,12 +93,12 @@ watch(
 </script>
 
 <template>
-  <UiDialog v-model:open="open" :title="t('spaces.creation.workflowReviewTitle')" size="wide">
+  <UiDialog v-model:open="open" :title="t('spaces.creation.workflow.review.title')" size="wide">
     <p v-if="loading" class="text-caption text-foreground-secondary">{{ t("common.loading") }}</p>
     <template v-else-if="content && step">
       <h3 class="mb-3 text-body font-medium">{{ contentTitle }}</h3>
       <p v-if="edited" class="mb-3 text-caption text-foreground-secondary">
-        {{ t("spaces.creation.workflowReviewEdited") }}
+        {{ t("spaces.creation.workflow.review.edited") }}
       </p>
       <UiMarkdown v-if="content.kind === 'markdown'" :content="content.text" />
       <p v-else-if="content.kind === 'subtitle'" class="text-body leading-relaxed whitespace-pre-wrap">
@@ -108,13 +108,13 @@ watch(
     <p v-if="error" role="alert" class="mt-3 text-caption text-danger">{{ error }}</p>
     <template #footer>
       <UiButton variant="ghost" :disabled="!step || deciding" @click="editOnCanvas">{{
-        t("spaces.creation.workflowReviewEdit")
+        t("spaces.creation.workflow.review.edit")
       }}</UiButton>
       <UiButton :disabled="deciding || !step" @click="decide(false)">{{
-        t("spaces.creation.workflowReviewReject")
+        t("spaces.creation.workflow.review.reject")
       }}</UiButton>
       <UiButton variant="primary" :disabled="deciding || !step" @click="decide(true)">{{
-        t("spaces.creation.workflowReviewApprove")
+        t("spaces.creation.workflow.review.approve")
       }}</UiButton>
     </template>
   </UiDialog>

@@ -52,7 +52,7 @@ async function useSuggestion(value: string) {
       class="bg-warning-subtle shrink-0 border-b border-warning/40 px-3 py-2 text-left text-caption text-foreground hover:bg-warning/15"
       @click="conversationSession.selectConversation(activeConversationId)"
     >
-      {{ $t("spaces.assistant.returnToPermission") }}
+      {{ $t("spaces.assistant.permission.return") }}
     </button>
     <button
       v-else-if="activeRunId && activeConversationId && activeConversationId !== selectedConversationId"
@@ -60,7 +60,7 @@ async function useSuggestion(value: string) {
       class="shrink-0 border-b border-divider bg-control px-3 py-2 text-left text-caption text-foreground hover:bg-control-hover"
       @click="conversationSession.selectConversation(activeConversationId)"
     >
-      {{ $t("spaces.assistant.returnToRunningConversation") }}
+      {{ $t("spaces.assistant.conversations.returnToRunning") }}
     </button>
     <div class="min-h-0 min-w-0 flex-1">
       <SpaceConversationMessages

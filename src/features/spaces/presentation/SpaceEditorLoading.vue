@@ -20,8 +20,8 @@ const paragraphPlaceholders = ["w-full", "w-11/12", "w-4/5", "w-full", "w-2/3"];
       }}</span>
       <div class="flex-1" />
       <div class="flex items-center gap-2 text-caption text-foreground-secondary">
-        <UiSpinner :label="t('spaces.editor.editorLoading')" size="sm" tone="accent" />
-        <span>{{ t("spaces.editor.editorLoading") }}</span>
+        <UiSpinner :label="t('spaces.editor.loading')" size="sm" tone="accent" />
+        <span>{{ t("spaces.editor.loading") }}</span>
       </div>
     </header>
     <div
@@ -37,7 +37,7 @@ const paragraphPlaceholders = ["w-full", "w-11/12", "w-4/5", "w-full", "w-2/3"];
     <div class="min-h-0 flex-1 overflow-hidden">
       <article class="mx-auto w-full max-w-3xl px-10 py-12 sm:px-14">
         <div class="h-7 w-3/5 rounded-control bg-skeleton" />
-        <p class="mt-3 text-caption text-foreground-secondary">{{ t("spaces.editor.editorLoadingHint") }}</p>
+        <p class="mt-3 text-caption text-foreground-secondary">{{ t("spaces.editor.loadingHint") }}</p>
         <div class="mt-10 space-y-3">
           <div
             v-for="(placeholder, index) in paragraphPlaceholders"

@@ -49,7 +49,7 @@ const alignments = [
       <UiIconButton
         v-for="alignment in alignments"
         :key="alignment.value"
-        :label="t(`editor.align.${alignment.value}`)"
+        :label="t(`spaces.richtext.align.${alignment.value}`)"
         size="sm"
         :active="editor.isActive({ textAlign: alignment.value })"
         @click="editor.chain().focus().setTextAlign(alignment.value).run()"

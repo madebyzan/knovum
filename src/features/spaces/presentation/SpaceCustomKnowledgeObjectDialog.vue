@@ -91,16 +91,16 @@ async function create() {
 <template>
   <UiDialog
     v-model:open="open"
-    :title="t('spaces.knowledge.newCustomKnowledgeObject')"
-    :description="t('spaces.knowledge.newCustomKnowledgeObjectDescription')"
+    :title="t('spaces.knowledge.objects.create')"
+    :description="t('spaces.knowledge.objects.createDescription')"
   >
     <p v-if="!typeOptions.length" class="text-caption text-foreground-tertiary">
-      {{ t("spaces.knowledge.noCustomKnowledgeTypes") }}
+      {{ t("spaces.knowledge.types.none") }}
     </p>
     <div v-else class="space-y-3">
-      <UiSelect v-model="typeId" :label="t('spaces.knowledge.knowledgeType')" :options="typeOptions" />
-      <UiInput v-model="title" :placeholder="t('spaces.inspector.detailTitle')" />
-      <UiTextarea v-model="summary" :rows="2" :placeholder="t('spaces.knowledge.knowledgeSummary')" />
+      <UiSelect v-model="typeId" :label="t('spaces.knowledge.types.label')" :options="typeOptions" />
+      <UiInput v-model="title" :placeholder="t('common.title')" />
+      <UiTextarea v-model="summary" :rows="2" :placeholder="t('spaces.knowledge.summary')" />
       <SpaceKnowledgeFieldEditor
         v-for="field in selectedType?.fields ?? []"
         :key="field.key"

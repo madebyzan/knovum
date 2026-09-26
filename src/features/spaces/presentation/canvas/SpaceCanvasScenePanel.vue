@@ -40,9 +40,9 @@ watch(
 <template>
   <section class="w-68 overflow-hidden rounded-[inherit] select-none">
     <header class="flex h-9 items-center justify-between border-b border-divider px-2.5">
-      <p class="text-label font-medium text-foreground">{{ t("spaces.navigation.scenes") }}</p>
+      <p class="text-label font-medium text-foreground">{{ t("spaces.scenes.title") }}</p>
       <UiIconButton
-        :label="t('spaces.navigation.saveScene')"
+        :label="t('spaces.scenes.save')"
         size="sm"
         class="size-6 rounded-grid-cell"
         :disabled="saving"
@@ -70,7 +70,7 @@ watch(
     </div>
     <div v-else class="flex flex-col items-center px-5 py-5 text-center">
       <p class="text-caption leading-5 text-foreground-tertiary">
-        {{ t("spaces.navigation.scenesEmpty") }}
+        {{ t("spaces.scenes.empty") }}
       </p>
       <button
         type="button"
@@ -80,7 +80,7 @@ watch(
         @click="emit('create')"
       >
         <LoaderCircle v-if="saving" class="size-(--knovum-icon-size-xs) animate-spin" />
-        {{ t("spaces.navigation.saveScene") }}
+        {{ t("spaces.scenes.save") }}
       </button>
     </div>
   </section>

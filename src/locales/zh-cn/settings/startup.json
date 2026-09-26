@@ -1,7 +1,9 @@
 {
   "title": "系统启动",
   "description": "设置登录系统时是否自动打开知生知。",
-  "launchAtLogin": "开机自动启动",
-  "launchAtLoginDescription": "登录系统时自动启动知生知。",
+  "launchAtLogin": {
+    "label": "开机自动启动",
+    "description": "登录系统时自动启动知生知。"
+  },
   "launchFailed": "无法修改自启动设置"
 }

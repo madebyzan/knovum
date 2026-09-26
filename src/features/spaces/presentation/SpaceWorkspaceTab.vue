@@ -26,7 +26,7 @@ const { t } = useI18n();
     <button
       v-if="canClose"
       type="button"
-      :aria-label="t('spaces.space.closeTab')"
+      :aria-label="t('spaces.space.tabs.close')"
       class="mr-1.5 grid size-4 shrink-0 place-items-center rounded opacity-0 group-hover:opacity-100 hover:bg-control-pressed focus-visible:opacity-100"
       @click.stop="emit('close')"
     >

@@ -70,7 +70,7 @@ defineExpose({ seekTo, togglePlayback });
   >
     <UiIconButton
       class="nodrag pointer-events-auto row-span-2 size-9 self-center rounded-full border border-border-strong bg-raised text-foreground shadow-control hover:bg-control-hover"
-      :label="playing ? t('spaces.media.pause') : t('spaces.media.play')"
+      :label="playing ? t('common.pause') : t('spaces.media.player.play')"
       size="sm"
       @click.stop="togglePlayback"
     >
@@ -89,7 +89,7 @@ defineExpose({ seekTo, togglePlayback });
       <UiIconButton
         v-if="loaded"
         class="nodrag pointer-events-auto -mr-1 size-6 shrink-0"
-        :label="t('spaces.media.closePlayback')"
+        :label="t('spaces.media.player.closePlayback')"
         size="sm"
         @click.stop="unload"
       >
@@ -108,7 +108,7 @@ defineExpose({ seekTo, togglePlayback });
         />
       </span>
       <span v-else class="flex h-full items-center text-micro text-foreground-tertiary" role="status">
-        {{ t("spaces.media.analysisUnavailable") }}
+        {{ t("spaces.media.analysis.unavailable") }}
       </span>
       <input
         v-if="analysis"
@@ -118,7 +118,7 @@ defineExpose({ seekTo, togglePlayback });
         :max="analysis.durationMs"
         :value="currentMs"
         :disabled="!loaded"
-        :aria-label="t('spaces.media.timeline')"
+        :aria-label="t('spaces.media.player.timeline')"
         @input="seekFromSlider"
       />
     </div>

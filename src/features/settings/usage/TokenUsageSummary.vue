@@ -7,17 +7,17 @@ import type { TokenUsageReport } from "../../../foundation/ai/token-usage";
 const props = defineProps<{ summary: TokenUsageReport["summary"] }>();
 const { n, t } = useI18n();
 const items = computed(() => [
-  { label: t("settings.usage.totalTokens"), value: n(props.summary.totalTokens, "compact") },
-  { label: t("settings.usage.inputTokens"), value: n(props.summary.inputTokens, "compact") },
-  { label: t("settings.usage.outputTokens"), value: n(props.summary.outputTokens, "compact") },
+  { label: t("settings.usage.tokens.total"), value: n(props.summary.totalTokens, "compact") },
+  { label: t("settings.usage.tokens.input"), value: n(props.summary.inputTokens, "compact") },
+  { label: t("settings.usage.tokens.output"), value: n(props.summary.outputTokens, "compact") },
   { label: t("settings.usage.requests"), value: n(props.summary.requests) },
   {
-    label: t("settings.usage.currentStreak"),
-    value: t("settings.usage.days", { count: props.summary.currentStreakDays }),
+    label: t("settings.usage.streak.current"),
+    value: t("settings.usage.streak.days", { count: props.summary.currentStreakDays }),
   },
   {
-    label: t("settings.usage.longestStreak"),
-    value: t("settings.usage.days", { count: props.summary.longestStreakDays }),
+    label: t("settings.usage.streak.longest"),
+    value: t("settings.usage.streak.days", { count: props.summary.longestStreakDays }),
   },
 ]);
 </script>

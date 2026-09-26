@@ -1,0 +1,23 @@
+{
+  "export": {
+    "docx": "导出为 Word 文档",
+    "pdf": "导出为 PDF",
+    "docxTask": "正在生成 Word 文档",
+    "docxFailed": "Word 文档生成失败",
+    "pdfTask": "正在生成 PDF",
+    "pdfFailed": "PDF 生成失败",
+    "txt": "导出为纯文本",
+    "txtTask": "正在生成纯文本",
+    "txtFailed": "无法生成纯文本"
+  },
+  "generate": "生成文档",
+  "title": "用选中知识生成文档",
+  "description": "知生知会在来源旁生成一份带引用的 Markdown 知识资源。",
+  "defaultTitle": "知识草稿",
+  "purpose": "文档要求",
+  "purposePlaceholder": "说明文档目标、形式和需要保留的重点。",
+  "sources": "{count} 个知识来源",
+  "task": "正在生成知识文档",
+  "generating": "正在用选中知识生成…",
+  "failed": "文档生成失败"
+}

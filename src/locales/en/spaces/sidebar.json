@@ -1,0 +1,15 @@
+{
+  "outline": {
+    "title": "Outline",
+    "empty": "Items added to the canvas appear here."
+  },
+  "editorOutline": {
+    "title": "Document outline",
+    "empty": "This document has no headings yet."
+  },
+  "rightSidebarViews": "Right sidebar views",
+  "rename": {
+    "nameRequired": "Enter a name.",
+    "failed": "The name could not be saved. Press Enter to try again."
+  }
+}

@@ -14,7 +14,7 @@ const { t } = useI18n();
 <template>
   <div v-if="workspaceMode === 'space'" class="flex items-center gap-0.5">
     <UiIconButton
-      :label="t('spaces.space.previousSpace')"
+      :label="t('spaces.space.back')"
       shortcut="Alt+ArrowLeft"
       size="sm"
       :disabled="!canNavigateBack"
@@ -23,7 +23,7 @@ const { t } = useI18n();
       <ChevronLeft class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
     </UiIconButton>
     <UiIconButton
-      :label="t('spaces.space.nextSpace')"
+      :label="t('spaces.space.forward')"
       shortcut="Alt+ArrowRight"
       size="sm"
       :disabled="!canNavigateForward"

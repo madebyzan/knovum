@@ -50,7 +50,7 @@ function select(event: Konva.KonvaEventObject<PointerEvent>) {
   <KonvaText
     :config="{
       ...connectorLabelPosition(relation),
-      text: t(`spaces.knowledge.relation.${relation.label}`),
+      text: t(`spaces.knowledge.relations.kinds.${relation.label}`),
       offsetX: 80 / zoom,
       offsetY: 8 / zoom,
       width: 160 / zoom,

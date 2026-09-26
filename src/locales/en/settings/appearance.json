@@ -1,12 +1,40 @@
 {
   "title": "Appearance",
   "description": "Customize theme, font scale, and layout density.",
-  "theme": "Theme",
-  "themeDescription": "Automatically synchronize with system light or dark mode.",
-  "textSize": "Font Size",
-  "textSizeDescription": "Adjust interface text font size.",
-  "density": "Density",
-  "densityDescription": "Adjust control size and spacing.",
-  "language": "Language",
-  "languageDescription": "Choose display language or match system locale."
+  "theme": {
+    "label": "Theme",
+    "description": "Automatically synchronize with system light or dark mode."
+  },
+  "textSize": {
+    "label": "Font size",
+    "description": "Adjust interface text font size."
+  },
+  "density": {
+    "label": "Density",
+    "description": "Adjust control size and spacing."
+  },
+  "language": {
+    "label": "Language",
+    "description": "Choose display language or match system locale."
+  },
+  "options": {
+    "followSystem": "Follow system",
+    "theme": {
+      "light": "Light",
+      "dark": "Dark"
+    },
+    "textSize": {
+      "small": "Small",
+      "default": "Default",
+      "large": "Large"
+    },
+    "density": {
+      "compact": "Compact",
+      "comfortable": "Comfortable"
+    },
+    "language": {
+      "english": "English",
+      "simplifiedChinese": "Simplified Chinese"
+    }
+  }
 }

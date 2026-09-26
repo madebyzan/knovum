@@ -45,7 +45,7 @@ export function useSpaceCommands() {
     };
     const searchAllCommand: AppCommand = {
       id: "spaces.find-all",
-      title: t("spaces.navigation.searchAllSpaces"),
+      title: t("spaces.search.allSpaces.title"),
       shortcut: "$mod+Shift+F",
       category: "canvas",
       run: () => {
@@ -61,7 +61,7 @@ export function useSpaceCommands() {
       ...createSpaceStructureCommands(store, selectedStructureNodeIds, t, sidebar),
       {
         id: "spaces.focus-outline",
-        title: t("spaces.navigation.outline"),
+        title: t("spaces.sidebar.outline.title"),
         shortcut: "$mod+Shift+O",
         category: "canvas",
         run: () => {
@@ -70,7 +70,7 @@ export function useSpaceCommands() {
       },
       {
         id: "spaces.find",
-        title: t("spaces.navigation.findInSpace"),
+        title: t("spaces.search.find.title"),
         shortcut: "$mod+F",
         category: "canvas",
         run: () => {
@@ -87,11 +87,11 @@ export function useSpaceCommands() {
         labels: {
           copy: t("common.copy"),
           cut: t("common.cut"),
-          deleteSelection: t("spaces.navigation.deleteSelection"),
-          duplicate: t("spaces.navigation.duplicateSelection"),
+          deleteSelection: t("spaces.canvas.selection.delete"),
+          duplicate: t("common.duplicate"),
           paste: t("common.paste"),
           redo: t("common.redo"),
-          selectAll: t("spaces.canvas.actions.selectAll"),
+          selectAll: t("spaces.canvas.selection.selectAll"),
           undo: t("common.undo"),
         },
         redo: () => store.redo(),
@@ -101,8 +101,8 @@ export function useSpaceCommands() {
     const exchangeCommands = createCanvasExchangeCommands({
       exchange: () => activeExchange.value,
       spaceTitle: () => store.activeSpace?.title,
-      importTitle: t("spaces.transfer.importJsonCanvas"),
-      exportTitle: t("spaces.transfer.exportJsonCanvas"),
+      importTitle: t("spaces.importExport.jsonCanvas.import"),
+      exportTitle: t("spaces.importExport.jsonCanvas.export"),
     });
     const nudgeCommands = hasStructureSelection
       ? NUDGE_COMMANDS.map<AppCommand>((input) => ({
@@ -111,14 +111,18 @@ export function useSpaceCommands() {
           shortcut: input.shortcut,
           shortcutListing: {
             groupId: input.shortcut.includes("Shift") ? "canvas.nudge-large" : "canvas.nudge",
-            title: t(input.shortcut.includes("Shift") ? "shell.nudgeLarge" : "shell.nudgeSelection"),
+            title: t(
+              input.shortcut.includes("Shift")
+                ? "spaces.canvas.shortcuts.nudgeLarge"
+                : "spaces.canvas.shortcuts.nudgeSelection",
+            ),
             shortcut: input.shortcut.includes("Shift") ? "Shift+Arrow keys" : "Arrow keys",
           },
           category: "canvas",
           run: () => activeEditor.value?.nudgeSelection({ x: input.x, y: input.y }),
         }))
       : [];
-    const preview = spacePreviewCommand(store, selectedIds(), t("spaces.transfer.systemPreview"));
+    const preview = spacePreviewCommand(store, selectedIds(), t("spaces.importExport.preview.system"));
     return [
       ...workspaceTabCommands.value,
       ...guardSelectionCommands(editingCommands, nodeOperations.allows),

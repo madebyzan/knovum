@@ -1,0 +1,17 @@
+{
+  "find": {
+    "title": "查找",
+    "placeholder": "搜索笔记、网页、转写、文件、标签…",
+    "noResults": "当前空间无匹配项。",
+    "defaultTitle": "当前空间",
+    "defaultDetail": "画布内容",
+    "emptyHint": "当前空间暂无内容可供检索。"
+  },
+  "allSpaces": {
+    "title": "搜索所有空间",
+    "placeholder": "跨空间搜索全域知识…",
+    "hint": "在全部知识空间中检索内容。",
+    "noResults": "所有空间中均未找到匹配项。"
+  },
+  "failed": "检索失败，请重试。"
+}

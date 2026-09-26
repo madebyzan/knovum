@@ -38,7 +38,7 @@ export function useSpacePackageTransfer() {
   function exportPackage(space: Pick<Space, "id" | "title">) {
     const target = { id: space.id, title: space.title };
     return run(
-      t("spaces.transfer.exportSpace"),
+      t("spaces.importExport.space.export"),
       (progress) =>
         exportSpacePackage(
           {
@@ -47,13 +47,13 @@ export function useSpacePackageTransfer() {
           },
           progress,
         ),
-      t("spaces.transfer.spaceExported"),
+      t("spaces.importExport.space.exported"),
     );
   }
 
   function importPackage() {
     return run(
-      t("spaces.transfer.importSpace"),
+      t("spaces.importExport.space.import"),
       (progress) =>
         importSpacePackage(
           {
@@ -62,7 +62,7 @@ export function useSpacePackageTransfer() {
           },
           progress,
         ),
-      t("spaces.transfer.spaceImported"),
+      t("spaces.importExport.space.imported"),
     );
   }
 

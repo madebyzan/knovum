@@ -11,18 +11,18 @@ const { t } = useI18n();
 </script>
 
 <template>
-  <SettingsSection :title="t('settings.general.settingsLoadFailed')">
+  <SettingsSection :title="t('settings.general.load.failed')">
     <div class="px-4 py-3">
       <p class="text-body text-danger">{{ message }}</p>
       <p class="mt-1 text-caption text-foreground-secondary">
-        {{ t("settings.general.settingsLoadFailedDescription") }}
+        {{ t("settings.general.load.failedDescription") }}
       </p>
       <div class="mt-3 flex gap-2">
         <UiButton @click="emit('retry')">
           <RotateCcw class="size-(--knovum-icon-size-sm)" />{{ t("common.retry") }}
         </UiButton>
         <UiButton v-if="canReset" variant="danger" @click="emit('reset')">
-          <Trash2 class="size-(--knovum-icon-size-sm)" />{{ t("settings.general.resetSection") }}
+          <Trash2 class="size-(--knovum-icon-size-sm)" />{{ t("settings.general.reset.action") }}
         </UiButton>
       </div>
     </div>

@@ -22,10 +22,10 @@ interface ShortcutListing {
 const CATEGORY_ORDER: readonly CommandCategory[] = ["general", "navigation", "canvas", "editing"];
 
 const CATEGORY_LOCALE_KEYS: Readonly<Record<CommandCategory, string>> = {
-  general: "shell.shortcutsGeneral",
-  navigation: "shell.shortcutsNavigation",
-  canvas: "shell.shortcutsCanvas",
-  editing: "shell.shortcutsEditing",
+  general: "shell.shortcuts.categories.general",
+  navigation: "shell.shortcuts.categories.navigation",
+  canvas: "shell.shortcuts.categories.canvas",
+  editing: "shell.shortcuts.categories.editing",
 };
 
 const open = defineModel<boolean>("open", { required: true });
@@ -96,7 +96,7 @@ const groupedSections = computed(() => {
         <div class="shrink-0 px-5 pt-4 pb-2">
           <div class="flex items-center justify-between">
             <DialogTitle class="text-title-sm font-semibold tracking-tight text-foreground">
-              {{ t("shell.keyboardShortcuts") }}
+              {{ t("shell.shortcuts.title") }}
             </DialogTitle>
             <DialogClose as-child>
               <UiIconButton :label="t('common.close')" size="sm">
@@ -109,7 +109,7 @@ const groupedSections = computed(() => {
             v-model="query"
             autofocus
             class="mt-3"
-            :placeholder="t('shell.searchShortcuts')"
+            :placeholder="t('shell.shortcuts.search')"
             @escape="open = false"
           />
         </div>
@@ -134,7 +134,7 @@ const groupedSections = computed(() => {
           </section>
 
           <div v-if="!groupedSections.length" class="py-12 text-center text-label text-foreground-tertiary">
-            {{ t("shell.noMatchingShortcuts") }}
+            {{ t("shell.shortcuts.noMatches") }}
           </div>
         </div>
       </DialogContent>

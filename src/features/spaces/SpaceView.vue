@@ -51,7 +51,7 @@ async function initialize() {
   initializationError.value = undefined;
   try {
     await store.initialize(t("spaces.space.inbox"));
-    void restoreWorkflowRuns(t("spaces.creation.workflow")).catch((caught: unknown) => {
+    void restoreWorkflowRuns(t("spaces.creation.workflow.title")).catch((caught: unknown) => {
       toast.error(String(caught));
     });
     void restoreConversationRuns().catch((caught: unknown) => {
@@ -72,9 +72,9 @@ onMounted(() => void initialize());
     <div v-if="initializationError" class="grid h-full place-items-center p-8 text-center">
       <div class="max-w-sm">
         <AlertTriangle class="mx-auto size-7 text-warning" />
-        <h2 class="mt-3 text-title font-semibold">{{ t("spaces.space.initializationFailed") }}</h2>
+        <h2 class="mt-3 text-title font-semibold">{{ t("spaces.space.loadFailed") }}</h2>
         <p class="mt-1 text-body text-foreground-secondary">
-          {{ t("spaces.space.initializationFailedHint") }}
+          {{ t("spaces.space.loadFailedHint") }}
         </p>
         <p class="mt-2 text-caption text-danger">{{ initializationError.message }}</p>
         <UiButton class="mt-4" :disabled="initializing" @click="initialize">{{ t("common.retry") }}</UiButton>

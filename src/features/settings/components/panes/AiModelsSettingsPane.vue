@@ -26,8 +26,8 @@ const catalogError = shallowRef<unknown>();
 const catalogReady = shallowRef(false);
 const activeSection = shallowRef("providers");
 const sections = computed(() => [
-  { value: "providers", label: t("settings.ai.navigationProviders"), icon: Cloud },
-  { value: "onDevice", label: t("settings.ai.navigationOnDevice"), icon: Cpu },
+  { value: "providers", label: t("settings.ai.navigation.providers"), icon: Cloud },
+  { value: "onDevice", label: t("settings.ai.navigation.onDevice"), icon: Cpu },
 ]);
 const failure = computed(() =>
   loadError.value
@@ -59,10 +59,10 @@ async function load() {
 }
 
 async function resetSection() {
-  const confirmed = await ask(t("settings.general.resetSectionConfirmation"), {
-    title: t("settings.general.resetSection"),
+  const confirmed = await ask(t("settings.general.reset.confirmation"), {
+    title: t("settings.general.reset.action"),
     kind: "warning",
-    okLabel: t("settings.general.resetSection"),
+    okLabel: t("settings.general.reset.action"),
     cancelLabel: t("common.cancel"),
   });
   if (!confirmed) return;

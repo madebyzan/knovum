@@ -30,19 +30,19 @@ watch(open, (isOpen) => {
 <template>
   <UiDialog
     v-model:open="open"
-    :title="t('spaces.creation.videoTitle')"
-    :description="t('spaces.creation.videoDescription')"
+    :title="t('spaces.creation.video.generation.title')"
+    :description="t('spaces.creation.video.generation.description')"
   >
     <div class="space-y-4">
-      <UiInput v-model="form.title" :placeholder="t('spaces.creation.videoName')" /><UiTextarea
+      <UiInput v-model="form.title" :placeholder="t('spaces.creation.video.generation.name')" /><UiTextarea
         v-model="form.prompt"
         :rows="5"
-        :placeholder="t('spaces.creation.videoPrompt')"
+        :placeholder="t('spaces.creation.video.generation.prompt')"
       />
       <div class="grid grid-cols-2 gap-3">
         <UiSelect
           v-model="form.aspectRatio"
-          :label="t('spaces.creation.aspectRatio')"
+          :label="t('spaces.creation.image.aspectRatio')"
           :options="[
             { value: '16:9', label: '16:9' },
             { value: '9:16', label: '9:16' },
@@ -50,7 +50,7 @@ watch(open, (isOpen) => {
           ]"
         /><UiSelect
           :model-value="String(form.durationSeconds)"
-          :label="t('spaces.creation.videoDuration')"
+          :label="t('spaces.creation.video.generation.duration')"
           :options="[
             { value: '5', label: '5s' },
             { value: '10', label: '10s' },
@@ -68,7 +68,7 @@ watch(open, (isOpen) => {
         variant="primary"
         :disabled="!form.title.trim() || !form.prompt.trim() || !form.textTarget || !form.target"
         @click="emit('submit', { ...form })"
-        >{{ t("spaces.creation.generateVideo") }}</UiButton
+        >{{ t("spaces.creation.video.generation.create") }}</UiButton
       ></template
     >
   </UiDialog>

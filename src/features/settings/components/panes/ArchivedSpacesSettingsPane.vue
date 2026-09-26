@@ -16,7 +16,7 @@ import SettingsSection from "../SettingsSection.vue";
 const archive = requireArchiveSettings();
 const { t } = useI18n();
 
-onMounted(() => archive.initialize(t("spaces.space.inbox")));
+onMounted(() => archive.initialize(t("settings.general.inboxSpace")));
 
 function requireArchiveSettings(): ArchiveSettingsContract {
   const contract = inject(archiveSettingsKey);
@@ -25,23 +25,23 @@ function requireArchiveSettings(): ArchiveSettingsContract {
 }
 
 async function permanentlyDelete(space: ArchivedSpaceSummary) {
-  const confirmed = await ask(t("spaces.navigation.permanentlyDeleteSpaceDescription"), {
-    title: t("spaces.navigation.permanentlyDeleteSpaceTitle", { title: space.title }),
+  const confirmed = await ask(t("settings.general.archived.delete.description"), {
+    title: t("settings.general.archived.delete.title", { title: space.title }),
     kind: "warning",
-    okLabel: t("spaces.navigation.deletePermanently"),
+    okLabel: t("settings.general.archived.delete.label"),
     cancelLabel: t("common.cancel"),
   });
   if (!confirmed) return;
   try {
     await archive.permanentlyDelete(space.id);
   } catch (error) {
-    toast.error(t("spaces.navigation.deleteSpaceFailed"), { description: String(error) });
+    toast.error(t("settings.general.archived.delete.failed"), { description: String(error) });
   }
 }
 </script>
 
 <template>
-  <SettingsSection :title="t('settings.general.archivedSpaces')">
+  <SettingsSection :title="t('settings.general.archived.title')">
     <article
       v-for="space in archive.spaces.value"
       :key="space.id"
@@ -50,15 +50,15 @@ async function permanentlyDelete(space: ArchivedSpaceSummary) {
       <Archive class="size-(--knovum-icon-size-sm) shrink-0 text-foreground-secondary" :stroke-width="1.55" />
       <span class="min-w-0 flex-1 truncate text-label font-medium text-foreground">{{ space.title }}</span>
       <UiButton size="sm" variant="ghost" @click="archive.restore(space.id)">
-        <RotateCcw class="size-(--knovum-icon-size-xs)" />{{ t("spaces.navigation.unarchiveSpace") }}
+        <RotateCcw class="size-(--knovum-icon-size-xs)" />{{ t("settings.general.archived.restore") }}
       </UiButton>
       <UiButton size="sm" variant="ghost" @click="permanentlyDelete(space)">
-        <Trash2 class="size-(--knovum-icon-size-xs)" />{{ t("spaces.navigation.deletePermanently") }}
+        <Trash2 class="size-(--knovum-icon-size-xs)" />{{ t("settings.general.archived.delete.label") }}
       </UiButton>
     </article>
     <div v-if="archive.spaces.value.length === 0" class="px-6 py-12 text-center">
       <Archive class="mx-auto size-(--knovum-icon-size-md) text-foreground-tertiary" :stroke-width="1.5" />
-      <p class="mt-3 text-label text-foreground-secondary">{{ t("settings.general.noArchivedSpaces") }}</p>
+      <p class="mt-3 text-label text-foreground-secondary">{{ t("settings.general.archived.empty") }}</p>
     </div>
   </SettingsSection>
 </template>

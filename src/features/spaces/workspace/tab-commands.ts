@@ -12,18 +12,18 @@ export function useWorkspaceTabCommands() {
     const commands: AppCommand[] = [
       {
         id: "spaces.new-space",
-        title: t("spaces.space.newSpace"),
+        title: t("spaces.space.new"),
         shortcut: "$mod+T",
         appMenuShortcut: true,
         allowInEditable: true,
         category: "navigation",
-        run: () => store.createSpace(t("spaces.space.untitledSpace")),
+        run: () => store.createSpace(t("spaces.space.untitled")),
       },
     ];
     if (store.closedSpaceIds.length) {
       commands.push({
         id: "spaces.reopen-closed-tab",
-        title: t("spaces.space.reopenClosedTab"),
+        title: t("spaces.space.tabs.reopen"),
         shortcut: "$mod+Shift+T",
         appMenuShortcut: true,
         allowInEditable: true,
@@ -35,7 +35,7 @@ export function useWorkspaceTabCommands() {
     if (activeSpaceId && store.openSpaceIds.length > 1) {
       commands.push({
         id: "spaces.close-tab",
-        title: t("spaces.space.closeTab"),
+        title: t("spaces.space.tabs.close"),
         shortcut: "$mod+W",
         appMenuShortcut: true,
         allowInEditable: true,
@@ -51,7 +51,7 @@ export function useWorkspaceTabCommands() {
       const number = index + 1;
       commands.push({
         id: `spaces.switch-tab-${number}`,
-        title: t("spaces.space.switchToTab", { number }),
+        title: t("spaces.space.tabs.switchTo", { number }),
         shortcut: `$mod+${number}`,
         allowInEditable: true,
         category: "navigation",
@@ -61,7 +61,7 @@ export function useWorkspaceTabCommands() {
     if (store.canNavigateBack) {
       commands.push({
         id: "spaces.navigate-back",
-        title: t("spaces.space.previousSpace"),
+        title: t("spaces.space.back"),
         shortcut: "Alt+ArrowLeft",
         category: "navigation",
         run: () => store.navigateSpaceHistory(-1),
@@ -70,7 +70,7 @@ export function useWorkspaceTabCommands() {
     if (store.canNavigateForward) {
       commands.push({
         id: "spaces.navigate-forward",
-        title: t("spaces.space.nextSpace"),
+        title: t("spaces.space.forward"),
         shortcut: "Alt+ArrowRight",
         category: "navigation",
         run: () => store.navigateSpaceHistory(1),

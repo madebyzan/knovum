@@ -20,8 +20,8 @@ const activeHeading = computed(() => headings.find((level) => props.editor.isAct
       <button
         type="button"
         class="flex h-(--knovum-control-height-sm) min-w-14 items-center justify-center gap-1 rounded-control px-1.5 text-foreground-secondary hover:bg-control-hover hover:text-foreground data-[state=open]:bg-control-pressed"
-        :aria-label="t('editor.headingMenu')"
-        :title="t('editor.headingMenu')"
+        :aria-label="t('spaces.richtext.headings.menu')"
+        :title="t('spaces.richtext.headings.menu')"
       >
         <Heading class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
         <span v-if="activeHeading" class="text-caption font-semibold">{{ activeHeading }}</span>
@@ -31,7 +31,7 @@ const activeHeading = computed(() => headings.find((level) => props.editor.isAct
 
     <UiDropdownMenuItem @select="editor.chain().focus().setParagraph().run()">
       <Pilcrow class="size-(--knovum-icon-size-sm)" />
-      <span class="min-w-0 flex-1 truncate">{{ t("editor.paragraph") }}</span>
+      <span class="min-w-0 flex-1 truncate">{{ t("spaces.richtext.paragraph") }}</span>
       <Check v-if="editor.isActive('paragraph')" class="ml-auto size-(--knovum-icon-size-xs) text-accent" />
     </UiDropdownMenuItem>
     <UiDropdownMenuItem
@@ -40,7 +40,7 @@ const activeHeading = computed(() => headings.find((level) => props.editor.isAct
       @select="editor.chain().focus().toggleHeading({ level }).run()"
     >
       <span class="w-5 font-semibold">H{{ level }}</span>
-      <span class="min-w-0 flex-1 truncate">{{ t(`editor.heading${level}`) }}</span>
+      <span class="min-w-0 flex-1 truncate">{{ t(`spaces.richtext.heading${level}`) }}</span>
       <Check
         v-if="editor.isActive('heading', { level })"
         class="ml-auto size-(--knovum-icon-size-xs) text-accent"
@@ -53,8 +53,8 @@ const activeHeading = computed(() => headings.find((level) => props.editor.isAct
       <button
         type="button"
         class="flex h-(--knovum-control-height-sm) min-w-12 items-center justify-center gap-0.5 rounded-control px-1.5 text-foreground-secondary hover:bg-control-hover hover:text-foreground data-[state=open]:bg-control-pressed"
-        :aria-label="t('editor.listMenu')"
-        :title="t('editor.listMenu')"
+        :aria-label="t('spaces.richtext.listMenu')"
+        :title="t('spaces.richtext.listMenu')"
       >
         <List class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
         <ChevronDown class="size-(--knovum-icon-size-xs)" />
@@ -62,18 +62,18 @@ const activeHeading = computed(() => headings.find((level) => props.editor.isAct
     </template>
 
     <UiDropdownMenuItem @select="editor.chain().focus().toggleBulletList().run()">
-      <List class="size-(--knovum-icon-size-sm)" />{{ t("editor.bulletList") }}
+      <List class="size-(--knovum-icon-size-sm)" />{{ t("spaces.richtext.bulletList") }}
     </UiDropdownMenuItem>
     <UiDropdownMenuItem @select="editor.chain().focus().toggleOrderedList().run()">
-      <ListOrdered class="size-(--knovum-icon-size-sm)" />{{ t("editor.orderedList") }}
+      <ListOrdered class="size-(--knovum-icon-size-sm)" />{{ t("spaces.richtext.orderedList") }}
     </UiDropdownMenuItem>
     <UiDropdownMenuItem @select="editor.chain().focus().toggleTaskList().run()">
-      <ListChecks class="size-(--knovum-icon-size-sm)" />{{ t("editor.taskList") }}
+      <ListChecks class="size-(--knovum-icon-size-sm)" />{{ t("spaces.richtext.taskList") }}
     </UiDropdownMenuItem>
   </UiDropdownMenu>
 
   <UiIconButton
-    :label="t('editor.blockquote')"
+    :label="t('spaces.richtext.blockquote')"
     size="sm"
     :active="editor.isActive('blockquote')"
     @click="editor.chain().focus().toggleBlockquote().run()"

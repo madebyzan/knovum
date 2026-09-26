@@ -28,9 +28,9 @@ const messageText = computed(() =>
 const citations = computed(() => groundedCitationSchema.array().parse(props.message.content.citations));
 const actions = computed(() => [
   ...(messageText.value
-    ? [{ label: t("spaces.assistant.copyMessage"), onSelect: () => void copyMessage() }]
+    ? [{ label: t("spaces.assistant.messages.copy"), onSelect: () => void copyMessage() }]
     : []),
-  { label: t("spaces.assistant.branchConversation"), onSelect: () => emit("branch") },
+  { label: t("spaces.assistant.conversations.branch"), onSelect: () => emit("branch") },
   { label: t("spaces.assistant.regenerate"), onSelect: () => emit("regenerate") },
 ]);
 
@@ -45,7 +45,7 @@ async function copyMessage() {
 
 function actionName(id: string) {
   const label = captureActionLabels[id];
-  return label ? t(`spaces.creation.captureActions.${label}`) : id;
+  return label ? t(`spaces.creation.workflow.captureActions.${label}`) : id;
 }
 
 function createdNodeId(result: unknown): string | undefined {
@@ -85,20 +85,20 @@ function createdNodeId(result: unknown): string | undefined {
           :value="part.result"
         />
         <p v-else-if="part.type === 'tool_call'" class="text-caption text-foreground-secondary">
-          {{ t("spaces.assistant.workingAction") }}
+          {{ t("spaces.assistant.actions.working") }}
         </p>
         <div
           v-else-if="part.type === 'tool_result'"
           class="rounded-control bg-control px-2.5 py-2 text-caption text-foreground-secondary"
         >
-          <span>{{ t("spaces.assistant.completedAction", { name: actionName(part.name) }) }}</span>
+          <span>{{ t("spaces.assistant.actions.completed", { name: actionName(part.name) }) }}</span>
           <button
             v-if="createdNodeId(part.result)"
             type="button"
             class="ml-2 font-medium text-accent hover:underline"
             @click="store.requestReveal([createdNodeId(part.result)!], 'focus')"
           >
-            {{ t("spaces.assistant.viewCreatedResource") }}
+            {{ t("spaces.assistant.actions.viewCreated") }}
           </button>
         </div>
       </template>
@@ -141,7 +141,7 @@ function createdNodeId(result: unknown): string | undefined {
             >{{ citation.index }}. {{ citation.nodeTitle }}</span
           >
           <span v-if="citation.state === 'detached'" class="ml-1 text-foreground-tertiary">
-            · {{ t("spaces.assistant.staleEvidence") }}
+            · {{ t("spaces.assistant.evidence.stale") }}
           </span>
           <p class="mt-1 line-clamp-3 whitespace-pre-wrap text-foreground-secondary">{{ citation.quote }}</p>
         </li>
@@ -151,18 +151,18 @@ function createdNodeId(result: unknown): string | undefined {
       {{
         t(
           message.content.status === "stopped"
-            ? "spaces.assistant.responseStopped"
-            : "spaces.assistant.responseIncomplete",
+            ? "spaces.assistant.response.stopped"
+            : "spaces.assistant.response.incomplete",
         )
       }}
     </span>
     <p v-if="copyFailed" role="alert" class="text-caption text-danger">
-      {{ t("spaces.assistant.copyMessageFailed") }}
+      {{ t("spaces.assistant.messages.copyFailed") }}
     </p>
     <UiDropdownMenu v-if="message.role === 'assistant'" :items="actions">
       <template #trigger>
         <UiIconButton
-          :label="t('spaces.assistant.messageActions')"
+          :label="t('spaces.assistant.messages.actions')"
           size="sm"
           class="text-foreground-tertiary"
         >

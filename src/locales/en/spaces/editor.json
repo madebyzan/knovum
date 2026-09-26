@@ -1,14 +1,18 @@
 {
-  "newNote": "New Note",
-  "notePlaceholder": "Write anything…",
-  "newText": "Text",
-  "textPlaceholder": "Type to enter text",
-  "openItem": "Open {title}",
-  "untitledMarkdown": "Untitled Markdown",
-  "markdownTitle": "Markdown Title",
-  "emptyMarkdown": "Empty Markdown",
-  "markdownPlaceholder": "Start writing…",
-  "editorLoading": "Preparing editor…",
-  "editorLoadingHint": "Large documents may take a moment to open.",
-  "editorPlaceholder": "Start writing…"
+  "note": {
+    "new": "New note",
+    "placeholder": "Write anything…"
+  },
+  "text": {
+    "new": "Text",
+    "placeholder": "Type to enter text"
+  },
+  "markdown": {
+    "untitled": "Untitled Markdown",
+    "title": "Markdown title",
+    "empty": "Empty Markdown"
+  },
+  "loading": "Preparing editor…",
+  "loadingHint": "Large documents may take a moment to open.",
+  "placeholder": "Start writing…"
 }

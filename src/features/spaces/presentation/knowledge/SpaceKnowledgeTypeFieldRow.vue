@@ -26,7 +26,7 @@ const { t } = useI18n();
 const kindOptions = computed(() =>
   props.fieldKinds.map((kind) => ({
     value: kind,
-    label: t(`spaces.knowledge.knowledgeFieldKindLabel.${kind}`),
+    label: t(`spaces.knowledge.fields.kindLabels.${kind}`),
   })),
 );
 </script>
@@ -37,20 +37,20 @@ const kindOptions = computed(() =>
       <UiInput
         :model-value="field.label"
         maxlength="128"
-        :aria-label="t('spaces.knowledge.knowledgeFieldLabel')"
+        :aria-label="t('spaces.knowledge.fields.label')"
         @update:model-value="emit('label', $event)"
       />
       <UiInput
         :model-value="field.key"
         maxlength="128"
-        :aria-label="t('spaces.knowledge.knowledgeFieldKey')"
+        :aria-label="t('spaces.knowledge.fields.key')"
         class="font-mono"
         @update:model-value="emit('key', $event)"
       />
       <UiSelect
         :disabled="disabled"
         :model-value="field.kind"
-        :label="t('spaces.knowledge.knowledgeFieldKind')"
+        :label="t('spaces.knowledge.fields.kind')"
         :options="kindOptions"
         @update:model-value="emit('kind', $event as SpaceObjectFieldKind)"
       />
@@ -58,15 +58,11 @@ const kindOptions = computed(() =>
         <UiCheckbox
           :disabled="disabled"
           :model-value="Boolean(field.required)"
-          :label="t('spaces.knowledge.knowledgeFieldRequired')"
+          :label="t('spaces.knowledge.fields.required')"
           @update:model-value="emit('required', $event)"
         />
       </label>
-      <UiIconButton
-        :disabled="disabled"
-        :label="t('spaces.knowledge.removeKnowledgeField')"
-        @click="emit('remove')"
-      >
+      <UiIconButton :disabled="disabled" :label="t('spaces.knowledge.fields.remove')" @click="emit('remove')">
         <Trash2 class="size-(--knovum-icon-size-sm)" />
       </UiIconButton>
     </div>
@@ -74,10 +70,10 @@ const kindOptions = computed(() =>
       v-if="field.kind === 'enum'"
       class="col-span-3 grid gap-1 pb-1 text-caption text-foreground-secondary"
     >
-      <span>{{ t("spaces.knowledge.knowledgeFieldOptions") }}</span>
+      <span>{{ t("spaces.knowledge.fields.options") }}</span>
       <UiInput
         :model-value="field.options?.join(', ') ?? ''"
-        :placeholder="t('spaces.knowledge.knowledgeFieldOptions')"
+        :placeholder="t('spaces.knowledge.fields.options')"
         @update:model-value="emit('options', $event)"
       />
     </label>

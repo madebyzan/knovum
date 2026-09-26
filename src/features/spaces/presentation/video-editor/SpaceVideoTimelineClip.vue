@@ -70,7 +70,7 @@ const peaks = computed(() => {
       <button
         type="button"
         class="absolute inset-0 w-full px-3 text-left text-caption text-white drop-shadow-md focus-visible:outline-2 focus-visible:outline-focus-ring"
-        :aria-label="`${$t('spaces.media.selectedClip')} ${formatVideoEditTime(clip.startMs)}–${formatVideoEditTime(clip.endMs)}`"
+        :aria-label="`${$t('spaces.media.videoEditor.clip.selected')} ${formatVideoEditTime(clip.startMs)}–${formatVideoEditTime(clip.endMs)}`"
         @click="$emit('select')"
       >
         <span class="bg-black/45 rounded-control px-1 py-0.5 tabular-nums">
@@ -83,7 +83,9 @@ const peaks = computed(() => {
         type="button"
         class="absolute inset-y-0 z-10 w-2.5 cursor-ew-resize touch-none bg-accent/70 hover:bg-accent focus-visible:outline-2 focus-visible:outline-focus-ring"
         :class="edge === 'start' ? 'left-0 rounded-l-grid-cell' : 'right-0 rounded-r-grid-cell'"
-        :aria-label="$t(edge === 'start' ? 'spaces.media.trimStart' : 'spaces.media.trimEnd')"
+        :aria-label="
+          $t(edge === 'start' ? 'spaces.media.videoEditor.trim.start' : 'spaces.media.videoEditor.trim.end')
+        "
         @pointerdown="$emit('trimStart', $event, edge)"
         @pointermove="$emit('trimMove', $event)"
         @pointerup="$emit('trimEnd')"

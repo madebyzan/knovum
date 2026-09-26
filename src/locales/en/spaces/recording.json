@@ -1,8 +1,19 @@
 {
-  "startingRecording": "Starting recording…",
-  "activeRecording": "Recording",
-  "pausedRecording": "Paused",
-  "savingRecording": "Saving recording…",
-  "startRecording": "Start Recording",
-  "stopAndSave": "Finish Recording"
+  "starting": "Starting recording…",
+  "active": "Recording",
+  "paused": "Paused",
+  "saving": "Saving recording…",
+  "stopAndSave": "Finish recording",
+  "note": "Audio note",
+  "startFailed": "Could not start recording or save audio.",
+  "microphone": {
+    "settingsHint": "Microphone access denied. Please allow microphone access in system preferences."
+  },
+  "problems": {
+    "denied": "Microphone permission was denied.",
+    "missing": "No microphone device detected.",
+    "busy": "Microphone is in use by another application.",
+    "unsupported": "Audio capture is not supported in this environment.",
+    "unknown": "Could not open microphone device."
+  }
 }

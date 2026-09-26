@@ -11,7 +11,7 @@ export function useSpaceLibraryCommands() {
   return computed<readonly AppCommand[]>(() => [
     {
       id: "spaces.find",
-      title: t("spaces.space.searchSpaces"),
+      title: t("spaces.space.search.placeholder"),
       shortcut: "$mod+F",
       category: "navigation",
       run: () => {

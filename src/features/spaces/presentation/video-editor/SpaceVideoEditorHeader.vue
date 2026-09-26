@@ -24,17 +24,19 @@ const { t } = useI18n();
     <div class="min-w-0 flex-1">
       <h1 class="truncate text-label font-semibold">
         {{ title }}<span v-if="dirty" class="ml-1 text-foreground-tertiary" aria-hidden="true">•</span>
-        <span v-if="dirty" class="sr-only">{{ t("spaces.media.unsavedStatus") }}</span>
+        <span v-if="dirty" class="sr-only">{{ t("spaces.media.videoEditor.unsaved.status") }}</span>
       </h1>
       <p class="text-micro text-foreground-tertiary">
-        {{ t(preparing ? "spaces.media.optimizingPreview" : "spaces.media.videoEditor") }}
+        {{ t(preparing ? "spaces.media.videoEditor.preview.optimizing" : "spaces.media.videoEditor.title") }}
       </p>
     </div>
     <UiButton size="sm" :disabled="!canSave" @click="$emit('save')"
       ><Save class="size-(--knovum-icon-size-sm)" />{{ t("common.save") }}</UiButton
     >
     <UiButton size="sm" variant="primary" :disabled="!canRender" @click="$emit('render')"
-      ><Sparkles class="size-(--knovum-icon-size-sm)" />{{ t("spaces.media.renderVideo") }}</UiButton
+      ><Sparkles class="size-(--knovum-icon-size-sm)" />{{
+        t("spaces.media.videoEditor.render.action")
+      }}</UiButton
     >
   </header>
 </template>

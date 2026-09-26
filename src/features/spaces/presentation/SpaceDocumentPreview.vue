@@ -37,10 +37,10 @@ const excerpt = computed(() =>
       <div>
         <FileText class="mx-auto size-7 text-foreground-tertiary" :stroke-width="1.5" />
         <p class="mt-2 text-caption font-medium text-foreground-secondary">
-          {{ t("spaces.transfer.instantPreviewUnavailable") }}
+          {{ t("spaces.importExport.preview.instantUnavailable") }}
         </p>
         <p class="mt-1 text-micro leading-relaxed text-foreground-tertiary">
-          {{ t("spaces.transfer.instantPreviewUnavailableHint") }}
+          {{ t("spaces.importExport.preview.instantUnavailableHint") }}
         </p>
       </div>
     </div>

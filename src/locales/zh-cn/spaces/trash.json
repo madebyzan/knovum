@@ -1,0 +1,27 @@
+{
+  "recent": {
+    "title": "最近删除",
+    "description": "恢复误删卡片，或永久删除项目。",
+    "loadFailed": "无法加载已删除项。",
+    "empty": "当前范围没有最近删除记录。"
+  },
+  "filters": {
+    "space": "按空间筛选"
+  },
+  "structure": {
+    "deletedCount": "{count} 个已删除节点",
+    "processing": "正在处理…",
+    "deletedNotice": "已永久删除 {count} 个节点",
+    "restoreNode": "恢复节点",
+    "restoreOperation": "恢复整个删除操作",
+    "restoreFailed": "恢复节点失败",
+    "deleteDescription": "永久删除“{title}”？此操作不可逆。",
+    "deleteFailed": "永久删除节点失败"
+  },
+  "deleteAll": {
+    "action": "全部永久删除…",
+    "title": "永久删除全部项目？",
+    "description": "将永久删除“{scope}”范围内的 {count} 个已删除项目，不影响正常使用的知识。此操作不可恢复。"
+  },
+  "deletePermanently": "永久删除"
+}

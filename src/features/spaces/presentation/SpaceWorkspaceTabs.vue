@@ -49,7 +49,7 @@ watchEffect(() => {
 });
 
 function createSpace() {
-  void store.createSpace(t("spaces.space.untitledSpace")).catch(reportTabFailure);
+  void store.createSpace(t("spaces.space.untitled")).catch(reportTabFailure);
 }
 
 function activateTab(id: unknown) {
@@ -72,14 +72,14 @@ function closeTabsToRight(id: string) {
 function showTabMenu(space: Space) {
   void management.show(space, [
     [
-      spaceMenuItem(t("spaces.space.newSpace"), createSpace),
-      spaceMenuItem(t("spaces.space.closeTab"), () => closeTab(space.id), {
+      spaceMenuItem(t("spaces.space.new"), createSpace),
+      spaceMenuItem(t("spaces.space.tabs.close"), () => closeTab(space.id), {
         enabled: openSpaceIds.value.length > 1,
       }),
-      spaceMenuItem(t("spaces.space.closeOtherTabs"), () => closeOtherTabs(space.id), {
+      spaceMenuItem(t("spaces.space.tabs.closeOthers"), () => closeOtherTabs(space.id), {
         enabled: openSpaceIds.value.length > 1,
       }),
-      spaceMenuItem(t("spaces.space.closeTabsToRight"), () => closeTabsToRight(space.id), {
+      spaceMenuItem(t("spaces.space.tabs.closeToRight"), () => closeTabsToRight(space.id), {
         enabled: openSpaceIds.value.indexOf(space.id) < openSpaceIds.value.length - 1,
       }),
     ],
@@ -106,7 +106,10 @@ function reportTabFailure(error: unknown) {
         ref="tabsViewport"
         class="flex scrollbar-none items-center gap-1 overflow-x-auto py-1 [&::-webkit-scrollbar]:hidden"
       >
-        <TabsList :aria-label="t('spaces.space.openSpaces')" class="flex w-max shrink-0 items-center gap-1">
+        <TabsList
+          :aria-label="t('spaces.space.sections.open')"
+          class="flex w-max shrink-0 items-center gap-1"
+        >
           <SpaceWorkspaceTab
             v-for="space in openSpaces"
             :key="space.id"
@@ -120,7 +123,7 @@ function reportTabFailure(error: unknown) {
         </TabsList>
         <UiIconButton
           class="shrink-0"
-          :label="t('spaces.space.newSpace')"
+          :label="t('spaces.space.new')"
           shortcut="$mod+T"
           size="sm"
           @click="createSpace"

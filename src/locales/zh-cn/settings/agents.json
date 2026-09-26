@@ -1,0 +1,36 @@
+{
+  "title": "桌面 Agent",
+  "description": "使用这台电脑上已安装并登录的 AI Agent。启用后，Agent 可直接使用其工具、MCP 服务与 Skills，不再逐项请求确认。",
+  "check": "检查 Agent",
+  "enable": "启用",
+  "disable": "停用",
+  "status": {
+    "checking": "检查中",
+    "checkFailed": "检查失败"
+  },
+  "entry": {
+    "missing": "未检测到命令入口",
+    "applicationOnly": "仅检测到应用",
+    "commandDetected": "已检测到命令"
+  },
+  "requiredCommands": "所需命令：{commands}",
+  "connectionHelp": "{name} 接入说明",
+  "officialDocumentation": "官方说明",
+  "acpSetup": "ACP 接入",
+  "detectionBoundary": "检测仅确认命令入口，不验证登录或 ACP 连接。",
+  "documentationOpenFailed": "无法打开 Agent 官方链接",
+  "connections": {
+    "nativeCli": {
+      "title": "原生 ACP",
+      "requirements": "安装支持 ACP 的官方 CLI，并将命令目录加入 PATH。"
+    },
+    "nodeAdapter": {
+      "title": "ACP 适配器",
+      "requirements": "需要官方 CLI 和 Node.js（npx）。首次运行可能联网下载 ACP 适配器。"
+    },
+    "standaloneServer": {
+      "title": "独立 ACP 服务端",
+      "requirements": "需单独下载官方 ACP 包，保留配套文件，并将服务端目录加入 PATH。"
+    }
+  }
+}

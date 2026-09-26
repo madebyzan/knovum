@@ -60,15 +60,16 @@ export async function createImageLayers(
     sourceNodeIds: [source.id],
     task: {
       id,
-      title: i18n.global.t("spaces.media.layerSplitTask"),
+      title: i18n.global.t("spaces.media.imageEditor.layers.task"),
       detail: source.data.title,
       cancel: () => invoke<void>("plugin:spaces|cancel_image_layers", { id }),
     },
-    failureMessageKey: "spaces.media.layerSplitFailed",
+    failureMessageKey: "spaces.media.imageEditor.layers.failed",
     execute: async ({ taskId }) => {
       const onStage = new Channel<string>(
         taskId
-          ? (stage) => useTaskStore().detail(taskId, i18n.global.t(`spaces.media.layerStage.${stage}`))
+          ? (stage) =>
+              useTaskStore().detail(taskId, i18n.global.t(`spaces.media.imageEditor.layers.stage.${stage}`))
           : undefined,
       );
       return invoke<LayerOutput[]>("plugin:spaces|create_image_layers", {

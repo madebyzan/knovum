@@ -25,12 +25,12 @@ function title(nodeId: string) {
 }
 
 function issueText(reason: WorkflowCaptureIssueReason) {
-  return t(`spaces.creation.captureIssues.${captureIssueLabels[reason]}`);
+  return t(`spaces.creation.workflow.captureIssues.${captureIssueLabels[reason]}`);
 }
 
 function actionText(actionId: string) {
   const label = captureActionLabels[actionId];
-  return label ? t(`spaces.creation.captureActions.${label}`) : actionId;
+  return label ? t(`spaces.creation.workflow.captureActions.${label}`) : actionId;
 }
 
 watch(
@@ -59,13 +59,17 @@ watch(
   <div class="flex h-full min-h-0 flex-col text-label">
     <div class="min-h-0 flex-1 overflow-y-auto px-3 py-3">
       <p v-if="loading" class="text-foreground-secondary" role="status">
-        {{ t("spaces.creation.derivationLoading") }}
+        {{ t("spaces.creation.workflow.derivation.loading") }}
       </p>
       <p v-else-if="error" class="text-danger" role="alert">{{ error }}</p>
       <template v-else-if="preview">
         <section v-if="preview.selectionGroups.length > 1" class="mb-4">
           <p class="bg-warning-subtle mb-2 rounded-control p-2 text-warning">
-            {{ t("spaces.creation.derivationSeparateChains", { count: preview.selectionGroups.length }) }}
+            {{
+              t("spaces.creation.workflow.derivation.separateChains", {
+                count: preview.selectionGroups.length,
+              })
+            }}
           </p>
           <div class="space-y-1">
             <UiButton
@@ -75,14 +79,14 @@ watch(
               class="w-full justify-start"
               @click="store.workflowCaptureSelection = group"
             >
-              {{ t("spaces.creation.derivationChain", { index: index + 1 }) }} ·
+              {{ t("spaces.creation.workflow.derivation.chain", { index: index + 1 }) }} ·
               <span class="min-w-0 truncate">{{ group.map(title).join(" · ") }}</span>
             </UiButton>
           </div>
         </section>
         <section v-if="preview.steps.length" class="space-y-2">
           <h3 class="text-caption font-semibold text-foreground-secondary">
-            {{ t("spaces.creation.derivationSteps") }}
+            {{ t("spaces.creation.workflow.derivation.steps") }}
           </h3>
           <ol class="space-y-1">
             <li v-for="(step, index) in preview.steps" :key="step.derivationId">
@@ -104,7 +108,7 @@ watch(
         </section>
         <section v-if="preview.inputs.length" class="mt-4">
           <h3 class="text-caption font-semibold text-foreground-secondary">
-            {{ t("spaces.creation.derivationInputs") }}
+            {{ t("spaces.creation.workflow.derivation.inputs") }}
           </h3>
           <ul class="mt-2 space-y-1">
             <li v-for="input in preview.inputs" :key="input.nodeId">
@@ -120,7 +124,7 @@ watch(
         </section>
         <section v-if="preview.issues.length" class="mt-4">
           <h3 class="text-caption font-semibold text-foreground-secondary">
-            {{ t("spaces.creation.derivationIssues") }}
+            {{ t("spaces.creation.workflow.derivation.issues") }}
           </h3>
           <ul class="mt-2 space-y-1">
             <li
@@ -134,7 +138,7 @@ watch(
           </ul>
         </section>
         <p v-if="!preview.steps.length && !preview.issues.length" class="text-foreground-secondary">
-          {{ t("spaces.creation.derivationEmpty") }}
+          {{ t("spaces.creation.workflow.derivation.empty") }}
         </p>
       </template>
     </div>

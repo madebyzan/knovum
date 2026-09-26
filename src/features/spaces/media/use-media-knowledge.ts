@@ -46,9 +46,9 @@ export function useMediaKnowledge(node: Ref<SpaceCanvasNode>) {
     return true;
   });
   const insightsDisabledReason = computed(() => {
-    if (analyzing.value) return t("spaces.media.analysisInProgress");
-    if (stale.value) return t("spaces.media.knowledgeStale");
-    if (!knowledge.value?.transcript.segments.length) return t("spaces.media.insightsUnavailable");
+    if (analyzing.value) return t("spaces.media.analysis.inProgress");
+    if (stale.value) return t("spaces.media.analysis.knowledge.stale");
+    if (!knowledge.value?.transcript.segments.length) return t("spaces.media.analysis.insights.unavailable");
     return undefined;
   });
   async function analyze() {
@@ -73,12 +73,12 @@ export function useMediaKnowledge(node: Ref<SpaceCanvasNode>) {
   }
   async function saveKnowledge(next: NonNullable<typeof knowledge.value>) {
     if (!canEdit.value) {
-      toast.error(t("spaces.creation.finishNodeOperation"));
+      toast.error(t("spaces.creation.shared.finishNodeOperation"));
       return;
     }
-    if (stale.value) throw new Error(t("spaces.media.knowledgeStale"));
+    if (stale.value) throw new Error(t("spaces.media.analysis.knowledge.stale"));
     const data = node.value.data;
-    if (!isSpaceMediaPayload(data)) throw new Error(t("spaces.media.knowledgeStale"));
+    if (!isSpaceMediaPayload(data)) throw new Error(t("spaces.media.analysis.knowledge.stale"));
     await store.saveNodeData(node.value.id, data, { ...data, mediaKnowledge: next });
   }
   async function saveSummary(summary: string) {

@@ -26,13 +26,13 @@ function setRotation(event: Event) {
 <template>
   <ToolbarRoot
     class="flex h-(--knovum-control-height-lg) w-max items-center gap-1 rounded-panel border border-border-strong bg-overlay p-px text-foreground shadow-control"
-    :aria-label="t('spaces.media.transformImage')"
+    :aria-label="t('spaces.media.imageEditor.transform.title')"
   >
-    <span class="px-2 text-label font-medium">{{ t("spaces.media.transformImage") }}</span>
+    <span class="px-2 text-label font-medium">{{ t("spaces.media.imageEditor.transform.title") }}</span>
     <label class="flex h-full items-center gap-0.5 border-l border-divider px-2 text-label tabular-nums">
       <input
         type="number"
-        :aria-label="t('spaces.media.rotationDegrees')"
+        :aria-label="t('spaces.media.imageEditor.transform.rotationDegrees')"
         :min="0"
         :max="359"
         :value="edit.rotation"
@@ -43,13 +43,17 @@ function setRotation(event: Event) {
     </label>
     <div class="flex h-full items-center border-l border-divider px-1">
       <ToolbarButton as-child>
-        <UiIconButton :label="t('spaces.media.rotateClockwise')" :disabled="busy" @click="rotate">
+        <UiIconButton
+          :label="t('spaces.media.imageEditor.transform.rotateClockwise')"
+          :disabled="busy"
+          @click="rotate"
+        >
           <RotateCw class="size-(--knovum-icon-size-sm)" />
         </UiIconButton>
       </ToolbarButton>
       <ToolbarButton as-child>
         <UiIconButton
-          :label="t('spaces.media.flipHorizontal')"
+          :label="t('spaces.media.imageEditor.transform.flipHorizontal')"
           :active="edit.flipHorizontal"
           :disabled="busy"
           @click="emit('update', { flipHorizontal: !edit.flipHorizontal })"
@@ -59,7 +63,7 @@ function setRotation(event: Event) {
       </ToolbarButton>
       <ToolbarButton as-child>
         <UiIconButton
-          :label="t('spaces.media.flipVertical')"
+          :label="t('spaces.media.imageEditor.transform.flipVertical')"
           :active="edit.flipVertical"
           :disabled="busy"
           @click="emit('update', { flipVertical: !edit.flipVertical })"

@@ -60,7 +60,7 @@ defineExpose({ seekTo, togglePlayback });
       <button
         type="button"
         class="nodrag pointer-events-auto absolute top-1/2 left-1/2 grid size-9 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-overlay/94 text-foreground shadow-control ring-1 ring-border"
-        :aria-label="t('spaces.media.load', { title: data.title })"
+        :aria-label="t('spaces.media.player.load', { title: data.title })"
         @click.stop="togglePlayback"
       >
         <Play class="ml-px size-(--knovum-icon-size-md)" fill="currentColor" :stroke-width="1.4" />

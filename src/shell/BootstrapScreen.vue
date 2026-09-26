@@ -19,8 +19,8 @@ function reload() {
       class="w-full max-w-(--knovum-error-max-width) rounded-dialog border border-border-strong bg-raised p-5 shadow-dialog"
     >
       <AlertTriangle class="mb-3 size-(--knovum-icon-size-lg) text-danger" />
-      <h1 class="m-0 text-title-sm font-semibold text-foreground">{{ t("errors.bootstrapTitle") }}</h1>
-      <p class="mt-1.5 text-body text-foreground-secondary">{{ t("errors.bootstrapDescription") }}</p>
+      <h1 class="m-0 text-title-sm font-semibold text-foreground">{{ t("errors.bootstrap.title") }}</h1>
+      <p class="mt-1.5 text-body text-foreground-secondary">{{ t("errors.bootstrap.description") }}</p>
       <pre
         class="mt-4 max-h-40 overflow-auto rounded-control bg-chrome p-3 font-mono text-micro text-foreground-secondary select-text"
         >{{ failure.message }}</pre>

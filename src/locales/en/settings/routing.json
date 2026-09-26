@@ -1,0 +1,34 @@
+{
+  "title": "Execution routing",
+  "description": "Set the execution target for each task. Model APIs and compatible desktop Agents are equal choices controlled by you.",
+  "defaultsTitle": "Default execution routes",
+  "defaultsDescription": "Choose a model or desktop Agent for each purpose. Neither execution channel is preferred automatically.",
+  "unavailable": "No execution targets available",
+  "unavailableDescription": "Add a model provider or enable a detected desktop Agent before choosing execution defaults.",
+  "routes": {
+    "writing": {
+      "label": "Writing",
+      "description": "Drafting, rewriting, and editor assistance."
+    },
+    "knowledge": {
+      "label": "Knowledge work",
+      "description": "Answers, summaries, and reasoning grounded in space content."
+    },
+    "visualUnderstanding": {
+      "label": "Visual understanding",
+      "description": "Analyze images and video frames for search and knowledge retrieval."
+    },
+    "translation": {
+      "label": "Translation",
+      "description": "Translate content throughout the application."
+    },
+    "imageGeneration": {
+      "label": "Image creation",
+      "description": "Create images from instructions and space context."
+    },
+    "videoGeneration": {
+      "label": "Video creation",
+      "description": "Create videos from instructions and source material."
+    }
+  }
+}
