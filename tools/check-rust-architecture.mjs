@@ -15,9 +15,14 @@ failures.push(...checkRustSourceStructure(root, rustFiles));
 failures.push(...checkIpcNullability(root));
 
 forbid(
-  join(rustRoot, "bundled_runtime.rs"),
+  join(rustRoot, "documents"),
+  /crate::spaces\b/,
+  "Document engines must not depend on Space authorization or persistence",
+);
+forbid(
+  join(rustRoot, "local_resources"),
   /crate::(?:ai|spaces|desktop)\b/,
-  "Shared bundled runtime must not depend on product capabilities",
+  "Local resources must not depend on product capabilities",
 );
 forbid(join(rustRoot, "ai"), /crate::spaces\b/, "AI infrastructure must not depend on the Space feature");
 forbid(join(rustRoot, "agent_runtime"), /crate::spaces\b/, "Agent Runtime must not depend on Space policy");
@@ -53,7 +58,7 @@ forbid(
 );
 forbid(
   join(rustRoot, "spaces", "knowledge"),
-  /crate::spaces::knowledge_derivations\b|super::(?:super::)?knowledge_derivations\b/,
+  /crate::spaces::derivation\b|super::(?:super::)?derivation\b/,
   "Space knowledge policy must not depend on derivation use cases",
 );
 forbid(

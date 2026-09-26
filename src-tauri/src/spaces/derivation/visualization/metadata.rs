@@ -5,8 +5,9 @@ use tauri::AppHandle;
 use super::super::metadata_sources::{self, DerivationSource};
 use crate::spaces::db;
 
-#[derive(Serialize)]
+#[derive(Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct VisualizationMetadata {
     provider: String,
     model: String,

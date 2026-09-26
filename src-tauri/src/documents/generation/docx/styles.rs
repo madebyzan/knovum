@@ -3,18 +3,16 @@ use docx_rs::{Docx, RunFonts, Style, StyleType};
 use crate::system_font::SYSTEM_SANS_FAMILY;
 
 pub(super) fn document() -> Docx {
-    let normal = Style::new("Normal", StyleType::Paragraph)
-        .name("Normal")
+    let normal = Style::new("KnovumBody", StyleType::Paragraph)
+        .name("Knovum Body")
         .size(21)
         .fonts(fonts("Arial"));
-    let mut doc = Docx::new();
-    doc.styles.styles.clear();
-    let mut doc = doc
+    let mut doc = Docx::new()
         .add_style(normal)
         .add_style(
             Style::new("Title", StyleType::Paragraph)
                 .name("Title")
-                .based_on("Normal")
+                .based_on("KnovumBody")
                 .size(40)
                 .bold(),
         )
@@ -27,14 +25,14 @@ pub(super) fn document() -> Docx {
         .add_style(
             Style::new("KnovumCodeBlock", StyleType::Paragraph)
                 .name("Knovum Code Block")
-                .based_on("Normal"),
+                .based_on("KnovumBody"),
         );
     for (index, size) in [32, 28, 25, 23, 22, 21].into_iter().enumerate() {
         doc = doc.add_style(
             Style::new(format!("Heading{}", index + 1), StyleType::Paragraph)
                 .name(format!("heading {}", index + 1))
-                .based_on("Normal")
-                .next("Normal")
+                .based_on("KnovumBody")
+                .next("KnovumBody")
                 .outline_lvl(index)
                 .size(size)
                 .bold(),

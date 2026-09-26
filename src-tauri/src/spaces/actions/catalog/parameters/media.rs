@@ -4,8 +4,9 @@ use schemars::{schema_for, JsonSchema};
 use serde::Deserialize;
 use serde_json::Value;
 
-#[derive(Deserialize, JsonSchema)]
-pub(super) enum ImageAspectRatio {
+#[derive(Deserialize, JsonSchema, ts_rs::TS)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
+pub(crate) enum ImageAspectRatio {
     #[serde(rename = "1:1")]
     Square,
     #[serde(rename = "3:2")]

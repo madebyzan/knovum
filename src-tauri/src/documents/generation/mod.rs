@@ -3,6 +3,7 @@ pub(crate) mod docx;
 mod links;
 mod markdown;
 pub(crate) mod pdf;
+pub(crate) mod pptx;
 mod text;
 
 pub(crate) fn render_text(source: &document::DocumentSource) -> Result<Vec<u8>, String> {

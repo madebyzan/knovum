@@ -1,4 +1,3 @@
-import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow, type Theme } from "@tauri-apps/api/window";
 import { locale as getOsLocale } from "@tauri-apps/plugin-os";
 import { load } from "@tauri-apps/plugin-store";
@@ -6,6 +5,7 @@ import { pick } from "es-toolkit";
 import { defineStore } from "pinia";
 
 import { i18n, systemLocale, type AppLocale } from "../i18n/i18n";
+import { invokeCommand as invoke } from "../ipc/invoke-command";
 import {
   decodePreferences,
   defaultPreferences,

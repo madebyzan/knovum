@@ -80,7 +80,7 @@ The Spaces Rust boundary is divided by responsibility, not CRUD mechanics:
 - `recovery.rs`: ordered reconciliation of interrupted Space-owned workflows during bootstrap.
 
 Content and platform engines are independent crate-level capabilities: `documents/` owns extraction
-and generation, `media/` owns acquisition and media transformation, and `images/` owns image
+and generation (including the sole PPTX engine under `generation/pptx.rs`), `media/` owns acquisition and media transformation, and `images/` owns image
 operations. `file_inspection/`, `web_capture/`, `system_preview/` and `local_resources/` remain
 separate capabilities. `local_resources/models` owns downloaded model installation and integrity;
 `local_resources/tools` owns discovery of bundled executables and native libraries. None depends on `spaces` or emits
@@ -177,7 +177,7 @@ rules live only in `naming-conventions.md`.
 
 ## One source of truth
 
-`app/router.ts` owns the fixed Spaces and Settings routes. `features/spaces/workspace.ts` exposes the single
+`app/router.ts` owns the fixed Spaces and Settings routes. `features/spaces/workspace-definition.ts` exposes the single
 composition contract for Spaces-owned shell surfaces and commands. Do not introduce a product-module
 registry: Knovum is one knowledge-space application, not a container for peer applications.
 
@@ -355,3 +355,21 @@ Image processing, media processing, AI execution and storage are Rust or foundat
 Spaces capabilities. They are not independent Renderer products. Each engine exposes only the commands and
 permissions required by its owning knowledge-space workflow. External paths enter through webview drop or OS
 dialogs, receive session-scoped authorization, and are never covered by a broad product-level filesystem scope.
+
+### Resource lifecycle composition
+
+`app_resources` assembles the local-resources plugin and owns removal policy that unloads an AI embedding engine before deleting its model. `local_resources` owns path resolution, verification, download and filesystem operations; it does not import AI or Spaces. Rust directory modules use `mod.rs`; a source file and a same-name sibling directory must not coexist. Stable wire IDs are explicitly mapped to UI translation keys.
+
+### IPC error boundary
+
+Application commands reject with one `{ code, message }` envelope. `command_error` converts engine/domain failures at the Rust command boundary; engine internals do not depend on command serialization. AI retains its closed provider error codes within the same envelope. Stable wire codes use snake_case. Unclassified operational failures use `operation_failed`; their original message is preserved.
+
+Renderer application calls use `foundation/ipc/invoke-command`. It converts rejection payloads into `Error` with the envelope as `cause`, preserving existing `Error` identity and the native invoke argument shape. Business outcome detection reads `decodeCommandError(error)?.code`; it does not match English sentences. Native Tauri/plugin argument or permission failures may still be strings and remain visible errors. This is an active vendor boundary, not a reader for obsolete application protocols.
+
+Production source reachability starts at `src/main.ts`, includes Worker `new URL` edges, and excludes test/support declarations and generated/static resources. Tests must not justify retaining otherwise unused product modules or components. The architecture gate rejects unreachable authored TS/Vue sources; the existing Knip check still owns unused symbols/dependencies.
+
+## IPC contract ownership
+
+Rust owns serialized request/response/event types. ts-rs exports neutral types to `src/shared/contracts/generated`; Spaces-owned types are exported directly to `src/features/spaces/contracts/generated` through per-type ts-rs export paths; neutral runtime identity arrays and feature-owned limits come from the corresponding Rust definitions. Feature action/workflow JSON Schemas remain in Spaces. Foundation must not import feature implementations to obtain wire types. Runtime validation and UI projections keep their actual responsibilities rather than redefining wire DTOs.
+
+Space agent artifacts, action catalog and authorized asset preview belong to Spaces. The app router supplies the action catalog loader to Settings through explicit props, preserving feature isolation without a global registry.

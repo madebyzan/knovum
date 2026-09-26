@@ -1,4 +1,5 @@
--- Space aggregate, canvas objects, scenes, and knowledge graph relations.
+-- Current pre-release Spaces v1 baseline. Obsolete databases are rejected, never reinterpreted.
+
 CREATE TABLE spaces (
   id TEXT PRIMARY KEY NOT NULL,
   kind TEXT NOT NULL CHECK (kind IN ('inbox', 'space')),
@@ -10,10 +11,6 @@ CREATE TABLE spaces (
   created_at INTEGER NOT NULL,
   updated_at INTEGER NOT NULL
 );
-
-CREATE UNIQUE INDEX spaces_single_inbox ON spaces(kind) WHERE kind = 'inbox';
-
-CREATE INDEX spaces_lifecycle ON spaces(archived_at, last_opened_at DESC);
 
 CREATE TABLE spaces_object_types (
   id TEXT PRIMARY KEY NOT NULL,
@@ -28,8 +25,6 @@ CREATE TABLE spaces_object_types (
   FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE,
   CHECK ((system = 1 AND space_id IS NULL AND id LIKE 'system:%') OR (system = 0 AND space_id IS NOT NULL AND id NOT LIKE 'system:%'))
 );
-
-CREATE UNIQUE INDEX spaces_object_types_name ON spaces_object_types(space_id, name COLLATE NOCASE);
 
 CREATE TABLE spaces_nodes (
   id TEXT PRIMARY KEY NOT NULL,
@@ -59,13 +54,6 @@ CREATE TABLE spaces_nodes (
   )
 );
 
-CREATE INDEX spaces_nodes_space_created ON spaces_nodes(space_id, deleted_at, created_at);
-
-CREATE INDEX spaces_nodes_object_type ON spaces_nodes(space_id, object_type_id, deleted_at);
-
-CREATE UNIQUE INDEX spaces_nodes_space_id ON spaces_nodes(space_id, id);
-
--- Current Space structure and layout are separate from content and canvas camera state.
 CREATE TABLE spaces_structure_nodes (
   id TEXT PRIMARY KEY NOT NULL CHECK (length(id) > 0),
   space_id TEXT NOT NULL,
@@ -88,36 +76,9 @@ CREATE TABLE spaces_structure_nodes (
   )
 );
 
-CREATE UNIQUE INDEX spaces_structure_space_id ON spaces_structure_nodes(space_id, id);
-CREATE UNIQUE INDEX spaces_structure_space_id_kind ON spaces_structure_nodes(space_id, id, kind);
-CREATE UNIQUE INDEX spaces_structure_active_content ON spaces_structure_nodes(node_id)
-  WHERE deleted_at IS NULL AND node_id IS NOT NULL;
-CREATE UNIQUE INDEX spaces_structure_active_order
-  ON spaces_structure_nodes(space_id, COALESCE(parent_id, ''), order_index)
-  WHERE deleted_at IS NULL;
-CREATE INDEX spaces_structure_children
-  ON spaces_structure_nodes(space_id, parent_id, deleted_at, order_index);
-
 CREATE VIRTUAL TABLE spaces_structure_title_fts USING fts5(
   structure_node_id UNINDEXED, space_id UNINDEXED, kind UNINDEXED, title, tokenize='unicode61'
 );
-CREATE TRIGGER spaces_structure_title_fts_insert AFTER INSERT ON spaces_structure_nodes
-WHEN NEW.deleted_at IS NULL AND NEW.kind IN ('group','section')
-BEGIN
-  INSERT INTO spaces_structure_title_fts(structure_node_id,space_id,kind,title)
-  VALUES(NEW.id,NEW.space_id,NEW.kind,NEW.title);
-END;
-CREATE TRIGGER spaces_structure_title_fts_update AFTER UPDATE ON spaces_structure_nodes
-BEGIN
-  DELETE FROM spaces_structure_title_fts WHERE structure_node_id=OLD.id;
-  INSERT INTO spaces_structure_title_fts(structure_node_id,space_id,kind,title)
-  SELECT NEW.id,NEW.space_id,NEW.kind,NEW.title
-  WHERE NEW.deleted_at IS NULL AND NEW.kind IN ('group','section');
-END;
-CREATE TRIGGER spaces_structure_title_fts_delete AFTER DELETE ON spaces_structure_nodes
-BEGIN
-  DELETE FROM spaces_structure_title_fts WHERE structure_node_id=OLD.id;
-END;
 
 CREATE TABLE spaces_structure_layouts (
   space_id TEXT NOT NULL,
@@ -168,9 +129,6 @@ CREATE TABLE spaces_edit_receipts (
   FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE
 );
 
-CREATE INDEX spaces_edit_receipts_space_revision
-  ON spaces_edit_receipts(space_id, applied_revision);
-
 CREATE TABLE spaces_deleted_structure_batches (
   id TEXT PRIMARY KEY NOT NULL,
   space_id TEXT NOT NULL,
@@ -179,9 +137,6 @@ CREATE TABLE spaces_deleted_structure_batches (
   restored_at INTEGER,
   FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE
 );
-
-CREATE INDEX spaces_deleted_structure_batches_space
-  ON spaces_deleted_structure_batches(space_id, deleted_at DESC);
 
 CREATE TABLE spaces_deleted_structure_nodes (
   batch_id TEXT NOT NULL,
@@ -227,12 +182,6 @@ CREATE TABLE spaces_edit_history (
   FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE
 );
 
-CREATE INDEX spaces_edit_history_cursor ON spaces_edit_history(space_id, undone, id);
-
-CREATE VIEW spaces_semantic_nodes AS
-  SELECT * FROM spaces_nodes
-  WHERE deleted_at IS NULL AND kind NOT IN ('credential','portal','text');
-
 CREATE TABLE spaces_scenes (
   id TEXT PRIMARY KEY NOT NULL,
   space_id TEXT NOT NULL,
@@ -250,8 +199,6 @@ CREATE TABLE spaces_scenes (
   updated_at INTEGER NOT NULL,
   FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE
 );
-
-CREATE INDEX spaces_scenes_space_created ON spaces_scenes(space_id, order_index, created_at);
 
 CREATE TABLE spaces_relations (
   id TEXT PRIMARY KEY NOT NULL,
@@ -278,13 +225,6 @@ CREATE TABLE spaces_relations (
          (status <> 'invalidated' AND status_before_invalidation IS NULL))
 );
 
-CREATE UNIQUE INDEX spaces_relations_unique_active
-  ON spaces_relations(space_id, source_id, target_id, kind) WHERE status <> 'invalidated';
-
-CREATE INDEX spaces_relations_space_status ON spaces_relations(space_id, status, created_at);
-
-CREATE UNIQUE INDEX spaces_relations_space_id ON spaces_relations(space_id, id);
-
 CREATE TABLE spaces_relation_styles (
   space_id TEXT NOT NULL,
   relation_id TEXT NOT NULL,
@@ -293,7 +233,6 @@ CREATE TABLE spaces_relation_styles (
   FOREIGN KEY (space_id, relation_id) REFERENCES spaces_relations(space_id, id) ON DELETE CASCADE
 );
 
--- Knowledge derivations, workflow runs, and generated artifact metadata.
 CREATE TABLE spaces_knowledge_derivations (
   id TEXT PRIMARY KEY NOT NULL,
   space_id TEXT NOT NULL,
@@ -312,9 +251,6 @@ CREATE TABLE spaces_knowledge_derivations (
          (status = 'failed' AND completed_at IS NOT NULL AND length(error) > 0) OR
          (status = 'running' AND completed_at IS NULL AND error = ''))
 );
-
-CREATE UNIQUE INDEX spaces_derivations_output ON spaces_knowledge_derivations(output_node_id);
-CREATE INDEX spaces_derivations_space_status ON spaces_knowledge_derivations(space_id, status, created_at);
 
 CREATE TABLE spaces_knowledge_derivation_inputs (
   derivation_id TEXT NOT NULL,
@@ -338,10 +274,6 @@ CREATE TABLE spaces_knowledge_derivation_inputs (
   FOREIGN KEY (derivation_id) REFERENCES spaces_knowledge_derivations(id) ON DELETE CASCADE,
   FOREIGN KEY (node_id) REFERENCES spaces_nodes(id) ON DELETE SET NULL
 );
-
-CREATE INDEX spaces_derivation_inputs_node ON spaces_knowledge_derivation_inputs(node_id, derivation_id);
-CREATE UNIQUE INDEX spaces_derivation_inputs_live_identity
-  ON spaces_knowledge_derivation_inputs(derivation_id, node_id, role) WHERE node_id IS NOT NULL;
 
 CREATE TABLE spaces_agent_artifact_sessions (
   id TEXT PRIMARY KEY NOT NULL,
@@ -387,7 +319,6 @@ CREATE TABLE spaces_generated_videos (
   FOREIGN KEY (derivation_id) REFERENCES spaces_knowledge_derivations(id) ON DELETE CASCADE
 );
 
--- Provenance, domain events, canonical passages, and full-text search.
 CREATE TABLE spaces_provenance (
   id TEXT PRIMARY KEY NOT NULL,
   space_id TEXT NOT NULL,
@@ -406,10 +337,6 @@ CREATE TABLE spaces_provenance (
   FOREIGN KEY (source_node_id) REFERENCES spaces_nodes(id) ON DELETE CASCADE
 );
 
-CREATE INDEX spaces_provenance_target ON spaces_provenance(space_id, target_kind, target_id, status, created_at);
-
-CREATE INDEX spaces_provenance_source ON spaces_provenance(source_node_id, status, created_at);
-
 CREATE TABLE spaces_knowledge_events (
   id TEXT PRIMARY KEY NOT NULL,
   space_id TEXT NOT NULL,
@@ -424,10 +351,6 @@ CREATE TABLE spaces_knowledge_events (
   created_at INTEGER NOT NULL,
   FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE
 );
-
-CREATE INDEX spaces_knowledge_events_entity ON spaces_knowledge_events(space_id, entity_kind, entity_id, created_at);
-
-CREATE INDEX spaces_knowledge_events_time ON spaces_knowledge_events(space_id, created_at DESC);
 
 CREATE TABLE spaces_knowledge_chunks (
   id TEXT PRIMARY KEY NOT NULL,
@@ -447,15 +370,421 @@ CREATE TABLE spaces_knowledge_chunks (
   FOREIGN KEY (node_id) REFERENCES spaces_nodes(id) ON DELETE CASCADE
 );
 
+CREATE VIRTUAL TABLE spaces_knowledge_fts USING fts5(
+  chunk_id UNINDEXED, space_id UNINDEXED, node_id UNINDEXED, text, tokenize = 'trigram'
+);
+
+CREATE TABLE spaces_chunk_embeddings (
+  chunk_id TEXT PRIMARY KEY NOT NULL,
+  source_revision TEXT NOT NULL,
+  model TEXT NOT NULL,
+  dimensions INTEGER NOT NULL CHECK (dimensions > 0),
+  updated_at INTEGER NOT NULL,
+  FOREIGN KEY (chunk_id) REFERENCES spaces_knowledge_chunks(id) ON DELETE CASCADE
+);
+
+CREATE TABLE spaces_retrieval_invalidations (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  space_id TEXT NOT NULL CHECK (length(space_id) > 0),
+  node_id TEXT CHECK (node_id IS NULL OR length(node_id) > 0),
+  attempts INTEGER NOT NULL DEFAULT 0 CHECK (attempts >= 0),
+  last_error TEXT,
+  created_at INTEGER NOT NULL
+);
+
+CREATE TABLE spaces_enrichment_jobs (
+  id TEXT PRIMARY KEY NOT NULL,
+  space_id TEXT NOT NULL,
+  node_id TEXT NOT NULL,
+  job_type TEXT NOT NULL CHECK (job_type IN ('embed_text', 'analyze_image', 'analyze_media', 'transcribe_media', 'analyze_video_cover', 'embed_media_transcript', 'parse_document', 'analyze_document')),
+  status TEXT NOT NULL CHECK (status IN ('pending', 'running', 'succeeded', 'failed', 'cancelled', 'awaiting_configuration')),
+  source_revision TEXT NOT NULL,
+  attempts INTEGER NOT NULL DEFAULT 0 CHECK (attempts >= 0),
+  error TEXT,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL,
+  FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE,
+  FOREIGN KEY (node_id) REFERENCES spaces_nodes(id) ON DELETE CASCADE
+);
+
+CREATE TABLE spaces_document_visual_checkpoints (
+  job_id TEXT NOT NULL REFERENCES spaces_enrichment_jobs(id) ON DELETE CASCADE,
+  occurrence_id TEXT NOT NULL,
+  occurrence TEXT NOT NULL CHECK (json_valid(occurrence)),
+  resource TEXT CHECK (resource IS NULL OR json_valid(resource)),
+  PRIMARY KEY (job_id, occurrence_id)
+);
+
+CREATE TABLE spaces_authorization_grants (
+  id TEXT PRIMARY KEY NOT NULL,
+  principal_kind TEXT NOT NULL CHECK (principal_kind IN ('user','assistant','external_agent','automation')),
+  principal_id TEXT NOT NULL,
+  home_space_id TEXT NOT NULL,
+  read_space_ids TEXT NOT NULL CHECK (json_valid(read_space_ids) AND json_type(read_space_ids) = 'array'),
+  write_space_ids TEXT NOT NULL CHECK (json_valid(write_space_ids) AND json_type(write_space_ids) = 'array'),
+  action_ids TEXT NOT NULL CHECK (json_valid(action_ids) AND json_type(action_ids) = 'array'),
+  valid_until INTEGER NOT NULL,
+  revoked_at INTEGER,
+  created_at INTEGER NOT NULL,
+  FOREIGN KEY (home_space_id) REFERENCES spaces(id) ON DELETE CASCADE
+);
+
+CREATE TABLE spaces_action_approvals (
+  id TEXT PRIMARY KEY NOT NULL,
+  grant_id TEXT NOT NULL,
+  space_id TEXT NOT NULL,
+  action_id TEXT NOT NULL,
+  plan_digest TEXT NOT NULL CHECK (length(plan_digest) = 64),
+  plan TEXT NOT NULL CHECK (json_valid(plan)),
+  expected_revisions TEXT NOT NULL CHECK (json_valid(expected_revisions)),
+  valid_until INTEGER NOT NULL,
+  decision TEXT NOT NULL DEFAULT 'pending' CHECK (decision IN ('pending','approved','rejected')),
+  decided_at INTEGER,
+  consumed_at INTEGER,
+  created_at INTEGER NOT NULL,
+  FOREIGN KEY (grant_id) REFERENCES spaces_authorization_grants(id) ON DELETE CASCADE,
+  FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE
+);
+
+CREATE TABLE spaces_action_invocations (
+  id TEXT PRIMARY KEY NOT NULL,
+  principal_kind TEXT NOT NULL,
+  principal_id TEXT NOT NULL,
+  space_id TEXT NOT NULL,
+  action_id TEXT NOT NULL,
+  action_version INTEGER NOT NULL CHECK (action_version > 0),
+  idempotency_key TEXT NOT NULL,
+  request_digest TEXT NOT NULL CHECK (length(request_digest) = 64),
+  outcome_kind TEXT NOT NULL CHECK (outcome_kind IN ('query_result','committed_receipt','accepted_run','requires_approval')),
+  outcome TEXT NOT NULL CHECK (json_valid(outcome)),
+  created_at INTEGER NOT NULL,
+  FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE,
+  UNIQUE (principal_kind, principal_id, space_id, action_id, action_version, idempotency_key)
+);
+
+CREATE TABLE spaces_runs (
+  id TEXT PRIMARY KEY NOT NULL,
+  home_space_id TEXT NOT NULL,
+  parent_run_id TEXT,
+  retry_of_run_id TEXT,
+  fork_of_run_id TEXT,
+  principal_kind TEXT NOT NULL,
+  principal_id TEXT NOT NULL,
+  kind TEXT NOT NULL CHECK (kind IN ('action','workflow','assistant','external_agent','automation')),
+  state TEXT NOT NULL CHECK (state IN ('queued','running','waiting','paused','succeeded','completed_with_errors','failed','cancelled')),
+  state_version INTEGER NOT NULL DEFAULT 0 CHECK (state_version >= 0),
+  execution_epoch INTEGER NOT NULL DEFAULT 0 CHECK (execution_epoch >= 0),
+  wait_reason TEXT,
+  policy_snapshot TEXT NOT NULL CHECK (json_valid(policy_snapshot)),
+  input_snapshot TEXT NOT NULL CHECK (json_valid(input_snapshot)),
+  budget TEXT NOT NULL CHECK (json_valid(budget)),
+  input_tokens INTEGER NOT NULL DEFAULT 0 CHECK (input_tokens >= 0),
+  output_tokens INTEGER NOT NULL DEFAULT 0 CHECK (output_tokens >= 0),
+  total_tokens INTEGER NOT NULL DEFAULT 0 CHECK (total_tokens >= 0),
+  step_attempts INTEGER NOT NULL DEFAULT 0 CHECK (step_attempts >= 0),
+  expanded_steps INTEGER NOT NULL DEFAULT 0 CHECK (expanded_steps >= 0),
+  output_bytes INTEGER NOT NULL DEFAULT 0 CHECK (output_bytes >= 0),
+  cancel_requested_at INTEGER,
+  pause_requested_at INTEGER,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL,
+  completed_at INTEGER,
+  FOREIGN KEY (home_space_id) REFERENCES spaces(id) ON DELETE CASCADE,
+  FOREIGN KEY (parent_run_id) REFERENCES spaces_runs(id) ON DELETE SET NULL,
+  FOREIGN KEY (retry_of_run_id) REFERENCES spaces_runs(id) ON DELETE SET NULL,
+  FOREIGN KEY (fork_of_run_id) REFERENCES spaces_runs(id) ON DELETE SET NULL
+);
+
+CREATE TABLE spaces_run_steps (
+  id TEXT PRIMARY KEY NOT NULL,
+  run_id TEXT NOT NULL,
+  definition_node_id TEXT NOT NULL,
+  instance_path TEXT NOT NULL,
+  node_kind TEXT NOT NULL,
+  depends_on TEXT NOT NULL DEFAULT '[]'
+    CHECK (json_valid(depends_on) AND json_type(depends_on) = 'array'),
+  configuration TEXT NOT NULL DEFAULT '{}'
+    CHECK (json_valid(configuration) AND json_type(configuration) = 'object'),
+  state TEXT NOT NULL CHECK (state IN ('pending','ready','running','waiting','paused','succeeded','failed','skipped','blocked','cancelled')),
+  state_version INTEGER NOT NULL DEFAULT 0 CHECK (state_version >= 0),
+  resolved_input TEXT NOT NULL CHECK (json_valid(resolved_input)),
+  output TEXT CHECK (output IS NULL OR json_valid(output)),
+  wait_reason TEXT,
+  available_at INTEGER NOT NULL DEFAULT 0,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL,
+  FOREIGN KEY (run_id) REFERENCES spaces_runs(id) ON DELETE CASCADE,
+  UNIQUE (run_id, instance_path)
+);
+
+CREATE TABLE spaces_run_attempts (
+  id TEXT PRIMARY KEY NOT NULL,
+  run_id TEXT NOT NULL,
+  step_instance_id TEXT NOT NULL,
+  attempt_number INTEGER NOT NULL CHECK (attempt_number > 0),
+  state TEXT NOT NULL CHECK (state IN ('claimed','executing','waiting_external','succeeded','failed','cancelled','outcome_unknown')),
+  request_digest TEXT NOT NULL CHECK (length(request_digest) = 64),
+  executor_id TEXT NOT NULL,
+  idempotency_key TEXT NOT NULL,
+  external_task_id TEXT,
+  execution_epoch INTEGER NOT NULL CHECK (execution_epoch >= 0),
+  lease_until INTEGER,
+  checkpoint TEXT CHECK (checkpoint IS NULL OR json_valid(checkpoint)),
+  result TEXT CHECK (result IS NULL OR json_valid(result)),
+  error_code TEXT,
+  started_at INTEGER NOT NULL,
+  finished_at INTEGER,
+  FOREIGN KEY (run_id) REFERENCES spaces_runs(id) ON DELETE CASCADE,
+  FOREIGN KEY (step_instance_id) REFERENCES spaces_run_steps(id) ON DELETE CASCADE,
+  UNIQUE (step_instance_id, attempt_number),
+  UNIQUE (executor_id, idempotency_key)
+);
+
+CREATE TABLE spaces_run_events (
+  sequence INTEGER PRIMARY KEY AUTOINCREMENT,
+  run_id TEXT NOT NULL,
+  step_instance_id TEXT,
+  attempt_id TEXT,
+  kind TEXT NOT NULL,
+  payload TEXT NOT NULL CHECK (json_valid(payload)),
+  created_at INTEGER NOT NULL,
+  FOREIGN KEY (run_id) REFERENCES spaces_runs(id) ON DELETE CASCADE
+);
+
+CREATE TABLE spaces_external_agent_conversations (
+  id TEXT PRIMARY KEY NOT NULL,
+  run_id TEXT NOT NULL UNIQUE,
+  space_id TEXT NOT NULL,
+  runtime_kind TEXT NOT NULL,
+  runtime_session_id TEXT,
+  session_capabilities TEXT CHECK (session_capabilities IS NULL OR json_valid(session_capabilities)),
+  title TEXT NOT NULL,
+  state TEXT NOT NULL CHECK (state IN ('connecting','connected','disconnected','closed')),
+  error TEXT,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL, assistant_conversation_id TEXT REFERENCES spaces_assistant_conversations(id) ON DELETE CASCADE, branch_id TEXT,
+  FOREIGN KEY (run_id) REFERENCES spaces_runs(id) ON DELETE CASCADE,
+  FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE
+);
+
+CREATE TABLE spaces_external_agent_turns (
+  id TEXT PRIMARY KEY NOT NULL,
+  conversation_id TEXT NOT NULL,
+  state TEXT NOT NULL CHECK (state IN ('running','completed','failed','cancelled')),
+  error TEXT,
+  created_at INTEGER NOT NULL,
+  completed_at INTEGER, assistant_message_id TEXT
+  REFERENCES spaces_assistant_messages(id) ON DELETE SET NULL,
+  FOREIGN KEY (conversation_id) REFERENCES spaces_external_agent_conversations(id) ON DELETE CASCADE
+);
+
+CREATE TABLE spaces_workflow_templates (
+  id TEXT PRIMARY KEY NOT NULL,
+  name TEXT NOT NULL,
+  definition TEXT NOT NULL CHECK (json_valid(definition)),
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL
+);
+
+CREATE TABLE spaces_assistant_conversations (
+  id TEXT PRIMARY KEY NOT NULL,
+  space_id TEXT NOT NULL,
+  title TEXT NOT NULL,
+  mode TEXT NOT NULL CHECK (mode IN ('ask','plan','execute')),
+  archived_at INTEGER,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL, active_branch_id TEXT,
+  FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE
+);
+
+CREATE TABLE spaces_assistant_messages (
+  id TEXT PRIMARY KEY NOT NULL,
+  conversation_id TEXT NOT NULL,
+  branch_id TEXT NOT NULL,
+  parent_message_id TEXT,
+  role TEXT NOT NULL CHECK (role IN ('user','assistant','tool')),
+  content TEXT NOT NULL CHECK (json_valid(content)),
+  created_at INTEGER NOT NULL,
+  FOREIGN KEY (conversation_id) REFERENCES spaces_assistant_conversations(id) ON DELETE CASCADE,
+  FOREIGN KEY (parent_message_id) REFERENCES spaces_assistant_messages(id) ON DELETE SET NULL
+);
+
+CREATE TABLE spaces_assistant_context_segments (
+  id TEXT PRIMARY KEY NOT NULL,
+  conversation_id TEXT NOT NULL,
+  branch_id TEXT NOT NULL,
+  source_digest TEXT NOT NULL CHECK (length(source_digest) = 64),
+  first_message_id TEXT NOT NULL,
+  last_message_id TEXT NOT NULL,
+  message_count INTEGER NOT NULL CHECK (message_count > 0),
+  summary TEXT NOT NULL,
+  created_at INTEGER NOT NULL,
+  UNIQUE (conversation_id, branch_id, source_digest),
+  FOREIGN KEY (conversation_id) REFERENCES spaces_assistant_conversations(id) ON DELETE CASCADE
+);
+
+CREATE TABLE spaces_assistant_tasks (
+  id TEXT PRIMARY KEY NOT NULL,
+  run_id TEXT NOT NULL UNIQUE,
+  conversation_id TEXT NOT NULL,
+  branch_id TEXT NOT NULL,
+  grant_id TEXT NOT NULL,
+  model_binding TEXT NOT NULL CHECK (json_valid(model_binding)),
+  catalog_digest TEXT NOT NULL CHECK (length(catalog_digest) = 64),
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL, error TEXT,
+  FOREIGN KEY (run_id) REFERENCES spaces_runs(id) ON DELETE CASCADE,
+  FOREIGN KEY (conversation_id) REFERENCES spaces_assistant_conversations(id) ON DELETE CASCADE,
+  FOREIGN KEY (grant_id) REFERENCES spaces_authorization_grants(id) ON DELETE RESTRICT
+);
+
+CREATE TABLE spaces_assistant_model_turns (
+  id TEXT PRIMARY KEY NOT NULL,
+  task_id TEXT NOT NULL,
+  sequence INTEGER NOT NULL CHECK (sequence > 0),
+  request TEXT NOT NULL CHECK (json_valid(request)),
+  response TEXT CHECK (response IS NULL OR json_valid(response)),
+  state TEXT NOT NULL CHECK (state IN ('requesting','completed','failed','outcome_unknown')),
+  created_at INTEGER NOT NULL,
+  completed_at INTEGER,
+  FOREIGN KEY (task_id) REFERENCES spaces_assistant_tasks(id) ON DELETE CASCADE,
+  UNIQUE (task_id, sequence)
+);
+
+CREATE TABLE spaces_assistant_tool_calls (
+  id TEXT PRIMARY KEY NOT NULL,
+  task_id TEXT NOT NULL,
+  model_turn_id TEXT NOT NULL,
+  provider_call_id TEXT NOT NULL,
+  wire_name TEXT NOT NULL,
+  action_id TEXT NOT NULL,
+  invocation_id TEXT NOT NULL,
+  result TEXT CHECK (result IS NULL OR json_valid(result)),
+  created_at INTEGER NOT NULL,
+  completed_at INTEGER,
+  FOREIGN KEY (task_id) REFERENCES spaces_assistant_tasks(id) ON DELETE CASCADE,
+  FOREIGN KEY (model_turn_id) REFERENCES spaces_assistant_model_turns(id) ON DELETE CASCADE,
+  UNIQUE (task_id, provider_call_id),
+  UNIQUE (invocation_id)
+);
+
+CREATE TABLE spaces_assistant_checkpoints (
+  task_id TEXT PRIMARY KEY NOT NULL,
+  envelope TEXT NOT NULL CHECK (json_valid(envelope)),
+  updated_at INTEGER NOT NULL,
+  FOREIGN KEY (task_id) REFERENCES spaces_assistant_tasks(id) ON DELETE CASCADE
+);
+
+CREATE TABLE spaces_captured_workflow_versions (
+  workflow_id TEXT NOT NULL,
+  version INTEGER NOT NULL CHECK (version > 0),
+  definition TEXT NOT NULL CHECK (json_valid(definition)),
+  created_at INTEGER NOT NULL,
+  PRIMARY KEY (workflow_id, version),
+  FOREIGN KEY (workflow_id) REFERENCES spaces_workflow_templates(id) ON DELETE CASCADE
+);
+
+INSERT INTO "spaces_object_types" ("id","space_id","name","icon","description","fields","system","created_at","updated_at") VALUES ('system:claim',NULL,'Claim','lightbulb','An atomic assertion that can be supported, challenged, or superseded.','[{"key":"statement","label":"Statement","kind":"text","required":true}]',1,0,0);
+
+INSERT INTO "spaces_object_types" ("id","space_id","name","icon","description","fields","system","created_at","updated_at") VALUES ('system:concept',NULL,'Concept','box','A reusable concept or entity in the knowledge graph.','[{"key":"definition","label":"Definition","kind":"text"}]',1,0,0);
+
+INSERT INTO "spaces_object_types" ("id","space_id","name","icon","description","fields","system","created_at","updated_at") VALUES ('system:decision',NULL,'Decision','git-branch','A decision with explicit rationale and knowledge context.','[{"key":"decision","label":"Decision","kind":"text","required":true},{"key":"owner","label":"Owner","kind":"text"}]',1,0,0);
+
+INSERT INTO "spaces_object_types" ("id","space_id","name","icon","description","fields","system","created_at","updated_at") VALUES ('system:evidence',NULL,'Evidence','quote','A source-grounded observation or excerpt.','[{"key":"observation","label":"Observation","kind":"text","required":true}]',1,0,0);
+
+INSERT INTO "spaces_object_types" ("id","space_id","name","icon","description","fields","system","created_at","updated_at") VALUES ('system:experiment',NULL,'Experiment','flask-conical','A hypothesis, method, and result that can generate evidence.','[{"key":"hypothesis","label":"Hypothesis","kind":"text"},{"key":"result","label":"Result","kind":"text"}]',1,0,0);
+
+INSERT INTO "spaces_object_types" ("id","space_id","name","icon","description","fields","system","created_at","updated_at") VALUES ('system:question',NULL,'Question','circle-help','An open or resolved research question.','[{"key":"question","label":"Question","kind":"text","required":true}]',1,0,0);
+
+CREATE UNIQUE INDEX spaces_single_inbox ON spaces(kind) WHERE kind = 'inbox';
+
+CREATE INDEX spaces_lifecycle ON spaces(archived_at, last_opened_at DESC);
+
+CREATE UNIQUE INDEX spaces_object_types_name ON spaces_object_types(space_id, name COLLATE NOCASE);
+
+CREATE INDEX spaces_nodes_space_created ON spaces_nodes(space_id, deleted_at, created_at);
+
+CREATE INDEX spaces_nodes_object_type ON spaces_nodes(space_id, object_type_id, deleted_at);
+
+CREATE UNIQUE INDEX spaces_nodes_space_id ON spaces_nodes(space_id, id);
+
+CREATE UNIQUE INDEX spaces_structure_space_id ON spaces_structure_nodes(space_id, id);
+
+CREATE UNIQUE INDEX spaces_structure_space_id_kind ON spaces_structure_nodes(space_id, id, kind);
+
+CREATE UNIQUE INDEX spaces_structure_active_content ON spaces_structure_nodes(node_id)
+  WHERE deleted_at IS NULL AND node_id IS NOT NULL;
+
+CREATE UNIQUE INDEX spaces_structure_active_order
+  ON spaces_structure_nodes(space_id, COALESCE(parent_id, ''), order_index)
+  WHERE deleted_at IS NULL;
+
+CREATE INDEX spaces_structure_children
+  ON spaces_structure_nodes(space_id, parent_id, deleted_at, order_index);
+
+CREATE TRIGGER spaces_structure_title_fts_insert AFTER INSERT ON spaces_structure_nodes
+WHEN NEW.deleted_at IS NULL AND NEW.kind IN ('group','section')
+BEGIN
+  INSERT INTO spaces_structure_title_fts(structure_node_id,space_id,kind,title)
+  VALUES(NEW.id,NEW.space_id,NEW.kind,NEW.title);
+END;
+
+CREATE TRIGGER spaces_structure_title_fts_update AFTER UPDATE ON spaces_structure_nodes
+BEGIN
+  DELETE FROM spaces_structure_title_fts WHERE structure_node_id=OLD.id;
+  INSERT INTO spaces_structure_title_fts(structure_node_id,space_id,kind,title)
+  SELECT NEW.id,NEW.space_id,NEW.kind,NEW.title
+  WHERE NEW.deleted_at IS NULL AND NEW.kind IN ('group','section');
+END;
+
+CREATE TRIGGER spaces_structure_title_fts_delete AFTER DELETE ON spaces_structure_nodes
+BEGIN
+  DELETE FROM spaces_structure_title_fts WHERE structure_node_id=OLD.id;
+END;
+
+CREATE INDEX spaces_edit_receipts_space_revision
+  ON spaces_edit_receipts(space_id, applied_revision);
+
+CREATE INDEX spaces_deleted_structure_batches_space
+  ON spaces_deleted_structure_batches(space_id, deleted_at DESC);
+
+CREATE INDEX spaces_edit_history_cursor ON spaces_edit_history(space_id, undone, id);
+
+CREATE VIEW spaces_semantic_nodes AS
+  SELECT * FROM spaces_nodes
+  WHERE deleted_at IS NULL AND kind NOT IN ('credential','portal','text');
+
+CREATE INDEX spaces_scenes_space_created ON spaces_scenes(space_id, order_index, created_at);
+
+CREATE UNIQUE INDEX spaces_relations_unique_active
+  ON spaces_relations(space_id, source_id, target_id, kind) WHERE status <> 'invalidated';
+
+CREATE INDEX spaces_relations_space_status ON spaces_relations(space_id, status, created_at);
+
+CREATE UNIQUE INDEX spaces_relations_space_id ON spaces_relations(space_id, id);
+
+CREATE UNIQUE INDEX spaces_derivations_output ON spaces_knowledge_derivations(output_node_id);
+
+CREATE INDEX spaces_derivations_space_status ON spaces_knowledge_derivations(space_id, status, created_at);
+
+CREATE INDEX spaces_derivation_inputs_node ON spaces_knowledge_derivation_inputs(node_id, derivation_id);
+
+CREATE UNIQUE INDEX spaces_derivation_inputs_live_identity
+  ON spaces_knowledge_derivation_inputs(derivation_id, node_id, role) WHERE node_id IS NOT NULL;
+
+CREATE INDEX spaces_provenance_target ON spaces_provenance(space_id, target_kind, target_id, status, created_at);
+
+CREATE INDEX spaces_provenance_source ON spaces_provenance(source_node_id, status, created_at);
+
+CREATE INDEX spaces_knowledge_events_entity ON spaces_knowledge_events(space_id, entity_kind, entity_id, created_at);
+
+CREATE INDEX spaces_knowledge_events_time ON spaces_knowledge_events(space_id, created_at DESC);
+
 CREATE INDEX spaces_knowledge_node ON spaces_knowledge_chunks(node_id, origin, created_at);
 
 CREATE INDEX spaces_knowledge_space_kind ON spaces_knowledge_chunks(space_id, kind, created_at);
 
 CREATE INDEX spaces_knowledge_revision ON spaces_knowledge_chunks(node_id, source_revision);
-
-CREATE VIRTUAL TABLE spaces_knowledge_fts USING fts5(
-  chunk_id UNINDEXED, space_id UNINDEXED, node_id UNINDEXED, text, tokenize = 'trigram'
-);
 
 CREATE TRIGGER spaces_knowledge_chunks_fts_insert AFTER INSERT ON spaces_knowledge_chunks BEGIN
   INSERT INTO spaces_knowledge_fts(chunk_id, space_id, node_id, text)
@@ -473,35 +802,6 @@ CREATE TRIGGER spaces_knowledge_chunks_fts_delete AFTER DELETE ON spaces_knowled
   DELETE FROM spaces_knowledge_fts WHERE chunk_id = OLD.id;
 END;
 
--- Space-scoped assistant conversations.
-CREATE TABLE spaces_ai_threads (
-  id TEXT PRIMARY KEY NOT NULL,
-  space_id TEXT NOT NULL,
-  scope TEXT NOT NULL CHECK (scope IN ('selection', 'section', 'space', 'all-spaces')),
-  scope_node_ids TEXT NOT NULL CHECK (json_valid(scope_node_ids)),
-  title TEXT NOT NULL,
-  created_at INTEGER NOT NULL,
-  updated_at INTEGER NOT NULL,
-  FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE
-);
-
-CREATE INDEX spaces_ai_threads_space ON spaces_ai_threads(space_id, updated_at DESC);
-
-CREATE TABLE spaces_ai_messages (
-  id TEXT PRIMARY KEY NOT NULL,
-  thread_id TEXT NOT NULL,
-  role TEXT NOT NULL CHECK (role IN ('user', 'assistant')),
-  content TEXT NOT NULL,
-  citations TEXT NOT NULL DEFAULT '[]' CHECK (json_valid(citations)),
-  provider TEXT,
-  model TEXT,
-  created_at INTEGER NOT NULL,
-  FOREIGN KEY (thread_id) REFERENCES spaces_ai_threads(id) ON DELETE CASCADE
-);
-
-CREATE INDEX spaces_ai_messages_thread ON spaces_ai_messages(thread_id, created_at);
-
--- Cross-table domain invariants enforced by SQLite.
 CREATE TRIGGER spaces_node_chunk_remove AFTER UPDATE OF deleted_at ON spaces_nodes
 WHEN new.deleted_at IS NOT NULL BEGIN
   DELETE FROM spaces_knowledge_chunks WHERE id = 'node:' || new.id;
@@ -610,25 +910,6 @@ BEFORE UPDATE OF space_id, target_kind, target_id, source_node_id ON spaces_prov
   ) THEN RAISE(ABORT, 'Provenance relation target must belong to Provenance Space') END;
 END;
 
--- Rebuildable semantic projections and enrichment work scheduling.
-CREATE TABLE spaces_chunk_embeddings (
-  chunk_id TEXT PRIMARY KEY NOT NULL,
-  source_revision TEXT NOT NULL,
-  model TEXT NOT NULL,
-  dimensions INTEGER NOT NULL CHECK (dimensions > 0),
-  updated_at INTEGER NOT NULL,
-  FOREIGN KEY (chunk_id) REFERENCES spaces_knowledge_chunks(id) ON DELETE CASCADE
-);
-
-CREATE TABLE spaces_retrieval_invalidations (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  space_id TEXT NOT NULL CHECK (length(space_id) > 0),
-  node_id TEXT CHECK (node_id IS NULL OR length(node_id) > 0),
-  attempts INTEGER NOT NULL DEFAULT 0 CHECK (attempts >= 0),
-  last_error TEXT,
-  created_at INTEGER NOT NULL
-);
-
 CREATE UNIQUE INDEX spaces_retrieval_invalidation_space
   ON spaces_retrieval_invalidations(space_id) WHERE node_id IS NULL;
 
@@ -637,34 +918,11 @@ CREATE UNIQUE INDEX spaces_retrieval_invalidation_node
 
 CREATE INDEX spaces_chunk_embeddings_model ON spaces_chunk_embeddings(model, updated_at);
 
-CREATE TABLE spaces_enrichment_jobs (
-  id TEXT PRIMARY KEY NOT NULL,
-  space_id TEXT NOT NULL,
-  node_id TEXT NOT NULL,
-  job_type TEXT NOT NULL CHECK (job_type IN ('embed_text', 'analyze_image', 'analyze_media', 'transcribe_media', 'analyze_video_cover', 'embed_media_transcript', 'parse_document', 'analyze_document')),
-  status TEXT NOT NULL CHECK (status IN ('pending', 'running', 'succeeded', 'failed', 'cancelled', 'awaiting_configuration')),
-  source_revision TEXT NOT NULL,
-  attempts INTEGER NOT NULL DEFAULT 0 CHECK (attempts >= 0),
-  error TEXT,
-  created_at INTEGER NOT NULL,
-  updated_at INTEGER NOT NULL,
-  FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE,
-  FOREIGN KEY (node_id) REFERENCES spaces_nodes(id) ON DELETE CASCADE
-);
-
 CREATE UNIQUE INDEX spaces_enrichment_jobs_unique_pending
   ON spaces_enrichment_jobs(space_id, node_id, job_type, source_revision)
   WHERE status IN ('pending', 'running', 'awaiting_configuration');
 
 CREATE INDEX spaces_enrichment_jobs_status ON spaces_enrichment_jobs(status, updated_at);
-
-CREATE TABLE spaces_document_visual_checkpoints (
-  job_id TEXT NOT NULL REFERENCES spaces_enrichment_jobs(id) ON DELETE CASCADE,
-  occurrence_id TEXT NOT NULL,
-  occurrence TEXT NOT NULL CHECK (json_valid(occurrence)),
-  resource TEXT CHECK (resource IS NULL OR json_valid(resource)),
-  PRIMARY KEY (job_id, occurrence_id)
-);
 
 CREATE TRIGGER spaces_chunk_embedding_invalidate AFTER UPDATE OF text, source_revision ON spaces_knowledge_chunks
 WHEN old.text <> new.text OR old.source_revision <> new.source_revision BEGIN
@@ -778,10 +1036,6 @@ BEFORE UPDATE OF text ON spaces_knowledge_chunks BEGIN
   END;
 END;
 
--- Read models and canonical system-owned object types.
-CREATE INDEX spaces_ai_messages_thread_id_created_at
-ON spaces_ai_messages(thread_id, created_at, id);
-
 CREATE VIEW spaces_current_knowledge_chunks AS
 SELECT c.id, c.space_id, c.node_id, c.origin, c.kind, c.source_revision, c.text,
        c.locator, c.metadata, c.created_at, c.updated_at
@@ -794,244 +1048,22 @@ WHERE n.deleted_at IS NULL
     OR (c.origin IN ('source', 'media') AND c.source_revision = COALESCE(json_extract(n.data, '$.sourceRevision'), ''))
   );
 
--- Trusted authorization, durable execution, and idempotent action facts.
-CREATE TABLE spaces_authorization_grants (
-  id TEXT PRIMARY KEY NOT NULL,
-  principal_kind TEXT NOT NULL CHECK (principal_kind IN ('user','assistant','external_agent','automation')),
-  principal_id TEXT NOT NULL,
-  home_space_id TEXT NOT NULL,
-  read_space_ids TEXT NOT NULL CHECK (json_valid(read_space_ids) AND json_type(read_space_ids) = 'array'),
-  write_space_ids TEXT NOT NULL CHECK (json_valid(write_space_ids) AND json_type(write_space_ids) = 'array'),
-  action_ids TEXT NOT NULL CHECK (json_valid(action_ids) AND json_type(action_ids) = 'array'),
-  egress_targets TEXT NOT NULL CHECK (json_valid(egress_targets) AND json_type(egress_targets) = 'array'),
-  valid_until INTEGER NOT NULL,
-  revoked_at INTEGER,
-  created_at INTEGER NOT NULL,
-  FOREIGN KEY (home_space_id) REFERENCES spaces(id) ON DELETE CASCADE
-);
-
-CREATE TABLE spaces_external_tool_bindings (
-  id TEXT PRIMARY KEY NOT NULL,
-  space_id TEXT NOT NULL,
-  name TEXT NOT NULL,
-  endpoint TEXT NOT NULL,
-  secret_key TEXT,
-  server_identity TEXT NOT NULL CHECK (json_valid(server_identity)),
-  tool_name TEXT NOT NULL,
-  input_schema TEXT NOT NULL CHECK (json_valid(input_schema)),
-  output_schema TEXT CHECK (output_schema IS NULL OR json_valid(output_schema)),
-  schema_fingerprint TEXT NOT NULL CHECK (length(schema_fingerprint) = 64),
-  effect TEXT NOT NULL CHECK (effect IN ('read_only','additive','destructive')),
-  enabled INTEGER NOT NULL CHECK (enabled IN (0,1)),
-  reviewed_at INTEGER NOT NULL,
-  created_at INTEGER NOT NULL,
-  updated_at INTEGER NOT NULL,
-  FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE
-);
-
-CREATE INDEX spaces_external_tool_bindings_space
-  ON spaces_external_tool_bindings(space_id, updated_at DESC);
-
 CREATE INDEX spaces_authorization_grants_principal
   ON spaces_authorization_grants(principal_kind, principal_id, valid_until);
 
-CREATE TABLE spaces_action_approvals (
-  id TEXT PRIMARY KEY NOT NULL,
-  grant_id TEXT NOT NULL,
-  space_id TEXT NOT NULL,
-  action_id TEXT NOT NULL,
-  plan_digest TEXT NOT NULL CHECK (length(plan_digest) = 64),
-  plan TEXT NOT NULL CHECK (json_valid(plan)),
-  expected_revisions TEXT NOT NULL CHECK (json_valid(expected_revisions)),
-  valid_until INTEGER NOT NULL,
-  decision TEXT NOT NULL DEFAULT 'pending' CHECK (decision IN ('pending','approved','rejected')),
-  decided_at INTEGER,
-  consumed_at INTEGER,
-  created_at INTEGER NOT NULL,
-  FOREIGN KEY (grant_id) REFERENCES spaces_authorization_grants(id) ON DELETE CASCADE,
-  FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE
-);
-
-CREATE TABLE spaces_action_invocations (
-  id TEXT PRIMARY KEY NOT NULL,
-  principal_kind TEXT NOT NULL,
-  principal_id TEXT NOT NULL,
-  space_id TEXT NOT NULL,
-  action_id TEXT NOT NULL,
-  action_version INTEGER NOT NULL CHECK (action_version > 0),
-  idempotency_key TEXT NOT NULL,
-  request_digest TEXT NOT NULL CHECK (length(request_digest) = 64),
-  outcome_kind TEXT NOT NULL CHECK (outcome_kind IN ('query_result','committed_receipt','accepted_run','requires_approval')),
-  outcome TEXT NOT NULL CHECK (json_valid(outcome)),
-  created_at INTEGER NOT NULL,
-  FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE,
-  UNIQUE (principal_kind, principal_id, space_id, action_id, action_version, idempotency_key)
-);
-
-CREATE TABLE spaces_runs (
-  id TEXT PRIMARY KEY NOT NULL,
-  home_space_id TEXT NOT NULL,
-  parent_run_id TEXT,
-  retry_of_run_id TEXT,
-  fork_of_run_id TEXT,
-  principal_kind TEXT NOT NULL,
-  principal_id TEXT NOT NULL,
-  kind TEXT NOT NULL CHECK (kind IN ('action','workflow','assistant','external_agent','automation')),
-  state TEXT NOT NULL CHECK (state IN ('queued','running','waiting','paused','succeeded','completed_with_errors','failed','cancelled')),
-  state_version INTEGER NOT NULL DEFAULT 0 CHECK (state_version >= 0),
-  execution_epoch INTEGER NOT NULL DEFAULT 0 CHECK (execution_epoch >= 0),
-  wait_reason TEXT,
-  policy_snapshot TEXT NOT NULL CHECK (json_valid(policy_snapshot)),
-  input_snapshot TEXT NOT NULL CHECK (json_valid(input_snapshot)),
-  budget TEXT NOT NULL CHECK (json_valid(budget)),
-  input_tokens INTEGER NOT NULL DEFAULT 0 CHECK (input_tokens >= 0),
-  output_tokens INTEGER NOT NULL DEFAULT 0 CHECK (output_tokens >= 0),
-  total_tokens INTEGER NOT NULL DEFAULT 0 CHECK (total_tokens >= 0),
-  step_attempts INTEGER NOT NULL DEFAULT 0 CHECK (step_attempts >= 0),
-  expanded_steps INTEGER NOT NULL DEFAULT 0 CHECK (expanded_steps >= 0),
-  output_bytes INTEGER NOT NULL DEFAULT 0 CHECK (output_bytes >= 0),
-  cancel_requested_at INTEGER,
-  pause_requested_at INTEGER,
-  created_at INTEGER NOT NULL,
-  updated_at INTEGER NOT NULL,
-  completed_at INTEGER,
-  FOREIGN KEY (home_space_id) REFERENCES spaces(id) ON DELETE CASCADE,
-  FOREIGN KEY (parent_run_id) REFERENCES spaces_runs(id) ON DELETE SET NULL,
-  FOREIGN KEY (retry_of_run_id) REFERENCES spaces_runs(id) ON DELETE SET NULL,
-  FOREIGN KEY (fork_of_run_id) REFERENCES spaces_runs(id) ON DELETE SET NULL
-);
-
 CREATE INDEX spaces_runs_recovery ON spaces_runs(state, updated_at);
-CREATE INDEX spaces_runs_space_created ON spaces_runs(home_space_id, created_at DESC);
 
-CREATE TABLE spaces_run_steps (
-  id TEXT PRIMARY KEY NOT NULL,
-  run_id TEXT NOT NULL,
-  definition_node_id TEXT NOT NULL,
-  instance_path TEXT NOT NULL,
-  node_kind TEXT NOT NULL,
-  depends_on TEXT NOT NULL DEFAULT '[]'
-    CHECK (json_valid(depends_on) AND json_type(depends_on) = 'array'),
-  configuration TEXT NOT NULL DEFAULT '{}'
-    CHECK (json_valid(configuration) AND json_type(configuration) = 'object'),
-  state TEXT NOT NULL CHECK (state IN ('pending','ready','running','waiting','paused','succeeded','failed','skipped','blocked','cancelled')),
-  state_version INTEGER NOT NULL DEFAULT 0 CHECK (state_version >= 0),
-  resolved_input TEXT NOT NULL CHECK (json_valid(resolved_input)),
-  output TEXT CHECK (output IS NULL OR json_valid(output)),
-  wait_reason TEXT,
-  available_at INTEGER NOT NULL DEFAULT 0,
-  created_at INTEGER NOT NULL,
-  updated_at INTEGER NOT NULL,
-  FOREIGN KEY (run_id) REFERENCES spaces_runs(id) ON DELETE CASCADE,
-  UNIQUE (run_id, instance_path)
-);
+CREATE INDEX spaces_runs_space_created ON spaces_runs(home_space_id, created_at DESC);
 
 CREATE INDEX spaces_run_steps_ready ON spaces_run_steps(state, updated_at);
 
-CREATE TABLE spaces_run_batch_items (
-  lineage_run_id TEXT NOT NULL,
-  definition_node_id TEXT NOT NULL,
-  item_key TEXT NOT NULL,
-  latest_run_id TEXT NOT NULL,
-  latest_step_instance_id TEXT NOT NULL,
-  state TEXT NOT NULL CHECK (state IN ('running','waiting','succeeded','failed')),
-  attempt_count INTEGER NOT NULL DEFAULT 0 CHECK (attempt_count >= 0),
-  input TEXT NOT NULL CHECK (json_valid(input)),
-  output TEXT CHECK (output IS NULL OR json_valid(output)),
-  error TEXT,
-  child_run_id TEXT,
-  updated_at INTEGER NOT NULL,
-  PRIMARY KEY (lineage_run_id, definition_node_id, item_key),
-  FOREIGN KEY (lineage_run_id) REFERENCES spaces_runs(id) ON DELETE CASCADE,
-  FOREIGN KEY (latest_run_id) REFERENCES spaces_runs(id) ON DELETE CASCADE,
-  FOREIGN KEY (latest_step_instance_id) REFERENCES spaces_run_steps(id) ON DELETE CASCADE,
-  FOREIGN KEY (child_run_id) REFERENCES spaces_runs(id) ON DELETE SET NULL
-);
-
-CREATE INDEX spaces_run_batch_items_latest_run
-  ON spaces_run_batch_items(latest_run_id, updated_at);
-
-CREATE TABLE spaces_run_attempts (
-  id TEXT PRIMARY KEY NOT NULL,
-  run_id TEXT NOT NULL,
-  step_instance_id TEXT NOT NULL,
-  attempt_number INTEGER NOT NULL CHECK (attempt_number > 0),
-  state TEXT NOT NULL CHECK (state IN ('claimed','executing','waiting_external','succeeded','failed','cancelled','outcome_unknown')),
-  request_digest TEXT NOT NULL CHECK (length(request_digest) = 64),
-  executor_id TEXT NOT NULL,
-  idempotency_key TEXT NOT NULL,
-  external_task_id TEXT,
-  execution_epoch INTEGER NOT NULL CHECK (execution_epoch >= 0),
-  lease_until INTEGER,
-  checkpoint TEXT CHECK (checkpoint IS NULL OR json_valid(checkpoint)),
-  result TEXT CHECK (result IS NULL OR json_valid(result)),
-  error_code TEXT,
-  started_at INTEGER NOT NULL,
-  finished_at INTEGER,
-  FOREIGN KEY (run_id) REFERENCES spaces_runs(id) ON DELETE CASCADE,
-  FOREIGN KEY (step_instance_id) REFERENCES spaces_run_steps(id) ON DELETE CASCADE,
-  UNIQUE (step_instance_id, attempt_number),
-  UNIQUE (executor_id, idempotency_key)
-);
-
-CREATE TABLE spaces_run_events (
-  sequence INTEGER PRIMARY KEY AUTOINCREMENT,
-  run_id TEXT NOT NULL,
-  step_instance_id TEXT,
-  attempt_id TEXT,
-  kind TEXT NOT NULL,
-  payload TEXT NOT NULL CHECK (json_valid(payload)),
-  created_at INTEGER NOT NULL,
-  FOREIGN KEY (run_id) REFERENCES spaces_runs(id) ON DELETE CASCADE
-);
-
 CREATE INDEX spaces_run_events_run_sequence ON spaces_run_events(run_id, sequence);
-
-CREATE TABLE spaces_external_agent_conversations (
-  id TEXT PRIMARY KEY NOT NULL,
-  run_id TEXT NOT NULL UNIQUE,
-  space_id TEXT NOT NULL,
-  runtime_kind TEXT NOT NULL,
-  runtime_session_id TEXT,
-  session_capabilities TEXT CHECK (session_capabilities IS NULL OR json_valid(session_capabilities)),
-  title TEXT NOT NULL,
-  state TEXT NOT NULL CHECK (state IN ('connecting','connected','disconnected','closed')),
-  error TEXT,
-  created_at INTEGER NOT NULL,
-  updated_at INTEGER NOT NULL,
-  FOREIGN KEY (run_id) REFERENCES spaces_runs(id) ON DELETE CASCADE,
-  FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE
-);
 
 CREATE INDEX spaces_external_agent_conversations_space
   ON spaces_external_agent_conversations(space_id, updated_at DESC);
 
-CREATE TABLE spaces_external_agent_turns (
-  id TEXT PRIMARY KEY NOT NULL,
-  conversation_id TEXT NOT NULL,
-  state TEXT NOT NULL CHECK (state IN ('running','completed','failed','cancelled')),
-  error TEXT,
-  created_at INTEGER NOT NULL,
-  completed_at INTEGER,
-  FOREIGN KEY (conversation_id) REFERENCES spaces_external_agent_conversations(id) ON DELETE CASCADE
-);
-
-CREATE TABLE spaces_external_agent_messages (
-  id TEXT PRIMARY KEY NOT NULL,
-  conversation_id TEXT NOT NULL,
-  turn_id TEXT NOT NULL,
-  role TEXT NOT NULL CHECK (role IN ('user','assistant')),
-  content TEXT NOT NULL,
-  created_at INTEGER NOT NULL,
-  FOREIGN KEY (conversation_id) REFERENCES spaces_external_agent_conversations(id) ON DELETE CASCADE,
-  FOREIGN KEY (turn_id) REFERENCES spaces_external_agent_turns(id) ON DELETE CASCADE
-);
-
 CREATE UNIQUE INDEX spaces_external_agent_turns_active
   ON spaces_external_agent_turns(conversation_id) WHERE state='running';
-
-CREATE INDEX spaces_external_agent_messages_conversation
-  ON spaces_external_agent_messages(conversation_id, created_at, id);
 
 CREATE TRIGGER spaces_derivation_run_publish_guard
 BEFORE INSERT ON spaces_knowledge_derivations
@@ -1046,202 +1078,8 @@ BEGIN
   SELECT RAISE(ABORT, 'run-publish-fenced');
 END;
 
-CREATE TABLE spaces_workflow_drafts (
-  id TEXT PRIMARY KEY NOT NULL,
-  space_id TEXT NOT NULL,
-  title TEXT NOT NULL,
-  revision INTEGER NOT NULL DEFAULT 0 CHECK (revision >= 0),
-  definition TEXT NOT NULL CHECK (json_valid(definition)),
-  created_at INTEGER NOT NULL,
-  updated_at INTEGER NOT NULL,
-  FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE
-);
-
-CREATE TABLE spaces_workflow_templates (
-  id TEXT PRIMARY KEY NOT NULL,
-  name TEXT NOT NULL,
-  definition TEXT NOT NULL CHECK (json_valid(definition)),
-  dependencies TEXT NOT NULL CHECK (json_valid(dependencies)),
-  source_workflow_id TEXT,
-  source_workflow_version INTEGER,
-  created_at INTEGER NOT NULL,
-  updated_at INTEGER NOT NULL
-);
-
-CREATE INDEX spaces_workflow_drafts_space ON spaces_workflow_drafts(space_id, updated_at DESC);
-
-CREATE TABLE spaces_workflow_versions (
-  workflow_id TEXT NOT NULL,
-  version INTEGER NOT NULL CHECK (version > 0),
-  space_id TEXT NOT NULL,
-  definition_digest TEXT NOT NULL CHECK (length(definition_digest) = 64),
-  dependency_digest TEXT NOT NULL CHECK (length(dependency_digest) = 64),
-  compiler_version INTEGER NOT NULL CHECK (compiler_version > 0),
-  definition TEXT NOT NULL CHECK (json_valid(definition)),
-  published_at INTEGER NOT NULL,
-  PRIMARY KEY (workflow_id, version),
-  FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE
-);
-
-CREATE INDEX spaces_workflow_versions_space ON spaces_workflow_versions(space_id, published_at DESC);
-
-CREATE TABLE spaces_automation_triggers (
-  id TEXT PRIMARY KEY NOT NULL,
-  space_id TEXT NOT NULL,
-  name TEXT NOT NULL,
-  workflow_id TEXT NOT NULL,
-  workflow_version INTEGER NOT NULL CHECK (workflow_version > 0),
-  grant_id TEXT NOT NULL,
-  source_kind TEXT NOT NULL CHECK (source_kind IN ('cron','event')),
-  source_config TEXT NOT NULL CHECK (json_valid(source_config)),
-  input TEXT NOT NULL CHECK (json_valid(input)),
-  overlap_policy TEXT NOT NULL CHECK (overlap_policy IN ('skip','queue','parallel','cancel_previous')),
-  enabled INTEGER NOT NULL CHECK (enabled IN (0,1)),
-  valid_until INTEGER NOT NULL,
-  next_scheduled_at INTEGER CHECK (source_kind='cron' OR next_scheduled_at IS NULL),
-  last_scheduled_at INTEGER,
-  created_at INTEGER NOT NULL,
-  updated_at INTEGER NOT NULL,
-  FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE,
-  FOREIGN KEY (workflow_id, workflow_version) REFERENCES spaces_workflow_versions(workflow_id, version),
-  FOREIGN KEY (grant_id) REFERENCES spaces_authorization_grants(id) ON DELETE RESTRICT
-);
-
-CREATE INDEX spaces_automation_due
-  ON spaces_automation_triggers(enabled, next_scheduled_at);
-
-CREATE TABLE spaces_automation_events (
-  id TEXT PRIMARY KEY NOT NULL,
-  space_id TEXT NOT NULL,
-  kind TEXT NOT NULL,
-  payload TEXT NOT NULL CHECK (json_valid(payload)),
-  causal_root_id TEXT NOT NULL,
-  causal_depth INTEGER NOT NULL CHECK (causal_depth BETWEEN 0 AND 16),
-  trigger_trace TEXT NOT NULL CHECK (json_valid(trigger_trace)),
-  occurred_at INTEGER NOT NULL,
-  dispatched_at INTEGER,
-  FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE
-);
-
-CREATE INDEX spaces_automation_events_pending
-  ON spaces_automation_events(dispatched_at, occurred_at);
-
-CREATE TABLE spaces_automation_occurrences (
-  id TEXT PRIMARY KEY NOT NULL,
-  trigger_id TEXT NOT NULL,
-  scheduled_at INTEGER NOT NULL,
-  occurrence_key TEXT NOT NULL,
-  run_id TEXT,
-  state TEXT NOT NULL CHECK (state IN ('queued','started','skipped_overlap','skipped_misfire','skipped_loop','skipped_rate','authorization_expired','failed')),
-  detail TEXT NOT NULL CHECK (json_valid(detail)),
-  created_at INTEGER NOT NULL,
-  FOREIGN KEY (trigger_id) REFERENCES spaces_automation_triggers(id) ON DELETE CASCADE,
-  FOREIGN KEY (run_id) REFERENCES spaces_runs(id) ON DELETE SET NULL,
-  UNIQUE (trigger_id, occurrence_key)
-);
-
-CREATE INDEX spaces_automation_occurrences_trigger
-  ON spaces_automation_occurrences(trigger_id, scheduled_at DESC);
-
-CREATE TABLE spaces_assistant_conversations (
-  id TEXT PRIMARY KEY NOT NULL,
-  space_id TEXT NOT NULL,
-  title TEXT NOT NULL,
-  mode TEXT NOT NULL CHECK (mode IN ('ask','plan','execute')),
-  archived_at INTEGER,
-  created_at INTEGER NOT NULL,
-  updated_at INTEGER NOT NULL,
-  FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE
-);
-
 CREATE INDEX spaces_assistant_conversations_space
   ON spaces_assistant_conversations(space_id, updated_at DESC);
 
-CREATE TABLE spaces_assistant_messages (
-  id TEXT PRIMARY KEY NOT NULL,
-  conversation_id TEXT NOT NULL,
-  branch_id TEXT NOT NULL,
-  parent_message_id TEXT,
-  role TEXT NOT NULL CHECK (role IN ('user','assistant','tool')),
-  content TEXT NOT NULL CHECK (json_valid(content)),
-  created_at INTEGER NOT NULL,
-  FOREIGN KEY (conversation_id) REFERENCES spaces_assistant_conversations(id) ON DELETE CASCADE,
-  FOREIGN KEY (parent_message_id) REFERENCES spaces_assistant_messages(id) ON DELETE SET NULL
-);
-
 CREATE INDEX spaces_assistant_messages_branch
   ON spaces_assistant_messages(conversation_id, branch_id, created_at, id);
-
-CREATE TABLE spaces_assistant_context_segments (
-  id TEXT PRIMARY KEY NOT NULL,
-  conversation_id TEXT NOT NULL,
-  branch_id TEXT NOT NULL,
-  source_digest TEXT NOT NULL CHECK (length(source_digest) = 64),
-  first_message_id TEXT NOT NULL,
-  last_message_id TEXT NOT NULL,
-  message_count INTEGER NOT NULL CHECK (message_count > 0),
-  summary TEXT NOT NULL,
-  created_at INTEGER NOT NULL,
-  UNIQUE (conversation_id, branch_id, source_digest),
-  FOREIGN KEY (conversation_id) REFERENCES spaces_assistant_conversations(id) ON DELETE CASCADE
-);
-
-CREATE TABLE spaces_assistant_tasks (
-  id TEXT PRIMARY KEY NOT NULL,
-  run_id TEXT NOT NULL UNIQUE,
-  conversation_id TEXT NOT NULL,
-  branch_id TEXT NOT NULL,
-  grant_id TEXT NOT NULL,
-  model_binding TEXT NOT NULL CHECK (json_valid(model_binding)),
-  catalog_digest TEXT NOT NULL CHECK (length(catalog_digest) = 64),
-  created_at INTEGER NOT NULL,
-  updated_at INTEGER NOT NULL,
-  FOREIGN KEY (run_id) REFERENCES spaces_runs(id) ON DELETE CASCADE,
-  FOREIGN KEY (conversation_id) REFERENCES spaces_assistant_conversations(id) ON DELETE CASCADE,
-  FOREIGN KEY (grant_id) REFERENCES spaces_authorization_grants(id) ON DELETE RESTRICT
-);
-
-CREATE TABLE spaces_assistant_model_turns (
-  id TEXT PRIMARY KEY NOT NULL,
-  task_id TEXT NOT NULL,
-  sequence INTEGER NOT NULL CHECK (sequence > 0),
-  request TEXT NOT NULL CHECK (json_valid(request)),
-  response TEXT CHECK (response IS NULL OR json_valid(response)),
-  state TEXT NOT NULL CHECK (state IN ('requesting','completed','failed','outcome_unknown')),
-  created_at INTEGER NOT NULL,
-  completed_at INTEGER,
-  FOREIGN KEY (task_id) REFERENCES spaces_assistant_tasks(id) ON DELETE CASCADE,
-  UNIQUE (task_id, sequence)
-);
-
-CREATE TABLE spaces_assistant_tool_calls (
-  id TEXT PRIMARY KEY NOT NULL,
-  task_id TEXT NOT NULL,
-  model_turn_id TEXT NOT NULL,
-  provider_call_id TEXT NOT NULL,
-  wire_name TEXT NOT NULL,
-  action_id TEXT NOT NULL,
-  invocation_id TEXT NOT NULL,
-  result TEXT CHECK (result IS NULL OR json_valid(result)),
-  created_at INTEGER NOT NULL,
-  completed_at INTEGER,
-  FOREIGN KEY (task_id) REFERENCES spaces_assistant_tasks(id) ON DELETE CASCADE,
-  FOREIGN KEY (model_turn_id) REFERENCES spaces_assistant_model_turns(id) ON DELETE CASCADE,
-  UNIQUE (task_id, provider_call_id),
-  UNIQUE (invocation_id)
-);
-
-CREATE TABLE spaces_assistant_checkpoints (
-  task_id TEXT PRIMARY KEY NOT NULL,
-  envelope TEXT NOT NULL CHECK (json_valid(envelope)),
-  updated_at INTEGER NOT NULL,
-  FOREIGN KEY (task_id) REFERENCES spaces_assistant_tasks(id) ON DELETE CASCADE
-);
-
-INSERT INTO spaces_object_types(id, space_id, name, icon, description, fields, system, created_at, updated_at) VALUES
-  ('system:claim', NULL, 'Claim', 'lightbulb', 'An atomic assertion that can be supported, challenged, or superseded.', '[{"key":"statement","label":"Statement","kind":"text","required":true}]', 1, 0, 0),
-  ('system:concept', NULL, 'Concept', 'box', 'A reusable concept or entity in the knowledge graph.', '[{"key":"definition","label":"Definition","kind":"text"}]', 1, 0, 0),
-  ('system:decision', NULL, 'Decision', 'git-branch', 'A decision with explicit rationale and knowledge context.', '[{"key":"decision","label":"Decision","kind":"text","required":true},{"key":"owner","label":"Owner","kind":"text"}]', 1, 0, 0),
-  ('system:evidence', NULL, 'Evidence', 'quote', 'A source-grounded observation or excerpt.', '[{"key":"observation","label":"Observation","kind":"text","required":true}]', 1, 0, 0),
-  ('system:experiment', NULL, 'Experiment', 'flask-conical', 'A hypothesis, method, and result that can generate evidence.', '[{"key":"hypothesis","label":"Hypothesis","kind":"text"},{"key":"result","label":"Result","kind":"text"}]', 1, 0, 0),
-  ('system:question', NULL, 'Question', 'circle-help', 'An open or resolved research question.', '[{"key":"question","label":"Question","kind":"text","required":true}]', 1, 0, 0);

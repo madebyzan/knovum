@@ -34,10 +34,10 @@ describe("video edit project", () => {
     expect(locateTimelineTime(trimmed, 4_500)?.offsetMs).toBe(500);
   });
 
-  it("keeps one video clip and bounds new timed text", () => {
+  it("keeps one clip and allows text in the final 100 ms", () => {
     const project = createVideoEditProject("sha256:source", 2_000, 1080, 1920);
     expect(removeClip(project, project.videoTrack.clips[0]!.id)).toBe(project);
     const withText = addTextOverlay(project, 1_900, "PingFang SC");
-    expect(withText.textTrack.items[0]).toMatchObject({ startMs: 1_500, endMs: 2_000 });
+    expect(withText.textTrack.items[0]).toMatchObject({ startMs: 1_900, endMs: 2_000 });
   });
 });

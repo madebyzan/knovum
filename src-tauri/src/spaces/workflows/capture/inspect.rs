@@ -1,3 +1,4 @@
+use crate::spaces::workflows::capture::types::CaptureIssueReason;
 use std::collections::{HashMap, HashSet};
 
 use sqlx::{Row, Sqlite, Transaction};
@@ -42,7 +43,7 @@ pub(super) async fn in_transaction(
         let Some(kind) = node_kind(tx, space_id, &node_id).await? else {
             issues.push(CaptureIssue {
                 node_id,
-                reason: "resource-unavailable",
+                reason: CaptureIssueReason::ResourceUnavailable,
             });
             continue;
         };
@@ -67,7 +68,7 @@ pub(super) async fn in_transaction(
         {
             issues.push(CaptureIssue {
                 node_id: node_id.clone(),
-                reason: "derivation-incomplete",
+                reason: CaptureIssueReason::DerivationIncomplete,
             });
             boundaries::insert(&mut boundaries, node_id, kind, &selected);
             continue;
@@ -91,7 +92,7 @@ pub(super) async fn in_transaction(
         else {
             issues.push(CaptureIssue {
                 node_id: node_id.clone(),
-                reason: "execution-spec-unavailable",
+                reason: CaptureIssueReason::ExecutionSpecUnavailable,
             });
             boundaries::insert(&mut boundaries, node_id, kind, &selected);
             continue;
@@ -105,7 +106,7 @@ pub(super) async fn in_transaction(
         if inputs.is_empty() {
             issues.push(CaptureIssue {
                 node_id: node_id.clone(),
-                reason: "derivation-inputs-unavailable",
+                reason: CaptureIssueReason::DerivationInputsUnavailable,
             });
             boundaries::insert(&mut boundaries, node_id, kind, &selected);
             continue;
@@ -113,7 +114,7 @@ pub(super) async fn in_transaction(
         if !sources_match(&spec.source_node_ids, &inputs) {
             issues.push(CaptureIssue {
                 node_id: node_id.clone(),
-                reason: "source-mismatch",
+                reason: CaptureIssueReason::SourceMismatch,
             });
             boundaries::insert(&mut boundaries, node_id, kind, &selected);
             continue;
@@ -135,7 +136,7 @@ pub(super) async fn in_transaction(
     if steps.is_empty() && issues.is_empty() {
         issues.push(CaptureIssue {
             node_id: selected.iter().next().cloned().unwrap_or_default(),
-            reason: "no-derived-output-selected",
+            reason: CaptureIssueReason::NoDerivedOutputSelected,
         });
     }
     let steps = order_steps(steps)?;

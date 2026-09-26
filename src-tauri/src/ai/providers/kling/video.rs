@@ -1,3 +1,4 @@
+use crate::ai::transport::response;
 use futures::future::BoxFuture;
 use tokio_util::sync::CancellationToken;
 
@@ -65,14 +66,12 @@ impl VideoGenerationCapability for KlingVideoAdapter {
                 .map_err(|e| AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string()))?;
 
             if !submission_response.status().is_success() {
-                let error_text = submission_response.text().await.unwrap_or_default();
+                let error_text = response::read_text(submission_response).await?;
                 return Err(AiError::new(AiErrorCode::ProviderRequestFailed, error_text));
             }
 
-            let init_val: serde_json::Value = submission_response
-                .json()
-                .await
-                .map_err(|e| AiError::new(AiErrorCode::InvalidResponse, e.to_string()))?;
+            let init_val: serde_json::Value =
+                response::read_json(submission_response, response::MAX_CONTROL_JSON_BYTES).await?;
 
             let raw_task_id = init_val["data"]["task_id"].as_str().ok_or_else(|| {
                 AiError::new(AiErrorCode::InvalidResponse, "Missing Kling task_id")
@@ -112,10 +111,8 @@ impl VideoGenerationCapability for KlingVideoAdapter {
                 .error_for_status()
                 .map_err(|e| AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string()))?;
 
-            let payload: serde_json::Value = query_response
-                .json()
-                .await
-                .map_err(|e| AiError::new(AiErrorCode::InvalidResponse, e.to_string()))?;
+            let payload: serde_json::Value =
+                response::read_json(query_response, response::MAX_CONTROL_JSON_BYTES).await?;
 
             let status = payload["data"]["task_status"].as_str().unwrap_or_default();
             match status {

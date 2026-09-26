@@ -25,7 +25,7 @@ export function createSpaceState() {
 
 export type SpaceState = ReturnType<typeof createSpaceState>;
 
-export function publicSpaceState(state: SpaceState) {
+export function spaceSessionBindings(state: SpaceState) {
   return {
     spaces: state.spaces,
     draftSpace: state.draftSpace,
@@ -44,7 +44,6 @@ export function publicSpaceState(state: SpaceState) {
     libraryLayout: state.libraryLayout,
     libraryQuery: state.libraryQuery,
     librarySearchNonce: state.librarySearchNonce,
-    thumbnailCaptureActive: state.thumbnailCaptureActive,
     audioRecordingTarget: state.audioRecordingTarget,
     findOpen: state.findOpen,
     globalFindOpen: state.globalFindOpen,

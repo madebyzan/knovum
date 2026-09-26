@@ -1,11 +1,13 @@
-import { Channel, invoke } from "@tauri-apps/api/core";
 import { shallowRef } from "vue";
 import { toast } from "vue-sonner";
 
 import { i18n } from "../../../foundation/i18n/i18n";
+import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import type { RunSummary } from "../contracts/generated/RunSummary";
+import { observeRun } from "../runs/run-observation";
 import { useSpaceStore } from "../session/space-store";
+import { workflowStateLabelKey } from "./workflow-state-label";
 
 type Listener = (run: RunSummary) => void;
 const observations = new Map<string, Set<Listener>>();
@@ -43,31 +45,29 @@ export function observeWorkflowRun(run: RunSummary, title: string, onUpdate?: Li
       void space.refreshActiveSpace().catch((cause: unknown) => toast.error(String(cause)));
     }, 400);
   }
-  const updates = new Channel<RunSummary>();
-  // Tauri Channel is an IPC receiver, not an EventTarget.
-  // oxlint-disable-next-line unicorn/prefer-add-event-listener
-  updates.onmessage = (next) => {
-    for (const listener of listeners) listener(next);
-    attachNavigation(next);
-    refreshCanvas();
-    if (next.state === "succeeded") tasks.succeed(next.id);
-    else if (next.state === "failed" || next.state === "completed_with_errors") {
-      tasks.fail(next.id, i18n.global.t(`spaces.creation.workflowStates.${next.state}`));
-    } else if (next.state === "cancelled") tasks.cancelled(next.id);
-    else if (next.waitReason === "content_review") {
-      tasks.detail(next.id, i18n.global.t("spaces.creation.workflowReviewRequired"));
-    } else tasks.detail(next.id, i18n.global.t(`spaces.creation.workflowStates.${next.state}`));
-    if (reviewRunId.value === next.id && next.waitReason !== "content_review") closeWorkflowReview();
-  };
-  void invoke("plugin:spaces|observe_run", { runId: run.id, updates })
-    .catch((cause: unknown) => tasks.fail(run.id, String(cause)))
-    .finally(() => {
+  observeRun(run.id, {
+    update: (next) => {
+      for (const listener of listeners) listener(next);
+      attachNavigation(next);
+      refreshCanvas();
+      if (next.state === "succeeded") tasks.succeed(next.id);
+      else if (next.state === "failed" || next.state === "completed_with_errors") {
+        tasks.fail(next.id, i18n.global.t(workflowStateLabelKey(next.state)));
+      } else if (next.state === "cancelled") tasks.cancelled(next.id);
+      else if (next.waitReason === "content_review") {
+        tasks.detail(next.id, i18n.global.t("spaces.creation.workflowReviewRequired"));
+      } else tasks.detail(next.id, i18n.global.t(workflowStateLabelKey(next.state)));
+      if (reviewRunId.value === next.id && next.waitReason !== "content_review") closeWorkflowReview();
+    },
+    error: (cause) => tasks.fail(run.id, String(cause)),
+    finished: () => {
       observations.delete(run.id);
       if (refreshTimer) clearTimeout(refreshTimer);
       if (space.activeSpaceId === run.homeSpaceId) {
         void space.refreshActiveSpace().catch((cause: unknown) => toast.error(String(cause)));
       }
-    });
+    },
+  });
   return () => onUpdate && listeners.delete(onUpdate);
 }
 

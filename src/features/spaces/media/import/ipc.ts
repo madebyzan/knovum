@@ -1,5 +1,6 @@
-import { Channel, invoke } from "@tauri-apps/api/core";
+import { Channel } from "@tauri-apps/api/core";
 
+import { invokeCommand as invoke } from "../../../../foundation/ipc/invoke-command";
 import { importedMediaSchema, mediaImportProgressSchema, type MediaImportProgress } from "./contract";
 
 export async function requestMediaImport(

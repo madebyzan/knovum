@@ -52,16 +52,6 @@ export async function duplicateTiptapAssets(
   return created;
 }
 
-export function tiptapAssetPaths(content: TiptapJsonNode | undefined) {
-  const paths = new Set<string>();
-  if (!content) return paths;
-  for (const node of imageNodes(content)) {
-    const path = imageAssetPath(node);
-    if (path) paths.add(path);
-  }
-  return paths;
-}
-
 function restoreTiptapAssets(content: TiptapJsonNode, assets: Map<string, string>) {
   for (const node of imageNodes(content)) {
     const attrs = node.attrs;

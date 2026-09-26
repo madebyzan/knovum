@@ -1,4 +1,5 @@
 import { shallowMount } from "@vue/test-utils";
+import { createPinia } from "pinia";
 import { describe, expect, it } from "vitest";
 
 import { i18n } from "../../../foundation/i18n/i18n";
@@ -29,7 +30,7 @@ describe("Konva rich node content", () => {
     const wrapper = shallowMount(SpaceCanvasNodeBody, {
       props: { id: "file", data, presentationContext: preview("full"), interactive: false },
       global: {
-        plugins: [i18n],
+        plugins: [createPinia(), i18n],
         stubs: {
           SpaceDocumentPreview: {
             name: "SpaceDocumentPreview",
@@ -70,7 +71,7 @@ describe("Konva rich node content", () => {
         persist: async () => {},
         fitContentHeight() {},
       },
-      global: { stubs: { SpaceCanvasCredential: true } },
+      global: { plugins: [createPinia(), i18n], stubs: { SpaceCanvasCredential: true } },
     });
     expect(wrapper.findComponent({ name: "SpaceCanvasCredential" }).props("interactive")).toBe(true);
   });
@@ -92,7 +93,7 @@ describe("Konva rich node content", () => {
         presentationContext: { viewport: profiles.full, mode: "interactive" },
         interactive: true,
       },
-      global: { plugins: [i18n] },
+      global: { plugins: [createPinia(), i18n] },
     });
     expect(htmlWrapper.findComponent({ name: "SpaceCanvasCode" }).exists()).toBe(true);
     const codeWrapper = shallowMount(SpaceCanvasCode, {
@@ -101,7 +102,7 @@ describe("Konva rich node content", () => {
         presentationContext: { viewport: profiles.full, mode: "interactive" },
         interactive: true,
       },
-      global: { plugins: [i18n] },
+      global: { plugins: [createPinia(), i18n] },
     });
     expect(codeWrapper.findComponent({ name: "SpaceHtmlPreview" }).exists()).toBe(false);
     await codeWrapper.findComponent({ name: "UiIconButton" }).trigger("click");
@@ -120,7 +121,7 @@ describe("Konva rich node content", () => {
         presentationContext: preview("full"),
         interactive: false,
       },
-      global: { plugins: [i18n] },
+      global: { plugins: [createPinia(), i18n] },
     });
     expect(processingWrapper.findComponent({ name: "SpaceCanvasProcessingState" }).exists()).toBe(true);
   });

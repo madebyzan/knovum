@@ -12,8 +12,9 @@ pub struct CompletionRequest {
     pub max_tokens: Option<u32>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[ts(optional_fields = nullable)]
 pub struct CompletionCommandRequest {
     pub target: ExecutionTargetSelection,
     pub system_prompt: String,
@@ -22,7 +23,7 @@ pub struct CompletionCommandRequest {
     pub max_tokens: Option<u32>,
 }
 
-#[derive(Debug, Clone, Copy, Deserialize)]
+#[derive(Debug, Clone, Copy, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "snake_case")]
 pub enum EditorTransformAction {
     Improve,
@@ -53,7 +54,7 @@ pub struct EditorTransformRequest {
     pub text: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct EditorTransformCommandRequest {
     pub target: ExecutionTargetSelection,
@@ -68,7 +69,7 @@ pub struct TranslationRequest {
     pub target_language: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct TranslationCommandRequest {
     pub execution_target: ExecutionTargetSelection,
@@ -76,7 +77,7 @@ pub struct TranslationCommandRequest {
     pub target_language: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub struct CompletionOutput {
     pub text: String,
@@ -85,7 +86,7 @@ pub struct CompletionOutput {
     pub usage: Option<crate::ai::contracts::TokenUsage>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ts_rs::TS)]
 #[serde(tag = "event", rename_all = "snake_case")]
 pub enum CompletionStreamEvent {
     Started {

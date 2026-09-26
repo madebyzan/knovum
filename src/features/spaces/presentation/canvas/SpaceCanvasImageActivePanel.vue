@@ -2,7 +2,7 @@
 import { computed, nextTick, useTemplateRef, watch } from "vue";
 import { toast } from "vue-sonner";
 
-import { defaultImageEdit, imageEditOf, type ImageEdit } from "../../image-editing/image-edit";
+import { defaultImageEdit, imageEditOf } from "../../image-editing/image-edit";
 import { useImageEditSession } from "../../image-editing/image-edit-session";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../../model/nodes/node-payload";
@@ -15,9 +15,7 @@ const props = defineProps<{ node: SpaceCanvasNode<SpaceImagePayload> }>();
 const session = useImageEditSession();
 const panel = useTemplateRef<HTMLElement>("panel");
 const active = computed(() => (session.active?.nodeId === props.node.id ? session.active : undefined));
-const edit = computed<ImageEdit>(
-  () => structuredClone(active.value?.draft ?? imageEditOf(props.node.data)) as ImageEdit,
-);
+const edit = computed(() => active.value?.draft ?? imageEditOf(props.node.data));
 const dimensions = computed(() => {
   const loaded = session.dimensionsFor(props.node.id);
   const width = props.node.data.intrinsicWidth ?? loaded?.width;

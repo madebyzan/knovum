@@ -7,7 +7,7 @@ import {
   listKnowledgeHealthIssues,
   listObjectTypes,
   listProvenance,
-} from "../persistence/knowledge-repository";
+} from "../persistence/knowledge-operations";
 import { spaceKnowledgeQueryKeys } from "./query-options";
 
 function spaceIdValue(spaceId: MaybeRefOrGetter<string | null | undefined>) {

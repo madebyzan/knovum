@@ -6,6 +6,7 @@ use crate::spaces::db;
 
 #[derive(Clone, Copy, Debug, Deserialize, Serialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub enum RunEventKind {
     AssistantPausedCheckpoint,
     AttemptClaimed,

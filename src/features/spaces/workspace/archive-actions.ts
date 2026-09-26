@@ -3,14 +3,14 @@ import {
   deleteSpaceCredentials,
   loadSpaceCredential,
   saveSpaceCredential,
-} from "../credentials/credential-repository";
+} from "../credentials/credential-storage";
 import type { SpaceCredential } from "../model/credential";
 import {
   archiveSpace as archiveSpaceRecord,
   deleteSpacePermanently,
   listCredentialNodeIds,
   unarchiveSpace as unarchiveSpaceRecord,
-} from "./space-repository";
+} from "./space-operations";
 import { discardSpaceTab, openSpace, type SpaceSessionContext } from "./space-session-actions";
 
 export async function archiveSpace(context: SpaceSessionContext, id: string) {

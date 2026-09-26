@@ -1,3 +1,4 @@
+use crate::command_error::CommandError;
 use serde::Serialize;
 use tauri::{AppHandle, Runtime};
 
@@ -21,7 +22,7 @@ pub async fn index_knowledge<R: Runtime>(
     app: AppHandle<R>,
     space_id: String,
     node_ids: Option<Vec<String>>,
-) -> Result<KnowledgeRetrievalIndexOutput, String> {
+) -> Result<KnowledgeRetrievalIndexOutput, CommandError> {
     let indexed = retrieval::index_space(app, space_id, node_ids)
         .await?
         .indexed;
@@ -32,7 +33,7 @@ pub async fn index_knowledge<R: Runtime>(
 pub async fn rebuild_knowledge_retrieval_index<R: Runtime>(
     app: AppHandle<R>,
     space_id: String,
-) -> Result<KnowledgeRetrievalRebuildOutput, String> {
+) -> Result<KnowledgeRetrievalRebuildOutput, CommandError> {
     let retrieval::rebuild::RebuildIndexOutput { rebuilt, indexed } =
         retrieval::rebuild_space_index(app, space_id).await?;
     Ok(KnowledgeRetrievalRebuildOutput { rebuilt, indexed })

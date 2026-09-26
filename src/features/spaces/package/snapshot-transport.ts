@@ -1,5 +1,4 @@
-import { invoke } from "@tauri-apps/api/core";
-
+import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
 import type { SpacePackageAsset } from "./contract";
 import type { SpacePackageManifest } from "./manifest-schema";
 

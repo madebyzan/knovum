@@ -1,16 +1,19 @@
+use crate::command_error::CommandError;
 use serde::Serialize;
-use serde_json::Value;
 use tauri::{AppHandle, Runtime};
+use ts_rs::TS;
 
 use super::{nodes, relations, scenes};
 use crate::spaces::{db, structure};
 
-#[derive(Serialize)]
+#[derive(Serialize, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub(crate) struct SpaceSessionProjection {
-    nodes: Vec<Value>,
-    scenes: Vec<Value>,
-    relations: Vec<Value>,
+    nodes: Vec<nodes::SpaceNodeRecord>,
+    scenes: Vec<scenes::SpaceSceneRecord>,
+    relations: Vec<relations::SpaceRelationRecord>,
+    #[ts(type = "unknown")]
     edit_snapshot: structure::SpaceEditSnapshotResponse,
 }
 
@@ -18,7 +21,7 @@ pub(crate) struct SpaceSessionProjection {
 pub(crate) async fn load_space_session_projection<R: Runtime>(
     app: AppHandle<R>,
     space_id: String,
-) -> Result<SpaceSessionProjection, String> {
+) -> Result<SpaceSessionProjection, CommandError> {
     let pool = db::pool(&app).await?;
     let mut tx = pool.begin().await.map_err(db::sql_error)?;
     let (snapshot, edit_revision) =

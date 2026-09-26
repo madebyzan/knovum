@@ -1,4 +1,4 @@
-import { computed, shallowRef, type Ref } from "vue";
+import { computed, shallowRef, type Ref, type ShallowRef } from "vue";
 
 import type { AssistantTaskUpdate } from "../contracts/generated/AssistantTaskUpdate";
 import type { WaitReason } from "../contracts/generated/WaitReason";

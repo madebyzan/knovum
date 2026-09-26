@@ -2,18 +2,18 @@ import { computed, reactive, ref, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
+import { prepareAgentArtifactImport } from "../assets/asset-operations";
+import { spaceImportContext } from "../assets/import-context";
+import { importSpaceSource } from "../assets/import-session";
+import { useNodeOperationGate } from "../canvas/node-operation-gate";
+import { useSpaceStore } from "../session/space-store";
 import {
   consumeAgentArtifact,
   discardAgentCreation,
   previewAgentArtifact,
   type AgentArtifact,
   type RecoverableAgentCreation,
-} from "../../../foundation/ai/agents";
-import { prepareAgentArtifactImport } from "../assets/asset-operations";
-import { spaceImportContext } from "../assets/import-context";
-import { importSpaceSource } from "../assets/import-session";
-import { useNodeOperationGate } from "../canvas/node-operation-gate";
-import { useSpaceStore } from "../session/space-store";
+} from "./agent-artifacts";
 
 export function useAgentArtifacts(open: Ref<boolean>) {
   const { t } = useI18n();
@@ -92,19 +92,19 @@ export function useAgentArtifacts(open: Ref<boolean>) {
       )) {
         if (!operations.allows("create")) return;
         // oxlint-disable-next-line eslint/no-await-in-loop -- Managed Space imports are intentionally serialized.
-        const imported = await importSpaceSource(
-          spaceImportContext(store),
+        const imported = await importSpaceSource({
+          context: spaceImportContext(store),
           spaceId,
-          {
+          source: {
             prepare: () => prepareAgentArtifactImport(spaceId, currentSessionId, artifact.relativePath),
             finalize: () => consumeAgentArtifact(spaceId, currentSessionId, artifact.relativePath),
           },
-          store.nextInsertionPoint(),
-          {
+          position: store.nextInsertionPoint(),
+          labels: {
             title: t("spaces.transfer.importingResource"),
             preparing: t("spaces.transfer.importPreparing"),
           },
-        );
+        });
         if (!imported.length) return;
         removeConsumed(artifact.relativePath);
       }

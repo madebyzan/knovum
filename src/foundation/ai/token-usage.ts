@@ -1,14 +1,10 @@
-import { invoke } from "@tauri-apps/api/core";
 import { z } from "zod";
 
-const usagePurposeSchema = z.enum([
-  "assistant",
-  "editor",
-  "knowledge",
-  "knowledge_indexing",
-  "translation",
-  "visual_analysis",
-]);
+import { usagePurposes } from "../../shared/contracts/generated/contract-values";
+import type { UsageReport } from "../../shared/contracts/generated/UsageReport";
+import { invokeCommand as invoke } from "../ipc/invoke-command";
+
+const usagePurposeSchema = z.enum(usagePurposes);
 
 const usageDaySchema = z
   .object({
@@ -33,7 +29,7 @@ const usageSummarySchema = z
   })
   .strict();
 
-const tokenUsageReportSchema = z
+const tokenUsageReportSchema: z.ZodType<UsageReport> = z
   .object({
     fromDate: z.iso.date(),
     toDate: z.iso.date(),
@@ -51,9 +47,9 @@ const tokenUsageReportSchema = z
   })
   .strict();
 
-export type TokenUsageReport = z.infer<typeof tokenUsageReportSchema>;
-export type UsageDay = z.infer<typeof usageDaySchema>;
-export type UsagePurpose = z.infer<typeof usagePurposeSchema>;
+export type { UsageReport as TokenUsageReport } from "../../shared/contracts/generated/UsageReport";
+export type { UsageDay } from "../../shared/contracts/generated/UsageDay";
+export type { UsagePurpose } from "../../shared/contracts/generated/UsagePurpose";
 
 export async function loadTokenUsageReport(fromDate: string, toDate: string) {
   const value = await invoke<unknown>("plugin:ai|get_token_usage_report", {

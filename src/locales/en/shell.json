@@ -5,11 +5,11 @@
   "searchPlaceholder": "Search commands…",
   "noMatchingCommands": "No matching commands",
   "commandUnavailable": {
-    "nothing_to_undo": "Nothing to undo",
-    "nothing_to_redo": "Nothing to redo",
-    "no_selection": "Select content first",
-    "not_enough_scenes": "There is no other scene",
-    "selection_not_eligible": "This selection cannot use the action",
+    "nothingToUndo": "Nothing to undo",
+    "nothingToRedo": "Nothing to redo",
+    "noSelection": "Select content first",
+    "notEnoughScenes": "There is no other scene",
+    "selectionNotEligible": "This selection cannot use the action",
     "checking": "Checking availability",
     "busy": "An operation is in progress"
   },

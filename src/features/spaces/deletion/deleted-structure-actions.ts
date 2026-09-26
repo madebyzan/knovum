@@ -1,11 +1,10 @@
-import { invoke } from "@tauri-apps/api/core";
-
+import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
 import { queryClient } from "../../../foundation/query/query-client";
 import { cleanupDeletedSpaceAssets } from "../assets/asset-operations";
 import { spaceKnowledgeQueryKeys } from "../knowledge/queries/query-options";
 import { invokeConfirmedMutation } from "../organization/confirmed-mutation";
 import type { SpaceEditReceipt } from "../organization/space-edit-command";
-import { spaceEditRepository } from "../structure/space-edit-repository";
+import { spaceEditOperations } from "../structure/space-edit-operations";
 import type { SpaceDeletedStructureRoot } from "./deleted-structure";
 
 export function listRecentlyDeletedStructure(spaceId: string | null) {
@@ -16,7 +15,7 @@ export function listRecentlyDeletedStructure(spaceId: string | null) {
 
 export async function restoreDeletedStructure(deletedRoot: SpaceDeletedStructureRoot, wholeBatch: boolean) {
   const mutationId = crypto.randomUUID();
-  const snapshot = await spaceEditRepository.load(deletedRoot.spaceId);
+  const snapshot = await spaceEditOperations.load(deletedRoot.spaceId);
   await invokeConfirmedMutation<SpaceEditReceipt>(
     "plugin:spaces|restore_deleted_structure",
     {

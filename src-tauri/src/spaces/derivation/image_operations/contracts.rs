@@ -1,8 +1,9 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-#[derive(Clone, Deserialize)]
+#[derive(Clone, Deserialize, ts_rs::TS)]
 #[serde(tag = "kind", rename_all = "kebab-case", deny_unknown_fields)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub enum ImageOperation {
     Upscale {
         #[serde(rename = "targetLongEdge")]
@@ -16,15 +17,17 @@ pub enum ImageOperation {
     },
 }
 
-#[derive(Clone, Copy, Deserialize)]
+#[derive(Clone, Copy, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "kebab-case")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub enum ImageViewMode {
     Subject,
     Camera,
 }
 
-#[derive(Clone, Copy, Deserialize)]
+#[derive(Clone, Copy, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "kebab-case")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub enum ImageZoom {
     Close,
     Medium,
@@ -146,8 +149,9 @@ impl ImageOperation {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct CreateImageOperationRequest {
     pub id: String,
     pub space_id: String,
@@ -158,22 +162,25 @@ pub struct CreateImageOperationRequest {
     pub operation: ImageOperation,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct ImageOperationCapabilities {
     pub upscale: ImageOperationCapability,
     pub multi_angle: ImageOperationCapability,
 }
 
-#[derive(Clone, Copy, Serialize)]
+#[derive(Clone, Copy, Serialize, ts_rs::TS)]
 #[serde(tag = "state", rename_all = "snake_case")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub enum ImageOperationCapability {
     Ready,
     Blocked { reason: ImageOperationBlockReason },
 }
 
-#[derive(Clone, Copy, Serialize)]
+#[derive(Clone, Copy, Serialize, ts_rs::TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub enum ImageOperationBlockReason {
     ConfigurationIncomplete,
     ProviderUnsupported,

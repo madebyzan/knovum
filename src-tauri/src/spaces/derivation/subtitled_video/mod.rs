@@ -14,7 +14,7 @@ use tauri::{ipc::Channel, AppHandle};
 use super::{failure, CompletedDerivationOutput};
 use crate::blocking;
 
-pub const CANCELLED: &str = "VIDEO_SUBTITLE_DERIVATION_CANCELLED";
+pub const CANCELLED: &str = "video-subtitle-derivation-cancelled";
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]

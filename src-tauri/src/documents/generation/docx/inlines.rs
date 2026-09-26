@@ -14,20 +14,48 @@ pub(super) fn paragraph(content: &[Inline]) -> Result<Paragraph, String> {
 }
 
 pub(super) fn header_paragraph(content: &[Inline]) -> Result<Paragraph, String> {
-    append(Paragraph::new(), content, Marks { bold: true, ..Marks::default() })
+    append(
+        Paragraph::new(),
+        content,
+        Marks {
+            bold: true,
+            ..Marks::default()
+        },
+    )
 }
 
 fn append(mut paragraph: Paragraph, content: &[Inline], marks: Marks) -> Result<Paragraph, String> {
     for inline in content {
         match inline {
             Inline::Strong(children) => {
-                paragraph = append(paragraph, children, Marks { bold: true, ..marks })?;
+                paragraph = append(
+                    paragraph,
+                    children,
+                    Marks {
+                        bold: true,
+                        ..marks
+                    },
+                )?;
             }
             Inline::Emphasis(children) => {
-                paragraph = append(paragraph, children, Marks { italic: true, ..marks })?;
+                paragraph = append(
+                    paragraph,
+                    children,
+                    Marks {
+                        italic: true,
+                        ..marks
+                    },
+                )?;
             }
             Inline::Strike(children) => {
-                paragraph = append(paragraph, children, Marks { strike: true, ..marks })?;
+                paragraph = append(
+                    paragraph,
+                    children,
+                    Marks {
+                        strike: true,
+                        ..marks
+                    },
+                )?;
             }
             Inline::Link { url, content } => {
                 super::super::links::validate(url)?;
@@ -47,9 +75,27 @@ fn runs(content: &[Inline], marks: Marks) -> Result<Vec<Run>, String> {
     let mut output = Vec::new();
     for inline in content {
         let children = match inline {
-            Inline::Strong(children) => Some((children, Marks { bold: true, ..marks })),
-            Inline::Emphasis(children) => Some((children, Marks { italic: true, ..marks })),
-            Inline::Strike(children) => Some((children, Marks { strike: true, ..marks })),
+            Inline::Strong(children) => Some((
+                children,
+                Marks {
+                    bold: true,
+                    ..marks
+                },
+            )),
+            Inline::Emphasis(children) => Some((
+                children,
+                Marks {
+                    italic: true,
+                    ..marks
+                },
+            )),
+            Inline::Strike(children) => Some((
+                children,
+                Marks {
+                    strike: true,
+                    ..marks
+                },
+            )),
             _ => None,
         };
         if let Some((children, marks)) = children {
@@ -69,7 +115,9 @@ fn leaf(inline: &Inline, marks: Marks) -> Result<Run, String> {
         Inline::SoftBreak => Run::new().add_text(" "),
         Inline::HardBreak => Run::new().add_break(BreakType::TextWrapping),
         Inline::Image { .. } => {
-            return Err("DOCX image export is not implemented; use plain text or remove images".into());
+            return Err(
+                "DOCX image export is not implemented; use plain text or remove images".into(),
+            );
         }
         _ => return Err("Unexpected nested inline in DOCX export".into()),
     };

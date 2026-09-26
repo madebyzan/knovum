@@ -1,7 +1,7 @@
 import { Readability } from "@mozilla/readability";
-import { invoke } from "@tauri-apps/api/core";
 import { take } from "es-toolkit";
 
+import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
 import { truncateUtf16 } from "../model/text";
 import { htmlHeadMetadata } from "./html-head-metadata";
 import type { SpaceWebsiteMetadata, SpaceWebsiteSection } from "./metadata";

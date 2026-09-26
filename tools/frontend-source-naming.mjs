@@ -1,3 +1,4 @@
+import { existsSync, statSync } from "node:fs";
 import { basename, relative, sep } from "node:path";
 
 export function checkFrontendSourceNaming(root, sourceRoot, files) {
@@ -8,6 +9,9 @@ export function checkFrontendSourceNaming(root, sourceRoot, files) {
     checkDirectories(root, file, segments.slice(0, -1), failures);
 
     const name = basename(file);
+    const stem = file.replace(/\.(?:ts|vue)$/u, "");
+    if (existsSync(stem) && statSync(stem).isDirectory())
+      failures.push(`${relative(root, file)}: same-name source file and directory cannot coexist`);
     if (name === "index.ts") {
       failures.push(`${relative(root, file)}: index.ts is forbidden; name the file after its responsibility`);
       continue;

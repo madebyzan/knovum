@@ -24,6 +24,13 @@ module.exports = {
       to: { circular: true },
     },
     {
+      name: "renderer-has-no-document-generation-engine",
+      severity: "error",
+      comment: "Document serialization belongs to Rust documents/generation; the Renderer submits intent.",
+      from: { path: "^src(?:/|$)" },
+      to: { path: "^(?:pptxgenjs|docx|pdfkit)(?:/|$)" },
+    },
+    {
       name: "renderer-has-no-sql-client",
       severity: "error",
       comment: "SQLite authority is Rust-only; WebView code may not import the Tauri SQL client.",
@@ -72,7 +79,7 @@ module.exports = {
       comment: "Space presentation consumes capability and query contracts, never persistence adapters.",
       from: { path: "^src/features/spaces/presentation(?:/|$)" },
       to: {
-        path: "^src/features/spaces/(?:canvas/persistence|structure|credentials/credential-repository|knowledge/(?:persistence|relations/relation-repository)|nodes/node-repository|scenes/scene-repository|search/global-search-repository|workspace/space-repository)(?:/|$|\\.ts$)",
+        path: "^src/features/spaces/(?:canvas/persistence|structure|credentials/credential-storage|knowledge/(?:persistence|relations/relation-operations)|nodes/node-operations|scenes/scene-operations|search/global-search|workspace/space-operations)(?:/|$|\\.ts$)",
       },
     },
     {
@@ -80,7 +87,7 @@ module.exports = {
       severity: "error",
       comment: "Only the Space composition surfaces may import presentation components.",
       from: {
-        path: "^src/features/spaces/(?!presentation(?:/|$)|__tests__(?:/|$)|SpaceView\\.vue$|workspace\\.ts$)",
+        path: "^src/features/spaces/(?!presentation(?:/|$)|__tests__(?:/|$)|SpaceView\\.vue$|workspace-definition\\.ts$)",
       },
       to: { path: "^src/features/spaces/presentation(?:/|$)" },
     },
@@ -98,7 +105,7 @@ module.exports = {
       severity: "error",
       comment: "Capability-owned repositories and persistence adapters cannot depend on Space UI.",
       from: {
-        path: "^src/features/spaces/(?:canvas/persistence|structure|credentials/credential-repository|knowledge/(?:persistence|relations/relation-repository)|nodes/node-repository|scenes/scene-repository|search/global-search-repository|workspace/space-repository)(?:/|$|\\.ts$)",
+        path: "^src/features/spaces/(?:canvas/persistence|structure|credentials/credential-storage|knowledge/(?:persistence|relations/relation-operations)|nodes/node-operations|scenes/scene-operations|search/global-search|workspace/space-operations)(?:/|$|\\.ts$)",
       },
       to: { path: "^src/features/spaces/presentation(?:/|$)" },
     },

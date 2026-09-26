@@ -1,7 +1,9 @@
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, TS)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, TS, schemars::JsonSchema,
+)]
 #[serde(rename_all = "snake_case")]
 pub enum AgentKind {
     Codex,
@@ -18,7 +20,7 @@ pub enum AgentKind {
     Antigravity,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub struct AgentDescriptor {
     pub kind: AgentKind,
@@ -27,7 +29,7 @@ pub struct AgentDescriptor {
     pub help: AgentHelp,
 }
 
-#[derive(Debug, Clone, Copy, Serialize)]
+#[derive(Debug, Clone, Copy, Serialize, ts_rs::TS)]
 #[serde(rename_all = "snake_case")]
 pub enum AgentConnectionKind {
     NativeCli,
@@ -35,7 +37,7 @@ pub enum AgentConnectionKind {
     StandaloneServer,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub struct AgentHelp {
     pub connection: AgentConnectionKind,
@@ -62,7 +64,7 @@ impl AgentKind {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub struct AgentInstallation {
     pub kind: AgentKind,
@@ -72,7 +74,7 @@ pub struct AgentInstallation {
     pub executable_path: Option<String>,
 }
 
-#[derive(Debug, Clone, Copy, Serialize)]
+#[derive(Debug, Clone, Copy, Serialize, ts_rs::TS)]
 #[serde(rename_all = "snake_case")]
 pub enum AgentArtifactKind {
     Image,
@@ -82,63 +84,11 @@ pub enum AgentArtifactKind {
     File,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub struct AgentArtifact {
     pub name: String,
     pub relative_path: String,
     pub kind: AgentArtifactKind,
     pub size: u64,
-}
-
-#[derive(Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct RecoverableAgentCreation {
-    pub session_id: String,
-    pub artifacts: Vec<AgentArtifact>,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct AgentCreationRequest {
-    pub kind: AgentKind,
-    pub prompt: String,
-    pub attachments: Vec<std::path::PathBuf>,
-    pub space_id: String,
-    pub session_id: String,
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
-#[serde(
-    tag = "type",
-    rename_all = "snake_case",
-    rename_all_fields = "camelCase"
-)]
-pub enum AgentCreationEvent {
-    Thought {
-        text: String,
-    },
-    Message {
-        text: String,
-    },
-    ToolStarted {
-        id: String,
-        title: String,
-    },
-    ToolUpdated {
-        id: String,
-    },
-    PermissionRequested {
-        request_id: String,
-        title: String,
-        options: Vec<AgentPermissionOption>,
-    },
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct AgentPermissionOption {
-    pub id: String,
-    pub label: String,
-    pub kind: String,
 }

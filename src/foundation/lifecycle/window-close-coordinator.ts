@@ -1,7 +1,8 @@
-import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { error as logError } from "@tauri-apps/plugin-log";
+
+import { invokeCommand as invoke } from "../ipc/invoke-command";
 
 type WindowCloseCommit = () => Promise<void>;
 

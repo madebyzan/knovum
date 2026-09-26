@@ -1,5 +1,4 @@
-import { invoke } from "@tauri-apps/api/core";
-
+import { invokeCommand as invoke } from "../../../../foundation/ipc/invoke-command";
 import { relatedContentResponseSchema } from "../model/related-content";
 
 export async function listRelatedContent(spaceId: string, nodeId: string) {

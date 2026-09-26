@@ -52,7 +52,6 @@
   "desktopAgentNotInstalled": "Not Detected",
   "desktopAgentEnable": "Enable",
   "desktopAgentDisable": "Disable",
-  "desktopAgentInUse": "This Agent is used by an execution route, preset, or creation workflow.",
   "desktopAgentInstallHint": "Install and sign in through the agent’s official application, then check again.",
   "integrationSaveFailed": "Could not save settings",
   "integrationLoadFailed": "Could not load settings",

@@ -1,3 +1,4 @@
+use crate::ai::transport::response;
 use futures::future::BoxFuture;
 use serde::Deserialize;
 use tokio_util::sync::CancellationToken;
@@ -72,10 +73,9 @@ impl VideoGenerationCapability for SiliconFlowVideoAdapter {
                 .await
                 .map_err(provider_err)?
                 .error_for_status()
-                .map_err(provider_err)?
-                .json::<SubmitResponse>()
-                .await
                 .map_err(provider_err)?;
+            let submission_response: SubmitResponse =
+                response::read_json(submission_response, response::MAX_CONTROL_JSON_BYTES).await?;
 
             let task_id = submission_response.request_id.ok_or_else(|| {
                 let msg = submission_response
@@ -110,10 +110,9 @@ impl VideoGenerationCapability for SiliconFlowVideoAdapter {
                 .await
                 .map_err(provider_err)?
                 .error_for_status()
-                .map_err(provider_err)?
-                .json::<StatusResponse>()
-                .await
                 .map_err(provider_err)?;
+            let query_response: StatusResponse =
+                response::read_json(query_response, response::MAX_CONTROL_JSON_BYTES).await?;
 
             match query_response.status.as_str() {
                 "Succeed" => {

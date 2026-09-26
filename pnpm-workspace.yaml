@@ -55,3 +55,7 @@ minimumReleaseAgeExclude:
   - jscpd-windows-arm64-msvc@5.1.2
   - jscpd-windows-x64-msvc@5.1.2
   - jscpd@5.1.2
+
+# Clipboard uses Valibot primitives compatible with 1.4.2; remove when upstream updates.
+overrides:
+  "tauri-plugin-clipboard-api@2.1.11>valibot": "1.4.2"

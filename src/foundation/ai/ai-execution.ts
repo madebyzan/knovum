@@ -1,6 +1,7 @@
-import type { AiModelTarget, AiRoutingPurpose, ExecutionTarget, ResolvedAiModelTarget } from "./ai-models";
+import type { AiRoutingPurpose, ExecutionTarget, ResolvedAiModelTarget } from "./ai-models";
 import { useAiSettingsStore } from "./ai-settings-store";
 import { routingPolicy } from "./execution-routing";
+import { encodeExecutionTarget } from "./execution-target-codec";
 import type { AiModelSettings } from "./integration-settings";
 
 const defaultTargetKey: Record<AiRoutingPurpose, keyof AiModelSettings["defaults"]> = {
@@ -16,22 +17,6 @@ export interface ExecutionTargetOption {
   value: string;
   label: string;
   target: ExecutionTarget;
-  executorType: "model";
-  capabilitySource: "model-native";
-  availability: "ready";
-  disabled: boolean;
-  disabledReason?: string | undefined;
-  statusDetail?: string | undefined;
-}
-
-export type ResolvedAiExecutionTarget = ResolvedAiModelTarget;
-
-function copyExecutionTarget(target: ExecutionTarget): ExecutionTarget {
-  return {
-    type: "model",
-    connectionId: target.connectionId,
-    modelId: target.modelId,
-  };
 }
 
 export function defaultExecutionTarget(
@@ -39,13 +24,13 @@ export function defaultExecutionTarget(
   purpose: AiRoutingPurpose,
 ): ExecutionTarget | null {
   const target = settings.defaults[defaultTargetKey[purpose]];
-  return target ? copyExecutionTarget(target) : null;
+  return target ? { ...target } : null;
 }
 
 function resolveModelTarget(
   settings: AiModelSettings,
   purpose: AiRoutingPurpose,
-  target: AiModelTarget,
+  target: ExecutionTarget,
 ): ResolvedAiModelTarget {
   const connection = settings.connections.find(({ id }) => id === target.connectionId);
   if (!connection) throw new Error(`AI connection is unavailable: ${target.connectionId}`);
@@ -61,7 +46,7 @@ function resolveModelTarget(
 export async function loadAiExecutionTarget(
   purpose: AiRoutingPurpose,
   target?: ExecutionTarget,
-): Promise<ResolvedAiExecutionTarget> {
+): Promise<ResolvedAiModelTarget> {
   const store = useAiSettingsStore();
   await store.ensureLoaded();
   const settings = store.settings;
@@ -70,7 +55,7 @@ export async function loadAiExecutionTarget(
   return resolveModelTarget(settings, purpose, selected);
 }
 
-export function aiExecutionTargetPayload(target: ResolvedAiExecutionTarget, temperature = 0.2) {
+export function aiExecutionTargetPayload(target: ResolvedAiModelTarget, temperature = 0.2) {
   return {
     type: "model" as const,
     connectionId: target.connection.id,
@@ -79,37 +64,17 @@ export function aiExecutionTargetPayload(target: ResolvedAiExecutionTarget, temp
   };
 }
 
-function modelOptions(settings: AiModelSettings, purpose: AiRoutingPurpose): ExecutionTargetOption[] {
-  const capability = routingPolicy(purpose).modelCapability;
-  return settings.connections.flatMap((connection) =>
-    connection.models
-      .filter((model) => model.capabilities.includes(capability))
-      .map((model) => ({
-        value: `model:${connection.id}:${model.id}`,
-        label: `${model.name} · ${connection.name}`,
-        target: { type: "model" as const, connectionId: connection.id, modelId: model.id },
-        executorType: "model" as const,
-        capabilitySource: "model-native" as const,
-        availability: "ready" as const,
-        disabled: false,
-      })),
-  );
-}
-
 export function availableExecutionTargets(
   settings: AiModelSettings,
   purpose: AiRoutingPurpose,
 ): ExecutionTargetOption[] {
-  return modelOptions(settings, purpose);
-}
-
-export const encodeExecutionTarget = (target: ExecutionTarget) =>
-  `model:${target.connectionId}:${target.modelId}`;
-
-export function decodeExecutionTarget(value: string): ExecutionTarget {
-  const [type, connectionId, modelId, ...rest] = value.split(":");
-  if (type !== "model" || !connectionId || !modelId || rest.length) {
-    throw new Error("Invalid AI execution target");
-  }
-  return { type: "model", connectionId, modelId };
+  const capability = routingPolicy(purpose).modelCapability;
+  return settings.connections.flatMap((connection) =>
+    connection.models
+      .filter((model) => model.capabilities.includes(capability))
+      .map((model) => {
+        const target: ExecutionTarget = { type: "model", connectionId: connection.id, modelId: model.id };
+        return { value: encodeExecutionTarget(target), label: `${model.name} · ${connection.name}`, target };
+      }),
+  );
 }

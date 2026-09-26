@@ -29,7 +29,9 @@ pub(crate) async fn find_typed<T: DeserializeOwned>(
     let Some(row) = row else { return Ok(None) };
     let stored: String = row.try_get("request_digest").map_err(db::sql_error)?;
     if stored != digest {
-        return Err("Mutation ID was already used for a different request".into());
+        return Err(
+            "mutation-id-conflict: Mutation ID was already used for a different request".into(),
+        );
     }
     let value: String = row.try_get("result_json").map_err(db::sql_error)?;
     Ok(Some(serde_json::from_str(&value).map_err(db::json_error)?))
@@ -81,7 +83,9 @@ pub(super) async fn find(
     let Some(row) = row else { return Ok(None) };
     let stored_digest: String = row.try_get("request_digest").map_err(db::sql_error)?;
     if stored_digest != digest {
-        return Err("Mutation ID was already used for a different request".into());
+        return Err(
+            "mutation-id-conflict: Mutation ID was already used for a different request".into(),
+        );
     }
     let selection: String = row.try_get("selection_suggestion").map_err(db::sql_error)?;
     Ok(Some(SpaceEditReceipt {

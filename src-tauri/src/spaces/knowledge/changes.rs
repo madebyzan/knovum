@@ -1,3 +1,4 @@
+use crate::command_error::CommandError;
 use serde::Deserialize;
 use serde_json::Value;
 use tauri::{AppHandle, Runtime};
@@ -5,8 +6,9 @@ use tauri::{AppHandle, Runtime};
 use super::change_commit::{self, KnowledgeChange};
 use crate::spaces::db;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct KnowledgeChangeSet {
     space_id: String,
     actor: String,
@@ -17,7 +19,7 @@ pub struct KnowledgeChangeSet {
 pub async fn commit_knowledge_changes<R: Runtime>(
     app: AppHandle<R>,
     changes: KnowledgeChangeSet,
-) -> Result<Value, String> {
+) -> Result<Value, CommandError> {
     if changes.space_id.trim().is_empty() || changes.actor.trim().is_empty() {
         return Err("Knowledge Change Set identity is invalid".into());
     }

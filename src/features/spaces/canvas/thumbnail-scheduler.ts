@@ -3,7 +3,7 @@ import { error as logError, warn as logWarning } from "@tauri-apps/plugin-log";
 import { cleanupDeletedSpaceAssets, removeSpaceAsset } from "../assets/asset-operations";
 import { saveCanvasThumbnailBlob } from "../assets/canvas-thumbnail-file";
 import type { SpaceState } from "../session/session-state";
-import { updateSpaceThumbnail } from "../workspace/space-repository";
+import { updateSpaceThumbnail } from "../workspace/space-operations";
 import { useCanvasEditorSession } from "./editor-session";
 
 const SETTLE_DELAY_MS = 800;
@@ -42,7 +42,6 @@ export async function persistActiveCanvasThumbnail(state: SpaceState) {
   if (!state.spaces.value.some((candidate) => candidate.id === space.id)) return;
   const editor = useCanvasEditorSession().activeEditor.value;
   if (!editor) throw new Error("Space canvas is not mounted");
-  state.thumbnailCaptureActive.value = true;
   state.thumbnailDirty.value = false;
   let stagedPath: string | undefined;
   try {
@@ -59,7 +58,5 @@ export async function persistActiveCanvasThumbnail(state: SpaceState) {
     if (stagedPath) await removeSpaceAsset(stagedPath);
     state.thumbnailDirty.value = true;
     throw error;
-  } finally {
-    state.thumbnailCaptureActive.value = false;
   }
 }

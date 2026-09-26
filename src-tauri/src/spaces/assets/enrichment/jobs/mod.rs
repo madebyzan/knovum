@@ -1,3 +1,4 @@
+use crate::command_error::CommandError;
 mod execution;
 pub(crate) mod intent;
 mod job;
@@ -20,29 +21,30 @@ pub async fn run_enrichment_job(
     app: AppHandle,
     request: RunEnrichmentJobRequest,
     on_progress: Channel<crate::spaces::assets::transcription::MediaTranscriptionProgress>,
-) -> Result<EnrichmentJobOutput, String> {
-    execution::execute_job(app, request, on_progress).await
+) -> Result<EnrichmentJobOutput, CommandError> {
+    Ok((execution::execute_job(app, request, on_progress).await)?)
 }
 
 #[tauri::command]
 pub async fn cancel_enrichment_job<R: Runtime>(
     app: AppHandle<R>,
     job_id: String,
-) -> Result<(), String> {
+) -> Result<(), CommandError> {
     // The row is cancelled before the token is signalled so the execution being stopped cannot race
     // its own failure write in first. Cancelling an already finished job is a normal no-op.
     set_status(&app, &job_id, FROM_LIVE, STATUS_CANCELLED, None, false).await?;
     crate::ai::executions::cancel(&job_id)?;
-    crate::spaces::assets::transcription::cancel_media_transcription(job_id).await
+    crate::spaces::assets::transcription::cancel_transcription(&job_id)?;
+    Ok(())
 }
 
 #[tauri::command]
 pub async fn list_enrichment_jobs<R: Runtime>(
     app: AppHandle<R>,
     space_id: String,
-) -> Result<Vec<EnrichmentJobRecord>, String> {
+) -> Result<Vec<EnrichmentJobRecord>, CommandError> {
     let pool = db::pool(&app).await?;
-    persistence::list_actionable(pool, &space_id).await
+    Ok((persistence::list_actionable(pool, &space_id).await)?)
 }
 
 #[tauri::command]
@@ -50,14 +52,14 @@ pub async fn defer_enrichment_for_configuration<R: Runtime>(
     app: AppHandle<R>,
     job_id: String,
     error: String,
-) -> Result<(), String> {
+) -> Result<(), CommandError> {
     if job_id.trim().is_empty() || error.trim().is_empty() {
-        return Err("Configuration deferral requires a job id and reason".to_owned());
+        return Err(("Configuration deferral requires a job id and reason".to_owned()).into());
     }
     let now = crate::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
     if !persistence::defer_for_configuration(pool, &job_id, error, now).await? {
-        return Err("Enrichment job is no longer actionable".to_owned());
+        return Err(("Enrichment job is no longer actionable".to_owned()).into());
     }
     Ok(())
 }

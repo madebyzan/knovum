@@ -1,5 +1,4 @@
-import { invoke } from "@tauri-apps/api/core";
-
+import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
 import type { KnowledgeChunkOrigin } from "../knowledge/model/knowledge-chunk";
 import type { SpaceKnowledgeObjectType } from "../knowledge/model/object-types";
 import type { SpaceKnowledgeEvent, SpaceProvenance } from "../knowledge/model/provenance";

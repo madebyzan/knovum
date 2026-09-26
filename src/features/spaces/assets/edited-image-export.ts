@@ -1,6 +1,6 @@
-import { invoke } from "@tauri-apps/api/core";
 import { save } from "@tauri-apps/plugin-dialog";
 
+import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
 import type { SpaceImagePayload } from "../model/nodes/node-payload";
 import { safeExportFileName } from "./export";
 

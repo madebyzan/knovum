@@ -1,7 +1,9 @@
-import { Channel, invoke } from "@tauri-apps/api/core";
+import { Channel } from "@tauri-apps/api/core";
 import { toast } from "vue-sonner";
 
 import { i18n } from "../../../foundation/i18n/i18n";
+import { decodeCommandError } from "../../../foundation/ipc/command-error";
+import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import { useCanvasEditorSession } from "../canvas/editor-session";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
@@ -12,18 +14,10 @@ import { baseNameFromNode } from "./node-naming";
 import { beginPendingDerivation, endPendingDerivation } from "./pending-session";
 import { derivedNodePosition } from "./placement";
 
-export const VIDEO_SUBTITLE_DERIVATION_CANCELLED = "VIDEO_SUBTITLE_DERIVATION_CANCELLED";
+export const VIDEO_SUBTITLE_DERIVATION_CANCELLED = "video_subtitle_derivation_cancelled";
 
 export function isVideoSubtitleCancelled(error: unknown): boolean {
-  if (typeof error === "string") {
-    return (
-      error === VIDEO_SUBTITLE_DERIVATION_CANCELLED || error.includes(VIDEO_SUBTITLE_DERIVATION_CANCELLED)
-    );
-  }
-  if (error && typeof error === "object" && "code" in error) {
-    return (error as { code: string }).code === VIDEO_SUBTITLE_DERIVATION_CANCELLED;
-  }
-  return false;
+  return decodeCommandError(error)?.code === VIDEO_SUBTITLE_DERIVATION_CANCELLED;
 }
 
 type SpaceStore = ReturnType<typeof useSpaceStore>;

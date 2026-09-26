@@ -58,8 +58,12 @@ fn attach_thumbnail(
     // The system preview is the visual representation shown on the canvas. Its aspect ratio is
     // authoritative when the source inspector did not provide geometry (notably video and audio).
     if asset.intrinsic_width.is_none() || asset.intrinsic_height.is_none() {
-        let (width, height) = image::image_dimensions(&path)
-            .map_err(|error| format!("failed to read system thumbnail dimensions: {error}"))?;
+        let (width, height) = image::image_dimensions(&path).map_err(|error| {
+            if let Err(cleanup) = std::fs::remove_file(&path) {
+                log::warn!("invalid thumbnail cleanup failed: {cleanup}");
+            }
+            format!("failed to read system thumbnail dimensions: {error}")
+        })?;
         asset.intrinsic_width.get_or_insert(width);
         asset.intrinsic_height.get_or_insert(height);
     }
@@ -69,4 +73,22 @@ fn attach_thumbnail(
 
 pub fn remove_generated(app: &tauri::AppHandle, source: &Path) -> Result<(), String> {
     paths::remove_generated_previews(app, source)
+}
+
+pub(crate) async fn reclaim_unreferenced(
+    app: &tauri::AppHandle,
+    candidates: std::collections::BTreeSet<String>,
+) -> Result<(), String> {
+    let directory = paths::preview_directory(app)?;
+    let candidates = candidates
+        .into_iter()
+        .filter(|path| Path::new(path).starts_with(&directory))
+        .collect();
+    let pool = crate::spaces::db::pool(app).await?;
+    let unreferenced = super::assets::reclamation::unreferenced_paths(pool, candidates).await?;
+    for path in unreferenced {
+        let canonical = authorize_generated_preview(app, Path::new(&path))?;
+        std::fs::remove_file(canonical).map_err(|error| error.to_string())?;
+    }
+    Ok(())
 }

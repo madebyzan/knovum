@@ -1,10 +1,10 @@
-import { invoke } from "@tauri-apps/api/core";
 import { error as logError } from "@tauri-apps/plugin-log";
 import type { Pinia } from "pinia";
 import { nextTick } from "vue";
 import type { Router } from "vue-router";
 
 import { useBootstrapStore } from "../foundation/bootstrap/bootstrap-store";
+import { invokeCommand as invoke } from "../foundation/ipc/invoke-command";
 import { initializeApplicationCloseCoordinator } from "../foundation/lifecycle/window-close-coordinator";
 import {
   installWorkspaceSessionPersistence,

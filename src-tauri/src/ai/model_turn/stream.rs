@@ -3,7 +3,7 @@ use genai::{adapter::AdapterKind, chat::ChatStreamEvent, Client, ModelIden, Serv
 use tokio_util::sync::CancellationToken;
 
 use crate::ai::{
-    contracts::{ModelTurnRequest, StreamFrame, StreamFrameStream, TokenUsage},
+    contracts::ModelTurnRequest,
     error::{AiError, AiErrorCode, AiResult},
     transport::SecurityContext,
 };
@@ -15,18 +15,21 @@ pub(super) async fn stream_turn(
     context: SecurityContext,
     request: ModelTurnRequest,
     cancellation: CancellationToken,
-    deltas: tokio::sync::mpsc::UnboundedSender<String>,
+    deltas: tokio::sync::mpsc::Sender<String>,
 ) -> AiResult<crate::ai::contracts::ModelTurnResponse> {
     let target = service_target(adapter, &context);
     let options = to_genai_options(&request)
         .with_capture_content(true)
         .with_capture_usage(true)
         .with_capture_tool_calls(true);
-    let response = Client::default()
-        .exec_chat_stream(target, to_genai_request(&request)?, Some(&options))
-        .await
-        .map_err(provider_error)?;
+    let client = Client::default();
+    let response = tokio::select! {
+        biased;
+        _ = cancellation.cancelled() => return Err(AiError::cancelled("Model turn was cancelled")),
+        response = client.exec_chat_stream(target, to_genai_request(&request)?, Some(&options)) => response.map_err(provider_error)?,
+    };
     let mut source = response.stream;
+    let mut output_bytes = 0;
     loop {
         let event = tokio::select! {
             _ = cancellation.cancelled() => {
@@ -34,9 +37,20 @@ pub(super) async fn stream_turn(
             }
             event = source.next() => event,
         };
+        if let Some(Ok(event)) = &event {
+            super::output_budget::account(&mut output_bytes, event)?;
+        }
         match event {
             Some(Ok(ChatStreamEvent::Chunk(chunk))) => {
-                let _ = deltas.send(chunk.content);
+                tokio::select! {
+                    biased;
+                    _ = cancellation.cancelled() => return Err(AiError::cancelled("Model turn was cancelled")),
+                    sent = deltas.send(chunk.content) => {
+                        if sent.is_err() {
+                            return Err(AiError::cancelled("Model turn consumer was released"));
+                        }
+                    }
+                }
             }
             Some(Ok(ChatStreamEvent::End(end))) => return from_stream_end(&context, end),
             Some(Ok(
@@ -56,70 +70,7 @@ pub(super) async fn stream_turn(
     }
 }
 
-pub(super) async fn stream_text(
-    adapter: AdapterKind,
-    context: SecurityContext,
-    request: ModelTurnRequest,
-    cancellation: CancellationToken,
-) -> AiResult<StreamFrameStream> {
-    if !request.tools.is_empty() {
-        return Err(AiError::new(
-            AiErrorCode::InvalidRequest,
-            "Text streaming does not accept tool definitions.",
-        ));
-    }
-    let target = service_target(adapter, &context);
-    let options = to_genai_options(&request)
-        .with_capture_usage(true)
-        .with_capture_tool_calls(true);
-    let response = Client::default()
-        .exec_chat_stream(target, to_genai_request(&request)?, Some(&options))
-        .await
-        .map_err(provider_error)?;
-    let mut source = response.stream;
-    let (sender, receiver) = futures::channel::mpsc::unbounded();
-    tokio::spawn(async move {
-        let _ = sender.unbounded_send(Ok(StreamFrame::Started {
-            provider: context.provider.clone(),
-            model: context.model.clone(),
-        }));
-        loop {
-            let event = tokio::select! {
-                _ = cancellation.cancelled() => break,
-                event = source.next() => event,
-            };
-            let Some(event) = event else { break };
-            match event.and_then(map_event) {
-                Ok(Some(frame)) => {
-                    if let StreamFrame::Usage(usage) = &frame {
-                        if let Err(error) = crate::ai::usage::record(
-                            request.purpose,
-                            &context.provider,
-                            &context.model,
-                            usage,
-                        )
-                        .await
-                        {
-                            let _ = sender.unbounded_send(Err(error));
-                            break;
-                        }
-                    }
-                    if sender.unbounded_send(Ok(frame)).is_err() {
-                        break;
-                    }
-                }
-                Ok(None) => {}
-                Err(error) => {
-                    let _ = sender.unbounded_send(Err(provider_error(error)));
-                    break;
-                }
-            }
-        }
-    });
-    Ok(Box::pin(receiver))
-}
-
-fn service_target(adapter: AdapterKind, context: &SecurityContext) -> ServiceTarget {
+pub(super) fn service_target(adapter: AdapterKind, context: &SecurityContext) -> ServiceTarget {
     let auth = context
         .api_key
         .as_ref()
@@ -136,28 +87,6 @@ fn service_target(adapter: AdapterKind, context: &SecurityContext) -> ServiceTar
     }
 }
 
-fn map_event(event: ChatStreamEvent) -> genai::Result<Option<StreamFrame>> {
-    let frame = match event {
-        ChatStreamEvent::Start | ChatStreamEvent::ThoughtSignatureChunk(_) => None,
-        ChatStreamEvent::Chunk(chunk) => Some(StreamFrame::ContentDelta(chunk.content)),
-        ChatStreamEvent::ReasoningChunk(chunk) => Some(StreamFrame::ReasoningDelta(chunk.content)),
-        ChatStreamEvent::ToolCallChunk(_) => {
-            return Err(genai::Error::Internal(
-                "Text-only request returned an unexpected tool call".into(),
-            ));
-        }
-        ChatStreamEvent::End(end) => end
-            .captured_usage
-            .and_then(token_usage)
-            .map(StreamFrame::Usage),
-    };
-    Ok(frame)
-}
-
-fn token_usage(usage: genai::chat::Usage) -> Option<TokenUsage> {
-    crate::ai::usage::from_provider_usage(usage)
-}
-
-fn provider_error(error: genai::Error) -> AiError {
+pub(super) fn provider_error(error: genai::Error) -> AiError {
     AiError::new(AiErrorCode::ProviderRequestFailed, error.to_string())
 }

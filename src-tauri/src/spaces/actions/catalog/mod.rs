@@ -1,5 +1,5 @@
 mod definition;
-mod parameters;
+pub(crate) mod parameters;
 
 use crate::ai::contracts::{ExecutionCapability, RoutingPurpose};
 

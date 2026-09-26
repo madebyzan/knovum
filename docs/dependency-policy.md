@@ -47,6 +47,14 @@ If a future feature needs Shell, WebSocket, updater, notifications, process cont
 
 ## Supply-chain release gates
 
+One narrowly scoped pnpm override addresses the current dependency graph:
+
+- `tauri-plugin-clipboard-api@2.1.11 > valibot` uses `1.4.2`. The plugin uses primitive parsing APIs, verified against the actual plugin's valid and malformed clipboard payloads. Remove the override when the plugin itself selects a supported secure Valibot release and the regression passes.
+
+PptxGenJS and its image-size override are removed: the actual product presentation workflow is Rust-owned, and the former Web worker had no production caller. Do not add a second document serialization engine in the Renderer.
+
+Rust `reqwest` explicitly enables `query`, because provider clients use `RequestBuilder::query`. Do not rely on unrelated SDK dependencies to enable required features transitively. `async-openai`, direct `rig-core` and direct `futures-util` have no current Knovum caller and are not direct dependencies; `rig-core` remains a dependency of the actively used `rig-agent` SDK.
+
 - CI installs from the committed pnpm/Cargo lockfiles only.
 - Production npm dependencies are checked with `pnpm audit --prod --audit-level high`; registry package signatures are checked with `pnpm audit signatures`.
 - Rust advisories and dependency licenses are checked in CI with `EmbarkStudios/cargo-deny-action@v2`; `deny.toml` is the explicit license allowlist and changes to it require release/legal review.

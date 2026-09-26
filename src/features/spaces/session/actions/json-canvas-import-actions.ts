@@ -4,7 +4,7 @@ import type {
   CanvasJsonImportCommitResult,
   CanvasJsonImportRequest,
 } from "../../canvas-exchange/json-canvas-import-contract";
-import { importJsonCanvas as persistJsonCanvas } from "../../canvas-exchange/json-canvas-import-repository";
+import { importJsonCanvas as persistJsonCanvas } from "../../canvas-exchange/json-canvas-import-operations";
 import { resolveImportedRelations } from "../../canvas-exchange/json-canvas-relations";
 import { mergeImportedJsonCanvasStructure } from "../../canvas-exchange/json-canvas-structure-import";
 import type { SpacePlacement } from "../../canvas/navigation-requests";
@@ -86,7 +86,7 @@ export function createJsonCanvasImportActions(context: JsonCanvasImportContext) 
     context.placement.requestReveal(imported.map(({ id }) => id));
     for (const node of imported) {
       if (isSpaceManagedAssetPayload(node.data)) {
-        scheduleSpaceAssetProcessing(assetProcessing, spaceId, node.id, node.data);
+        scheduleSpaceAssetProcessing({ context: assetProcessing, spaceId, nodeId: node.id, data: node.data });
       }
     }
     completeJsonCanvasPreparation(preparation);

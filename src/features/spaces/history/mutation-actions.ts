@@ -3,7 +3,7 @@ import { prepareSpaceKnowledgePayload } from "../knowledge/model/node-knowledge"
 import { validateSpaceNodePayload } from "../model/nodes/schema/node-payload";
 import { applyData } from "./mutation-application";
 import { beginSpaceMutation } from "./mutation-barrier";
-import { requireActiveSpaceId, type SpaceMutationContext, type NodeDataChange } from "./mutation-types";
+import { requireActiveSpaceId, type SpaceMutationContext, type NodePayloadChange } from "./mutation-types";
 import {
   combineRecentSpaceHistory,
   recordSpaceHistory,
@@ -16,7 +16,7 @@ export function createSpaceHistoryMutations(context: SpaceMutationContext) {
   const { nodes, history } = context;
   let canvasMutationLease: (() => void) | undefined;
 
-  async function updateManyData(changes: readonly NodeDataChange[]) {
+  async function updateManyData(changes: readonly NodePayloadChange[]) {
     if (changes.length === 0) return;
     const spaceId = requireActiveSpaceId(context.activeSpaceId);
     const prepared = changes.map((change) => ({
@@ -26,8 +26,8 @@ export function createSpaceHistoryMutations(context: SpaceMutationContext) {
     const apply = (
       entries: readonly {
         id: string;
-        expectedData: NodeDataChange["before"];
-        data: NodeDataChange["after"];
+        expectedData: NodePayloadChange["before"];
+        data: NodePayloadChange["after"];
       }[],
     ) =>
       applyData({ spaceId, changes: entries, nodes, activeSpaceId: context.activeSpaceId }).then(() =>

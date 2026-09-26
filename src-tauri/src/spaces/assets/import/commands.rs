@@ -1,3 +1,4 @@
+use crate::command_error::CommandError;
 use std::path::PathBuf;
 
 use super::super::{enrichment, PreparedAsset};
@@ -16,32 +17,32 @@ pub async fn stage_asset_import(
     source_path: String,
     source_access: ImportSourceAccess,
     clipboard: tauri::State<'_, tauri_plugin_clipboard::Clipboard>,
-) -> Result<prepare::PreparedSpaceImport, String> {
+) -> Result<prepare::PreparedSpaceImport, CommandError> {
     let clipboard_paths = match source_access {
         ImportSourceAccess::Scoped => None,
         ImportSourceAccess::Clipboard => Some(clipboard.read_files()?),
     };
-    crate::blocking::run(move || {
+    Ok((crate::blocking::run(move || {
         let source = PathBuf::from(source_path);
         match clipboard_paths {
             Some(paths) => prepare::prepare_clipboard_asset(&app, source, &paths),
             None => prepare::prepare_asset(&app, source),
         }
     })
-    .await
+    .await)?)
 }
 
 #[tauri::command]
 pub async fn commit_asset_import(
     job_id: String,
     on_progress: tauri::ipc::Channel<commit::AssetImportProgress>,
-) -> Result<PreparedAsset, String> {
-    crate::blocking::run(move || commit::copy_pending_import(&job_id, &on_progress)).await
+) -> Result<PreparedAsset, CommandError> {
+    Ok((crate::blocking::run(move || commit::copy_pending_import(&job_id, &on_progress)).await)?)
 }
 
 #[tauri::command]
-pub async fn cancel_asset_import(job_id: String) -> Result<(), String> {
-    registry::cancel(&job_id)
+pub async fn cancel_asset_import(job_id: String) -> Result<(), CommandError> {
+    Ok((registry::cancel(&job_id))?)
 }
 
 #[tauri::command]
@@ -51,9 +52,9 @@ pub async fn enrich_asset(
     node_id: String,
     job_id: String,
     on_update: tauri::ipc::Channel<serde_json::Value>,
-) -> Result<serde_json::Value, String> {
+) -> Result<serde_json::Value, CommandError> {
     let (cancellation, _lease) = enrichment::registry::acquire(job_id)?;
-    enrichment::enrich_node_with_cancellation(
+    Ok((enrichment::enrich_node_with_cancellation(
         &app,
         space_id,
         node_id,
@@ -61,10 +62,10 @@ pub async fn enrich_asset(
         Some(&on_update),
         None,
     )
-    .await
+    .await)?)
 }
 
 #[tauri::command]
-pub async fn cancel_asset_enrichment(job_id: String) -> Result<(), String> {
-    enrichment::registry::cancel(&job_id)
+pub async fn cancel_asset_enrichment(job_id: String) -> Result<(), CommandError> {
+    Ok((enrichment::registry::cancel(&job_id))?)
 }

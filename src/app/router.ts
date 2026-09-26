@@ -1,5 +1,7 @@
 import { createRouter, createWebHashHistory } from "vue-router";
 
+import { listSpaceActions } from "../features/spaces/workflows/action-catalog";
+
 export const router = createRouter({
   history: createWebHashHistory(),
   routes: [
@@ -13,6 +15,10 @@ export const router = createRouter({
       path: "/settings",
       name: "settings",
       component: () => import("../features/settings/SettingsView.vue"),
+      props: () => ({
+        loadGenerationActions: async () =>
+          (await listSpaceActions()).map(({ id, routingPurpose }) => ({ id, routingPurpose })),
+      }),
     },
     { path: "/:pathMatch(.*)*", redirect: "/spaces" },
   ],

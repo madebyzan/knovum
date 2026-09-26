@@ -38,7 +38,7 @@ impl Writer {
             };
             self.paragraph(
                 first
-                    .style("Normal")
+                    .style("KnovumBody")
                     .numbering(NumberingId::new(id), IndentLevel::new(0)),
             );
             self.blocks(rest, indent + 360)?;

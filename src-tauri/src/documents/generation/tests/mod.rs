@@ -1,6 +1,7 @@
 mod docx;
 mod markdown;
 mod pdf;
+mod pptx;
 mod text;
 
 use super::document::DocumentSource;

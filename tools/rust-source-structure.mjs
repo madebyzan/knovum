@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync, statSync } from "node:fs";
 import { basename, dirname, join, relative, sep } from "node:path";
 
 import { maskRust } from "./rust-source-mask.mjs";
@@ -85,10 +85,10 @@ function checkTestModuleLayout({ root, file, name, source, segments, testDirecto
   }
 }
 
-function checkFileDirectoryCollision({ root, file, name, directory, paths, failures }) {
+function checkFileDirectoryCollision({ root, file, name, directory, failures }) {
   const stem = name.slice(0, -3);
-  if (paths.has(join(directory, stem, "mod.rs"))) {
-    failures.push(`${relative(root, file)}: file module and directory module cannot coexist`);
+  if (existsSync(join(directory, stem)) && statSync(join(directory, stem)).isDirectory()) {
+    failures.push(`${relative(root, file)}: same-name source file and directory cannot coexist`);
   }
 }
 

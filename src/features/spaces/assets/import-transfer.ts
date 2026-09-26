@@ -64,7 +64,13 @@ export async function commitManagedImport(options: CommitManagedImportOptions) {
     throw error;
   }
   if (isSpaceManagedAssetPayload(imported.data) && imported.data.processingState === "processing") {
-    scheduleSpaceAssetProcessing(context, spaceId, imported.node.id, imported.data, taskId);
+    scheduleSpaceAssetProcessing({
+      context,
+      spaceId,
+      nodeId: imported.node.id,
+      data: imported.data,
+      existingTaskId: taskId,
+    });
   } else {
     tasks.succeed(taskId);
   }

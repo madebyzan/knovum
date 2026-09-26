@@ -27,12 +27,12 @@ pub(crate) async fn history(
     .await
     .map_err(db::sql_error)?;
     let values = rows.into_iter().map(|row| {
-        let payload = parse_json(row.get("payload"))?;
+        let payload = parse_json(row.try_get("payload").map_err(db::sql_error)?)?;
         Ok(json!({
-            "id": row.get::<String,_>("id"), "entityKind": row.get::<String,_>("entity_kind"),
-            "entityId": row.get::<String,_>("entity_id"), "eventKind": row.get::<String,_>("event_kind"),
-            "actorKind": row.get::<String,_>("actor_kind"), "actorId": row.get::<Option<String>,_>("actor_id"),
-            "payload": payload, "createdAt": row.get::<i64,_>("created_at"),
+            "id": row.try_get::<String,_>("id").map_err(db::sql_error)?, "entityKind": row.try_get::<String,_>("entity_kind").map_err(db::sql_error)?,
+            "entityId": row.try_get::<String,_>("entity_id").map_err(db::sql_error)?, "eventKind": row.try_get::<String,_>("event_kind").map_err(db::sql_error)?,
+            "actorKind": row.try_get::<String,_>("actor_kind").map_err(db::sql_error)?, "actorId": row.try_get::<Option<String>,_>("actor_id").map_err(db::sql_error)?,
+            "payload": payload, "createdAt": row.try_get::<i64,_>("created_at").map_err(db::sql_error)?,
         }))
     }).collect::<Result<Vec<_>, String>>()?;
     Ok(Value::Array(values))

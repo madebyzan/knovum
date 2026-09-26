@@ -21,6 +21,7 @@ import { canRunAction } from "../../shared/contracts/action-availability";
 import type { AppCommand } from "../../shared/contracts/app-command";
 import UiKbd from "../../shared/ui/UiKbd.vue";
 import UiTooltip from "../../shared/ui/UiTooltip.vue";
+import { commandUnavailableLabelKeys } from "../command-unavailable-labels";
 
 const open = defineModel<boolean>("open", { required: true });
 const props = defineProps<{ commands: readonly AppCommand[] }>();
@@ -58,7 +59,8 @@ function commandReady(command: AppCommand) {
 
 function commandReason(command: AppCommand) {
   const availability = command.availability?.();
-  if (availability?.state === "blocked") return t(`shell.commandUnavailable.${availability.reason}`);
+  if (availability?.state === "blocked")
+    return t(`shell.commandUnavailable.${commandUnavailableLabelKeys[availability.reason]}`);
   if (availability?.state === "checking") return t("shell.commandUnavailable.checking");
   if (availability?.state === "busy") return t("shell.commandUnavailable.busy");
   return "";

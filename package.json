@@ -13,7 +13,7 @@
     "lint:fix": "oxlint --fix .",
     "format": "oxfmt .",
     "format:check": "oxfmt --check .",
-    "architecture": "node tools/check-frontend-source-structure.mjs && node tools/check-ai-provider-catalog.mjs && depcruise --config .dependency-cruiser.cjs src",
+    "architecture": "node tools/check-frontend-source-structure.mjs && node tools/check-ai-provider-catalog.mjs && depcruise --config .dependency-cruiser.cjs src && pnpm architecture:reachable",
     "test": "vitest run",
     "test:watch": "vitest",
     "deadcode": "knip",
@@ -37,10 +37,11 @@
     "package:release": "node tools/package-desktop.mjs --release",
     "package:release:macos": "node tools/package-desktop.mjs --release --bundles app,dmg",
     "package:release:windows": "node tools/package-desktop.mjs --release --bundles nsis",
-    "check:authority": "node tools/check-tauri-command-coverage.mjs",
+    "check:authority": "node --test tools/command-address-tokens.test.mjs && node tools/check-tauri-command-coverage.mjs",
     "architecture:rust": "node tools/check-rust-architecture.mjs",
     "smoke:cutout:build": "pnpm build:e2e && tauri build --no-bundle --features e2e --config src-tauri/tauri.e2e.conf.json",
-    "smoke:cutout": "pnpm smoke:cutout:build && wdio run wdio.release.conf.ts"
+    "smoke:cutout": "pnpm smoke:cutout:build && wdio run wdio.release.conf.ts",
+    "architecture:reachable": "node --test tools/production-reachability.test.mjs && depcruise --config .dependency-cruiser.cjs --output-type json src | node tools/check-production-reachability.mjs"
   },
   "dependencies": {
     "@internationalized/date": "^3.12.4",
@@ -83,7 +84,6 @@
     "p-limit": "4.0.0",
     "pathe": "^2.0.3",
     "pinia": "^4.0.3",
-    "pptxgenjs": "4.0.1",
     "rbush": "4.0.1",
     "reka-ui": "^2.10.4",
     "tailwind-merge": "^3.6.0",

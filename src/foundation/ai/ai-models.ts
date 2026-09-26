@@ -1,42 +1,16 @@
 import { z } from "zod";
 
-export const aiProviderSchema = z.enum([
-  "openai",
-  "openai-compatible",
-  "openrouter",
-  "deepseek",
-  "anthropic",
-  "gemini",
-  "qwen",
-  "zhipu",
-  "siliconflow",
-  "kling",
-  "grok",
-  "groq",
-  "mistral",
-  "together",
-  "stepfun",
-  "moonshot",
-  "doubao",
-  "minimax",
-  "ollama",
-]);
+import type { AiConnectionSettings } from "../../shared/contracts/generated/AiConnectionSettings";
+import type { AiModelDefinition } from "../../shared/contracts/generated/AiModelDefinition";
+import {
+  providerKinds,
+  executionCapabilities,
+  routingPurposes,
+} from "../../shared/contracts/generated/contract-values";
 
-export const aiCapabilitySchema = z.enum([
-  "text-generation",
-  "vision-understanding",
-  "image-generation",
-  "video-generation",
-]);
-
-export const aiRoutingPurposeSchema = z.enum([
-  "writing",
-  "knowledge",
-  "visual-understanding",
-  "translation",
-  "image-generation",
-  "video-generation",
-]);
+export const aiProviderSchema = z.enum(providerKinds);
+export const aiCapabilitySchema = z.enum(executionCapabilities);
+export const aiRoutingPurposeSchema = z.enum(routingPurposes);
 
 const aiModelDefinitionSchema = z
   .object({
@@ -65,11 +39,9 @@ export const aiConnectionSettingsSchema = z
     }
   });
 
-const aiModelTargetSchema = z
+export const executionTargetSchema = z
   .object({ type: z.literal("model"), connectionId: z.string().min(1), modelId: z.string().min(1) })
   .strict();
-
-const executionTargetSchema = aiModelTargetSchema;
 
 export const aiDefaultsSchema = z
   .object({
@@ -92,14 +64,13 @@ export const generationPresetSchema = z
   })
   .strict();
 
-export type AiProvider = z.infer<typeof aiProviderSchema>;
-export type AiModelCapability = z.infer<typeof aiCapabilitySchema>;
-export type AiRoutingPurpose = z.infer<typeof aiRoutingPurposeSchema>;
-export type AiModelDefinition = z.infer<typeof aiModelDefinitionSchema>;
-export type AiConnectionSettings = z.infer<typeof aiConnectionSettingsSchema>;
-export type AiModelTarget = z.infer<typeof aiModelTargetSchema>;
-export type ExecutionTarget = z.infer<typeof executionTargetSchema>;
-export type AiRoutingDefaults = z.infer<typeof aiDefaultsSchema>;
+export type { ProviderKind as AiProvider } from "../../shared/contracts/generated/ProviderKind";
+export type { ExecutionCapability as AiModelCapability } from "../../shared/contracts/generated/ExecutionCapability";
+export type { RoutingPurpose as AiRoutingPurpose } from "../../shared/contracts/generated/RoutingPurpose";
+export type { AiModelDefinition } from "../../shared/contracts/generated/AiModelDefinition";
+export type { AiConnectionSettings } from "../../shared/contracts/generated/AiConnectionSettings";
+export type { ExecutionTargetRef as ExecutionTarget } from "../../shared/contracts/generated/ExecutionTargetRef";
+export type { AiRoutingDefaults } from "../../shared/contracts/generated/AiRoutingDefaults";
 export type GenerationPreset = z.infer<typeof generationPresetSchema>;
 
 export interface ResolvedAiModelTarget {

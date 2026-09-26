@@ -1,3 +1,4 @@
+use crate::command_error::CommandError;
 use serde::{Deserialize, Serialize};
 use sqlx::Row;
 use tauri::{AppHandle, Runtime};
@@ -31,7 +32,7 @@ enum StructureSearchKind {
 pub(crate) async fn search_structure_global<R: Runtime>(
     app: AppHandle<R>,
     request: StructureSearchRequest,
-) -> Result<Vec<StructureSearchMatch>, String> {
+) -> Result<Vec<StructureSearchMatch>, CommandError> {
     let query = request.query.trim();
     if query.is_empty() || query.encode_utf16().count() > 512 {
         return Err("Structure search query must contain 1 to 512 characters".into());
@@ -55,7 +56,10 @@ pub(crate) async fn search_structure_global<R: Runtime>(
         .await
         .map_err(db::sql_error)?;
         if !rows.is_empty() {
-            return rows.into_iter().map(decode_match).collect();
+            return Ok((rows
+                .into_iter()
+                .map(decode_match)
+                .collect::<Result<_, String>>())?);
         }
     }
     let mut sql = String::from(
@@ -71,13 +75,13 @@ pub(crate) async fn search_structure_global<R: Runtime>(
     for term in plan.terms {
         search = search.bind(term);
     }
-    search
+    Ok((search
         .fetch_all(pool)
         .await
         .map_err(db::sql_error)?
         .into_iter()
         .map(decode_match)
-        .collect()
+        .collect::<Result<_, String>>())?)
 }
 
 fn decode_match(row: sqlx::sqlite::SqliteRow) -> Result<StructureSearchMatch, String> {

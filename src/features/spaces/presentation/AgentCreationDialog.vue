@@ -3,13 +3,13 @@ import { Bot, Paperclip, Trash2, X } from "@lucide/vue";
 import { watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { isSystemPreviewAvailable } from "../../../foundation/system-preview/system-preview";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiDialog from "../../../shared/ui/UiDialog.vue";
 import UiSelect from "../../../shared/ui/UiSelect.vue";
 import UiTextarea from "../../../shared/ui/UiTextarea.vue";
 import { useAgentAttachments } from "../agent-creation/use-agent-attachments";
 import { useAgentCreation } from "../agent-creation/use-agent-creation";
+import { isAssetPreviewAvailable } from "../assets/asset-preview";
 import { useNodeOperationGate } from "../canvas/node-operation-gate";
 import SpaceAgentArtifactList from "./SpaceAgentArtifactList.vue";
 
@@ -38,7 +38,7 @@ const {
   selectRecovery,
   openAgentSettings,
 } = useAgentCreation(open);
-const canPreview = isSystemPreviewAvailable();
+const canPreview = isAssetPreviewAvailable();
 const {
   paths: attachmentPaths,
   attachments,

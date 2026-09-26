@@ -1,5 +1,6 @@
-import { invoke } from "@tauri-apps/api/core";
 import { z } from "zod";
+
+import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
 
 const recordingSessionSchema = z.object({ sessionId: z.uuid() }).strict();
 const recordedAssetSchema = z

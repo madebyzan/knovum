@@ -92,7 +92,7 @@ function manifest() {
 describe("Space package manifest parser", () => {
   it("accepts regenerated canonical citations and detached historical snapshots", () => {
     const parsed = parseSpacePackageManifest(JSON.stringify(manifest()));
-    expect(parsed.version).toBe(4);
+    expect(parsed.version).toBe(5);
     expect(
       parsed.assistantMessages[0]?.content.citations?.map(
         (citation) => (citation as { state: string }).state,
@@ -120,6 +120,9 @@ describe("Space package manifest parser", () => {
           sourceSnapshot: { title: "Note", kind: "note", originalUrl: null, platform: null },
           role: "primary",
           sourceRevision: "node1:source",
+          revisionBasis: "knowledge",
+          inputRevision: "node1:source",
+          inputSnapshot: null,
         },
       ],
       actionKind: "remove-image-background",

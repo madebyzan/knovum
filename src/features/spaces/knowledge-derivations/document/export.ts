@@ -1,9 +1,8 @@
-import { invoke } from "@tauri-apps/api/core";
-
 import { i18n } from "../../../../foundation/i18n/i18n";
+import { invokeCommand as invoke } from "../../../../foundation/ipc/invoke-command";
 import { useCanvasEditorSession } from "../../canvas/editor-session";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
-import type { SpaceFilePayload, SpaceMarkdownPayload } from "../../model/nodes/node-payload";
+import type { SpaceFilePayload } from "../../model/nodes/node-payload";
 import type { useSpaceStore } from "../../session/space-store";
 import { markProcessingNodeFailed } from "../pending-node";
 import { derivedNodePosition } from "../placement";
@@ -18,11 +17,11 @@ interface ExportOutput {
 
 interface ExportMarkdownDocumentOptions {
   store: Store;
-  source: CurrentMarkdownNode;
+  source: IndexedMarkdownNode;
   format: DocumentFormat;
 }
 
-type CurrentMarkdownNode = SpaceCanvasNode & {
+type IndexedMarkdownNode = SpaceCanvasNode & {
   data: { kind: "markdown"; title: string; knowledgeRevision: string };
 };
 
@@ -90,16 +89,6 @@ export async function exportMarkdownDocument({ store, source, format }: ExportMa
   });
 }
 
-export type PopulatedMarkdownNode = SpaceCanvasNode & {
-  data: SpaceMarkdownPayload & { text: string; knowledgeRevision: string };
-};
-
-export function isKnowledgeMarkdown(node: SpaceCanvasNode): node is CurrentMarkdownNode {
+export function isKnowledgeMarkdown(node: SpaceCanvasNode): node is IndexedMarkdownNode {
   return node.data.kind === "markdown" && Boolean(node.data.knowledgeRevision);
 }
-
-export function isPopulatedMarkdown(node: SpaceCanvasNode): node is PopulatedMarkdownNode {
-  return isKnowledgeMarkdown(node) && Boolean(node.data.text);
-}
-
-export const isCurrentMarkdown = isKnowledgeMarkdown;

@@ -4,23 +4,26 @@ import { useI18n } from "vue-i18n";
 
 import type { AiRoutingPurpose, GenerationPreset } from "../../../foundation/ai/ai-models";
 import AiExecutionTargetField from "../../../foundation/ai/AiExecutionTargetField.vue";
-import { listSpaceActions, type SpaceActionDefinition } from "../../../foundation/ai/space-action-catalog";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiDialog from "../../../shared/ui/UiDialog.vue";
 import UiInput from "../../../shared/ui/UiInput.vue";
+import type { GenerationActionOption } from "../generation-action-option";
 import CreationParameterFields from "./CreationParameterFields.vue";
 
 const open = defineModel<boolean>("open", { required: true });
-const props = defineProps<{ preset: GenerationPreset }>();
+const props = defineProps<{
+  preset: GenerationPreset;
+  loadGenerationActions: () => Promise<GenerationActionOption[]>;
+}>();
 const emit = defineEmits<{ save: [preset: GenerationPreset] }>();
 const { t } = useI18n();
 const draft = ref<GenerationPreset>(structuredClone(props.preset));
-const actions = shallowRef<SpaceActionDefinition[]>([]);
+const actions = shallowRef<GenerationActionOption[]>([]);
 const actionLoadError = shallowRef<unknown>();
 
 onMounted(async () => {
   try {
-    actions.value = await listSpaceActions();
+    actions.value = await props.loadGenerationActions();
   } catch (error) {
     actionLoadError.value = error;
   }

@@ -2,8 +2,9 @@ use super::SpaceEditCommand;
 use crate::spaces::structure::{RelationStyle, StructureLayout, StructureNode};
 use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub(crate) struct SpaceEditSnapshotResponse {
     pub edit_revision: i64,
     pub structure: Vec<StructureNode>,
@@ -11,8 +12,9 @@ pub(crate) struct SpaceEditSnapshotResponse {
     pub relation_styles: Vec<RelationStyle>,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub(crate) struct ExecuteSpaceEditRequest {
     pub space_id: String,
     pub mutation_id: String,
@@ -20,22 +22,25 @@ pub(crate) struct ExecuteSpaceEditRequest {
     pub command: SpaceEditCommand,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub(crate) struct SpaceEditHistoryRequest {
     pub space_id: String,
     pub expected_edit_revision: i64,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub(crate) struct SpaceEditHistoryReceipt {
     pub applied_at_revision: i64,
     pub selection_suggestion: Vec<String>,
 }
 
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, ts_rs::TS)]
 #[serde(tag = "kind", rename_all = "lowercase", deny_unknown_fields)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub(crate) enum FieldUpdate<T> {
     #[default]
     Keep,
@@ -45,16 +50,17 @@ pub(crate) enum FieldUpdate<T> {
     Clear,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[allow(dead_code)]
+#[derive(Clone, Debug, Deserialize, Serialize, ts_rs::TS)]
 #[serde(deny_unknown_fields)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub(crate) struct SpacePoint {
     pub x: f64,
     pub y: f64,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, ts_rs::TS)]
 #[serde(deny_unknown_fields)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub(crate) struct SpaceRect {
     pub x: f64,
     pub y: f64,
@@ -62,9 +68,9 @@ pub(crate) struct SpaceRect {
     pub height: f64,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[allow(dead_code)]
+#[derive(Clone, Debug, Deserialize, Serialize, ts_rs::TS)]
 #[serde(rename_all = "lowercase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub(crate) enum AlignmentEdge {
     Left,
     Center,
@@ -74,16 +80,17 @@ pub(crate) enum AlignmentEdge {
     Bottom,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[allow(dead_code)]
+#[derive(Clone, Debug, Deserialize, Serialize, ts_rs::TS)]
 #[serde(rename_all = "lowercase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub(crate) enum DistributionAxis {
     Horizontal,
     Vertical,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, ts_rs::TS)]
 #[serde(rename_all = "lowercase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub(crate) enum ReorderDirection {
     Front,
     Forward,
@@ -91,15 +98,17 @@ pub(crate) enum ReorderDirection {
     Back,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, ts_rs::TS)]
 #[serde(rename_all = "lowercase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub(crate) enum AutoLayoutDirection {
     Right,
     Down,
 }
 
-#[derive(Clone, Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub(crate) struct SpaceEditReceipt {
     pub mutation_id: String,
     pub applied_at_revision: i64,

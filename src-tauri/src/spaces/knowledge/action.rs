@@ -67,12 +67,12 @@ pub(crate) async fn search(
     .fetch_all(&mut **tx)
     .await
     .map_err(db::sql_error)?;
-    Ok(Value::Array(rows.into_iter().map(|row| serde_json::json!({
-        "nodeId": row.get::<String,_>("id"), "kind": row.get::<String,_>("kind"),
-        "title": row.get::<Option<String>,_>("title"), "preview": row.get::<String,_>("preview"),
-        "sourceRevision": row.get::<String,_>("source_revision"),
-        "locator": serde_json::from_str::<Value>(&row.get::<String,_>("locator")).unwrap_or(Value::Null),
-    })).collect()))
+    Ok(Value::Array(rows.into_iter().map(|row| Ok(serde_json::json!({
+        "nodeId": row.try_get::<String,_>("id").map_err(db::sql_error)?, "kind": row.try_get::<String,_>("kind").map_err(db::sql_error)?,
+        "title": row.try_get::<Option<String>,_>("title").map_err(db::sql_error)?, "preview": row.try_get::<String,_>("preview").map_err(db::sql_error)?,
+        "sourceRevision": row.try_get::<String,_>("source_revision").map_err(db::sql_error)?,
+        "locator": serde_json::from_str::<Value>(&row.try_get::<String,_>("locator").map_err(db::sql_error)?).map_err(db::json_error)?,
+    }))).collect::<Result<Vec<_>, String>>()?))
 }
 
 pub(crate) async fn read_node(
@@ -94,10 +94,10 @@ pub(crate) async fn read_node(
     .await
     .map_err(db::sql_error)?
     .ok_or("node-unavailable: node does not exist")?;
-    let data: String = row.get("data");
+    let data: String = row.try_get("data").map_err(db::sql_error)?;
     Ok(serde_json::json!({
-        "id": row.get::<String,_>("id"), "kind": row.get::<String,_>("kind"),
+        "id": row.try_get::<String,_>("id").map_err(db::sql_error)?, "kind": row.try_get::<String,_>("kind").map_err(db::sql_error)?,
         "data": serde_json::from_str::<Value>(&data).map_err(db::json_error)?,
-        "updatedAt": row.get::<i64,_>("updated_at"),
+        "updatedAt": row.try_get::<i64,_>("updated_at").map_err(db::sql_error)?,
     }))
 }

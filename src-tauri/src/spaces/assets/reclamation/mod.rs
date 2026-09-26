@@ -21,3 +21,6 @@ pub(crate) async fn unreferenced_paths(
         .filter(|path| !referenced.contains(path))
         .collect())
 }
+
+#[cfg(test)]
+mod tests;

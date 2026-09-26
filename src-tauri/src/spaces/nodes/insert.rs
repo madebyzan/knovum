@@ -38,7 +38,7 @@ pub async fn insert_many<R: Runtime>(
     let (mut snapshot, revision) =
         structure::repository::load_in_transaction(&mut tx, &request.space_id).await?;
     if revision != request.expected_edit_revision {
-        return Err("Space edit revision conflict".into());
+        return Err("space-edit-revision-conflict: Space edit revision conflict".into());
     }
     let before = structure::history::capture(&mut tx, &request.space_id, &snapshot).await?;
     let selection = structure::creation::append_content(

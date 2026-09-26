@@ -2,10 +2,10 @@ use serde::Serialize;
 
 use crate::ai::contracts::{ExecutionCapability, ProviderKind};
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub struct ProviderDescriptor {
-    pub id: &'static str,
+    pub id: ProviderKind,
     pub display_name: &'static str,
     pub default_base_url: &'static str,
     pub capabilities: &'static [ExecutionCapability],
@@ -156,7 +156,7 @@ const fn define_provider(
     capabilities: &'static [ExecutionCapability],
 ) -> ProviderDescriptor {
     ProviderDescriptor {
-        id: kind.as_str(),
+        id: kind,
         display_name,
         default_base_url,
         capabilities,
@@ -168,7 +168,5 @@ pub fn descriptors() -> &'static [ProviderDescriptor] {
 }
 
 pub fn descriptor(kind: ProviderKind) -> Option<&'static ProviderDescriptor> {
-    PROVIDERS
-        .iter()
-        .find(|descriptor| descriptor.id == kind.as_str())
+    PROVIDERS.iter().find(|descriptor| descriptor.id == kind)
 }

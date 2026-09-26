@@ -2,6 +2,7 @@
 import { computed, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { decodeCommandError } from "../../../../foundation/ipc/command-error";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiDialog from "../../../../shared/ui/UiDialog.vue";
 import UiMarkdown from "../../../../shared/ui/UiMarkdown.vue";
@@ -45,9 +46,10 @@ async function load() {
     reviewedNodeId.value = review.nodeId;
     edited.value = review.edited;
   } catch (cause) {
-    error.value = String(cause).includes("workflow-review-unavailable")
-      ? t("spaces.creation.workflowReviewUnavailable")
-      : String(cause);
+    error.value =
+      decodeCommandError(cause)?.code === "workflow_review_unavailable"
+        ? t("spaces.creation.workflowReviewUnavailable")
+        : String(cause);
   } finally {
     loading.value = false;
   }
@@ -67,9 +69,10 @@ async function decide(approved: boolean) {
     emit("close");
   } catch (cause) {
     await load();
-    error.value = String(cause).includes("reviewed-revision-changed")
-      ? t("spaces.creation.workflowReviewChanged")
-      : String(cause);
+    error.value =
+      decodeCommandError(cause)?.code === "reviewed_revision_changed"
+        ? t("spaces.creation.workflowReviewChanged")
+        : String(cause);
   } finally {
     deciding.value = false;
   }

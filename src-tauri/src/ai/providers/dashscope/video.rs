@@ -1,3 +1,4 @@
+use crate::ai::transport::response;
 use futures::future::BoxFuture;
 use tokio_util::sync::CancellationToken;
 
@@ -42,10 +43,9 @@ impl VideoGenerationCapability for DashScopeVideoAdapter {
                 .await
                 .map_err(provider_err)?
                 .error_for_status()
-                .map_err(provider_err)?
-                .json::<protocol::WanResponse>()
-                .await
                 .map_err(provider_err)?;
+            let submission_response: protocol::WanResponse =
+                response::read_json(submission_response, response::MAX_CONTROL_JSON_BYTES).await?;
 
             let task = submission_response.output.ok_or_else(|| {
                 response_error(submission_response.code, submission_response.message)
@@ -76,10 +76,9 @@ impl VideoGenerationCapability for DashScopeVideoAdapter {
                 .await
                 .map_err(provider_err)?
                 .error_for_status()
-                .map_err(provider_err)?
-                .json::<protocol::WanResponse>()
-                .await
                 .map_err(provider_err)?;
+            let query_response: protocol::WanResponse =
+                response::read_json(query_response, response::MAX_CONTROL_JSON_BYTES).await?;
 
             let output = query_response
                 .output

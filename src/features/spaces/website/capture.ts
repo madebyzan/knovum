@@ -162,10 +162,14 @@ async function persistWebsite(
   );
   try {
     await saveBinding(target, next);
-    await removeSpaceAssets(stalePaths);
   } catch (error) {
     await removeSpaceAssets(cachedPaths);
     throw error;
+  }
+  try {
+    await removeSpaceAssets(stalePaths);
+  } catch (error) {
+    void logWarn(`Website asset reclamation failed for ${target.id}: ${String(error)}`);
   }
 }
 

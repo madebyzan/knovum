@@ -1,9 +1,12 @@
-import { Channel, invoke } from "@tauri-apps/api/core";
+import type { ImageAspectRatio } from "../contracts/generated/ImageAspectRatio";
+export type { ImageAspectRatio } from "../contracts/generated/ImageAspectRatio";
+import { Channel } from "@tauri-apps/api/core";
 
 import { aiExecutionTargetPayload, loadAiExecutionTarget } from "../../../foundation/ai/ai-execution";
 import type { ExecutionTarget } from "../../../foundation/ai/ai-models";
 import { cancelAiJob } from "../../../foundation/ai/ai-runtime";
 import { i18n } from "../../../foundation/i18n/i18n";
+import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import { useCanvasEditorSession } from "../canvas/editor-session";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
@@ -23,7 +26,7 @@ export interface VisualizationDraft {
   aspectRatio: ImageAspectRatio;
   target?: ExecutionTarget | undefined;
 }
-export type ImageAspectRatio = "1:1" | "3:2" | "2:3" | "16:9" | "9:16";
+
 const imageAspectRatios: ReadonlySet<unknown> = new Set(["1:1", "3:2", "2:3", "16:9", "9:16"]);
 
 export function isImageAspectRatio(value: unknown): value is ImageAspectRatio {

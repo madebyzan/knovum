@@ -1,9 +1,9 @@
-import { invoke } from "@tauri-apps/api/core";
 import { openUrl } from "@tauri-apps/plugin-opener";
 
-import { openSystemPreview } from "../../../foundation/system-preview/system-preview";
+import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
+import { previewSpaceAsset } from "../assets/asset-preview";
 import type { SpaceClipboardPayload } from "../clipboard/payload-types";
-import { importStructureClipboard } from "../clipboard/structure-clipboard-repository";
+import { importStructureClipboard } from "../clipboard/structure-clipboard-operations";
 import { readSpaceClipboardHtml, writeSpaceClipboardDirect } from "../clipboard/transfer";
 import type { PositionedSpaceNode, SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { isSpaceManagedAssetPayload } from "../model/nodes/capabilities";
@@ -102,7 +102,7 @@ export async function openSpaceNode(store: ReturnType<typeof useSpaceStore>, nod
     await invoke("plugin:spaces|preview_image", { spaceId, nodeId: node.id });
     return;
   }
-  if (isSpaceManagedAssetPayload(node.data)) await openSystemPreview(node.data.assetPath);
+  if (isSpaceManagedAssetPayload(node.data)) await previewSpaceAsset(node.data.assetPath);
 }
 
 export function isSpaceNodeOpenable(node?: SpaceCanvasNode) {

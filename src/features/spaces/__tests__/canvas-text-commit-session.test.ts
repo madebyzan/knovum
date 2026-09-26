@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { flushSpaceSessionCommits, registerSpaceSessionParticipant } from "../canvas/editor-session";
-import { deferred } from "../testing/canvas-fixtures";
+import { deferred } from "../test-support/canvas-fixtures";
 
 describe("canvas text commit session", () => {
   it("waits for every registered editor commit", async () => {

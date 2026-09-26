@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use super::ModelDescriptor;
 
-#[derive(Clone, Copy, Deserialize, Serialize, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Deserialize, Serialize, PartialEq, Eq, Hash, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub enum ModelKind {
     Transcription,

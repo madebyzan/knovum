@@ -2,13 +2,13 @@
 import { onBeforeUnmount, onMounted, useTemplateRef, watch } from "vue";
 
 import type { CanvasExchangePort } from "../../canvas-exchange/canvas-exchange-port";
+import { jsonCanvasCodec } from "../../canvas-exchange/json-canvas-codec";
 import { createJsonCanvasExchangePort } from "../../canvas-exchange/json-canvas-exchange";
 import type {
   CanvasJsonImportCommitResult,
   CanvasJsonImportDraft,
   CanvasJsonImportRequest,
 } from "../../canvas-exchange/json-canvas-import-contract";
-import { jsonCanvasCodec } from "../../canvas-exchange/json-canvas-repository";
 import type { SpaceRelation } from "../../model/relations/relation";
 import type { CanvasHostEvents, CanvasSurfaceEvents } from "../contract/canvas-editor";
 import type { CanvasNodeContentSlotProps, CanvasSceneInput } from "../contract/canvas-surface";

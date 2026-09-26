@@ -29,7 +29,7 @@ pub struct ModelDescriptor {
     pub download_size: u64,
 }
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub struct ModelStatus {
     pub installed: bool,
@@ -39,7 +39,7 @@ pub struct ModelStatus {
     pub download_size: u64,
 }
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub struct ModelDownloadProgress {
     pub downloaded: u64,
@@ -51,10 +51,7 @@ pub fn resolve_model_path<R: Runtime>(
     app: &AppHandle<R>,
     descriptor: ModelDescriptor,
 ) -> Result<PathBuf, String> {
-    if let Some(path) = std::env::var_os(descriptor.env_key)
-        .map(PathBuf::from)
-        .filter(|path| path.is_file())
-    {
+    if let Some(path) = super::configured_path::configured_path(descriptor.env_key)? {
         return Ok(path);
     }
     installation_path(app, descriptor)

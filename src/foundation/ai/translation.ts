@@ -1,5 +1,7 @@
-import { Channel, invoke } from "@tauri-apps/api/core";
+import { Channel } from "@tauri-apps/api/core";
 
+import type { TranslationCommandRequest } from "../../shared/contracts/generated/TranslationCommandRequest";
+import { invokeCommand as invoke } from "../ipc/invoke-command";
 import { aiExecutionTargetPayload, loadAiExecutionTarget } from "./ai-execution";
 import { decodeAiErrorPayload, type AiCompletionResponse, type AiCompletionStreamEvent } from "./ai-runtime";
 
@@ -17,7 +19,7 @@ export type TranslationTarget =
   | "ru"
   | "ar";
 
-export interface TranslationRequest {
+export interface TranslationInput {
   text: string;
   target: TranslationTarget;
 }
@@ -35,7 +37,7 @@ class TranslationError extends Error {
 }
 
 export async function translateTextStream(
-  request: TranslationRequest,
+  request: TranslationInput,
   jobId: string,
   onEvent: (event: AiCompletionStreamEvent) => void,
 ): Promise<string> {
@@ -50,7 +52,7 @@ export async function translateTextStream(
         executionTarget: aiExecutionTargetPayload(executionTarget),
         text: request.text,
         targetLanguage: request.target,
-      },
+      } satisfies TranslationCommandRequest,
       jobId,
       onEvent: channel,
     });

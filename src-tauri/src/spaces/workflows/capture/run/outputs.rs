@@ -5,8 +5,9 @@ use sqlx::{Row, SqlitePool};
 use super::super::types::CaptureCandidate;
 use crate::spaces::db;
 
-#[derive(Serialize)]
+#[derive(Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub(crate) struct CapturedRunOutput {
     pub output_slot_id: String,
     pub name: String,

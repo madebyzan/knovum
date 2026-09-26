@@ -46,7 +46,9 @@ impl Reader<'_> {
                     table.header = self.cells(TagEnd::TableHead, columns, depth + 1)?;
                 }
                 Event::Start(Tag::TableRow) => {
-                    table.rows.push(self.cells(TagEnd::TableRow, columns, depth + 1)?);
+                    table
+                        .rows
+                        .push(self.cells(TagEnd::TableRow, columns, depth + 1)?);
                 }
                 Event::End(TagEnd::Table) => return Ok(Block::Table(table)),
                 _ => return Err("Unexpected Markdown table event".into()),
@@ -55,7 +57,12 @@ impl Reader<'_> {
         Err("Unclosed Markdown table".into())
     }
 
-    fn cells(&mut self, end: TagEnd, columns: usize, depth: usize) -> Result<Vec<Vec<Inline>>, String> {
+    fn cells(
+        &mut self,
+        end: TagEnd,
+        columns: usize,
+        depth: usize,
+    ) -> Result<Vec<Vec<Inline>>, String> {
         Self::check_depth(depth)?;
         let mut cells = Vec::new();
         while let Some(event) = self.next()? {

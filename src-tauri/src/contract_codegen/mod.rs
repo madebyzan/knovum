@@ -1,0 +1,84 @@
+use std::path::Path;
+
+use schemars::schema_for;
+use ts_rs::Config;
+
+mod types;
+
+pub fn export(project_root: &Path) -> Result<(), String> {
+    let output = project_root.join("src/shared/contracts/generated");
+    let config = Config::new().with_out_dir(&output).with_large_int("number");
+    types::export(&config)?;
+    export_runtime_values(&output)?;
+    let spaces_output = project_root.join("src/features/spaces/contracts/generated");
+    std::fs::write(
+        spaces_output.join("contract-values.ts"),
+        format!("// Generated from Rust contracts. Do not edit.\nexport const maxKnowledgePassageBytes = {} as const;\n", crate::spaces::knowledge::indexing::MAX_KNOWLEDGE_PASSAGE_BYTES),
+    ).map_err(io_error)?;
+    export_schemas(&spaces_output)
+}
+
+fn export_schemas(output: &Path) -> Result<(), String> {
+    std::fs::create_dir_all(output).map_err(io_error)?;
+    let workflow = schema_for!(crate::spaces::workflows::WorkflowDefinition);
+    write_json(&output.join("workflow-definition.schema.json"), &workflow)?;
+    let action_schemas = crate::spaces::actions::definitions()
+        .iter()
+        .map(|definition| {
+            (
+                definition.id.to_owned(),
+                crate::spaces::actions::parameter_schema(definition),
+            )
+        })
+        .collect::<serde_json::Map<_, _>>();
+    write_json(
+        &output.join("space-action-parameters.schema.json"),
+        &action_schemas,
+    )
+}
+
+fn write_json(path: &Path, value: &impl serde::Serialize) -> Result<(), String> {
+    let bytes = serde_json::to_vec_pretty(value).map_err(|error| error.to_string())?;
+    std::fs::write(path, bytes).map_err(io_error)
+}
+
+fn io_error(error: std::io::Error) -> String {
+    error.to_string()
+}
+
+#[cfg(test)]
+mod tests;
+
+fn export_runtime_values(output: &Path) -> Result<(), String> {
+    let enums = [
+        ("aiErrorCodes", schema_for!(crate::ai::error::AiErrorCode)),
+        (
+            "usagePurposes",
+            schema_for!(crate::ai::usage::contracts::UsagePurpose),
+        ),
+        (
+            "providerKinds",
+            schema_for!(crate::ai::contracts::ProviderKind),
+        ),
+        (
+            "executionCapabilities",
+            schema_for!(crate::ai::contracts::ExecutionCapability),
+        ),
+        (
+            "routingPurposes",
+            schema_for!(crate::ai::contracts::RoutingPurpose),
+        ),
+        ("agentKinds", schema_for!(crate::ai::contracts::AgentKind)),
+    ];
+    let mut source = String::from("// Generated from Rust contracts. Do not edit.\n");
+    for (name, schema) in enums {
+        let values = schema
+            .get("enum")
+            .ok_or("Expected an enum schema for runtime values")?;
+        source.push_str(&format!(
+            "export const {name} = {} as const;\n",
+            serde_json::to_string(values).map_err(|error| error.to_string())?
+        ));
+    }
+    std::fs::write(output.join("contract-values.ts"), source).map_err(io_error)
+}

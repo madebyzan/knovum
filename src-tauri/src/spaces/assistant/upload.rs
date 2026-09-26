@@ -1,3 +1,4 @@
+use crate::command_error::CommandError;
 use std::path::{Path, PathBuf};
 
 use serde::Serialize;
@@ -14,9 +15,10 @@ pub(super) enum UploadKind {
     Office,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
-pub(crate) struct InspectedUpload {
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
+pub(crate) struct InspectedAssistantUpload {
     pub path: String,
     pub source_revision: String,
 }
@@ -25,11 +27,11 @@ pub(crate) struct InspectedUpload {
 pub async fn inspect_assistant_upload(
     app: tauri::AppHandle,
     path: String,
-) -> Result<InspectedUpload, String> {
-    crate::blocking::run(move || inspect(&app, &path)).await
+) -> Result<InspectedAssistantUpload, CommandError> {
+    Ok((crate::blocking::run(move || inspect(&app, &path)).await)?)
 }
 
-fn inspect(app: &tauri::AppHandle, path: &str) -> Result<InspectedUpload, String> {
+fn inspect(app: &tauri::AppHandle, path: &str) -> Result<InspectedAssistantUpload, String> {
     let source = authorize(app, path)?;
     source
         .file_name()
@@ -50,7 +52,7 @@ fn inspect(app: &tauri::AppHandle, path: &str) -> Result<InspectedUpload, String
         }
         UploadKind::Pdf | UploadKind::Office => {}
     }
-    Ok(InspectedUpload {
+    Ok(InspectedAssistantUpload {
         path: source.to_string_lossy().into_owned(),
         source_revision: crate::file_inspection::content_revision(&source)?,
     })
@@ -58,7 +60,8 @@ fn inspect(app: &tauri::AppHandle, path: &str) -> Result<InspectedUpload, String
 
 pub(super) fn authorize(app: &tauri::AppHandle, path: &str) -> Result<PathBuf, String> {
     let source = Path::new(path);
-    crate::spaces::assets::authorize_source(app, source)?;
+    crate::spaces::assets::authorize_source(app, source)
+        .map_err(|error| format!("assistant-upload-unauthorized: {error}"))?;
     if !source.is_file() {
         return Err("assistant-upload-invalid: select a regular file".into());
     }

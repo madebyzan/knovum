@@ -6,31 +6,54 @@ use super::{
     media::{ImageGenerationCapability, VideoGenerationCapability},
 };
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, ts_rs::TS, schemars::JsonSchema,
+)]
 #[serde(rename_all = "snake_case")]
 pub enum ProviderKind {
+    #[serde(rename = "openai")]
     OpenAi,
+    #[serde(rename = "openai-compatible")]
     OpenAiCompatible,
+    #[serde(rename = "openrouter")]
     OpenRouter,
+    #[serde(rename = "anthropic")]
     Anthropic,
+    #[serde(rename = "gemini")]
     Gemini,
+    #[serde(rename = "qwen")]
     DashScope,
+    #[serde(rename = "deepseek")]
     DeepSeek,
+    #[serde(rename = "zhipu")]
     Zhipu,
+    #[serde(rename = "siliconflow")]
     SiliconFlow,
+    #[serde(rename = "kling")]
     Kling,
+    #[serde(rename = "grok")]
     Grok,
+    #[serde(rename = "groq")]
     Groq,
+    #[serde(rename = "mistral")]
     Mistral,
+    #[serde(rename = "together")]
     Together,
+    #[serde(rename = "stepfun")]
     StepFun,
+    #[serde(rename = "moonshot")]
     Moonshot,
+    #[serde(rename = "doubao")]
     Doubao,
+    #[serde(rename = "minimax")]
     MiniMax,
+    #[serde(rename = "ollama")]
     Ollama,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, ts_rs::TS, schemars::JsonSchema,
+)]
 pub enum ExecutionCapability {
     #[serde(rename = "text-generation")]
     TextGeneration,
@@ -44,7 +67,7 @@ pub enum ExecutionCapability {
     Embedding,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, ts_rs::TS, schemars::JsonSchema)]
 pub enum RoutingPurpose {
     #[serde(rename = "writing")]
     Writing,

@@ -8,7 +8,7 @@ import { Toaster } from "vue-sonner";
 import "vue-sonner/style.css";
 
 import { createSpaceArchiveSettings } from "./features/spaces/assets/archive-settings";
-import { useSpacesWorkspace } from "./features/spaces/workspace";
+import { useSpacesWorkspace } from "./features/spaces/workspace-definition";
 import { useBootstrapStore } from "./foundation/bootstrap/bootstrap-store";
 import { usePreferencesStore } from "./foundation/preferences/preferences-store";
 import { archiveSettingsKey } from "./shared/contracts/archive-settings";

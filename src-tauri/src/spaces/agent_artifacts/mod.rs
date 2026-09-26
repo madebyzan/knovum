@@ -1,9 +1,10 @@
 use tauri::{ipc::Channel, AppHandle};
 
 use crate::ai::{
-    capabilities, contracts,
+    capabilities,
     error::{AiError, AiErrorCode, AiResult},
 };
+pub(crate) mod contracts;
 mod execution;
 pub(crate) mod import;
 pub(crate) mod recovery;
@@ -14,7 +15,7 @@ pub async fn create_agent_artifacts(
     app: AppHandle,
     request: contracts::AgentCreationRequest,
     on_event: Channel<contracts::AgentCreationEvent>,
-) -> Result<Vec<contracts::AgentArtifact>, AiError> {
+) -> Result<Vec<crate::ai::contracts::AgentArtifact>, AiError> {
     create_agent_artifacts_scoped(app, request, on_event).await
 }
 
@@ -22,7 +23,7 @@ async fn create_agent_artifacts_scoped(
     app: AppHandle,
     request: contracts::AgentCreationRequest,
     on_event: Channel<contracts::AgentCreationEvent>,
-) -> Result<Vec<contracts::AgentArtifact>, AiError> {
+) -> Result<Vec<crate::ai::contracts::AgentArtifact>, AiError> {
     if request.prompt.trim().is_empty() {
         return Err(AiError::invalid("Agent creation prompt cannot be empty"));
     }

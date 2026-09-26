@@ -16,8 +16,19 @@ pub(crate) fn generate(
         return Ok(None);
     }
     ensure_active(cancellation)?;
-    let target = paths::preview_path(app, source, "system-thumbnail.png")?;
-    crate::system_preview::thumbnail::save(source, &target, cancellation)?;
+    let target = paths::preview_path(
+        app,
+        source,
+        &format!("{}.system-thumbnail.png", uuid::Uuid::new_v4()),
+    )?;
+    if let Err(error) = crate::system_preview::thumbnail::save(source, &target, cancellation) {
+        if target.is_file() {
+            if let Err(cleanup) = std::fs::remove_file(&target) {
+                log::warn!("failed thumbnail cleanup: {cleanup}");
+            }
+        }
+        return Err(error);
+    }
     Ok(Some(target))
 }
 
@@ -31,8 +42,15 @@ pub(crate) fn generate(
         return Ok(None);
     }
     ensure_active(cancellation)?;
-    let target = paths::preview_path(app, source, "shell.png")?;
-    crate::system_preview::thumbnail::save(source, &target, cancellation)?;
+    let target = paths::preview_path(app, source, &format!("{}.shell.png", uuid::Uuid::new_v4()))?;
+    if let Err(error) = crate::system_preview::thumbnail::save(source, &target, cancellation) {
+        if target.is_file() {
+            if let Err(cleanup) = std::fs::remove_file(&target) {
+                log::warn!("failed thumbnail cleanup: {cleanup}");
+            }
+        }
+        return Err(error);
+    }
     Ok(Some(target))
 }
 

@@ -7,32 +7,25 @@ import { toast } from "vue-sonner";
 
 import type { AgentKind, DesktopAgentSettings } from "../../../../foundation/ai/agent-models";
 import { useAiSettingsStore } from "../../../../foundation/ai/ai-settings-store";
-import { useCreationLibraryStore } from "../../../../foundation/ai/creation-library-store";
 import { useExecutionCatalogQuery } from "../../../../foundation/ai/execution-catalog-query";
-import { useProtectedExecutionTargets } from "../../use-protected-execution-targets";
 import AgentInstallationRow from "../AgentInstallationRow.vue";
 import SettingsLoadFailure from "../SettingsLoadFailure.vue";
 import SettingsSection from "../SettingsSection.vue";
 
 const { t } = useI18n();
 const aiStore = useAiSettingsStore();
-const creationStore = useCreationLibraryStore();
 const { settings, ready: aiReady, loadError: aiLoadError, saveError } = storeToRefs(aiStore);
-const { ready: creationReady, loadError: creationLoadError } = storeToRefs(creationStore);
-const { protectedAgentKinds } = useProtectedExecutionTargets();
 const catalog = useExecutionCatalogQuery({ detectInstallations: true });
 const agents = computed(() => catalog.data.value?.agents ?? []);
 const installations = computed(() => catalog.data.value?.installations ?? []);
 const inspecting = computed(() => catalog.installationFetching.value);
-const ready = computed(() => aiReady.value && creationReady.value && !catalog.descriptorPending.value);
+const ready = computed(() => aiReady.value && !catalog.descriptorPending.value);
 const failure = computed(() =>
   aiLoadError.value
     ? { source: "ai" as const, cause: aiLoadError.value, canReset: true }
-    : creationLoadError.value
-      ? { source: "creation" as const, cause: creationLoadError.value, canReset: true }
-      : catalog.descriptorError.value
-        ? { source: "catalog" as const, cause: catalog.descriptorError.value, canReset: false }
-        : undefined,
+    : catalog.descriptorError.value
+      ? { source: "catalog" as const, cause: catalog.descriptorError.value, canReset: false }
+      : undefined,
 );
 
 const installation = (kind: AgentKind) =>
@@ -54,7 +47,7 @@ function setEnabled(kind: AgentKind, enabled: boolean) {
 }
 
 async function load() {
-  await Promise.all([aiStore.ensureLoaded(), creationStore.ensureLoaded()]);
+  await aiStore.ensureLoaded();
   if (catalog.descriptorError.value) await catalog.refetchDescriptors();
 }
 
@@ -66,8 +59,7 @@ async function resetSection() {
     cancelLabel: t("common.cancel"),
   });
   if (!confirmed) return;
-  if (failure.value?.source === "creation") await creationStore.reset();
-  else await aiStore.reset();
+  await aiStore.reset();
 }
 
 onMounted(load);
@@ -99,7 +91,6 @@ onMounted(load);
           :agent="agent"
           :installation="installation(agent.kind)"
           :enabled="isEnabled(agent.kind)"
-          :protected="protectedAgentKinds.includes(agent.kind)"
           :checking="inspecting"
           :check-failed="Boolean(catalog.installationError.value)"
           @toggle="setEnabled(agent.kind, $event)"

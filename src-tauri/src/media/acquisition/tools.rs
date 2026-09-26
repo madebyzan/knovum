@@ -23,6 +23,6 @@ fn resolve(
     file_name: &str,
     label: &str,
 ) -> Result<PathBuf, String> {
-    tools::resolve_tool(app, env_key, file_name)
+    tools::resolve_tool(app, env_key, file_name)?
         .ok_or_else(|| format!("The bundled {label} tool is unavailable"))
 }

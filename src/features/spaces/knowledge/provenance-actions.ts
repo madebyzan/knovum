@@ -4,7 +4,7 @@ import {
   createProvenance,
   removeProvenance,
   type CreateProvenanceInput,
-} from "./persistence/knowledge-repository";
+} from "./persistence/knowledge-operations";
 import { spaceKnowledgeQueryKeys } from "./queries/query-options";
 
 interface ProvenanceTarget {

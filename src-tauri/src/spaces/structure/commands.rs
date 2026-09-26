@@ -1,3 +1,4 @@
+use crate::command_error::CommandError;
 use tauri::{AppHandle, Runtime};
 
 use super::edit_contract::{
@@ -10,7 +11,7 @@ use crate::spaces::db;
 pub(crate) async fn execute_space_edit<R: Runtime>(
     app: AppHandle<R>,
     request: ExecuteSpaceEditRequest,
-) -> Result<SpaceEditReceipt, String> {
+) -> Result<SpaceEditReceipt, CommandError> {
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
     let receipt = execute_in_transaction(&mut tx, request).await?;
@@ -34,7 +35,7 @@ pub(crate) async fn execute_in_transaction(
     let (mut snapshot, edit_revision) =
         repository::load_in_transaction(tx, &request.space_id).await?;
     if edit_revision != request.expected_edit_revision {
-        return Err("Space edit revision conflict".into());
+        return Err("space-edit-revision-conflict: Space edit revision conflict".into());
     }
     super::content_height_read_set::validate(
         &mut *tx,
@@ -113,16 +114,16 @@ pub(crate) async fn execute_in_transaction(
 pub(crate) async fn undo_space_edit<R: Runtime>(
     app: AppHandle<R>,
     request: SpaceEditHistoryRequest,
-) -> Result<SpaceEditHistoryReceipt, String> {
-    apply_history(app, request, false).await
+) -> Result<SpaceEditHistoryReceipt, CommandError> {
+    Ok((apply_history(app, request, false).await)?)
 }
 
 #[tauri::command]
 pub(crate) async fn redo_space_edit<R: Runtime>(
     app: AppHandle<R>,
     request: SpaceEditHistoryRequest,
-) -> Result<SpaceEditHistoryReceipt, String> {
-    apply_history(app, request, true).await
+) -> Result<SpaceEditHistoryReceipt, CommandError> {
+    Ok((apply_history(app, request, true).await)?)
 }
 
 async fn apply_history<R: Runtime>(
@@ -138,7 +139,7 @@ async fn apply_history<R: Runtime>(
     let mut tx = db::begin_write(pool).await?;
     let (snapshot, revision) = repository::load_in_transaction(&mut tx, &request.space_id).await?;
     if revision != request.expected_edit_revision {
-        return Err("Space edit revision conflict".into());
+        return Err("space-edit-revision-conflict: Space edit revision conflict".into());
     }
     let applied_at_revision =
         history::apply(&mut tx, &request.space_id, revision, &snapshot, redo).await?;

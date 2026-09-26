@@ -1,8 +1,8 @@
-import { invoke } from "@tauri-apps/api/core";
 import { error as logError } from "@tauri-apps/plugin-log";
 import { LazyStore } from "@tauri-apps/plugin-store";
 import { z } from "zod";
 
+import { invokeCommand as invoke } from "../ipc/invoke-command";
 import { aiModelSettingsSchema, defaultAiModelSettings, type AiModelSettings } from "./ai-model-settings";
 import { creationLibrarySchema, defaultCreationLibrary, type CreationLibrary } from "./creation-library";
 

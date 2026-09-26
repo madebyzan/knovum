@@ -15,7 +15,13 @@ const targetAvailable = ref(false);
 const props = defineProps<{
   busy: boolean;
   attachments: readonly { key: string; kind: "node" | "file"; title: string; previewSource: string }[];
-  attachmentCandidates: readonly { nodeId: string; title: string; previewSource: string; selected: boolean; attached: boolean }[];
+  attachmentCandidates: readonly {
+    nodeId: string;
+    title: string;
+    previewSource: string;
+    selected: boolean;
+    attached: boolean;
+  }[];
   attachmentError?: string | undefined;
   pickingFiles: boolean;
 }>();

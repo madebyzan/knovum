@@ -1,4 +1,5 @@
 import { shallowMount } from "@vue/test-utils";
+import { createPinia } from "pinia";
 import { describe, expect, it } from "vitest";
 
 import { i18n } from "../../../foundation/i18n/i18n";
@@ -27,7 +28,7 @@ describe("Konva media node content", () => {
         interactive: false,
       },
       global: {
-        plugins: [i18n],
+        plugins: [createPinia(), i18n],
         stubs: { SpaceCanvasMedia: { template: '<div data-testid="audio-transport" />' } },
       },
     });
@@ -51,7 +52,7 @@ describe("Konva media node content", () => {
         interactive: true,
       },
       global: {
-        plugins: [i18n],
+        plugins: [createPinia(), i18n],
         stubs: { SpaceCanvasMedia: { template: '<div data-testid="media-player" />' } },
       },
     });
@@ -66,6 +67,7 @@ describe("Konva media node content", () => {
       fileName: "interview.mp4",
     };
     const wrapper = shallowMount(SpaceCanvasNodeContent, {
+      global: { plugins: [createPinia(), i18n] },
       props: {
         layout: {
           nodeId: "video",

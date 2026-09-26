@@ -6,6 +6,7 @@ import { computed, reactive, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { aiConnectionSecretKey, type AiConnectionSettings } from "../../../foundation/ai/ai-models";
+import { encodeExecutionTarget } from "../../../foundation/ai/execution-target-codec";
 import type { AiProvider } from "../../../foundation/ai/integration-settings";
 import { requireProvider, type ProviderDescriptor } from "../../../foundation/ai/providers";
 import UiButton from "../../../shared/ui/UiButton.vue";
@@ -71,6 +72,15 @@ function saveChanges() {
   connection.value = finalizeAiConnectionDraft(draft);
   open.value = false;
 }
+function isModelInUse(modelId: string) {
+  return props.protectedModelTargets.includes(
+    encodeExecutionTarget({
+      type: "model",
+      connectionId: connection.value.id,
+      modelId,
+    }),
+  );
+}
 </script>
 
 <template>
@@ -123,8 +133,8 @@ function saveChanges() {
             v-for="(model, index) in draft.models"
             :key="model.id"
             :model-value="model"
-            :removable="!props.protectedModelTargets.includes(`${connection.id}:${model.id}`)"
-            :protected="props.protectedModelTargets.includes(`${connection.id}:${model.id}`)"
+            :removable="!isModelInUse(model.id)"
+            :protected="isModelInUse(model.id)"
             :allowed-capabilities="selectedProvider.capabilities"
             @update:model-value="replaceModel(index, $event)"
             @remove="draft.models.splice(index, 1)"

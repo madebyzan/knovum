@@ -1,3 +1,4 @@
+use crate::command_error::CommandError;
 use serde::Serialize;
 use sqlx::Row;
 use tauri::AppHandle;
@@ -5,8 +6,9 @@ use tauri::AppHandle;
 use super::{grounded_document, video_generation, visualization};
 use crate::spaces::db;
 
-#[derive(Serialize)]
+#[derive(Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct DerivationFailure {
     pub action_kind: String,
     pub error: String,
@@ -17,31 +19,31 @@ pub struct DerivationFailure {
 pub async fn get_grounded_document_metadata(
     app: AppHandle,
     node_id: String,
-) -> Result<Option<grounded_document::metadata::GroundedDocumentMetadata>, String> {
-    grounded_document::metadata::get(&app, &node_id).await
+) -> Result<Option<grounded_document::metadata::GroundedDocumentMetadata>, CommandError> {
+    Ok((grounded_document::metadata::get(&app, &node_id).await)?)
 }
 
 #[tauri::command]
 pub async fn get_visualization_metadata(
     app: AppHandle,
     node_id: String,
-) -> Result<Option<visualization::metadata::VisualizationMetadata>, String> {
-    visualization::metadata::get(&app, &node_id).await
+) -> Result<Option<visualization::metadata::VisualizationMetadata>, CommandError> {
+    Ok((visualization::metadata::get(&app, &node_id).await)?)
 }
 
 #[tauri::command]
 pub async fn get_generated_video_metadata(
     app: AppHandle,
     node_id: String,
-) -> Result<Option<video_generation::metadata::GeneratedVideoMetadata>, String> {
-    video_generation::metadata::get(&app, &node_id).await
+) -> Result<Option<video_generation::metadata::GeneratedVideoMetadata>, CommandError> {
+    Ok((video_generation::metadata::get(&app, &node_id).await)?)
 }
 
 #[tauri::command]
 pub async fn get_derivation_failure(
     app: AppHandle,
     node_id: String,
-) -> Result<Option<DerivationFailure>, String> {
+) -> Result<Option<DerivationFailure>, CommandError> {
     let pool = db::pool(&app).await?;
     let row = sqlx::query("SELECT action_kind,error,completed_at FROM spaces_knowledge_derivations WHERE output_node_id=$1 AND status='failed'")
         .bind(node_id).fetch_optional(pool).await.map_err(db::sql_error)?;

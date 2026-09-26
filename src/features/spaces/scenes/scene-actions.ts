@@ -8,7 +8,7 @@ import { snapshotSpaceQueryFilter } from "../knowledge/model/query-filter";
 import type { SpaceRelationKind, SpaceRelationStatus } from "../model/relations/relation";
 import { createStructureIndex } from "../model/structure/structure-index";
 import type { SpaceScene } from "./scene";
-import { deleteScene, createScene as persistScene, updateSceneOrders, updateScene } from "./scene-repository";
+import { deleteScene, createScene as persistScene, updateSceneOrders, updateScene } from "./scene-operations";
 import type { SpaceViewport } from "./viewport";
 
 interface SceneActionContext {

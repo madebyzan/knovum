@@ -1,15 +1,17 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub(crate) struct RelationStyle {
     pub relation_id: String,
     pub color: RelationColor,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, ts_rs::TS)]
 #[serde(rename_all = "lowercase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub(crate) enum RelationColor {
     Blue,
     Green,
@@ -30,13 +32,14 @@ impl RelationColor {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, ts_rs::TS)]
 #[serde(
     tag = "kind",
     rename_all = "lowercase",
     rename_all_fields = "camelCase",
     deny_unknown_fields
 )]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub(crate) enum StructureNode {
     Content {
         id: String,
@@ -101,8 +104,9 @@ impl StructureNode {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub(crate) struct LocalTransform {
     pub x: f64,
     pub y: f64,
@@ -110,34 +114,38 @@ pub(crate) struct LocalTransform {
     pub scale: f64,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, ts_rs::TS)]
 #[serde(deny_unknown_fields)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub(crate) struct Point {
     pub x: f64,
     pub y: f64,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, ts_rs::TS)]
 #[serde(deny_unknown_fields)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub(crate) struct Size {
     pub width: f64,
     pub height: f64,
 }
 
-#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq, Serialize, ts_rs::TS)]
 #[serde(rename_all = "lowercase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub(crate) enum SizeAuthority {
     Content,
     Frame,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, ts_rs::TS)]
 #[serde(
     tag = "kind",
     rename_all = "lowercase",
     rename_all_fields = "camelCase",
     deny_unknown_fields
 )]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub(crate) enum StructureLayout {
     Content {
         structure_node_id: String,

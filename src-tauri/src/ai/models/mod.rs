@@ -1,5 +1,5 @@
 mod target;
-mod text;
+pub(crate) mod text;
 mod vision;
 
 pub use target::{ExecutionTarget, ExecutionTargetRef, ExecutionTargetSelection};

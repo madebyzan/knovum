@@ -34,6 +34,9 @@ function derivationInput(nodeId: string) {
     sourceSnapshot: { title: "Source", kind: "markdown", originalUrl: null, platform: null },
     role: "primary",
     sourceRevision: "node1:source",
+    revisionBasis: "knowledge",
+    inputRevision: "node1:source",
+    inputSnapshot: null,
   } as const;
 }
 

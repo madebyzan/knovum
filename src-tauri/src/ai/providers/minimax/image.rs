@@ -1,3 +1,4 @@
+use crate::ai::transport::response;
 use futures::future::BoxFuture;
 use serde::Deserialize;
 
@@ -75,10 +76,9 @@ impl ImageGenerationCapability for MiniMaxImageAdapter {
                 .await
                 .map_err(provider_err)?
                 .error_for_status()
-                .map_err(provider_err)?
-                .json::<MiniMaxImageResponse>()
-                .await
                 .map_err(provider_err)?;
+            let generation_response: MiniMaxImageResponse =
+                response::read_json(generation_response, response::MAX_CONTROL_JSON_BYTES).await?;
 
             if let Some(base) = generation_response.base_response {
                 if base.status_code.unwrap_or(0) != 0 {
@@ -114,11 +114,8 @@ impl ImageGenerationCapability for MiniMaxImageAdapter {
                 .error_for_status()
                 .map_err(provider_err)?;
 
-            let image_bytes = download_response
-                .bytes()
-                .await
-                .map_err(provider_err)?
-                .to_vec();
+            let image_bytes =
+                response::read_bytes(download_response, response::MAX_IMAGE_BYTES).await?;
 
             Ok(GeneratedImage {
                 bytes: image_bytes,

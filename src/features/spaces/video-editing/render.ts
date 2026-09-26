@@ -1,7 +1,9 @@
-import { Channel, invoke } from "@tauri-apps/api/core";
+import { Channel } from "@tauri-apps/api/core";
 import { toast } from "vue-sonner";
 
 import { i18n } from "../../../foundation/i18n/i18n";
+import { decodeCommandError } from "../../../foundation/ipc/command-error";
+import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceVideoPayload } from "../model/nodes/node-payload";
@@ -60,7 +62,7 @@ export async function renderVideoEdit(
     store.requestReveal([completed.nodeId], "ensure-visible");
   } catch (error) {
     await store.refreshActiveSpace();
-    if (String(error).includes("VIDEO_EDIT_RENDER_CANCELLED")) tasks.dismiss(taskId);
+    if (decodeCommandError(error)?.code === "video_edit_render_cancelled") tasks.dismiss(taskId);
     else {
       tasks.fail(taskId, String(error));
       toast.error(`${i18n.global.t("spaces.media.videoRenderFailed")}: ${String(error)}`);

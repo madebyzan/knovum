@@ -5,17 +5,16 @@ mod contracts;
 mod document_export;
 mod failure;
 mod grounded_answer;
-mod grounded_document;
+pub(crate) mod grounded_document;
 mod image_cutout;
 pub(crate) mod image_layers;
-mod image_operations;
+pub(crate) mod image_operations;
 pub(crate) mod input_revision;
 pub(crate) mod inputs;
-mod metadata_sources;
+pub(crate) mod metadata_sources;
 pub(crate) mod output_paths;
 mod pending_output;
-mod presentation_export;
-mod presentation_renderer;
+mod presentation_publication;
 pub(crate) mod queries;
 mod relations;
 mod scratch_file;
@@ -24,9 +23,9 @@ mod source_validation;
 mod subtitle_extraction;
 mod subtitled_video;
 mod video_edit;
-mod video_generation;
+pub(crate) mod video_generation;
 mod video_output;
-mod visualization;
+pub(crate) mod visualization;
 
 use tauri::AppHandle;
 
@@ -58,3 +57,6 @@ pub(crate) async fn persist_output_node(
         .map_err(crate::spaces::db::sql_error)?;
     Ok(())
 }
+
+#[cfg(test)]
+mod tests;

@@ -4,13 +4,14 @@ use ts_rs::TS;
 use crate::ai::contracts::AgentKind;
 use crate::ai::models::ExecutionTargetSelection;
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, ts_rs::TS)]
 #[serde(
     tag = "type",
     rename_all = "snake_case",
     rename_all_fields = "camelCase",
     deny_unknown_fields
 )]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub enum AssistantExecutionTargetSelection {
     Model {
         connection_id: String,
@@ -24,6 +25,7 @@ pub enum AssistantExecutionTargetSelection {
 
 #[derive(Clone, Copy, Debug, Deserialize, Serialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub enum AssistantMode {
     Ask,
     Plan,
@@ -40,8 +42,10 @@ impl AssistantMode {
     }
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[ts(optional_fields = nullable)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct SubmitAssistantTaskRequest {
     pub space_id: String,
     pub conversation_id: Option<String>,
@@ -92,12 +96,13 @@ impl SubmitAssistantTaskRequest {
     rename_all_fields = "camelCase",
     deny_unknown_fields
 )]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub enum AssistantAttachment {
     Node {
         node_id: String,
         source_revision: String,
         role: String,
-        #[ts(type = "unknown")]
+        #[ts(type = "unknown", optional)]
         locator: Option<serde_json::Value>,
     },
     File {
@@ -107,7 +112,7 @@ pub enum AssistantAttachment {
 }
 
 #[derive(Clone, Debug, Serialize, TS)]
-#[ts(export_to = "AssistantTaskAccepted.ts")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/AssistantTaskAccepted.ts")]
 #[serde(rename_all = "camelCase")]
 pub struct AssistantTaskAccepted {
     pub task_id: String,
@@ -117,7 +122,7 @@ pub struct AssistantTaskAccepted {
 }
 
 #[derive(Clone, Debug, Serialize, TS)]
-#[ts(export_to = "AssistantTaskUpdate.ts")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/AssistantTaskUpdate.ts")]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum AssistantTaskUpdate {
     ContentDelta {
@@ -136,7 +141,7 @@ pub enum AssistantTaskUpdate {
 }
 
 #[derive(Clone, Debug, Serialize, TS)]
-#[ts(export_to = "AssistantPermissionOption.ts")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/AssistantPermissionOption.ts")]
 #[serde(rename_all = "camelCase")]
 pub struct AssistantPermissionOption {
     pub id: String,
@@ -145,7 +150,7 @@ pub struct AssistantPermissionOption {
 }
 
 #[derive(Clone, Debug, Serialize, TS)]
-#[ts(export_to = "AssistantConversation.ts")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/AssistantConversation.ts")]
 #[serde(rename_all = "camelCase")]
 pub struct ConversationSummary {
     pub id: String,

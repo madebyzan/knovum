@@ -1,4 +1,6 @@
+mod output_budget;
 mod stream;
+mod text_stream;
 mod wire;
 
 use crate::ai::{
@@ -37,14 +39,14 @@ pub async fn stream_text(
 ) -> AiResult<crate::ai::contracts::StreamFrameStream> {
     let context = SecurityContext::from_target(target).await?;
     let adapter = adapter_kind(target.model_provider_kind()?)?;
-    stream::stream_text(adapter, context, request.clone(), cancellation).await
+    text_stream::stream_text(adapter, context, request.clone(), cancellation).await
 }
 
 pub async fn stream_turn(
     target: &ExecutionTarget,
     request: &ModelTurnRequest,
     cancellation: CancellationToken,
-    deltas: tokio::sync::mpsc::UnboundedSender<String>,
+    deltas: tokio::sync::mpsc::Sender<String>,
 ) -> AiResult<ModelTurnResponse> {
     let context = SecurityContext::from_target(target).await?;
     let adapter = adapter_kind(target.model_provider_kind()?)?;
@@ -55,30 +57,19 @@ pub async fn stream_turn(
 }
 
 fn adapter(provider: ProviderKind) -> AiResult<&'static dyn ModelTurnCapability> {
-    let adapter = match provider {
-        ProviderKind::Anthropic => &ANTHROPIC as &dyn ModelTurnCapability,
-        ProviderKind::Gemini => &GEMINI,
-        ProviderKind::DashScope => &ALIYUN,
-        ProviderKind::DeepSeek => &DEEPSEEK,
-        ProviderKind::Groq => &GROQ,
-        ProviderKind::Ollama => &OLLAMA,
-        ProviderKind::Kling => {
+    let adapter = match adapter_kind(provider)? {
+        AdapterKind::OpenAI => &OPENAI as &dyn ModelTurnCapability,
+        AdapterKind::Anthropic => &ANTHROPIC,
+        AdapterKind::Gemini => &GEMINI,
+        AdapterKind::Aliyun => &ALIYUN,
+        AdapterKind::DeepSeek => &DEEPSEEK,
+        AdapterKind::Groq => &GROQ,
+        AdapterKind::Ollama => &OLLAMA,
+        _ => {
             return Err(crate::ai::error::AiError::unsupported(
-                "Kling does not provide the ModelTurn text protocol",
-            ));
+                "Unsupported ModelTurn adapter",
+            ))
         }
-        ProviderKind::OpenAi
-        | ProviderKind::OpenAiCompatible
-        | ProviderKind::OpenRouter
-        | ProviderKind::Zhipu
-        | ProviderKind::SiliconFlow
-        | ProviderKind::Grok
-        | ProviderKind::Mistral
-        | ProviderKind::Together
-        | ProviderKind::StepFun
-        | ProviderKind::Moonshot
-        | ProviderKind::Doubao
-        | ProviderKind::MiniMax => &OPENAI,
     };
     Ok(adapter)
 }

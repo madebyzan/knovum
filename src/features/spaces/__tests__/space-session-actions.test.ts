@@ -3,49 +3,40 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
 
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
-import type { SpaceRelation } from "../model/relations/relation";
-import type { SpaceScene } from "../scenes/scene";
+import type { loadSpaceSessionProjection } from "../session/space-projection";
+import { createTestSpace, createTestSessionContext } from "../test-support/session-context";
 import {
   createSpace,
   materializeActiveSpace,
   openSpace,
   type SpaceSessionContext,
 } from "../workspace/space-session-actions";
-import { createTestSpace, createTestSessionContext } from "./test-session-context.test";
 
-const nodeRepository = vi.hoisted(() => ({
-  listNodes: vi.fn<(spaceId: string) => Promise<SpaceCanvasNode[]>>(),
+type Projection = Awaited<ReturnType<typeof loadSpaceSessionProjection>>;
+const projectionRepository = vi.hoisted(() => ({
+  load: vi.fn<(spaceId: string) => Promise<Projection>>(),
 }));
 const lifecycleRepository = vi.hoisted(() => ({
   createSpace: vi.fn<() => Promise<void>>(),
   markSpaceOpened: vi.fn<(spaceId: string) => Promise<void>>(),
 }));
-const sceneDatabase = vi.hoisted(() => ({
-  listScenes: vi.fn<(spaceId: string) => Promise<SpaceScene[]>>(),
+vi.mock("../session/space-projection", () => ({
+  loadSpaceSessionProjection: projectionRepository.load,
 }));
-const relationRepository = vi.hoisted(() => ({
-  listRelations: vi.fn<(spaceId: string) => Promise<SpaceRelation[]>>(),
-}));
-const editRepository = vi.hoisted(() => ({
-  load: vi.fn<
-    () => Promise<{ editRevision: number; structure: never[]; layouts: never[]; relationStyles: never[] }>
-  >(async () => ({ editRevision: 0, structure: [], layouts: [], relationStyles: [] })),
-}));
-
-vi.mock("../nodes/node-repository", () => ({
-  listNodes: nodeRepository.listNodes,
-}));
-vi.mock("../workspace/space-repository", () => ({
+vi.mock("../workspace/space-operations", () => ({
   createSpace: lifecycleRepository.createSpace,
   listSpaces: vi.fn<() => void>(),
   markSpaceOpened: lifecycleRepository.markSpaceOpened,
   updateSpaceTitle: vi.fn<() => void>(),
 }));
-vi.mock("../scenes/scene-repository", () => ({ listScenes: sceneDatabase.listScenes }));
-vi.mock("../knowledge/relations/relation-repository", () => ({
-  listRelations: relationRepository.listRelations,
-}));
-vi.mock("../structure/space-edit-repository", () => ({ spaceEditRepository: editRepository }));
+function projection(nodes: SpaceCanvasNode[] = []): Projection {
+  return {
+    nodes,
+    scenes: [],
+    relations: [],
+    editSnapshot: { editRevision: 0, structure: [], layouts: [], relationStyles: [] },
+  };
+}
 
 function context(activeSpaceId = "inbox"): SpaceSessionContext {
   return createTestSessionContext({
@@ -56,10 +47,7 @@ function context(activeSpaceId = "inbox"): SpaceSessionContext {
 
 describe("openSpace", () => {
   beforeEach(() => {
-    nodeRepository.listNodes.mockReset();
-    sceneDatabase.listScenes.mockReset();
-    relationRepository.listRelations.mockReset();
-    relationRepository.listRelations.mockResolvedValue([]);
+    projectionRepository.load.mockReset();
   });
 
   it("does not reload the already active space", async () => {
@@ -68,32 +56,30 @@ describe("openSpace", () => {
     await openSpace(state, "inbox");
     await openSpace(state, "inbox");
 
-    expect(nodeRepository.listNodes).not.toHaveBeenCalled();
-    expect(sceneDatabase.listScenes).not.toHaveBeenCalled();
+    expect(projectionRepository.load).not.toHaveBeenCalled();
     expect(state.loading.value).toBe(false);
   });
 
   it("coalesces repeated clicks while the same space is loading", async () => {
-    let release!: (nodes: SpaceCanvasNode[]) => void;
-    nodeRepository.listNodes.mockReturnValue(new Promise((resolve) => (release = resolve)));
-    sceneDatabase.listScenes.mockResolvedValue([]);
-    relationRepository.listRelations.mockResolvedValue([]);
+    let release!: (value: Projection) => void;
+    projectionRepository.load.mockReturnValue(new Promise((resolve) => (release = resolve)));
+
     const state = context("other");
 
     const first = openSpace(state, "inbox");
     const second = openSpace(state, "inbox");
     await flushPromises();
-    expect(nodeRepository.listNodes).toHaveBeenCalledTimes(1);
+    expect(projectionRepository.load).toHaveBeenCalledTimes(1);
 
-    release([]);
+    release(projection());
     await Promise.all([first, second]);
     expect(state.activeSpaceId.value).toBe("inbox");
     expect(state.loading.value).toBe(false);
   });
   it("keeps the current canvas snapshot visible until the new Space is ready", async () => {
-    let release!: (nodes: SpaceCanvasNode[]) => void;
-    nodeRepository.listNodes.mockReturnValue(new Promise((resolve) => (release = resolve)));
-    sceneDatabase.listScenes.mockResolvedValue([]);
+    let release!: (value: Projection) => void;
+    projectionRepository.load.mockReturnValue(new Promise((resolve) => (release = resolve)));
+
     const state = context("inbox");
     state.nodes.value = [
       {
@@ -108,23 +94,24 @@ describe("openSpace", () => {
     expect(state.nodes.value.map((node) => node.id)).toEqual(["old"]);
     await flushPromises();
 
-    release([
-      {
-        id: "new",
-        type: "note",
-        initialPosition: { x: 10, y: 10 },
-        data: { kind: "note", title: "New", tiptapContent: { type: "doc" }, plainText: "" },
-      },
-    ]);
+    release(
+      projection([
+        {
+          id: "new",
+          type: "note",
+          initialPosition: { x: 10, y: 10 },
+          data: { kind: "note", title: "New", tiptapContent: { type: "doc" }, plainText: "" },
+        },
+      ]),
+    );
     await pending;
     expect(state.nodes.value.map((node) => node.id)).toEqual(["new"]);
   });
 
   it("cancels a pending switch when the user returns to the active Space", async () => {
-    let release!: (nodes: SpaceCanvasNode[]) => void;
-    nodeRepository.listNodes.mockReturnValue(new Promise((resolve) => (release = resolve)));
-    sceneDatabase.listScenes.mockResolvedValue([]);
-    relationRepository.listRelations.mockResolvedValue([]);
+    let release!: (value: Projection) => void;
+    projectionRepository.load.mockReturnValue(new Promise((resolve) => (release = resolve)));
+
     const state = context("inbox");
 
     const pending = openSpace(state, "research");
@@ -133,7 +120,7 @@ describe("openSpace", () => {
     await openSpace(state, "inbox");
     expect(state.loading.value).toBe(false);
 
-    release([]);
+    release(projection());
     await pending;
     expect(state.activeSpaceId.value).toBe("inbox");
     expect(state.runtime.pendingSpaceId).toBeUndefined();

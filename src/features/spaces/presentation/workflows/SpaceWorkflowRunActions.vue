@@ -3,6 +3,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
+import { workflowStateLabelKey } from "../../workflows/workflow-state-label";
 
 const props = defineProps<{
   runId: string;
@@ -22,9 +23,7 @@ const { t } = useI18n();
 const terminal = computed(() =>
   ["succeeded", "completed_with_errors", "failed", "cancelled"].includes(props.runState),
 );
-const stateText = computed(() =>
-  t(`spaces.creation.workflowStates.${props.cancelling ? "cancelling" : props.runState}`),
-);
+const stateText = computed(() => t(workflowStateLabelKey(props.cancelling ? "cancelling" : props.runState)));
 const statusTone = computed(() => {
   if (props.runState === "failed") return "text-danger";
   if (props.runState === "completed_with_errors") return "text-warning";

@@ -1,5 +1,6 @@
 import type { Ref } from "vue";
 
+import { normalizeCommandError } from "../../../foundation/ipc/command-error";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { isSpaceMediaPayload, type SpaceMediaPayload } from "../model/nodes/capabilities";
@@ -53,7 +54,11 @@ export function createSpaceMediaActions(context: Context) {
         const data = node.data;
         const revision = requireMediaSource(data);
         const transcript = await runSpaceMediaInference(() => {
-          if (cancelRequested) throw new Error(MEDIA_TRANSCRIPTION_CANCELLED);
+          if (cancelRequested)
+            throw normalizeCommandError({
+              code: MEDIA_TRANSCRIPTION_CANCELLED,
+              message: "Media transcription cancelled",
+            });
           return transcribeSpaceMedia(jobId, data.assetPath, ({ stage, progress, partial }) => {
             tasks.progress(taskId, progress, stageLabel(stage, labels));
             if (partial)

@@ -2,6 +2,7 @@ import type { LocalTransform } from "../../model/structure/structure-contract";
 import { createStructureIndex, effectiveOperationRoots } from "../../model/structure/structure-index";
 import { worldTransformFor } from "../../model/structure/world-transform";
 import type { SpaceEditCommand } from "../../organization/space-edit-command";
+import { serializeCanvasAppearance } from "../contract/canvas-document";
 import type { CanvasDocumentV1, CanvasNodeLayoutV1 } from "../contract/canvas-document";
 import type { SpaceEditSnapshot } from "../contract/space-edit-snapshot";
 
@@ -83,7 +84,9 @@ function contentLayoutCommand(
       height: next.frame.height / (parentWorld.scale * transform.scale),
     },
     sizeAuthority: next.sizeAuthority,
-    appearance: next.appearance ? { kind: "set", value: next.appearance } : { kind: "clear" },
+    appearance: next.appearance
+      ? { kind: "set", value: serializeCanvasAppearance(next.appearance) }
+      : { kind: "clear" },
   };
 }
 

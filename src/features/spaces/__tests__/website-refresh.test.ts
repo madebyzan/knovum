@@ -29,7 +29,9 @@ const saved: SpaceWebsitePayload = {
 
 function context() {
   const saveNodeDataForSpace = vi
-    .fn<(spaceId: string, id: string, data: SpaceNodePayload) => Promise<void>>()
+    .fn<
+      (spaceId: string, id: string, expectedData: SpaceNodePayload, data: SpaceNodePayload) => Promise<void>
+    >()
     .mockResolvedValue(undefined);
   return {
     activeSpaceId: "space-1",
@@ -57,7 +59,7 @@ describe("saved website refresh", () => {
     });
     const input = context();
     await refreshSavedWebsite(input, "website-1", saved.url);
-    const latest = input.saveNodeDataForSpace.mock.lastCall?.[2];
+    const latest = input.saveNodeDataForSpace.mock.lastCall?.[3];
     expect(latest).toMatchObject({
       title: "User title",
       url: "https://example.com/new",
@@ -72,11 +74,27 @@ describe("saved website refresh", () => {
     mocks.fetch.mockRejectedValue(new Error("network unavailable"));
     const input = context();
     await refreshSavedWebsite(input, "website-1", saved.url);
-    const latest = input.saveNodeDataForSpace.mock.lastCall?.[2];
+    const latest = input.saveNodeDataForSpace.mock.lastCall?.[3];
     expect(latest).toMatchObject({
       description: "Old description",
       faviconPath: "/assets/old.ico",
       metadataState: "failed",
     });
+  });
+  it("keeps committed metadata ready when old asset cleanup fails", async () => {
+    mocks.fetch.mockResolvedValue({
+      kind: "document",
+      metadata: { title: "New", finalUrl: saved.url, faviconUrl: "https://example.com/new.ico" },
+    });
+    mocks.cache.mockResolvedValue("/assets/new.ico");
+    mocks.remove.mockRejectedValueOnce(new Error("cleanup unavailable"));
+    const input = context();
+    await refreshSavedWebsite(input, "website-1", saved.url);
+    expect(input.saveNodeDataForSpace.mock.lastCall?.[3]).toMatchObject({
+      metadataState: "ready",
+      faviconPath: "/assets/new.ico",
+    });
+    expect(mocks.remove).toHaveBeenCalledTimes(1);
+    expect(mocks.remove).toHaveBeenCalledWith(["/assets/old.ico"]);
   });
 });

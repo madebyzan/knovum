@@ -72,7 +72,11 @@ function createdNodeId(result: unknown): string | undefined {
       :class="message.role === 'user' ? 'w-fit rounded-panel bg-control px-3 py-2.5' : 'w-full'"
     >
       <template v-for="(part, index) in message.content.parts" :key="index">
-        <UiMarkdown v-if="part.type === 'text' && !streamedText" :content="part.text" class="wrap-break-word" />
+        <UiMarkdown
+          v-if="part.type === 'text' && !streamedText"
+          :content="part.text"
+          class="wrap-break-word"
+        />
         <p v-else-if="part.type === 'binary'" class="text-caption text-foreground-secondary">
           {{ part.name || part.mediaType }}
         </p>

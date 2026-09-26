@@ -14,7 +14,7 @@ import {
 import { searchSpace } from "../../search/search-actions";
 import { archiveSpace, permanentlyDeleteSpace, unarchiveSpace } from "../../workspace/archive-actions";
 import { showSpaceLibrary } from "../../workspace/library-actions";
-import { setSpaceFavorite } from "../../workspace/space-repository";
+import { setSpaceFavorite } from "../../workspace/space-operations";
 import {
   closeOtherSpaceTabs,
   closeSpaceTab,

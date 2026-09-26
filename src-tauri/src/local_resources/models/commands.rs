@@ -1,3 +1,4 @@
+use crate::command_error::CommandError;
 use std::{
     collections::HashSet,
     sync::OnceLock,
@@ -25,7 +26,7 @@ fn downloads() -> &'static JobRegistry<ActiveModelDownload> {
     DOWNLOADS.get_or_init(|| JobRegistry::new("Model download"))
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub struct ModelInstallSnapshot {
     job_id: String,
@@ -39,15 +40,15 @@ pub async fn install_models(
     models: Vec<ModelKind>,
     job_id: String,
     on_progress: Channel<ModelDownloadProgress>,
-) -> Result<(), String> {
+) -> Result<(), CommandError> {
     if models.is_empty() {
-        return Err("A model download requires at least one model".to_string());
+        return Err(("A model download requires at least one model".to_string()).into());
     }
     if job_id.trim().is_empty() {
-        return Err("A model download requires a job identifier".to_string());
+        return Err(("A model download requires a job identifier".to_string()).into());
     }
     if models.iter().copied().collect::<HashSet<_>>().len() != models.len() {
-        return Err("A model download cannot contain duplicate model parts".to_string());
+        return Err(("A model download cannot contain duplicate model parts".to_string()).into());
     }
     let cancellation = CancellationToken::new();
     let _lease = begin_installation(&job_id, &models, &cancellation)?;
@@ -56,7 +57,7 @@ pub async fn install_models(
         .map(|model| catalog::descriptor(*model).download_size)
         .sum::<u64>();
     let mut completed = 0_u64;
-    let mut result = Ok(());
+    let mut result: Result<(), CommandError> = Ok(());
     for model in models {
         let descriptor = catalog::descriptor(model);
         let mut report = |progress: ModelDownloadProgress| {
@@ -71,7 +72,7 @@ pub async fn install_models(
                 .map_err(|error| error.to_string())
         };
         if let Err(error) = install(&app, descriptor, &mut report, &cancellation).await {
-            result = Err(error);
+            result = Err((error).into());
             break;
         }
         completed = completed.saturating_add(descriptor.download_size);
@@ -80,7 +81,7 @@ pub async fn install_models(
 }
 
 #[tauri::command]
-pub fn cancel_model_install(job_id: String) -> Result<(), String> {
+pub fn cancel_model_install(job_id: String) -> Result<(), CommandError> {
     let active = downloads()
         .get(&job_id)
         .map_err(|_| format!("Model download job is not active: {job_id}"))?;
@@ -89,7 +90,7 @@ pub fn cancel_model_install(job_id: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn list_model_installs() -> Result<Vec<ModelInstallSnapshot>, String> {
+pub fn list_model_installs() -> Result<Vec<ModelInstallSnapshot>, CommandError> {
     Ok(downloads()
         .entries()?
         .into_iter()

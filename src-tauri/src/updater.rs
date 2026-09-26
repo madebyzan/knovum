@@ -1,14 +1,15 @@
+use crate::command_error::CommandError;
 use serde::Serialize;
 use tauri::{AppHandle, Url};
 use tauri_plugin_updater::UpdaterExt;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdaterStatus {
     configured: bool,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateMetadata {
     version: String,
@@ -46,7 +47,7 @@ async fn resolve_update(app: &AppHandle) -> Result<Option<tauri_plugin_updater::
 }
 
 #[tauri::command]
-pub async fn updater_check(app: AppHandle) -> Result<Option<UpdateMetadata>, String> {
+pub async fn updater_check(app: AppHandle) -> Result<Option<UpdateMetadata>, CommandError> {
     let update = resolve_update(&app).await?;
     Ok(update.map(|update| UpdateMetadata {
         version: update.version,
@@ -55,7 +56,7 @@ pub async fn updater_check(app: AppHandle) -> Result<Option<UpdateMetadata>, Str
 }
 
 #[tauri::command]
-pub async fn updater_install(app: AppHandle) -> Result<(), String> {
+pub async fn updater_install(app: AppHandle) -> Result<(), CommandError> {
     let update = resolve_update(&app)
         .await?
         .ok_or_else(|| "No update is currently available.".to_owned())?;

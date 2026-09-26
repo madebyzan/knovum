@@ -1,8 +1,8 @@
 [package]
 name = "knovum"
 default-run = "knovum"
-version = "1.0.0-beta4"
-description = "Local-first desktop workbench for delegated AI work"
+version = "0.0.1"
+description = "Local-first desktop knowledge space"
 authors = ["Knovum Team"]
 edition = "2021"
 rust-version = "1.92"
@@ -48,6 +48,7 @@ tract-onnx = "=0.23.5"
 reqwest = { version = "0.13.4", default-features = false, features = [
   "rustls",
   "json",
+  "query",
   "blocking",
   "multipart",
   "stream",
@@ -57,9 +58,7 @@ tar = "0.4.46"
 flate2 = "1.1.9"
 encoding_rs = "0.8.35"
 genai = "=0.6.5"
-rig-core = { version = "=0.42.0", default-features = false }
 rig-agent = { version = "=0.42.0", default-features = false }
-async-openai = { version = "=0.41.3", default-features = false, features = ["image", "rustls"] }
 docx-rs = { version = "=0.4.22", default-features = false, features = ["image"] }
 pulldown-cmark = "=0.13.0"
 typst-as-lib = { version = "=0.16.0", default-features = false, features = ["typst-kit-fonts"] }
@@ -84,7 +83,6 @@ fnv = "1.0.7"
 lancedb = "0.37.1"
 arrow-array = "58.4.0"
 arrow-schema = "58.4.0"
-futures-util = "0.3"
 candle-core = "0.11.0"
 candle-nn = "0.11.0"
 tokenizers = { version = "0.22.2", default-features = false, features = ["onig"] }

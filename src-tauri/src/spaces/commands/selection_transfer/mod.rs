@@ -1,5 +1,5 @@
 mod completion;
-pub(super) mod contracts;
+pub(crate) mod contracts;
 mod operations;
 mod validation;
 
@@ -38,7 +38,7 @@ pub async fn transfer_selection<R: Runtime>(
     if source_revision != request.expected_source_edit_revision
         || target_revision != request.expected_target_edit_revision
     {
-        return Err("Cross-Space edit revision conflict".into());
+        return Err("space-edit-revision-conflict: Cross-Space edit revision conflict".into());
     }
     let source_before =
         structure::history::capture(&mut tx, &request.source_space_id, &source_snapshot).await?;

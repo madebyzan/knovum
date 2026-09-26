@@ -71,7 +71,9 @@ function chooseFiles() {
         class="flex w-full items-center gap-3 rounded-control px-2 py-2.5 text-left hover:bg-control-hover focus-visible:outline-2 focus-visible:outline-focus-ring"
         @click="view = 'nodes'"
       >
-        <span class="flex size-9 shrink-0 items-center justify-center rounded-control bg-accent-subtle text-accent">
+        <span
+          class="flex size-9 shrink-0 items-center justify-center rounded-control bg-accent-subtle text-accent"
+        >
           <Link2 class="size-(--knovum-icon-size-sm)" />
         </span>
         <span class="min-w-0 flex-1">
@@ -88,7 +90,9 @@ function chooseFiles() {
         :disabled="pickingFiles"
         @click="chooseFiles"
       >
-        <span class="flex size-9 shrink-0 items-center justify-center rounded-control bg-control text-foreground-secondary">
+        <span
+          class="flex size-9 shrink-0 items-center justify-center rounded-control bg-control text-foreground-secondary"
+        >
           <FileUp class="size-(--knovum-icon-size-sm)" />
         </span>
         <span class="min-w-0 flex-1">
@@ -139,7 +143,10 @@ function chooseFiles() {
             alt=""
             class="size-8 shrink-0 rounded-control object-cover"
           />
-          <span v-else class="flex size-8 shrink-0 items-center justify-center rounded-control bg-accent-subtle text-accent">
+          <span
+            v-else
+            class="flex size-8 shrink-0 items-center justify-center rounded-control bg-accent-subtle text-accent"
+          >
             <Link2 class="size-(--knovum-icon-size-xs)" />
           </span>
           <span class="min-w-0 flex-1 truncate">{{ candidate.title }}</span>

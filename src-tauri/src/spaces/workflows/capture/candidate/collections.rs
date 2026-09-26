@@ -1,9 +1,10 @@
+use crate::spaces::workflows::capture::types::CaptureIssueReason;
 use std::collections::{HashMap, HashSet};
 
 use super::super::types::{CandidateSource, CaptureCandidate};
 use crate::spaces::actions;
 
-pub(super) fn group(candidate: &mut CaptureCandidate) -> Result<(), &'static str> {
+pub(super) fn group(candidate: &mut CaptureCandidate) -> Result<(), CaptureIssueReason> {
     let uses = candidate
         .steps
         .iter()
@@ -24,7 +25,7 @@ pub(super) fn group(candidate: &mut CaptureCandidate) -> Result<(), &'static str
     let mut removed = HashSet::new();
     for step in &mut candidate.steps {
         let Some(contract) = actions::require(&step.action_id)
-            .map_err(|_| "candidate-binding-unavailable")?
+            .map_err(|_| CaptureIssueReason::CandidateBindingUnavailable)?
             .collection_input
         else {
             continue;
@@ -51,7 +52,7 @@ pub(super) fn group(candidate: &mut CaptureCandidate) -> Result<(), &'static str
         if members.len() > contract.max_items
             || members.iter().any(|member| member.2 != members[0].2)
         {
-            return Err("candidate-binding-unavailable");
+            return Err(CaptureIssueReason::CandidateBindingUnavailable);
         }
         let first_id = members[0].1.clone();
         let first_position = members[0].0;

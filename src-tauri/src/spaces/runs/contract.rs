@@ -3,6 +3,7 @@ use ts_rs::TS;
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub enum RunKind {
     Action,
     Workflow,
@@ -12,6 +13,7 @@ pub enum RunKind {
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub enum RunState {
     Queued,
     Running,
@@ -25,6 +27,7 @@ pub enum RunState {
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub enum StepState {
     Pending,
     Ready,
@@ -40,6 +43,7 @@ pub enum StepState {
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub enum WaitReason {
     Approval,
     ContentReview,
@@ -48,7 +52,7 @@ pub enum WaitReason {
 }
 
 #[derive(Clone, Debug, Serialize, TS)]
-#[ts(export_to = "RunSummary.ts")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/RunSummary.ts")]
 #[serde(rename_all = "camelCase")]
 pub struct RunSummary {
     pub id: String,

@@ -1,4 +1,4 @@
-import { invoke } from "@tauri-apps/api/core";
+import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
 
 const CONFIRMATION_DELAYS_MS = [0, 250, 750] as const;
 
@@ -11,6 +11,9 @@ export async function invokeConfirmedMutation<T>(
   try {
     return await invoke<T>(command, args);
   } catch (error) {
+    // Returned command/dispatcher rejections carry their native payload as cause.
+    // Do not replace an explicit failure with an older request's receipt.
+    if (error instanceof Error && error.cause !== undefined) throw error;
     const committed = await confirmReceipt<T>(mutationId, 0);
     if (committed !== null) return committed;
     throw error;

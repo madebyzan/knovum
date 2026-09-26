@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import type { CanvasNodePresentationContext } from "../canvas/contract/canvas-detail-profile";
 import type { TiptapJsonNode } from "../editor/tiptap-document";
-import { CANVAS_NODE_DETAIL_STRATEGIES } from "../presentation/canvas/nodes/canvas-node-detail-strategy";
 import { projectPreviewItems } from "../presentation/canvas/nodes/canvas-preview-budget";
 import { projectMarkdownPreview } from "../presentation/canvas/nodes/markdown-preview-projection";
 import { projectTiptapPreview } from "../presentation/canvas/nodes/tiptap-preview-projection";
@@ -68,25 +67,5 @@ describe("canvas preview projection", () => {
     expect(summary.remainingBlockCount).toBe(1);
     expect(summary.projectedSource).toContain("const answer = 42;");
     expect(summary.projectedSource).not.toContain("> final block");
-  });
-
-  it("declares a projection strategy for every canvas node kind", () => {
-    expect(Object.keys(CANVAS_NODE_DETAIL_STRATEGIES).toSorted()).toEqual(
-      [
-        "audio",
-        "code",
-        "credential",
-        "file",
-        "image",
-        "markdown",
-        "note",
-        "object",
-        "portal",
-        "subtitle",
-        "text",
-        "video",
-        "website",
-      ].toSorted(),
-    );
   });
 });

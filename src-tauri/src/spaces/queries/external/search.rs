@@ -29,7 +29,11 @@ pub(crate) async fn search(
     } else {
         fallback(pool, space_id, plan.terms, limit.clamp(1, 100)).await?
     };
-    Ok(Value::Array(rows.into_iter().map(row_value).collect()))
+    Ok(Value::Array(
+        rows.into_iter()
+            .map(row_value)
+            .collect::<Result<Vec<_>, _>>()?,
+    ))
 }
 
 const FTS_QUERY: &str = "SELECT spaces_knowledge_fts.node_id AS id,n.kind,\
@@ -65,10 +69,10 @@ async fn fallback(
         .map_err(db::sql_error)
 }
 
-fn row_value(row: SqliteRow) -> Value {
-    json!({
-        "id": row.get::<String,_>("id"), "kind": row.get::<String,_>("kind"),
-        "title": row.get::<Option<String>,_>("title"), "preview": row.get::<String,_>("preview"),
-        "rank": row.get::<f64,_>("rank"), "updatedAt": row.get::<i64,_>("updated_at"),
-    })
+fn row_value(row: SqliteRow) -> Result<Value, String> {
+    Ok(json!({
+        "id": row.try_get::<String,_>("id").map_err(db::sql_error)?, "kind": row.try_get::<String,_>("kind").map_err(db::sql_error)?,
+        "title": row.try_get::<Option<String>,_>("title").map_err(db::sql_error)?, "preview": row.try_get::<String,_>("preview").map_err(db::sql_error)?,
+        "rank": row.try_get::<f64,_>("rank").map_err(db::sql_error)?, "updatedAt": row.try_get::<i64,_>("updated_at").map_err(db::sql_error)?,
+    }))
 }

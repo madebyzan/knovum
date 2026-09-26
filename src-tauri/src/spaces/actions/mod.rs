@@ -3,15 +3,16 @@ use serde_json::Value;
 
 use crate::ai::contracts::{ExecutionCapability, RoutingPurpose};
 
-mod catalog;
+pub(crate) mod catalog;
 pub(crate) mod input_selection;
 mod invocation;
 
 #[cfg(test)]
 mod tests;
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct SpaceActionDefinition {
     pub id: &'static str,
     pub version: u16,
@@ -24,50 +25,57 @@ pub struct SpaceActionDefinition {
     pub input_roles: &'static [SpaceActionInputRole],
     pub collection_input: Option<SpaceActionCollectionInput>,
     #[serde(serialize_with = "serialize_parameter_schema")]
+    #[ts(type = "Record<string, unknown>")]
     pub parameters_schema: ParameterSchemaFactory,
     pub output_contract: SpaceActionOutputContract,
 }
 
-#[derive(Clone, Copy, Serialize)]
+#[derive(Clone, Copy, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct SpaceActionCollectionInput {
     pub kind: &'static str,
     pub role: &'static str,
     pub max_items: usize,
 }
 
-#[derive(Clone, Copy, Eq, PartialEq, Serialize)]
+#[derive(Clone, Copy, Eq, PartialEq, Serialize, ts_rs::TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub enum SpaceActionImpact {
     ReadOnly,
     CreatesResource,
     MutatesResource,
 }
 
-#[derive(Clone, Copy, Serialize)]
+#[derive(Clone, Copy, Serialize, ts_rs::TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub enum SpaceActionExecutionMode {
     Immediate,
     Durable,
 }
 
-#[derive(Clone, Copy, Eq, PartialEq, Serialize)]
+#[derive(Clone, Copy, Eq, PartialEq, Serialize, ts_rs::TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub enum SpaceActionApprovalPolicy {
     TaskGrant,
     ExactPlan,
 }
 
-#[derive(Clone, Copy, Serialize)]
+#[derive(Clone, Copy, Serialize, ts_rs::TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub enum SpaceActionInputConsistency {
     PinnedRevision,
 }
 
 pub type ParameterSchemaFactory = fn() -> &'static Value;
 
-#[derive(Clone, Copy, Eq, PartialEq, Serialize)]
+#[derive(Clone, Copy, Eq, PartialEq, Serialize, ts_rs::TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub enum SpaceActionInputRole {
     Document,
     Knowledge,
@@ -76,8 +84,9 @@ pub enum SpaceActionInputRole {
     Video,
 }
 
-#[derive(Clone, Copy, Eq, PartialEq, Serialize)]
+#[derive(Clone, Copy, Eq, PartialEq, Serialize, ts_rs::TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub enum SpaceActionOutputContract {
     Answer,
     Document,

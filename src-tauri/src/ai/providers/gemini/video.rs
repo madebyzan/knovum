@@ -1,3 +1,4 @@
+use crate::ai::transport::response;
 use futures::future::BoxFuture;
 use tokio_util::sync::CancellationToken;
 
@@ -66,14 +67,12 @@ impl VideoGenerationCapability for GeminiVideoAdapter {
                 .map_err(|e| AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string()))?;
 
             if !submission_response.status().is_success() {
-                let error_text = submission_response.text().await.unwrap_or_default();
+                let error_text = response::read_text(submission_response).await?;
                 return Err(AiError::new(AiErrorCode::ProviderRequestFailed, error_text));
             }
 
-            let initial_payload: serde_json::Value = submission_response
-                .json()
-                .await
-                .map_err(|e| AiError::new(AiErrorCode::InvalidResponse, e.to_string()))?;
+            let initial_payload: serde_json::Value =
+                response::read_json(submission_response, response::MAX_CONTROL_JSON_BYTES).await?;
 
             let operation_name = initial_payload["name"]
                 .as_str()
@@ -116,14 +115,12 @@ impl VideoGenerationCapability for GeminiVideoAdapter {
                 .map_err(|e| AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string()))?;
 
             if !poll_response.status().is_success() {
-                let error_text = poll_response.text().await.unwrap_or_default();
+                let error_text = response::read_text(poll_response).await?;
                 return Err(AiError::new(AiErrorCode::ProviderRequestFailed, error_text));
             }
 
-            let operation_status: serde_json::Value = poll_response
-                .json()
-                .await
-                .map_err(|e| AiError::new(AiErrorCode::InvalidResponse, e.to_string()))?;
+            let operation_status: serde_json::Value =
+                response::read_json(poll_response, response::MAX_CONTROL_JSON_BYTES).await?;
 
             if let Some(err) = operation_status["error"]["message"].as_str() {
                 return Ok(VideoGenerationStatus::Failed {

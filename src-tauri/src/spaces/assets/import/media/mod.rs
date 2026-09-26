@@ -1,3 +1,4 @@
+use crate::command_error::CommandError;
 mod contract;
 mod jobs;
 mod publish;
@@ -16,7 +17,7 @@ pub async fn import_media_from_url(
     job_id: String,
     url: String,
     on_progress: tauri::ipc::Channel<AcquisitionProgress>,
-) -> Result<Option<ImportedMedia>, String> {
+) -> Result<Option<ImportedMedia>, CommandError> {
     workflow::validate_source_url(&url)?;
     let tools = crate::media::acquisition::tools::resolve_required(&app)?;
     let (cancellation, _lease) = jobs::acquire(job_id.clone())?;
@@ -27,16 +28,16 @@ pub async fn import_media_from_url(
         processed_ms: None,
         duration_ms: None,
     }) {
-        return Err(error.to_string());
+        return Err((error.to_string()).into());
     }
     let execution_id = job_id;
-    crate::blocking::run(move || {
+    Ok((crate::blocking::run(move || {
         workflow::run(&app, &execution_id, url, tools, &on_progress, &cancellation)
     })
-    .await
+    .await)?)
 }
 
 #[tauri::command]
-pub async fn cancel_media_import(job_id: String) -> Result<(), String> {
-    jobs::cancel(&job_id)
+pub async fn cancel_media_import(job_id: String) -> Result<(), CommandError> {
+    Ok((jobs::cancel(&job_id))?)
 }

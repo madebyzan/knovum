@@ -97,7 +97,7 @@ pub(super) async fn create_records(
         &mut tx,
         &ids.conversation_id,
         &ids.branch_id,
-        "user",
+        repository::AssistantMessageRole::User,
         &json!({
             "parts": [{"type": "text", "text": request.prompt}],
             "attachments": repository::attachment_summaries(context_manifest)?,

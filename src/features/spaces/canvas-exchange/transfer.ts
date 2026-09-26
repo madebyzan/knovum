@@ -1,9 +1,9 @@
-import { invoke } from "@tauri-apps/api/core";
 import { dirname } from "@tauri-apps/api/path";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import { readTextFile } from "@tauri-apps/plugin-fs";
 import { isString } from "es-toolkit";
 
+import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
 import type { CanvasExchangePort } from "./canvas-exchange-port";
 
 const JSON_CANVAS_FILTER = [{ name: "JSON Canvas", extensions: ["canvas"] }];

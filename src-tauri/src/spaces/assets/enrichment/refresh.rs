@@ -22,9 +22,31 @@ pub(in crate::spaces::assets) async fn refresh_node(
             return Ok(None);
         }
     }
-    let source = required_string(&data, "assetPath")?;
-    let file_name = required_string(&data, "fileName")?;
-    let known_revision = optional_string(&data, "sourceRevision");
+    let old_previews = data
+        .get("previewPath")
+        .and_then(Value::as_str)
+        .map(str::to_owned)
+        .into_iter()
+        .collect();
+    let result = refresh_and_publish(app, &space_id, &node_id, &data).await;
+    // Only this node's former previews are candidates; never scan another in-flight generation.
+    if result.is_ok() {
+        if let Err(error) = crate::spaces::previews::reclaim_unreferenced(app, old_previews).await {
+            log::warn!("resource preview reclamation failed for {node_id}: {error}");
+        }
+    }
+    result
+}
+
+async fn refresh_and_publish(
+    app: &AppHandle,
+    space_id: &str,
+    node_id: &str,
+    data: &Value,
+) -> Result<Option<Value>, String> {
+    let source = required_string(data, "assetPath")?;
+    let file_name = required_string(data, "fileName")?;
+    let known_revision = optional_string(data, "sourceRevision");
     let known_size = data.get("size").and_then(Value::as_u64);
     let known_modified_at = data.get("modifiedAt").and_then(Value::as_u64);
     let app_handle = app.clone();
@@ -42,26 +64,43 @@ pub(in crate::spaces::assets) async fn refresh_node(
     })
     .await?;
     let Some(mut asset) = refreshed.asset else {
-        let mut current = load_node_data(app, &space_id, &node_id).await?;
+        let mut current = load_node_data(app, space_id, node_id).await?;
         if apply_metadata_fields(&mut current, refreshed.size, refreshed.modified_at)? {
-            persist_processing_state(app, &space_id, &node_id, &mut current, "done", None, None)
+            persist_processing_state(app, space_id, node_id, &mut current, "done", None, None)
                 .await?;
             return Ok(Some(current));
         }
         return Ok(None);
     };
-    let mut current = load_node_data(app, &space_id, &node_id).await?;
-    apply_refresh_fields(&mut current, &asset)?;
+    let created = asset.preview_path.clone().into_iter().collect();
+    let result = publish_refresh(app, space_id, node_id, data, &mut asset).await;
+    if result.is_err() {
+        if let Err(error) = crate::spaces::previews::reclaim_unreferenced(app, created).await {
+            log::warn!("unpublished resource preview reclamation failed for {node_id}: {error}");
+        }
+    }
+    result
+}
+
+async fn publish_refresh(
+    app: &AppHandle,
+    space_id: &str,
+    node_id: &str,
+    data: &Value,
+    asset: &mut PreparedAsset,
+) -> Result<Option<Value>, String> {
+    let mut current = load_node_data(app, space_id, node_id).await?;
+    apply_refresh_fields(&mut current, asset)?;
     revision::apply(&mut current)?;
-    let chunks = take_chunks(&mut asset);
+    let chunks = take_chunks(asset);
     let guard = super::persistence::PublicationGuard {
         source_revision: data.get("sourceRevision").and_then(Value::as_str),
         job_id: None,
     };
     persist_processing_state(
         app,
-        &space_id,
-        &node_id,
+        space_id,
+        node_id,
         &mut current,
         "done",
         Some(chunks),

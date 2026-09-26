@@ -7,3 +7,6 @@ pub(crate) mod relations;
 pub(crate) mod retrieval;
 pub(crate) mod scenes;
 pub(crate) mod session;
+
+#[cfg(test)]
+mod tests;

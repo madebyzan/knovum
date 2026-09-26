@@ -12,7 +12,8 @@ const MAX_DEPTH: usize = 64;
 
 pub(crate) fn parse(source: &DocumentSource) -> Result<Document, String> {
     validate_source(source)?;
-    let options = Options::ENABLE_TABLES | Options::ENABLE_STRIKETHROUGH | Options::ENABLE_TASKLISTS;
+    let options =
+        Options::ENABLE_TABLES | Options::ENABLE_STRIKETHROUGH | Options::ENABLE_TASKLISTS;
     let mut reader = Reader {
         parser: Parser::new_ext(&source.markdown, options),
         events: 0,
@@ -47,9 +48,12 @@ fn validate_source(source: &DocumentSource) -> Result<(), String> {
     let mut total = 0usize;
     for value in std::iter::once(source.title.as_str())
         .chain(std::iter::once(source.markdown.as_str()))
-        .chain(source.citations.iter().flat_map(|citation| {
-            [citation.title.as_str(), citation.quote.as_str()]
-        }))
+        .chain(
+            source
+                .citations
+                .iter()
+                .flat_map(|citation| [citation.title.as_str(), citation.quote.as_str()]),
+        )
     {
         total = total.saturating_add(value.len());
         if total > MAX_SOURCE_BYTES {

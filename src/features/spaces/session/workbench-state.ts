@@ -69,7 +69,6 @@ export function createSpaceUiState() {
     outlineFocusRequest: shallowRef(0),
     outlineRenameStructureNodeId: shallowRef<string | null>(null),
     recentlyDeletedSpaceId: shallowRef<string | null>(),
-    thumbnailCaptureActive: ref(false),
     thumbnailDirty: ref(true),
     relationKindFilter: ref<SpaceRelationKind[]>([]),
     relationStatusFilter: ref<SpaceRelationStatus[]>(["active", "contested"]),

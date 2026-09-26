@@ -11,9 +11,9 @@ import { validateSpaceNodePayload } from "../../model/nodes/schema/node-payload"
 import {
   discardPendingContent as persistPendingContentDiscard,
   updateNodePayload,
-} from "../../nodes/node-repository";
-import { spaceEditRepository } from "../../structure/space-edit-repository";
-import { loadSpaceSessionProjection } from "../space-projection-repository";
+} from "../../nodes/node-operations";
+import { spaceEditOperations } from "../../structure/space-edit-operations";
+import { loadSpaceSessionProjection } from "../space-projection";
 
 export function createNodeDataMutations(context: SpaceMutationContext) {
   async function saveNodeData(
@@ -80,7 +80,7 @@ export function createNodeDataMutations(context: SpaceMutationContext) {
     const snapshot =
       context.activeSpaceId.value === spaceId
         ? context.editSnapshot.value
-        : await spaceEditRepository.load(spaceId);
+        : await spaceEditOperations.load(spaceId);
     const result = await persistPendingContentDiscard({
       spaceId,
       nodeId: id,

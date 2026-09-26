@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { MAX_KNOWLEDGE_PASSAGE_BYTES } from "./passage";
+import { maxKnowledgePassageBytes } from "../../contracts/generated/contract-values";
 
 const encoder = new TextEncoder();
 
@@ -141,7 +141,7 @@ export const knowledgeChunkTextSchema = z
   .min(1)
   .refine((value) => value.trim().length > 0, "Knowledge passage cannot be blank")
   .refine(
-    (value) => encoder.encode(value).byteLength <= MAX_KNOWLEDGE_PASSAGE_BYTES,
+    (value) => encoder.encode(value).byteLength <= maxKnowledgePassageBytes,
     "Knowledge passage exceeds the durable byte limit",
   );
 

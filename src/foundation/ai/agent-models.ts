@@ -1,21 +1,13 @@
 import { z } from "zod";
 
-export const agentKindSchema = z.enum([
-  "codex",
-  "claude_code",
-  "gemini_cli",
-  "github_copilot",
-  "open_code",
-  "qwen_code",
-  "qoder_cli",
-  "kimi_cli",
-  "auggie_cli",
-  "cline",
-  "cursor",
-  "antigravity",
-]);
+import type { AgentDescriptor } from "../../shared/contracts/generated/AgentDescriptor";
+import type { AgentInstallation } from "../../shared/contracts/generated/AgentInstallation";
+import { agentKinds } from "../../shared/contracts/generated/contract-values";
+import type { DesktopAgentSettings } from "../../shared/contracts/generated/DesktopAgentSettings";
 
-export const agentInstallationSchema = z
+export const agentKindSchema = z.enum(agentKinds);
+
+export const agentInstallationSchema: z.ZodType<AgentInstallation> = z
   .object({
     kind: agentKindSchema,
     detected: z.boolean(),
@@ -23,7 +15,7 @@ export const agentInstallationSchema = z
   })
   .strict();
 
-export const agentDescriptorSchema = z
+export const agentDescriptorSchema: z.ZodType<AgentDescriptor> = z
   .object({
     kind: agentKindSchema,
     displayName: z.string().min(1),
@@ -38,14 +30,14 @@ export const agentDescriptorSchema = z
   })
   .strict();
 
-export const desktopAgentSettingsSchema = z
+export const desktopAgentSettingsSchema: z.ZodType<DesktopAgentSettings> = z
   .object({
     kind: agentKindSchema,
     enabled: z.literal(true),
   })
   .strict();
 
-export type AgentKind = z.infer<typeof agentKindSchema>;
-export type AgentInstallation = z.infer<typeof agentInstallationSchema>;
-export type AgentDescriptor = z.infer<typeof agentDescriptorSchema>;
-export type DesktopAgentSettings = z.infer<typeof desktopAgentSettingsSchema>;
+export type { AgentKind } from "../../shared/contracts/generated/AgentKind";
+export type { AgentInstallation } from "../../shared/contracts/generated/AgentInstallation";
+export type { AgentDescriptor } from "../../shared/contracts/generated/AgentDescriptor";
+export type { DesktopAgentSettings } from "../../shared/contracts/generated/DesktopAgentSettings";

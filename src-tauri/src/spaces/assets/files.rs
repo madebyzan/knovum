@@ -38,7 +38,6 @@ pub fn refresh_asset(
     if request.known_revision.as_deref() == Some(revision.as_str()) {
         return Ok(RefreshedAsset::unchanged(metadata));
     }
-    previews::remove_generated(app, &canonical)?;
     let mut asset = snapshot_to_imported(
         inspect_file(&canonical, &request.file_name)?,
         revision.clone(),

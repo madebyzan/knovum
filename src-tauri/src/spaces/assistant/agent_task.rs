@@ -102,9 +102,13 @@ pub async fn start(
         branch_id: session.branch_id.clone(),
     };
     tauri::async_runtime::spawn(async move {
-        let outcome =
-            external_conversations::send_for_assistant(app.clone(), &session.id, &turn_id, prepared)
-                .await;
+        let outcome = external_conversations::send_for_assistant(
+            app.clone(),
+            &session.id,
+            &turn_id,
+            prepared,
+        )
+        .await;
         let outcome = match outcome {
             Ok(()) => external_conversations::close_for_assistant(app.clone(), &session.id).await,
             Err(error) => Err(error),

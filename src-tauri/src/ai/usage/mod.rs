@@ -1,4 +1,5 @@
-mod contracts;
+use crate::command_error::CommandError;
+pub(crate) mod contracts;
 mod db;
 mod repository;
 #[cfg(test)]
@@ -59,13 +60,13 @@ pub fn from_provider_usage(usage: genai::chat::Usage) -> Option<TokenUsage> {
 pub async fn get_token_usage_report(
     app: AppHandle,
     request: contracts::UsageReportRequest,
-) -> Result<contracts::UsageReport, String> {
+) -> Result<contracts::UsageReport, CommandError> {
     let from = parse_date(&request.from_date)?;
     let to = parse_date(&request.to_date)?;
     if to < from || (to - from).num_days() > 731 {
         return Err("AI usage report range must contain at most 732 ordered days".into());
     }
-    repository::report(db::pool(&app).await?, from, to).await
+    Ok((repository::report(db::pool(&app).await?, from, to).await)?)
 }
 
 fn parse_date(value: &str) -> Result<NaiveDate, String> {

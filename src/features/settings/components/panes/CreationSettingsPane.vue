@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import type { GenerationActionOption } from "../../generation-action-option";
+
+const props = defineProps<{ loadGenerationActions: () => Promise<GenerationActionOption[]> }>();
 import { ask } from "@tauri-apps/plugin-dialog";
 import { storeToRefs } from "pinia";
 import { onMounted, watch } from "vue";
@@ -41,6 +44,9 @@ onMounted(store.ensureLoaded);
     <p class="max-w-2xl text-body text-foreground-secondary">
       {{ t("settings.creation.description") }}
     </p>
-    <SavedGenerationPresets v-model="library.generationPresets" />
+    <SavedGenerationPresets
+      v-model="library.generationPresets"
+      :load-generation-actions="props.loadGenerationActions"
+    />
   </div>
 </template>

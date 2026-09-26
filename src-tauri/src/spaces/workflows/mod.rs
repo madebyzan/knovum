@@ -1,4 +1,5 @@
-mod capture;
+use crate::command_error::CommandError;
+pub(crate) mod capture;
 mod compiler;
 pub(crate) mod definition;
 mod execution;
@@ -15,28 +16,28 @@ pub async fn preview_workflow_capture(
     app: tauri::AppHandle,
     space_id: String,
     selected_node_ids: Vec<String>,
-) -> Result<capture::CapturePreview, String> {
-    capture::preview(
+) -> Result<capture::CapturePreview, CommandError> {
+    Ok((capture::preview(
         crate::spaces::db::pool(&app).await?,
         &space_id,
         selected_node_ids,
     )
-    .await
+    .await)?)
 }
 
 #[tauri::command]
 pub async fn save_captured_workflow(
     app: tauri::AppHandle,
     request: capture::SaveCapturedWorkflowRequest,
-) -> Result<capture::SavedCapturedWorkflow, String> {
-    capture::save(crate::spaces::db::pool(&app).await?, request).await
+) -> Result<capture::SavedCapturedWorkflow, CommandError> {
+    Ok((capture::save(crate::spaces::db::pool(&app).await?, request).await)?)
 }
 
 #[tauri::command]
 pub async fn list_captured_workflows(
     app: tauri::AppHandle,
-) -> Result<capture::CapturedWorkflowLibrary, String> {
-    capture::list(crate::spaces::db::pool(&app).await?).await
+) -> Result<capture::CapturedWorkflowLibrary, CommandError> {
+    Ok((capture::list(crate::spaces::db::pool(&app).await?).await)?)
 }
 
 #[tauri::command]
@@ -45,22 +46,22 @@ pub async fn rename_captured_workflow(
     workflow_id: String,
     expected_name: String,
     name: String,
-) -> Result<capture::SavedCapturedWorkflow, String> {
-    capture::rename(
+) -> Result<capture::SavedCapturedWorkflow, CommandError> {
+    Ok((capture::rename(
         crate::spaces::db::pool(&app).await?,
         &workflow_id,
         &expected_name,
         &name,
     )
-    .await
+    .await)?)
 }
 
 #[tauri::command]
 pub async fn revise_captured_workflow(
     app: tauri::AppHandle,
     request: capture::ReviseCapturedWorkflowRequest,
-) -> Result<capture::SavedCapturedWorkflow, String> {
-    capture::revise(crate::spaces::db::pool(&app).await?, request).await
+) -> Result<capture::SavedCapturedWorkflow, CommandError> {
+    Ok((capture::revise(crate::spaces::db::pool(&app).await?, request).await)?)
 }
 
 #[tauri::command]
@@ -68,43 +69,43 @@ pub async fn delete_captured_workflow(
     app: tauri::AppHandle,
     workflow_id: String,
     expected_name: String,
-) -> Result<(), String> {
-    capture::delete(
+) -> Result<(), CommandError> {
+    Ok((capture::delete(
         crate::spaces::db::pool(&app).await?,
         &workflow_id,
         &expected_name,
     )
-    .await
+    .await)?)
 }
 
 #[tauri::command]
 pub async fn start_captured_workflow(
     app: tauri::AppHandle,
     request: capture::StartCapturedWorkflowRequest,
-) -> Result<crate::spaces::runs::RunSummary, String> {
-    capture::start(&app, crate::spaces::db::pool(&app).await?, request).await
+) -> Result<crate::spaces::runs::RunSummary, CommandError> {
+    Ok((capture::start(&app, crate::spaces::db::pool(&app).await?, request).await)?)
 }
 
 #[tauri::command]
 pub async fn list_captured_run_outputs(
     app: tauri::AppHandle,
     run_id: String,
-) -> Result<Vec<capture::CapturedRunOutput>, String> {
-    capture::list_run_outputs(crate::spaces::db::pool(&app).await?, &run_id).await
+) -> Result<Vec<capture::CapturedRunOutput>, CommandError> {
+    Ok((capture::list_run_outputs(crate::spaces::db::pool(&app).await?, &run_id).await)?)
 }
 
 #[tauri::command]
 pub async fn list_captured_workflow_runs(
     app: tauri::AppHandle,
     space_id: String,
-) -> Result<Vec<capture::CapturedWorkflowRun>, String> {
-    capture::list_run_history(crate::spaces::db::pool(&app).await?, &space_id).await
+) -> Result<Vec<capture::CapturedWorkflowRun>, CommandError> {
+    Ok((capture::list_run_history(crate::spaces::db::pool(&app).await?, &space_id).await)?)
 }
 
 #[tauri::command]
 pub async fn start_builtin_workflow(
     app: tauri::AppHandle,
     request: StartBuiltInWorkflowRequest,
-) -> Result<crate::spaces::runs::RunSummary, String> {
-    templates::start(&app, crate::spaces::db::pool(&app).await?, request).await
+) -> Result<crate::spaces::runs::RunSummary, CommandError> {
+    Ok((templates::start(&app, crate::spaces::db::pool(&app).await?, request).await)?)
 }

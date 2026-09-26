@@ -1,13 +1,8 @@
-import { invoke } from "@tauri-apps/api/core";
-
-export interface UpdaterStatus {
-  configured: boolean;
-}
-
-export interface UpdateMetadata {
-  version: string;
-  currentVersion: string;
-}
+export type { UpdateMetadata } from "../../shared/contracts/generated/UpdateMetadata";
+import type { UpdateMetadata } from "../../shared/contracts/generated/UpdateMetadata";
+export type { UpdaterStatus } from "../../shared/contracts/generated/UpdaterStatus";
+import { invokeCommand as invoke } from "../../foundation/ipc/invoke-command";
+import type { UpdaterStatus } from "../../shared/contracts/generated/UpdaterStatus";
 
 export function getUpdaterStatus() {
   return invoke<UpdaterStatus>("updater_get_status");

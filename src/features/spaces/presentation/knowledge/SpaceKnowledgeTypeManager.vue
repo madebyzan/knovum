@@ -9,7 +9,7 @@ import UiDialog from "../../../../shared/ui/UiDialog.vue";
 import UiInput from "../../../../shared/ui/UiInput.vue";
 import UiScrollArea from "../../../../shared/ui/UiScrollArea.vue";
 import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
-import { useKnowledgeTypeManager } from "../../knowledge/types/use-knowledge-type-manager";
+import { useKnowledgeTypeEditor } from "../../knowledge/types/use-knowledge-type-editor";
 import SpaceKnowledgeIconSelect from "./SpaceKnowledgeIconSelect.vue";
 import SpaceKnowledgeTypeFields from "./SpaceKnowledgeTypeFields.vue";
 
@@ -36,7 +36,7 @@ const {
   updateRequired,
   save,
   remove,
-} = useKnowledgeTypeManager(toRef(() => open.value));
+} = useKnowledgeTypeEditor(toRef(() => open.value));
 const confirming = shallowRef(false);
 async function changeEditor(action: () => void) {
   if (saving.value || confirming.value) return;

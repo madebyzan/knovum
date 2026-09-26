@@ -1,14 +1,14 @@
 use tauri::{AppHandle, Runtime};
 use tauri_plugin_store::StoreExt;
 
-mod contracts;
+pub(crate) mod contracts;
 mod validation;
 
 pub use contracts::AiSettings;
 use contracts::Envelope;
 
 use super::{
-    contracts::{ExecutionCapability, ProviderKind},
+    contracts::ExecutionCapability,
     error::{AiError, AiResult},
     models::{ExecutionTarget, ExecutionTargetSelection},
 };
@@ -105,12 +105,11 @@ fn resolve_model(
         .ok_or_else(|| AiError::invalid("AI model does not exist"))?;
     if !model.capabilities.contains(&capability) {
         return Err(AiError::capability_not_supported(
-            &connection.provider,
+            connection.provider.as_str(),
             "requested action",
         ));
     }
-    let provider = ProviderKind::parse(&connection.provider)
-        .ok_or_else(|| AiError::unsupported("AI provider is not registered"))?;
+    let provider = connection.provider;
     Ok(ExecutionTarget {
         provider: provider.as_str().to_owned(),
         model: model.model,

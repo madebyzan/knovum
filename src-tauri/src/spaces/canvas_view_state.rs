@@ -1,3 +1,4 @@
+use crate::command_error::CommandError;
 use serde::{Deserialize, Serialize};
 use sqlx::Row;
 use tauri::{AppHandle, Runtime};
@@ -27,7 +28,7 @@ pub(crate) struct SaveCanvasViewStateRequest {
 pub(crate) async fn load_canvas_view_state<R: Runtime>(
     app: AppHandle<R>,
     space_id: String,
-) -> Result<Option<CanvasViewState>, String> {
+) -> Result<Option<CanvasViewState>, CommandError> {
     validate_space_id(&space_id)?;
     let pool = db::pool(&app).await?;
     let row = sqlx::query("SELECT x,y,zoom FROM spaces_canvas_view_state WHERE space_id=$1")
@@ -35,23 +36,24 @@ pub(crate) async fn load_canvas_view_state<R: Runtime>(
         .fetch_optional(pool)
         .await
         .map_err(db::sql_error)?;
-    row.map(|row| {
-        let view = CanvasViewState {
-            x: row.try_get("x").map_err(db::sql_error)?,
-            y: row.try_get("y").map_err(db::sql_error)?,
-            zoom: row.try_get("zoom").map_err(db::sql_error)?,
-        };
-        validate_view(view)?;
-        Ok(view)
-    })
-    .transpose()
+    Ok((row
+        .map(|row| -> Result<CanvasViewState, String> {
+            let view = CanvasViewState {
+                x: row.try_get("x").map_err(db::sql_error)?,
+                y: row.try_get("y").map_err(db::sql_error)?,
+                zoom: row.try_get("zoom").map_err(db::sql_error)?,
+            };
+            validate_view(view)?;
+            Ok(view)
+        })
+        .transpose())?)
 }
 
 #[tauri::command]
 pub(crate) async fn save_canvas_view_state<R: Runtime>(
     app: AppHandle<R>,
     request: SaveCanvasViewStateRequest,
-) -> Result<(), String> {
+) -> Result<(), CommandError> {
     validate_space_id(&request.space_id)?;
     validate_view(request.view)?;
     let pool = db::pool(&app).await?;

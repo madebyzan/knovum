@@ -6,8 +6,9 @@ use crate::spaces::{
     runs::{self, RunSummary},
 };
 
-#[derive(Serialize)]
+#[derive(Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub(crate) struct CapturedWorkflowRun {
     pub run: RunSummary,
     pub workflow_id: String,

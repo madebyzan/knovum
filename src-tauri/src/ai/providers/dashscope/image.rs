@@ -1,3 +1,4 @@
+use crate::ai::transport::response;
 use futures::future::BoxFuture;
 use serde::Deserialize;
 
@@ -80,10 +81,8 @@ impl ImageGenerationCapability for DashScopeImageAdapter {
                 .map_err(|e| AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string()))?;
 
             let status = generation_response.status();
-            let payload: ResponsePayload = generation_response
-                .json()
-                .await
-                .map_err(|e| AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string()))?;
+            let payload: ResponsePayload =
+                response::read_json(generation_response, response::MAX_CONTROL_JSON_BYTES).await?;
 
             if !status.is_success() {
                 let code = payload.code.as_deref().unwrap_or("unknown");
@@ -109,11 +108,8 @@ impl ImageGenerationCapability for DashScopeImageAdapter {
                 .error_for_status()
                 .map_err(|e| AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string()))?;
 
-            let image_bytes = download_response
-                .bytes()
-                .await
-                .map_err(|e| AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string()))?
-                .to_vec();
+            let image_bytes =
+                response::read_bytes(download_response, response::MAX_IMAGE_BYTES).await?;
 
             Ok(GeneratedImage {
                 bytes: image_bytes,

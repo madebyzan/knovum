@@ -1,10 +1,10 @@
 import { storeToRefs } from "pinia";
 import { computed } from "vue";
 
-import type { AgentKind } from "../../foundation/ai/agent-models";
-import type { AiModelTarget, ExecutionTarget } from "../../foundation/ai/ai-models";
+import type { ExecutionTarget } from "../../foundation/ai/ai-models";
 import { useAiSettingsStore } from "../../foundation/ai/ai-settings-store";
 import { useCreationLibraryStore } from "../../foundation/ai/creation-library-store";
+import { encodeExecutionTarget } from "../../foundation/ai/execution-target-codec";
 
 export function useProtectedExecutionTargets() {
   const aiStore = useAiSettingsStore();
@@ -15,15 +15,11 @@ export function useProtectedExecutionTargets() {
     ...Object.values(settings.value.defaults).filter((target): target is ExecutionTarget => Boolean(target)),
     ...library.value.generationPresets.map(({ target }) => target),
   ]);
-  const modelTargets = computed(() => targets.value as AiModelTarget[]);
 
   return {
     protectedConnectionIds: computed(() => [
-      ...new Set(modelTargets.value.map(({ connectionId }) => connectionId)),
+      ...new Set(targets.value.map(({ connectionId }) => connectionId)),
     ]),
-    protectedModelTargets: computed(() =>
-      modelTargets.value.map(({ connectionId, modelId }) => `${connectionId}:${modelId}`),
-    ),
-    protectedAgentKinds: computed<AgentKind[]>(() => []),
+    protectedModelTargets: computed(() => targets.value.map(encodeExecutionTarget)),
   };
 }

@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct TransferSelectionRequest {
     pub source_space_id: String,
     pub mutation_id: String,
@@ -13,8 +14,9 @@ pub struct TransferSelectionRequest {
     pub expected_target_edit_revision: i64,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct TransferSelectionResponse {
     pub moved_node_ids: Vec<String>,
     pub moved_structure_node_ids: Vec<String>,

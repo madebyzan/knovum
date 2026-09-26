@@ -3,23 +3,4 @@ import type { RunKind } from "./RunKind";
 import type { RunState } from "./RunState";
 import type { WaitReason } from "./WaitReason";
 
-export type RunSummary = {
-  id: string;
-  homeSpaceId: string;
-  parentRunId: string | null;
-  retryOfRunId: string | null;
-  forkOfRunId: string | null;
-  kind: RunKind;
-  state: RunState;
-  stateVersion: number;
-  waitReason: WaitReason | null;
-  inputTokens: number;
-  outputTokens: number;
-  totalTokens: number;
-  stepAttempts: number;
-  expandedSteps: number;
-  outputBytes: number;
-  createdAt: number;
-  updatedAt: number;
-  completedAt: number | null;
-};
+export type RunSummary = { id: string, homeSpaceId: string, parentRunId: string | null, retryOfRunId: string | null, forkOfRunId: string | null, kind: RunKind, state: RunState, stateVersion: number, waitReason: WaitReason | null, inputTokens: number, outputTokens: number, totalTokens: number, stepAttempts: number, expandedSteps: number, outputBytes: number, createdAt: number, updatedAt: number, completedAt: number | null, };
