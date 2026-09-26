@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Star } from "@lucide/vue";
 import { orderBy } from "es-toolkit";
+import { search } from "fast-fuzzy";
 import { storeToRefs } from "pinia";
 import { computed, nextTick, shallowRef, useTemplateRef } from "vue";
 import { useI18n } from "vue-i18n";
@@ -29,18 +30,17 @@ const titleKeys: Record<SpaceLibraryScope, string> = {
 };
 const title = computed(() => t(titleKeys[libraryScope.value]));
 const visibleSpaces = computed(() => {
-  const needle = libraryQuery.value.trim().toLocaleLowerCase();
+  const needle = libraryQuery.value.trim();
   const available = spaces.value.filter((space) => space.kind === "space" && space.archivedAt === null);
   const scoped = libraryScope.value === "favorites" ? available.filter((space) => space.favorite) : available;
-  return orderBy(
-    scoped.filter((space) => !needle || space.title.toLocaleLowerCase().includes(needle)),
-    [libraryScope.value === "all" ? "createdAt" : "lastOpenedAt"],
-    ["desc"],
-  );
+  const matched = needle ? search(needle, scoped, { keySelector: (space) => space.title }) : scoped;
+  return orderBy(matched, [libraryScope.value === "all" ? "createdAt" : "lastOpenedAt"], ["desc"]);
 });
 
+const updatedAt = computed(() => new Intl.DateTimeFormat(locale.value, { dateStyle: "medium" }));
+
 function formatUpdatedAt(timestamp: number) {
-  return new Intl.DateTimeFormat(locale.value, { dateStyle: "medium" }).format(timestamp);
+  return updatedAt.value.format(timestamp);
 }
 
 async function beginRenaming(space: Space) {

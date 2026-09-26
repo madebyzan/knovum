@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ArrowDown, ArrowUp } from "@lucide/vue";
+import { compact, without } from "es-toolkit";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -19,13 +20,11 @@ const { t } = useI18n();
 const draggingId = ref("");
 const selected = computed(() => new Set(props.modelValue));
 const selectedOptions = computed(() =>
-  props.modelValue
-    .map((id) => props.options.find((option) => option.value === id))
-    .filter((option) => option !== undefined),
+  compact(props.modelValue.map((id) => props.options.find((option) => option.value === id))),
 );
 
 function toggle(id: string, enabled: boolean) {
-  const next = enabled ? [...props.modelValue, id] : props.modelValue.filter((candidate) => candidate !== id);
+  const next = enabled ? [...props.modelValue, id] : without(props.modelValue, id);
   emit("update:modelValue", next);
 }
 

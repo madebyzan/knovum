@@ -1,3 +1,5 @@
+import { clamp } from "es-toolkit";
+
 import { applyImageDetail } from "./image-detail";
 import type { ImageAdjustments } from "./image-edit";
 import { applyImageGlow } from "./image-glow";
@@ -54,9 +56,9 @@ export function applyImageTone(
     const colorLuminance = 0.2126 * red + 0.7152 * green + 0.0722 * blue;
     const chroma = Math.max(red, green, blue) - Math.min(red, green, blue);
     const colorStrength = saturation * (1 + vibrance * (1 - chroma));
-    red = clamp(colorLuminance + (red - colorLuminance) * colorStrength + warmth + tint);
-    green = clamp(colorLuminance + (green - colorLuminance) * colorStrength - tint);
-    blue = clamp(colorLuminance + (blue - colorLuminance) * colorStrength - warmth + tint);
+    red = clamp(colorLuminance + (red - colorLuminance) * colorStrength + warmth + tint, 0, 1);
+    green = clamp(colorLuminance + (green - colorLuminance) * colorStrength - tint, 0, 1);
+    blue = clamp(colorLuminance + (blue - colorLuminance) * colorStrength - warmth + tint, 0, 1);
     if (softLight) {
       red += softLight * red * (1 - red);
       green += softLight * green * (1 - green);
@@ -81,9 +83,9 @@ export function applyImageTone(
       }
     }
 
-    output[offset] = clamp(red) * BYTE_MAX;
-    output[offset + 1] = clamp(green) * BYTE_MAX;
-    output[offset + 2] = clamp(blue) * BYTE_MAX;
+    output[offset] = clamp(red, 0, 1) * BYTE_MAX;
+    output[offset + 1] = clamp(green, 0, 1) * BYTE_MAX;
+    output[offset + 2] = clamp(blue, 0, 1) * BYTE_MAX;
   }
   return finishSpatialAdjustments(output, adjustments, size);
 }
@@ -109,19 +111,15 @@ function finishSpatialAdjustments(
 }
 
 function contrastChannel(value: number, contrast: number) {
-  return clamp((value - 0.5) * contrast + 0.5);
+  return clamp((value - 0.5) * contrast + 0.5, 0, 1);
 }
 
 function adjustRange(value: number, amount: number, weight: number) {
   const room = amount >= 0 ? 1 - value : value;
-  return clamp(value + room * amount * weight);
+  return clamp(value + room * amount * weight, 0, 1);
 }
 
 function smoothstep(edge0: number, edge1: number, value: number) {
-  const position = clamp((value - edge0) / (edge1 - edge0));
+  const position = clamp((value - edge0) / (edge1 - edge0), 0, 1);
   return position * position * (3 - 2 * position);
-}
-
-function clamp(value: number) {
-  return Math.max(0, Math.min(1, value));
 }

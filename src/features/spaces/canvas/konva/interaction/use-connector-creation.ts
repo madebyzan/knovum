@@ -1,11 +1,12 @@
 import type Konva from "konva";
-import { shallowRef, type Ref } from "vue";
+import { computed, shallowRef, type Ref } from "vue";
 
 import type { CanvasSurfaceEvents } from "../../contract/canvas-editor";
 import type { CanvasScene } from "../scene/scene-projection";
 import type { useStageViewport } from "../viewport/use-stage-viewport";
 import { canvasPointFromScreen } from "../viewport/viewport-math";
 import { ConnectorGestureController, type CanvasConnectorDraft } from "./connector-gesture-controller";
+import { createConnectorTargetIndex } from "./connector-target-index";
 import { useCanvasEdgeAutoPan } from "./use-canvas-edge-auto-pan";
 import type { usePointerInteractions } from "./use-pointer-interactions";
 
@@ -17,11 +18,15 @@ export function useConnectorCreation(options: {
   viewport: ReturnType<typeof useStageViewport>;
 }) {
   const draft = shallowRef<CanvasConnectorDraft>();
-  const controller = new ConnectorGestureController(
-    () =>
+  const targetIndex = computed(() =>
+    createConnectorTargetIndex(
       options.scene.value.nodes
         .filter(({ interaction }) => interaction.connectable)
         .map(({ layout }) => layout),
+    ),
+  );
+  const controller = new ConnectorGestureController(
+    () => targetIndex.value,
     (value) => (draft.value = value),
     () => options.viewport.viewport.value.zoom,
   );

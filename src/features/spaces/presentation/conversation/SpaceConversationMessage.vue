@@ -3,6 +3,7 @@ import { MoreHorizontal } from "@lucide/vue";
 import { writeText } from "tauri-plugin-clipboard-api";
 import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
+import { z } from "zod";
 
 import UiDropdownMenu from "../../../../shared/ui/UiDropdownMenu.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
@@ -48,14 +49,16 @@ function actionName(id: string) {
   return label ? t(`spaces.creation.workflow.captureActions.${label}`) : id;
 }
 
+/** Run results arrive as generated JSON values, so the created-node receipts are untrusted shapes. */
+const createdNodeSchema = z.discriminatedUnion("type", [
+  z.object({ type: z.literal("accepted_run"), nodeId: z.string() }),
+  z.object({ type: z.literal("committed_receipt"), receipt: z.object({ nodeId: z.string().optional() }) }),
+]);
+
 function createdNodeId(result: unknown): string | undefined {
-  if (!result || typeof result !== "object" || Array.isArray(result)) return;
-  const value = result as Record<string, unknown>;
-  if (value.type === "accepted_run" && typeof value.nodeId === "string") return value.nodeId;
-  if (value.type === "committed_receipt" && value.receipt && typeof value.receipt === "object") {
-    const receipt = value.receipt as Record<string, unknown>;
-    return typeof receipt.nodeId === "string" ? receipt.nodeId : undefined;
-  }
+  const created = createdNodeSchema.safeParse(result);
+  if (!created.success) return undefined;
+  return created.data.type === "accepted_run" ? created.data.nodeId : created.data.receipt.nodeId;
 }
 </script>
 

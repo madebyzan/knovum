@@ -42,7 +42,6 @@ function fuzzySettings<T extends { searchText: string }>(value: string, candidat
 const visibleGroups = computed(() => {
   const value = query.value.trim();
   if (!value) return groups.value;
-  const normalizedValue = value.toLocaleLowerCase();
   const candidateGroups = groups.value.map((group) =>
     Object.assign({}, group, {
       settings: group.settings.flatMap((setting) =>
@@ -60,15 +59,9 @@ const visibleGroups = computed(() => {
       ),
     }),
   );
-  const hasExactMatch = candidateGroups.some((group) =>
-    group.settings.some((setting) => setting.searchText.toLocaleLowerCase().includes(normalizedValue)),
-  );
-
   return compact(
     candidateGroups.map((group) => {
-      const settings = hasExactMatch
-        ? group.settings.filter((setting) => setting.searchText.toLocaleLowerCase().includes(normalizedValue))
-        : fuzzySettings(value, group.settings);
+      const settings = fuzzySettings(value, group.settings);
       return settings.length > 0 ? Object.assign({}, group, { settings }) : null;
     }),
   );

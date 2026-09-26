@@ -1,5 +1,6 @@
+import { clamp } from "es-toolkit";
+
 import {
-  clamp,
   fitsChrome,
   type PlacementInput,
   type SurfacePlacement,

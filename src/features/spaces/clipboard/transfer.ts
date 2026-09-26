@@ -1,12 +1,35 @@
-import { compact, isPlainObject } from "es-toolkit";
+import { compact } from "es-toolkit";
 import { writeHtmlAndText } from "tauri-plugin-clipboard-api";
+import { z } from "zod";
 
 import { validateSpaceNodePayload } from "../model/nodes/schema/node-payload";
-import { structureLayoutSchema, structureNodeSchema } from "../model/structure/structure-contract";
+import {
+  MAX_STRUCTURE_NODES,
+  structureLayoutSchema,
+  structureNodeSchema,
+} from "../model/structure/structure-contract";
 import { validateStructureSnapshot } from "../model/structure/structure-validation";
+import { clipboardRelationSchema, toSpaceRelation } from "../package/core-schema";
 import type { SpaceClipboardPayload } from "./payload-types";
 
 const HTML_MARKER = /<!--knovum-spaces:([^>]*)-->/u;
+const MAX_CLIPBOARD_BYTES = 8 * 1024 * 1024;
+
+const clipboardNodeSchema = z.object({ id: z.string().min(1), data: z.unknown() }).strict();
+
+const clipboardEnvelopeSchema = z
+  .object({
+    version: z.literal(1),
+    structure: z.array(structureNodeSchema).min(1).max(MAX_STRUCTURE_NODES),
+    layouts: z.array(structureLayoutSchema).max(MAX_STRUCTURE_NODES),
+    nodes: z.array(clipboardNodeSchema).max(MAX_STRUCTURE_NODES),
+    relations: z.array(clipboardRelationSchema).max(MAX_STRUCTURE_NODES),
+  })
+  .strict()
+  .refine(({ structure, layouts }) => structure.length === layouts.length, {
+    message: "Clipboard structure and layout counts differ",
+    path: ["layouts"],
+  });
 
 export async function writeSpaceClipboardDirect(payload: SpaceClipboardPayload) {
   if (!payload.structure.length) return false;
@@ -33,46 +56,19 @@ function clipboardHtml(payload: SpaceClipboardPayload) {
 }
 
 function parsePayload(value: string): SpaceClipboardPayload | undefined {
-  if (value.length > 8 * 1024 * 1024) return undefined;
-  const source: unknown = JSON.parse(value);
-  if (!isClipboardEnvelope(source)) return undefined;
-  if (!validCount(source.structure.length) || source.layouts.length !== source.structure.length)
-    return undefined;
-  const structure = source.structure.map((structureNode) => structureNodeSchema.parse(structureNode));
-  const layouts = source.layouts.map((layout) => structureLayoutSchema.parse(layout));
+  if (value.length > MAX_CLIPBOARD_BYTES) return undefined;
+  const envelope = clipboardEnvelopeSchema.safeParse(JSON.parse(value));
+  if (!envelope.success) return undefined;
+  const { structure, layouts, nodes: copiedNodes, relations } = envelope.data;
   validateStructureSnapshot(structure, layouts);
-  const nodes = source.nodes.map(parseClipboardNode);
+  const nodes = copiedNodes.map(({ id, data }) => ({ id, data: validateSpaceNodePayload(data) }));
   const nodeIds = new Set(nodes.map(({ id }) => id));
   const expected = new Set(
     structure.flatMap((structureNode) => (structureNode.kind === "content" ? [structureNode.nodeId] : [])),
   );
   validateClipboardIdentities(nodeIds, nodes.length, expected);
-  const relations = source.relations as SpaceClipboardPayload["relations"];
   validateClipboardRelations(relations, nodeIds);
-  return { version: 1, structure, layouts, nodes, relations };
-}
-
-function isClipboardEnvelope(source: unknown): source is Record<string, unknown> & {
-  version: 1;
-  structure: unknown[];
-  layouts: unknown[];
-  nodes: unknown[];
-  relations: unknown[];
-} {
-  return Boolean(
-    isPlainObject(source) &&
-    source.version === 1 &&
-    Array.isArray(source.structure) &&
-    Array.isArray(source.layouts) &&
-    Array.isArray(source.nodes) &&
-    Array.isArray(source.relations),
-  );
-}
-
-function parseClipboardNode(node: unknown) {
-  if (!isPlainObject(node) || typeof node.id !== "string" || !node.id)
-    throw new Error("Invalid clipboard node");
-  return { id: node.id, data: validateSpaceNodePayload(node.data) };
+  return { version: 1, structure, layouts, nodes, relations: relations.map(toSpaceRelation) };
 }
 
 function validateClipboardIdentities(
@@ -89,21 +85,13 @@ function validateClipboardIdentities(
 }
 
 function validateClipboardRelations(
-  relations: SpaceClipboardPayload["relations"],
+  relations: readonly z.infer<typeof clipboardRelationSchema>[],
   nodeIds: ReadonlySet<string>,
 ) {
-  const invalid = relations.some(
-    (relation) =>
-      !isPlainObject(relation) ||
-      typeof relation.id !== "string" ||
-      !nodeIds.has(relation.sourceId) ||
-      !nodeIds.has(relation.targetId),
+  const detached = relations.some(
+    ({ sourceId, targetId }) => !nodeIds.has(sourceId) || !nodeIds.has(targetId),
   );
-  if (invalid) throw new Error("Invalid clipboard relation");
-}
-
-function validCount(count: number) {
-  return count > 0 && count <= 100_000;
+  if (detached) throw new Error("Clipboard relation endpoints are outside the copied content");
 }
 
 function clipboardText(payload: SpaceClipboardPayload) {

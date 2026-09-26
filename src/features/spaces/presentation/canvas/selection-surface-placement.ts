@@ -1,3 +1,5 @@
+import { minBy } from "es-toolkit";
+
 import { placeActionSurface } from "./selection-action-placement";
 import { placeInspectorSurface } from "./selection-inspector-placement";
 import {
@@ -24,7 +26,7 @@ function actionAnchor(input: PlacementInput, safe: SurfaceRect, visible: Surface
   if (centeredMember) return centeredMember;
   const distance = (rect: SurfaceRect) =>
     Math.hypot((rect.left + rect.right) / 2 - center.x, (rect.top + rect.bottom) / 2 - center.y);
-  return members.toSorted((a, b) => distance(a) - distance(b))[0] ?? input.selection;
+  return minBy(members, distance) ?? input.selection;
 }
 
 /** Selection chrome depends on selected geometry and fixed canvas controls, never other canvas nodes. */

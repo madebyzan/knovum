@@ -1,14 +1,19 @@
+import { z } from "zod";
+
 import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
 import type { StepSummary } from "../contracts/generated/RunStep";
 import { getNode } from "../nodes/node-operations";
 
+/** `StepSummary.output` is a generated `JsonValue`, so the review checkpoint is an untrusted shape. */
+const reviewCheckpointSchema = z.object({
+  nodeId: z.string().min(1),
+  sourceRevision: z.string().min(1),
+});
+
 function reviewCheckpoint(step: StepSummary | undefined) {
-  const output = step?.output;
-  if (!step || typeof output !== "object" || output === null) throw new Error("workflow-review-unavailable");
-  const checkpoint = output as Record<string, unknown>;
-  if (typeof checkpoint.nodeId !== "string" || typeof checkpoint.sourceRevision !== "string")
-    throw new Error("workflow-review-unavailable");
-  return { step, nodeId: checkpoint.nodeId, sourceRevision: checkpoint.sourceRevision };
+  const checkpoint = reviewCheckpointSchema.safeParse(step?.output);
+  if (!step || !checkpoint.success) throw new Error("workflow-review-unavailable");
+  return { step, ...checkpoint.data };
 }
 
 export async function loadWorkflowReview(spaceId: string, runId: string) {

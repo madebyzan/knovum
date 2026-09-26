@@ -27,10 +27,6 @@ export interface SurfacePlacement {
   side: SurfaceSide;
 }
 
-export function clamp(value: number, minimum: number, maximum: number): number {
-  return Math.min(Math.max(value, minimum), maximum);
-}
-
 export function intersects(a: SurfaceRect, b: SurfaceRect): boolean {
   return a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
 }

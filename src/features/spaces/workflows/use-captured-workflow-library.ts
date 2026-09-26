@@ -1,4 +1,5 @@
-import { ref, shallowRef } from "vue";
+import { useQuery, useQueryClient } from "@tanstack/vue-query";
+import { computed, toValue, type MaybeRefOrGetter } from "vue";
 
 import {
   listCapturedWorkflows,
@@ -7,36 +8,53 @@ import {
   type SavedCapturedWorkflow,
 } from "./captured-workflow-ipc";
 
-export function useCapturedWorkflowLibrary() {
-  const items = shallowRef<SavedCapturedWorkflow[]>([]);
-  const history = shallowRef<CapturedWorkflowRun[]>([]);
-  const loading = ref(true);
+const LIBRARY_KEY = ["spaces", "captured-workflows"] as const;
+const RUN_HISTORY_LIMIT = 30;
 
-  async function load(spaceId: string) {
-    loading.value = true;
-    try {
-      const [workflows, runs] = await Promise.all([
-        listCapturedWorkflows(),
-        listCapturedWorkflowRuns(spaceId),
-      ]);
-      items.value = workflows.items;
-      history.value = runs;
-    } finally {
-      loading.value = false;
-    }
-  }
+function runsKey(spaceId: string | null | undefined) {
+  return ["spaces", spaceId ?? null, "captured-workflow-runs"] as const;
+}
 
-  function renamed(value: SavedCapturedWorkflow) {
-    items.value = items.value.map((item) => (item.workflowId === value.workflowId ? value : item));
-  }
+export function useCapturedWorkflowLibrary(spaceId: MaybeRefOrGetter<string | null | undefined>) {
+  const queryClient = useQueryClient();
+  const library = useQuery({
+    queryKey: LIBRARY_KEY,
+    queryFn: async () => (await listCapturedWorkflows()).items,
+  });
+  const runs = useQuery(
+    computed(() => {
+      const id = toValue(spaceId);
+      return {
+        queryKey: runsKey(id),
+        queryFn: () => (id ? listCapturedWorkflowRuns(id) : []),
+        enabled: Boolean(id),
+      };
+    }),
+  );
 
-  function deleted(workflowId: string) {
-    items.value = items.value.filter((item) => item.workflowId !== workflowId);
+  function editLibrary(update: (current: SavedCapturedWorkflow[]) => SavedCapturedWorkflow[]) {
+    queryClient.setQueryData<SavedCapturedWorkflow[]>(LIBRARY_KEY, (current) => update(current ?? []));
   }
 
   function addRun(run: CapturedWorkflowRun) {
-    history.value = [run, ...history.value].slice(0, 30);
+    queryClient.setQueryData<CapturedWorkflowRun[]>(runsKey(toValue(spaceId)), (current) =>
+      [run, ...(current ?? [])].slice(0, RUN_HISTORY_LIMIT),
+    );
   }
 
-  return { items, history, loading, load, renamed, deleted, addRun };
+  return {
+    items: computed(() => library.data.value ?? []),
+    history: computed(() => runs.data.value ?? []),
+    loading: computed(() => library.isLoading.value || runs.isLoading.value),
+    error: computed(() => {
+      if (!toValue(spaceId)) return "Space is unavailable";
+      const cause = library.error.value ?? runs.error.value;
+      return cause ? String(cause) : "";
+    }),
+    renamed: (value: SavedCapturedWorkflow) =>
+      editLibrary((current) => current.map((item) => (item.workflowId === value.workflowId ? value : item))),
+    deleted: (workflowId: string) =>
+      editLibrary((current) => current.filter((item) => item.workflowId !== workflowId)),
+    addRun,
+  };
 }

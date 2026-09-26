@@ -1,11 +1,10 @@
-import type { CanvasNodeLayoutV1 } from "../../contract/canvas-document";
 import type { CanvasPoint } from "../../contract/canvas-editor";
 import {
   connectorAnchor,
-  frameContainsPoint,
   nearestConnectorTarget,
   type CanvasConnectorSide,
 } from "../scene/connector-geometry";
+import { targetsWithin, topmostTargetAt, type ConnectorTargetIndex } from "./connector-target-index";
 
 export type { CanvasConnectorSide } from "../scene/connector-geometry";
 
@@ -36,15 +35,15 @@ export class ConnectorGestureController {
   private current: CanvasConnectorDraft | undefined;
 
   constructor(
-    private readonly layouts: () => readonly CanvasNodeLayoutV1[],
+    private readonly targets: () => ConnectorTargetIndex,
     private readonly changed: (draft?: CanvasConnectorDraft) => void,
     private readonly zoom: () => number = () => 1,
   ) {}
 
   begin(nodeId: string, side: CanvasConnectorSide) {
-    const layout = this.layouts().find((candidate) => candidate.nodeId === nodeId);
-    if (!layout) return;
-    const from = connectorAnchor(layout.frame, side);
+    const source = this.targets().byId.get(nodeId);
+    if (!source) return;
+    const from = connectorAnchor(source.frame, side);
     this.current = { sourceNodeId: nodeId, sourceSide: side, from, to: from };
     this.changed(this.current);
   }
@@ -92,12 +91,11 @@ export class ConnectorGestureController {
 
   private resolveTarget(point: CanvasPoint): CanvasConnectorTarget | undefined {
     if (!this.current) return undefined;
-    const candidates = this.layouts().filter(({ nodeId }) => nodeId !== this.current?.sourceNodeId);
-    const containing = candidates.toReversed().find(({ frame }) => frameContainsPoint(frame, point));
-    return nearestConnectorTarget(
-      containing ? [containing] : candidates,
-      point,
-      containing ? Number.POSITIVE_INFINITY : 18 / this.zoom(),
-    );
+    const index = this.targets();
+    const sourceNodeId = this.current.sourceNodeId;
+    const covering = topmostTargetAt(index, point, sourceNodeId);
+    if (covering) return nearestConnectorTarget([covering], point, Number.POSITIVE_INFINITY);
+    const radius = 18 / this.zoom();
+    return nearestConnectorTarget(targetsWithin(index, point, radius, sourceNodeId), point, radius);
   }
 }

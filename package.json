@@ -13,7 +13,7 @@
     "lint:fix": "oxlint --fix .",
     "format": "oxfmt .",
     "format:check": "oxfmt --check .",
-    "architecture": "node tools/check-frontend-source-structure.mjs && node tools/check-ai-provider-catalog.mjs && depcruise --config .dependency-cruiser.cjs src && pnpm architecture:reachable",
+    "architecture": "node tools/check-frontend-source-structure.mjs && node tools/check-ai-provider-catalog.mjs && node tools/check-cn-token-coverage.mjs && depcruise --config .dependency-cruiser.cjs src && pnpm architecture:reachable",
     "test": "vitest run",
     "test:watch": "vitest",
     "deadcode": "knip",

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { uniq } from "es-toolkit";
+import { TreeRoot } from "reka-ui";
 import { computed, inject, onBeforeUnmount, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -6,13 +8,12 @@ import { workspaceSidebarKey } from "../../../shared/contracts/workspace-sidebar
 import { useCanvasEditorSession } from "../canvas/editor-session";
 import { useNodeOperationGate } from "../canvas/node-operation-gate";
 import { openSpaceNode } from "../canvas/selection-actions";
-import { projectStructureOutline } from "../model/structure/outline-projection";
 import { groupScopePathFor } from "../model/structure/structure-queries";
 import { validateStructureSnapshot } from "../model/structure/structure-validation";
 import { useNodeOperationDrafts } from "../session/node-operation-drafts";
 import { useSpaceStore } from "../session/space-store";
+import { buildOutlineTreeItems, type OutlineTreeItem } from "./outline-tree-items";
 import SpaceStructureOutlineRow from "./SpaceStructureOutlineRow.vue";
-import { useOutlineTreeNavigation } from "./use-outline-tree-navigation";
 import { useStructureOutlineMenu } from "./use-structure-outline-menu";
 
 const store = useSpaceStore();
@@ -22,28 +23,28 @@ const drafts = useNodeOperationDrafts();
 let renameLease: number | undefined;
 const sidebar = inject(workspaceSidebarKey)!;
 const { t } = useI18n();
-const expandedIds = shallowRef(new Set<string>());
+const expandedIds = shallowRef<string[]>([]);
 const editingId = shallowRef<string>();
-const tree = shallowRef<HTMLElement | null>(null);
 const index = computed(() =>
   validateStructureSnapshot(store.editSnapshot.structure, store.editSnapshot.layouts),
 );
 const nodeById = computed(() => new Map(store.nodes.map((node) => [node.id, node])));
-const rows = computed(() =>
-  projectStructureOutline(
-    index.value,
-    new Map(store.nodes.map((node) => [node.id, node.data.title])),
-    expandedIds.value,
-  ),
+const items = computed(() =>
+  buildOutlineTreeItems(index.value, new Map(store.nodes.map((node) => [node.id, node.data.title]))),
 );
 
-const treeNavigation = useOutlineTreeNavigation({ expandedIds, rows, root: tree, toggle });
+function outlineKey(item: OutlineTreeItem) {
+  return item.id;
+}
 
 function toggle(id: string) {
-  const next = new Set(expandedIds.value);
-  if (next.has(id)) next.delete(id);
-  else next.add(id);
-  expandedIds.value = next;
+  expandedIds.value = expandedIds.value.includes(id)
+    ? expandedIds.value.filter((value) => value !== id)
+    : [...expandedIds.value, id];
+}
+
+function expand(ids: readonly string[]) {
+  expandedIds.value = uniq([...expandedIds.value, ...ids]);
 }
 
 function isSelected(id: string) {
@@ -68,7 +69,7 @@ async function open(id: string) {
   if (!structureNode) return;
   if (structureNode.kind === "group") {
     store.groupScopePath = [...groupScopePathFor(structureNode.id, index.value), structureNode.id];
-    expandedIds.value = new Set([...expandedIds.value, structureNode.id]);
+    expand([structureNode.id]);
     editor.selectStructureNodes([structureNode.id]);
     return;
   }
@@ -90,9 +91,7 @@ function rename(id: string) {
   renameLease = drafts.begin(id, "outline-title");
   if (!renameLease) return;
   sidebar.reveal();
-  for (const ancestor of groupScopePathFor(id, index.value)) {
-    expandedIds.value = new Set([...expandedIds.value, ancestor]);
-  }
+  expand(groupScopePathFor(id, index.value));
   editingId.value = id;
 }
 
@@ -131,33 +130,35 @@ watch(
   () => store.activeSpaceId,
   () => {
     finishRename();
-    expandedIds.value = new Set();
+    expandedIds.value = [];
   },
 );
 onBeforeUnmount(finishRename);
 </script>
 
 <template>
-  <section ref="tree" class="mt-2 space-y-0.5" role="tree" :aria-label="t('spaces.sidebar.outline.title')">
-    <SpaceStructureOutlineRow
-      v-for="(row, index) in rows"
-      :key="row.id"
-      :row="row"
-      :tab-index="treeNavigation.tabIndex(row.id, index)"
-      :selected="isSelected(row.id)"
-      :expanded="expandedIds.has(row.id)"
-      :editing="editingId === row.id"
-      :save-name="(title) => saveName(row.id, title)"
-      @select="select(row.id)"
-      @open="open(row.id)"
-      @menu="outlineMenu.show(row.id)"
-      @toggle="toggle(row.id)"
-      @finish="finishRename"
-      @focus="treeNavigation.setFocusedId(row.id)"
-      @navigate="treeNavigation.handleKeydown($event, row, index)"
-    />
-    <p v-if="rows.length === 0" class="px-1 text-caption text-foreground-tertiary">
-      {{ t("spaces.sidebar.outline.empty") }}
-    </p>
-  </section>
+  <TreeRoot as-child :items="items" :get-key="outlineKey" v-model:expanded="expandedIds">
+    <template #default="{ flattenItems }">
+      <section class="mt-2 space-y-0.5" :aria-label="t('spaces.sidebar.outline.title')">
+        <SpaceStructureOutlineRow
+          v-for="{ level, value } in flattenItems"
+          :key="value.id"
+          :item="value"
+          :level="level"
+          :selected="isSelected(value.id)"
+          :expanded="expandedIds.includes(value.id)"
+          :editing="editingId === value.id"
+          :save-name="(title) => saveName(value.id, title)"
+          @select="select(value.id)"
+          @open="open(value.id)"
+          @menu="outlineMenu.show(value.id)"
+          @toggle="toggle(value.id)"
+          @finish="finishRename"
+        />
+        <p v-if="flattenItems.length === 0" class="px-1 text-caption text-foreground-tertiary">
+          {{ t("spaces.sidebar.outline.empty") }}
+        </p>
+      </section>
+    </template>
+  </TreeRoot>
 </template>

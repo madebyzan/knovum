@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useResizeObserver } from "@vueuse/core";
 import { computed, inject, onMounted, onUnmounted, useTemplateRef } from "vue";
 
 import { canvasContentMeasurementKey } from "../canvas-content-measurement";
@@ -12,22 +13,16 @@ const style = computed(() => ({
   transform: `scale(${props.scale})`,
 }));
 
-let observer: ResizeObserver | undefined;
 let detachMeasurement: (() => void) | undefined;
 function reportContentHeight() {
   const element = plane.value;
   if (element) emit("contentHeight", element.scrollHeight * props.scale);
 }
+useResizeObserver(() => (props.measure ? plane.value : null), reportContentHeight);
 onMounted(() => {
-  if (!props.measure) return;
-  const element = plane.value;
-  if (!element) return;
-  observer = new ResizeObserver(reportContentHeight);
-  observer.observe(element);
-  detachMeasurement = measurements?.register(reportContentHeight);
+  if (props.measure) detachMeasurement = measurements?.register(reportContentHeight);
 });
 onUnmounted(() => {
-  observer?.disconnect();
   detachMeasurement?.();
 });
 </script>

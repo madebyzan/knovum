@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ChevronDown } from "@lucide/vue";
+import { AccordionContent, AccordionItem, AccordionTrigger } from "reka-ui";
 import type { Component } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -18,12 +19,10 @@ defineProps<{
   icon: Component;
   labelKey: string;
   directionKey: string;
-  expandedId?: string | undefined;
 }>();
 
 const emit = defineEmits<{
   reveal: [neighborId: string];
-  toggleExpand: [relationId: string];
   editRelation: [relationId: string];
 }>();
 
@@ -36,9 +35,9 @@ const { t } = useI18n();
       <component :is="icon" class="size-(--knovum-icon-size-xs)" />
       {{ t(labelKey, { count: relations.length }) }}
     </h4>
-    <template v-for="neighbor in relations" :key="neighbor.relation.id">
+    <AccordionItem v-for="neighbor in relations" :key="neighbor.relation.id" :value="neighbor.relation.id">
       <div
-        class="group rounded-control border border-transparent bg-control/30 p-2 hover:border-divider hover:bg-control/50"
+        class="rounded-control border border-transparent bg-control/30 p-2 hover:border-divider hover:bg-control/50"
       >
         <div class="flex items-center gap-2">
           <button
@@ -48,17 +47,13 @@ const { t } = useI18n();
           >
             {{ neighbor.neighbor.data.title }}
           </button>
-          <UiIconButton
-            :label="t('spaces.knowledge.relations.details')"
-            size="sm"
-            :aria-expanded="expandedId === neighbor.relation.id"
-            @click="emit('toggleExpand', neighbor.relation.id)"
-          >
-            <ChevronDown
-              class="size-(--knovum-icon-size-xs) transition-transform duration-150 ease-standard"
-              :class="expandedId === neighbor.relation.id ? 'rotate-180' : ''"
-            />
-          </UiIconButton>
+          <AccordionTrigger as-child>
+            <UiIconButton :label="t('spaces.knowledge.relations.details')" size="sm" class="group">
+              <ChevronDown
+                class="size-(--knovum-icon-size-xs) transition-transform duration-150 ease-standard group-data-[state=open]:rotate-180"
+              />
+            </UiIconButton>
+          </AccordionTrigger>
         </div>
         <div class="mt-1 flex items-center gap-2">
           <span class="text-micro text-foreground-tertiary">{{ t(directionKey) }}</span>
@@ -71,7 +66,9 @@ const { t } = useI18n();
           </button>
         </div>
       </div>
-      <SpaceRelationDetails v-if="expandedId === neighbor.relation.id" :relation="neighbor.relation" />
-    </template>
+      <AccordionContent class="mt-2">
+        <SpaceRelationDetails :relation="neighbor.relation" />
+      </AccordionContent>
+    </AccordionItem>
   </div>
 </template>

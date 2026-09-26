@@ -1,6 +1,11 @@
+import { intersectionBy } from "es-toolkit";
+
 import type { CanvasNodeLayoutV1 } from "../../contract/canvas-document";
 import type { CanvasViewport } from "../../contract/canvas-editor-port";
 import { screenPointFromCanvas, zoomViewportAt } from "./viewport-math";
+
+/** Canvas layout nodeIds are schema-unique, so the intersection cannot drop a layout. */
+const layoutNodeId = (item: CanvasNodeLayoutV1 | string) => (typeof item === "string" ? item : item.nodeId);
 
 interface CanvasNavigationContext {
   layouts(): readonly CanvasNodeLayoutV1[];
@@ -25,7 +30,7 @@ export function revealCanvasLayouts(
   ids: readonly string[],
   mode: "ensure-visible" | "focus",
 ) {
-  const layouts = context.layouts().filter(({ nodeId }) => ids.includes(nodeId));
+  const layouts = intersectionBy(context.layouts(), ids, layoutNodeId);
   if (!layouts.length) return;
   context.setSelection(ids);
   const bounds = layoutBounds(layouts);
@@ -42,7 +47,7 @@ export function revealCanvasTargets(
   mode: "ensure-visible" | "focus",
   structureBounds: ReadonlyMap<string, { x: number; y: number; width: number; height: number }>,
 ) {
-  const layouts = context.layouts().filter(({ nodeId }) => ids.includes(nodeId));
+  const layouts = intersectionBy(context.layouts(), ids, layoutNodeId);
   if (layouts.length) return revealCanvasLayouts(context, ids, mode);
   const bounds = mergeBounds(
     ids.flatMap((id) => {

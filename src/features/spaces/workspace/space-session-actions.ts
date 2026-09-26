@@ -1,3 +1,4 @@
+import { difference, without } from "es-toolkit";
 import { nextTick } from "vue";
 
 import { clearSpaceHistory } from "../history/stack";
@@ -60,17 +61,13 @@ export async function closeSpaceTab(context: SpaceSessionContext, id: string) {
   }
   context.openSpaceIds.value.splice(index, 1);
   if (context.draftSpace.value?.id === id) context.draftSpace.value = undefined;
-  else
-    context.closedSpaceIds.value = [
-      id,
-      ...context.closedSpaceIds.value.filter((candidate) => candidate !== id),
-    ];
+  else context.closedSpaceIds.value = [id, ...without(context.closedSpaceIds.value, id)];
   leaveSpaceSession(context, [id]);
 }
 
 export async function closeOtherSpaceTabs(context: SpaceSessionContext, id: string) {
   if (!context.openSpaceIds.value.includes(id)) return;
-  const closed = context.openSpaceIds.value.filter((candidate) => candidate !== id);
+  const closed = without(context.openSpaceIds.value, id);
   if (!(await activateSpace(context, id, false))) return;
   context.openSpaceIds.value = [id];
   retireClosedSpaceTabs(context, closed);
@@ -94,8 +91,8 @@ export async function reopenClosedSpaceTab(context: SpaceSessionContext) {
 }
 
 export function discardSpaceTab(context: SpaceSessionContext, id: string) {
-  context.openSpaceIds.value = context.openSpaceIds.value.filter((candidate) => candidate !== id);
-  context.closedSpaceIds.value = context.closedSpaceIds.value.filter((candidate) => candidate !== id);
+  context.openSpaceIds.value = without(context.openSpaceIds.value, id);
+  context.closedSpaceIds.value = without(context.closedSpaceIds.value, id);
   if (context.draftSpace.value?.id === id) context.draftSpace.value = undefined;
   leaveSpaceSession(context, [id]);
 }
@@ -104,8 +101,8 @@ function retireClosedSpaceTabs(context: SpaceSessionContext, closed: readonly st
   const draftId = context.draftSpace.value?.id;
   if (draftId && closed.includes(draftId)) context.draftSpace.value = undefined;
   context.closedSpaceIds.value = [
-    ...closed.filter((candidate) => candidate !== draftId).toReversed(),
-    ...context.closedSpaceIds.value.filter((candidate) => !closed.includes(candidate)),
+    ...(draftId ? without(closed, draftId) : closed).toReversed(),
+    ...difference(context.closedSpaceIds.value, closed),
   ];
   leaveSpaceSession(context, closed);
 }

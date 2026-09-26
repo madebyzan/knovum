@@ -1,5 +1,6 @@
+import { clamp, compact, uniq } from "es-toolkit";
+
 import {
-  clamp,
   fitsChrome,
   type PlacementInput,
   type SurfacePlacement,
@@ -80,9 +81,8 @@ export function placeInspectorSurface(
     const current = inside(input, safe, visible, height);
     if (current) return current;
   }
-  const sides: SurfaceSide[] = [...new Set([input.previousSide, "right", "left", "above", "below"])].filter(
-    (side): side is SurfaceSide => side !== undefined,
-  );
+  const preferred: (SurfaceSide | undefined)[] = [input.previousSide, "right", "left", "above", "below"];
+  const sides = uniq(compact(preferred));
   for (const side of sides) {
     const candidate = candidateForSide(input, safe, visible, { side, height });
     if (candidate) return candidate;

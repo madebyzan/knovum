@@ -1,3 +1,5 @@
+import { delay } from "es-toolkit";
+
 import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
 
 const CONFIRMATION_DELAYS_MS = [0, 250, 750] as const;
@@ -21,9 +23,9 @@ export async function invokeConfirmedMutation<T>(
 }
 
 async function confirmReceipt<T>(mutationId: string, attempt: number): Promise<T | null> {
-  const delay = CONFIRMATION_DELAYS_MS[attempt];
-  if (delay === undefined) return null;
-  if (delay) await new Promise((resolve) => setTimeout(resolve, delay));
+  const waitMs = CONFIRMATION_DELAYS_MS[attempt];
+  if (waitMs === undefined) return null;
+  if (waitMs) await delay(waitMs);
   const committed = await invoke<T | null>("plugin:spaces|get_space_edit_receipt_result", {
     mutationId,
   }).catch(() => null);

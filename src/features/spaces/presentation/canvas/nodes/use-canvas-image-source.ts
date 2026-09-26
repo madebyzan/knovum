@@ -1,4 +1,5 @@
-import { onBeforeUnmount, shallowRef, watch, type Ref } from "vue";
+import { useEventListener } from "@vueuse/core";
+import { shallowRef, watch, type Ref } from "vue";
 
 export type CanvasImageLoadState = "idle" | "loading" | "ready" | "failed";
 
@@ -22,8 +23,8 @@ export function useCanvasImageSource(
     loadState.value = "failed";
   }
 
-  image.addEventListener("load", loaded);
-  image.addEventListener("error", failed);
+  useEventListener(image, "load", loaded);
+  useEventListener(image, "error", failed);
   watch(
     source,
     (value) => {
@@ -35,10 +36,6 @@ export function useCanvasImageSource(
     },
     { immediate: true },
   );
-  onBeforeUnmount(() => {
-    image.removeEventListener("load", loaded);
-    image.removeEventListener("error", failed);
-  });
 
   return { image, naturalSize, loadState };
 }

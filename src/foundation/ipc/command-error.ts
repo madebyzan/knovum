@@ -1,3 +1,4 @@
+import { isString } from "es-toolkit";
 import { z } from "zod";
 
 import type { CommandError } from "../../shared/contracts/generated/CommandError";
@@ -17,5 +18,5 @@ export function normalizeCommandError(reason: unknown): Error {
   const payload = decodeCommandError(reason);
   if (payload) return new Error(payload.message, { cause: payload });
   // Tauri itself and official plugins can reject before the application command runs.
-  return new Error(typeof reason === "string" ? reason : "Desktop command failed", { cause: reason });
+  return new Error(isString(reason) ? reason : "Desktop command failed", { cause: reason });
 }

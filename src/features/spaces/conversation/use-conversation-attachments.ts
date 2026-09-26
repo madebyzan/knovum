@@ -1,3 +1,4 @@
+import { basename } from "pathe";
 import { computed, shallowRef } from "vue";
 
 import { decodeCommandError } from "../../../foundation/ipc/command-error";
@@ -52,7 +53,7 @@ export function useConversationAttachments() {
         return {
           key: `file:${attachment.path}`,
           kind: attachment.kind,
-          title: attachment.path.split(/[\\/]/).at(-1) ?? attachment.path,
+          title: basename(attachment.path),
           previewSource: "",
         };
       const node = store.nodes.find(({ id }) => id === attachment.nodeId);

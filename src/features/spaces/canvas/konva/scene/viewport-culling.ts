@@ -1,18 +1,24 @@
 import type { CanvasViewport } from "../../contract/canvas-editor";
 
+interface Rect {
+  height: number;
+  width: number;
+  x: number;
+  y: number;
+}
+
 interface CullableNode {
-  nodeId: string;
-  frame: { x: number; y: number; width: number; height: number };
+  layout: { frame: Rect; nodeId: string };
 }
 
 interface CullableRelation {
-  bounds: { x: number; y: number; width: number; height: number };
+  bounds: Rect;
   key: string;
 }
 
 interface ViewportSize {
-  width: number;
   height: number;
+  width: number;
 }
 
 export function visibleSceneRelationIds(
@@ -21,14 +27,8 @@ export function visibleSceneRelationIds(
   size: ViewportSize,
   overscanPixels = 240,
 ) {
-  const overscan = overscanPixels / viewport.zoom;
-  const bounds = {
-    x: -viewport.x / viewport.zoom - overscan,
-    y: -viewport.y / viewport.zoom - overscan,
-    width: size.width / viewport.zoom + overscan * 2,
-    height: size.height / viewport.zoom + overscan * 2,
-  };
-  return new Set(relations.filter((relation) => intersects(relation.bounds, bounds)).map(({ key }) => key));
+  const visible = worldBounds(viewport, size, overscanPixels);
+  return new Set(relations.filter(({ bounds }) => intersects(bounds, visible)).map(({ key }) => key));
 }
 
 export function visibleSceneNodeIds(
@@ -37,20 +37,23 @@ export function visibleSceneNodeIds(
   size: ViewportSize,
   overscanPixels = 240,
 ) {
+  const visible = worldBounds(viewport, size, overscanPixels);
+  return new Set(
+    nodes.filter(({ layout }) => intersects(layout.frame, visible)).map(({ layout }) => layout.nodeId),
+  );
+}
+
+function worldBounds(viewport: CanvasViewport, size: ViewportSize, overscanPixels: number): Rect {
   const overscan = overscanPixels / viewport.zoom;
-  const bounds = {
+  return {
     x: -viewport.x / viewport.zoom - overscan,
     y: -viewport.y / viewport.zoom - overscan,
     width: size.width / viewport.zoom + overscan * 2,
     height: size.height / viewport.zoom + overscan * 2,
   };
-  return new Set(nodes.filter(({ frame }) => intersects(frame, bounds)).map(({ nodeId }) => nodeId));
 }
 
-function intersects(
-  left: { x: number; y: number; width: number; height: number },
-  right: { x: number; y: number; width: number; height: number },
-) {
+function intersects(left: Rect, right: Rect) {
   return (
     left.x <= right.x + right.width &&
     left.x + left.width >= right.x &&

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { getLocalTimeZone, parseDate } from "@internationalized/date";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -12,9 +13,10 @@ const weeks = computed(() =>
 );
 const levelClasses = ["bg-control", "bg-accent/20", "bg-accent/40", "bg-accent/65", "bg-accent"] as const;
 const dateFormatter = computed(() => new Intl.DateTimeFormat(locale.value, { dateStyle: "medium" }));
+const timeZone = getLocalTimeZone();
 
 function label(date: string, tokens: number, requests: number) {
-  const formatted = dateFormatter.value.format(new Date(`${date}T12:00:00`));
+  const formatted = dateFormatter.value.format(parseDate(date).toDate(timeZone));
   return t("settings.usage.activity.label", { date: formatted, tokens: n(tokens), requests: n(requests) });
 }
 </script>

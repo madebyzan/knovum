@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useEventListener, usePreferredReducedMotion } from "@vueuse/core";
+import { useEventListener, usePreferredReducedMotion, useResizeObserver } from "@vueuse/core";
 import { nextTick, onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vue";
 
 const props = defineProps<{ title: string }>();
@@ -7,9 +7,8 @@ const viewport = useTemplateRef<HTMLSpanElement>("viewport");
 const text = useTemplateRef<HTMLSpanElement>("text");
 const reducedMotion = usePreferredReducedMotion();
 const scrolling = shallowRef(false);
-let hovered = false;
+const hovered = shallowRef(false);
 let animation: Animation | undefined;
-let observer: ResizeObserver | undefined;
 let measuredDistance: number | undefined;
 
 function reset() {
@@ -20,7 +19,7 @@ function reset() {
 }
 
 function play() {
-  if (!hovered || reducedMotion.value === "reduce" || !viewport.value || !text.value) {
+  if (!hovered.value || reducedMotion.value === "reduce" || !viewport.value || !text.value) {
     reset();
     return;
   }
@@ -41,20 +40,16 @@ function play() {
 }
 
 function enter() {
-  hovered = true;
+  hovered.value = true;
   play();
-  observer = new ResizeObserver(play);
-  observer.observe(viewport.value!);
-  observer.observe(text.value!);
 }
 
 function leave() {
-  hovered = false;
-  observer?.disconnect();
-  observer = undefined;
+  hovered.value = false;
   reset();
 }
 
+useResizeObserver(() => (hovered.value ? [viewport.value, text.value] : []), play);
 useEventListener(() => viewport.value?.parentElement, "pointerenter", enter);
 useEventListener(() => viewport.value?.parentElement, "pointerleave", leave);
 watch(

@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { Plus, Search } from "@lucide/vue";
+import { sortBy } from "es-toolkit";
+import { search } from "fast-fuzzy";
 import { computed, nextTick, onMounted, shallowRef, watch } from "vue";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
@@ -13,13 +15,12 @@ const props = defineProps<{
   selectedTextId?: string | undefined;
 }>();
 defineEmits<{ select: [id: string]; add: [] }>();
-const search = shallowRef("");
+const query = shallowRef("");
 const selectedRow = shallowRef<HTMLElement | null>(null);
 const visibleItems = computed(() => {
-  const query = search.value.trim().toLocaleLowerCase();
-  return props.items
-    .filter((item) => !query || item.text.toLocaleLowerCase().includes(query))
-    .toSorted((a, b) => a.startMs - b.startMs);
+  const needle = query.value.trim();
+  const matched = needle ? search(needle, props.items, { keySelector: ({ text }) => text }) : props.items;
+  return sortBy(matched, [({ startMs }) => startMs]);
 });
 
 async function revealSelection() {
@@ -42,7 +43,7 @@ onMounted(revealSelection);
         />
         <UiInput
           id="video-caption-search"
-          v-model="search"
+          v-model="query"
           class="pl-8"
           size="sm"
           :placeholder="$t('spaces.media.videoEditor.captions.search')"
@@ -81,7 +82,7 @@ onMounted(revealSelection);
         <p v-if="visibleItems.length === 0" class="px-3 py-4 text-caption text-foreground-secondary">
           {{
             $t(
-              search
+              query
                 ? "spaces.media.videoEditor.captions.noMatches"
                 : "spaces.media.videoEditor.captions.none",
             )

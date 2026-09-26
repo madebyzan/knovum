@@ -62,12 +62,13 @@ function activityLevel(value: number, peak: number): TokenActivityCell["level"] 
 
 function attachMonthLabels(weeks: TokenActivityWeek[], locale: string) {
   const timeZone = getLocalTimeZone();
+  const months = new Intl.DateTimeFormat(locale, { month: "short" });
   let previousMonth = -1;
   for (const week of weeks) {
     const representative = representativeDate(week.cells);
     if (!representative || representative.month === previousMonth) continue;
     previousMonth = representative.month;
-    week.month = new Intl.DateTimeFormat(locale, { month: "short" }).format(representative.toDate(timeZone));
+    week.month = months.format(representative.toDate(timeZone));
   }
 }
 

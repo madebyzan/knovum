@@ -1,28 +1,27 @@
 <script setup lang="ts">
 import { Boxes, ChevronDown, ChevronRight, LayoutPanelTop, LockKeyhole } from "@lucide/vue";
 import { error as logError } from "@tauri-apps/plugin-log";
+import { TreeItem, type TreeItemSelectEvent, type TreeItemToggleEvent } from "reka-ui";
 import { nextTick, shallowRef, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import type { StructureOutlineRow } from "../model/structure/outline-projection";
+import type { OutlineTreeItem } from "./outline-tree-items";
 import SpaceOutlineTitle from "./SpaceOutlineTitle.vue";
 
 const props = defineProps<{
-  row: StructureOutlineRow;
-  selected: boolean;
-  expanded: boolean;
   editing: boolean;
-  tabIndex: number;
+  expanded: boolean;
+  item: OutlineTreeItem;
+  level: number;
   saveName: (title: string) => Promise<unknown>;
+  selected: boolean;
 }>();
 const emit = defineEmits<{
-  select: [];
-  open: [];
-  menu: [];
-  toggle: [];
   finish: [];
-  focus: [];
-  navigate: [event: KeyboardEvent];
+  menu: [];
+  open: [];
+  select: [];
+  toggle: [];
 }>();
 const { t } = useI18n();
 const input = useTemplateRef<HTMLInputElement>("input");
@@ -34,7 +33,7 @@ watch(
   () => props.editing,
   async (editing) => {
     if (!editing) return;
-    draft.value = props.row.title;
+    draft.value = props.item.title;
     error.value = "";
     await nextTick();
     input.value?.focus({ preventScroll: true });
@@ -42,6 +41,17 @@ watch(
   },
   { immediate: true },
 );
+
+/** The canvas owns selection, so reka's own selection state stays inert and is only relayed. */
+function selectFromTree(event: TreeItemSelectEvent<OutlineTreeItem>) {
+  event.preventDefault();
+  emit("select");
+}
+
+/** TreeItem toggles on click too; disclosure belongs to the chevron and the arrow keys alone. */
+function suppressClickToggle(event: TreeItemToggleEvent<OutlineTreeItem>) {
+  if (event.detail.originalEvent.type === "click") event.preventDefault();
+}
 
 async function save() {
   if (saving.value) return;
@@ -78,10 +88,10 @@ function keydown(event: KeyboardEvent) {
 </script>
 
 <template>
-  <div :data-active="selected" :style="{ paddingLeft: `${row.depth * 16}px` }">
+  <div :data-active="selected" :style="{ paddingLeft: `${(level - 1) * 16}px` }">
     <div class="flex h-(--knovum-compact-item-height) items-center rounded-control hover:bg-control-hover">
       <button
-        v-if="row.childCount"
+        v-if="item.children"
         type="button"
         tabindex="-1"
         class="grid size-6 shrink-0 place-items-center text-foreground-tertiary"
@@ -93,47 +103,46 @@ function keydown(event: KeyboardEvent) {
         <ChevronRight v-else class="size-(--knovum-icon-size-xs)" />
       </button>
       <span v-else class="w-6 shrink-0" />
-      <template v-if="editing">
-        <input
-          ref="input"
-          v-model="draft"
-          maxlength="512"
-          :readonly="saving"
-          class="h-6 min-w-0 flex-1 rounded-control bg-control px-1 text-caption ring-1 ring-focus-ring outline-none"
-          @keydown="keydown"
-          @blur="emit('finish')"
-        />
-      </template>
-      <button
-        v-else
-        type="button"
-        role="treeitem"
-        :aria-level="row.depth + 1"
-        :aria-expanded="row.childCount ? expanded : undefined"
-        :aria-selected="selected"
-        :data-outline-tree-item="row.id"
-        :tabindex="tabIndex"
-        class="flex min-w-0 flex-1 items-center gap-2 pr-2 text-left text-caption text-foreground-secondary data-[active=true]:text-foreground"
-        :data-active="selected"
-        @click="emit('select')"
-        @dblclick="emit('open')"
-        @contextmenu.prevent="emit('menu')"
-        @focus="emit('focus')"
-        @keydown="emit('navigate', $event)"
+      <TreeItem
+        v-if="!editing"
+        as-child
+        :value="item"
+        :level="level"
+        @select="selectFromTree"
+        @toggle="suppressClickToggle"
       >
-        <Boxes v-if="row.kind === 'group'" class="size-(--knovum-icon-size-xs) shrink-0" />
-        <LayoutPanelTop v-else-if="row.kind === 'section'" class="size-(--knovum-icon-size-xs) shrink-0" />
-        <SpaceOutlineTitle :title="row.title" />
-        <LockKeyhole
-          v-if="row.locked"
-          aria-hidden="true"
-          class="size-(--knovum-icon-size-xs) shrink-0 text-foreground-tertiary"
-        />
-        <span v-if="row.locked" class="sr-only">{{ t("spaces.canvas.locked") }}</span>
-        <span v-if="row.childCount" class="text-micro text-foreground-tertiary tabular-nums">{{
-          row.childCount
-        }}</span>
-      </button>
+        <button
+          type="button"
+          :aria-selected="selected"
+          :data-active="selected"
+          class="flex min-w-0 flex-1 items-center gap-2 pr-2 text-left text-caption text-foreground-secondary data-[active=true]:text-foreground"
+          @dblclick="emit('open')"
+          @contextmenu.prevent="emit('menu')"
+        >
+          <Boxes v-if="item.kind === 'group'" class="size-(--knovum-icon-size-xs) shrink-0" />
+          <LayoutPanelTop v-else-if="item.kind === 'section'" class="size-(--knovum-icon-size-xs) shrink-0" />
+          <SpaceOutlineTitle :title="item.title" />
+          <LockKeyhole
+            v-if="item.locked"
+            aria-hidden="true"
+            class="size-(--knovum-icon-size-xs) shrink-0 text-foreground-tertiary"
+          />
+          <span v-if="item.locked" class="sr-only">{{ t("spaces.canvas.locked") }}</span>
+          <span v-if="item.children" class="text-micro text-foreground-tertiary tabular-nums">{{
+            item.children.length
+          }}</span>
+        </button>
+      </TreeItem>
+      <input
+        v-else
+        ref="input"
+        v-model="draft"
+        maxlength="512"
+        :readonly="saving"
+        class="h-6 min-w-0 flex-1 rounded-control bg-control px-1 text-caption ring-1 ring-focus-ring outline-none"
+        @keydown="keydown"
+        @blur="emit('finish')"
+      />
     </div>
     <p v-if="editing && error" role="alert" class="pb-1 pl-6 text-micro text-danger">{{ error }}</p>
   </div>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, onMounted, shallowRef } from "vue";
+import { useQuery } from "@tanstack/vue-query";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { invokeCommand as invoke } from "../../../../foundation/ipc/invoke-command";
@@ -12,22 +13,20 @@ interface InstalledFont {
   weights: number[];
 }
 
-let catalogRequest: Promise<InstalledFont[]> | undefined;
-
-function installedFonts(): Promise<InstalledFont[]> {
-  catalogRequest ??= invoke<InstalledFont[]>("plugin:spaces|list_video_fonts").catch((error: unknown) => {
-    catalogRequest = undefined;
-    throw error;
-  });
-  return catalogRequest;
-}
-
 const props = defineProps<{ style: VideoTextStyle }>();
 const emit = defineEmits<{ change: [style: Partial<VideoTextStyle>] }>();
 const { t } = useI18n();
-const fonts = shallowRef<InstalledFont[]>([]);
-const error = shallowRef("");
-const loading = shallowRef(true);
+const catalog = useQuery({
+  queryKey: ["spaces", "video-editor", "installed-fonts"],
+  queryFn: () => invoke<InstalledFont[]>("plugin:spaces|list_video_fonts"),
+  staleTime: Infinity,
+});
+const fonts = computed(() => catalog.data.value ?? []);
+const isPending = computed(() => catalog.isPending.value);
+const error = computed(() => {
+  if (catalog.error.value) return String(catalog.error.value);
+  return isPending.value || fonts.value.length > 0 ? "" : t("spaces.media.videoEditor.font.catalogEmpty");
+});
 const selectedFont = computed(() => fonts.value.find(({ family }) => family === props.style.family));
 const families = computed(() => fonts.value.map(({ family }) => family));
 const weights = computed(() =>
@@ -71,17 +70,6 @@ function weightName(value: number): string {
   };
   return names[value] ?? String(value);
 }
-
-onMounted(async () => {
-  try {
-    fonts.value = await installedFonts();
-    if (fonts.value.length === 0) error.value = t("spaces.media.videoEditor.font.catalogEmpty");
-  } catch (cause) {
-    error.value = String(cause);
-  } finally {
-    loading.value = false;
-  }
-});
 </script>
 
 <template>
@@ -91,7 +79,7 @@ onMounted(async () => {
       :families="families"
       :label="$t('spaces.media.videoEditor.font.family')"
       :empty-label="$t('spaces.media.videoEditor.font.searchEmpty')"
-      :disabled="loading || !!error"
+      :disabled="isPending || !!error"
     />
     <div class="min-w-0">
       <span class="mb-1.5 block text-caption text-foreground-secondary">{{
@@ -101,12 +89,12 @@ onMounted(async () => {
         v-model="weight"
         :label="$t('spaces.media.videoEditor.font.weight')"
         :options="weights"
-        :disabled="loading || !!error || !selectedFont"
+        :disabled="isPending || !!error || !selectedFont"
         size="sm"
       />
     </div>
     <p v-if="error" class="col-span-2 text-micro text-danger">{{ error }}</p>
-    <p v-else-if="!loading && !selectedFont" class="col-span-2 text-micro text-danger">
+    <p v-else-if="!isPending && !selectedFont" class="col-span-2 text-micro text-danger">
       {{ $t("spaces.media.videoEditor.font.unavailable", { family: style.family }) }}
     </p>
   </div>

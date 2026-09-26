@@ -1,4 +1,5 @@
-import { computed, nextTick, onBeforeUnmount, onMounted, shallowRef, watch, type Ref } from "vue";
+import { useResizeObserver } from "@vueuse/core";
+import { computed, nextTick, shallowRef, watch, type Ref } from "vue";
 
 import { projectDuration, type VideoEditProject } from "../../video-editing/project";
 
@@ -24,14 +25,9 @@ export function useVideoTimelineScale(
   });
   const clipStyle = (milliseconds: number) => ({ width: `${(milliseconds / duration.value) * 100}%` });
 
-  let observer: ResizeObserver | undefined;
-  onMounted(() => {
-    observer = new ResizeObserver(([entry]) => {
-      viewportWidth.value = entry?.contentRect.width ?? 0;
-    });
-    if (viewport.value) observer.observe(viewport.value);
+  useResizeObserver(viewport, ([entry]) => {
+    viewportWidth.value = entry?.contentRect.width ?? 0;
   });
-  onBeforeUnmount(() => observer?.disconnect());
 
   watch(zoom, async () => {
     await nextTick();

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ArrowDownLeft, ArrowUpRight, Link2 } from "@lucide/vue";
 import { storeToRefs } from "pinia";
-import { computed, ref } from "vue";
+import { AccordionRoot } from "reka-ui";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { useCanvasSelectionProjection } from "../../canvas/editor-session";
@@ -15,7 +16,6 @@ const store = useSpaceStore();
 const { nodes, relations: relationState } = storeToRefs(store);
 const { selectedNodes } = useCanvasSelectionProjection(nodes);
 const { t } = useI18n();
-const expandedId = ref<string>();
 
 const selected = computed(() => {
   const node = selectedNodes.value.length === 1 ? selectedNodes.value[0] : undefined;
@@ -42,10 +42,6 @@ function reveal(id: string) {
   selectAndRevealSpaceNode(id);
 }
 
-function toggleExpand(id: string) {
-  expandedId.value = expandedId.value === id ? undefined : id;
-}
-
 function editRelation(id: string) {
   const neighbor = [...incoming.value, ...outgoing.value].find((candidate) => candidate.relation.id === id);
   if (!neighbor) return;
@@ -69,16 +65,14 @@ function editRelation(id: string) {
       <span>{{ t("spaces.knowledge.relations.empty") }}</span>
     </div>
 
-    <template v-else>
+    <AccordionRoot v-else type="single" collapsible>
       <SpaceRelationGroup
         v-if="incoming.length"
         :relations="incoming"
         :icon="ArrowDownLeft"
         label-key="spaces.knowledge.relations.incoming"
         direction-key="spaces.canvas.relations.incoming"
-        :expanded-id="expandedId"
         @reveal="reveal"
-        @toggle-expand="toggleExpand"
         @edit-relation="editRelation"
       />
 
@@ -89,11 +83,9 @@ function editRelation(id: string) {
         :icon="ArrowUpRight"
         label-key="spaces.knowledge.relations.outgoing"
         direction-key="spaces.canvas.relations.outgoing"
-        :expanded-id="expandedId"
         @reveal="reveal"
-        @toggle-expand="toggleExpand"
         @edit-relation="editRelation"
       />
-    </template>
+    </AccordionRoot>
   </section>
 </template>
