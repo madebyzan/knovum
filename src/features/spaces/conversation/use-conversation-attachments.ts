@@ -1,27 +1,27 @@
-import { open } from "@tauri-apps/plugin-dialog";
 import { computed, shallowRef } from "vue";
 
+import { decodeCommandError } from "../../../foundation/ipc/command-error";
 import { spaceCanvasOverviewSource } from "../assets/node-preview-source";
 import { useCanvasEditorSession } from "../canvas/editor-session";
 import { currentSelectionRoots } from "../canvas/selection/selection-roots";
 import { createStructureIndex } from "../model/structure/structure-index";
 import { contentNodeIdsWithin } from "../model/structure/structure-queries";
 import { useSpaceStore } from "../session/space-store";
-import { inspectAssistantUpload, type StartAssistantTaskInput } from "./conversation-ipc";
+import type { StartAssistantTaskInput } from "./conversation-ipc";
+import { chooseAssistantUploads } from "./conversation-uploads";
 
 type Attachment = NonNullable<StartAssistantTaskInput["attachments"]>[number];
 
 function attachmentErrorMessage(error: unknown) {
-  const detail = String(error);
-  const known: ReadonlyArray<readonly [string, string]> = [
-    ["assistant-context-limit", "spaces.assistant.attachmentLimit"],
-    ["assistant-upload-size", "spaces.assistant.uploadSizeError"],
-    ["assistant-upload-unsupported", "spaces.assistant.uploadTypeError"],
-    ["assistant-upload-invalid", "spaces.assistant.uploadInvalidError"],
-    ["assistant-upload-unauthorized", "spaces.assistant.uploadPermissionError"],
-    ["not selected or dropped", "spaces.assistant.uploadPermissionError"],
-  ];
-  return known.find(([code]) => detail.includes(code))?.[1] ?? detail;
+  const code = decodeCommandError(error)?.code;
+  const known: Readonly<Record<string, string>> = {
+    assistant_context_limit: "spaces.assistant.attachmentLimit",
+    assistant_upload_size: "spaces.assistant.uploadSizeError",
+    assistant_upload_unsupported: "spaces.assistant.uploadTypeError",
+    assistant_upload_invalid: "spaces.assistant.uploadInvalidError",
+    assistant_upload_unauthorized: "spaces.assistant.uploadPermissionError",
+  };
+  return (code ? known[code] : undefined) ?? (error instanceof Error ? error.message : String(error));
 }
 
 export function useConversationAttachments() {
@@ -115,37 +115,7 @@ export function useConversationAttachments() {
     pickingFiles.value = true;
     attachmentError.value = undefined;
     try {
-      const selected = await open({
-        directory: false,
-        multiple: true,
-        filters: [
-          {
-            name: "Knovum",
-            extensions: [
-              "png",
-              "jpg",
-              "jpeg",
-              "webp",
-              "txt",
-              "md",
-              "markdown",
-              "csv",
-              "json",
-              "log",
-              "pdf",
-              "doc",
-              "docx",
-              "xls",
-              "xlsx",
-              "ppt",
-              "pptx",
-            ],
-          },
-        ],
-      });
-      if (!selected) return;
-      const paths = Array.isArray(selected) ? selected : [selected];
-      const files = await Promise.all(paths.map((path) => inspectAssistantUpload(path)));
+      const files = await chooseAssistantUploads();
       if (!isCurrent()) return;
       const next = new Map(
         attachments.value.map((item) => [
@@ -159,7 +129,10 @@ export function useConversationAttachments() {
           path: file.path,
           sourceRevision: file.sourceRevision,
         });
-      if (next.size > 32) throw new Error("assistant-context-limit");
+      if (next.size > 32) {
+        attachmentError.value = "spaces.assistant.attachmentLimit";
+        return;
+      }
       attachments.value = [...next.values()];
     } catch (error) {
       if (!isCurrent()) return;

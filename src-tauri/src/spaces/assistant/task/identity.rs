@@ -78,17 +78,19 @@ pub(super) fn validate(request: &StartAssistantTaskRequest) -> Result<(), String
 }
 
 pub(super) async fn ensure_within_duration(pool: &SqlitePool, run_id: &str) -> Result<(), String> {
-    let elapsed: Option<i64> = sqlx::query_scalar(
-        "SELECT $1-created_at FROM spaces_runs WHERE id=$2
-         AND $1-created_at <= json_extract(budget,'$.maxDurationSeconds')*1000",
-    )
-    .bind(crate::clock::unix_time_millis()?)
-    .bind(run_id)
-    .fetch_optional(pool)
-    .await
-    .map_err(db::sql_error)?;
-    elapsed
-        .map(|_| ())
+    remaining_duration(pool, run_id).await.map(|_| ())
+}
+
+pub(super) async fn remaining_duration(
+    pool: &SqlitePool,
+    run_id: &str,
+) -> Result<std::time::Duration, String> {
+    let remaining: Option<i64> = sqlx::query_scalar(
+        "SELECT json_extract(budget,'$.maxDurationSeconds')*1000-($1-created_at) FROM spaces_runs WHERE id=$2",
+    ).bind(crate::clock::unix_time_millis()?).bind(run_id).fetch_optional(pool).await.map_err(db::sql_error)?;
+    remaining
+        .filter(|value| *value > 0)
+        .map(|millis| std::time::Duration::from_millis(millis as u64))
         .ok_or_else(|| "budget-exhausted: Assistant duration limit was exceeded".into())
 }
 

@@ -1,4 +1,4 @@
-use base64::Engine;
+use crate::ai::transport::response;
 use futures::future::BoxFuture;
 use serde::{Deserialize, Serialize};
 
@@ -131,9 +131,7 @@ impl ImageGenerationCapability for GeminiImageAdapter {
                     })?
             };
 
-            let bytes = base64::engine::general_purpose::STANDARD
-                .decode(encoded)
-                .map_err(provider_err)?;
+            let bytes = response::decode_image(&encoded)?;
 
             Ok(GeneratedImage {
                 bytes,
@@ -148,10 +146,10 @@ impl ImageGenerationCapability for GeminiImageAdapter {
 async fn check_status<T: serde::de::DeserializeOwned>(response: reqwest::Response) -> AiResult<T> {
     let status = response.status();
     if !status.is_success() {
-        let text = response.text().await.unwrap_or_default();
+        let text = response::read_text(response).await?;
         return Err(AiError::new(AiErrorCode::ProviderRequestFailed, text));
     }
-    response.json::<T>().await.map_err(provider_err)
+    response::read_json(response, response::MAX_IMAGE_JSON_BYTES).await
 }
 
 fn provider_err(e: impl std::fmt::Display) -> AiError {

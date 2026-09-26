@@ -2,7 +2,7 @@
 
 `AppCommand` is the single command contract consumed by the command palette and shortcut layer.
 
-- Space commands live with `features/spaces/workspace.ts` as a command factory that receives the current translation function; titles/descriptions therefore follow the app locale without a second locale listener.
+- Space commands live with `features/spaces/workspace-definition.ts` as a command factory that receives the current translation function; titles/descriptions therefore follow the app locale without a second locale listener.
 - Window-local shortcuts use `tinykeys` syntax such as `$mod+Shift+P`.
 - Commands exposed in the macOS Application Menu set `appMenuShortcut: true`. macOS lets the menu own those accelerators; Windows/Linux bind the same shortcut through tinykeys because no classic application menu bar is installed there.
 - The macOS Edit submenu carries only the responder-chain Cut/Copy/Paste. Undo, Redo and Select All are never menu-owned on any platform: their accelerator belongs to the focused control — Tiptap history in the editor, native text editing in a field, canvas history/selection otherwise — and a native key equivalent would consume the press before the WebView saw it.

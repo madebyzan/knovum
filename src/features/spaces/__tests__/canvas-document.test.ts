@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { parseCanvasDocument } from "../canvas/contract/canvas-document";
+import { parseCanvasDocument, serializeCanvasAppearance } from "../canvas/contract/canvas-document";
 
 function document() {
   return {
@@ -153,4 +153,10 @@ describe("CanvasDocument v1", () => {
       }),
     ).toThrow(/./u);
   });
+});
+
+it("serializes appearance without undefined fields", () => {
+  const appearance = { fill: "yellow" as const, fontSize: 16, background: undefined };
+  expect(serializeCanvasAppearance(appearance)).toEqual({ fill: "yellow", fontSize: 16 });
+  expect(appearance).toHaveProperty("background", undefined);
 });

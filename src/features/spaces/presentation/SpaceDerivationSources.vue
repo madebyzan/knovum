@@ -5,7 +5,7 @@ import { useI18n } from "vue-i18n";
 
 import UiIconButton from "../../../shared/ui/UiIconButton.vue";
 import { selectAndRevealSpaceNode } from "../canvas/selection-actions";
-import type { DerivationSource } from "../knowledge-derivations/derivation-source";
+import type { DerivationSource } from "../contracts/generated/DerivationSource";
 
 const props = defineProps<{ sources: readonly DerivationSource[] }>();
 const { t } = useI18n();

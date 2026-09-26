@@ -1,4 +1,4 @@
-import { updateSpaceTitle } from "./space-repository";
+import { updateSpaceTitle } from "./space-operations";
 import type { SpaceSessionContext } from "./space-session-context";
 
 export async function renameSpace(context: SpaceSessionContext, id: string, title: string) {

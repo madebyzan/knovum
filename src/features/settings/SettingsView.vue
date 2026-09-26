@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import type { GenerationActionOption } from "./generation-action-option";
+
+const props = defineProps<{ loadGenerationActions: () => Promise<GenerationActionOption[]> }>();
 import { computed, nextTick, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter, type LocationQueryRaw } from "vue-router";
@@ -117,7 +120,11 @@ function backToApp() {
           enter-active-class="animate-in fade-in-0 slide-in-from-right-1 duration-150 ease-standard motion-reduce:animate-none"
           leave-active-class="animate-out fade-out-0 duration-100 ease-standard motion-reduce:animate-none"
         >
-          <component :is="paneComponent" :key="activePane" />
+          <CreationSettingsPane
+            v-if="activePane === 'creation'"
+            :load-generation-actions="props.loadGenerationActions"
+          />
+          <component :is="paneComponent" v-else :key="activePane" />
         </Transition>
       </div>
     </UiScrollArea>

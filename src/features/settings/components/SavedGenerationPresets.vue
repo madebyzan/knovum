@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import type { GenerationActionOption } from "../generation-action-option";
+
+const props = defineProps<{ loadGenerationActions: () => Promise<GenerationActionOption[]> }>();
 import { Copy, Pencil, Trash2 } from "@lucide/vue";
 import { ask } from "@tauri-apps/plugin-dialog";
 import { camelCase } from "es-toolkit";
@@ -78,6 +81,7 @@ function savePreset(preset: GenerationPreset) {
       v-if="editingIndex !== undefined && presets[editingIndex]"
       v-model:open="editorOpen"
       :preset="presets[editingIndex]!"
+      :load-generation-actions="props.loadGenerationActions"
       @save="savePreset"
     />
   </SettingsSection>

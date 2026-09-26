@@ -1,3 +1,4 @@
+use crate::ai::transport::response;
 use futures::future::BoxFuture;
 use serde::Deserialize;
 use tokio_util::sync::CancellationToken;
@@ -73,10 +74,9 @@ impl VideoGenerationCapability for StepFunVideoAdapter {
                 .await
                 .map_err(provider_err)?
                 .error_for_status()
-                .map_err(provider_err)?
-                .json::<StepVideoSubmitResponse>()
-                .await
                 .map_err(provider_err)?;
+            let submission_response: StepVideoSubmitResponse =
+                response::read_json(submission_response, response::MAX_CONTROL_JSON_BYTES).await?;
 
             if let Some(err) = submission_response.error {
                 let msg = err.message.unwrap_or_else(|| "Submit failed".to_string());
@@ -112,10 +112,9 @@ impl VideoGenerationCapability for StepFunVideoAdapter {
                 .await
                 .map_err(provider_err)?
                 .error_for_status()
-                .map_err(provider_err)?
-                .json::<StepVideoQueryResponse>()
-                .await
                 .map_err(provider_err)?;
+            let query_response: StepVideoQueryResponse =
+                response::read_json(query_response, response::MAX_CONTROL_JSON_BYTES).await?;
 
             if let Some(err) = query_response.error {
                 let msg = err.message.unwrap_or_else(|| "Query failed".to_string());

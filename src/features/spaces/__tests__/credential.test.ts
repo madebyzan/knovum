@@ -9,7 +9,7 @@ const secrets = vi.hoisted(() => ({
 vi.mock("../../../foundation/secrets/secret-store", () => secrets);
 
 import { commitSpaceCredentialChange } from "../credentials/credential-actions";
-import { deleteSpaceCredentials } from "../credentials/credential-repository";
+import { deleteSpaceCredentials } from "../credentials/credential-storage";
 
 describe("spaces credential consistency", () => {
   beforeEach(() => {

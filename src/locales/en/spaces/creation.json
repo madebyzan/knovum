@@ -119,7 +119,7 @@
     "waiting": "Waiting",
     "paused": "Paused",
     "succeeded": "Completed",
-    "completed_with_errors": "Completed with errors",
+    "completedWithErrors": "Completed with errors",
     "failed": "Failed",
     "cancelled": "Cancelled",
     "cancelling": "Cancelling"

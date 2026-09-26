@@ -1,4 +1,4 @@
-use base64::Engine;
+use crate::ai::transport::response;
 use futures::future::BoxFuture;
 use serde::Deserialize;
 
@@ -62,14 +62,12 @@ impl ImageGenerationCapability for OpenAiImageAdapter {
 
             let status = response.status();
             if !status.is_success() {
-                let text = response.text().await.unwrap_or_default();
+                let text = response::read_text(response).await?;
                 return Err(AiError::new(AiErrorCode::ProviderRequestFailed, text));
             }
 
-            let body: ImageResponse = response
-                .json()
-                .await
-                .map_err(|e| AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string()))?;
+            let body: ImageResponse =
+                response::read_json(response, response::MAX_IMAGE_JSON_BYTES).await?;
 
             let item = body
                 .data
@@ -84,9 +82,7 @@ impl ImageGenerationCapability for OpenAiImageAdapter {
                 })?;
 
             let bytes = if let Some(b64) = item.b64_json {
-                base64::engine::general_purpose::STANDARD
-                    .decode(b64)
-                    .map_err(|e| AiError::new(AiErrorCode::InvalidResponse, e.to_string()))?
+                response::decode_image(&b64)?
             } else if let Some(image_url) = item.url {
                 let download_response = http_client()
                     .get(image_url)
@@ -95,11 +91,7 @@ impl ImageGenerationCapability for OpenAiImageAdapter {
                     .map_err(|e| AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string()))?
                     .error_for_status()
                     .map_err(|e| AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string()))?;
-                download_response
-                    .bytes()
-                    .await
-                    .map_err(|e| AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string()))?
-                    .to_vec()
+                response::read_bytes(download_response, response::MAX_IMAGE_BYTES).await?
             } else {
                 return Err(AiError::new(
                     AiErrorCode::InvalidResponse,

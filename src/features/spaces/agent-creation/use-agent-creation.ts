@@ -4,16 +4,16 @@ import { useRouter } from "vue-router";
 import { toast } from "vue-sonner";
 
 import type { AgentKind } from "../../../foundation/ai/agent-models";
+import { cancelAiJob } from "../../../foundation/ai/ai-runtime";
+import { useAiSettingsStore } from "../../../foundation/ai/ai-settings-store";
+import { useTaskStore } from "../../../foundation/tasks/task-store";
+import { useSpaceStore } from "../session/space-store";
 import {
   decideAgentPermission,
   listRecoverableAgentCreations,
   runAgentCreation,
   type AgentPermissionOption,
-} from "../../../foundation/ai/agents";
-import { cancelAiJob } from "../../../foundation/ai/ai-runtime";
-import { useAiSettingsStore } from "../../../foundation/ai/ai-settings-store";
-import { useTaskStore } from "../../../foundation/tasks/task-store";
-import { useSpaceStore } from "../session/space-store";
+} from "./agent-artifacts";
 import { useAgentArtifacts } from "./use-agent-artifacts";
 import { useAgentCreationCatalog } from "./use-agent-creation-catalog";
 
@@ -106,7 +106,7 @@ export function useAgentCreation(open: Ref<boolean>) {
         {
           kind: selectedAgent.value as AgentKind,
           prompt: prompt.value,
-          attachments,
+          attachments: [...attachments],
           spaceId,
           sessionId,
         },

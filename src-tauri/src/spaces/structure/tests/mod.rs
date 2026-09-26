@@ -1,5 +1,7 @@
 use std::collections::HashSet;
 
+mod transactions;
+
 use serde_json::{json, Value};
 
 use super::{validate_content_coverage, validate_space_snapshot, StructureLayout, StructureNode};

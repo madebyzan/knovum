@@ -9,17 +9,19 @@ fn bundled_runtime_dir(app: &tauri::AppHandle) -> Option<PathBuf> {
         .map(|directory| directory.join("resources").join("bundled-runtime"))
 }
 
-pub fn resolve_tool(app: &tauri::AppHandle, env_key: &str, file_name: &str) -> Option<PathBuf> {
-    if let Some(path) = std::env::var_os(env_key)
-        .map(PathBuf::from)
-        .filter(|path| path.is_file())
-    {
-        return Some(path);
+pub fn resolve_tool(
+    app: &tauri::AppHandle,
+    env_key: &str,
+    file_name: &str,
+) -> Result<Option<PathBuf>, String> {
+    if let Some(path) = super::configured_path::configured_path(env_key)? {
+        return Ok(Some(path));
     }
-    let candidate = bundled_runtime_dir(app)?
-        .join(platform_directory())
-        .join(file_name);
-    candidate.is_file().then_some(candidate)
+    let Some(directory) = bundled_runtime_dir(app) else {
+        return Ok(None);
+    };
+    let candidate = directory.join(platform_directory()).join(file_name);
+    Ok(candidate.is_file().then_some(candidate))
 }
 
 pub const fn ffmpeg_name() -> &'static str {

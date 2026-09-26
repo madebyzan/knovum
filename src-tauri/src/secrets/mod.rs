@@ -1,3 +1,4 @@
+use crate::command_error::CommandError;
 mod store;
 
 use std::sync::OnceLock;
@@ -42,20 +43,20 @@ pub(crate) async fn read_secret(secret_key: &str) -> Result<Option<String>, Stri
 }
 
 #[tauri::command]
-pub async fn get(secret_key: String) -> Result<Option<String>, String> {
-    read_secret(&secret_key).await
+pub async fn get(secret_key: String) -> Result<Option<String>, CommandError> {
+    Ok((read_secret(&secret_key).await)?)
 }
 
 #[tauri::command]
-pub async fn set(secret_key: String, secret: String) -> Result<(), String> {
+pub async fn set(secret_key: String, secret: String) -> Result<(), CommandError> {
     validate_key(&secret_key)?;
-    store::set(database().await?, &secret_key, &secret).await
+    Ok((store::set(database().await?, &secret_key, &secret).await)?)
 }
 
 #[tauri::command]
-pub async fn delete(secret_key: String) -> Result<(), String> {
+pub async fn delete(secret_key: String) -> Result<(), CommandError> {
     validate_key(&secret_key)?;
-    store::delete(database().await?, &secret_key).await
+    Ok((store::delete(database().await?, &secret_key).await)?)
 }
 
 pub fn plugin() -> TauriPlugin<Wry> {

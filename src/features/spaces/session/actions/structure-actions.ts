@@ -6,8 +6,8 @@ import { recordSpaceHistory, type SpaceHistoryState } from "../../history/stack"
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceRelation } from "../../model/relations/relation";
 import { spaceEditCommandRecordsHistory, type SpaceEditCommand } from "../../organization/space-edit-command";
-import { spaceEditRepository } from "../../structure/space-edit-repository";
-import { loadSpaceSessionProjection } from "../space-projection-repository";
+import { spaceEditOperations } from "../../structure/space-edit-operations";
+import { loadSpaceSessionProjection } from "../space-projection";
 
 export function createStructureActions(context: {
   activeSpaceId: Ref<string | undefined>;
@@ -23,7 +23,7 @@ export function createStructureActions(context: {
     if (!spaceId) throw new Error("A Space must be active");
     const releaseMutation = beginSpaceMutation(context.history);
     try {
-      const receipt = await spaceEditRepository.execute({
+      const receipt = await spaceEditOperations.execute({
         spaceId,
         mutationId: crypto.randomUUID(),
         expectedEditRevision: context.editSnapshot.value.editRevision,
@@ -53,7 +53,7 @@ export function createStructureActions(context: {
   async function transition(spaceId: string, direction: "undo" | "redo") {
     if (context.activeSpaceId.value !== spaceId)
       throw new Error("Open the Space where this edit was made before changing its history");
-    await spaceEditRepository[direction](spaceId, context.editSnapshot.value.editRevision);
+    await spaceEditOperations[direction](spaceId, context.editSnapshot.value.editRevision);
     await reloadProjection(spaceId);
   }
 

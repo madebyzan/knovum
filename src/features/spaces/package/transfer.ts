@@ -1,8 +1,11 @@
-import { Channel, invoke } from "@tauri-apps/api/core";
+export type { SpacePackageProgress } from "../contracts/generated/SpacePackageProgress";
+import { Channel } from "@tauri-apps/api/core";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import { isString } from "es-toolkit";
 
+import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
 import { removeSpaceAssets } from "../assets/asset-operations";
+import type { SpacePackageProgress } from "../contracts/generated/SpacePackageProgress";
 import type { Space } from "../model/space";
 import { truncateUtf16 } from "../model/text";
 import type { ImportedSpacePackage } from "./contract";
@@ -18,13 +21,6 @@ interface SpacePackageImportContext {
 interface SpacePackageExportContext {
   space: Pick<Space, "id" | "title">;
   commitActiveSession(): Promise<void>;
-}
-
-export interface SpacePackageProgress {
-  stage: "writing" | "reading";
-  processed: number;
-  total: number;
-  percent: number;
 }
 
 type ProgressListener = (progress: SpacePackageProgress) => void;

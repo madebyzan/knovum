@@ -28,7 +28,7 @@ pub(super) fn handler() -> impl Fn(Invoke<tauri::Wry>) -> bool + Send + Sync + '
         crate::spaces::assets::commands::preview_image,
         crate::spaces::assets::commands::open_asset_at_location,
         crate::spaces::assets::commands::duplicate_asset,
-        crate::spaces::assets::commands::remove_asset,
+        crate::spaces::assets::commands::remove_assets,
         crate::spaces::assets::commands::export_asset,
         crate::spaces::assets::commands::export_text,
         crate::spaces::assets::commands::export_image,

@@ -119,7 +119,7 @@
     "waiting": "等待处理",
     "paused": "已暂停",
     "succeeded": "已完成",
-    "completed_with_errors": "部分失败",
+    "completedWithErrors": "部分失败",
     "failed": "失败",
     "cancelled": "已取消",
     "cancelling": "正在取消"

@@ -22,15 +22,15 @@ export type {
   SpaceImportSource,
 } from "./import-contract";
 
-// oxlint-disable-next-line eslint/max-params -- Public drop/import API is shared with scoped-out canvas callers; preserve its contract.
-export async function importSpaceSource(
-  context: SpaceImportContext,
-  spaceId: string,
-  source: SpaceImportSource,
-  position: { x: number; y: number },
-  labels: SpaceImportSessionLabels,
-  reveal = true,
-): Promise<SpaceCanvasNode[]> {
+export async function importSpaceSource(input: {
+  context: SpaceImportContext;
+  spaceId: string;
+  source: SpaceImportSource;
+  position: { x: number; y: number };
+  labels: SpaceImportSessionLabels;
+  reveal?: boolean;
+}): Promise<SpaceCanvasNode[]> {
+  const { context, spaceId, source, position, labels, reveal = true } = input;
   await context.ensureImportTarget(spaceId);
   const operation = await prepareSpaceImportSource(source, labels, "scoped");
   return commitPreparedSpaceImport({ context, spaceId, operation, position, reveal });

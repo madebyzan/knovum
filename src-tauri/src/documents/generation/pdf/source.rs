@@ -78,7 +78,9 @@ fn inlines(output: &mut String, content: &[Inline]) -> Result<(), String> {
                 output.push(']');
             }
             Inline::Image { .. } => {
-                return Err("PDF image export is not implemented; use plain text or remove images".into());
+                return Err(
+                    "PDF image export is not implemented; use plain text or remove images".into(),
+                );
             }
             Inline::Task(checked) => {
                 output.push_str(if *checked {
@@ -102,7 +104,10 @@ fn span(output: &mut String, name: &str, content: &[Inline]) -> Result<(), Strin
 }
 
 fn table(output: &mut String, table: &Table) -> Result<(), String> {
-    output.push_str(&format!("#table(columns: {}, align: (", table.alignments.len()));
+    output.push_str(&format!(
+        "#table(columns: {}, align: (",
+        table.alignments.len()
+    ));
     for alignment in &table.alignments {
         output.push_str(match alignment {
             Alignment::Left => "left,",

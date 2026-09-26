@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { invoke } from "@tauri-apps/api/core";
 import { computed, onMounted, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { invokeCommand as invoke } from "../../../../foundation/ipc/invoke-command";
 import UiSelect from "../../../../shared/ui/UiSelect.vue";
 import type { VideoTextStyle } from "../../video-editing/project";
 import SpaceVideoFontPicker from "./SpaceVideoFontPicker.vue";

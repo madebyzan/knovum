@@ -25,14 +25,14 @@ pub(crate) async fn provenance(
     ).bind(space_id).bind(target_kind).bind(target_id)
         .fetch_all(pool).await.map_err(db::sql_error)?;
     let values = rows.into_iter().map(|row| {
-        let locator: String = row.get("locator");
+        let locator: String = row.try_get("locator").map_err(db::sql_error)?;
         let locator = serde_json::from_str::<Value>(&locator).map_err(db::json_error)?;
         Ok(json!({
-            "id": row.get::<String,_>("id"), "sourceNodeId": row.get::<String,_>("source_node_id"),
-            "locator": locator, "sourceRevision": row.get::<String,_>("source_revision"),
-            "quote": row.get::<String,_>("quote"), "status": row.get::<String,_>("status"),
-            "actorKind": row.get::<String,_>("actor_kind"), "actorId": row.get::<Option<String>,_>("actor_id"),
-            "createdAt": row.get::<i64,_>("created_at"), "updatedAt": row.get::<i64,_>("updated_at"),
+            "id": row.try_get::<String,_>("id").map_err(db::sql_error)?, "sourceNodeId": row.try_get::<String,_>("source_node_id").map_err(db::sql_error)?,
+            "locator": locator, "sourceRevision": row.try_get::<String,_>("source_revision").map_err(db::sql_error)?,
+            "quote": row.try_get::<String,_>("quote").map_err(db::sql_error)?, "status": row.try_get::<String,_>("status").map_err(db::sql_error)?,
+            "actorKind": row.try_get::<String,_>("actor_kind").map_err(db::sql_error)?, "actorId": row.try_get::<Option<String>,_>("actor_id").map_err(db::sql_error)?,
+            "createdAt": row.try_get::<i64,_>("created_at").map_err(db::sql_error)?, "updatedAt": row.try_get::<i64,_>("updated_at").map_err(db::sql_error)?,
         }))
     }).collect::<Result<Vec<_>, String>>()?;
     Ok(Value::Array(values))

@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::ai::error::AiResult;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub struct TokenUsage {
     pub prompt_tokens: u32,

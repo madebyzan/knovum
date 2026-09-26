@@ -31,7 +31,7 @@ pub(super) async fn complete(
         &mut tx,
         &ids.conversation_id,
         &ids.branch_id,
-        "assistant",
+        repository::AssistantMessageRole::Assistant,
         &json!({"parts": [{"type": "text", "text": output}]}),
         now,
     )

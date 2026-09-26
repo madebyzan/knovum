@@ -15,7 +15,7 @@ import type {
   CanvasJsonImportRequest,
   JsonCanvasImportContentV1,
 } from "../../canvas-exchange/json-canvas-import-contract";
-import type { PreparedJsonCanvasNode } from "../../canvas-exchange/json-canvas-import-repository";
+import type { PreparedJsonCanvasNode } from "../../canvas-exchange/json-canvas-import-operations";
 import { createSpaceNode } from "../../canvas/node";
 import { noteFromPlainText } from "../../canvas/text-import";
 import type { SpaceNodePayload } from "../../model/nodes/node-payload";

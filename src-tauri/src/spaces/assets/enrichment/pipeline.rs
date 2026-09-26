@@ -19,7 +19,6 @@ pub(super) struct VisualOutput {
     pub data: Value,
 }
 
-#[allow(clippy::too_many_arguments)]
 pub(super) fn prepare_visual(
     app: &AppHandle,
     source: &Path,

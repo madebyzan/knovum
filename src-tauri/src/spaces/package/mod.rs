@@ -1,3 +1,4 @@
+use crate::command_error::CommandError;
 mod manifest_assets;
 mod read;
 mod restore;
@@ -32,8 +33,9 @@ pub struct ImportedPackageAsset {
     pub path: String,
 }
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct SpacePackageProgress {
     stage: &'static str,
     processed: u64,
@@ -77,13 +79,13 @@ pub async fn export_space_package(
     manifest: String,
     assets: Vec<PackageAsset>,
     on_progress: Channel<SpacePackageProgress>,
-) -> Result<(), String> {
-    crate::blocking::run(move || {
+) -> Result<(), CommandError> {
+    Ok((crate::blocking::run(move || {
         let target = PathBuf::from(destination_path);
         crate::spaces::assets::authorize_destination(&app, &target)?;
         write::write_package(&app, &target, &manifest, &assets, &on_progress)
     })
-    .await
+    .await)?)
 }
 
 #[tauri::command]
@@ -91,19 +93,19 @@ pub async fn import_space_package(
     app: tauri::AppHandle,
     source_path: String,
     on_progress: Channel<SpacePackageProgress>,
-) -> Result<PackageImport, String> {
-    crate::blocking::run(move || {
+) -> Result<PackageImport, CommandError> {
+    Ok((crate::blocking::run(move || {
         let source = PathBuf::from(source_path);
         crate::spaces::assets::authorize_source(&app, &source)?;
         read::read_package(&app, &source, &on_progress)
     })
-    .await
+    .await)?)
 }
 
 #[tauri::command]
 pub async fn restore_space_package<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     request: restore::contracts::RestorePackageRequest,
-) -> Result<(), String> {
-    restore::restore(&app, request).await
+) -> Result<(), CommandError> {
+    Ok((restore::restore(&app, request).await)?)
 }

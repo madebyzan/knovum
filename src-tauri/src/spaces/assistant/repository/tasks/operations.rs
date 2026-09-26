@@ -98,7 +98,7 @@ pub async fn complete_tool_call(
         .execute(&mut *tx).await.map_err(db::sql_error)?;
     db::require_one(updated, "assistant-tool-call-already-completed")?;
     super::super::messages::append_message_in_transaction(
-        &mut tx, conversation_id, branch_id, "tool",
+        &mut tx, conversation_id, branch_id, super::super::AssistantMessageRole::Tool,
         &serde_json::json!({"parts": [{"type": "tool_result", "callId": call_id, "name": name, "result": result}]}), now,
     ).await?;
     tx.commit().await.map_err(db::sql_error)

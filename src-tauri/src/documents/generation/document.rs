@@ -59,13 +59,8 @@ pub(crate) enum Inline {
     Emphasis(Vec<Inline>),
     Strike(Vec<Inline>),
     Code(String),
-    Link {
-        url: String,
-        content: Vec<Inline>,
-    },
-    Image {
-        alt: Vec<Inline>,
-    },
+    Link { url: String, content: Vec<Inline> },
+    Image { alt: Vec<Inline> },
     Task(bool),
     SoftBreak,
     HardBreak,

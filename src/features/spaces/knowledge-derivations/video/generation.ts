@@ -1,9 +1,10 @@
-import { Channel, invoke } from "@tauri-apps/api/core";
+import { Channel } from "@tauri-apps/api/core";
 import { toast } from "vue-sonner";
 
 import { loadAiExecutionTarget, aiExecutionTargetPayload } from "../../../../foundation/ai/ai-execution";
 import type { ExecutionTarget } from "../../../../foundation/ai/ai-models";
 import { i18n } from "../../../../foundation/i18n/i18n";
+import { invokeCommand as invoke } from "../../../../foundation/ipc/invoke-command";
 import { useTaskStore } from "../../../../foundation/tasks/task-store";
 import { useCanvasEditorSession } from "../../canvas/editor-session";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";

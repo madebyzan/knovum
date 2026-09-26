@@ -1,10 +1,10 @@
 mod action_execution;
 pub(crate) mod actions;
-mod agent_artifacts;
+pub(crate) mod agent_artifacts;
 pub(crate) mod assets;
 pub(crate) mod assistant;
 pub(crate) mod authorization;
-mod canvas_exchange;
+pub(crate) mod canvas_exchange;
 mod canvas_view_state;
 mod clipboard_content;
 mod command_registry;

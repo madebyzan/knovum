@@ -2,6 +2,7 @@ import { readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { matched, tokenPattern } from "./command-address-tokens.mjs";
 import { commandAddress, loadCommandDocs } from "./command-docs.mjs";
 import { checkRustCommandExports } from "./rust-command-exports.mjs";
 import { discoverPluginCommands, pluginKeyFor } from "./tauri-plugin-commands.mjs";
@@ -114,14 +115,6 @@ console.log(
 if (failures.length > 0) {
   console.error(failures.join("\n"));
   process.exitCode = 1;
-}
-
-function tokenPattern(shape) {
-  return shape ? new RegExp(`\\b(?:${shape})\\b`, "gu") : null;
-}
-
-function matched(source, pattern) {
-  return pattern ? new Set([...source.matchAll(pattern)].map((match) => match[0])) : new Set();
 }
 
 function isSorted(values) {

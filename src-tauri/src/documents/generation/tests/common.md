@@ -1,6 +1,6 @@
 ## Overview
 
-Text with **bold**, *italic*, ~~strike~~ and `inline code`.
+Text with **bold**, _italic_, ~~strike~~ and `inline code`.
 
 [Reference](https://example.com/reference)
 
@@ -17,8 +17,8 @@ Text with **bold**, *italic*, ~~strike~~ and `inline code`.
 - [x] Complete
 
 | Name | Value |
-| :--- | ---: |
-| Rust | 42 |
+| :--- | ----: |
+| Rust |    42 |
 | 中文 | value |
 
 ```rust

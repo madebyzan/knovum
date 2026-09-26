@@ -1,5 +1,5 @@
-import type { StructureLayout } from "../../model/structure/structure-contract";
 import { createStructureIndex } from "../../model/structure/structure-index";
+import { serializeCanvasAppearance } from "../contract/canvas-document";
 import type { CanvasNodeAppearance } from "../contract/canvas-document";
 import type { CanvasEditorPort } from "../contract/canvas-editor-port";
 import type { KonvaEditorPortOptions } from "./canvas-editor-port-options";
@@ -14,8 +14,6 @@ import {
   zoomCanvasViewport,
 } from "./viewport/canvas-editor-navigation";
 import { canvasPointFromScreen, screenPointFromCanvas } from "./viewport/viewport-math";
-
-type ContentLayout = Extract<StructureLayout, { kind: "content" }>;
 
 export function createKonvaEditorPort(options: KonvaEditorPortOptions): CanvasEditorPort {
   const animatedNavigation = { ...options, setViewport: options.animateViewport };
@@ -130,14 +128,12 @@ export function createKonvaEditorPort(options: KonvaEditorPortOptions): CanvasEd
       : undefined;
     if (!structureNodeId || layout?.kind !== "content")
       throw new Error(`Content layout is unavailable: ${nodeId}`);
-    const appearance = cleanAppearance({ ...layout.appearance, ...patch });
+    const appearance = serializeCanvasAppearance({ ...layout.appearance, ...patch });
     report(
       options.onExecuteSpaceEdit({
         kind: "content.update-layout",
         structureNodeId,
-        appearance: Object.keys(appearance).length
-          ? { kind: "set", value: appearance as NonNullable<ContentLayout["appearance"]> }
-          : { kind: "clear" },
+        appearance: Object.keys(appearance).length ? { kind: "set", value: appearance } : { kind: "clear" },
       }),
     );
   }
@@ -182,7 +178,3 @@ type AlignOrDistributeCommand =
   | { kind: "structure.distribute"; axis: Parameters<CanvasEditorPort["distributeSelection"]>[0] }
   | { kind: "structure.reorder"; direction: Parameters<CanvasEditorPort["moveSelectionLayer"]>[0] }
   | { kind: "structure.auto-layout"; direction: "right" | "down"; gap: number };
-
-function cleanAppearance(appearance: CanvasNodeAppearance) {
-  return Object.fromEntries(Object.entries(appearance).filter(([, value]) => value !== undefined));
-}

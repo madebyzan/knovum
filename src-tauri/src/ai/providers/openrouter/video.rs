@@ -1,3 +1,4 @@
+use crate::ai::transport::response;
 use futures::future::BoxFuture;
 use reqwest::Method;
 use serde::Deserialize;
@@ -64,10 +65,9 @@ impl VideoGenerationCapability for OpenRouterVideoAdapter {
                 .await
                 .map_err(provider_err)?
                 .error_for_status()
-                .map_err(provider_err)?
-                .json::<VideoJobResponse>()
-                .await
                 .map_err(provider_err)?;
+            let submission: VideoJobResponse =
+                response::read_json(submission, response::MAX_CONTROL_JSON_BYTES).await?;
 
             if let Some(err) = submission.error {
                 let msg = err.message.unwrap_or_else(|| "Submit failed".to_string());
@@ -101,10 +101,9 @@ impl VideoGenerationCapability for OpenRouterVideoAdapter {
                 .await
                 .map_err(provider_err)?
                 .error_for_status()
-                .map_err(provider_err)?
-                .json::<VideoJobResponse>()
-                .await
                 .map_err(provider_err)?;
+            let query: VideoJobResponse =
+                response::read_json(query, response::MAX_CONTROL_JSON_BYTES).await?;
 
             if let Some(err) = query.error {
                 let msg = err.message.unwrap_or_else(|| "Job failed".to_string());

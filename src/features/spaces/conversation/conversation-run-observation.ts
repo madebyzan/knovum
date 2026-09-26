@@ -1,8 +1,7 @@
-import { Channel, invoke } from "@tauri-apps/api/core";
-
 import { i18n } from "../../../foundation/i18n/i18n";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import type { RunSummary } from "../contracts/generated/RunSummary";
+import { observeRun } from "../runs/run-observation";
 import { cancelAssistantTask, getAssistantTaskError, listActiveAssistantRuns } from "./conversation-ipc";
 
 type RunIdentity = Pick<RunSummary, "id" | "createdAt">;
@@ -46,23 +45,26 @@ export function observeConversationRun(
   observed.set(run.id, listeners);
   tasks.restoreRunning({ id: run.id, title, startedAt: run.createdAt }, () => cancelAssistantTask(run.id));
   attachNavigation();
-  const updates = new Channel<RunSummary>((next) => {
-    for (const listener of listeners) listener(next);
-    if (next.state === "succeeded") tasks.succeed(next.id);
-    else if (next.state === "cancelled") tasks.cancelled(next.id);
-    else if (next.completedAt !== null) {
-      void getAssistantTaskError(next.id)
-        .then((reason) => tasks.fail(next.id, reason ?? i18n.global.t("spaces.assistant.taskFailed")))
-        .catch((cause: unknown) => tasks.fail(next.id, String(cause)));
-    } else if (next.state === "paused" || next.waitReason === "approval") {
-      tasks.detail(next.id, i18n.global.t("spaces.assistant.taskNeedsAttention"));
-    } else if (next.state === "waiting") {
-      tasks.detail(next.id, i18n.global.t("spaces.assistant.taskWaitingForResult"));
-    } else tasks.detail(next.id, "");
+  observeRun(run.id, {
+    update: (next) => {
+      for (const listener of listeners) listener(next);
+      if (next.state === "succeeded") tasks.succeed(next.id);
+      else if (next.state === "cancelled") tasks.cancelled(next.id);
+      else if (next.completedAt !== null) {
+        void getAssistantTaskError(next.id)
+          .then((reason) => tasks.fail(next.id, reason ?? i18n.global.t("spaces.assistant.taskFailed")))
+          .catch((cause: unknown) => tasks.fail(next.id, String(cause)));
+      } else if (next.state === "paused" || next.waitReason === "approval") {
+        tasks.detail(next.id, i18n.global.t("spaces.assistant.taskNeedsAttention"));
+      } else if (next.state === "waiting") {
+        tasks.detail(next.id, i18n.global.t("spaces.assistant.taskWaitingForResult"));
+      } else tasks.detail(next.id, "");
+    },
+    error: (cause) => tasks.fail(run.id, String(cause)),
+    finished: () => {
+      observed.delete(run.id);
+    },
   });
-  void invoke("plugin:spaces|observe_run", { runId: run.id, updates })
-    .catch((cause: unknown) => tasks.fail(run.id, String(cause)))
-    .finally(() => observed.delete(run.id));
   return () => {
     if (onUpdate) listeners.delete(onUpdate);
   };

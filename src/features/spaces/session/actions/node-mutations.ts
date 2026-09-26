@@ -16,12 +16,12 @@ import type { KnowledgeChunkSeed } from "../../knowledge/model/schema";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceNodePayload } from "../../model/nodes/node-payload";
 import { validateSpaceNodePayload } from "../../model/nodes/schema/node-payload";
-import { createNodes } from "../../nodes/node-repository";
-import { spaceEditRepository } from "../../structure/space-edit-repository";
-import { loadSpaceSessionProjection } from "../space-projection-repository";
+import { createNodes } from "../../nodes/node-operations";
+import { spaceEditOperations } from "../../structure/space-edit-operations";
+import { loadSpaceSessionProjection } from "../space-projection";
 import { createNodeDataMutations } from "./node-data-mutations";
 
-export type { NodeDataChange } from "../../history/mutation-types";
+export type { NodePayloadChange } from "../../history/mutation-types";
 
 export function createSpaceMutations(context: SpaceMutationContext) {
   const dataMutations = createNodeDataMutations(context);
@@ -94,7 +94,7 @@ function createContentMutations(context: SpaceMutationContext, enrichment: Space
     if (isActive) nodes.value = [...nodes.value, ...contentNodes];
     let persisted = false;
     try {
-      const snapshot = isActive ? context.editSnapshot.value : await spaceEditRepository.load(spaceId);
+      const snapshot = isActive ? context.editSnapshot.value : await spaceEditOperations.load(spaceId);
       await createNodes(
         spaceId,
         contentNodes,

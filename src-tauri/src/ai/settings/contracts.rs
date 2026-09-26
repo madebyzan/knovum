@@ -1,7 +1,7 @@
 use serde::Deserialize;
 
 use crate::ai::{
-    contracts::{AgentKind, ExecutionCapability},
+    contracts::{AgentKind, ExecutionCapability, ProviderKind},
     models::ExecutionTargetRef,
 };
 
@@ -12,7 +12,7 @@ pub(super) struct Envelope<T> {
     pub value: T,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct AiSettings {
     pub(super) connections: Vec<Connection>,
@@ -20,35 +20,39 @@ pub struct AiSettings {
     pub(super) defaults: Defaults,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub(super) struct Connection {
+#[ts(rename = "AiConnectionSettings")]
+pub(crate) struct Connection {
     pub id: String,
-    pub provider: String,
+    pub provider: ProviderKind,
     pub base_url: String,
     pub models: Vec<Model>,
     pub name: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub(super) struct Model {
+#[ts(rename = "AiModelDefinition")]
+pub(crate) struct Model {
     pub id: String,
     pub model: String,
     pub capabilities: Vec<ExecutionCapability>,
     pub name: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub(super) struct DesktopAgent {
+#[ts(rename = "DesktopAgentSettings")]
+pub(crate) struct DesktopAgent {
     pub kind: AgentKind,
     pub enabled: bool,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub(super) struct Defaults {
+#[ts(rename = "AiRoutingDefaults")]
+pub(crate) struct Defaults {
     pub writing: Option<ExecutionTargetRef>,
     pub knowledge: Option<ExecutionTargetRef>,
     pub visual_understanding: Option<ExecutionTargetRef>,

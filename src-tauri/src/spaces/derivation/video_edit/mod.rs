@@ -19,7 +19,7 @@ use crate::blocking;
 
 pub use proxy::PrepareRequest;
 
-pub const CANCELLED: &str = "VIDEO_EDIT_RENDER_CANCELLED";
+pub const CANCELLED: &str = "video-edit-render-cancelled";
 
 #[derive(Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]

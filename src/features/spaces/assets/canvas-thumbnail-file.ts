@@ -1,4 +1,4 @@
-import { invoke } from "@tauri-apps/api/core";
+import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
 
 export async function saveCanvasThumbnailBlob(blob: Blob): Promise<string> {
   if (blob.type !== "image/jpeg") throw new Error("Canvas thumbnail must be a JPEG image");

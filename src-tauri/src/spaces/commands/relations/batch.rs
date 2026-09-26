@@ -1,3 +1,4 @@
+use crate::command_error::CommandError;
 use std::collections::HashSet;
 
 use tauri::{AppHandle, Runtime};
@@ -8,24 +9,24 @@ use crate::spaces::{db, knowledge::invalidation};
 pub(crate) async fn revoke_relations<R: Runtime>(
     app: AppHandle<R>,
     relation_ids: Vec<String>,
-) -> Result<(), String> {
+) -> Result<(), CommandError> {
     validate_relation_ids(&relation_ids)?;
     let now = crate::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
     for relation_id in relation_ids {
         if !invalidation::invalidate_relation(&mut tx, &relation_id, "human", None, now).await? {
-            return Err(format!("Space Relation no longer exists: {relation_id}"));
+            return Err((format!("Space Relation no longer exists: {relation_id}")).into());
         }
     }
-    tx.commit().await.map_err(db::sql_error)
+    Ok((tx.commit().await.map_err(db::sql_error))?)
 }
 
 #[tauri::command]
 pub(crate) async fn restore_relations<R: Runtime>(
     app: AppHandle<R>,
     relation_ids: Vec<String>,
-) -> Result<(), String> {
+) -> Result<(), CommandError> {
     validate_relation_ids(&relation_ids)?;
     let now = crate::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
@@ -33,7 +34,7 @@ pub(crate) async fn restore_relations<R: Runtime>(
     for relation_id in relation_ids {
         invalidation::restore_relation(&mut tx, &relation_id, "human", None, now).await?;
     }
-    tx.commit().await.map_err(db::sql_error)
+    Ok((tx.commit().await.map_err(db::sql_error))?)
 }
 
 fn validate_relation_ids(ids: &[String]) -> Result<(), String> {

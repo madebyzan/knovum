@@ -10,12 +10,14 @@ use super::{
 };
 use crate::spaces::db;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub(crate) struct ReviseCapturedWorkflowRequest {
     pub workflow_id: String,
     pub expected_version: u32,
     pub output_slots: Vec<CandidateOutputSlot>,
+    #[ts(type = "Record<string, Record<string, unknown>>")]
     pub step_parameters: HashMap<String, Value>,
     pub removed_step_ids: Vec<String>,
 }

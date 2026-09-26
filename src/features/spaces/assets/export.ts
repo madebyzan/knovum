@@ -1,6 +1,6 @@
-import { invoke } from "@tauri-apps/api/core";
 import { save } from "@tauri-apps/plugin-dialog";
 
+import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
 import { isSpaceManagedAssetPayload } from "../model/nodes/capabilities";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
 import { truncateUtf16 } from "../model/text";

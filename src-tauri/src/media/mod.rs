@@ -9,4 +9,4 @@ pub(crate) mod waveform;
 pub(crate) mod whisper;
 pub(crate) mod workspace;
 
-pub(crate) const TRANSCRIPTION_CANCELLED: &str = "MEDIA_TRANSCRIPTION_CANCELLED";
+pub(crate) const TRANSCRIPTION_CANCELLED: &str = "media-transcription-cancelled";

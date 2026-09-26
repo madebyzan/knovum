@@ -1,3 +1,4 @@
+use crate::ai::transport::response;
 use futures::future::BoxFuture;
 
 use crate::ai::{
@@ -47,7 +48,7 @@ impl FileUploadCapability for GeminiFileUploadAdapter {
                 .map_err(|err| AiError::new(AiErrorCode::ProviderRequestFailed, err.to_string()))?;
 
             if !init_response.status().is_success() {
-                let error_text = init_response.text().await.unwrap_or_default();
+                let error_text = response::read_text(init_response).await?;
                 return Err(AiError::new(AiErrorCode::ProviderRequestFailed, error_text));
             }
 
@@ -74,14 +75,12 @@ impl FileUploadCapability for GeminiFileUploadAdapter {
                 .map_err(|err| AiError::new(AiErrorCode::ProviderRequestFailed, err.to_string()))?;
 
             if !upload_response.status().is_success() {
-                let error_text = upload_response.text().await.unwrap_or_default();
+                let error_text = response::read_text(upload_response).await?;
                 return Err(AiError::new(AiErrorCode::ProviderRequestFailed, error_text));
             }
 
-            let file_data: serde_json::Value = upload_response
-                .json()
-                .await
-                .map_err(|err| AiError::new(AiErrorCode::InvalidResponse, err.to_string()))?;
+            let file_data: serde_json::Value =
+                response::read_json(upload_response, response::MAX_CONTROL_JSON_BYTES).await?;
 
             let file_id = file_data["file"]["name"]
                 .as_str()

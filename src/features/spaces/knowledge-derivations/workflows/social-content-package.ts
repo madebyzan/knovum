@@ -1,3 +1,7 @@
+import type { SocialPlatform } from "../../contracts/generated/SocialPlatform";
+import type { SocialTone } from "../../contracts/generated/SocialTone";
+export type { SocialPlatform } from "../../contracts/generated/SocialPlatform";
+export type { SocialTone } from "../../contracts/generated/SocialTone";
 import type { ExecutionTarget } from "../../../../foundation/ai/ai-models";
 import type { useSpaceStore } from "../../session/space-store";
 import { startBuiltinWorkflow } from "../../workflows/run-builtin-workflow";
@@ -5,8 +9,7 @@ import type { GroundedDocumentSource } from "../catalog/grounded-document";
 import type { ImageAspectRatio } from "../visualization";
 
 type Store = ReturnType<typeof useSpaceStore>;
-export type SocialPlatform = "generic" | "xiaohongshu" | "linkedin";
-export type SocialTone = "professional" | "friendly" | "energetic";
+
 export interface SocialContentPackageDraft {
   title: string;
   platform: SocialPlatform;

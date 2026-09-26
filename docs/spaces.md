@@ -458,3 +458,31 @@ The feature follows `AGENTS.md` and `docs/oss-first.md`:
 The official Rust **RMCP** SDK owns the local MCP protocol/server implementation. Knovum does not maintain a custom MCP protocol stack.
 
 The current Knowledge contract, SQLx migration policy, Provenance/History/Patch model and Work/MCP boundaries are documented in `knowledge.md`. The feature should continue to prefer stable maintained OSS before adding custom infrastructure.
+
+## Pre-release database reset boundary
+
+Spaces has one current `0001_spaces.sql` baseline. SQLx rejects obsolete migration versions or checksums before applying schema changes. The startup error identifies `spaces-database-obsolete`; the application does not delete, rewrite or migrate that database. Back up `spaces.db` (and its WAL/SHM files while closed) before explicitly resetting development data. Package version 5 and media-knowledge schema version 4 describe different contracts and do not share the database baseline version.
+
+## Session state ownership
+
+The single `space-store` composes existing owners rather than maintaining parallel committed projections. `spaceSessionBindings` explicitly exposes cross-view bindings and hides persistence/coalescing internals. Do not replace this boundary with an unrestricted spread of private state or create a second nodes cache.
+
+| State                                             | Owner                                               | Lifetime                                                              |
+| ------------------------------------------------- | --------------------------------------------------- | --------------------------------------------------------------------- |
+| Committed nodes, scenes, relations, edit snapshot | Rust SQLite, loaded as one typed session projection | Active Space; replaced after successful load/commit                   |
+| Navigation history, cross-view workbench requests | Existing session/workspace owners in Pinia          | Desktop session; reset by Space lifecycle                             |
+| Image edit/comment draft and dimensions           | Image editor/comment sessions                       | `(spaceId, nodeId)`; cleared on Space switch or node deletion         |
+| Component focus, hover and primitive interaction  | Owning component or editor session                  | Component/editor lifetime                                             |
+| Async query results                               | Existing Vue Query keys                             | Space and actual request parameters                                   |
+| Run transport                                     | `runs/run-observation`                              | One Channel/invoke per run ID; removed on terminal completion/failure |
+| Conversation/workflow task mapping                | Owning capability                                   | Attached run; released when shared observation finishes               |
+
+Navigation flush failure preserves the current Space and reports the failure. Successful website binding publication is independent of best-effort old-file cleanup. Asset refresh generates a new preview, publishes with a revision guard, then reclaims only explicitly owned candidates. The reference graph is read in one SQLite snapshot and retains soft-deleted references for undo. Filesystem deletion is not a database transaction; it is never reported as an atomic commit of both systems.
+
+Mutation IDs bind the entire request digest. A retry of the identical request returns its committed receipt; a different request using that ID fails with `mutation_id_conflict`. Renderer receipt confirmation is reserved for ambiguous transport errors without a returned failure payload. Command failures (including `operation_failed`), invalid arguments and permission rejections retain their normalized `cause` and are never replaced with an older receipt. Revision conflicts use `space_edit_revision_conflict` and preserve the current committed projection.
+
+## Conditional simplification decisions
+
+Structure edits currently replace the validated snapshot in a transaction. Incremental writes require measured large-Space latency/write amplification and equivalence tests for history, tombstones and retries; no speculative second mutation path is maintained.
+
+All document serialization belongs to Rust `documents/generation`: DOCX, PDF, TXT and PPTX. The Renderer submits export intent or starts the `presentation-production` workflow; it never generates or submits document bytes. Spaces resolves and validates sources, owns authorization, output-node lifecycle and persistence, and calls the neutral document engine. PPTX uses the shared validated Markdown model and records the actual `knovum-pptx:1` engine. The former Web worker/PptxGenJS chain had no product consumer and is removed, together with its upload/path-allocation IPC. Current presentation workflows generate text slides; the deleted image-slide worker was not an exposed product capability. More than 100 slides fails visibly rather than silently dropping content. Optional panel loading changes require a measured startup or interaction cost; no unmeasured lazy-loading abstraction is added.

@@ -1,0 +1,266 @@
+[
+  {
+    "from": "src-tauri/src/spaces/structure/clipboard/payload/remap.rs",
+    "to": "src-tauri/src/spaces/structure/clipboard/payload/remap/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/structure/deleted_commands/permanent/cleanup.rs",
+    "to": "src-tauri/src/spaces/structure/deleted_commands/permanent/cleanup/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/structure/repository/deleted/restore.rs",
+    "to": "src-tauri/src/spaces/structure/repository/deleted/restore/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/assets/enrichment/jobs/intent.rs",
+    "to": "src-tauri/src/spaces/assets/enrichment/jobs/intent/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/knowledge/node_contracts/scalars/numbers.rs",
+    "to": "src-tauri/src/spaces/knowledge/node_contracts/scalars/numbers/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/package/restore/validation.rs",
+    "to": "src-tauri/src/spaces/package/restore/validation/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/runs/scheduler/completion.rs",
+    "to": "src-tauri/src/spaces/runs/scheduler/completion/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/runs/scheduler/resolution.rs",
+    "to": "src-tauri/src/spaces/runs/scheduler/resolution/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/runs/scheduler/claim.rs",
+    "to": "src-tauri/src/spaces/runs/scheduler/claim/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/runs/scheduler/waiting.rs",
+    "to": "src-tauri/src/spaces/runs/scheduler/waiting/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/structure/repository/deleted.rs",
+    "to": "src-tauri/src/spaces/structure/repository/deleted/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/structure/deleted_commands/discard.rs",
+    "to": "src-tauri/src/spaces/structure/deleted_commands/discard/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/structure/deleted_commands/permanent.rs",
+    "to": "src-tauri/src/spaces/structure/deleted_commands/permanent/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/structure/history/group.rs",
+    "to": "src-tauri/src/spaces/structure/history/group/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/structure/clipboard/payload.rs",
+    "to": "src-tauri/src/spaces/structure/clipboard/payload/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/assets/enrichment/fields.rs",
+    "to": "src-tauri/src/spaces/assets/enrichment/fields/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/assets/import/copy.rs",
+    "to": "src-tauri/src/spaces/assets/import/copy/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/assets/import/web.rs",
+    "to": "src-tauri/src/spaces/assets/import/web/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/assets/import/prepare.rs",
+    "to": "src-tauri/src/spaces/assets/import/prepare/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/actions/invocation/execute.rs",
+    "to": "src-tauri/src/spaces/actions/invocation/execute/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/actions/catalog/parameters.rs",
+    "to": "src-tauri/src/spaces/actions/catalog/parameters/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/knowledge/retrieval/invalidation_outbox.rs",
+    "to": "src-tauri/src/spaces/knowledge/retrieval/invalidation_outbox/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/knowledge/retrieval/related.rs",
+    "to": "src-tauri/src/spaces/knowledge/retrieval/related/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/external_conversations/runtime/lifecycle.rs",
+    "to": "src-tauri/src/spaces/external_conversations/runtime/lifecycle/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/workflows/capture/run.rs",
+    "to": "src-tauri/src/spaces/workflows/capture/run/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/workflows/capture/candidate.rs",
+    "to": "src-tauri/src/spaces/workflows/capture/candidate/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/workflows/definition/node.rs",
+    "to": "src-tauri/src/spaces/workflows/definition/node/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/workflows/templates/recipes.rs",
+    "to": "src-tauri/src/spaces/workflows/templates/recipes/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/workflows/compiler/validation.rs",
+    "to": "src-tauri/src/spaces/workflows/compiler/validation/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/derivation/action_request/output.rs",
+    "to": "src-tauri/src/spaces/derivation/action_request/output/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/derivation/action_request/inputs.rs",
+    "to": "src-tauri/src/spaces/derivation/action_request/inputs/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/derivation/document_export/lifecycle.rs",
+    "to": "src-tauri/src/spaces/derivation/document_export/lifecycle/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/assistant/repository/tasks.rs",
+    "to": "src-tauri/src/spaces/assistant/repository/tasks/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/assistant/task/tool_execution.rs",
+    "to": "src-tauri/src/spaces/assistant/task/tool_execution/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/assistant/task/context.rs",
+    "to": "src-tauri/src/spaces/assistant/task/context/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/media/acquisition/metadata.rs",
+    "to": "src-tauri/src/media/acquisition/metadata/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/documents/generation/pdf.rs",
+    "to": "src-tauri/src/documents/generation/pdf/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/documents/generation/docx.rs",
+    "to": "src-tauri/src/documents/generation/docx/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/ai/model_turn/text_stream.rs",
+    "to": "src-tauri/src/ai/model_turn/text_stream/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/ai/model_turn/wire.rs",
+    "to": "src-tauri/src/ai/model_turn/wire/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/derivation/input_revision.rs",
+    "to": "src-tauri/src/spaces/derivation/input_revision/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/derivation/action_request.rs",
+    "to": "src-tauri/src/spaces/derivation/action_request/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/workflows/execution.rs",
+    "to": "src-tauri/src/spaces/workflows/execution/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/workflows/templates.rs",
+    "to": "src-tauri/src/spaces/workflows/templates/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/external_conversations/runtime.rs",
+    "to": "src-tauri/src/spaces/external_conversations/runtime/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/external_conversations/repository.rs",
+    "to": "src-tauri/src/spaces/external_conversations/repository/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/commands/relations.rs",
+    "to": "src-tauri/src/spaces/commands/relations/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/authorization/approval.rs",
+    "to": "src-tauri/src/spaces/authorization/approval/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/assets/canvas_thumbnail.rs",
+    "to": "src-tauri/src/spaces/assets/canvas_thumbnail/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/structure/deleted_commands.rs",
+    "to": "src-tauri/src/spaces/structure/deleted_commands/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/structure/planner_section.rs",
+    "to": "src-tauri/src/spaces/structure/planner_section/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/structure/planner_clone.rs",
+    "to": "src-tauri/src/spaces/structure/planner_clone/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/structure/edit_contract.rs",
+    "to": "src-tauri/src/spaces/structure/edit_contract/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/structure/history.rs",
+    "to": "src-tauri/src/spaces/structure/history/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/structure/repository.rs",
+    "to": "src-tauri/src/spaces/structure/repository/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/structure/clipboard.rs",
+    "to": "src-tauri/src/spaces/structure/clipboard/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/structure/planner_metadata.rs",
+    "to": "src-tauri/src/spaces/structure/planner_metadata/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/structure/transfer.rs",
+    "to": "src-tauri/src/spaces/structure/transfer/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/runs/observation.rs",
+    "to": "src-tauri/src/spaces/runs/observation/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/runs/retry.rs",
+    "to": "src-tauri/src/spaces/runs/retry/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/runs/intervention.rs",
+    "to": "src-tauri/src/spaces/runs/intervention/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/spaces/db.rs",
+    "to": "src-tauri/src/spaces/db/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/external_agents/conversation.rs",
+    "to": "src-tauri/src/external_agents/conversation/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/external_agents/permissions.rs",
+    "to": "src-tauri/src/external_agents/permissions/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/contract_codegen.rs",
+    "to": "src-tauri/src/contract_codegen/mod.rs"
+  },
+  {
+    "from": "src-tauri/src/job_registry.rs",
+    "to": "src-tauri/src/job_registry/mod.rs"
+  }
+]

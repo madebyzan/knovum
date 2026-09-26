@@ -1,7 +1,7 @@
-import { invoke } from "@tauri-apps/api/core";
 import { shallowRef, watch, type Ref } from "vue";
 
 import { i18n } from "../../../../foundation/i18n/i18n";
+import { invokeCommand as invoke } from "../../../../foundation/ipc/invoke-command";
 
 export function useVideoEditProxy(
   nodeId: Ref<string | undefined>,

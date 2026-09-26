@@ -1,3 +1,4 @@
+use crate::ai::transport::response;
 use std::time::{Duration, Instant};
 
 use tokio_util::sync::CancellationToken;
@@ -27,7 +28,10 @@ pub async fn execute_image_operation(
         .await
         .map_err(provider_error)?;
     let status = response.status();
-    let response: protocol::Response = response.json().await.map_err(provider_error)?;
+    let response: protocol::Response =
+        response::read_json(response, response::MAX_CONTROL_JSON_BYTES)
+            .await
+            .map_err(provider_error)?;
     if !status.is_success() {
         return Err(response_error(response.code, response.message));
     }
@@ -54,17 +58,18 @@ async fn poll(
             _ = cancellation.cancelled() => return Err("Image operation was cancelled".into()),
             _ = tokio::time::sleep(Duration::from_secs(2)) => {}
         }
-        let response: protocol::Response = http_client()
+        let response = http_client()
             .get(format!("{endpoint}/tasks/{task_id}"))
             .bearer_auth(ctx.require_api_key().map_err(|error| error.to_string())?)
             .send()
             .await
             .map_err(provider_error)?
             .error_for_status()
-            .map_err(provider_error)?
-            .json()
-            .await
             .map_err(provider_error)?;
+        let response: protocol::Response =
+            response::read_json(response, response::MAX_CONTROL_JSON_BYTES)
+                .await
+                .map_err(provider_error)?;
         let output = response
             .output
             .ok_or_else(|| response_error(response.code, response.message))?;

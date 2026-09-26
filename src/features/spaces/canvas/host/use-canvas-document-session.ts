@@ -4,7 +4,7 @@ import type { CanvasDocumentV1 } from "../contract/canvas-document";
 import type { SpaceEditSnapshot } from "../contract/space-edit-snapshot";
 import { projectStructureCanvasDocument } from "../document/structure-canvas-document";
 import { registerSpaceSessionParticipant } from "../editor-session";
-import { canvasViewStateRepository } from "../persistence/canvas-view-state-repository";
+import { canvasViewStateOperations } from "../persistence/canvas-view-state";
 
 interface CanvasDocumentSessionOptions {
   snapshot(): SpaceEditSnapshot;
@@ -33,7 +33,7 @@ export function useCanvasDocumentSession(options: CanvasDocumentSessionOptions) 
     await flushView();
     const currentGeneration = ++generation;
     const storedView =
-      options.persistence() === "persisted" ? await canvasViewStateRepository.load(options.spaceId()) : null;
+      options.persistence() === "persisted" ? await canvasViewStateOperations.load(options.spaceId()) : null;
     if (currentGeneration !== generation) return;
     document.value = projectStructureCanvasDocument(options.snapshot(), storedView ?? undefined);
     surfaceKey.value += 1;
@@ -70,7 +70,7 @@ export function useCanvasDocumentSession(options: CanvasDocumentSessionOptions) 
     pendingView = undefined;
     if (!pending) return viewSaveTail;
     if (!pending.persisted) return viewSaveTail;
-    viewSaveTail = viewSaveTail.then(() => canvasViewStateRepository.save(pending.spaceId, pending.viewport));
+    viewSaveTail = viewSaveTail.then(() => canvasViewStateOperations.save(pending.spaceId, pending.viewport));
     return viewSaveTail;
   }
 

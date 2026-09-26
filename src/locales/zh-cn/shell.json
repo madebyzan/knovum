@@ -5,11 +5,11 @@
   "searchPlaceholder": "搜索命令…",
   "noMatchingCommands": "未找到匹配的命令",
   "commandUnavailable": {
-    "nothing_to_undo": "没有可撤销的操作",
-    "nothing_to_redo": "没有可重做的操作",
-    "no_selection": "请先选择内容",
-    "not_enough_scenes": "当前没有其他场景",
-    "selection_not_eligible": "当前选择不支持此操作",
+    "nothingToUndo": "没有可撤销的操作",
+    "nothingToRedo": "没有可重做的操作",
+    "noSelection": "请先选择内容",
+    "notEnoughScenes": "当前没有其他场景",
+    "selectionNotEligible": "当前选择不支持此操作",
     "checking": "正在检查可用性",
     "busy": "操作正在进行中"
   },

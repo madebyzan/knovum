@@ -1,3 +1,4 @@
+use crate::command_error::CommandError;
 mod approval;
 mod grant;
 mod scope;
@@ -9,8 +10,8 @@ pub(crate) use approval::{ApprovalDecision, ApprovalRequest, ApprovalSummary};
 pub async fn list_pending_action_approvals(
     app: tauri::AppHandle,
     space_id: String,
-) -> Result<Vec<approval::ApprovalSummary>, String> {
-    approval::list_pending(crate::spaces::db::pool(&app).await?, &space_id).await
+) -> Result<Vec<approval::ApprovalSummary>, CommandError> {
+    Ok((approval::list_pending(crate::spaces::db::pool(&app).await?, &space_id).await)?)
 }
 
 #[tauri::command]
@@ -18,7 +19,7 @@ pub async fn decide_action_approval(
     app: tauri::AppHandle,
     approval_id: String,
     decision: ApprovalDecision,
-) -> Result<(), String> {
+) -> Result<(), CommandError> {
     approval::decide(crate::spaces::db::pool(&app).await?, &approval_id, decision).await?;
     crate::spaces::runs::announce_change();
     Ok(())
@@ -32,7 +33,7 @@ pub(crate) async fn require_read(
     space_id: &str,
 ) -> Result<(), String> {
     let pool = crate::spaces::db::pool(app).await?;
-    let mut tx = crate::spaces::db::begin_write(pool).await?;
+    let mut tx = pool.begin().await.map_err(crate::spaces::db::sql_error)?;
     let grant = load_grant(&mut tx, grant_id).await?;
     grant.require_read(space_id, crate::clock::unix_time_millis()?)
 }
@@ -44,7 +45,7 @@ pub(crate) async fn require_run_control(
     run_id: &str,
 ) -> Result<(), String> {
     let pool = crate::spaces::db::pool(app).await?;
-    let mut tx = crate::spaces::db::begin_write(pool).await?;
+    let mut tx = pool.begin().await.map_err(crate::spaces::db::sql_error)?;
     let grant = load_grant(&mut tx, grant_id).await?;
     grant.require_read(space_id, crate::clock::unix_time_millis()?)?;
     let owner: Option<(String, String, String)> = sqlx::query_as(

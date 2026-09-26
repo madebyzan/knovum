@@ -1,10 +1,11 @@
+use super::contracts;
 use std::collections::HashSet;
 
 use sqlx::Row;
 use tauri::{AppHandle, Manager};
 
 use crate::ai::{
-    capabilities, contracts,
+    capabilities,
     error::{AiError, AiResult},
 };
 

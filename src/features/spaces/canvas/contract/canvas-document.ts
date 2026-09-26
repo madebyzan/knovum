@@ -135,3 +135,11 @@ function validateCanvasReferences(document: CanvasDocumentV1, context: z.Refinem
     relationIds.add(relation.relationId);
   }
 }
+
+export function serializeCanvasAppearance(appearance: CanvasNodeAppearance): Record<string, string | number> {
+  const serialized: Record<string, string | number> = {};
+  for (const [key, value] of Object.entries(appearance)) {
+    if (value !== undefined) serialized[key] = value;
+  }
+  return serialized;
+}

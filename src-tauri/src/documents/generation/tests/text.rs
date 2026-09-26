@@ -3,7 +3,10 @@ use super::{fixture, source};
 
 #[test]
 fn plain_text_preserves_semantic_content_without_markdown_marks() {
-    let bytes = render_text(&source("Use **Rust** and [Reference](https://example.com).\n\n- [x] Done")).unwrap();
+    let bytes = render_text(&source(
+        "Use **Rust** and [Reference](https://example.com).\n\n- [x] Done",
+    ))
+    .unwrap();
     let value = String::from_utf8(bytes).unwrap();
     assert!(value.contains("Use Rust and Reference (https://example.com)."));
     assert!(value.contains("- [x] Done"));

@@ -1,8 +1,9 @@
-import { Channel, invoke } from "@tauri-apps/api/core";
+import { Channel } from "@tauri-apps/api/core";
 
 import { defaultExecutionTarget } from "../../../foundation/ai/ai-execution";
 import type { ExecutionTarget } from "../../../foundation/ai/ai-models";
 import { useAiSettingsStore } from "../../../foundation/ai/ai-settings-store";
+import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
 import type { SpaceMediaTranscriptionProgress } from "../media/transcription";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
 

@@ -1,4 +1,4 @@
-mod contracts;
+pub(crate) mod contracts;
 mod output;
 mod output_file;
 mod persistence;

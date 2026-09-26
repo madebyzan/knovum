@@ -1,8 +1,9 @@
-import { Channel, invoke } from "@tauri-apps/api/core";
+import { Channel } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import { error as logError } from "@tauri-apps/plugin-log";
 import { isString, uniq } from "es-toolkit";
 
+import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
 import type { KnowledgeLocator } from "../knowledge/model/schema";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
 import type { ImportedSpaceAsset } from "./imported-asset";
@@ -111,20 +112,13 @@ export function duplicateSpaceAsset(sourcePath: string): Promise<string> {
 }
 
 export function removeSpaceAsset(sourcePath: string): Promise<void> {
-  return invoke("plugin:spaces|remove_asset", { sourcePath });
+  return removeSpaceAssets([sourcePath]);
 }
 
-export async function removeSpaceAssets(paths: readonly string[]) {
-  const errors: unknown[] = [];
-  for (const path of uniq(paths)) {
-    try {
-      // oxlint-disable-next-line eslint/no-await-in-loop -- Cleanup is intentionally serialized to limit filesystem contention.
-      await removeSpaceAsset(path);
-    } catch (error) {
-      errors.push(error);
-    }
-  }
-  if (errors.length) throw new AggregateError(errors, "One or more Space assets could not be removed");
+export function removeSpaceAssets(paths: readonly string[]): Promise<void> {
+  const sourcePaths = uniq(paths);
+  if (!sourcePaths.length) return Promise.resolve();
+  return invoke("plugin:spaces|remove_assets", { sourcePaths });
 }
 
 export async function cleanupDeletedSpaceAssets(paths: readonly string[]): Promise<void> {

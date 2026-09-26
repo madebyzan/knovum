@@ -1,4 +1,5 @@
 import { VueQueryPlugin } from "@tanstack/vue-query";
+import { error as logError } from "@tauri-apps/plugin-log";
 import { platform } from "@tauri-apps/plugin-os";
 import { createPinia } from "pinia";
 import { createApp } from "vue";
@@ -33,7 +34,8 @@ document.documentElement.dataset.surface = "app";
 const { default: App } = await import("./KnovumApp.vue");
 const app = createApp(App);
 app.config.errorHandler = (err, _instance, info) => {
-  console.error(`Uncaught Vue application error (${info}):`, err);
+  const message = err instanceof Error ? err.message : String(err);
+  void logError(`Uncaught Vue application error (${info}): ${message}`);
 };
 app.use(pinia);
 app.use(i18n);

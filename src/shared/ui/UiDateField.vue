@@ -28,16 +28,16 @@ const props = withDefaults(
 const fieldId = useId(props.id);
 const defaultLocale = useLocale();
 
+const parsedDate = computed(() => {
+  if (!model.value) return { value: null, invalid: false };
+  try {
+    return { value: parseDate(model.value), invalid: false };
+  } catch {
+    return { value: null, invalid: true };
+  }
+});
 const dateValue = computed<DateValue | null>({
-  get() {
-    if (!model.value) return null;
-    try {
-      return parseDate(model.value);
-    } catch (error) {
-      console.warn(`[UiDateField] Failed to parse date "${model.value}":`, error);
-      return null;
-    }
-  },
+  get: () => parsedDate.value.value,
   set(value) {
     model.value = value ? value.toString() : undefined;
   },
@@ -50,6 +50,7 @@ const dateValue = computed<DateValue | null>({
     v-slot="{ segments }"
     :id="fieldId"
     :disabled="disabled"
+    :aria-invalid="parsedDate.invalid || undefined"
     :locale="locale ?? defaultLocale"
     :class="
       cn(

@@ -51,29 +51,19 @@ pub(crate) async fn execute(
     }
 }
 
-async fn render_presentation(app: &AppHandle, mut request: Value) -> Result<Value, String> {
-    let values = request
-        .as_object_mut()
-        .ok_or("action-input-invalid: presentation request must be an object")?;
-    let document = values
-        .get("document")
-        .or_else(|| values.get("primary"))
-        .ok_or("action-input-invalid: presentation document is required")?;
-    let data = document.get("data").unwrap_or(document);
-    let title = data
-        .get("title")
-        .and_then(Value::as_str)
-        .unwrap_or("Knovum Presentation");
-    let markdown = data
-        .get("text")
-        .and_then(Value::as_str)
-        .ok_or("action-input-invalid: presentation document text is required")?;
-    let bytes = super::presentation_renderer::render(title, markdown)?;
-    values.insert(
-        "bytes".into(),
-        serde_json::to_value(bytes).map_err(crate::spaces::db::json_error)?,
-    );
-    serialize(super::presentation_export::complete(app, decode(request)?).await?)
+async fn render_presentation(app: &AppHandle, request: Value) -> Result<Value, String> {
+    let document = request
+        .pointer("/document/data")
+        .and_then(Value::as_object)
+        .ok_or("action-input-invalid: presentation document data is required")?;
+    let source = crate::documents::generation::document::DocumentSource {
+        title: required_text(document, "title")?.to_owned(),
+        markdown: required_text(document, "text")?.to_owned(),
+        citations: vec![],
+    };
+    let bytes =
+        crate::blocking::run(move || crate::documents::generation::pptx::render(&source)).await?;
+    serialize(super::presentation_publication::publish(app, request, bytes).await?)
 }
 
 pub(crate) async fn cancel(action_id: &str, run_id: &str) -> Result<(), String> {

@@ -1,3 +1,4 @@
+use crate::spaces::workflows::capture::types::CaptureIssueReason;
 use serde_json::Value;
 use sqlx::{Row, Sqlite, Transaction};
 
@@ -150,11 +151,11 @@ pub(super) async fn derivation_inputs(
             }),
             (Some(node_id), None) => issues.push(CaptureIssue {
                 node_id,
-                reason: "source-unavailable",
+                reason: CaptureIssueReason::SourceUnavailable,
             }),
             (None, _) => issues.push(CaptureIssue {
                 node_id: derivation_id.to_owned(),
-                reason: "source-identity-unavailable",
+                reason: CaptureIssueReason::SourceIdentityUnavailable,
             }),
         }
     }

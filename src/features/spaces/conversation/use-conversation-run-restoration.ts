@@ -1,7 +1,7 @@
-import { invoke } from "@tauri-apps/api/core";
 import { shallowRef, type Ref, type ShallowRef } from "vue";
 
-import { decideAgentPermission } from "../../../foundation/ai/agents";
+import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
+import { decideAgentPermission } from "../agent-creation/agent-artifacts";
 import type { ApprovalSummary } from "../contracts/generated/ActionApproval";
 import type { AssistantTaskUpdate } from "../contracts/generated/AssistantTaskUpdate";
 import type { RunSummary } from "../contracts/generated/RunSummary";

@@ -52,7 +52,8 @@ pub(super) async fn drive(
                 let response = if let Some(response) = stored {
                     serde_json::from_value(response).map_err(db::json_error)?
                 } else {
-                    let (deltas, mut receiver) = tokio::sync::mpsc::unbounded_channel::<String>();
+                    let duration = super::identity::remaining_duration(pool, &ids.run_id).await?;
+                    let (deltas, mut receiver) = tokio::sync::mpsc::channel::<String>(32);
                     let channel = updates.cloned();
                     let task_id = ids.task_id.clone();
                     let forwarding = tauri::async_runtime::spawn(async move {
@@ -70,13 +71,22 @@ pub(super) async fn drive(
                         }
                         partial
                     });
-                    let result = crate::ai::model_turn::stream_turn(
-                        target,
-                        &model_request,
-                        cancellation.clone(),
-                        deltas,
+                    let result = tokio::time::timeout(
+                        duration,
+                        crate::ai::model_turn::stream_turn(
+                            target,
+                            &model_request,
+                            cancellation.clone(),
+                            deltas,
+                        ),
                     )
-                    .await;
+                    .await
+                    .unwrap_or_else(|_| {
+                        Err(crate::ai::error::AiError::new(
+                            crate::ai::error::AiErrorCode::InvalidResponse,
+                            "budget-exhausted: Assistant duration limit was exceeded",
+                        ))
+                    });
                     let partial = forwarding.await.map_err(|error| error.to_string())?;
                     let response = match result {
                         Ok(response) => response,
@@ -88,7 +98,7 @@ pub(super) async fn drive(
                                     "incomplete"
                                 };
                                 repository::append_message(
-                                    pool, &ids.conversation_id, &ids.branch_id, "assistant",
+                                    pool, &ids.conversation_id, &ids.branch_id, repository::AssistantMessageRole::Assistant,
                                     &serde_json::json!({"parts": [{"type": "text", "text": partial}], "status": status}),
                                 ).await?;
                             }

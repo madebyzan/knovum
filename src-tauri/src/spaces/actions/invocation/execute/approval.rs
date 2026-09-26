@@ -62,7 +62,16 @@ pub(super) async fn handle(
     now: i64,
 ) -> Result<Option<ActionInvocationOutcome>, String> {
     if let Some(approval_id) = request.approval_id.as_deref() {
-        consume_approval(tx, approval_id, &request.action_id, digest, now).await?;
+        consume_approval(
+            tx,
+            approval_id,
+            &request.grant_id,
+            &request.space_id,
+            &request.action_id,
+            digest,
+            now,
+        )
+        .await?;
         return Ok(None);
     }
     let approval_id = uuid::Uuid::new_v4().to_string();

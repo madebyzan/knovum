@@ -2,9 +2,11 @@ use super::super::{
     agent_task, contract, task, AssistantPermissionOption, AssistantTaskAccepted,
     AssistantTaskUpdate, SubmitAssistantTaskRequest,
 };
+use crate::command_error::CommandError;
 
-#[derive(serde::Serialize)]
+#[derive(serde::Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct ActiveAssistantRun {
     pub run: crate::spaces::runs::RunSummary,
     pub conversation_id: String,
@@ -16,7 +18,7 @@ pub struct ActiveAssistantRun {
 pub async fn list_active_assistant_runs(
     app: tauri::AppHandle,
     space_id: Option<String>,
-) -> Result<Vec<ActiveAssistantRun>, String> {
+) -> Result<Vec<ActiveAssistantRun>, CommandError> {
     let pool = crate::spaces::db::pool(&app).await?;
     let identities: Vec<(String, String, String, String)> = sqlx::query_as(
         "SELECT r.id,t.conversation_id,t.branch_id,c.title FROM spaces_runs r
@@ -50,7 +52,7 @@ pub async fn list_active_assistant_runs(
 pub async fn pending_assistant_permission(
     app: tauri::AppHandle,
     run_id: String,
-) -> Result<Option<AssistantTaskUpdate>, String> {
+) -> Result<Option<AssistantTaskUpdate>, CommandError> {
     let pool = crate::spaces::db::pool(&app).await?;
     let session_id: Option<String> = sqlx::query_scalar(
         "SELECT id FROM spaces_external_agent_conversations
@@ -87,7 +89,7 @@ pub async fn pending_assistant_permission(
 pub async fn get_assistant_task_error(
     app: tauri::AppHandle,
     run_id: String,
-) -> Result<Option<String>, String> {
+) -> Result<Option<String>, CommandError> {
     let pool = crate::spaces::db::pool(&app).await?;
     let model: Option<Option<String>> =
         sqlx::query_scalar("SELECT error FROM spaces_assistant_tasks WHERE run_id=$1")
@@ -112,8 +114,8 @@ pub async fn start_assistant_task(
     app: tauri::AppHandle,
     request: SubmitAssistantTaskRequest,
     updates: tauri::ipc::Channel<AssistantTaskUpdate>,
-) -> Result<AssistantTaskAccepted, String> {
-    match request.target.clone() {
+) -> Result<AssistantTaskAccepted, CommandError> {
+    let accepted = match request.target.clone() {
         contract::AssistantExecutionTargetSelection::Model {
             connection_id,
             model_id,
@@ -133,7 +135,8 @@ pub async fn start_assistant_task(
         contract::AssistantExecutionTargetSelection::Agent { runtime_kind } => {
             agent_task::start(app, request, runtime_kind, updates).await
         }
-    }
+    };
+    Ok(accepted?)
 }
 
 pub(crate) fn cancel_task(run_id: &str) -> Result<(), String> {

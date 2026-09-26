@@ -29,15 +29,17 @@ pub(super) struct JsonCanvasNodeImport {
     node: InsertNode,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub(crate) struct ImportedJsonCanvasNode {
     source_id: String,
     node_id: String,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub(crate) struct ImportJsonCanvasResult {
     imported_nodes: Vec<ImportedJsonCanvasNode>,
     revision: i64,
@@ -75,7 +77,7 @@ pub(crate) async fn import_nodes<R: Runtime>(
         crate::spaces::structure::repository::load_in_transaction(&mut tx, &request.space_id)
             .await?;
     if current_revision != request.base_revision {
-        return Err("Space edit revision conflict".into());
+        return Err("space-edit-revision-conflict: Space edit revision conflict".into());
     }
     let before =
         crate::spaces::structure::history::capture(&mut tx, &request.space_id, &before_snapshot)

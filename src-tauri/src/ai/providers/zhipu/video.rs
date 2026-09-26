@@ -1,3 +1,4 @@
+use crate::ai::transport::response;
 use futures::future::BoxFuture;
 use tokio_util::sync::CancellationToken;
 
@@ -47,14 +48,12 @@ impl VideoGenerationCapability for ZhipuVideoAdapter {
                 .map_err(|e| AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string()))?;
 
             if !submission_response.status().is_success() {
-                let error_text = submission_response.text().await.unwrap_or_default();
+                let error_text = response::read_text(submission_response).await?;
                 return Err(AiError::new(AiErrorCode::ProviderRequestFailed, error_text));
             }
 
-            let init_val: serde_json::Value = submission_response
-                .json()
-                .await
-                .map_err(|e| AiError::new(AiErrorCode::InvalidResponse, e.to_string()))?;
+            let init_val: serde_json::Value =
+                response::read_json(submission_response, response::MAX_CONTROL_JSON_BYTES).await?;
 
             let task_id = init_val["id"]
                 .as_str()
@@ -88,14 +87,12 @@ impl VideoGenerationCapability for ZhipuVideoAdapter {
                 .map_err(|e| AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string()))?;
 
             if !query_response.status().is_success() {
-                let error_text = query_response.text().await.unwrap_or_default();
+                let error_text = response::read_text(query_response).await?;
                 return Err(AiError::new(AiErrorCode::ProviderRequestFailed, error_text));
             }
 
-            let val: serde_json::Value = query_response
-                .json()
-                .await
-                .map_err(|e| AiError::new(AiErrorCode::InvalidResponse, e.to_string()))?;
+            let val: serde_json::Value =
+                response::read_json(query_response, response::MAX_CONTROL_JSON_BYTES).await?;
 
             let status = val["task_status"].as_str().unwrap_or_default();
             match status {

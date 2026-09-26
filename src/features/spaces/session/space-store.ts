@@ -3,7 +3,7 @@ import { watch } from "vue";
 
 import { createSpacePlacement } from "../canvas/navigation-requests";
 import { createSpaceActions } from "./actions/create-space-actions";
-import { createSpaceState, publicSpaceState } from "./session-state";
+import { createSpaceState, spaceSessionBindings } from "./session-state";
 
 export const useSpaceStore = defineStore("spaces", () => {
   const state = createSpaceState();
@@ -27,7 +27,7 @@ export const useSpaceStore = defineStore("spaces", () => {
     state.thumbnailDirty.value = true;
   });
   return {
-    ...publicSpaceState(state),
+    ...spaceSessionBindings(state),
     ...placement,
     ...createSpaceActions(state, placement),
     markCanvasOverviewDirty: () => {

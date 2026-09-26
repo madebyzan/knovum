@@ -1,3 +1,4 @@
+use crate::command_error::CommandError;
 use serde::Deserialize;
 use serde_json::Value;
 use sqlx::Row;
@@ -22,20 +23,23 @@ pub struct ObjectTypeInput {
 pub async fn list_object_types<R: Runtime>(
     app: AppHandle<R>,
     space_id: String,
-) -> Result<Vec<Value>, String> {
+) -> Result<Vec<Value>, CommandError> {
     let pool = db::pool(&app).await?;
     let rows = sqlx::query(
         "SELECT id,space_id,name,icon,description,fields,system,created_at,updated_at \
          FROM spaces_object_types WHERE system=1 OR space_id=$1 ORDER BY system DESC,name COLLATE NOCASE",
     ).bind(space_id).fetch_all(pool).await.map_err(db::sql_error)?;
-    rows.into_iter().map(row_to_json).collect()
+    Ok((rows
+        .into_iter()
+        .map(row_to_json)
+        .collect::<Result<_, String>>())?)
 }
 
 #[tauri::command]
 pub async fn create_object_type<R: Runtime>(
     app: AppHandle<R>,
     input: ObjectTypeInput,
-) -> Result<(), String> {
+) -> Result<(), CommandError> {
     validate_input(&input)?;
     let now = crate::clock::unix_time_millis()?;
     let fields = serde_json::to_string(&input.fields).map_err(db::json_error)?;
@@ -58,14 +62,14 @@ pub async fn create_object_type<R: Runtime>(
         ),
     )
     .await?;
-    tx.commit().await.map_err(db::sql_error)
+    Ok((tx.commit().await.map_err(db::sql_error))?)
 }
 
 #[tauri::command]
 pub async fn update_object_type<R: Runtime>(
     app: AppHandle<R>,
     input: ObjectTypeInput,
-) -> Result<(), String> {
+) -> Result<(), CommandError> {
     validate_input(&input)?;
     let now = crate::clock::unix_time_millis()?;
     let fields = serde_json::to_string(&input.fields).map_err(db::json_error)?;
@@ -99,7 +103,7 @@ pub async fn update_object_type<R: Runtime>(
         ),
     )
     .await?;
-    tx.commit().await.map_err(db::sql_error)
+    Ok((tx.commit().await.map_err(db::sql_error))?)
 }
 
 #[tauri::command]
@@ -107,7 +111,7 @@ pub async fn delete_object_type<R: Runtime>(
     app: AppHandle<R>,
     object_type_id: String,
     space_id: String,
-) -> Result<(), String> {
+) -> Result<(), CommandError> {
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
     let count =
@@ -132,7 +136,7 @@ pub async fn delete_object_type<R: Runtime>(
             .await
             .map_err(db::sql_error)?;
     db::require_one(executed, "Custom Knowledge Type no longer exists")?;
-    tx.commit().await.map_err(db::sql_error)
+    Ok((tx.commit().await.map_err(db::sql_error))?)
 }
 
 async fn validate_existing_objects(

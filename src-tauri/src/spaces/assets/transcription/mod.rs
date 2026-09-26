@@ -1,3 +1,4 @@
+use crate::command_error::CommandError;
 use std::{path::Path, time::Instant};
 
 use serde::Serialize;
@@ -48,6 +49,15 @@ pub async fn transcribe_media(
     job_id: String,
     source_path: String,
     on_progress: Channel<MediaTranscriptionProgress>,
+) -> Result<MediaTranscript, CommandError> {
+    Ok(start_transcription(app, job_id, source_path, on_progress).await?)
+}
+
+pub(in crate::spaces::assets) async fn start_transcription(
+    app: tauri::AppHandle,
+    job_id: String,
+    source_path: String,
+    on_progress: Channel<MediaTranscriptionProgress>,
 ) -> Result<MediaTranscript, String> {
     let source = authorize_spaces_asset(&app, Path::new(&source_path))?;
     let (cancellation, _lease) = registry::acquire(job_id.clone())?;
@@ -55,8 +65,8 @@ pub async fn transcribe_media(
 }
 
 #[tauri::command]
-pub async fn cancel_media_transcription(job_id: String) -> Result<(), String> {
-    registry::cancel(&job_id)
+pub async fn cancel_media_transcription(job_id: String) -> Result<(), CommandError> {
+    Ok(cancel_transcription(&job_id)?)
 }
 
 fn transcribe(
@@ -128,7 +138,7 @@ fn required_tool(
     name: &str,
     label: &str,
 ) -> Result<std::path::PathBuf, String> {
-    tools::resolve_tool(app, env_key, name)
+    tools::resolve_tool(app, env_key, name)?
         .ok_or_else(|| format!("{label} is required and is not installed"))
 }
 
@@ -165,3 +175,4 @@ pub(crate) fn send_partial_progress(
 
 mod pipeline;
 mod registry;
+pub(in crate::spaces::assets) use registry::cancel as cancel_transcription;

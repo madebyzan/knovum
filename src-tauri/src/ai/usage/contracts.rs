@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Serialize, ts_rs::TS, schemars::JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum UsagePurpose {
     Assistant,
@@ -24,14 +24,14 @@ impl UsagePurpose {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct UsageReportRequest {
     pub from_date: String,
     pub to_date: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub struct UsageDay {
     pub date: String,
@@ -41,7 +41,7 @@ pub struct UsageDay {
     pub requests: u64,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub struct UsagePurposeTotal {
     pub purpose: UsagePurpose,
@@ -49,7 +49,7 @@ pub struct UsagePurposeTotal {
     pub requests: u64,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub struct UsageSummary {
     pub input_tokens: u64,
@@ -62,7 +62,7 @@ pub struct UsageSummary {
     pub longest_streak_days: u64,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub struct UsageReport {
     pub from_date: String,

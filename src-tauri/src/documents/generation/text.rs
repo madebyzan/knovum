@@ -10,7 +10,7 @@ pub(crate) fn render(document: &Document) -> String {
     output
 }
 
-fn write_blocks(output: &mut String, blocks: &[Block], prefix: &str) {
+pub(super) fn write_blocks(output: &mut String, blocks: &[Block], prefix: &str) {
     for block in blocks {
         match block {
             Block::Paragraph(content) | Block::Heading { content, .. } => {
@@ -24,7 +24,8 @@ fn write_blocks(output: &mut String, blocks: &[Block], prefix: &str) {
             Block::Quote(children) => write_blocks(output, children, &format!("{prefix}> ")),
             Block::List { start, items } => {
                 for (index, item) in items.iter().enumerate() {
-                    let marker = start.map_or_else(|| "- ".into(), |n| format!("{}. ", n + index as u64));
+                    let marker =
+                        start.map_or_else(|| "- ".into(), |n| format!("{}. ", n + index as u64));
                     let mut body = String::new();
                     write_blocks(&mut body, item, "");
                     let mut lines = body.trim_end_matches('\n').split('\n');
@@ -38,9 +39,10 @@ fn write_blocks(output: &mut String, blocks: &[Block], prefix: &str) {
             }
             Block::Table(table) => {
                 for row in std::iter::once(&table.header).chain(&table.rows) {
-                    let cells: Vec<_> = row.iter().map(|cell| {
-                        inline_text(cell, true).replace(['\n', '\r', '\t'], " ")
-                    }).collect();
+                    let cells: Vec<_> = row
+                        .iter()
+                        .map(|cell| inline_text(cell, true).replace(['\n', '\r', '\t'], " "))
+                        .collect();
                     write_lines(output, &cells.join("\t"), prefix);
                 }
                 output.push('\n');

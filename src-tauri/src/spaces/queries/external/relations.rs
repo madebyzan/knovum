@@ -25,22 +25,22 @@ pub(crate) async fn relation_path(
     .fetch_all(pool)
     .await
     .map_err(db::sql_error)?;
-    let graph = build_graph(rows);
+    let graph = build_graph(rows)?;
     Ok(find_path(&graph, source_id, target_id, max_depth))
 }
 
 type Graph = HashMap<String, Vec<(String, Value)>>;
 
-fn build_graph(rows: Vec<sqlx::sqlite::SqliteRow>) -> Graph {
+fn build_graph(rows: Vec<sqlx::sqlite::SqliteRow>) -> Result<Graph, String> {
     let mut graph = Graph::new();
     for row in rows {
-        let source: String = row.get("source_id");
-        let target: String = row.get("target_id");
-        let kind: String = row.get("kind");
+        let source: String = row.try_get("source_id").map_err(db::sql_error)?;
+        let target: String = row.try_get("target_id").map_err(db::sql_error)?;
+        let kind: String = row.try_get("kind").map_err(db::sql_error)?;
         let edge = json!({
-            "relationId": row.get::<String,_>("id"), "sourceId": source, "targetId": target,
-            "kind": kind, "status": row.get::<String,_>("status"),
-            "rationale": row.get::<String,_>("rationale"),
+            "relationId": row.try_get::<String,_>("id").map_err(db::sql_error)?, "sourceId": source, "targetId": target,
+            "kind": kind, "status": row.try_get::<String,_>("status").map_err(db::sql_error)?,
+            "rationale": row.try_get::<String,_>("rationale").map_err(db::sql_error)?,
         });
         graph
             .entry(source.clone())
@@ -50,7 +50,7 @@ fn build_graph(rows: Vec<sqlx::sqlite::SqliteRow>) -> Graph {
             graph.entry(target).or_default().push((source, edge));
         }
     }
-    graph
+    Ok(graph)
 }
 
 fn find_path(graph: &Graph, source_id: &str, target_id: &str, max_depth: usize) -> Vec<Value> {

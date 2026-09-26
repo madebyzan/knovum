@@ -1,4 +1,7 @@
-use super::super::{document::{Block, Citation, Inline}, markdown, text};
+use super::super::{
+    document::{Block, Citation, Inline},
+    markdown, text,
+};
 use super::{fixture, source};
 
 #[test]
@@ -7,7 +10,10 @@ fn title_is_retained_without_duplicating_a_matching_leading_heading() {
     input.title = "Report".into();
     let document = markdown::parse(&input).unwrap();
     assert_eq!(document.title, "Report");
-    assert_eq!(document.blocks, vec![Block::Paragraph(vec![Inline::Text("Body".into())])]);
+    assert_eq!(
+        document.blocks,
+        vec![Block::Paragraph(vec![Inline::Text("Body".into())])]
+    );
 }
 
 #[test]
@@ -15,7 +21,10 @@ fn a_distinct_body_heading_is_not_removed() {
     let mut input = source("# Introduction");
     input.title = "Report".into();
     let document = markdown::parse(&input).unwrap();
-    assert!(matches!(document.blocks[0], Block::Heading { level: 1, .. }));
+    assert!(matches!(
+        document.blocks[0],
+        Block::Heading { level: 1, .. }
+    ));
 }
 
 #[test]
@@ -30,7 +39,10 @@ fn citations_are_literal_structured_content() {
         panic!("expected a source paragraph");
     };
     assert_eq!(content.len(), 3);
-    assert_eq!(text::inline_text(content, true), "[C1] [title] **not markup** — *quote*\n# not a heading");
+    assert_eq!(
+        text::inline_text(content, true),
+        "[C1] [title] **not markup** — *quote*\n# not a heading"
+    );
 }
 
 #[test]
@@ -48,14 +60,22 @@ fn tight_lists_preserve_nested_block_structure() {
 fn common_fixture_preserves_tables_code_and_ordered_start() {
     let document = markdown::parse(&fixture()).unwrap();
     assert!(document.blocks.iter().any(|b| matches!(b, Block::Table(_))));
-    assert!(document.blocks.iter().any(|b| matches!(b, Block::List { start: Some(7), .. })));
-    assert!(document.blocks.iter().any(|b| matches!(b, Block::Code { language, .. } if language == "rust")));
+    assert!(document
+        .blocks
+        .iter()
+        .any(|b| matches!(b, Block::List { start: Some(7), .. })));
+    assert!(document
+        .blocks
+        .iter()
+        .any(|b| matches!(b, Block::Code { language, .. } if language == "rust")));
 }
 
 #[test]
 fn unsupported_html_is_not_silently_removed() {
     for markdown in ["<script>danger()</script>", "text <b>bold</b>"] {
-        assert!(markdown::parse(&source(markdown)).unwrap_err().contains("HTML"));
+        assert!(markdown::parse(&source(markdown))
+            .unwrap_err()
+            .contains("HTML"));
     }
 }
 

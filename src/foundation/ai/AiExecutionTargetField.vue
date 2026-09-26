@@ -6,15 +6,10 @@ import { useRouter } from "vue-router";
 
 import UiButton from "../../shared/ui/UiButton.vue";
 import UiSelect from "../../shared/ui/UiSelect.vue";
-import {
-  availableExecutionTargets,
-  decodeExecutionTarget,
-  defaultExecutionTarget,
-  encodeExecutionTarget,
-  type ExecutionTargetOption,
-} from "./ai-execution";
+import { availableExecutionTargets, defaultExecutionTarget } from "./ai-execution";
 import type { AiRoutingPurpose, ExecutionTarget } from "./ai-models";
 import { useAiSettingsStore } from "./ai-settings-store";
+import { decodeExecutionTarget, encodeExecutionTarget } from "./execution-target-codec";
 
 const props = defineProps<{
   purpose: AiRoutingPurpose;
@@ -30,7 +25,7 @@ const { settings, ready: settingsReady, loadError: settingsError } = storeToRefs
 const options = computed(() =>
   availableExecutionTargets(settings.value, props.purpose).map((option) =>
     Object.assign({}, option, {
-      description: executionTargetDescription(option),
+      description: t("settings.ai.executionTargetModelNative"),
     }),
   ),
 );
@@ -38,16 +33,8 @@ const ready = computed(() => settingsReady.value);
 const loadError = computed(() => settingsError.value);
 const value = computed(() => (target.value ? encodeExecutionTarget(target.value) : ""));
 
-function executionTargetDescription(option: ExecutionTargetOption): string {
-  if (option.disabledReason) return option.disabledReason;
-  if (option.statusDetail) return option.statusDetail;
-  return t("settings.ai.executionTargetModelNative");
-}
-
 function isSelectableExecutionTarget(encodedTarget: string): boolean {
-  return options.value.some(
-    (option) => !option.disabled && encodeExecutionTarget(option.target) === encodedTarget,
-  );
+  return options.value.some((option) => encodeExecutionTarget(option.target) === encodedTarget);
 }
 
 function currentTargetIsSelectable(): boolean {

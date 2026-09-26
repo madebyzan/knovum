@@ -1,3 +1,4 @@
+use crate::command_error::CommandError;
 use serde::Deserialize;
 use tauri::{AppHandle, Runtime};
 
@@ -12,7 +13,10 @@ pub struct SpaceInput {
 }
 
 #[tauri::command]
-pub async fn create_space<R: Runtime>(app: AppHandle<R>, space: SpaceInput) -> Result<(), String> {
+pub async fn create_space<R: Runtime>(
+    app: AppHandle<R>,
+    space: SpaceInput,
+) -> Result<(), CommandError> {
     if !matches!(space.kind.as_str(), "inbox" | "space") {
         return Err("Unsupported Space kind".into());
     }
@@ -33,7 +37,7 @@ pub async fn create_space<R: Runtime>(app: AppHandle<R>, space: SpaceInput) -> R
     .await
     .map_err(db::sql_error)?;
     structure::initialize_empty_in_transaction(&mut tx, &space.id).await?;
-    tx.commit().await.map_err(db::sql_error)
+    Ok((tx.commit().await.map_err(db::sql_error))?)
 }
 
 #[tauri::command]
@@ -41,7 +45,7 @@ pub async fn update_space_title<R: Runtime>(
     app: AppHandle<R>,
     space_id: String,
     title: String,
-) -> Result<(), String> {
+) -> Result<(), CommandError> {
     let now = crate::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
     let executed =
@@ -52,27 +56,30 @@ pub async fn update_space_title<R: Runtime>(
             .execute(pool)
             .await
             .map_err(db::sql_error)?;
-    db::require_one(executed, "Space no longer exists or cannot be renamed")
+    Ok((db::require_one(executed, "Space no longer exists or cannot be renamed"))?)
 }
 
 #[tauri::command]
-pub async fn archive_space<R: Runtime>(app: AppHandle<R>, space_id: String) -> Result<(), String> {
-    set_archived(&app, space_id, true).await
+pub async fn archive_space<R: Runtime>(
+    app: AppHandle<R>,
+    space_id: String,
+) -> Result<(), CommandError> {
+    Ok((set_archived(&app, space_id, true).await)?)
 }
 
 #[tauri::command]
 pub async fn unarchive_space<R: Runtime>(
     app: AppHandle<R>,
     space_id: String,
-) -> Result<(), String> {
-    set_archived(&app, space_id, false).await
+) -> Result<(), CommandError> {
+    Ok((set_archived(&app, space_id, false).await)?)
 }
 
 #[tauri::command]
 pub async fn mark_space_opened<R: Runtime>(
     app: AppHandle<R>,
     space_id: String,
-) -> Result<(), String> {
+) -> Result<(), CommandError> {
     let now = crate::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
     let executed = sqlx::query("UPDATE spaces SET last_opened_at = ? WHERE id = ?")
@@ -81,7 +88,7 @@ pub async fn mark_space_opened<R: Runtime>(
         .execute(pool)
         .await
         .map_err(db::sql_error)?;
-    db::require_one(executed, "Space no longer exists")
+    Ok((db::require_one(executed, "Space no longer exists"))?)
 }
 
 #[tauri::command]
@@ -89,7 +96,7 @@ pub async fn set_space_favorite<R: Runtime>(
     app: AppHandle<R>,
     space_id: String,
     favorite: bool,
-) -> Result<(), String> {
+) -> Result<(), CommandError> {
     let now = crate::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
     let executed = sqlx::query(
@@ -101,7 +108,7 @@ pub async fn set_space_favorite<R: Runtime>(
     .execute(pool)
     .await
     .map_err(db::sql_error)?;
-    db::require_one(executed, "Space no longer exists or cannot be favorited")
+    Ok((db::require_one(executed, "Space no longer exists or cannot be favorited"))?)
 }
 
 #[tauri::command]
@@ -109,7 +116,7 @@ pub async fn update_space_thumbnail<R: Runtime>(
     app: AppHandle<R>,
     space_id: String,
     thumbnail_path: String,
-) -> Result<Vec<String>, String> {
+) -> Result<Vec<String>, CommandError> {
     crate::spaces::assets::authorize_canvas_thumbnail(&app, &thumbnail_path)?;
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;

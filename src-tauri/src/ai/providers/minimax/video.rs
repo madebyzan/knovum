@@ -1,3 +1,4 @@
+use crate::ai::transport::response;
 use futures::future::BoxFuture;
 use tokio_util::sync::CancellationToken;
 
@@ -40,12 +41,12 @@ impl VideoGenerationCapability for MiniMaxVideoAdapter {
                 .map_err(req_err)?;
 
             if !submission_response.status().is_success() {
-                let error_text = submission_response.text().await.unwrap_or_default();
+                let error_text = response::read_text(submission_response).await?;
                 return Err(AiError::new(AiErrorCode::ProviderRequestFailed, error_text));
             }
 
             let submission_data: serde_json::Value =
-                submission_response.json().await.map_err(parse_err)?;
+                response::read_json(submission_response, response::MAX_CONTROL_JSON_BYTES).await?;
             let task_id = submission_data["task_id"]
                 .as_str()
                 .ok_or_else(|| parse_err("Missing task_id in MiniMax video response"))?
@@ -77,11 +78,12 @@ impl VideoGenerationCapability for MiniMaxVideoAdapter {
                 .map_err(req_err)?;
 
             if !query_response.status().is_success() {
-                let error_text = query_response.text().await.unwrap_or_default();
+                let error_text = response::read_text(query_response).await?;
                 return Err(AiError::new(AiErrorCode::ProviderRequestFailed, error_text));
             }
 
-            let query_data: serde_json::Value = query_response.json().await.map_err(parse_err)?;
+            let query_data: serde_json::Value =
+                response::read_json(query_response, response::MAX_CONTROL_JSON_BYTES).await?;
             match query_data["status"].as_str().unwrap_or_default() {
                 "Success" => {
                     if let Some(direct_url) = query_data["video_url"]
@@ -156,7 +158,8 @@ async fn retrieve_file_url(endpoint: &str, api_key: &str, file_id: &str) -> AiRe
         .await
         .map_err(req_err)?;
 
-    let file_data: serde_json::Value = file_response.json().await.map_err(parse_err)?;
+    let file_data: serde_json::Value =
+        response::read_json(file_response, response::MAX_CONTROL_JSON_BYTES).await?;
     file_data["file"]["download_url"]
         .as_str()
         .map(ToString::to_string)

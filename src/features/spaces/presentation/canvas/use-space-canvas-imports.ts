@@ -72,7 +72,7 @@ export function useSpaceCanvasImports(options: SpaceCanvasImportOptions) {
           return options.store.addContent(data, position);
         });
         for (const node of nodes) {
-          scheduleSpaceAssetProcessing(options.store, spaceId, node.id, node.data);
+          scheduleSpaceAssetProcessing({ context: options.store, spaceId, nodeId: node.id, data: node.data });
         }
       },
     });

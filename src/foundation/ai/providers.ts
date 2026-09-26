@@ -1,9 +1,10 @@
-import { invoke } from "@tauri-apps/api/core";
 import { z } from "zod";
 
+import type { ProviderDescriptor } from "../../shared/contracts/generated/ProviderDescriptor";
+import { invokeCommand as invoke } from "../ipc/invoke-command";
 import { aiCapabilitySchema, aiProviderSchema } from "./ai-models";
 
-const providerDescriptorSchema = z
+const providerDescriptorSchema: z.ZodType<ProviderDescriptor> = z
   .object({
     id: aiProviderSchema,
     displayName: z.string().min(1),
@@ -12,7 +13,7 @@ const providerDescriptorSchema = z
   })
   .strict();
 
-export type ProviderDescriptor = z.infer<typeof providerDescriptorSchema>;
+export type { ProviderDescriptor } from "../../shared/contracts/generated/ProviderDescriptor";
 
 export async function loadProviderDescriptors(): Promise<ProviderDescriptor[]> {
   return z

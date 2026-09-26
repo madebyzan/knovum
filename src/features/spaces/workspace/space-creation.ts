@@ -1,5 +1,5 @@
 import type { Space } from "../model/space";
-import { createSpace as persistSpace, markSpaceOpened } from "./space-repository";
+import { createSpace as persistSpace, markSpaceOpened } from "./space-operations";
 import type { SpaceSessionContext } from "./space-session-context";
 
 export function createSpaceRecord(title: string, kind: Space["kind"]): Space {

@@ -1,22 +1,22 @@
-import { Channel, invoke } from "@tauri-apps/api/core";
+import type { ActiveAssistantRun } from "../contracts/generated/ActiveAssistantRun";
+export type { ActiveAssistantRun } from "../contracts/generated/ActiveAssistantRun";
+import type { SubmitAssistantTaskRequest as StartAssistantTaskInput } from "../contracts/generated/SubmitAssistantTaskRequest";
+export type { SubmitAssistantTaskRequest as StartAssistantTaskInput } from "../contracts/generated/SubmitAssistantTaskRequest";
 
-import type { AgentKind } from "../../../foundation/ai/agent-models";
+export type { AssistantAttachment } from "../contracts/generated/AssistantAttachment";
+import type { InspectedAssistantUpload } from "../contracts/generated/InspectedAssistantUpload";
+export type { InspectedAssistantUpload } from "../contracts/generated/InspectedAssistantUpload";
+import { Channel } from "@tauri-apps/api/core";
+
+import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
 import type { ApprovalSummary } from "../contracts/generated/ActionApproval";
 import type { ConversationSummary } from "../contracts/generated/AssistantConversation";
 import type { AssistantMessage } from "../contracts/generated/AssistantMessage";
 import type { AssistantTaskAccepted } from "../contracts/generated/AssistantTaskAccepted";
 import type { AssistantTaskUpdate } from "../contracts/generated/AssistantTaskUpdate";
-import type { RunSummary } from "../contracts/generated/RunSummary";
 
 export type { ConversationSummary } from "../contracts/generated/AssistantConversation";
 export type { AssistantMessage, AssistantTaskAccepted };
-
-export interface ActiveAssistantRun {
-  run: RunSummary;
-  conversationId: string;
-  branchId: string;
-  title: string;
-}
 
 export function listActiveAssistantRuns(spaceId?: string): Promise<ActiveAssistantRun[]> {
   return invoke("plugin:spaces|list_active_assistant_runs", { spaceId });
@@ -43,26 +43,6 @@ export function decideAssistantApproval(approvalId: string, approved: boolean): 
 
 export function getAssistantTaskError(runId: string): Promise<string | null> {
   return invoke("plugin:spaces|get_assistant_task_error", { runId });
-}
-
-export interface StartAssistantTaskInput {
-  spaceId: string;
-  conversationId?: string;
-  branchId?: string;
-  prompt: string;
-  target:
-    | { type: "model"; connectionId: string; modelId: string; temperature: number }
-    | { type: "agent"; runtimeKind: AgentKind };
-  attachments?: AssistantAttachment[];
-}
-
-export type AssistantAttachment =
-  | { kind: "node"; nodeId: string; sourceRevision: string; role: string; locator?: unknown }
-  | { kind: "file"; path: string; sourceRevision: string };
-
-export interface InspectedAssistantUpload {
-  path: string;
-  sourceRevision: string;
 }
 
 export function inspectAssistantUpload(path: string): Promise<InspectedAssistantUpload> {

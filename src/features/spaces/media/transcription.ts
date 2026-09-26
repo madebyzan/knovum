@@ -1,5 +1,7 @@
-import { Channel, invoke } from "@tauri-apps/api/core";
+import { Channel } from "@tauri-apps/api/core";
 
+import { decodeCommandError } from "../../../foundation/ipc/command-error";
+import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
 import type { SpaceMediaTranscript } from "./schema";
 
 export type SpaceMediaTranscriptionStage = "preparing" | "transcoding" | "transcribing" | "parsing" | "done";
@@ -13,7 +15,7 @@ export interface SpaceMediaTranscriptionProgress {
   };
 }
 
-export const MEDIA_TRANSCRIPTION_CANCELLED = "MEDIA_TRANSCRIPTION_CANCELLED";
+export const MEDIA_TRANSCRIPTION_CANCELLED = "media_transcription_cancelled";
 
 export async function transcribeSpaceMedia(
   jobId: string,
@@ -35,5 +37,5 @@ export function cancelSpaceMediaTranscription(jobId: string) {
 }
 
 export function isMediaTranscriptionCancellation(error: unknown) {
-  return String(error).includes(MEDIA_TRANSCRIPTION_CANCELLED);
+  return decodeCommandError(error)?.code === MEDIA_TRANSCRIPTION_CANCELLED;
 }

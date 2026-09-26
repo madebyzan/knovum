@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
 use crate::ai::{
-    contracts::{ProviderKind, RoutingPurpose},
+    contracts::RoutingPurpose,
     error::{AiError, AiResult},
     models::ExecutionTargetRef,
 };
@@ -25,8 +25,7 @@ pub(super) fn validate(settings: &AiSettings) -> AiResult<()> {
                 "AI connection Base URL must use HTTP or HTTPS",
             ));
         }
-        let provider = ProviderKind::parse(&connection.provider)
-            .ok_or_else(|| AiError::unsupported("AI provider is not registered"))?;
+        let provider = connection.provider;
         let descriptor = crate::ai::providers::registry::descriptor(provider)
             .ok_or_else(|| AiError::unsupported("AI provider is not configurable"))?;
         let mut model_ids = HashSet::new();

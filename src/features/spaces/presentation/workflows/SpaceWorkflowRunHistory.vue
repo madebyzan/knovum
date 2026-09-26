@@ -3,6 +3,7 @@ import { useI18n } from "vue-i18n";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import type { CapturedWorkflowRun, SavedCapturedWorkflow } from "../../workflows/captured-workflow-ipc";
+import { workflowStateLabelKey } from "../../workflows/workflow-state-label";
 
 defineProps<{
   entries: CapturedWorkflowRun[];
@@ -30,7 +31,7 @@ const { t } = useI18n();
         workflows.find((item) => item.workflowId === entry.workflowId)?.name ?? t("spaces.creation.workflow")
       }}</span>
       <span class="text-micro text-foreground-tertiary">{{
-        t(`spaces.creation.workflowStates.${entry.run.id === activeRunId ? activeRunState : entry.run.state}`)
+        t(workflowStateLabelKey(entry.run.id === activeRunId ? activeRunState : entry.run.state))
       }}</span>
     </UiButton>
   </section>

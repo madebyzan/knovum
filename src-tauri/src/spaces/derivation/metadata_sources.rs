@@ -5,8 +5,9 @@ use sqlx::Row;
 use super::input_revision::{self, RevisionBasis};
 use crate::spaces::db;
 
-#[derive(Serialize)]
+#[derive(Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct DerivationSource {
     node_id: Option<String>,
     source_identity: String,

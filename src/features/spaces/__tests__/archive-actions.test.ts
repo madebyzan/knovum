@@ -3,9 +3,9 @@ import { ref } from "vue";
 
 import type { SpaceCredential } from "../model/credential";
 import type { Space } from "../model/space";
+import { createTestSessionContext, createTestSpace } from "../test-support/session-context";
 import { archiveSpace, permanentlyDeleteSpace, unarchiveSpace } from "../workspace/archive-actions";
 import type { SpaceSessionContext } from "../workspace/space-session-actions";
-import { createTestSessionContext, createTestSpace } from "./test-session-context.test";
 
 const lifecycleRepository = vi.hoisted(() => ({
   archiveSpace: vi.fn<(id: string) => Promise<void>>(),
@@ -16,7 +16,7 @@ const spaceRepository = vi.hoisted(() => ({
   listCredentialNodeIds: vi.fn<(id: string) => Promise<string[]>>(),
 }));
 
-vi.mock("../workspace/space-repository", () => ({
+vi.mock("../workspace/space-operations", () => ({
   archiveSpace: lifecycleRepository.archiveSpace,
   deleteSpacePermanently: spaceRepository.deleteSpacePermanently,
   listCredentialNodeIds: spaceRepository.listCredentialNodeIds,
@@ -31,7 +31,7 @@ const credentialStore = vi.hoisted(() => ({
   loadSpaceCredential: vi.fn<(nodeId: string) => Promise<SpaceCredential | undefined>>(),
   saveSpaceCredential: vi.fn<(nodeId: string, credential: SpaceCredential) => Promise<void>>(),
 }));
-vi.mock("../credentials/credential-repository", () => credentialStore);
+vi.mock("../credentials/credential-storage", () => credentialStore);
 function space(): Space {
   return createTestSpace({
     id: "research",

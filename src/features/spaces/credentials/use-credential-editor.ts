@@ -4,7 +4,7 @@ import { toast } from "vue-sonner";
 
 import { commitSpaceCredentialChange } from "../credentials/credential-actions";
 import type { SpaceCredentialPayload } from "../model/nodes/node-payload";
-import { loadSpaceCredential } from "./credential-repository";
+import { loadSpaceCredential } from "./credential-storage";
 
 interface CredentialEditorOptions {
   id: string;

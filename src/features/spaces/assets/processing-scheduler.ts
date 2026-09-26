@@ -1,4 +1,5 @@
 import { i18n } from "../../../foundation/i18n/i18n";
+import { decodeCommandError } from "../../../foundation/ipc/command-error";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import { resumePendingEnrichmentJobs } from "../enrichment/job-scheduler";
 import { isSpaceManagedAssetPayload } from "../model/nodes/capabilities";
@@ -6,20 +7,18 @@ import type { SpaceNodePayload } from "../model/nodes/node-payload";
 import { runSpaceAssetDerivation } from "../session/actions/work-scheduler";
 import { cancelSpaceAssetProcessing, deriveSpaceAssetData } from "./asset-operations";
 
-const ASSET_PROCESSING_CANCELLED = "SPACE_ASSET_PROCESSING_CANCELLED";
-
 export interface SpaceAssetProcessingContext {
   applyNodeDataForSpace(spaceId: string, id: string, data: SpaceNodePayload): void;
 }
 
-// oxlint-disable-next-line eslint/max-params -- Public feature API is shared with scoped-out canvas callers; preserve its contract.
-export function scheduleSpaceAssetProcessing(
-  context: SpaceAssetProcessingContext,
-  spaceId: string,
-  nodeId: string,
-  data: SpaceNodePayload,
-  existingTaskId?: string,
-) {
+export function scheduleSpaceAssetProcessing(input: {
+  context: SpaceAssetProcessingContext;
+  spaceId: string;
+  nodeId: string;
+  data: SpaceNodePayload;
+  existingTaskId?: string;
+}) {
+  const { context, spaceId, nodeId, data, existingTaskId } = input;
   const tasks = useTaskStore();
   const jobId = crypto.randomUUID();
   let cancelRequested = false;
@@ -37,7 +36,7 @@ export function scheduleSpaceAssetProcessing(
     let enriched: SpaceNodePayload;
     try {
       enriched = await runSpaceAssetDerivation(async () => {
-        if (cancelRequested) throw new Error(ASSET_PROCESSING_CANCELLED);
+        if (cancelRequested) throw new Error("Space asset processing cancelled");
         return deriveSpaceAssetData(spaceId, nodeId, jobId, (updated) => {
           currentData = updated;
           context.applyNodeDataForSpace(spaceId, nodeId, updated);
@@ -58,7 +57,7 @@ export function scheduleSpaceAssetProcessing(
   }
 
   async function handleEnrichmentFailure(error: unknown) {
-    if (cancelRequested || String(error).includes(ASSET_PROCESSING_CANCELLED)) {
+    if (cancelRequested || decodeCommandError(error)?.code === "space_asset_processing_cancelled") {
       if (isSpaceManagedAssetPayload(currentData)) {
         context.applyNodeDataForSpace(spaceId, nodeId, { ...currentData, processingState: undefined });
       }

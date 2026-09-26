@@ -10,5 +10,11 @@ export async function importSpaceFromPicker(store: SpaceStore, labels: SpaceImpo
   if (!source) return [];
   const spaceId = store.activeSpaceId;
   if (!spaceId) throw new Error("A Space must be active to import files");
-  return importSpaceSource(spaceImportContext(store), spaceId, source, store.nextInsertionPoint(), labels);
+  return importSpaceSource({
+    context: spaceImportContext(store),
+    spaceId,
+    source,
+    position: store.nextInsertionPoint(),
+    labels,
+  });
 }

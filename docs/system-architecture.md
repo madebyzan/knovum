@@ -57,7 +57,7 @@ and a workspace that appears usable before its durable state is reconciled.
 
 ## Application composition
 
-`app/router.ts` composes one Spaces application route and its Settings route. `features/spaces/workspace.ts`
+`app/router.ts` composes one Spaces application route and its Settings route. `features/spaces/workspace-definition.ts`
 provides the Spaces-owned sidebar, navigator, toolbar, inspector and commands to the shell. There is no
 product-module registry or application switcher. Rust image and AI capabilities remain internal
 engines of the knowledge space rather than separate top-level products.

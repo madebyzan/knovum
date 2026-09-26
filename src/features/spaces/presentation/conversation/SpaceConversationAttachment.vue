@@ -24,14 +24,22 @@ const emit = defineEmits<{ remove: [key: string] }>();
         <span
           v-else
           class="flex size-7 shrink-0 items-center justify-center rounded-control"
-          :class="attachment.kind === 'node' ? 'bg-accent-subtle text-accent' : 'bg-raised text-foreground-secondary'"
+          :class="
+            attachment.kind === 'node'
+              ? 'bg-accent-subtle text-accent'
+              : 'bg-raised text-foreground-secondary'
+          "
         >
           <Link2 v-if="attachment.kind === 'node'" class="size-(--knovum-icon-size-sm)" />
           <FileText v-else class="size-(--knovum-icon-size-sm)" />
         </span>
-        <span class="min-w-0 max-w-36">
+        <span class="max-w-36 min-w-0">
           <span class="block text-micro text-foreground-tertiary">{{
-            $t(attachment.kind === "node" ? "spaces.assistant.canvasNodeShort" : "spaces.assistant.localFileShort")
+            $t(
+              attachment.kind === "node"
+                ? "spaces.assistant.canvasNodeShort"
+                : "spaces.assistant.localFileShort",
+            )
           }}</span>
           <span class="block truncate font-medium text-foreground">{{ attachment.title }}</span>
         </span>
@@ -54,7 +62,11 @@ const emit = defineEmits<{ remove: [key: string] }>();
         avoid-collisions
         class="z-50 w-56 rounded-panel border border-border bg-panel p-1.5 shadow-dialog"
       >
-        <img :src="attachment.previewSource" :alt="attachment.title" class="max-h-64 w-full rounded-control object-contain" />
+        <img
+          :src="attachment.previewSource"
+          :alt="attachment.title"
+          class="max-h-64 w-full rounded-control object-contain"
+        />
         <p class="truncate px-1 pt-1 text-caption text-foreground-secondary">{{ attachment.title }}</p>
       </HoverCardContent>
     </HoverCardPortal>

@@ -1,4 +1,4 @@
-import { invoke } from "@tauri-apps/api/core";
+import { invokeCommand as invoke } from "../ipc/invoke-command";
 
 export function syncWorkspaceMenuState(state: {
   workspaceActive: boolean;

@@ -11,7 +11,7 @@ import { isSpaceManagedAssetPayload } from "../../model/nodes/capabilities";
 import { useSpaceStore } from "../../session/space-store";
 import type { KnowledgeChunk } from "../model/knowledge-chunk";
 import { knowledgeLocationLabel } from "../model/location";
-import { listCurrentKnowledgeChunks } from "../persistence/chunk-repository";
+import { listCurrentKnowledgeChunks } from "../persistence/chunk-operations";
 
 export function useSourcePeek() {
   const store = useSpaceStore();

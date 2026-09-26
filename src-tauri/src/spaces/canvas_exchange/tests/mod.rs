@@ -16,7 +16,7 @@ fn preserves_extension_fields_and_rejects_dangling_edges() {
     assert!(encoded.contains("\"vendor\": true"));
     let dangling = r#"{"edges":[{"id":"e","fromNode":"missing","toNode":"missing"}]}"#;
     assert_eq!(
-        parse_json_canvas(dangling.into()).unwrap_err(),
+        parse_json_canvas(dangling.into()).unwrap_err().message,
         "edges[0].fromNode does not reference a node"
     );
 }
@@ -26,18 +26,20 @@ fn rejects_non_integer_geometry_and_invalid_colors() {
     let geometry =
         r#"{"nodes":[{"id":"a","type":"text","x":0.5,"y":0,"width":1,"height":1,"text":"x"}]}"#;
     assert_eq!(
-        parse_json_canvas(geometry.into()).unwrap_err(),
+        parse_json_canvas(geometry.into()).unwrap_err().message,
         "nodes[0].x must be an integer"
     );
     let unsafe_geometry = r#"{"nodes":[{"id":"a","type":"text","x":9007199254740992,"y":0,"width":1,"height":1,"text":"x"}]}"#;
     assert_eq!(
-        parse_json_canvas(unsafe_geometry.into()).unwrap_err(),
+        parse_json_canvas(unsafe_geometry.into())
+            .unwrap_err()
+            .message,
         "nodes[0].x must be a safe integer"
     );
     let zero_width =
         r#"{"nodes":[{"id":"a","type":"text","x":0,"y":0,"width":0,"height":1,"text":"x"}]}"#;
     assert_eq!(
-        parse_json_canvas(zero_width.into()).unwrap_err(),
+        parse_json_canvas(zero_width.into()).unwrap_err().message,
         "nodes[0] width and height must be positive integers"
     );
     for color in ["red", "#fff"] {
@@ -45,7 +47,7 @@ fn rejects_non_integer_geometry_and_invalid_colors() {
             r##"{{"nodes":[{{"id":"a","type":"text","x":0,"y":0,"width":1,"height":1,"text":"x","color":"{color}"}}]}}"##
         );
         assert_eq!(
-            parse_json_canvas(source).unwrap_err(),
+            parse_json_canvas(source).unwrap_err().message,
             "nodes[0].color must be a JSON Canvas preset or hexadecimal color"
         );
     }

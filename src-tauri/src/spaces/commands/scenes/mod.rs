@@ -1,3 +1,4 @@
+use crate::command_error::CommandError;
 mod validation;
 
 use serde::Deserialize;
@@ -35,7 +36,7 @@ pub struct SpaceSceneOrderInput {
 pub async fn create_scene<R: Runtime>(
     app: AppHandle<R>,
     scene: SpaceSceneInput,
-) -> Result<(), String> {
+) -> Result<(), CommandError> {
     validate_thumbnail_path(&app, scene.thumbnail_path.as_deref())?;
     let now = crate::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
@@ -62,14 +63,14 @@ pub async fn create_scene<R: Runtime>(
     .execute(&mut *tx)
     .await
     .map_err(db::sql_error)?;
-    tx.commit().await.map_err(db::sql_error)
+    Ok((tx.commit().await.map_err(db::sql_error))?)
 }
 
 #[tauri::command]
 pub async fn update_scene<R: Runtime>(
     app: AppHandle<R>,
     scene: SpaceSceneInput,
-) -> Result<Vec<String>, String> {
+) -> Result<Vec<String>, CommandError> {
     validate_thumbnail_path(&app, scene.thumbnail_path.as_deref())?;
     let now = crate::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
@@ -131,7 +132,7 @@ pub async fn update_scene_orders<R: Runtime>(
     app: AppHandle<R>,
     space_id: String,
     scenes: Vec<SpaceSceneOrderInput>,
-) -> Result<(), String> {
+) -> Result<(), CommandError> {
     if scenes.is_empty() {
         return Ok(());
     }
@@ -151,14 +152,14 @@ pub async fn update_scene_orders<R: Runtime>(
         .map_err(db::sql_error)?;
         db::require_one(executed, "Space Saved View order target no longer exists")?;
     }
-    tx.commit().await.map_err(db::sql_error)
+    Ok((tx.commit().await.map_err(db::sql_error))?)
 }
 
 #[tauri::command]
 pub async fn delete_scene<R: Runtime>(
     app: AppHandle<R>,
     scene_id: String,
-) -> Result<Vec<String>, String> {
+) -> Result<Vec<String>, CommandError> {
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
     let previous = sqlx::query_scalar::<_, Option<String>>(

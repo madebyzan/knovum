@@ -1,4 +1,4 @@
-import { invoke } from "@tauri-apps/api/core";
+import { invokeCommand as invoke } from "../../../../foundation/ipc/invoke-command";
 
 interface KnowledgeRetrievalRebuildOutput {
   rebuilt: boolean;

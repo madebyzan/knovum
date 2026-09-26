@@ -52,7 +52,6 @@
   "desktopAgentNotInstalled": "未检测到",
   "desktopAgentEnable": "启用",
   "desktopAgentDisable": "停用",
-  "desktopAgentInUse": "此 Agent 正被执行路由、生成预设或创作流程使用。",
   "desktopAgentInstallHint": "请通过 Agent 官方应用完成安装和登录，然后重新检查。",
   "integrationSaveFailed": "无法保存配置",
   "integrationLoadFailed": "无法加载配置",

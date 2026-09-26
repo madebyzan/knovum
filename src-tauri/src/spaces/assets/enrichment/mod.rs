@@ -9,7 +9,7 @@ use crate::spaces::knowledge::indexing::revision as knowledge_revision;
 use node_payload::{load_node_data, required_string};
 use persistence::persist_processing_state;
 
-pub const ASSET_PROCESSING_CANCELLED: &str = "SPACE_ASSET_PROCESSING_CANCELLED";
+pub const ASSET_PROCESSING_CANCELLED: &str = "space-asset-processing-cancelled";
 
 pub async fn enrich_node_with_cancellation(
     app: &AppHandle,

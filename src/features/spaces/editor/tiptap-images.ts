@@ -1,8 +1,9 @@
-import { convertFileSrc, invoke } from "@tauri-apps/api/core";
+import { convertFileSrc } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import type { Editor } from "@tiptap/vue-3";
 import { basename } from "pathe";
 
+import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
 import { removeSpaceAssets } from "../assets/asset-operations";
 
 const TIPTAP_IMAGE_EXTENSIONS = {

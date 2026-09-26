@@ -3,7 +3,7 @@ import type { Ref } from "vue";
 import { applySpaceNodeData } from "../canvas/node";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
-import { updateNodePayloadMany } from "../nodes/node-repository";
+import { updateNodePayloadMany } from "../nodes/node-operations";
 
 interface MutationProjection {
   nodes: Ref<SpaceCanvasNode[]>;

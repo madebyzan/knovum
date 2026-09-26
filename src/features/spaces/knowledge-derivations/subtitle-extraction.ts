@@ -1,8 +1,8 @@
-import { invoke } from "@tauri-apps/api/core";
 import { error as logError } from "@tauri-apps/plugin-log";
 import { toast } from "vue-sonner";
 
 import { i18n } from "../../../foundation/i18n/i18n";
+import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
 import { useCanvasEditorSession } from "../canvas/editor-session";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceSubtitlePayload } from "../model/nodes/node-payload";

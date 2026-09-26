@@ -16,7 +16,7 @@ export interface SpaceMutationContext {
   recordCommittedSpaceEdit: () => void;
 }
 
-export interface NodeDataChange {
+export interface NodePayloadChange {
   id: string;
   before: SpaceNodePayload;
   after: SpaceNodePayload;

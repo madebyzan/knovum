@@ -1,6 +1,6 @@
 import type { KnowledgePeekTarget } from "../knowledge/model/knowledge-peek-target";
 import { SYSTEM_OBJECT_TYPE_IDS } from "../knowledge/model/object-types";
-import { createProvenance } from "../knowledge/persistence/knowledge-repository";
+import { createProvenance } from "../knowledge/persistence/knowledge-operations";
 import type { useSpaceStore } from "../session/space-store";
 
 type SpaceStore = ReturnType<typeof useSpaceStore>;

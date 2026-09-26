@@ -67,7 +67,9 @@ const starters = ["summarize", "plan"] as const;
         class="flex min-h-full flex-col justify-center px-1 pb-10"
       >
         <div class="max-w-80">
-          <span class="mb-4 flex size-9 items-center justify-center rounded-panel border border-divider bg-raised text-accent">
+          <span
+            class="mb-4 flex size-9 items-center justify-center rounded-panel border border-divider bg-raised text-accent"
+          >
             <Sparkles class="size-(--knovum-icon-size-md)" :stroke-width="1.6" />
           </span>
           <h2 class="text-title-sm font-semibold text-foreground">{{ $t("spaces.assistant.emptyTitle") }}</h2>
@@ -83,7 +85,9 @@ const starters = ["summarize", "plan"] as const;
               @click="emit('suggest', $t(`spaces.assistant.starter.${starter}Prompt`))"
             >
               <span>{{ $t(`spaces.assistant.starter.${starter}`) }}</span>
-              <ArrowUpRight class="size-(--knovum-icon-size-sm) shrink-0 text-foreground-tertiary group-hover:text-foreground" />
+              <ArrowUpRight
+                class="size-(--knovum-icon-size-sm) shrink-0 text-foreground-tertiary group-hover:text-foreground"
+              />
             </button>
           </div>
           <p class="mt-5 text-caption leading-relaxed text-foreground-tertiary">

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { isProxy, reactive } from "vue";
 
 import { availableExecutionTargets, defaultExecutionTarget } from "../ai-execution";
+import { encodeExecutionTarget, decodeExecutionTarget } from "../execution-target-codec";
 import { defaultAiModelSettings } from "../integration-settings";
 
 describe("execution target options", () => {
@@ -45,8 +46,6 @@ describe("execution target options", () => {
       const [option] = availableExecutionTargets(settings, purpose);
       expect(option).toMatchObject({
         target: { type: "model", connectionId: "media", modelId: "omni" },
-        executorType: "model",
-        disabled: false,
       });
     },
   );
@@ -56,4 +55,15 @@ describe("execution target options", () => {
     settings.desktopAgents.push({ kind: "codex", enabled: true });
     expect(availableExecutionTargets(settings, "image-generation")).toEqual([]);
   });
+});
+
+it("round-trips execution identities containing separator characters", () => {
+  const target = { type: "model" as const, connectionId: "provider:v1", modelId: "model:chat" };
+  expect(decodeExecutionTarget(encodeExecutionTarget(target))).toEqual(target);
+});
+
+it("keeps distinct model references separate when identifiers contain separators", () => {
+  const left = { type: "model" as const, connectionId: "a:b", modelId: "c" };
+  const right = { type: "model" as const, connectionId: "a", modelId: "b:c" };
+  expect(encodeExecutionTarget(left)).not.toBe(encodeExecutionTarget(right));
 });

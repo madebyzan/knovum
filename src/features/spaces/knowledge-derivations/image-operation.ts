@@ -1,9 +1,14 @@
-import { Channel, invoke } from "@tauri-apps/api/core";
+import type { ImageOperationCapabilities } from "../contracts/generated/ImageOperationCapabilities";
+export type { ImageOperationCapability } from "../contracts/generated/ImageOperationCapability";
+export type { ImageOperation } from "../contracts/generated/ImageOperation";
+import { Channel } from "@tauri-apps/api/core";
 
 import { cancelAiJob } from "../../../foundation/ai/ai-runtime";
 import { i18n } from "../../../foundation/i18n/i18n";
+import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import { useCanvasEditorSession } from "../canvas/editor-session";
+import type { ImageOperation } from "../contracts/generated/ImageOperation";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../model/nodes/node-payload";
 import type { SpaceRelation } from "../model/relations/relation";
@@ -13,27 +18,6 @@ import { derivedNodePosition } from "./placement";
 import { runDerivation } from "./run-derivation";
 
 type SpaceStore = ReturnType<typeof useSpaceStore>;
-export type ImageOperation =
-  | { kind: "upscale"; targetLongEdge: 2048 | 4096 | 8192 }
-  | {
-      kind: "multi-angle";
-      mode: "subject" | "camera";
-      yaw: number;
-      pitch: number;
-      zoom: "close" | "medium" | "wide";
-    };
-
-export type ImageOperationCapability =
-  | { state: "ready" }
-  | {
-      state: "blocked";
-      reason: "configuration_incomplete" | "provider_unsupported" | "credential_unavailable";
-    };
-
-interface ImageOperationCapabilities {
-  upscale: ImageOperationCapability;
-  multiAngle: ImageOperationCapability;
-}
 
 interface ImageOperationOutput {
   nodeId: string;

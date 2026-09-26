@@ -7,16 +7,13 @@ import type {
   AgentInstallation,
   DesktopAgentSettings,
 } from "../../../foundation/ai/agent-models";
-import {
-  availableExecutionTargets,
-  decodeExecutionTarget,
-  encodeExecutionTarget,
-} from "../../../foundation/ai/ai-execution";
+import { availableExecutionTargets } from "../../../foundation/ai/ai-execution";
 import type {
   AiConnectionSettings,
   AiRoutingDefaults,
   AiRoutingPurpose,
 } from "../../../foundation/ai/ai-models";
+import { decodeExecutionTarget, encodeExecutionTarget } from "../../../foundation/ai/execution-target-codec";
 import UiSelect from "../../../shared/ui/UiSelect.vue";
 import SettingsRow from "./SettingsRow.vue";
 import SettingsSection from "./SettingsSection.vue";
@@ -51,8 +48,7 @@ const routeRows = computed(() =>
     description: t(`settings.ai.${translationKey}Description`),
     options: availableExecutionTargets(settings.value, purpose).map((option) =>
       Object.assign({}, option, {
-        description:
-          option.disabledReason ?? option.statusDetail ?? t("settings.ai.executionTargetModelNative"),
+        description: t("settings.ai.executionTargetModelNative"),
       }),
     ),
   })),

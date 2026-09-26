@@ -16,7 +16,7 @@ pub(crate) async fn node(app: &AppHandle, space_id: &str, node_id: &str) -> Resu
     .await
     .map_err(db::sql_error)?
     .ok_or("node-unavailable: node does not exist in the requested Space")?;
-    let data = parse_json(row.get("data"))?;
+    let data = parse_json(row.try_get("data").map_err(db::sql_error)?)?;
     let chunks = sqlx::query(
         "SELECT c.id,c.kind,c.source_revision,c.text,c.locator,c.updated_at \
          FROM spaces_current_knowledge_chunks c JOIN spaces_semantic_nodes n \
@@ -32,18 +32,18 @@ pub(crate) async fn node(app: &AppHandle, space_id: &str, node_id: &str) -> Resu
         .into_iter()
         .map(|chunk| {
             Ok(json!({
-                "id": chunk.get::<String,_>("id"), "kind": chunk.get::<String,_>("kind"),
-                "sourceRevision": chunk.get::<String,_>("source_revision"),
-                "text": chunk.get::<String,_>("text"),
-                "locator": parse_json(chunk.get("locator"))?,
-                "updatedAt": chunk.get::<i64,_>("updated_at"),
+                "id": chunk.try_get::<String,_>("id").map_err(db::sql_error)?, "kind": chunk.try_get::<String,_>("kind").map_err(db::sql_error)?,
+                "sourceRevision": chunk.try_get::<String,_>("source_revision").map_err(db::sql_error)?,
+                "text": chunk.try_get::<String,_>("text").map_err(db::sql_error)?,
+                "locator": parse_json(chunk.try_get("locator").map_err(db::sql_error)?)?,
+                "updatedAt": chunk.try_get::<i64,_>("updated_at").map_err(db::sql_error)?,
             }))
         })
         .collect::<Result<Vec<Value>, String>>()?;
     Ok(json!({
-        "id": row.get::<String,_>("id"), "kind": row.get::<String,_>("kind"),
-        "data": data, "chunks": chunks, "createdAt": row.get::<i64,_>("created_at"),
-        "updatedAt": row.get::<i64,_>("updated_at"),
+        "id": row.try_get::<String,_>("id").map_err(db::sql_error)?, "kind": row.try_get::<String,_>("kind").map_err(db::sql_error)?,
+        "data": data, "chunks": chunks, "createdAt": row.try_get::<i64,_>("created_at").map_err(db::sql_error)?,
+        "updatedAt": row.try_get::<i64,_>("updated_at").map_err(db::sql_error)?,
     }))
 }
 

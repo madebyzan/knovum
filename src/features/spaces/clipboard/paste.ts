@@ -1,7 +1,7 @@
-import { invoke } from "@tauri-apps/api/core";
 import { info as logInfo, warn as logWarn } from "@tauri-apps/plugin-log";
 import { hasFiles, readFiles } from "tauri-plugin-clipboard-api";
 
+import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
 import type { ImportedSpaceAsset } from "../assets/imported-asset";
 import { importSpaceClipboardImage } from "./image-import";
 

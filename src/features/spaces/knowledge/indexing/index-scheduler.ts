@@ -1,7 +1,7 @@
 import { error as logError } from "@tauri-apps/plugin-log";
 
 import { decodeAiErrorPayload } from "../../../../foundation/ai/ai-runtime";
-import { indexKnowledgeRetrieval } from "../persistence/embedding-repository";
+import { indexKnowledgeRetrieval } from "../persistence/retrieval-index";
 
 export type KnowledgeIndexStatus = "idle" | "scheduled" | "indexing" | "ready" | "unavailable";
 type StatusListener = (status: KnowledgeIndexStatus) => void;

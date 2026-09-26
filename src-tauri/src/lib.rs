@@ -1,9 +1,11 @@
 mod agent_runtime;
 mod ai;
 mod app_builder;
+mod app_resources;
 mod app_window;
 mod blocking;
 mod clock;
+mod command_error;
 pub mod contract_codegen;
 mod desktop;
 mod documents;

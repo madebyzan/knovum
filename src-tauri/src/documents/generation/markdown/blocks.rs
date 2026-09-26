@@ -4,7 +4,11 @@ use super::super::document::{Block, Inline};
 use super::Reader;
 
 impl Reader<'_> {
-    pub(super) fn blocks(&mut self, end: Option<TagEnd>, depth: usize) -> Result<Vec<Block>, String> {
+    pub(super) fn blocks(
+        &mut self,
+        end: Option<TagEnd>,
+        depth: usize,
+    ) -> Result<Vec<Block>, String> {
         Self::check_depth(depth)?;
         let mut blocks = Vec::new();
         let mut loose = Vec::new();
@@ -31,6 +35,9 @@ impl Reader<'_> {
                 Event::Start(Tag::List(start)) => self.list(start, depth + 1)?,
                 Event::Start(Tag::Table(alignments)) => self.table(alignments, depth + 1)?,
                 Event::Rule => Block::Rule,
+                Event::Start(Tag::HtmlBlock) => {
+                    return Err("Raw HTML is not supported by document export".into())
+                }
                 event => {
                     loose.push(self.inline(event, depth + 1)?);
                     continue;

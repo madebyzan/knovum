@@ -8,7 +8,7 @@ pub(crate) mod files;
 pub(crate) mod image;
 pub(crate) mod import;
 pub(crate) mod media_analysis;
-mod reclamation;
+pub(crate) mod reclamation;
 mod recovery;
 mod references;
 pub(crate) mod transcription;

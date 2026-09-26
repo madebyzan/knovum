@@ -1,6 +1,6 @@
-import { invoke } from "@tauri-apps/api/core";
 import { hasImage, readImageBinary } from "tauri-plugin-clipboard-api";
 
+import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
 import type { ImportedSpaceAsset } from "../assets/imported-asset";
 
 const MAX_PNG_BYTES = 16 * 1024 * 1024;

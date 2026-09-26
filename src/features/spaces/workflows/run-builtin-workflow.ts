@@ -1,7 +1,6 @@
-import { invoke } from "@tauri-apps/api/core";
-
 import type { ExecutionTarget } from "../../../foundation/ai/ai-models";
 import { i18n } from "../../../foundation/i18n/i18n";
+import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
 import type { BuiltInWorkflowTemplateId } from "../contracts/generated/BuiltInWorkflowTemplateId";
 import type { RunSummary } from "../contracts/generated/RunSummary";
 import { observeWorkflowRun } from "./workflow-run-observation";

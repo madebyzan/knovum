@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { FlipHorizontal2, FlipVertical2, RotateCw } from "@lucide/vue";
 import { ToolbarButton, ToolbarRoot } from "reka-ui";
+import type { DeepReadonly } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
@@ -8,7 +9,7 @@ import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import type { ImageEdit } from "../../image-editing/image-edit";
 import { nextQuarterTurn } from "../../image-editing/image-edit";
 
-const props = defineProps<{ edit: ImageEdit; busy: boolean }>();
+const props = defineProps<{ edit: DeepReadonly<ImageEdit>; busy: boolean }>();
 const emit = defineEmits<{ update: [patch: Partial<ImageEdit>]; cancel: []; apply: [] }>();
 const { t } = useI18n();
 

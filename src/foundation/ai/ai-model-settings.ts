@@ -1,21 +1,17 @@
 import { z } from "zod";
 
+import type { AiSettings } from "../../shared/contracts/generated/AiSettings";
 import { desktopAgentSettingsSchema } from "./agent-models";
 import {
   aiConnectionSettingsSchema,
   aiDefaultsSchema,
   type AiModelCapability,
-  type AiModelTarget,
   type AiRoutingPurpose,
   type ExecutionTarget,
 } from "./ai-models";
 import { routingPolicy } from "./execution-routing";
 
-type AiModelSettingsShape = {
-  connections: z.infer<typeof aiConnectionSettingsSchema>[];
-  desktopAgents: z.infer<typeof desktopAgentSettingsSchema>[];
-  defaults: z.infer<typeof aiDefaultsSchema>;
-};
+type AiModelSettingsShape = AiSettings;
 type SettingsRefinement = z.core.$RefinementCtx<AiModelSettingsShape>;
 
 export const aiModelSettingsSchema = z
@@ -79,7 +75,7 @@ function rejectInvalidDefaultTargets(settings: AiModelSettingsShape, context: Se
 
 function resolvesToCapability(
   connections: AiModelSettingsShape["connections"],
-  target: AiModelTarget,
+  target: ExecutionTarget,
   capability: AiModelCapability,
 ) {
   const connection = connections.find(({ id }) => id === target.connectionId);

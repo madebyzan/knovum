@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   invoke: vi.fn<(command: string, args?: unknown) => Promise<unknown>>(),
-  failed: vi.fn(),
+  failed: vi.fn<(...args: unknown[]) => void>(),
 }));
 
 vi.mock("@tauri-apps/api/core", () => ({ invoke: mocks.invoke }));
@@ -16,8 +16,23 @@ vi.mock("../knowledge-derivations/run-derivation", () => ({
   runDerivation: (operation: { execute(): Promise<unknown> }) => operation.execute(),
 }));
 
-import { exportMarkdownDocument } from "../knowledge-derivations/document/export";
 import { creationIntentDefinitions } from "../knowledge-derivations/catalog/creation-intent-definitions";
+import { exportMarkdownDocument } from "../knowledge-derivations/document/export";
+
+const commands = {
+  docx: {
+    allocate: "plugin:spaces|allocate_document_docx_path",
+    export: "plugin:spaces|export_document_as_docx",
+  },
+  pdf: {
+    allocate: "plugin:spaces|allocate_document_pdf_path",
+    export: "plugin:spaces|export_document_as_pdf",
+  },
+  txt: {
+    allocate: "plugin:spaces|allocate_document_txt_path",
+    export: "plugin:spaces|export_document_as_txt",
+  },
+} as const;
 
 type ExportOptions = Parameters<typeof exportMarkdownDocument>[0];
 
@@ -31,21 +46,23 @@ const source: ExportOptions["source"] = {
 function store(activeSpaceId: string | undefined) {
   return {
     activeSpaceId,
-    addContent: vi.fn(async () => [{ id: "output" }]),
+    addContent: vi.fn<() => Promise<Array<{ id: string }>>>(async () => [{ id: "output" }]),
   } as unknown as ExportOptions["store"];
 }
 
 describe("Markdown document export", () => {
   beforeEach(() => {
-    mocks.invoke.mockReset().mockImplementation(async (command) =>
-      command.includes("allocate_") ? "/managed/document" : { nodeId: "output", data: {} },
-    );
+    mocks.invoke
+      .mockReset()
+      .mockImplementation(async (command) =>
+        command.includes("allocate_") ? "/managed/document" : { nodeId: "output", data: {} },
+      );
   });
 
   it.each(["docx", "pdf", "txt"] as const)("preserves source identity for %s", async (format) => {
     await exportMarkdownDocument({ store: store("space"), source, format });
-    expect(mocks.invoke).toHaveBeenNthCalledWith(1, `plugin:spaces|allocate_document_${format}_path`);
-    expect(mocks.invoke).toHaveBeenNthCalledWith(2, `plugin:spaces|export_document_as_${format}`, {
+    expect(mocks.invoke).toHaveBeenNthCalledWith(1, commands[format].allocate);
+    expect(mocks.invoke).toHaveBeenNthCalledWith(2, commands[format].export, {
       request: {
         id: expect.any(String),
         spaceId: "space",

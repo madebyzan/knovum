@@ -82,7 +82,7 @@ fn generate(
     if output.metadata().is_ok_and(|metadata| metadata.len() > 0) {
         return Ok(output.to_string_lossy().into_owned());
     }
-    let ffmpeg = tools::resolve_tool(app, "KNOVUM_FFMPEG_PATH", tools::ffmpeg_name())
+    let ffmpeg = tools::resolve_tool(app, "KNOVUM_FFMPEG_PATH", tools::ffmpeg_name())?
         .ok_or("FFmpeg is required to prepare video editing")?;
     let temporary = cache.join(format!("{}.tmp.mp4", Uuid::new_v4()));
     if let Err(error) = encode_proxy(&ffmpeg, source, &temporary, cancellation) {

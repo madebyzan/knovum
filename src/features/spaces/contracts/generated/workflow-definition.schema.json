@@ -39,7 +39,14 @@
     }
   },
   "additionalProperties": false,
-  "required": ["schemaVersion", "title", "nodes", "edges", "failurePolicy", "limits"],
+  "required": [
+    "schemaVersion",
+    "title",
+    "nodes",
+    "edges",
+    "failurePolicy",
+    "limits"
+  ],
   "$defs": {
     "WorkflowNode": {
       "oneOf": [
@@ -57,7 +64,11 @@
               "const": "input"
             }
           },
-          "required": ["kind", "id", "outputType"]
+          "required": [
+            "kind",
+            "id",
+            "outputType"
+          ]
         },
         {
           "type": "object",
@@ -73,7 +84,11 @@
               "const": "output"
             }
           },
-          "required": ["kind", "id", "inputType"]
+          "required": [
+            "kind",
+            "id",
+            "inputType"
+          ]
         },
         {
           "type": "object",
@@ -96,7 +111,13 @@
               "const": "action"
             }
           },
-          "required": ["kind", "id", "actionId", "actionVersion", "parameters"]
+          "required": [
+            "kind",
+            "id",
+            "actionId",
+            "actionVersion",
+            "parameters"
+          ]
         },
         {
           "type": "object",
@@ -112,7 +133,11 @@
               "const": "join"
             }
           },
-          "required": ["kind", "id", "policy"]
+          "required": [
+            "kind",
+            "id",
+            "policy"
+          ]
         },
         {
           "type": "object",
@@ -128,7 +153,11 @@
               "const": "review"
             }
           },
-          "required": ["kind", "id", "purpose"]
+          "required": [
+            "kind",
+            "id",
+            "purpose"
+          ]
         }
       ]
     },
@@ -151,7 +180,11 @@
     },
     "JoinPolicy": {
       "type": "string",
-      "enum": ["all_succeeded", "active_branches", "collect_results"]
+      "enum": [
+        "all_succeeded",
+        "active_branches",
+        "collect_results"
+      ]
     },
     "WorkflowEdge": {
       "type": "object",
@@ -172,15 +205,27 @@
           "$ref": "#/$defs/WorkflowPort"
         },
         "branch": {
-          "type": ["string", "null"]
+          "type": [
+            "string",
+            "null"
+          ]
         }
       },
       "additionalProperties": false,
-      "required": ["id", "sourceNodeId", "sourcePort", "targetNodeId", "targetPort"]
+      "required": [
+        "id",
+        "sourceNodeId",
+        "sourcePort",
+        "targetNodeId",
+        "targetPort"
+      ]
     },
     "WorkflowPort": {
       "type": "string",
-      "enum": ["input", "output"]
+      "enum": [
+        "input",
+        "output"
+      ]
     },
     "WorkflowNodeLayout": {
       "type": "object",
@@ -195,11 +240,18 @@
         }
       },
       "additionalProperties": false,
-      "required": ["x", "y"]
+      "required": [
+        "x",
+        "y"
+      ]
     },
     "FailurePolicy": {
       "type": "string",
-      "enum": ["stop_run", "continue_independent", "collect_errors"]
+      "enum": [
+        "stop_run",
+        "continue_independent",
+        "collect_errors"
+      ]
     },
     "WorkflowLimits": {
       "type": "object",

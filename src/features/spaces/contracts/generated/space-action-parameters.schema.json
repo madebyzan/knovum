@@ -16,7 +16,10 @@
       }
     },
     "additionalProperties": false,
-    "required": ["title", "content"]
+    "required": [
+      "title",
+      "content"
+    ]
   },
   "commit-knowledge-changes": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -29,7 +32,9 @@
       }
     },
     "additionalProperties": false,
-    "required": ["operations"]
+    "required": [
+      "operations"
+    ]
   },
   "edit-space-structure": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -44,35 +49,10 @@
       "command": true
     },
     "additionalProperties": false,
-    "required": ["expectedEditRevision", "command"]
-  },
-  "save-workflow-draft": {
-    "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "title": "WorkflowDraftParameters",
-    "type": "object",
-    "properties": {
-      "draft": true
-    },
-    "additionalProperties": false,
-    "required": ["draft"]
-  },
-  "publish-workflow": {
-    "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "title": "WorkflowPublicationParameters",
-    "type": "object",
-    "properties": {
-      "workflowId": {
-        "type": "string",
-        "minLength": 1
-      },
-      "expectedRevision": {
-        "type": "integer",
-        "format": "uint64",
-        "minimum": 0
-      }
-    },
-    "additionalProperties": false,
-    "required": ["workflowId", "expectedRevision"]
+    "required": [
+      "expectedEditRevision",
+      "command"
+    ]
   },
   "search-knowledge": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -91,7 +71,10 @@
       }
     },
     "additionalProperties": false,
-    "required": ["query", "limit"]
+    "required": [
+      "query",
+      "limit"
+    ]
   },
   "read-node": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -104,7 +87,9 @@
       }
     },
     "additionalProperties": false,
-    "required": ["nodeId"]
+    "required": [
+      "nodeId"
+    ]
   },
   "answer-with-sources": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -117,7 +102,9 @@
       }
     },
     "additionalProperties": false,
-    "required": ["question"]
+    "required": [
+      "question"
+    ]
   },
   "draft-document": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -135,7 +122,10 @@
       }
     },
     "additionalProperties": false,
-    "required": ["title", "purpose"]
+    "required": [
+      "title",
+      "purpose"
+    ]
   },
   "draft-script": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -153,7 +143,10 @@
       }
     },
     "additionalProperties": false,
-    "required": ["title", "prompt"]
+    "required": [
+      "title",
+      "prompt"
+    ]
   },
   "summarize-meeting": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -171,7 +164,10 @@
       }
     },
     "additionalProperties": false,
-    "required": ["title", "summaryPurpose"]
+    "required": [
+      "title",
+      "summaryPurpose"
+    ]
   },
   "draft-social-post": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -199,15 +195,29 @@
       }
     },
     "additionalProperties": false,
-    "required": ["title", "platform", "audience", "goal", "tone"],
+    "required": [
+      "title",
+      "platform",
+      "audience",
+      "goal",
+      "tone"
+    ],
     "$defs": {
       "SocialPlatform": {
         "type": "string",
-        "enum": ["generic", "xiaohongshu", "linkedin"]
+        "enum": [
+          "generic",
+          "xiaohongshu",
+          "linkedin"
+        ]
       },
       "SocialTone": {
         "type": "string",
-        "enum": ["professional", "friendly", "energetic"]
+        "enum": [
+          "professional",
+          "friendly",
+          "energetic"
+        ]
       }
     }
   },
@@ -234,11 +244,22 @@
       }
     },
     "additionalProperties": false,
-    "required": ["title", "intent", "style", "aspectRatio"],
+    "required": [
+      "title",
+      "intent",
+      "style",
+      "aspectRatio"
+    ],
     "$defs": {
       "ImageAspectRatio": {
         "type": "string",
-        "enum": ["1:1", "3:2", "2:3", "16:9", "9:16"]
+        "enum": [
+          "1:1",
+          "3:2",
+          "2:3",
+          "16:9",
+          "9:16"
+        ]
       }
     }
   },
@@ -261,11 +282,21 @@
       }
     },
     "additionalProperties": false,
-    "required": ["title", "imageStyle", "aspectRatio"],
+    "required": [
+      "title",
+      "imageStyle",
+      "aspectRatio"
+    ],
     "$defs": {
       "ImageAspectRatio": {
         "type": "string",
-        "enum": ["1:1", "3:2", "2:3", "16:9", "9:16"]
+        "enum": [
+          "1:1",
+          "3:2",
+          "2:3",
+          "16:9",
+          "9:16"
+        ]
       }
     }
   },
@@ -291,15 +322,28 @@
         "format": "uint16",
         "minimum": 5,
         "maximum": 15,
-        "enum": [5, 10, 15]
+        "enum": [
+          5,
+          10,
+          15
+        ]
       }
     },
     "additionalProperties": false,
-    "required": ["title", "prompt", "aspectRatio", "durationSeconds"],
+    "required": [
+      "title",
+      "prompt",
+      "aspectRatio",
+      "durationSeconds"
+    ],
     "$defs": {
       "VideoAspectRatio": {
         "type": "string",
-        "enum": ["1:1", "16:9", "9:16"]
+        "enum": [
+          "1:1",
+          "16:9",
+          "9:16"
+        ]
       }
     }
   },

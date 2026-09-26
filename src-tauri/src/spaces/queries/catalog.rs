@@ -1,3 +1,4 @@
+use crate::command_error::CommandError;
 use serde::Serialize;
 use sqlx::Row;
 use tauri::{AppHandle, Runtime};
@@ -20,9 +21,9 @@ pub struct SpaceSummary {
 }
 
 #[tauri::command]
-pub async fn list_spaces<R: Runtime>(app: AppHandle<R>) -> Result<Vec<SpaceSummary>, String> {
+pub async fn list_spaces<R: Runtime>(app: AppHandle<R>) -> Result<Vec<SpaceSummary>, CommandError> {
     let pool = db::pool(&app).await?;
-    sqlx::query_as(
+    Ok((sqlx::query_as(
         "SELECT spaces.id, spaces.kind, spaces.title, archived_at, favorite, thumbnail_path, \
          last_opened_at, spaces.created_at, spaces.updated_at, \
          COUNT(spaces_nodes.id) AS node_count \
@@ -31,14 +32,14 @@ pub async fn list_spaces<R: Runtime>(app: AppHandle<R>) -> Result<Vec<SpaceSumma
     )
     .fetch_all(pool)
     .await
-    .map_err(db::sql_error)
+    .map_err(db::sql_error))?)
 }
 
 #[tauri::command]
 pub async fn list_credential_node_ids<R: Runtime>(
     app: AppHandle<R>,
     space_id: String,
-) -> Result<Vec<String>, String> {
+) -> Result<Vec<String>, CommandError> {
     let pool = db::pool(&app).await?;
     let rows =
         sqlx::query("SELECT id FROM spaces_nodes WHERE space_id = ? AND kind = 'credential'")
@@ -46,7 +47,8 @@ pub async fn list_credential_node_ids<R: Runtime>(
             .fetch_all(pool)
             .await
             .map_err(db::sql_error)?;
-    rows.into_iter()
+    Ok((rows
+        .into_iter()
         .map(|row| row.try_get::<String, _>("id").map_err(db::sql_error))
-        .collect()
+        .collect::<Result<_, String>>())?)
 }

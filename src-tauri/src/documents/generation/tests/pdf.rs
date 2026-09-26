@@ -4,7 +4,13 @@ use super::{fixture, source};
 #[test]
 fn typst_source_uses_structural_lists_tables_and_raw_code() {
     let rendered = pdf::source_for_test(&fixture()).unwrap();
-    for marker in ["#table(columns: 2", "#enum(start: 7", "#list(", "#raw(", "#link("] {
+    for marker in [
+        "#table(columns: 2",
+        "#enum(start: 7",
+        "#list(",
+        "#raw(",
+        "#link(",
+    ] {
         assert!(rendered.contains(marker), "missing {marker}");
     }
     assert!(rendered.contains("#linebreak()"));

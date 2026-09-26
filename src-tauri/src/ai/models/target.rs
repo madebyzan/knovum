@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::ai::contracts::ProviderKind;
 use crate::ai::error::{AiError, AiResult};
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, ts_rs::TS)]
 #[serde(
     tag = "type",
     rename_all = "snake_case",
@@ -31,7 +31,7 @@ impl ExecutionTargetRef {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, ts_rs::TS)]
 #[serde(
     tag = "type",
     rename_all = "snake_case",

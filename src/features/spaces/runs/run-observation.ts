@@ -1,0 +1,32 @@
+import { Channel } from "@tauri-apps/api/core";
+
+import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
+import type { RunSummary } from "../contracts/generated/RunSummary";
+
+interface RunObserver {
+  update(run: RunSummary): void;
+  error(cause: unknown): void;
+  finished(): void;
+}
+const observations = new Map<string, Set<RunObserver>>();
+
+export function observeRun(runId: string, observer: RunObserver) {
+  const current = observations.get(runId);
+  if (current) {
+    current.add(observer);
+    return;
+  }
+  const observers = new Set([observer]);
+  observations.set(runId, observers);
+  const updates = new Channel<RunSummary>((run) => {
+    for (const subscriber of observers) subscriber.update(run);
+  });
+  void invoke("plugin:spaces|observe_run", { runId, updates })
+    .catch((cause: unknown) => {
+      for (const subscriber of observers) subscriber.error(cause);
+    })
+    .finally(() => {
+      observations.delete(runId);
+      for (const subscriber of observers) subscriber.finished();
+    });
+}

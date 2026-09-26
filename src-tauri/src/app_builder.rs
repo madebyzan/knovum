@@ -1,6 +1,6 @@
 use tauri::{Builder, Wry};
 
-use crate::{ai, app_window, desktop, local_resources, secrets, spaces, updater};
+use crate::{ai, app_resources, app_window, desktop, secrets, spaces, updater};
 
 pub(crate) fn run() {
     let builder = base_builder();
@@ -36,7 +36,7 @@ fn base_builder() -> Builder<Wry> {
             None,
         ))
         .plugin(desktop::plugin())
-        .plugin(local_resources::plugin())
+        .plugin(app_resources::plugin())
         .plugin(secrets::plugin())
         .plugin(ai::plugin())
         .plugin(spaces::plugin())

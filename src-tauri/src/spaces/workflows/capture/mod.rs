@@ -2,13 +2,13 @@ mod boundaries;
 mod candidate;
 mod fingerprint;
 mod inspect;
-mod library;
+pub(crate) mod library;
 mod lookup;
 mod management;
 mod order;
 mod run;
 mod selection;
-mod types;
+pub(crate) mod types;
 
 use sqlx::{Sqlite, SqlitePool, Transaction};
 
@@ -104,3 +104,6 @@ pub(crate) async fn list_run_history(
 ) -> Result<Vec<CapturedWorkflowRun>, String> {
     run::list_history(pool, space_id).await
 }
+
+#[cfg(test)]
+mod tests;

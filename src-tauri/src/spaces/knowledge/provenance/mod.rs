@@ -1,3 +1,4 @@
+use crate::command_error::CommandError;
 use serde_json::Value;
 use sqlx::Row;
 use tauri::{AppHandle, Runtime};
@@ -14,7 +15,7 @@ pub async fn list_provenance<R: Runtime>(
     space_id: String,
     target_kind: String,
     target_id: String,
-) -> Result<Vec<Value>, String> {
+) -> Result<Vec<Value>, CommandError> {
     contracts::validate_provenance_target_kind(&target_kind)?;
     let pool = db::pool(&app).await?;
     let rows = sqlx::query(
@@ -22,14 +23,17 @@ pub async fn list_provenance<R: Runtime>(
          actor_kind,actor_id,created_at,updated_at FROM spaces_provenance \
          WHERE space_id=$1 AND target_kind=$2 AND target_id=$3 ORDER BY created_at DESC",
     ).bind(space_id).bind(target_kind).bind(target_id).fetch_all(pool).await.map_err(db::sql_error)?;
-    rows.into_iter().map(provenance_row).collect()
+    Ok((rows
+        .into_iter()
+        .map(provenance_row)
+        .collect::<Result<_, String>>())?)
 }
 
 #[tauri::command]
 pub async fn list_knowledge_events<R: Runtime>(
     app: AppHandle<R>,
     request: KnowledgeEventRequest,
-) -> Result<Vec<Value>, String> {
+) -> Result<Vec<Value>, CommandError> {
     let KnowledgeEventRequest {
         space_id,
         entity_kind,
@@ -57,14 +61,17 @@ pub async fn list_knowledge_events<R: Runtime>(
         ).bind(space_id).bind(limit).fetch_all(pool).await.map_err(db::sql_error)?,
         _ => return Err("Knowledge event entity kind and ID must be provided together".into()),
     };
-    rows.into_iter().map(event_row).collect()
+    Ok((rows
+        .into_iter()
+        .map(event_row)
+        .collect::<Result<_, String>>())?)
 }
 
 #[tauri::command]
 pub async fn create_provenance<R: Runtime>(
     app: AppHandle<R>,
     input: ProvenanceInput,
-) -> Result<(), String> {
+) -> Result<(), CommandError> {
     validate_input(&input)?;
     let now = crate::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
@@ -113,14 +120,14 @@ pub async fn create_provenance<R: Runtime>(
         ),
     )
     .await?;
-    tx.commit().await.map_err(db::sql_error)
+    Ok((tx.commit().await.map_err(db::sql_error))?)
 }
 
 #[tauri::command]
 pub async fn revoke_provenance<R: Runtime>(
     app: AppHandle<R>,
     provenance_id: String,
-) -> Result<(), String> {
+) -> Result<(), CommandError> {
     let now = crate::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
@@ -151,7 +158,7 @@ pub async fn revoke_provenance<R: Runtime>(
         ),
     )
     .await?;
-    tx.commit().await.map_err(db::sql_error)
+    Ok((tx.commit().await.map_err(db::sql_error))?)
 }
 
 mod validation;

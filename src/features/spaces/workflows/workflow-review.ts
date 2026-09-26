@@ -1,7 +1,6 @@
-import { invoke } from "@tauri-apps/api/core";
-
+import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
 import type { StepSummary } from "../contracts/generated/RunStep";
-import { getNode } from "../nodes/node-repository";
+import { getNode } from "../nodes/node-operations";
 
 function reviewCheckpoint(step: StepSummary | undefined) {
   const output = step?.output;

@@ -9,7 +9,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@tauri-apps/plugin-log", () => ({ error: mocks.logError }));
-vi.mock("../knowledge/persistence/embedding-repository", () => ({
+vi.mock("../knowledge/persistence/retrieval-index", () => ({
   indexKnowledgeRetrieval: mocks.indexKnowledgeRetrieval,
 }));
 

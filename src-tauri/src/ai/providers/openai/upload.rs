@@ -1,3 +1,4 @@
+use crate::ai::transport::response;
 use futures::future::BoxFuture;
 use reqwest::multipart::{Form, Part};
 
@@ -39,14 +40,12 @@ impl FileUploadCapability for OpenAiFileUploadAdapter {
                 .map_err(|e| AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string()))?;
 
             if !upload_response.status().is_success() {
-                let error_text = upload_response.text().await.unwrap_or_default();
+                let error_text = response::read_text(upload_response).await?;
                 return Err(AiError::new(AiErrorCode::ProviderRequestFailed, error_text));
             }
 
-            let file_data: serde_json::Value = upload_response
-                .json()
-                .await
-                .map_err(|e| AiError::new(AiErrorCode::InvalidResponse, e.to_string()))?;
+            let file_data: serde_json::Value =
+                response::read_json(upload_response, response::MAX_CONTROL_JSON_BYTES).await?;
 
             let file_id = file_data["id"]
                 .as_str()

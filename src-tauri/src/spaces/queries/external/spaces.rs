@@ -27,14 +27,14 @@ pub(crate) async fn spaces(app: &AppHandle, space_scope: Option<&str>) -> Result
     Ok(Value::Array(
         rows.into_iter()
             .map(|row| {
-                json!({
-                    "id": row.get::<String,_>("id"),
-                    "kind": row.get::<String,_>("kind"),
-                    "title": row.get::<String,_>("title"),
-                    "lastOpenedAt": row.get::<i64,_>("last_opened_at"),
-                    "updatedAt": row.get::<i64,_>("updated_at"),
-                })
+                Ok(json!({
+                    "id": row.try_get::<String,_>("id").map_err(db::sql_error)?,
+                    "kind": row.try_get::<String,_>("kind").map_err(db::sql_error)?,
+                    "title": row.try_get::<String,_>("title").map_err(db::sql_error)?,
+                    "lastOpenedAt": row.try_get::<i64,_>("last_opened_at").map_err(db::sql_error)?,
+                    "updatedAt": row.try_get::<i64,_>("updated_at").map_err(db::sql_error)?,
+                }))
             })
-            .collect(),
+            .collect::<Result<Vec<_>, String>>()?,
     ))
 }

@@ -1,3 +1,4 @@
+use crate::command_error::CommandError;
 use tauri::AppHandle;
 
 pub(crate) fn reserve(app: &AppHandle, prefix: &str, extension: &str) -> Result<String, String> {
@@ -8,31 +9,26 @@ pub(crate) fn reserve(app: &AppHandle, prefix: &str, extension: &str) -> Result<
 }
 
 #[tauri::command]
-pub fn allocate_visualization_output_path(app: AppHandle) -> Result<String, String> {
-    reserve(&app, "generated", "png")
+pub fn allocate_visualization_output_path(app: AppHandle) -> Result<String, CommandError> {
+    Ok((reserve(&app, "generated", "png"))?)
 }
 
 #[tauri::command]
-pub fn allocate_document_docx_path(app: AppHandle) -> Result<String, String> {
-    reserve(&app, "document", "docx")
+pub fn allocate_document_docx_path(app: AppHandle) -> Result<String, CommandError> {
+    Ok((reserve(&app, "document", "docx"))?)
 }
 
 #[tauri::command]
-pub fn allocate_document_pdf_path(app: AppHandle) -> Result<String, String> {
-    reserve(&app, "document", "pdf")
+pub fn allocate_document_pdf_path(app: AppHandle) -> Result<String, CommandError> {
+    Ok((reserve(&app, "document", "pdf"))?)
 }
 
 #[tauri::command]
-pub fn allocate_document_txt_path(app: AppHandle) -> Result<String, String> {
-    reserve(&app, "document", "txt")
+pub fn allocate_document_txt_path(app: AppHandle) -> Result<String, CommandError> {
+    Ok((reserve(&app, "document", "txt"))?)
 }
 
 #[tauri::command]
-pub fn allocate_presentation_pptx_path(app: AppHandle) -> Result<String, String> {
-    reserve(&app, "presentation", "pptx")
-}
-
-#[tauri::command]
-pub fn allocate_video_output_path(app: AppHandle) -> Result<String, String> {
-    reserve(&app, "generated", "mp4")
+pub fn allocate_video_output_path(app: AppHandle) -> Result<String, CommandError> {
+    Ok((reserve(&app, "generated", "mp4"))?)
 }

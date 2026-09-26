@@ -4,8 +4,9 @@ use sqlx::SqlitePool;
 use super::types::CaptureCandidate;
 use crate::spaces::db;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub(crate) struct SaveCapturedWorkflowRequest {
     pub request_id: String,
     pub space_id: String,
@@ -15,8 +16,9 @@ pub(crate) struct SaveCapturedWorkflowRequest {
     pub output_names: std::collections::HashMap<String, String>,
 }
 
-#[derive(Clone, Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub(crate) struct SavedCapturedWorkflow {
     pub schema_version: u16,
     pub workflow_id: String,
@@ -29,8 +31,9 @@ pub(crate) struct SavedCapturedWorkflow {
     pub created_at: i64,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub(crate) struct CapturedWorkflowLibrary {
     pub items: Vec<SavedCapturedWorkflow>,
 }

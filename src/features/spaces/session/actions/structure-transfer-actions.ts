@@ -3,9 +3,9 @@ import type { Ref } from "vue";
 import type { SpaceEditSnapshot } from "../../canvas/contract/space-edit-snapshot";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceRelation } from "../../model/relations/relation";
-import { spaceEditRepository } from "../../structure/space-edit-repository";
-import { moveStructureSelectionBetweenSpaces } from "../../structure/structure-transfer-repository";
-import { loadSpaceSessionProjection } from "../space-projection-repository";
+import { spaceEditOperations } from "../../structure/space-edit-operations";
+import { moveStructureSelectionBetweenSpaces } from "../../structure/structure-transfer-operations";
+import { loadSpaceSessionProjection } from "../space-projection";
 
 interface StructureTransferContext {
   activeSpaceId: Ref<string | undefined>;
@@ -20,13 +20,13 @@ export function createStructureTransferActions(context: StructureTransferContext
     const sourceSpaceId = context.activeSpaceId.value;
     if (!sourceSpaceId || sourceSpaceId === targetSpaceId || !rootStructureNodeIds.length) return [];
     const sourceSnapshot = context.editSnapshot.value;
-    const targetSnapshot = await spaceEditRepository.load(targetSpaceId);
+    const targetSnapshot = await spaceEditOperations.load(targetSpaceId);
     const targetOrder = targetSnapshot.structure.filter(({ parentId }) => parentId === null).length;
     const result = await moveStructureSelectionBetweenSpaces({
       sourceSpaceId,
       mutationId: crypto.randomUUID(),
       targetSpaceId,
-      rootStructureNodeIds,
+      rootStructureNodeIds: [...rootStructureNodeIds],
       targetParentId: null,
       targetOrder,
       expectedSourceEditRevision: sourceSnapshot.editRevision,

@@ -3,8 +3,9 @@ use serde_json::Value;
 
 use crate::ai::models::ExecutionTargetSelection;
 
-#[derive(Serialize)]
+#[derive(Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct CapturePreview {
     pub steps: Vec<CapturedStep>,
     pub inputs: Vec<BoundaryInput>,
@@ -14,16 +15,18 @@ pub struct CapturePreview {
     pub source_digest: Option<String>,
 }
 
-#[derive(Clone, Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct CaptureCandidate {
     pub input_slots: Vec<CandidateInputSlot>,
     pub steps: Vec<CandidateStep>,
     pub output_slots: Vec<CandidateOutputSlot>,
 }
 
-#[derive(Clone, Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct CandidateInputSlot {
     pub id: String,
     pub kind: String,
@@ -33,8 +36,9 @@ pub struct CandidateInputSlot {
     pub ordered: bool,
 }
 
-#[derive(Clone, Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct CandidateStep {
     pub id: String,
     pub action_id: String,
@@ -44,8 +48,9 @@ pub struct CandidateStep {
     pub inputs: Vec<CandidateBinding>,
 }
 
-#[derive(Clone, Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct CandidateBinding {
     pub role: String,
     pub position: i64,
@@ -54,16 +59,22 @@ pub struct CandidateBinding {
     pub source: CandidateSource,
 }
 
-#[derive(Clone, Deserialize, Serialize)]
-#[serde(tag = "sourceType", rename_all = "camelCase")]
+#[derive(Clone, Deserialize, Serialize, ts_rs::TS)]
+#[serde(
+    tag = "sourceType",
+    rename_all = "camelCase",
+    rename_all_fields = "camelCase"
+)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub enum CandidateSource {
     InputSlot { input_slot_id: String },
     InputSequence { input_slot_id: String },
     StepOutput { step_id: String },
 }
 
-#[derive(Clone, Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct CandidateOutputSlot {
     pub id: String,
     pub name: String,
@@ -71,8 +82,9 @@ pub struct CandidateOutputSlot {
     pub step_id: String,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct CapturedStep {
     pub derivation_id: String,
     pub output_node_id: String,
@@ -84,15 +96,18 @@ pub struct CapturedStep {
     pub selected: bool,
 }
 
-#[derive(Clone, Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct RecordedExecutionSpec {
+    #[ts(type = "Record<string, unknown>")]
     pub parameters: Value,
     pub target: Option<ExecutionTargetSelection>,
 }
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct CapturedInput {
     pub node_id: String,
     pub kind: String,
@@ -102,8 +117,9 @@ pub struct CapturedInput {
     pub revision_basis: String,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct BoundaryInput {
     pub node_id: String,
     pub kind: String,
@@ -111,8 +127,9 @@ pub struct BoundaryInput {
     pub uses: Vec<BoundaryUse>,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct BoundaryUse {
     pub derivation_id: String,
     pub position: i64,
@@ -121,9 +138,26 @@ pub struct BoundaryUse {
     pub revision_basis: String,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct CaptureIssue {
     pub node_id: String,
-    pub reason: &'static str,
+    pub reason: CaptureIssueReason,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, ts_rs::TS)]
+#[serde(rename_all = "kebab-case")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
+pub enum CaptureIssueReason {
+    ResourceUnavailable,
+    DerivationIncomplete,
+    ExecutionSpecUnavailable,
+    DerivationInputsUnavailable,
+    SourceUnavailable,
+    SourceMismatch,
+    SourceIdentityUnavailable,
+    ParameterInstanceReference,
+    CandidateBindingUnavailable,
+    NoDerivedOutputSelected,
 }

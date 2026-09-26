@@ -1,7 +1,7 @@
-import { invoke } from "@tauri-apps/api/core";
 import { toast } from "vue-sonner";
 
 import { i18n } from "../../../foundation/i18n/i18n";
+import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import { useCanvasEditorSession } from "../canvas/editor-session";
 import { spaceNodeDimensions } from "../canvas/node-size";

@@ -1,48 +1,28 @@
-import { invoke } from "@tauri-apps/api/core";
+import type { AiError } from "../../shared/contracts/generated/AiError";
+import type { CompletionCommandRequest } from "../../shared/contracts/generated/CompletionCommandRequest";
+import type { CompletionOutput as AiCompletionResponse } from "../../shared/contracts/generated/CompletionOutput";
+import { aiErrorCodes } from "../../shared/contracts/generated/contract-values";
+export type { CompletionOutput as AiCompletionResponse } from "../../shared/contracts/generated/CompletionOutput";
+
+export type { CompletionStreamEvent as AiCompletionStreamEvent } from "../../shared/contracts/generated/CompletionStreamEvent";
 import { z } from "zod";
 
+import { decodeCommandError } from "../ipc/command-error";
+import { invokeCommand as invoke } from "../ipc/invoke-command";
 import { aiExecutionTargetPayload, loadAiExecutionTarget } from "./ai-execution";
 
-const aiErrorPayloadSchema = z
+const aiErrorPayloadSchema: z.ZodType<AiError> = z
   .object({
-    code: z.enum([
-      "invalid_request",
-      "unsupported_provider",
-      "not_configured",
-      "authentication_failed",
-      "capability_not_supported",
-      "provider_request_failed",
-      "invalid_response",
-      "empty_response",
-      "cancelled",
-      "internal",
-    ]),
+    code: z.enum(aiErrorCodes),
     message: z.string(),
   })
   .strict();
 
-type AiErrorPayload = z.infer<typeof aiErrorPayloadSchema>;
+type AiErrorPayload = AiError;
 
 export function decodeAiErrorPayload(reason: unknown): AiErrorPayload | null {
-  const parsed = aiErrorPayloadSchema.safeParse(reason);
-  if (parsed.success) return parsed.data;
-  if (!(reason instanceof Error)) return null;
-
-  const cause = aiErrorPayloadSchema.safeParse(reason.cause);
-  return cause.success ? cause.data : null;
-}
-
-export async function withAiError<T>(action: () => Promise<T>): Promise<T> {
-  try {
-    return await action();
-  } catch (reason) {
-    const decoded = decodeAiErrorPayload(reason);
-    if (decoded) {
-      throw new Error(decoded.message, { cause: decoded });
-    }
-    if (reason instanceof Error) throw reason;
-    throw new Error(String(reason), { cause: reason });
-  }
+  const parsed = aiErrorPayloadSchema.safeParse(decodeCommandError(reason));
+  return parsed.success ? parsed.data : null;
 }
 
 export interface AiCompletionRequest {
@@ -50,12 +30,6 @@ export interface AiCompletionRequest {
   instruction: string;
   text: string;
   maxTokens?: number;
-}
-
-export interface AiCompletionResponse {
-  text: string;
-  provider: string;
-  model: string;
 }
 
 function aiCompletionPayload(request: AiCompletionRequest) {
@@ -70,27 +44,14 @@ export async function completeGeneralWithMetadata(
   request: AiCompletionRequest,
 ): Promise<AiCompletionResponse> {
   const target = await loadAiExecutionTarget("knowledge");
-  return withAiError(() =>
-    invoke<AiCompletionResponse>("plugin:ai|complete", {
-      request: {
-        target: aiExecutionTargetPayload(target),
-        maxTokens: request.maxTokens,
-        ...aiCompletionPayload(request),
-      },
-    }),
-  );
+  return invoke<AiCompletionResponse>("plugin:ai|complete", {
+    request: {
+      target: aiExecutionTargetPayload(target),
+      maxTokens: request.maxTokens ?? null,
+      ...aiCompletionPayload(request),
+    } satisfies CompletionCommandRequest,
+  });
 }
-
-export type AiCompletionStreamEvent =
-  | { event: "started"; provider: string; model: string }
-  | { event: "thinking_delta"; text: string }
-  | { event: "delta"; text: string }
-  | {
-      event: "usage";
-      prompt_tokens: number;
-      completion_tokens: number;
-      total_tokens: number;
-    };
 
 export async function cancelAiJob(jobId: string): Promise<void> {
   return invoke<void>("plugin:ai|cancel_job", { jobId });

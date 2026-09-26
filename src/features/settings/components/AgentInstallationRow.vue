@@ -12,7 +12,6 @@ const props = defineProps<{
   agent: AgentDescriptor;
   installation?: AgentInstallation | undefined;
   enabled: boolean;
-  protected: boolean;
   checking: boolean;
   checkFailed: boolean;
 }>();
@@ -49,13 +48,7 @@ const statusKey = () => {
         >
           {{ t(statusKey()) }}
         </UiBadge>
-        <UiButton
-          size="sm"
-          :variant="enabled ? 'ghost' : 'secondary'"
-          :disabled="enabled && protected"
-          :title="enabled && protected ? t('settings.ai.desktopAgentInUse') : undefined"
-          @click="emit('toggle', !enabled)"
-        >
+        <UiButton size="sm" :variant="enabled ? 'ghost' : 'secondary'" @click="emit('toggle', !enabled)">
           {{ t(enabled ? "settings.ai.desktopAgentDisable" : "settings.ai.desktopAgentEnable") }}
         </UiButton>
       </div>

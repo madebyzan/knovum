@@ -8,7 +8,7 @@ import {
   restoreRelation,
   restoreRelations,
   updateRelation,
-} from "../../knowledge/relations/relation-repository";
+} from "../../knowledge/relations/relation-operations";
 import { canonicalRelationEndpoints } from "../../model/relations/relation";
 import type { SpaceRelation, SpaceRelationKind } from "../../model/relations/relation";
 

@@ -1,9 +1,10 @@
+use super::contracts;
 use std::sync::Arc;
 
 use tauri::{ipc::Channel, AppHandle};
 
 use crate::ai::{
-    capabilities, contracts,
+    capabilities,
     error::{AiError, AiResult},
     executions,
 };
@@ -14,7 +15,7 @@ pub(super) async fn run(
     request: contracts::AgentCreationRequest,
     on_event: Channel<contracts::AgentCreationEvent>,
     workspace: &std::path::Path,
-) -> AiResult<Vec<contracts::AgentArtifact>> {
+) -> AiResult<Vec<crate::ai::contracts::AgentArtifact>> {
     capabilities::agent_artifacts::prepare(workspace)?;
     let (cancellation, _lease) =
         executions::acquire(request.session_id.clone()).map_err(AiError::from)?;

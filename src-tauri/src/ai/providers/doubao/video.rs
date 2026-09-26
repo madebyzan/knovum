@@ -1,3 +1,4 @@
+use crate::ai::transport::response;
 use futures::future::BoxFuture;
 use serde::Deserialize;
 use tokio_util::sync::CancellationToken;
@@ -74,10 +75,9 @@ impl VideoGenerationCapability for DoubaoVideoAdapter {
                 .await
                 .map_err(provider_err)?
                 .error_for_status()
-                .map_err(provider_err)?
-                .json::<TaskSubmitResponse>()
-                .await
                 .map_err(provider_err)?;
+            let submission_response: TaskSubmitResponse =
+                response::read_json(submission_response, response::MAX_CONTROL_JSON_BYTES).await?;
 
             if let Some(err) = submission_response.error {
                 let msg = err
@@ -115,10 +115,9 @@ impl VideoGenerationCapability for DoubaoVideoAdapter {
                 .await
                 .map_err(provider_err)?
                 .error_for_status()
-                .map_err(provider_err)?
-                .json::<TaskStatusResponse>()
-                .await
                 .map_err(provider_err)?;
+            let query_response: TaskStatusResponse =
+                response::read_json(query_response, response::MAX_CONTROL_JSON_BYTES).await?;
 
             if let Some(err) = query_response.error {
                 let msg = err

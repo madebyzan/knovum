@@ -2,11 +2,11 @@ import { nextTick } from "vue";
 
 import { clearSpaceHistory } from "../history/stack";
 import { releaseKnowledgeIndex, scheduleSpaceKnowledgeIndex } from "../knowledge/indexing/index-scheduler";
-import { loadSpaceSessionProjection } from "../session/space-projection-repository";
+import { loadSpaceSessionProjection } from "../session/space-projection";
 import { activateDraftSpace, createDraftSpace } from "./draft-space-actions";
 import { recordWorkspaceNavigation, removeWorkspaceNavigation } from "./navigation-history";
 import { createAndTrackSpace, markSpaceOpenedAndTrack } from "./space-creation";
-import { listSpaces } from "./space-repository";
+import { listSpaces } from "./space-operations";
 import type { LoadSpaceOptions, SpaceSessionContext } from "./space-session-context";
 import { transitionActiveSpaceSession } from "./space-transition";
 

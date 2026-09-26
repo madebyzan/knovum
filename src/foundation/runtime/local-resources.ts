@@ -1,41 +1,15 @@
-import { Channel, invoke } from "@tauri-apps/api/core";
+import type { ModelKind } from "../../shared/contracts/generated/ModelKind";
+export type { ModelKind } from "../../shared/contracts/generated/ModelKind";
 
-export type ModelKind =
-  | "transcription"
-  | "transcriptionVad"
-  | "textEmbeddingConfig"
-  | "textEmbeddingTokenizer"
-  | "textEmbeddingWeights";
+import type { LocalResourcesStatus } from "../../shared/contracts/generated/LocalResourcesStatus";
+export type { LocalResourcesStatus } from "../../shared/contracts/generated/LocalResourcesStatus";
+import type { ModelDownloadProgress as ModelInstallProgress } from "../../shared/contracts/generated/ModelDownloadProgress";
+export type { ModelDownloadProgress as ModelInstallProgress } from "../../shared/contracts/generated/ModelDownloadProgress";
+import type { ModelInstallSnapshot } from "../../shared/contracts/generated/ModelInstallSnapshot";
+export type { ModelInstallSnapshot } from "../../shared/contracts/generated/ModelInstallSnapshot";
+import { Channel } from "@tauri-apps/api/core";
 
-interface ToolStatus {
-  available: boolean;
-  path: string | null;
-}
-interface LocalModelStatus {
-  installed: boolean;
-  verified: boolean;
-  path: string;
-  size?: number;
-  downloadSize: number;
-}
-export interface LocalResourcesStatus {
-  platform: string;
-  ffmpeg: ToolStatus;
-  ytDlp: ToolStatus;
-  deno: ToolStatus;
-  whisperCli: ToolStatus;
-  models: Record<ModelKind, LocalModelStatus>;
-}
-export interface ModelInstallProgress {
-  downloaded: number;
-  total?: number;
-  percent?: number;
-}
-export interface ModelInstallSnapshot {
-  jobId: string;
-  models: ModelKind[];
-  startedAt: number;
-}
+import { invokeCommand as invoke } from "../ipc/invoke-command";
 
 export function getLocalResourcesStatus(): Promise<LocalResourcesStatus> {
   return invoke("plugin:local-resources|get_status");
