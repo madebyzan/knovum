@@ -1,13 +1,13 @@
 import { z } from "zod";
 
-import { spaceMediaAnalysisSchema } from "../../../media/analysis-schema";
-import { spaceMediaKnowledgeSchema } from "../../../media/knowledge-schema";
-import { spaceMediaOriginSchema } from "../../../media/origin";
-import { spaceVisualKnowledgeSchema } from "../../../media/visual-knowledge-schema";
+import { spaceMediaAnalysisSchema } from "../../../media/schema/analysis";
+import { spaceMediaKnowledgeSchema } from "../../../media/schema/knowledge";
+import { spaceMediaOriginSchema } from "../../../media/schema/origin";
+import { spaceVisualKnowledgeSchema } from "../../../media/schema/visual-knowledge";
 import { baseSpaceNodeFields } from "./base-fields";
 import { documentCoverageSchema } from "./document-coverage";
-import { imageEditSchema } from "./image-edit-schema";
-import { videoEditProjectSchema } from "./video-edit-schema";
+import { imageEditSchema } from "./image-edit";
+import { videoEditProjectSchema } from "./video-edit";
 
 const assetFields = {
   assetPath: z.string().min(1).max(4096),

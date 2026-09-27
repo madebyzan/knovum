@@ -2,18 +2,18 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { availableExecutionTargets } from "../../../foundation/ai/ai-execution";
+import { decodeExecutionTarget, encodeExecutionTarget } from "../../../foundation/ai/execution-target-codec";
 import type {
   AgentDescriptor,
   AgentInstallation,
   DesktopAgentSettings,
-} from "../../../foundation/ai/agent-models";
-import { availableExecutionTargets } from "../../../foundation/ai/ai-execution";
+} from "../../../foundation/ai/schema/agents";
 import type {
   AiConnectionSettings,
   AiRoutingDefaults,
   AiRoutingPurpose,
-} from "../../../foundation/ai/ai-models";
-import { decodeExecutionTarget, encodeExecutionTarget } from "../../../foundation/ai/execution-target-codec";
+} from "../../../foundation/ai/schema/models";
 import UiSelect from "../../../shared/ui/UiSelect.vue";
 import PreferenceField from "./PreferenceField.vue";
 import SettingsSection from "./SettingsSection.vue";

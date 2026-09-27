@@ -3,7 +3,7 @@ import type { KnowledgeChangeSet } from "../../contracts/generated/KnowledgeChan
 import type { SpaceKnowledgeHealthIssue } from "../model/health";
 import type { SpaceKnowledgeObjectType } from "../model/object-types";
 import type { SpaceKnowledgeEvent, SpaceProvenance } from "../model/provenance";
-import type { KnowledgeLocator } from "../model/schema";
+import type { KnowledgeLocator } from "../model/schema/chunk";
 
 export interface ObjectTypeWriteInput {
   id: string;

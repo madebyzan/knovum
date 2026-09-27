@@ -1,5 +1,5 @@
 import type { SpaceRelation } from "../../model/relations/relation";
-import type { StructureLayout, StructureNodeId } from "../../model/structure/structure-contract";
+import type { StructureLayout, StructureNodeId } from "../../model/structure/schema/structure";
 import { visibleRepresentativeForNode } from "../../model/structure/structure-queries";
 import type { validateStructureSnapshot } from "../../model/structure/structure-validation";
 import type { ProjectedRelation } from "./structure-scene";

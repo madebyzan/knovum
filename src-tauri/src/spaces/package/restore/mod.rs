@@ -5,7 +5,7 @@ pub(super) mod contracts;
 
 use crate::spaces::{
     db,
-    knowledge::{contracts as knowledge_contracts, types},
+    knowledge::{contracts as knowledge_contracts, object_types},
 };
 use contracts::RestorePackageRequest;
 use validation::validate_request_shape;
@@ -111,7 +111,7 @@ async fn insert_object_types(
     request: &RestorePackageRequest,
 ) -> Result<(), String> {
     for row in &request.object_types {
-        types::validate_custom_type_definition(
+        object_types::validate_custom_type_definition(
             &row.id,
             &row.name,
             &row.icon,

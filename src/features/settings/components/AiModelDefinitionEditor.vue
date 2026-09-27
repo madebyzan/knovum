@@ -4,7 +4,7 @@ import { uniq } from "es-toolkit";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import type { AiModelCapability, AiModelDefinition } from "../../../foundation/ai/ai-models";
+import type { AiModelCapability, AiModelDefinition } from "../../../foundation/ai/schema/models";
 import UiCheckbox from "../../../shared/ui/UiCheckbox.vue";
 import UiIconButton from "../../../shared/ui/UiIconButton.vue";
 import UiInput from "../../../shared/ui/UiInput.vue";

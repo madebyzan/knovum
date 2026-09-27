@@ -1,4 +1,4 @@
-import type { CanvasNodeFrame } from "../../contract/canvas-document";
+import type { CanvasNodeFrame } from "../../schema/document";
 import type { CanvasGestureFeedback, CanvasSnapGuide } from "./canvas-snapping";
 
 const MEASUREMENT_EXTENSION_PX = 120;

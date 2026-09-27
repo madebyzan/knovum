@@ -1,4 +1,4 @@
-import type { KnowledgeLocator } from "../knowledge/model/schema";
+import type { KnowledgeLocator } from "../knowledge/model/schema/chunk";
 
 interface ProseMirrorNode {
   type: { name: string };

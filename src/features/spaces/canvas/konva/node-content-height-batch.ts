@@ -1,7 +1,7 @@
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
-import type { CanvasNodeLayoutV1, CanvasNodeSizeAuthority } from "../contract/canvas-document";
 import type { CanvasContentHeightMeasurement } from "../contract/canvas-editor-port";
 import { spaceNodeMinimumContentHeight, spaceNodeUsesContentFitHeight } from "../node-size";
+import type { CanvasNodeLayoutV1, CanvasNodeSizeAuthority } from "../schema/document";
 
 export interface FittedContentHeight {
   contentRevision: string | null;

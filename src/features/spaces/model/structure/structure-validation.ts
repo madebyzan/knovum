@@ -1,10 +1,10 @@
-import type { StructureLayout, StructureNode } from "./structure-contract";
+import type { StructureLayout, StructureNode } from "./schema/structure";
 import {
   structureLayoutSchema,
   MAX_STRUCTURE_NODES,
   MAX_STRUCTURE_DEPTH,
   structureNodeSchema,
-} from "./structure-contract";
+} from "./schema/structure";
 import { createStructureIndex, type StructureIndex } from "./structure-index";
 import { contentWorldBounds } from "./world-bounds";
 import { composeTransforms, localTransformOf } from "./world-transform";

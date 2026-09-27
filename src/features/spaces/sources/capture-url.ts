@@ -4,7 +4,7 @@ import { toast } from "vue-sonner";
 import { i18n } from "../../../foundation/i18n/i18n";
 import { removeSpaceAssets } from "../assets/asset-operations";
 import { acquireMediaSource, MediaImportCancelledError } from "../media/import/acquisition";
-import type { MediaImportProgress } from "../media/import/contract";
+import type { MediaImportProgress } from "../media/import/schema/import";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
 import { addSavedWebsite } from "../website/capture";

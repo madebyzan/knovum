@@ -6,7 +6,7 @@ import { projectStructureScene } from "../canvas/document/structure-scene-projec
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { describeSpaceNode } from "../model/nodes/node-description";
 import type { SpaceRelation } from "../model/relations/relation";
-import type { SpaceEditSnapshot } from "../model/structure/edit-snapshot";
+import type { SpaceEditSnapshot } from "../model/structure/schema/edit-snapshot";
 import type {
   CanvasExchangeExport,
   CanvasExchangePort,

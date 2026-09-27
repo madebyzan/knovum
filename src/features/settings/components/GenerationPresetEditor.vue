@@ -2,8 +2,8 @@
 import { computed, onMounted, ref, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import type { AiRoutingPurpose, GenerationPreset } from "../../../foundation/ai/ai-models";
 import AiExecutionTargetField from "../../../foundation/ai/AiExecutionTargetField.vue";
+import type { AiRoutingPurpose, GenerationPreset } from "../../../foundation/ai/schema/models";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiDialog from "../../../shared/ui/UiDialog.vue";
 import UiInput from "../../../shared/ui/UiInput.vue";

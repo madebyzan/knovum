@@ -1,5 +1,5 @@
 import { formatDurationMs } from "../../media/format-duration";
-import type { KnowledgeLocation, KnowledgeLocator } from "../model/schema";
+import type { KnowledgeLocation, KnowledgeLocator } from "../model/schema/chunk";
 
 export function knowledgeLocationLabel(locator: KnowledgeLocator): string {
   return knowledgeLocationLabelFromLocation(locator.location);

@@ -1,7 +1,7 @@
 import { minBy } from "es-toolkit";
 
-import type { CanvasNodeLayoutV1 } from "../../contract/canvas-document";
 import type { CanvasPoint } from "../../contract/canvas-editor";
+import type { CanvasNodeLayoutV1 } from "../../schema/document";
 
 export type CanvasConnectorSide = "top" | "right" | "bottom" | "left";
 

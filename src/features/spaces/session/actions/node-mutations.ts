@@ -8,10 +8,10 @@ import {
   type SpaceMutationContext,
 } from "../../history/mutation-types";
 import { scheduleKnowledgeIndex } from "../../knowledge/indexing/index-scheduler";
-import type { KnowledgeChunkSeed } from "../../knowledge/model/schema";
+import type { KnowledgeChunkSeed } from "../../knowledge/model/schema/chunk";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceNodePayload } from "../../model/nodes/node-payload";
-import { validateSpaceNodePayload } from "../../model/nodes/schema/node-payload";
+import { validateSpaceNodePayload } from "../../model/nodes/node-validation";
 import { createNodes } from "../../nodes/node-operations";
 import { spaceEditOperations } from "../../structure/space-edit-operations";
 import { loadSpaceSessionProjection } from "../space-projection";

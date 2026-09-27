@@ -3,7 +3,7 @@ import type {
   CanvasNodeAppearance,
   CanvasNodeSizeAuthority,
   CanvasRelationColor,
-} from "./canvas-document";
+} from "../schema/document";
 
 export interface CanvasPoint {
   x: number;

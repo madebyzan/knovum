@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { centeredCrop, defaultImageEdit, nextQuarterTurn } from "../image-editing/image-edit";
-import { validateSpaceNodePayload } from "../model/nodes/schema/node-payload";
+import { validateSpaceNodePayload } from "../model/nodes/node-validation";
 
 describe("canvas image editing", () => {
   it("creates centered physical-aspect crops", () => {

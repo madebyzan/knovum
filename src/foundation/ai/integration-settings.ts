@@ -4,13 +4,17 @@ import { isNil } from "es-toolkit";
 import { z } from "zod";
 
 import { invokeCommand } from "../ipc/invoke-command";
-import { aiModelSettingsSchema, defaultAiModelSettings, type AiModelSettings } from "./ai-model-settings";
-import { creationLibrarySchema, defaultCreationLibrary, type CreationLibrary } from "./creation-library";
+import {
+  creationLibrarySchema,
+  defaultCreationLibrary,
+  type CreationLibrary,
+} from "./schema/creation-library";
+import { aiModelSettingsSchema, defaultAiModelSettings, type AiModelSettings } from "./schema/model-settings";
 
-export { defaultAiModelSettings, type AiModelSettings } from "./ai-model-settings";
-export { defaultCreationLibrary, type CreationLibrary } from "./creation-library";
+export { defaultAiModelSettings, type AiModelSettings } from "./schema/model-settings";
+export { defaultCreationLibrary, type CreationLibrary } from "./schema/creation-library";
 
-export type { AiProvider } from "./ai-models";
+export type { AiProvider } from "./schema/models";
 
 const SETTINGS_FILE = "settings.json";
 const settingKeys = { aiModels: "ai.models", creationLibrary: "creation.library" } as const;
@@ -50,20 +54,24 @@ function writeSetting<T>(key: string, schema: z.ZodType<T>, value: T): Promise<v
   });
 }
 
-export const loadAiModelSettings = () =>
-  readSetting(settingKeys.aiModels, aiModelSettingsSchema, defaultAiModelSettings);
+export function loadAiModelSettings() {
+  return readSetting(settingKeys.aiModels, aiModelSettingsSchema, defaultAiModelSettings);
+}
 export async function saveAiModelSettings(value: AiModelSettings) {
   const parsed = aiModelSettingsSchema.parse(value);
   await invokeCommand("plugin:ai|validate_model_settings", { settings: parsed });
   return writeSetting(settingKeys.aiModels, aiModelSettingsSchema, parsed);
 }
-export const resetAiModelSettings = () =>
-  writeSetting(settingKeys.aiModels, aiModelSettingsSchema, defaultAiModelSettings);
-export const loadCreationLibrary = () =>
-  readSetting(settingKeys.creationLibrary, creationLibrarySchema, defaultCreationLibrary);
+export function resetAiModelSettings() {
+  return writeSetting(settingKeys.aiModels, aiModelSettingsSchema, defaultAiModelSettings);
+}
+export function loadCreationLibrary() {
+  return readSetting(settingKeys.creationLibrary, creationLibrarySchema, defaultCreationLibrary);
+}
 export async function saveCreationLibrary(value: CreationLibrary) {
   const parsed = creationLibrarySchema.parse(value);
   return writeSetting(settingKeys.creationLibrary, creationLibrarySchema, parsed);
 }
-export const resetCreationLibrary = () =>
-  writeSetting(settingKeys.creationLibrary, creationLibrarySchema, defaultCreationLibrary);
+export function resetCreationLibrary() {
+  return writeSetting(settingKeys.creationLibrary, creationLibrarySchema, defaultCreationLibrary);
+}

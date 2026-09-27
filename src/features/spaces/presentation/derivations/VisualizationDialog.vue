@@ -3,8 +3,8 @@ import { isString } from "es-toolkit";
 import { computed, reactive, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import type { GenerationPreset } from "../../../../foundation/ai/ai-models";
 import AiExecutionTargetField from "../../../../foundation/ai/AiExecutionTargetField.vue";
+import type { GenerationPreset } from "../../../../foundation/ai/schema/models";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiDialog from "../../../../shared/ui/UiDialog.vue";
 import UiInput from "../../../../shared/ui/UiInput.vue";

@@ -1,5 +1,5 @@
 import type { SpaceRelation } from "../model/relations/relation";
-import type { SpaceEditSnapshot } from "../model/structure/edit-snapshot";
+import type { SpaceEditSnapshot } from "../model/structure/schema/edit-snapshot";
 
 export type JsonCanvasNodeContentV1 =
   | { type: "text"; text: string }

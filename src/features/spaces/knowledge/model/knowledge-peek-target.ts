@@ -1,4 +1,4 @@
-import type { KnowledgeLocator } from "./schema";
+import type { KnowledgeLocator } from "./schema/chunk";
 
 export interface KnowledgePeekTarget {
   nodeId: string;

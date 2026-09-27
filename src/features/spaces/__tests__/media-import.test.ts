@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { importedMediaSchema, mediaImportProgressSchema } from "../media/import/contract";
-import { validateSpaceNodePayload } from "../model/nodes/schema/node-payload";
+import { importedMediaSchema, mediaImportProgressSchema } from "../media/import/schema/import";
+import { validateSpaceNodePayload } from "../model/nodes/node-validation";
 import { classifySpaceUrl } from "../sources/classify-url";
 
 describe("Space media import contracts", () => {

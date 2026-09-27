@@ -1,7 +1,7 @@
 import { createStructureIndex } from "../../model/structure/structure-index";
-import { serializeCanvasAppearance } from "../contract/canvas-document";
-import type { CanvasNodeAppearance } from "../contract/canvas-document";
 import type { CanvasEditorPort } from "../contract/canvas-editor-port";
+import { serializeCanvasAppearance } from "../schema/document";
+import type { CanvasNodeAppearance } from "../schema/document";
 import type { KonvaEditorPortOptions } from "./canvas-editor-port-options";
 import { createCanvasEditorSelection } from "./canvas-editor-selection";
 import { createNodeContentHeightBatch, type FittedContentHeight } from "./node-content-height-batch";

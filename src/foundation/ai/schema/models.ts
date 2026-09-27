@@ -1,12 +1,12 @@
 import { z } from "zod";
 
-import type { AiConnectionSettings } from "../../shared/contracts/generated/AiConnectionSettings";
-import type { AiModelDefinition } from "../../shared/contracts/generated/AiModelDefinition";
+import type { AiConnectionSettings } from "../../../shared/contracts/generated/AiConnectionSettings";
+import type { AiModelDefinition } from "../../../shared/contracts/generated/AiModelDefinition";
 import {
   providerKinds,
   executionCapabilities,
   routingPurposes,
-} from "../../shared/contracts/generated/contract-values";
+} from "../../../shared/contracts/generated/contract-values";
 
 export const aiProviderSchema = z.enum(providerKinds);
 export const aiCapabilitySchema = z.enum(executionCapabilities);
@@ -64,13 +64,13 @@ export const generationPresetSchema = z
   })
   .strict();
 
-export type { ProviderKind as AiProvider } from "../../shared/contracts/generated/ProviderKind";
-export type { ExecutionCapability as AiModelCapability } from "../../shared/contracts/generated/ExecutionCapability";
-export type { RoutingPurpose as AiRoutingPurpose } from "../../shared/contracts/generated/RoutingPurpose";
-export type { AiModelDefinition } from "../../shared/contracts/generated/AiModelDefinition";
-export type { AiConnectionSettings } from "../../shared/contracts/generated/AiConnectionSettings";
-export type { ExecutionTargetRef as ExecutionTarget } from "../../shared/contracts/generated/ExecutionTargetRef";
-export type { AiRoutingDefaults } from "../../shared/contracts/generated/AiRoutingDefaults";
+export type { ProviderKind as AiProvider } from "../../../shared/contracts/generated/ProviderKind";
+export type { ExecutionCapability as AiModelCapability } from "../../../shared/contracts/generated/ExecutionCapability";
+export type { RoutingPurpose as AiRoutingPurpose } from "../../../shared/contracts/generated/RoutingPurpose";
+export type { AiModelDefinition } from "../../../shared/contracts/generated/AiModelDefinition";
+export type { AiConnectionSettings } from "../../../shared/contracts/generated/AiConnectionSettings";
+export type { ExecutionTargetRef as ExecutionTarget } from "../../../shared/contracts/generated/ExecutionTargetRef";
+export type { AiRoutingDefaults } from "../../../shared/contracts/generated/AiRoutingDefaults";
 export type GenerationPreset = z.infer<typeof generationPresetSchema>;
 
 export interface ResolvedAiModelTarget {

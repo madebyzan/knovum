@@ -15,7 +15,7 @@ import {
   type Preferences,
   type TextSizePreference,
   type ThemePreference,
-} from "./preferences-schema";
+} from "./schema/preferences";
 
 export type { DensityPreference, LocalePreference, TextSizePreference, ThemePreference };
 

@@ -5,7 +5,7 @@ import type {
   StructureLayout,
   StructureNode,
   StructureNodeId,
-} from "../../model/structure/structure-contract";
+} from "../../model/structure/schema/structure";
 import type { WorldBounds } from "../../model/structure/world-bounds";
 
 export interface ProjectedContent {

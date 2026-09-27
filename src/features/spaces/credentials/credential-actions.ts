@@ -1,4 +1,4 @@
-import type { SpaceCredential } from "../model/credential";
+import type { SpaceCredential } from "../model/schema/credential";
 import { deleteSpaceCredential, saveSpaceCredential } from "./credential-storage";
 
 export async function commitSpaceCredentialChange(

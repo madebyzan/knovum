@@ -7,9 +7,9 @@ import { useRouter } from "vue-router";
 import UiButton from "../../shared/ui/UiButton.vue";
 import UiSelect from "../../shared/ui/UiSelect.vue";
 import { availableExecutionTargets, defaultExecutionTarget } from "./ai-execution";
-import type { AiRoutingPurpose, ExecutionTarget } from "./ai-models";
 import { useAiSettingsStore } from "./ai-settings-store";
 import { decodeExecutionTarget, encodeExecutionTarget } from "./execution-target-codec";
+import type { AiRoutingPurpose, ExecutionTarget } from "./schema/models";
 
 const props = defineProps<{
   purpose: AiRoutingPurpose;

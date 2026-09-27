@@ -11,7 +11,7 @@ import { useCanvasEditorSession } from "../../canvas/editor-session";
 import { createSourceEvidence } from "../../editor/knowledge-capture";
 import { isSpaceManagedAssetPayload } from "../../model/nodes/capabilities";
 import { useSpaceStore } from "../../session/space-store";
-import type { KnowledgeChunk } from "../model/knowledge-chunk";
+import type { KnowledgeChunk } from "../model/schema/persisted-chunk";
 import { listCurrentKnowledgeChunks } from "../persistence/chunk-operations";
 import { knowledgeLocationLabel } from "../presentation/location-label";
 

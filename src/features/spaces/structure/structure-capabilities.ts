@@ -1,5 +1,5 @@
-import type { SpaceEditSnapshot } from "../model/structure/edit-snapshot";
-import type { StructureNodeId, StructureNode } from "../model/structure/structure-contract";
+import type { SpaceEditSnapshot } from "../model/structure/schema/edit-snapshot";
+import type { StructureNodeId, StructureNode } from "../model/structure/schema/structure";
 import { ancestorsOf, effectiveOperationRoots } from "../model/structure/structure-index";
 import { isStructureNodeEffectivelyLocked } from "../model/structure/structure-queries";
 import { validateStructureSnapshot } from "../model/structure/structure-validation";

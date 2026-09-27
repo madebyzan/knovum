@@ -1,4 +1,4 @@
-import type { SpaceEditSnapshot } from "../model/structure/edit-snapshot";
+import type { SpaceEditSnapshot } from "../model/structure/schema/edit-snapshot";
 import { createStructureIndex } from "../model/structure/structure-index";
 import { boundsForOperationRoots } from "../model/structure/world-bounds";
 import type { SpaceRect } from "./space-edit-command";

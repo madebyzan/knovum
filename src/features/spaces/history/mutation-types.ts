@@ -1,7 +1,7 @@
 import type { Ref } from "vue";
 
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
-import type { SpaceEditSnapshot } from "../model/structure/edit-snapshot";
+import type { SpaceEditSnapshot } from "../model/structure/schema/edit-snapshot";
 import type { SpaceHistoryState } from "./stack";
 
 export interface SpaceMutationContext {

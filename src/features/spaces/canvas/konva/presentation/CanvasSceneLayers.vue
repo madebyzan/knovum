@@ -4,7 +4,7 @@ import { nextTick, onMounted, shallowRef, useTemplateRef } from "vue";
 import { Layer as KonvaLayer } from "vue-konva/core";
 import type { VueKonvaRef } from "vue-konva/core";
 
-import type { CanvasNodeLayoutV1 } from "../../contract/canvas-document";
+import type { CanvasNodeLayoutV1 } from "../../schema/document";
 import type { CanvasGestureFeedback, CanvasSnapGuide } from "../interaction/canvas-snapping";
 import type { CanvasConnectorDraft, CanvasConnectorSide } from "../interaction/connector-gesture-controller";
 import type { CanvasScene, CanvasSceneRelation } from "../scene/scene-projection";

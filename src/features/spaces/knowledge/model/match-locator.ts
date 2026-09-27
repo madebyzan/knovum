@@ -1,5 +1,5 @@
-import type { KnowledgeSearchMatch } from "./knowledge-search-match";
-import type { KnowledgeChunkKind, KnowledgeLocation } from "./schema";
+import type { KnowledgeChunkKind, KnowledgeLocation } from "./schema/chunk";
+import type { KnowledgeSearchMatch } from "./schema/search-match";
 
 export type SpaceMatchLocator =
   | { kind: "node" }

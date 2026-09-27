@@ -5,10 +5,10 @@ import { CollapsibleContent, CollapsibleRoot, CollapsibleTrigger } from "reka-ui
 import { computed, reactive, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { aiConnectionSecretKey, type AiConnectionSettings } from "../../../foundation/ai/ai-models";
 import { encodeExecutionTarget } from "../../../foundation/ai/execution-target-codec";
 import type { AiProvider } from "../../../foundation/ai/integration-settings";
 import { requireProvider, type ProviderDescriptor } from "../../../foundation/ai/providers";
+import { aiConnectionSecretKey, type AiConnectionSettings } from "../../../foundation/ai/schema/models";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiIconButton from "../../../shared/ui/UiIconButton.vue";
 import UiInput from "../../../shared/ui/UiInput.vue";

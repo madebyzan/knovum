@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { httpUrlSchema } from "../model/nodes/schema/content";
+import { httpUrlSchema } from "../../model/nodes/schema/content";
 
 export const spaceMediaOriginSchema = z
   .object({

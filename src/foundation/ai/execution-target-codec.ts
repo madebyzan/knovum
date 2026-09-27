@@ -1,4 +1,4 @@
-import { executionTargetSchema, type ExecutionTarget } from "./ai-models";
+import { executionTargetSchema, type ExecutionTarget } from "./schema/models";
 
 export const encodeExecutionTarget = (target: ExecutionTarget) =>
   JSON.stringify({

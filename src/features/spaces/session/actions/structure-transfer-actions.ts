@@ -2,7 +2,7 @@ import type { Ref } from "vue";
 
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceRelation } from "../../model/relations/relation";
-import type { SpaceEditSnapshot } from "../../model/structure/edit-snapshot";
+import type { SpaceEditSnapshot } from "../../model/structure/schema/edit-snapshot";
 import { spaceEditOperations } from "../../structure/space-edit-operations";
 import { moveStructureSelectionBetweenSpaces } from "../../structure/structure-transfer-operations";
 import { loadSpaceSessionProjection } from "../space-projection";

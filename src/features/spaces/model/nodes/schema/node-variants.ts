@@ -2,8 +2,8 @@ import { compact } from "es-toolkit";
 import { z } from "zod";
 
 import { KNOWLEDGE_OBJECT_STATUSES } from "../../../knowledge/model/object-types";
-import { spaceSubtitleCueSchema } from "../../../media/knowledge-schema";
-import { SPACE_CREDENTIAL_KINDS } from "../../credential";
+import { spaceSubtitleCueSchema } from "../../../media/schema/knowledge";
+import { SPACE_CREDENTIAL_KINDS } from "../../schema/credential";
 import { baseSpaceNodeFields } from "./base-fields";
 import { tiptapContentSchema } from "./content";
 import { spaceResourceNodeSchemas } from "./resource-variants";

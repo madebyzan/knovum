@@ -1,6 +1,6 @@
 import type Konva from "konva";
 
-import type { CanvasNodeFrameUpdate, CanvasNodeLayoutV1 } from "../../contract/canvas-document";
+import type { CanvasNodeFrameUpdate, CanvasNodeLayoutV1 } from "../../schema/document";
 import { captureCanvasNodeRefs } from "./canvas-node-access";
 import {
   createCanvasTranslationSnapIndex,

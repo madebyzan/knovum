@@ -31,7 +31,7 @@ pub async fn list_object_types<R: Runtime>(
     ).bind(space_id).fetch_all(pool).await.map_err(db::sql_error)?;
     Ok((rows
         .into_iter()
-        .map(row_to_json)
+        .map(decode_object_type)
         .collect::<Result<_, String>>())?)
 }
 
@@ -160,8 +160,8 @@ async fn validate_existing_objects(
     Ok(())
 }
 
-mod rows;
+mod decode;
 mod validation;
-use rows::row_to_json;
+use decode::decode_object_type;
 pub(crate) use validation::validate_custom_type_definition;
 use validation::validate_input;

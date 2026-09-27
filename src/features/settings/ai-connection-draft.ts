@@ -1,4 +1,4 @@
-import type { AiConnectionSettings, AiModelDefinition } from "../../foundation/ai/ai-models";
+import type { AiConnectionSettings, AiModelDefinition } from "../../foundation/ai/schema/models";
 
 function copyModel(model: AiModelDefinition): AiModelDefinition {
   return {

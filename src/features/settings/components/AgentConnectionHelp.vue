@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
 
-import type { AgentDescriptor } from "../../../foundation/ai/agent-models";
+import type { AgentDescriptor } from "../../../foundation/ai/schema/agents";
 import UiPopover from "../../../shared/ui/UiPopover.vue";
 import AgentConnectionRequirements from "./AgentConnectionRequirements.vue";
 

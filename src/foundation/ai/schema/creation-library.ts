@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { generationPresetSchema } from "./ai-models";
+import { generationPresetSchema } from "./models";
 
 export const creationLibrarySchema = z
   .object({

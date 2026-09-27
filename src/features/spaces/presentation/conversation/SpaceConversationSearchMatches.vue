@@ -3,7 +3,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { z } from "zod";
 
-import { knowledgeLocatorSchema } from "../../knowledge/model/schema";
+import { knowledgeLocatorSchema } from "../../knowledge/model/schema/chunk";
 import { useSpaceStore } from "../../session/space-store";
 
 const props = defineProps<{ value: unknown }>();

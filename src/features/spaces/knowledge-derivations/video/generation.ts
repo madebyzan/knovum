@@ -2,7 +2,7 @@ import { Channel } from "@tauri-apps/api/core";
 import { toast } from "vue-sonner";
 
 import { loadAiExecutionTarget, aiExecutionTargetPayload } from "../../../../foundation/ai/ai-execution";
-import type { ExecutionTarget } from "../../../../foundation/ai/ai-models";
+import type { ExecutionTarget } from "../../../../foundation/ai/schema/models";
 import { i18n } from "../../../../foundation/i18n/i18n";
 import { invokeCommand } from "../../../../foundation/ipc/invoke-command";
 import { useTaskStore } from "../../../../foundation/tasks/task-store";

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import type { CanvasNodeLayoutV1 } from "../canvas/contract/canvas-document";
 import { canvasLayoutBounds } from "../canvas/document/canvas-layout-bounds";
+import type { CanvasNodeLayoutV1 } from "../canvas/schema/document";
 
 describe("canvas layout bounds", () => {
   it("projects the outer bounds used by viewport navigation", () => {

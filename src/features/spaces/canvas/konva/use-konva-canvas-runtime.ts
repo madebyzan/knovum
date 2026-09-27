@@ -2,8 +2,8 @@ import type Konva from "konva";
 import { computed, shallowRef, useTemplateRef } from "vue";
 import type { VueKonvaRef } from "vue-konva/core";
 
-import type { CanvasDocumentV1 } from "../contract/canvas-document";
 import type { CanvasSurfaceProps } from "../contract/canvas-surface";
+import type { CanvasDocumentV1 } from "../schema/document";
 import { CanvasDocumentModel } from "./document/canvas-document-model";
 import { useCanvasDocumentSync } from "./document/use-canvas-document-sync";
 import { createCanvasGestureSession } from "./interaction/canvas-gesture-session";

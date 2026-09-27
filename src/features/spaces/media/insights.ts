@@ -2,7 +2,7 @@ import { Channel } from "@tauri-apps/api/core";
 
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import type { MediaTranscriptionProgress } from "../contracts/generated/MediaTranscriptionProgress";
-import { validateSpaceNodePayload } from "../model/nodes/schema/node-payload";
+import { validateSpaceNodePayload } from "../model/nodes/node-validation";
 
 export async function generateMediaInsights(
   input: { spaceId: string; nodeId: string; jobId: string; expectedRevision: string },

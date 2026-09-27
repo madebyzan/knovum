@@ -1,4 +1,4 @@
-import type { KnowledgeLocator } from "./schema";
+import type { KnowledgeLocator } from "./schema/chunk";
 
 type SpaceProvenanceStatus = "active" | "superseded" | "invalidated";
 export type SpaceProvenanceTargetKind = "node" | "relation";

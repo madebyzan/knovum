@@ -1,7 +1,7 @@
 import type Konva from "konva";
 import { computed, shallowRef, type Ref } from "vue";
 
-import type { CanvasNodeLayoutV1 } from "../../contract/canvas-document";
+import type { CanvasNodeLayoutV1 } from "../../schema/document";
 import { selectionRectIntersects } from "./selection-geometry";
 
 export function useCanvasMarqueeSelection(options: {

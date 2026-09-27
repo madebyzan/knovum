@@ -4,9 +4,9 @@ import { refreshEnrichmentTasks } from "../../enrichment/job-observation";
 import { beginSpaceMutation } from "../../history/mutation-barrier";
 import { requireActiveSpaceId, type SpaceMutationContext } from "../../history/mutation-types";
 import { scheduleKnowledgeIndex } from "../../knowledge/indexing/index-scheduler";
-import type { KnowledgeChunkSeed } from "../../knowledge/model/schema";
+import type { KnowledgeChunkSeed } from "../../knowledge/model/schema/chunk";
 import type { SpaceNodePayload } from "../../model/nodes/node-payload";
-import { validateSpaceNodePayload } from "../../model/nodes/schema/node-payload";
+import { validateSpaceNodePayload } from "../../model/nodes/node-validation";
 import {
   discardPendingContent as persistPendingContentDiscard,
   updateNodePayload,

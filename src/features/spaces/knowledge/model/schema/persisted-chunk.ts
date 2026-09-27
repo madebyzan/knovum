@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { knowledgeChunkSeedSchema, knowledgeTimestampSchema } from "./schema";
+import { knowledgeChunkSeedSchema, knowledgeTimestampSchema } from "./chunk";
 
 const knowledgeChunkOriginSchema = z.enum(["node", "source", "media", "derived"]);
 

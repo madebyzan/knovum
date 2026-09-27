@@ -2,16 +2,16 @@ import { compact } from "es-toolkit";
 import { writeHtmlAndText } from "tauri-plugin-clipboard-api";
 import { z } from "zod";
 
-import { validateSpaceNodePayload } from "../model/nodes/schema/node-payload";
-import { toSpaceRelation } from "../model/relations/relation-schema";
+import { validateSpaceNodePayload } from "../model/nodes/node-validation";
+import { toSpaceRelation } from "../model/relations/schema/relation";
 import {
   MAX_STRUCTURE_NODES,
   structureLayoutSchema,
   structureNodeSchema,
-} from "../model/structure/structure-contract";
+} from "../model/structure/schema/structure";
 import { validateStructureSnapshot } from "../model/structure/structure-validation";
 import type { SpaceClipboardPayload } from "./payload-types";
-import { clipboardRelationSchema } from "./relation-schema";
+import { clipboardRelationSchema } from "./schema/relation";
 
 const HTML_MARKER = /<!--knovum-spaces:([^>]*)-->/u;
 const MAX_CLIPBOARD_BYTES = 8 * 1024 * 1024;

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
 
-import type { SpaceCredential } from "../model/credential";
+import type { SpaceCredential } from "../model/schema/credential";
 import type { Space } from "../model/space";
 import { createTestSessionContext, createTestSpace } from "../test-support/session-context";
 import { archiveSpace, permanentlyDeleteSpace, unarchiveSpace } from "../workspace/archive-actions";

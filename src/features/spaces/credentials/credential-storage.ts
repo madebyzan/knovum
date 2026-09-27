@@ -1,6 +1,6 @@
 import { deleteSecret, getSecret, setSecret } from "../../../foundation/secrets/secret-store";
-import { spaceCredentialSchema } from "../model/credential";
-import type { SpaceCredential } from "../model/credential";
+import { spaceCredentialSchema } from "../model/schema/credential";
+import type { SpaceCredential } from "../model/schema/credential";
 
 function secretKey(nodeId: string) {
   if (!/^[\w-]{1,80}$/u.test(nodeId)) throw new Error("Invalid credential node id");

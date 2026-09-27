@@ -3,9 +3,9 @@ import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { toast } from "vue-sonner";
 
-import type { AgentKind } from "../../../foundation/ai/agent-models";
 import { cancelAiJob } from "../../../foundation/ai/ai-runtime";
 import { useAiSettingsStore } from "../../../foundation/ai/ai-settings-store";
+import type { AgentKind } from "../../../foundation/ai/schema/agents";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import { useSpaceStore } from "../session/space-store";
 import {

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
 
-import type { ExecutionTarget, GenerationPreset } from "../../../../foundation/ai/ai-models";
+import type { ExecutionTarget, GenerationPreset } from "../../../../foundation/ai/schema/models";
 import CreationLibraryRecordField from "./CreationLibraryRecordField.vue";
 
 interface GenerationPresetFieldProps {

@@ -1,4 +1,4 @@
-import type { CanvasNodeFrame } from "./contract/canvas-document";
+import type { CanvasNodeFrame } from "./schema/document";
 
 export interface CanvasBounds {
   bottom: number;

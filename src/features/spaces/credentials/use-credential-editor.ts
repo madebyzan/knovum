@@ -2,8 +2,8 @@ import { useToggle } from "@vueuse/core";
 import { computed, onScopeDispose, shallowRef, watch } from "vue";
 import { toast } from "vue-sonner";
 
-import { commitSpaceCredentialChange } from "../credentials/credential-actions";
 import type { SpaceCredentialPayload } from "../model/nodes/node-payload";
+import { commitSpaceCredentialChange } from "./credential-actions";
 import { loadSpaceCredential } from "./credential-storage";
 
 interface CredentialEditorOptions {

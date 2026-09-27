@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { clipboardRelationSchema } from "../clipboard/relation-schema";
-import { relationSchema, toSpaceRelation } from "../model/relations/relation-schema";
+import { clipboardRelationSchema } from "../clipboard/schema/relation";
+import { relationSchema, toSpaceRelation } from "../model/relations/schema/relation";
 
 const relation = {
   id: "r",

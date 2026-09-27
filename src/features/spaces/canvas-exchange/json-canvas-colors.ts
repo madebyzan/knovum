@@ -1,4 +1,4 @@
-import type { CanvasNodeAppearance } from "../canvas/contract/canvas-document";
+import type { CanvasNodeAppearance } from "../canvas/schema/document";
 
 type CanvasFillPreset = NonNullable<CanvasNodeAppearance["fill"]>;
 

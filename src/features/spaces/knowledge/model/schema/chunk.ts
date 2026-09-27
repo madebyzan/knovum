@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { maxKnowledgePassageBytes } from "../../contracts/generated/contract-values";
+import { maxKnowledgePassageBytes } from "../../../contracts/generated/contract-values";
 
 const encoder = new TextEncoder();
 

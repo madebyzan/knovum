@@ -4,8 +4,8 @@ import { describe, expect, it } from "vitest";
 import { createSpaceNotePayload, createSpaceTextPayload } from "../editor/tiptap-content";
 import type { TiptapJsonNode } from "../editor/tiptap-document";
 import { createCanvasTextExtensions } from "../editor/tiptap-extensions";
+import { validateSpaceNodePayload } from "../model/nodes/node-validation";
 import { tiptapContentSchema } from "../model/nodes/schema/content";
-import { validateSpaceNodePayload } from "../model/nodes/schema/node-payload";
 import { canvasTextHtml } from "../presentation/canvas/nodes/canvas-text-html";
 
 describe("spaces Tiptap content", () => {

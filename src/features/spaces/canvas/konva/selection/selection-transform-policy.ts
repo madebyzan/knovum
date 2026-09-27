@@ -1,5 +1,5 @@
-import { CANVAS_TYPOGRAPHY_SCALE_MAX, CANVAS_TYPOGRAPHY_SCALE_MIN } from "../../contract/canvas-document";
 import type { SpaceNodeResizeMode } from "../../node-size";
+import { CANVAS_TYPOGRAPHY_SCALE_MAX, CANVAS_TYPOGRAPHY_SCALE_MIN } from "../../schema/document";
 import type { CanvasSceneNode } from "../scene/scene-projection";
 
 export interface CanvasSelectionTransformPolicy {

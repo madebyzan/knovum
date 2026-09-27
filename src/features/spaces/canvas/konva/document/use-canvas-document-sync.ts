@@ -1,6 +1,6 @@
 import { watch } from "vue";
 
-import type { CanvasDocumentV1 } from "../../contract/canvas-document";
+import type { CanvasDocumentV1 } from "../../schema/document";
 import type { CanvasDocumentModel } from "./canvas-document-model";
 import { sameCanvasViewport } from "./canvas-document-mutations";
 

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { relationSchema, validateRelationLifecycle } from "../model/relations/relation-schema";
+import { relationSchema, validateRelationLifecycle } from "../../model/relations/schema/relation";
 
 /** Copied Relations come from the domain, which omits absent optionals instead of storing null. */
 export const clipboardRelationSchema = z

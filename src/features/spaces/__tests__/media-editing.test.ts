@@ -7,7 +7,7 @@ import {
   mediaKnowledgeIsStale,
   shiftMediaChapterStart,
 } from "../media/knowledge-editing";
-import type { SpaceMediaKnowledge } from "../media/knowledge-schema";
+import type { SpaceMediaKnowledge } from "../media/schema/knowledge";
 
 function knowledge(): SpaceMediaKnowledge {
   return {

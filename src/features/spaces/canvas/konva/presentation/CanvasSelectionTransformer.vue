@@ -7,7 +7,7 @@ import type { VueKonvaRef } from "vue-konva/core";
 import "konva/lib/shapes/Transformer";
 
 import { canvasChromeMetrics } from "../../canvas-chrome-metrics";
-import type { CanvasNodeFrame } from "../../contract/canvas-document";
+import type { CanvasNodeFrame } from "../../schema/document";
 import { captureCanvasNodeRefs } from "../interaction/canvas-node-access";
 import type { CanvasSnapGuide } from "../interaction/canvas-snapping";
 import {

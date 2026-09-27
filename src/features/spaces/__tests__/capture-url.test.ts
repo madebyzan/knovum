@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { MediaImportProgress } from "../media/import/contract";
+import type { MediaImportProgress } from "../media/import/schema/import";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceMediaPayload } from "../model/nodes/capabilities";
 import {

@@ -9,7 +9,7 @@ import UiDropdownMenu from "../../../../shared/ui/UiDropdownMenu.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiMarkdown from "../../../../shared/ui/UiMarkdown.vue";
 import type { AssistantMessage } from "../../conversation/conversation-ipc";
-import { groundedCitationSchema } from "../../knowledge/model/grounded-citation";
+import { groundedCitationSchema } from "../../knowledge/model/schema/grounded-citation";
 import { useSpaceStore } from "../../session/space-store";
 import { captureActionLabel } from "../workflows/workflow-capture-labels";
 import SpaceConversationMessageAttachments from "./SpaceConversationMessageAttachments.vue";

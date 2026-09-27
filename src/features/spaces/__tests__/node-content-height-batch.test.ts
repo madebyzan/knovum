@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { CanvasNodeLayoutV1 } from "../canvas/contract/canvas-document";
 import {
   createNodeContentHeightBatch,
   type FittedContentHeight,
 } from "../canvas/konva/node-content-height-batch";
 import { createSpaceNode } from "../canvas/node";
+import type { CanvasNodeLayoutV1 } from "../canvas/schema/document";
 import { createSpaceTextPayload } from "../editor/tiptap-content";
 
 const node = createSpaceNode(createSpaceTextPayload("Text"), { x: 0, y: 0 }, "text");

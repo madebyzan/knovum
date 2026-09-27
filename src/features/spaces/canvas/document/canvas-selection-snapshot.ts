@@ -1,7 +1,7 @@
 import { compact } from "es-toolkit";
 
-import type { CanvasNodeLayoutV1 } from "../contract/canvas-document";
 import type { CanvasRect, CanvasSelectionSnapshot } from "../contract/canvas-editor-port";
+import type { CanvasNodeLayoutV1 } from "../schema/document";
 import { canvasLayoutBounds } from "./canvas-layout-bounds";
 
 export function createCanvasSelectionSnapshot(

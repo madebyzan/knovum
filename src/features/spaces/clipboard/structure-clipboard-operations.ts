@@ -1,6 +1,6 @@
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceRelation } from "../model/relations/relation";
-import { parseSpaceEditSnapshot, type SpaceEditSnapshot } from "../model/structure/edit-snapshot";
+import { parseSpaceEditSnapshot, type SpaceEditSnapshot } from "../model/structure/schema/edit-snapshot";
 import { invokeConfirmedMutation } from "../structure/confirmed-mutation";
 import type { SpaceClipboardPayload } from "./payload-types";
 

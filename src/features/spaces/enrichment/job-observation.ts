@@ -10,7 +10,7 @@ import {
   type SpaceMediaAnalysisPreviews,
 } from "../media/analysis-preview";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
-import { validateSpaceNodePayload } from "../model/nodes/schema/node-payload";
+import { validateSpaceNodePayload } from "../model/nodes/node-validation";
 import { cancelEnrichmentJob, listEnrichmentJobs, retryEnrichmentJob } from "./enrichment-jobs";
 import { enrichmentJobTitle, failedEnrichmentTask, runningEnrichmentTask } from "./job-tasks";
 

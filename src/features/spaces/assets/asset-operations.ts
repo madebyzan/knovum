@@ -4,7 +4,7 @@ import { error as logError } from "@tauri-apps/plugin-log";
 import { isString, uniq } from "es-toolkit";
 
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
-import type { KnowledgeLocator } from "../knowledge/model/schema";
+import type { KnowledgeLocator } from "../knowledge/model/schema/chunk";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
 import type { ImportedSpaceAsset } from "./imported-asset";
 

@@ -1,7 +1,7 @@
 import { useTimeoutFn } from "@vueuse/core";
 import { onBeforeUnmount, type Ref, type ShallowRef } from "vue";
 
-import type { SpaceEditSnapshot } from "../../model/structure/edit-snapshot";
+import type { SpaceEditSnapshot } from "../../model/structure/schema/edit-snapshot";
 import { sectionDropCandidateId } from "../../structure/section-drop-reparent";
 
 export function useSectionDropPreview(options: {

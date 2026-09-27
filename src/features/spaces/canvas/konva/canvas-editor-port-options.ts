@@ -1,9 +1,9 @@
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceRelation } from "../../model/relations/relation";
-import type { SpaceEditSnapshot } from "../../model/structure/edit-snapshot";
-import type { CanvasNodeFrameUpdate, CanvasNodeLayoutV1 } from "../contract/canvas-document";
+import type { SpaceEditSnapshot } from "../../model/structure/schema/edit-snapshot";
 import type { CanvasSurfaceEvents } from "../contract/canvas-editor";
 import type { CanvasPoint, CanvasRect, CanvasViewport } from "../contract/canvas-editor-port";
+import type { CanvasNodeFrameUpdate, CanvasNodeLayoutV1 } from "../schema/document";
 import type { CanvasDocumentModel } from "./document/canvas-document-model";
 import type { CanvasPalette } from "./presentation/use-canvas-palette";
 import type { CanvasScene } from "./scene/scene-projection";

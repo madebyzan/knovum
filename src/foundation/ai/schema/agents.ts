@@ -1,9 +1,9 @@
 import { z } from "zod";
 
-import type { AgentDescriptor } from "../../shared/contracts/generated/AgentDescriptor";
-import type { AgentInstallation } from "../../shared/contracts/generated/AgentInstallation";
-import { agentKinds } from "../../shared/contracts/generated/contract-values";
-import type { DesktopAgentSettings } from "../../shared/contracts/generated/DesktopAgentSettings";
+import type { AgentDescriptor } from "../../../shared/contracts/generated/AgentDescriptor";
+import type { AgentInstallation } from "../../../shared/contracts/generated/AgentInstallation";
+import { agentKinds } from "../../../shared/contracts/generated/contract-values";
+import type { DesktopAgentSettings } from "../../../shared/contracts/generated/DesktopAgentSettings";
 
 export const agentKindSchema = z.enum(agentKinds);
 
@@ -37,7 +37,7 @@ export const desktopAgentSettingsSchema: z.ZodType<DesktopAgentSettings> = z
   })
   .strict();
 
-export type { AgentKind } from "../../shared/contracts/generated/AgentKind";
-export type { AgentInstallation } from "../../shared/contracts/generated/AgentInstallation";
-export type { AgentDescriptor } from "../../shared/contracts/generated/AgentDescriptor";
-export type { DesktopAgentSettings } from "../../shared/contracts/generated/DesktopAgentSettings";
+export type { AgentKind } from "../../../shared/contracts/generated/AgentKind";
+export type { AgentInstallation } from "../../../shared/contracts/generated/AgentInstallation";
+export type { AgentDescriptor } from "../../../shared/contracts/generated/AgentDescriptor";
+export type { DesktopAgentSettings } from "../../../shared/contracts/generated/DesktopAgentSettings";

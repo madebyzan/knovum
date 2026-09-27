@@ -1,5 +1,5 @@
 import type { SpaceRelation } from "../model/relations/relation";
-import type { StructureLayout } from "../model/structure/structure-contract";
+import type { StructureLayout } from "../model/structure/schema/structure";
 import { jsonColorForCanvasFill } from "./json-canvas-colors";
 import type { JsonCanvasDocumentV1, JsonCanvasNodeV1 } from "./json-canvas-contract";
 import type { JsonCanvasNodeContentV1 } from "./json-canvas-import-contract";

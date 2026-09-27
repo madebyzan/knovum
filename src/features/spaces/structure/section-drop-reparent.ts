@@ -1,6 +1,6 @@
 import { maxBy } from "es-toolkit";
 
-import type { SpaceEditSnapshot } from "../model/structure/edit-snapshot";
+import type { SpaceEditSnapshot } from "../model/structure/schema/edit-snapshot";
 import { createStructureIndex, effectiveOperationRoots } from "../model/structure/structure-index";
 import { boundsForOperationRoots } from "../model/structure/world-bounds";
 import type { SpaceEditCommand, SpacePoint } from "./space-edit-command";
