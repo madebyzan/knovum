@@ -23,7 +23,7 @@ pub(crate) async fn require_paused_checkpoint(
 
 pub(crate) use contract::AssistantPermissionOption;
 pub use contract::{
-    AssistantMode, AssistantTaskAccepted, AssistantTaskUpdate, ConversationSummary,
+    AssistantConversation, AssistantMode, AssistantTaskAccepted, AssistantTaskUpdate,
     StartAssistantTaskRequest, SubmitAssistantTaskRequest,
 };
 pub(crate) use repository::ensure_branch_idle;

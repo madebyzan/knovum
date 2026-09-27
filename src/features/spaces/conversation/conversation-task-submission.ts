@@ -6,7 +6,7 @@ import {
   getAssistantTaskError,
   startAssistantTask,
   type AssistantMessage,
-  type ConversationSummary,
+  type AssistantConversation,
   type StartAssistantTaskInput,
 } from "./conversation-ipc";
 import { observeConversationRun } from "./conversation-run-observation";
@@ -34,7 +34,7 @@ export function createConversationTaskSubmission(options: {
   input: {
     spaceId: Ref<string | undefined>;
     selectedConversationId: Ref<string>;
-    conversation: Ref<ConversationSummary | undefined>;
+    conversation: Ref<AssistantConversation | undefined>;
     prompt: Ref<string>;
     target: Ref<ConversationTarget | undefined>;
     attachments: Ref<Attachment[]>;

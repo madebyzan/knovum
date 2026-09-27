@@ -82,7 +82,7 @@ pub async fn delete_captured_workflow(
 pub async fn start_captured_workflow(
     app: tauri::AppHandle,
     request: capture::StartCapturedWorkflowRequest,
-) -> Result<crate::spaces::runs::RunSummary, CommandError> {
+) -> Result<crate::spaces::runs::RunObservation, CommandError> {
     Ok((capture::start(&app, crate::spaces::db::pool(&app).await?, request).await)?)
 }
 
@@ -106,6 +106,6 @@ pub async fn list_captured_workflow_runs(
 pub async fn start_builtin_workflow(
     app: tauri::AppHandle,
     request: StartBuiltInWorkflowRequest,
-) -> Result<crate::spaces::runs::RunSummary, CommandError> {
+) -> Result<crate::spaces::runs::RunObservation, CommandError> {
     Ok((templates::start(&app, crate::spaces::db::pool(&app).await?, request).await)?)
 }

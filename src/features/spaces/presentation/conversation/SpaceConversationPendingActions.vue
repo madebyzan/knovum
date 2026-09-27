@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import type { ApprovalSummary } from "../../contracts/generated/ApprovalSummary";
 import type { AssistantTaskUpdate } from "../../contracts/generated/AssistantTaskUpdate";
+import type { PendingApproval } from "../../contracts/generated/PendingApproval";
 import SpaceConversationApprovalRequest from "./SpaceConversationApprovalRequest.vue";
 import SpaceConversationPermissionRequest from "./SpaceConversationPermissionRequest.vue";
 
 defineProps<{
   permission?: Extract<AssistantTaskUpdate, { type: "permission_requested" }> | undefined;
   decidingPermission: boolean;
-  approvals: readonly ApprovalSummary[];
+  approvals: readonly PendingApproval[];
   decidingApproval: boolean;
 }>();
 const emit = defineEmits<{

@@ -9,7 +9,7 @@ pub(crate) mod revision;
 mod tests;
 
 pub use execution::{EnrichmentJobOutput, RunEnrichmentJobRequest};
-pub use job::{EnqueueEnrichmentJobRequest, EnrichmentJobRecord};
+pub use job::{EnqueueEnrichmentJobRequest, EnrichmentJobState};
 
 use tauri::{ipc::Channel, AppHandle, Runtime};
 
@@ -42,7 +42,7 @@ pub async fn cancel_enrichment_job<R: Runtime>(
 pub async fn list_enrichment_jobs<R: Runtime>(
     app: AppHandle<R>,
     space_id: String,
-) -> Result<Vec<EnrichmentJobRecord>, CommandError> {
+) -> Result<Vec<EnrichmentJobState>, CommandError> {
     let pool = db::pool(&app).await?;
     Ok((persistence::list_actionable(pool, &space_id).await)?)
 }

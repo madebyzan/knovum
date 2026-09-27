@@ -12,8 +12,8 @@ import { isSpaceManagedAssetPayload } from "../../model/nodes/capabilities";
 import { createStructureIndex } from "../../model/structure/structure-index";
 import { useSpaceStore } from "../../session/space-store";
 import SpaceInspectorSection from "../inspector/SpaceInspectorSection.vue";
-import SpaceGroundedDocumentDetails from "../knowledge/SpaceGroundedDocumentDetails.vue";
-import SpaceDerivationFailureDetails from "./SpaceDerivationFailureDetails.vue";
+import SpaceGroundedDocumentCitations from "../knowledge/SpaceGroundedDocumentCitations.vue";
+import SpaceDerivationFailureRecovery from "./SpaceDerivationFailureRecovery.vue";
 import SpaceDerivationMetadataView from "./SpaceDerivationMetadataView.vue";
 
 const props = defineProps<{ node: SpaceCanvasNode }>();
@@ -72,7 +72,7 @@ async function removeFailedOutput() {
     :icon="TriangleAlert"
     :default-expanded="true"
   >
-    <SpaceDerivationFailureDetails
+    <SpaceDerivationFailureRecovery
       :failure="failure"
       :can-retry="canRetry && operations.allows('edit')"
       :retrying="retrying"
@@ -105,6 +105,6 @@ async function removeFailedOutput() {
     :icon="Sparkles"
     :default-expanded="false"
   >
-    <SpaceGroundedDocumentDetails :metadata="documentMetadata" />
+    <SpaceGroundedDocumentCitations :metadata="documentMetadata" />
   </SpaceInspectorSection>
 </template>

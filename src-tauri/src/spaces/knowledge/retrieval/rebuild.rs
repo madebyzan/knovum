@@ -22,7 +22,7 @@ pub(crate) struct IndexOutput {
     pub indexed: usize,
 }
 
-struct ChunkRow {
+struct KnowledgeChunkSource {
     id: String,
     source_revision: String,
     text: String,
@@ -131,7 +131,7 @@ async fn load_unindexed_chunks<R: Runtime>(
     space_id: &str,
     node_ids_json: Option<&str>,
     limit: i64,
-) -> Result<Vec<ChunkRow>, String> {
+) -> Result<Vec<KnowledgeChunkSource>, String> {
     let pool = db::pool(app).await?;
     let rows = sqlx::query(
         "SELECT c.id,c.source_revision,c.text FROM spaces_current_knowledge_chunks c \
@@ -149,7 +149,7 @@ async fn load_unindexed_chunks<R: Runtime>(
     .map_err(db::sql_error)?;
     rows.into_iter()
         .map(|row| {
-            Ok(ChunkRow {
+            Ok(KnowledgeChunkSource {
                 id: row.try_get("id").map_err(db::sql_error)?,
                 source_revision: row.try_get("source_revision").map_err(db::sql_error)?,
                 text: row.try_get("text").map_err(db::sql_error)?,

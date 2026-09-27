@@ -15,10 +15,10 @@ mod signals;
 
 pub(crate) use attempt::{AttemptClaim, StepOutcome};
 pub(crate) use budget::{record_usage, reserve_output_bytes};
-pub(crate) use contract::{RunKind, RunState, RunSummary, StepState, WaitReason};
+pub(crate) use contract::{RunKind, RunObservation, RunState, StepState, WaitReason};
 pub(crate) use events::append_event;
 pub use events::RunEventKind;
-pub(crate) use observation::{RunEvent, StepSummary};
+pub(crate) use observation::{RunEvent, StepObservation};
 pub(crate) use repository::{create_run_in_transaction, load_run, transition_run, NewRun};
 pub(crate) use runtime::start as start_scheduler;
 pub(crate) use signals::{announce as announce_change, subscribe as subscribe_to_changes};
@@ -27,12 +27,15 @@ pub(crate) use signals::{announce as announce_change, subscribe as subscribe_to_
 pub async fn list_runs(
     app: tauri::AppHandle,
     space_id: String,
-) -> Result<Vec<RunSummary>, CommandError> {
+) -> Result<Vec<RunObservation>, CommandError> {
     Ok((repository::list_runs(crate::spaces::db::pool(&app).await?, &space_id).await)?)
 }
 
 #[tauri::command]
-pub async fn get_run(app: tauri::AppHandle, run_id: String) -> Result<RunSummary, CommandError> {
+pub async fn get_run(
+    app: tauri::AppHandle,
+    run_id: String,
+) -> Result<RunObservation, CommandError> {
     Ok((load_run(crate::spaces::db::pool(&app).await?, &run_id).await)?)
 }
 
@@ -86,7 +89,7 @@ pub async fn retry_run(
     app: tauri::AppHandle,
     run_id: String,
     step_ids: Vec<String>,
-) -> Result<RunSummary, CommandError> {
+) -> Result<RunObservation, CommandError> {
     Ok((retry::create_retry(crate::spaces::db::pool(&app).await?, &run_id, &step_ids).await)?)
 }
 
@@ -94,7 +97,7 @@ pub async fn retry_run(
 pub async fn list_run_steps(
     app: tauri::AppHandle,
     run_id: String,
-) -> Result<Vec<observation::StepSummary>, CommandError> {
+) -> Result<Vec<observation::StepObservation>, CommandError> {
     Ok((observation::list_steps(crate::spaces::db::pool(&app).await?, &run_id).await)?)
 }
 

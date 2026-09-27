@@ -11,7 +11,7 @@ import { useAgentAttachments } from "../../agent-creation/use-agent-attachments"
 import { useAgentCreation } from "../../agent-creation/use-agent-creation";
 import { isAssetPreviewAvailable } from "../../assets/asset-preview";
 import { useNodeOperationGate } from "../../canvas/node-operation-gate";
-import SpaceAgentArtifactList from "./SpaceAgentArtifactList.vue";
+import SpaceAgentArtifactPicker from "./SpaceAgentArtifactPicker.vue";
 
 const open = defineModel<boolean>("open", { required: true });
 const { t } = useI18n();
@@ -133,7 +133,7 @@ watch(open, (isOpen) => {
           </UiButton>
         </div>
       </section>
-      <SpaceAgentArtifactList
+      <SpaceAgentArtifactPicker
         v-if="artifacts.length"
         :artifacts="artifacts"
         :can-preview="canPreview"

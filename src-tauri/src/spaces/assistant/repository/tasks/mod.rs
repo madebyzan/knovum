@@ -12,7 +12,7 @@ pub use operations::{
     complete_tool_call, complete_turn, save_checkpoint, start_tool_call, start_turn,
 };
 
-pub struct ToolCallRecord {
+pub struct AssistantToolCallOutcome {
     pub id: String,
     pub result: Option<Value>,
 }

@@ -30,7 +30,7 @@ export function createStructureActions(context: {
         command,
       });
       await reloadProjection(spaceId);
-      if (spaceEditCommandRecordsHistory(command)) recordNativeHistoryEntry(spaceId);
+      if (spaceEditCommandRecordsHistory(command)) recordRustEdit(spaceId);
       return receipt;
     } finally {
       releaseMutation();
@@ -40,10 +40,10 @@ export function createStructureActions(context: {
   function recordCommittedSpaceEdit() {
     const spaceId = context.activeSpaceId.value;
     if (!spaceId) throw new Error("A Space must be active");
-    recordNativeHistoryEntry(spaceId);
+    recordRustEdit(spaceId);
   }
 
-  function recordNativeHistoryEntry(spaceId: string) {
+  function recordRustEdit(spaceId: string) {
     recordSpaceHistory(context.history, {
       undo: () => transition(spaceId, "undo"),
       redo: () => transition(spaceId, "redo"),

@@ -7,7 +7,7 @@ use ts_rs::TS;
 #[derive(Serialize, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
-pub(crate) struct SpaceSceneRecord {
+pub(crate) struct SpaceSceneProjection {
     pub id: String,
     pub space_id: String,
     pub title: String,
@@ -31,7 +31,7 @@ pub(crate) struct SpaceSceneRecord {
 pub(crate) async fn list_in_transaction(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
-) -> Result<Vec<SpaceSceneRecord>, String> {
+) -> Result<Vec<SpaceSceneProjection>, String> {
     let rows = sqlx::query(
         "SELECT id,space_id,title,viewport_x,viewport_y,viewport_zoom,thumbnail_path,order_index,focus_structure_node_ids,\
          relation_kinds,relation_statuses,query_filter,created_at,updated_at \
@@ -44,12 +44,12 @@ pub(crate) async fn list_in_transaction(
     rows.into_iter().map(scene_row).collect()
 }
 
-fn scene_row(row: sqlx::sqlite::SqliteRow) -> Result<SpaceSceneRecord, String> {
+fn scene_row(row: sqlx::sqlite::SqliteRow) -> Result<SpaceSceneProjection, String> {
     let parse = |name: &str| -> Result<Value, String> {
         let raw: String = row.try_get(name).map_err(db::sql_error)?;
         serde_json::from_str(&raw).map_err(db::json_error)
     };
-    Ok(SpaceSceneRecord {
+    Ok(SpaceSceneProjection {
         id: row.try_get::<String, _>("id").map_err(db::sql_error)?,
         space_id: row
             .try_get::<String, _>("space_id")

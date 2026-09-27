@@ -19,7 +19,7 @@ import type { SpaceNodePayload } from "../../model/nodes/node-payload";
 import { useSpaceStore } from "../../session/space-store";
 import { refreshSavedWebsite } from "../../website/capture";
 
-interface MetadataRow {
+interface MetadataField {
   label: string;
   value: string | undefined;
   multiline?: boolean;
@@ -31,15 +31,15 @@ const nodeOperations = useNodeOperationGate();
 const { d, t } = useI18n();
 const refreshing = ref(false);
 
-const rows = computed(() => {
+const fields = computed(() => {
   const data = props.node.data;
   const asset = isSpaceManagedAssetPayload(data) ? data : undefined;
   const media = isSpaceMediaPayload(data) ? data : undefined;
-  const source = sourceRow(data);
-  const allRows: MetadataRow[] = [
+  const source = sourceField(data);
+  const allFields: MetadataField[] = [
     { label: t("spaces.inspector.fields.type"), value: t(`spaces.nodeTypes.${camelCase(data.kind)}`) },
     source,
-    ...websiteRows(data),
+    ...websiteFields(data),
     {
       label: t("spaces.inspector.fields.provider"),
       value: media?.origin ? mediaProviderDisplayName(media.origin.provider) : undefined,
@@ -55,10 +55,10 @@ const rows = computed(() => {
       value: modifiedAtLabel(asset?.modifiedAt),
     },
   ];
-  return allRows.filter((row): row is MetadataRow & { value: string } => Boolean(row.value));
+  return allFields.filter((row): row is MetadataField & { value: string } => Boolean(row.value));
 });
 
-function sourceRow(data: SpaceNodePayload) {
+function sourceField(data: SpaceNodePayload) {
   const originalUrl = isSpaceMediaPayload(data) && Boolean(data.origin);
   return {
     label: t(originalUrl ? "spaces.inspector.fields.originalUrl" : "spaces.inspector.fields.source"),
@@ -66,7 +66,7 @@ function sourceRow(data: SpaceNodePayload) {
   };
 }
 
-function websiteRows(data: SpaceNodePayload) {
+function websiteFields(data: SpaceNodePayload) {
   if (!isSpaceWebsitePayload(data)) return [];
   return [
     { label: t("spaces.inspector.fields.siteName"), value: data.siteName },
@@ -116,7 +116,7 @@ async function refreshWebsite() {
 
 <template>
   <dl class="space-y-0.5">
-    <div v-for="row in rows" :key="row.label" class="grid grid-cols-[4.5rem_minmax(0,1fr)] gap-2 py-1.5">
+    <div v-for="row in fields" :key="row.label" class="grid grid-cols-[4.5rem_minmax(0,1fr)] gap-2 py-1.5">
       <dt class="text-caption text-foreground-tertiary">{{ row.label }}</dt>
       <dd class="min-w-0 text-caption text-foreground-secondary">
         <span class="block" :class="row.multiline ? 'line-clamp-3' : 'truncate'" :title="row.value">{{

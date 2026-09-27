@@ -19,7 +19,7 @@ export type { SavedCapturedWorkflow } from "../contracts/generated/SavedCaptured
 import type { CapturedWorkflowRun } from "../contracts/generated/CapturedWorkflowRun";
 export type { CapturedWorkflowRun } from "../contracts/generated/CapturedWorkflowRun";
 import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
-import type { RunSummary } from "../contracts/generated/RunSummary";
+import type { RunObservation } from "../contracts/generated/RunObservation";
 
 export function previewWorkflowCapture(
   spaceId: string,
@@ -54,7 +54,7 @@ export function deleteCapturedWorkflow(workflowId: string, expectedName: string)
   return invoke("plugin:spaces|delete_captured_workflow", { workflowId, expectedName });
 }
 
-export function startCapturedWorkflow(request: StartCapturedWorkflowRequest): Promise<RunSummary> {
+export function startCapturedWorkflow(request: StartCapturedWorkflowRequest): Promise<RunObservation> {
   return invoke("plugin:spaces|start_captured_workflow", { request });
 }
 
@@ -66,6 +66,6 @@ export function listCapturedWorkflowRuns(spaceId: string): Promise<CapturedWorkf
   return invoke("plugin:spaces|list_captured_workflow_runs", { spaceId });
 }
 
-export function retryCapturedWorkflowRun(runId: string): Promise<RunSummary> {
+export function retryCapturedWorkflowRun(runId: string): Promise<RunObservation> {
   return invoke("plugin:spaces|retry_run", { runId, stepIds: [] });
 }

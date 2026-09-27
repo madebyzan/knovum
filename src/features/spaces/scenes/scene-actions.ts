@@ -107,7 +107,7 @@ async function persistReorderedScenes(context: SceneActionContext, ordered: Spac
   if (context.activeSpaceId.value === spaceId) context.scenes.value = next;
 }
 
-function moveArrayEntry<T>(array: readonly T[], fromIndex: number, toIndex: number): T[] {
+function reorderArray<T>(array: readonly T[], fromIndex: number, toIndex: number): T[] {
   const copy = [...array];
   const [moved] = copy.splice(fromIndex, 1);
   if (moved) copy.splice(toIndex, 0, moved);
@@ -119,7 +119,7 @@ export async function moveSpaceScene(context: SceneActionContext, id: string, di
   const from = ordered.findIndex((scene) => scene.id === id);
   const to = from + direction;
   if (from < 0 || to < 0 || to >= ordered.length) return;
-  await persistReorderedScenes(context, moveArrayEntry(ordered, from, to));
+  await persistReorderedScenes(context, reorderArray(ordered, from, to));
 }
 
 export async function reorderSpaceScenes(context: SceneActionContext, sourceId: string, targetId: string) {
@@ -127,7 +127,7 @@ export async function reorderSpaceScenes(context: SceneActionContext, sourceId: 
   const from = ordered.findIndex((s) => s.id === sourceId);
   const to = ordered.findIndex((s) => s.id === targetId);
   if (from < 0 || to < 0 || from === to) return;
-  await persistReorderedScenes(context, moveArrayEntry(ordered, from, to));
+  await persistReorderedScenes(context, reorderArray(ordered, from, to));
 }
 
 function reindexScene(scene: SpaceScene, order: number, updatedAt: number): SpaceScene {

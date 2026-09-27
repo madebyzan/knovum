@@ -44,7 +44,7 @@ pub(crate) async fn import_structure_clipboard<R: Runtime>(
 pub(crate) async fn list_recently_deleted_structure<R: Runtime>(
     app: AppHandle<R>,
     space_id: Option<String>,
-) -> Result<Vec<super::deleted_commands::DeletedRootSummary>, CommandError> {
+) -> Result<Vec<super::deleted_commands::DeletedStructureRoot>, CommandError> {
     Ok((super::deleted_commands::list(&app, space_id.as_deref()).await)?)
 }
 

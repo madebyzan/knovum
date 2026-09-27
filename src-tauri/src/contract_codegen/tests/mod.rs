@@ -43,7 +43,7 @@ fn contracts_keep_their_capability_owner() {
 }
 
 #[test]
-fn exported_summary_files_match_their_type_identity() {
+fn exported_read_model_files_match_their_type_identity() {
     fn assert_identity<T: ts_rs::TS>() {
         let output = T::output_path().expect("exported summary path");
         assert_eq!(
@@ -51,7 +51,7 @@ fn exported_summary_files_match_their_type_identity() {
             Some(T::name(&ts_rs::Config::new()).as_str())
         );
     }
-    assert_identity::<crate::spaces::runs::StepSummary>();
-    assert_identity::<crate::spaces::authorization::ApprovalSummary>();
-    assert_identity::<crate::spaces::assistant::ConversationSummary>();
+    assert_identity::<crate::spaces::runs::StepObservation>();
+    assert_identity::<crate::spaces::authorization::PendingApproval>();
+    assert_identity::<crate::spaces::assistant::AssistantConversation>();
 }

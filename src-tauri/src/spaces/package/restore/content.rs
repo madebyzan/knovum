@@ -1,6 +1,6 @@
 use sqlx::{Sqlite, Transaction};
 
-use super::contracts::{PackageChunkRow, RestorePackageRequest};
+use super::contracts::{PackageChunk, RestorePackageRequest};
 use crate::spaces::db;
 use crate::spaces::knowledge::chunk_store;
 
@@ -69,7 +69,7 @@ pub(super) async fn insert_chunks(
 async fn insert_packaged_chunk(
     tx: &mut Transaction<'_, Sqlite>,
     request: &RestorePackageRequest,
-    row: &PackageChunkRow,
+    row: &PackageChunk,
     revisions: &std::collections::HashMap<String, chunk_store::NodeChunkRevisions>,
 ) -> Result<(), String> {
     if row.origin == "node" {

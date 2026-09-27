@@ -1,7 +1,7 @@
 use crate::spaces::db;
 use sqlx::Row;
 
-use super::job::{EnqueueEnrichmentJobRequest, EnrichmentJobRecord, STATUS_RUNNING};
+use super::job::{EnqueueEnrichmentJobRequest, EnrichmentJobState, STATUS_RUNNING};
 
 pub(crate) async fn claim_job(
     pool: &sqlx::SqlitePool,
@@ -90,7 +90,7 @@ pub(crate) async fn reconcile_interrupted(pool: &sqlx::SqlitePool, now: i64) -> 
 pub(crate) async fn list_actionable(
     pool: &sqlx::SqlitePool,
     space_id: &str,
-) -> Result<Vec<EnrichmentJobRecord>, String> {
+) -> Result<Vec<EnrichmentJobState>, String> {
     let rows = sqlx::query(
         "WITH ranked AS ( \
            SELECT id,space_id,node_id,job_type,status,source_revision,attempts,error,created_at,updated_at, \
@@ -125,8 +125,8 @@ pub(crate) async fn list_actionable(
     Ok(actionable)
 }
 
-fn job_from_row(row: sqlx::sqlite::SqliteRow) -> Result<EnrichmentJobRecord, String> {
-    Ok(EnrichmentJobRecord {
+fn job_from_row(row: sqlx::sqlite::SqliteRow) -> Result<EnrichmentJobState, String> {
+    Ok(EnrichmentJobState {
         id: row.try_get("id").map_err(db::sql_error)?,
         space_id: row.try_get("space_id").map_err(db::sql_error)?,
         node_id: row.try_get("node_id").map_err(db::sql_error)?,

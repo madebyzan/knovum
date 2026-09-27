@@ -11,7 +11,7 @@ mod permanent;
 pub(crate) use discard::{
     discard_pending_content, DiscardPendingContentRequest, DiscardPendingContentResponse,
 };
-pub(crate) use list::{list, DeletedRootSummary};
+pub(crate) use list::{list, DeletedStructureRoot};
 pub(crate) use permanent::{permanently_delete, PermanentlyDeleteStructureRequest};
 
 #[derive(Deserialize, Serialize)]

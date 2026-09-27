@@ -18,4 +18,4 @@ export type SpaceCodePayload = Extract<SpaceNodePayload, { kind: "code" }>;
 export type SpaceCredentialPayload = Extract<SpaceNodePayload, { kind: "credential" }>;
 export type SpaceKnowledgeObjectPayload = Extract<SpaceNodePayload, { kind: "object" }>;
 export type SpacePortalPayload = Extract<SpaceNodePayload, { kind: "portal" }>;
-export type SpaceResourceEntry = NonNullable<SpaceFilePayload["entries"]>[number];
+export type SpaceArchiveMember = NonNullable<SpaceFilePayload["entries"]>[number];

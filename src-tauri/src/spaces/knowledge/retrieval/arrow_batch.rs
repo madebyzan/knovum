@@ -5,13 +5,13 @@ use arrow_array::{
 };
 use arrow_schema::{DataType, Field};
 
-use super::schema::{schema, RetrievalRecord};
+use super::schema::{schema, IndexedKnowledgeChunk};
 
 /// Encodes retrieval records as a LanceDB `RecordBatch`.
 ///
 /// All records must share the same vector dimensionality; mixed dimensions are rejected.
 pub(super) fn records_to_batch(
-    records: &[RetrievalRecord],
+    records: &[IndexedKnowledgeChunk],
     dimensions: i32,
 ) -> Result<RecordBatch, String> {
     if records.iter().any(|record| record.dimensions != dimensions) {
@@ -26,7 +26,7 @@ pub(super) fn records_to_batch(
 }
 
 fn build_vector_array(
-    records: &[RetrievalRecord],
+    records: &[IndexedKnowledgeChunk],
     dimensions: i32,
 ) -> Result<FixedSizeListArray, String> {
     let vectors = records
@@ -39,7 +39,10 @@ fn build_vector_array(
         .map_err(|error| format!("Failed to build LanceDB vector array: {error}"))
 }
 
-fn build_columns(records: &[RetrievalRecord], vector_array: FixedSizeListArray) -> Vec<ArrayRef> {
+fn build_columns(
+    records: &[IndexedKnowledgeChunk],
+    vector_array: FixedSizeListArray,
+) -> Vec<ArrayRef> {
     vec![
         string_column(records, |r| r.chunk_id.as_str()),
         string_column(records, |r| r.space_id.as_str()),
@@ -62,9 +65,9 @@ fn build_columns(records: &[RetrievalRecord], vector_array: FixedSizeListArray) 
     ]
 }
 
-fn string_column<F>(records: &[RetrievalRecord], select: F) -> ArrayRef
+fn string_column<F>(records: &[IndexedKnowledgeChunk], select: F) -> ArrayRef
 where
-    F: Fn(&RetrievalRecord) -> &str,
+    F: Fn(&IndexedKnowledgeChunk) -> &str,
 {
     Arc::new(StringArray::from(
         records.iter().map(select).collect::<Vec<_>>(),

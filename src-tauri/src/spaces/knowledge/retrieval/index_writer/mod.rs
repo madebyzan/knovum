@@ -9,7 +9,7 @@ use super::{
         build_delete_chunk_predicate, build_delete_node_predicate, build_delete_space_predicate,
     },
     record_loader::{load_records, write_index_markers, EmbeddingSource},
-    schema::{RetrievalRecord, TABLE_KNOWLEDGE_CHUNKS},
+    schema::{IndexedKnowledgeChunk, TABLE_KNOWLEDGE_CHUNKS},
 };
 
 const MAX_EMBEDDING_BATCH: usize = 64;
@@ -99,7 +99,10 @@ pub(super) async fn delete_space_embeddings<R: Runtime>(
     Ok(())
 }
 
-async fn delete_existing_chunks(table: &Table, records: &[RetrievalRecord]) -> Result<(), String> {
+async fn delete_existing_chunks(
+    table: &Table,
+    records: &[IndexedKnowledgeChunk],
+) -> Result<(), String> {
     if records.is_empty() {
         return Ok(());
     }

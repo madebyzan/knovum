@@ -11,7 +11,7 @@ import { saveCanvasThumbnailBlob } from "../../assets/canvas-thumbnail-file";
 import { useCanvasEditorSession } from "../../canvas/editor-session";
 import { SPACE_COMMAND_SHORTCUTS } from "../../commands/space-command-shortcuts";
 import type { SpaceScene } from "../../scenes/scene";
-import { useSceneList } from "../../scenes/use-scene-list";
+import { useSceneNavigation } from "../../scenes/use-scene-navigation";
 import { useSpaceStore } from "../../session/space-store";
 import SpaceCanvasScenePanel from "./SpaceCanvasScenePanel.vue";
 
@@ -19,7 +19,7 @@ const { t } = useI18n();
 const store = useSpaceStore();
 const editorSession = useCanvasEditorSession();
 const { scenes, activeSceneId, recentSceneId, createScene, getTargetScene, openScene, stepScene } =
-  useSceneList();
+  useSceneNavigation();
 const open = shallowRef(false);
 const saving = shallowRef(false);
 const canStep = computed(() => scenes.value.length > 1);

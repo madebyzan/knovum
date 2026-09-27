@@ -13,7 +13,7 @@ pub use text_preview::{modified_millis, read_html_preview, read_text_preview};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct InspectedEntry {
+pub struct ArchiveMember {
     pub path: String,
     pub kind: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -33,10 +33,10 @@ pub struct InspectedFile {
     pub size: u64,
     pub modified_at: u64,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub entries: Option<Vec<InspectedEntry>>,
+    pub entries: Option<Vec<ArchiveMember>>,
 }
 
-pub fn entry_search_text(entries: &[InspectedEntry]) -> String {
+pub fn entry_search_text(entries: &[ArchiveMember]) -> String {
     entries
         .iter()
         .map(|entry| entry.path.as_str())

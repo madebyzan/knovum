@@ -52,7 +52,7 @@ pub async fn create_object_type<R: Runtime>(
         .bind(fields).bind(now).execute(&mut *tx).await.map_err(db::sql_error)?;
     events::append(
         &mut tx,
-        events::EventRecord::new(
+        events::KnowledgeEvent::new(
             &input.space_id,
             events::EventEntity::new("type", &input.id),
             "created",
@@ -93,7 +93,7 @@ pub async fn update_object_type<R: Runtime>(
     validate_existing_objects(&mut tx, &input.space_id, &input.id).await?;
     events::append(
         &mut tx,
-        events::EventRecord::new(
+        events::KnowledgeEvent::new(
             &input.space_id,
             events::EventEntity::new("type", &input.id),
             "updated",

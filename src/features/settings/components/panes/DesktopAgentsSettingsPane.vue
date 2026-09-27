@@ -8,7 +8,7 @@ import { toast } from "vue-sonner";
 import type { AgentKind, DesktopAgentSettings } from "../../../../foundation/ai/agent-models";
 import { useAiSettingsStore } from "../../../../foundation/ai/ai-settings-store";
 import { useExecutionCatalogQuery } from "../../../../foundation/ai/execution-catalog-query";
-import AgentInstallationRow from "../AgentInstallationRow.vue";
+import AgentAvailability from "../AgentAvailability.vue";
 import SettingsLoadFailure from "../SettingsLoadFailure.vue";
 import SettingsSection from "../SettingsSection.vue";
 
@@ -85,7 +85,7 @@ onMounted(load);
         <p class="text-caption text-warning">{{ String(catalog.installationError.value) }}</p>
       </div>
       <div class="divide-y divide-divider">
-        <AgentInstallationRow
+        <AgentAvailability
           v-for="agent in agents"
           :key="agent.kind"
           :agent="agent"

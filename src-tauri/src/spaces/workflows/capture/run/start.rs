@@ -8,7 +8,7 @@ use super::{bindings::bind_inputs, validation, StartCapturedWorkflowRequest};
 use crate::spaces::{
     authorization::{create_grant, AuthorizationContext, Principal, PrincipalKind},
     db,
-    runs::{create_run_in_transaction, NewRun, RunKind, RunSummary},
+    runs::{create_run_in_transaction, NewRun, RunKind, RunObservation},
     workflows::capture::{library::SavedCapturedWorkflow, types::CandidateSource},
 };
 
@@ -16,7 +16,7 @@ pub(crate) async fn start(
     app: &tauri::AppHandle,
     pool: &SqlitePool,
     request: StartCapturedWorkflowRequest,
-) -> Result<RunSummary, String> {
+) -> Result<RunObservation, String> {
     uuid::Uuid::parse_str(&request.request_id)
         .map_err(|_| "workflow-run-invalid: request ID must be a UUID")?;
     let mut tx = db::begin_write(pool).await?;

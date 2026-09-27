@@ -12,7 +12,7 @@ use crate::{
     },
 };
 
-pub(super) struct NewAssistantRecords<'a> {
+pub(super) struct NewAssistantTaskState<'a> {
     pub request: &'a StartAssistantTaskRequest,
     pub ids: &'a identity::TaskIds,
     pub grant: &'a AuthorizationContext,
@@ -22,11 +22,11 @@ pub(super) struct NewAssistantRecords<'a> {
     pub now: i64,
 }
 
-pub(super) async fn create_records(
+pub(super) async fn persist_task(
     pool: &SqlitePool,
-    records: NewAssistantRecords<'_>,
+    records: NewAssistantTaskState<'_>,
 ) -> Result<(), String> {
-    let NewAssistantRecords {
+    let NewAssistantTaskState {
         request,
         ids,
         grant,

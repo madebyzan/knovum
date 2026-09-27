@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { agentKindSchema } from "../../../foundation/ai/agent-models";
-import { packageIdSchema, packageTimeSchema } from "./core-schema";
+import { packageIdSchema, packageTimeSchema } from "./scalar-schema";
 
 export const packageExternalAgentConversationSchema = z
   .object({

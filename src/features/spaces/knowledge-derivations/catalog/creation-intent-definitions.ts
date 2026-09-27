@@ -125,8 +125,8 @@ export const creationIntentDefinitions = [
   },
 ] as const satisfies readonly CreationIntentDefinition[];
 
-export type CreationIntentDefinitionEntry = (typeof creationIntentDefinitions)[number];
-export type CreationIntentId = CreationIntentDefinitionEntry["id"];
+export type BuiltinCreationIntent = (typeof creationIntentDefinitions)[number];
+export type CreationIntentId = BuiltinCreationIntent["id"];
 export type CreationIntentDecisions = Record<CreationIntentId, CreationIntentDecision>;
 
 export function decideCreationIntents(context: CreationSelectionContext): CreationIntentDecisions {

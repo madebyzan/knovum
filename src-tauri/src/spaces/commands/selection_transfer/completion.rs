@@ -130,7 +130,7 @@ async fn append_events(
     for id in ids {
         events::append(
             tx,
-            events::EventRecord::new(
+            events::KnowledgeEvent::new(
                 space_id,
                 events::EventEntity::new(entity_kind, id),
                 "moved",

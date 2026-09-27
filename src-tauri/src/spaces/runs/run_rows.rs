@@ -1,10 +1,10 @@
 use sqlx::Row;
 
-use super::RunSummary;
+use super::RunObservation;
 use crate::spaces::db;
 
-pub(super) fn parse_summary(row: &sqlx::sqlite::SqliteRow) -> Result<RunSummary, String> {
-    Ok(RunSummary {
+pub(super) fn parse_summary(row: &sqlx::sqlite::SqliteRow) -> Result<RunObservation, String> {
+    Ok(RunObservation {
         id: row.try_get("id").map_err(db::sql_error)?,
         home_space_id: row.try_get("home_space_id").map_err(db::sql_error)?,
         parent_run_id: row.try_get("parent_run_id").map_err(db::sql_error)?,

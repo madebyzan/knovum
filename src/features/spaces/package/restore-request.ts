@@ -14,9 +14,9 @@ import {
   restoreProvenance,
   restoreRelations,
   restoreScenes,
-} from "./restore-content-records";
+} from "./restore-content";
 import type { SpacePackageRestoreContext } from "./restore-context";
-import { packageSpace } from "./restore-row";
+import { prepareSpaceRestore } from "./restore-space";
 import type { SpacePackageRestoreRequest } from "./restore-transport";
 import { restorePackageStructure } from "./structure-restore";
 
@@ -32,7 +32,7 @@ export function buildSpacePackageRestoreRequest(
     }),
   );
   return {
-    space: packageSpace(space),
+    space: prepareSpaceRestore(space),
     ...restorePackageStructure(context),
     objectTypes: remapObjectTypes(context.manifest.objectTypes, context.maps),
     nodes,

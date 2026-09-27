@@ -3,4 +3,4 @@ import type { JsonValue } from "../../../../shared/contracts/generated/serde_jso
 import type { StepState } from "./StepState";
 import type { WaitReason } from "./WaitReason";
 
-export type StepSummary = { id: string, runId: string, definitionNodeId: string, instancePath: string, nodeKind: string, state: StepState, stateVersion: number, resolvedInput: JsonValue, output: JsonValue | null, waitReason: WaitReason | null, updatedAt: number, };
+export type StepObservation = { id: string, runId: string, definitionNodeId: string, instancePath: string, nodeKind: string, state: StepState, stateVersion: number, resolvedInput: JsonValue, output: JsonValue | null, waitReason: WaitReason | null, updatedAt: number, };

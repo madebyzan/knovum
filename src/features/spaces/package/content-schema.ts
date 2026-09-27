@@ -1,9 +1,8 @@
 import { z } from "zod";
 
 import { SPACE_NODE_KINDS } from "../model/nodes/node-kind";
+import { packageTimeSchema } from "./scalar-schema";
 
-export const packageTimeSchema = z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER);
-export const packageIdSchema = z.string().min(1).max(256);
 export const spaceSchema = z
   .object({
     id: z.string().min(1),
@@ -23,8 +22,4 @@ export const nodeSchema = z
     createdAt: packageTimeSchema,
     updatedAt: packageTimeSchema,
   })
-  .strict()
-  .refine(({ kind }) => String(kind) !== "section", {
-    message: "Legacy Section content nodes are not supported",
-    path: ["kind"],
-  });
+  .strict();

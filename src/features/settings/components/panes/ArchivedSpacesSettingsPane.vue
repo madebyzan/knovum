@@ -7,7 +7,7 @@ import { toast } from "vue-sonner";
 
 import {
   archiveSettingsKey,
-  type ArchivedSpaceSummary,
+  type ArchivedSpace,
   type ArchiveSettingsContract,
 } from "../../../../shared/contracts/archive-settings";
 import UiButton from "../../../../shared/ui/UiButton.vue";
@@ -24,7 +24,7 @@ function requireArchiveSettings(): ArchiveSettingsContract {
   return contract;
 }
 
-async function permanentlyDelete(space: ArchivedSpaceSummary) {
+async function permanentlyDelete(space: ArchivedSpace) {
   const confirmed = await ask(t("settings.general.archived.delete.description"), {
     title: t("settings.general.archived.delete.title", { title: space.title }),
     kind: "warning",

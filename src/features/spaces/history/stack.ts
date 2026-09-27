@@ -1,13 +1,13 @@
 import { beginSpaceMutation } from "./mutation-barrier";
 
-export interface SpaceHistoryEntry {
+export interface ReversibleSpaceChange {
   undo: () => Promise<void>;
   redo: () => Promise<void>;
 }
 
 export interface SpaceHistoryState {
-  undoStack: readonly SpaceHistoryEntry[];
-  redoStack: readonly SpaceHistoryEntry[];
+  undoStack: readonly ReversibleSpaceChange[];
+  redoStack: readonly ReversibleSpaceChange[];
   busy: boolean;
   pendingMutations: number;
 }
@@ -16,7 +16,7 @@ const MAX_HISTORY_STACK = 100;
 
 // The stacks are held in a shallowReactive object, so every mutation replaces the array instead of
 // editing it in place; otherwise `canUndo`/`canRedo` never observe a change.
-export function recordSpaceHistory(state: SpaceHistoryState, entry: SpaceHistoryEntry): void {
+export function recordSpaceHistory(state: SpaceHistoryState, entry: ReversibleSpaceChange): void {
   state.undoStack = [...state.undoStack, entry].slice(-MAX_HISTORY_STACK);
   state.redoStack = [];
 }

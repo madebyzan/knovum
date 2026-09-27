@@ -11,7 +11,7 @@ import { createSubtitledVideo, subtitleVideoInputs } from "../../knowledge-deriv
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceSubtitlePayload } from "../../model/nodes/node-payload";
 import { useSpaceStore } from "../../session/space-store";
-import SpaceSubtitleCueList from "../media/SpaceSubtitleCueList.vue";
+import SpaceSubtitleCuePicker from "../media/SpaceSubtitleCuePicker.vue";
 import { useNodeDraft } from "../use-node-draft";
 
 const props = defineProps<{ node: SpaceCanvasNode }>();
@@ -68,11 +68,11 @@ function select(index: number) {
   nodeDraft.end();
   draft.index = index;
 }
-function cancel() {
+function cancelSubtitleEdit() {
   loadCue();
   nodeDraft.end();
 }
-async function save() {
+async function saveSubtitleCue() {
   if (!data.value || !validDraft.value || !nodeDraft.canContinue.value) return;
   const cues = data.value.cues.map((value, index) =>
     index === draft.index ? { startMs: draft.startMs, endMs: draft.endMs, text: draft.text.trim() } : value,
@@ -95,7 +95,7 @@ function createVideo() {
 
 <template>
   <div v-if="data" class="space-y-3">
-    <SpaceSubtitleCueList :cues="data.cues" :active-index="draft.index" @select="select" />
+    <SpaceSubtitleCuePicker :cues="data.cues" :active-index="draft.index" @select="select" />
     <div
       v-if="cue"
       class="space-y-2 rounded-panel border border-divider p-2.5"
@@ -118,8 +118,12 @@ function createVideo() {
         </label>
       </div>
       <UiTextarea v-model="draft.text" :disabled="!nodeDraft.canContinue.value" :rows="3" />
-      <UiButton v-if="dirty" size="sm" variant="ghost" @click="cancel">{{ t("common.cancel") }}</UiButton>
-      <UiButton size="sm" :disabled="!dirty || !validDraft" @click="save">{{ t("common.save") }}</UiButton>
+      <UiButton v-if="dirty" size="sm" variant="ghost" @click="cancelSubtitleEdit">{{
+        t("common.cancel")
+      }}</UiButton>
+      <UiButton size="sm" :disabled="!dirty || !validDraft" @click="saveSubtitleCue">{{
+        t("common.save")
+      }}</UiButton>
     </div>
     <UiButton
       v-if="burnInInputs"

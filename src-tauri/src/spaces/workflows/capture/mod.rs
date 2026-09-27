@@ -80,7 +80,7 @@ pub(crate) async fn start(
     app: &tauri::AppHandle,
     pool: &SqlitePool,
     request: StartCapturedWorkflowRequest,
-) -> Result<crate::spaces::runs::RunSummary, String> {
+) -> Result<crate::spaces::runs::RunObservation, String> {
     run::start(app, pool, request).await
 }
 

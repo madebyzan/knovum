@@ -88,7 +88,7 @@ fn snapshot(
     size: u64,
     modified_at: u64,
     preview: ResourcePreview,
-    entries: Option<Vec<super::InspectedEntry>>,
+    entries: Option<Vec<super::ArchiveMember>>,
 ) -> InspectedFile {
     InspectedFile {
         name: name.to_owned(),

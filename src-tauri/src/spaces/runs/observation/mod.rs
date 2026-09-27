@@ -7,9 +7,9 @@ use super::{RunEventKind, StepState, WaitReason};
 use crate::spaces::db;
 
 #[derive(Clone, Debug, Serialize, TS)]
-#[ts(export_to = "../../../features/spaces/contracts/generated/StepSummary.ts")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/StepObservation.ts")]
 #[serde(rename_all = "camelCase")]
-pub struct StepSummary {
+pub struct StepObservation {
     pub id: String,
     pub run_id: String,
     pub definition_node_id: String,
@@ -36,7 +36,7 @@ pub struct RunEvent {
     pub created_at: i64,
 }
 
-pub async fn list_steps(pool: &SqlitePool, run_id: &str) -> Result<Vec<StepSummary>, String> {
+pub async fn list_steps(pool: &SqlitePool, run_id: &str) -> Result<Vec<StepObservation>, String> {
     let rows = sqlx::query(
         "SELECT id,run_id,definition_node_id,instance_path,node_kind,state,
         state_version,resolved_input,output,wait_reason,updated_at FROM spaces_run_steps
@@ -114,8 +114,8 @@ fn value_fingerprint(value: &Value) -> Value {
     })
 }
 
-fn parse_step(row: &sqlx::sqlite::SqliteRow) -> Result<StepSummary, String> {
-    Ok(StepSummary {
+fn parse_step(row: &sqlx::sqlite::SqliteRow) -> Result<StepObservation, String> {
+    Ok(StepObservation {
         id: get(row, "id")?,
         run_id: get(row, "run_id")?,
         definition_node_id: get(row, "definition_node_id")?,

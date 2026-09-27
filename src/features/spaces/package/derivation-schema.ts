@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { SPACE_NODE_KINDS } from "../model/nodes/node-kind";
-import { packageTimeSchema } from "./core-schema";
+import { packageTimeSchema } from "./scalar-schema";
 
 export const derivationSchema = z
   .object({

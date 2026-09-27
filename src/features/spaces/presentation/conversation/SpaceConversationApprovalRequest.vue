@@ -5,13 +5,13 @@ import { useI18n } from "vue-i18n";
 import { z } from "zod";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
-import type { ApprovalSummary } from "../../contracts/generated/ApprovalSummary";
+import type { PendingApproval } from "../../contracts/generated/PendingApproval";
 import { captureActionLabel } from "../workflows/workflow-capture-labels";
 
-/** `ApprovalSummary.plan` is a generated JSON value, so its parameters are an untrusted shape. */
+/** `PendingApproval.plan` is a generated JSON value, so its parameters are an untrusted shape. */
 const approvalPlanSchema = z.object({ parameters: z.record(z.string(), z.unknown()) });
 
-const props = defineProps<{ approval: ApprovalSummary; busy: boolean }>();
+const props = defineProps<{ approval: PendingApproval; busy: boolean }>();
 const emit = defineEmits<{ decide: [approvalId: string, approved: boolean] }>();
 const { t } = useI18n();
 const actionName = computed(() => captureActionLabel(props.approval.actionId, t));

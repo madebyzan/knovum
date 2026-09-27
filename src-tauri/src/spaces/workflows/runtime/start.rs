@@ -6,7 +6,7 @@ use super::persistence;
 use crate::spaces::{
     authorization::{create_grant, AuthorizationContext, Principal, PrincipalKind},
     db,
-    runs::{create_run_in_transaction, NewRun, RunKind, RunSummary},
+    runs::{create_run_in_transaction, NewRun, RunKind, RunObservation},
     workflows::{definition::WorkflowNode, WorkflowDefinition},
 };
 
@@ -17,7 +17,7 @@ pub async fn start(
     template_id: &str,
     definition: WorkflowDefinition,
     input: Value,
-) -> Result<RunSummary, String> {
+) -> Result<RunObservation, String> {
     uuid::Uuid::parse_str(run_id).map_err(|_| "workflow-run-invalid: request ID must be a UUID")?;
     if space_id.is_empty() || template_id.is_empty() {
         return Err("workflow-run-invalid: Space and recipe are required".into());

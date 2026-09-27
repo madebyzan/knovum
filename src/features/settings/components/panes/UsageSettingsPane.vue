@@ -4,7 +4,7 @@ import { useI18n } from "vue-i18n";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import TokenActivityCalendar from "../../usage/TokenActivityCalendar.vue";
-import TokenUsageSummary from "../../usage/TokenUsageSummary.vue";
+import TokenUsageMetrics from "../../usage/TokenUsageMetrics.vue";
 import UsagePurposeBreakdown from "../../usage/UsagePurposeBreakdown.vue";
 import { useTokenUsage, type UsageRange } from "../../usage/use-token-usage";
 import SettingsLoadFailure from "../SettingsLoadFailure.vue";
@@ -42,7 +42,7 @@ const usage = useTokenUsage(range);
       </div>
     </div>
     <template v-if="usage.data.value">
-      <TokenUsageSummary :summary="usage.data.value.summary" />
+      <TokenUsageMetrics :summary="usage.data.value.summary" />
       <TokenActivityCalendar :report="usage.data.value" />
       <UsagePurposeBreakdown :report="usage.data.value" />
       <p class="text-caption text-foreground-tertiary">{{ t("settings.usage.providerReported") }}</p>

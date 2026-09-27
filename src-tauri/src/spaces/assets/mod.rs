@@ -55,7 +55,7 @@ pub struct PreparedAsset {
     #[serde(skip)]
     pub(crate) document_coverage: Option<serde_json::Value>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub(crate) entries: Option<Vec<crate::file_inspection::InspectedEntry>>,
+    pub(crate) entries: Option<Vec<crate::file_inspection::ArchiveMember>>,
 }
 
 /// Shared post-acquisition mapping for imported copies, recordings and resource inspection.

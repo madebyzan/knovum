@@ -2,13 +2,13 @@ use crate::command_error::CommandError;
 use sqlx::SqlitePool;
 use tauri::ipc::Channel;
 
-use super::{load_run, run_rows, subscribe_to_changes, RunSummary};
+use super::{load_run, run_rows, subscribe_to_changes, RunObservation};
 use crate::spaces::db;
 
 #[tauri::command]
 pub async fn list_active_workflow_runs(
     app: tauri::AppHandle,
-) -> Result<Vec<RunSummary>, CommandError> {
+) -> Result<Vec<RunObservation>, CommandError> {
     let pool: &SqlitePool = db::pool(&app).await?;
     let rows = sqlx::query(
         "SELECT * FROM spaces_runs WHERE kind='workflow' AND completed_at IS NULL ORDER BY created_at DESC",
@@ -26,7 +26,7 @@ pub async fn list_active_workflow_runs(
 pub async fn observe_run(
     app: tauri::AppHandle,
     run_id: String,
-    updates: Channel<RunSummary>,
+    updates: Channel<RunObservation>,
 ) -> Result<(), CommandError> {
     let pool = crate::spaces::db::pool(&app).await?;
     let mut changes = subscribe_to_changes();

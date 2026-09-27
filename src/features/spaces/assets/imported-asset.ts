@@ -4,7 +4,7 @@ import type {
   SpaceFilePayload,
   SpaceImagePayload,
   SpaceMarkdownPayload,
-  SpaceResourceEntry,
+  SpaceArchiveMember,
   SpaceVideoPayload,
 } from "../model/nodes/node-payload";
 
@@ -33,5 +33,5 @@ export interface ImportedSpaceAsset {
   processingState?: "importing" | "processing" | "failed";
   intrinsicWidth?: number;
   intrinsicHeight?: number;
-  entries?: SpaceResourceEntry[];
+  entries?: SpaceArchiveMember[];
 }

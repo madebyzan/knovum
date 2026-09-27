@@ -6,7 +6,7 @@ import { computed, shallowRef, watch } from "vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiScrollArea from "../../../../shared/ui/UiScrollArea.vue";
 import type { VideoEditProject } from "../../video-editing/project";
-import SpaceVideoCaptionList from "./SpaceVideoCaptionList.vue";
+import SpaceVideoCaptionNavigator from "./SpaceVideoCaptionNavigator.vue";
 import SpaceVideoClipInspector from "./SpaceVideoClipInspector.vue";
 import SpaceVideoTextInspector from "./SpaceVideoTextInspector.vue";
 
@@ -77,7 +77,7 @@ function addText() {
         </UiIconButton>
       </div>
       <TabsContent value="captions" class="flex min-h-0 flex-1 flex-col outline-none">
-        <SpaceVideoCaptionList
+        <SpaceVideoCaptionNavigator
           :items="modelValue.textTrack.items"
           :selected-text-id="selectedTextId"
           @select="emit('selectText', $event)"

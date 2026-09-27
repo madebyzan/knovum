@@ -1,7 +1,7 @@
 use chrono::{Days, NaiveDate};
 use sqlx::{Row, SqlitePool};
 
-use super::contracts::{UsageDay, UsagePurpose, UsagePurposeTotal, UsageReport, UsageSummary};
+use super::contracts::{UsageDay, UsageMetrics, UsagePurpose, UsagePurposeTotal, UsageReport};
 
 pub async fn insert(
     pool: &SqlitePool,
@@ -76,8 +76,8 @@ fn parse_purpose(row: &sqlx::sqlite::SqliteRow) -> Result<UsagePurposeTotal, Str
     })
 }
 
-pub(super) fn summarize(days: &[UsageDay], to: NaiveDate) -> Result<UsageSummary, String> {
-    let mut summary = UsageSummary {
+pub(super) fn summarize(days: &[UsageDay], to: NaiveDate) -> Result<UsageMetrics, String> {
+    let mut summary = UsageMetrics {
         input_tokens: days.iter().map(|day| day.input_tokens).sum(),
         output_tokens: days.iter().map(|day| day.output_tokens).sum(),
         total_tokens: days.iter().map(|day| day.total_tokens).sum(),

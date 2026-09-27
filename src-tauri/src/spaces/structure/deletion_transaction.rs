@@ -18,7 +18,7 @@ pub(super) async fn apply(
     let now = crate::clock::unix_time_millis()?;
     repository::store_deletion_in_transaction(
         tx,
-        repository::DeletionRecord {
+        repository::DeletionBatch {
             space_id: &request.space_id,
             batch_id: &request.mutation_id,
             roots: &deletion.root_ids,

@@ -6,7 +6,7 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import UiSwitch from "../../../../shared/ui/UiSwitch.vue";
-import SettingsRow from "../SettingsRow.vue";
+import PreferenceField from "../PreferenceField.vue";
 import SettingsSection from "../SettingsSection.vue";
 
 const { t } = useI18n();
@@ -35,7 +35,7 @@ onMounted(() => {
 
 <template>
   <SettingsSection :title="t('settings.startup.title')">
-    <SettingsRow
+    <PreferenceField
       :label="t('settings.startup.launchAtLogin.label')"
       :description="t('settings.startup.launchAtLogin.description')"
     >
@@ -44,6 +44,6 @@ onMounted(() => {
         :label="t('settings.startup.launchAtLogin.label')"
         @update:model-value="setAutostart"
       />
-    </SettingsRow>
+    </PreferenceField>
   </SettingsSection>
 </template>

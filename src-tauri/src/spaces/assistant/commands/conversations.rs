@@ -1,4 +1,4 @@
-use super::super::{repository, ConversationSummary};
+use super::super::{repository, AssistantConversation};
 use crate::command_error::CommandError;
 
 #[tauri::command]
@@ -7,7 +7,7 @@ pub async fn list_assistant_conversations(
     space_id: String,
     query: Option<String>,
     archived: Option<bool>,
-) -> Result<Vec<ConversationSummary>, CommandError> {
+) -> Result<Vec<AssistantConversation>, CommandError> {
     Ok((repository::list_conversations(
         crate::spaces::db::pool(&app).await?,
         &space_id,

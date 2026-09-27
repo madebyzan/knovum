@@ -36,6 +36,6 @@ Assets own process-local transfer/processing concurrency budgets; media owns inf
 
 ## Durable Run projection
 
-Spaces persists Assistant and Workflow execution as Runs. [runs/run-observation.ts](../src/features/spaces/runs/run-observation.ts) observes `Channel<RunSummary>` via `plugin:spaces|observe_run`. Conversation and Workflow owners project the observed states and cancellation handlers into Task Center and restore active Runs after reload. Closing the conversation panel does not end the Rust Run.
+Spaces persists Assistant and Workflow execution as Runs. [runs/run-observation.ts](../src/features/spaces/runs/run-observation.ts) observes `Channel<RunObservation>` via `plugin:spaces|observe_run`. Conversation and Workflow owners project the observed states and cancellation handlers into Task Center and restore active Runs after reload. Closing the conversation panel does not end the Rust Run.
 
 Task Center titles open the owning Space/conversation. Approval and external-Agent permission decisions stay at that owner; Task Center shows their global summary. Run IDs, revision guards and recovery remain Rust-owned. See [system-architecture.md](system-architecture.md) for runtime flow and [architecture.md](architecture.md) for dependency rules.

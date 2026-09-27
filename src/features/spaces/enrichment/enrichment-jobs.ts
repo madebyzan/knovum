@@ -35,7 +35,7 @@ type SpaceEnrichmentJobStatus =
   | "cancelled"
   | "awaiting_configuration";
 
-export interface SpaceEnrichmentJobRecord {
+export interface SpaceEnrichmentJobState {
   id: string;
   spaceId: string;
   nodeId: string;
@@ -89,5 +89,5 @@ export function cancelEnrichmentJob(jobId: string) {
 }
 
 export function listEnrichmentJobs(spaceId: string) {
-  return invoke<SpaceEnrichmentJobRecord[]>("plugin:spaces|list_enrichment_jobs", { spaceId });
+  return invoke<SpaceEnrichmentJobState[]>("plugin:spaces|list_enrichment_jobs", { spaceId });
 }

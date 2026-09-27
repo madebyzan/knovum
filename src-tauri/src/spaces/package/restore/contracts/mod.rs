@@ -7,15 +7,15 @@ mod run;
 use serde::Deserialize;
 use serde_json::Value;
 
-pub use assistant::{PackageAssistantConversationRow, PackageAssistantMessageRow};
-pub use derivation::PackageDerivationRow;
-pub use external_conversation::{PackageExternalAgentConversationRow, PackageExternalAgentTurnRow};
+pub use assistant::{PackageAssistantConversation, PackageAssistantMessage};
+pub use derivation::PackageDerivation;
+pub use external_conversation::{PackageExternalAgentConversation, PackageExternalAgentTurn};
 pub use restore_request::RestorePackageRequest;
-pub use run::{PackageRunAttemptRow, PackageRunEventRow, PackageRunRow, PackageRunStepRow};
+pub use run::{PackageRun, PackageRunAttempt, PackageRunEvent, PackageRunStep};
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct PackageSpaceRow {
+pub struct PackageSpace {
     pub id: String,
     pub kind: String,
     pub title: String,
@@ -26,7 +26,7 @@ pub struct PackageSpaceRow {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct PackageObjectTypeRow {
+pub struct PackageObjectType {
     pub id: String,
     pub name: String,
     pub icon: String,
@@ -38,7 +38,7 @@ pub struct PackageObjectTypeRow {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct PackageNodeRow {
+pub struct PackageNode {
     pub id: String,
     pub kind: String,
     pub data: Value,
@@ -48,7 +48,7 @@ pub struct PackageNodeRow {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct PackageSceneRow {
+pub struct PackageScene {
     pub id: String,
     pub title: String,
     pub viewport_x: f64,
@@ -65,7 +65,7 @@ pub struct PackageSceneRow {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct PackageRelationRow {
+pub struct PackageRelation {
     pub id: String,
     pub source_id: String,
     pub target_id: String,
@@ -82,7 +82,7 @@ pub struct PackageRelationRow {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct PackageProvenanceRow {
+pub struct PackageProvenance {
     pub id: String,
     pub target_kind: String,
     pub target_id: String,
@@ -99,7 +99,7 @@ pub struct PackageProvenanceRow {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct PackageEventRow {
+pub struct PackageEvent {
     pub id: String,
     pub entity_kind: String,
     pub entity_id: String,
@@ -112,7 +112,7 @@ pub struct PackageEventRow {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct PackageChunkRow {
+pub struct PackageChunk {
     pub id: String,
     pub node_id: String,
     pub origin: String,

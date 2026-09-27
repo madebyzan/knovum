@@ -3,7 +3,7 @@ use serde_json::Value;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct PackageRunRow {
+pub struct PackageRun {
     pub id: String,
     pub parent_run_id: Option<String>,
     pub retry_of_run_id: Option<String>,
@@ -29,7 +29,7 @@ pub struct PackageRunRow {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct PackageRunStepRow {
+pub struct PackageRunStep {
     pub id: String,
     pub run_id: String,
     pub definition_node_id: String,
@@ -47,7 +47,7 @@ pub struct PackageRunStepRow {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct PackageRunAttemptRow {
+pub struct PackageRunAttempt {
     pub id: String,
     pub run_id: String,
     pub step_instance_id: String,
@@ -65,7 +65,7 @@ pub struct PackageRunAttemptRow {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct PackageRunEventRow {
+pub struct PackageRunEvent {
     pub run_id: String,
     pub step_instance_id: Option<String>,
     pub attempt_id: Option<String>,

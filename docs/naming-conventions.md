@@ -21,8 +21,16 @@
   not an implementation example. Durable event types use the CloudEvents reverse-DNS convention;
   local Run event names are closed Rust enums serialized as `snake_case`.
 
-Use `manager`, `service`, `helper`, `utils`, `harness` and generic `engine` only when the term names a
-real, narrow responsibility described by the module contract. A rename-only wrapper is not an owner.
+Do not use `Manager`, `Details`, `List`, `Row`, `Entry` or `Record` as project-owned component identity. Name the actual
+interaction or information: `SpaceSubtitleEditor`, `SpaceAgentArtifactPicker`, `SpaceVisualAnalysis`,
+`AgentAvailability`. Do not replace a vague suffix with another vague suffix such as `Panel` merely
+to pass review. Collections, table rows and enumeration verbs remain valid inside their actual scope.
+Use `Summary` only for actual summarized content, not an arbitrary reduced DTO; name read models
+after their purpose (`RunObservation`, `AssistantConversation`, `UsageMetrics`).
+
+Avoid `core-*`, `base-*` or `common-*` as catch-all module identities. Name validation boundaries
+(`scalar-schema`, `content-schema`) and place reusable policy in its real owner. Third-party package
+names and protocol identifiers keep their external spelling. A rename-only wrapper is not an owner.
 
 Names are part of the architecture contract. Prefer domain language over implementation details and keep one term for one concept.
 
@@ -48,7 +56,7 @@ the named owner directly. Prefer conventional Rust module paths over `#[path]` i
 module ownership obvious when choosing between a file module and a directory module.
 
 Feature roots contain only the module entry, primary view and genuine top-level owners. Non-route UI
-belongs in `components/`; secondary routed pages belong in `views/`. Composables stay beside their
+belongs to its capability's `components/` or, for Spaces, `presentation/<capability>/`; secondary routed pages belong in `views/`. Composables stay beside their
 owning capability rather than in a catch-all directory. Small features do not create empty layering
 directories. Renderer directories name product capabilities or concrete technical ownership;
 `model/` is reserved for shared typed contracts and pure transforms. Generic
@@ -367,3 +375,26 @@ produces false positives, and a gate people route around is worse than no gate.
 
 `tools/` is itself inside Knip's project scope, so scripts that lose their last caller are reported
 as dead code.
+
+## Consistent implementation style
+
+Oxfmt and rustfmt own formatting; Oxlint and Clippy own supported static checks. Do not introduce
+a second formatter or imitate TypeScript idioms in Rust. Vue SFCs use Composition API with
+`<script setup lang="ts">`, followed by template and optional scoped style. Template-owned DOM
+references use `useTemplateRef`; scalar state uses `ref` or `shallowRef` according to the required
+reactivity, and structured editable state uses `reactive` when appropriate. Derived state uses
+`computed`, not a function invoked repeatedly from the template.
+
+Use named function declarations for module operations; arrows remain appropriate for callbacks,
+computed projections and returned closures. Import types with `import type` or inline `type`.
+Keep pure transforms in model owners so rendering and export can reuse policy. Remove identity-only
+forwarders and move invariant classes outside conditional expressions. Prefer explicit control flow
+over compressed expressions when async ownership, error handling or cancellation is involved.
+Preserve boundary validation and visible failures during simplification. Serialized property names,
+IPC command names and third-party APIs are contracts, not candidates for cosmetic renaming.
+
+Project-owned types also avoid generic `Entry` and `Record` identities. Name the entity directly
+(`AssistantConversation`, `ArchivedSpace`, `PackageNode`), or the specific information role
+(`SpaceNodeProjection`, `EnrichmentJobState`, `ReversibleSpaceChange`, `ArchiveMember`).
+Recording audio, recording history, SQL rows and external archive APIs retain their actual verbs
+and fields. Do not change wire property names merely to remove a word from source identifiers.

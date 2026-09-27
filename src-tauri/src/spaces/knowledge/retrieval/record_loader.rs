@@ -3,7 +3,7 @@ use tauri::{AppHandle, Runtime};
 
 use crate::spaces::db;
 
-use super::schema::RetrievalRecord;
+use super::schema::IndexedKnowledgeChunk;
 
 #[derive(Debug)]
 pub(super) struct EmbeddingSource {
@@ -19,7 +19,7 @@ pub(super) struct EmbeddingSource {
 pub(super) async fn load_records<R: Runtime>(
     app: &AppHandle<R>,
     embeddings: Vec<EmbeddingSource>,
-) -> Result<Vec<RetrievalRecord>, String> {
+) -> Result<Vec<IndexedKnowledgeChunk>, String> {
     if embeddings.is_empty() {
         return Ok(Vec::new());
     }
@@ -67,7 +67,7 @@ pub(super) async fn load_records<R: Runtime>(
                 embedding.chunk_id, embedding.source_revision
             )
         })?;
-        records.push(RetrievalRecord {
+        records.push(IndexedKnowledgeChunk {
             chunk_id: row.try_get("chunk_id").map_err(db::sql_error)?,
             space_id: row.try_get("space_id").map_err(db::sql_error)?,
             node_id: row.try_get("node_id").map_err(db::sql_error)?,
@@ -94,7 +94,7 @@ pub(super) async fn load_records<R: Runtime>(
 /// `list_missing_embedding_chunks` — the vector itself lives only in LanceDB.
 pub(super) async fn write_index_markers<R: Runtime>(
     app: &AppHandle<R>,
-    records: &[RetrievalRecord],
+    records: &[IndexedKnowledgeChunk],
 ) -> Result<(), String> {
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;

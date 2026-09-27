@@ -26,17 +26,17 @@ watch(
     if (!editing.value) draft.value = value;
   },
 );
-function start() {
+function beginSummaryEdit() {
   if (!nodeDraft.begin()) return;
   draft.value = props.summary;
   editing.value = true;
 }
-function cancel() {
+function cancelSummaryEdit() {
   nodeDraft.end();
   draft.value = props.summary;
   editing.value = false;
 }
-function save() {
+function saveMediaSummary() {
   nodeDraft.end();
   emit("save", draft.value);
   editing.value = false;
@@ -50,10 +50,10 @@ function save() {
         {{ t("spaces.media.analysis.summary") }}
       </h4>
       <template v-if="editing">
-        <UiIconButton :label="t('common.cancel')" size="sm" @click="cancel"
+        <UiIconButton :label="t('common.cancel')" size="sm" @click="cancelSummaryEdit"
           ><X class="size-(--knovum-icon-size-xs)"
         /></UiIconButton>
-        <UiIconButton :label="t('common.save')" size="sm" @click="save"
+        <UiIconButton :label="t('common.save')" size="sm" @click="saveMediaSummary"
           ><Check class="size-(--knovum-icon-size-xs)"
         /></UiIconButton>
       </template>
@@ -62,7 +62,7 @@ function save() {
         :label="t('common.edit')"
         size="sm"
         :disabled="disabled || !nodeDraft.available.value"
-        @click="start"
+        @click="beginSummaryEdit"
         ><Pencil class="size-(--knovum-icon-size-xs)"
       /></UiIconButton>
     </div>

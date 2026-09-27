@@ -6,7 +6,7 @@ import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceRelation } from "../model/relations/relation";
 import { relationSchema, toSpaceRelation } from "../model/relations/relation-schema";
 import { parseSpaceEditSnapshot, type SpaceEditSnapshot } from "../model/structure/edit-snapshot";
-import { parseSpaceNodeRecords } from "../nodes/node-operations";
+import { parseSpaceNodes } from "../nodes/node-operations";
 import type { SpaceScene } from "../scenes/scene";
 import { sceneSchema } from "../scenes/scene-schema";
 
@@ -22,7 +22,7 @@ export async function loadSpaceSessionProjection(spaceId: string): Promise<{
     spaceId,
   });
   return {
-    nodes: parseSpaceNodeRecords(record.nodes),
+    nodes: parseSpaceNodes(record.nodes),
     scenes: record.scenes.map((scene) => sessionSceneSchema.parse(scene)),
     relations: record.relations.map((relation) => toSpaceRelation(relationSchema.parse(relation))),
     editSnapshot: parseSpaceEditSnapshot(record.editSnapshot),

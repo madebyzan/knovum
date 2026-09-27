@@ -7,7 +7,7 @@ pub(crate) const VECTOR_COLUMN: &str = "vector";
 pub(crate) const MAX_SEMANTIC_LIMIT: i64 = 200;
 
 #[derive(Debug, Clone)]
-pub(crate) struct RetrievalRecord {
+pub(crate) struct IndexedKnowledgeChunk {
     pub chunk_id: String,
     pub space_id: String,
     pub node_id: String,

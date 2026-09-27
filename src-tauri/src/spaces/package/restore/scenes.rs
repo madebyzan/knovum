@@ -26,7 +26,7 @@ pub(super) async fn insert_scenes(
 async fn validate_scene(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
-    row: &super::contracts::PackageSceneRow,
+    row: &super::contracts::PackageScene,
 ) -> Result<(), String> {
     if row.title.trim().is_empty()
         || !row.viewport_x.is_finite()

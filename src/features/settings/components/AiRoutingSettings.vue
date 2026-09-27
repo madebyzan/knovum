@@ -15,7 +15,7 @@ import type {
 } from "../../../foundation/ai/ai-models";
 import { decodeExecutionTarget, encodeExecutionTarget } from "../../../foundation/ai/execution-target-codec";
 import UiSelect from "../../../shared/ui/UiSelect.vue";
-import SettingsRow from "./SettingsRow.vue";
+import PreferenceField from "./PreferenceField.vue";
 import SettingsSection from "./SettingsSection.vue";
 
 const props = defineProps<{
@@ -78,7 +78,12 @@ const selected = (target: AiRoutingDefaults[keyof AiRoutingDefaults]) =>
       </p>
     </div>
     <template v-else>
-      <SettingsRow v-for="row in routeRows" :key="row.key" :label="row.label" :description="row.description">
+      <PreferenceField
+        v-for="row in routeRows"
+        :key="row.key"
+        :label="row.label"
+        :description="row.description"
+      >
         <UiSelect
           :model-value="selected(routes[row.key])"
           :label="row.label"
@@ -87,7 +92,7 @@ const selected = (target: AiRoutingDefaults[keyof AiRoutingDefaults]) =>
           :disabled="row.options.length === 0"
           @update:model-value="update(row.key, $event)"
         />
-      </SettingsRow>
+      </PreferenceField>
     </template>
   </SettingsSection>
 </template>

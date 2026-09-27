@@ -3,7 +3,7 @@ use sqlx::{Sqlite, Transaction};
 use super::super::super::{StructureLayout, StructureNode};
 use crate::spaces::db;
 
-pub(crate) struct DeletionRecord<'a> {
+pub(crate) struct DeletionBatch<'a> {
     pub space_id: &'a str,
     pub batch_id: &'a str,
     pub roots: &'a [String],
@@ -15,7 +15,7 @@ pub(crate) struct DeletionRecord<'a> {
 
 pub(crate) async fn store_deletion_in_transaction(
     tx: &mut Transaction<'_, Sqlite>,
-    record: DeletionRecord<'_>,
+    record: DeletionBatch<'_>,
 ) -> Result<(), String> {
     let roots = serde_json::to_string(record.roots).map_err(db::json_error)?;
     sqlx::query("INSERT INTO spaces_deleted_structure_batches(id,space_id,root_structure_node_ids,deleted_at) VALUES($1,$2,$3,$4)")

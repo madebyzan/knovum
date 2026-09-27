@@ -15,7 +15,7 @@ import { useTaskStore } from "../../foundation/tasks/task-store";
 import UiButton from "../../shared/ui/UiButton.vue";
 import UiPopover from "../../shared/ui/UiPopover.vue";
 import UiSpinner from "../../shared/ui/UiSpinner.vue";
-import TaskCenterList from "./TaskCenterList.vue";
+import TaskCenterActivity from "./TaskCenterActivity.vue";
 
 const store = useTaskStore();
 const { completed, failed, tasks, running } = storeToRefs(store);
@@ -120,7 +120,7 @@ watch(
         {{ t("tasks.clearCompleted") }}
       </UiButton>
     </div>
-    <TaskCenterList
+    <TaskCenterActivity
       :tasks="tasks"
       @cancel="store.cancel"
       @dismiss="store.dismiss"

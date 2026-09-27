@@ -125,7 +125,7 @@ fn copied_preview(
 ) -> (
     Option<String>,
     Option<String>,
-    Option<Vec<crate::file_inspection::InspectedEntry>>,
+    Option<Vec<crate::file_inspection::ArchiveMember>>,
 ) {
     if let ResourceClassification::SourceCode(language) = job.classification {
         let text = if language == "html" {

@@ -2,7 +2,7 @@
 import { useI18n } from "vue-i18n";
 
 import { useRuntimeSettings } from "../runtime/use-runtime-settings";
-import RuntimeModelRow from "./RuntimeModelRow.vue";
+import RuntimeModelInstallation from "./RuntimeModelInstallation.vue";
 import SettingsSection from "./SettingsSection.vue";
 
 const { t } = useI18n();
@@ -33,7 +33,7 @@ const {
     :title="t('settings.offlineModels.title')"
     :description="t('settings.offlineModels.description')"
   >
-    <RuntimeModelRow
+    <RuntimeModelInstallation
       :title="t('settings.offlineModels.models.textEmbedding.label')"
       :description="t('settings.offlineModels.models.textEmbedding.description')"
       :installed="textEmbeddingInstalled"
@@ -46,7 +46,7 @@ const {
       @cancel="cancelDownload"
       @remove="removeTextEmbedding"
     />
-    <RuntimeModelRow
+    <RuntimeModelInstallation
       :title="t('settings.offlineModels.models.whisperStandard')"
       :installed="transcriptionInstalled"
       :installed-count="transcriptionInstalledCount"

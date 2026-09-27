@@ -10,7 +10,6 @@ import {
 } from "../../../foundation/context-menu/context-menu";
 
 export type SpaceMenuItem = ContextMenuItem;
-export type SpaceMenuEntry = ContextMenuItem;
 
 export function spaceMenuItem(
   text: string,

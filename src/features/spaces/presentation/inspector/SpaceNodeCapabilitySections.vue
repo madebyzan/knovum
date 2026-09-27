@@ -3,11 +3,11 @@ import { ArrowRightLeft, MessageSquareQuote, ScanText } from "@lucide/vue";
 
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import SpaceDocumentCoverage from "../document/SpaceDocumentCoverage.vue";
-import SpaceKnowledgeObjectDetails from "../knowledge/SpaceKnowledgeObjectDetails.vue";
+import SpaceKnowledgeObjectInspection from "../knowledge/SpaceKnowledgeObjectInspection.vue";
 import SpaceMediaKnowledge from "../media/SpaceMediaKnowledge.vue";
 import SpaceInspectorSection from "./SpaceInspectorSection.vue";
-import SpacePortalDetails from "./SpacePortalDetails.vue";
-import SpaceSubtitleDetails from "./SpaceSubtitleDetails.vue";
+import SpacePortalEditor from "./SpacePortalEditor.vue";
+import SpaceSubtitleEditor from "./SpaceSubtitleEditor.vue";
 
 defineProps<{ node: SpaceCanvasNode }>();
 </script>
@@ -26,7 +26,7 @@ defineProps<{ node: SpaceCanvasNode }>();
     :title="$t('spaces.nodeTypes.object')"
     :icon="MessageSquareQuote"
   >
-    <SpaceKnowledgeObjectDetails :node="node" />
+    <SpaceKnowledgeObjectInspection :node="node" />
   </SpaceInspectorSection>
 
   <SpaceInspectorSection
@@ -34,7 +34,7 @@ defineProps<{ node: SpaceCanvasNode }>();
     :title="$t('spaces.creation.video.subtitles.editor')"
     :icon="ScanText"
   >
-    <SpaceSubtitleDetails :node="node" />
+    <SpaceSubtitleEditor :node="node" />
   </SpaceInspectorSection>
 
   <SpaceInspectorSection
@@ -51,6 +51,6 @@ defineProps<{ node: SpaceCanvasNode }>();
     :title="$t('spaces.nodeTypes.portal')"
     :icon="ArrowRightLeft"
   >
-    <SpacePortalDetails :node="node" />
+    <SpacePortalEditor :node="node" />
   </SpaceInspectorSection>
 </template>

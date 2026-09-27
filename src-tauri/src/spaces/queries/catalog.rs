@@ -7,7 +7,7 @@ use crate::spaces::db;
 
 #[derive(Debug, Serialize, sqlx::FromRow)]
 #[serde(rename_all = "camelCase")]
-pub struct SpaceSummary {
+pub struct SpaceOverview {
     id: String,
     kind: String,
     title: String,
@@ -21,7 +21,9 @@ pub struct SpaceSummary {
 }
 
 #[tauri::command]
-pub async fn list_spaces<R: Runtime>(app: AppHandle<R>) -> Result<Vec<SpaceSummary>, CommandError> {
+pub async fn list_spaces<R: Runtime>(
+    app: AppHandle<R>,
+) -> Result<Vec<SpaceOverview>, CommandError> {
     let pool = db::pool(&app).await?;
     Ok((sqlx::query_as(
         "SELECT spaces.id, spaces.kind, spaces.title, archived_at, favorite, thumbnail_path, \

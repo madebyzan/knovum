@@ -9,7 +9,7 @@ import {
   combineRecentSpaceHistory,
   recordSpaceHistory,
   redoSpaceHistory,
-  type SpaceHistoryEntry,
+  type ReversibleSpaceChange,
   undoSpaceHistory,
 } from "./stack";
 
@@ -73,7 +73,7 @@ export function createSpaceHistoryMutations(context: SpaceMutationContext) {
     },
     updateManyData,
     recordHistoryMutation,
-    recordCanvasHistory: (entry: SpaceHistoryEntry) => recordSpaceHistory(history, entry),
+    recordCanvasHistory: (entry: ReversibleSpaceChange) => recordSpaceHistory(history, entry),
     setCanvasMutationPending: (pending: boolean) => {
       if (pending) canvasMutationLease = beginSpaceMutation(history);
       else {

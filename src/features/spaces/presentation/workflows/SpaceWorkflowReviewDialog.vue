@@ -6,7 +6,7 @@ import { decodeCommandError } from "../../../../foundation/ipc/command-error";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiDialog from "../../../../shared/ui/UiDialog.vue";
 import UiMarkdown from "../../../../shared/ui/UiMarkdown.vue";
-import type { StepSummary } from "../../contracts/generated/StepSummary";
+import type { StepObservation } from "../../contracts/generated/StepObservation";
 import type { SpaceNodePayload } from "../../model/nodes/node-payload";
 import { useSpaceStore } from "../../session/space-store";
 import { decideWorkflowReview, loadWorkflowReview } from "../../workflows/workflow-review";
@@ -19,7 +19,7 @@ const open = computed({ get: () => true, set: (value: boolean) => !value && emit
 const loading = shallowRef(false);
 const deciding = shallowRef(false);
 const error = shallowRef("");
-const step = shallowRef<StepSummary>();
+const step = shallowRef<StepObservation>();
 const content = shallowRef<SpaceNodePayload>();
 const reviewedRevision = shallowRef("");
 const reviewedNodeId = shallowRef("");

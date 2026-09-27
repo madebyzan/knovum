@@ -9,7 +9,7 @@ import UiSelect from "../../../../shared/ui/UiSelect.vue";
 import { useRecentlyDeletedActions } from "../../deletion/use-recently-deleted-actions";
 import { useRecentlyDeletedQuery } from "../../deletion/use-recently-deleted-query";
 import { useSpaceStore } from "../../session/space-store";
-import SpaceDeletedStructureList from "./SpaceDeletedStructureList.vue";
+import SpaceDeletedStructureRecovery from "./SpaceDeletedStructureRecovery.vue";
 
 const props = defineProps<{ spaceId: string | null }>();
 const open = defineModel<boolean>("open", { required: true });
@@ -57,7 +57,7 @@ const canDeleteAll = computed(
       </p>
       <UiButton size="sm" @click="deletedQuery.refetch()">{{ t("common.retry") }}</UiButton>
     </div>
-    <SpaceDeletedStructureList
+    <SpaceDeletedStructureRecovery
       v-else-if="deletedRoots.length"
       :deleted-roots="deletedRoots"
       :busy="busy || deletedQuery.isFetching.value"
