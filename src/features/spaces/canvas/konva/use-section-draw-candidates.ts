@@ -1,9 +1,9 @@
 import { compact } from "es-toolkit";
 import { computed, type Ref } from "vue";
 
-import { sectionDrawCandidateIds } from "../../organization/section-draw-candidates";
+import type { SpaceEditSnapshot } from "../../model/structure/edit-snapshot";
+import { sectionDrawCandidateIds } from "../../structure/section-draw-candidates";
 import type { CanvasRect } from "../contract/canvas-editor-port";
-import type { SpaceEditSnapshot } from "../contract/space-edit-snapshot";
 
 export function useSectionDrawCandidateBounds(
   draft: Readonly<Ref<CanvasRect | undefined>>,

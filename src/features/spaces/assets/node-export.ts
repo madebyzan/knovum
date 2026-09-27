@@ -1,7 +1,7 @@
-import type { SpaceEditSnapshot } from "../canvas/contract/space-edit-snapshot";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { isSpaceManagedAssetPayload } from "../model/nodes/capabilities";
 import type { SpaceNodePayload, SpaceSubtitlePayload } from "../model/nodes/node-payload";
+import type { SpaceEditSnapshot } from "../model/structure/edit-snapshot";
 import type { StructureIndex } from "../model/structure/structure-index";
 import { validateStructureSnapshot } from "../model/structure/structure-validation";
 import { exportEditedImage } from "./edited-image-export";

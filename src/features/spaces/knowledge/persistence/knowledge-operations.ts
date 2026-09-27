@@ -60,7 +60,7 @@ export function createProvenance(input: CreateProvenanceInput): Promise<void> {
   return invoke("plugin:spaces|create_provenance", { input });
 }
 
-export function removeProvenance(provenanceId: string): Promise<void> {
+export function revokeProvenance(provenanceId: string): Promise<void> {
   return invoke("plugin:spaces|revoke_provenance", { provenanceId });
 }
 

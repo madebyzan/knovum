@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import type { SpaceEditSnapshot } from "../canvas/contract/space-edit-snapshot";
 import { createSpaceNode } from "../canvas/node";
 import { createSpaceNotePayload } from "../editor/tiptap-content";
+import type { SpaceEditSnapshot } from "../model/structure/edit-snapshot";
 import { canvasSelectionProductState } from "../presentation/canvas/selection-product-state";
 
 const nodes = ["a", "b"].map((id) => createSpaceNode(createSpaceNotePayload(id), { x: 0, y: 0 }, id));

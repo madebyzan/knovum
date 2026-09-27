@@ -1,12 +1,12 @@
 import { isEqual } from "es-toolkit";
 
+import type { SpaceEditSnapshot } from "../../model/structure/edit-snapshot";
 import type { LocalTransform } from "../../model/structure/structure-contract";
 import { createStructureIndex, effectiveOperationRoots } from "../../model/structure/structure-index";
 import { worldTransformFor } from "../../model/structure/world-transform";
-import type { SpaceEditCommand } from "../../organization/space-edit-command";
+import type { SpaceEditCommand } from "../../structure/space-edit-command";
 import { serializeCanvasAppearance } from "../contract/canvas-document";
 import type { CanvasDocumentV1, CanvasNodeLayoutV1 } from "../contract/canvas-document";
-import type { SpaceEditSnapshot } from "../contract/space-edit-snapshot";
 
 const EPSILON = 1e-6;
 

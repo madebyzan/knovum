@@ -2,10 +2,10 @@ import { maxBy, sortBy } from "es-toolkit";
 import type { Ref } from "vue";
 
 import { cleanupDeletedSpaceAssets } from "../assets/asset-operations";
-import type { SpaceEditSnapshot } from "../canvas/contract/space-edit-snapshot";
-import type { SpaceSavedViewFilter } from "../knowledge/model/projections";
 import { snapshotSpaceQueryFilter } from "../knowledge/model/query-filter";
+import type { SpaceSavedViewFilter } from "../knowledge/model/saved-view-filter";
 import type { SpaceRelationKind, SpaceRelationStatus } from "../model/relations/relation";
+import type { SpaceEditSnapshot } from "../model/structure/edit-snapshot";
 import { createStructureIndex } from "../model/structure/structure-index";
 import type { SpaceScene } from "./scene";
 import { deleteScene, createScene as persistScene, updateSceneOrders, updateScene } from "./scene-operations";

@@ -21,8 +21,6 @@ import { spaceEditOperations } from "../../structure/space-edit-operations";
 import { loadSpaceSessionProjection } from "../space-projection";
 import { createNodeDataMutations } from "./node-data-mutations";
 
-export type { NodePayloadChange } from "../../history/mutation-types";
-
 export function createSpaceMutations(context: SpaceMutationContext) {
   const dataMutations = createNodeDataMutations(context);
   return {

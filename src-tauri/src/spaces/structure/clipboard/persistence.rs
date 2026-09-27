@@ -5,7 +5,7 @@ use sqlx::{Sqlite, Transaction};
 
 use super::{ClipboardNode, ClipboardRelation};
 use crate::spaces::structure::{
-    planner_spatial::world_transform, planner_support::Index, StructureLayout, StructureNode,
+    planner::spatial::world_transform, planner::tree_policy::Index, StructureLayout, StructureNode,
 };
 use crate::spaces::{commands::relations::SpaceRelationInput, db};
 

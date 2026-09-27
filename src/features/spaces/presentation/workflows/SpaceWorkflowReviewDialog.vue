@@ -6,7 +6,7 @@ import { decodeCommandError } from "../../../../foundation/ipc/command-error";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiDialog from "../../../../shared/ui/UiDialog.vue";
 import UiMarkdown from "../../../../shared/ui/UiMarkdown.vue";
-import type { StepSummary } from "../../contracts/generated/RunStep";
+import type { StepSummary } from "../../contracts/generated/StepSummary";
 import type { SpaceNodePayload } from "../../model/nodes/node-payload";
 import { useSpaceStore } from "../../session/space-store";
 import { decideWorkflowReview, loadWorkflowReview } from "../../workflows/workflow-review";

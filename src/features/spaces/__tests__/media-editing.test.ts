@@ -6,8 +6,8 @@ import {
   editTranscriptSegment,
   mediaKnowledgeIsStale,
   shiftMediaChapterStart,
-} from "../media/editing";
-import type { SpaceMediaKnowledge } from "../media/schema";
+} from "../media/knowledge-editing";
+import type { SpaceMediaKnowledge } from "../media/knowledge-schema";
 
 function knowledge(): SpaceMediaKnowledge {
   return {

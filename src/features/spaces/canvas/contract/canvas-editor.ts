@@ -1,5 +1,5 @@
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
-import type { SpaceEditCommand } from "../../organization/space-edit-command";
+import type { SpaceEditCommand } from "../../structure/space-edit-command";
 import type {
   CanvasEditorPort,
   CanvasNodePlacement,

@@ -110,6 +110,8 @@ There is no second menu action implementation. Application menu events emit the 
 
 Action availability is a neutral shared contract with `ready`, `checking`, `busy`, `blocked(reason)`, and `hidden` states. The same `AppCommand.availability` is read by command execution and the palette; a disabled visual state never replaces the execution guard. Feature modules combine local selection, source revision, edit session, and native capability results into that contract. Rust reports machine-readable capability states and reason codes for provider, credential, and database conditions; it never returns UI copy. Vue owns localization, help placement, and settings navigation. Image operation and layer capability checks refresh when their menus open, so returning from settings does not leave an old decision in view. Product-specific reason mapping remains in the owning feature rather than shared UI.
 
+Document parsing owns structured inputs and logical locations; native PDF rendering only produces resources for requested pages or regions. Visual jobs own per-occurrence checkpoints, while Knowledge publication owns canonical revision and derived passages. Intermediate analysis does not rebuild Knowledge once per image: completed results are committed together on completion or failure. See [knowledge.md](knowledge.md) for checkpoint and resource lifetime details.
+
 ## Long-running task flow
 
 ```text
@@ -284,9 +286,3 @@ Platform behavior is documented in `platform-matrix.md` and must not be unified 
 ## Distribution boundary
 
 The repository can build QA installers without organization credentials. Public production distribution is a separate boundary requiring real signing/notarization and updater configuration. See `packaging.md` and `release.md`.
-
-# 文档分析发布边界
-
-文档解析拥有结构化输入和逻辑位置；原生 PDF 渲染只产生指定页或区域的资源。
-视觉任务拥有逐 occurrence 检查点，知识提交拥有 canonical revision 和派生块。
-中间分析不逐张触发知识重建，完成或失败后统一提交。

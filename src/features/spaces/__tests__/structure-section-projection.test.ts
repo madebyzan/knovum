@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import type { SpaceEditSnapshot } from "../canvas/contract/space-edit-snapshot";
 import { projectStructureCanvasDocument } from "../canvas/document/structure-canvas-document";
 import { projectStructureScene } from "../canvas/document/structure-scene-projection";
 import { createSpaceNode } from "../canvas/node";
 import { createSpaceNotePayload } from "../editor/tiptap-content";
-import { sectionDropCandidateId, sectionDropReparentCommand } from "../organization/section-drop-reparent";
+import type { SpaceEditSnapshot } from "../model/structure/edit-snapshot";
+import { sectionDropCandidateId, sectionDropReparentCommand } from "../structure/section-drop-reparent";
 
 describe("Structure Section projection", () => {
   it("keeps folded descendants in the adapter document while hiding only the scene projection", () => {

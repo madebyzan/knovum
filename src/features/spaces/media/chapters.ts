@@ -1,7 +1,7 @@
 import { sortBy, uniqBy } from "es-toolkit";
 
+import type { SpaceMediaChapter, SpaceMediaTranscript } from "./knowledge-schema";
 import type { MediaChapterCandidate } from "./prompts";
-import type { SpaceMediaChapter, SpaceMediaTranscript } from "./schema";
 
 export function normalizeChapterEnds<T extends { startMs: number }>(
   chapters: readonly T[],

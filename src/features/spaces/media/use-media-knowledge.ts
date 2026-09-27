@@ -15,8 +15,8 @@ import {
   editTranscriptSegment,
   mediaKnowledgeIsStale,
   shiftMediaChapterStart,
-} from "./editing";
-import type { SpaceTranscriptEdit } from "./schema";
+} from "./knowledge-editing";
+import type { SpaceTranscriptEdit } from "./knowledge-schema";
 
 export function useMediaKnowledge(node: Ref<SpaceCanvasNode>) {
   const store = useSpaceStore();

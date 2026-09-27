@@ -4,8 +4,8 @@ import type { Ref } from "vue";
 import { recordSpaceHistory, type SpaceHistoryState } from "../../history/stack";
 import {
   createRelation as persistRelation,
-  removeRelation,
-  removeRelations,
+  revokeRelation,
+  revokeRelations,
   restoreRelation,
   restoreRelations,
   updateRelation,
@@ -108,7 +108,7 @@ export async function removeSpaceRelations(context: RelationContext, ids: readon
   const activeSpaceId = context.activeSpaceId.value;
   if (!activeSpaceId || selected.some(({ spaceId }) => spaceId !== activeSpaceId))
     throw new Error("Selected Space Relations must belong to the active Space");
-  await removeRelations(uniqueIds);
+  await revokeRelations(uniqueIds);
   removeRelationsFromState(context, uniqueIds);
   recordSpaceHistory(context.history, {
     undo: async () => {
@@ -116,7 +116,7 @@ export async function removeSpaceRelations(context: RelationContext, ids: readon
       for (const relation of selected) addRelation(context, relation);
     },
     redo: async () => {
-      await removeRelations(uniqueIds);
+      await revokeRelations(uniqueIds);
       removeRelationsFromState(context, uniqueIds);
     },
   });
@@ -143,7 +143,7 @@ function findDuplicate(
 function historyForInsert(context: RelationContext, relation: SpaceRelation) {
   return {
     undo: async () => {
-      await removeRelation(relation.id);
+      await revokeRelation(relation.id);
       removeRelationFromState(context, relation);
     },
     redo: async () => {

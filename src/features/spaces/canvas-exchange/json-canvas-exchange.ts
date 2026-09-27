@@ -1,11 +1,11 @@
 import { compact } from "es-toolkit";
 import { basename } from "pathe";
 
-import type { SpaceEditSnapshot } from "../canvas/contract/space-edit-snapshot";
 import { projectStructureScene } from "../canvas/document/structure-scene-projection";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
 import type { SpaceRelation } from "../model/relations/relation";
+import type { SpaceEditSnapshot } from "../model/structure/edit-snapshot";
 import type {
   CanvasExchangeCodec,
   CanvasExchangeExport,

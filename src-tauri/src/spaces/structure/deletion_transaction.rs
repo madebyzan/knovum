@@ -4,7 +4,7 @@ use sqlx::{Sqlite, Transaction};
 
 use super::{
     edit_contract::ExecuteSpaceEditRequest,
-    planner_delete::Deletion,
+    planner::delete::Deletion,
     repository::{self, SpaceStructureSnapshot},
 };
 use crate::spaces::db;

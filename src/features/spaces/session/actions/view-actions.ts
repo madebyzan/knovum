@@ -1,11 +1,11 @@
 import type { SpacePlacement } from "../../canvas/navigation-requests";
-import type { SpaceSavedViewFilter } from "../../knowledge/model/projections";
 import { snapshotSpaceQueryFilter } from "../../knowledge/model/query-filter";
 import {
   findSemanticRelationPath,
   queryMatchingNodes,
   relationNeighborhood,
 } from "../../knowledge/model/relation-graph";
+import type { SpaceSavedViewFilter } from "../../knowledge/model/saved-view-filter";
 import { createStructureIndex } from "../../model/structure/structure-index";
 import { contentNodeIdsWithin } from "../../model/structure/structure-queries";
 import type { SpaceState } from "../session-state";

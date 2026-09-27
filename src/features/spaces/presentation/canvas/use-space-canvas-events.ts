@@ -5,9 +5,9 @@ import { updateCanvasSelectionProjection, updateCanvasViewportProjection } from 
 import { useNodeOperationGate } from "../../canvas/node-operation-gate";
 import { createStructureIndex } from "../../model/structure/structure-index";
 import { groupScopePathFor } from "../../model/structure/structure-queries";
-import { sectionDrawCandidateIds } from "../../organization/section-draw-candidates";
 import type { createCanvasSelectionActions } from "../../session/actions/canvas-selection-actions";
 import type { useSpaceStore } from "../../session/space-store";
+import { sectionDrawCandidateIds } from "../../structure/section-draw-candidates";
 import type { CanvasContentLayoutCoordinator } from "./canvas-content-layout-coordinator";
 import type { useSpaceCanvasImports } from "./use-space-canvas-imports";
 
@@ -54,7 +54,7 @@ export function createSpaceCanvasEvents(options: {
     },
     onCopyNodes: options.selection.copyNodes,
     onDeleteRelations: (ids) =>
-      operations.allowsGestureCommit() ? store.removeRelations(ids) : Promise.resolve(),
+      operations.allowsGestureCommit() ? store.revokeRelations(ids) : Promise.resolve(),
     onCreateRelation: async (sourceNodeId, targetNodeId) => {
       if (!operations.allowsGestureCommit()) return;
       await store.createRelation(sourceNodeId, targetNodeId, "related");

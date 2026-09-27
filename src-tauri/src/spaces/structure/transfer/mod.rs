@@ -1,5 +1,5 @@
-use super::planner_spatial::{local_from_world, world_transform};
-use super::planner_support::{
+use super::planner::spatial::{local_from_world, world_transform};
+use super::planner::tree_policy::{
     effective_roots, remove_empty_groups, require_editable, set_order, Index,
 };
 use super::repository::SpaceStructureSnapshot;

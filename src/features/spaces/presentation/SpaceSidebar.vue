@@ -6,7 +6,7 @@ import { useI18n } from "vue-i18n";
 
 import { useSpaceStore } from "../session/space-store";
 import { useSpaceManagementMenu } from "../workspace/use-space-management-menu";
-import SpaceSidebarOutline from "./SpaceSidebarOutline.vue";
+import SpaceSidebarOutline from "./outline/SpaceSidebarOutline.vue";
 
 const store = useSpaceStore();
 const management = useSpaceManagementMenu();

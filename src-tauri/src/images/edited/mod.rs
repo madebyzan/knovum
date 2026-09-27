@@ -23,13 +23,9 @@ pub(crate) fn validate_edit(value: &Value) -> Result<(), String> {
     ImageEdit::parse(value).map(|_| ())
 }
 
-pub(crate) fn render_source_png<R: tauri::Runtime>(
-    app: &tauri::AppHandle<R>,
-    source_path: &str,
-    edit: &Value,
-) -> Result<EditedImageOutput, String> {
-    let source = crate::spaces::assets::authorize_spaces_asset(app, Path::new(source_path))?;
-    let metadata = fs::metadata(&source).map_err(|error| error.to_string())?;
+/// The caller owns authorization; the engine enforces image resource limits.
+pub(crate) fn render_source_png(source: &Path, edit: &Value) -> Result<EditedImageOutput, String> {
+    let metadata = fs::metadata(source).map_err(|error| error.to_string())?;
     if metadata.len() == 0 || metadata.len() > MAX_SOURCE_BYTES {
         return Err("Edited-image input must be a non-empty image up to 64 MiB".into());
     }
@@ -72,3 +68,6 @@ fn validate_source_dimensions((width, height): (u32, u32)) -> Result<(), String>
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests;

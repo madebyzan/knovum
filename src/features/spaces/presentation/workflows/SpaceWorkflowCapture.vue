@@ -16,18 +16,17 @@ const store = useSpaceStore();
 const { t } = useI18n();
 // The preview is derived from live canvas state, so it must never be served from cache.
 const capturePreviewQuery = useQuery(
-  computed(() => ({
-    queryKey: [
-      "spaces",
-      store.activeSpaceId ?? "",
-      "workflow-capture-preview",
-      store.workflowCaptureSelection,
-    ] as const,
-    queryFn: ({ queryKey }) => previewWorkflowCapture(queryKey[1], queryKey[2]),
-    enabled: Boolean(store.activeSpaceId) && store.workflowCaptureSelection.length > 0,
-    staleTime: 0,
-    gcTime: 0,
-  })),
+  computed(() => {
+    const spaceId = store.activeSpaceId ?? "";
+    const selection = [...store.workflowCaptureSelection];
+    return {
+      queryKey: ["spaces", spaceId, "workflow-capture-preview", selection] as const,
+      queryFn: () => previewWorkflowCapture(spaceId, selection),
+      enabled: Boolean(spaceId) && selection.length > 0,
+      staleTime: 0,
+      gcTime: 0,
+    };
+  }),
 );
 const preview = computed(() => capturePreviewQuery.data.value);
 const loading = computed(() => capturePreviewQuery.isFetching.value);

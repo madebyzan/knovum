@@ -2,9 +2,9 @@
 import { Layers, Tag } from "@lucide/vue";
 
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
+import SpaceInspectorSection from "./inspector/SpaceInspectorSection.vue";
 import SpaceKnowledgeHistory from "./knowledge/SpaceKnowledgeHistory.vue";
 import SpaceRelations from "./knowledge/SpaceRelations.vue";
-import SpaceInspectorSection from "./SpaceInspectorSection.vue";
 import SpaceTags from "./SpaceTags.vue";
 
 defineProps<{ node: SpaceCanvasNode }>();

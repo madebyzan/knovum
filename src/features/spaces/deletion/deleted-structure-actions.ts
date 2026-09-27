@@ -5,8 +5,8 @@ import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command"
 import { queryClient } from "../../../foundation/query/query-client";
 import { cleanupDeletedSpaceAssets } from "../assets/asset-operations";
 import { spaceKnowledgeQueryKeys } from "../knowledge/queries/query-options";
-import { invokeConfirmedMutation } from "../organization/confirmed-mutation";
-import type { SpaceEditReceipt } from "../organization/space-edit-command";
+import { invokeConfirmedMutation } from "../structure/confirmed-mutation";
+import type { SpaceEditReceipt } from "../structure/space-edit-command";
 import { spaceEditOperations } from "../structure/space-edit-operations";
 import type { SpaceDeletedStructureRoot } from "./deleted-structure";
 

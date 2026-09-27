@@ -1,7 +1,7 @@
 use crate::spaces::nodes::contracts::InsertNode;
 
-use super::planner_spatial::{local_from_world, world_transform};
-use super::planner_support::{require_editable, Index};
+use super::planner::spatial::{local_from_world, world_transform};
+use super::planner::tree_policy::{require_editable, Index};
 use super::repository::SpaceStructureSnapshot;
 use super::{LocalTransform, Size, StructureLayout, StructureNode};
 

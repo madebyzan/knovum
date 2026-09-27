@@ -14,11 +14,11 @@ export function createRelation(relation: SpaceRelation): Promise<void> {
   return invoke("plugin:spaces|create_relation", { relation: relationInput(relation) });
 }
 
-export function removeRelation(relationId: string): Promise<void> {
+export function revokeRelation(relationId: string): Promise<void> {
   return invoke("plugin:spaces|revoke_relation", { relationId });
 }
 
-export function removeRelations(relationIds: readonly string[]): Promise<void> {
+export function revokeRelations(relationIds: readonly string[]): Promise<void> {
   return invoke("plugin:spaces|revoke_relations", { relationIds });
 }
 

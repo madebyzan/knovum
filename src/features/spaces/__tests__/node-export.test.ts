@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { SpaceEditSnapshot } from "../canvas/contract/space-edit-snapshot";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
+import type { SpaceEditSnapshot } from "../model/structure/edit-snapshot";
 
 const mocks = vi.hoisted(() => ({
   invoke: vi.fn<(command: string, args: unknown) => Promise<unknown>>(),

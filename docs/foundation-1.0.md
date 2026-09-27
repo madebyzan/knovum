@@ -12,7 +12,7 @@ Business feature work may start against this RC. Freeze the foundation as 1.0 af
 - single-instance application lifecycle
 - command palette and command shortcut dispatch
 - app-level and feature-level Vue error isolation
-- secure OS credential-store commands with Tauri ACL
+- dedicated local credential-database commands with Tauri ACL; security properties follow `secrets.md` (no application encryption)
 - Task Center and Tauri Channel bridge
 - window state/session restore and taskbar/Dock progress
 - logging and runtime diagnostics

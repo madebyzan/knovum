@@ -150,7 +150,7 @@ pub struct AssistantPermissionOption {
 }
 
 #[derive(Clone, Debug, Serialize, TS)]
-#[ts(export_to = "../../../features/spaces/contracts/generated/AssistantConversation.ts")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/ConversationSummary.ts")]
 #[serde(rename_all = "camelCase")]
 pub struct ConversationSummary {
     pub id: String,

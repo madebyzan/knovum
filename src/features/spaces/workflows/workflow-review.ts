@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
-import type { StepSummary } from "../contracts/generated/RunStep";
+import type { StepSummary } from "../contracts/generated/StepSummary";
 import { getNode } from "../nodes/node-operations";
 
 /** `StepSummary.output` is a generated `JsonValue`, so the review checkpoint is an untrusted shape. */

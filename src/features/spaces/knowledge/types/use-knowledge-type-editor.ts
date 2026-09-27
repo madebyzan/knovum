@@ -9,8 +9,8 @@ import { queryClient } from "../../../../foundation/query/query-client";
 import { useSpaceStore } from "../../session/space-store";
 import type { SpaceObjectFieldDefinition, SpaceObjectFieldKind } from "../model/object-types";
 import { createObjectType, deleteObjectType, updateObjectType } from "../persistence/knowledge-operations";
-import { useSpaceObjectTypesQuery } from "../queries/queries";
 import { spaceKnowledgeQueryKeys } from "../queries/query-options";
+import { useSpaceObjectTypesQuery } from "../queries/use-knowledge-queries";
 
 export function useKnowledgeTypeEditor(open: Ref<boolean>) {
   const { activeSpaceId } = storeToRefs(useSpaceStore());

@@ -8,7 +8,7 @@ import type { KnowledgeChunkSeed } from "../knowledge/model/schema";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
 import { validateSpaceNodePayload } from "../model/nodes/schema/node-payload";
-import { invokeConfirmedMutation } from "../organization/confirmed-mutation";
+import { invokeConfirmedMutation } from "../structure/confirmed-mutation";
 
 export function parseSpaceNodeRecords(rows: readonly SpaceNodeRecord[]): SpaceCanvasNode[] {
   return rows.map((row) =>

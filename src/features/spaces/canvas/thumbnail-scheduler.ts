@@ -7,7 +7,7 @@ import { updateSpaceThumbnail } from "../workspace/space-operations";
 import { useCanvasEditorSession } from "./editor-session";
 
 const SETTLE_DELAY_MS = 800;
-let pendingCapture: number | undefined;
+let pendingCapture: ReturnType<typeof globalThis.setTimeout> | undefined;
 
 export function scheduleCanvasThumbnail(state: SpaceState) {
   cancelCanvasThumbnail();

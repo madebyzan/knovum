@@ -79,7 +79,7 @@ module.exports = {
       comment: "Space presentation consumes capability and query contracts, never persistence adapters.",
       from: { path: "^src/features/spaces/presentation(?:/|$)" },
       to: {
-        path: "^src/features/spaces/(?:canvas/persistence|structure|credentials/credential-storage|knowledge/(?:persistence|relations/relation-operations)|nodes/node-operations|scenes/scene-operations|search/global-search|workspace/space-operations)(?:/|$|\\.ts$)",
+        path: "^src/features/spaces/(?:canvas/persistence|structure/(?:space-edit-operations|structure-transfer-operations)|credentials/credential-storage|knowledge/(?:persistence|relations/relation-operations)|nodes/node-operations|scenes/scene-operations|search/global-search|workspace/space-operations)(?:/|$|\\.ts$)",
       },
     },
     {
@@ -97,7 +97,7 @@ module.exports = {
       comment: "Space domain models cannot depend on session, infrastructure adapters, or presentation code.",
       from: { path: "^src/features/spaces/(?:model|knowledge/model)(?:/|$)" },
       to: {
-        path: "^src/features/spaces/(?:session|presentation|canvas/persistence|knowledge/persistence)(?:/|$)",
+        path: "^src/features/spaces/(?:session|history|package|presentation|canvas/persistence|knowledge/persistence)(?:/|$)",
       },
     },
     {
@@ -105,7 +105,7 @@ module.exports = {
       severity: "error",
       comment: "Capability-owned repositories and persistence adapters cannot depend on Space UI.",
       from: {
-        path: "^src/features/spaces/(?:canvas/persistence|structure|credentials/credential-storage|knowledge/(?:persistence|relations/relation-operations)|nodes/node-operations|scenes/scene-operations|search/global-search|workspace/space-operations)(?:/|$|\\.ts$)",
+        path: "^src/features/spaces/(?:canvas/persistence|structure/(?:space-edit-operations|structure-transfer-operations)|credentials/credential-storage|knowledge/(?:persistence|relations/relation-operations)|nodes/node-operations|scenes/scene-operations|search/global-search|workspace/space-operations)(?:/|$|\\.ts$)",
       },
       to: { path: "^src/features/spaces/presentation(?:/|$)" },
     },
@@ -139,6 +139,20 @@ module.exports = {
         "The Konva adapter implements neutral canvas editing and never parses or serializes exchange formats.",
       from: { path: "^src/features/spaces/canvas/konva(?:/|$)" },
       to: { path: "^src/features/spaces/canvas-exchange(?:/|$)" },
+    },
+    {
+      name: "spaces-session-projection-does-not-depend-on-package-format",
+      severity: "error",
+      from: { path: "^src/features/spaces/session/space-projection[.]ts$" },
+      to: { path: "^src/features/spaces/package/" },
+    },
+    {
+      name: "spaces-capability-budgets-do-not-depend-on-session",
+      severity: "error",
+      from: {
+        path: "^src/features/spaces/(?:assets/(?:concurrency-budget|import-transfer|processing-scheduler)|media/(?:inference-budget|actions))[.]ts$",
+      },
+      to: { path: "^src/features/spaces/session/" },
     },
     ...featureIsolationRules,
   ],

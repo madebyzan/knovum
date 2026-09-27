@@ -1,9 +1,9 @@
 import { computed, ref, shallowRef } from "vue";
 
-import type { SpaceEditSnapshot } from "../canvas/contract/space-edit-snapshot";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceRelation } from "../model/relations/relation";
 import type { Space, SpaceLibraryScope } from "../model/space";
+import type { SpaceEditSnapshot } from "../model/structure/edit-snapshot";
 import type { SpaceScene } from "../scenes/scene";
 import type { SpaceUrlCaptureProjection } from "../sources/url-capture-projection";
 

@@ -6,10 +6,10 @@ import { useI18n } from "vue-i18n";
 
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import { useContextDock } from "../../canvas/use-context-dock";
-import { knowledgeLocationLabel } from "../../knowledge/model/location";
 import type { SpaceProvenanceTargetKind } from "../../knowledge/model/provenance";
+import { knowledgeLocationLabel } from "../../knowledge/presentation/location-label";
 import { attachProvenance, detachProvenance } from "../../knowledge/provenance-actions";
-import { useSpaceProvenanceQuery } from "../../knowledge/queries/queries";
+import { useSpaceProvenanceQuery } from "../../knowledge/queries/use-knowledge-queries";
 import { useSpaceStore } from "../../session/space-store";
 
 const props = defineProps<{

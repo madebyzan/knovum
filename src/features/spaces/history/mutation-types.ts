@@ -1,8 +1,7 @@
 import type { Ref } from "vue";
 
-import type { SpaceEditSnapshot } from "../canvas/contract/space-edit-snapshot";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
-import type { SpaceNodePayload } from "../model/nodes/node-payload";
+import type { SpaceEditSnapshot } from "../model/structure/edit-snapshot";
 import type { SpaceHistoryState } from "./stack";
 
 export interface SpaceMutationContext {
@@ -14,12 +13,6 @@ export interface SpaceMutationContext {
   nextInsertionPoint: () => { x: number; y: number };
   ensureActiveSpacePersisted: () => Promise<void>;
   recordCommittedSpaceEdit: () => void;
-}
-
-export interface NodePayloadChange {
-  id: string;
-  before: SpaceNodePayload;
-  after: SpaceNodePayload;
 }
 
 export function requireActiveSpaceId(activeSpaceId: Ref<string | undefined>) {

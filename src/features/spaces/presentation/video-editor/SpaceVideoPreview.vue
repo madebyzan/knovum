@@ -3,7 +3,7 @@ import { useResizeObserver } from "@vueuse/core";
 import { computed, shallowRef, watch } from "vue";
 
 import { type VideoEditProject, type VideoTextOverlay } from "../../video-editing/project";
-import { versionedMediaSource } from "../media/element";
+import { versionedMediaSource } from "../media/media-element-source";
 
 const props = defineProps<{
   sourcePath: string;

@@ -18,9 +18,10 @@ import UiButton from "../../../shared/ui/UiButton.vue";
 import UiKbd from "../../../shared/ui/UiKbd.vue";
 import UiSpinner from "../../../shared/ui/UiSpinner.vue";
 import type { KnowledgeSearchMatch } from "../knowledge/model/knowledge-search-match";
-import { highlightedSnippet, knowledgeLocationLabel } from "../knowledge/model/location";
 import { matchLocatorFor, type SpaceMatchLocator } from "../knowledge/model/match-locator";
+import { knowledgeLocationLabel } from "../knowledge/presentation/location-label";
 import { formatDurationMs } from "../media/format-duration";
+import { highlightedSnippet } from "../search/highlighted-snippet";
 import { useFind } from "../search/use-find";
 import { nodeIcon } from "./node-icon";
 

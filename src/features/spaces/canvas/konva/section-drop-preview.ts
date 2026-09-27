@@ -1,8 +1,8 @@
 import { useTimeoutFn } from "@vueuse/core";
 import { onBeforeUnmount, type Ref, type ShallowRef } from "vue";
 
-import { sectionDropCandidateId } from "../../organization/section-drop-reparent";
-import type { SpaceEditSnapshot } from "../contract/space-edit-snapshot";
+import type { SpaceEditSnapshot } from "../../model/structure/edit-snapshot";
+import { sectionDropCandidateId } from "../../structure/section-drop-reparent";
 
 export function useSectionDropPreview(options: {
   dropTargetId: ShallowRef<string | undefined>;

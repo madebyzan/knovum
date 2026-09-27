@@ -3,7 +3,7 @@ import { AlertCircle, ArrowUpRight, Sparkles } from "@lucide/vue";
 import { computed, type ComponentPublicInstance } from "vue";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
-import type { ApprovalSummary } from "../../contracts/generated/ActionApproval";
+import type { ApprovalSummary } from "../../contracts/generated/ApprovalSummary";
 import type { AssistantTaskUpdate } from "../../contracts/generated/AssistantTaskUpdate";
 import type { AssistantMessage } from "../../conversation/conversation-ipc";
 import { useConversationScroll } from "../../conversation/use-conversation-scroll";

@@ -11,7 +11,7 @@ import {
 import { imageEditOf, type ImageEdit } from "../../../image-editing/image-edit";
 import { useImageEditSession } from "../../../image-editing/image-edit-session";
 import type { SpaceImagePayload } from "../../../model/nodes/node-payload";
-import { versionedMediaSource } from "../../media/element";
+import { versionedMediaSource } from "../../media/media-element-source";
 import SpaceCanvasImageComments from "./SpaceCanvasImageComments.vue";
 import SpaceCanvasImageCropOverlay from "./SpaceCanvasImageCropOverlay.vue";
 import SpaceCanvasImageEraserCursor from "./SpaceCanvasImageEraserCursor.vue";

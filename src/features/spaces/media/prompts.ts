@@ -1,4 +1,4 @@
-import type { SpaceMediaTranscript, SpaceTranscriptSegment } from "./schema";
+import type { SpaceMediaTranscript, SpaceTranscriptSegment } from "./knowledge-schema";
 
 const MAX_CHUNK_CHARACTERS = 14_000;
 

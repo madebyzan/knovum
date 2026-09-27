@@ -3,7 +3,7 @@ import { beforeEach, expect, it, vi } from "vitest";
 const native = vi.hoisted(() => ({ invoke: vi.fn<(...args: unknown[]) => Promise<unknown>>() }));
 vi.mock("@tauri-apps/api/core", () => ({ invoke: native.invoke }));
 import { decodeCommandError } from "../../../foundation/ipc/command-error";
-import { invokeConfirmedMutation } from "../organization/confirmed-mutation";
+import { invokeConfirmedMutation } from "../structure/confirmed-mutation";
 
 beforeEach(() => {
   native.invoke.mockReset();

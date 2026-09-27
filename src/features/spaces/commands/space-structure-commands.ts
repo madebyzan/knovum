@@ -1,12 +1,12 @@
 import { availableWhen } from "../../../shared/contracts/action-availability";
 import type { AppCommand } from "../../../shared/contracts/app-command";
 import type { WorkspaceSidebarPresentation } from "../../../shared/contracts/workspace-sidebar";
+import type { useSpaceStore } from "../session/space-store";
 import {
   canRenameStructureNode,
   dissolveGroupCapability,
   groupCapability,
-} from "../organization/structure-capabilities";
-import type { useSpaceStore } from "../session/space-store";
+} from "../structure/structure-capabilities";
 
 export function createSpaceStructureCommands(
   store: ReturnType<typeof useSpaceStore>,

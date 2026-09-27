@@ -3,7 +3,7 @@ import { ref, shallowRef } from "vue";
 import type { ConversationScope } from "../conversation/conversation-scope";
 import type { SpaceTiptapHeading } from "../editor/tiptap-outline";
 import type { KnowledgePeekTarget } from "../knowledge/model/knowledge-peek-target";
-import type { SpaceSavedViewFilter } from "../knowledge/model/projections";
+import type { SpaceSavedViewFilter } from "../knowledge/model/saved-view-filter";
 import type { KnowledgeLocator } from "../knowledge/model/schema";
 import type { SpaceRelationKind, SpaceRelationStatus } from "../model/relations/relation";
 

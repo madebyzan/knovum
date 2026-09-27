@@ -5,7 +5,7 @@ import { useI18n } from "vue-i18n";
 import { z } from "zod";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
-import type { ApprovalSummary } from "../../contracts/generated/ActionApproval";
+import type { ApprovalSummary } from "../../contracts/generated/ApprovalSummary";
 import { captureActionLabel } from "../workflows/workflow-capture-labels";
 
 /** `ApprovalSummary.plan` is a generated JSON value, so its parameters are an untrusted shape. */

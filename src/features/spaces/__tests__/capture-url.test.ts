@@ -43,7 +43,7 @@ vi.mock("../../../foundation/i18n/i18n", () => ({
   i18n: { global: { t: (key: string) => key } },
 }));
 vi.mock("../assets/asset-operations", () => ({ removeSpaceAssets: mocks.removeSpaceAssets }));
-vi.mock("../media/import/workflow", () => ({
+vi.mock("../media/import/acquisition", () => ({
   acquireMediaSource: mocks.acquireMediaSource,
   MediaImportCancelledError: mocks.MediaImportCancelledError,
 }));

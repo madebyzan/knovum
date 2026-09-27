@@ -1,6 +1,6 @@
 import { sortBy } from "es-toolkit";
 
-import type { SpaceEditSnapshot } from "../canvas/contract/space-edit-snapshot";
+import type { SpaceEditSnapshot } from "../model/structure/edit-snapshot";
 import type { JsonCanvasImportPlanV1 } from "./json-canvas-import-contract";
 
 export function mergeImportedJsonCanvasStructure(

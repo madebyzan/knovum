@@ -6,7 +6,7 @@ import { useI18n } from "vue-i18n";
 import { formatDurationMs } from "../../media/format-duration";
 import type { SpaceMediaPlaybackState } from "../../media/playback";
 import type { SpaceVideoPayload } from "../../model/nodes/node-payload";
-import { versionedMediaSource } from "./element";
+import { versionedMediaSource } from "./media-element-source";
 import SpaceMediaControls from "./SpaceMediaControls.vue";
 import { useMediaPlayback } from "./use-media-playback";
 

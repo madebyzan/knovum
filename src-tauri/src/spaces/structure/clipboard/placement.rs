@@ -1,5 +1,7 @@
-use crate::spaces::structure::planner_spatial::{local_from_world, world_transform};
-use crate::spaces::structure::planner_support::{require_editable, set_order, set_parent, Index};
+use crate::spaces::structure::planner::spatial::{local_from_world, world_transform};
+use crate::spaces::structure::planner::tree_policy::{
+    require_editable, set_order, set_parent, Index,
+};
 use crate::spaces::structure::repository::SpaceStructureSnapshot;
 use crate::spaces::structure::{LocalTransform, StructureLayout};
 

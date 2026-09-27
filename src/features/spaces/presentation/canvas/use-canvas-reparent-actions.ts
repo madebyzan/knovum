@@ -1,8 +1,8 @@
 import { computed, type Ref } from "vue";
 
 import { createStructureIndex } from "../../model/structure/structure-index";
-import { structureParentTargets } from "../../organization/structure-capabilities";
 import type { useSpaceStore } from "../../session/space-store";
+import { structureParentTargets } from "../../structure/structure-capabilities";
 import type { CanvasSelectionProductState } from "./selection-product-state";
 
 export function useCanvasReparentActions(

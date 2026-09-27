@@ -133,8 +133,8 @@ pub async fn export_image(
 ) -> Result<(), CommandError> {
     let document = document::load(&app, &space_id, &node_id).await?;
     Ok((crate::blocking::run(move || {
-        let rendered =
-            crate::images::render_source_png(&app, &document.source_path, &document.edit)?;
+        let source = access::authorize_spaces_asset(&app, &PathBuf::from(&document.source_path))?;
+        let rendered = crate::images::render_source_png(&source, &document.edit)?;
         files::export_image(&app, PathBuf::from(destination_path), rendered.png)
     })
     .await)?)

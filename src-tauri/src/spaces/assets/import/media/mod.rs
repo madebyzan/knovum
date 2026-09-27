@@ -1,14 +1,14 @@
 use crate::command_error::CommandError;
+mod acquisition;
 mod contract;
 mod jobs;
 mod publish;
-mod workflow;
 
 use crate::media::acquisition::contracts::AcquisitionProgress;
 pub(crate) use contract::ImportedMedia;
 
 pub(crate) fn cleanup_stale_workspaces(app: &tauri::AppHandle) -> Result<(), String> {
-    workflow::cleanup_stale(app)
+    acquisition::cleanup_stale(app)
 }
 
 #[tauri::command]
@@ -18,7 +18,7 @@ pub async fn import_media_from_url(
     url: String,
     on_progress: tauri::ipc::Channel<AcquisitionProgress>,
 ) -> Result<Option<ImportedMedia>, CommandError> {
-    workflow::validate_source_url(&url)?;
+    acquisition::validate_source_url(&url)?;
     let tools = crate::media::acquisition::tools::resolve_required(&app)?;
     let (cancellation, _lease) = jobs::acquire(job_id.clone())?;
     if let Err(error) = on_progress.send(AcquisitionProgress {
@@ -32,7 +32,7 @@ pub async fn import_media_from_url(
     }
     let execution_id = job_id;
     Ok((crate::blocking::run(move || {
-        workflow::run(&app, &execution_id, url, tools, &on_progress, &cancellation)
+        acquisition::run(&app, &execution_id, url, tools, &on_progress, &cancellation)
     })
     .await)?)
 }

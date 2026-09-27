@@ -42,7 +42,7 @@ This is the review baseline. Detailed rules remain in their authoritative docume
 
 - Rust uses snake_case modules/functions, PascalCase types and explicit serde names for stable external IDs. Web uses kebab-case TS files, PascalCase Vue components and `use` only for reactive lifecycle APIs.
 - Keep module and test ownership obvious. Prefer conventional Rust module paths and use `mod.rs` for directory modules. Keep reusable fixtures under `test-support`; executable TypeScript suites use `.test.ts`.
-- Name by the actual operation or owned concept. `client` denotes an actual SDK/network client with request or connection lifecycle (for example QueryClient or reqwest Client). Ordinary IPC functions use operation names; projection decoding does not make a Web module a repository. A repository owns actual persistence access or policy. Do not add a service/manager/adapter suffix to a forwarding function.
+- Path, symbol, IPC and suffix rules are defined only in [naming-conventions.md](naming-conventions.md). Name by the actual operation or owned concept; do not add a service/manager/adapter suffix to a forwarding function.
 - Application IPC errors follow the envelope and normalization boundary in `architecture.md`. Cancellation decisions use stable codes, not message substrings. Log at the owner that can add context; cleanup failures do not overwrite the original failure or a successful commit.
 - Keep committed Space facts in the single session projection. Derive display values directly; retain drafts only with their Space/node identity and an explicit reset lifetime, as defined in `spaces.md`.
 - A suppression requires a concrete limitation. Schema-only types and platform-only fields may explain unused fields; working application commands must not use blanket unused-import or dead-code suppressions.
@@ -56,6 +56,10 @@ pnpm check:web
 pnpm check:rust
 pnpm check
 ```
+
+Production Renderer and Node-backed test compilation use separate `tsconfig.json` and `tsconfig.tests.json` projects; both run in `pnpm typecheck`. Tests are not hidden from checking to avoid Node type errors.
+
+Dependency-cruiser proves the encoded Renderer dependency rules. Rust visibility and behavioral tests constrain module APIs, while Rust/Tauri compilation resolves handlers and generated ACLs. Capability policy checks cover the explicit permissions they inspect. Neither compilation, Knip nor capability scanning certifies all cross-language dependency directions or runtime grants; review additions at their owner, including the images/Spaces authorization boundary.
 
 The repository uses Oxlint/Oxfmt, dependency-cruiser, Knip, jscpd, Vitest, Vue Test Utils, rustfmt, Clippy and Rust tests. Desktop-affecting changes also require real macOS/Windows builds.
 

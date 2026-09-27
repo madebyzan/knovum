@@ -17,8 +17,12 @@ pub async fn data_uri(
     .await?;
     let app = app.clone();
     let edit = request.source_edit.clone();
-    let rendered =
-        crate::blocking::run(move || crate::images::render_source_png(&app, &path, &edit)).await?;
+    let rendered = crate::blocking::run(move || {
+        let source =
+            crate::spaces::assets::authorize_spaces_asset(&app, std::path::Path::new(&path))?;
+        crate::images::render_source_png(&source, &edit)
+    })
+    .await?;
     assets::source_data_uri(&rendered.png)
 }
 

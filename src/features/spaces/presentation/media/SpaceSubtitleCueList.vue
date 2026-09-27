@@ -3,7 +3,7 @@ import { useVirtualizer } from "@tanstack/vue-virtual";
 import { computed, ref } from "vue";
 
 import { formatDurationMs } from "../../media/format-duration";
-import type { SpaceSubtitleCue } from "../../media/schema";
+import type { SpaceSubtitleCue } from "../../media/knowledge-schema";
 
 const props = defineProps<{ cues: readonly SpaceSubtitleCue[]; activeIndex: number }>();
 const emit = defineEmits<{ select: [index: number] }>();

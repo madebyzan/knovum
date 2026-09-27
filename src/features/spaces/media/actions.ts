@@ -5,15 +5,15 @@ import { useTaskStore } from "../../../foundation/tasks/task-store";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { isSpaceMediaPayload, type SpaceMediaPayload } from "../model/nodes/capabilities";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
-import { runSpaceMediaInference } from "../session/actions/work-scheduler";
 import {
   appendSpaceMediaAnalysisPreview,
   clearSpaceMediaAnalysisPreview,
   type SpaceMediaAnalysisPreview,
 } from "./analysis-preview";
+import { runSpaceMediaInference } from "./inference-budget";
 import { createLocalMediaKnowledge, generateSpaceMediaInsights } from "./knowledge";
+import type { SpaceMediaKnowledge } from "./knowledge-schema";
 import type { SpaceMediaPlaybackState, SpaceMediaSeekRequest, SpaceMediaToggleRequest } from "./playback";
-import type { SpaceMediaKnowledge } from "./schema";
 import {
   cancelSpaceMediaTranscription,
   isMediaTranscriptionCancellation,

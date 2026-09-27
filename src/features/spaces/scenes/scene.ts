@@ -1,4 +1,4 @@
-import type { SpaceSavedViewFilter } from "../knowledge/model/projections";
+import type { SpaceSavedViewFilter } from "../knowledge/model/saved-view-filter";
 import type { SpaceRelationKind, SpaceRelationStatus } from "../model/relations/relation";
 
 export interface SpaceScene {

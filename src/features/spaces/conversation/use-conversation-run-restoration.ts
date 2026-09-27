@@ -2,7 +2,7 @@ import { shallowRef, type Ref, type ShallowRef } from "vue";
 
 import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
 import { decideAgentPermission } from "../agent-creation/agent-artifacts";
-import type { ApprovalSummary } from "../contracts/generated/ActionApproval";
+import type { ApprovalSummary } from "../contracts/generated/ApprovalSummary";
 import type { AssistantTaskUpdate } from "../contracts/generated/AssistantTaskUpdate";
 import type { RunSummary } from "../contracts/generated/RunSummary";
 import type { WaitReason } from "../contracts/generated/WaitReason";

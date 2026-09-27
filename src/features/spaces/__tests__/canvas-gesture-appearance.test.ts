@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import type { CanvasDocumentV1 } from "../canvas/contract/canvas-document";
-import type { SpaceEditSnapshot } from "../canvas/contract/space-edit-snapshot";
 import { commandForCanvasGesture } from "../canvas/document/structure-gesture-command";
+import type { SpaceEditSnapshot } from "../model/structure/edit-snapshot";
 
 describe("commandForCanvasGesture appearance comparison", () => {
   it("treats appearance key order alone as no edit", () => {

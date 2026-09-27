@@ -6,10 +6,10 @@ import { DropdownMenuPortal, DropdownMenuSub, DropdownMenuSubContent, DropdownMe
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { SUBMENU_CONTENT_CLASSES } from "../../../shared/ui/ui-classes";
 import UiDropdownMenu from "../../../shared/ui/UiDropdownMenu.vue";
 import UiDropdownMenuItem from "../../../shared/ui/UiDropdownMenuItem.vue";
 import UiIconButton from "../../../shared/ui/UiIconButton.vue";
-import { SUBMENU_CONTENT_CLASSES } from "../../../shared/ui/ui-classes";
 import { useSpaceStore } from "../session/space-store";
 
 const emit = defineEmits<{ move: [spaceId: string] }>();

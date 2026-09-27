@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ApprovalSummary } from "../../contracts/generated/ActionApproval";
+import type { ApprovalSummary } from "../../contracts/generated/ApprovalSummary";
 import type { AssistantTaskUpdate } from "../../contracts/generated/AssistantTaskUpdate";
 import SpaceConversationApprovalRequest from "./SpaceConversationApprovalRequest.vue";
 import SpaceConversationPermissionRequest from "./SpaceConversationPermissionRequest.vue";
