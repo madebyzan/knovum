@@ -14,10 +14,10 @@ const emit = defineEmits<{ update: [value: number] }>();
 </script>
 
 <template>
-  <label class="grid gap-0.5 text-label text-foreground">
+  <label class="grid gap-0.5 text-label-md text-fg-primary">
     <span v-if="!minimal" class="flex items-center justify-between">
       <span>{{ label }}</span>
-      <span class="text-foreground-secondary tabular-nums">{{ displayValue ?? value }}</span>
+      <span class="text-fg-secondary tabular-nums">{{ displayValue ?? value }}</span>
     </span>
     <span v-else class="sr-only">{{ label }}</span>
     <SliderRoot
@@ -29,13 +29,13 @@ const emit = defineEmits<{ update: [value: number] }>();
       class="relative flex h-4 w-full touch-none items-center select-none"
       @update:model-value="(next) => next?.[0] !== undefined && emit('update', next[0])"
     >
-      <SliderTrack class="relative h-0.5 w-full rounded-full bg-control">
-        <SliderRange class="absolute h-full rounded-full bg-foreground" />
+      <SliderTrack class="relative h-0.5 w-full rounded-full bg-surface-control">
+        <SliderRange class="absolute h-full rounded-full bg-surface-inverse" />
       </SliderTrack>
       <SliderThumb
-        class="grid size-2.5 place-items-center rounded-full bg-foreground outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+        class="grid size-2.5 place-items-center rounded-full bg-surface-inverse outline-none focus-visible:ring-2 focus-visible:ring-stroke-focus"
       >
-        <span class="size-0.5 rounded-full bg-raised" />
+        <span class="size-0.5 rounded-full bg-surface-raised" />
       </SliderThumb>
     </SliderRoot>
   </label>

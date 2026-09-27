@@ -7,7 +7,7 @@
   font-weight: 650;
   line-height: 1;
   white-space: nowrap;
-  color: var(--color-accent);
+  color: var(--color-fg-accent);
   cursor: pointer;
   text-decoration: underline;
   text-decoration-color: transparent;
@@ -21,7 +21,7 @@
 :deep(.citation-badge:hover),
 :deep(.citation-badge:focus-visible),
 :deep(.citation-badge.is-active) {
-  background: color-mix(in oklab, var(--color-accent) 10%, transparent);
-  text-decoration-color: var(--color-accent);
+  background: color-mix(in oklab, var(--color-fg-accent) 10%, transparent);
+  text-decoration-color: var(--color-fg-accent);
   outline: none;
 }

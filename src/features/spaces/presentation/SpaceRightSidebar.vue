@@ -50,7 +50,7 @@ const subtitle = computed(() =>
 <template>
   <aside
     :data-sidebar-view="rightSidebarView"
-    class="pointer-events-auto flex h-full w-full min-w-0 flex-col overflow-hidden bg-panel select-none"
+    class="pointer-events-auto flex h-full w-full min-w-0 flex-col overflow-hidden bg-surface-panel select-none"
   >
     <section class="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
       <SpaceContextHeader

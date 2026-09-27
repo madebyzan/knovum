@@ -7,7 +7,7 @@ const source = computed(() => convertFileSrc(props.path));
 </script>
 
 <template>
-  <div class="h-full overflow-hidden bg-canvas">
+  <div class="h-full overflow-hidden bg-surface-canvas">
     <img
       :src="source"
       :alt="title"

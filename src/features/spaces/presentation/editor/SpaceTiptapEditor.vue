@@ -55,21 +55,21 @@ async function exportMarkdown() {
 </script>
 
 <template>
-  <section v-if="editorNode" class="absolute inset-0 z-30 flex min-h-0 flex-col bg-canvas">
+  <section v-if="editorNode" class="absolute inset-0 z-30 flex min-h-0 flex-col bg-surface-canvas">
     <header
-      class="flex h-(--knovum-toolbar-height) shrink-0 items-center gap-2 border-b border-divider bg-chrome px-3"
+      class="flex h-(--knovum-editor-toolbar-height) shrink-0 items-center gap-2 border-b border-stroke-divider bg-surface-chrome px-3"
     >
       <UiIconButton :label="t('common.back')" size="sm" @click="close">
-        <ArrowLeft class="size-(--knovum-icon-size-sm)" />
+        <ArrowLeft class="size-3.5" />
       </UiIconButton>
       <component
         :is="editorNode.data.kind === 'note' ? StickyNote : FileText"
-        class="size-(--knovum-icon-size-sm) text-foreground-secondary"
+        class="size-3.5 text-fg-secondary"
         :stroke-width="1.55"
       />
-      <span class="text-caption font-medium text-foreground-secondary">{{ editorLabel }}</span>
+      <span class="text-caption-md font-medium text-fg-secondary">{{ editorLabel }}</span>
       <div class="flex-1" />
-      <span class="text-micro font-medium text-foreground-tertiary">
+      <span class="text-caption-sm font-medium text-fg-tertiary">
         {{
           saveStatus === "saving"
             ? t("common.saving")
@@ -84,31 +84,31 @@ async function exportMarkdown() {
         size="sm"
         @click="dock.openDocumentOutline()"
       >
-        <ListTree class="size-(--knovum-icon-size-sm)" :stroke-width="1.55" />
+        <ListTree class="size-3.5" :stroke-width="1.55" />
       </UiIconButton>
       <UiIconButton :label="t('spaces.importExport.markdown.export')" size="sm" @click="exportMarkdown">
-        <Download class="size-(--knovum-icon-size-sm)" />
+        <Download class="size-3.5" />
       </UiIconButton>
-      <span class="hidden text-micro text-foreground-tertiary sm:block">
+      <span class="hidden text-caption-sm text-fg-tertiary sm:block">
         {{ wordCount }} {{ t("spaces.richtext.words") }} · {{ characterCount }}
         {{ t("spaces.richtext.characters") }}
       </span>
     </header>
-    <div v-if="editor" class="border-b border-divider bg-chrome/80">
+    <div v-if="editor" class="border-b border-stroke-divider bg-surface-chrome/80">
       <SpaceTiptapToolbar :editor="editor" />
     </div>
     <div class="relative flex min-h-0 flex-1">
       <div ref="scrollRoot" class="relative min-h-0 flex-1 overflow-auto" @scroll.passive="syncActiveHeading">
         <div
           v-if="imageDragging"
-          class="pointer-events-none sticky top-2 z-40 mx-2 -mb-18 flex h-16 items-center justify-center gap-2 rounded-panel border border-dashed border-accent bg-overlay/92 text-label font-medium text-accent shadow-popover backdrop-blur"
+          class="pointer-events-none sticky top-2 z-40 mx-2 -mb-18 flex h-16 items-center justify-center gap-2 rounded-panel border border-dashed border-stroke-accent bg-surface-overlay/92 text-label-md font-medium text-fg-accent shadow-popover backdrop-blur"
         >
-          <ImagePlus class="size-(--knovum-icon-size-md)" />{{ t("spaces.richtext.image.dropNow") }}
+          <ImagePlus class="size-4" />{{ t("spaces.richtext.image.dropNow") }}
         </div>
         <article class="mx-auto min-h-full w-full max-w-3xl px-10 py-12 sm:px-14">
           <input
             v-model="title"
-            class="w-full bg-transparent text-display font-semibold tracking-title text-foreground outline-none placeholder:text-foreground-tertiary"
+            class="w-full bg-transparent text-display-sm font-semibold tracking-title text-fg-primary outline-none placeholder:text-fg-tertiary"
             :aria-label="t('spaces.editor.markdown.title')"
             :placeholder="
               editorNode.data.kind === 'note'

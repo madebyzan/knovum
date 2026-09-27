@@ -60,14 +60,14 @@ const textPresentation = computed(() =>
 
 <template>
   <article
-    class="flex size-full min-h-0 flex-col overflow-hidden text-foreground select-none"
+    class="flex size-full min-h-0 flex-col overflow-hidden text-fg-primary select-none"
     :class="[
       visualOnly && 'relative',
       isText
         ? 'bg-transparent'
         : isNote
-          ? 'rounded-sm shadow-canvas-object'
-          : 'rounded-canvas-object border border-border bg-panel shadow-canvas-object',
+          ? 'rounded-sm shadow-(--knovum-space-node-box-shadow)'
+          : 'rounded-lg border border-stroke-default bg-surface-panel shadow-(--knovum-space-node-box-shadow)',
       (isNote || isText) && textPresentation.classes,
       contentInteractive && !interactiveMedia && !hasCredentialAction && 'pointer-events-auto',
     ]"
@@ -118,19 +118,15 @@ const textPresentation = computed(() =>
     <template v-else>
       <header
         v-if="!previewFirst"
-        class="pointer-events-none flex shrink-0 items-center gap-2 border-b border-divider px-3"
+        class="pointer-events-none flex shrink-0 items-center gap-2 border-b border-stroke-divider px-3"
         :style="{ height: `${CANVAS_NODE_HEADER_HEIGHT}px` }"
       >
-        <component
-          :is="presentation.icon"
-          class="size-(--knovum-icon-size-sm) shrink-0 text-foreground-secondary"
-          :stroke-width="1.55"
-        />
+        <component :is="presentation.icon" class="size-3.5 shrink-0 text-fg-secondary" :stroke-width="1.55" />
         <span class="min-w-0 flex-1">
-          <strong class="block truncate text-label font-medium">{{ presentation.title }}</strong>
+          <strong class="block truncate text-label-md font-medium">{{ presentation.title }}</strong>
           <span
             v-if="showsSecondaryChrome && presentation.subtitle"
-            class="block truncate text-micro text-foreground-tertiary"
+            class="block truncate text-caption-sm text-fg-tertiary"
             >{{ presentation.subtitle }}</span
           >
         </span>
@@ -144,29 +140,29 @@ const textPresentation = computed(() =>
       />
       <div
         v-if="visualOnly"
-        class="pointer-events-none absolute top-2 right-2 rounded-control bg-panel/85 p-1 shadow-popover empty:hidden"
+        class="pointer-events-none absolute top-2 right-2 rounded-md bg-surface-panel/85 p-1 shadow-popover empty:hidden"
       >
         <SpaceCanvasNodeStatus :id="node.id" :data="node.data" />
       </div>
       <footer
         v-if="node.data.kind === 'file'"
-        class="pointer-events-none flex shrink-0 items-center gap-2 border-t border-divider px-3 py-1.5"
+        class="pointer-events-none flex shrink-0 items-center gap-2 border-t border-stroke-divider px-3 py-1.5"
         :style="{ height: `${PREVIEW_CAPTION_HEIGHT}px` }"
       >
         <span class="min-w-0 flex-1">
-          <strong class="line-clamp-2 text-body leading-snug font-semibold wrap-break-word">{{
+          <strong class="line-clamp-2 text-body-sm leading-snug font-semibold wrap-break-word">{{
             presentation.title
           }}</strong>
           <span
             v-if="showsSecondaryChrome && presentation.subtitle"
-            class="mt-0.5 block truncate text-caption text-foreground-tertiary"
+            class="mt-0.5 block truncate text-caption-md text-fg-tertiary"
             >{{ presentation.subtitle }}</span
           >
         </span>
         <SpaceCanvasNodeStatus :id="node.id" :data="node.data" />
       </footer>
       <div v-if="layout.fileSubpath && !visualOnly" class="shrink-0 px-3 pb-2">
-        <p class="mt-2 truncate text-micro text-foreground-tertiary">{{ layout.fileSubpath }}</p>
+        <p class="mt-2 truncate text-caption-sm text-fg-tertiary">{{ layout.fileSubpath }}</p>
       </div>
     </template>
   </article>

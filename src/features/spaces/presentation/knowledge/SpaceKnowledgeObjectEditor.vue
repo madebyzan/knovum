@@ -73,13 +73,13 @@ async function save() {
 <template>
   <div v-if="objectType" class="space-y-3 px-1">
     <label class="block">
-      <span class="mb-1 block text-micro text-foreground-tertiary">{{
+      <span class="mb-1 block text-caption-sm text-fg-tertiary">{{
         t("spaces.knowledge.status.label")
       }}</span>
       <UiSelect v-model="status" :label="t('spaces.knowledge.status.label')" :options="statusOptions" />
     </label>
     <label class="block">
-      <span class="mb-1 block text-micro text-foreground-tertiary">{{ t("spaces.knowledge.summary") }}</span>
+      <span class="mb-1 block text-caption-sm text-fg-tertiary">{{ t("spaces.knowledge.summary") }}</span>
       <UiTextarea v-model="summary" :rows="3" />
     </label>
     <SpaceKnowledgeFieldEditor

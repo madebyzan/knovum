@@ -59,8 +59,8 @@ watch(open, (isOpen) => {
     :title="t('spaces.creation.agent.create')"
     :description="t('spaces.creation.agent.description')"
   >
-    <div v-if="!agents.length" class="rounded-panel border border-border bg-surface p-4">
-      <p class="text-body text-foreground-secondary">{{ t("spaces.creation.agent.unavailable") }}</p>
+    <div v-if="!agents.length" class="rounded-panel border border-stroke-default bg-surface-muted p-4">
+      <p class="text-body-sm text-fg-secondary">{{ t("spaces.creation.agent.unavailable") }}</p>
       <UiButton class="mt-3" size="sm" variant="secondary" @click="openAgentSettings">
         {{ t("spaces.creation.agent.configure") }}
       </UiButton>
@@ -81,9 +81,9 @@ watch(open, (isOpen) => {
       <UiTextarea v-model="prompt" :rows="5" :placeholder="t('spaces.creation.agent.prompt')" />
       <div class="flex flex-wrap items-center gap-2">
         <UiButton size="sm" variant="secondary" :disabled="running" @click="chooseAttachments">
-          <Paperclip class="size-(--knovum-icon-size-xs)" />{{ t("spaces.creation.agent.context.add") }}
+          <Paperclip class="size-3" />{{ t("spaces.creation.agent.context.add") }}
         </UiButton>
-        <span class="text-caption text-foreground-secondary">
+        <span class="text-caption-md text-fg-secondary">
           {{ t("spaces.creation.agent.knowledgeConnected") }}
         </span>
       </div>
@@ -91,7 +91,7 @@ watch(open, (isOpen) => {
         <span
           v-for="attachment in attachments"
           :key="attachment.path"
-          class="flex max-w-full items-center gap-1 rounded-control bg-control px-2 py-1 text-caption"
+          class="flex max-w-full items-center gap-1 rounded-md bg-surface-control px-2 py-1 text-caption-md"
         >
           <span class="truncate">{{ attachment.name }}</span>
           <UiButton
@@ -102,19 +102,19 @@ watch(open, (isOpen) => {
             :disabled="running"
             @click="removeAttachment(attachment.path)"
           >
-            <X class="size-(--knovum-icon-size-xs)" />
+            <X class="size-3" />
           </UiButton>
         </span>
       </div>
-      <p v-if="status" class="line-clamp-3 text-caption text-foreground-secondary">{{ status }}</p>
+      <p v-if="status" class="line-clamp-3 text-caption-md text-fg-secondary">{{ status }}</p>
       <section
         v-if="pendingPermission"
-        class="space-y-3 rounded-panel border border-warning/40 bg-warning/10 p-3"
+        class="space-y-3 rounded-panel border border-stroke-warning/40 bg-surface-warning-subtle p-3"
         aria-live="assertive"
       >
         <div>
-          <p class="text-label text-foreground">{{ pendingPermission.title }}</p>
-          <p class="text-caption text-foreground-secondary">
+          <p class="text-label-md text-fg-primary">{{ pendingPermission.title }}</p>
+          <p class="text-caption-md text-fg-secondary">
             {{ t("spaces.creation.agent.permissionDescription") }}
           </p>
         </div>
@@ -144,7 +144,7 @@ watch(open, (isOpen) => {
     <template #footer>
       <UiButton variant="ghost" @click="open = false">{{ t("common.cancel") }}</UiButton>
       <UiButton v-if="sessionId && !running" variant="dangerSubtle" @click="discardCurrent">
-        <Trash2 class="size-(--knovum-icon-size-sm)" />
+        <Trash2 class="size-3.5" />
         {{ t("spaces.creation.agent.artifacts.discard") }}
       </UiButton>
       <UiButton
@@ -156,7 +156,7 @@ watch(open, (isOpen) => {
         {{ t("spaces.creation.agent.artifacts.import", { count: selectedCount }) }}
       </UiButton>
       <UiButton v-else variant="primary" :disabled="!canRun || running" @click="run(attachmentPaths)">
-        <Bot class="size-(--knovum-icon-size-sm)" />{{ t("spaces.creation.agent.run") }}
+        <Bot class="size-3.5" />{{ t("spaces.creation.agent.run") }}
       </UiButton>
     </template>
   </UiDialog>

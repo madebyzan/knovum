@@ -71,7 +71,7 @@ function points(side: CanvasConnectorSide) {
     <KonvaCircle
       :config="{
         radius: metrics.radius,
-        fill: palette.surface,
+        fill: palette.panel,
         stroke: hoveredSide === control.side ? palette.accent : palette.border,
         strokeWidth: metrics.strokeWidth,
         hitStrokeWidth: metrics.hitExtension,

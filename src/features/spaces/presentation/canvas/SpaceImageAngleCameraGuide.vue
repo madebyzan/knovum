@@ -49,21 +49,21 @@ const gazeStyle = computed(() => ({
       class="absolute inset-0 transition-transform duration-150 ease-standard [transform-style:preserve-3d] motion-reduce:transition-none"
       :style="globeStyle"
     >
-      <div class="absolute inset-0 rounded-full border border-border-strong/50" />
+      <div class="absolute inset-0 rounded-full border border-stroke-strong/50" />
       <div
         v-for="ring in rings"
         :key="`longitude-${ring}`"
-        class="absolute inset-0 rounded-full border border-border/60"
+        class="absolute inset-0 rounded-full border border-stroke-default/60"
         :style="{ transform: `rotateY(${ring}deg)` }"
       />
       <div
         v-for="ring in rings"
         :key="`latitude-${ring}`"
-        class="absolute inset-0 rounded-full border border-border/60"
+        class="absolute inset-0 rounded-full border border-stroke-default/60"
         :style="{ transform: `rotateX(${ring}deg)` }"
       />
     </div>
-    <svg class="absolute inset-0 size-full text-foreground-tertiary" viewBox="0 0 100 100" aria-hidden="true">
+    <svg class="absolute inset-0 size-full text-fg-tertiary" viewBox="0 0 100 100" aria-hidden="true">
       <line
         x1="50"
         y1="50"
@@ -75,12 +75,12 @@ const gazeStyle = computed(() => ({
       />
     </svg>
     <div
-      class="absolute top-1/2 left-1/2 size-16 -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-control border border-border bg-raised shadow-control transition-transform duration-150 ease-standard motion-reduce:transition-none"
+      class="absolute top-1/2 left-1/2 size-16 -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-md border border-stroke-default bg-surface-raised shadow-control transition-transform duration-150 ease-standard motion-reduce:transition-none"
       :style="subjectStyle"
     >
       <SpaceImageEditedThumbnail :path="path" :revision="revision" :edit="edit" />
       <span
-        class="absolute size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white bg-canvas-relation-purple shadow-control transition-[top,left] duration-150 ease-standard motion-reduce:transition-none"
+        class="absolute size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border border-stroke-on-image bg-(--knovum-space-image-angle-target-color) shadow-control transition-[top,left] duration-150 ease-standard motion-reduce:transition-none"
         :style="gazeStyle"
       />
     </div>
@@ -92,17 +92,17 @@ const gazeStyle = computed(() => ({
         class="relative size-full [transform:rotateX(-22deg)_rotateY(-28deg)] [transform-style:preserve-3d]"
       >
         <div
-          class="absolute inset-0 [transform:translateZ(20px)] overflow-hidden rounded-control border border-border-strong bg-raised"
+          class="absolute inset-0 [transform:translateZ(20px)] overflow-hidden rounded-md border border-stroke-strong bg-surface-raised"
         >
           <SpaceImageEditedThumbnail :path="path" :revision="revision" :edit="edit" />
         </div>
         <div
-          class="absolute inset-0 grid [transform:rotateY(90deg)_translateZ(20px)] place-items-center rounded-control border border-border-strong bg-raised"
+          class="absolute inset-0 grid [transform:rotateY(90deg)_translateZ(20px)] place-items-center rounded-md border border-stroke-strong bg-surface-raised"
         >
-          <Camera class="size-(--knovum-icon-size-xs) text-foreground-secondary" :stroke-width="1.4" />
+          <Camera class="size-3 text-fg-secondary" :stroke-width="1.4" />
         </div>
         <div
-          class="absolute inset-0 [transform:rotateX(90deg)_translateZ(20px)] rounded-control border border-border-strong bg-raised"
+          class="absolute inset-0 [transform:rotateX(90deg)_translateZ(20px)] rounded-md border border-stroke-strong bg-surface-raised"
         />
       </div>
     </div>

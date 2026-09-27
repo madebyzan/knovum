@@ -60,23 +60,21 @@ function matchBadgeLabel(match: KnowledgeSearchMatch): string | null {
 <template>
   <DialogRoot v-model:open="open">
     <DialogPortal>
-      <DialogOverlay class="fixed inset-0 z-40 bg-scrim/60" />
+      <DialogOverlay class="fixed inset-0 z-40 bg-surface-scrim/60" />
       <DialogContent
-        class="fixed top-[14%] left-1/2 z-50 w-[calc(100vw-3rem)] max-w-(--knovum-command-max-width) -translate-x-1/2 overflow-hidden rounded-dialog border border-border bg-overlay shadow-dialog outline-none"
+        class="fixed top-[14%] left-1/2 z-50 w-[calc(100vw-3rem)] max-w-156 -translate-x-1/2 overflow-hidden rounded-xl border border-stroke-default bg-surface-overlay shadow-dialog outline-none"
       >
         <DialogTitle class="sr-only">{{ t("spaces.search.find.title") }}</DialogTitle>
         <ListboxRoot @update:model-value="select">
-          <div
-            class="flex h-(--knovum-command-input-height) items-center gap-2.5 border-b border-divider px-3.5"
-          >
-            <Search class="size-(--knovum-icon-size-sm) text-foreground-tertiary" />
+          <div class="flex h-12 items-center gap-2.5 border-b border-stroke-divider px-3.5">
+            <Search class="size-3.5 text-fg-tertiary" />
             <ListboxFilter
               v-model="query"
               autofocus
               :placeholder="t('spaces.search.find.placeholder')"
-              class="h-full min-w-0 flex-1 border-0 bg-transparent text-body-lg outline-none placeholder:text-foreground-tertiary"
+              class="h-full min-w-0 flex-1 border-0 bg-transparent text-body-md outline-none placeholder:text-fg-tertiary"
             />
-            <UiSpinner v-if="searching" class="text-foreground-tertiary" />
+            <UiSpinner v-if="searching" class="text-fg-tertiary" />
             <UiButton
               size="sm"
               variant="ghost"
@@ -87,12 +85,10 @@ function matchBadgeLabel(match: KnowledgeSearchMatch): string | null {
             >
             <UiKbd shortcut="esc" />
           </div>
-          <ListboxContent
-            class="max-h-(--knovum-command-list-max-height) min-h-48 space-y-0.5 overflow-y-auto p-1.5"
-          >
+          <ListboxContent class="max-h-90 min-h-48 space-y-0.5 overflow-y-auto p-1.5">
             <p
               v-if="!query.trim() && defaultNodes.length"
-              class="px-2.5 py-1 text-micro font-medium tracking-uppercase text-foreground-tertiary uppercase"
+              class="px-2.5 py-1 text-caption-sm font-medium tracking-label-uppercase text-fg-tertiary uppercase"
             >
               {{ t("spaces.search.find.defaultTitle") }}
             </p>
@@ -101,15 +97,15 @@ function matchBadgeLabel(match: KnowledgeSearchMatch): string | null {
               :key="node.id"
               :value="node"
               :text-value="node.data.title"
-              class="flex min-h-(--knovum-command-item-height) w-full cursor-default items-center gap-2.5 rounded-control px-2.5 py-2 text-left outline-none data-highlighted:bg-(--knovum-sidebar-item-background-selected)"
+              class="flex min-h-(--knovum-command-palette-item-height) w-full cursor-default items-center gap-2.5 rounded-md px-2.5 py-2 text-left outline-none data-highlighted:bg-(--knovum-sidebar-item-bg-selected)"
             >
               <span
-                class="grid size-7 shrink-0 place-items-center rounded-control bg-control text-foreground-secondary"
-                ><component :is="nodeIcon(node.data.kind)" class="size-(--knovum-icon-size-sm)"
+                class="grid size-7 shrink-0 place-items-center rounded-md bg-surface-control text-fg-secondary"
+                ><component :is="nodeIcon(node.data.kind)" class="size-3.5"
               /></span>
               <span class="min-w-0 flex-1"
-                ><strong class="block truncate text-label font-medium">{{ node.data.title }}</strong
-                ><span class="block truncate text-caption text-foreground-tertiary">{{
+                ><strong class="block truncate text-label-md font-medium">{{ node.data.title }}</strong
+                ><span class="block truncate text-caption-md text-fg-tertiary">{{
                   ("fileName" in node.data && node.data.fileName) ||
                   ("siteName" in node.data && node.data.siteName) ||
                   t("spaces.search.find.defaultContentLabel")
@@ -121,17 +117,17 @@ function matchBadgeLabel(match: KnowledgeSearchMatch): string | null {
               :key="match.structureNodeId"
               :value="match"
               :text-value="match.title"
-              class="flex min-h-(--knovum-command-item-height) w-full cursor-default items-center gap-2.5 rounded-control px-2.5 py-2 text-left outline-none data-highlighted:bg-(--knovum-sidebar-item-background-selected)"
+              class="flex min-h-(--knovum-command-palette-item-height) w-full cursor-default items-center gap-2.5 rounded-md px-2.5 py-2 text-left outline-none data-highlighted:bg-(--knovum-sidebar-item-bg-selected)"
             >
               <span
-                class="grid size-7 shrink-0 place-items-center rounded-control bg-control text-foreground-secondary"
+                class="grid size-7 shrink-0 place-items-center rounded-md bg-surface-control text-fg-secondary"
               >
-                <LayoutPanelTop v-if="match.nodeKind === 'section'" class="size-(--knovum-icon-size-sm)" />
-                <Group v-else class="size-(--knovum-icon-size-sm)" />
+                <LayoutPanelTop v-if="match.nodeKind === 'section'" class="size-3.5" />
+                <Group v-else class="size-3.5" />
               </span>
               <span class="min-w-0 flex-1">
-                <strong class="block truncate text-label font-medium">{{ match.title }}</strong>
-                <span class="block text-caption text-foreground-tertiary">{{
+                <strong class="block truncate text-label-md font-medium">{{ match.title }}</strong>
+                <span class="block text-caption-md text-fg-tertiary">{{
                   match.nodeKind === "section"
                     ? t("spaces.canvas.kinds.section")
                     : t("spaces.canvas.kinds.group")
@@ -143,23 +139,23 @@ function matchBadgeLabel(match: KnowledgeSearchMatch): string | null {
               :key="match.chunkId"
               :value="match"
               :text-value="`${match.nodeTitle} ${match.text}`"
-              class="flex min-h-(--knovum-command-item-height) w-full cursor-default items-start gap-2.5 rounded-control px-2.5 py-2.5 text-left outline-none data-highlighted:bg-(--knovum-sidebar-item-background-selected)"
+              class="flex min-h-(--knovum-command-palette-item-height) w-full cursor-default items-start gap-2.5 rounded-md px-2.5 py-2.5 text-left outline-none data-highlighted:bg-(--knovum-sidebar-item-bg-selected)"
             >
               <span
-                class="mt-0.5 grid size-7 shrink-0 place-items-center rounded-control bg-control text-foreground-secondary"
-                ><component :is="nodeIcon(match.nodeKind)" class="size-(--knovum-icon-size-sm)"
+                class="mt-0.5 grid size-7 shrink-0 place-items-center rounded-md bg-surface-control text-fg-secondary"
+                ><component :is="nodeIcon(match.nodeKind)" class="size-3.5"
               /></span>
               <span class="min-w-0 flex-1">
                 <span class="flex min-w-0 items-center gap-2"
-                  ><strong class="truncate text-label font-medium">{{ match.nodeTitle }}</strong
+                  ><strong class="truncate text-label-md font-medium">{{ match.nodeTitle }}</strong
                   ><UiBadge v-if="matchBadgeLabel(match)" size="sm"> {{ matchBadgeLabel(match) }} </UiBadge
-                  ><span class="shrink-0 text-micro text-foreground-tertiary">{{
+                  ><span class="shrink-0 text-caption-sm text-fg-tertiary">{{
                     knowledgeLocationLabel(match.locator)
                   }}</span></span
                 >
-                <span class="mt-0.5 line-clamp-2 block text-caption leading-relaxed text-foreground-secondary"
+                <span class="mt-0.5 line-clamp-2 block text-caption-md leading-relaxed text-fg-secondary"
                   ><template v-for="(part, index) in highlightedSnippet(match.snippet)" :key="index"
-                    ><mark v-if="part.match" class="rounded-sm bg-selected px-0.5 text-foreground">{{
+                    ><mark v-if="part.match" class="rounded-sm bg-surface-selected px-0.5 text-fg-primary">{{
                       part.text
                     }}</mark
                     ><template v-else>{{ part.text }}</template></template
@@ -167,7 +163,7 @@ function matchBadgeLabel(match: KnowledgeSearchMatch): string | null {
                 >
               </span>
             </ListboxItem>
-            <p v-if="semanticSearch.preparing.value" class="px-2.5 py-1 text-micro text-foreground-tertiary">
+            <p v-if="semanticSearch.preparing.value" class="px-2.5 py-1 text-caption-sm text-fg-tertiary">
               {{
                 t(
                   semanticSearch.indexing.value
@@ -177,18 +173,18 @@ function matchBadgeLabel(match: KnowledgeSearchMatch): string | null {
               }}
             </p>
             <div v-if="query.trim() && searchFailed" class="grid justify-items-center gap-2 px-3 py-8">
-              <p class="text-caption text-danger">{{ t("spaces.search.failed") }}</p>
+              <p class="text-caption-md text-fg-danger">{{ t("spaces.search.failed") }}</p>
               <UiButton size="sm" variant="secondary" @click="retry">{{ t("common.retry") }}</UiButton>
             </div>
             <p
               v-else-if="query.trim() && !searching && matches.length === 0 && structureMatches.length === 0"
-              class="px-3 py-8 text-center text-caption text-foreground-tertiary"
+              class="px-3 py-8 text-center text-caption-md text-fg-tertiary"
             >
               {{ t("spaces.search.find.noResults") }}
             </p>
             <p
               v-else-if="!query.trim() && defaultNodes.length === 0"
-              class="px-3 py-8 text-center text-caption text-foreground-tertiary"
+              class="px-3 py-8 text-center text-caption-md text-fg-tertiary"
             >
               {{ t("spaces.search.find.emptyHint") }}
             </p>

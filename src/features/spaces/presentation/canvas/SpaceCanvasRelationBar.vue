@@ -34,12 +34,12 @@ const selectedColor = computed<CanvasRelationColor>(
   () => relationStyles.value?.find(({ relationId }) => relationId === selected.value?.id)?.color ?? "neutral",
 );
 const colorValues: Record<CanvasRelationColor, string> = {
-  neutral: "var(--knovum-color-foreground-secondary)",
-  blue: "var(--knovum-canvas-relation-blue)",
-  green: "var(--knovum-canvas-relation-green)",
-  amber: "var(--knovum-canvas-relation-amber)",
-  red: "var(--knovum-canvas-relation-red)",
-  purple: "var(--knovum-canvas-relation-purple)",
+  neutral: "var(--color-fg-secondary)",
+  blue: "var(--knovum-space-relation-stroke-blue)",
+  green: "var(--knovum-space-relation-stroke-green)",
+  amber: "var(--knovum-space-relation-stroke-amber)",
+  red: "var(--knovum-space-relation-stroke-red)",
+  purple: "var(--knovum-space-relation-stroke-purple)",
 };
 const colorOptions = computed(() =>
   CANVAS_RELATION_COLORS.map((value) => ({
@@ -111,7 +111,7 @@ function setColor(value: string) {
     <UiDropdownMenu side="top" align="center" :side-offset="6" class="min-w-52">
       <template #trigger>
         <UiIconButton :label="t('spaces.knowledge.relations.title')" size="sm">
-          <GitBranch class="size-(--knovum-icon-size-sm)" :stroke-width="1.55" />
+          <GitBranch class="size-3.5" :stroke-width="1.55" />
         </UiIconButton>
       </template>
       <UiDropdownMenuItem
@@ -120,20 +120,17 @@ function setColor(value: string) {
         :disabled="mutationPending"
         @select="updateKind(kind)"
       >
-        <Check
-          class="size-(--knovum-icon-size-xs)"
-          :class="selected.kind === kind ? 'opacity-100' : 'opacity-0'"
-        />
+        <Check class="size-3" :class="selected.kind === kind ? 'opacity-100' : 'opacity-0'" />
         {{ t(`spaces.knowledge.relations.kinds.${kind}`) }}
       </UiDropdownMenuItem>
     </UiDropdownMenu>
     <UiPopover v-model:open="rationaleOpen" side="top" align="center" :side-offset="8" class="w-72">
       <template #trigger>
         <UiIconButton :label="t('spaces.knowledge.relations.rationale')" size="sm">
-          <MessageSquareText class="size-(--knovum-icon-size-sm)" :stroke-width="1.55" />
+          <MessageSquareText class="size-3.5" :stroke-width="1.55" />
         </UiIconButton>
       </template>
-      <label class="text-micro font-medium text-foreground-tertiary">
+      <label class="text-caption-sm font-medium text-fg-tertiary">
         {{ t("spaces.knowledge.relations.rationale") }}
       </label>
       <UiTextarea

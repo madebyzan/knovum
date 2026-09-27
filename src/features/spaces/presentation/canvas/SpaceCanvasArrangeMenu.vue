@@ -25,9 +25,9 @@ const distributeModes: readonly CanvasDistributeMode[] = ["horizontal", "vertica
 <template>
   <DropdownMenuSub v-if="count >= 2">
     <DropdownMenuSubTrigger :class="rowClass">
-      <AlignHorizontalSpaceAround class="size-(--knovum-icon-size-sm)" />
+      <AlignHorizontalSpaceAround class="size-3.5" />
       <span class="min-w-0 flex-1">{{ t("spaces.canvas.arrange.title") }}</span>
-      <ChevronRight class="size-(--knovum-icon-size-xs) text-foreground-tertiary" />
+      <ChevronRight class="size-3 text-fg-tertiary" />
     </DropdownMenuSubTrigger>
     <DropdownMenuPortal>
       <DropdownMenuSubContent :side-offset="4" :align-offset="-4" :class="submenuClass">
@@ -42,12 +42,10 @@ const distributeModes: readonly CanvasDistributeMode[] = ["horizontal", "vertica
         </template>
         <UiSeparator class="my-1" />
         <UiDropdownMenuItem @select="emit('autoLayout', 'RIGHT')">
-          <Workflow class="size-(--knovum-icon-size-sm)" />{{ t("spaces.canvas.arrange.autoHorizontal") }}
+          <Workflow class="size-3.5" />{{ t("spaces.canvas.arrange.autoHorizontal") }}
         </UiDropdownMenuItem>
         <UiDropdownMenuItem @select="emit('autoLayout', 'DOWN')">
-          <Workflow class="size-(--knovum-icon-size-sm) rotate-90" />{{
-            t("spaces.canvas.arrange.autoVertical")
-          }}
+          <Workflow class="size-3.5 rotate-90" />{{ t("spaces.canvas.arrange.autoVertical") }}
         </UiDropdownMenuItem>
       </DropdownMenuSubContent>
     </DropdownMenuPortal>

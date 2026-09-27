@@ -19,19 +19,14 @@ watch(
 
 <template>
   <CollapsibleRoot v-model:open="expanded" as-child>
-    <section class="mx-4 border-t border-divider">
+    <section class="mx-4 border-t border-stroke-divider">
       <CollapsibleTrigger
-        class="flex min-h-(--knovum-compact-item-height) w-full items-center gap-2 py-2 text-left hover:text-foreground"
+        class="flex min-h-(--knovum-list-item-height-sm) w-full items-center gap-2 py-2 text-left hover:text-fg-primary"
       >
-        <component
-          :is="icon"
-          v-if="icon"
-          class="size-(--knovum-icon-size-xs) shrink-0 text-foreground-tertiary"
-          :stroke-width="1.6"
-        />
-        <span class="min-w-0 flex-1 text-caption font-semibold text-foreground">{{ title }}</span>
+        <component :is="icon" v-if="icon" class="size-3 shrink-0 text-fg-tertiary" :stroke-width="1.6" />
+        <span class="min-w-0 flex-1 text-caption-md font-semibold text-fg-primary">{{ title }}</span>
         <ChevronDown
-          class="size-(--knovum-icon-size-xs) shrink-0 text-foreground-tertiary transition-transform duration-150 ease-standard"
+          class="size-3 shrink-0 text-fg-tertiary transition-transform duration-150 ease-standard"
           :class="expanded ? 'rotate-180' : ''"
           :stroke-width="1.6"
         />

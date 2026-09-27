@@ -21,6 +21,6 @@ describe("UiDropdownMenuItem", () => {
       },
     });
     expect(wrapper.text()).toContain("Delete file");
-    expect(wrapper.findComponent(UiDropdownMenuItem).classes()).toContain("text-danger");
+    expect(wrapper.findComponent(UiDropdownMenuItem).classes()).toContain("text-fg-danger");
   });
 });

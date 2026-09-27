@@ -50,15 +50,15 @@ function actionText(actionId: string) {
 </script>
 
 <template>
-  <div class="flex h-full min-h-0 flex-col text-label">
+  <div class="flex h-full min-h-0 flex-col text-label-md">
     <div class="min-h-0 flex-1 overflow-y-auto px-3 py-3">
-      <p v-if="loading" class="text-foreground-secondary" role="status">
+      <p v-if="loading" class="text-fg-secondary" role="status">
         {{ t("spaces.creation.workflow.derivation.loading") }}
       </p>
-      <p v-else-if="error" class="text-danger" role="alert">{{ error }}</p>
+      <p v-else-if="error" class="text-fg-danger" role="alert">{{ error }}</p>
       <template v-else-if="preview">
         <section v-if="preview.selectionGroups.length > 1" class="mb-4">
-          <p class="bg-warning-subtle mb-2 rounded-control p-2 text-warning">
+          <p class="mb-2 rounded-md bg-surface-warning-subtle p-2 text-fg-warning">
             {{
               t("spaces.creation.workflow.derivation.separateChains", {
                 count: preview.selectionGroups.length,
@@ -79,21 +79,21 @@ function actionText(actionId: string) {
           </div>
         </section>
         <section v-if="preview.steps.length" class="space-y-2">
-          <h3 class="text-caption font-semibold text-foreground-secondary">
+          <h3 class="text-caption-md font-semibold text-fg-secondary">
             {{ t("spaces.creation.workflow.derivation.steps") }}
           </h3>
           <ol class="space-y-1">
             <li v-for="(step, index) in preview.steps" :key="step.derivationId">
               <UiButton
                 variant="secondary"
-                class="h-auto w-full min-w-0 flex-col items-stretch border border-border py-2 text-left shadow-none"
+                class="h-auto w-full min-w-0 flex-col items-stretch border border-stroke-default py-2 text-left shadow-none"
                 @click="store.requestReveal([step.outputNodeId], 'ensure-visible')"
               >
                 <span class="flex items-baseline gap-2">
-                  <span class="text-micro text-foreground-tertiary">{{ index + 1 }}</span>
+                  <span class="text-caption-sm text-fg-tertiary">{{ index + 1 }}</span>
                   <span class="min-w-0 flex-1 truncate font-medium">{{ title(step.outputNodeId) }}</span>
                 </span>
-                <span class="pl-4 text-caption font-normal text-foreground-secondary">{{
+                <span class="pl-4 text-caption-md font-normal text-fg-secondary">{{
                   actionText(step.actionId)
                 }}</span>
               </UiButton>
@@ -101,14 +101,14 @@ function actionText(actionId: string) {
           </ol>
         </section>
         <section v-if="preview.inputs.length" class="mt-4">
-          <h3 class="text-caption font-semibold text-foreground-secondary">
+          <h3 class="text-caption-md font-semibold text-fg-secondary">
             {{ t("spaces.creation.workflow.derivation.inputs") }}
           </h3>
           <ul class="mt-2 space-y-1">
             <li v-for="input in preview.inputs" :key="input.nodeId">
               <UiButton
                 variant="ghost"
-                class="w-full min-w-0 justify-start truncate bg-control"
+                class="w-full min-w-0 justify-start truncate bg-surface-control"
                 @click="store.requestReveal([input.nodeId], 'ensure-visible')"
               >
                 <span class="truncate">{{ title(input.nodeId) }}</span>
@@ -117,21 +117,21 @@ function actionText(actionId: string) {
           </ul>
         </section>
         <section v-if="preview.issues.length" class="mt-4">
-          <h3 class="text-caption font-semibold text-foreground-secondary">
+          <h3 class="text-caption-md font-semibold text-fg-secondary">
             {{ t("spaces.creation.workflow.derivation.issues") }}
           </h3>
           <ul class="mt-2 space-y-1">
             <li
               v-for="issue in preview.issues"
               :key="`${issue.nodeId}:${issue.reason}`"
-              class="rounded-control bg-control px-2.5 py-2"
+              class="rounded-md bg-surface-control px-2.5 py-2"
             >
               <span class="font-medium">{{ title(issue.nodeId) }}</span>
-              <p class="text-caption text-foreground-secondary">{{ issueText(issue.reason) }}</p>
+              <p class="text-caption-md text-fg-secondary">{{ issueText(issue.reason) }}</p>
             </li>
           </ul>
         </section>
-        <p v-if="!preview.steps.length && !preview.issues.length" class="text-foreground-secondary">
+        <p v-if="!preview.steps.length && !preview.issues.length" class="text-fg-secondary">
           {{ t("spaces.creation.workflow.derivation.empty") }}
         </p>
       </template>

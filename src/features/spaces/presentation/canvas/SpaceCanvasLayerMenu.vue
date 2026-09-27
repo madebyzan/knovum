@@ -20,14 +20,14 @@ const moves: readonly { mode: CanvasLayerMove; label: string; icon: typeof Bring
 <template>
   <DropdownMenuSub>
     <DropdownMenuSubTrigger :class="rowClass">
-      <Layers3 class="size-(--knovum-icon-size-sm)" />
+      <Layers3 class="size-3.5" />
       <span class="min-w-0 flex-1">{{ t("spaces.canvas.layerOrder") }}</span>
-      <ChevronRight class="size-(--knovum-icon-size-xs) text-foreground-tertiary" />
+      <ChevronRight class="size-3 text-fg-tertiary" />
     </DropdownMenuSubTrigger>
     <DropdownMenuPortal>
       <DropdownMenuSubContent :side-offset="4" :align-offset="-4" :class="submenuClass">
         <UiDropdownMenuItem v-for="move in moves" :key="move.mode" @select="emit('move', move.mode)">
-          <component :is="move.icon" class="size-(--knovum-icon-size-sm)" />{{ t(move.label) }}
+          <component :is="move.icon" class="size-3.5" />{{ t(move.label) }}
         </UiDropdownMenuItem>
       </DropdownMenuSubContent>
     </DropdownMenuPortal>

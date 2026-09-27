@@ -26,7 +26,7 @@ function isLocalAssetReference(value: string) {
 </script>
 
 <template>
-  <div class="relative h-64 overflow-hidden bg-white">
+  <div class="relative h-64 overflow-hidden bg-surface-document">
     <iframe
       :title="title"
       :src="frameSource"
@@ -34,13 +34,13 @@ function isLocalAssetReference(value: string) {
       loading="lazy"
       referrerpolicy="no-referrer"
       tabindex="-1"
-      class="pointer-events-none block size-full border-0 bg-white"
+      class="pointer-events-none block size-full border-0 bg-surface-document"
     />
     <div
       v-if="missingLocalAssets"
-      class="pointer-events-none absolute inset-x-2 bottom-2 flex items-center gap-1.5 rounded-control bg-overlay/90 px-2 py-1 text-micro text-foreground-secondary shadow-control backdrop-blur"
+      class="pointer-events-none absolute inset-x-2 bottom-2 flex items-center gap-1.5 rounded-md bg-surface-overlay/90 px-2 py-1 text-caption-sm text-fg-secondary shadow-control backdrop-blur"
     >
-      <ShieldCheck class="size-(--knovum-icon-size-xs) shrink-0 text-foreground-tertiary" />
+      <ShieldCheck class="size-3 shrink-0 text-fg-tertiary" />
       <span class="min-w-0 truncate">{{
         t("spaces.canvas.htmlSandboxAssetsBlocked", { count: missingLocalAssets })
       }}</span>

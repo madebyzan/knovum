@@ -18,7 +18,7 @@ const orientation = computed(() => ({
   transform: `rotateY(${props.yaw}deg) rotateX(${-props.pitch}deg) scale(${scale.value})`,
 }));
 const face =
-  "absolute inset-0 grid place-items-center rounded-control border border-border-strong bg-raised text-label font-medium text-foreground-tertiary [backface-visibility:hidden]";
+  "absolute inset-0 grid place-items-center rounded-md border border-stroke-strong bg-surface-raised text-label-md font-medium text-fg-tertiary [backface-visibility:hidden]";
 </script>
 
 <template>
@@ -31,7 +31,7 @@ const face =
       <div :class="face" class="[transform:rotateY(90deg)_translateZ(64px)]">R</div>
       <div :class="face" class="[transform:rotateY(180deg)_translateZ(64px)]" />
       <div :class="face" class="[transform:rotateX(90deg)_translateZ(64px)]">
-        <ChevronUp class="size-(--knovum-icon-size-xs) text-foreground-tertiary" :stroke-width="1.3" />
+        <ChevronUp class="size-3 text-fg-tertiary" :stroke-width="1.3" />
       </div>
       <div :class="face" class="[transform:rotateX(-90deg)_translateZ(64px)]">B</div>
       <div :class="face" class="[transform:translateZ(64px)] overflow-hidden p-1">

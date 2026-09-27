@@ -21,30 +21,27 @@ const currentLabel = computed(() =>
     <template #trigger>
       <button
         type="button"
-        class="flex h-(--knovum-control-height-sm) min-w-16 items-center justify-center gap-1 rounded-control px-2 text-label text-foreground-secondary outline-none hover:bg-control-hover hover:text-foreground data-[state=open]:bg-control-pressed"
+        class="flex h-(--knovum-control-height-sm) min-w-16 items-center justify-center gap-1 rounded-md px-2 text-label-md text-fg-secondary outline-none hover:bg-surface-control-hover hover:text-fg-primary data-[state=open]:bg-surface-control"
         :aria-label="t('spaces.richtext.headings.menu')"
       >
         <span class="max-w-20 truncate">{{ currentLabel }}</span>
-        <ChevronDown class="size-(--knovum-icon-size-xs) text-foreground-tertiary" :stroke-width="1.6" />
+        <ChevronDown class="size-3 text-fg-tertiary" :stroke-width="1.6" />
       </button>
     </template>
 
     <UiDropdownMenuItem @select="editor.chain().focus().setParagraph().run()">
-      <span class="w-6 text-caption font-medium">Aa</span>
+      <span class="w-6 text-caption-md font-medium">Aa</span>
       <span class="min-w-0 flex-1 truncate">{{ t("spaces.richtext.paragraph") }}</span>
-      <Check v-if="editor.isActive('paragraph')" class="ml-auto size-(--knovum-icon-size-xs) text-accent" />
+      <Check v-if="editor.isActive('paragraph')" class="ml-auto size-3 text-fg-accent" />
     </UiDropdownMenuItem>
     <UiDropdownMenuItem
       v-for="level in headings"
       :key="level"
       @select="editor.chain().focus().toggleHeading({ level }).run()"
     >
-      <span class="w-6 text-caption font-semibold">H{{ level }}</span>
+      <span class="w-6 text-caption-md font-semibold">H{{ level }}</span>
       <span class="min-w-0 flex-1 truncate">{{ t(`spaces.richtext.heading${level}`) }}</span>
-      <Check
-        v-if="editor.isActive('heading', { level })"
-        class="ml-auto size-(--knovum-icon-size-xs) text-accent"
-      />
+      <Check v-if="editor.isActive('heading', { level })" class="ml-auto size-3 text-fg-accent" />
     </UiDropdownMenuItem>
   </UiDropdownMenu>
 </template>

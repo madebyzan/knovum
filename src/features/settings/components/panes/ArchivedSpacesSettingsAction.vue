@@ -39,7 +39,7 @@ async function permanentlyDeleteAll() {
 
 <template>
   <UiButton v-if="archive.spaces.value.length" size="sm" variant="dangerSubtle" @click="permanentlyDeleteAll">
-    <Trash2 class="size-(--knovum-icon-size-xs)" />
+    <Trash2 class="size-3" />
     {{ t("settings.general.archived.deleteAll.label") }}
   </UiButton>
 </template>

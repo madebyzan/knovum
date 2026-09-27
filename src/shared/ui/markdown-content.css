@@ -2,9 +2,9 @@
   margin-top: 0.65rem;
 }
 :deep(.ui-markdown h1) {
-  font-size: var(--text-title);
+  font-size: var(--text-title-md);
   font-weight: 650;
-  line-height: var(--text-title--line-height);
+  line-height: var(--text-title-md--line-height);
 }
 :deep(.ui-markdown h2) {
   font-size: var(--text-title-sm);
@@ -12,14 +12,14 @@
   line-height: var(--text-title-sm--line-height);
 }
 :deep(.ui-markdown h3) {
-  font-size: var(--text-body-lg);
+  font-size: var(--text-body-md);
   font-weight: 650;
-  line-height: var(--text-body-lg--line-height);
+  line-height: var(--text-body-md--line-height);
 }
 :deep(.ui-markdown p),
 :deep(.ui-markdown li) {
-  font-size: var(--text-body);
-  line-height: var(--text-body--line-height);
+  font-size: var(--text-body-sm);
+  line-height: var(--text-body-sm--line-height);
 }
 :deep(.ui-markdown ul:not([data-type="taskList"])),
 :deep(.ui-markdown ol) {
@@ -32,18 +32,18 @@
   list-style: decimal;
 }
 :deep(.ui-markdown blockquote) {
-  border-left: 2px solid var(--color-border);
-  color: var(--color-foreground-secondary);
+  border-left: 2px solid var(--color-stroke-default);
+  color: var(--color-fg-secondary);
   padding-left: 0.8rem;
 }
 :deep(.ui-markdown code) {
-  background-color: var(--color-raised);
-  border-radius: var(--radius-control);
+  background-color: var(--color-surface-raised);
+  border-radius: var(--radius-md);
   padding: 0.08rem 0.28rem;
-  font-size: var(--text-caption);
+  font-size: var(--text-caption-md);
 }
 :deep(.ui-markdown pre) {
-  background-color: var(--color-raised);
+  background-color: var(--color-surface-raised);
   overflow: auto;
   border-radius: 0.4rem;
   padding: 0.75rem;
@@ -65,7 +65,7 @@
 }
 :deep(.ui-markdown th),
 :deep(.ui-markdown td) {
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-stroke-default);
   padding: 0.35rem 0.5rem;
   text-align: left;
 }

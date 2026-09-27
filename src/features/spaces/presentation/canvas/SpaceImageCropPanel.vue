@@ -86,11 +86,11 @@ function toggleAspect() {
 </script>
 
 <template>
-  <section class="w-60 text-foreground" :aria-label="t('spaces.media.imageEditor.crop.title')">
-    <h3 class="px-1 pb-3 text-body-lg font-semibold">{{ t("spaces.media.imageEditor.crop.title") }}</h3>
+  <section class="w-60 text-fg-primary" :aria-label="t('spaces.media.imageEditor.crop.title')">
+    <h3 class="px-1 pb-3 text-body-md font-semibold">{{ t("spaces.media.imageEditor.crop.title") }}</h3>
     <div class="flex items-center gap-2 pb-3">
       <label
-        class="flex h-(--knovum-control-height-lg) min-w-0 flex-1 items-center gap-1 rounded-control bg-control px-2 text-label text-foreground-secondary focus-within:ring-2 focus-within:ring-focus-ring"
+        class="flex h-(--knovum-control-height-lg) min-w-0 flex-1 items-center gap-1 rounded-md bg-surface-control px-2 text-label-md text-fg-secondary focus-within:ring-2 focus-within:ring-stroke-focus"
       >
         <span>W</span>
         <input
@@ -98,7 +98,7 @@ function toggleAspect() {
           :min="Math.ceil(sourceWidth * 0.01)"
           :max="sourceWidth"
           :value="widthPixels"
-          class="crop-dimension min-w-0 flex-1 bg-transparent text-label text-foreground tabular-nums outline-none"
+          class="crop-dimension min-w-0 flex-1 bg-transparent text-label-md text-fg-primary tabular-nums outline-none"
           @change="setPixels('width', $event)"
         />
       </label>
@@ -108,11 +108,11 @@ function toggleAspect() {
         class="size-(--knovum-control-height-lg)"
         @click="toggleAspect"
       >
-        <Link2 v-if="lockedAspect" class="size-(--knovum-icon-size-sm)" />
-        <Unlink2 v-else class="size-(--knovum-icon-size-sm)" />
+        <Link2 v-if="lockedAspect" class="size-3.5" />
+        <Unlink2 v-else class="size-3.5" />
       </UiIconButton>
       <label
-        class="flex h-(--knovum-control-height-lg) min-w-0 flex-1 items-center gap-1 rounded-control bg-control px-2 text-label text-foreground-secondary focus-within:ring-2 focus-within:ring-focus-ring"
+        class="flex h-(--knovum-control-height-lg) min-w-0 flex-1 items-center gap-1 rounded-md bg-surface-control px-2 text-label-md text-fg-secondary focus-within:ring-2 focus-within:ring-stroke-focus"
       >
         <span>H</span>
         <input
@@ -120,7 +120,7 @@ function toggleAspect() {
           :min="Math.ceil(sourceHeight * 0.01)"
           :max="sourceHeight"
           :value="heightPixels"
-          class="crop-dimension min-w-0 flex-1 bg-transparent text-label text-foreground tabular-nums outline-none"
+          class="crop-dimension min-w-0 flex-1 bg-transparent text-label-md text-fg-primary tabular-nums outline-none"
           @change="setPixels('height', $event)"
         />
       </label>
@@ -130,18 +130,18 @@ function toggleAspect() {
       :full-crop="crop.x === 0 && crop.y === 0 && crop.width === 1 && crop.height === 1"
       @select="setAspect"
     />
-    <footer class="mt-3 flex gap-2 border-t border-divider pt-3">
+    <footer class="mt-3 flex gap-2 border-t border-stroke-divider pt-3">
       <UiButton
         variant="secondary"
         size="sm"
-        class="min-w-0 flex-1 border border-border bg-raised"
+        class="min-w-0 flex-1 border border-stroke-default bg-surface-raised"
         @click="emit('cancel')"
         >{{ t("common.cancel") }}</UiButton
       >
       <UiButton
         variant="primary"
         size="sm"
-        class="min-w-0 flex-1 bg-foreground text-canvas hover:bg-foreground hover:opacity-90"
+        class="min-w-0 flex-1 bg-surface-inverse text-fg-inverse hover:bg-surface-inverse hover:opacity-90"
         @click="emit('apply')"
         >{{ t("spaces.media.imageEditor.crop.complete") }}</UiButton
       >

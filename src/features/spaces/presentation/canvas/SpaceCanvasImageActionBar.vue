@@ -117,7 +117,7 @@ watch(ready, async (isReady) => {
             :aria-label="t('spaces.creation.image.removeBackground')"
             @click="removeBackground"
           >
-            <ScanLine class="size-(--knovum-icon-size-toolbar)" :stroke-width="1.6" />
+            <ScanLine class="size-4.5" :stroke-width="1.6" />
             <span :class="[nodeActionLabelClass, nodeActionLabelState(compact)]">{{
               t("spaces.creation.image.removeBackground")
             }}</span>

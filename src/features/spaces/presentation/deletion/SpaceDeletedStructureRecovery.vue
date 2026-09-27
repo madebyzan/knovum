@@ -50,16 +50,13 @@ function measureElement(element: Element | ComponentPublicInstance | null) {
         :key="`${deletedRoot.batchId}:${deletedRoot.rootStructureNodeId}`"
         :ref="measureElement"
         :data-index="row.index"
-        class="absolute top-0 left-0 flex min-h-12 w-full items-center gap-2 rounded-control px-2 py-1 hover:bg-control-hover"
+        class="absolute top-0 left-0 flex min-h-12 w-full items-center gap-2 rounded-md px-2 py-1 hover:bg-surface-control-hover"
         :style="{ transform: `translateY(${row.start}px)` }"
       >
-        <component
-          :is="deletedIcon(deletedRoot.kind)"
-          class="size-(--knovum-icon-size-sm) shrink-0 text-foreground-secondary"
-        />
+        <component :is="deletedIcon(deletedRoot.kind)" class="size-3.5 shrink-0 text-fg-secondary" />
         <div class="min-w-0 flex-1">
-          <p class="truncate text-label font-medium">{{ deletedRoot.title }}</p>
-          <p class="truncate text-micro text-foreground-tertiary">
+          <p class="truncate text-label-md font-medium">{{ deletedRoot.title }}</p>
+          <p class="truncate text-caption-sm text-fg-tertiary">
             {{ deletedRoot.spaceTitle }} · {{ d(deletedRoot.deletedAt, "short") }}
           </p>
         </div>
@@ -69,7 +66,7 @@ function measureElement(element: Element | ComponentPublicInstance | null) {
           size="sm"
           @click="emit('restore', deletedRoot)"
         >
-          <RotateCcw class="size-(--knovum-icon-size-xs)" />
+          <RotateCcw class="size-3" />
         </UiIconButton>
         <UiIconButton
           v-if="(batchCounts[deletedRoot.batchId] ?? 0) > 1"
@@ -78,7 +75,7 @@ function measureElement(element: Element | ComponentPublicInstance | null) {
           size="sm"
           @click="emit('restoreBatch', deletedRoot)"
         >
-          <RotateCcw class="size-(--knovum-icon-size-xs)" />
+          <RotateCcw class="size-3" />
         </UiIconButton>
         <UiIconButton
           :disabled="busy"
@@ -86,7 +83,7 @@ function measureElement(element: Element | ComponentPublicInstance | null) {
           size="sm"
           @click="emit('remove', deletedRoot)"
         >
-          <Trash2 class="size-(--knovum-icon-size-xs) text-danger" />
+          <Trash2 class="size-3 text-fg-danger" />
         </UiIconButton>
       </div>
     </div>

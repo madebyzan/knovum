@@ -57,7 +57,7 @@ function select(event: Konva.KonvaEventObject<PointerEvent>) {
       align: 'center',
       fontSize: 12 / zoom,
       fill: palette.relation[relation.color],
-      stroke: palette.surface,
+      stroke: palette.panel,
       strokeWidth: 5 / zoom,
       fillAfterStrokeEnabled: true,
       listening: false,

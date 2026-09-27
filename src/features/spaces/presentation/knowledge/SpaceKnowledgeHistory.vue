@@ -21,8 +21,11 @@ const history = useSpaceKnowledgeHistoryQuery(activeSpaceId, () => props.node.id
     :icon="Clock3"
     :default-expanded="false"
   >
-    <div v-if="history.isError.value" class="rounded-control border border-danger/30 bg-danger/5 p-2">
-      <p class="text-micro text-danger">{{ t("spaces.knowledge.history.loadFailed") }}</p>
+    <div
+      v-if="history.isError.value"
+      class="rounded-md border border-stroke-danger/30 bg-surface-danger/5 p-2"
+    >
+      <p class="text-caption-sm text-fg-danger">{{ t("spaces.knowledge.history.loadFailed") }}</p>
       <UiButton
         class="mt-1"
         size="sm"
@@ -30,27 +33,27 @@ const history = useSpaceKnowledgeHistoryQuery(activeSpaceId, () => props.node.id
         :disabled="history.isFetching.value"
         @click="history.refetch()"
       >
-        <RefreshCw class="size-(--knovum-icon-size-xs)" />{{ t("common.retry") }}
+        <RefreshCw class="size-3" />{{ t("common.retry") }}
       </UiButton>
     </div>
     <div v-else-if="history.data.value?.length" class="space-y-1">
       <div
         v-for="event in history.data.value"
         :key="event.id"
-        class="rounded-control bg-control/35 px-2 py-1.5"
+        class="rounded-md bg-surface-control/35 px-2 py-1.5"
       >
         <div class="flex items-center justify-between gap-2">
-          <span class="text-caption text-foreground-secondary">{{
+          <span class="text-caption-md text-fg-secondary">{{
             t(`spaces.knowledge.history.events.${event.eventKind}`)
           }}</span>
-          <time class="text-micro text-foreground-tertiary">{{ d(event.createdAt, "short") }}</time>
+          <time class="text-caption-sm text-fg-tertiary">{{ d(event.createdAt, "short") }}</time>
         </div>
-        <p class="mt-0.5 text-micro text-foreground-tertiary">
+        <p class="mt-0.5 text-caption-sm text-fg-tertiary">
           {{ t("spaces.knowledge.history.actor", { actor: event.actorKind }) }}
         </p>
       </div>
     </div>
-    <p v-else-if="!history.isFetching.value" class="px-1 text-caption text-foreground-tertiary">
+    <p v-else-if="!history.isFetching.value" class="px-1 text-caption-md text-fg-tertiary">
       {{ t("spaces.knowledge.history.empty") }}
     </p>
   </SpaceInspectorSection>

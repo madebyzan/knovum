@@ -33,9 +33,9 @@ async function saveRationale() {
 </script>
 
 <template>
-  <div class="space-y-2 border-t border-divider px-2 py-2.5">
+  <div class="space-y-2 border-t border-stroke-divider px-2 py-2.5">
     <div>
-      <label class="text-micro font-medium text-foreground-tertiary">{{
+      <label class="text-caption-sm font-medium text-fg-tertiary">{{
         t("spaces.knowledge.relations.rationale")
       }}</label>
       <UiTextarea
@@ -46,7 +46,7 @@ async function saveRationale() {
       />
       <div class="mt-1.5 flex justify-end">
         <UiButton size="sm" variant="secondary" @click="saveRationale">
-          <Check class="mr-1 size-(--knovum-icon-size-xs)" />{{ t("common.save") }}
+          <Check class="mr-1 size-3" />{{ t("common.save") }}
         </UiButton>
       </div>
     </div>

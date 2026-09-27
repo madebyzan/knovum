@@ -51,7 +51,7 @@ function measureRow(element: Element | ComponentPublicInstance | null) {
           v-for="(item, column) in rowResources"
           :key="item.resource.id"
           type="button"
-          class="overflow-hidden rounded-control border border-border bg-surface text-left outline-none hover:border-border-hover focus-visible:ring-2 focus-visible:ring-accent"
+          class="overflow-hidden rounded-md border border-stroke-default bg-surface-muted text-left outline-none hover:border-stroke-default-hover focus-visible:ring-2 focus-visible:ring-stroke-accent"
           :aria-label="
             t('spaces.processing.document.resources.open', {
               index: row.index * RESOURCE_COLUMNS + column + 1,
@@ -59,7 +59,7 @@ function measureRow(element: Element | ComponentPublicInstance | null) {
           "
           @click="emit('select', item)"
         >
-          <div class="aspect-4/3 overflow-hidden bg-canvas">
+          <div class="aspect-4/3 overflow-hidden bg-surface-canvas">
             <img
               :src="spaceAssetSource(item.resource.path, sourceRevision)"
               alt=""
@@ -69,11 +69,11 @@ function measureRow(element: Element | ComponentPublicInstance | null) {
               draggable="false"
             />
           </div>
-          <div class="border-t border-divider px-2 py-1.5">
-            <strong class="block truncate text-caption font-medium text-foreground">
+          <div class="border-t border-stroke-divider px-2 py-1.5">
+            <strong class="block truncate text-caption-md font-medium text-fg-primary">
               {{ item.locationLabel }}
             </strong>
-            <span class="block truncate text-micro text-foreground-tertiary">
+            <span class="block truncate text-caption-sm text-fg-tertiary">
               {{ item.resource.width }} × {{ item.resource.height }} ·
               {{ formatByteSize(item.resource.byteSize) }}
             </span>

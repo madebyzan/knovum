@@ -22,7 +22,7 @@ defineProps<{ placement: "field" | "inline" | "selection" }>();
 
 <style scoped>
 .work-light {
-  background: radial-gradient(ellipse 55% 70% at center, var(--color-skeleton), transparent 100%);
+  background: radial-gradient(ellipse 55% 70% at center, var(--color-surface-skeleton), transparent 100%);
   animation: work-light-drift 2.6s ease-in-out infinite alternate;
 }
 

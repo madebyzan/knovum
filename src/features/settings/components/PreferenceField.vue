@@ -4,11 +4,11 @@ defineProps<{ label: string; description?: string | undefined }>();
 
 <template>
   <div
-    class="flex min-h-(--knovum-preference-item-height) items-center justify-between gap-6 border-b border-divider px-4 py-3 last:border-b-0"
+    class="flex min-h-(--knovum-settings-row-min-height) items-center justify-between gap-6 border-b border-stroke-divider px-4 py-3 last:border-b-0"
   >
     <div class="min-w-0 flex-1">
-      <div class="text-body-lg font-medium text-foreground">{{ label }}</div>
-      <div v-if="description" class="mt-0.5 max-w-xl text-caption leading-normal text-foreground-secondary">
+      <div class="text-body-md font-medium text-fg-primary">{{ label }}</div>
+      <div v-if="description" class="mt-0.5 max-w-xl text-caption-md leading-normal text-fg-secondary">
         {{ description }}
       </div>
     </div>

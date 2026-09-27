@@ -28,12 +28,12 @@ const sidebarIcon = computed(() => (props.sidebarPinned ? PanelLeftClose : Panel
         size="md"
         @click="emit('toggle-sidebar')"
       >
-        <span class="relative size-(--knovum-icon-size-toolbar)">
+        <span class="relative size-4.5">
           <Transition name="sidebar-icon">
             <component
               :is="sidebarIcon"
               :key="sidebarPinned ? 'close' : 'open'"
-              class="absolute inset-0 size-(--knovum-icon-size-toolbar)"
+              class="absolute inset-0 size-4.5"
               :stroke-width="1.55"
             />
           </Transition>
@@ -47,8 +47,8 @@ const sidebarIcon = computed(() => (props.sidebarPinned ? PanelLeftClose : Panel
 .sidebar-icon-enter-active,
 .sidebar-icon-leave-active {
   transition:
-    opacity 120ms ease-out,
-    transform 140ms var(--ease-standard);
+    opacity 150ms var(--ease-decelerate),
+    transform 150ms var(--ease-standard);
 }
 .sidebar-icon-enter-from {
   opacity: 0;

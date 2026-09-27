@@ -14,7 +14,7 @@ const modes = [
 
 <template>
   <div
-    class="nodrag pointer-events-auto absolute bottom-3 left-1/2 z-30 flex -translate-x-1/2 items-center gap-1 rounded-panel border border-border bg-overlay p-1 shadow-popover"
+    class="nodrag pointer-events-auto absolute bottom-3 left-1/2 z-30 flex -translate-x-1/2 items-center gap-1 rounded-panel border border-stroke-default bg-surface-overlay p-1 shadow-popover"
     role="toolbar"
     :aria-label="$t('spaces.media.imageEditor.comments.mode')"
   >
@@ -22,22 +22,22 @@ const modes = [
       v-for="item in modes"
       :key="item.id"
       type="button"
-      class="flex size-9 items-center justify-center rounded-control text-foreground-secondary transition-colors outline-none hover:bg-control-hover hover:text-foreground focus-visible:ring-2 focus-visible:ring-focus-ring"
-      :class="mode === item.id && 'bg-control text-foreground'"
+      class="flex size-9 items-center justify-center rounded-md text-fg-secondary transition-colors outline-none hover:bg-surface-control-hover hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-stroke-focus"
+      :class="mode === item.id && 'bg-surface-control text-fg-primary'"
       :aria-label="$t(item.label)"
       :aria-pressed="mode === item.id"
       @click.stop="emit('change', item.id)"
     >
-      <component :is="item.icon" class="size-(--knovum-icon-size-toolbar)" :stroke-width="1.7" />
+      <component :is="item.icon" class="size-4.5" :stroke-width="1.7" />
     </button>
-    <span aria-hidden="true" class="mx-0.5 h-4 w-px bg-border" />
+    <span aria-hidden="true" class="bg-border-default mx-0.5 h-4 w-px" />
     <button
       type="button"
-      class="flex size-9 items-center justify-center rounded-control text-foreground-secondary transition-colors outline-none hover:bg-control-hover hover:text-foreground focus-visible:ring-2 focus-visible:ring-focus-ring"
+      class="flex size-9 items-center justify-center rounded-md text-fg-secondary transition-colors outline-none hover:bg-surface-control-hover hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-stroke-focus"
       :aria-label="$t('common.cancel')"
       @click.stop="emit('cancel')"
     >
-      <X class="size-(--knovum-icon-size-toolbar)" :stroke-width="1.7" />
+      <X class="size-4.5" :stroke-width="1.7" />
     </button>
   </div>
 </template>

@@ -50,12 +50,12 @@ watch(sceneCue, (cue) => {
 <template>
   <Transition
     enter-active-class="animate-in fade-in-0 zoom-in-95 duration-150 ease-standard motion-reduce:animate-none"
-    leave-active-class="animate-out fade-out-0 zoom-out-95 slide-out-to-bottom-1 slide-out-to-left-1 duration-200 ease-standard motion-reduce:animate-none"
+    leave-active-class="animate-out fade-out-0 zoom-out-95 slide-out-to-bottom-1 slide-out-to-left-1 duration-220 ease-standard motion-reduce:animate-none"
   >
     <div
       v-if="captureFrame"
       :key="captureFrame.nonce"
-      class="pointer-events-none absolute inset-2 origin-bottom-left rounded-canvas-object border border-accent/35 bg-accent-subtle"
+      class="pointer-events-none absolute inset-2 origin-bottom-left rounded-lg border border-stroke-accent/35 bg-surface-accent-subtle"
       aria-hidden="true"
     />
   </Transition>
@@ -65,12 +65,12 @@ watch(sceneCue, (cue) => {
   >
     <div
       v-if="displayed"
-      class="pointer-events-none absolute top-4 left-1/2 flex h-8 -translate-x-1/2 items-center gap-2 rounded-control border border-border bg-overlay px-2.5 text-caption text-foreground"
+      class="pointer-events-none absolute top-4 left-1/2 flex h-8 -translate-x-1/2 items-center gap-2 rounded-md border border-stroke-default bg-surface-overlay px-2.5 text-caption-md text-fg-primary"
       role="status"
     >
-      <component :is="icon" class="size-(--knovum-icon-size-xs) shrink-0 text-accent" :stroke-width="1.6" />
+      <component :is="icon" class="size-3 shrink-0 text-fg-accent" :stroke-width="1.6" />
       <span class="max-w-72 truncate font-medium">{{ label }}</span>
-      <span class="text-micro text-foreground-tertiary tabular-nums">
+      <span class="text-caption-sm text-fg-tertiary tabular-nums">
         {{ Math.round(displayed.zoom * 100) }}%
       </span>
     </div>

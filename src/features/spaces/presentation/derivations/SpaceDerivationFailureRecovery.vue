@@ -16,16 +16,14 @@ const { d, t } = useI18n();
 
 <template>
   <div class="space-y-3">
-    <p class="text-caption leading-relaxed break-words text-danger">{{ failure.error }}</p>
-    <p class="text-micro text-foreground-tertiary">{{ d(failure.completedAt, "short") }}</p>
+    <p class="text-caption-md leading-relaxed break-words text-fg-danger">{{ failure.error }}</p>
+    <p class="text-caption-sm text-fg-tertiary">{{ d(failure.completedAt, "short") }}</p>
     <div class="flex items-center gap-2">
       <UiButton v-if="canRetry" size="sm" variant="secondary" :disabled="retrying" @click="emit('retry')">
-        <RefreshCw class="size-(--knovum-icon-size-xs)" :class="{ 'animate-spin': retrying }" />{{
-          t("common.retry")
-        }}
+        <RefreshCw class="size-3" :class="{ 'animate-spin': retrying }" />{{ t("common.retry") }}
       </UiButton>
       <UiButton size="sm" variant="danger" :disabled="retrying" @click="emit('remove')">
-        <Trash2 class="size-(--knovum-icon-size-xs)" />{{ t("spaces.creation.shared.removeFailedOutput") }}
+        <Trash2 class="size-3" />{{ t("spaces.creation.shared.removeFailedOutput") }}
       </UiButton>
     </div>
   </div>

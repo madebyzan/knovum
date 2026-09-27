@@ -27,9 +27,11 @@ defineExpose({
     /></ScrollAreaViewport>
     <ScrollAreaScrollbar
       orientation="vertical"
-      class="flex w-(--knovum-scrollbar-size) touch-none rounded-full bg-transparent p-(--knovum-scrollbar-inset) opacity-0 transition-[background-color,opacity] duration-150 select-none hover:bg-control hover:opacity-100 data-[state=visible]:opacity-100"
+      class="flex w-(--knovum-scrollbar-size) touch-none rounded-full bg-transparent p-(--knovum-scrollbar-inset) opacity-0 transition-[background-color,opacity] duration-150 select-none hover:bg-surface-control hover:opacity-100 data-[state=visible]:opacity-100"
     >
-      <ScrollAreaThumb class="bg-faint/55 hover:bg-muted/65 relative flex-1 rounded-full" />
+      <ScrollAreaThumb
+        class="relative flex-1 rounded-full bg-(--knovum-scrollbar-thumb-bg) hover:bg-(--knovum-scrollbar-thumb-bg-hover)"
+      />
     </ScrollAreaScrollbar>
   </ScrollAreaRoot>
 </template>

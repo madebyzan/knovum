@@ -13,19 +13,19 @@ const props = defineProps<{ kind: "note" | "text"; appearance?: CanvasNodeAppear
 const emit = defineEmits<{ update: [patch: Partial<CanvasNodeAppearance>] }>();
 const { t } = useI18n();
 const fillColors = {
-  yellow: "var(--knovum-canvas-note-yellow)",
-  green: "var(--knovum-canvas-note-green)",
-  blue: "var(--knovum-canvas-note-blue)",
-  pink: "var(--knovum-canvas-note-pink)",
-  gray: "var(--knovum-canvas-note-gray)",
+  yellow: "var(--knovum-space-note-bg-yellow)",
+  green: "var(--knovum-space-note-bg-green)",
+  blue: "var(--knovum-space-note-bg-blue)",
+  pink: "var(--knovum-space-note-bg-pink)",
+  gray: "var(--knovum-space-note-bg-gray)",
 } as const;
 const textColors = {
-  ink: "var(--knovum-canvas-text-ink)",
-  muted: "var(--knovum-canvas-text-muted)",
-  red: "var(--knovum-canvas-text-red)",
-  blue: "var(--knovum-canvas-text-blue)",
-  green: "var(--knovum-canvas-text-green)",
-  purple: "var(--knovum-canvas-text-purple)",
+  ink: "var(--knovum-space-text-fg-default)",
+  muted: "var(--knovum-space-text-fg-subtle)",
+  red: "var(--knovum-space-text-fg-red)",
+  blue: "var(--knovum-space-text-fg-blue)",
+  green: "var(--knovum-space-text-fg-green)",
+  purple: "var(--knovum-space-text-fg-purple)",
 } as const;
 const label = computed(() =>
   t(props.kind === "note" ? "spaces.canvas.noteBackground" : "spaces.canvas.textColor"),

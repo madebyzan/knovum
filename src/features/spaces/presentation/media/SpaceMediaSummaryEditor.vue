@@ -46,15 +46,15 @@ function saveMediaSummary() {
 <template>
   <div>
     <div class="flex items-center gap-2">
-      <h4 class="flex-1 text-micro font-semibold tracking-wide text-foreground-tertiary uppercase">
+      <h4 class="flex-1 text-caption-sm font-semibold tracking-wide text-fg-tertiary uppercase">
         {{ t("spaces.media.analysis.summary") }}
       </h4>
       <template v-if="editing">
         <UiIconButton :label="t('common.cancel')" size="sm" @click="cancelSummaryEdit"
-          ><X class="size-(--knovum-icon-size-xs)"
+          ><X class="size-3"
         /></UiIconButton>
         <UiIconButton :label="t('common.save')" size="sm" @click="saveMediaSummary"
-          ><Check class="size-(--knovum-icon-size-xs)"
+          ><Check class="size-3"
         /></UiIconButton>
       </template>
       <UiIconButton
@@ -63,10 +63,10 @@ function saveMediaSummary() {
         size="sm"
         :disabled="disabled || !nodeDraft.available.value"
         @click="beginSummaryEdit"
-        ><Pencil class="size-(--knovum-icon-size-xs)"
+        ><Pencil class="size-3"
       /></UiIconButton>
     </div>
     <UiTextarea v-if="editing" v-model="draft" class="mt-1.5" :rows="5" />
-    <p v-else class="mt-1.5 text-caption leading-relaxed text-foreground-secondary">{{ summary }}</p>
+    <p v-else class="mt-1.5 text-caption-md leading-relaxed text-fg-secondary">{{ summary }}</p>
   </div>
 </template>

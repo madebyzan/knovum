@@ -27,15 +27,15 @@ const metaLine = computed(() => {
 </script>
 
 <template>
-  <div class="space-y-4 text-caption">
-    <div class="space-y-1 text-foreground-secondary">
+  <div class="space-y-4 text-caption-md">
+    <div class="space-y-1 text-fg-secondary">
       <p>
         {{
           t("spaces.creation.shared.generatedWith", { provider: metadata.provider, model: metadata.model })
         }}
       </p>
       <p>{{ description }}</p>
-      <p class="text-foreground-tertiary">{{ metaLine }}</p>
+      <p class="text-fg-tertiary">{{ metaLine }}</p>
     </div>
     <SpaceDerivationSources :sources="metadata.sources" />
   </div>

@@ -48,14 +48,14 @@ onMounted(load);
 <template>
   <SettingsLoadFailure v-if="loadError" :message="String(loadError)" @retry="load" @reset="resetSection" />
   <div v-else :class="!ready && 'pointer-events-none opacity-60'">
-    <p class="mb-5 max-w-2xl text-body text-foreground-secondary">
+    <p class="mb-5 max-w-2xl text-body-sm text-fg-secondary">
       {{ t("settings.routing.description") }}
     </p>
     <div
       v-if="catalog.descriptorError.value"
-      class="bg-warning-subtle mb-4 flex items-center justify-between gap-3 rounded-control border border-warning/30 px-3 py-2"
+      class="mb-4 flex items-center justify-between gap-3 rounded-md border border-stroke-warning/30 bg-surface-warning-subtle px-3 py-2"
     >
-      <p class="min-w-0 truncate text-caption text-warning">
+      <p class="min-w-0 truncate text-caption-md text-fg-warning">
         {{ String(catalog.descriptorError.value) }}
       </p>
       <UiButton size="sm" variant="secondary" @click="catalog.refetchDescriptors">
@@ -64,9 +64,11 @@ onMounted(load);
     </div>
     <div
       v-if="catalog.installationError.value"
-      class="bg-warning-subtle mb-4 flex items-center justify-between gap-3 rounded-control border border-warning/30 px-3 py-2"
+      class="mb-4 flex items-center justify-between gap-3 rounded-md border border-stroke-warning/30 bg-surface-warning-subtle px-3 py-2"
     >
-      <p class="min-w-0 truncate text-caption text-warning">{{ String(catalog.installationError.value) }}</p>
+      <p class="min-w-0 truncate text-caption-md text-fg-warning">
+        {{ String(catalog.installationError.value) }}
+      </p>
       <UiButton size="sm" variant="secondary" @click="refreshInstallations">
         {{ t("settings.agents.check") }}
       </UiButton>

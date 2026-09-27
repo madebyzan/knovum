@@ -72,8 +72,8 @@ const selected = (target: AiRoutingDefaults[keyof AiRoutingDefaults]) =>
     :description="t('settings.routing.defaultsDescription')"
   >
     <div v-if="!hasTargets" class="px-4 py-3">
-      <p class="text-body-lg font-medium text-foreground">{{ t("settings.routing.unavailable") }}</p>
-      <p class="mt-0.5 max-w-xl text-caption leading-normal text-foreground-secondary">
+      <p class="text-body-md font-medium text-fg-primary">{{ t("settings.routing.unavailable") }}</p>
+      <p class="mt-0.5 max-w-xl text-caption-md leading-normal text-fg-secondary">
         {{ t("settings.routing.unavailableDescription") }}
       </p>
     </div>

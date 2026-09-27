@@ -85,7 +85,7 @@ async function onAddText() {
   <section
     v-if="data"
     :ref="(value) => (editorRoot = value as HTMLElement | null)"
-    class="absolute inset-0 z-60 flex min-h-0 flex-col bg-canvas"
+    class="absolute inset-0 z-60 flex min-h-0 flex-col bg-surface-canvas"
   >
     <SpaceVideoEditorHeader
       :title="data.title"
@@ -98,7 +98,7 @@ async function onAddText() {
       @render="actions.render"
     />
     <div v-if="project && !editorError" class="flex min-h-0 flex-1 flex-col">
-      <div class="relative flex min-h-0 flex-1 bg-control/25" :class="inspectorVisible && 'pr-84'">
+      <div class="relative flex min-h-0 flex-1 bg-surface-control/25" :class="inspectorVisible && 'pr-84'">
         <SpaceVideoPreview
           v-model:element="video"
           :source-path="previewPath ?? data.assetPath"

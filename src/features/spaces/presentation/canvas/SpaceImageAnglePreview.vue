@@ -63,7 +63,7 @@ function wheel(event: WheelEvent) {
 
 <template>
   <div
-    class="relative flex aspect-square w-full cursor-grab touch-none items-center justify-center overflow-hidden rounded-panel bg-field active:cursor-grabbing"
+    class="relative flex aspect-square w-full cursor-grab touch-none items-center justify-center overflow-hidden rounded-panel bg-surface-inset active:cursor-grabbing"
     role="group"
     :aria-label="t('spaces.media.imageEditor.angle.preview')"
     @pointerdown="begin"
@@ -93,42 +93,42 @@ function wheel(event: WheelEvent) {
     <button
       v-if="mode === 'camera'"
       type="button"
-      class="absolute top-5 left-1/2 -translate-x-1/2 rounded-control p-1 text-foreground-tertiary outline-none hover:bg-control-hover hover:text-foreground focus-visible:ring-2 focus-visible:ring-focus-ring"
+      class="absolute top-5 left-1/2 -translate-x-1/2 rounded-md p-1 text-fg-tertiary outline-none hover:bg-surface-control-hover hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-stroke-focus"
       :aria-label="t('spaces.media.imageEditor.angle.tiltUp')"
       @pointerdown.stop
       @click="nudge(0, 10)"
     >
-      <ChevronUp class="size-(--knovum-icon-size-sm)" />
+      <ChevronUp class="size-3.5" />
     </button>
     <button
       v-if="mode === 'camera'"
       type="button"
-      class="absolute top-1/2 right-5 -translate-y-1/2 rounded-control p-1 text-foreground-tertiary outline-none hover:bg-control-hover hover:text-foreground focus-visible:ring-2 focus-visible:ring-focus-ring"
+      class="absolute top-1/2 right-5 -translate-y-1/2 rounded-md p-1 text-fg-tertiary outline-none hover:bg-surface-control-hover hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-stroke-focus"
       :aria-label="t('spaces.media.imageEditor.angle.turnRight')"
       @pointerdown.stop
       @click="nudge(10, 0)"
     >
-      <ChevronRight class="size-(--knovum-icon-size-sm)" />
+      <ChevronRight class="size-3.5" />
     </button>
     <button
       v-if="mode === 'camera'"
       type="button"
-      class="absolute bottom-5 left-1/2 -translate-x-1/2 rounded-control p-1 text-foreground-tertiary outline-none hover:bg-control-hover hover:text-foreground focus-visible:ring-2 focus-visible:ring-focus-ring"
+      class="absolute bottom-5 left-1/2 -translate-x-1/2 rounded-md p-1 text-fg-tertiary outline-none hover:bg-surface-control-hover hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-stroke-focus"
       :aria-label="t('spaces.media.imageEditor.angle.tiltDown')"
       @pointerdown.stop
       @click="nudge(0, -10)"
     >
-      <ChevronDown class="size-(--knovum-icon-size-sm)" />
+      <ChevronDown class="size-3.5" />
     </button>
     <button
       v-if="mode === 'camera'"
       type="button"
-      class="absolute top-1/2 left-5 -translate-y-1/2 rounded-control p-1 text-foreground-tertiary outline-none hover:bg-control-hover hover:text-foreground focus-visible:ring-2 focus-visible:ring-focus-ring"
+      class="absolute top-1/2 left-5 -translate-y-1/2 rounded-md p-1 text-fg-tertiary outline-none hover:bg-surface-control-hover hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-stroke-focus"
       :aria-label="t('spaces.media.imageEditor.angle.turnLeft')"
       @pointerdown.stop
       @click="nudge(-10, 0)"
     >
-      <ChevronLeft class="size-(--knovum-icon-size-sm)" />
+      <ChevronLeft class="size-3.5" />
     </button>
   </div>
 </template>

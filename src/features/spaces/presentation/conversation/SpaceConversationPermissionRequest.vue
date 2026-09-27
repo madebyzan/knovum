@@ -12,11 +12,11 @@ const emit = defineEmits<{ decide: [optionId: string | null] }>();
 
 <template>
   <section
-    class="mb-4 rounded-panel border border-l-2 border-border border-l-warning bg-surface p-3 text-caption"
+    class="border-l-border-warning mb-4 rounded-panel border border-l-2 border-stroke-default bg-surface-muted p-3 text-caption-md"
     role="group"
   >
-    <h3 class="font-semibold text-foreground">{{ $t("spaces.assistant.permission.request") }}</h3>
-    <p class="mt-1 text-foreground-secondary">{{ title }}</p>
+    <h3 class="font-semibold text-fg-primary">{{ $t("spaces.assistant.permission.request") }}</h3>
+    <p class="mt-1 text-fg-secondary">{{ title }}</p>
     <div class="mt-3 flex flex-wrap justify-end gap-2">
       <UiButton
         v-for="option in options"

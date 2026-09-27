@@ -27,25 +27,25 @@ const parameters = computed(() => {
 
 <template>
   <section
-    class="mb-4 rounded-panel border border-l-2 border-border border-l-warning bg-surface p-3 text-caption"
+    class="border-l-border-warning mb-4 rounded-panel border border-l-2 border-stroke-default bg-surface-muted p-3 text-caption-md"
     role="group"
     :aria-label="t('spaces.assistant.approval.plan')"
   >
-    <h3 class="font-semibold text-foreground">
+    <h3 class="font-semibold text-fg-primary">
       {{ t("spaces.assistant.approval.title", { action: actionName }) }}
     </h3>
-    <p class="mt-1 text-foreground-secondary">{{ t("spaces.assistant.approval.hint") }}</p>
-    <dl v-if="parameters.length" class="mt-2 space-y-1 border-t border-divider pt-2">
+    <p class="mt-1 text-fg-secondary">{{ t("spaces.assistant.approval.hint") }}</p>
+    <dl v-if="parameters.length" class="mt-2 space-y-1 border-t border-stroke-divider pt-2">
       <div
         v-for="parameter in parameters"
         :key="parameter.name"
         class="grid grid-cols-[minmax(0,7rem)_minmax(0,1fr)] gap-2"
       >
-        <dt class="truncate text-foreground-tertiary">{{ parameter.name }}</dt>
-        <dd class="wrap-break-word text-foreground select-text">{{ parameter.value }}</dd>
+        <dt class="truncate text-fg-tertiary">{{ parameter.name }}</dt>
+        <dd class="wrap-break-word text-fg-primary select-text">{{ parameter.value }}</dd>
       </div>
     </dl>
-    <details class="mt-2 text-foreground-secondary">
+    <details class="mt-2 text-fg-secondary">
       <summary class="cursor-pointer">{{ t("spaces.assistant.approval.plan") }}</summary>
       <pre class="mt-2 max-h-48 overflow-auto wrap-break-word whitespace-pre-wrap select-text">{{
         JSON.stringify(approval.plan, null, 2)

@@ -41,7 +41,7 @@ const props = withDefaults(
           :class="
             cn(
               POPUP_ANIMATE_CLASSES,
-              'pointer-events-none z-70 rounded-control border border-border material-overlay px-2 py-1 text-caption text-foreground shadow-popover duration-100 ease-standard select-none',
+              'pointer-events-none z-70 rounded-md border border-stroke-default material-overlay px-2 py-1 text-caption-md text-fg-primary shadow-popover duration-100 ease-standard select-none',
               props.class,
             )
           "
@@ -50,7 +50,7 @@ const props = withDefaults(
             <span>{{ text }}</span>
             <UiKbd v-if="shortcut" :shortcut="shortcut" variant="badge" class="-mr-0.5" />
           </span>
-          <TooltipArrow class="fill-overlay" />
+          <TooltipArrow class="fill-background-overlay" />
         </TooltipContent>
       </TooltipPortal>
     </TooltipRoot>

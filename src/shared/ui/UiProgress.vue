@@ -28,10 +28,10 @@ const fill = computed(() => (clamped.value / props.max) * 100);
     :model-value="clamped"
     :max="max"
     :aria-label="label"
-    :class="cn('relative h-1.5 w-full overflow-hidden rounded-full bg-control-pressed', props.class)"
+    :class="cn('relative h-1.5 w-full overflow-hidden rounded-full bg-surface-control', props.class)"
   >
     <ProgressIndicator
-      class="h-full rounded-full bg-accent transition-[width] duration-150 ease-standard"
+      class="h-full rounded-full bg-surface-accent transition-[width] duration-150 ease-standard"
       :style="{ width: `${fill}%` }"
     />
   </ProgressRoot>

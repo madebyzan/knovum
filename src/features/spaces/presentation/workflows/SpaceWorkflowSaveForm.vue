@@ -43,10 +43,10 @@ function submit() {
 <template>
   <form
     v-if="!save.saved.value"
-    class="max-h-80 space-y-2 overflow-y-auto border-t border-border px-3 py-3"
+    class="max-h-80 space-y-2 overflow-y-auto border-t border-stroke-default px-3 py-3"
     @submit.prevent="submit"
   >
-    <label class="block text-caption text-foreground-secondary" for="capture-workflow-name">{{
+    <label class="block text-caption-md text-fg-secondary" for="capture-workflow-name">{{
       t("spaces.creation.workflow.name")
     }}</label>
     <UiInput
@@ -55,7 +55,7 @@ function submit() {
       :placeholder="t('spaces.creation.workflow.namePlaceholder')"
     />
     <div v-for="(output, index) in candidate.outputSlots" :key="output.id" class="space-y-1">
-      <label class="block text-caption text-foreground-secondary" :for="`capture-output-${output.id}`">
+      <label class="block text-caption-md text-fg-secondary" :for="`capture-output-${output.id}`">
         {{ t("spaces.creation.workflow.outputs.name", { index: index + 1 }) }}
       </label>
       <UiInput
@@ -64,10 +64,12 @@ function submit() {
         @update:model-value="setOutputName(output.id, $event)"
       />
     </div>
-    <p v-if="!outputsNamed" class="text-caption text-warning">
+    <p v-if="!outputsNamed" class="text-caption-md text-fg-warning">
       {{ t("spaces.creation.workflow.outputs.namesUnique") }}
     </p>
-    <p v-if="save.error.value" class="text-caption text-danger" role="alert">{{ save.error.value }}</p>
+    <p v-if="save.error.value" class="text-caption-md text-fg-danger" role="alert">
+      {{ save.error.value }}
+    </p>
     <UiButton
       type="submit"
       variant="primary"
@@ -77,7 +79,7 @@ function submit() {
       {{ t("spaces.creation.workflow.saveCaptured") }}
     </UiButton>
   </form>
-  <p v-else class="border-t border-border px-3 py-3 text-caption text-success" role="status">
+  <p v-else class="border-t border-stroke-default px-3 py-3 text-caption-md text-fg-success" role="status">
     {{ t("spaces.creation.workflow.saved") }}
   </p>
 </template>

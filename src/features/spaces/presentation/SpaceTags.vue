@@ -82,7 +82,7 @@ async function showTagMenu(tag: string) {
 
 <template>
   <section v-if="mode !== 'selection'">
-    <h3 class="px-1 text-caption font-semibold text-foreground-secondary">
+    <h3 class="px-1 text-caption-md font-semibold text-fg-secondary">
       {{ t("spaces.tags.title") }}
     </h3>
     <div v-if="tagCounts.length" class="mt-2 space-y-0.5">
@@ -91,22 +91,22 @@ async function showTagMenu(tag: string) {
         :key="tag"
         type="button"
         :disabled="!nodeOperations.allows('structure')"
-        class="flex h-(--knovum-list-item-height) w-full items-center gap-2 rounded-control px-2 text-left text-caption text-foreground-secondary hover:bg-control-hover hover:text-foreground"
+        class="flex h-(--knovum-space-tag-row-height) w-full items-center gap-2 rounded-md px-2 text-left text-caption-md text-fg-secondary hover:bg-surface-control-hover hover:text-fg-primary"
         @click="revealTag(tag)"
         @contextmenu.prevent="showTagMenu(tag)"
       >
-        <Tag class="size-(--knovum-icon-size-xs) shrink-0 text-foreground-tertiary" :stroke-width="1.6" />
+        <Tag class="size-3 shrink-0 text-fg-tertiary" :stroke-width="1.6" />
         <span class="min-w-0 flex-1 truncate">{{ tag }}</span>
         <UiBadge size="sm">{{ count }}</UiBadge>
       </button>
     </div>
-    <p v-else class="mt-2 px-1 text-caption text-foreground-tertiary">
+    <p v-else class="mt-2 px-1 text-caption-md text-fg-tertiary">
       {{ t("spaces.tags.empty") }}
     </p>
   </section>
 
   <section v-if="mode !== 'browse'">
-    <div v-if="selectedIds.length === 0" class="px-1 text-caption text-foreground-tertiary">
+    <div v-if="selectedIds.length === 0" class="px-1 text-caption-md text-fg-tertiary">
       {{ t("spaces.tags.selectionHint") }}
     </div>
     <template v-else>
@@ -120,18 +120,18 @@ async function showTagMenu(tag: string) {
         />
         <div
           v-if="suggestions.length"
-          class="absolute top-full left-0 z-20 mt-1 w-full rounded-panel bg-overlay p-1 shadow-popover ring-1 ring-border"
+          class="absolute top-full left-0 z-20 mt-1 w-full rounded-panel bg-surface-overlay p-1 shadow-popover ring-1 ring-stroke-default"
         >
           <button
             v-for="[tag, count] in suggestions"
             :key="tag"
             type="button"
             :disabled="!nodeOperations.allows('edit')"
-            class="flex h-(--knovum-compact-item-height) w-full items-center justify-between rounded-control px-2 text-left text-caption hover:bg-control-hover"
+            class="flex h-(--knovum-list-item-height-sm) w-full items-center justify-between rounded-md px-2 text-left text-caption-md hover:bg-surface-control-hover"
             @click="applyTag(tag)"
           >
             <span class="truncate">{{ tag }}</span>
-            <span class="text-micro text-foreground-tertiary">{{ count }}</span>
+            <span class="text-caption-sm text-fg-tertiary">{{ count }}</span>
           </button>
         </div>
       </div>
@@ -139,20 +139,20 @@ async function showTagMenu(tag: string) {
         <span
           v-for="[tag, count] in selectionTagCounts"
           :key="tag"
-          class="inline-flex h-(--knovum-control-height-sm) items-center gap-1 rounded-control bg-control pr-1 pl-2 text-caption text-foreground-secondary"
+          class="inline-flex h-(--knovum-control-height-sm) items-center gap-1 rounded-md bg-surface-control pr-1 pl-2 text-caption-md text-fg-secondary"
         >
           {{ tag }}
-          <span v-if="count !== selectedIds.length" class="text-micro text-foreground-tertiary"
+          <span v-if="count !== selectedIds.length" class="text-caption-sm text-fg-tertiary"
             >{{ count }}/{{ selectedIds.length }}</span
           >
           <button
             type="button"
             :disabled="!nodeOperations.allows('edit')"
-            class="grid size-5 place-items-center rounded-control hover:bg-control-hover"
+            class="grid size-5 place-items-center rounded-md hover:bg-surface-control-hover"
             :aria-label="t('spaces.tags.remove', { tag })"
             @click="removeTag(tag)"
           >
-            <X class="size-(--knovum-icon-size-xs)" />
+            <X class="size-3" />
           </button>
         </span>
       </div>

@@ -16,15 +16,15 @@ const knowledge = computed(() => {
 <template>
   <div>
     <template v-if="knowledge">
-      <p class="text-body leading-relaxed text-foreground-secondary select-text">
+      <p class="text-body-sm leading-relaxed text-fg-secondary select-text">
         {{ knowledge.description }}
       </p>
       <div v-if="knowledge.detectedText" class="mt-3">
-        <h4 class="text-caption font-medium text-foreground-tertiary">
+        <h4 class="text-caption-md font-medium text-fg-tertiary">
           {{ t("spaces.inspector.visualDetectedText") }}
         </h4>
         <pre
-          class="mt-1 font-sans text-caption leading-relaxed whitespace-pre-wrap text-foreground-secondary select-text"
+          class="mt-1 font-sans text-caption-md leading-relaxed whitespace-pre-wrap text-fg-secondary select-text"
           >{{ knowledge.detectedText }}</pre>
       </div>
       <div v-if="knowledge.tags.length" class="mt-3 flex flex-wrap gap-1">
@@ -33,7 +33,7 @@ const knowledge = computed(() => {
         </UiBadge>
       </div>
     </template>
-    <p v-else class="text-caption leading-relaxed text-foreground-tertiary">
+    <p v-else class="text-caption-md leading-relaxed text-fg-tertiary">
       {{ t("spaces.knowledge.visual.pending") }}
     </p>
   </div>

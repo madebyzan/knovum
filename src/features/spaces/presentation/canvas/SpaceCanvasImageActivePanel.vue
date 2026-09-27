@@ -51,7 +51,7 @@ watch(
     />
     <div
       v-else
-      class="w-max max-w-[calc(100vw-2rem)] rounded-panel border border-border-strong bg-overlay p-3 shadow-popover"
+      class="w-max max-w-[calc(100vw-2rem)] rounded-panel border border-stroke-strong bg-surface-overlay p-3 shadow-popover"
     >
       <SpaceImageAdjustPanel
         v-if="active?.tool === 'adjust'"

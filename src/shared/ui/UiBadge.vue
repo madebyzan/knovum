@@ -19,10 +19,10 @@ const props = withDefaults(
 );
 
 const variantClasses: Record<BadgeVariant, string> = {
-  neutral: "bg-raised text-foreground-secondary",
-  accent: "bg-accent-subtle text-accent",
-  danger: "bg-danger-subtle text-danger",
-  success: "bg-success-subtle text-success",
+  neutral: "bg-surface-raised text-fg-secondary",
+  accent: "bg-surface-accent-subtle text-fg-accent",
+  danger: "bg-surface-danger-subtle text-fg-danger",
+  success: "bg-surface-success-subtle text-fg-success",
 };
 </script>
 
@@ -30,8 +30,8 @@ const variantClasses: Record<BadgeVariant, string> = {
   <span
     :class="
       cn(
-        'inline-flex shrink-0 items-center justify-center rounded-control font-medium tabular-nums select-none',
-        size === 'sm' ? 'h-4 px-1.5 text-micro' : 'h-5 px-2 text-caption',
+        'inline-flex shrink-0 items-center justify-center rounded-md font-medium tabular-nums select-none',
+        size === 'sm' ? 'h-4 px-1.5 text-caption-sm' : 'h-5 px-2 text-caption-md',
         variantClasses[variant],
         props.class,
       )

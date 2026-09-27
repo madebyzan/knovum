@@ -48,8 +48,8 @@ defineExpose({ focus });
         'w-full',
         INPUT_BASE_CLASSES,
         size === 'sm'
-          ? 'h-(--knovum-control-height-sm) px-2 text-caption'
-          : 'h-(--knovum-control-height-md) px-2.5 text-label',
+          ? 'h-(--knovum-control-height-sm) px-2 text-caption-md'
+          : 'h-(--knovum-control-height-md) px-2.5 text-label-md',
         props.class,
       )
     "

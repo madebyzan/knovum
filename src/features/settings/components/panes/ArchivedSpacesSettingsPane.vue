@@ -45,20 +45,20 @@ async function permanentlyDelete(space: ArchivedSpace) {
     <article
       v-for="space in archive.spaces.value"
       :key="space.id"
-      class="flex min-h-14 items-center gap-3 border-b border-divider px-4 last:border-b-0"
+      class="flex min-h-14 items-center gap-3 border-b border-stroke-divider px-4 last:border-b-0"
     >
-      <Archive class="size-(--knovum-icon-size-sm) shrink-0 text-foreground-secondary" :stroke-width="1.55" />
-      <span class="min-w-0 flex-1 truncate text-label font-medium text-foreground">{{ space.title }}</span>
+      <Archive class="size-3.5 shrink-0 text-fg-secondary" :stroke-width="1.55" />
+      <span class="min-w-0 flex-1 truncate text-label-md font-medium text-fg-primary">{{ space.title }}</span>
       <UiButton size="sm" variant="ghost" @click="archive.restore(space.id)">
-        <RotateCcw class="size-(--knovum-icon-size-xs)" />{{ t("settings.general.archived.restore") }}
+        <RotateCcw class="size-3" />{{ t("settings.general.archived.restore") }}
       </UiButton>
       <UiButton size="sm" variant="ghost" @click="permanentlyDelete(space)">
-        <Trash2 class="size-(--knovum-icon-size-xs)" />{{ t("settings.general.archived.delete.label") }}
+        <Trash2 class="size-3" />{{ t("settings.general.archived.delete.label") }}
       </UiButton>
     </article>
     <div v-if="archive.spaces.value.length === 0" class="px-6 py-12 text-center">
-      <Archive class="mx-auto size-(--knovum-icon-size-md) text-foreground-tertiary" :stroke-width="1.5" />
-      <p class="mt-3 text-label text-foreground-secondary">{{ t("settings.general.archived.empty") }}</p>
+      <Archive class="mx-auto size-4 text-fg-tertiary" :stroke-width="1.5" />
+      <p class="mt-3 text-label-md text-fg-secondary">{{ t("settings.general.archived.empty") }}</p>
     </div>
   </SettingsSection>
 </template>

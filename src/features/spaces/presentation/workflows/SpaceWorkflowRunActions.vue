@@ -25,17 +25,17 @@ const terminal = computed(() =>
 );
 const stateText = computed(() => t(workflowStateLabelKey(props.cancelling ? "cancelling" : props.runState)));
 const statusTone = computed(() => {
-  if (props.runState === "failed") return "text-danger";
-  if (props.runState === "completed_with_errors") return "text-warning";
-  if (props.runState === "succeeded") return "text-success";
-  return "text-foreground-secondary";
+  if (props.runState === "failed") return "text-fg-danger";
+  if (props.runState === "completed_with_errors") return "text-fg-warning";
+  if (props.runState === "succeeded") return "text-fg-success";
+  return "text-fg-secondary";
 });
 </script>
 
 <template>
   <template v-if="runId">
     <div class="max-h-40 space-y-2 overflow-y-auto px-3 py-3">
-      <p role="status" class="text-caption" :class="statusTone">
+      <p role="status" class="text-caption-md" :class="statusTone">
         {{ t("spaces.creation.workflow.run.state", { state: stateText }) }}
       </p>
       <UiButton
@@ -48,7 +48,7 @@ const statusTone = computed(() => {
         {{ t("spaces.creation.workflow.outputs.locate", { name: output.name }) }}
       </UiButton>
     </div>
-    <div class="border-t border-border px-3 py-3">
+    <div class="border-t border-stroke-default px-3 py-3">
       <UiButton
         v-if="!terminal"
         variant="secondary"

@@ -23,21 +23,23 @@ const {
 </script>
 
 <template>
-  <section v-if="sourcePeek" class="flex h-full min-h-0 flex-col bg-surface">
+  <section v-if="sourcePeek" class="flex h-full min-h-0 flex-col bg-surface-muted">
     <div class="min-h-0 flex-1 overflow-y-auto p-3">
       <div v-if="sourceContext.length" class="space-y-2">
         <div
           v-for="chunk in sourceContext"
           :key="chunk.id"
-          class="border-b border-divider py-2.5 last:border-b-0"
+          class="border-b border-stroke-divider py-2.5 last:border-b-0"
         >
-          <p class="mb-1 text-micro text-foreground-tertiary">{{ knowledgeLocationLabel(chunk.locator) }}</p>
-          <p v-if="chunk.metadata?.role === 'document_ocr'" class="mb-1 text-micro text-foreground-secondary">
+          <p class="mb-1 text-caption-sm text-fg-tertiary">
+            {{ knowledgeLocationLabel(chunk.locator) }}
+          </p>
+          <p v-if="chunk.metadata?.role === 'document_ocr'" class="mb-1 text-caption-sm text-fg-secondary">
             {{ t("spaces.processing.document.ocrEvidence") }}
           </p>
           <p
             v-if="chunk.metadata?.role === 'document_interpretation'"
-            class="mb-1 text-micro text-foreground-secondary"
+            class="mb-1 text-caption-sm text-fg-secondary"
           >
             {{ t("spaces.processing.document.interpretationEvidence") }}
           </p>
@@ -56,17 +58,19 @@ const {
         :text="sourcePeek.text"
         v-bind="sourcePeek.locator.quote?.exact ? { exact: sourcePeek.locator.quote.exact } : {}"
       />
-      <p v-else class="text-caption text-foreground-tertiary">
+      <p v-else class="text-caption-md text-fg-tertiary">
         {{ t("spaces.assistant.sourcePeek.noText") }}
       </p>
     </div>
 
-    <footer class="flex flex-wrap items-center justify-end gap-1 border-t border-window-hairline px-2.5 py-2">
+    <footer
+      class="flex flex-wrap items-center justify-end gap-1 border-t border-(--knovum-window-border-color) px-2.5 py-2"
+    >
       <UiButton size="sm" variant="ghost" @click="extractSource">
-        <FilePlus2 class="size-(--knovum-icon-size-xs)" />{{ t("spaces.assistant.evidence.extract") }}
+        <FilePlus2 class="size-3" />{{ t("spaces.assistant.evidence.extract") }}
       </UiButton>
       <UiButton size="sm" variant="ghost" @click="revealSource">
-        <LocateFixed class="size-(--knovum-icon-size-xs)" />{{ t("spaces.canvas.revealInCanvas") }}
+        <LocateFixed class="size-3" />{{ t("spaces.canvas.revealInCanvas") }}
       </UiButton>
       <UiButton v-if="editableSource" size="sm" @click="store.openEditorAtSource(sourcePeek)">
         {{ t("spaces.importExport.openInEditor") }}
@@ -76,7 +80,7 @@ const {
           {{ t("spaces.assistant.sourcePeek.open") }}
         </UiButton>
         <UiButton size="sm" @click="openSourceExternally">
-          <ArrowUpRight class="size-(--knovum-icon-size-xs)" />{{ t("spaces.importExport.openExternally") }}
+          <ArrowUpRight class="size-3" />{{ t("spaces.importExport.openExternally") }}
         </UiButton>
       </template>
     </footer>

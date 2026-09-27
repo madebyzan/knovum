@@ -30,13 +30,13 @@ const switchId = useId(props.id);
     :aria-label="label"
     :class="
       cn(
-        'relative h-5 w-9 shrink-0 rounded-full bg-control transition-colors duration-150 ease-standard outline-none focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-focus-ring disabled:opacity-40 data-[state=checked]:bg-accent',
+        'relative h-5 w-9 shrink-0 rounded-full bg-surface-control transition-colors duration-150 ease-standard outline-none focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-stroke-focus disabled:opacity-40 data-[state=checked]:bg-surface-accent',
         props.class,
       )
     "
   >
     <SwitchThumb
-      class="block size-4 translate-x-0.5 rounded-full bg-control-thumb shadow-control transition-transform duration-150 ease-standard data-[state=checked]:translate-x-4.5"
+      class="block size-4 translate-x-0.5 rounded-full bg-white shadow-control transition-transform duration-150 ease-standard data-[state=checked]:translate-x-4.5"
     />
   </SwitchRoot>
 </template>

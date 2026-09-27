@@ -84,28 +84,28 @@ function isModelInUse(modelId: string) {
 </script>
 
 <template>
-  <CollapsibleRoot v-model:open="open" class="border-b border-divider last:border-b-0">
-    <div class="flex min-h-(--knovum-preference-item-height) items-center gap-3 px-4 py-3">
+  <CollapsibleRoot v-model:open="open" class="border-b border-stroke-divider last:border-b-0">
+    <div class="flex min-h-(--knovum-settings-row-min-height) items-center gap-3 px-4 py-3">
       <CollapsibleTrigger
-        class="flex min-w-0 flex-1 items-center gap-3 rounded-control text-left outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+        class="flex min-w-0 flex-1 items-center gap-3 rounded-md text-left outline-none focus-visible:ring-2 focus-visible:ring-stroke-focus"
       >
         <ChevronRight
-          class="size-(--knovum-icon-size-sm) shrink-0 text-foreground-tertiary transition-transform"
+          class="size-3.5 shrink-0 text-fg-tertiary transition-transform"
           :class="open && 'rotate-90'"
         />
         <div class="min-w-0 flex-1">
-          <p class="truncate text-body-lg font-medium text-foreground">{{ connection.name }}</p>
-          <p class="mt-0.5 truncate text-caption text-foreground-secondary">
+          <p class="truncate text-body-md font-medium text-fg-primary">{{ connection.name }}</p>
+          <p class="mt-0.5 truncate text-caption-md text-fg-secondary">
             {{ connectionProvider.displayName }} ·
             {{ t("settings.ai.modelCount", { count: connection.models.length }) }}
           </p>
         </div>
       </CollapsibleTrigger>
       <UiIconButton v-if="props.removable" :label="t('common.delete')" size="sm" @click="emit('remove')">
-        <Trash2 class="size-(--knovum-icon-size-sm)" />
+        <Trash2 class="size-3.5" />
       </UiIconButton>
     </div>
-    <CollapsibleContent class="border-t border-divider bg-canvas/45 px-4 py-4">
+    <CollapsibleContent class="border-t border-stroke-divider bg-surface-canvas/45 px-4 py-4">
       <div class="grid grid-cols-[minmax(0,1fr)_minmax(12rem,0.65fr)] items-start gap-3">
         <UiInput v-model="draft.name" :placeholder="t('settings.ai.connectionName')" />
         <UiSelect
@@ -123,12 +123,12 @@ function isModelInUse(modelId: string) {
       />
       <div class="mt-4">
         <div class="mb-2 flex items-center justify-between px-0.5">
-          <p class="text-caption font-medium text-foreground-secondary">{{ t("settings.ai.models") }}</p>
+          <p class="text-caption-md font-medium text-fg-secondary">{{ t("settings.ai.models") }}</p>
           <UiButton size="sm" variant="ghost" @click="addModel">
-            <Plus class="size-(--knovum-icon-size-xs)" />{{ t("settings.ai.addModel") }}
+            <Plus class="size-3" />{{ t("settings.ai.addModel") }}
           </UiButton>
         </div>
-        <div class="overflow-hidden rounded-control border border-border bg-raised">
+        <div class="overflow-hidden rounded-md border border-stroke-default bg-surface-raised">
           <AiModelDefinitionEditor
             v-for="(model, index) in draft.models"
             :key="model.id"
@@ -141,7 +141,7 @@ function isModelInUse(modelId: string) {
           />
         </div>
       </div>
-      <div class="mt-4 flex justify-end gap-2 border-t border-divider pt-3">
+      <div class="mt-4 flex justify-end gap-2 border-t border-stroke-divider pt-3">
         <UiButton variant="ghost" @click="open = false">{{ t("common.cancel") }}</UiButton>
         <UiButton variant="primary" :disabled="!draftValid" @click="saveChanges">
           {{ t("common.save") }}

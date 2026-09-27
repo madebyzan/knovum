@@ -29,7 +29,7 @@ const description = computed(
     size="wide"
     body-class="grid min-h-0 gap-4 md:grid-cols-[minmax(0,1fr)_240px]"
   >
-    <div class="grid min-h-80 place-items-center overflow-hidden rounded-control bg-canvas p-3">
+    <div class="grid min-h-80 place-items-center overflow-hidden rounded-md bg-surface-canvas p-3">
       <img
         :src="source"
         :alt="item.locationLabel"
@@ -37,12 +37,12 @@ const description = computed(
         draggable="false"
       />
     </div>
-    <aside class="min-h-0 space-y-3 overflow-y-auto text-caption text-foreground-secondary">
+    <aside class="min-h-0 space-y-3 overflow-y-auto text-caption-md text-fg-secondary">
       <div>
-        <strong class="text-label font-medium text-foreground">
+        <strong class="text-label-md font-medium text-fg-primary">
           {{ t("spaces.processing.document.resources.occurrences", { count: item.occurrences.length }) }}
         </strong>
-        <p class="mt-1 text-micro text-foreground-tertiary">
+        <p class="mt-1 text-caption-sm text-fg-tertiary">
           {{
             t(
               item.sourceKind === "embedded"
@@ -55,20 +55,20 @@ const description = computed(
       <article
         v-for="occurrence in item.occurrences"
         :key="occurrence.id"
-        class="border-t border-divider pt-3 first:border-t-0 first:pt-0"
+        class="border-t border-stroke-divider pt-3 first:border-t-0 first:pt-0"
       >
-        <strong class="text-caption font-medium text-foreground">
+        <strong class="text-caption-md font-medium text-fg-primary">
           {{ knowledgeLocationLabelFromLocation(occurrence.location) }}
         </strong>
         <p v-if="occurrence.altText" class="mt-1 whitespace-pre-wrap">{{ occurrence.altText }}</p>
-        <p v-if="occurrence.context" class="mt-1 whitespace-pre-wrap text-foreground-tertiary">
+        <p v-if="occurrence.context" class="mt-1 whitespace-pre-wrap text-fg-tertiary">
           {{ occurrence.context }}
         </p>
         <p v-if="occurrence.analysis?.description" class="mt-2 whitespace-pre-wrap">
           {{ occurrence.analysis.description }}
         </p>
         <div v-if="occurrence.analysis?.detectedText" class="mt-2">
-          <strong class="text-micro font-medium text-foreground-tertiary">
+          <strong class="text-caption-sm font-medium text-fg-tertiary">
             {{ t("spaces.processing.document.resources.detectedText") }}
           </strong>
           <p class="mt-1 whitespace-pre-wrap">{{ occurrence.analysis.detectedText }}</p>

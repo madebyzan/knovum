@@ -67,42 +67,42 @@ async function changeEditor(action: () => void) {
     :title="t('spaces.knowledge.types.manage')"
     :description="t('spaces.knowledge.types.manageDescription')"
     size="wide"
-    class="h-[min(40rem,calc(100dvh-5rem))] max-w-[840px] bg-canvas"
+    class="h-[min(40rem,calc(100dvh-5rem))] max-w-[840px] bg-surface-canvas"
     body-class="flex overflow-hidden"
   >
     <div class="grid min-h-0 flex-1 grid-cols-[10rem_minmax(0,1fr)] gap-5">
-      <aside class="flex min-h-0 min-w-0 flex-col gap-0.5 rounded-control bg-surface p-2">
-        <p v-if="loadFailed" role="alert" class="px-2 py-1 text-caption text-danger">
+      <aside class="flex min-h-0 min-w-0 flex-col gap-0.5 rounded-md bg-surface-muted p-2">
+        <p v-if="loadFailed" role="alert" class="px-2 py-1 text-caption-md text-fg-danger">
           {{ t("spaces.knowledge.types.loadFailed") }}
         </p>
-        <p v-else-if="loading" class="px-2 py-1 text-caption text-foreground-secondary">
+        <p v-else-if="loading" class="px-2 py-1 text-caption-md text-fg-secondary">
           {{ t("common.loading") }}
         </p>
         <button
           type="button"
           :disabled="saving"
-          class="flex h-(--knovum-control-height-md) w-full shrink-0 items-center gap-1 rounded-control px-2 text-left text-label text-foreground-secondary outline-none hover:bg-control-hover hover:text-foreground focus-visible:bg-control-hover"
+          class="flex h-(--knovum-control-height-md) w-full shrink-0 items-center gap-1 rounded-md px-2 text-left text-label-md text-fg-secondary outline-none hover:bg-surface-control-hover hover:text-fg-primary focus-visible:bg-surface-control-hover"
           @click="changeEditor(reset)"
         >
-          <Plus class="mr-1 inline size-(--knovum-icon-size-xs)" />{{ t("spaces.knowledge.types.create") }}
+          <Plus class="mr-1 inline size-3" />{{ t("spaces.knowledge.types.create") }}
         </button>
         <UiScrollArea class="min-h-0 flex-1">
           <div class="space-y-0.5">
             <div
               v-for="type in types"
               :key="type.id"
-              class="group flex items-center justify-between rounded-control px-2 text-label transition-colors duration-100 hover:bg-control-hover"
+              class="group flex items-center justify-between rounded-md px-2 text-label-md transition-colors duration-100 hover:bg-surface-control-hover"
               :class="
                 editingId === type.id
-                  ? 'bg-(--knovum-sidebar-item-background-selected) text-foreground'
-                  : 'text-foreground-secondary'
+                  ? 'bg-(--knovum-sidebar-item-bg-selected) text-fg-primary'
+                  : 'text-fg-secondary'
               "
             >
               <button
                 type="button"
                 :disabled="saving"
                 :aria-current="editingId === type.id ? 'true' : undefined"
-                class="h-(--knovum-control-height-md) min-w-0 flex-1 truncate text-left outline-none focus-visible:text-accent"
+                class="h-(--knovum-control-height-md) min-w-0 flex-1 truncate text-left outline-none focus-visible:text-fg-accent"
                 @click="editingId !== type.id && changeEditor(() => selectType(type.id))"
               >
                 {{ type.name }}
@@ -114,16 +114,16 @@ async function changeEditor(action: () => void) {
       <UiScrollArea class="min-h-0 min-w-0">
         <fieldset :disabled="saving" class="min-w-0 pr-3 pb-2">
           <div class="grid grid-cols-[minmax(0,1fr)_9rem] gap-3">
-            <label class="grid min-w-0 content-start gap-1 text-caption text-foreground-secondary">
+            <label class="grid min-w-0 content-start gap-1 text-caption-md text-fg-secondary">
               <span>{{ t("spaces.knowledge.types.name") }}</span>
               <UiInput v-model="name" maxlength="128" />
             </label>
-            <label class="grid min-w-0 content-start gap-1 text-caption text-foreground-secondary">
+            <label class="grid min-w-0 content-start gap-1 text-caption-md text-fg-secondary">
               <span>{{ t("spaces.knowledge.types.icon") }}</span>
               <SpaceKnowledgeIconSelect v-model="icon" :disabled="saving" />
             </label>
           </div>
-          <label class="mt-3 grid gap-1 text-caption text-foreground-secondary">
+          <label class="mt-3 grid gap-1 text-caption-md text-fg-secondary">
             <span>{{ t("spaces.knowledge.types.description") }}</span>
             <UiTextarea v-model="description" :rows="2" maxlength="4096" class="resize-none" />
           </label>
@@ -139,9 +139,9 @@ async function changeEditor(action: () => void) {
             @key="(field, value) => (field.key = value)"
             @remove="fields.splice($event, 1)"
           />
-          <p v-if="error" role="alert" class="mt-3 text-caption text-danger">{{ error }}</p>
-          <UiButton v-if="editingId" class="mt-5 text-danger" size="sm" variant="ghost" @click="remove">
-            <Trash2 class="size-(--knovum-icon-size-sm)" />{{ t("spaces.knowledge.types.delete") }}
+          <p v-if="error" role="alert" class="mt-3 text-caption-md text-fg-danger">{{ error }}</p>
+          <UiButton v-if="editingId" class="mt-5 text-fg-danger" size="sm" variant="ghost" @click="remove">
+            <Trash2 class="size-3.5" />{{ t("spaces.knowledge.types.delete") }}
           </UiButton>
         </fieldset>
       </UiScrollArea>

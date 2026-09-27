@@ -25,7 +25,7 @@ const selectedAlignment = computed(() => alignments.find(({ value }) => value ==
   <UiDropdownMenu side="top" align="end" :side-offset="5" :modal="false" class="min-w-32">
     <template #trigger>
       <UiIconButton :label="t(`spaces.canvas.textAlignments.${selected}`)" size="sm">
-        <component :is="selectedAlignment.icon" class="size-(--knovum-icon-size-sm)" :stroke-width="1.7" />
+        <component :is="selectedAlignment.icon" class="size-3.5" :stroke-width="1.7" />
       </UiIconButton>
     </template>
     <UiDropdownMenuItem
@@ -33,12 +33,9 @@ const selectedAlignment = computed(() => alignments.find(({ value }) => value ==
       :key="alignment.value"
       @select="editor.chain().focus().setTextAlign(alignment.value).run()"
     >
-      <component :is="alignment.icon" class="size-(--knovum-icon-size-sm)" :stroke-width="1.7" />
+      <component :is="alignment.icon" class="size-3.5" :stroke-width="1.7" />
       {{ t(`spaces.canvas.textAlignments.${alignment.value}`) }}
-      <Check
-        class="ml-auto size-(--knovum-icon-size-xs)"
-        :class="selected === alignment.value ? 'opacity-100' : 'opacity-0'"
-      />
+      <Check class="ml-auto size-3" :class="selected === alignment.value ? 'opacity-100' : 'opacity-0'" />
     </UiDropdownMenuItem>
   </UiDropdownMenu>
 </template>

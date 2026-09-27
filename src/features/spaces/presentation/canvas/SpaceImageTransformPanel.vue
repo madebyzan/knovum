@@ -25,30 +25,32 @@ function setRotation(event: Event) {
 
 <template>
   <ToolbarRoot
-    class="flex h-(--knovum-control-height-lg) w-max items-center gap-1 rounded-panel border border-border-strong bg-overlay p-px text-foreground shadow-control"
+    class="flex h-(--knovum-control-height-lg) w-max items-center gap-1 rounded-panel border border-stroke-strong bg-surface-overlay p-px text-fg-primary shadow-control"
     :aria-label="t('spaces.media.imageEditor.transform.title')"
   >
-    <span class="px-2 text-label font-medium">{{ t("spaces.media.imageEditor.transform.title") }}</span>
-    <label class="flex h-full items-center gap-0.5 border-l border-divider px-2 text-label tabular-nums">
+    <span class="px-2 text-label-md font-medium">{{ t("spaces.media.imageEditor.transform.title") }}</span>
+    <label
+      class="flex h-full items-center gap-0.5 border-l border-stroke-divider px-2 text-label-md tabular-nums"
+    >
       <input
         type="number"
         :aria-label="t('spaces.media.imageEditor.transform.rotationDegrees')"
         :min="0"
         :max="359"
         :value="edit.rotation"
-        class="w-10 rounded-control bg-transparent text-right text-foreground outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+        class="w-10 rounded-md bg-transparent text-right text-fg-primary outline-none focus-visible:ring-2 focus-visible:ring-stroke-focus"
         :disabled="busy"
         @change="setRotation"
       />°
     </label>
-    <div class="flex h-full items-center border-l border-divider px-1">
+    <div class="flex h-full items-center border-l border-stroke-divider px-1">
       <ToolbarButton as-child>
         <UiIconButton
           :label="t('spaces.media.imageEditor.transform.rotateClockwise')"
           :disabled="busy"
           @click="rotate"
         >
-          <RotateCw class="size-(--knovum-icon-size-sm)" />
+          <RotateCw class="size-3.5" />
         </UiIconButton>
       </ToolbarButton>
       <ToolbarButton as-child>
@@ -58,7 +60,7 @@ function setRotation(event: Event) {
           :disabled="busy"
           @click="emit('update', { flipHorizontal: !edit.flipHorizontal })"
         >
-          <FlipHorizontal2 class="size-(--knovum-icon-size-sm)" />
+          <FlipHorizontal2 class="size-3.5" />
         </UiIconButton>
       </ToolbarButton>
       <ToolbarButton as-child>
@@ -68,11 +70,11 @@ function setRotation(event: Event) {
           :disabled="busy"
           @click="emit('update', { flipVertical: !edit.flipVertical })"
         >
-          <FlipVertical2 class="size-(--knovum-icon-size-sm)" />
+          <FlipVertical2 class="size-3.5" />
         </UiIconButton>
       </ToolbarButton>
     </div>
-    <div class="flex h-full items-center gap-1 border-l border-divider px-1">
+    <div class="flex h-full items-center gap-1 border-l border-stroke-divider px-1">
       <UiButton variant="ghost" size="sm" class="shadow-none" :disabled="busy" @click="emit('cancel')">{{
         t("common.cancel")
       }}</UiButton>

@@ -11,10 +11,10 @@ const { t } = useI18n();
 </script>
 
 <template>
-  <div class="flex h-full shrink-0 items-center gap-0.5 border-l border-divider px-1">
+  <div class="flex h-full shrink-0 items-center gap-0.5 border-l border-stroke-divider px-1">
     <ToolbarButton as-child>
       <UiIconButton :label="t('spaces.inspector.title')" @click="emit('inspect')">
-        <Info class="size-(--knovum-icon-size-toolbar)" :stroke-width="1.6" />
+        <Info class="size-4.5" :stroke-width="1.6" />
       </UiIconButton>
     </ToolbarButton>
     <ToolbarButton as-child>
@@ -23,7 +23,7 @@ const { t } = useI18n();
         :disabled="disabled"
         @click="emit('download')"
       >
-        <Download class="size-(--knovum-icon-size-toolbar)" :stroke-width="1.6" />
+        <Download class="size-4.5" :stroke-width="1.6" />
       </UiIconButton>
     </ToolbarButton>
   </div>

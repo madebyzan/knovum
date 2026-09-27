@@ -129,7 +129,7 @@ function reportTabFailure(error: unknown) {
           size="sm"
           @click="createSpace"
         >
-          <Plus class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
+          <Plus class="size-3.5" :stroke-width="1.6" />
         </UiIconButton>
       </div>
     </TabsRoot>

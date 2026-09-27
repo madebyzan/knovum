@@ -85,8 +85,8 @@ async function open() {
 
 <template>
   <div class="px-4 pt-5 pb-4">
-    <div class="flex items-center gap-1.5 text-caption text-foreground-tertiary">
-      <component :is="kindIcon" class="size-(--knovum-icon-size-xs)" :stroke-width="1.6" />
+    <div class="flex items-center gap-1.5 text-caption-md text-fg-tertiary">
+      <component :is="kindIcon" class="size-3" :stroke-width="1.6" />
       <span>{{ typeLabel }}</span>
     </div>
     <button
@@ -97,7 +97,7 @@ async function open() {
       :title="t('spaces.inspector.renameHint')"
       @click="beginEdit"
     >
-      <h2 class="text-title leading-snug font-semibold tracking-title wrap-break-word text-foreground">
+      <h2 class="text-title-md leading-snug font-semibold tracking-title wrap-break-word text-fg-primary">
         {{ node.data.title }}
       </h2>
     </button>
@@ -105,21 +105,21 @@ async function open() {
       v-else
       v-model="draft"
       :disabled="saving"
-      class="mt-2 w-full text-title font-semibold"
+      class="mt-2 w-full text-title-md font-semibold"
       @blur="submit"
       @keydown.enter.prevent="submit"
       @keydown.esc.prevent="cancel"
     />
-    <p v-if="modifiedAt" class="mt-1 text-caption text-foreground-tertiary">
+    <p v-if="modifiedAt" class="mt-1 text-caption-md text-fg-tertiary">
       {{ t("spaces.inspector.fields.modified") }} · {{ modifiedAt }}
     </p>
     <div class="mt-3 flex flex-wrap items-center gap-1.5">
       <UiButton v-if="isSpaceNodeOpenable(node)" size="sm" @click="open">
         {{ t("spaces.inspector.openContent") }}
-        <ArrowUpRight class="size-(--knovum-icon-size-xs)" />
+        <ArrowUpRight class="size-3" />
       </UiButton>
       <UiButton size="sm" variant="ghost" @click="selectAndRevealSpaceNode(node.id)">
-        <LocateFixed class="size-(--knovum-icon-size-xs)" />
+        <LocateFixed class="size-3" />
         {{ t("spaces.canvas.revealInCanvas") }}
       </UiButton>
     </div>

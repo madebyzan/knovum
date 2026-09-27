@@ -16,7 +16,7 @@ const { t } = useI18n();
     :active="editor.isActive('bold')"
     @click="editor.chain().focus().toggleBold().run()"
   >
-    <Bold class="size-(--knovum-icon-size-sm)" :stroke-width="1.7" />
+    <Bold class="size-3.5" :stroke-width="1.7" />
   </UiIconButton>
   <UiIconButton
     :label="t('spaces.richtext.italic')"
@@ -24,7 +24,7 @@ const { t } = useI18n();
     :active="editor.isActive('italic')"
     @click="editor.chain().focus().toggleItalic().run()"
   >
-    <Italic class="size-(--knovum-icon-size-sm)" :stroke-width="1.7" />
+    <Italic class="size-3.5" :stroke-width="1.7" />
   </UiIconButton>
   <UiIconButton
     :label="t('spaces.richtext.underline')"
@@ -32,7 +32,7 @@ const { t } = useI18n();
     :active="editor.isActive('underline')"
     @click="editor.chain().focus().toggleUnderline().run()"
   >
-    <Underline class="size-(--knovum-icon-size-sm)" :stroke-width="1.7" />
+    <Underline class="size-3.5" :stroke-width="1.7" />
   </UiIconButton>
   <UiIconButton
     :label="t('spaces.richtext.strike')"
@@ -40,7 +40,7 @@ const { t } = useI18n();
     :active="editor.isActive('strike')"
     @click="editor.chain().focus().toggleStrike().run()"
   >
-    <Strikethrough class="size-(--knovum-icon-size-sm)" :stroke-width="1.7" />
+    <Strikethrough class="size-3.5" :stroke-width="1.7" />
   </UiIconButton>
   <UiIconButton
     :label="t('spaces.richtext.inlineCode')"
@@ -48,6 +48,6 @@ const { t } = useI18n();
     :active="editor.isActive('code')"
     @click="editor.chain().focus().toggleCode().run()"
   >
-    <Code2 class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
+    <Code2 class="size-3.5" :stroke-width="1.6" />
   </UiIconButton>
 </template>

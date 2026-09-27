@@ -63,13 +63,10 @@ const kindOptions = computed(() =>
         />
       </label>
       <UiIconButton :disabled="disabled" :label="t('spaces.knowledge.fields.remove')" @click="emit('remove')">
-        <Trash2 class="size-(--knovum-icon-size-sm)" />
+        <Trash2 class="size-3.5" />
       </UiIconButton>
     </div>
-    <label
-      v-if="field.kind === 'enum'"
-      class="col-span-3 grid gap-1 pb-1 text-caption text-foreground-secondary"
-    >
+    <label v-if="field.kind === 'enum'" class="col-span-3 grid gap-1 pb-1 text-caption-md text-fg-secondary">
       <span>{{ t("spaces.knowledge.fields.options") }}</span>
       <UiInput
         :model-value="field.options?.join(', ') ?? ''"

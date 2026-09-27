@@ -25,7 +25,7 @@ provide(archiveSettingsKey, createSpaceArchiveSettings());
 </script>
 
 <template>
-  <div class="relative h-full min-h-0 w-full min-w-0 overflow-hidden bg-chrome">
+  <div class="relative h-full min-h-0 w-full min-w-0 overflow-hidden bg-surface-chrome">
     <AppErrorBoundary v-if="status === 'ready'">
       <TooltipProvider
         :delay-duration="550"

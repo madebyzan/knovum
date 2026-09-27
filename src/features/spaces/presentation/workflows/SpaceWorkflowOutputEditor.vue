@@ -52,11 +52,11 @@ function rename(stepId: string, name: string) {
 
 <template>
   <fieldset class="space-y-2">
-    <legend class="text-caption font-semibold text-foreground">
+    <legend class="text-caption-md font-semibold text-fg-primary">
       {{ t("spaces.creation.workflow.outputs.title") }}
     </legend>
-    <div v-for="step in steps" :key="step.id" class="space-y-1 rounded-control border border-divider p-2">
-      <div class="flex items-center gap-2 text-caption text-foreground">
+    <div v-for="step in steps" :key="step.id" class="space-y-1 rounded-md border border-stroke-divider p-2">
+      <div class="flex items-center gap-2 text-caption-md text-fg-primary">
         <UiCheckbox
           :label="t('spaces.creation.workflow.outputs.select', { action: label(step) })"
           :model-value="Boolean(outputFor(step.id))"

@@ -31,7 +31,7 @@ const icons = { eraser: Eraser, adjust: SlidersHorizontal, crop: Crop, transform
 
 <template>
   <UiDropdownMenuItem v-if="menuItem" :disabled="disabled" @select="emit('begin', props.mode)">
-    <component :is="icons[props.mode]" class="size-(--knovum-icon-size-sm)" />{{ t(labels[props.mode]) }}
+    <component :is="icons[props.mode]" class="size-3.5" />{{ t(labels[props.mode]) }}
   </UiDropdownMenuItem>
   <UiTooltip v-else :text="t(labels[props.mode])" :disabled="!compact" side="top">
     <ToolbarButton as-child>
@@ -42,7 +42,7 @@ const icons = { eraser: Eraser, adjust: SlidersHorizontal, crop: Crop, transform
         :disabled="disabled"
         @click="emit('begin', props.mode)"
       >
-        <component :is="icons[props.mode]" class="size-(--knovum-icon-size-toolbar)" :stroke-width="1.6" />
+        <component :is="icons[props.mode]" class="size-4.5" :stroke-width="1.6" />
         <span :class="[nodeActionLabelClass, nodeActionLabelState(compact)]">{{
           t(labels[props.mode])
         }}</span>

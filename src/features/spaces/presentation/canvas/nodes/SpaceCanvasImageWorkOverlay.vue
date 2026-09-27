@@ -39,7 +39,7 @@ const applyingRegion = computed<CSSProperties | undefined>(() => {
 
 <template>
   <Transition
-    leave-active-class="transition-opacity duration-200 motion-reduce:transition-none"
+    leave-active-class="transition-opacity duration-220 motion-reduce:transition-none"
     leave-to-class="opacity-0"
   >
     <div

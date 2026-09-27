@@ -27,16 +27,16 @@ const projection = computed(() =>
     <UiMarkdown
       v-if="work?.surface !== 'content' && data.text"
       :content="projection.projectedSource"
-      class="canvas-markdown-preview min-h-0 flex-1 overflow-hidden px-3 py-2.5 text-caption leading-relaxed text-foreground-secondary"
+      class="canvas-markdown-preview min-h-0 flex-1 overflow-hidden px-3 py-2.5 text-caption-md leading-relaxed text-fg-secondary"
     />
     <p
       v-else-if="work?.surface !== 'content'"
-      class="min-h-0 flex-1 px-3 py-2.5 text-caption text-foreground-tertiary"
+      class="min-h-0 flex-1 px-3 py-2.5 text-caption-md text-fg-tertiary"
     >
       {{ t("spaces.editor.markdown.empty") }}
     </p>
     <Transition
-      leave-active-class="transition-opacity duration-200 motion-reduce:transition-none"
+      leave-active-class="transition-opacity duration-220 motion-reduce:transition-none"
       leave-to-class="opacity-0"
     >
       <SpaceCanvasProcessingState
@@ -48,7 +48,7 @@ const projection = computed(() =>
     </Transition>
     <span
       v-if="projection.remainingBlockCount > 0"
-      class="pointer-events-none absolute right-2 bottom-1 rounded-control bg-panel/90 px-1.5 text-micro text-foreground-tertiary"
+      class="pointer-events-none absolute right-2 bottom-1 rounded-md bg-surface-panel/90 px-1.5 text-caption-sm text-fg-tertiary"
     >
       +{{ projection.remainingBlockCount }}
     </span>

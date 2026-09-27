@@ -30,7 +30,7 @@ const alignments = [
         :disabled="!editor.can().undo()"
         @click="editor.chain().focus().undo().run()"
       >
-        <Undo2 class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
+        <Undo2 class="size-3.5" :stroke-width="1.6" />
       </UiIconButton>
       <UiIconButton
         :label="t('common.redo')"
@@ -39,7 +39,7 @@ const alignments = [
         :disabled="!editor.can().redo()"
         @click="editor.chain().focus().redo().run()"
       >
-        <Redo2 class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
+        <Redo2 class="size-3.5" :stroke-width="1.6" />
       </UiIconButton>
       <UiSeparator orientation="vertical" class="mx-1 !h-5" />
       <SpaceTiptapBlockControls :editor="editor" />
@@ -54,13 +54,13 @@ const alignments = [
         :active="editor.isActive({ textAlign: alignment.value })"
         @click="editor.chain().focus().setTextAlign(alignment.value).run()"
       >
-        <component :is="alignment.icon" class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
+        <component :is="alignment.icon" class="size-3.5" :stroke-width="1.6" />
       </UiIconButton>
       <UiSeparator orientation="vertical" class="mx-1 !h-5" />
       <SpaceTiptapInsertControls :editor="editor" />
     </div>
     <UiSeparator orientation="vertical" class="mx-1 !h-5" />
-    <div class="shrink-0 bg-chrome whitespace-nowrap">
+    <div class="shrink-0 bg-surface-chrome whitespace-nowrap">
       <SpaceTiptapWritingMenu :editor="editor" />
     </div>
   </div>

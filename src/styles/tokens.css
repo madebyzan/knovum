@@ -1,412 +1,339 @@
+/* Canonical token contract: docs/ui-system.md.
+ * Reference: reusable values, private to token definitions.
+ * Public: native Tailwind color-surface / color-fg / color-stroke and text namespaces.
+ * Each public decision is declared once in @theme static, including runtime paints.
+ * Component: component / part / property / state.
+ * Domain: space / object / property / variant; never exported as global utilities.
+ * An omitted interaction state means resting. Modes replace decisions, not names.
+ */
 :root {
   color-scheme: light;
 
-  /* Typography */
-  --knovum-font-family-sans:
-    system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI", sans-serif;
-  --knovum-font-family-mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", Consolas, monospace;
-  --knovum-font-size-micro: 0.6875rem;
-  --knovum-line-height-micro: 0.875rem;
-  --knovum-font-size-caption: 0.75rem;
-  --knovum-line-height-caption: 1rem;
-  --knovum-font-size-label: 0.8125rem;
-  --knovum-line-height-label: 1.125rem;
-  --knovum-font-size-body: 0.8125rem;
-  --knovum-line-height-body: 1.25rem;
-  --knovum-font-size-body-lg: 0.875rem;
-  --knovum-line-height-body-lg: 1.25rem;
-  --knovum-font-size-title-sm: 0.9375rem;
-  --knovum-line-height-title-sm: 1.25rem;
-  --knovum-font-size-title: 1.0625rem;
-  --knovum-line-height-title: 1.375rem;
-  --knovum-font-size-display: 1.5rem;
-  --knovum-line-height-display: 1.875rem;
-  --knovum-letter-spacing-title: -0.012em;
-  --knovum-letter-spacing-uppercase: 0.055em;
+  /* Reference palette: fixed values; sparse shade steps are intentionally private. */
+  --knovum-ref-color-blue-300: oklch(0.75 0.16 255);
+  --knovum-ref-color-blue-400: oklch(0.71 0.17 255);
+  --knovum-ref-color-blue-500: oklch(0.62 0.2 255);
+  --knovum-ref-color-blue-600: oklch(0.57 0.2 255);
+  --knovum-ref-color-red-400: oklch(0.7 0.18 28);
+  --knovum-ref-color-red-500: oklch(0.61 0.22 28);
+  --knovum-ref-color-green-400: oklch(0.72 0.14 148);
+  --knovum-ref-color-green-500: oklch(0.61 0.16 148);
+  --knovum-ref-color-amber-400: oklch(0.78 0.14 72);
+  --knovum-ref-color-amber-500: oklch(0.69 0.16 72);
+  --knovum-ref-color-purple-400: oklch(0.72 0.15 305);
+  --knovum-ref-color-purple-500: oklch(0.62 0.18 305);
 
-  /* Global color roles */
-  --knovum-color-background-chrome: rgb(239 239 240);
-  --knovum-color-background-canvas: rgb(250 250 251);
-  --knovum-color-background-surface: oklch(0.974 0.002 255);
-  --knovum-color-background-panel: oklch(0.986 0.0015 255);
-  --knovum-color-background-raised: oklch(1 0 0 / 0.98);
-  --knovum-color-background-overlay: oklch(0.985 0.002 255 / 0.98);
-  --knovum-color-background-field: oklch(0.18 0.006 264 / 0.052);
-  --knovum-color-background-scrim: oklch(0.16 0.004 264 / 0.26);
-  --knovum-color-foreground-primary: oklch(0.24 0.006 264);
-  --knovum-color-foreground-secondary: oklch(0.48 0.007 264);
-  --knovum-color-foreground-tertiary: oklch(0.54 0.006 264);
-  --knovum-color-foreground-disabled: oklch(0.69 0.004 264);
-  --knovum-color-border-default: oklch(0.22 0.006 264 / 0.075);
-  --knovum-color-border-strong: oklch(0.22 0.006 264 / 0.125);
-  --knovum-color-border-hover: oklch(0.22 0.006 264 / 0.2);
-  --knovum-color-divider: oklch(0.22 0.006 264 / 0.045);
-  --knovum-window-hairline-color: oklch(0.22 0.006 264 / 0.105);
-  --knovum-color-background-control: oklch(0.18 0.006 264 / 0.055);
-  --knovum-color-background-control-hover: oklch(0.18 0.006 264 / 0.045);
-  --knovum-color-background-control-pressed: oklch(0.18 0.006 264 / 0.08);
-  --knovum-color-background-selected: oklch(0.62 0.2 255 / 0.13);
-  --knovum-color-background-skeleton: oklch(0.18 0.006 264 / 0.07);
-  --knovum-control-thumb-color: white;
-  --knovum-material-highlight-color: oklch(1 0 0 / 0.44);
-  --knovum-color-accent: oklch(0.62 0.2 255);
-  --knovum-color-accent-hover: oklch(0.57 0.2 255);
-  --knovum-color-accent-subtle: oklch(0.62 0.2 255 / 0.09);
-  --knovum-color-on-accent: white;
-  --knovum-color-focus-ring: oklch(0.62 0.2 255 / 0.38);
-  --knovum-color-danger: oklch(0.61 0.22 28);
-  --knovum-color-danger-subtle: oklch(0.61 0.22 28 / 0.1);
-  --knovum-color-danger-subtle-hover: oklch(0.61 0.22 28 / 0.16);
-  --knovum-color-danger-subtle-pressed: oklch(0.61 0.22 28 / 0.22);
-  --knovum-color-on-danger: white;
-  --knovum-color-success: oklch(0.61 0.16 148);
-  --knovum-color-success-subtle: oklch(0.61 0.16 148 / 0.1);
-  --knovum-color-warning: oklch(0.69 0.16 72);
-
-  /* Component- and domain-owned color roles */
-  --knovum-canvas-grid-color: oklch(0.22 0.006 264 / 0.255);
-  --knovum-canvas-measurement-color: oklch(0.72 0.19 72);
-  --knovum-canvas-relation-blue: oklch(0.62 0.2 255);
-  --knovum-canvas-relation-green: oklch(0.61 0.16 148);
-  --knovum-canvas-relation-amber: oklch(0.69 0.16 72);
-  --knovum-canvas-relation-red: oklch(0.61 0.22 28);
-  --knovum-canvas-relation-purple: oklch(0.62 0.18 305);
-  --knovum-canvas-note-yellow: oklch(0.9 0.12 92);
-  --knovum-canvas-note-green: oklch(0.82 0.12 145);
-  --knovum-canvas-note-blue: oklch(0.83 0.1 235);
-  --knovum-canvas-note-pink: oklch(0.86 0.1 350);
-  --knovum-canvas-note-gray: oklch(0.86 0.01 264);
-  --knovum-canvas-note-ink: oklch(0.2 0.008 264);
-  --knovum-canvas-text-ink: oklch(0.2 0.008 264);
-  --knovum-canvas-text-muted: oklch(0.48 0.008 264);
-  --knovum-canvas-text-red: oklch(0.55 0.2 28);
-  --knovum-canvas-text-blue: oklch(0.5 0.18 255);
-  --knovum-canvas-text-green: oklch(0.48 0.14 148);
-  --knovum-canvas-text-purple: oklch(0.5 0.16 305);
-  --knovum-sidebar-item-background-hover: oklch(0.22 0.006 264 / 0.05);
-  --knovum-sidebar-item-background-selected: oklch(0.22 0.006 264 / 0.095);
-  --knovum-tab-item-background: rgb(246 246 247);
-  --knovum-tab-item-background-hover: rgb(241 241 243);
-
-  /* Desktop geometry */
+  /* Component attributes: geometry, shape, elevation and paint. */
+  --knovum-window-border-color: oklch(0.22 0.006 264 / 0.105);
+  --knovum-toolbar-highlight-color: oklch(1 0 0 / 0.44);
+  --knovum-sidebar-item-bg-hover: oklch(0.22 0.006 264 / 0.05);
+  --knovum-sidebar-item-bg-selected: oklch(0.22 0.006 264 / 0.095);
+  --knovum-tab-bg-inactive: rgb(246 246 247);
   --knovum-control-height-sm: 1.75rem;
   --knovum-control-height-md: 2rem;
   --knovum-control-height-lg: 2.25rem;
-  --knovum-window-chrome-height: 2.5rem;
-  --knovum-window-inset: 0.5rem;
-  --knovum-window-leading-control-offset: 0.625rem;
-  --knovum-window-navigation-control-offset: 0.625rem;
-  --knovum-window-safe-inset: 4rem;
-  --knovum-toolbar-height: 2.75rem;
-  --knovum-compact-item-height: 1.875rem;
-  --knovum-command-input-height: 3rem;
-  --knovum-command-item-height: 2.75rem;
-  --knovum-command-list-max-height: 22.5rem;
-  --knovum-list-item-height: 3rem;
-  --knovum-preference-item-height: 3.25rem;
-  --knovum-dialog-header-height: 3rem;
-  --knovum-popover-width: 20rem;
-  --knovum-settings-sidebar-width: 15.5rem;
+  --knovum-titlebar-height: 2.5rem;
+  --knovum-titlebar-navigation-padding-start: 0.625rem;
+  --knovum-editor-toolbar-height: 2.75rem;
+  --knovum-list-item-height-sm: 1.875rem;
+  --knovum-command-palette-item-height: 2.75rem;
+  --knovum-space-tag-row-height: 3rem;
+  --knovum-settings-row-min-height: 3.25rem;
   --knovum-scrollbar-size: 0.5rem;
   --knovum-scrollbar-inset: 0.125rem;
-  --knovum-icon-size-xs: 0.75rem;
-  --knovum-icon-size-sm: 0.875rem;
-  --knovum-icon-size-md: 1rem;
-  --knovum-icon-size-toolbar: 1.125rem;
-  --knovum-icon-size-lg: 1.25rem;
-  --knovum-control-radius: 0.375rem;
-  --knovum-grid-cell-radius: 0.25rem;
-  --knovum-panel-radius: 0.625rem;
-  --knovum-workspace-radius: 0.75rem;
-  --knovum-dialog-radius: 0.75rem;
-  --knovum-canvas-object-radius: 0.5rem;
-  --knovum-hud-radius: 0.875rem;
-  --knovum-section-radius: 0.75rem;
-  --knovum-section-inner-radius: 0.5625rem;
-  --knovum-overlay-blur: 1.75rem;
-  --knovum-motion-duration-fast: 140ms;
-  --knovum-motion-easing-standard: cubic-bezier(0.22, 0.72, 0, 1);
-  --knovum-settings-max-width: 52rem;
-  --knovum-command-max-width: 39rem;
-  --knovum-error-max-width: 32.5rem;
-  --knovum-dialog-max-width: 28rem;
+  --knovum-scrollbar-thumb-bg: color-mix(in oklch, var(--color-fg-tertiary) 38%, transparent);
+  --knovum-scrollbar-thumb-bg-hover: color-mix(in oklch, var(--color-fg-secondary) 58%, transparent);
+  --knovum-task-center-header-height: 2.75rem;
 
-  /* Shape, elevation, and motion */
-  --knovum-control-shadow: 0 1px 2px rgb(15 23 42 / 0.06), 0 0 0 0.5px rgb(15 23 42 / 0.045);
-  --knovum-panel-shadow: 0 0 0 0.5px rgb(15 23 42 / 0.065), 0 1px 2px rgb(15 23 42 / 0.035);
-  --knovum-canvas-object-shadow:
+  /* Space content and canvas presentation: feature-owned attributes. */
+  --knovum-space-grid-color: oklch(0.22 0.006 264 / 0.255);
+  --knovum-space-measurement-color: oklch(0.72 0.19 72);
+  --knovum-space-relation-stroke-blue: var(--knovum-ref-color-blue-500);
+  --knovum-space-relation-stroke-green: var(--knovum-ref-color-green-500);
+  --knovum-space-relation-stroke-amber: var(--knovum-ref-color-amber-500);
+  --knovum-space-relation-stroke-red: var(--knovum-ref-color-red-500);
+  --knovum-space-relation-stroke-purple: var(--knovum-ref-color-purple-500);
+  --knovum-space-note-bg-yellow: oklch(0.9 0.12 92);
+  --knovum-space-note-bg-green: oklch(0.82 0.12 145);
+  --knovum-space-note-bg-blue: oklch(0.83 0.1 235);
+  --knovum-space-note-bg-pink: oklch(0.86 0.1 350);
+  --knovum-space-note-bg-gray: oklch(0.86 0.01 264);
+  --knovum-space-note-fg: oklch(0.2 0.008 264);
+  --knovum-space-text-fg-default: oklch(0.2 0.008 264);
+  --knovum-space-text-fg-subtle: oklch(0.48 0.008 264);
+  --knovum-space-text-fg-red: oklch(0.55 0.2 28);
+  --knovum-space-text-fg-blue: oklch(0.5 0.18 255);
+  --knovum-space-text-fg-green: oklch(0.48 0.14 148);
+  --knovum-space-text-fg-purple: oklch(0.5 0.16 305);
+  --knovum-space-node-box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 0.7), 0 1px 2px rgb(15 23 42 / 0.12),
     0 5px 10px -4px rgb(15 23 42 / 0.16), 0 12px 24px -12px rgb(15 23 42 / 0.18);
-  --knovum-workspace-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.72), 0 1px 1px rgb(15 23 42 / 0.035),
-    0 5px 10px -7px rgb(15 23 42 / 0.2);
-  --knovum-toolbar-shadow: none;
-  --knovum-popover-shadow: 0 6px 18px rgb(15 23 42 / 0.075), 0 1px 3px rgb(15 23 42 / 0.055);
-  --knovum-dialog-shadow: 0 24px 64px rgb(0 0 0 / 0.22), 0 3px 12px rgb(0 0 0 / 0.09);
-
-  /* Space and editor are feature-owned; do not expose them as global utilities. */
-  --knovum-space-guide-spacing-color: oklch(0.6 0.13 352);
-  --knovum-editor-highlight-color-yellow: oklch(0.92 0.08 95);
-  --knovum-editor-highlight-color-green: oklch(0.92 0.08 145);
-  --knovum-editor-highlight-color-blue: oklch(0.91 0.07 240);
-  --knovum-editor-highlight-color-pink: oklch(0.91 0.08 350);
+  --knovum-space-highlight-bg-yellow: oklch(0.92 0.08 95);
+  --knovum-space-highlight-bg-green: oklch(0.92 0.08 145);
+  --knovum-space-highlight-bg-blue: oklch(0.91 0.07 240);
+  --knovum-space-highlight-bg-pink: oklch(0.91 0.08 350);
+  --knovum-space-image-annotation-color: var(--knovum-ref-color-purple-500);
+  --knovum-space-image-angle-target-color: var(--knovum-ref-color-purple-500);
 }
 
-@theme inline {
-  /* Restrict color utilities to Knovum's semantic API. */
-  --color-*: initial;
-  --color-transparent: transparent;
-  --color-white: white;
+@theme static {
+  --text-caption-sm: 0.6875rem;
+  --text-caption-sm--line-height: 0.875rem;
+  --text-caption-md: 0.75rem;
+  --text-caption-md--line-height: 1rem;
+  --text-label-md: 0.8125rem;
+  --text-label-md--line-height: 1.125rem;
+  --text-body-sm: 0.8125rem;
+  --text-body-sm--line-height: 1.25rem;
+  --text-body-md: 0.875rem;
+  --text-body-md--line-height: 1.25rem;
+  --text-title-sm: 0.9375rem;
+  --text-title-sm--line-height: 1.25rem;
+  --text-title-md: 1.0625rem;
+  --text-title-md--line-height: 1.375rem;
+  --text-display-sm: 1.5rem;
+  --text-display-sm--line-height: 1.875rem;
+  --color-surface-accent: var(--knovum-ref-color-blue-500);
+  --color-surface-accent-hover: var(--knovum-ref-color-blue-600);
+  --color-surface-accent-pressed: var(--knovum-ref-color-blue-600);
+  --color-surface-accent-subtle: color-mix(in oklch, var(--knovum-ref-color-blue-500) 9%, transparent);
+  --color-surface-canvas: rgb(250 250 251);
+  --color-surface-chrome: rgb(239 239 240);
+  --color-surface-control: oklch(0.18 0.006 264 / 0.055);
+  --color-surface-control-hover: oklch(0.18 0.006 264 / 0.08);
+  --color-surface-control-pressed: oklch(0.18 0.006 264 / 0.11);
+  --color-surface-danger: var(--knovum-ref-color-red-500);
+  --color-surface-danger-subtle: color-mix(in oklch, var(--knovum-ref-color-red-500) 10%, transparent);
+  --color-surface-danger-subtle-hover: color-mix(in oklch, var(--knovum-ref-color-red-500) 16%, transparent);
+  --color-surface-danger-subtle-pressed: color-mix(
+    in oklch,
+    var(--knovum-ref-color-red-500) 22%,
+    transparent
+  );
+  --color-surface-document: white;
+  --color-surface-inset: oklch(0.18 0.006 264 / 0.052);
+  --color-surface-inverse: var(--color-fg-primary);
+  --color-surface-inverse-hover: var(--color-fg-secondary);
+  --color-surface-overlay: oklch(0.985 0.002 255 / 0.98);
+  --color-surface-raised: oklch(1 0 0 / 0.98);
+  --color-surface-scrim: oklch(0.16 0.004 264 / 0.26);
+  --color-surface-selected: color-mix(in oklch, var(--knovum-ref-color-blue-500) 13%, transparent);
+  --color-surface-skeleton: oklch(0.18 0.006 264 / 0.07);
+  --color-surface-muted: oklch(0.974 0.002 255);
+  --color-surface-success-subtle: color-mix(in oklch, var(--knovum-ref-color-green-500) 10%, transparent);
+  --color-surface-panel: oklch(0.986 0.0015 255);
+  --color-surface-warning-subtle-hover: color-mix(
+    in oklch,
+    var(--knovum-ref-color-amber-500) 16%,
+    transparent
+  );
+  --color-surface-warning-subtle: color-mix(in oklch, var(--knovum-ref-color-amber-500) 10%, transparent);
+  --color-stroke-accent: var(--knovum-ref-color-blue-500);
+  --color-stroke-contrast: var(--color-fg-primary);
+  --color-stroke-contrast-subtle: var(--color-fg-secondary);
+  --color-stroke-danger: var(--knovum-ref-color-red-500);
+  --color-stroke-default: oklch(0.22 0.006 264 / 0.075);
+  --color-stroke-default-hover: oklch(0.22 0.006 264 / 0.2);
+  --color-stroke-divider: oklch(0.22 0.006 264 / 0.045);
+  --color-stroke-focus: color-mix(in oklch, var(--knovum-ref-color-blue-500) 38%, transparent);
+  --color-stroke-on-image: white;
+  --color-stroke-strong: oklch(0.22 0.006 264 / 0.125);
+  --color-stroke-warning: var(--knovum-ref-color-amber-500);
+  --color-fg-accent: var(--knovum-ref-color-blue-500);
+  --color-fg-danger: var(--knovum-ref-color-red-500);
+  --color-fg-inverse: var(--color-surface-canvas);
+  --color-fg-on-accent: white;
+  --color-fg-on-danger: white;
+  --color-fg-on-image: white;
+  --color-fg-primary: oklch(0.24 0.006 264);
+  --color-fg-secondary: oklch(0.48 0.007 264);
+  --color-fg-success: var(--knovum-ref-color-green-500);
+  --color-fg-tertiary: oklch(0.54 0.006 264);
+  --color-fg-warning: var(--knovum-ref-color-amber-500);
 
-  /* Global utility API: typography, color, shape, elevation, and motion only. */
-  --font-sans: var(--knovum-font-family-sans);
-  --font-mono: var(--knovum-font-family-mono);
-  --text-micro: var(--knovum-font-size-micro);
-  --text-micro--line-height: var(--knovum-line-height-micro);
-  --text-caption: var(--knovum-font-size-caption);
-  --text-caption--line-height: var(--knovum-line-height-caption);
-  --text-label: var(--knovum-font-size-label);
-  --text-label--line-height: var(--knovum-line-height-label);
-  --text-body: var(--knovum-font-size-body);
-  --text-body--line-height: var(--knovum-line-height-body);
-  --text-body-lg: var(--knovum-font-size-body-lg);
-  --text-body-lg--line-height: var(--knovum-line-height-body-lg);
-  --text-title-sm: var(--knovum-font-size-title-sm);
-  --text-title-sm--line-height: var(--knovum-line-height-title-sm);
-  --text-title: var(--knovum-font-size-title);
-  --text-title--line-height: var(--knovum-line-height-title);
-  --text-display: var(--knovum-font-size-display);
-  --text-display--line-height: var(--knovum-line-height-display);
-  --tracking-title: var(--knovum-letter-spacing-title);
-  --tracking-uppercase: var(--knovum-letter-spacing-uppercase);
-  --color-chrome: var(--knovum-color-background-chrome);
-  --color-canvas: var(--knovum-color-background-canvas);
-  --color-surface: var(--knovum-color-background-surface);
-  --color-panel: var(--knovum-color-background-panel);
-  --color-raised: var(--knovum-color-background-raised);
-  --color-overlay: var(--knovum-color-background-overlay);
-  --color-field: var(--knovum-color-background-field);
-  --color-scrim: var(--knovum-color-background-scrim);
-  --color-foreground: var(--knovum-color-foreground-primary);
-  --color-foreground-secondary: var(--knovum-color-foreground-secondary);
-  --color-foreground-tertiary: var(--knovum-color-foreground-tertiary);
-  --color-foreground-disabled: var(--knovum-color-foreground-disabled);
-  --color-border: var(--knovum-color-border-default);
-  --color-border-strong: var(--knovum-color-border-strong);
-  --color-border-hover: var(--knovum-color-border-hover);
-  --color-divider: var(--knovum-color-divider);
-  --color-window-hairline: var(--knovum-window-hairline-color);
-  --color-tab-inactive: var(--knovum-tab-item-background);
-  --color-tab-inactive-hover: var(--knovum-tab-item-background-hover);
-  --color-control: var(--knovum-color-background-control);
-  --color-control-hover: var(--knovum-color-background-control-hover);
-  --color-control-pressed: var(--knovum-color-background-control-pressed);
-  --color-control-thumb: var(--knovum-control-thumb-color);
-  --color-selected: var(--knovum-color-background-selected);
-  --color-skeleton: var(--knovum-color-background-skeleton);
-  --color-accent: var(--knovum-color-accent);
-  --color-accent-hover: var(--knovum-color-accent-hover);
-  --color-accent-subtle: var(--knovum-color-accent-subtle);
-  --color-on-accent: var(--knovum-color-on-accent);
-  --color-focus-ring: var(--knovum-color-focus-ring);
-  --color-danger: var(--knovum-color-danger);
-  --color-danger-subtle: var(--knovum-color-danger-subtle);
-  --color-danger-subtle-hover: var(--knovum-color-danger-subtle-hover);
-  --color-danger-subtle-pressed: var(--knovum-color-danger-subtle-pressed);
-  --color-on-danger: var(--knovum-color-on-danger);
-  --color-success: var(--knovum-color-success);
-  --color-success-subtle: var(--knovum-color-success-subtle);
-  --color-warning: var(--knovum-color-warning);
-  --color-canvas-relation-blue: var(--knovum-canvas-relation-blue);
-  --color-canvas-relation-green: var(--knovum-canvas-relation-green);
-  --color-canvas-relation-amber: var(--knovum-canvas-relation-amber);
-  --color-canvas-relation-red: var(--knovum-canvas-relation-red);
-  --color-canvas-relation-purple: var(--knovum-canvas-relation-purple);
-  --color-canvas-note-yellow: var(--knovum-canvas-note-yellow);
-  --color-canvas-note-green: var(--knovum-canvas-note-green);
-  --color-canvas-note-blue: var(--knovum-canvas-note-blue);
-  --color-canvas-note-pink: var(--knovum-canvas-note-pink);
-  --color-canvas-note-gray: var(--knovum-canvas-note-gray);
-  --color-canvas-note-ink: var(--knovum-canvas-note-ink);
-  --color-canvas-text-ink: var(--knovum-canvas-text-ink);
-  --color-canvas-text-muted: var(--knovum-canvas-text-muted);
-  --color-canvas-text-red: var(--knovum-canvas-text-red);
-  --color-canvas-text-blue: var(--knovum-canvas-text-blue);
-  --color-canvas-text-green: var(--knovum-canvas-text-green);
-  --color-canvas-text-purple: var(--knovum-canvas-text-purple);
-  --radius-control: var(--knovum-control-radius);
-  --radius-grid-cell: var(--knovum-grid-cell-radius);
-  --radius-panel: var(--knovum-panel-radius);
-  --radius-workspace: var(--knovum-workspace-radius);
-  --radius-dialog: var(--knovum-dialog-radius);
-  --radius-canvas-object: var(--knovum-canvas-object-radius);
-  --radius-hud: var(--knovum-hud-radius);
-  --radius-section: var(--knovum-section-radius);
-  --radius-section-inner: var(--knovum-section-inner-radius);
-  --blur-overlay: var(--knovum-overlay-blur);
-  --ease-standard: var(--knovum-motion-easing-standard);
-  --default-transition-duration: var(--knovum-motion-duration-fast);
-  --default-transition-timing-function: var(--knovum-motion-easing-standard);
-  --shadow-control: var(--knovum-control-shadow);
-  --shadow-panel: var(--knovum-panel-shadow);
-  --shadow-canvas-object: var(--knovum-canvas-object-shadow);
-  --shadow-workspace: var(--knovum-workspace-shadow);
-  --shadow-toolbar: var(--knovum-toolbar-shadow);
-  --shadow-popover: var(--knovum-popover-shadow);
-  --shadow-dialog: var(--knovum-dialog-shadow);
+  /* Authored values extend Tailwind directly; no parallel reference scale. */
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", Consolas, monospace;
+  --tracking-title: -0.012em;
+  --tracking-label-uppercase: 0.055em;
+  --ease-standard: cubic-bezier(0.22, 0.72, 0, 1);
+  --ease-decelerate: cubic-bezier(0, 0, 0.58, 1);
+  --radius-panel: 0.625rem;
+  --radius-section-inner: 0.5625rem;
+  --blur-overlay: 1.75rem;
+  --shadow-control: 0 1px 2px rgb(15 23 42 / 0.06), 0 0 0 0.5px rgb(15 23 42 / 0.045);
+  --shadow-panel: 0 0 0 0.5px rgb(15 23 42 / 0.065), 0 1px 2px rgb(15 23 42 / 0.035);
+  --shadow-workspace:
+    inset 0 1px 0 rgb(255 255 255 / 0.72), 0 1px 1px rgb(15 23 42 / 0.035),
+    0 5px 10px -7px rgb(15 23 42 / 0.2);
+  --shadow-popover: 0 6px 18px rgb(15 23 42 / 0.075), 0 1px 3px rgb(15 23 42 / 0.055);
+  --shadow-dialog: 0 24px 64px rgb(0 0 0 / 0.22), 0 3px 12px rgb(0 0 0 / 0.09);
+  --default-transition-timing-function: var(--ease-standard);
 }
 
 :root[data-text-size="small"] {
-  --knovum-font-size-micro: 0.625rem;
-  --knovum-line-height-micro: 0.8125rem;
-  --knovum-font-size-caption: 0.6875rem;
-  --knovum-line-height-caption: 0.875rem;
-  --knovum-font-size-label: 0.75rem;
-  --knovum-line-height-label: 1rem;
-  --knovum-font-size-body: 0.75rem;
-  --knovum-line-height-body: 1.125rem;
-  --knovum-font-size-body-lg: 0.8125rem;
-  --knovum-line-height-body-lg: 1.125rem;
-  --knovum-font-size-title-sm: 0.875rem;
-  --knovum-line-height-title-sm: 1.1875rem;
-  --knovum-font-size-title: 1rem;
-  --knovum-line-height-title: 1.25rem;
-  --knovum-font-size-display: 1.375rem;
-  --knovum-line-height-display: 1.75rem;
+  --text-caption-sm: 0.625rem;
+  --text-caption-sm--line-height: 0.8125rem;
+  --text-caption-md: 0.6875rem;
+  --text-caption-md--line-height: 0.875rem;
+  --text-label-md: 0.75rem;
+  --text-label-md--line-height: 1rem;
+  --text-body-sm: 0.75rem;
+  --text-body-sm--line-height: 1.125rem;
+  --text-body-md: 0.8125rem;
+  --text-body-md--line-height: 1.125rem;
+  --text-title-sm: 0.875rem;
+  --text-title-sm--line-height: 1.1875rem;
+  --text-title-md: 1rem;
+  --text-title-md--line-height: 1.25rem;
+  --text-display-sm: 1.375rem;
+  --text-display-sm--line-height: 1.75rem;
 }
 :root[data-platform="macos"] {
-  --knovum-window-inset: 2.625rem;
-  --knovum-window-safe-inset: 4.75rem;
-  --knovum-window-leading-control-offset: 1.25rem;
-  --knovum-window-navigation-control-offset: 5.25rem;
+  --knovum-titlebar-navigation-padding-start: 5.25rem;
 }
 :root[data-text-size="large"] {
-  --knovum-font-size-micro: 0.75rem;
-  --knovum-line-height-micro: 1rem;
-  --knovum-font-size-caption: 0.8125rem;
-  --knovum-line-height-caption: 1.125rem;
-  --knovum-font-size-label: 0.875rem;
-  --knovum-line-height-label: 1.25rem;
-  --knovum-font-size-body: 0.875rem;
-  --knovum-line-height-body: 1.3125rem;
-  --knovum-font-size-body-lg: 0.9375rem;
-  --knovum-line-height-body-lg: 1.3125rem;
-  --knovum-font-size-title-sm: 1rem;
-  --knovum-line-height-title-sm: 1.375rem;
-  --knovum-font-size-title: 1.125rem;
-  --knovum-line-height-title: 1.5rem;
-  --knovum-font-size-display: 1.5625rem;
-  --knovum-line-height-display: 2rem;
+  --text-caption-sm: 0.75rem;
+  --text-caption-sm--line-height: 1rem;
+  --text-caption-md: 0.8125rem;
+  --text-caption-md--line-height: 1.125rem;
+  --text-label-md: 0.875rem;
+  --text-label-md--line-height: 1.25rem;
+  --text-body-sm: 0.875rem;
+  --text-body-sm--line-height: 1.3125rem;
+  --text-body-md: 0.9375rem;
+  --text-body-md--line-height: 1.3125rem;
+  --text-title-sm: 1rem;
+  --text-title-sm--line-height: 1.375rem;
+  --text-title-md: 1.125rem;
+  --text-title-md--line-height: 1.5rem;
+  --text-display-sm: 1.5625rem;
+  --text-display-sm--line-height: 2rem;
 }
 :root[data-density="comfortable"] {
   --knovum-control-height-sm: 1.875rem;
   --knovum-control-height-md: 2.125rem;
   --knovum-control-height-lg: 2.375rem;
-  --knovum-toolbar-height: 3rem;
-  --knovum-compact-item-height: 2.125rem;
-  --knovum-command-item-height: 3rem;
-  --knovum-list-item-height: 3.25rem;
-  --knovum-preference-item-height: 3.5rem;
+  --knovum-editor-toolbar-height: 3rem;
+  --knovum-task-center-header-height: 3rem;
+  --knovum-list-item-height-sm: 2.125rem;
+  --knovum-command-palette-item-height: 3rem;
+  --knovum-space-tag-row-height: 3.25rem;
+  --knovum-settings-row-min-height: 3.5rem;
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --knovum-color-background-chrome: oklch(0.19 0.006 264);
-  --knovum-color-background-canvas: oklch(0.175 0.005 264);
-  --knovum-color-background-surface: oklch(0.215 0.006 264);
-  --knovum-color-background-panel: oklch(0.23 0.006 264);
-  --knovum-color-background-raised: oklch(0.255 0.006 264 / 0.98);
-  --knovum-color-background-overlay: oklch(0.245 0.006 264 / 0.98);
-  --knovum-color-background-field: oklch(1 0 0 / 0.06);
-  --knovum-color-background-scrim: oklch(0 0 0 / 0.42);
-  --knovum-color-foreground-primary: oklch(0.94 0.004 264);
-  --knovum-color-foreground-secondary: oklch(0.72 0.008 264);
-  --knovum-color-foreground-tertiary: oklch(0.62 0.008 264);
-  --knovum-color-foreground-disabled: oklch(0.46 0.007 264);
-  --knovum-color-border-default: oklch(1 0 0 / 0.065);
-  --knovum-color-border-strong: oklch(1 0 0 / 0.11);
-  --knovum-color-border-hover: oklch(1 0 0 / 0.19);
-  --knovum-color-divider: oklch(1 0 0 / 0.045);
-  --knovum-window-hairline-color: oklch(1 0 0 / 0.075);
-  --knovum-color-background-control: oklch(1 0 0 / 0.07);
-  --knovum-color-background-control-hover: oklch(1 0 0 / 0.055);
-  --knovum-color-background-control-pressed: oklch(1 0 0 / 0.09);
-  --knovum-color-background-selected: oklch(0.71 0.17 255 / 0.16);
-  --knovum-color-background-skeleton: oklch(1 0 0 / 0.085);
-  --knovum-color-accent: oklch(0.71 0.17 255);
-  --knovum-color-accent-hover: oklch(0.75 0.16 255);
-  --knovum-color-accent-subtle: oklch(0.71 0.17 255 / 0.11);
-  --knovum-color-on-accent: oklch(0.15 0.008 264);
-  --knovum-color-focus-ring: oklch(0.71 0.17 255 / 0.42);
-  --knovum-color-danger: oklch(0.7 0.18 28);
-  --knovum-color-danger-subtle: oklch(0.7 0.18 28 / 0.13);
-  --knovum-color-danger-subtle-hover: oklch(0.7 0.18 28 / 0.2);
-  --knovum-color-danger-subtle-pressed: oklch(0.7 0.18 28 / 0.27);
-  --knovum-color-success: oklch(0.72 0.14 148);
-  --knovum-color-success-subtle: oklch(0.72 0.14 148 / 0.13);
-  --knovum-color-warning: oklch(0.78 0.14 72);
-  --knovum-sidebar-item-background-hover: oklch(1 0 0 / 0.05);
-  --knovum-sidebar-item-background-selected: oklch(1 0 0 / 0.085);
-  --knovum-tab-item-background: oklch(0.225 0.006 264);
-  --knovum-tab-item-background-hover: oklch(0.24 0.006 264);
-  --knovum-canvas-grid-color: oklch(1 0 0 / 0.2);
-  --knovum-canvas-measurement-color: oklch(0.8 0.17 78);
-  --knovum-canvas-relation-blue: oklch(0.71 0.17 255);
-  --knovum-canvas-relation-green: oklch(0.72 0.14 148);
-  --knovum-canvas-relation-amber: oklch(0.78 0.14 72);
-  --knovum-canvas-relation-red: oklch(0.7 0.18 28);
-  --knovum-canvas-relation-purple: oklch(0.72 0.15 305);
-  --knovum-canvas-note-yellow: oklch(0.72 0.1 92);
-  --knovum-canvas-note-green: oklch(0.68 0.1 145);
-  --knovum-canvas-note-blue: oklch(0.68 0.09 235);
-  --knovum-canvas-note-pink: oklch(0.7 0.09 350);
-  --knovum-canvas-note-gray: oklch(0.58 0.01 264);
-  --knovum-canvas-note-ink: oklch(0.16 0.008 264);
-  --knovum-canvas-text-ink: oklch(0.9 0.008 264);
-  --knovum-canvas-text-muted: oklch(0.68 0.008 264);
-  --knovum-canvas-object-shadow:
+  --color-surface-accent: var(--knovum-ref-color-blue-400);
+  --color-stroke-accent: var(--knovum-ref-color-blue-400);
+  --color-surface-danger: var(--knovum-ref-color-red-400);
+  --color-stroke-danger: var(--knovum-ref-color-red-400);
+
+  --color-stroke-warning: var(--knovum-ref-color-amber-400);
+  --color-surface-warning-subtle-hover: color-mix(
+    in oklch,
+    var(--knovum-ref-color-amber-400) 20%,
+    transparent
+  );
+  --color-surface-warning-subtle: color-mix(in oklch, var(--knovum-ref-color-amber-400) 13%, transparent);
+  --knovum-space-image-annotation-color: var(--knovum-ref-color-purple-400);
+  --knovum-space-image-angle-target-color: var(--knovum-ref-color-purple-400);
+  --color-surface-chrome: oklch(0.19 0.006 264);
+  --color-surface-canvas: oklch(0.175 0.005 264);
+  --color-surface-muted: oklch(0.215 0.006 264);
+  --color-surface-panel: oklch(0.23 0.006 264);
+  --color-surface-raised: oklch(0.255 0.006 264 / 0.98);
+  --color-surface-overlay: oklch(0.245 0.006 264 / 0.98);
+  --color-surface-inset: oklch(1 0 0 / 0.06);
+  --color-surface-scrim: oklch(0 0 0 / 0.42);
+  --color-fg-primary: oklch(0.94 0.004 264);
+  --color-fg-secondary: oklch(0.72 0.008 264);
+  --color-fg-tertiary: oklch(0.62 0.008 264);
+
+  --color-stroke-default: oklch(1 0 0 / 0.065);
+  --color-stroke-strong: oklch(1 0 0 / 0.11);
+  --color-stroke-default-hover: oklch(1 0 0 / 0.19);
+  --color-stroke-divider: oklch(1 0 0 / 0.045);
+  --knovum-window-border-color: oklch(1 0 0 / 0.075);
+  --color-surface-control: oklch(1 0 0 / 0.07);
+  --color-surface-control-hover: oklch(1 0 0 / 0.09);
+  --color-surface-control-pressed: oklch(1 0 0 / 0.12);
+  --color-surface-selected: color-mix(in oklch, var(--knovum-ref-color-blue-400) 16%, transparent);
+  --color-surface-skeleton: oklch(1 0 0 / 0.085);
+  --color-fg-accent: var(--knovum-ref-color-blue-400);
+  --color-surface-accent-hover: var(--knovum-ref-color-blue-300);
+  --color-surface-accent-pressed: var(--knovum-ref-color-blue-500);
+  --color-surface-accent-subtle: color-mix(in oklch, var(--knovum-ref-color-blue-400) 11%, transparent);
+  --color-fg-on-accent: oklch(0.15 0.008 264);
+  --color-stroke-focus: color-mix(in oklch, var(--knovum-ref-color-blue-400) 42%, transparent);
+  --color-fg-danger: var(--knovum-ref-color-red-400);
+  --color-surface-danger-subtle: color-mix(in oklch, var(--knovum-ref-color-red-400) 13%, transparent);
+  --color-surface-danger-subtle-hover: color-mix(in oklch, var(--knovum-ref-color-red-400) 20%, transparent);
+  --color-surface-danger-subtle-pressed: color-mix(
+    in oklch,
+    var(--knovum-ref-color-red-400) 27%,
+    transparent
+  );
+  --color-fg-success: var(--knovum-ref-color-green-400);
+  --color-surface-success-subtle: color-mix(in oklch, var(--knovum-ref-color-green-400) 13%, transparent);
+  --color-fg-warning: var(--knovum-ref-color-amber-400);
+  --knovum-sidebar-item-bg-hover: oklch(1 0 0 / 0.05);
+  --knovum-sidebar-item-bg-selected: oklch(1 0 0 / 0.085);
+  --knovum-tab-bg-inactive: oklch(0.225 0.006 264);
+  --knovum-space-grid-color: oklch(1 0 0 / 0.2);
+  --knovum-space-measurement-color: oklch(0.8 0.17 78);
+  --knovum-space-relation-stroke-blue: var(--knovum-ref-color-blue-400);
+  --knovum-space-relation-stroke-green: var(--knovum-ref-color-green-400);
+  --knovum-space-relation-stroke-amber: var(--knovum-ref-color-amber-400);
+  --knovum-space-relation-stroke-red: var(--knovum-ref-color-red-400);
+  --knovum-space-relation-stroke-purple: var(--knovum-ref-color-purple-400);
+  --knovum-space-note-bg-yellow: oklch(0.72 0.1 92);
+  --knovum-space-note-bg-green: oklch(0.68 0.1 145);
+  --knovum-space-note-bg-blue: oklch(0.68 0.09 235);
+  --knovum-space-note-bg-pink: oklch(0.7 0.09 350);
+  --knovum-space-note-bg-gray: oklch(0.58 0.01 264);
+  --knovum-space-note-fg: oklch(0.16 0.008 264);
+  --knovum-space-text-fg-default: oklch(0.9 0.008 264);
+  --knovum-space-text-fg-subtle: oklch(0.68 0.008 264);
+  --knovum-space-node-box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 0.055), 0 1px 2px rgb(0 0 0 / 0.42), 0 5px 10px -4px rgb(0 0 0 / 0.44),
     0 12px 24px -12px rgb(0 0 0 / 0.52);
 }
 :root[data-window-active="false"] {
-  --knovum-sidebar-item-background-selected: var(--knovum-color-background-control);
-  --knovum-sidebar-item-background-hover: transparent;
-  --knovum-color-border-hover: var(--knovum-color-border-strong);
-  --knovum-color-foreground-secondary: color-mix(
-    in oklch,
-    var(--knovum-color-foreground-primary) 52%,
-    var(--knovum-color-background-chrome)
-  );
+  --knovum-sidebar-item-bg-selected: var(--color-surface-control);
+  --knovum-sidebar-item-bg-hover: transparent;
+  --color-stroke-default-hover: var(--color-stroke-strong);
+  --color-fg-secondary: color-mix(in oklch, var(--color-fg-primary) 52%, var(--color-surface-chrome));
 }
 
 @media (prefers-contrast: more) {
   :root {
-    --knovum-color-border-default: oklch(0.18 0.006 264 / 0.16);
-    --knovum-color-border-strong: oklch(0.18 0.006 264 / 0.24);
-    --knovum-color-border-hover: oklch(0.18 0.006 264 / 0.36);
-    --knovum-color-divider: oklch(0.18 0.006 264 / 0.12);
-    --knovum-window-hairline-color: oklch(0.18 0.006 264 / 0.2);
-    --knovum-color-foreground-secondary: oklch(0.38 0.007 264);
-    --knovum-color-foreground-tertiary: oklch(0.48 0.006 264);
-    --knovum-color-focus-ring: oklch(0.57 0.22 255 / 0.62);
+    --color-stroke-default: oklch(0.18 0.006 264 / 0.16);
+    --color-stroke-strong: oklch(0.18 0.006 264 / 0.24);
+    --color-stroke-default-hover: oklch(0.18 0.006 264 / 0.36);
+    --color-stroke-divider: oklch(0.18 0.006 264 / 0.12);
+    --knovum-window-border-color: oklch(0.18 0.006 264 / 0.2);
+    --color-fg-secondary: oklch(0.38 0.007 264);
+    --color-fg-tertiary: oklch(0.48 0.006 264);
+    --color-stroke-focus: oklch(0.57 0.22 255 / 0.62);
   }
 
   :root[data-theme="dark"] {
-    --knovum-color-border-default: oklch(1 0 0 / 0.14);
-    --knovum-color-border-strong: oklch(1 0 0 / 0.22);
-    --knovum-color-border-hover: oklch(1 0 0 / 0.34);
-    --knovum-color-divider: oklch(1 0 0 / 0.11);
-    --knovum-window-hairline-color: oklch(1 0 0 / 0.18);
-    --knovum-color-foreground-secondary: oklch(0.8 0.006 264);
-    --knovum-color-foreground-tertiary: oklch(0.68 0.006 264);
+    --color-stroke-default: oklch(1 0 0 / 0.14);
+    --color-stroke-strong: oklch(1 0 0 / 0.22);
+    --color-stroke-default-hover: oklch(1 0 0 / 0.34);
+    --color-stroke-divider: oklch(1 0 0 / 0.11);
+    --knovum-window-border-color: oklch(1 0 0 / 0.18);
+    --color-fg-secondary: oklch(0.8 0.006 264);
+    --color-fg-tertiary: oklch(0.68 0.006 264);
   }
 }
 
 @media (prefers-reduced-transparency: reduce) {
   :root {
-    --knovum-color-background-overlay: oklch(0.985 0.002 255);
+    --color-surface-overlay: oklch(0.985 0.002 255);
   }
 
   :root[data-theme="dark"] {
-    --knovum-color-background-overlay: oklch(0.245 0.006 264);
+    --color-surface-overlay: oklch(0.245 0.006 264);
   }
 }

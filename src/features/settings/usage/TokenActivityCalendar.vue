@@ -11,7 +11,13 @@ const { d, locale, n, t } = useI18n();
 const weeks = computed(() =>
   buildTokenActivityWeeks(props.report.activity, props.report.fromDate, props.report.toDate, locale.value),
 );
-const levelClasses = ["bg-control", "bg-accent/20", "bg-accent/40", "bg-accent/65", "bg-accent"] as const;
+const levelClasses = [
+  "bg-surface-control",
+  "bg-surface-accent/20",
+  "bg-surface-accent/40",
+  "bg-surface-accent/65",
+  "bg-surface-accent",
+] as const;
 const timeZone = getLocalTimeZone();
 
 function label(date: string, tokens: number, requests: number) {
@@ -23,35 +29,32 @@ function label(date: string, tokens: number, requests: number) {
 <template>
   <section
     data-testid="token-activity-calendar"
-    class="rounded-section border border-border bg-panel p-4 shadow-panel"
+    class="rounded-xl border border-stroke-default bg-surface-panel p-4 shadow-panel"
   >
     <header class="mb-4 flex items-end justify-between gap-4">
       <div>
-        <h2 class="text-title-sm font-semibold text-foreground">{{ t("settings.usage.activity.title") }}</h2>
-        <p class="mt-1 text-caption text-foreground-secondary">
+        <h2 class="text-title-sm font-semibold text-fg-primary">
+          {{ t("settings.usage.activity.title") }}
+        </h2>
+        <p class="mt-1 text-caption-md text-fg-secondary">
           {{
             t("settings.usage.activity.description", { peak: n(report.summary.peakDailyTokens, "compact") })
           }}
         </p>
       </div>
-      <div class="flex items-center gap-1.5 text-micro text-foreground-tertiary" aria-hidden="true">
+      <div class="flex items-center gap-1.5 text-caption-sm text-fg-tertiary" aria-hidden="true">
         <span>{{ t("settings.usage.activity.less") }}</span>
-        <span
-          v-for="level in 5"
-          :key="level"
-          class="size-2.5 rounded-grid-cell"
-          :class="levelClasses[level - 1]"
-        />
+        <span v-for="level in 5" :key="level" class="size-2.5 rounded-sm" :class="levelClasses[level - 1]" />
         <span>{{ t("settings.usage.activity.more") }}</span>
       </div>
     </header>
     <div class="overflow-x-auto pb-1">
       <div class="min-w-max">
-        <div class="mb-1.5 flex gap-1 pl-7 text-micro text-foreground-tertiary" aria-hidden="true">
+        <div class="mb-1.5 flex gap-1 pl-7 text-caption-sm text-fg-tertiary" aria-hidden="true">
           <div v-for="week in weeks" :key="week.key" class="w-2.5 shrink-0">{{ week.month }}</div>
         </div>
         <div class="flex gap-2">
-          <div class="grid grid-rows-7 gap-1 text-micro text-foreground-tertiary" aria-hidden="true">
+          <div class="grid grid-rows-7 gap-1 text-caption-sm text-fg-tertiary" aria-hidden="true">
             <span /><span>{{ t("settings.usage.activity.weekdays.monday") }}</span
             ><span /><span>{{ t("settings.usage.activity.weekdays.wednesday") }}</span
             ><span /><span>{{ t("settings.usage.activity.weekdays.friday") }}</span
@@ -62,7 +65,7 @@ function label(date: string, tokens: number, requests: number) {
               <span
                 v-for="cell in week.cells"
                 :key="cell.date"
-                class="size-2.5 rounded-grid-cell ring-1 ring-border ring-inset"
+                class="size-2.5 rounded-sm ring-1 ring-stroke-default ring-inset"
                 :class="cell.inRange ? levelClasses[cell.level] : 'opacity-0'"
                 :title="cell.inRange ? label(cell.date, cell.tokens, cell.requests) : undefined"
                 :aria-label="cell.inRange ? label(cell.date, cell.tokens, cell.requests) : undefined"

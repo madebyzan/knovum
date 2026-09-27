@@ -36,15 +36,15 @@ function parameterLabel(key: string) {
 </script>
 
 <template>
-  <div v-for="field in fields" :key="`${field.stepId}:${field.key}`" class="space-y-1 text-caption">
+  <div v-for="field in fields" :key="`${field.stepId}:${field.key}`" class="space-y-1 text-caption-md">
     <label
       v-if="field.type !== 'boolean'"
       :for="`workflow-parameter-${field.stepId}-${field.key}`"
-      class="text-foreground-secondary"
+      class="text-fg-secondary"
     >
       {{ actionLabel(field.actionId) }} · {{ parameterLabel(field.key) }}
     </label>
-    <span v-else class="text-foreground-secondary">{{ actionLabel(field.actionId) }}</span>
+    <span v-else class="text-fg-secondary">{{ actionLabel(field.actionId) }}</span>
     <UiSelect
       v-if="field.options.length"
       :id="`workflow-parameter-${field.stepId}-${field.key}`"

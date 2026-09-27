@@ -87,7 +87,7 @@ watch(rotation, updateGeometry);
 <template>
   <div
     :ref="(value) => (viewport = value as HTMLElement | null)"
-    class="relative grid min-h-0 flex-1 place-items-center overflow-hidden bg-control/25"
+    class="relative grid min-h-0 flex-1 place-items-center overflow-hidden bg-surface-control/25"
   >
     <div class="relative max-h-full max-w-full" :style="frameStyle">
       <video
@@ -115,8 +115,8 @@ watch(rotation, updateGeometry);
       >
         <button
           type="button"
-          class="pointer-events-auto max-w-full cursor-pointer font-normal whitespace-pre-line focus-visible:outline-2 focus-visible:outline-focus-ring"
-          :class="selectedTextId === overlay.id && 'ring-1 ring-accent'"
+          class="pointer-events-auto max-w-full cursor-pointer font-normal whitespace-pre-line focus-visible:outline-2 focus-visible:outline-stroke-focus"
+          :class="selectedTextId === overlay.id && 'ring-1 ring-stroke-accent'"
           :style="textStyle(overlay)"
           :aria-label="overlay.text"
           @click="$emit('selectText', overlay.id)"

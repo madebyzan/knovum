@@ -48,9 +48,9 @@ function flip(edge: "flipHorizontal" | "flipVertical") {
 <template>
   <div class="space-y-5 p-4">
     <section>
-      <h3 class="text-caption font-semibold">{{ $t("spaces.media.videoEditor.clip.selected") }}</h3>
+      <h3 class="text-caption-md font-semibold">{{ $t("spaces.media.videoEditor.clip.selected") }}</h3>
       <div class="mt-3 grid grid-cols-2 gap-2">
-        <label class="text-caption text-foreground-secondary" for="video-edit-clip-in">
+        <label class="text-caption-md text-fg-secondary" for="video-edit-clip-in">
           {{ $t("spaces.media.videoEditor.clip.inPoint") }}
           <UiInput
             id="video-edit-clip-in"
@@ -64,7 +64,7 @@ function flip(edge: "flipHorizontal" | "flipVertical") {
             @change="changeTime($event, 'start')"
           />
         </label>
-        <label class="text-caption text-foreground-secondary" for="video-edit-clip-out">
+        <label class="text-caption-md text-fg-secondary" for="video-edit-clip-out">
           {{ $t("spaces.media.videoEditor.clip.outPoint") }}
           <UiInput
             id="video-edit-clip-out"
@@ -79,10 +79,12 @@ function flip(edge: "flipHorizontal" | "flipVertical") {
           />
         </label>
       </div>
-      <p class="mt-2 text-micro text-foreground-tertiary">{{ $t("spaces.media.videoEditor.trim.hint") }}</p>
+      <p class="mt-2 text-caption-sm text-fg-tertiary">
+        {{ $t("spaces.media.videoEditor.trim.hint") }}
+      </p>
     </section>
     <section>
-      <label class="block text-caption text-foreground-secondary">
+      <label class="block text-caption-md text-fg-secondary">
         {{ $t("spaces.media.videoEditor.clip.volume") }} · {{ Math.round(clip.volume * 100) }}%
       </label>
       <UiSlider
@@ -95,7 +97,7 @@ function flip(edge: "flipHorizontal" | "flipVertical") {
       />
     </section>
     <section>
-      <h3 class="mb-2 text-caption font-semibold">{{ $t("spaces.media.videoEditor.videoSettings") }}</h3>
+      <h3 class="mb-2 text-caption-md font-semibold">{{ $t("spaces.media.videoEditor.videoSettings") }}</h3>
       <div class="grid grid-cols-2 gap-1">
         <UiButton size="sm" @click="rotate">
           {{ $t("spaces.media.videoEditor.clip.rotate") }} {{ project.transform.rotation }}°

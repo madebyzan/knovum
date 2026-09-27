@@ -48,9 +48,9 @@ const emptyMessage = computed(() => {
 
 <template>
   <div class="flex size-full min-h-0 flex-col overflow-hidden">
-    <div class="flex h-12 shrink-0 items-center gap-2.5 border-b border-divider px-3">
+    <div class="flex h-12 shrink-0 items-center gap-2.5 border-b border-stroke-divider px-3">
       <div
-        class="flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-control bg-control"
+        class="flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-md bg-surface-control"
       >
         <img
           v-if="faviconSource"
@@ -59,34 +59,34 @@ const emptyMessage = computed(() => {
           class="size-5 object-contain"
           draggable="false"
         />
-        <Globe2 v-else class="size-(--knovum-icon-size-sm) text-foreground-tertiary" :stroke-width="1.5" />
+        <Globe2 v-else class="size-3.5 text-fg-tertiary" :stroke-width="1.5" />
       </div>
       <div class="min-w-0 flex-1">
-        <p v-if="sourceName" class="truncate text-caption font-medium text-foreground-secondary">
+        <p v-if="sourceName" class="truncate text-caption-md font-medium text-fg-secondary">
           {{ sourceName }}
         </p>
-        <p class="truncate text-micro text-foreground-tertiary">{{ host }}</p>
+        <p class="truncate text-caption-sm text-fg-tertiary">{{ host }}</p>
       </div>
       <SpaceCanvasNodeStatus :id="id" :data="data" />
     </div>
     <div class="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden px-3 py-3">
-      <strong class="line-clamp-2 text-body leading-snug font-semibold text-foreground">{{
+      <strong class="line-clamp-2 text-body-sm leading-snug font-semibold text-fg-primary">{{
         data.title
       }}</strong>
       <p
         v-if="showsSummary && summary"
-        class="text-caption leading-relaxed text-foreground-secondary"
+        class="text-caption-md leading-relaxed text-fg-secondary"
         :class="previewSource ? 'line-clamp-3' : 'line-clamp-7'"
       >
         {{ summary }}
       </p>
-      <p v-else-if="emptyMessage" class="text-caption text-foreground-tertiary">{{ emptyMessage }}</p>
+      <p v-else-if="emptyMessage" class="text-caption-md text-fg-tertiary">{{ emptyMessage }}</p>
     </div>
     <img
       v-if="showsPreview && previewSource"
       :src="previewSource"
       alt=""
-      class="block h-1/4 w-full shrink-0 border-t border-divider object-cover object-center"
+      class="block h-1/4 w-full shrink-0 border-t border-stroke-divider object-cover object-center"
       draggable="false"
       loading="lazy"
       decoding="async"

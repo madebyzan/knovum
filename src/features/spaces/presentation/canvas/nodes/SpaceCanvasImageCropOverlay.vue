@@ -138,12 +138,17 @@ function complete(event: PointerEvent) {
       @pointerup.stop="complete"
       @pointercancel="finish"
     />
-    <div v-for="(style, index) in shadeStyles" :key="index" class="absolute bg-scrim" :style="style" />
-    <div class="absolute border border-raised shadow-control" :style="cropStyle">
-      <span class="pointer-events-none absolute top-0 bottom-0 left-1/3 border-l border-raised/60" />
-      <span class="pointer-events-none absolute top-0 bottom-0 left-2/3 border-l border-raised/60" />
-      <span class="pointer-events-none absolute top-1/3 right-0 left-0 border-t border-raised/60" />
-      <span class="pointer-events-none absolute top-2/3 right-0 left-0 border-t border-raised/60" />
+    <div
+      v-for="(style, index) in shadeStyles"
+      :key="index"
+      class="absolute bg-surface-scrim"
+      :style="style"
+    />
+    <div class="absolute border border-stroke-on-image shadow-control" :style="cropStyle">
+      <span class="pointer-events-none absolute top-0 bottom-0 left-1/3 border-l border-stroke-on-image/60" />
+      <span class="pointer-events-none absolute top-0 bottom-0 left-2/3 border-l border-stroke-on-image/60" />
+      <span class="pointer-events-none absolute top-1/3 right-0 left-0 border-t border-stroke-on-image/60" />
+      <span class="pointer-events-none absolute top-2/3 right-0 left-0 border-t border-stroke-on-image/60" />
       <div
         class="pointer-events-auto absolute inset-0 cursor-move touch-none"
         @pointerdown.stop.prevent="beginInterior"
@@ -155,7 +160,7 @@ function complete(event: PointerEvent) {
         v-for="handle in handles"
         :key="handle.handle"
         aria-hidden="true"
-        class="pointer-events-auto absolute z-10 size-2.5 touch-none rounded-full border border-border-strong bg-raised shadow-control"
+        class="pointer-events-auto absolute z-10 size-2.5 touch-none rounded-full border border-stroke-strong bg-surface-raised shadow-control"
         :class="handle.className"
         @pointerdown.stop.prevent="begin(handle.handle, $event)"
         @pointermove.stop.prevent="update"

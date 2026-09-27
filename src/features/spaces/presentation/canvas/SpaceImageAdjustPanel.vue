@@ -55,43 +55,43 @@ function syncActive() {
 </script>
 
 <template>
-  <section class="w-60 text-foreground" :aria-label="t('spaces.media.imageEditor.adjust.title')">
+  <section class="w-60 text-fg-primary" :aria-label="t('spaces.media.imageEditor.adjust.title')">
     <header class="flex items-center justify-between px-1 pb-2">
-      <h3 class="text-body-lg font-semibold">{{ t("spaces.media.imageEditor.adjust.title") }}</h3>
+      <h3 class="text-body-md font-semibold">{{ t("spaces.media.imageEditor.adjust.title") }}</h3>
       <div class="flex items-center gap-1">
         <button
           type="button"
-          class="flex size-(--knovum-control-height-md) items-center justify-center rounded-control text-foreground-secondary hover:bg-control-hover focus-visible:ring-2 focus-visible:ring-focus-ring"
+          class="flex size-(--knovum-control-height-md) items-center justify-center rounded-md text-fg-secondary hover:bg-surface-control-hover focus-visible:ring-2 focus-visible:ring-stroke-focus"
           :aria-label="t('common.reset')"
           @click="emit('reset')"
         >
-          <RotateCcw class="size-(--knovum-icon-size-sm)" />
+          <RotateCcw class="size-3.5" />
         </button>
         <button
           type="button"
-          class="flex size-(--knovum-control-height-md) items-center justify-center rounded-control text-foreground-secondary hover:bg-control-hover focus-visible:ring-2 focus-visible:ring-focus-ring"
+          class="flex size-(--knovum-control-height-md) items-center justify-center rounded-md text-fg-secondary hover:bg-surface-control-hover focus-visible:ring-2 focus-visible:ring-stroke-focus"
           :aria-label="t('common.cancel')"
           @click="emit('cancel')"
         >
-          <X class="size-(--knovum-icon-size-sm)" />
+          <X class="size-3.5" />
         </button>
       </div>
     </header>
     <nav
-      class="mb-2 flex rounded-control bg-control p-0.5"
+      class="mb-2 flex rounded-md bg-surface-control p-0.5"
       :aria-label="t('spaces.media.imageEditor.adjust.sections')"
     >
       <button
         v-for="group in imageAdjustmentGroups"
         :key="group.id"
         type="button"
-        class="flex h-(--knovum-control-height-md) min-w-0 flex-1 items-center justify-center rounded-control text-foreground-secondary transition-[background-color,color,box-shadow] duration-150 ease-standard hover:text-foreground focus-visible:ring-2 focus-visible:ring-focus-ring motion-reduce:transition-none"
-        :class="active === group.id ? 'bg-raised text-foreground shadow-control' : ''"
+        class="flex h-(--knovum-control-height-md) min-w-0 flex-1 items-center justify-center rounded-md text-fg-secondary transition-[background-color,color,box-shadow] duration-150 ease-standard hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-stroke-focus motion-reduce:transition-none"
+        :class="active === group.id ? 'bg-surface-raised text-fg-primary shadow-control' : ''"
         :aria-label="t(`spaces.media.imageEditor.adjustGroups.${group.id}`)"
         :aria-current="active === group.id ? 'location' : undefined"
         @click="navigate(group.id)"
       >
-        <component :is="group.icon" class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
+        <component :is="group.icon" class="size-3.5" :stroke-width="1.6" />
       </button>
     </nav>
     <UiScrollArea ref="list" class="h-80" @scroll="syncActive">
@@ -102,7 +102,7 @@ function syncActive() {
           :data-adjust-group="group.id"
           class="pt-2 pb-3 last:min-h-80"
         >
-          <h4 class="mb-2 text-label font-medium text-foreground-secondary">
+          <h4 class="mb-2 text-label-md font-medium text-fg-secondary">
             {{ t(`spaces.media.imageEditor.adjustGroups.${group.id}`) }}
           </h4>
           <div class="space-y-2">
@@ -119,18 +119,18 @@ function syncActive() {
         </section>
       </div>
     </UiScrollArea>
-    <footer class="mt-3 flex gap-2 border-t border-divider pt-3">
+    <footer class="mt-3 flex gap-2 border-t border-stroke-divider pt-3">
       <UiButton
         variant="secondary"
         size="sm"
-        class="min-w-0 flex-1 border border-border bg-raised"
+        class="min-w-0 flex-1 border border-stroke-default bg-surface-raised"
         @click="emit('cancel')"
         >{{ t("common.cancel") }}</UiButton
       >
       <UiButton
         variant="primary"
         size="sm"
-        class="min-w-0 flex-1 bg-foreground text-canvas hover:bg-foreground hover:opacity-90"
+        class="min-w-0 flex-1 bg-surface-inverse text-fg-inverse hover:bg-surface-inverse hover:opacity-90"
         @click="emit('apply')"
         >{{ t("common.apply") }}</UiButton
       >

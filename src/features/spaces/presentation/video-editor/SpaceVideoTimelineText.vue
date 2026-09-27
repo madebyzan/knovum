@@ -81,8 +81,8 @@ function nudge(kind: GestureKind, delta: number) {
   <div class="absolute top-1 h-8 min-w-0" :style="position">
     <button
       type="button"
-      class="size-full cursor-grab touch-none overflow-hidden rounded-grid-cell border bg-selected px-3 text-left text-caption text-accent focus-visible:outline-2 focus-visible:outline-focus-ring active:cursor-grabbing"
-      :class="selected ? 'border-accent ring-1 ring-accent' : 'border-accent/25'"
+      class="size-full cursor-grab touch-none overflow-hidden rounded-sm border bg-surface-selected px-3 text-left text-caption-md text-fg-accent focus-visible:outline-2 focus-visible:outline-stroke-focus active:cursor-grabbing"
+      :class="selected ? 'border-stroke-accent ring-1 ring-stroke-accent' : 'border-stroke-accent/25'"
       :aria-label="item.text"
       @click="$emit('select')"
       @pointerdown="start($event, 'move')"
@@ -98,8 +98,8 @@ function nudge(kind: GestureKind, delta: number) {
       v-for="edge in edges"
       :key="edge"
       type="button"
-      class="absolute inset-y-0 w-2 cursor-ew-resize touch-none bg-accent/25 hover:bg-accent/50 focus-visible:outline-2 focus-visible:outline-focus-ring"
-      :class="edge === 'start' ? 'left-0 rounded-l-grid-cell' : 'right-0 rounded-r-grid-cell'"
+      class="absolute inset-y-0 w-2 cursor-ew-resize touch-none bg-surface-accent/25 hover:bg-surface-accent/50 focus-visible:outline-2 focus-visible:outline-stroke-focus"
+      :class="edge === 'start' ? 'left-0 rounded-l-sm' : 'right-0 rounded-r-sm'"
       :aria-label="
         $t(
           edge === 'start'

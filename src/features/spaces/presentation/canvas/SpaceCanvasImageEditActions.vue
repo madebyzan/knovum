@@ -25,7 +25,7 @@ const { t } = useI18n();
         :aria-label="t('spaces.media.imageEditor.comments.title')"
         @click="emit('beginComment')"
       >
-        <MessageCircle class="size-(--knovum-icon-size-toolbar)" :stroke-width="1.6" />
+        <MessageCircle class="size-4.5" :stroke-width="1.6" />
         <span :class="[nodeActionLabelClass, nodeActionLabelState(compact)]">{{
           t("spaces.media.imageEditor.comments.title")
         }}</span>

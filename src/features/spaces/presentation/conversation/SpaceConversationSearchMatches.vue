@@ -32,19 +32,19 @@ const matches = computed(() => {
 </script>
 
 <template>
-  <details class="rounded-control border border-divider px-2 py-1.5 text-caption">
-    <summary class="cursor-pointer text-foreground-secondary select-none">
+  <details class="rounded-md border border-stroke-divider px-2 py-1.5 text-caption-md">
+    <summary class="cursor-pointer text-fg-secondary select-none">
       {{ t("spaces.assistant.sources", { count: matches.length }) }}
     </summary>
     <ul class="mt-2 space-y-1.5">
       <li
         v-for="match in matches"
         :key="`${match.nodeId}:${match.sourceRevision}`"
-        class="rounded-control bg-control p-2"
+        class="rounded-md bg-surface-control p-2"
       >
         <button
           type="button"
-          class="text-left font-medium text-accent hover:underline"
+          class="text-left font-medium text-fg-accent hover:underline"
           @click="
             store.openSource({
               nodeId: match.nodeId,
@@ -56,7 +56,7 @@ const matches = computed(() => {
         >
           {{ match.title ?? match.nodeId }}
         </button>
-        <p class="mt-1 line-clamp-3 text-foreground-secondary">{{ match.preview }}</p>
+        <p class="mt-1 line-clamp-3 text-fg-secondary">{{ match.preview }}</p>
       </li>
     </ul>
   </details>

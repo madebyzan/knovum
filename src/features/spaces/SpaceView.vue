@@ -68,22 +68,22 @@ onMounted(() => void initialize());
 </script>
 
 <template>
-  <main class="relative isolate h-full min-h-0 bg-canvas">
+  <main class="relative isolate h-full min-h-0 bg-surface-canvas">
     <div v-if="initializationError" class="grid h-full place-items-center p-8 text-center">
       <div class="max-w-sm">
-        <AlertTriangle class="mx-auto size-7 text-warning" />
-        <h2 class="mt-3 text-title font-semibold">{{ t("spaces.space.loadFailed") }}</h2>
-        <p class="mt-1 text-body text-foreground-secondary">
+        <AlertTriangle class="mx-auto size-7 text-fg-warning" />
+        <h2 class="mt-3 text-title-md font-semibold">{{ t("spaces.space.loadFailed") }}</h2>
+        <p class="mt-1 text-body-sm text-fg-secondary">
           {{ t("spaces.space.loadFailedHint") }}
         </p>
-        <p class="mt-2 text-caption text-danger">{{ initializationError.message }}</p>
+        <p class="mt-2 text-caption-md text-fg-danger">{{ initializationError.message }}</p>
         <UiButton class="mt-4" :disabled="initializing" @click="initialize">{{ t("common.retry") }}</UiButton>
       </div>
     </div>
     <template v-else-if="store.ready">
       <SpaceCanvas />
       <SpaceAudioRecordingDock class="pointer-events-auto absolute bottom-3 left-1/2 z-50 -translate-x-1/2" />
-      <section v-if="store.workspaceMode === 'library'" class="absolute inset-0 z-40 bg-canvas">
+      <section v-if="store.workspaceMode === 'library'" class="absolute inset-0 z-40 bg-surface-canvas">
         <SpaceLibrary />
       </section>
       <SpaceEditorLoading v-if="focusedEditorId && !mountedEditorId" />

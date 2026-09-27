@@ -7,12 +7,14 @@ import { cn } from "../cn";
 describe("cn", () => {
   it("merges classes cleanly", () => {
     const isHidden = false;
-    expect(cn("px-2 py-1", "bg-raised", undefined, isHidden && "hidden")).toBe("px-2 py-1 bg-raised");
+    expect(cn("px-2 py-1", "bg-surface-raised", undefined, isHidden && "hidden")).toBe(
+      "px-2 py-1 bg-surface-raised",
+    );
   });
 
   it("resolves conflicting tailwind classes", () => {
     expect(cn("p-2", "p-4")).toBe("p-4");
-    expect(cn("text-foreground-secondary", "text-foreground")).toBe("text-foreground");
+    expect(cn("text-fg-secondary", "text-fg-primary")).toBe("text-fg-primary");
   });
 });
 
@@ -39,29 +41,37 @@ describe("cn design tokens", () => {
     expect(names.length).toBeGreaterThan(0);
     for (const [, name] of names) {
       const token = `text-${name}`;
-      expect(cn(token, "text-foreground")).toBe(`${token} text-foreground`);
-      expect(cn("text-foreground", token)).toBe(`text-foreground ${token}`);
+      expect(cn(token, "text-fg-primary")).toBe(`${token} text-fg-primary`);
+      expect(cn("text-fg-primary", token)).toBe(`text-fg-primary ${token}`);
     }
   });
 
   it("keeps a token font size next to a text colour", () => {
-    expect(cn("text-label", "text-foreground")).toBe("text-label text-foreground");
-    expect(cn("text-micro text-foreground-tertiary", "text-foreground")).toBe("text-micro text-foreground");
+    expect(cn("text-label-md", "text-fg-primary")).toBe("text-label-md text-fg-primary");
+    expect(cn("text-caption-sm text-fg-tertiary", "text-fg-primary")).toBe("text-caption-sm text-fg-primary");
   });
 
   it("resolves token font sizes against each other", () => {
-    expect(cn("text-micro", "text-caption")).toBe("text-caption");
-    expect(cn("text-body-lg", "text-label")).toBe("text-label");
+    expect(cn("text-caption-sm", "text-caption-md")).toBe("text-caption-md");
+    expect(cn("text-body-md", "text-label-md")).toBe("text-label-md");
   });
 
   it("resolves token radii against the built-in radius scale", () => {
-    expect(cn("rounded-control", "rounded-none")).toBe("rounded-none");
+    expect(cn("rounded-md", "rounded-none")).toBe("rounded-none");
     expect(cn("rounded-none", "rounded-panel")).toBe("rounded-panel");
-    expect(cn("rounded-grid-cell", "rounded-section")).toBe("rounded-section");
+    expect(cn("rounded-sm", "rounded-xl")).toBe("rounded-xl");
   });
 
   it("resolves token shadows against the built-in shadow scale", () => {
     expect(cn("shadow-control", "shadow-none")).toBe("shadow-none");
     expect(cn("shadow-none", "shadow-popover")).toBe("shadow-popover");
+  });
+
+  it("merges feature-owned shape references in the correct utility group", () => {
+    expect(cn("rounded-md", "rounded-lg")).toBe("rounded-lg");
+    expect(cn("shadow-(--knovum-space-node-box-shadow)", "shadow-none")).toBe("shadow-none");
+    expect(cn("shadow-none", "shadow-(--knovum-space-node-box-shadow)")).toBe(
+      "shadow-(--knovum-space-node-box-shadow)",
+    );
   });
 });

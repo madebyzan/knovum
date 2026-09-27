@@ -44,21 +44,21 @@ function applyPreset(preset: GenerationPreset) {
   >
     <div class="space-y-4">
       <label class="block space-y-1.5"
-        ><span class="text-label font-medium">{{ t("common.title") }}</span
+        ><span class="text-label-md font-medium">{{ t("common.title") }}</span
         ><UiInput v-model="form.title"
       /></label>
       <label class="block space-y-1.5"
-        ><span class="text-label font-medium">{{ t("spaces.creation.document.purpose") }}</span
+        ><span class="text-label-md font-medium">{{ t("spaces.creation.document.purpose") }}</span
         ><UiTextarea
           v-model="form.purpose"
           :rows="5"
           :placeholder="t('spaces.creation.document.purposePlaceholder')"
       /></label>
       <div>
-        <p class="text-micro text-foreground-tertiary">
+        <p class="text-caption-sm text-fg-tertiary">
           {{ t("spaces.creation.document.sources", { count: sources.length }) }}
         </p>
-        <p class="mt-1 line-clamp-2 text-caption text-foreground-secondary">
+        <p class="mt-1 line-clamp-2 text-caption-md text-fg-secondary">
           {{ sources.map((source) => source.title).join(" · ") }}
         </p>
       </div>

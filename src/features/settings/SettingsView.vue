@@ -97,7 +97,7 @@ function backToApp() {
 </script>
 
 <template>
-  <main data-testid="settings-view" class="flex h-full min-h-0 bg-canvas select-none">
+  <main data-testid="settings-view" class="flex h-full min-h-0 bg-surface-canvas select-none">
     <SettingsSidebar
       :active-pane="activePane"
       :active-setting="activeSetting"
@@ -105,12 +105,12 @@ function backToApp() {
       @select="selectPane"
     />
     <UiScrollArea class="min-h-0 min-w-0 flex-1 select-text">
-      <div data-tauri-drag-region class="h-(--knovum-window-chrome-height)" />
-      <div class="mx-auto max-w-(--knovum-settings-max-width) px-10 pt-5 pb-16">
+      <div data-tauri-drag-region class="h-(--knovum-titlebar-height)" />
+      <div class="mx-auto max-w-208 px-10 pt-5 pb-16">
         <header
           class="mb-5 flex min-h-(--knovum-control-height-sm) items-center justify-between gap-4 px-0.5"
         >
-          <h1 class="m-0 text-display font-semibold tracking-title text-foreground">
+          <h1 class="m-0 text-display-sm font-semibold tracking-title text-fg-primary">
             {{ paneTitle }}
           </h1>
           <component :is="paneHeaderAction" v-if="paneHeaderAction" />

@@ -63,7 +63,7 @@ async function beginAudioRecording() {
           size="sm"
           tooltip-side="bottom"
         >
-          <Plus class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
+          <Plus class="size-3.5" :stroke-width="1.6" />
         </UiIconButton>
       </ToolbarButton>
     </template>

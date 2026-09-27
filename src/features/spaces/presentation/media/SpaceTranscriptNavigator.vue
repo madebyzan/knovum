@@ -67,14 +67,14 @@ async function remeasure() {
 </script>
 
 <template>
-  <div class="overflow-hidden rounded-panel border border-divider bg-surface/45">
-    <div class="flex items-center gap-2 border-b border-divider p-2">
+  <div class="overflow-hidden rounded-panel border border-stroke-divider bg-surface-muted/45">
+    <div class="flex items-center gap-2 border-b border-stroke-divider p-2">
       <UiSearchInput
         v-model="query"
         class="min-w-0 flex-1"
         :placeholder="t('spaces.transcript.text.search')"
       />
-      <label class="flex shrink-0 items-center gap-1.5 text-micro text-foreground-tertiary">
+      <label class="flex shrink-0 items-center gap-1.5 text-caption-sm text-fg-tertiary">
         {{ t("spaces.media.player.followPlayback") }}
         <UiSwitch v-model="autoFollow" :label="t('spaces.media.player.followPlayback')" />
       </label>
@@ -99,7 +99,7 @@ async function remeasure() {
         />
       </div>
     </div>
-    <p v-if="!visibleIndices.length" class="p-4 text-center text-caption text-foreground-tertiary">
+    <p v-if="!visibleIndices.length" class="p-4 text-center text-caption-md text-fg-tertiary">
       {{ t("spaces.transcript.text.noMatches") }}
     </p>
   </div>

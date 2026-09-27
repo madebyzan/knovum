@@ -93,7 +93,7 @@ function openAiSettings() {
           :disabled="busy"
           :aria-label="t('spaces.media.imageEditor.layers.title')"
         >
-          <Layers3 class="size-(--knovum-icon-size-toolbar)" :stroke-width="1.6" />
+          <Layers3 class="size-4.5" :stroke-width="1.6" />
           <span :class="[nodeActionLabelClass, nodeActionLabelState(Boolean(compact))]">{{
             t("spaces.media.imageEditor.layers.title")
           }}</span>
@@ -104,11 +104,11 @@ function openAiSettings() {
       <div class="flex items-center gap-1">
         <button
           type="button"
-          class="flex min-w-0 flex-1 items-center gap-2 rounded-control px-2 py-2 text-left text-label text-foreground hover:bg-control-hover focus-visible:ring-2 focus-visible:ring-focus-ring disabled:cursor-not-allowed disabled:opacity-40"
+          class="flex min-w-0 flex-1 items-center gap-2 rounded-md px-2 py-2 text-left text-label-md text-fg-primary hover:bg-surface-control-hover focus-visible:ring-2 focus-visible:ring-stroke-focus disabled:cursor-not-allowed disabled:opacity-40"
           :disabled="!canSubmit"
           @click="submit('automatic')"
         >
-          <WandSparkles class="size-(--knovum-icon-size-md)" :stroke-width="1.6" />
+          <WandSparkles class="size-4" :stroke-width="1.6" />
           {{ t("spaces.media.imageEditor.layers.auto") }}
         </button>
         <UiActionHelp
@@ -120,10 +120,10 @@ function openAiSettings() {
       </div>
       <button
         type="button"
-        class="flex w-full items-center gap-2 rounded-control px-2 py-2 text-left text-label text-foreground hover:bg-control-hover focus-visible:ring-2 focus-visible:ring-focus-ring"
+        class="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-label-md text-fg-primary hover:bg-surface-control-hover focus-visible:ring-2 focus-visible:ring-stroke-focus"
         @click="custom = true"
       >
-        <PencilLine class="size-(--knovum-icon-size-md)" :stroke-width="1.6" />
+        <PencilLine class="size-4" :stroke-width="1.6" />
         {{ t("spaces.media.imageEditor.layers.custom") }}
       </button>
     </template>

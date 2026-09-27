@@ -26,14 +26,14 @@ const emit = defineEmits<{
 
 <template>
   <header
-    class="@container relative h-(--knovum-window-chrome-height) shrink-0 material-toolbar [container-name:workspace-toolbar]"
+    class="@container relative h-(--knovum-titlebar-height) shrink-0 material-toolbar [container-name:workspace-toolbar]"
   >
     <div data-tauri-drag-region class="absolute inset-0" />
     <div
       class="workspace-toolbar-content relative grid h-full"
       :style="{ gridTemplateColumns: toolbarColumns }"
     >
-      <div class="flex min-w-0 items-center gap-1 pr-2 pl-(--knovum-window-navigation-control-offset)">
+      <div class="flex min-w-0 items-center gap-1 pr-2 pl-(--knovum-titlebar-navigation-padding-start)">
         <WorkspaceNavigationControls
           :sidebar-pinned="sidebarPinned"
           @toggle-sidebar="emit('toggle-sidebar')"
@@ -47,7 +47,7 @@ const emit = defineEmits<{
       </div>
       <div
         class="flex min-w-0 items-center gap-1 overflow-hidden px-3"
-        :class="{ 'border-l border-window-hairline bg-panel': rightSidebarOpen }"
+        :class="{ 'border-l border-(--knovum-window-border-color) bg-surface-panel': rightSidebarOpen }"
       >
         <component v-if="rightSidebarOpen" :is="workspace.rightSidebarToolbar" class="min-w-0" />
         <UiIconButton
@@ -64,7 +64,7 @@ const emit = defineEmits<{
         >
           <component
             :is="rightSidebarOpen ? PanelRightClose : PanelRightOpen"
-            class="size-(--knovum-icon-size-toolbar)"
+            class="size-4.5"
             :stroke-width="1.55"
           />
         </UiIconButton>

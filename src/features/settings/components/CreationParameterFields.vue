@@ -18,7 +18,7 @@ function setValue(key: string, value: ParameterValue | undefined) {
       :key="key"
       class="grid min-h-(--knovum-control-height-md) grid-cols-[minmax(8rem,1fr)_minmax(12rem,2fr)] items-center gap-3"
     >
-      <span class="truncate text-caption text-foreground-secondary">{{ key }}</span>
+      <span class="truncate text-caption-md text-fg-secondary">{{ key }}</span>
       <UiSwitch
         v-if="typeof value === 'boolean'"
         :model-value="value"

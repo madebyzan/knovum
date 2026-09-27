@@ -58,13 +58,13 @@ function replaceConnection(index: number, connection: AiConnectionSettings) {
   >
     <div v-if="connections.length === 0" class="flex items-center justify-between gap-6 px-4 py-3">
       <div class="min-w-0">
-        <p class="text-body-lg font-medium text-foreground">{{ t("settings.ai.noConnections") }}</p>
-        <p class="mt-0.5 max-w-xl text-caption leading-normal text-foreground-secondary">
+        <p class="text-body-md font-medium text-fg-primary">{{ t("settings.ai.noConnections") }}</p>
+        <p class="mt-0.5 max-w-xl text-caption-md leading-normal text-fg-secondary">
           {{ t("settings.ai.noConnectionsDescription") }}
         </p>
       </div>
       <UiButton class="shrink-0" @click="createDialogOpen = true">
-        <Plus class="size-(--knovum-icon-size-sm)" />{{ t("settings.ai.addConnection") }}
+        <Plus class="size-3.5" />{{ t("settings.ai.addConnection") }}
       </UiButton>
     </div>
     <div v-else>
@@ -80,9 +80,9 @@ function replaceConnection(index: number, connection: AiConnectionSettings) {
         @remove="removeConnection(index)"
       />
     </div>
-    <div v-if="connections.length > 0" class="border-t border-divider px-3 py-2">
+    <div v-if="connections.length > 0" class="border-t border-stroke-divider px-3 py-2">
       <UiButton variant="ghost" @click="createDialogOpen = true">
-        <Plus class="size-(--knovum-icon-size-sm)" />{{ t("settings.ai.addConnection") }}
+        <Plus class="size-3.5" />{{ t("settings.ai.addConnection") }}
       </UiButton>
     </div>
   </SettingsSection>

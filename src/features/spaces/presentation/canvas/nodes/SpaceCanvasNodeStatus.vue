@@ -25,14 +25,10 @@ const label = computed(() => (work.value ? t(work.value.labelKey) : ""));
 
 <template>
   <span v-if="work?.surface === 'chrome'" :title="label" :aria-label="label" role="status">
-    <CircleAlert
-      v-if="work.phase === 'failed'"
-      class="size-(--knovum-icon-size-xs) text-danger"
-      :stroke-width="1.6"
-    />
+    <CircleAlert v-if="work.phase === 'failed'" class="size-3 text-fg-danger" :stroke-width="1.6" />
     <SpaceCanvasWorkEffect v-else placement="inline" />
   </span>
-  <span v-else-if="work?.surface === 'selection'" class="text-micro text-accent" role="status">
+  <span v-else-if="work?.surface === 'selection'" class="text-caption-sm text-fg-accent" role="status">
     {{ label }}
   </span>
 </template>

@@ -50,8 +50,10 @@ function submit(event?: KeyboardEvent) {
 </script>
 
 <template>
-  <footer class="min-w-0 shrink-0 border-t border-divider bg-panel p-3">
-    <div class="min-w-0 rounded-panel border border-border bg-raised focus-within:border-focus-ring">
+  <footer class="min-w-0 shrink-0 border-t border-stroke-divider bg-surface-panel p-3">
+    <div
+      class="min-w-0 rounded-panel border border-stroke-default bg-surface-raised focus-within:border-stroke-focus"
+    >
       <UiTextarea
         v-if="!busy"
         ref="input"
@@ -63,7 +65,7 @@ function submit(event?: KeyboardEvent) {
         @keydown.meta.enter="submit"
         @keydown.ctrl.enter="submit"
       />
-      <div v-else class="min-h-24 px-3 py-3 text-body text-foreground-tertiary">
+      <div v-else class="min-h-24 px-3 py-3 text-body-sm text-fg-tertiary">
         {{ $t("spaces.assistant.input.placeholder") }}
       </div>
       <div v-if="attachments.length" class="flex min-w-0 flex-wrap gap-1.5 px-3 pb-2">
@@ -88,22 +90,22 @@ function submit(event?: KeyboardEvent) {
           class="min-w-0 flex-1"
         />
         <UiIconButton v-if="busy" :label="$t('spaces.assistant.stop')" size="sm" @click="emit('cancel')">
-          <CircleStop class="size-(--knovum-icon-size-sm)" />
+          <CircleStop class="size-3.5" />
         </UiIconButton>
         <UiIconButton
           v-else
           :label="$t('spaces.assistant.input.send')"
           :shortcut="$t('spaces.assistant.input.shortcutHint')"
           size="sm"
-          class="bg-accent text-on-accent hover:bg-accent-hover hover:text-on-accent disabled:bg-control disabled:text-foreground-secondary"
+          class="bg-surface-accent text-fg-on-accent hover:bg-surface-accent-hover hover:text-fg-on-accent disabled:bg-surface-control disabled:text-fg-secondary"
           :disabled="!canSend"
           @click="submit()"
         >
-          <ArrowUp class="size-(--knovum-icon-size-sm)" />
+          <ArrowUp class="size-3.5" />
         </UiIconButton>
       </div>
     </div>
-    <p v-if="attachmentError" role="alert" class="pt-1.5 text-caption text-danger">
+    <p v-if="attachmentError" role="alert" class="pt-1.5 text-caption-md text-fg-danger">
       {{ attachmentError.startsWith("spaces.assistant.") ? $t(attachmentError) : attachmentError }}
     </p>
   </footer>

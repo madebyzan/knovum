@@ -27,7 +27,7 @@ const inputId = useId();
 
 <template>
   <div class="min-w-0">
-    <label :for="inputId" class="mb-1.5 block text-caption text-foreground-secondary">{{ label }}</label>
+    <label :for="inputId" class="mb-1.5 block text-caption-md text-fg-secondary">{{ label }}</label>
     <ComboboxRoot v-model="model" :disabled="disabled" open-on-click>
       <ComboboxAnchor class="relative block">
         <ComboboxInput
@@ -35,14 +35,14 @@ const inputId = useId();
           :display-value="(value) => String(value ?? '')"
           :class="[
             INPUT_BASE_CLASSES,
-            'h-(--knovum-control-height-sm) w-full min-w-0 pr-7 pl-2 text-caption',
+            'h-(--knovum-control-height-sm) w-full min-w-0 pr-7 pl-2 text-caption-md',
           ]"
         />
         <ComboboxTrigger
-          class="absolute inset-y-0 right-0 grid w-7 place-items-center rounded-r-control text-foreground-tertiary hover:text-foreground focus-visible:outline-2 focus-visible:outline-focus-ring"
+          class="absolute inset-y-0 right-0 grid w-7 place-items-center rounded-r-md text-fg-tertiary hover:text-fg-primary focus-visible:outline-2 focus-visible:outline-stroke-focus"
           :aria-label="label"
         >
-          <ChevronDown class="size-(--knovum-icon-size-xs)" />
+          <ChevronDown class="size-3" />
         </ComboboxTrigger>
       </ComboboxAnchor>
       <ComboboxPortal>
@@ -57,18 +57,16 @@ const inputId = useId();
           ]"
         >
           <ComboboxViewport class="max-h-60 overflow-y-auto">
-            <ComboboxEmpty class="px-2 py-3 text-caption text-foreground-secondary">{{
+            <ComboboxEmpty class="px-2 py-3 text-caption-md text-fg-secondary">{{
               emptyLabel
             }}</ComboboxEmpty>
             <ComboboxItem
               v-for="family in families"
               :key="family"
               :value="family"
-              class="relative flex min-h-(--knovum-compact-item-height) cursor-default items-center rounded-control py-1 pr-2 pl-7 text-label outline-none data-highlighted:bg-control-hover"
+              class="relative flex min-h-(--knovum-list-item-height-sm) cursor-default items-center rounded-md py-1 pr-2 pl-7 text-label-md outline-none data-highlighted:bg-surface-control-hover"
             >
-              <ComboboxItemIndicator class="absolute left-2"
-                ><Check class="size-(--knovum-icon-size-xs)"
-              /></ComboboxItemIndicator>
+              <ComboboxItemIndicator class="absolute left-2"><Check class="size-3" /></ComboboxItemIndicator>
               <span class="min-w-0 truncate">{{ family }}</span>
             </ComboboxItem>
           </ComboboxViewport>

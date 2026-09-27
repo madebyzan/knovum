@@ -67,14 +67,14 @@ onMounted(load);
       v-if="loadError"
       :class="
         compact
-          ? 'flex items-center gap-2 text-caption text-danger'
-          : 'space-y-2 rounded-control border border-danger/30 bg-danger-subtle p-3'
+          ? 'flex items-center gap-2 text-caption-md text-fg-danger'
+          : 'space-y-2 rounded-md border border-stroke-danger/30 bg-surface-danger-subtle p-3'
       "
     >
-      <p :class="compact ? 'truncate' : 'text-label font-medium'">
+      <p :class="compact ? 'truncate' : 'text-label-md font-medium'">
         {{ t("ai.settingsUnavailable") }}
       </p>
-      <p v-if="!compact" class="text-caption wrap-break-word text-foreground-secondary">
+      <p v-if="!compact" class="text-caption-md wrap-break-word text-fg-secondary">
         {{ String(loadError) }}
       </p>
       <UiButton size="sm" variant="secondary" @click="load">{{ t("common.retry") }}</UiButton>
@@ -87,17 +87,17 @@ onMounted(load);
         :disabled="disabled || !ready || Boolean(loadError) || options.length === 0"
         :placeholder="t('ai.noCompatibleTarget')"
         size="sm"
-        class="min-w-0 flex-1 border-transparent bg-transparent shadow-none hover:bg-control-hover"
+        class="min-w-0 flex-1 border-transparent bg-transparent shadow-none hover:bg-surface-control-hover"
         @update:model-value="target = decodeExecutionTarget($event)"
       />
     </template>
     <div
       v-else-if="ready && options.length === 0"
-      class="space-y-2 rounded-control border border-border/70 bg-panel/60 p-3"
+      class="space-y-2 rounded-md border border-stroke-default/70 bg-surface-panel/60 p-3"
     >
       <div class="space-y-0.5">
-        <p class="text-label font-medium text-foreground">{{ t("ai.disabledTitle") }}</p>
-        <p class="text-caption leading-relaxed text-foreground-secondary">
+        <p class="text-label-md font-medium text-fg-primary">{{ t("ai.disabledTitle") }}</p>
+        <p class="text-caption-md leading-relaxed text-fg-secondary">
           {{ t("ai.disabledDescription") }}
         </p>
       </div>
@@ -111,7 +111,7 @@ onMounted(load);
         </UiButton>
       </div>
     </div>
-    <label v-else class="block space-y-1.5 text-label font-medium">
+    <label v-else class="block space-y-1.5 text-label-md font-medium">
       {{ t("ai.target") }}
       <UiSelect
         :model-value="value"

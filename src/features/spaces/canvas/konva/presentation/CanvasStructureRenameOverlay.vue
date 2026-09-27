@@ -45,7 +45,7 @@ onMounted(() => void nextTick(() => input.value?.select()));
     <input
       ref="input"
       v-model="draft"
-      class="h-7 w-full rounded-control border border-accent bg-surface px-2 text-body text-foreground shadow-popover outline-none"
+      class="h-7 w-full rounded-md border border-stroke-accent bg-surface-muted px-2 text-body-sm text-fg-primary shadow-popover outline-none"
       :aria-label="title"
       :aria-invalid="Boolean(error)"
       @blur="emit('cancel')"
@@ -53,7 +53,7 @@ onMounted(() => void nextTick(() => input.value?.select()));
     />
     <p
       v-if="error"
-      class="mt-1 rounded-control bg-danger px-2 py-1 text-caption text-on-danger shadow-popover"
+      class="mt-1 rounded-md bg-surface-danger px-2 py-1 text-caption-md text-fg-on-danger shadow-popover"
     >
       {{ error }}
     </p>

@@ -28,14 +28,14 @@ const shortcutLabel = computed(() => (props.shortcut ? formatShortcutLabel(props
     :class="cn('inline-flex items-center gap-1 select-none', props.class)"
   >
     <template v-for="(group, gIdx) in keyGroups" :key="gIdx">
-      <span v-if="group.connector" class="px-0.5 font-sans text-micro text-foreground-tertiary">
+      <span v-if="group.connector" class="px-0.5 font-sans text-caption-sm text-fg-tertiary">
         {{ group.connector }}
       </span>
       <!-- h-5.5 min-w-5.5 (22px) is compact keycap badge geometry to tightly wrap micro typography -->
       <kbd
         v-for="(key, kIdx) in group.keys"
         :key="kIdx"
-        class="inline-flex h-5.5 min-w-5.5 items-center justify-center rounded border border-border/80 bg-surface px-1.5 font-sans text-micro font-medium text-foreground"
+        class="inline-flex h-5.5 min-w-5.5 items-center justify-center rounded border border-stroke-default/80 bg-surface-muted px-1.5 font-sans text-caption-sm font-medium text-fg-primary"
       >
         {{ key }}
       </kbd>
@@ -45,7 +45,7 @@ const shortcutLabel = computed(() => (props.shortcut ? formatShortcutLabel(props
     v-else
     :class="
       cn(
-        'inline-flex min-w-5 items-center justify-center rounded-sm px-1 py-0.5 font-sans text-micro leading-none text-foreground-tertiary select-none',
+        'inline-flex min-w-5 items-center justify-center rounded-sm px-1 py-0.5 font-sans text-caption-sm leading-none text-fg-tertiary select-none',
         props.class,
       )
     "

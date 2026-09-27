@@ -24,12 +24,12 @@ const items = computed(() => [
 
 <template>
   <section
-    class="grid grid-cols-2 overflow-hidden rounded-section border border-border bg-panel shadow-panel sm:grid-cols-3"
+    class="grid grid-cols-2 overflow-hidden rounded-xl border border-stroke-default bg-surface-panel shadow-panel sm:grid-cols-3"
   >
     <div
       v-for="(item, index) in items"
       :key="item.label"
-      class="border-divider px-4 py-4 text-center"
+      class="border-stroke-divider px-4 py-4 text-center"
       :class="[
         index % 3 !== 2 && 'sm:border-r',
         index < 3 && 'sm:border-b',
@@ -37,8 +37,8 @@ const items = computed(() => [
         index < 4 && 'max-sm:border-b',
       ]"
     >
-      <p class="text-title font-semibold tracking-title text-foreground">{{ item.value }}</p>
-      <p class="mt-1 text-caption text-foreground-secondary">{{ item.label }}</p>
+      <p class="text-title-md font-semibold tracking-title text-fg-primary">{{ item.value }}</p>
+      <p class="mt-1 text-caption-md text-fg-secondary">{{ item.label }}</p>
     </div>
   </section>
 </template>

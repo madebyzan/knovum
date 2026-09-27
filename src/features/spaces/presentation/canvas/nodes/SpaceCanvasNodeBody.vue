@@ -92,10 +92,10 @@ const work = computed(() => nodePayloadWork(props.data));
   />
   <div v-else class="min-h-0 flex-1 overflow-hidden px-3 py-2.5">
     <p
-      class="leading-relaxed whitespace-pre-wrap text-foreground-secondary"
+      class="leading-relaxed whitespace-pre-wrap text-fg-secondary"
       :class="[
         presentation.mono && 'font-mono',
-        presentationContext.viewport.level === 'compact' ? 'text-caption' : 'text-body',
+        presentationContext.viewport.level === 'compact' ? 'text-caption-md' : 'text-body-sm',
       ]"
     >
       {{ text }}

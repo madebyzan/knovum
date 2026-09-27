@@ -42,46 +42,46 @@ const { t } = useI18n();
 
 <template>
   <div
-    class="grid h-13 shrink-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 border-t border-border bg-panel px-3"
+    class="grid h-13 shrink-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 border-t border-stroke-default bg-surface-panel px-3"
   >
     <div class="flex min-w-0 items-center gap-1">
       <UiIconButton :label="t('common.undo')" size="sm" :disabled="!canUndo" @click="$emit('undo')">
-        <Undo2 class="size-(--knovum-icon-size-sm)" />
+        <Undo2 class="size-3.5" />
       </UiIconButton>
       <UiIconButton :label="t('common.redo')" size="sm" :disabled="!canRedo" @click="$emit('redo')">
-        <Redo2 class="size-(--knovum-icon-size-sm)" />
+        <Redo2 class="size-3.5" />
       </UiIconButton>
-      <span class="mx-1 h-5 w-px bg-divider" aria-hidden="true" />
+      <span class="bg-border-divider mx-1 h-5 w-px" aria-hidden="true" />
       <UiIconButton :label="t('spaces.media.videoEditor.clip.split')" size="sm" @click="$emit('split')"
-        ><Scissors class="size-(--knovum-icon-size-sm)"
+        ><Scissors class="size-3.5"
       /></UiIconButton>
       <UiIconButton :label="t('spaces.media.videoEditor.text.add')" size="sm" @click="$emit('addText')"
-        ><Type class="size-(--knovum-icon-size-sm)"
+        ><Type class="size-3.5"
       /></UiIconButton>
       <UiIconButton :label="t('common.delete')" size="sm" :disabled="!canDelete" @click="$emit('remove')"
-        ><Trash2 class="size-(--knovum-icon-size-sm)"
+        ><Trash2 class="size-3.5"
       /></UiIconButton>
     </div>
     <div class="flex items-center gap-2">
-      <span class="w-12 text-right text-caption font-medium tabular-nums">{{
+      <span class="w-12 text-right text-caption-md font-medium tabular-nums">{{
         formatVideoTimelineTime(currentMs)
       }}</span>
       <UiIconButton :label="t('spaces.media.videoEditor.previousStep')" size="sm" @click="$emit('step', -100)"
-        ><SkipBack class="size-(--knovum-icon-size-sm)"
+        ><SkipBack class="size-3.5"
       /></UiIconButton>
       <UiIconButton
-        class="size-9 rounded-full bg-foreground text-canvas hover:bg-foreground-secondary hover:text-canvas active:bg-foreground-secondary active:text-canvas"
+        class="size-9 rounded-full bg-surface-inverse text-fg-inverse hover:bg-surface-inverse-hover hover:text-fg-inverse active:bg-surface-inverse-hover active:text-fg-inverse"
         :label="playing ? t('common.pause') : t('spaces.media.player.play')"
         size="sm"
         @click="$emit('toggle')"
       >
-        <Pause v-if="playing" class="size-(--knovum-icon-size-sm)" fill="currentColor" />
-        <Play v-else class="size-(--knovum-icon-size-sm)" fill="currentColor" />
+        <Pause v-if="playing" class="size-3.5" fill="currentColor" />
+        <Play v-else class="size-3.5" fill="currentColor" />
       </UiIconButton>
       <UiIconButton :label="t('spaces.media.videoEditor.nextStep')" size="sm" @click="$emit('step', 100)"
-        ><SkipForward class="size-(--knovum-icon-size-sm)"
+        ><SkipForward class="size-3.5"
       /></UiIconButton>
-      <span class="w-12 text-caption text-foreground-tertiary tabular-nums">{{
+      <span class="w-12 text-caption-md text-fg-tertiary tabular-nums">{{
         formatVideoTimelineTime(durationMs)
       }}</span>
     </div>
@@ -92,9 +92,9 @@ const { t } = useI18n();
         :disabled="zoom <= 1"
         @click="$emit('zoom', Math.max(1, zoom / 1.5))"
       >
-        <ZoomOut class="size-(--knovum-icon-size-sm)" />
+        <ZoomOut class="size-3.5" />
       </UiIconButton>
-      <span class="w-10 text-center text-micro text-foreground-secondary tabular-nums"
+      <span class="w-10 text-center text-caption-sm text-fg-secondary tabular-nums"
         >{{ Math.round(zoom * 100) }}%</span
       >
       <UiIconButton
@@ -103,7 +103,7 @@ const { t } = useI18n();
         :disabled="zoom >= 8"
         @click="$emit('zoom', Math.min(8, zoom * 1.5))"
       >
-        <ZoomIn class="size-(--knovum-icon-size-sm)" />
+        <ZoomIn class="size-3.5" />
       </UiIconButton>
       <UiIconButton
         :label="t('spaces.media.videoEditor.timeline.fit')"
@@ -111,7 +111,7 @@ const { t } = useI18n();
         :disabled="zoom === 1"
         @click="$emit('zoom', 1)"
       >
-        <Maximize2 class="size-(--knovum-icon-size-sm)" />
+        <Maximize2 class="size-3.5" />
       </UiIconButton>
     </div>
   </div>

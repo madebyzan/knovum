@@ -46,7 +46,7 @@ function addText() {
 
 <template>
   <aside
-    class="absolute inset-y-3 right-3 z-30 flex min-h-0 w-80 flex-col overflow-hidden rounded-section border border-border bg-overlay shadow-popover"
+    class="absolute inset-y-3 right-3 z-30 flex min-h-0 w-80 flex-col overflow-hidden rounded-xl border border-stroke-default bg-surface-overlay shadow-popover"
     :aria-label="$t('spaces.media.videoEditor.videoSettings')"
     @keydown.esc.prevent.stop="emit('close')"
   >
@@ -56,24 +56,24 @@ function addText() {
       class="flex min-h-0 flex-1 flex-col"
       @update:model-value="setTab"
     >
-      <div class="flex h-11 shrink-0 items-center border-b border-divider px-3">
+      <div class="flex h-11 shrink-0 items-center border-b border-stroke-divider px-3">
         <TabsList
           :aria-label="$t('spaces.media.videoEditor.text.tools')"
           class="flex h-full flex-1 items-stretch gap-5"
         >
           <TabsTrigger
             value="captions"
-            class="border-b-2 border-transparent px-1 text-caption text-foreground-secondary outline-none focus-visible:ring-2 focus-visible:ring-focus-ring data-[state=active]:border-foreground data-[state=active]:font-semibold data-[state=active]:text-foreground"
+            class="border-b-2 border-transparent px-1 text-caption-md text-fg-secondary outline-none focus-visible:ring-2 focus-visible:ring-stroke-focus data-[state=active]:border-stroke-contrast data-[state=active]:font-semibold data-[state=active]:text-fg-primary"
             >{{ $t("spaces.media.videoEditor.tabs.captions") }}</TabsTrigger
           >
           <TabsTrigger
             value="text"
-            class="border-b-2 border-transparent px-1 text-caption text-foreground-secondary outline-none focus-visible:ring-2 focus-visible:ring-focus-ring data-[state=active]:border-foreground data-[state=active]:font-semibold data-[state=active]:text-foreground"
+            class="border-b-2 border-transparent px-1 text-caption-md text-fg-secondary outline-none focus-visible:ring-2 focus-visible:ring-stroke-focus data-[state=active]:border-stroke-contrast data-[state=active]:font-semibold data-[state=active]:text-fg-primary"
             >{{ $t("spaces.media.videoEditor.tabs.text") }}</TabsTrigger
           >
         </TabsList>
         <UiIconButton :label="$t('spaces.media.videoEditor.closeInspector')" size="sm" @click="emit('close')">
-          <X class="size-(--knovum-icon-size-sm)" />
+          <X class="size-3.5" />
         </UiIconButton>
       </div>
       <TabsContent value="captions" class="flex min-h-0 flex-1 flex-col outline-none">
@@ -95,10 +95,10 @@ function addText() {
       </TabsContent>
     </TabsRoot>
     <template v-else-if="selectedClip">
-      <div class="flex h-11 shrink-0 items-center justify-between border-b border-divider px-3">
-        <h2 class="text-caption font-semibold">{{ $t("spaces.media.videoEditor.clip.selected") }}</h2>
+      <div class="flex h-11 shrink-0 items-center justify-between border-b border-stroke-divider px-3">
+        <h2 class="text-caption-md font-semibold">{{ $t("spaces.media.videoEditor.clip.selected") }}</h2>
         <UiIconButton :label="$t('spaces.media.videoEditor.closeInspector')" size="sm" @click="emit('close')">
-          <X class="size-(--knovum-icon-size-sm)" />
+          <X class="size-3.5" />
         </UiIconButton>
       </div>
       <UiScrollArea class="min-h-0 flex-1">

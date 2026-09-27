@@ -55,7 +55,7 @@ async function save() {
 
 <template>
   <div class="flex items-end gap-2">
-    <label class="grid min-w-0 flex-1 gap-1.5 text-caption text-foreground-secondary">
+    <label class="grid min-w-0 flex-1 gap-1.5 text-caption-md text-fg-secondary">
       <span>{{ label }}</span>
       <UiSelect
         :model-value="selected"

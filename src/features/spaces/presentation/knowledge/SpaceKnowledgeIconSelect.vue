@@ -67,18 +67,14 @@ const activeEntry = computed(() => {
       :aria-label="t('spaces.knowledge.icons.select')"
       :class="[
         INPUT_BASE_CLASSES,
-        'flex h-(--knovum-control-height-md) w-full min-w-32 items-center justify-between gap-2 px-2.5 text-label data-[state=open]:border-focus-ring',
+        'flex h-(--knovum-control-height-md) w-full min-w-32 items-center justify-between gap-2 px-2.5 text-label-md data-[state=open]:border-stroke-focus',
       ]"
     >
       <div class="flex min-w-0 flex-1 items-center gap-2 text-left">
-        <component
-          :is="activeEntry.icon"
-          class="size-(--knovum-icon-size-sm) shrink-0 text-foreground-secondary"
-          :stroke-width="1.6"
-        />
+        <component :is="activeEntry.icon" class="size-3.5 shrink-0 text-fg-secondary" :stroke-width="1.6" />
         <span class="truncate">{{ t(activeEntry.labelKey) }}</span>
       </div>
-      <ChevronDown class="size-(--knovum-icon-size-xs) shrink-0 text-foreground-tertiary" />
+      <ChevronDown class="size-3 shrink-0 text-fg-tertiary" />
     </SelectTrigger>
     <SelectPortal>
       <SelectContent
@@ -97,15 +93,13 @@ const activeEntry = computed(() => {
             v-for="(iconOption, key) in ICON_MAP"
             :key="key"
             :value="key"
-            class="relative flex h-(--knovum-compact-item-height) cursor-default items-center rounded-control pr-2 pl-7 text-label outline-none data-highlighted:bg-control-hover"
+            class="relative flex h-(--knovum-list-item-height-sm) cursor-default items-center rounded-md pr-2 pl-7 text-label-md outline-none data-highlighted:bg-surface-control-hover"
           >
-            <SelectItemIndicator class="absolute left-2"
-              ><Check class="size-(--knovum-icon-size-xs)"
-            /></SelectItemIndicator>
+            <SelectItemIndicator class="absolute left-2"><Check class="size-3" /></SelectItemIndicator>
             <div class="flex min-w-0 flex-1 items-center gap-2">
               <component
                 :is="iconOption.icon"
-                class="size-(--knovum-icon-size-sm) shrink-0 text-foreground-secondary"
+                class="size-3.5 shrink-0 text-fg-secondary"
                 :stroke-width="1.6"
               />
               <SelectItemText class="min-w-0 flex-1 truncate">{{ t(iconOption.labelKey) }}</SelectItemText>

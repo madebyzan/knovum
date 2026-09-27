@@ -54,10 +54,12 @@ const peaks = computed(() => {
 </script>
 
 <template>
-  <div class="relative h-full min-w-0 shrink-0 border-r border-divider" data-video-clip>
+  <div class="relative h-full min-w-0 shrink-0 border-r border-stroke-divider" data-video-clip>
     <div
-      class="relative h-16 overflow-hidden border-y bg-accent-subtle"
-      :class="selected ? 'border-accent ring-1 ring-accent ring-inset' : 'border-accent/30'"
+      class="relative h-16 overflow-hidden border-y bg-surface-accent-subtle"
+      :class="
+        selected ? 'border-stroke-accent ring-1 ring-stroke-accent ring-inset' : 'border-stroke-accent/30'
+      "
     >
       <img
         v-for="(frame, index) in visibleFrames"
@@ -70,11 +72,11 @@ const peaks = computed(() => {
       />
       <button
         type="button"
-        class="absolute inset-0 w-full px-3 text-left text-caption text-white drop-shadow-md focus-visible:outline-2 focus-visible:outline-focus-ring"
+        class="absolute inset-0 w-full px-3 text-left text-caption-md text-fg-on-image drop-shadow-md focus-visible:outline-2 focus-visible:outline-stroke-focus"
         :aria-label="`${$t('spaces.media.videoEditor.clip.selected')} ${formatVideoEditTime(clip.startMs)}–${formatVideoEditTime(clip.endMs)}`"
         @click="$emit('select')"
       >
-        <span class="bg-black/45 rounded-control px-1 py-0.5 tabular-nums">
+        <span class="rounded-md bg-black/45 px-1 py-0.5 tabular-nums">
           {{ formatVideoEditTime(clip.startMs) }} – {{ formatVideoEditTime(clip.endMs) }}
         </span>
       </button>
@@ -82,8 +84,8 @@ const peaks = computed(() => {
         v-for="edge in edges"
         :key="edge"
         type="button"
-        class="absolute inset-y-0 z-10 w-2.5 cursor-ew-resize touch-none bg-accent/70 hover:bg-accent focus-visible:outline-2 focus-visible:outline-focus-ring"
-        :class="edge === 'start' ? 'left-0 rounded-l-grid-cell' : 'right-0 rounded-r-grid-cell'"
+        class="absolute inset-y-0 z-10 w-2.5 cursor-ew-resize touch-none bg-surface-accent/70 hover:bg-surface-accent focus-visible:outline-2 focus-visible:outline-stroke-focus"
+        :class="edge === 'start' ? 'left-0 rounded-l-sm' : 'right-0 rounded-r-sm'"
         :aria-label="
           $t(edge === 'start' ? 'spaces.media.videoEditor.trim.start' : 'spaces.media.videoEditor.trim.end')
         "
@@ -96,12 +98,12 @@ const peaks = computed(() => {
       />
     </div>
     <div
-      class="flex h-8 items-center gap-px overflow-hidden border-b border-accent/25 bg-accent-subtle px-0.5"
+      class="flex h-8 items-center gap-px overflow-hidden border-b border-stroke-accent/25 bg-surface-accent-subtle px-0.5"
     >
       <span
         v-for="(peak, index) in peaks"
         :key="index"
-        class="min-w-0 flex-1 rounded-full bg-accent/50"
+        class="min-w-0 flex-1 rounded-full bg-surface-accent/50"
         :style="{ height: `${Math.max(8, Math.sqrt(peak) * 90)}%` }"
       />
     </div>

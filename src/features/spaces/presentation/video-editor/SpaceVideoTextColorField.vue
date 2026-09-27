@@ -48,12 +48,16 @@ function handleKeydown(event: KeyboardEvent) {
 
 <template>
   <div>
-    <label class="mb-1.5 block text-caption text-foreground-secondary" :for="inputId">
+    <label class="mb-1.5 block text-caption-md text-fg-secondary" :for="inputId">
       {{ t("spaces.media.videoEditor.font.color") }}
     </label>
     <div
-      class="flex items-center gap-2 rounded-control border border-border bg-field px-2"
-      :class="invalid ? 'border-danger focus-within:border-danger' : 'focus-within:border-focus-ring'"
+      class="flex items-center gap-2 rounded-md border border-stroke-default bg-surface-inset px-2"
+      :class="
+        invalid
+          ? 'border-stroke-danger focus-within:border-stroke-danger'
+          : 'focus-within:border-stroke-focus'
+      "
     >
       <input
         :value="color"
@@ -73,7 +77,7 @@ function handleKeydown(event: KeyboardEvent) {
         @keydown="handleKeydown"
       />
     </div>
-    <p v-if="invalid" :id="errorId" class="mt-1 text-micro text-danger">
+    <p v-if="invalid" :id="errorId" class="mt-1 text-caption-sm text-fg-danger">
       {{ t("spaces.media.videoEditor.text.invalidColor") }}
     </p>
   </div>

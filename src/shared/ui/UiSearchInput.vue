@@ -50,7 +50,7 @@ defineExpose({ focus, focused });
   <div :class="cn('relative flex w-full items-center', props.class)">
     <Search
       :class="[
-        'pointer-events-none absolute text-foreground-tertiary',
+        'pointer-events-none absolute text-fg-tertiary',
         size === 'sm' ? 'left-2 size-3' : 'left-2.5 size-3.5',
       ]"
       :stroke-width="1.6"
@@ -64,11 +64,11 @@ defineExpose({ focus, focused });
       :autofocus="autofocus"
       :class="
         cn(
-          'w-full bg-surface/70',
+          'w-full bg-surface-muted/70',
           INPUT_BASE_CLASSES,
           size === 'sm'
-            ? 'h-(--knovum-control-height-sm) pr-7 pl-7 text-caption'
-            : 'h-(--knovum-control-height-md) pr-8 pl-8.5 text-label',
+            ? 'h-(--knovum-control-height-sm) pr-7 pl-7 text-caption-md'
+            : 'h-(--knovum-control-height-md) pr-8 pl-8.5 text-label-md',
         )
       "
       @keydown.escape.stop="handleEscape"
@@ -78,7 +78,7 @@ defineExpose({ focus, focused });
       type="button"
       tabindex="-1"
       :class="[
-        'absolute flex items-center justify-center text-foreground-tertiary transition-colors duration-75 hover:text-foreground',
+        'absolute flex items-center justify-center text-fg-tertiary transition-colors duration-100 hover:text-fg-primary',
         size === 'sm' ? 'right-2 size-3' : 'right-2.5 size-4',
       ]"
       @click="model = ''"

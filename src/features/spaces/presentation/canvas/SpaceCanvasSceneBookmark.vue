@@ -65,8 +65,11 @@ const menuItems = computed(() => [
 <template>
   <div
     :data-scene-id="scene.id"
-    class="group relative mb-0.5 min-h-14 rounded-control transition-colors duration-100 ease-standard last:mb-0"
-    :class="[active ? 'bg-control-pressed' : 'hover:bg-control-hover', recent ? 'scene-row-recent' : '']"
+    class="group relative mb-0.5 min-h-14 rounded-md transition-colors duration-100 ease-standard last:mb-0"
+    :class="[
+      active ? 'bg-surface-control' : 'hover:bg-surface-control-hover',
+      recent ? 'scene-row-recent' : '',
+    ]"
   >
     <div
       v-if="editing"
@@ -76,10 +79,10 @@ const menuItems = computed(() => [
         v-if="scene.thumbnailPath"
         :src="spaceAssetSource(scene.thumbnailPath)"
         alt=""
-        class="h-10 w-18 rounded-grid-cell border border-border-strong bg-canvas object-cover"
+        class="h-10 w-18 rounded-sm border border-stroke-strong bg-surface-canvas object-cover"
         draggable="false"
       />
-      <div v-else class="h-10 w-18 rounded-grid-cell border border-border-strong bg-canvas" />
+      <div v-else class="h-10 w-18 rounded-sm border border-stroke-strong bg-surface-canvas" />
       <UiInput
         ref="titleInput"
         v-model="title"
@@ -95,7 +98,7 @@ const menuItems = computed(() => [
           class="size-6"
           @click="finishRename"
         >
-          <Check class="size-(--knovum-icon-size-xs)" />
+          <Check class="size-3" />
         </UiIconButton>
         <UiIconButton
           :label="t('common.cancel')"
@@ -104,7 +107,7 @@ const menuItems = computed(() => [
           class="size-6"
           @click="editing = false"
         >
-          <X class="size-(--knovum-icon-size-xs)" />
+          <X class="size-3" />
         </UiIconButton>
       </div>
     </div>
@@ -112,7 +115,7 @@ const menuItems = computed(() => [
     <button
       v-else
       type="button"
-      class="grid min-h-14 w-full grid-cols-[4.75rem_minmax(0,1fr)] items-center gap-2 rounded-control px-1.5 py-1 pr-8 text-left outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-inset"
+      class="grid min-h-14 w-full grid-cols-[4.75rem_minmax(0,1fr)] items-center gap-2 rounded-md px-1.5 py-1 pr-8 text-left outline-none focus-visible:ring-2 focus-visible:ring-stroke-focus focus-visible:ring-inset"
       :aria-current="active ? 'true' : undefined"
       :aria-disabled="invalid"
       :disabled="invalid"
@@ -124,15 +127,17 @@ const menuItems = computed(() => [
         v-if="scene.thumbnailPath"
         :src="spaceAssetSource(scene.thumbnailPath)"
         alt=""
-        class="h-10 w-18 rounded-grid-cell border border-border-strong bg-canvas object-cover"
+        class="h-10 w-18 rounded-sm border border-stroke-strong bg-surface-canvas object-cover"
         draggable="false"
       />
-      <span v-else class="h-10 w-18 rounded-grid-cell border border-border-strong bg-canvas" />
+      <span v-else class="h-10 w-18 rounded-sm border border-stroke-strong bg-surface-canvas" />
       <span class="flex min-w-0 items-center gap-1.5">
-        <span class="min-w-0 flex-1 truncate text-label font-medium text-foreground">{{ scene.title }}</span>
+        <span class="min-w-0 flex-1 truncate text-label-md font-medium text-fg-primary">{{
+          scene.title
+        }}</span>
         <TriangleAlert
           v-if="invalid"
-          class="size-(--knovum-icon-size-xs) shrink-0 text-warning"
+          class="size-3 shrink-0 text-fg-warning"
           :aria-label="t('spaces.scenes.focus.unavailable')"
         />
       </span>
@@ -144,10 +149,10 @@ const menuItems = computed(() => [
           :label="t('common.more')"
           :tooltip="false"
           size="sm"
-          class="absolute top-1/2 right-1 z-10 size-6 -translate-y-1/2 rounded-grid-cell opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 data-[state=open]:bg-control-pressed data-[state=open]:opacity-100"
+          class="absolute top-1/2 right-1 z-10 size-6 -translate-y-1/2 rounded-sm opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 data-[state=open]:bg-surface-control data-[state=open]:opacity-100"
           @click.stop
         >
-          <Ellipsis class="size-(--knovum-icon-size-xs)" />
+          <Ellipsis class="size-3" />
         </UiIconButton>
       </template>
     </UiDropdownMenu>
@@ -163,12 +168,12 @@ const menuItems = computed(() => [
   0% {
     opacity: 0;
     transform: translateY(-5px) scale(0.985);
-    background: var(--knovum-color-background-control-pressed);
+    background: var(--color-surface-control-hover);
   }
   55% {
     opacity: 1;
     transform: translateY(0) scale(1);
-    background: var(--knovum-color-background-control-pressed);
+    background: var(--color-surface-control-hover);
   }
 }
 

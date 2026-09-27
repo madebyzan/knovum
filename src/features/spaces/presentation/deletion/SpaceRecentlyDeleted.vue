@@ -49,10 +49,10 @@ const canDeleteAll = computed(
       class="mb-3"
     />
     <div v-if="deletedQuery.isPending.value" class="grid h-72 place-items-center">
-      <LoaderCircle class="size-(--knovum-icon-size-sm) animate-spin text-accent" />
+      <LoaderCircle class="size-3.5 animate-spin text-fg-accent" />
     </div>
     <div v-else-if="deletedQuery.isError.value" class="grid h-72 content-center justify-items-center gap-3">
-      <p class="text-caption text-foreground-secondary">
+      <p class="text-caption-md text-fg-secondary">
         {{ t("spaces.trash.recent.loadFailed") }}
       </p>
       <UiButton size="sm" @click="deletedQuery.refetch()">{{ t("common.retry") }}</UiButton>
@@ -65,12 +65,12 @@ const canDeleteAll = computed(
       @restore-batch="restore($event, true)"
       @remove="remove([$event])"
     />
-    <div v-else class="grid h-72 content-center justify-items-center gap-2 text-foreground-tertiary">
-      <Trash2 class="size-(--knovum-icon-size-lg)" :stroke-width="1.5" />
-      <p class="text-caption">{{ t("spaces.trash.recent.empty") }}</p>
+    <div v-else class="grid h-72 content-center justify-items-center gap-2 text-fg-tertiary">
+      <Trash2 class="size-5" :stroke-width="1.5" />
+      <p class="text-caption-md">{{ t("spaces.trash.recent.empty") }}</p>
     </div>
     <template #footer>
-      <span role="status" class="mr-auto self-center text-caption text-foreground-secondary">
+      <span role="status" class="mr-auto self-center text-caption-md text-fg-secondary">
         {{
           busy
             ? t("spaces.trash.structure.processing")
