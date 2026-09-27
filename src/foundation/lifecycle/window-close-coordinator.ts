@@ -12,31 +12,31 @@ let exitListener: Promise<() => void> | undefined;
 let closing = false;
 let exiting = false;
 
-export async function initializeApplicationCloseCoordinator() {
+export async function initializeExitCoordination() {
   listener ??= attachWindowCloseListener();
-  exitListener ??= attachApplicationExitListener();
+  exitListener ??= attachExitRequestListener();
   await Promise.all([listener, exitListener]);
-  await invoke("plugin:desktop|register_exit_coordinator");
+  await invoke("plugin:desktop|mark_exit_coordinator_ready");
 }
 
 export function registerWindowCloseCommit(commit: WindowCloseCommit) {
   commits.add(commit);
-  void initializeApplicationCloseCoordinator().catch((error) =>
+  void initializeExitCoordination().catch((error) =>
     logError(`Application close coordinator initialization failed: ${String(error)}`),
   );
   return () => commits.delete(commit);
 }
 
-async function attachApplicationExitListener() {
+async function attachExitRequestListener() {
   return listen("knovum://app-exit-requested", async () => {
     if (exiting) return;
     exiting = true;
     try {
       await commitAll();
-      await invoke("plugin:desktop|resolve_app_exit", { approved: true });
+      await invoke("plugin:desktop|decide_app_exit_request", { approved: true });
     } catch (error) {
       await logError(`Application exit commit failed: ${String(error)}`);
-      await invoke("plugin:desktop|resolve_app_exit", { approved: false });
+      await invoke("plugin:desktop|decide_app_exit_request", { approved: false });
     } finally {
       exiting = false;
     }

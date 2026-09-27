@@ -81,7 +81,7 @@ pub async fn export_space_package(
     destination_path: String,
     on_progress: Channel<SpacePackageProgress>,
 ) -> Result<(), CommandError> {
-    let snapshot = crate::spaces::queries::export::collect(&app, space_id).await?;
+    let snapshot = crate::spaces::queries::package_snapshot::collect(&app, space_id).await?;
     let manifest = serde_json::to_string(&snapshot.manifest).map_err(|e| e.to_string())?;
     Ok(crate::blocking::run(move || {
         let target = PathBuf::from(destination_path);

@@ -1,4 +1,4 @@
 [[permission]]
 identifier = "allow-app-updater"
 description = "Allows the main window to inspect, check and install signed application updates through Knovum-owned Rust commands."
-commands.allow = ["updater_get_status", "updater_check", "updater_install"]
+commands.allow = ["get_update_configuration", "check_for_update", "install_update"]

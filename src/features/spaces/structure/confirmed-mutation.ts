@@ -26,7 +26,7 @@ async function confirmReceipt<T>(mutationId: string, attempt: number): Promise<T
   const waitMs = CONFIRMATION_DELAYS_MS[attempt];
   if (waitMs === undefined) return null;
   if (waitMs) await delay(waitMs);
-  const committed = await invoke<T | null>("plugin:spaces|get_space_edit_receipt_result", {
+  const committed = await invoke<T | null>("plugin:spaces|get_space_edit_receipt", {
     mutationId,
   }).catch(() => null);
   return committed ?? confirmReceipt<T>(mutationId, attempt + 1);

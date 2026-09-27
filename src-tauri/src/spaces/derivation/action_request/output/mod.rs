@@ -26,7 +26,8 @@ pub(super) async fn reserve(
         "render-presentation" => media::presentation_request(inputs, request)?,
         _ => {}
     }
-    let Some((kind, mut data)) = output_data(app, action_id, run_id, parameters, inputs)? else {
+    let Some((kind, mut data)) = build_pending_output_content(app, action_id, parameters, inputs)?
+    else {
         return Ok(());
     };
     let node_id = format!("{run_id}-output");
@@ -43,10 +44,9 @@ pub(super) async fn reserve(
     insert_output(app, space_id, run_id, node_id, kind, data, &sources).await
 }
 
-fn output_data(
+fn build_pending_output_content(
     app: &AppHandle,
     action_id: &str,
-    run_id: &str,
     parameters: &Value,
     inputs: &ResolvedInputs,
 ) -> Result<Option<(&'static str, Value)>, String> {
@@ -72,7 +72,10 @@ fn output_data(
                 "processingState":"processing"
             }),
         ),
-        "render-subtitled-video" => ("video", media::subtitled_video_data(inputs, &title)?),
+        "render-subtitled-video" => (
+            "video",
+            media::build_subtitled_video_content(inputs, &title)?,
+        ),
         "render-presentation" => (
             "file",
             json!({
@@ -81,10 +84,9 @@ fn output_data(
                 "processingState":"processing"
             }),
         ),
-        "extract-subtitles" => ("subtitle", media::subtitle_data(inputs)?),
+        "extract-subtitles" => ("subtitle", media::build_subtitle_content(inputs)?),
         _ => return Ok(None),
     };
-    let _ = run_id;
     Ok(Some(output))
 }
 

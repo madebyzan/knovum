@@ -2,12 +2,12 @@ use serde_json::Value;
 use sqlx::{sqlite::SqliteRow, Row, Sqlite, Transaction};
 
 use super::super::knowledge;
-use super::parse_json;
+use super::decode::decode_json;
 use crate::spaces::{assets, db};
 
 use super::package_assets::PackageAssets;
 
-pub(super) async fn space(
+pub(super) async fn load_space(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
 ) -> Result<Value, String> {
@@ -23,7 +23,7 @@ pub(super) async fn space(
     crate::sqlite::row_to_json(&row)
 }
 
-pub(super) async fn scenes(
+pub(super) async fn list_scenes(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
 ) -> Result<Vec<Value>, String> {
@@ -39,14 +39,14 @@ pub(super) async fn scenes(
         "viewportY": row.try_get::<f64,_>("viewport_y").map_err(db::sql_error)?,
         "viewportZoom": row.try_get::<f64,_>("viewport_zoom").map_err(db::sql_error)?,
         "orderIndex": row.try_get::<i64,_>("order_index").map_err(db::sql_error)?,
-        "focusStructureNodeIds": parse_json(&row,"focus_structure_node_ids")?, "relationKinds": parse_json(&row,"relation_kinds")?,
-        "relationStatuses": parse_json(&row,"relation_statuses")?, "queryFilter": parse_json(&row,"query_filter")?,
+        "focusStructureNodeIds": decode_json(&row,"focus_structure_node_ids")?, "relationKinds": decode_json(&row,"relation_kinds")?,
+        "relationStatuses": decode_json(&row,"relation_statuses")?, "queryFilter": decode_json(&row,"query_filter")?,
         "createdAt": row.try_get::<i64,_>("created_at").map_err(db::sql_error)?,
         "updatedAt": row.try_get::<i64,_>("updated_at").map_err(db::sql_error)?,
     }))).collect()
 }
 
-pub(super) async fn relations(
+pub(super) async fn list_relations(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
 ) -> Result<Vec<Value>, String> {
@@ -61,7 +61,7 @@ pub(super) async fn relations(
     crate::sqlite::rows_to_json(rows)
 }
 
-pub(super) async fn nodes(
+pub(super) async fn list_nodes(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
     assets: &mut PackageAssets,
@@ -76,7 +76,7 @@ pub(super) async fn nodes(
     .map_err(db::sql_error)?;
     let mut nodes = Vec::with_capacity(rows.len());
     for row in rows {
-        nodes.push(node(row, assets)?);
+        nodes.push(decode_node_projection(row, assets)?);
     }
     Ok(nodes)
 }
@@ -106,7 +106,7 @@ pub(super) fn package_layout_assets(
     Ok(())
 }
 
-pub(super) async fn chunks(
+pub(super) async fn list_chunks(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
 ) -> Result<Vec<Value>, String> {
@@ -119,10 +119,12 @@ pub(super) async fn chunks(
     .fetch_all(&mut **tx)
     .await
     .map_err(db::sql_error)?;
-    rows.into_iter().map(knowledge::chunk_row).collect()
+    rows.into_iter()
+        .map(knowledge::decode_chunk_projection)
+        .collect()
 }
 
-fn node(row: SqliteRow, assets: &mut PackageAssets) -> Result<Value, String> {
+fn decode_node_projection(row: SqliteRow, assets: &mut PackageAssets) -> Result<Value, String> {
     let raw: String = row.try_get("data").map_err(db::sql_error)?;
     let mut data: Value = serde_json::from_str(&raw).map_err(db::json_error)?;
     assets::rewrite_node_asset_paths(&mut data, |path| assets.reference(path));

@@ -7,7 +7,7 @@ mod tasks;
 
 pub use context::build as build_context;
 pub use conversations::{
-    archive, delete, ensure_branch_idle, ensure_conversation, list_conversations, rename,
+    archive, delete, ensure_branch_idle, ensure_conversation, list_conversations, rename, unarchive,
 };
 pub use message_branches::branch;
 pub(crate) use message_contract::attachment_summaries;
@@ -19,3 +19,6 @@ pub use tasks::{
     complete_tool_call, complete_turn, insert_task, recoverable_task, recoverable_tasks,
     save_checkpoint, start_tool_call, start_turn, RecoverableTask,
 };
+
+#[cfg(test)]
+mod tests;

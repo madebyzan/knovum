@@ -8,46 +8,26 @@ use super::{
 };
 
 #[tauri::command]
-pub async fn get_image_layer_capability() -> image_layers::ImageLayerCapability {
-    image_layers::capability().await
-}
-
-#[tauri::command]
-pub async fn create_image_layers(
+pub async fn generate_image_layers(
     app: AppHandle,
-    request: image_layers::CreateImageLayersRequest,
+    request: image_layers::GenerateImageLayersRequest,
     on_stage: tauri::ipc::Channel<String>,
 ) -> Result<Vec<CompletedDerivationOutput>, CommandError> {
-    Ok((image_layers::create(app, request, on_stage).await)?)
+    Ok((image_layers::generate(app, request, on_stage).await)?)
 }
 
 #[tauri::command]
-pub fn cancel_image_layers(id: String) -> Result<(), CommandError> {
-    Ok((image_layers::cancel(&id))?)
+pub fn cancel_image_layer_generation(generation_id: String) -> Result<(), CommandError> {
+    Ok((image_layers::cancel(&generation_id))?)
 }
 
 #[tauri::command]
-pub async fn get_image_operation_capabilities(
+pub async fn derive_image(
     app: AppHandle,
-) -> image_operations::ImageOperationCapabilities {
-    image_operations::capabilities(&app).await
-}
-
-#[tauri::command]
-pub async fn create_image_operation(
-    app: AppHandle,
-    request: image_operations::CreateImageOperationRequest,
+    request: image_operations::DeriveImageRequest,
     on_stage: tauri::ipc::Channel<String>,
 ) -> Result<CompletedDerivationOutput, CommandError> {
-    Ok((image_operations::create(app, request, on_stage).await)?)
-}
-
-#[tauri::command]
-pub async fn check_image_cutout_source(
-    app: AppHandle,
-    request: image_cutout::CheckImageCutoutSourceRequest,
-) -> Result<bool, CommandError> {
-    Ok((image_cutout::check_source(&app, request).await)?)
+    Ok((image_operations::derive(app, request, on_stage).await)?)
 }
 
 #[tauri::command]
@@ -75,12 +55,12 @@ pub async fn fail_image_cutout_derivation(
 }
 
 #[tauri::command]
-pub async fn create_subtitled_video(
+pub async fn render_subtitled_video(
     app: AppHandle,
-    request: subtitled_video::CreateSubtitledVideoRequest,
+    request: subtitled_video::RenderSubtitledVideoRequest,
     on_progress: tauri::ipc::Channel<subtitled_video::SubtitledVideoProgress>,
 ) -> Result<CompletedDerivationOutput, CommandError> {
-    Ok((subtitled_video::create(app, request, on_progress).await)?)
+    Ok((subtitled_video::render(app, request, on_progress).await)?)
 }
 
 #[tauri::command]
@@ -92,8 +72,8 @@ pub async fn create_subtitle_resource(
 }
 
 #[tauri::command]
-pub async fn cancel_subtitled_video(job_id: String) -> Result<(), CommandError> {
-    Ok((subtitled_video::cancel(job_id).await)?)
+pub async fn cancel_subtitled_video_render(derivation_id: String) -> Result<(), CommandError> {
+    Ok((subtitled_video::cancel(derivation_id).await)?)
 }
 
 #[tauri::command]
@@ -102,12 +82,12 @@ pub async fn render_video_edit(
     request: video_edit::RenderVideoEditRequest,
     on_progress: tauri::ipc::Channel<video_edit::VideoEditProgress>,
 ) -> Result<CompletedDerivationOutput, CommandError> {
-    Ok((video_edit::create(app, request, on_progress).await)?)
+    Ok((video_edit::render(app, request, on_progress).await)?)
 }
 
 #[tauri::command]
-pub async fn cancel_video_edit_render(job_id: String) -> Result<(), CommandError> {
-    Ok((video_edit::cancel(&job_id))?)
+pub async fn cancel_video_edit_render(derivation_id: String) -> Result<(), CommandError> {
+    Ok((video_edit::cancel(&derivation_id))?)
 }
 
 #[tauri::command]
@@ -124,40 +104,35 @@ pub async fn cancel_video_edit_proxy(job_id: String) -> Result<(), CommandError>
 }
 
 #[tauri::command]
-pub async fn list_video_fonts() -> Result<Vec<video_edit::fonts::InstalledFont>, CommandError> {
-    Ok(crate::blocking::run(|| Ok::<_, String>(video_edit::fonts::installed())).await?)
-}
-
-#[tauri::command]
-pub async fn create_document(
+pub async fn generate_grounded_document(
     app: AppHandle,
-    request: grounded_document::CreateGroundedDocumentRequest,
+    request: grounded_document::GenerateGroundedDocumentRequest,
     on_stage: tauri::ipc::Channel<String>,
 ) -> Result<grounded_document::GroundedDocumentOutput, CommandError> {
-    Ok((grounded_document::create(app, request, on_stage).await)?)
+    Ok((grounded_document::generate(app, request, on_stage).await)?)
 }
 
 #[tauri::command]
-pub async fn create_visualization(
+pub async fn generate_visualization(
     app: AppHandle,
-    request: visualization::CreateVisualizationRequest,
+    request: visualization::GenerateVisualizationRequest,
     on_stage: tauri::ipc::Channel<String>,
 ) -> Result<visualization::VisualizationOutput, CommandError> {
-    Ok((visualization::create(app, request, on_stage).await)?)
+    Ok((visualization::generate(app, request, on_stage).await)?)
 }
 
 #[tauri::command]
-pub async fn create_video(
+pub async fn generate_video(
     app: AppHandle,
-    request: video_generation::CreateVideoRequest,
+    request: video_generation::GenerateVideoRequest,
     on_stage: tauri::ipc::Channel<String>,
 ) -> Result<video_generation::VideoOutput, CommandError> {
-    Ok((video_generation::create(app, request, on_stage).await)?)
+    Ok((video_generation::generate(app, request, on_stage).await)?)
 }
 
 #[tauri::command]
-pub async fn cancel_video_generation(job_id: String) -> Result<(), CommandError> {
-    Ok((video_generation::registry::cancel(&job_id))?)
+pub async fn cancel_video_generation(derivation_id: String) -> Result<(), CommandError> {
+    Ok((video_generation::registry::cancel(&derivation_id))?)
 }
 
 #[tauri::command]

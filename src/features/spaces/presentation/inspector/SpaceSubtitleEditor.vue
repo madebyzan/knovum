@@ -7,7 +7,7 @@ import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiNumberField from "../../../../shared/ui/UiNumberField.vue";
 import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
 import { useNodeOperationGate } from "../../canvas/node-operation-gate";
-import { createSubtitledVideo, subtitleVideoInputs } from "../../knowledge-derivations/subtitled-video";
+import { renderSubtitledVideo, subtitleVideoInputs } from "../../knowledge-derivations/subtitled-video";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceSubtitlePayload } from "../../model/nodes/node-payload";
 import { useSpaceStore } from "../../session/space-store";
@@ -87,9 +87,9 @@ async function saveSubtitleCue() {
 function persist(subtitle: SpaceSubtitlePayload) {
   return store.saveNodeContent(props.node.id, props.node.data, subtitle);
 }
-function createVideo() {
+function generateVideo() {
   if (nodeOperations.allows("derive") && burnInInputs.value)
-    void createSubtitledVideo(store, burnInInputs.value);
+    void renderSubtitledVideo(store, burnInInputs.value);
 }
 </script>
 
@@ -130,7 +130,7 @@ function createVideo() {
       class="w-full"
       variant="primary"
       :disabled="dirty || !nodeOperations.allows('derive')"
-      @click="createVideo"
+      @click="generateVideo"
     >
       {{ t("spaces.creation.video.subtitles.render") }}
     </UiButton>

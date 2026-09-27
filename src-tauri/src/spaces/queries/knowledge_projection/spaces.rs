@@ -4,7 +4,10 @@ use tauri::AppHandle;
 
 use crate::spaces::db;
 
-pub(crate) async fn spaces(app: &AppHandle, space_scope: Option<&str>) -> Result<Value, String> {
+pub(crate) async fn list_spaces(
+    app: &AppHandle,
+    space_scope: Option<&str>,
+) -> Result<Value, String> {
     let pool = db::pool(app).await?;
     let rows = if let Some(space_id) = space_scope {
         sqlx::query(

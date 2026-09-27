@@ -2,9 +2,9 @@ use std::io::Cursor;
 
 use image::{GenericImageView, ImageFormat};
 
-use super::CreateVisualizationRequest;
+use super::GenerateVisualizationRequest;
 
-pub fn validate_request(request: &CreateVisualizationRequest) -> Result<(), String> {
+pub fn validate_request(request: &GenerateVisualizationRequest) -> Result<(), String> {
     let primary_count = request
         .inputs
         .iter()

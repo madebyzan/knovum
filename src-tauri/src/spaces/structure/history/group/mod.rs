@@ -70,7 +70,7 @@ pub(super) async fn apply(
     let owners = portal::node_owners(&targets);
     let structure_owners = portal::structure_owners(&targets);
     replay::move_nodes(tx, &owners).await?;
-    replay::move_related_data(tx, &targets).await?;
+    replay::reconcile_knowledge_ownership(tx, &targets).await?;
     portal::update_targets(tx, &owners, &structure_owners).await?;
     replay::save_targets(tx, &targets, requested_space, redo).await
 }

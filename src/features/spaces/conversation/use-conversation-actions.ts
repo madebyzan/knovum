@@ -4,9 +4,10 @@ import type { ComputedRef, ShallowRef } from "vue";
 
 import {
   archiveAssistantConversation,
+  unarchiveAssistantConversation,
   branchAssistantConversation,
   deleteAssistantConversation,
-  exportAssistantConversation,
+  loadAssistantBranchMessages,
   renameAssistantConversation,
   type AssistantConversation,
   type AssistantMessage,
@@ -32,10 +33,18 @@ export function useConversationActions(state: ConversationActionState) {
     await state.refresh();
   }
 
-  async function archiveSelected(archived = true) {
+  async function archiveSelected() {
     const conversation = state.selected.value;
     if (!conversation) return;
-    await archiveAssistantConversation(conversation.id, archived);
+    await archiveAssistantConversation(conversation.id);
+    clearSelection();
+    await state.refresh();
+  }
+
+  async function unarchiveSelected() {
+    const conversation = state.selected.value;
+    if (!conversation) return;
+    await unarchiveAssistantConversation(conversation.id);
     clearSelection();
     await state.refresh();
   }
@@ -58,7 +67,7 @@ export function useConversationActions(state: ConversationActionState) {
     if (!conversation?.branchId) return;
     const destination = await save({ defaultPath: `${conversation.title}.json` });
     if (!destination) return;
-    const value = await exportAssistantConversation(conversation.id, conversation.branchId);
+    const value = await loadAssistantBranchMessages(conversation.id, conversation.branchId);
     await writeTextFile(destination, `${JSON.stringify(value, null, 2)}\n`);
   }
 
@@ -101,5 +110,13 @@ export function useConversationActions(state: ConversationActionState) {
     await state.select(conversationId);
   }
 
-  return { renameSelected, archiveSelected, deleteSelected, exportSelected, branchFrom, regenerate };
+  return {
+    renameSelected,
+    archiveSelected,
+    unarchiveSelected,
+    deleteSelected,
+    exportSelected,
+    branchFrom,
+    regenerate,
+  };
 }

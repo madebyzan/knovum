@@ -152,7 +152,7 @@ impl ImageOperation {
 #[derive(Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
-pub struct CreateImageOperationRequest {
+pub struct DeriveImageRequest {
     pub id: String,
     pub space_id: String,
     pub source_node_id: String,

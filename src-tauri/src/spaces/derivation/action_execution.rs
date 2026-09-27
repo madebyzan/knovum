@@ -22,7 +22,7 @@ pub(crate) async fn execute(
     match action_id {
         "answer-with-sources" => super::grounded_answer::answer(app, decode(request)?).await,
         "draft-document" | "draft-script" | "summarize-meeting" | "draft-social-post" => serialize(
-            grounded_document::create(
+            grounded_document::generate(
                 app.clone(),
                 decode(text_request(action_id, request)?)?,
                 quiet_channel(),
@@ -30,7 +30,7 @@ pub(crate) async fn execute(
             .await?,
         ),
         "generate-visualization" | "generate-image" => serialize(
-            visualization::create(
+            visualization::generate(
                 app.clone(),
                 decode(image_request(request)?)?,
                 quiet_channel(),
@@ -38,11 +38,11 @@ pub(crate) async fn execute(
             .await?,
         ),
         "generate-video" => serialize(
-            video_generation::create(app.clone(), decode(request)?, quiet_channel()).await?,
+            video_generation::generate(app.clone(), decode(request)?, quiet_channel()).await?,
         ),
         "extract-subtitles" => serialize(subtitle_extraction::create(app, decode(request)?).await?),
         "render-subtitled-video" => serialize(
-            subtitled_video::create(app.clone(), decode(request)?, quiet_channel()).await?,
+            subtitled_video::render(app.clone(), decode(request)?, quiet_channel()).await?,
         ),
         "render-presentation" => render_presentation(app, request).await,
         _ => Err(format!(

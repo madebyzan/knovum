@@ -1,7 +1,7 @@
 use serde_json::Value;
 use tauri::AppHandle;
 
-use super::{CreateGroundedDocumentRequest, GeneratedDocument, GroundedDocumentOutput};
+use super::{GenerateGroundedDocumentRequest, GeneratedDocument, GroundedDocumentOutput};
 use crate::spaces::derivation::relations;
 use crate::spaces::derivation::source_validation;
 use crate::spaces::{
@@ -11,7 +11,7 @@ use crate::spaces::{
 
 pub async fn complete(
     app: &AppHandle,
-    request: &CreateGroundedDocumentRequest,
+    request: &GenerateGroundedDocumentRequest,
     generated: GeneratedDocument,
 ) -> Result<GroundedDocumentOutput, String> {
     let pool = db::pool(app).await?;
@@ -69,7 +69,7 @@ fn apply_document(data: &mut Value, text: &str) -> Result<(), String> {
 
 async fn create_relations(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
-    request: &CreateGroundedDocumentRequest,
+    request: &GenerateGroundedDocumentRequest,
     now: i64,
 ) -> Result<Vec<crate::spaces::derivation::DerivationRelation>, String> {
     let mut output = Vec::with_capacity(request.inputs.len());

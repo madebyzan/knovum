@@ -22,10 +22,10 @@ export function listActiveAssistantRuns(spaceId?: string): Promise<ActiveAssista
   return invoke("plugin:spaces|list_active_assistant_runs", { spaceId });
 }
 
-export function pendingAssistantPermission(
+export function getPendingAssistantPermission(
   runId: string,
 ): Promise<Extract<AssistantTaskUpdate, { type: "permission_requested" }> | null> {
-  return invoke("plugin:spaces|pending_assistant_permission", { runId });
+  return invoke("plugin:spaces|get_pending_assistant_permission", { runId });
 }
 
 export function listAssistantApprovals(spaceId: string, runId: string): Promise<PendingApproval[]> {
@@ -96,16 +96,20 @@ export function renameAssistantConversation(conversationId: string, title: strin
   return invoke("plugin:spaces|rename_assistant_conversation", { conversationId, title });
 }
 
-export function archiveAssistantConversation(conversationId: string, archived = true): Promise<void> {
-  return invoke("plugin:spaces|archive_assistant_conversation", { conversationId, archived });
+export function archiveAssistantConversation(conversationId: string): Promise<void> {
+  return invoke("plugin:spaces|archive_assistant_conversation", { conversationId });
+}
+
+export function unarchiveAssistantConversation(conversationId: string): Promise<void> {
+  return invoke("plugin:spaces|unarchive_assistant_conversation", { conversationId });
 }
 
 export function deleteAssistantConversation(conversationId: string): Promise<void> {
   return invoke("plugin:spaces|delete_assistant_conversation", { conversationId });
 }
 
-export function exportAssistantConversation(conversationId: string, branchId: string): Promise<unknown> {
-  return invoke("plugin:spaces|export_assistant_conversation", { conversationId, branchId });
+export function loadAssistantBranchMessages(conversationId: string, branchId: string): Promise<unknown> {
+  return invoke("plugin:spaces|load_assistant_branch_messages", { conversationId, branchId });
 }
 
 export function branchAssistantConversation(

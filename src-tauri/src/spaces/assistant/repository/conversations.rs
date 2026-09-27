@@ -90,7 +90,15 @@ pub async fn rename(pool: &SqlitePool, id: &str, title: &str) -> Result<(), Stri
     db::require_one(conversation_write, "assistant-conversation-unavailable")
 }
 
-pub async fn archive(pool: &SqlitePool, id: &str, archived: bool) -> Result<(), String> {
+pub async fn archive(pool: &SqlitePool, id: &str) -> Result<(), String> {
+    set_archived(pool, id, true).await
+}
+
+pub async fn unarchive(pool: &SqlitePool, id: &str) -> Result<(), String> {
+    set_archived(pool, id, false).await
+}
+
+async fn set_archived(pool: &SqlitePool, id: &str, archived: bool) -> Result<(), String> {
     let now = crate::clock::unix_time_millis()?;
     let archived_at = archived.then_some(now);
     let conversation_write = sqlx::query(

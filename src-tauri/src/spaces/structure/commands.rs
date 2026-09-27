@@ -149,3 +149,35 @@ async fn apply_history<R: Runtime>(
         selection_suggestion: Vec::new(),
     })
 }
+
+#[tauri::command]
+pub(crate) async fn import_structure_clipboard<R: Runtime>(
+    app: AppHandle<R>,
+    request: super::clipboard::ImportStructureClipboardRequest,
+) -> Result<super::clipboard::ImportStructureClipboardResponse, CommandError> {
+    Ok((super::clipboard::import(&app, request).await)?)
+}
+
+#[tauri::command]
+pub(crate) async fn restore_deleted_structure<R: Runtime>(
+    app: AppHandle<R>,
+    request: super::deletion::RestoreDeletedStructureRequest,
+) -> Result<SpaceEditReceipt, CommandError> {
+    Ok((super::deletion::restore(&app, request).await)?)
+}
+
+#[tauri::command]
+pub(crate) async fn delete_structure_permanently<R: Runtime>(
+    app: AppHandle<R>,
+    request: super::deletion::DeleteStructurePermanentlyRequest,
+) -> Result<Vec<String>, CommandError> {
+    Ok((super::deletion::delete_permanently(&app, request).await)?)
+}
+
+#[tauri::command]
+pub(crate) async fn discard_pending_content<R: Runtime>(
+    app: AppHandle<R>,
+    request: super::deletion::DiscardPendingContentRequest,
+) -> Result<super::deletion::DiscardPendingContentResponse, CommandError> {
+    Ok((super::deletion::discard_pending_content(&app, request).await)?)
+}

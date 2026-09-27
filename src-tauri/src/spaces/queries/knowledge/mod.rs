@@ -49,7 +49,7 @@ pub async fn list_knowledge_chunks<R: Runtime>(
     let rows = query.fetch_all(pool).await.map_err(db::sql_error)?;
     Ok((rows
         .into_iter()
-        .map(chunk_row)
+        .map(decode_chunk_projection)
         .collect::<Result<_, String>>())?)
 }
 
@@ -64,7 +64,7 @@ pub(crate) async fn search_space<R: Runtime>(
         return Ok(Vec::new());
     }
     let pool = db::pool(app).await?;
-    search::space(
+    search::search_space(
         pool,
         space_id.to_owned(),
         plan.fts_query,
@@ -91,10 +91,10 @@ pub(crate) async fn search_global<R: Runtime>(
         return Ok(Vec::new());
     }
     let pool = db::pool(app).await?;
-    search::global(pool, plan.fts_query, plan.terms).await
+    search::search_global(pool, plan.fts_query, plan.terms).await
 }
 
-pub(crate) fn chunk_row(row: sqlx::sqlite::SqliteRow) -> Result<Value, String> {
+pub(crate) fn decode_chunk_projection(row: sqlx::sqlite::SqliteRow) -> Result<Value, String> {
     let locator: String = row.try_get("locator").map_err(db::sql_error)?;
     let metadata: String = row.try_get("metadata").map_err(db::sql_error)?;
     Ok(serde_json::json!({

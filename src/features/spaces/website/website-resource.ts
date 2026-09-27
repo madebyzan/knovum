@@ -35,7 +35,9 @@ export type WebsiteResource =
   | { kind: "image"; finalUrl: string; assetPath: string };
 
 export async function fetchWebsiteResource(url: string): Promise<WebsiteResource> {
-  const response = webpageResponseSchema.parse(await invoke<unknown>("plugin:spaces|fetch_webpage", { url }));
+  const response = webpageResponseSchema.parse(
+    await invoke<unknown>("plugin:spaces|capture_web_resource", { url }),
+  );
   const finalUrl = normalizeSpaceUrl(response.finalUrl);
   if (!finalUrl) throw new Error("The webpage response returned an invalid final URL");
   if (response.resourceKind === "image") return { kind: "image", finalUrl, assetPath: response.assetPath };
@@ -47,7 +49,7 @@ export async function fetchWebsiteResource(url: string): Promise<WebsiteResource
 }
 
 export function cacheWebsiteAsset(url: string): Promise<string> {
-  return invoke("plugin:spaces|cache_web_asset", { url });
+  return invoke("plugin:spaces|import_web_image", { url });
 }
 
 function htmlMetadata(content: string, finalUrl: string): SpaceWebsiteMetadata {

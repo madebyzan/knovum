@@ -82,7 +82,7 @@ pub async fn start(app: &AppHandle, request: StartImageCutoutRequest) -> Result<
     if !source::asset_available(app, &source_data)? {
         return Err("Original image asset is missing".into());
     }
-    let output_data: String = sqlx::query_scalar(
+    let output_content: String = sqlx::query_scalar(
         "SELECT data FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND kind='image' AND deleted_at IS NULL",
     )
     .bind(&request.output_node_id)
@@ -91,9 +91,9 @@ pub async fn start(app: &AppHandle, request: StartImageCutoutRequest) -> Result<
     .await
     .map_err(db::sql_error)?
     .ok_or("Background removal output is unavailable")?;
-    let output_data: Value = serde_json::from_str(&output_data).map_err(db::json_error)?;
+    let output_content: Value = serde_json::from_str(&output_content).map_err(db::json_error)?;
     pending_output::validate_separate_asset(
-        &output_data,
+        &output_content,
         source_data
             .get("assetPath")
             .and_then(Value::as_str)

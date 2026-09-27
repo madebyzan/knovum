@@ -3,7 +3,7 @@ use sqlx::Row;
 
 use crate::spaces::db;
 
-pub(super) async fn space(
+pub(super) async fn search_space(
     pool: &sqlx::SqlitePool,
     space_id: String,
     fts_query: Option<String>,
@@ -19,7 +19,7 @@ pub(super) async fn space(
     search_substring(pool, space_id, terms, node_ids).await
 }
 
-pub(super) async fn global(
+pub(super) async fn search_global(
     pool: &sqlx::SqlitePool,
     fts_query: Option<String>,
     terms: Vec<String>,
@@ -42,7 +42,10 @@ pub(super) async fn global(
         .await
         .map_err(db::sql_error)?;
         if !rows.is_empty() || terms.is_empty() {
-            return rows.into_iter().map(global_search_row).collect();
+            return rows
+                .into_iter()
+                .map(decode_global_search_projection)
+                .collect();
         }
     }
     let mut sql = String::from(
@@ -61,7 +64,9 @@ pub(super) async fn global(
         query = query.bind(term);
     }
     let rows = query.fetch_all(pool).await.map_err(db::sql_error)?;
-    rows.into_iter().map(global_search_row).collect()
+    rows.into_iter()
+        .map(decode_global_search_projection)
+        .collect()
 }
 
 async fn search_fts(
@@ -86,7 +91,9 @@ async fn search_fts(
         query = query.bind(serde_json::to_string(&node_ids).map_err(db::json_error)?);
     }
     let rows = query.fetch_all(pool).await.map_err(db::sql_error)?;
-    rows.into_iter().map(space_search_row).collect()
+    rows.into_iter()
+        .map(decode_space_search_projection)
+        .collect()
 }
 
 async fn search_substring(
@@ -112,18 +119,23 @@ async fn search_substring(
         query = query.bind(serde_json::to_string(&node_ids).map_err(db::json_error)?);
     }
     let rows = query.fetch_all(pool).await.map_err(db::sql_error)?;
-    rows.into_iter().map(space_search_row).collect()
+    rows.into_iter()
+        .map(decode_space_search_projection)
+        .collect()
 }
 
-fn global_search_row(row: sqlx::sqlite::SqliteRow) -> Result<Value, String> {
-    search_row(row, true)
+fn decode_global_search_projection(row: sqlx::sqlite::SqliteRow) -> Result<Value, String> {
+    decode_search_projection(row, true)
 }
 
-fn space_search_row(row: sqlx::sqlite::SqliteRow) -> Result<Value, String> {
-    search_row(row, false)
+fn decode_space_search_projection(row: sqlx::sqlite::SqliteRow) -> Result<Value, String> {
+    decode_search_projection(row, false)
 }
 
-fn search_row(row: sqlx::sqlite::SqliteRow, include_space_metadata: bool) -> Result<Value, String> {
+fn decode_search_projection(
+    row: sqlx::sqlite::SqliteRow,
+    include_space_metadata: bool,
+) -> Result<Value, String> {
     let locator: String = row.try_get("locator").map_err(db::sql_error)?;
     let metadata: String = row.try_get("metadata").map_err(db::sql_error)?;
     let rank: f64 = row.try_get("rank").map_err(db::sql_error)?;

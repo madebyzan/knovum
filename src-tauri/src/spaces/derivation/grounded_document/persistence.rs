@@ -1,11 +1,14 @@
 use tauri::AppHandle;
 
-use super::CreateGroundedDocumentRequest;
+use super::GenerateGroundedDocumentRequest;
 use crate::spaces::derivation::inputs;
 use crate::spaces::derivation::source_validation;
 use crate::spaces::{db, knowledge::contracts};
 
-pub async fn start(app: &AppHandle, request: &CreateGroundedDocumentRequest) -> Result<(), String> {
+pub async fn start(
+    app: &AppHandle,
+    request: &GenerateGroundedDocumentRequest,
+) -> Result<(), String> {
     validate_request(request)?;
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
@@ -73,7 +76,7 @@ pub async fn fail(app: &AppHandle, id: &str, message: &str) -> Result<(), String
     tx.commit().await.map_err(db::sql_error)
 }
 
-fn validate_request(request: &CreateGroundedDocumentRequest) -> Result<(), String> {
+fn validate_request(request: &GenerateGroundedDocumentRequest) -> Result<(), String> {
     if request.id.trim().is_empty()
         || request.space_id.trim().is_empty()
         || request.output_node_id.trim().is_empty()

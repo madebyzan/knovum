@@ -35,10 +35,12 @@ pub(crate) async fn list_in_transaction(
     .fetch_all(&mut **tx)
     .await
     .map_err(db::sql_error)?;
-    rows.into_iter().map(relation_row).collect()
+    rows.into_iter().map(decode_relation_projection).collect()
 }
 
-fn relation_row(row: sqlx::sqlite::SqliteRow) -> Result<SpaceRelationProjection, String> {
+fn decode_relation_projection(
+    row: sqlx::sqlite::SqliteRow,
+) -> Result<SpaceRelationProjection, String> {
     Ok(SpaceRelationProjection {
         id: row.try_get::<String, _>("id").map_err(db::sql_error)?,
         space_id: row

@@ -22,7 +22,7 @@ describe("application IPC error boundary", () => {
   it("preserves errors that are already normalized", async () => {
     const error = new Error("Cancelled", { cause: { code: "cancelled", message: "Cancelled" } });
     native.invoke.mockRejectedValue(error);
-    await expect(invokeCommand("plugin:ai|complete")).rejects.toBe(error);
+    await expect(invokeCommand("plugin:ai|generate_text")).rejects.toBe(error);
   });
   it("reports Tauri argument/permission rejections as visible errors", async () => {
     native.invoke.mockRejectedValue("Command not permitted");

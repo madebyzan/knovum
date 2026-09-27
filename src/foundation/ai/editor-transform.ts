@@ -17,7 +17,7 @@ export async function transformEditorTextStream(
   const channel = new Channel<AiCompletionStreamEvent>();
   // oxlint-disable-next-line unicorn/prefer-add-event-listener -- Tauri Channel exposes events through onmessage.
   channel.onmessage = onEvent;
-  const completion = await invoke<AiCompletionResponse>("plugin:ai|transform_editor_stream", {
+  const completion = await invoke<AiCompletionResponse>("plugin:ai|transform_editor_text_stream", {
     request: {
       target: aiExecutionTargetPayload(target),
       action,

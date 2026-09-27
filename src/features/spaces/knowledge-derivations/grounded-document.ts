@@ -27,14 +27,14 @@ export interface GroundedDocumentDraft {
   purpose: string;
   target?: ExecutionTarget | undefined;
 }
-interface CreateGroundedDocumentContext {
+interface GenerateGroundedDocumentContext {
   store: SpaceStore;
   selected: readonly SpaceCanvasNode[];
   sources: readonly GroundedDocumentSource[];
   draft: GroundedDocumentDraft;
 }
 
-export async function createGroundedDocument(context: CreateGroundedDocumentContext) {
+export async function generateGroundedDocument(context: GenerateGroundedDocumentContext) {
   const { store, selected, sources, draft } = context;
   const spaceId = store.activeSpaceId;
   if (!spaceId) return;
@@ -65,7 +65,7 @@ export async function createGroundedDocument(context: CreateGroundedDocumentCont
         stages.onmessage = (stage) => tasks.detail(taskId, i18n.global.t(`spaces.creation.stages.${stage}`));
       }
       const target = await loadAiExecutionTarget("knowledge", draft.target);
-      return invoke<CompletedDocument>("plugin:spaces|create_document", {
+      return invoke<CompletedDocument>("plugin:spaces|generate_grounded_document", {
         request: {
           id: jobId,
           spaceId,

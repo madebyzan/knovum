@@ -1,8 +1,8 @@
 import { queryOptions, useQuery } from "@tanstack/vue-query";
 import type { Ref } from "vue";
 
-import { loadImageLayerCapability } from "./image-layers";
-import { loadImageOperationCapabilities } from "./image-operation";
+import { getImageLayerAvailability } from "./image-layers";
+import { getImageOperationCapabilities } from "./image-operation";
 
 function capabilityQuery<T>(key: string, queryFn: () => Promise<T>, open: Readonly<Ref<boolean>>) {
   return queryOptions({
@@ -16,10 +16,10 @@ function capabilityQuery<T>(key: string, queryFn: () => Promise<T>, open: Readon
   });
 }
 
-export function useImageLayerCapability(open: Readonly<Ref<boolean>>) {
-  return useQuery(capabilityQuery("image-layer-capability", loadImageLayerCapability, open));
+export function useImageLayerAvailability(open: Readonly<Ref<boolean>>) {
+  return useQuery(capabilityQuery("image-layer-availability", getImageLayerAvailability, open));
 }
 
 export function useImageOperationCapabilities(open: Readonly<Ref<boolean>>) {
-  return useQuery(capabilityQuery("image-operation-capabilities", loadImageOperationCapabilities, open));
+  return useQuery(capabilityQuery("image-operation-capabilities", getImageOperationCapabilities, open));
 }

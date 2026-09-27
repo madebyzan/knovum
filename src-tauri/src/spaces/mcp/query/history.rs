@@ -3,10 +3,13 @@ use tauri::AppHandle;
 
 use super::super::support::{json_text, mcp_error};
 use crate::spaces::mcp::arguments::HistoryArgs;
-use crate::spaces::queries::external;
+use crate::spaces::queries::knowledge_projection;
 
-pub(super) async fn run(app: &AppHandle, args: HistoryArgs) -> Result<String, McpError> {
-    let value = external::history(
+pub(in crate::spaces::mcp) async fn list_knowledge_events(
+    app: &AppHandle,
+    args: HistoryArgs,
+) -> Result<String, McpError> {
+    let value = knowledge_projection::list_knowledge_events(
         app,
         &args.space_id,
         args.entity_kind.as_deref(),

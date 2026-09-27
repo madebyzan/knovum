@@ -41,10 +41,10 @@ pub(crate) async fn list_in_transaction(
     .fetch_all(&mut **tx)
     .await
     .map_err(db::sql_error)?;
-    rows.into_iter().map(scene_row).collect()
+    rows.into_iter().map(decode_scene_projection).collect()
 }
 
-fn scene_row(row: sqlx::sqlite::SqliteRow) -> Result<SpaceSceneProjection, String> {
+fn decode_scene_projection(row: sqlx::sqlite::SqliteRow) -> Result<SpaceSceneProjection, String> {
     let parse = |name: &str| -> Result<Value, String> {
         let raw: String = row.try_get(name).map_err(db::sql_error)?;
         serde_json::from_str(&raw).map_err(db::json_error)

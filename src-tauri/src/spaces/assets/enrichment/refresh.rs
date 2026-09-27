@@ -6,7 +6,7 @@ use tauri::AppHandle;
 use super::super::{files, PreparedAsset};
 use super::{
     apply_asset_fields,
-    node_payload::{load_node_data, optional_string, required_string, set_optional},
+    node_payload::{load_node_content, optional_string, required_string, set_optional},
     persistence::{persist_processing_state, take_chunks},
 };
 use crate::spaces::knowledge::indexing::revision;
@@ -16,7 +16,7 @@ pub(in crate::spaces::assets) async fn refresh_node(
     space_id: String,
     node_id: String,
 ) -> Result<Option<Value>, String> {
-    let data = load_node_data(app, &space_id, &node_id).await?;
+    let data = load_node_content(app, &space_id, &node_id).await?;
     if let Some(state) = data.get("processingState").and_then(Value::as_str) {
         if state == "importing" || state == "processing" {
             return Ok(None);
@@ -64,7 +64,7 @@ async fn refresh_and_publish(
     })
     .await?;
     let Some(mut asset) = refreshed.asset else {
-        let mut current = load_node_data(app, space_id, node_id).await?;
+        let mut current = load_node_content(app, space_id, node_id).await?;
         if apply_metadata_fields(&mut current, refreshed.size, refreshed.modified_at)? {
             persist_processing_state(app, space_id, node_id, &mut current, "done", None, None)
                 .await?;
@@ -89,7 +89,7 @@ async fn publish_refresh(
     data: &Value,
     asset: &mut PreparedAsset,
 ) -> Result<Option<Value>, String> {
-    let mut current = load_node_data(app, space_id, node_id).await?;
+    let mut current = load_node_content(app, space_id, node_id).await?;
     apply_refresh_fields(&mut current, asset)?;
     revision::apply(&mut current)?;
     let chunks = take_chunks(asset);

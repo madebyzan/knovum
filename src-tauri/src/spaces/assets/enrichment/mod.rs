@@ -6,7 +6,7 @@ use tokio_util::sync::CancellationToken;
 
 use super::access::authorize_spaces_asset;
 use crate::spaces::knowledge::indexing::revision as knowledge_revision;
-use node_payload::{load_node_data, required_string};
+use node_payload::{load_node_content, required_string};
 use persistence::persist_processing_state;
 
 pub const ASSET_PROCESSING_CANCELLED: &str = "space-asset-processing-cancelled";
@@ -19,7 +19,7 @@ pub async fn enrich_node_with_cancellation(
     updates: Option<&tauri::ipc::Channel<Value>>,
     job_id: Option<&str>,
 ) -> Result<Value, String> {
-    let mut data = load_node_data(app, &space_id, &node_id).await?;
+    let mut data = load_node_content(app, &space_id, &node_id).await?;
     let source = required_string(&data, "assetPath")?;
     let file_name = required_string(&data, "fileName")?;
     let revision = required_string(&data, "sourceRevision")?;

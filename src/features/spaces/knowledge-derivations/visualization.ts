@@ -37,14 +37,14 @@ interface VisualizationOutput {
   data: SpaceImagePayload;
   relations: SpaceRelation[];
 }
-interface CreateVisualizationContext {
+interface GenerateVisualizationContext {
   store: SpaceStore;
   selected: readonly SpaceCanvasNode[];
   sources: readonly GroundedDocumentSource[];
   draft: VisualizationDraft;
 }
 
-export async function createVisualization(context: CreateVisualizationContext) {
+export async function generateVisualization(context: GenerateVisualizationContext) {
   const { store, selected, sources, draft } = context;
   const spaceId = store.activeSpaceId;
   if (!spaceId) return;
@@ -85,7 +85,7 @@ export async function createVisualization(context: CreateVisualizationContext) {
         stages.onmessage = (stage) => tasks.detail(taskId, i18n.global.t(`spaces.creation.stages.${stage}`));
       }
       const target = await loadAiExecutionTarget("image-generation", draft.target);
-      return invoke<VisualizationOutput>("plugin:spaces|create_visualization", {
+      return invoke<VisualizationOutput>("plugin:spaces|generate_visualization", {
         request: {
           id: jobId,
           spaceId,

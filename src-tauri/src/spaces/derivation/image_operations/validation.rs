@@ -1,9 +1,9 @@
 use serde_json::Value;
 
-use super::contracts::CreateImageOperationRequest;
+use super::contracts::DeriveImageRequest;
 use crate::spaces::db;
 
-pub fn request(request: &CreateImageOperationRequest) -> Result<(), String> {
+pub fn request(request: &DeriveImageRequest) -> Result<(), String> {
     request.operation.validate()?;
     if request.id.trim().is_empty()
         || request.space_id.trim().is_empty()
@@ -22,7 +22,7 @@ pub fn request(request: &CreateImageOperationRequest) -> Result<(), String> {
 
 pub async fn source_edit(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
-    request: &CreateImageOperationRequest,
+    request: &DeriveImageRequest,
 ) -> Result<String, String> {
     let data: String = sqlx::query_scalar(
         "SELECT data FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND kind='image' AND deleted_at IS NULL",

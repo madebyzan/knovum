@@ -78,10 +78,18 @@ services, as in native window controls, native traffic lights or OS-native dialo
 
 ### Command verbs
 
-The closed vocabulary for Tauri command names. No gate reads this table; it is the reference a
-reviewer consults before naming a command, and the reason it stays closed is that a synonym nobody
-rejected becomes a second way to say the same thing. One intent owns exactly one verb, and every row
-has at least one command.
+The table describes semantic verb families, not a closed token allowlist. Select a verb from the
+actual operation and use the same term for the same intent across Rust and TypeScript. New domain
+verbs are valid when their meaning is documented; do not force unrelated operations into a word
+merely because it already appears in the table.
+
+Language-level conventions follow [Rust API Guidelines](https://rust-lang.github.io/api-guidelines/naming.html)
+and [RFC 430](https://rust-lang.github.io/rfcs/0430-finalizing-naming-conventions.html). TypeScript uses
+camelCase operations and PascalCase types; Rust uses snake_case operations and UpperCamelCase types.
+Rust attribute getters usually omit `get_`; an IPC read operation can retain `get_` because it names
+an explicit boundary operation rather than an in-memory attribute getter. Preserve standard trait
+methods and vendor API names. Semantic verb selection below is Knovum policy, not a claim that
+industry mandates one spelling for every use case.
 
 | Group       | Intent                                                         | Verb         |
 | ----------- | -------------------------------------------------------------- | ------------ |
@@ -140,6 +148,16 @@ has at least one command.
 | Domain      | Produce a rendered artifact                                    | `render`     |
 | Domain      | Produce a copy of an object                                    | `duplicate`  |
 
+Model-produced text and artifacts use `generate` (`generate_text`, `generate_grounded_document`,
+`generate_image_layers`, `generate_video`). `render` names deterministic media/artifact processing
+(`render_subtitled_video`, `render_video_edit`). `create` allocates a durable entity or owned resource;
+`derive_image` executes an image transformation. `request` accepts work for later execution;
+`await` waits for a defined lifecycle condition; `inspect` examines a boundary resource; `detect`
+discovers system installations. These verbs name distinct effects and are not interchangeable.
+`capture_web_resource` brings remote content under product ownership; `import_web_image` persists
+an image asset rather than promising cache reuse. Read readiness uses `availability`; a supported
+operation set can use `capabilities`.
+
 Deletion is four distinct intents, not four synonyms: `delete` for durable entities, `remove` for
 owned files/models/temporaries, `trash`/`restore` for the reversible bin, and `revoke` for a granted
 relation. Do not use them interchangeably.
@@ -148,14 +166,14 @@ Reversible state bits get a domain verb pair, never `set_<thing>(true)`: `archiv
 `unarchive_space`, `delete-subtrees` / `restore_deleted_structure`. A private helper may still take the boolean
 (`set_archived(app, space_id, true)`) because the flag does not cross a module boundary.
 
-Avoid generic `process`, `manage`, `do`, and `execute` unless the word is part of an external
-protocol; they are not in the table, so a reviewer should reject them. `set` means direct
+Avoid generic `process`, `manage`, and `do` when they hide the object or effect. `execute` is valid
+for a concrete typed command protocol such as `execute_space_edit`; it must not become a universal
+string-driven dispatcher. `set` means direct
 assignment, not a persisted business mutation. Short verbs such as `start`, `stop`, `cancel`, and
 `fail` are acceptable because the owning module already supplies the missing domain object.
 
 A command names one intent, so it carries exactly one verb. `_and_` compounds are not acceptable:
-`updater_check_and_install` claimed two intents in a single address, and its second verb was not in
-this table at all. The command is `updater_install`, because re-resolving the update is intrinsic to
+`updater_check_and_install` claimed two intents in a single address, and conflated checking with installation. The command is `install_update`, because re-resolving the update is intrinsic to
 installing it rather than a second intent — the official `plugin:updater` shapes the same work as
 `check()` then `downloadAndInstall()`. When a second verb really is a separate user-visible intent,
 split the command instead of naming both.
@@ -209,22 +227,14 @@ do (`plugin:autostart|enable`, `plugin:store|reset`, `plugin:updater|check`). Ke
 `<feature>_` prefix on a plugin command duplicates its namespace; reject Renderer addresses shaped
 `<plugin-key>_<rest>` during review.
 
-The noun is the element type the command actually returns — read the Rust `Vec<T>` or the Renderer
-`Promise<T[]>`, not the pane or query name. `list` takes that type's plural and every other verb
-takes its singular, which is what keeps a family readable: `list_scenes` / `create_scene` /
-`delete_scene`, `create_provenance` / `revoke_provenance`. Google's
-[AIP-132](https://google.aip.dev/132) states the same rule for `List`: the name begins with the verb
-and the remainder is the plural form of the resource.
-
-A collection therefore may not be named after the subject it describes. `list_knowledge_health`
-named a mass noun while returning `SpaceKnowledgeHealthIssue[]`; the command is
-`list_knowledge_health_issues`. The pane and its query keep the shorter subject name
-(`SpaceKnowledgeHealth.vue`, `useSpaceKnowledgeHealthQuery`) because they present the topic, not the
-collection.
-
-One exception is on record: `list_provenance` returns `SpaceProvenance[]`, and the strict plural
-`provenances` is not idiomatic English, so the resource keeps its mass-noun form. Do not add a second
-exception without recording it here.
+Names identify the resource or aggregate actually operated on, not the pane displaying it.
+Use a plural resource for collection reads (`list_scenes`, `list_knowledge_events`) and an explicit
+entity for singleton reads (`get_node`). Bulk mutations can use plural objects (`create_nodes`,
+`update_nodes`), and snapshot reads can name their aggregate. A paged or status-bearing collection
+wrapper still represents a collection. Preserve idiomatic mass nouns (`list_provenance`,
+`list_related_content`) instead of inventing unnatural plurals. Google's
+[AIP-132](https://google.aip.dev/132) supports verb-first plural resource names for List RPCs;
+its resource API rules are guidance rather than a mandatory REST model for all local commands.
 
 Custom in-process plugins currently registered in `src-tauri/build.rs` are `spaces`, `ai`,
 `secrets`, `desktop` and `local-resources`. Official plugins such as Store remain vendor-owned;
@@ -235,12 +245,12 @@ App commands registered through the application `invoke_handler` share one flat 
 owner has to be part of the name:
 
 ```text
-<feature>_<verb>[_<noun>]    updater_get_status, updater_check, updater_install
+<verb>_<entity>             get_update_configuration, check_for_update, install_update
 ```
 
-Only the updater remains there, and it cannot move: `updater` is the official Tauri updater
-plugin's key, so an in-process plugin cannot claim it, and the flat namespace is the only place a
-Knovum-owned `updater_*` command can live. Its prefix must equal its owning Rust module.
+The flat namespace uses explicit entities to prevent collisions. The updater wrappers remain app
+commands because `updater` is the official plugin key; they do not need object-first prefixes to
+identify their owning module. In-process plugin registration cannot claim that vendor key.
 
 An app command has four touch points, and missing any one of them makes it unreachable or ungranted:
 
@@ -248,7 +258,7 @@ An app command has four touch points, and missing any one of them makes it unrea
 2. the `tauri::generate_handler![...]` list in `src-tauri/src/app_builder.rs`;
 3. a manual `commands.allow` entry in `src-tauri/permissions/<feature>.toml` and a capability grant
    naming that permission;
-4. a Renderer `invoke("<feature>_<verb>_<noun>")` literal.
+4. a Renderer `invoke("<verb>_<entity>")` literal.
 
 A plugin command has four: the `#[tauri::command]` function; its name in
 `tauri_build::InlinedPlugin::commands(&[...])` in `src-tauri/build.rs`, which generates the
@@ -290,16 +300,21 @@ Use names that reflect ownership:
 - `spaces/queries`: read-only Space projections and response mapping.
 - `spaces/commands`: atomic state-changing Space application operations.
 - `spaces/knowledge`: semantic contracts and knowledge governance.
-- `spaces/derivation`: pure revision, passage and chunk derivation.
+- `spaces/derivation`: source-grounded artifact generation, rendering, persistence and their read projections; `commands.rs` owns execution, `queries.rs` owns reads.
 - `spaces/db.rs`: Space connection/error foundation.
 - `local_resources/models/`: locally installed AI model descriptors, downloads, integrity verification and installation lifecycle.
 - `local_resources/tools/`: discovery of application-bundled executables and shared native libraries.
 
 Shared/foundation modules must never depend on a feature solely to reuse a helper.
 
-The `queries`/`commands` split is an architecture review rule: a `#[tauri::command]` under a
-`queries/` path must use a read verb, so a state-changing operation cannot hide in a projection
-module. Both sides mirror the same sub-domain names, which is what makes the direction readable —
+The `queries`/`commands` split follows observable business effects, not an annotation or first-word
+scan. A Tauri `#[command]` is a transport entry point and may be a query. Reads return projections;
+mutations persist state or control execution and may return receipts or accepted identifiers.
+Opening an OS preview window is a command; calculating a workflow preview without writes is a query.
+Shared execution registries belong to their engine owner, not a query module. This does not require
+separate databases, a CQRS bus or new layers.
+See [Tauri commands](https://v2.tauri.app/develop/calling-rust/) and
+[Fowler CQS](https://martinfowler.com/bliki/CommandQuerySeparation.html). Both sides mirror the same sub-domain names, which is what makes the direction readable —
 `queries/relations.rs` reads what `commands/relations.rs` writes, `queries/scenes.rs` reads what
 `commands/scenes/` writes.
 
@@ -312,8 +327,10 @@ module. Both sides mirror the same sub-domain names, which is what makes the dir
   `sceneId`, `objectTypeId`). `id` stays legal as a field of a semantic request object
   (`SpaceSceneInput.id`) and as a loop-local, where the type or the collection already names the
   entity.
-- The handle for a cancellable async job is always `job_id` / `jobId`, across every feature that
-  produces one. A recording session is a session, not a job, and keeps `session_id`.
+- Identifiers name the entity or lifecycle they actually identify: `job_id` for an engine job,
+  `run_id` for a durable Run, `session_id` for a session, `derivation_id` for an artifact derivation,
+  `generation_id` for a generation producing multiple derivations, and `mutation_id` for an idempotent edit/import. Cancellation does not turn every identifier into
+  a job ID. Bare IDs inside entity-shaped request contracts may remain when ownership is explicit.
 - A Tauri `Channel` parameter names its payload or purpose: `on_progress` / `onProgress` for progress,
   `on_stage` / `onStage` for stages, `on_event` / `onEvent` for event streams, and `updates` for Run or
   conversation state snapshots. A domain-specific `progress` field is valid when its contract is
@@ -398,7 +415,9 @@ Keep pure transforms in model owners so rendering and export can reuse policy. R
 forwarders and move invariant classes outside conditional expressions. Prefer explicit control flow
 over compressed expressions when async ownership, error handling or cancellation is involved.
 Preserve boundary validation and visible failures during simplification. Serialized property names,
-IPC command names and third-party APIs are contracts, not candidates for cosmetic renaming.
+IPC command names are owned contracts: semantic renaming updates Rust, Renderer, registration,
+permissions, generated contracts, tests and documentation atomically, without aliases or compatibility
+readers. Third-party API and fixed external protocol names remain vendor-owned.
 
 Project-owned types also avoid generic `Entry` and `Record` identities. Name the entity directly
 (`AssistantConversation`, `ArchivedSpace`, `PackageNode`), or the specific information role

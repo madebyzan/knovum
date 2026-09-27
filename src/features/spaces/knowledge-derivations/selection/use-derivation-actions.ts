@@ -5,12 +5,12 @@ import type { useSpaceStore } from "../../session/space-store";
 import type { CreationIntentId } from "../catalog/creation-intent-catalog";
 import type { GroundedDocumentSource } from "../catalog/grounded-document";
 import { exportMarkdownDocument, isKnowledgeMarkdown, type DocumentFormat } from "../document/export";
-import { createGroundedDocument, type GroundedDocumentDraft } from "../grounded-document";
+import { generateGroundedDocument, type GroundedDocumentDraft } from "../grounded-document";
 import { createImageCutout } from "../image-cutout";
 import { createSubtitleResource } from "../subtitle-extraction";
-import { createSubtitledVideo, type SubtitleVideoInputs } from "../subtitled-video";
+import { renderSubtitledVideo, type SubtitleVideoInputs } from "../subtitled-video";
 import type { VideoDraft } from "../video/generation";
-import { createVisualization, type VisualizationDraft } from "../visualization";
+import { generateVisualization, type VisualizationDraft } from "../visualization";
 import {
   createMeetingContentPackage,
   type MeetingContentPackageDraft,
@@ -54,7 +54,7 @@ export function useDerivationActions({
     "remove-image-background": () => void (single.value && createImageCutout(store, single.value)),
     "extract-subtitles": () => void (single.value && createSubtitleResource(store, single.value)),
     "render-subtitled-video": () =>
-      void (subtitleInputs.value && createSubtitledVideo(store, subtitleInputs.value)),
+      void (subtitleInputs.value && renderSubtitledVideo(store, subtitleInputs.value)),
     "subtitled-video-production": () =>
       void (single.value && startSubtitledVideoWorkflow(store, single.value)),
     "meeting-content-package": () => (dialog.value = "meeting-content-package"),
@@ -80,7 +80,7 @@ export function useDerivationActions({
   function submitDocument(draft: GroundedDocumentDraft) {
     if (!canSubmit() || !sources.value) return;
     dialog.value = undefined;
-    void createGroundedDocument({
+    void generateGroundedDocument({
       store,
       selected: selection.value,
       sources: sources.value,
@@ -91,7 +91,7 @@ export function useDerivationActions({
   function submitVisualization(draft: VisualizationDraft) {
     if (!canSubmit() || !sources.value) return;
     dialog.value = undefined;
-    void createVisualization({
+    void generateVisualization({
       store,
       selected: selection.value,
       sources: sources.value,

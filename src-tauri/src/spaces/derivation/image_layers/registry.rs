@@ -9,10 +9,12 @@ fn registry() -> &'static JobRegistry {
     REGISTRY.get_or_init(|| JobRegistry::new("Image layer split"))
 }
 
-pub fn acquire(id: &str) -> Result<(CancellationToken, JobLease<CancellationToken>), String> {
-    registry().acquire_cancellable(id)
+pub fn acquire(
+    generation_id: &str,
+) -> Result<(CancellationToken, JobLease<CancellationToken>), String> {
+    registry().acquire_cancellable(generation_id)
 }
 
-pub fn cancel(id: &str) -> Result<(), String> {
-    registry().cancel(id)
+pub fn cancel(generation_id: &str) -> Result<(), String> {
+    registry().cancel(generation_id)
 }

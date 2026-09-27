@@ -25,11 +25,11 @@ interface ImageOperationOutput {
   relation: SpaceRelation;
 }
 
-export function loadImageOperationCapabilities() {
+export function getImageOperationCapabilities() {
   return invoke<ImageOperationCapabilities>("plugin:spaces|get_image_operation_capabilities");
 }
 
-export async function createImageOperation(
+export async function deriveImage(
   store: SpaceStore,
   source: SpaceCanvasNode<SpaceImagePayload>,
   operation: ImageOperation,
@@ -77,7 +77,7 @@ export async function createImageOperation(
               )
           : undefined,
       );
-      return invoke<ImageOperationOutput>("plugin:spaces|create_image_operation", {
+      return invoke<ImageOperationOutput>("plugin:spaces|derive_image", {
         request: {
           id,
           spaceId,

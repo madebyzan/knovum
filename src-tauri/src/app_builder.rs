@@ -13,9 +13,9 @@ pub(crate) fn run() {
 fn base_builder() -> Builder<Wry> {
     Builder::default()
         .invoke_handler(tauri::generate_handler![
-            updater::updater_check,
-            updater::updater_get_status,
-            updater::updater_install,
+            updater::check_for_update,
+            updater::get_update_configuration,
+            updater::install_update,
         ])
         .on_webview_event(desktop::file_drop::authorize_drop)
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {

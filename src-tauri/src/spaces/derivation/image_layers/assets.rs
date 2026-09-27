@@ -17,7 +17,7 @@ pub struct PreparedLayer {
     pub height: u32,
 }
 
-pub fn source_data_uri(bytes: &[u8]) -> Result<String, String> {
+pub fn encode_source_image_uri(bytes: &[u8]) -> Result<String, String> {
     use base64::{engine::general_purpose::STANDARD, Engine};
 
     if bytes.is_empty() || bytes.len() > MAX_SOURCE_BYTES {

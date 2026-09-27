@@ -8,7 +8,7 @@ import { toast } from "vue-sonner";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import {
   checkForUpdate,
-  getUpdaterStatus,
+  getUpdateConfiguration,
   installUpdate as installApplicationUpdate,
   type UpdateMetadata,
 } from "../../updater";
@@ -24,7 +24,7 @@ const availableUpdate = shallowRef<UpdateMetadata | null>(null);
 
 onMounted(() => {
   void loadVersion();
-  void loadUpdaterStatus();
+  void loadUpdateConfiguration();
 });
 
 async function loadVersion() {
@@ -36,9 +36,9 @@ async function loadVersion() {
   }
 }
 
-async function loadUpdaterStatus() {
+async function loadUpdateConfiguration() {
   try {
-    updaterConfigured.value = (await getUpdaterStatus()).configured;
+    updaterConfigured.value = (await getUpdateConfiguration()).configured;
   } catch (error) {
     void logError(`Failed to read updater status: ${String(error)}`);
   }

@@ -9,31 +9,31 @@ mod source;
 use tauri::{ipc::Channel, AppHandle};
 
 use super::CompletedDerivationOutput;
-pub use contracts::{CreateImageLayersRequest, ImageLayerCapability};
+pub use contracts::{GenerateImageLayersRequest, ImageLayerAvailability};
 
-pub(crate) async fn capability() -> ImageLayerCapability {
+pub(crate) async fn availability() -> ImageLayerAvailability {
     use contracts::ImageLayerBlockReason;
     match crate::secrets::read_secret(contracts::FAL_SECRET_KEY).await {
-        Ok(Some(secret)) if !secret.trim().is_empty() => ImageLayerCapability::Ready,
-        Ok(_) => ImageLayerCapability::Blocked {
+        Ok(Some(secret)) if !secret.trim().is_empty() => ImageLayerAvailability::Ready,
+        Ok(_) => ImageLayerAvailability::Blocked {
             reason: ImageLayerBlockReason::MissingCredential,
         },
-        Err(_) => ImageLayerCapability::Blocked {
+        Err(_) => ImageLayerAvailability::Blocked {
             reason: ImageLayerBlockReason::SecretDatabaseUnavailable,
         },
     }
 }
 
-pub async fn create(
+pub async fn generate(
     app: AppHandle,
-    request: CreateImageLayersRequest,
+    request: GenerateImageLayersRequest,
     on_stage: Channel<String>,
 ) -> Result<Vec<CompletedDerivationOutput>, String> {
     contracts::validate(&request)?;
     let api_key = require_api_key().await?;
-    let (cancellation, _lease) = registry::acquire(&request.id)?;
+    let (cancellation, _lease) = registry::acquire(&request.generation_id)?;
     persistence::start(&app, &request).await?;
-    let source_data_uri = match source::data_uri(&app, &request).await {
+    let encode_source_image_uri = match source::load_image_uri(&app, &request).await {
         Ok(data_uri) => data_uri,
         Err(error) => return failed(&app, &request, error).await,
     };
@@ -41,7 +41,7 @@ pub async fn create(
     stage(&on_stage, "processing");
     let layers = match fal::split(
         &api_key,
-        &source_data_uri,
+        &encode_source_image_uri,
         request.output_node_ids.len(),
         request.prompt.as_deref(),
         &cancellation,
@@ -66,8 +66,8 @@ pub async fn create(
     }
 }
 
-pub fn cancel(id: &str) -> Result<(), String> {
-    registry::cancel(id)
+pub fn cancel(generation_id: &str) -> Result<(), String> {
+    registry::cancel(generation_id)
 }
 
 async fn require_api_key() -> Result<String, String> {
@@ -79,7 +79,7 @@ async fn require_api_key() -> Result<String, String> {
 
 async fn failed<T>(
     app: &AppHandle,
-    request: &CreateImageLayersRequest,
+    request: &GenerateImageLayersRequest,
     error: String,
 ) -> Result<T, String> {
     persistence::fail(app, request, &error).await;

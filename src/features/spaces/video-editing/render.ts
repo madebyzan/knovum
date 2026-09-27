@@ -37,9 +37,9 @@ export async function renderVideoEdit(
   };
   const [pending] = await store.addContent(pendingContent, undefined, { reveal: false });
   if (!pending) throw new Error("Could not create the edited video output");
-  const jobId = crypto.randomUUID();
+  const derivationId = crypto.randomUUID();
   const tasks = useTaskStore();
-  const cancel = () => invoke<void>("plugin:spaces|cancel_video_edit_render", { jobId });
+  const cancel = () => invoke<void>("plugin:spaces|cancel_video_edit_render", { derivationId });
   const taskId = tasks.start(
     i18n.global.t("spaces.media.videoEditor.render.task"),
     source.data.title,
@@ -51,7 +51,7 @@ export async function renderVideoEdit(
   try {
     const completed = await invoke<CompletedVideo>("plugin:spaces|render_video_edit", {
       request: {
-        id: jobId,
+        id: derivationId,
         spaceId,
         sourceNodeId: source.id,
         outputNodeId: pending.id,

@@ -2,16 +2,16 @@ use serde_json::Value;
 use sqlx::{Sqlite, Transaction};
 use tauri::AppHandle;
 
-use super::{assets, contracts::CreateImageLayersRequest};
+use super::{assets, contracts::GenerateImageLayersRequest};
 use crate::spaces::db;
 
-pub async fn data_uri(
+pub async fn load_image_uri(
     app: &AppHandle,
-    request: &CreateImageLayersRequest,
+    request: &GenerateImageLayersRequest,
 ) -> Result<String, String> {
     let path = super::super::source_snapshot::image_path(
         app,
-        &super::persistence::derivation_id(&request.id, 0),
+        &super::persistence::derivation_id(&request.generation_id, 0),
         &request.source_edit,
     )
     .await?;
@@ -23,12 +23,12 @@ pub async fn data_uri(
         crate::images::render_source_png(&source, &edit)
     })
     .await?;
-    assets::source_data_uri(&rendered.png)
+    assets::encode_source_image_uri(&rendered.png)
 }
 
 pub async fn validate(
     tx: &mut Transaction<'_, Sqlite>,
-    request: &CreateImageLayersRequest,
+    request: &GenerateImageLayersRequest,
 ) -> Result<String, String> {
     let encoded = sqlx::query_scalar::<_, String>(
         "SELECT data FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND kind='image' AND deleted_at IS NULL",

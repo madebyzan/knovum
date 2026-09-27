@@ -5,7 +5,7 @@ import type { Router } from "vue-router";
 
 import { useBootstrapStore } from "../foundation/bootstrap/bootstrap-store";
 import { invokeCommand as invoke } from "../foundation/ipc/invoke-command";
-import { initializeApplicationCloseCoordinator } from "../foundation/lifecycle/window-close-coordinator";
+import { initializeExitCoordination } from "../foundation/lifecycle/window-close-coordinator";
 import {
   installWorkspaceSessionPersistence,
   restoreWorkspaceSession,
@@ -18,16 +18,16 @@ import { installRuntimeDiagnostics } from "./runtime-diagnostics";
 
 const WATCHDOG_TIMEOUT_MS = 25000;
 
-export async function bootstrapApplication(pinia: Pinia, router: Router): Promise<void> {
+export async function bootstrapProduct(pinia: Pinia, router: Router): Promise<void> {
   const bootstrap = useBootstrapStore(pinia);
 
   const watchdog = setTimeout(() => {
     bootstrap.fail(new Error("Application startup watchdog timed out after 25s"));
-    void invoke("plugin:desktop|complete_bootstrap");
+    void invoke("plugin:desktop|reveal_main_window");
   }, WATCHDOG_TIMEOUT_MS);
 
   try {
-    await initializeApplicationCloseCoordinator();
+    await initializeExitCoordination();
     installRuntimeDiagnostics();
     installTaskbarProgress(pinia);
     void restoreResourcePreparationTasks(pinia).catch((reason) =>
@@ -46,7 +46,7 @@ export async function bootstrapApplication(pinia: Pinia, router: Router): Promis
   } finally {
     clearTimeout(watchdog);
     try {
-      await invoke("plugin:desktop|complete_bootstrap");
+      await invoke("plugin:desktop|reveal_main_window");
     } catch (reason) {
       await logError(`Failed to complete desktop bootstrap: ${String(reason)}`);
     }

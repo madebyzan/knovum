@@ -11,6 +11,7 @@ pub(crate) mod record_loader;
 pub(crate) mod related;
 pub(crate) mod schema;
 pub(crate) mod search;
+pub(crate) mod search_control;
 
 pub(crate) use rebuild::{index_space, rebuild_space_index};
 

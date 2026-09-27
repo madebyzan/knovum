@@ -1,8 +1,8 @@
 use super::acquisition::ImportResources;
 use super::{
     contract::{JsonCanvasDocumentV1, JsonCanvasNodeV1, NodeFrameV1},
+    file_import::ImportRequest,
     import::{ImportJsonCanvasNodesRequest, JsonCanvasNodeImport},
-    native_import::ImportRequest,
 };
 use crate::spaces::structure::repository::SpaceStructureSnapshot;
 use serde_json::{json, Value};

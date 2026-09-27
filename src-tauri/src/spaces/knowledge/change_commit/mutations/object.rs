@@ -54,7 +54,7 @@ pub(in crate::spaces::knowledge::change_commit) async fn update_object(
     tx: &mut Transaction<'_, Sqlite>,
     input: ObjectUpdate<'_>,
 ) -> Result<(), String> {
-    let raw = load_object_data(tx, input.space_id, input.id).await?;
+    let raw = load_object_content(tx, input.space_id, input.id).await?;
     let mut data: Value = serde_json::from_str(&raw).map_err(db::json_error)?;
     let before = data.clone();
     apply_object_changes(&mut data, &input)?;
@@ -69,7 +69,7 @@ pub(in crate::spaces::knowledge::change_commit) async fn update_object(
     emit_object_updated(tx, &input, &before, &data).await
 }
 
-async fn load_object_data(
+async fn load_object_content(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
     id: &str,

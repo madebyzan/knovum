@@ -25,7 +25,7 @@ pub async fn generate_media_insights(
     on_progress: Channel<MediaTranscriptionProgress>,
 ) -> Result<Value, CommandError> {
     let (cancellation, _lease) = crate::ai::executions::acquire(job_id)?;
-    let data = super::node_payload::load_node_data(&app, &space_id, &node_id).await?;
+    let data = super::node_payload::load_node_content(&app, &space_id, &node_id).await?;
     if data["knowledgeRevision"].as_str() != Some(&expected_revision) {
         return Err("Media knowledge changed before processing began".into());
     }

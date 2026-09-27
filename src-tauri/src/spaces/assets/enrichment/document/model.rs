@@ -75,7 +75,7 @@ pub(crate) struct DocumentAnalysis {
 }
 
 impl DocumentCoverage {
-    pub(crate) fn from_data(data: &Value) -> Result<Self, String> {
+    pub(crate) fn from_node_content(data: &Value) -> Result<Self, String> {
         let report = Self::decode(
             data.get("documentCoverage")
                 .ok_or("Document coverage is missing")?,

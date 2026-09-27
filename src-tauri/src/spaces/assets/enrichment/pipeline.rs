@@ -28,7 +28,7 @@ pub(super) fn prepare_visual(
     current: &Value,
     cancellation: &CancellationToken,
 ) -> Result<VisualOutput, String> {
-    let mut asset = asset_from_data(source, file_name, kind, revision, current)?;
+    let mut asset = build_prepared_asset(source, file_name, kind, revision, current)?;
     ensure_active(cancellation)?;
     previews::enrich_visual(app, source, &mut asset, cancellation)?;
     ensure_active(cancellation)?;
@@ -54,7 +54,7 @@ pub(super) fn enrich_content(
     Ok(ContentOutput { data, chunks })
 }
 
-fn asset_from_data(
+fn build_prepared_asset(
     source: &Path,
     file_name: &str,
     kind: &str,

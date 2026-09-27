@@ -31,14 +31,14 @@ struct ImageFile {
 
 pub async fn split<F: FnOnce()>(
     api_key: &str,
-    source_data_uri: &str,
+    encode_source_image_uri: &str,
     layer_count: usize,
     prompt: Option<&str>,
     cancellation: &CancellationToken,
     on_download: F,
 ) -> Result<Vec<Vec<u8>>, String> {
     let mut body = serde_json::json!({
-        "image_url": source_data_uri,
+        "image_url": encode_source_image_uri,
         "num_layers": layer_count,
         "output_format": "png",
         "enable_safety_checker": true,

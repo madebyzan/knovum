@@ -63,7 +63,7 @@ pub async fn list_knowledge_health_issues<R: Runtime>(
            AND p.source_revision<>COALESCE(json_extract(s.data,'$.sourceRevision'),json_extract(s.data,'$.knowledgeRevision'),'')",
     ).bind(&space_id).fetch_all(pool).await.map_err(db::sql_error)?;
     for row in stale {
-        let data = parse_data(&row)?;
+        let data = decode_node_content(&row)?;
         issues.push(serde_json::json!({
             "id": format!("stale-provenance:{}", row.try_get::<String,_>("id").map_err(db::sql_error)?),
             "kind": "stale-provenance",
@@ -86,7 +86,7 @@ fn append_node_issues(
 ) -> Result<(), String> {
     for row in rows {
         let id: String = row.try_get("id").map_err(db::sql_error)?;
-        let data = parse_data(&row)?;
+        let data = decode_node_content(&row)?;
         target.push(serde_json::json!({
             "id": format!("{kind}:{id}"),
             "kind": kind,
@@ -98,7 +98,7 @@ fn append_node_issues(
     Ok(())
 }
 
-fn parse_data(row: &sqlx::sqlite::SqliteRow) -> Result<Value, String> {
+fn decode_node_content(row: &sqlx::sqlite::SqliteRow) -> Result<Value, String> {
     let raw: String = row.try_get("data").map_err(db::sql_error)?;
     serde_json::from_str(&raw).map_err(db::json_error)
 }

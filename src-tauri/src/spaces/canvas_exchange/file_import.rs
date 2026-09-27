@@ -19,7 +19,7 @@ pub(crate) struct ImportRequest {
     pub(super) section_title: String,
 }
 
-pub(super) async fn execute(
+pub(super) async fn import(
     app: AppHandle,
     request: ImportRequest,
     progress: Channel<AssetImportProgress>,

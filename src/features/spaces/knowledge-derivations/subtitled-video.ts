@@ -61,7 +61,7 @@ function isCurrentPair(video?: SpaceCanvasNode, subtitles?: SpaceCanvasNode): bo
   );
 }
 
-export async function createSubtitledVideo(
+export async function renderSubtitledVideo(
   store: SpaceStore,
   inputs: SubtitleVideoInputs,
   execution: SubtitledVideoExecution = {},
@@ -72,10 +72,10 @@ export async function createSubtitledVideo(
   const pending = await createPendingNode(store, source, subtitles);
   if (!pending) return;
   beginPendingDerivation(pending.id, [source.id, subtitles.id]);
-  const jobId = crypto.randomUUID();
+  const derivationId = crypto.randomUUID();
   const tasks = useTaskStore();
   const cancel = async () => {
-    await invoke("plugin:spaces|cancel_subtitled_video", { jobId });
+    await invoke("plugin:spaces|cancel_subtitled_video_render", { derivationId });
   };
   const taskId =
     execution.taskId ??
@@ -94,9 +94,9 @@ export async function createSubtitledVideo(
   };
   try {
     await yieldToCanvas();
-    const completed = await invoke<CompletedVideo>("plugin:spaces|create_subtitled_video", {
+    const completed = await invoke<CompletedVideo>("plugin:spaces|render_subtitled_video", {
       request: {
-        id: jobId,
+        id: derivationId,
         spaceId,
         sourceNodeId: source.id,
         outputNodeId: pending.id,

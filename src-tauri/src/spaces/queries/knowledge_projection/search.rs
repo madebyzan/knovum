@@ -4,7 +4,7 @@ use tauri::AppHandle;
 
 use crate::spaces::{db, knowledge::search_plan};
 
-pub(crate) async fn search(
+pub(crate) async fn search_knowledge(
     app: &AppHandle,
     space_id: &str,
     query: &str,
@@ -27,11 +27,11 @@ pub(crate) async fn search(
             .await
             .map_err(db::sql_error)?
     } else {
-        fallback(pool, space_id, plan.terms, limit.clamp(1, 100)).await?
+        search_substring(pool, space_id, plan.terms, limit.clamp(1, 100)).await?
     };
     Ok(Value::Array(
         rows.into_iter()
-            .map(row_value)
+            .map(decode_search_projection)
             .collect::<Result<Vec<_>, _>>()?,
     ))
 }
@@ -43,7 +43,7 @@ const FTS_QUERY: &str = "SELECT spaces_knowledge_fts.node_id AS id,n.kind,\
  JOIN spaces_semantic_nodes n ON n.id=c.node_id AND n.space_id=c.space_id \
  WHERE spaces_knowledge_fts.space_id=$1 AND spaces_knowledge_fts MATCH $2 ORDER BY rank LIMIT $3";
 
-async fn fallback(
+async fn search_substring(
     pool: &sqlx::SqlitePool,
     space_id: &str,
     terms: Vec<String>,
@@ -69,7 +69,7 @@ async fn fallback(
         .map_err(db::sql_error)
 }
 
-fn row_value(row: SqliteRow) -> Result<Value, String> {
+fn decode_search_projection(row: SqliteRow) -> Result<Value, String> {
     Ok(json!({
         "id": row.try_get::<String,_>("id").map_err(db::sql_error)?, "kind": row.try_get::<String,_>("kind").map_err(db::sql_error)?,
         "title": row.try_get::<Option<String>,_>("title").map_err(db::sql_error)?, "preview": row.try_get::<String,_>("preview").map_err(db::sql_error)?,

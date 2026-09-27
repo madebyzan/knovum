@@ -1,41 +1,5 @@
-use super::super::{repository, AssistantConversation};
+use super::super::repository;
 use crate::command_error::CommandError;
-
-#[tauri::command]
-pub async fn list_assistant_conversations(
-    app: tauri::AppHandle,
-    space_id: String,
-    query: Option<String>,
-    archived: Option<bool>,
-) -> Result<Vec<AssistantConversation>, CommandError> {
-    Ok((repository::list_conversations(
-        crate::spaces::db::pool(&app).await?,
-        &space_id,
-        query.as_deref(),
-        archived.unwrap_or(false),
-    )
-    .await)?)
-}
-
-#[tauri::command]
-pub async fn list_assistant_messages(
-    app: tauri::AppHandle,
-    conversation_id: String,
-    branch_id: String,
-    before_created_at: Option<i64>,
-    before_id: Option<String>,
-    limit: Option<u16>,
-) -> Result<Vec<repository::AssistantMessage>, CommandError> {
-    let before = before_created_at.zip(before_id.as_deref());
-    Ok((repository::list_messages(
-        crate::spaces::db::pool(&app).await?,
-        &conversation_id,
-        &branch_id,
-        before,
-        limit.unwrap_or(100),
-    )
-    .await)?)
-}
 
 #[tauri::command]
 pub async fn rename_assistant_conversation(
@@ -55,14 +19,16 @@ pub async fn rename_assistant_conversation(
 pub async fn archive_assistant_conversation(
     app: tauri::AppHandle,
     conversation_id: String,
-    archived: bool,
 ) -> Result<(), CommandError> {
-    Ok((repository::archive(
-        crate::spaces::db::pool(&app).await?,
-        &conversation_id,
-        archived,
-    )
-    .await)?)
+    Ok((repository::archive(crate::spaces::db::pool(&app).await?, &conversation_id).await)?)
+}
+
+#[tauri::command]
+pub async fn unarchive_assistant_conversation(
+    app: tauri::AppHandle,
+    conversation_id: String,
+) -> Result<(), CommandError> {
+    Ok((repository::unarchive(crate::spaces::db::pool(&app).await?, &conversation_id).await)?)
 }
 
 #[tauri::command]
@@ -84,21 +50,6 @@ pub async fn delete_assistant_conversation(
     }
     crate::spaces::external_conversations::purge_for_assistant(&app, &conversation_id).await?;
     Ok((repository::delete(pool, &conversation_id).await)?)
-}
-
-#[tauri::command]
-pub async fn export_assistant_conversation(
-    app: tauri::AppHandle,
-    conversation_id: String,
-    branch_id: String,
-) -> Result<serde_json::Value, CommandError> {
-    let messages = repository::all_messages(
-        crate::spaces::db::pool(&app).await?,
-        &conversation_id,
-        &branch_id,
-    )
-    .await?;
-    Ok((serde_json::to_value(messages).map_err(crate::spaces::db::json_error))?)
 }
 
 #[tauri::command]

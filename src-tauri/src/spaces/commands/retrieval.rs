@@ -38,3 +38,8 @@ pub async fn rebuild_knowledge_retrieval_index<R: Runtime>(
         retrieval::rebuild_space_index(app, space_id).await?;
     Ok(KnowledgeRetrievalRebuildOutput { rebuilt, indexed })
 }
+
+#[tauri::command]
+pub fn cancel_knowledge_search(job_id: String) -> Result<(), CommandError> {
+    Ok(retrieval::search_control::cancel(&job_id)?)
+}

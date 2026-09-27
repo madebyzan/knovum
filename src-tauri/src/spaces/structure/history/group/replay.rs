@@ -63,7 +63,7 @@ pub(super) async fn move_nodes(
     Ok(())
 }
 
-pub(super) async fn move_related_data(
+pub(super) async fn reconcile_knowledge_ownership(
     tx: &mut Transaction<'_, Sqlite>,
     targets: &[TargetState],
 ) -> Result<(), String> {

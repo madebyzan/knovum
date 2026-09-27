@@ -3,7 +3,7 @@ use sqlx::{Row, Sqlite, Transaction};
 
 use crate::spaces::db;
 
-pub(super) async fn rows(
+pub(super) async fn load(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
 ) -> Result<(Vec<Value>, Vec<Value>), String> {
@@ -23,16 +23,16 @@ pub(super) async fn rows(
     Ok((
         conversations
             .into_iter()
-            .map(conversation)
+            .map(decode_conversation_projection)
             .collect::<Result<_, _>>()?,
         messages
             .into_iter()
-            .map(message)
+            .map(decode_message_projection)
             .collect::<Result<_, _>>()?,
     ))
 }
 
-fn conversation(row: sqlx::sqlite::SqliteRow) -> Result<Value, String> {
+fn decode_conversation_projection(row: sqlx::sqlite::SqliteRow) -> Result<Value, String> {
     Ok(serde_json::json!({
         "id": row.try_get::<String, _>("id").map_err(db::sql_error)?,
         "title": row.try_get::<String, _>("title").map_err(db::sql_error)?,
@@ -44,7 +44,7 @@ fn conversation(row: sqlx::sqlite::SqliteRow) -> Result<Value, String> {
     }))
 }
 
-fn message(row: sqlx::sqlite::SqliteRow) -> Result<Value, String> {
+fn decode_message_projection(row: sqlx::sqlite::SqliteRow) -> Result<Value, String> {
     let content: String = row.try_get("content").map_err(db::sql_error)?;
     Ok(serde_json::json!({
         "id": row.try_get::<String, _>("id").map_err(db::sql_error)?,

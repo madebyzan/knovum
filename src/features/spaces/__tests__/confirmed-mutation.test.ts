@@ -35,7 +35,7 @@ it("still recovers a committed receipt after an ambiguous transport failure", as
       "new-id",
     ),
   ).resolves.toEqual(receipt);
-  expect(native.invoke).toHaveBeenLastCalledWith("plugin:spaces|get_space_edit_receipt_result", {
+  expect(native.invoke).toHaveBeenLastCalledWith("plugin:spaces|get_space_edit_receipt", {
     mutationId: "new-id",
   });
 });

@@ -7,8 +7,8 @@ mod validation;
 mod acquisition;
 mod content;
 mod conversion;
+mod file_import;
 mod import_control;
-mod native_import;
 
 #[tauri::command]
 pub(crate) fn cancel_json_canvas_import(mutation_id: String) -> Result<(), CommandError> {
@@ -26,10 +26,10 @@ pub(crate) async fn export_json_canvas_file(
 #[tauri::command]
 pub(crate) async fn import_json_canvas_file(
     app: tauri::AppHandle,
-    request: native_import::ImportRequest,
+    request: file_import::ImportRequest,
     on_progress: tauri::ipc::Channel<crate::spaces::assets::import::commit::AssetImportProgress>,
 ) -> Result<import::JsonCanvasImportReceipt, CommandError> {
-    Ok(native_import::execute(app, request, on_progress).await?)
+    Ok(file_import::import(app, request, on_progress).await?)
 }
 
 #[cfg(test)]
