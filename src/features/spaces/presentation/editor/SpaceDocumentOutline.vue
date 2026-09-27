@@ -26,7 +26,7 @@ function reveal(position: number) {
         v-for="heading in store.documentOutlineHeadings"
         :key="heading.id"
         type="button"
-        class="flex min-h-(--knovum-list-item-height-sm) w-full items-center rounded-md pr-2 text-left text-caption text-fg-secondary hover:bg-surface-control-hover hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-stroke-focus data-[active=true]:bg-(--knovum-sidebar-item-bg-selected) data-[active=true]:text-fg-primary"
+        class="flex min-h-(--knovum-navigation-item-height) w-full items-center rounded-md pr-2 text-left text-caption text-fg-secondary hover:bg-surface-control-hover hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-stroke-focus data-[active=true]:bg-(--knovum-sidebar-item-bg-selected) data-[active=true]:text-fg-primary"
         :data-active="heading.id === store.documentActiveHeadingId"
         :style="{ paddingLeft: `${8 + (heading.level - 1) * 14}px` }"
         @click="reveal(heading.position)"

@@ -230,8 +230,15 @@ Global roles include:
 
 - `h-(--knovum-control-height-sm)`, `h-(--knovum-control-height-md)`, `h-(--knovum-control-height-lg)`;
 - `h-(--knovum-titlebar-height)` for integrated titlebar/toolbar geometry;
-- `h-(--knovum-list-item-height-sm)` for compact navigation and menu density;
+- `h-(--knovum-menu-item-height)` for menu options and select/font/icon/tag candidates;
+- `h-(--knovum-navigation-item-height)` for sidebar entries, structure trees and document outlines;
 - `size-3` through `size-5` for symbols. Toolbar symbols use `size-4.5` (18px) inside 32px controls.
+
+Menu and navigation heights are separate component contracts: both currently use 30px in compact mode
+and 34px in comfortable mode, but neither aliases the other or a generic size token. Single-line entries
+use height; options with descriptions and navigation that may grow use min-height. Collapsible section
+headings use their content line-height plus py-2; they do not consume menu/navigation height and are not
+forced to fit a fixed interaction band. Equal current values do not establish shared ownership.
 
 `data-platform` changes titlebar/chrome geometry where the operating systems differ. `data-density` changes interaction density without changing typography hierarchy. `--knovum-titlebar-height` is the stable native titlebar band and intentionally does not shrink with content density; density-sensitive in-workspace toolbars use their own toolbar/control geometry.
 On macOS the integrated Tab Bar is 40px high, matching compact modern desktop chrome while preserving the

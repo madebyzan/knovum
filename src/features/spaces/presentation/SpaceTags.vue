@@ -127,7 +127,7 @@ async function showTagMenu(tag: string) {
             :key="tag"
             type="button"
             :disabled="!nodeOperations.allows('edit')"
-            class="flex h-(--knovum-list-item-height-sm) w-full items-center justify-between rounded-md px-2 text-left text-caption hover:bg-surface-control-hover"
+            class="flex h-(--knovum-menu-item-height) w-full items-center justify-between rounded-md px-2 text-left text-caption hover:bg-surface-control-hover"
             @click="applyTag(tag)"
           >
             <span class="truncate">{{ tag }}</span>

@@ -62,7 +62,7 @@ const inputId = useId();
               v-for="family in families"
               :key="family"
               :value="family"
-              class="relative flex min-h-(--knovum-list-item-height-sm) cursor-default items-center rounded-md py-1 pr-2 pl-7 text-label outline-none data-highlighted:bg-surface-control-hover"
+              class="relative flex min-h-(--knovum-menu-item-height) cursor-default items-center rounded-md py-1 pr-2 pl-7 text-label outline-none data-highlighted:bg-surface-control-hover"
             >
               <ComboboxItemIndicator class="absolute left-2"><Check class="size-3" /></ComboboxItemIndicator>
               <span class="min-w-0 truncate">{{ family }}</span>

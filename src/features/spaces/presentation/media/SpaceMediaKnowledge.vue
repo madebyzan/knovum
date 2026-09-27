@@ -108,7 +108,7 @@ const {
       <CollapsibleRoot v-model:open="transcriptOpen" as-child>
         <div class="mt-4">
           <CollapsibleTrigger
-            class="flex h-(--knovum-list-item-height-sm) w-full items-center gap-2 rounded-md px-2 text-caption font-semibold text-fg-secondary hover:bg-surface-control-hover hover:text-fg-primary"
+            class="flex w-full items-center gap-2 rounded-md px-2 py-2 text-caption font-semibold text-fg-secondary hover:bg-surface-control-hover hover:text-fg-primary"
           >
             <ChevronRight
               class="size-3 transition-transform duration-150 ease-standard"
