@@ -20,6 +20,7 @@ pub fn read_package(
     app: &tauri::AppHandle,
     source: &Path,
     progress: &Channel<SpacePackageProgress>,
+    target_space: &str,
 ) -> Result<PackageImport, String> {
     let file = fs::File::open(source).map_err(|error| error.to_string())?;
     let mut archive = ZipArchive::new(file).map_err(|error| error.to_string())?;
@@ -34,8 +35,12 @@ pub fn read_package(
     .map_err(|error| error.to_string())?;
     let manifest_assets = super::manifest_assets::parse(&manifest)?;
     validate_index(&index, &manifest_assets)?;
-    let assets = extract::extract_assets(app, &mut archive, &index, progress, total)?;
-    Ok(PackageImport { manifest, assets })
+    let assets = extract::extract_assets(app, &mut archive, &index, progress, total, target_space)?;
+    Ok(PackageImport {
+        manifest,
+        assets: assets.assets,
+        namespace: assets.namespace,
+    })
 }
 
 fn validate_index(index: &[AssetIndex], manifest: &ManifestAssets) -> Result<(), String> {

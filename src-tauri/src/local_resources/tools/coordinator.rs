@@ -97,7 +97,7 @@ pub(crate) async fn prepare_media_import_tools_for_request<R: Runtime>(
     business_cancellation: &CancellationToken,
     progress: &mut impl FnMut(ResourcePreparationProgress),
 ) -> Result<PreparedMediaImportTools, String> {
-    let result = {
+    let prepared_tools = {
         let mut on_update = |update: ToolPreparationProgress| {
             let update = ResourcePreparationProgress {
                 stage: update.stage,
@@ -117,11 +117,11 @@ pub(crate) async fn prepare_media_import_tools_for_request<R: Runtime>(
                 request.cancellation().cancel();
                 Err(RESOURCE_PREPARATION_CANCELLED.to_string())
             }
-            result = prepare_media_import_tools(app, request.cancellation(), &mut on_update) => result,
+            prepared_tools = prepare_media_import_tools(app, request.cancellation(), &mut on_update) => prepared_tools,
         }
     };
-    request.finish(result.as_ref().err());
-    result
+    request.finish(prepared_tools.as_ref().err());
+    prepared_tools
 }
 
 fn resolve_prepared<R: Runtime>(

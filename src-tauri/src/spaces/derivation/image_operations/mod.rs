@@ -92,7 +92,7 @@ pub async fn create(
         return fail_running(&app, &request, error).await;
     }
     let generated = provider::execute(&target, &request.operation, &source, &cancellation).await;
-    let result = match generated {
+    let edited_image = match generated {
         Ok(generated) => {
             let target = request.operation.target_long_edge();
             match crate::blocking::run(move || output::canonicalize(&generated, target)).await {
@@ -102,7 +102,7 @@ pub async fn create(
         }
         Err(error) => Err(error),
     };
-    match result {
+    match edited_image {
         Ok(output) => Ok(output),
         Err(error) => {
             super::failure::fail_message(&app, &request.id, &error).await?;

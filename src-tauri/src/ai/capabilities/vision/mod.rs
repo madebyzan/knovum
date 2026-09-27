@@ -72,7 +72,7 @@ pub async fn analyze_image(
         _ = cancellation.cancelled() => {
             return Err(AiError::cancelled("Visual analysis was cancelled"));
         }
-        result = client.exec_chat(target, chat, Some(&options)) => result,
+        vision_completion = client.exec_chat(target, chat, Some(&options)) => vision_completion,
     }
     .map_err(|e| AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string()))?;
 

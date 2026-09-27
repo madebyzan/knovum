@@ -2,7 +2,6 @@ import { toast } from "vue-sonner";
 
 import { i18n } from "../../../foundation/i18n/i18n";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
-import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { useSpaceStore } from "../session/space-store";
 import { yieldToCanvas } from "./canvas-yield";
 import { beginPendingDerivation, endPendingDerivation } from "./pending-session";
@@ -11,7 +10,7 @@ type SpaceStore = ReturnType<typeof useSpaceStore>;
 
 export interface RunDerivationOptions<Output> {
   store: SpaceStore;
-  pendingNode: SpaceCanvasNode;
+  pendingId: string;
   sourceNodeIds: string[];
   task?: {
     id?: string;
@@ -28,17 +27,17 @@ export interface RunDerivationOptions<Output> {
 export async function runDerivation<Output>(
   options: RunDerivationOptions<Output>,
 ): Promise<Output | undefined> {
-  const { store, pendingNode, sourceNodeIds, task, execute, onSuccess, onError, failureMessageKey } = options;
+  const { store, pendingId, sourceNodeIds, task, execute, onSuccess, onError, failureMessageKey } = options;
   const spaceId = store.activeSpaceId;
   if (!spaceId) return undefined;
 
-  beginPendingDerivation(pendingNode.id, sourceNodeIds);
+  beginPendingDerivation(pendingId, sourceNodeIds);
   const tasks = useTaskStore();
   const taskId = task ? tasks.start(task.title, task.detail, task.cancel, task.id) : undefined;
 
   try {
     await yieldToCanvas();
-    const completed = await execute({ spaceId, pendingId: pendingNode.id, taskId });
+    const completed = await execute({ spaceId, pendingId: pendingId, taskId });
     if (onSuccess) {
       await onSuccess(completed, spaceId);
     }
@@ -60,6 +59,6 @@ export async function runDerivation<Output>(
     }
     return undefined;
   } finally {
-    endPendingDerivation(pendingNode.id);
+    endPendingDerivation(pendingId);
   }
 }

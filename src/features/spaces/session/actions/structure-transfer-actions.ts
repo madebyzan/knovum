@@ -22,7 +22,7 @@ export function createStructureTransferActions(context: StructureTransferContext
     const sourceSnapshot = context.editSnapshot.value;
     const targetSnapshot = await spaceEditOperations.load(targetSpaceId);
     const targetOrder = targetSnapshot.structure.filter(({ parentId }) => parentId === null).length;
-    const result = await moveStructureSelectionBetweenSpaces({
+    const transferReceipt = await moveStructureSelectionBetweenSpaces({
       sourceSpaceId,
       mutationId: crypto.randomUUID(),
       targetSpaceId,
@@ -32,7 +32,7 @@ export function createStructureTransferActions(context: StructureTransferContext
       expectedSourceEditRevision: sourceSnapshot.editRevision,
       expectedTargetEditRevision: targetSnapshot.editRevision,
     });
-    if (context.activeSpaceId.value === sourceSpaceId && result.movedNodeIds.length) {
+    if (context.activeSpaceId.value === sourceSpaceId && transferReceipt.movedNodeIds.length) {
       const projection = await loadSpaceSessionProjection(sourceSpaceId);
       if (context.activeSpaceId.value === sourceSpaceId) {
         context.nodes.value = projection.nodes;
@@ -41,7 +41,7 @@ export function createStructureTransferActions(context: StructureTransferContext
         context.recordCommittedSpaceEdit();
       }
     }
-    return result.movedStructureNodeIds;
+    return transferReceipt.movedStructureNodeIds;
   }
 
   return { moveStructureNodes };

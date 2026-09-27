@@ -1,6 +1,6 @@
 # Spaces product model
 
-Outline rows expose native-context-menu Rename and the `spaces.rename-node` AppCommand (`F2`, one selected persisted node). Inline editing trims and validates the existing 1–512 character node title contract; Enter commits, Escape or leaving the field cancels, and IME confirmation does not commit. Failed saves retain the draft and show a localized error. The existing node-data/history pipeline persists the change, updates canvas/outline/search projections and supports undo/redo. Title changes do not modify filenames, URLs or source revisions, and media-enrichment intents synchronize only when their source/preview/analysis/processing inputs change. Website capture records its source `pageTitle` independently of the editable knowledge title; refresh preserves the knowledge title.
+Outline rows expose native-context-menu Rename and the `spaces.rename-node` AppCommand (`F2`, one selected persisted node). Inline editing trims and validates the existing 1–512 character node title contract; Enter commits, Escape or leaving the field cancels, and IME confirmation does not commit. Failed saves retain the draft and show a localized error. The existing node-data/history pipeline persists the change, updates canvas/outline/search projections and supports undo/redo. Title changes do not modify filenames, URLs or source revisions, and media-enrichment intents synchronize only when their source, visual input, analysis or processing state changes. Website capture records its source `pageTitle` independently of the editable knowledge title; refresh preserves the knowledge title.
 
 **Knovum** is a spatial knowledge application. The knowledge-space capability is owned by
 `src/features/spaces/*`; `spaces` is the bounded-context and IPC namespace, not a peer application
@@ -34,6 +34,17 @@ Space catalog covers and Saved View previews are rendered from the neutral canva
 Canvas tools are transient Space session state, separate from persisted canvas geometry. The top-center Reka toolbar exposes Select (V), Pan (H), Note (N) and Text (T). Outline belongs to the current-Space region of the sidebar; Space management belongs to native context menus, not the tab strip. Tool shortcuts enter through AppCommand, not feature-level keyboard listeners. Opening Outline reveals the sidebar through its neutral presentation contract. Note and Text place empty knowledge at the next canvas click without changing the viewport, then return to Select and activate inline editing. Pan routes left drags through the existing viewport controller and disables node manipulation, relation hit testing and DOM content interaction. Held Space and middle-button drags use that same controller; trackpad scrolling remains unchanged. Switching Spaces resets the tool.
 
 Space management is available through native context menus on Space cards, tabs and Inbox. These entries share one feature-owned menu composition and always bind to the selected Space. Knowledge Health opens the actual inspection capability, not a misleading Space Details page; entering the library closes the contextual Inspector. Space package import belongs to the library toolbar and creates a new Space. Space package export commits the active session before collecting its transactional snapshot. JSON Canvas export is an advanced exchange option for the active canvas, not a knowledge backup; JSON Canvas import remains available through the command palette. The incomplete automatic backup capability is removed; existing backup files are not deleted and remain importable Space packages.
+
+Space package import accepts only the current package version. Rust owns all identity/reference
+remapping, validates original ownership and canonical citation revisions before remapping, and
+removes the import's asset namespace after a failed restore. Interrupted package namespaces are
+reconciled against committed Space identities at startup. Old development database checksums and
+package versions fail explicitly; they are not read through compatibility paths.
+
+JSON Canvas import submits the selected file path and expected edit revision to Rust. Rust validates
+section membership, resolves relative files within the canonical source directory, prepares managed
+assets and commits nodes, structure, relations and history together. Vue loads that committed
+projection and controls selection/reveal. Import failure cleanup belongs to the same Rust use case.
 
 JSON Canvas export writes through one Rust command authorized by the user-selected `.canvas` destination. The command validates the document and its exact managed-resource set, prepares a uniquely owned sibling resource directory, rewrites relative references, flushes a complete staging document and replaces the selected file through a same-directory rename. Failed preparation cleans up only that publication's files. Existing exported resource directories are not modified or deleted: they may still be used by external documents. No frontend filesystem scope is broadened. Space package archives likewise replace their destination directly from complete staging files, without moving the old destination aside first.
 
@@ -501,3 +512,16 @@ Semantic embedding/vector/database errors fail visibly rather than becoming empt
 successful lexical-only response. Background index updates require already verified models and do
 not trigger large downloads on note save. Grounded semantic use prepares resources at the retrieval
 use-case boundary; the AI engine itself does not download.
+
+Document exports submit source identity/revision and visual placement to Rust. Source validation,
+output path reservation, pending node creation and derivation recording share one transaction;
+render completion and failure update that same durable output. Vue does not allocate document
+paths or write a second pending output state. Image preview remains an interactive browser renderer,
+while native preview/export use Rust; shared tone fixtures constrain both environments without
+claiming full pixel equality across browser interpolation and native rendering.
+
+## Visual enrichment revisions
+
+Images and video covers share the `analyze_visual` task and `visualKnowledge` result contract. Image revisions include image edits; video-cover revisions include the media source, immutable preview path and preview origin. Node writes compare this visual revision directly, so changing or resetting image edits and replacing a cover reschedule visual work. Titles do not change either revision. Evidence retains its image or video-cover locator so retrieval can open the correct source.
+
+The current pre-release Spaces database baseline admits only the current job types. Obsolete baseline checksums and the former `analyze_image` / `analyze_video_cover` job names are rejected explicitly; there are no compatibility aliases, automatic data deletion or conversion readers.

@@ -2,7 +2,7 @@ use serde_json::Value;
 use sqlx::{Sqlite, Transaction};
 
 use super::job::{EnrichmentJobType, STATUS_CANCELLED, STATUS_PENDING};
-use super::revision::{expected_revision, source_revision};
+use super::revision::{source_revision, visual_revision};
 
 pub(crate) async fn synchronize_for_node(
     tx: &mut Transaction<'_, Sqlite>,
@@ -14,31 +14,28 @@ pub(crate) async fn synchronize_for_node(
     let Some(source_revision) = source_revision(data) else {
         return Ok(());
     };
-    let image_revision = if data.get("kind").and_then(Value::as_str) == Some("image") {
-        expected_revision(data, EnrichmentJobType::AnalyzeImage)?
-    } else {
-        None
-    };
-    let visual_revision = image_revision.as_deref().unwrap_or(source_revision);
+    let visual_revision = visual_revision(data)?;
     sqlx::query(
         "UPDATE spaces_enrichment_jobs SET status=$1,updated_at=$2 \
          WHERE space_id=$3 AND node_id=$4 AND \
-           ((job_type='analyze_image' AND source_revision<>$5) OR (job_type!='analyze_image' AND source_revision<>$6)) \
+           ((job_type='analyze_visual' AND ($5 IS NULL OR source_revision<>$5)) OR (job_type!='analyze_visual' AND source_revision<>$6)) \
            AND status IN ('pending','running','awaiting_configuration')",
     )
     .bind(STATUS_CANCELLED)
     .bind(now)
     .bind(space_id)
     .bind(node_id)
-    .bind(visual_revision)
+    .bind(visual_revision.as_deref())
     .bind(source_revision)
     .execute(&mut **tx)
     .await
     .map_err(crate::spaces::db::sql_error)?;
 
-    for job_type in required_jobs(data, visual_revision, source_revision) {
-        let revision = if job_type == EnrichmentJobType::AnalyzeImage {
+    for job_type in required_jobs(data, visual_revision.as_deref(), source_revision) {
+        let revision = if job_type == EnrichmentJobType::AnalyzeVisual {
             visual_revision
+                .as_deref()
+                .expect("visual jobs require a prepared input revision")
         } else {
             source_revision
         };
@@ -49,19 +46,18 @@ pub(crate) async fn synchronize_for_node(
 
 fn required_jobs(
     data: &Value,
-    image_revision: &str,
+    visual_revision: Option<&str>,
     source_revision: &str,
 ) -> Vec<EnrichmentJobType> {
-    match data.get("kind").and_then(Value::as_str) {
-        Some("image") => (!visual_knowledge_is_current(data, image_revision))
-            .then_some(EnrichmentJobType::AnalyzeImage)
-            .into_iter()
-            .collect(),
-        Some("video") => video_jobs(data, source_revision),
-        Some("audio") => media_jobs(data, source_revision),
+    let mut jobs = match data.get("kind").and_then(Value::as_str) {
+        Some("video" | "audio") => media_jobs(data, source_revision),
         Some("file") => document_jobs(data, source_revision),
         _ => Vec::new(),
+    };
+    if visual_revision.is_some_and(|revision| !visual_knowledge_is_current(data, revision)) {
+        jobs.push(EnrichmentJobType::AnalyzeVisual);
     }
+    jobs
 }
 
 fn media_jobs(data: &Value, source_revision: &str) -> Vec<EnrichmentJobType> {
@@ -74,19 +70,6 @@ fn media_jobs(data: &Value, source_revision: &str) -> Vec<EnrichmentJobType> {
         .then_some(EnrichmentJobType::TranscribeMedia)
         .into_iter()
         .collect()
-}
-
-fn video_jobs(data: &Value, source_revision: &str) -> Vec<EnrichmentJobType> {
-    let mut jobs = media_jobs(data, source_revision);
-    if data
-        .get("previewPath")
-        .and_then(Value::as_str)
-        .is_some_and(|path| !path.is_empty())
-        && !visual_knowledge_is_current(data, source_revision)
-    {
-        jobs.push(EnrichmentJobType::AnalyzeVideoCover);
-    }
-    jobs
 }
 
 fn document_jobs(data: &Value, source_revision: &str) -> Vec<EnrichmentJobType> {

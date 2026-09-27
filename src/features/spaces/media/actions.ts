@@ -1,24 +1,16 @@
 import type { Ref } from "vue";
 
+import { cancelAiJob } from "../../../foundation/ai/ai-runtime";
 import { formatBytes } from "../../../foundation/format/bytes";
+import { decodeCommandError } from "../../../foundation/ipc/command-error";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
-import { isSpaceMediaPayload, type SpaceMediaPayload } from "../model/nodes/capabilities";
+import { isSpaceMediaPayload } from "../model/nodes/capabilities";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
-import {
-  appendSpaceMediaAnalysisPreview,
-  clearSpaceMediaAnalysisPreview,
-  type SpaceMediaAnalysisPreview,
-} from "./analysis-preview";
-import { createLocalMediaKnowledge, generateSpaceMediaInsights } from "./knowledge";
-import type { SpaceMediaKnowledge } from "./knowledge-schema";
+import type { SpaceMediaAnalysisPreview } from "./analysis-preview";
+import { generateMediaInsights as generateInsights } from "./insights";
 import type { SpaceMediaPlaybackState, SpaceMediaSeekRequest, SpaceMediaToggleRequest } from "./playback";
-import {
-  cancelSpaceMediaTranscription,
-  isMediaTranscriptionCancellation,
-  transcribeSpaceMedia,
-  type SpaceMediaTranscriptionStage,
-} from "./transcription";
+import { requestMediaTranscription } from "./transcription";
 
 export interface SpaceMediaAnalysisLabels {
   title: string;
@@ -29,103 +21,58 @@ export interface SpaceMediaAnalysisLabels {
 }
 interface Context {
   nodes: Ref<SpaceCanvasNode[]>;
+  activeSpaceId: Ref<string | undefined>;
+  applyNodeContentForSpace(spaceId: string, id: string, data: SpaceNodePayload): void;
   analysisIds: Ref<string[]>;
   analysisPreviews: Ref<Record<string, SpaceMediaAnalysisPreview>>;
   seekRequest: Ref<SpaceMediaSeekRequest | undefined>;
   toggleRequest: Ref<SpaceMediaToggleRequest | undefined>;
   playback: Ref<{ id: string; state: SpaceMediaPlaybackState } | undefined>;
-  saveNodeData: (id: string, expectedData: SpaceNodePayload, data: SpaceNodePayload) => Promise<void>;
 }
 
 export function createSpaceMediaActions(context: Context) {
   let seekNonce = 0;
   let toggleNonce = 0;
-  async function analyzeMedia(id: string, labels: SpaceMediaAnalysisLabels) {
-    const jobId = crypto.randomUUID();
-    return runKnowledgeTask(
-      id,
-      labels,
-      async (node, taskId) => {
-        const tasks = useTaskStore();
-        if (!isSpaceMediaPayload(node.data)) throw new Error("Media node type changed during analysis");
-        const data = node.data;
-        const revision = requireMediaSource(data);
-        const transcript = await transcribeSpaceMedia(
-          jobId,
-          data.assetPath,
-          revision,
-          ({ stage, progress, partial, resources }) => {
-            const detail = resources
-              ? `${labels.preparing} · ${formatBytes(resources.downloaded)} / ${formatBytes(resources.total ?? 0)}`
-              : stageLabel(stage, labels);
-            if (resources) tasks.detail(taskId, detail);
-            else tasks.progress(taskId, progress, detail);
-            if (partial)
-              appendSpaceMediaAnalysisPreview({
-                previews: context.analysisPreviews,
-                nodeId: id,
-                progress,
-                partial,
-              });
-          },
-        );
-        const knowledge = createLocalMediaKnowledge(transcript, revision);
-        await saveCurrentKnowledge(id, revision, knowledge);
-        return knowledge;
-      },
-      async () => {
-        await cancelSpaceMediaTranscription(jobId);
-      },
-    );
+  async function analyzeMedia(id: string) {
+    const spaceId = requireSpace();
+    return requestMediaTranscription(spaceId, id);
   }
   async function generateMediaInsights(id: string, labels: SpaceMediaAnalysisLabels) {
-    return runKnowledgeTask(id, labels, async (node, taskId) => {
-      if (!isSpaceMediaPayload(node.data)) throw new Error("Media node type changed during analysis");
-      const data = node.data;
-      const revision = requireMediaSource(data);
-      const knowledge = data.mediaKnowledge;
-      if (!knowledge || knowledge.sourceRevision !== revision)
-        throw new Error("Current media transcript is unavailable");
-      useTaskStore().progress(taskId, 30, labels.organizing);
-      const next = await generateSpaceMediaInsights(knowledge);
-      await saveCurrentKnowledge(id, revision, next);
-      return next;
-    });
-  }
-  async function runKnowledgeTask(
-    id: string,
-    labels: SpaceMediaAnalysisLabels,
-    operation: (node: SpaceCanvasNode, taskId: string) => Promise<SpaceMediaKnowledge>,
-    cancel?: () => Promise<void>,
-  ) {
     if (context.analysisIds.value.includes(id)) return;
+    const spaceId = requireSpace();
     const node = context.nodes.value.find((candidate) => candidate.id === id);
-    if (!node) throw new Error("Media node no longer exists");
-    context.analysisIds.value = [...context.analysisIds.value, id];
-    clearSpaceMediaAnalysisPreview(context.analysisPreviews, id);
+    if (!node || !isSpaceMediaPayload(node.data) || !node.data.knowledgeRevision)
+      throw new Error("Current media knowledge is unavailable");
+    const jobId = crypto.randomUUID();
     const tasks = useTaskStore();
-    const taskId = tasks.start(labels.title, labels.preparing, cancel);
+    tasks.start(labels.title, labels.organizing, () => cancelAiJob(jobId), jobId);
+    context.analysisIds.value = [...context.analysisIds.value, id];
     try {
-      const knowledge = await operation(node, taskId);
-      tasks.succeed(taskId);
-      return knowledge;
+      const data = await generateInsights(
+        { spaceId, nodeId: id, jobId, expectedRevision: node.data.knowledgeRevision },
+        ({ stage, progress, resources }) => {
+          const detail = resources
+            ? `${labels.preparing} · ${formatBytes(resources.downloaded)}${resources.total === null ? "" : ` / ${formatBytes(resources.total)}`}`
+            : stage;
+          tasks.progress(jobId, progress, detail);
+        },
+      );
+      context.applyNodeContentForSpace(spaceId, id, data);
+      tasks.succeed(jobId);
     } catch (error) {
-      if (isMediaTranscriptionCancellation(error)) {
-        tasks.dismiss(taskId);
-        return undefined;
+      if (decodeCommandError(error)?.code === "media_insights_cancelled") tasks.cancelled(jobId);
+      else {
+        tasks.fail(jobId, String(error));
+        throw error;
       }
-      tasks.fail(taskId, String(error));
-      throw error;
     } finally {
       context.analysisIds.value = context.analysisIds.value.filter((candidate) => candidate !== id);
-      clearSpaceMediaAnalysisPreview(context.analysisPreviews, id);
     }
   }
-  async function saveCurrentKnowledge(id: string, revision: string, knowledge: SpaceMediaKnowledge) {
-    const current = context.nodes.value.find((candidate) => candidate.id === id);
-    if (!current || !isSpaceMediaPayload(current.data) || current.data.sourceRevision !== revision)
-      throw new Error("Media source changed during analysis");
-    await context.saveNodeData(id, current.data, { ...current.data, mediaKnowledge: knowledge });
+  function requireSpace() {
+    const spaceId = context.activeSpaceId.value;
+    if (!spaceId) throw new Error("A persisted Space is required");
+    return spaceId;
   }
   function requestMediaSeek(id: string, positionMs: number) {
     context.seekRequest.value = { id, positionMs, nonce: ++seekNonce };
@@ -155,14 +102,4 @@ export function createSpaceMediaActions(context: Context) {
     updateMediaPlayback,
     clearMediaPlayback,
   };
-}
-
-function requireMediaSource(data: SpaceMediaPayload) {
-  if (!data.sourceRevision) throw new Error("Media source revision is unavailable");
-  return data.sourceRevision;
-}
-function stageLabel(stage: SpaceMediaTranscriptionStage, labels: SpaceMediaAnalysisLabels) {
-  if (stage === "transcoding") return labels.transcoding;
-  if (stage === "transcribing" || stage === "parsing") return labels.transcribing;
-  return labels.preparing;
 }

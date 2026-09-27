@@ -33,13 +33,13 @@ pub(crate) fn extract(
     if bytes.len() as u64 > MAX_SOURCE_BYTES {
         return Err("PDF exceeds the 128 MiB processing budget".into());
     }
-    let result = pdf_inspector::extract_pages_markdown_mem(&bytes, None)
+    let extracted_document = pdf_inspector::extract_pages_markdown_mem(&bytes, None)
         .map_err(|error| format!("PDF parsing failed: {error}"))?;
     ensure_active(cancellation)?;
-    if result.pages.is_empty() {
+    if extracted_document.pages.is_empty() {
         return Err("PDF has no pages".into());
     }
-    if result.pages.len() > MAX_PAGES {
+    if extracted_document.pages.len() > MAX_PAGES {
         return Err("PDF exceeds the 2000-page processing budget".into());
     }
     let mut text = String::new();
@@ -55,13 +55,13 @@ pub(crate) fn extract(
         positioned_pages.entry(item.page).or_default().push(item);
     }
     let mut segments = Vec::new();
-    let page_count = result.pages.len();
+    let page_count = extracted_document.pages.len();
     let mut visual_pages = Vec::new();
     let mut text_pages = Vec::new();
     let mut empty_pages = Vec::new();
     let mut visuals = Vec::new();
     let mut text_width = 0;
-    for page in result.pages {
+    for page in extracted_document.pages {
         ensure_active(cancellation)?;
         let items = positioned_pages
             .remove(&(page.page + 1))

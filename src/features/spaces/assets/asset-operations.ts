@@ -57,7 +57,7 @@ export function cancelSpaceAssetImport(jobId: string): Promise<void> {
   return invoke("plugin:spaces|cancel_asset_import", { jobId });
 }
 
-export function deriveSpaceAssetData(
+export function deriveSpaceAssetContent(
   spaceId: string,
   nodeId: string,
   jobId: string,

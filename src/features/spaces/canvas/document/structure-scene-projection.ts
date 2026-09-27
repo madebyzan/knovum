@@ -138,14 +138,14 @@ function projectContainer(
   let bounds: WorldBounds | undefined;
   let contentCount = 0;
   for (const child of state.index.childrenByParent.get(structureNode.id) ?? []) {
-    const result = walkStructure(state, child, {
+    const childProjection = walkStructure(state, child, {
       parentWorld: world,
       sectionId,
       hidden,
       inheritedLocked: locked,
     });
-    bounds = mergeWorldBounds(bounds, result.bounds);
-    contentCount += result.contentCount;
+    bounds = mergeWorldBounds(bounds, childProjection.bounds);
+    contentCount += childProjection.contentCount;
   }
   if (structureNode.kind === "group") recordGroup({ state, group: structureNode, traversal, locked, bounds });
   else recordSection({ state, section: structureNode, layout, contentCount, locked, temporarilyExpanded });

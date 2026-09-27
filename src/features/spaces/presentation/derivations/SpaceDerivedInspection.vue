@@ -36,13 +36,13 @@ async function onRetry() {
   try {
     if (isSpaceManagedAssetPayload(props.node.data)) {
       const refreshed = await refreshSpaceAsset(spaceId, props.node.id);
-      if (refreshed) store.applyNodeDataForSpace(spaceId, props.node.id, refreshed);
+      if (refreshed) store.applyNodeContentForSpace(spaceId, props.node.id, refreshed);
     } else if (props.node.data.kind === "markdown") {
-      store.applyNodeDataForSpace(spaceId, props.node.id, {
+      store.applyNodeContentForSpace(spaceId, props.node.id, {
         ...props.node.data,
         derivationState: undefined,
       });
-      await store.saveNodeDataForSpace(spaceId, props.node.id, props.node.data, {
+      await store.saveNodeContentForSpace(spaceId, props.node.id, props.node.data, {
         ...props.node.data,
         derivationState: undefined,
       });

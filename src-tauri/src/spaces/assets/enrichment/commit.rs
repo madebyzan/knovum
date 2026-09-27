@@ -5,8 +5,14 @@ use tauri::AppHandle;
 use crate::spaces::{
     db,
     knowledge::indexing::{revision, KnowledgeChunkInput},
-    nodes::{self, contracts::NodeDataChange},
+    nodes::{self, contracts::NodeContentChange},
 };
+
+pub(in crate::spaces) struct PublicationGuard<'a> {
+    pub source_revision: Option<&'a str>,
+    pub job_id: Option<&'a str>,
+    pub media_knowledge: Option<&'a Value>,
+}
 
 /// Merge only fields owned by an enrichment into the current aggregate, in one write transaction.
 /// Both source replacement and deletion invalidate an in-flight result before it can be published.
@@ -14,11 +20,15 @@ pub(in crate::spaces) async fn publish(
     app: &AppHandle,
     space_id: &str,
     node_id: &str,
-    source_revision: Option<&str>,
+    guard: PublicationGuard<'_>,
     fields: serde_json::Map<String, Value>,
     chunks: Option<Vec<KnowledgeChunkInput>>,
-    job_id: Option<&str>,
 ) -> Result<Value, String> {
+    let PublicationGuard {
+        source_revision,
+        job_id,
+        media_knowledge,
+    } = guard;
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
     let row = sqlx::query(
@@ -33,11 +43,11 @@ pub(in crate::spaces) async fn publish(
     let raw: String = row.try_get("data").map_err(db::sql_error)?;
     let mut current: Value = serde_json::from_str(&raw).map_err(db::json_error)?;
     let expected_data = current.clone();
-    let current_revision = if job_id.is_some()
-        && current.get("kind").and_then(Value::as_str) == Some("image")
-        && fields.contains_key("visualKnowledge")
-    {
-        Some(super::jobs::revision::image_revision(&current)?)
+    if let Some(expected) = media_knowledge {
+        super::media_knowledge::validate_input(&current["mediaKnowledge"], expected)?;
+    }
+    let current_revision = if job_id.is_some() && fields.contains_key("visualKnowledge") {
+        super::jobs::revision::visual_revision(&current)?
     } else {
         current
             .get("sourceRevision")
@@ -70,7 +80,7 @@ pub(in crate::spaces) async fn publish(
     nodes::update_many_in_transaction(
         &mut tx,
         space_id,
-        &[NodeDataChange {
+        &[NodeContentChange {
             id: node_id.into(),
             expected_data,
             data: current.clone(),

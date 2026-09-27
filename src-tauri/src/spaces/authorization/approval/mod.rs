@@ -128,7 +128,7 @@ pub(crate) async fn consume(
     {
         return Err("approval-stale: action plan changed after approval".into());
     }
-    let result = sqlx::query(
+    let approval_write = sqlx::query(
         "UPDATE spaces_action_approvals SET consumed_at=$1
          WHERE id=$2 AND consumed_at IS NULL",
     )
@@ -137,7 +137,10 @@ pub(crate) async fn consume(
     .execute(&mut **tx)
     .await
     .map_err(db::sql_error)?;
-    db::require_one(result, "approval-stale: approval was consumed concurrently")
+    db::require_one(
+        approval_write,
+        "approval-stale: approval was consumed concurrently",
+    )
 }
 
 pub(crate) async fn decide(
@@ -150,7 +153,7 @@ pub(crate) async fn decide(
         ApprovalDecision::Approve => "approved",
         ApprovalDecision::Reject => "rejected",
     };
-    let result = sqlx::query(
+    let approval_write = sqlx::query(
         "UPDATE spaces_action_approvals SET decision=$1,decided_at=$2
          WHERE id=$3 AND decision='pending' AND valid_until >= $2",
     )
@@ -161,7 +164,7 @@ pub(crate) async fn decide(
     .await
     .map_err(db::sql_error)?;
     db::require_one(
-        result,
+        approval_write,
         "approval-stale: approval is unavailable or already decided",
     )
 }

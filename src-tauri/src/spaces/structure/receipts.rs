@@ -37,7 +37,7 @@ pub(crate) async fn find_typed<T: DeserializeOwned>(
     Ok(Some(serde_json::from_str(&value).map_err(db::json_error)?))
 }
 
-pub(crate) async fn result(
+pub(crate) async fn load_committed_projection(
     pool: &sqlx::SqlitePool,
     mutation_id: &str,
 ) -> Result<Option<serde_json::Value>, String> {
@@ -58,12 +58,13 @@ pub(crate) async fn insert_typed<T: Serialize>(
     digest: &str,
     applied_revision: i64,
     selection: &[String],
-    result: &T,
+    committed_projection: &T,
 ) -> Result<(), String> {
     let selection = serde_json::to_string(selection).map_err(db::json_error)?;
-    let result = serde_json::to_string(result).map_err(db::json_error)?;
+    let committed_projection =
+        serde_json::to_string(committed_projection).map_err(db::json_error)?;
     let now = crate::clock::unix_time_millis()?;
-    sqlx::query("INSERT INTO spaces_edit_receipts(mutation_id,space_id,request_digest,applied_revision,selection_suggestion,result_json,created_at) VALUES($1,$2,$3,$4,$5,$6,$7)").bind(mutation_id).bind(space_id).bind(digest).bind(applied_revision).bind(selection).bind(result).bind(now).execute(&mut **tx).await.map_err(db::sql_error)?;
+    sqlx::query("INSERT INTO spaces_edit_receipts(mutation_id,space_id,request_digest,applied_revision,selection_suggestion,result_json,created_at) VALUES($1,$2,$3,$4,$5,$6,$7)").bind(mutation_id).bind(space_id).bind(digest).bind(applied_revision).bind(selection).bind(committed_projection).bind(now).execute(&mut **tx).await.map_err(db::sql_error)?;
     Ok(())
 }
 

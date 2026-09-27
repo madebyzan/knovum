@@ -1,6 +1,5 @@
 import { commitActiveCanvasThumbnail } from "../../canvas/thumbnail-scheduler";
-import { resumePendingEnrichmentJobs } from "../../enrichment/job-scheduler";
-import { withEnrichmentTriggers } from "../../enrichment/mutation-triggers";
+import { refreshEnrichmentTasks } from "../../enrichment/job-observation";
 import type { createSpaceMediaActions } from "../../media/actions";
 import type { createRightSidebarActions } from "../../right-sidebar/right-sidebar-actions";
 import {
@@ -76,25 +75,20 @@ export function assembleSpaceActions(input: Input) {
     relationStatuses: state.relationStatusFilter,
     queryFilter: state.savedQueryFilter,
   };
-  const { context: enrichmentContext, ...enrichmentActions } = withEnrichmentTriggers(
-    state,
-    mutations,
-    placementActions,
-  );
-  const resumeEnrichment = () => resumePendingEnrichmentJobs(enrichmentContext, state.activeSpaceId.value);
+  const refreshTasks = () => refreshEnrichmentTasks(state.activeSpaceId.value);
   const initialize = async (title: string) => {
     await initializeSpaces(spaceContext, title);
-    await resumeEnrichment();
+    await refreshTasks();
   };
   const openSpace = async (id: string) => {
     await commitActiveCanvasThumbnail(state);
     state.workspaceMode.value = "space";
     await navigateToSpace(spaceContext, id);
-    await resumeEnrichment();
+    await refreshTasks();
   };
   const refreshActiveSpace = async () => {
     await refreshSpace(spaceContext);
-    await resumeEnrichment();
+    await refreshTasks();
   };
   const beginUrlCapture = (capture: Omit<(typeof state.urlCaptures.value)[number], "id">) => {
     const projection = { ...capture, id: crypto.randomUUID() };
@@ -174,6 +168,5 @@ export function assembleSpaceActions(input: Input) {
     ...structureTransfer,
     ...context,
     ...view,
-    ...enrichmentActions,
   };
 }

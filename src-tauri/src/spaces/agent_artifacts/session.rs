@@ -76,7 +76,7 @@ async fn finish(
 ) -> Result<(), String> {
     let now = crate::clock::unix_time_millis()?;
     let mut tx = db::begin_write(pool).await?;
-    let result = sqlx::query(
+    let session_write = sqlx::query(
         "UPDATE spaces_agent_artifact_sessions SET state=$1,error=$2,updated_at=$3,completed_at=$3
          WHERE id=$4 AND state='running'",
     )
@@ -87,7 +87,7 @@ async fn finish(
     .execute(&mut *tx)
     .await
     .map_err(db::sql_error)?;
-    db::require_one(result, "Agent artifact session is already terminal")?;
+    db::require_one(session_write, "Agent artifact session is already terminal")?;
     let run_state = if state == "completed" {
         "succeeded"
     } else {

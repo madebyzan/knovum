@@ -25,11 +25,11 @@ export interface SpaceAudioRecordingSession {
 
 export async function startSpaceAudioRecording(mimeType: string): Promise<SpaceAudioRecordingSession> {
   const stamp = new Date().toISOString().replaceAll(/[:.]/gu, "-");
-  const result = await invoke<unknown>("plugin:spaces|start_audio_recording", {
+  const recordingResponse = await invoke<unknown>("plugin:spaces|start_audio_recording", {
     mimeType,
     displayName: `Audio ${stamp}`,
   });
-  const session = recordingSessionSchema.parse(result);
+  const session = recordingSessionSchema.parse(recordingResponse);
   return { id: session.sessionId, mimeType };
 }
 
@@ -47,10 +47,10 @@ export async function appendSpaceAudioRecording(
 export async function finishSpaceAudioRecording(
   session: SpaceAudioRecordingSession,
 ): Promise<PersistedAudioSpaceAsset> {
-  const result = await invoke<unknown>("plugin:spaces|finalize_audio_recording", {
+  const recordingResponse = await invoke<unknown>("plugin:spaces|finalize_audio_recording", {
     sessionId: session.id,
   });
-  return recordedAssetSchema.parse(result);
+  return recordedAssetSchema.parse(recordingResponse);
 }
 
 export function cancelSpaceAudioRecording(session: SpaceAudioRecordingSession): Promise<void> {

@@ -27,10 +27,10 @@ export interface UrlCaptureContext {
   ): void;
   finishUrlCapture(id: string): void;
   addContent(data: SpaceNodePayload, position?: { x: number; y: number }): Promise<SpaceCanvasNode[]>;
-  saveNodeDataForSpace(
+  saveNodeContentForSpace(
     spaceId: string,
     id: string,
-    expectedData: SpaceNodePayload,
+    expectedContent: SpaceNodePayload,
     data: SpaceNodePayload,
   ): Promise<void>;
 }

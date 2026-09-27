@@ -7,7 +7,7 @@ import type { SpaceUrlCaptureProjection } from "../sources/url-capture-projectio
 
 type Point = { x: number; y: number };
 type AddContent = (data: SpaceNodePayload, position?: Point) => Promise<SpaceCanvasNode[]>;
-type SaveNodeData = (spaceId: string, id: string, data: SpaceNodePayload) => Promise<void>;
+type SaveNodeContent = (spaceId: string, id: string, data: SpaceNodePayload) => Promise<void>;
 
 export const URL = "https://www.youtube.com/watch?v=abc123";
 export const POSITION = { x: 120, y: 80 };
@@ -40,7 +40,7 @@ export function captureHarness() {
       updateUrlCapture: update,
       finishUrlCapture: finish,
       addContent,
-      saveNodeDataForSpace: vi.fn<SaveNodeData>(),
+      saveNodeContentForSpace: vi.fn<SaveNodeContent>(),
     },
     begin,
     finish,

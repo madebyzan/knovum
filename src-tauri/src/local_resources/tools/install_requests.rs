@@ -150,7 +150,7 @@ pub(super) async fn join<R: Runtime>(
 
 fn start<R: Runtime>(app: AppHandle<R>, registry: Arc<Registry>, installation: Arc<Installation>) {
     tauri::async_runtime::spawn(async move {
-        let result =
+        let installation_outcome =
             coordinator::install_missing(&app, &installation.cancellation, &mut |progress| {
                 installation.state.send_replace(State::Preparing(progress));
             })
@@ -163,7 +163,7 @@ fn start<R: Runtime>(app: AppHandle<R>, registry: Arc<Registry>, installation: A
                 *active = None;
             }
         }
-        installation.state.send_replace(match result {
+        installation.state.send_replace(match installation_outcome {
             Ok(()) => State::Ready,
             Err(error) => State::Failed(error.into()),
         });

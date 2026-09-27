@@ -75,7 +75,7 @@ export function useAddMenu() {
         activeSpaceId,
         nodes: store.nodes,
         addContent: store.addContent,
-        saveNodeDataForSpace: store.saveNodeDataForSpace,
+        saveNodeContentForSpace: store.saveNodeContentForSpace,
       },
       url,
     );

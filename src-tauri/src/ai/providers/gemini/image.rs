@@ -58,11 +58,11 @@ struct ResponseContent {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct ResponsePart {
-    inline_data: Option<InlineData>,
+    inline_data: Option<InlineMedia>,
 }
 
 #[derive(Deserialize)]
-struct InlineData {
+struct InlineMedia {
     data: String,
 }
 

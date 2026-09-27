@@ -8,7 +8,7 @@ use rig_agent::{
 };
 
 use crate::{
-    agent_runtime::{ControlCheckpoint, ControlDirective, RuntimeToolCall, RuntimeToolResult},
+    agent_runtime::{ControlCheckpoint, ControlDirective, RuntimeToolCall, RuntimeToolReply},
     ai::contracts::ModelTurnResponse,
 };
 
@@ -95,7 +95,7 @@ pub fn accept_model(
 
 pub fn accept_tools(
     checkpoint: &mut ControlCheckpoint,
-    results: Vec<RuntimeToolResult>,
+    results: Vec<RuntimeToolReply>,
 ) -> Result<(), String> {
     verify(checkpoint)?;
     let added = u16::try_from(results.len())
@@ -106,15 +106,15 @@ pub fn accept_tools(
     let mut run = restore(checkpoint)?;
     let results = results
         .into_iter()
-        .map(|result| {
-            let call = ToolCallId::new(result.call_id)
+        .map(|tool_reply| {
+            let call = ToolCallId::new(tool_reply.call_id)
                 .ok_or("tool-schema-invalid: tool result call ID is empty")?;
             Ok(UserContent::ToolResult(ToolResult {
                 call,
                 provider: None,
-                name: result.name,
+                name: tool_reply.name,
                 content: vec![ToolResultContent::Json {
-                    value: result.result,
+                    value: tool_reply.result,
                 }],
             }))
         })

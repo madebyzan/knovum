@@ -12,35 +12,35 @@ use crate::spaces::{
 #[derive(Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub(crate) struct ImportJsonCanvasNodesRequest {
-    space_id: String,
-    mutation_id: String,
-    base_revision: i64,
-    structure_nodes: Vec<StructureNode>,
-    layouts: Vec<StructureLayout>,
-    relation_styles: Vec<RelationStyle>,
-    nodes: Vec<JsonCanvasNodeImport>,
-    relations: Vec<SpaceRelationInput>,
+    pub(super) space_id: String,
+    pub(super) mutation_id: String,
+    pub(super) base_revision: i64,
+    pub(super) structure_nodes: Vec<StructureNode>,
+    pub(super) layouts: Vec<StructureLayout>,
+    pub(super) relation_styles: Vec<RelationStyle>,
+    pub(super) nodes: Vec<JsonCanvasNodeImport>,
+    pub(super) relations: Vec<SpaceRelationInput>,
 }
 
 #[derive(Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub(super) struct JsonCanvasNodeImport {
-    source_id: String,
-    node: InsertNode,
+    pub(super) source_id: String,
+    pub(super) node: InsertNode,
 }
 
 #[derive(Deserialize, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub(crate) struct ImportedJsonCanvasNode {
-    source_id: String,
+    pub(super) source_id: String,
     node_id: String,
 }
 
 #[derive(Deserialize, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
-pub(crate) struct ImportJsonCanvasResult {
+pub(crate) struct JsonCanvasImportReceipt {
     imported_nodes: Vec<ImportedJsonCanvasNode>,
     revision: i64,
 }
@@ -48,9 +48,11 @@ pub(crate) struct ImportJsonCanvasResult {
 pub(crate) async fn import_nodes<R: Runtime>(
     app: AppHandle<R>,
     request: ImportJsonCanvasNodesRequest,
-) -> Result<ImportJsonCanvasResult, String> {
+    digest: String,
+    cancellation: &tokio_util::sync::CancellationToken,
+) -> Result<JsonCanvasImportReceipt, String> {
+    super::import_control::check(cancellation)?;
     validate_source_ids(&request.nodes)?;
-    let digest = crate::spaces::structure::receipts::digest(&request)?;
     let imported_nodes = request
         .nodes
         .iter()
@@ -59,19 +61,19 @@ pub(crate) async fn import_nodes<R: Runtime>(
             node_id: prepared_node.node.id.clone(),
         })
         .collect();
-    let nodes = request
+    let mut nodes = request
         .nodes
         .into_iter()
         .map(|prepared_node| prepared_node.node)
         .collect::<Vec<_>>();
     let pool = crate::spaces::db::pool(&app).await?;
     let mut tx = crate::spaces::db::begin_write(pool).await?;
-    if let Some(result) =
+    if let Some(import_receipt) =
         crate::spaces::structure::receipts::find_typed(&mut tx, &request.mutation_id, &digest)
             .await?
     {
         tx.commit().await.map_err(crate::spaces::db::sql_error)?;
-        return Ok(result);
+        return Ok(import_receipt);
     }
     let (before_snapshot, current_revision) =
         crate::spaces::structure::repository::load_in_transaction(&mut tx, &request.space_id)
@@ -82,6 +84,16 @@ pub(crate) async fn import_nodes<R: Runtime>(
     let before =
         crate::spaces::structure::history::capture(&mut tx, &request.space_id, &before_snapshot)
             .await?;
+    for node in &mut nodes {
+        crate::spaces::knowledge::contracts::normalize_node(
+            &mut tx,
+            &request.space_id,
+            &node.id,
+            &node.kind,
+            &mut node.data,
+        )
+        .await?;
+    }
     let now = crate::clock::unix_time_millis()?;
     crate::spaces::nodes::insert_rows_in_transaction(&mut tx, &request.space_id, &nodes, now)
         .await?;
@@ -120,7 +132,7 @@ pub(crate) async fn import_nodes<R: Runtime>(
         revision,
     )
     .await?;
-    let result = ImportJsonCanvasResult {
+    let import_receipt = JsonCanvasImportReceipt {
         imported_nodes,
         revision,
     };
@@ -131,11 +143,12 @@ pub(crate) async fn import_nodes<R: Runtime>(
         &digest,
         revision,
         &[],
-        &result,
+        &import_receipt,
     )
     .await?;
+    super::import_control::check(cancellation)?;
     tx.commit().await.map_err(crate::spaces::db::sql_error)?;
-    Ok(result)
+    Ok(import_receipt)
 }
 
 pub(super) fn validate_source_ids(nodes: &[JsonCanvasNodeImport]) -> Result<(), String> {

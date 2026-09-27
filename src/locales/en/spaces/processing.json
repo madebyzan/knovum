@@ -7,12 +7,9 @@
     "failed": "Failed {count}"
   },
   "enrichmentJobType": {
-    "embed_text": "Text vector indexing",
-    "analyze_image": "Visual image understanding",
+    "analyze_visual": "Visual understanding",
     "analyze_media": "Media duration and waveform",
     "transcribe_media": "Audio Whisper transcription",
-    "analyze_video_cover": "Video cover analysis",
-    "embed_media_transcript": "Transcript vector indexing",
     "parse_document": "Document extraction",
     "analyze_document": "Document visual analysis"
   },
@@ -27,7 +24,6 @@
     "rebuild": "Rebuild retrieval index",
     "rebuildDone": "Index rebuilt; generated {count} vector entries."
   },
-  "semanticUnavailable": "Smart search is unavailable · Showing text matches only",
   "failed": "Processing failed",
   "imageProgress": "Processing image",
   "mediaProgress": "Processing media",

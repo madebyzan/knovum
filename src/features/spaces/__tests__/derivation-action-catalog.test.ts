@@ -3,25 +3,25 @@ import { describe, expect, it } from "vitest";
 import { createSpaceNode } from "../canvas/node";
 import { creationIntentCatalog } from "../knowledge-derivations/catalog/creation-intent-catalog";
 import { creationIntentDefinitions } from "../knowledge-derivations/catalog/creation-intent-definitions";
-import { prepareSpaceKnowledgePayload } from "../knowledge/model/node-knowledge";
 
 const note = () =>
   createSpaceNode(
-    prepareSpaceKnowledgePayload({
+    {
       kind: "note",
       title: "Research note",
       plainText: "A grounded observation.",
       tiptapContent: { type: "doc", content: [] },
       knowledgeRevision: "note:current",
-    }),
+    },
     { x: 0, y: 0 },
     "note",
   );
 
 const image = (index: number) =>
   createSpaceNode(
-    prepareSpaceKnowledgePayload({
+    {
       kind: "image",
+      knowledgeRevision: "node1:0000000000000001",
       title: `Reference ${index}`,
       fileName: `${index}.png`,
       assetPath: `/spaces/assets/${index}.png`,
@@ -34,15 +34,16 @@ const image = (index: number) =>
         provider: "test",
         model: "vision",
       },
-    }),
+    },
     { x: index * 20, y: 0 },
     `image-${index}`,
   );
 
 const indexedVideo = () =>
   createSpaceNode(
-    prepareSpaceKnowledgePayload({
+    {
       kind: "video",
+      knowledgeRevision: "node1:0000000000000002",
       title: "Interview",
       fileName: "interview.mp4",
       assetPath: "/spaces/assets/interview.mp4",
@@ -58,7 +59,7 @@ const indexedVideo = () =>
           subtitleCues: [{ startMs: 0, endMs: 1_000, text: "Hello" }],
         },
       },
-    }),
+    },
     { x: 0, y: 0 },
     "video",
   );
@@ -90,12 +91,12 @@ describe("selection derivation catalog", () => {
 
   it("rejects opaque resources instead of treating every selected file as knowledge", () => {
     const file = createSpaceNode(
-      prepareSpaceKnowledgePayload({
+      {
         kind: "file",
         title: "Binary",
         fileName: "binary.bin",
         assetPath: "/spaces/assets/binary.bin",
-      }),
+      },
       { x: 0, y: 0 },
       "file",
     );
@@ -108,12 +109,12 @@ describe("selection derivation catalog", () => {
 
   it("exports only an explicit current Markdown resource instead of hiding a synthesis step", () => {
     const markdown = createSpaceNode(
-      prepareSpaceKnowledgePayload({
+      {
         kind: "markdown",
         title: "Brief",
         text: "# Brief",
         knowledgeRevision: "markdown:current",
-      }),
+      },
       { x: 0, y: 0 },
       "markdown",
     );

@@ -14,7 +14,7 @@ use super::{node::required_string, RunEnrichmentJobRequest};
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-struct VisualAnalysisResult {
+struct VisualInterpretation {
     description: String,
     detected_text: Option<Vec<String>>,
     tags: Vec<String>,
@@ -27,8 +27,8 @@ pub(super) async fn analyze(
     target: ExecutionTarget,
     cancellation: &tokio_util::sync::CancellationToken,
 ) -> Result<(), String> {
-    let source = match request.job_type {
-        super::EnrichmentJobType::AnalyzeImage => {
+    let source = match data.get("kind").and_then(Value::as_str) {
+        Some("image") => {
             let path = authorize_spaces_asset(
                 app,
                 std::path::Path::new(required_string(data, "assetPath")?),
@@ -39,23 +39,16 @@ pub(super) async fn analyze(
                     .await?;
             ImageAnalysisSource::Png(rendered.png)
         }
-        super::EnrichmentJobType::AnalyzeVideoCover => {
+        Some("video") => {
             let path = std::path::Path::new(required_string(data, "previewPath")?);
-            if web_media_preview(data) {
-                ImageAnalysisSource::FilePath(
-                    authorize_spaces_asset(app, path)?
-                        .to_string_lossy()
-                        .into_owned(),
-                )
+            let authorized = if web_media_preview(data) {
+                authorize_spaces_asset(app, path)?
             } else {
-                ImageAnalysisSource::FilePath(
-                    authorize_generated_preview(app, path)?
-                        .to_string_lossy()
-                        .into_owned(),
-                )
-            }
+                authorize_generated_preview(app, path)?
+            };
+            ImageAnalysisSource::FilePath(authorized.to_string_lossy().into_owned())
         }
-        _ => return Err("Visual analysis received a non-visual job".to_owned()),
+        _ => return Err("Visual analysis requires an image or video node".to_owned()),
     };
     let completion = vision::analyze_image(app, ImageAnalysisRequest {
             target,
@@ -66,7 +59,7 @@ pub(super) async fn analyze(
         }, cancellation)
     .await
     .map_err(|error| error.to_string())?;
-    let analysis: VisualAnalysisResult = serde_json::from_str(completion.text.trim())
+    let analysis: VisualInterpretation = serde_json::from_str(completion.text.trim())
         .map_err(|error| format!("Visual analysis returned invalid JSON: {error}"))?;
     let detected_text = analysis.detected_text.unwrap_or_default().join("\n");
     let object = data

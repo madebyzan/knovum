@@ -14,21 +14,6 @@ pub fn allocate_visualization_output_path(app: AppHandle) -> Result<String, Comm
 }
 
 #[tauri::command]
-pub fn allocate_document_docx_path(app: AppHandle) -> Result<String, CommandError> {
-    Ok((reserve(&app, "document", "docx"))?)
-}
-
-#[tauri::command]
-pub fn allocate_document_pdf_path(app: AppHandle) -> Result<String, CommandError> {
-    Ok((reserve(&app, "document", "pdf"))?)
-}
-
-#[tauri::command]
-pub fn allocate_document_txt_path(app: AppHandle) -> Result<String, CommandError> {
-    Ok((reserve(&app, "document", "txt"))?)
-}
-
-#[tauri::command]
 pub fn allocate_video_output_path(app: AppHandle) -> Result<String, CommandError> {
     Ok((reserve(&app, "generated", "mp4"))?)
 }

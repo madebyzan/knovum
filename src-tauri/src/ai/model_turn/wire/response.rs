@@ -84,11 +84,11 @@ fn from_part(part: ContentPart) -> AiResult<ModelContentPart> {
             arguments: call.fn_arguments,
             thought_signatures: call.thought_signatures,
         }),
-        ContentPart::ToolResponse(result) => Ok(ModelContentPart::ToolResult {
-            call_id: result.call_id,
-            name: result.fn_name.unwrap_or_default(),
-            result: serde_json::from_str(&result.content)
-                .unwrap_or(serde_json::Value::String(result.content)),
+        ContentPart::ToolResponse(tool_reply) => Ok(ModelContentPart::ToolResult {
+            call_id: tool_reply.call_id,
+            name: tool_reply.fn_name.unwrap_or_default(),
+            result: serde_json::from_str(&tool_reply.content)
+                .unwrap_or(serde_json::Value::String(tool_reply.content)),
         }),
         ContentPart::ThoughtSignature(_) => Err(unsupported("standalone thought signature")),
         ContentPart::ReasoningContent(_) => Err(unsupported("reasoning content")),

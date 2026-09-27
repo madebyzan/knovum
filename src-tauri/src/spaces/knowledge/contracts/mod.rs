@@ -24,6 +24,19 @@ pub async fn validate_node(
     Ok(object_type_id)
 }
 
+/// User edits submit content; Rust computes the durable semantic revision after bounding the input.
+pub async fn normalize_node(
+    tx: &mut Transaction<'_, Sqlite>,
+    space_id: &str,
+    node_id: &str,
+    kind: &str,
+    data: &mut Value,
+) -> Result<Option<String>, String> {
+    let object_type_id = node_contracts::validate_node(tx, space_id, node_id, kind, data).await?;
+    revision::apply(data)?;
+    Ok(object_type_id)
+}
+
 pub(in crate::spaces) async fn validate_same_space_node(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,

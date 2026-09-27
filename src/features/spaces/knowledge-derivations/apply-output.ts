@@ -7,7 +7,7 @@ import type { useSpaceStore } from "../session/space-store";
 type Store = ReturnType<typeof useSpaceStore>;
 type DerivationOutputStore = Pick<
   Store,
-  "activeSpaceId" | "applyNodeDataForSpace" | "relations" | "requestReveal"
+  "activeSpaceId" | "applyNodeContentForSpace" | "relations" | "requestReveal"
 >;
 
 interface DerivationOutput {
@@ -19,7 +19,7 @@ interface DerivationOutput {
 
 export function applyDerivationOutput(store: DerivationOutputStore, output: DerivationOutput) {
   if (store.activeSpaceId !== output.spaceId) return false;
-  store.applyNodeDataForSpace(output.spaceId, output.nodeId, output.data);
+  store.applyNodeContentForSpace(output.spaceId, output.nodeId, output.data);
   store.relations = [...store.relations, ...differenceBy(output.relations, store.relations, ({ id }) => id)];
   store.requestReveal([output.nodeId], "ensure-visible");
   return true;

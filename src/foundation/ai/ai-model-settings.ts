@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import type { AiSettings } from "../../shared/contracts/generated/AiSettings";
+import { routingCapabilities } from "../../shared/contracts/generated/contract-values";
 import { desktopAgentSettingsSchema } from "./agent-models";
 import {
   aiConnectionSettingsSchema,
@@ -9,7 +10,6 @@ import {
   type AiRoutingPurpose,
   type ExecutionTarget,
 } from "./ai-models";
-import { routingPolicy } from "./execution-routing";
 
 type AiModelSettingsShape = AiSettings;
 type SettingsRefinement = z.core.$RefinementCtx<AiModelSettingsShape>;
@@ -66,7 +66,7 @@ function rejectInvalidDefaultTargets(settings: AiModelSettingsShape, context: Se
 
   for (const [target, purpose] of targets) {
     if (!target) continue;
-    const capability: AiModelCapability = routingPolicy(purpose).modelCapability;
+    const capability: AiModelCapability = routingCapabilities[purpose];
     if (!resolvesToCapability(settings.connections, target, capability)) {
       context.addIssue({ code: "custom", message: `Invalid ${capability} model target` });
     }

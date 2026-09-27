@@ -1,0 +1,77 @@
+[
+  {
+    "name": "identity",
+    "width": 2,
+    "height": 1,
+    "source": [50, 25, 10, 255, 100, 20, 40, 128],
+    "adjustments": {
+      "exposure": 0,
+      "contrast": 0,
+      "highlights": 0,
+      "shadows": 0,
+      "whites": 0,
+      "blacks": 0,
+      "saturation": 0,
+      "warmth": 0,
+      "sharpness": 0,
+      "vignette": 0,
+      "vibrance": 0,
+      "tint": 0,
+      "clarity": 0,
+      "grain": 0,
+      "softLight": 0,
+      "glow": 0
+    },
+    "expected": [50, 25, 10, 255, 100, 20, 40, 128]
+  },
+  {
+    "name": "exposure",
+    "width": 2,
+    "height": 1,
+    "source": [50, 25, 10, 255, 100, 20, 40, 128],
+    "adjustments": {
+      "exposure": 100,
+      "contrast": 0,
+      "highlights": 0,
+      "shadows": 0,
+      "whites": 0,
+      "blacks": 0,
+      "saturation": 0,
+      "warmth": 0,
+      "sharpness": 0,
+      "vignette": 0,
+      "vibrance": 0,
+      "tint": 0,
+      "clarity": 0,
+      "grain": 0,
+      "softLight": 0,
+      "glow": 0
+    },
+    "expected": [200, 100, 40, 255, 255, 80, 160, 128]
+  },
+  {
+    "name": "underexposure",
+    "width": 2,
+    "height": 1,
+    "source": [50, 25, 10, 255, 100, 20, 40, 128],
+    "adjustments": {
+      "exposure": -100,
+      "contrast": 0,
+      "highlights": 0,
+      "shadows": 0,
+      "whites": 0,
+      "blacks": 0,
+      "saturation": 0,
+      "warmth": 0,
+      "sharpness": 0,
+      "vignette": 0,
+      "vibrance": 0,
+      "tint": 0,
+      "clarity": 0,
+      "grain": 0,
+      "softLight": 0,
+      "glow": 0
+    },
+    "expected": [12, 6, 3, 255, 25, 5, 10, 128]
+  }
+]

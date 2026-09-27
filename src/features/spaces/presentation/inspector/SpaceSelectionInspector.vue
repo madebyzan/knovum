@@ -24,7 +24,7 @@ const selectionActions = useCanvasSelectionActions();
 const selectedNode = computed(() => (selectedNodes.value.length === 1 ? selectedNodes.value[0] : undefined));
 
 function saveTitle(node: SpaceCanvasNode, value: string) {
-  return store.saveNodeData(node.id, node.data, { ...node.data, title: value });
+  return store.saveNodeContent(node.id, node.data, { ...node.data, title: value });
 }
 </script>
 

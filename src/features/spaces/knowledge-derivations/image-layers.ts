@@ -56,7 +56,7 @@ export async function createImageLayers(
   const id = crypto.randomUUID();
   return runDerivation<LayerOutput[]>({
     store,
-    pendingNode: first,
+    pendingId: first.id,
     sourceNodeIds: [source.id],
     task: {
       id,
@@ -93,7 +93,7 @@ export async function createImageLayers(
     onError: async () => {
       for (const node of pending)
         if (node.data.kind === "image")
-          await store.saveNodeDataForSpace(spaceId, node.id, node.data, {
+          await store.saveNodeContentForSpace(spaceId, node.id, node.data, {
             ...node.data,
             processingState: "failed",
           });

@@ -11,7 +11,7 @@ const context = vi.hoisted(() => ({
   space: null as null | {
     activeSpaceId: string;
     nodes: SpaceCanvasNode[];
-    updateManyData: (...args: unknown[]) => Promise<void>;
+    updateNodeContents: (...args: unknown[]) => Promise<void>;
   },
 }));
 vi.mock("../session/space-store", () => ({ useSpaceStore: () => context.space! }));
@@ -37,7 +37,7 @@ beforeEach(() => {
         "same-id",
       ),
     ],
-    updateManyData: vi.fn<(...args: unknown[]) => Promise<void>>().mockResolvedValue(undefined),
+    updateNodeContents: vi.fn<(...args: unknown[]) => Promise<void>>().mockResolvedValue(undefined),
   });
 });
 
@@ -64,7 +64,7 @@ describe("image session ownership", () => {
     await nextTick();
     expect(transform.props("edit").rotation).toBe(90);
     expect(node.data.imageEdit?.rotation).toBe(0);
-    expect(context.space!.updateManyData).not.toHaveBeenCalled();
+    expect(context.space!.updateNodeContents).not.toHaveBeenCalled();
     wrapper.unmount();
   });
 
@@ -81,7 +81,7 @@ describe("image session ownership", () => {
     expect(comments.activeNodeId).toBeUndefined();
     expect(comments.takeConversationDraft()).toBeUndefined();
     await edits.apply();
-    expect(context.space!.updateManyData).not.toHaveBeenCalled();
+    expect(context.space!.updateNodeContents).not.toHaveBeenCalled();
   });
 
   it("releases image state when its node is deleted", () => {

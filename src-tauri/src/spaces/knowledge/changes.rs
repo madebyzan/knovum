@@ -36,7 +36,7 @@ pub async fn commit_knowledge_changes<R: Runtime>(
     }
     change_commit::validate_references(&mut tx, &changes.space_id, &changes.operations).await?;
     let now = crate::clock::unix_time_millis()?;
-    let result = change_commit::apply(
+    let committed_changes = change_commit::apply(
         &mut tx,
         &changes.space_id,
         &changes.actor,
@@ -45,5 +45,5 @@ pub async fn commit_knowledge_changes<R: Runtime>(
     )
     .await?;
     tx.commit().await.map_err(db::sql_error)?;
-    Ok(result)
+    Ok(committed_changes)
 }

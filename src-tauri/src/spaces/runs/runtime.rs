@@ -58,13 +58,13 @@ async fn execute_claim(app: &AppHandle, claim: super::AttemptClaim) -> Result<()
     tokio::pin!(execution);
     let outcome = loop {
         tokio::select! {
-            result = &mut execution => break result,
+            execution_outcome = &mut execution => break execution_outcome,
             _ = tokio::time::sleep(Duration::from_secs(10)) => {
                 scheduler::renew_lease(pool, &claim).await?;
             }
         }
     };
-    let result = match outcome {
+    let execution_outcome = match outcome {
         Ok(StepOutcome::Completed {
             output,
             selected_branch,
@@ -84,5 +84,5 @@ async fn execute_claim(app: &AppHandle, claim: super::AttemptClaim) -> Result<()
         Err(error) => scheduler::fail_step(pool, &claim, &error).await,
     };
     super::signals::announce();
-    result
+    execution_outcome
 }

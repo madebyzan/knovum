@@ -65,7 +65,7 @@ export function useImageComments(props: ImageCommentCanvas) {
     if (!node || node.data.kind !== "image") return false;
     busy.value = true;
     try {
-      await store.updateManyData([
+      await store.updateNodeContents([
         { id: props.id, before: node.data, after: { ...node.data, comments: next } },
       ]);
       draft.value = undefined;

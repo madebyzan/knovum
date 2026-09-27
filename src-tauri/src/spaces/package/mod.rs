@@ -1,5 +1,8 @@
 use crate::command_error::CommandError;
+mod import;
 mod manifest_assets;
+mod remap;
+pub(crate) use import::reconcile;
 mod read;
 mod restore;
 mod validation;
@@ -19,11 +22,10 @@ pub struct PackageAsset {
     pub path: String,
 }
 
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct PackageImport {
+pub(super) struct PackageImport {
     pub manifest: String,
     pub assets: Vec<ImportedPackageAsset>,
+    pub namespace: PathBuf,
 }
 
 #[derive(Serialize)]
@@ -75,17 +77,18 @@ pub(super) fn send_progress(
 #[tauri::command]
 pub async fn export_space_package(
     app: tauri::AppHandle,
+    space_id: String,
     destination_path: String,
-    manifest: String,
-    assets: Vec<PackageAsset>,
     on_progress: Channel<SpacePackageProgress>,
 ) -> Result<(), CommandError> {
-    Ok((crate::blocking::run(move || {
+    let snapshot = crate::spaces::queries::export::collect(&app, space_id).await?;
+    let manifest = serde_json::to_string(&snapshot.manifest).map_err(|e| e.to_string())?;
+    Ok(crate::blocking::run(move || {
         let target = PathBuf::from(destination_path);
         crate::spaces::assets::authorize_destination(&app, &target)?;
-        write::write_package(&app, &target, &manifest, &assets, &on_progress)
+        write::write_package(&app, &target, &manifest, &snapshot.assets, &on_progress)
     })
-    .await)?)
+    .await?)
 }
 
 #[tauri::command]
@@ -93,19 +96,6 @@ pub async fn import_space_package(
     app: tauri::AppHandle,
     source_path: String,
     on_progress: Channel<SpacePackageProgress>,
-) -> Result<PackageImport, CommandError> {
-    Ok((crate::blocking::run(move || {
-        let source = PathBuf::from(source_path);
-        crate::spaces::assets::authorize_source(&app, &source)?;
-        read::read_package(&app, &source, &on_progress)
-    })
-    .await)?)
-}
-
-#[tauri::command]
-pub async fn restore_space_package<R: tauri::Runtime>(
-    app: tauri::AppHandle<R>,
-    request: restore::contracts::RestorePackageRequest,
-) -> Result<(), CommandError> {
-    Ok((restore::restore(&app, request).await)?)
+) -> Result<serde_json::Value, CommandError> {
+    Ok(import::execute(app, PathBuf::from(source_path), on_progress).await?)
 }

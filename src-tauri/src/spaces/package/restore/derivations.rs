@@ -72,6 +72,9 @@ pub(super) async fn insert(
 }
 
 fn validate(row: &PackageDerivation) -> Result<(), String> {
+    if let Some(document) = &row.grounded_document {
+        crate::spaces::knowledge::grounding::validate_citation_snapshots(&document.citations)?;
+    }
     let action = matches!(
         row.action_kind.as_str(),
         "remove-image-background"
@@ -85,6 +88,7 @@ fn validate(row: &PackageDerivation) -> Result<(), String> {
             | "draft-document"
             | "export-document-as-docx"
             | "export-document-as-pdf"
+            | "export-document-as-txt"
             | "render-presentation"
             | "generate-video"
     ) && row.action_version == 1;
@@ -138,5 +142,31 @@ fn validate(row: &PackageDerivation) -> Result<(), String> {
         Ok(())
     } else {
         Err("Package knowledge derivation is invalid".into())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    fn derivation() -> serde_json::Value {
+        serde_json::json!({"id":"derivation","outputNodeId":"video","inputs":[{"nodeId":"source","sourceIdentity":"source","sourceSnapshot":{"title":"Source","kind":"markdown","originalUrl":null,"platform":null},"role":"primary","sourceRevision":"node1:source","revisionBasis":"knowledge","inputRevision":"node1:source","inputSnapshot":null}],"actionKind":"generate-video","actionVersion":1,"engine":"qwen:wan3.0-video","status":"completed","error":"","createdAt":1,"updatedAt":2,"completedAt":2,"generatedVideo":{"prompt":"Explain the source","aspectRatio":"16:9","durationSeconds":10,"provider":"qwen","model":"wan3.0-video","operationId":"task-1"}})
+    }
+    #[test]
+    fn requires_current_metadata_for_completed_video() {
+        let mut value = derivation();
+        assert!(validate(&serde_json::from_value(value.clone()).unwrap()).is_ok());
+        value.as_object_mut().unwrap().remove("generatedVideo");
+        assert!(validate(&serde_json::from_value(value).unwrap()).is_err());
+        let mut obsolete = derivation();
+        obsolete["generatedVideo"]["reviewState"] = serde_json::json!("reviewed");
+        assert!(serde_json::from_value::<PackageDerivation>(obsolete).is_err());
+    }
+    #[test]
+    fn accepts_document_export_without_provider_metadata() {
+        let mut value = derivation();
+        value.as_object_mut().unwrap().remove("generatedVideo");
+        value["actionKind"] = serde_json::json!("export-document-as-pdf");
+        value["engine"] = serde_json::json!("typst:0.15.1");
+        assert!(validate(&serde_json::from_value(value).unwrap()).is_ok());
     }
 }

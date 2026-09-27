@@ -54,7 +54,7 @@ export function useWorkflowCaptureSave() {
     saving.value = true;
     error.value = "";
     try {
-      const result = await saveCapturedWorkflow({
+      const savedWorkflow = await saveCapturedWorkflow({
         requestId: currentRequestId,
         spaceId,
         selectedNodeIds: [...selectedNodeIds],
@@ -62,7 +62,7 @@ export function useWorkflowCaptureSave() {
         name: name.value.trim(),
         outputNames: normalizedOutputNames,
       });
-      if (generation === current) saved.value = result;
+      if (generation === current) saved.value = savedWorkflow;
     } catch (cause) {
       if (generation === current) error.value = String(cause);
     } finally {

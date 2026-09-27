@@ -68,7 +68,7 @@ export async function createVisualization(context: CreateVisualizationContext) {
 
   return runDerivation<VisualizationOutput>({
     store,
-    pendingNode: output,
+    pendingId: output.id,
     sourceNodeIds: sources.map(({ nodeId }) => nodeId),
     task: {
       id: jobId,

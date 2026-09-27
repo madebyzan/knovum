@@ -14,7 +14,7 @@ pub async fn ensure_conversation(
     mode: AssistantMode,
     now: i64,
 ) -> Result<(), String> {
-    let result = sqlx::query(
+    let conversation_write = sqlx::query(
         "INSERT INTO spaces_assistant_conversations(id,space_id,title,mode,active_branch_id,created_at,updated_at)
          VALUES($1,$2,$3,$4,$1,$5,$5) ON CONFLICT(id) DO UPDATE SET updated_at=excluded.updated_at
          WHERE spaces_assistant_conversations.space_id=excluded.space_id",
@@ -27,7 +27,7 @@ pub async fn ensure_conversation(
     .execute(&mut **tx)
     .await
     .map_err(db::sql_error)?;
-    db::require_one(result, "assistant-conversation-unavailable")
+    db::require_one(conversation_write, "assistant-conversation-unavailable")
 }
 
 pub async fn ensure_branch_idle(
@@ -79,7 +79,7 @@ pub async fn rename(pool: &SqlitePool, id: &str, title: &str) -> Result<(), Stri
     if title.is_empty() || title.chars().count() > 160 {
         return Err("assistant-conversation-title-invalid".into());
     }
-    let result =
+    let conversation_write =
         sqlx::query("UPDATE spaces_assistant_conversations SET title=$1,updated_at=$2 WHERE id=$3")
             .bind(title)
             .bind(crate::clock::unix_time_millis()?)
@@ -87,13 +87,13 @@ pub async fn rename(pool: &SqlitePool, id: &str, title: &str) -> Result<(), Stri
             .execute(pool)
             .await
             .map_err(db::sql_error)?;
-    db::require_one(result, "assistant-conversation-unavailable")
+    db::require_one(conversation_write, "assistant-conversation-unavailable")
 }
 
 pub async fn archive(pool: &SqlitePool, id: &str, archived: bool) -> Result<(), String> {
     let now = crate::clock::unix_time_millis()?;
     let archived_at = archived.then_some(now);
-    let result = sqlx::query(
+    let conversation_write = sqlx::query(
         "UPDATE spaces_assistant_conversations SET archived_at=$1,updated_at=$2 WHERE id=$3",
     )
     .bind(archived_at)
@@ -102,7 +102,7 @@ pub async fn archive(pool: &SqlitePool, id: &str, archived: bool) -> Result<(), 
     .execute(pool)
     .await
     .map_err(db::sql_error)?;
-    db::require_one(result, "assistant-conversation-unavailable")
+    db::require_one(conversation_write, "assistant-conversation-unavailable")
 }
 
 pub async fn delete(pool: &SqlitePool, id: &str) -> Result<(), String> {
@@ -137,12 +137,12 @@ pub async fn delete(pool: &SqlitePool, id: &str) -> Result<(), String> {
     .execute(&mut *tx)
     .await
     .map_err(db::sql_error)?;
-    let result = sqlx::query("DELETE FROM spaces_assistant_conversations WHERE id=$1")
+    let conversation_write = sqlx::query("DELETE FROM spaces_assistant_conversations WHERE id=$1")
         .bind(id)
         .execute(&mut *tx)
         .await
         .map_err(db::sql_error)?;
-    db::require_one(result, "assistant-conversation-unavailable")?;
+    db::require_one(conversation_write, "assistant-conversation-unavailable")?;
     sqlx::query(
         "DELETE FROM spaces_authorization_grants WHERE principal_kind='assistant'
          AND NOT EXISTS (SELECT 1 FROM spaces_assistant_tasks t WHERE t.grant_id=spaces_authorization_grants.id)",

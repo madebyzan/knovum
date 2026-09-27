@@ -38,7 +38,7 @@ pub async fn generate(
 
     tokio::select! {
         _ = cancellation.cancelled() => Err(AiError::cancelled("Image generation was cancelled")),
-        result = image_generation.generate(&ctx, &req) => result,
+        generated_image = image_generation.generate(&ctx, &req) => generated_image,
     }
 }
 

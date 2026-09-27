@@ -22,3 +22,5 @@ fn renders_a_valid_pdf_with_platform_cjk_font() {
     .expect("render PDF");
     assert!(bytes.starts_with(b"%PDF-"));
 }
+
+mod transaction;

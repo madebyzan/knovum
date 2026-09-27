@@ -14,8 +14,9 @@ The DOCX, PDF, and TXT backends consume that same model.
 `spaces/derivation/document_export` continues to reserve a managed file node, record the derivation
 and input revision, render off the async executor, publish through the existing completion transaction,
 and remove failed output bytes. `execute.rs` shares this orchestration between the three formats.
-The new `export_document_as_txt` / `allocate_document_txt_path` commands follow the existing DOCX/PDF
-permission surface. This is format conversion, not the native Save Copy operation: TXT is a new file
+The three `export_document_as_*` commands own output path reservation, node creation and derivation
+recording within the same source-validated transaction. Vue submits geometry and the expected edit
+revision; allocation is not a separate IPC command. This is format conversion, not the native Save Copy operation: TXT is a new file
 resource with `derives-from` lineage. Ordinary Markdown `.md` download is unchanged.
 
 ## Supported subset
@@ -61,8 +62,7 @@ The owning `generation/tests` directory contains one shared Markdown fixture and
 model structure, title handling, literal citations, lists/tables/code, safe Typst quoting, TXT output,
 unsupported input, and DOCX package XML (styles, numbering, hyperlinks, tables and escaped content).
 The existing platform PDF smoke remains under `spaces/derivation/document_export/tests`, renamed to
-accurately describe its dependence on a platform CJK font. Frontend tests cover all three command
-pairs, revision identity, inactive-Space behavior, and the TXT creation action.
+accurately describe its dependence on a platform CJK font. Frontend tests cover all three export commands, revision identity, inactive-Space behavior, and the TXT creation action.
 
 Run on the supported desktop development environment:
 

@@ -1,4 +1,3 @@
-use crate::command_error::CommandError;
 use std::{path::Path, time::Instant};
 
 use serde::Serialize;
@@ -17,7 +16,8 @@ use crate::{
 };
 use pipeline::TranscriptionPipeline;
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, serde::Deserialize, ts_rs::TS)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 #[serde(rename_all = "camelCase")]
 pub struct MediaTranscriptionProgress {
     stage: String,
@@ -39,22 +39,12 @@ impl MediaTranscriptionProgress {
     }
 }
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, serde::Deserialize, ts_rs::TS)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct MediaTranscriptionPartial {
     language: String,
     segments: Vec<TranscriptSegment>,
-}
-
-#[tauri::command]
-pub async fn transcribe_media(
-    app: tauri::AppHandle,
-    job_id: String,
-    source_path: String,
-    source_revision: String,
-    on_progress: Channel<MediaTranscriptionProgress>,
-) -> Result<MediaTranscript, CommandError> {
-    Ok(start_transcription(app, job_id, source_path, source_revision, on_progress).await?)
 }
 
 pub(in crate::spaces::assets) async fn start_transcription(
@@ -114,11 +104,6 @@ pub(in crate::spaces::assets) async fn start_transcription(
         )
     })
     .await
-}
-
-#[tauri::command]
-pub async fn cancel_media_transcription(job_id: String) -> Result<(), CommandError> {
-    Ok(cancel_transcription(&job_id)?)
 }
 
 fn transcribe(

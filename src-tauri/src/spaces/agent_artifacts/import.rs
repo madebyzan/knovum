@@ -19,7 +19,11 @@ pub async fn stage_generated_artifact_import(
     let artifact = capabilities::agent_artifacts::resolve(&workspace, &relative_path)
         .map_err(|error| error.to_string())?;
     Ok((crate::blocking::run(move || {
-        crate::spaces::assets::import::prepare_owned_asset(&app, artifact)
+        crate::spaces::assets::import::prepare_owned_asset(
+            &app,
+            artifact,
+            tokio_util::sync::CancellationToken::new(),
+        )
     })
     .await)?)
 }

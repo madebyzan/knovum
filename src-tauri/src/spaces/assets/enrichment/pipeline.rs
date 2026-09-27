@@ -45,9 +45,10 @@ pub(super) fn enrich_content(
     mut data: Value,
     cancellation: &CancellationToken,
 ) -> Result<ContentOutput, String> {
-    let result = super::content::extract(app, source, revision, &mut asset, cancellation);
+    let extracted_content =
+        super::content::extract(app, source, revision, &mut asset, cancellation);
     ensure_active(cancellation)?;
-    result?;
+    extracted_content?;
     let chunks = take_chunks(&mut asset);
     apply_asset_fields(&mut data, &asset)?;
     Ok(ContentOutput { data, chunks })

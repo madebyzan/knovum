@@ -52,7 +52,7 @@ export async function pasteSpaceClipboardAt(
     await store.ensureActiveSpacePersisted();
     const spaceId = store.activeSpaceId;
     if (!spaceId) throw new Error("A Space must be active to paste structured content");
-    const result = await importStructureClipboard({
+    const pasteReceipt = await importStructureClipboard({
       spaceId,
       mutationId: crypto.randomUUID(),
       expectedEditRevision: store.editSnapshot.editRevision,
@@ -61,11 +61,11 @@ export async function pasteSpaceClipboardAt(
       payload,
     });
     if (store.activeSpaceId !== spaceId) throw new Error("Structured clipboard paste target changed");
-    store.nodes = [...store.nodes, ...result.nodes];
-    store.relations = [...store.relations, ...result.relations];
-    store.editSnapshot = result.snapshot;
+    store.nodes = [...store.nodes, ...pasteReceipt.nodes];
+    store.relations = [...store.relations, ...pasteReceipt.relations];
+    store.editSnapshot = pasteReceipt.snapshot;
     store.recordCommittedSpaceEdit();
-    useCanvasEditorSession().selectStructureNodes(result.selectionSuggestion);
+    useCanvasEditorSession().selectStructureNodes(pasteReceipt.selectionSuggestion);
     return true;
   }
   return false;

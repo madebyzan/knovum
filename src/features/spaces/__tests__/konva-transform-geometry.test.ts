@@ -64,13 +64,13 @@ describe("Konva transform geometry", () => {
   });
 
   it("responds naturally when a proportional handle moves mostly vertically", () => {
-    const result = constrainSelectionTransform(
+    const constrainedFrame = constrainSelectionTransform(
       current,
       { ...current, height: 128 },
       { activeAnchor: "bottom-right", policy, stageScale: scale },
     );
-    expect(result.width).toBeGreaterThan(current.width);
-    expect(result.width / result.height).toBeCloseTo(240 / 64);
+    expect(constrainedFrame.width).toBeGreaterThan(current.width);
+    expect(constrainedFrame.width / constrainedFrame.height).toBeCloseTo(240 / 64);
   });
 
   it("projects fixed-caption media cards onto their content aspect", () => {
@@ -84,13 +84,13 @@ describe("Konva transform geometry", () => {
       contentAspect: { ratio: 16 / 9, fixedVerticalChrome: 64 },
     };
     const video = { x: 0, y: 0, width: 480, height: 334, rotation: 0 };
-    const result = constrainSelectionTransform(
+    const constrainedFrame = constrainSelectionTransform(
       video,
       { ...video, height: 604 },
       { activeAnchor: "bottom-right", policy: videoPolicy, stageScale: scale },
     );
 
-    expect(result.width).toBeGreaterThan(video.width);
-    expect(result.height).toBeCloseTo(result.width / (16 / 9) + 64);
+    expect(constrainedFrame.width).toBeGreaterThan(video.width);
+    expect(constrainedFrame.height).toBeCloseTo(constrainedFrame.width / (16 / 9) + 64);
   });
 });

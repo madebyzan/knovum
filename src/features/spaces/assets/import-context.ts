@@ -8,9 +8,9 @@ export function spaceImportContext(store: ReturnType<typeof useSpaceStore>): Spa
       await store.ensureActiveSpacePersisted();
     },
     createPendingContentForSpace: store.createPendingContentForSpace,
-    savePendingNodeDataForSpace: store.savePendingNodeDataForSpace,
+    savePendingNodeContentForSpace: store.savePendingNodeContentForSpace,
     finalizePendingContent: store.finalizePendingContent,
-    applyNodeDataForSpace: store.applyNodeDataForSpace,
+    applyNodeContentForSpace: store.applyNodeContentForSpace,
     discardPendingContent: store.discardPendingContent,
   };
 }

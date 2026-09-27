@@ -139,7 +139,7 @@ export function createKonvaEditorPort(options: KonvaEditorPortOptions): CanvasEd
   }
 
   function updateContentHeights(heights: ReadonlyMap<string, FittedContentHeight>) {
-    const result = contentHeightTail.then(async () => {
+    const heightCommit = contentHeightTail.then(async () => {
       const snapshot = options.snapshot();
       const index = createStructureIndex(snapshot.structure);
       const updates = [...heights].flatMap(([nodeId, measurement]) =>
@@ -148,8 +148,8 @@ export function createKonvaEditorPort(options: KonvaEditorPortOptions): CanvasEd
       if (updates.length) await options.onExecuteSpaceEdit({ kind: "content.update-heights", updates });
       return undefined;
     });
-    contentHeightTail = result.catch(() => undefined);
-    report(result);
+    contentHeightTail = heightCommit.catch(() => undefined);
+    report(heightCommit);
   }
 
   function contentHeightUpdate(

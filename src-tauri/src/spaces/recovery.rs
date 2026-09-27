@@ -1,10 +1,41 @@
 use crate::command_error::CommandError;
+use tauri::{AppHandle, Manager};
+use tokio::sync::OnceCell;
+
+#[derive(Default)]
+pub(super) struct SpaceRuntimeInitialization(OnceCell<Result<(), String>>);
+
+pub(super) fn start(app: AppHandle) {
+    app.manage(SpaceRuntimeInitialization::default());
+    tauri::async_runtime::spawn(async move {
+        match ready(&app).await {
+            Ok(()) => {
+                super::runs::start_scheduler(app.clone());
+                super::assets::enrichment::jobs::scheduler::start(app.clone());
+                super::assistant::recover_tasks(app.clone());
+                super::external_conversations::recover(app);
+            }
+            Err(error) => log::error!("Space runtime initialization failed: {error}"),
+        }
+    });
+}
+
 #[tauri::command]
-pub async fn reconcile_workspace(app: tauri::AppHandle) -> Result<(), CommandError> {
-    let pool = super::db::pool(&app).await?;
-    super::knowledge::retrieval::invalidation_outbox::drain(&app, pool).await?;
-    super::assets::reconcile_interrupted_work(&app).await?;
-    super::agent_artifacts::recovery::discard_orphaned_workspaces(&app).await?;
-    super::derivation::reconcile_interrupted(&app).await?;
-    Ok((super::assets::enrichment::jobs::reconcile_interrupted(&app).await)?)
+pub async fn await_space_runtime(app: AppHandle) -> Result<(), CommandError> {
+    Ok(ready(&app).await?)
+}
+
+async fn ready(app: &AppHandle) -> Result<(), String> {
+    let state = app.state::<SpaceRuntimeInitialization>();
+    state.0.get_or_init(|| recover(app)).await.clone()
+}
+
+async fn recover(app: &AppHandle) -> Result<(), String> {
+    let pool = super::db::pool(app).await?;
+    super::knowledge::retrieval::invalidation_outbox::drain(app, pool).await?;
+    super::assets::reconcile_interrupted_work(app).await?;
+    super::agent_artifacts::recovery::discard_orphaned_workspaces(app).await?;
+    super::derivation::reconcile_interrupted(app).await?;
+    super::package::reconcile(app).await?;
+    Ok(())
 }

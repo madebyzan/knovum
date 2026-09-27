@@ -81,7 +81,7 @@ export const useImageEditSession = defineStore("spaces-image-edit-session", () =
         active.value = undefined;
         return;
       }
-      await space.updateManyData([
+      await space.updateNodeContents([
         {
           id: node.id,
           before: node.data,

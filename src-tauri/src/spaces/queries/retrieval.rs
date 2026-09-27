@@ -13,7 +13,7 @@ pub async fn search_knowledge_hybrid<R: Runtime>(
     Ok(tokio::select! {
         biased;
         _ = cancellation.cancelled() => Err("knowledge-search-cancelled".to_owned()),
-        result = retrieval::hybrid::search(&app, request, &cancellation) => result,
+        retrieved_chunks = retrieval::hybrid::search(&app, request, &cancellation) => retrieved_chunks,
     }?)
 }
 

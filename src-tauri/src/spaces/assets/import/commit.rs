@@ -21,44 +21,33 @@ pub struct AssetImportProgress {
     pub total_bytes: Option<u64>,
 }
 
-pub(super) fn copy_pending_import(
+pub(crate) fn copy_pending_import(
     job_id: &str,
     progress: &Channel<AssetImportProgress>,
 ) -> Result<PreparedAsset, String> {
     let job = registry::get(job_id)?;
     let mut state = ProgressState::default();
-    let summary = match copy_resource(&job.source, &job.target, &job.cancellation, |delta| {
+    let copied = copy_resource(&job.source, &job.target, &job.cancellation, |delta| {
         state.report(delta, job.total_bytes, progress)
-    }) {
-        Ok(summary) => summary,
-        Err(error) => {
-            if let Err(cleanup_err) = remove_path(&job.target) {
-                log::warn!(
-                    "failed to clean up import target {}: {cleanup_err}",
-                    job.target.display()
-                );
+    })
+    .and_then(|summary| copied_asset(&job, summary));
+    let release = registry::remove(job_id);
+    match (copied, release) {
+        (Ok(asset), Ok(())) => Ok(asset),
+        (copy_outcome, released) => {
+            let mut failures = Vec::new();
+            if let Err(error) = copy_outcome {
+                failures.push(error);
             }
-            if let Err(cleanup_err) = registry::remove(job_id) {
-                log::warn!("failed to remove pending import job {job_id}: {cleanup_err}");
+            if let Err(error) = released {
+                failures.push(format!("Import registry release failed: {error}"));
             }
-            return Err(error);
+            if let Err(error) = remove_path(&job.target) {
+                failures.push(format!("Import target cleanup failed: {error}"));
+            }
+            Err(failures.join("; "))
         }
-    };
-    let asset = match copied_asset(&job, summary) {
-        Ok(asset) => asset,
-        Err(error) => {
-            if let Err(cleanup_err) = remove_path(&job.target) {
-                log::warn!(
-                    "failed to clean up invalid imported asset {}: {cleanup_err}",
-                    job.target.display()
-                );
-            }
-            registry::remove(job_id)?;
-            return Err(error);
-        }
-    };
-    registry::remove(job_id)?;
-    Ok(asset)
+    }
 }
 
 struct ProgressState {

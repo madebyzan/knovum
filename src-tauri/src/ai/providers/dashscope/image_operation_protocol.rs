@@ -13,14 +13,14 @@ pub struct Response {
 pub struct Output {
     pub task_id: Option<String>,
     pub task_status: Option<String>,
-    pub results: Option<Vec<ResultImage>>,
+    pub results: Option<Vec<GeneratedImageLocation>>,
     pub choices: Option<Vec<Choice>>,
     pub code: Option<String>,
     pub message: Option<String>,
 }
 
 #[derive(Deserialize)]
-pub struct ResultImage {
+pub struct GeneratedImageLocation {
     pub url: String,
 }
 
@@ -68,7 +68,7 @@ pub fn image_url(output: &Output) -> Option<&str> {
         .results
         .as_ref()
         .and_then(|results| results.first())
-        .map(|result| result.url.as_str())
+        .map(|generated_image| generated_image.url.as_str())
     {
         return Some(url);
     }

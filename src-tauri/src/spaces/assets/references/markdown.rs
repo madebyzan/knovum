@@ -13,26 +13,26 @@ pub(super) fn rewrite_asset_paths<F>(text: &str, rewrite: &mut F) -> String
 where
     F: FnMut(&str) -> String,
 {
-    let mut result = String::with_capacity(text.len());
+    let mut rewritten_markdown = String::with_capacity(text.len());
     let mut cursor = 0;
     while let Some(start) = text[cursor..].find("![") {
         let actual_start = cursor + start;
-        result.push_str(&text[cursor..actual_start]);
+        rewritten_markdown.push_str(&text[cursor..actual_start]);
         if let Some(close_bracket) = text[actual_start..].find("](") {
             let paren_start = actual_start + close_bracket + 2;
             if let Some(close_paren) = text[paren_start..].find(')') {
                 let paren_end = paren_start + close_paren;
                 let path = asset_url::asset_path(&text[paren_start..paren_end]);
-                result.push_str(&text[actual_start..paren_start]);
-                result.push_str(&rewrite(&path));
-                result.push(')');
+                rewritten_markdown.push_str(&text[actual_start..paren_start]);
+                rewritten_markdown.push_str(&rewrite(&path));
+                rewritten_markdown.push(')');
                 cursor = paren_end + 1;
                 continue;
             }
         }
-        result.push_str("![");
+        rewritten_markdown.push_str("![");
         cursor = actual_start + 2;
     }
-    result.push_str(&text[cursor..]);
-    result
+    rewritten_markdown.push_str(&text[cursor..]);
+    rewritten_markdown
 }

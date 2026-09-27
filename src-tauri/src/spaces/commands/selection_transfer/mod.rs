@@ -24,11 +24,11 @@ pub async fn transfer_selection<R: Runtime>(
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
     let digest = structure::receipts::digest(&request)?;
-    if let Some(result) =
+    if let Some(transfer_receipt) =
         structure::receipts::find_typed(&mut tx, &request.mutation_id, &digest).await?
     {
         tx.commit().await.map_err(db::sql_error)?;
-        return Ok(result);
+        return Ok(transfer_receipt);
     }
     validation::ensure_target_space(&mut tx, &request.target_space_id).await?;
     let (mut source_snapshot, source_revision) =
@@ -146,7 +146,7 @@ pub async fn transfer_selection<R: Runtime>(
     sqlx::query("UPDATE spaces_knowledge_chunks SET space_id=$1,updated_at=$2 WHERE space_id=$3 AND node_id IN (SELECT value FROM json_each($4))")
         .bind(&request.target_space_id).bind(now).bind(&request.source_space_id).bind(&selected_json)
         .execute(&mut *tx).await.map_err(db::sql_error)?;
-    let result = completion::complete(
+    let transfer_receipt = completion::complete(
         &mut tx,
         completion::TransferCompletion {
             request: &request,
@@ -166,5 +166,5 @@ pub async fn transfer_selection<R: Runtime>(
     .await?;
     tx.commit().await.map_err(db::sql_error)?;
     crate::spaces::knowledge::retrieval::invalidation_outbox::drain_and_report(app, pool).await;
-    Ok(result)
+    Ok(transfer_receipt)
 }

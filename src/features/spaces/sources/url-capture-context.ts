@@ -11,6 +11,6 @@ export function urlCaptureContext(store: ReturnType<typeof useSpaceStore>): UrlC
     updateUrlCapture: store.updateUrlCapture,
     finishUrlCapture: store.finishUrlCapture,
     addContent: store.addContent,
-    saveNodeDataForSpace: store.saveNodeDataForSpace,
+    saveNodeContentForSpace: store.saveNodeContentForSpace,
   };
 }

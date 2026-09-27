@@ -34,7 +34,7 @@ export async function bootstrapApplication(pinia: Pinia, router: Router): Promis
       logError(`Failed to restore resource preparation tasks: ${String(reason)}`),
     );
     await Promise.all([usePreferencesStore(pinia).load(), installWindowActivityState()]);
-    await invoke("plugin:spaces|reconcile_workspace");
+    await invoke("plugin:spaces|await_space_runtime");
     await restoreWorkspaceSession(router);
     await router.isReady();
     installWorkspaceSessionPersistence(router);

@@ -5,3 +5,4 @@ export const providerKinds = ["openai","openai-compatible","openrouter","anthrop
 export const executionCapabilities = ["text-generation","vision-understanding","image-generation","video-generation","embedding"] as const;
 export const routingPurposes = ["writing","knowledge","visual-understanding","translation","image-generation","video-generation"] as const;
 export const agentKinds = ["codex","claude_code","gemini_cli","github_copilot","open_code","qwen_code","qoder_cli","kimi_cli","auggie_cli","cline","cursor","antigravity"] as const;
+export const routingCapabilities = {"writing":"text-generation","knowledge":"text-generation","visual-understanding":"vision-understanding","translation":"text-generation","image-generation":"image-generation","video-generation":"video-generation"} as const;

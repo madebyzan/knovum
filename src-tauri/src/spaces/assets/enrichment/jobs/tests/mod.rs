@@ -1,21 +1,13 @@
+mod boundary;
 use super::job::*;
 use serde_json::json;
 
 #[test]
 fn job_type_maps_to_snake_case_strings() {
-    assert_eq!(EnrichmentJobType::EmbedText.as_str(), "embed_text");
-    assert_eq!(EnrichmentJobType::AnalyzeImage.as_str(), "analyze_image");
+    assert_eq!(EnrichmentJobType::AnalyzeVisual.as_str(), "analyze_visual");
     assert_eq!(
         EnrichmentJobType::TranscribeMedia.as_str(),
         "transcribe_media"
-    );
-    assert_eq!(
-        EnrichmentJobType::AnalyzeVideoCover.as_str(),
-        "analyze_video_cover",
-    );
-    assert_eq!(
-        EnrichmentJobType::EmbedMediaTranscript.as_str(),
-        "embed_media_transcript",
     );
 }
 

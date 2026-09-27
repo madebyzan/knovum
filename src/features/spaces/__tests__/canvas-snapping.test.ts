@@ -9,31 +9,31 @@ import {
 
 describe("canvas snapping", () => {
   it("aligns node edges within a canvas-space tolerance", () => {
-    const result = snapCanvasTranslation(
+    const snappedTranslation = snapCanvasTranslation(
       [frame(0, 0, 100, 80)],
       createCanvasTranslationSnapIndex([frame(200, 30, 100, 80)]),
       { x: 96, y: 0 },
       5,
     );
 
-    expect(result.x).toBe(100);
-    expect(result.guides).toContainEqual({ kind: "alignment", points: [200, 0, 200, 110] });
+    expect(snappedTranslation.x).toBe(100);
+    expect(snappedTranslation.guides).toContainEqual({ kind: "alignment", points: [200, 0, 200, 110] });
   });
 
   it("centers a node between aligned neighbors with equal spacing guides", () => {
-    const result = snapCanvasTranslation(
+    const snappedTranslation = snapCanvasTranslation(
       [frame(101, 0, 50, 50)],
       createCanvasTranslationSnapIndex([frame(0, 0, 50, 50), frame(200, 0, 50, 50)]),
       { x: 0, y: 0 },
       2,
     );
 
-    expect(result.x).toBe(-1);
-    expect(result.guides.filter(({ kind }) => kind === "spacing")).toHaveLength(2);
+    expect(snappedTranslation.x).toBe(-1);
+    expect(snappedTranslation.guides.filter(({ kind }) => kind === "spacing")).toHaveLength(2);
   });
 
   it("chooses spacing neighbors by main-axis distance across staggered overlaps", () => {
-    const result = snapCanvasTranslation(
+    const snappedTranslation = snapCanvasTranslation(
       [frame(120, 0, 50, 100)],
       createCanvasTranslationSnapIndex([
         frame(40, 90, 50, 40),
@@ -44,8 +44,8 @@ describe("canvas snapping", () => {
       6,
     );
 
-    expect(result.x).toBe(5);
-    expect(result.guides.filter(({ kind }) => kind === "spacing")).toHaveLength(2);
+    expect(snappedTranslation.x).toBe(5);
+    expect(snappedTranslation.guides.filter(({ kind }) => kind === "spacing")).toHaveLength(2);
   });
 
   it("provides resize snap points for every node edge and center", () => {

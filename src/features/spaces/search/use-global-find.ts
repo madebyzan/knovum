@@ -21,7 +21,7 @@ export function useGlobalFind(open: Ref<boolean>) {
     if (!isOpen) query.value = "";
   });
 
-  const result = useQuery(
+  const searchQuery = useQuery(
     computed(() => ({
       queryKey: ["spaces", "global-search", normalizedQuery.value],
       queryFn: () => searchAcrossSpaces(normalizedQuery.value),
@@ -50,10 +50,10 @@ export function useGlobalFind(open: Ref<boolean>) {
 
   return {
     query,
-    matches: computed(() => (normalizedQuery.value ? (result.data.value ?? []) : [])),
-    searching: computed(() => result.isFetching.value),
-    failed: computed(() => result.isError.value),
-    retry: result.refetch,
+    matches: computed(() => (normalizedQuery.value ? (searchQuery.data.value ?? []) : [])),
+    searching: computed(() => searchQuery.isFetching.value),
+    failed: computed(() => searchQuery.isError.value),
+    retry: searchQuery.refetch,
     select,
   };
 }

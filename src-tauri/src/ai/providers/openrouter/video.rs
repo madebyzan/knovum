@@ -21,18 +21,18 @@ struct VideoJobResponse {
     job_id: Option<String>,
     status: Option<String>,
     unsigned_urls: Option<Vec<String>>,
-    output: Option<VideoOutputData>,
-    error: Option<VideoErrorData>,
+    output: Option<VideoGenerationOutput>,
+    error: Option<VideoGenerationFailure>,
 }
 
 #[derive(Deserialize)]
-struct VideoOutputData {
+struct VideoGenerationOutput {
     video_url: Option<String>,
     urls: Option<Vec<String>>,
 }
 
 #[derive(Deserialize)]
-struct VideoErrorData {
+struct VideoGenerationFailure {
     message: Option<String>,
 }
 

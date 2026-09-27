@@ -21,7 +21,7 @@ impl ResourcePreparationTarget {
     }
 }
 
-#[derive(Clone, Copy, Serialize, ts_rs::TS)]
+#[derive(Clone, Copy, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub enum ResourcePreparationStage {
     Queued,
@@ -31,7 +31,7 @@ pub enum ResourcePreparationStage {
     Ready,
 }
 
-#[derive(Clone, Serialize, ts_rs::TS)]
+#[derive(Clone, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub struct ResourcePreparationProgress {
     pub stage: ResourcePreparationStage,

@@ -38,6 +38,10 @@ const POLICIES: Record<SpaceNodeKind, SpaceNodeSizePolicy> = {
   portal: policy([256, 88], [256, 88], "fixed"),
 };
 
+export function spaceNodeDefaultDimensions(kind: SpaceNodeKind) {
+  return pick(POLICIES[kind], ["width", "height"]);
+}
+
 export function spaceNodeSizePolicy(data: SpaceNodePayload): SpaceNodeSizePolicy {
   const base = POLICIES[data.kind];
   const ratio = spaceVisualDisplayRatio(data);

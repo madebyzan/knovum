@@ -11,15 +11,13 @@ pub(crate) const STATUS_CANCELLED: &str = "cancelled";
 pub(crate) const FROM_RUNNING: &str = "'running'";
 pub(crate) const FROM_LIVE: &str = "'pending','running','awaiting_configuration'";
 
-#[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, Eq, ts_rs::TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub enum EnrichmentJobType {
-    EmbedText,
-    AnalyzeImage,
+    AnalyzeVisual,
     AnalyzeMedia,
     TranscribeMedia,
-    AnalyzeVideoCover,
-    EmbedMediaTranscript,
     ParseDocument,
     AnalyzeDocument,
 }
@@ -27,12 +25,9 @@ pub enum EnrichmentJobType {
 impl EnrichmentJobType {
     pub(crate) fn as_str(self) -> &'static str {
         match self {
-            Self::EmbedText => "embed_text",
-            Self::AnalyzeImage => "analyze_image",
+            Self::AnalyzeVisual => "analyze_visual",
             Self::AnalyzeMedia => "analyze_media",
             Self::TranscribeMedia => "transcribe_media",
-            Self::AnalyzeVideoCover => "analyze_video_cover",
-            Self::EmbedMediaTranscript => "embed_media_transcript",
             Self::ParseDocument => "parse_document",
             Self::AnalyzeDocument => "analyze_document",
         }
@@ -48,14 +43,27 @@ pub struct EnqueueEnrichmentJobRequest {
     pub source_revision: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Copy, Deserialize, Serialize, PartialEq, Eq, ts_rs::TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
+pub enum EnrichmentJobStatus {
+    Pending,
+    Running,
+    AwaitingConfiguration,
+    Succeeded,
+    Failed,
+    Cancelled,
+}
+
+#[derive(Debug, Clone, Serialize, ts_rs::TS)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 #[serde(rename_all = "camelCase")]
 pub struct EnrichmentJobState {
     pub id: String,
     pub space_id: String,
     pub node_id: String,
-    pub job_type: String,
-    pub status: String,
+    pub job_type: EnrichmentJobType,
+    pub status: EnrichmentJobStatus,
     pub source_revision: String,
     pub attempts: i64,
     pub error: Option<String>,

@@ -8,7 +8,7 @@ use tokio_util::sync::CancellationToken;
 
 const TARGET_BINS: usize = 600;
 
-pub(crate) struct WaveformData {
+pub(crate) struct AudioWaveform {
     pub values: Vec<f32>,
     pub sample_count: u64,
 }
@@ -16,7 +16,7 @@ pub(crate) struct WaveformData {
 pub fn read_waveform(
     path: &Path,
     cancellation: &CancellationToken,
-) -> Result<WaveformData, String> {
+) -> Result<AudioWaveform, String> {
     let file =
         File::open(path).map_err(|error| format!("failed to open media waveform: {error}"))?;
     let length = file
@@ -50,7 +50,7 @@ pub fn read_waveform(
         }
         values.push(peak);
     }
-    Ok(WaveformData {
+    Ok(AudioWaveform {
         values,
         sample_count: samples,
     })

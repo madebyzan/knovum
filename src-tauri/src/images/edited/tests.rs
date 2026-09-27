@@ -8,3 +8,27 @@ fn source_limits_reject_empty_and_oversized_images() {
     }
     assert!(validate_source_dimensions((10_000, 10_000)).is_ok());
 }
+
+#[test]
+fn native_export_matches_shared_preview_tone_fixtures() {
+    #[derive(serde::Deserialize)]
+    struct Fixture {
+        name: String,
+        width: u32,
+        height: u32,
+        source: Vec<u8>,
+        adjustments: super::contract::Adjustments,
+        expected: Vec<u8>,
+    }
+    let fixtures: Vec<Fixture> =
+        serde_json::from_str(include_str!("../../../../tests/fixtures/image-tone.json")).unwrap();
+    for fixture in fixtures {
+        let mut image =
+            image::RgbaImage::from_raw(fixture.width, fixture.height, fixture.source).unwrap();
+        let tone = super::tone::ToneAdjuster::new(&fixture.adjustments);
+        for (x, y, pixel) in image.enumerate_pixels_mut() {
+            tone.apply(pixel, x, y, fixture.width, fixture.height);
+        }
+        assert_eq!(image.into_raw(), fixture.expected, "{}", fixture.name);
+    }
+}

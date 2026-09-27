@@ -58,12 +58,12 @@ pub(in crate::spaces) async fn analyze(
         if report.occurrences[index].resource_id.is_none() {
             return Err("Document resources must be materialized before visual analysis".into());
         }
-        let result =
+        let analyzed_document =
             super::analysis::analyze_occurrence(app, &report, index, target.clone(), cancellation)
                 .await;
         ensure_active(cancellation)?;
         require_unchanged_source(&source, &fingerprint)?;
-        match result {
+        match analyzed_document {
             Ok(analysis) => {
                 let width = analysis.description.encode_utf16().count()
                     + analysis.detected_text.encode_utf16().count();
@@ -152,10 +152,13 @@ async fn publish(
         app,
         &request.space_id,
         &request.node_id,
-        Some(&report.source_revision),
+        commit::PublicationGuard {
+            source_revision: Some(&report.source_revision),
+            job_id: Some(&request.job_id),
+            media_knowledge: None,
+        },
         fields,
         None,
-        Some(&request.job_id),
     )
     .await
 }

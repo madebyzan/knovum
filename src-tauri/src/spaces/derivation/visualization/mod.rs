@@ -71,11 +71,11 @@ pub async fn create(
         return Err(error);
     }
     let execution = execute(&app, &request, &target, &stages, &cancellation);
-    let result = tokio::select! {
+    let generated_visualization = tokio::select! {
         _ = cancellation.cancelled() => Err("Visualization generation was cancelled".to_owned()),
-        result = execution => result,
+        generated_visualization = execution => generated_visualization,
     };
-    match result {
+    match generated_visualization {
         Ok(image) => persistence::complete(&app, &request, image).await,
         Err(error) => {
             persistence::fail(&app, &request.id, &error).await?;

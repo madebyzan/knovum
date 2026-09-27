@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { knowledgeRevision } from "../knowledge/model/revision";
 import { importedMediaSchema, mediaImportProgressSchema } from "../media/import/contract";
-import type { SpaceNodePayload } from "../model/nodes/node-payload";
 import { validateSpaceNodePayload } from "../model/nodes/schema/node-payload";
 import { classifySpaceUrl } from "../sources/classify-url";
 
@@ -75,29 +73,5 @@ describe("Space media import contracts", () => {
     } as const;
     expect(mediaImportProgressSchema.parse(progress)).toEqual(progress);
     expect(() => mediaImportProgressSchema.parse({ ...progress, percent: 50 })).toThrow("Unrecognized key");
-  });
-
-  it("includes media origin and source content in the Knowledge revision", () => {
-    const data = {
-      kind: "audio",
-      title: "Track",
-      creator: "Artist",
-      durationSeconds: 90,
-      assetPath: "/spaces/assets/track.m4a",
-      fileName: "track.m4a",
-      size: 1024,
-      modifiedAt: 1,
-      sourceRevision: "asset1",
-      origin: {
-        kind: "web",
-        url: "https://soundcloud.com/a/b",
-        provider: "Soundcloud",
-        externalId: "42",
-      },
-    } as const satisfies SpaceNodePayload;
-    expect(knowledgeRevision({ ...data, sourceRevision: "asset2" })).not.toBe(knowledgeRevision(data));
-    expect(knowledgeRevision({ ...data, origin: { ...data.origin, externalId: "43" } })).not.toBe(
-      knowledgeRevision(data),
-    );
   });
 });

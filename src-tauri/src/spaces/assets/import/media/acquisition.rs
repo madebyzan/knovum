@@ -25,7 +25,7 @@ pub(super) fn run(
     let workspace = assets.join(format!(".media-import-{id}"));
     fs::create_dir(&workspace)
         .map_err(|error| format!("Unable to create media import workspace: {error}"))?;
-    let result = execute(
+    let acquired_media = execute(
         &assets,
         &workspace,
         id,
@@ -40,7 +40,7 @@ pub(super) fn run(
             workspace.display()
         );
     }
-    result
+    acquired_media
 }
 
 fn execute(

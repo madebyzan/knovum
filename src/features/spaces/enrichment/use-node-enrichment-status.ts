@@ -2,10 +2,8 @@ import { useQuery } from "@tanstack/vue-query";
 import { computed, shallowRef, type Ref } from "vue";
 import { toast } from "vue-sonner";
 
-import { useSpaceStore } from "../session/space-store";
-import type { SpaceEnrichmentJobState } from "./enrichment-jobs";
+import { retryEnrichmentJob, type SpaceEnrichmentJobState } from "./enrichment-jobs";
 import { enrichmentJobsQuery } from "./enrichment-jobs-query";
-import { retrySpaceEnrichmentJob } from "./job-scheduler";
 
 export interface NodeEnrichmentStatus {
   pending: number;
@@ -16,7 +14,6 @@ export interface NodeEnrichmentStatus {
 }
 
 export function useNodeEnrichmentStatus(spaceId: Ref<string | undefined>, nodeId: Ref<string | undefined>) {
-  const store = useSpaceStore();
   const retrying = shallowRef(false);
   const query = useQuery(
     computed(() => enrichmentJobsQuery(spaceId.value ?? "", Boolean(spaceId.value && nodeId.value))),
@@ -55,10 +52,9 @@ export function useNodeEnrichmentStatus(spaceId: Ref<string | undefined>, nodeId
     if (!failed.length || !spaceId.value || retrying.value) return;
     retrying.value = true;
     try {
-      const context = { applyNodeDataForSpace: store.applyNodeDataForSpace };
       for (const job of failed) {
         // oxlint-disable-next-line eslint/no-await-in-loop -- Retries share the node's projection stream.
-        await retrySpaceEnrichmentJob(context, job);
+        await retryEnrichmentJob(job.id);
       }
     } catch (error) {
       toast.error(String(error));

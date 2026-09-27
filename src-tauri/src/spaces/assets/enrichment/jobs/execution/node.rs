@@ -33,13 +33,12 @@ pub(super) async fn save(
     app: &AppHandle,
     request: &RunEnrichmentJobRequest,
     data: Value,
+    expected_media_knowledge: &Value,
 ) -> Result<Value, String> {
     let field = match request.job_type {
         super::EnrichmentJobType::AnalyzeMedia => "mediaAnalysis",
         super::EnrichmentJobType::TranscribeMedia => "mediaKnowledge",
-        super::EnrichmentJobType::AnalyzeImage | super::EnrichmentJobType::AnalyzeVideoCover => {
-            "visualKnowledge"
-        }
+        super::EnrichmentJobType::AnalyzeVisual => "visualKnowledge",
         _ => return Err("Enrichment job does not own node data".to_owned()),
     };
     let value = data
@@ -51,10 +50,14 @@ pub(super) async fn save(
         app,
         &request.space_id,
         &request.node_id,
-        Some(&request.source_revision),
+        crate::spaces::assets::enrichment::commit::PublicationGuard {
+            source_revision: Some(&request.source_revision),
+            job_id: Some(&request.job_id),
+            media_knowledge: (request.job_type == super::EnrichmentJobType::TranscribeMedia)
+                .then_some(expected_media_knowledge),
+        },
         fields,
         None,
-        Some(&request.job_id),
     )
     .await
 }

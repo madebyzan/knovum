@@ -1,6 +1,6 @@
+import { routingCapabilities } from "../../shared/contracts/generated/contract-values";
 import type { AiRoutingPurpose, ExecutionTarget, ResolvedAiModelTarget } from "./ai-models";
 import { useAiSettingsStore } from "./ai-settings-store";
-import { routingPolicy } from "./execution-routing";
 import { encodeExecutionTarget } from "./execution-target-codec";
 import type { AiModelSettings } from "./integration-settings";
 
@@ -36,7 +36,7 @@ function resolveModelTarget(
   if (!connection) throw new Error(`AI connection is unavailable: ${target.connectionId}`);
   const model = connection.models.find(({ id }) => id === target.modelId);
   if (!model) throw new Error(`AI model is unavailable: ${target.modelId}`);
-  const capability = routingPolicy(purpose).modelCapability;
+  const capability = routingCapabilities[purpose];
   if (!model.capabilities.includes(capability)) {
     throw new Error(`AI model ${model.name} does not support ${capability}`);
   }
@@ -68,7 +68,7 @@ export function availableExecutionTargets(
   settings: AiModelSettings,
   purpose: AiRoutingPurpose,
 ): ExecutionTargetOption[] {
-  const capability = routingPolicy(purpose).modelCapability;
+  const capability = routingCapabilities[purpose];
   return settings.connections.flatMap((connection) =>
     connection.models
       .filter((model) => model.capabilities.includes(capability))

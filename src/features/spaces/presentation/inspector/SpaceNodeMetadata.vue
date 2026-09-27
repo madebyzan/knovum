@@ -101,7 +101,7 @@ async function refreshWebsite() {
         activeSpaceId,
         nodes: store.nodes,
         addContent: store.addContent,
-        saveNodeDataForSpace: store.saveNodeDataForSpace,
+        saveNodeContentForSpace: store.saveNodeContentForSpace,
       },
       props.node.id,
       props.node.data.url,

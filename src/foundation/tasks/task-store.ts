@@ -20,7 +20,13 @@ export const useTaskStore = defineStore("tasks", () => {
   const running = computed(() => tasks.value.filter((task) => task.status === "running"));
   const failed = computed(() => tasks.value.filter((task) => task.status === "failed"));
   const completed = computed(() => tasks.value.filter((task) => task.status === "succeeded"));
-  const retryController = createTaskRetryController(tasks, succeed, trimHistory);
+  const retryController = createTaskRetryController(
+    tasks,
+    (id) => {
+      if (!externallySettled.has(id)) succeed(id);
+    },
+    trimHistory,
+  );
 
   function dismiss(id: string) {
     const timer = completionTimers.get(id);
@@ -140,10 +146,20 @@ export const useTaskStore = defineStore("tasks", () => {
     finish(id, "cancelled");
   }
 
+  function setObservedRetry(id: string, retry: () => Promise<void>) {
+    retryController.setRetry(id, async () => {
+      externallySettled.add(id);
+      try {
+        await retry();
+      } catch (error) {
+        externallySettled.delete(id);
+        throw error;
+      }
+    });
+  }
+
   function clearCompleted() {
-    for (const task of tasks.value.slice()) {
-      if (task.status === "succeeded") dismiss(task.id);
-    }
+    for (const task of completed.value) dismiss(task.id);
   }
 
   onScopeDispose(() => {
@@ -174,6 +190,7 @@ export const useTaskStore = defineStore("tasks", () => {
     fail,
     cancelled,
     setRetry: retryController.setRetry,
+    setObservedRetry,
     retry: retryController.retry,
     dismiss,
     clearCompleted,

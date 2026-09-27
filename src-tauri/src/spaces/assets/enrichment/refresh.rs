@@ -28,14 +28,14 @@ pub(in crate::spaces::assets) async fn refresh_node(
         .map(str::to_owned)
         .into_iter()
         .collect();
-    let result = refresh_and_publish(app, &space_id, &node_id, &data).await;
+    let refreshed_content = refresh_and_publish(app, &space_id, &node_id, &data).await;
     // Only this node's former previews are candidates; never scan another in-flight generation.
-    if result.is_ok() {
+    if refreshed_content.is_ok() {
         if let Err(error) = crate::spaces::previews::reclaim_unreferenced(app, old_previews).await {
             log::warn!("resource preview reclamation failed for {node_id}: {error}");
         }
     }
-    result
+    refreshed_content
 }
 
 async fn refresh_and_publish(
@@ -73,13 +73,13 @@ async fn refresh_and_publish(
         return Ok(None);
     };
     let created = asset.preview_path.clone().into_iter().collect();
-    let result = publish_refresh(app, space_id, node_id, data, &mut asset).await;
-    if result.is_err() {
+    let refreshed_content = publish_refresh(app, space_id, node_id, data, &mut asset).await;
+    if refreshed_content.is_err() {
         if let Err(error) = crate::spaces::previews::reclaim_unreferenced(app, created).await {
             log::warn!("unpublished resource preview reclamation failed for {node_id}: {error}");
         }
     }
-    result
+    refreshed_content
 }
 
 async fn publish_refresh(

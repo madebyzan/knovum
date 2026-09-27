@@ -77,9 +77,9 @@ pub async fn detect_agent_installations() -> AiResult<Vec<AgentInstallation>> {
     let path = system_path().await?;
     tokio::task::spawn_blocking(move || -> AiResult<Vec<AgentInstallation>> {
         #[cfg(any(target_os = "macos", windows))]
-        let applications = super::installed_applications::detect()?;
+        let installed_clients = super::installed_clients::detect()?;
         #[cfg(not(any(target_os = "macos", windows)))]
-        let applications = std::collections::HashSet::new();
+        let installed_clients = std::collections::HashSet::new();
         Ok(super::registry::descriptors()
             .into_iter()
             .map(|descriptor| {
@@ -90,7 +90,8 @@ pub async fn detect_agent_installations() -> AiResult<Vec<AgentInstallation>> {
                     .map(|path| path.to_string_lossy().into_owned());
                 AgentInstallation {
                     kind: descriptor.kind,
-                    detected: executable_path.is_some() || applications.contains(&descriptor.kind),
+                    detected: executable_path.is_some()
+                        || installed_clients.contains(&descriptor.kind),
                     executable_path,
                 }
             })

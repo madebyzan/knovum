@@ -48,7 +48,7 @@ export function useVideoEditActions(options: Options) {
     const after: SpaceVideoPayload = { ...data.value, videoEditProject: project.value };
     saving.value = true;
     try {
-      await store.updateManyData([{ id: node.value.id, before: data.value, after }]);
+      await store.updateNodeContents([{ id: node.value.id, before: data.value, after }]);
       history.markSaved(snapshot);
       toast.success(t("spaces.media.videoEditor.project.saved"));
       return true;

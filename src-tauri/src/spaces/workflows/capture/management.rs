@@ -93,7 +93,7 @@ pub(super) async fn revise(
         .ok_or("workflow-change-limit: version overflow")?;
     let now = crate::clock::unix_time_millis()?;
     let encoded = serde_json::to_string(&saved).map_err(db::json_error)?;
-    let result = sqlx::query(
+    let workflow_write = sqlx::query(
         "UPDATE spaces_workflow_templates SET definition=$1,updated_at=$2 WHERE id=$3
          AND json_extract(definition,'$.version')=$4",
     )
@@ -105,7 +105,7 @@ pub(super) async fn revise(
     .await
     .map_err(db::sql_error)?;
     db::require_one(
-        result,
+        workflow_write,
         "workflow-change-conflict: reload the workflow library",
     )?;
     sqlx::query(
@@ -166,7 +166,7 @@ pub(super) async fn delete(
     workflow_id: &str,
     expected_name: &str,
 ) -> Result<(), String> {
-    let result = sqlx::query(
+    let workflow_write = sqlx::query(
         "DELETE FROM spaces_workflow_templates WHERE id=$1 AND name=$2
          AND json_extract(definition,'$.schemaVersion')=3",
     )
@@ -176,7 +176,7 @@ pub(super) async fn delete(
     .await
     .map_err(db::sql_error)?;
     db::require_one(
-        result,
+        workflow_write,
         "workflow-change-conflict: reload the workflow library",
     )
 }

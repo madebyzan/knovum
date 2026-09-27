@@ -48,7 +48,7 @@ export async function createGroundedDocument(context: CreateGroundedDocumentCont
 
   return runDerivation<CompletedDocument>({
     store,
-    pendingNode: pending,
+    pendingId: pending.id,
     sourceNodeIds: sources.map(({ nodeId }) => nodeId),
     task: {
       id: jobId,

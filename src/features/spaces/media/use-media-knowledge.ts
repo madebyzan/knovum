@@ -26,14 +26,14 @@ export function useMediaKnowledge(node: Ref<SpaceCanvasNode>) {
   const transcriptOpen = ref(false);
   const analyzing = computed(() => mediaAnalysisIds.value.includes(node.value.id));
   const analysisPreview = computed(() => mediaAnalysisPreviews.value[node.value.id]);
-  const mediaData = computed(() => (isSpaceMediaPayload(node.value.data) ? node.value.data : undefined));
-  const knowledge = computed(() => mediaData.value?.mediaKnowledge);
+  const mediaContent = computed(() => (isSpaceMediaPayload(node.value.data) ? node.value.data : undefined));
+  const knowledge = computed(() => mediaContent.value?.mediaKnowledge);
   const insights = computed(() => knowledge.value?.insights);
   const playback = computed(() =>
     mediaPlayback.value?.id === node.value.id ? mediaPlayback.value.state : undefined,
   );
   const stale = computed(() =>
-    knowledge.value ? mediaKnowledgeIsStale(knowledge.value, mediaData.value?.sourceRevision) : false,
+    knowledge.value ? mediaKnowledgeIsStale(knowledge.value, mediaContent.value?.sourceRevision) : false,
   );
   const canEdit = computed(() => nodeOperations.allows("edit"));
   const canDerive = computed(() => nodeOperations.allows("derive"));
@@ -54,7 +54,7 @@ export function useMediaKnowledge(node: Ref<SpaceCanvasNode>) {
   async function analyze() {
     if (!canDerive.value) return;
     try {
-      await store.analyzeMedia(node.value.id, spaceMediaAnalysisLabels());
+      await store.analyzeMedia(node.value.id);
     } catch (error) {
       toast.error(String(error));
     }
@@ -79,7 +79,7 @@ export function useMediaKnowledge(node: Ref<SpaceCanvasNode>) {
     if (stale.value) throw new Error(t("spaces.media.analysis.knowledge.stale"));
     const data = node.value.data;
     if (!isSpaceMediaPayload(data)) throw new Error(t("spaces.media.analysis.knowledge.stale"));
-    await store.saveNodeData(node.value.id, data, { ...data, mediaKnowledge: next });
+    await store.saveNodeContent(node.value.id, data, { ...data, mediaKnowledge: next });
   }
   async function saveSummary(summary: string) {
     if (knowledge.value) await saveKnowledge(editMediaSummary(knowledge.value, summary));

@@ -85,7 +85,7 @@ async function saveSubtitleCue() {
   }
 }
 function persist(subtitle: SpaceSubtitlePayload) {
-  return store.saveNodeData(props.node.id, props.node.data, subtitle);
+  return store.saveNodeContent(props.node.id, props.node.data, subtitle);
 }
 function createVideo() {
   if (nodeOperations.allows("derive") && burnInInputs.value)

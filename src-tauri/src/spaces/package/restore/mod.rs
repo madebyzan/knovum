@@ -44,6 +44,16 @@ pub async fn restore<R: Runtime>(
         )
         .await?;
     }
+    for derivation in &request.derivations {
+        if let Some(document) = &derivation.grounded_document {
+            crate::spaces::knowledge::grounding::validate_assistant_citations(
+                &mut tx,
+                &request.space.id,
+                &document.citations,
+            )
+            .await?;
+        }
+    }
     knowledge::insert_events(&mut tx, &request).await?;
     tx.commit().await.map_err(db::sql_error)
 }

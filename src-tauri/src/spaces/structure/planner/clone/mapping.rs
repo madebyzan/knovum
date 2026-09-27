@@ -16,11 +16,11 @@ pub(super) fn subtree_ids(index: &Index, roots: &[String]) -> Vec<String> {
             append(index, child, output);
         }
     }
-    let mut result = Vec::new();
+    let mut subtree_ids = Vec::new();
     for root in roots {
-        append(index, root, &mut result);
+        append(index, root, &mut subtree_ids);
     }
-    result
+    subtree_ids
 }
 
 pub(super) fn clone_structure_node(

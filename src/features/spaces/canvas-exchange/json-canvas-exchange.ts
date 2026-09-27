@@ -1,13 +1,13 @@
 import { compact } from "es-toolkit";
 import { basename } from "pathe";
 
+import { decodeCommandError } from "../../../foundation/ipc/command-error";
 import { projectStructureScene } from "../canvas/document/structure-scene-projection";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { describeSpaceNode } from "../model/nodes/node-description";
 import type { SpaceRelation } from "../model/relations/relation";
 import type { SpaceEditSnapshot } from "../model/structure/edit-snapshot";
 import type {
-  CanvasExchangeCodec,
   CanvasExchangeExport,
   CanvasExchangePort,
   CanvasExchangeResource,
@@ -17,33 +17,30 @@ import {
   assertSectionMembershipIsGeometric,
 } from "./json-canvas-export-validation";
 import type {
-  CanvasJsonImportCommitResult,
+  CanvasImportCommit,
   CanvasJsonImportDraft,
   JsonCanvasNodeContentV1,
 } from "./json-canvas-import-contract";
-import {
-  exportJsonCanvasDocument,
-  importJsonCanvasDocument,
-  type JsonCanvasExportNodeV1,
-} from "./json-canvas-mapping";
+import { exportJsonCanvasDocument, type JsonCanvasExportNodeV1 } from "./json-canvas-mapping";
 
 interface JsonCanvasExchangeOptions {
-  codec: CanvasExchangeCodec;
   snapshot(): SpaceEditSnapshot;
   nodes(): readonly SpaceCanvasNode[];
   relations(): readonly SpaceRelation[];
-  commitImport(request: CanvasJsonImportDraft): Promise<CanvasJsonImportCommitResult>;
+  commitImport(request: CanvasJsonImportDraft): Promise<CanvasImportCommit>;
   transaction(action: () => Promise<void>): Promise<void>;
 }
 
 export function createJsonCanvasExchangePort(options: JsonCanvasExchangeOptions): CanvasExchangePort {
   return {
-    async importJsonCanvas(source, sourceDirectory) {
-      const plan = importJsonCanvasDocument(await options.codec.parse(source));
-      await options.transaction(async () => void (await options.commitImport({ sourceDirectory, plan })));
+    async importJsonCanvas(sourcePath) {
+      try {
+        await options.transaction(async () => void (await options.commitImport({ sourcePath })));
+      } catch (error) {
+        if (decodeCommandError(error)?.code !== "json_canvas_import_cancelled") throw error;
+      }
     },
-    exportJsonCanvas: () =>
-      exportDocument(options.snapshot(), options.nodes(), options.relations(), options.codec),
+    exportJsonCanvas: () => exportDocument(options.snapshot(), options.nodes(), options.relations()),
   };
 }
 
@@ -51,7 +48,6 @@ async function exportDocument(
   snapshot: SpaceEditSnapshot,
   nodes: readonly SpaceCanvasNode[],
   relations: readonly SpaceRelation[],
-  codec: CanvasExchangeCodec,
 ): Promise<CanvasExchangeExport> {
   assertJsonCanvasExportable(snapshot, relations);
   const scene = projectStructureScene(snapshot, nodes, relations);
@@ -82,7 +78,7 @@ async function exportDocument(
   );
   const exportNodes = orderedExportNodes(snapshot, sections, contents);
   return {
-    source: await codec.serialize(exportJsonCanvasDocument(exportNodes, relations)),
+    document: exportJsonCanvasDocument(exportNodes, relations),
     resources,
   };
 }

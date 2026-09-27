@@ -28,14 +28,14 @@ export async function renderVideoEdit(
   const spaceId = store.activeSpaceId;
   const sourceRevision = source.data.sourceRevision;
   if (!spaceId || !sourceRevision) throw new Error("Video source revision is unavailable");
-  const { videoEditProject: _project, ...sourceData } = source.data;
-  const pendingData: SpaceVideoPayload = {
-    ...sourceData,
+  const { videoEditProject: _project, ...sourceContent } = source.data;
+  const pendingContent: SpaceVideoPayload = {
+    ...sourceContent,
     title: editedName(source.data.title),
     fileName: editedName(source.data.fileName),
     processingState: "processing",
   };
-  const [pending] = await store.addContent(pendingData, undefined, { reveal: false });
+  const [pending] = await store.addContent(pendingContent, undefined, { reveal: false });
   if (!pending) throw new Error("Could not create the edited video output");
   const jobId = crypto.randomUUID();
   const tasks = useTaskStore();
@@ -60,7 +60,7 @@ export async function renderVideoEdit(
       },
       onProgress: progress,
     });
-    store.applyNodeDataForSpace(spaceId, completed.nodeId, completed.data);
+    store.applyNodeContentForSpace(spaceId, completed.nodeId, completed.data);
     await store.refreshActiveSpace();
     tasks.succeed(taskId);
     store.closeVideoEditor();

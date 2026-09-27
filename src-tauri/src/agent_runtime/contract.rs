@@ -51,7 +51,7 @@ pub struct RuntimeToolCall {
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct RuntimeToolResult {
+pub struct RuntimeToolReply {
     pub call_id: String,
     pub name: String,
     pub result: Value,

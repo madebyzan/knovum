@@ -13,7 +13,7 @@ pub struct MiniMaxImageAdapter;
 #[derive(Deserialize)]
 struct MiniMaxImageResponse {
     output: Option<ImageOutput>,
-    data: Option<Vec<ImageData>>,
+    data: Option<Vec<GeneratedImageSource>>,
     #[serde(rename = "base_resp")]
     base_response: Option<BaseResponse>,
 }
@@ -24,7 +24,7 @@ struct ImageOutput {
 }
 
 #[derive(Deserialize)]
-struct ImageData {
+struct GeneratedImageSource {
     url: Option<String>,
 }
 

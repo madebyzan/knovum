@@ -94,7 +94,9 @@ pub(super) async fn execute_invocation(
     )
     .await?;
     match outcome {
-        ActionInvocationOutcome::QueryResult { result } => completed(result),
+        ActionInvocationOutcome::QueryResult {
+            result: action_output,
+        } => completed(action_output),
         ActionInvocationOutcome::CommittedReceipt { receipt } => completed(receipt),
         ActionInvocationOutcome::AcceptedRun { run_id } => {
             waiting(WaitReason::Executor, json!({ "childRunId": run_id }))
