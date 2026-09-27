@@ -2,7 +2,7 @@ use image::RgbaImage;
 
 use super::tone::to_byte;
 
-pub(super) fn apply_detail(output: &mut RgbaImage, sharpness: f64, clarity: f64, grain: f64) {
+pub(super) fn apply_texture(output: &mut RgbaImage, sharpness: f64, clarity: f64, grain: f64) {
     if sharpness == 0.0 && clarity == 0.0 && grain == 0.0 {
         return;
     }

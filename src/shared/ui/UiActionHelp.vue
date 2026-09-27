@@ -3,7 +3,7 @@ import { CircleHelp } from "@lucide/vue";
 
 import UiPopover from "./UiPopover.vue";
 
-defineProps<{ label: string; detail?: string; actionLabel?: string | undefined }>();
+defineProps<{ label: string; explanation?: string; actionLabel?: string | undefined }>();
 const emit = defineEmits<{ action: [] }>();
 </script>
 
@@ -19,7 +19,9 @@ const emit = defineEmits<{ action: [] }>();
       </button>
     </template>
     <p class="text-label font-medium text-foreground">{{ label }}</p>
-    <p v-if="detail" class="mt-1 text-caption leading-relaxed text-foreground-secondary">{{ detail }}</p>
+    <p v-if="explanation" class="mt-1 text-caption leading-relaxed text-foreground-secondary">
+      {{ explanation }}
+    </p>
     <button
       v-if="actionLabel"
       type="button"

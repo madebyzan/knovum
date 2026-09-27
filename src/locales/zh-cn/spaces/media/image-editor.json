@@ -31,7 +31,7 @@
   "adjustGroups": {
     "light": "光线",
     "color": "颜色",
-    "detail": "细节",
+    "texture": "质感",
     "effects": "效果"
   },
   "upscale": {

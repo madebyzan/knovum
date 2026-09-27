@@ -63,7 +63,7 @@ export async function deriveImage(
     task: {
       id,
       title: i18n.global.t("spaces.media.imageEditor.operation.task"),
-      detail: title,
+      statusMessage: title,
       cancel: () => cancelAiJob(id),
     },
     failureMessageKey: "spaces.media.imageEditor.operation.failed",
@@ -71,7 +71,7 @@ export async function deriveImage(
       const stages = new Channel<string>(
         taskId
           ? (stage) =>
-              useTaskStore().detail(
+              useTaskStore().setStatusMessage(
                 taskId,
                 i18n.global.t(`spaces.media.imageEditor.operation.stage.${stage}`),
               )

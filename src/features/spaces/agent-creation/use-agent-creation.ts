@@ -117,7 +117,7 @@ export function useAgentCreation(open: Ref<boolean>) {
             pendingPermission.value = event;
             status.value = event.title;
           }
-          tasks.detail(taskId, status.value);
+          tasks.setStatusMessage(taskId, status.value);
         },
       );
       if (artifacts.length) artifactState.replace({ sessionId, artifacts });

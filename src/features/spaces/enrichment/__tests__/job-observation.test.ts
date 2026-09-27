@@ -73,7 +73,7 @@ describe("space enrichment observation", () => {
     expect(useTaskStore().tasks[0]).toMatchObject({
       id: "job-1",
       status: "failed",
-      detail: "Required Whisper model is not installed",
+      statusMessage: "Required Whisper model is not installed",
       retryable: true,
     });
   });

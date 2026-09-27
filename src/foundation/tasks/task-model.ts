@@ -5,7 +5,7 @@ export interface AppTask {
   title: string;
   status: TaskStatus;
   progress?: number;
-  detail?: string;
+  statusMessage?: string;
   startedAt: number;
   cancellable?: boolean;
   cancelling?: boolean;

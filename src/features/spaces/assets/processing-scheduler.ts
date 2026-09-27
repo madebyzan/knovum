@@ -29,7 +29,7 @@ export function scheduleSpaceAssetProcessing(input: {
   };
   const taskId =
     existingTaskId ?? tasks.start(data.title, i18n.global.t("spaces.importExport.progress.processing"));
-  tasks.detail(taskId, i18n.global.t("spaces.importExport.progress.processing"));
+  tasks.setStatusMessage(taskId, i18n.global.t("spaces.importExport.progress.processing"));
   tasks.setCancellation(taskId, cancel);
   void run();
 

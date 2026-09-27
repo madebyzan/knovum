@@ -1,9 +1,9 @@
 mod contract;
-mod detail;
 mod eraser;
 mod geometry;
 mod glow;
 mod pixels;
+mod texture;
 mod tone;
 
 use std::{fs, io::Cursor, path::Path};

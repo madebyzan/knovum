@@ -2,10 +2,10 @@ use image::{Rgba, RgbaImage};
 
 use super::{
     contract::ImageEdit,
-    detail::apply_detail,
     eraser::EraserIndex,
     geometry::{crop_contains, RenderGeometry},
     glow::apply_glow,
+    texture::apply_texture,
     tone::{to_byte, ToneAdjuster},
 };
 
@@ -40,7 +40,7 @@ pub(super) fn render(source: &RgbaImage, edit: &ImageEdit) -> Result<RgbaImage, 
             output.put_pixel(x, y, pixel);
         }
     }
-    apply_detail(
+    apply_texture(
         &mut output,
         edit.adjustments.sharpness,
         edit.adjustments.clarity,

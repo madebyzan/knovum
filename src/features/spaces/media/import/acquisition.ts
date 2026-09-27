@@ -89,19 +89,19 @@ export function mediaPayloadFromImport(imported: ImportedMedia): SpaceMediaPaylo
 
 function updateProgress(taskId: string, progress: MediaImportProgress) {
   const tasks = useTaskStore();
-  const detail = i18n.global.t(`spaces.media.import.${progress.stage}`);
+  const statusMessage = i18n.global.t(`spaces.media.import.${progress.stage}`);
   const finalizingPercent = finalizingProgressPercent(progress);
   if (finalizingPercent !== null) {
-    tasks.progress(taskId, finalizingPercent, detail);
+    tasks.progress(taskId, finalizingPercent, statusMessage);
     return;
   }
   if (progress.stage !== "downloading" && progress.stage !== "preparing") {
-    tasks.detail(taskId, detail);
+    tasks.setStatusMessage(taskId, statusMessage);
     return;
   }
   const downloaded = formatByteSize(progress.downloadedBytes) ?? "";
   if (progress.totalBytes === null || progress.totalBytes === 0) {
-    tasks.detail(taskId, downloaded ? `${detail} · ${downloaded}` : detail);
+    tasks.setStatusMessage(taskId, downloaded ? `${statusMessage} · ${downloaded}` : statusMessage);
     return;
   }
   const total = formatByteSize(progress.totalBytes) ?? "";

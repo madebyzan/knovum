@@ -59,7 +59,7 @@ export async function exportMarkdownDocument({ store, source, format }: ExportMa
     sourceNodeIds: [source.id],
     task: {
       title: i18n.global.t(descriptor.taskKey),
-      detail: title,
+      statusMessage: title,
     },
     failureMessageKey: descriptor.failureKey,
     execute: () =>

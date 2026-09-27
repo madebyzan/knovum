@@ -13,7 +13,7 @@ export type { AppTask } from "./task-model";
 
 export const useTaskStore = defineStore("tasks", () => {
   const tasks = ref<AppTask[]>([]);
-  const { progress, indeterminate, detail, title } = createTaskProgress(tasks);
+  const { progress, indeterminate, setStatusMessage, title } = createTaskProgress(tasks);
   const completionTimers = new Map<string, ReturnType<typeof setTimeout>>();
   const handlers = new TaskExecutionHandlers();
   const externallySettled = new Set<string>();
@@ -48,7 +48,7 @@ export const useTaskStore = defineStore("tasks", () => {
 
   function start(
     taskTitle: string,
-    taskDetail?: string,
+    statusMessage?: string,
     cancelTask?: CancelTask,
     id: string = crypto.randomUUID(),
   ) {
@@ -58,7 +58,7 @@ export const useTaskStore = defineStore("tasks", () => {
       status: "running",
       startedAt: Date.now(),
     };
-    if (taskDetail !== undefined) task.detail = taskDetail;
+    if (statusMessage !== undefined) task.statusMessage = statusMessage;
     if (cancelTask) {
       task.cancellable = true;
       handlers.setCancellation(task.id, cancelTask);
@@ -77,13 +77,13 @@ export const useTaskStore = defineStore("tasks", () => {
     return true;
   }
 
-  function finish(id: string, status: Exclude<TaskStatus, "running">, taskDetail?: string) {
+  function finish(id: string, status: Exclude<TaskStatus, "running">, statusMessage?: string) {
     const task = tasks.value.find((candidate) => candidate.id === id);
     if (!task || task.status !== "running") return undefined;
     handlers.deleteCancellation(id);
     externallySettled.delete(id);
     task.status = status;
-    if (taskDetail !== undefined) task.detail = taskDetail;
+    if (statusMessage !== undefined) task.statusMessage = statusMessage;
     task.cancellable = false;
     task.cancelling = false;
     return task;
@@ -102,7 +102,7 @@ export const useTaskStore = defineStore("tasks", () => {
       if (externallySettled.has(id)) {
         task.cancelling = false;
         task.cancellable = true;
-        task.detail = String(error);
+        task.statusMessage = String(error);
       } else finish(id, "failed", String(error));
     }
   }
@@ -180,7 +180,7 @@ export const useTaskStore = defineStore("tasks", () => {
     restoreFailed: retryController.restoreFailed,
     indeterminate,
     progress,
-    detail,
+    setStatusMessage,
     title,
     cancel,
     setCancellation,

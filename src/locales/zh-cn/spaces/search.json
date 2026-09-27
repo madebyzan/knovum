@@ -4,7 +4,7 @@
     "placeholder": "搜索笔记、网页、转写、文件、标签…",
     "noResults": "当前空间无匹配项。",
     "defaultTitle": "当前空间",
-    "defaultDetail": "画布内容",
+    "defaultContentLabel": "画布内容",
     "emptyHint": "当前空间暂无内容可供检索。"
   },
   "allSpaces": {

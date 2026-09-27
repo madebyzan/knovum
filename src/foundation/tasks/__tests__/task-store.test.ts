@@ -51,7 +51,7 @@ describe("task store", () => {
     const store = useTaskStore();
     const retry = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
     store.restoreFailed(
-      { id: "persisted-job", title: "Transcribe", detail: "runtime missing", startedAt: 1 },
+      { id: "persisted-job", title: "Transcribe", statusMessage: "runtime missing", startedAt: 1 },
       retry,
     );
 
@@ -63,8 +63,9 @@ describe("task store", () => {
 
   it("keeps the actionable error when a retry fails", async () => {
     const store = useTaskStore();
-    store.restoreFailed({ id: "persisted-job", title: "Transcribe", detail: "old error", startedAt: 1 }, () =>
-      Promise.reject(new Error("Whisper model is not installed")),
+    store.restoreFailed(
+      { id: "persisted-job", title: "Transcribe", statusMessage: "old error", startedAt: 1 },
+      () => Promise.reject(new Error("Whisper model is not installed")),
     );
 
     await store.retry("persisted-job");
@@ -72,7 +73,7 @@ describe("task store", () => {
     expect(store.tasks[0]).toMatchObject({
       id: "persisted-job",
       status: "failed",
-      detail: "Error: Whisper model is not installed",
+      statusMessage: "Error: Whisper model is not installed",
       retryable: true,
     });
   });

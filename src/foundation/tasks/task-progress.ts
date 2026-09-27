@@ -4,25 +4,30 @@ import type { Ref } from "vue";
 import type { AppTask } from "./task-model";
 
 export function createTaskProgress(tasks: Ref<AppTask[]>) {
-  function updateRunning(id: string, changes: Partial<Pick<AppTask, "progress" | "detail" | "title">>) {
+  function updateRunning(
+    id: string,
+    changes: Partial<Pick<AppTask, "progress" | "statusMessage" | "title">>,
+  ) {
     const task = tasks.value.find((candidate) => candidate.id === id);
     if (task?.status === "running") Object.assign(task, changes);
   }
 
   return {
-    indeterminate(id: string, taskDetail?: string) {
+    indeterminate(id: string, statusMessage?: string) {
       const task = tasks.value.find((candidate) => candidate.id === id);
       if (!task || task.status !== "running") return;
       delete task.progress;
-      if (taskDetail !== undefined) task.detail = taskDetail;
+      if (statusMessage !== undefined) task.statusMessage = statusMessage;
     },
-    progress(id: string, value: number, taskDetail?: string) {
+    progress(id: string, value: number, statusMessage?: string) {
       updateRunning(id, {
         progress: clamp(value, 0, 100),
-        ...(taskDetail === undefined ? {} : { detail: taskDetail }),
+        ...(statusMessage === undefined ? {} : { statusMessage }),
       });
     },
-    detail: (id: string, value: string) => updateRunning(id, { detail: value }),
+    setStatusMessage(id: string, statusMessage: string) {
+      updateRunning(id, { statusMessage });
+    },
     title: (id: string, value: string) => updateRunning(id, { title: value }),
   };
 }

@@ -14,7 +14,7 @@ const native = vi.hoisted(() => ({
   invoke: vi.fn<(command: string, args?: InvokeArgs) => Promise<unknown>>(),
   toastError: vi.fn<(message: string) => void>(),
   tasks: {
-    start: vi.fn<(title: string, detail: string, cancel: () => Promise<void>) => string>(),
+    start: vi.fn<(title: string, statusMessage: string, cancel: () => Promise<void>) => string>(),
     progress: vi.fn<ReturnType<typeof useTaskStore>["progress"]>(),
     succeed: vi.fn<ReturnType<typeof useTaskStore>["succeed"]>(),
     fail: vi.fn<ReturnType<typeof useTaskStore>["fail"]>(),

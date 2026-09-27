@@ -1,4 +1,4 @@
-import type { CanvasNodePresentationContext } from "../../../canvas/preview/detail-profile";
+import type { CanvasNodePresentationContext } from "../../../canvas/preview/policy";
 import { describeSpaceNode } from "../../../model/nodes/node-description";
 import type { SpaceNodePayload } from "../../../model/nodes/node-payload";
 import { projectPreviewItems } from "./canvas-preview-budget";

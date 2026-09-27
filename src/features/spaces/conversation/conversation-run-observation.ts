@@ -55,10 +55,10 @@ export function observeConversationRun(
           .then((reason) => tasks.fail(next.id, reason ?? i18n.global.t("spaces.assistant.tasks.failed")))
           .catch((cause: unknown) => tasks.fail(next.id, String(cause)));
       } else if (next.state === "paused" || next.waitReason === "approval") {
-        tasks.detail(next.id, i18n.global.t("spaces.assistant.tasks.needsAttention"));
+        tasks.setStatusMessage(next.id, i18n.global.t("spaces.assistant.tasks.needsAttention"));
       } else if (next.state === "waiting") {
-        tasks.detail(next.id, i18n.global.t("spaces.assistant.tasks.waitingForResult"));
-      } else tasks.detail(next.id, "");
+        tasks.setStatusMessage(next.id, i18n.global.t("spaces.assistant.tasks.waitingForResult"));
+      } else tasks.setStatusMessage(next.id, "");
     },
     error: (cause) => tasks.fail(run.id, String(cause)),
     finished: () => {

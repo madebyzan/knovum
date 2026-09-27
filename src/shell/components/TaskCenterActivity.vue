@@ -84,15 +84,15 @@ const { t } = useI18n();
         {{ t("tasks.cancelling") }}
       </p>
       <p
-        v-else-if="task.detail && task.status !== 'failed'"
+        v-else-if="task.statusMessage && task.status !== 'failed'"
         class="col-start-2 col-end-4 mt-1 text-caption text-foreground-tertiary"
         :class="task.status === 'running' ? 'truncate' : 'line-clamp-2 wrap-break-word'"
       >
-        {{ task.detail }}
+        {{ task.statusMessage }}
       </p>
       <div v-else-if="task.status === 'failed'" class="col-start-2 col-end-4 mt-1 min-w-0">
         <p class="line-clamp-3 text-caption wrap-break-word text-foreground-secondary select-text">
-          {{ task.detail ?? t("tasks.failed") }}
+          {{ task.statusMessage ?? t("tasks.failed") }}
         </p>
       </div>
       <div

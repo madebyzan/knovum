@@ -51,10 +51,10 @@ export function createSpaceMediaActions(context: Context) {
       const data = await generateInsights(
         { spaceId, nodeId: id, jobId, expectedRevision: node.data.knowledgeRevision },
         ({ stage, progress, resources }) => {
-          const detail = resources
+          const statusMessage = resources
             ? `${labels.preparing} · ${formatBytes(resources.downloaded)}${resources.total === null ? "" : ` / ${formatBytes(resources.total)}`}`
             : stage;
-          tasks.progress(jobId, progress, detail);
+          tasks.progress(jobId, progress, statusMessage);
         },
       );
       context.applyNodeContentForSpace(spaceId, id, data);

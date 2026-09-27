@@ -53,7 +53,7 @@ export async function generateGroundedDocument(context: GenerateGroundedDocument
     task: {
       id: jobId,
       title: i18n.global.t("spaces.creation.document.task"),
-      detail: draft.title.trim(),
+      statusMessage: draft.title.trim(),
       cancel: () => cancelAiJob(jobId),
     },
     failureMessageKey: "spaces.creation.document.failed",
@@ -62,7 +62,8 @@ export async function generateGroundedDocument(context: GenerateGroundedDocument
       if (taskId) {
         const tasks = useTaskStore();
         // oxlint-disable-next-line unicorn/prefer-add-event-listener -- Tauri Channel exposes its events through onmessage.
-        stages.onmessage = (stage) => tasks.detail(taskId, i18n.global.t(`spaces.creation.stages.${stage}`));
+        stages.onmessage = (stage) =>
+          tasks.setStatusMessage(taskId, i18n.global.t(`spaces.creation.stages.${stage}`));
       }
       const target = await loadAiExecutionTarget("knowledge", draft.target);
       return invokeCommand<CompletedDocument>("plugin:spaces|generate_grounded_document", {
