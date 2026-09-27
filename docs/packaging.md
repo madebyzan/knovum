@@ -62,9 +62,10 @@ Background removal is linked into the Rust host through exact-pinned `tract-onnx
 The provision command uses `KNOVUM_BUNDLED_RUNTIME_<TARGET>_URL` and
 `KNOVUM_BUNDLED_RUNTIME_<TARGET>_SHA256`; the optional
 `KNOVUM_BUNDLED_RUNTIME_AUTHORIZATION` secret supplies an Authorization header for a private
-artifact host. `tools/provision-media-import-runtime.mjs` and
-`tools/stage-bundled-runtime.mjs` are internal modules of that command, not alternative operator
-entry points.
+artifact host. `tools/provision-bundled-runtime.mjs` owns the complete download, integrity
+verification, safe archive extraction and media-runtime installation flow in one file. Each
+downloaded archive is hashed once; the extracted Deno executable is verified separately. One staging
+directory is cleaned up when the command finishes or fails.
 
 All `pnpm package:*` commands route through `tools/package-desktop.mjs`. It validates the runtime
 and passes Tauri an explicit resource list for exactly one target plus shared fonts and the media import manifest. `src-tauri/tauri.conf.json` deliberately has no catch-all bundled-runtime glob, so
