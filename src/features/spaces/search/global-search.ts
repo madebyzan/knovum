@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
+import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import { knowledgeSearchMatchSchema } from "../knowledge/model/knowledge-search-match";
 import type { GlobalSearchMatch } from "./global-search-contract";
 import { markSpaceSubstring, searchTerms } from "./search-snippet";
@@ -24,8 +24,8 @@ export async function searchAcrossSpaces(value: string): Promise<GlobalSearchMat
   if (!value.trim()) return [];
   const request = { request: { query: value } };
   const [knowledgeSource, structureSource] = await Promise.all([
-    invoke<unknown>("plugin:spaces|search_knowledge_global", request),
-    invoke<unknown>("plugin:spaces|search_structure_global", request),
+    invokeCommand<unknown>("plugin:spaces|search_knowledge_global", request),
+    invokeCommand<unknown>("plugin:spaces|search_structure_global", request),
   ]);
   const knowledge = z.array(globalKnowledgeSearchMatchSchema).parse(knowledgeSource);
   const structure = z.array(globalStructureSearchMatchSchema).parse(structureSource);

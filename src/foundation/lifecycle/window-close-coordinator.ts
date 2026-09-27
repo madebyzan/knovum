@@ -2,7 +2,7 @@ import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { error as logError } from "@tauri-apps/plugin-log";
 
-import { invokeCommand as invoke } from "../ipc/invoke-command";
+import { invokeCommand } from "../ipc/invoke-command";
 
 type WindowCloseCommit = () => Promise<void>;
 
@@ -16,7 +16,7 @@ export async function initializeExitCoordination() {
   listener ??= attachWindowCloseListener();
   exitListener ??= attachExitRequestListener();
   await Promise.all([listener, exitListener]);
-  await invoke("plugin:desktop|mark_exit_coordinator_ready");
+  await invokeCommand("plugin:desktop|mark_exit_coordinator_ready");
 }
 
 export function registerWindowCloseCommit(commit: WindowCloseCommit) {
@@ -33,10 +33,10 @@ async function attachExitRequestListener() {
     exiting = true;
     try {
       await commitAll();
-      await invoke("plugin:desktop|decide_app_exit_request", { approved: true });
+      await invokeCommand("plugin:desktop|decide_app_exit_request", { approved: true });
     } catch (error) {
       await logError(`Application exit commit failed: ${String(error)}`);
-      await invoke("plugin:desktop|decide_app_exit_request", { approved: false });
+      await invokeCommand("plugin:desktop|decide_app_exit_request", { approved: false });
     } finally {
       exiting = false;
     }

@@ -6,7 +6,7 @@ import { aiExecutionTargetPayload, loadAiExecutionTarget } from "../../../founda
 import type { ExecutionTarget } from "../../../foundation/ai/ai-models";
 import { cancelAiJob } from "../../../foundation/ai/ai-runtime";
 import { i18n } from "../../../foundation/i18n/i18n";
-import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
+import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import { useCanvasEditorSession } from "../canvas/editor-session";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
@@ -48,7 +48,7 @@ export async function generateVisualization(context: GenerateVisualizationContex
   const { store, selected, sources, draft } = context;
   const spaceId = store.activeSpaceId;
   if (!spaceId) return;
-  const assetPath = await invoke<string>("plugin:spaces|allocate_visualization_output_path");
+  const assetPath = await invokeCommand<string>("plugin:spaces|allocate_visualization_output_path");
   const pending: SpaceImagePayload = {
     kind: "image",
     title: draft.title.trim(),
@@ -85,7 +85,7 @@ export async function generateVisualization(context: GenerateVisualizationContex
         stages.onmessage = (stage) => tasks.detail(taskId, i18n.global.t(`spaces.creation.stages.${stage}`));
       }
       const target = await loadAiExecutionTarget("image-generation", draft.target);
-      return invoke<VisualizationOutput>("plugin:spaces|generate_visualization", {
+      return invokeCommand<VisualizationOutput>("plugin:spaces|generate_visualization", {
         request: {
           id: jobId,
           spaceId,

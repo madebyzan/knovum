@@ -4,7 +4,7 @@ import { aiExecutionTargetPayload, loadAiExecutionTarget } from "../../../founda
 import type { ExecutionTarget } from "../../../foundation/ai/ai-models";
 import { cancelAiJob } from "../../../foundation/ai/ai-runtime";
 import { i18n } from "../../../foundation/i18n/i18n";
-import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
+import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import { useCanvasEditorSession } from "../canvas/editor-session";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
@@ -65,7 +65,7 @@ export async function generateGroundedDocument(context: GenerateGroundedDocument
         stages.onmessage = (stage) => tasks.detail(taskId, i18n.global.t(`spaces.creation.stages.${stage}`));
       }
       const target = await loadAiExecutionTarget("knowledge", draft.target);
-      return invoke<CompletedDocument>("plugin:spaces|generate_grounded_document", {
+      return invokeCommand<CompletedDocument>("plugin:spaces|generate_grounded_document", {
         request: {
           id: jobId,
           spaceId,

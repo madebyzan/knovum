@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { invokeCommand as invoke } from "../../../../foundation/ipc/invoke-command";
+import { invokeCommand } from "../../../../foundation/ipc/invoke-command";
 import type { CanvasViewport } from "../contract/canvas-editor";
 
 const canvasViewStateSchema = z
@@ -13,11 +13,11 @@ const canvasViewStateSchema = z
 
 export const canvasViewStateOperations = {
   async load(spaceId: string): Promise<CanvasViewport | null> {
-    const source = await invoke<unknown>("plugin:spaces|load_canvas_view_state", { spaceId });
+    const source = await invokeCommand<unknown>("plugin:spaces|load_canvas_view_state", { spaceId });
     return source === null ? null : canvasViewStateSchema.parse(source);
   },
   save(spaceId: string, view: CanvasViewport): Promise<void> {
-    return invoke("plugin:spaces|save_canvas_view_state", {
+    return invokeCommand("plugin:spaces|save_canvas_view_state", {
       request: { spaceId, view: canvasViewStateSchema.parse(view) },
     });
   },

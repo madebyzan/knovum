@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { aiCapabilitySchema, aiRoutingPurposeSchema } from "../../../foundation/ai/ai-models";
-import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
+import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import type { SpaceActionDefinition } from "../contracts/generated/SpaceActionDefinition";
 
 const spaceActionInputRoleSchema = z.enum(["document", "knowledge", "subtitle", "transcript", "video"]);
@@ -44,7 +44,7 @@ export type { SpaceActionDefinition } from "../contracts/generated/SpaceActionDe
 let catalog: Promise<SpaceActionDefinition[]> | undefined;
 
 export function listSpaceActions(): Promise<SpaceActionDefinition[]> {
-  catalog ??= invoke<unknown>("plugin:spaces|list_space_actions").then((value) =>
+  catalog ??= invokeCommand<unknown>("plugin:spaces|list_space_actions").then((value) =>
     z.array(spaceActionDefinitionSchema).parse(value),
   );
   return catalog;

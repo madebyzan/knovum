@@ -1,6 +1,6 @@
 import { platform } from "@tauri-apps/plugin-os";
 
-import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
+import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 
 /** System preview is backed by Quick Look on macOS and the Shell preview host on Windows. */
 export function isAssetPreviewAvailable(): boolean {
@@ -15,5 +15,5 @@ export function previewSpaceAsset(path: string): Promise<void> {
   if (!isAssetPreviewAvailable()) {
     return Promise.reject(new Error("System preview is unavailable on this platform"));
   }
-  return invoke("plugin:spaces|preview_asset", { sourcePath: path });
+  return invokeCommand("plugin:spaces|preview_asset", { sourcePath: path });
 }

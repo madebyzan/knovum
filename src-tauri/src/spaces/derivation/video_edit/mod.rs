@@ -1,4 +1,5 @@
 mod ass;
+mod contracts;
 mod filter_graph;
 pub(crate) mod fonts;
 mod persistence;
@@ -11,112 +12,19 @@ mod start;
 #[cfg(test)]
 mod tests;
 
-use serde::{Deserialize, Serialize};
 use tauri::{ipc::Channel, AppHandle};
 
 use super::{failure, CompletedDerivationOutput};
 use crate::blocking;
 
-pub use proxy::PrepareRequest;
+pub use contracts::{
+    PrepareVideoEditProxyRequest, RenderVideoEditRequest, VideoEditProgress, VideoEditProject,
+};
+#[cfg(test)]
+use contracts::{TextOverlay, TextStyle, TextTrack, VideoClip, VideoTrack, VideoTransform};
+use contracts::{TextPlacement, TextPreset};
 
 pub const CANCELLED: &str = "video-edit-render-cancelled";
-
-#[derive(Clone, Deserialize, Serialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct VideoEditProject {
-    pub version: u8,
-    pub source_revision: String,
-    pub source_width: u32,
-    pub source_height: u32,
-    pub video_track: VideoTrack,
-    pub text_track: TextTrack,
-    pub transform: VideoTransform,
-}
-
-#[derive(Clone, Deserialize, Serialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct VideoTrack {
-    pub clips: Vec<VideoClip>,
-}
-
-#[derive(Clone, Deserialize, Serialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct VideoClip {
-    pub id: String,
-    pub start_ms: u64,
-    pub end_ms: u64,
-    pub volume: f64,
-}
-
-#[derive(Clone, Deserialize, Serialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct TextTrack {
-    pub items: Vec<TextOverlay>,
-}
-
-#[derive(Clone, Deserialize, Serialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct TextOverlay {
-    pub id: String,
-    pub start_ms: u64,
-    pub end_ms: u64,
-    pub text: String,
-    pub placement: TextPlacement,
-    pub style: TextStyle,
-}
-
-#[derive(Clone, Deserialize, Serialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct TextStyle {
-    pub family: String,
-    pub weight: u16,
-    pub size: u16,
-    pub color: String,
-    pub preset: TextPreset,
-}
-
-#[derive(Clone, Copy, Deserialize, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub enum TextPreset {
-    Plain,
-    Outline,
-    Shadow,
-    Badge,
-}
-
-#[derive(Clone, Deserialize, Serialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct VideoTransform {
-    pub rotation: u16,
-    pub flip_horizontal: bool,
-    pub flip_vertical: bool,
-}
-
-#[derive(Clone, Deserialize, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub enum TextPlacement {
-    Top,
-    Center,
-    Bottom,
-}
-
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct RenderVideoEditRequest {
-    pub id: String,
-    pub space_id: String,
-    pub source_node_id: String,
-    pub output_node_id: String,
-    pub source_revision: String,
-    pub project: VideoEditProject,
-}
-
-#[derive(Clone, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct VideoEditProgress {
-    stage: &'static str,
-    progress: u8,
-}
 
 pub async fn render(
     app: AppHandle,
@@ -155,7 +63,7 @@ pub fn cancel(id: &str) -> Result<(), String> {
 
 pub async fn prepare_proxy(
     app: AppHandle,
-    request: proxy::PrepareRequest,
+    request: PrepareVideoEditProxyRequest,
 ) -> Result<String, String> {
     proxy::prepare(app, request).await
 }

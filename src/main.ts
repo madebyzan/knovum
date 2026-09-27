@@ -4,7 +4,7 @@ import { platform } from "@tauri-apps/plugin-os";
 import { createPinia } from "pinia";
 import { createApp } from "vue";
 
-import { bootstrapProduct } from "./app/bootstrap";
+import { bootstrap } from "./app/bootstrap";
 import { router } from "./app/router";
 import { i18n } from "./foundation/i18n/i18n";
 import { queryClient } from "./foundation/query/query-client";
@@ -42,4 +42,4 @@ app.use(i18n);
 app.use(VueQueryPlugin, { queryClient });
 app.use(router);
 app.mount("#app");
-void bootstrapProduct(pinia, router);
+void bootstrap(pinia, router);

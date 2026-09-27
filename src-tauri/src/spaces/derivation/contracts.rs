@@ -1,7 +1,8 @@
 use serde::Serialize;
 use serde_json::Value;
 
-#[derive(Serialize)]
+#[derive(Serialize, ts_rs::TS)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 #[serde(rename_all = "camelCase")]
 pub struct CompletedDerivationOutput {
     pub node_id: String,
@@ -9,7 +10,8 @@ pub struct CompletedDerivationOutput {
     pub relation: DerivationRelation,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, ts_rs::TS)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 #[serde(rename_all = "camelCase")]
 pub struct DerivationRelation {
     pub id: String,

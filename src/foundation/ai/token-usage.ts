@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { usagePurposes } from "../../shared/contracts/generated/contract-values";
 import type { UsageReport } from "../../shared/contracts/generated/UsageReport";
-import { invokeCommand as invoke } from "../ipc/invoke-command";
+import { invokeCommand } from "../ipc/invoke-command";
 
 const usagePurposeSchema = z.enum(usagePurposes);
 
@@ -52,7 +52,7 @@ export type { UsageDay } from "../../shared/contracts/generated/UsageDay";
 export type { UsagePurpose } from "../../shared/contracts/generated/UsagePurpose";
 
 export async function loadTokenUsageReport(fromDate: string, toDate: string) {
-  const value = await invoke<unknown>("plugin:ai|get_token_usage_report", {
+  const value = await invokeCommand<unknown>("plugin:ai|get_token_usage_report", {
     request: { fromDate, toDate },
   });
   return tokenUsageReportSchema.parse(value);

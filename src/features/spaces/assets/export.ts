@@ -1,6 +1,6 @@
 import { save } from "@tauri-apps/plugin-dialog";
 
-import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
+import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import { isSpaceManagedAssetPayload } from "../model/nodes/capabilities";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
 import { truncateUtf16 } from "../model/text";
@@ -10,7 +10,7 @@ export async function exportSpaceAsset(data: SpaceNodePayload): Promise<boolean>
   if (!isSpaceManagedAssetPayload(data)) throw new Error("This node has no exportable asset");
   const destinationPath = await save({ defaultPath: data.fileName });
   if (!destinationPath) return false;
-  await invoke("plugin:spaces|export_asset", { sourcePath: data.assetPath, destinationPath });
+  await invokeCommand("plugin:spaces|export_asset", { sourcePath: data.assetPath, destinationPath });
   return true;
 }
 
@@ -31,7 +31,7 @@ export interface SpaceTextExport {
 export async function exportSpaceTextFile(file: SpaceTextExport): Promise<boolean> {
   const destinationPath = await save({ defaultPath: file.defaultPath, filters: file.filters });
   if (!destinationPath) return false;
-  await invoke("plugin:spaces|export_text", {
+  await invokeCommand("plugin:spaces|export_text", {
     destinationPath,
     text: file.text,
   });

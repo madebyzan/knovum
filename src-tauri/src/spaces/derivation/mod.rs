@@ -22,7 +22,7 @@ mod source_snapshot;
 mod source_validation;
 mod subtitle_extraction;
 mod subtitled_video;
-mod video_edit;
+pub(crate) mod video_edit;
 pub(crate) mod video_generation;
 mod video_output;
 pub(crate) mod visualization;

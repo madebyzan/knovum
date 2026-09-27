@@ -1,5 +1,5 @@
 import { i18n } from "../../../../foundation/i18n/i18n";
-import { invokeCommand as invoke } from "../../../../foundation/ipc/invoke-command";
+import { invokeCommand } from "../../../../foundation/ipc/invoke-command";
 import { useCanvasEditorSession } from "../../canvas/editor-session";
 import { spaceNodeDefaultDimensions } from "../../canvas/node-size";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
@@ -63,7 +63,7 @@ export async function exportMarkdownDocument({ store, source, format }: ExportMa
     },
     failureMessageKey: descriptor.failureKey,
     execute: () =>
-      invoke<ExportOutput>(descriptor.exportCommand, {
+      invokeCommand<ExportOutput>(descriptor.exportCommand, {
         request: {
           id: crypto.randomUUID(),
           spaceId,

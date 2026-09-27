@@ -2,7 +2,7 @@ import { Readability } from "@mozilla/readability";
 import { take } from "es-toolkit";
 import { z } from "zod";
 
-import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
+import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import { truncateUtf16 } from "../model/text";
 import { htmlHeadMetadata } from "./html-head-metadata";
 import type { SpaceWebsiteMetadata, SpaceWebsiteSection } from "./metadata";
@@ -36,7 +36,7 @@ export type WebsiteResource =
 
 export async function fetchWebsiteResource(url: string): Promise<WebsiteResource> {
   const response = webpageResponseSchema.parse(
-    await invoke<unknown>("plugin:spaces|capture_web_resource", { url }),
+    await invokeCommand<unknown>("plugin:spaces|capture_web_resource", { url }),
   );
   const finalUrl = normalizeSpaceUrl(response.finalUrl);
   if (!finalUrl) throw new Error("The webpage response returned an invalid final URL");
@@ -49,7 +49,7 @@ export async function fetchWebsiteResource(url: string): Promise<WebsiteResource
 }
 
 export function cacheWebsiteAsset(url: string): Promise<string> {
-  return invoke("plugin:spaces|import_web_image", { url });
+  return invokeCommand("plugin:spaces|import_web_image", { url });
 }
 
 function htmlMetadata(content: string, finalUrl: string): SpaceWebsiteMetadata {

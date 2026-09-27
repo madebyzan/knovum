@@ -1,6 +1,6 @@
 import { openUrl } from "@tauri-apps/plugin-opener";
 
-import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
+import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import { previewSpaceAsset } from "../assets/asset-preview";
 import type { SpaceClipboardPayload } from "../clipboard/payload-types";
 import { importStructureClipboard } from "../clipboard/structure-clipboard-operations";
@@ -99,7 +99,7 @@ export async function openSpaceNode(store: ReturnType<typeof useSpaceStore>, nod
   if (node.data.kind === "image") {
     const spaceId = store.activeSpaceId;
     if (!spaceId) throw new Error("Image Space is unavailable");
-    await invoke("plugin:spaces|preview_image", { spaceId, nodeId: node.id });
+    await invokeCommand("plugin:spaces|preview_image", { spaceId, nodeId: node.id });
     return;
   }
   if (isSpaceManagedAssetPayload(node.data)) await previewSpaceAsset(node.data.assetPath);

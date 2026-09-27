@@ -1,4 +1,4 @@
-import { invokeCommand as invoke } from "../../../../foundation/ipc/invoke-command";
+import { invokeCommand } from "../../../../foundation/ipc/invoke-command";
 import type { KnowledgeChangeSet } from "../../contracts/generated/KnowledgeChangeSet";
 import type { SpaceKnowledgeHealthIssue } from "../model/health";
 import type { SpaceKnowledgeObjectType } from "../model/object-types";
@@ -33,19 +33,19 @@ export interface ListKnowledgeEventsQuery {
 }
 
 export function listObjectTypes(spaceId: string): Promise<SpaceKnowledgeObjectType[]> {
-  return invoke("plugin:spaces|list_object_types", { spaceId });
+  return invokeCommand("plugin:spaces|list_object_types", { spaceId });
 }
 
 export function createObjectType(input: ObjectTypeWriteInput): Promise<void> {
-  return invoke("plugin:spaces|create_object_type", { input });
+  return invokeCommand("plugin:spaces|create_object_type", { input });
 }
 
 export function updateObjectType(input: ObjectTypeWriteInput): Promise<void> {
-  return invoke("plugin:spaces|update_object_type", { input });
+  return invokeCommand("plugin:spaces|update_object_type", { input });
 }
 
 export function deleteObjectType(objectTypeId: string, spaceId: string): Promise<void> {
-  return invoke("plugin:spaces|delete_object_type", { objectTypeId, spaceId });
+  return invokeCommand("plugin:spaces|delete_object_type", { objectTypeId, spaceId });
 }
 
 export function listProvenance(
@@ -53,20 +53,20 @@ export function listProvenance(
   targetKind: "node" | "relation",
   targetId: string,
 ): Promise<SpaceProvenance[]> {
-  return invoke("plugin:spaces|list_provenance", { spaceId, targetKind, targetId });
+  return invokeCommand("plugin:spaces|list_provenance", { spaceId, targetKind, targetId });
 }
 
 export function createProvenance(input: CreateProvenanceInput): Promise<void> {
-  return invoke("plugin:spaces|create_provenance", { input });
+  return invokeCommand("plugin:spaces|create_provenance", { input });
 }
 
 export function revokeProvenance(provenanceId: string): Promise<void> {
-  return invoke("plugin:spaces|revoke_provenance", { provenanceId });
+  return invokeCommand("plugin:spaces|revoke_provenance", { provenanceId });
 }
 
 export function listKnowledgeEvents(query: ListKnowledgeEventsQuery): Promise<SpaceKnowledgeEvent[]> {
   const { spaceId, entityKind, entityId, limit = 100 } = query;
-  return invoke("plugin:spaces|list_knowledge_events", {
+  return invokeCommand("plugin:spaces|list_knowledge_events", {
     request: {
       spaceId,
       entityKind: entityKind ?? null,
@@ -79,9 +79,9 @@ export function listKnowledgeEvents(query: ListKnowledgeEventsQuery): Promise<Sp
 export function commitKnowledgeChanges(
   changes: KnowledgeChangeSet,
 ): Promise<{ resolvedIds: Record<string, string> }> {
-  return invoke("plugin:spaces|commit_knowledge_changes", { changes });
+  return invokeCommand("plugin:spaces|commit_knowledge_changes", { changes });
 }
 
 export function listKnowledgeHealthIssues(spaceId: string): Promise<SpaceKnowledgeHealthIssue[]> {
-  return invoke("plugin:spaces|list_knowledge_health_issues", { spaceId });
+  return invokeCommand("plugin:spaces|list_knowledge_health_issues", { spaceId });
 }

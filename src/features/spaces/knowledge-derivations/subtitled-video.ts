@@ -3,7 +3,7 @@ import { toast } from "vue-sonner";
 
 import { i18n } from "../../../foundation/i18n/i18n";
 import { decodeCommandError } from "../../../foundation/ipc/command-error";
-import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
+import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import { useCanvasEditorSession } from "../canvas/editor-session";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
@@ -75,7 +75,7 @@ export async function renderSubtitledVideo(
   const derivationId = crypto.randomUUID();
   const tasks = useTaskStore();
   const cancel = async () => {
-    await invoke("plugin:spaces|cancel_subtitled_video_render", { derivationId });
+    await invokeCommand("plugin:spaces|cancel_subtitled_video_render", { derivationId });
   };
   const taskId =
     execution.taskId ??
@@ -94,7 +94,7 @@ export async function renderSubtitledVideo(
   };
   try {
     await yieldToCanvas();
-    const completed = await invoke<CompletedVideo>("plugin:spaces|render_subtitled_video", {
+    const completed = await invokeCommand<CompletedVideo>("plugin:spaces|render_subtitled_video", {
       request: {
         id: derivationId,
         spaceId,
@@ -139,7 +139,7 @@ async function markPendingVideoFailed(store: SpaceStore, spaceId: string, nodeId
 async function createPendingNode(store: SpaceStore, source: SpaceCanvasNode, subtitles: SpaceCanvasNode) {
   if (source.data.kind !== "video") return;
   const base = baseNameFromNode(source);
-  const assetPath = await invoke<string>("plugin:spaces|allocate_video_output_path");
+  const assetPath = await invokeCommand<string>("plugin:spaces|allocate_video_output_path");
   const data: SpaceVideoPayload = {
     kind: "video",
     title: `${base}-subtitled.mp4`,

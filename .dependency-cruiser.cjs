@@ -74,6 +74,14 @@ module.exports = {
       to: { path: "^src/app(?:/|$)" },
     },
     {
+      name: "presentation-does-not-invoke-application-commands",
+      severity: "error",
+      comment:
+        "Components and presentation consume capability operations; command transport belongs to its owner.",
+      from: { path: "(?:[.]vue$|^src/shell/|^src/features/[^/]+/presentation/)" },
+      to: { path: "^src/foundation/ipc/invoke-command[.]ts$" },
+    },
+    {
       name: "spaces-presentation-does-not-own-persistence",
       severity: "error",
       comment: "Space presentation consumes capability and query contracts, never persistence adapters.",

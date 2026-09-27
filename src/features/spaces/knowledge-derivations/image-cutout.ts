@@ -1,7 +1,7 @@
 import { toast } from "vue-sonner";
 
 import { i18n } from "../../../foundation/i18n/i18n";
-import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
+import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import { useCanvasEditorSession } from "../canvas/editor-session";
 import { spaceNodeDimensions } from "../canvas/node-size";
@@ -43,7 +43,7 @@ export async function createImageCutout(store: SpaceStore, source: SpaceCanvasNo
     await startDerivation({ id: derivationId, spaceId, source, outputNodeId: pending.id, sourceEdit });
     started = true;
     tasks.detail(taskId, t("spaces.creation.image.cutout.segmenting"));
-    const completed = await invoke<CompletedCutout>("plugin:spaces|submit_image_cutout_derivation", {
+    const completed = await invokeCommand<CompletedCutout>("plugin:spaces|submit_image_cutout_derivation", {
       request: { id: derivationId, sourceEdit },
     });
     store.applyNodeContentForSpace(spaceId, completed.nodeId, completed.data);
@@ -72,7 +72,7 @@ async function checkCutoutSource(
   sourceEdit: SpaceImagePayload["imageEdit"] | null,
 ): Promise<boolean> {
   try {
-    const available = await invoke<boolean>("plugin:spaces|check_image_cutout_source", {
+    const available = await invokeCommand<boolean>("plugin:spaces|check_image_cutout_source", {
       request: {
         spaceId,
         sourceNodeId: source.id,
@@ -92,7 +92,7 @@ async function createPendingNode(store: SpaceStore, source: SpaceCanvasNode) {
   if (source.data.kind !== "image") return;
   const dimensions = spaceNodeDimensions(source.data);
   const base = baseNameFromNode(source);
-  const assetPath = await invoke<string>("plugin:spaces|allocate_visualization_output_path");
+  const assetPath = await invokeCommand<string>("plugin:spaces|allocate_visualization_output_path");
   const data: SpaceImagePayload = {
     kind: "image",
     title: `${base}-cutout.png`,
@@ -127,7 +127,7 @@ function startDerivation({
 }) {
   if (source.data.kind !== "image" || !source.data.sourceRevision)
     throw new Error("Image revision is missing");
-  return invoke("plugin:spaces|start_image_cutout_derivation", {
+  return invokeCommand("plugin:spaces|start_image_cutout_derivation", {
     request: {
       id,
       spaceId,
@@ -140,5 +140,7 @@ function startDerivation({
 }
 
 async function failDerivation(id: string, error: unknown) {
-  await invoke("plugin:spaces|fail_image_cutout_derivation", { request: { id, error: String(error) } });
+  await invokeCommand("plugin:spaces|fail_image_cutout_derivation", {
+    request: { id, error: String(error) },
+  });
 }

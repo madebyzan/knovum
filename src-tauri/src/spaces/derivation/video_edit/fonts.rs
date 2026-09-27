@@ -3,7 +3,8 @@ use std::{collections::BTreeMap, sync::OnceLock};
 use fontdb::{Database, Style};
 use serde::Serialize;
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, ts_rs::TS)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 #[serde(rename_all = "camelCase")]
 pub struct InstalledFont {
     pub family: String,

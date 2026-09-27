@@ -4,7 +4,7 @@ import { toast } from "vue-sonner";
 import { loadAiExecutionTarget, aiExecutionTargetPayload } from "../../../../foundation/ai/ai-execution";
 import type { ExecutionTarget } from "../../../../foundation/ai/ai-models";
 import { i18n } from "../../../../foundation/i18n/i18n";
-import { invokeCommand as invoke } from "../../../../foundation/ipc/invoke-command";
+import { invokeCommand } from "../../../../foundation/ipc/invoke-command";
 import { useTaskStore } from "../../../../foundation/tasks/task-store";
 import { useCanvasEditorSession } from "../../canvas/editor-session";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
@@ -55,7 +55,7 @@ export async function generateVideoFromDocument({ store, inputs, draft }: Genera
   const source = inputs.document;
   if (!store.activeSpaceId) return;
   const spaceId = store.activeSpaceId;
-  const assetPath = await invoke<string>("plugin:spaces|allocate_video_output_path");
+  const assetPath = await invokeCommand<string>("plugin:spaces|allocate_video_output_path");
   const [output] = await store.addContent(
     {
       kind: "video",
@@ -72,7 +72,7 @@ export async function generateVideoFromDocument({ store, inputs, draft }: Genera
   const tasks = useTaskStore();
   const derivationId = crypto.randomUUID();
   const taskId = tasks.start(i18n.global.t("spaces.creation.video.generation.task"), draft.title, () =>
-    invoke("plugin:spaces|cancel_video_generation", { derivationId }),
+    invokeCommand("plugin:spaces|cancel_video_generation", { derivationId }),
   );
   const stages = new Channel<string>();
   // oxlint-disable-next-line unicorn/prefer-add-event-listener -- Tauri Channel exposes its events through onmessage.
@@ -80,7 +80,7 @@ export async function generateVideoFromDocument({ store, inputs, draft }: Genera
   try {
     await yieldToCanvas();
     const target = await loadAiExecutionTarget("video-generation", draft.target);
-    const completed = await invoke<Output>("plugin:spaces|generate_video", {
+    const completed = await invokeCommand<Output>("plugin:spaces|generate_video", {
       request: {
         id: derivationId,
         spaceId,

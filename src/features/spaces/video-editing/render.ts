@@ -1,27 +1,37 @@
 import { Channel } from "@tauri-apps/api/core";
 import { parse } from "pathe";
 import { toast } from "vue-sonner";
+import { z } from "zod";
 
 import { i18n } from "../../../foundation/i18n/i18n";
 import { decodeCommandError } from "../../../foundation/ipc/command-error";
-import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
+import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
+import type { CompletedDerivationOutput } from "../contracts/generated/CompletedDerivationOutput";
+import type { RenderVideoEditRequest } from "../contracts/generated/RenderVideoEditRequest";
+import type { VideoEditProgress } from "../contracts/generated/VideoEditProgress";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceVideoPayload } from "../model/nodes/node-payload";
+import { validateSpaceNodePayload } from "../model/nodes/schema/node-payload";
 import type { useSpaceStore } from "../session/space-store";
 import type { VideoEditProject } from "./project";
 
-interface Progress {
-  stage: string;
-  progress: number;
-}
-interface CompletedVideo {
-  nodeId: string;
-  data: SpaceVideoPayload;
-}
+const videoEditProgressSchema: z.ZodType<VideoEditProgress> = z
+  .object({ stage: z.string().min(1), progress: z.number().int().min(0).max(100) })
+  .strict();
+
+type VideoEditStore = Pick<
+  ReturnType<typeof useSpaceStore>,
+  | "activeSpaceId"
+  | "addContent"
+  | "applyNodeContentForSpace"
+  | "refreshActiveSpace"
+  | "closeVideoEditor"
+  | "requestReveal"
+>;
 
 export async function renderVideoEdit(
-  store: ReturnType<typeof useSpaceStore>,
+  store: VideoEditStore,
   source: SpaceCanvasNode & { data: SpaceVideoPayload },
   project: VideoEditProject,
 ) {
@@ -39,17 +49,18 @@ export async function renderVideoEdit(
   if (!pending) throw new Error("Could not create the edited video output");
   const derivationId = crypto.randomUUID();
   const tasks = useTaskStore();
-  const cancel = () => invoke<void>("plugin:spaces|cancel_video_edit_render", { derivationId });
+  const cancel = () => invokeCommand<void>("plugin:spaces|cancel_video_edit_render", { derivationId });
   const taskId = tasks.start(
     i18n.global.t("spaces.media.videoEditor.render.task"),
     source.data.title,
     cancel,
   );
-  const progress = new Channel<Progress>(({ stage, progress: value }) => {
+  const progress = new Channel<VideoEditProgress>((event) => {
+    const { stage, progress: value } = videoEditProgressSchema.parse(event);
     tasks.progress(taskId, value, i18n.global.t(`spaces.media.videoEditor.${stage}`));
   });
   try {
-    const completed = await invoke<CompletedVideo>("plugin:spaces|render_video_edit", {
+    const completed = await invokeCommand<CompletedDerivationOutput>("plugin:spaces|render_video_edit", {
       request: {
         id: derivationId,
         spaceId,
@@ -57,10 +68,13 @@ export async function renderVideoEdit(
         outputNodeId: pending.id,
         sourceRevision,
         project,
-      },
+      } satisfies RenderVideoEditRequest,
       onProgress: progress,
     });
-    store.applyNodeContentForSpace(spaceId, completed.nodeId, completed.data);
+    if (completed.nodeId !== pending.id) throw new Error("Video render returned a different output node");
+    const data = validateSpaceNodePayload(completed.data);
+    if (data.kind !== "video") throw new Error("Video render returned non-video content");
+    store.applyNodeContentForSpace(spaceId, completed.nodeId, data);
     await store.refreshActiveSpace();
     tasks.succeed(taskId);
     store.closeVideoEditor();

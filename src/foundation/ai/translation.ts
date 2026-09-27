@@ -1,9 +1,11 @@
 import { Channel } from "@tauri-apps/api/core";
 
+import type { CompletionOutput } from "../../shared/contracts/generated/CompletionOutput";
+import type { CompletionStreamEvent } from "../../shared/contracts/generated/CompletionStreamEvent";
 import type { TranslationCommandRequest } from "../../shared/contracts/generated/TranslationCommandRequest";
-import { invokeCommand as invoke } from "../ipc/invoke-command";
+import { invokeCommand } from "../ipc/invoke-command";
 import { aiExecutionTargetPayload, loadAiExecutionTarget } from "./ai-execution";
-import { decodeAiErrorPayload, type AiCompletionResponse, type AiCompletionStreamEvent } from "./ai-runtime";
+import { decodeAiErrorPayload } from "./ai-runtime";
 
 export type TranslationTarget =
   | "zh-CN"
@@ -39,15 +41,15 @@ class TranslationError extends Error {
 export async function translateTextStream(
   request: TranslationInput,
   jobId: string,
-  onEvent: (event: AiCompletionStreamEvent) => void,
+  onEvent: (event: CompletionStreamEvent) => void,
 ): Promise<string> {
   if (!request.text.trim()) return "";
   try {
     const executionTarget = await loadAiExecutionTarget("translation");
-    const channel = new Channel<AiCompletionStreamEvent>();
+    const channel = new Channel<CompletionStreamEvent>();
     // oxlint-disable-next-line unicorn/prefer-add-event-listener -- Tauri Channel exposes events through onmessage.
     channel.onmessage = onEvent;
-    const completion = await invoke<AiCompletionResponse>("plugin:ai|translate_text_stream", {
+    const completion = await invokeCommand<CompletionOutput>("plugin:ai|translate_text_stream", {
       request: {
         executionTarget: aiExecutionTargetPayload(executionTarget),
         text: request.text,

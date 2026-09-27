@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
+import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import type { StepObservation } from "../contracts/generated/StepObservation";
 import { getNode } from "../nodes/node-operations";
 
@@ -17,7 +17,7 @@ function reviewCheckpoint(step: StepObservation | undefined) {
 }
 
 export async function loadWorkflowReview(spaceId: string, runId: string) {
-  const steps = await invoke<StepObservation[]>("plugin:spaces|list_run_steps", { runId });
+  const steps = await invokeCommand<StepObservation[]>("plugin:spaces|list_run_steps", { runId });
   const { step, nodeId, sourceRevision } = reviewCheckpoint(
     steps.find((item) => item.state === "waiting" && item.waitReason === "content_review"),
   );
@@ -41,5 +41,5 @@ export function decideWorkflowReview(input: {
   reviewedRevision: string;
   approved: boolean;
 }) {
-  return invoke<void>("plugin:spaces|decide_run_step_review", input);
+  return invokeCommand<void>("plugin:spaces|decide_run_step_review", input);
 }
