@@ -23,7 +23,7 @@ const dock = useContextDock();
       size="md"
       @click="dock.openAsk()"
     >
-      <MessageSquareText class="size-(--knovum-icon-size-toolbar)" :stroke-width="1.55" />
+      <MessageSquareText class="size-4.5" :stroke-width="1.55" />
     </UiIconButton>
     <UiIconButton
       :label="t('spaces.inspector.title')"
@@ -34,7 +34,7 @@ const dock = useContextDock();
       size="md"
       @click="dock.openInspect()"
     >
-      <Info class="size-(--knovum-icon-size-toolbar)" :stroke-width="1.55" />
+      <Info class="size-4.5" :stroke-width="1.55" />
     </UiIconButton>
     <UiIconButton
       v-if="store.focusedEditorId"
@@ -46,7 +46,7 @@ const dock = useContextDock();
       size="md"
       @click="dock.openDocumentOutline()"
     >
-      <FileText class="size-(--knovum-icon-size-toolbar)" :stroke-width="1.55" />
+      <FileText class="size-4.5" :stroke-width="1.55" />
     </UiIconButton>
   </nav>
 </template>

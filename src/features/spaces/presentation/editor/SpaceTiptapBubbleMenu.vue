@@ -14,7 +14,7 @@ const props = defineProps<{ editor: Editor }>();
 <template>
   <BubbleMenu :editor="editor">
     <div
-      class="z-50 flex items-center gap-0.5 rounded-dialog border border-border bg-overlay p-1 shadow-popover"
+      class="z-50 flex items-center gap-0.5 rounded-xl border border-stroke-default bg-surface-overlay p-1 shadow-popover"
     >
       <SpaceTiptapWritingMenu :editor="props.editor" compact />
       <UiSeparator orientation="vertical" class="mx-0.5 !h-4" />

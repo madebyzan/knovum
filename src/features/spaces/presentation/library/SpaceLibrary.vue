@@ -79,36 +79,38 @@ function showSpaceMenu(space: Space) {
 </script>
 
 <template>
-  <UiScrollArea class="h-full bg-canvas">
+  <UiScrollArea class="h-full bg-surface-canvas">
     <section ref="libraryRoot" class="px-6 py-5">
-      <h1 class="text-display font-semibold text-accent">{{ title }}</h1>
+      <h1 class="text-display-sm font-semibold text-fg-accent">{{ title }}</h1>
 
       <div
         v-if="visibleSpaces.length"
         :class="
           libraryLayout === 'grid'
             ? 'mt-5 grid grid-cols-[repeat(auto-fill,minmax(210px,240px))] gap-5'
-            : 'mt-4 divide-y divide-divider border-y border-divider'
+            : 'mt-4 divide-y divide-stroke-divider border-y border-stroke-divider'
         "
       >
         <article
           v-for="space in visibleSpaces"
           :key="space.id"
-          class="group relative overflow-hidden bg-surface"
-          :class="libraryLayout === 'grid' ? 'rounded-panel border border-border' : 'flex items-center py-2'"
+          class="group relative overflow-hidden bg-surface-muted"
+          :class="
+            libraryLayout === 'grid' ? 'rounded-panel border border-stroke-default' : 'flex items-center py-2'
+          "
           @contextmenu.prevent="showSpaceMenu(space)"
         >
           <button
             type="button"
-            class="absolute inset-0 z-10 rounded-panel outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-inset"
+            class="absolute inset-0 z-10 rounded-panel outline-none focus-visible:ring-2 focus-visible:ring-stroke-focus focus-visible:ring-inset"
             @click="store.openSpace(space.id)"
           />
           <div
-            class="shrink-0 overflow-hidden bg-canvas"
+            class="shrink-0 overflow-hidden bg-surface-canvas"
             :class="
               libraryLayout === 'grid'
                 ? 'aspect-video w-full'
-                : 'h-16 w-28 rounded-control border border-border'
+                : 'h-16 w-28 rounded-md border border-stroke-default'
             "
           >
             <img
@@ -120,7 +122,7 @@ function showSpaceMenu(space: Space) {
           </div>
           <div
             class="relative min-w-0 flex-1 px-3 py-2.5"
-            :class="libraryLayout === 'grid' ? 'border-t border-divider' : ''"
+            :class="libraryLayout === 'grid' ? 'border-t border-stroke-divider' : ''"
           >
             <UiIconButton
               v-if="space.kind === 'space'"
@@ -130,7 +132,7 @@ function showSpaceMenu(space: Space) {
               :label="t(space.favorite ? 'spaces.space.unfavorite' : 'spaces.space.favorite')"
               @click="store.setSpaceFavorite(space.id, !space.favorite)"
             >
-              <Star class="size-(--knovum-icon-size-sm)" :fill="space.favorite ? 'currentColor' : 'none'" />
+              <Star class="size-3.5" :fill="space.favorite ? 'currentColor' : 'none'" />
             </UiIconButton>
             <UiInput
               v-if="editingId === space.id"
@@ -143,15 +145,17 @@ function showSpaceMenu(space: Space) {
               @keydown.enter.prevent="finishRenaming"
               @keydown.escape.prevent="editingId = undefined"
             />
-            <h2 v-else class="truncate pr-7 text-label font-semibold text-foreground">{{ space.title }}</h2>
-            <p class="mt-0.5 text-caption text-foreground-tertiary">
+            <h2 v-else class="truncate pr-7 text-label-md font-semibold text-fg-primary">
+              {{ space.title }}
+            </h2>
+            <p class="mt-0.5 text-caption-md text-fg-tertiary">
               {{ t("spaces.space.nodeCount", { count: space.nodeCount }) }} ·
               {{ formatUpdatedAt(space.updatedAt) }}
             </p>
           </div>
         </article>
       </div>
-      <div v-else class="grid min-h-64 place-items-center text-body text-foreground-tertiary">
+      <div v-else class="grid min-h-64 place-items-center text-body-sm text-fg-tertiary">
         {{ t("spaces.space.search.noResults") }}
       </div>
     </section>

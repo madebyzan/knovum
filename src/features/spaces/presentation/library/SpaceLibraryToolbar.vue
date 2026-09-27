@@ -25,10 +25,10 @@ watch(
 <template>
   <div class="relative flex min-w-0 flex-1 items-center justify-end gap-1">
     <UiIconButton size="sm" :label="t('spaces.space.new')" shortcut="$mod+T" @click="emit('create')">
-      <Plus class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
+      <Plus class="size-3.5" :stroke-width="1.6" />
     </UiIconButton>
     <UiIconButton size="sm" :label="t('spaces.importExport.space.import')" @click="packages.importPackage">
-      <FileInput class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
+      <FileInput class="size-3.5" :stroke-width="1.6" />
     </UiIconButton>
     <UiIconButton
       size="sm"
@@ -36,7 +36,7 @@ watch(
       :label="t('spaces.space.views.grid')"
       @click="libraryLayout = 'grid'"
     >
-      <Grid2X2 class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
+      <Grid2X2 class="size-3.5" :stroke-width="1.6" />
     </UiIconButton>
     <UiIconButton
       size="sm"
@@ -44,7 +44,7 @@ watch(
       :label="t('spaces.space.views.list')"
       @click="libraryLayout = 'list'"
     >
-      <List class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
+      <List class="size-3.5" :stroke-width="1.6" />
     </UiIconButton>
     <UiSearchInput
       ref="search"

@@ -37,7 +37,7 @@ const {
 <template>
   <div
     v-if="!workspaceActive"
-    class="absolute inset-0 z-10 h-full min-h-0 w-full min-w-0 overflow-hidden bg-canvas"
+    class="absolute inset-0 z-10 h-full min-h-0 w-full min-w-0 overflow-hidden bg-surface-canvas"
   >
     <RouterView v-slot="{ Component }">
       <FeatureErrorBoundary :reset-key="route.fullPath">
@@ -47,7 +47,7 @@ const {
   </div>
   <div
     data-testid="spaces-workspace"
-    class="spaces-workspace absolute inset-0 flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden bg-chrome transition-colors duration-200 ease-standard select-none"
+    class="spaces-workspace absolute inset-0 flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden bg-surface-chrome transition-colors duration-220 ease-standard select-none"
     :class="{ invisible: !workspaceActive }"
     :aria-hidden="!workspaceActive"
     :inert="!workspaceActive"

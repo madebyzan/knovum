@@ -36,10 +36,10 @@ defineExpose({ seekTo, togglePlayback });
 </script>
 
 <template>
-  <div class="pointer-events-none relative flex min-h-0 flex-1 overflow-hidden bg-control/25">
+  <div class="pointer-events-none relative flex min-h-0 flex-1 overflow-hidden bg-surface-control/25">
     <div
       v-if="!loaded"
-      class="relative block size-full overflow-hidden bg-control/20 text-foreground-secondary"
+      class="relative block size-full overflow-hidden bg-surface-control/20 text-fg-secondary"
     >
       <img
         v-if="cover"
@@ -48,25 +48,25 @@ defineExpose({ seekTo, togglePlayback });
         draggable="false"
         class="block size-full object-contain"
       />
-      <span v-else class="grid size-full place-items-center bg-control text-foreground-tertiary">
+      <span v-else class="grid size-full place-items-center bg-surface-control text-fg-tertiary">
         <Film class="size-8" :stroke-width="1.35" />
       </span>
-      <span class="absolute inset-0 bg-scrim/5" />
+      <span class="absolute inset-0 bg-surface-scrim/5" />
       <span
         v-if="coverDuration"
-        class="absolute right-2 bottom-2 rounded-control bg-overlay/94 px-1.5 py-0.5 text-micro font-medium text-foreground tabular-nums shadow-control ring-1 ring-border"
+        class="absolute right-2 bottom-2 rounded-md bg-surface-overlay/94 px-1.5 py-0.5 text-caption-sm font-medium text-fg-primary tabular-nums shadow-control ring-1 ring-stroke-default"
         >{{ coverDuration }}</span
       >
       <button
         type="button"
-        class="nodrag pointer-events-auto absolute top-1/2 left-1/2 grid size-9 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-overlay/94 text-foreground shadow-control ring-1 ring-border"
+        class="nodrag pointer-events-auto absolute top-1/2 left-1/2 grid size-9 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-surface-overlay/94 text-fg-primary shadow-control ring-1 ring-stroke-default"
         :aria-label="t('spaces.media.player.load', { title: data.title })"
         @click.stop="togglePlayback"
       >
-        <Play class="ml-px size-(--knovum-icon-size-md)" fill="currentColor" :stroke-width="1.4" />
+        <Play class="ml-px size-4" fill="currentColor" :stroke-width="1.4" />
       </button>
     </div>
-    <div v-else class="relative size-full overflow-hidden bg-control">
+    <div v-else class="relative size-full overflow-hidden bg-surface-control">
       <video
         ref="mediaElement"
         :src="source"

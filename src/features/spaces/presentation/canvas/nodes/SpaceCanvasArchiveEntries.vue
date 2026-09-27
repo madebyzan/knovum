@@ -28,18 +28,15 @@ const remaining = computed(() =>
     <div
       v-for="entry in displayEntries"
       :key="entry.path"
-      class="flex h-7 items-center gap-2 border-b border-divider px-1 text-caption last:border-b-0"
+      class="flex h-7 items-center gap-2 border-b border-stroke-divider px-1 text-caption-md last:border-b-0"
     >
-      <Folder
-        v-if="entry.kind === 'folder'"
-        class="size-(--knovum-icon-size-xs) shrink-0 text-foreground-tertiary"
-      />
-      <File v-else class="size-(--knovum-icon-size-xs) shrink-0 text-foreground-tertiary" />
-      <span class="min-w-0 flex-1 truncate font-mono text-foreground-secondary" :title="entry.path">
+      <Folder v-if="entry.kind === 'folder'" class="size-3 shrink-0 text-fg-tertiary" />
+      <File v-else class="size-3 shrink-0 text-fg-tertiary" />
+      <span class="min-w-0 flex-1 truncate font-mono text-fg-secondary" :title="entry.path">
         {{ entry.path }}
       </span>
     </div>
-    <div v-if="remaining > 0" class="px-1 pt-1 text-micro text-foreground-tertiary">
+    <div v-if="remaining > 0" class="px-1 pt-1 text-caption-sm text-fg-tertiary">
       +{{ remaining }} more entries
     </div>
   </div>

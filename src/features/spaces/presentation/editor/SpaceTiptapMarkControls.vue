@@ -13,10 +13,10 @@ import SpaceTiptapLinkControl from "./SpaceTiptapLinkControl.vue";
 const props = defineProps<{ editor: Editor }>();
 const { t } = useI18n();
 const highlights = [
-  { name: "yellow", color: "var(--knovum-editor-highlight-color-yellow)" },
-  { name: "green", color: "var(--knovum-editor-highlight-color-green)" },
-  { name: "blue", color: "var(--knovum-editor-highlight-color-blue)" },
-  { name: "pink", color: "var(--knovum-editor-highlight-color-pink)" },
+  { name: "yellow", color: "var(--knovum-space-highlight-bg-yellow)" },
+  { name: "green", color: "var(--knovum-space-highlight-bg-green)" },
+  { name: "blue", color: "var(--knovum-space-highlight-bg-blue)" },
+  { name: "pink", color: "var(--knovum-space-highlight-bg-pink)" },
 ] as const;
 </script>
 
@@ -27,15 +27,13 @@ const highlights = [
     <template #trigger>
       <button
         type="button"
-        class="flex h-(--knovum-control-height-sm) min-w-11 items-center justify-center gap-0.5 rounded-control px-1.5 text-foreground-secondary hover:bg-control-hover hover:text-foreground data-[state=open]:bg-control-pressed"
-        :class="
-          editor.isActive('highlight') && 'bg-(--knovum-sidebar-item-background-selected) text-foreground'
-        "
+        class="flex h-(--knovum-control-height-sm) min-w-11 items-center justify-center gap-0.5 rounded-md px-1.5 text-fg-secondary hover:bg-surface-control-hover hover:text-fg-primary data-[state=open]:bg-surface-control"
+        :class="editor.isActive('highlight') && 'bg-(--knovum-sidebar-item-bg-selected) text-fg-primary'"
         :aria-label="t('spaces.richtext.highlight')"
         :title="t('spaces.richtext.highlight')"
       >
-        <Highlighter class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
-        <ChevronDown class="size-(--knovum-icon-size-xs)" :stroke-width="1.6" />
+        <Highlighter class="size-3.5" :stroke-width="1.6" />
+        <ChevronDown class="size-3" :stroke-width="1.6" />
       </button>
     </template>
 
@@ -44,16 +42,19 @@ const highlights = [
       :key="option.name"
       @select="editor.chain().focus().setHighlight({ color: option.color }).run()"
     >
-      <span class="size-3.5 rounded-control ring-1 ring-border" :style="{ backgroundColor: option.color }" />
+      <span
+        class="size-3.5 rounded-md ring-1 ring-stroke-default"
+        :style="{ backgroundColor: option.color }"
+      />
       <span class="min-w-0 flex-1 truncate">{{ t(`spaces.richtext.highlightColor.${option.name}`) }}</span>
       <Check
         v-if="editor.isActive('highlight', { color: option.color })"
-        class="ml-auto size-(--knovum-icon-size-xs) text-accent"
+        class="ml-auto size-3 text-fg-accent"
       />
     </UiDropdownMenuItem>
     <UiSeparator class="my-1" />
     <UiDropdownMenuItem @select="editor.chain().focus().unsetHighlight().run()">
-      <span class="size-3.5 rounded-control bg-canvas ring-1 ring-border" />
+      <span class="size-3.5 rounded-md bg-surface-canvas ring-1 ring-stroke-default" />
       <span class="min-w-0 flex-1 truncate">{{ t("spaces.richtext.highlightColor.clear") }}</span>
     </UiDropdownMenuItem>
   </UiDropdownMenu>
@@ -65,7 +66,7 @@ const highlights = [
     :active="editor.isActive('superscript')"
     @click="editor.chain().focus().toggleSuperscript().run()"
   >
-    <Superscript class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
+    <Superscript class="size-3.5" :stroke-width="1.6" />
   </UiIconButton>
   <UiIconButton
     :label="t('spaces.richtext.subscript')"
@@ -73,6 +74,6 @@ const highlights = [
     :active="editor.isActive('subscript')"
     @click="editor.chain().focus().toggleSubscript().run()"
   >
-    <Subscript class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
+    <Subscript class="size-3.5" :stroke-width="1.6" />
   </UiIconButton>
 </template>

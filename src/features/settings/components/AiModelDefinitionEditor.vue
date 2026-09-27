@@ -33,19 +33,19 @@ function setCapability(capability: AiModelCapability, enabled: boolean) {
 </script>
 
 <template>
-  <div class="border-b border-divider px-3 py-3 last:border-b-0">
+  <div class="border-b border-stroke-divider px-3 py-3 last:border-b-0">
     <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] items-center gap-2">
       <UiInput v-model="model.name" :placeholder="t('settings.ai.modelDisplayName')" />
       <UiInput v-model="model.model" :placeholder="t('settings.ai.modelIdentifier')" />
       <UiIconButton v-if="removable" :label="t('common.delete')" size="sm" @click="emit('remove')">
-        <Trash2 class="size-(--knovum-icon-size-sm)" />
+        <Trash2 class="size-3.5" />
       </UiIconButton>
     </div>
     <div class="mt-2.5 flex flex-wrap gap-x-3 gap-y-1.5 px-0.5">
       <label
         v-for="capability in capabilities"
         :key="capability.value"
-        class="flex items-center gap-1.5 text-caption text-foreground-secondary"
+        class="flex items-center gap-1.5 text-caption-md text-fg-secondary"
       >
         <UiCheckbox
           :model-value="model.capabilities.includes(capability.value)"

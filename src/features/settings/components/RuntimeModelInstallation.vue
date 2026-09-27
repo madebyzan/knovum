@@ -31,26 +31,26 @@ const { t } = useI18n();
 
 <template>
   <div
-    class="flex min-h-(--knovum-preference-item-height) flex-col justify-center border-b border-divider px-4 py-3 last:border-b-0"
+    class="flex min-h-(--knovum-settings-row-min-height) flex-col justify-center border-b border-stroke-divider px-4 py-3 last:border-b-0"
   >
     <div class="flex items-center justify-between gap-6">
       <div class="min-w-0 flex-1">
         <div class="flex items-center gap-2">
           <UiSpinner
             v-if="progress.state === 'downloading' || progress.state === 'verifying'"
-            class="text-accent"
+            class="text-fg-accent"
           />
-          <CircleX v-else-if="progress.state === 'error'" class="size-(--knovum-icon-size-sm) text-danger" />
+          <CircleX v-else-if="progress.state === 'error'" class="size-3.5 text-fg-danger" />
           <component
             :is="installed ? CheckCircle2 : CircleAlert"
             v-else
-            class="size-(--knovum-icon-size-sm)"
-            :class="installed ? 'text-success' : 'text-warning'"
+            class="size-3.5"
+            :class="installed ? 'text-fg-success' : 'text-fg-warning'"
           />
-          <span class="text-body-lg font-medium text-foreground">{{ title }}</span>
+          <span class="text-body-md font-medium text-fg-primary">{{ title }}</span>
         </div>
 
-        <div class="mt-0.5 text-caption text-foreground-secondary">
+        <div class="mt-0.5 text-caption-md text-fg-secondary">
           <template v-if="progress.state === 'downloading'">
             {{
               t("settings.offlineModels.download.downloading", {
@@ -63,7 +63,7 @@ const { t } = useI18n();
             {{ t("settings.offlineModels.download.verifying") }}
           </template>
           <template v-else-if="progress.state === 'error'">
-            <span class="text-danger">{{
+            <span class="text-fg-danger">{{
               progress.error || t("settings.offlineModels.download.failed")
             }}</span>
           </template>
@@ -84,7 +84,7 @@ const { t } = useI18n();
       <div class="flex shrink-0 items-center gap-3">
         <span
           v-if="progress.state === 'downloading'"
-          class="text-caption font-medium text-accent tabular-nums"
+          class="text-caption-md font-medium text-fg-accent tabular-nums"
         >
           {{ progress.progress }}%
         </span>
@@ -94,7 +94,7 @@ const { t } = useI18n();
           size="sm"
           @click="emit('cancel')"
         >
-          <Square class="size-(--knovum-icon-size-xs)" />
+          <Square class="size-3" />
         </UiIconButton>
         <UiButton
           v-else-if="progress.state === 'error'"
@@ -115,7 +115,7 @@ const { t } = useI18n();
           size="sm"
           @click="emit('remove')"
         >
-          <Trash2 class="size-(--knovum-icon-size-sm)" />
+          <Trash2 class="size-3.5" />
         </UiIconButton>
       </div>
     </div>

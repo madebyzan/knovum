@@ -51,24 +51,24 @@ function retry() {
 </script>
 
 <template>
-  <section class="mx-4 border-t border-divider py-3">
+  <section class="mx-4 border-t border-stroke-divider py-3">
     <header class="mb-2 flex min-h-(--knovum-control-height-sm) items-center gap-2">
       <button
         v-if="expanded"
         type="button"
-        class="grid size-6 place-items-center rounded-control text-foreground-secondary hover:bg-control-hover"
+        class="grid size-6 place-items-center rounded-md text-fg-secondary hover:bg-surface-control-hover"
         :aria-label="t('common.back')"
         @click="expanded = false"
       >
-        <ChevronLeft class="size-(--knovum-icon-size-xs)" />
+        <ChevronLeft class="size-3" />
       </button>
-      <h3 class="flex-1 text-caption font-semibold text-foreground">
+      <h3 class="flex-1 text-caption-md font-semibold text-fg-primary">
         {{ t("spaces.inspector.related.title") }}
       </h3>
       <button
         v-if="!expanded && items.length > 3"
         type="button"
-        class="text-caption text-foreground-secondary hover:text-foreground"
+        class="text-caption-md text-fg-secondary hover:text-fg-primary"
         @click="expanded = true"
       >
         {{ t("spaces.inspector.related.show") }}
@@ -76,64 +76,62 @@ function retry() {
     </header>
     <div
       v-if="query.isError.value || (indexStatus === 'unavailable' && query.data.value?.state === 'unindexed')"
-      class="flex items-start gap-2 py-3 text-caption text-danger"
+      class="flex items-start gap-2 py-3 text-caption-md text-fg-danger"
     >
-      <TriangleAlert class="mt-0.5 size-(--knovum-icon-size-xs) shrink-0" />
+      <TriangleAlert class="mt-0.5 size-3 shrink-0" />
       <div>
         <p>{{ t("spaces.inspector.related.unavailable") }}</p>
         <button type="button" class="mt-1 underline" @click="retry">{{ t("common.retry") }}</button>
       </div>
     </div>
     <div v-else-if="pending" class="py-3">
-      <p class="text-caption leading-relaxed text-foreground-tertiary">
+      <p class="text-caption-md leading-relaxed text-fg-tertiary">
         {{ t("spaces.inspector.related.indexing") }}
       </p>
-      <div class="mt-3 h-2 w-4/5 rounded-control bg-control" />
-      <div class="mt-2 h-2 w-full rounded-control bg-control" />
-      <div class="mt-2 h-2 w-3/5 rounded-control bg-control" />
+      <div class="mt-3 h-2 w-4/5 rounded-md bg-surface-control" />
+      <div class="mt-2 h-2 w-full rounded-md bg-surface-control" />
+      <div class="mt-2 h-2 w-3/5 rounded-md bg-surface-control" />
     </div>
     <div
       v-else-if="query.data.value?.state === 'unindexed'"
-      class="py-3 text-caption leading-relaxed text-foreground-tertiary"
+      class="py-3 text-caption-md leading-relaxed text-fg-tertiary"
     >
       <p>{{ t("spaces.inspector.related.notIndexed") }}</p>
-      <button type="button" class="mt-1 text-foreground-secondary underline" @click="startIndex">
+      <button type="button" class="mt-1 text-fg-secondary underline" @click="startIndex">
         {{ t("spaces.inspector.related.prepare") }}
       </button>
     </div>
     <p
       v-else-if="query.data.value?.state === 'no_content'"
-      class="py-3 text-caption leading-relaxed text-foreground-tertiary"
+      class="py-3 text-caption-md leading-relaxed text-fg-tertiary"
     >
       {{ t("spaces.inspector.related.noContent") }}
     </p>
-    <div v-else-if="!items.length" class="py-5 text-center text-caption text-foreground-tertiary">
-      <Search class="mx-auto mb-2 size-(--knovum-icon-size-sm)" :stroke-width="1.5" />
+    <div v-else-if="!items.length" class="py-5 text-center text-caption-md text-fg-tertiary">
+      <Search class="mx-auto mb-2 size-3.5" :stroke-width="1.5" />
       {{ t("spaces.inspector.related.empty") }}
     </div>
     <div v-else>
-      <p v-if="expanded" class="mb-2 text-caption leading-relaxed text-foreground-tertiary">
+      <p v-if="expanded" class="mb-2 text-caption-md leading-relaxed text-fg-tertiary">
         {{ t("spaces.inspector.related.explanation") }}
       </p>
       <button
         v-for="item in visibleItems"
         :key="item.nodeId"
         type="button"
-        class="group flex w-full items-start gap-2.5 border-t border-divider py-2.5 text-left first:border-t-0 hover:bg-control-hover"
+        class="group flex w-full items-start gap-2.5 border-t border-stroke-divider py-2.5 text-left first:border-t-0 hover:bg-surface-control-hover"
         @click="reveal(item.nodeId)"
       >
-        <span
-          class="grid size-8 shrink-0 place-items-center rounded-control bg-control text-foreground-tertiary"
-        >
-          <component :is="nodeIcon(item.nodeKind)" class="size-(--knovum-icon-size-sm)" :stroke-width="1.5" />
+        <span class="grid size-8 shrink-0 place-items-center rounded-md bg-surface-control text-fg-tertiary">
+          <component :is="nodeIcon(item.nodeKind)" class="size-3.5" :stroke-width="1.5" />
         </span>
         <span class="min-w-0 flex-1">
-          <span class="block truncate text-caption font-medium text-foreground">{{ item.nodeTitle }}</span>
-          <span class="mt-0.5 line-clamp-2 block text-caption leading-snug text-foreground-tertiary">{{
+          <span class="block truncate text-caption-md font-medium text-fg-primary">{{ item.nodeTitle }}</span>
+          <span class="mt-0.5 line-clamp-2 block text-caption-md leading-snug text-fg-tertiary">{{
             item.snippet
           }}</span>
         </span>
-        <ArrowUpRight class="mt-1 size-(--knovum-icon-size-xs) shrink-0 text-foreground-tertiary" />
+        <ArrowUpRight class="mt-1 size-3 shrink-0 text-fg-tertiary" />
       </button>
     </div>
   </section>

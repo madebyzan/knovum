@@ -21,9 +21,9 @@ const brushSize = computed({
 </script>
 
 <template>
-  <section class="w-56 space-y-3 text-foreground" :aria-label="t('spaces.media.imageEditor.eraser.tool')">
+  <section class="w-56 space-y-3 text-fg-primary" :aria-label="t('spaces.media.imageEditor.eraser.tool')">
     <header class="flex items-center justify-between px-1">
-      <h3 class="text-body-lg font-semibold">{{ t("spaces.media.imageEditor.eraser.tool") }}</h3>
+      <h3 class="text-body-md font-semibold">{{ t("spaces.media.imageEditor.eraser.tool") }}</h3>
       <UiButton
         variant="ghost"
         size="sm"
@@ -33,7 +33,7 @@ const brushSize = computed({
         :aria-label="t('spaces.media.imageEditor.eraser.undo')"
         @click="emit('undo')"
       >
-        <Undo2 class="size-(--knovum-icon-size-sm)" />
+        <Undo2 class="size-3.5" />
       </UiButton>
     </header>
     <SpaceImageRangeSlider
@@ -44,18 +44,18 @@ const brushSize = computed({
       :max="150"
       @update="brushSize = $event"
     />
-    <footer class="flex gap-2 border-t border-divider pt-2">
+    <footer class="flex gap-2 border-t border-stroke-divider pt-2">
       <UiButton
         variant="secondary"
         size="sm"
-        class="min-w-0 flex-1 border border-border bg-raised"
+        class="min-w-0 flex-1 border border-stroke-default bg-surface-raised"
         @click="emit('cancel')"
         >{{ t("common.cancel") }}</UiButton
       >
       <UiButton
         variant="primary"
         size="sm"
-        class="min-w-0 flex-1 bg-foreground text-canvas hover:bg-foreground hover:opacity-90"
+        class="min-w-0 flex-1 bg-surface-inverse text-fg-inverse hover:bg-surface-inverse hover:opacity-90"
         :disabled="!canApply"
         @click="emit('apply')"
         >{{ t("spaces.media.imageEditor.applyNow") }}</UiButton

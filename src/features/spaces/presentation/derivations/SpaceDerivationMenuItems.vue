@@ -66,9 +66,9 @@ function selectAction(event: Event, actionId: CreationIntentId) {
 <template>
   <DropdownMenuSub v-if="hasActions">
     <DropdownMenuSubTrigger :class="props.rowClass">
-      <Sparkles class="size-(--knovum-icon-size-sm)" />
+      <Sparkles class="size-3.5" />
       <span class="min-w-0 flex-1">{{ t("spaces.creation.shared.createFromSelection") }}</span>
-      <ChevronRight class="size-(--knovum-icon-size-xs) text-foreground-tertiary" />
+      <ChevronRight class="size-3 text-fg-tertiary" />
     </DropdownMenuSubTrigger>
     <DropdownMenuPortal>
       <DropdownMenuSubContent :side-offset="4" :align-offset="-4" :class="props.submenuClass">
@@ -84,9 +84,7 @@ function selectAction(event: Event, actionId: CreationIntentId) {
             :aria-disabled="!canRunAction(props.derivations[action.id])"
             @select="selectAction($event, action.id)"
           >
-            <component :is="icons[action.icon]" class="size-(--knovum-icon-size-sm)" />{{
-              t(action.labelKey)
-            }}
+            <component :is="icons[action.icon]" class="size-3.5" />{{ t(action.labelKey) }}
           </UiDropdownMenuItem>
         </UiTooltip>
       </DropdownMenuSubContent>

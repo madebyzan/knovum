@@ -27,7 +27,9 @@ const { t } = useI18n();
       density === 'compact'
         ? 'min-h-(--knovum-control-height-sm) gap-1 px-1.5 py-0.5'
         : 'min-h-(--knovum-control-height-lg) gap-1.5 px-2 py-1',
-      floating ? 'rounded-control border border-border/80 bg-chrome/95 shadow-popover' : 'bg-chrome/95',
+      floating
+        ? 'rounded-md border border-stroke-default/80 bg-surface-chrome/95 shadow-popover'
+        : 'bg-surface-chrome/95',
     ]"
   >
     <UiIconButton
@@ -35,22 +37,22 @@ const { t } = useI18n();
       size="sm"
       @click="emit('toggle')"
     >
-      <Pause v-if="playing" class="size-(--knovum-icon-size-sm)" fill="currentColor" />
-      <Play v-else class="ml-px size-(--knovum-icon-size-sm)" fill="currentColor" />
+      <Pause v-if="playing" class="size-3.5" fill="currentColor" />
+      <Play v-else class="ml-px size-3.5" fill="currentColor" />
     </UiIconButton>
     <span
-      class="text-right text-micro text-foreground-tertiary tabular-nums"
+      class="text-right text-caption-sm text-fg-tertiary tabular-nums"
       :class="density === 'compact' ? 'w-8' : 'w-9'"
       >{{ formatDurationMs(currentMs) }}</span
     >
     <SpaceMediaTimeline :current-ms="currentMs" :duration-ms="durationMs" @seek="emit('seek', $event)" />
     <span
-      class="text-micro text-foreground-tertiary tabular-nums"
+      class="text-caption-sm text-fg-tertiary tabular-nums"
       :class="density === 'compact' ? 'w-8' : 'w-9'"
       >{{ formatDurationMs(durationMs) }}</span
     >
     <UiIconButton :label="t('spaces.media.player.closePlayback')" size="sm" @click="emit('close')">
-      <X class="size-(--knovum-icon-size-sm)" />
+      <X class="size-3.5" />
     </UiIconButton>
   </div>
 </template>

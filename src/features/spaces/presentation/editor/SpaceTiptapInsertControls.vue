@@ -19,6 +19,6 @@ const { t } = useI18n();
     size="sm"
     @click="editor.chain().focus().setHorizontalRule().run()"
   >
-    <Minus class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
+    <Minus class="size-3.5" :stroke-width="1.6" />
   </UiIconButton>
 </template>

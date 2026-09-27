@@ -152,7 +152,7 @@ function finishTransform() {
       borderStroke: palette.accent,
       borderStrokeWidth: 1 / zoom,
       anchorFill: palette.accent,
-      anchorStroke: palette.surface,
+      anchorStroke: palette.panel,
       anchorStrokeWidth: metrics.strokeWidth,
       anchorSize: metrics.size,
       anchorCornerRadius: metrics.cornerRadius,

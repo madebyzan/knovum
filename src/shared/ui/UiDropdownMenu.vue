@@ -76,7 +76,7 @@ const props = withDefaults(
               :disabled="item.disabled"
               @select="item.onSelect?.($event)"
             >
-              <component :is="item.icon" v-if="item.icon" class="size-(--knovum-icon-size-xs) shrink-0" />
+              <component :is="item.icon" v-if="item.icon" class="size-3 shrink-0" />
               <span class="min-w-0 flex-1 truncate">{{ item.label }}</span>
               <UiKbd v-if="item.shortcut" :shortcut="item.shortcut" class="ml-auto" />
             </UiDropdownMenuCheckboxItem>
@@ -86,7 +86,7 @@ const props = withDefaults(
               :destructive="item.destructive"
               @select="item.onSelect?.($event)"
             >
-              <component :is="item.icon" v-if="item.icon" class="size-(--knovum-icon-size-xs) shrink-0" />
+              <component :is="item.icon" v-if="item.icon" class="size-3 shrink-0" />
               <span class="min-w-0 flex-1 truncate">{{ item.label }}</span>
               <UiKbd v-if="item.shortcut" :shortcut="item.shortcut" class="ml-auto" />
             </UiDropdownMenuItem>

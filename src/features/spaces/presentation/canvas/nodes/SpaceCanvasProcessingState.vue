@@ -8,7 +8,7 @@ defineProps<{ label: string; phase: "active" | "failed" }>();
 
 <template>
   <div
-    class="work-state-enter relative flex min-h-0 flex-1 items-center justify-center overflow-hidden bg-panel"
+    class="work-state-enter relative flex min-h-0 flex-1 items-center justify-center overflow-hidden bg-surface-panel"
     role="status"
     aria-live="polite"
     :aria-label="label"
@@ -16,16 +16,16 @@ defineProps<{ label: string; phase: "active" | "failed" }>();
     <SpaceCanvasWorkEffect v-if="phase === 'active'" placement="field" />
     <span
       v-if="phase === 'active'"
-      class="relative inline-flex max-w-[90%] items-center gap-1.5 truncate rounded-full bg-foreground/75 px-3 py-1 text-caption font-medium text-panel"
+      class="relative inline-flex max-w-[90%] items-center gap-1.5 truncate rounded-full bg-surface-inverse/75 px-3 py-1 text-caption-md font-medium text-fg-inverse"
     >
       <SpaceCanvasWorkEffect placement="inline" />
       <span class="truncate">{{ label }}</span>
     </span>
     <span
       v-else
-      class="relative inline-flex max-w-[90%] items-center gap-1.5 rounded-full border border-danger/20 bg-panel px-3 py-1 text-caption font-medium text-danger"
+      class="relative inline-flex max-w-[90%] items-center gap-1.5 rounded-full border border-stroke-danger/20 bg-surface-panel px-3 py-1 text-caption-md font-medium text-fg-danger"
     >
-      <CircleAlert class="size-(--knovum-icon-size-sm) shrink-0" :stroke-width="1.6" />
+      <CircleAlert class="size-3.5 shrink-0" :stroke-width="1.6" />
       <span class="truncate">{{ label }}</span>
     </span>
   </div>

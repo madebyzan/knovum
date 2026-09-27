@@ -27,11 +27,11 @@ const emit = defineEmits<{
   <DropdownMenuCheckboxItem
     v-model:checked="checked"
     :disabled="disabled"
-    :class="cn('relative', MENU_ITEM_BASE_CLASSES, 'pr-2 pl-6 text-foreground', props.class)"
+    :class="cn('relative', MENU_ITEM_BASE_CLASSES, 'pr-2 pl-6 text-fg-primary', props.class)"
     @select="emit('select', $event)"
   >
     <DropdownMenuItemIndicator class="absolute left-1.5 flex items-center justify-center">
-      <Check class="size-(--knovum-icon-size-xs) text-accent" :stroke-width="2.2" />
+      <Check class="size-3 text-fg-accent" :stroke-width="2.2" />
     </DropdownMenuItemIndicator>
     <slot />
   </DropdownMenuCheckboxItem>

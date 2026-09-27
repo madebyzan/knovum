@@ -35,18 +35,18 @@ function choose(id: string, selected: boolean) {
 
 <template>
   <fieldset class="space-y-2">
-    <legend class="text-caption font-semibold text-foreground">
+    <legend class="text-caption-md font-semibold text-fg-primary">
       {{ t("spaces.creation.workflow.steps.title") }}
     </legend>
-    <div v-for="step in steps" :key="step.id" class="flex items-center gap-2 text-caption">
+    <div v-for="step in steps" :key="step.id" class="flex items-center gap-2 text-caption-md">
       <UiCheckbox
         :label="t('spaces.creation.workflow.steps.keep', { action: label(step) })"
         :model-value="modelValue.includes(step.id)"
         :disabled="dependentStepIds.has(step.id)"
         @update:model-value="choose(step.id, $event)"
       />
-      <span class="min-w-0 flex-1 truncate text-foreground">{{ label(step) }}</span>
-      <span v-if="dependentStepIds.has(step.id)" class="text-foreground-tertiary">{{
+      <span class="min-w-0 flex-1 truncate text-fg-primary">{{ label(step) }}</span>
+      <span v-if="dependentStepIds.has(step.id)" class="text-fg-tertiary">{{
         t("spaces.creation.workflow.steps.required")
       }}</span>
     </div>

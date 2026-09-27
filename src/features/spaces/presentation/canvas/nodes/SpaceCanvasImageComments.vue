@@ -68,7 +68,7 @@ const {
       <template #trigger>
         <button
           type="button"
-          class="nodrag pointer-events-auto absolute z-10 flex size-9 items-center justify-center rounded-full border-2 border-white bg-canvas-relation-purple text-label font-semibold text-white shadow-popover outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+          class="nodrag pointer-events-auto absolute z-10 flex size-9 items-center justify-center rounded-full border-2 border-stroke-on-image bg-(--knovum-space-image-annotation-color) text-label-md font-semibold text-fg-on-image shadow-popover outline-none focus-visible:ring-2 focus-visible:ring-stroke-focus"
           :class="
             comment.shape?.kind === 'region'
               ? 'translate-x-1/2 -translate-y-1/2'
@@ -83,24 +83,24 @@ const {
       </template>
       <div class="flex items-start justify-between gap-2">
         <span
-          class="min-w-0 truncate rounded-control border border-border px-2 py-1 text-label font-medium text-foreground"
+          class="min-w-0 truncate rounded-md border border-stroke-default px-2 py-1 text-label-md font-medium text-fg-primary"
           >{{ data.title }}</span
         >
         <button
           type="button"
-          class="rounded-control p-1 text-foreground-tertiary hover:bg-control-hover hover:text-foreground"
+          class="rounded-md p-1 text-fg-tertiary hover:bg-surface-control-hover hover:text-fg-primary"
           :aria-label="t('spaces.media.imageEditor.comments.delete')"
           :disabled="busy"
           @click="remove(comment)"
         >
-          <Trash2 class="size-(--knovum-icon-size-sm)" />
+          <Trash2 class="size-3.5" />
         </button>
       </div>
-      <p class="mt-2 text-label whitespace-pre-wrap text-foreground-secondary">{{ comment.text }}</p>
+      <p class="mt-2 text-label-md whitespace-pre-wrap text-fg-secondary">{{ comment.text }}</p>
       <div class="mt-2 flex justify-end">
         <button
           type="button"
-          class="rounded-control bg-control-hover px-3 py-1 text-label text-foreground"
+          class="rounded-md bg-surface-control-hover px-3 py-1 text-label-md text-fg-primary"
           @click="discuss(comment)"
         >
           {{ t("spaces.media.imageEditor.comments.addToConversation") }}
@@ -118,7 +118,7 @@ const {
       <template #trigger>
         <button
           type="button"
-          class="nodrag pointer-events-auto absolute z-20 flex size-9 items-center justify-center rounded-full border-2 border-white bg-canvas-relation-purple text-label font-semibold text-white shadow-popover"
+          class="nodrag pointer-events-auto absolute z-20 flex size-9 items-center justify-center rounded-full border-2 border-stroke-on-image bg-(--knovum-space-image-annotation-color) text-label-md font-semibold text-fg-on-image shadow-popover"
           :class="
             draft.shape?.kind === 'region'
               ? 'translate-x-1/2 -translate-y-1/2'
@@ -133,36 +133,36 @@ const {
       </template>
       <div class="flex items-center justify-between gap-2">
         <span
-          class="min-w-0 truncate rounded-control border border-border px-2 py-1 text-label font-medium text-foreground"
+          class="min-w-0 truncate rounded-md border border-stroke-default px-2 py-1 text-label-md font-medium text-fg-primary"
           >{{ data.title }}</span
         ><button
           type="button"
-          class="rounded-control p-1 text-foreground-tertiary hover:bg-control-hover"
+          class="rounded-md p-1 text-fg-tertiary hover:bg-surface-control-hover"
           :aria-label="t('common.cancel')"
           @click="cancelDraft"
         >
-          <Trash2 class="size-(--knovum-icon-size-sm)" />
+          <Trash2 class="size-3.5" />
         </button>
       </div>
       <textarea
         v-model="text"
         rows="2"
         maxlength="2000"
-        class="mt-2 block w-full resize-none bg-transparent text-label text-foreground outline-none placeholder:text-foreground-tertiary"
+        class="mt-2 block w-full resize-none bg-transparent text-label-md text-fg-primary outline-none placeholder:text-fg-tertiary"
         :placeholder="t('spaces.media.imageEditor.comments.prompt')"
         :aria-label="t('spaces.media.imageEditor.comments.prompt')"
       />
       <div class="mt-2 flex justify-end gap-1">
         <button
           type="button"
-          class="rounded-control border border-border px-3 py-1 text-label text-foreground disabled:opacity-40"
+          class="rounded-md border border-stroke-default px-3 py-1 text-label-md text-fg-primary disabled:opacity-40"
           :disabled="!text.trim() || busy"
           @click="send"
         >
           {{ t("spaces.media.imageEditor.comments.send") }}</button
         ><button
           type="button"
-          class="rounded-control bg-control-hover px-3 py-1 text-label text-foreground disabled:opacity-40"
+          class="rounded-md bg-surface-control-hover px-3 py-1 text-label-md text-fg-primary disabled:opacity-40"
           :disabled="!text.trim() || busy"
           @click="addToConversation"
         >

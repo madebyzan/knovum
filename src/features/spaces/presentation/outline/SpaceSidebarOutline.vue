@@ -25,14 +25,14 @@ watch(
 
 <template>
   <section class="flex min-h-0 flex-1 flex-col pt-4" :aria-label="t('spaces.sidebar.outline.title')">
-    <h2 class="shrink-0 px-4.5 pb-1 text-micro font-medium text-foreground-tertiary">
+    <h2 class="shrink-0 px-4.5 pb-1 text-caption-sm font-medium text-fg-tertiary">
       {{ t("spaces.sidebar.outline.title") }}
     </h2>
     <UiScrollArea class="min-h-0 flex-1">
       <div
         ref="content"
         tabindex="-1"
-        class="px-2.5 pb-3 outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-inset"
+        class="px-2.5 pb-3 outline-none focus-visible:ring-2 focus-visible:ring-stroke-focus focus-visible:ring-inset"
       >
         <SpaceOutline />
       </div>

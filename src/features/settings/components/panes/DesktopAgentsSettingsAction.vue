@@ -17,10 +17,7 @@ async function refresh() {
 
 <template>
   <UiButton size="sm" variant="ghost" :disabled="catalog.installationFetching.value" @click="refresh">
-    <RefreshCw
-      class="size-(--knovum-icon-size-sm)"
-      :class="catalog.installationFetching.value && 'animate-spin'"
-    />
+    <RefreshCw class="size-3.5" :class="catalog.installationFetching.value && 'animate-spin'" />
     {{ t("settings.agents.check") }}
   </UiButton>
 </template>

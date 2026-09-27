@@ -25,7 +25,7 @@ describe("UiButton", () => {
     });
 
     expect(wrapper.get("button").classes()).toEqual(
-      expect.arrayContaining(["bg-danger", "text-on-danger", "h-(--knovum-control-height-sm)"]),
+      expect.arrayContaining(["bg-surface-danger", "text-fg-on-danger", "h-(--knovum-control-height-sm)"]),
     );
   });
 
@@ -37,10 +37,10 @@ describe("UiButton", () => {
 
     expect(wrapper.get("button").classes()).toEqual(
       expect.arrayContaining([
-        "bg-danger-subtle",
-        "text-danger",
-        "hover:text-danger",
-        "hover:bg-danger-subtle-hover",
+        "bg-surface-danger-subtle",
+        "text-fg-danger",
+        "hover:text-fg-danger",
+        "hover:bg-surface-danger-subtle-hover",
       ]),
     );
   });
@@ -53,5 +53,12 @@ describe("UiButton", () => {
     const link = wrapper.get("a");
     expect(link.attributes("href")).toBe("/spaces");
     expect(link.classes()).toContain("inline-flex");
+  });
+
+  it.each(["secondary", "ghost"] as const)("uses distinct hover and pressed roles for %s", (variant) => {
+    const button = mount(UiButton, { props: { variant } }).get("button");
+    expect(button.classes()).toContain("hover:bg-surface-control-hover");
+    expect(button.classes()).toContain("active:bg-surface-control-pressed");
+    expect(button.classes()).not.toContain("hover:bg-surface-control-pressed");
   });
 });

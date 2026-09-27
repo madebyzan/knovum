@@ -50,21 +50,18 @@ function doReplaceAll() {
 <template>
   <div class="relative flex items-center">
     <UiIconButton :label="t('spaces.richtext.find.title')" size="sm" :active="open" @click="open = !open">
-      <Search class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
+      <Search class="size-3.5" :stroke-width="1.6" />
     </UiIconButton>
     <div
       v-if="open"
-      class="absolute top-9 right-0 z-50 flex flex-col gap-1.5 rounded-panel border border-border bg-overlay p-1.5 shadow-popover"
+      class="absolute top-9 right-0 z-50 flex flex-col gap-1.5 rounded-panel border border-stroke-default bg-surface-overlay p-1.5 shadow-popover"
     >
       <div class="flex w-72 items-center gap-1">
-        <Search
-          class="ml-1 size-(--knovum-icon-size-sm) shrink-0 text-foreground-tertiary"
-          :stroke-width="1.5"
-        />
+        <Search class="ml-1 size-3.5 shrink-0 text-fg-tertiary" :stroke-width="1.5" />
         <input
           ref="searchInput"
           v-model="query"
-          class="min-w-0 flex-1 bg-transparent px-1 text-label text-foreground outline-none placeholder:text-foreground-tertiary"
+          class="min-w-0 flex-1 bg-transparent px-1 text-label-md text-fg-primary outline-none placeholder:text-fg-tertiary"
           :placeholder="t('spaces.richtext.find.placeholder')"
           @keydown.enter.prevent="move($event.shiftKey ? 'previous' : 'next')"
           @keydown.esc.prevent="open = false"
@@ -78,8 +75,8 @@ function doReplaceAll() {
             if (showReplace) nextTick(() => replaceInput?.focus());
           "
         >
-          <ChevronDown v-if="showReplace" class="size-(--knovum-icon-size-xs)" />
-          <ChevronRight v-else class="size-(--knovum-icon-size-xs)" />
+          <ChevronDown v-if="showReplace" class="size-3" />
+          <ChevronRight v-else class="size-3" />
         </UiIconButton>
         <UiIconButton
           :label="t('spaces.richtext.find.previous')"
@@ -87,7 +84,7 @@ function doReplaceAll() {
           :disabled="!query"
           @click="move('previous')"
         >
-          <ChevronUp class="size-(--knovum-icon-size-xs)" />
+          <ChevronUp class="size-3" />
         </UiIconButton>
         <UiIconButton
           :label="t('spaces.richtext.find.next')"
@@ -95,21 +92,18 @@ function doReplaceAll() {
           :disabled="!query"
           @click="move('next')"
         >
-          <ChevronDown class="size-(--knovum-icon-size-xs)" />
+          <ChevronDown class="size-3" />
         </UiIconButton>
         <UiIconButton :label="t('common.close')" size="sm" @click="open = false">
-          <X class="size-(--knovum-icon-size-xs)" />
+          <X class="size-3" />
         </UiIconButton>
       </div>
       <div v-if="showReplace" class="flex w-72 items-center gap-1">
-        <ReplaceIcon
-          class="ml-1 size-(--knovum-icon-size-sm) shrink-0 text-foreground-tertiary"
-          :stroke-width="1.5"
-        />
+        <ReplaceIcon class="ml-1 size-3.5 shrink-0 text-fg-tertiary" :stroke-width="1.5" />
         <input
           ref="replaceInput"
           v-model="replaceTerm"
-          class="min-w-0 flex-1 bg-transparent px-1 text-label text-foreground outline-none placeholder:text-foreground-tertiary"
+          class="min-w-0 flex-1 bg-transparent px-1 text-label-md text-fg-primary outline-none placeholder:text-fg-tertiary"
           :placeholder="t('spaces.richtext.find.replacePlaceholder')"
           @keydown.enter.prevent="doReplace"
           @keydown.esc.prevent="open = false"
@@ -120,7 +114,7 @@ function doReplaceAll() {
           :disabled="!query"
           @click="doReplace"
         >
-          <ReplaceIcon class="size-(--knovum-icon-size-xs)" />
+          <ReplaceIcon class="size-3" />
         </UiIconButton>
         <UiIconButton
           :label="t('spaces.richtext.find.replaceAll')"
@@ -128,7 +122,7 @@ function doReplaceAll() {
           :disabled="!query"
           @click="doReplaceAll"
         >
-          <ReplaceAll class="size-(--knovum-icon-size-xs)" />
+          <ReplaceAll class="size-3" />
         </UiIconButton>
       </div>
     </div>

@@ -36,7 +36,7 @@ defineProps<{
         ...target.anchor,
         radius: 6 / zoom,
         fill: palette.accent,
-        stroke: palette.surface,
+        stroke: palette.panel,
         strokeWidth: 2 / zoom,
       }"
     />

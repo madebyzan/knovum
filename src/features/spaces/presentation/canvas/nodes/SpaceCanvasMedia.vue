@@ -62,7 +62,7 @@ async function consumeSeekRequest(request: typeof mediaSeekRequest.value) {
       @playback-error="toast.error($event)"
     />
     <Transition
-      leave-active-class="transition-opacity duration-200 motion-reduce:transition-none"
+      leave-active-class="transition-opacity duration-220 motion-reduce:transition-none"
       leave-to-class="opacity-0"
     >
       <SpaceCanvasProcessingState

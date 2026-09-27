@@ -59,7 +59,7 @@ const verticalOptions = [
     <template #trigger>
       <button
         type="button"
-        class="inline-flex h-(--knovum-control-height-md) min-w-8 items-center justify-center gap-1.5 rounded-control px-2.5 text-label font-medium text-foreground-secondary transition-colors duration-100 outline-none hover:bg-control-hover hover:text-foreground focus-visible:ring-2 focus-visible:ring-focus-ring"
+        class="inline-flex h-(--knovum-control-height-md) min-w-8 items-center justify-center gap-1.5 rounded-md px-2.5 text-label-md font-medium text-fg-secondary transition-colors duration-100 outline-none hover:bg-surface-control-hover hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-stroke-focus"
         :aria-label="t('spaces.canvas.typography')"
       >
         Aa
@@ -77,7 +77,7 @@ const verticalOptions = [
           :active="appearance?.fontWeight === 'bold'"
           @click="emit('update', { fontWeight: appearance?.fontWeight === 'bold' ? 'regular' : 'bold' })"
         >
-          <Bold class="size-(--knovum-icon-size-sm)" :stroke-width="1.7" />
+          <Bold class="size-3.5" :stroke-width="1.7" />
         </UiIconButton>
         <UiIconButton
           :label="t('spaces.richtext.italic')"
@@ -85,7 +85,7 @@ const verticalOptions = [
           :active="appearance?.fontStyle === 'italic'"
           @click="emit('update', { fontStyle: appearance?.fontStyle === 'italic' ? 'normal' : 'italic' })"
         >
-          <Italic class="size-(--knovum-icon-size-sm)" :stroke-width="1.7" />
+          <Italic class="size-3.5" :stroke-width="1.7" />
         </UiIconButton>
         <UiIconButton
           :label="t('spaces.richtext.underline')"
@@ -97,7 +97,7 @@ const verticalOptions = [
             })
           "
         >
-          <Underline class="size-(--knovum-icon-size-sm)" :stroke-width="1.7" />
+          <Underline class="size-3.5" :stroke-width="1.7" />
         </UiIconButton>
       </div>
       <UiSeparator orientation="vertical" class="mx-0.5 h-4" />
@@ -105,7 +105,7 @@ const verticalOptions = [
         <template #trigger>
           <button
             type="button"
-            class="h-(--knovum-control-height-sm) min-w-10 rounded-control px-1.5 text-caption font-medium text-foreground-secondary tabular-nums transition-colors duration-100 outline-none hover:bg-control-hover hover:text-foreground focus-visible:ring-2 focus-visible:ring-focus-ring"
+            class="h-(--knovum-control-height-sm) min-w-10 rounded-md px-1.5 text-caption-md font-medium text-fg-secondary tabular-nums transition-colors duration-100 outline-none hover:bg-surface-control-hover hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-stroke-focus"
             :aria-label="t('spaces.canvas.fontSize')"
           >
             {{ fontSize }}
@@ -116,10 +116,7 @@ const verticalOptions = [
           :key="size"
           @select="emit('update', { fontSize: canvasBaseFontSize(size, typographyScale) })"
         >
-          <Check
-            class="size-(--knovum-icon-size-xs)"
-            :class="fontSize === size ? 'opacity-100' : 'opacity-0'"
-          />
+          <Check class="size-3" :class="fontSize === size ? 'opacity-100' : 'opacity-0'" />
           <span class="tabular-nums">{{ size }} pt</span>
         </UiDropdownMenuItem>
       </UiDropdownMenu>
@@ -132,7 +129,7 @@ const verticalOptions = [
         :active="textAlign === option.value"
         @click="emit('update', { textAlign: option.value })"
       >
-        <component :is="option.icon" class="size-(--knovum-icon-size-sm)" :stroke-width="1.7" />
+        <component :is="option.icon" class="size-3.5" :stroke-width="1.7" />
       </UiIconButton>
       <UiSeparator orientation="vertical" class="mx-0.5 h-4" />
       <UiIconButton
@@ -143,7 +140,7 @@ const verticalOptions = [
         :active="verticalAlign === option.value"
         @click="emit('update', { verticalAlign: option.value })"
       >
-        <component :is="option.icon" class="size-(--knovum-icon-size-sm)" :stroke-width="1.7" />
+        <component :is="option.icon" class="size-3.5" :stroke-width="1.7" />
       </UiIconButton>
     </div>
   </UiPopover>

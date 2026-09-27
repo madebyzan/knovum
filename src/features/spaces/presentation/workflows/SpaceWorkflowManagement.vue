@@ -70,7 +70,7 @@ async function remove() {
 </script>
 
 <template>
-  <div class="space-y-2 border-t border-divider pt-3">
+  <div class="space-y-2 border-t border-stroke-divider pt-3">
     <div v-if="!editing && !editingDefinition" class="flex gap-2">
       <UiButton variant="ghost" size="sm" @click="editingDefinition = true">{{
         t("spaces.creation.workflow.edit")
@@ -98,6 +98,6 @@ async function remove() {
       "
       @cancel="editingDefinition = false"
     />
-    <p v-if="error" role="alert" class="text-caption text-danger">{{ error }}</p>
+    <p v-if="error" role="alert" class="text-caption-md text-fg-danger">{{ error }}</p>
   </div>
 </template>

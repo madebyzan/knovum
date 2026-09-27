@@ -14,7 +14,7 @@ const hasChangedSource = computed(() => props.sources.some((source) => !source.c
 
 <template>
   <section v-if="sources.length">
-    <h4 class="mb-1.5 text-micro font-medium text-foreground-tertiary">
+    <h4 class="mb-1.5 text-caption-sm font-medium text-fg-tertiary">
       {{ t("spaces.creation.shared.source.knowledge") }}
     </h4>
     <div
@@ -24,20 +24,20 @@ const hasChangedSource = computed(() => props.sources.some((source) => !source.c
     >
       <CircleAlert
         v-if="!source.current"
-        class="size-(--knovum-icon-size-xs) shrink-0 text-warning"
+        class="size-3 shrink-0 text-fg-warning"
         :aria-label="t('spaces.creation.shared.source.changed')"
       />
-      <span class="min-w-0 flex-1 truncate text-caption text-foreground-secondary">{{ source.title }}</span>
+      <span class="min-w-0 flex-1 truncate text-caption-md text-fg-secondary">{{ source.title }}</span>
       <UiIconButton
         v-if="source.nodeId !== null"
         :label="t('spaces.inspector.openSource')"
         size="sm"
         @click="source.nodeId !== null && selectAndRevealSpaceNode(source.nodeId)"
       >
-        <ExternalLink class="size-(--knovum-icon-size-xs)" />
+        <ExternalLink class="size-3" />
       </UiIconButton>
     </div>
-    <p v-if="hasChangedSource" class="mt-1 text-micro text-warning">
+    <p v-if="hasChangedSource" class="mt-1 text-caption-sm text-fg-warning">
       {{ t("spaces.creation.shared.source.changed") }}
     </p>
   </section>

@@ -31,11 +31,11 @@ const checkboxId = useId(props.id);
     :aria-label="label"
     :class="
       cn(
-        'grid size-4 shrink-0 place-items-center rounded-sm border border-border-strong bg-raised text-on-accent transition-colors outline-none hover:border-foreground focus-visible:border-focus-ring focus-visible:outline-none disabled:opacity-45 data-[state=checked]:border-accent data-[state=checked]:bg-accent',
+        'grid size-4 shrink-0 place-items-center rounded-sm border border-stroke-strong bg-surface-raised text-fg-on-accent transition-colors outline-none hover:border-stroke-contrast focus-visible:border-stroke-focus focus-visible:outline-none disabled:opacity-45 data-[state=checked]:border-stroke-accent data-[state=checked]:bg-surface-accent',
         props.class,
       )
     "
   >
-    <CheckboxIndicator><Check class="size-(--knovum-icon-size-xs)" :stroke-width="2.5" /></CheckboxIndicator>
+    <CheckboxIndicator><Check class="size-3" :stroke-width="2.5" /></CheckboxIndicator>
   </CheckboxRoot>
 </template>

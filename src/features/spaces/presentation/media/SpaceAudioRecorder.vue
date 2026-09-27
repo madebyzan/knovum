@@ -69,11 +69,11 @@ watch(
   >
     <section
       v-if="open"
-      class="w-72 overflow-hidden rounded-control border border-border bg-overlay shadow-toolbar"
+      class="w-72 overflow-hidden rounded-md border border-stroke-default bg-surface-overlay shadow-none"
       :aria-label="t('spaces.recording.note')"
     >
-      <header class="flex h-8 items-center border-b border-divider px-2.5">
-        <span class="text-label font-medium text-foreground">{{ t("spaces.recording.note") }}</span>
+      <header class="flex h-8 items-center border-b border-stroke-divider px-2.5">
+        <span class="text-label-md font-medium text-fg-primary">{{ t("spaces.recording.note") }}</span>
         <UiIconButton
           :label="t('common.cancel')"
           :tooltip="false"
@@ -82,7 +82,7 @@ watch(
           :disabled="controller.isSaving.value"
           @click="open = false"
         >
-          <X class="size-(--knovum-icon-size-xs)" :stroke-width="1.7" />
+          <X class="size-3" :stroke-width="1.7" />
         </UiIconButton>
       </header>
 
@@ -90,29 +90,28 @@ watch(
         <span class="grid size-6 shrink-0 place-items-center">
           <LoaderCircle
             v-if="controller.isRequestingPermission.value || controller.isSaving.value"
-            class="size-(--knovum-icon-size-sm) animate-spin text-foreground-secondary"
+            class="size-3.5 animate-spin text-fg-secondary"
           />
           <Radio
             v-else-if="controller.isRecording.value"
-            class="size-(--knovum-icon-size-sm)"
-            :class="controller.isPaused.value ? 'text-foreground-tertiary' : 'text-danger'"
+            class="size-3.5"
+            :class="controller.isPaused.value ? 'text-fg-tertiary' : 'text-fg-danger'"
             :stroke-width="1.7"
           />
-          <AlertTriangle
-            v-else-if="controller.captureProblem.value"
-            class="size-(--knovum-icon-size-sm) text-warning"
-          />
-          <Mic v-else class="size-(--knovum-icon-size-sm) text-foreground-secondary" />
+          <AlertTriangle v-else-if="controller.captureProblem.value" class="size-3.5 text-fg-warning" />
+          <Mic v-else class="size-3.5 text-fg-secondary" />
         </span>
 
         <div class="ml-2 min-w-0 flex-1">
-          <div class="text-body leading-5 font-medium tabular-nums">{{ controller.elapsedLabel.value }}</div>
-          <div role="status" class="truncate text-micro leading-4 text-foreground-tertiary">
+          <div class="text-body-sm leading-5 font-medium tabular-nums">
+            {{ controller.elapsedLabel.value }}
+          </div>
+          <div role="status" class="truncate text-caption-sm leading-4 text-fg-tertiary">
             {{ statusText }}
           </div>
         </div>
 
-        <div class="mx-2 h-6 w-px shrink-0 bg-divider" />
+        <div class="bg-border-divider mx-2 h-6 w-px shrink-0" />
 
         <template v-if="controller.isRecording.value">
           <UiIconButton
@@ -122,8 +121,8 @@ watch(
             :disabled="controller.isSaving.value"
             @click="controller.togglePause"
           >
-            <Play v-if="controller.isPaused.value" class="size-(--knovum-icon-size-sm)" />
-            <Pause v-else class="size-(--knovum-icon-size-sm)" />
+            <Play v-if="controller.isPaused.value" class="size-3.5" />
+            <Pause v-else class="size-3.5" />
           </UiIconButton>
           <UiButton
             size="sm"
@@ -132,7 +131,7 @@ watch(
             :disabled="controller.isSaving.value"
             @click="controller.stop"
           >
-            <CircleStop class="size-(--knovum-icon-size-sm) text-danger" />
+            <CircleStop class="size-3.5 text-fg-danger" />
             {{ t("spaces.recording.stopAndSave") }}
           </UiButton>
         </template>
@@ -155,7 +154,7 @@ watch(
 
       <p
         v-if="controller.captureProblem.value === 'denied'"
-        class="border-t border-divider px-2.5 py-2 text-micro leading-4 text-foreground-secondary"
+        class="border-t border-stroke-divider px-2.5 py-2 text-caption-sm leading-4 text-fg-secondary"
       >
         {{ t("spaces.recording.microphone.settingsHint") }}
       </p>

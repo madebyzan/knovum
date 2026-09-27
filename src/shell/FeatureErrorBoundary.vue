@@ -30,16 +30,12 @@ async function retry() {
 
 <template>
   <slot v-if="!failure" />
-  <main v-else class="grid h-full place-items-center bg-canvas p-8">
-    <section
-      class="w-full max-w-(--knovum-error-max-width) rounded-dialog border border-border-strong bg-raised p-5"
-    >
-      <AlertTriangle class="mb-3 size-(--knovum-icon-size-lg) text-danger" />
+  <main v-else class="grid h-full place-items-center bg-surface-canvas p-8">
+    <section class="w-full max-w-130 rounded-xl border border-stroke-strong bg-surface-raised p-5">
+      <AlertTriangle class="mb-3 size-5 text-fg-danger" />
       <h1 class="m-0 text-title-sm font-semibold">{{ t("errors.feature.title") }}</h1>
-      <p class="mt-1.5 text-body text-foreground-secondary">{{ t("errors.feature.description") }}</p>
-      <UiButton class="mt-4" @click="retry"
-        ><RotateCcw class="size-(--knovum-icon-size-sm)" /> {{ t("common.retry") }}</UiButton
-      >
+      <p class="mt-1.5 text-body-sm text-fg-secondary">{{ t("errors.feature.description") }}</p>
+      <UiButton class="mt-4" @click="retry"><RotateCcw class="size-3.5" /> {{ t("common.retry") }}</UiButton>
     </section>
   </main>
 </template>

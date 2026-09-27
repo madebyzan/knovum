@@ -38,8 +38,8 @@ const statusMessageKey = computed(() => {
   <div class="px-4 py-3">
     <div class="flex items-center justify-between gap-4">
       <div class="flex min-w-0 items-center gap-2">
-        <Terminal class="size-(--knovum-icon-size-sm) shrink-0 text-foreground-secondary" />
-        <span class="truncate text-label text-foreground">{{ agent.displayName }}</span>
+        <Terminal class="size-3.5 shrink-0 text-fg-secondary" />
+        <span class="truncate text-label-md text-fg-primary">{{ agent.displayName }}</span>
       </div>
       <div class="flex items-center gap-2">
         <AgentConnectionHelp v-if="needsSetup" :agent="agent" :label="t(statusMessageKey)" />

@@ -29,8 +29,8 @@ async function visit(url: string) {
 </script>
 
 <template>
-  <div class="grid gap-2 text-caption text-foreground-secondary">
-    <p class="text-label text-foreground">{{ t(`${guidance}.title`) }}</p>
+  <div class="grid gap-2 text-caption-md text-fg-secondary">
+    <p class="text-label-md text-fg-primary">{{ t(`${guidance}.title`) }}</p>
     <p>{{ t(`${guidance}.requirements`) }}</p>
     <p>{{ t("settings.agents.requiredCommands", { commands: agent.executableNames.join(", ") }) }}</p>
     <p>{{ t("settings.agents.detectionBoundary") }}</p>
@@ -39,7 +39,7 @@ async function visit(url: string) {
         v-for="link in links"
         :key="link.url"
         :href="link.url"
-        class="rounded-control text-accent underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-accent"
+        class="rounded-md text-fg-accent underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-stroke-accent"
         @click.prevent="visit(link.url)"
         >{{ t(link.label) }}</a
       >

@@ -21,18 +21,18 @@ function reload() {
 
 <template>
   <slot v-if="!failure" />
-  <main v-else class="grid h-full place-items-center bg-chrome p-8">
+  <main v-else class="grid h-full place-items-center bg-surface-chrome p-8">
     <section
-      class="w-full max-w-(--knovum-error-max-width) rounded-dialog border border-border-strong bg-raised p-5 shadow-dialog"
+      class="w-full max-w-130 rounded-xl border border-stroke-strong bg-surface-raised p-5 shadow-dialog"
     >
-      <AlertTriangle class="mb-3 size-(--knovum-icon-size-lg) text-danger" />
+      <AlertTriangle class="mb-3 size-5 text-fg-danger" />
       <h1 class="m-0 text-title-sm font-semibold">{{ t("errors.title") }}</h1>
-      <p class="mt-1.5 text-body text-foreground-secondary">{{ t("errors.description") }}</p>
+      <p class="mt-1.5 text-body-sm text-fg-secondary">{{ t("errors.description") }}</p>
       <pre
-        class="mt-4 max-h-40 overflow-auto rounded-control bg-chrome p-3 font-mono text-micro text-foreground-secondary select-text"
+        class="mt-4 max-h-40 overflow-auto rounded-md bg-surface-chrome p-3 font-mono text-caption-sm text-fg-secondary select-text"
         >{{ failure.stack ?? failure.message }}</pre>
       <UiButton class="mt-4" @click="reload"
-        ><RotateCcw class="size-(--knovum-icon-size-sm)" /> {{ t("common.reload") }}</UiButton
+        ><RotateCcw class="size-3.5" /> {{ t("common.reload") }}</UiButton
       >
     </section>
   </main>

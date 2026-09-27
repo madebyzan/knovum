@@ -33,13 +33,13 @@ onMounted(revealSelection);
 
 <template>
   <div class="flex min-h-0 flex-1 flex-col">
-    <div class="space-y-2 border-b border-divider p-3">
+    <div class="space-y-2 border-b border-stroke-divider p-3">
       <label class="sr-only" for="video-caption-search">{{
         $t("spaces.media.videoEditor.captions.search")
       }}</label>
       <div class="relative">
         <Search
-          class="pointer-events-none absolute top-1/2 left-2.5 size-(--knovum-icon-size-sm) -translate-y-1/2 text-foreground-tertiary"
+          class="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-fg-tertiary"
         />
         <UiInput
           id="video-caption-search"
@@ -50,7 +50,7 @@ onMounted(revealSelection);
         />
       </div>
       <UiButton class="w-full justify-center" size="sm" @click="$emit('add')">
-        <Plus class="size-(--knovum-icon-size-sm)" />{{ $t("spaces.media.videoEditor.text.add") }}
+        <Plus class="size-3.5" />{{ $t("spaces.media.videoEditor.text.add") }}
       </UiButton>
     </div>
     <UiScrollArea class="min-h-0 flex-1">
@@ -64,22 +64,24 @@ onMounted(revealSelection);
             }
           "
           type="button"
-          class="w-full rounded-control px-3 py-2 text-left focus-visible:outline-2 focus-visible:outline-focus-ring"
+          class="w-full rounded-md px-3 py-2 text-left focus-visible:outline-2 focus-visible:outline-stroke-focus"
           :class="
-            item.id === selectedTextId ? 'bg-selected text-accent' : 'text-foreground hover:bg-control-hover'
+            item.id === selectedTextId
+              ? 'bg-surface-selected text-fg-accent'
+              : 'text-fg-primary hover:bg-surface-control-hover'
           "
           :aria-pressed="item.id === selectedTextId"
           @click="$emit('select', item.id)"
         >
           <span
-            class="block text-micro tabular-nums"
-            :class="item.id === selectedTextId ? 'text-accent' : 'text-foreground-tertiary'"
+            class="block text-caption-sm tabular-nums"
+            :class="item.id === selectedTextId ? 'text-fg-accent' : 'text-fg-tertiary'"
           >
             {{ formatVideoTimelineTime(item.startMs) }} – {{ formatVideoTimelineTime(item.endMs) }}
           </span>
-          <span class="mt-0.5 block truncate text-caption">{{ item.text }}</span>
+          <span class="mt-0.5 block truncate text-caption-md">{{ item.text }}</span>
         </button>
-        <p v-if="visibleItems.length === 0" class="px-3 py-4 text-caption text-foreground-secondary">
+        <p v-if="visibleItems.length === 0" class="px-3 py-4 text-caption-md text-fg-secondary">
           {{
             $t(
               query

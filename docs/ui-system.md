@@ -19,9 +19,9 @@ The design language is **quiet, layered, native-aware and keyboard-first**:
 The visual system has four layers:
 
 1. **Window / navigation chrome** — the unified toolbar and feature sidebar share one quiet opaque plane.
-2. **Content** — document, canvas, diff, conversation and package documentation. Content uses an opaque `bg-canvas` surface.
-3. **Elevated** — menus, popovers, command palette and transient task UI use `bg-overlay`, a strong hairline boundary and restrained `shadow-popover` separation.
-4. **Modal** — dialogs use `bg-overlay` + `shadow-dialog` and a restrained scrim.
+2. **Content** — document, canvas, diff, conversation and package documentation. Content uses an opaque `bg-surface-canvas` surface.
+3. **Elevated** — menus, popovers, command palette and transient task UI use `bg-surface-overlay`, a strong hairline boundary and restrained `shadow-popover` separation.
+4. **Modal** — dialogs use `bg-surface-overlay` + `shadow-dialog` and a restrained scrim.
 
 Elevation belongs primarily to floating layers. Space canvas objects use only their dedicated micro-elevation:
 a short contact shadow that separates movable content from the infinite canvas without making it read as a
@@ -31,65 +31,121 @@ Do not use blur or glass effects inside normal content cards. Native material be
 
 ## Tailwind CSS v4 contract
 
-`src/styles/tokens.css` is the only design-token source and uses Tailwind v4 `@theme` namespaces.
+Tailwind supplies spacing, fixed dimensions, default radii, font weights and ordinary durations.
+`src/styles/tokens.css` extends this foundation only for authored product decisions. Public tokens live
+once in native `@theme static` namespaces. CSS, utility classes and canvas readers consume the same
+variables; there is no parallel `--knovum-color-*` / typography API or inline adapter. Static emission
+keeps required variables available even when a utility is not used. Mode selectors override those names.
 
-Prefer semantic utilities:
+### Token architecture and naming
+
+DTCG standardizes token types and interchange, not one mandatory naming vocabulary. The project uses
+lowercase kebab-case and Tailwind's standard namespaces. Role names below are the product contract.
+
+| Layer                         | Grammar                                              | Example                               | Consumer                                      |
+| ----------------------------- | ---------------------------------------------------- | ------------------------------------- | --------------------------------------------- |
+| Private reference             | `--knovum-ref-color-{hue}-{shade}`                   | `--knovum-ref-color-blue-500`         | definitions only                              |
+| Public surface                | `--color-surface-{role}[-{emphasis}][-{state}]`      | `--color-surface-danger-subtle-hover` | `bg-surface-danger-subtle-hover`              |
+| Public foreground             | `--color-fg-{role}`                                  | `--color-fg-secondary`                | `text-fg-secondary`                           |
+| Public boundary               | `--color-stroke-{role}[-{state}]`                    | `--color-stroke-default-hover`        | `border-stroke-default-hover`, rings/outlines |
+| Public typography             | `--text-{role}-{size}` and `--line-height` suffix    | `--text-body-sm--line-height`         | text utilities and CSS                        |
+| Public shape/elevation/motion | native radius/shadow/ease/blur namespaces            | `--shadow-popover`                    | utilities and CSS                             |
+| Component                     | `--knovum-{component}[-{part}]-{property}[-{state}]` | `--knovum-sidebar-item-bg-selected`   | owning composition                            |
+| Domain                        | `--knovum-space-{object}-{property}[-{variant}]`     | `--knovum-space-note-bg-yellow`       | Spaces only                                   |
+
+`fg` means foreground for text/icons; `bg` means background in private component/domain attributes.
+`stroke` covers boundaries, SVG strokes, outlines and focus rings. These abbreviations are explicit and
+consistent; do not introduce synonyms or repeat category words. Preserve owner and role when they
+carry meaning. A CSS token need not repeat the property already encoded by a framework namespace.
+
+Reference shade numbers increase toward darker colors. The sparse authored palette differs from
+Tailwind's values, so it remains private; do not recreate Tailwind palettes, spacing or radius scales.
+A literal semantic value is valid. Add a reference only for an actual shared value decision.
+
+States mean the named state: `hover` is pointer hover, `pressed` is transient active press, `selected` is
+persistent selection and `inactive` is the explicit inactive component role. Open menus and recent-item
+feedback do not consume pressed paint. Neutral control paint increases from rest to hover to pressed in
+both appearances. Ghost controls start transparent and use the same hover/pressed roles. Primary actions
+use accent-hover/accent-pressed. Solid destructive actions retain their documented opacity treatment.
+Do not create a complete state matrix where no consumer needs it.
+
+Status foreground, boundary and background decisions remain independent. Repeated weak warning surfaces
+use `surface-warning-subtle`, and their interactive hover uses `surface-warning-subtle-hover`; consumers
+must not reimplement these roles as a solid warning hue with an arbitrary percentage. Other opacity
+modifiers remain valid for instance-specific composition, not as substitutes for an existing role.
+
+Typography uses size/line-height pairs: caption-sm, caption-md, label-md, body-sm, body-md, title-sm,
+title-md and display-sm. Text-size modes override both native variables. Role slots are independent of
+the user's small/normal/large preference. Label and body differ in leading even when size matches.
+Native font/tracking tokens contain only authored deviations from Tailwind.
+
+Use `size-3`, `size-3.5`, `size-4`, `size-4.5`, `size-5` for 12–20px icons. Use Tailwind spacing/container
+widths for fixed geometry and `duration-100`, `duration-150`, `duration-220` for ordinary motion.
+Density-sensitive controls/rows and native platform exclusion retain product variables. The 48px tag row
+is feature-owned as `--knovum-space-tag-row-height`, not a speculative general medium list-row scale.
+Use rounded-sm for grids, rounded-md for controls, rounded-lg for canvas objects and rounded-xl for
+workspaces/dialogs/outer sections. Only 10px panels and 9px inner sections extend the native radius scale.
+Fixed switch thumbs use bg-white and video-label scrims use bg-black/45 in their owning component.
+
+Aliases require a deliberate semantic relationship: inverse surfaces pair with foreground roles;
+business colors never borrow a status meaning merely to reuse a hue. Note text stays dark on colored
+paper while free canvas text becomes light, so their equal light-mode values do not justify merging.
+Keep private feature attributes out of global utility namespaces. Delete unused or redundant declarations;
+do not retain legacy aliases, fallback palettes or parallel theme APIs.
+
+Mode selectors are orthogonal: appearance controls paint, text size controls typography, density controls
+geometry, platform controls native-window exclusion, window activation softens interaction, and
+accessibility media queries adjust contrast/transparency. Required canvas paint fails visibly if missing.
 
 ```html
-<div class="bg-canvas text-body text-foreground">
-  <p class="text-caption text-foreground-secondary">...</p>
-  <button class="h-(--knovum-control-height-md) rounded-control bg-accent text-on-accent">...</button>
+<div class="bg-surface-canvas text-body-sm text-fg-primary">
+  <button class="h-(--knovum-control-height-md) rounded-md bg-surface-accent text-fg-on-accent">...</button>
 </div>
 ```
 
-Do not bypass an existing token:
+Prefer semantic utility classes over arbitrary references when a public utility exists. Arbitrary values
+are reserved for instance geometry or primitive-owned runtime values. Components own their visual
+composition. Scoped CSS must not create aliases through @apply; genuine scoped theme composition
+requires an explicit @reference to the main stylesheet.
 
-```text
-NO  bg-[var(--color-canvas)]
-NO  text-[var(--color-foreground-secondary)]
-NO  text-[11px]
-NO  rounded-[6px]
-NO  shadow-[...]
-
-YES bg-canvas
-YES text-foreground-secondary
-YES text-caption
-YES rounded-control
-YES shadow-popover
-```
-
-Arbitrary values are only for genuinely instance-specific geometry or runtime values owned by a primitive.
-
-Repeated product geometry must have a semantic radius token. Current specialized roles include
-`rounded-section` / `rounded-section-inner` for Space
-canvas sections, and `rounded-grid-cell` for compact editor grid pickers. These are product roles, not
-permission to add one-off radius values.
-
-Component-local Vue `<style scoped>` blocks must not create aliases by `@apply`-ing Knovum semantic utilities. Tailwind v4 processes scoped styles separately, so theme access there requires an explicit `@reference`; repeating utility composition in the template is the default and keeps the token contract visible. If CSS is genuinely required for selectors that cannot be expressed in markup, reference the main stylesheet deliberately rather than relying on implicit theme scope.
+The contract uses [Tailwind's native theme mechanism](https://tailwindcss.com/docs/theme), with semantic
+role separation informed by [DTCG](https://www.designtokens.org/TR/2025.10/format/).
 
 ## Color roles
 
-| Utility                                          | Role                                      |
-| ------------------------------------------------ | ----------------------------------------- |
-| `bg-chrome`                                      | unified window, sidebar and toolbar plane |
-| `bg-canvas`                                      | opaque primary content                    |
-| `bg-surface`                                     | grouped/settings/embedded surface         |
-| `bg-raised`                                      | selected control or local elevation       |
-| `bg-overlay`                                     | floating surface                          |
-| `bg-field`                                       | quiet input/search surface                |
-| `bg-(--knovum-sidebar-item-background-hover)`    | navigation hover                          |
-| `bg-(--knovum-sidebar-item-background-selected)` | navigation selection                      |
-| `border-divider`                                 | rare structural separator                 |
-| `border-window-hairline`                         | crisp window/workspace edge               |
-| `text-foreground`                                | primary text                              |
-| `text-foreground-secondary`                      | secondary text                            |
-| `text-foreground-tertiary`                       | tertiary metadata                         |
-| `text-accent` / `bg-accent`                      | restrained primary accent                 |
-| `bg-(--knovum-space-guide-spacing-color)`        | Space canvas equal-spacing measurement    |
-| `border-border-hover`                            | one deeper object boundary on hover       |
+| Utility                                       | Role                                                   |
+| --------------------------------------------- | ------------------------------------------------------ |
+| `bg-surface-chrome`                           | unified window, sidebar and toolbar plane              |
+| `bg-surface-canvas`                           | opaque primary content                                 |
+| `bg-surface-muted`                            | recessed previews, embedded content and quiet fields   |
+| `bg-surface-panel`                            | structural content panels, sidebars and canvas objects |
+| `bg-surface-raised`                           | raised fields, compact controls and elevated content   |
+| `bg-surface-overlay`                          | floating menus, popovers and overlay chrome            |
+| `bg-surface-inset`                            | translucent inset area or quiet field                  |
+| `bg-surface-inverse` / `text-fg-inverse`      | contrasting action/badge surface pair                  |
+| `bg-surface-document`                         | appearance-independent white HTML document             |
+| `text-fg-on-image` / `border-stroke-on-image` | white media-overlay contrast                           |
+| `bg-(--knovum-sidebar-item-bg-hover)`         | navigation hover                                       |
+| `bg-(--knovum-sidebar-item-bg-selected)`      | navigation selection                                   |
+| `border-stroke-divider`                       | rare structural separator                              |
+| `border-(--knovum-window-border-color)`       | crisp window/workspace edge                            |
+| `text-fg-primary`                             | primary text                                           |
+| `text-fg-secondary`                           | secondary text                                         |
+| `text-fg-tertiary`                            | tertiary metadata                                      |
+| `text-fg-accent` / `bg-surface-accent`        | restrained primary accent                              |
+| `--knovum-space-measurement-color`            | canvas measurements and spacing guides                 |
+| `border-stroke-default-hover`                 | one deeper object boundary on hover                    |
+
+Surface selection is structural: canvas is the base content plane; chrome owns desktop navigation;
+panel owns content-bearing structural regions; muted owns recessed/embedded regions; raised owns small
+fields and elevated content; overlay owns transient floating layers. A text input may use muted when
+embedded in a recessed region or raised when it needs a distinct field plane. Select by context, not by
+which neutral happens to look similar. Canvas overview rendering uses the same panel role as live objects.
 
 Features must not invent their own gray palette or generic accent palette. Measurement guides use their own
 token because a span that reads as selection blue or destructive red would misstate what the drag is doing.
+`accent` marks primary interaction; `danger` covers destructive actions and failures; `success` marks positive
+outcomes; `warning` marks caution. Subtle backgrounds are supporting tints, never foreground colors.
 
 Navigation and transient chrome use the semantic surface utilities defined in `src/styles/app.css`:
 
@@ -152,16 +208,16 @@ stops the light and mark animations.
 
 The type scale is semantic; components choose a role, never a pixel size.
 
-| Utility         | Default | Use                                                    |
-| --------------- | ------: | ------------------------------------------------------ |
-| `text-micro`    |    11px | keyboard hints/debug metadata only                     |
-| `text-caption`  |    12px | secondary labels and descriptions                      |
-| `text-label`    |    13px | controls, rows and navigation                          |
-| `text-body`     |    13px | normal reading content                                 |
-| `text-body-lg`  |    14px | emphasized labels and compact headings                 |
-| `text-title-sm` |    15px | subview/section title                                  |
-| `text-title`    |    17px | workspace/settings title                               |
-| `text-display`  |    24px | settings root, onboarding and exceptional empty states |
+| Utility           | Default | Use                                                     |
+| ----------------- | ------: | ------------------------------------------------------- |
+| `text-caption-sm` |    11px | keyboard hints/debug metadata only                      |
+| `text-caption-md` |    12px | secondary labels and descriptions                       |
+| `text-label-md`   |    13px | controls, rows and navigation                           |
+| `text-body-sm`    |    13px | compact body content                                    |
+| `text-body-md`    |    14px | reading content, emphasized labels and compact headings |
+| `text-title-sm`   |    15px | subview/section title                                   |
+| `text-title-md`   |    17px | workspace/settings title                                |
+| `text-display-sm` |    24px | settings root, onboarding and exceptional empty states  |
 
 `Settings -> Text size` changes the values behind these roles. Features continue using the same utilities.
 
@@ -170,11 +226,11 @@ The type scale is semantic; components choose a role, never a pixel size.
 Global roles include:
 
 - `h-(--knovum-control-height-sm)`, `h-(--knovum-control-height-md)`, `h-(--knovum-control-height-lg)`;
-- `h-window-chrome` for integrated titlebar/toolbar geometry;
-- `h-(--knovum-compact-item-height)` for compact navigation and menu density;
-- `size-(--knovum-icon-size-xs)/sm/default/toolbar/lg` for symbols. Toolbar symbols use the dedicated 18px optical role inside 32px controls.
+- `h-(--knovum-titlebar-height)` for integrated titlebar/toolbar geometry;
+- `h-(--knovum-list-item-height-sm)` for compact navigation and menu density;
+- `size-3` through `size-5` for symbols. Toolbar symbols use `size-4.5` (18px) inside 32px controls.
 
-`data-platform` changes titlebar/chrome geometry where the operating systems differ. `data-density` changes interaction density without changing typography hierarchy. `h-window-chrome` is the stable native titlebar band and intentionally does not shrink with content density; density-sensitive in-workspace toolbars use their own toolbar/control geometry.
+`data-platform` changes titlebar/chrome geometry where the operating systems differ. `data-density` changes interaction density without changing typography hierarchy. `--knovum-titlebar-height` is the stable native titlebar band and intentionally does not shrink with content density; density-sensitive in-workspace toolbars use their own toolbar/control geometry.
 On macOS the integrated Tab Bar is 40px high, matching compact modern desktop chrome while preserving the
 native traffic-light safe area.
 
@@ -238,7 +294,7 @@ preview remains an overlay below the toolbar and does not change split geometry.
 
 Space canvas objects use **semantic desktop geometry**, never one universal card size. Initial size, resize bounds and fixed/resizable behavior are owned centrally by `src/features/spaces/canvas/node-size.ts`; node components must not invent independent min/max values.
 
-Canvas nodes are desktop objects, not floating web cards. Every movable content node uses one opaque surface, an 8px object radius, one quiet hairline and the shared `shadow-canvas-object` elevation. That elevation combines a tight contact shadow, a short downward cast and one low-opacity ambient layer, creating the grounded paper-on-canvas depth used by spatial desktop tools without borrowing popover height. It remains identical at rest, hover, selection and drag, so interaction never produces a web-card lift. Hover may change only paint properties such as background or border color; the canvas object's one hover step is its boundary hairline deepening to `border-border-hover` at an unchanged width, and it must never change geometry, transform, font weight, padding or icon-box dimensions. Ordinary object selection does not draw a rectangular accent outline: the contextual toolbar and capability-specific resize handles identify the active object. Transparent Text is the deliberate exception and receives the minimal boundary treatment defined below. Sections remain spatial containers and therefore have neither card surface nor object shadow. Type-specific meaning belongs in the icon, label and content—not colored card chrome.
+Canvas nodes are desktop objects, not floating web cards. Every movable content node uses one opaque surface, an 8px object radius, one quiet hairline and the shared `--knovum-space-node-box-shadow` elevation. That elevation combines a tight contact shadow, a short downward cast and one low-opacity ambient layer, creating the grounded paper-on-canvas depth used by spatial desktop tools without borrowing popover height. It remains identical at rest, hover, selection and drag, so interaction never produces a web-card lift. Hover may change only paint properties such as background or border color; the canvas object's one hover step is its boundary hairline deepening to `border-stroke-default-hover` at an unchanged width, and it must never change geometry, transform, font weight, padding or icon-box dimensions. Ordinary object selection does not draw a rectangular accent outline: the contextual toolbar and capability-specific resize handles identify the active object. Transparent Text is the deliberate exception and receives the minimal boundary treatment defined below. Sections remain spatial containers and therefore have neither card surface nor object shadow. Type-specific meaning belongs in the icon, label and content—not colored card chrome.
 
 - Notes and Markdown use compact reading widths; code is deliberately wider; websites, files and containers reserve enough area for a useful preview without becoming dashboard cards.
 - Image and video nodes give the full card to the visual content; their names and metadata belong to selection and Inspector, while transient work status may sit over the image. Files retain a fixed-height caption strip for recognition at every detail level. Visual resize preserves the intrinsic image or video ratio without reserving caption height.
@@ -285,7 +341,7 @@ Canvas objects follow a desktop direct-manipulation model. Content, selection ch
 - `SpaceNodeFrame` owns a fixed outer geometry root with `overflow: visible` and a clipped inner content surface;
 - Konva content-node shapes are transparent interaction geometry; the DOM content surface is the sole painter of
   the node background, boundary and micro-elevation. Sections remain Konva-painted spatial backgrounds;
-- the content surface never changes geometry, border width, font weight, transform or elevation for hover, focus, selection or drag; its stable micro-elevation comes only from `shadow-canvas-object`, and its one hover change is the boundary `border-color`;
+- the content surface never changes geometry, border width, font weight, transform or elevation for hover, focus, selection or drag; its stable micro-elevation comes only from `shadow-(--knovum-space-node-box-shadow)`, and its one hover change is the boundary `border-color`;
 - selection, resize and relation controls live in an interaction overlay outside the clipped content surface;
 - the interaction overlay is absolutely positioned and cannot participate in node measurement;
 - resize and relation coordinates are zero-size anchors fixed to the object boundary; visible marks and pointer targets are centered pseudo-elements, so inverse zoom scaling cannot move the anchor;
@@ -330,7 +386,7 @@ Relations connect knowledge-bearing objects, not every selectable canvas utility
 
 This distinction must be visible and predictable. Relation-capable selected objects show anchors and expose the relation command. Non-capable objects show neither; their details identify them as organization, navigation or secure configuration objects. There is no disabled invisible handle and no handle that appears only because the pointer happened to cross a narrow edge.
 
-Rendered relations use the Konva adapter's relation projection. Endpoint geometry remains adapter-owned canvas state and is never copied into the semantic relation model; the Space domain persists only relation identity, kind, status and provenance. User-selected relation colors are sparse canvas-presentation overrides backed by the `--knovum-canvas-relation-*` tokens. Neutral is represented only by the absence of an override. Parallel semantic relations between the same visible endpoints use stable, separated curve lanes so their labels and hit targets remain distinct.
+Rendered relations use the Konva adapter's relation projection. Endpoint geometry remains adapter-owned canvas state and is never copied into the semantic relation model; the Space domain persists only relation identity, kind, status and provenance. User-selected relation colors are sparse canvas-presentation overrides backed by the `--knovum-space-relation-stroke-*` tokens. Neutral is represented only by the absence of an override. Parallel semantic relations between the same visible endpoints use stable, separated curve lanes so their labels and hit targets remain distinct.
 
 ### Space canvas object layouts
 
@@ -417,8 +473,8 @@ Interactive WebView controls remain ordinary controls, not drag regions. Feature
 
 ## Interaction
 
-- search fields embedded in navigation surfaces use `bg-raised` with one quiet border; they read as a light desktop control rather than a gray browser form field;
-- text fields, search fields, textareas and pop-up buttons use one visible boundary only: a neutral border at rest and the `border-focus-ring` color when focused. Do not stack a border, control shadow, focus ring and descendant outline on the same control;
+- search fields embedded in navigation surfaces use `bg-surface-raised` with one quiet border; they read as a light desktop control rather than a gray browser form field;
+- text fields, search fields, textareas and pop-up buttons use one visible boundary only: a neutral border at rest and the `border-stroke-focus` color when focused. Do not stack a border, control shadow, focus ring and descendant outline on the same control;
 - adjacent peer navigation rows use a 2px vertical gap. Selected and hover backgrounds must never merge into one continuous block;
 - all scrolling surfaces read the single `--knovum-scrollbar-size` token and use the shared thin overlay-scrollbar profile: transparent track, rounded thumb, quiet resting contrast and stronger hover contrast. `UiScrollArea` is preferred for normal product regions; unavoidable overflow surfaces inherit the same global profile;
 - command palette is the global command discovery surface;

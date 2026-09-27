@@ -59,7 +59,7 @@ function drawNodeCard(group: Konva.Group, sceneNode: CanvasSceneNode, palette: C
     new Konva.Rect({
       width: frame.width,
       height: frame.height,
-      fill: fill ?? (note ? palette.noteFill.yellow : palette.surface),
+      fill: fill ?? (note ? palette.noteFill.yellow : palette.panel),
       cornerRadius: note ? 3 : 7,
       listening: false,
     }),

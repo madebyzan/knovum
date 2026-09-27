@@ -73,7 +73,7 @@ function weightName(value: number): string {
       :disabled="isPending || !!error"
     />
     <div class="min-w-0">
-      <span class="mb-1.5 block text-caption text-foreground-secondary">{{
+      <span class="mb-1.5 block text-caption-md text-fg-secondary">{{
         $t("spaces.media.videoEditor.font.weight")
       }}</span>
       <UiSelect
@@ -84,8 +84,8 @@ function weightName(value: number): string {
         size="sm"
       />
     </div>
-    <p v-if="error" class="col-span-2 text-micro text-danger">{{ error }}</p>
-    <p v-else-if="!isPending && !selectedFont" class="col-span-2 text-micro text-danger">
+    <p v-if="error" class="col-span-2 text-caption-sm text-fg-danger">{{ error }}</p>
+    <p v-else-if="!isPending && !selectedFont" class="col-span-2 text-caption-sm text-fg-danger">
       {{ $t("spaces.media.videoEditor.font.unavailable", { family: style.family }) }}
     </p>
   </div>

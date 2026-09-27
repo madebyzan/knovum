@@ -58,22 +58,22 @@ function createModel() {
     :description="t('settings.ai.addModelDescription')"
   >
     <div class="grid gap-4">
-      <label class="grid gap-1.5 text-caption font-medium text-foreground-secondary">
+      <label class="grid gap-1.5 text-caption-md font-medium text-fg-secondary">
         {{ t("settings.ai.modelDisplayName") }}
         <UiInput v-model="draft.name" autofocus />
       </label>
-      <label class="grid gap-1.5 text-caption font-medium text-foreground-secondary">
+      <label class="grid gap-1.5 text-caption-md font-medium text-fg-secondary">
         {{ t("settings.ai.modelIdentifier") }}
         <UiInput v-model="draft.model" />
       </label>
-      <fieldset class="grid gap-2 border-t border-divider pt-4">
-        <legend class="mb-1 text-caption font-medium text-foreground-secondary">
+      <fieldset class="grid gap-2 border-t border-stroke-divider pt-4">
+        <legend class="mb-1 text-caption-md font-medium text-fg-secondary">
           {{ t("settings.ai.modelCapabilities") }}
         </legend>
         <label
           v-for="capability in options"
           :key="capability.value"
-          class="flex items-center gap-2 text-label text-foreground"
+          class="flex items-center gap-2 text-label-md text-fg-primary"
           :class="!props.allowedCapabilities.includes(capability.value) && 'opacity-45'"
         >
           <UiCheckbox

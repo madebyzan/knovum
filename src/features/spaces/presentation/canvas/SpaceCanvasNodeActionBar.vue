@@ -92,11 +92,11 @@ function runPrimaryAction() {
         <ToolbarButton as-child>
           <button
             type="button"
-            :class="[CANVAS_ACTION_BUTTON_CLASSES, 'font-medium text-foreground']"
+            :class="[CANVAS_ACTION_BUTTON_CLASSES, 'font-medium text-fg-primary']"
             :aria-label="primaryLabel"
             @click="runPrimaryAction"
           >
-            <component :is="primaryIcon" class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
+            <component :is="primaryIcon" class="size-3.5" :stroke-width="1.6" />
             <span :class="[nodeActionLabelClass, nodeActionLabelState(compact)]">{{ primaryLabel }}</span>
           </button>
         </ToolbarButton>
@@ -121,7 +121,7 @@ function runPrimaryAction() {
             :aria-label="t('spaces.media.videoEditor.edit')"
             @click="actions.editVideo"
           >
-            <Scissors class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
+            <Scissors class="size-3.5" :stroke-width="1.6" />
             <span :class="[nodeActionLabelClass, nodeActionLabelState(compact)]">{{
               t("spaces.media.videoEditor.edit")
             }}</span>
@@ -156,13 +156,13 @@ function runPrimaryAction() {
             "
             @select="runPrimaryAction"
           >
-            <component :is="primaryIcon" class="size-(--knovum-icon-size-sm)" />{{ primaryLabel }}
+            <component :is="primaryIcon" class="size-3.5" />{{ primaryLabel }}
           </UiDropdownMenuItem>
           <UiDropdownMenuItem
             v-if="actions.selectedVideoNode.value && canvasBarPlacement('video-edit', minimal) === 'menu'"
             @select="actions.editVideo"
           >
-            <Scissors class="size-(--knovum-icon-size-sm)" />{{ t("spaces.media.videoEditor.edit") }}
+            <Scissors class="size-3.5" />{{ t("spaces.media.videoEditor.edit") }}
           </UiDropdownMenuItem>
         </template>
       </SpaceCanvasSelectionMenu>

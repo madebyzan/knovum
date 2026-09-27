@@ -58,7 +58,7 @@ function finish(corner: ResizeCorner, event: Konva.KonvaEventObject<DragEvent>) 
       x: corner.endsWith('west') ? 0 : width(),
       y: corner.startsWith('north') ? 0 : height(),
       radius: 5 / zoom,
-      fill: palette.surface,
+      fill: palette.panel,
       stroke: palette.accent,
       strokeWidth: 1 / zoom,
       hitStrokeWidth: 10 / zoom,

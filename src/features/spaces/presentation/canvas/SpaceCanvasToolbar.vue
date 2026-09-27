@@ -20,27 +20,27 @@ function toolEffect(tool: keyof typeof icons): NodeOperationEffect {
 
 <template>
   <ToolbarRoot
-    class="flex h-8 cursor-default items-center gap-0.5 rounded-control border border-border bg-overlay p-0.5 shadow-toolbar select-none"
+    class="flex h-8 cursor-default items-center gap-0.5 rounded-md border border-stroke-default bg-surface-overlay p-0.5 select-none"
     :aria-label="t('spaces.canvas.tools.title')"
   >
     <template v-for="(toolCommand, index) in CANVAS_TOOL_COMMANDS" :key="toolCommand.tool">
-      <ToolbarSeparator v-if="index === 2" class="mx-1 h-4 w-px bg-divider" />
+      <ToolbarSeparator v-if="index === 2" class="bg-border-divider mx-1 h-4 w-px" />
       <ToolbarButton as-child>
         <UiIconButton
           :label="t(toolCommand.title)"
           :shortcut="toolCommand.shortcut"
           :active="tools.tool === toolCommand.tool"
           :disabled="!nodeOperations.allows(toolEffect(toolCommand.tool))"
-          class="data-[active=true]:bg-selected data-[active=true]:text-accent"
+          class="data-[active=true]:bg-surface-selected data-[active=true]:text-fg-accent"
           tooltip-side="bottom"
           size="sm"
           @click="nodeOperations.allows(toolEffect(toolCommand.tool)) && tools.selectTool(toolCommand.tool)"
         >
-          <component :is="icons[toolCommand.tool]" class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
+          <component :is="icons[toolCommand.tool]" class="size-3.5" :stroke-width="1.6" />
         </UiIconButton>
       </ToolbarButton>
     </template>
-    <ToolbarSeparator class="mx-1 h-4 w-px bg-divider" />
+    <ToolbarSeparator class="bg-border-divider mx-1 h-4 w-px" />
     <SpaceAddMenu />
   </ToolbarRoot>
 </template>

@@ -54,11 +54,11 @@ const dateValue = computed<DateValue | null>({
     :locale="locale ?? defaultLocale"
     :class="
       cn(
-        'flex w-full items-center select-none focus-within:border-focus-ring',
+        'flex w-full items-center select-none focus-within:border-stroke-focus',
         INPUT_BASE_CLASSES,
         size === 'sm'
-          ? 'h-(--knovum-control-height-sm) px-2 text-caption'
-          : 'h-(--knovum-control-height-md) px-2.5 text-label',
+          ? 'h-(--knovum-control-height-sm) px-2 text-caption-md'
+          : 'h-(--knovum-control-height-md) px-2.5 text-label-md',
         props.class,
       )
     "
@@ -66,7 +66,7 @@ const dateValue = computed<DateValue | null>({
     <template v-for="item in segments" :key="item.part">
       <DateFieldInput
         :part="item.part"
-        class="rounded-grid-cell px-0.5 transition-colors outline-none focus:bg-focus-ring/20 focus:text-foreground data-[placeholder]:text-foreground-tertiary"
+        class="rounded-sm px-0.5 transition-colors outline-none focus:bg-surface-accent-subtle focus:text-fg-primary data-[placeholder]:text-fg-tertiary"
       >
         {{ item.value }}
       </DateFieldInput>

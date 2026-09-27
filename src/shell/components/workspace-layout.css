@@ -7,8 +7,8 @@
   transform: translate3d(-100%, 0, 0);
   transition:
     transform 220ms var(--ease-standard),
-    opacity 160ms ease-out,
-    box-shadow 160ms ease-out;
+    opacity 150ms var(--ease-decelerate),
+    box-shadow 150ms var(--ease-decelerate);
 }
 
 .workspace-sidebar-surface.is-visible {
@@ -22,7 +22,7 @@
 
 .workspace-scrim-enter-active,
 .workspace-scrim-leave-active {
-  transition: opacity 180ms ease-out;
+  transition: opacity 150ms var(--ease-decelerate);
 }
 
 .workspace-scrim-enter-from,
@@ -32,7 +32,7 @@
 
 .workspace-pane-content-enter-active,
 .workspace-pane-content-leave-active {
-  transition: opacity 140ms ease-out;
+  transition: opacity 150ms var(--ease-decelerate);
 }
 
 .workspace-pane-content-enter-from,

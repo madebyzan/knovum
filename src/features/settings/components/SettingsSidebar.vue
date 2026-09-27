@@ -71,19 +71,17 @@ const matchingSettings = computed(() => visibleGroups.value.flatMap((group) => g
 
 <template>
   <aside
-    class="flex h-full w-(--knovum-settings-sidebar-width) shrink-0 flex-col border-r border-window-hairline bg-chrome"
+    class="flex h-full w-62 shrink-0 flex-col border-r border-(--knovum-window-border-color) bg-surface-chrome"
   >
-    <div data-tauri-drag-region class="h-(--knovum-window-chrome-height) shrink-0" />
+    <div data-tauri-drag-region class="h-(--knovum-titlebar-height) shrink-0" />
     <div class="px-3">
       <button
         data-testid="settings-back"
         type="button"
-        class="flex h-(--knovum-control-height-md) w-full items-center gap-2 rounded-control px-2 text-left text-label text-foreground-secondary transition-colors duration-100 hover:bg-(--knovum-sidebar-item-background-hover) hover:text-foreground"
+        class="flex h-(--knovum-control-height-md) w-full items-center gap-2 rounded-md px-2 text-left text-label-md text-fg-secondary transition-colors duration-100 hover:bg-(--knovum-sidebar-item-bg-hover) hover:text-fg-primary"
         @click="emit('back')"
       >
-        <ArrowLeft class="size-(--knovum-icon-size-sm)" :stroke-width="1.65" /><span>{{
-          t("settings.general.backToApp")
-        }}</span>
+        <ArrowLeft class="size-3.5" :stroke-width="1.65" /><span>{{ t("settings.general.backToApp") }}</span>
       </button>
       <UiSearchInput v-model="query" :placeholder="t('settings.general.search')" class="mt-2.5" />
     </div>
@@ -91,12 +89,12 @@ const matchingSettings = computed(() => visibleGroups.value.flatMap((group) => g
       <nav :aria-label="t('settings.general.title')" class="px-3 pb-6">
         <template v-if="query.trim()">
           <section v-for="group in visibleGroups" :key="group.id" class="mb-4">
-            <p class="mb-1.5 px-2 text-caption font-medium text-foreground-tertiary">{{ group.label }}</p>
+            <p class="mb-1.5 px-2 text-caption-md font-medium text-fg-tertiary">{{ group.label }}</p>
             <button
               v-for="setting in group.settings"
               :key="`${setting.id}:${setting.location ?? ''}`"
               type="button"
-              class="mb-1 flex min-h-14 w-full items-start gap-2.5 rounded-control px-2 py-2 text-left transition-colors duration-100 hover:bg-(--knovum-sidebar-item-background-hover) data-[active=true]:bg-(--knovum-sidebar-item-background-selected)"
+              class="mb-1 flex min-h-14 w-full items-start gap-2.5 rounded-md px-2 py-2 text-left transition-colors duration-100 hover:bg-(--knovum-sidebar-item-bg-hover) data-[active=true]:bg-(--knovum-sidebar-item-bg-selected)"
               :data-active="
                 props.activePane === setting.id &&
                 (setting.location ? props.activeSetting === setting.location : !props.activeSetting)
@@ -105,12 +103,14 @@ const matchingSettings = computed(() => visibleGroups.value.flatMap((group) => g
             >
               <component
                 :is="setting.icon"
-                class="mt-0.5 size-(--knovum-icon-size-sm) shrink-0 text-foreground-secondary"
+                class="mt-0.5 size-3.5 shrink-0 text-fg-secondary"
                 :stroke-width="1.6"
               />
               <span class="min-w-0 flex-1">
-                <span class="block truncate text-label font-medium text-foreground">{{ setting.label }}</span>
-                <span class="mt-0.5 line-clamp-2 block text-caption leading-snug text-foreground-tertiary">
+                <span class="block truncate text-label-md font-medium text-fg-primary">{{
+                  setting.label
+                }}</span>
+                <span class="mt-0.5 line-clamp-2 block text-caption-md leading-snug text-fg-tertiary">
                   {{ setting.description }}
                 </span>
               </span>
@@ -119,25 +119,23 @@ const matchingSettings = computed(() => visibleGroups.value.flatMap((group) => g
         </template>
         <template v-else>
           <section v-for="group in visibleGroups" :key="group.id" class="mb-4">
-            <p class="mb-1.5 px-2 text-caption font-medium text-foreground-tertiary">{{ group.label }}</p>
+            <p class="mb-1.5 px-2 text-caption-md font-medium text-fg-tertiary">{{ group.label }}</p>
             <button
               v-for="setting in group.settings"
               :key="setting.id"
               :data-testid="`settings-pane-${setting.id}`"
               type="button"
-              class="mb-0.5 flex h-(--knovum-control-height-md) w-full items-center gap-2.5 rounded-control px-2 text-left text-body-lg text-foreground-secondary transition-colors duration-100 hover:bg-(--knovum-sidebar-item-background-hover) hover:text-foreground data-[active=true]:bg-(--knovum-sidebar-item-background-selected) data-[active=true]:font-medium data-[active=true]:text-foreground"
+              class="mb-0.5 flex h-(--knovum-control-height-md) w-full items-center gap-2.5 rounded-md px-2 text-left text-body-md text-fg-secondary transition-colors duration-100 hover:bg-(--knovum-sidebar-item-bg-hover) hover:text-fg-primary data-[active=true]:bg-(--knovum-sidebar-item-bg-selected) data-[active=true]:font-medium data-[active=true]:text-fg-primary"
               :data-active="props.activePane === setting.id"
               @click="emit('select', setting.id)"
             >
-              <component
-                :is="setting.icon"
-                class="size-(--knovum-icon-size-md) shrink-0"
-                :stroke-width="1.6"
-              /><span>{{ setting.label }}</span>
+              <component :is="setting.icon" class="size-4 shrink-0" :stroke-width="1.6" /><span>{{
+                setting.label
+              }}</span>
             </button>
           </section>
         </template>
-        <p v-if="matchingSettings.length === 0" class="px-2 py-3 text-caption text-foreground-tertiary">
+        <p v-if="matchingSettings.length === 0" class="px-2 py-3 text-caption-md text-fg-tertiary">
           {{ t("settings.general.noResults") }}
         </p>
       </nav>

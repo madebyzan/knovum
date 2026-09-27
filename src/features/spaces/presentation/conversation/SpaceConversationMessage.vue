@@ -66,12 +66,12 @@ function createdNodeId(creationReply: unknown): string | undefined {
     class="group flex min-w-0 flex-col gap-2"
     :class="message.role === 'user' ? 'items-end' : 'items-start'"
   >
-    <span v-if="message.role === 'assistant'" class="text-caption font-semibold text-foreground-secondary">
+    <span v-if="message.role === 'assistant'" class="text-caption-md font-semibold text-fg-secondary">
       {{ t("spaces.assistant.role.assistant") }}
     </span>
     <div
-      class="max-w-full min-w-0 space-y-2 text-body leading-relaxed text-foreground"
-      :class="message.role === 'user' ? 'w-fit rounded-panel bg-control px-3 py-2.5' : 'w-full'"
+      class="max-w-full min-w-0 space-y-2 text-body-sm leading-relaxed text-fg-primary"
+      :class="message.role === 'user' ? 'w-fit rounded-panel bg-surface-control px-3 py-2.5' : 'w-full'"
     >
       <template v-for="(part, index) in message.content.parts" :key="index">
         <UiMarkdown
@@ -79,25 +79,25 @@ function createdNodeId(creationReply: unknown): string | undefined {
           :content="part.text"
           class="wrap-break-word"
         />
-        <p v-else-if="part.type === 'binary'" class="text-caption text-foreground-secondary">
+        <p v-else-if="part.type === 'binary'" class="text-caption-md text-fg-secondary">
           {{ part.name || part.mediaType }}
         </p>
         <SpaceConversationSearchMatches
           v-else-if="part.type === 'tool_result' && part.name === 'search-knowledge'"
           :value="part.result"
         />
-        <p v-else-if="part.type === 'tool_call'" class="text-caption text-foreground-secondary">
+        <p v-else-if="part.type === 'tool_call'" class="text-caption-md text-fg-secondary">
           {{ t("spaces.assistant.actions.working") }}
         </p>
         <div
           v-else-if="part.type === 'tool_result'"
-          class="rounded-control bg-control px-2.5 py-2 text-caption text-foreground-secondary"
+          class="rounded-md bg-surface-control px-2.5 py-2 text-caption-md text-fg-secondary"
         >
           <span>{{ t("spaces.assistant.actions.completed", { name: actionName(part.name) }) }}</span>
           <button
             v-if="createdNodeId(part.result)"
             type="button"
-            class="ml-2 font-medium text-accent hover:underline"
+            class="ml-2 font-medium text-fg-accent hover:underline"
             @click="store.requestReveal([createdNodeId(part.result)!], 'focus')"
           >
             {{ t("spaces.assistant.actions.viewCreated") }}
@@ -112,21 +112,21 @@ function createdNodeId(creationReply: unknown): string | undefined {
     />
     <details
       v-if="citations.length"
-      class="w-full rounded-control border border-divider px-2 py-1.5 text-caption"
+      class="w-full rounded-md border border-stroke-divider px-2 py-1.5 text-caption-md"
     >
-      <summary class="cursor-pointer text-foreground-secondary select-none">
+      <summary class="cursor-pointer text-fg-secondary select-none">
         {{ t("spaces.assistant.sources", { count: citations.length }) }}
       </summary>
       <ul class="mt-2 space-y-1.5">
         <li
           v-for="citation in citations"
           :key="citation.index"
-          class="rounded-control bg-control px-2 py-1.5"
+          class="rounded-md bg-surface-control px-2 py-1.5"
         >
           <button
             v-if="citation.state === 'current'"
             type="button"
-            class="text-left font-medium text-accent hover:underline"
+            class="text-left font-medium text-fg-accent hover:underline"
             @click="
               store.openSource({
                 nodeId: citation.nodeId,
@@ -139,17 +139,17 @@ function createdNodeId(creationReply: unknown): string | undefined {
           >
             {{ citation.index }}. {{ citation.nodeTitle }}
           </button>
-          <span v-else class="font-medium text-foreground-secondary"
+          <span v-else class="font-medium text-fg-secondary"
             >{{ citation.index }}. {{ citation.nodeTitle }}</span
           >
-          <span v-if="citation.state === 'detached'" class="ml-1 text-foreground-tertiary">
+          <span v-if="citation.state === 'detached'" class="ml-1 text-fg-tertiary">
             · {{ t("spaces.assistant.evidence.stale") }}
           </span>
-          <p class="mt-1 line-clamp-3 whitespace-pre-wrap text-foreground-secondary">{{ citation.quote }}</p>
+          <p class="mt-1 line-clamp-3 whitespace-pre-wrap text-fg-secondary">{{ citation.quote }}</p>
         </li>
       </ul>
     </details>
-    <span v-if="message.content.status" class="text-micro text-foreground-tertiary">
+    <span v-if="message.content.status" class="text-caption-sm text-fg-tertiary">
       {{
         t(
           message.content.status === "stopped"
@@ -158,17 +158,13 @@ function createdNodeId(creationReply: unknown): string | undefined {
         )
       }}
     </span>
-    <p v-if="copyFailed" role="alert" class="text-caption text-danger">
+    <p v-if="copyFailed" role="alert" class="text-caption-md text-fg-danger">
       {{ t("spaces.assistant.messages.copyFailed") }}
     </p>
     <UiDropdownMenu v-if="message.role === 'assistant'" :items="actions">
       <template #trigger>
-        <UiIconButton
-          :label="t('spaces.assistant.messages.actions')"
-          size="sm"
-          class="text-foreground-tertiary"
-        >
-          <MoreHorizontal class="size-(--knovum-icon-size-sm)" />
+        <UiIconButton :label="t('spaces.assistant.messages.actions')" size="sm" class="text-fg-tertiary">
+          <MoreHorizontal class="size-3.5" />
         </UiIconButton>
       </template>
     </UiDropdownMenu>

@@ -56,7 +56,7 @@ const sizes = [2048, 4096, 8192] as const;
           :disabled="busy"
           :aria-label="t('spaces.media.imageEditor.upscale.action')"
         >
-          <Maximize2 class="size-(--knovum-icon-size-toolbar)" :stroke-width="1.6" />
+          <Maximize2 class="size-4.5" :stroke-width="1.6" />
           <span :class="[nodeActionLabelClass, nodeActionLabelState(Boolean(compact))]">{{
             t("spaces.media.imageEditor.upscale.action")
           }}</span>
@@ -72,20 +72,20 @@ const sizes = [2048, 4096, 8192] as const;
     >
       <button
         type="button"
-        class="flex h-(--knovum-control-height-lg) w-full items-center justify-between gap-2 rounded-control px-2 text-left text-label outline-none hover:bg-control-hover focus-visible:ring-2 focus-visible:ring-focus-ring aria-disabled:cursor-not-allowed aria-disabled:opacity-45"
+        class="flex h-(--knovum-control-height-lg) w-full items-center justify-between gap-2 rounded-md px-2 text-left text-label-md outline-none hover:bg-surface-control-hover focus-visible:ring-2 focus-visible:ring-stroke-focus aria-disabled:cursor-not-allowed aria-disabled:opacity-45"
         :aria-disabled="!canRunAction(optionAvailability(size))"
         @click="run({ kind: 'upscale', targetLongEdge: size })"
       >
-        <span class="shrink-0 font-medium text-foreground">{{ size / 1024 }}K</span>
-        <span v-if="targetDimensions(size)" class="text-foreground-tertiary tabular-nums">{{
+        <span class="shrink-0 font-medium text-fg-primary">{{ size / 1024 }}K</span>
+        <span v-if="targetDimensions(size)" class="text-fg-tertiary tabular-nums">{{
           targetDimensions(size)
         }}</span>
       </button>
     </UiTooltip>
-    <div v-if="help?.actionLabel" class="flex justify-end border-t border-divider pt-1">
+    <div v-if="help?.actionLabel" class="flex justify-end border-t border-stroke-divider pt-1">
       <button
         type="button"
-        class="px-2 py-1 text-caption text-accent hover:underline"
+        class="px-2 py-1 text-caption-md text-fg-accent hover:underline"
         @click="openAiSettings"
       >
         {{ help.actionLabel }}
@@ -109,7 +109,7 @@ const sizes = [2048, 4096, 8192] as const;
           :disabled="busy"
           :aria-label="t('spaces.media.imageEditor.angle.title')"
         >
-          <Box class="size-(--knovum-icon-size-toolbar)" :stroke-width="1.6" />
+          <Box class="size-4.5" :stroke-width="1.6" />
           <span :class="[nodeActionLabelClass, nodeActionLabelState(Boolean(compact))]">{{
             t("spaces.media.imageEditor.angle.title")
           }}</span>

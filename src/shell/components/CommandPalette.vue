@@ -70,26 +70,24 @@ function commandReason(command: AppCommand) {
 <template>
   <DialogRoot v-model:open="open">
     <DialogPortal>
-      <DialogOverlay class="fixed inset-0 z-40 bg-scrim" />
+      <DialogOverlay class="fixed inset-0 z-40 bg-surface-scrim" />
       <DialogContent
-        class="fixed top-[16%] left-1/2 z-50 w-[calc(100vw-3rem)] max-w-(--knovum-command-max-width) -translate-x-1/2 overflow-hidden rounded-dialog border border-border material-overlay shadow-dialog outline-none"
+        class="fixed top-[16%] left-1/2 z-50 w-[calc(100vw-3rem)] max-w-156 -translate-x-1/2 overflow-hidden rounded-xl border border-stroke-default material-overlay shadow-dialog outline-none"
       >
         <DialogTitle class="sr-only">{{ t("shell.commands.title") }}</DialogTitle>
         <ListboxRoot @update:model-value="handleSelect">
-          <div
-            class="flex h-(--knovum-command-input-height) items-center gap-2.5 border-b border-divider px-3.5"
-          >
-            <Search class="size-(--knovum-icon-size-sm) text-foreground-tertiary" />
+          <div class="flex h-12 items-center gap-2.5 border-b border-stroke-divider px-3.5">
+            <Search class="size-3.5 text-fg-tertiary" />
             <ListboxFilter
               v-model="query"
               data-testid="command-palette-input"
               autofocus
               :placeholder="t('shell.commands.searchPlaceholder')"
-              class="h-full min-w-0 flex-1 border-0 bg-transparent text-body-lg outline-none placeholder:text-foreground-tertiary"
+              class="h-full min-w-0 flex-1 border-0 bg-transparent text-body-md outline-none placeholder:text-fg-tertiary"
             />
             <UiKbd shortcut="esc" />
           </div>
-          <ListboxContent class="max-h-(--knovum-command-list-max-height) space-y-0.5 overflow-y-auto p-1.5">
+          <ListboxContent class="max-h-90 space-y-0.5 overflow-y-auto p-1.5">
             <UiTooltip
               v-for="command in filteredCommands"
               :key="command.id"
@@ -100,23 +98,21 @@ function commandReason(command: AppCommand) {
               <ListboxItem
                 :value="command"
                 :aria-disabled="!commandReady(command)"
-                class="flex h-(--knovum-command-item-height) w-full cursor-default items-center gap-2.5 rounded-control px-2.5 text-left outline-none aria-disabled:opacity-45 data-highlighted:bg-(--knovum-sidebar-item-background-selected)"
+                class="flex h-(--knovum-command-palette-item-height) w-full cursor-default items-center gap-2.5 rounded-md px-2.5 text-left outline-none aria-disabled:opacity-45 data-highlighted:bg-(--knovum-sidebar-item-bg-selected)"
               >
-                <span class="grid size-6 place-items-center text-foreground-secondary">
-                  <component :is="command.icon" v-if="command.icon" class="size-(--knovum-icon-size-sm)" />
+                <span class="grid size-6 place-items-center text-fg-secondary">
+                  <component :is="command.icon" v-if="command.icon" class="size-3.5" />
                 </span>
                 <span class="min-w-0 flex-1">
-                  <strong class="block truncate text-label font-medium">{{ command.title }}</strong>
-                  <span
-                    v-if="command.description"
-                    class="block truncate text-caption text-foreground-tertiary"
-                    >{{ command.description }}</span
-                  >
+                  <strong class="block truncate text-label-md font-medium">{{ command.title }}</strong>
+                  <span v-if="command.description" class="block truncate text-caption-md text-fg-tertiary">{{
+                    command.description
+                  }}</span>
                 </span>
                 <UiKbd v-if="command.shortcut" :shortcut="command.shortcut" />
               </ListboxItem>
             </UiTooltip>
-            <div v-if="!filteredCommands.length" class="py-8 text-center text-label text-foreground-tertiary">
+            <div v-if="!filteredCommands.length" class="py-8 text-center text-label-md text-fg-tertiary">
               {{ t("shell.commands.noMatches") }}
             </div>
           </ListboxContent>

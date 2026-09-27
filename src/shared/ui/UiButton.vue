@@ -30,13 +30,15 @@ const props = withDefaults(
 const variantClass = computed(
   () =>
     ({
-      primary: "bg-accent text-on-accent hover:bg-accent-hover active:bg-accent-hover",
-      secondary: "bg-control text-foreground hover:bg-control-pressed active:bg-control-pressed",
+      primary:
+        "bg-surface-accent text-fg-on-accent hover:bg-surface-accent-hover active:bg-surface-accent-pressed",
+      secondary:
+        "bg-surface-control text-fg-primary hover:bg-surface-control-hover active:bg-surface-control-pressed",
       ghost:
-        "bg-transparent text-foreground-secondary hover:bg-control-hover hover:text-foreground active:bg-control-pressed shadow-none",
-      danger: "bg-danger text-on-danger hover:opacity-90 active:opacity-85",
+        "bg-transparent text-fg-secondary hover:bg-surface-control-hover hover:text-fg-primary active:bg-surface-control-pressed shadow-none",
+      danger: "bg-surface-danger text-fg-on-danger hover:opacity-90 active:opacity-85",
       dangerSubtle:
-        "bg-danger-subtle text-danger shadow-none hover:bg-danger-subtle-hover hover:text-danger active:bg-danger-subtle-pressed",
+        "bg-surface-danger-subtle text-fg-danger shadow-none hover:bg-surface-danger-subtle-hover hover:text-fg-danger active:bg-surface-danger-subtle-pressed",
     })[props.variant],
 );
 </script>
@@ -49,7 +51,7 @@ const variantClass = computed(
     :disabled="disabled"
     :class="
       cn(
-        'inline-flex shrink-0 items-center justify-center gap-1.5 rounded-control px-2.5 text-label font-medium shadow-control transition-[color,background-color,box-shadow] duration-100 ease-standard disabled:pointer-events-none disabled:opacity-40',
+        'inline-flex shrink-0 items-center justify-center gap-1.5 rounded-md px-2.5 text-label-md font-medium shadow-control transition-[color,background-color,box-shadow] duration-100 ease-standard disabled:pointer-events-none disabled:opacity-40',
         variantClass,
         size === 'sm' ? 'h-(--knovum-control-height-sm)' : 'h-(--knovum-control-height-md)',
         props.class,

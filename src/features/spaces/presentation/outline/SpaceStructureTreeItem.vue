@@ -89,18 +89,18 @@ function keydown(event: KeyboardEvent) {
 
 <template>
   <div :data-active="selected" :style="{ paddingLeft: `${(level - 1) * 16}px` }">
-    <div class="flex h-(--knovum-compact-item-height) items-center rounded-control hover:bg-control-hover">
+    <div class="flex h-(--knovum-list-item-height-sm) items-center rounded-md hover:bg-surface-control-hover">
       <button
         v-if="item.children"
         type="button"
         tabindex="-1"
-        class="grid size-6 shrink-0 place-items-center text-foreground-tertiary"
+        class="grid size-6 shrink-0 place-items-center text-fg-tertiary"
         :aria-label="t(expanded ? 'common.collapse' : 'common.expand')"
         :aria-expanded="expanded"
         @click="emit('toggle')"
       >
-        <ChevronDown v-if="expanded" class="size-(--knovum-icon-size-xs)" />
-        <ChevronRight v-else class="size-(--knovum-icon-size-xs)" />
+        <ChevronDown v-if="expanded" class="size-3" />
+        <ChevronRight v-else class="size-3" />
       </button>
       <span v-else class="w-6 shrink-0" />
       <TreeItem
@@ -115,20 +115,16 @@ function keydown(event: KeyboardEvent) {
           type="button"
           :aria-selected="selected"
           :data-active="selected"
-          class="flex min-w-0 flex-1 items-center gap-2 pr-2 text-left text-caption text-foreground-secondary data-[active=true]:text-foreground"
+          class="flex min-w-0 flex-1 items-center gap-2 pr-2 text-left text-caption-md text-fg-secondary data-[active=true]:text-fg-primary"
           @dblclick="emit('open')"
           @contextmenu.prevent="emit('menu')"
         >
-          <Boxes v-if="item.kind === 'group'" class="size-(--knovum-icon-size-xs) shrink-0" />
-          <LayoutPanelTop v-else-if="item.kind === 'section'" class="size-(--knovum-icon-size-xs) shrink-0" />
+          <Boxes v-if="item.kind === 'group'" class="size-3 shrink-0" />
+          <LayoutPanelTop v-else-if="item.kind === 'section'" class="size-3 shrink-0" />
           <SpaceOutlineTitle :title="item.title" />
-          <LockKeyhole
-            v-if="item.locked"
-            aria-hidden="true"
-            class="size-(--knovum-icon-size-xs) shrink-0 text-foreground-tertiary"
-          />
+          <LockKeyhole v-if="item.locked" aria-hidden="true" class="size-3 shrink-0 text-fg-tertiary" />
           <span v-if="item.locked" class="sr-only">{{ t("spaces.canvas.locked") }}</span>
-          <span v-if="item.children" class="text-micro text-foreground-tertiary tabular-nums">{{
+          <span v-if="item.children" class="text-caption-sm text-fg-tertiary tabular-nums">{{
             item.children.length
           }}</span>
         </button>
@@ -139,11 +135,13 @@ function keydown(event: KeyboardEvent) {
         v-model="draft"
         maxlength="512"
         :readonly="saving"
-        class="h-6 min-w-0 flex-1 rounded-control bg-control px-1 text-caption ring-1 ring-focus-ring outline-none"
+        class="h-6 min-w-0 flex-1 rounded-md bg-surface-control px-1 text-caption-md ring-1 ring-stroke-focus outline-none"
         @keydown="keydown"
         @blur="emit('finish')"
       />
     </div>
-    <p v-if="editing && error" role="alert" class="pb-1 pl-6 text-micro text-danger">{{ error }}</p>
+    <p v-if="editing && error" role="alert" class="pb-1 pl-6 text-caption-sm text-fg-danger">
+      {{ error }}
+    </p>
   </div>
 </template>

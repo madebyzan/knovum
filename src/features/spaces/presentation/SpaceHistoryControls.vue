@@ -20,7 +20,7 @@ const { t } = useI18n();
       :disabled="!canNavigateBack"
       @click="store.navigateSpaceHistory(-1)"
     >
-      <ChevronLeft class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
+      <ChevronLeft class="size-3.5" :stroke-width="1.6" />
     </UiIconButton>
     <UiIconButton
       :label="t('spaces.space.forward')"
@@ -29,7 +29,7 @@ const { t } = useI18n();
       :disabled="!canNavigateForward"
       @click="store.navigateSpaceHistory(1)"
     >
-      <ChevronRight class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
+      <ChevronRight class="size-3.5" :stroke-width="1.6" />
     </UiIconButton>
   </div>
 </template>

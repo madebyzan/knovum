@@ -98,12 +98,12 @@ function generateVideo() {
     <SpaceSubtitleCuePicker :cues="data.cues" :active-index="draft.index" @select="select" />
     <div
       v-if="cue"
-      class="space-y-2 rounded-panel border border-divider p-2.5"
+      class="space-y-2 rounded-panel border border-stroke-divider p-2.5"
       @focusin="nodeDraft.begin()"
       @focusout="!dirty && nodeDraft.end()"
     >
       <div class="grid grid-cols-2 gap-2">
-        <label class="block text-micro text-foreground-tertiary">
+        <label class="block text-caption-sm text-fg-tertiary">
           <span class="mb-1 block">{{ t("spaces.creation.video.cues.start") }}</span>
           <UiNumberField
             v-model="draft.startMs"
@@ -112,7 +112,7 @@ function generateVideo() {
             size="sm"
           />
         </label>
-        <label class="block text-micro text-foreground-tertiary">
+        <label class="block text-caption-sm text-fg-tertiary">
           <span class="mb-1 block">{{ t("spaces.creation.video.cues.end") }}</span>
           <UiNumberField v-model="draft.endMs" :disabled="!nodeDraft.canContinue.value" :min="1" size="sm" />
         </label>

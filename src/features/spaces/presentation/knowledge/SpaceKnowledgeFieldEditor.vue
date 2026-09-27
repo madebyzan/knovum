@@ -58,13 +58,13 @@ const choices = computed(() =>
 
 <template>
   <label class="block">
-    <span class="mb-1 block text-micro text-foreground-tertiary"
+    <span class="mb-1 block text-caption-sm text-fg-tertiary"
       >{{ field.label }}<span v-if="field.required"> *</span></span
     >
     <UiNumberField v-if="field.kind === 'number'" v-model="numberValue" />
     <label
       v-else-if="field.kind === 'boolean'"
-      class="flex h-(--knovum-control-height-md) items-center gap-2 text-label text-foreground-secondary"
+      class="flex h-(--knovum-control-height-md) items-center gap-2 text-label-md text-fg-secondary"
     >
       <UiCheckbox v-model="booleanValue" :label="field.label" />
       {{ field.label }}

@@ -9,16 +9,16 @@ describe("UiBadge", () => {
       slots: { default: "Active" },
     });
     expect(wrapper.text()).toBe("Active");
-    expect(wrapper.classes()).toContain("bg-raised");
-    expect(wrapper.classes()).toContain("text-foreground-secondary");
+    expect(wrapper.classes()).toContain("bg-surface-raised");
+    expect(wrapper.classes()).toContain("text-fg-secondary");
   });
 
   it("applies accent and danger variants", () => {
     const accentWrapper = mount(UiBadge, { props: { variant: "accent" } });
-    expect(accentWrapper.classes()).toContain("text-accent");
+    expect(accentWrapper.classes()).toContain("text-fg-accent");
 
     const dangerWrapper = mount(UiBadge, { props: { variant: "danger" } });
-    expect(dangerWrapper.classes()).toContain("text-danger");
+    expect(dangerWrapper.classes()).toContain("text-fg-danger");
   });
 
   it("applies size classes correctly", () => {

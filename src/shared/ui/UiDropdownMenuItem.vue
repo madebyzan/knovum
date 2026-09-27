@@ -29,7 +29,7 @@ const emit = defineEmits<{
       cn(
         MENU_ITEM_BASE_CLASSES,
         'px-2',
-        destructive ? 'text-danger data-highlighted:text-danger' : 'text-foreground',
+        destructive ? 'text-fg-danger data-highlighted:text-fg-danger' : 'text-fg-primary',
         props.class,
       )
     "

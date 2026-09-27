@@ -39,18 +39,18 @@ watch(
 
 <template>
   <section class="w-68 overflow-hidden rounded-[inherit] select-none">
-    <header class="flex h-9 items-center justify-between border-b border-divider px-2.5">
-      <p class="text-label font-medium text-foreground">{{ t("spaces.scenes.title") }}</p>
+    <header class="flex h-9 items-center justify-between border-b border-stroke-divider px-2.5">
+      <p class="text-label-md font-medium text-fg-primary">{{ t("spaces.scenes.title") }}</p>
       <UiIconButton
         :label="t('spaces.scenes.save')"
         size="sm"
-        class="size-6 rounded-grid-cell"
+        class="size-6 rounded-sm"
         :disabled="saving"
         :aria-busy="saving"
         @click="emit('create')"
       >
-        <LoaderCircle v-if="saving" class="size-(--knovum-icon-size-sm) animate-spin" :stroke-width="1.6" />
-        <Plus v-else class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
+        <LoaderCircle v-if="saving" class="size-3.5 animate-spin" :stroke-width="1.6" />
+        <Plus v-else class="size-3.5" :stroke-width="1.6" />
       </UiIconButton>
     </header>
     <div v-if="scenes.length" ref="sceneList" class="scene-list max-h-80 overflow-y-auto p-1.5">
@@ -69,17 +69,17 @@ watch(
       />
     </div>
     <div v-else class="flex flex-col items-center px-5 py-5 text-center">
-      <p class="text-caption leading-5 text-foreground-tertiary">
+      <p class="text-caption-md leading-5 text-fg-tertiary">
         {{ t("spaces.scenes.empty") }}
       </p>
       <button
         type="button"
-        class="mt-3 flex h-7 items-center gap-1.5 rounded-control border border-border-strong bg-control px-3 text-caption font-medium text-foreground shadow-control hover:bg-control-hover active:bg-control-pressed disabled:pointer-events-none disabled:opacity-50"
+        class="mt-3 flex h-7 items-center gap-1.5 rounded-md border border-stroke-strong bg-surface-control px-3 text-caption-md font-medium text-fg-primary shadow-control hover:bg-surface-control-hover active:bg-surface-control-pressed disabled:pointer-events-none disabled:opacity-50"
         :disabled="saving"
         :aria-busy="saving"
         @click="emit('create')"
       >
-        <LoaderCircle v-if="saving" class="size-(--knovum-icon-size-xs) animate-spin" />
+        <LoaderCircle v-if="saving" class="size-3 animate-spin" />
         {{ t("spaces.scenes.save") }}
       </button>
     </div>
@@ -88,7 +88,7 @@ watch(
 
 <style scoped>
 .scene-list {
-  scrollbar-color: var(--knovum-color-border-hover) transparent;
+  scrollbar-color: var(--color-stroke-default-hover) transparent;
   scrollbar-width: thin;
 }
 
@@ -97,7 +97,7 @@ watch(
 }
 
 .scene-list::-webkit-scrollbar-thumb {
-  border-radius: var(--knovum-control-radius);
-  background: var(--knovum-color-border-hover);
+  border-radius: var(--radius-md);
+  background: var(--color-stroke-default-hover);
 }
 </style>

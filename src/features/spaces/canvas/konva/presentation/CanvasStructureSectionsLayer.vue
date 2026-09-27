@@ -13,7 +13,7 @@ function fill(section: ProjectedSection) {
   const appearance = section.layout.appearance;
   if (appearance?.customFill) return appearance.customFill;
   if (appearance?.fill) return props.palette.noteFill[appearance.fill];
-  return props.palette.surface;
+  return props.palette.panel;
 }
 </script>
 

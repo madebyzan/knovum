@@ -52,14 +52,16 @@ function save() {
 <template>
   <UiDialog v-model:open="open" :title="t('settings.creation.presets.edit')">
     <div class="grid gap-4">
-      <label class="grid gap-1.5 text-label font-medium">
+      <label class="grid gap-1.5 text-label-md font-medium">
         {{ t("settings.creation.presets.name") }}
         <UiInput v-model="draft.name" />
       </label>
-      <p v-if="actionLoadError" class="text-caption text-danger">{{ String(actionLoadError) }}</p>
+      <p v-if="actionLoadError" class="text-caption-md text-fg-danger">
+        {{ String(actionLoadError) }}
+      </p>
       <AiExecutionTargetField v-else-if="action" v-model="draft.target" :purpose="routingPurpose" />
       <section v-if="Object.keys(draft.parameters).length" class="grid gap-2">
-        <h3 class="text-label font-medium">{{ t("settings.creation.parameters") }}</h3>
+        <h3 class="text-label-md font-medium">{{ t("settings.creation.parameters") }}</h3>
         <CreationParameterFields v-model="draft.parameters" />
       </section>
     </div>

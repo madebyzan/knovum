@@ -57,12 +57,12 @@ const selectedLabel = computed(() => props.options.find((option) => option.value
       :aria-label="label"
       :class="
         cn(
-          'flex items-center justify-between gap-2 text-label data-placeholder:text-foreground-tertiary data-[state=open]:border-focus-ring',
+          'flex items-center justify-between gap-2 text-label-md data-placeholder:text-fg-tertiary data-[state=open]:border-stroke-focus',
           width === 'compact' ? 'w-20 min-w-20' : 'w-full min-w-32',
           INPUT_BASE_CLASSES,
           size === 'sm'
-            ? 'h-(--knovum-control-height-sm) px-2 text-caption'
-            : 'h-(--knovum-control-height-md) px-2.5 text-label',
+            ? 'h-(--knovum-control-height-sm) px-2 text-caption-md'
+            : 'h-(--knovum-control-height-md) px-2.5 text-label-md',
           props.class,
         )
       "
@@ -70,7 +70,7 @@ const selectedLabel = computed(() => props.options.find((option) => option.value
       <SelectValue v-bind="placeholder ? { placeholder } : {}" class="min-w-0 flex-1 truncate text-left">{{
         selectedLabel
       }}</SelectValue>
-      <ChevronDown class="size-(--knovum-icon-size-xs) shrink-0 text-foreground-tertiary" />
+      <ChevronDown class="size-3 shrink-0 text-fg-tertiary" />
     </SelectTrigger>
     <SelectPortal>
       <SelectContent
@@ -93,14 +93,12 @@ const selectedLabel = computed(() => props.options.find((option) => option.value
             :value="option.value"
             :text-value="option.label"
             :disabled="option.disabled ?? false"
-            class="relative flex min-h-(--knovum-compact-item-height) cursor-default items-center rounded-control py-1 pr-2 pl-7 text-label outline-none data-disabled:opacity-45 data-highlighted:bg-control-hover"
+            class="relative flex min-h-(--knovum-list-item-height-sm) cursor-default items-center rounded-md py-1 pr-2 pl-7 text-label-md outline-none data-disabled:opacity-45 data-highlighted:bg-surface-control-hover"
           >
-            <SelectItemIndicator class="absolute left-2"
-              ><Check class="size-(--knovum-icon-size-xs)"
-            /></SelectItemIndicator>
+            <SelectItemIndicator class="absolute left-2"><Check class="size-3" /></SelectItemIndicator>
             <SelectItemText class="min-w-0 flex-1">
               <span class="block truncate">{{ option.label }}</span>
-              <span v-if="option.description" class="block truncate text-micro text-foreground-tertiary">
+              <span v-if="option.description" class="block truncate text-caption-sm text-fg-tertiary">
                 {{ option.description }}
               </span>
             </SelectItemText>

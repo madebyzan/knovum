@@ -43,8 +43,8 @@ watch([() => props.presentationContext.mode, () => props.data.modifiedAt], ([mod
       size="sm"
       @click.stop="toggleRendered()"
     >
-      <Code2 v-if="rendered" class="size-(--knovum-icon-size-sm)" />
-      <PanelTop v-else class="size-(--knovum-icon-size-sm)" />
+      <Code2 v-if="rendered" class="size-3.5" />
+      <PanelTop v-else class="size-3.5" />
     </UiIconButton>
     <SpaceHtmlPreview
       v-if="htmlPreview && rendered"
@@ -57,7 +57,7 @@ watch([() => props.presentationContext.mode, () => props.data.modifiedAt], ([mod
     <pre
       v-else
       data-canvas-scrollable
-      class="min-h-0 flex-1 p-3 font-mono text-caption leading-relaxed whitespace-pre-wrap text-foreground-secondary"
+      class="min-h-0 flex-1 p-3 font-mono text-caption-md leading-relaxed whitespace-pre-wrap text-fg-secondary"
       :class="presentationContext.mode === 'interactive' ? 'overflow-auto' : 'overflow-hidden'"
       @wheel.stop
       >{{ source }}</pre>

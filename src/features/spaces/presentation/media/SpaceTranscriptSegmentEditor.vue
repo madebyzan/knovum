@@ -72,22 +72,25 @@ function save() {
 
 <template>
   <div
-    class="group border-b border-divider/50 transition-colors duration-100"
-    :class="active ? 'bg-(--knovum-sidebar-item-background-selected)' : 'hover:bg-control-hover/60'"
+    class="group border-b border-stroke-divider/50 transition-colors duration-100"
+    :class="active ? 'bg-(--knovum-sidebar-item-bg-selected)' : 'hover:bg-surface-control-hover/60'"
   >
     <div class="flex gap-2 px-2.5 py-1.5">
       <button
         type="button"
-        class="w-11 shrink-0 pt-0.5 text-left font-mono text-micro font-medium text-foreground-tertiary tabular-nums hover:text-foreground"
+        class="w-11 shrink-0 pt-0.5 text-left font-mono text-caption-sm font-medium text-fg-tertiary tabular-nums hover:text-fg-primary"
         @click="emit('seek', segment.startMs)"
       >
         {{ formatDurationMs(segment.startMs) }}
       </button>
 
-      <div class="min-w-0 flex-1 border-l-2 pl-2" :class="active ? 'border-accent' : 'border-transparent'">
+      <div
+        class="min-w-0 flex-1 border-l-2 pl-2"
+        :class="active ? 'border-stroke-accent' : 'border-transparent'"
+      >
         <p
-          class="text-caption leading-snug break-words whitespace-pre-wrap"
-          :class="active ? 'text-foreground' : 'text-foreground-secondary'"
+          class="text-caption-md leading-snug break-words whitespace-pre-wrap"
+          :class="active ? 'text-fg-primary' : 'text-fg-secondary'"
         >
           {{ segment.text }}
         </p>
@@ -101,13 +104,13 @@ function save() {
         :disabled="disabled || !nodeDraft.available.value"
         @click="openEdit"
       >
-        <Pencil class="size-(--knovum-icon-size-xs) text-foreground-tertiary hover:text-foreground" />
+        <Pencil class="size-3 text-fg-tertiary hover:text-fg-primary" />
       </UiIconButton>
     </div>
 
     <UiDialog v-model:open="dialogOpen" :title="t('spaces.transcript.text.editSegment')">
       <div class="space-y-4 py-1">
-        <label class="block text-micro font-medium text-foreground-tertiary">
+        <label class="block text-caption-sm font-medium text-fg-tertiary">
           {{ t("spaces.transcript.text.title") }}
           <UiTextarea v-model="draft.text" class="mt-1 w-full resize-none" :rows="4" />
         </label>

@@ -69,18 +69,22 @@ async function saveTitle() {
         :disabled="loading"
         @click="session.selectConversation('')"
       >
-        <Plus class="size-(--knovum-icon-size-sm)" />
+        <Plus class="size-3.5" />
       </UiIconButton>
       <UiDropdownMenu v-if="selectedConversation" :items="actions">
         <template #trigger>
           <UiIconButton :label="t('spaces.assistant.conversations.actions')" size="sm">
-            <MoreHorizontal class="size-(--knovum-icon-size-sm)" />
+            <MoreHorizontal class="size-3.5" />
           </UiIconButton>
         </template>
       </UiDropdownMenu>
     </template>
   </SpaceContextHeader>
-  <form v-if="renaming" class="flex shrink-0 gap-1 border-b border-divider p-2" @submit.prevent="saveTitle">
+  <form
+    v-if="renaming"
+    class="flex shrink-0 gap-1 border-b border-stroke-divider p-2"
+    @submit.prevent="saveTitle"
+  >
     <UiInput v-model="titleDraft" class="min-w-0 flex-1" autofocus />
     <UiButton size="sm" variant="primary" type="submit">{{ t("common.save") }}</UiButton>
   </form>

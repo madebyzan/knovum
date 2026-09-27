@@ -42,13 +42,16 @@ const selectedColor = computed(() => props.options.find(({ value }) => value ===
         :aria-label="label"
       >
         <span
-          class="size-(--knovum-icon-size-sm) rounded-full ring-1 ring-border"
+          class="size-3.5 rounded-full ring-1 ring-stroke-default"
           :style="{ backgroundColor: selectedColor }"
         />
         <span :class="[nodeActionLabelClass, nodeActionLabelState(Boolean(compact))]">{{ label }}</span>
       </UiButton>
       <UiIconButton v-else :label="label" size="sm">
-        <span class="size-4 rounded-full ring-1 ring-border" :style="{ backgroundColor: selectedColor }" />
+        <span
+          class="size-4 rounded-full ring-1 ring-stroke-default"
+          :style="{ backgroundColor: selectedColor }"
+        />
       </UiIconButton>
     </template>
     <div class="gap-0.5" :class="columns === 6 ? 'grid grid-cols-6' : 'flex items-center'">
@@ -56,18 +59,18 @@ const selectedColor = computed(() => props.options.find(({ value }) => value ===
         v-for="option in options"
         :key="option.value"
         type="button"
-        class="grid size-5 place-items-center rounded-control transition-colors duration-100 outline-none hover:bg-control-hover focus-visible:ring-2 focus-visible:ring-focus-ring"
+        class="grid size-5 place-items-center rounded-md transition-colors duration-100 outline-none hover:bg-surface-control-hover focus-visible:ring-2 focus-visible:ring-stroke-focus"
         :aria-label="option.label"
         :aria-pressed="selected === option.value"
         @click="emit('select', option.value)"
       >
         <span
-          class="grid size-4 place-items-center rounded-full ring-1 ring-border"
+          class="grid size-4 place-items-center rounded-full ring-1 ring-stroke-default"
           :style="{ backgroundColor: option.color }"
         >
           <Check
             v-if="selected === option.value"
-            class="size-3 text-white drop-shadow-sm"
+            class="size-3 text-fg-on-image drop-shadow-sm"
             :stroke-width="2.5"
           />
         </span>

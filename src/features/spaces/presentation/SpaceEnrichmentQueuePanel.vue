@@ -23,11 +23,11 @@ const cancellation = useMutation({
 <template>
   <section
     v-if="jobs.length"
-    class="rounded-panel border border-divider bg-surface/45 p-3 text-caption text-foreground-secondary"
+    class="rounded-panel border border-stroke-divider bg-surface-muted/45 p-3 text-caption-md text-fg-secondary"
   >
     <header class="mb-2 flex items-center justify-between">
-      <span class="font-semibold text-foreground">{{ t("spaces.processing.queue.title") }}</span>
-      <span class="text-micro text-foreground-tertiary">{{
+      <span class="font-semibold text-fg-primary">{{ t("spaces.processing.queue.title") }}</span>
+      <span class="text-caption-sm text-fg-tertiary">{{
         t("spaces.processing.queue.subtitle", { count: jobs.length })
       }}</span>
     </header>
@@ -35,11 +35,11 @@ const cancellation = useMutation({
       <li v-for="job in jobs" :key="job.id" class="flex items-center justify-between gap-3">
         <span class="min-w-0 truncate">
           {{ t(`spaces.processing.enrichmentJobType.${job.jobType}`) }}
-          · <span class="text-foreground-tertiary">{{ job.status }}</span>
+          · <span class="text-fg-tertiary">{{ job.status }}</span>
         </span>
         <button
           type="button"
-          class="text-micro text-foreground-tertiary hover:text-foreground disabled:opacity-45"
+          class="text-caption-sm text-fg-tertiary hover:text-fg-primary disabled:opacity-45"
           :disabled="cancellation.isPending.value"
           @click="cancellation.mutate(job.id)"
         >

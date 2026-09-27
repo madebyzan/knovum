@@ -71,8 +71,8 @@ async function toggleReveal() {
         @pointerdown.prevent
         @click="toggleReveal"
       >
-        <EyeOff v-if="reveal" class="size-(--knovum-icon-size-sm)" />
-        <Eye v-else class="size-(--knovum-icon-size-sm)" />
+        <EyeOff v-if="reveal" class="size-3.5" />
+        <Eye v-else class="size-3.5" />
       </UiIconButton>
     </div>
   </PreferenceField>

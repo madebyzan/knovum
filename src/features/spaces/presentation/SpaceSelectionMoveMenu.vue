@@ -37,18 +37,18 @@ const menuItems = computed(() =>
 <template>
   <DropdownMenuSub v-if="submenu">
     <DropdownMenuSubTrigger
-      class="flex h-(--knovum-compact-item-height) cursor-default items-center gap-2 rounded-control px-2 text-label text-foreground outline-none data-[highlighted]:bg-control-hover"
+      class="flex h-(--knovum-list-item-height-sm) cursor-default items-center gap-2 rounded-md px-2 text-label-md text-fg-primary outline-none data-[highlighted]:bg-surface-control-hover"
     >
-      <FolderInput class="size-(--knovum-icon-size-sm)" />
+      <FolderInput class="size-3.5" />
       {{ t("spaces.space.moveTo") }}
-      <ChevronRight class="ml-auto size-(--knovum-icon-size-xs) text-foreground-tertiary" />
+      <ChevronRight class="ml-auto size-3 text-fg-tertiary" />
     </DropdownMenuSubTrigger>
     <DropdownMenuPortal>
       <DropdownMenuSubContent :class="SUBMENU_CONTENT_CLASSES">
         <UiDropdownMenuItem v-for="space in targets" :key="space.id" @select="emit('move', space.id)">
           {{ space.kind === "inbox" ? t("spaces.space.inbox") : space.title }}
         </UiDropdownMenuItem>
-        <p v-if="!targets.length" class="px-2 py-2 text-caption text-foreground-tertiary">
+        <p v-if="!targets.length" class="px-2 py-2 text-caption-md text-fg-tertiary">
           {{ t("spaces.space.moveNoTargets") }}
         </p>
       </DropdownMenuSubContent>
@@ -63,10 +63,10 @@ const menuItems = computed(() =>
   >
     <template #trigger>
       <UiIconButton :label="t('spaces.space.moveTo')" size="sm">
-        <FolderInput class="size-(--knovum-icon-size-sm)" :stroke-width="1.55" />
+        <FolderInput class="size-3.5" :stroke-width="1.55" />
       </UiIconButton>
     </template>
-    <p v-if="!targets.length" class="px-2 py-2 text-caption text-foreground-tertiary">
+    <p v-if="!targets.length" class="px-2 py-2 text-caption-md text-fg-tertiary">
       {{ t("spaces.space.moveNoTargets") }}
     </p>
   </UiDropdownMenu>

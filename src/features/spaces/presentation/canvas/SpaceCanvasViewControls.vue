@@ -51,51 +51,51 @@ function zoomToSelection() {
         :label="t('spaces.canvas.zoom.out')"
         :shortcut="SPACE_COMMAND_SHORTCUTS.zoomOut"
         size="sm"
-        class="size-5 rounded-grid-cell"
+        class="size-5 rounded-sm"
         @click="zoomOut"
       >
-        <Minus class="size-(--knovum-icon-size-xs)" :stroke-width="1.55" />
+        <Minus class="size-3" :stroke-width="1.55" />
       </UiIconButton>
     </ToolbarButton>
-    <div class="h-4 w-px bg-border" />
+    <div class="bg-border-default h-4 w-px" />
     <UiDropdownMenu side="top" align="start" :side-offset="6">
       <template #trigger>
         <ToolbarButton as-child>
           <button
             type="button"
-            class="flex h-5 min-w-12 items-center justify-center gap-0.5 rounded-grid-cell px-1 text-caption font-medium text-foreground-secondary tabular-nums outline-none hover:bg-control-hover hover:text-foreground focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-inset active:bg-control-pressed"
+            class="flex h-5 min-w-12 items-center justify-center gap-0.5 rounded-sm px-1 text-caption-md font-medium text-fg-secondary tabular-nums outline-none hover:bg-surface-control-hover hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-stroke-focus focus-visible:ring-inset active:bg-surface-control-pressed"
             :aria-label="t('spaces.canvas.zoom.options')"
           >
             {{ zoom }}%
-            <ChevronDown class="size-2 text-foreground-tertiary" />
+            <ChevronDown class="size-2 text-fg-tertiary" />
           </button>
         </ToolbarButton>
       </template>
       <UiDropdownMenuItem v-for="preset in zoomPresets" :key="preset" @select="setZoom(preset)">
-        <Check class="size-(--knovum-icon-size-sm)" :class="zoom === preset ? 'visible' : 'invisible'" />
+        <Check class="size-3.5" :class="zoom === preset ? 'visible' : 'invisible'" />
         {{ preset }}%
         <UiKbd v-if="preset === 100" :shortcut="SPACE_COMMAND_SHORTCUTS.resetZoom" class="ml-auto" />
       </UiDropdownMenuItem>
       <UiSeparator class="my-1" />
       <UiDropdownMenuItem :disabled="!hasSelection" @select="zoomToSelection">
-        <Scan class="size-(--knovum-icon-size-sm)" />{{ t("spaces.canvas.zoom.toSelection") }}
+        <Scan class="size-3.5" />{{ t("spaces.canvas.zoom.toSelection") }}
         <UiKbd :shortcut="SPACE_COMMAND_SHORTCUTS.zoomToSelection" class="ml-auto" />
       </UiDropdownMenuItem>
       <UiDropdownMenuItem @select="zoomToFit">
-        <Maximize2 class="size-(--knovum-icon-size-sm)" />{{ t("spaces.canvas.zoom.toFitContent") }}
+        <Maximize2 class="size-3.5" />{{ t("spaces.canvas.zoom.toFitContent") }}
         <UiKbd :shortcut="SPACE_COMMAND_SHORTCUTS.zoomToFit" class="ml-auto" />
       </UiDropdownMenuItem>
     </UiDropdownMenu>
-    <div class="h-4 w-px bg-border" />
+    <div class="bg-border-default h-4 w-px" />
     <ToolbarButton as-child>
       <UiIconButton
         :label="t('spaces.canvas.zoom.in')"
         :shortcut="SPACE_COMMAND_SHORTCUTS.zoomIn"
         size="sm"
-        class="size-5 rounded-grid-cell"
+        class="size-5 rounded-sm"
         @click="zoomIn"
       >
-        <Plus class="size-(--knovum-icon-size-xs)" :stroke-width="1.55" />
+        <Plus class="size-3" :stroke-width="1.55" />
       </UiIconButton>
     </ToolbarButton>
   </ToolbarRoot>

@@ -84,7 +84,7 @@ function rename() {
       :config="{
         width: width(),
         height: 40,
-        fill: palette.surface,
+        fill: palette.panel,
         opacity: 0.94,
         cornerRadius: displayCollapsed() ? 8 : [8, 8, 0, 0],
         perfectDrawEnabled: false,

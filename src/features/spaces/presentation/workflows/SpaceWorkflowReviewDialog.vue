@@ -94,18 +94,18 @@ watch(
 
 <template>
   <UiDialog v-model:open="open" :title="t('spaces.creation.workflow.review.title')" size="wide">
-    <p v-if="loading" class="text-caption text-foreground-secondary">{{ t("common.loading") }}</p>
+    <p v-if="loading" class="text-caption-md text-fg-secondary">{{ t("common.loading") }}</p>
     <template v-else-if="content && step">
-      <h3 class="mb-3 text-body font-medium">{{ contentTitle }}</h3>
-      <p v-if="edited" class="mb-3 text-caption text-foreground-secondary">
+      <h3 class="mb-3 text-body-sm font-medium">{{ contentTitle }}</h3>
+      <p v-if="edited" class="mb-3 text-caption-md text-fg-secondary">
         {{ t("spaces.creation.workflow.review.edited") }}
       </p>
       <UiMarkdown v-if="content.kind === 'markdown'" :content="content.text" />
-      <p v-else-if="content.kind === 'subtitle'" class="text-body leading-relaxed whitespace-pre-wrap">
+      <p v-else-if="content.kind === 'subtitle'" class="text-body-sm leading-relaxed whitespace-pre-wrap">
         {{ subtitleText }}
       </p>
     </template>
-    <p v-if="error" role="alert" class="mt-3 text-caption text-danger">{{ error }}</p>
+    <p v-if="error" role="alert" class="mt-3 text-caption-md text-fg-danger">{{ error }}</p>
     <template #footer>
       <UiButton variant="ghost" :disabled="!step || deciding" @click="editOnCanvas">{{
         t("spaces.creation.workflow.review.edit")

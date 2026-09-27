@@ -72,9 +72,9 @@ function openSource(record: (typeof provenance.value)[number]) {
 </script>
 
 <template>
-  <section v-if="provenance.length || attachable" class="rounded-control border border-divider p-2">
+  <section v-if="provenance.length || attachable" class="rounded-md border border-stroke-divider p-2">
     <div class="flex items-center gap-2">
-      <span class="min-w-0 flex-1 text-micro font-medium text-foreground-tertiary">{{
+      <span class="min-w-0 flex-1 text-caption-sm font-medium text-fg-tertiary">{{
         t("spaces.knowledge.provenance")
       }}</span>
       <UiIconButton
@@ -83,25 +83,25 @@ function openSource(record: (typeof provenance.value)[number]) {
         size="sm"
         @click="attachCurrent"
       >
-        <Plus class="size-(--knovum-icon-size-xs)" />
+        <Plus class="size-3" />
       </UiIconButton>
     </div>
     <div v-if="provenance.length" class="mt-1.5 space-y-1.5">
       <div v-for="record in provenance" :key="record.id" class="flex items-start gap-1">
         <button
           type="button"
-          class="min-w-0 flex-1 rounded-control px-1.5 py-1.5 text-left hover:bg-control-hover"
+          class="min-w-0 flex-1 rounded-md px-1.5 py-1.5 text-left hover:bg-surface-control-hover"
           @click="openSource(record)"
         >
-          <span class="flex items-center gap-1.5 text-caption text-foreground">
-            <Link2 class="size-(--knovum-icon-size-xs) shrink-0 text-foreground-tertiary" />
+          <span class="flex items-center gap-1.5 text-caption-md text-fg-primary">
+            <Link2 class="size-3 shrink-0 text-fg-tertiary" />
             <span class="truncate">{{ sourceTitle(record.sourceNodeId) }}</span>
-            <ExternalLink class="size-(--knovum-icon-size-xs) shrink-0 text-foreground-tertiary" />
+            <ExternalLink class="size-3 shrink-0 text-fg-tertiary" />
           </span>
-          <span class="mt-0.5 block truncate pl-5 text-micro text-foreground-tertiary">
+          <span class="mt-0.5 block truncate pl-5 text-caption-sm text-fg-tertiary">
             {{ knowledgeLocationLabel(record.locator) }}
           </span>
-          <span v-if="record.quote" class="mt-1 line-clamp-2 block pl-5 text-micro text-foreground-secondary">
+          <span v-if="record.quote" class="mt-1 line-clamp-2 block pl-5 text-caption-sm text-fg-secondary">
             “{{ record.quote }}”
           </span>
         </button>
@@ -111,7 +111,7 @@ function openSource(record: (typeof provenance.value)[number]) {
           size="sm"
           @click="remove(record.id)"
         >
-          <X class="size-(--knovum-icon-size-xs)" />
+          <X class="size-3" />
         </UiIconButton>
       </div>
     </div>

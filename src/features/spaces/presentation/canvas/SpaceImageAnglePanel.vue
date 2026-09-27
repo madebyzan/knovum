@@ -53,9 +53,9 @@ function changeZoom(delta: number) {
 </script>
 
 <template>
-  <section class="w-72 space-y-3 text-foreground" :aria-label="t('spaces.media.imageEditor.angle.title')">
+  <section class="w-72 space-y-3 text-fg-primary" :aria-label="t('spaces.media.imageEditor.angle.title')">
     <header class="flex items-center justify-between px-1">
-      <h3 class="text-body-lg font-semibold">{{ t("spaces.media.imageEditor.angle.title") }}</h3>
+      <h3 class="text-body-md font-semibold">{{ t("spaces.media.imageEditor.angle.title") }}</h3>
       <UiButton
         variant="ghost"
         size="sm"
@@ -65,11 +65,11 @@ function changeZoom(delta: number) {
         :disabled="busy || !changed"
         @click="reset"
       >
-        <RotateCcw class="size-(--knovum-icon-size-sm)" />
+        <RotateCcw class="size-3.5" />
       </UiButton>
     </header>
     <div
-      class="grid grid-cols-2 rounded-panel bg-control p-0.5"
+      class="grid grid-cols-2 rounded-panel bg-surface-control p-0.5"
       role="group"
       :aria-label="t('spaces.media.imageEditor.angle.mode')"
     >
@@ -77,11 +77,11 @@ function changeZoom(delta: number) {
         v-for="item in ['subject', 'camera'] as const"
         :key="item"
         type="button"
-        class="h-(--knovum-control-height-md) rounded-control text-label text-foreground-secondary transition-colors focus-visible:ring-2 focus-visible:ring-focus-ring"
+        class="h-(--knovum-control-height-md) rounded-md text-label-md text-fg-secondary transition-colors focus-visible:ring-2 focus-visible:ring-stroke-focus"
         :class="
           mode === item
-            ? 'border border-border bg-raised text-foreground shadow-control'
-            : 'hover:text-foreground'
+            ? 'border border-stroke-default bg-surface-raised text-fg-primary shadow-control'
+            : 'hover:text-fg-primary'
         "
         :aria-pressed="mode === item"
         :disabled="busy"
@@ -134,7 +134,7 @@ function changeZoom(delta: number) {
       <UiButton
         variant="secondary"
         size="md"
-        class="min-w-0 flex-1 border border-border bg-raised"
+        class="min-w-0 flex-1 border border-stroke-default bg-surface-raised"
         :disabled="busy"
         @click="emit('cancel')"
         >{{ t("common.cancel") }}</UiButton
@@ -142,7 +142,7 @@ function changeZoom(delta: number) {
       <UiButton
         variant="primary"
         size="md"
-        class="min-w-0 flex-1 bg-foreground text-canvas hover:bg-foreground hover:opacity-90"
+        class="min-w-0 flex-1 bg-surface-inverse text-fg-inverse hover:bg-surface-inverse hover:opacity-90"
         :disabled="busy || !changed || !canRunAction(availability)"
         @click="apply"
         >{{ t("spaces.media.imageEditor.applyNow") }}</UiButton

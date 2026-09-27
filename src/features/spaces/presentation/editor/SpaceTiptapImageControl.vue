@@ -60,66 +60,59 @@ function insertUrl() {
 </script>
 
 <template>
-  <UiPopover
-    v-model:open="open"
-    align="start"
-    :side-offset="7"
-    class="w-72 overflow-hidden rounded-dialog p-0"
-  >
+  <UiPopover v-model:open="open" align="start" :side-offset="7" class="w-72 overflow-hidden rounded-xl p-0">
     <template #trigger>
       <UiIconButton :label="t('spaces.richtext.image.insert')" size="sm">
-        <ImagePlus class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
+        <ImagePlus class="size-3.5" :stroke-width="1.6" />
       </UiIconButton>
     </template>
 
-    <div class="flex border-b border-divider">
+    <div class="flex border-b border-stroke-divider">
       <button
         type="button"
-        class="flex flex-1 items-center justify-center gap-1.5 px-3 py-2 text-caption font-medium transition-colors outline-none"
+        class="flex flex-1 items-center justify-center gap-1.5 px-3 py-2 text-caption-md font-medium transition-colors outline-none"
         :class="
           tab === 'upload'
-            ? 'border-b-2 border-accent text-foreground'
-            : 'text-foreground-secondary hover:text-foreground'
+            ? 'border-b-2 border-stroke-accent text-fg-primary'
+            : 'text-fg-secondary hover:text-fg-primary'
         "
         @click="tab = 'upload'"
       >
-        <Upload class="size-(--knovum-icon-size-xs)" :stroke-width="1.6" />{{
-          t("spaces.richtext.image.tabUpload")
-        }}
+        <Upload class="size-3" :stroke-width="1.6" />{{ t("spaces.richtext.image.tabUpload") }}
       </button>
       <button
         type="button"
-        class="flex flex-1 items-center justify-center gap-1.5 px-3 py-2 text-caption font-medium transition-colors outline-none"
+        class="flex flex-1 items-center justify-center gap-1.5 px-3 py-2 text-caption-md font-medium transition-colors outline-none"
         :class="
           tab === 'url'
-            ? 'border-b-2 border-accent text-foreground'
-            : 'text-foreground-secondary hover:text-foreground'
+            ? 'border-b-2 border-stroke-accent text-fg-primary'
+            : 'text-fg-secondary hover:text-fg-primary'
         "
         @click="tab = 'url'"
       >
-        <Link2 class="size-(--knovum-icon-size-xs)" :stroke-width="1.6" />{{
-          t("spaces.richtext.image.tabUrl")
-        }}
+        <Link2 class="size-3" :stroke-width="1.6" />{{ t("spaces.richtext.image.tabUrl") }}
       </button>
     </div>
 
     <div v-if="tab === 'upload'" class="flex flex-col items-center gap-3 px-4 py-5">
       <button
         type="button"
-        class="flex h-20 w-full flex-col items-center justify-center gap-1.5 rounded-control border-2 border-dashed border-divider text-foreground-secondary transition-colors hover:border-accent hover:text-foreground"
+        class="flex h-20 w-full flex-col items-center justify-center gap-1.5 rounded-md border-2 border-dashed border-stroke-divider text-fg-secondary transition-colors hover:border-stroke-accent hover:text-fg-primary"
         :disabled="busy"
         @click="choose"
       >
-        <Upload class="size-(--knovum-icon-size-md)" :stroke-width="1.4" />
-        <span class="text-caption">{{ t("spaces.richtext.image.choose") }}</span>
+        <Upload class="size-4" :stroke-width="1.4" />
+        <span class="text-caption-md">{{ t("spaces.richtext.image.choose") }}</span>
       </button>
-      <p class="text-micro text-foreground-tertiary">{{ t("spaces.richtext.image.dropDocumentHint") }}</p>
+      <p class="text-caption-sm text-fg-tertiary">
+        {{ t("spaces.richtext.image.dropDocumentHint") }}
+      </p>
     </div>
 
     <div v-else class="flex flex-col gap-2.5 px-3 py-3">
       <label class="grid gap-1.5">
-        <span class="flex items-center gap-1.5 text-caption font-medium text-foreground-secondary">
-          <Link2 class="size-(--knovum-icon-size-xs)" />{{ t("spaces.richtext.image.url") }}
+        <span class="flex items-center gap-1.5 text-caption-md font-medium text-fg-secondary">
+          <Link2 class="size-3" />{{ t("spaces.richtext.image.url") }}
         </span>
         <UiInput
           v-model="url"
@@ -129,11 +122,11 @@ function insertUrl() {
           @keydown.enter.prevent="insertUrl"
         />
       </label>
-      <p v-if="invalidUrl" class="-mt-1 text-caption text-danger">
+      <p v-if="invalidUrl" class="-mt-1 text-caption-md text-fg-danger">
         {{ t("spaces.richtext.image.urlInvalid") }}
       </p>
       <label class="grid gap-1.5">
-        <span class="text-caption font-medium text-foreground-secondary">{{
+        <span class="text-caption-md font-medium text-fg-secondary">{{
           t("spaces.richtext.image.alt")
         }}</span>
         <UiInput
@@ -144,7 +137,7 @@ function insertUrl() {
       </label>
       <div class="flex justify-end pt-0.5">
         <UiButton size="sm" variant="primary" :disabled="!normalizedUrl" @click="insertUrl">
-          <Check class="size-(--knovum-icon-size-xs)" />{{ t("spaces.richtext.image.insert") }}
+          <Check class="size-3" />{{ t("spaces.richtext.image.insert") }}
         </UiButton>
       </div>
     </div>

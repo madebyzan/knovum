@@ -44,12 +44,12 @@ async function useSuggestion(value: string) {
 </script>
 
 <template>
-  <section class="flex h-full min-h-0 min-w-0 flex-col bg-panel">
+  <section class="flex h-full min-h-0 min-w-0 flex-col bg-surface-panel">
     <SpaceConversationHeader />
     <button
       v-if="(pendingPermission || approvals.length) && activeConversationId !== selectedConversationId"
       type="button"
-      class="bg-warning-subtle shrink-0 border-b border-warning/40 px-3 py-2 text-left text-caption text-foreground hover:bg-warning/15"
+      class="shrink-0 border-b border-stroke-warning/40 bg-surface-warning-subtle px-3 py-2 text-left text-caption-md text-fg-primary hover:bg-surface-warning-subtle-hover"
       @click="conversationSession.selectConversation(activeConversationId)"
     >
       {{ $t("spaces.assistant.permission.return") }}
@@ -57,7 +57,7 @@ async function useSuggestion(value: string) {
     <button
       v-else-if="activeRunId && activeConversationId && activeConversationId !== selectedConversationId"
       type="button"
-      class="shrink-0 border-b border-divider bg-control px-3 py-2 text-left text-caption text-foreground hover:bg-control-hover"
+      class="shrink-0 border-b border-stroke-divider bg-surface-control px-3 py-2 text-left text-caption-md text-fg-primary hover:bg-surface-control-hover"
       @click="conversationSession.selectConversation(activeConversationId)"
     >
       {{ $t("spaces.assistant.conversations.returnToRunning") }}

@@ -69,21 +69,21 @@ defineExpose({ seekTo, togglePlayback });
     class="pointer-events-none grid min-h-0 flex-1 grid-cols-[2.25rem_minmax(0,1fr)] grid-rows-[1.25rem_2.25rem] content-center gap-x-3 gap-y-1 px-3 py-2 select-none"
   >
     <UiIconButton
-      class="nodrag pointer-events-auto row-span-2 size-9 self-center rounded-full border border-border-strong bg-raised text-foreground shadow-control hover:bg-control-hover"
+      class="nodrag pointer-events-auto row-span-2 size-9 self-center rounded-full border border-stroke-strong bg-surface-raised text-fg-primary shadow-control hover:bg-surface-control-hover"
       :label="playing ? t('common.pause') : t('spaces.media.player.play')"
       size="sm"
       @click.stop="togglePlayback"
     >
-      <Pause v-if="playing" class="size-(--knovum-icon-size-sm)" fill="currentColor" />
-      <Play v-else class="ml-px size-(--knovum-icon-size-sm)" fill="currentColor" />
+      <Pause v-if="playing" class="size-3.5" fill="currentColor" />
+      <Play v-else class="ml-px size-3.5" fill="currentColor" />
     </UiIconButton>
 
     <div class="flex min-w-0 items-center gap-2">
-      <strong class="min-w-0 flex-1 truncate text-label font-medium">{{ data.title }}</strong>
-      <span v-if="data.origin" class="max-w-16 shrink-0 truncate text-micro text-foreground-tertiary">
+      <strong class="min-w-0 flex-1 truncate text-label-md font-medium">{{ data.title }}</strong>
+      <span v-if="data.origin" class="max-w-16 shrink-0 truncate text-caption-sm text-fg-tertiary">
         {{ mediaProviderDisplayName(data.origin.provider) }}
       </span>
-      <span class="shrink-0 text-micro text-foreground-tertiary tabular-nums">
+      <span class="shrink-0 text-caption-sm text-fg-tertiary tabular-nums">
         <template v-if="loaded">{{ formatDurationMs(currentMs) }} / </template>{{ durationLabel }}
       </span>
       <UiIconButton
@@ -93,11 +93,11 @@ defineExpose({ seekTo, togglePlayback });
         size="sm"
         @click.stop="unload"
       >
-        <X class="size-(--knovum-icon-size-xs)" />
+        <X class="size-3" />
       </UiIconButton>
     </div>
 
-    <div class="relative min-w-0 rounded-sm focus-within:ring-1 focus-within:ring-accent">
+    <div class="relative min-w-0 rounded-sm focus-within:ring-1 focus-within:ring-stroke-accent">
       <span v-if="analysis" class="audio-waveform" aria-hidden="true">
         <span
           v-for="(amplitude, index) in waveform"
@@ -107,7 +107,7 @@ defineExpose({ seekTo, togglePlayback });
           :style="{ height: `${Math.round(5 + amplitude * 27)}px` }"
         />
       </span>
-      <span v-else class="flex h-full items-center text-micro text-foreground-tertiary" role="status">
+      <span v-else class="flex h-full items-center text-caption-sm text-fg-tertiary" role="status">
         {{ t("spaces.media.analysis.unavailable") }}
       </span>
       <input
@@ -143,6 +143,6 @@ defineExpose({ seekTo, togglePlayback });
 }
 
 .audio-waveform-bar-played {
-  background: var(--color-accent);
+  background: var(--color-fg-accent);
 }
 </style>

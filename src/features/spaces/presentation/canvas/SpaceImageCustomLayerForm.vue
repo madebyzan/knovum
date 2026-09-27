@@ -20,17 +20,17 @@ const showHelp = computed(
 </script>
 
 <template>
-  <section class="text-foreground" :aria-label="t('spaces.media.imageEditor.layers.custom')">
+  <section class="text-fg-primary" :aria-label="t('spaces.media.imageEditor.layers.custom')">
     <header class="flex items-center justify-between gap-2 px-1 pb-2">
-      <h3 class="text-body font-semibold">{{ t("spaces.media.imageEditor.layers.panel") }}</h3>
+      <h3 class="text-body-sm font-semibold">{{ t("spaces.media.imageEditor.layers.panel") }}</h3>
       <UiTooltip :text="t('spaces.media.imageEditor.layers.selectContentUnavailable')" side="top">
         <button
           type="button"
-          class="inline-flex cursor-not-allowed items-center gap-1 text-label text-foreground-tertiary"
+          class="inline-flex cursor-not-allowed items-center gap-1 text-label-md text-fg-tertiary"
           :aria-label="t('spaces.media.imageEditor.layers.selectContent')"
           aria-disabled="true"
         >
-          <ScanLine class="size-(--knovum-icon-size-sm)" :stroke-width="1.5" />
+          <ScanLine class="size-3.5" :stroke-width="1.5" />
           {{ t("spaces.media.imageEditor.layers.selectContent") }}
         </button>
       </UiTooltip>
@@ -40,21 +40,21 @@ const showHelp = computed(
       rows="2"
       maxlength="1000"
       :aria-label="t('spaces.media.imageEditor.layers.prompt')"
-      class="block min-h-18 w-full resize-none rounded-control bg-transparent px-1 py-2 text-label text-foreground outline-none placeholder:text-foreground-tertiary focus-visible:ring-2 focus-visible:ring-focus-ring"
+      class="block min-h-18 w-full resize-none rounded-md bg-transparent px-1 py-2 text-label-md text-fg-primary outline-none placeholder:text-fg-tertiary focus-visible:ring-2 focus-visible:ring-stroke-focus"
       :placeholder="t('spaces.media.imageEditor.layers.promptPlaceholder')"
     />
     <footer class="mt-1 flex items-center gap-2">
       <UiButton
         variant="secondary"
         size="md"
-        class="min-w-0 flex-1 border border-border bg-raised"
+        class="min-w-0 flex-1 border border-stroke-default bg-surface-raised"
         @click="emit('cancel')"
         >{{ t("common.cancel") }}</UiButton
       >
       <UiButton
         variant="primary"
         size="md"
-        class="min-w-0 flex-1 bg-foreground text-canvas hover:bg-foreground hover:opacity-90"
+        class="min-w-0 flex-1 bg-surface-inverse text-fg-inverse hover:bg-surface-inverse hover:opacity-90"
         :disabled="!canRunAction(availability)"
         @click="emit('submit')"
         >{{ t("spaces.media.imageEditor.layers.split") }}</UiButton

@@ -98,18 +98,18 @@ async function duplicateScene(scene: SpaceScene) {
         :label="sceneLabel(-1)"
         :shortcut="SPACE_COMMAND_SHORTCUTS.previousScene"
         size="sm"
-        class="size-5 rounded-grid-cell"
+        class="size-5 rounded-sm"
         :disabled="!canStep"
         @click="stepScene(-1)"
       >
-        <ChevronLeft class="size-(--knovum-icon-size-xs)" :stroke-width="1.55" />
+        <ChevronLeft class="size-3" :stroke-width="1.55" />
       </UiIconButton>
     </ToolbarButton>
     <UiPopover v-model:open="open" side="top" align="center" :side-offset="6" class="p-0">
       <template #trigger>
         <ToolbarButton as-child>
-          <UiIconButton :label="t('spaces.scenes.title')" size="sm" class="size-5 rounded-grid-cell">
-            <List class="size-(--knovum-icon-size-xs)" :stroke-width="1.55" />
+          <UiIconButton :label="t('spaces.scenes.title')" size="sm" class="size-5 rounded-sm">
+            <List class="size-3" :stroke-width="1.55" />
           </UiIconButton>
         </ToolbarButton>
       </template>
@@ -132,11 +132,11 @@ async function duplicateScene(scene: SpaceScene) {
         :label="sceneLabel(1)"
         :shortcut="SPACE_COMMAND_SHORTCUTS.nextScene"
         size="sm"
-        class="size-5 rounded-grid-cell"
+        class="size-5 rounded-sm"
         :disabled="!canStep"
         @click="stepScene(1)"
       >
-        <ChevronRight class="size-(--knovum-icon-size-xs)" :stroke-width="1.55" />
+        <ChevronRight class="size-3" :stroke-width="1.55" />
       </UiIconButton>
     </ToolbarButton>
   </ToolbarRoot>

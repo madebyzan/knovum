@@ -63,16 +63,14 @@ function save() {
 
 <template>
   <article
-    class="group flex items-start gap-2 rounded-control px-2 py-1.5 transition-colors duration-100 hover:bg-control-hover"
+    class="group flex items-start gap-2 rounded-md px-2 py-1.5 transition-colors duration-100 hover:bg-surface-control-hover"
     :class="
-      active
-        ? 'bg-(--knovum-sidebar-item-background-selected) font-medium text-foreground'
-        : 'text-foreground-secondary'
+      active ? 'bg-(--knovum-sidebar-item-bg-selected) font-medium text-fg-primary' : 'text-fg-secondary'
     "
   >
     <button
       type="button"
-      class="w-10 shrink-0 pt-0.5 text-left font-mono text-micro font-medium text-foreground-tertiary tabular-nums hover:text-foreground"
+      class="w-10 shrink-0 pt-0.5 text-left font-mono text-caption-sm font-medium text-fg-tertiary tabular-nums hover:text-fg-primary"
       :title="t('spaces.transcript.chapters.seek')"
       @click="emit('seek', chapter.startMs)"
     >
@@ -80,12 +78,12 @@ function save() {
     </button>
 
     <div class="min-w-0 flex-1 space-y-0.5">
-      <strong class="block text-caption leading-snug font-medium break-words text-foreground">
+      <strong class="block text-caption-md leading-snug font-medium break-words text-fg-primary">
         {{ chapter.title }}
       </strong>
       <p
         v-if="chapter.summary"
-        class="text-micro leading-relaxed break-words whitespace-pre-wrap text-foreground-secondary"
+        class="text-caption-sm leading-relaxed break-words whitespace-pre-wrap text-fg-secondary"
       >
         {{ chapter.summary }}
       </p>
@@ -98,16 +96,16 @@ function save() {
       class="shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
       @click="openEdit"
     >
-      <Pencil class="size-(--knovum-icon-size-xs) text-foreground-tertiary hover:text-foreground" />
+      <Pencil class="size-3 text-fg-tertiary hover:text-fg-primary" />
     </UiIconButton>
 
     <UiDialog v-model:open="dialogOpen" :title="t('spaces.transcript.chapters.edit')">
       <div class="space-y-4 py-1">
-        <label class="block text-micro font-medium text-foreground-tertiary">
+        <label class="block text-caption-sm font-medium text-fg-tertiary">
           {{ t("spaces.transcript.chapters.titleField") }}
           <UiInput v-model="draft.title" class="mt-1 w-full" />
         </label>
-        <label class="block text-micro font-medium text-foreground-tertiary">
+        <label class="block text-caption-sm font-medium text-fg-tertiary">
           {{ t("spaces.transcript.chapters.summary") }}
           <UiTextarea v-model="draft.summary" class="mt-1 w-full resize-none" :rows="4" />
         </label>

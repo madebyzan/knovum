@@ -8,17 +8,17 @@ const { t } = useI18n();
 
 <template>
   <div
-    class="absolute top-3 left-1/2 z-30 flex -translate-x-1/2 items-center gap-2 rounded-control border border-border bg-surface/95 px-2 py-1 shadow-popover backdrop-blur"
+    class="absolute top-3 left-1/2 z-30 flex -translate-x-1/2 items-center gap-2 rounded-md border border-stroke-default bg-surface-muted/95 px-2 py-1 shadow-popover backdrop-blur"
   >
     <button
       type="button"
-      class="hover:bg-surface-hover rounded-control px-1.5 py-0.5 text-caption text-foreground-secondary hover:text-foreground"
+      class="rounded-md px-1.5 py-0.5 text-caption-md text-fg-secondary hover:bg-surface-control-hover hover:text-fg-primary"
       @click="emit('back')"
     >
       {{ t("common.back") }}
     </button>
-    <span class="h-3 w-px bg-border" />
-    <span class="max-w-72 truncate text-caption font-medium text-foreground">
+    <span class="bg-border-default h-3 w-px" />
+    <span class="max-w-72 truncate text-caption-md font-medium text-fg-primary">
       {{ titles.join(" / ") }}
     </span>
   </div>

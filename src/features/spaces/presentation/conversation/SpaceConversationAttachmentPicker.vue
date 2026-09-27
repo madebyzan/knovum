@@ -61,49 +61,49 @@ function chooseFiles() {
   <UiPopover v-model:open="open" side="top" align="start" class="w-80 max-w-[calc(100vw-24px)] p-2">
     <template #trigger>
       <UiIconButton :label="$t('spaces.assistant.attachments.add')" size="sm">
-        <Plus class="size-(--knovum-icon-size-sm)" />
+        <Plus class="size-3.5" />
       </UiIconButton>
     </template>
     <template v-if="view === 'sources'">
-      <p class="px-2 py-1.5 text-micro font-medium text-foreground-tertiary">
+      <p class="px-2 py-1.5 text-caption-sm font-medium text-fg-tertiary">
         {{ $t("spaces.assistant.attachments.source") }}
       </p>
       <button
         type="button"
-        class="flex w-full items-center gap-3 rounded-control px-2 py-2.5 text-left hover:bg-control-hover focus-visible:outline-2 focus-visible:outline-focus-ring"
+        class="flex w-full items-center gap-3 rounded-md px-2 py-2.5 text-left hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus"
         @click="view = 'nodes'"
       >
         <span
-          class="flex size-9 shrink-0 items-center justify-center rounded-control bg-accent-subtle text-accent"
+          class="flex size-9 shrink-0 items-center justify-center rounded-md bg-surface-accent-subtle text-fg-accent"
         >
-          <Link2 class="size-(--knovum-icon-size-sm)" />
+          <Link2 class="size-3.5" />
         </span>
         <span class="min-w-0 flex-1">
-          <span class="block text-caption font-medium">{{
+          <span class="block text-caption-md font-medium">{{
             $t("spaces.assistant.attachments.citeCanvasNode")
           }}</span>
-          <span class="block text-micro text-foreground-tertiary">{{
+          <span class="block text-caption-sm text-fg-tertiary">{{
             $t("spaces.assistant.attachments.citeCanvasNodeHint")
           }}</span>
         </span>
-        <ArrowRight class="size-(--knovum-icon-size-xs) shrink-0 text-foreground-tertiary" />
+        <ArrowRight class="size-3 shrink-0 text-fg-tertiary" />
       </button>
       <button
         type="button"
-        class="flex w-full items-center gap-3 rounded-control px-2 py-2.5 text-left hover:bg-control-hover focus-visible:outline-2 focus-visible:outline-focus-ring disabled:opacity-50"
+        class="flex w-full items-center gap-3 rounded-md px-2 py-2.5 text-left hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus disabled:opacity-50"
         :disabled="pickingFiles"
         @click="chooseFiles"
       >
         <span
-          class="flex size-9 shrink-0 items-center justify-center rounded-control bg-control text-foreground-secondary"
+          class="flex size-9 shrink-0 items-center justify-center rounded-md bg-surface-control text-fg-secondary"
         >
-          <FileUp class="size-(--knovum-icon-size-sm)" />
+          <FileUp class="size-3.5" />
         </span>
         <span class="min-w-0 flex-1">
-          <span class="block text-caption font-medium">{{
+          <span class="block text-caption-md font-medium">{{
             $t("spaces.assistant.attachments.uploadLocalFile")
           }}</span>
-          <span class="block text-micro text-foreground-tertiary">{{
+          <span class="block text-caption-sm text-fg-tertiary">{{
             $t("spaces.assistant.attachments.uploadLocalFileHint")
           }}</span>
         </span>
@@ -112,9 +112,11 @@ function chooseFiles() {
     <template v-else>
       <div class="flex items-center gap-1 px-1 pb-1">
         <UiIconButton :label="$t('common.back')" size="sm" @click="view = 'sources'">
-          <ArrowLeft class="size-(--knovum-icon-size-sm)" />
+          <ArrowLeft class="size-3.5" />
         </UiIconButton>
-        <span class="text-caption font-medium">{{ $t("spaces.assistant.attachments.citeCanvasNode") }}</span>
+        <span class="text-caption-md font-medium">{{
+          $t("spaces.assistant.attachments.citeCanvasNode")
+        }}</span>
       </div>
       <div class="px-1 pb-1">
         <UiSearchInput
@@ -126,20 +128,20 @@ function chooseFiles() {
       </div>
       <button
         type="button"
-        class="flex w-full items-center gap-2 rounded-control px-2 py-2 text-left text-caption hover:bg-control-hover focus-visible:outline-2 focus-visible:outline-focus-ring disabled:opacity-50"
+        class="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-caption-md hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus disabled:opacity-50"
         :disabled="selectedCount === 0"
         @click="addSelected"
       >
-        <Plus class="size-(--knovum-icon-size-xs) shrink-0" />
+        <Plus class="size-3 shrink-0" />
         {{ $t("spaces.assistant.attachments.addCurrentSelection", { count: selectedCount }) }}
       </button>
-      <div class="mx-1 my-1 border-t border-divider" />
+      <div class="mx-1 my-1 border-t border-stroke-divider" />
       <div class="max-h-60 overflow-y-auto">
         <button
           v-for="candidate in matching"
           :key="candidate.nodeId"
           type="button"
-          class="flex w-full items-center gap-2 rounded-control px-2 py-2 text-left text-caption hover:bg-control-hover focus-visible:outline-2 focus-visible:outline-focus-ring disabled:opacity-50"
+          class="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-caption-md hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus disabled:opacity-50"
           :disabled="candidate.attached"
           @click="addOne(candidate.nodeId)"
         >
@@ -147,18 +149,18 @@ function chooseFiles() {
             v-if="candidate.previewSource"
             :src="candidate.previewSource"
             alt=""
-            class="size-8 shrink-0 rounded-control object-cover"
+            class="size-8 shrink-0 rounded-md object-cover"
           />
           <span
             v-else
-            class="flex size-8 shrink-0 items-center justify-center rounded-control bg-accent-subtle text-accent"
+            class="flex size-8 shrink-0 items-center justify-center rounded-md bg-surface-accent-subtle text-fg-accent"
           >
-            <Link2 class="size-(--knovum-icon-size-xs)" />
+            <Link2 class="size-3" />
           </span>
           <span class="min-w-0 flex-1 truncate">{{ candidate.title }}</span>
-          <Check v-if="candidate.attached" class="size-(--knovum-icon-size-xs) shrink-0" />
+          <Check v-if="candidate.attached" class="size-3 shrink-0" />
         </button>
-        <p v-if="matching.length === 0" class="px-2 py-4 text-center text-caption text-foreground-tertiary">
+        <p v-if="matching.length === 0" class="px-2 py-4 text-center text-caption-md text-fg-tertiary">
           {{ $t("spaces.assistant.attachments.none") }}
         </p>
       </div>

@@ -58,75 +58,75 @@ function reveal(issue: SpaceKnowledgeHealthIssue) {
     <section>
       <div v-if="compact" class="flex items-center gap-0.5">
         <CollapsibleTrigger
-          class="flex h-(--knovum-compact-item-height) min-w-0 flex-1 items-center gap-2 rounded-control px-2 text-left text-caption text-foreground-secondary hover:bg-control-hover hover:text-foreground"
+          class="flex h-(--knovum-list-item-height-sm) min-w-0 flex-1 items-center gap-2 rounded-md px-2 text-left text-caption-md text-fg-secondary hover:bg-surface-control-hover hover:text-fg-primary"
         >
-          <ShieldAlert class="size-(--knovum-icon-size-xs) shrink-0" />
+          <ShieldAlert class="size-3 shrink-0" />
           <span class="min-w-0 flex-1 truncate">{{ t("spaces.knowledge.health.title") }}</span>
           <span
             v-if="issues.length"
-            class="text-micro tabular-nums"
-            :class="criticalCount ? 'text-danger' : 'text-warning'"
+            class="text-caption-sm tabular-nums"
+            :class="criticalCount ? 'text-fg-danger' : 'text-fg-warning'"
           >
             {{ issues.length }}
           </span>
-          <CheckCircle2 v-else-if="!loading" class="size-(--knovum-icon-size-xs) text-success" />
+          <CheckCircle2 v-else-if="!loading" class="size-3 text-fg-success" />
           <ChevronDown
-            class="size-(--knovum-icon-size-xs) text-foreground-tertiary transition-transform"
+            class="size-3 text-fg-tertiary transition-transform"
             :class="expanded && 'rotate-180'"
           />
         </CollapsibleTrigger>
         <UiIconButton :label="t('common.refresh')" size="sm" :disabled="loading" @click="refresh">
-          <RefreshCw class="size-(--knovum-icon-size-xs)" :class="loading && 'animate-spin'" />
+          <RefreshCw class="size-3" :class="loading && 'animate-spin'" />
         </UiIconButton>
       </div>
 
-      <CollapsibleContent :class="compact && 'mt-1 rounded-panel border border-divider bg-control/15 p-2'">
+      <CollapsibleContent
+        :class="compact && 'mt-1 rounded-panel border border-stroke-divider bg-surface-control/15 p-2'"
+      >
         <div v-if="!compact" class="flex items-center justify-between gap-2">
-          <h3 class="flex items-center gap-1.5 text-caption font-semibold text-foreground-secondary">
-            <ShieldAlert class="size-(--knovum-icon-size-xs)" />{{ t("spaces.knowledge.health.title") }}
+          <h3 class="flex items-center gap-1.5 text-caption-md font-semibold text-fg-secondary">
+            <ShieldAlert class="size-3" />{{ t("spaces.knowledge.health.title") }}
           </h3>
           <UiButton size="sm" variant="ghost" :disabled="loading" @click="refresh">
-            <RefreshCw class="size-(--knovum-icon-size-xs)" :class="loading && 'animate-spin'" />{{
-              t("common.refresh")
-            }}
+            <RefreshCw class="size-3" :class="loading && 'animate-spin'" />{{ t("common.refresh") }}
           </UiButton>
         </div>
-        <p v-if="!compact" class="mt-1 text-caption text-foreground-tertiary">
+        <p v-if="!compact" class="mt-1 text-caption-md text-fg-tertiary">
           {{ t("spaces.knowledge.health.description") }}
         </p>
         <div
           v-if="!issues.length && !loading"
-          class="mt-3 flex items-center gap-2 text-caption text-foreground-secondary"
+          class="mt-3 flex items-center gap-2 text-caption-md text-fg-secondary"
         >
-          <CheckCircle2 class="size-(--knovum-icon-size-sm) text-success" />{{
-            t("spaces.knowledge.health.clean")
-          }}
+          <CheckCircle2 class="size-3.5 text-fg-success" />{{ t("spaces.knowledge.health.clean") }}
         </div>
         <div v-else class="mt-1.5 space-y-1">
           <button
             v-for="issue in issues"
             :key="issue.id"
             type="button"
-            class="flex w-full items-start gap-2 rounded-control border border-transparent bg-control/25 p-2 text-left hover:border-divider hover:bg-control-hover"
+            class="flex w-full items-start gap-2 rounded-md border border-transparent bg-surface-control/25 p-2 text-left hover:border-stroke-divider hover:bg-surface-control-hover"
             @click="reveal(issue)"
           >
             <AlertTriangle
-              class="mt-0.5 size-(--knovum-icon-size-xs) shrink-0"
-              :class="issue.severity === 'critical' ? 'text-danger' : 'text-warning'"
+              class="mt-0.5 size-3 shrink-0"
+              :class="issue.severity === 'critical' ? 'text-fg-danger' : 'text-fg-warning'"
             />
             <span class="min-w-0">
-              <span class="block truncate text-caption font-medium text-foreground">{{ issue.title }}</span>
-              <span class="block text-micro text-foreground-tertiary">{{
+              <span class="block truncate text-caption-md font-medium text-fg-primary">{{
+                issue.title
+              }}</span>
+              <span class="block text-caption-sm text-fg-tertiary">{{
                 t(`spaces.knowledge.health.issues.${issue.kind}`)
               }}</span>
             </span>
           </button>
         </div>
-        <p v-if="criticalCount" class="mt-2 text-micro text-danger">
+        <p v-if="criticalCount" class="mt-2 text-caption-sm text-fg-danger">
           {{ t("spaces.knowledge.health.critical", { count: criticalCount }) }}
         </p>
         <SpaceEnrichmentQueuePanel v-if="activeSpaceId" class="mt-2" :space-id="activeSpaceId" />
-        <div v-if="activeSpaceId" class="mt-3 border-t border-divider pt-2">
+        <div v-if="activeSpaceId" class="mt-3 border-t border-stroke-divider pt-2">
           <UiButton
             class="w-full justify-start"
             size="sm"
@@ -134,7 +134,7 @@ function reveal(issue: SpaceKnowledgeHealthIssue) {
             :disabled="rebuilding"
             @click="rebuildIndex"
           >
-            <Wand2 class="size-(--knovum-icon-size-xs)" />{{ t("spaces.processing.index.rebuild") }}
+            <Wand2 class="size-3" />{{ t("spaces.processing.index.rebuild") }}
           </UiButton>
         </div>
       </CollapsibleContent>

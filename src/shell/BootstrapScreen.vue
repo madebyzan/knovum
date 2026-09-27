@@ -13,21 +13,21 @@ function reload() {
 </script>
 
 <template>
-  <main data-tauri-drag-region class="grid h-full place-items-center bg-chrome p-8 select-none">
+  <main data-tauri-drag-region class="grid h-full place-items-center bg-surface-chrome p-8 select-none">
     <section
       v-if="failure"
-      class="w-full max-w-(--knovum-error-max-width) rounded-dialog border border-border-strong bg-raised p-5 shadow-dialog"
+      class="w-full max-w-130 rounded-xl border border-stroke-strong bg-surface-raised p-5 shadow-dialog"
     >
-      <AlertTriangle class="mb-3 size-(--knovum-icon-size-lg) text-danger" />
-      <h1 class="m-0 text-title-sm font-semibold text-foreground">{{ t("errors.bootstrap.title") }}</h1>
-      <p class="mt-1.5 text-body text-foreground-secondary">{{ t("errors.bootstrap.description") }}</p>
+      <AlertTriangle class="mb-3 size-5 text-fg-danger" />
+      <h1 class="m-0 text-title-sm font-semibold text-fg-primary">
+        {{ t("errors.bootstrap.title") }}
+      </h1>
+      <p class="mt-1.5 text-body-sm text-fg-secondary">{{ t("errors.bootstrap.description") }}</p>
       <pre
-        class="mt-4 max-h-40 overflow-auto rounded-control bg-chrome p-3 font-mono text-micro text-foreground-secondary select-text"
+        class="mt-4 max-h-40 overflow-auto rounded-md bg-surface-chrome p-3 font-mono text-caption-sm text-fg-secondary select-text"
         >{{ failure.message }}</pre>
       <div class="mt-4">
-        <UiButton @click="reload"
-          ><RotateCcw class="size-(--knovum-icon-size-sm)" /> {{ t("common.reload") }}</UiButton
-        >
+        <UiButton @click="reload"><RotateCcw class="size-3.5" /> {{ t("common.reload") }}</UiButton>
       </div>
     </section>
 
@@ -45,7 +45,7 @@ function reload() {
           <div class="shimmer-beam" />
         </div>
       </div>
-      <p class="mt-4 text-label font-medium tracking-tight text-foreground-secondary">
+      <p class="mt-4 text-label-md font-medium tracking-tight text-fg-secondary">
         {{ t("common.starting") }}
       </p>
     </div>

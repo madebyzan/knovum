@@ -18,7 +18,7 @@ const icons = { image: Image, video: Video, audio: Music, document: File, file: 
 </script>
 
 <template>
-  <div class="divide-y divide-divider overflow-hidden rounded-panel border border-border">
+  <div class="divide-y divide-stroke-divider overflow-hidden rounded-panel border border-stroke-default">
     <div
       v-for="artifact in artifacts"
       :key="artifact.relativePath"
@@ -33,15 +33,15 @@ const icons = { image: Image, video: Video, audio: Music, document: File, file: 
             : selectedArtifacts.delete(artifact.relativePath)
         "
       />
-      <component :is="icons[artifact.kind]" class="size-(--knovum-icon-size-sm) text-foreground-secondary" />
+      <component :is="icons[artifact.kind]" class="size-3.5 text-fg-secondary" />
       <div class="min-w-0 flex-1">
-        <div class="truncate text-label text-foreground">{{ artifact.name }}</div>
-        <div class="truncate text-caption text-foreground-tertiary">
+        <div class="truncate text-label-md text-fg-primary">{{ artifact.name }}</div>
+        <div class="truncate text-caption-md text-fg-tertiary">
           {{ artifact.relativePath }} · {{ formatByteSize(artifact.size) }}
         </div>
       </div>
       <UiButton v-if="canPreview" size="sm" variant="ghost" @click="emit('preview', artifact)">
-        <Eye class="size-(--knovum-icon-size-xs)" />{{ t("spaces.importExport.preview.system") }}
+        <Eye class="size-3" />{{ t("spaces.importExport.preview.system") }}
       </UiButton>
     </div>
   </div>

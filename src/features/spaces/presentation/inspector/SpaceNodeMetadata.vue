@@ -117,8 +117,8 @@ async function refreshWebsite() {
 <template>
   <dl class="space-y-0.5">
     <div v-for="row in fields" :key="row.label" class="grid grid-cols-[4.5rem_minmax(0,1fr)] gap-2 py-1.5">
-      <dt class="text-caption text-foreground-tertiary">{{ row.label }}</dt>
-      <dd class="min-w-0 text-caption text-foreground-secondary">
+      <dt class="text-caption-md text-fg-tertiary">{{ row.label }}</dt>
+      <dd class="min-w-0 text-caption-md text-fg-secondary">
         <span class="block" :class="row.multiline ? 'line-clamp-3' : 'truncate'" :title="row.value">{{
           row.value
         }}</span>
@@ -132,7 +132,7 @@ async function refreshWebsite() {
       :disabled="refreshing || !nodeOperations.allows('edit')"
       @click="refreshWebsite"
     >
-      <RefreshCw class="size-(--knovum-icon-size-xs)" :class="refreshing && 'animate-spin'" />
+      <RefreshCw class="size-3" :class="refreshing && 'animate-spin'" />
       {{
         node.data.metadataState === "failed" ? t("common.retry") : t("spaces.importExport.website.refresh")
       }}

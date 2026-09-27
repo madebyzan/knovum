@@ -32,7 +32,7 @@ function action(run: () => void) {
   <UiPopover v-model:open="open" align="start" :side-offset="6" class="w-72 p-3">
     <template #trigger>
       <UiIconButton :label="t('spaces.richtext.table.title')" size="sm" :active="editor.isActive('table')">
-        <Table2 class="size-(--knovum-icon-size-sm)" :stroke-width="1.6" />
+        <Table2 class="size-3.5" :stroke-width="1.6" />
       </UiIconButton>
     </template>
 
@@ -42,11 +42,11 @@ function action(run: () => void) {
           v-for="cell in cells"
           :key="`${cell.row}-${cell.col}`"
           type="button"
-          class="aspect-square rounded-grid-cell border transition-colors"
+          class="aspect-square rounded-sm border transition-colors"
           :class="
             cell.row <= rows && cell.col <= cols
-              ? 'border-accent bg-accent/15'
-              : 'border-border bg-field hover:border-border-strong'
+              ? 'border-stroke-accent bg-surface-accent/15'
+              : 'border-stroke-default bg-surface-inset hover:border-stroke-strong'
           "
           :aria-label="`${cell.row} × ${cell.col}`"
           @mouseenter="
@@ -56,31 +56,31 @@ function action(run: () => void) {
           @click="insertTable"
         ></button>
       </div>
-      <div class="mt-2 text-center text-caption font-medium text-foreground-secondary">
+      <div class="mt-2 text-center text-caption-md font-medium text-fg-secondary">
         {{ rows }} × {{ cols }}
       </div>
     </template>
     <div v-else class="grid gap-1">
       <button
-        class="flex h-(--knovum-control-height-md) items-center gap-2 rounded-control px-2.5 text-left text-label text-foreground hover:bg-control-hover"
+        class="flex h-(--knovum-control-height-md) items-center gap-2 rounded-md px-2.5 text-left text-label-md text-fg-primary hover:bg-surface-control-hover"
         type="button"
         @click="action(() => editor.chain().focus().addRowAfter().run())"
       >
-        <Rows3 class="size-(--knovum-icon-size-sm)" />{{ t("spaces.richtext.table.addRow") }}
+        <Rows3 class="size-3.5" />{{ t("spaces.richtext.table.addRow") }}
       </button>
       <button
-        class="flex h-(--knovum-control-height-md) items-center gap-2 rounded-control px-2.5 text-left text-label text-foreground hover:bg-control-hover"
+        class="flex h-(--knovum-control-height-md) items-center gap-2 rounded-md px-2.5 text-left text-label-md text-fg-primary hover:bg-surface-control-hover"
         type="button"
         @click="action(() => editor.chain().focus().addColumnAfter().run())"
       >
-        <Columns3 class="size-(--knovum-icon-size-sm)" />{{ t("spaces.richtext.table.addColumn") }}
+        <Columns3 class="size-3.5" />{{ t("spaces.richtext.table.addColumn") }}
       </button>
       <button
-        class="flex h-(--knovum-control-height-md) items-center gap-2 rounded-control px-2.5 text-left text-label text-danger hover:bg-control-hover"
+        class="flex h-(--knovum-control-height-md) items-center gap-2 rounded-md px-2.5 text-left text-label-md text-fg-danger hover:bg-surface-control-hover"
         type="button"
         @click="action(() => editor.chain().focus().deleteTable().run())"
       >
-        <Trash2 class="size-(--knovum-icon-size-sm)" />{{ t("spaces.richtext.table.delete") }}
+        <Trash2 class="size-3.5" />{{ t("spaces.richtext.table.delete") }}
       </button>
     </div>
   </UiPopover>

@@ -52,15 +52,15 @@ const knowledgeOptions = [
 
 <template>
   <UiDropdownMenuItem @select="emit('markdown')">
-    <FileText class="size-(--knovum-icon-size-sm)" />{{ t("spaces.nodeTypes.markdown") }}
+    <FileText class="size-3.5" />{{ t("spaces.nodeTypes.markdown") }}
   </UiDropdownMenuItem>
   <DropdownMenuSub>
     <DropdownMenuSubTrigger
-      class="flex h-(--knovum-compact-item-height) cursor-default items-center gap-2 rounded-control px-2 text-label text-foreground outline-none data-[highlighted]:bg-control-hover"
+      class="flex h-(--knovum-list-item-height-sm) cursor-default items-center gap-2 rounded-md px-2 text-label-md text-fg-primary outline-none data-[highlighted]:bg-surface-control-hover"
     >
-      <Shapes class="size-(--knovum-icon-size-sm)" />
+      <Shapes class="size-3.5" />
       <span class="min-w-0 flex-1">{{ t("spaces.knowledge.structuredKnowledge") }}</span>
-      <ChevronRight class="size-(--knovum-icon-size-xs) text-foreground-tertiary" />
+      <ChevronRight class="size-3 text-fg-tertiary" />
     </DropdownMenuSubTrigger>
     <DropdownMenuPortal>
       <DropdownMenuSubContent :side-offset="4" :align-offset="-4" :class="SUBMENU_CONTENT_CLASSES">
@@ -69,16 +69,16 @@ const knowledgeOptions = [
           :key="option.kind"
           @select="emit('knowledge', option.kind)"
         >
-          <component :is="option.icon" class="size-(--knovum-icon-size-sm)" />{{
+          <component :is="option.icon" class="size-3.5" />{{
             t(`spaces.knowledgeObjectTypes.${option.kind}`)
           }}
         </UiDropdownMenuItem>
         <UiSeparator class="my-1" />
         <UiDropdownMenuItem @select="emit('customKnowledge')">
-          <Shapes class="size-(--knovum-icon-size-sm)" />{{ t("spaces.knowledge.objects.custom") }}…
+          <Shapes class="size-3.5" />{{ t("spaces.knowledge.objects.custom") }}…
         </UiDropdownMenuItem>
         <UiDropdownMenuItem @select="emit('manageTypes')">
-          <SlidersHorizontal class="size-(--knovum-icon-size-sm)" />{{ t("spaces.knowledge.types.manage") }}…
+          <SlidersHorizontal class="size-3.5" />{{ t("spaces.knowledge.types.manage") }}…
         </UiDropdownMenuItem>
       </DropdownMenuSubContent>
     </DropdownMenuPortal>
@@ -86,41 +86,41 @@ const knowledgeOptions = [
 
   <UiSeparator class="my-1" />
   <UiDropdownMenuItem @select="emit('section')">
-    <LayoutPanelTop class="size-(--knovum-icon-size-sm)" />{{ t("spaces.canvas.sections.createEmpty") }}
+    <LayoutPanelTop class="size-3.5" />{{ t("spaces.canvas.sections.createEmpty") }}
   </UiDropdownMenuItem>
   <UiSeparator class="my-1" />
   <UiDropdownMenuItem @select="emit('website')">
-    <Globe2 class="size-(--knovum-icon-size-sm)" />{{ t("spaces.importExport.website.add") }}…
+    <Globe2 class="size-3.5" />{{ t("spaces.importExport.website.add") }}…
   </UiDropdownMenuItem>
   <UiDropdownMenuItem @select="emit('importFile')">
-    <FileInput class="size-(--knovum-icon-size-sm)" />{{ t("spaces.canvas.addContent.importFiles") }}
+    <FileInput class="size-3.5" />{{ t("spaces.canvas.addContent.importFiles") }}
   </UiDropdownMenuItem>
   <UiDropdownMenuItem @select="emit('recordAudio')">
-    <Mic class="size-(--knovum-icon-size-sm)" />{{ t("spaces.recording.note") }}…
+    <Mic class="size-3.5" />{{ t("spaces.recording.note") }}…
   </UiDropdownMenuItem>
   <UiSeparator class="my-1" />
   <UiDropdownMenuItem @select="emit('agent')">
-    <Bot class="size-(--knovum-icon-size-sm)" />{{ t("spaces.creation.agent.create") }}…
+    <Bot class="size-3.5" />{{ t("spaces.creation.agent.create") }}…
   </UiDropdownMenuItem>
   <UiSeparator class="my-1" />
   <UiDropdownMenuItem @select="emit('portal')">
-    <Boxes class="size-(--knovum-icon-size-sm)" />{{ t("spaces.nodeTypes.portal") }}…
+    <Boxes class="size-3.5" />{{ t("spaces.nodeTypes.portal") }}…
   </UiDropdownMenuItem>
   <DropdownMenuSub>
     <DropdownMenuSubTrigger
-      class="flex h-(--knovum-compact-item-height) cursor-default items-center gap-2 rounded-control px-2 text-label text-foreground outline-none data-[highlighted]:bg-control-hover"
+      class="flex h-(--knovum-list-item-height-sm) cursor-default items-center gap-2 rounded-md px-2 text-label-md text-fg-primary outline-none data-[highlighted]:bg-surface-control-hover"
     >
-      <KeyRound class="size-(--knovum-icon-size-sm)" />
+      <KeyRound class="size-3.5" />
       <span class="min-w-0 flex-1">{{ t("spaces.nodeTypes.credential") }}</span>
-      <ChevronRight class="size-(--knovum-icon-size-xs) text-foreground-tertiary" />
+      <ChevronRight class="size-3 text-fg-tertiary" />
     </DropdownMenuSubTrigger>
     <DropdownMenuPortal>
       <DropdownMenuSubContent :side-offset="4" :align-offset="-4" :class="SUBMENU_CONTENT_CLASSES">
         <UiDropdownMenuItem @select="emit('credential', 'api-key')">
-          <KeyRound class="size-(--knovum-icon-size-sm)" />{{ t("spaces.credentials.apiKey") }}
+          <KeyRound class="size-3.5" />{{ t("spaces.credentials.apiKey") }}
         </UiDropdownMenuItem>
         <UiDropdownMenuItem @select="emit('credential', 'account-password')">
-          <LockKeyhole class="size-(--knovum-icon-size-sm)" />{{ t("spaces.credentials.accountPassword") }}
+          <LockKeyhole class="size-3.5" />{{ t("spaces.credentials.accountPassword") }}
         </UiDropdownMenuItem>
       </DropdownMenuSubContent>
     </DropdownMenuPortal>

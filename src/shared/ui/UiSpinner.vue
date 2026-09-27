@@ -22,9 +22,9 @@ const props = withDefaults(
 const { t } = useI18n();
 const accessibleLabel = computed(() => props.label ?? t("common.loading"));
 const toneClasses: Record<"muted" | "accent" | "faint", string> = {
-  accent: "text-accent",
-  faint: "text-foreground-tertiary",
-  muted: "text-foreground-secondary",
+  accent: "text-fg-accent",
+  faint: "text-fg-tertiary",
+  muted: "text-fg-secondary",
 };
 </script>
 
@@ -33,7 +33,7 @@ const toneClasses: Record<"muted" | "accent" | "faint", string> = {
     :class="
       cn(
         'animate-spin motion-reduce:animate-none',
-        size === 'sm' ? 'size-(--knovum-icon-size-sm)' : 'size-(--knovum-icon-size-md)',
+        size === 'sm' ? 'size-3.5' : 'size-4',
         toneClasses[tone],
         props.class,
       )

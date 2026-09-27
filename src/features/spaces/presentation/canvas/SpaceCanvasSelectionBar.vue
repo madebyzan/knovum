@@ -60,17 +60,17 @@ const singleSection = computed(
     </UiBadge>
     <ToolbarButton as-child>
       <UiIconButton :label="t('spaces.inspector.title')" size="sm" @click="actions.inspect">
-        <Info class="size-(--knovum-icon-size-sm)" :stroke-width="1.55" />
+        <Info class="size-3.5" :stroke-width="1.55" />
       </UiIconButton>
     </ToolbarButton>
     <ToolbarButton v-if="actions.state.value.canConnect" as-child>
       <UiIconButton :label="t('spaces.canvas.relations.connect')" size="sm" @click="actions.connect">
-        <Link2 class="size-(--knovum-icon-size-sm)" :stroke-width="1.55" />
+        <Link2 class="size-3.5" :stroke-width="1.55" />
       </UiIconButton>
     </ToolbarButton>
     <ToolbarButton v-if="actions.state.value.canAsk" as-child>
       <UiIconButton :label="t('spaces.assistant.askSelection')" size="sm" @click="actions.ask">
-        <Sparkles class="size-(--knovum-icon-size-sm)" :stroke-width="1.55" />
+        <Sparkles class="size-3.5" :stroke-width="1.55" />
       </UiIconButton>
     </ToolbarButton>
     <SpaceSelectionMoveMenu v-if="actions.state.value.structureNodeIds.length" @move="actions.moveToSpace" />
@@ -81,12 +81,12 @@ const singleSection = computed(
         size="sm"
         @click="actions.createGroup"
       >
-        <Group class="size-(--knovum-icon-size-sm)" :stroke-width="1.55" />
+        <Group class="size-3.5" :stroke-width="1.55" />
       </UiIconButton>
     </ToolbarButton>
     <ToolbarButton v-if="actions.state.value.canCreateSection" as-child>
       <UiIconButton :label="t('spaces.canvas.sections.create')" size="sm" @click="actions.createSection">
-        <Group class="size-(--knovum-icon-size-sm)" :stroke-width="1.55" />
+        <Group class="size-3.5" :stroke-width="1.55" />
       </UiIconButton>
     </ToolbarButton>
     <UiSeparator orientation="vertical" class="mx-0.5 h-4" />

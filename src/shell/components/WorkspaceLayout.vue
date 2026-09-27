@@ -81,7 +81,7 @@ function markLayoutReady(sizes: number[]) {
 <template>
   <div class="relative flex min-h-0 min-w-0 flex-1">
     <div
-      class="workspace-frame pointer-events-none absolute top-0 right-2 bottom-2 z-20 rounded-workspace border border-window-hairline shadow-workspace"
+      class="workspace-frame pointer-events-none absolute top-0 right-2 bottom-2 z-20 rounded-xl border border-(--knovum-window-border-color) shadow-workspace"
       :style="{ left: sidebarPinned ? `${sidebarWidth}px` : '8px' }"
     />
     <SplitterGroup
@@ -106,12 +106,12 @@ function markLayoutReady(sizes: number[]) {
 
       <SplitterPanel id="spaces-work-area" :order="2" :min-size="35">
         <main
-          class="h-full min-w-0 transition-[padding-left,padding-right] duration-200 ease-standard select-text"
+          class="h-full min-w-0 transition-[padding-left,padding-right] duration-220 ease-standard select-text"
           :class="[sidebarPinned ? 'pb-2' : 'pb-2 pl-2', rightSidebarOpen ? '' : 'pr-2']"
         >
           <div
-            class="relative h-full min-h-0 overflow-hidden bg-canvas"
-            :class="rightSidebarOpen ? 'rounded-l-workspace' : 'rounded-workspace'"
+            class="relative h-full min-h-0 overflow-hidden bg-surface-canvas"
+            :class="rightSidebarOpen ? 'rounded-l-xl' : 'rounded-xl'"
           >
             <FeatureErrorBoundary reset-key="spaces">
               <component :is="workspace.view" />
@@ -141,8 +141,8 @@ function markLayoutReady(sizes: number[]) {
           :aria-hidden="!rightSidebarOpen"
         >
           <div
-            class="h-full min-h-0 overflow-hidden rounded-r-workspace"
-            :class="{ 'border-l border-window-hairline': rightSidebarOpen }"
+            class="h-full min-h-0 overflow-hidden rounded-r-xl"
+            :class="{ 'border-l border-(--knovum-window-border-color)': rightSidebarOpen }"
           >
             <Transition name="workspace-pane-content">
               <WorkspaceRightSidebar v-if="rightSidebarOpen" class="h-full min-h-0" :workspace="workspace" />
@@ -156,7 +156,7 @@ function markLayoutReady(sizes: number[]) {
       class="workspace-sidebar-surface absolute inset-y-0 left-0 z-40 h-full min-h-0"
       :class="{
         'is-visible': sidebarVisible,
-        'is-preview rounded-r-workspace': sidebarPreview,
+        'is-preview rounded-r-xl': sidebarPreview,
       }"
       :style="{ width: `${sidebarWidth}px` }"
       :aria-hidden="!sidebarVisible"
@@ -176,7 +176,7 @@ function markLayoutReady(sizes: number[]) {
       <button
         v-if="sidebarPreview"
         type="button"
-        class="absolute inset-0 z-30 bg-scrim"
+        class="absolute inset-0 z-30 bg-surface-scrim"
         :aria-label="t('shell.toggleSidebar')"
         @click="emit('close-sidebar-preview')"
       />

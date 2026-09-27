@@ -67,7 +67,7 @@ function focusPanel() {
         role="region"
         :aria-label="title"
         tabindex="-1"
-        class="flex h-[min(34rem,calc(100vh-7rem))] w-[min(23.75rem,calc(100vw-2rem))] min-w-0 flex-col overflow-hidden rounded-workspace border border-window-hairline bg-panel shadow-panel"
+        class="flex h-[min(34rem,calc(100vh-7rem))] w-[min(23.75rem,calc(100vw-2rem))] min-w-0 flex-col overflow-hidden rounded-xl border border-(--knovum-window-border-color) bg-surface-panel shadow-panel"
         :style="{
           maxHeight: availableHeight ? `${availableHeight}px` : undefined,
           maxWidth: `${availableWidth}px`,

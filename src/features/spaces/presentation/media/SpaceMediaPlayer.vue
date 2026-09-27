@@ -28,7 +28,7 @@ defineExpose({ seekTo, togglePlayback });
 </script>
 
 <template>
-  <div class="relative flex min-h-0 flex-1 flex-col overflow-hidden bg-control/25">
+  <div class="relative flex min-h-0 flex-1 flex-col overflow-hidden bg-surface-control/25">
     <SpaceAudioPlayer
       v-if="data.kind === 'audio'"
       ref="audioPlayer"

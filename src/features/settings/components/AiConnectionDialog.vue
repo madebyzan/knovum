@@ -102,11 +102,11 @@ function createConnection() {
     :description="t('settings.ai.addConnectionDescription')"
   >
     <div class="grid gap-4">
-      <label class="grid gap-1.5 text-caption font-medium text-foreground-secondary">
+      <label class="grid gap-1.5 text-caption-md font-medium text-fg-secondary">
         {{ t("settings.ai.connectionName") }}
         <UiInput v-model="draft.name" autofocus />
       </label>
-      <label class="grid gap-1.5 text-caption font-medium text-foreground-secondary">
+      <label class="grid gap-1.5 text-caption-md font-medium text-fg-secondary">
         {{ t("settings.ai.provider") }}
         <UiSelect
           :model-value="draft.provider"
@@ -115,28 +115,28 @@ function createConnection() {
           @update:model-value="selectProvider($event as AiProvider)"
         />
       </label>
-      <label class="grid gap-1.5 text-caption font-medium text-foreground-secondary">
+      <label class="grid gap-1.5 text-caption-md font-medium text-fg-secondary">
         {{ t("settings.ai.baseUrl") }}
         <UiInput v-model="draft.baseUrl" />
       </label>
-      <div class="grid grid-cols-2 gap-3 border-t border-divider pt-4">
-        <label class="grid gap-1.5 text-caption font-medium text-foreground-secondary">
+      <div class="grid grid-cols-2 gap-3 border-t border-stroke-divider pt-4">
+        <label class="grid gap-1.5 text-caption-md font-medium text-fg-secondary">
           {{ t("settings.ai.modelDisplayName") }}
           <UiInput v-model="draft.modelName" />
         </label>
-        <label class="grid gap-1.5 text-caption font-medium text-foreground-secondary">
+        <label class="grid gap-1.5 text-caption-md font-medium text-fg-secondary">
           {{ t("settings.ai.modelIdentifier") }}
           <UiInput v-model="draft.modelId" />
         </label>
       </div>
       <fieldset class="grid gap-2">
-        <legend class="mb-1 text-caption font-medium text-foreground-secondary">
+        <legend class="mb-1 text-caption-md font-medium text-fg-secondary">
           {{ t("settings.ai.modelCapabilities") }}
         </legend>
         <label
           v-for="capability in capabilityOptions"
           :key="capability.value"
-          class="flex items-center gap-2 text-label text-foreground"
+          class="flex items-center gap-2 text-label-md text-fg-primary"
           :class="!selectedProvider.capabilities.includes(capability.value) && 'opacity-45'"
         >
           <UiCheckbox
