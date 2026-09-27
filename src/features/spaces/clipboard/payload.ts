@@ -7,7 +7,7 @@ import type { createStructureIndex } from "../model/structure/structure-index";
 import { effectiveOperationRoots } from "../model/structure/structure-index";
 import { validateStructureSnapshot } from "../model/structure/structure-validation";
 import { worldTransformFor } from "../model/structure/world-transform";
-import type { SpaceClipboardPayload } from "./payload-types";
+import type { SpaceClipboardPayload } from "./clipboard-envelope";
 
 export function createSpaceClipboardPayload(input: {
   snapshot: SpaceEditSnapshot;

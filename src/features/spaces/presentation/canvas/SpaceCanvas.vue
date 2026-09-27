@@ -3,7 +3,7 @@ import { computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { useCanvasToolStore } from "../../canvas/canvas-tool-store";
-import type { CanvasSceneInput } from "../../canvas/contract/canvas-surface";
+import type { CanvasSceneInput } from "../../canvas/contracts/canvas-surface";
 import {
   currentCanvasEditor,
   updateCanvasDirectManipulationProjection,

@@ -3,7 +3,7 @@ import { clamp } from "es-toolkit";
 import { nextTick, onMounted, shallowRef, useTemplateRef } from "vue";
 
 import type { WorldBounds } from "../../../model/structure/world-bounds";
-import type { CanvasViewport } from "../../contract/canvas-editor-port";
+import type { CanvasViewport } from "../../contracts/canvas-editor-port";
 
 const props = defineProps<{
   bounds: WorldBounds;

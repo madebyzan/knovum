@@ -3,7 +3,7 @@ import { computed, type Ref } from "vue";
 
 import type { SpaceEditSnapshot } from "../../model/structure/schema/edit-snapshot";
 import { sectionDrawCandidateIds } from "../../structure/section-draw-candidates";
-import type { CanvasRect } from "../contract/canvas-editor-port";
+import type { CanvasRect } from "../contracts/canvas-editor-port";
 
 export function useSectionDrawCandidateBounds(
   draft: Readonly<Ref<CanvasRect | undefined>>,

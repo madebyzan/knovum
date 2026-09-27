@@ -2,7 +2,7 @@
 import { useElementSize } from "@vueuse/core";
 import { computed, shallowRef, useTemplateRef, watch } from "vue";
 
-import type { CanvasPoint, CanvasRect } from "../../canvas/contract/canvas-editor-port";
+import type { CanvasPoint, CanvasRect } from "../../canvas/contracts/canvas-editor-port";
 import { useCanvasEditorSession } from "../../canvas/editor-session";
 import { type SurfaceRect, type SurfaceSide } from "./selection-surface-geometry";
 import { placeSelectionSurface } from "./selection-surface-placement";

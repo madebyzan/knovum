@@ -1,4 +1,4 @@
-import type { CanvasNodePresentationContext } from "../../../canvas/contract/canvas-detail-profile";
+import type { CanvasNodePresentationContext } from "../../../canvas/preview/detail-profile";
 
 export function projectPreviewItems<T>(
   items: readonly T[],

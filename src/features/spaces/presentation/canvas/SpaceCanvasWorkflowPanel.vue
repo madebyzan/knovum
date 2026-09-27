@@ -2,7 +2,7 @@
 import { computed, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import type { CanvasPoint } from "../../canvas/contract/canvas-editor-port";
+import type { CanvasPoint } from "../../canvas/contracts/canvas-editor-port";
 import { useCanvasEditorSession, useCanvasSelectionProjection } from "../../canvas/editor-session";
 import { useSpaceStore } from "../../session/space-store";
 import SpaceContextHeader from "../SpaceContextHeader.vue";

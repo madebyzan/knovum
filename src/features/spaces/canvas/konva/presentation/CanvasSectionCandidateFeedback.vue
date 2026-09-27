@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Layer as KonvaLayer, Rect as KonvaRect } from "vue-konva/core";
 
-import type { CanvasRect } from "../../contract/canvas-editor-port";
+import type { CanvasRect } from "../../contracts/canvas-editor-port";
 import type { CanvasPalette } from "./use-canvas-palette";
 
 defineProps<{

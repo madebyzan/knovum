@@ -2,7 +2,7 @@ import { computed, type Ref } from "vue";
 
 import { ancestorsOf, createStructureIndex } from "../../model/structure/structure-index";
 import { isStructureNodeEffectivelyLocked } from "../../model/structure/structure-queries";
-import type { CanvasSurfaceProps } from "../contract/canvas-surface";
+import type { CanvasSurfaceProps } from "../contracts/canvas-surface";
 import { projectStructureScene } from "../document/structure-scene-projection";
 import type { CanvasDocumentV1 } from "../schema/document";
 import { projectCanvasScene } from "./scene/scene-projection";

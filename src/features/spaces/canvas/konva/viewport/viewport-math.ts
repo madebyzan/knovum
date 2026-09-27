@@ -1,6 +1,6 @@
 import { clamp } from "es-toolkit";
 
-import type { CanvasPoint, CanvasViewport } from "../../contract/canvas-editor";
+import type { CanvasPoint, CanvasViewport } from "../../contracts/canvas-editor";
 
 export const MIN_CANVAS_ZOOM = 0.1;
 export const MAX_CANVAS_ZOOM = 4;

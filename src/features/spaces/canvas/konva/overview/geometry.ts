@@ -1,4 +1,4 @@
-import type { CanvasViewport } from "../../contract/canvas-editor-port";
+import type { CanvasViewport } from "../../contracts/canvas-editor-port";
 import type { CanvasNodeFrame } from "../../schema/document";
 import type { CanvasScene } from "../scene/scene-projection";
 

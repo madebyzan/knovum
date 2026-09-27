@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
+import type { CanvasContentHeightMeasurement } from "../../../canvas/contracts/canvas-editor-port";
+import { CANVAS_NODE_HEADER_HEIGHT, PREVIEW_CAPTION_HEIGHT } from "../../../canvas/node-size";
 import {
   canvasNodePresentationContext,
   type CanvasViewportDetailProfile,
-} from "../../../canvas/contract/canvas-detail-profile";
-import type { CanvasContentHeightMeasurement } from "../../../canvas/contract/canvas-editor-port";
-import { CANVAS_NODE_HEADER_HEIGHT, PREVIEW_CAPTION_HEIGHT } from "../../../canvas/node-size";
+} from "../../../canvas/preview/detail-profile";
 import type { CanvasNodeLayoutV1 } from "../../../canvas/schema/document";
 import { useImageCommentSession } from "../../../comments/image-comment-session";
 import { useImageEditSession } from "../../../image-editing/image-edit-session";

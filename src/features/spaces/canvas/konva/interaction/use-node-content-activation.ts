@@ -1,7 +1,7 @@
 import { computed, nextTick, onScopeDispose, shallowRef, watch, type Ref } from "vue";
 
-import type { CanvasPoint } from "../../contract/canvas-editor";
-import type { CanvasTool } from "../../contract/canvas-tool";
+import type { CanvasPoint } from "../../contracts/canvas-editor";
+import type { CanvasTool } from "../../contracts/canvas-tool";
 import type { CanvasScene } from "../scene/scene-projection";
 import type { useCanvasSelection } from "../selection/use-canvas-selection";
 

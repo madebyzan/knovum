@@ -1,6 +1,6 @@
 import { clamp } from "es-toolkit";
 
-import type { CanvasPoint, CanvasRect } from "../../contract/canvas-editor-port";
+import type { CanvasPoint, CanvasRect } from "../../contracts/canvas-editor-port";
 import type { CanvasNodeFrame } from "../../schema/document";
 import { connectorAnchor, type CanvasConnectorSide } from "./connector-geometry";
 

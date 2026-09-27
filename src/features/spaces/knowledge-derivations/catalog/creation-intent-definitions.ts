@@ -2,7 +2,7 @@ import type {
   CreationIntentDecision,
   CreationIntentDefinition,
   CreationSelectionContext,
-} from "./creation-intent-contract";
+} from "./creation-intent";
 
 const AVAILABLE: CreationIntentDecision = { state: "ready" };
 const HIDDEN: CreationIntentDecision = { state: "hidden" };

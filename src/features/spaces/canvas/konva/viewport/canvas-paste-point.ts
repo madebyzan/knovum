@@ -1,4 +1,4 @@
-import type { CanvasPoint, CanvasViewport } from "../../contract/canvas-editor";
+import type { CanvasPoint, CanvasViewport } from "../../contracts/canvas-editor";
 
 export function canvasPastePoint(
   pointer: CanvasPoint | undefined,

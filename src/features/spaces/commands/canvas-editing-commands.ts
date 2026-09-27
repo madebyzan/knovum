@@ -3,7 +3,7 @@ import { platform } from "@tauri-apps/plugin-os";
 
 import { availableWhen } from "../../../shared/contracts/action-availability";
 import type { AppCommand } from "../../../shared/contracts/app-command";
-import type { CanvasEditorPort } from "../canvas/contract/canvas-editor-port";
+import type { CanvasEditorPort } from "../canvas/contracts/canvas-editor-port";
 
 interface CanvasEditingCommandLabels {
   copy: string;

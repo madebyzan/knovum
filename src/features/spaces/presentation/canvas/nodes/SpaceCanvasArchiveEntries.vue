@@ -2,7 +2,7 @@
 import { File, Folder } from "@lucide/vue";
 import { computed } from "vue";
 
-import type { CanvasNodePresentationContext } from "../../../canvas/contract/canvas-detail-profile";
+import type { CanvasNodePresentationContext } from "../../../canvas/preview/detail-profile";
 import type { SpaceArchiveMember } from "../../../model/nodes/node-payload";
 import { projectPreviewItems, remainingPreviewItemCount } from "./canvas-preview-budget";
 

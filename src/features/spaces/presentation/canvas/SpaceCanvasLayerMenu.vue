@@ -4,7 +4,7 @@ import { DropdownMenuPortal, DropdownMenuSub, DropdownMenuSubContent, DropdownMe
 import { useI18n } from "vue-i18n";
 
 import UiDropdownMenuItem from "../../../../shared/ui/UiDropdownMenuItem.vue";
-import type { CanvasLayerMove } from "../../canvas/contract/canvas-editor-port";
+import type { CanvasLayerMove } from "../../canvas/contracts/canvas-editor-port";
 
 defineProps<{ rowClass: string; submenuClass: string }>();
 const emit = defineEmits<{ move: [mode: CanvasLayerMove] }>();

@@ -1,6 +1,6 @@
 import type { useCanvasToolStore } from "../../canvas/canvas-tool-store";
-import type { CanvasHostEvents } from "../../canvas/contract/canvas-editor";
-import type { CanvasEditorPort } from "../../canvas/contract/canvas-editor-port";
+import type { CanvasHostEvents } from "../../canvas/contracts/canvas-editor";
+import type { CanvasEditorPort } from "../../canvas/contracts/canvas-editor-port";
 import { updateCanvasSelectionProjection, updateCanvasViewportProjection } from "../../canvas/editor-session";
 import { useNodeOperationGate } from "../../canvas/node-operation-gate";
 import { createStructureIndex } from "../../model/structure/structure-index";

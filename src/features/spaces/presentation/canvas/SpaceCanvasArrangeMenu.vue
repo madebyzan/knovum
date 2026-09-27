@@ -9,7 +9,7 @@ import type {
   CanvasAlignMode,
   CanvasAutoLayoutDirection,
   CanvasDistributeMode,
-} from "../../canvas/contract/canvas-editor-port";
+} from "../../canvas/contracts/canvas-editor-port";
 
 defineProps<{ count: number; rowClass: string; submenuClass: string }>();
 const emit = defineEmits<{

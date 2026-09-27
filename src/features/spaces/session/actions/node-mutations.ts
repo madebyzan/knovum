@@ -6,7 +6,7 @@ import {
   assertSpacePosition,
   requireActiveSpaceId,
   type SpaceMutationContext,
-} from "../../history/mutation-types";
+} from "../../history/mutation-context";
 import { scheduleKnowledgeIndex } from "../../knowledge/indexing/index-scheduler";
 import type { KnowledgeChunkSeed } from "../../knowledge/model/schema/chunk";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";

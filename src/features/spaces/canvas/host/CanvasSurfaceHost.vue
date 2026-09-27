@@ -9,10 +9,10 @@ import type {
   CanvasJsonImportRequest,
 } from "../../canvas-exchange/json-canvas-import-contract";
 import type { SpaceRelation } from "../../model/relations/relation";
-import type { CanvasHostEvents, CanvasSurfaceEvents } from "../contract/canvas-editor";
-import type { CanvasNodeContentSlotProps, CanvasSceneInput } from "../contract/canvas-surface";
-import type { CanvasTool } from "../contract/canvas-tool";
-import type { SpacePersistenceState } from "../contract/space-persistence-state";
+import type { SpacePersistenceState } from "../../workspace/persistence-state";
+import type { CanvasHostEvents, CanvasSurfaceEvents } from "../contracts/canvas-editor";
+import type { CanvasNodeContentSlotProps, CanvasSceneInput } from "../contracts/canvas-surface";
+import type { CanvasTool } from "../contracts/canvas-tool";
 import KonvaCanvasSurface from "../konva/KonvaCanvasSurface.vue";
 import { useCanvasDocumentSession } from "./use-canvas-document-session";
 

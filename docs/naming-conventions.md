@@ -74,6 +74,30 @@ product, so it separates nothing; name the mechanism that actually differs, such
 `bundled-runtime`, `menu` or `system`. Prose keeps the word only for operating-system provided UI and
 services, as in native window controls, native traffic lights or OS-native dialogs.
 
+## Model and contract ownership
+
+`model/` is an optional owner for pure data models, invariants and projections shared by several
+operations within the same capability. It is not the default destination for every interface.
+`spaces/model` owns shared Space node, relation and structure models; `knowledge/model` owns the
+knowledge sub-capability's models. Keep their separate scopes and dependency restrictions; do not
+create duplicate definitions of the same entity in both. No Pinia store, Vue composable, IPC,
+persistence or UI lifecycle belongs in these model directories. Pure formatting/projection logic
+may belong here; an operation that performs IO may not.
+
+`schema/` holds executable structural validation and inferred types. `contracts/` holds an explicit
+shared interface between independent implementations/owners, or generated wire types. Use the plural
+directory spelling consistently. A field-bearing interface alone does not justify creating a
+contracts directory. Local shapes stay in their concrete owner with specific names; options,
+contexts, envelopes and search matches are not generic `types` modules. Do not create `types/`
+as a category for TypeScript declarations. A business capability concerning knowledge object types
+uses `object-types/` to distinguish the actual entity.
+
+Contract directories do not own preview thresholds, visual budgeting or business state policy.
+`canvas/contracts` holds editor/surface interfaces, `canvas/preview` owns pure preview policy,
+and `workspace/persistence-state.ts` defines the workspace persistence state. Avoid a global
+`models/`, `types/` or `schemas/` container spanning unrelated capabilities. Source ownership remains
+business-first; model/schema/contracts describe responsibility inside an existing owner.
+
 ## Schema and supporting module placement
 
 Standalone Renderer runtime schema modules live under their owning capability or model's
@@ -304,8 +328,8 @@ correctness.
 - `session/<feature>-store.ts`: a feature's Pinia cross-view session composition root.
 - `*-controller.ts`: UI lifecycle and multi-primitive orchestration.
 - `*-actions.ts`: user/domain actions over one state owner.
-- `*-schema.ts`: runtime validation at a real boundary and types derived from that schema.
-- `*-types.ts`: static contracts that cannot be derived from a schema; never a duplicate schema source.
+- `schema/<subject>.ts`: standalone runtime schema and its inferred types; private single-operation IO schemas stay with their IO owner.
+- Static type-only files use the concrete object or information role (`search-match.ts`, `audio-recorder-options.ts`); avoid generic `*-types.ts` and type containers. The business term `object-types` denotes user-defined knowledge object classifications, not TypeScript declarations.
 - `*-presentation.ts`: pure domain-to-view-model transforms.
 - `*-runtime.ts`: resources and lifecycle that exist only for the current process.
 

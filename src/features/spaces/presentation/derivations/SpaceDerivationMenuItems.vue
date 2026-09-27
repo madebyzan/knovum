@@ -10,7 +10,7 @@ import UiTooltip from "../../../../shared/ui/UiTooltip.vue";
 import type {
   CreationIntentIcon,
   DerivationUnavailableReason,
-} from "../../knowledge-derivations/catalog/creation-intent-contract";
+} from "../../knowledge-derivations/catalog/creation-intent";
 import {
   creationIntentDefinitions,
   type CreationIntentId,

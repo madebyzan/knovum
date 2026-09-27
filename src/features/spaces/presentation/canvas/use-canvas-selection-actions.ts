@@ -6,7 +6,7 @@ import type {
   CanvasAutoLayoutDirection,
   CanvasDistributeMode,
   CanvasLayerMove,
-} from "../../canvas/contract/canvas-editor-port";
+} from "../../canvas/contracts/canvas-editor-port";
 import { useCanvasEditorSession, useCanvasSelectionProjection } from "../../canvas/editor-session";
 import type { CanvasNodeAppearance } from "../../canvas/schema/document";
 import { openSpaceNode } from "../../canvas/selection-actions";

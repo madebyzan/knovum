@@ -1,8 +1,8 @@
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceRelation } from "../../model/relations/relation";
 import type { SpaceEditSnapshot } from "../../model/structure/schema/edit-snapshot";
+import type { CanvasViewportDetailProfile } from "../preview/detail-profile";
 import type { CanvasDocumentV1, CanvasNodeLayoutV1 } from "../schema/document";
-import type { CanvasViewportDetailProfile } from "./canvas-detail-profile";
 import type { CanvasSurfaceEvents } from "./canvas-editor";
 import type { CanvasTool } from "./canvas-tool";
 

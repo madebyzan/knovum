@@ -6,7 +6,7 @@ import {
   requireAudioRecordingSpace,
   stopAudioCapture,
 } from "./audio-permission";
-import type { AudioRecorderControllerOptions } from "./audio-recorder-contract";
+import type { AudioRecorderControllerOptions } from "./audio-recorder-options";
 import {
   cancelSpaceAudioRecording,
   finishSpaceAudioRecording,

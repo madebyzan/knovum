@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-import type { CanvasViewportDetailProfile } from "../../contract/canvas-detail-profile";
+import type { CanvasViewportDetailProfile } from "../../preview/detail-profile";
 import type { CanvasNodeLayoutV1 } from "../../schema/document";
 import type { CanvasSceneNode } from "../scene/scene-projection";
 

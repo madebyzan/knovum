@@ -1,4 +1,4 @@
-import type { CanvasTool } from "../canvas/contract/canvas-tool";
+import type { CanvasTool } from "../canvas/contracts/canvas-tool";
 
 export const CANVAS_TOOL_COMMANDS = [
   { tool: "select", title: "spaces.canvas.tools.select", shortcut: "V" },

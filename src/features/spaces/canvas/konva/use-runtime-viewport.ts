@@ -1,6 +1,6 @@
 import type { Ref } from "vue";
 
-import type { CanvasSurfaceProps } from "../contract/canvas-surface";
+import type { CanvasSurfaceProps } from "../contracts/canvas-surface";
 import type { CanvasDocumentModel } from "./document/canvas-document-model";
 import { useExternalContentDrop } from "./interaction/use-external-content-drop";
 import { useStageViewport } from "./viewport/use-stage-viewport";

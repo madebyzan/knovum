@@ -3,8 +3,8 @@ import type Konva from "konva";
 import { onScopeDispose, shallowRef, watch, type Ref } from "vue";
 
 import { SECTION_DEFAULT_SIZE, SECTION_MINIMUM_SIZE } from "../../../model/structure/section-metrics";
-import type { CanvasPoint, CanvasRect } from "../../contract/canvas-editor-port";
-import type { CanvasTool } from "../../contract/canvas-tool";
+import type { CanvasPoint, CanvasRect } from "../../contracts/canvas-editor-port";
+import type { CanvasTool } from "../../contracts/canvas-tool";
 import type { useCanvasSelection } from "../selection/use-canvas-selection";
 import type { useStageViewport } from "../viewport/use-stage-viewport";
 

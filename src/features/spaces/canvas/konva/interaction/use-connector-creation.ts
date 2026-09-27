@@ -1,7 +1,7 @@
 import type Konva from "konva";
 import { computed, shallowRef, type Ref } from "vue";
 
-import type { CanvasSurfaceEvents } from "../../contract/canvas-editor";
+import type { CanvasSurfaceEvents } from "../../contracts/canvas-editor";
 import type { CanvasScene } from "../scene/scene-projection";
 import type { useStageViewport } from "../viewport/use-stage-viewport";
 import { canvasPointFromScreen } from "../viewport/viewport-math";
