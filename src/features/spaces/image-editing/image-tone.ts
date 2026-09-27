@@ -1,8 +1,8 @@
 import { clamp } from "es-toolkit";
 
-import { applyImageDetail } from "./image-detail";
 import type { ImageAdjustments } from "./image-edit";
 import { applyImageGlow } from "./image-glow";
+import { applyImageTexture } from "./image-texture";
 
 const BYTE_MAX = 255;
 
@@ -95,14 +95,14 @@ function finishSpatialAdjustments(
   adjustments: ImageAdjustments,
   size: { width: number; height: number; imageRect: { width: number; height: number } },
 ) {
-  const detailed = applyImageDetail(pixels, {
+  const texturedPixels = applyImageTexture(pixels, {
     width: size.width,
     height: size.height,
     sharpness: adjustments.sharpness,
     clarity: adjustments.clarity,
     grain: adjustments.grain,
   });
-  return applyImageGlow(detailed, {
+  return applyImageGlow(texturedPixels, {
     width: size.width,
     height: size.height,
     amount: adjustments.glow,

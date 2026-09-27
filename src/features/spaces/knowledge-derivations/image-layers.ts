@@ -61,7 +61,7 @@ export async function generateImageLayers(
     task: {
       id: generationId,
       title: i18n.global.t("spaces.media.imageEditor.layers.task"),
-      detail: source.data.title,
+      statusMessage: source.data.title,
       cancel: () => invokeCommand<void>("plugin:spaces|cancel_image_layer_generation", { generationId }),
     },
     failureMessageKey: "spaces.media.imageEditor.layers.failed",
@@ -69,7 +69,10 @@ export async function generateImageLayers(
       const onStage = new Channel<string>(
         taskId
           ? (stage) =>
-              useTaskStore().detail(taskId, i18n.global.t(`spaces.media.imageEditor.layers.stage.${stage}`))
+              useTaskStore().setStatusMessage(
+                taskId,
+                i18n.global.t(`spaces.media.imageEditor.layers.stage.${stage}`),
+              )
           : undefined,
       );
       return invokeCommand<LayerOutput[]>("plugin:spaces|generate_image_layers", {

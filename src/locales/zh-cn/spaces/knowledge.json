@@ -56,7 +56,7 @@
     "incoming": "入向 ({count})",
     "outgoing": "出向 ({count})",
     "empty": "拖拽节点锚点或选中多项建立关系。",
-    "details": "关联详情",
+    "inspect": "关联详情",
     "rationale": "关联说明",
     "rationalePlaceholder": "说明这些内容之间的关联…",
     "color": "关联线颜色",

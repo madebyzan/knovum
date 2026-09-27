@@ -112,7 +112,7 @@ function matchBadgeLabel(match: KnowledgeSearchMatch): string | null {
                 ><span class="block truncate text-caption text-foreground-tertiary">{{
                   ("fileName" in node.data && node.data.fileName) ||
                   ("siteName" in node.data && node.data.siteName) ||
-                  t("spaces.search.find.defaultDetail")
+                  t("spaces.search.find.defaultContentLabel")
                 }}</span></span
               >
             </ListboxItem>

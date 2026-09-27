@@ -76,7 +76,7 @@ describe("Konva media node content", () => {
           zIndex: 0,
         },
         node: { id: "video", type: "video", data, initialPosition: { x: 0, y: 0 } },
-        detailProfile: profiles.summary,
+        previewPolicy: profiles.summary,
         interactive: false,
         selected: true,
         persist: async () => {},

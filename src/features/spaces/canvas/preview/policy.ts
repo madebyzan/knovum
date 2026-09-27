@@ -1,40 +1,37 @@
-export type CanvasDetailLevel = "compact" | "summary" | "full";
+export type CanvasPreviewLevel = "compact" | "summary" | "full";
 
-export interface CanvasViewportDetailProfile {
-  level: CanvasDetailLevel;
+export interface CanvasPreviewPolicy {
+  level: CanvasPreviewLevel;
   previewItemLimit: 2 | 4 | 10;
 }
 
 export interface CanvasNodePresentationContext {
-  viewport: CanvasViewportDetailProfile;
+  viewport: CanvasPreviewPolicy;
   mode: "interactive" | "preview";
 }
 
-const PROFILES: Readonly<Record<CanvasDetailLevel, CanvasViewportDetailProfile>> = {
+const POLICIES: Readonly<Record<CanvasPreviewLevel, CanvasPreviewPolicy>> = {
   compact: { level: "compact", previewItemLimit: 2 },
   summary: { level: "summary", previewItemLimit: 4 },
   full: { level: "full", previewItemLimit: 10 },
 };
 
-export function canvasViewportDetailProfile(
-  zoomPercent: number,
-  nodeCount: number,
-): CanvasViewportDetailProfile {
+export function canvasPreviewPolicy(zoomPercent: number, nodeCount: number): CanvasPreviewPolicy {
   const full = richPreviewZoomThreshold(nodeCount);
-  if (zoomPercent >= full) return PROFILES.full;
-  if (zoomPercent >= Math.max(38, full - 28)) return PROFILES.summary;
-  return PROFILES.compact;
+  if (zoomPercent >= full) return POLICIES.full;
+  if (zoomPercent >= Math.max(38, full - 28)) return POLICIES.summary;
+  return POLICIES.compact;
 }
 
 export function canvasNodePresentationContext(
-  viewport: CanvasViewportDetailProfile,
+  viewport: CanvasPreviewPolicy,
   interactive: boolean,
 ): CanvasNodePresentationContext {
   return { viewport, mode: interactive ? "interactive" : "preview" };
 }
 
 export function shouldRenderRichCanvasPreview(zoomPercent: number, nodeCount: number) {
-  return canvasViewportDetailProfile(zoomPercent, nodeCount).level === "full";
+  return canvasPreviewPolicy(zoomPercent, nodeCount).level === "full";
 }
 
 export function richPreviewZoomThreshold(nodeCount: number) {

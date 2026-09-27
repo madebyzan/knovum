@@ -51,8 +51,8 @@ export function observeWorkflowRun(run: RunObservation, title: string, onUpdate?
         tasks.fail(next.id, i18n.global.t(workflowStateLabelKey(next.state)));
       } else if (next.state === "cancelled") tasks.cancelled(next.id);
       else if (next.waitReason === "content_review") {
-        tasks.detail(next.id, i18n.global.t("spaces.creation.workflow.review.required"));
-      } else tasks.detail(next.id, i18n.global.t(workflowStateLabelKey(next.state)));
+        tasks.setStatusMessage(next.id, i18n.global.t("spaces.creation.workflow.review.required"));
+      } else tasks.setStatusMessage(next.id, i18n.global.t(workflowStateLabelKey(next.state)));
       if (reviewRunId.value === next.id && next.waitReason !== "content_review") closeWorkflowReview();
     },
     error: (cause) => tasks.fail(run.id, String(cause)),

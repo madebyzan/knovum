@@ -3,10 +3,7 @@ import { computed } from "vue";
 
 import type { CanvasContentHeightMeasurement } from "../../../canvas/contracts/canvas-editor-port";
 import { CANVAS_NODE_HEADER_HEIGHT, PREVIEW_CAPTION_HEIGHT } from "../../../canvas/node-size";
-import {
-  canvasNodePresentationContext,
-  type CanvasViewportDetailProfile,
-} from "../../../canvas/preview/detail-profile";
+import { canvasNodePresentationContext, type CanvasPreviewPolicy } from "../../../canvas/preview/policy";
 import type { CanvasNodeLayoutV1 } from "../../../canvas/schema/document";
 import { useImageCommentSession } from "../../../comments/image-comment-session";
 import { useImageEditSession } from "../../../image-editing/image-edit-session";
@@ -27,7 +24,7 @@ import "./canvas-text-content.css";
 const props = defineProps<{
   layout: CanvasNodeLayoutV1;
   node: SpaceCanvasNode;
-  detailProfile: CanvasViewportDetailProfile;
+  previewPolicy: CanvasPreviewPolicy;
   interactive: boolean;
   persist: (id: string, data: SpaceCanvasNode["data"]) => Promise<void>;
   fitContentHeight: (id: string, measurement: CanvasContentHeightMeasurement) => void;
@@ -48,9 +45,9 @@ const isText = computed(() => props.node.data.kind === "text");
 const isNote = computed(() => props.node.data.kind === "note");
 const hasCredentialAction = computed(() => props.node.data.kind === "credential");
 const presentationContext = computed(() =>
-  canvasNodePresentationContext(props.detailProfile, props.interactive),
+  canvasNodePresentationContext(props.previewPolicy, props.interactive),
 );
-const showsSecondaryChrome = computed(() => props.interactive || props.detailProfile.level !== "compact");
+const showsSecondaryChrome = computed(() => props.interactive || props.previewPolicy.level !== "compact");
 const interactiveMedia = computed(
   () => props.interactive && (props.node.data.kind === "audio" || props.node.data.kind === "video"),
 );

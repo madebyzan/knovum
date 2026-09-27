@@ -15,7 +15,7 @@ export interface RunDerivationOptions<Output> {
   task?: {
     id?: string;
     title: string;
-    detail?: string;
+    statusMessage?: string;
     cancel?: () => Promise<void> | void;
   };
   failureMessageKey?: string;
@@ -33,7 +33,7 @@ export async function runDerivation<Output>(
 
   beginPendingDerivation(pendingId, sourceNodeIds);
   const tasks = useTaskStore();
-  const taskId = task ? tasks.start(task.title, task.detail, task.cancel, task.id) : undefined;
+  const taskId = task ? tasks.start(task.title, task.statusMessage, task.cancel, task.id) : undefined;
 
   try {
     await yieldToCanvas();

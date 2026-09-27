@@ -76,7 +76,8 @@ export async function generateVideoFromDocument({ store, inputs, draft }: Genera
   );
   const stages = new Channel<string>();
   // oxlint-disable-next-line unicorn/prefer-add-event-listener -- Tauri Channel exposes its events through onmessage.
-  stages.onmessage = (stage) => tasks.detail(taskId, i18n.global.t(`spaces.creation.stages.${stage}`));
+  stages.onmessage = (stage) =>
+    tasks.setStatusMessage(taskId, i18n.global.t(`spaces.creation.stages.${stage}`));
   try {
     await yieldToCanvas();
     const target = await loadAiExecutionTarget("video-generation", draft.target);

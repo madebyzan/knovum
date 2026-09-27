@@ -80,7 +80,7 @@ export async function commitManagedImport(options: CommitManagedImportOptions) {
 function updateCopyProgress(taskId: string, progress: { bytesCopied: number; totalBytes?: number }) {
   const tasks = useTaskStore();
   if (!progress.totalBytes) {
-    tasks.detail(taskId, formatByteSize(progress.bytesCopied) ?? "");
+    tasks.setStatusMessage(taskId, formatByteSize(progress.bytesCopied) ?? "");
     return;
   }
   const current = formatByteSize(progress.bytesCopied);

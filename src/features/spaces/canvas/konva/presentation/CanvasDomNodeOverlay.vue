@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-import type { CanvasViewportDetailProfile } from "../../preview/detail-profile";
+import type { CanvasPreviewPolicy } from "../../preview/policy";
 import type { CanvasNodeLayoutV1 } from "../../schema/document";
 import type { CanvasSceneNode } from "../scene/scene-projection";
 
 const props = defineProps<{
-  detailProfile: CanvasViewportDetailProfile;
+  previewPolicy: CanvasPreviewPolicy;
   interactive: boolean;
   sceneNode: CanvasSceneNode;
   layoutPreviews: ReadonlyMap<string, CanvasNodeLayoutV1>;
@@ -32,7 +32,7 @@ const style = computed(() => ({
     <slot
       :layout="effectiveLayout"
       :node="sceneNode.node"
-      :detail-profile="detailProfile"
+      :preview-policy="previewPolicy"
       :interactive="interactive"
       :selected="selected"
     />

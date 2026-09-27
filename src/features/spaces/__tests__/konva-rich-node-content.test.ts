@@ -65,7 +65,7 @@ describe("Konva rich node content", () => {
           },
           initialPosition: { x: 0, y: 0 },
         },
-        detailProfile: profiles.full,
+        previewPolicy: profiles.full,
         interactive: true,
         selected: true,
         persist: async () => {},

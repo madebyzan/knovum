@@ -4,7 +4,7 @@ import { computed, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import type { CanvasContentHeightMeasurement } from "../../../canvas/contracts/canvas-editor-port";
-import type { CanvasNodePresentationContext } from "../../../canvas/preview/detail-profile";
+import type { CanvasNodePresentationContext } from "../../../canvas/preview/policy";
 import type { CanvasNodeSizeAuthority } from "../../../canvas/schema/document";
 import type { SpaceCanvasTextPayload } from "../../../model/nodes/capabilities";
 import type { SpaceTextPayload } from "../../../model/nodes/node-payload";

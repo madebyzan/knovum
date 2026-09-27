@@ -137,7 +137,7 @@ function snapshotTask(snapshot: ResourcePreparationSnapshot) {
     id: snapshot.jobId,
     title: snapshot.title,
     startedAt: snapshot.startedAt,
-    ...(snapshot.error === null ? {} : { detail: snapshot.error.message }),
+    ...(snapshot.error === null ? {} : { statusMessage: snapshot.error.message }),
     ...(snapshot.progress.percent === null ? {} : { progress: snapshot.progress.percent }),
   };
 }
@@ -159,10 +159,10 @@ function updateTaskProgress(
     tasks.progress(taskId, 100);
     return;
   }
-  const detail =
+  const statusMessage =
     progress.total && progress.total > 0
       ? `${formatBytes(progress.downloaded)} / ${formatBytes(progress.total)}`
       : undefined;
-  if (progress.percent === null) tasks.indeterminate(taskId, detail);
-  else tasks.progress(taskId, progress.percent, detail);
+  if (progress.percent === null) tasks.indeterminate(taskId, statusMessage);
+  else tasks.progress(taskId, progress.percent, statusMessage);
 }

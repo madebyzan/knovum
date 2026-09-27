@@ -38,7 +38,7 @@ export function createTaskRetryController(
       succeed(id);
     } catch (error) {
       task.status = "failed";
-      task.detail = String(error);
+      task.statusMessage = String(error);
       task.retryable = true;
     }
   }

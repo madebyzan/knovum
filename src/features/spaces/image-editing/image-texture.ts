@@ -1,4 +1,4 @@
-interface DetailSettings {
+interface ImageTextureSettings {
   width: number;
   height: number;
   sharpness: number;
@@ -6,18 +6,21 @@ interface DetailSettings {
   grain: number;
 }
 
-interface DetailContext {
+interface ImageTextureContext {
   source: Uint8ClampedArray;
   output: Uint8ClampedArray;
   neighbors: Int32Array;
-  settings: DetailSettings;
+  settings: ImageTextureSettings;
   strength: number;
 }
 
-export function applyImageDetail(source: Uint8ClampedArray, settings: DetailSettings): Uint8ClampedArray {
+export function applyImageTexture(
+  source: Uint8ClampedArray,
+  settings: ImageTextureSettings,
+): Uint8ClampedArray {
   if (settings.sharpness === 0 && settings.clarity === 0 && settings.grain === 0) return source;
   const output = new Uint8ClampedArray(source);
-  const context: DetailContext = {
+  const context: ImageTextureContext = {
     source,
     output,
     neighbors: new Int32Array(4),
@@ -30,7 +33,7 @@ export function applyImageDetail(source: Uint8ClampedArray, settings: DetailSett
   return output;
 }
 
-function processPixel(context: DetailContext, x: number, y: number) {
+function processPixel(context: ImageTextureContext, x: number, y: number) {
   const { source, output, neighbors, settings, strength } = context;
   const offset = (y * settings.width + x) * 4;
   if (source[offset + 3] === 0) return;

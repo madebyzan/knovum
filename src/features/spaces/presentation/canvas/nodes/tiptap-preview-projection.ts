@@ -1,4 +1,4 @@
-import type { CanvasNodePresentationContext } from "../../../canvas/preview/detail-profile";
+import type { CanvasNodePresentationContext } from "../../../canvas/preview/policy";
 import type { TiptapJsonNode } from "../../../editor/tiptap-document";
 
 export function projectTiptapPreview(

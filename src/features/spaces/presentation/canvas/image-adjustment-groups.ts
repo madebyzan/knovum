@@ -9,7 +9,7 @@ export const imageAdjustmentGroups = [
     keys: ["exposure", "contrast", "highlights", "shadows", "whites", "blacks"],
   },
   { id: "color", icon: Blend, keys: ["vibrance", "saturation", "warmth", "tint"] },
-  { id: "detail", icon: CircleDotDashed, keys: ["sharpness", "clarity", "grain"] },
+  { id: "texture", icon: CircleDotDashed, keys: ["sharpness", "clarity", "grain"] },
   { id: "effects", icon: Aperture, keys: ["vignette", "softLight", "glow"] },
 ] as const satisfies ReadonlyArray<{
   id: string;

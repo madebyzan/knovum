@@ -470,3 +470,16 @@ Project-owned types also avoid generic `Entry` and `Record` identities. Name the
 (`SpaceNodeProjection`, `EnrichmentJobState`, `ReversibleSpaceChange`, `ArchiveMember`).
 Recording audio, recording history, SQL rows and external archive APIs retain their actual verbs
 and fields. Do not change wire property names merely to remove a word from source identifiers.
+
+## Detail identifiers
+
+Do not use `detail`, `details`, `*Detail*` or `*Details*` as project-owned file, type, function,
+variable or property identities. Name the actual policy, content or interaction: `CanvasPreviewPolicy`,
+`ImageTextureSettings`, `statusMessage`, `setStatusMessage`, `explanation`, or `diagnosticText`.
+Task Center `statusMessage` is an in-memory UI field for current stage text and failure reasons,
+not a compatibility alias for `detail`. Canvas preview policy expresses preview levels and item
+budgets. Image texture adjustment expresses sharpness, clarity and grain processing.
+
+HTML `<details>`, DOM/library event `detail`, vendor message fields and fixed external protocol
+spelling remain unchanged. Natural-language copy and user-provided text are not identifiers.
+Evaluate a persisted or external field before renaming it; do not add compatibility readers.

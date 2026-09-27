@@ -42,7 +42,7 @@ export async function createImageCutout(store: SpaceStore, source: SpaceCanvasNo
     await yieldToCanvas();
     await startDerivation({ id: derivationId, spaceId, source, outputNodeId: pending.id, sourceEdit });
     started = true;
-    tasks.detail(taskId, t("spaces.creation.image.cutout.segmenting"));
+    tasks.setStatusMessage(taskId, t("spaces.creation.image.cutout.segmenting"));
     const completed = await invokeCommand<CompletedCutout>("plugin:spaces|submit_image_cutout_derivation", {
       request: { id: derivationId, sourceEdit },
     });

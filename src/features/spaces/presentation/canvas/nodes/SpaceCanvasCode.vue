@@ -5,7 +5,7 @@ import { computed, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiIconButton from "../../../../../shared/ui/UiIconButton.vue";
-import type { CanvasNodePresentationContext } from "../../../canvas/preview/detail-profile";
+import type { CanvasNodePresentationContext } from "../../../canvas/preview/policy";
 import type { SpaceCodePayload } from "../../../model/nodes/node-payload";
 import SpaceHtmlPreview from "../../SpaceHtmlPreview.vue";
 import { projectPreviewItems } from "./canvas-preview-budget";

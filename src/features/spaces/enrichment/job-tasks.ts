@@ -14,7 +14,7 @@ export function failedEnrichmentTask(record: SpaceEnrichmentJobState) {
   return {
     id: record.id,
     title: enrichmentJobTitle(record.jobType),
-    detail: record.error,
+    statusMessage: record.error,
     startedAt: record.createdAt,
   };
 }

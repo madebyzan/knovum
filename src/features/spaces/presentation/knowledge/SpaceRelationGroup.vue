@@ -48,7 +48,7 @@ const { t } = useI18n();
             {{ neighbor.neighbor.data.title }}
           </button>
           <AccordionTrigger as-child>
-            <UiIconButton :label="t('spaces.knowledge.relations.details')" size="sm" class="group">
+            <UiIconButton :label="t('spaces.knowledge.relations.inspect')" size="sm" class="group">
               <ChevronDown
                 class="size-(--knovum-icon-size-xs) transition-transform duration-150 ease-standard group-data-[state=open]:rotate-180"
               />

@@ -56,7 +56,7 @@
     "incoming": "Incoming ({count})",
     "outgoing": "Outgoing ({count})",
     "empty": "Drag node anchors or select multiple items to create relations.",
-    "details": "Connection details",
+    "inspect": "Connection details",
     "rationale": "Why these are connected",
     "rationalePlaceholder": "Describe how these items are connected…",
     "color": "Relation line color",

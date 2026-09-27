@@ -4,7 +4,7 @@
     "placeholder": "Search notes, websites, transcripts, files, tags…",
     "noResults": "No matching items in this Space.",
     "defaultTitle": "Current Space",
-    "defaultDetail": "Canvas content",
+    "defaultContentLabel": "Canvas content",
     "emptyHint": "No content available for search in this Space."
   },
   "allSpaces": {
