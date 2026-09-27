@@ -358,7 +358,7 @@ dialogs, receive session-scoped authorization, and are never covered by a broad 
 
 ### Resource lifecycle composition
 
-`app_resources` assembles the local-resources plugin and owns removal policy that unloads an AI embedding engine before deleting its model. `local_resources` owns path resolution, verification, download and filesystem operations; it does not import AI or Spaces. Rust directory modules use `mod.rs`; a source file and a same-name sibling directory must not coexist. Stable wire IDs are explicitly mapped to UI translation keys.
+`app_resources` assembles the local-resources plugin and owns removal policy that unloads an AI embedding engine before deleting its model. `local_resources` owns path resolution, verification, download and filesystem operations; it does not import AI or Spaces. Rust directory modules use conventional module paths and `mod.rs` entry points where a directory module is clearer. Stable wire IDs are explicitly mapped to UI translation keys.
 
 ### IPC error boundary
 

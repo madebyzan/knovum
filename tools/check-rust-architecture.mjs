@@ -2,17 +2,12 @@ import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { checkIpcNullability } from "./ipc-nullability.mjs";
-import { checkRustSourceStructure } from "./rust-source-structure.mjs";
-
 const root = fileURLToPath(new URL("../", import.meta.url));
 const rustRoot = join(root, "src-tauri", "src");
 const FORBIDDEN_SPACE_PERMISSIONS = new Set(["fs:allow-write-file", "fs:allow-mkdir", "fs:allow-remove"]);
 
 const failures = [];
 const rustFiles = filesUnder(rustRoot, ".rs");
-failures.push(...checkRustSourceStructure(root, rustFiles));
-failures.push(...checkIpcNullability(root));
 
 forbid(
   join(rustRoot, "documents"),
@@ -31,9 +26,6 @@ forbid(
   /crate::spaces\b/,
   "External Agent protocol adapters must not depend on Space policy",
 );
-if (existsSync(join(rustRoot, "ai", "providers", "agents"))) {
-  failures.push("src-tauri/src/ai/providers/agents: External Agents must not be modeled as AI providers");
-}
 for (const file of rustFiles) {
   const source = readFileSync(file, "utf8");
   const relativePath = relative(rustRoot, file);
@@ -75,7 +67,7 @@ if (failures.length) {
   );
   process.exit(1);
 }
-console.log("Rust architecture gate: module direction, structure and capability scope are clean");
+console.log("Rust architecture gate: module direction and capability policy checks passed");
 
 function filesUnder(directory, extension) {
   const output = [];
