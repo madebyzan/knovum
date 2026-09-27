@@ -32,3 +32,4 @@ target
 .tmp
 .playwright-cli
 design
+.omx
