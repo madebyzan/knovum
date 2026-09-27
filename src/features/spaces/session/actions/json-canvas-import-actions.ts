@@ -35,7 +35,7 @@ export function createJsonCanvasImportActions(context: JsonCanvasImportContext) 
     const tasks = useTaskStore();
     const taskId = tasks.start(i18n.global.t("spaces.importExport.progress.resource"));
     const mutationId = crypto.randomUUID();
-    const operation = executeImport();
+    const operation = executeImport(spaceId);
     return operation;
 
     async function cancelImport() {
@@ -45,13 +45,13 @@ export function createJsonCanvasImportActions(context: JsonCanvasImportContext) 
       });
     }
 
-    async function executeImport() {
+    async function executeImport(targetSpaceId: string) {
       try {
         const committed = await persistJsonCanvas(
           {
             sourcePath: request.sourcePath,
             baseRevision: request.baseRevision,
-            spaceId,
+            spaceId: targetSpaceId,
             mutationId,
             noteTitle: i18n.global.t("spaces.editor.note.new"),
             sectionTitle: i18n.global.t("spaces.canvas.sections.untitled"),
@@ -63,21 +63,21 @@ export function createJsonCanvasImportActions(context: JsonCanvasImportContext) 
           },
         );
         tasks.setCancellation(taskId);
-        const projection = await loadSpaceSessionProjection(spaceId);
+        const projection = await loadSpaceSessionProjection(targetSpaceId);
         const ids = new Set(committed.importedNodes.map(({ nodeId }) => nodeId));
         const imported = projection.nodes.filter(({ id }) => ids.has(id));
-        if (context.state.activeSpaceId.value === spaceId) {
+        if (context.state.activeSpaceId.value === targetSpaceId) {
           context.state.nodes.value = projection.nodes;
           context.state.relations.value = projection.relations;
           context.state.editSnapshot.value = projection.editSnapshot;
-          context.mutations.commitPendingContent(spaceId, imported);
+          context.mutations.commitPendingContent(targetSpaceId, imported);
           context.placement.requestReveal(imported.map(({ id }) => id));
         }
         for (const node of imported) {
           if (isSpaceManagedAssetPayload(node.data))
             scheduleSpaceAssetProcessing({
               context: context.mutations,
-              spaceId,
+              spaceId: targetSpaceId,
               nodeId: node.id,
               data: node.data,
             });

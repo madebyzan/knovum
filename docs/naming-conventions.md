@@ -321,7 +321,7 @@ module. Both sides mirror the same sub-domain names, which is what makes the dir
   Renderer updates. Internal parameters are not restricted to a closed three-word list.
 - Maps use `<value>By<Key>`; timestamps use `*At` / `*_at`; durations include their unit.
 - Only DOM/component references use `*Ref`; a Vue `ref()` does not make `Ref` part of the domain name.
-- `data`, `value`, `result`, and `item` are limited to short, unambiguous local transforms.
+- `data`, `value`, and `item` are limited to short, unambiguous local transforms.
 - Prefer a semantic options/command object after three parameters when it makes the call easier to
   understand. Rust types and review own this decision; there is no repository-specific parameter
   count gate.
@@ -337,7 +337,7 @@ A named local boolean is fine when its meaning is obvious. Across module boundar
 
 ## Local names
 
-Short local names such as `row`, `result`, `value`, `save`, `start`, `busy`, and `editing` are acceptable in small scopes when module/component context makes the meaning unambiguous. Do not expand names mechanically just to make them globally unique.
+Short local names such as `row`, `value`, `save`, `start`, `busy`, and `editing` are acceptable in small scopes when module/component context makes the meaning unambiguous. Do not expand names mechanically just to make them globally unique.
 
 ## Tests
 

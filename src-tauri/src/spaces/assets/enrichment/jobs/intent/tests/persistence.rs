@@ -33,8 +33,8 @@ async fn synchronize(pool: &SqlitePool, data: &Value) {
 #[tokio::test]
 async fn images_and_covers_share_one_deduplicated_visual_job_type() {
     for data in [
-        json!({"kind":"image","sourceRevision":"asset-1","imageEdit":null}),
-        json!({"kind":"video","sourceRevision":"asset-1","previewPath":"/previews/cover.png"}),
+        json!({"kind":"image","title":"Image","sourceRevision":"asset-1","imageEdit":null}),
+        json!({"kind":"video","title":"Video","sourceRevision":"asset-1","previewPath":"/previews/cover.png"}),
     ] {
         let pool = fixture(&data).await;
         synchronize(&pool, &data).await;
@@ -56,8 +56,7 @@ async fn images_and_covers_share_one_deduplicated_visual_job_type() {
 
 #[tokio::test]
 async fn cover_replacement_cancels_running_visual_work_and_enqueues_the_new_input() {
-    let mut data =
-        json!({"kind":"video","sourceRevision":"asset-1","previewPath":"/previews/first.png"});
+    let mut data = json!({"kind":"video","title":"Video","sourceRevision":"asset-1","previewPath":"/previews/first.png"});
     let pool = fixture(&data).await;
     synchronize(&pool, &data).await;
     let first: String =
@@ -105,7 +104,7 @@ async fn cover_replacement_cancels_running_visual_work_and_enqueues_the_new_inpu
 
 #[tokio::test]
 async fn current_schema_rejects_both_obsolete_visual_job_names() {
-    let data = json!({"kind":"image","sourceRevision":"asset-1"});
+    let data = json!({"kind":"image","title":"Image","sourceRevision":"asset-1"});
     let pool = fixture(&data).await;
     for old in ["analyze_image", "analyze_video_cover"] {
         assert!(sqlx::query("INSERT INTO spaces_enrichment_jobs(id,space_id,node_id,job_type,status,source_revision,created_at,updated_at) VALUES($1,'space','node',$1,'pending','asset-1',1,1)")
