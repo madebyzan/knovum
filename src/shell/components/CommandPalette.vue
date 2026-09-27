@@ -98,7 +98,7 @@ function commandReason(command: AppCommand) {
               <ListboxItem
                 :value="command"
                 :aria-disabled="!commandReady(command)"
-                class="flex h-(--knovum-command-palette-item-height) w-full cursor-default items-center gap-2.5 rounded-md px-2.5 text-left outline-none aria-disabled:opacity-45 data-highlighted:bg-(--knovum-sidebar-item-bg-selected)"
+                class="flex h-(--knovum-command-palette-item-height) w-full cursor-default items-center gap-2.5 rounded-md px-2.5 text-left outline-none aria-disabled:opacity-40 data-highlighted:bg-(--knovum-sidebar-item-bg-selected)"
               >
                 <span class="grid size-6 place-items-center text-fg-secondary">
                   <component :is="command.icon" v-if="command.icon" class="size-3.5" />

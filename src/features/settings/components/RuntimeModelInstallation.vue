@@ -31,7 +31,7 @@ const { t } = useI18n();
 
 <template>
   <div
-    class="flex min-h-(--knovum-settings-row-min-height) flex-col justify-center border-b border-stroke-divider px-4 py-3 last:border-b-0"
+    class="flex min-h-(--knovum-setting-min-height) flex-col justify-center border-b border-stroke-divider px-4 py-3 last:border-b-0"
   >
     <div class="flex items-center justify-between gap-6">
       <div class="min-w-0 flex-1">

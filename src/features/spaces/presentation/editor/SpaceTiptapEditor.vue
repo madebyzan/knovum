@@ -57,7 +57,7 @@ async function exportMarkdown() {
 <template>
   <section v-if="editorNode" class="absolute inset-0 z-30 flex min-h-0 flex-col bg-surface-canvas">
     <header
-      class="flex h-(--knovum-editor-toolbar-height) shrink-0 items-center gap-2 border-b border-stroke-divider bg-surface-chrome px-3"
+      class="flex h-toolbar shrink-0 items-center gap-2 border-b border-stroke-divider bg-surface-chrome px-3"
     >
       <UiIconButton :label="t('common.back')" size="sm" @click="close">
         <ArrowLeft class="size-3.5" />

@@ -31,7 +31,7 @@ const checkboxId = useId(props.id);
     :aria-label="label"
     :class="
       cn(
-        'grid size-4 shrink-0 place-items-center rounded-sm border border-stroke-strong bg-surface-raised text-fg-on-accent transition-colors outline-none hover:border-stroke-contrast focus-visible:border-stroke-focus focus-visible:outline-none disabled:opacity-45 data-[state=checked]:border-stroke-accent data-[state=checked]:bg-surface-accent',
+        'grid size-4 shrink-0 place-items-center rounded-sm border border-stroke-strong bg-surface-raised text-fg-on-accent transition-colors outline-none hover:border-stroke-contrast focus-visible:border-stroke-focus focus-visible:outline-none disabled:opacity-40 data-[state=checked]:border-stroke-accent data-[state=checked]:bg-surface-accent',
         props.class,
       )
     "

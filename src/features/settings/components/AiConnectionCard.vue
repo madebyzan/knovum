@@ -85,7 +85,7 @@ function isModelInUse(modelId: string) {
 
 <template>
   <CollapsibleRoot v-model:open="open" class="border-b border-stroke-divider last:border-b-0">
-    <div class="flex min-h-(--knovum-settings-row-min-height) items-center gap-3 px-4 py-3">
+    <div class="flex min-h-(--knovum-setting-min-height) items-center gap-3 px-4 py-3">
       <CollapsibleTrigger
         class="flex min-w-0 flex-1 items-center gap-3 rounded-md text-left outline-none focus-visible:ring-2 focus-visible:ring-stroke-focus"
       >

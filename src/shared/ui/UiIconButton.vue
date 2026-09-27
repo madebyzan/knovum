@@ -40,7 +40,7 @@ const attrs = useAttrs();
       :data-active="active"
       :class="
         cn(
-          'grid shrink-0 place-items-center rounded-md text-fg-secondary transition-[color,background-color] duration-100 ease-standard hover:bg-surface-control-hover hover:text-fg-primary active:bg-surface-control-pressed disabled:pointer-events-none disabled:opacity-35 data-[active=true]:bg-surface-control data-[active=true]:text-fg-primary',
+          'grid shrink-0 place-items-center rounded-md text-fg-secondary transition-[color,background-color] duration-100 ease-standard hover:bg-surface-control-hover hover:text-fg-primary active:bg-surface-control-pressed disabled:pointer-events-none disabled:opacity-40 data-[active=true]:bg-surface-control data-[active=true]:text-fg-primary',
           size === 'sm' ? 'size-(--knovum-control-height-sm)' : 'size-(--knovum-control-height-md)',
           props.class,
         )

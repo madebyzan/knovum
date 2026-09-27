@@ -89,9 +89,7 @@ function keydown(event: KeyboardEvent) {
 
 <template>
   <div :data-active="selected" :style="{ paddingLeft: `${(level - 1) * 16}px` }">
-    <div
-      class="flex h-(--knovum-navigation-item-height) items-center rounded-md hover:bg-surface-control-hover"
-    >
+    <div class="flex h-interaction items-center rounded-md hover:bg-surface-control-hover">
       <button
         v-if="item.children"
         type="button"

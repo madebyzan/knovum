@@ -46,7 +46,7 @@ function action(run: () => void) {
           :class="
             cell.row <= rows && cell.col <= cols
               ? 'border-stroke-accent bg-surface-accent/15'
-              : 'border-stroke-default bg-surface-inset hover:border-stroke-strong'
+              : 'border-stroke-default bg-surface-muted hover:border-stroke-strong'
           "
           :aria-label="`${cell.row} × ${cell.col}`"
           @mouseenter="

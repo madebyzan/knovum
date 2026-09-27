@@ -91,7 +91,7 @@ async function showTagMenu(tag: string) {
         :key="tag"
         type="button"
         :disabled="!nodeOperations.allows('structure')"
-        class="flex h-(--knovum-space-tag-row-height) w-full items-center gap-2 rounded-md px-2 text-left text-caption text-fg-secondary hover:bg-surface-control-hover hover:text-fg-primary"
+        class="flex h-interaction w-full items-center gap-2 rounded-md px-2 text-left text-caption text-fg-secondary hover:bg-surface-control-hover hover:text-fg-primary disabled:opacity-40"
         @click="revealTag(tag)"
         @contextmenu.prevent="showTagMenu(tag)"
       >
@@ -127,7 +127,7 @@ async function showTagMenu(tag: string) {
             :key="tag"
             type="button"
             :disabled="!nodeOperations.allows('edit')"
-            class="flex h-(--knovum-menu-item-height) w-full items-center justify-between rounded-md px-2 text-left text-caption hover:bg-surface-control-hover"
+            class="flex h-interaction w-full items-center justify-between rounded-md px-2 text-left text-caption hover:bg-surface-control-hover"
             @click="applyTag(tag)"
           >
             <span class="truncate">{{ tag }}</span>

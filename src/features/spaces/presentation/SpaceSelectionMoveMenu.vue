@@ -37,7 +37,7 @@ const menuItems = computed(() =>
 <template>
   <DropdownMenuSub v-if="submenu">
     <DropdownMenuSubTrigger
-      class="flex h-(--knovum-menu-item-height) cursor-default items-center gap-2 rounded-md px-2 text-label text-fg-primary outline-none data-[highlighted]:bg-surface-control-hover"
+      class="flex h-interaction cursor-default items-center gap-2 rounded-md px-2 text-label text-fg-primary outline-none data-[highlighted]:bg-surface-control-hover"
     >
       <FolderInput class="size-3.5" />
       {{ t("spaces.space.moveTo") }}
