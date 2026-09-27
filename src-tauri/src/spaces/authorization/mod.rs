@@ -4,13 +4,13 @@ mod grant;
 mod scope;
 
 pub(crate) use approval::{consume as consume_approval, create as create_approval};
-pub(crate) use approval::{ApprovalDecision, ApprovalRequest, ApprovalSummary};
+pub(crate) use approval::{ApprovalDecision, ApprovalRequest, PendingApproval};
 
 #[tauri::command]
 pub async fn list_pending_action_approvals(
     app: tauri::AppHandle,
     space_id: String,
-) -> Result<Vec<approval::ApprovalSummary>, CommandError> {
+) -> Result<Vec<approval::PendingApproval>, CommandError> {
     Ok((approval::list_pending(crate::spaces::db::pool(&app).await?, &space_id).await)?)
 }
 

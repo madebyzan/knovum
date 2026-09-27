@@ -3,21 +3,21 @@ import { createSpaceNode } from "../canvas/node";
 import { spaceNodeSizePolicy, spaceNodeSupportsContentSizing } from "../canvas/node-size";
 import type { DiscardPendingContentRequest } from "../contracts/generated/DiscardPendingContentRequest";
 import type { DiscardPendingContentResponse } from "../contracts/generated/DiscardPendingContentResponse";
-import type { SpaceNodeRecord } from "../contracts/generated/SpaceNodeRecord";
+import type { SpaceNodeProjection } from "../contracts/generated/SpaceNodeProjection";
 import type { KnowledgeChunkSeed } from "../knowledge/model/schema";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
 import { validateSpaceNodePayload } from "../model/nodes/schema/node-payload";
 import { invokeConfirmedMutation } from "../structure/confirmed-mutation";
 
-export function parseSpaceNodeRecords(rows: readonly SpaceNodeRecord[]): SpaceCanvasNode[] {
+export function parseSpaceNodes(rows: readonly SpaceNodeProjection[]): SpaceCanvasNode[] {
   return rows.map((row) =>
     createSpaceNode(validateSpaceNodePayload(row.data), { x: row.initialX, y: row.initialY }, row.id),
   );
 }
 
 export async function getNode(spaceId: string, nodeId: string): Promise<SpaceCanvasNode> {
-  const row = await invoke<SpaceNodeRecord>("plugin:spaces|get_node", { spaceId, nodeId });
+  const row = await invoke<SpaceNodeProjection>("plugin:spaces|get_node", { spaceId, nodeId });
   return createSpaceNode(validateSpaceNodePayload(row.data), { x: row.initialX, y: row.initialY }, row.id);
 }
 

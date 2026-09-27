@@ -6,7 +6,7 @@ pub(super) fn markdown_chunks(text: &str, revision: &str) -> Vec<KnowledgeChunkS
     if text.trim().is_empty() {
         return Vec::new();
     }
-    let lines = line_records(text);
+    let lines = markdown_lines(text);
     let mut sections = Vec::new();
     let mut section_start = 0usize;
     let mut heading: Option<String> = None;
@@ -81,12 +81,12 @@ fn push_section(
     }
 }
 
-struct LineRecord<'a> {
+struct MarkdownLine<'a> {
     text: &'a str,
     start_byte: usize,
 }
 
-fn line_records(text: &str) -> Vec<LineRecord<'_>> {
+fn markdown_lines(text: &str) -> Vec<MarkdownLine<'_>> {
     let mut records = Vec::new();
     let mut cursor = 0usize;
     while cursor < text.len() {
@@ -99,7 +99,7 @@ fn line_records(text: &str) -> Vec<LineRecord<'_>> {
         } else {
             newline
         };
-        records.push(LineRecord {
+        records.push(MarkdownLine {
             text: &text[cursor..end],
             start_byte: cursor,
         });

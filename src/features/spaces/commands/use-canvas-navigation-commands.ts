@@ -9,7 +9,7 @@ import { currentSelectionRoots } from "../canvas/selection/selection-roots";
 import { useContextDock } from "../canvas/use-context-dock";
 import { isSpaceSemanticNode } from "../knowledge/model/semantic-node";
 import { ancestorsOf, createStructureIndex } from "../model/structure/structure-index";
-import { useSceneList } from "../scenes/use-scene-list";
+import { useSceneNavigation } from "../scenes/use-scene-navigation";
 import { useSpaceStore } from "../session/space-store";
 import { CANVAS_TOOL_COMMANDS } from "./canvas-tool-commands";
 import { SPACE_COMMAND_KEYBINDINGS, SPACE_COMMAND_SHORTCUTS } from "./space-command-shortcuts";
@@ -20,7 +20,7 @@ export function useCanvasNavigationCommands() {
   const dock = useContextDock();
   const session = useCanvasEditorSession();
   const tools = useCanvasToolStore();
-  const scenes = useSceneList();
+  const scenes = useSceneNavigation();
   const selectedNodes = () => {
     const selected = new Set(session.selection.value.nodeIds);
     return store.nodes.filter(({ id }) => selected.has(id));

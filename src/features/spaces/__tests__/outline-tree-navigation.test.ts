@@ -6,7 +6,7 @@ import { defineComponent, h, nextTick, shallowRef } from "vue";
 import { isInteractiveTarget } from "../../../foundation/dom/interactive-target";
 import { i18n } from "../../../foundation/i18n/i18n";
 import type { OutlineTreeItem } from "../presentation/outline/outline-tree-items";
-import SpaceStructureOutlineRow from "../presentation/outline/SpaceStructureOutlineRow.vue";
+import SpaceStructureTreeItem from "../presentation/outline/SpaceStructureTreeItem.vue";
 
 vi.mock("@tauri-apps/plugin-log", () => ({ error: vi.fn<(message: string) => Promise<void>>() }));
 
@@ -58,7 +58,7 @@ function createHarness(initiallyExpanded: string[] = []) {
               "section",
               { "aria-label": "Outline" },
               flattenItems.map(({ level, value }) =>
-                h(SpaceStructureOutlineRow, {
+                h(SpaceStructureTreeItem, {
                   editing: false,
                   expanded: expanded.value.includes(value.id),
                   item: value,

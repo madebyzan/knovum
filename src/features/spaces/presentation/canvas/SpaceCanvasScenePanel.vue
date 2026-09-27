@@ -5,7 +5,7 @@ import { useI18n } from "vue-i18n";
 
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import type { SpaceScene } from "../../scenes/scene";
-import SpaceCanvasSceneRow from "./SpaceCanvasSceneRow.vue";
+import SpaceCanvasSceneBookmark from "./SpaceCanvasSceneBookmark.vue";
 
 const { activeSceneId, recentSceneId, saving, scenes } = defineProps<{
   activeSceneId: string | undefined;
@@ -54,7 +54,7 @@ watch(
       </UiIconButton>
     </header>
     <div v-if="scenes.length" ref="sceneList" class="scene-list max-h-80 overflow-y-auto p-1.5">
-      <SpaceCanvasSceneRow
+      <SpaceCanvasSceneBookmark
         v-for="scene in scenes"
         :key="scene.id"
         :scene="scene"

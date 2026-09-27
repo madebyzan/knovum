@@ -1,4 +1,4 @@
-use super::schema::RetrievalRecord;
+use super::schema::IndexedKnowledgeChunk;
 
 /// Escapes single quotes in a SQL literal by doubling them.
 pub(super) fn escape_sql_literal(value: &str) -> String {
@@ -24,7 +24,7 @@ pub(super) fn build_delete_space_predicate(space_id: &str) -> String {
 }
 
 /// Builds a LanceDB filter predicate that removes stale rows sharing chunk IDs with the batch.
-pub(super) fn build_delete_chunk_predicate(records: &[RetrievalRecord]) -> String {
+pub(super) fn build_delete_chunk_predicate(records: &[IndexedKnowledgeChunk]) -> String {
     let chunk_ids = records
         .iter()
         .map(|record| format!("'{}'", escape_sql_literal(&record.chunk_id)))

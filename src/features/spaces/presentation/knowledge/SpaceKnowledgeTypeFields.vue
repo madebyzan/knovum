@@ -4,7 +4,7 @@ import { useI18n } from "vue-i18n";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import type { SpaceObjectFieldDefinition, SpaceObjectFieldKind } from "../../knowledge/model/object-types";
-import SpaceKnowledgeTypeFieldRow from "./SpaceKnowledgeTypeFieldRow.vue";
+import SpaceKnowledgeFieldDefinitionEditor from "./SpaceKnowledgeFieldDefinitionEditor.vue";
 
 defineProps<{
   fields: readonly SpaceObjectFieldDefinition[];
@@ -52,7 +52,7 @@ function identity(field: SpaceObjectFieldDefinition) {
           }}</span>
           <span aria-hidden="true"></span>
         </template>
-        <SpaceKnowledgeTypeFieldRow
+        <SpaceKnowledgeFieldDefinitionEditor
           v-for="(field, index) in fields"
           :key="identity(field)"
           :field="field"

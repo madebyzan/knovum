@@ -15,7 +15,7 @@ export function useAddMenu() {
   const { t } = useI18n();
   const websiteOpen = ref(false);
   const customObjectOpen = ref(false);
-  const typeManagerOpen = ref(false);
+  const typeEditorOpen = ref(false);
   const portalOpen = ref(false);
   const agentCreationOpen = ref(false);
   const website = ref("");
@@ -86,7 +86,7 @@ export function useAddMenu() {
     store,
     websiteOpen,
     customObjectOpen,
-    typeManagerOpen,
+    typeEditorOpen,
     portalOpen,
     agentCreationOpen,
     website,

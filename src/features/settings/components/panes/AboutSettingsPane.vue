@@ -12,7 +12,7 @@ import {
   installUpdate as installApplicationUpdate,
   type UpdateMetadata,
 } from "../../updater";
-import SettingsRow from "../SettingsRow.vue";
+import PreferenceField from "../PreferenceField.vue";
 import SettingsSection from "../SettingsSection.vue";
 
 const { t } = useI18n();
@@ -74,7 +74,7 @@ async function installUpdate() {
 <template>
   <div class="space-y-6">
     <SettingsSection :title="t('settings.general.about.title')">
-      <SettingsRow
+      <PreferenceField
         :label="t('common.productName')"
         :description="
           version ? t('settings.general.version', { version }) : t('settings.general.readingVersion')
@@ -83,7 +83,7 @@ async function installUpdate() {
     </SettingsSection>
 
     <SettingsSection :title="t('settings.updates.title')" :description="t('settings.updates.description')">
-      <SettingsRow
+      <PreferenceField
         :label="
           availableUpdate
             ? t('settings.updates.available.title', { version: availableUpdate.version })
@@ -110,7 +110,7 @@ async function installUpdate() {
         <UiButton v-else :disabled="!updaterConfigured || checkingUpdate" @click="checkForUpdates">
           {{ checkingUpdate ? t("settings.updates.check.checking") : t("settings.updates.check.action") }}
         </UiButton>
-      </SettingsRow>
+      </PreferenceField>
     </SettingsSection>
   </div>
 </template>

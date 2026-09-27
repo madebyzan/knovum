@@ -31,7 +31,7 @@ pub async fn invalidate_relation(
         .map_err(db::sql_error)?;
     events::append(
         tx,
-        events::EventRecord::new(
+        events::KnowledgeEvent::new(
             &space_id,
             events::EventEntity::new("relation", relation_id),
             "invalidated",
@@ -78,7 +78,7 @@ pub async fn restore_relation(
         .execute(&mut **tx).await.map_err(db::sql_error)?;
     events::append(
         tx,
-        events::EventRecord::new(
+        events::KnowledgeEvent::new(
             &space_id,
             events::EventEntity::new("relation", relation_id),
             "restored",
@@ -163,7 +163,7 @@ async fn invalidate_provenance(
         .map_err(db::sql_error)?;
     events::append(
         tx,
-        events::EventRecord::new(
+        events::KnowledgeEvent::new(
             space_id,
             events::EventEntity::new("provenance", provenance_id),
             "invalidated",

@@ -1,15 +1,15 @@
 import { i18n } from "../../../foundation/i18n/i18n";
-import type { SpaceEnrichmentJobRecord } from "./enrichment-jobs";
+import type { SpaceEnrichmentJobState } from "./enrichment-jobs";
 
-export function enrichmentJobTitle(jobType: SpaceEnrichmentJobRecord["jobType"]) {
+export function enrichmentJobTitle(jobType: SpaceEnrichmentJobState["jobType"]) {
   return i18n.global.t(`spaces.processing.enrichmentJobType.${jobType}`);
 }
 
-export function runningEnrichmentTask(record: SpaceEnrichmentJobRecord) {
+export function runningEnrichmentTask(record: SpaceEnrichmentJobState) {
   return { id: record.id, title: enrichmentJobTitle(record.jobType), startedAt: record.createdAt };
 }
 
-export function failedEnrichmentTask(record: SpaceEnrichmentJobRecord) {
+export function failedEnrichmentTask(record: SpaceEnrichmentJobState) {
   return {
     id: record.id,
     title: enrichmentJobTitle(record.jobType),

@@ -15,9 +15,9 @@ import UiInput from "../../../shared/ui/UiInput.vue";
 import UiSelect from "../../../shared/ui/UiSelect.vue";
 import { createAiConnectionDraft, finalizeAiConnectionDraft } from "../ai-connection-draft";
 import { providerOptions } from "../ai-provider-options";
+import AiModelDefinitionEditor from "./AiModelDefinitionEditor.vue";
 import AiModelDialog from "./AiModelDialog.vue";
-import AiModelRow from "./AiModelRow.vue";
-import SecretSettingsRow from "./SecretSettingsRow.vue";
+import SecretPreferenceField from "./SecretPreferenceField.vue";
 
 const connection = defineModel<AiConnectionSettings>({ required: true });
 const props = withDefaults(
@@ -117,7 +117,7 @@ function isModelInUse(modelId: string) {
         />
       </div>
       <UiInput v-model="draft.baseUrl" class="mt-3" :placeholder="t('settings.ai.baseUrl')" />
-      <SecretSettingsRow
+      <SecretPreferenceField
         :label="t('settings.ai.apiKey')"
         :secret-key="aiConnectionSecretKey(connection.id)"
       />
@@ -129,7 +129,7 @@ function isModelInUse(modelId: string) {
           </UiButton>
         </div>
         <div class="overflow-hidden rounded-control border border-border bg-raised">
-          <AiModelRow
+          <AiModelDefinitionEditor
             v-for="(model, index) in draft.models"
             :key="model.id"
             :model-value="model"

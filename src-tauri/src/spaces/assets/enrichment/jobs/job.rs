@@ -50,7 +50,7 @@ pub struct EnqueueEnrichmentJobRequest {
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct EnrichmentJobRecord {
+pub struct EnrichmentJobState {
     pub id: String,
     pub space_id: String,
     pub node_id: String,

@@ -84,10 +84,7 @@ function save() {
         {{ formatDurationMs(segment.startMs) }}
       </button>
 
-      <div
-        class="min-w-0 flex-1"
-        :class="active ? 'border-l-2 border-accent pl-2' : 'border-l-2 border-transparent pl-2'"
-      >
+      <div class="min-w-0 flex-1 border-l-2 pl-2" :class="active ? 'border-accent' : 'border-transparent'">
         <p
           class="text-caption leading-snug break-words whitespace-pre-wrap"
           :class="active ? 'text-foreground' : 'text-foreground-secondary'"

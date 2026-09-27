@@ -2,7 +2,7 @@ use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct PackageAssistantConversationRow {
+pub struct PackageAssistantConversation {
     pub id: String,
     pub title: String,
     pub mode: String,
@@ -14,7 +14,7 @@ pub struct PackageAssistantConversationRow {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct PackageAssistantMessageRow {
+pub struct PackageAssistantMessage {
     pub id: String,
     pub conversation_id: String,
     pub branch_id: String,

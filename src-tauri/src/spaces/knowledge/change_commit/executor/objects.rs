@@ -113,7 +113,7 @@ async fn emit_created(
     let payload = serde_json::json!({"changeTempId": temp_id});
     events::append(
         tx,
-        events::EventRecord::new(
+        events::KnowledgeEvent::new(
             space_id,
             events::EventEntity::new("node", id),
             "created",

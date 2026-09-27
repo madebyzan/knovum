@@ -52,9 +52,9 @@ pub enum WaitReason {
 }
 
 #[derive(Clone, Debug, Serialize, TS)]
-#[ts(export_to = "../../../features/spaces/contracts/generated/RunSummary.ts")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/RunObservation.ts")]
 #[serde(rename_all = "camelCase")]
-pub struct RunSummary {
+pub struct RunObservation {
     pub id: String,
     pub home_space_id: String,
     pub parent_run_id: Option<String>,

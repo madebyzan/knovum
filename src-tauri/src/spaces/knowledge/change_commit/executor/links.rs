@@ -69,7 +69,7 @@ async fn emit_relation_created(
     let payload = serde_json::json!({"kind": kind});
     events::append(
         tx,
-        events::EventRecord::new(
+        events::KnowledgeEvent::new(
             space_id,
             events::EventEntity::new("relation", id),
             "created",

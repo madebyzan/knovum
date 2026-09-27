@@ -141,7 +141,7 @@ async fn insert_single_node(
     .map_err(db::sql_error)?;
     events::append(
         tx,
-        events::EventRecord::new(
+        events::KnowledgeEvent::new(
             space_id,
             events::EventEntity::new("node", &node.id),
             "created",

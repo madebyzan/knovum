@@ -3,14 +3,14 @@ use sqlx::{Row, SqlitePool};
 
 use crate::spaces::{
     db,
-    runs::{self, RunSummary},
+    runs::{self, RunObservation},
 };
 
 #[derive(Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub(crate) struct CapturedWorkflowRun {
-    pub run: RunSummary,
+    pub run: RunObservation,
     pub workflow_id: String,
 }
 

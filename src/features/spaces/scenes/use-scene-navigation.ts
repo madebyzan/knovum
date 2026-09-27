@@ -4,9 +4,9 @@ import { computed, ref } from "vue";
 
 import { useCanvasEditorSession } from "../canvas/editor-session";
 import { useSpaceStore } from "../session/space-store";
-import { createSceneListActions, type SceneListContext } from "./scene-list-actions";
+import { createSceneNavigationActions, type SceneNavigationContext } from "./scene-navigation-actions";
 
-export function useSceneList() {
+export function useSceneNavigation() {
   const store = useSpaceStore();
   const editorSession = useCanvasEditorSession();
   const { scenes, activeSpace } = storeToRefs(store);
@@ -18,7 +18,7 @@ export function useSceneList() {
     2200,
     { immediate: false },
   );
-  const context: SceneListContext = {
+  const context: SceneNavigationContext = {
     store,
     scenes,
     activeSpace,
@@ -43,7 +43,7 @@ export function useSceneList() {
     )?.id;
   });
 
-  const actions = createSceneListActions(context);
+  const actions = createSceneNavigationActions(context);
 
   function targetSceneIndex(dir: -1 | 1): number {
     const total = scenes.value.length;

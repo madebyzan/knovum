@@ -1,7 +1,7 @@
-use super::contracts::PackageChunkRow;
+use super::contracts::PackageChunk;
 
 pub fn validate_packaged_derived(
-    packaged: &[&PackageChunkRow],
+    packaged: &[&PackageChunk],
     generated: &[crate::spaces::knowledge::indexing::KnowledgeChunkSeed],
 ) -> Result<(), String> {
     let mut actual = packaged

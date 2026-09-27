@@ -64,7 +64,7 @@ async fn emit_created(
     });
     events::append(
         tx,
-        events::EventRecord::new(
+        events::KnowledgeEvent::new(
             input.space_id,
             events::EventEntity::new("provenance", id),
             "created",

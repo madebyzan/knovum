@@ -80,7 +80,7 @@ impl SpaceMcpServer {
 }
 
 impl SpaceMcpServer {
-    async fn authorized_run(&self, args: &RunArgs) -> Result<runs::RunSummary, McpError> {
+    async fn authorized_run(&self, args: &RunArgs) -> Result<runs::RunObservation, McpError> {
         self.require_space(&args.space_id)?;
         self.authorize_read(&args.space_id).await?;
         let run = runs::get_run(self.app.clone(), args.run_id.clone())

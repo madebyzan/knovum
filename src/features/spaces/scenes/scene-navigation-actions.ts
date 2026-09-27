@@ -7,7 +7,7 @@ import type { useSpaceStore } from "../session/space-store";
 import { popupSpaceContextMenu, spaceMenuItem } from "../workspace/space-menu";
 import type { SpaceScene } from "./scene";
 
-export interface SceneListContext {
+export interface SceneNavigationContext {
   store: ReturnType<typeof useSpaceStore>;
   scenes: Ref<SpaceScene[]>;
   activeSpace: Ref<Space | undefined>;
@@ -23,7 +23,7 @@ export interface SceneListContext {
 
 const t = i18n.global.t;
 
-export function createSceneListActions(context: SceneListContext) {
+export function createSceneNavigationActions(context: SceneNavigationContext) {
   return {
     createScene: (thumbnailPath: string) => createScene(context, thumbnailPath),
     openScene: (scene: SpaceScene) => context.store.openSceneView(scene.id),
@@ -33,9 +33,9 @@ export function createSceneListActions(context: SceneListContext) {
   };
 }
 
-async function createScene(context: SceneListContext, thumbnailPath: string) {
+async function createScene(context: SceneNavigationContext, thumbnailPath: string) {
   const spaceId = context.activeSpace.value?.id;
-  const viewport = currentViewport(context);
+  const viewport = context.viewport.value;
   if (!spaceId || !viewport) return;
   const value =
     context.title.value.trim() || t("spaces.scenes.defaultName", { index: context.scenes.value.length + 1 });
@@ -48,23 +48,23 @@ async function createScene(context: SceneListContext, thumbnailPath: string) {
   return scene;
 }
 
-async function beginRename(context: SceneListContext, scene: SpaceScene) {
+async function beginRename(context: SceneNavigationContext, scene: SpaceScene) {
   context.editingId.value = scene.id;
   context.editingTitle.value = scene.title;
   await nextTick();
   context.root.value?.querySelector<HTMLInputElement>("[data-scene-editor]")?.select();
 }
 
-function finishRename(context: SceneListContext) {
+function finishRename(context: SceneNavigationContext) {
   const id = context.editingId.value;
   const value = context.editingTitle.value.trim();
   if (id && value) void context.store.updateScene(id, { title: value });
   context.editingId.value = undefined;
 }
 
-async function updateScene(context: SceneListContext, scene: SpaceScene) {
+async function updateScene(context: SceneNavigationContext, scene: SpaceScene) {
   const spaceId = context.activeSpace.value?.id;
-  const viewport = currentViewport(context);
+  const viewport = context.viewport.value;
   if (!spaceId || scene.spaceId !== spaceId || !viewport) return;
   const updated = await context.store.updateScene(scene.id, { viewport, captureView: true });
   if (!updated || context.activeSpace.value?.id !== spaceId) return;
@@ -72,7 +72,7 @@ async function updateScene(context: SceneListContext, scene: SpaceScene) {
   await revealScene(context, updated.id);
 }
 
-async function duplicateScene(context: SceneListContext, scene: SpaceScene) {
+async function duplicateScene(context: SceneNavigationContext, scene: SpaceScene) {
   const spaceId = context.activeSpace.value?.id;
   if (!spaceId || scene.spaceId !== spaceId) return;
   const duplicate = await context.store.duplicateScene(scene.id);
@@ -81,7 +81,7 @@ async function duplicateScene(context: SceneListContext, scene: SpaceScene) {
   await revealScene(context, duplicate.id);
 }
 
-async function revealScene(context: SceneListContext, id: string) {
+async function revealScene(context: SceneNavigationContext, id: string) {
   context.recentSceneId.value = id;
   context.stopRecentTimer();
   await nextTick();
@@ -91,7 +91,7 @@ async function revealScene(context: SceneListContext, id: string) {
   context.triggerRecentTimer();
 }
 
-async function showSceneMenu(context: SceneListContext, scene: SpaceScene) {
+async function showSceneMenu(context: SceneNavigationContext, scene: SpaceScene) {
   const index = context.scenes.value.findIndex((candidate) => candidate.id === scene.id);
   await popupSpaceContextMenu([
     [spaceMenuItem(t("spaces.scenes.open"), () => void context.store.openSceneView(scene.id))],
@@ -110,8 +110,4 @@ async function showSceneMenu(context: SceneListContext, scene: SpaceScene) {
     [spaceMenuItem(t("spaces.scenes.rename"), () => void beginRename(context, scene))],
     [spaceMenuItem(t("spaces.scenes.delete"), () => context.store.removeScene(scene.id))],
   ]);
-}
-
-function currentViewport(context: SceneListContext) {
-  return context.viewport.value;
 }

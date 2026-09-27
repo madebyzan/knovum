@@ -13,7 +13,7 @@ import { useCanvasToolStore } from "../canvas/canvas-tool-store";
 import { useNodeOperationGate } from "../canvas/node-operation-gate";
 import { useAddMenu } from "../presentation/use-add-menu";
 import AgentCreationDialog from "./agent-creation/AgentCreationDialog.vue";
-import SpaceKnowledgeTypeManager from "./knowledge/SpaceKnowledgeTypeManager.vue";
+import SpaceKnowledgeTypeEditor from "./knowledge/SpaceKnowledgeTypeEditor.vue";
 import SpaceAddMenuContent from "./SpaceAddMenuContent.vue";
 import SpaceCustomKnowledgeObjectDialog from "./SpaceCustomKnowledgeObjectDialog.vue";
 import SpacePortalDialog from "./SpacePortalDialog.vue";
@@ -25,7 +25,7 @@ const {
   store,
   websiteOpen,
   customObjectOpen,
-  typeManagerOpen,
+  typeEditorOpen,
   portalOpen,
   agentCreationOpen,
   website,
@@ -73,7 +73,7 @@ async function beginAudioRecording() {
       @knowledge="addKnowledgeObject"
       @custom-knowledge="customObjectOpen = true"
       @portal="portalOpen = true"
-      @manage-types="typeManagerOpen = true"
+      @manage-types="typeEditorOpen = true"
       @website="websiteOpen = true"
       @import-file="importFromPicker()"
       @record-audio="beginAudioRecording"
@@ -99,7 +99,7 @@ async function beginAudioRecording() {
     </template>
   </UiDialog>
   <SpaceCustomKnowledgeObjectDialog v-model:open="customObjectOpen" />
-  <SpaceKnowledgeTypeManager v-model:open="typeManagerOpen" />
+  <SpaceKnowledgeTypeEditor v-model:open="typeEditorOpen" />
   <SpacePortalDialog v-model:open="portalOpen" />
   <AgentCreationDialog v-model:open="agentCreationOpen" />
 </template>

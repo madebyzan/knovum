@@ -1,11 +1,11 @@
 import type { SpacePackageManifest } from "./manifest-schema";
 
 export function validateManifestOwnership(manifest: SpacePackageManifest) {
-  validateSpaceOwnedRows(manifest);
+  validateSpaceOwnedContent(manifest);
   validateObjectTypeOwnership(manifest);
 }
 
-function validateSpaceOwnedRows(manifest: SpacePackageManifest) {
+function validateSpaceOwnedContent(manifest: SpacePackageManifest) {
   const groups: Array<readonly { spaceId?: string | null }[]> = [
     manifest.scenes,
     manifest.relations,

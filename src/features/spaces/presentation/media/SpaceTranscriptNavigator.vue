@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { useVirtualizer } from "@tanstack/vue-virtual";
 import { search } from "fast-fuzzy";
-import { computed, nextTick, ref, watch, type ComponentPublicInstance } from "vue";
+import { computed, nextTick, ref, useTemplateRef, watch, type ComponentPublicInstance } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiSearchInput from "../../../../shared/ui/UiSearchInput.vue";
 import UiSwitch from "../../../../shared/ui/UiSwitch.vue";
 import type { SpaceTranscriptEdit, SpaceTranscriptSegment } from "../../media/knowledge-schema";
-import SpaceTranscriptRow from "./SpaceTranscriptRow.vue";
+import SpaceTranscriptSegmentEditor from "./SpaceTranscriptSegmentEditor.vue";
 
 const props = defineProps<{
   nodeId: string;
@@ -20,7 +20,7 @@ const emit = defineEmits<{
   save: [payload: SpaceTranscriptEdit];
 }>();
 const { t } = useI18n();
-const scroller = ref<HTMLDivElement | null>(null);
+const scroller = useTemplateRef<HTMLDivElement>("scroller");
 const query = ref("");
 const autoFollow = ref(true);
 const visibleIndices = computed(() => {
@@ -81,7 +81,7 @@ async function remeasure() {
     </div>
     <div ref="scroller" class="h-80 overflow-y-auto">
       <div class="relative w-full" :style="{ height: `${totalSize}px` }">
-        <SpaceTranscriptRow
+        <SpaceTranscriptSegmentEditor
           v-for="row in rows"
           :key="visibleIndices[row.index]!"
           :node-id="nodeId"

@@ -2,7 +2,7 @@ import { remapObjectTypes, remapQueryFilter } from "./content-remap";
 import { remapEventEntity, remapEventPayload } from "./event-remap";
 import { referenceMap, requiredMap } from "./id-maps";
 import type { SpacePackageRestoreContext } from "./restore-context";
-import { restoreOwnedRow } from "./restore-row";
+import { stripSourceSpace } from "./restore-space";
 import type { SpacePackageRestoreRequest } from "./restore-transport";
 
 export { remapObjectTypes };
@@ -12,7 +12,7 @@ export function restoreDerivations(
 ): SpacePackageRestoreRequest["derivations"] {
   const { maps } = context;
   return context.manifest.derivations.map((derivation) => {
-    const { groundedDocument, generatedImage, generatedVideo, ...row } = restoreOwnedRow(
+    const { groundedDocument, generatedImage, generatedVideo, ...row } = stripSourceSpace(
       derivation,
       maps.sourceSpaceId,
     );
@@ -55,7 +55,7 @@ export function restoreRelations(
 ): SpacePackageRestoreRequest["relations"] {
   const { maps } = context;
   return context.manifest.relations.map((relation) => ({
-    ...restoreOwnedRow(relation, maps.sourceSpaceId),
+    ...stripSourceSpace(relation, maps.sourceSpaceId),
     id: requiredMap(maps.relations, relation.id, "relation"),
     sourceId: requiredMap(maps.nodes, relation.sourceId, "relation source"),
     targetId: requiredMap(maps.nodes, relation.targetId, "relation target"),
@@ -66,7 +66,7 @@ export function restoreRelations(
 
 export function restoreChunks(context: SpacePackageRestoreContext): SpacePackageRestoreRequest["chunks"] {
   return context.manifest.chunks.map((source) => {
-    const chunk = restoreOwnedRow(source, context.maps.sourceSpaceId);
+    const chunk = stripSourceSpace(source, context.maps.sourceSpaceId);
     return {
       ...chunk,
       id: requiredMap(context.maps.chunks, chunk.id, "chunk"),
@@ -81,7 +81,7 @@ export function restoreProvenance(
 ): SpacePackageRestoreRequest["provenance"] {
   const { maps } = context;
   return context.manifest.provenance.map((source) => {
-    const { actorId, ...provenance } = restoreOwnedRow(source, maps.sourceSpaceId);
+    const { actorId, ...provenance } = stripSourceSpace(source, maps.sourceSpaceId);
     return {
       ...provenance,
       id: requiredMap(maps.provenance, provenance.id, "provenance"),
@@ -99,7 +99,7 @@ export function restoreKnowledgeEvents(
   context: SpacePackageRestoreContext,
 ): SpacePackageRestoreRequest["knowledgeEvents"] {
   return context.manifest.knowledgeEvents.map((source) => {
-    const { actorId, ...event } = restoreOwnedRow(source, context.maps.sourceSpaceId);
+    const { actorId, ...event } = stripSourceSpace(source, context.maps.sourceSpaceId);
     return {
       ...event,
       id: crypto.randomUUID(),

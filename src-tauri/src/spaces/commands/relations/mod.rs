@@ -167,7 +167,7 @@ pub(crate) async fn append_relation_event(
 ) -> Result<(), String> {
     events::append(
         tx,
-        events::EventRecord::new(
+        events::KnowledgeEvent::new(
             &relation.space_id,
             events::EventEntity::new("relation", &relation.id),
             event_kind,

@@ -10,7 +10,7 @@ import {
   listEnrichmentJobs,
   runEnrichmentJob,
   type SpaceEnrichmentJob,
-  type SpaceEnrichmentJobRecord,
+  type SpaceEnrichmentJobState,
 } from "./enrichment-jobs";
 import { enrichmentJobTitle, failedEnrichmentTask, runningEnrichmentTask } from "./job-tasks";
 
@@ -107,7 +107,7 @@ function queueRetry(context: SpaceEnrichmentSchedulerContext, job: SpaceEnrichme
 
 export async function retrySpaceEnrichmentJob(
   context: SpaceEnrichmentSchedulerContext,
-  record: SpaceEnrichmentJobRecord,
+  record: SpaceEnrichmentJobState,
 ): Promise<void> {
   const tasks = useTaskStore();
   tasks.restoreFailed(failedEnrichmentTask(record), () => queueRetry(context, jobFromRecord(record)));
@@ -125,7 +125,7 @@ async function executeJob(context: SpaceEnrichmentSchedulerContext, job: SpaceEn
   return true;
 }
 
-function jobFromRecord(record: SpaceEnrichmentJobRecord): SpaceEnrichmentJob {
+function jobFromRecord(record: SpaceEnrichmentJobState): SpaceEnrichmentJob {
   return {
     id: record.id,
     spaceId: record.spaceId,

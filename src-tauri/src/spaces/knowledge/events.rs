@@ -25,7 +25,7 @@ impl<'a> EventActor<'a> {
     }
 }
 
-pub struct EventRecord<'a> {
+pub struct KnowledgeEvent<'a> {
     space_id: &'a str,
     entity: EventEntity<'a>,
     event_kind: &'a str,
@@ -34,7 +34,7 @@ pub struct EventRecord<'a> {
     now: i64,
 }
 
-impl<'a> EventRecord<'a> {
+impl<'a> KnowledgeEvent<'a> {
     pub fn new(
         space_id: &'a str,
         entity: EventEntity<'a>,
@@ -56,7 +56,7 @@ impl<'a> EventRecord<'a> {
 
 pub async fn append(
     tx: &mut Transaction<'_, Sqlite>,
-    event: EventRecord<'_>,
+    event: KnowledgeEvent<'_>,
 ) -> Result<(), String> {
     contracts::validate_event_pair(event.entity.kind, event.event_kind)?;
     contracts::validate_actor_kind(event.actor.kind)?;
@@ -114,7 +114,7 @@ pub async fn append_object_status_transition(
     });
     append(
         tx,
-        EventRecord::new(
+        KnowledgeEvent::new(
             space_id,
             EventEntity::new("node", node_id),
             event_kind,

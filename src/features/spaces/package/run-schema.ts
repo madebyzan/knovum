@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { packageTimeSchema } from "./core-schema";
+import { packageTimeSchema } from "./scalar-schema";
 
 const jsonValue = z.unknown();
 

@@ -1,7 +1,7 @@
 use serde_json::Value;
 use sqlx::{Row, SqlitePool};
 
-use super::ToolCallRecord;
+use super::AssistantToolCallOutcome;
 use crate::{agent_runtime::ControlCheckpoint, spaces::db};
 
 pub async fn start_turn(
@@ -61,7 +61,7 @@ pub async fn start_tool_call(
     wire_name: &str,
     action_id: &str,
     invocation_id: &str,
-) -> Result<ToolCallRecord, String> {
+) -> Result<AssistantToolCallOutcome, String> {
     let id = uuid::Uuid::new_v4().to_string();
     sqlx::query("INSERT OR IGNORE INTO spaces_assistant_tool_calls(id,task_id,model_turn_id,provider_call_id,
          wire_name,action_id,invocation_id,created_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8)")
@@ -76,7 +76,7 @@ pub async fn start_tool_call(
         .map_err(db::sql_error)?
         .map(|value| serde_json::from_str(&value).map_err(db::json_error))
         .transpose()?;
-    Ok(ToolCallRecord {
+    Ok(AssistantToolCallOutcome {
         id: stored_id,
         result,
     })

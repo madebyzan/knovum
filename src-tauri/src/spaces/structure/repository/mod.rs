@@ -5,7 +5,7 @@ mod write;
 
 pub(crate) use deleted::{
     mark_restored, merge_restored_snapshot, prepare_restore_batch, prepare_restore_root,
-    remove_tombstones, store_deletion_in_transaction, DeletionRecord,
+    remove_tombstones, store_deletion_in_transaction, DeletionBatch,
 };
 pub(crate) use history::invalidate_for_nodes as invalidate_history_for_nodes;
 pub(crate) use write::remove_transferred_structure_nodes_in_transaction;

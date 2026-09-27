@@ -7,7 +7,7 @@ import { toast } from "vue-sonner";
 import { getSecret, persistOptionalSecret } from "../../../foundation/secrets/secret-store";
 import UiIconButton from "../../../shared/ui/UiIconButton.vue";
 import UiInput from "../../../shared/ui/UiInput.vue";
-import SettingsRow from "./SettingsRow.vue";
+import PreferenceField from "./PreferenceField.vue";
 
 const props = defineProps<{
   label: string;
@@ -52,7 +52,7 @@ async function toggleReveal() {
 </script>
 
 <template>
-  <SettingsRow :label="label" :description="description">
+  <PreferenceField :label="label" :description="description">
     <div class="relative w-80">
       <UiInput
         :model-value="draft"
@@ -75,5 +75,5 @@ async function toggleReveal() {
         <Eye v-else class="size-(--knovum-icon-size-sm)" />
       </UiIconButton>
     </div>
-  </SettingsRow>
+  </PreferenceField>
 </template>

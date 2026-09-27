@@ -44,24 +44,24 @@ export async function generateSpaceMediaInsights(
       ),
     ),
   );
-  const records = completions.map((completion) => parseStructuredJson(completion.text, aiKnowledgeSchema));
+  const candidates = completions.map((completion) => parseStructuredJson(completion.text, aiKnowledgeSchema));
   let provider = completions[0]?.provider ?? "";
   let model = completions[0]?.model ?? "";
-  let finalRecord = records[0]!;
-  if (records.length > 1) {
+  let insights = candidates[0]!;
+  if (candidates.length > 1) {
     const completion = await completeGeneralWithMetadata({
       instruction: mediaKnowledgeInstruction("final"),
-      text: mediaCandidateText(records),
+      text: mediaCandidateText(candidates),
     });
-    finalRecord = parseStructuredJson(completion.text, aiKnowledgeSchema);
+    insights = parseStructuredJson(completion.text, aiKnowledgeSchema);
     provider = completion.provider;
     model = completion.model;
   }
   return {
     ...knowledge,
     insights: {
-      summary: finalRecord.summary,
-      chapters: finalizeMediaChapters(finalRecord.chapters, knowledge.transcript),
+      summary: insights.summary,
+      chapters: finalizeMediaChapters(insights.chapters, knowledge.transcript),
       promptVersion: 1,
       generatedAt: Date.now(),
       provider,

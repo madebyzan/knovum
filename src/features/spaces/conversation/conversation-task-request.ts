@@ -1,9 +1,9 @@
-import type { ConversationSummary, StartAssistantTaskInput } from "./conversation-ipc";
+import type { AssistantConversation, StartAssistantTaskInput } from "./conversation-ipc";
 import type { ConversationTarget } from "./conversation-target";
 
 export function conversationTaskRequest(input: {
   spaceId: string | undefined;
-  conversation: ConversationSummary | undefined;
+  conversation: AssistantConversation | undefined;
   prompt: string;
   target: ConversationTarget | undefined;
   attachments: NonNullable<StartAssistantTaskInput["attachments"]>;

@@ -1,7 +1,7 @@
 use sqlx::{Sqlite, SqlitePool, Transaction};
 
 use super::run_rows::{enum_json, optional_enum_json, parse_summary};
-use super::{RunKind, RunState, RunSummary, WaitReason};
+use super::{RunKind, RunObservation, RunState, WaitReason};
 use crate::spaces::{authorization::Principal, db};
 
 pub(crate) struct NewRun<'a> {
@@ -52,7 +52,7 @@ pub(crate) async fn create_run_in_transaction(
     .map(|_| ())
 }
 
-pub(crate) async fn load_run(pool: &SqlitePool, run_id: &str) -> Result<RunSummary, String> {
+pub(crate) async fn load_run(pool: &SqlitePool, run_id: &str) -> Result<RunObservation, String> {
     let row = sqlx::query("SELECT * FROM spaces_runs WHERE id=$1")
         .bind(run_id)
         .fetch_optional(pool)
@@ -65,7 +65,7 @@ pub(crate) async fn load_run(pool: &SqlitePool, run_id: &str) -> Result<RunSumma
 pub(crate) async fn list_runs(
     pool: &SqlitePool,
     space_id: &str,
-) -> Result<Vec<RunSummary>, String> {
+) -> Result<Vec<RunObservation>, String> {
     let rows = sqlx::query(
         "SELECT * FROM spaces_runs WHERE home_space_id=$1 ORDER BY created_at DESC LIMIT 500",
     )
@@ -82,7 +82,7 @@ pub(crate) async fn transition_run(
     expected_version: i64,
     state: RunState,
     wait_reason: Option<WaitReason>,
-) -> Result<RunSummary, String> {
+) -> Result<RunObservation, String> {
     let now = crate::clock::unix_time_millis()?;
     let completed_at = state.is_terminal().then_some(now);
     let result = sqlx::query("UPDATE spaces_runs SET state=$1,state_version=state_version+1,wait_reason=$2,updated_at=$3,completed_at=$4 WHERE id=$5 AND state_version=$6 AND completed_at IS NULL")

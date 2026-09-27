@@ -2,7 +2,7 @@ use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct PackageExternalAgentConversationRow {
+pub struct PackageExternalAgentConversation {
     pub id: String,
     pub run_id: String,
     pub assistant_conversation_id: String,
@@ -19,7 +19,7 @@ pub struct PackageExternalAgentConversationRow {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct PackageExternalAgentTurnRow {
+pub struct PackageExternalAgentTurn {
     pub id: String,
     pub conversation_id: String,
     pub assistant_message_id: Option<String>,

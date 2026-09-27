@@ -121,7 +121,7 @@ async fn apply_node_change(
     }
     events::append(
         tx,
-        events::EventRecord::new(
+        events::KnowledgeEvent::new(
             space_id,
             events::EventEntity::new("node", &change.id),
             "updated",

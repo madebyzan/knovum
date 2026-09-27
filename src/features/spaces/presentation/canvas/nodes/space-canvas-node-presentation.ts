@@ -17,8 +17,8 @@ import type { Component } from "vue";
 
 import { spaceNodePreviewSource } from "../../../assets/node-preview-source";
 import { mediaProviderDisplayName } from "../../../media/provider-display-name";
+import { describeSpaceNode } from "../../../model/nodes/node-description";
 import type { SpaceNodeKind, SpaceNodePayload } from "../../../model/nodes/node-payload";
-import { spaceNodeSummary } from "./space-canvas-node-content";
 
 export interface CanvasNodeOverlayPresentation {
   icon: Component;
@@ -38,7 +38,7 @@ export function spaceCanvasNodePresentation(data: SpaceNodePayload): CanvasNodeO
     icon: NODE_ICONS[data.kind],
     title: data.title,
     ...(subtitle ? { subtitle } : {}),
-    body: spaceNodeSummary(data) ?? "",
+    body: describeSpaceNode(data) ?? "",
     previewSource: spaceNodePreviewSource(data),
     mediaSource: mediaReady && (data.kind === "video" || data.kind === "audio") ? data.assetPath : "",
     ...(data.kind === "video" || data.kind === "audio" ? { mediaKind: data.kind } : {}),

@@ -6,10 +6,10 @@ import {
 } from "../credentials/credential-storage";
 import type { SpaceCredential } from "../model/credential";
 import {
-  archiveSpace as archiveSpaceRecord,
+  archiveSpace as persistSpaceArchive,
   deleteSpacePermanently,
   listCredentialNodeIds,
-  unarchiveSpace as unarchiveSpaceRecord,
+  unarchiveSpace as persistSpaceUnarchive,
 } from "./space-operations";
 import { discardSpaceTab, openSpace, type SpaceSessionContext } from "./space-session-actions";
 
@@ -17,7 +17,7 @@ export async function archiveSpace(context: SpaceSessionContext, id: string) {
   const space = editableSpace(context, id);
   if (!space) return;
   const archivedAt = Date.now();
-  await archiveSpaceRecord(id);
+  await persistSpaceArchive(id);
   Object.assign(space, { archivedAt, updatedAt: archivedAt });
   await leaveUnavailableSpace(context, id);
   discardSpaceTab(context, id);
@@ -26,7 +26,7 @@ export async function archiveSpace(context: SpaceSessionContext, id: string) {
 export async function unarchiveSpace(context: SpaceSessionContext, id: string) {
   const space = editableSpace(context, id);
   if (!space) return;
-  await unarchiveSpaceRecord(id);
+  await persistSpaceUnarchive(id);
   Object.assign(space, { archivedAt: null, updatedAt: Date.now() });
 }
 

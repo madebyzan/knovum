@@ -10,7 +10,7 @@ import SpaceNodeEnrichmentStatus from "../SpaceNodeEnrichmentStatus.vue";
 import SpaceMediaChapterEditor from "./SpaceMediaChapterEditor.vue";
 import SpaceMediaLiveTranscript from "./SpaceMediaLiveTranscript.vue";
 import SpaceMediaSummaryEditor from "./SpaceMediaSummaryEditor.vue";
-import SpaceTranscriptList from "./SpaceTranscriptList.vue";
+import SpaceTranscriptNavigator from "./SpaceTranscriptNavigator.vue";
 
 const props = defineProps<{ node: SpaceCanvasNode }>();
 const { t } = useI18n();
@@ -122,7 +122,7 @@ const {
             </span>
           </CollapsibleTrigger>
           <CollapsibleContent class="mt-2">
-            <SpaceTranscriptList
+            <SpaceTranscriptNavigator
               :node-id="nodeId"
               :segments="knowledge.transcript.segments"
               v-bind="playback ? { currentMs: playback.currentMs } : {}"

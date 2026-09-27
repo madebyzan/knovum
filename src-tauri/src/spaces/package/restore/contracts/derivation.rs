@@ -3,10 +3,10 @@ use serde_json::Value;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct PackageDerivationRow {
+pub struct PackageDerivation {
     pub id: String,
     pub output_node_id: String,
-    pub inputs: Vec<PackageDerivationInputRow>,
+    pub inputs: Vec<PackageDerivationInput>,
     pub action_kind: String,
     pub action_version: i64,
     pub engine: String,
@@ -15,14 +15,14 @@ pub struct PackageDerivationRow {
     pub created_at: i64,
     pub updated_at: i64,
     pub completed_at: i64,
-    pub grounded_document: Option<PackageGroundedDocumentRow>,
-    pub generated_image: Option<PackageGeneratedImageRow>,
-    pub generated_video: Option<PackageGeneratedVideoRow>,
+    pub grounded_document: Option<PackageGroundedDocument>,
+    pub generated_image: Option<PackageGeneratedImage>,
+    pub generated_video: Option<PackageGeneratedVideo>,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct PackageGroundedDocumentRow {
+pub struct PackageGroundedDocument {
     pub citations: Value,
     pub provider: String,
     pub model: String,
@@ -30,7 +30,7 @@ pub struct PackageGroundedDocumentRow {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct PackageGeneratedImageRow {
+pub struct PackageGeneratedImage {
     pub intent: String,
     pub style: String,
     pub aspect_ratio: String,
@@ -41,7 +41,7 @@ pub struct PackageGeneratedImageRow {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct PackageGeneratedVideoRow {
+pub struct PackageGeneratedVideo {
     pub prompt: String,
     pub aspect_ratio: String,
     pub duration_seconds: i64,
@@ -52,7 +52,7 @@ pub struct PackageGeneratedVideoRow {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct PackageDerivationInputRow {
+pub struct PackageDerivationInput {
     pub node_id: Option<String>,
     pub source_identity: String,
     pub source_snapshot: PackageSourceSnapshot,

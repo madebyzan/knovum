@@ -2,7 +2,7 @@ use serde_json::Value;
 use sqlx::{Row, Sqlite, SqlitePool, Transaction};
 
 use crate::spaces::{
-    assistant::{AssistantMode, ConversationSummary},
+    assistant::{AssistantConversation, AssistantMode},
     db,
 };
 
@@ -61,7 +61,7 @@ pub async fn list_conversations(
     space_id: &str,
     query: Option<&str>,
     archived: bool,
-) -> Result<Vec<ConversationSummary>, String> {
+) -> Result<Vec<AssistantConversation>, String> {
     let query = query.map(str::trim).filter(|value| !value.is_empty());
     let pattern = query.map(|value| format!("%{value}%"));
     let rows = sqlx::query("SELECT c.id,c.space_id,c.title,c.mode,c.updated_at,c.active_branch_id AS branch_id
@@ -150,9 +150,9 @@ pub async fn delete(pool: &SqlitePool, id: &str) -> Result<(), String> {
     tx.commit().await.map_err(db::sql_error)
 }
 
-fn parse(row: sqlx::sqlite::SqliteRow) -> Result<ConversationSummary, String> {
+fn parse(row: sqlx::sqlite::SqliteRow) -> Result<AssistantConversation, String> {
     let mode: String = row.try_get("mode").map_err(db::sql_error)?;
-    Ok(ConversationSummary {
+    Ok(AssistantConversation {
         id: row.try_get("id").map_err(db::sql_error)?,
         space_id: row.try_get("space_id").map_err(db::sql_error)?,
         branch_id: row.try_get("branch_id").map_err(db::sql_error)?,

@@ -4,12 +4,12 @@ use flate2::read::GzDecoder;
 use tar::Archive as TarArchive;
 use zip::ZipArchive;
 
-use super::InspectedEntry;
+use super::ArchiveMember;
 
 const MAX_ARCHIVE_ENTRIES: usize = 180;
 const MAX_TAR_SCAN_BYTES: u64 = 512 * 1024 * 1024;
 
-pub fn archive_entries(path: &Path, logical_name: &str) -> Result<Vec<InspectedEntry>, String> {
+pub fn archive_entries(path: &Path, logical_name: &str) -> Result<Vec<ArchiveMember>, String> {
     let lower = logical_name.to_ascii_lowercase();
     if lower.ends_with(".tar.gz") || lower.ends_with(".tgz") {
         let file = File::open(path).map_err(|error| error.to_string())?;
@@ -22,7 +22,7 @@ pub fn archive_entries(path: &Path, logical_name: &str) -> Result<Vec<InspectedE
     zip_entries(path)
 }
 
-fn zip_entries(path: &Path) -> Result<Vec<InspectedEntry>, String> {
+fn zip_entries(path: &Path) -> Result<Vec<ArchiveMember>, String> {
     let file = File::open(path).map_err(|error| error.to_string())?;
     let mut archive = ZipArchive::new(file).map_err(|error| error.to_string())?;
     let count = archive.len().min(MAX_ARCHIVE_ENTRIES);
@@ -36,7 +36,7 @@ fn zip_entries(path: &Path) -> Result<Vec<InspectedEntry>, String> {
         if name.is_empty() || name.split('/').any(|part| part == "..") {
             continue;
         }
-        entries.push(InspectedEntry {
+        entries.push(ArchiveMember {
             path: name,
             kind: if entry.is_dir() {
                 "folder".to_owned()
@@ -60,7 +60,7 @@ fn decode_entry_name(raw: &[u8], fallback: &str) -> String {
     fallback.to_owned()
 }
 
-fn tar_entries(reader: impl Read) -> Result<Vec<InspectedEntry>, String> {
+fn tar_entries(reader: impl Read) -> Result<Vec<ArchiveMember>, String> {
     let mut archive = TarArchive::new(reader);
     let mut entries = Vec::new();
     for entry in archive.entries().map_err(|error| error.to_string())? {
@@ -79,7 +79,7 @@ fn tar_entries(reader: impl Read) -> Result<Vec<InspectedEntry>, String> {
         if !(entry_type.is_file() || entry_type.is_dir()) {
             continue;
         }
-        entries.push(InspectedEntry {
+        entries.push(ArchiveMember {
             path: name,
             kind: if entry_type.is_dir() {
                 "folder".to_owned()

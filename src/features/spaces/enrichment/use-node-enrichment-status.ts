@@ -3,7 +3,7 @@ import { computed, shallowRef, type Ref } from "vue";
 import { toast } from "vue-sonner";
 
 import { useSpaceStore } from "../session/space-store";
-import type { SpaceEnrichmentJobRecord } from "./enrichment-jobs";
+import type { SpaceEnrichmentJobState } from "./enrichment-jobs";
 import { enrichmentJobsQuery } from "./enrichment-jobs-query";
 import { retrySpaceEnrichmentJob } from "./job-scheduler";
 
@@ -21,7 +21,7 @@ export function useNodeEnrichmentStatus(spaceId: Ref<string | undefined>, nodeId
   const query = useQuery(
     computed(() => enrichmentJobsQuery(spaceId.value ?? "", Boolean(spaceId.value && nodeId.value))),
   );
-  const jobs = computed<SpaceEnrichmentJobRecord[]>(() => {
+  const jobs = computed<SpaceEnrichmentJobState[]>(() => {
     if (!spaceId.value || !nodeId.value) return [];
     return (query.data.value ?? []).filter(
       (job) => job.spaceId === spaceId.value && job.nodeId === nodeId.value,

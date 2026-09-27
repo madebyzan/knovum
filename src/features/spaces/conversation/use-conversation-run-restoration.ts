@@ -2,9 +2,9 @@ import { shallowRef, type Ref, type ShallowRef } from "vue";
 
 import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
 import { decideAgentPermission } from "../agent-creation/agent-artifacts";
-import type { ApprovalSummary } from "../contracts/generated/ApprovalSummary";
 import type { AssistantTaskUpdate } from "../contracts/generated/AssistantTaskUpdate";
-import type { RunSummary } from "../contracts/generated/RunSummary";
+import type { PendingApproval } from "../contracts/generated/PendingApproval";
+import type { RunObservation } from "../contracts/generated/RunObservation";
 import type { WaitReason } from "../contracts/generated/WaitReason";
 import {
   decideAssistantApproval,
@@ -36,7 +36,7 @@ export function useConversationRunRestoration(state: {
   let observingRunId = "";
   let stopObserving = stopNoObservation;
   const decidingPermission = shallowRef(false);
-  const approvals = shallowRef<ApprovalSummary[]>([]);
+  const approvals = shallowRef<PendingApproval[]>([]);
   const decidingApproval = shallowRef(false);
 
   async function refreshPending(runId: string, spaceId: string) {
@@ -75,7 +75,7 @@ export function useConversationRunRestoration(state: {
     state.loading.value = true;
     observingRunId = active.run.id;
 
-    const onRun = (run: RunSummary) => {
+    const onRun = (run: RunObservation) => {
       if (observingRunId !== run.id) return;
       state.taskState.value = run.state;
       state.waitReason.value = run.waitReason;

@@ -5,12 +5,12 @@ import { toast } from "vue-sonner";
 import { i18n } from "../../../foundation/i18n/i18n";
 import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
-import type { RunSummary } from "../contracts/generated/RunSummary";
+import type { RunObservation } from "../contracts/generated/RunObservation";
 import { observeRun } from "../runs/run-observation";
 import { useSpaceStore } from "../session/space-store";
 import { workflowStateLabelKey } from "./workflow-state-label";
 
-type Listener = (run: RunSummary) => void;
+type Listener = (run: RunObservation) => void;
 const observations = new Map<string, Set<Listener>>();
 export const reviewRunId = shallowRef("");
 
@@ -18,7 +18,7 @@ export function closeWorkflowReview() {
   reviewRunId.value = "";
 }
 
-export function observeWorkflowRun(run: RunSummary, title: string, onUpdate?: Listener) {
+export function observeWorkflowRun(run: RunObservation, title: string, onUpdate?: Listener) {
   const existing = observations.get(run.id);
   if (existing) {
     if (onUpdate) existing.add(onUpdate);
@@ -30,7 +30,7 @@ export function observeWorkflowRun(run: RunSummary, title: string, onUpdate?: Li
   const tasks = useTaskStore();
   const space = useSpaceStore();
   tasks.restoreRunning({ id: run.id, title, startedAt: run.createdAt }, () => cancelWorkflowRun(run.id));
-  function attachNavigation(current: RunSummary) {
+  function attachNavigation(current: RunObservation) {
     tasks.setOpen(run.id, async () => {
       await space.openSpace(run.homeSpaceId);
       if (current.waitReason === "content_review") reviewRunId.value = run.id;
@@ -68,7 +68,7 @@ export function observeWorkflowRun(run: RunSummary, title: string, onUpdate?: Li
 }
 
 export async function restoreWorkflowRuns(title: string) {
-  const runs = await invoke<RunSummary[]>("plugin:spaces|list_active_workflow_runs");
+  const runs = await invoke<RunObservation[]>("plugin:spaces|list_active_workflow_runs");
   for (const run of runs) observeWorkflowRun(run, title);
 }
 

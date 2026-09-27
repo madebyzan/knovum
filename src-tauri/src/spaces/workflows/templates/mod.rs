@@ -7,7 +7,7 @@ use ts_rs::TS;
 
 use super::{definition::WorkflowNode, WorkflowDefinition};
 use crate::ai::models::ExecutionTargetSelection;
-use crate::spaces::runs::RunSummary;
+use crate::spaces::runs::RunObservation;
 
 mod recipes;
 
@@ -40,7 +40,7 @@ pub(crate) async fn start(
     app: &tauri::AppHandle,
     pool: &SqlitePool,
     request: StartBuiltInWorkflowRequest,
-) -> Result<RunSummary, String> {
+) -> Result<RunObservation, String> {
     let definition = definition(request.template_id, &request.parameters)?;
     let mut required_targets = HashSet::new();
     for node in &definition.nodes {

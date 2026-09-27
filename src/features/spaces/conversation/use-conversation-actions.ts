@@ -8,12 +8,12 @@ import {
   deleteAssistantConversation,
   exportAssistantConversation,
   renameAssistantConversation,
-  type ConversationSummary,
+  type AssistantConversation,
   type AssistantMessage,
 } from "./conversation-ipc";
 
 interface ConversationActionState {
-  selected: ComputedRef<ConversationSummary | undefined>;
+  selected: ComputedRef<AssistantConversation | undefined>;
   selectedId: ShallowRef<string>;
   messages: ShallowRef<AssistantMessage[]>;
   loading: ShallowRef<boolean>;

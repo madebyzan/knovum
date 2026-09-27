@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet, VecDeque};
 use serde_json::Value;
 use sqlx::SqlitePool;
 
-use super::RunSummary;
+use super::RunObservation;
 use crate::spaces::db;
 
 mod source;
@@ -14,7 +14,7 @@ pub(super) async fn create_retry(
     pool: &SqlitePool,
     source_run_id: &str,
     selected_step_ids: &[String],
-) -> Result<RunSummary, String> {
+) -> Result<RunObservation, String> {
     let source = load_source(pool, source_run_id).await?;
     if source.kind != "workflow" || source.principal_kind != "user" {
         return Err("run-retry-unsupported: only user-started workflows can be retried".into());

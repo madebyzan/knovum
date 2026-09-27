@@ -14,9 +14,9 @@ import SpaceNodeKnowledgeSections from "../SpaceNodeKnowledgeSections.vue";
 import SpaceRelatedContent from "../SpaceRelatedContent.vue";
 import SpaceTags from "../SpaceTags.vue";
 import SpaceInspectorSection from "./SpaceInspectorSection.vue";
+import SpaceNodeCapabilitySections from "./SpaceNodeCapabilitySections.vue";
 import SpaceNodeMetadata from "./SpaceNodeMetadata.vue";
 import SpaceNodeOverview from "./SpaceNodeOverview.vue";
-import SpaceNodeTypeDetails from "./SpaceNodeTypeDetails.vue";
 
 const store = useSpaceStore();
 const { selectedNodes } = useCanvasSelectionProjection(() => store.nodes);
@@ -32,7 +32,7 @@ function saveTitle(node: SpaceCanvasNode, value: string) {
   <div v-if="selectedNode" :key="selectedNode.id" class="h-full overflow-y-auto overscroll-contain">
     <SpaceNodeIdentity :node="selectedNode" :save-title="saveTitle" />
     <SpaceNodeOverview :node="selectedNode" />
-    <SpaceNodeTypeDetails :node="selectedNode" />
+    <SpaceNodeCapabilitySections :node="selectedNode" />
     <SpaceDerivedInspection :node="selectedNode" />
     <SpaceRelatedContent :node-id="selectedNode.id" />
     <SpaceNodeKnowledgeSections :node="selectedNode" />

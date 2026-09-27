@@ -4,14 +4,14 @@ import { beginSpaceMutation } from "../history/mutation-barrier";
 import { clearSpaceHistory } from "../history/stack";
 import type { Space } from "../model/space";
 import { recordWorkspaceNavigation } from "./navigation-history";
-import { createSpaceRecord, persistAndTrackSpace } from "./space-creation";
+import { createSpaceDraft, persistAndTrackSpace } from "./space-creation";
 import type { SpaceSessionContext } from "./space-session-context";
 import { transitionActiveSpaceSession } from "./space-transition";
 
 export async function createDraftSpace(context: SpaceSessionContext, title: string) {
   const existingDraft = context.draftSpace.value;
   if (existingDraft) return activateDraftSpace(context, existingDraft, true);
-  const space = createSpaceRecord(title, "space");
+  const space = createSpaceDraft(title, "space");
   context.draftSpace.value = space;
   return activateDraftSpace(context, space, true);
 }

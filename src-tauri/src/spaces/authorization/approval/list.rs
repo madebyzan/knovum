@@ -1,12 +1,12 @@
 use sqlx::Row;
 
-use super::ApprovalSummary;
+use super::PendingApproval;
 use crate::spaces::db;
 
 pub(crate) async fn list_pending(
     pool: &sqlx::SqlitePool,
     space_id: &str,
-) -> Result<Vec<ApprovalSummary>, String> {
+) -> Result<Vec<PendingApproval>, String> {
     let rows = sqlx::query(
         "SELECT a.id,a.action_id,a.plan_digest,a.plan,a.expected_revisions,a.valid_until,a.created_at,
          COALESCE(
@@ -26,7 +26,7 @@ pub(crate) async fn list_pending(
         .map(|row| {
             let encoded: String = row.try_get("expected_revisions").map_err(db::sql_error)?;
             let plan: String = row.try_get("plan").map_err(db::sql_error)?;
-            Ok(ApprovalSummary {
+            Ok(PendingApproval {
                 id: row.try_get("id").map_err(db::sql_error)?,
                 run_id: row.try_get("run_id").map_err(db::sql_error)?,
                 action_id: row.try_get("action_id").map_err(db::sql_error)?,

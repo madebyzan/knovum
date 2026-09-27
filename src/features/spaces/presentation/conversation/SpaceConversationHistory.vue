@@ -5,13 +5,13 @@ import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiInput from "../../../../shared/ui/UiInput.vue";
 import UiPopover from "../../../../shared/ui/UiPopover.vue";
-import type { ConversationSummary } from "../../conversation/conversation-ipc";
+import type { AssistantConversation } from "../../conversation/conversation-ipc";
 
 const open = defineModel<boolean>("open", { default: false });
 const query = defineModel<string>("query", { required: true });
 const archived = defineModel<boolean>("archived", { required: true });
 defineProps<{
-  conversations: readonly ConversationSummary[];
+  conversations: readonly AssistantConversation[];
   selectedId: string;
 }>();
 const emit = defineEmits<{

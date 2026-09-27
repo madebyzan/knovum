@@ -3,11 +3,11 @@ import { File, Folder } from "@lucide/vue";
 import { computed } from "vue";
 
 import type { CanvasNodePresentationContext } from "../../../canvas/contract/canvas-detail-profile";
-import type { SpaceResourceEntry } from "../../../model/nodes/node-payload";
+import type { SpaceArchiveMember } from "../../../model/nodes/node-payload";
 import { projectPreviewItems, remainingPreviewItemCount } from "./canvas-preview-budget";
 
 const props = defineProps<{
-  entries: SpaceResourceEntry[];
+  entries: SpaceArchiveMember[];
   presentationContext: CanvasNodePresentationContext;
 }>();
 

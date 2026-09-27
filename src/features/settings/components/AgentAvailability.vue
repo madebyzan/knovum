@@ -21,7 +21,7 @@ const needsSetup = computed(() =>
   Boolean(props.installation && !props.installation.executablePath && !props.checking && !props.checkFailed),
 );
 
-const statusKey = () => {
+const statusMessageKey = computed(() => {
   if (props.checking) return "settings.agents.status.checking";
   if (props.checkFailed) return "settings.agents.status.checkFailed";
   if (!props.installation) return "settings.agents.status.checking";
@@ -31,7 +31,7 @@ const statusKey = () => {
       : "settings.agents.entry.missing";
   }
   return "settings.agents.entry.commandDetected";
-};
+});
 </script>
 
 <template>
@@ -42,13 +42,13 @@ const statusKey = () => {
         <span class="truncate text-label text-foreground">{{ agent.displayName }}</span>
       </div>
       <div class="flex items-center gap-2">
-        <AgentConnectionHelp v-if="needsSetup" :agent="agent" :label="t(statusKey())" />
+        <AgentConnectionHelp v-if="needsSetup" :agent="agent" :label="t(statusMessageKey)" />
         <UiBadge
           v-else
           :variant="installation?.executablePath && !checking && !checkFailed ? 'success' : 'neutral'"
           size="sm"
         >
-          {{ t(statusKey()) }}
+          {{ t(statusMessageKey) }}
         </UiBadge>
         <UiButton size="sm" :variant="enabled ? 'ghost' : 'secondary'" @click="emit('toggle', !enabled)">
           {{ t(enabled ? "settings.agents.disable" : "settings.agents.enable") }}

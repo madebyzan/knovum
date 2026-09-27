@@ -2,7 +2,7 @@ import type { Space } from "../model/space";
 import { createSpace as persistSpace, markSpaceOpened } from "./space-operations";
 import type { SpaceSessionContext } from "./space-session-context";
 
-export function createSpaceRecord(title: string, kind: Space["kind"]): Space {
+export function createSpaceDraft(title: string, kind: Space["kind"]): Space {
   const now = Date.now();
   return {
     id: crypto.randomUUID(),
@@ -19,7 +19,7 @@ export function createSpaceRecord(title: string, kind: Space["kind"]): Space {
 }
 
 export async function createAndTrackSpace(context: SpaceSessionContext, title: string, kind: Space["kind"]) {
-  const space = createSpaceRecord(title, kind);
+  const space = createSpaceDraft(title, kind);
   await persistSpace(space);
   context.spaces.value.push(space);
   return space;

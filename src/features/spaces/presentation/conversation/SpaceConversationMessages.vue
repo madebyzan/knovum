@@ -3,8 +3,8 @@ import { AlertCircle, ArrowUpRight, Sparkles } from "@lucide/vue";
 import { computed, type ComponentPublicInstance } from "vue";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
-import type { ApprovalSummary } from "../../contracts/generated/ApprovalSummary";
 import type { AssistantTaskUpdate } from "../../contracts/generated/AssistantTaskUpdate";
+import type { PendingApproval } from "../../contracts/generated/PendingApproval";
 import type { AssistantMessage } from "../../conversation/conversation-ipc";
 import { useConversationScroll } from "../../conversation/use-conversation-scroll";
 import SpaceConversationMessage from "./SpaceConversationMessage.vue";
@@ -20,7 +20,7 @@ const props = defineProps<{
   loadingOlder: boolean;
   permission?: Extract<AssistantTaskUpdate, { type: "permission_requested" }> | undefined;
   decidingPermission: boolean;
-  approvals: readonly ApprovalSummary[];
+  approvals: readonly PendingApproval[];
   decidingApproval: boolean;
   scrollKey: string;
   savedScrollTop: number;

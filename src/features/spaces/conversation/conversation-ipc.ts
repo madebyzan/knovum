@@ -9,13 +9,13 @@ export type { InspectedAssistantUpload } from "../contracts/generated/InspectedA
 import { Channel } from "@tauri-apps/api/core";
 
 import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
-import type { ApprovalSummary } from "../contracts/generated/ApprovalSummary";
+import type { AssistantConversation } from "../contracts/generated/AssistantConversation";
 import type { AssistantMessage } from "../contracts/generated/AssistantMessage";
 import type { AssistantTaskAccepted } from "../contracts/generated/AssistantTaskAccepted";
 import type { AssistantTaskUpdate } from "../contracts/generated/AssistantTaskUpdate";
-import type { ConversationSummary } from "../contracts/generated/ConversationSummary";
+import type { PendingApproval } from "../contracts/generated/PendingApproval";
 
-export type { ConversationSummary } from "../contracts/generated/ConversationSummary";
+export type { AssistantConversation } from "../contracts/generated/AssistantConversation";
 export type { AssistantMessage, AssistantTaskAccepted };
 
 export function listActiveAssistantRuns(spaceId?: string): Promise<ActiveAssistantRun[]> {
@@ -28,8 +28,8 @@ export function pendingAssistantPermission(
   return invoke("plugin:spaces|pending_assistant_permission", { runId });
 }
 
-export function listAssistantApprovals(spaceId: string, runId: string): Promise<ApprovalSummary[]> {
-  return invoke<ApprovalSummary[]>("plugin:spaces|list_pending_action_approvals", { spaceId }).then((items) =>
+export function listAssistantApprovals(spaceId: string, runId: string): Promise<PendingApproval[]> {
+  return invoke<PendingApproval[]>("plugin:spaces|list_pending_action_approvals", { spaceId }).then((items) =>
     items.filter((item) => item.runId === runId),
   );
 }
@@ -53,7 +53,7 @@ export function listAssistantConversations(
   spaceId: string,
   query = "",
   archived = false,
-): Promise<ConversationSummary[]> {
+): Promise<AssistantConversation[]> {
   return invoke("plugin:spaces|list_assistant_conversations", { spaceId, query, archived });
 }
 

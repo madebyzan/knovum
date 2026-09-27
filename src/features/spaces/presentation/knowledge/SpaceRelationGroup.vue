@@ -7,7 +7,7 @@ import { useI18n } from "vue-i18n";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceRelation } from "../../model/relations/relation";
-import SpaceRelationDetails from "./SpaceRelationDetails.vue";
+import SpaceRelationEvidenceEditor from "./SpaceRelationEvidenceEditor.vue";
 
 export interface SpaceRelationNeighbor {
   relation: SpaceRelation;
@@ -67,7 +67,7 @@ const { t } = useI18n();
         </div>
       </div>
       <AccordionContent class="mt-2">
-        <SpaceRelationDetails :relation="neighbor.relation" />
+        <SpaceRelationEvidenceEditor :relation="neighbor.relation" />
       </AccordionContent>
     </AccordionItem>
   </div>

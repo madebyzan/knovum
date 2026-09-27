@@ -51,7 +51,7 @@ pub struct UsagePurposeTotal {
 
 #[derive(Debug, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
-pub struct UsageSummary {
+pub struct UsageMetrics {
     pub input_tokens: u64,
     pub output_tokens: u64,
     pub total_tokens: u64,
@@ -67,7 +67,7 @@ pub struct UsageSummary {
 pub struct UsageReport {
     pub from_date: String,
     pub to_date: String,
-    pub summary: UsageSummary,
+    pub summary: UsageMetrics,
     pub activity: Vec<UsageDay>,
     pub by_purpose: Vec<UsagePurposeTotal>,
 }

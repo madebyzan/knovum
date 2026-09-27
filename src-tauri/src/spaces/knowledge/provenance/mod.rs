@@ -90,7 +90,7 @@ pub async fn create_provenance<R: Runtime>(
         let provenance_id: String = row.try_get("id").map_err(db::sql_error)?;
         events::append(
             &mut tx,
-            events::EventRecord::new(
+            events::KnowledgeEvent::new(
                 &input.space_id,
                 events::EventEntity::new("provenance", &provenance_id),
                 "superseded",
@@ -110,7 +110,7 @@ pub async fn create_provenance<R: Runtime>(
         .bind("human").bind(Option::<&str>::None).bind(now).execute(&mut *tx).await.map_err(db::sql_error)?;
     events::append(
         &mut tx,
-        events::EventRecord::new(
+        events::KnowledgeEvent::new(
             &input.space_id,
             events::EventEntity::new("provenance", &input.id),
             "created",
@@ -148,7 +148,7 @@ pub async fn revoke_provenance<R: Runtime>(
         .map_err(db::sql_error)?;
     events::append(
         &mut tx,
-        events::EventRecord::new(
+        events::KnowledgeEvent::new(
             &space_id,
             events::EventEntity::new("provenance", &provenance_id),
             "invalidated",

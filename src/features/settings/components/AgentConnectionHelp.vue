@@ -3,7 +3,7 @@ import { useI18n } from "vue-i18n";
 
 import type { AgentDescriptor } from "../../../foundation/ai/agent-models";
 import UiPopover from "../../../shared/ui/UiPopover.vue";
-import AgentConnectionDetails from "./AgentConnectionDetails.vue";
+import AgentConnectionRequirements from "./AgentConnectionRequirements.vue";
 
 defineProps<{ agent: AgentDescriptor; label: string }>();
 const { t } = useI18n();
@@ -20,6 +20,6 @@ const { t } = useI18n();
         {{ label }}
       </button>
     </template>
-    <AgentConnectionDetails :agent="agent" />
+    <AgentConnectionRequirements :agent="agent" />
   </UiPopover>
 </template>

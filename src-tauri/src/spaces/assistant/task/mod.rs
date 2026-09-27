@@ -64,9 +64,9 @@ pub async fn start(
         uuid::Uuid::new_v4().to_string(),
         catalog.digest.clone(),
     )?;
-    persistence::create_records(
+    persistence::persist_task(
         pool,
-        persistence::NewAssistantRecords {
+        persistence::NewAssistantTaskState {
             request: &request,
             ids: &ids,
             grant: &grant,

@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { useVirtualizer } from "@tanstack/vue-virtual";
-import { computed, ref } from "vue";
+import { computed, useTemplateRef } from "vue";
 
 import { formatDurationMs } from "../../media/format-duration";
 import type { SpaceSubtitleCue } from "../../media/knowledge-schema";
 
 const props = defineProps<{ cues: readonly SpaceSubtitleCue[]; activeIndex: number }>();
 const emit = defineEmits<{ select: [index: number] }>();
-const scroller = ref<HTMLDivElement | null>(null);
+const scroller = useTemplateRef<HTMLDivElement>("scroller");
 const virtualizer = useVirtualizer(
   computed(() => ({
     count: props.cues.length,

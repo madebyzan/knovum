@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { packageIdSchema, packageTimeSchema } from "./core-schema";
+import { packageIdSchema, packageTimeSchema } from "./scalar-schema";
 
 export const packageAssistantConversationSchema = z
   .object({

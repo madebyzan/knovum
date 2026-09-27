@@ -1,11 +1,11 @@
 import { i18n } from "../../../foundation/i18n/i18n";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
-import type { RunSummary } from "../contracts/generated/RunSummary";
+import type { RunObservation } from "../contracts/generated/RunObservation";
 import { observeRun } from "../runs/run-observation";
 import { cancelAssistantTask, getAssistantTaskError, listActiveAssistantRuns } from "./conversation-ipc";
 
-type RunIdentity = Pick<RunSummary, "id" | "createdAt">;
-type Listener = (run: RunSummary) => void;
+type RunIdentity = Pick<RunObservation, "id" | "createdAt">;
+type Listener = (run: RunObservation) => void;
 const observed = new Map<string, Set<Listener>>();
 let openConversation: ((spaceId: string, conversationId: string) => Promise<void>) | undefined;
 

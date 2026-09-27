@@ -13,7 +13,7 @@ import { validateStructureSnapshot } from "../../model/structure/structure-valid
 import { useNodeOperationDrafts } from "../../session/node-operation-drafts";
 import { useSpaceStore } from "../../session/space-store";
 import { buildOutlineTreeItems, type OutlineTreeItem } from "./outline-tree-items";
-import SpaceStructureOutlineRow from "./SpaceStructureOutlineRow.vue";
+import SpaceStructureTreeItem from "./SpaceStructureTreeItem.vue";
 import { useStructureOutlineMenu } from "./use-structure-outline-menu";
 
 const store = useSpaceStore();
@@ -138,7 +138,7 @@ onBeforeUnmount(finishRename);
   <TreeRoot as-child :items="items" :get-key="outlineKey" v-model:expanded="expandedIds">
     <template #default="{ flattenItems }">
       <section class="mt-2 space-y-0.5" :aria-label="t('spaces.sidebar.outline.title')">
-        <SpaceStructureOutlineRow
+        <SpaceStructureTreeItem
           v-for="{ level, value } in flattenItems"
           :key="value.id"
           :item="value"

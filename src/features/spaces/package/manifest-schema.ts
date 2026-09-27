@@ -3,8 +3,8 @@ import { z } from "zod";
 import { relationSchema } from "../model/relations/relation-schema";
 import { sceneSchema } from "../scenes/scene-schema";
 import { packageAssistantConversationSchema, packageAssistantMessageSchema } from "./assistant-schema";
+import { nodeSchema, spaceSchema } from "./content-schema";
 import { SPACE_PACKAGE_FORMAT, SPACE_PACKAGE_VERSION } from "./contract";
-import { nodeSchema, packageTimeSchema, spaceSchema } from "./core-schema";
 import { derivationSchema } from "./derivation-schema";
 import {
   packageExternalAgentConversationSchema,
@@ -18,6 +18,7 @@ import {
   packageRunSchema,
   packageRunStepSchema,
 } from "./run-schema";
+import { packageTimeSchema } from "./scalar-schema";
 import {
   packageLayoutsSchema,
   packageRelationStylesSchema,

@@ -3,7 +3,7 @@ import { basename } from "pathe";
 
 import { projectStructureScene } from "../canvas/document/structure-scene-projection";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
-import type { SpaceNodePayload } from "../model/nodes/node-payload";
+import { describeSpaceNode } from "../model/nodes/node-description";
 import type { SpaceRelation } from "../model/relations/relation";
 import type { SpaceEditSnapshot } from "../model/structure/edit-snapshot";
 import type {
@@ -140,37 +140,11 @@ function exportContent(node: SpaceCanvasNode, resources: CanvasExchangeResource[
   if (data.kind === "website") return { type: "link", url: data.url };
   if ("assetPath" in data)
     return { type: "file", file: registerResource(node.id, data.assetPath, resources) };
-  return { type: "text", text: compact([data.title, nodeSummary(data)]).join("\n\n") };
+  return { type: "text", text: compact([data.title, describeSpaceNode(data)]).join("\n\n") };
 }
 
 function registerResource(nodeId: string, sourcePath: string, resources: CanvasExchangeResource[]) {
   const relativePath = `assets/${nodeId}-${basename(sourcePath)}`;
   resources.push({ sourcePath, relativePath });
   return relativePath;
-}
-
-function nodeSummary(data: SpaceNodePayload) {
-  const textual = textualSummary(data);
-  if (textual !== undefined) return textual;
-  if ("fileName" in data) return data.fileName;
-  return metadataSummary(data);
-}
-
-function textualSummary(data: SpaceNodePayload): string | undefined {
-  if (data.kind === "note" || data.kind === "text") return data.plainText;
-  if (data.kind === "markdown") return data.text;
-  if (data.kind === "website") return data.description ?? data.contentPreview ?? data.url;
-  if (data.kind === "subtitle")
-    return data.cues
-      .slice(0, 3)
-      .map(({ text }) => text)
-      .join("\n");
-  return undefined;
-}
-
-function metadataSummary(data: SpaceNodePayload) {
-  if (data.kind === "credential") return data.credentialKind;
-  if (data.kind === "object") return data.summary ?? data.objectTypeId;
-  if (data.kind === "portal") return data.targetSceneId ? "Linked scene" : "Linked space";
-  return "";
 }

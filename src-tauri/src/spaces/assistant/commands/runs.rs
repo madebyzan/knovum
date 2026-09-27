@@ -8,7 +8,7 @@ use crate::command_error::CommandError;
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct ActiveAssistantRun {
-    pub run: crate::spaces::runs::RunSummary,
+    pub run: crate::spaces::runs::RunObservation,
     pub conversation_id: String,
     pub branch_id: String,
     pub title: String,

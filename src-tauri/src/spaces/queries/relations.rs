@@ -6,7 +6,7 @@ use ts_rs::TS;
 #[derive(Serialize, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
-pub(crate) struct SpaceRelationRecord {
+pub(crate) struct SpaceRelationProjection {
     pub id: String,
     pub space_id: String,
     pub source_id: String,
@@ -25,7 +25,7 @@ pub(crate) struct SpaceRelationRecord {
 pub(crate) async fn list_in_transaction(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
-) -> Result<Vec<SpaceRelationRecord>, String> {
+) -> Result<Vec<SpaceRelationProjection>, String> {
     let rows = sqlx::query(
         "SELECT id, space_id, source_id, target_id, kind, rationale, status, status_before_invalidation, confidence, \
          actor_kind, actor_id, created_at, updated_at FROM spaces_relations \
@@ -38,8 +38,8 @@ pub(crate) async fn list_in_transaction(
     rows.into_iter().map(relation_row).collect()
 }
 
-fn relation_row(row: sqlx::sqlite::SqliteRow) -> Result<SpaceRelationRecord, String> {
-    Ok(SpaceRelationRecord {
+fn relation_row(row: sqlx::sqlite::SqliteRow) -> Result<SpaceRelationProjection, String> {
+    Ok(SpaceRelationProjection {
         id: row.try_get::<String, _>("id").map_err(db::sql_error)?,
         space_id: row
             .try_get::<String, _>("space_id")

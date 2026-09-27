@@ -118,7 +118,7 @@ pub(super) async fn mark_nodes_deleted(
         .map_err(db::sql_error)?;
         crate::spaces::knowledge::events::append(
             tx,
-            crate::spaces::knowledge::events::EventRecord::new(
+            crate::spaces::knowledge::events::KnowledgeEvent::new(
                 space_id,
                 crate::spaces::knowledge::events::EventEntity::new("node", id),
                 "invalidated",
@@ -164,7 +164,7 @@ pub(super) async fn restore_nodes(
         crate::spaces::knowledge::contracts::validate_node(tx, space_id, id, &kind, &data).await?;
         crate::spaces::knowledge::events::append(
             tx,
-            crate::spaces::knowledge::events::EventRecord::new(
+            crate::spaces::knowledge::events::KnowledgeEvent::new(
                 space_id,
                 crate::spaces::knowledge::events::EventEntity::new("node", id),
                 "restored",

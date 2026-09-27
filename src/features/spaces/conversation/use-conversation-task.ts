@@ -5,7 +5,7 @@ import type { WaitReason } from "../contracts/generated/WaitReason";
 import {
   cancelAssistantTask,
   type AssistantMessage,
-  type ConversationSummary,
+  type AssistantConversation,
   type StartAssistantTaskInput,
 } from "./conversation-ipc";
 import type { ConversationTarget } from "./conversation-target";
@@ -19,7 +19,7 @@ type PermissionRequest = Extract<AssistantTaskUpdate, { type: "permission_reques
 export function useConversationTask(input: {
   spaceId: Ref<string | undefined>;
   selectedConversationId: Ref<string>;
-  conversation: Ref<ConversationSummary | undefined>;
+  conversation: Ref<AssistantConversation | undefined>;
   prompt: Ref<string>;
   target: Ref<ConversationTarget | undefined>;
   attachments: Ref<Attachment[]>;

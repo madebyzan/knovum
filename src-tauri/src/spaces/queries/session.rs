@@ -10,9 +10,9 @@ use crate::spaces::{db, structure};
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub(crate) struct SpaceSessionProjection {
-    nodes: Vec<nodes::SpaceNodeRecord>,
-    scenes: Vec<scenes::SpaceSceneRecord>,
-    relations: Vec<relations::SpaceRelationRecord>,
+    nodes: Vec<nodes::SpaceNodeProjection>,
+    scenes: Vec<scenes::SpaceSceneProjection>,
+    relations: Vec<relations::SpaceRelationProjection>,
     #[ts(type = "unknown")]
     edit_snapshot: structure::SpaceEditSnapshotResponse,
 }

@@ -10,7 +10,7 @@ import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { isSpaceManagedAssetPayload } from "../../model/nodes/capabilities";
 import { truncateUtf16 } from "../../model/text";
 import { useSpaceStore } from "../../session/space-store";
-import SpaceVisualKnowledgeDetails from "./SpaceVisualKnowledgeDetails.vue";
+import SpaceVisualAnalysis from "./SpaceVisualAnalysis.vue";
 
 const props = defineProps<{ node: SpaceCanvasNode }>();
 const { t } = useI18n();
@@ -68,7 +68,7 @@ async function play() {
     </div>
     <div v-if="visual" class="mt-4">
       <h3 class="mb-2 text-caption font-semibold text-foreground">{{ $t("spaces.inspector.content") }}</h3>
-      <SpaceVisualKnowledgeDetails :node="node" />
+      <SpaceVisualAnalysis :node="node" />
     </div>
     <div v-if="excerpt" class="mt-4">
       <h3 class="mb-2 text-caption font-semibold text-foreground">

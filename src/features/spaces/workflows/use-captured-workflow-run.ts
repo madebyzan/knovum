@@ -1,6 +1,6 @@
 import { onBeforeUnmount, ref, shallowRef } from "vue";
 
-import type { RunSummary } from "../contracts/generated/RunSummary";
+import type { RunObservation } from "../contracts/generated/RunObservation";
 import { useSpaceStore } from "../session/space-store";
 import {
   listCapturedRunOutputs,
@@ -41,7 +41,7 @@ export function useCapturedWorkflowRun() {
     }
   }
 
-  function attach(run: RunSummary, title: string, active: boolean) {
+  function attach(run: RunObservation, title: string, active: boolean) {
     stopObservation?.();
     if (active && !disposed) {
       runId.value = run.id;
@@ -67,7 +67,7 @@ export function useCapturedWorkflowRun() {
     bindings: Record<string, string[]>;
     requestId: string;
     isCurrent: () => boolean;
-    onStarted: (run: RunSummary) => void;
+    onStarted: (run: RunObservation) => void;
   }) {
     if (submitting.value) return;
     submitting.value = true;
@@ -100,7 +100,7 @@ export function useCapturedWorkflowRun() {
     }
   }
 
-  async function retry(title: string, onStarted: (run: RunSummary) => void) {
+  async function retry(title: string, onStarted: (run: RunObservation) => void) {
     if (!runId.value || retrying.value) return;
     const sourceRunId = runId.value;
     retrying.value = true;

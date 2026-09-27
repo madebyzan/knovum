@@ -1,6 +1,6 @@
 use sqlx::{Sqlite, Transaction};
 
-use super::contracts::{PackageDerivationRow, RestorePackageRequest};
+use super::contracts::{PackageDerivation, RestorePackageRequest};
 use crate::spaces::{
     db,
     derivation::input_revision::{self, RevisionBasis},
@@ -71,7 +71,7 @@ pub(super) async fn insert(
     Ok(())
 }
 
-fn validate(row: &PackageDerivationRow) -> Result<(), String> {
+fn validate(row: &PackageDerivation) -> Result<(), String> {
     let action = matches!(
         row.action_kind.as_str(),
         "remove-image-background"

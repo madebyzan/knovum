@@ -134,7 +134,7 @@ async fn emit_object_updated(
     let payload = serde_json::json!({"changeSet": true});
     events::append(
         tx,
-        events::EventRecord::new(
+        events::KnowledgeEvent::new(
             input.space_id,
             events::EventEntity::new("node", input.id),
             "updated",

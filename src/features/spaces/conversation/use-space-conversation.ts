@@ -4,7 +4,7 @@ import { useSpaceStore } from "../session/space-store";
 import {
   listAssistantConversations,
   listAssistantMessages,
-  type ConversationSummary,
+  type AssistantConversation,
   type AssistantMessage,
 } from "./conversation-ipc";
 import type { ConversationTarget } from "./conversation-target";
@@ -18,7 +18,7 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
   const store = useSpaceStore();
   const attachmentSession = useConversationAttachments();
   const { attachments, addNodeAttachments } = attachmentSession;
-  const conversations = shallowRef<ConversationSummary[]>([]);
+  const conversations = shallowRef<AssistantConversation[]>([]);
   const messages = shallowRef<AssistantMessage[]>([]);
   const selectedConversationId = shallowRef("");
   const prompt = shallowRef("");

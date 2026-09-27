@@ -10,22 +10,22 @@ vi.mock("vue-sonner", () => ({
   toast: { error: vi.fn<(message: string) => void>(), success: vi.fn<(message: string) => void>() },
 }));
 
-import SecretSettingsRow from "../SecretSettingsRow.vue";
+import SecretPreferenceField from "../SecretPreferenceField.vue";
 
-describe("SecretSettingsRow", () => {
+describe("SecretPreferenceField", () => {
   beforeEach(() => {
     persistOptionalSecret.mockReset().mockResolvedValue(undefined);
     getSecret.mockReset().mockResolvedValue(null);
   });
 
   it("does not read or write the credential when mounted", () => {
-    mount(SecretSettingsRow, { props: { label: "API key", secretKey: "ai.key" } });
+    mount(SecretPreferenceField, { props: { label: "API key", secretKey: "ai.key" } });
 
     expect(persistOptionalSecret).not.toHaveBeenCalled();
   });
 
   it("writes a replacement when editing finishes", async () => {
-    const wrapper = mount(SecretSettingsRow, {
+    const wrapper = mount(SecretPreferenceField, {
       props: { label: "API key", secretKey: "ai.key" },
     });
     const input = wrapper.get("input");
@@ -37,7 +37,7 @@ describe("SecretSettingsRow", () => {
   });
 
   it("deletes the credential when a cleared field loses focus", async () => {
-    const wrapper = mount(SecretSettingsRow, {
+    const wrapper = mount(SecretPreferenceField, {
       props: { label: "API key", secretKey: "ai.key" },
     });
     const input = wrapper.get("input");

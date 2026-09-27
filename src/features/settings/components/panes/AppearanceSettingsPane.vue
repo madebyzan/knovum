@@ -11,7 +11,7 @@ import {
   usePreferencesStore,
 } from "../../../../foundation/preferences/preferences-store";
 import UiSelect from "../../../../shared/ui/UiSelect.vue";
-import SettingsRow from "../SettingsRow.vue";
+import PreferenceField from "../PreferenceField.vue";
 import SettingsSection from "../SettingsSection.vue";
 
 const { t } = useI18n();
@@ -41,7 +41,7 @@ const languages = computed(() => [
 
 <template>
   <SettingsSection :title="t('settings.appearance.title')">
-    <SettingsRow
+    <PreferenceField
       id="settings-appearance-theme"
       tabindex="-1"
       :label="t('settings.appearance.theme.label')"
@@ -53,8 +53,8 @@ const languages = computed(() => [
         :options="themes"
         @update:model-value="preferences.setTheme($event as ThemePreference)"
       />
-    </SettingsRow>
-    <SettingsRow
+    </PreferenceField>
+    <PreferenceField
       id="settings-appearance-text-size"
       tabindex="-1"
       :label="t('settings.appearance.textSize.label')"
@@ -66,8 +66,8 @@ const languages = computed(() => [
         :options="textSizes"
         @update:model-value="preferences.setTextSize($event as TextSizePreference)"
       />
-    </SettingsRow>
-    <SettingsRow
+    </PreferenceField>
+    <PreferenceField
       id="settings-appearance-density"
       tabindex="-1"
       :label="t('settings.appearance.density.label')"
@@ -79,8 +79,8 @@ const languages = computed(() => [
         :options="densities"
         @update:model-value="preferences.setDensity($event as DensityPreference)"
       />
-    </SettingsRow>
-    <SettingsRow
+    </PreferenceField>
+    <PreferenceField
       id="settings-appearance-language"
       tabindex="-1"
       :label="t('settings.appearance.language.label')"
@@ -92,6 +92,6 @@ const languages = computed(() => [
         :options="languages"
         @update:model-value="preferences.setLocale($event as LocalePreference)"
       />
-    </SettingsRow>
+    </PreferenceField>
   </SettingsSection>
 </template>

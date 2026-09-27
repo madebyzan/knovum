@@ -8,7 +8,7 @@ import { knowledgeLocationLabel } from "../knowledge/presentation/location-label
 import { useSpaceStore } from "../session/space-store";
 import SpaceConversationPanel from "./conversation/SpaceConversationPanel.vue";
 import SpaceDocumentOutline from "./editor/SpaceDocumentOutline.vue";
-import SpaceInspectorDetails from "./inspector/SpaceInspectorDetails.vue";
+import SpaceSelectionInspector from "./inspector/SpaceSelectionInspector.vue";
 import SpaceContextHeader from "./SpaceContextHeader.vue";
 import SpaceSourcePeek from "./SpaceSourcePeek.vue";
 
@@ -61,7 +61,7 @@ const subtitle = computed(() =>
         @back="store.closeSource()"
       />
       <div class="min-h-0 flex-1 overflow-hidden select-text">
-        <SpaceInspectorDetails v-if="rightSidebarView === 'inspect'" class="h-full" />
+        <SpaceSelectionInspector v-if="rightSidebarView === 'inspect'" class="h-full" />
         <SpaceConversationPanel v-else-if="rightSidebarView === 'ask'" class="h-full" />
         <SpaceDocumentOutline v-else-if="rightSidebarView === 'document-outline'" class="h-full" />
         <SpaceSourcePeek v-if="rightSidebarView === 'source' && sourcePeek" class="h-full" />

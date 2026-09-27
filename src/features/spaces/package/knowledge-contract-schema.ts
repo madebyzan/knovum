@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { knowledgeLocatorSchema } from "../knowledge/model/schema";
-import { packageTimeSchema } from "./core-schema";
+import { packageTimeSchema } from "./scalar-schema";
 
 const fieldSchema = z
   .object({

@@ -6,7 +6,7 @@ use crate::spaces::{db, structure::StructureNode};
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
-pub(crate) struct DeletedRootSummary {
+pub(crate) struct DeletedStructureRoot {
     batch_id: String,
     root_structure_node_id: String,
     kind: String,
@@ -20,7 +20,7 @@ pub(crate) struct DeletedRootSummary {
 pub(crate) async fn list<R: Runtime>(
     app: &AppHandle<R>,
     space_id: Option<&str>,
-) -> Result<Vec<DeletedRootSummary>, String> {
+) -> Result<Vec<DeletedStructureRoot>, String> {
     let pool = db::pool(app).await?;
     let mut tx = pool.begin().await.map_err(db::sql_error)?;
     if let Some(space_id) = space_id {
@@ -80,7 +80,7 @@ async fn summarize_root(
     space_title: &str,
     deleted_at: i64,
     root_structure_node_id: String,
-) -> Result<DeletedRootSummary, String> {
+) -> Result<DeletedStructureRoot, String> {
     let raw: String = sqlx::query_scalar(
         "SELECT data FROM spaces_deleted_structure_nodes WHERE batch_id=$1 AND structure_node_id=$2",
     )
@@ -104,7 +104,7 @@ async fn summarize_root(
             (None, title.clone())
         }
     };
-    Ok(DeletedRootSummary {
+    Ok(DeletedStructureRoot {
         batch_id: batch_id.to_owned(),
         root_structure_node_id,
         kind: structure_node.kind_name().to_owned(),
