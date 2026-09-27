@@ -3,7 +3,7 @@ use std::path::Path;
 use serde_json::Value;
 use tauri::AppHandle;
 
-use super::CreateVideoRequest;
+use super::GenerateVideoRequest;
 use crate::ai::models::ExecutionTarget;
 use crate::spaces::derivation::{inputs, pending_output, source_validation};
 use crate::spaces::{assets::asset_directory, db, knowledge::contracts};
@@ -16,7 +16,7 @@ pub struct PreparedVideo {
 
 pub async fn start(
     app: &AppHandle,
-    request: &CreateVideoRequest,
+    request: &GenerateVideoRequest,
     target: &ExecutionTarget,
 ) -> Result<PreparedVideo, String> {
     validate_request(request)?;
@@ -53,7 +53,7 @@ pub async fn start(
     })
 }
 
-fn validate_request(request: &CreateVideoRequest) -> Result<(), String> {
+fn validate_request(request: &GenerateVideoRequest) -> Result<(), String> {
     let primary_count = request
         .inputs
         .iter()
@@ -78,7 +78,7 @@ fn validate_request(request: &CreateVideoRequest) -> Result<(), String> {
 
 async fn validate_primary(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
-    request: &CreateVideoRequest,
+    request: &GenerateVideoRequest,
 ) -> Result<String, String> {
     let primary = &request.inputs[0];
     let script: Option<String> = sqlx::query_scalar("SELECT json_extract(data,'$.text') FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND kind='markdown' AND deleted_at IS NULL AND json_extract(data,'$.knowledgeRevision')=$3")
@@ -90,7 +90,7 @@ async fn validate_primary(
 
 async fn load_references(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
-    request: &CreateVideoRequest,
+    request: &GenerateVideoRequest,
     directory: &Path,
 ) -> Result<Vec<String>, String> {
     let mut values = Vec::with_capacity(request.inputs.len().saturating_sub(1));
@@ -123,7 +123,7 @@ async fn load_references(
 
 async fn output(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
-    request: &CreateVideoRequest,
+    request: &GenerateVideoRequest,
     directory: &Path,
 ) -> Result<String, String> {
     let encoded: String = sqlx::query_scalar(
@@ -152,7 +152,7 @@ async fn output(
 
 async fn persist_start(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
-    request: &CreateVideoRequest,
+    request: &GenerateVideoRequest,
     target: &ExecutionTarget,
 ) -> Result<(), String> {
     let now = crate::clock::unix_time_millis()?;

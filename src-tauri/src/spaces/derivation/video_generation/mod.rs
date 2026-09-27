@@ -27,7 +27,7 @@ struct VideoInput {
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct CreateVideoRequest {
+pub struct GenerateVideoRequest {
     id: String,
     space_id: String,
     output_node_id: String,
@@ -45,9 +45,9 @@ pub struct VideoOutput {
     relations: Vec<super::DerivationRelation>,
 }
 
-pub async fn create(
+pub async fn generate(
     app: AppHandle,
-    request: CreateVideoRequest,
+    request: GenerateVideoRequest,
     stages: Channel<String>,
 ) -> Result<VideoOutput, String> {
     let (cancellation, _lease) = registry::acquire(&request.id)?;
@@ -64,7 +64,7 @@ pub async fn create(
 
 async fn execute(
     app: &AppHandle,
-    request: &CreateVideoRequest,
+    request: &GenerateVideoRequest,
     target: &ExecutionTarget,
     stages: Channel<String>,
     cancellation: &tokio_util::sync::CancellationToken,

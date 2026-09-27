@@ -8,7 +8,7 @@ mod validation;
 
 use tauri::{ipc::Channel, AppHandle};
 
-pub use contracts::{CreateImageOperationRequest, ImageOperationCapabilities};
+pub use contracts::{DeriveImageRequest, ImageOperationCapabilities};
 
 use crate::{
     ai::{
@@ -45,9 +45,9 @@ pub async fn capabilities(app: &AppHandle) -> ImageOperationCapabilities {
     }
 }
 
-pub async fn create(
+pub async fn derive(
     app: AppHandle,
-    request: CreateImageOperationRequest,
+    request: DeriveImageRequest,
     stages: Channel<String>,
 ) -> Result<CompletedDerivationOutput, String> {
     let target = match resolve_target(&app) {
@@ -113,7 +113,7 @@ pub async fn create(
 
 async fn fail_running<T>(
     app: &AppHandle,
-    request: &CreateImageOperationRequest,
+    request: &DeriveImageRequest,
     error: String,
 ) -> Result<T, String> {
     super::failure::fail_message(app, &request.id, &error).await?;
@@ -122,7 +122,7 @@ async fn fail_running<T>(
 
 async fn fail_pending<T>(
     app: &AppHandle,
-    request: &CreateImageOperationRequest,
+    request: &DeriveImageRequest,
     error: String,
 ) -> Result<T, String> {
     super::failure::fail_pending(

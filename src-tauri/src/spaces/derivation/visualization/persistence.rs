@@ -4,7 +4,7 @@ use serde_json::Value;
 use sha2::{Digest, Sha256};
 use tauri::AppHandle;
 
-use super::{validation, CreateVisualizationRequest, VisualizationOutput};
+use super::{validation, GenerateVisualizationRequest, VisualizationOutput};
 use crate::spaces::derivation::{inputs, pending_output, relations, source_validation};
 use crate::{
     ai::{capabilities::image::GeneratedImage, models::ExecutionTarget},
@@ -17,7 +17,7 @@ use crate::{
 
 pub async fn start(
     app: &AppHandle,
-    request: &CreateVisualizationRequest,
+    request: &GenerateVisualizationRequest,
     target: &ExecutionTarget,
 ) -> Result<(), String> {
     validation::validate_request(request)?;
@@ -69,7 +69,7 @@ pub async fn start(
 
 pub async fn complete(
     app: &AppHandle,
-    request: &CreateVisualizationRequest,
+    request: &GenerateVisualizationRequest,
     generated: GeneratedImage,
 ) -> Result<VisualizationOutput, String> {
     let (bytes, width, height) = validation::canonical_png(&generated.bytes)?;
@@ -118,7 +118,7 @@ pub async fn fail(app: &AppHandle, id: &str, error: &str) -> Result<(), String> 
 
 async fn persist_completion(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
-    request: &CreateVisualizationRequest,
+    request: &GenerateVisualizationRequest,
     generated: &GeneratedImage,
     data: &mut Value,
     bytes: &[u8],

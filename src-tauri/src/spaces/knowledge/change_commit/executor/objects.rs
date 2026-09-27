@@ -30,7 +30,7 @@ pub(super) async fn create(
             continue;
         };
         let id = uuid::Uuid::new_v4().to_string();
-        let mut data = object_data(
+        let mut data = build_object_content(
             object_type_id,
             title,
             summary.as_deref(),
@@ -136,7 +136,7 @@ async fn emit_created(
     .await
 }
 
-fn object_data(
+fn build_object_content(
     object_type_id: &str,
     title: &str,
     summary: Option<&str>,

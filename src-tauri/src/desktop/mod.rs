@@ -66,14 +66,14 @@ pub fn set_workspace_menu_state<R: Runtime>(
 }
 
 #[tauri::command]
-pub fn complete_bootstrap<R: Runtime>(app: AppHandle<R>) -> Result<(), CommandError> {
+pub fn reveal_main_window<R: Runtime>(app: AppHandle<R>) -> Result<(), CommandError> {
     #[cfg(any(target_os = "macos", target_os = "windows"))]
     tray::ensure_installed(&app, "en").map_err(|error| error.to_string())?;
     Ok((crate::app_window::focus_main(&app))?)
 }
 
 #[tauri::command]
-pub fn resolve_app_exit<R: Runtime>(app: AppHandle<R>, approved: bool) {
+pub fn decide_app_exit_request<R: Runtime>(app: AppHandle<R>, approved: bool) {
     APP_EXIT_REQUESTED.store(false, Ordering::SeqCst);
     if approved {
         APP_EXIT_APPROVED.store(true, Ordering::SeqCst);
@@ -82,7 +82,7 @@ pub fn resolve_app_exit<R: Runtime>(app: AppHandle<R>, approved: bool) {
 }
 
 #[tauri::command]
-pub fn register_exit_coordinator<R: Runtime>(app: AppHandle<R>) {
+pub fn mark_exit_coordinator_ready<R: Runtime>(app: AppHandle<R>) {
     EXIT_COORDINATOR_READY.store(true, Ordering::SeqCst);
     if APP_EXIT_REQUESTED.load(Ordering::SeqCst) {
         emit_app_exit_request(&app);
@@ -94,9 +94,9 @@ pub fn plugin() -> TauriPlugin<Wry> {
         .invoke_handler(tauri::generate_handler![
             set_locale,
             set_workspace_menu_state,
-            complete_bootstrap,
-            register_exit_coordinator,
-            resolve_app_exit
+            reveal_main_window,
+            mark_exit_coordinator_ready,
+            decide_app_exit_request
         ])
         .build()
 }

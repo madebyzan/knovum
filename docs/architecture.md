@@ -68,9 +68,9 @@ The Spaces Rust boundary is divided by responsibility, not CRUD mechanics:
   commands or engine adapters;
 - `commands/`: Space-level state-changing application operations that do not have a more specific
   capability owner;
-- `queries/`: read-only database projections and response mapping;
+- `queries/`: read-only database projections and response mapping; `package_snapshot/` collects one transaction-consistent archive snapshot and `knowledge_projection/` owns knowledge-access protocol projections;
 - `nodes/`: content mutation, lifecycle and node-owned derived-state updates; it does not own structure or layout;
-- `structure/`: the authoritative Structure/Layout/Edit-State aggregate, validation, mutation planning, history, clipboard, deletion and cross-Space structural integrity;
+- `structure/`: the authoritative Structure/Layout/Edit-State aggregate, validation, mutation planning, history, clipboard, deletion and cross-Space structural integrity; `commands.rs` owns mutations, `queries.rs` owns reads, and `deletion/` owns the deletion lifecycle;
 - `canvas_view_state.rs`: disposable per-Space camera persistence; camera state is intentionally outside Structure/Layout history;
 - `assets/`: Space asset authorization, import, enrichment, references and lifecycle;
 - `assets/transcription/`: the Space-owned transcription use case, including asset authorization and knowledge persistence;
@@ -118,7 +118,8 @@ Spaces processing and retrieval are Rust application use cases, not WebView work
   commit. Vue projects the current visual frames for export and presents committed imports;
 - `knowledge/retrieval/` owns embedding instructions, model identity, batching, LanceDB writes, semantic search
   and hybrid rank fusion. Vue submits query text or an indexing intent and never transports vectors;
-- `commands/grounded/` owns the conversation use case and streaming exchange persistence, while
+- `assistant/task/` owns built-in conversation execution and streaming persistence, with read APIs in
+  `assistant/queries/` and mutation APIs in `assistant/commands/`, while
   `knowledge/grounding/` owns its reusable semantic contracts, prompt assembly, citation rules and
   reference cleanup. Vue owns assistant presentation only.
 
@@ -135,7 +136,7 @@ The knowledge embedding model and vector dimensions form one Spaces retrieval-in
 Expose one command per user/application intent so the WebView cannot assemble a second domain
 implementation from low-level Rust primitives.
 
-`queries/` never mutates durable state. `commands/` and `derivation/` may depend on
+`queries/` never mutates durable business state or owns execution control. `derivation/queries.rs` reads readiness and metadata; `derivation/commands.rs` invokes generation and rendering. Search cancellation is a command over the registry owned by `knowledge/retrieval/search_control.rs`. `commands/` and `derivation/` may depend on
 `knowledge/`, `knowledge/indexing/` and infrastructure adapters; semantic policy must not be duplicated in
 a command, derivation capability or query adapter. `knowledge/` never depends on
 `derivation/`: governance and provenance policy remain independent of the use cases that

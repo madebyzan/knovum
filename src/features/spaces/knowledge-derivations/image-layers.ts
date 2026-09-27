@@ -15,7 +15,7 @@ import { derivedNodePosition } from "./placement";
 import { runDerivation } from "./run-derivation";
 
 type SpaceStore = ReturnType<typeof useSpaceStore>;
-export type LayerCapability =
+export type LayerAvailability =
   | { state: "ready" }
   | { state: "blocked"; reason: "missing_credential" | "secret_database_unavailable" };
 interface LayerOutput {
@@ -24,11 +24,11 @@ interface LayerOutput {
   relation: SpaceRelation;
 }
 
-export function loadImageLayerCapability() {
-  return invoke<LayerCapability>("plugin:spaces|get_image_layer_capability");
+export function getImageLayerAvailability() {
+  return invoke<LayerAvailability>("plugin:spaces|get_image_layer_availability");
 }
 
-export async function createImageLayers(
+export async function generateImageLayers(
   store: SpaceStore,
   source: SpaceCanvasNode<SpaceImagePayload>,
   count: number,
@@ -53,16 +53,16 @@ export async function createImageLayers(
   const pending = await store.addContents(nodes);
   const first = pending[0];
   if (!first) throw new Error("Image layer outputs were not created");
-  const id = crypto.randomUUID();
+  const generationId = crypto.randomUUID();
   return runDerivation<LayerOutput[]>({
     store,
     pendingId: first.id,
     sourceNodeIds: [source.id],
     task: {
-      id,
+      id: generationId,
       title: i18n.global.t("spaces.media.imageEditor.layers.task"),
       detail: source.data.title,
-      cancel: () => invoke<void>("plugin:spaces|cancel_image_layers", { id }),
+      cancel: () => invoke<void>("plugin:spaces|cancel_image_layer_generation", { generationId }),
     },
     failureMessageKey: "spaces.media.imageEditor.layers.failed",
     execute: async ({ taskId }) => {
@@ -72,9 +72,9 @@ export async function createImageLayers(
               useTaskStore().detail(taskId, i18n.global.t(`spaces.media.imageEditor.layers.stage.${stage}`))
           : undefined,
       );
-      return invoke<LayerOutput[]>("plugin:spaces|create_image_layers", {
+      return invoke<LayerOutput[]>("plugin:spaces|generate_image_layers", {
         request: {
-          id,
+          generationId,
           spaceId,
           sourceNodeId: source.id,
           sourceRevision,

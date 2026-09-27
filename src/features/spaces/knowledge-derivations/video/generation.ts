@@ -35,7 +35,7 @@ export interface VideoInputs {
   images: Array<SpaceCanvasNode & { data: SpaceImagePayload & { sourceRevision: string } }>;
 }
 
-interface CreateVideoOptions {
+interface GenerateVideoOptions {
   store: Store;
   inputs: VideoInputs;
   draft: VideoDraft;
@@ -51,7 +51,7 @@ export function resolveVideoInputs(nodes: readonly SpaceCanvasNode[]): VideoInpu
   return { document, images } as VideoInputs;
 }
 
-export async function createVideoFromDocument({ store, inputs, draft }: CreateVideoOptions) {
+export async function generateVideoFromDocument({ store, inputs, draft }: GenerateVideoOptions) {
   const source = inputs.document;
   if (!store.activeSpaceId) return;
   const spaceId = store.activeSpaceId;
@@ -70,9 +70,9 @@ export async function createVideoFromDocument({ store, inputs, draft }: CreateVi
   if (!output) throw new Error("Video output node was not created");
   beginPendingDerivation(output.id, [source.id, ...inputs.images.map(({ id }) => id)]);
   const tasks = useTaskStore();
-  const jobId = crypto.randomUUID();
+  const derivationId = crypto.randomUUID();
   const taskId = tasks.start(i18n.global.t("spaces.creation.video.generation.task"), draft.title, () =>
-    invoke("plugin:spaces|cancel_video_generation", { jobId }),
+    invoke("plugin:spaces|cancel_video_generation", { derivationId }),
   );
   const stages = new Channel<string>();
   // oxlint-disable-next-line unicorn/prefer-add-event-listener -- Tauri Channel exposes its events through onmessage.
@@ -80,9 +80,9 @@ export async function createVideoFromDocument({ store, inputs, draft }: CreateVi
   try {
     await yieldToCanvas();
     const target = await loadAiExecutionTarget("video-generation", draft.target);
-    const completed = await invoke<Output>("plugin:spaces|create_video", {
+    const completed = await invoke<Output>("plugin:spaces|generate_video", {
       request: {
-        id: jobId,
+        id: derivationId,
         spaceId,
         outputNodeId: output.id,
         inputs: [

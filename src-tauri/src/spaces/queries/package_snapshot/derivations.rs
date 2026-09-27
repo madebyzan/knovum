@@ -3,7 +3,7 @@ use sqlx::{Row, Sqlite, Transaction};
 
 use crate::spaces::db;
 
-pub(super) async fn rows(
+pub(super) async fn load(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
 ) -> Result<Vec<Value>, String> {
@@ -39,12 +39,12 @@ pub(super) async fn rows(
                 Ok(serde_json::json!({
                     "nodeId": row.try_get::<Option<String>, _>("nodeId").map_err(db::sql_error)?,
                     "sourceIdentity": row.try_get::<String, _>("sourceIdentity").map_err(db::sql_error)?,
-                    "sourceSnapshot": super::parse_json(&row, "sourceSnapshot")?,
+                    "sourceSnapshot": super::decode::decode_json(&row, "sourceSnapshot")?,
                     "role": row.try_get::<String, _>("role").map_err(db::sql_error)?,
                     "sourceRevision": row.try_get::<String, _>("sourceRevision").map_err(db::sql_error)?,
                     "revisionBasis": row.try_get::<String, _>("revisionBasis").map_err(db::sql_error)?,
                     "inputRevision": row.try_get::<String, _>("inputRevision").map_err(db::sql_error)?,
-                    "inputSnapshot": super::parse_json(&row, "inputSnapshot")?,
+                    "inputSnapshot": super::decode::decode_json(&row, "inputSnapshot")?,
                 }))
             })
             .collect::<Result<Vec<_>, String>>()?;

@@ -30,7 +30,7 @@ pub(crate) async fn list_in_transaction(
     .fetch_all(&mut **tx)
     .await
     .map_err(db::sql_error)?;
-    rows.into_iter().map(node_row).collect()
+    rows.into_iter().map(decode_node_projection).collect()
 }
 
 #[tauri::command]
@@ -49,10 +49,10 @@ pub async fn get_node<R: Runtime>(
     .await
     .map_err(db::sql_error)?
     .ok_or("node-unavailable: resource is unavailable")?;
-    Ok((node_row(row))?)
+    Ok((decode_node_projection(row))?)
 }
 
-fn node_row(row: sqlx::sqlite::SqliteRow) -> Result<SpaceNodeProjection, String> {
+fn decode_node_projection(row: sqlx::sqlite::SqliteRow) -> Result<SpaceNodeProjection, String> {
     let data_raw: String = row.try_get("data").map_err(db::sql_error)?;
     let data: Value = serde_json::from_str(&data_raw).map_err(db::json_error)?;
     Ok(SpaceNodeProjection {

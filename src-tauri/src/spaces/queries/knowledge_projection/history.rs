@@ -4,7 +4,7 @@ use tauri::AppHandle;
 
 use crate::spaces::db;
 
-pub(crate) async fn history(
+pub(crate) async fn list_knowledge_events(
     app: &AppHandle,
     space_id: &str,
     entity_kind: Option<&str>,

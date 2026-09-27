@@ -20,7 +20,7 @@ pub(in crate::spaces) async fn analyze(
     progress: &Channel<MediaTranscriptionProgress>,
     cancellation: &CancellationToken,
 ) -> Result<Value, String> {
-    let mut report = DocumentCoverage::from_data(&data)?;
+    let mut report = DocumentCoverage::from_node_content(&data)?;
     super::checkpoint::restore(app, request, &mut report).await?;
     let source = data
         .get("assetPath")

@@ -16,7 +16,7 @@ fn resolve_target(
 }
 
 #[tauri::command]
-pub async fn complete(
+pub async fn generate_text(
     app: tauri::AppHandle,
     request: models::CompletionCommandRequest,
 ) -> Result<CompletionOutput, AiError> {
@@ -32,7 +32,7 @@ pub async fn complete(
 }
 
 #[tauri::command]
-pub async fn complete_stream(
+pub async fn generate_text_stream(
     app: tauri::AppHandle,
     request: models::CompletionCommandRequest,
     job_id: String,
@@ -55,7 +55,7 @@ pub async fn complete_stream(
 }
 
 #[tauri::command]
-pub async fn transform_editor(
+pub async fn transform_editor_text(
     app: tauri::AppHandle,
     request: models::EditorTransformCommandRequest,
 ) -> Result<CompletionOutput, AiError> {
@@ -68,7 +68,7 @@ pub async fn transform_editor(
 }
 
 #[tauri::command]
-pub async fn transform_editor_stream(
+pub async fn transform_editor_text_stream(
     app: tauri::AppHandle,
     request: models::EditorTransformCommandRequest,
     job_id: String,

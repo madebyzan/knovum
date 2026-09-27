@@ -2,7 +2,7 @@ use serde_json::Value;
 use sha2::{Digest, Sha256};
 use tauri::AppHandle;
 
-use super::{CreateVideoRequest, VideoOutput};
+use super::{GenerateVideoRequest, VideoOutput};
 use crate::ai::capabilities::video::GeneratedVideo;
 use crate::spaces::derivation::{pending_output, relations, source_validation};
 use crate::spaces::{
@@ -12,7 +12,7 @@ use crate::spaces::{
 
 pub async fn complete(
     app: &AppHandle,
-    request: &CreateVideoRequest,
+    request: &GenerateVideoRequest,
     expected_path: &str,
     generated: GeneratedVideo,
 ) -> Result<VideoOutput, String> {

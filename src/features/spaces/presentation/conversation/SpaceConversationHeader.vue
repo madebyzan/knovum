@@ -31,7 +31,7 @@ const actions = computed(() => [
         ? "spaces.assistant.conversations.restore"
         : "spaces.assistant.conversations.archive",
     ),
-    onSelect: () => void session.archiveSelected(!showingArchived.value),
+    onSelect: () => void (showingArchived.value ? session.unarchiveSelected() : session.archiveSelected()),
   },
   {
     label: t("spaces.assistant.conversations.delete"),

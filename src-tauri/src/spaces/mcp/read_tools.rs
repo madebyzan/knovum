@@ -34,21 +34,21 @@ impl SpaceMcpServer {
     }
 
     #[tool(description = "Get source provenance for one node or relation")]
-    async fn get_provenance(
+    async fn list_provenance(
         &self,
         Parameters(args): Parameters<ProvenanceArgs>,
     ) -> Result<String, McpError> {
         self.require_read(&args.space_id).await?;
-        query::get_provenance(&self.app, args).await
+        query::list_provenance(&self.app, args).await
     }
 
     #[tool(description = "Read temporal history for a Space or knowledge entity")]
-    async fn get_history(
+    async fn list_knowledge_events(
         &self,
         Parameters(args): Parameters<HistoryArgs>,
     ) -> Result<String, McpError> {
         self.require_read(&args.space_id).await?;
-        query::get_history(&self.app, args).await
+        query::list_knowledge_events(&self.app, args).await
     }
 
     #[tool(description = "Find the shortest active or contested relation path")]

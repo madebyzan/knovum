@@ -6,7 +6,7 @@ use tauri::AppHandle;
 
 use crate::spaces::{db, knowledge::contracts};
 
-pub(crate) async fn relation_path(
+pub(crate) async fn find_relation_path(
     app: &AppHandle,
     space_id: &str,
     source_id: &str,

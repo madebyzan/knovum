@@ -48,7 +48,7 @@ Space persistence is entirely Rust-owned. Reads and writes cross typed Rust comm
 - `plugin:spaces|undo_space_edit` and `plugin:spaces|redo_space_edit` — replay Rust-owned aggregate history with revision checks;
 - `plugin:spaces|search_structure_global` — search active Group and Section titles across non-archived Spaces without treating containers as knowledge content;
 - `plugin:spaces|revoke_relations` / `plugin:spaces|restore_relations` — revoke or restore one relation selection in a single database transaction;
-- `plugin:spaces|get_space_edit_receipt_result` — resolve an ambiguous IPC result by mutation identity without retrying a business operation;
+- `plugin:spaces|get_space_edit_receipt` — resolve an ambiguous IPC result by mutation identity without retrying a business operation;
 - `plugin:spaces|create_nodes` — atomically insert content rows and their Structure nodes and layouts at an explicit parent;
 - `plugin:spaces|update_nodes` — normalize authoritative knowledge revisions, update affected knowledge atomically, and return the committed node payloads;
 - `plugin:spaces|discard_pending_content` — abandon one failed pending creation by deleting its content and Structure/Layout atomically without creating a Recently Deleted entry;
@@ -56,7 +56,7 @@ Space persistence is entirely Rust-owned. Reads and writes cross typed Rust comm
 - `plugin:spaces|import_structure_clipboard` — validate and commit a remapped structure subtree, content and internal relations as one mutation;
 - `plugin:spaces|index_knowledge` — index current knowledge for a Space or a selected set of nodes;
 - `plugin:spaces|move_structure_selection` — move explicit Structure roots, content and affected relations between two revision-checked Spaces atomically;
-- `plugin:spaces|list_recently_deleted_structure`, `plugin:spaces|restore_deleted_structure` and `plugin:spaces|permanently_delete_structure` — list, restore or purge deletion batches and selected structure roots while preserving subtree identity and retained-reference rules;
+- `plugin:spaces|list_recently_deleted_structure`, `plugin:spaces|restore_deleted_structure` and `plugin:spaces|delete_structure_permanently` — list, restore or purge deletion batches and selected structure roots while preserving subtree identity and retained-reference rules;
 - `plugin:spaces|delete_space_permanently` — require an archived user Space, collect all owned asset paths and cascade-delete the Space atomically;
 - `plugin:spaces|import_space_package` — read a selected current-version archive, validate/remap its references and assets, restore it transactionally, and return the new Space;
 - `plugin:spaces|export_space_package` — collect the Space snapshot and write its archive inside one Rust use case;
@@ -75,11 +75,14 @@ Agent artifact commands never accept an app-owned absolute source path from the 
 - Workflow commands save and revise personal workflows captured from canvas derivations, start a selected personal or built-in workflow, and inspect its Run.
 - External conversation commands start one explicit ACP runtime session, send additional turns with explicitly selected attachments only while that exact session remains connected, list durable history and close the session without silent reconnection.
 - Run commands list Runs, steps and ordered events; request pause/resume/cancel; resolve a resource review; reconcile unknown external outcomes; retry failed workflow steps into a new Run; and produce a content-redacted diagnostic bundle.
-- Assistant commands own conversations, branching, archive/search/export and durable tasks. Closing a view does not own task lifetime.
+- Assistant conversation reads are `list_assistant_conversations`, `list_assistant_messages` and
+  `load_assistant_branch_messages`; the last returns the complete branch for Renderer-owned file export.
+  `archive_assistant_conversation` and `unarchive_assistant_conversation` are separate intents accepting
+  only a conversation identity. Task state reads live in assistant/queries; closing a view does not own task lifetime.
 - The Space MCP surface exposes explicit read, Action and Run routes. Mutations enter SpaceAction authorization; Run control additionally requires the same external principal that created the Run.
 - `plugin:spaces|decide_external_agent_permission` resolves one actual ACP permission request using only an option advertised by that request; absence of a decision is cancellation, never implicit approval.
 
-Saved Website networking is Rust-owned: the crate-level web capture module performs HTTP fetching and returns a neutral document/image result; `plugin:spaces|fetch_webpage` maps it into a Space response and persists direct images. `plugin:spaces|cache_web_asset` persists optional favicon/preview-image URLs discovered inside a saved document.
+Saved Website networking is Rust-owned: the crate-level web capture module performs HTTP fetching and returns a neutral document/image result; `plugin:spaces|capture_web_resource` maps it into a Space response and persists direct images. `plugin:spaces|import_web_image` persists optional favicon/preview-image URLs discovered inside a saved document.
 
 ## System preview command
 
@@ -89,3 +92,24 @@ Saved Website networking is Rust-owned: the crate-level web capture module perfo
 ## Command registration review
 
 When adding or removing an IPC command, review the Rust handler, build-time plugin registration, generated permissions, window capability and production caller together. This document does not maintain an unverified list of unused commands. Knip checks Renderer reachability within its configured entries; it does not prove Rust handler reachability or grant correctness. The exact namespace and synchronization policy is in [naming-conventions.md](naming-conventions.md).
+
+## Generation, rendering and desktop lifecycle names
+
+AI text generation uses `plugin:ai|generate_text` / `generate_text_stream`; editor text transformations
+use `transform_editor_text` / `transform_editor_text_stream`. Internal provider completion APIs keep
+their model terminology. Spaces generation uses `generate_grounded_document`, `generate_visualization`,
+`generate_video` and `generate_image_layers`; transformations use `derive_image`, and deterministic
+video processing uses `render_subtitled_video` / `render_video_edit`. Cancellation names the ongoing
+operation (`cancel_image_layer_generation`, `cancel_subtitled_video_render`). Image-layer generation
+uses `generationId` for its multi-output request and cancellation; each output has its own derivation ID.
+No legacy `id` field is accepted by that strict request. Video generation and committed video rendering cancellation use `derivationId`; disposable proxy processing retains `jobId`.
+
+`get_image_layer_availability` reads Ready/Blocked environment readiness;
+`get_image_operation_capabilities`, `check_image_cutout_source` and `list_video_fonts` are queries.
+They share the Spaces transport namespace with state-changing commands.
+
+Desktop startup calls `plugin:desktop|mark_exit_coordinator_ready` to announce that exit decisions can
+be handled, and `reveal_main_window` to show either the usable product or recoverable error surface.
+The latter does not claim bootstrap succeeded. The flat updater commands are
+`get_update_configuration`, `check_for_update` and `install_update`; their manual permission grants
+are synchronized with the app handler and Renderer callers.

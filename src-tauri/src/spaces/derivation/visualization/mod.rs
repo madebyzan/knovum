@@ -20,7 +20,7 @@ use crate::{
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct CreateVisualizationRequest {
+pub struct GenerateVisualizationRequest {
     id: String,
     space_id: String,
     output_node_id: String,
@@ -47,9 +47,9 @@ pub struct VisualizationOutput {
     relations: Vec<super::DerivationRelation>,
 }
 
-pub async fn create(
+pub async fn generate(
     app: AppHandle,
-    request: CreateVisualizationRequest,
+    request: GenerateVisualizationRequest,
     stages: Channel<String>,
 ) -> Result<VisualizationOutput, String> {
     let target = settings::resolve(
@@ -86,7 +86,7 @@ pub async fn create(
 
 async fn execute(
     app: &AppHandle,
-    request: &CreateVisualizationRequest,
+    request: &GenerateVisualizationRequest,
     target: &ExecutionTarget,
     stages: &Channel<String>,
     cancellation: &tokio_util::sync::CancellationToken,

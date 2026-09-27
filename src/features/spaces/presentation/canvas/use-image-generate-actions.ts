@@ -9,7 +9,7 @@ import { rotatedImageSize } from "../../image-editing/canvas-image-renderer";
 import { imageEditOf } from "../../image-editing/image-edit";
 import { useImageEditSession } from "../../image-editing/image-edit-session";
 import { useImageOperationCapabilities } from "../../knowledge-derivations/image-capabilities";
-import { createImageOperation, type ImageOperation } from "../../knowledge-derivations/image-operation";
+import { deriveImage, type ImageOperation } from "../../knowledge-derivations/image-operation";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../../model/nodes/node-payload";
 import { useSpaceStore } from "../../session/space-store";
@@ -74,7 +74,7 @@ export function useImageGenerateActions(
     close();
     busy.value = true;
     try {
-      await createImageOperation(store, node.value, operation);
+      await deriveImage(store, node.value, operation);
     } catch (error) {
       toast.error(String(error));
     } finally {

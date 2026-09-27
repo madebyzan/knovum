@@ -1,12 +1,12 @@
+use super::decode::{decode_integer, decode_json, decode_text};
 use std::collections::HashSet;
 
 use serde_json::Value;
 use sqlx::{Row, Sqlite, Transaction};
 
-use super::parse_json;
 use crate::spaces::db;
 
-pub(super) async fn object_types(
+pub(super) async fn list_object_types(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
 ) -> Result<Vec<Value>, String> {
@@ -26,7 +26,7 @@ pub(super) async fn object_types(
                 "name": row.try_get::<String,_>("name").map_err(db::sql_error)?,
                 "icon": row.try_get::<String,_>("icon").map_err(db::sql_error)?,
                 "description": row.try_get::<String,_>("description").map_err(db::sql_error)?,
-                "fields": parse_json(&row, "fields")?, "system": false,
+                "fields": decode_json(&row, "fields")?, "system": false,
                 "createdAt": row.try_get::<i64,_>("created_at").map_err(db::sql_error)?,
                 "updatedAt": row.try_get::<i64,_>("updated_at").map_err(db::sql_error)?,
             }))
@@ -34,7 +34,7 @@ pub(super) async fn object_types(
         .collect()
 }
 
-pub(super) async fn provenance(
+pub(super) async fn list_provenance(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
 ) -> Result<Vec<Value>, String> {
@@ -52,15 +52,15 @@ pub(super) async fn provenance(
          ) ORDER BY p.created_at",
     ).bind(space_id).fetch_all(&mut **tx).await.map_err(db::sql_error)?;
     rows.into_iter().map(|row| Ok(serde_json::json!({
-        "id": text(&row,"id")?, "spaceId": text(&row,"space_id")?, "targetKind": text(&row,"target_kind")?,
-        "targetId": text(&row,"target_id")?, "sourceNodeId": text(&row,"source_node_id")?, "locator": parse_json(&row,"locator")?,
-        "sourceRevision": text(&row,"source_revision")?, "quote": text(&row,"quote")?, "status": text(&row,"status")?,
-        "actorKind": text(&row,"actor_kind")?, "actorId": row.try_get::<Option<String>,_>("actor_id").map_err(db::sql_error)?,
-        "createdAt": int(&row,"created_at")?, "updatedAt": int(&row,"updated_at")?,
+        "id": decode_text(&row,"id")?, "spaceId": decode_text(&row,"space_id")?, "targetKind": decode_text(&row,"target_kind")?,
+        "targetId": decode_text(&row,"target_id")?, "sourceNodeId": decode_text(&row,"source_node_id")?, "locator": decode_json(&row,"locator")?,
+        "sourceRevision": decode_text(&row,"source_revision")?, "quote": decode_text(&row,"quote")?, "status": decode_text(&row,"status")?,
+        "actorKind": decode_text(&row,"actor_kind")?, "actorId": row.try_get::<Option<String>,_>("actor_id").map_err(db::sql_error)?,
+        "createdAt": decode_integer(&row,"created_at")?, "updatedAt": decode_integer(&row,"updated_at")?,
     }))).collect()
 }
 
-pub(super) async fn events(
+pub(super) async fn list_knowledge_events(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
     entities: &HashSet<(String, String)>,
@@ -71,26 +71,19 @@ pub(super) async fn events(
     ).bind(space_id).fetch_all(&mut **tx).await.map_err(db::sql_error)?;
     let mut values = Vec::new();
     for row in rows {
-        let entity_kind = text(&row, "entity_kind")?;
-        let entity_id = text(&row, "entity_id")?;
+        let entity_kind = decode_text(&row, "entity_kind")?;
+        let entity_id = decode_text(&row, "entity_id")?;
         if !entities.contains(&(entity_kind.clone(), entity_id.clone())) {
             continue;
         }
-        let event_kind = text(&row, "event_kind")?;
-        let payload = parse_json(&row, "payload")?;
+        let event_kind = decode_text(&row, "event_kind")?;
+        let payload = decode_json(&row, "payload")?;
         values.push(serde_json::json!({
-            "id": text(&row,"id")?, "spaceId": text(&row,"space_id")?, "entityKind": entity_kind,
-            "entityId": entity_id, "eventKind": event_kind, "actorKind": text(&row,"actor_kind")?,
+            "id": decode_text(&row,"id")?, "spaceId": decode_text(&row,"space_id")?, "entityKind": entity_kind,
+            "entityId": entity_id, "eventKind": event_kind, "actorKind": decode_text(&row,"actor_kind")?,
             "actorId": row.try_get::<Option<String>,_>("actor_id").map_err(db::sql_error)?, "payload": payload,
-            "createdAt": int(&row,"created_at")?,
+            "createdAt": decode_integer(&row,"created_at")?,
         }));
     }
     Ok(values)
-}
-
-fn text(row: &sqlx::sqlite::SqliteRow, key: &str) -> Result<String, String> {
-    row.try_get(key).map_err(db::sql_error)
-}
-fn int(row: &sqlx::sqlite::SqliteRow, key: &str) -> Result<i64, String> {
-    row.try_get(key).map_err(db::sql_error)
 }

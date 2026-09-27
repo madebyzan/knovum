@@ -12,7 +12,7 @@ pub(crate) use discard::{
     discard_pending_content, DiscardPendingContentRequest, DiscardPendingContentResponse,
 };
 pub(crate) use list::{list, DeletedStructureRoot};
-pub(crate) use permanent::{permanently_delete, PermanentlyDeleteStructureRequest};
+pub(crate) use permanent::{delete_permanently, DeleteStructurePermanentlyRequest};
 
 #[derive(Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]

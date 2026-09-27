@@ -4,7 +4,11 @@ use tauri::AppHandle;
 
 use crate::spaces::db;
 
-pub(crate) async fn node(app: &AppHandle, space_id: &str, node_id: &str) -> Result<Value, String> {
+pub(crate) async fn get_node(
+    app: &AppHandle,
+    space_id: &str,
+    node_id: &str,
+) -> Result<Value, String> {
     let pool = db::pool(app).await?;
     let row = sqlx::query(
         "SELECT id,kind,data,created_at,updated_at FROM spaces_semantic_nodes \

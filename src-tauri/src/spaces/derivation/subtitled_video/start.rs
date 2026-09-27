@@ -1,14 +1,14 @@
 use serde_json::Value;
 use tauri::AppHandle;
 
-use super::{persistence::VideoSubtitleSource, CreateSubtitledVideoRequest};
+use super::{persistence::VideoSubtitleSource, RenderSubtitledVideoRequest};
 use crate::spaces::derivation::inputs;
 use crate::spaces::derivation::pending_output;
 use crate::spaces::{db, knowledge::contracts};
 
 pub async fn start(
     app: &AppHandle,
-    request: &CreateSubtitledVideoRequest,
+    request: &RenderSubtitledVideoRequest,
 ) -> Result<VideoSubtitleSource, String> {
     validate_job_id(&request.id)?;
     let pool = db::pool(app).await?;
@@ -27,11 +27,13 @@ pub async fn start(
         &request.output_node_id,
     )
     .await?;
-    let video = node_data(&mut tx, &request.space_id, &request.source_node_id, "video").await?;
+    let video =
+        load_node_content(&mut tx, &request.space_id, &request.source_node_id, "video").await?;
     validate_video(&video, &request.source_revision)?;
-    let output = node_data(&mut tx, &request.space_id, &request.output_node_id, "video").await?;
+    let output =
+        load_node_content(&mut tx, &request.space_id, &request.output_node_id, "video").await?;
     pending_output::validate_separate_asset(&output, required_string(&video, "assetPath")?)?;
-    let subtitle = node_data(
+    let subtitle = load_node_content(
         &mut tx,
         &request.space_id,
         &request.subtitle_node_id,
@@ -70,7 +72,7 @@ pub async fn start(
     Ok(source)
 }
 
-async fn node_data(
+async fn load_node_content(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     space_id: &str,
     id: &str,
@@ -98,7 +100,7 @@ fn validate_video(value: &Value, expected: &str) -> Result<(), String> {
     Ok(())
 }
 
-fn validate_subtitle(value: &Value, request: &CreateSubtitledVideoRequest) -> Result<(), String> {
+fn validate_subtitle(value: &Value, request: &RenderSubtitledVideoRequest) -> Result<(), String> {
     if value.get("knowledgeRevision").and_then(Value::as_str)
         != Some(request.subtitle_revision.as_str())
         || value.get("sourceVideoNodeId").and_then(Value::as_str)

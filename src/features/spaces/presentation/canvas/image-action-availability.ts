@@ -1,5 +1,5 @@
 import type { ActionAvailability } from "../../../../shared/contracts/action-availability";
-import type { LayerCapability } from "../../knowledge-derivations/image-layers";
+import type { LayerAvailability } from "../../knowledge-derivations/image-layers";
 import type { ImageOperationCapability } from "../../knowledge-derivations/image-operation";
 
 export type ImageActionReason =
@@ -20,7 +20,7 @@ export type ImageActionAvailability = ActionAvailability<ImageActionReason>;
 export function imageActionAvailability(input: {
   sourceReady: boolean;
   editing: boolean;
-  capability: LayerCapability | ImageOperationCapability | undefined;
+  capability: LayerAvailability | ImageOperationCapability | undefined;
   failed: boolean;
   busy: boolean;
 }): ImageActionAvailability {

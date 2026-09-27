@@ -112,7 +112,7 @@ async fn persist_completion(
     let now = crate::clock::unix_time_millis()?;
     let mut value: Value = serde_json::from_str(&data).map_err(db::json_error)?;
     pending_output::validate_unpublished_asset(&value)?;
-    apply_output_data(&mut value, path, digest, size, width, height, now)?;
+    apply_output_content(&mut value, path, digest, size, width, height, now)?;
     contracts::validate_node(&mut tx, &space_id, &output_id, "image", &value).await?;
     let relation = relations::derives_from(
         &space_id,
@@ -139,7 +139,7 @@ async fn persist_completion(
     })
 }
 
-fn apply_output_data(
+fn apply_output_content(
     value: &mut Value,
     path: &str,
     digest: &str,

@@ -3,7 +3,10 @@ use serde::Serialize;
 use sqlx::Row;
 use tauri::AppHandle;
 
-use super::{grounded_document, video_generation, visualization};
+use super::{
+    grounded_document, image_cutout, image_layers, image_operations, video_edit, video_generation,
+    visualization,
+};
 use crate::spaces::db;
 
 #[derive(Serialize, ts_rs::TS)]
@@ -53,4 +56,29 @@ pub async fn get_derivation_failure(
         error: row.try_get("error").map_err(db::sql_error)?,
         completed_at: row.try_get("completed_at").map_err(db::sql_error)?,
     }))
+}
+
+#[tauri::command]
+pub async fn get_image_layer_availability() -> image_layers::ImageLayerAvailability {
+    image_layers::availability().await
+}
+
+#[tauri::command]
+pub async fn get_image_operation_capabilities(
+    app: AppHandle,
+) -> image_operations::ImageOperationCapabilities {
+    image_operations::capabilities(&app).await
+}
+
+#[tauri::command]
+pub async fn check_image_cutout_source(
+    app: AppHandle,
+    request: image_cutout::CheckImageCutoutSourceRequest,
+) -> Result<bool, CommandError> {
+    Ok((image_cutout::check_source(&app, request).await)?)
+}
+
+#[tauri::command]
+pub async fn list_video_fonts() -> Result<Vec<video_edit::fonts::InstalledFont>, CommandError> {
+    Ok(crate::blocking::run(|| Ok::<_, String>(video_edit::fonts::installed())).await?)
 }

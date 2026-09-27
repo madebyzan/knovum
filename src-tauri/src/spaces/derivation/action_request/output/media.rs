@@ -3,7 +3,7 @@ use serde_json::{json, Map, Value};
 use super::super::inputs::{ResolvedInputs, ResolvedNode};
 use crate::spaces::knowledge::indexing::revision;
 
-pub(super) fn subtitle_data(inputs: &ResolvedInputs) -> Result<Value, String> {
+pub(super) fn build_subtitle_content(inputs: &ResolvedInputs) -> Result<Value, String> {
     let video = inputs
         .nodes
         .first()
@@ -21,7 +21,10 @@ pub(super) fn subtitle_data(inputs: &ResolvedInputs) -> Result<Value, String> {
     Ok(data)
 }
 
-pub(super) fn subtitled_video_data(inputs: &ResolvedInputs, title: &str) -> Result<Value, String> {
+pub(super) fn build_subtitled_video_content(
+    inputs: &ResolvedInputs,
+    title: &str,
+) -> Result<Value, String> {
     let mut data = inputs
         .nodes
         .first()

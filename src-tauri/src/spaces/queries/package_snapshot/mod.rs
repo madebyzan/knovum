@@ -8,11 +8,12 @@ use super::super::{
 };
 
 mod assistant;
+mod content;
+mod decode;
 mod derivations;
 mod external_conversations;
-mod knowledge_rows;
+mod knowledge;
 mod package_assets;
-mod rows;
 mod runs;
 
 #[derive(Serialize)]
@@ -30,23 +31,23 @@ pub(crate) async fn collect<R: Runtime>(
     let mut tx = pool.begin().await.map_err(db::sql_error)?;
     let exported_at = crate::clock::unix_time_millis()?;
 
-    let space = rows::space(&mut tx, &space_id).await?;
-    let scenes = rows::scenes(&mut tx, &space_id).await?;
-    let relations = rows::relations(&mut tx, &space_id).await?;
-    let derivations = derivations::rows(&mut tx, &space_id).await?;
+    let space = content::load_space(&mut tx, &space_id).await?;
+    let scenes = content::list_scenes(&mut tx, &space_id).await?;
+    let relations = content::list_relations(&mut tx, &space_id).await?;
+    let derivations = derivations::load(&mut tx, &space_id).await?;
     reject_active_runs(&mut tx, &space_id).await?;
-    let (runs, run_steps, run_attempts, run_events) = runs::rows(&mut tx, &space_id).await?;
+    let (runs, run_steps, run_attempts, run_events) = runs::load(&mut tx, &space_id).await?;
     let (external_agent_conversations, external_agent_turns) =
-        external_conversations::rows(&mut tx, &space_id).await?;
-    let (assistant_conversations, assistant_messages) = assistant::rows(&mut tx, &space_id).await?;
+        external_conversations::load(&mut tx, &space_id).await?;
+    let (assistant_conversations, assistant_messages) = assistant::load(&mut tx, &space_id).await?;
     let mut assets = package_assets::PackageAssets::default();
-    let nodes = rows::nodes(&mut tx, &space_id, &mut assets).await?;
+    let nodes = content::list_nodes(&mut tx, &space_id, &mut assets).await?;
     let (mut structure, _) =
         crate::spaces::structure::repository::load_in_transaction(&mut tx, &space_id).await?;
-    rows::package_layout_assets(&mut structure.layouts, &mut assets)?;
-    let chunks = rows::chunks(&mut tx, &space_id).await?;
-    let object_types = knowledge_rows::object_types(&mut tx, &space_id).await?;
-    let provenance = knowledge_rows::provenance(&mut tx, &space_id).await?;
+    content::package_layout_assets(&mut structure.layouts, &mut assets)?;
+    let chunks = content::list_chunks(&mut tx, &space_id).await?;
+    let object_types = knowledge::list_object_types(&mut tx, &space_id).await?;
+    let provenance = knowledge::list_provenance(&mut tx, &space_id).await?;
     let mut entities = std::collections::HashSet::new();
     for (kind, rows) in [
         ("node", &nodes),
@@ -62,7 +63,7 @@ pub(crate) async fn collect<R: Runtime>(
             entities.insert((kind.to_owned(), id.to_owned()));
         }
     }
-    let knowledge_events = knowledge_rows::events(&mut tx, &space_id, &entities).await?;
+    let knowledge_events = knowledge::list_knowledge_events(&mut tx, &space_id, &entities).await?;
 
     let manifest = serde_json::json!({
         "format": "knovum-space",
@@ -94,11 +95,6 @@ pub(crate) async fn collect<R: Runtime>(
         manifest,
         assets: assets.into_assets(),
     })
-}
-
-pub(super) fn parse_json(row: &sqlx::sqlite::SqliteRow, key: &str) -> Result<Value, String> {
-    let raw: String = sqlx::Row::try_get(row, key).map_err(db::sql_error)?;
-    serde_json::from_str(&raw).map_err(db::json_error)
 }
 
 async fn reject_active_runs(

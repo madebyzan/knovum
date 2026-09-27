@@ -58,7 +58,7 @@ export async function permanentlyDeleteStructure(
 
 function permanentlyDeleteBatch(roots: readonly SpaceDeletedStructureRoot[], wholeBatch: boolean) {
   const first = roots[0]!;
-  return invoke<string[]>("plugin:spaces|permanently_delete_structure", {
+  return invoke<string[]>("plugin:spaces|delete_structure_permanently", {
     request: {
       spaceId: first.spaceId,
       batchId: first.batchId,

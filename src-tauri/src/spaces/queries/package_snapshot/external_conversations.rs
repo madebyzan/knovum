@@ -1,9 +1,10 @@
+use super::decode::{decode_optional_json, decode_text};
 use serde_json::Value;
 use sqlx::{Row, Sqlite, Transaction};
 
 use crate::spaces::db;
 
-pub(super) async fn rows(
+pub(super) async fn load(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
 ) -> Result<(Vec<Value>, Vec<Value>), String> {
@@ -22,45 +23,37 @@ pub(super) async fn rows(
     Ok((
         conversations
             .into_iter()
-            .map(conversation)
+            .map(decode_conversation_projection)
             .collect::<Result<_, _>>()?,
-        turns.into_iter().map(turn).collect::<Result<_, _>>()?,
+        turns
+            .into_iter()
+            .map(decode_turn_projection)
+            .collect::<Result<_, _>>()?,
     ))
 }
 
-fn conversation(row: sqlx::sqlite::SqliteRow) -> Result<Value, String> {
+fn decode_conversation_projection(row: sqlx::sqlite::SqliteRow) -> Result<Value, String> {
     Ok(serde_json::json!({
-        "id": text(&row, "id")?, "runId": text(&row, "run_id")?,
-        "assistantConversationId": text(&row, "assistant_conversation_id")?,
-        "branchId": text(&row, "branch_id")?,
-        "runtimeKind": text(&row, "runtime_kind")?,
+        "id": decode_text(&row, "id")?, "runId": decode_text(&row, "run_id")?,
+        "assistantConversationId": decode_text(&row, "assistant_conversation_id")?,
+        "branchId": decode_text(&row, "branch_id")?,
+        "runtimeKind": decode_text(&row, "runtime_kind")?,
         "runtimeSessionId": row.try_get::<Option<String>, _>("runtime_session_id").map_err(db::sql_error)?,
-        "sessionCapabilities": optional_json(&row, "session_capabilities")?,
-        "title": text(&row, "title")?, "state": text(&row, "state")?,
+        "sessionCapabilities": decode_optional_json(&row, "session_capabilities")?,
+        "title": decode_text(&row, "title")?, "state": decode_text(&row, "state")?,
         "error": row.try_get::<Option<String>, _>("error").map_err(db::sql_error)?,
         "createdAt": row.try_get::<i64, _>("created_at").map_err(db::sql_error)?,
         "updatedAt": row.try_get::<i64, _>("updated_at").map_err(db::sql_error)?,
     }))
 }
 
-fn optional_json(row: &sqlx::sqlite::SqliteRow, field: &str) -> Result<Option<Value>, String> {
-    row.try_get::<Option<String>, _>(field)
-        .map_err(db::sql_error)?
-        .map(|value| serde_json::from_str(&value).map_err(db::json_error))
-        .transpose()
-}
-
-fn turn(row: sqlx::sqlite::SqliteRow) -> Result<Value, String> {
+fn decode_turn_projection(row: sqlx::sqlite::SqliteRow) -> Result<Value, String> {
     Ok(serde_json::json!({
-        "id": text(&row, "id")?, "conversationId": text(&row, "conversation_id")?,
+        "id": decode_text(&row, "id")?, "conversationId": decode_text(&row, "conversation_id")?,
         "assistantMessageId": row.try_get::<Option<String>, _>("assistant_message_id").map_err(db::sql_error)?,
-        "state": text(&row, "state")?,
+        "state": decode_text(&row, "state")?,
         "error": row.try_get::<Option<String>, _>("error").map_err(db::sql_error)?,
         "createdAt": row.try_get::<i64, _>("created_at").map_err(db::sql_error)?,
         "completedAt": row.try_get::<Option<i64>, _>("completed_at").map_err(db::sql_error)?,
     }))
-}
-
-fn text(row: &sqlx::sqlite::SqliteRow, field: &str) -> Result<String, String> {
-    row.try_get(field).map_err(db::sql_error)
 }

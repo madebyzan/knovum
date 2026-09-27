@@ -1,6 +1,7 @@
 mod agent_task;
 pub(crate) mod commands;
 mod contract;
+pub(crate) mod queries;
 mod repository;
 mod task;
 mod tools;

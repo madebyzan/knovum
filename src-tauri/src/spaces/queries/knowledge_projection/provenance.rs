@@ -4,7 +4,7 @@ use tauri::AppHandle;
 
 use crate::spaces::db;
 
-pub(crate) async fn provenance(
+pub(crate) async fn list_provenance(
     app: &AppHandle,
     space_id: &str,
     target_kind: &str,

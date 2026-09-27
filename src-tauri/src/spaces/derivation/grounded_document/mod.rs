@@ -26,7 +26,7 @@ use crate::{
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct CreateGroundedDocumentRequest {
+pub struct GenerateGroundedDocumentRequest {
     id: String,
     space_id: String,
     output_node_id: String,
@@ -51,9 +51,9 @@ pub struct GroundedDocumentOutput {
     relations: Vec<super::DerivationRelation>,
 }
 
-pub async fn create(
+pub async fn generate(
     app: AppHandle,
-    request: CreateGroundedDocumentRequest,
+    request: GenerateGroundedDocumentRequest,
     stages: Channel<String>,
 ) -> Result<GroundedDocumentOutput, String> {
     let target = settings::resolve(
@@ -96,7 +96,7 @@ pub async fn create(
 
 async fn execute(
     app: &AppHandle,
-    request: &CreateGroundedDocumentRequest,
+    request: &GenerateGroundedDocumentRequest,
     target: &ExecutionTarget,
     stages: &Channel<String>,
     cancellation: tokio_util::sync::CancellationToken,

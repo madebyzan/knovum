@@ -15,7 +15,7 @@ pub(in crate::spaces) fn chunks(data: &Value) -> Result<Vec<KnowledgeChunkSeed>,
     if data.get("documentCoverage").is_none() {
         return Ok(Vec::new());
     }
-    let report = DocumentCoverage::from_data(data)?;
+    let report = DocumentCoverage::from_node_content(data)?;
     let revision = data
         .get("knowledgeRevision")
         .and_then(Value::as_str)

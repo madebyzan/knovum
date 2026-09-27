@@ -5,7 +5,7 @@ use tauri_plugin_updater::UpdaterExt;
 
 #[derive(Debug, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
-pub struct UpdaterStatus {
+pub struct UpdateConfiguration {
     configured: bool,
 }
 
@@ -23,8 +23,8 @@ fn release_config() -> Option<(&'static str, &'static str)> {
 }
 
 #[tauri::command]
-pub fn updater_get_status() -> UpdaterStatus {
-    UpdaterStatus {
+pub fn get_update_configuration() -> UpdateConfiguration {
+    UpdateConfiguration {
         configured: release_config().is_some(),
     }
 }
@@ -47,7 +47,7 @@ async fn resolve_update(app: &AppHandle) -> Result<Option<tauri_plugin_updater::
 }
 
 #[tauri::command]
-pub async fn updater_check(app: AppHandle) -> Result<Option<UpdateMetadata>, CommandError> {
+pub async fn check_for_update(app: AppHandle) -> Result<Option<UpdateMetadata>, CommandError> {
     let update = resolve_update(&app).await?;
     Ok(update.map(|update| UpdateMetadata {
         version: update.version,
@@ -56,7 +56,7 @@ pub async fn updater_check(app: AppHandle) -> Result<Option<UpdateMetadata>, Com
 }
 
 #[tauri::command]
-pub async fn updater_install(app: AppHandle) -> Result<(), CommandError> {
+pub async fn install_update(app: AppHandle) -> Result<(), CommandError> {
     let update = resolve_update(&app)
         .await?
         .ok_or_else(|| "No update is currently available.".to_owned())?;

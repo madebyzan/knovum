@@ -10,15 +10,15 @@ use crate::spaces::{db, structure::StructureNode};
 
 #[derive(Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub(crate) struct PermanentlyDeleteStructureRequest {
+pub(crate) struct DeleteStructurePermanentlyRequest {
     pub(crate) space_id: String,
     pub(crate) batch_id: String,
     pub(crate) root_structure_node_id: Option<String>,
 }
 
-pub(crate) async fn permanently_delete<R: Runtime>(
+pub(crate) async fn delete_permanently<R: Runtime>(
     app: &AppHandle<R>,
-    request: PermanentlyDeleteStructureRequest,
+    request: DeleteStructurePermanentlyRequest,
 ) -> Result<Vec<String>, String> {
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
@@ -67,7 +67,7 @@ struct DeletionUnit {
 
 async fn load_unit(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
-    request: &PermanentlyDeleteStructureRequest,
+    request: &DeleteStructurePermanentlyRequest,
 ) -> Result<DeletionUnit, String> {
     let roots_raw: String = sqlx::query_scalar(
         "SELECT root_structure_node_ids FROM spaces_deleted_structure_batches \

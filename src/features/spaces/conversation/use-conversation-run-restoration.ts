@@ -11,7 +11,7 @@ import {
   getAssistantTaskError,
   listActiveAssistantRuns,
   listAssistantApprovals,
-  pendingAssistantPermission,
+  getPendingAssistantPermission,
 } from "./conversation-ipc";
 import { observeConversationRun } from "./conversation-run-observation";
 
@@ -41,7 +41,7 @@ export function useConversationRunRestoration(state: {
 
   async function refreshPending(runId: string, spaceId: string) {
     const [pending, actionApprovals] = await Promise.all([
-      pendingAssistantPermission(runId),
+      getPendingAssistantPermission(runId),
       listAssistantApprovals(spaceId, runId),
     ]);
     if (state.activeRunId.value !== runId) return;

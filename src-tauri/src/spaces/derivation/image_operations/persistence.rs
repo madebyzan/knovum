@@ -3,16 +3,14 @@ use std::path::Path;
 use serde_json::Value;
 use tauri::AppHandle;
 
-use super::{
-    contracts::CreateImageOperationRequest, output::CanonicalImage, output_file, validation,
-};
+use super::{contracts::DeriveImageRequest, output::CanonicalImage, output_file, validation};
 use crate::spaces::{
     db,
     derivation::{inputs, pending_output, relations, source_validation, CompletedDerivationOutput},
     knowledge::{contracts, indexing::revision},
 };
 
-pub async fn start(app: &AppHandle, request: &CreateImageOperationRequest) -> Result<(), String> {
+pub async fn start(app: &AppHandle, request: &DeriveImageRequest) -> Result<(), String> {
     validation::request(request)?;
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
@@ -69,7 +67,7 @@ pub async fn start(app: &AppHandle, request: &CreateImageOperationRequest) -> Re
 
 pub async fn complete(
     app: &AppHandle,
-    request: &CreateImageOperationRequest,
+    request: &DeriveImageRequest,
     image: CanonicalImage,
 ) -> Result<CompletedDerivationOutput, String> {
     let path = output_file::write(app, &image.png).await?;
@@ -82,7 +80,7 @@ pub async fn complete(
 
 async fn complete_persistence(
     app: &AppHandle,
-    request: &CreateImageOperationRequest,
+    request: &DeriveImageRequest,
     image: &CanonicalImage,
     path: &Path,
 ) -> Result<CompletedDerivationOutput, String> {
@@ -113,7 +111,7 @@ async fn complete_persistence(
 
 async fn persist(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
-    request: &CreateImageOperationRequest,
+    request: &DeriveImageRequest,
     data: &mut Value,
     image: &CanonicalImage,
     path: &Path,

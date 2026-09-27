@@ -118,7 +118,7 @@ pub struct VideoEditProgress {
     progress: u8,
 }
 
-pub async fn create(
+pub async fn render(
     app: AppHandle,
     request: RenderVideoEditRequest,
     progress: Channel<VideoEditProgress>,

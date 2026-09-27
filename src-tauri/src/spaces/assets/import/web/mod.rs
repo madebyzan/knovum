@@ -26,7 +26,7 @@ pub enum WebpageResponse {
 }
 
 #[tauri::command]
-pub async fn fetch_webpage(
+pub async fn capture_web_resource(
     app: tauri::AppHandle,
     url: String,
 ) -> Result<WebpageResponse, CommandError> {
@@ -52,7 +52,7 @@ pub async fn fetch_webpage(
 }
 
 #[tauri::command]
-pub async fn cache_web_asset(app: tauri::AppHandle, url: String) -> Result<String, CommandError> {
+pub async fn import_web_image(app: tauri::AppHandle, url: String) -> Result<String, CommandError> {
     let (_, media_type, bytes) = crate::web_capture::capture_image(&url).await?;
     Ok((persist(&app, &bytes, &media_type))?)
 }

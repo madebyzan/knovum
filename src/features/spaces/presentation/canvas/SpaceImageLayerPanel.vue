@@ -10,8 +10,8 @@ import { canRunAction } from "../../../../shared/contracts/action-availability";
 import UiActionHelp from "../../../../shared/ui/UiActionHelp.vue";
 import UiPopover from "../../../../shared/ui/UiPopover.vue";
 import { useNodeOperationGate } from "../../canvas/node-operation-gate";
-import { useImageLayerCapability } from "../../knowledge-derivations/image-capabilities";
-import { createImageLayers } from "../../knowledge-derivations/image-layers";
+import { useImageLayerAvailability } from "../../knowledge-derivations/image-capabilities";
+import { generateImageLayers } from "../../knowledge-derivations/image-layers";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../../model/nodes/node-payload";
 import { useSpaceStore } from "../../session/space-store";
@@ -27,7 +27,7 @@ const store = useSpaceStore();
 const nodeOperations = useNodeOperationGate();
 const { t } = useI18n();
 const router = useRouter();
-const capability = useImageLayerCapability(toRef(props, "open"));
+const capability = useImageLayerAvailability(toRef(props, "open"));
 const prompt = shallowRef("");
 const custom = shallowRef(false);
 watch(
@@ -57,7 +57,7 @@ async function submit(mode: "automatic" | "custom") {
   setOpen(false);
   busy.value = true;
   try {
-    await createImageLayers(store, props.node, 4, mode === "custom" ? prompt.value : undefined);
+    await generateImageLayers(store, props.node, 4, mode === "custom" ? prompt.value : undefined);
   } catch (error) {
     toast.error(String(error));
   } finally {

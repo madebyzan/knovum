@@ -18,7 +18,7 @@ pub const CANCELLED: &str = "video-subtitle-derivation-cancelled";
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct CreateSubtitledVideoRequest {
+pub struct RenderSubtitledVideoRequest {
     pub id: String,
     pub space_id: String,
     pub source_node_id: String,
@@ -35,9 +35,9 @@ pub struct SubtitledVideoProgress {
     progress: u8,
 }
 
-pub(super) async fn create(
+pub(super) async fn render(
     app: AppHandle,
-    request: CreateSubtitledVideoRequest,
+    request: RenderSubtitledVideoRequest,
     on_progress: Channel<SubtitledVideoProgress>,
 ) -> Result<CompletedDerivationOutput, String> {
     let (cancellation, _lease) = registry::acquire(request.id.clone())?;

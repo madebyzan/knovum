@@ -3,7 +3,7 @@ use sqlx::Row;
 
 use crate::spaces::db;
 
-pub(super) async fn load_node_data(
+pub(super) async fn load_node_content(
     app: &tauri::AppHandle,
     space_id: &str,
     node_id: &str,
