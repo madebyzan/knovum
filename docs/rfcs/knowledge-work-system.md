@@ -147,8 +147,10 @@ fallbacks, long-lived dual writes, command aliases and fabricated historical fac
 
 ## Quality gates
 
-- Rust, TypeScript and Vue source files stay below 180 effective lines as a ceiling, not a target.
-- Rust functions accept at most seven parameters; TypeScript and Vue complexity stays at or below 10.
+- TypeScript and Vue source files stay below Oxlint's 180-effective-line ceiling, and their
+  complexity stays at or below 10. These limits are ceilings, not targets.
+- Rust structure is reviewed by responsibility and verified by rustfmt, Clippy and tests rather than
+  repository-specific line or parameter counters.
 - Oxc, dependency-cruiser, Knip, jscpd, rustfmt, Clippy and tests remain enabled.
 - New dependencies require exact role, maintenance, license, compatibility, security, packaging and
   exit-strategy evidence in `docs/oss-first.md`.
