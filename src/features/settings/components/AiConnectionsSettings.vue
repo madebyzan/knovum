@@ -58,8 +58,8 @@ function replaceConnection(index: number, connection: AiConnectionSettings) {
   >
     <div v-if="connections.length === 0" class="flex items-center justify-between gap-6 px-4 py-3">
       <div class="min-w-0">
-        <p class="text-body-md font-medium text-fg-primary">{{ t("settings.ai.noConnections") }}</p>
-        <p class="mt-0.5 max-w-xl text-caption-md leading-normal text-fg-secondary">
+        <p class="text-body-lg font-medium text-fg-primary">{{ t("settings.ai.noConnections") }}</p>
+        <p class="mt-0.5 max-w-xl text-caption leading-normal text-fg-secondary">
           {{ t("settings.ai.noConnectionsDescription") }}
         </p>
       </div>

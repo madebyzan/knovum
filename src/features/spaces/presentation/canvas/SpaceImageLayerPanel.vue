@@ -104,7 +104,7 @@ function openAiSettings() {
       <div class="flex items-center gap-1">
         <button
           type="button"
-          class="flex min-w-0 flex-1 items-center gap-2 rounded-md px-2 py-2 text-left text-label-md text-fg-primary hover:bg-surface-control-hover focus-visible:ring-2 focus-visible:ring-stroke-focus disabled:cursor-not-allowed disabled:opacity-40"
+          class="flex min-w-0 flex-1 items-center gap-2 rounded-md px-2 py-2 text-left text-label text-fg-primary hover:bg-surface-control-hover focus-visible:ring-2 focus-visible:ring-stroke-focus disabled:cursor-not-allowed disabled:opacity-40"
           :disabled="!canSubmit"
           @click="submit('automatic')"
         >
@@ -120,7 +120,7 @@ function openAiSettings() {
       </div>
       <button
         type="button"
-        class="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-label-md text-fg-primary hover:bg-surface-control-hover focus-visible:ring-2 focus-visible:ring-stroke-focus"
+        class="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-label text-fg-primary hover:bg-surface-control-hover focus-visible:ring-2 focus-visible:ring-stroke-focus"
         @click="custom = true"
       >
         <PencilLine class="size-4" :stroke-width="1.6" />

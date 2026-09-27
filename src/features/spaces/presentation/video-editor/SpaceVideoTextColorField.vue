@@ -48,7 +48,7 @@ function handleKeydown(event: KeyboardEvent) {
 
 <template>
   <div>
-    <label class="mb-1.5 block text-caption-md text-fg-secondary" :for="inputId">
+    <label class="mb-1.5 block text-caption text-fg-secondary" :for="inputId">
       {{ t("spaces.media.videoEditor.font.color") }}
     </label>
     <div

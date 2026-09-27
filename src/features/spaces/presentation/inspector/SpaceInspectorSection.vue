@@ -24,7 +24,7 @@ watch(
         class="flex min-h-(--knovum-list-item-height-sm) w-full items-center gap-2 py-2 text-left hover:text-fg-primary"
       >
         <component :is="icon" v-if="icon" class="size-3 shrink-0 text-fg-tertiary" :stroke-width="1.6" />
-        <span class="min-w-0 flex-1 text-caption-md font-semibold text-fg-primary">{{ title }}</span>
+        <span class="min-w-0 flex-1 text-caption font-semibold text-fg-primary">{{ title }}</span>
         <ChevronDown
           class="size-3 shrink-0 text-fg-tertiary transition-transform duration-150 ease-standard"
           :class="expanded ? 'rotate-180' : ''"

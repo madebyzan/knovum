@@ -72,7 +72,7 @@ const sizes = [2048, 4096, 8192] as const;
     >
       <button
         type="button"
-        class="flex h-(--knovum-control-height-lg) w-full items-center justify-between gap-2 rounded-md px-2 text-left text-label-md outline-none hover:bg-surface-control-hover focus-visible:ring-2 focus-visible:ring-stroke-focus aria-disabled:cursor-not-allowed aria-disabled:opacity-45"
+        class="flex h-(--knovum-control-height-lg) w-full items-center justify-between gap-2 rounded-md px-2 text-left text-label outline-none hover:bg-surface-control-hover focus-visible:ring-2 focus-visible:ring-stroke-focus aria-disabled:cursor-not-allowed aria-disabled:opacity-45"
         :aria-disabled="!canRunAction(optionAvailability(size))"
         @click="run({ kind: 'upscale', targetLongEdge: size })"
       >
@@ -85,7 +85,7 @@ const sizes = [2048, 4096, 8192] as const;
     <div v-if="help?.actionLabel" class="flex justify-end border-t border-stroke-divider pt-1">
       <button
         type="button"
-        class="px-2 py-1 text-caption-md text-fg-accent hover:underline"
+        class="px-2 py-1 text-caption text-fg-accent hover:underline"
         @click="openAiSettings"
       >
         {{ help.actionLabel }}

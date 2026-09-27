@@ -74,7 +74,7 @@ onMounted(load);
     @reset="resetSection"
   />
   <div v-else class="grid gap-5" :class="!ready && 'pointer-events-none opacity-60'">
-    <p class="max-w-2xl text-body-sm text-fg-secondary">
+    <p class="max-w-2xl text-body text-fg-secondary">
       {{ t("settings.agents.description") }}
     </p>
     <SettingsSection id="settings-desktop-agents" tabindex="-1">
@@ -82,7 +82,7 @@ onMounted(load);
         v-if="catalog.installationError.value"
         class="border-b border-stroke-warning/30 bg-surface-warning-subtle px-4 py-3"
       >
-        <p class="text-caption-md text-fg-warning">{{ String(catalog.installationError.value) }}</p>
+        <p class="text-caption text-fg-warning">{{ String(catalog.installationError.value) }}</p>
       </div>
       <div class="divide-y divide-stroke-divider">
         <AgentAvailability

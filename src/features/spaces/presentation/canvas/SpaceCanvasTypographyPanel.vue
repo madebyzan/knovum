@@ -59,7 +59,7 @@ const verticalOptions = [
     <template #trigger>
       <button
         type="button"
-        class="inline-flex h-(--knovum-control-height-md) min-w-8 items-center justify-center gap-1.5 rounded-md px-2.5 text-label-md font-medium text-fg-secondary transition-colors duration-100 outline-none hover:bg-surface-control-hover hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-stroke-focus"
+        class="inline-flex h-(--knovum-control-height-md) min-w-8 items-center justify-center gap-1.5 rounded-md px-2.5 text-label font-medium text-fg-secondary transition-colors duration-100 outline-none hover:bg-surface-control-hover hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-stroke-focus"
         :aria-label="t('spaces.canvas.typography')"
       >
         Aa
@@ -105,7 +105,7 @@ const verticalOptions = [
         <template #trigger>
           <button
             type="button"
-            class="h-(--knovum-control-height-sm) min-w-10 rounded-md px-1.5 text-caption-md font-medium text-fg-secondary tabular-nums transition-colors duration-100 outline-none hover:bg-surface-control-hover hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-stroke-focus"
+            class="h-(--knovum-control-height-sm) min-w-10 rounded-md px-1.5 text-caption font-medium text-fg-secondary tabular-nums transition-colors duration-100 outline-none hover:bg-surface-control-hover hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-stroke-focus"
             :aria-label="t('spaces.canvas.fontSize')"
           >
             {{ fontSize }}

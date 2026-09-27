@@ -94,7 +94,7 @@ onMounted(() => void settings.ensureLoaded());
 
 <template>
   <div class="min-w-0 flex-1">
-    <p v-if="settings.loadError" class="text-caption-md text-fg-danger" role="alert">
+    <p v-if="settings.loadError" class="text-caption text-fg-danger" role="alert">
       {{ t("ai.settingsUnavailable") }}: {{ String(settings.loadError) }}
     </p>
     <UiDropdownMenu :items="choices" side="top" align="start" class="max-h-72 max-w-80 overflow-y-auto">

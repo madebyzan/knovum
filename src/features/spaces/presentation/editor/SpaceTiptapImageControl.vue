@@ -70,7 +70,7 @@ function insertUrl() {
     <div class="flex border-b border-stroke-divider">
       <button
         type="button"
-        class="flex flex-1 items-center justify-center gap-1.5 px-3 py-2 text-caption-md font-medium transition-colors outline-none"
+        class="flex flex-1 items-center justify-center gap-1.5 px-3 py-2 text-caption font-medium transition-colors outline-none"
         :class="
           tab === 'upload'
             ? 'border-b-2 border-stroke-accent text-fg-primary'
@@ -82,7 +82,7 @@ function insertUrl() {
       </button>
       <button
         type="button"
-        class="flex flex-1 items-center justify-center gap-1.5 px-3 py-2 text-caption-md font-medium transition-colors outline-none"
+        class="flex flex-1 items-center justify-center gap-1.5 px-3 py-2 text-caption font-medium transition-colors outline-none"
         :class="
           tab === 'url'
             ? 'border-b-2 border-stroke-accent text-fg-primary'
@@ -102,7 +102,7 @@ function insertUrl() {
         @click="choose"
       >
         <Upload class="size-4" :stroke-width="1.4" />
-        <span class="text-caption-md">{{ t("spaces.richtext.image.choose") }}</span>
+        <span class="text-caption">{{ t("spaces.richtext.image.choose") }}</span>
       </button>
       <p class="text-caption-sm text-fg-tertiary">
         {{ t("spaces.richtext.image.dropDocumentHint") }}
@@ -111,7 +111,7 @@ function insertUrl() {
 
     <div v-else class="flex flex-col gap-2.5 px-3 py-3">
       <label class="grid gap-1.5">
-        <span class="flex items-center gap-1.5 text-caption-md font-medium text-fg-secondary">
+        <span class="flex items-center gap-1.5 text-caption font-medium text-fg-secondary">
           <Link2 class="size-3" />{{ t("spaces.richtext.image.url") }}
         </span>
         <UiInput
@@ -122,13 +122,11 @@ function insertUrl() {
           @keydown.enter.prevent="insertUrl"
         />
       </label>
-      <p v-if="invalidUrl" class="-mt-1 text-caption-md text-fg-danger">
+      <p v-if="invalidUrl" class="-mt-1 text-caption text-fg-danger">
         {{ t("spaces.richtext.image.urlInvalid") }}
       </p>
       <label class="grid gap-1.5">
-        <span class="text-caption-md font-medium text-fg-secondary">{{
-          t("spaces.richtext.image.alt")
-        }}</span>
+        <span class="text-caption font-medium text-fg-secondary">{{ t("spaces.richtext.image.alt") }}</span>
         <UiInput
           v-model="alt"
           :placeholder="t('spaces.richtext.image.altPlaceholder')"

@@ -73,7 +73,7 @@ watch(
       :aria-label="t('spaces.recording.note')"
     >
       <header class="flex h-8 items-center border-b border-stroke-divider px-2.5">
-        <span class="text-label-md font-medium text-fg-primary">{{ t("spaces.recording.note") }}</span>
+        <span class="text-label font-medium text-fg-primary">{{ t("spaces.recording.note") }}</span>
         <UiIconButton
           :label="t('common.cancel')"
           :tooltip="false"
@@ -103,7 +103,7 @@ watch(
         </span>
 
         <div class="ml-2 min-w-0 flex-1">
-          <div class="text-body-sm leading-5 font-medium tabular-nums">
+          <div class="text-body leading-5 font-medium tabular-nums">
             {{ controller.elapsedLabel.value }}
           </div>
           <div role="status" class="truncate text-caption-sm leading-4 text-fg-tertiary">

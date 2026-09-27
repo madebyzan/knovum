@@ -10,7 +10,7 @@ const { d, t } = useI18n();
 
 <template>
   <div class="space-y-4">
-    <div class="space-y-1 text-caption-md text-fg-secondary">
+    <div class="space-y-1 text-caption text-fg-secondary">
       <p>
         {{
           t("spaces.creation.shared.generatedWith", { provider: metadata.provider, model: metadata.model })
@@ -26,7 +26,7 @@ const { d, t } = useI18n();
       <p
         v-for="citation in metadata.citations"
         :key="`${citation.sourceRevision}:${citation.quote}`"
-        class="mb-2 border-l border-stroke-divider pl-2 text-caption-md text-fg-secondary"
+        class="mb-2 border-l border-stroke-divider pl-2 text-caption text-fg-secondary"
       >
         <span class="font-medium text-fg-primary">{{ citation.nodeTitle }}</span> —
         {{ citation.quote }}

@@ -45,7 +45,7 @@ function setCapability(capability: AiModelCapability, enabled: boolean) {
       <label
         v-for="capability in capabilities"
         :key="capability.value"
-        class="flex items-center gap-1.5 text-caption-md text-fg-secondary"
+        class="flex items-center gap-1.5 text-caption text-fg-secondary"
       >
         <UiCheckbox
           :model-value="model.capabilities.includes(capability.value)"

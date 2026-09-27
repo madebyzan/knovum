@@ -28,7 +28,7 @@ const usage = useTokenUsage(range);
     :class="usage.isPending.value && 'pointer-events-none opacity-60'"
   >
     <div class="flex items-start justify-between gap-4">
-      <p class="max-w-2xl text-body-sm text-fg-secondary">{{ t("settings.usage.description") }}</p>
+      <p class="max-w-2xl text-body text-fg-secondary">{{ t("settings.usage.description") }}</p>
       <div class="flex shrink-0 rounded-md bg-surface-control p-0.5">
         <UiButton
           v-for="option in ['quarter', 'year'] as const"
@@ -45,7 +45,7 @@ const usage = useTokenUsage(range);
       <TokenUsageMetrics :summary="usage.data.value.summary" />
       <TokenActivityCalendar :report="usage.data.value" />
       <UsagePurposeBreakdown :report="usage.data.value" />
-      <p class="text-caption-md text-fg-tertiary">{{ t("settings.usage.providerReported") }}</p>
+      <p class="text-caption text-fg-tertiary">{{ t("settings.usage.providerReported") }}</p>
     </template>
     <div v-else class="h-72 animate-pulse rounded-xl bg-surface-skeleton" />
   </div>

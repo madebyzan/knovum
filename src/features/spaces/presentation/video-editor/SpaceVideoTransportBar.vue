@@ -63,7 +63,7 @@ const { t } = useI18n();
       /></UiIconButton>
     </div>
     <div class="flex items-center gap-2">
-      <span class="w-12 text-right text-caption-md font-medium tabular-nums">{{
+      <span class="w-12 text-right text-caption font-medium tabular-nums">{{
         formatVideoTimelineTime(currentMs)
       }}</span>
       <UiIconButton :label="t('spaces.media.videoEditor.previousStep')" size="sm" @click="$emit('step', -100)"
@@ -81,7 +81,7 @@ const { t } = useI18n();
       <UiIconButton :label="t('spaces.media.videoEditor.nextStep')" size="sm" @click="$emit('step', 100)"
         ><SkipForward class="size-3.5"
       /></UiIconButton>
-      <span class="w-12 text-caption-md text-fg-tertiary tabular-nums">{{
+      <span class="w-12 text-caption text-fg-tertiary tabular-nums">{{
         formatVideoTimelineTime(durationMs)
       }}</span>
     </div>

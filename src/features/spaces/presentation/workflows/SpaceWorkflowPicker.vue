@@ -105,7 +105,7 @@ function deletedWorkflow(id: string) {
 </script>
 
 <template>
-  <div class="flex h-full min-h-0 flex-col text-label-md">
+  <div class="flex h-full min-h-0 flex-col text-label">
     <div class="min-h-0 flex-1 space-y-4 overflow-y-auto px-3 py-3">
       <p v-if="loading" role="status" class="text-fg-secondary">
         {{ t("spaces.creation.workflow.derivation.loading") }}
@@ -128,7 +128,7 @@ function deletedWorkflow(id: string) {
         />
         <p
           v-if="items.length && choices.every((choice) => choice.disabled)"
-          class="text-caption-md text-fg-warning"
+          class="text-caption text-fg-warning"
         >
           {{ t("spaces.creation.workflow.inputs.missing") }}
         </p>
@@ -136,7 +136,7 @@ function deletedWorkflow(id: string) {
           <p class="text-caption-sm text-fg-tertiary tabular-nums">v{{ workflow.version }}</p>
           <SpaceWorkflowOutputs :outputs="workflow.candidate.outputSlots" />
           <section class="space-y-3">
-            <h3 class="text-caption-md font-semibold text-fg-secondary">
+            <h3 class="text-caption font-semibold text-fg-secondary">
               {{ t("spaces.creation.workflow.inputs.bind") }}
             </h3>
             <SpaceWorkflowBinding
@@ -148,7 +148,7 @@ function deletedWorkflow(id: string) {
               :model-value="bindings[slot.id] ?? []"
               @update:model-value="setBinding(slot.id, $event)"
             />
-            <p v-if="slots.some((slot) => !slot.options.length)" class="text-caption-md text-fg-warning">
+            <p v-if="slots.some((slot) => !slot.options.length)" class="text-caption text-fg-warning">
               {{ t("spaces.creation.workflow.inputs.missing") }}
             </p>
           </section>
@@ -166,7 +166,7 @@ function deletedWorkflow(id: string) {
           :active-run-state="runState"
           @select="showHistory"
         />
-        <p v-if="error || loadError" role="alert" class="text-caption-md text-fg-danger">
+        <p v-if="error || loadError" role="alert" class="text-caption text-fg-danger">
           {{ error || loadError }}
         </p>
       </template>

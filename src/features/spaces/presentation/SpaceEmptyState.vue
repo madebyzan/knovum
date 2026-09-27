@@ -35,8 +35,8 @@ async function importFile() {
   <div class="pointer-events-none absolute inset-0 grid place-items-center">
     <div class="pointer-events-auto -translate-y-6 text-center">
       <Inbox class="mx-auto size-5 text-fg-tertiary" :stroke-width="1.5" />
-      <p class="mt-3 text-body-md font-medium">{{ t("spaces.space.empty.title") }}</p>
-      <p class="mt-1 text-caption-md text-fg-tertiary">{{ t("spaces.space.empty.description") }}</p>
+      <p class="mt-3 text-title-sm font-medium">{{ t("spaces.space.empty.title") }}</p>
+      <p class="mt-1 text-caption text-fg-tertiary">{{ t("spaces.space.empty.description") }}</p>
       <div class="mt-4 flex justify-center gap-2">
         <UiButton size="sm" variant="secondary" :disabled="!operations.allows('create')" @click="addNote">
           <StickyNote class="mr-1.5 size-3" />{{ t("spaces.editor.note.new") }}

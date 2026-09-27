@@ -52,7 +52,7 @@ const canDeleteAll = computed(
       <LoaderCircle class="size-3.5 animate-spin text-fg-accent" />
     </div>
     <div v-else-if="deletedQuery.isError.value" class="grid h-72 content-center justify-items-center gap-3">
-      <p class="text-caption-md text-fg-secondary">
+      <p class="text-caption text-fg-secondary">
         {{ t("spaces.trash.recent.loadFailed") }}
       </p>
       <UiButton size="sm" @click="deletedQuery.refetch()">{{ t("common.retry") }}</UiButton>
@@ -67,10 +67,10 @@ const canDeleteAll = computed(
     />
     <div v-else class="grid h-72 content-center justify-items-center gap-2 text-fg-tertiary">
       <Trash2 class="size-5" :stroke-width="1.5" />
-      <p class="text-caption-md">{{ t("spaces.trash.recent.empty") }}</p>
+      <p class="text-caption">{{ t("spaces.trash.recent.empty") }}</p>
     </div>
     <template #footer>
-      <span role="status" class="mr-auto self-center text-caption-md text-fg-secondary">
+      <span role="status" class="mr-auto self-center text-caption text-fg-secondary">
         {{
           busy
             ? t("spaces.trash.structure.processing")

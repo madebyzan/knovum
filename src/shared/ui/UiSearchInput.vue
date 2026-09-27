@@ -67,8 +67,8 @@ defineExpose({ focus, focused });
           'w-full bg-surface-muted/70',
           INPUT_BASE_CLASSES,
           size === 'sm'
-            ? 'h-(--knovum-control-height-sm) pr-7 pl-7 text-caption-md'
-            : 'h-(--knovum-control-height-md) pr-8 pl-8.5 text-label-md',
+            ? 'h-(--knovum-control-height-sm) pr-7 pl-7 text-caption'
+            : 'h-(--knovum-control-height-md) pr-8 pl-8.5 text-label',
         )
       "
       @keydown.escape.stop="handleEscape"

@@ -61,7 +61,7 @@ function changeSize(event: Event) {
 <template>
   <div class="space-y-5 p-4">
     <section>
-      <label class="mb-1.5 block text-caption-md font-medium" for="video-edit-text">
+      <label class="mb-1.5 block text-caption font-medium" for="video-edit-text">
         {{ $t("spaces.media.videoEditor.text.content") }}
       </label>
       <UiTextarea
@@ -75,7 +75,7 @@ function changeSize(event: Event) {
     </section>
     <SpaceVideoFontControls :style="style" @change="patchStyle" />
     <section class="grid grid-cols-2 gap-2">
-      <label class="text-caption-md text-fg-secondary" for="video-edit-text-size">
+      <label class="text-caption text-fg-secondary" for="video-edit-text-size">
         {{ $t("spaces.media.videoEditor.font.size") }}
         <UiInput
           id="video-edit-text-size"
@@ -98,7 +98,7 @@ function changeSize(event: Event) {
       />
     </section>
     <section>
-      <h3 class="mb-2 text-caption-md text-fg-secondary">
+      <h3 class="mb-2 text-caption text-fg-secondary">
         {{ $t("spaces.media.videoEditor.text.presets.title") }}
       </h3>
       <div class="grid grid-cols-4 gap-1.5">
@@ -116,7 +116,7 @@ function changeSize(event: Event) {
           @click="patchStyle({ preset })"
         >
           <span
-            class="text-label-md font-semibold"
+            class="text-label font-semibold"
             :class="preset === 'badge' && 'rounded-md bg-surface-inverse px-1 text-fg-inverse'"
             >T</span
           >
@@ -125,7 +125,7 @@ function changeSize(event: Event) {
       </div>
     </section>
     <section>
-      <h3 class="mb-2 text-caption-md text-fg-secondary">
+      <h3 class="mb-2 text-caption text-fg-secondary">
         {{ $t("spaces.media.videoEditor.text.placement") }}
       </h3>
       <div class="grid grid-cols-3 gap-1">

@@ -95,7 +95,7 @@ const work = computed(() => nodePayloadWork(props.data));
       class="leading-relaxed whitespace-pre-wrap text-fg-secondary"
       :class="[
         presentation.mono && 'font-mono',
-        presentationContext.viewport.level === 'compact' ? 'text-caption-md' : 'text-body-sm',
+        presentationContext.viewport.level === 'compact' ? 'text-caption' : 'text-body',
       ]"
     >
       {{ text }}

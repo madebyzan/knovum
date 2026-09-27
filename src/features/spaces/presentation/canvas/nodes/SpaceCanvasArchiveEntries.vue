@@ -28,7 +28,7 @@ const remaining = computed(() =>
     <div
       v-for="entry in displayEntries"
       :key="entry.path"
-      class="flex h-7 items-center gap-2 border-b border-stroke-divider px-1 text-caption-md last:border-b-0"
+      class="flex h-7 items-center gap-2 border-b border-stroke-divider px-1 text-caption last:border-b-0"
     >
       <Folder v-if="entry.kind === 'folder'" class="size-3 shrink-0 text-fg-tertiary" />
       <File v-else class="size-3 shrink-0 text-fg-tertiary" />

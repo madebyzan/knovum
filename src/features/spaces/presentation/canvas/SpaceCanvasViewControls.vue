@@ -63,7 +63,7 @@ function zoomToSelection() {
         <ToolbarButton as-child>
           <button
             type="button"
-            class="flex h-5 min-w-12 items-center justify-center gap-0.5 rounded-sm px-1 text-caption-md font-medium text-fg-secondary tabular-nums outline-none hover:bg-surface-control-hover hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-stroke-focus focus-visible:ring-inset active:bg-surface-control-pressed"
+            class="flex h-5 min-w-12 items-center justify-center gap-0.5 rounded-sm px-1 text-caption font-medium text-fg-secondary tabular-nums outline-none hover:bg-surface-control-hover hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-stroke-focus focus-visible:ring-inset active:bg-surface-control-pressed"
             :aria-label="t('spaces.canvas.zoom.options')"
           >
             {{ zoom }}%

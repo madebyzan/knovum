@@ -78,7 +78,7 @@ const matchingSettings = computed(() => visibleGroups.value.flatMap((group) => g
       <button
         data-testid="settings-back"
         type="button"
-        class="flex h-(--knovum-control-height-md) w-full items-center gap-2 rounded-md px-2 text-left text-label-md text-fg-secondary transition-colors duration-100 hover:bg-(--knovum-sidebar-item-bg-hover) hover:text-fg-primary"
+        class="flex h-(--knovum-control-height-md) w-full items-center gap-2 rounded-md px-2 text-left text-label text-fg-secondary transition-colors duration-100 hover:bg-(--knovum-sidebar-item-bg-hover) hover:text-fg-primary"
         @click="emit('back')"
       >
         <ArrowLeft class="size-3.5" :stroke-width="1.65" /><span>{{ t("settings.general.backToApp") }}</span>
@@ -89,7 +89,7 @@ const matchingSettings = computed(() => visibleGroups.value.flatMap((group) => g
       <nav :aria-label="t('settings.general.title')" class="px-3 pb-6">
         <template v-if="query.trim()">
           <section v-for="group in visibleGroups" :key="group.id" class="mb-4">
-            <p class="mb-1.5 px-2 text-caption-md font-medium text-fg-tertiary">{{ group.label }}</p>
+            <p class="mb-1.5 px-2 text-caption font-medium text-fg-tertiary">{{ group.label }}</p>
             <button
               v-for="setting in group.settings"
               :key="`${setting.id}:${setting.location ?? ''}`"
@@ -107,10 +107,8 @@ const matchingSettings = computed(() => visibleGroups.value.flatMap((group) => g
                 :stroke-width="1.6"
               />
               <span class="min-w-0 flex-1">
-                <span class="block truncate text-label-md font-medium text-fg-primary">{{
-                  setting.label
-                }}</span>
-                <span class="mt-0.5 line-clamp-2 block text-caption-md leading-snug text-fg-tertiary">
+                <span class="block truncate text-label font-medium text-fg-primary">{{ setting.label }}</span>
+                <span class="mt-0.5 line-clamp-2 block text-caption leading-snug text-fg-tertiary">
                   {{ setting.description }}
                 </span>
               </span>
@@ -119,13 +117,13 @@ const matchingSettings = computed(() => visibleGroups.value.flatMap((group) => g
         </template>
         <template v-else>
           <section v-for="group in visibleGroups" :key="group.id" class="mb-4">
-            <p class="mb-1.5 px-2 text-caption-md font-medium text-fg-tertiary">{{ group.label }}</p>
+            <p class="mb-1.5 px-2 text-caption font-medium text-fg-tertiary">{{ group.label }}</p>
             <button
               v-for="setting in group.settings"
               :key="setting.id"
               :data-testid="`settings-pane-${setting.id}`"
               type="button"
-              class="mb-0.5 flex h-(--knovum-control-height-md) w-full items-center gap-2.5 rounded-md px-2 text-left text-body-md text-fg-secondary transition-colors duration-100 hover:bg-(--knovum-sidebar-item-bg-hover) hover:text-fg-primary data-[active=true]:bg-(--knovum-sidebar-item-bg-selected) data-[active=true]:font-medium data-[active=true]:text-fg-primary"
+              class="mb-0.5 flex h-(--knovum-control-height-md) w-full items-center gap-2.5 rounded-md px-2 text-left text-body-lg text-fg-secondary transition-colors duration-100 hover:bg-(--knovum-sidebar-item-bg-hover) hover:text-fg-primary data-[active=true]:bg-(--knovum-sidebar-item-bg-selected) data-[active=true]:font-medium data-[active=true]:text-fg-primary"
               :data-active="props.activePane === setting.id"
               @click="emit('select', setting.id)"
             >
@@ -135,7 +133,7 @@ const matchingSettings = computed(() => visibleGroups.value.flatMap((group) => g
             </button>
           </section>
         </template>
-        <p v-if="matchingSettings.length === 0" class="px-2 py-3 text-caption-md text-fg-tertiary">
+        <p v-if="matchingSettings.length === 0" class="px-2 py-3 text-caption text-fg-tertiary">
           {{ t("settings.general.noResults") }}
         </p>
       </nav>

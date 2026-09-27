@@ -94,8 +94,8 @@ function isModelInUse(modelId: string) {
           :class="open && 'rotate-90'"
         />
         <div class="min-w-0 flex-1">
-          <p class="truncate text-body-md font-medium text-fg-primary">{{ connection.name }}</p>
-          <p class="mt-0.5 truncate text-caption-md text-fg-secondary">
+          <p class="truncate text-body-lg font-medium text-fg-primary">{{ connection.name }}</p>
+          <p class="mt-0.5 truncate text-caption text-fg-secondary">
             {{ connectionProvider.displayName }} ·
             {{ t("settings.ai.modelCount", { count: connection.models.length }) }}
           </p>
@@ -123,7 +123,7 @@ function isModelInUse(modelId: string) {
       />
       <div class="mt-4">
         <div class="mb-2 flex items-center justify-between px-0.5">
-          <p class="text-caption-md font-medium text-fg-secondary">{{ t("settings.ai.models") }}</p>
+          <p class="text-caption font-medium text-fg-secondary">{{ t("settings.ai.models") }}</p>
           <UiButton size="sm" variant="ghost" @click="addModel">
             <Plus class="size-3" />{{ t("settings.ai.addModel") }}
           </UiButton>

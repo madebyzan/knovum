@@ -16,7 +16,7 @@ const recent = computed(() => takeRight(props.preview.segments, 5));
   <section class="mt-3 overflow-hidden rounded-panel border border-stroke-divider bg-surface-muted/45">
     <header class="flex items-center gap-2 border-b border-stroke-divider px-2.5 py-2">
       <LoaderCircle class="size-3 animate-spin text-fg-accent" :stroke-width="1.7" />
-      <span class="min-w-0 flex-1 text-caption-md font-medium text-fg-secondary">
+      <span class="min-w-0 flex-1 text-caption font-medium text-fg-secondary">
         {{ t("spaces.transcript.text.live") }}
       </span>
       <span class="text-caption-sm text-fg-tertiary tabular-nums">{{ preview.progress }}%</span>
@@ -30,7 +30,7 @@ const recent = computed(() => takeRight(props.preview.segments, 5));
         <span class="w-10 shrink-0 pt-0.5 text-caption-sm text-fg-tertiary tabular-nums">
           {{ formatDurationMs(segment.startMs) }}
         </span>
-        <p class="line-clamp-2 min-w-0 flex-1 text-caption-md leading-relaxed text-fg-secondary">
+        <p class="line-clamp-2 min-w-0 flex-1 text-caption leading-relaxed text-fg-secondary">
           {{ segment.text }}
         </p>
       </div>

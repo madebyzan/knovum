@@ -31,7 +31,7 @@ const rows = computed(() =>
     </h2>
     <div v-if="rows.length" class="mt-3 grid gap-3">
       <div v-for="row in rows" :key="row.purpose">
-        <div class="mb-1.5 flex items-center justify-between gap-4 text-label-md">
+        <div class="mb-1.5 flex items-center justify-between gap-4 text-label">
           <span class="text-fg-primary">{{ row.label }}</span>
           <span class="text-fg-secondary tabular-nums">{{ n(row.totalTokens, "compact") }}</span>
         </div>
@@ -43,6 +43,6 @@ const rows = computed(() =>
         </div>
       </div>
     </div>
-    <p v-else class="mt-2 text-body-sm text-fg-secondary">{{ t("settings.usage.activity.empty") }}</p>
+    <p v-else class="mt-2 text-body text-fg-secondary">{{ t("settings.usage.activity.empty") }}</p>
   </section>
 </template>

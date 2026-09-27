@@ -62,13 +62,13 @@ function retry() {
       >
         <ChevronLeft class="size-3" />
       </button>
-      <h3 class="flex-1 text-caption-md font-semibold text-fg-primary">
+      <h3 class="flex-1 text-caption font-semibold text-fg-primary">
         {{ t("spaces.inspector.related.title") }}
       </h3>
       <button
         v-if="!expanded && items.length > 3"
         type="button"
-        class="text-caption-md text-fg-secondary hover:text-fg-primary"
+        class="text-caption text-fg-secondary hover:text-fg-primary"
         @click="expanded = true"
       >
         {{ t("spaces.inspector.related.show") }}
@@ -76,7 +76,7 @@ function retry() {
     </header>
     <div
       v-if="query.isError.value || (indexStatus === 'unavailable' && query.data.value?.state === 'unindexed')"
-      class="flex items-start gap-2 py-3 text-caption-md text-fg-danger"
+      class="flex items-start gap-2 py-3 text-caption text-fg-danger"
     >
       <TriangleAlert class="mt-0.5 size-3 shrink-0" />
       <div>
@@ -85,7 +85,7 @@ function retry() {
       </div>
     </div>
     <div v-else-if="pending" class="py-3">
-      <p class="text-caption-md leading-relaxed text-fg-tertiary">
+      <p class="text-caption leading-relaxed text-fg-tertiary">
         {{ t("spaces.inspector.related.indexing") }}
       </p>
       <div class="mt-3 h-2 w-4/5 rounded-md bg-surface-control" />
@@ -94,7 +94,7 @@ function retry() {
     </div>
     <div
       v-else-if="query.data.value?.state === 'unindexed'"
-      class="py-3 text-caption-md leading-relaxed text-fg-tertiary"
+      class="py-3 text-caption leading-relaxed text-fg-tertiary"
     >
       <p>{{ t("spaces.inspector.related.notIndexed") }}</p>
       <button type="button" class="mt-1 text-fg-secondary underline" @click="startIndex">
@@ -103,16 +103,16 @@ function retry() {
     </div>
     <p
       v-else-if="query.data.value?.state === 'no_content'"
-      class="py-3 text-caption-md leading-relaxed text-fg-tertiary"
+      class="py-3 text-caption leading-relaxed text-fg-tertiary"
     >
       {{ t("spaces.inspector.related.noContent") }}
     </p>
-    <div v-else-if="!items.length" class="py-5 text-center text-caption-md text-fg-tertiary">
+    <div v-else-if="!items.length" class="py-5 text-center text-caption text-fg-tertiary">
       <Search class="mx-auto mb-2 size-3.5" :stroke-width="1.5" />
       {{ t("spaces.inspector.related.empty") }}
     </div>
     <div v-else>
-      <p v-if="expanded" class="mb-2 text-caption-md leading-relaxed text-fg-tertiary">
+      <p v-if="expanded" class="mb-2 text-caption leading-relaxed text-fg-tertiary">
         {{ t("spaces.inspector.related.explanation") }}
       </p>
       <button
@@ -126,8 +126,8 @@ function retry() {
           <component :is="nodeIcon(item.nodeKind)" class="size-3.5" :stroke-width="1.5" />
         </span>
         <span class="min-w-0 flex-1">
-          <span class="block truncate text-caption-md font-medium text-fg-primary">{{ item.nodeTitle }}</span>
-          <span class="mt-0.5 line-clamp-2 block text-caption-md leading-snug text-fg-tertiary">{{
+          <span class="block truncate text-caption font-medium text-fg-primary">{{ item.nodeTitle }}</span>
+          <span class="mt-0.5 line-clamp-2 block text-caption leading-snug text-fg-tertiary">{{
             item.snippet
           }}</span>
         </span>

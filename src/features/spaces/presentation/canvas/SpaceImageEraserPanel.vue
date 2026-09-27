@@ -23,7 +23,7 @@ const brushSize = computed({
 <template>
   <section class="w-56 space-y-3 text-fg-primary" :aria-label="t('spaces.media.imageEditor.eraser.tool')">
     <header class="flex items-center justify-between px-1">
-      <h3 class="text-body-md font-semibold">{{ t("spaces.media.imageEditor.eraser.tool") }}</h3>
+      <h3 class="text-title-sm font-semibold">{{ t("spaces.media.imageEditor.eraser.tool") }}</h3>
       <UiButton
         variant="ghost"
         size="sm"

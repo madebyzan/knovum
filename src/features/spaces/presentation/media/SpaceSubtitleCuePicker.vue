@@ -38,7 +38,7 @@ const totalSize = computed(() => virtualizer.value.getTotalSize());
         <span class="w-10 shrink-0 text-caption-sm text-fg-tertiary">{{
           formatDurationMs(cues[row.index]!.startMs)
         }}</span>
-        <span class="line-clamp-2 text-caption-md text-fg-secondary">{{ cues[row.index]!.text }}</span>
+        <span class="line-clamp-2 text-caption text-fg-secondary">{{ cues[row.index]!.text }}</span>
       </button>
     </div>
   </div>

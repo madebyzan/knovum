@@ -55,7 +55,7 @@ function beginDrag(event: DragEvent, id: string) {
 
 <template>
   <div class="space-y-2 rounded-md border border-stroke-default p-2.5">
-    <p class="text-caption-md font-medium text-fg-secondary">{{ label }} · {{ slot.kind }}</p>
+    <p class="text-caption font-medium text-fg-secondary">{{ label }} · {{ slot.kind }}</p>
     <UiSelect
       v-if="!slot.ordered"
       :model-value="modelValue[0] ?? ''"

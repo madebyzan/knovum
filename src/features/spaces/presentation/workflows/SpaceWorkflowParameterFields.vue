@@ -36,7 +36,7 @@ function parameterLabel(key: string) {
 </script>
 
 <template>
-  <div v-for="field in fields" :key="`${field.stepId}:${field.key}`" class="space-y-1 text-caption-md">
+  <div v-for="field in fields" :key="`${field.stepId}:${field.key}`" class="space-y-1 text-caption">
     <label
       v-if="field.type !== 'boolean'"
       :for="`workflow-parameter-${field.stepId}-${field.key}`"

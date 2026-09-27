@@ -72,7 +72,7 @@ const peaks = computed(() => {
       />
       <button
         type="button"
-        class="absolute inset-0 w-full px-3 text-left text-caption-md text-fg-on-image drop-shadow-md focus-visible:outline-2 focus-visible:outline-stroke-focus"
+        class="absolute inset-0 w-full px-3 text-left text-caption text-fg-on-image drop-shadow-md focus-visible:outline-2 focus-visible:outline-stroke-focus"
         :aria-label="`${$t('spaces.media.videoEditor.clip.selected')} ${formatVideoEditTime(clip.startMs)}–${formatVideoEditTime(clip.endMs)}`"
         @click="$emit('select')"
       >

@@ -55,14 +55,14 @@ function savePreset(preset: GenerationPreset) {
     :title="t('settings.creation.presets.title')"
     :description="t('settings.creation.presets.description')"
   >
-    <p v-if="presets.length === 0" class="px-4 py-3 text-caption-md text-fg-secondary">
+    <p v-if="presets.length === 0" class="px-4 py-3 text-caption text-fg-secondary">
       {{ t("settings.creation.presets.empty") }}
     </p>
     <div v-else class="divide-y divide-stroke-divider">
       <div v-for="(preset, index) in presets" :key="preset.id" class="flex items-center gap-3 px-4 py-3">
         <div class="min-w-0 flex-1">
           <UiInput v-model="preset.name" :aria-label="t('settings.creation.presets.name')" />
-          <p class="mt-0.5 text-caption-md text-fg-secondary">
+          <p class="mt-0.5 text-caption text-fg-secondary">
             {{ t(`settings.creation.knowledgeActions.${camelCase(preset.actionId)}`) }}
           </p>
         </div>

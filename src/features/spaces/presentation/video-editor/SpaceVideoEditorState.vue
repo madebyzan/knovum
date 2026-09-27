@@ -18,14 +18,14 @@ const { t } = useI18n();
 <template>
   <div
     v-if="error"
-    class="grid min-h-0 flex-1 place-content-center justify-items-center gap-3 px-6 text-body-sm text-fg-danger"
+    class="grid min-h-0 flex-1 place-content-center justify-items-center gap-3 px-6 text-body text-fg-danger"
   >
     <p class="max-w-xl text-center">{{ error }}</p>
     <UiButton v-if="canRetry" size="sm" @click="$emit('retry')">{{
       t("spaces.media.videoEditor.preview.retry")
     }}</UiButton>
   </div>
-  <div v-else class="grid min-h-0 flex-1 place-items-center text-body-sm text-fg-secondary">
+  <div v-else class="grid min-h-0 flex-1 place-items-center text-body text-fg-secondary">
     <video
       class="pointer-events-none absolute size-px opacity-0"
       :src="versionedMediaSource(proxyPath ?? data.assetPath, data.sourceRevision)"

@@ -47,13 +47,13 @@ describe("cn design tokens", () => {
   });
 
   it("keeps a token font size next to a text colour", () => {
-    expect(cn("text-label-md", "text-fg-primary")).toBe("text-label-md text-fg-primary");
+    expect(cn("text-label", "text-fg-primary")).toBe("text-label text-fg-primary");
     expect(cn("text-caption-sm text-fg-tertiary", "text-fg-primary")).toBe("text-caption-sm text-fg-primary");
   });
 
   it("resolves token font sizes against each other", () => {
-    expect(cn("text-caption-sm", "text-caption-md")).toBe("text-caption-md");
-    expect(cn("text-body-md", "text-label-md")).toBe("text-label-md");
+    expect(cn("text-caption-sm", "text-caption")).toBe("text-caption");
+    expect(cn("text-body-lg", "text-label")).toBe("text-label");
   });
 
   it("resolves token radii against the built-in radius scale", () => {

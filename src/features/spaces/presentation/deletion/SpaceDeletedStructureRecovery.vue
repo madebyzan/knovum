@@ -55,7 +55,7 @@ function measureElement(element: Element | ComponentPublicInstance | null) {
       >
         <component :is="deletedIcon(deletedRoot.kind)" class="size-3.5 shrink-0 text-fg-secondary" />
         <div class="min-w-0 flex-1">
-          <p class="truncate text-label-md font-medium">{{ deletedRoot.title }}</p>
+          <p class="truncate text-label font-medium">{{ deletedRoot.title }}</p>
           <p class="truncate text-caption-sm text-fg-tertiary">
             {{ deletedRoot.spaceTitle }} · {{ d(deletedRoot.deletedAt, "short") }}
           </p>

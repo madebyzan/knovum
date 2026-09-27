@@ -57,8 +57,8 @@ const dateValue = computed<DateValue | null>({
         'flex w-full items-center select-none focus-within:border-stroke-focus',
         INPUT_BASE_CLASSES,
         size === 'sm'
-          ? 'h-(--knovum-control-height-sm) px-2 text-caption-md'
-          : 'h-(--knovum-control-height-md) px-2.5 text-label-md',
+          ? 'h-(--knovum-control-height-sm) px-2 text-caption'
+          : 'h-(--knovum-control-height-md) px-2.5 text-label',
         props.class,
       )
     "

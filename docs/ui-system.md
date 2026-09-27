@@ -48,7 +48,7 @@ lowercase kebab-case and Tailwind's standard namespaces. Role names below are th
 | Public surface                | `--color-surface-{role}[-{emphasis}][-{state}]`      | `--color-surface-danger-subtle-hover` | `bg-surface-danger-subtle-hover`              |
 | Public foreground             | `--color-fg-{role}`                                  | `--color-fg-secondary`                | `text-fg-secondary`                           |
 | Public boundary               | `--color-stroke-{role}[-{state}]`                    | `--color-stroke-default-hover`        | `border-stroke-default-hover`, rings/outlines |
-| Public typography             | `--text-{role}-{size}` and `--line-height` suffix    | `--text-body-sm--line-height`         | text utilities and CSS                        |
+| Public typography             | `--text-{role}[-{size}]` and `--line-height` suffix  | `--text-body--line-height`            | text utilities and CSS                        |
 | Public shape/elevation/motion | native radius/shadow/ease/blur namespaces            | `--shadow-popover`                    | utilities and CSS                             |
 | Component                     | `--knovum-{component}[-{part}]-{property}[-{state}]` | `--knovum-sidebar-item-bg-selected`   | owning composition                            |
 | Domain                        | `--knovum-space-{object}-{property}[-{variant}]`     | `--knovum-space-note-bg-yellow`       | Spaces only                                   |
@@ -74,9 +74,12 @@ use `surface-warning-subtle`, and their interactive hover uses `surface-warning-
 must not reimplement these roles as a solid warning hue with an arbitrary percentage. Other opacity
 modifiers remain valid for instance-specific composition, not as substitutes for an existing role.
 
-Typography uses size/line-height pairs: caption-sm, caption-md, label-md, body-sm, body-md, title-sm,
-title-md and display-sm. Text-size modes override both native variables. Role slots are independent of
-the user's small/normal/large preference. Label and body differ in leading even when size matches.
+Typography uses size/line-height pairs: caption, label, body, title and display are each role's default;
+caption-sm, body-lg and title-sm are the only alternate sizes. Add a size suffix only for a real
+alternate style, not to complete a hypothetical sm/md/lg matrix. Text-size modes override both native
+variables without changing the role names. Label and body differ in leading even when size matches.
+Use title-sm for compact section, dialog and tool headings; body-lg belongs to reading content and
+larger descriptive text. HTML heading level describes document structure, not a font-size slot.
 Native font/tracking tokens contain only authored deviations from Tailwind.
 
 Use `size-3`, `size-3.5`, `size-4`, `size-4.5`, `size-5` for 12–20px icons. Use Tailwind spacing/container
@@ -98,7 +101,7 @@ geometry, platform controls native-window exclusion, window activation softens i
 accessibility media queries adjust contrast/transparency. Required canvas paint fails visibly if missing.
 
 ```html
-<div class="bg-surface-canvas text-body-sm text-fg-primary">
+<div class="bg-surface-canvas text-body text-fg-primary">
   <button class="h-(--knovum-control-height-md) rounded-md bg-surface-accent text-fg-on-accent">...</button>
 </div>
 ```
@@ -208,16 +211,16 @@ stops the light and mark animations.
 
 The type scale is semantic; components choose a role, never a pixel size.
 
-| Utility           | Default | Use                                                     |
-| ----------------- | ------: | ------------------------------------------------------- |
-| `text-caption-sm` |    11px | keyboard hints/debug metadata only                      |
-| `text-caption-md` |    12px | secondary labels and descriptions                       |
-| `text-label-md`   |    13px | controls, rows and navigation                           |
-| `text-body-sm`    |    13px | compact body content                                    |
-| `text-body-md`    |    14px | reading content, emphasized labels and compact headings |
-| `text-title-sm`   |    15px | subview/section title                                   |
-| `text-title-md`   |    17px | workspace/settings title                                |
-| `text-display-sm` |    24px | settings root, onboarding and exceptional empty states  |
+| Utility           | Default | Use                                                    |
+| ----------------- | ------: | ------------------------------------------------------ |
+| `text-caption-sm` |    11px | keyboard hints/debug metadata only                     |
+| `text-caption`    |    12px | secondary labels and descriptions                      |
+| `text-label`      |    13px | controls, rows and navigation                          |
+| `text-body`       |    13px | compact body content                                   |
+| `text-body-lg`    |    14px | reading content and larger descriptive text            |
+| `text-title-sm`   |    15px | subview/section title                                  |
+| `text-title`      |    17px | workspace/settings title                               |
+| `text-display`    |    24px | settings root, onboarding and exceptional empty states |
 
 `Settings -> Text size` changes the values behind these roles. Features continue using the same utilities.
 

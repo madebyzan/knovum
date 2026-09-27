@@ -136,7 +136,7 @@ onBeforeUnmount(() => {
           <template #trigger>
             <button
               type="button"
-              class="h-(--knovum-control-height-sm) min-w-10 rounded-md px-1.5 text-caption-md font-medium text-fg-secondary tabular-nums transition-colors duration-100 outline-none hover:bg-surface-control-hover hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-stroke-focus"
+              class="h-(--knovum-control-height-sm) min-w-10 rounded-md px-1.5 text-caption font-medium text-fg-secondary tabular-nums transition-colors duration-100 outline-none hover:bg-surface-control-hover hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-stroke-focus"
               :aria-label="t('spaces.canvas.fontSize')"
             >
               {{ selectedFontSize }}

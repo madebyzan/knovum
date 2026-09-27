@@ -46,14 +46,14 @@ function saveTitle(node: SpaceCanvasNode, value: string) {
   </div>
   <div v-else-if="selectedNodes.length > 1" class="h-full overflow-y-auto overscroll-contain pt-4">
     <div class="px-4 pb-4">
-      <h2 class="text-title-md font-semibold text-fg-primary">
+      <h2 class="text-title font-semibold text-fg-primary">
         {{ $t("spaces.inspector.itemsSelected", { count: selectedNodes.length }) }}
       </h2>
       <ul class="mt-3 divide-y divide-stroke-divider rounded-section-inner border border-stroke-divider">
         <li
           v-for="node in selectedNodes"
           :key="node.id"
-          class="truncate px-3 py-2 text-caption-md text-fg-secondary"
+          class="truncate px-3 py-2 text-caption text-fg-secondary"
         >
           {{ node.data.title }}
         </li>

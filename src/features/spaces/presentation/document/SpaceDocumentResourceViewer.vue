@@ -37,9 +37,9 @@ const description = computed(
         draggable="false"
       />
     </div>
-    <aside class="min-h-0 space-y-3 overflow-y-auto text-caption-md text-fg-secondary">
+    <aside class="min-h-0 space-y-3 overflow-y-auto text-caption text-fg-secondary">
       <div>
-        <strong class="text-label-md font-medium text-fg-primary">
+        <strong class="text-label font-medium text-fg-primary">
           {{ t("spaces.processing.document.resources.occurrences", { count: item.occurrences.length }) }}
         </strong>
         <p class="mt-1 text-caption-sm text-fg-tertiary">
@@ -57,7 +57,7 @@ const description = computed(
         :key="occurrence.id"
         class="border-t border-stroke-divider pt-3 first:border-t-0 first:pt-0"
       >
-        <strong class="text-caption-md font-medium text-fg-primary">
+        <strong class="text-caption font-medium text-fg-primary">
           {{ knowledgeLocationLabelFromLocation(occurrence.location) }}
         </strong>
         <p v-if="occurrence.altText" class="mt-1 whitespace-pre-wrap">{{ occurrence.altText }}</p>

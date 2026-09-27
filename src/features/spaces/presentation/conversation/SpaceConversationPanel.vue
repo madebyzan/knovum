@@ -49,7 +49,7 @@ async function useSuggestion(value: string) {
     <button
       v-if="(pendingPermission || approvals.length) && activeConversationId !== selectedConversationId"
       type="button"
-      class="shrink-0 border-b border-stroke-warning/40 bg-surface-warning-subtle px-3 py-2 text-left text-caption-md text-fg-primary hover:bg-surface-warning-subtle-hover"
+      class="shrink-0 border-b border-stroke-warning/40 bg-surface-warning-subtle px-3 py-2 text-left text-caption text-fg-primary hover:bg-surface-warning-subtle-hover"
       @click="conversationSession.selectConversation(activeConversationId)"
     >
       {{ $t("spaces.assistant.permission.return") }}
@@ -57,7 +57,7 @@ async function useSuggestion(value: string) {
     <button
       v-else-if="activeRunId && activeConversationId && activeConversationId !== selectedConversationId"
       type="button"
-      class="shrink-0 border-b border-stroke-divider bg-surface-control px-3 py-2 text-left text-caption-md text-fg-primary hover:bg-surface-control-hover"
+      class="shrink-0 border-b border-stroke-divider bg-surface-control px-3 py-2 text-left text-caption text-fg-primary hover:bg-surface-control-hover"
       @click="conversationSession.selectConversation(activeConversationId)"
     >
       {{ $t("spaces.assistant.conversations.returnToRunning") }}

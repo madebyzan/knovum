@@ -32,7 +32,7 @@ const matches = computed(() => {
 </script>
 
 <template>
-  <details class="rounded-md border border-stroke-divider px-2 py-1.5 text-caption-md">
+  <details class="rounded-md border border-stroke-divider px-2 py-1.5 text-caption">
     <summary class="cursor-pointer text-fg-secondary select-none">
       {{ t("spaces.assistant.sources", { count: matches.length }) }}
     </summary>

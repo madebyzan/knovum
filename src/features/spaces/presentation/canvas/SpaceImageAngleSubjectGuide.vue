@@ -18,7 +18,7 @@ const orientation = computed(() => ({
   transform: `rotateY(${props.yaw}deg) rotateX(${-props.pitch}deg) scale(${scale.value})`,
 }));
 const face =
-  "absolute inset-0 grid place-items-center rounded-md border border-stroke-strong bg-surface-raised text-label-md font-medium text-fg-tertiary [backface-visibility:hidden]";
+  "absolute inset-0 grid place-items-center rounded-md border border-stroke-strong bg-surface-raised text-label font-medium text-fg-tertiary [backface-visibility:hidden]";
 </script>
 
 <template>

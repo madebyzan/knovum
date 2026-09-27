@@ -35,10 +35,10 @@ function choose(id: string, selected: boolean) {
 
 <template>
   <fieldset class="space-y-2">
-    <legend class="text-caption-md font-semibold text-fg-primary">
+    <legend class="text-caption font-semibold text-fg-primary">
       {{ t("spaces.creation.workflow.steps.title") }}
     </legend>
-    <div v-for="step in steps" :key="step.id" class="flex items-center gap-2 text-caption-md">
+    <div v-for="step in steps" :key="step.id" class="flex items-center gap-2 text-caption">
       <UiCheckbox
         :label="t('spaces.creation.workflow.steps.keep', { action: label(step) })"
         :model-value="modelValue.includes(step.id)"

@@ -123,7 +123,7 @@ const textPresentation = computed(() =>
       >
         <component :is="presentation.icon" class="size-3.5 shrink-0 text-fg-secondary" :stroke-width="1.55" />
         <span class="min-w-0 flex-1">
-          <strong class="block truncate text-label-md font-medium">{{ presentation.title }}</strong>
+          <strong class="block truncate text-label font-medium">{{ presentation.title }}</strong>
           <span
             v-if="showsSecondaryChrome && presentation.subtitle"
             class="block truncate text-caption-sm text-fg-tertiary"
@@ -150,12 +150,12 @@ const textPresentation = computed(() =>
         :style="{ height: `${PREVIEW_CAPTION_HEIGHT}px` }"
       >
         <span class="min-w-0 flex-1">
-          <strong class="line-clamp-2 text-body-sm leading-snug font-semibold wrap-break-word">{{
+          <strong class="line-clamp-2 text-body leading-snug font-semibold wrap-break-word">{{
             presentation.title
           }}</strong>
           <span
             v-if="showsSecondaryChrome && presentation.subtitle"
-            class="mt-0.5 block truncate text-caption-md text-fg-tertiary"
+            class="mt-0.5 block truncate text-caption text-fg-tertiary"
             >{{ presentation.subtitle }}</span
           >
         </span>

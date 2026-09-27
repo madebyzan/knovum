@@ -22,11 +22,11 @@ const showHelp = computed(
 <template>
   <section class="text-fg-primary" :aria-label="t('spaces.media.imageEditor.layers.custom')">
     <header class="flex items-center justify-between gap-2 px-1 pb-2">
-      <h3 class="text-body-sm font-semibold">{{ t("spaces.media.imageEditor.layers.panel") }}</h3>
+      <h3 class="text-title-sm font-semibold">{{ t("spaces.media.imageEditor.layers.panel") }}</h3>
       <UiTooltip :text="t('spaces.media.imageEditor.layers.selectContentUnavailable')" side="top">
         <button
           type="button"
-          class="inline-flex cursor-not-allowed items-center gap-1 text-label-md text-fg-tertiary"
+          class="inline-flex cursor-not-allowed items-center gap-1 text-label text-fg-tertiary"
           :aria-label="t('spaces.media.imageEditor.layers.selectContent')"
           aria-disabled="true"
         >
@@ -40,7 +40,7 @@ const showHelp = computed(
       rows="2"
       maxlength="1000"
       :aria-label="t('spaces.media.imageEditor.layers.prompt')"
-      class="block min-h-18 w-full resize-none rounded-md bg-transparent px-1 py-2 text-label-md text-fg-primary outline-none placeholder:text-fg-tertiary focus-visible:ring-2 focus-visible:ring-stroke-focus"
+      class="block min-h-18 w-full resize-none rounded-md bg-transparent px-1 py-2 text-label text-fg-primary outline-none placeholder:text-fg-tertiary focus-visible:ring-2 focus-visible:ring-stroke-focus"
       :placeholder="t('spaces.media.imageEditor.layers.promptPlaceholder')"
     />
     <footer class="mt-1 flex items-center gap-2">

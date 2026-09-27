@@ -18,14 +18,14 @@ const emit = defineEmits<{ action: [] }>();
         <CircleHelp class="size-3.5" :stroke-width="1.6" />
       </button>
     </template>
-    <p class="text-label-md font-medium text-fg-primary">{{ label }}</p>
-    <p v-if="explanation" class="mt-1 text-caption-md leading-relaxed text-fg-secondary">
+    <p class="text-label font-medium text-fg-primary">{{ label }}</p>
+    <p v-if="explanation" class="mt-1 text-caption leading-relaxed text-fg-secondary">
       {{ explanation }}
     </p>
     <button
       v-if="actionLabel"
       type="button"
-      class="mt-2 rounded-md px-1 text-caption-md font-medium text-fg-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-stroke-focus"
+      class="mt-2 rounded-md px-1 text-caption font-medium text-fg-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-stroke-focus"
       @click="emit('action')"
     >
       {{ actionLabel }}

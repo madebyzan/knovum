@@ -27,7 +27,7 @@ const metaLine = computed(() => {
 </script>
 
 <template>
-  <div class="space-y-4 text-caption-md">
+  <div class="space-y-4 text-caption">
     <div class="space-y-1 text-fg-secondary">
       <p>
         {{

@@ -67,16 +67,16 @@ async function play() {
       >
     </div>
     <div v-if="visual" class="mt-4">
-      <h3 class="mb-2 text-caption-md font-semibold text-fg-primary">
+      <h3 class="mb-2 text-caption font-semibold text-fg-primary">
         {{ $t("spaces.inspector.content") }}
       </h3>
       <SpaceVisualAnalysis :node="node" />
     </div>
     <div v-if="excerpt" class="mt-4">
-      <h3 class="mb-2 text-caption-md font-semibold text-fg-primary">
+      <h3 class="mb-2 text-caption font-semibold text-fg-primary">
         {{ $t("spaces.inspector.excerpts.content") }}
       </h3>
-      <p class="line-clamp-4 text-body-sm leading-relaxed whitespace-pre-wrap text-fg-secondary select-text">
+      <p class="line-clamp-4 text-body leading-relaxed whitespace-pre-wrap text-fg-secondary select-text">
         {{ excerpt }}
       </p>
     </div>

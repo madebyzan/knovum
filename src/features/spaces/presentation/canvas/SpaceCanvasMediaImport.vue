@@ -46,8 +46,8 @@ const transferred = computed(() =>
         <Clapperboard class="size-5" :stroke-width="1.4" />
       </div>
       <div class="min-w-0 flex-1">
-        <p class="truncate text-label-md font-medium text-fg-primary">{{ capture.title }}</p>
-        <p class="mt-0.5 truncate text-caption-md text-fg-secondary">
+        <p class="truncate text-label font-medium text-fg-primary">{{ capture.title }}</p>
+        <p class="mt-0.5 truncate text-caption text-fg-secondary">
           <span>{{
             capture.status === "failed"
               ? t("spaces.importExport.website.captureFailed")
@@ -56,7 +56,7 @@ const transferred = computed(() =>
           <span v-if="transferred && isByteTransfer" class="tabular-nums">· {{ transferred }}</span>
         </p>
       </div>
-      <span v-if="progress !== undefined" class="shrink-0 text-caption-md text-fg-secondary tabular-nums"
+      <span v-if="progress !== undefined" class="shrink-0 text-caption text-fg-secondary tabular-nums"
         >{{ progress }}%</span
       >
       <LoaderCircle

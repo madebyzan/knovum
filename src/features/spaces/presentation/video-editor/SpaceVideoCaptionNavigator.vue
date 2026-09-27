@@ -79,9 +79,9 @@ onMounted(revealSelection);
           >
             {{ formatVideoTimelineTime(item.startMs) }} – {{ formatVideoTimelineTime(item.endMs) }}
           </span>
-          <span class="mt-0.5 block truncate text-caption-md">{{ item.text }}</span>
+          <span class="mt-0.5 block truncate text-caption">{{ item.text }}</span>
         </button>
-        <p v-if="visibleItems.length === 0" class="px-3 py-4 text-caption-md text-fg-secondary">
+        <p v-if="visibleItems.length === 0" class="px-3 py-4 text-caption text-fg-secondary">
           {{
             $t(
               query

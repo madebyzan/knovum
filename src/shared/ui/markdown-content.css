@@ -2,9 +2,9 @@
   margin-top: 0.65rem;
 }
 :deep(.ui-markdown h1) {
-  font-size: var(--text-title-md);
+  font-size: var(--text-title);
   font-weight: 650;
-  line-height: var(--text-title-md--line-height);
+  line-height: var(--text-title--line-height);
 }
 :deep(.ui-markdown h2) {
   font-size: var(--text-title-sm);
@@ -12,14 +12,14 @@
   line-height: var(--text-title-sm--line-height);
 }
 :deep(.ui-markdown h3) {
-  font-size: var(--text-body-md);
+  font-size: var(--text-body-lg);
   font-weight: 650;
-  line-height: var(--text-body-md--line-height);
+  line-height: var(--text-body-lg--line-height);
 }
 :deep(.ui-markdown p),
 :deep(.ui-markdown li) {
-  font-size: var(--text-body-sm);
-  line-height: var(--text-body-sm--line-height);
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
 }
 :deep(.ui-markdown ul:not([data-type="taskList"])),
 :deep(.ui-markdown ol) {
@@ -40,7 +40,7 @@
   background-color: var(--color-surface-raised);
   border-radius: var(--radius-md);
   padding: 0.08rem 0.28rem;
-  font-size: var(--text-caption-md);
+  font-size: var(--text-caption);
 }
 :deep(.ui-markdown pre) {
   background-color: var(--color-surface-raised);

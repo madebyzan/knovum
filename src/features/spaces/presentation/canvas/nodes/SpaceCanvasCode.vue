@@ -57,7 +57,7 @@ watch([() => props.presentationContext.mode, () => props.data.modifiedAt], ([mod
     <pre
       v-else
       data-canvas-scrollable
-      class="min-h-0 flex-1 p-3 font-mono text-caption-md leading-relaxed whitespace-pre-wrap text-fg-secondary"
+      class="min-h-0 flex-1 p-3 font-mono text-caption leading-relaxed whitespace-pre-wrap text-fg-secondary"
       :class="presentationContext.mode === 'interactive' ? 'overflow-auto' : 'overflow-hidden'"
       @wheel.stop
       >{{ source }}</pre>

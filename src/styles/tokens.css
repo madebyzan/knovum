@@ -79,20 +79,20 @@
 @theme static {
   --text-caption-sm: 0.6875rem;
   --text-caption-sm--line-height: 0.875rem;
-  --text-caption-md: 0.75rem;
-  --text-caption-md--line-height: 1rem;
-  --text-label-md: 0.8125rem;
-  --text-label-md--line-height: 1.125rem;
-  --text-body-sm: 0.8125rem;
-  --text-body-sm--line-height: 1.25rem;
-  --text-body-md: 0.875rem;
-  --text-body-md--line-height: 1.25rem;
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1rem;
+  --text-label: 0.8125rem;
+  --text-label--line-height: 1.125rem;
+  --text-body: 0.8125rem;
+  --text-body--line-height: 1.25rem;
+  --text-body-lg: 0.875rem;
+  --text-body-lg--line-height: 1.25rem;
   --text-title-sm: 0.9375rem;
   --text-title-sm--line-height: 1.25rem;
-  --text-title-md: 1.0625rem;
-  --text-title-md--line-height: 1.375rem;
-  --text-display-sm: 1.5rem;
-  --text-display-sm--line-height: 1.875rem;
+  --text-title: 1.0625rem;
+  --text-title--line-height: 1.375rem;
+  --text-display: 1.5rem;
+  --text-display--line-height: 1.875rem;
   --color-surface-accent: var(--knovum-ref-color-blue-500);
   --color-surface-accent-hover: var(--knovum-ref-color-blue-600);
   --color-surface-accent-pressed: var(--knovum-ref-color-blue-600);
@@ -174,20 +174,20 @@
 :root[data-text-size="small"] {
   --text-caption-sm: 0.625rem;
   --text-caption-sm--line-height: 0.8125rem;
-  --text-caption-md: 0.6875rem;
-  --text-caption-md--line-height: 0.875rem;
-  --text-label-md: 0.75rem;
-  --text-label-md--line-height: 1rem;
-  --text-body-sm: 0.75rem;
-  --text-body-sm--line-height: 1.125rem;
-  --text-body-md: 0.8125rem;
-  --text-body-md--line-height: 1.125rem;
+  --text-caption: 0.6875rem;
+  --text-caption--line-height: 0.875rem;
+  --text-label: 0.75rem;
+  --text-label--line-height: 1rem;
+  --text-body: 0.75rem;
+  --text-body--line-height: 1.125rem;
+  --text-body-lg: 0.8125rem;
+  --text-body-lg--line-height: 1.125rem;
   --text-title-sm: 0.875rem;
   --text-title-sm--line-height: 1.1875rem;
-  --text-title-md: 1rem;
-  --text-title-md--line-height: 1.25rem;
-  --text-display-sm: 1.375rem;
-  --text-display-sm--line-height: 1.75rem;
+  --text-title: 1rem;
+  --text-title--line-height: 1.25rem;
+  --text-display: 1.375rem;
+  --text-display--line-height: 1.75rem;
 }
 :root[data-platform="macos"] {
   --knovum-titlebar-navigation-padding-start: 5.25rem;
@@ -195,20 +195,20 @@
 :root[data-text-size="large"] {
   --text-caption-sm: 0.75rem;
   --text-caption-sm--line-height: 1rem;
-  --text-caption-md: 0.8125rem;
-  --text-caption-md--line-height: 1.125rem;
-  --text-label-md: 0.875rem;
-  --text-label-md--line-height: 1.25rem;
-  --text-body-sm: 0.875rem;
-  --text-body-sm--line-height: 1.3125rem;
-  --text-body-md: 0.9375rem;
-  --text-body-md--line-height: 1.3125rem;
+  --text-caption: 0.8125rem;
+  --text-caption--line-height: 1.125rem;
+  --text-label: 0.875rem;
+  --text-label--line-height: 1.25rem;
+  --text-body: 0.875rem;
+  --text-body--line-height: 1.3125rem;
+  --text-body-lg: 0.9375rem;
+  --text-body-lg--line-height: 1.3125rem;
   --text-title-sm: 1rem;
   --text-title-sm--line-height: 1.375rem;
-  --text-title-md: 1.125rem;
-  --text-title-md--line-height: 1.5rem;
-  --text-display-sm: 1.5625rem;
-  --text-display-sm--line-height: 2rem;
+  --text-title: 1.125rem;
+  --text-title--line-height: 1.5rem;
+  --text-display: 1.5625rem;
+  --text-display--line-height: 2rem;
 }
 :root[data-density="comfortable"] {
   --knovum-control-height-sm: 1.875rem;

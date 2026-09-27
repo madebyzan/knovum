@@ -81,7 +81,7 @@ function nudge(kind: GestureKind, delta: number) {
   <div class="absolute top-1 h-8 min-w-0" :style="position">
     <button
       type="button"
-      class="size-full cursor-grab touch-none overflow-hidden rounded-sm border bg-surface-selected px-3 text-left text-caption-md text-fg-accent focus-visible:outline-2 focus-visible:outline-stroke-focus active:cursor-grabbing"
+      class="size-full cursor-grab touch-none overflow-hidden rounded-sm border bg-surface-selected px-3 text-left text-caption text-fg-accent focus-visible:outline-2 focus-visible:outline-stroke-focus active:cursor-grabbing"
       :class="selected ? 'border-stroke-accent ring-1 ring-stroke-accent' : 'border-stroke-accent/25'"
       :aria-label="item.text"
       @click="$emit('select')"

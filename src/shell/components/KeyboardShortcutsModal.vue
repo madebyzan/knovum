@@ -118,14 +118,14 @@ const groupedSections = computed(() => {
           class="flex-1 scrollbar-none space-y-4 overflow-y-auto px-5 pt-1 pb-5 [&::-webkit-scrollbar]:hidden"
         >
           <section v-for="section in groupedSections" :key="section.category">
-            <h3 class="mt-3.5 mb-1.5 text-label-md font-semibold tracking-tight text-fg-primary first:mt-1">
+            <h3 class="mt-3.5 mb-1.5 text-label font-semibold tracking-tight text-fg-primary first:mt-1">
               {{ section.title }}
             </h3>
             <div class="space-y-0.5">
               <div
                 v-for="shortcut in section.shortcuts"
                 :key="shortcut.id"
-                class="flex h-7.5 items-center justify-between py-0.5 text-label-md"
+                class="flex h-7.5 items-center justify-between py-0.5 text-label"
               >
                 <span class="truncate pr-2 font-normal text-fg-primary">{{ shortcut.title }}</span>
                 <UiKbd :shortcut="shortcut.shortcut" variant="badge" class="shrink-0" />
@@ -133,7 +133,7 @@ const groupedSections = computed(() => {
             </div>
           </section>
 
-          <div v-if="!groupedSections.length" class="py-12 text-center text-label-md text-fg-tertiary">
+          <div v-if="!groupedSections.length" class="py-12 text-center text-label text-fg-tertiary">
             {{ t("shell.shortcuts.noMatches") }}
           </div>
         </div>

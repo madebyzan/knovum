@@ -58,7 +58,7 @@ const {
         :text="sourcePeek.text"
         v-bind="sourcePeek.locator.quote?.exact ? { exact: sourcePeek.locator.quote.exact } : {}"
       />
-      <p v-else class="text-caption-md text-fg-tertiary">
+      <p v-else class="text-caption text-fg-tertiary">
         {{ t("spaces.assistant.sourcePeek.noText") }}
       </p>
     </div>

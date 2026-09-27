@@ -24,7 +24,7 @@ const activeHeading = computed(() => headings.find((level) => props.editor.isAct
         :title="t('spaces.richtext.headings.menu')"
       >
         <Heading class="size-3.5" :stroke-width="1.6" />
-        <span v-if="activeHeading" class="text-caption-md font-semibold">{{ activeHeading }}</span>
+        <span v-if="activeHeading" class="text-caption font-semibold">{{ activeHeading }}</span>
         <ChevronDown class="size-3" :stroke-width="1.6" />
       </button>
     </template>

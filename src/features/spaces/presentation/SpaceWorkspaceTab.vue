@@ -12,7 +12,7 @@ const { t } = useI18n();
   <div
     :data-space-id="id"
     :data-active="active"
-    class="group flex h-(--knovum-control-height-sm) w-55 shrink-0 items-center rounded-md bg-(--knovum-tab-bg-inactive) text-label-md text-fg-secondary hover:bg-surface-raised hover:text-fg-primary hover:shadow-control data-[active=true]:bg-surface-raised data-[active=true]:font-medium data-[active=true]:text-fg-primary data-[active=true]:shadow-control"
+    class="group flex h-(--knovum-control-height-sm) w-55 shrink-0 items-center rounded-md bg-(--knovum-tab-bg-inactive) text-label text-fg-secondary hover:bg-surface-raised hover:text-fg-primary hover:shadow-control data-[active=true]:bg-surface-raised data-[active=true]:font-medium data-[active=true]:text-fg-primary data-[active=true]:shadow-control"
     @auxclick.middle.prevent="canClose && emit('close')"
     @contextmenu.prevent="emit('contextMenu')"
     @keydown.shift.f10.prevent="emit('contextMenu')"

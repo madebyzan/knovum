@@ -35,7 +35,7 @@ const statusTone = computed(() => {
 <template>
   <template v-if="runId">
     <div class="max-h-40 space-y-2 overflow-y-auto px-3 py-3">
-      <p role="status" class="text-caption-md" :class="statusTone">
+      <p role="status" class="text-caption" :class="statusTone">
         {{ t("spaces.creation.workflow.run.state", { state: stateText }) }}
       </p>
       <UiButton

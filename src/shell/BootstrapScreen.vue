@@ -22,7 +22,7 @@ function reload() {
       <h1 class="m-0 text-title-sm font-semibold text-fg-primary">
         {{ t("errors.bootstrap.title") }}
       </h1>
-      <p class="mt-1.5 text-body-sm text-fg-secondary">{{ t("errors.bootstrap.description") }}</p>
+      <p class="mt-1.5 text-body text-fg-secondary">{{ t("errors.bootstrap.description") }}</p>
       <pre
         class="mt-4 max-h-40 overflow-auto rounded-md bg-surface-chrome p-3 font-mono text-caption-sm text-fg-secondary select-text"
         >{{ failure.message }}</pre>
@@ -45,7 +45,7 @@ function reload() {
           <div class="shimmer-beam" />
         </div>
       </div>
-      <p class="mt-4 text-label-md font-medium tracking-tight text-fg-secondary">
+      <p class="mt-4 text-label font-medium tracking-tight text-fg-secondary">
         {{ t("common.starting") }}
       </p>
     </div>

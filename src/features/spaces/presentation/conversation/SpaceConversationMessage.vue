@@ -66,11 +66,11 @@ function createdNodeId(creationReply: unknown): string | undefined {
     class="group flex min-w-0 flex-col gap-2"
     :class="message.role === 'user' ? 'items-end' : 'items-start'"
   >
-    <span v-if="message.role === 'assistant'" class="text-caption-md font-semibold text-fg-secondary">
+    <span v-if="message.role === 'assistant'" class="text-caption font-semibold text-fg-secondary">
       {{ t("spaces.assistant.role.assistant") }}
     </span>
     <div
-      class="max-w-full min-w-0 space-y-2 text-body-sm leading-relaxed text-fg-primary"
+      class="max-w-full min-w-0 space-y-2 text-body leading-relaxed text-fg-primary"
       :class="message.role === 'user' ? 'w-fit rounded-panel bg-surface-control px-3 py-2.5' : 'w-full'"
     >
       <template v-for="(part, index) in message.content.parts" :key="index">
@@ -79,19 +79,19 @@ function createdNodeId(creationReply: unknown): string | undefined {
           :content="part.text"
           class="wrap-break-word"
         />
-        <p v-else-if="part.type === 'binary'" class="text-caption-md text-fg-secondary">
+        <p v-else-if="part.type === 'binary'" class="text-caption text-fg-secondary">
           {{ part.name || part.mediaType }}
         </p>
         <SpaceConversationSearchMatches
           v-else-if="part.type === 'tool_result' && part.name === 'search-knowledge'"
           :value="part.result"
         />
-        <p v-else-if="part.type === 'tool_call'" class="text-caption-md text-fg-secondary">
+        <p v-else-if="part.type === 'tool_call'" class="text-caption text-fg-secondary">
           {{ t("spaces.assistant.actions.working") }}
         </p>
         <div
           v-else-if="part.type === 'tool_result'"
-          class="rounded-md bg-surface-control px-2.5 py-2 text-caption-md text-fg-secondary"
+          class="rounded-md bg-surface-control px-2.5 py-2 text-caption text-fg-secondary"
         >
           <span>{{ t("spaces.assistant.actions.completed", { name: actionName(part.name) }) }}</span>
           <button
@@ -112,7 +112,7 @@ function createdNodeId(creationReply: unknown): string | undefined {
     />
     <details
       v-if="citations.length"
-      class="w-full rounded-md border border-stroke-divider px-2 py-1.5 text-caption-md"
+      class="w-full rounded-md border border-stroke-divider px-2 py-1.5 text-caption"
     >
       <summary class="cursor-pointer text-fg-secondary select-none">
         {{ t("spaces.assistant.sources", { count: citations.length }) }}
@@ -158,7 +158,7 @@ function createdNodeId(creationReply: unknown): string | undefined {
         )
       }}
     </span>
-    <p v-if="copyFailed" role="alert" class="text-caption-md text-fg-danger">
+    <p v-if="copyFailed" role="alert" class="text-caption text-fg-danger">
       {{ t("spaces.assistant.messages.copyFailed") }}
     </p>
     <UiDropdownMenu v-if="message.role === 'assistant'" :items="actions">

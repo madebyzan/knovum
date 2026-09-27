@@ -72,16 +72,16 @@ async function changeEditor(action: () => void) {
   >
     <div class="grid min-h-0 flex-1 grid-cols-[10rem_minmax(0,1fr)] gap-5">
       <aside class="flex min-h-0 min-w-0 flex-col gap-0.5 rounded-md bg-surface-muted p-2">
-        <p v-if="loadFailed" role="alert" class="px-2 py-1 text-caption-md text-fg-danger">
+        <p v-if="loadFailed" role="alert" class="px-2 py-1 text-caption text-fg-danger">
           {{ t("spaces.knowledge.types.loadFailed") }}
         </p>
-        <p v-else-if="loading" class="px-2 py-1 text-caption-md text-fg-secondary">
+        <p v-else-if="loading" class="px-2 py-1 text-caption text-fg-secondary">
           {{ t("common.loading") }}
         </p>
         <button
           type="button"
           :disabled="saving"
-          class="flex h-(--knovum-control-height-md) w-full shrink-0 items-center gap-1 rounded-md px-2 text-left text-label-md text-fg-secondary outline-none hover:bg-surface-control-hover hover:text-fg-primary focus-visible:bg-surface-control-hover"
+          class="flex h-(--knovum-control-height-md) w-full shrink-0 items-center gap-1 rounded-md px-2 text-left text-label text-fg-secondary outline-none hover:bg-surface-control-hover hover:text-fg-primary focus-visible:bg-surface-control-hover"
           @click="changeEditor(reset)"
         >
           <Plus class="mr-1 inline size-3" />{{ t("spaces.knowledge.types.create") }}
@@ -91,7 +91,7 @@ async function changeEditor(action: () => void) {
             <div
               v-for="type in types"
               :key="type.id"
-              class="group flex items-center justify-between rounded-md px-2 text-label-md transition-colors duration-100 hover:bg-surface-control-hover"
+              class="group flex items-center justify-between rounded-md px-2 text-label transition-colors duration-100 hover:bg-surface-control-hover"
               :class="
                 editingId === type.id
                   ? 'bg-(--knovum-sidebar-item-bg-selected) text-fg-primary'
@@ -114,16 +114,16 @@ async function changeEditor(action: () => void) {
       <UiScrollArea class="min-h-0 min-w-0">
         <fieldset :disabled="saving" class="min-w-0 pr-3 pb-2">
           <div class="grid grid-cols-[minmax(0,1fr)_9rem] gap-3">
-            <label class="grid min-w-0 content-start gap-1 text-caption-md text-fg-secondary">
+            <label class="grid min-w-0 content-start gap-1 text-caption text-fg-secondary">
               <span>{{ t("spaces.knowledge.types.name") }}</span>
               <UiInput v-model="name" maxlength="128" />
             </label>
-            <label class="grid min-w-0 content-start gap-1 text-caption-md text-fg-secondary">
+            <label class="grid min-w-0 content-start gap-1 text-caption text-fg-secondary">
               <span>{{ t("spaces.knowledge.types.icon") }}</span>
               <SpaceKnowledgeIconSelect v-model="icon" :disabled="saving" />
             </label>
           </div>
-          <label class="mt-3 grid gap-1 text-caption-md text-fg-secondary">
+          <label class="mt-3 grid gap-1 text-caption text-fg-secondary">
             <span>{{ t("spaces.knowledge.types.description") }}</span>
             <UiTextarea v-model="description" :rows="2" maxlength="4096" class="resize-none" />
           </label>
@@ -139,7 +139,7 @@ async function changeEditor(action: () => void) {
             @key="(field, value) => (field.key = value)"
             @remove="fields.splice($event, 1)"
           />
-          <p v-if="error" role="alert" class="mt-3 text-caption-md text-fg-danger">{{ error }}</p>
+          <p v-if="error" role="alert" class="mt-3 text-caption text-fg-danger">{{ error }}</p>
           <UiButton v-if="editingId" class="mt-5 text-fg-danger" size="sm" variant="ghost" @click="remove">
             <Trash2 class="size-3.5" />{{ t("spaces.knowledge.types.delete") }}
           </UiButton>

@@ -44,7 +44,7 @@ const {
     <div class="flex justify-end">
       <button
         type="button"
-        class="flex h-(--knovum-control-height-sm) shrink-0 items-center gap-1 rounded-md px-2 text-caption-md text-fg-secondary hover:bg-surface-control-hover hover:text-fg-primary disabled:opacity-55"
+        class="flex h-(--knovum-control-height-sm) shrink-0 items-center gap-1 rounded-md px-2 text-caption text-fg-secondary hover:bg-surface-control-hover hover:text-fg-primary disabled:opacity-55"
         :disabled="analyzing || !canDerive"
         @click="analyze"
       >
@@ -60,7 +60,7 @@ const {
     <template v-if="knowledge">
       <div
         v-if="stale"
-        class="mt-3 flex gap-2 rounded-panel border border-stroke-warning/35 bg-surface-warning-subtle p-2.5 text-caption-md text-fg-warning"
+        class="mt-3 flex gap-2 rounded-panel border border-stroke-warning/35 bg-surface-warning-subtle p-2.5 text-caption text-fg-warning"
       >
         <AlertTriangle class="mt-0.5 size-3.5 shrink-0" />
         <span>{{ t("spaces.media.analysis.knowledge.stale") }}</span>
@@ -68,7 +68,7 @@ const {
       <div v-if="!insights" class="mt-3">
         <button
           type="button"
-          class="h-(--knovum-control-height-md) w-full rounded-md bg-surface-accent px-2.5 text-label-md font-medium text-fg-on-accent transition-colors hover:bg-surface-accent-hover disabled:opacity-55"
+          class="h-(--knovum-control-height-md) w-full rounded-md bg-surface-accent px-2.5 text-label font-medium text-fg-on-accent transition-colors hover:bg-surface-accent-hover disabled:opacity-55"
           :disabled="!canGenerateInsights"
           :title="insightsDisabledReason"
           @click="generateInsights"
@@ -108,7 +108,7 @@ const {
       <CollapsibleRoot v-model:open="transcriptOpen" as-child>
         <div class="mt-4">
           <CollapsibleTrigger
-            class="flex h-(--knovum-list-item-height-sm) w-full items-center gap-2 rounded-md px-2 text-caption-md font-semibold text-fg-secondary hover:bg-surface-control-hover hover:text-fg-primary"
+            class="flex h-(--knovum-list-item-height-sm) w-full items-center gap-2 rounded-md px-2 text-caption font-semibold text-fg-secondary hover:bg-surface-control-hover hover:text-fg-primary"
           >
             <ChevronRight
               class="size-3 transition-transform duration-150 ease-standard"
@@ -134,7 +134,7 @@ const {
         </div>
       </CollapsibleRoot>
     </template>
-    <p v-else class="mt-3 text-caption-md leading-relaxed text-fg-tertiary">
+    <p v-else class="mt-3 text-caption leading-relaxed text-fg-tertiary">
       {{ analyzing ? t("spaces.media.analysis.inProgress") : t("spaces.media.analysis.knowledge.pending") }}
     </p>
   </section>

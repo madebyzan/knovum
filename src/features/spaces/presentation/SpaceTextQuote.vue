@@ -16,7 +16,7 @@ const parts = computed(() => {
 </script>
 
 <template>
-  <p class="text-caption-md leading-relaxed whitespace-pre-wrap text-fg-secondary">
+  <p class="text-caption leading-relaxed whitespace-pre-wrap text-fg-secondary">
     <template v-for="(part, index) in parts" :key="index"
       ><mark v-if="part.match" class="rounded-sm bg-surface-selected px-0.5 text-fg-primary">{{
         part.text

@@ -58,8 +58,8 @@ const kindLabel = computed(() =>
     />
     <LockKeyhole v-else class="size-3.5 shrink-0 text-fg-secondary" :stroke-width="1.6" />
     <span class="grid min-w-0 flex-1 gap-0.5">
-      <strong class="block truncate text-label-md font-medium">{{ data.title }}</strong>
-      <span class="block truncate text-caption-md text-fg-secondary">{{ kindLabel }}</span>
+      <strong class="block truncate text-label font-medium">{{ data.title }}</strong>
+      <span class="block truncate text-caption text-fg-secondary">{{ kindLabel }}</span>
     </span>
     <UiIconButton
       class="shrink-0"
@@ -86,18 +86,18 @@ const kindLabel = computed(() =>
     "
   >
     <div class="grid gap-3">
-      <label class="grid gap-1.5 text-caption-md text-fg-secondary">
+      <label class="grid gap-1.5 text-caption text-fg-secondary">
         <span>{{ t("spaces.credentials.title") }}</span>
         <UiInput v-model="title" :disabled="loading || saving" />
       </label>
       <label
         v-if="data.credentialKind === 'account-password'"
-        class="grid gap-1.5 text-caption-md text-fg-secondary"
+        class="grid gap-1.5 text-caption text-fg-secondary"
       >
         <span>{{ t("spaces.credentials.username") }}</span>
         <UiInput v-model="username" :disabled="loading || saving" />
       </label>
-      <label class="grid gap-1.5 text-caption-md text-fg-secondary">
+      <label class="grid gap-1.5 text-caption text-fg-secondary">
         <span>{{
           data.credentialKind === "api-key"
             ? t("spaces.credentials.apiKey")

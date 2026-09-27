@@ -17,7 +17,7 @@ function changeTime(event: Event, edge: "start" | "end") {
 
 <template>
   <section class="grid grid-cols-2 gap-2 border-t border-stroke-divider pt-4">
-    <label class="text-caption-md text-fg-secondary" for="video-edit-text-start">
+    <label class="text-caption text-fg-secondary" for="video-edit-text-start">
       {{ $t("spaces.media.videoEditor.clip.startsAt") }}
       <UiInput
         id="video-edit-text-start"
@@ -31,7 +31,7 @@ function changeTime(event: Event, edge: "start" | "end") {
         @change="changeTime($event, 'start')"
       />
     </label>
-    <label class="text-caption-md text-fg-secondary" for="video-edit-text-end">
+    <label class="text-caption text-fg-secondary" for="video-edit-text-end">
       {{ $t("spaces.media.videoEditor.clip.endsAt") }}
       <UiInput
         id="video-edit-text-end"

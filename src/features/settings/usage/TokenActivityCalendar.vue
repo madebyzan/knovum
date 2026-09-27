@@ -36,7 +36,7 @@ function label(date: string, tokens: number, requests: number) {
         <h2 class="text-title-sm font-semibold text-fg-primary">
           {{ t("settings.usage.activity.title") }}
         </h2>
-        <p class="mt-1 text-caption-md text-fg-secondary">
+        <p class="mt-1 text-caption text-fg-secondary">
           {{
             t("settings.usage.activity.description", { peak: n(report.summary.peakDailyTokens, "compact") })
           }}

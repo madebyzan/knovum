@@ -93,7 +93,7 @@ function openSource(record: (typeof provenance.value)[number]) {
           class="min-w-0 flex-1 rounded-md px-1.5 py-1.5 text-left hover:bg-surface-control-hover"
           @click="openSource(record)"
         >
-          <span class="flex items-center gap-1.5 text-caption-md text-fg-primary">
+          <span class="flex items-center gap-1.5 text-caption text-fg-primary">
             <Link2 class="size-3 shrink-0 text-fg-tertiary" />
             <span class="truncate">{{ sourceTitle(record.sourceNodeId) }}</span>
             <ExternalLink class="size-3 shrink-0 text-fg-tertiary" />

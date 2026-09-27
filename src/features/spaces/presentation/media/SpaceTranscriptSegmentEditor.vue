@@ -89,7 +89,7 @@ function save() {
         :class="active ? 'border-stroke-accent' : 'border-transparent'"
       >
         <p
-          class="text-caption-md leading-snug break-words whitespace-pre-wrap"
+          class="text-caption leading-snug break-words whitespace-pre-wrap"
           :class="active ? 'text-fg-primary' : 'text-fg-secondary'"
         >
           {{ segment.text }}

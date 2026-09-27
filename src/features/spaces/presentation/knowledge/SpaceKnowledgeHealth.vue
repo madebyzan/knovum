@@ -58,7 +58,7 @@ function reveal(issue: SpaceKnowledgeHealthIssue) {
     <section>
       <div v-if="compact" class="flex items-center gap-0.5">
         <CollapsibleTrigger
-          class="flex h-(--knovum-list-item-height-sm) min-w-0 flex-1 items-center gap-2 rounded-md px-2 text-left text-caption-md text-fg-secondary hover:bg-surface-control-hover hover:text-fg-primary"
+          class="flex h-(--knovum-list-item-height-sm) min-w-0 flex-1 items-center gap-2 rounded-md px-2 text-left text-caption text-fg-secondary hover:bg-surface-control-hover hover:text-fg-primary"
         >
           <ShieldAlert class="size-3 shrink-0" />
           <span class="min-w-0 flex-1 truncate">{{ t("spaces.knowledge.health.title") }}</span>
@@ -84,19 +84,19 @@ function reveal(issue: SpaceKnowledgeHealthIssue) {
         :class="compact && 'mt-1 rounded-panel border border-stroke-divider bg-surface-control/15 p-2'"
       >
         <div v-if="!compact" class="flex items-center justify-between gap-2">
-          <h3 class="flex items-center gap-1.5 text-caption-md font-semibold text-fg-secondary">
+          <h3 class="flex items-center gap-1.5 text-caption font-semibold text-fg-secondary">
             <ShieldAlert class="size-3" />{{ t("spaces.knowledge.health.title") }}
           </h3>
           <UiButton size="sm" variant="ghost" :disabled="loading" @click="refresh">
             <RefreshCw class="size-3" :class="loading && 'animate-spin'" />{{ t("common.refresh") }}
           </UiButton>
         </div>
-        <p v-if="!compact" class="mt-1 text-caption-md text-fg-tertiary">
+        <p v-if="!compact" class="mt-1 text-caption text-fg-tertiary">
           {{ t("spaces.knowledge.health.description") }}
         </p>
         <div
           v-if="!issues.length && !loading"
-          class="mt-3 flex items-center gap-2 text-caption-md text-fg-secondary"
+          class="mt-3 flex items-center gap-2 text-caption text-fg-secondary"
         >
           <CheckCircle2 class="size-3.5 text-fg-success" />{{ t("spaces.knowledge.health.clean") }}
         </div>
@@ -113,9 +113,7 @@ function reveal(issue: SpaceKnowledgeHealthIssue) {
               :class="issue.severity === 'critical' ? 'text-fg-danger' : 'text-fg-warning'"
             />
             <span class="min-w-0">
-              <span class="block truncate text-caption-md font-medium text-fg-primary">{{
-                issue.title
-              }}</span>
+              <span class="block truncate text-caption font-medium text-fg-primary">{{ issue.title }}</span>
               <span class="block text-caption-sm text-fg-tertiary">{{
                 t(`spaces.knowledge.health.issues.${issue.kind}`)
               }}</span>

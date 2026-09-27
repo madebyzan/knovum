@@ -94,7 +94,7 @@ async function create() {
     :title="t('spaces.knowledge.objects.create')"
     :description="t('spaces.knowledge.objects.createDescription')"
   >
-    <p v-if="!typeOptions.length" class="text-caption-md text-fg-tertiary">
+    <p v-if="!typeOptions.length" class="text-caption text-fg-tertiary">
       {{ t("spaces.knowledge.types.none") }}
     </p>
     <div v-else class="space-y-3">
