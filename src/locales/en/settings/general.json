@@ -14,6 +14,7 @@
   },
   "about": {
     "title": "About",
+    "author": "Author",
     "description": "Application version and environment information."
   },
   "version": "Version {version}",

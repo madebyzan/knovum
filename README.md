@@ -4,6 +4,8 @@ Knovum is a Tauri 2 + Vue 3 local-first desktop knowledge space. It combines an 
 structured knowledge, rich documents, mixed media, retrieval and traceable AI derivations in one
 application.
 
+Author: Zan.
+
 ## Foundation stack
 
 - Vue 3 + TypeScript + Vite

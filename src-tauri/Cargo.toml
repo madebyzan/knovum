@@ -3,7 +3,7 @@ name = "knovum"
 default-run = "knovum"
 version = "0.0.1"
 description = "Local-first desktop knowledge space"
-authors = ["Knovum Team"]
+authors = ["Zan"]
 edition = "2021"
 rust-version = "1.92"
 
