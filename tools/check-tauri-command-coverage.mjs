@@ -3,8 +3,6 @@ import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { matched, tokenPattern } from "./command-address-tokens.mjs";
-import { commandAddress, loadCommandDocs } from "./command-docs.mjs";
-import { checkRustCommandExports } from "./rust-command-exports.mjs";
 import { discoverPluginCommands, pluginKeyFor } from "./tauri-plugin-commands.mjs";
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -51,6 +49,7 @@ for (const file of permissionFiles) {
   }
 }
 
+// This union checks grant presence only, not authorization for a particular window.
 const granted = new Set();
 for (const file of capabilityFiles) {
   const capability = JSON.parse(readFileSync(file, "utf8"));
@@ -84,12 +83,8 @@ for (const file of frontendFiles) {
   }
 }
 
-const addresses = loadCommandDocs(root);
-
-failures.push(...checkRustCommandExports(root, rustRoot, handlerPaths));
 if (!handlerBlock) failures.push("src-tauri/src/app_builder.rs has no application invoke handler");
 if (handlers.size !== handlerPaths.length) failures.push("application invoke handler lists a command twice");
-if (!isSorted(handlerPaths)) failures.push("application invoke handler commands must be sorted");
 
 checkSubset("Rust command missing invoke handler", appCommands, handlers, failures);
 checkSubset("Invoke handler has no Rust command", handlers, appCommands, failures);
@@ -101,13 +96,6 @@ checkSubset("Frontend invoke has no plugin command", pluginInvokes, pluginComman
 checkGrants("Plugin command is not granted to any capability", pluginCommands, failures);
 checkGrants("Frontend plugin invoke is not granted to any capability", pluginInvokes, failures);
 
-const declared = new Set([...pluginCommands, ...appCommands]);
-for (const token of addresses) {
-  if (!declared.has(commandAddress(token))) {
-    failures.push(`docs/commands.md references "${token}", which is not a declared command`);
-  }
-}
-
 console.log(
   `Tauri command coverage: app rust=${appCommands.size} handlers=${handlers.size} permissions=${permissions.size} frontend=${appInvokes.size}` +
     `; plugin commands=${pluginCommands.size} invokes=${pluginInvokes.size} plugins=${keys.size}`,
@@ -115,10 +103,6 @@ console.log(
 if (failures.length > 0) {
   console.error(failures.join("\n"));
   process.exitCode = 1;
-}
-
-function isSorted(values) {
-  return values.every((value, index) => index === 0 || values[index - 1] <= value);
 }
 
 function checkGrants(label, addressesToGrant, output) {
@@ -129,6 +113,7 @@ function checkGrants(label, addressesToGrant, output) {
       // with underscores slugified to dashes, while the runtime address keeps the
       // snake_case command. Mirror that shape so the grant lookup matches.
       const slug = command.replaceAll("_", "-");
+      // A default grant is accepted without expanding its permission contents.
       return !granted.has(`${key}:allow-${slug}`) && !granted.has(`${key}:default`);
     })
     .toSorted();

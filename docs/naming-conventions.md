@@ -43,9 +43,9 @@ files.
 | Function/variable          | `camelCase` in TypeScript, `snake_case` in Rust | `restoreSpace` / `restore_space`         |
 | Constant                   | `SCREAMING_SNAKE_CASE`                          | `DEFAULT_NODE_WIDTH`                     |
 
-`index.ts` is forbidden, including non-barrel files: it hides responsibility and can become a
-barrel without changing its path. Import the named owner directly. Do not use `#[path]` to simulate
-a different Rust module tree, and do not keep both `capability.rs` and `capability/mod.rs`.
+Avoid `index.ts`: it hides responsibility and can become a barrel without changing its path. Import
+the named owner directly. Prefer conventional Rust module paths over `#[path]` indirection, and keep
+module ownership obvious when choosing between a file module and a directory module.
 
 Feature roots contain only the module entry, primary view and genuine top-level owners. Non-route UI
 belongs in `components/`; secondary routed pages belong in `views/`. Composables stay beside their
@@ -188,8 +188,8 @@ owner, so the command must not repeat it:
 
 Omit the noun only when it is the plugin's own aggregate root, which is what the official plugins
 do (`plugin:autostart|enable`, `plugin:store|reset`, `plugin:updater|check`). Keeping a
-`<feature>_` prefix on a plugin command duplicates its namespace; `tools/check-tauri-command-coverage.mjs`
-rejects any Renderer string literal shaped `<plugin-key>_<rest>`.
+`<feature>_` prefix on a plugin command duplicates its namespace; review and the Tauri command
+coverage check reject Renderer literals shaped `<plugin-key>_<rest>`.
 
 The noun is the element type the command actually returns — read the Rust `Vec<T>` or the Renderer
 `Promise<T[]>`, not the pane or query name. `list` takes that type's plural and every other verb
@@ -225,7 +225,7 @@ Knovum-owned `updater_*` command can live. Its prefix must equal its owning Rust
 An app command has four touch points, and missing any one of them makes it unreachable or ungranted:
 
 1. the `#[tauri::command]` function itself;
-2. the sorted `tauri::generate_handler![...]` list in `src-tauri/src/app_builder.rs`;
+2. the `tauri::generate_handler![...]` list in `src-tauri/src/app_builder.rs`;
 3. a manual `commands.allow` entry in `src-tauri/permissions/<feature>.toml` and a capability grant
    naming that permission;
 4. a Renderer `invoke("<feature>_<verb>_<noun>")` literal.
@@ -238,21 +238,25 @@ either as `"<key>:allow-<command>"` or, where the plugin declares
 `DefaultPermissionRule::AllowAllCommands`, as `"<key>:default"`. A plugin command has no entry in
 the application invoke handler and no hand-written block in `permissions/*.toml`.
 
-The gates assert the corresponding invariants:
+The static command coverage check verifies the parts that cross configuration files and IPC
+namespaces:
 
-- the application invoke handler is sorted, duplicate-free, resolves to real Rust commands, and
-  matches the Rust app commands in both directions;
-- every app command has a manual permission and a Renderer literal invoke, and every Renderer
-  invoke has both;
-- the `build.rs` declaration and the `generate_handler!` list are identical, and every handler path
-  resolves to a real `#[tauri::command]`;
+- the application invoke handler, Rust command declarations and manual permissions cover the same
+  app-command surface;
+- every app command has a manual permission, and every detected Renderer app-command literal
+  has a declaration and manual permission;
+- the `build.rs` declaration and plugin `generate_handler!` registration expose the same command
+  names;
 - every plugin command is granted to at least one capability, and every Renderer
   `plugin:<key>|<command>` literal resolves to a declared, granted command;
-- no Renderer string literal uses the flat `<plugin-key>_*` shape;
-- every command reference in `docs/commands.md` resolves to a declared command.
+- no Renderer string literal uses the flat `<plugin-key>_*` shape.
 
-Nothing asserts the names themselves. `## Automated boundary` records what the gates still cover and
-why command vocabulary is no longer among them.
+Rust compilation remains authoritative for handler paths, command attributes and module resolution.
+The capability scan combines grants across capability files, so it proves that a grant exists
+somewhere; it does not prove that the invoking window receives that grant or describe what a
+`<plugin>:default` permission contains. Review the capability file and generated Tauri permissions
+when either detail matters. Nothing asserts the command names themselves. `## Automated boundary`
+records what the remaining checks cover and why command vocabulary is a review responsibility.
 
 ## Frontend file suffixes
 
@@ -309,8 +313,9 @@ what `commands/relations.rs` writes, `queries/scenes.rs` reads what `commands/sc
 - Maps use `<value>By<Key>`; timestamps use `*At` / `*_at`; durations include their unit.
 - Only DOM/component references use `*Ref`; a Vue `ref()` does not make `Ref` part of the domain name.
 - `data`, `value`, `result`, and `item` are limited to short, unambiguous local transforms.
-- Prefer a semantic options/command object after three parameters. Seven parameters remains the hard
-  Rust gate ceiling.
+- Prefer a semantic options/command object after three parameters when it makes the call easier to
+  understand. Rust types and review own this decision; there is no repository-specific parameter
+  count gate.
 - Complex object-shaped parameters receive a named interface/type near the owning API. Inline object
   types are limited to small, obvious local values such as a two-axis point or a single optional flag.
 - Vue components and composables obtain locale context with `useI18n()`. Translation callbacks cross
@@ -327,36 +332,37 @@ Short local names such as `row`, `result`, `value`, `save`, `start`, `busy`, and
 
 ## Tests
 
-Rust module unit tests live under the owning module's `tests/` directory, whose `mod.rs` is loaded by
-exactly one `#[cfg(test)] mod tests;` declaration. Inline test modules, `tests.rs`, `*_tests.rs`,
-`#[path]` indirection, and duplicate `mod tests` declarations are forbidden. `src-tauri/tests/` is
-reserved for integration tests of cross-module or externally visible crate behavior.
+Keep Rust unit tests close to the owning module. Small focused tests may use an inline
+`#[cfg(test)] mod tests`; larger suites may use a `tests/` submodule. Use `src-tauri/tests/` for
+integration tests of cross-module or externally visible crate behavior. Choose the layout that
+makes ownership and test scope clear.
 
-Vue/TypeScript tests live under the nearest common owner's `__tests__/` directory and use the exact
-`.test.ts` suffix. A unit test uses the tested source basename with identical casing, so
-`UiButton.vue` maps to `UiButton.test.ts`. A test covering an integration scenario across several
-owners uses a kebab-case user-capability basename instead of pretending to map to one file.
+Vue/TypeScript tests normally live under the nearest common owner's `__tests__/` directory and use
+the `.test.ts` suffix. A unit test should make its tested owner obvious, for example `UiButton.vue`
+and `UiButton.test.ts`. Name a cross-owner integration scenario for the user capability it covers
+rather than pretending it maps to one source file.
 
 ## Automated boundary
 
-A gate earns its maintenance cost only when it checks something that crosses a boundary no single
-toolchain owns, or states a ceiling cheaply enough that nobody argues with it. What remains:
+A gate earns its maintenance cost only when it checks a real boundary no single toolchain owns, or
+when an established tool already provides the rule. What remains:
 
-- Rust `Option<T>` in a `Serialize` struct must meet a required, nullable TypeScript field, because
-  `vue-tsc` cannot see Rust and `cargo` cannot see TypeScript;
-- the `build.rs` `InlinedPlugin::commands()` declaration and the plugin's `generate_handler!` list
-  are identical, and every handler path resolves to a real `#[tauri::command]` — a mismatch means
-  the ACL is never generated and the command is unreachable at runtime;
-- declaration, grant and invoke coverage for both IPC namespaces, in both directions;
-- no Renderer string literal uses the flat `<plugin-key>_*` shape, and every command reference in
-  `docs/commands.md` resolves to a declared command;
+- the `build.rs` `InlinedPlugin::commands()` declaration and the plugin's `generate_handler!`
+  registration expose the same command names;
+- app-command declaration/handler consistency, manual permission coverage, plugin aggregate
+  grant presence and detected Renderer literal validity;
+- no Renderer string literal uses the flat `<plugin-key>_*` shape;
 - no capability grants WebView SQL, `fs:default` to the main window, or persistent filesystem
   mutation to `spaces`;
 - `local_resources/tools/mod.rs` does not depend on product capabilities, and `ai/` does not depend on `spaces`;
-- 180 effective lines per file and 7 parameters per function, in Rust and in the Renderer;
-- Rust module layout: snake_case paths, no inline `mod tests`, no `#[path]` indirection, no
-  file/directory module collision; frontend path casing, forbidden `index.ts`, test location and
-  `.test.ts` suffix.
+- Oxlint's Renderer ceilings, including 180 non-blank/non-comment lines, complexity 10 and four
+  parameters;
+- production source reachability from `src/main.ts` and actual Worker entry points.
+
+Cross-language wire types come from ts-rs generated contracts and compile in TypeScript. Provider
+catalog behavior is covered by Rust parse, serialization and `as_str` tests. Design-token merging
+is covered by behavioral tests of the configured merge function. These checks exercise the actual
+contract instead of scanning source text for matching tokens or nullable field spellings.
 
 Command vocabulary is deliberately not enforced. A verb allowlist parsed from the table above was
 tried and removed: it checked the verb position and nothing else, so it passed
@@ -371,6 +377,5 @@ Ownership duplication, suffix meaning, schema/type duplication, whether an unuse
 wired up or deleted, and integration-scenario naming also stay in review; inferring them from tokens
 produces false positives, and a gate people route around is worse than no gate.
 
-`tools/` is itself inside the dead-code gate — `knip.json` lists it under `project`, so a script that
-loses its last caller is reported — because an enforcement layer nothing enforces is how orphaned
-scripts accumulate.
+`tools/` is itself inside Knip's project scope, so scripts that lose their last caller are reported
+as dead code.

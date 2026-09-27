@@ -1,4 +1,20 @@
 #[test]
+fn provider_identity_round_trips() {
+    use crate::ai::contracts::ProviderKind;
+    let schema = schemars::schema_for!(ProviderKind);
+    let values = schema.get("enum").unwrap().as_array().unwrap();
+    assert!(!values.is_empty());
+    for value in values {
+        let name = value.as_str().unwrap();
+        let provider: ProviderKind = serde_json::from_value(value.clone()).unwrap();
+        assert_eq!(ProviderKind::parse(name), Some(provider));
+        assert_eq!(provider.as_str(), name);
+        assert_eq!(serde_json::to_value(provider).unwrap(), *value);
+    }
+    assert_eq!(ProviderKind::parse("unknown-provider"), None);
+}
+
+#[test]
 #[ignore = "explicit repository contract generation"]
 fn export_space_contracts() {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))

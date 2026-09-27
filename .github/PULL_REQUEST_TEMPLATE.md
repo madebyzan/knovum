@@ -8,7 +8,7 @@ Describe the user/product behavior changed.
 - [ ] There is one source of truth; no duplicate registry/state/config was introduced.
 - [ ] No rename-only wrapper, universal service, giant composable, or catch-all utility was introduced.
 - [ ] Required behavior fails explicitly; no blanket compatibility/best-effort fallback was added.
-- [ ] Responsibilities remain testable and files remain below architecture complexity gates.
+- [ ] Responsibilities remain focused and testable; frontend code passes the existing Oxlint limits.
 - [ ] Architecture/UI/runtime/packaging documentation was updated when a repository contract changed.
 
 ## OSS-first gate
