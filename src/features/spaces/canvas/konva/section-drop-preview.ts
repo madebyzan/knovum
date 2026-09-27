@@ -1,3 +1,4 @@
+import { useTimeoutFn } from "@vueuse/core";
 import { onBeforeUnmount, type Ref, type ShallowRef } from "vue";
 
 import { sectionDropCandidateId } from "../../organization/section-drop-reparent";
@@ -9,11 +10,18 @@ export function useSectionDropPreview(options: {
   temporarilyExpandedSectionId: Ref<string | undefined>;
 }) {
   let pendingExpansionId: string | undefined;
-  let expansionTimer: ReturnType<typeof setTimeout> | undefined;
+  const expansion = useTimeoutFn(
+    (candidate: string) => {
+      pendingExpansionId = undefined;
+      options.temporarilyExpandedSectionId.value = candidate;
+      options.dropTargetId.value = candidate;
+    },
+    600,
+    { immediate: false },
+  );
 
   function clear() {
-    if (expansionTimer) clearTimeout(expansionTimer);
-    expansionTimer = undefined;
+    expansion.stop();
     pendingExpansionId = undefined;
     options.dropTargetId.value = undefined;
     options.temporarilyExpandedSectionId.value = undefined;
@@ -41,12 +49,7 @@ export function useSectionDropPreview(options: {
     if (pendingExpansionId === candidate) return;
     clear();
     pendingExpansionId = candidate;
-    expansionTimer = setTimeout(() => {
-      expansionTimer = undefined;
-      pendingExpansionId = undefined;
-      options.temporarilyExpandedSectionId.value = candidate;
-      options.dropTargetId.value = candidate;
-    }, 600);
+    expansion.start(candidate);
   }
 
   onBeforeUnmount(clear);

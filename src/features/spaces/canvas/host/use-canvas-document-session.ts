@@ -1,3 +1,4 @@
+import { useDebounceFn } from "@vueuse/core";
 import { shallowRef } from "vue";
 
 import type { CanvasDocumentV1 } from "../contract/canvas-document";
@@ -18,12 +19,12 @@ interface CanvasDocumentSessionOptions {
 export function useCanvasDocumentSession(options: CanvasDocumentSessionOptions) {
   const document = shallowRef<CanvasDocumentV1>();
   const surfaceKey = shallowRef(0);
-  let viewSaveTimer: ReturnType<typeof setTimeout> | undefined;
   let pendingView:
     | { spaceId: string; viewport: CanvasDocumentV1["viewport"]; persisted: boolean }
     | undefined;
   let viewSaveTail = Promise.resolve();
   let generation = 0;
+  const scheduleViewSave = useDebounceFn(() => void flushView().catch(options.reportError), 250);
   const detachSessionCommit = registerSpaceSessionParticipant({
     commit: flushView,
     phase: "persistence",
@@ -59,13 +60,11 @@ export function useCanvasDocumentSession(options: CanvasDocumentSessionOptions) 
       viewport,
       persisted: options.persistence() === "persisted",
     };
-    if (viewSaveTimer) clearTimeout(viewSaveTimer);
-    viewSaveTimer = setTimeout(() => void flushView().catch(options.reportError), 250);
+    void scheduleViewSave();
   }
 
   async function flushView() {
-    if (viewSaveTimer) clearTimeout(viewSaveTimer);
-    viewSaveTimer = undefined;
+    scheduleViewSave.cancel();
     const pending = pendingView;
     pendingView = undefined;
     if (!pending) return viewSaveTail;

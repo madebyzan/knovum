@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { CircleCheck, CircleStop, CircleX } from "@lucide/vue";
+import { useIntervalFn } from "@vueuse/core";
 import { storeToRefs } from "pinia";
-import { computed, onBeforeUnmount, onMounted, shallowRef, watch } from "vue";
+import { computed, onMounted, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
@@ -30,8 +31,11 @@ const runtimeModelTitleKeys: Record<ModelKind, string> = {
   textEmbeddingWeights: "shell.runtimeModels.textEmbedding",
 };
 
-let snapshotTimer: ReturnType<typeof setInterval> | undefined;
 const restoredRuntimeTasks = new Set<string>();
+const runtimePolling = useIntervalFn(() => void restoreRuntimeDownloads(), 1_000, {
+  immediate: false,
+  immediateCallback: true,
+});
 
 async function restoreRuntimeDownloads() {
   const snapshots = await listModelInstalls();
@@ -54,17 +58,6 @@ async function restoreRuntimeDownloads() {
   }
 }
 
-function stopRuntimePolling() {
-  if (!snapshotTimer) return;
-  clearInterval(snapshotTimer);
-  snapshotTimer = undefined;
-}
-
-function startRuntimePolling() {
-  stopRuntimePolling();
-  snapshotTimer = globalThis.setInterval(() => void restoreRuntimeDownloads(), 1_000);
-}
-
 async function openTask(id: string) {
   try {
     await store.open(id);
@@ -79,9 +72,8 @@ onMounted(() => {
 });
 
 watch(open, (isOpen) => {
-  if (!isOpen) return stopRuntimePolling();
-  void restoreRuntimeDownloads();
-  startRuntimePolling();
+  if (isOpen) runtimePolling.resume();
+  else runtimePolling.pause();
 });
 
 watch(
@@ -90,8 +82,6 @@ watch(
     if (!taskCount) open.value = false;
   },
 );
-
-onBeforeUnmount(stopRuntimePolling);
 </script>
 
 <template>

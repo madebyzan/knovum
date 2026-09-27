@@ -12,8 +12,9 @@ export function useCanvasSceneProjections(
   document: Readonly<Ref<CanvasDocumentV1>>,
   temporarilyExpandedSectionId: Readonly<Ref<string | undefined>>,
 ) {
+  const structureIndex = computed(() => createStructureIndex(props.sceneInput.editSnapshot.structure));
   const lockedNodeIds = computed(() => {
-    const index = createStructureIndex(props.sceneInput.editSnapshot.structure);
+    const index = structureIndex.value;
     return new Set(
       props.sceneInput.nodes.flatMap(({ id }) => {
         const structureNodeId = index.nodeIdToStructureNodeId.get(id);
@@ -66,7 +67,7 @@ export function useCanvasSceneProjections(
       ]),
   );
   const groupScopeTitles = computed(() => {
-    const index = createStructureIndex(props.sceneInput.editSnapshot.structure);
+    const index = structureIndex.value;
     return props.groupScopePath.map((structureNodeId) => {
       const group = index.structureById.get(structureNodeId);
       if (group?.kind !== "group") throw new Error(`Group scope is unavailable: ${structureNodeId}`);
@@ -74,7 +75,7 @@ export function useCanvasSceneProjections(
     });
   });
   function structureSelectionForNode(nodeId: string) {
-    const index = createStructureIndex(props.sceneInput.editSnapshot.structure);
+    const index = structureIndex.value;
     const structureNodeId = index.nodeIdToStructureNodeId.get(nodeId);
     if (!structureNodeId) throw new Error(`Content structure is unavailable: ${nodeId}`);
     const ancestors = ancestorsOf(structureNodeId, index);

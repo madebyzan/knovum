@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { clamp } from "es-toolkit";
 import { computed } from "vue";
 
 import type { VideoClip } from "../../video-editing/project";
@@ -43,7 +44,7 @@ const peaks = computed(() => {
   if (!samples?.length || !props.sourceDurationMs) return [];
   const start = Math.floor((props.clip.startMs / props.sourceDurationMs) * samples.length);
   const end = Math.ceil((props.clip.endMs / props.sourceDurationMs) * samples.length);
-  const count = Math.min(80, Math.max(1, end - start));
+  const count = clamp(end - start, 1, 80);
   return Array.from({ length: count }, (_, index) => {
     const from = start + Math.floor((index / count) * (end - start));
     const to = Math.max(from + 1, start + Math.ceil(((index + 1) / count) * (end - start)));

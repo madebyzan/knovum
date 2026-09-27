@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { AlertTriangle, CheckCircle2, ChevronDown, RefreshCw, ShieldAlert, Wand2 } from "@lucide/vue";
+import { whenever } from "@vueuse/core";
 import { storeToRefs } from "pinia";
-import { computed, ref, watch } from "vue";
+import { CollapsibleContent, CollapsibleRoot, CollapsibleTrigger } from "reka-ui";
+import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
@@ -25,11 +27,9 @@ const issues = computed(() => healthQuery.data.value ?? []);
 const loading = computed(() => healthQuery.isFetching.value);
 const criticalCount = computed(() => issues.value.filter((issue) => issue.severity === "critical").length);
 
-watch(
+whenever(
   () => healthQuery.error.value,
-  (error) => {
-    if (error) toast.error(String(error));
-  },
+  (error) => toast.error(String(error)),
 );
 function refresh() {
   void healthQuery.refetch();
@@ -41,7 +41,7 @@ async function rebuildIndex() {
   try {
     const rebuild = await rebuildKnowledgeRetrievalIndex(spaceId);
     toast.success(t("spaces.processing.index.rebuildDone", { count: rebuild.indexed }));
-    healthQuery.refetch();
+    void healthQuery.refetch();
   } catch (error) {
     toast.error(String(error));
   } finally {
@@ -54,37 +54,33 @@ function reveal(issue: SpaceKnowledgeHealthIssue) {
 </script>
 
 <template>
-  <section>
-    <div v-if="compact" class="flex items-center gap-0.5">
-      <button
-        type="button"
-        class="flex h-(--knovum-compact-item-height) min-w-0 flex-1 items-center gap-2 rounded-control px-2 text-left text-caption text-foreground-secondary hover:bg-control-hover hover:text-foreground"
-        @click="expanded = !expanded"
-      >
-        <ShieldAlert class="size-(--knovum-icon-size-xs) shrink-0" />
-        <span class="min-w-0 flex-1 truncate">{{ t("spaces.knowledge.health.title") }}</span>
-        <span
-          v-if="issues.length"
-          class="text-micro tabular-nums"
-          :class="criticalCount ? 'text-danger' : 'text-warning'"
+  <CollapsibleRoot as-child :open="!compact || expanded" @update:open="expanded = $event">
+    <section>
+      <div v-if="compact" class="flex items-center gap-0.5">
+        <CollapsibleTrigger
+          class="flex h-(--knovum-compact-item-height) min-w-0 flex-1 items-center gap-2 rounded-control px-2 text-left text-caption text-foreground-secondary hover:bg-control-hover hover:text-foreground"
         >
-          {{ issues.length }}
-        </span>
-        <CheckCircle2 v-else-if="!loading" class="size-(--knovum-icon-size-xs) text-success" />
-        <ChevronDown
-          class="size-(--knovum-icon-size-xs) text-foreground-tertiary transition-transform"
-          :class="expanded && 'rotate-180'"
-        />
-      </button>
-      <UiIconButton :label="t('common.refresh')" size="sm" :disabled="loading" @click="refresh">
-        <RefreshCw class="size-(--knovum-icon-size-xs)" :class="loading && 'animate-spin'" />
-      </UiIconButton>
-    </div>
+          <ShieldAlert class="size-(--knovum-icon-size-xs) shrink-0" />
+          <span class="min-w-0 flex-1 truncate">{{ t("spaces.knowledge.health.title") }}</span>
+          <span
+            v-if="issues.length"
+            class="text-micro tabular-nums"
+            :class="criticalCount ? 'text-danger' : 'text-warning'"
+          >
+            {{ issues.length }}
+          </span>
+          <CheckCircle2 v-else-if="!loading" class="size-(--knovum-icon-size-xs) text-success" />
+          <ChevronDown
+            class="size-(--knovum-icon-size-xs) text-foreground-tertiary transition-transform"
+            :class="expanded && 'rotate-180'"
+          />
+        </CollapsibleTrigger>
+        <UiIconButton :label="t('common.refresh')" size="sm" :disabled="loading" @click="refresh">
+          <RefreshCw class="size-(--knovum-icon-size-xs)" :class="loading && 'animate-spin'" />
+        </UiIconButton>
+      </div>
 
-    <div
-      v-if="!compact || expanded"
-      :class="compact && 'mt-1 rounded-panel border border-divider bg-control/15 p-2'"
-    >
+      <CollapsibleContent :class="compact && 'mt-1 rounded-panel border border-divider bg-control/15 p-2'">
       <div v-if="!compact" class="flex items-center justify-between gap-2">
         <h3 class="flex items-center gap-1.5 text-caption font-semibold text-foreground-secondary">
           <ShieldAlert class="size-(--knovum-icon-size-xs)" />{{ t("spaces.knowledge.health.title") }}
@@ -141,6 +137,7 @@ function reveal(issue: SpaceKnowledgeHealthIssue) {
           <Wand2 class="size-(--knovum-icon-size-xs)" />{{ t("spaces.processing.index.rebuild") }}
         </UiButton>
       </div>
-    </div>
-  </section>
+      </CollapsibleContent>
+    </section>
+  </CollapsibleRoot>
 </template>

@@ -1,3 +1,5 @@
+import { clamp } from "es-toolkit";
+
 import type { CanvasPoint } from "../../contract/canvas-editor";
 
 const EDGE_ZONE = 56;
@@ -17,6 +19,6 @@ function axisVelocity(position: number, extent: number) {
 }
 
 function intensity(distance: number) {
-  const normalized = Math.min(1, Math.max(0, distance / EDGE_ZONE));
+  const normalized = clamp(distance / EDGE_ZONE, 0, 1);
   return normalized * normalized;
 }

@@ -90,27 +90,6 @@ export function parseCanvasDocument(source: unknown): CanvasDocumentV1 {
   return canvasDocumentSchema.parse(source);
 }
 
-export function sameCanvasNodeAppearance(
-  left: CanvasNodeAppearance | undefined,
-  right: CanvasNodeAppearance | undefined,
-) {
-  const keys: readonly (keyof CanvasNodeAppearance)[] = [
-    "fill",
-    "customFill",
-    "textColor",
-    "fontSize",
-    "typographyScale",
-    "fontWeight",
-    "fontStyle",
-    "textDecoration",
-    "textAlign",
-    "verticalAlign",
-    "background",
-    "backgroundStyle",
-  ];
-  return keys.every((key) => left?.[key] === right?.[key]);
-}
-
 function validateCanvasReferences(document: CanvasDocumentV1, context: z.RefinementCtx) {
   const nodes = new Map<string, CanvasNodeLayoutV1>();
   for (const [index, node] of document.nodes.entries()) {

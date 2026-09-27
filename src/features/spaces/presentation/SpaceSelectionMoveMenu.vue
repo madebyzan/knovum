@@ -9,6 +9,7 @@ import { useI18n } from "vue-i18n";
 import UiDropdownMenu from "../../../shared/ui/UiDropdownMenu.vue";
 import UiDropdownMenuItem from "../../../shared/ui/UiDropdownMenuItem.vue";
 import UiIconButton from "../../../shared/ui/UiIconButton.vue";
+import { SUBMENU_CONTENT_CLASSES } from "../../../shared/ui/ui-classes";
 import { useSpaceStore } from "../session/space-store";
 
 const emit = defineEmits<{ move: [spaceId: string] }>();
@@ -43,7 +44,7 @@ const menuItems = computed(() =>
       <ChevronRight class="ml-auto size-(--knovum-icon-size-xs) text-foreground-tertiary" />
     </DropdownMenuSubTrigger>
     <DropdownMenuPortal>
-      <DropdownMenuSubContent class="z-50 min-w-48 rounded-panel material-overlay p-1 ring-1 ring-border">
+      <DropdownMenuSubContent :class="SUBMENU_CONTENT_CLASSES">
         <UiDropdownMenuItem v-for="space in targets" :key="space.id" @select="emit('move', space.id)">
           {{ space.kind === "inbox" ? t("spaces.space.inbox") : space.title }}
         </UiDropdownMenuItem>

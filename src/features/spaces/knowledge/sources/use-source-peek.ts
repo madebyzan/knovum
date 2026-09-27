@@ -1,6 +1,8 @@
+import { useQuery } from "@tanstack/vue-query";
 import { platform } from "@tauri-apps/plugin-os";
+import { whenever } from "@vueuse/core";
 import { storeToRefs } from "pinia";
-import { computed, ref, watch } from "vue";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
@@ -13,12 +15,19 @@ import type { KnowledgeChunk } from "../model/knowledge-chunk";
 import { knowledgeLocationLabel } from "../model/location";
 import { listCurrentKnowledgeChunks } from "../persistence/chunk-operations";
 
+const DOCUMENT_CONTEXT_KINDS: readonly string[] = ["pdf", "word", "slides", "sheet"];
+
+type SourcePeekTarget = NonNullable<ReturnType<typeof useSpaceStore>["sourcePeek"]>;
+type DocumentContextRequest = {
+  spaceId: string;
+  nodeId: string;
+  location: SourcePeekTarget["locator"]["location"];
+};
+
 export function useSourcePeek() {
   const store = useSpaceStore();
   const { sourcePeek } = storeToRefs(store);
   const { t } = useI18n();
-  const sourceContext = ref<KnowledgeChunk[]>([]);
-  let generation = 0;
   const node = computed(() => store.nodes.find((candidate) => candidate.id === sourcePeek.value?.nodeId));
   const location = computed(() => sourcePeek.value?.locator.location);
   const preciseExternal = computed(
@@ -26,22 +35,27 @@ export function useSourcePeek() {
   );
   const editableSource = computed(() => ["note", "markdown"].includes(node.value?.data.kind ?? ""));
   const hasAsset = computed(() => Boolean(node.value && isSpaceManagedAssetPayload(node.value.data)));
-  watch([sourcePeek, node], () => void refresh(++generation), { immediate: true });
-
-  async function refresh(current: number) {
-    sourceContext.value = [];
+  const contextRequest = computed<DocumentContextRequest | undefined>(() => {
     const target = sourcePeek.value;
-    const data = node.value?.data;
-    if (!target || !data) return;
-    try {
-      if (["pdf", "word", "slides", "sheet"].includes(target.locator.location.kind)) {
-        const context = await loadDocumentContext(store.activeSpaceId, target);
-        if (current === generation) sourceContext.value = context;
-      }
-    } catch (error) {
-      toast.error(String(error));
-    }
-  }
+    const spaceId = store.activeSpaceId;
+    if (!target || !spaceId) return undefined;
+    const targetLocation = target.locator.location;
+    return DOCUMENT_CONTEXT_KINDS.includes(targetLocation.kind)
+      ? { spaceId, nodeId: target.nodeId, location: targetLocation }
+      : undefined;
+  });
+  const sourceContextQuery = useQuery(
+    computed(() => ({
+      queryKey: ["spaces", store.activeSpaceId ?? "", "source-peek", contextRequest.value] as const,
+      queryFn: ({ queryKey }) => loadDocumentContext(queryKey[3]),
+      enabled: contextRequest.value !== undefined,
+    })),
+  );
+  const sourceContext = computed(() => sourceContextQuery.data.value ?? []);
+  whenever(
+    () => sourceContextQuery.error.value,
+    (error) => toast.error(String(error)),
+  );
   function revealSource() {
     if (sourcePeek.value) useCanvasEditorSession().reveal([sourcePeek.value.nodeId], "focus");
   }
@@ -96,13 +110,10 @@ export function useSourcePeek() {
   };
 }
 
-async function loadDocumentContext(
-  spaceId: string | undefined,
-  target: NonNullable<ReturnType<typeof useSpaceStore>["sourcePeek"]>,
-) {
-  if (!spaceId) throw new Error("Source Peek requires an active Space");
-  const chunks = await listCurrentKnowledgeChunks(spaceId, [target.nodeId]);
-  return documentContext(chunks, target.locator.location);
+async function loadDocumentContext(request: DocumentContextRequest | undefined) {
+  if (!request) return [];
+  const chunks = await listCurrentKnowledgeChunks(request.spaceId, [request.nodeId]);
+  return documentContext(chunks, request.location);
 }
 
 function documentContext(chunks: KnowledgeChunk[], target: KnowledgeChunk["locator"]["location"]) {

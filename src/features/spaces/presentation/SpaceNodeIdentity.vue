@@ -17,7 +17,7 @@ const props = defineProps<{
   node: SpaceCanvasNode;
   saveTitle: (node: SpaceCanvasNode, value: string) => Promise<void>;
 }>();
-const { t } = useI18n();
+const { d, t } = useI18n();
 const store = useSpaceStore();
 const draft = shallowRef(props.node.data.title);
 const editing = shallowRef(false);
@@ -31,7 +31,7 @@ const kindIcon = computed(() => nodeIcon(props.node.data.kind));
 const modifiedAt = computed(() => {
   const data = props.node.data;
   return "modifiedAt" in data && typeof data.modifiedAt === "number"
-    ? new Date(data.modifiedAt).toLocaleString()
+    ? d(data.modifiedAt, "short")
     : undefined;
 });
 

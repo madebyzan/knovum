@@ -1,3 +1,5 @@
+import { isEqual } from "es-toolkit";
+
 import type { LocalTransform } from "../../model/structure/structure-contract";
 import { createStructureIndex, effectiveOperationRoots } from "../../model/structure/structure-index";
 import { worldTransformFor } from "../../model/structure/world-transform";
@@ -122,7 +124,7 @@ function sameFrameShape(left: CanvasNodeLayoutV1, right: CanvasNodeLayoutV1) {
 }
 
 function sameAppearance(left: CanvasNodeLayoutV1, right: CanvasNodeLayoutV1) {
-  return JSON.stringify(left.appearance) === JSON.stringify(right.appearance);
+  return isEqual(left.appearance, right.appearance);
 }
 
 function nearly(left: number, right: number) {

@@ -14,11 +14,8 @@ const emit = defineEmits<{
   restoreBatch: [deletedRoot: SpaceDeletedStructureRoot];
   remove: [deletedRoot: SpaceDeletedStructureRoot];
 }>();
-const { locale, t } = useI18n();
+const { d, t } = useI18n();
 const scroller = useTemplateRef<HTMLDivElement>("scroller");
-const dates = computed(
-  () => new Intl.DateTimeFormat(locale.value, { dateStyle: "short", timeStyle: "short" }),
-);
 const virtualizer = useVirtualizer(
   computed(() => ({
     count: props.deletedRoots.length,
@@ -63,7 +60,7 @@ function measureElement(element: Element | ComponentPublicInstance | null) {
         <div class="min-w-0 flex-1">
           <p class="truncate text-label font-medium">{{ deletedRoot.title }}</p>
           <p class="truncate text-micro text-foreground-tertiary">
-            {{ deletedRoot.spaceTitle }} · {{ dates.format(deletedRoot.deletedAt) }}
+            {{ deletedRoot.spaceTitle }} · {{ d(deletedRoot.deletedAt, "short") }}
           </p>
         </div>
         <UiIconButton

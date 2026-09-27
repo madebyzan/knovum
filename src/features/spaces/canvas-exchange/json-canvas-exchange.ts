@@ -1,3 +1,4 @@
+import { compact } from "es-toolkit";
 import { basename } from "pathe";
 
 import type { SpaceEditSnapshot } from "../canvas/contract/space-edit-snapshot";
@@ -139,7 +140,7 @@ function exportContent(node: SpaceCanvasNode, resources: CanvasExchangeResource[
   if (data.kind === "website") return { type: "link", url: data.url };
   if ("assetPath" in data)
     return { type: "file", file: registerResource(node.id, data.assetPath, resources) };
-  return { type: "text", text: [data.title, nodeSummary(data)].filter(Boolean).join("\n\n") };
+  return { type: "text", text: compact([data.title, nodeSummary(data)]).join("\n\n") };
 }
 
 function registerResource(nodeId: string, sourcePath: string, resources: CanvasExchangeResource[]) {

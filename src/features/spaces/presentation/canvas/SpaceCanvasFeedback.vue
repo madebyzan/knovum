@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { AlertCircle, X } from "@lucide/vue";
+import { clamp } from "es-toolkit";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -32,7 +33,7 @@ function captureStyle(capture: SpaceUrlCaptureProjection) {
   const position = props.canvasToViewportPoint(capture.position);
   const zoom = editorSession.viewport.value?.zoom ?? 1;
   return {
-    transform: `translate(${position.x}px, ${position.y}px) scale(${Math.min(1, Math.max(0.75, zoom))})`,
+    transform: `translate(${position.x}px, ${position.y}px) scale(${clamp(zoom, 0.75, 1)})`,
   };
 }
 </script>

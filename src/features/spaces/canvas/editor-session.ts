@@ -1,3 +1,4 @@
+import { compact } from "es-toolkit";
 import { computed, readonly, shallowRef, toValue, type MaybeRefOrGetter } from "vue";
 
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
@@ -167,8 +168,5 @@ export function selectedCanvasNodesInOrder(
   selectedNodeIds: readonly string[],
 ) {
   const byId = new Map(nodes.map((node) => [node.id, node]));
-  return selectedNodeIds.flatMap((id) => {
-    const node = byId.get(id);
-    return node ? [node] : [];
-  });
+  return compact(selectedNodeIds.map((id) => byId.get(id)));
 }

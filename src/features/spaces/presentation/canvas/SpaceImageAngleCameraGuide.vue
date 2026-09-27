@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Camera } from "@lucide/vue";
+import { range } from "es-toolkit";
 import { computed } from "vue";
 
 import type { ImageEdit } from "../../image-editing/image-edit";
@@ -13,7 +14,7 @@ const props = defineProps<{
   pitch: number;
   zoom: "close" | "medium" | "wide";
 }>();
-const rings = Array.from({ length: 11 }, (_, index) => index * 15 - 75);
+const rings = range(-75, 90, 15);
 const scale = computed(() => (props.zoom === "close" ? 1.18 : props.zoom === "wide" ? 0.84 : 1));
 const orbit = computed(() => {
   const yaw = ((props.yaw - 35) * Math.PI) / 180;

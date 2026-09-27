@@ -7,16 +7,15 @@ import type { TokenUsageReport } from "../../../foundation/ai/token-usage";
 import { buildTokenActivityWeeks } from "./token-activity-calendar";
 
 const props = defineProps<{ report: TokenUsageReport }>();
-const { locale, n, t } = useI18n();
+const { d, locale, n, t } = useI18n();
 const weeks = computed(() =>
   buildTokenActivityWeeks(props.report.activity, props.report.fromDate, props.report.toDate, locale.value),
 );
 const levelClasses = ["bg-control", "bg-accent/20", "bg-accent/40", "bg-accent/65", "bg-accent"] as const;
-const dateFormatter = computed(() => new Intl.DateTimeFormat(locale.value, { dateStyle: "medium" }));
 const timeZone = getLocalTimeZone();
 
 function label(date: string, tokens: number, requests: number) {
-  const formatted = dateFormatter.value.format(parseDate(date).toDate(timeZone));
+  const formatted = d(parseDate(date).toDate(timeZone), "medium");
   return t("settings.usage.activity.label", { date: formatted, tokens: n(tokens), requests: n(requests) });
 }
 </script>
@@ -40,7 +39,7 @@ function label(date: string, tokens: number, requests: number) {
         <span
           v-for="level in 5"
           :key="level"
-          class="rounded-grid size-2.5"
+          class="size-2.5 rounded-grid-cell"
           :class="levelClasses[level - 1]"
         />
         <span>{{ t("settings.usage.activity.more") }}</span>
@@ -63,7 +62,7 @@ function label(date: string, tokens: number, requests: number) {
               <span
                 v-for="cell in week.cells"
                 :key="cell.date"
-                class="rounded-grid size-2.5 ring-1 ring-border ring-inset"
+                class="size-2.5 rounded-grid-cell ring-1 ring-border ring-inset"
                 :class="cell.inRange ? levelClasses[cell.level] : 'opacity-0'"
                 :title="cell.inRange ? label(cell.date, cell.tokens, cell.requests) : undefined"
                 :aria-label="cell.inRange ? label(cell.date, cell.tokens, cell.requests) : undefined"

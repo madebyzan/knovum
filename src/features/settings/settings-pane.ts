@@ -1,4 +1,4 @@
-import { isString } from "es-toolkit";
+import { z } from "zod";
 
 const settingsPaneIds = [
   "appearance",
@@ -14,7 +14,8 @@ const settingsPaneIds = [
 
 export type SettingsPaneId = (typeof settingsPaneIds)[number];
 
+const settingsPaneIdSchema = z.enum(settingsPaneIds);
+
 export function resolveSettingsPaneId(value: unknown): SettingsPaneId | undefined {
-  if (!isString(value)) return undefined;
-  return settingsPaneIds.includes(value as SettingsPaneId) ? (value as SettingsPaneId) : undefined;
+  return settingsPaneIdSchema.safeParse(value).data;
 }

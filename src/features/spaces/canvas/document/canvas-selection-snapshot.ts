@@ -1,3 +1,5 @@
+import { compact } from "es-toolkit";
+
 import type { CanvasNodeLayoutV1 } from "../contract/canvas-document";
 import type { CanvasRect, CanvasSelectionSnapshot } from "../contract/canvas-editor-port";
 import { canvasLayoutBounds } from "./canvas-layout-bounds";
@@ -24,10 +26,7 @@ export function createCanvasSelectionSnapshot(
 }
 
 function selectedRelationBounds(ids: ReadonlySet<string>, bounds: ReadonlyMap<string, CanvasRect>) {
-  const selected = [...ids].flatMap((id) => {
-    const value = bounds.get(id);
-    return value ? [value] : [];
-  });
+  const selected = compact([...ids].map((id) => bounds.get(id)));
   if (!selected.length) return undefined;
   const left = Math.min(...selected.map(({ x }) => x));
   const top = Math.min(...selected.map(({ y }) => y));

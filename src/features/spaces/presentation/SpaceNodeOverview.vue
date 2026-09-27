@@ -8,6 +8,7 @@ import { toast } from "vue-sonner";
 import { openSpaceNode } from "../canvas/selection-actions";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { isSpaceManagedAssetPayload } from "../model/nodes/capabilities";
+import { truncateUtf16 } from "../model/text";
 import { useSpaceStore } from "../session/space-store";
 import SpaceVisualKnowledgeDetails from "./SpaceVisualKnowledgeDetails.vue";
 
@@ -21,7 +22,8 @@ const preview = computed(() => {
 const visual = computed(() => props.node.data.kind === "image" || props.node.data.kind === "video");
 const excerpt = computed(() => {
   const data = props.node.data;
-  return data.kind === "file" ? data.previewText?.trim().slice(0, 400) : undefined;
+  const text = data.kind === "file" ? data.previewText?.trim() : undefined;
+  return text ? truncateUtf16(text, 400) : undefined;
 });
 const duration = computed(() => {
   const data = props.node.data;

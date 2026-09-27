@@ -44,13 +44,9 @@ export function nearestSortedCanvasSnap(value: number, targets: readonly number[
 }
 
 export function frameSnapCoordinates(frames: readonly CanvasNodeFrame[]) {
-  return frames.reduce(
-    (coordinates, frame) => {
-      const bounds = canvasFrameBounds(frame);
-      coordinates.x.push(bounds.left, bounds.centerX, bounds.right);
-      coordinates.y.push(bounds.top, bounds.centerY, bounds.bottom);
-      return coordinates;
-    },
-    { x: [] as number[], y: [] as number[] },
-  );
+  const bounds = frames.map(canvasFrameBounds);
+  return {
+    x: bounds.flatMap(({ left, centerX, right }) => [left, centerX, right]),
+    y: bounds.flatMap(({ top, centerY, bottom }) => [top, centerY, bottom]),
+  };
 }

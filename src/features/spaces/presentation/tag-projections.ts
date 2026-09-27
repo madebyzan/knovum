@@ -3,24 +3,21 @@ import { search } from "fast-fuzzy";
 
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 
-export function selectedTagCounts(nodes: readonly SpaceCanvasNode[]) {
-  return new Map(
-    Object.entries(
-      countBy(
-        nodes.flatMap((node) => node.data.tags ?? []),
-        (tag) => tag,
-      ),
-    ),
-  );
-}
-
-export function spaceTagCounts(nodes: readonly SpaceCanvasNode[]) {
+function tagCountEntries(nodes: readonly SpaceCanvasNode[]) {
   return Object.entries(
     countBy(
       nodes.flatMap((node) => node.data.tags ?? []),
       (tag) => tag,
     ),
-  ).toSorted(([left], [right]) => left.localeCompare(right));
+  );
+}
+
+export function selectedTagCounts(nodes: readonly SpaceCanvasNode[]) {
+  return new Map(tagCountEntries(nodes));
+}
+
+export function spaceTagCounts(nodes: readonly SpaceCanvasNode[]) {
+  return tagCountEntries(nodes).toSorted(([left], [right]) => left.localeCompare(right));
 }
 
 export function suggestTags(

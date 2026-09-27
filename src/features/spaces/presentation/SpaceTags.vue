@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Tag, X } from "@lucide/vue";
-import { union, without } from "es-toolkit";
+import { union, uniq, without } from "es-toolkit";
 import { storeToRefs } from "pinia";
 import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
@@ -55,21 +55,22 @@ async function revealTag(tag: string) {
   if (!spaceId) return;
   const matches = nodes.value.filter((node) => node.data.tags?.includes(tag));
   const index = createStructureIndex(store.editSnapshot.structure);
-  const sectionIds = new Set(
+  const sectionIds = uniq(
     matches.flatMap((node) => {
       const structureNodeId = index.nodeIdToStructureNodeId.get(node.id);
       const section = structureNodeId ? sectionAncestorOf(structureNodeId, index) : undefined;
       return section ? [section.id] : [];
     }),
   );
-  await Promise.all(
-    [...sectionIds].map((id) => {
-      const layout = store.editSnapshot.layouts.find((candidate) => candidate.structureNodeId === id);
-      return layout?.kind === "section" && layout.collapsed
-        ? store.executeSpaceEdit({ kind: "section.set-collapsed", structureNodeId: id, collapsed: false })
-        : Promise.resolve();
-    }),
-  );
+  for (const id of sectionIds) {
+    if (store.activeSpaceId !== spaceId) return;
+    const collapsed = store.editSnapshot.layouts.some(
+      (layout) => layout.structureNodeId === id && layout.kind === "section" && layout.collapsed,
+    );
+    if (!collapsed) continue;
+    // oxlint-disable-next-line eslint/no-await-in-loop -- Space edits are revision-guarded and must not overlap.
+    await store.executeSpaceEdit({ kind: "section.set-collapsed", structureNodeId: id, collapsed: false });
+  }
   if (store.activeSpaceId !== spaceId) return;
   const ids = matches.map((node) => node.id);
   editorSession.reveal(ids, "focus");

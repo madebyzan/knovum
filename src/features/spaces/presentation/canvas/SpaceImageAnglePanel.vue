@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { RotateCcw } from "@lucide/vue";
+import { clamp } from "es-toolkit";
 import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -47,7 +48,7 @@ function apply() {
 }
 
 function changeZoom(delta: number) {
-  zoomIndex.value = Math.max(0, Math.min(2, zoomIndex.value + delta));
+  zoomIndex.value = clamp(zoomIndex.value + delta, 0, 2);
 }
 </script>
 

@@ -23,6 +23,7 @@ import { useI18n } from "vue-i18n";
 
 import UiDropdownMenuItem from "../../../shared/ui/UiDropdownMenuItem.vue";
 import UiSeparator from "../../../shared/ui/UiSeparator.vue";
+import { SUBMENU_CONTENT_CLASSES } from "../../../shared/ui/ui-classes";
 import type { SystemKnowledgeObjectKind } from "../knowledge/model/object-types";
 
 const emit = defineEmits<{
@@ -39,7 +40,6 @@ const emit = defineEmits<{
   section: [];
 }>();
 const { t } = useI18n();
-const submenuClass = "material-overlay z-50 min-w-48 rounded-panel p-1 shadow-popover ring-1 ring-border";
 const knowledgeOptions = [
   { kind: "concept", icon: Shapes },
   { kind: "question", icon: CircleHelp },
@@ -63,7 +63,7 @@ const knowledgeOptions = [
       <ChevronRight class="size-(--knovum-icon-size-xs) text-foreground-tertiary" />
     </DropdownMenuSubTrigger>
     <DropdownMenuPortal>
-      <DropdownMenuSubContent :side-offset="4" :align-offset="-4" :class="submenuClass">
+      <DropdownMenuSubContent :side-offset="4" :align-offset="-4" :class="SUBMENU_CONTENT_CLASSES">
         <UiDropdownMenuItem
           v-for="option in knowledgeOptions"
           :key="option.kind"
@@ -115,7 +115,7 @@ const knowledgeOptions = [
       <ChevronRight class="size-(--knovum-icon-size-xs) text-foreground-tertiary" />
     </DropdownMenuSubTrigger>
     <DropdownMenuPortal>
-      <DropdownMenuSubContent :side-offset="4" :align-offset="-4" :class="submenuClass">
+      <DropdownMenuSubContent :side-offset="4" :align-offset="-4" :class="SUBMENU_CONTENT_CLASSES">
         <UiDropdownMenuItem @select="emit('credential', 'api-key')">
           <KeyRound class="size-(--knovum-icon-size-sm)" />{{ t("spaces.credentials.apiKey") }}
         </UiDropdownMenuItem>

@@ -6,7 +6,7 @@ import { z } from "zod";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import type { ApprovalSummary } from "../../contracts/generated/ActionApproval";
-import { captureActionLabels } from "../workflows/workflow-capture-labels";
+import { captureActionLabel } from "../workflows/workflow-capture-labels";
 
 /** `ApprovalSummary.plan` is a generated JSON value, so its parameters are an untrusted shape. */
 const approvalPlanSchema = z.object({ parameters: z.record(z.string(), z.unknown()) });
@@ -14,10 +14,7 @@ const approvalPlanSchema = z.object({ parameters: z.record(z.string(), z.unknown
 const props = defineProps<{ approval: ApprovalSummary; busy: boolean }>();
 const emit = defineEmits<{ decide: [approvalId: string, approved: boolean] }>();
 const { t } = useI18n();
-const actionName = computed(() => {
-  const label = captureActionLabels[props.approval.actionId];
-  return label ? t(`spaces.creation.workflow.captureActions.${label}`) : props.approval.actionId;
-});
+const actionName = computed(() => captureActionLabel(props.approval.actionId, t));
 const parameters = computed(() => {
   const plan = approvalPlanSchema.safeParse(props.approval.plan);
   if (!plan.success) return [];

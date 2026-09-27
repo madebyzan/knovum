@@ -1,4 +1,4 @@
-import { sortBy } from "es-toolkit";
+import { compact, groupBy, sortBy } from "es-toolkit";
 
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import type { SpaceRelation } from "../../../model/relations/relation";
@@ -23,18 +23,14 @@ export function projectCanvasScene(
     ? new Set(structure.content.filter(({ visible }) => visible).map(({ node }) => node.id))
     : undefined;
   const projected = sortBy(
-    document.nodes.flatMap<Omit<CanvasSceneNode, "paintOrder">>((layout) => {
-      const node = content.get(layout.nodeId);
-      return node && !node.hidden && (!visibleStructureNodeIds || visibleStructureNodeIds.has(node.id))
-        ? [
-            {
-              interaction: canvasNodeInteraction(node, lockedNodeIds.has(node.id)),
-              layout,
-              node,
-            },
-          ]
-        : [];
-    }),
+    compact(
+      document.nodes.map((layout): Omit<CanvasSceneNode, "paintOrder"> | undefined => {
+        const node = content.get(layout.nodeId);
+        if (!node || node.hidden) return undefined;
+        if (visibleStructureNodeIds && !visibleStructureNodeIds.has(node.id)) return undefined;
+        return { interaction: canvasNodeInteraction(node, lockedNodeIds.has(node.id)), layout, node };
+      }),
+    ),
     [({ layout }) => layout.zIndex],
   );
   const paintOrderedNodes = projected.map((node, paintOrder) => Object.assign({}, node, { paintOrder }));
@@ -164,16 +160,11 @@ function representativeRelationOffsets(
     targetStructureNodeId: string;
   }[],
 ) {
-  type ProjectedRelation = (typeof relations)[number];
-  const groups = new Map<string, ProjectedRelation[]>();
-  for (const projected of relations) {
-    const key = [projected.sourceStructureNodeId, projected.targetStructureNodeId].toSorted().join("\u0000");
-    const group = groups.get(key) ?? [];
-    group.push(projected);
-    groups.set(key, group);
-  }
+  const groups = groupBy(relations, (projected) =>
+    [projected.sourceStructureNodeId, projected.targetStructureNodeId].toSorted().join("\u0000"),
+  );
   const offsets = new Map<string, number>();
-  for (const group of groups.values())
+  for (const group of Object.values(groups))
     group
       .toSorted((a, b) => a.relation.id.localeCompare(b.relation.id))
       .forEach((projected, index) => {

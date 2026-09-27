@@ -1,7 +1,7 @@
 import { getCurrentWindow, type Theme } from "@tauri-apps/api/window";
 import { locale as getOsLocale } from "@tauri-apps/plugin-os";
 import { load } from "@tauri-apps/plugin-store";
-import { pick } from "es-toolkit";
+import { isNil, pick } from "es-toolkit";
 import { defineStore } from "pinia";
 
 import { i18n, systemLocale, type AppLocale } from "../i18n/i18n";
@@ -72,7 +72,7 @@ export const usePreferencesStore = defineStore("preferences", {
       systemTheme = theme ?? "light";
       osLocale = systemLocale(locale);
 
-      if (raw !== undefined && raw !== null) {
+      if (!isNil(raw)) {
         Object.assign(this, decodePreferences(raw));
       }
 

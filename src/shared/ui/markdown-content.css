@@ -2,9 +2,9 @@
   margin-top: 0.65rem;
 }
 :deep(.ui-markdown h1) {
-  font-size: var(--text-title-lg);
+  font-size: var(--text-title);
   font-weight: 650;
-  line-height: var(--text-title-lg--line-height);
+  line-height: var(--text-title--line-height);
 }
 :deep(.ui-markdown h2) {
   font-size: var(--text-title-sm);

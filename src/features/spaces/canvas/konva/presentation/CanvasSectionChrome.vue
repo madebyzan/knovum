@@ -70,9 +70,8 @@ function rename() {
         height: displayCollapsed() ? 40 : height(),
         stroke: selected || dropTarget ? palette.accent : hovered ? palette.borderStrong : palette.border,
         strokeWidth: (selected || dropTarget ? 2 : 1) / zoom,
-        dash: dropTarget
-          ? [7 / zoom, 5 / zoom]
-          : section.layout.appearance?.borderStyle === 'dashed'
+        dash:
+          dropTarget || section.layout.appearance?.borderStyle === 'dashed'
             ? [7 / zoom, 5 / zoom]
             : undefined,
         opacity: dropTarget ? 0.72 : 1,

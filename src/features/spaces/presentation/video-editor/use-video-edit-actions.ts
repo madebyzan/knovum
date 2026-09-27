@@ -43,7 +43,8 @@ export function useVideoEditActions(options: Options) {
 
   async function save(): Promise<boolean> {
     if (saving.value || !node.value || !data.value || !project.value) return false;
-    const snapshot = JSON.stringify(project.value);
+    // Captured before the await so edits landing mid-save stay dirty.
+    const snapshot = project.value;
     const after: SpaceVideoPayload = { ...data.value, videoEditProject: project.value };
     saving.value = true;
     try {

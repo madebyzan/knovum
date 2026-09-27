@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Cloud, Cpu } from "@lucide/vue";
+import { useQuery } from "@tanstack/vue-query";
 import { ask } from "@tauri-apps/plugin-dialog";
 import { storeToRefs } from "pinia";
 import { TabsContent, TabsList, TabsRoot, TabsTrigger } from "reka-ui";
@@ -9,21 +10,26 @@ import { toast } from "vue-sonner";
 
 import { useAiSettingsStore } from "../../../../foundation/ai/ai-settings-store";
 import { useCreationLibraryStore } from "../../../../foundation/ai/creation-library-store";
-import { loadProviderDescriptors, type ProviderDescriptor } from "../../../../foundation/ai/providers";
+import { loadProviderDescriptors } from "../../../../foundation/ai/providers";
 import { useProtectedExecutionTargets } from "../../use-protected-execution-targets";
 import AiConnectionsSettings from "../AiConnectionsSettings.vue";
 import FalImageLayerSettings from "../FalImageLayerSettings.vue";
 import SettingsLoadFailure from "../SettingsLoadFailure.vue";
 import SpaceRuntimeSettings from "../SpaceRuntimeSettings.vue";
 
+const PROVIDER_CATALOG_KEY = ["integrations", "provider-descriptors"] as const;
+
 const { t } = useI18n();
 const aiStore = useAiSettingsStore();
 const creationStore = useCreationLibraryStore();
 const { settings, ready: aiReady, loadError, saveError } = storeToRefs(aiStore);
 const { ready: creationReady, loadError: creationLoadError } = storeToRefs(creationStore);
-const providers = shallowRef<ProviderDescriptor[]>([]);
-const catalogError = shallowRef<unknown>();
-const catalogReady = shallowRef(false);
+const catalog = useQuery({
+  queryKey: PROVIDER_CATALOG_KEY,
+  queryFn: loadProviderDescriptors,
+  staleTime: 30_000,
+});
+const providers = computed(() => catalog.data.value ?? []);
 const activeSection = shallowRef("providers");
 const sections = computed(() => [
   { value: "providers", label: t("settings.ai.navigation.providers"), icon: Cloud },
@@ -34,28 +40,23 @@ const failure = computed(() =>
     ? { source: "ai" as const, cause: loadError.value, canReset: true }
     : creationLoadError.value
       ? { source: "creation" as const, cause: creationLoadError.value, canReset: true }
-      : catalogError.value
-        ? { source: "catalog" as const, cause: catalogError.value, canReset: false }
+      : catalog.error.value
+        ? { source: "catalog" as const, cause: catalog.error.value, canReset: false }
         : undefined,
 );
-const ready = computed(() => aiReady.value && creationReady.value && catalogReady.value);
+const ready = computed(() => aiReady.value && creationReady.value && !catalog.isPending.value);
 const { protectedConnectionIds, protectedModelTargets } = useProtectedExecutionTargets();
 
 watch(saveError, (error) => {
   if (error) toast.error(`${t("settings.ai.integrationSaveFailed")}: ${String(error)}`);
 });
 
-async function load() {
-  catalogReady.value = false;
-  catalogError.value = undefined;
+async function hydrateStores() {
   await Promise.all([aiStore.ensureLoaded(), creationStore.ensureLoaded()]);
-  try {
-    providers.value = await loadProviderDescriptors();
-  } catch (error) {
-    catalogError.value = error;
-  } finally {
-    catalogReady.value = true;
-  }
+}
+
+async function reload() {
+  await Promise.all([hydrateStores(), catalog.refetch()]);
 }
 
 async function resetSection() {
@@ -70,7 +71,7 @@ async function resetSection() {
   else await aiStore.reset();
 }
 
-onMounted(load);
+onMounted(hydrateStores);
 </script>
 
 <template>
@@ -78,7 +79,7 @@ onMounted(load);
     v-if="failure"
     :message="String(failure.cause)"
     :can-reset="failure.canReset"
-    @retry="load"
+    @retry="reload"
     @reset="resetSection"
   />
   <TabsRoot v-else v-model="activeSection" :class="!ready && 'pointer-events-none opacity-60'">

@@ -1,3 +1,4 @@
+import { clamp } from "es-toolkit";
 import { shallowRef, watch, type Ref } from "vue";
 
 import { versionedMediaSource } from "../media/element";
@@ -70,7 +71,7 @@ async function loadFrames(load: FrameLoad) {
     canvas.height = 54;
     const context = canvas.getContext("2d");
     if (!context) return;
-    const count = Math.min(MAX_FRAMES, Math.max(1, Math.ceil(mediaDuration / 2_500)));
+    const count = clamp(Math.ceil(mediaDuration / 2_500), 1, MAX_FRAMES);
     await sampleFrames(load, { canvas, context, duration: mediaDuration, count }, 0);
     if (!abort.signal.aborted) {
       if (frameCache.size >= 8) frameCache.delete(frameCache.keys().next().value!);

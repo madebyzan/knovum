@@ -5,7 +5,7 @@ import type { GroundedDocumentMetadata } from "../../knowledge-derivations/docum
 import SpaceDerivationSources from "../SpaceDerivationSources.vue";
 
 defineProps<{ metadata: GroundedDocumentMetadata }>();
-const { t } = useI18n();
+const { d, t } = useI18n();
 </script>
 
 <template>
@@ -16,7 +16,7 @@ const { t } = useI18n();
           t("spaces.creation.shared.generatedWith", { provider: metadata.provider, model: metadata.model })
         }}
       </p>
-      <p class="text-foreground-tertiary">{{ new Date(metadata.createdAt).toLocaleString() }}</p>
+      <p class="text-foreground-tertiary">{{ d(metadata.createdAt, "short") }}</p>
     </div>
     <SpaceDerivationSources :sources="metadata.sources" />
     <div>

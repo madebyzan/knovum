@@ -1,3 +1,5 @@
+import { clamp } from "es-toolkit";
+
 import {
   CANVAS_TYPOGRAPHY_SCALE_MAX,
   CANVAS_TYPOGRAPHY_SCALE_MIN,
@@ -8,9 +10,10 @@ export function scaledCanvasTextAppearance(layout: CanvasNodeLayoutV1, width: nu
   const scale = layout.appearance?.typographyScale ?? 1;
   return {
     ...layout.appearance,
-    typographyScale: Math.min(
+    typographyScale: clamp(
+      scale * (width / layout.frame.width),
+      CANVAS_TYPOGRAPHY_SCALE_MIN,
       CANVAS_TYPOGRAPHY_SCALE_MAX,
-      Math.max(CANVAS_TYPOGRAPHY_SCALE_MIN, scale * (width / layout.frame.width)),
     ),
   };
 }

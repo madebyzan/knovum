@@ -1,3 +1,5 @@
+import { compact } from "es-toolkit";
+
 import { createStructureIndex } from "../../model/structure/structure-index";
 import { canvasNodePlacements, createCanvasSelectionSnapshot } from "../document/canvas-selection-snapshot";
 import { currentSelectionRoots } from "../selection/selection-roots";
@@ -29,10 +31,7 @@ export function createCanvasEditorSelection(options: KonvaEditorPortOptions) {
   }
 
   function bounds() {
-    const frames = roots().flatMap(({ id }) => {
-      const value = options.structureBounds().get(id);
-      return value ? [value] : [];
-    });
+    const frames = compact(roots().map(({ id }) => options.structureBounds().get(id)));
     if (!frames.length) return contentSnapshot().bounds;
     const left = Math.min(...frames.map(({ x }) => x));
     const top = Math.min(...frames.map(({ y }) => y));
@@ -44,10 +43,7 @@ export function createCanvasEditorSelection(options: KonvaEditorPortOptions) {
   function snapshot() {
     const selectionBounds = bounds();
     const content = contentSnapshot();
-    const structureMembers = roots().flatMap(({ id }) => {
-      const frame = options.structureBounds().get(id);
-      return frame ? [frame] : [];
-    });
+    const structureMembers = compact(roots().map(({ id }) => options.structureBounds().get(id)));
     return {
       ...content,
       structureNodeIds: [...options.selectedStructureNodeIds()],

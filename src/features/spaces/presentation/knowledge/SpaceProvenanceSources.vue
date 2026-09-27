@@ -29,8 +29,10 @@ const attachable = computed(() => {
   return peek && (!props.attachNodeIds || props.attachNodeIds.includes(peek.nodeId)) ? peek : undefined;
 });
 
+const nodeTitles = computed(() => new Map(nodes.value.map((node) => [node.id, node.data.title])));
+
 function sourceTitle(nodeId: string) {
-  return nodes.value.find((node) => node.id === nodeId)?.data.title ?? nodeId;
+  return nodeTitles.value.get(nodeId) ?? nodeId;
 }
 async function attachCurrent() {
   const peek = attachable.value;

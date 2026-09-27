@@ -1,3 +1,4 @@
+import { compact } from "es-toolkit";
 import { shallowRef, watch, type Ref } from "vue";
 
 import type { CanvasNodeLayoutV1 } from "../../contract/canvas-document";
@@ -147,10 +148,7 @@ export function useCanvasSelection(options: CanvasSelectionOptions) {
 }
 
 function selectedStructureBounds(ids: ReadonlySet<string>, available: ReadonlyMap<string, CanvasRect>) {
-  const frames = [...ids].flatMap((id) => {
-    const bounds = available.get(id);
-    return bounds ? [bounds] : [];
-  });
+  const frames = compact([...ids].map((id) => available.get(id)));
   if (!frames.length) return undefined;
   const left = Math.min(...frames.map(({ x }) => x));
   const top = Math.min(...frames.map(({ y }) => y));

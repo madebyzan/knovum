@@ -1,3 +1,4 @@
+import { uniq } from "es-toolkit";
 import { storeToRefs } from "pinia";
 import { computed } from "vue";
 
@@ -17,9 +18,7 @@ export function useProtectedExecutionTargets() {
   ]);
 
   return {
-    protectedConnectionIds: computed(() => [
-      ...new Set(targets.value.map(({ connectionId }) => connectionId)),
-    ]),
+    protectedConnectionIds: computed(() => uniq(targets.value.map(({ connectionId }) => connectionId))),
     protectedModelTargets: computed(() => targets.value.map(encodeExecutionTarget)),
   };
 }
