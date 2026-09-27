@@ -2,6 +2,10 @@
 
 Packaging creates desktop application/install artifacts. It is distinct from production release signing and updater publication.
 
+The project author and bundle publisher are Zan. Keep `package.json`'s `author`,
+`src-tauri/Cargo.toml`'s `authors`, and `src-tauri/tauri.conf.json`'s `bundle.publisher`
+consistent with this attribution.
+
 ## Local commands
 
 Compile without bundling:

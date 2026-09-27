@@ -2,6 +2,7 @@
   "name": "knovum",
   "version": "0.0.1",
   "private": true,
+  "author": "Zan",
   "type": "module",
   "scripts": {
     "dev": "vite",

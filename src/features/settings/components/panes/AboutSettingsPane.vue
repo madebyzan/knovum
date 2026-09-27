@@ -80,6 +80,7 @@ async function installUpdate() {
           version ? t('settings.general.version', { version }) : t('settings.general.readingVersion')
         "
       />
+      <PreferenceField :label="t('settings.general.about.author')" description="Zan" />
     </SettingsSection>
 
     <SettingsSection :title="t('settings.updates.title')" :description="t('settings.updates.description')">
