@@ -35,7 +35,8 @@
   --knovum-titlebar-height: 2.5rem;
   --knovum-titlebar-navigation-padding-start: 0.625rem;
   --knovum-editor-toolbar-height: 2.75rem;
-  --knovum-list-item-height-sm: 1.875rem;
+  --knovum-menu-item-height: 1.875rem;
+  --knovum-navigation-item-height: 1.875rem;
   --knovum-command-palette-item-height: 2.75rem;
   --knovum-space-tag-row-height: 3rem;
   --knovum-settings-row-min-height: 3.25rem;
@@ -216,7 +217,8 @@
   --knovum-control-height-lg: 2.375rem;
   --knovum-editor-toolbar-height: 3rem;
   --knovum-task-center-header-height: 3rem;
-  --knovum-list-item-height-sm: 2.125rem;
+  --knovum-menu-item-height: 2.125rem;
+  --knovum-navigation-item-height: 2.125rem;
   --knovum-command-palette-item-height: 3rem;
   --knovum-space-tag-row-height: 3.25rem;
   --knovum-settings-row-min-height: 3.5rem;

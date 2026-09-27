@@ -56,7 +56,7 @@ const knowledgeOptions = [
   </UiDropdownMenuItem>
   <DropdownMenuSub>
     <DropdownMenuSubTrigger
-      class="flex h-(--knovum-list-item-height-sm) cursor-default items-center gap-2 rounded-md px-2 text-label text-fg-primary outline-none data-[highlighted]:bg-surface-control-hover"
+      class="flex h-(--knovum-menu-item-height) cursor-default items-center gap-2 rounded-md px-2 text-label text-fg-primary outline-none data-[highlighted]:bg-surface-control-hover"
     >
       <Shapes class="size-3.5" />
       <span class="min-w-0 flex-1">{{ t("spaces.knowledge.structuredKnowledge") }}</span>
@@ -108,7 +108,7 @@ const knowledgeOptions = [
   </UiDropdownMenuItem>
   <DropdownMenuSub>
     <DropdownMenuSubTrigger
-      class="flex h-(--knovum-list-item-height-sm) cursor-default items-center gap-2 rounded-md px-2 text-label text-fg-primary outline-none data-[highlighted]:bg-surface-control-hover"
+      class="flex h-(--knovum-menu-item-height) cursor-default items-center gap-2 rounded-md px-2 text-label text-fg-primary outline-none data-[highlighted]:bg-surface-control-hover"
     >
       <KeyRound class="size-3.5" />
       <span class="min-w-0 flex-1">{{ t("spaces.nodeTypes.credential") }}</span>

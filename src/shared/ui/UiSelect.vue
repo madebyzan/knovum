@@ -93,7 +93,7 @@ const selectedLabel = computed(() => props.options.find((option) => option.value
             :value="option.value"
             :text-value="option.label"
             :disabled="option.disabled ?? false"
-            class="relative flex min-h-(--knovum-list-item-height-sm) cursor-default items-center rounded-md py-1 pr-2 pl-7 text-label outline-none data-disabled:opacity-45 data-highlighted:bg-surface-control-hover"
+            class="relative flex min-h-(--knovum-menu-item-height) cursor-default items-center rounded-md py-1 pr-2 pl-7 text-label outline-none data-disabled:opacity-45 data-highlighted:bg-surface-control-hover"
           >
             <SelectItemIndicator class="absolute left-2"><Check class="size-3" /></SelectItemIndicator>
             <SelectItemText class="min-w-0 flex-1">

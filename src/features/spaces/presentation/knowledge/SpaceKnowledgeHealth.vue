@@ -58,7 +58,7 @@ function reveal(issue: SpaceKnowledgeHealthIssue) {
     <section>
       <div v-if="compact" class="flex items-center gap-0.5">
         <CollapsibleTrigger
-          class="flex h-(--knovum-list-item-height-sm) min-w-0 flex-1 items-center gap-2 rounded-md px-2 text-left text-caption text-fg-secondary hover:bg-surface-control-hover hover:text-fg-primary"
+          class="flex min-w-0 flex-1 items-center gap-2 rounded-md px-2 py-2 text-left text-caption text-fg-secondary hover:bg-surface-control-hover hover:text-fg-primary"
         >
           <ShieldAlert class="size-3 shrink-0" />
           <span class="min-w-0 flex-1 truncate">{{ t("spaces.knowledge.health.title") }}</span>
