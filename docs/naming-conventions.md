@@ -61,6 +61,9 @@ files.
 Avoid `index.ts`: it hides responsibility and can become a barrel without changing its path. Import
 the named owner directly. Prefer conventional Rust module paths over `#[path]` indirection, and keep
 module ownership obvious when choosing between a file module and a directory module.
+An unsplit Rust module uses `<name>.rs`. Once `<name>/` exists for its submodules, its entry must
+move to `<name>/mod.rs`; do not keep both `<name>.rs` and `<name>/` as siblings. Do not create an
+empty directory for a file-only module or use `#[path]` to preserve the old physical layout.
 
 Feature roots contain only the module entry, primary view and genuine top-level owners. Non-route UI
 belongs to its capability's `components/` or, for Spaces, `presentation/<capability>/`; secondary routed pages belong in `views/`. Composables stay beside their
