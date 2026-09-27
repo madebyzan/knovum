@@ -45,8 +45,7 @@ async function copyMessage() {
 }
 
 function actionName(id: string) {
-  const label = captureActionLabels[id];
-  return label ? t(`spaces.creation.workflow.captureActions.${label}`) : id;
+  return captureActionLabel(id, t);
 }
 
 /** Run results arrive as generated JSON values, so the created-node receipts are untrusted shapes. */

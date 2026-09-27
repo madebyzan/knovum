@@ -1,4 +1,4 @@
-use super::super::planner_support::Index;
+use super::super::planner::tree_policy::Index;
 use super::super::{LocalTransform, StructureLayout, StructureNode};
 use std::collections::HashMap;
 

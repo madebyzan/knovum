@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { highlightedSnippet, isLocatorCurrent, knowledgeLocationLabel } from "../knowledge/model/location";
+import { isLocatorCurrent } from "../knowledge/model/location";
 import type { KnowledgeLocator } from "../knowledge/model/schema";
+import { knowledgeLocationLabel } from "../knowledge/presentation/location-label";
+import { highlightedSnippet } from "../search/highlighted-snippet";
 
 function locator(location: KnowledgeLocator["location"], sourceRevision = "sha256:source"): KnowledgeLocator {
   return { sourceRevision, location, quote: { exact: "evidence" } };

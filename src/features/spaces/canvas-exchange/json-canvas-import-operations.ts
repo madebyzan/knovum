@@ -1,9 +1,9 @@
-import type { SpaceEditSnapshot } from "../canvas/contract/space-edit-snapshot";
 import type { ImportJsonCanvasResult } from "../contracts/generated/ImportJsonCanvasResult";
 import type { KnowledgeChunkSeed } from "../knowledge/model/schema";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceRelation } from "../model/relations/relation";
-import { invokeConfirmedMutation } from "../organization/confirmed-mutation";
+import type { SpaceEditSnapshot } from "../model/structure/edit-snapshot";
+import { invokeConfirmedMutation } from "../structure/confirmed-mutation";
 
 export interface PreparedJsonCanvasNode {
   sourceId: string;

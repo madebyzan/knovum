@@ -8,7 +8,7 @@ use ts_rs::TS;
 use crate::spaces::db;
 
 #[derive(Clone, Debug, Serialize, TS)]
-#[ts(export_to = "../../../features/spaces/contracts/generated/ActionApproval.ts")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/ApprovalSummary.ts")]
 #[serde(rename_all = "camelCase")]
 pub struct ApprovalSummary {
     pub id: String,

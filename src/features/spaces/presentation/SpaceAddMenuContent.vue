@@ -21,9 +21,9 @@ import {
 import { DropdownMenuPortal, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from "reka-ui";
 import { useI18n } from "vue-i18n";
 
+import { SUBMENU_CONTENT_CLASSES } from "../../../shared/ui/ui-classes";
 import UiDropdownMenuItem from "../../../shared/ui/UiDropdownMenuItem.vue";
 import UiSeparator from "../../../shared/ui/UiSeparator.vue";
-import { SUBMENU_CONTENT_CLASSES } from "../../../shared/ui/ui-classes";
 import type { SystemKnowledgeObjectKind } from "../knowledge/model/object-types";
 
 const emit = defineEmits<{

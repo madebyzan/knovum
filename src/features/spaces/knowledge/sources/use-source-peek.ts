@@ -12,10 +12,10 @@ import { createSourceEvidence } from "../../editor/knowledge-capture";
 import { isSpaceManagedAssetPayload } from "../../model/nodes/capabilities";
 import { useSpaceStore } from "../../session/space-store";
 import type { KnowledgeChunk } from "../model/knowledge-chunk";
-import { knowledgeLocationLabel } from "../model/location";
 import { listCurrentKnowledgeChunks } from "../persistence/chunk-operations";
+import { knowledgeLocationLabel } from "../presentation/location-label";
 
-const DOCUMENT_CONTEXT_KINDS: readonly string[] = ["pdf", "word", "slides", "sheet"];
+const DOCUMENT_CONTEXT_KINDS = new Set<string>(["pdf", "word", "slides", "sheet"]);
 
 type SourcePeekTarget = NonNullable<ReturnType<typeof useSpaceStore>["sourcePeek"]>;
 type DocumentContextRequest = {
@@ -40,16 +40,19 @@ export function useSourcePeek() {
     const spaceId = store.activeSpaceId;
     if (!target || !spaceId) return undefined;
     const targetLocation = target.locator.location;
-    return DOCUMENT_CONTEXT_KINDS.includes(targetLocation.kind)
+    return DOCUMENT_CONTEXT_KINDS.has(targetLocation.kind)
       ? { spaceId, nodeId: target.nodeId, location: targetLocation }
       : undefined;
   });
   const sourceContextQuery = useQuery(
-    computed(() => ({
-      queryKey: ["spaces", store.activeSpaceId ?? "", "source-peek", contextRequest.value] as const,
-      queryFn: ({ queryKey }) => loadDocumentContext(queryKey[3]),
-      enabled: contextRequest.value !== undefined,
-    })),
+    computed(() => {
+      const request = contextRequest.value;
+      return {
+        queryKey: ["spaces", store.activeSpaceId ?? "", "source-peek", request] as const,
+        queryFn: () => loadDocumentContext(request),
+        enabled: request !== undefined,
+      };
+    }),
   );
   const sourceContext = computed(() => sourceContextQuery.data.value ?? []);
   whenever(

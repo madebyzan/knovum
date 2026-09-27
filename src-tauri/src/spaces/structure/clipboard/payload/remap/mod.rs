@@ -7,8 +7,8 @@ use crate::spaces::structure::edit_contract::SpacePoint;
 mod mapping;
 
 use crate::spaces::structure::{
-    planner_bounds::{merge, root_bounds},
-    planner_support::Index,
+    planner::bounds::{merge, root_bounds},
+    planner::tree_policy::Index,
     validate_space_snapshot, StructureLayout, StructureNode,
 };
 

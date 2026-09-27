@@ -51,7 +51,7 @@ function editRelation(id: string) {
     async (kind) => {
       await store.updateRelationKind(id, kind);
     },
-    () => store.removeRelation(id),
+    () => store.revokeRelation(id),
   );
 }
 </script>

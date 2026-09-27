@@ -42,7 +42,8 @@ pub(in crate::spaces::assets) fn prepare(
     if path.is_file() {
         return Ok(path);
     }
-    let rendered = crate::images::render_source_png(app, &document.source_path, &document.edit)?;
+    let source = super::super::authorize_spaces_asset(app, Path::new(&document.source_path))?;
+    let rendered = crate::images::render_source_png(&source, &document.edit)?;
     let temporary = directory.join(format!("{}.partial", uuid::Uuid::new_v4()));
     fs::write(&temporary, rendered.png).map_err(|error| error.to_string())?;
     fs::rename(&temporary, &path).map_err(|error| error.to_string())?;

@@ -3,7 +3,7 @@ import { clamp } from "es-toolkit";
 import { computed, nextTick, shallowRef, toValue, watch, type MaybeRefOrGetter, type Ref } from "vue";
 
 import type { SpaceMediaPlaybackState } from "../../media/playback";
-import { waitForMediaMetadata } from "./element";
+import { waitForMediaMetadata } from "./media-element-source";
 
 interface UseMediaPlaybackOptions {
   sourceRevision?: MaybeRefOrGetter<string | number | undefined> | undefined;

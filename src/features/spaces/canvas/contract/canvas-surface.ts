@@ -1,10 +1,10 @@
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceRelation } from "../../model/relations/relation";
+import type { SpaceEditSnapshot } from "../../model/structure/edit-snapshot";
 import type { CanvasViewportDetailProfile } from "./canvas-detail-profile";
 import type { CanvasDocumentV1, CanvasNodeLayoutV1 } from "./canvas-document";
 import type { CanvasSurfaceEvents } from "./canvas-editor";
 import type { CanvasTool } from "./canvas-tool";
-import type { SpaceEditSnapshot } from "./space-edit-snapshot";
 
 export interface CanvasSceneInput {
   editSnapshot: SpaceEditSnapshot;

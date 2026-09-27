@@ -51,8 +51,9 @@ pub(crate) async fn discard_pending_content<R: Runtime>(
         return Err("space-edit-revision-conflict: Space edit revision conflict".into());
     }
     let structure_node_id = content_structure_node_id(&snapshot.structure, &request.node_id)?;
-    let index = super::super::planner_support::Index::new(&snapshot.structure, &snapshot.layouts);
-    super::super::planner_support::require_editable(
+    let index =
+        super::super::planner::tree_policy::Index::new(&snapshot.structure, &snapshot.layouts);
+    super::super::planner::tree_policy::require_editable(
         &snapshot.structure,
         &index,
         &structure_node_id,
@@ -158,6 +159,6 @@ fn normalize_orders(
     structure: &mut [StructureNode],
     layouts: &[super::super::StructureLayout],
 ) -> Result<(), String> {
-    let index = super::super::planner_support::Index::new(structure, layouts);
-    super::super::planner_support::apply_sequences(structure, &index.children)
+    let index = super::super::planner::tree_policy::Index::new(structure, layouts);
+    super::super::planner::tree_policy::apply_sequences(structure, &index.children)
 }

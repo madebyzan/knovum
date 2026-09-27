@@ -29,11 +29,13 @@ pub(super) async fn analyze(
 ) -> Result<(), String> {
     let source = match request.job_type {
         super::EnrichmentJobType::AnalyzeImage => {
-            let app = app.clone();
-            let path = required_string(data, "assetPath")?.to_owned();
+            let path = authorize_spaces_asset(
+                app,
+                std::path::Path::new(required_string(data, "assetPath")?),
+            )?;
             let edit = data.get("imageEdit").cloned().unwrap_or(Value::Null);
             let rendered =
-                crate::blocking::run(move || crate::images::render_source_png(&app, &path, &edit))
+                crate::blocking::run(move || crate::images::render_source_png(&path, &edit))
                     .await?;
             ImageAnalysisSource::Png(rendered.png)
         }

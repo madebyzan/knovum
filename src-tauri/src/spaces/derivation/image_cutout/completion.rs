@@ -59,7 +59,9 @@ fn process(
     source_edit: &Value,
     output: std::path::PathBuf,
 ) -> Result<ProcessedCutout, String> {
-    let source = crate::images::render_source_png(app, source_path, source_edit)?;
+    let path =
+        crate::spaces::assets::authorize_spaces_asset(app, std::path::Path::new(source_path))?;
+    let source = crate::images::render_source_png(&path, source_edit)?;
     let cutout = crate::images::remove_background(&source.png)?;
     let digest = format!("sha256:{:x}", Sha256::digest(&cutout.png));
     if let Err(error) = fs::write(&output, &cutout.png) {

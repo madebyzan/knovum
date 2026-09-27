@@ -1,8 +1,8 @@
 import { isEqual } from "es-toolkit";
 
-import type { NodePayloadChange } from "../../history/mutation-types";
 import type { SpaceCanvasNode } from "./canvas-node";
 import type { SpaceNodePayload } from "./node-payload";
+import type { NodePayloadChange } from "./payload-change";
 
 export function createTagChanges(
   nodes: readonly SpaceCanvasNode[],

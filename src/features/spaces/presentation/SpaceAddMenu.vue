@@ -12,7 +12,7 @@ import UiInput from "../../../shared/ui/UiInput.vue";
 import { useCanvasToolStore } from "../canvas/canvas-tool-store";
 import { useNodeOperationGate } from "../canvas/node-operation-gate";
 import { useAddMenu } from "../presentation/use-add-menu";
-import AgentCreationDialog from "./AgentCreationDialog.vue";
+import AgentCreationDialog from "./agent-creation/AgentCreationDialog.vue";
 import SpaceKnowledgeTypeManager from "./knowledge/SpaceKnowledgeTypeManager.vue";
 import SpaceAddMenuContent from "./SpaceAddMenuContent.vue";
 import SpaceCustomKnowledgeObjectDialog from "./SpaceCustomKnowledgeObjectDialog.vue";

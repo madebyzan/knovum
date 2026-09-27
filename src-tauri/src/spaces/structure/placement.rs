@@ -1,6 +1,6 @@
 use super::{
-    planner_bounds::{bounds_for_roots, root_bounds, Bounds},
-    planner_support::Index,
+    planner::bounds::{bounds_for_roots, root_bounds, Bounds},
+    planner::tree_policy::Index,
     StructureLayout, StructureNode,
 };
 

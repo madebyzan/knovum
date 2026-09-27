@@ -1,11 +1,11 @@
 import { compact } from "es-toolkit";
 import { computed, shallowRef, type Ref } from "vue";
 
+import type { SpaceEditSnapshot } from "../../model/structure/edit-snapshot";
 import { createStructureIndex, effectiveOperationRoots } from "../../model/structure/structure-index";
 import { worldTransformFor } from "../../model/structure/world-transform";
-import { sectionDropMoveCommand } from "../../organization/section-drop-reparent";
+import { sectionDropMoveCommand } from "../../structure/section-drop-reparent";
 import type { CanvasSurfaceEvents } from "../contract/canvas-editor";
-import type { SpaceEditSnapshot } from "../contract/space-edit-snapshot";
 import type { StructureScene } from "../document/structure-scene";
 import type { CanvasGestureUpdate } from "./interaction/canvas-gesture-update";
 import { useSectionDropPreview } from "./section-drop-preview";

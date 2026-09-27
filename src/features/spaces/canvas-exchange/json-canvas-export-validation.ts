@@ -1,6 +1,6 @@
-import type { SpaceEditSnapshot } from "../canvas/contract/space-edit-snapshot";
 import type { StructureScene } from "../canvas/document/structure-scene";
 import type { SpaceRelation } from "../model/relations/relation";
+import type { SpaceEditSnapshot } from "../model/structure/edit-snapshot";
 
 export function assertJsonCanvasExportable(snapshot: SpaceEditSnapshot, relations: readonly SpaceRelation[]) {
   if (snapshot.structure.some(({ kind }) => kind === "group"))

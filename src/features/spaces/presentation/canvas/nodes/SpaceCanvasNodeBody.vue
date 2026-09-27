@@ -5,7 +5,7 @@ import { useI18n } from "vue-i18n";
 import { classifyFilePresentation, usesDocumentPreview } from "../../../assets/file-presentation";
 import type { CanvasNodePresentationContext } from "../../../canvas/contract/canvas-detail-profile";
 import type { SpaceNodePayload } from "../../../model/nodes/node-payload";
-import SpaceDocumentPreview from "../../SpaceDocumentPreview.vue";
+import SpaceDocumentPreview from "../../document/SpaceDocumentPreview.vue";
 import { nodePayloadWork } from "./canvas-node-work";
 import { spaceNodePreviewText } from "./space-canvas-node-content";
 import { spaceCanvasNodePresentation } from "./space-canvas-node-presentation";

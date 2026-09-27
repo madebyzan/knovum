@@ -1,10 +1,10 @@
 import type { Ref } from "vue";
 
-import type { SpaceEditSnapshot } from "../canvas/contract/space-edit-snapshot";
 import type { SpaceHistoryState } from "../history/stack";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceRelation } from "../model/relations/relation";
 import type { Space } from "../model/space";
+import type { SpaceEditSnapshot } from "../model/structure/edit-snapshot";
 import type { SpaceScene } from "../scenes/scene";
 
 export interface SpaceSessionContext {

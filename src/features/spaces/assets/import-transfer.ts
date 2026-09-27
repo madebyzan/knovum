@@ -2,13 +2,13 @@ import { useTaskStore } from "../../../foundation/tasks/task-store";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { isSpaceManagedAssetPayload } from "../model/nodes/capabilities";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
-import { runSpaceAssetTransfer } from "../session/actions/work-scheduler";
 import {
   cancelSpaceAssetImport,
   copyStagedSpaceAsset,
   removeSpaceAsset,
   type PreparedSpaceImport,
 } from "./asset-operations";
+import { runSpaceAssetTransfer } from "./concurrency-budget";
 import { formatByteSize } from "./format-byte-size";
 import type { SpaceImportContext, SpaceImportSource } from "./import-contract";
 import { importedSpaceNodePayload } from "./imported-asset-payload";

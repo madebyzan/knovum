@@ -1,8 +1,8 @@
 import { z } from "zod";
 
 import { spaceMediaAnalysisSchema } from "../../../media/analysis-schema";
+import { spaceMediaKnowledgeSchema } from "../../../media/knowledge-schema";
 import { spaceMediaOriginSchema } from "../../../media/origin";
-import { spaceMediaKnowledgeSchema } from "../../../media/schema";
 import { spaceVisualKnowledgeSchema } from "../../../media/visual-knowledge-schema";
 import { baseSpaceNodeFields } from "./base-fields";
 import { documentCoverageSchema } from "./document-coverage";

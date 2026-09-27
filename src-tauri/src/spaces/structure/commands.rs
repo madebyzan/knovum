@@ -4,7 +4,7 @@ use tauri::{AppHandle, Runtime};
 use super::edit_contract::{
     ExecuteSpaceEditRequest, SpaceEditHistoryReceipt, SpaceEditHistoryRequest, SpaceEditReceipt,
 };
-use super::{history, planner, planner_clone, receipts, repository, validation};
+use super::{history, planner, receipts, repository, validation};
 use crate::spaces::db;
 
 #[tauri::command]
@@ -61,7 +61,7 @@ pub(crate) async fn execute_in_transaction(
             target_parent_id,
             offset,
         } => {
-            let selection = planner_clone::clone_in_transaction(
+            let selection = planner::clone::clone_in_transaction(
                 &mut *tx,
                 &request.space_id,
                 &mut snapshot,

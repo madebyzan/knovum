@@ -1,8 +1,8 @@
 import { useDebounceFn } from "@vueuse/core";
 import { shallowRef } from "vue";
 
+import type { SpaceEditSnapshot } from "../../model/structure/edit-snapshot";
 import type { CanvasDocumentV1 } from "../contract/canvas-document";
-import type { SpaceEditSnapshot } from "../contract/space-edit-snapshot";
 import { projectStructureCanvasDocument } from "../document/structure-canvas-document";
 import { registerSpaceSessionParticipant } from "../editor-session";
 import { canvasViewStateOperations } from "../persistence/canvas-view-state";

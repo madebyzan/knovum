@@ -72,7 +72,13 @@ pub async fn create(
     let rendered = crate::blocking::run({
         let render_app = app.clone();
         let source_edit = request.source_edit.clone();
-        move || crate::images::render_source_png(&render_app, &source_path, &source_edit)
+        move || {
+            let source = crate::spaces::assets::authorize_spaces_asset(
+                &render_app,
+                std::path::Path::new(&source_path),
+            )?;
+            crate::images::render_source_png(&source, &source_edit)
+        }
     })
     .await;
     let source = match rendered {

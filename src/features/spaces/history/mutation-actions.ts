@@ -1,9 +1,10 @@
 import { scheduleKnowledgeIndex } from "../knowledge/indexing/index-scheduler";
 import { prepareSpaceKnowledgePayload } from "../knowledge/model/node-knowledge";
+import type { NodePayloadChange } from "../model/nodes/payload-change";
 import { validateSpaceNodePayload } from "../model/nodes/schema/node-payload";
 import { applyData } from "./mutation-application";
 import { beginSpaceMutation } from "./mutation-barrier";
-import { requireActiveSpaceId, type SpaceMutationContext, type NodePayloadChange } from "./mutation-types";
+import { requireActiveSpaceId, type SpaceMutationContext } from "./mutation-types";
 import {
   combineRecentSpaceHistory,
   recordSpaceHistory,

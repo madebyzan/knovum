@@ -1,12 +1,25 @@
 # Knowledge Work System
 
-Status: Implemented architecture  
-Decision date: 2026-09-21  
-Primary design source: `DESIGN.md`
+- Status: Dated implementation baseline; product targets have separate acceptance
+- Decision date: 2026-09-21
+- Primary design source: `DESIGN.md`
 
 This RFC records the implemented contract distilled from the approved Knovum final design. It
 replaces earlier partial Agent, derivation and workflow directions. The source modules, baseline
 schema, generated contracts and quality gates are the executable evidence for this contract.
+
+## Implementation-state map
+
+This RFC is a dated decision record, not a second current architecture specification. [architecture.md](../architecture.md), [system-architecture.md](../system-architecture.md), [knowledge.md](../knowledge.md) and [spaces.md](../spaces.md) own current contracts. [DESIGN.md](../../DESIGN.md) owns product goals.
+
+| Area                                | Implementation evidence                                                                  | State / acceptance boundary                                                                                            |
+| ----------------------------------- | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Space actions and authorization     | `src-tauri/src/spaces/actions`, `authorization`                                          | Implemented domain and atomic authorization paths; scenario tests own behavioral evidence.                             |
+| Durable Runs and observation        | `src-tauri/src/spaces/runs`; `src/features/spaces/runs`                                  | Implemented persistence/Channel projection; Task Center does not own execution.                                        |
+| Workflows                           | `src-tauri/src/spaces/workflows`; `src/features/spaces/workflows`                        | Implemented definitions and execution; contextual capture/editing goals in DESIGN are not blanket completion claims.   |
+| Assistant and external tools        | `src-tauri/src/spaces/assistant`, `mcp`; `src/features/spaces/conversation`              | Implemented runtime/conversation APIs; unified product presentation and Settings targets require their own acceptance. |
+| Derivation and resource publication | `src-tauri/src/spaces/derivation`, `assets`; `src/features/spaces/knowledge-derivations` | Implemented revision/lineage boundaries; action-specific completeness is evaluated independently.                      |
+| Cross-platform desktop UX           | `docs/platform-matrix.md`, `docs/desktop-foundation.md`                                  | Requires actual macOS/Windows evidence; source presence alone is not platform certification.                           |
 
 ## Product boundary
 
@@ -16,7 +29,7 @@ Assistant and external Agents reuse the same Space-owned business rules.
 
 The only excluded product capability is official subscription, payment and hosted inference quota.
 Self-configured models, the built-in Assistant, external connections, Workflows, durable Runs,
-authorization and recovery are part of the active target.
+authorization and recovery are part of the domain baseline; their individual product surfaces and acceptance are tracked below.
 
 ## Stable language
 

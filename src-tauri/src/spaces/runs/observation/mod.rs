@@ -7,7 +7,7 @@ use super::{RunEventKind, StepState, WaitReason};
 use crate::spaces::db;
 
 #[derive(Clone, Debug, Serialize, TS)]
-#[ts(export_to = "../../../features/spaces/contracts/generated/RunStep.ts")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/StepSummary.ts")]
 #[serde(rename_all = "camelCase")]
 pub struct StepSummary {
     pub id: String,

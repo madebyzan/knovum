@@ -1,5 +1,5 @@
-import type { SpaceEditSnapshot } from "../canvas/contract/space-edit-snapshot";
 import type { SpaceRelation } from "../model/relations/relation";
+import type { SpaceEditSnapshot } from "../model/structure/edit-snapshot";
 import type { StructureLayout } from "../model/structure/structure-contract";
 import type { JsonCanvasEdgeV1 } from "./json-canvas-contract";
 

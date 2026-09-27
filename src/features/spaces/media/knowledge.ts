@@ -4,8 +4,8 @@ import { z } from "zod";
 import { completeGeneralWithMetadata } from "../../../foundation/ai/ai-runtime";
 import { parseStructuredJson } from "../../../foundation/ai/structured-output";
 import { finalizeMediaChapters } from "./chapters";
+import type { SpaceMediaKnowledge, SpaceMediaTranscript } from "./knowledge-schema";
 import { mediaCandidateText, mediaKnowledgeInstruction, mediaTranscriptChunks } from "./prompts";
-import type { SpaceMediaKnowledge, SpaceMediaTranscript } from "./schema";
 
 const chunkInference = pLimit(3);
 

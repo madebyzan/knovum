@@ -66,7 +66,7 @@ separate independent items, so the word after them keeps its capital.
 5. Message keys are lowerCamelCase. Namespaces keyed by a serialized domain value are exempt and
    listed in `serializedValueMaps`.
 6. Every key is reachable from product code — either named by a dotted literal, or listed in
-   `dynamic-keys.ts` for keys resolved at runtime from a domain value.
+   `dynamic-locale-keys.ts` for keys resolved at runtime from a domain value.
 7. That allowlist stays narrowed to keys that still exist, so a stale entry fails the build.
 
 When a key is resolved through a variable (`labelKey`, a stage name, a serialized enum), add the

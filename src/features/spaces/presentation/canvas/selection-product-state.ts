@@ -1,8 +1,8 @@
-import type { SpaceEditSnapshot } from "../../canvas/contract/space-edit-snapshot";
 import { isSpaceNodeOpenable } from "../../canvas/selection-actions";
 import { currentSelectionRoots } from "../../canvas/selection/selection-roots";
 import { isSpaceSemanticNode } from "../../knowledge/model/semantic-node";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
+import type { SpaceEditSnapshot } from "../../model/structure/edit-snapshot";
 import type { StructureNode } from "../../model/structure/structure-contract";
 import {
   ancestorsOf,
@@ -13,7 +13,7 @@ import {
   contentNodeIdsWithin,
   isStructureNodeEffectivelyLocked,
 } from "../../model/structure/structure-queries";
-import { dissolveGroupCapability, groupCapability } from "../../organization/structure-capabilities";
+import { dissolveGroupCapability, groupCapability } from "../../structure/structure-capabilities";
 
 export interface CanvasSelectionProductState {
   allLocked: boolean;

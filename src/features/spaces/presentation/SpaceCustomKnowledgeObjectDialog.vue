@@ -12,7 +12,7 @@ import UiSelect from "../../../shared/ui/UiSelect.vue";
 import UiTextarea from "../../../shared/ui/UiTextarea.vue";
 import { useNodeOperationGate } from "../canvas/node-operation-gate";
 import { isSpaceSemanticNode } from "../knowledge/model/semantic-node";
-import { useSpaceObjectTypesQuery } from "../knowledge/queries/queries";
+import { useSpaceObjectTypesQuery } from "../knowledge/queries/use-knowledge-queries";
 import type { SpaceKnowledgeObjectPayload } from "../model/nodes/node-payload";
 import { useSpaceStore } from "../session/space-store";
 import SpaceKnowledgeFieldEditor from "./knowledge/SpaceKnowledgeFieldEditor.vue";

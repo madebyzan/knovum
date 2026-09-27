@@ -1,6 +1,6 @@
 import { isUndefined, omitBy } from "es-toolkit";
 
-import type { SpaceSavedViewFilter } from "./projections";
+import type { SpaceSavedViewFilter } from "./saved-view-filter";
 
 export function snapshotSpaceQueryFilter(filter: SpaceSavedViewFilter): SpaceSavedViewFilter {
   return omitBy(

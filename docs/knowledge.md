@@ -54,6 +54,12 @@ Excess fails visibly. PDF page count is checked after parsing and is not an inte
 decompression-work limit. Native rendering and visual calls are serial and cancellation
 is checked between operations; running vendor/native calls are not forcibly interrupted.
 
+## Document locations and job checkpoints
+
+Office body, header and footer locations use the library's public logical positions; they do not infer rendered pagination. XLSX images and text shapes use public worksheet interfaces and retain EMU geometry. Geometry is not the original cell anchor. Legacy binary Office image locations remain limited by the parser's location support.
+
+Intermediate document visual results belong to the enrichment job and are stored per occurrence in `spaces_document_visual_checkpoints`, not as a duplicate canonical Knowledge store. Completed analysis is published on job completion or failure. Cancellation retains checkpoints, but unpublished resources of cancelled jobs are not reclamation roots. Retryable jobs for the current source remain referenced by the asset graph.
+
 ## Database migrations
 
 `spaces.db` is created from the single pre-release SQLx v1 baseline at
@@ -101,14 +107,3 @@ The renderer passage splitter uses linear UTF-8 width accounting and the same pr
 ## Module boundary
 
 Knowledge State does not introduce a separate compatibility layer or speculative ANN subsystem. Domain truth stays in revision, passage, citation, asset and package boundaries rather than renderer fallback logic. MCP writes enter long-term Knowledge only through the same validated atomic KnowledgeChangeSet use case as native product actions.
-
-# 文档内容与任务检查点
-
-Office 正文、页眉及页脚使用库公开的逻辑内容位置；不推断实际分页。
-XLSX 图片与文字形状直接读取公共工作表接口，保留 EMU 几何；
-几何位置不等于原始单元格锚点。旧二进制 Office 图片受库的定位能力限制。
-
-文档视觉分析的中间结果归 enrichment job 所有，存入
-`spaces_document_visual_checkpoints`，不是 canonical knowledge 的重复存储。
-每个 occurrence 单独保存，完成或失败时发布已完成知识；取消保留任务检查点，
-但已取消任务的未发布资源不构成资源回收根。当前来源的可重试任务资源由引用图保留。

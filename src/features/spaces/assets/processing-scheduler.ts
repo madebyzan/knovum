@@ -4,8 +4,8 @@ import { useTaskStore } from "../../../foundation/tasks/task-store";
 import { resumePendingEnrichmentJobs } from "../enrichment/job-scheduler";
 import { isSpaceManagedAssetPayload } from "../model/nodes/capabilities";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
-import { runSpaceAssetDerivation } from "../session/actions/work-scheduler";
 import { cancelSpaceAssetProcessing, deriveSpaceAssetData } from "./asset-operations";
+import { runSpaceAssetProcessing } from "./concurrency-budget";
 
 export interface SpaceAssetProcessingContext {
   applyNodeDataForSpace(spaceId: string, id: string, data: SpaceNodePayload): void;
@@ -36,7 +36,7 @@ export function scheduleSpaceAssetProcessing(input: {
   async function run() {
     let enriched: SpaceNodePayload;
     try {
-      enriched = await runSpaceAssetDerivation(async () => {
+      enriched = await runSpaceAssetProcessing(async () => {
         if (cancelRequested) throw new Error("Space asset processing cancelled");
         return deriveSpaceAssetData(spaceId, nodeId, jobId, (updated) => {
           currentData = updated;

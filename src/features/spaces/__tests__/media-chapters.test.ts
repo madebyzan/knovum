@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { finalizeMediaChapters } from "../media/chapters";
-import type { SpaceMediaTranscript } from "../media/schema";
+import type { SpaceMediaTranscript } from "../media/knowledge-schema";
 
 const transcript: SpaceMediaTranscript = {
   language: "en",

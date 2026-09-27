@@ -1,5 +1,6 @@
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceRelation } from "../../model/relations/relation";
+import type { SpaceEditSnapshot } from "../../model/structure/edit-snapshot";
 import type {
   StructureNodeId,
   StructureLayout,
@@ -9,7 +10,6 @@ import type {
 import { validateStructureSnapshot } from "../../model/structure/structure-validation";
 import { contentWorldBounds, mergeWorldBounds, type WorldBounds } from "../../model/structure/world-bounds";
 import { composeTransforms, localTransformOf } from "../../model/structure/world-transform";
-import type { SpaceEditSnapshot } from "../contract/space-edit-snapshot";
 import type { ProjectedContent, ProjectedGroup, ProjectedSection, StructureScene } from "./structure-scene";
 import { projectStructureRelations } from "./structure-scene-relations";
 

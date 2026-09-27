@@ -97,6 +97,7 @@ has at least one command.
 | Read        | Read one known identity                                        | `get`        |
 | Read        | Return a collection                                            | `list`       |
 | Read        | Query by free text or criteria                                 | `search`     |
+| Read        | Load a durable aggregate or session projection                 | `load`       |
 | Read        | Read from a network boundary                                   | `fetch`      |
 | Read        | Assemble a snapshot or aggregate representation                | `collect`    |
 | Sync        | Bring derived state back in sync                               | `reconcile`  |
@@ -150,9 +151,9 @@ A command that only writes a failure record is `fail_*`, not `stop_*`.
 
 ### Persistence and Renderer-local verbs
 
-These name work inside a persistence module or a Renderer-local API. They never appear in a command
-name, because SQL implementation details such as `insert` and `Transaction` do not leak through
-Renderer APIs.
+These name work inside persistence or Renderer-local APIs. Persistence implementation verbs such as
+`insert` and `upsert` do not leak into IPC; the read verbs `get`, `load`, `find` and `read` can also
+name an IPC operation when they describe its public intent.
 
 | Intent                                                 | Verb      |
 | ------------------------------------------------------ | --------- |
@@ -171,8 +172,10 @@ Renderer APIs.
 | Adopt or clean up orphaned resources                   | `reclaim` |
 | Transfer bytes up to a remote destination              | `upload`  |
 
-The `get`/`load` split is a Renderer-local distinction. Every Tauri command performs I/O, so at the
-IPC boundary `get_<entity>` is simply "read one known identity" and `load` is not a command verb.
+At the IPC boundary, `get_<entity>` reads one known identity; `load_<aggregate>` assembles durable
+state such as a Space session projection, edit snapshot or camera state. Both are read operations.
+Existing `load_space_session_projection`, `load_space_edit_snapshot` and `load_canvas_view_state`
+retain their stable addresses. I/O alone does not determine which verb to use.
 
 ## Tauri commands
 
@@ -208,8 +211,10 @@ One exception is on record: `list_provenance` returns `SpaceProvenance[]`, and t
 `provenances` is not idiomatic English, so the resource keeps its mass-noun form. Do not add a second
 exception without recording it here.
 
-This is the default namespace. Every Knovum capability owns one: `spaces`, `ai`, `secrets`,
-`preferences`, `desktop`, `database`.
+Custom in-process plugins currently registered in `src-tauri/build.rs` are `spaces`, `ai`,
+`secrets`, `desktop` and `local-resources`. Official plugins such as Store remain vendor-owned;
+there are no custom `preferences` or `database` namespaces. A business capability does not
+automatically require a separate plugin.
 
 App commands registered through the application `invoke_handler` share one flat namespace, so the
 owner has to be part of the name:
@@ -247,8 +252,8 @@ correctness.
 
 ## Frontend file suffixes
 
-- `*-client.ts`: remote, Tauri IPC, third-party SDK or other communication adapter.
-- `*-repository.ts`: aggregate/domain persistence or query port; never UI state.
+- `*-client.ts`: an actual network/SDK client with request or connection lifecycle. Ordinary Tauri IPC functions use operation names; a forwarding function is not a client.
+- `*-repository.ts`: actual aggregate persistence access or persistence policy; never UI state or projection decoding alone.
 - `session/<feature>-store.ts`: a feature's Pinia cross-view session composition root.
 - `*-controller.ts`: UI lifecycle and multi-primitive orchestration.
 - `*-actions.ts`: user/domain actions over one state owner.
@@ -294,10 +299,11 @@ module. Both sides mirror the same sub-domain names, which is what makes the dir
   entity.
 - The handle for a cancellable async job is always `job_id` / `jobId`, across every feature that
   produces one. A recording session is a session, not a job, and keeps `session_id`.
-- A Tauri `Channel` parameter is named for its payload type, and there are exactly three:
-  `on_progress` for a typed progress record, `on_stage` for a stage-name string, `on_event` for a
-  completion stream event. A command may carry more than one when it genuinely emits more than one
-  payload type.
+- A Tauri `Channel` parameter names its payload or purpose: `on_progress` / `onProgress` for progress,
+  `on_stage` / `onStage` for stages, `on_event` / `onEvent` for event streams, and `updates` for Run or
+  conversation state snapshots. A domain-specific `progress` field is valid when its contract is
+  explicit. Serialized parameter names are stable IPC fields; renaming requires both Rust and
+  Renderer updates. Internal parameters are not restricted to a closed three-word list.
 - Maps use `<value>By<Key>`; timestamps use `*At` / `*_at`; durations include their unit.
 - Only DOM/component references use `*Ref`; a Vue `ref()` does not make `Ref` part of the domain name.
 - `data`, `value`, `result`, and `item` are limited to short, unambiguous local transforms.

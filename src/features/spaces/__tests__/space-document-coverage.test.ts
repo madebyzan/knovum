@@ -4,7 +4,7 @@ import { nextTick } from "vue";
 
 import { i18n } from "../../../foundation/i18n/i18n";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
-import SpaceDocumentCoverage from "../presentation/SpaceDocumentCoverage.vue";
+import SpaceDocumentCoverage from "../presentation/document/SpaceDocumentCoverage.vue";
 
 const resourceId = "a".repeat(64);
 const node: SpaceCanvasNode = {

@@ -2,7 +2,7 @@ import { Channel } from "@tauri-apps/api/core";
 
 import { decodeCommandError } from "../../../foundation/ipc/command-error";
 import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
-import type { SpaceMediaTranscript } from "./schema";
+import type { SpaceMediaTranscript } from "./knowledge-schema";
 
 export type SpaceMediaTranscriptionStage = "preparing" | "transcoding" | "transcribing" | "parsing" | "done";
 

@@ -5,8 +5,8 @@ import { defineComponent, h, nextTick, shallowRef } from "vue";
 
 import { isInteractiveTarget } from "../../../foundation/dom/interactive-target";
 import { i18n } from "../../../foundation/i18n/i18n";
-import type { OutlineTreeItem } from "../presentation/outline-tree-items";
-import SpaceStructureOutlineRow from "../presentation/SpaceStructureOutlineRow.vue";
+import type { OutlineTreeItem } from "../presentation/outline/outline-tree-items";
+import SpaceStructureOutlineRow from "../presentation/outline/SpaceStructureOutlineRow.vue";
 
 vi.mock("@tauri-apps/plugin-log", () => ({ error: vi.fn<(message: string) => Promise<void>>() }));
 

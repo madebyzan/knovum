@@ -9,13 +9,13 @@ export type { InspectedAssistantUpload } from "../contracts/generated/InspectedA
 import { Channel } from "@tauri-apps/api/core";
 
 import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
-import type { ApprovalSummary } from "../contracts/generated/ActionApproval";
-import type { ConversationSummary } from "../contracts/generated/AssistantConversation";
+import type { ApprovalSummary } from "../contracts/generated/ApprovalSummary";
 import type { AssistantMessage } from "../contracts/generated/AssistantMessage";
 import type { AssistantTaskAccepted } from "../contracts/generated/AssistantTaskAccepted";
 import type { AssistantTaskUpdate } from "../contracts/generated/AssistantTaskUpdate";
+import type { ConversationSummary } from "../contracts/generated/ConversationSummary";
 
-export type { ConversationSummary } from "../contracts/generated/AssistantConversation";
+export type { ConversationSummary } from "../contracts/generated/ConversationSummary";
 export type { AssistantMessage, AssistantTaskAccepted };
 
 export function listActiveAssistantRuns(spaceId?: string): Promise<ActiveAssistantRun[]> {

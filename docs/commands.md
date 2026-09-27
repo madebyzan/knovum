@@ -62,9 +62,6 @@ Saved Website networking is Rust-owned: the crate-level web capture module perfo
 - `plugin:spaces|preview_asset` — authorizes one managed Space asset and opens the platform system preview. The engine is internal Rust code and never accepts an untrusted Renderer path directly.
 - Canvas surfaces omit the action when the platform has no system preview panel; media retains its own spacebar playback behavior.
 
-## Commands without a Renderer consumer
+## Command registration review
 
-These declared commands have no production Renderer consumer. The list is documentation, not a gate
-registry: nothing enforces it, so it is only as true as the last review that read it. Treat each
-entry as authorized debt and prefer deleting an unused command — an unreachable command still
-widens the WebView ACL, which `AGENTS.md` forbids granting preemptively.
+When adding or removing an IPC command, review the Rust handler, build-time plugin registration, generated permissions, window capability and production caller together. This document does not maintain an unverified list of unused commands. Knip checks Renderer reachability within its configured entries; it does not prove Rust handler reachability or grant correctness. The exact namespace and synchronization policy is in [naming-conventions.md](naming-conventions.md).

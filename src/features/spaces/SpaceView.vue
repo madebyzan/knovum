@@ -14,11 +14,11 @@ import {
 import { useConversationSessionStore } from "./conversation/conversation-session-store";
 import { useDeferredEditorMount } from "./editor/use-deferred-editor-mount";
 import SpaceCanvas from "./presentation/canvas/SpaceCanvas.vue";
+import SpaceRecentlyDeleted from "./presentation/deletion/SpaceRecentlyDeleted.vue";
 import SpaceTiptapEditor from "./presentation/editor/SpaceTiptapEditor.vue";
 import SpaceLibrary from "./presentation/library/SpaceLibrary.vue";
 import SpaceAudioRecordingDock from "./presentation/media/SpaceAudioRecordingDock.vue";
 import SpaceEditorLoading from "./presentation/SpaceEditorLoading.vue";
-import SpaceRecentlyDeleted from "./presentation/SpaceRecentlyDeleted.vue";
 import SpaceVideoEditor from "./presentation/video-editor/SpaceVideoEditor.vue";
 import SpaceWorkflowReviewDialog from "./presentation/workflows/SpaceWorkflowReviewDialog.vue";
 import { useSpaceStore } from "./session/space-store";

@@ -9,12 +9,12 @@ import {
   readFileSync,
   rmSync,
 } from "node:fs";
-import { dirname, isAbsolute, join, resolve } from "node:path";
+import { dirname, isAbsolute, join, resolve as resolvePath } from "node:path";
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import { fileURLToPath } from "node:url";
 
-const repository = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const repository = resolvePath(dirname(fileURLToPath(import.meta.url)), "..");
 const args = process.argv.slice(2);
 const value = (name) => {
   const index = args.indexOf(name);
@@ -89,8 +89,13 @@ async function installMediaRuntime() {
   console.log(`Installed yt-dlp ${manifest.ytDlp.version} and Deno ${manifest.deno.version}`);
 }
 
-async function download(url, expectedHash, file, headers = { "User-Agent": "Knovum runtime provisioner" }) {
-  const response = await fetch(url, { headers });
+async function download(
+  downloadUrl,
+  expectedHash,
+  file,
+  headers = { "User-Agent": "Knovum runtime provisioner" },
+) {
+  const response = await fetch(downloadUrl, { headers });
   if (!response.ok || !response.body) throw new Error(`Runtime download failed: HTTP ${response.status}`);
   await pipeline(Readable.fromWeb(response.body), createWriteStream(file));
   if ((await sha256(file)) !== expectedHash) {
@@ -132,11 +137,11 @@ function hostTarget() {
 }
 
 function sha256(file) {
-  return new Promise((resolveHash, reject) => {
+  return new Promise((resolve, reject) => {
     const hash = createHash("sha256");
     const stream = createReadStream(file);
     stream.on("data", (chunk) => hash.update(chunk));
     stream.on("error", reject);
-    stream.on("end", () => resolveHash(hash.digest("hex")));
+    stream.on("end", () => resolve(hash.digest("hex")));
   });
 }

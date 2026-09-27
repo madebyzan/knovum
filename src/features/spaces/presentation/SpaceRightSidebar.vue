@@ -4,12 +4,12 @@ import { computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { useCanvasSelectionProjection } from "../canvas/editor-session";
-import { knowledgeLocationLabel } from "../knowledge/model/location";
+import { knowledgeLocationLabel } from "../knowledge/presentation/location-label";
 import { useSpaceStore } from "../session/space-store";
 import SpaceConversationPanel from "./conversation/SpaceConversationPanel.vue";
 import SpaceDocumentOutline from "./editor/SpaceDocumentOutline.vue";
+import SpaceInspectorDetails from "./inspector/SpaceInspectorDetails.vue";
 import SpaceContextHeader from "./SpaceContextHeader.vue";
-import SpaceInspectorDetails from "./SpaceInspectorDetails.vue";
 import SpaceSourcePeek from "./SpaceSourcePeek.vue";
 
 const store = useSpaceStore();

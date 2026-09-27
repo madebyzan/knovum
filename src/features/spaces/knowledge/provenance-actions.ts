@@ -2,7 +2,7 @@ import { queryClient } from "../../../foundation/query/query-client";
 import type { SpaceProvenanceTargetKind } from "./model/provenance";
 import {
   createProvenance,
-  removeProvenance,
+  revokeProvenance,
   type CreateProvenanceInput,
 } from "./persistence/knowledge-operations";
 import { spaceKnowledgeQueryKeys } from "./queries/query-options";
@@ -19,7 +19,7 @@ export async function attachProvenance(provenance: CreateProvenanceInput) {
 }
 
 export async function detachProvenance(id: string, target: ProvenanceTarget) {
-  await removeProvenance(id);
+  await revokeProvenance(id);
   await refreshProvenance(target);
 }
 

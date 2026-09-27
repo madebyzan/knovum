@@ -98,13 +98,3 @@ fn safe_nonnegative_integer(value: &Value, key: &str) -> Result<i64, String> {
 
 #[cfg(test)]
 mod tests;
-
-pub(in crate::spaces::knowledge::node_contracts) fn optional_bool(
-    object: &Map<String, Value>,
-    key: &str,
-) -> Result<(), String> {
-    if object.get(key).is_some_and(|value| !value.is_boolean()) {
-        return Err(format!("Space node data.{key} must be boolean"));
-    }
-    Ok(())
-}

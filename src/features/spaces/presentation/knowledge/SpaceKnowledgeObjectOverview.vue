@@ -8,7 +8,7 @@ import UiBadge from "../../../../shared/ui/UiBadge.vue";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import { selectAndRevealSpaceNode } from "../../canvas/selection-actions";
 import { knowledgeObjectTypeKey } from "../../knowledge/model/object-presentation";
-import { useSpaceObjectTypesQuery } from "../../knowledge/queries/queries";
+import { useSpaceObjectTypesQuery } from "../../knowledge/queries/use-knowledge-queries";
 import type { SpaceKnowledgeObjectPayload } from "../../model/nodes/node-payload";
 import { useSpaceStore } from "../../session/space-store";
 

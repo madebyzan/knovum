@@ -41,3 +41,17 @@ fn contracts_keep_their_capability_owner() {
         Some(std::path::PathBuf::from("AgentKind.ts"))
     );
 }
+
+#[test]
+fn exported_summary_files_match_their_type_identity() {
+    fn assert_identity<T: ts_rs::TS>() {
+        let output = T::output_path().expect("exported summary path");
+        assert_eq!(
+            output.file_stem().and_then(|name| name.to_str()),
+            Some(T::name(&ts_rs::Config::new()).as_str())
+        );
+    }
+    assert_identity::<crate::spaces::runs::StepSummary>();
+    assert_identity::<crate::spaces::authorization::ApprovalSummary>();
+    assert_identity::<crate::spaces::assistant::ConversationSummary>();
+}

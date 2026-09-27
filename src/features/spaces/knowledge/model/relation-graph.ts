@@ -4,7 +4,7 @@ import {
   type SpaceRelation,
   type SpaceRelationStatus,
 } from "../../model/relations/relation";
-import type { SpaceSavedViewFilter } from "./projections";
+import type { SpaceSavedViewFilter } from "./saved-view-filter";
 import { isSpaceSemanticNode } from "./semantic-node";
 
 export function relationNeighborhood(

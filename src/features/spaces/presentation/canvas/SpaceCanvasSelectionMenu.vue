@@ -14,18 +14,18 @@ import { platform } from "@tauri-apps/plugin-os";
 import { ToolbarButton } from "reka-ui";
 import { useI18n } from "vue-i18n";
 
+import { SUBMENU_CONTENT_CLASSES } from "../../../../shared/ui/ui-classes";
 import UiDropdownMenu from "../../../../shared/ui/UiDropdownMenu.vue";
 import UiDropdownMenuItem from "../../../../shared/ui/UiDropdownMenuItem.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiKbd from "../../../../shared/ui/UiKbd.vue";
 import UiSeparator from "../../../../shared/ui/UiSeparator.vue";
-import { SUBMENU_CONTENT_CLASSES } from "../../../../shared/ui/ui-classes";
 import { SPACE_COMMAND_SHORTCUTS } from "../../commands/space-command-shortcuts";
 import type {
   CreationIntentDecisions,
   CreationIntentId,
 } from "../../knowledge-derivations/catalog/creation-intent-definitions";
-import SpaceDerivationMenuItems from "../SpaceDerivationMenuItems.vue";
+import SpaceDerivationMenuItems from "../derivations/SpaceDerivationMenuItems.vue";
 import SpaceSelectionMoveMenu from "../SpaceSelectionMoveMenu.vue";
 import SpaceCanvasArrangeMenu from "./SpaceCanvasArrangeMenu.vue";
 import SpaceCanvasLayerMenu from "./SpaceCanvasLayerMenu.vue";

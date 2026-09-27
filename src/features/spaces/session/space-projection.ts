@@ -1,13 +1,14 @@
 import { z } from "zod";
 
 import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
-import { parseSpaceEditSnapshot, type SpaceEditSnapshot } from "../canvas/contract/space-edit-snapshot";
 import type { SpaceSessionProjection } from "../contracts/generated/SpaceSessionProjection";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceRelation } from "../model/relations/relation";
+import { relationSchema, toSpaceRelation } from "../model/relations/relation-schema";
+import { parseSpaceEditSnapshot, type SpaceEditSnapshot } from "../model/structure/edit-snapshot";
 import { parseSpaceNodeRecords } from "../nodes/node-operations";
-import { relationSchema, sceneSchema, toSpaceRelation } from "../package/core-schema";
 import type { SpaceScene } from "../scenes/scene";
+import { sceneSchema } from "../scenes/scene-schema";
 
 const sessionSceneSchema = sceneSchema.extend({ thumbnailPath: z.string().nullable() });
 

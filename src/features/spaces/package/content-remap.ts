@@ -2,7 +2,7 @@ import { isString, isUndefined, omitBy } from "es-toolkit";
 
 import type { GroundedCitation } from "../knowledge/model/grounded-citation";
 import type { SpaceObjectFieldDefinition } from "../knowledge/model/object-types";
-import type { SpaceSavedViewFilter } from "../knowledge/model/projections";
+import type { SpaceSavedViewFilter } from "../knowledge/model/saved-view-filter";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
 import { remapTypeId, requiredMap, type PackageIdMaps } from "./id-maps";
 import type { SpacePackageManifest } from "./manifest-schema";

@@ -5,7 +5,7 @@ import { useI18n } from "vue-i18n";
 import UiDialog from "../../../../shared/ui/UiDialog.vue";
 import { formatByteSize } from "../../assets/format-byte-size";
 import { spaceAssetSource } from "../../assets/node-preview-source";
-import { knowledgeLocationLabelFromLocation } from "../../knowledge/model/location";
+import { knowledgeLocationLabelFromLocation } from "../../knowledge/presentation/location-label";
 import type { DocumentResourceProjection } from "./document-resource-projection";
 
 const open = defineModel<boolean>("open", { required: true });

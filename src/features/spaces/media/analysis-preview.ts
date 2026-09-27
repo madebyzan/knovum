@@ -1,7 +1,7 @@
 import { omit } from "es-toolkit";
 import type { Ref } from "vue";
 
-import type { SpaceTranscriptSegment } from "./schema";
+import type { SpaceTranscriptSegment } from "./knowledge-schema";
 
 export interface SpaceMediaAnalysisPreview {
   language: string;

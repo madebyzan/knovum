@@ -161,8 +161,8 @@ export function assembleSpaceActions(input: Input) {
       kind: Parameters<typeof createSpaceRelation>[1]["kind"],
       options: { rationale?: string; spaceId?: string } = {},
     ) => createSpaceRelation(relation, { sourceId, targetId, kind, ...options }),
-    removeRelation: (id: string) => removeSpaceRelation(relation, id),
-    removeRelations: (ids: readonly string[]) => removeSpaceRelations(relation, ids),
+    revokeRelation: (id: string) => removeSpaceRelation(relation, id),
+    revokeRelations: (ids: readonly string[]) => removeSpaceRelations(relation, ids),
     updateRelationKind: (id: string, kind: Parameters<typeof changeSpaceRelationKind>[2]) =>
       changeSpaceRelationKind(relation, id, kind),
     updateRelation: (id: string, patch: Parameters<typeof updateSpaceRelation>[2]) =>

@@ -8,7 +8,7 @@ import { formatDurationMs } from "../../media/format-duration";
 import type { SpaceMediaPlaybackState } from "../../media/playback";
 import { mediaProviderDisplayName } from "../../media/provider-display-name";
 import type { SpaceMediaPayload } from "../../model/nodes/capabilities";
-import { versionedMediaSource } from "./element";
+import { versionedMediaSource } from "./media-element-source";
 import { useMediaPlayback } from "./use-media-playback";
 
 const WAVEFORM_BAR_COUNT = 52;

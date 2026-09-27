@@ -6,7 +6,7 @@ import { useI18n } from "vue-i18n";
 
 import UiSearchInput from "../../../../shared/ui/UiSearchInput.vue";
 import UiSwitch from "../../../../shared/ui/UiSwitch.vue";
-import type { SpaceTranscriptEdit, SpaceTranscriptSegment } from "../../media/schema";
+import type { SpaceTranscriptEdit, SpaceTranscriptSegment } from "../../media/knowledge-schema";
 import SpaceTranscriptRow from "./SpaceTranscriptRow.vue";
 
 const props = defineProps<{

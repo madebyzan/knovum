@@ -1,6 +1,6 @@
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceNodePayload } from "../../model/nodes/node-payload";
-import type { NodePayloadChange } from "../../session/actions/node-mutations";
+import type { NodePayloadChange } from "../../model/nodes/payload-change";
 
 interface CanvasNodeContentPersistence {
   nodes: readonly SpaceCanvasNode[];

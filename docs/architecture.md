@@ -91,7 +91,7 @@ engine never becomes a general Renderer file capability.
 Inspection, Space import and system-thumbnail eligibility consume its typed result; they must not
 maintain parallel extension lists or infer semantic categories from persisted node-kind strings.
 
-`job_registry.rs` is the crate-private lifecycle primitive for in-memory work. It owns atomic
+`job_registry/mod.rs` is the crate-private lifecycle primitive for in-memory work. It owns atomic
 registration, cancellation lookup and lease-based cleanup; each capability owns a separate typed
 registry for its jobs. `ai/executions.rs` therefore represents active AI executions rather than a
 second job framework, while model installation keeps its domain snapshot in a typed registry.
@@ -155,10 +155,15 @@ UI shape (`components`, `views`) and technical lifecycle (`state`, `runtime`) re
 their business owner; they do not become peer product domains.
 
 Within Spaces, workspace persistence belongs to `workspace/`, content persistence to `nodes/`,
-Structure/Layout persistence to `structure/`, camera persistence to `canvas/persistence/`, relation
+Structure/Layout edit policy and IPC adapters to `structure/`, camera persistence to `canvas/persistence/`, relation
 persistence to `knowledge/relations/`, scene persistence to `scenes/`, credential persistence to
 `credentials/`, and search transport to `search/`.
 `session/` may assemble their contracts but does not become their implementation owner.
+`model/structure/edit-snapshot.ts` owns the neutral validated edit snapshot. `structure/` owns edit commands and pure policies; its `space-edit-operations` and `structure-transfer-operations` are IPC adapters and cannot be imported by presentation. Scene validation belongs to `scenes/`; relation validation belongs to `model/relations/`; package formats compose those contracts. Node payload change shapes belong to `model/nodes`, not history.
+
+Asset submission budgets live in `assets/concurrency-budget.ts`; media inference has its own `media/inference-budget.ts`. Their process-wide queue sizes and cancellation checks are unchanged. They do not depend on session composition or represent durable jobs.
+
+Rust structure planning is grouped under `spaces/structure/planner/`; planner modules are private except the structure-scoped clone, deletion, bounds and spatial/tree-policy boundaries consumed by transactions and transfer. Images accepts caller-authorized paths and owns only rendering/resource limits. Spaces authorizes every managed image source before engine invocation; the images engine must not import Spaces.
 
 The Spaces UI composition root keeps cross-capability visual composition under `presentation/`.
 Canvas surfaces, knowledge presentation, rich-editor controls, media playback and derivation dialogs
@@ -261,7 +266,7 @@ The node-kind decision is explicit:
 | Website              | URL, captured metadata and annotations of that saved resource                                  | Summary, document or visualization grounded in its captured revision               |
 | File, code           | Title, tags and other node metadata; an explicit source replacement changes its asset revision | Converted document, generated code or other new resource                           |
 | Knowledge object     | Typed properties, status, title and evidence relations                                         | A new knowledge resource only when the intent explicitly creates one               |
-| Credential           | Metadata and OS-vault secret reference                                                         | No credential derivative; generated artifacts may consume an authorized credential |
+| Credential           | Metadata and dedicated local credential-database reference                                     | No credential derivative; generated artifacts may consume an authorized credential |
 | Portal               | Target and presentation metadata                                                               | No content derivative; duplicate is a clone                                        |
 
 Groups and Sections are Structure entities rather than content nodes. Move, resize, reorder, lock,

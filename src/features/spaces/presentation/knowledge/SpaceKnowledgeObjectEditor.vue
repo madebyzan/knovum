@@ -10,7 +10,7 @@ import UiSelect from "../../../../shared/ui/UiSelect.vue";
 import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
 import { knowledgeObjectStatusesForType } from "../../knowledge/model/object-types";
 import { isSpaceSemanticNode } from "../../knowledge/model/semantic-node";
-import { useSpaceObjectTypesQuery } from "../../knowledge/queries/queries";
+import { useSpaceObjectTypesQuery } from "../../knowledge/queries/use-knowledge-queries";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceKnowledgeObjectPayload } from "../../model/nodes/node-payload";
 import { useSpaceStore } from "../../session/space-store";

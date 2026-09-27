@@ -1,8 +1,8 @@
+import type { SpaceEditSnapshot } from "../../model/structure/edit-snapshot";
 import { createStructureIndex } from "../../model/structure/structure-index";
 import { worldTransformFor } from "../../model/structure/world-transform";
 import type { CanvasDocumentV1 } from "../contract/canvas-document";
 import type { CanvasViewport } from "../contract/canvas-editor-port";
-import type { SpaceEditSnapshot } from "../contract/space-edit-snapshot";
 
 const DEFAULT_VIEWPORT: CanvasViewport = { x: 0, y: 0, zoom: 1 };
 
