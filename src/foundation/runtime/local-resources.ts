@@ -3,10 +3,12 @@ export type { ModelKind } from "../../shared/contracts/generated/ModelKind";
 
 import type { LocalResourcesStatus } from "../../shared/contracts/generated/LocalResourcesStatus";
 export type { LocalResourcesStatus } from "../../shared/contracts/generated/LocalResourcesStatus";
-import type { ModelDownloadProgress as ModelInstallProgress } from "../../shared/contracts/generated/ModelDownloadProgress";
-export type { ModelDownloadProgress as ModelInstallProgress } from "../../shared/contracts/generated/ModelDownloadProgress";
-import type { ModelInstallSnapshot } from "../../shared/contracts/generated/ModelInstallSnapshot";
-export type { ModelInstallSnapshot } from "../../shared/contracts/generated/ModelInstallSnapshot";
+import type { ResourcePreparationProgress } from "../../shared/contracts/generated/ResourcePreparationProgress";
+export type { ResourcePreparationProgress } from "../../shared/contracts/generated/ResourcePreparationProgress";
+import type { ResourcePreparationSnapshot } from "../../shared/contracts/generated/ResourcePreparationSnapshot";
+export type { ResourcePreparationSnapshot } from "../../shared/contracts/generated/ResourcePreparationSnapshot";
+import type { ResourcePreparationTarget } from "../../shared/contracts/generated/ResourcePreparationTarget";
+export type { ResourcePreparationTarget } from "../../shared/contracts/generated/ResourcePreparationTarget";
 import { Channel } from "@tauri-apps/api/core";
 
 import { invokeCommand as invoke } from "../ipc/invoke-command";
@@ -14,22 +16,28 @@ import { invokeCommand as invoke } from "../ipc/invoke-command";
 export function getLocalResourcesStatus(): Promise<LocalResourcesStatus> {
   return invoke("plugin:local-resources|get_status");
 }
-export function installLocalModels(
-  models: ModelKind[],
+export function prepareResources(
+  target: ResourcePreparationTarget,
   jobId: string,
-  onProgress: (value: ModelInstallProgress) => void,
+  title: string,
+  onProgress: (value: ResourcePreparationProgress) => void,
 ) {
-  const channel = new Channel<ModelInstallProgress>();
+  const channel = new Channel<ResourcePreparationProgress>();
   // Tauri Channel exposes one IPC receiver rather than a DOM EventTarget.
   // oxlint-disable-next-line unicorn/prefer-add-event-listener
   channel.onmessage = onProgress;
-  return invoke<void>("plugin:local-resources|install_models", { models, jobId, onProgress: channel });
+  return invoke<void>("plugin:local-resources|prepare_resources", {
+    target,
+    jobId,
+    title,
+    onProgress: channel,
+  });
 }
-export function cancelModelInstall(jobId: string): Promise<void> {
-  return invoke("plugin:local-resources|cancel_model_install", { jobId });
+export function cancelResourcePreparation(jobId: string): Promise<void> {
+  return invoke("plugin:local-resources|cancel_resource_preparation", { jobId });
 }
-export function listModelInstalls(): Promise<ModelInstallSnapshot[]> {
-  return invoke("plugin:local-resources|list_model_installs");
+export function listResourcePreparations(): Promise<ResourcePreparationSnapshot[]> {
+  return invoke("plugin:local-resources|list_resource_preparations");
 }
 export function removeLocalModel(model: ModelKind): Promise<void> {
   return invoke("plugin:local-resources|remove_model", { model });

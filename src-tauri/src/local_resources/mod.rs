@@ -7,10 +7,13 @@ use tauri::AppHandle;
 use models::{catalog::ModelKind, ModelStatus};
 
 mod configured_path;
+mod download;
 pub(crate) mod models;
+pub(crate) mod preparation;
 #[cfg(test)]
 mod tests;
 pub(crate) mod tools;
+mod verification;
 
 #[derive(Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
@@ -49,8 +52,8 @@ fn status(app: &AppHandle) -> Result<LocalResourcesStatus, String> {
     Ok(LocalResourcesStatus {
         platform: tools::platform_directory(),
         ffmpeg: tool_status(app, "KNOVUM_FFMPEG_PATH", tools::ffmpeg_name())?,
-        yt_dlp: tool_status(app, "KNOVUM_YT_DLP_PATH", tools::yt_dlp_name())?,
-        deno: tool_status(app, "KNOVUM_DENO_PATH", tools::deno_name())?,
+        yt_dlp: tool_status_from_path(tools::resolve_yt_dlp(app)?),
+        deno: tool_status_from_path(tools::resolve_deno(app)?),
         whisper_cli: tool_status(app, "KNOVUM_WHISPER_PATH", tools::whisper_cli_name())?,
         models: model_statuses(app)?,
     })

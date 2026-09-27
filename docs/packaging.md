@@ -45,9 +45,8 @@ WiX/MSI requires a numeric `major.minor.patch[.build]` installer version, so pre
 Place each platform's runtime binaries under `src-tauri/resources/bundled-runtime/<target>/`.
 `pnpm runtime:provision` is the only provisioning entry point. It first stages the controlled
 target archive containing FFmpeg, `whisper-cli`, and their native
-dependencies, then adds the exact official yt-dlp standalone executable and application-owned Deno
-runtime from `media-import-manifest.json`. Every downloaded file is SHA-256 verified before it
-enters the target directory.
+dependencies. The archive is SHA-256 verified before it replaces the target directory. Provisioning
+rejects archives containing yt-dlp or Deno because those tools do not belong to the desktop bundle.
 
 Packaged applications resolve these files only from
 `<Tauri resource directory>/resources/bundled-runtime/`. `pnpm tauri dev` and `pnpm desktop:dev`
@@ -55,20 +54,32 @@ set the documented tool-path environment variables to the provisioned host direc
 starts; an explicit developer override remains authoritative. The runtime does not probe repository
 paths or alternative bundle layouts.
 
-`media-import-manifest.json` pins the official yt-dlp and Deno release assets, executable hashes, and yt-dlp corresponding-source archive. No font files are included in the desktop package. `whisper-cli` must be built from the pinned whisper.cpp v1.9.3 release with built-in VAD. Apple Silicon uses the embedded Metal backend. Intel macOS uses the Accelerate CPU backend because the v1.9.3 Metal backend fails buffer allocation on supported Intel hardware; inference is invoked with GPU disabled on that architecture. The provisioned-runtime smoke enforces these platform contracts, including the exact yt-dlp and Deno versions.
+`media-import-manifest.json` pins the official yt-dlp and Deno release assets, archive and executable
+hashes, and yt-dlp corresponding-source archive. The Rust host embeds this repository-owned manifest.
+After a user starts a supported web media import, the local-resource tool owner downloads missing
+tools over HTTPS, verifies the pinned hashes, and publishes versioned directories under
+`<app-data>/local-resources/tools/`. Concurrent imports share one installation; cancelling one import
+does not cancel another waiter's installation. There is no PATH or bundled-runtime fallback. Explicit
+developer path overrides remain the only override boundary.
+
+No font files are included in the desktop package. `whisper-cli` must be built from the pinned
+whisper.cpp v1.9.3 release with built-in VAD. Apple Silicon uses the embedded Metal backend. Intel
+macOS uses the Accelerate CPU backend because the v1.9.3 Metal backend fails buffer allocation on
+supported Intel hardware; inference is invoked with GPU disabled on that architecture. The
+provisioned-runtime smoke enforces these bundled platform contracts.
 
 Background removal is linked into the Rust host through exact-pinned `tract-onnx`; it is not a separately provisioned user runtime. The embedded U²-Net model checksum and provenance live beside the model asset under `src-tauri/src/images/models/`. Release validation must build and run a real inference smoke for each supported macOS and Windows target.
 
 The provision command uses `KNOVUM_BUNDLED_RUNTIME_<TARGET>_URL` and
 `KNOVUM_BUNDLED_RUNTIME_<TARGET>_SHA256`; the optional
 `KNOVUM_BUNDLED_RUNTIME_AUTHORIZATION` secret supplies an Authorization header for a private
-artifact host. `tools/provision-bundled-runtime.mjs` owns the complete download, integrity
-verification, safe archive extraction and media-runtime installation flow in one file. Each
-downloaded archive is hashed once; the extracted Deno executable is verified separately. One staging
-directory is cleaned up when the command finishes or fails.
+artifact host. `tools/provision-bundled-runtime.mjs` owns build-time provisioning for FFmpeg and
+whisper.cpp only. On-demand yt-dlp/Deno installation belongs to
+`src-tauri/src/local_resources/tools/`; build scripts do not implement a second installer.
 
-All `pnpm package:*` commands route through `tools/package-desktop.mjs`. It validates the runtime
-and passes Tauri an explicit resource list for exactly one target plus shared fonts and the media import manifest. `src-tauri/tauri.conf.json` deliberately has no catch-all bundled-runtime glob, so
+All `pnpm package:*` commands route through `tools/package-desktop.mjs`. It validates the runtime,
+rejects on-demand tools in the resource tree, and passes Tauri an explicit file list for exactly one
+target plus the media import manifest. `src-tauri/tauri.conf.json` deliberately has no catch-all bundled-runtime glob, so
 a macOS package cannot accidentally contain Windows binaries or the other macOS architecture (and
 vice versa).
 

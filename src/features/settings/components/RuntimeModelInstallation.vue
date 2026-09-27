@@ -7,7 +7,7 @@ import UiButton from "../../../shared/ui/UiButton.vue";
 import UiIconButton from "../../../shared/ui/UiIconButton.vue";
 import UiProgress from "../../../shared/ui/UiProgress.vue";
 import UiSpinner from "../../../shared/ui/UiSpinner.vue";
-import type { ModelProgressInfo } from "../runtime/model-download";
+import type { ModelProgressInfo } from "../runtime/use-runtime-settings";
 
 defineProps<{
   title: string;
@@ -54,7 +54,6 @@ const { t } = useI18n();
           <template v-if="progress.state === 'downloading'">
             {{
               t("settings.offlineModels.download.downloading", {
-                part: `${progress.partIndex}/${progress.partTotal}`,
                 downloaded: formatBytes(progress.downloaded),
                 total: formatBytes(progress.total),
               })

@@ -146,7 +146,8 @@ export function assembleSpaceActions(input: Input) {
     archiveSpace: (id: string) => archiveSpace(spaceContext, id),
     unarchiveSpace: (id: string) => unarchiveSpace(spaceContext, id),
     permanentlyDeleteSpace: (id: string) => permanentlyDeleteSpace(spaceContext, id),
-    search: (value: string) => searchSpace(navigation, value),
+    search: (value: string, semantic = false, signal?: AbortSignal) =>
+      searchSpace(navigation, value, semantic, signal),
     createScene: (title: string, viewport: { x: number; y: number; zoom: number }, thumbnailPath: string) =>
       createSpaceScene(navigation, title, viewport, thumbnailPath),
     updateScene: (id: string, patch: Parameters<typeof updateSpaceScene>[2]) =>

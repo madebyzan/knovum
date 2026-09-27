@@ -1,6 +1,6 @@
 use serde::Serialize;
 
-#[derive(Debug, Serialize, ts_rs::TS)]
+#[derive(Clone, Debug, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct CommandError {
     pub code: String,

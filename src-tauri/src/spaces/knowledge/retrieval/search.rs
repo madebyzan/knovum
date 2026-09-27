@@ -16,13 +16,20 @@ use super::{
 pub(crate) async fn embed_query<R: Runtime>(
     app: &AppHandle<R>,
     query: &str,
+    cancellation: &tokio_util::sync::CancellationToken,
 ) -> Result<Vec<f32>, String> {
     let query = query.trim();
     if query.is_empty() {
         return Err("Semantic search query is required".to_owned());
     }
+    let resources = crate::local_resources::preparation::acquire_verified_models(
+        app,
+        crate::local_resources::models::catalog::TEXT_EMBEDDING_MODELS,
+        cancellation,
+    )
+    .await?;
     let formatted = embedding_contract::format_query(query);
-    let response = embedding::embed(app, vec![formatted]).await?;
+    let response = embedding::embed(vec![formatted], &resources, cancellation).await?;
     response
         .vectors
         .into_iter()

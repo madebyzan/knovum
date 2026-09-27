@@ -21,10 +21,8 @@ function configureDevelopmentRuntime(targetEnvironment) {
   const directory = join(repository, "src-tauri", "resources", "bundled-runtime", target);
   const windows = process.platform === "win32";
   const tools = {
-    KNOVUM_DENO_PATH: windows ? "deno.exe" : "deno",
     KNOVUM_FFMPEG_PATH: windows ? "ffmpeg.exe" : "ffmpeg",
     KNOVUM_WHISPER_PATH: windows ? "whisper-cli.exe" : "whisper-cli",
-    KNOVUM_YT_DLP_PATH: windows ? "yt-dlp.exe" : "yt-dlp",
   };
   for (const [key, name] of Object.entries(tools)) {
     if (targetEnvironment[key]) continue;

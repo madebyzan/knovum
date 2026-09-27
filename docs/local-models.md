@@ -1,27 +1,35 @@
 # Local AI runtime and model distribution
 
-Knovum separates **signed bundled runtimes** from **large model weights**. Core knowledge features do not require Ollama or another model server.
+Knovum separates bundled core media runtimes from on-demand capability resources. Core knowledge features do not require Ollama or another model server.
 
 ## Shipped with the signed application
 
 Platform-specific runtime binaries belong to the application release and are never fetched from arbitrary URLs at runtime:
 
 - FFmpeg
-- yt-dlp
-- Deno, used by yt-dlp extractors that require a JavaScript runtime
 - whisper.cpp `whisper-cli`
 
 Development and CI point to explicit runtime paths through the documented environment variables. Release builds package the controlled binaries from `src-tauri/resources/bundled-runtime/<platform>/` into the single application-resource location `resources/bundled-runtime/<platform>/`.
 
-## Explicit local model installation
+## Prepared on first use
 
-Knovum never downloads large model weights during install, first launch, indexing, search or media analysis. A missing model is a visible Settings state and the user decides whether to install it.
+A supported web-media import prepares the exact-pinned yt-dlp executable and Deno JavaScript runtime
+from the repository-owned manifest. Both are installed under the versioned
+`local-resources/tools/` application-data namespace after SHA-256 verification. Concurrent imports
+share the same installation, and the Task Center shows preparation progress. Settings reports their
+status, but users do not need to understand or manually install them before using the feature.
 
-| Capability                       | Model                                           | Ownership | Product action               |
-| -------------------------------- | ----------------------------------------------- | --------- | ---------------------------- |
-| Local text embedding             | `Qwen3-Embedding-0.6B` (`fastembed` + `candle`) | Knovum    | Explicit Download / Remove   |
-| Multilingual media transcription | `ggml-small-q8_0.bin`                           | Knovum    | Explicit Download / Remove   |
-| Speech-region detection          | `ggml-silero-v6.2.0.bin`                        | Knovum    | Installed with Transcription |
+## Local model preparation
+
+Knovum does not download model weights during application installation or first launch. A capability
+that needs a missing model prepares it after the user starts that capability and reports the work in
+the shared Task Center. Settings remains a management surface.
+
+| Capability                       | Model                                           | Ownership | Product action              |
+| -------------------------------- | ----------------------------------------------- | --------- | --------------------------- |
+| Local text embedding             | `Qwen3-Embedding-0.6B` (`fastembed` + `candle`) | Knovum    | Prepare on use / Remove     |
+| Multilingual media transcription | `ggml-small-q8_0.bin`                           | Knovum    | Prepare on use / Remove     |
+| Speech-region detection          | `ggml-silero-v6.2.0.bin`                        | Knovum    | Prepared with transcription |
 
 Every local model descriptor has a pinned source and SHA-256. Installation uses a temporary file, streams real byte progress into the shared Task Center, verifies the checksum, and only then atomically activates the model.
 Installed weights live under the current `local-resources/models/` application-data namespace; pre-release legacy paths are not read.

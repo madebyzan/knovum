@@ -455,3 +455,19 @@ Node action bars measure their expanded and icon-only widths before display. The
 The current macOS visual profile uses Tauri's transparent WebView + `sidebar` window effect. This requires `app.macOSPrivateApi: true`; Tauri documents that this prevents Mac App Store acceptance. Knovum currently optimizes for direct/team distribution. If Mac App Store distribution becomes a requirement, record a new ADR and remove the private-material profile rather than silently weakening it.
 
 Windows uses the official Mica window effect and WebView2 Fluent overlay scrollbars when available. No third-party vibrancy package is used.
+
+## First-use local resources
+
+A user starts a product action, rather than navigating to Settings to install its dependencies.
+Transcription and URL media import display resource preparation in the action's existing progress
+surface. Semantic search has an explicit activation action: keyword results remain usable while
+resources are prepared, and indexing is presented as a separate actual stage before semantic results
+are enabled. Switching Spaces during preparation does not replay the old query in the new Space.
+
+Task Center projects Rust-owned preparation snapshots with the same job identity across WebView
+reloads. It presents measured bytes for downloads and indeterminate verification/installation;
+it does not invent a verification percentage or own installation lifetime. Cancel releases one
+request, and retry starts resource preparation without automatically repeating a business mutation.
+Settings uses that same preparation path for optional pre-download and model removal; it is a
+management surface, not a prerequisite for using a capability. Application launch does not download
+optional models or tools.

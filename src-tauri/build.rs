@@ -15,9 +15,9 @@ fn main() {
                 "local-resources",
                 tauri_build::InlinedPlugin::new().commands(&[
                     "get_status",
-                    "install_models",
-                    "cancel_model_install",
-                    "list_model_installs",
+                    "prepare_resources",
+                    "cancel_resource_preparation",
+                    "list_resource_preparations",
                     "remove_model",
                 ]),
             )
@@ -134,6 +134,7 @@ fn main() {
                         "list_knowledge_chunks",
                         "search_knowledge_global",
                         "search_knowledge_hybrid",
+                        "cancel_knowledge_search",
                         "list_related_content",
                         "index_knowledge",
                         "rebuild_knowledge_retrieval_index",

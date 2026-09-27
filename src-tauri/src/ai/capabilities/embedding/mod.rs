@@ -1,5 +1,3 @@
-use tauri::{AppHandle, Runtime};
-
 use crate::ai::{
     contracts::{EmbeddingCapability, EmbeddingResponse},
     providers::local_candle::{self, LocalCandleEmbeddingAdapter},
@@ -15,14 +13,15 @@ pub fn unload() -> Result<(), String> {
     local_candle::engine::unload()
 }
 
-pub async fn embed<R: Runtime>(
-    app: &AppHandle<R>,
+pub async fn embed(
     texts: Vec<String>,
+    resources: &crate::local_resources::preparation::PreparedModels,
+    cancellation: &tokio_util::sync::CancellationToken,
 ) -> Result<EmbeddingResponse, String> {
     let provider = active_text_provider();
     validate_inputs(&texts, provider)?;
     let expected = texts.len();
-    let output = local_candle::engine::embed(app.clone(), texts).await?;
+    let output = local_candle::engine::embed(texts, resources.clone(), cancellation).await?;
     validate_vectors(&output.vectors, expected, provider.dimensions())?;
     let input_tokens = u32::try_from(output.input_tokens)
         .map_err(|_| "Embedding input token count exceeds the supported range".to_owned())?;

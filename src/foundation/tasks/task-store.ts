@@ -13,7 +13,7 @@ export type { AppTask } from "./task-model";
 
 export const useTaskStore = defineStore("tasks", () => {
   const tasks = ref<AppTask[]>([]);
-  const { progress, detail, title } = createTaskProgress(tasks);
+  const { progress, indeterminate, detail, title } = createTaskProgress(tasks);
   const completionTimers = new Map<string, ReturnType<typeof setTimeout>>();
   const handlers = new TaskExecutionHandlers();
   const externallySettled = new Set<string>();
@@ -162,6 +162,7 @@ export const useTaskStore = defineStore("tasks", () => {
     start,
     restoreRunning,
     restoreFailed: retryController.restoreFailed,
+    indeterminate,
     progress,
     detail,
     title,

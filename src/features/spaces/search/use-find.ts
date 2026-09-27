@@ -9,6 +9,7 @@ import { useContextDock } from "../canvas/use-context-dock";
 import type { KnowledgeSearchMatch } from "../knowledge/model/knowledge-search-match";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { useSpaceStore } from "../session/space-store";
+import { useSemanticSearch } from "./use-semantic-search";
 
 export interface StructureTitleMatch {
   kind: "structure";
@@ -19,6 +20,7 @@ export interface StructureTitleMatch {
 
 export function useFind(open: Ref<boolean>, close: () => void) {
   const store = useSpaceStore();
+  const semanticSearch = useSemanticSearch(open);
   const editorSession = useCanvasEditorSession();
   const dock = useContextDock();
   const query = ref("");
@@ -34,9 +36,10 @@ export function useFind(open: Ref<boolean>, close: () => void) {
 
   const searchQuery = useQuery(
     computed(() => ({
-      queryKey: ["spaces", store.activeSpaceId, "find", trimmed.value],
-      queryFn: () => store.search(trimmed.value),
-      enabled: Boolean(trimmed.value),
+      queryKey: ["spaces", store.activeSpaceId, "find", trimmed.value, semanticSearch.enabled.value],
+      queryFn: ({ signal }: { signal: AbortSignal }) =>
+        store.search(trimmed.value, semanticSearch.enabled.value, signal),
+      enabled: open.value && Boolean(trimmed.value),
       staleTime: 30_000,
     })),
   );
@@ -86,6 +89,7 @@ export function useFind(open: Ref<boolean>, close: () => void) {
 
   return {
     query,
+    semanticSearch,
     matches,
     structureMatches,
     semantic,

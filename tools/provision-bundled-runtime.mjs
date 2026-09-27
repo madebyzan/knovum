@@ -1,14 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import {
-  chmodSync,
-  copyFileSync,
-  createReadStream,
-  createWriteStream,
-  mkdirSync,
-  readFileSync,
-  rmSync,
-} from "node:fs";
+import { createReadStream, createWriteStream, existsSync, mkdirSync, renameSync, rmSync } from "node:fs";
 import { dirname, isAbsolute, join, resolve as resolvePath } from "node:path";
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
@@ -33,9 +25,6 @@ if (!url || !/^[a-f0-9]{64}$/u.test(expectedSha256 ?? "")) {
 }
 
 const runtimeRoot = join(repository, "src-tauri", "resources", "bundled-runtime");
-const manifest = JSON.parse(readFileSync(join(runtimeRoot, "media-import-manifest.json"), "utf8"));
-const descriptor = manifest.targets[target];
-if (!descriptor) throw new Error(`Unsupported media import runtime target: ${target}`);
 const scratch = join(repository, ".bundled-runtime-stage");
 const destination = join(runtimeRoot, target);
 rmSync(scratch, { recursive: true, force: true });
@@ -47,10 +36,12 @@ try {
   }
   const archive = await download(url, expectedSha256, join(scratch, `${target}.tar`), headers);
   preflightArchive(archive);
+  const stagedRuntime = join(scratch, "runtime");
+  mkdirSync(stagedRuntime);
+  execFileSync("tar", ["-xf", archive, "-C", stagedRuntime], { stdio: "inherit" });
+  validateRuntime(stagedRuntime);
   rmSync(destination, { recursive: true, force: true });
-  mkdirSync(destination, { recursive: true });
-  execFileSync("tar", ["-xf", archive, "-C", destination], { stdio: "inherit" });
-  await installMediaRuntime();
+  renameSync(stagedRuntime, destination);
   console.log(`Provisioned bundled runtime for ${target}`);
 } catch (error) {
   console.error(error instanceof Error ? error.message : String(error));
@@ -59,34 +50,25 @@ try {
   rmSync(scratch, { recursive: true, force: true });
 }
 
-async function installMediaRuntime() {
-  const ytDlp = await download(
-    `https://github.com/yt-dlp/yt-dlp/releases/download/${manifest.ytDlp.version}/${descriptor.ytDlp.asset}`,
-    descriptor.ytDlp.sha256,
-    join(scratch, descriptor.ytDlp.asset),
-  );
-  const denoArchive = await download(
-    `https://github.com/denoland/deno/releases/download/v${manifest.deno.version}/${descriptor.deno.asset}`,
-    descriptor.deno.sha256,
-    join(scratch, descriptor.deno.asset),
-  );
-  const extracted = join(scratch, "deno");
-  mkdirSync(extracted);
-  execFileSync("tar", ["-xf", denoArchive, "-C", extracted]);
+function validateRuntime(directory) {
   const windows = target.startsWith("windows-");
-  const ytDlpTarget = join(destination, windows ? "yt-dlp.exe" : "yt-dlp");
-  const denoTarget = join(destination, windows ? "deno.exe" : "deno");
-  const denoBinary = join(extracted, windows ? "deno.exe" : "deno");
-  if ((await sha256(denoBinary)) !== descriptor.deno.binarySha256) {
-    throw new Error(`Extracted Deno binary SHA-256 mismatch for ${target}`);
+  const required = [
+    join(directory, windows ? "ffmpeg.exe" : "ffmpeg"),
+    join(directory, windows ? "whisper-cli.exe" : "whisper-cli"),
+  ];
+  const missing = required.filter((path) => !existsSync(path));
+  if (missing.length > 0) {
+    throw new Error(`Bundled runtime is incomplete for ${target}:\n${missing.join("\n")}`);
   }
-  copyFileSync(ytDlp, ytDlpTarget);
-  copyFileSync(denoBinary, denoTarget);
-  if (!windows) {
-    chmodSync(ytDlpTarget, 0o755);
-    chmodSync(denoTarget, 0o755);
+  const forbidden = [
+    join(directory, windows ? "yt-dlp.exe" : "yt-dlp"),
+    join(directory, windows ? "deno.exe" : "deno"),
+  ].filter(existsSync);
+  if (forbidden.length > 0) {
+    throw new Error(
+      `On-demand media tools must not be present in the bundled runtime:\n${forbidden.join("\n")}`,
+    );
   }
-  console.log(`Installed yt-dlp ${manifest.ytDlp.version} and Deno ${manifest.deno.version}`);
 }
 
 async function download(

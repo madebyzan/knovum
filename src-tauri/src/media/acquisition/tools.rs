@@ -1,6 +1,8 @@
 use std::path::PathBuf;
 use tauri::AppHandle;
+use tokio_util::sync::CancellationToken;
 
+use crate::local_resources::preparation::contracts::ResourcePreparationProgress;
 use crate::local_resources::tools;
 
 pub(crate) struct AcquisitionTools {
@@ -9,15 +11,30 @@ pub(crate) struct AcquisitionTools {
     pub(crate) ffmpeg: PathBuf,
 }
 
-pub(crate) fn resolve_required(app: &AppHandle) -> Result<AcquisitionTools, String> {
+pub(crate) async fn prepare_required_for_job(
+    app: &AppHandle,
+    job_id: &str,
+    title: &str,
+    business_cancellation: &CancellationToken,
+    progress: &mut impl FnMut(ResourcePreparationProgress),
+) -> Result<AcquisitionTools, String> {
+    let ffmpeg = resolve_bundled(app, "KNOVUM_FFMPEG_PATH", tools::ffmpeg_name(), "FFmpeg")?;
+    let prepared = tools::prepare_media_import_tools_for_job(
+        app,
+        job_id,
+        title,
+        business_cancellation,
+        progress,
+    )
+    .await?;
     Ok(AcquisitionTools {
-        yt_dlp: resolve(app, "KNOVUM_YT_DLP_PATH", tools::yt_dlp_name(), "yt-dlp")?,
-        deno: resolve(app, "KNOVUM_DENO_PATH", tools::deno_name(), "Deno")?,
-        ffmpeg: resolve(app, "KNOVUM_FFMPEG_PATH", tools::ffmpeg_name(), "FFmpeg")?,
+        yt_dlp: prepared.yt_dlp,
+        deno: prepared.deno,
+        ffmpeg,
     })
 }
 
-fn resolve(
+fn resolve_bundled(
     app: &AppHandle,
     env_key: &str,
     file_name: &str,

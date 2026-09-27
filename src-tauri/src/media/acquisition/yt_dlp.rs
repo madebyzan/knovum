@@ -9,7 +9,7 @@ use tokio_util::sync::CancellationToken;
 use super::contracts::AcquisitionProgress;
 use crate::media::subprocess;
 
-pub(crate) const ACQUISITION_CANCELLED: &str = "MEDIA_ACQUISITION_CANCELLED";
+pub(crate) const ACQUISITION_CANCELLED: &str = "media-acquisition-cancelled";
 const FORMAT: &str = "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/bestvideo+bestaudio/best";
 const PROGRESS_PREFIX: &str = "knovum-progress:";
 
@@ -85,7 +85,7 @@ pub(crate) fn acquire(
         .stderr(Stdio::piped());
     let child = command
         .spawn()
-        .map_err(|error| failed(format!("Unable to start bundled yt-dlp: {error}")))?;
+        .map_err(|error| failed(format!("Unable to start prepared yt-dlp: {error}")))?;
     let output = subprocess::wait_with_output(
         child,
         cancellation,

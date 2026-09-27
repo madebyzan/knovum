@@ -50,3 +50,12 @@ Installing a Tauri plugin does not grant the WebView permission to use it. Capab
 ## QA rule
 
 Any change to lifecycle, window, menu, keyboard, file, notification, updater or process behavior must be manually verified on both macOS and Windows in addition to CI compile checks.
+
+## Optional runtime resources
+
+On both desktop platforms, models and optional media-import tools are prepared into Tauri app-data
+when the corresponding action needs them. Offline startup and basic Space editing do not require
+these resources. FFmpeg and whisper-cli remain bundled native dependencies. Downloaded
+executables retain the platform's signing and execution constraints; hash verification does not
+replace macOS signing/notarization or Windows execution checks. Release evidence belongs to
+`packaging.md` and `release.md`.

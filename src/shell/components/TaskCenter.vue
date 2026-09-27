@@ -1,16 +1,10 @@
 <script setup lang="ts">
 import { CircleCheck, CircleStop, CircleX } from "@lucide/vue";
-import { useIntervalFn } from "@vueuse/core";
 import { storeToRefs } from "pinia";
-import { computed, onMounted, shallowRef, watch } from "vue";
+import { computed, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import {
-  cancelModelInstall,
-  listModelInstalls,
-  type ModelKind,
-} from "../../foundation/runtime/local-resources";
 import { useTaskStore } from "../../foundation/tasks/task-store";
 import UiButton from "../../shared/ui/UiButton.vue";
 import UiPopover from "../../shared/ui/UiPopover.vue";
@@ -23,41 +17,6 @@ const { t } = useI18n();
 const open = shallowRef(false);
 const currentTask = computed(() => (running.value.length === 1 ? running.value[0] : undefined));
 
-const runtimeModelTitleKeys: Record<ModelKind, string> = {
-  transcription: "shell.runtimeModels.transcription",
-  transcriptionVad: "shell.runtimeModels.transcription",
-  textEmbeddingConfig: "shell.runtimeModels.textEmbedding",
-  textEmbeddingTokenizer: "shell.runtimeModels.textEmbedding",
-  textEmbeddingWeights: "shell.runtimeModels.textEmbedding",
-};
-
-const restoredRuntimeTasks = new Set<string>();
-const runtimePolling = useIntervalFn(() => void restoreRuntimeDownloads(), 1_000, {
-  immediate: false,
-  immediateCallback: true,
-});
-
-async function restoreRuntimeDownloads() {
-  const snapshots = await listModelInstalls();
-  const activeIds = new Set(snapshots.map(({ jobId }) => jobId));
-  for (const snapshot of snapshots) {
-    const restored = store.restoreRunning(
-      {
-        id: snapshot.jobId,
-        title: t(runtimeModelTitleKeys[snapshot.models[0]!]),
-        startedAt: snapshot.startedAt,
-      },
-      () => cancelModelInstall(snapshot.jobId),
-    );
-    if (restored) restoredRuntimeTasks.add(snapshot.jobId);
-  }
-  for (const taskId of restoredRuntimeTasks) {
-    if (activeIds.has(taskId)) continue;
-    store.dismiss(taskId);
-    restoredRuntimeTasks.delete(taskId);
-  }
-}
-
 async function openTask(id: string) {
   try {
     await store.open(id);
@@ -66,15 +25,6 @@ async function openTask(id: string) {
     toast.error(String(cause));
   }
 }
-
-onMounted(() => {
-  void restoreRuntimeDownloads();
-});
-
-watch(open, (isOpen) => {
-  if (isOpen) runtimePolling.resume();
-  else runtimePolling.pause();
-});
 
 watch(
   () => tasks.value.length,

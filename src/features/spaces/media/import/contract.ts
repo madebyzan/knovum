@@ -24,7 +24,7 @@ export type ImportedMedia = z.infer<typeof importedMediaSchema>;
 
 export const mediaImportProgressSchema = z
   .object({
-    stage: z.enum(["resolving", "downloading", "finalizing"]),
+    stage: z.enum(["preparing", "resolving", "downloading", "finalizing"]),
     downloadedBytes: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
     totalBytes: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER).nullable(),
     processedMs: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER).nullable(),

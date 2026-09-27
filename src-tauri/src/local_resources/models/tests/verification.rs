@@ -1,6 +1,8 @@
 use std::fs;
+use tokio_util::sync::CancellationToken;
 
-use super::super::{verification, ModelDescriptor};
+use super::super::ModelDescriptor;
+use crate::local_resources::verification;
 
 const DESCRIPTOR: ModelDescriptor = ModelDescriptor {
     directory: "test",
@@ -19,12 +21,18 @@ fn verified_receipt_replaces_repeated_content_hashing() {
     let model = root.join(DESCRIPTOR.file);
     fs::write(&model, b"model").unwrap();
 
-    assert!(verification::verify_and_record(&model, DESCRIPTOR).unwrap());
+    assert!(verification::verify_and_record_cancellable(
+        &model,
+        DESCRIPTOR.sha256,
+        &CancellationToken::new(),
+        "Model verification cancelled",
+    )
+    .unwrap());
     let metadata = fs::metadata(&model).unwrap();
-    assert!(verification::receipt_matches(&model, DESCRIPTOR, &metadata).unwrap());
+    assert!(verification::receipt_matches(&model, DESCRIPTOR.sha256, &metadata).unwrap());
 
     verification::remove_receipt(&model).unwrap();
-    assert!(!verification::receipt_matches(&model, DESCRIPTOR, &metadata).unwrap());
+    assert!(!verification::receipt_matches(&model, DESCRIPTOR.sha256, &metadata).unwrap());
     fs::remove_file(model).unwrap();
     fs::remove_dir(root).unwrap();
 }

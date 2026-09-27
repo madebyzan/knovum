@@ -85,6 +85,10 @@ fn parse_job_id(value: &str) -> Result<Uuid, String> {
     Ok(id)
 }
 
+pub(super) fn validate_job_id(value: &str) -> Result<(), String> {
+    parse_job_id(value).map(|_| ())
+}
+
 pub(super) fn validate_source_url(value: &str) -> Result<(), String> {
     if value.len() > 4096 || !is_http_url(value) {
         Err("Media source URL is invalid".into())

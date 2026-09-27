@@ -12,6 +12,14 @@ pub enum ModelKind {
     TextEmbeddingWeights,
 }
 
+pub const TRANSCRIPTION_MODELS: &[ModelKind] =
+    &[ModelKind::Transcription, ModelKind::TranscriptionVad];
+pub const TEXT_EMBEDDING_MODELS: &[ModelKind] = &[
+    ModelKind::TextEmbeddingConfig,
+    ModelKind::TextEmbeddingTokenizer,
+    ModelKind::TextEmbeddingWeights,
+];
+
 pub const TRANSCRIPTION: ModelDescriptor = ModelDescriptor {
     directory: "whisper",
     file: "ggml-small-q8_0.bin",

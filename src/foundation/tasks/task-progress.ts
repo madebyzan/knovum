@@ -10,6 +10,12 @@ export function createTaskProgress(tasks: Ref<AppTask[]>) {
   }
 
   return {
+    indeterminate(id: string, taskDetail?: string) {
+      const task = tasks.value.find((candidate) => candidate.id === id);
+      if (!task || task.status !== "running") return;
+      delete task.progress;
+      if (taskDetail !== undefined) task.detail = taskDetail;
+    },
     progress(id: string, value: number, taskDetail?: string) {
       updateRunning(id, {
         progress: clamp(value, 0, 100),

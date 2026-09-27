@@ -22,6 +22,22 @@ addressed as `plugin:<key>|<command>` and named without a feature prefix. The gr
 points each namespace requires and the registration review checklist live in
 `docs/naming-conventions.md`; Rust/Tauri compilation and review keep those touch points aligned.
 
+## Local resource preparation commands
+
+`plugin:local-resources|prepare_resources` accepts one finite preparation target: transcription, text embedding
+or media-import tools. It accepts a job identity and progress Channel, never a download URL
+or destination path. `cancel_resource_preparation` releases that request's demand;
+`list_resource_preparations` returns active requests and bounded terminal history for the same
+Task Center identities after a WebView reload. A disconnected Channel does not cancel installation.
+There are no legacy model-install command aliases.
+
+`plugin:spaces|transcribe_media` requires the managed source path and the caller's source revision.
+Rust verifies that revision before resource preparation and again before processing. Knowledge
+index commands require verified models; the explicit semantic-search and grounded-generation
+use cases own resource preparation before indexing. A normal keyword query never downloads models. Search commands carry a job identity; TanStack
+query cancellation calls `cancel_knowledge_search`, which cancels queued work and discards stale
+results while any already-running blocking computation retains its resource leases.
+
 ## Space persistence commands
 
 Space persistence is entirely Rust-owned. Reads and writes cross typed Rust commands; multi-statement invariants execute on one SQLx transaction. These commands accept domain-shaped payloads and none accepts arbitrary SQL from the WebView.

@@ -28,12 +28,6 @@ fn provisioned_local_resources_starts() {
 
     let ffmpeg = root.join(executable("ffmpeg"));
     assert_command_starts(&ffmpeg, &["-version"]);
-    assert_command_contains(
-        &root.join(executable("yt-dlp")),
-        &["--version"],
-        "2026.08.19",
-    );
-    assert_command_contains(&root.join(executable("deno")), &["--version"], "deno 2.9.6");
     assert_ffmpeg_subtitle_burn_in(&ffmpeg);
     let whisper = root.join(executable("whisper-cli"));
     assert_command_starts(&whisper, &["--help"]);
@@ -144,29 +138,6 @@ fn assert_command_starts(path: &Path, args: &[&str]) {
         output.status,
         String::from_utf8_lossy(&output.stdout),
         String::from_utf8_lossy(&output.stderr),
-    );
-}
-
-fn assert_command_contains(path: &Path, args: &[&str], expected: &str) {
-    assert!(
-        path.is_file(),
-        "bundled runtime executable is missing: {}",
-        path.display()
-    );
-    let output = Command::new(path)
-        .args(args)
-        .output()
-        .unwrap_or_else(|error| panic!("failed to start {}: {error}", path.display()));
-    let text = format!(
-        "{}\n{}",
-        String::from_utf8_lossy(&output.stdout),
-        String::from_utf8_lossy(&output.stderr)
-    );
-    assert!(
-        output.status.success() && text.contains(expected),
-        "{} {:?} must report {expected}",
-        path.display(),
-        args
     );
 }
 

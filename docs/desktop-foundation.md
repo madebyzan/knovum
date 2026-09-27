@@ -93,7 +93,7 @@ from their target-specific application resource directory.
 - `KNOVUM_WHISPER_PATH`, or bundled `bundled-runtime/<platform>/whisper-cli[.exe]`;
 - `KNOVUM_WHISPER_MODEL_PATH` and `KNOVUM_WHISPER_VAD_MODEL_PATH` are development/CI overrides for explicit Knovum-managed model installs. Release model weights live in application data and are never bundle resources.
 
-The platform directory is one of `macos-arm64`, `macos-x64`, `windows-arm64`, `windows-x64`, `linux-arm64`, or `linux-x64`. Missing required tools/models are configuration errors; there is no browser speech-recognition path, remote media streaming path, or alternate silent implementation.
+The platform directory is one of `macos-arm64`, `macos-x64`, `windows-arm64`, `windows-x64`, `linux-arm64`, or `linux-x64`. Missing bundled core tools are configuration errors; optional models are prepared on first capability use; there is no browser speech-recognition path, remote media streaming path, or alternate silent implementation.
 
 The `integrations` capability grants clipboard access shared across features. Filesystem access remains limited to Tauri session-scoped dropped/Dialog-selected paths and user-selected exports. All provider traffic goes through shared Rust AI commands. No static `$HOME/**` scope is granted; provider credentials stay behind Rust secret commands.
 

@@ -1,6 +1,7 @@
 import { info as logInfo } from "@tauri-apps/plugin-log";
 
 import { i18n } from "../../../../foundation/i18n/i18n";
+import { decodeCommandError } from "../../../../foundation/ipc/command-error";
 import { useTaskStore } from "../../../../foundation/tasks/task-store";
 import { formatByteSize } from "../../assets/format-byte-size";
 import type { SpaceMediaPayload } from "../../model/nodes/capabilities";
@@ -32,14 +33,19 @@ export async function acquireMediaSource(
   );
   try {
     void logInfo("[spaces.url-capture] media acquisition started");
-    const result = await requestMediaImport(jobId, url, (progress) => {
-      if (progress.stage !== loggedStage) {
-        loggedStage = progress.stage;
-        void logInfo(`[spaces.url-capture] media stage=${progress.stage}`);
-      }
-      updateProgress(jobId, progress);
-      onProgress(progress);
-    });
+    const result = await requestMediaImport(
+      jobId,
+      i18n.global.t("spaces.media.import.preparing"),
+      url,
+      (progress) => {
+        if (progress.stage !== loggedStage) {
+          loggedStage = progress.stage;
+          void logInfo(`[spaces.url-capture] media stage=${progress.stage}`);
+        }
+        updateProgress(jobId, progress);
+        onProgress(progress);
+      },
+    );
     if (result.outcome === "unsupported") {
       void logInfo("[spaces.url-capture] media source unsupported");
       tasks.dismiss(jobId);
@@ -50,7 +56,7 @@ export async function acquireMediaSource(
     void logInfo("[spaces.url-capture] media acquisition completed");
     return { outcome: "imported", payload: mediaPayloadFromImport(result.media) };
   } catch (error) {
-    if (cancelRequested) {
+    if (cancelRequested || decodeCommandError(error)?.code === "media_acquisition_cancelled") {
       tasks.dismiss(jobId);
       throw new MediaImportCancelledError();
     }
@@ -89,7 +95,7 @@ function updateProgress(taskId: string, progress: MediaImportProgress) {
     tasks.progress(taskId, finalizingPercent, detail);
     return;
   }
-  if (progress.stage !== "downloading") {
+  if (progress.stage !== "downloading" && progress.stage !== "preparing") {
     tasks.detail(taskId, detail);
     return;
   }

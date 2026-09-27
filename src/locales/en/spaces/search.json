@@ -13,5 +13,10 @@
     "hint": "Search knowledge globally across all Spaces.",
     "noResults": "No matching items found across all Spaces."
   },
-  "failed": "Search failed; please try again."
+  "failed": "Search failed; please try again.",
+  "semantic": {
+    "enable": "Semantic search",
+    "preparing": "Preparing semantic search",
+    "indexing": "Indexing content for semantic search"
+  }
 }

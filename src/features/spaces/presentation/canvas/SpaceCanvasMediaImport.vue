@@ -11,8 +11,11 @@ import type { SpaceUrlCaptureProjection } from "../../sources/url-capture-projec
 const props = defineProps<{ capture: SpaceUrlCaptureProjection }>();
 const emit = defineEmits<{ dismiss: []; retry: [] }>();
 const { t } = useI18n();
+const isByteTransfer = computed(
+  () => props.capture.status === "preparing" || props.capture.status === "downloading",
+);
 const progress = computed(() => {
-  if (props.capture.status === "downloading" && props.capture.totalBytes && props.capture.totalBytes > 0) {
+  if (isByteTransfer.value && props.capture.totalBytes && props.capture.totalBytes > 0) {
     return Math.min(100, Math.round((props.capture.downloadedBytes / props.capture.totalBytes) * 100));
   }
   if (
@@ -50,9 +53,7 @@ const transferred = computed(() =>
               ? t("spaces.importExport.website.captureFailed")
               : t(`spaces.media.import.${capture.status}`)
           }}</span>
-          <span v-if="transferred && capture.status === 'downloading'" class="tabular-nums"
-            >· {{ transferred }}</span
-          >
+          <span v-if="transferred && isByteTransfer" class="tabular-nums">· {{ transferred }}</span>
         </p>
       </div>
       <span v-if="progress !== undefined" class="shrink-0 text-caption text-foreground-secondary tabular-nums"

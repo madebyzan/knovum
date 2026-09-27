@@ -97,7 +97,7 @@ pub(crate) fn prepare(request: Preparation<'_>) -> Result<PathBuf, String> {
     let result = subprocess::wait_with_output(
         child,
         cancellation,
-        "MEDIA_ACQUISITION_CANCELLED",
+        super::yt_dlp::ACQUISITION_CANCELLED,
         |line| report_progress(line, duration_ms, progress),
         |_| Ok(()),
     )?;

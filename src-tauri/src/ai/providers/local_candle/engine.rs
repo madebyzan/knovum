@@ -6,10 +6,9 @@ use std::{
 
 use candle_core::{DType, Device};
 use candle_nn::VarBuilder;
-use tauri::{AppHandle, Runtime};
 
 use super::qwen3::{Config, EmbeddingOutput, Qwen3Model, Qwen3TextEmbedding};
-use crate::local_resources::models::{self, catalog};
+use crate::local_resources::{models::catalog::ModelKind, preparation::PreparedModels};
 
 static ENGINE: OnceLock<Mutex<Option<Arc<Qwen3TextEmbedding>>>> = OnceLock::new();
 static INFERENCE: OnceLock<Arc<tokio::sync::Semaphore>> = OnceLock::new();
@@ -26,7 +25,7 @@ pub fn unload() -> Result<(), String> {
     Ok(())
 }
 
-fn get_or_load<R: Runtime>(app: &AppHandle<R>) -> Result<Arc<Qwen3TextEmbedding>, String> {
+fn get_or_load(resources: &PreparedModels) -> Result<Arc<Qwen3TextEmbedding>, String> {
     let mut guard = engine_lock()
         .lock()
         .map_err(|_| "Embedding engine lock was poisoned".to_string())?;
@@ -34,11 +33,11 @@ fn get_or_load<R: Runtime>(app: &AppHandle<R>) -> Result<Arc<Qwen3TextEmbedding>
         return Ok(Arc::clone(existing));
     }
 
-    let config_path = models::require_verified_path(app, catalog::TEXT_EMBEDDING_CONFIG)?;
-    let tokenizer_path = models::require_verified_path(app, catalog::TEXT_EMBEDDING_TOKENIZER)?;
-    let weights_path = models::require_verified_path(app, catalog::TEXT_EMBEDDING_WEIGHTS)?;
+    let config_path = resources.path(ModelKind::TextEmbeddingConfig)?;
+    let tokenizer_path = resources.path(ModelKind::TextEmbeddingTokenizer)?;
+    let weights_path = resources.path(ModelKind::TextEmbeddingWeights)?;
 
-    let model = Arc::new(load_model(&config_path, &tokenizer_path, &weights_path)?);
+    let model = Arc::new(load_model(config_path, tokenizer_path, weights_path)?);
     *guard = Some(Arc::clone(&model));
     Ok(model)
 }
@@ -68,21 +67,24 @@ fn load_model(
     Ok(Qwen3TextEmbedding::new(model, tokenizer))
 }
 
-pub async fn embed<R: Runtime>(
-    app: AppHandle<R>,
+pub async fn embed(
     texts: Vec<String>,
+    resources: PreparedModels,
+    cancellation: &tokio_util::sync::CancellationToken,
 ) -> Result<EmbeddingOutput, String> {
-    let permit = INFERENCE
+    let queue = INFERENCE
         .get_or_init(|| Arc::new(tokio::sync::Semaphore::new(1)))
-        .clone()
-        .acquire_owned()
-        .await
-        .map_err(|error| format!("Embedding inference queue closed: {error}"))?;
+        .clone();
+    let permit = tokio::select! {
+        biased;
+        _ = cancellation.cancelled() => return Err("knowledge-indexing-cancelled".into()),
+        permit = queue.acquire_owned() => permit.map_err(|error| format!("Embedding inference queue closed: {error}"))?,
+    };
     tokio::task::spawn_blocking(move || {
         // Keep ownership inside the blocking task: cancelling its caller cannot allow
         // another inference to overlap a computation that is still running.
         let _permit = permit;
-        let embedder = get_or_load(&app)?;
+        let embedder = get_or_load(&resources)?;
         embedder
             .embed(&texts)
             .map_err(|error| format!("Qwen3 local embedding inference failed: {error}"))
