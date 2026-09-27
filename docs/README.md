@@ -28,7 +28,8 @@ Use one authoritative document per concern.
 ## Product engineering standards
 
 - `engineering-standards.md` — development/review baseline and links to authoritative detailed rules.
-- `ui-system.md` — desktop visual language and Tailwind v4 token contract.
+- `ui-system.md` — desktop visual language, component composition and interaction contract.
+- `design-tokens.md` — single-source token definitions, naming, Tailwind consumption and mode precedence.
 - `oss-first.md` — open-source-first selection requirement.
 - `dependency-policy.md` — dependency lifecycle and maintenance policy.
 - `feature-checklist.md` — checklist before a feature is considered complete.

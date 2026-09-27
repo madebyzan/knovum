@@ -2,19 +2,19 @@ import { DEFAULT_CANVAS_TEXT_FONT_SIZE } from "../../../canvas/node-size";
 import type { CanvasNodeAppearance } from "../../../canvas/schema/document";
 
 const FILL_COLORS = {
-  yellow: "var(--knovum-canvas-note-yellow)",
-  green: "var(--knovum-canvas-note-green)",
-  blue: "var(--knovum-canvas-note-blue)",
-  pink: "var(--knovum-canvas-note-pink)",
-  gray: "var(--knovum-canvas-note-gray)",
+  yellow: "var(--color-canvas-note-yellow)",
+  green: "var(--color-canvas-note-green)",
+  blue: "var(--color-canvas-note-blue)",
+  pink: "var(--color-canvas-note-pink)",
+  gray: "var(--color-canvas-note-gray)",
 } as const;
 const TEXT_COLORS = {
-  ink: "var(--knovum-canvas-text-ink)",
-  muted: "var(--knovum-canvas-text-muted)",
-  red: "var(--knovum-canvas-text-red)",
-  blue: "var(--knovum-canvas-text-blue)",
-  green: "var(--knovum-canvas-text-green)",
-  purple: "var(--knovum-canvas-text-purple)",
+  ink: "var(--color-canvas-text-ink)",
+  muted: "var(--color-canvas-text-muted)",
+  red: "var(--color-canvas-text-red)",
+  blue: "var(--color-canvas-text-blue)",
+  green: "var(--color-canvas-text-green)",
+  purple: "var(--color-canvas-text-purple)",
 } as const;
 
 export function canvasTextAppearanceClasses(
@@ -42,7 +42,7 @@ export function canvasTextAppearanceStyle(
 }
 
 function canvasTextColor(kind: "note" | "text", appearance: CanvasNodeAppearance | undefined) {
-  return kind === "note" ? "var(--knovum-canvas-note-ink)" : TEXT_COLORS[appearance?.textColor ?? "ink"];
+  return kind === "note" ? "var(--color-canvas-note-ink)" : TEXT_COLORS[appearance?.textColor ?? "ink"];
 }
 
 function canvasTextBackground(kind: "note" | "text", appearance: CanvasNodeAppearance | undefined) {

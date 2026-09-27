@@ -34,12 +34,12 @@ const selectedColor = computed<CanvasRelationColor>(
   () => relationStyles.value?.find(({ relationId }) => relationId === selected.value?.id)?.color ?? "neutral",
 );
 const colorValues: Record<CanvasRelationColor, string> = {
-  neutral: "var(--knovum-color-foreground-secondary)",
-  blue: "var(--knovum-canvas-relation-blue)",
-  green: "var(--knovum-canvas-relation-green)",
-  amber: "var(--knovum-canvas-relation-amber)",
-  red: "var(--knovum-canvas-relation-red)",
-  purple: "var(--knovum-canvas-relation-purple)",
+  neutral: "var(--color-foreground-secondary)",
+  blue: "var(--color-canvas-relation-blue)",
+  green: "var(--color-canvas-relation-green)",
+  amber: "var(--color-canvas-relation-amber)",
+  red: "var(--color-canvas-relation-red)",
+  purple: "var(--color-canvas-relation-purple)",
 };
 const colorOptions = computed(() =>
   CANVAS_RELATION_COLORS.map((value) => ({

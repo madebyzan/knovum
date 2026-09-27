@@ -1,7 +1,7 @@
 export const CANVAS_FONT_SIZES = [10, 12, 14, 18, 24, 36, 48, 64, 72, 96, 144] as const;
 
 export const CANVAS_INLINE_TEXT_COLORS = [
-  ["default", "var(--knovum-color-foreground-primary)", "default"],
+  ["default", "var(--color-foreground)", "default"],
   ["#667085", "#667085", "gray"],
   ["#ef4444", "#ef4444", "red"],
   ["#f59e0b", "#f59e0b", "amber"],
