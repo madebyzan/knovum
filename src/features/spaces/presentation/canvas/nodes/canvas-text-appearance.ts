@@ -1,21 +1,6 @@
 import { DEFAULT_CANVAS_TEXT_FONT_SIZE } from "../../../canvas/node-size";
 import type { CanvasNodeAppearance } from "../../../canvas/schema/document";
-
-const FILL_COLORS = {
-  yellow: "var(--knovum-space-note-bg-yellow)",
-  green: "var(--knovum-space-note-bg-green)",
-  blue: "var(--knovum-space-note-bg-blue)",
-  pink: "var(--knovum-space-note-bg-pink)",
-  gray: "var(--knovum-space-note-bg-gray)",
-} as const;
-const TEXT_COLORS = {
-  ink: "var(--knovum-space-text-fg-default)",
-  muted: "var(--knovum-space-text-fg-subtle)",
-  red: "var(--knovum-space-text-fg-red)",
-  blue: "var(--knovum-space-text-fg-blue)",
-  green: "var(--knovum-space-text-fg-green)",
-  purple: "var(--knovum-space-text-fg-purple)",
-} as const;
+import { CONTENT_FILL_COLORS, CONTENT_TEXT_COLORS } from "../canvas-content-colors";
 
 export function canvasTextAppearanceClasses(
   kind: "note" | "text",
@@ -42,12 +27,12 @@ export function canvasTextAppearanceStyle(
 }
 
 function canvasTextColor(kind: "note" | "text", appearance: CanvasNodeAppearance | undefined) {
-  return kind === "note" ? "var(--knovum-space-note-fg)" : TEXT_COLORS[appearance?.textColor ?? "ink"];
+  return kind === "note" ? "var(--color-black)" : CONTENT_TEXT_COLORS[appearance?.textColor ?? "ink"];
 }
 
 function canvasTextBackground(kind: "note" | "text", appearance: CanvasNodeAppearance | undefined) {
   if (kind !== "note") return {};
-  return { backgroundColor: appearance?.customFill ?? FILL_COLORS[appearance?.fill ?? "yellow"] };
+  return { backgroundColor: appearance?.customFill ?? CONTENT_FILL_COLORS[appearance?.fill ?? "yellow"] };
 }
 
 export function canvasTextVerticalClass(kind: "note" | "text", appearance: CanvasNodeAppearance | undefined) {

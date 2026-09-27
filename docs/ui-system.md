@@ -44,23 +44,26 @@ lowercase kebab-case and Tailwind's standard namespaces. Role names below are th
 
 | Layer                         | Grammar                                              | Example                               | Consumer                                      |
 | ----------------------------- | ---------------------------------------------------- | ------------------------------------- | --------------------------------------------- |
-| Private reference             | `--knovum-ref-color-{hue}-{shade}`                   | `--knovum-ref-color-blue-500`         | definitions only                              |
 | Public surface                | `--color-surface-{role}[-{emphasis}][-{state}]`      | `--color-surface-danger-subtle-hover` | `bg-surface-danger-subtle-hover`              |
 | Public foreground             | `--color-fg-{role}`                                  | `--color-fg-secondary`                | `text-fg-secondary`                           |
 | Public boundary               | `--color-stroke-{role}[-{state}]`                    | `--color-stroke-default-hover`        | `border-stroke-default-hover`, rings/outlines |
 | Public typography             | `--text-{role}[-{size}]` and `--line-height` suffix  | `--text-body--line-height`            | text utilities and CSS                        |
 | Public shape/elevation/motion | native radius/shadow/ease/blur namespaces            | `--shadow-popover`                    | utilities and CSS                             |
 | Component                     | `--knovum-{component}[-{part}]-{property}[-{state}]` | `--knovum-sidebar-item-bg-selected`   | owning composition                            |
-| Domain                        | `--knovum-space-{object}-{property}[-{variant}]`     | `--knovum-space-note-bg-yellow`       | Spaces only                                   |
+| Domain                        | `--knovum-space-{object}-{property}[-{variant}]`     | `--knovum-space-grid-color`           | Spaces only                                   |
 
 `fg` means foreground for text/icons; `bg` means background in private component/domain attributes.
 `stroke` covers boundaries, SVG strokes, outlines and focus rings. These abbreviations are explicit and
 consistent; do not introduce synonyms or repeat category words. Preserve owner and role when they
 carry meaning. A CSS token need not repeat the property already encoded by a framework namespace.
 
-Reference shade numbers increase toward darker colors. The sparse authored palette differs from
-Tailwind's values, so it remains private; do not recreate Tailwind palettes, spacing or radius scales.
-A literal semantic value is valid. Add a reference only for an actual shared value decision.
+Tailwind owns the base color palette. Use native --color-{hue}-{shade} variables; do not create a
+parallel product reference palette. Override native values only for an explicit product-wide adjustment.
+Shared --color-content-{hue} roles serve user-selected text, relation strokes and annotations (600 light,
+400 dark). --color-content-{hue}-subtle uses the native 200 shade for colored backgrounds and highlights
+in both appearances. Notes and grouping fills share these backgrounds. Highlighted text is black on
+these light fills in either appearance. Content colors carry no status
+meaning; UI accent/danger/warning roles remain separate decisions sourced from the same base palette.
 
 States mean the named state: `hover` is pointer hover, `pressed` is transient active press, `selected` is
 persistent selection and `inactive` is the explicit inactive component role. Open menus and recent-item
@@ -90,8 +93,10 @@ workspaces/dialogs/outer sections. Only 10px panels and 9px inner sections exten
 Fixed switch thumbs use bg-white and video-label scrims use bg-black/45 in their owning component.
 
 Aliases require a deliberate semantic relationship: inverse surfaces pair with foreground roles;
-business colors never borrow a status meaning merely to reuse a hue. Note text stays dark on colored
-paper while free canvas text becomes light, so their equal light-mode values do not justify merging.
+business colors never borrow a status meaning merely to reuse a hue. Note text is always native black on colored paper, while free canvas text uses the normal foreground.
+Notes allow background selection, not node-level or selection-level text colors. Their editor omits the
+Color extension, and both editing and preview render without inline color support. Font size, bold,
+italic, underline, lists and alignment remain available.
 Keep private feature attributes out of global utility namespaces. Delete unused or redundant declarations;
 do not retain legacy aliases, fallback palettes or parallel theme APIs.
 
@@ -395,7 +400,7 @@ Relations connect knowledge-bearing objects, not every selectable canvas utility
 
 This distinction must be visible and predictable. Relation-capable selected objects show anchors and expose the relation command. Non-capable objects show neither; their details identify them as organization, navigation or secure configuration objects. There is no disabled invisible handle and no handle that appears only because the pointer happened to cross a narrow edge.
 
-Rendered relations use the Konva adapter's relation projection. Endpoint geometry remains adapter-owned canvas state and is never copied into the semantic relation model; the Space domain persists only relation identity, kind, status and provenance. User-selected relation colors are sparse canvas-presentation overrides backed by the `--knovum-space-relation-stroke-*` tokens. Neutral is represented only by the absence of an override. Parallel semantic relations between the same visible endpoints use stable, separated curve lanes so their labels and hit targets remain distinct.
+Rendered relations use the Konva adapter's relation projection. Endpoint geometry remains adapter-owned canvas state and is never copied into the semantic relation model; the Space domain persists only relation identity, kind, status and provenance. User-selected relation colors are sparse canvas-presentation overrides backed by the shared `--color-content-*` roles. Neutral is represented only by the absence of an override. Parallel semantic relations between the same visible endpoints use stable, separated curve lanes so their labels and hit targets remain distinct.
 
 ### Space canvas object layouts
 
@@ -560,9 +565,9 @@ not a new color token. Disabled controls keep the desktop default cursor. Inform
 badges and loading indicators are not disabled controls.
 
 Spaces owns `src/features/spaces/presentation/space-tokens.css`, imported once by app.css so DOM and
-runtime canvas paints remain available together. It owns content colors, including
-appearance/density overrides. Those variables are not exported through @theme and must not be used
-outside Spaces. Private palette references may be used by these owning token definitions only.
+runtime canvas paints remain available together. It owns canvas grid and object elevation, including appearance overrides. Shared content colors belong
+to the product theme. The remaining feature variables are not exported through @theme and must not be used
+outside Spaces. Native Tailwind palette variables are available to token definitions and content composition.
 
 Typography roles remain caption, label, body, title and display, with only existing meaningful size
 variants. Keep caption-sm for keyboard hints/debug metadata; use label for operation text, body/body-lg

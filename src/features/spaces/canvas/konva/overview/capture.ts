@@ -65,7 +65,8 @@ async function renderCanvasThumbnail(
         new Konva.Rect({
           ...section.bounds,
           fill:
-            appearance?.customFill ?? (appearance?.fill ? palette.noteFill[appearance.fill] : palette.panel),
+            appearance?.customFill ??
+            (appearance?.fill ? palette.contentFill[appearance.fill] : palette.panel),
           opacity: 0.26,
           cornerRadius: 8,
           listening: false,

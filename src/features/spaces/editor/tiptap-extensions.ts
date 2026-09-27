@@ -88,7 +88,7 @@ export function createSpaceTiptapExtensions(
   ];
 }
 
-export function createCanvasTextExtensions(placeholder: string) {
+export function createCanvasTextExtensions(placeholder: string, kind: "note" | "text" = "text") {
   return [
     StarterKit.configure({
       heading: false,
@@ -99,7 +99,7 @@ export function createCanvasTextExtensions(placeholder: string) {
     TaskList,
     TaskItem.configure({ nested: true }),
     TextStyle,
-    Color,
+    ...(kind === "text" ? [Color] : []),
     FontSize,
     TextAlign.configure({ types: ["paragraph"] }),
     Typography,

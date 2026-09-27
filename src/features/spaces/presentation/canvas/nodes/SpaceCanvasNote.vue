@@ -47,6 +47,7 @@ const { beginEditing, cancelEditing, editing, editor, save } = useCanvasTextEdit
     <SpaceCanvasTextSelectionBar
       v-if="editor"
       :editor="editor"
+      kind="note"
       :default-font-size="fontSize"
       :default-alignment="textAlign"
       :typography-scale="1"

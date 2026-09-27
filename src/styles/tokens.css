@@ -1,6 +1,6 @@
 /* Canonical token contract: docs/ui-system.md.
- * Reference: reusable values, private to token definitions.
- * Public: native Tailwind color-surface / color-fg / color-stroke and text namespaces.
+ * Base palette: native Tailwind colors; no parallel reference palette.
+ * Public: native Tailwind surface / foreground / stroke / content colors and typography.
  * Each public decision is declared once in @theme static, including runtime paints.
  * Component: component / part / property / state.
  * Spaces content attributes live in features/spaces/presentation/space-tokens.css.
@@ -8,20 +8,6 @@
  */
 :root {
   color-scheme: light;
-
-  /* Reference palette: fixed values; sparse shade steps are intentionally private. */
-  --knovum-ref-color-blue-300: oklch(0.75 0.16 255);
-  --knovum-ref-color-blue-400: oklch(0.71 0.17 255);
-  --knovum-ref-color-blue-500: oklch(0.62 0.2 255);
-  --knovum-ref-color-blue-600: oklch(0.57 0.2 255);
-  --knovum-ref-color-red-400: oklch(0.7 0.18 28);
-  --knovum-ref-color-red-500: oklch(0.61 0.22 28);
-  --knovum-ref-color-green-400: oklch(0.72 0.14 148);
-  --knovum-ref-color-green-500: oklch(0.61 0.16 148);
-  --knovum-ref-color-amber-400: oklch(0.78 0.14 72);
-  --knovum-ref-color-amber-500: oklch(0.69 0.16 72);
-  --knovum-ref-color-purple-400: oklch(0.72 0.15 305);
-  --knovum-ref-color-purple-500: oklch(0.62 0.18 305);
 
   /* Component attributes: geometry, shape, elevation and paint. */
   --knovum-window-border-color: oklch(0.22 0.006 264 / 0.105);
@@ -43,6 +29,23 @@
 }
 
 @theme static {
+  /* User content colors: shared by text, relations, fills and highlights. */
+  --color-content-red: var(--color-red-600);
+  --color-content-amber: var(--color-amber-600);
+  --color-content-yellow: var(--color-yellow-600);
+  --color-content-green: var(--color-green-600);
+  --color-content-teal: var(--color-teal-600);
+  --color-content-cyan: var(--color-cyan-600);
+  --color-content-blue: var(--color-blue-600);
+  --color-content-purple: var(--color-purple-600);
+  --color-content-pink: var(--color-pink-600);
+  --color-content-gray: var(--color-gray-600);
+  --color-content-yellow-subtle: var(--color-yellow-200);
+  --color-content-green-subtle: var(--color-green-200);
+  --color-content-blue-subtle: var(--color-blue-200);
+  --color-content-pink-subtle: var(--color-pink-200);
+  --color-content-gray-subtle: var(--color-gray-200);
+
   /* Product density rules extend the native spacing namespace. */
   --spacing-interaction: 1.875rem;
   --spacing-toolbar: 2.75rem;
@@ -62,62 +65,54 @@
   --text-title--line-height: 1.375rem;
   --text-display: 1.5rem;
   --text-display--line-height: 1.875rem;
-  --color-surface-accent: var(--knovum-ref-color-blue-500);
-  --color-surface-accent-hover: var(--knovum-ref-color-blue-600);
-  --color-surface-accent-pressed: var(--knovum-ref-color-blue-600);
-  --color-surface-accent-subtle: color-mix(in oklch, var(--knovum-ref-color-blue-500) 9%, transparent);
+  --color-surface-accent: var(--color-blue-500);
+  --color-surface-accent-hover: var(--color-blue-600);
+  --color-surface-accent-pressed: var(--color-blue-600);
+  --color-surface-accent-subtle: color-mix(in oklch, var(--color-blue-500) 9%, transparent);
   --color-surface-canvas: rgb(250 250 251);
   --color-surface-chrome: rgb(239 239 240);
   --color-surface-control: oklch(0.18 0.006 264 / 0.055);
   --color-surface-control-hover: oklch(0.18 0.006 264 / 0.08);
   --color-surface-control-pressed: oklch(0.18 0.006 264 / 0.11);
-  --color-surface-danger: var(--knovum-ref-color-red-500);
-  --color-surface-danger-subtle: color-mix(in oklch, var(--knovum-ref-color-red-500) 10%, transparent);
-  --color-surface-danger-subtle-hover: color-mix(in oklch, var(--knovum-ref-color-red-500) 16%, transparent);
-  --color-surface-danger-subtle-pressed: color-mix(
-    in oklch,
-    var(--knovum-ref-color-red-500) 22%,
-    transparent
-  );
+  --color-surface-danger: var(--color-red-500);
+  --color-surface-danger-subtle: color-mix(in oklch, var(--color-red-500) 10%, transparent);
+  --color-surface-danger-subtle-hover: color-mix(in oklch, var(--color-red-500) 16%, transparent);
+  --color-surface-danger-subtle-pressed: color-mix(in oklch, var(--color-red-500) 22%, transparent);
   --color-surface-document: white;
   --color-surface-inverse: var(--color-fg-primary);
   --color-surface-inverse-hover: var(--color-fg-secondary);
   --color-surface-overlay: oklch(0.985 0.002 255 / 0.98);
   --color-surface-raised: oklch(1 0 0 / 0.98);
   --color-surface-scrim: oklch(0.16 0.004 264 / 0.26);
-  --color-surface-selected: color-mix(in oklch, var(--knovum-ref-color-blue-500) 13%, transparent);
+  --color-surface-selected: color-mix(in oklch, var(--color-blue-500) 13%, transparent);
   --color-surface-skeleton: oklch(0.18 0.006 264 / 0.07);
   --color-surface-muted: oklch(0.974 0.002 255);
-  --color-surface-success-subtle: color-mix(in oklch, var(--knovum-ref-color-green-500) 10%, transparent);
+  --color-surface-success-subtle: color-mix(in oklch, var(--color-green-500) 10%, transparent);
   --color-surface-panel: oklch(0.986 0.0015 255);
-  --color-surface-warning-subtle-hover: color-mix(
-    in oklch,
-    var(--knovum-ref-color-amber-500) 16%,
-    transparent
-  );
-  --color-surface-warning-subtle: color-mix(in oklch, var(--knovum-ref-color-amber-500) 10%, transparent);
-  --color-stroke-accent: var(--knovum-ref-color-blue-500);
+  --color-surface-warning-subtle-hover: color-mix(in oklch, var(--color-amber-500) 16%, transparent);
+  --color-surface-warning-subtle: color-mix(in oklch, var(--color-amber-500) 10%, transparent);
+  --color-stroke-accent: var(--color-blue-500);
   --color-stroke-contrast: var(--color-fg-primary);
   --color-stroke-contrast-subtle: var(--color-fg-secondary);
-  --color-stroke-danger: var(--knovum-ref-color-red-500);
+  --color-stroke-danger: var(--color-red-500);
   --color-stroke-default: oklch(0.22 0.006 264 / 0.075);
   --color-stroke-default-hover: oklch(0.22 0.006 264 / 0.2);
   --color-stroke-divider: oklch(0.22 0.006 264 / 0.045);
-  --color-stroke-focus: color-mix(in oklch, var(--knovum-ref-color-blue-500) 38%, transparent);
+  --color-stroke-focus: color-mix(in oklch, var(--color-blue-500) 38%, transparent);
   --color-stroke-on-image: white;
   --color-stroke-strong: oklch(0.22 0.006 264 / 0.125);
-  --color-stroke-warning: var(--knovum-ref-color-amber-500);
-  --color-fg-accent: var(--knovum-ref-color-blue-500);
-  --color-fg-danger: var(--knovum-ref-color-red-500);
+  --color-stroke-warning: var(--color-amber-500);
+  --color-fg-accent: var(--color-blue-500);
+  --color-fg-danger: var(--color-red-500);
   --color-fg-inverse: var(--color-surface-canvas);
   --color-fg-on-accent: white;
   --color-fg-on-danger: white;
   --color-fg-on-image: white;
   --color-fg-primary: oklch(0.24 0.006 264);
   --color-fg-secondary: oklch(0.48 0.007 264);
-  --color-fg-success: var(--knovum-ref-color-green-500);
+  --color-fg-success: var(--color-green-500);
   --color-fg-tertiary: oklch(0.54 0.006 264);
-  --color-fg-warning: var(--knovum-ref-color-amber-500);
+  --color-fg-warning: var(--color-amber-500);
 
   /* Authored values extend Tailwind directly; no parallel reference scale. */
   --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI", sans-serif;
@@ -189,18 +184,25 @@
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --color-surface-accent: var(--knovum-ref-color-blue-400);
-  --color-stroke-accent: var(--knovum-ref-color-blue-400);
-  --color-surface-danger: var(--knovum-ref-color-red-400);
-  --color-stroke-danger: var(--knovum-ref-color-red-400);
+  --color-content-red: var(--color-red-400);
+  --color-content-amber: var(--color-amber-400);
+  --color-content-yellow: var(--color-yellow-400);
+  --color-content-green: var(--color-green-400);
+  --color-content-teal: var(--color-teal-400);
+  --color-content-cyan: var(--color-cyan-400);
+  --color-content-blue: var(--color-blue-400);
+  --color-content-purple: var(--color-purple-400);
+  --color-content-pink: var(--color-pink-400);
+  --color-content-gray: var(--color-gray-400);
 
-  --color-stroke-warning: var(--knovum-ref-color-amber-400);
-  --color-surface-warning-subtle-hover: color-mix(
-    in oklch,
-    var(--knovum-ref-color-amber-400) 20%,
-    transparent
-  );
-  --color-surface-warning-subtle: color-mix(in oklch, var(--knovum-ref-color-amber-400) 13%, transparent);
+  --color-surface-accent: var(--color-blue-400);
+  --color-stroke-accent: var(--color-blue-400);
+  --color-surface-danger: var(--color-red-400);
+  --color-stroke-danger: var(--color-red-400);
+
+  --color-stroke-warning: var(--color-amber-400);
+  --color-surface-warning-subtle-hover: color-mix(in oklch, var(--color-amber-400) 20%, transparent);
+  --color-surface-warning-subtle: color-mix(in oklch, var(--color-amber-400) 13%, transparent);
   --color-surface-chrome: oklch(0.19 0.006 264);
   --color-surface-canvas: oklch(0.175 0.005 264);
   --color-surface-muted: oklch(0.215 0.006 264);
@@ -220,25 +222,21 @@
   --color-surface-control: oklch(1 0 0 / 0.07);
   --color-surface-control-hover: oklch(1 0 0 / 0.09);
   --color-surface-control-pressed: oklch(1 0 0 / 0.12);
-  --color-surface-selected: color-mix(in oklch, var(--knovum-ref-color-blue-400) 16%, transparent);
+  --color-surface-selected: color-mix(in oklch, var(--color-blue-400) 16%, transparent);
   --color-surface-skeleton: oklch(1 0 0 / 0.085);
-  --color-fg-accent: var(--knovum-ref-color-blue-400);
-  --color-surface-accent-hover: var(--knovum-ref-color-blue-300);
-  --color-surface-accent-pressed: var(--knovum-ref-color-blue-500);
-  --color-surface-accent-subtle: color-mix(in oklch, var(--knovum-ref-color-blue-400) 11%, transparent);
+  --color-fg-accent: var(--color-blue-400);
+  --color-surface-accent-hover: var(--color-blue-300);
+  --color-surface-accent-pressed: var(--color-blue-500);
+  --color-surface-accent-subtle: color-mix(in oklch, var(--color-blue-400) 11%, transparent);
   --color-fg-on-accent: oklch(0.15 0.008 264);
-  --color-stroke-focus: color-mix(in oklch, var(--knovum-ref-color-blue-400) 42%, transparent);
-  --color-fg-danger: var(--knovum-ref-color-red-400);
-  --color-surface-danger-subtle: color-mix(in oklch, var(--knovum-ref-color-red-400) 13%, transparent);
-  --color-surface-danger-subtle-hover: color-mix(in oklch, var(--knovum-ref-color-red-400) 20%, transparent);
-  --color-surface-danger-subtle-pressed: color-mix(
-    in oklch,
-    var(--knovum-ref-color-red-400) 27%,
-    transparent
-  );
-  --color-fg-success: var(--knovum-ref-color-green-400);
-  --color-surface-success-subtle: color-mix(in oklch, var(--knovum-ref-color-green-400) 13%, transparent);
-  --color-fg-warning: var(--knovum-ref-color-amber-400);
+  --color-stroke-focus: color-mix(in oklch, var(--color-blue-400) 42%, transparent);
+  --color-fg-danger: var(--color-red-400);
+  --color-surface-danger-subtle: color-mix(in oklch, var(--color-red-400) 13%, transparent);
+  --color-surface-danger-subtle-hover: color-mix(in oklch, var(--color-red-400) 20%, transparent);
+  --color-surface-danger-subtle-pressed: color-mix(in oklch, var(--color-red-400) 27%, transparent);
+  --color-fg-success: var(--color-green-400);
+  --color-surface-success-subtle: color-mix(in oklch, var(--color-green-400) 13%, transparent);
+  --color-fg-warning: var(--color-amber-400);
   --knovum-sidebar-item-bg-hover: oklch(1 0 0 / 0.05);
   --knovum-sidebar-item-bg-selected: oklch(1 0 0 / 0.085);
   --knovum-tab-bg-inactive: oklch(0.225 0.006 264);

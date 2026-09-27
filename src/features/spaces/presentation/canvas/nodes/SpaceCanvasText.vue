@@ -64,6 +64,7 @@ function reportContentHeight(height: number) {
     <SpaceCanvasTextSelectionBar
       v-if="editor"
       :editor="editor"
+      kind="text"
       :default-font-size="fontSize"
       :default-alignment="textAlign"
       :typography-scale="typographyScale"

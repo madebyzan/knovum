@@ -193,25 +193,5 @@
 :deep(.space-tiptap-prose mark) {
   border-radius: 0.2rem;
   padding: 0.08em 0.22em;
-  color: inherit;
-}
-
-:root[data-theme="dark"] :deep(.space-tiptap-prose mark[data-color="#fde68a"]),
-:root[data-theme="dark"] :deep(.space-tiptap-prose mark[style*="#fde68a"]) {
-  background-color: var(--knovum-space-highlight-bg-yellow) !important;
-}
-
-:root[data-theme="dark"] :deep(.space-tiptap-prose mark[data-color="#bbf7d0"]),
-:root[data-theme="dark"] :deep(.space-tiptap-prose mark[style*="#bbf7d0"]) {
-  background-color: var(--knovum-space-highlight-bg-green) !important;
-}
-
-:root[data-theme="dark"] :deep(.space-tiptap-prose mark[data-color="#bfdbfe"]),
-:root[data-theme="dark"] :deep(.space-tiptap-prose mark[style*="#bfdbfe"]) {
-  background-color: var(--knovum-space-highlight-bg-blue) !important;
-}
-
-:root[data-theme="dark"] :deep(.space-tiptap-prose mark[data-color="#fbcfe8"]),
-:root[data-theme="dark"] :deep(.space-tiptap-prose mark[style*="#fbcfe8"]) {
-  background-color: var(--knovum-space-highlight-bg-pink) !important;
+  color: var(--color-black);
 }

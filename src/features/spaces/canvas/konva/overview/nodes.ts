@@ -54,12 +54,13 @@ function drawTextNode(group: Konva.Group, sceneNode: CanvasSceneNode, palette: C
 function drawNodeCard(group: Konva.Group, sceneNode: CanvasSceneNode, palette: CanvasPalette) {
   const { frame, appearance } = sceneNode.layout;
   const note = sceneNode.node.data.kind === "note";
-  const fill = appearance?.customFill ?? (appearance?.fill ? palette.noteFill[appearance.fill] : undefined);
+  const fill =
+    appearance?.customFill ?? (appearance?.fill ? palette.contentFill[appearance.fill] : undefined);
   group.add(
     new Konva.Rect({
       width: frame.width,
       height: frame.height,
-      fill: fill ?? (note ? palette.noteFill.yellow : palette.panel),
+      fill: fill ?? (note ? palette.contentFill.yellow : palette.panel),
       cornerRadius: note ? 3 : 7,
       listening: false,
     }),
