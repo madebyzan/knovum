@@ -4,7 +4,7 @@ import {
   canvasViewportDetailProfile,
   richPreviewZoomThreshold,
   shouldRenderRichCanvasPreview,
-} from "../canvas/contract/canvas-detail-profile";
+} from "../canvas/preview/detail-profile";
 
 describe("spaces preview policy", () => {
   it("raises the rich-preview threshold as the canvas grows", () => {

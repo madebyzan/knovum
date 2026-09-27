@@ -160,8 +160,13 @@ They do not mirror backend architecture layers with generic `application/`, `dom
 is reserved for its Pinia composition root and the cross-capability actions assembled by that root;
 business policy remains with the owning capability.
 
-Large bounded contexts such as Spaces split by business capability first. Shared Renderer contracts
-and pure presentation transforms live in `model/`; this does not imply an independent domain layer.
+Large bounded contexts such as Spaces split by business capability first. `model/` is reserved for
+shared pure data models, invariants and projections within its owning capability; it is not a
+container for all interfaces. `schema/` owns executable structural validation, and `contracts/`
+owns explicit implementation boundaries or generated wire types. `spaces/model` and
+`knowledge/model` have different business scopes; they do not duplicate one entity. Do not add
+generic `types/` containers or singular `contract/` directories. This does not imply an independent
+domain layer.
 UI shape (`components`, `views`) and technical lifecycle (`state`, `runtime`) remain subordinate to
 their business owner; they do not become peer product domains.
 
@@ -434,3 +439,5 @@ platform, renderer downloader, compatibility command alias, PATH fallback or alt
 ### Schema ownership and supporting modules
 
 Independent Renderer runtime schemas use the owning capability or model’s `schema/<subject>.ts` layout, as specified in `naming-conventions.md`. Generated IPC contracts and database baselines retain their separate boundaries. In Rust, `spaces/knowledge/object_types/` owns custom Knowledge Type lifecycle and decoding; it is not a generic type container. Retrieval index schemas own Arrow structure, while `retrieval/validation.rs` owns query-vector input policy.
+
+Canvas editor/surface interfaces belong to `canvas/contracts/`; pure preview policy belongs to `canvas/preview/`. Workspace persistence state belongs to `workspace/`. Knowledge object type editing belongs to `knowledge/object-types/`, not a generic TypeScript types folder.

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { SpaceClipboardPayload } from "../clipboard/payload-types";
+import type { SpaceClipboardPayload } from "../clipboard/clipboard-envelope";
 import { readSpaceClipboardHtml, writeSpaceClipboardDirect } from "../clipboard/transfer";
 import type { SpaceRelation } from "../model/relations/relation";
 

@@ -3,7 +3,7 @@ import { i18n } from "../../../foundation/i18n/i18n";
 import { importSpaceBatch } from "../assets/import-batch";
 import { spaceImportContext } from "../assets/import-context";
 import type { useSpaceStore } from "../session/space-store";
-import type { CanvasPoint } from "./contract/canvas-editor";
+import type { CanvasPoint } from "./contracts/canvas-editor";
 
 type SpaceStore = ReturnType<typeof useSpaceStore>;
 

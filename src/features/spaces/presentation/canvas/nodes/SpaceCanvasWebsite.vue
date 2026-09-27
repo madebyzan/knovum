@@ -4,7 +4,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { spaceAssetSource } from "../../../assets/node-preview-source";
-import type { CanvasNodePresentationContext } from "../../../canvas/contract/canvas-detail-profile";
+import type { CanvasNodePresentationContext } from "../../../canvas/preview/detail-profile";
 import type { SpaceWebsitePayload } from "../../../model/nodes/node-payload";
 import { truncateUtf16 } from "../../../model/text";
 import SpaceCanvasNodeStatus from "./SpaceCanvasNodeStatus.vue";

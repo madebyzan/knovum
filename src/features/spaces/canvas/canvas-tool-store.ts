@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { readonly, shallowRef } from "vue";
 
-import type { CanvasTool } from "./contract/canvas-tool";
+import type { CanvasTool } from "./contracts/canvas-tool";
 import { flushSpaceSessionContent } from "./editor-session";
 
 export const useCanvasToolStore = defineStore("spaces-canvas-tools", () => {

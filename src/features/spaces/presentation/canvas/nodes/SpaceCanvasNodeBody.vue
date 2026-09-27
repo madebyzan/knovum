@@ -3,7 +3,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { classifyFilePresentation, usesDocumentPreview } from "../../../assets/file-presentation";
-import type { CanvasNodePresentationContext } from "../../../canvas/contract/canvas-detail-profile";
+import type { CanvasNodePresentationContext } from "../../../canvas/preview/detail-profile";
 import type { SpaceNodePayload } from "../../../model/nodes/node-payload";
 import SpaceDocumentPreview from "../../document/SpaceDocumentPreview.vue";
 import { nodePayloadWork } from "./canvas-node-work";

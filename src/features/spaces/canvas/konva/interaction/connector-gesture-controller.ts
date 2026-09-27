@@ -1,4 +1,4 @@
-import type { CanvasPoint } from "../../contract/canvas-editor";
+import type { CanvasPoint } from "../../contracts/canvas-editor";
 import {
   connectorAnchor,
   nearestConnectorTarget,

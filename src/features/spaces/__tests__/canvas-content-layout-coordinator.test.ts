@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { CanvasEditorPort } from "../canvas/contract/canvas-editor-port";
+import type { CanvasEditorPort } from "../canvas/contracts/canvas-editor-port";
 import { createCanvasContentLayoutCoordinator } from "../presentation/canvas/canvas-content-layout-coordinator";
 
 describe("canvas content layout coordinator", () => {

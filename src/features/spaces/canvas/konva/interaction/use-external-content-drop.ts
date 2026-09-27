@@ -1,7 +1,7 @@
 import { useEventListener } from "@vueuse/core";
 import type { Ref } from "vue";
 
-import type { CanvasPoint, CanvasViewport } from "../../contract/canvas-editor";
+import type { CanvasPoint, CanvasViewport } from "../../contracts/canvas-editor";
 import { canvasPointFromScreen } from "../viewport/viewport-math";
 
 interface ExternalContentDropOptions {

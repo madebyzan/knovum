@@ -9,7 +9,7 @@ import UiDialog from "../../../../shared/ui/UiDialog.vue";
 import UiInput from "../../../../shared/ui/UiInput.vue";
 import UiScrollArea from "../../../../shared/ui/UiScrollArea.vue";
 import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
-import { useKnowledgeTypeEditor } from "../../knowledge/types/use-knowledge-type-editor";
+import { useKnowledgeTypeEditor } from "../../knowledge/object-types/use-knowledge-type-editor";
 import SpaceKnowledgeIconSelect from "./SpaceKnowledgeIconSelect.vue";
 import SpaceKnowledgeTypeFields from "./SpaceKnowledgeTypeFields.vue";
 

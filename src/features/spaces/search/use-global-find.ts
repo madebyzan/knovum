@@ -7,7 +7,7 @@ import { revealContentNode, revealStructureNode } from "../canvas/structure-navi
 import { useContextDock } from "../canvas/use-context-dock";
 import { useSpaceStore } from "../session/space-store";
 import { searchAcrossSpaces } from "./global-search";
-import type { GlobalSearchMatch } from "./global-search-contract";
+import type { GlobalSearchMatch } from "./search-match";
 
 export function useGlobalFind(open: Ref<boolean>) {
   const store = useSpaceStore();

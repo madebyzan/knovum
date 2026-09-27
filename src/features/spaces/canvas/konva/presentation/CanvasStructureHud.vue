@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CanvasViewport } from "../../contract/canvas-editor-port";
+import type { CanvasViewport } from "../../contracts/canvas-editor-port";
 import CanvasGroupScopeBar from "./CanvasGroupScopeBar.vue";
 import CanvasStructureRenameOverlay from "./CanvasStructureRenameOverlay.vue";
 

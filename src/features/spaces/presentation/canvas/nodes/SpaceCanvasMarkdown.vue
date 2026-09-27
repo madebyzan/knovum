@@ -3,7 +3,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiMarkdown from "../../../../../shared/ui/UiMarkdown.vue";
-import type { CanvasNodePresentationContext } from "../../../canvas/contract/canvas-detail-profile";
+import type { CanvasNodePresentationContext } from "../../../canvas/preview/detail-profile";
 import type { SpaceMarkdownPayload } from "../../../model/nodes/node-payload";
 import { nodePayloadWork } from "./canvas-node-work";
 import { projectMarkdownPreview } from "./markdown-preview-projection";

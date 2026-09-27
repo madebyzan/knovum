@@ -1,4 +1,4 @@
-import type { CanvasNodePlacement } from "../canvas/contract/canvas-editor";
+import type { CanvasNodePlacement } from "../canvas/contracts/canvas-editor";
 import { spaceNodeDimensions } from "../canvas/node-size";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 

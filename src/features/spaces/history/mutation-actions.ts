@@ -2,7 +2,7 @@ import { scheduleKnowledgeIndex } from "../knowledge/indexing/index-scheduler";
 import { validateSpaceNodePayload } from "../model/nodes/node-validation";
 import type { NodePayloadChange } from "../model/nodes/payload-change";
 import { beginSpaceMutation } from "./mutation-barrier";
-import { requireActiveSpaceId, type SpaceMutationContext } from "./mutation-types";
+import { requireActiveSpaceId, type SpaceMutationContext } from "./mutation-context";
 import { replayNodeContent } from "./node-content-replay";
 import {
   combineRecentSpaceHistory,

@@ -2,7 +2,7 @@ import type Konva from "konva";
 import type { Ref } from "vue";
 import type { VueKonvaRef } from "vue-konva/core";
 
-import type { CanvasSurfaceProps } from "../contract/canvas-surface";
+import type { CanvasSurfaceProps } from "../contracts/canvas-surface";
 import type { CanvasNodeLayoutV1 } from "../schema/document";
 import type { CanvasDocumentModel } from "./document/canvas-document-model";
 import type { createCanvasGestureSession } from "./interaction/canvas-gesture-session";

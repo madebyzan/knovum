@@ -3,7 +3,7 @@ import { nextTick } from "vue";
 import type {
   CanvasContentHeightMeasurement,
   CanvasEditorPort,
-} from "../../canvas/contract/canvas-editor-port";
+} from "../../canvas/contracts/canvas-editor-port";
 
 interface CanvasContentLayoutCoordinatorOptions {
   directManipulation(): boolean;

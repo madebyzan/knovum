@@ -10,7 +10,7 @@ import {
   structureNodeSchema,
 } from "../model/structure/schema/structure";
 import { validateStructureSnapshot } from "../model/structure/structure-validation";
-import type { SpaceClipboardPayload } from "./payload-types";
+import type { SpaceClipboardPayload } from "./clipboard-envelope";
 import { clipboardRelationSchema } from "./schema/relation";
 
 const HTML_MARKER = /<!--knovum-spaces:([^>]*)-->/u;

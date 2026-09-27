@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { CanvasNodePresentationContext } from "../canvas/contract/canvas-detail-profile";
+import type { CanvasNodePresentationContext } from "../canvas/preview/detail-profile";
 import type { TiptapJsonNode } from "../editor/tiptap-document";
 import { projectPreviewItems } from "../presentation/canvas/nodes/canvas-preview-budget";
 import { projectMarkdownPreview } from "../presentation/canvas/nodes/markdown-preview-projection";

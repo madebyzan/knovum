@@ -2,7 +2,7 @@ import { openUrl } from "@tauri-apps/plugin-opener";
 
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import { previewSpaceAsset } from "../assets/asset-preview";
-import type { SpaceClipboardPayload } from "../clipboard/payload-types";
+import type { SpaceClipboardPayload } from "../clipboard/clipboard-envelope";
 import { importStructureClipboard } from "../clipboard/structure-clipboard-operations";
 import { readSpaceClipboardHtml, writeSpaceClipboardDirect } from "../clipboard/transfer";
 import type { PositionedSpaceNode, SpaceCanvasNode } from "../model/nodes/canvas-node";

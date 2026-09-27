@@ -4,7 +4,7 @@ import { Layer as KonvaLayer, Rect as KonvaRect } from "vue-konva/core";
 // oxlint-disable-next-line import/no-unassigned-import
 import "konva/lib/shapes/Rect";
 
-import type { CanvasViewport } from "../../contract/canvas-editor-port";
+import type { CanvasViewport } from "../../contracts/canvas-editor-port";
 import type { CanvasPalette } from "./use-canvas-palette";
 
 const GRID_SPACING = 25;

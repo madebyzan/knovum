@@ -1,5 +1,5 @@
 import { createStructureIndex } from "../../model/structure/structure-index";
-import type { CanvasEditorPort } from "../contract/canvas-editor-port";
+import type { CanvasEditorPort } from "../contracts/canvas-editor-port";
 import { serializeCanvasAppearance } from "../schema/document";
 import type { CanvasNodeAppearance } from "../schema/document";
 import type { KonvaEditorPortOptions } from "./canvas-editor-port-options";

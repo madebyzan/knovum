@@ -3,7 +3,7 @@ import { EditorContent } from "@tiptap/vue-3";
 import { computed, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
-import type { CanvasNodePresentationContext } from "../../../canvas/contract/canvas-detail-profile";
+import type { CanvasNodePresentationContext } from "../../../canvas/preview/detail-profile";
 import type { SpaceCanvasTextPayload } from "../../../model/nodes/capabilities";
 import type { SpaceNotePayload } from "../../../model/nodes/node-payload";
 import SpaceCanvasRichText from "./SpaceCanvasRichText.vue";

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-import { canvasViewportDetailProfile } from "../../contract/canvas-detail-profile";
-import type { CanvasViewport } from "../../contract/canvas-editor";
+import type { CanvasViewport } from "../../contracts/canvas-editor";
+import { canvasViewportDetailProfile } from "../../preview/detail-profile";
 import type { CanvasNodeLayoutV1 } from "../../schema/document";
 import type { CanvasScene } from "../scene/scene-projection";
 import CanvasDomNodeOverlay from "./CanvasDomNodeOverlay.vue";

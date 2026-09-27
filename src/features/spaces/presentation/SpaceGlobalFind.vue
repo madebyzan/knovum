@@ -17,8 +17,8 @@ import UiButton from "../../../shared/ui/UiButton.vue";
 import UiKbd from "../../../shared/ui/UiKbd.vue";
 import UiSpinner from "../../../shared/ui/UiSpinner.vue";
 import { knowledgeLocationLabel } from "../knowledge/presentation/location-label";
-import type { GlobalSearchMatch } from "../search/global-search-contract";
 import { highlightedSnippet } from "../search/highlighted-snippet";
+import type { GlobalSearchMatch } from "../search/search-match";
 import { useGlobalFind } from "../search/use-global-find";
 import { nodeIcon } from "./node-icon";
 

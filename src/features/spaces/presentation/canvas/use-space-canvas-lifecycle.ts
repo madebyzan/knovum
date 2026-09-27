@@ -3,7 +3,7 @@ import { onBeforeUnmount, shallowRef, watch, type Ref } from "vue";
 import type { CanvasExchangePort } from "../../canvas-exchange/canvas-exchange-port";
 import { registerCanvasExchangePort } from "../../canvas-exchange/canvas-exchange-session";
 import type { useCanvasToolStore } from "../../canvas/canvas-tool-store";
-import type { CanvasEditorPort } from "../../canvas/contract/canvas-editor-port";
+import type { CanvasEditorPort } from "../../canvas/contracts/canvas-editor-port";
 import { registerCanvasEditor } from "../../canvas/editor-session";
 import type { useSpaceStore } from "../../session/space-store";
 import type { CanvasContentLayoutCoordinator } from "./canvas-content-layout-coordinator";

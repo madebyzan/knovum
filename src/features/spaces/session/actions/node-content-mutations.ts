@@ -2,7 +2,7 @@ import { cleanupDeletedSpaceAssets } from "../../assets/asset-operations";
 import { applySpaceNodeContent } from "../../canvas/node";
 import { refreshEnrichmentTasks } from "../../enrichment/job-observation";
 import { beginSpaceMutation } from "../../history/mutation-barrier";
-import { requireActiveSpaceId, type SpaceMutationContext } from "../../history/mutation-types";
+import { requireActiveSpaceId, type SpaceMutationContext } from "../../history/mutation-context";
 import { scheduleKnowledgeIndex } from "../../knowledge/indexing/index-scheduler";
 import type { KnowledgeChunkSeed } from "../../knowledge/model/schema/chunk";
 import type { SpaceNodePayload } from "../../model/nodes/node-payload";

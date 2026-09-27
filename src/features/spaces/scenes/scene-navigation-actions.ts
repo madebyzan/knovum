@@ -1,7 +1,7 @@
 import { nextTick, type Ref } from "vue";
 
 import { i18n } from "../../../foundation/i18n/i18n";
-import type { CanvasViewport } from "../canvas/contract/canvas-editor";
+import type { CanvasViewport } from "../canvas/contracts/canvas-editor";
 import type { Space } from "../model/space";
 import type { useSpaceStore } from "../session/space-store";
 import { popupSpaceContextMenu, spaceMenuItem } from "../workspace/space-menu";

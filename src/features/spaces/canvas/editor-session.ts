@@ -6,7 +6,7 @@ import type {
   CanvasEditorPort,
   CanvasSelectionSnapshot,
   CanvasViewport,
-} from "./contract/canvas-editor-port";
+} from "./contracts/canvas-editor-port";
 
 const activeEditor = shallowRef<CanvasEditorPort>();
 const viewport = shallowRef<CanvasViewport>();

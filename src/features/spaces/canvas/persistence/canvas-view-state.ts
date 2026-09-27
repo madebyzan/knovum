@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { invokeCommand } from "../../../../foundation/ipc/invoke-command";
-import type { CanvasViewport } from "../contract/canvas-editor";
+import type { CanvasViewport } from "../contracts/canvas-editor";
 
 const canvasViewStateSchema = z
   .object({

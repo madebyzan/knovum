@@ -1,4 +1,4 @@
-import type { CanvasNodePlacement } from "../../canvas/contract/canvas-editor";
+import type { CanvasNodePlacement } from "../../canvas/contracts/canvas-editor";
 import { copySpaceSelectionToClipboard } from "../../canvas/selection-actions";
 import { createSpaceClipboardPayload } from "../../clipboard/payload";
 import type { useSpaceStore } from "../space-store";

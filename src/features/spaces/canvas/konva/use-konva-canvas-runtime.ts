@@ -2,7 +2,7 @@ import type Konva from "konva";
 import { computed, shallowRef, useTemplateRef } from "vue";
 import type { VueKonvaRef } from "vue-konva/core";
 
-import type { CanvasSurfaceProps } from "../contract/canvas-surface";
+import type { CanvasSurfaceProps } from "../contracts/canvas-surface";
 import type { CanvasDocumentV1 } from "../schema/document";
 import { CanvasDocumentModel } from "./document/canvas-document-model";
 import { useCanvasDocumentSync } from "./document/use-canvas-document-sync";

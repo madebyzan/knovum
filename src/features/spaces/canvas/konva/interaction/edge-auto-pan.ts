@@ -1,6 +1,6 @@
 import { clamp } from "es-toolkit";
 
-import type { CanvasPoint } from "../../contract/canvas-editor";
+import type { CanvasPoint } from "../../contracts/canvas-editor";
 
 const EDGE_ZONE = 56;
 const MAX_SPEED = 720;
