@@ -12,7 +12,7 @@ const props = defineProps<{
 function fill(section: ProjectedSection) {
   const appearance = section.layout.appearance;
   if (appearance?.customFill) return appearance.customFill;
-  if (appearance?.fill) return props.palette.noteFill[appearance.fill];
+  if (appearance?.fill) return props.palette.contentFill[appearance.fill];
   return props.palette.panel;
 }
 </script>

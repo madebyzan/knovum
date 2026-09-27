@@ -68,7 +68,7 @@ const {
       <template #trigger>
         <button
           type="button"
-          class="nodrag pointer-events-auto absolute z-10 flex size-9 items-center justify-center rounded-full border-2 border-stroke-on-image bg-(--knovum-space-image-annotation-color) text-label font-semibold text-fg-on-image shadow-popover outline-none focus-visible:ring-2 focus-visible:ring-stroke-focus"
+          class="nodrag pointer-events-auto absolute z-10 flex size-9 items-center justify-center rounded-full border-2 border-stroke-on-image bg-(--color-content-purple) text-label font-semibold text-fg-on-image shadow-popover outline-none focus-visible:ring-2 focus-visible:ring-stroke-focus"
           :class="
             comment.shape?.kind === 'region'
               ? 'translate-x-1/2 -translate-y-1/2'
@@ -118,7 +118,7 @@ const {
       <template #trigger>
         <button
           type="button"
-          class="nodrag pointer-events-auto absolute z-20 flex size-9 items-center justify-center rounded-full border-2 border-stroke-on-image bg-(--knovum-space-image-annotation-color) text-label font-semibold text-fg-on-image shadow-popover"
+          class="nodrag pointer-events-auto absolute z-20 flex size-9 items-center justify-center rounded-full border-2 border-stroke-on-image bg-(--color-content-purple) text-label font-semibold text-fg-on-image shadow-popover"
           :class="
             draft.shape?.kind === 'region'
               ? 'translate-x-1/2 -translate-y-1/2'

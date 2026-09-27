@@ -14,7 +14,7 @@ export interface CanvasPalette {
   foregroundSecondary: string;
   grid: string;
   measurement: string;
-  noteFill: Record<CanvasFillPreset, string>;
+  contentFill: Record<CanvasFillPreset, string>;
   panel: string;
   relation: Record<CanvasRelationColor, string>;
 }
@@ -43,22 +43,22 @@ function readPalette(): CanvasPalette {
     foreground: value(styles, "--color-fg-primary"),
     foregroundSecondary: value(styles, "--color-fg-secondary"),
     grid: value(styles, "--knovum-space-grid-color"),
-    measurement: value(styles, "--knovum-space-measurement-color"),
-    noteFill: {
-      yellow: value(styles, "--knovum-space-note-bg-yellow"),
-      green: value(styles, "--knovum-space-note-bg-green"),
-      blue: value(styles, "--knovum-space-note-bg-blue"),
-      pink: value(styles, "--knovum-space-note-bg-pink"),
-      gray: value(styles, "--knovum-space-note-bg-gray"),
+    measurement: value(styles, "--color-content-amber"),
+    contentFill: {
+      yellow: value(styles, "--color-content-yellow-subtle"),
+      green: value(styles, "--color-content-green-subtle"),
+      blue: value(styles, "--color-content-blue-subtle"),
+      pink: value(styles, "--color-content-pink-subtle"),
+      gray: value(styles, "--color-content-gray-subtle"),
     },
     panel: value(styles, "--color-surface-panel"),
     relation: {
       neutral: value(styles, "--color-fg-secondary"),
-      blue: value(styles, "--knovum-space-relation-stroke-blue"),
-      green: value(styles, "--knovum-space-relation-stroke-green"),
-      amber: value(styles, "--knovum-space-relation-stroke-amber"),
-      red: value(styles, "--knovum-space-relation-stroke-red"),
-      purple: value(styles, "--knovum-space-relation-stroke-purple"),
+      blue: value(styles, "--color-content-blue"),
+      green: value(styles, "--color-content-green"),
+      amber: value(styles, "--color-content-amber"),
+      red: value(styles, "--color-content-red"),
+      purple: value(styles, "--color-content-purple"),
     },
   };
 }

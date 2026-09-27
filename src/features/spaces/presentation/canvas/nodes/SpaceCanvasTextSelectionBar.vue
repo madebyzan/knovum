@@ -16,6 +16,7 @@ import SpaceCanvasTextAlignmentMenu from "./SpaceCanvasTextAlignmentMenu.vue";
 
 const props = defineProps<{
   editor: Editor;
+  kind: "note" | "text";
   defaultFontSize: number;
   defaultAlignment: "left" | "center" | "right";
   typographyScale: number;
@@ -57,6 +58,7 @@ function refresh() {
 }
 
 function setColor(value: string) {
+  if (props.kind !== "text") return;
   const chain = props.editor.chain().focus();
   if (value === "default") chain.unsetColor().run();
   else chain.setColor(value).run();
@@ -152,6 +154,7 @@ onBeforeUnmount(() => {
           </UiDropdownMenuItem>
         </UiDropdownMenu>
         <SpaceCanvasColorSwatches
+          v-if="kind === 'text'"
           :label="t('spaces.canvas.textColor')"
           :options="colorOptions"
           :selected="selectedColor"

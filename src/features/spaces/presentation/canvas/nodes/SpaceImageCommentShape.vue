@@ -17,7 +17,7 @@ const points = computed(() => {
 <template>
   <svg
     v-if="mark.shape"
-    class="pointer-events-none absolute inset-0 size-full overflow-visible text-(color:--knovum-space-image-annotation-color)"
+    class="pointer-events-none absolute inset-0 size-full overflow-visible text-(color:--color-content-purple)"
     viewBox="0 0 1000 1000"
     preserveAspectRatio="none"
     aria-hidden="true"

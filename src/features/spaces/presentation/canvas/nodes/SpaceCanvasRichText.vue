@@ -10,7 +10,7 @@ const props = defineProps<{
   kind: "note" | "text";
   placeholder: string;
 }>();
-const html = computed(() => canvasTextHtml(props.content));
+const html = computed(() => canvasTextHtml(props.content, props.kind));
 </script>
 
 <template>

@@ -8,12 +8,15 @@ import { beforeAll, describe, expect, it } from "vitest";
 
 const tokenSource = readFileSync("src/styles/tokens.css", "utf8");
 const spaceTokenSource = readFileSync("src/features/spaces/presentation/space-tokens.css", "utf8");
+const nativeTheme = readFileSync("node_modules/tailwindcss/theme.css", "utf8");
 const allTokens = tokenSource + spaceTokenSource;
 const publicTheme = tokenSource.slice(
   tokenSource.indexOf("@theme static"),
   tokenSource.indexOf(":root[data-text-size"),
 );
-const declarations = new Set([...allTokens.matchAll(/(--[\w-]+):/g)].map((match) => match[1]));
+const declarations = new Set(
+  [...(allTokens + nativeTheme).matchAll(/(--[\w-]+):/g)].map((match) => match[1]),
+);
 const productSources = readdirSync("src", { recursive: true, withFileTypes: true })
   .filter((entry) => entry.isFile() && /\.(?:css|ts|vue)$/.test(entry.name))
   .filter((entry) => !entry.parentPath.includes("__tests__") && !entry.name.endsWith(".test.ts"))
@@ -107,7 +110,8 @@ describe("design-token contract", () => {
   });
 
   it("extends Tailwind without duplicating its primitive scales", () => {
-    expect(tokenSource).not.toMatch(/--knovum-(?:ref-radius|icon-size|motion-duration)-/);
+    expect(tokenSource).not.toMatch(/--knovum-(?:ref-color|ref-radius|icon-size|motion-duration)-/);
+    expect(allTokens).not.toMatch(/--knovum-space-(?:relation-stroke|note-bg|note-fg|text-fg|highlight-bg)/);
     expect(tokenSource).not.toContain("--color-*: initial");
     expect(compiledCss).toContain("--radius-md: 0.375rem");
     expect(compiledCss).toContain("--radius-panel: 0.625rem");

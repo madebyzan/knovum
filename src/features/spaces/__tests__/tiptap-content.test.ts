@@ -6,9 +6,53 @@ import type { TiptapJsonNode } from "../editor/tiptap-document";
 import { createCanvasTextExtensions } from "../editor/tiptap-extensions";
 import { validateSpaceNodePayload } from "../model/nodes/node-validation";
 import { tiptapContentSchema } from "../model/nodes/schema/content";
+import { canvasTextAppearanceStyle } from "../presentation/canvas/nodes/canvas-text-appearance";
 import { canvasTextHtml } from "../presentation/canvas/nodes/canvas-text-html";
 
 describe("spaces Tiptap content", () => {
+  it("uses black note text regardless of the requested text color", () => {
+    expect(canvasTextAppearanceStyle("note", { textColor: "red", fill: "blue" }).color).toBe(
+      "var(--color-black)",
+    );
+    expect(canvasTextAppearanceStyle("text", { textColor: "red" }).color).toBe("var(--color-content-red)");
+  });
+
+  it("keeps note text uncolored while preserving selection typography and pasted content", () => {
+    const editor = new Editor({
+      content: '<p><span style="color: red; font-size: 24pt"><strong>Note</strong></span></p>',
+      extensions: createCanvasTextExtensions("", "note"),
+    });
+    expect(editor.extensionManager.extensions.some(({ name }) => name === "color")).toBe(false);
+    expect(editor.getHTML()).not.toContain("color:");
+    expect(editor.getHTML()).toContain("font-size: 24pt");
+    expect(editor.getHTML()).toContain("<strong>");
+    editor.commands.setTextSelection({ from: 1, to: 5 });
+    editor.chain().setFontSize("18pt").run();
+    expect(editor.getHTML()).toContain("font-size: 18pt");
+    editor.destroy();
+  });
+
+  it("renders the same content with note or text color capabilities", () => {
+    const content = tiptapContentSchema.parse({
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              text: "Note",
+              marks: [{ type: "textStyle", attrs: { color: "red", fontSize: "24pt" } }],
+            },
+          ],
+        },
+      ],
+    });
+    expect(canvasTextHtml(content, "text")).toContain("color: red");
+    expect(canvasTextHtml(content, "note")).not.toContain("color:");
+    expect(canvasTextHtml(content, "note")).toContain("font-size: 24pt");
+  });
+
   it("creates Notes as structured Tiptap content instead of Markdown strings", () => {
     const note = createSpaceNotePayload("Research", "First line\nSecond line");
 

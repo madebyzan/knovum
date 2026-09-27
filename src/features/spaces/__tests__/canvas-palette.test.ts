@@ -47,7 +47,7 @@ function mountPalette() {
 
 describe("canvas token projection", () => {
   it("reads the canonical palette before the first render without a fallback", () => {
-    styles.setProperty("--knovum-space-relation-stroke-green", "rgb(4, 5, 6)");
+    styles.setProperty("--color-content-green", "rgb(4, 5, 6)");
     const palette = mountPalette();
     expect(palette.value.relation.green).toBe("rgb(4, 5, 6)");
     expect(palette.value.canvas).toBe("rgb(1, 2, 3)");

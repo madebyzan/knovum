@@ -13,10 +13,10 @@ import SpaceTiptapLinkControl from "./SpaceTiptapLinkControl.vue";
 const props = defineProps<{ editor: Editor }>();
 const { t } = useI18n();
 const highlights = [
-  { name: "yellow", color: "var(--knovum-space-highlight-bg-yellow)" },
-  { name: "green", color: "var(--knovum-space-highlight-bg-green)" },
-  { name: "blue", color: "var(--knovum-space-highlight-bg-blue)" },
-  { name: "pink", color: "var(--knovum-space-highlight-bg-pink)" },
+  { name: "yellow", color: "var(--color-content-yellow-subtle)" },
+  { name: "green", color: "var(--color-content-green-subtle)" },
+  { name: "blue", color: "var(--color-content-blue-subtle)" },
+  { name: "pink", color: "var(--color-content-pink-subtle)" },
 ] as const;
 </script>
 

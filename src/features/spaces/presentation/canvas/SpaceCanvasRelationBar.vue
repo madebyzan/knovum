@@ -35,11 +35,11 @@ const selectedColor = computed<CanvasRelationColor>(
 );
 const colorValues: Record<CanvasRelationColor, string> = {
   neutral: "var(--color-fg-secondary)",
-  blue: "var(--knovum-space-relation-stroke-blue)",
-  green: "var(--knovum-space-relation-stroke-green)",
-  amber: "var(--knovum-space-relation-stroke-amber)",
-  red: "var(--knovum-space-relation-stroke-red)",
-  purple: "var(--knovum-space-relation-stroke-purple)",
+  blue: "var(--color-content-blue)",
+  green: "var(--color-content-green)",
+  amber: "var(--color-content-amber)",
+  red: "var(--color-content-red)",
+  purple: "var(--color-content-purple)",
 };
 const colorOptions = computed(() =>
   CANVAS_RELATION_COLORS.map((value) => ({

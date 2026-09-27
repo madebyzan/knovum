@@ -80,7 +80,7 @@ const gazeStyle = computed(() => ({
     >
       <SpaceImageEditedThumbnail :path="path" :revision="revision" :edit="edit" />
       <span
-        class="absolute size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border border-stroke-on-image bg-(--knovum-space-image-angle-target-color) shadow-control transition-[top,left] duration-150 ease-standard motion-reduce:transition-none"
+        class="absolute size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border border-stroke-on-image bg-(--color-content-purple) shadow-control transition-[top,left] duration-150 ease-standard motion-reduce:transition-none"
         :style="gazeStyle"
       />
     </div>

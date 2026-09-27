@@ -7,26 +7,12 @@ import {
   CANVAS_TEXT_COLORS,
   type CanvasNodeAppearance,
 } from "../../canvas/schema/document";
+import { CONTENT_FILL_COLORS, CONTENT_TEXT_COLORS } from "./canvas-content-colors";
 import SpaceCanvasColorSwatches from "./SpaceCanvasColorSwatches.vue";
 
 const props = defineProps<{ kind: "note" | "text"; appearance?: CanvasNodeAppearance; compact: boolean }>();
 const emit = defineEmits<{ update: [patch: Partial<CanvasNodeAppearance>] }>();
 const { t } = useI18n();
-const fillColors = {
-  yellow: "var(--knovum-space-note-bg-yellow)",
-  green: "var(--knovum-space-note-bg-green)",
-  blue: "var(--knovum-space-note-bg-blue)",
-  pink: "var(--knovum-space-note-bg-pink)",
-  gray: "var(--knovum-space-note-bg-gray)",
-} as const;
-const textColors = {
-  ink: "var(--knovum-space-text-fg-default)",
-  muted: "var(--knovum-space-text-fg-subtle)",
-  red: "var(--knovum-space-text-fg-red)",
-  blue: "var(--knovum-space-text-fg-blue)",
-  green: "var(--knovum-space-text-fg-green)",
-  purple: "var(--knovum-space-text-fg-purple)",
-} as const;
 const label = computed(() =>
   t(props.kind === "note" ? "spaces.canvas.noteBackground" : "spaces.canvas.textColor"),
 );
@@ -37,12 +23,12 @@ const options = computed(() =>
   props.kind === "note"
     ? CANVAS_FILL_PRESETS.map((value) => ({
         value,
-        color: fillColors[value],
+        color: CONTENT_FILL_COLORS[value],
         label: t(`spaces.canvas.noteFills.${value}`),
       }))
     : CANVAS_TEXT_COLORS.map((value) => ({
         value,
-        color: textColors[value],
+        color: CONTENT_TEXT_COLORS[value],
         label: t(`spaces.canvas.textColors.${value}`),
       })),
 );

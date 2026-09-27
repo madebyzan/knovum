@@ -45,7 +45,7 @@ export function useCanvasTextEditor(options: CanvasTextEditorOptions) {
     editor.value = new Editor({
       content: options.data.value.tiptapContent,
       editable: true,
-      extensions: createCanvasTextExtensions(options.placeholder),
+      extensions: createCanvasTextExtensions(options.placeholder, options.data.value.kind),
       editorProps: {
         attributes: { class: "canvas-text-prose w-full outline-none", spellcheck: "true" },
       },
