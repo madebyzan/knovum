@@ -366,8 +366,6 @@ Application commands reject with one `{ code, message }` envelope. `command_erro
 
 Renderer application calls use `foundation/ipc/invoke-command`. It converts rejection payloads into `Error` with the envelope as `cause`, preserving existing `Error` identity and the native invoke argument shape. Business outcome detection reads `decodeCommandError(error)?.code`; it does not match English sentences. Native Tauri/plugin argument or permission failures may still be strings and remain visible errors. This is an active vendor boundary, not a reader for obsolete application protocols.
 
-Production source reachability starts at `src/main.ts`, includes Worker `new URL` edges, and excludes test/support declarations and generated/static resources. Tests must not justify retaining otherwise unused product modules or components. The architecture gate rejects unreachable authored TS/Vue sources; the existing Knip check still owns unused symbols/dependencies.
-
 ## IPC contract ownership
 
 Rust owns serialized request/response/event types. ts-rs exports neutral types to `src/shared/contracts/generated`; Spaces-owned types are exported directly to `src/features/spaces/contracts/generated` through per-type ts-rs export paths; neutral runtime identity arrays and feature-owned limits come from the corresponding Rust definitions. Feature action/workflow JSON Schemas remain in Spaces. Foundation must not import feature implementations to obtain wire types. Runtime validation and UI projections keep their actual responsibilities rather than redefining wire DTOs.

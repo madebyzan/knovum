@@ -188,8 +188,8 @@ owner, so the command must not repeat it:
 
 Omit the noun only when it is the plugin's own aggregate root, which is what the official plugins
 do (`plugin:autostart|enable`, `plugin:store|reset`, `plugin:updater|check`). Keeping a
-`<feature>_` prefix on a plugin command duplicates its namespace; review and the Tauri command
-coverage check reject Renderer literals shaped `<plugin-key>_<rest>`.
+`<feature>_` prefix on a plugin command duplicates its namespace; reject Renderer addresses shaped
+`<plugin-key>_<rest>` during review.
 
 The noun is the element type the command actually returns — read the Rust `Vec<T>` or the Renderer
 `Promise<T[]>`, not the pane or query name. `list` takes that type's plural and every other verb
@@ -238,25 +238,12 @@ either as `"<key>:allow-<command>"` or, where the plugin declares
 `DefaultPermissionRule::AllowAllCommands`, as `"<key>:default"`. A plugin command has no entry in
 the application invoke handler and no hand-written block in `permissions/*.toml`.
 
-The static command coverage check verifies the parts that cross configuration files and IPC
-namespaces:
-
-- the application invoke handler, Rust command declarations and manual permissions cover the same
-  app-command surface;
-- every app command has a manual permission, and every detected Renderer app-command literal
-  has a declaration and manual permission;
-- the `build.rs` declaration and plugin `generate_handler!` registration expose the same command
-  names;
-- every plugin command is granted to at least one capability, and every Renderer
-  `plugin:<key>|<command>` literal resolves to a declared, granted command;
-- no Renderer string literal uses the flat `<plugin-key>_*` shape.
-
-Rust compilation remains authoritative for handler paths, command attributes and module resolution.
-The capability scan combines grants across capability files, so it proves that a grant exists
-somewhere; it does not prove that the invoking window receives that grant or describe what a
-`<plugin>:default` permission contains. Review the capability file and generated Tauri permissions
-when either detail matters. Nothing asserts the command names themselves. `## Automated boundary`
-records what the remaining checks cover and why command vocabulary is a review responsibility.
+Keep these touch points synchronized through Rust/Tauri compilation and review. Review the generated
+plugin permissions, each capability file and the windows named by that capability whenever a command
+is added or removed. A grant in one capability says nothing about another window, and a
+`<plugin>:default` grant must be reviewed against the plugin's generated default permission. Command
+names and Renderer call sites are also review responsibilities; no source scanner infers their
+correctness.
 
 ## Frontend file suffixes
 
@@ -290,10 +277,11 @@ Use names that reflect ownership:
 
 Shared/foundation modules must never depend on a feature solely to reuse a helper.
 
-The `queries`/`commands` split is enforced: a `#[tauri::command]` under a `queries/` path must use a
-read verb, so a state-changing operation cannot hide in a projection module. Both sides mirror the
-same sub-domain names, which is what makes the direction readable — `queries/relations.rs` reads
-what `commands/relations.rs` writes, `queries/scenes.rs` reads what `commands/scenes/` writes.
+The `queries`/`commands` split is an architecture review rule: a `#[tauri::command]` under a
+`queries/` path must use a read verb, so a state-changing operation cannot hide in a projection
+module. Both sides mirror the same sub-domain names, which is what makes the direction readable —
+`queries/relations.rs` reads what `commands/relations.rs` writes, `queries/scenes.rs` reads what
+`commands/scenes/` writes.
 
 ## Variables and parameters
 
@@ -342,22 +330,16 @@ the `.test.ts` suffix. A unit test should make its tested owner obvious, for exa
 and `UiButton.test.ts`. Name a cross-owner integration scenario for the user capability it covers
 rather than pretending it maps to one source file.
 
-## Automated boundary
+## Automated checks
 
-A gate earns its maintenance cost only when it checks a real boundary no single toolchain owns, or
-when an established tool already provides the rule. What remains:
+A repository-specific check earns its maintenance cost only when it reads authoritative structured
+configuration or when an established tool already provides the rule. What remains:
 
-- the `build.rs` `InlinedPlugin::commands()` declaration and the plugin's `generate_handler!`
-  registration expose the same command names;
-- app-command declaration/handler consistency, manual permission coverage, plugin aggregate
-  grant presence and detected Renderer literal validity;
-- no Renderer string literal uses the flat `<plugin-key>_*` shape;
-- no capability grants WebView SQL, `fs:default` to the main window, or persistent filesystem
-  mutation to `spaces`;
-- `local_resources/tools/mod.rs` does not depend on product capabilities, and `ai/` does not depend on `spaces`;
+- the capability policy check rejects WebView SQL, `fs:default` on the main window and persistent
+  filesystem mutation in the Spaces capability by reading the capability JSON directly;
 - Oxlint's Renderer ceilings, including 180 non-blank/non-comment lines, complexity 10 and four
   parameters;
-- production source reachability from `src/main.ts` and actual Worker entry points.
+- Knip reports dead code and unused dependencies.
 
 Cross-language wire types come from ts-rs generated contracts and compile in TypeScript. Provider
 catalog behavior is covered by Rust parse, serialization and `as_str` tests. Design-token merging

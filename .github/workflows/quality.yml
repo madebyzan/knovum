@@ -46,8 +46,8 @@ jobs:
           sudo apt-get install -y             libwebkit2gtk-4.1-dev             build-essential             curl             wget             file             libxdo-dev             libssl-dev             libayatana-appindicator3-dev             librsvg2-dev
       - name: Require committed lockfile
         run: test -f src-tauri/Cargo.lock
-      - name: Verify Rust architecture boundaries
-        run: node tools/check-rust-architecture.mjs
+      - name: Verify capability permission policy
+        run: node tools/check-capability-policy.mjs
       - name: Verify Rust toolchain
         run: rustc --version && cargo --version
       - name: Audit Rust dependencies

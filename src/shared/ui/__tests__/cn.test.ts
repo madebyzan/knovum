@@ -31,10 +31,16 @@ describe("cn design tokens", () => {
       const token = `${utility}-${name}`;
       expect(cn(token, replacement)).toBe(replacement);
       expect(cn(replacement, token)).toBe(token);
-      if (namespace === "text") {
-        expect(cn(token, "text-foreground")).toBe(`${token} text-foreground`);
-        expect(cn("text-foreground", token)).toBe(`text-foreground ${token}`);
-      }
+    }
+  });
+
+  it("keeps every token font size alongside a text colour", () => {
+    const names = [...source.matchAll(/^\s*--text-([a-z0-9]+(?:-[a-z0-9]+)*):/gm)];
+    expect(names.length).toBeGreaterThan(0);
+    for (const [, name] of names) {
+      const token = `text-${name}`;
+      expect(cn(token, "text-foreground")).toBe(`${token} text-foreground`);
+      expect(cn("text-foreground", token)).toBe(`text-foreground ${token}`);
     }
   });
 
