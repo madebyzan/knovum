@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+
 import { describe, expect, it } from "vitest";
 
 import { cn } from "../cn";
@@ -14,10 +16,28 @@ describe("cn", () => {
   });
 });
 
-// Token completeness against tokens.css is a source gate: tools/check-cn-token-coverage.mjs. These
-// cases pin the mechanism that gate protects, since a font size classified as a colour is dropped
-// whenever a real text colour is present.
 describe("cn design tokens", () => {
+  const source = readFileSync("src/styles/tokens.css", "utf8");
+  it.each([
+    ["text", "text", "text-base"],
+    ["radius", "rounded", "rounded-none"],
+    ["shadow", "shadow", "shadow-none"],
+  ])("merges every %s token in its actual utility group", (namespace, utility, replacement) => {
+    const names = [
+      ...source.matchAll(new RegExp(`^\\s*--${namespace}-([a-z0-9]+(?:-[a-z0-9]+)*):`, "gm")),
+    ].map((match) => match[1]);
+    expect(names.length).toBeGreaterThan(0);
+    for (const name of names) {
+      const token = `${utility}-${name}`;
+      expect(cn(token, replacement)).toBe(replacement);
+      expect(cn(replacement, token)).toBe(token);
+      if (namespace === "text") {
+        expect(cn(token, "text-foreground")).toBe(`${token} text-foreground`);
+        expect(cn("text-foreground", token)).toBe(`text-foreground ${token}`);
+      }
+    }
+  });
+
   it("keeps a token font size next to a text colour", () => {
     expect(cn("text-label", "text-foreground")).toBe("text-label text-foreground");
     expect(cn("text-micro text-foreground-tertiary", "text-foreground")).toBe("text-micro text-foreground");
