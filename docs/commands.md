@@ -19,8 +19,8 @@ On macOS, Settings follows the conventional application submenu and Command Pale
 
 Every Knovum capability except the updater owns an in-process Tauri plugin, so its commands are
 addressed as `plugin:<key>|<command>` and named without a feature prefix. The grammar, the touch
-points each namespace requires and the invariants the gates assert live in
-`docs/naming-conventions.md`; this document records only what a name cannot say.
+points each namespace requires and the registration review checklist live in
+`docs/naming-conventions.md`; Rust/Tauri compilation and review keep those touch points aligned.
 
 ## Space persistence commands
 

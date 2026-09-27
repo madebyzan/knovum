@@ -48,7 +48,6 @@ This is the review baseline. Detailed rules remain in their authoritative docume
 - A suppression requires a concrete limitation. Schema-only types and platform-only fields may explain unused fields; working application commands must not use blanket unused-import or dead-code suppressions.
 
 - Rust owns IPC wire DTOs through ts-rs; neutral generated types live in `shared/contracts/generated`; Spaces business contracts live in `features/spaces/contracts/generated`. Runtime validation remains at external boundaries and is anchored to generated types. UI projections may differ deliberately, but must not copy a wire interface. Runtime enum values and shared limits are generated from the same Rust source. Generated output is excluded from authored-code lint/format rules; it must remain deterministic and pass TypeScript checks.
-- Production reachability starts at `main.ts` and actual workers; tests alone do not justify keeping product code.
 
 ## Testing and gates
 
