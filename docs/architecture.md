@@ -83,7 +83,8 @@ Content and platform engines are independent crate-level capabilities: `document
 and generation (including the sole PPTX engine under `generation/pptx.rs`), `media/` owns acquisition and media transformation, and `images/` owns image
 operations. `file_inspection/`, `web_capture/`, `system_preview/` and `local_resources/` remain
 separate capabilities. `local_resources/models` owns downloaded model installation and integrity;
-`local_resources/tools` owns discovery of bundled executables and native libraries. None depends on `spaces` or emits
+`local_resources/tools` owns fixed tool identity, verified app-data installation and bundled executable discovery;
+`local_resources/preparation` coordinates shared model installation and execution leases. None depends on `spaces` or emits
 Space domain types. A Space command authorizes an asset before calling `system_preview`; the preview
 engine never becomes a general Renderer file capability.
 
@@ -363,7 +364,7 @@ dialogs, receive session-scoped authorization, and are never covered by a broad 
 
 ### Resource lifecycle composition
 
-`app_resources` assembles the local-resources plugin and owns removal policy that unloads an AI embedding engine before deleting its model. `local_resources` owns path resolution, verification, download and filesystem operations; it does not import AI or Spaces. Rust directory modules use conventional module paths and `mod.rs` entry points where a directory module is clearer. Stable wire IDs are explicitly mapped to UI translation keys.
+`app_resources` assembles the local-resources plugin and owns removal policy that takes an exclusive resource lease and unloads the AI embedding engine before deleting its model. `local_resources` owns path resolution, verification, download and filesystem operations; it does not import AI or Spaces. Rust directory modules use conventional module paths and `mod.rs` entry points where a directory module is clearer. Stable wire IDs are explicitly mapped to UI translation keys.
 
 ### IPC error boundary
 
@@ -376,3 +377,17 @@ Renderer application calls use `foundation/ipc/invoke-command`. It converts reje
 Rust owns serialized request/response/event types. ts-rs exports neutral types to `src/shared/contracts/generated`; Spaces-owned types are exported directly to `src/features/spaces/contracts/generated` through per-type ts-rs export paths; neutral runtime identity arrays and feature-owned limits come from the corresponding Rust definitions. Feature action/workflow JSON Schemas remain in Spaces. Foundation must not import feature implementations to obtain wire types. Runtime validation and UI projections keep their actual responsibilities rather than redefining wire DTOs.
 
 Space agent artifacts, action catalog and authorized asset preview belong to Spaces. The app router supplies the action catalog loader to Settings through explicit props, preserving feature isolation without a global registry.
+
+### Runtime preparation boundaries
+
+Spaces owns the intent to transcribe or use semantic search. It explicitly prepares resources before
+processing, revalidates the asset after waiting, and owns result publication. AI/media engines execute
+only on verified resources; the embedding capability receives a `PreparedModels` execution lease and
+never initiates network installation. Model leases are acquired once per operation and passed down;
+nesting fair read locks while a removal writer is waiting is forbidden.
+
+Settings manages resources through `foundation/runtime`, using the same preparation IPC and query
+as capability consumers. Rust owns installation facts and cancellation; Task Center is a projection.
+Observer disconnection does not cancel preparation. Cancelling one request releases its own demand;
+other requests for the exact artifact keep the shared installation alive. There is no generic plugin
+platform, renderer downloader, compatibility command alias, PATH fallback or alternate model.

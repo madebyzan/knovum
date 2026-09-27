@@ -27,10 +27,19 @@ import { nodeIcon } from "./node-icon";
 
 const open = defineModel<boolean>("open", { required: true });
 const { t } = useI18n();
-const { query, matches, structureMatches, semantic, searching, searchFailed, defaultNodes, select, retry } =
-  useFind(open, () => {
-    open.value = false;
-  });
+const {
+  query,
+  matches,
+  structureMatches,
+  searching,
+  searchFailed,
+  semanticSearch,
+  defaultNodes,
+  select,
+  retry,
+} = useFind(open, () => {
+  open.value = false;
+});
 
 function matchBadgeLabel(match: KnowledgeSearchMatch): string | null {
   if (match.metadata?.role === "document_ocr") return t("spaces.processing.matchBadge.documentOcr");
@@ -68,6 +77,14 @@ function matchBadgeLabel(match: KnowledgeSearchMatch): string | null {
               class="h-full min-w-0 flex-1 border-0 bg-transparent text-body-lg outline-none placeholder:text-foreground-tertiary"
             />
             <UiSpinner v-if="searching" class="text-foreground-tertiary" />
+            <UiButton
+              size="sm"
+              variant="ghost"
+              :disabled="semanticSearch.preparing.value || semanticSearch.enabled.value"
+              :aria-pressed="semanticSearch.enabled.value"
+              @click="semanticSearch.enable"
+              >{{ t("spaces.search.semantic.enable") }}</UiButton
+            >
             <UiKbd shortcut="esc" />
           </div>
           <ListboxContent
@@ -150,11 +167,14 @@ function matchBadgeLabel(match: KnowledgeSearchMatch): string | null {
                 >
               </span>
             </ListboxItem>
-            <p
-              v-if="query.trim() && semantic === 'unavailable'"
-              class="px-2.5 py-1 text-micro text-foreground-tertiary"
-            >
-              {{ t("spaces.processing.semanticUnavailable") }}
+            <p v-if="semanticSearch.preparing.value" class="px-2.5 py-1 text-micro text-foreground-tertiary">
+              {{
+                t(
+                  semanticSearch.indexing.value
+                    ? "spaces.search.semantic.indexing"
+                    : "spaces.search.semantic.preparing",
+                )
+              }}
             </p>
             <div v-if="query.trim() && searchFailed" class="grid justify-items-center gap-2 px-3 py-8">
               <p class="text-caption text-danger">{{ t("spaces.search.failed") }}</p>

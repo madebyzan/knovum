@@ -65,9 +65,25 @@ pub(super) async fn answer(
         crate::ai::contracts::ExecutionCapability::TextGeneration,
     )
     .map_err(|error| error.to_string())?;
+    let (cancellation, _lease) = crate::ai::executions::acquire(request.id.clone())?;
+    crate::spaces::knowledge::retrieval::rebuild::prepare_space_index(
+        app,
+        &request.space_id,
+        Some(
+            request
+                .inputs
+                .iter()
+                .map(|input| input.node_id.clone())
+                .collect(),
+        ),
+        &request.id,
+        &cancellation,
+    )
+    .await?;
     let retrieval = hybrid::search(
         app,
         HybridSearchRequest {
+            semantic: true,
             space_id: Some(request.space_id.clone()),
             query: request.question.clone(),
             node_ids: Some(
@@ -78,13 +94,13 @@ pub(super) async fn answer(
                     .collect(),
             ),
         },
+        &cancellation,
     )
     .await?;
     let sources = prompt::select_sources(retrieval.matches)?;
     if sources.is_empty() {
         return Err("answer-with-sources-empty: no indexed source supports the question".into());
     }
-    let (cancellation, _lease) = crate::ai::executions::acquire(request.id.clone())?;
     let completion = chat::complete_cancellable(
         CompletionRequest {
             purpose: crate::ai::usage::UsagePurpose::Knowledge,

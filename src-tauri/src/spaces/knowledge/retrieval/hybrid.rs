@@ -17,6 +17,7 @@ const SPACE_SEMANTIC_LIMIT: i64 = 40;
 pub struct HybridSearchRequest {
     pub space_id: Option<String>,
     pub query: String,
+    pub semantic: bool,
     pub node_ids: Option<Vec<String>>,
 }
 
@@ -30,8 +31,12 @@ pub struct HybridSearchResponse {
 pub async fn search<R: Runtime>(
     app: &AppHandle<R>,
     request: HybridSearchRequest,
+    cancellation: &tokio_util::sync::CancellationToken,
 ) -> Result<HybridSearchResponse, String> {
     let query = request.query.trim();
+    if cancellation.is_cancelled() {
+        return Err("knowledge-search-cancelled".into());
+    }
     if query.is_empty() {
         return Ok(HybridSearchResponse {
             matches: Vec::new(),
@@ -39,40 +44,40 @@ pub async fn search<R: Runtime>(
         });
     }
 
-    let (vector_result, lexical) = match request.space_id.as_deref() {
+    let lexical = match request.space_id.as_deref() {
         Some(space_id) => {
-            let lex =
-                knowledge::search_space(app, space_id, query, request.node_ids.clone()).await?;
-            (embed_query(app, query).await, lex)
+            knowledge::search_space(app, space_id, query, request.node_ids.clone()).await?
         }
-        None => {
-            let lex = knowledge::search_global(app, query).await?;
-            (embed_query(app, query).await, lex)
-        }
+        None => knowledge::search_global(app, query).await?,
     };
-
-    let (semantic, semantic_state) = match vector_result {
-        Ok(vector) => {
-            let sem = match request.space_id.as_deref() {
-                Some(space_id) => search_semantic_vector(
-                    app,
-                    space_id,
-                    &vector,
-                    request.node_ids.as_deref(),
-                    None,
-                    MATCH_LIMIT as i64,
-                )
-                .await
-                .unwrap_or_default(),
-                None => search_all_spaces(app, &vector).await.unwrap_or_default(),
-            };
-            let state = if sem.is_empty() { "empty" } else { "ready" };
-            (sem, state)
+    if !request.semantic {
+        return Ok(HybridSearchResponse {
+            matches: lexical,
+            semantic: "disabled",
+        });
+    }
+    let vector = embed_query(app, query, cancellation).await?;
+    let semantic = match request.space_id.as_deref() {
+        Some(space_id) => {
+            search_semantic_vector(
+                app,
+                space_id,
+                &vector,
+                request.node_ids.as_deref(),
+                None,
+                MATCH_LIMIT as i64,
+            )
+            .await?
         }
-        Err(error) => {
-            log::info!("semantic vector embedding unavailable: {error}");
-            (Vec::new(), "unavailable")
-        }
+        None => search_all_spaces(app, &vector).await?,
+    };
+    if cancellation.is_cancelled() {
+        return Err("knowledge-search-cancelled".into());
+    }
+    let semantic_state = if semantic.is_empty() {
+        "empty"
+    } else {
+        "ready"
     };
 
     Ok(HybridSearchResponse {
@@ -97,15 +102,8 @@ async fn search_all_spaces<R: Runtime>(
         let space_id: String = row.try_get("id").map_err(db::sql_error)?;
         let space_title: String = row.try_get("title").map_err(db::sql_error)?;
         let mut space_matches =
-            match search_semantic_vector(app, &space_id, vector, None, None, SPACE_SEMANTIC_LIMIT)
-                .await
-            {
-                Ok(found) => found,
-                Err(error) => {
-                    log::warn!("semantic vector search failed for space {space_id}: {error}");
-                    continue;
-                }
-            };
+            search_semantic_vector(app, &space_id, vector, None, None, SPACE_SEMANTIC_LIMIT)
+                .await?;
         for value in &mut space_matches {
             let object = value
                 .as_object_mut()

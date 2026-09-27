@@ -6,12 +6,10 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-
-use super::ModelDescriptor;
+use tokio_util::sync::CancellationToken;
 
 #[derive(Deserialize, Serialize)]
-#[serde(rename_all = "camelCase")]
-#[serde(deny_unknown_fields)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct VerificationReceipt {
     schema_version: u8,
     sha256: String,
@@ -19,9 +17,9 @@ struct VerificationReceipt {
     modified_nanos: u64,
 }
 
-pub(super) fn receipt_matches(
+pub(crate) fn receipt_matches(
     path: &Path,
-    descriptor: ModelDescriptor,
+    sha256: &str,
     metadata: &fs::Metadata,
 ) -> Result<bool, String> {
     let bytes = match fs::read(receipt_path(path)) {
@@ -32,28 +30,38 @@ pub(super) fn receipt_matches(
     let receipt: VerificationReceipt =
         serde_json::from_slice(&bytes).map_err(|error| error.to_string())?;
     Ok(receipt.schema_version == 1
-        && receipt.sha256 == descriptor.sha256
+        && receipt.sha256 == sha256
         && receipt.size == metadata.len()
         && receipt.modified_nanos == modified_nanos(metadata)?)
 }
 
-pub(super) fn verify_and_record(path: &Path, descriptor: ModelDescriptor) -> Result<bool, String> {
-    if !verify(path, descriptor)? {
+pub(crate) fn verify_and_record_cancellable(
+    path: &Path,
+    sha256: &str,
+    cancellation: &CancellationToken,
+    cancellation_message: &str,
+) -> Result<bool, String> {
+    if !verify_cancellable(path, sha256, cancellation, cancellation_message)? {
         return Ok(false);
     }
-    record(path, descriptor)?;
+    record(path, sha256)?;
     Ok(true)
 }
 
-pub(super) fn verify(path: &Path, descriptor: ModelDescriptor) -> Result<bool, String> {
-    Ok(sha256_file(path)? == descriptor.sha256)
+pub(crate) fn verify_cancellable(
+    path: &Path,
+    sha256: &str,
+    cancellation: &CancellationToken,
+    cancellation_message: &str,
+) -> Result<bool, String> {
+    Ok(sha256_file(path, cancellation, cancellation_message)? == sha256)
 }
 
-pub(super) fn record(path: &Path, descriptor: ModelDescriptor) -> Result<(), String> {
+pub(crate) fn record(path: &Path, sha256: &str) -> Result<(), String> {
     let metadata = fs::metadata(path).map_err(|error| error.to_string())?;
     let receipt = VerificationReceipt {
         schema_version: 1,
-        sha256: descriptor.sha256.to_owned(),
+        sha256: sha256.to_owned(),
         size: metadata.len(),
         modified_nanos: modified_nanos(&metadata)?,
     };
@@ -67,7 +75,7 @@ pub(super) fn record(path: &Path, descriptor: ModelDescriptor) -> Result<(), Str
     fs::rename(temporary, target).map_err(|error| error.to_string())
 }
 
-pub(super) fn remove_receipt(path: &Path) -> Result<(), String> {
+pub(crate) fn remove_receipt(path: &Path) -> Result<(), String> {
     match fs::remove_file(receipt_path(path)) {
         Ok(()) => Ok(()),
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
@@ -78,7 +86,7 @@ pub(super) fn remove_receipt(path: &Path) -> Result<(), String> {
 fn receipt_path(path: &Path) -> PathBuf {
     let mut name = path
         .file_name()
-        .expect("local model paths always contain a file name")
+        .expect("managed local-resource paths always contain a file name")
         .to_os_string();
     name.push(".verified.json");
     path.with_file_name(name)
@@ -95,11 +103,18 @@ fn modified_nanos(metadata: &fs::Metadata) -> Result<u64, String> {
         .map_err(|error: std::num::TryFromIntError| error.to_string())
 }
 
-fn sha256_file(path: &Path) -> Result<String, String> {
+fn sha256_file(
+    path: &Path,
+    cancellation: &CancellationToken,
+    cancellation_message: &str,
+) -> Result<String, String> {
     let mut file = fs::File::open(path).map_err(|error| error.to_string())?;
     let mut hash = Sha256::new();
     let mut buffer = [0_u8; 1024 * 1024];
     loop {
+        if cancellation.is_cancelled() {
+            return Err(cancellation_message.to_string());
+        }
         let read = file.read(&mut buffer).map_err(|error| error.to_string())?;
         if read == 0 {
             break;

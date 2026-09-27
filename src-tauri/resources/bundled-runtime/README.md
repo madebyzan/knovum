@@ -7,23 +7,26 @@ only its current target directory plus the shared media import manifest.
 bundled-runtime/
   <target>/
     ffmpeg[.exe]
-    yt-dlp[.exe]
-    deno[.exe]
     whisper-cli[.exe]
+    platform libraries required by whisper-cli
 ```
 
 Release target names are `macos-arm64`, `macos-x64`, `windows-x64`, and `windows-arm64`.
 
-Development may point to explicit binaries with `KNOVUM_FFMPEG_PATH`, `KNOVUM_YT_DLP_PATH`, `KNOVUM_DENO_PATH`, and `KNOVUM_WHISPER_PATH`. These overrides are for development and do not satisfy release packaging.
+Development may point to explicit binaries with `KNOVUM_FFMPEG_PATH`, `KNOVUM_YT_DLP_PATH`, `KNOVUM_DENO_PATH`, and `KNOVUM_WHISPER_PATH`. These overrides are for development and do not satisfy release packaging or production provenance checks.
 
 Every supported target must provide libass `ass`/`subtitles` filters with the native system font provider (Core Text on macOS, DirectWrite on Windows), plus `h264_videotoolbox` on macOS or `h264_mf` on Windows. Video and document export use the fonts installed on the current computer; no typeface is packaged with the runtime.
 
 `media-import-manifest.json` pins the official yt-dlp and Deno release assets, checksums,
-and yt-dlp corresponding source. `pnpm runtime:provision` is the only provisioning
-entry point: it stages the controlled target archive and then adds the exact official yt-dlp and
-Deno executables. yt-dlp is the sole web media importer; Deno is supplied explicitly for
-yt-dlp's YouTube JavaScript challenge support.
+and yt-dlp corresponding source. It is compiled into the application and is the trust source for
+installing those tools under the application data directory when a user first starts a web media
+import. yt-dlp is the sole web media importer; Deno is supplied explicitly for yt-dlp's YouTube
+JavaScript challenge support.
 
-`tools/package-desktop.mjs` is the only package resource selector. It rejects an incomplete target
-runtime and supplies Tauri with an explicit resource list containing the current target and shared
-resources. The base Tauri configuration intentionally contains no broad runtime glob.
+`pnpm runtime:provision` stages only the controlled FFmpeg/whisper.cpp archive and rejects archives
+that contain yt-dlp or Deno. `tools/package-desktop.mjs` applies the same boundary and enumerates the
+current target's files instead of using a catch-all glob.
+
+The runtime installer verifies the downloaded archive hash and extracted executable hash before
+publishing a versioned tool directory. Fixed hashes establish artifact identity; production release
+evidence must separately cover platform signing and clean-machine execution.

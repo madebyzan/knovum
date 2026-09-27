@@ -22,7 +22,7 @@ pub(super) async fn analyze(
     let app = app.clone();
     let revision = request.source_revision.clone();
     let token = cancellation.clone();
-    transcription::send_progress(progress, "analyzing", 5)?;
+    transcription::send_progress(progress, "analyzing", 5);
     let prepared = crate::blocking::run(move || {
         media_analysis::prepare(&app, Path::new(&source), &revision, &token)
     })
@@ -38,7 +38,8 @@ pub(super) async fn analyze(
                 "waveform": prepared.analysis.waveform,
             }),
         );
-    transcription::send_progress(progress, "analyzing", 95)
+    transcription::send_progress(progress, "analyzing", 95);
+    Ok(())
 }
 
 pub(super) async fn transcribe(
@@ -56,6 +57,7 @@ pub(super) async fn transcribe(
         app.clone(),
         job_id.to_owned(),
         source.clone(),
+        request.source_revision.clone(),
         progress,
     )
     .await?;

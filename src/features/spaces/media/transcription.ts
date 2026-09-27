@@ -2,13 +2,21 @@ import { Channel } from "@tauri-apps/api/core";
 
 import { decodeCommandError } from "../../../foundation/ipc/command-error";
 import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
+import type { ResourcePreparationProgress } from "../../../shared/contracts/generated/ResourcePreparationProgress";
 import type { SpaceMediaTranscript } from "./knowledge-schema";
 
-export type SpaceMediaTranscriptionStage = "preparing" | "transcoding" | "transcribing" | "parsing" | "done";
+export type SpaceMediaTranscriptionStage =
+  | "preparingResources"
+  | "preparing"
+  | "transcoding"
+  | "transcribing"
+  | "parsing"
+  | "done";
 
 export interface SpaceMediaTranscriptionProgress {
   stage: SpaceMediaTranscriptionStage;
   progress: number;
+  resources?: ResourcePreparationProgress;
   partial?: {
     language: string;
     segments: SpaceMediaTranscript["segments"];
@@ -20,6 +28,7 @@ export const MEDIA_TRANSCRIPTION_CANCELLED = "media_transcription_cancelled";
 export async function transcribeSpaceMedia(
   jobId: string,
   sourcePath: string,
+  sourceRevision: string,
   onProgress: (progress: SpaceMediaTranscriptionProgress) => void,
 ): Promise<SpaceMediaTranscript> {
   const channel = new Channel<SpaceMediaTranscriptionProgress>();
@@ -28,6 +37,7 @@ export async function transcribeSpaceMedia(
   return invoke<SpaceMediaTranscript>("plugin:spaces|transcribe_media", {
     jobId,
     sourcePath,
+    sourceRevision,
     onProgress: channel,
   });
 }

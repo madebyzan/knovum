@@ -1,6 +1,6 @@
 import type { Ref } from "vue";
 
-import { normalizeCommandError } from "../../../foundation/ipc/command-error";
+import { formatBytes } from "../../../foundation/format/bytes";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { isSpaceMediaPayload, type SpaceMediaPayload } from "../model/nodes/capabilities";
@@ -10,14 +10,12 @@ import {
   clearSpaceMediaAnalysisPreview,
   type SpaceMediaAnalysisPreview,
 } from "./analysis-preview";
-import { runSpaceMediaInference } from "./inference-budget";
 import { createLocalMediaKnowledge, generateSpaceMediaInsights } from "./knowledge";
 import type { SpaceMediaKnowledge } from "./knowledge-schema";
 import type { SpaceMediaPlaybackState, SpaceMediaSeekRequest, SpaceMediaToggleRequest } from "./playback";
 import {
   cancelSpaceMediaTranscription,
   isMediaTranscriptionCancellation,
-  MEDIA_TRANSCRIPTION_CANCELLED,
   transcribeSpaceMedia,
   type SpaceMediaTranscriptionStage,
 } from "./transcription";
@@ -44,7 +42,6 @@ export function createSpaceMediaActions(context: Context) {
   let toggleNonce = 0;
   async function analyzeMedia(id: string, labels: SpaceMediaAnalysisLabels) {
     const jobId = crypto.randomUUID();
-    let cancelRequested = false;
     return runKnowledgeTask(
       id,
       labels,
@@ -53,14 +50,16 @@ export function createSpaceMediaActions(context: Context) {
         if (!isSpaceMediaPayload(node.data)) throw new Error("Media node type changed during analysis");
         const data = node.data;
         const revision = requireMediaSource(data);
-        const transcript = await runSpaceMediaInference(() => {
-          if (cancelRequested)
-            throw normalizeCommandError({
-              code: MEDIA_TRANSCRIPTION_CANCELLED,
-              message: "Media transcription cancelled",
-            });
-          return transcribeSpaceMedia(jobId, data.assetPath, ({ stage, progress, partial }) => {
-            tasks.progress(taskId, progress, stageLabel(stage, labels));
+        const transcript = await transcribeSpaceMedia(
+          jobId,
+          data.assetPath,
+          revision,
+          ({ stage, progress, partial, resources }) => {
+            const detail = resources
+              ? `${labels.preparing} · ${formatBytes(resources.downloaded)} / ${formatBytes(resources.total ?? 0)}`
+              : stageLabel(stage, labels);
+            if (resources) tasks.detail(taskId, detail);
+            else tasks.progress(taskId, progress, detail);
             if (partial)
               appendSpaceMediaAnalysisPreview({
                 previews: context.analysisPreviews,
@@ -68,14 +67,13 @@ export function createSpaceMediaActions(context: Context) {
                 progress,
                 partial,
               });
-          });
-        });
+          },
+        );
         const knowledge = createLocalMediaKnowledge(transcript, revision);
         await saveCurrentKnowledge(id, revision, knowledge);
         return knowledge;
       },
       async () => {
-        cancelRequested = true;
         await cancelSpaceMediaTranscription(jobId);
       },
     );

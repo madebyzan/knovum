@@ -102,9 +102,24 @@ async fn execute(
     cancellation: tokio_util::sync::CancellationToken,
 ) -> Result<GeneratedDocument, String> {
     stage(stages, "retrieving")?;
+    crate::spaces::knowledge::retrieval::rebuild::prepare_space_index(
+        app,
+        &request.space_id,
+        Some(
+            request
+                .inputs
+                .iter()
+                .map(|input| input.node_id.clone())
+                .collect(),
+        ),
+        &request.id,
+        &cancellation,
+    )
+    .await?;
     let retrieval = hybrid::search(
         app,
         HybridSearchRequest {
+            semantic: true,
             space_id: Some(request.space_id.clone()),
             query: request.purpose.clone(),
             node_ids: Some(
@@ -115,6 +130,7 @@ async fn execute(
                     .collect(),
             ),
         },
+        &cancellation,
     )
     .await?;
     let sources = grounding::prompt::select_sources(retrieval.matches)?;

@@ -17,7 +17,7 @@ Web origin is metadata on a standard media asset, not a separate content type. P
 the managed local copy. The canonical page URL, provider, and provider-owned identifier remain in the
 media node's `origin` metadata for attribution and navigation.
 
-yt-dlp is the single web media extractor. Knovum distributes exact-pinned upstream executables and
+yt-dlp is the single web media extractor. Knovum installs exact-pinned upstream executables on first use and
 invokes them directly from Rust. It does not duplicate yt-dlp's site registry, read browser cookies or
 ambient configuration, load plugins or remote components, self-update, or receive shell text from the
 WebView.
@@ -54,6 +54,7 @@ Canvas paste
       -> media/import/workflow.ts
           -> plugin:spaces|import_media_from_url + progress Channel
               -> spaces/assets/import/media/workflow.rs
+                  -> local_resources/tools preparation
                   -> exact-pinned yt-dlp runtime
                   -> isolated download workspace
                   -> standard managed video/audio asset
@@ -92,8 +93,9 @@ configuration, plugins, remote components, self-update, and playlists, and passe
 after `--`. Rust owns bounded process output, progress, cancellation, staging, and atomic publication.
 
 The exact yt-dlp and Deno versions, executable hashes, sources, and license material are recorded in
-`media-import-manifest.json` and validated by release packaging. YouTube JavaScript execution uses the
-bundled Deno executable selected through an application-owned absolute path.
+`media-import-manifest.json`, embedded in the Rust host and exercised by release validation. YouTube
+JavaScript execution uses the verified Deno executable selected through an application-owned absolute
+path in the application-data directory.
 
 ## Performance and lifecycle
 

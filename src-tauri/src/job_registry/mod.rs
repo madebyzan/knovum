@@ -49,17 +49,6 @@ impl<J: 'static> JobRegistry<J> {
             .ok_or_else(|| format!("{} job was not found", self.domain))
     }
 
-    pub fn entries(&self) -> Result<Vec<(String, J)>, String>
-    where
-        J: Clone,
-    {
-        Ok(self
-            .lock()?
-            .iter()
-            .map(|(id, job)| (id.clone(), job.clone()))
-            .collect())
-    }
-
     pub fn remove(&self, id: &str) -> Result<Option<J>, String> {
         Ok(self.lock()?.remove(id))
     }

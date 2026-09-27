@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, join, resolve as resolvePath } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -20,7 +20,7 @@ requireRuntime(target);
 const bundleResources = [
   "resources/bundled-runtime/README.md",
   "resources/bundled-runtime/media-import-manifest.json",
-  `resources/bundled-runtime/${target}/**/*`,
+  ...runtimeResources(target),
 ];
 const releaseConfig = release ? readJson("src-tauri/tauri.release.conf.json") : undefined;
 const config = releaseConfig
@@ -38,8 +38,6 @@ function requireRuntime(runtimeTarget) {
     join(runtimeRoot, runtimeTarget, windows ? windowsName : unixName);
   const required = [
     binary("ffmpeg", "ffmpeg.exe"),
-    binary("yt-dlp", "yt-dlp.exe"),
-    binary("deno", "deno.exe"),
     binary("whisper-cli", "whisper-cli.exe"),
     join(runtimeRoot, "media-import-manifest.json"),
   ];
@@ -47,6 +45,18 @@ function requireRuntime(runtimeTarget) {
   if (missing.length > 0) {
     fail(`Bundled runtime is incomplete for ${runtimeTarget}:\n${missing.join("\n")}`);
   }
+  const forbidden = [binary("yt-dlp", "yt-dlp.exe"), binary("deno", "deno.exe")].filter(existsSync);
+  if (forbidden.length > 0) {
+    fail(`On-demand media tools must not be bundled:\n${forbidden.join("\n")}`);
+  }
+}
+
+function runtimeResources(runtimeTarget) {
+  const directory = join(runtimeRoot, runtimeTarget);
+  return readdirSync(directory, { withFileTypes: true }).map((entry) => {
+    if (!entry.isFile()) fail(`Bundled runtime target may contain only files: ${entry.name}`);
+    return `resources/bundled-runtime/${runtimeTarget}/${entry.name}`;
+  });
 }
 
 function option(name) {

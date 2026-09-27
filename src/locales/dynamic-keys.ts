@@ -48,6 +48,7 @@ export const dynamicLocaleKeyPrefixes = [
 export const dynamicLocaleKeys = [
   "spaces.media.import.downloading",
   "spaces.media.import.finalizing",
+  "spaces.media.import.preparing",
   "spaces.media.import.resolving",
   "spaces.media.videoEditor.bottom",
   "spaces.media.videoEditor.center",

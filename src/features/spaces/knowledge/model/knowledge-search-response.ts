@@ -5,7 +5,7 @@ import { knowledgeSearchMatchSchema } from "./knowledge-search-match";
 export const knowledgeSearchResponseSchema = z
   .object({
     matches: z.array(knowledgeSearchMatchSchema),
-    semantic: z.enum(["ready", "unavailable", "empty"]),
+    semantic: z.enum(["ready", "disabled", "empty"]),
   })
   .strict();
 

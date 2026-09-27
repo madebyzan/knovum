@@ -16,8 +16,10 @@ A production release is allowed only when:
 - `pnpm check:rust` exercises the complete embedded Spaces SQLx migration history against fresh
   SQLite databases, and the packaged application upgrade path has been exercised before release;
 - capability review confirms that no WebView has SQL permissions and no generic Rust SQL/runtime-event mutation command is exposed;
-- bundled runtime archives for the release targets are provisioned;
-- provisioned-runtime startup smoke starts FFmpeg and whisper.cpp `whisper-cli` with standalone VAD before bundling; production feature smoke additionally exercises representative PDF/media/transcription workflows on packaged artifacts;
+- bundled FFmpeg/whisper.cpp archives for the release targets are provisioned;
+- the pinned yt-dlp and Deno release assets remain available, match the embedded manifest hashes,
+  and install successfully from a clean application-data directory;
+- provisioned-runtime startup smoke starts FFmpeg and whisper.cpp `whisper-cli` with standalone VAD before bundling; clean-profile production feature smoke additionally installs the pinned yt-dlp/Deno pair and exercises representative PDF/media/transcription workflows on packaged artifacts;
 - organization-owned signing/notarization credentials are configured in CI;
 - updater configuration is complete if the release channel uses auto-update.
 
@@ -26,6 +28,20 @@ A production release is allowed only when:
 `src-tauri/tauri.conf.json > version` is the application bundle version source. Keep package/Cargo metadata aligned when cutting a repository release so tooling, logs and artifacts report the same version.
 
 Do not publish a mutable artifact under an existing version.
+
+## On-demand media tool evidence
+
+The embedded SHA-256 values prove that the downloaded yt-dlp and Deno files are the reviewed
+artifacts; they do not prove publisher signing or successful execution on a supported operating
+system. The currently inspected macOS arm64 Deno asset carries a Deno Land Developer ID signature,
+while the inspected yt-dlp standalone asset is only ad-hoc signed. Do not describe that yt-dlp asset
+as production publisher-signed.
+
+Before public distribution, record clean-machine install and launch evidence for both tools on every
+supported macOS and Windows target. If organization policy requires publisher-signed executables,
+publish project-controlled signed artifacts, update the fixed manifest hashes and provenance, and
+repeat those platform checks. The application must not remove quarantine metadata or weaken OS
+security checks to make an unsigned artifact run.
 
 ## macOS production distribution
 

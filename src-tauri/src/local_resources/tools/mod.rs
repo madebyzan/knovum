@@ -1,16 +1,38 @@
 use std::path::PathBuf;
 
-use tauri::Manager;
+use tauri::{AppHandle, Manager, Runtime};
 
-fn bundled_runtime_dir(app: &tauri::AppHandle) -> Option<PathBuf> {
+mod catalog;
+mod coordinator;
+mod deno_archive;
+mod filesystem;
+mod install_requests;
+mod installer;
+
+pub(crate) use coordinator::prepare_media_import_tools_for_job;
+pub(crate) use coordinator::prepare_media_import_tools_for_request;
+
+#[derive(Clone)]
+pub(crate) struct ToolPreparationProgress {
+    pub(crate) stage: super::preparation::contracts::ResourcePreparationStage,
+    pub(crate) downloaded: u64,
+    pub(crate) total: Option<u64>,
+}
+
+pub(crate) struct PreparedMediaImportTools {
+    pub(crate) yt_dlp: PathBuf,
+    pub(crate) deno: PathBuf,
+}
+
+fn bundled_runtime_dir<R: Runtime>(app: &AppHandle<R>) -> Option<PathBuf> {
     app.path()
         .resource_dir()
         .ok()
         .map(|directory| directory.join("resources").join("bundled-runtime"))
 }
 
-pub fn resolve_tool(
-    app: &tauri::AppHandle,
+pub fn resolve_tool<R: Runtime>(
+    app: &AppHandle<R>,
     env_key: &str,
     file_name: &str,
 ) -> Result<Option<PathBuf>, String> {
@@ -22,6 +44,25 @@ pub fn resolve_tool(
     };
     let candidate = directory.join(platform_directory()).join(file_name);
     Ok(candidate.is_file().then_some(candidate))
+}
+
+pub(crate) fn resolve_media_import_tool<R: Runtime>(
+    app: &AppHandle<R>,
+    kind: catalog::MediaImportToolKind,
+) -> Result<Option<PathBuf>, String> {
+    let descriptor = catalog::descriptor(kind)?;
+    if let Some(path) = super::configured_path::configured_path(descriptor.env_key)? {
+        return Ok(Some(path));
+    }
+    filesystem::verified_installation_path(app, &descriptor)
+}
+
+pub(crate) fn resolve_yt_dlp<R: Runtime>(app: &AppHandle<R>) -> Result<Option<PathBuf>, String> {
+    resolve_media_import_tool(app, catalog::MediaImportToolKind::YtDlp)
+}
+
+pub(crate) fn resolve_deno<R: Runtime>(app: &AppHandle<R>) -> Result<Option<PathBuf>, String> {
+    resolve_media_import_tool(app, catalog::MediaImportToolKind::Deno)
 }
 
 pub const fn ffmpeg_name() -> &'static str {

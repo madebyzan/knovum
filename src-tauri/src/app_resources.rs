@@ -1,10 +1,11 @@
 use crate::command_error::CommandError;
 use tauri::{plugin::TauriPlugin, AppHandle, Wry};
 
-use crate::local_resources::{models, models::catalog::ModelKind};
+use crate::local_resources::{models::catalog::ModelKind, preparation};
 
 #[tauri::command]
 pub async fn remove_model(app: AppHandle, model: ModelKind) -> Result<(), CommandError> {
+    let removal = preparation::acquire_model_removal(model)?;
     if matches!(
         model,
         ModelKind::TextEmbeddingConfig
@@ -13,21 +14,16 @@ pub async fn remove_model(app: AppHandle, model: ModelKind) -> Result<(), Comman
     ) {
         crate::ai::capabilities::embedding::unload()?;
     }
-    Ok(
-        (crate::blocking::run(move || {
-            models::uninstall(&app, models::catalog::descriptor(model))
-        })
-        .await)?,
-    )
+    Ok((crate::blocking::run(move || removal.remove(&app)).await)?)
 }
 
 pub fn plugin() -> TauriPlugin<Wry> {
     tauri::plugin::Builder::new("local-resources")
         .invoke_handler(tauri::generate_handler![
             crate::local_resources::get_status,
-            crate::local_resources::models::commands::install_models,
-            crate::local_resources::models::commands::cancel_model_install,
-            crate::local_resources::models::commands::list_model_installs,
+            crate::local_resources::preparation::commands::prepare_resources,
+            crate::local_resources::preparation::commands::cancel_resource_preparation,
+            crate::local_resources::preparation::commands::list_resource_preparations,
             remove_model,
         ])
         .build()

@@ -5,6 +5,7 @@ import { importedMediaSchema, mediaImportProgressSchema, type MediaImportProgres
 
 export async function requestMediaImport(
   jobId: string,
+  resourceTitle: string,
   url: string,
   onProgress: (progress: MediaImportProgress) => void,
 ) {
@@ -14,6 +15,7 @@ export async function requestMediaImport(
   channel.onmessage = (value) => onProgress(mediaImportProgressSchema.parse(value));
   const response = await invoke<unknown>("plugin:spaces|import_media_from_url", {
     jobId,
+    resourceTitle,
     url,
     onProgress: channel,
   });

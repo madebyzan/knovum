@@ -11,6 +11,7 @@ import {
   restoreWorkspaceSession,
 } from "../foundation/navigation/workspace-session";
 import { usePreferencesStore } from "../foundation/preferences/preferences-store";
+import { restoreResourcePreparationTasks } from "../foundation/runtime/resource-preparation";
 import { installTaskbarProgress } from "../foundation/tasks/taskbar-progress";
 import { installWindowActivityState } from "../foundation/window/window-activity";
 import { installRuntimeDiagnostics } from "./runtime-diagnostics";
@@ -29,6 +30,9 @@ export async function bootstrapApplication(pinia: Pinia, router: Router): Promis
     await initializeApplicationCloseCoordinator();
     installRuntimeDiagnostics();
     installTaskbarProgress(pinia);
+    void restoreResourcePreparationTasks(pinia).catch((reason) =>
+      logError(`Failed to restore resource preparation tasks: ${String(reason)}`),
+    );
     await Promise.all([usePreferencesStore(pinia).load(), installWindowActivityState()]);
     await invoke("plugin:spaces|reconcile_workspace");
     await restoreWorkspaceSession(router);

@@ -1,52 +1,50 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
+import { useMutation } from "@tanstack/vue-query";
 import { sumBy } from "es-toolkit";
-import { computed, ref, watch } from "vue";
+import { computed, ref, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import {
-  cancelModelInstall,
-  getLocalResourcesStatus,
   removeLocalModel,
   textEmbeddingReady,
   transcriptionReady,
   type ModelKind,
+  type ResourcePreparationProgress,
 } from "../../../foundation/runtime/local-resources";
-import { useTaskStore } from "../../../foundation/tasks/task-store";
-import { downloadMultiPartModel, initialModelProgress, type ModelProgressInfo } from "./model-download";
+import { modelKinds, startModelPreparation } from "../../../foundation/runtime/model-preparation";
+import {
+  ResourcePreparationCancelledError,
+  type ResourcePreparationHandle,
+} from "../../../foundation/runtime/resource-preparation";
+import { invalidateLocalResources, useLocalResourcesQuery } from "../../../foundation/runtime/resource-query";
 
-export type { ModelProgressInfo };
+export interface ModelProgressInfo {
+  state: "idle" | "downloading" | "verifying" | "error";
+  progress: number;
+  downloaded: number;
+  total: number;
+  error?: string;
+}
 
-type RuntimeDownloadState = { jobId: string; taskId?: string; cancelled: boolean };
-
-const LOCAL_RESOURCES_KEY = ["runtime", "local-resources"] as const;
-const TRANSCRIPTION_KINDS: ModelKind[] = ["transcription", "transcriptionVad"];
-const TEXT_EMBEDDING_KINDS: ModelKind[] = [
-  "textEmbeddingConfig",
-  "textEmbeddingTokenizer",
-  "textEmbeddingWeights",
-];
+const TRANSCRIPTION_KINDS = modelKinds("transcription");
+const TEXT_EMBEDDING_KINDS = modelKinds("textEmbedding");
 
 export function useRuntimeSettings() {
   const { t } = useI18n();
-  const tasks = useTaskStore();
-  const queryClient = useQueryClient();
-  const invalidateStatus = () => queryClient.invalidateQueries({ queryKey: LOCAL_RESOURCES_KEY });
-  const statusQuery = useQuery({ queryKey: LOCAL_RESOURCES_KEY, queryFn: getLocalResourcesStatus });
+  const statusQuery = useLocalResourcesQuery();
   const removal = useMutation({
     mutationFn: (kinds: ModelKind[]) => Promise.all(kinds.map((kind) => removeLocalModel(kind))),
-    onSuccess: invalidateStatus,
+    onSuccess: invalidateLocalResources,
     onError: (error) => toast.error(String(error)),
   });
-  const activeDownload = ref<RuntimeDownloadState>();
+  const activePreparation = shallowRef<ResourcePreparationHandle>();
   const status = computed(() => statusQuery.data.value);
   const busy = computed(
-    () => statusQuery.isFetching.value || removal.isPending.value || activeDownload.value !== undefined,
+    () => statusQuery.isFetching.value || removal.isPending.value || activePreparation.value !== undefined,
   );
 
-  const transcriptionProgress = ref<ModelProgressInfo>(initialModelProgress());
-  const textEmbeddingProgress = ref<ModelProgressInfo>(initialModelProgress());
-
+  const transcriptionProgress = ref<ModelProgressInfo>(initialProgress());
+  const textEmbeddingProgress = ref<ModelProgressInfo>(initialProgress());
   const transcriptionInstalled = computed(() => transcriptionReady(status.value));
   const textEmbeddingInstalled = computed(() => textEmbeddingReady(status.value));
 
@@ -69,55 +67,35 @@ export function useRuntimeSettings() {
     if (error) toast.error(String(error));
   });
 
-  async function download(title: string, kinds: ModelKind[], progressRef: typeof transcriptionProgress) {
-    const current = status.value;
-    if (busy.value || !current) return;
-    const parts = kinds.map((kind) => ({ kind, size: current.models[kind].downloadSize }));
-    const total = sumBy(parts, ({ size }) => size);
-    const downloadState: RuntimeDownloadState = {
-      jobId: `runtime-model:${crypto.randomUUID()}`,
-      cancelled: false,
-    };
-    activeDownload.value = downloadState;
-    const cancelDownload = async () => {
-      downloadState.cancelled = true;
-      await cancelModelInstall(downloadState.jobId);
-    };
-    const taskId = tasks.start(title, undefined, cancelDownload, downloadState.jobId);
-    downloadState.taskId = taskId;
-
+  async function download(
+    capability: "transcription" | "textEmbedding",
+    title: string,
+    progressRef: typeof transcriptionProgress,
+  ) {
+    if (busy.value || !status.value) return;
+    const handle = startModelPreparation(capability, title, (progress) => {
+      if (progress.stage === "ready") return;
+      progressRef.value = progressInfo(progress);
+    });
+    activePreparation.value = handle;
     try {
-      await downloadMultiPartModel({
-        jobId: downloadState.jobId,
-        parts,
-        total,
-        isCancelled: () => downloadState.cancelled,
-        onProgress: (info) => {
-          progressRef.value = info;
-        },
-        onTaskProgress: (pct, detail) => tasks.progress(taskId, pct, detail),
-      });
-      progressRef.value.state = "idle";
-      tasks.succeed(taskId);
+      await handle.completion;
+      progressRef.value = initialProgress();
       toast.success(t("settings.offlineModels.download.complete", { model: title }));
     } catch (error) {
-      if (downloadState.cancelled) {
-        progressRef.value = initialModelProgress();
+      if (error instanceof ResourcePreparationCancelledError) {
+        progressRef.value = initialProgress();
         return;
       }
-      progressRef.value.state = "error";
-      progressRef.value.error = String(error);
-      tasks.fail(taskId, String(error));
+      progressRef.value = { ...progressRef.value, state: "error", error: String(error) };
       toast.error(String(error));
     } finally {
-      activeDownload.value = undefined;
-      await invalidateStatus();
+      activePreparation.value = undefined;
     }
   }
 
   function remove(kinds: ModelKind[]) {
-    if (busy.value) return;
-    removal.mutate(kinds);
+    if (!busy.value) removal.mutate(kinds);
   }
 
   return {
@@ -132,23 +110,29 @@ export function useRuntimeSettings() {
     textEmbeddingSize: textEmbeddingStats.size,
     transcriptionProgress,
     textEmbeddingProgress,
-    cancelDownload: async () => {
-      const current = activeDownload.value;
-      if (current?.taskId) await tasks.cancel(current.taskId);
-    },
+    cancelDownload: () => activePreparation.value?.cancel(),
     downloadTranscription: () =>
-      download(
-        t("settings.offlineModels.models.whisperStandard"),
-        TRANSCRIPTION_KINDS,
-        transcriptionProgress,
-      ),
+      download("transcription", t("settings.offlineModels.models.whisperStandard"), transcriptionProgress),
     downloadTextEmbedding: () =>
       download(
+        "textEmbedding",
         t("settings.offlineModels.models.textEmbedding.label"),
-        TEXT_EMBEDDING_KINDS,
         textEmbeddingProgress,
       ),
     removeTranscription: () => remove(TRANSCRIPTION_KINDS),
     removeTextEmbedding: () => remove(TEXT_EMBEDDING_KINDS),
+  };
+}
+
+function initialProgress(): ModelProgressInfo {
+  return { state: "idle", progress: 0, downloaded: 0, total: 0 };
+}
+
+function progressInfo(progress: ResourcePreparationProgress): ModelProgressInfo {
+  return {
+    state: progress.stage === "verifying" ? "verifying" : "downloading",
+    progress: progress.percent ?? 0,
+    downloaded: progress.downloaded,
+    total: progress.total ?? 0,
   };
 }

@@ -5,7 +5,7 @@
     "action": "Download model",
     "cancel": "Cancel download",
     "complete": "{model} downloaded",
-    "downloading": "Downloading ({part}) · {downloaded} / {total}",
+    "downloading": "Downloading · {downloaded} / {total}",
     "failed": "Download failed",
     "retry": "Retry download",
     "verifying": "Verifying integrity…"

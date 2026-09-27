@@ -2,7 +2,12 @@ use serde::Serialize;
 use sqlx::Row;
 use tauri::{AppHandle, Runtime};
 
-use crate::{ai::capabilities::embedding, spaces::db};
+use crate::{
+    ai::capabilities::embedding,
+    local_resources::{models::catalog, preparation},
+    spaces::db,
+};
+use tokio_util::sync::CancellationToken;
 
 use super::{
     embedding_contract::{active_batch_size, active_dimensions, active_model_id},
@@ -35,8 +40,16 @@ pub(crate) async fn rebuild_space_index<R: Runtime>(
     if space_id.trim().is_empty() {
         return Err("Knowledge retrieval rebuild requires a space id".to_owned());
     }
+    let resources = preparation::acquire_verified_models(
+        &app,
+        catalog::TEXT_EMBEDDING_MODELS,
+        &CancellationToken::new(),
+    )
+    .await?;
     clear_markers(&app, &space_id).await?;
-    let indexed = index_space(app, space_id, None).await?.indexed;
+    let indexed = index_prepared(app, space_id, None, resources, &CancellationToken::new())
+        .await?
+        .indexed;
     Ok(RebuildIndexOutput {
         rebuilt: true,
         indexed,
@@ -51,6 +64,58 @@ pub(crate) async fn index_space<R: Runtime>(
     if space_id.trim().is_empty() {
         return Err("Knowledge retrieval indexing requires a space id".to_owned());
     }
+    let resources = preparation::acquire_verified_models(
+        &app,
+        catalog::TEXT_EMBEDDING_MODELS,
+        &CancellationToken::new(),
+    )
+    .await?;
+    index_prepared(
+        app,
+        space_id,
+        node_ids,
+        resources,
+        &CancellationToken::new(),
+    )
+    .await
+}
+
+pub(crate) async fn prepare_space_index<R: Runtime>(
+    app: &AppHandle<R>,
+    space_id: &str,
+    node_ids: Option<Vec<String>>,
+    job_id: &str,
+    cancellation: &CancellationToken,
+) -> Result<IndexOutput, String> {
+    if space_id.trim().is_empty() {
+        return Err("Knowledge retrieval indexing requires a space id".to_owned());
+    }
+    let resources = preparation::prepare_models_for_job(
+        app,
+        preparation::contracts::ResourcePreparationTarget::TextEmbedding,
+        &format!("resource:{job_id}"),
+        "Preparing semantic search",
+        cancellation,
+        &mut |_| {},
+    )
+    .await?;
+    index_prepared(
+        app.clone(),
+        space_id.to_owned(),
+        node_ids,
+        resources,
+        cancellation,
+    )
+    .await
+}
+
+async fn index_prepared<R: Runtime>(
+    app: AppHandle<R>,
+    space_id: String,
+    node_ids: Option<Vec<String>>,
+    resources: preparation::PreparedModels,
+    cancellation: &CancellationToken,
+) -> Result<IndexOutput, String> {
     let node_ids_json = node_ids
         .as_ref()
         .map(serde_json::to_string)
@@ -60,6 +125,9 @@ pub(crate) async fn index_space<R: Runtime>(
     let started = std::time::Instant::now();
     log::info!("knowledge_index space={} event=started", space_id);
     loop {
+        if cancellation.is_cancelled() {
+            return Err("knowledge-indexing-cancelled".into());
+        }
         let chunks = load_unindexed_chunks(
             &app,
             &space_id,
@@ -80,7 +148,7 @@ pub(crate) async fn index_space<R: Runtime>(
             .iter()
             .map(|chunk| chunk.text.clone())
             .collect::<Vec<_>>();
-        let embeddings = embedding::embed(&app, texts)
+        let embeddings = embedding::embed(texts, &resources, cancellation)
             .await
             .map_err(|error| error.to_string())?;
         if embeddings.vectors.len() != chunks.len() {
@@ -97,6 +165,9 @@ pub(crate) async fn index_space<R: Runtime>(
                 vector: vector.into_iter().map(f64::from).collect(),
             })
             .collect::<Vec<_>>();
+        if cancellation.is_cancelled() {
+            return Err("knowledge-indexing-cancelled".into());
+        }
         let expected = inputs.len();
         let written = upsert_embeddings(app.clone(), inputs).await?;
         if written != expected {

@@ -25,7 +25,7 @@ pub struct TranscriptionPipeline<'a> {
 
 impl TranscriptionPipeline<'_> {
     pub fn run(&self, audio: &PreparedMediaAudio) -> Result<MediaTranscript, String> {
-        send_progress(self.progress, "transcribing", 14)?;
+        send_progress(self.progress, "transcribing", 14);
         let duration_ms = audio.analysis.duration_ms;
         let mut assembly = TranscriptAssembly::new();
         let part = whisper::transcribe(
@@ -42,12 +42,13 @@ impl TranscriptionPipeline<'_> {
             self.cancellation,
             |percent| {
                 let completed = (u16::from(percent) * 76 / 100) as u8;
-                send_progress(self.progress, "transcribing", 18 + completed)
+                send_progress(self.progress, "transcribing", 18 + completed);
+                Ok(())
             },
         )?;
         let appended = assembly.append(part, duration_ms);
-        send_partial_progress(self.progress, 94, assembly.language(), appended)?;
-        send_progress(self.progress, "parsing", 96)?;
+        send_partial_progress(self.progress, 94, assembly.language(), appended);
+        send_progress(self.progress, "parsing", 96);
         assembly.finish(duration_ms)
     }
 }
