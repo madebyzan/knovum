@@ -4,7 +4,7 @@ defineProps<{ label: string; description?: string | undefined }>();
 
 <template>
   <div
-    class="flex min-h-(--knovum-settings-row-min-height) items-center justify-between gap-6 border-b border-stroke-divider px-4 py-3 last:border-b-0"
+    class="flex min-h-(--knovum-setting-min-height) items-center justify-between gap-6 border-b border-stroke-divider px-4 py-3 last:border-b-0"
   >
     <div class="min-w-0 flex-1">
       <div class="text-body-lg font-medium text-fg-primary">{{ label }}</div>

@@ -6,7 +6,9 @@ import { defineComponent, h, nextTick } from "vue";
 
 import { useCanvasPalette } from "../canvas/konva/presentation/use-canvas-palette";
 
-const source = readFileSync("src/styles/tokens.css", "utf8");
+const source =
+  readFileSync("src/styles/tokens.css", "utf8") +
+  readFileSync("src/features/spaces/presentation/space-tokens.css", "utf8");
 let styles: CSSStyleDeclaration;
 let contrast: MediaQueryList;
 let cleanup: (() => void) | undefined;

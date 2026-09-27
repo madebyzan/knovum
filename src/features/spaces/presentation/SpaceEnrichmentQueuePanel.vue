@@ -39,7 +39,7 @@ const cancellation = useMutation({
         </span>
         <button
           type="button"
-          class="text-caption-sm text-fg-tertiary hover:text-fg-primary disabled:opacity-45"
+          class="text-caption-sm text-fg-tertiary hover:text-fg-primary disabled:opacity-40"
           :disabled="cancellation.isPending.value"
           @click="cancellation.mutate(job.id)"
         >

@@ -27,7 +27,7 @@ const parameters = computed(() => {
 
 <template>
   <section
-    class="border-l-border-warning mb-4 rounded-panel border border-l-2 border-stroke-default bg-surface-muted p-3 text-caption"
+    class="mb-4 rounded-panel border border-l-2 border-stroke-default border-l-stroke-warning bg-surface-muted p-3 text-caption"
     role="group"
     :aria-label="t('spaces.assistant.approval.plan')"
   >

@@ -52,7 +52,7 @@ function handleKeydown(event: KeyboardEvent) {
       {{ t("spaces.media.videoEditor.font.color") }}
     </label>
     <div
-      class="flex items-center gap-2 rounded-md border border-stroke-default bg-surface-inset px-2"
+      class="flex items-center gap-2 rounded-md border border-stroke-default bg-surface-muted px-2"
       :class="
         invalid
           ? 'border-stroke-danger focus-within:border-stroke-danger'

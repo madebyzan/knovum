@@ -90,7 +90,7 @@ function chooseFiles() {
       </button>
       <button
         type="button"
-        class="flex w-full items-center gap-3 rounded-md px-2 py-2.5 text-left hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus disabled:opacity-50"
+        class="flex w-full items-center gap-3 rounded-md px-2 py-2.5 text-left hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus disabled:opacity-40"
         :disabled="pickingFiles"
         @click="chooseFiles"
       >
@@ -126,7 +126,7 @@ function chooseFiles() {
       </div>
       <button
         type="button"
-        class="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-caption hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus disabled:opacity-50"
+        class="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-caption hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus disabled:opacity-40"
         :disabled="selectedCount === 0"
         @click="addSelected"
       >
@@ -139,7 +139,7 @@ function chooseFiles() {
           v-for="candidate in matching"
           :key="candidate.nodeId"
           type="button"
-          class="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-caption hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus disabled:opacity-50"
+          class="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-caption hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus disabled:opacity-40"
           :disabled="candidate.attached"
           @click="addOne(candidate.nodeId)"
         >

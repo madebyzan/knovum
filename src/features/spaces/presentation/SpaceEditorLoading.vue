@@ -16,7 +16,7 @@ const paragraphPlaceholders = ["w-full", "w-11/12", "w-4/5", "w-full", "w-2/3"];
     aria-busy="true"
   >
     <header
-      class="flex h-(--knovum-editor-toolbar-height) shrink-0 items-center gap-2 border-b border-stroke-divider bg-surface-chrome px-3"
+      class="flex h-toolbar shrink-0 items-center gap-2 border-b border-stroke-divider bg-surface-chrome px-3"
     >
       <FileText class="size-3.5 text-fg-secondary" :stroke-width="1.55" />
       <span class="text-caption font-medium text-fg-secondary">{{ t("spaces.nodeTypes.markdown") }}</span>
@@ -27,7 +27,7 @@ const paragraphPlaceholders = ["w-full", "w-11/12", "w-4/5", "w-full", "w-2/3"];
       </div>
     </header>
     <div
-      class="flex h-(--knovum-editor-toolbar-height) shrink-0 items-center gap-2 border-b border-stroke-divider bg-surface-chrome/80 px-3"
+      class="flex h-toolbar shrink-0 items-center gap-2 border-b border-stroke-divider bg-surface-chrome/80 px-3"
     >
       <span
         v-for="(placeholder, index) in toolbarPlaceholders"

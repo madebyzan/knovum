@@ -39,7 +39,7 @@ const { runningAction, itemClass, submenuClass, tones, translations, run, runTra
         type="button"
         :disabled="Boolean(runningAction)"
         :aria-label="t('spaces.richtext.ai.title')"
-        class="group inline-flex h-(--knovum-control-height-sm) items-center gap-1.5 rounded-md px-2 text-label font-medium text-fg-accent transition-colors outline-none hover:bg-surface-selected focus-visible:bg-surface-selected focus-visible:outline-none disabled:opacity-45"
+        class="group inline-flex h-(--knovum-control-height-sm) items-center gap-1.5 rounded-md px-2 text-label font-medium text-fg-accent transition-colors outline-none hover:bg-surface-selected focus-visible:bg-surface-selected focus-visible:outline-none disabled:opacity-40"
         :class="compact && 'px-2.5'"
       >
         <Sparkles class="size-3.5" :class="runningAction && 'animate-pulse'" :stroke-width="1.7" />

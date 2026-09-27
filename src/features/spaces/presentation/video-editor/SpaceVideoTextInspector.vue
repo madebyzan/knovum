@@ -110,7 +110,7 @@ function changeSize(event: Event) {
           :class="
             style.preset === preset
               ? 'border-stroke-accent bg-surface-selected text-fg-accent'
-              : 'border-stroke-default bg-surface-inset text-fg-secondary hover:bg-surface-control-hover'
+              : 'border-stroke-default bg-surface-muted text-fg-secondary hover:bg-surface-control-hover'
           "
           :aria-pressed="style.preset === preset"
           @click="patchStyle({ preset })"

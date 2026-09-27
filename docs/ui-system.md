@@ -84,8 +84,7 @@ Native font/tracking tokens contain only authored deviations from Tailwind.
 
 Use `size-3`, `size-3.5`, `size-4`, `size-4.5`, `size-5` for 12–20px icons. Use Tailwind spacing/container
 widths for fixed geometry and `duration-100`, `duration-150`, `duration-220` for ordinary motion.
-Density-sensitive controls/rows and native platform exclusion retain product variables. The 48px tag row
-is feature-owned as `--knovum-space-tag-row-height`, not a speculative general medium list-row scale.
+Density-sensitive controls and native platform exclusion retain product variables; shared interaction and toolbar heights use native spacing extensions. Tags use the same interaction height as other single-line navigation. Settings entries share `--knovum-setting-min-height` (52px compact / 56px comfortable), retain py-3, and grow when content needs more room.
 Use rounded-sm for grids, rounded-md for controls, rounded-lg for canvas objects and rounded-xl for
 workspaces/dialogs/outer sections. Only 10px panels and 9px inner sections extend the native radius scale.
 Fixed switch thumbs use bg-white and video-label scrims use bg-black/45 in their owning component.
@@ -124,7 +123,6 @@ role separation informed by [DTCG](https://www.designtokens.org/TR/2025.10/forma
 | `bg-surface-panel`                            | structural content panels, sidebars and canvas objects |
 | `bg-surface-raised`                           | raised fields, compact controls and elevated content   |
 | `bg-surface-overlay`                          | floating menus, popovers and overlay chrome            |
-| `bg-surface-inset`                            | translucent inset area or quiet field                  |
 | `bg-surface-inverse` / `text-fg-inverse`      | contrasting action/badge surface pair                  |
 | `bg-surface-document`                         | appearance-independent white HTML document             |
 | `text-fg-on-image` / `border-stroke-on-image` | white media-overlay contrast                           |
@@ -230,15 +228,16 @@ Global roles include:
 
 - `h-(--knovum-control-height-sm)`, `h-(--knovum-control-height-md)`, `h-(--knovum-control-height-lg)`;
 - `h-(--knovum-titlebar-height)` for integrated titlebar/toolbar geometry;
-- `h-(--knovum-menu-item-height)` for menu options and select/font/icon/tag candidates;
-- `h-(--knovum-navigation-item-height)` for sidebar entries, structure trees and document outlines;
+- `h-interaction` / `min-h-interaction` for menu candidates, sidebar entries, trees and outlines;
+- `h-toolbar` for editor toolbars and task-center headers;
+- `min-h-(--knovum-setting-min-height)` for preference fields, connection summaries and model installation settings;
 - `size-3` through `size-5` for symbols. Toolbar symbols use `size-4.5` (18px) inside 32px controls.
 
-Menu and navigation heights are separate component contracts: both currently use 30px in compact mode
-and 34px in comfortable mode, but neither aliases the other or a generic size token. Single-line entries
-use height; options with descriptions and navigation that may grow use min-height. Collapsible section
-headings use their content line-height plus py-2; they do not consume menu/navigation height and are not
-forced to fit a fixed interaction band. Equal current values do not establish shared ownership.
+Menu options, selection candidates and navigation share `h-interaction`: 30px compact / 34px
+comfortable. This is one product density decision, not independent component knobs. Use `min-h-interaction`
+for entries that may wrap. Editor toolbars and task-center headers share `h-toolbar`: 44px compact / 48px
+comfortable. Command-palette options retain their richer, independently owned layout. Collapsible headings
+use content line-height plus py-2, without a fixed interaction height.
 
 `data-platform` changes titlebar/chrome geometry where the operating systems differ. `data-density` changes interaction density without changing typography hierarchy. `--knovum-titlebar-height` is the stable native titlebar band and intentionally does not shrink with content density; density-sensitive in-workspace toolbars use their own toolbar/control geometry.
 On macOS the integrated Tab Bar is 40px high, matching compact modern desktop chrome while preserving the
@@ -537,3 +536,34 @@ request, and retry starts resource preparation without automatically repeating a
 Settings uses that same preparation path for optional pre-download and model removal; it is a
 management surface, not a prerequisite for using a capability. Application launch does not download
 optional models or tools.
+
+## Product semantic selection rules
+
+Tokens represent an existing shared policy, not every distinct value or potential future customization.
+Prefer Tailwind's primitive scales for ordinary geometry; product density extensions use its native
+spacing namespace. Shared UI components own state combinations. New tokens need a concrete role,
+consumer boundary and reason an existing rule cannot serve it.
+
+| Surface | Selection rule                                                                                  |
+| ------- | ----------------------------------------------------------------------------------------------- |
+| canvas  | main document/workspace content plane                                                           |
+| chrome  | persistent desktop navigation and toolbar chrome                                                |
+| panel   | structural content containers and canvas objects                                                |
+| muted   | embedded previews, recessed content and quiet fields; no parallel inset role                    |
+| raised  | resting controls and selected tabs that stand above their parent surface                        |
+| overlay | transient menus, popovers and dialogs; use material-overlay when translucent material is needed |
+
+Use shadow-popover for small transient panels and shadow-dialog for modal/command-palette depth.
+Control hover/press paint is an interaction state, not an alternative container surface. Selection and
+focus remain distinct. Native, ARIA and Reka disabled controls use opacity-40; this is a component rule,
+not a new color token. Disabled controls keep the desktop default cursor. Informational capability
+badges and loading indicators are not disabled controls.
+
+Spaces owns `src/features/spaces/presentation/space-tokens.css`, imported once by app.css so DOM and
+runtime canvas paints remain available together. It owns content colors, including
+appearance/density overrides. Those variables are not exported through @theme and must not be used
+outside Spaces. Private palette references may be used by these owning token definitions only.
+
+Typography roles remain caption, label, body, title and display, with only existing meaningful size
+variants. Keep caption-sm for keyboard hints/debug metadata; use label for operation text, body/body-lg
+for reading, and title-sm for compact headings. Do not add size slots to make a symmetrical matrix.

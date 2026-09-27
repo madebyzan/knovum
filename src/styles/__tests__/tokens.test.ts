@@ -7,11 +7,13 @@ import { createServer } from "vite";
 import { beforeAll, describe, expect, it } from "vitest";
 
 const tokenSource = readFileSync("src/styles/tokens.css", "utf8");
+const spaceTokenSource = readFileSync("src/features/spaces/presentation/space-tokens.css", "utf8");
+const allTokens = tokenSource + spaceTokenSource;
 const publicTheme = tokenSource.slice(
   tokenSource.indexOf("@theme static"),
   tokenSource.indexOf(":root[data-text-size"),
 );
-const declarations = new Set([...tokenSource.matchAll(/(--[\w-]+):/g)].map((match) => match[1]));
+const declarations = new Set([...allTokens.matchAll(/(--[\w-]+):/g)].map((match) => match[1]));
 const productSources = readdirSync("src", { recursive: true, withFileTypes: true })
   .filter((entry) => entry.isFile() && /\.(?:css|ts|vue)$/.test(entry.name))
   .filter((entry) => !entry.parentPath.includes("__tests__") && !entry.name.endsWith(".test.ts"))
@@ -51,7 +53,7 @@ describe("design-token contract", () => {
 
   it("emits native theme variables used directly by CSS consumers", () => {
     const references = productSources
-      .filter(({ path }) => path !== "src/styles/tokens.css")
+      .filter(({ path }) => !path.endsWith("tokens.css"))
       .flatMap(({ source }) =>
         Array.from(source.matchAll(/(?:var\(|["'])(--(?:color|text|font|radius|shadow|ease|blur)-[\w-]+)/g)),
       );
@@ -64,8 +66,42 @@ describe("design-token contract", () => {
     expect(tokenSource).not.toContain("@theme inline");
     expect(tokenSource).not.toMatch(/--knovum-(?:color|typography)-/);
     const violations = productSources
-      .filter(({ path }) => path !== "src/styles/tokens.css")
+      .filter(({ path }) => !path.endsWith("tokens.css"))
       .filter(({ source }) => /var\(--knovum-ref-/.test(source))
+      .map(({ path }) => path);
+    expect(violations).toEqual([]);
+  });
+
+  it("keeps space presentation in its owning capability", () => {
+    expect(tokenSource).not.toContain("--knovum-space-");
+    expect(spaceTokenSource).not.toMatch(/@theme(?:\s+\w+)?\s*\{/);
+    const violations = productSources
+      .filter(({ path }) => !path.startsWith("src/features/spaces/") && !path.endsWith("tokens.css"))
+      .filter(({ source }) => source.includes("--knovum-space-"))
+      .map(({ path }) => path);
+    expect(violations).toEqual([]);
+  });
+
+  it("uses one density rule per shared interaction or toolbar specification", () => {
+    expect(compiledCss).toContain("height: var(--spacing-interaction)");
+    expect(compiledCss).toContain("height: var(--spacing-toolbar)");
+    expect(tokenSource).toContain("--spacing-interaction: 2.125rem");
+    expect(tokenSource).toContain("--spacing-toolbar: 3rem");
+    expect(tokenSource).toContain("--knovum-setting-min-height: 3.25rem");
+    expect(tokenSource).toContain("--knovum-setting-min-height: 3.5rem");
+    expect(allTokens).not.toMatch(/--knovum-(?:space-tag-row-height|settings-row-min-height)/);
+    expect(allTokens).not.toMatch(
+      /--knovum-(?:menu-item|navigation-item|editor-toolbar|task-center-header)-height/,
+    );
+  });
+
+  it("uses the product disabled and embedded surface policies", () => {
+    const violations = productSources
+      .filter(({ source }) =>
+        /surface-inset|(?:disabled|data-disabled|aria-disabled):opacity-(?:35|45|50|55)\b|border-l-border-warning/.test(
+          source,
+        ),
+      )
       .map(({ path }) => path);
     expect(violations).toEqual([]);
   });
@@ -80,7 +116,7 @@ describe("design-token contract", () => {
 
   it("keeps consumers on the named interaction and warning roles", () => {
     const violations = productSources
-      .filter(({ path }) => path !== "src/styles/tokens.css")
+      .filter(({ path }) => !path.endsWith("tokens.css"))
       .filter(({ source }) =>
         /hover:bg-surface-\S*-pressed|data-\[state=open\]:bg-surface-\S*-pressed|bg-surface-warning\//.test(
           source,

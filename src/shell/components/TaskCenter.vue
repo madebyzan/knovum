@@ -62,9 +62,7 @@ watch(
       </button>
     </template>
 
-    <div
-      class="flex h-(--knovum-task-center-header-height) items-center gap-2 border-b border-stroke-divider px-3"
-    >
+    <div class="flex h-toolbar items-center gap-2 border-b border-stroke-divider px-3">
       <div class="min-w-0 flex-1 text-title-sm font-semibold tracking-title">
         {{ t("tasks.title") }}
       </div>

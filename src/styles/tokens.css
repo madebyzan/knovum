@@ -3,7 +3,7 @@
  * Public: native Tailwind color-surface / color-fg / color-stroke and text namespaces.
  * Each public decision is declared once in @theme static, including runtime paints.
  * Component: component / part / property / state.
- * Domain: space / object / property / variant; never exported as global utilities.
+ * Spaces content attributes live in features/spaces/presentation/space-tokens.css.
  * An omitted interaction state means resting. Modes replace decisions, not names.
  */
 :root {
@@ -34,50 +34,18 @@
   --knovum-control-height-lg: 2.25rem;
   --knovum-titlebar-height: 2.5rem;
   --knovum-titlebar-navigation-padding-start: 0.625rem;
-  --knovum-editor-toolbar-height: 2.75rem;
-  --knovum-menu-item-height: 1.875rem;
-  --knovum-navigation-item-height: 1.875rem;
   --knovum-command-palette-item-height: 2.75rem;
-  --knovum-space-tag-row-height: 3rem;
-  --knovum-settings-row-min-height: 3.25rem;
+  --knovum-setting-min-height: 3.25rem;
   --knovum-scrollbar-size: 0.5rem;
   --knovum-scrollbar-inset: 0.125rem;
   --knovum-scrollbar-thumb-bg: color-mix(in oklch, var(--color-fg-tertiary) 38%, transparent);
   --knovum-scrollbar-thumb-bg-hover: color-mix(in oklch, var(--color-fg-secondary) 58%, transparent);
-  --knovum-task-center-header-height: 2.75rem;
-
-  /* Space content and canvas presentation: feature-owned attributes. */
-  --knovum-space-grid-color: oklch(0.22 0.006 264 / 0.255);
-  --knovum-space-measurement-color: oklch(0.72 0.19 72);
-  --knovum-space-relation-stroke-blue: var(--knovum-ref-color-blue-500);
-  --knovum-space-relation-stroke-green: var(--knovum-ref-color-green-500);
-  --knovum-space-relation-stroke-amber: var(--knovum-ref-color-amber-500);
-  --knovum-space-relation-stroke-red: var(--knovum-ref-color-red-500);
-  --knovum-space-relation-stroke-purple: var(--knovum-ref-color-purple-500);
-  --knovum-space-note-bg-yellow: oklch(0.9 0.12 92);
-  --knovum-space-note-bg-green: oklch(0.82 0.12 145);
-  --knovum-space-note-bg-blue: oklch(0.83 0.1 235);
-  --knovum-space-note-bg-pink: oklch(0.86 0.1 350);
-  --knovum-space-note-bg-gray: oklch(0.86 0.01 264);
-  --knovum-space-note-fg: oklch(0.2 0.008 264);
-  --knovum-space-text-fg-default: oklch(0.2 0.008 264);
-  --knovum-space-text-fg-subtle: oklch(0.48 0.008 264);
-  --knovum-space-text-fg-red: oklch(0.55 0.2 28);
-  --knovum-space-text-fg-blue: oklch(0.5 0.18 255);
-  --knovum-space-text-fg-green: oklch(0.48 0.14 148);
-  --knovum-space-text-fg-purple: oklch(0.5 0.16 305);
-  --knovum-space-node-box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.7), 0 1px 2px rgb(15 23 42 / 0.12),
-    0 5px 10px -4px rgb(15 23 42 / 0.16), 0 12px 24px -12px rgb(15 23 42 / 0.18);
-  --knovum-space-highlight-bg-yellow: oklch(0.92 0.08 95);
-  --knovum-space-highlight-bg-green: oklch(0.92 0.08 145);
-  --knovum-space-highlight-bg-blue: oklch(0.91 0.07 240);
-  --knovum-space-highlight-bg-pink: oklch(0.91 0.08 350);
-  --knovum-space-image-annotation-color: var(--knovum-ref-color-purple-500);
-  --knovum-space-image-angle-target-color: var(--knovum-ref-color-purple-500);
 }
 
 @theme static {
+  /* Product density rules extend the native spacing namespace. */
+  --spacing-interaction: 1.875rem;
+  --spacing-toolbar: 2.75rem;
   --text-caption-sm: 0.6875rem;
   --text-caption-sm--line-height: 0.875rem;
   --text-caption: 0.75rem;
@@ -112,7 +80,6 @@
     transparent
   );
   --color-surface-document: white;
-  --color-surface-inset: oklch(0.18 0.006 264 / 0.052);
   --color-surface-inverse: var(--color-fg-primary);
   --color-surface-inverse-hover: var(--color-fg-secondary);
   --color-surface-overlay: oklch(0.985 0.002 255 / 0.98);
@@ -215,13 +182,10 @@
   --knovum-control-height-sm: 1.875rem;
   --knovum-control-height-md: 2.125rem;
   --knovum-control-height-lg: 2.375rem;
-  --knovum-editor-toolbar-height: 3rem;
-  --knovum-task-center-header-height: 3rem;
-  --knovum-menu-item-height: 2.125rem;
-  --knovum-navigation-item-height: 2.125rem;
+  --spacing-toolbar: 3rem;
+  --spacing-interaction: 2.125rem;
   --knovum-command-palette-item-height: 3rem;
-  --knovum-space-tag-row-height: 3.25rem;
-  --knovum-settings-row-min-height: 3.5rem;
+  --knovum-setting-min-height: 3.5rem;
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
@@ -237,15 +201,12 @@
     transparent
   );
   --color-surface-warning-subtle: color-mix(in oklch, var(--knovum-ref-color-amber-400) 13%, transparent);
-  --knovum-space-image-annotation-color: var(--knovum-ref-color-purple-400);
-  --knovum-space-image-angle-target-color: var(--knovum-ref-color-purple-400);
   --color-surface-chrome: oklch(0.19 0.006 264);
   --color-surface-canvas: oklch(0.175 0.005 264);
   --color-surface-muted: oklch(0.215 0.006 264);
   --color-surface-panel: oklch(0.23 0.006 264);
   --color-surface-raised: oklch(0.255 0.006 264 / 0.98);
   --color-surface-overlay: oklch(0.245 0.006 264 / 0.98);
-  --color-surface-inset: oklch(1 0 0 / 0.06);
   --color-surface-scrim: oklch(0 0 0 / 0.42);
   --color-fg-primary: oklch(0.94 0.004 264);
   --color-fg-secondary: oklch(0.72 0.008 264);
@@ -281,24 +242,6 @@
   --knovum-sidebar-item-bg-hover: oklch(1 0 0 / 0.05);
   --knovum-sidebar-item-bg-selected: oklch(1 0 0 / 0.085);
   --knovum-tab-bg-inactive: oklch(0.225 0.006 264);
-  --knovum-space-grid-color: oklch(1 0 0 / 0.2);
-  --knovum-space-measurement-color: oklch(0.8 0.17 78);
-  --knovum-space-relation-stroke-blue: var(--knovum-ref-color-blue-400);
-  --knovum-space-relation-stroke-green: var(--knovum-ref-color-green-400);
-  --knovum-space-relation-stroke-amber: var(--knovum-ref-color-amber-400);
-  --knovum-space-relation-stroke-red: var(--knovum-ref-color-red-400);
-  --knovum-space-relation-stroke-purple: var(--knovum-ref-color-purple-400);
-  --knovum-space-note-bg-yellow: oklch(0.72 0.1 92);
-  --knovum-space-note-bg-green: oklch(0.68 0.1 145);
-  --knovum-space-note-bg-blue: oklch(0.68 0.09 235);
-  --knovum-space-note-bg-pink: oklch(0.7 0.09 350);
-  --knovum-space-note-bg-gray: oklch(0.58 0.01 264);
-  --knovum-space-note-fg: oklch(0.16 0.008 264);
-  --knovum-space-text-fg-default: oklch(0.9 0.008 264);
-  --knovum-space-text-fg-subtle: oklch(0.68 0.008 264);
-  --knovum-space-node-box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.055), 0 1px 2px rgb(0 0 0 / 0.42), 0 5px 10px -4px rgb(0 0 0 / 0.44),
-    0 12px 24px -12px rgb(0 0 0 / 0.52);
 }
 :root[data-window-active="false"] {
   --knovum-sidebar-item-bg-selected: var(--color-surface-control);

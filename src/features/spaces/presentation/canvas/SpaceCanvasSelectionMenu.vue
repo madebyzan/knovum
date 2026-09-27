@@ -42,7 +42,7 @@ defineProps<{
 const emit = defineEmits<{ invokeDerivation: [actionId: CreationIntentId] }>();
 const { t } = useI18n();
 const menuRow =
-  "flex h-(--knovum-menu-item-height) cursor-default items-center gap-2 rounded-md px-2 text-label text-fg-primary outline-none data-[highlighted]:bg-surface-control-hover data-[disabled]:text-fg-tertiary";
+  "flex h-interaction cursor-default items-center gap-2 rounded-md px-2 text-label text-fg-primary outline-none data-[highlighted]:bg-surface-control-hover data-[disabled]:opacity-40";
 const submenu = SUBMENU_CONTENT_CLASSES;
 const deleteShortcut = platform() === "macos" ? "Backspace" : "Delete";
 const directImageActions: readonly CreationIntentId[] = ["remove-image-background"];

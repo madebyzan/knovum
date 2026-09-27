@@ -33,7 +33,7 @@ const props = withDefaults(
     :disabled="disabled"
     :aria-label="label"
     :class="
-      cn('relative flex h-5 w-full touch-none items-center select-none data-disabled:opacity-45', props.class)
+      cn('relative flex h-5 w-full touch-none items-center select-none data-disabled:opacity-40', props.class)
     "
     @update:model-value="
       (value) => {

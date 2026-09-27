@@ -60,7 +60,7 @@ const emit = defineEmits<{ remove: [key: string] }>();
         :side-offset="8"
         :collision-padding="12"
         avoid-collisions
-        class="z-50 w-56 rounded-panel border border-stroke-default bg-surface-panel p-1.5 shadow-dialog"
+        class="z-50 w-56 rounded-panel border border-stroke-default material-overlay p-1.5 shadow-popover"
       >
         <img
           :src="attachment.previewSource"

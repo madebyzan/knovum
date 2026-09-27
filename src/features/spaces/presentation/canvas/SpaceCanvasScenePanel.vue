@@ -74,7 +74,7 @@ watch(
       </p>
       <button
         type="button"
-        class="mt-3 flex h-7 items-center gap-1.5 rounded-md border border-stroke-strong bg-surface-control px-3 text-caption font-medium text-fg-primary shadow-control hover:bg-surface-control-hover active:bg-surface-control-pressed disabled:pointer-events-none disabled:opacity-50"
+        class="mt-3 flex h-7 items-center gap-1.5 rounded-md border border-stroke-strong bg-surface-control px-3 text-caption font-medium text-fg-primary shadow-control hover:bg-surface-control-hover active:bg-surface-control-pressed disabled:pointer-events-none disabled:opacity-40"
         :disabled="saving"
         :aria-busy="saving"
         @click="emit('create')"

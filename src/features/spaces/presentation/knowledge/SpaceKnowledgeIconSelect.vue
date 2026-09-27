@@ -93,7 +93,7 @@ const activeEntry = computed(() => {
             v-for="(iconOption, key) in ICON_MAP"
             :key="key"
             :value="key"
-            class="relative flex h-(--knovum-menu-item-height) cursor-default items-center rounded-md pr-2 pl-7 text-label outline-none data-highlighted:bg-surface-control-hover"
+            class="relative flex h-interaction cursor-default items-center rounded-md pr-2 pl-7 text-label outline-none data-highlighted:bg-surface-control-hover"
           >
             <SelectItemIndicator class="absolute left-2"><Check class="size-3" /></SelectItemIndicator>
             <div class="flex min-w-0 flex-1 items-center gap-2">

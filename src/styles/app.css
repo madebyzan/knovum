@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "./tokens.css";
+@import "../features/spaces/presentation/space-tokens.css";
 
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 @custom-variant macos (&:where([data-platform="macos"], [data-platform="macos"] *));

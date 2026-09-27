@@ -63,7 +63,7 @@ function wheel(event: WheelEvent) {
 
 <template>
   <div
-    class="relative flex aspect-square w-full cursor-grab touch-none items-center justify-center overflow-hidden rounded-panel bg-surface-inset active:cursor-grabbing"
+    class="relative flex aspect-square w-full cursor-grab touch-none items-center justify-center overflow-hidden rounded-panel bg-surface-muted active:cursor-grabbing"
     role="group"
     :aria-label="t('spaces.media.imageEditor.angle.preview')"
     @pointerdown="begin"

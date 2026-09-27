@@ -44,7 +44,7 @@ const {
     <div class="flex justify-end">
       <button
         type="button"
-        class="flex h-(--knovum-control-height-sm) shrink-0 items-center gap-1 rounded-md px-2 text-caption text-fg-secondary hover:bg-surface-control-hover hover:text-fg-primary disabled:opacity-55"
+        class="flex h-(--knovum-control-height-sm) shrink-0 items-center gap-1 rounded-md px-2 text-caption text-fg-secondary hover:bg-surface-control-hover hover:text-fg-primary disabled:opacity-40"
         :disabled="analyzing || !canDerive"
         @click="analyze"
       >
@@ -68,7 +68,7 @@ const {
       <div v-if="!insights" class="mt-3">
         <button
           type="button"
-          class="h-(--knovum-control-height-md) w-full rounded-md bg-surface-accent px-2.5 text-label font-medium text-fg-on-accent transition-colors hover:bg-surface-accent-hover disabled:opacity-55"
+          class="h-(--knovum-control-height-md) w-full rounded-md bg-surface-accent px-2.5 text-label font-medium text-fg-on-accent transition-colors hover:bg-surface-accent-hover disabled:opacity-40"
           :disabled="!canGenerateInsights"
           :title="insightsDisabledReason"
           @click="generateInsights"
