@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
+import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import type { SpaceSessionProjection } from "../contracts/generated/SpaceSessionProjection";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceRelation } from "../model/relations/relation";
@@ -18,7 +18,7 @@ export async function loadSpaceSessionProjection(spaceId: string): Promise<{
   relations: SpaceRelation[];
   editSnapshot: SpaceEditSnapshot;
 }> {
-  const record = await invoke<SpaceSessionProjection>("plugin:spaces|load_space_session_projection", {
+  const record = await invokeCommand<SpaceSessionProjection>("plugin:spaces|load_space_session_projection", {
     spaceId,
   });
   return {

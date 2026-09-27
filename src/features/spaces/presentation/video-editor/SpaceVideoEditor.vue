@@ -2,6 +2,7 @@
 import { computed, nextTick, shallowRef, watch } from "vue";
 
 import { useSpaceStore } from "../../session/space-store";
+import { useVideoEditProxy } from "../../video-editing/use-video-edit-proxy";
 import SpaceVideoEditorHeader from "./SpaceVideoEditorHeader.vue";
 import SpaceVideoEditorState from "./SpaceVideoEditorState.vue";
 import SpaceVideoInspector from "./SpaceVideoInspector.vue";
@@ -13,7 +14,6 @@ import { useVideoEditActions } from "./use-video-edit-actions";
 import { useVideoEditHistory } from "./use-video-edit-history";
 import { useVideoEditPreviewSource } from "./use-video-edit-preview-source";
 import { useVideoEditProject } from "./use-video-edit-project";
-import { useVideoEditProxy } from "./use-video-edit-proxy";
 import { useVideoEditSelection } from "./use-video-edit-selection";
 import { useVideoEditorInspector } from "./use-video-editor-inspector";
 import { useVideoEditorMedia } from "./use-video-editor-media";

@@ -382,9 +382,38 @@ Application commands reject with one `{ code, message }` envelope. `command_erro
 
 Renderer application calls use `foundation/ipc/invoke-command`. It converts rejection payloads into `Error` with the envelope as `cause`, preserving existing `Error` identity and the native invoke argument shape. Business outcome detection reads `decodeCommandError(error)?.code`; it does not match English sentences. Native Tauri/plugin argument or permission failures may still be strings and remain visible errors. This is an active vendor boundary, not a reader for obsolete application protocols.
 
+Import `invokeCommand` under its actual name. This function owns error normalization only;
+Tauri owns transport, serialization and Channels. It does not own UI notifications,
+query caching, retries, cancellation or business recovery. The Spaces mutation receipt
+protocol remains in `structure/confirmed-mutation`, where explicit command failures are
+distinguished from an ambiguous transport outcome.
+
+Vue components and presentation modules consume capability-owned operations or query
+options, never the application command transport. For example, `video-editing/font-catalog`
+owns the validated installed-font query and `video-editing/use-video-edit-proxy` owns
+preparation, cancellation and stale-result suppression. Application composition may
+orchestrate startup commands; foundation capabilities own their native commands.
+Oxc restricts the native `invoke` import to the error boundary, and dependency-cruiser
+enforces the presentation boundary. Official Tauri/plugin APIs and `Channel` remain
+direct vendor imports wherever their owning capability needs them.
+
 ## IPC contract ownership
 
 Rust owns serialized request/response/event types. ts-rs exports neutral types to `src/shared/contracts/generated`; Spaces-owned types are exported directly to `src/features/spaces/contracts/generated` through per-type ts-rs export paths; neutral runtime identity arrays and feature-owned limits come from the corresponding Rust definitions. Feature action/workflow JSON Schemas remain in Spaces. Foundation must not import feature implementations to obtain wire types. Runtime validation and UI projections keep their actual responsibilities rather than redefining wire DTOs.
+
+Use generated request types to check IPC payloads and generated response/event types for
+wire data. Video-editing requests, progress, fonts and completed derivation outputs follow
+this contract. Validate consumed IPC values before entering the frontend model; model
+schemas may impose stronger constraints than a serialized Rust DTO, such as supported
+project versions, allowed rotations and valid node kinds. These refinements are model
+policy, not a second wire protocol.
+
+ts-rs generates DTOs, not command bindings. Neither the native `invoke<T>` nor
+`invokeCommand<T>` statically pairs a command name with its arguments and result.
+Capability functions expose concrete operation contracts to callers; do not add a
+handwritten global command map or a custom signature parser to imitate generated
+bindings. Adopting a full command-binding generator requires the normal dependency
+decision and migration of the existing plugin, DTO and Channel contracts.
 
 Space agent artifacts, action catalog and authorized asset preview belong to Spaces. The app router supplies the action catalog loader to Settings through explicit props, preserving feature isolation without a global registry.
 

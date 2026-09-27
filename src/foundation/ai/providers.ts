@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import type { ProviderDescriptor } from "../../shared/contracts/generated/ProviderDescriptor";
-import { invokeCommand as invoke } from "../ipc/invoke-command";
+import { invokeCommand } from "../ipc/invoke-command";
 import { aiCapabilitySchema, aiProviderSchema } from "./ai-models";
 
 const providerDescriptorSchema: z.ZodType<ProviderDescriptor> = z
@@ -18,7 +18,7 @@ export type { ProviderDescriptor } from "../../shared/contracts/generated/Provid
 export async function loadProviderDescriptors(): Promise<ProviderDescriptor[]> {
   return z
     .array(providerDescriptorSchema)
-    .parse(await invoke<unknown>("plugin:ai|list_provider_descriptors"));
+    .parse(await invokeCommand<unknown>("plugin:ai|list_provider_descriptors"));
 }
 
 export function requireProvider(

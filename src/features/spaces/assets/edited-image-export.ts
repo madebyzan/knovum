@@ -1,7 +1,7 @@
 import { save } from "@tauri-apps/plugin-dialog";
 import { parse } from "pathe";
 
-import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
+import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import type { SpaceImagePayload } from "../model/nodes/node-payload";
 import { safeExportFileName } from "./export";
 
@@ -17,7 +17,7 @@ export async function exportEditedImage(
   });
   if (!destinationPath) return false;
 
-  await invoke("plugin:spaces|export_image", {
+  await invokeCommand("plugin:spaces|export_image", {
     spaceId,
     nodeId,
     destinationPath,

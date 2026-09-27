@@ -3,7 +3,7 @@ import { Channel } from "@tauri-apps/api/core";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import { isString } from "es-toolkit";
 
-import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
+import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import type { SpacePackageProgress } from "../contracts/generated/SpacePackageProgress";
 import type { Space } from "../model/space";
 import { truncateUtf16 } from "../model/text";
@@ -27,7 +27,7 @@ export async function exportSpacePackage(context: SpacePackageExportContext, onP
   });
   if (!destination) return false;
   await context.commitActiveSession();
-  await invoke("plugin:spaces|export_space_package", {
+  await invokeCommand("plugin:spaces|export_space_package", {
     destinationPath: destination,
     spaceId: context.space.id,
     onProgress: progressChannel(onProgress),
@@ -42,7 +42,7 @@ export async function importSpacePackage(context: SpacePackageImportContext, onP
     filters: [{ name: "Knovum Space", extensions: ["knovumspace"] }],
   });
   if (!isString(source)) return false;
-  const space = await invoke<Space>("plugin:spaces|import_space_package", {
+  const space = await invokeCommand<Space>("plugin:spaces|import_space_package", {
     sourcePath: source,
     onProgress: progressChannel(onProgress),
   });

@@ -5,31 +5,26 @@ use std::{
     sync::{Mutex, OnceLock},
 };
 
-use serde::Deserialize;
 use sha2::{Digest, Sha256};
 use tauri::{AppHandle, Manager};
 use tokio_util::sync::CancellationToken;
 use uuid::Uuid;
 
+use super::PrepareVideoEditProxyRequest;
+
 use crate::{blocking, local_resources::tools, media::subprocess, spaces::db};
 
 const CANCELLED: &str = "VIDEO_EDIT_PREPARATION_CANCELLED";
-
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct PrepareRequest {
-    pub id: String,
-    pub space_id: String,
-    pub source_node_id: String,
-    pub source_revision: String,
-}
 
 fn generation_lock() -> &'static Mutex<()> {
     static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
     LOCK.get_or_init(|| Mutex::new(()))
 }
 
-pub async fn prepare(app: AppHandle, request: PrepareRequest) -> Result<String, String> {
+pub async fn prepare(
+    app: AppHandle,
+    request: PrepareVideoEditProxyRequest,
+) -> Result<String, String> {
     Uuid::parse_str(&request.id).map_err(|_| "Video preparation ID is invalid")?;
     let (cancellation, _lease) = super::proxy_registry::acquire(request.id)?;
     let pool = db::pool(&app).await?;

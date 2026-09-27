@@ -1,7 +1,7 @@
 import { open, save } from "@tauri-apps/plugin-dialog";
 import { isString } from "es-toolkit";
 
-import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
+import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import type { CanvasExchangePort } from "./canvas-exchange-port";
 
 const JSON_CANVAS_FILTER = [{ name: "JSON Canvas", extensions: ["canvas"] }];
@@ -20,7 +20,7 @@ export async function exportJsonCanvasFile(exchange: CanvasExchangePort, title: 
     filters: JSON_CANVAS_FILTER,
   });
   if (!destinationPath) return false;
-  await invoke("plugin:spaces|export_json_canvas_file", {
+  await invokeCommand("plugin:spaces|export_json_canvas_file", {
     request: { destinationPath, document: exported.document, resources: exported.resources },
   });
   return true;

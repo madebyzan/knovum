@@ -3,7 +3,7 @@ import { shallowRef } from "vue";
 import { toast } from "vue-sonner";
 
 import { i18n } from "../../../foundation/i18n/i18n";
-import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
+import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import type { RunObservation } from "../contracts/generated/RunObservation";
 import { observeRun } from "../runs/run-observation";
@@ -68,10 +68,10 @@ export function observeWorkflowRun(run: RunObservation, title: string, onUpdate?
 }
 
 export async function restoreWorkflowRuns(title: string) {
-  const runs = await invoke<RunObservation[]>("plugin:spaces|list_active_workflow_runs");
+  const runs = await invokeCommand<RunObservation[]>("plugin:spaces|list_active_workflow_runs");
   for (const run of runs) observeWorkflowRun(run, title);
 }
 
 export function cancelWorkflowRun(runId: string): Promise<void> {
-  return invoke("plugin:spaces|cancel_run", { runId });
+  return invokeCommand("plugin:spaces|cancel_run", { runId });
 }

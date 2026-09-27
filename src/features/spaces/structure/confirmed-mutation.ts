@@ -1,6 +1,6 @@
 import { delay } from "es-toolkit";
 
-import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
+import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 
 const CONFIRMATION_DELAYS_MS = [0, 250, 750] as const;
 
@@ -11,7 +11,7 @@ export async function invokeConfirmedMutation<T>(
   mutationId: string,
 ): Promise<T> {
   try {
-    return await invoke<T>(command, args);
+    return await invokeCommand<T>(command, args);
   } catch (error) {
     // Returned command/dispatcher rejections carry their native payload as cause.
     // Do not replace an explicit failure with an older request's receipt.
@@ -26,7 +26,7 @@ async function confirmReceipt<T>(mutationId: string, attempt: number): Promise<T
   const waitMs = CONFIRMATION_DELAYS_MS[attempt];
   if (waitMs === undefined) return null;
   if (waitMs) await delay(waitMs);
-  const committed = await invoke<T | null>("plugin:spaces|get_space_edit_receipt", {
+  const committed = await invokeCommand<T | null>("plugin:spaces|get_space_edit_receipt", {
     mutationId,
   }).catch(() => null);
   return committed ?? confirmReceipt<T>(mutationId, attempt + 1);

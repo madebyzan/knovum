@@ -3,7 +3,7 @@ import { open } from "@tauri-apps/plugin-dialog";
 import type { Editor } from "@tiptap/vue-3";
 import { basename } from "pathe";
 
-import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
+import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import { removeSpaceAssets } from "../assets/asset-operations";
 
 const TIPTAP_IMAGE_EXTENSIONS = {
@@ -43,7 +43,7 @@ export async function insertSpaceTiptapImagePaths(
     assertEditorAlive(editor);
     for (const path of paths) {
       // oxlint-disable-next-line eslint/no-await-in-loop -- Imports stay ordered for deterministic editor insertion and rollback.
-      const imported = await invoke<string>("plugin:spaces|import_editor_image", { sourcePath: path });
+      const imported = await invokeCommand<string>("plugin:spaces|import_editor_image", { sourcePath: path });
       importedPaths.push(imported);
       assertEditorAlive(editor);
       content.push({
@@ -98,7 +98,7 @@ async function saveSpaceTiptapImage(file: File) {
   if (file.size <= 0 || file.size > MAX_EDITOR_IMAGE_BYTES) {
     throw new Error("Editor images must be between 1 byte and 20 MiB");
   }
-  const assetPath = await invoke<string>("plugin:spaces|persist_editor_image", {
+  const assetPath = await invokeCommand<string>("plugin:spaces|persist_editor_image", {
     bytes: Array.from(new Uint8Array(await file.arrayBuffer())),
     mimeType: file.type,
   });

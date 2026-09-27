@@ -1,4 +1,4 @@
-import { invokeCommand as invoke } from "../../../../foundation/ipc/invoke-command";
+import { invokeCommand } from "../../../../foundation/ipc/invoke-command";
 import {
   knowledgeSearchResponseSchema,
   type KnowledgeSearchResponse,
@@ -18,11 +18,11 @@ export async function searchSpaceKnowledgeHybrid(
   signal?.throwIfAborted();
   const jobId = crypto.randomUUID();
   const cancel = () => {
-    void invoke<void>("plugin:spaces|cancel_knowledge_search", { jobId }).catch(console.error);
+    void invokeCommand<void>("plugin:spaces|cancel_knowledge_search", { jobId }).catch(console.error);
   };
   signal?.addEventListener("abort", cancel, { once: true });
   try {
-    const source = await invoke<unknown>("plugin:spaces|search_knowledge_hybrid", {
+    const source = await invokeCommand<unknown>("plugin:spaces|search_knowledge_hybrid", {
       jobId,
       request: {
         spaceId,

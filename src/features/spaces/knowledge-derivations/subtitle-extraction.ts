@@ -2,7 +2,7 @@ import { error as logError } from "@tauri-apps/plugin-log";
 import { toast } from "vue-sonner";
 
 import { i18n } from "../../../foundation/i18n/i18n";
-import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
+import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import { useCanvasEditorSession } from "../canvas/editor-session";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceSubtitlePayload } from "../model/nodes/node-payload";
@@ -53,7 +53,7 @@ export async function createSubtitleResource(store: SpaceStore, source: SpaceCan
     store.requestReveal([output.id]);
     await yieldToCanvas();
     phase = "persist-derivation";
-    await invoke("plugin:spaces|create_subtitle_resource", {
+    await invokeCommand("plugin:spaces|create_subtitle_resource", {
       request: {
         id: crypto.randomUUID(),
         spaceId,

@@ -1,6 +1,6 @@
 import { shallowRef, type Ref, type ShallowRef } from "vue";
 
-import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
+import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import { decideAgentPermission } from "../agent-creation/agent-artifacts";
 import type { AssistantTaskUpdate } from "../contracts/generated/AssistantTaskUpdate";
 import type { PendingApproval } from "../contracts/generated/PendingApproval";
@@ -123,7 +123,7 @@ export function useConversationRunRestoration(state: {
     if (!state.activeRunId.value || state.taskState.value !== "paused") return;
     state.error.value = undefined;
     try {
-      await invoke("plugin:spaces|resume_run", { runId: state.activeRunId.value });
+      await invokeCommand("plugin:spaces|resume_run", { runId: state.activeRunId.value });
     } catch (cause) {
       state.error.value = String(cause);
     }

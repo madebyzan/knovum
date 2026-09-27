@@ -93,7 +93,7 @@ pub async fn cancel_video_edit_render(derivation_id: String) -> Result<(), Comma
 #[tauri::command]
 pub async fn prepare_video_edit_proxy(
     app: AppHandle,
-    request: video_edit::PrepareRequest,
+    request: video_edit::PrepareVideoEditProxyRequest,
 ) -> Result<String, CommandError> {
     Ok((video_edit::prepare_proxy(app, request).await)?)
 }

@@ -1,6 +1,6 @@
 import { hasImage, readImageBinary } from "tauri-plugin-clipboard-api";
 
-import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
+import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import type { ImportedSpaceAsset } from "../assets/imported-asset";
 
 const MAX_PNG_BYTES = 16 * 1024 * 1024;
@@ -17,7 +17,7 @@ export async function importSpaceClipboardImage(name: string): Promise<ImportedS
   const bytes = (await readImageBinary("Uint8Array")) as Uint8Array;
   if (!bytes.byteLength) return undefined;
   if (bytes.byteLength > MAX_PNG_BYTES) throw new Error("Clipboard image exceeds the 16 MiB asset limit");
-  const persisted = await invoke<PersistedClipboardImage>("plugin:spaces|persist_clipboard_image", {
+  const persisted = await invokeCommand<PersistedClipboardImage>("plugin:spaces|persist_clipboard_image", {
     bytes: Array.from(bytes),
   });
   return { kind: "image", name, path: persisted.path, sourceRevision: persisted.sourceRevision };

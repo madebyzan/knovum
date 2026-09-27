@@ -1,6 +1,6 @@
 import type { ExecutionTarget } from "../../../foundation/ai/ai-models";
 import { i18n } from "../../../foundation/i18n/i18n";
-import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
+import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import type { BuiltInWorkflowTemplateId } from "../contracts/generated/BuiltInWorkflowTemplateId";
 import type { RunObservation } from "../contracts/generated/RunObservation";
 import { observeWorkflowRun } from "./workflow-run-observation";
@@ -19,7 +19,7 @@ export async function startBuiltinWorkflow(options: BuiltinWorkflowOptions) {
       .filter((entry): entry is [string, ExecutionTarget] => Boolean(entry[1]))
       .map(([actionId, target]) => [actionId, { ...target, temperature: 0.2 }]),
   );
-  const run = await invoke<RunObservation>("plugin:spaces|start_builtin_workflow", {
+  const run = await invokeCommand<RunObservation>("plugin:spaces|start_builtin_workflow", {
     request: {
       requestId: crypto.randomUUID(),
       spaceId: options.spaceId,

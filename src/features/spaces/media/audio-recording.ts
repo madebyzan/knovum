@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
+import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 
 const recordingSessionSchema = z.object({ sessionId: z.uuid() }).strict();
 const recordedAssetSchema = z
@@ -25,7 +25,7 @@ export interface SpaceAudioRecordingSession {
 
 export async function startSpaceAudioRecording(mimeType: string): Promise<SpaceAudioRecordingSession> {
   const stamp = new Date().toISOString().replaceAll(/[:.]/gu, "-");
-  const recordingResponse = await invoke<unknown>("plugin:spaces|start_audio_recording", {
+  const recordingResponse = await invokeCommand<unknown>("plugin:spaces|start_audio_recording", {
     mimeType,
     displayName: `Audio ${stamp}`,
   });
@@ -38,7 +38,7 @@ export async function appendSpaceAudioRecording(
   blob: Blob,
 ): Promise<void> {
   if (!blob.size) return;
-  await invoke("plugin:spaces|append_audio_chunk", {
+  await invokeCommand("plugin:spaces|append_audio_chunk", {
     sessionId: session.id,
     bytes: Array.from(new Uint8Array(await blob.arrayBuffer())),
   });
@@ -47,14 +47,14 @@ export async function appendSpaceAudioRecording(
 export async function finishSpaceAudioRecording(
   session: SpaceAudioRecordingSession,
 ): Promise<PersistedAudioSpaceAsset> {
-  const recordingResponse = await invoke<unknown>("plugin:spaces|finalize_audio_recording", {
+  const recordingResponse = await invokeCommand<unknown>("plugin:spaces|finalize_audio_recording", {
     sessionId: session.id,
   });
   return recordedAssetSchema.parse(recordingResponse);
 }
 
 export function cancelSpaceAudioRecording(session: SpaceAudioRecordingSession): Promise<void> {
-  return invoke("plugin:spaces|cancel_audio_recording", { sessionId: session.id });
+  return invokeCommand("plugin:spaces|cancel_audio_recording", { sessionId: session.id });
 }
 
 export function preferredAudioRecordingMimeType(): string | undefined {

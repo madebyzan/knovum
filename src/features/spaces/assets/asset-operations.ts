@@ -3,7 +3,7 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { error as logError } from "@tauri-apps/plugin-log";
 import { isString, uniq } from "es-toolkit";
 
-import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
+import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import type { KnowledgeLocator } from "../knowledge/model/schema";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
 import type { ImportedSpaceAsset } from "./imported-asset";
@@ -32,7 +32,7 @@ export function prepareSpaceAssetImport(
   sourcePath: string,
   sourceAccess: SpaceImportSourceAccess,
 ): Promise<PreparedSpaceImport> {
-  return invoke("plugin:spaces|stage_asset_import", { sourcePath, sourceAccess });
+  return invokeCommand("plugin:spaces|stage_asset_import", { sourcePath, sourceAccess });
 }
 
 export function prepareAgentArtifactImport(
@@ -40,7 +40,7 @@ export function prepareAgentArtifactImport(
   sessionId: string,
   relativePath: string,
 ): Promise<PreparedSpaceImport> {
-  return invoke("plugin:spaces|stage_generated_artifact_import", { spaceId, sessionId, relativePath });
+  return invokeCommand("plugin:spaces|stage_generated_artifact_import", { spaceId, sessionId, relativePath });
 }
 
 export function copyStagedSpaceAsset(
@@ -50,11 +50,11 @@ export function copyStagedSpaceAsset(
   const channel = new Channel<SpaceAssetImportProgress>();
   // oxlint-disable-next-line unicorn/prefer-add-event-listener -- Tauri Channel exposes progress through onmessage, not EventTarget.
   channel.onmessage = onProgress;
-  return invoke("plugin:spaces|commit_asset_import", { jobId, onProgress: channel });
+  return invokeCommand("plugin:spaces|commit_asset_import", { jobId, onProgress: channel });
 }
 
 export function cancelSpaceAssetImport(jobId: string): Promise<void> {
-  return invoke("plugin:spaces|cancel_asset_import", { jobId });
+  return invokeCommand("plugin:spaces|cancel_asset_import", { jobId });
 }
 
 export function deriveSpaceAssetContent(
@@ -66,7 +66,7 @@ export function deriveSpaceAssetContent(
   const channel = new Channel<SpaceNodePayload>();
   // oxlint-disable-next-line unicorn/prefer-add-event-listener -- Tauri Channel exposes progress through onmessage, not EventTarget.
   channel.onmessage = onUpdate;
-  return invoke<SpaceNodePayload>("plugin:spaces|enrich_asset", {
+  return invokeCommand<SpaceNodePayload>("plugin:spaces|enrich_asset", {
     spaceId,
     nodeId,
     jobId,
@@ -75,14 +75,14 @@ export function deriveSpaceAssetContent(
 }
 
 export function cancelSpaceAssetProcessing(jobId: string): Promise<void> {
-  return invoke("plugin:spaces|cancel_asset_enrichment", { jobId });
+  return invokeCommand("plugin:spaces|cancel_asset_enrichment", { jobId });
 }
 
 export function refreshSpaceAsset(spaceId: string, nodeId: string): Promise<SpaceNodePayload | undefined> {
   const key = `${spaceId}:${nodeId}`;
   const pending = resourceRefreshes.get(key);
   if (pending) return pending;
-  const request = invoke<SpaceNodePayload | null>("plugin:spaces|refresh_asset", { spaceId, nodeId })
+  const request = invokeCommand<SpaceNodePayload | null>("plugin:spaces|refresh_asset", { spaceId, nodeId })
     .then((data) => data ?? undefined)
     .finally(() => resourceRefreshes.delete(key));
   resourceRefreshes.set(key, request);
@@ -90,13 +90,13 @@ export function refreshSpaceAsset(spaceId: string, nodeId: string): Promise<Spac
 }
 
 export function openSpaceAsset(sourcePath: string): Promise<void> {
-  return invoke("plugin:spaces|open_asset", { sourcePath });
+  return invokeCommand("plugin:spaces|open_asset", { sourcePath });
 }
 
 export function openSpaceAssetAtLocation(sourcePath: string, locator: KnowledgeLocator): Promise<void> {
   const location = externalLocation(locator);
   if (!location) return Promise.reject(new Error("This source location has no document previewer"));
-  return invoke("plugin:spaces|open_asset_at_location", { sourcePath, location });
+  return invokeCommand("plugin:spaces|open_asset_at_location", { sourcePath, location });
 }
 
 function externalLocation(locator: KnowledgeLocator) {
@@ -108,7 +108,7 @@ function externalLocation(locator: KnowledgeLocator) {
 }
 
 export function duplicateSpaceAsset(sourcePath: string): Promise<string> {
-  return invoke("plugin:spaces|duplicate_asset", { sourcePath });
+  return invokeCommand("plugin:spaces|duplicate_asset", { sourcePath });
 }
 
 export function removeSpaceAsset(sourcePath: string): Promise<void> {
@@ -118,7 +118,7 @@ export function removeSpaceAsset(sourcePath: string): Promise<void> {
 export function removeSpaceAssets(paths: readonly string[]): Promise<void> {
   const sourcePaths = uniq(paths);
   if (!sourcePaths.length) return Promise.resolve();
-  return invoke("plugin:spaces|remove_assets", { sourcePaths });
+  return invokeCommand("plugin:spaces|remove_assets", { sourcePaths });
 }
 
 export async function cleanupDeletedSpaceAssets(paths: readonly string[]): Promise<void> {

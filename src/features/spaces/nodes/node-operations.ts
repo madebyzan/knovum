@@ -1,4 +1,4 @@
-import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
+import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import { createSpaceNode } from "../canvas/node";
 import { spaceNodeSizePolicy, spaceNodeSupportsContentSizing } from "../canvas/node-size";
 import type { CommittedNodeContent } from "../contracts/generated/CommittedNodeContent";
@@ -18,7 +18,7 @@ export function parseSpaceNodes(rows: readonly SpaceNodeProjection[]): SpaceCanv
 }
 
 export async function getNode(spaceId: string, nodeId: string): Promise<SpaceCanvasNode> {
-  const row = await invoke<SpaceNodeProjection>("plugin:spaces|get_node", { spaceId, nodeId });
+  const row = await invokeCommand<SpaceNodeProjection>("plugin:spaces|get_node", { spaceId, nodeId });
   return createSpaceNode(validateSpaceNodePayload(row.data), { x: row.initialX, y: row.initialY }, row.id);
 }
 
@@ -88,7 +88,7 @@ export async function updateNodePayloadMany(
   sourceChunks?: ReadonlyMap<string, readonly KnowledgeChunkSeed[]>,
 ): Promise<Array<{ id: string; data: SpaceNodePayload }>> {
   if (!changes.length) return [];
-  const committed = await invoke<CommittedNodeContent[]>("plugin:spaces|update_nodes", {
+  const committed = await invokeCommand<CommittedNodeContent[]>("plugin:spaces|update_nodes", {
     request: {
       spaceId,
       changes: changes.map((change) => {

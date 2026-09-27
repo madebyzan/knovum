@@ -1,7 +1,7 @@
 import { groupBy, uniq } from "es-toolkit";
 import pLimit from "p-limit";
 
-import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
+import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import { queryClient } from "../../../foundation/query/query-client";
 import { cleanupDeletedSpaceAssets } from "../assets/asset-operations";
 import { spaceKnowledgeQueryKeys } from "../knowledge/queries/query-options";
@@ -13,7 +13,7 @@ import type { SpaceDeletedStructureRoot } from "./deleted-structure";
 const permanentDeletions = pLimit(2);
 
 export function listRecentlyDeletedStructure(spaceId: string | null) {
-  return invoke<SpaceDeletedStructureRoot[]>("plugin:spaces|list_recently_deleted_structure", {
+  return invokeCommand<SpaceDeletedStructureRoot[]>("plugin:spaces|list_recently_deleted_structure", {
     spaceId,
   });
 }
@@ -58,7 +58,7 @@ export async function permanentlyDeleteStructure(
 
 function permanentlyDeleteBatch(roots: readonly SpaceDeletedStructureRoot[], wholeBatch: boolean) {
   const first = roots[0]!;
-  return invoke<string[]>("plugin:spaces|delete_structure_permanently", {
+  return invokeCommand<string[]>("plugin:spaces|delete_structure_permanently", {
     request: {
       spaceId: first.spaceId,
       batchId: first.batchId,

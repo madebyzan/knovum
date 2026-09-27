@@ -1,4 +1,4 @@
-import { invokeCommand as invoke } from "../../../../foundation/ipc/invoke-command";
+import { invokeCommand } from "../../../../foundation/ipc/invoke-command";
 
 interface KnowledgeRetrievalRebuildOutput {
   rebuilt: boolean;
@@ -6,5 +6,5 @@ interface KnowledgeRetrievalRebuildOutput {
 }
 
 export function rebuildKnowledgeRetrievalIndex(spaceId: string): Promise<KnowledgeRetrievalRebuildOutput> {
-  return invoke("plugin:spaces|rebuild_knowledge_retrieval_index", { spaceId });
+  return invokeCommand("plugin:spaces|rebuild_knowledge_retrieval_index", { spaceId });
 }

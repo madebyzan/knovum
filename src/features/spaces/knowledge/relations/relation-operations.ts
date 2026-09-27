@@ -1,6 +1,6 @@
 import { pick } from "es-toolkit";
 
-import { invokeCommand as invoke } from "../../../../foundation/ipc/invoke-command";
+import { invokeCommand } from "../../../../foundation/ipc/invoke-command";
 import type { SpaceRelation } from "../../model/relations/relation";
 
 function relationInput(relation: SpaceRelation) {
@@ -11,25 +11,25 @@ function relationInput(relation: SpaceRelation) {
 }
 
 export function createRelation(relation: SpaceRelation): Promise<void> {
-  return invoke("plugin:spaces|create_relation", { relation: relationInput(relation) });
+  return invokeCommand("plugin:spaces|create_relation", { relation: relationInput(relation) });
 }
 
 export function revokeRelation(relationId: string): Promise<void> {
-  return invoke("plugin:spaces|revoke_relation", { relationId });
+  return invokeCommand("plugin:spaces|revoke_relation", { relationId });
 }
 
 export function revokeRelations(relationIds: readonly string[]): Promise<void> {
-  return invoke("plugin:spaces|revoke_relations", { relationIds });
+  return invokeCommand("plugin:spaces|revoke_relations", { relationIds });
 }
 
 export function restoreRelation(relationId: string): Promise<void> {
-  return invoke("plugin:spaces|restore_relation", { relationId });
+  return invokeCommand("plugin:spaces|restore_relation", { relationId });
 }
 
 export function restoreRelations(relationIds: readonly string[]): Promise<void> {
-  return invoke("plugin:spaces|restore_relations", { relationIds });
+  return invokeCommand("plugin:spaces|restore_relations", { relationIds });
 }
 
 export function updateRelation(relation: SpaceRelation): Promise<void> {
-  return invoke("plugin:spaces|update_relation", { relation: relationInput(relation) });
+  return invokeCommand("plugin:spaces|update_relation", { relation: relationInput(relation) });
 }

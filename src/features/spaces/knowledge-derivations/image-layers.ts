@@ -1,7 +1,7 @@
 import { Channel } from "@tauri-apps/api/core";
 
 import { i18n } from "../../../foundation/i18n/i18n";
-import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
+import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import { useCanvasEditorSession } from "../canvas/editor-session";
 import { createSpaceNode } from "../canvas/node";
@@ -25,7 +25,7 @@ interface LayerOutput {
 }
 
 export function getImageLayerAvailability() {
-  return invoke<LayerAvailability>("plugin:spaces|get_image_layer_availability");
+  return invokeCommand<LayerAvailability>("plugin:spaces|get_image_layer_availability");
 }
 
 export async function generateImageLayers(
@@ -42,7 +42,7 @@ export async function generateImageLayers(
   const width = spaceNodeDimensions(source.data).width;
   const nodes = await Promise.all(
     Array.from({ length: count }, async (_, index) => {
-      const assetPath = await invoke<string>("plugin:spaces|allocate_visualization_output_path");
+      const assetPath = await invokeCommand<string>("plugin:spaces|allocate_visualization_output_path");
       const title = `${source.data.title}-layer-${index + 1}`;
       return createSpaceNode(
         { kind: "image", title, fileName: `${title}.png`, assetPath, processingState: "processing" },
@@ -62,7 +62,7 @@ export async function generateImageLayers(
       id: generationId,
       title: i18n.global.t("spaces.media.imageEditor.layers.task"),
       detail: source.data.title,
-      cancel: () => invoke<void>("plugin:spaces|cancel_image_layer_generation", { generationId }),
+      cancel: () => invokeCommand<void>("plugin:spaces|cancel_image_layer_generation", { generationId }),
     },
     failureMessageKey: "spaces.media.imageEditor.layers.failed",
     execute: async ({ taskId }) => {
@@ -72,7 +72,7 @@ export async function generateImageLayers(
               useTaskStore().detail(taskId, i18n.global.t(`spaces.media.imageEditor.layers.stage.${stage}`))
           : undefined,
       );
-      return invoke<LayerOutput[]>("plugin:spaces|generate_image_layers", {
+      return invokeCommand<LayerOutput[]>("plugin:spaces|generate_image_layers", {
         request: {
           generationId,
           spaceId,

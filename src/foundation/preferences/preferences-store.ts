@@ -5,7 +5,7 @@ import { isNil, pick } from "es-toolkit";
 import { defineStore } from "pinia";
 
 import { i18n, systemLocale, type AppLocale } from "../i18n/i18n";
-import { invokeCommand as invoke } from "../ipc/invoke-command";
+import { invokeCommand } from "../ipc/invoke-command";
 import {
   decodePreferences,
   defaultPreferences,
@@ -45,7 +45,7 @@ async function persist(state: Preferences): Promise<void> {
 }
 
 async function syncSystemLocale(locale: LocalePreference): Promise<void> {
-  await invoke("plugin:desktop|set_locale", { locale: activeLocale(locale) });
+  await invokeCommand("plugin:desktop|set_locale", { locale: activeLocale(locale) });
 }
 
 function applyPreferences(state: Preferences): void {

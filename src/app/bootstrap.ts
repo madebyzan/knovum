@@ -4,7 +4,7 @@ import { nextTick } from "vue";
 import type { Router } from "vue-router";
 
 import { useBootstrapStore } from "../foundation/bootstrap/bootstrap-store";
-import { invokeCommand as invoke } from "../foundation/ipc/invoke-command";
+import { invokeCommand } from "../foundation/ipc/invoke-command";
 import { initializeExitCoordination } from "../foundation/lifecycle/window-close-coordinator";
 import {
   installWorkspaceSessionPersistence,
@@ -18,12 +18,12 @@ import { installRuntimeDiagnostics } from "./runtime-diagnostics";
 
 const WATCHDOG_TIMEOUT_MS = 25000;
 
-export async function bootstrapProduct(pinia: Pinia, router: Router): Promise<void> {
-  const bootstrap = useBootstrapStore(pinia);
+export async function bootstrap(pinia: Pinia, router: Router): Promise<void> {
+  const state = useBootstrapStore(pinia);
 
   const watchdog = setTimeout(() => {
-    bootstrap.fail(new Error("Application startup watchdog timed out after 25s"));
-    void invoke("plugin:desktop|reveal_main_window");
+    state.fail(new Error("Application startup watchdog timed out after 25s"));
+    void invokeCommand("plugin:desktop|reveal_main_window");
   }, WATCHDOG_TIMEOUT_MS);
 
   try {
@@ -34,21 +34,21 @@ export async function bootstrapProduct(pinia: Pinia, router: Router): Promise<vo
       logError(`Failed to restore resource preparation tasks: ${String(reason)}`),
     );
     await Promise.all([usePreferencesStore(pinia).load(), installWindowActivityState()]);
-    await invoke("plugin:spaces|await_space_runtime");
+    await invokeCommand("plugin:spaces|await_space_runtime");
     await restoreWorkspaceSession(router);
     await router.isReady();
     installWorkspaceSessionPersistence(router);
-    bootstrap.ready();
+    state.ready();
     await nextTick();
   } catch (reason) {
-    bootstrap.fail(reason);
+    state.fail(reason);
     await logError(reason instanceof Error ? (reason.stack ?? reason.message) : String(reason));
   } finally {
     clearTimeout(watchdog);
     try {
-      await invoke("plugin:desktop|reveal_main_window");
+      await invokeCommand("plugin:desktop|reveal_main_window");
     } catch (reason) {
-      await logError(`Failed to complete desktop bootstrap: ${String(reason)}`);
+      await logError(`Failed to reveal main window: ${String(reason)}`);
     }
   }
 }

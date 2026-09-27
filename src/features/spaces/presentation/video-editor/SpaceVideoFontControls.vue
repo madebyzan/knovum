@@ -3,24 +3,15 @@ import { useQuery } from "@tanstack/vue-query";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { invokeCommand as invoke } from "../../../../foundation/ipc/invoke-command";
 import UiSelect from "../../../../shared/ui/UiSelect.vue";
+import { videoFontCatalogQuery } from "../../video-editing/font-catalog";
 import type { VideoTextStyle } from "../../video-editing/project";
 import SpaceVideoFontPicker from "./SpaceVideoFontPicker.vue";
-
-interface InstalledFont {
-  family: string;
-  weights: number[];
-}
 
 const props = defineProps<{ style: VideoTextStyle }>();
 const emit = defineEmits<{ change: [style: Partial<VideoTextStyle>] }>();
 const { t } = useI18n();
-const catalog = useQuery({
-  queryKey: ["spaces", "video-editor", "installed-fonts"],
-  queryFn: () => invoke<InstalledFont[]>("plugin:spaces|list_video_fonts"),
-  staleTime: Infinity,
-});
+const catalog = useQuery(videoFontCatalogQuery);
 const fonts = computed(() => catalog.data.value ?? []);
 const isPending = computed(() => catalog.isPending.value);
 const error = computed(() => {

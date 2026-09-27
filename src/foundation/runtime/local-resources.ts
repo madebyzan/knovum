@@ -11,10 +11,10 @@ import type { ResourcePreparationTarget } from "../../shared/contracts/generated
 export type { ResourcePreparationTarget } from "../../shared/contracts/generated/ResourcePreparationTarget";
 import { Channel } from "@tauri-apps/api/core";
 
-import { invokeCommand as invoke } from "../ipc/invoke-command";
+import { invokeCommand } from "../ipc/invoke-command";
 
 export function getLocalResourcesStatus(): Promise<LocalResourcesStatus> {
-  return invoke("plugin:local-resources|get_status");
+  return invokeCommand("plugin:local-resources|get_status");
 }
 export function prepareResources(
   target: ResourcePreparationTarget,
@@ -26,7 +26,7 @@ export function prepareResources(
   // Tauri Channel exposes one IPC receiver rather than a DOM EventTarget.
   // oxlint-disable-next-line unicorn/prefer-add-event-listener
   channel.onmessage = onProgress;
-  return invoke<void>("plugin:local-resources|prepare_resources", {
+  return invokeCommand<void>("plugin:local-resources|prepare_resources", {
     target,
     jobId,
     title,
@@ -34,13 +34,13 @@ export function prepareResources(
   });
 }
 export function cancelResourcePreparation(jobId: string): Promise<void> {
-  return invoke("plugin:local-resources|cancel_resource_preparation", { jobId });
+  return invokeCommand("plugin:local-resources|cancel_resource_preparation", { jobId });
 }
 export function listResourcePreparations(): Promise<ResourcePreparationSnapshot[]> {
-  return invoke("plugin:local-resources|list_resource_preparations");
+  return invokeCommand("plugin:local-resources|list_resource_preparations");
 }
 export function removeLocalModel(model: ModelKind): Promise<void> {
-  return invoke("plugin:local-resources|remove_model", { model });
+  return invokeCommand("plugin:local-resources|remove_model", { model });
 }
 export function transcriptionReady(status?: LocalResourcesStatus) {
   return Boolean(

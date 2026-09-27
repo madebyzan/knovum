@@ -76,9 +76,7 @@ fn installed_agent(hive: HKEY, key: &str) -> AiResult<Option<AgentKind>> {
         agent
             .desktop_client
             .as_ref()
-            .is_some_and(|client_installation| {
-                client_installation.display_names.contains(&name.as_str())
-            })
+            .is_some_and(|client| client.display_names.contains(&name.as_str()))
     });
     let Some(agent) = agent else { return Ok(None) };
     // InstallLocation is optional in Windows application registration. When

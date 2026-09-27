@@ -56,5 +56,25 @@
     "src-tauri/gen/**",
     "src/shared/contracts/generated/**",
     "src/features/spaces/contracts/generated/**"
+  ],
+  "overrides": [
+    {
+      "files": ["src/**/*.{ts,vue}"],
+      "excludeFiles": ["src/foundation/ipc/invoke-command.ts", "src/**/__tests__/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "@tauri-apps/api/core",
+                "importNames": ["invoke"],
+                "message": "Application commands use foundation/ipc/invoke-command to preserve the error contract. Import official plugin APIs directly."
+              }
+            ]
+          }
+        ]
+      }
+    }
   ]
 }

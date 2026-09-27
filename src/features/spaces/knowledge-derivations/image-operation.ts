@@ -5,7 +5,7 @@ import { Channel } from "@tauri-apps/api/core";
 
 import { cancelAiJob } from "../../../foundation/ai/ai-runtime";
 import { i18n } from "../../../foundation/i18n/i18n";
-import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
+import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import { useCanvasEditorSession } from "../canvas/editor-session";
 import type { ImageOperation } from "../contracts/generated/ImageOperation";
@@ -26,7 +26,7 @@ interface ImageOperationOutput {
 }
 
 export function getImageOperationCapabilities() {
-  return invoke<ImageOperationCapabilities>("plugin:spaces|get_image_operation_capabilities");
+  return invokeCommand<ImageOperationCapabilities>("plugin:spaces|get_image_operation_capabilities");
 }
 
 export async function deriveImage(
@@ -37,7 +37,7 @@ export async function deriveImage(
   const spaceId = store.activeSpaceId;
   const sourceRevision = source.data.sourceRevision;
   if (!spaceId || !sourceRevision) throw new Error("Image source revision is unavailable");
-  const outputPath = await invoke<string>("plugin:spaces|allocate_visualization_output_path");
+  const outputPath = await invokeCommand<string>("plugin:spaces|allocate_visualization_output_path");
   const label =
     operation.kind === "upscale"
       ? `${operation.targetLongEdge / 1024}K`
@@ -77,7 +77,7 @@ export async function deriveImage(
               )
           : undefined,
       );
-      return invoke<ImageOperationOutput>("plugin:spaces|derive_image", {
+      return invokeCommand<ImageOperationOutput>("plugin:spaces|derive_image", {
         request: {
           id,
           spaceId,

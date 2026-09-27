@@ -3,7 +3,7 @@ import { LazyStore } from "@tauri-apps/plugin-store";
 import { isNil } from "es-toolkit";
 import { z } from "zod";
 
-import { invokeCommand as invoke } from "../ipc/invoke-command";
+import { invokeCommand } from "../ipc/invoke-command";
 import { aiModelSettingsSchema, defaultAiModelSettings, type AiModelSettings } from "./ai-model-settings";
 import { creationLibrarySchema, defaultCreationLibrary, type CreationLibrary } from "./creation-library";
 
@@ -54,7 +54,7 @@ export const loadAiModelSettings = () =>
   readSetting(settingKeys.aiModels, aiModelSettingsSchema, defaultAiModelSettings);
 export async function saveAiModelSettings(value: AiModelSettings) {
   const parsed = aiModelSettingsSchema.parse(value);
-  await invoke("plugin:ai|validate_model_settings", { settings: parsed });
+  await invokeCommand("plugin:ai|validate_model_settings", { settings: parsed });
   return writeSetting(settingKeys.aiModels, aiModelSettingsSchema, parsed);
 }
 export const resetAiModelSettings = () =>

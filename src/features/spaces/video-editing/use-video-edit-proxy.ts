@@ -1,7 +1,12 @@
+import * as log from "@tauri-apps/plugin-log";
 import { shallowRef, watch, type Ref } from "vue";
+import { z } from "zod";
 
-import { i18n } from "../../../../foundation/i18n/i18n";
-import { invokeCommand as invoke } from "../../../../foundation/ipc/invoke-command";
+import { i18n } from "../../../foundation/i18n/i18n";
+import { invokeCommand } from "../../../foundation/ipc/invoke-command";
+import type { PrepareVideoEditProxyRequest } from "../contracts/generated/PrepareVideoEditProxyRequest";
+
+const proxyPathSchema = z.string().min(1);
 
 export function useVideoEditProxy(
   nodeId: Ref<string | undefined>,
@@ -27,19 +32,22 @@ export function useVideoEditProxy(
       onCleanup(() => {
         active = false;
         if (pending) {
-          void invoke("plugin:spaces|cancel_video_edit_proxy", { jobId }).catch(() => undefined);
+          void invokeCommand<void>("plugin:spaces|cancel_video_edit_proxy", { jobId }).catch((cause) =>
+            log.error(`Failed to cancel video editing proxy preparation: ${String(cause)}`),
+          );
         }
       });
       try {
-        const prepared = await invoke<string>("plugin:spaces|prepare_video_edit_proxy", {
+        const prepared = await invokeCommand<string>("plugin:spaces|prepare_video_edit_proxy", {
           request: {
             id: jobId,
             spaceId: currentSpaceId,
             sourceNodeId,
             sourceRevision: revision,
-          },
+          } satisfies PrepareVideoEditProxyRequest,
         });
-        if (active) path.value = prepared;
+        const proxyPath = proxyPathSchema.parse(prepared);
+        if (active) path.value = proxyPath;
       } catch (caught) {
         if (active)
           error.value = `${i18n.global.t("spaces.media.videoEditor.preview.proxyFailed")}: ${String(caught)}`;

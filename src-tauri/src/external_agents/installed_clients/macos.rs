@@ -11,10 +11,10 @@ pub(crate) fn detect() -> AiResult<HashSet<AgentKind>> {
     let workspace: Retained<AnyObject> = unsafe { msg_send![class!(NSWorkspace), sharedWorkspace] };
     let mut installed = HashSet::new();
     for agent in super::super::catalog::AGENTS {
-        let Some(client_installation) = &agent.desktop_client else {
+        let Some(client) = &agent.desktop_client else {
             continue;
         };
-        for identifier in client_installation.bundle_identifiers {
+        for identifier in client.bundle_identifiers {
             let identifier = NSString::from_str(identifier);
             let url: Option<Retained<NSURL>> = unsafe {
                 msg_send![&*workspace, URLForApplicationWithBundleIdentifier: &*identifier]

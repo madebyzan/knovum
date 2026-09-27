@@ -1,6 +1,6 @@
 import { Channel } from "@tauri-apps/api/core";
 
-import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
+import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import type { AgentArtifact } from "../../../shared/contracts/generated/AgentArtifact";
 import type { AgentCreationEvent } from "../contracts/generated/AgentCreationEvent";
 import type { AgentCreationRequest } from "../contracts/generated/AgentCreationRequest";
@@ -17,7 +17,10 @@ export function runAgentCreation(
   // Tauri Channel exposes one IPC receiver rather than a DOM EventTarget.
   // oxlint-disable-next-line unicorn/prefer-add-event-listener
   channel.onmessage = onEvent;
-  return invoke<AgentArtifact[]>("plugin:spaces|create_agent_artifacts", { request, onEvent: channel });
+  return invokeCommand<AgentArtifact[]>("plugin:spaces|create_agent_artifacts", {
+    request,
+    onEvent: channel,
+  });
 }
 
 export function decideAgentPermission(
@@ -25,11 +28,15 @@ export function decideAgentPermission(
   requestId: string,
   optionId: string | null,
 ): Promise<void> {
-  return invoke<void>("plugin:spaces|decide_external_agent_permission", { sessionId, requestId, optionId });
+  return invokeCommand<void>("plugin:spaces|decide_external_agent_permission", {
+    sessionId,
+    requestId,
+    optionId,
+  });
 }
 
 export function discardAgentCreation(spaceId: string, sessionId: string): Promise<void> {
-  return invoke<void>("plugin:spaces|discard_artifact_workspace", { spaceId, sessionId });
+  return invokeCommand<void>("plugin:spaces|discard_artifact_workspace", { spaceId, sessionId });
 }
 
 export function consumeAgentArtifact(
@@ -37,11 +44,11 @@ export function consumeAgentArtifact(
   sessionId: string,
   relativePath: string,
 ): Promise<void> {
-  return invoke<void>("plugin:spaces|consume_agent_artifact", { spaceId, sessionId, relativePath });
+  return invokeCommand<void>("plugin:spaces|consume_agent_artifact", { spaceId, sessionId, relativePath });
 }
 
 export function listRecoverableAgentCreations(spaceId: string): Promise<RecoverableAgentCreation[]> {
-  return invoke<RecoverableAgentCreation[]>("plugin:spaces|list_recoverable_artifact_workspaces", {
+  return invokeCommand<RecoverableAgentCreation[]>("plugin:spaces|list_recoverable_artifact_workspaces", {
     spaceId,
   });
 }
@@ -51,5 +58,9 @@ export function previewAgentArtifact(
   sessionId: string,
   relativePath: string,
 ): Promise<void> {
-  return invoke<void>("plugin:spaces|preview_generated_artifact", { spaceId, sessionId, relativePath });
+  return invokeCommand<void>("plugin:spaces|preview_generated_artifact", {
+    spaceId,
+    sessionId,
+    relativePath,
+  });
 }

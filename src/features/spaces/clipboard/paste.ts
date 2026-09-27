@@ -1,7 +1,7 @@
 import { info as logInfo, warn as logWarn } from "@tauri-apps/plugin-log";
 import { hasFiles, readFiles } from "tauri-plugin-clipboard-api";
 
-import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
+import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import type { ImportedSpaceAsset } from "../assets/imported-asset";
 import { importSpaceClipboardImage } from "./image-import";
 
@@ -17,7 +17,7 @@ export async function pasteSpaceClipboard(handlers: SpaceClipboardPasteHandlers)
   let stage = "read-content";
   try {
     await logInfo("[spaces.paste] reading clipboard content");
-    const content = await invoke<{ html: string | null; text: string | null }>(
+    const content = await invokeCommand<{ html: string | null; text: string | null }>(
       "plugin:spaces|read_space_clipboard_content",
     );
     await logInfo(
