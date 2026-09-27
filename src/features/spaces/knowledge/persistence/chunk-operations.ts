@@ -1,5 +1,5 @@
 import { invokeCommand } from "../../../../foundation/ipc/invoke-command";
-import type { KnowledgeChunk } from "../model/knowledge-chunk";
+import type { KnowledgeChunk } from "../model/schema/persisted-chunk";
 
 export function listCurrentKnowledgeChunks(
   spaceId: string,

@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
-import { knowledgeSearchMatchSchema } from "../knowledge/model/knowledge-search-match";
+import { knowledgeSearchMatchSchema } from "../knowledge/model/schema/search-match";
 import type { GlobalSearchMatch } from "./global-search-contract";
 import { markSpaceSubstring, searchTerms } from "./search-snippet";
 

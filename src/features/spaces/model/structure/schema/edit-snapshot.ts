@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-import { structureLayoutSchema, MAX_STRUCTURE_NODES, structureNodeSchema } from "./structure-contract";
-import { validateStructureSnapshot } from "./structure-validation";
+import { validateStructureSnapshot } from "../structure-validation";
+import { structureLayoutSchema, MAX_STRUCTURE_NODES, structureNodeSchema } from "./structure";
 
 const relationStyleSchema = z
   .object({

@@ -2,8 +2,8 @@ import { maxBy } from "es-toolkit";
 import RBush from "rbush";
 
 import { canvasFrameBounds } from "../../canvas-snap-geometry";
-import type { CanvasNodeLayoutV1 } from "../../contract/canvas-document";
 import type { CanvasPoint } from "../../contract/canvas-editor";
+import type { CanvasNodeLayoutV1 } from "../../schema/document";
 import { frameContainsPoint } from "../scene/connector-geometry";
 
 export interface IndexedConnectorTarget {

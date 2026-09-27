@@ -2,12 +2,12 @@ import type Konva from "konva";
 import { shallowRef } from "vue";
 
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
-import type { SpaceEditSnapshot } from "../../../model/structure/edit-snapshot";
+import type { SpaceEditSnapshot } from "../../../model/structure/schema/edit-snapshot";
 import { sectionDropMoveCommand } from "../../../structure/section-drop-reparent";
-import type { CanvasNodeFrameUpdate, CanvasNodeLayoutV1 } from "../../contract/canvas-document";
 import type { CanvasSurfaceEvents } from "../../contract/canvas-editor";
 import type { CanvasPoint } from "../../contract/canvas-editor-port";
 import { commandForCanvasGesture } from "../../document/structure-gesture-command";
+import type { CanvasNodeFrameUpdate, CanvasNodeLayoutV1 } from "../../schema/document";
 import type { CanvasDocumentModel } from "../document/canvas-document-model";
 import {
   applyCanvasGestureUpdates,

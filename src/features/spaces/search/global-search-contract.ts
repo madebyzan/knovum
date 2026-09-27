@@ -1,4 +1,4 @@
-import type { KnowledgeSearchMatch } from "../knowledge/model/knowledge-search-match";
+import type { KnowledgeSearchMatch } from "../knowledge/model/schema/search-match";
 
 export type GlobalKnowledgeSearchMatch = KnowledgeSearchMatch & {
   kind: "content";

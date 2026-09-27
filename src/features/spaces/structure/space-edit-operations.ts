@@ -1,6 +1,6 @@
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import type { SpaceEditHistoryReceipt } from "../contracts/generated/SpaceEditHistoryReceipt";
-import { parseSpaceEditSnapshot, type SpaceEditSnapshot } from "../model/structure/edit-snapshot";
+import { parseSpaceEditSnapshot, type SpaceEditSnapshot } from "../model/structure/schema/edit-snapshot";
 import { invokeConfirmedMutation } from "./confirmed-mutation";
 import type { ExecuteSpaceEditRequest, SpaceEditReceipt } from "./space-edit-command";
 

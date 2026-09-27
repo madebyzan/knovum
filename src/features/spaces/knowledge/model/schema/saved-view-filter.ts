@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-import { SPACE_RELATION_KINDS, SPACE_RELATION_STATUSES } from "../../model/relations/relation";
-import { KNOWLEDGE_OBJECT_STATUSES } from "./object-types";
+import { SPACE_RELATION_KINDS, SPACE_RELATION_STATUSES } from "../../../model/relations/relation";
+import { KNOWLEDGE_OBJECT_STATUSES } from "../object-types";
 
 export const savedViewFilterSchema = z
   .object({

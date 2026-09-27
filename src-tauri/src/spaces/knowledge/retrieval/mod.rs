@@ -12,6 +12,7 @@ pub(crate) mod related;
 pub(crate) mod schema;
 pub(crate) mod search;
 pub(crate) mod search_control;
+mod validation;
 
 pub(crate) use rebuild::{index_space, rebuild_space_index};
 

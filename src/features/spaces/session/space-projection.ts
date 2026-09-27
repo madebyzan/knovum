@@ -4,11 +4,11 @@ import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import type { SpaceSessionProjection } from "../contracts/generated/SpaceSessionProjection";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceRelation } from "../model/relations/relation";
-import { relationSchema, toSpaceRelation } from "../model/relations/relation-schema";
-import { parseSpaceEditSnapshot, type SpaceEditSnapshot } from "../model/structure/edit-snapshot";
+import { relationSchema, toSpaceRelation } from "../model/relations/schema/relation";
+import { parseSpaceEditSnapshot, type SpaceEditSnapshot } from "../model/structure/schema/edit-snapshot";
 import { parseSpaceNodes } from "../nodes/node-operations";
 import type { SpaceScene } from "../scenes/scene";
-import { sceneSchema } from "../scenes/scene-schema";
+import { sceneSchema } from "../scenes/schema/scene";
 
 const sessionSceneSchema = sceneSchema.extend({ thumbnailPath: z.string().nullable() });
 

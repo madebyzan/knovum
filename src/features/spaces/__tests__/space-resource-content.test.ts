@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { createSpaceNotePayload } from "../editor/tiptap-content";
-import { validateSpaceNodePayload } from "../model/nodes/schema/node-payload";
+import { validateSpaceNodePayload } from "../model/nodes/node-validation";
 
 describe("spaces resource content validation", () => {
   it("validates audio as a private opaque asset", () => {

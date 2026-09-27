@@ -10,12 +10,12 @@ pub(crate) mod invalidation;
 pub(crate) mod locator;
 mod node_contracts;
 pub(crate) mod object_references;
+pub(crate) mod object_types;
 pub(crate) mod provenance;
 pub(crate) mod relations;
 pub(crate) mod retrieval;
 pub(crate) mod search_plan;
 pub(crate) mod semantic_nodes;
-pub(crate) mod types;
 
 pub(crate) mod action;
 #[cfg(test)]

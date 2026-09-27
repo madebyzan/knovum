@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { SECTION_MINIMUM_SIZE } from "./section-metrics";
+import { SECTION_MINIMUM_SIZE } from "../section-metrics";
 
 export const MAX_STRUCTURE_NODES = 100_000;
 export const MAX_STRUCTURE_DEPTH = 64;

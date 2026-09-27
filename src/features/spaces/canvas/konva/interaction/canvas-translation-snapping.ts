@@ -8,7 +8,7 @@ import {
   translateCanvasBounds,
   unionCanvasBounds,
 } from "../../canvas-snap-geometry";
-import type { CanvasNodeFrame } from "../../contract/canvas-document";
+import type { CanvasNodeFrame } from "../../schema/document";
 import { nearestSortedCanvasSnap, type CanvasSnapGuide } from "./canvas-snapping";
 import type { CanvasTranslationSnapIndex, IndexedCanvasBounds } from "./canvas-translation-snap-index";
 

@@ -170,7 +170,7 @@ Structure/Layout edit policy and IPC adapters to `structure/`, camera persistenc
 persistence to `knowledge/relations/`, scene persistence to `scenes/`, credential persistence to
 `credentials/`, and search transport to `search/`.
 `session/` may assemble their contracts but does not become their implementation owner.
-`model/structure/edit-snapshot.ts` owns the neutral validated edit snapshot. `structure/` owns edit commands and pure policies; its `space-edit-operations` and `structure-transfer-operations` are IPC adapters and cannot be imported by presentation. Scene validation belongs to `scenes/`; relation validation belongs to `model/relations/`; package formats compose those contracts. Node payload change shapes belong to `model/nodes`, not history.
+`model/structure/schema/edit-snapshot.ts` owns the neutral validated edit snapshot. `structure/` owns edit commands and pure policies; its `space-edit-operations` and `structure-transfer-operations` are IPC adapters and cannot be imported by presentation. Scene validation belongs to `scenes/`; relation validation belongs to `model/relations/`; package formats compose those contracts. Node payload change shapes belong to `model/nodes`, not history.
 
 Asset submission budgets live in `assets/concurrency-budget.ts`; media inference has its own `media/inference-budget.ts`. Their process-wide queue sizes and cancellation checks are unchanged. They do not depend on session composition or represent durable jobs.
 
@@ -430,3 +430,7 @@ as capability consumers. Rust owns installation facts and cancellation; Task Cen
 Observer disconnection does not cancel preparation. Cancelling one request releases its own demand;
 other requests for the exact artifact keep the shared installation alive. There is no generic plugin
 platform, renderer downloader, compatibility command alias, PATH fallback or alternate model.
+
+### Schema ownership and supporting modules
+
+Independent Renderer runtime schemas use the owning capability or model’s `schema/<subject>.ts` layout, as specified in `naming-conventions.md`. Generated IPC contracts and database baselines retain their separate boundaries. In Rust, `spaces/knowledge/object_types/` owns custom Knowledge Type lifecycle and decoding; it is not a generic type container. Retrieval index schemas own Arrow structure, while `retrieval/validation.rs` owns query-vector input policy.

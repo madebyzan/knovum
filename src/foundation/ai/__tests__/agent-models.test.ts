@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { agentKindSchema, agentInstallationSchema } from "../agent-models";
+import { agentKindSchema, agentInstallationSchema } from "../schema/agents";
 
 describe("agent-models schema", () => {
   it("validates supported agent kinds", () => {

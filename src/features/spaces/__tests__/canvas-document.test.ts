@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { parseCanvasDocument, serializeCanvasAppearance } from "../canvas/contract/canvas-document";
+import { parseCanvasDocument, serializeCanvasAppearance } from "../canvas/schema/document";
 
 function document() {
   return {

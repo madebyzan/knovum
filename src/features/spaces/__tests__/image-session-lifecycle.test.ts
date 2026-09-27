@@ -5,7 +5,7 @@ import { nextTick, reactive } from "vue";
 
 import { createSpaceNode } from "../canvas/node";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
-import { validateSpaceNodePayload } from "../model/nodes/schema/node-payload";
+import { validateSpaceNodePayload } from "../model/nodes/node-validation";
 
 const context = vi.hoisted(() => ({
   space: null as null | {

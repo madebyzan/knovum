@@ -2,7 +2,10 @@ import { z } from "zod";
 
 import { invokeCommand } from "../../../../foundation/ipc/invoke-command";
 import type { GroundedDocumentMetadata as WireMetadata } from "../../contracts/generated/GroundedDocumentMetadata";
-import { groundedCitationSchema, type GroundedCitation } from "../../knowledge/model/grounded-citation";
+import {
+  groundedCitationSchema,
+  type GroundedCitation,
+} from "../../knowledge/model/schema/grounded-citation";
 
 export type GroundedDocumentMetadata = Omit<WireMetadata, "citations"> & { citations: GroundedCitation[] };
 

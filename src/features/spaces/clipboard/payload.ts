@@ -1,8 +1,8 @@
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
-import { validateSpaceNodePayload } from "../model/nodes/schema/node-payload";
+import { validateSpaceNodePayload } from "../model/nodes/node-validation";
 import type { SpaceRelation } from "../model/relations/relation";
-import type { SpaceEditSnapshot } from "../model/structure/edit-snapshot";
-import type { StructureLayout, StructureNode } from "../model/structure/structure-contract";
+import type { SpaceEditSnapshot } from "../model/structure/schema/edit-snapshot";
+import type { StructureLayout, StructureNode } from "../model/structure/schema/structure";
 import type { createStructureIndex } from "../model/structure/structure-index";
 import { effectiveOperationRoots } from "../model/structure/structure-index";
 import { validateStructureSnapshot } from "../model/structure/structure-validation";

@@ -3,7 +3,7 @@ import {
   type StructureNodeId,
   type StructureLayout,
   type LocalTransform,
-} from "./structure-contract";
+} from "./schema/structure";
 import type { StructureIndex } from "./structure-index";
 import { worldTransformFor } from "./world-transform";
 

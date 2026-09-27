@@ -2,12 +2,12 @@
 import { computed, reactive, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { requireProvider, type ProviderDescriptor } from "../../../foundation/ai/providers";
 import {
   type AiModelCapability,
   type AiConnectionSettings,
   type AiProvider,
-} from "../../../foundation/ai/ai-models";
-import { requireProvider, type ProviderDescriptor } from "../../../foundation/ai/providers";
+} from "../../../foundation/ai/schema/models";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiCheckbox from "../../../shared/ui/UiCheckbox.vue";
 import UiDialog from "../../../shared/ui/UiDialog.vue";

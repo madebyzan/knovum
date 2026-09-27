@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { isLocatorCurrent } from "../knowledge/model/location";
-import type { KnowledgeLocator } from "../knowledge/model/schema";
+import type { KnowledgeLocator } from "../knowledge/model/schema/chunk";
 import { knowledgeLocationLabel } from "../knowledge/presentation/location-label";
 import { highlightedSnippet } from "../search/highlighted-snippet";
 

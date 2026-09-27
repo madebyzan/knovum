@@ -6,7 +6,7 @@ import {
   agentInstallationSchema,
   type AgentDescriptor,
   type AgentInstallation,
-} from "./agent-models";
+} from "./schema/agents";
 
 export async function loadAgentDescriptors(): Promise<AgentDescriptor[]> {
   const descriptors = await invokeCommand<unknown>("plugin:ai|list_agent_descriptors");

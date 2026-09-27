@@ -3,8 +3,8 @@ import { compact, groupBy, sortBy } from "es-toolkit";
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import type { SpaceRelation } from "../../../model/relations/relation";
 import { canvasNodeInteraction } from "../../canvas-node-interaction";
-import type { CanvasDocumentV1, CanvasNodeLayoutV1 } from "../../contract/canvas-document";
 import type { StructureScene } from "../../document/structure-scene";
+import type { CanvasDocumentV1, CanvasNodeLayoutV1 } from "../../schema/document";
 import type { CanvasScene, CanvasSceneNode, CanvasSceneRelation } from "./canvas-scene";
 import { relationGeometry } from "./relation-path";
 

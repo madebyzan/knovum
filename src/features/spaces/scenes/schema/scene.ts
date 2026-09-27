@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-import { savedViewFilterSchema } from "../knowledge/model/saved-view-filter-schema";
-import { SPACE_RELATION_KINDS, SPACE_RELATION_STATUSES } from "../model/relations/relation";
+import { savedViewFilterSchema } from "../../knowledge/model/schema/saved-view-filter";
+import { SPACE_RELATION_KINDS, SPACE_RELATION_STATUSES } from "../../model/relations/relation";
 
 export const sceneSchema = z
   .object({

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { spaceMediaOriginSchema } from "../origin";
+import { spaceMediaOriginSchema } from "../../schema/origin";
 
 export const importedMediaSchema = z
   .object({

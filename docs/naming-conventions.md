@@ -74,6 +74,28 @@ product, so it separates nothing; name the mechanism that actually differs, such
 `bundled-runtime`, `menu` or `system`. Prose keeps the word only for operating-system provided UI and
 services, as in native window controls, native traffic lights or OS-native dialogs.
 
+## Schema and supporting module placement
+
+Standalone Renderer runtime schema modules live under their owning capability or model's
+`schema/<subject>.ts`. Do not repeat `-schema` inside that directory or maintain sibling
+`<subject>-schema.ts` modules for the same role. Schema fields and Zod refinements stay with the
+schema they define. Public parsing/validation operations use a concrete validation module when
+they serve callers independently of schema construction. Inferred types may remain beside their
+schema; do not introduce forwarding type barrels.
+
+A local schema used solely to validate one IO response may stay private beside that operation.
+Importing Zod does not turn an IO adapter, a projection or a type-only consumer into a schema module.
+Generated wire contracts remain in the owning `contracts/generated` directory; database DDL remains
+in feature-owned SQL baselines. Rust Arrow schemas stay with the retrieval index and query-vector
+validation lives in `validation.rs`. These boundaries have different responsibilities.
+
+`contracts` names owned wire/boundary shapes; `schema` names executable structural validation or
+storage layout; `validation` names validation policy; `decode` names persistence decoding;
+`repository` names persistence operations. Use a concrete business owner such as `object_types`
+for a module containing lifecycle operations instead of calling it `types`. Rust file and directory
+modules follow the same responsibilities: split into a directory only when there are actual
+submodules, and keep the `mod.rs` entry focused on composition where practical.
+
 ## Domain verbs
 
 ### Command verbs

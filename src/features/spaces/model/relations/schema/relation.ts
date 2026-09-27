@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { SPACE_RELATION_KINDS, SPACE_RELATION_STATUSES, type SpaceRelation } from "./relation";
+import { SPACE_RELATION_KINDS, SPACE_RELATION_STATUSES, type SpaceRelation } from "../relation";
 
 const relationShape = {
   id: z.string().min(1),

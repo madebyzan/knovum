@@ -1,7 +1,7 @@
 import type Konva from "konva";
 
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
-import type { CanvasNodeLayoutV1 } from "../../contract/canvas-document";
+import type { CanvasNodeLayoutV1 } from "../../schema/document";
 import type { CanvasGestureUpdate } from "./canvas-gesture-update";
 import { captureCanvasNodeRefs } from "./canvas-node-access";
 import { scaledCanvasTextAppearance } from "./canvas-text-transform";

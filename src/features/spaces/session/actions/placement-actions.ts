@@ -1,5 +1,5 @@
 import type { SpacePlacement } from "../../canvas/navigation-requests";
-import type { KnowledgeChunkSeed } from "../../knowledge/model/schema";
+import type { KnowledgeChunkSeed } from "../../knowledge/model/schema/chunk";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceNodePayload } from "../../model/nodes/node-payload";
 import type { SpaceState } from "../session-state";

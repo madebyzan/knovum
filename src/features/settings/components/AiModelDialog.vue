@@ -2,7 +2,7 @@
 import { computed, reactive, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import type { AiModelCapability, AiModelDefinition } from "../../../foundation/ai/ai-models";
+import type { AiModelCapability, AiModelDefinition } from "../../../foundation/ai/schema/models";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiCheckbox from "../../../shared/ui/UiCheckbox.vue";
 import UiDialog from "../../../shared/ui/UiDialog.vue";

@@ -5,8 +5,8 @@ import { shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import { aiConnectionSecretKey, type AiConnectionSettings } from "../../../foundation/ai/ai-models";
 import type { ProviderDescriptor } from "../../../foundation/ai/providers";
+import { aiConnectionSecretKey, type AiConnectionSettings } from "../../../foundation/ai/schema/models";
 import { deleteSecret } from "../../../foundation/secrets/secret-store";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import AiConnectionCard from "./AiConnectionCard.vue";

@@ -8,7 +8,7 @@ import { camelCase } from "es-toolkit";
 import { shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
-import type { GenerationPreset } from "../../../foundation/ai/ai-models";
+import type { GenerationPreset } from "../../../foundation/ai/schema/models";
 import UiIconButton from "../../../shared/ui/UiIconButton.vue";
 import UiInput from "../../../shared/ui/UiInput.vue";
 import GenerationPresetEditor from "./GenerationPresetEditor.vue";

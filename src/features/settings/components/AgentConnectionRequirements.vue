@@ -4,7 +4,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import type { AgentDescriptor } from "../../../foundation/ai/agent-models";
+import type { AgentDescriptor } from "../../../foundation/ai/schema/agents";
 
 const props = defineProps<{ agent: AgentDescriptor }>();
 const { t } = useI18n();

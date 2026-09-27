@@ -19,9 +19,9 @@ import UiDropdownMenuItem from "../../../../shared/ui/UiDropdownMenuItem.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiPopover from "../../../../shared/ui/UiPopover.vue";
 import UiSeparator from "../../../../shared/ui/UiSeparator.vue";
-import type { CanvasNodeAppearance } from "../../canvas/contract/canvas-document";
 import { canvasBaseFontSize, effectiveCanvasFontSize } from "../../canvas/document/canvas-typography";
 import { DEFAULT_CANVAS_TEXT_FONT_SIZE } from "../../canvas/node-size";
+import type { CanvasNodeAppearance } from "../../canvas/schema/document";
 import { CANVAS_FONT_SIZES } from "./canvas-typography-options";
 import { nodeActionLabelClass, nodeActionLabelState } from "./node-action-label";
 

@@ -1,4 +1,4 @@
-import type { StructureNodeId, StructureNode } from "./structure-contract";
+import type { StructureNodeId, StructureNode } from "./schema/structure";
 
 export interface StructureIndex {
   structureById: ReadonlyMap<StructureNodeId, StructureNode>;

@@ -1,4 +1,4 @@
-import type { CanvasNodeLayoutV1 } from "../contract/canvas-document";
+import type { CanvasNodeLayoutV1 } from "../schema/document";
 
 export function canvasLayoutBounds(layouts: readonly CanvasNodeLayoutV1[]) {
   if (!layouts.length) return undefined;

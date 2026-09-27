@@ -1,6 +1,6 @@
 import type Konva from "konva";
 
-import type { CanvasNodeFrame } from "../../contract/canvas-document";
+import type { CanvasNodeFrame } from "../../schema/document";
 import { frameSnapCoordinates, nearestSortedCanvasSnap } from "./canvas-snapping";
 
 export interface CanvasResizeSnapIndex {

@@ -2,8 +2,8 @@ import { isSpaceNodeOpenable } from "../../canvas/selection-actions";
 import { currentSelectionRoots } from "../../canvas/selection/selection-roots";
 import { isSpaceSemanticNode } from "../../knowledge/model/semantic-node";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
-import type { SpaceEditSnapshot } from "../../model/structure/edit-snapshot";
-import type { StructureNode } from "../../model/structure/structure-contract";
+import type { SpaceEditSnapshot } from "../../model/structure/schema/edit-snapshot";
+import type { StructureNode } from "../../model/structure/schema/structure";
 import {
   ancestorsOf,
   createStructureIndex,

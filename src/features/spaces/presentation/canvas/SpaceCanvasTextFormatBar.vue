@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CanvasNodeAppearance } from "../../canvas/contract/canvas-document";
+import type { CanvasNodeAppearance } from "../../canvas/schema/document";
 import SpaceCanvasColorPicker from "./SpaceCanvasColorPicker.vue";
 import SpaceCanvasTypographyPanel from "./SpaceCanvasTypographyPanel.vue";
 

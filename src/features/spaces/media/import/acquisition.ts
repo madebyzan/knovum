@@ -5,8 +5,8 @@ import { decodeCommandError } from "../../../../foundation/ipc/command-error";
 import { useTaskStore } from "../../../../foundation/tasks/task-store";
 import { formatByteSize } from "../../assets/format-byte-size";
 import type { SpaceMediaPayload } from "../../model/nodes/capabilities";
-import type { ImportedMedia, MediaImportProgress } from "./contract";
 import { cancelMediaImport, requestMediaImport } from "./ipc";
+import type { ImportedMedia, MediaImportProgress } from "./schema/import";
 
 export class MediaImportCancelledError extends Error {}
 

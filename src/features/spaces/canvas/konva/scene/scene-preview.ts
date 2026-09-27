@@ -1,6 +1,6 @@
 import { shallowReactive, watch, type Ref } from "vue";
 
-import type { CanvasNodeLayoutV1 } from "../../contract/canvas-document";
+import type { CanvasNodeLayoutV1 } from "../../schema/document";
 import type { CanvasGestureUpdate } from "../interaction/canvas-gesture-update";
 import type { CanvasScene, CanvasSceneRelation } from "./canvas-scene";
 import { relationGeometry } from "./relation-path";

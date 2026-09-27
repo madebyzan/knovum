@@ -5,9 +5,9 @@ import { computed, onMounted, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import type { AgentKind, DesktopAgentSettings } from "../../../../foundation/ai/agent-models";
 import { useAiSettingsStore } from "../../../../foundation/ai/ai-settings-store";
 import { useExecutionCatalogQuery } from "../../../../foundation/ai/execution-catalog-query";
+import type { AgentKind, DesktopAgentSettings } from "../../../../foundation/ai/schema/agents";
 import AgentAvailability from "../AgentAvailability.vue";
 import SettingsLoadFailure from "../SettingsLoadFailure.vue";
 import SettingsSection from "../SettingsSection.vue";

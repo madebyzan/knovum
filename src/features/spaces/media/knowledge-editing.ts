@@ -1,5 +1,5 @@
 import { normalizeChapterEnds } from "./chapters";
-import type { SpaceMediaChapter, SpaceMediaInsights, SpaceMediaKnowledge } from "./knowledge-schema";
+import type { SpaceMediaChapter, SpaceMediaInsights, SpaceMediaKnowledge } from "./schema/knowledge";
 
 export function mediaKnowledgeIsStale(knowledge: SpaceMediaKnowledge, sourceRevision?: string) {
   return !sourceRevision || knowledge.sourceRevision !== sourceRevision;

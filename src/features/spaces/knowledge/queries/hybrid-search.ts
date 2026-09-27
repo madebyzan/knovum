@@ -1,8 +1,5 @@
 import { invokeCommand } from "../../../../foundation/ipc/invoke-command";
-import {
-  knowledgeSearchResponseSchema,
-  type KnowledgeSearchResponse,
-} from "../model/knowledge-search-response";
+import { knowledgeSearchResponseSchema, type KnowledgeSearchResponse } from "../model/schema/search-response";
 
 interface HybridSearchOptions {
   nodeIds?: readonly string[];

@@ -1,6 +1,6 @@
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
 import type { SpaceRelation } from "../model/relations/relation";
-import type { StructureLayout, StructureNode } from "../model/structure/structure-contract";
+import type { StructureLayout, StructureNode } from "../model/structure/schema/structure";
 
 export interface SpaceClipboardNode {
   id: string;

@@ -5,7 +5,7 @@ import { cleanupDeletedSpaceAssets } from "../assets/asset-operations";
 import { snapshotSpaceQueryFilter } from "../knowledge/model/query-filter";
 import type { SpaceSavedViewFilter } from "../knowledge/model/saved-view-filter";
 import type { SpaceRelationKind, SpaceRelationStatus } from "../model/relations/relation";
-import type { SpaceEditSnapshot } from "../model/structure/edit-snapshot";
+import type { SpaceEditSnapshot } from "../model/structure/schema/edit-snapshot";
 import { createStructureIndex } from "../model/structure/structure-index";
 import type { SpaceScene } from "./scene";
 import { deleteScene, createScene as persistScene, updateSceneOrders, updateScene } from "./scene-operations";

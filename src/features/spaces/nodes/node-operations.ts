@@ -5,10 +5,10 @@ import type { CommittedNodeContent } from "../contracts/generated/CommittedNodeC
 import type { DiscardPendingContentRequest } from "../contracts/generated/DiscardPendingContentRequest";
 import type { DiscardPendingContentResponse } from "../contracts/generated/DiscardPendingContentResponse";
 import type { SpaceNodeProjection } from "../contracts/generated/SpaceNodeProjection";
-import type { KnowledgeChunkSeed } from "../knowledge/model/schema";
+import type { KnowledgeChunkSeed } from "../knowledge/model/schema/chunk";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
-import { validateSpaceNodePayload } from "../model/nodes/schema/node-payload";
+import { validateSpaceNodePayload } from "../model/nodes/node-validation";
 import { invokeConfirmedMutation } from "../structure/confirmed-mutation";
 
 export function parseSpaceNodes(rows: readonly SpaceNodeProjection[]): SpaceCanvasNode[] {

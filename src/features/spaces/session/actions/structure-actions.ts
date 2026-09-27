@@ -4,7 +4,7 @@ import { beginSpaceMutation } from "../../history/mutation-barrier";
 import { recordSpaceHistory, type SpaceHistoryState } from "../../history/stack";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceRelation } from "../../model/relations/relation";
-import type { SpaceEditSnapshot } from "../../model/structure/edit-snapshot";
+import type { SpaceEditSnapshot } from "../../model/structure/schema/edit-snapshot";
 import { spaceEditCommandRecordsHistory, type SpaceEditCommand } from "../../structure/space-edit-command";
 import { spaceEditOperations } from "../../structure/space-edit-operations";
 import { loadSpaceSessionProjection } from "../space-projection";

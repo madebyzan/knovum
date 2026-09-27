@@ -1,12 +1,12 @@
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceRelation } from "../../model/relations/relation";
-import type { SpaceEditSnapshot } from "../../model/structure/edit-snapshot";
+import type { SpaceEditSnapshot } from "../../model/structure/schema/edit-snapshot";
 import type {
   StructureNodeId,
   StructureLayout,
   LocalTransform,
   StructureNode,
-} from "../../model/structure/structure-contract";
+} from "../../model/structure/schema/structure";
 import { validateStructureSnapshot } from "../../model/structure/structure-validation";
 import { contentWorldBounds, mergeWorldBounds, type WorldBounds } from "../../model/structure/world-bounds";
 import { composeTransforms, localTransformOf } from "../../model/structure/world-transform";

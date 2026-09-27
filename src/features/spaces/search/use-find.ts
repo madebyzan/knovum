@@ -6,7 +6,7 @@ import { computed, ref, watch, type Ref } from "vue";
 import { useCanvasEditorSession } from "../canvas/editor-session";
 import { revealContentNode, revealStructureNode } from "../canvas/structure-navigation";
 import { useContextDock } from "../canvas/use-context-dock";
-import type { KnowledgeSearchMatch } from "../knowledge/model/knowledge-search-match";
+import type { KnowledgeSearchMatch } from "../knowledge/model/schema/search-match";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { useSpaceStore } from "../session/space-store";
 import { useSemanticSearch } from "./use-semantic-search";

@@ -1,5 +1,5 @@
-import type { StructureNodeId, StructureLayout, LocalTransform } from "./structure-contract";
-import { MAX_WORLD_COORDINATE, MAX_WORLD_SCALE } from "./structure-contract";
+import type { StructureNodeId, StructureLayout, LocalTransform } from "./schema/structure";
+import { MAX_WORLD_COORDINATE, MAX_WORLD_SCALE } from "./schema/structure";
 import { ancestorsOf, type StructureIndex } from "./structure-index";
 
 const IDENTITY: LocalTransform = { x: 0, y: 0, rotation: 0, scale: 1 };

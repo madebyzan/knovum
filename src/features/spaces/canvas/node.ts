@@ -1,6 +1,6 @@
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
-import { validateSpaceNodePayload } from "../model/nodes/schema/node-payload";
+import { validateSpaceNodePayload } from "../model/nodes/node-validation";
 
 export function createSpaceNode(
   data: SpaceNodePayload,

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { aiCapabilitySchema, aiRoutingPurposeSchema } from "../../../foundation/ai/ai-models";
+import { aiCapabilitySchema, aiRoutingPurposeSchema } from "../../../foundation/ai/schema/models";
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import type { SpaceActionDefinition } from "../contracts/generated/SpaceActionDefinition";
 

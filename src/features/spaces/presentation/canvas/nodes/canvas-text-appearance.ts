@@ -1,5 +1,5 @@
-import type { CanvasNodeAppearance } from "../../../canvas/contract/canvas-document";
 import { DEFAULT_CANVAS_TEXT_FONT_SIZE } from "../../../canvas/node-size";
+import type { CanvasNodeAppearance } from "../../../canvas/schema/document";
 
 const FILL_COLORS = {
   yellow: "var(--knovum-canvas-note-yellow)",

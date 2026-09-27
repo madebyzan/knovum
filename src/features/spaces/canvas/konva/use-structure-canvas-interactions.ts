@@ -1,7 +1,7 @@
 import { compact } from "es-toolkit";
 import { computed, shallowRef, type Ref } from "vue";
 
-import type { SpaceEditSnapshot } from "../../model/structure/edit-snapshot";
+import type { SpaceEditSnapshot } from "../../model/structure/schema/edit-snapshot";
 import { createStructureIndex, effectiveOperationRoots } from "../../model/structure/structure-index";
 import { worldTransformFor } from "../../model/structure/world-transform";
 import { sectionDropMoveCommand } from "../../structure/section-drop-reparent";

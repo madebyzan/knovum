@@ -4,7 +4,7 @@ import { projectStructureCanvasDocument } from "../canvas/document/structure-can
 import { projectStructureScene } from "../canvas/document/structure-scene-projection";
 import { createSpaceNode } from "../canvas/node";
 import { createSpaceNotePayload } from "../editor/tiptap-content";
-import type { SpaceEditSnapshot } from "../model/structure/edit-snapshot";
+import type { SpaceEditSnapshot } from "../model/structure/schema/edit-snapshot";
 import { sectionDropCandidateId, sectionDropReparentCommand } from "../structure/section-drop-reparent";
 
 describe("Structure Section projection", () => {

@@ -3,7 +3,7 @@ import { reactive } from "vue";
 
 import { createSpaceNode } from "../canvas/node";
 import { createSpaceNotePayload } from "../editor/tiptap-content";
-import { validateSpaceNodePayload } from "../model/nodes/schema/node-payload";
+import { validateSpaceNodePayload } from "../model/nodes/node-validation";
 
 describe("createSpaceNode", () => {
   it("keeps renderer state out of the domain node contract", () => {

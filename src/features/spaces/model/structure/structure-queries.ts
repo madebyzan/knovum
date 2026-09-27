@@ -1,4 +1,4 @@
-import type { StructureNodeId, StructureLayout, StructureNode } from "./structure-contract";
+import type { StructureNodeId, StructureLayout, StructureNode } from "./schema/structure";
 import { ancestorsOf, type StructureIndex } from "./structure-index";
 
 /** Resolve the complete content scope independently of folding, filtering and viewport mounting. */

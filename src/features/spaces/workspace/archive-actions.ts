@@ -4,7 +4,7 @@ import {
   loadSpaceCredential,
   saveSpaceCredential,
 } from "../credentials/credential-storage";
-import type { SpaceCredential } from "../model/credential";
+import type { SpaceCredential } from "../model/schema/credential";
 import {
   archiveSpace as persistSpaceArchive,
   deleteSpacePermanently,

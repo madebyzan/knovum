@@ -2,7 +2,7 @@
 import { computed } from "vue";
 
 import type { CanvasViewportDetailProfile } from "../../contract/canvas-detail-profile";
-import type { CanvasNodeLayoutV1 } from "../../contract/canvas-document";
+import type { CanvasNodeLayoutV1 } from "../../schema/document";
 import type { CanvasSceneNode } from "../scene/scene-projection";
 
 const props = defineProps<{

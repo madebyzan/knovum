@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { knowledgeChunkKindSchema, knowledgeChunkMetadataSchema, knowledgeLocatorSchema } from "./schema";
+import { knowledgeChunkKindSchema, knowledgeChunkMetadataSchema, knowledgeLocatorSchema } from "./chunk";
 
 export const knowledgeSearchMatchSchema = z
   .object({

@@ -1,5 +1,5 @@
-import type { AgentKind } from "../../../foundation/ai/agent-models";
-import type { ExecutionTarget } from "../../../foundation/ai/ai-models";
+import type { AgentKind } from "../../../foundation/ai/schema/agents";
+import type { ExecutionTarget } from "../../../foundation/ai/schema/models";
 
 export type ConversationTarget = ExecutionTarget | { type: "agent"; runtimeKind: AgentKind };
 

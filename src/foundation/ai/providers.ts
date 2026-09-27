@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import type { ProviderDescriptor } from "../../shared/contracts/generated/ProviderDescriptor";
 import { invokeCommand } from "../ipc/invoke-command";
-import { aiCapabilitySchema, aiProviderSchema } from "./ai-models";
+import { aiCapabilitySchema, aiProviderSchema } from "./schema/models";
 
 const providerDescriptorSchema: z.ZodType<ProviderDescriptor> = z
   .object({

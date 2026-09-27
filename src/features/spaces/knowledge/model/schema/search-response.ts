@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { knowledgeSearchMatchSchema } from "./knowledge-search-match";
+import { knowledgeSearchMatchSchema } from "./search-match";
 
 export const knowledgeSearchResponseSchema = z
   .object({

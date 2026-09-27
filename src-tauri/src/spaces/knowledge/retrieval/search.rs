@@ -7,10 +7,8 @@ use tauri::{AppHandle, Runtime};
 use crate::{ai::capabilities::embedding, spaces::db};
 
 use super::{
-    current_chunks, embedding_contract,
-    lancedb_store::open_knowledge_table,
-    predicates::escape_sql_literal,
-    schema::{validate_query_vector, VECTOR_COLUMN},
+    current_chunks, embedding_contract, lancedb_store::open_knowledge_table,
+    predicates::escape_sql_literal, schema::VECTOR_COLUMN, validation::validate_query_vector,
 };
 
 pub(crate) async fn embed_query<R: Runtime>(

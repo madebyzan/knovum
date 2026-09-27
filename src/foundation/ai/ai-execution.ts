@@ -1,8 +1,8 @@
 import { routingCapabilities } from "../../shared/contracts/generated/contract-values";
-import type { AiRoutingPurpose, ExecutionTarget, ResolvedAiModelTarget } from "./ai-models";
 import { useAiSettingsStore } from "./ai-settings-store";
 import { encodeExecutionTarget } from "./execution-target-codec";
 import type { AiModelSettings } from "./integration-settings";
+import type { AiRoutingPurpose, ExecutionTarget, ResolvedAiModelTarget } from "./schema/models";
 
 const defaultTargetKey: Record<AiRoutingPurpose, keyof AiModelSettings["defaults"]> = {
   writing: "writing",

@@ -3,7 +3,7 @@ use sqlx::Row;
 
 use crate::spaces::db;
 
-pub(super) fn row_to_json(row: sqlx::sqlite::SqliteRow) -> Result<Value, String> {
+pub(super) fn decode_object_type(row: sqlx::sqlite::SqliteRow) -> Result<Value, String> {
     let fields: String = row.try_get("fields").map_err(db::sql_error)?;
     Ok(serde_json::json!({
         "id": row.try_get::<String,_>("id").map_err(db::sql_error)?,

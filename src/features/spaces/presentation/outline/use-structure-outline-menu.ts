@@ -3,7 +3,7 @@ import { useI18n } from "vue-i18n";
 
 import { useCanvasEditorSession } from "../../canvas/editor-session";
 import { useNodeOperationGate } from "../../canvas/node-operation-gate";
-import type { SpaceEditSnapshot } from "../../model/structure/edit-snapshot";
+import type { SpaceEditSnapshot } from "../../model/structure/schema/edit-snapshot";
 import { ancestorsOf, type StructureIndex } from "../../model/structure/structure-index";
 import { isStructureNodeEffectivelyLocked } from "../../model/structure/structure-queries";
 import type { useSpaceStore } from "../../session/space-store";

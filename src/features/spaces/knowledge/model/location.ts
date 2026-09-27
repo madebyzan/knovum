@@ -1,5 +1,5 @@
 import type { SpaceNodePayload } from "../../model/nodes/node-payload";
-import type { KnowledgeLocator } from "./schema";
+import type { KnowledgeLocator } from "./schema/chunk";
 
 export function isLocatorCurrent(locator: KnowledgeLocator, data?: SpaceNodePayload) {
   if (!data) return false;

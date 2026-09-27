@@ -12,7 +12,7 @@ import type { RenderVideoEditRequest } from "../contracts/generated/RenderVideoE
 import type { VideoEditProgress } from "../contracts/generated/VideoEditProgress";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceVideoPayload } from "../model/nodes/node-payload";
-import { validateSpaceNodePayload } from "../model/nodes/schema/node-payload";
+import { validateSpaceNodePayload } from "../model/nodes/node-validation";
 import type { useSpaceStore } from "../session/space-store";
 import type { VideoEditProject } from "./project";
 

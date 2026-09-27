@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { decodePreferences } from "../preferences-schema";
+import { decodePreferences } from "../schema/preferences";
 
 const current = {
   theme: "system",

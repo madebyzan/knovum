@@ -1,15 +1,15 @@
 import { z } from "zod";
 
-import type { AiSettings } from "../../shared/contracts/generated/AiSettings";
-import { routingCapabilities } from "../../shared/contracts/generated/contract-values";
-import { desktopAgentSettingsSchema } from "./agent-models";
+import type { AiSettings } from "../../../shared/contracts/generated/AiSettings";
+import { routingCapabilities } from "../../../shared/contracts/generated/contract-values";
+import { desktopAgentSettingsSchema } from "./agents";
 import {
   aiConnectionSettingsSchema,
   aiDefaultsSchema,
   type AiModelCapability,
   type AiRoutingPurpose,
   type ExecutionTarget,
-} from "./ai-models";
+} from "./models";
 
 type AiModelSettingsShape = AiSettings;
 type SettingsRefinement = z.core.$RefinementCtx<AiModelSettingsShape>;

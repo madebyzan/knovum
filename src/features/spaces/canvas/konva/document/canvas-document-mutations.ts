@@ -1,8 +1,4 @@
-import type {
-  CanvasDocumentV1,
-  CanvasNodeFrame,
-  CanvasNodeFrameUpdate,
-} from "../../contract/canvas-document";
+import type { CanvasDocumentV1, CanvasNodeFrame, CanvasNodeFrameUpdate } from "../../schema/document";
 import type { CanvasGestureUpdate } from "../interaction/canvas-gesture-update";
 
 export function applyCanvasFrames(

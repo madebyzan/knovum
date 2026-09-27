@@ -1,4 +1,4 @@
-import type { StructureNodeId } from "../../model/structure/structure-contract";
+import type { StructureNodeId } from "../../model/structure/schema/structure";
 import type { StructureIndex } from "../../model/structure/structure-index";
 
 /** A type alias rather than an interface: TreeRoot constrains its item generic to Record<string, any>. */

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { knowledgeLocatorSchema } from "../../../knowledge/model/schema";
+import { knowledgeLocatorSchema } from "../../../knowledge/model/schema/chunk";
 
 const resourceSchema = z
   .object({

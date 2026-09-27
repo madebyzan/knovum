@@ -1,4 +1,4 @@
-import type { ExecutionTarget } from "../../../../foundation/ai/ai-models";
+import type { ExecutionTarget } from "../../../../foundation/ai/schema/models";
 import type { useSpaceStore } from "../../session/space-store";
 import { startBuiltinWorkflow } from "../../workflows/run-builtin-workflow";
 import type { GroundedDocumentSource } from "../catalog/grounded-document";

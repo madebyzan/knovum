@@ -6,7 +6,7 @@ import {
   CANVAS_FILL_PRESETS,
   CANVAS_TEXT_COLORS,
   type CanvasNodeAppearance,
-} from "../../canvas/contract/canvas-document";
+} from "../../canvas/schema/document";
 import SpaceCanvasColorSwatches from "./SpaceCanvasColorSwatches.vue";
 
 const props = defineProps<{ kind: "note" | "text"; appearance?: CanvasNodeAppearance; compact: boolean }>();

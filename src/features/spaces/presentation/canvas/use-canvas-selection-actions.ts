@@ -1,7 +1,6 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import type { CanvasNodeAppearance } from "../../canvas/contract/canvas-document";
 import type {
   CanvasAlignMode,
   CanvasAutoLayoutDirection,
@@ -9,6 +8,7 @@ import type {
   CanvasLayerMove,
 } from "../../canvas/contract/canvas-editor-port";
 import { useCanvasEditorSession, useCanvasSelectionProjection } from "../../canvas/editor-session";
+import type { CanvasNodeAppearance } from "../../canvas/schema/document";
 import { openSpaceNode } from "../../canvas/selection-actions";
 import { useContextDock } from "../../canvas/use-context-dock";
 import { isSpaceSemanticNode } from "../../knowledge/model/semantic-node";

@@ -2,10 +2,10 @@ import { uniq } from "es-toolkit";
 import { storeToRefs } from "pinia";
 import { computed } from "vue";
 
-import type { ExecutionTarget } from "../../foundation/ai/ai-models";
 import { useAiSettingsStore } from "../../foundation/ai/ai-settings-store";
 import { useCreationLibraryStore } from "../../foundation/ai/creation-library-store";
 import { encodeExecutionTarget } from "../../foundation/ai/execution-target-codec";
+import type { ExecutionTarget } from "../../foundation/ai/schema/models";
 
 export function useProtectedExecutionTargets() {
   const aiStore = useAiSettingsStore();

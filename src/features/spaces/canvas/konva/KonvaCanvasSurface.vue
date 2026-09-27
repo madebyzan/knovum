@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { Stage as KonvaStage } from "vue-konva/core";
 
-import type { CanvasDocumentV1 } from "../contract/canvas-document";
 import type { CanvasNodeContentSlotProps, CanvasSurfaceProps } from "../contract/canvas-surface";
+import type { CanvasDocumentV1 } from "../schema/document";
 import CanvasDomOverlay from "./presentation/CanvasDomOverlay.vue";
 import CanvasGridLayer from "./presentation/CanvasGridLayer.vue";
 import CanvasMarquee from "./presentation/CanvasMarquee.vue";

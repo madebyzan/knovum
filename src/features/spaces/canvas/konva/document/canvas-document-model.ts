@@ -1,7 +1,7 @@
 import { shallowRef, type ShallowRef } from "vue";
 
-import { type CanvasDocumentV1 } from "../../contract/canvas-document";
 import type { CanvasViewport } from "../../contract/canvas-editor";
+import { type CanvasDocumentV1 } from "../../schema/document";
 import { sameCanvasViewport } from "./canvas-document-mutations";
 
 interface CanvasDocumentModelEvents {

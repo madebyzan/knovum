@@ -5,9 +5,9 @@ import {
   canvasNodePresentationContext,
   type CanvasViewportDetailProfile,
 } from "../../../canvas/contract/canvas-detail-profile";
-import type { CanvasNodeLayoutV1 } from "../../../canvas/contract/canvas-document";
 import type { CanvasContentHeightMeasurement } from "../../../canvas/contract/canvas-editor-port";
 import { CANVAS_NODE_HEADER_HEIGHT, PREVIEW_CAPTION_HEIGHT } from "../../../canvas/node-size";
+import type { CanvasNodeLayoutV1 } from "../../../canvas/schema/document";
 import { useImageCommentSession } from "../../../comments/image-comment-session";
 import { useImageEditSession } from "../../../image-editing/image-edit-session";
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
