@@ -1,3 +1,4 @@
+import { compact } from "es-toolkit";
 import { computed, type Ref } from "vue";
 
 import { sectionDrawCandidateIds } from "../../organization/section-draw-candidates";
@@ -12,9 +13,6 @@ export function useSectionDrawCandidateBounds(
   return computed(() => {
     const frame = draft.value;
     if (!frame) return [];
-    return sectionDrawCandidateIds(snapshot(), frame).flatMap((id) => {
-      const bounds = structureBounds.value.get(id);
-      return bounds ? [bounds] : [];
-    });
+    return compact(sectionDrawCandidateIds(snapshot(), frame).map((id) => structureBounds.value.get(id)));
   });
 }

@@ -28,7 +28,7 @@ interface MetadataRow {
 const props = defineProps<{ node: SpaceCanvasNode }>();
 const store = useSpaceStore();
 const nodeOperations = useNodeOperationGate();
-const { t } = useI18n();
+const { d, t } = useI18n();
 const refreshing = ref(false);
 
 const rows = computed(() => {
@@ -76,7 +76,7 @@ function websiteRows(data: SpaceNodePayload) {
 }
 
 function modifiedAtLabel(value: number | undefined) {
-  return value === undefined ? undefined : new Date(value).toLocaleString();
+  return value === undefined ? undefined : d(value, "short");
 }
 
 function sourceUrl(data: SpaceNodePayload) {

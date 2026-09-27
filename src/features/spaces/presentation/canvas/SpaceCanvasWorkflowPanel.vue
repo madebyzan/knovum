@@ -22,10 +22,12 @@ const editor = useCanvasEditorSession();
 const panel = useTemplateRef<HTMLElement>("panel");
 const { selectedNodes } = useCanvasSelectionProjection(() => store.nodes);
 const { t } = useI18n();
-const openingSelection = selectedNodes.value
-  .map(({ id }) => id)
-  .toSorted()
-  .join("\u0000");
+const selectionFingerprint = () =>
+  selectedNodes.value
+    .map(({ id }) => id)
+    .toSorted()
+    .join("\u0000");
+const openingSelection = selectionFingerprint();
 const title = computed(() =>
   t(
     store.workflowMode === "capture"
@@ -38,16 +40,9 @@ function close() {
   store.workflowMode = undefined;
 }
 
-watch(
-  () =>
-    selectedNodes.value
-      .map(({ id }) => id)
-      .toSorted()
-      .join("\u0000"),
-  (ids) => {
-    if (ids !== openingSelection) close();
-  },
-);
+watch(selectionFingerprint, (ids) => {
+  if (ids !== openingSelection) close();
+});
 watch(() => store.activeSpaceId, close);
 function focusPanel() {
   panel.value?.focus({ preventScroll: true });

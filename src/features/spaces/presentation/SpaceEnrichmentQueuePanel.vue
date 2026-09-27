@@ -1,29 +1,23 @@
 <script setup lang="ts">
-import { useIntervalFn } from "@vueuse/core";
-import { ref } from "vue";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
+import { toast } from "vue-sonner";
 
-import {
-  cancelEnrichmentJob,
-  listEnrichmentJobs,
-  type SpaceEnrichmentJobRecord,
-} from "../enrichment/enrichment-jobs";
+import { cancelEnrichmentJob } from "../enrichment/enrichment-jobs";
+import { enrichmentJobsKey, enrichmentJobsQuery } from "../enrichment/enrichment-jobs-query";
 
 const props = defineProps<{ spaceId: string }>();
 
 const { t } = useI18n({ useScope: "global" });
-const jobs = ref<SpaceEnrichmentJobRecord[]>([]);
-
-async function refresh() {
-  jobs.value = await listEnrichmentJobs(props.spaceId);
-}
-
-async function cancel(jobId: string) {
-  await cancelEnrichmentJob(jobId);
-  await refresh();
-}
-
-useIntervalFn(refresh, 2_000, { immediate: true });
+const queryClient = useQueryClient();
+const query = useQuery(computed(() => enrichmentJobsQuery(props.spaceId)));
+const jobs = computed(() => query.data.value ?? []);
+const cancellation = useMutation({
+  mutationFn: cancelEnrichmentJob,
+  onSuccess: () => queryClient.invalidateQueries({ queryKey: enrichmentJobsKey(props.spaceId) }),
+  onError: (error) => toast.error(String(error)),
+});
 </script>
 
 <template>
@@ -45,8 +39,9 @@ useIntervalFn(refresh, 2_000, { immediate: true });
         </span>
         <button
           type="button"
-          class="text-micro text-foreground-tertiary hover:text-foreground"
-          @click="cancel(job.id)"
+          class="text-micro text-foreground-tertiary hover:text-foreground disabled:opacity-45"
+          :disabled="cancellation.isPending.value"
+          @click="cancellation.mutate(job.id)"
         >
           {{ t("common.cancel") }}
         </button>

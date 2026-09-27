@@ -74,7 +74,7 @@ onMounted(load);
       <p :class="compact ? 'truncate' : 'text-label font-medium'">
         {{ t("ai.settingsUnavailable") }}
       </p>
-      <p v-if="!compact" class="text-meta wrap-break-word text-foreground-secondary">
+      <p v-if="!compact" class="text-caption wrap-break-word text-foreground-secondary">
         {{ String(loadError) }}
       </p>
       <UiButton size="sm" variant="secondary" @click="load">{{ t("common.retry") }}</UiButton>
@@ -97,7 +97,7 @@ onMounted(load);
     >
       <div class="space-y-0.5">
         <p class="text-label font-medium text-foreground">{{ t("ai.disabledTitle") }}</p>
-        <p class="text-meta leading-relaxed text-foreground-secondary">
+        <p class="text-caption leading-relaxed text-foreground-secondary">
           {{ t("ai.disabledDescription") }}
         </p>
       </div>

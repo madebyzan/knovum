@@ -1,3 +1,5 @@
+import { isNil } from "es-toolkit";
+
 import type { SpaceNodeResizeMode } from "../../node-size";
 
 export const CANVAS_PROPORTIONAL_RESIZE_ANCHORS = [
@@ -31,9 +33,6 @@ export function canvasResizeAnchors(mode: SpaceNodeResizeMode) {
 export function isProportionalResizeAnchor(mode: SpaceNodeResizeMode, anchor: string | null | undefined) {
   return (
     mode === "proportional" ||
-    (mode === "width-and-proportional" &&
-      anchor !== undefined &&
-      anchor !== null &&
-      PROPORTIONAL_ANCHORS.has(anchor))
+    (mode === "width-and-proportional" && !isNil(anchor) && PROPORTIONAL_ANCHORS.has(anchor))
   );
 }

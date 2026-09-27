@@ -19,7 +19,7 @@ import { useSpaceManagementMenu } from "../../workspace/use-space-management-men
 const store = useSpaceStore();
 const management = useSpaceManagementMenu();
 const { spaces, libraryScope, libraryLayout, libraryQuery } = storeToRefs(store);
-const { locale, t } = useI18n();
+const { d, t } = useI18n();
 const editingId = shallowRef<string>();
 const draftTitle = shallowRef("");
 const libraryRoot = useTemplateRef<HTMLElement>("libraryRoot");
@@ -37,10 +37,8 @@ const visibleSpaces = computed(() => {
   return orderBy(matched, [libraryScope.value === "all" ? "createdAt" : "lastOpenedAt"], ["desc"]);
 });
 
-const updatedAt = computed(() => new Intl.DateTimeFormat(locale.value, { dateStyle: "medium" }));
-
 function formatUpdatedAt(timestamp: number) {
-  return updatedAt.value.format(timestamp);
+  return d(timestamp, "medium");
 }
 
 async function beginRenaming(space: Space) {

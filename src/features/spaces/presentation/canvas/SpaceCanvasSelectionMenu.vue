@@ -19,6 +19,7 @@ import UiDropdownMenuItem from "../../../../shared/ui/UiDropdownMenuItem.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiKbd from "../../../../shared/ui/UiKbd.vue";
 import UiSeparator from "../../../../shared/ui/UiSeparator.vue";
+import { SUBMENU_CONTENT_CLASSES } from "../../../../shared/ui/ui-classes";
 import { SPACE_COMMAND_SHORTCUTS } from "../../commands/space-command-shortcuts";
 import type {
   CreationIntentDecisions,
@@ -42,7 +43,7 @@ const emit = defineEmits<{ invokeDerivation: [actionId: CreationIntentId] }>();
 const { t } = useI18n();
 const menuRow =
   "flex h-(--knovum-compact-item-height) cursor-default items-center gap-2 rounded-control px-2 text-label text-foreground outline-none data-[highlighted]:bg-control-hover data-[disabled]:text-foreground-tertiary";
-const submenu = "material-overlay z-50 min-w-48 rounded-panel p-1 ring-1 ring-border";
+const submenu = SUBMENU_CONTENT_CLASSES;
 const deleteShortcut = platform() === "macos" ? "Backspace" : "Delete";
 const directImageActions: readonly CreationIntentId[] = ["remove-image-background"];
 </script>

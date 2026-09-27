@@ -106,11 +106,8 @@ export async function openSpaceNode(store: ReturnType<typeof useSpaceStore>, nod
 }
 
 export function isSpaceNodeOpenable(node?: SpaceCanvasNode) {
-  return Boolean(
-    node &&
-    (["note", "markdown", "website", "portal"].includes(node.data.kind) ||
-      isSpaceManagedAssetPayload(node.data)),
-  );
+  if (!node) return false;
+  return OPEN_HANDLERS[node.data.kind] !== undefined || isSpaceManagedAssetPayload(node.data);
 }
 
 export function selectAndRevealSpaceNode(id: string, mode: "focus" | "ensure-visible" = "focus") {

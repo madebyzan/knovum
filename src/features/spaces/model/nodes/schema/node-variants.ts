@@ -1,3 +1,4 @@
+import { compact } from "es-toolkit";
 import { z } from "zod";
 
 import { KNOWLEDGE_OBJECT_STATUSES } from "../../../knowledge/model/object-types";
@@ -104,7 +105,7 @@ export const spaceNodePayloadDiscriminatedSchema = z.discriminatedUnion("kind", 
 
 export const spaceNodePayloadSchema = spaceNodePayloadDiscriminatedSchema.superRefine((value, context) => {
   if (value.kind !== "portal") return;
-  const targets = [value.targetSceneId, value.targetNodeId, value.targetStructureNodeId].filter(Boolean);
+  const targets = compact([value.targetSceneId, value.targetNodeId, value.targetStructureNodeId]);
   if (targets.length > 1)
     context.addIssue({
       code: "custom",

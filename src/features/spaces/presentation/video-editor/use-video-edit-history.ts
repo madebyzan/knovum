@@ -1,3 +1,4 @@
+import { isEqual } from "es-toolkit";
 import { computed, shallowRef, type Ref } from "vue";
 
 import type { VideoEditProject } from "../../video-editing/project";
@@ -7,28 +8,28 @@ const HISTORY_LIMIT = 50;
 export function useVideoEditHistory(project: Ref<VideoEditProject | undefined>) {
   const undoStack = shallowRef<VideoEditProject[]>([]);
   const redoStack = shallowRef<VideoEditProject[]>([]);
-  const savedSnapshot = shallowRef<string>();
+  const savedSnapshot = shallowRef<VideoEditProject>();
   let lastMergeKey: string | undefined;
   let lastEditAt = 0;
 
   const canUndo = computed(() => undoStack.value.length > 0);
   const canRedo = computed(() => redoStack.value.length > 0);
-  const dirty = computed(() => !!project.value && JSON.stringify(project.value) !== savedSnapshot.value);
+  const dirty = computed(() => !!project.value && !isEqual(project.value, savedSnapshot.value));
 
   function reset(saved?: VideoEditProject) {
     undoStack.value = [];
     redoStack.value = [];
-    savedSnapshot.value = saved ? JSON.stringify(saved) : undefined;
+    savedSnapshot.value = saved;
     lastMergeKey = undefined;
   }
 
-  function markSaved(snapshot: string) {
+  function markSaved(snapshot: VideoEditProject) {
     savedSnapshot.value = snapshot;
   }
 
   function commit(next: VideoEditProject, mergeKey?: string) {
     const current = project.value;
-    if (!current || JSON.stringify(current) === JSON.stringify(next)) return;
+    if (!current || isEqual(current, next)) return;
     const now = Date.now();
     if (!mergeKey || mergeKey !== lastMergeKey || now - lastEditAt > 600) {
       undoStack.value = [...undoStack.value, current].slice(-HISTORY_LIMIT);

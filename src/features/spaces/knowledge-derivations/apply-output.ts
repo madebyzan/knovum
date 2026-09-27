@@ -1,3 +1,5 @@
+import { differenceBy } from "es-toolkit";
+
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
 import type { SpaceRelation } from "../model/relations/relation";
 import type { useSpaceStore } from "../session/space-store";
@@ -18,8 +20,7 @@ interface DerivationOutput {
 export function applyDerivationOutput(store: DerivationOutputStore, output: DerivationOutput) {
   if (store.activeSpaceId !== output.spaceId) return false;
   store.applyNodeDataForSpace(output.spaceId, output.nodeId, output.data);
-  const ids = new Set(store.relations.map(({ id }) => id));
-  store.relations = [...store.relations, ...output.relations.filter(({ id }) => !ids.has(id))];
+  store.relations = [...store.relations, ...differenceBy(output.relations, store.relations, ({ id }) => id)];
   store.requestReveal([output.nodeId], "ensure-visible");
   return true;
 }

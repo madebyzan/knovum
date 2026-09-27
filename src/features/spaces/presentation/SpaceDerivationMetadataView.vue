@@ -7,7 +7,7 @@ import type { GeneratedVideoMetadata } from "../knowledge-derivations/video/meta
 import SpaceDerivationSources from "./SpaceDerivationSources.vue";
 
 const props = defineProps<{ metadata: VisualizationMetadata | GeneratedVideoMetadata }>();
-const { t } = useI18n();
+const { d, t } = useI18n();
 
 const isImage = computed(() => "intent" in props.metadata);
 const description = computed(() =>
@@ -16,7 +16,7 @@ const description = computed(() =>
     : (props.metadata as GeneratedVideoMetadata).prompt,
 );
 const metaLine = computed(() => {
-  const date = new Date(props.metadata.createdAt).toLocaleString();
+  const date = d(props.metadata.createdAt, "short");
   if (isImage.value) {
     const meta = props.metadata as VisualizationMetadata;
     return `${meta.style} · ${meta.aspectRatio} · ${date}`;

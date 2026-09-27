@@ -1,33 +1,35 @@
 <script setup lang="ts">
+import { without } from "es-toolkit";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiCheckbox from "../../../../shared/ui/UiCheckbox.vue";
 import type { WorkflowCaptureCandidate } from "../../workflows/captured-workflow-ipc";
-import { captureActionLabels } from "./workflow-capture-labels";
+import { captureActionLabel } from "./workflow-capture-labels";
 
 type Step = WorkflowCaptureCandidate["steps"][number];
 const props = defineProps<{ steps: readonly Step[]; modelValue: readonly string[] }>();
 const emit = defineEmits<{ "update:modelValue": [value: string[]] }>();
 const { t } = useI18n();
 
-function label(step: Step) {
-  const key = captureActionLabels[step.actionId];
-  return key ? t(`spaces.creation.workflow.captureActions.${key}`) : step.actionId;
-}
+const dependentStepIds = computed(() => {
+  const selected = new Set(props.modelValue);
+  const ids = new Set<string>();
+  for (const step of props.steps) {
+    if (!selected.has(step.id)) continue;
+    for (const input of step.inputs) {
+      if (input.sourceType === "stepOutput") ids.add(input.stepId);
+    }
+  }
+  return ids;
+});
 
-function hasDependents(id: string) {
-  return props.steps.some(
-    (step) =>
-      props.modelValue.includes(step.id) &&
-      step.inputs.some((input) => input.sourceType === "stepOutput" && input.stepId === id),
-  );
+function label(step: Step) {
+  return captureActionLabel(step.actionId, t);
 }
 
 function choose(id: string, selected: boolean) {
-  emit(
-    "update:modelValue",
-    selected ? [...props.modelValue, id] : props.modelValue.filter((candidate) => candidate !== id),
-  );
+  emit("update:modelValue", selected ? [...props.modelValue, id] : without(props.modelValue, id));
 }
 </script>
 
@@ -40,11 +42,11 @@ function choose(id: string, selected: boolean) {
       <UiCheckbox
         :label="t('spaces.creation.workflow.steps.keep', { action: label(step) })"
         :model-value="modelValue.includes(step.id)"
-        :disabled="hasDependents(step.id)"
+        :disabled="dependentStepIds.has(step.id)"
         @update:model-value="choose(step.id, $event)"
       />
       <span class="min-w-0 flex-1 truncate text-foreground">{{ label(step) }}</span>
-      <span v-if="hasDependents(step.id)" class="text-foreground-tertiary">{{
+      <span v-if="dependentStepIds.has(step.id)" class="text-foreground-tertiary">{{
         t("spaces.creation.workflow.steps.required")
       }}</span>
     </div>

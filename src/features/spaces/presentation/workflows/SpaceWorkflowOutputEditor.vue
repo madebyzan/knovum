@@ -4,7 +4,7 @@ import { useI18n } from "vue-i18n";
 import UiCheckbox from "../../../../shared/ui/UiCheckbox.vue";
 import UiInput from "../../../../shared/ui/UiInput.vue";
 import type { WorkflowCaptureCandidate } from "../../workflows/captured-workflow-ipc";
-import { captureActionLabels } from "./workflow-capture-labels";
+import { captureActionLabel } from "./workflow-capture-labels";
 
 type Step = WorkflowCaptureCandidate["steps"][number];
 type Output = WorkflowCaptureCandidate["outputSlots"][number];
@@ -17,8 +17,7 @@ function outputFor(stepId: string) {
 }
 
 function label(step: Step) {
-  const key = captureActionLabels[step.actionId];
-  return key ? t(`spaces.creation.workflow.captureActions.${key}`) : step.actionId;
+  return captureActionLabel(step.actionId, t);
 }
 
 function choose(step: Step, selected: boolean) {

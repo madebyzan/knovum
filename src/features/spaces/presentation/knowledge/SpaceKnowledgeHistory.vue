@@ -10,7 +10,7 @@ import { useSpaceStore } from "../../session/space-store";
 import SpaceInspectorSection from "../SpaceInspectorSection.vue";
 
 const props = defineProps<{ node: SpaceCanvasNode }>();
-const { t } = useI18n();
+const { d, t } = useI18n();
 const { activeSpaceId } = storeToRefs(useSpaceStore());
 const history = useSpaceKnowledgeHistoryQuery(activeSpaceId, () => props.node.id);
 </script>
@@ -43,9 +43,7 @@ const history = useSpaceKnowledgeHistoryQuery(activeSpaceId, () => props.node.id
           <span class="text-caption text-foreground-secondary">{{
             t(`spaces.knowledge.history.events.${event.eventKind}`)
           }}</span>
-          <time class="text-micro text-foreground-tertiary">{{
-            new Date(event.createdAt).toLocaleString()
-          }}</time>
+          <time class="text-micro text-foreground-tertiary">{{ d(event.createdAt, "short") }}</time>
         </div>
         <p class="mt-0.5 text-micro text-foreground-tertiary">
           {{ t("spaces.knowledge.history.actor", { actor: event.actorKind }) }}

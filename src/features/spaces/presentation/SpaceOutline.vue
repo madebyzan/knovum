@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { uniq } from "es-toolkit";
+import { union, xor } from "es-toolkit";
 import { TreeRoot } from "reka-ui";
 import { computed, inject, onBeforeUnmount, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -38,13 +38,11 @@ function outlineKey(item: OutlineTreeItem) {
 }
 
 function toggle(id: string) {
-  expandedIds.value = expandedIds.value.includes(id)
-    ? expandedIds.value.filter((value) => value !== id)
-    : [...expandedIds.value, id];
+  expandedIds.value = xor(expandedIds.value, [id]);
 }
 
 function expand(ids: readonly string[]) {
-  expandedIds.value = uniq([...expandedIds.value, ...ids]);
+  expandedIds.value = union(expandedIds.value, ids);
 }
 
 function isSelected(id: string) {

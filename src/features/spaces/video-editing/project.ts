@@ -1,4 +1,4 @@
-import { sumBy } from "es-toolkit";
+import { clamp, sumBy } from "es-toolkit";
 
 import type { SpaceVideoPayload } from "../model/nodes/node-payload";
 
@@ -144,11 +144,11 @@ export function clipTimelineStart(project: VideoEditProject, clipId: string) {
 
 export function addTextOverlay(project: VideoEditProject, startMs: number, family: string): VideoEditProject {
   const duration = projectDuration(project);
-  const boundedStart = Math.max(0, Math.min(Math.round(startMs), Math.max(0, duration - 100)));
+  const boundedStart = clamp(Math.round(startMs), 0, Math.max(0, duration - 100));
   const item: VideoTextOverlay = {
     id: crypto.randomUUID(),
     startMs: boundedStart,
-    endMs: Math.min(duration, Math.max(boundedStart + 100, boundedStart + 3_000)),
+    endMs: clamp(boundedStart + 3_000, boundedStart + 100, duration),
     text: "Text",
     placement: "bottom",
     style: defaultVideoTextStyle(family),

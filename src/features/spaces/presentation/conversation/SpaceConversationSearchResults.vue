@@ -25,7 +25,10 @@ const resultSchema = z
     ),
   })
   .passthrough();
-const matches = computed(() => resultSchema.parse(props.value).result);
+const matches = computed(() => {
+  const parsed = resultSchema.safeParse(props.value);
+  return parsed.success ? parsed.data.result : [];
+});
 </script>
 
 <template>

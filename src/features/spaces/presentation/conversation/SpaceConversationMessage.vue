@@ -11,7 +11,7 @@ import UiMarkdown from "../../../../shared/ui/UiMarkdown.vue";
 import type { AssistantMessage } from "../../conversation/conversation-ipc";
 import { groundedCitationSchema } from "../../knowledge/model/grounded-citation";
 import { useSpaceStore } from "../../session/space-store";
-import { captureActionLabels } from "../workflows/workflow-capture-labels";
+import { captureActionLabel } from "../workflows/workflow-capture-labels";
 import SpaceConversationMessageAttachments from "./SpaceConversationMessageAttachments.vue";
 import SpaceConversationSearchResults from "./SpaceConversationSearchResults.vue";
 

@@ -1,3 +1,4 @@
+import { debounce } from "es-toolkit";
 import { shallowRef } from "vue";
 import { toast } from "vue-sonner";
 
@@ -36,15 +37,10 @@ export function observeWorkflowRun(run: RunSummary, title: string, onUpdate?: Li
     });
   }
   attachNavigation(run);
-  let refreshTimer: ReturnType<typeof setTimeout> | undefined;
-  function refreshCanvas() {
+  const refreshCanvas = debounce(() => {
     if (space.activeSpaceId !== run.homeSpaceId) return;
-    if (refreshTimer) clearTimeout(refreshTimer);
-    refreshTimer = setTimeout(() => {
-      refreshTimer = undefined;
-      void space.refreshActiveSpace().catch((cause: unknown) => toast.error(String(cause)));
-    }, 400);
-  }
+    void space.refreshActiveSpace().catch((cause: unknown) => toast.error(String(cause)));
+  }, 400);
   observeRun(run.id, {
     update: (next) => {
       for (const listener of listeners) listener(next);
@@ -62,7 +58,7 @@ export function observeWorkflowRun(run: RunSummary, title: string, onUpdate?: Li
     error: (cause) => tasks.fail(run.id, String(cause)),
     finished: () => {
       observations.delete(run.id);
-      if (refreshTimer) clearTimeout(refreshTimer);
+      refreshCanvas.cancel();
       if (space.activeSpaceId === run.homeSpaceId) {
         void space.refreshActiveSpace().catch((cause: unknown) => toast.error(String(cause)));
       }

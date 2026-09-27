@@ -1,3 +1,4 @@
+import { isEqual } from "es-toolkit";
 import { defineStore } from "pinia";
 import { readonly, shallowRef, watch } from "vue";
 
@@ -76,7 +77,7 @@ export const useImageEditSession = defineStore("spaces-image-edit-session", () =
       if (space.activeSpaceId !== current.spaceId) throw new Error("Image edit belongs to another Space");
       const node = space.nodes.find(({ id }) => id === current.nodeId);
       if (!node || node.data.kind !== "image") throw new Error("Selected image is unavailable");
-      if (JSON.stringify(imageEditOf(node.data)) === JSON.stringify(current.draft)) {
+      if (isEqual(imageEditOf(node.data), current.draft)) {
         active.value = undefined;
         return;
       }

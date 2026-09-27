@@ -1,3 +1,5 @@
+import { clamp } from "es-toolkit";
+
 import type { CanvasNodeFrame } from "../../contract/canvas-document";
 import type { CanvasPoint, CanvasRect } from "../../contract/canvas-editor-port";
 import { connectorAnchor, type CanvasConnectorSide } from "./connector-geometry";
@@ -66,7 +68,7 @@ function bezierConnectorPoints(
   toSide: CanvasConnectorSide,
 ): CanvasRelationPath {
   const distance = Math.hypot(to.x - from.x, to.y - from.y);
-  const tangent = Math.min(220, Math.max(56, distance * 0.42));
+  const tangent = clamp(distance * 0.42, 56, 220);
   const first = moveAlongSide(from, fromSide, tangent);
   const second = moveAlongSide(to, toSide, tangent);
   return [from.x, from.y, first.x, first.y, second.x, second.y, to.x, to.y];

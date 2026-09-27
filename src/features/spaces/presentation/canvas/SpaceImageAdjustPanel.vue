@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { RotateCcw, X } from "@lucide/vue";
+import { usePreferredReducedMotion } from "@vueuse/core";
 import { shallowRef, useTemplateRef } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -19,6 +20,7 @@ const emit = defineEmits<{
 const { t } = useI18n();
 const list = useTemplateRef<{ viewportElement: HTMLElement }>("list");
 const active = shallowRef<ImageAdjustmentGroupId>("light");
+const reducedMotion = usePreferredReducedMotion();
 const positiveControls = new Set<keyof ImageAdjustments>([
   "sharpness",
   "clarity",
@@ -34,7 +36,7 @@ function navigate(id: ImageAdjustmentGroupId) {
   active.value = id;
   viewport.scrollTo({
     top: section.offsetTop,
-    behavior: globalThis.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+    behavior: reducedMotion.value === "reduce" ? "auto" : "smooth",
   });
 }
 

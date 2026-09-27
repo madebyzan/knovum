@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useVirtualizer } from "@tanstack/vue-virtual";
+import { chunk } from "es-toolkit";
 import { computed, useTemplateRef, type ComponentPublicInstance } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -14,11 +15,8 @@ const props = defineProps<{
 const emit = defineEmits<{ select: [resource: DocumentResourceProjection] }>();
 const { t } = useI18n();
 const scroller = useTemplateRef<HTMLDivElement>("scroller");
-const resourceRows = computed(() =>
-  Array.from({ length: Math.ceil(props.resources.length / 2) }, (_, index) =>
-    props.resources.slice(index * 2, index * 2 + 2),
-  ),
-);
+const RESOURCE_COLUMNS = 2;
+const resourceRows = computed(() => chunk(props.resources, RESOURCE_COLUMNS));
 const virtualizer = useVirtualizer(
   computed(() => ({
     count: resourceRows.value.length,
@@ -50,11 +48,15 @@ function measureRow(element: Element | ComponentPublicInstance | null) {
         :style="{ transform: `translateY(${row.start}px)` }"
       >
         <button
-          v-for="item in rowResources"
+          v-for="(item, column) in rowResources"
           :key="item.resource.id"
           type="button"
           class="overflow-hidden rounded-control border border-border bg-surface text-left outline-none hover:border-border-hover focus-visible:ring-2 focus-visible:ring-accent"
-          :aria-label="t('spaces.processing.document.resources.open', { index: resources.indexOf(item) + 1 })"
+          :aria-label="
+            t('spaces.processing.document.resources.open', {
+              index: row.index * RESOURCE_COLUMNS + column + 1,
+            })
+          "
           @click="emit('select', item)"
         >
           <div class="aspect-4/3 overflow-hidden bg-canvas">

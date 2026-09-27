@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { countBy } from "es-toolkit";
 import { computed, shallowRef, watch } from "vue";
 
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
@@ -11,12 +12,9 @@ const props = defineProps<{ node: SpaceCanvasNode }>();
 const report = computed(() =>
   props.node.data.kind === "file" ? props.node.data.documentCoverage : undefined,
 );
-const completed = computed(
-  () => report.value?.occurrences.filter(({ state }) => state === "completed").length ?? 0,
-);
-const unsupported = computed(
-  () => report.value?.occurrences.filter(({ state }) => state === "unsupported").length ?? 0,
-);
+const stateCounts = computed(() => countBy(report.value?.occurrences ?? [], ({ state }) => state));
+const completed = computed(() => stateCounts.value.completed ?? 0);
+const unsupported = computed(() => stateCounts.value.unsupported ?? 0);
 const resources = computed(() => (report.value ? projectDocumentResources(report.value) : []));
 const selectedResourceId = shallowRef<string>();
 const selectedResource = computed(() =>

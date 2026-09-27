@@ -1,3 +1,5 @@
+import { clamp } from "es-toolkit";
+
 import type { SpaceImagePayload } from "../model/nodes/node-payload";
 
 export type ImageEdit = NonNullable<SpaceImagePayload["imageEdit"]>;
@@ -47,11 +49,11 @@ export function centeredCrop(sourceAspect: number, targetAspect: number): ImageC
 }
 
 export function resizeCrop(crop: ImageCrop, width: number, height: number): ImageCrop {
-  const nextWidth = Math.max(0.01, Math.min(1, width));
-  const nextHeight = Math.max(0.01, Math.min(1, height));
+  const nextWidth = clamp(width, 0.01, 1);
+  const nextHeight = clamp(height, 0.01, 1);
   return {
-    x: Math.max(0, Math.min(1 - nextWidth, crop.x + (crop.width - nextWidth) / 2)),
-    y: Math.max(0, Math.min(1 - nextHeight, crop.y + (crop.height - nextHeight) / 2)),
+    x: clamp(crop.x + (crop.width - nextWidth) / 2, 0, 1 - nextWidth),
+    y: clamp(crop.y + (crop.height - nextHeight) / 2, 0, 1 - nextHeight),
     width: nextWidth,
     height: nextHeight,
   };

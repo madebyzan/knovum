@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from "@lucide/vue";
+import { useThrottleFn } from "@vueuse/core";
 import { shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -20,7 +21,7 @@ const props = defineProps<{
 const emit = defineEmits<{ update: [yaw: number, pitch: number]; zoom: [delta: number] }>();
 const { t } = useI18n();
 const gesture = shallowRef<{ pointerId: number; x: number; y: number; yaw: number; pitch: number }>();
-let lastWheelAt = 0;
+const emitZoom = useThrottleFn((delta: number) => emit("zoom", delta), 180);
 
 function nudge(yaw: number, pitch: number) {
   emit("update", clampImageAngle(props.yaw + yaw, "yaw"), clampImageAngle(props.pitch + pitch, "pitch"));
@@ -55,9 +56,8 @@ function end(event: PointerEvent) {
 
 function wheel(event: WheelEvent) {
   event.preventDefault();
-  if (Date.now() - lastWheelAt < 180 || Math.abs(event.deltaY) < 8) return;
-  lastWheelAt = Date.now();
-  emit("zoom", Math.sign(event.deltaY));
+  if (Math.abs(event.deltaY) < 8) return;
+  emitZoom(Math.sign(event.deltaY));
 }
 </script>
 

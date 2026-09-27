@@ -4,7 +4,7 @@ import { useI18n } from "vue-i18n";
 import UiCheckbox from "../../../../shared/ui/UiCheckbox.vue";
 import UiInput from "../../../../shared/ui/UiInput.vue";
 import UiSelect from "../../../../shared/ui/UiSelect.vue";
-import { captureActionLabels } from "./workflow-capture-labels";
+import { captureActionLabel } from "./workflow-capture-labels";
 
 interface Field {
   stepId: string;
@@ -23,15 +23,15 @@ const emit = defineEmits<{
   updateText: [key: string, value: string];
   updateBoolean: [stepId: string, key: string, value: boolean];
 }>();
-const { t } = useI18n();
+const { t, te } = useI18n();
 
 function actionLabel(id: string) {
-  const label = captureActionLabels[id];
-  return label ? t(`spaces.creation.workflow.captureActions.${label}`) : id;
+  return captureActionLabel(id, t);
 }
 
 function parameterLabel(key: string) {
-  return t(`spaces.creation.workflow.parameters.${key}`);
+  const translationKey = `spaces.creation.workflow.parameters.${key}`;
+  return te(translationKey) ? t(translationKey) : key;
 }
 </script>
 

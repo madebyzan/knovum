@@ -12,6 +12,7 @@ import {
   Sparkles,
   Video,
 } from "@lucide/vue";
+import { compact } from "es-toolkit";
 import type { Component } from "vue";
 
 import { spaceNodePreviewSource } from "../../../assets/node-preview-source";
@@ -98,9 +99,10 @@ function mediaSubtitle(data: SpaceNodePayload) {
 }
 
 function mediaIdentity(data: Extract<SpaceNodePayload, { kind: "audio" | "video" }>) {
-  const identity = [data.origin?.provider && mediaProviderDisplayName(data.origin.provider), data.creator]
-    .filter(Boolean)
-    .join(" · ");
+  const identity = compact([
+    data.origin?.provider && mediaProviderDisplayName(data.origin.provider),
+    data.creator,
+  ]).join(" · ");
   return identity || data.fileName;
 }
 

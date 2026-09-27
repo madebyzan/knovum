@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { clamp } from "es-toolkit";
 import { nextTick, onMounted, shallowRef, useTemplateRef } from "vue";
 
 import type { WorldBounds } from "../../../model/structure/world-bounds";
@@ -38,7 +39,7 @@ onMounted(() => void nextTick(() => input.value?.select()));
     :style="{
       left: `${viewport.x + bounds.left * viewport.zoom + 8}px`,
       top: `${viewport.y + bounds.top * viewport.zoom + 7}px`,
-      width: `${Math.max(120, Math.min(320, (bounds.right - bounds.left) * viewport.zoom - 48))}px`,
+      width: `${clamp((bounds.right - bounds.left) * viewport.zoom - 48, 120, 320)}px`,
     }"
   >
     <input

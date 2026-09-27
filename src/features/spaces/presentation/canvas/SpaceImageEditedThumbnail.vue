@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useResizeObserver } from "@vueuse/core";
-import { onBeforeUnmount, onMounted, useTemplateRef, watch } from "vue";
+import { useEventListener, useResizeObserver } from "@vueuse/core";
+import { onMounted, useTemplateRef, watch } from "vue";
 
 import { renderEditedImage } from "../../image-editing/canvas-image-renderer";
 import type { ImageEdit } from "../../image-editing/image-edit";
@@ -35,11 +35,7 @@ function draw() {
   );
 }
 
-function loaded() {
-  draw();
-}
-
-image.addEventListener("load", loaded);
+useEventListener(image, "load", draw);
 watch(
   () => [props.path, props.revision] as const,
   ([path, revision]) => {
@@ -60,7 +56,6 @@ useResizeObserver(canvas, ([entry]) => {
   draw();
 });
 onMounted(draw);
-onBeforeUnmount(() => image.removeEventListener("load", loaded));
 </script>
 
 <template>

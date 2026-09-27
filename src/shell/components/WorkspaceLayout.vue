@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { clamp } from "es-toolkit";
 import { SplitterGroup, SplitterPanel } from "reka-ui";
 import { computed, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -34,9 +35,10 @@ const trailingPanel = shallowRef<InstanceType<typeof SplitterPanel> | null>(null
 const layoutReady = shallowRef(false);
 const motionReady = shallowRef(false);
 const rightWidth = computed(() =>
-  Math.min(
+  clamp(
+    props.rightSidebarWidth,
+    props.workspace.rightSidebarLayout.minSize,
     props.workspace.rightSidebarLayout.maxSize,
-    Math.max(props.workspace.rightSidebarLayout.minSize, props.rightSidebarWidth),
   ),
 );
 

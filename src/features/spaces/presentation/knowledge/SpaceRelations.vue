@@ -22,6 +22,7 @@ const selected = computed(() => {
   return node && isSpaceSemanticNode(node) ? node : undefined;
 });
 
+const nodeById = computed(() => new Map(nodes.value.map((node) => [node.id, node])));
 const incoming = computed(() => groupedRelations(false));
 const outgoing = computed(() => groupedRelations(true));
 
@@ -33,8 +34,8 @@ function groupedRelations(isOutgoing: boolean) {
     const matchesIncoming = relation.targetId === id;
     if ((isOutgoing && !matchesOutgoing) || (!isOutgoing && !matchesIncoming)) return [];
     const neighborId = isOutgoing ? relation.targetId : relation.sourceId;
-    const neighbor = nodes.value.find((node) => node.id === neighborId);
-    return neighbor ? [{ relation, neighbor, isOutgoing }] : [];
+    const neighbor = nodeById.value.get(neighborId);
+    return neighbor ? [{ relation, neighbor }] : [];
   });
 }
 

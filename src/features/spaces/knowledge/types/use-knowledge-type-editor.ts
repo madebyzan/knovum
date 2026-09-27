@@ -1,5 +1,5 @@
 import { ask } from "@tauri-apps/plugin-dialog";
-import { compact } from "es-toolkit";
+import { compact, isEqual } from "es-toolkit";
 import { storeToRefs } from "pinia";
 import { computed, ref, shallowRef, watch, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
@@ -24,15 +24,14 @@ export function useKnowledgeTypeEditor(open: Ref<boolean>) {
   const fields = ref<SpaceObjectFieldDefinition[]>([]);
   const saving = shallowRef(false);
   const error = shallowRef("");
-  const baseline = shallowRef("");
-  const fingerprint = () =>
-    JSON.stringify({
-      name: name.value.trim(),
-      icon: icon.value,
-      description: description.value.trim(),
-      fields: snapshotFields(fields.value),
-    });
-  const dirty = computed(() => baseline.value !== "" && baseline.value !== fingerprint());
+  const fingerprint = () => ({
+    name: name.value.trim(),
+    icon: icon.value,
+    description: description.value.trim(),
+    fields: snapshotFields(fields.value),
+  });
+  const baseline = shallowRef<ReturnType<typeof fingerprint>>();
+  const dirty = computed(() => baseline.value !== undefined && !isEqual(baseline.value, fingerprint()));
   const fieldKinds: SpaceObjectFieldKind[] = ["text", "number", "boolean", "date", "node-ref", "enum"];
   watch(activeSpaceId, reset);
   watch(open, (value) => {

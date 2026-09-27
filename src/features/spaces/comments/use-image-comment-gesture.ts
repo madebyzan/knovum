@@ -1,3 +1,4 @@
+import { clamp } from "es-toolkit";
 import { shallowRef } from "vue";
 
 import type { SpaceImagePayload } from "../model/nodes/node-payload";
@@ -14,8 +15,8 @@ interface Gesture {
 function point(event: PointerEvent): { x: number; y: number } {
   const bounds = (event.currentTarget as HTMLElement).getBoundingClientRect();
   return {
-    x: Math.max(0, Math.min(1, (event.clientX - bounds.left) / bounds.width)),
-    y: Math.max(0, Math.min(1, (event.clientY - bounds.top) / bounds.height)),
+    x: clamp((event.clientX - bounds.left) / bounds.width, 0, 1),
+    y: clamp((event.clientY - bounds.top) / bounds.height, 0, 1),
   };
 }
 

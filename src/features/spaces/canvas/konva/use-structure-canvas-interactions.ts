@@ -1,3 +1,4 @@
+import { compact } from "es-toolkit";
 import { computed, shallowRef, type Ref } from "vue";
 
 import { createStructureIndex, effectiveOperationRoots } from "../../model/structure/structure-index";
@@ -37,21 +38,26 @@ export function useStructureCanvasInteractions(options: {
   });
   const report = (operation: Promise<unknown>) => void operation.catch(options.events.onError);
 
-  function move(structureNodeId: string, delta: { x: number; y: number }) {
+  function gestureRootIds(structureNodeId: string) {
     const selected = options.selectedIds.value;
-    const rootIds = selected.has(structureNodeId) ? [...selected] : [structureNodeId];
-    const expandedSectionId = options.temporarilyExpandedSectionId.value;
+    return selected.has(structureNodeId) ? [...selected] : [structureNodeId];
+  }
+
+  function move(structureNodeId: string, delta: { x: number; y: number }) {
     report(
       options.events.onExecuteSpaceEdit(
-        sectionDropMoveCommand(options.snapshot(), rootIds, delta, expandedSectionId),
+        sectionDropMoveCommand(
+          options.snapshot(),
+          gestureRootIds(structureNodeId),
+          delta,
+          options.temporarilyExpandedSectionId.value,
+        ),
       ),
     );
   }
 
   function previewMove(structureNodeId: string, delta: { x: number; y: number } | undefined) {
-    const selected = options.selectedIds.value;
-    const rootIds = selected.has(structureNodeId) ? [...selected] : [structureNodeId];
-    dropPreview.update(rootIds, delta);
+    dropPreview.update(gestureRootIds(structureNodeId), delta);
   }
 
   function previewContentMove(updates: readonly CanvasGestureUpdate[]) {
@@ -62,10 +68,7 @@ export function useStructureCanvasInteractions(options: {
     const snapshot = options.snapshot();
     const index = createStructureIndex(snapshot.structure);
     const layouts = new Map(snapshot.layouts.map((layout) => [layout.structureNodeId, layout]));
-    const structureNodeIds = updates.flatMap(({ nodeId }) => {
-      const structureNodeId = index.nodeIdToStructureNodeId.get(nodeId);
-      return structureNodeId ? [structureNodeId] : [];
-    });
+    const structureNodeIds = compact(updates.map(({ nodeId }) => index.nodeIdToStructureNodeId.get(nodeId)));
     const roots = effectiveOperationRoots(structureNodeIds, index).map(({ id }) => id);
     const firstStructureNodeId = index.nodeIdToStructureNodeId.get(updates[0]!.nodeId);
     if (!firstStructureNodeId) return;
@@ -110,9 +113,7 @@ export function useStructureCanvasInteractions(options: {
     report(
       options.events.onExecuteSpaceEdit({
         kind: "structure.transform",
-        rootIds: options.selectedIds.value.has(structureNodeId)
-          ? [...options.selectedIds.value]
-          : [structureNodeId],
+        rootIds: gestureRootIds(structureNodeId),
         anchor: input.anchor,
         translation: { x: 0, y: 0 },
         rotationDelta: input.rotationDelta,

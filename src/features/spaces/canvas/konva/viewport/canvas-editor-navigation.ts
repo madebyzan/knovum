@@ -1,4 +1,4 @@
-import { intersectionBy } from "es-toolkit";
+import { compact, intersectionBy } from "es-toolkit";
 
 import type { CanvasNodeLayoutV1 } from "../../contract/canvas-document";
 import type { CanvasViewport } from "../../contract/canvas-editor-port";
@@ -49,12 +49,7 @@ export function revealCanvasTargets(
 ) {
   const layouts = intersectionBy(context.layouts(), ids, layoutNodeId);
   if (layouts.length) return revealCanvasLayouts(context, ids, mode);
-  const bounds = mergeBounds(
-    ids.flatMap((id) => {
-      const value = structureBounds.get(id);
-      return value ? [value] : [];
-    }),
-  );
+  const bounds = mergeBounds(compact(ids.map((id) => structureBounds.get(id))));
   if (!bounds) return;
   context.setStructureSelection(ids);
   if (mode === "focus") fitCanvasBounds(context, bounds);

@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/vue-query";
+import { queryOptions, useQuery } from "@tanstack/vue-query";
 import { computed, toValue, type MaybeRefOrGetter } from "vue";
 
 import { listRecentlyDeletedStructure } from "../../deletion/deleted-structure-actions";
@@ -23,11 +23,11 @@ function spaceQuery<T>(
   return useQuery(
     computed(() => {
       const id = spaceIdValue(spaceId);
-      return {
+      return queryOptions({
         queryKey: keyFactory(id),
         queryFn: () => fetcher(id),
         enabled: Boolean(toValue(spaceId)) && (extraEnabled ? extraEnabled() : true),
-      };
+      });
     }),
   );
 }
@@ -76,10 +76,12 @@ export function useRecentlyDeletedQuery(
   enabled: MaybeRefOrGetter<boolean>,
 ) {
   return useQuery(
-    computed(() => ({
-      queryKey: spaceKnowledgeQueryKeys.deleted(toValue(spaceId)),
-      queryFn: () => listRecentlyDeletedStructure(toValue(spaceId)),
-      enabled: toValue(enabled),
-    })),
+    computed(() =>
+      queryOptions({
+        queryKey: spaceKnowledgeQueryKeys.deleted(toValue(spaceId)),
+        queryFn: () => listRecentlyDeletedStructure(toValue(spaceId)),
+        enabled: toValue(enabled),
+      }),
+    ),
   );
 }

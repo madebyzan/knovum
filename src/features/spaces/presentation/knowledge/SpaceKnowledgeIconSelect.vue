@@ -56,7 +56,7 @@ const ICON_MAP = {
 type IconName = keyof typeof ICON_MAP;
 
 const activeEntry = computed(() => {
-  const name = (model.value as IconName) in ICON_MAP ? (model.value as IconName) : "Shapes";
+  const name = Object.hasOwn(ICON_MAP, model.value) ? (model.value as IconName) : "Shapes";
   return ICON_MAP[name];
 });
 </script>

@@ -11,13 +11,13 @@ defineProps<{
   retrying?: boolean;
 }>();
 const emit = defineEmits<{ remove: []; retry: [] }>();
-const { t } = useI18n();
+const { d, t } = useI18n();
 </script>
 
 <template>
   <div class="space-y-3">
     <p class="text-caption leading-relaxed break-words text-danger">{{ failure.error }}</p>
-    <p class="text-micro text-foreground-tertiary">{{ new Date(failure.completedAt).toLocaleString() }}</p>
+    <p class="text-micro text-foreground-tertiary">{{ d(failure.completedAt, "short") }}</p>
     <div class="flex items-center gap-2">
       <UiButton v-if="canRetry" size="sm" variant="secondary" :disabled="retrying" @click="emit('retry')">
         <RefreshCw class="size-(--knovum-icon-size-xs)" :class="{ 'animate-spin': retrying }" />{{

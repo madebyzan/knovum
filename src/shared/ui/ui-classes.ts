@@ -4,6 +4,9 @@ export const POPUP_ANIMATE_CLASSES =
 export const POPOVER_SURFACE_CLASSES =
   "rounded-panel border border-border-strong material-overlay shadow-popover";
 
+export const SUBMENU_CONTENT_CLASSES =
+  "material-overlay z-50 min-w-48 rounded-panel p-1 shadow-popover ring-1 ring-border";
+
 export const MENU_ITEM_BASE_CLASSES =
   "flex h-(--knovum-compact-item-height) cursor-default items-center gap-2 rounded-control text-label transition-colors outline-none data-disabled:opacity-40 data-highlighted:bg-control-hover";
 

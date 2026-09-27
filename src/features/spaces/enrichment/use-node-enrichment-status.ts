@@ -3,7 +3,8 @@ import { computed, shallowRef, type Ref } from "vue";
 import { toast } from "vue-sonner";
 
 import { useSpaceStore } from "../session/space-store";
-import { listEnrichmentJobs, type SpaceEnrichmentJobRecord } from "./enrichment-jobs";
+import type { SpaceEnrichmentJobRecord } from "./enrichment-jobs";
+import { enrichmentJobsQuery } from "./enrichment-jobs-query";
 import { retrySpaceEnrichmentJob } from "./job-scheduler";
 
 export interface NodeEnrichmentStatus {
@@ -14,19 +15,11 @@ export interface NodeEnrichmentStatus {
   lastError?: string;
 }
 
-const POLL_INTERVAL_MS = 2_000;
-
 export function useNodeEnrichmentStatus(spaceId: Ref<string | undefined>, nodeId: Ref<string | undefined>) {
   const store = useSpaceStore();
   const retrying = shallowRef(false);
   const query = useQuery(
-    computed(() => ({
-      queryKey: ["spaces", spaceId.value ?? "", "enrichment-jobs"] as const,
-      queryFn: ({ queryKey }: { queryKey: readonly [string, string, string] }) =>
-        listEnrichmentJobs(queryKey[1]),
-      enabled: Boolean(spaceId.value && nodeId.value),
-      refetchInterval: POLL_INTERVAL_MS,
-    })),
+    computed(() => enrichmentJobsQuery(spaceId.value ?? "", Boolean(spaceId.value && nodeId.value))),
   );
   const jobs = computed<SpaceEnrichmentJobRecord[]>(() => {
     if (!spaceId.value || !nodeId.value) return [];

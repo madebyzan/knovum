@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, shallowRef, watch } from "vue";
+import { useQuery } from "@tanstack/vue-query";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
@@ -7,17 +8,33 @@ import { useSpaceStore } from "../../session/space-store";
 import {
   previewWorkflowCapture,
   type WorkflowCaptureIssueReason,
-  type WorkflowCapturePreview,
 } from "../../workflows/captured-workflow-ipc";
 import SpaceWorkflowSaveForm from "./SpaceWorkflowSaveForm.vue";
-import { captureActionLabels, captureIssueLabels } from "./workflow-capture-labels";
+import { captureActionLabel, captureIssueLabels } from "./workflow-capture-labels";
 
 const store = useSpaceStore();
 const { t } = useI18n();
-const preview = shallowRef<WorkflowCapturePreview>();
-const error = shallowRef("");
-const loading = shallowRef(false);
-let requestNumber = 0;
+// The preview is derived from live canvas state, so it must never be served from cache.
+const capturePreviewQuery = useQuery(
+  computed(() => ({
+    queryKey: [
+      "spaces",
+      store.activeSpaceId ?? "",
+      "workflow-capture-preview",
+      store.workflowCaptureSelection,
+    ] as const,
+    queryFn: ({ queryKey }) => previewWorkflowCapture(queryKey[1], queryKey[2]),
+    enabled: Boolean(store.activeSpaceId) && store.workflowCaptureSelection.length > 0,
+    staleTime: 0,
+    gcTime: 0,
+  })),
+);
+const preview = computed(() => capturePreviewQuery.data.value);
+const loading = computed(() => capturePreviewQuery.isFetching.value);
+const error = computed(() => {
+  const cause = capturePreviewQuery.error.value;
+  return cause ? String(cause) : "";
+});
 
 const nodeTitles = computed(() => new Map(store.nodes.map(({ id, data }) => [id, data.title])));
 function title(nodeId: string) {
@@ -29,30 +46,8 @@ function issueText(reason: WorkflowCaptureIssueReason) {
 }
 
 function actionText(actionId: string) {
-  const label = captureActionLabels[actionId];
-  return label ? t(`spaces.creation.workflow.captureActions.${label}`) : actionId;
+  return captureActionLabel(actionId, t);
 }
-
-watch(
-  () => [store.activeSpaceId, store.workflowCaptureSelection] as const,
-  async ([spaceId, ids]) => {
-    const current = ++requestNumber;
-    preview.value = undefined;
-    error.value = "";
-    loading.value = false;
-    if (!spaceId || !ids.length) return;
-    loading.value = true;
-    try {
-      const result = await previewWorkflowCapture(spaceId, ids);
-      if (requestNumber === current) preview.value = result;
-    } catch (cause) {
-      if (requestNumber === current) error.value = String(cause);
-    } finally {
-      if (requestNumber === current) loading.value = false;
-    }
-  },
-  { immediate: true },
-);
 </script>
 
 <template>
