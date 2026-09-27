@@ -70,7 +70,7 @@ function measureRow(element: Element | ComponentPublicInstance | null) {
             />
           </div>
           <div class="border-t border-stroke-divider px-2 py-1.5">
-            <strong class="block truncate text-caption-md font-medium text-fg-primary">
+            <strong class="block truncate text-caption font-medium text-fg-primary">
               {{ item.locationLabel }}
             </strong>
             <span class="block truncate text-caption-sm text-fg-tertiary">

@@ -76,7 +76,7 @@ watch(open, (isOpen) => {
       </div>
       <AiExecutionTargetField v-model="form.textTarget" purpose="knowledge" />
       <AiExecutionTargetField v-model="form.imageTarget" purpose="image-generation" />
-      <p class="text-caption-md text-fg-tertiary">
+      <p class="text-caption text-fg-tertiary">
         {{ t("spaces.creation.document.sources", { count: sources.length }) }}
       </p>
     </div>

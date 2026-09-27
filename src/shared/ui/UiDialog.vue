@@ -53,8 +53,8 @@ const widthClass = computed(() => (props.size === "wide" ? "max-w-[720px]" : "ma
       >
         <header class="flex min-h-12 shrink-0 items-start gap-3 px-4 pt-4 pb-2">
           <div class="min-w-0 flex-1">
-            <DialogTitle class="text-body-md font-semibold tracking-title">{{ title }}</DialogTitle>
-            <DialogDescription v-if="description" class="mt-1 text-caption-md text-fg-secondary">
+            <DialogTitle class="text-title-sm font-semibold tracking-title">{{ title }}</DialogTitle>
+            <DialogDescription v-if="description" class="mt-1 text-caption text-fg-secondary">
               {{ description }}
             </DialogDescription>
           </div>

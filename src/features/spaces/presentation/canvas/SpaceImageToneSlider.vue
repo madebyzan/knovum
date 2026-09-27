@@ -9,7 +9,7 @@ const emit = defineEmits<{ update: [value: number] }>();
 </script>
 
 <template>
-  <label class="grid gap-1 text-label-md text-fg-primary">
+  <label class="grid gap-1 text-label text-fg-primary">
     <span class="flex items-center justify-between">
       <span>{{ label }}</span>
       <span class="text-fg-secondary tabular-nums">{{ value }}</span>

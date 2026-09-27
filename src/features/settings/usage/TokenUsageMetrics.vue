@@ -37,8 +37,8 @@ const items = computed(() => [
         index < 4 && 'max-sm:border-b',
       ]"
     >
-      <p class="text-title-md font-semibold tracking-title text-fg-primary">{{ item.value }}</p>
-      <p class="mt-1 text-caption-md text-fg-secondary">{{ item.label }}</p>
+      <p class="text-title font-semibold tracking-title text-fg-primary">{{ item.value }}</p>
+      <p class="mt-1 text-caption text-fg-secondary">{{ item.label }}</p>
     </div>
   </section>
 </template>

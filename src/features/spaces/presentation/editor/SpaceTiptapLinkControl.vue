@@ -81,20 +81,20 @@ async function visit() {
         <Link2 class="size-3.5" :stroke-width="1.6" />
       </span>
       <div class="min-w-0 flex-1">
-        <div class="text-label-md font-medium text-fg-primary">
+        <div class="text-label font-medium text-fg-primary">
           {{ t("spaces.richtext.link.editorTitle") }}
         </div>
-        <p v-if="selectedLabel" class="mt-0.5 truncate text-caption-md text-fg-tertiary">
+        <p v-if="selectedLabel" class="mt-0.5 truncate text-caption text-fg-tertiary">
           {{ selectedLabel }}
         </p>
-        <p v-else class="mt-0.5 text-caption-md text-fg-tertiary">
+        <p v-else class="mt-0.5 text-caption text-fg-tertiary">
           {{ t("spaces.richtext.link.editorDescription") }}
         </p>
       </div>
     </header>
     <div class="p-3">
       <label class="grid gap-1.5">
-        <span class="text-caption-md font-medium text-fg-secondary">{{ t("spaces.richtext.link.url") }}</span>
+        <span class="text-caption font-medium text-fg-secondary">{{ t("spaces.richtext.link.url") }}</span>
         <UiInput
           v-model="href"
           autofocus
@@ -104,7 +104,7 @@ async function visit() {
           @keydown.enter.prevent="apply"
         />
       </label>
-      <p v-if="invalid" class="mt-1.5 text-caption-md text-fg-danger">
+      <p v-if="invalid" class="mt-1.5 text-caption text-fg-danger">
         {{ t("spaces.richtext.link.invalid") }}
       </p>
     </div>

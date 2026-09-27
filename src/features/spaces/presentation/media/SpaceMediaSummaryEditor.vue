@@ -67,6 +67,6 @@ function saveMediaSummary() {
       /></UiIconButton>
     </div>
     <UiTextarea v-if="editing" v-model="draft" class="mt-1.5" :rows="5" />
-    <p v-else class="mt-1.5 text-caption-md leading-relaxed text-fg-secondary">{{ summary }}</p>
+    <p v-else class="mt-1.5 text-caption leading-relaxed text-fg-secondary">{{ summary }}</p>
   </div>
 </template>

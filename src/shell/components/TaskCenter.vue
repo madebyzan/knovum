@@ -47,7 +47,7 @@ watch(
       <button
         type="button"
         :aria-label="t('tasks.title')"
-        class="inline-flex h-(--knovum-control-height-sm) items-center gap-1.5 rounded-md border border-stroke-default bg-surface-overlay px-2 text-caption-md text-fg-secondary shadow-control transition-colors duration-100 ease-standard outline-none hover:bg-surface-control-hover hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-stroke-focus motion-reduce:transition-none"
+        class="inline-flex h-(--knovum-control-height-sm) items-center gap-1.5 rounded-md border border-stroke-default bg-surface-overlay px-2 text-caption text-fg-secondary shadow-control transition-colors duration-100 ease-standard outline-none hover:bg-surface-control-hover hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-stroke-focus motion-reduce:transition-none"
       >
         <UiSpinner v-if="running.length" size="sm" tone="accent" />
         <CircleX v-else-if="failed.length" class="size-3 text-fg-danger" />
@@ -65,7 +65,7 @@ watch(
     <div
       class="flex h-(--knovum-task-center-header-height) items-center gap-2 border-b border-stroke-divider px-3"
     >
-      <div class="min-w-0 flex-1 text-body-md font-semibold tracking-title">
+      <div class="min-w-0 flex-1 text-title-sm font-semibold tracking-title">
         {{ t("tasks.title") }}
       </div>
       <UiButton v-if="completed.length" size="sm" variant="ghost" @click="store.clearCompleted()">

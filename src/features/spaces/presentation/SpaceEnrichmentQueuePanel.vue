@@ -23,7 +23,7 @@ const cancellation = useMutation({
 <template>
   <section
     v-if="jobs.length"
-    class="rounded-panel border border-stroke-divider bg-surface-muted/45 p-3 text-caption-md text-fg-secondary"
+    class="rounded-panel border border-stroke-divider bg-surface-muted/45 p-3 text-caption text-fg-secondary"
   >
     <header class="mb-2 flex items-center justify-between">
       <span class="font-semibold text-fg-primary">{{ t("spaces.processing.queue.title") }}</span>

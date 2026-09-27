@@ -99,7 +99,7 @@ async function remeasure() {
         />
       </div>
     </div>
-    <p v-if="!visibleIndices.length" class="p-4 text-center text-caption-md text-fg-tertiary">
+    <p v-if="!visibleIndices.length" class="p-4 text-center text-caption text-fg-tertiary">
       {{ t("spaces.transcript.text.noMatches") }}
     </p>
   </div>

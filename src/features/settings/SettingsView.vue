@@ -110,7 +110,7 @@ function backToApp() {
         <header
           class="mb-5 flex min-h-(--knovum-control-height-sm) items-center justify-between gap-4 px-0.5"
         >
-          <h1 class="m-0 text-display-sm font-semibold tracking-title text-fg-primary">
+          <h1 class="m-0 text-display font-semibold tracking-title text-fg-primary">
             {{ paneTitle }}
           </h1>
           <component :is="paneHeaderAction" v-if="paneHeaderAction" />

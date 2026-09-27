@@ -79,7 +79,7 @@ defineExpose({ seekTo, togglePlayback });
     </UiIconButton>
 
     <div class="flex min-w-0 items-center gap-2">
-      <strong class="min-w-0 flex-1 truncate text-label-md font-medium">{{ data.title }}</strong>
+      <strong class="min-w-0 flex-1 truncate text-label font-medium">{{ data.title }}</strong>
       <span v-if="data.origin" class="max-w-16 shrink-0 truncate text-caption-sm text-fg-tertiary">
         {{ mediaProviderDisplayName(data.origin.provider) }}
       </span>

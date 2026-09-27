@@ -31,7 +31,7 @@ const variantClasses: Record<BadgeVariant, string> = {
     :class="
       cn(
         'inline-flex shrink-0 items-center justify-center rounded-md font-medium tabular-nums select-none',
-        size === 'sm' ? 'h-4 px-1.5 text-caption-sm' : 'h-5 px-2 text-caption-md',
+        size === 'sm' ? 'h-4 px-1.5 text-caption-sm' : 'h-5 px-2 text-caption',
         variantClasses[variant],
         props.class,
       )

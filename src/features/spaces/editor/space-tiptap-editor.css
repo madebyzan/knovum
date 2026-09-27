@@ -2,7 +2,7 @@
   min-height: 32rem;
   outline: none;
   color: var(--color-fg-primary);
-  font-size: var(--text-body-md);
+  font-size: var(--text-body-lg);
   line-height: 1.68;
 }
 :deep(.space-tiptap-prose > * + *) {

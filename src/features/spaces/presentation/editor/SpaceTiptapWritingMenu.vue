@@ -39,7 +39,7 @@ const { runningAction, itemClass, submenuClass, tones, translations, run, runTra
         type="button"
         :disabled="Boolean(runningAction)"
         :aria-label="t('spaces.richtext.ai.title')"
-        class="group inline-flex h-(--knovum-control-height-sm) items-center gap-1.5 rounded-md px-2 text-label-md font-medium text-fg-accent transition-colors outline-none hover:bg-surface-selected focus-visible:bg-surface-selected focus-visible:outline-none disabled:opacity-45"
+        class="group inline-flex h-(--knovum-control-height-sm) items-center gap-1.5 rounded-md px-2 text-label font-medium text-fg-accent transition-colors outline-none hover:bg-surface-selected focus-visible:bg-surface-selected focus-visible:outline-none disabled:opacity-45"
         :class="compact && 'px-2.5'"
       >
         <Sparkles class="size-3.5" :class="runningAction && 'animate-pulse'" :stroke-width="1.7" />
@@ -68,7 +68,7 @@ const { runningAction, itemClass, submenuClass, tones, translations, run, runTra
           <ScanText class="size-3.5 text-fg-secondary" />{{ t("spaces.richtext.ai.actions.simplify") }}
         </DropdownMenuItem>
         <DropdownMenuItem :class="itemClass" @select="run('emojify')">
-          <span class="grid size-3.5 place-items-center text-body-md">🙂</span
+          <span class="grid size-3.5 place-items-center text-body-lg">🙂</span
           >{{ t("spaces.richtext.ai.actions.emojify") }}
         </DropdownMenuItem>
         <DropdownMenuSeparator class="bg-border-divider my-1 h-px" />

@@ -124,7 +124,7 @@ async function save() {
 
 <template>
   <form class="space-y-3 border-t border-stroke-divider pt-3" @submit.prevent="save">
-    <h3 class="text-caption-md font-semibold text-fg-primary">
+    <h3 class="text-caption font-semibold text-fg-primary">
       {{ t("spaces.creation.workflow.edit") }}
     </h3>
     <SpaceWorkflowStepSelection
@@ -133,7 +133,7 @@ async function save() {
       @update:model-value="setIncludedSteps"
     />
     <SpaceWorkflowOutputEditor v-model="outputSlots" :steps="steps" />
-    <p v-if="!catalog.length && !catalogError" class="text-caption-md text-fg-secondary" role="status">
+    <p v-if="!catalog.length && !catalogError" class="text-caption text-fg-secondary" role="status">
       {{ t("spaces.creation.workflow.derivation.loading") }}
     </p>
     <SpaceWorkflowParameterFields
@@ -143,7 +143,7 @@ async function save() {
       @update-text="setText"
       @update-boolean="setBoolean"
     />
-    <p v-if="catalogError || error" role="alert" class="text-caption-md text-fg-danger">
+    <p v-if="catalogError || error" role="alert" class="text-caption text-fg-danger">
       {{ catalogError || error }}
     </p>
     <div class="flex gap-2">

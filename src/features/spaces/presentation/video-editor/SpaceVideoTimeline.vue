@@ -54,7 +54,7 @@ function editText(edited: VideoTextOverlay) {
     class="grid h-48 shrink-0 grid-cols-[6rem_minmax(0,1fr)] border-t border-stroke-default bg-surface-panel"
     :aria-label="$t('spaces.media.player.timeline')"
   >
-    <div class="border-r border-stroke-divider text-caption-md text-fg-secondary">
+    <div class="border-r border-stroke-divider text-caption text-fg-secondary">
       <div class="h-8 border-b border-stroke-divider" />
       <div class="flex h-11 items-center gap-2 border-b border-stroke-divider px-3">
         <Captions class="size-3.5" />{{ $t("spaces.media.videoEditor.tracks.text") }}

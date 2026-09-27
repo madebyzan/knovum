@@ -12,13 +12,13 @@ const { t } = useI18n();
   >
     <button
       type="button"
-      class="rounded-md px-1.5 py-0.5 text-caption-md text-fg-secondary hover:bg-surface-control-hover hover:text-fg-primary"
+      class="rounded-md px-1.5 py-0.5 text-caption text-fg-secondary hover:bg-surface-control-hover hover:text-fg-primary"
       @click="emit('back')"
     >
       {{ t("common.back") }}
     </button>
     <span class="bg-border-default h-3 w-px" />
-    <span class="max-w-72 truncate text-caption-md font-medium text-fg-primary">
+    <span class="max-w-72 truncate text-caption font-medium text-fg-primary">
       {{ titles.join(" / ") }}
     </span>
   </div>

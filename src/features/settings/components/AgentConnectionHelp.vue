@@ -15,7 +15,7 @@ const { t } = useI18n();
       <button
         type="button"
         :aria-label="t('settings.agents.connectionHelp', { name: agent.displayName })"
-        class="decoration-border-divider shrink-0 rounded-md text-caption-md text-fg-secondary underline underline-offset-2 hover:text-fg-primary hover:decoration-current focus-visible:outline-2 focus-visible:outline-stroke-accent"
+        class="decoration-border-divider shrink-0 rounded-md text-caption text-fg-secondary underline underline-offset-2 hover:text-fg-primary hover:decoration-current focus-visible:outline-2 focus-visible:outline-stroke-accent"
       >
         {{ label }}
       </button>

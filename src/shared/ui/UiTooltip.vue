@@ -41,7 +41,7 @@ const props = withDefaults(
           :class="
             cn(
               POPUP_ANIMATE_CLASSES,
-              'pointer-events-none z-70 rounded-md border border-stroke-default material-overlay px-2 py-1 text-caption-md text-fg-primary shadow-popover duration-100 ease-standard select-none',
+              'pointer-events-none z-70 rounded-md border border-stroke-default material-overlay px-2 py-1 text-caption text-fg-primary shadow-popover duration-100 ease-standard select-none',
               props.class,
             )
           "

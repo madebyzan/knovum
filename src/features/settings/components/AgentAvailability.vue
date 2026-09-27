@@ -39,7 +39,7 @@ const statusMessageKey = computed(() => {
     <div class="flex items-center justify-between gap-4">
       <div class="flex min-w-0 items-center gap-2">
         <Terminal class="size-3.5 shrink-0 text-fg-secondary" />
-        <span class="truncate text-label-md text-fg-primary">{{ agent.displayName }}</span>
+        <span class="truncate text-label text-fg-primary">{{ agent.displayName }}</span>
       </div>
       <div class="flex items-center gap-2">
         <AgentConnectionHelp v-if="needsSetup" :agent="agent" :label="t(statusMessageKey)" />

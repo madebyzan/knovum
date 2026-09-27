@@ -62,7 +62,7 @@ const emptyMessage = computed(() => {
         <Globe2 v-else class="size-3.5 text-fg-tertiary" :stroke-width="1.5" />
       </div>
       <div class="min-w-0 flex-1">
-        <p v-if="sourceName" class="truncate text-caption-md font-medium text-fg-secondary">
+        <p v-if="sourceName" class="truncate text-caption font-medium text-fg-secondary">
           {{ sourceName }}
         </p>
         <p class="truncate text-caption-sm text-fg-tertiary">{{ host }}</p>
@@ -70,17 +70,17 @@ const emptyMessage = computed(() => {
       <SpaceCanvasNodeStatus :id="id" :data="data" />
     </div>
     <div class="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden px-3 py-3">
-      <strong class="line-clamp-2 text-body-sm leading-snug font-semibold text-fg-primary">{{
+      <strong class="line-clamp-2 text-body leading-snug font-semibold text-fg-primary">{{
         data.title
       }}</strong>
       <p
         v-if="showsSummary && summary"
-        class="text-caption-md leading-relaxed text-fg-secondary"
+        class="text-caption leading-relaxed text-fg-secondary"
         :class="previewSource ? 'line-clamp-3' : 'line-clamp-7'"
       >
         {{ summary }}
       </p>
-      <p v-else-if="emptyMessage" class="text-caption-md text-fg-tertiary">{{ emptyMessage }}</p>
+      <p v-else-if="emptyMessage" class="text-caption text-fg-tertiary">{{ emptyMessage }}</p>
     </div>
     <img
       v-if="showsPreview && previewSource"

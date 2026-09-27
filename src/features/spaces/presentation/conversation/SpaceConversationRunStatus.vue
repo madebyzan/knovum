@@ -12,7 +12,7 @@ const { t } = useI18n();
 <template>
   <div
     v-if="state === 'paused'"
-    class="flex shrink-0 items-center gap-2 px-3 py-2 text-caption-md text-fg-warning"
+    class="flex shrink-0 items-center gap-2 px-3 py-2 text-caption text-fg-warning"
   >
     <span class="min-w-0 flex-1">{{ t("spaces.assistant.tasks.paused") }}</span>
     <UiButton size="sm" variant="secondary" @click="emit('resume')">{{
@@ -21,7 +21,7 @@ const { t } = useI18n();
   </div>
   <p
     v-else-if="state === 'waiting' && !hasPendingDecision"
-    class="shrink-0 px-3 py-2 text-caption-md text-fg-secondary"
+    class="shrink-0 px-3 py-2 text-caption text-fg-secondary"
   >
     {{
       t(

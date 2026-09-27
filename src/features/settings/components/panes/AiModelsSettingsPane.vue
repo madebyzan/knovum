@@ -83,7 +83,7 @@ onMounted(hydrateStores);
     @reset="resetSection"
   />
   <TabsRoot v-else v-model="activeSection" :class="!ready && 'pointer-events-none opacity-60'">
-    <p class="mb-4 max-w-2xl text-body-sm text-fg-secondary">{{ t("settings.ai.description") }}</p>
+    <p class="mb-4 max-w-2xl text-body text-fg-secondary">{{ t("settings.ai.description") }}</p>
     <TabsList
       :aria-label="t('settings.ai.title')"
       class="mb-5 inline-flex rounded-md bg-surface-control p-0.5"
@@ -92,7 +92,7 @@ onMounted(hydrateStores);
         v-for="section in sections"
         :key="section.value"
         :value="section.value"
-        class="flex h-(--knovum-control-height-md) items-center gap-1.5 rounded-md px-3 text-label-md text-fg-secondary transition-colors outline-none hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-stroke-focus data-[state=active]:bg-surface-raised data-[state=active]:text-fg-primary data-[state=active]:shadow-control"
+        class="flex h-(--knovum-control-height-md) items-center gap-1.5 rounded-md px-3 text-label text-fg-secondary transition-colors outline-none hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-stroke-focus data-[state=active]:bg-surface-raised data-[state=active]:text-fg-primary data-[state=active]:shadow-control"
       >
         <component :is="section.icon" class="size-3.5" :stroke-width="1.7" />
         {{ section.label }}

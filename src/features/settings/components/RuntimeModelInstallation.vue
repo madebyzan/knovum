@@ -47,10 +47,10 @@ const { t } = useI18n();
             class="size-3.5"
             :class="installed ? 'text-fg-success' : 'text-fg-warning'"
           />
-          <span class="text-body-md font-medium text-fg-primary">{{ title }}</span>
+          <span class="text-body-lg font-medium text-fg-primary">{{ title }}</span>
         </div>
 
-        <div class="mt-0.5 text-caption-md text-fg-secondary">
+        <div class="mt-0.5 text-caption text-fg-secondary">
           <template v-if="progress.state === 'downloading'">
             {{
               t("settings.offlineModels.download.downloading", {
@@ -84,7 +84,7 @@ const { t } = useI18n();
       <div class="flex shrink-0 items-center gap-3">
         <span
           v-if="progress.state === 'downloading'"
-          class="text-caption-md font-medium text-fg-accent tabular-nums"
+          class="text-caption font-medium text-fg-accent tabular-nums"
         >
           {{ progress.progress }}%
         </span>

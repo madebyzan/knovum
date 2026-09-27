@@ -27,7 +27,7 @@ const inputId = useId();
 
 <template>
   <div class="min-w-0">
-    <label :for="inputId" class="mb-1.5 block text-caption-md text-fg-secondary">{{ label }}</label>
+    <label :for="inputId" class="mb-1.5 block text-caption text-fg-secondary">{{ label }}</label>
     <ComboboxRoot v-model="model" :disabled="disabled" open-on-click>
       <ComboboxAnchor class="relative block">
         <ComboboxInput
@@ -35,7 +35,7 @@ const inputId = useId();
           :display-value="(value) => String(value ?? '')"
           :class="[
             INPUT_BASE_CLASSES,
-            'h-(--knovum-control-height-sm) w-full min-w-0 pr-7 pl-2 text-caption-md',
+            'h-(--knovum-control-height-sm) w-full min-w-0 pr-7 pl-2 text-caption',
           ]"
         />
         <ComboboxTrigger
@@ -57,14 +57,12 @@ const inputId = useId();
           ]"
         >
           <ComboboxViewport class="max-h-60 overflow-y-auto">
-            <ComboboxEmpty class="px-2 py-3 text-caption-md text-fg-secondary">{{
-              emptyLabel
-            }}</ComboboxEmpty>
+            <ComboboxEmpty class="px-2 py-3 text-caption text-fg-secondary">{{ emptyLabel }}</ComboboxEmpty>
             <ComboboxItem
               v-for="family in families"
               :key="family"
               :value="family"
-              class="relative flex min-h-(--knovum-list-item-height-sm) cursor-default items-center rounded-md py-1 pr-2 pl-7 text-label-md outline-none data-highlighted:bg-surface-control-hover"
+              class="relative flex min-h-(--knovum-list-item-height-sm) cursor-default items-center rounded-md py-1 pr-2 pl-7 text-label outline-none data-highlighted:bg-surface-control-hover"
             >
               <ComboboxItemIndicator class="absolute left-2"><Check class="size-3" /></ComboboxItemIndicator>
               <span class="min-w-0 truncate">{{ family }}</span>

@@ -132,9 +132,7 @@ const menuItems = computed(() => [
       />
       <span v-else class="h-10 w-18 rounded-sm border border-stroke-strong bg-surface-canvas" />
       <span class="flex min-w-0 items-center gap-1.5">
-        <span class="min-w-0 flex-1 truncate text-label-md font-medium text-fg-primary">{{
-          scene.title
-        }}</span>
+        <span class="min-w-0 flex-1 truncate text-label font-medium text-fg-primary">{{ scene.title }}</span>
         <TriangleAlert
           v-if="invalid"
           class="size-3 shrink-0 text-fg-warning"

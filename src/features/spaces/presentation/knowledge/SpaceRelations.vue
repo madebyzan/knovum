@@ -60,7 +60,7 @@ function editRelation(id: string) {
   <section v-if="selected">
     <div
       v-if="incoming.length === 0 && outgoing.length === 0"
-      class="flex items-start gap-2 text-caption-md text-fg-tertiary"
+      class="flex items-start gap-2 text-caption text-fg-tertiary"
     >
       <Link2 class="mt-0.5 size-3 shrink-0" />
       <span>{{ t("spaces.knowledge.relations.empty") }}</span>

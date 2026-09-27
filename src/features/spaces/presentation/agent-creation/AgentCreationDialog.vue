@@ -60,7 +60,7 @@ watch(open, (isOpen) => {
     :description="t('spaces.creation.agent.description')"
   >
     <div v-if="!agents.length" class="rounded-panel border border-stroke-default bg-surface-muted p-4">
-      <p class="text-body-sm text-fg-secondary">{{ t("spaces.creation.agent.unavailable") }}</p>
+      <p class="text-body text-fg-secondary">{{ t("spaces.creation.agent.unavailable") }}</p>
       <UiButton class="mt-3" size="sm" variant="secondary" @click="openAgentSettings">
         {{ t("spaces.creation.agent.configure") }}
       </UiButton>
@@ -83,7 +83,7 @@ watch(open, (isOpen) => {
         <UiButton size="sm" variant="secondary" :disabled="running" @click="chooseAttachments">
           <Paperclip class="size-3" />{{ t("spaces.creation.agent.context.add") }}
         </UiButton>
-        <span class="text-caption-md text-fg-secondary">
+        <span class="text-caption text-fg-secondary">
           {{ t("spaces.creation.agent.knowledgeConnected") }}
         </span>
       </div>
@@ -91,7 +91,7 @@ watch(open, (isOpen) => {
         <span
           v-for="attachment in attachments"
           :key="attachment.path"
-          class="flex max-w-full items-center gap-1 rounded-md bg-surface-control px-2 py-1 text-caption-md"
+          class="flex max-w-full items-center gap-1 rounded-md bg-surface-control px-2 py-1 text-caption"
         >
           <span class="truncate">{{ attachment.name }}</span>
           <UiButton
@@ -106,15 +106,15 @@ watch(open, (isOpen) => {
           </UiButton>
         </span>
       </div>
-      <p v-if="status" class="line-clamp-3 text-caption-md text-fg-secondary">{{ status }}</p>
+      <p v-if="status" class="line-clamp-3 text-caption text-fg-secondary">{{ status }}</p>
       <section
         v-if="pendingPermission"
         class="space-y-3 rounded-panel border border-stroke-warning/40 bg-surface-warning-subtle p-3"
         aria-live="assertive"
       >
         <div>
-          <p class="text-label-md text-fg-primary">{{ pendingPermission.title }}</p>
-          <p class="text-caption-md text-fg-secondary">
+          <p class="text-label text-fg-primary">{{ pendingPermission.title }}</p>
+          <p class="text-caption text-fg-secondary">
             {{ t("spaces.creation.agent.permissionDescription") }}
           </p>
         </div>

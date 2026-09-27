@@ -57,7 +57,7 @@ function syncActive() {
 <template>
   <section class="w-60 text-fg-primary" :aria-label="t('spaces.media.imageEditor.adjust.title')">
     <header class="flex items-center justify-between px-1 pb-2">
-      <h3 class="text-body-md font-semibold">{{ t("spaces.media.imageEditor.adjust.title") }}</h3>
+      <h3 class="text-title-sm font-semibold">{{ t("spaces.media.imageEditor.adjust.title") }}</h3>
       <div class="flex items-center gap-1">
         <button
           type="button"
@@ -102,7 +102,7 @@ function syncActive() {
           :data-adjust-group="group.id"
           class="pt-2 pb-3 last:min-h-80"
         >
-          <h4 class="mb-2 text-label-md font-medium text-fg-secondary">
+          <h4 class="mb-2 text-label font-medium text-fg-secondary">
             {{ t(`spaces.media.imageEditor.adjustGroups.${group.id}`) }}
           </h4>
           <div class="space-y-2">

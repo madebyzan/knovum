@@ -55,7 +55,7 @@ function changeZoom(delta: number) {
 <template>
   <section class="w-72 space-y-3 text-fg-primary" :aria-label="t('spaces.media.imageEditor.angle.title')">
     <header class="flex items-center justify-between px-1">
-      <h3 class="text-body-md font-semibold">{{ t("spaces.media.imageEditor.angle.title") }}</h3>
+      <h3 class="text-title-sm font-semibold">{{ t("spaces.media.imageEditor.angle.title") }}</h3>
       <UiButton
         variant="ghost"
         size="sm"
@@ -77,7 +77,7 @@ function changeZoom(delta: number) {
         v-for="item in ['subject', 'camera'] as const"
         :key="item"
         type="button"
-        class="h-(--knovum-control-height-md) rounded-md text-label-md text-fg-secondary transition-colors focus-visible:ring-2 focus-visible:ring-stroke-focus"
+        class="h-(--knovum-control-height-md) rounded-md text-label text-fg-secondary transition-colors focus-visible:ring-2 focus-visible:ring-stroke-focus"
         :class="
           mode === item
             ? 'border border-stroke-default bg-surface-raised text-fg-primary shadow-control'

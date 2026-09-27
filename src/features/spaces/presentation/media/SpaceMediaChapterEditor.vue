@@ -78,7 +78,7 @@ function save() {
     </button>
 
     <div class="min-w-0 flex-1 space-y-0.5">
-      <strong class="block text-caption-md leading-snug font-medium break-words text-fg-primary">
+      <strong class="block text-caption leading-snug font-medium break-words text-fg-primary">
         {{ chapter.title }}
       </strong>
       <p

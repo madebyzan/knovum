@@ -13,8 +13,8 @@ const { t } = useI18n();
 <template>
   <SettingsSection :title="t('settings.general.load.failed')">
     <div class="px-4 py-3">
-      <p class="text-body-sm text-fg-danger">{{ message }}</p>
-      <p class="mt-1 text-caption-md text-fg-secondary">
+      <p class="text-body text-fg-danger">{{ message }}</p>
+      <p class="mt-1 text-caption text-fg-secondary">
         {{ t("settings.general.load.failedDescription") }}
       </p>
       <div class="mt-3 flex gap-2">

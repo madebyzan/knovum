@@ -41,7 +41,7 @@ onMounted(store.ensureLoaded);
     @reset="resetSection"
   />
   <div v-else class="grid gap-5" :class="!ready && 'pointer-events-none opacity-60'">
-    <p class="max-w-2xl text-body-sm text-fg-secondary">
+    <p class="max-w-2xl text-body text-fg-secondary">
       {{ t("settings.creation.description") }}
     </p>
     <SavedGenerationPresets

@@ -73,7 +73,7 @@ function weightName(value: number): string {
       :disabled="isPending || !!error"
     />
     <div class="min-w-0">
-      <span class="mb-1.5 block text-caption-md text-fg-secondary">{{
+      <span class="mb-1.5 block text-caption text-fg-secondary">{{
         $t("spaces.media.videoEditor.font.weight")
       }}</span>
       <UiSelect

@@ -35,8 +35,8 @@ const icons = { image: Image, video: Video, audio: Music, document: File, file: 
       />
       <component :is="icons[artifact.kind]" class="size-3.5 text-fg-secondary" />
       <div class="min-w-0 flex-1">
-        <div class="truncate text-label-md text-fg-primary">{{ artifact.name }}</div>
-        <div class="truncate text-caption-md text-fg-tertiary">
+        <div class="truncate text-label text-fg-primary">{{ artifact.name }}</div>
+        <div class="truncate text-caption text-fg-tertiary">
           {{ artifact.relativePath }} · {{ formatByteSize(artifact.size) }}
         </div>
       </div>

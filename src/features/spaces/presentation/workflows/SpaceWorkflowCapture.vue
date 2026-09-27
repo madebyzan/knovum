@@ -50,7 +50,7 @@ function actionText(actionId: string) {
 </script>
 
 <template>
-  <div class="flex h-full min-h-0 flex-col text-label-md">
+  <div class="flex h-full min-h-0 flex-col text-label">
     <div class="min-h-0 flex-1 overflow-y-auto px-3 py-3">
       <p v-if="loading" class="text-fg-secondary" role="status">
         {{ t("spaces.creation.workflow.derivation.loading") }}
@@ -79,7 +79,7 @@ function actionText(actionId: string) {
           </div>
         </section>
         <section v-if="preview.steps.length" class="space-y-2">
-          <h3 class="text-caption-md font-semibold text-fg-secondary">
+          <h3 class="text-caption font-semibold text-fg-secondary">
             {{ t("spaces.creation.workflow.derivation.steps") }}
           </h3>
           <ol class="space-y-1">
@@ -93,7 +93,7 @@ function actionText(actionId: string) {
                   <span class="text-caption-sm text-fg-tertiary">{{ index + 1 }}</span>
                   <span class="min-w-0 flex-1 truncate font-medium">{{ title(step.outputNodeId) }}</span>
                 </span>
-                <span class="pl-4 text-caption-md font-normal text-fg-secondary">{{
+                <span class="pl-4 text-caption font-normal text-fg-secondary">{{
                   actionText(step.actionId)
                 }}</span>
               </UiButton>
@@ -101,7 +101,7 @@ function actionText(actionId: string) {
           </ol>
         </section>
         <section v-if="preview.inputs.length" class="mt-4">
-          <h3 class="text-caption-md font-semibold text-fg-secondary">
+          <h3 class="text-caption font-semibold text-fg-secondary">
             {{ t("spaces.creation.workflow.derivation.inputs") }}
           </h3>
           <ul class="mt-2 space-y-1">
@@ -117,7 +117,7 @@ function actionText(actionId: string) {
           </ul>
         </section>
         <section v-if="preview.issues.length" class="mt-4">
-          <h3 class="text-caption-md font-semibold text-fg-secondary">
+          <h3 class="text-caption font-semibold text-fg-secondary">
             {{ t("spaces.creation.workflow.derivation.issues") }}
           </h3>
           <ul class="mt-2 space-y-1">
@@ -127,7 +127,7 @@ function actionText(actionId: string) {
               class="rounded-md bg-surface-control px-2.5 py-2"
             >
               <span class="font-medium">{{ title(issue.nodeId) }}</span>
-              <p class="text-caption-md text-fg-secondary">{{ issueText(issue.reason) }}</p>
+              <p class="text-caption text-fg-secondary">{{ issueText(issue.reason) }}</p>
             </li>
           </ul>
         </section>

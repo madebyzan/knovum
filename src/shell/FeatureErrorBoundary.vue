@@ -34,7 +34,7 @@ async function retry() {
     <section class="w-full max-w-130 rounded-xl border border-stroke-strong bg-surface-raised p-5">
       <AlertTriangle class="mb-3 size-5 text-fg-danger" />
       <h1 class="m-0 text-title-sm font-semibold">{{ t("errors.feature.title") }}</h1>
-      <p class="mt-1.5 text-body-sm text-fg-secondary">{{ t("errors.feature.description") }}</p>
+      <p class="mt-1.5 text-body text-fg-secondary">{{ t("errors.feature.description") }}</p>
       <UiButton class="mt-4" @click="retry"><RotateCcw class="size-3.5" /> {{ t("common.retry") }}</UiButton>
     </section>
   </main>

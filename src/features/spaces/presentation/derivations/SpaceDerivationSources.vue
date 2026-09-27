@@ -27,7 +27,7 @@ const hasChangedSource = computed(() => props.sources.some((source) => !source.c
         class="size-3 shrink-0 text-fg-warning"
         :aria-label="t('spaces.creation.shared.source.changed')"
       />
-      <span class="min-w-0 flex-1 truncate text-caption-md text-fg-secondary">{{ source.title }}</span>
+      <span class="min-w-0 flex-1 truncate text-caption text-fg-secondary">{{ source.title }}</span>
       <UiIconButton
         v-if="source.nodeId !== null"
         :label="t('spaces.inspector.openSource')"

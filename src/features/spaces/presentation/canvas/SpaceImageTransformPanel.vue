@@ -28,9 +28,9 @@ function setRotation(event: Event) {
     class="flex h-(--knovum-control-height-lg) w-max items-center gap-1 rounded-panel border border-stroke-strong bg-surface-overlay p-px text-fg-primary shadow-control"
     :aria-label="t('spaces.media.imageEditor.transform.title')"
   >
-    <span class="px-2 text-label-md font-medium">{{ t("spaces.media.imageEditor.transform.title") }}</span>
+    <span class="px-2 text-label font-medium">{{ t("spaces.media.imageEditor.transform.title") }}</span>
     <label
-      class="flex h-full items-center gap-0.5 border-l border-stroke-divider px-2 text-label-md tabular-nums"
+      class="flex h-full items-center gap-0.5 border-l border-stroke-divider px-2 text-label tabular-nums"
     >
       <input
         type="number"

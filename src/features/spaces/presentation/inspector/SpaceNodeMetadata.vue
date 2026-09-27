@@ -117,8 +117,8 @@ async function refreshWebsite() {
 <template>
   <dl class="space-y-0.5">
     <div v-for="row in fields" :key="row.label" class="grid grid-cols-[4.5rem_minmax(0,1fr)] gap-2 py-1.5">
-      <dt class="text-caption-md text-fg-tertiary">{{ row.label }}</dt>
-      <dd class="min-w-0 text-caption-md text-fg-secondary">
+      <dt class="text-caption text-fg-tertiary">{{ row.label }}</dt>
+      <dd class="min-w-0 text-caption text-fg-secondary">
         <span class="block" :class="row.multiline ? 'line-clamp-3' : 'truncate'" :title="row.value">{{
           row.value
         }}</span>

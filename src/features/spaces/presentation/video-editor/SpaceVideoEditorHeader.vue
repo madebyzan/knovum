@@ -22,7 +22,7 @@ const { t } = useI18n();
       ><X class="size-3.5"
     /></UiIconButton>
     <div class="min-w-0 flex-1">
-      <h1 class="truncate text-label-md font-semibold">
+      <h1 class="truncate text-label font-semibold">
         {{ title }}<span v-if="dirty" class="ml-1 text-fg-tertiary" aria-hidden="true">•</span>
         <span v-if="dirty" class="sr-only">{{ t("spaces.media.videoEditor.unsaved.status") }}</span>
       </h1>

@@ -56,27 +56,25 @@ function action(run: () => void) {
           @click="insertTable"
         ></button>
       </div>
-      <div class="mt-2 text-center text-caption-md font-medium text-fg-secondary">
-        {{ rows }} × {{ cols }}
-      </div>
+      <div class="mt-2 text-center text-caption font-medium text-fg-secondary">{{ rows }} × {{ cols }}</div>
     </template>
     <div v-else class="grid gap-1">
       <button
-        class="flex h-(--knovum-control-height-md) items-center gap-2 rounded-md px-2.5 text-left text-label-md text-fg-primary hover:bg-surface-control-hover"
+        class="flex h-(--knovum-control-height-md) items-center gap-2 rounded-md px-2.5 text-left text-label text-fg-primary hover:bg-surface-control-hover"
         type="button"
         @click="action(() => editor.chain().focus().addRowAfter().run())"
       >
         <Rows3 class="size-3.5" />{{ t("spaces.richtext.table.addRow") }}
       </button>
       <button
-        class="flex h-(--knovum-control-height-md) items-center gap-2 rounded-md px-2.5 text-left text-label-md text-fg-primary hover:bg-surface-control-hover"
+        class="flex h-(--knovum-control-height-md) items-center gap-2 rounded-md px-2.5 text-left text-label text-fg-primary hover:bg-surface-control-hover"
         type="button"
         @click="action(() => editor.chain().focus().addColumnAfter().run())"
       >
         <Columns3 class="size-3.5" />{{ t("spaces.richtext.table.addColumn") }}
       </button>
       <button
-        class="flex h-(--knovum-control-height-md) items-center gap-2 rounded-md px-2.5 text-left text-label-md text-fg-danger hover:bg-surface-control-hover"
+        class="flex h-(--knovum-control-height-md) items-center gap-2 rounded-md px-2.5 text-left text-label text-fg-danger hover:bg-surface-control-hover"
         type="button"
         @click="action(() => editor.chain().focus().deleteTable().run())"
       >

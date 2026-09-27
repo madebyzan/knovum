@@ -29,8 +29,8 @@ async function visit(url: string) {
 </script>
 
 <template>
-  <div class="grid gap-2 text-caption-md text-fg-secondary">
-    <p class="text-label-md text-fg-primary">{{ t(`${guidance}.title`) }}</p>
+  <div class="grid gap-2 text-caption text-fg-secondary">
+    <p class="text-label text-fg-primary">{{ t(`${guidance}.title`) }}</p>
     <p>{{ t(`${guidance}.requirements`) }}</p>
     <p>{{ t("settings.agents.requiredCommands", { commands: agent.executableNames.join(", ") }) }}</p>
     <p>{{ t("settings.agents.detectionBoundary") }}</p>

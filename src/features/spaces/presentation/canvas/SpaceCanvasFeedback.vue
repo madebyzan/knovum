@@ -65,14 +65,14 @@ function captureStyle(capture: SpaceUrlCaptureProjection) {
     :style="{ left: `${fileHoverPosition.x}px`, top: `${fileHoverPosition.y}px` }"
   >
     <div
-      class="rounded-md border border-stroke-default bg-surface-overlay px-3 py-1.5 text-label-md font-medium"
+      class="rounded-md border border-stroke-default bg-surface-overlay px-3 py-1.5 text-label font-medium"
     >
       {{ t("spaces.canvas.dropToSave") }}
     </div>
   </div>
   <div
     v-if="error"
-    class="pointer-events-auto absolute top-4 left-1/2 flex max-w-sm -translate-x-1/2 items-center gap-2 rounded-md border border-stroke-default bg-surface-overlay py-1 pr-0.5 pl-2.5 text-caption-md text-fg-secondary"
+    class="pointer-events-auto absolute top-4 left-1/2 flex max-w-sm -translate-x-1/2 items-center gap-2 rounded-md border border-stroke-default bg-surface-overlay py-1 pr-0.5 pl-2.5 text-caption text-fg-secondary"
     role="alert"
     aria-atomic="true"
   >

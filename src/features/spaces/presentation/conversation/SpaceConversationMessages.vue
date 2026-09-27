@@ -75,7 +75,7 @@ const starters = ["summarize", "plan"] as const;
           <h2 class="text-title-sm font-semibold text-fg-primary">
             {{ $t("spaces.assistant.empty.title") }}
           </h2>
-          <p class="mt-2 text-body-sm leading-relaxed text-fg-secondary">
+          <p class="mt-2 text-body leading-relaxed text-fg-secondary">
             {{ $t("spaces.assistant.empty.builtIn") }}
           </p>
           <div class="mt-6 space-y-1">
@@ -83,14 +83,14 @@ const starters = ["summarize", "plan"] as const;
               v-for="starter in starters"
               :key="starter"
               type="button"
-              class="group flex w-full items-center justify-between gap-3 rounded-md border border-stroke-divider bg-surface-raised px-3 py-2.5 text-left text-caption-md text-fg-primary transition-colors hover:border-stroke-strong hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus"
+              class="group flex w-full items-center justify-between gap-3 rounded-md border border-stroke-divider bg-surface-raised px-3 py-2.5 text-left text-caption text-fg-primary transition-colors hover:border-stroke-strong hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus"
               @click="emit('suggest', $t(`spaces.assistant.starter.${starter}Prompt`))"
             >
               <span>{{ $t(`spaces.assistant.starter.${starter}`) }}</span>
               <ArrowUpRight class="size-3.5 shrink-0 text-fg-tertiary group-hover:text-fg-primary" />
             </button>
           </div>
-          <p class="mt-5 text-caption-md leading-relaxed text-fg-tertiary">
+          <p class="mt-5 text-caption leading-relaxed text-fg-tertiary">
             {{ $t("spaces.assistant.empty.attachmentHint") }}
           </p>
         </div>
@@ -114,9 +114,9 @@ const starters = ["summarize", "plan"] as const;
       </div>
       <article
         v-if="streamedText && !streamingMessageId"
-        class="pb-5 text-body-sm leading-relaxed text-fg-primary"
+        class="pb-5 text-body leading-relaxed text-fg-primary"
       >
-        <span class="mb-2 block text-caption-md font-semibold text-fg-secondary">
+        <span class="mb-2 block text-caption font-semibold text-fg-secondary">
           {{ $t("spaces.assistant.role.assistant") }}
         </span>
         <p class="whitespace-pre-wrap">{{ streamedText }}</p>
@@ -129,14 +129,14 @@ const starters = ["summarize", "plan"] as const;
         @decide-permission="emit('decidePermission', $event)"
         @decide-approval="(id, approved) => emit('decideApproval', id, approved)"
       />
-      <p v-if="busy" role="status" class="flex items-center gap-2 py-3 text-caption-md text-fg-secondary">
+      <p v-if="busy" role="status" class="flex items-center gap-2 py-3 text-caption text-fg-secondary">
         <span class="size-1.5 shrink-0 rounded-full bg-surface-accent" />
         {{ $t(preparing ? "spaces.assistant.conversations.preparing" : "spaces.assistant.agents.working") }}
       </p>
       <div
         v-if="error"
         role="alert"
-        class="mb-4 flex items-start gap-2 rounded-panel border border-stroke-danger/30 bg-surface-danger-subtle p-3 text-caption-md text-fg-danger"
+        class="mb-4 flex items-start gap-2 rounded-panel border border-stroke-danger/30 bg-surface-danger-subtle p-3 text-caption text-fg-danger"
       >
         <AlertCircle class="mt-0.5 size-3.5 shrink-0" />
         <span class="min-w-0 wrap-break-word">{{ error }}</span>

@@ -65,7 +65,7 @@ watch(sceneCue, (cue) => {
   >
     <div
       v-if="displayed"
-      class="pointer-events-none absolute top-4 left-1/2 flex h-8 -translate-x-1/2 items-center gap-2 rounded-md border border-stroke-default bg-surface-overlay px-2.5 text-caption-md text-fg-primary"
+      class="pointer-events-none absolute top-4 left-1/2 flex h-8 -translate-x-1/2 items-center gap-2 rounded-md border border-stroke-default bg-surface-overlay px-2.5 text-caption text-fg-primary"
       role="status"
     >
       <component :is="icon" class="size-3 shrink-0 text-fg-accent" :stroke-width="1.6" />

@@ -79,7 +79,7 @@ function chooseFiles() {
           <Link2 class="size-3.5" />
         </span>
         <span class="min-w-0 flex-1">
-          <span class="block text-caption-md font-medium">{{
+          <span class="block text-caption font-medium">{{
             $t("spaces.assistant.attachments.citeCanvasNode")
           }}</span>
           <span class="block text-caption-sm text-fg-tertiary">{{
@@ -100,7 +100,7 @@ function chooseFiles() {
           <FileUp class="size-3.5" />
         </span>
         <span class="min-w-0 flex-1">
-          <span class="block text-caption-md font-medium">{{
+          <span class="block text-caption font-medium">{{
             $t("spaces.assistant.attachments.uploadLocalFile")
           }}</span>
           <span class="block text-caption-sm text-fg-tertiary">{{
@@ -114,9 +114,7 @@ function chooseFiles() {
         <UiIconButton :label="$t('common.back')" size="sm" @click="view = 'sources'">
           <ArrowLeft class="size-3.5" />
         </UiIconButton>
-        <span class="text-caption-md font-medium">{{
-          $t("spaces.assistant.attachments.citeCanvasNode")
-        }}</span>
+        <span class="text-caption font-medium">{{ $t("spaces.assistant.attachments.citeCanvasNode") }}</span>
       </div>
       <div class="px-1 pb-1">
         <UiSearchInput
@@ -128,7 +126,7 @@ function chooseFiles() {
       </div>
       <button
         type="button"
-        class="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-caption-md hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus disabled:opacity-50"
+        class="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-caption hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus disabled:opacity-50"
         :disabled="selectedCount === 0"
         @click="addSelected"
       >
@@ -141,7 +139,7 @@ function chooseFiles() {
           v-for="candidate in matching"
           :key="candidate.nodeId"
           type="button"
-          class="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-caption-md hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus disabled:opacity-50"
+          class="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-caption hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus disabled:opacity-50"
           :disabled="candidate.attached"
           @click="addOne(candidate.nodeId)"
         >
@@ -160,7 +158,7 @@ function chooseFiles() {
           <span class="min-w-0 flex-1 truncate">{{ candidate.title }}</span>
           <Check v-if="candidate.attached" class="size-3 shrink-0" />
         </button>
-        <p v-if="matching.length === 0" class="px-2 py-4 text-center text-caption-md text-fg-tertiary">
+        <p v-if="matching.length === 0" class="px-2 py-4 text-center text-caption text-fg-tertiary">
           {{ $t("spaces.assistant.attachments.none") }}
         </p>
       </div>

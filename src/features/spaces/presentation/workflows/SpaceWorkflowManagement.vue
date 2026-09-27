@@ -98,6 +98,6 @@ async function remove() {
       "
       @cancel="editingDefinition = false"
     />
-    <p v-if="error" role="alert" class="text-caption-md text-fg-danger">{{ error }}</p>
+    <p v-if="error" role="alert" class="text-caption text-fg-danger">{{ error }}</p>
   </div>
 </template>

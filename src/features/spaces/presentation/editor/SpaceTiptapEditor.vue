@@ -67,7 +67,7 @@ async function exportMarkdown() {
         class="size-3.5 text-fg-secondary"
         :stroke-width="1.55"
       />
-      <span class="text-caption-md font-medium text-fg-secondary">{{ editorLabel }}</span>
+      <span class="text-caption font-medium text-fg-secondary">{{ editorLabel }}</span>
       <div class="flex-1" />
       <span class="text-caption-sm font-medium text-fg-tertiary">
         {{
@@ -101,14 +101,14 @@ async function exportMarkdown() {
       <div ref="scrollRoot" class="relative min-h-0 flex-1 overflow-auto" @scroll.passive="syncActiveHeading">
         <div
           v-if="imageDragging"
-          class="pointer-events-none sticky top-2 z-40 mx-2 -mb-18 flex h-16 items-center justify-center gap-2 rounded-panel border border-dashed border-stroke-accent bg-surface-overlay/92 text-label-md font-medium text-fg-accent shadow-popover backdrop-blur"
+          class="pointer-events-none sticky top-2 z-40 mx-2 -mb-18 flex h-16 items-center justify-center gap-2 rounded-panel border border-dashed border-stroke-accent bg-surface-overlay/92 text-label font-medium text-fg-accent shadow-popover backdrop-blur"
         >
           <ImagePlus class="size-4" />{{ t("spaces.richtext.image.dropNow") }}
         </div>
         <article class="mx-auto min-h-full w-full max-w-3xl px-10 py-12 sm:px-14">
           <input
             v-model="title"
-            class="w-full bg-transparent text-display-sm font-semibold tracking-title text-fg-primary outline-none placeholder:text-fg-tertiary"
+            class="w-full bg-transparent text-display font-semibold tracking-title text-fg-primary outline-none placeholder:text-fg-tertiary"
             :aria-label="t('spaces.editor.markdown.title')"
             :placeholder="
               editorNode.data.kind === 'note'

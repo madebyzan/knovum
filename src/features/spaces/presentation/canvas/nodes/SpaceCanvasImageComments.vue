@@ -68,7 +68,7 @@ const {
       <template #trigger>
         <button
           type="button"
-          class="nodrag pointer-events-auto absolute z-10 flex size-9 items-center justify-center rounded-full border-2 border-stroke-on-image bg-(--knovum-space-image-annotation-color) text-label-md font-semibold text-fg-on-image shadow-popover outline-none focus-visible:ring-2 focus-visible:ring-stroke-focus"
+          class="nodrag pointer-events-auto absolute z-10 flex size-9 items-center justify-center rounded-full border-2 border-stroke-on-image bg-(--knovum-space-image-annotation-color) text-label font-semibold text-fg-on-image shadow-popover outline-none focus-visible:ring-2 focus-visible:ring-stroke-focus"
           :class="
             comment.shape?.kind === 'region'
               ? 'translate-x-1/2 -translate-y-1/2'
@@ -83,7 +83,7 @@ const {
       </template>
       <div class="flex items-start justify-between gap-2">
         <span
-          class="min-w-0 truncate rounded-md border border-stroke-default px-2 py-1 text-label-md font-medium text-fg-primary"
+          class="min-w-0 truncate rounded-md border border-stroke-default px-2 py-1 text-label font-medium text-fg-primary"
           >{{ data.title }}</span
         >
         <button
@@ -96,11 +96,11 @@ const {
           <Trash2 class="size-3.5" />
         </button>
       </div>
-      <p class="mt-2 text-label-md whitespace-pre-wrap text-fg-secondary">{{ comment.text }}</p>
+      <p class="mt-2 text-label whitespace-pre-wrap text-fg-secondary">{{ comment.text }}</p>
       <div class="mt-2 flex justify-end">
         <button
           type="button"
-          class="rounded-md bg-surface-control-hover px-3 py-1 text-label-md text-fg-primary"
+          class="rounded-md bg-surface-control-hover px-3 py-1 text-label text-fg-primary"
           @click="discuss(comment)"
         >
           {{ t("spaces.media.imageEditor.comments.addToConversation") }}
@@ -118,7 +118,7 @@ const {
       <template #trigger>
         <button
           type="button"
-          class="nodrag pointer-events-auto absolute z-20 flex size-9 items-center justify-center rounded-full border-2 border-stroke-on-image bg-(--knovum-space-image-annotation-color) text-label-md font-semibold text-fg-on-image shadow-popover"
+          class="nodrag pointer-events-auto absolute z-20 flex size-9 items-center justify-center rounded-full border-2 border-stroke-on-image bg-(--knovum-space-image-annotation-color) text-label font-semibold text-fg-on-image shadow-popover"
           :class="
             draft.shape?.kind === 'region'
               ? 'translate-x-1/2 -translate-y-1/2'
@@ -133,7 +133,7 @@ const {
       </template>
       <div class="flex items-center justify-between gap-2">
         <span
-          class="min-w-0 truncate rounded-md border border-stroke-default px-2 py-1 text-label-md font-medium text-fg-primary"
+          class="min-w-0 truncate rounded-md border border-stroke-default px-2 py-1 text-label font-medium text-fg-primary"
           >{{ data.title }}</span
         ><button
           type="button"
@@ -148,21 +148,21 @@ const {
         v-model="text"
         rows="2"
         maxlength="2000"
-        class="mt-2 block w-full resize-none bg-transparent text-label-md text-fg-primary outline-none placeholder:text-fg-tertiary"
+        class="mt-2 block w-full resize-none bg-transparent text-label text-fg-primary outline-none placeholder:text-fg-tertiary"
         :placeholder="t('spaces.media.imageEditor.comments.prompt')"
         :aria-label="t('spaces.media.imageEditor.comments.prompt')"
       />
       <div class="mt-2 flex justify-end gap-1">
         <button
           type="button"
-          class="rounded-md border border-stroke-default px-3 py-1 text-label-md text-fg-primary disabled:opacity-40"
+          class="rounded-md border border-stroke-default px-3 py-1 text-label text-fg-primary disabled:opacity-40"
           :disabled="!text.trim() || busy"
           @click="send"
         >
           {{ t("spaces.media.imageEditor.comments.send") }}</button
         ><button
           type="button"
-          class="rounded-md bg-surface-control-hover px-3 py-1 text-label-md text-fg-primary disabled:opacity-40"
+          class="rounded-md bg-surface-control-hover px-3 py-1 text-label text-fg-primary disabled:opacity-40"
           :disabled="!text.trim() || busy"
           @click="addToConversation"
         >

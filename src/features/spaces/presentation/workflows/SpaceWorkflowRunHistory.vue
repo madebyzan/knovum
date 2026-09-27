@@ -17,7 +17,7 @@ const { t } = useI18n();
 
 <template>
   <section v-if="entries.length" class="space-y-2 border-t border-stroke-divider pt-3">
-    <h3 class="text-caption-md font-semibold text-fg-secondary">
+    <h3 class="text-caption font-semibold text-fg-secondary">
       {{ t("spaces.creation.workflow.run.recent") }}
     </h3>
     <UiButton

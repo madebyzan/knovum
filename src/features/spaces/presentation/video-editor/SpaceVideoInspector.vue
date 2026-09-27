@@ -63,12 +63,12 @@ function addText() {
         >
           <TabsTrigger
             value="captions"
-            class="border-b-2 border-transparent px-1 text-caption-md text-fg-secondary outline-none focus-visible:ring-2 focus-visible:ring-stroke-focus data-[state=active]:border-stroke-contrast data-[state=active]:font-semibold data-[state=active]:text-fg-primary"
+            class="border-b-2 border-transparent px-1 text-caption text-fg-secondary outline-none focus-visible:ring-2 focus-visible:ring-stroke-focus data-[state=active]:border-stroke-contrast data-[state=active]:font-semibold data-[state=active]:text-fg-primary"
             >{{ $t("spaces.media.videoEditor.tabs.captions") }}</TabsTrigger
           >
           <TabsTrigger
             value="text"
-            class="border-b-2 border-transparent px-1 text-caption-md text-fg-secondary outline-none focus-visible:ring-2 focus-visible:ring-stroke-focus data-[state=active]:border-stroke-contrast data-[state=active]:font-semibold data-[state=active]:text-fg-primary"
+            class="border-b-2 border-transparent px-1 text-caption text-fg-secondary outline-none focus-visible:ring-2 focus-visible:ring-stroke-focus data-[state=active]:border-stroke-contrast data-[state=active]:font-semibold data-[state=active]:text-fg-primary"
             >{{ $t("spaces.media.videoEditor.tabs.text") }}</TabsTrigger
           >
         </TabsList>
@@ -96,7 +96,7 @@ function addText() {
     </TabsRoot>
     <template v-else-if="selectedClip">
       <div class="flex h-11 shrink-0 items-center justify-between border-b border-stroke-divider px-3">
-        <h2 class="text-caption-md font-semibold">{{ $t("spaces.media.videoEditor.clip.selected") }}</h2>
+        <h2 class="text-caption font-semibold">{{ $t("spaces.media.videoEditor.clip.selected") }}</h2>
         <UiIconButton :label="$t('spaces.media.videoEditor.closeInspector')" size="sm" @click="emit('close')">
           <X class="size-3.5" />
         </UiIconButton>

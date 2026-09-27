@@ -43,7 +43,7 @@ const history = useSpaceKnowledgeHistoryQuery(activeSpaceId, () => props.node.id
         class="rounded-md bg-surface-control/35 px-2 py-1.5"
       >
         <div class="flex items-center justify-between gap-2">
-          <span class="text-caption-md text-fg-secondary">{{
+          <span class="text-caption text-fg-secondary">{{
             t(`spaces.knowledge.history.events.${event.eventKind}`)
           }}</span>
           <time class="text-caption-sm text-fg-tertiary">{{ d(event.createdAt, "short") }}</time>
@@ -53,7 +53,7 @@ const history = useSpaceKnowledgeHistoryQuery(activeSpaceId, () => props.node.id
         </p>
       </div>
     </div>
-    <p v-else-if="!history.isFetching.value" class="px-1 text-caption-md text-fg-tertiary">
+    <p v-else-if="!history.isFetching.value" class="px-1 text-caption text-fg-tertiary">
       {{ t("spaces.knowledge.history.empty") }}
     </p>
   </SpaceInspectorSection>

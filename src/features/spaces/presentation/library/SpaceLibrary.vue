@@ -81,7 +81,7 @@ function showSpaceMenu(space: Space) {
 <template>
   <UiScrollArea class="h-full bg-surface-canvas">
     <section ref="libraryRoot" class="px-6 py-5">
-      <h1 class="text-display-sm font-semibold text-fg-accent">{{ title }}</h1>
+      <h1 class="text-display font-semibold text-fg-accent">{{ title }}</h1>
 
       <div
         v-if="visibleSpaces.length"
@@ -145,17 +145,17 @@ function showSpaceMenu(space: Space) {
               @keydown.enter.prevent="finishRenaming"
               @keydown.escape.prevent="editingId = undefined"
             />
-            <h2 v-else class="truncate pr-7 text-label-md font-semibold text-fg-primary">
+            <h2 v-else class="truncate pr-7 text-label font-semibold text-fg-primary">
               {{ space.title }}
             </h2>
-            <p class="mt-0.5 text-caption-md text-fg-tertiary">
+            <p class="mt-0.5 text-caption text-fg-tertiary">
               {{ t("spaces.space.nodeCount", { count: space.nodeCount }) }} ·
               {{ formatUpdatedAt(space.updatedAt) }}
             </p>
           </div>
         </article>
       </div>
-      <div v-else class="grid min-h-64 place-items-center text-body-sm text-fg-tertiary">
+      <div v-else class="grid min-h-64 place-items-center text-body text-fg-tertiary">
         {{ t("spaces.space.search.noResults") }}
       </div>
     </section>

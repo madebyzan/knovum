@@ -12,7 +12,7 @@ const emit = defineEmits<{ remove: [key: string] }>();
   <HoverCardRoot :open-delay="350" :close-delay="100">
     <HoverCardTrigger as-child>
       <span
-        class="inline-flex max-w-full min-w-0 items-center gap-2 rounded-md border border-stroke-divider bg-surface-control py-1 pr-1 pl-1.5 text-caption-md focus-visible:outline-2 focus-visible:outline-stroke-focus"
+        class="inline-flex max-w-full min-w-0 items-center gap-2 rounded-md border border-stroke-divider bg-surface-control py-1 pr-1 pl-1.5 text-caption focus-visible:outline-2 focus-visible:outline-stroke-focus"
         tabindex="0"
       >
         <img
@@ -67,7 +67,7 @@ const emit = defineEmits<{ remove: [key: string] }>();
           :alt="attachment.title"
           class="max-h-64 w-full rounded-md object-contain"
         />
-        <p class="truncate px-1 pt-1 text-caption-md text-fg-secondary">{{ attachment.title }}</p>
+        <p class="truncate px-1 pt-1 text-caption text-fg-secondary">{{ attachment.title }}</p>
       </HoverCardContent>
     </HoverCardPortal>
   </HoverCardRoot>

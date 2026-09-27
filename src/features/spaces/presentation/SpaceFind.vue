@@ -72,7 +72,7 @@ function matchBadgeLabel(match: KnowledgeSearchMatch): string | null {
               v-model="query"
               autofocus
               :placeholder="t('spaces.search.find.placeholder')"
-              class="h-full min-w-0 flex-1 border-0 bg-transparent text-body-md outline-none placeholder:text-fg-tertiary"
+              class="h-full min-w-0 flex-1 border-0 bg-transparent text-body-lg outline-none placeholder:text-fg-tertiary"
             />
             <UiSpinner v-if="searching" class="text-fg-tertiary" />
             <UiButton
@@ -104,8 +104,8 @@ function matchBadgeLabel(match: KnowledgeSearchMatch): string | null {
                 ><component :is="nodeIcon(node.data.kind)" class="size-3.5"
               /></span>
               <span class="min-w-0 flex-1"
-                ><strong class="block truncate text-label-md font-medium">{{ node.data.title }}</strong
-                ><span class="block truncate text-caption-md text-fg-tertiary">{{
+                ><strong class="block truncate text-label font-medium">{{ node.data.title }}</strong
+                ><span class="block truncate text-caption text-fg-tertiary">{{
                   ("fileName" in node.data && node.data.fileName) ||
                   ("siteName" in node.data && node.data.siteName) ||
                   t("spaces.search.find.defaultContentLabel")
@@ -126,8 +126,8 @@ function matchBadgeLabel(match: KnowledgeSearchMatch): string | null {
                 <Group v-else class="size-3.5" />
               </span>
               <span class="min-w-0 flex-1">
-                <strong class="block truncate text-label-md font-medium">{{ match.title }}</strong>
-                <span class="block text-caption-md text-fg-tertiary">{{
+                <strong class="block truncate text-label font-medium">{{ match.title }}</strong>
+                <span class="block text-caption text-fg-tertiary">{{
                   match.nodeKind === "section"
                     ? t("spaces.canvas.kinds.section")
                     : t("spaces.canvas.kinds.group")
@@ -147,13 +147,13 @@ function matchBadgeLabel(match: KnowledgeSearchMatch): string | null {
               /></span>
               <span class="min-w-0 flex-1">
                 <span class="flex min-w-0 items-center gap-2"
-                  ><strong class="truncate text-label-md font-medium">{{ match.nodeTitle }}</strong
+                  ><strong class="truncate text-label font-medium">{{ match.nodeTitle }}</strong
                   ><UiBadge v-if="matchBadgeLabel(match)" size="sm"> {{ matchBadgeLabel(match) }} </UiBadge
                   ><span class="shrink-0 text-caption-sm text-fg-tertiary">{{
                     knowledgeLocationLabel(match.locator)
                   }}</span></span
                 >
-                <span class="mt-0.5 line-clamp-2 block text-caption-md leading-relaxed text-fg-secondary"
+                <span class="mt-0.5 line-clamp-2 block text-caption leading-relaxed text-fg-secondary"
                   ><template v-for="(part, index) in highlightedSnippet(match.snippet)" :key="index"
                     ><mark v-if="part.match" class="rounded-sm bg-surface-selected px-0.5 text-fg-primary">{{
                       part.text
@@ -173,18 +173,18 @@ function matchBadgeLabel(match: KnowledgeSearchMatch): string | null {
               }}
             </p>
             <div v-if="query.trim() && searchFailed" class="grid justify-items-center gap-2 px-3 py-8">
-              <p class="text-caption-md text-fg-danger">{{ t("spaces.search.failed") }}</p>
+              <p class="text-caption text-fg-danger">{{ t("spaces.search.failed") }}</p>
               <UiButton size="sm" variant="secondary" @click="retry">{{ t("common.retry") }}</UiButton>
             </div>
             <p
               v-else-if="query.trim() && !searching && matches.length === 0 && structureMatches.length === 0"
-              class="px-3 py-8 text-center text-caption-md text-fg-tertiary"
+              class="px-3 py-8 text-center text-caption text-fg-tertiary"
             >
               {{ t("spaces.search.find.noResults") }}
             </p>
             <p
               v-else-if="!query.trim() && defaultNodes.length === 0"
-              class="px-3 py-8 text-center text-caption-md text-fg-tertiary"
+              class="px-3 py-8 text-center text-caption text-fg-tertiary"
             >
               {{ t("spaces.search.find.emptyHint") }}
             </p>

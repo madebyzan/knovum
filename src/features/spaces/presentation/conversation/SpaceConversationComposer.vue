@@ -65,7 +65,7 @@ function submit(event?: KeyboardEvent) {
         @keydown.meta.enter="submit"
         @keydown.ctrl.enter="submit"
       />
-      <div v-else class="min-h-24 px-3 py-3 text-body-sm text-fg-tertiary">
+      <div v-else class="min-h-24 px-3 py-3 text-body text-fg-tertiary">
         {{ $t("spaces.assistant.input.placeholder") }}
       </div>
       <div v-if="attachments.length" class="flex min-w-0 flex-wrap gap-1.5 px-3 pb-2">
@@ -105,7 +105,7 @@ function submit(event?: KeyboardEvent) {
         </UiIconButton>
       </div>
     </div>
-    <p v-if="attachmentError" role="alert" class="pt-1.5 text-caption-md text-fg-danger">
+    <p v-if="attachmentError" role="alert" class="pt-1.5 text-caption text-fg-danger">
       {{ attachmentError.startsWith("spaces.assistant.") ? $t(attachmentError) : attachmentError }}
     </p>
   </footer>

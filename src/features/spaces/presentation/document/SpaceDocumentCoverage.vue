@@ -48,7 +48,7 @@ const warningMessageKeys: Record<DocumentWarning, string> = {
 </script>
 
 <template>
-  <div v-if="report" class="space-y-2 text-body-sm text-fg-secondary">
+  <div v-if="report" class="space-y-2 text-body text-fg-secondary">
     <p v-if="report.pageCount !== null">
       {{
         $t("spaces.processing.document.textCoverage", {
@@ -85,7 +85,7 @@ const warningMessageKeys: Record<DocumentWarning, string> = {
     </p>
     <section v-if="resources.length" class="space-y-2 pt-1">
       <header class="flex items-baseline justify-between gap-2">
-        <strong class="text-label-md font-medium text-fg-primary">
+        <strong class="text-label font-medium text-fg-primary">
           {{ $t("spaces.processing.document.resources.title") }}
         </strong>
         <span class="text-caption-sm text-fg-tertiary">{{ resources.length }}</span>

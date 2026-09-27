@@ -51,7 +51,7 @@ const variantClass = computed(
     :disabled="disabled"
     :class="
       cn(
-        'inline-flex shrink-0 items-center justify-center gap-1.5 rounded-md px-2.5 text-label-md font-medium shadow-control transition-[color,background-color,box-shadow] duration-100 ease-standard disabled:pointer-events-none disabled:opacity-40',
+        'inline-flex shrink-0 items-center justify-center gap-1.5 rounded-md px-2.5 text-label font-medium shadow-control transition-[color,background-color,box-shadow] duration-100 ease-standard disabled:pointer-events-none disabled:opacity-40',
         variantClass,
         size === 'sm' ? 'h-(--knovum-control-height-sm)' : 'h-(--knovum-control-height-md)',
         props.class,

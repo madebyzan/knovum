@@ -16,7 +16,7 @@ const { d, t } = useI18n();
 
 <template>
   <div class="space-y-3">
-    <p class="text-caption-md leading-relaxed break-words text-fg-danger">{{ failure.error }}</p>
+    <p class="text-caption leading-relaxed break-words text-fg-danger">{{ failure.error }}</p>
     <p class="text-caption-sm text-fg-tertiary">{{ d(failure.completedAt, "short") }}</p>
     <div class="flex items-center gap-2">
       <UiButton v-if="canRetry" size="sm" variant="secondary" :disabled="retrying" @click="emit('retry')">

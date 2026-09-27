@@ -11,7 +11,7 @@ const { t } = useI18n();
 
 <template>
   <div
-    class="flex h-8 items-center gap-2 rounded-md border border-stroke-default bg-surface-overlay pr-0.5 pl-2.5 text-caption-md text-fg-secondary select-none"
+    class="flex h-8 items-center gap-2 rounded-md border border-stroke-default bg-surface-overlay pr-0.5 pl-2.5 text-caption text-fg-secondary select-none"
     role="status"
   >
     <Focus class="size-3" :stroke-width="1.6" />

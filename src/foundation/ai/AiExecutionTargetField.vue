@@ -67,14 +67,14 @@ onMounted(load);
       v-if="loadError"
       :class="
         compact
-          ? 'flex items-center gap-2 text-caption-md text-fg-danger'
+          ? 'flex items-center gap-2 text-caption text-fg-danger'
           : 'space-y-2 rounded-md border border-stroke-danger/30 bg-surface-danger-subtle p-3'
       "
     >
-      <p :class="compact ? 'truncate' : 'text-label-md font-medium'">
+      <p :class="compact ? 'truncate' : 'text-label font-medium'">
         {{ t("ai.settingsUnavailable") }}
       </p>
-      <p v-if="!compact" class="text-caption-md wrap-break-word text-fg-secondary">
+      <p v-if="!compact" class="text-caption wrap-break-word text-fg-secondary">
         {{ String(loadError) }}
       </p>
       <UiButton size="sm" variant="secondary" @click="load">{{ t("common.retry") }}</UiButton>
@@ -96,8 +96,8 @@ onMounted(load);
       class="space-y-2 rounded-md border border-stroke-default/70 bg-surface-panel/60 p-3"
     >
       <div class="space-y-0.5">
-        <p class="text-label-md font-medium text-fg-primary">{{ t("ai.disabledTitle") }}</p>
-        <p class="text-caption-md leading-relaxed text-fg-secondary">
+        <p class="text-label font-medium text-fg-primary">{{ t("ai.disabledTitle") }}</p>
+        <p class="text-caption leading-relaxed text-fg-secondary">
           {{ t("ai.disabledDescription") }}
         </p>
       </div>
@@ -111,7 +111,7 @@ onMounted(load);
         </UiButton>
       </div>
     </div>
-    <label v-else class="block space-y-1.5 text-label-md font-medium">
+    <label v-else class="block space-y-1.5 text-label font-medium">
       {{ t("ai.target") }}
       <UiSelect
         :model-value="value"

@@ -64,7 +64,7 @@ const choices = computed(() =>
     <UiNumberField v-if="field.kind === 'number'" v-model="numberValue" />
     <label
       v-else-if="field.kind === 'boolean'"
-      class="flex h-(--knovum-control-height-md) items-center gap-2 text-label-md text-fg-secondary"
+      class="flex h-(--knovum-control-height-md) items-center gap-2 text-label text-fg-secondary"
     >
       <UiCheckbox v-model="booleanValue" :label="field.label" />
       {{ field.label }}

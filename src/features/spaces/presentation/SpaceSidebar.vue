@@ -13,14 +13,14 @@ const management = useSpaceManagementMenu();
 const { spaces, activeSpaceId, workspaceMode, libraryScope } = storeToRefs(store);
 const { t } = useI18n();
 const rowClass =
-  "flex h-(--knovum-list-item-height-sm) w-full items-center gap-2 rounded-md px-2 text-left text-label-md text-fg-secondary hover:bg-(--knovum-sidebar-item-bg-hover) hover:text-fg-primary data-[active=true]:bg-(--knovum-sidebar-item-bg-selected) data-[active=true]:text-fg-primary";
+  "flex h-(--knovum-list-item-height-sm) w-full items-center gap-2 rounded-md px-2 text-left text-label text-fg-secondary hover:bg-(--knovum-sidebar-item-bg-hover) hover:text-fg-primary data-[active=true]:bg-(--knovum-sidebar-item-bg-selected) data-[active=true]:text-fg-primary";
 const inbox = computed(() => spaces.value.find((space) => space.kind === "inbox"));
 </script>
 
 <template>
   <aside class="flex h-full min-h-0 flex-col select-none">
     <header class="flex h-(--knovum-control-height-lg) shrink-0 items-center px-3">
-      <strong class="min-w-0 truncate text-body-md font-semibold">{{ t("spaces.space.title") }}</strong>
+      <strong class="min-w-0 truncate text-title-sm font-semibold">{{ t("spaces.space.title") }}</strong>
     </header>
     <nav class="shrink-0 space-y-0.5 px-2.5" :aria-label="t('spaces.space.title')">
       <button

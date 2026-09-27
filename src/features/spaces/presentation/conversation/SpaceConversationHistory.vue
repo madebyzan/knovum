@@ -53,13 +53,13 @@ function toggleArchived() {
         v-for="conversation in conversations"
         :key="conversation.id"
         type="button"
-        class="flex w-full min-w-0 rounded-md px-2.5 py-2 text-left text-label-md hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus"
+        class="flex w-full min-w-0 rounded-md px-2.5 py-2 text-left text-label hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus"
         :class="conversation.id === selectedId ? 'bg-surface-control text-fg-primary' : 'text-fg-secondary'"
         @click="choose(conversation.id)"
       >
         <span class="truncate">{{ conversation.title }}</span>
       </button>
-      <p v-if="!conversations.length" class="px-2 py-5 text-center text-caption-md text-fg-tertiary">
+      <p v-if="!conversations.length" class="px-2 py-5 text-center text-caption text-fg-tertiary">
         {{ $t("spaces.assistant.conversations.none") }}
       </p>
     </div>

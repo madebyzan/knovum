@@ -27,7 +27,7 @@
     background: transparent;
   }
   body {
-    @apply m-0 font-sans text-body-sm text-fg-primary;
+    @apply m-0 font-sans text-body text-fg-primary;
     font-synthesis: none;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;

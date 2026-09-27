@@ -60,24 +60,24 @@ function applyPreset(preset: GenerationPreset) {
   >
     <div class="space-y-4">
       <label class="block space-y-1.5"
-        ><span class="text-label-md font-medium">{{ t("common.title") }}</span
+        ><span class="text-label font-medium">{{ t("common.title") }}</span
         ><UiInput v-model="form.title"
       /></label>
       <label class="block space-y-1.5"
-        ><span class="text-label-md font-medium">{{ t("spaces.creation.image.visualization.intent") }}</span
+        ><span class="text-label font-medium">{{ t("spaces.creation.image.visualization.intent") }}</span
         ><UiTextarea
           v-model="form.intent"
           :rows="4"
           :placeholder="t('spaces.creation.image.visualization.placeholder')"
       /></label>
       <div class="grid grid-cols-2 gap-3">
-        <label class="space-y-1.5 text-label-md font-medium"
+        <label class="space-y-1.5 text-label font-medium"
           >{{ t("spaces.creation.image.style")
           }}<UiSelect
             v-model="form.style"
             :label="t('spaces.creation.image.style')"
             :options="styles" /></label
-        ><label class="space-y-1.5 text-label-md font-medium"
+        ><label class="space-y-1.5 text-label font-medium"
           >{{ t("spaces.creation.image.aspectRatio")
           }}<UiSelect
             v-model="form.aspectRatio"
@@ -93,7 +93,7 @@ function applyPreset(preset: GenerationPreset) {
         :parameters="presetParameters"
         @apply="applyPreset"
       />
-      <p class="text-caption-md text-fg-tertiary">
+      <p class="text-caption text-fg-tertiary">
         {{ t("spaces.creation.document.sources", { count: sources.length }) }}
       </p>
     </div>

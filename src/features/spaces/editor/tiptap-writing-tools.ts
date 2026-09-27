@@ -16,7 +16,7 @@ type TransformSource = { text: string; from: number; to: number } | { text: stri
 type RunningAction = EditorTransformAction | `translate:${TranslationTarget}`;
 
 const itemClass =
-  "flex h-9 w-full cursor-default items-center gap-2.5 rounded-md px-2.5 text-left text-label-md text-fg-primary outline-none transition-colors hover:bg-surface-control-hover data-[highlighted]:bg-surface-control-hover data-[disabled]:pointer-events-none data-[disabled]:opacity-40";
+  "flex h-9 w-full cursor-default items-center gap-2.5 rounded-md px-2.5 text-left text-label text-fg-primary outline-none transition-colors hover:bg-surface-control-hover data-[highlighted]:bg-surface-control-hover data-[disabled]:pointer-events-none data-[disabled]:opacity-40";
 const submenuClass =
   "z-50 w-56 overflow-hidden rounded-xl border border-stroke-default bg-surface-overlay p-1.5 shadow-popover outline-none";
 

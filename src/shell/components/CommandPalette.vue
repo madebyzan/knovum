@@ -83,7 +83,7 @@ function commandReason(command: AppCommand) {
               data-testid="command-palette-input"
               autofocus
               :placeholder="t('shell.commands.searchPlaceholder')"
-              class="h-full min-w-0 flex-1 border-0 bg-transparent text-body-md outline-none placeholder:text-fg-tertiary"
+              class="h-full min-w-0 flex-1 border-0 bg-transparent text-body-lg outline-none placeholder:text-fg-tertiary"
             />
             <UiKbd shortcut="esc" />
           </div>
@@ -104,15 +104,15 @@ function commandReason(command: AppCommand) {
                   <component :is="command.icon" v-if="command.icon" class="size-3.5" />
                 </span>
                 <span class="min-w-0 flex-1">
-                  <strong class="block truncate text-label-md font-medium">{{ command.title }}</strong>
-                  <span v-if="command.description" class="block truncate text-caption-md text-fg-tertiary">{{
+                  <strong class="block truncate text-label font-medium">{{ command.title }}</strong>
+                  <span v-if="command.description" class="block truncate text-caption text-fg-tertiary">{{
                     command.description
                   }}</span>
                 </span>
                 <UiKbd v-if="command.shortcut" :shortcut="command.shortcut" />
               </ListboxItem>
             </UiTooltip>
-            <div v-if="!filteredCommands.length" class="py-8 text-center text-label-md text-fg-tertiary">
+            <div v-if="!filteredCommands.length" class="py-8 text-center text-label text-fg-tertiary">
               {{ t("shell.commands.noMatches") }}
             </div>
           </ListboxContent>

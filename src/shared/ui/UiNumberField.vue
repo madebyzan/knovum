@@ -55,8 +55,8 @@ const rootProps = computed(() => ({
           'w-full [appearance:textfield] [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden',
           INPUT_BASE_CLASSES,
           size === 'sm'
-            ? 'h-(--knovum-control-height-sm) px-2 text-caption-md'
-            : 'h-(--knovum-control-height-md) px-2.5 text-label-md',
+            ? 'h-(--knovum-control-height-sm) px-2 text-caption'
+            : 'h-(--knovum-control-height-md) px-2.5 text-label',
           props.class,
         )
       "

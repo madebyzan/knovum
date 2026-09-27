@@ -30,7 +30,7 @@ function glyphStyle(ratio = 1): CSSProperties {
 
 <template>
   <div>
-    <p class="px-1 pb-2 text-caption-md text-fg-tertiary">
+    <p class="px-1 pb-2 text-caption text-fg-tertiary">
       {{ t("spaces.media.imageEditor.crop.presets") }}
     </p>
     <UiScrollArea class="h-80">
@@ -41,7 +41,7 @@ function glyphStyle(ratio = 1): CSSProperties {
         class="group pr-3"
       >
         <summary
-          class="flex h-(--knovum-control-height-md) cursor-pointer list-none items-center gap-2 rounded-md px-2 text-label-md text-fg-primary hover:bg-surface-control-hover focus-visible:ring-2 focus-visible:ring-stroke-focus"
+          class="flex h-(--knovum-control-height-md) cursor-pointer list-none items-center gap-2 rounded-md px-2 text-label text-fg-primary hover:bg-surface-control-hover focus-visible:ring-2 focus-visible:ring-stroke-focus"
         >
           <ChevronRight class="size-3 shrink-0 text-fg-tertiary transition-transform group-open:rotate-90" />
           {{ group.id === "general" ? t("spaces.media.imageEditor.crop.general") : group.id }}
@@ -51,7 +51,7 @@ function glyphStyle(ratio = 1): CSSProperties {
             v-for="preset in group.presets"
             :key="preset.id"
             type="button"
-            class="flex h-(--knovum-control-height-md) w-full items-center gap-2 rounded-md px-2 text-left text-label-md text-fg-primary hover:bg-surface-control-hover focus-visible:ring-2 focus-visible:ring-stroke-focus"
+            class="flex h-(--knovum-control-height-md) w-full items-center gap-2 rounded-md px-2 text-left text-label text-fg-primary hover:bg-surface-control-hover focus-visible:ring-2 focus-visible:ring-stroke-focus"
             :class="selected(preset) ? 'bg-surface-control text-fg-primary' : ''"
             :aria-pressed="selected(preset)"
             @click="choose(preset)"
@@ -67,7 +67,7 @@ function glyphStyle(ratio = 1): CSSProperties {
             }}</span>
             <span
               v-if="preset.referenceSize"
-              class="shrink-0 text-caption-md text-fg-tertiary tabular-nums"
+              class="shrink-0 text-caption text-fg-tertiary tabular-nums"
               :title="t('spaces.media.imageEditor.crop.referenceSize')"
             >
               {{ preset.referenceSize }}

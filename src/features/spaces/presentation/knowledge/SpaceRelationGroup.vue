@@ -42,7 +42,7 @@ const { t } = useI18n();
         <div class="flex items-center gap-2">
           <button
             type="button"
-            class="min-w-0 flex-1 text-left text-caption-md font-medium text-fg-primary"
+            class="min-w-0 flex-1 text-left text-caption font-medium text-fg-primary"
             @click="emit('reveal', neighbor.neighbor.id)"
           >
             {{ neighbor.neighbor.data.title }}

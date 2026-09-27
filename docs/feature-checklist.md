@@ -23,7 +23,7 @@ Search Tauri/Vue first-party options, GitHub, npm and/or crates.io. Record maint
 ## 4. UI
 
 - reuse `shared/ui` and Reka behavior;
-- use semantic Tailwind v4 desktop tokens (`text-label-md`, `bg-surface-canvas`, `h-(--knovum-control-height-md)`, etc.); do not reintroduce raw token variables or arbitrary pixel typography;
+- use semantic Tailwind v4 desktop tokens (`text-label`, `bg-surface-canvas`, `h-(--knovum-control-height-md)`, etc.); do not reintroduce raw token variables or arbitrary pixel typography;
 - provide keyboard/focus behavior and OS-correct shortcuts;
 - use TanStack Virtual/Table for high-volume lists/grids;
 - no fake controls or webpage/dashboard visual patterns.

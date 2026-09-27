@@ -57,12 +57,12 @@ const selectedLabel = computed(() => props.options.find((option) => option.value
       :aria-label="label"
       :class="
         cn(
-          'flex items-center justify-between gap-2 text-label-md data-placeholder:text-fg-tertiary data-[state=open]:border-stroke-focus',
+          'flex items-center justify-between gap-2 text-label data-placeholder:text-fg-tertiary data-[state=open]:border-stroke-focus',
           width === 'compact' ? 'w-20 min-w-20' : 'w-full min-w-32',
           INPUT_BASE_CLASSES,
           size === 'sm'
-            ? 'h-(--knovum-control-height-sm) px-2 text-caption-md'
-            : 'h-(--knovum-control-height-md) px-2.5 text-label-md',
+            ? 'h-(--knovum-control-height-sm) px-2 text-caption'
+            : 'h-(--knovum-control-height-md) px-2.5 text-label',
           props.class,
         )
       "
@@ -93,7 +93,7 @@ const selectedLabel = computed(() => props.options.find((option) => option.value
             :value="option.value"
             :text-value="option.label"
             :disabled="option.disabled ?? false"
-            class="relative flex min-h-(--knovum-list-item-height-sm) cursor-default items-center rounded-md py-1 pr-2 pl-7 text-label-md outline-none data-disabled:opacity-45 data-highlighted:bg-surface-control-hover"
+            class="relative flex min-h-(--knovum-list-item-height-sm) cursor-default items-center rounded-md py-1 pr-2 pl-7 text-label outline-none data-disabled:opacity-45 data-highlighted:bg-surface-control-hover"
           >
             <SelectItemIndicator class="absolute left-2"><Check class="size-3" /></SelectItemIndicator>
             <SelectItemText class="min-w-0 flex-1">

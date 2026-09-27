@@ -98,8 +98,8 @@ describe("design-token contract", () => {
     ["text-fg-accent", "color", "--color-fg-accent"],
     ["border-stroke-accent", "border-color", "--color-stroke-accent"],
     ["text-fg-primary", "color", "--color-fg-primary"],
-    ["text-body-sm", "font-size", "--text-body-sm"],
-    ["text-body-sm", "line-height", "--text-body-sm--line-height"],
+    ["text-body", "font-size", "--text-body"],
+    ["text-body", "line-height", "--text-body--line-height"],
   ])("emits %s using the canonical %s role", (utility, property, token) => {
     const rule = compiledCss.match(new RegExp(`\\.${utility}\\s*\\{([^}]+)\\}`));
     expect(rule, `Missing compiled utility ${utility}`).not.toBeNull();

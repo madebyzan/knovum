@@ -48,7 +48,7 @@ async function permanentlyDelete(space: ArchivedSpace) {
       class="flex min-h-14 items-center gap-3 border-b border-stroke-divider px-4 last:border-b-0"
     >
       <Archive class="size-3.5 shrink-0 text-fg-secondary" :stroke-width="1.55" />
-      <span class="min-w-0 flex-1 truncate text-label-md font-medium text-fg-primary">{{ space.title }}</span>
+      <span class="min-w-0 flex-1 truncate text-label font-medium text-fg-primary">{{ space.title }}</span>
       <UiButton size="sm" variant="ghost" @click="archive.restore(space.id)">
         <RotateCcw class="size-3" />{{ t("settings.general.archived.restore") }}
       </UiButton>
@@ -58,7 +58,7 @@ async function permanentlyDelete(space: ArchivedSpace) {
     </article>
     <div v-if="archive.spaces.value.length === 0" class="px-6 py-12 text-center">
       <Archive class="mx-auto size-4 text-fg-tertiary" :stroke-width="1.5" />
-      <p class="mt-3 text-label-md text-fg-secondary">{{ t("settings.general.archived.empty") }}</p>
+      <p class="mt-3 text-label text-fg-secondary">{{ t("settings.general.archived.empty") }}</p>
     </div>
   </SettingsSection>
 </template>

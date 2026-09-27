@@ -114,7 +114,7 @@ const canvasEvents = createSpaceCanvasEvents({
       v-if="lifecycle.error.value && !editorSession.activeEditor.value"
       class="pointer-events-none absolute inset-0 z-20 grid place-items-center p-6 text-fg-secondary"
     >
-      <p class="max-w-md text-center text-body-md">{{ lifecycle.error.value }}</p>
+      <p class="max-w-md text-center text-body-lg">{{ lifecycle.error.value }}</p>
     </div>
     <CanvasSurfaceHost
       :key="spaceId"

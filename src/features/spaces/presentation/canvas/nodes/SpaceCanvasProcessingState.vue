@@ -16,14 +16,14 @@ defineProps<{ label: string; phase: "active" | "failed" }>();
     <SpaceCanvasWorkEffect v-if="phase === 'active'" placement="field" />
     <span
       v-if="phase === 'active'"
-      class="relative inline-flex max-w-[90%] items-center gap-1.5 truncate rounded-full bg-surface-inverse/75 px-3 py-1 text-caption-md font-medium text-fg-inverse"
+      class="relative inline-flex max-w-[90%] items-center gap-1.5 truncate rounded-full bg-surface-inverse/75 px-3 py-1 text-caption font-medium text-fg-inverse"
     >
       <SpaceCanvasWorkEffect placement="inline" />
       <span class="truncate">{{ label }}</span>
     </span>
     <span
       v-else
-      class="relative inline-flex max-w-[90%] items-center gap-1.5 rounded-full border border-stroke-danger/20 bg-surface-panel px-3 py-1 text-caption-md font-medium text-fg-danger"
+      class="relative inline-flex max-w-[90%] items-center gap-1.5 rounded-full border border-stroke-danger/20 bg-surface-panel px-3 py-1 text-caption font-medium text-fg-danger"
     >
       <CircleAlert class="size-3.5 shrink-0" :stroke-width="1.6" />
       <span class="truncate">{{ label }}</span>

@@ -40,7 +40,7 @@ watch(
 <template>
   <section class="w-68 overflow-hidden rounded-[inherit] select-none">
     <header class="flex h-9 items-center justify-between border-b border-stroke-divider px-2.5">
-      <p class="text-label-md font-medium text-fg-primary">{{ t("spaces.scenes.title") }}</p>
+      <p class="text-label font-medium text-fg-primary">{{ t("spaces.scenes.title") }}</p>
       <UiIconButton
         :label="t('spaces.scenes.save')"
         size="sm"
@@ -69,12 +69,12 @@ watch(
       />
     </div>
     <div v-else class="flex flex-col items-center px-5 py-5 text-center">
-      <p class="text-caption-md leading-5 text-fg-tertiary">
+      <p class="text-caption leading-5 text-fg-tertiary">
         {{ t("spaces.scenes.empty") }}
       </p>
       <button
         type="button"
-        class="mt-3 flex h-7 items-center gap-1.5 rounded-md border border-stroke-strong bg-surface-control px-3 text-caption-md font-medium text-fg-primary shadow-control hover:bg-surface-control-hover active:bg-surface-control-pressed disabled:pointer-events-none disabled:opacity-50"
+        class="mt-3 flex h-7 items-center gap-1.5 rounded-md border border-stroke-strong bg-surface-control px-3 text-caption font-medium text-fg-primary shadow-control hover:bg-surface-control-hover active:bg-surface-control-pressed disabled:pointer-events-none disabled:opacity-50"
         :disabled="saving"
         :aria-busy="saving"
         @click="emit('create')"

@@ -74,19 +74,19 @@ function reveal(nodeId: string) {
       <h4 class="text-caption-sm font-semibold tracking-wide text-fg-tertiary uppercase">
         {{ t("spaces.knowledge.summary") }}
       </h4>
-      <p class="mt-1.5 text-caption-md leading-relaxed whitespace-pre-wrap text-fg-primary">
+      <p class="mt-1.5 text-caption leading-relaxed whitespace-pre-wrap text-fg-primary">
         {{ data.summary }}
       </p>
     </section>
 
     <dl v-if="fields.length" class="space-y-2">
       <div v-for="field in fields" :key="field.key" class="grid grid-cols-[5.5rem_minmax(0,1fr)] gap-2">
-        <dt class="text-caption-md text-fg-tertiary">{{ field.label }}</dt>
-        <dd class="min-w-0 text-caption-md text-fg-secondary">
+        <dt class="text-caption text-fg-tertiary">{{ field.label }}</dt>
+        <dd class="min-w-0 text-caption text-fg-secondary">
           <button
             v-if="field.targetNodeId"
             type="button"
-            class="inline-flex max-w-full items-center gap-1.5 rounded-md bg-surface-control px-2 py-1 text-caption-md text-fg-secondary hover:bg-surface-control-hover hover:text-fg-primary"
+            class="inline-flex max-w-full items-center gap-1.5 rounded-md bg-surface-control px-2 py-1 text-caption text-fg-secondary hover:bg-surface-control-hover hover:text-fg-primary"
             @click="reveal(field.targetNodeId)"
           >
             <Link2 class="size-3 shrink-0 text-fg-tertiary" />
