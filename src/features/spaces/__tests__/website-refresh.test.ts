@@ -28,9 +28,14 @@ const saved: SpaceWebsitePayload = {
 };
 
 function context() {
-  const saveNodeDataForSpace = vi
+  const saveNodeContentForSpace = vi
     .fn<
-      (spaceId: string, id: string, expectedData: SpaceNodePayload, data: SpaceNodePayload) => Promise<void>
+      (
+        spaceId: string,
+        id: string,
+        expectedContent: SpaceNodePayload,
+        data: SpaceNodePayload,
+      ) => Promise<void>
     >()
     .mockResolvedValue(undefined);
   return {
@@ -41,7 +46,7 @@ function context() {
     addContent: vi
       .fn<(data: SpaceNodePayload, position?: { x: number; y: number }) => Promise<SpaceCanvasNode[]>>()
       .mockResolvedValue([]),
-    saveNodeDataForSpace,
+    saveNodeContentForSpace,
   };
 }
 
@@ -59,7 +64,7 @@ describe("saved website refresh", () => {
     });
     const input = context();
     await refreshSavedWebsite(input, "website-1", saved.url);
-    const latest = input.saveNodeDataForSpace.mock.lastCall?.[3];
+    const latest = input.saveNodeContentForSpace.mock.lastCall?.[3];
     expect(latest).toMatchObject({
       title: "User title",
       url: "https://example.com/new",
@@ -74,7 +79,7 @@ describe("saved website refresh", () => {
     mocks.fetch.mockRejectedValue(new Error("network unavailable"));
     const input = context();
     await refreshSavedWebsite(input, "website-1", saved.url);
-    const latest = input.saveNodeDataForSpace.mock.lastCall?.[3];
+    const latest = input.saveNodeContentForSpace.mock.lastCall?.[3];
     expect(latest).toMatchObject({
       description: "Old description",
       faviconPath: "/assets/old.ico",
@@ -90,7 +95,7 @@ describe("saved website refresh", () => {
     mocks.remove.mockRejectedValueOnce(new Error("cleanup unavailable"));
     const input = context();
     await refreshSavedWebsite(input, "website-1", saved.url);
-    expect(input.saveNodeDataForSpace.mock.lastCall?.[3]).toMatchObject({
+    expect(input.saveNodeContentForSpace.mock.lastCall?.[3]).toMatchObject({
       metadataState: "ready",
       faviconPath: "/assets/new.ico",
     });

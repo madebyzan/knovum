@@ -26,8 +26,5 @@
     },
     "noMatches": "未找到匹配的快捷键"
   },
-  "runtimeModels": {
-    "transcription": "多语言语音转写模型（本地）",
-    "textEmbedding": "文本向量模型（Qwen3-Embedding-0.6B）"
-  }
+  "runtimeModels": {}
 }

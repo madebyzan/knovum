@@ -13,7 +13,7 @@ pub fn export(project_root: &Path) -> Result<(), String> {
     let spaces_output = project_root.join("src/features/spaces/contracts/generated");
     std::fs::write(
         spaces_output.join("contract-values.ts"),
-        format!("// Generated from Rust contracts. Do not edit.\nexport const maxKnowledgePassageBytes = {} as const;\n", crate::spaces::knowledge::indexing::MAX_KNOWLEDGE_PASSAGE_BYTES),
+        format!("// Generated from Rust contracts. Do not edit.\nexport const maxKnowledgePassageBytes = {} as const;\nexport const packageAssetPrefix = {:?} as const;\n", crate::spaces::knowledge::indexing::MAX_KNOWLEDGE_PASSAGE_BYTES, crate::spaces::assets::PACKAGE_ASSET_PREFIX),
     ).map_err(io_error)?;
     export_schemas(&spaces_output)
 }
@@ -80,5 +80,26 @@ fn export_runtime_values(output: &Path) -> Result<(), String> {
             serde_json::to_string(values).map_err(|error| error.to_string())?
         ));
     }
+    let purposes = schema_for!(crate::ai::contracts::RoutingPurpose);
+    let mut policies = serde_json::Map::new();
+    for value in purposes
+        .get("enum")
+        .and_then(serde_json::Value::as_array)
+        .ok_or("Routing purposes must be an enum")?
+    {
+        let purpose: crate::ai::contracts::RoutingPurpose =
+            serde_json::from_value(value.clone()).map_err(|e| e.to_string())?;
+        policies.insert(
+            value
+                .as_str()
+                .ok_or("Routing purpose must be a string")?
+                .to_owned(),
+            serde_json::to_value(purpose.execution_capability()).map_err(|e| e.to_string())?,
+        );
+    }
+    source.push_str(&format!(
+        "export const routingCapabilities = {} as const;\n",
+        serde_json::to_string(&policies).map_err(|e| e.to_string())?
+    ));
     std::fs::write(output.join("contract-values.ts"), source).map_err(io_error)
 }

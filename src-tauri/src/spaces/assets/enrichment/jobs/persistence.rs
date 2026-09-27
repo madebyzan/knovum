@@ -36,7 +36,7 @@ pub(crate) async fn defer_for_configuration(
     let executed = sqlx::query(
         "UPDATE spaces_enrichment_jobs SET status=$1,error=$2,updated_at=$3 \
          WHERE id=$4 AND status IN ('pending','failed','awaiting_configuration') \
-         AND job_type IN ('analyze_image','analyze_video_cover','analyze_document')",
+         AND job_type IN ('analyze_visual','analyze_document')",
     )
     .bind("awaiting_configuration")
     .bind(error)
@@ -89,7 +89,7 @@ pub(crate) async fn reconcile_interrupted(pool: &sqlx::SqlitePool, now: i64) -> 
 
 pub(crate) async fn list_actionable(
     pool: &sqlx::SqlitePool,
-    space_id: &str,
+    space_id: Option<&str>,
 ) -> Result<Vec<EnrichmentJobState>, String> {
     let rows = sqlx::query(
         "WITH ranked AS ( \
@@ -97,12 +97,11 @@ pub(crate) async fn list_actionable(
              row_number() OVER ( \
                PARTITION BY space_id,node_id,job_type,source_revision ORDER BY updated_at DESC,id DESC \
              ) AS position \
-           FROM spaces_enrichment_jobs WHERE space_id=$1 \
+           FROM spaces_enrichment_jobs WHERE ($1 IS NULL OR space_id=$1) \
          ) \
          SELECT r.id,r.space_id,r.node_id,r.job_type,r.status,r.source_revision,r.attempts,r.error,r.created_at,r.updated_at,n.data \
          FROM ranked r JOIN spaces_nodes n ON n.space_id=r.space_id AND n.id=r.node_id AND n.deleted_at IS NULL \
          WHERE r.position=1 AND r.status IN ('pending','running','failed','awaiting_configuration') \
-           AND (r.job_type!='analyze_video_cover' OR NULLIF(json_extract(n.data,'$.previewPath'),'') IS NOT NULL) \
          ORDER BY r.updated_at ASC",
     )
     .bind(space_id)
@@ -130,8 +129,14 @@ fn job_from_row(row: sqlx::sqlite::SqliteRow) -> Result<EnrichmentJobState, Stri
         id: row.try_get("id").map_err(db::sql_error)?,
         space_id: row.try_get("space_id").map_err(db::sql_error)?,
         node_id: row.try_get("node_id").map_err(db::sql_error)?,
-        job_type: row.try_get("job_type").map_err(db::sql_error)?,
-        status: row.try_get("status").map_err(db::sql_error)?,
+        job_type: serde_json::from_value(serde_json::json!(row
+            .try_get::<String, _>("job_type")
+            .map_err(db::sql_error)?))
+        .map_err(db::json_error)?,
+        status: serde_json::from_value(serde_json::json!(row
+            .try_get::<String, _>("status")
+            .map_err(db::sql_error)?))
+        .map_err(db::json_error)?,
         source_revision: row.try_get("source_revision").map_err(db::sql_error)?,
         attempts: row.try_get("attempts").map_err(db::sql_error)?,
         error: row.try_get("error").map_err(db::sql_error)?,

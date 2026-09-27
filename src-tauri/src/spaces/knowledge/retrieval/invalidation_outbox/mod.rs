@@ -71,8 +71,8 @@ pub(crate) async fn drain<R: Runtime>(
     .map_err(db::sql_error)?;
     let mut failures = Vec::new();
     for invalidation in pending {
-        let result = apply(app, &invalidation).await;
-        if let Err(error) = result {
+        let invalidation_outcome = apply(app, &invalidation).await;
+        if let Err(error) = invalidation_outcome {
             record_failure(pool, invalidation.id, &error).await?;
             failures.push(format!("{}: {error}", invalidation.id));
         } else {

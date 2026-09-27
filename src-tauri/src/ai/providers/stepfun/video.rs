@@ -23,12 +23,12 @@ struct StepVideoSubmitResponse {
 #[derive(Deserialize)]
 struct StepVideoQueryResponse {
     status: Option<String>,
-    video: Option<StepVideoData>,
+    video: Option<StepGeneratedVideo>,
     error: Option<StepError>,
 }
 
 #[derive(Deserialize)]
-struct StepVideoData {
+struct StepGeneratedVideo {
     url: Option<String>,
 }
 

@@ -71,7 +71,7 @@ pub(super) async fn drive(
                         }
                         partial
                     });
-                    let result = tokio::time::timeout(
+                    let model_turn = tokio::time::timeout(
                         duration,
                         crate::ai::model_turn::stream_turn(
                             target,
@@ -88,7 +88,7 @@ pub(super) async fn drive(
                         ))
                     });
                     let partial = forwarding.await.map_err(|error| error.to_string())?;
-                    let response = match result {
+                    let response = match model_turn {
                         Ok(response) => response,
                         Err(error) => {
                             if !partial.trim().is_empty() {

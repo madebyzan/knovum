@@ -67,7 +67,9 @@ pub enum ExecutionCapability {
     Embedding,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, ts_rs::TS, schemars::JsonSchema)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, ts_rs::TS, schemars::JsonSchema,
+)]
 pub enum RoutingPurpose {
     #[serde(rename = "writing")]
     Writing,

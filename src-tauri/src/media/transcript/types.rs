@@ -18,7 +18,7 @@ pub(crate) struct SubtitleCue {
     pub(crate) text: String,
 }
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, serde::Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct TranscriptSegment {
     pub(crate) start_ms: u64,

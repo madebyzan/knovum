@@ -57,10 +57,13 @@ pub(in crate::spaces::assets) async fn persist_processing_state(
         app,
         space_id,
         node_id,
-        expected,
+        super::commit::PublicationGuard {
+            source_revision: expected,
+            job_id: guard.and_then(|guard| guard.job_id),
+            media_knowledge: None,
+        },
         fields,
         chunks,
-        guard.and_then(|guard| guard.job_id),
     )
     .await?;
     Ok(())

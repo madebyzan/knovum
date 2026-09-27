@@ -21,10 +21,10 @@ impl AcpLaunch {
 pub(super) struct RegisteredAgent {
     pub descriptor: AgentDescriptor,
     pub launch: AcpLaunch,
-    pub desktop_application: Option<DesktopApplication>,
+    pub desktop_client: Option<DesktopClient>,
 }
 
-pub(super) struct DesktopApplication {
+pub(super) struct DesktopClient {
     #[cfg(target_os = "macos")]
     pub bundle_identifiers: &'static [&'static str],
     #[cfg(windows)]
@@ -45,7 +45,7 @@ const fn agent(
             help: super::help::describe(kind, launch.connection()),
         },
         launch,
-        desktop_application: None,
+        desktop_client: None,
     }
 }
 
@@ -135,7 +135,7 @@ pub(super) const AGENTS: &[RegisteredAgent] = &[
         },
     ),
     RegisteredAgent {
-        desktop_application: Some(DesktopApplication {
+        desktop_client: Some(DesktopClient {
             #[cfg(target_os = "macos")]
             bundle_identifiers: &["com.google.antigravity", "com.google.antigravity-ide"],
             #[cfg(windows)]

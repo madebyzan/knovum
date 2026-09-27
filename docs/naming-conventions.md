@@ -32,6 +32,13 @@ Avoid `core-*`, `base-*` or `common-*` as catch-all module identities. Name vali
 (`scalar-schema`, `content-schema`) and place reusable policy in its real owner. Third-party package
 names and protocol identifiers keep their external spelling. A rename-only wrapper is not an owner.
 
+Do not use generic `result`, `*Data` or `*application` as project-owned file, type, function or local
+variable identities. Name the concrete content, observation, receipt, response, publication or
+interaction. The spelling must describe the actual responsibility; replacing one vague suffix with
+another is insufficient. Standard library types (`Result`, DOM `ImageData`), imported vendor types,
+fixed vendor methods and external protocol fields retain their contractual spelling. `metadata`
+means actual descriptive attributes and is not a synonym for an arbitrary payload.
+
 Names are part of the architecture contract. Prefer domain language over implementation details and keep one term for one concept.
 
 ## Source paths and files

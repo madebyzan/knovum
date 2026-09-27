@@ -1,4 +1,3 @@
-use crate::command_error::CommandError;
 use serde::Serialize;
 use serde_json::Value;
 use tauri::{AppHandle, Runtime};
@@ -19,16 +18,15 @@ mod runs;
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SpacePackageSnapshot {
-    manifest: Value,
-    assets: Vec<PackageAsset>,
+    pub(crate) manifest: Value,
+    pub(crate) assets: Vec<PackageAsset>,
 }
 
-#[tauri::command]
-pub async fn collect_space_package_snapshot<R: Runtime>(
-    app: AppHandle<R>,
+pub(crate) async fn collect<R: Runtime>(
+    app: &AppHandle<R>,
     space_id: String,
-) -> Result<SpacePackageSnapshot, CommandError> {
-    let pool = db::pool(&app).await?;
+) -> Result<SpacePackageSnapshot, String> {
+    let pool = db::pool(app).await?;
     let mut tx = pool.begin().await.map_err(db::sql_error)?;
     let exported_at = crate::clock::unix_time_millis()?;
 

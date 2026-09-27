@@ -31,8 +31,8 @@ pub fn prepare(app: &AppHandle, layers: Vec<Vec<u8>>) -> Result<Vec<PreparedLaye
     let directory = crate::spaces::assets::asset_directory(app)?;
     let mut prepared = Vec::with_capacity(layers.len());
     for bytes in layers {
-        let result = prepare_one(&directory, bytes);
-        match result {
+        let prepared_layer = prepare_one(&directory, bytes);
+        match prepared_layer {
             Ok(layer) => prepared.push(layer),
             Err(error) => {
                 remove(&prepared);

@@ -57,7 +57,7 @@ async fn expire_duration_budgets(
         .bind(now).execute(&mut **tx).await.map_err(db::sql_error)?;
     sqlx::query(&format!("UPDATE spaces_run_steps SET state='blocked',wait_reason='budget',state_version=state_version+1,updated_at=$1 WHERE state IN ('pending','ready','running','waiting','paused') AND run_id IN ({expired})"))
         .bind(now).execute(&mut **tx).await.map_err(db::sql_error)?;
-    let result = sqlx::query("UPDATE spaces_runs SET state='failed',wait_reason='budget',state_version=state_version+1,execution_epoch=execution_epoch+1,updated_at=$1,completed_at=$1 WHERE completed_at IS NULL AND created_at + CAST(json_extract(budget,'$.maxDurationSeconds') AS INTEGER) * 1000 <= $1")
+    let expired_runs = sqlx::query("UPDATE spaces_runs SET state='failed',wait_reason='budget',state_version=state_version+1,execution_epoch=execution_epoch+1,updated_at=$1,completed_at=$1 WHERE completed_at IS NULL AND created_at + CAST(json_extract(budget,'$.maxDurationSeconds') AS INTEGER) * 1000 <= $1")
         .bind(now).execute(&mut **tx).await.map_err(db::sql_error)?;
-    Ok(result.rows_affected())
+    Ok(expired_runs.rows_affected())
 }

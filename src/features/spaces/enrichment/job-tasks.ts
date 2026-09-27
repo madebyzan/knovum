@@ -10,10 +10,11 @@ export function runningEnrichmentTask(record: SpaceEnrichmentJobState) {
 }
 
 export function failedEnrichmentTask(record: SpaceEnrichmentJobState) {
+  if (!record.error) throw new Error("Failed enrichment task is missing its error");
   return {
     id: record.id,
     title: enrichmentJobTitle(record.jobType),
-    detail: record.error ?? i18n.global.t("spaces.processing.failed"),
+    detail: record.error,
     startedAt: record.createdAt,
   };
 }

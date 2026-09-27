@@ -15,7 +15,7 @@ use self::delete::Deletion;
 use crate::spaces::structure::edit_contract::SpaceEditCommand;
 use crate::spaces::structure::repository::SpaceStructureSnapshot;
 
-pub(in crate::spaces::structure) struct PlanResult {
+pub(in crate::spaces::structure) struct StructureEditPlan {
     pub selection: Vec<String>,
     pub deletion: Option<Deletion>,
 }
@@ -23,7 +23,7 @@ pub(in crate::spaces::structure) struct PlanResult {
 pub(in crate::spaces::structure) fn plan(
     command: &SpaceEditCommand,
     snapshot: &mut SpaceStructureSnapshot,
-) -> Result<PlanResult, String> {
+) -> Result<StructureEditPlan, String> {
     let selection = match command {
         SpaceEditCommand::SectionCreateEmpty {
             section_id,
@@ -120,7 +120,7 @@ pub(in crate::spaces::structure) fn plan(
         }
         SpaceEditCommand::StructureDeleteSubtrees { root_ids } => {
             let deletion = self::delete::plan(snapshot, root_ids)?;
-            return Ok(PlanResult {
+            return Ok(StructureEditPlan {
                 selection: Vec::new(),
                 deletion: Some(deletion),
             });
@@ -155,7 +155,7 @@ pub(in crate::spaces::structure) fn plan(
             self::metadata::relation_style(snapshot, relation_id, color.as_ref())
         }
     }?;
-    Ok(PlanResult {
+    Ok(StructureEditPlan {
         selection,
         deletion: None,
     })

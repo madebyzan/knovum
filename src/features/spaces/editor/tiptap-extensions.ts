@@ -1,3 +1,4 @@
+import { convertFileSrc } from "@tauri-apps/api/core";
 import { FileHandler } from "@tiptap/extension-file-handler";
 import { FindAndReplace } from "@tiptap/extension-find-and-replace";
 import { Highlight } from "@tiptap/extension-highlight";
@@ -28,6 +29,12 @@ const SpaceImage = Image.extend({
     return {
       ...this.parent?.(),
       assetPath: { default: null, rendered: false },
+      src: {
+        default: null,
+        renderHTML: (attributes) => ({
+          src: attributes.assetPath ? convertFileSrc(attributes.assetPath) : attributes.src,
+        }),
+      },
     };
   },
 });

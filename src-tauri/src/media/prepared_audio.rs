@@ -54,7 +54,7 @@ pub fn prepare(
         });
     }
     let paths = AnalysisWorkspace::create(root)?;
-    let result = prepare_audio(ffmpeg, source, &paths, cancellation).and_then(|analysis| {
+    let prepared_audio = prepare_audio(ffmpeg, source, &paths, cancellation).and_then(|analysis| {
         if cancellation.is_cancelled() {
             return Err(TRANSCRIPTION_CANCELLED.into());
         }
@@ -68,10 +68,10 @@ pub fn prepare(
         })
     });
     if let Err(error) = paths.cleanup() {
-        return Err(match result {
+        return Err(match prepared_audio {
             Ok(_) => error,
             Err(cause) => format!("{cause}; audio preparation cleanup failed: {error}"),
         });
     }
-    result
+    prepared_audio
 }

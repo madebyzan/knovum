@@ -1,4 +1,17 @@
-use super::{parse_json_canvas, serialize_json_canvas};
+use super::contract::JsonCanvasDocumentV1;
+fn parse_json_canvas(
+    source: String,
+) -> Result<JsonCanvasDocumentV1, crate::command_error::CommandError> {
+    let document = serde_json::from_str(&source).map_err(|error| error.to_string())?;
+    super::validation::validate(&document)?;
+    Ok(document)
+}
+fn serialize_json_canvas(
+    document: JsonCanvasDocumentV1,
+) -> Result<String, crate::command_error::CommandError> {
+    super::validation::validate(&document)?;
+    Ok(serde_json::to_string_pretty(&document).map_err(|error| error.to_string())?)
+}
 
 #[test]
 fn accepts_the_json_canvas_1_0_contract() {

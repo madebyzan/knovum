@@ -28,8 +28,8 @@ async function load() {
 }
 
 async function refreshInstallations() {
-  const result = await catalog.refreshInstallations();
-  if (result.error) toast.error(String(result.error));
+  const installationRefresh = await catalog.refreshInstallations();
+  if (installationRefresh.error) toast.error(String(installationRefresh.error));
 }
 
 async function resetSection() {

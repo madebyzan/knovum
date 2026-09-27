@@ -13,13 +13,13 @@ pub struct OpenAiImageAdapter;
 #[derive(Deserialize)]
 struct ImageResponse {
     #[serde(default)]
-    data: Vec<ImageData>,
+    data: Vec<GeneratedImageSource>,
     #[serde(default)]
-    images: Vec<ImageData>,
+    images: Vec<GeneratedImageSource>,
 }
 
 #[derive(Deserialize)]
-struct ImageData {
+struct GeneratedImageSource {
     url: Option<String>,
     b64_json: Option<String>,
     revised_prompt: Option<String>,

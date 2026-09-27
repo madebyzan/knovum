@@ -1,6 +1,7 @@
 import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
 import { createSpaceNode } from "../canvas/node";
 import { spaceNodeSizePolicy, spaceNodeSupportsContentSizing } from "../canvas/node-size";
+import type { CommittedNodeContent } from "../contracts/generated/CommittedNodeContent";
 import type { DiscardPendingContentRequest } from "../contracts/generated/DiscardPendingContentRequest";
 import type { DiscardPendingContentResponse } from "../contracts/generated/DiscardPendingContentResponse";
 import type { SpaceNodeProjection } from "../contracts/generated/SpaceNodeProjection";
@@ -69,22 +70,25 @@ export async function updateNodePayload(
     data: SpaceNodePayload;
     sourceChunks?: readonly KnowledgeChunkSeed[] | undefined;
   },
-): Promise<void> {
-  const { id, expectedData, data, sourceChunks } = change;
-  await updateNodePayloadMany(
+): Promise<SpaceNodePayload> {
+  const { id, expectedData: expectedContent, data, sourceChunks } = change;
+  const committed = await updateNodePayloadMany(
     spaceId,
-    [{ id, expectedData, data }],
+    [{ id, expectedData: expectedContent, data }],
     sourceChunks ? new Map([[id, sourceChunks]]) : undefined,
   );
+  const committedNode = committed.find((node) => node.id === id);
+  if (!committedNode) throw new Error("Node update did not return its committed projection");
+  return committedNode.data;
 }
 
 export async function updateNodePayloadMany(
   spaceId: string,
   changes: readonly { id: string; expectedData: SpaceNodePayload; data: SpaceNodePayload }[],
   sourceChunks?: ReadonlyMap<string, readonly KnowledgeChunkSeed[]>,
-): Promise<void> {
-  if (!changes.length) return;
-  await invoke("plugin:spaces|update_nodes", {
+): Promise<Array<{ id: string; data: SpaceNodePayload }>> {
+  if (!changes.length) return [];
+  const committed = await invoke<CommittedNodeContent[]>("plugin:spaces|update_nodes", {
     request: {
       spaceId,
       changes: changes.map((change) => {
@@ -96,6 +100,7 @@ export async function updateNodePayloadMany(
       }),
     },
   });
+  return committed.map(({ id, data }) => ({ id, data: validateSpaceNodePayload(data) }));
 }
 
 export function discardPendingContent(request: DiscardPendingContentRequest) {

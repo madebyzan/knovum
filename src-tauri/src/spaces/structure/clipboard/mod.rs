@@ -78,11 +78,11 @@ pub(crate) async fn import<R: Runtime>(
     let digest = super::receipts::digest(&request)?;
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
-    if let Some(result) =
+    if let Some(clipboard_receipt) =
         super::receipts::find_typed(&mut tx, &request.mutation_id, &digest).await?
     {
         tx.commit().await.map_err(db::sql_error)?;
-        return Ok(result);
+        return Ok(clipboard_receipt);
     }
     payload::validate(app, &request.payload)?;
     let (mut snapshot, revision) =
@@ -132,7 +132,7 @@ pub(crate) async fn import<R: Runtime>(
         next,
     )
     .await?;
-    let result = ImportStructureClipboardResponse {
+    let clipboard_receipt = ImportStructureClipboardResponse {
         snapshot: SpaceEditSnapshotResponse {
             edit_revision: next,
             structure: snapshot.structure,
@@ -149,10 +149,10 @@ pub(crate) async fn import<R: Runtime>(
         &request.space_id,
         &digest,
         next,
-        &result.selection_suggestion,
-        &result,
+        &clipboard_receipt.selection_suggestion,
+        &clipboard_receipt,
     )
     .await?;
     tx.commit().await.map_err(db::sql_error)?;
-    Ok(result)
+    Ok(clipboard_receipt)
 }

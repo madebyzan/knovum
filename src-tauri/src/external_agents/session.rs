@@ -56,8 +56,8 @@ pub async fn run(
             _ = session_cancellation.cancelled() => {
                 return Err(agent_client_protocol::Error::request_cancelled());
             }
-            result = tokio::time::timeout(super::connection::INITIALIZE_TIMEOUT, initialize) => {
-                result
+            session_outcome = tokio::time::timeout(super::connection::INITIALIZE_TIMEOUT, initialize) => {
+                session_outcome
                     .map_err(|_| agent_client_protocol::Error::internal_error().data(
                         "ACP initialization timed out after 30 seconds",
                     ))??
@@ -77,7 +77,7 @@ pub async fn run(
             _ = session_cancellation.cancelled() => {
                 return Err(agent_client_protocol::Error::request_cancelled());
             }
-            result = prepare_content => result.map_err(|error| {
+            session_outcome = prepare_content => session_outcome.map_err(|error| {
                 agent_client_protocol::Error::invalid_params().data(error.to_string())
             })?,
         };
@@ -142,7 +142,7 @@ pub async fn run(
         tokio::pin!(session_run);
         tokio::select! {
             biased;
-            result = &mut session_run => result,
+            session_outcome = &mut session_run => session_outcome,
             started = &mut session_start => {
                 started.map_err(|_| agent_client_protocol::Error::internal_error().data(
                     "ACP session start ended without creating a session",
@@ -163,7 +163,7 @@ pub async fn run(
     tokio::pin!(connection);
     let outcome = tokio::select! {
         biased;
-        result = &mut connection => result,
+        session_outcome = &mut connection => session_outcome,
         started = &mut connection_start => {
             started.map_err(|_| AiError::internal(
                 "ACP connection ended before initialization",

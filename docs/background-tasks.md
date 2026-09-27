@@ -4,35 +4,35 @@ Task Center is a user-visible projection of long-running work and drives OS task
 
 ## Feature-owned progress and cancellation
 
-Rust operations stream ordered progress through Tauri Channels. [media/transcription.ts](../src/features/spaces/media/transcription.ts) creates a `Channel<SpaceMediaTranscriptionProgress>` and passes it as `onProgress` to `plugin:spaces|transcribe_media`. The caller owns the job ID and cancellation request. [media/actions.ts](../src/features/spaces/media/actions.ts) manages Task Center progress, source-revision validation and the cancellation code.
+Spaces enrichment runs in Rust independently of an open Space view. Manual transcription sends a
+node identity through [media/transcription.ts](../src/features/spaces/media/transcription.ts) to
+`plugin:spaces|request_media_transcription`; automatic intent enters the same durable job queue.
+Rust owns the source revision, resource preparation, concurrency lanes, cancellation and publication.
 
-The following uses current APIs and illustrates the progress bridge; the full feature implementation also guards queued cancellation and validates the media source before publishing results.
+Images and video covers use one durable `analyze_visual` job and one Vision execution pipeline.
+Node kind determines input preparation: images use the edited rendering and asset authorization;
+video covers use the saved preview and its origin-specific authorization. Their visual input revision
+guards scheduling, retry and publication. Replacing or removing a cover invalidates existing visual
+work without invalidating media analysis or transcription. Cover analysis describes a still image;
+it does not claim to understand the video timeline.
 
-```ts
-import { useTaskStore } from "../src/foundation/tasks/task-store";
-import {
-  cancelSpaceMediaTranscription,
-  isMediaTranscriptionCancellation,
-  transcribeSpaceMedia,
-} from "../src/features/spaces/media/transcription";
+[enrichment/job-observation.ts](../src/features/spaces/enrichment/job-observation.ts) observes
+`space-enrichment-update` and restores persisted actionable jobs. It projects progress, partial
+transcripts and terminal outcomes into Task Center without dispatching or sequencing work. Retry
+submits `retry_enrichment_job`; acceptance of that control intent does not mark the observed task as
+succeeded. The execution owner publishes its terminal outcome. Cancel submits `cancel_enrichment_job`.
 
-const tasks = useTaskStore();
-const jobId = crypto.randomUUID();
-const taskId = tasks.start("Transcribe media", undefined, () => cancelSpaceMediaTranscription(jobId));
-try {
-  await transcribeSpaceMedia(jobId, sourcePath, ({ progress, stage }) => {
-    tasks.progress(taskId, progress, stage);
-  });
-  tasks.succeed(taskId);
-} catch (error) {
-  if (isMediaTranscriptionCancellation(error)) tasks.dismiss(taskId);
-  else tasks.fail(taskId, String(error));
-}
-```
+Explicit media insights use a Tauri Channel through
+[media/insights.ts](../src/features/spaces/media/insights.ts). Rust owns prompts, chunking, AI routing,
+chapter validation and guarded publication; [media/actions.ts](../src/features/spaces/media/actions.ts)
+owns only the interaction and Task Center projection. A concurrent transcript or chapter edit rejects
+publication rather than replacing the user's changes.
 
-`sourcePath` is the feature's validated input; product titles and stages are localized by the real caller. Foundation's [task-store.ts](../src/foundation/tasks/task-store.ts) owns presentation state, cancellation/open handlers, retry presentation and history trimming. The feature owns execution, terminal outcomes and cleanup. Required failures remain visible.
-
-Assets own process-local transfer/processing concurrency budgets; media owns inference concurrency. These Renderer budgets limit submission and are not Rust durable schedulers. Low-volume broadcasts may use events; ordered task progress uses Channels.
+Foundation's [task-store.ts](../src/foundation/tasks/task-store.ts) owns presentation state,
+cancellation/open handlers, retry presentation and history trimming. Feature executions own terminal
+outcomes and cleanup. Required failures remain visible. Asset transfer UI may bound process-local
+submission; durable enrichment concurrency and media inference limits belong to Rust. Channels carry
+ordered progress within an execution; events publish enrichment observations to the WebView.
 
 ## Durable Run projection
 

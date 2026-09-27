@@ -29,7 +29,7 @@ pub(crate) async fn get_space_edit_receipt_result<R: Runtime>(
     mutation_id: String,
 ) -> Result<Option<serde_json::Value>, CommandError> {
     validate_id("Mutation ID", &mutation_id)?;
-    Ok((receipts::result(db::pool(&app).await?, &mutation_id).await)?)
+    Ok((receipts::load_committed_projection(db::pool(&app).await?, &mutation_id).await)?)
 }
 
 #[tauri::command]

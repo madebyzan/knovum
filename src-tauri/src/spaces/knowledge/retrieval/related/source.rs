@@ -6,23 +6,27 @@ use crate::spaces::knowledge::retrieval::schema::VECTOR_COLUMN;
 
 pub(super) fn centroid(vectors: &[Vec<f32>]) -> Result<Vec<f32>, String> {
     let dimensions = vectors[0].len();
-    let mut result = vec![0.0f32; dimensions];
+    let mut mean_embedding = vec![0.0f32; dimensions];
     for vector in vectors {
         if vector.len() != dimensions {
             return Err("Source embeddings have inconsistent dimensions".to_owned());
         }
-        for (sum, value) in result.iter_mut().zip(vector) {
+        for (sum, value) in mean_embedding.iter_mut().zip(vector) {
             *sum += value;
         }
     }
-    let norm = result.iter().map(|value| value * value).sum::<f32>().sqrt();
+    let norm = mean_embedding
+        .iter()
+        .map(|value| value * value)
+        .sum::<f32>()
+        .sqrt();
     if !norm.is_finite() || norm <= 0.0 {
         return Err("Source embeddings cannot form a valid related-content query".to_owned());
     }
-    for value in &mut result {
+    for value in &mut mean_embedding {
         *value /= norm;
     }
-    Ok(result)
+    Ok(mean_embedding)
 }
 
 pub(super) fn source_vectors(

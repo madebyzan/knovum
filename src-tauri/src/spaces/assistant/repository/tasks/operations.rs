@@ -71,14 +71,14 @@ pub async fn start_tool_call(
     let row = sqlx::query("SELECT id,result FROM spaces_assistant_tool_calls WHERE task_id=$1 AND provider_call_id=$2")
         .bind(task_id).bind(provider_call_id).fetch_one(pool).await.map_err(db::sql_error)?;
     let stored_id: String = row.try_get("id").map_err(db::sql_error)?;
-    let result = row
+    let tool_output = row
         .try_get::<Option<String>, _>("result")
         .map_err(db::sql_error)?
         .map(|value| serde_json::from_str(&value).map_err(db::json_error))
         .transpose()?;
     Ok(AssistantToolCallOutcome {
         id: stored_id,
-        result,
+        result: tool_output,
     })
 }
 
@@ -89,17 +89,17 @@ pub async fn complete_tool_call(
     branch_id: &str,
     call_id: &str,
     name: &str,
-    result: &Value,
+    tool_output: &Value,
 ) -> Result<(), String> {
     let now = crate::clock::unix_time_millis()?;
     let mut tx = db::begin_write(pool).await?;
     let updated = sqlx::query("UPDATE spaces_assistant_tool_calls SET result=$1,completed_at=$2 WHERE id=$3 AND completed_at IS NULL")
-        .bind(serde_json::to_string(result).map_err(db::json_error)?).bind(now).bind(id)
+        .bind(serde_json::to_string(tool_output).map_err(db::json_error)?).bind(now).bind(id)
         .execute(&mut *tx).await.map_err(db::sql_error)?;
     db::require_one(updated, "assistant-tool-call-already-completed")?;
     super::super::messages::append_message_in_transaction(
         &mut tx, conversation_id, branch_id, super::super::AssistantMessageRole::Tool,
-        &serde_json::json!({"parts": [{"type": "tool_result", "callId": call_id, "name": name, "result": result}]}), now,
+        &serde_json::json!({"parts": [{"type": "tool_result", "callId": call_id, "name": name, "result": tool_output}]}), now,
     ).await?;
     tx.commit().await.map_err(db::sql_error)
 }

@@ -8,7 +8,7 @@ import type {
   SpaceVideoPayload,
 } from "../model/nodes/node-payload";
 
-type SpaceImportableData =
+type ImportableNodeContent =
   | SpaceAudioPayload
   | SpaceCodePayload
   | SpaceFilePayload
@@ -16,7 +16,7 @@ type SpaceImportableData =
   | SpaceMarkdownPayload
   | SpaceVideoPayload;
 
-type SpaceAssetKind = SpaceImportableData["kind"];
+type SpaceAssetKind = ImportableNodeContent["kind"];
 
 export interface ImportedSpaceAsset {
   name: string;

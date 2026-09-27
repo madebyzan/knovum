@@ -7,10 +7,10 @@ export function createSpaceNode(
   initialPosition: { x: number; y: number },
   id: string = crypto.randomUUID(),
 ): SpaceCanvasNode {
-  return applySpaceNodeData({ id, type: data.kind, initialPosition, data }, data);
+  return applySpaceNodeContent({ id, type: data.kind, initialPosition, data }, data);
 }
 
-export function applySpaceNodeData(node: SpaceCanvasNode, data: SpaceNodePayload): SpaceCanvasNode {
+export function applySpaceNodeContent(node: SpaceCanvasNode, data: SpaceNodePayload): SpaceCanvasNode {
   return {
     ...node,
     data,

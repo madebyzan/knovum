@@ -140,16 +140,16 @@ async fn finish_attempt(
     tx: &mut Transaction<'_, Sqlite>,
     claim: &AttemptClaim,
     state: &str,
-    result: Option<&Value>,
+    attempt_output: Option<&Value>,
     error: Option<&str>,
     now: i64,
 ) -> Result<(), String> {
-    let result = result
+    let attempt_output = attempt_output
         .map(serde_json::to_string)
         .transpose()
         .map_err(db::json_error)?;
     let changed = sqlx::query("UPDATE spaces_run_attempts SET state=$1,result=$2,error_code=$3,lease_until=NULL,finished_at=$4 WHERE id=$5 AND state='executing' AND execution_epoch=$6")
-        .bind(state).bind(result).bind(error).bind(now).bind(&claim.attempt_id).bind(claim.execution_epoch)
+        .bind(state).bind(attempt_output).bind(error).bind(now).bind(&claim.attempt_id).bind(claim.execution_epoch)
         .execute(&mut **tx).await.map_err(db::sql_error)?;
     db::require_one(
         changed,

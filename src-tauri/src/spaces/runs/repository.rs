@@ -85,10 +85,10 @@ pub(crate) async fn transition_run(
 ) -> Result<RunObservation, String> {
     let now = crate::clock::unix_time_millis()?;
     let completed_at = state.is_terminal().then_some(now);
-    let result = sqlx::query("UPDATE spaces_runs SET state=$1,state_version=state_version+1,wait_reason=$2,updated_at=$3,completed_at=$4 WHERE id=$5 AND state_version=$6 AND completed_at IS NULL")
+    let run_write = sqlx::query("UPDATE spaces_runs SET state=$1,state_version=state_version+1,wait_reason=$2,updated_at=$3,completed_at=$4 WHERE id=$5 AND state_version=$6 AND completed_at IS NULL")
         .bind(enum_json(state)?).bind(optional_enum_json(wait_reason)?).bind(now).bind(completed_at)
         .bind(run_id).bind(expected_version).execute(pool).await.map_err(db::sql_error)?;
-    db::require_one(result, "Run state changed concurrently")?;
+    db::require_one(run_write, "Run state changed concurrently")?;
     let run = load_run(pool, run_id).await?;
     super::signals::announce();
     Ok(run)
@@ -106,13 +106,13 @@ pub(crate) async fn request_control(
         "resume" => "UPDATE spaces_runs SET pause_requested_at=NULL,state=CASE WHEN state='paused' THEN 'queued' ELSE state END,state_version=state_version+1,updated_at=$1 WHERE id=$2 AND completed_at IS NULL",
         _ => return Err("Unsupported Run control".into()),
     };
-    let result = sqlx::query(sql)
+    let run_write = sqlx::query(sql)
         .bind(now)
         .bind(run_id)
         .execute(pool)
         .await
         .map_err(db::sql_error)?;
-    db::require_one(result, "Run is unavailable or already complete")?;
+    db::require_one(run_write, "Run is unavailable or already complete")?;
     super::signals::announce();
     Ok(())
 }

@@ -34,7 +34,7 @@ pub struct InsertNodesRequest {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct NodeDataChange {
+pub struct NodeContentChange {
     pub id: String,
     pub expected_data: Value,
     pub data: Value,
@@ -45,5 +45,14 @@ pub struct NodeDataChange {
 #[serde(rename_all = "camelCase")]
 pub struct UpdateNodesRequest {
     pub space_id: String,
-    pub changes: Vec<NodeDataChange>,
+    pub changes: Vec<NodeContentChange>,
+}
+
+#[derive(Debug, Serialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
+pub struct CommittedNodeContent {
+    pub id: String,
+    #[ts(type = "unknown")]
+    pub data: Value,
 }

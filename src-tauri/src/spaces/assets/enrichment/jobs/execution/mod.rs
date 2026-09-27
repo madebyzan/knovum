@@ -78,6 +78,7 @@ async fn execute(
     cancellation: &tokio_util::sync::CancellationToken,
 ) -> Result<EnrichmentJobOutput, String> {
     let mut data = node::load_current(app, &request).await?;
+    let expected_media_knowledge = data["mediaKnowledge"].clone();
     match request.job_type {
         EnrichmentJobType::ParseDocument => {
             let data = crate::spaces::assets::enrichment::enrich_node_with_cancellation(
@@ -119,7 +120,7 @@ async fn execute(
                 data,
             });
         }
-        EnrichmentJobType::AnalyzeImage | EnrichmentJobType::AnalyzeVideoCover => {
+        EnrichmentJobType::AnalyzeVisual => {
             let target = request
                 .vision_target
                 .take()
@@ -138,11 +139,8 @@ async fn execute(
         EnrichmentJobType::TranscribeMedia => {
             media::transcribe(app, job_id, &request, &mut data, progress).await?;
         }
-        EnrichmentJobType::EmbedText | EnrichmentJobType::EmbedMediaTranscript => {
-            return Err("Embedding jobs are owned by the retrieval index".to_owned());
-        }
     }
-    let data = node::save(app, &request, data).await?;
+    let data = node::save(app, &request, data, &expected_media_knowledge).await?;
     Ok(EnrichmentJobOutput {
         node_id: request.node_id,
         data,

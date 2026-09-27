@@ -106,7 +106,16 @@ they are not general concurrency or process-management frameworks.
 Spaces processing and retrieval are Rust application use cases, not WebView workflows:
 
 - `assets/enrichment/jobs/` owns durable processing-job state, Rust concurrency lanes, media/vision
-  execution and system-authored node updates. Vue submits a job and presents Channel progress;
+  execution, dispatch, configured-target resolution, retry and system-authored node updates. Vue
+  observes events and persisted tasks, and submits explicit transcription/retry/cancel intents;
+- `assets/enrichment/media_knowledge/` owns transcript chunking, insight prompts, bounded model
+  calls, chapter construction and publication against the captured media-knowledge input;
+- Rust computes `knowledgeRevision` for user node writes and returns the committed payloads.
+  Vue keeps draft validation and undo state, without implementing a second hash algorithm;
+- `package/` owns archive validation, ID/reference remapping, managed assets, transactional restore
+  and failed-import cleanup. Vue owns dialogs, progress and opening the imported Space;
+- `canvas_exchange/` owns JSON Canvas file reading, import mapping, asset acquisition and atomic
+  commit. Vue projects the current visual frames for export and presents committed imports;
 - `knowledge/retrieval/` owns embedding instructions, model identity, batching, LanceDB writes, semantic search
   and hybrid rank fusion. Vue submits query text or an indexing intent and never transports vectors;
 - `commands/grounded/` owns the conversation use case and streaming exchange persistence, while

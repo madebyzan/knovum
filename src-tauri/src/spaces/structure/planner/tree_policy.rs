@@ -76,14 +76,14 @@ pub(in crate::spaces::structure) fn ancestors(
     index: &Index,
     id: &str,
 ) -> Result<Vec<String>, String> {
-    let mut result = Vec::new();
+    let mut ancestors = Vec::new();
     let mut parent = index.node(structure, id)?.parent_id();
     while let Some(parent_id) = parent {
-        result.push(parent_id.to_owned());
+        ancestors.push(parent_id.to_owned());
         parent = index.node(structure, parent_id)?.parent_id();
     }
-    result.reverse();
-    Ok(result)
+    ancestors.reverse();
+    Ok(ancestors)
 }
 
 pub(in crate::spaces::structure) fn require_editable(

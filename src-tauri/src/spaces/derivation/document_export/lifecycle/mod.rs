@@ -6,8 +6,8 @@ use tauri::AppHandle;
 
 use super::completion;
 use crate::documents::generation::document::DocumentSource;
+use crate::spaces::db;
 use crate::spaces::derivation::{failure, inputs, pending_output, source_validation};
-use crate::spaces::{assets::asset_directory, db, knowledge::contracts};
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -17,6 +17,10 @@ pub struct ExportDocumentRequest {
     pub source_node_id: String,
     pub source_revision: String,
     pub output_node_id: String,
+    pub expected_edit_revision: i64,
+    pub target_parent_id: Option<String>,
+    pub position: crate::spaces::structure::Point,
+    pub size: crate::spaces::structure::Size,
 }
 
 #[derive(Serialize)]
@@ -40,34 +44,32 @@ pub(super) async fn prepare(
 ) -> Result<PreparedDocumentExport, String> {
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
+    let path = crate::spaces::derivation::output_paths::reserve(app, "document", extension)?;
+    let prepared =
+        prepare_in_transaction(&mut tx, request, action, engine, extension, &path).await?;
+    tx.commit().await.map_err(db::sql_error)?;
+    Ok(prepared)
+}
+
+pub(super) async fn prepare_in_transaction(
+    tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
+    request: &ExportDocumentRequest,
+    action: &str,
+    engine: &str,
+    extension: &str,
+    path: &str,
+) -> Result<PreparedDocumentExport, String> {
     source_validation::validate(
-        &mut tx,
+        tx,
         &request.space_id,
         &request.source_node_id,
         &request.source_revision,
         inputs::RevisionBasis::Knowledge,
     )
     .await?;
-    contracts::validate_same_space_node(
-        &mut tx,
-        &request.space_id,
-        &request.source_node_id,
-        &request.output_node_id,
-    )
-    .await?;
     let source: String = sqlx::query_scalar("SELECT data FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND kind='markdown' AND deleted_at IS NULL")
-        .bind(&request.source_node_id).bind(&request.space_id).fetch_one(&mut *tx).await.map_err(db::sql_error)?;
-    let output: String = sqlx::query_scalar(
-        "SELECT data FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND kind='file'",
-    )
-    .bind(&request.output_node_id)
-    .bind(&request.space_id)
-    .fetch_one(&mut *tx)
-    .await
-    .map_err(db::sql_error)?;
+        .bind(&request.source_node_id).bind(&request.space_id).fetch_one(&mut **tx).await.map_err(db::sql_error)?;
     let source: Value = serde_json::from_str(&source).map_err(db::json_error)?;
-    let output: Value = serde_json::from_str(&output).map_err(db::json_error)?;
-    let path = validated_path(app, &output, extension)?;
     let title = source["title"]
         .as_str()
         .ok_or("Document title is invalid")?
@@ -79,18 +81,44 @@ pub(super) async fn prepare(
     if title.trim().is_empty() && markdown.trim().is_empty() {
         return Err("Document export requires a title or Markdown content".into());
     }
-    let citations = citations::load(&mut tx, &request.source_node_id).await?;
+    let citations = citations::load(tx, &request.source_node_id).await?;
     let source = DocumentSource {
         title,
         markdown,
         citations,
     };
+    let output_title = format!("{}.{}", source.title, extension);
+    let mut data = serde_json::json!({"kind":"file","title":output_title,"fileName":output_title,"assetPath":path,"processingState":"processing"});
+    crate::spaces::knowledge::indexing::revision::apply(&mut data)?;
+    crate::spaces::nodes::insert_many_in_transaction(
+        tx,
+        crate::spaces::nodes::contracts::InsertNodesRequest {
+            space_id: request.space_id.clone(),
+            mutation_id: format!("{}:output", request.id),
+            expected_edit_revision: request.expected_edit_revision,
+            target_parent_id: request.target_parent_id.clone(),
+            nodes: vec![crate::spaces::nodes::contracts::InsertNode {
+                id: request.output_node_id.clone(),
+                kind: "file".into(),
+                initial_x: request.position.x,
+                initial_y: request.position.y,
+                width: request.size.width,
+                height: request.size.height,
+                size_authority: crate::spaces::structure::SizeAuthority::Frame,
+                appearance: None,
+                file_subpath: None,
+                data,
+                source_chunks: vec![],
+            }],
+        },
+    )
+    .await?;
     let now = crate::clock::unix_time_millis()?;
     sqlx::query("INSERT INTO spaces_knowledge_derivations(id,space_id,output_node_id,action_kind,action_version,engine,status,created_at,updated_at) VALUES($1,$2,$3,$4,1,$5,'running',$6,$6)")
         .bind(&request.id).bind(&request.space_id).bind(&request.output_node_id).bind(action).bind(engine).bind(now)
-        .execute(&mut *tx).await.map_err(db::sql_error)?;
+        .execute(&mut **tx).await.map_err(db::sql_error)?;
     inputs::insert(
-        &mut tx,
+        tx,
         &request.id,
         &[inputs::DerivationInput {
             node_id: &request.source_node_id,
@@ -100,8 +128,10 @@ pub(super) async fn prepare(
         }],
     )
     .await?;
-    tx.commit().await.map_err(db::sql_error)?;
-    Ok(PreparedDocumentExport { source, path })
+    Ok(PreparedDocumentExport {
+        source,
+        path: path.to_owned(),
+    })
 }
 
 pub(super) async fn complete(
@@ -162,15 +192,4 @@ pub(super) async fn handle_failure(
     .flatten()
     .collect::<Vec<_>>()
     .join("; ")
-}
-
-fn validated_path(app: &AppHandle, output: &Value, extension: &str) -> Result<String, String> {
-    let path = pending_output::validate_unpublished_asset(output)?;
-    let value = std::path::Path::new(path);
-    if value.parent() != Some(asset_directory(app)?.as_path())
-        || value.extension().and_then(|part| part.to_str()) != Some(extension)
-    {
-        return Err("Document output path is invalid".into());
-    }
-    Ok(path.to_owned())
 }

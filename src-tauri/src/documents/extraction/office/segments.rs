@@ -18,7 +18,7 @@ pub(super) fn extract(
     cancellation: &CancellationToken,
     budget: &mut budget::TextBudget,
 ) -> Result<Vec<DocumentSegment>, String> {
-    let mut result = Vec::<DocumentSegment>::new();
+    let mut segments = Vec::<DocumentSegment>::new();
     let mut headings = Vec::<String>::new();
     for (section_index, section) in ir.sections.iter().enumerate() {
         ensure_active(cancellation)?;
@@ -43,7 +43,7 @@ pub(super) fn extract(
                         headings,
                         content.part,
                     );
-                    result.extend(tables::segments(table, owner, cancellation, budget)?);
+                    segments.extend(tables::segments(table, owner, cancellation, budget)?);
                     continue;
                 }
                 let text = element_text(element)?;
@@ -63,7 +63,7 @@ pub(super) fn extract(
                     content.part,
                 );
                 if is_word(format) && matches!(element, Element::Paragraph(_)) {
-                    if let Some(previous) = result.last_mut() {
+                    if let Some(previous) = segments.last_mut() {
                         let contiguous = previous
                             .metadata
                             .get("elementEnd")
@@ -84,7 +84,7 @@ pub(super) fn extract(
                         }
                     }
                 }
-                result.push(DocumentSegment {
+                segments.push(DocumentSegment {
                     kind: element_kind(format, element),
                     text,
                     location: owner,
@@ -97,7 +97,7 @@ pub(super) fn extract(
             }
         }
     }
-    Ok(result)
+    Ok(segments)
 }
 
 fn element_kind(format: DocumentFormat, element: &Element) -> &'static str {

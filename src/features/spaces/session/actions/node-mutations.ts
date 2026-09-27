@@ -1,8 +1,5 @@
 import { createSpaceNode } from "../../canvas/node";
-import {
-  resumePendingEnrichmentJobs,
-  type SpaceEnrichmentSchedulerContext,
-} from "../../enrichment/job-scheduler";
+import { refreshEnrichmentTasks } from "../../enrichment/job-observation";
 import { createSpaceHistoryMutations } from "../../history/mutation-actions";
 import { beginSpaceMutation } from "../../history/mutation-barrier";
 import {
@@ -11,7 +8,6 @@ import {
   type SpaceMutationContext,
 } from "../../history/mutation-types";
 import { scheduleKnowledgeIndex } from "../../knowledge/indexing/index-scheduler";
-import { prepareSpaceKnowledgePayload } from "../../knowledge/model/node-knowledge";
 import type { KnowledgeChunkSeed } from "../../knowledge/model/schema";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceNodePayload } from "../../model/nodes/node-payload";
@@ -19,18 +15,18 @@ import { validateSpaceNodePayload } from "../../model/nodes/schema/node-payload"
 import { createNodes } from "../../nodes/node-operations";
 import { spaceEditOperations } from "../../structure/space-edit-operations";
 import { loadSpaceSessionProjection } from "../space-projection";
-import { createNodeDataMutations } from "./node-data-mutations";
+import { createNodeContentMutations } from "./node-content-mutations";
 
 export function createSpaceMutations(context: SpaceMutationContext) {
-  const dataMutations = createNodeDataMutations(context);
+  const dataMutations = createNodeContentMutations(context);
   return {
-    ...createContentMutations(context, { applyNodeDataForSpace: dataMutations.applyNodeDataForSpace }),
+    ...createContentMutations(context),
     ...dataMutations,
     ...createSpaceHistoryMutations(context),
   };
 }
 
-function createContentMutations(context: SpaceMutationContext, enrichment: SpaceEnrichmentSchedulerContext) {
+function createContentMutations(context: SpaceMutationContext) {
   const { nodes, history } = context;
 
   async function addContent(
@@ -86,7 +82,7 @@ function createContentMutations(context: SpaceMutationContext, enrichment: Space
   ) {
     for (const node of contentNodes) {
       assertSpacePosition(node.initialPosition);
-      node.data = prepareSpaceKnowledgePayload(validateSpaceNodePayload(node.data));
+      node.data = validateSpaceNodePayload(node.data);
     }
     const isActive = context.activeSpaceId.value === spaceId;
     if (isActive) nodes.value = [...nodes.value, ...contentNodes];
@@ -104,17 +100,26 @@ function createContentMutations(context: SpaceMutationContext, enrichment: Space
         sourceChunks,
       );
       persisted = true;
-      const projection = await loadSpaceSessionProjection(spaceId);
-      if (context.activeSpaceId.value === spaceId) {
-        context.nodes.value = projection.nodes;
-        context.editSnapshot.value = projection.editSnapshot;
-      }
+      await synchronizeCreatedContent(spaceId, contentNodes);
     } catch (error) {
       if (!persisted && isActive && context.activeSpaceId.value === spaceId) {
         const pendingIds = new Set(contentNodes.map(({ id }) => id));
         nodes.value = nodes.value.filter(({ id }) => !pendingIds.has(id));
       }
       throw error;
+    }
+  }
+
+  async function synchronizeCreatedContent(spaceId: string, contentNodes: SpaceCanvasNode[]) {
+    const projection = await loadSpaceSessionProjection(spaceId);
+    for (const pending of contentNodes) {
+      const committed = projection.nodes.find(({ id }) => id === pending.id);
+      if (!committed) throw new Error("Created node projection is unavailable");
+      pending.data = committed.data;
+    }
+    if (context.activeSpaceId.value === spaceId) {
+      context.nodes.value = projection.nodes;
+      context.editSnapshot.value = projection.editSnapshot;
     }
   }
 
@@ -130,7 +135,7 @@ function createContentMutations(context: SpaceMutationContext, enrichment: Space
       spaceId,
       contentNodes.map((node) => node.id),
     );
-    void resumePendingEnrichmentJobs(enrichment, spaceId);
+    void refreshEnrichmentTasks(spaceId);
   }
 
   function currentTargetParentId() {

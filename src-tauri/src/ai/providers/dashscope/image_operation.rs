@@ -90,8 +90,8 @@ async fn poll(
 async fn download(url: &str, cancellation: &CancellationToken) -> Result<Vec<u8>, String> {
     tokio::select! {
         _ = cancellation.cancelled() => Err("Image operation was cancelled".into()),
-        result = crate::web_capture::capture_image_bounded(url, 64 * 1024 * 1024, "aliyuncs.com") => {
-            result.map(|(_, _, bytes)| bytes)
+        downloaded_image = crate::web_capture::capture_image_bounded(url, 64 * 1024 * 1024, "aliyuncs.com") => {
+            downloaded_image.map(|(_, _, bytes)| bytes)
         }
     }
 }

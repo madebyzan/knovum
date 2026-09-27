@@ -94,16 +94,16 @@ pub(crate) fn prepare(request: Preparation<'_>) -> Result<PathBuf, String> {
     let duration_ms = metadata
         .duration_seconds()
         .and_then(|value| value.checked_mul(1000));
-    let result = subprocess::wait_with_output(
+    let process_output = subprocess::wait_with_output(
         child,
         cancellation,
         super::yt_dlp::ACQUISITION_CANCELLED,
         |line| report_progress(line, duration_ms, progress),
         |_| Ok(()),
     )?;
-    if !result.status.success() {
+    if !process_output.status.success() {
         return Err(subprocess::diagnostic_error(
-            &result.diagnostics,
+            &process_output.diagnostics,
             "FFmpeg could not prepare a playable media asset",
         ));
     }

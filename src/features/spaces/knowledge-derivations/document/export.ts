@@ -1,10 +1,10 @@
 import { i18n } from "../../../../foundation/i18n/i18n";
 import { invokeCommand as invoke } from "../../../../foundation/ipc/invoke-command";
 import { useCanvasEditorSession } from "../../canvas/editor-session";
+import { spaceNodeDefaultDimensions } from "../../canvas/node-size";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceFilePayload } from "../../model/nodes/node-payload";
 import type { useSpaceStore } from "../../session/space-store";
-import { markProcessingNodeFailed } from "../pending-node";
 import { derivedNodePosition } from "../placement";
 import { runDerivation } from "../run-derivation";
 
@@ -27,19 +27,16 @@ type IndexedMarkdownNode = SpaceCanvasNode & {
 
 const formats = {
   docx: {
-    pathCommand: "plugin:spaces|allocate_document_docx_path",
     exportCommand: "plugin:spaces|export_document_as_docx",
     taskKey: "spaces.creation.document.export.docxTask",
     failureKey: "spaces.creation.document.export.docxFailed",
   },
   pdf: {
-    pathCommand: "plugin:spaces|allocate_document_pdf_path",
     exportCommand: "plugin:spaces|export_document_as_pdf",
     taskKey: "spaces.creation.document.export.pdfTask",
     failureKey: "spaces.creation.document.export.pdfFailed",
   },
   txt: {
-    pathCommand: "plugin:spaces|allocate_document_txt_path",
     exportCommand: "plugin:spaces|export_document_as_txt",
     taskKey: "spaces.creation.document.export.txtTask",
     failureKey: "spaces.creation.document.export.txtFailed",
@@ -51,17 +48,14 @@ export async function exportMarkdownDocument({ store, source, format }: ExportMa
   const descriptor = formats[format];
   const spaceId = store.activeSpaceId;
   const title = `${source.data.title}.${format}`;
-  const assetPath = await invoke<string>(descriptor.pathCommand);
-  const [output] = await store.addContent(
-    { kind: "file", title, fileName: title, assetPath, processingState: "processing" },
-    derivedNodePosition([source], useCanvasEditorSession().selection.value.nodePlacements),
-    { reveal: true },
-  );
-  if (!output) throw new Error("Document output node was not created");
+  const outputId = crypto.randomUUID();
+  const expectedEditRevision = store.editSnapshot.editRevision;
+  const targetParentId = store.groupScopePath.at(-1) ?? null;
+  const position = derivedNodePosition([source], useCanvasEditorSession().selection.value.nodePlacements);
 
   return runDerivation<ExportOutput>({
     store,
-    pendingNode: output,
+    pendingId: outputId,
     sourceNodeIds: [source.id],
     task: {
       title: i18n.global.t(descriptor.taskKey),
@@ -75,16 +69,19 @@ export async function exportMarkdownDocument({ store, source, format }: ExportMa
           spaceId,
           sourceNodeId: source.id,
           sourceRevision: source.data.knowledgeRevision,
-          outputNodeId: output.id,
+          outputNodeId: outputId,
+          expectedEditRevision,
+          targetParentId,
+          position,
+          size: spaceNodeDefaultDimensions("file"),
         },
       }),
     onSuccess: async (completed, currentSpaceId) => {
-      store.applyNodeDataForSpace(currentSpaceId, completed.nodeId, completed.data);
-      await store.refreshActiveSpace();
-      store.requestReveal([completed.nodeId], "ensure-visible");
-    },
-    onError: async () => {
-      await markProcessingNodeFailed(store, spaceId, output);
+      store.applyNodeContentForSpace(currentSpaceId, completed.nodeId, completed.data);
+      if (store.activeSpaceId === currentSpaceId) {
+        await store.refreshActiveSpace();
+        store.requestReveal([completed.nodeId], "ensure-visible");
+      }
     },
   });
 }

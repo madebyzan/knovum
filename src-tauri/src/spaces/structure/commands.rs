@@ -70,7 +70,7 @@ pub(crate) async fn execute_in_transaction(
                 offset,
             )
             .await?;
-            planner::PlanResult {
+            planner::StructureEditPlan {
                 selection,
                 deletion: None,
             }

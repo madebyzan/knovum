@@ -72,11 +72,11 @@ pub(super) async fn fail(pool: &sqlx::SqlitePool, run_id: &str, error: &str) -> 
         }
     }
     let mut tx = db::begin_write(pool).await?;
-    let result = sqlx::query(
+    let task_write = sqlx::query(
         "UPDATE spaces_runs SET state='failed',state_version=state_version+1,updated_at=$1,completed_at=$1
          WHERE id=$2 AND completed_at IS NULL AND cancel_requested_at IS NULL AND pause_requested_at IS NULL",
     ).bind(now).bind(run_id).execute(&mut *tx).await.map_err(db::sql_error)?;
-    if result.rows_affected() != 0 {
+    if task_write.rows_affected() != 0 {
         let message = error.chars().take(4_000).collect::<String>();
         sqlx::query("UPDATE spaces_assistant_tasks SET error=$1,updated_at=$2 WHERE run_id=$3")
             .bind(message)

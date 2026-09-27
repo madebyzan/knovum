@@ -51,7 +51,7 @@ pub(crate) async fn append_event(
     now: i64,
 ) -> Result<i64, String> {
     let payload = serde_json::to_string(payload).map_err(db::json_error)?;
-    let result = sqlx::query(
+    let event_write = sqlx::query(
         "INSERT INTO spaces_run_events(run_id,step_instance_id,attempt_id,kind,payload,created_at)
          VALUES($1,$2,$3,$4,$5,$6)",
     )
@@ -64,5 +64,5 @@ pub(crate) async fn append_event(
     .execute(&mut **tx)
     .await
     .map_err(db::sql_error)?;
-    Ok(result.last_insert_rowid())
+    Ok(event_write.last_insert_rowid())
 }

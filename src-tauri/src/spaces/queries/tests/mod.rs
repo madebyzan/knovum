@@ -18,7 +18,9 @@ async fn damaged_coordinate_is_reported_instead_of_panicking_or_defaulting() {
         .await
         .expect("simulate corrupted SQLite value");
     let mut tx = pool.begin().await.expect("read snapshot");
-    let result = super::nodes::list_in_transaction(&mut tx, "space").await;
-    let error = result.err().expect("damaged value must fail explicitly");
+    let node_projection = super::nodes::list_in_transaction(&mut tx, "space").await;
+    let error = node_projection
+        .err()
+        .expect("damaged value must fail explicitly");
     assert!(error.contains("initial_x"), "{error}");
 }

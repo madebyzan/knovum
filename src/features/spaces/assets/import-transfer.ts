@@ -49,12 +49,12 @@ export async function commitManagedImport(options: CommitManagedImportOptions) {
     });
     if (cancelRequested) throw new Error("Space import cancelled");
     copiedPath = copied.path;
-    const copiedData = importedSpaceNodePayload(copied);
-    await context.savePendingNodeDataForSpace(spaceId, node.id, node.data, copiedData);
-    node.data = copiedData;
+    const copiedContent = importedSpaceNodePayload(copied);
+    await context.savePendingNodeContentForSpace(spaceId, node.id, node.data, copiedContent);
+    node.data = copiedContent;
     if (typeof source !== "string") await source.finalize();
     context.finalizePendingContent(spaceId, [node], reveal);
-    imported = { node, data: copiedData };
+    imported = { node, data: copiedContent };
   } catch (error) {
     await cancelSpaceAssetImport(jobId);
     if (node) await context.discardPendingContent(spaceId, node.id);

@@ -23,7 +23,7 @@ export interface CanvasFileImportRequest {
   position: CanvasPoint;
 }
 
-export interface CanvasFileImportResult {
+export interface CanvasFileImportReceipt {
   node: SpaceCanvasNode;
   sourceId: string;
 }
@@ -39,7 +39,7 @@ export interface CanvasHostEvents {
   onExitGroup(): boolean;
   onInsertText(text: string, point: CanvasPoint): Promise<void>;
   onInsertUrl(url: string, point: CanvasPoint): Promise<void>;
-  onImportFiles(files: readonly CanvasFileImportRequest[]): Promise<readonly CanvasFileImportResult[]>;
+  onImportFiles(files: readonly CanvasFileImportRequest[]): Promise<readonly CanvasFileImportReceipt[]>;
   onNodeActivate(nodeId: string): Promise<void>;
   onPasteNodes(point: CanvasPoint): Promise<boolean>;
   onError(error: unknown): void;

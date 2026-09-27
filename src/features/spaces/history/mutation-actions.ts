@@ -1,10 +1,9 @@
 import { scheduleKnowledgeIndex } from "../knowledge/indexing/index-scheduler";
-import { prepareSpaceKnowledgePayload } from "../knowledge/model/node-knowledge";
 import type { NodePayloadChange } from "../model/nodes/payload-change";
 import { validateSpaceNodePayload } from "../model/nodes/schema/node-payload";
-import { applyData } from "./mutation-application";
 import { beginSpaceMutation } from "./mutation-barrier";
 import { requireActiveSpaceId, type SpaceMutationContext } from "./mutation-types";
+import { replayNodeContent } from "./node-content-replay";
 import {
   combineRecentSpaceHistory,
   recordSpaceHistory,
@@ -17,12 +16,12 @@ export function createSpaceHistoryMutations(context: SpaceMutationContext) {
   const { nodes, history } = context;
   let canvasMutationLease: (() => void) | undefined;
 
-  async function updateManyData(changes: readonly NodePayloadChange[]) {
+  async function updateNodeContents(changes: readonly NodePayloadChange[]) {
     if (changes.length === 0) return;
     const spaceId = requireActiveSpaceId(context.activeSpaceId);
     const prepared = changes.map((change) => ({
       ...change,
-      after: prepareSpaceKnowledgePayload(validateSpaceNodePayload(change.after)),
+      after: validateSpaceNodePayload(change.after),
     }));
     const apply = (
       entries: readonly {
@@ -31,20 +30,32 @@ export function createSpaceHistoryMutations(context: SpaceMutationContext) {
         data: NodePayloadChange["after"];
       }[],
     ) =>
-      applyData({ spaceId, changes: entries, nodes, activeSpaceId: context.activeSpaceId }).then(() =>
-        scheduleKnowledgeIndex(
-          spaceId,
-          entries.map(({ id }) => id),
-        ),
+      replayNodeContent({ spaceId, changes: entries, nodes, activeSpaceId: context.activeSpaceId }).then(
+        (committed) => {
+          scheduleKnowledgeIndex(
+            spaceId,
+            entries.map(({ id }) => id),
+          );
+          return committed;
+        },
       );
     const releaseMutation = beginSpaceMutation(history);
     try {
-      await apply(prepared.map(({ id, before, after }) => ({ id, expectedData: before, data: after })));
+      const committed = await apply(
+        prepared.map(({ id, before, after }) => ({ id, expectedData: before, data: after })),
+      );
+      for (const change of prepared) {
+        const committedNode = committed.find(({ id }) => id === change.id);
+        if (!committedNode) throw new Error("Committed history projection is unavailable");
+        change.after = committedNode.data;
+      }
       recordSpaceHistory(history, {
-        undo: () =>
-          apply(prepared.map(({ id, before, after }) => ({ id, expectedData: after, data: before }))),
-        redo: () =>
-          apply(prepared.map(({ id, before, after }) => ({ id, expectedData: before, data: after }))),
+        undo: async () => {
+          await apply(prepared.map(({ id, before, after }) => ({ id, expectedData: after, data: before })));
+        },
+        redo: async () => {
+          await apply(prepared.map(({ id, before, after }) => ({ id, expectedData: before, data: after })));
+        },
       });
     } finally {
       releaseMutation();
@@ -69,9 +80,9 @@ export function createSpaceHistoryMutations(context: SpaceMutationContext) {
       const name = title.trim();
       if (!name) throw new Error("Node title cannot be empty");
       if (name === node.data.title) return;
-      await updateManyData([{ id, before: node.data, after: { ...node.data, title: name } }]);
+      await updateNodeContents([{ id, before: node.data, after: { ...node.data, title: name } }]);
     },
-    updateManyData,
+    updateNodeContents,
     recordHistoryMutation,
     recordCanvasHistory: (entry: ReversibleSpaceChange) => recordSpaceHistory(history, entry),
     setCanvasMutationPending: (pending: boolean) => {

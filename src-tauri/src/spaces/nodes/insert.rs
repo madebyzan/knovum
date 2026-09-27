@@ -16,6 +16,17 @@ pub async fn insert_many<R: Runtime>(
     app: &AppHandle<R>,
     request: InsertNodesRequest,
 ) -> Result<i64, String> {
+    let pool = db::pool(app).await?;
+    let mut tx = db::begin_write(pool).await?;
+    let revision = insert_many_in_transaction(&mut tx, request).await?;
+    tx.commit().await.map_err(db::sql_error)?;
+    Ok(revision)
+}
+
+pub(in crate::spaces) async fn insert_many_in_transaction(
+    tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
+    mut request: InsertNodesRequest,
+) -> Result<i64, String> {
     if request.nodes.is_empty() {
         return Err("Node creation requires at least one node".into());
     }
@@ -26,34 +37,35 @@ pub async fn insert_many<R: Runtime>(
         return Err("Expected edit revision must be nonnegative".into());
     }
     let now = crate::clock::unix_time_millis()?;
-    let pool = db::pool(app).await?;
-    let mut tx = db::begin_write(pool).await?;
     let digest = structure::receipts::digest(&request)?;
     if let Some(edit_revision) =
-        structure::receipts::find_typed(&mut tx, &request.mutation_id, &digest).await?
+        structure::receipts::find_typed(tx, &request.mutation_id, &digest).await?
     {
-        tx.commit().await.map_err(db::sql_error)?;
         return Ok(edit_revision);
     }
     let (mut snapshot, revision) =
-        structure::repository::load_in_transaction(&mut tx, &request.space_id).await?;
+        structure::repository::load_in_transaction(tx, &request.space_id).await?;
     if revision != request.expected_edit_revision {
         return Err("space-edit-revision-conflict: Space edit revision conflict".into());
     }
-    let before = structure::history::capture(&mut tx, &request.space_id, &snapshot).await?;
+    for node in &mut request.nodes {
+        contracts::normalize_node(tx, &request.space_id, &node.id, &node.kind, &mut node.data)
+            .await?;
+    }
+    let before = structure::history::capture(tx, &request.space_id, &snapshot).await?;
     let selection = structure::creation::append_content(
         &mut snapshot,
         &request.nodes,
         request.target_parent_id.as_deref(),
     )?;
-    insert_rows_in_transaction(&mut tx, &request.space_id, &request.nodes, now).await?;
+    insert_rows_in_transaction(tx, &request.space_id, &request.nodes, now).await?;
     let edit_revision =
-        structure::repository::save_in_transaction(&mut tx, &request.space_id, revision, &snapshot)
+        structure::repository::save_in_transaction(tx, &request.space_id, revision, &snapshot)
             .await?;
-    structure::portal_integrity::validate_structure_targets(&mut tx).await?;
-    let after = structure::history::capture(&mut tx, &request.space_id, &snapshot).await?;
+    structure::portal_integrity::validate_structure_targets(tx).await?;
+    let after = structure::history::capture(tx, &request.space_id, &snapshot).await?;
     structure::history::record(
-        &mut tx,
+        tx,
         &request.space_id,
         &before,
         &after,
@@ -63,7 +75,7 @@ pub async fn insert_many<R: Runtime>(
     )
     .await?;
     structure::receipts::insert_typed(
-        &mut tx,
+        tx,
         &request.mutation_id,
         &request.space_id,
         &digest,
@@ -73,9 +85,8 @@ pub async fn insert_many<R: Runtime>(
     )
     .await?;
     if !request.nodes.is_empty() {
-        touch_updated_at(&mut tx, &request.space_id, now).await?;
+        touch_updated_at(tx, &request.space_id, now).await?;
     }
-    tx.commit().await.map_err(db::sql_error)?;
     Ok(edit_revision)
 }
 

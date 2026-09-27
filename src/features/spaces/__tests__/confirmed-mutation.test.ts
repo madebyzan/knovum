@@ -14,12 +14,12 @@ it.each(["mutation_id_conflict", "operation_failed"])(
   async (code) => {
     native.invoke.mockRejectedValueOnce({ code, message: "Command rejected" });
     native.invoke.mockResolvedValueOnce({ mutationId: "used-id", appliedAtRevision: 1 });
-    const result = await invokeConfirmedMutation(
+    const mutationFailure = await invokeConfirmedMutation(
       "plugin:spaces|execute_space_edit",
       { request: { mutationId: "used-id" } },
       "used-id",
     ).catch((error: unknown) => error);
-    expect(decodeCommandError(result)?.code).toBe(code);
+    expect(decodeCommandError(mutationFailure)?.code).toBe(code);
     expect(native.invoke).toHaveBeenCalledTimes(1);
   },
 );
@@ -43,11 +43,11 @@ it("still recovers a committed receipt after an ambiguous transport failure", as
 it("does not accept an old receipt when Tauri rejects arguments before entering the command", async () => {
   native.invoke.mockRejectedValueOnce("Invalid command arguments");
   native.invoke.mockResolvedValueOnce({ mutationId: "used-id", appliedAtRevision: 1 });
-  const result = await invokeConfirmedMutation(
+  const mutationFailure = await invokeConfirmedMutation(
     "plugin:spaces|execute_space_edit",
     { request: { mutationId: "used-id" } },
     "used-id",
   ).catch((error: unknown) => error);
-  expect(result).toBeInstanceOf(Error);
+  expect(mutationFailure).toBeInstanceOf(Error);
   expect(native.invoke).toHaveBeenCalledTimes(1);
 });

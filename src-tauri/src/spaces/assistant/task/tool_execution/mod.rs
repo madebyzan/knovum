@@ -4,7 +4,7 @@ use sqlx::SqlitePool;
 use super::identity::{ensure_active, TaskIds};
 mod settlement;
 use crate::{
-    agent_runtime::{RuntimeToolCall, RuntimeToolResult},
+    agent_runtime::{RuntimeToolCall, RuntimeToolReply},
     spaces::{
         actions::{self, ActionInvocationRequest},
         assistant::{repository, tools, StartAssistantTaskRequest},
@@ -18,7 +18,7 @@ pub(super) async fn execute(
     catalog: &tools::ToolCatalog,
     turn_id: &str,
     calls: Vec<RuntimeToolCall>,
-) -> Result<Vec<RuntimeToolResult>, String> {
+) -> Result<Vec<RuntimeToolReply>, String> {
     let mut results = Vec::with_capacity(calls.len());
     for call in calls {
         ensure_active(pool, &ids.run_id).await?;
@@ -39,7 +39,7 @@ pub(super) async fn execute(
         )
         .await?;
         if let Some(value) = record.result {
-            results.push(RuntimeToolResult {
+            results.push(RuntimeToolReply {
                 call_id: call.call_id,
                 name: call.name,
                 result: value,
@@ -72,7 +72,7 @@ pub(super) async fn execute(
         let outcome = actions::invoke(pool, invocation.clone()).await?;
         let value = settlement::settle(pool, &ids.run_id, &mut invocation, outcome).await?;
         complete_tool(pool, ids, &call, &record.id, &action_id, value.clone()).await?;
-        results.push(RuntimeToolResult {
+        results.push(RuntimeToolReply {
             call_id: call.call_id,
             name: call.name,
             result: value,

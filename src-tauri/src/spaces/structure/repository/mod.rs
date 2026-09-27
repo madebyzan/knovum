@@ -30,7 +30,7 @@ pub(crate) async fn initialize_empty_in_transaction(
     space_id: &str,
 ) -> Result<(), String> {
     let now = crate::clock::unix_time_millis()?;
-    let result = sqlx::query(
+    let edit_state_write = sqlx::query(
         "INSERT INTO spaces_edit_state(space_id,revision,updated_at) \
          SELECT id,0,$2 FROM spaces WHERE id=$1 \
          AND NOT EXISTS(SELECT 1 FROM spaces_nodes WHERE space_id=$1) \
@@ -42,7 +42,7 @@ pub(crate) async fn initialize_empty_in_transaction(
     .execute(&mut **tx)
     .await
     .map_err(db::sql_error)?;
-    if result.rows_affected() != 1 {
+    if edit_state_write.rows_affected() != 1 {
         return Err("Space structure is already initialized or contains legacy data".into());
     }
     Ok(())
@@ -89,7 +89,7 @@ pub(crate) async fn save_in_transaction(
         .checked_add(1)
         .ok_or("Space edit revision overflow")?;
     let now = crate::clock::unix_time_millis()?;
-    let result = sqlx::query(
+    let edit_state_write = sqlx::query(
         "UPDATE spaces_edit_state SET revision=$1,updated_at=$2 WHERE space_id=$3 AND revision=$4",
     )
     .bind(next_revision)
@@ -99,7 +99,7 @@ pub(crate) async fn save_in_transaction(
     .execute(&mut **tx)
     .await
     .map_err(db::sql_error)?;
-    if result.rows_affected() != 1 {
+    if edit_state_write.rows_affected() != 1 {
         return Err("space-edit-revision-conflict: Space edit revision conflict".into());
     }
     Ok(next_revision)

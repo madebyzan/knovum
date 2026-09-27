@@ -17,57 +17,23 @@ pub async fn reconcile(app: &tauri::AppHandle) -> Result<(), String> {
     .map_err(db::sql_error)?;
 
     for row in rows {
-        let node_id: String = match row.try_get("id") {
-            Ok(id) => id,
-            Err(error) => {
-                log::warn!("failed to read node id during recovery: {error}");
-                continue;
-            }
-        };
-        let space_id: String = match row.try_get("space_id") {
-            Ok(id) => id,
-            Err(error) => {
-                log::warn!("failed to read space id for node {node_id}: {error}");
-                continue;
-            }
-        };
-        let raw: String = match row.try_get("data") {
-            Ok(data) => data,
-            Err(error) => {
-                log::warn!("failed to read data for node {node_id}: {error}");
-                continue;
-            }
-        };
-        let mut data: Value = match serde_json::from_str(&raw) {
-            Ok(val) => val,
-            Err(error) => {
-                log::warn!("failed to parse JSON data for node {node_id}: {error}");
-                continue;
-            }
-        };
-        let recovery = match data.get("processingState").and_then(Value::as_str) {
+        let node_id: String = row.try_get("id").map_err(db::sql_error)?;
+        let space_id: String = row.try_get("space_id").map_err(db::sql_error)?;
+        let raw: String = row.try_get("data").map_err(db::sql_error)?;
+        let mut data: Value = serde_json::from_str(&raw).map_err(db::json_error)?;
+        match data.get("processingState").and_then(Value::as_str) {
             Some("importing") => {
-                recover_interrupted_import(app, &space_id, &node_id, &mut data).await
+                recover_interrupted_import(app, &space_id, &node_id, &mut data).await?
             }
             Some("processing") => {
-                recover_interrupted_processing(app, &space_id, &node_id, &mut data).await
+                recover_interrupted_processing(app, &space_id, &node_id, &mut data).await?
             }
-            _ => Ok(()),
-        };
-        if let Err(error) = recovery {
-            log::warn!("failed to recover interrupted state for node {node_id}: {error}");
+            _ => return Err("Interrupted asset query returned an invalid processing state".into()),
         }
     }
-
-    if let Err(error) = audio::cleanup_stale(app) {
-        log::warn!("failed to clean up stale audio: {error}");
-    }
-    if let Err(error) = crate::media::workspace::cleanup_stale(app) {
-        log::warn!("failed to clean up stale media analysis: {error}");
-    }
-    if let Err(error) = crate::spaces::assets::import::media::cleanup_stale_workspaces(app) {
-        log::warn!("failed to clean up stale media imports: {error}");
-    }
+    audio::cleanup_stale(app)?;
+    crate::media::workspace::cleanup_stale(app)?;
+    super::import::media::cleanup_stale_workspaces(app)?;
     Ok(())
 }
 
@@ -78,9 +44,7 @@ async fn recover_interrupted_import(
     data: &mut Value,
 ) -> Result<(), String> {
     if let Some(path) = data.get("assetPath").and_then(Value::as_str) {
-        if let Err(error) = remove_owned_partial(app, PathBuf::from(path)) {
-            log::warn!("failed to remove partial asset {path}: {error}");
-        }
+        remove_owned_partial(app, PathBuf::from(path))?;
     }
     enrichment::persistence::persist_processing_state(
         app, space_id, node_id, data, "failed", None, None,

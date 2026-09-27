@@ -3,7 +3,7 @@ use sqlx::Row;
 use tauri::{AppHandle, Runtime};
 
 use super::{
-    contracts::{NodeDataChange, UpdateNodesRequest},
+    contracts::{NodeContentChange, UpdateNodesRequest},
     derived::{changed_top_level_fields, field_changed, generated_chunks, media_chunks},
     space_timestamp::touch_updated_at,
 };
@@ -15,38 +15,45 @@ use crate::spaces::{
 
 pub async fn update_many<R: Runtime>(
     app: &AppHandle<R>,
-    request: UpdateNodesRequest,
-) -> Result<(), String> {
-    update_many_with_actor(app, request, "human").await
-}
-
-async fn update_many_with_actor<R: Runtime>(
-    app: &AppHandle<R>,
-    request: UpdateNodesRequest,
-    actor_kind: &str,
-) -> Result<(), String> {
+    mut request: UpdateNodesRequest,
+) -> Result<Vec<super::contracts::CommittedNodeContent>, String> {
     if request.changes.is_empty() {
-        return Ok(());
+        return Ok(Vec::new());
     }
-    let now = crate::clock::unix_time_millis()?;
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
-    update_many_in_transaction(
-        &mut tx,
-        &request.space_id,
-        &request.changes,
-        actor_kind,
-        now,
-    )
-    .await?;
+    for change in &mut request.changes {
+        let kind = change.data["kind"]
+            .as_str()
+            .ok_or("Node kind is required")?
+            .to_owned();
+        contracts::normalize_node(
+            &mut tx,
+            &request.space_id,
+            &change.id,
+            &kind,
+            &mut change.data,
+        )
+        .await?;
+    }
+    let now = crate::clock::unix_time_millis()?;
+    update_many_in_transaction(&mut tx, &request.space_id, &request.changes, "human", now).await?;
     touch_updated_at(&mut tx, &request.space_id, now).await?;
-    tx.commit().await.map_err(db::sql_error)
+    tx.commit().await.map_err(db::sql_error)?;
+    Ok(request
+        .changes
+        .into_iter()
+        .map(|change| super::contracts::CommittedNodeContent {
+            id: change.id,
+            data: change.data,
+        })
+        .collect())
 }
 
 pub(in crate::spaces) async fn update_many_in_transaction(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     space_id: &str,
-    changes: &[NodeDataChange],
+    changes: &[NodeContentChange],
     actor_kind: &str,
     now: i64,
 ) -> Result<(), String> {
@@ -59,7 +66,7 @@ pub(in crate::spaces) async fn update_many_in_transaction(
 async fn apply_node_change(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     space_id: &str,
-    change: &NodeDataChange,
+    change: &NodeContentChange,
     actor_kind: &str,
     now: i64,
 ) -> Result<(), String> {
@@ -144,8 +151,9 @@ async fn apply_node_change(
     )
     .await?;
     let enrichment_changed = source_revision_changed
+        || jobs::revision::visual_revision(&before)?
+            != jobs::revision::visual_revision(&change.data)?
         || [
-            "previewPath",
             "processingState",
             "mediaAnalysis",
             "mediaKnowledge",

@@ -20,7 +20,7 @@ pub(super) struct ExportResource {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub(crate) struct ExportRequest {
     destination_path: String,
-    source: String,
+    document: JsonCanvasDocumentV1,
     resources: Vec<ExportResource>,
 }
 
@@ -30,14 +30,14 @@ pub(super) fn write(app: &AppHandle, request: ExportRequest) -> Result<(), Strin
     if destination.extension().and_then(|part| part.to_str()) != Some("canvas") {
         return Err("JSON Canvas export requires a .canvas destination".into());
     }
-    let mut document: JsonCanvasDocumentV1 =
-        serde_json::from_str(&request.source).map_err(|error| error.to_string())?;
+    let mut document = request.document;
     super::validation::validate(&document)?;
     let expected: HashSet<&str> = document
         .nodes
         .iter()
         .filter_map(|node| match node {
             JsonCanvasNodeV1::File(file) => Some(file.file.as_str()),
+            JsonCanvasNodeV1::Group(group) => group.background.as_deref(),
             _ => None,
         })
         .collect();
@@ -67,7 +67,7 @@ pub(super) fn write(app: &AppHandle, request: ExportRequest) -> Result<(), Strin
         plans.push((source, resource.relative_path.clone()));
     }
     if seen != expected {
-        return Err("JSON Canvas resources do not match its file nodes".into());
+        return Err("JSON Canvas resources do not match its file and background references".into());
     }
     publish(&destination, &parent, &mut document, &plans)
 }
@@ -86,7 +86,7 @@ fn publish(
     let temporary = parent.join(format!(".canvas-export-{identity}"));
     let mut owns_directory = false;
     let mut owns_temporary = false;
-    let result = (|| {
+    let publication = (|| {
         let mut references = HashMap::new();
         if !plans.is_empty() {
             std::fs::create_dir(&directory).map_err(|error| error.to_string())?;
@@ -114,9 +114,14 @@ fn publish(
             );
         }
         for node in &mut document.nodes {
-            if let JsonCanvasNodeV1::File(file) = node {
-                file.file = references
-                    .get(file.file.as_str())
+            let reference = match node {
+                JsonCanvasNodeV1::File(file) => Some(&mut file.file),
+                JsonCanvasNodeV1::Group(group) => group.background.as_mut(),
+                _ => None,
+            };
+            if let Some(reference) = reference {
+                *reference = references
+                    .get(reference.as_str())
                     .ok_or("Resource publication reference is unavailable")?
                     .clone();
             }
@@ -135,17 +140,56 @@ fn publish(
         drop(output);
         std::fs::rename(&temporary, destination).map_err(|error| error.to_string())
     })();
-    if result.is_err() {
+    if let Err(cause) = publication {
+        let mut errors = vec![cause];
         if owns_temporary {
             if let Err(error) = std::fs::remove_file(&temporary) {
-                log::warn!("Could not remove unpublished JSON Canvas document: {error}");
+                errors.push(format!("Unpublished document cleanup failed: {error}"));
             }
         }
         if owns_directory {
             if let Err(error) = std::fs::remove_dir_all(&directory) {
-                log::warn!("Could not remove unpublished JSON Canvas resources: {error}");
+                errors.push(format!("Unpublished resource cleanup failed: {error}"));
             }
         }
+        return Err(errors.join("; "));
     }
-    result
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn publishes_shared_file_and_group_background_reference() {
+        let directory =
+            std::env::temp_dir().join(format!("canvas-export-test-{}", uuid::Uuid::new_v4()));
+        std::fs::create_dir(&directory).unwrap();
+        let source = directory.join("image.png");
+        std::fs::write(&source, b"image bytes").unwrap();
+        let mut document = serde_json::from_value(serde_json::json!({"nodes":[
+            {"id":"file","type":"file","x":0,"y":0,"width":200,"height":100,"file":"assets/image.png"},
+            {"id":"group","type":"group","x":0,"y":0,"width":400,"height":300,"background":"assets/image.png"}
+        ]})).unwrap();
+        let destination = directory.join("export.canvas");
+        publish(
+            &destination,
+            &directory,
+            &mut document,
+            &[(source, "assets/image.png".into())],
+        )
+        .unwrap();
+        let publication: serde_json::Value =
+            serde_json::from_slice(&std::fs::read(destination).unwrap()).unwrap();
+        assert_eq!(
+            publication["nodes"][0]["file"],
+            publication["nodes"][1]["background"]
+        );
+        assert_eq!(
+            std::fs::read(directory.join(publication["nodes"][0]["file"].as_str().unwrap()))
+                .unwrap(),
+            b"image bytes"
+        );
+        std::fs::remove_dir_all(directory).unwrap();
+    }
 }

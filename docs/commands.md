@@ -31,8 +31,9 @@ or destination path. `cancel_resource_preparation` releases that request's deman
 Task Center identities after a WebView reload. A disconnected Channel does not cancel installation.
 There are no legacy model-install command aliases.
 
-`plugin:spaces|transcribe_media` requires the managed source path and the caller's source revision.
-Rust verifies that revision before resource preparation and again before processing. Knowledge
+`plugin:spaces|request_media_transcription` accepts a Space and media node identity. Rust resolves
+the managed source and current analysis, enqueues the shared durable transcription job, and verifies
+the source revision before resource preparation and again before processing. Knowledge
 index commands require verified models; the explicit semantic-search and grounded-generation
 use cases own resource preparation before indexing. A normal keyword query never downloads models. Search commands carry a job identity; TanStack
 query cancellation calls `cancel_knowledge_search`, which cancels queued work and discards stale
@@ -49,7 +50,7 @@ Space persistence is entirely Rust-owned. Reads and writes cross typed Rust comm
 - `plugin:spaces|revoke_relations` / `plugin:spaces|restore_relations` — revoke or restore one relation selection in a single database transaction;
 - `plugin:spaces|get_space_edit_receipt_result` — resolve an ambiguous IPC result by mutation identity without retrying a business operation;
 - `plugin:spaces|create_nodes` — atomically insert content rows and their Structure nodes and layouts at an explicit parent;
-- `plugin:spaces|update_nodes` — update node data and any affected source/derived/media knowledge atomically;
+- `plugin:spaces|update_nodes` — normalize authoritative knowledge revisions, update affected knowledge atomically, and return the committed node payloads;
 - `plugin:spaces|discard_pending_content` — abandon one failed pending creation by deleting its content and Structure/Layout atomically without creating a Recently Deleted entry;
 - `plugin:spaces|load_canvas_view_state` and `plugin:spaces|save_canvas_view_state` — persist only the disposable camera;
 - `plugin:spaces|import_structure_clipboard` — validate and commit a remapped structure subtree, content and internal relations as one mutation;
@@ -57,7 +58,14 @@ Space persistence is entirely Rust-owned. Reads and writes cross typed Rust comm
 - `plugin:spaces|move_structure_selection` — move explicit Structure roots, content and affected relations between two revision-checked Spaces atomically;
 - `plugin:spaces|list_recently_deleted_structure`, `plugin:spaces|restore_deleted_structure` and `plugin:spaces|permanently_delete_structure` — list, restore or purge deletion batches and selected structure roots while preserving subtree identity and retained-reference rules;
 - `plugin:spaces|delete_space_permanently` — require an archived user Space, collect all owned asset paths and cascade-delete the Space atomically;
-- `plugin:spaces|restore_space_package` — restore one validated/remapped Space package as one transaction.
+- `plugin:spaces|import_space_package` — read a selected current-version archive, validate/remap its references and assets, restore it transactionally, and return the new Space;
+- `plugin:spaces|export_space_package` — collect the Space snapshot and write its archive inside one Rust use case;
+- `plugin:spaces|import_json_canvas_file` — read the selected file, acquire bounded relative resources, map domain content and commit against the expected Space edit revision;
+- `plugin:spaces|cancel_json_canvas_import` — request cancellation of the complete import by mutation ID; copied assets are cleaned up before the operation settles; a committed receipt wins a late cancellation;
+- `plugin:spaces|export_json_canvas_file` — validate the projected visual document and publish the document and its exact managed resources;
+- `plugin:spaces|request_media_transcription`, `plugin:spaces|retry_enrichment_job`, `plugin:spaces|cancel_enrichment_job` — submit control intents to the Rust processing owner;
+- `plugin:spaces|generate_media_insights` — generate and publish insights against the captured current media knowledge;
+- `plugin:spaces|await_space_runtime` — await the Rust-owned startup recovery gate without rerunning recovery.
 
 Agent artifact commands never accept an app-owned absolute source path from the Renderer. `plugin:spaces|stage_generated_artifact_import` resolves a validated Space/session/relative artifact identity in Rust and enters the same prepared Space import pipeline used by user-selected sources; `plugin:spaces|consume_agent_artifact` removes that source only after import succeeds. Preview, discard, recovery listing and creation use the same identity boundary.
 

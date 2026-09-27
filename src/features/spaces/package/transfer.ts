@@ -4,14 +4,9 @@ import { open, save } from "@tauri-apps/plugin-dialog";
 import { isString } from "es-toolkit";
 
 import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
-import { removeSpaceAssets } from "../assets/asset-operations";
 import type { SpacePackageProgress } from "../contracts/generated/SpacePackageProgress";
 import type { Space } from "../model/space";
 import { truncateUtf16 } from "../model/text";
-import type { ImportedSpacePackage } from "./contract";
-import { parseSpacePackageManifest } from "./manifest-parser";
-import { restoreSpacePackage } from "./restore";
-import { collectSpacePackageSnapshot } from "./snapshot-transport";
 
 interface SpacePackageImportContext {
   spaces: Space[];
@@ -32,11 +27,9 @@ export async function exportSpacePackage(context: SpacePackageExportContext, onP
   });
   if (!destination) return false;
   await context.commitActiveSession();
-  const { manifest, assets } = await collectSpacePackageSnapshot(context.space.id);
   await invoke("plugin:spaces|export_space_package", {
     destinationPath: destination,
-    manifest: currentManifestJson(manifest),
-    assets,
+    spaceId: context.space.id,
     onProgress: progressChannel(onProgress),
   });
   return true;
@@ -49,16 +42,10 @@ export async function importSpacePackage(context: SpacePackageImportContext, onP
     filters: [{ name: "Knovum Space", extensions: ["knovumspace"] }],
   });
   if (!isString(source)) return false;
-  const unpacked = await invoke<ImportedSpacePackage>("plugin:spaces|import_space_package", {
+  const space = await invoke<Space>("plugin:spaces|import_space_package", {
     sourcePath: source,
     onProgress: progressChannel(onProgress),
   });
-  const space = await restoreSpacePackage(unpacked.manifest, unpacked.assets).catch((error) =>
-    cleanupImportedAssets(
-      unpacked.assets.map((asset) => asset.path),
-      error,
-    ),
-  );
   context.spaces.push(space);
   await context.openSpace(space.id);
   return true;
@@ -71,17 +58,6 @@ function progressChannel(listener?: ProgressListener) {
   return channel;
 }
 
-async function cleanupImportedAssets(paths: string[], cause: unknown): Promise<never> {
-  try {
-    await removeSpaceAssets(paths);
-  } catch (cleanupError) {
-    throw new AggregateError([cause, cleanupError], "Space package restore and asset cleanup both failed", {
-      cause: cleanupError,
-    });
-  }
-  throw cause;
-}
-
 function fileName(title: string) {
   const value = truncateUtf16(
     title
@@ -92,8 +68,4 @@ function fileName(title: string) {
   );
   if (!value) throw new Error("Space title cannot be used as a package file name");
   return value;
-}
-
-function currentManifestJson(manifest: unknown) {
-  return JSON.stringify(parseSpacePackageManifest(JSON.stringify(manifest)));
 }

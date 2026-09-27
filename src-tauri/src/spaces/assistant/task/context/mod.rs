@@ -55,12 +55,13 @@ impl ResolvedContext {
             self.text(user_prompt, conversation_context),
             self.agent_paths.clone(),
             |path| {
-                let result = if self.uploaded_paths.iter().any(|source| source == path) {
-                    upload::authorize(app, &path.to_string_lossy()).map(|_| ())
-                } else {
-                    crate::spaces::assets::authorize_spaces_asset(app, path).map(|_| ())
-                };
-                result.map_err(crate::ai::error::AiError::invalid)
+                let authorized_attachment =
+                    if self.uploaded_paths.iter().any(|source| source == path) {
+                        upload::authorize(app, &path.to_string_lossy()).map(|_| ())
+                    } else {
+                        crate::spaces::assets::authorize_spaces_asset(app, path).map(|_| ())
+                    };
+                authorized_attachment.map_err(crate::ai::error::AiError::invalid)
             },
         )
         .map_err(|error| error.to_string())

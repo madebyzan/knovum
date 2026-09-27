@@ -28,9 +28,9 @@ pub async fn preview(
     selected_node_ids: Vec<String>,
 ) -> Result<CapturePreview, String> {
     let mut tx = pool.begin().await.map_err(db::sql_error)?;
-    let result = in_transaction(&mut tx, space_id, selected_node_ids).await?;
+    let captured_workflow = in_transaction(&mut tx, space_id, selected_node_ids).await?;
     tx.commit().await.map_err(db::sql_error)?;
-    Ok(result)
+    Ok(captured_workflow)
 }
 
 pub(crate) async fn in_transaction(

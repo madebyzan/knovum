@@ -7,12 +7,9 @@
     "failed": "失败 {count}"
   },
   "enrichmentJobType": {
-    "embed_text": "文本向量索引",
-    "analyze_image": "图像视觉理解",
+    "analyze_visual": "视觉理解",
     "analyze_media": "媒体时长与波形分析",
     "transcribe_media": "音频 Whisper 转写",
-    "analyze_video_cover": "视频封面分析",
-    "embed_media_transcript": "转写向量索引",
     "parse_document": "文档内容提取",
     "analyze_document": "文档图片分析"
   },
@@ -27,7 +24,6 @@
     "rebuild": "重建向量检索索引",
     "rebuildDone": "索引完成，已构建 {count} 条向量数据。"
   },
-  "semanticUnavailable": "智能搜索暂不可用 · 仅显示文本匹配结果",
   "failed": "解析处理失败",
   "imageProgress": "正在处理图片",
   "mediaProgress": "正在处理媒体",

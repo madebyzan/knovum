@@ -2,10 +2,9 @@
 import { onBeforeUnmount, onMounted, useTemplateRef, watch } from "vue";
 
 import type { CanvasExchangePort } from "../../canvas-exchange/canvas-exchange-port";
-import { jsonCanvasCodec } from "../../canvas-exchange/json-canvas-codec";
 import { createJsonCanvasExchangePort } from "../../canvas-exchange/json-canvas-exchange";
 import type {
-  CanvasJsonImportCommitResult,
+  CanvasImportCommit,
   CanvasJsonImportDraft,
   CanvasJsonImportRequest,
 } from "../../canvas-exchange/json-canvas-import-contract";
@@ -21,7 +20,7 @@ const props = defineProps<{
   events: CanvasHostEvents;
   persistence: SpacePersistenceState;
   ensurePersisted(): Promise<void>;
-  importJsonCanvas(request: CanvasJsonImportRequest): Promise<CanvasJsonImportCommitResult>;
+  importJsonCanvas(request: CanvasJsonImportRequest): Promise<CanvasImportCommit>;
   focusNodeIds: readonly string[];
   groupScopePath: readonly string[];
   interactionEnabled: boolean;
@@ -52,7 +51,6 @@ const surfaceEvents: CanvasSurfaceEvents = {
     emit(
       "exchangeReady",
       createJsonCanvasExchangePort({
-        codec: jsonCanvasCodec,
         snapshot: () => props.sceneInput.editSnapshot,
         nodes: () => props.sceneInput.nodes,
         relations: () => props.exchangeRelations,

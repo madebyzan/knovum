@@ -1,5 +1,6 @@
 import type { SpacePlacement } from "../../canvas/navigation-requests";
 import { createWorkflowPanelActions } from "../../canvas/workflow-panel-actions";
+import { observeEnrichmentJobs } from "../../enrichment/job-observation";
 import { createSpaceMediaActions } from "../../media/actions";
 import { createSpaceAudioRecordingActions } from "../../media/audio-recording-actions";
 import { createRightSidebarActions } from "../../right-sidebar/right-sidebar-actions";
@@ -41,14 +42,21 @@ export function createSpaceActions(state: SpaceState, placement: SpacePlacement)
     relations: state.relations,
     history: state.history,
   };
+  observeEnrichmentJobs({
+    activeSpaceId: state.activeSpaceId,
+    analysisIds: state.mediaAnalysisIds,
+    analysisPreviews: state.mediaAnalysisPreviews,
+    applyNodeContentForSpace: mutations.applyNodeContentForSpace,
+  });
   const media = createSpaceMediaActions({
+    activeSpaceId: state.activeSpaceId,
+    applyNodeContentForSpace: mutations.applyNodeContentForSpace,
     nodes: state.nodes,
     analysisIds: state.mediaAnalysisIds,
     analysisPreviews: state.mediaAnalysisPreviews,
     seekRequest: state.mediaSeekRequest,
     toggleRequest: state.mediaToggleRequest,
     playback: state.mediaPlayback,
-    saveNodeData: mutations.saveNodeData,
   });
   const audioRecording = createSpaceAudioRecordingActions({
     activeSpaceId: state.activeSpaceId,

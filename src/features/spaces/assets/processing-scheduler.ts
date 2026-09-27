@@ -1,14 +1,14 @@
 import { i18n } from "../../../foundation/i18n/i18n";
 import { decodeCommandError } from "../../../foundation/ipc/command-error";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
-import { resumePendingEnrichmentJobs } from "../enrichment/job-scheduler";
+import { refreshEnrichmentTasks } from "../enrichment/job-observation";
 import { isSpaceManagedAssetPayload } from "../model/nodes/capabilities";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
-import { cancelSpaceAssetProcessing, deriveSpaceAssetData } from "./asset-operations";
+import { cancelSpaceAssetProcessing, deriveSpaceAssetContent } from "./asset-operations";
 import { runSpaceAssetProcessing } from "./concurrency-budget";
 
 export interface SpaceAssetProcessingContext {
-  applyNodeDataForSpace(spaceId: string, id: string, data: SpaceNodePayload): void;
+  applyNodeContentForSpace(spaceId: string, id: string, data: SpaceNodePayload): void;
 }
 
 export function scheduleSpaceAssetProcessing(input: {
@@ -22,7 +22,7 @@ export function scheduleSpaceAssetProcessing(input: {
   const tasks = useTaskStore();
   const jobId = crypto.randomUUID();
   let cancelRequested = false;
-  let currentData = data;
+  let currentContent = data;
   const cancel = async () => {
     cancelRequested = true;
     await cancelSpaceAssetProcessing(jobId);
@@ -38,19 +38,19 @@ export function scheduleSpaceAssetProcessing(input: {
     try {
       enriched = await runSpaceAssetProcessing(async () => {
         if (cancelRequested) throw new Error("Space asset processing cancelled");
-        return deriveSpaceAssetData(spaceId, nodeId, jobId, (updated) => {
-          currentData = updated;
-          context.applyNodeDataForSpace(spaceId, nodeId, updated);
+        return deriveSpaceAssetContent(spaceId, nodeId, jobId, (updated) => {
+          currentContent = updated;
+          context.applyNodeContentForSpace(spaceId, nodeId, updated);
         });
       });
     } catch (error) {
       await handleEnrichmentFailure(error);
       return;
     }
-    currentData = enriched;
-    context.applyNodeDataForSpace(spaceId, nodeId, enriched);
+    currentContent = enriched;
+    context.applyNodeContentForSpace(spaceId, nodeId, enriched);
     try {
-      await resumePendingEnrichmentJobs(context, spaceId);
+      await refreshEnrichmentTasks(spaceId);
       tasks.succeed(taskId);
     } catch (error) {
       tasks.fail(taskId, String(error));
@@ -59,16 +59,16 @@ export function scheduleSpaceAssetProcessing(input: {
 
   async function handleEnrichmentFailure(error: unknown) {
     if (cancelRequested || decodeCommandError(error)?.code === "space_asset_processing_cancelled") {
-      if (isSpaceManagedAssetPayload(currentData)) {
-        context.applyNodeDataForSpace(spaceId, nodeId, { ...currentData, processingState: undefined });
+      if (isSpaceManagedAssetPayload(currentContent)) {
+        context.applyNodeContentForSpace(spaceId, nodeId, { ...currentContent, processingState: undefined });
       }
       return;
     }
-    if (isSpaceManagedAssetPayload(currentData)) {
-      context.applyNodeDataForSpace(spaceId, nodeId, { ...currentData, processingState: "failed" });
+    if (isSpaceManagedAssetPayload(currentContent)) {
+      context.applyNodeContentForSpace(spaceId, nodeId, { ...currentContent, processingState: "failed" });
     }
     try {
-      await resumePendingEnrichmentJobs(context, spaceId);
+      await refreshEnrichmentTasks(spaceId);
       tasks.fail(taskId, String(error));
     } catch (resumeError) {
       tasks.fail(taskId, `${String(error)} · ${String(resumeError)}`);

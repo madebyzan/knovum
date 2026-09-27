@@ -105,10 +105,10 @@ fn model_text(role: ModelRole, text: String) -> ModelMessage {
 fn user_content(content: UserContent) -> Option<ModelContentPart> {
     match content {
         UserContent::Text(text) => Some(ModelContentPart::Text { text: text.text }),
-        UserContent::ToolResult(result) => Some(ModelContentPart::ToolResult {
-            call_id: result.call.into_string(),
-            name: result.name,
-            result: serde_json::to_value(result.content).ok()?,
+        UserContent::ToolResult(tool_reply) => Some(ModelContentPart::ToolResult {
+            call_id: tool_reply.call.into_string(),
+            name: tool_reply.name,
+            result: serde_json::to_value(tool_reply.content).ok()?,
         }),
         UserContent::Image(_) | UserContent::Audio(_) => None,
         UserContent::Video(_) | UserContent::Document(_) => None,

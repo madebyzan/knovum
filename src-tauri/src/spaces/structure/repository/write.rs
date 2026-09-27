@@ -92,7 +92,7 @@ pub(crate) async fn remove_transferred_structure_nodes_in_transaction(
         .execute(&mut **tx)
         .await
         .map_err(db::sql_error)?;
-        let result = sqlx::query(
+        let structure_write = sqlx::query(
             "DELETE FROM spaces_structure_nodes WHERE space_id=$1 AND id=$2 AND deleted_at IS NULL",
         )
         .bind(space_id)
@@ -100,7 +100,7 @@ pub(crate) async fn remove_transferred_structure_nodes_in_transaction(
         .execute(&mut **tx)
         .await
         .map_err(db::sql_error)?;
-        if result.rows_affected() != 1 {
+        if structure_write.rows_affected() != 1 {
             return Err(format!(
                 "Transferred structure node changed during transaction: {structure_node_id}"
             ));
@@ -142,7 +142,7 @@ async fn upsert_structure_node(
             (None, Some(title.as_str()))
         }
     };
-    let result = sqlx::query(
+    let structure_write = sqlx::query(
         "INSERT INTO spaces_structure_nodes \
          (id,space_id,kind,node_id,parent_id,order_index,title,locked,deleted_at) \
          VALUES($1,$2,$3,$4,$5,$6,$7,$8,NULL) \
@@ -162,7 +162,7 @@ async fn upsert_structure_node(
     .execute(&mut **tx)
     .await
     .map_err(db::sql_error)?;
-    if result.rows_affected() != 1 {
+    if structure_write.rows_affected() != 1 {
         return Err(format!(
             "Structure node ID belongs to another Space: {}",
             structure_node.id()

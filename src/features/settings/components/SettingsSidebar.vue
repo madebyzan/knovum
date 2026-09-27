@@ -66,7 +66,7 @@ const visibleGroups = computed(() => {
     }),
   );
 });
-const searchResults = computed(() => visibleGroups.value.flatMap((group) => group.settings));
+const matchingSettings = computed(() => visibleGroups.value.flatMap((group) => group.settings));
 </script>
 
 <template>
@@ -137,7 +137,7 @@ const searchResults = computed(() => visibleGroups.value.flatMap((group) => grou
             </button>
           </section>
         </template>
-        <p v-if="searchResults.length === 0" class="px-2 py-3 text-caption text-foreground-tertiary">
+        <p v-if="matchingSettings.length === 0" class="px-2 py-3 text-caption text-foreground-tertiary">
           {{ t("settings.general.noResults") }}
         </p>
       </nav>

@@ -131,12 +131,12 @@ export function createCanvasGestureSession(options: CanvasGestureSessionOptions)
     pendingMutations += 1;
     busy.value = true;
     if (pendingMutations === 1) options.events.onMutationPendingChange(true);
-    const result = mutationTail.then(mutation);
-    mutationTail = result.then(
+    const gestureCommit = mutationTail.then(mutation);
+    mutationTail = gestureCommit.then(
       () => undefined,
       () => undefined,
     );
-    return result.finally(() => {
+    return gestureCommit.finally(() => {
       pendingMutations -= 1;
       busy.value = pendingMutations > 0;
       if (pendingMutations === 0) options.events.onMutationPendingChange(false);

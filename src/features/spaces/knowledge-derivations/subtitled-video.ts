@@ -106,7 +106,7 @@ export async function createSubtitledVideo(
       },
       onProgress: channel,
     });
-    store.applyNodeDataForSpace(spaceId, completed.nodeId, completed.data);
+    store.applyNodeContentForSpace(spaceId, completed.nodeId, completed.data);
     await store.refreshActiveSpace();
     if (execution.completeTask !== false) tasks.succeed(taskId);
     else tasks.setCancellation(taskId);
@@ -129,7 +129,7 @@ export async function createSubtitledVideo(
 async function markPendingVideoFailed(store: SpaceStore, spaceId: string, nodeId: string) {
   const current = store.nodes.find((node) => node.id === nodeId);
   if (current?.data.kind !== "video" || current.data.processingState !== "processing") return;
-  await store.saveNodeDataForSpace(spaceId, nodeId, current.data, {
+  await store.saveNodeContentForSpace(spaceId, nodeId, current.data, {
     ...current.data,
     processingState: "failed",
   });

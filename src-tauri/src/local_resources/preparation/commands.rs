@@ -22,7 +22,7 @@ pub async fn prepare_resources(
     let request = requests::begin(&job_id, &title, target.clone())?;
     let (finished_tx, finished_rx) = oneshot::channel();
     tauri::async_runtime::spawn(async move {
-        let result = match target {
+        let preparation_outcome = match target {
             target @ (ResourcePreparationTarget::Transcription
             | ResourcePreparationTarget::TextEmbedding) => {
                 let kinds = target
@@ -49,7 +49,7 @@ pub async fn prepare_resources(
                 .map(|_| ())
             }
         };
-        let _ = finished_tx.send(result);
+        let _ = finished_tx.send(preparation_outcome);
     });
     finished_rx
         .await

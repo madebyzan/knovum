@@ -20,7 +20,7 @@ struct Status {
 }
 
 #[derive(Deserialize)]
-struct ResultPayload {
+struct LayerGenerationOutput {
     images: Vec<ImageFile>,
 }
 
@@ -64,16 +64,17 @@ pub async fn split<F: FnOnce()>(
     .map_err(request_error)?;
     validate_request_id(&response.request_id)?;
     wait_for_completion(api_key, &response.request_id, cancellation).await?;
-    let result = fetch_result(api_key, &response.request_id, cancellation).await?;
-    if result.images.len() != layer_count {
+    let generated_layers =
+        fetch_generated_layers(api_key, &response.request_id, cancellation).await?;
+    if generated_layers.images.len() != layer_count {
         return Err(format!(
             "fal returned {} layers; {layer_count} were requested",
-            result.images.len()
+            generated_layers.images.len()
         ));
     }
     on_download();
     let mut layers = Vec::with_capacity(layer_count);
-    for image in result.images {
+    for image in generated_layers.images {
         layers.push(media::download(&image.url, cancellation).await?);
     }
     Ok(layers)
@@ -123,11 +124,11 @@ async fn wait_for_completion(
     }
 }
 
-async fn fetch_result(
+async fn fetch_generated_layers(
     api_key: &str,
     request_id: &str,
     cancellation: &CancellationToken,
-) -> Result<ResultPayload, String> {
+) -> Result<LayerGenerationOutput, String> {
     let request = http_client()
         .get(format!("{ENDPOINT}/requests/{request_id}"))
         .header("Authorization", format!("Key {api_key}"))

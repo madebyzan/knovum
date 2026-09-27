@@ -21,14 +21,14 @@ interface ImportStructureClipboardResponse {
 }
 
 export async function importStructureClipboard(request: ImportStructureClipboardRequest) {
-  const result = await invokeConfirmedMutation<ImportStructureClipboardResponse>(
+  const clipboardCommit = await invokeConfirmedMutation<ImportStructureClipboardResponse>(
     "plugin:spaces|import_structure_clipboard",
     { request },
     request.mutationId,
   );
   return {
-    ...result,
-    snapshot: parseSpaceEditSnapshot(result.snapshot),
+    ...clipboardCommit,
+    snapshot: parseSpaceEditSnapshot(clipboardCommit.snapshot),
   } satisfies {
     snapshot: SpaceEditSnapshot;
     nodes: SpaceCanvasNode[];

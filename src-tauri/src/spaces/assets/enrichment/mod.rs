@@ -131,6 +131,7 @@ pub(in crate::spaces::assets) mod content;
 pub(crate) mod document;
 mod fields;
 pub(crate) mod jobs;
+pub(crate) mod media_knowledge;
 mod node_payload;
 pub(super) mod persistence;
 mod pipeline;

@@ -1,4 +1,5 @@
-use serde_json::Value;
+use serde_json::{json, Value};
+use sha2::{Digest, Sha256};
 
 use super::job::EnrichmentJobType;
 use crate::spaces::derivation::input_revision::{self, RevisionBasis};
@@ -19,18 +20,36 @@ pub(super) fn expected_revision(
     data: &Value,
     job_type: EnrichmentJobType,
 ) -> Result<Option<String>, String> {
+    if job_type == EnrichmentJobType::AnalyzeVisual {
+        return visual_revision(data);
+    }
+    Ok(source_revision(data).map(str::to_owned))
+}
+
+/// Revision of the image actually sent to vision. Generated previews have immutable paths.
+pub(crate) fn visual_revision(data: &Value) -> Result<Option<String>, String> {
     let Some(source) = source_revision(data) else {
         return Ok(None);
     };
-    if job_type != EnrichmentJobType::AnalyzeImage {
-        return Ok(Some(source.to_owned()));
+    match data.get("kind").and_then(Value::as_str) {
+        Some("image") => input_revision::resolve("image", data, RevisionBasis::Rendered)
+            .map(|(revision, _)| Some(revision)),
+        Some("video") => {
+            let Some(preview) = data
+                .get("previewPath")
+                .and_then(Value::as_str)
+                .filter(|path| !path.trim().is_empty())
+            else {
+                return Ok(None);
+            };
+            let payload = serde_json::to_vec(&json!({
+                "source": source,
+                "preview": preview,
+                "origin": data.get("origin").and_then(|origin| origin.get("kind")),
+            }))
+            .map_err(|error| error.to_string())?;
+            Ok(Some(format!("visual1:{:x}", Sha256::digest(payload))))
+        }
+        _ => Ok(None),
     }
-    image_revision(data).map(Some)
-}
-
-pub(crate) fn image_revision(data: &Value) -> Result<String, String> {
-    if data.get("kind").and_then(Value::as_str) != Some("image") {
-        return Err("Image analysis requires an image node".into());
-    }
-    input_revision::resolve("image", data, RevisionBasis::Rendered).map(|(revision, _)| revision)
 }

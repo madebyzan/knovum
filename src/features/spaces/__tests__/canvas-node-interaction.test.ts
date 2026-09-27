@@ -7,7 +7,9 @@ import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 
 describe("canvas node interaction policy", () => {
   it("distinguishes media controls on selection from embedded editing on activation", () => {
-    expect(canvasNodeInteraction(canvasNode("audio", audioData())).activationMode).toBe("select-to-interact");
+    expect(canvasNodeInteraction(canvasNode("audio", audioContent())).activationMode).toBe(
+      "select-to-interact",
+    );
     expect(canvasNodeInteraction(canvasNode("note", createSpaceNotePayload("Note"))).activationMode).toBe(
       "activate-to-interact",
     );
@@ -115,7 +117,7 @@ function canvasNode(id: string, data: SpaceCanvasNode["data"]): SpaceCanvasNode 
   return { id, type: data.kind, data, initialPosition: { x: 0, y: 0 } };
 }
 
-function audioData() {
+function audioContent() {
   return { kind: "audio", title: "Audio", assetPath: "/audio.wav", fileName: "audio.wav" } as const;
 }
 

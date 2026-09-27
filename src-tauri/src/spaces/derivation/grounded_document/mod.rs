@@ -75,11 +75,11 @@ pub async fn create(
         return Err(error);
     }
     let execution = execute(&app, &request, &target, &stages, cancellation.clone());
-    let result = tokio::select! {
+    let generated_document = tokio::select! {
         _ = cancellation.cancelled() => Err("Grounded document creation was cancelled".to_owned()),
-        result = execution => result,
+        generated_document = execution => generated_document,
     };
-    match result {
+    match generated_document {
         Ok(generated) => {
             if let Some(usage) = generated.usage.as_ref() {
                 crate::spaces::runs::record_usage(db::pool(&app).await?, &request.id, usage)

@@ -46,14 +46,14 @@ export async function createImageCutout(store: SpaceStore, source: SpaceCanvasNo
     const completed = await invoke<CompletedCutout>("plugin:spaces|submit_image_cutout_derivation", {
       request: { id: derivationId, sourceEdit },
     });
-    store.applyNodeDataForSpace(spaceId, completed.nodeId, completed.data);
+    store.applyNodeContentForSpace(spaceId, completed.nodeId, completed.data);
     await store.refreshActiveSpace();
     tasks.succeed(taskId);
     store.requestReveal([completed.nodeId], "ensure-visible");
   } catch (error) {
     if (started) await failDerivation(derivationId, error);
     else if (pending.data.kind === "image") {
-      await store.saveNodeDataForSpace(spaceId, pending.id, pending.data, {
+      await store.saveNodeContentForSpace(spaceId, pending.id, pending.data, {
         ...pending.data,
         processingState: "failed",
       });

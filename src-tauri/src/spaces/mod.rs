@@ -26,9 +26,7 @@ pub(crate) mod workflows;
 pub fn plugin() -> tauri::plugin::TauriPlugin<tauri::Wry> {
     tauri::plugin::Builder::new("spaces")
         .setup(|app, _api| {
-            runs::start_scheduler(app.clone());
-            assistant::recover_tasks(app.clone());
-            external_conversations::recover(app.clone());
+            recovery::start(app.clone());
             Ok(())
         })
         .invoke_handler(command_registry::handler())

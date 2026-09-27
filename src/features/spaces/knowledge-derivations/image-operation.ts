@@ -58,7 +58,7 @@ export async function createImageOperation(
   const id = crypto.randomUUID();
   return runDerivation<ImageOperationOutput>({
     store,
-    pendingNode: pending,
+    pendingId: pending.id,
     sourceNodeIds: [source.id],
     task: {
       id,
@@ -99,7 +99,7 @@ export async function createImageOperation(
     },
     onError: async () => {
       if (pending.data.kind === "image")
-        await store.saveNodeDataForSpace(spaceId, pending.id, pending.data, {
+        await store.saveNodeContentForSpace(spaceId, pending.id, pending.data, {
           ...pending.data,
           processingState: "failed",
         });

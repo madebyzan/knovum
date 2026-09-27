@@ -50,7 +50,7 @@ pub fn default_selection<R: Runtime>(
         .target(purpose)
         .map(|target| target.with_temperature(0.2))
         .ok_or_else(|| {
-            AiError::invalid(format!("No default model is configured for {:?}", purpose))
+            AiError::not_configured(format!("No default model is configured for {:?}", purpose))
         })
 }
 
@@ -76,7 +76,7 @@ fn load<R: Runtime>(app: &AppHandle<R>) -> AiResult<AiSettings> {
         .map_err(|error| AiError::internal(error.to_string()))?;
     let raw = store
         .get(AI_SETTINGS_KEY)
-        .ok_or_else(|| AiError::invalid("AI model settings are not configured"))?;
+        .ok_or_else(|| AiError::not_configured("AI model settings are not configured"))?;
     let envelope: Envelope<AiSettings> = serde_json::from_value(raw)
         .map_err(|error| AiError::invalid(format!("AI model settings are invalid: {error}")))?;
     if envelope.schema_version != SETTINGS_SCHEMA_VERSION {

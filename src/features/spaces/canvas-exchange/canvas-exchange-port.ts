@@ -6,16 +6,11 @@ export interface CanvasExchangeResource {
 }
 
 export interface CanvasExchangeExport {
-  source: string;
+  document: JsonCanvasDocumentV1;
   resources: readonly CanvasExchangeResource[];
 }
 
-export interface CanvasExchangeCodec {
-  parse(source: string): Promise<JsonCanvasDocumentV1>;
-  serialize(document: JsonCanvasDocumentV1): Promise<string>;
-}
-
 export interface CanvasExchangePort {
-  importJsonCanvas(source: string, sourceDirectory: string): Promise<void>;
+  importJsonCanvas(sourcePath: string): Promise<void>;
   exportJsonCanvas(): Promise<CanvasExchangeExport>;
 }

@@ -33,7 +33,7 @@ export async function acquireMediaSource(
   );
   try {
     void logInfo("[spaces.url-capture] media acquisition started");
-    const result = await requestMediaImport(
+    const mediaAcquisition = await requestMediaImport(
       jobId,
       i18n.global.t("spaces.media.import.preparing"),
       url,
@@ -46,15 +46,15 @@ export async function acquireMediaSource(
         onProgress(progress);
       },
     );
-    if (result.outcome === "unsupported") {
+    if (mediaAcquisition.outcome === "unsupported") {
       void logInfo("[spaces.url-capture] media source unsupported");
       tasks.dismiss(jobId);
-      return result;
+      return mediaAcquisition;
     }
-    tasks.title(jobId, result.media.title);
+    tasks.title(jobId, mediaAcquisition.media.title);
     tasks.succeed(jobId);
     void logInfo("[spaces.url-capture] media acquisition completed");
-    return { outcome: "imported", payload: mediaPayloadFromImport(result.media) };
+    return { outcome: "imported", payload: mediaPayloadFromImport(mediaAcquisition.media) };
   } catch (error) {
     if (cancelRequested || decodeCommandError(error)?.code === "media_acquisition_cancelled") {
       tasks.dismiss(jobId);

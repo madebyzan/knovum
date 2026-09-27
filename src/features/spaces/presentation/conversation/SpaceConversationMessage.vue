@@ -13,7 +13,7 @@ import { groundedCitationSchema } from "../../knowledge/model/grounded-citation"
 import { useSpaceStore } from "../../session/space-store";
 import { captureActionLabel } from "../workflows/workflow-capture-labels";
 import SpaceConversationMessageAttachments from "./SpaceConversationMessageAttachments.vue";
-import SpaceConversationSearchResults from "./SpaceConversationSearchResults.vue";
+import SpaceConversationSearchMatches from "./SpaceConversationSearchMatches.vue";
 
 const props = defineProps<{ message: AssistantMessage; streamedText?: string }>();
 const emit = defineEmits<{ branch: []; regenerate: [] }>();
@@ -54,8 +54,8 @@ const createdNodeSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("committed_receipt"), receipt: z.object({ nodeId: z.string().optional() }) }),
 ]);
 
-function createdNodeId(result: unknown): string | undefined {
-  const created = createdNodeSchema.safeParse(result);
+function createdNodeId(creationReply: unknown): string | undefined {
+  const created = createdNodeSchema.safeParse(creationReply);
   if (!created.success) return undefined;
   return created.data.type === "accepted_run" ? created.data.nodeId : created.data.receipt.nodeId;
 }
@@ -82,7 +82,7 @@ function createdNodeId(result: unknown): string | undefined {
         <p v-else-if="part.type === 'binary'" class="text-caption text-foreground-secondary">
           {{ part.name || part.mediaType }}
         </p>
-        <SpaceConversationSearchResults
+        <SpaceConversationSearchMatches
           v-else-if="part.type === 'tool_result' && part.name === 'search-knowledge'"
           :value="part.result"
         />

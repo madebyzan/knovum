@@ -45,12 +45,12 @@ export function useExecutionCatalogQuery(options: { detectInstallations?: boolea
       return installations.refetch();
     },
     async refetch() {
-      const descriptorResult = await descriptors.refetch();
+      const descriptorRefresh = await descriptors.refetch();
       return {
-        data: descriptorResult.data
-          ? { agents: descriptorResult.data, installations: installations.data.value ?? [] }
+        data: descriptorRefresh.data
+          ? { agents: descriptorRefresh.data, installations: installations.data.value ?? [] }
           : undefined,
-        error: descriptorResult.error,
+        error: descriptorRefresh.error,
       };
     },
   };

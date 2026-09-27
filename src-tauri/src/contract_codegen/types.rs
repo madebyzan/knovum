@@ -4,6 +4,11 @@ type ContractExporter = fn(&Config) -> Result<(), ts_rs::ExportError>;
 
 pub(super) fn export(config: &Config) -> Result<(), String> {
     let exporters: &[ContractExporter] = &[
+        crate::spaces::nodes::contracts::CommittedNodeContent::export_all,
+        crate::spaces::assets::enrichment::jobs::EnrichmentJobState::export_all,
+        crate::spaces::assets::enrichment::jobs::job::EnrichmentJobType::export_all,
+        crate::spaces::assets::enrichment::jobs::scheduler::EnrichmentJobUpdate::export_all,
+        crate::spaces::assets::transcription::MediaTranscriptionProgress::export_all,
         crate::spaces::actions::catalog::parameters::SocialPlatform::export_all,
         crate::spaces::actions::catalog::parameters::SocialTone::export_all,
         crate::spaces::actions::catalog::parameters::media::ImageAspectRatio::export_all,
@@ -16,7 +21,7 @@ pub(super) fn export(config: &Config) -> Result<(), String> {
         crate::spaces::commands::selection_transfer::contracts::TransferSelectionResponse::export_all,
         crate::spaces::structure::deleted_commands::discard::DiscardPendingContentRequest::export_all,
         crate::spaces::structure::deleted_commands::discard::DiscardPendingContentResponse::export_all,
-        crate::spaces::canvas_exchange::import::ImportJsonCanvasResult::export_all,
+        crate::spaces::canvas_exchange::import::JsonCanvasImportReceipt::export_all,
         crate::updater::UpdaterStatus::export_all,
         crate::updater::UpdateMetadata::export_all,
         crate::spaces::derivation::queries::DerivationFailure::export_all,

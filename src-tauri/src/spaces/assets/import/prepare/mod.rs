@@ -28,7 +28,7 @@ pub(super) fn prepare_asset(
     source: PathBuf,
 ) -> Result<PreparedSpaceImport, String> {
     authorize_source(app, &source)?;
-    prepare_owned_asset(app, source)
+    prepare_owned_asset(app, source, CancellationToken::new())
 }
 
 pub(super) fn prepare_clipboard_asset(
@@ -39,7 +39,7 @@ pub(super) fn prepare_clipboard_asset(
     if !clipboard_contains_source(&source, clipboard_paths) {
         return Err("The resource is no longer present on the clipboard".into());
     }
-    prepare_owned_asset(app, source)
+    prepare_owned_asset(app, source, CancellationToken::new())
 }
 
 fn clipboard_contains_source(source: &Path, clipboard_paths: &[String]) -> bool {
@@ -52,6 +52,7 @@ mod tests;
 pub(super) fn prepare_owned_asset(
     app: &tauri::AppHandle,
     source: PathBuf,
+    cancellation: CancellationToken,
 ) -> Result<PreparedSpaceImport, String> {
     let name = display_name(&source)?;
     let metadata = fs::symlink_metadata(&source).map_err(|error| error.to_string())?;
@@ -84,7 +85,7 @@ pub(super) fn prepare_owned_asset(
             name,
             classification,
             total_bytes,
-            cancellation: CancellationToken::new(),
+            cancellation,
         },
     )?;
     Ok(PreparedSpaceImport {

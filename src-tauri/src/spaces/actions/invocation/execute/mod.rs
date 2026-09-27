@@ -72,7 +72,7 @@ async fn execute(
 ) -> Result<ActionInvocationOutcome, String> {
     match mode {
         SpaceActionExecutionMode::Immediate => {
-            let result = crate::spaces::action_execution::execute_immediate(
+            let action_output = crate::spaces::action_execution::execute_immediate(
                 tx,
                 &authorization.principal,
                 &request.invocation_id,
@@ -83,9 +83,13 @@ async fn execute(
             )
             .await?;
             Ok(if impact == SpaceActionImpact::ReadOnly {
-                ActionInvocationOutcome::QueryResult { result }
+                ActionInvocationOutcome::QueryResult {
+                    result: action_output,
+                }
             } else {
-                ActionInvocationOutcome::CommittedReceipt { receipt: result }
+                ActionInvocationOutcome::CommittedReceipt {
+                    receipt: action_output,
+                }
             })
         }
         SpaceActionExecutionMode::Durable => durable::create(tx, request, authorization, now).await,

@@ -98,7 +98,7 @@ async fn serve(
                         PromptRequest::new(session.session_id().clone(), content),
                     ).block_task();
                     tokio::pin!(prompt);
-                    let result = loop {
+                    let turn_outcome = loop {
                         tokio::select! {
                             _ = session_cancel.cancelled() => {
                                 session.connection().send_notification(
@@ -117,7 +117,7 @@ async fn serve(
                             }
                         }
                     };
-                    let _ = request.reply.send(result);
+                    let _ = request.reply.send(turn_outcome);
                 }
             }).await
     }).await;

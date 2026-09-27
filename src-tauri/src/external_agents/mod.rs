@@ -3,7 +3,7 @@ mod connection;
 pub mod conversation;
 pub mod discovery;
 mod help;
-mod installed_applications;
+mod installed_clients;
 pub(crate) mod permissions;
 pub mod prompt;
 mod protocol;

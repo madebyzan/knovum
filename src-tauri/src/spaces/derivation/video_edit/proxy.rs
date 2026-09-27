@@ -142,10 +142,10 @@ fn encode_proxy(
         .stderr(Stdio::piped())
         .spawn()
         .map_err(|error| format!("Unable to start video proxy preparation: {error}"))?;
-    let result = subprocess::wait_with_stderr(child, cancellation, CANCELLED, |_| Ok(()))?;
-    if !result.status.success() {
+    let process_output = subprocess::wait_with_stderr(child, cancellation, CANCELLED, |_| Ok(()))?;
+    if !process_output.status.success() {
         return Err(subprocess::diagnostic_error(
-            &result.diagnostics,
+            &process_output.diagnostics,
             "Video proxy preparation failed",
         ));
     }

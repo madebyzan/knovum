@@ -45,12 +45,12 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
   async function refreshConversations() {
     const requestedSpaceId = spaceId.value;
     if (!requestedSpaceId) return;
-    const result = await listAssistantConversations(
+    const loadedConversations = await listAssistantConversations(
       requestedSpaceId,
       conversationQuery.value,
       showingArchived.value,
     );
-    if (spaceId.value === requestedSpaceId) conversations.value = result;
+    if (spaceId.value === requestedSpaceId) conversations.value = loadedConversations;
   }
 
   async function selectConversation(id: string, skipRemember = false, acceptedBranchId?: string) {

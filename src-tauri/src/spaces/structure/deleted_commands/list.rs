@@ -43,7 +43,7 @@ pub(crate) async fn list<R: Runtime>(
     .fetch_all(&mut *tx)
     .await
     .map_err(db::sql_error)?;
-    let mut result = Vec::new();
+    let mut deleted_roots = Vec::new();
     for row in rows {
         let batch_id: String = row.try_get("id").map_err(db::sql_error)?;
         let batch_space_id: String = row.try_get("space_id").map_err(db::sql_error)?;
@@ -56,7 +56,7 @@ pub(crate) async fn list<R: Runtime>(
         )
         .map_err(db::json_error)?;
         for root in roots {
-            result.push(
+            deleted_roots.push(
                 summarize_root(
                     &mut tx,
                     &batch_id,
@@ -70,7 +70,7 @@ pub(crate) async fn list<R: Runtime>(
         }
     }
     tx.commit().await.map_err(db::sql_error)?;
-    Ok(result)
+    Ok(deleted_roots)
 }
 
 async fn summarize_root(

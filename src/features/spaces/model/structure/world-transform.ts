@@ -13,14 +13,14 @@ export function composeTransforms(parent: LocalTransform, local: LocalTransform)
   const radians = (parent.rotation * Math.PI) / 180;
   const cos = Math.cos(radians);
   const sin = Math.sin(radians);
-  const result = {
+  const worldTransform = {
     x: parent.x + parent.scale * (local.x * cos - local.y * sin),
     y: parent.y + parent.scale * (local.x * sin + local.y * cos),
     rotation: parent.rotation + local.rotation,
     scale: parent.scale * local.scale,
   };
-  assertTransform(result);
-  return result;
+  assertTransform(worldTransform);
+  return worldTransform;
 }
 
 export function worldTransformFor(

@@ -1,29 +1,22 @@
 use crate::command_error::CommandError;
 mod execution;
 pub(crate) mod intent;
-mod job;
+pub(crate) mod job;
 mod persistence;
+pub(crate) mod requests;
 pub(crate) mod revision;
+pub(crate) mod scheduler;
 
 #[cfg(test)]
 mod tests;
 
-pub use execution::{EnrichmentJobOutput, RunEnrichmentJobRequest};
+pub(crate) use execution::RunEnrichmentJobRequest;
 pub use job::{EnqueueEnrichmentJobRequest, EnrichmentJobState};
 
-use tauri::{ipc::Channel, AppHandle, Runtime};
+use tauri::{AppHandle, Runtime};
 
 use crate::spaces::db;
 use job::{FROM_LIVE, FROM_RUNNING, STATUS_CANCELLED, STATUS_FAILED, STATUS_SUCCEEDED};
-
-#[tauri::command]
-pub async fn run_enrichment_job(
-    app: AppHandle,
-    request: RunEnrichmentJobRequest,
-    on_progress: Channel<crate::spaces::assets::transcription::MediaTranscriptionProgress>,
-) -> Result<EnrichmentJobOutput, CommandError> {
-    Ok((execution::execute_job(app, request, on_progress).await)?)
-}
 
 #[tauri::command]
 pub async fn cancel_enrichment_job<R: Runtime>(
@@ -44,24 +37,7 @@ pub async fn list_enrichment_jobs<R: Runtime>(
     space_id: String,
 ) -> Result<Vec<EnrichmentJobState>, CommandError> {
     let pool = db::pool(&app).await?;
-    Ok((persistence::list_actionable(pool, &space_id).await)?)
-}
-
-#[tauri::command]
-pub async fn defer_enrichment_for_configuration<R: Runtime>(
-    app: AppHandle<R>,
-    job_id: String,
-    error: String,
-) -> Result<(), CommandError> {
-    if job_id.trim().is_empty() || error.trim().is_empty() {
-        return Err(("Configuration deferral requires a job id and reason".to_owned()).into());
-    }
-    let now = crate::clock::unix_time_millis()?;
-    let pool = db::pool(&app).await?;
-    if !persistence::defer_for_configuration(pool, &job_id, error, now).await? {
-        return Err(("Enrichment job is no longer actionable".to_owned()).into());
-    }
-    Ok(())
+    Ok((persistence::list_actionable(pool, Some(&space_id)).await)?)
 }
 
 pub(crate) async fn reconcile_interrupted(app: &tauri::AppHandle) -> Result<(), String> {

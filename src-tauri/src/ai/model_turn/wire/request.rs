@@ -74,11 +74,11 @@ fn to_part(part: &ModelContentPart) -> AiResult<ContentPart> {
         ModelContentPart::ToolResult {
             call_id,
             name,
-            result,
+            result: tool_reply,
         } => Ok(ContentPart::ToolResponse(ToolResponse {
             call_id: call_id.clone(),
             fn_name: Some(name.clone()),
-            content: serde_json::to_string(result)
+            content: serde_json::to_string(tool_reply)
                 .map_err(|error| AiError::new(AiErrorCode::InvalidRequest, error.to_string()))?,
         })),
     }

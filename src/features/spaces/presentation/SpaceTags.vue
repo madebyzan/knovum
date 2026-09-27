@@ -47,7 +47,7 @@ async function removeTag(tag: string) {
 async function updateTags(update: (tags: readonly string[]) => string[]) {
   if (!nodeOperations.allows("edit")) return;
   const changes = createTagChanges(selectedContentNodes.value, update);
-  if (changes.length) await store.updateManyData(changes);
+  if (changes.length) await store.updateNodeContents(changes);
 }
 async function revealTag(tag: string) {
   if (!nodeOperations.allows("structure")) return;

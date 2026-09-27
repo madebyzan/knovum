@@ -51,8 +51,9 @@ main reveals and focuses
 
 There is no separate splash WebView. The Dock/taskbar owns launch feedback while the hidden main
 window bootstraps, then the usable application or recoverable error state appears in one transition.
-Recovery is awaited through `plugin:spaces|reconcile_workspace`; it is not a detached setup task and cannot
-silently fail after the application reports ready. This avoids both an unstyled white WebView flash
+Rust starts recovery once during plugin setup. `plugin:spaces|await_space_runtime` awaits the same
+initialization result; schedulers start only after recovery succeeds. Recovery failures reach the
+recoverable bootstrap-error state, rather than allowing the application to report ready. This avoids both an unstyled white WebView flash
 and a workspace that appears usable before its durable state is reconciled.
 
 ## Application composition
@@ -248,9 +249,14 @@ history. Settings and first-use capability consumers use the same foundation IPC
 Model groups and the optional media-import tool pair are observed as Rust-owned preparation requests with aggregate transfer progress. Active download snapshots survive WebView reloads, allowing Task Center to reconstruct the same task identity and cancellation action without restarting or duplicating the download. Model catalog entries describe immutable Hub artifacts (repository, full commit revision, filename, size and SHA-256), independently of transport endpoints. For these public, unauthenticated artifacts, the default order is Hugging Face then the third-party hf-mirror.com community mirror; connection/header failures advance to the next source with a bounded 15-second header deadline. Body transport failures restart from zero on the next source, truncating the temporary file rather than mixing bytes. Cancellation, disk and integrity failures stop the installation; progress observer disconnection does not. KNOVUM_MODEL_ENDPOINT takes precedence over HF_ENDPOINT; an explicit HTTPS endpoint is exclusive and can include a corporate proxy path prefix. Invalid endpoint settings fail visibly. No model download sends credentials. Each connection has a 10-second connect timeout and a 30-second read idle timeout, without a total time limit for large weights. Installation still requires the catalog SHA-256 before publishing the file. Community mirror availability is not guaranteed; users can explicitly choose a mirror, official Hub or corporate endpoint without changing artifact identity.
 
 Node writes derive enrichment intent inside the same Rust database transaction, so a WebView reload
-cannot lose required work. Rust owns enrichment status transitions and execution concurrency; Vue
-reads the actionable queue, resolves the current user-selected execution target, and projects results
-into the active canvas. Tauri Channels carry transcription and answer-stream progress back to Vue.
+cannot lose required work. Rust owns enrichment dispatch, per-node serialization, concurrency lanes,
+execution targets, status transitions and retry validation. A missing configured target persists an
+explicit configuration-wait state; invalid infrastructure stops visibly. Vue observes
+`space-enrichment-update` and reads persisted actionable tasks. Media insight generation also runs
+in Rust and rejects publication after source replacement or a concurrent manual transcript/insight
+edit. Transcription uses the same persistent job for automatic and explicit user requests.
+Tauri Channels carry progress inside Rust-owned executions; events project enrichment results to Vue.
+Answer streams continue to use their owning conversation Channels.
 Embedding/index storage, hybrid retrieval, and answer-with-sources transactions remain entirely Rust-owned;
 the WebView never generates or transports embedding vectors or commits a partial grounded exchange.
 

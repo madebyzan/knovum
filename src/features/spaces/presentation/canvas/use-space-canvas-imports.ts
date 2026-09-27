@@ -8,7 +8,7 @@ import { addImportedSpaceAsset } from "../../assets/import";
 import { importSpaceBatch, type SpaceImportBatchOutcome } from "../../assets/import-batch";
 import { spaceImportContext } from "../../assets/import-context";
 import { scheduleSpaceAssetProcessing } from "../../assets/processing-scheduler";
-import type { CanvasFileImportRequest, CanvasFileImportResult } from "../../canvas/contract/canvas-editor";
+import type { CanvasFileImportRequest, CanvasFileImportReceipt } from "../../canvas/contract/canvas-editor";
 import { importDroppedFiles } from "../../canvas/drop";
 import type { useCanvasEditorSession } from "../../canvas/editor-session";
 import { useNodeOperationGate } from "../../canvas/node-operation-gate";
@@ -92,7 +92,7 @@ export function useSpaceCanvasImports(options: SpaceCanvasImportOptions) {
     return outcomes.filter(isImportedOutcome).map(({ key, nodes: [node] }) => ({
       sourceId: key,
       node,
-    })) satisfies CanvasFileImportResult[];
+    })) satisfies CanvasFileImportReceipt[];
   }
 
   async function importBatch<Key>(

@@ -26,8 +26,5 @@
     },
     "noMatches": "No matching shortcuts"
   },
-  "runtimeModels": {
-    "transcription": "Multilingual speech-to-text model (local)",
-    "textEmbedding": "Text embedding model (Qwen3-Embedding-0.6B)"
-  }
+  "runtimeModels": {}
 }

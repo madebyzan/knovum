@@ -1,6 +1,4 @@
-import { dirname } from "@tauri-apps/api/path";
 import { open, save } from "@tauri-apps/plugin-dialog";
-import { readTextFile } from "@tauri-apps/plugin-fs";
 import { isString } from "es-toolkit";
 
 import { invokeCommand as invoke } from "../../../foundation/ipc/invoke-command";
@@ -11,7 +9,7 @@ const JSON_CANVAS_FILTER = [{ name: "JSON Canvas", extensions: ["canvas"] }];
 export async function importJsonCanvasFile(exchange: CanvasExchangePort) {
   const sourcePath = await open({ multiple: false, directory: false, filters: JSON_CANVAS_FILTER });
   if (!isString(sourcePath)) return false;
-  await exchange.importJsonCanvas(await readTextFile(sourcePath), await dirname(sourcePath));
+  await exchange.importJsonCanvas(sourcePath);
   return true;
 }
 
@@ -23,7 +21,7 @@ export async function exportJsonCanvasFile(exchange: CanvasExchangePort, title: 
   });
   if (!destinationPath) return false;
   await invoke("plugin:spaces|export_json_canvas_file", {
-    request: { destinationPath, source: exported.source, resources: exported.resources },
+    request: { destinationPath, document: exported.document, resources: exported.resources },
   });
   return true;
 }

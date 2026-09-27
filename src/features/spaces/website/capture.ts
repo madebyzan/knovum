@@ -14,10 +14,10 @@ interface WebsiteCaptureContext {
   activeSpaceId?: string;
   nodes: SpaceCanvasNode[];
   addContent: (data: SpaceNodePayload, position?: { x: number; y: number }) => Promise<SpaceCanvasNode[]>;
-  saveNodeDataForSpace(
+  saveNodeContentForSpace(
     spaceId: string,
     id: string,
-    expectedData: SpaceNodePayload,
+    expectedContent: SpaceNodePayload,
     data: SpaceNodePayload,
   ): Promise<void>;
 }
@@ -55,7 +55,7 @@ export async function refreshSavedWebsite(context: WebsiteCaptureContext, id: st
   const node = context.nodes.find((candidate) => candidate.id === id);
   if (!node || node.data.kind !== "website") return;
   const next = { ...node.data, metadataState: "loading" } as SpaceWebsitePayload;
-  await context.saveNodeDataForSpace(spaceId, id, node.data, next);
+  await context.saveNodeContentForSpace(spaceId, id, node.data, next);
   await websiteCaptureConcurrency(() =>
     hydrateSavedWebsite({ context, spaceId, id, data: next }, url, { preserveTitle: true }),
   );
@@ -174,7 +174,7 @@ async function persistWebsite(
 }
 
 async function saveBinding(target: WebsiteBinding, data: SpaceWebsitePayload) {
-  await target.context.saveNodeDataForSpace(target.spaceId, target.id, target.data, data);
+  await target.context.saveNodeContentForSpace(target.spaceId, target.id, target.data, data);
   target.data = data;
 }
 

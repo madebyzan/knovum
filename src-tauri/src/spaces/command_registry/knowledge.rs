@@ -43,7 +43,6 @@ pub(super) fn handler() -> impl Fn(Invoke<tauri::Wry>) -> bool + Send + Sync + '
         crate::spaces::queries::retrieval::search_knowledge_hybrid,
         crate::spaces::queries::retrieval::cancel_knowledge_search,
         crate::spaces::queries::retrieval::list_related_content,
-        crate::spaces::queries::export::collect_space_package_snapshot,
         crate::spaces::knowledge::types::list_object_types,
         crate::spaces::knowledge::types::create_object_type,
         crate::spaces::knowledge::types::update_object_type,

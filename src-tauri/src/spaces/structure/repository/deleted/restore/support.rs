@@ -49,8 +49,8 @@ pub(crate) async fn mark_restored(
     now: i64,
 ) -> Result<(), String> {
     for batch in batch_ids {
-        let result=sqlx::query("UPDATE spaces_deleted_structure_batches SET restored_at=$1 WHERE id=$2 AND space_id=$3 AND restored_at IS NULL").bind(now).bind(batch).bind(space_id).execute(&mut **tx).await.map_err(db::sql_error)?;
-        if result.rows_affected() != 1 {
+        let restoration_write=sqlx::query("UPDATE spaces_deleted_structure_batches SET restored_at=$1 WHERE id=$2 AND space_id=$3 AND restored_at IS NULL").bind(now).bind(batch).bind(space_id).execute(&mut **tx).await.map_err(db::sql_error)?;
+        if restoration_write.rows_affected() != 1 {
             return Err("Deleted structure batch changed during restore".into());
         }
     }

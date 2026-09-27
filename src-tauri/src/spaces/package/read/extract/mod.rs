@@ -8,12 +8,16 @@ use std::{
 };
 
 use tauri::ipc::Channel;
-use uuid::Uuid;
 use zip::ZipArchive;
 
 use super::super::{
     send_progress, validation, AssetIndex, ImportedPackageAsset, SpacePackageProgress,
 };
+
+pub(super) struct ExtractedAssets {
+    pub assets: Vec<ImportedPackageAsset>,
+    pub namespace: PathBuf,
+}
 
 pub(super) fn extract_assets(
     app: &tauri::AppHandle,
@@ -21,34 +25,37 @@ pub(super) fn extract_assets(
     index: &[AssetIndex],
     progress: &Channel<SpacePackageProgress>,
     total: u64,
-) -> Result<Vec<ImportedPackageAsset>, String> {
+    target_space: &str,
+) -> Result<ExtractedAssets, String> {
     let root = crate::spaces::assets::asset_directory(app)?;
-    let namespace = root.join(format!("import-{}", Uuid::new_v4()));
+    let namespace = root.join(format!("package-import-{target_space}"));
     fs::create_dir(&namespace).map_err(|error| error.to_string())?;
-    let targets = package_targets(&namespace, index)?;
     let extracted = (|| {
+        fs::write(namespace.join(".pending"), target_space).map_err(|e| e.to_string())?;
+        let targets = package_targets(&namespace, index)?;
         create_package_directories(&targets)?;
         extract_entries(archive, &targets, progress, total)?;
         verify::verify_assets(&targets, index)?;
-        Ok(targets
-            .iter()
-            .map(|(token, (path, _))| ImportedPackageAsset {
-                token: token.clone(),
-                path: path.to_string_lossy().into_owned(),
-            })
-            .collect())
+        Ok(ExtractedAssets {
+            namespace: namespace.clone(),
+            assets: targets
+                .iter()
+                .map(|(token, (path, _))| ImportedPackageAsset {
+                    token: token.clone(),
+                    path: path.to_string_lossy().into_owned(),
+                })
+                .collect(),
+        })
     })();
-    if extracted.is_err() {
-        if let Err(error) = fs::remove_dir_all(&namespace) {
-            if error.kind() != std::io::ErrorKind::NotFound {
-                log::warn!(
-                    "failed to remove Space package import namespace {}: {error}",
-                    namespace.display()
-                );
-            }
+    match extracted {
+        Ok(assets) => Ok(assets),
+        Err(cause) => {
+            fs::remove_dir_all(&namespace).map_err(|error| {
+                format!("Package extraction failed: {cause}; namespace cleanup failed: {error}")
+            })?;
+            Err(cause)
         }
     }
-    extracted
 }
 
 fn package_targets(

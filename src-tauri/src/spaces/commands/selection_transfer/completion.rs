@@ -100,7 +100,7 @@ pub(super) async fn complete(
         ],
     )
     .await?;
-    let result = TransferSelectionResponse {
+    let transfer_receipt = TransferSelectionResponse {
         moved_node_ids: context.structure_plan.moved_node_ids,
         moved_structure_node_ids: context.structure_plan.moved_structure_node_ids,
         source_edit_revision,
@@ -112,11 +112,11 @@ pub(super) async fn complete(
         &request.source_space_id,
         context.digest,
         source_edit_revision,
-        &result.moved_structure_node_ids,
-        &result,
+        &transfer_receipt.moved_structure_node_ids,
+        &transfer_receipt,
     )
     .await?;
-    Ok(result)
+    Ok(transfer_receipt)
 }
 
 async fn append_events(

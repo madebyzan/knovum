@@ -204,10 +204,13 @@ mod tests {
         let request_cancellation = CancellationToken::new();
         request_cancellation.cancel();
 
-        let result = cancelled_waiter
+        let cancelled_preparation = cancelled_waiter
             .wait(&request_cancellation, &mut |_| {})
             .await;
-        assert_eq!(result.unwrap_err(), RESOURCE_PREPARATION_CANCELLED);
+        assert_eq!(
+            cancelled_preparation.unwrap_err(),
+            RESOURCE_PREPARATION_CANCELLED
+        );
         drop(cancelled_waiter);
         assert!(!installation.cancellation.is_cancelled());
 

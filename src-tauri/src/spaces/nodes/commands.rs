@@ -15,6 +15,6 @@ pub async fn create_nodes<R: Runtime>(
 pub async fn update_nodes<R: Runtime>(
     app: AppHandle<R>,
     request: UpdateNodesRequest,
-) -> Result<(), CommandError> {
+) -> Result<Vec<super::contracts::CommittedNodeContent>, CommandError> {
     Ok((super::update_many(&app, request).await)?)
 }

@@ -80,7 +80,7 @@ pub(super) async fn save(
         None => None,
     };
     let pool = db::pool(app).await?;
-    let result = sqlx::query("INSERT INTO spaces_document_visual_checkpoints(job_id,occurrence_id,occurrence,resource) \
+    let checkpoint_write = sqlx::query("INSERT INTO spaces_document_visual_checkpoints(job_id,occurrence_id,occurrence,resource) \
         SELECT j.id,$1,$2,$3 FROM spaces_enrichment_jobs j JOIN spaces_nodes n ON n.id=j.node_id AND n.space_id=j.space_id \
         WHERE j.id=$4 AND j.space_id=$5 AND j.node_id=$6 AND j.source_revision=$7 AND j.job_type='analyze_document' \
           AND j.status='running' AND n.deleted_at IS NULL AND json_extract(n.data,'$.sourceRevision')=j.source_revision \
@@ -90,7 +90,7 @@ pub(super) async fn save(
         .bind(resource.map(serde_json::to_string).transpose().map_err(db::json_error)?)
         .bind(&request.job_id).bind(&request.space_id).bind(&request.node_id).bind(&report.source_revision)
         .execute(pool).await.map_err(db::sql_error)?;
-    if result.rows_affected() != 1 {
+    if checkpoint_write.rows_affected() != 1 {
         return Err("Document checkpoint job is no longer current".into());
     }
     Ok(())
