@@ -22,5 +22,5 @@ function layout(
   nodeId: string,
   [x, y, width, height]: readonly [number, number, number, number],
 ): CanvasNodeLayoutV1 {
-  return { nodeId, frame: { x, y, width, height, rotation: 0 }, sizeAuthority: "frame", zIndex: 0 };
+  return { nodeId, frame: { x, y, width, height, rotation: 0 }, sizingMode: "frame", zIndex: 0 };
 }

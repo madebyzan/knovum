@@ -5,7 +5,7 @@ import { useI18n } from "vue-i18n";
 
 import type { CanvasContentHeightMeasurement } from "../../../canvas/contracts/canvas-editor-port";
 import type { CanvasNodePresentationContext } from "../../../canvas/preview/policy";
-import type { CanvasNodeSizeAuthority } from "../../../canvas/schema/document";
+import type { CanvasNodeSizingMode } from "../../../canvas/schema/document";
 import type { SpaceCanvasTextPayload } from "../../../model/nodes/capabilities";
 import type { SpaceTextPayload } from "../../../model/nodes/node-payload";
 import SpaceCanvasRichText from "./SpaceCanvasRichText.vue";
@@ -25,7 +25,7 @@ const props = defineProps<{
   frameWidth: number;
   textAlign: "left" | "center" | "right";
   persist: (id: string, data: SpaceCanvasTextPayload) => Promise<void>;
-  sizeAuthority: CanvasNodeSizeAuthority;
+  sizingMode: CanvasNodeSizingMode;
   typographyScale: number;
 }>();
 const { t } = useI18n();
@@ -46,7 +46,7 @@ function reportContentHeight(height: number) {
   props.fitContentHeight(props.id, {
     contentRevision: props.data.knowledgeRevision ?? null,
     height,
-    sizeAuthority: props.sizeAuthority,
+    sizingMode: props.sizingMode,
     typographyScale: props.typographyScale,
     width: props.frameWidth,
   });

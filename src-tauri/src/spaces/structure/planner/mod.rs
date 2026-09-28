@@ -136,7 +136,7 @@ pub(in crate::spaces::structure) fn plan(
             structure_node_id,
             transform,
             size,
-            size_authority,
+            sizing_mode,
             appearance,
             file_subpath,
         } => self::metadata::update_content(
@@ -144,7 +144,7 @@ pub(in crate::spaces::structure) fn plan(
             structure_node_id,
             transform,
             size,
-            size_authority,
+            sizing_mode,
             appearance,
             file_subpath,
         ),

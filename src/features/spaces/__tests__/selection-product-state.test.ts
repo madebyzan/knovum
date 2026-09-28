@@ -45,14 +45,14 @@ function snapshot(locked = false): SpaceEditSnapshot {
         kind: "content",
         transform: { x: 20, y: 60, rotation: 0, scale: 1 },
         size: { width: 100, height: 80 },
-        sizeAuthority: "frame",
+        sizingMode: "frame",
       },
       {
         structureNodeId: "item-b",
         kind: "content",
         transform: { x: 140, y: 60, rotation: 0, scale: 1 },
         size: { width: 100, height: 80 },
-        sizeAuthority: "frame",
+        sizingMode: "frame",
       },
     ],
   };

@@ -1,4 +1,4 @@
-use crate::spaces::nodes::contracts::InsertNode;
+use crate::spaces::nodes::{contracts::InsertNode, fitted_content_size};
 
 use super::planner::spatial::{local_from_world, world_transform};
 use super::planner::tree_policy::{require_editable, Index};
@@ -44,14 +44,16 @@ pub(crate) fn append_content(
             rotation: 0.0,
             scale: 1.0,
         };
+        let requested_size = Size {
+            width: node.width,
+            height: node.height,
+        };
         snapshot.layouts.push(StructureLayout::Content {
             structure_node_id: structure_node_id.clone(),
             transform: local_from_world(&world, &parent_world),
-            size: Size {
-                width: node.width,
-                height: node.height,
-            },
-            size_authority: node.size_authority,
+            size: fitted_content_size(&node.data, &requested_size, node.sizing_mode)
+                .unwrap_or(requested_size),
+            sizing_mode: node.sizing_mode,
             appearance: node.appearance.clone(),
             file_subpath: node.file_subpath.clone(),
         });

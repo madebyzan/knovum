@@ -88,6 +88,7 @@ CREATE TABLE spaces_structure_layouts (
     json_valid(data) AND json_type(data) = 'object' AND
     COALESCE(json_extract(data, '$.kind'), '') = kind AND
     COALESCE(json_extract(data, '$.structureNodeId'), '') = structure_node_id AND
+    (kind <> 'content' OR COALESCE(json_extract(data, '$.sizingMode'), '') IN ('content', 'frame')) AND
     (kind <> 'section' OR (
       json_type(data, '$.size.width') IN ('integer', 'real') AND
       json_type(data, '$.size.height') IN ('integer', 'real') AND

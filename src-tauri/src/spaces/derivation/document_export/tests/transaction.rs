@@ -19,7 +19,7 @@ async fn database() -> (sqlx::SqlitePool, String) {
     let revision = data["knowledgeRevision"].as_str().unwrap().to_owned();
     let request: InsertNodesRequest = serde_json::from_value(json!({
         "spaceId":"space","mutationId":"source-create","expectedEditRevision":0,"targetParentId":null,
-        "nodes":[{"id":"source","kind":"markdown","initialX":0,"initialY":0,"width":300,"height":200,"sizeAuthority":"frame","data":data,"sourceChunks":[]}]
+        "nodes":[{"id":"source","kind":"markdown","initialX":0,"initialY":0,"width":300,"height":200,"sizingMode":"frame","data":data,"sourceChunks":[]}]
     })).unwrap();
     crate::spaces::nodes::insert_many_in_transaction(&mut tx, request)
         .await

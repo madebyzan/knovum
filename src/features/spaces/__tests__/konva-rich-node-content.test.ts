@@ -51,7 +51,7 @@ describe("Konva rich node content", () => {
         layout: {
           nodeId: "credential",
           frame: { x: 0, y: 0, width: 320, height: 180, rotation: 0 },
-          sizeAuthority: "frame",
+          sizingMode: "frame",
           zIndex: 0,
         },
         node: {

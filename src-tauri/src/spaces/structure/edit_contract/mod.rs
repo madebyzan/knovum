@@ -1,4 +1,4 @@
-use super::{LocalTransform, RelationColor, Size, SizeAuthority};
+use super::{LocalTransform, RelationColor, Size, SizingMode};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -123,7 +123,7 @@ pub(crate) enum SpaceEditCommand {
         #[ts(optional = nullable)]
         size: Option<Size>,
         #[ts(optional = nullable)]
-        size_authority: Option<SizeAuthority>,
+        sizing_mode: Option<SizingMode>,
         #[serde(default)]
         #[ts(optional, as = "Option<_>")]
         appearance: FieldUpdate<Value>,
@@ -148,7 +148,7 @@ pub(crate) struct ContentHeightUpdate {
     pub(crate) content_revision: Option<String>,
     pub(crate) height: f64,
     pub(crate) measured_width: f64,
-    pub(crate) size_authority: SizeAuthority,
+    pub(crate) sizing_mode: SizingMode,
     pub(crate) typography_scale: f64,
 }
 

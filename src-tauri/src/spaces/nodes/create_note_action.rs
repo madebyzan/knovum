@@ -5,7 +5,7 @@ use crate::spaces::{
     authorization::Principal,
     knowledge::indexing::KnowledgeChunkInput,
     nodes::{self, contracts::InsertNode},
-    structure::{self, SizeAuthority},
+    structure::{self, SizingMode},
 };
 
 pub(crate) async fn execute(
@@ -30,7 +30,7 @@ pub(crate) async fn execute(
         initial_y: 80.0 + (count / 6) as f64 * 260.0,
         width: 320.0,
         height: 220.0,
-        size_authority: SizeAuthority::Content,
+        sizing_mode: SizingMode::Content,
         appearance: None,
         file_subpath: None,
         data: json!({

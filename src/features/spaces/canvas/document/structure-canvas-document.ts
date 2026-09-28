@@ -46,7 +46,7 @@ export function projectStructureCanvasDocument(
             height: layout.size.height * world.scale,
             rotation: world.rotation,
           },
-          sizeAuthority: layout.sizeAuthority,
+          sizingMode: layout.sizingMode,
           zIndex,
         },
         layout.appearance ? { appearance: layout.appearance } : {},

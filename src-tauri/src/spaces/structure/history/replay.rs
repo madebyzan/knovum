@@ -58,20 +58,22 @@ pub(in crate::spaces::structure) async fn apply(
     } else {
         before_snapshot.clone()
     };
-    let current_heights = super::neutral::content_height_states(std::iter::once(current_snapshot));
-    let before_heights = super::neutral::content_height_states(std::iter::once(&before_snapshot));
-    let after_heights = super::neutral::content_height_states(std::iter::once(&after_snapshot));
-    super::neutral::preserve_content_heights(
+    let current_sizes = super::neutral::content_size_states(std::iter::once(current_snapshot));
+    let before_sizes = super::neutral::content_size_states(std::iter::once(&before_snapshot));
+    let after_sizes = super::neutral::content_size_states(std::iter::once(&after_snapshot));
+    super::neutral::preserve_content_sizes(
         &mut snapshot,
-        &current_heights,
-        &before_heights,
-        &after_heights,
+        &current_sizes,
+        &before_sizes,
+        &after_sizes,
     );
     let node_ids: Vec<String> = serde_json::from_str(&node_ids_json).map_err(db::json_error)?;
     let relations: Vec<RelationLifecycle> =
         serde_json::from_str(&relations_json).map_err(db::json_error)?;
     apply_nodes(tx, space_id, &node_ids).await?;
     apply_relations(tx, &relations).await?;
+    crate::spaces::nodes::fit_content_sizes_in_snapshot(tx, space_id, &mut snapshot, &node_ids)
+        .await?;
     let next = repository::save_in_transaction(tx, space_id, current_revision, &snapshot).await?;
     portal_integrity::validate_structure_targets(tx).await?;
     let deletion_batch_id: Option<String> =

@@ -1,13 +1,13 @@
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { CanvasContentHeightMeasurement } from "../contracts/canvas-editor-port";
 import { spaceNodeMinimumContentHeight, spaceNodeUsesContentFitHeight } from "../node-size";
-import type { CanvasNodeLayoutV1, CanvasNodeSizeAuthority } from "../schema/document";
+import type { CanvasNodeLayoutV1, CanvasNodeSizingMode } from "../schema/document";
 
 export interface FittedContentHeight {
   contentRevision: string | null;
   height: number;
   measuredWidth: number;
-  sizeAuthority: CanvasNodeSizeAuthority;
+  sizingMode: CanvasNodeSizingMode;
   typographyScale: number;
 }
 
@@ -58,7 +58,7 @@ export function createNodeContentHeightBatch(
     if (!node || !layout || !spaceNodeUsesContentFitHeight(node.data)) return undefined;
     const matchesSource = [
       (node.data.knowledgeRevision ?? null) === measurement.contentRevision,
-      layout.sizeAuthority === measurement.sizeAuthority,
+      layout.sizingMode === measurement.sizingMode,
       layout.frame.width === measurement.width,
       (layout.appearance?.typographyScale ?? 1) === measurement.typographyScale,
     ].every(Boolean);
@@ -70,7 +70,7 @@ export function createNodeContentHeightBatch(
             measurement.height,
           ),
           measuredWidth: measurement.width,
-          sizeAuthority: measurement.sizeAuthority,
+          sizingMode: measurement.sizingMode,
           typographyScale: measurement.typographyScale,
         }
       : undefined;

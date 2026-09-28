@@ -104,7 +104,7 @@ pub(super) async fn prepare_in_transaction(
                 initial_y: request.position.y,
                 width: request.size.width,
                 height: request.size.height,
-                size_authority: crate::spaces::structure::SizeAuthority::Frame,
+                sizing_mode: crate::spaces::structure::SizingMode::Frame,
                 appearance: None,
                 file_subpath: None,
                 data,

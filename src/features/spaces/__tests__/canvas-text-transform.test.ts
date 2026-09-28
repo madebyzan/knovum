@@ -7,7 +7,7 @@ import type { CanvasNodeLayoutV1 } from "../canvas/schema/document";
 const layout: CanvasNodeLayoutV1 = {
   nodeId: "text",
   frame: { x: 0, y: 0, width: 240, height: 40, rotation: 0 },
-  sizeAuthority: "frame",
+  sizingMode: "frame",
   zIndex: 0,
   appearance: {
     fontSize: 18,

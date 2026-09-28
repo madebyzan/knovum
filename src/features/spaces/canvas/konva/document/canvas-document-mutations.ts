@@ -11,9 +11,9 @@ export function applyCanvasFrames(
     nodes: document.nodes.map((node) => {
       const update = frames.get(node.nodeId);
       if (!update) return node;
-      const sizeAuthority = update.sizeAuthority ?? node.sizeAuthority;
-      if (sameCanvasFrame(node.frame, update.frame) && sizeAuthority === node.sizeAuthority) return node;
-      return { ...node, frame: { ...update.frame }, sizeAuthority };
+      const sizingMode = update.sizingMode ?? node.sizingMode;
+      if (sameCanvasFrame(node.frame, update.frame) && sizingMode === node.sizingMode) return node;
+      return { ...node, frame: { ...update.frame }, sizingMode };
     }),
   };
 }
@@ -31,7 +31,7 @@ export function applyCanvasGestureUpdates(
       return {
         ...node,
         frame: { ...update.frame },
-        sizeAuthority: update.sizeAuthority ?? node.sizeAuthority,
+        sizingMode: update.sizingMode ?? node.sizingMode,
         appearance: "appearance" in update ? (update.appearance ?? undefined) : node.appearance,
       };
     }),
@@ -43,8 +43,8 @@ export function captureCanvasGestureLayouts(
   updates: readonly CanvasGestureUpdate[],
 ) {
   const ids = new Set(updates.map(({ nodeId }) => nodeId));
-  return document.nodes.flatMap<CanvasGestureUpdate>(({ nodeId, frame, sizeAuthority, appearance }) =>
-    ids.has(nodeId) ? [{ nodeId, frame: { ...frame }, sizeAuthority, appearance: appearance ?? null }] : [],
+  return document.nodes.flatMap<CanvasGestureUpdate>(({ nodeId, frame, sizingMode, appearance }) =>
+    ids.has(nodeId) ? [{ nodeId, frame: { ...frame }, sizingMode, appearance: appearance ?? null }] : [],
   );
 }
 

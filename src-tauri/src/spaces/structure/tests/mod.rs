@@ -26,7 +26,7 @@ fn valid_layouts() -> Vec<StructureLayout> {
     layouts(json!([
         {"kind":"section","structureNodeId":"s","position":{"x":0,"y":0},"size":{"width":640,"height":400},"collapsed":false},
         {"kind":"group","structureNodeId":"g","transform":{"x":5,"y":10,"rotation":0,"scale":1}},
-        {"kind":"content","structureNodeId":"c","transform":{"x":20,"y":30,"rotation":0,"scale":1},"size":{"width":300,"height":200},"sizeAuthority":"frame"}
+        {"kind":"content","structureNodeId":"c","transform":{"x":20,"y":30,"rotation":0,"scale":1},"size":{"width":300,"height":200},"sizingMode":"frame"}
     ]))
 }
 
@@ -72,7 +72,7 @@ fn rejects_layout_mismatch_and_degenerate_scale() {
     let invalid = layouts(json!([
         {"kind":"section","structureNodeId":"s","position":{"x":0,"y":0},"size":{"width":640,"height":400},"collapsed":false},
         {"kind":"group","structureNodeId":"g","transform":{"x":5,"y":10,"rotation":0,"scale":0}},
-        {"kind":"content","structureNodeId":"c","transform":{"x":20,"y":30,"rotation":0,"scale":1},"size":{"width":300,"height":200},"sizeAuthority":"frame"}
+        {"kind":"content","structureNodeId":"c","transform":{"x":20,"y":30,"rotation":0,"scale":1},"size":{"width":300,"height":200},"sizingMode":"frame"}
     ]));
     assert!(validate_space_snapshot(&valid_structure(), &invalid).is_err());
 }
@@ -82,7 +82,7 @@ fn rejects_section_below_minimum_size() {
     let small = layouts(json!([
         {"kind":"section","structureNodeId":"s","position":{"x":0,"y":0},"size":{"width":239,"height":160},"collapsed":false},
         {"kind":"group","structureNodeId":"g","transform":{"x":5,"y":10,"rotation":0,"scale":1}},
-        {"kind":"content","structureNodeId":"c","transform":{"x":20,"y":30,"rotation":0,"scale":1},"size":{"width":300,"height":200},"sizeAuthority":"frame"}
+        {"kind":"content","structureNodeId":"c","transform":{"x":20,"y":30,"rotation":0,"scale":1},"size":{"width":300,"height":200},"sizingMode":"frame"}
     ]));
     assert!(validate_space_snapshot(&valid_structure(), &small).is_err());
 }
@@ -112,13 +112,13 @@ fn rejects_invalid_appearance_and_accumulated_rotation() {
     let invalid_appearance = layouts(json!([
         {"kind":"section","structureNodeId":"s","position":{"x":0,"y":0},"size":{"width":640,"height":400},"collapsed":false,"appearance":{"textColor":"red"}},
         {"kind":"group","structureNodeId":"g","transform":{"x":5,"y":10,"rotation":0,"scale":1}},
-        {"kind":"content","structureNodeId":"c","transform":{"x":20,"y":30,"rotation":0,"scale":1},"size":{"width":300,"height":200},"sizeAuthority":"frame"}
+        {"kind":"content","structureNodeId":"c","transform":{"x":20,"y":30,"rotation":0,"scale":1},"size":{"width":300,"height":200},"sizingMode":"frame"}
     ]));
     assert!(validate_space_snapshot(&valid_structure(), &invalid_appearance).is_err());
     let overflow = layouts(json!([
         {"kind":"section","structureNodeId":"s","position":{"x":0,"y":0},"size":{"width":640,"height":400},"collapsed":false},
         {"kind":"group","structureNodeId":"g","transform":{"x":5,"y":10,"rotation":1000000000,"scale":1}},
-        {"kind":"content","structureNodeId":"c","transform":{"x":20,"y":30,"rotation":1,"scale":1},"size":{"width":300,"height":200},"sizeAuthority":"frame"}
+        {"kind":"content","structureNodeId":"c","transform":{"x":20,"y":30,"rotation":1,"scale":1},"size":{"width":300,"height":200},"sizingMode":"frame"}
     ]));
     assert!(validate_space_snapshot(&valid_structure(), &overflow).is_err());
 }

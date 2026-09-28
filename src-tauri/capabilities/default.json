@@ -20,8 +20,8 @@
     "secrets:allow-delete",
     "desktop:allow-set-locale",
     "desktop:allow-set-workspace-menu-state",
-    "desktop:allow-complete-bootstrap",
-    "desktop:allow-register-exit-coordinator",
-    "desktop:allow-resolve-app-exit"
+    "desktop:allow-reveal-main-window",
+    "desktop:allow-mark-exit-coordinator-ready",
+    "desktop:allow-decide-app-exit-request"
   ]
 }

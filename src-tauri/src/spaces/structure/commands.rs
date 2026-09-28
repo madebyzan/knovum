@@ -77,6 +77,28 @@ pub(crate) async fn execute_in_transaction(
         }
         command => planner::plan(command, &mut snapshot)?,
     };
+    if let super::edit_contract::SpaceEditCommand::ContentUpdateLayout {
+        structure_node_id, ..
+    } = &request.command
+    {
+        let node_ids = snapshot
+            .structure
+            .iter()
+            .filter_map(|node| match node {
+                super::StructureNode::Content { id, node_id, .. } if id == structure_node_id => {
+                    Some(node_id.clone())
+                }
+                _ => None,
+            })
+            .collect::<Vec<_>>();
+        crate::spaces::nodes::fit_content_sizes_in_snapshot(
+            &mut *tx,
+            &request.space_id,
+            &mut snapshot,
+            &node_ids,
+        )
+        .await?;
+    }
     if let Some(deletion) = &plan.deletion {
         super::deletion_transaction::apply(tx, &request, &mut snapshot, deletion).await?;
     }

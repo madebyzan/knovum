@@ -29,14 +29,14 @@ function copied(): SpaceClipboardPayload {
         kind: "content",
         transform: TRANSFORM,
         size: SIZE,
-        sizeAuthority: "frame",
+        sizingMode: "frame",
       },
       {
         structureNodeId: "s-b",
         kind: "content",
         transform: { ...TRANSFORM, x: 400 },
         size: SIZE,
-        sizeAuthority: "frame",
+        sizingMode: "frame",
       },
     ],
     nodes: [

@@ -105,7 +105,7 @@ pub(super) fn clone_layout(
     Ok(match layout {
         StructureLayout::Content {
             size,
-            size_authority,
+            sizing_mode,
             appearance,
             file_subpath,
             ..
@@ -113,7 +113,7 @@ pub(super) fn clone_layout(
             structure_node_id,
             transform,
             size,
-            size_authority,
+            sizing_mode,
             appearance,
             file_subpath,
         },

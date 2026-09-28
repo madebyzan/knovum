@@ -133,7 +133,7 @@ pub(crate) struct Size {
 #[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq, Serialize, ts_rs::TS)]
 #[serde(rename_all = "lowercase")]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
-pub(crate) enum SizeAuthority {
+pub(crate) enum SizingMode {
     Content,
     Frame,
 }
@@ -151,7 +151,7 @@ pub(crate) enum StructureLayout {
         structure_node_id: String,
         transform: LocalTransform,
         size: Size,
-        size_authority: SizeAuthority,
+        sizing_mode: SizingMode,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         appearance: Option<Value>,
         #[serde(default, skip_serializing_if = "Option::is_none")]

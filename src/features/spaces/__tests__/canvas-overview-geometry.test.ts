@@ -14,7 +14,7 @@ function sceneAt(frame: { x: number; y: number; width: number; height: number; r
       {
         nodeId: "note",
         frame: { x, y, width, height, rotation },
-        sizeAuthority: "frame",
+        sizingMode: "frame",
         zIndex: 0,
       },
     ],

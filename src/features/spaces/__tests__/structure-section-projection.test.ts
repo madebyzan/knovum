@@ -53,7 +53,7 @@ function collapsedSectionSnapshot(): SpaceEditSnapshot {
         kind: "content",
         transform: { x: 40, y: 70, rotation: 0, scale: 1 },
         size: { width: 100, height: 80 },
-        sizeAuthority: "frame",
+        sizingMode: "frame",
       },
     ],
   };
@@ -74,7 +74,7 @@ function dropSnapshot(): SpaceEditSnapshot {
         kind: "content",
         transform: { x: 500, y: 100, rotation: 0, scale: 1 },
         size: { width: 80, height: 60 },
-        sizeAuthority: "frame",
+        sizingMode: "frame",
       },
     ],
   };

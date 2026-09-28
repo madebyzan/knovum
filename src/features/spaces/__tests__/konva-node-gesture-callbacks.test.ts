@@ -14,7 +14,7 @@ describe("Konva node gesture callbacks", () => {
         {
           nodeId: "note",
           frame: { x: 0, y: 0, width: 300, height: 220, rotation: 0 },
-          sizeAuthority: "frame",
+          sizingMode: "frame",
           zIndex: 0,
         },
       ],

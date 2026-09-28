@@ -21,7 +21,7 @@ describe("commandForCanvasGesture appearance comparison", () => {
       structureNodeId: "content-1",
       transform: { x: 100, y: 50, rotation: 0, scale: 1 },
       size: { width: 200, height: 120 },
-      sizeAuthority: "frame",
+      sizingMode: "frame",
       appearance: { kind: "set", value: { fill: "blue", fontSize: 16 } },
     });
   });
@@ -35,7 +35,7 @@ function adapterDocument(appearance: CanvasDocumentV1["nodes"][number]["appearan
       {
         nodeId: "node-1",
         frame: { x: 100, y: 50, width: 200, height: 120, rotation: 0 },
-        sizeAuthority: "frame",
+        sizingMode: "frame",
         appearance,
         zIndex: 0,
       },
@@ -56,7 +56,7 @@ function snapshot(): SpaceEditSnapshot {
         kind: "content",
         transform: { x: 100, y: 50, rotation: 0, scale: 1 },
         size: { width: 200, height: 120 },
-        sizeAuthority: "frame",
+        sizingMode: "frame",
       },
     ],
   };

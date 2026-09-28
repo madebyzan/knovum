@@ -1,5 +1,7 @@
+import { useTaskStore } from "../../../../foundation/tasks/task-store";
 import { cleanupDeletedSpaceAssets } from "../../assets/asset-operations";
 import { applySpaceNodeContent } from "../../canvas/node";
+import { spaceNodeSizePolicy, spaceNodeSupportsContentSizing } from "../../canvas/node-size";
 import { refreshEnrichmentTasks } from "../../enrichment/job-observation";
 import { beginSpaceMutation } from "../../history/mutation-barrier";
 import { requireActiveSpaceId, type SpaceMutationContext } from "../../history/mutation-context";
@@ -15,6 +17,15 @@ import { spaceEditOperations } from "../../structure/space-edit-operations";
 import { loadSpaceSessionProjection } from "../space-projection";
 
 export function createNodeContentMutations(context: SpaceMutationContext) {
+  async function refreshCommittedGeometry(spaceId: string) {
+    const snapshot = await spaceEditOperations.load(spaceId);
+    if (
+      context.activeSpaceId.value === spaceId &&
+      context.editSnapshot.value.editRevision < snapshot.editRevision
+    )
+      context.editSnapshot.value = snapshot;
+  }
+
   async function saveNodeContent(
     id: string,
     expectedContent: SpaceNodePayload,
@@ -61,12 +72,30 @@ export function createNodeContentMutations(context: SpaceMutationContext) {
   ) {
     const validated = validateSpaceNodePayload(change.data);
     const committed = await updateNodePayload(spaceId, { ...change, data: validated });
-    patchActiveNodeContent(spaceId, change.id, committed);
+    patchActiveNodeContent(spaceId, change.id, committed.data);
+    if (
+      committed.editSnapshot &&
+      context.activeSpaceId.value === spaceId &&
+      committed.editSnapshot.editRevision > context.editSnapshot.value.editRevision
+    )
+      context.editSnapshot.value = committed.editSnapshot;
   }
 
   function applyNodeContentForSpace(spaceId: string, id: string, data: SpaceNodePayload) {
     const validated = validateSpaceNodePayload(data);
+    const previous = context.nodes.value.find((node) => node.id === id)?.data;
     patchActiveNodeContent(spaceId, id, validated);
+    if (
+      context.activeSpaceId.value === spaceId &&
+      previous &&
+      spaceNodeSupportsContentSizing(validated) &&
+      spaceNodeSizePolicy(previous).contentAspect?.ratio !==
+        spaceNodeSizePolicy(validated).contentAspect?.ratio
+    )
+      void refreshCommittedGeometry(spaceId).catch((error: unknown) => {
+        const tasks = useTaskStore();
+        tasks.fail(tasks.start(validated.title), String(error));
+      });
     scheduleKnowledgeIndex(spaceId, [id]);
   }
 

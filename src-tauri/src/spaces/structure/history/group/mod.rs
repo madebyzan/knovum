@@ -65,13 +65,22 @@ pub(super) async fn apply(
     redo: bool,
 ) -> Result<i64, String> {
     let mut targets = load_targets(tx, group_id, requested_space, requested_revision, redo).await?;
-    replay::preserve_history_neutral_content_heights(&mut targets);
+    replay::preserve_history_neutral_content_sizes(&mut targets);
     replay::remove_current_structures(tx, &targets).await?;
     let owners = portal::node_owners(&targets);
     let structure_owners = portal::structure_owners(&targets);
     replay::move_nodes(tx, &owners).await?;
     replay::reconcile_knowledge_ownership(tx, &targets).await?;
     portal::update_targets(tx, &owners, &structure_owners).await?;
+    for target in &mut targets {
+        crate::spaces::nodes::fit_content_sizes_in_snapshot(
+            tx,
+            &target.space_id,
+            &mut target.snapshot,
+            &target.node_ids,
+        )
+        .await?;
+    }
     replay::save_targets(tx, &targets, requested_space, redo).await
 }
 

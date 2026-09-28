@@ -105,7 +105,7 @@ const textPresentation = computed(() =>
       :fit-content-height="fitContentHeight"
       :font-size="textPresentation.fontSize"
       :frame-width="layout.frame.width"
-      :size-authority="layout.sizeAuthority"
+      :sizing-mode="layout.sizingMode"
       :text-align="textPresentation.textAlign"
       :typography-scale="layout.appearance?.typographyScale ?? 1"
     />

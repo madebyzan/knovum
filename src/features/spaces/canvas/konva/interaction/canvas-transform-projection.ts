@@ -50,7 +50,7 @@ export function projectCanvasTransformUpdates(
       {
         nodeId,
         frame,
-        sizeAuthority: "frame",
+        sizingMode: "frame",
         ...(scalesText ? { appearance: scaledCanvasTextAppearance(layout, frame.width) } : {}),
       },
     ];

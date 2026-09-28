@@ -10,13 +10,13 @@ function document() {
       {
         nodeId: "section-1",
         frame: { x: 0, y: 0, width: 640, height: 480, rotation: 0 },
-        sizeAuthority: "frame",
+        sizingMode: "frame",
         zIndex: 0,
       },
       {
         nodeId: "note-1",
         frame: { x: 32, y: 48, width: 320, height: 180, rotation: 0 },
-        sizeAuthority: "frame",
+        sizingMode: "frame",
         appearance: { fill: "pink" },
         fileSubpath: "#Heading",
         zIndex: 1,
@@ -46,7 +46,7 @@ describe("CanvasDocument v1", () => {
   });
 
   it("requires explicit size ownership instead of inferring it from dimensions", () => {
-    const { sizeAuthority: _sizeAuthority, ...node } = document().nodes[0];
+    const { sizingMode: _sizingMode, ...node } = document().nodes[0];
     expect(() => parseCanvasDocument({ ...document(), nodes: [node] })).toThrow(/./u);
   });
 

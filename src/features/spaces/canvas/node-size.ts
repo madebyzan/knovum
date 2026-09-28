@@ -1,5 +1,6 @@
 import { pick } from "es-toolkit";
 
+import { rotatedImageSize } from "../image-editing/image-edit";
 import type { SpaceNodePayload, SpaceNodeKind } from "../model/nodes/node-payload";
 
 export type SpaceNodeResizeMode = "fixed" | "free" | "proportional" | "width-and-proportional";
@@ -53,11 +54,12 @@ export function spaceNodeSizePolicy(data: SpaceNodePayload): SpaceNodeSizePolicy
 
 export function spaceNodeDimensions(data: SpaceNodePayload) {
   const size = spaceNodeSizePolicy(data);
-  if (size.resizeMode === "fixed") return { width: size.width, height: size.height };
   return { width: size.width, height: size.height };
 }
 
-export function spaceNodeSupportsContentSizing(data: SpaceNodePayload) {
+export function spaceNodeSupportsContentSizing(
+  data: SpaceNodePayload,
+): data is Extract<SpaceNodePayload, { kind: "image" | "video" | "file" }> {
   return data.kind === "image" || data.kind === "video" || data.kind === "file";
 }
 
@@ -84,7 +86,20 @@ export function spaceNodeResizePolicy(data: SpaceNodePayload) {
 function spaceVisualDisplayRatio(data: SpaceNodePayload) {
   if (data.kind !== "image" && data.kind !== "video") return undefined;
   if (!data.intrinsicWidth || !data.intrinsicHeight) return undefined;
-  return data.intrinsicWidth / data.intrinsicHeight;
+  if (data.kind === "video") return data.intrinsicWidth / data.intrinsicHeight;
+  return editedImageDisplayRatio(data, data.intrinsicWidth, data.intrinsicHeight);
+}
+
+function editedImageDisplayRatio(
+  data: Extract<SpaceNodePayload, { kind: "image" }>,
+  intrinsicWidth: number,
+  intrinsicHeight: number,
+) {
+  const crop = data.imageEdit?.crop;
+  const width = intrinsicWidth * (crop?.width ?? 1);
+  const height = intrinsicHeight * (crop?.height ?? 1);
+  const rotated = rotatedImageSize(width, height, data.imageEdit?.rotation ?? 0);
+  return rotated.width / rotated.height;
 }
 
 function spacePageDisplayRatio(data: SpaceNodePayload) {

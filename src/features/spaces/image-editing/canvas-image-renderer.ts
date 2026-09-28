@@ -1,6 +1,6 @@
 import { clamp } from "es-toolkit";
 
-import type { ImageEdit } from "./image-edit";
+import { rotatedImageSize, type ImageEdit } from "./image-edit";
 import { applyImageTone } from "./image-tone";
 
 export interface ImageCanvasSize {
@@ -139,11 +139,4 @@ export function canvasPointToImage(
   const sourceX = local.x + image.naturalWidth * (edit.crop.x + edit.crop.width / 2);
   const sourceY = local.y + image.naturalHeight * (edit.crop.y + edit.crop.height / 2);
   return [clamp(sourceX / image.naturalWidth, 0, 1), clamp(sourceY / image.naturalHeight, 0, 1)];
-}
-
-export function rotatedImageSize(width: number, height: number, rotation: number) {
-  const radians = (rotation * Math.PI) / 180;
-  const cosine = Math.abs(Math.cos(radians));
-  const sine = Math.abs(Math.sin(radians));
-  return { width: width * cosine + height * sine, height: width * sine + height * cosine };
 }

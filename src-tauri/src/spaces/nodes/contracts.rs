@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::spaces::knowledge::indexing::KnowledgeChunkInput;
-use crate::spaces::structure::SizeAuthority;
+use crate::spaces::structure::{SizingMode, SpaceEditSnapshotResponse};
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -13,7 +13,7 @@ pub struct InsertNode {
     pub initial_y: f64,
     pub width: f64,
     pub height: f64,
-    pub size_authority: SizeAuthority,
+    pub sizing_mode: SizingMode,
     #[serde(default)]
     pub appearance: Option<Value>,
     #[serde(default)]
@@ -55,4 +55,12 @@ pub struct CommittedNodeContent {
     pub id: String,
     #[ts(type = "unknown")]
     pub data: Value,
+}
+
+#[derive(Serialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
+pub(crate) struct UpdateNodesResponse {
+    pub nodes: Vec<CommittedNodeContent>,
+    pub edit_snapshot: Option<SpaceEditSnapshotResponse>,
 }

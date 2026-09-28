@@ -10,13 +10,13 @@ const layouts = [
   {
     nodeId: "source",
     frame: { x: 10, y: 20, width: 100, height: 80, rotation: 0 },
-    sizeAuthority: "frame",
+    sizingMode: "frame",
     zIndex: 0,
   },
   {
     nodeId: "target",
     frame: { x: 220, y: 20, width: 120, height: 80, rotation: 0 },
-    sizeAuthority: "frame",
+    sizingMode: "frame",
     zIndex: 1,
   },
 ] as const;
@@ -25,19 +25,19 @@ const stacked = [
   {
     nodeId: "below",
     frame: { x: 0, y: 0, width: 200, height: 200, rotation: 0 },
-    sizeAuthority: "frame",
+    sizingMode: "frame",
     zIndex: 0,
   },
   {
     nodeId: "middle",
     frame: { x: 10, y: 10, width: 200, height: 200, rotation: 0 },
-    sizeAuthority: "frame",
+    sizingMode: "frame",
     zIndex: 1,
   },
   {
     nodeId: "above",
     frame: { x: 20, y: 20, width: 200, height: 200, rotation: 0 },
-    sizeAuthority: "frame",
+    sizingMode: "frame",
     zIndex: 2,
   },
 ] as const;
@@ -45,13 +45,13 @@ const tilted = [
   {
     nodeId: "source",
     frame: { x: 500, y: 500, width: 40, height: 40, rotation: 0 },
-    sizeAuthority: "frame",
+    sizingMode: "frame",
     zIndex: 0,
   },
   {
     nodeId: "tilted",
     frame: { x: 0, y: 0, width: 200, height: 20, rotation: 45 },
-    sizeAuthority: "frame",
+    sizingMode: "frame",
     zIndex: 1,
   },
 ] as const;
