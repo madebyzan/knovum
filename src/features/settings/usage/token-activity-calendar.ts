@@ -64,10 +64,13 @@ function attachMonthLabels(weeks: TokenActivityWeek[], locale: string) {
   const timeZone = getLocalTimeZone();
   const months = new Intl.DateTimeFormat(locale, { month: "short" });
   let previousMonth = -1;
-  for (const week of weeks) {
+  for (const [index, week] of weeks.entries()) {
     const representative = representativeDate(week.cells);
     if (!representative || representative.month === previousMonth) continue;
     previousMonth = representative.month;
+    if (index === 0 && weeks[1] && representativeDate(weeks[1].cells)?.month !== representative.month) {
+      continue;
+    }
     week.month = months.format(representative.toDate(timeZone));
   }
 }

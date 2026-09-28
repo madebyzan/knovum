@@ -15,34 +15,29 @@ const purposeLabelKeys: Record<UsagePurpose, string> = {
   visual_analysis: "settings.usage.purpose.visualAnalysis",
 };
 const rows = computed(() =>
-  props.report.byPurpose.map((item) =>
-    Object.assign({}, item, {
-      label: t(purposeLabelKeys[item.purpose]),
-      share: props.report.summary.totalTokens > 0 ? item.totalTokens / props.report.summary.totalTokens : 0,
-    }),
-  ),
+  props.report.byPurpose.map((item) => ({
+    purpose: item.purpose,
+    totalTokens: item.totalTokens,
+    label: t(purposeLabelKeys[item.purpose]),
+  })),
 );
 </script>
 
 <template>
-  <section class="rounded-xl border border-stroke-default bg-surface-panel p-4 shadow-panel">
-    <h2 class="text-title-sm font-semibold text-fg-primary">
+  <section aria-labelledby="usage-purpose-title">
+    <h2 id="usage-purpose-title" class="text-title-sm font-semibold text-fg-primary">
       {{ t("settings.usage.purpose.title") }}
     </h2>
-    <div v-if="rows.length" class="mt-3 grid gap-3">
-      <div v-for="row in rows" :key="row.purpose">
-        <div class="mb-1.5 flex items-center justify-between gap-4 text-label">
-          <span class="text-fg-primary">{{ row.label }}</span>
-          <span class="text-fg-secondary tabular-nums">{{ n(row.totalTokens, "compact") }}</span>
-        </div>
-        <div class="h-1.5 overflow-hidden rounded-full bg-surface-control">
-          <div
-            class="h-full rounded-full bg-surface-accent"
-            :style="{ width: `${Math.max(row.share * 100, 2)}%` }"
-          />
-        </div>
+    <div v-if="rows.length" class="mt-4 border-t border-stroke-divider">
+      <div v-for="row in rows" :key="row.purpose" class="flex items-center justify-between gap-4 py-3">
+        <span class="truncate text-label text-fg-secondary">{{ row.label }}</span>
+        <span class="shrink-0 text-label font-medium tabular-nums text-fg-primary">
+          {{ n(row.totalTokens, "compact") }} Token
+        </span>
       </div>
     </div>
-    <p v-else class="mt-2 text-body text-fg-secondary">{{ t("settings.usage.activity.empty") }}</p>
+    <p v-else class="mt-4 border-t border-stroke-divider pt-4 text-body text-fg-secondary">
+      {{ t("settings.usage.activity.empty") }}
+    </p>
   </section>
 </template>
