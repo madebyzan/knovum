@@ -1,21 +1,23 @@
 {
   "title": "Usage",
-  "description": "Provider-reported token usage across Knovum's built-in AI capabilities.",
+  "description": "Explore token usage and activity across built-in AI capabilities over the past year.",
   "tokens": {
     "total": "Total tokens",
     "input": "Input tokens",
-    "output": "Output tokens"
+    "output": "Output tokens",
+    "split": "Input and output mix"
   },
-  "requests": "Model responses",
+  "requests": "Uses",
+  "activeDays": "Active days",
   "streak": {
     "current": "Current active streak",
-    "longest": "Longest active streak",
-    "days": "{count} days"
+    "longest": "Longest active streak"
   },
   "activity": {
     "title": "Token activity",
-    "description": "Daily provider-reported usage · peak {peak} tokens",
-    "label": "{date}: {tokens} tokens across {requests} responses",
+    "insightsTitle": "Activity overview",
+    "description": "Peak day · {peak} tokens",
+    "tokenCount": "{tokens} Token",
     "less": "Less",
     "more": "More",
     "weekdays": {
@@ -23,7 +25,7 @@
       "wednesday": "Wed",
       "friday": "Fri"
     },
-    "empty": "No token activity in this period."
+    "empty": "No token usage in the past year."
   },
   "purpose": {
     "title": "Usage by capability",
@@ -34,9 +36,5 @@
     "translation": "Translation",
     "visualAnalysis": "Visual understanding"
   },
-  "providerReported": "Cloud usage comes from model providers; local embedding usage comes from its actual tokenizer pass. Missing cloud usage is never estimated.",
-  "range": {
-    "quarter": "90 days",
-    "year": "12 months"
-  }
+  "providerReported": "This total includes recorded token usage. Some activity may not provide usage data and may be missing from the total."
 }

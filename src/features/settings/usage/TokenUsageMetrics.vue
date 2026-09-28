@@ -3,42 +3,61 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import type { TokenUsageReport } from "../../../foundation/ai/token-usage";
+import UiTooltip from "../../../shared/ui/UiTooltip.vue";
 
 const props = defineProps<{ summary: TokenUsageReport["summary"] }>();
 const { n, t } = useI18n();
-const items = computed(() => [
-  { label: t("settings.usage.tokens.total"), value: n(props.summary.totalTokens, "compact") },
-  { label: t("settings.usage.tokens.input"), value: n(props.summary.inputTokens, "compact") },
-  { label: t("settings.usage.tokens.output"), value: n(props.summary.outputTokens, "compact") },
-  { label: t("settings.usage.requests"), value: n(props.summary.requests) },
-  {
-    label: t("settings.usage.streak.current"),
-    value: t("settings.usage.streak.days", { count: props.summary.currentStreakDays }),
-  },
-  {
-    label: t("settings.usage.streak.longest"),
-    value: t("settings.usage.streak.days", { count: props.summary.longestStreakDays }),
-  },
-]);
+const splitTotal = computed(() => props.summary.inputTokens + props.summary.outputTokens);
+const inputShare = computed(() =>
+  splitTotal.value ? (props.summary.inputTokens / splitTotal.value) * 100 : 0,
+);
 </script>
 
 <template>
-  <section
-    class="grid grid-cols-2 overflow-hidden rounded-xl border border-stroke-default bg-surface-panel shadow-panel sm:grid-cols-3"
-  >
-    <div
-      v-for="(item, index) in items"
-      :key="item.label"
-      class="border-stroke-divider px-4 py-4 text-center"
-      :class="[
-        index % 3 !== 2 && 'sm:border-r',
-        index < 3 && 'sm:border-b',
-        index % 2 === 0 && 'max-sm:border-r',
-        index < 4 && 'max-sm:border-b',
-      ]"
-    >
-      <p class="text-title font-semibold tracking-title text-fg-primary">{{ item.value }}</p>
-      <p class="mt-1 text-caption text-fg-secondary">{{ item.label }}</p>
+  <section class="rounded-xl bg-surface-panel px-5 py-5 sm:px-6 sm:py-6">
+    <div class="flex items-start justify-between gap-6">
+      <div>
+        <h2>
+          <UiTooltip :text="t('settings.usage.providerReported')" side="top" class="max-w-72 whitespace-normal">
+            <button
+              type="button"
+              class="cursor-help rounded-sm text-label font-medium text-fg-secondary underline decoration-dotted underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stroke-focus"
+            >
+              {{ t("settings.usage.tokens.total") }}
+            </button>
+          </UiTooltip>
+        </h2>
+        <p class="mt-2 text-display font-semibold tracking-title tabular-nums text-fg-primary">
+          {{ n(summary.totalTokens, "compact") }}
+        </p>
+      </div>
+      <div class="text-right">
+        <p class="text-caption text-fg-secondary">{{ t("settings.usage.requests") }}</p>
+        <p class="mt-2 text-title font-semibold tabular-nums text-fg-primary">
+          {{ n(summary.requests) }}
+        </p>
+      </div>
     </div>
+    <p class="mt-6 text-caption text-fg-tertiary">{{ t("settings.usage.tokens.split") }}</p>
+    <div class="mt-2 flex h-1.5 overflow-hidden rounded-full bg-surface-control" aria-hidden="true">
+      <div class="h-full bg-surface-accent" :style="{ width: `${inputShare}%` }" />
+      <div v-if="splitTotal" class="h-full flex-1 bg-surface-accent/40" />
+    </div>
+    <dl class="mt-4 flex flex-wrap gap-x-8 gap-y-3">
+      <div class="flex items-center gap-2">
+        <dt class="flex items-center gap-2 text-caption text-fg-secondary">
+          <span class="size-2 rounded-full bg-surface-accent" aria-hidden="true" />
+          {{ t("settings.usage.tokens.input") }}
+        </dt>
+        <dd class="text-label font-medium tabular-nums text-fg-primary">{{ n(summary.inputTokens, "compact") }}</dd>
+      </div>
+      <div class="flex items-center gap-2">
+        <dt class="flex items-center gap-2 text-caption text-fg-secondary">
+          <span class="size-2 rounded-full bg-surface-accent/40" aria-hidden="true" />
+          {{ t("settings.usage.tokens.output") }}
+        </dt>
+        <dd class="text-label font-medium tabular-nums text-fg-primary">{{ n(summary.outputTokens, "compact") }}</dd>
+      </div>
+    </dl>
   </section>
 </template>
