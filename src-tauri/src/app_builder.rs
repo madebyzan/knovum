@@ -31,10 +31,6 @@ fn base_builder() -> Builder<Wry> {
         .plugin(tauri_plugin_clipboard::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(window_state_plugin())
-        .plugin(tauri_plugin_autostart::init(
-            tauri_plugin_autostart::MacosLauncher::LaunchAgent,
-            None,
-        ))
         .plugin(desktop::plugin())
         .plugin(app_resources::plugin())
         .plugin(secrets::plugin())

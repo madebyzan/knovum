@@ -272,7 +272,7 @@ owner, so the command must not repeat it:
 ```
 
 Omit the noun only when it is the plugin's own aggregate root, which is what the official plugins
-do (`plugin:autostart|enable`, `plugin:store|reset`, `plugin:updater|check`). Keeping a
+do (`plugin:store|reset`, `plugin:updater|check`). Keeping a
 `<feature>_` prefix on a plugin command duplicates its namespace; reject Renderer addresses shaped
 `<plugin-key>_<rest>` during review.
 

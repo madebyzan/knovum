@@ -37,7 +37,7 @@ On macOS, Settings and Command Palette are inserted into the Knovum application 
 
 ## Shell/OS integration ready for features
 
-The runtime registers only plugins used by current product flows: clipboard, dialogs, filesystem, opener, autostart, OS information, Store, SQLite, logging, single-instance handling, window-state persistence, notifications and updater. Shell, WebSocket and arbitrary process execution remain unregistered.
+The runtime registers only plugins used by current product flows: clipboard, dialogs, filesystem, opener, OS information, Store, SQLite, logging, single-instance handling, window-state persistence, notifications and updater. Shell, WebSocket and arbitrary process execution remain unregistered.
 
 Notification permission is feature-owned by the main WebView and only important state transitions are surfaced. The updater is Rust-owned and receives its endpoint/public verification key at release build time.
 

@@ -2,7 +2,6 @@ import { z } from "zod";
 
 const settingsPaneIds = [
   "appearance",
-  "startup",
   "aiModels",
   "desktopAgents",
   "executionRouting",
