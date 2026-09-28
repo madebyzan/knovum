@@ -85,7 +85,7 @@ function contentLayoutCommand(
       width: next.frame.width / (parentWorld.scale * transform.scale),
       height: next.frame.height / (parentWorld.scale * transform.scale),
     },
-    sizeAuthority: next.sizeAuthority,
+    sizingMode: next.sizingMode,
     appearance: next.appearance
       ? { kind: "set", value: serializeCanvasAppearance(next.appearance) }
       : { kind: "clear" },
@@ -109,7 +109,7 @@ function sameLayout(left: CanvasNodeLayoutV1, right: CanvasNodeLayoutV1) {
     nearly(left.frame.x, right.frame.x) &&
     nearly(left.frame.y, right.frame.y) &&
     sameFrameShape(left, right) &&
-    left.sizeAuthority === right.sizeAuthority &&
+    left.sizingMode === right.sizingMode &&
     sameAppearance(left, right)
   );
 }
@@ -119,7 +119,7 @@ function sameFrameShape(left: CanvasNodeLayoutV1, right: CanvasNodeLayoutV1) {
     nearly(left.frame.width, right.frame.width) &&
     nearly(left.frame.height, right.frame.height) &&
     nearly(left.frame.rotation, right.frame.rotation) &&
-    left.sizeAuthority === right.sizeAuthority
+    left.sizingMode === right.sizingMode
   );
 }
 

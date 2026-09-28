@@ -5,8 +5,7 @@ import { toast } from "vue-sonner";
 
 import { canRunAction } from "../../../../shared/contracts/action-availability";
 import { useNodeOperationGate } from "../../canvas/node-operation-gate";
-import { rotatedImageSize } from "../../image-editing/canvas-image-renderer";
-import { imageEditOf } from "../../image-editing/image-edit";
+import { imageEditOf, rotatedImageSize } from "../../image-editing/image-edit";
 import { useImageEditSession } from "../../image-editing/image-edit-session";
 import { useImageOperationCapabilities } from "../../knowledge-derivations/image-capabilities";
 import { deriveImage, type ImageOperation } from "../../knowledge-derivations/image-operation";

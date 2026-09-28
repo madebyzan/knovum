@@ -34,7 +34,7 @@ const canvasNodeAppearanceSchema = z
   .refine(({ fill, customFill }) => !(fill && customFill), {
     message: "fill and customFill are mutually exclusive",
   });
-const canvasNodeSizeAuthoritySchema = z.enum(["content", "frame"]);
+const canvasNodeSizingModeSchema = z.enum(["content", "frame"]);
 const canvasFrameSchema = z
   .object({
     x: finiteNumber,
@@ -48,7 +48,7 @@ const canvasNodeLayoutSchema = z
   .object({
     nodeId: z.string().min(1),
     frame: canvasFrameSchema,
-    sizeAuthority: canvasNodeSizeAuthoritySchema,
+    sizingMode: canvasNodeSizingModeSchema,
     appearance: canvasNodeAppearanceSchema.optional(),
     fileSubpath: z.string().startsWith("#").optional(),
     zIndex: z.number().int().nonnegative().max(MAX_CANVAS_Z_INDEX),
@@ -73,7 +73,7 @@ export const canvasDocumentSchema = z
   .superRefine(validateCanvasReferences);
 
 export type CanvasNodeFrame = z.infer<typeof canvasFrameSchema>;
-export type CanvasNodeSizeAuthority = z.infer<typeof canvasNodeSizeAuthoritySchema>;
+export type CanvasNodeSizingMode = z.infer<typeof canvasNodeSizingModeSchema>;
 export type CanvasNodeLayoutV1 = z.infer<typeof canvasNodeLayoutSchema>;
 export type CanvasNodeAppearance = z.infer<typeof canvasNodeAppearanceSchema>;
 export type CanvasDocumentV1 = z.infer<typeof canvasDocumentSchema>;
@@ -83,7 +83,7 @@ export type CanvasRelationOverrideColor = (typeof CANVAS_RELATION_OVERRIDE_COLOR
 export interface CanvasNodeFrameUpdate {
   nodeId: string;
   frame: CanvasNodeFrame;
-  sizeAuthority?: CanvasNodeSizeAuthority;
+  sizingMode?: CanvasNodeSizingMode;
 }
 
 export function parseCanvasDocument(source: unknown): CanvasDocumentV1 {

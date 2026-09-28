@@ -55,6 +55,16 @@ pub(crate) async fn persist_output_node(
         .execute(&mut **tx)
         .await
         .map_err(crate::spaces::db::sql_error)?;
+    if !matches!(data["kind"].as_str(), Some("image" | "video" | "file")) {
+        return Ok(());
+    }
+    let space_id: String = sqlx::query_scalar("SELECT space_id FROM spaces_nodes WHERE id=$1")
+        .bind(node_id)
+        .fetch_one(&mut **tx)
+        .await
+        .map_err(crate::spaces::db::sql_error)?;
+    crate::spaces::nodes::sync_content_sizes_in_transaction(tx, &space_id, &[node_id.to_owned()])
+        .await?;
     Ok(())
 }
 

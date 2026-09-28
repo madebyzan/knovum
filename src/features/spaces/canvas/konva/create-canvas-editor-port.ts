@@ -165,7 +165,7 @@ export function createKonvaEditorPort(options: KonvaEditorPortOptions): CanvasEd
     if (!structureNodeId || layout?.kind !== "content") return [];
     const matchesSource = [
       (options.nodeById(nodeId)?.data.knowledgeRevision ?? null) === measurement.contentRevision,
-      layout.sizeAuthority === measurement.sizeAuthority,
+      layout.sizingMode === measurement.sizingMode,
       layout.size.width === measurement.measuredWidth,
       (layout.appearance?.typographyScale ?? 1) === measurement.typographyScale,
     ].every(Boolean);

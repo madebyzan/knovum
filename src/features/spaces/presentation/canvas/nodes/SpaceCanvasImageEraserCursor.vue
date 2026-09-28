@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, type CSSProperties } from "vue";
 
-import { rotatedImageSize, type ImageCanvasSize } from "../../../image-editing/canvas-image-renderer";
+import type { ImageCanvasSize } from "../../../image-editing/canvas-image-renderer";
+import { rotatedImageSize } from "../../../image-editing/image-edit";
 import type { ImageEdit } from "../../../image-editing/image-edit";
 
 const props = defineProps<{

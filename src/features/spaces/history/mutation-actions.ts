@@ -1,3 +1,4 @@
+import { decodeCommandError } from "../../../foundation/ipc/command-error";
 import { scheduleKnowledgeIndex } from "../knowledge/indexing/index-scheduler";
 import { validateSpaceNodePayload } from "../model/nodes/node-validation";
 import type { NodePayloadChange } from "../model/nodes/payload-change";
@@ -5,6 +6,7 @@ import { beginSpaceMutation } from "./mutation-barrier";
 import { requireActiveSpaceId, type SpaceMutationContext } from "./mutation-context";
 import { replayNodeContent } from "./node-content-replay";
 import {
+  clearSpaceHistory,
   combineRecentSpaceHistory,
   recordSpaceHistory,
   redoSpaceHistory,
@@ -30,15 +32,19 @@ export function createSpaceHistoryMutations(context: SpaceMutationContext) {
         data: NodePayloadChange["after"];
       }[],
     ) =>
-      replayNodeContent({ spaceId, changes: entries, nodes, activeSpaceId: context.activeSpaceId }).then(
-        (committed) => {
-          scheduleKnowledgeIndex(
-            spaceId,
-            entries.map(({ id }) => id),
-          );
-          return committed;
-        },
-      );
+      replayNodeContent({
+        spaceId,
+        changes: entries,
+        nodes,
+        editSnapshot: context.editSnapshot,
+        activeSpaceId: context.activeSpaceId,
+      }).then((committed) => {
+        scheduleKnowledgeIndex(
+          spaceId,
+          entries.map(({ id }) => id),
+        );
+        return committed;
+      });
     const releaseMutation = beginSpaceMutation(history);
     try {
       const committed = await apply(
@@ -73,6 +79,15 @@ export function createSpaceHistoryMutations(context: SpaceMutationContext) {
     }
   }
 
+  async function runHistory(action: () => Promise<void>) {
+    try {
+      await action();
+    } catch (error) {
+      if (decodeCommandError(error)?.code === "space_edit_revision_conflict") clearSpaceHistory(history);
+      throw error;
+    }
+  }
+
   return {
     renameNode: async (id: string, title: string) => {
       const node = nodes.value.find((candidate) => candidate.id === id);
@@ -92,7 +107,7 @@ export function createSpaceHistoryMutations(context: SpaceMutationContext) {
         canvasMutationLease = undefined;
       }
     },
-    undo: () => undoSpaceHistory(history),
-    redo: () => redoSpaceHistory(history),
+    undo: () => runHistory(() => undoSpaceHistory(history)),
+    redo: () => runHistory(() => redoSpaceHistory(history)),
   };
 }

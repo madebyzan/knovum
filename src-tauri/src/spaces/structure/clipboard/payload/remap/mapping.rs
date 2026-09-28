@@ -62,7 +62,7 @@ pub(super) fn remap_layout(
         StructureLayout::Content {
             transform,
             size,
-            size_authority,
+            sizing_mode,
             appearance,
             file_subpath,
             ..
@@ -70,7 +70,7 @@ pub(super) fn remap_layout(
             structure_node_id,
             transform,
             size,
-            size_authority,
+            sizing_mode,
             appearance,
             file_subpath,
         },

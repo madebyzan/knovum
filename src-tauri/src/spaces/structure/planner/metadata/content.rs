@@ -4,7 +4,7 @@ use crate::spaces::structure::edit_contract::{ContentHeightUpdate, FieldUpdate};
 use crate::spaces::structure::planner::tree_policy::{require_editable, Index};
 use crate::spaces::structure::repository::SpaceStructureSnapshot;
 use crate::spaces::structure::{
-    LocalTransform, RelationColor, RelationStyle, Size, SizeAuthority, StructureLayout,
+    LocalTransform, RelationColor, RelationStyle, Size, SizingMode, StructureLayout,
 };
 use serde_json::Value;
 
@@ -13,7 +13,7 @@ pub(in crate::spaces::structure) fn update_content(
     id: &str,
     transform: &Option<LocalTransform>,
     size: &Option<Size>,
-    authority: &Option<SizeAuthority>,
+    sizing_mode: &Option<SizingMode>,
     appearance: &FieldUpdate<Value>,
     subpath: &FieldUpdate<String>,
 ) -> Result<Vec<String>, String> {
@@ -25,7 +25,7 @@ pub(in crate::spaces::structure) fn update_content(
     let Some(StructureLayout::Content {
         transform: current_transform,
         size: current_size,
-        size_authority: current_authority,
+        sizing_mode: current_mode,
         appearance: current_appearance,
         file_subpath: current_subpath,
         ..
@@ -42,8 +42,8 @@ pub(in crate::spaces::structure) fn update_content(
     if let Some(size) = size {
         *current_size = size.clone();
     }
-    if let Some(authority) = authority {
-        *current_authority = *authority;
+    if let Some(mode) = sizing_mode {
+        *current_mode = *mode;
     }
     apply_update(current_appearance, appearance);
     apply_update(current_subpath, subpath);
@@ -91,7 +91,7 @@ pub(in crate::spaces::structure) fn update_content_heights(
     for update in updates {
         let Some(StructureLayout::Content {
             size,
-            size_authority,
+            sizing_mode,
             appearance,
             ..
         }) = snapshot
@@ -110,7 +110,7 @@ pub(in crate::spaces::structure) fn update_content_heights(
             .and_then(Value::as_f64)
             .unwrap_or(1.0);
         if size.width != update.measured_width
-            || *size_authority != update.size_authority
+            || *sizing_mode != update.sizing_mode
             || typography_scale != update.typography_scale
         {
             return Err(format!(
@@ -119,7 +119,7 @@ pub(in crate::spaces::structure) fn update_content_heights(
             ));
         }
         size.height = update.height;
-        *size_authority = SizeAuthority::Frame;
+        *sizing_mode = SizingMode::Frame;
         updated.push(update.structure_node_id.clone());
     }
     Ok(updated)

@@ -27,7 +27,7 @@ describe("canvas content layout coordinator", () => {
       coordinator.fit("text", {
         contentRevision: null,
         height: 64,
-        sizeAuthority: "frame",
+        sizingMode: "frame",
         typographyScale: 1,
         width: 240,
       });

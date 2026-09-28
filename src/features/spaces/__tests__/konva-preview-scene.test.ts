@@ -59,7 +59,7 @@ function sceneNode(id: string, x: number) {
     layout: {
       nodeId: id,
       frame: { x, y: 0, width: 240, height: 40, rotation: 0 },
-      sizeAuthority: "frame" as const,
+      sizingMode: "frame" as const,
       zIndex: 0,
     },
     paintOrder: 0,

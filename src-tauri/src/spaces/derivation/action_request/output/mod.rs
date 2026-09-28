@@ -6,7 +6,7 @@ use crate::spaces::{
     db,
     knowledge::indexing::{revision, KnowledgeChunkInput},
     nodes::{self, contracts::InsertNode},
-    structure::{self, SizeAuthority},
+    structure::{self, SizingMode},
 };
 
 mod media;
@@ -130,7 +130,7 @@ async fn insert_output(
         initial_y: y,
         width: 320.0,
         height: 220.0,
-        size_authority: SizeAuthority::Content,
+        sizing_mode: SizingMode::Content,
         appearance: None,
         file_subpath: None,
         data,

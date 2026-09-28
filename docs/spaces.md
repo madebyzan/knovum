@@ -477,6 +477,8 @@ The current Knowledge contract, SQLx migration policy, Provenance/History/Patch 
 
 Spaces has one current `0001_spaces.sql` baseline. SQLx rejects obsolete migration versions or checksums before applying schema changes. The startup error identifies `spaces-database-obsolete`; the application does not delete, rewrite or migrate that database. Back up `spaces.db` (and its WAL/SHM files while closed) before explicitly resetting development data. Package version 5 and media-knowledge schema version 4 describe different contracts and do not share the database baseline version.
 
+Content layout JSON uses `sizingMode` (`content` or `frame`). The baseline requires this field, so beta databases containing the earlier field name follow the same explicit reset boundary.
+
 ## Session state ownership
 
 The single `space-store` composes existing owners rather than maintaining parallel committed projections. `spaceSessionBindings` explicitly exposes cross-view bindings and hides persistence/coalescing internals. Do not replace this boundary with an unrestricted spread of private state or create a second nodes cache.

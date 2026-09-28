@@ -99,13 +99,13 @@ pub(super) fn prepare(
             (Value::Null, frame.x, frame.y, order)
         };
         let data = node_payload(node, &request.note_title, resources)?;
-        let prepared = json!({"id":id,"kind":data["kind"],"initialX":frame.x,"initialY":frame.y,"width":frame.width,"height":frame.height,"sizeAuthority":"frame","appearance":appearance,"fileSubpath":node.subpath(),"data":data,"sourceChunks":[]});
+        let prepared = json!({"id":id,"kind":data["kind"],"initialX":frame.x,"initialY":frame.y,"width":frame.width,"height":frame.height,"sizingMode":"frame","appearance":appearance,"fileSubpath":node.subpath(),"data":data,"sourceChunks":[]});
         nodes.push(JsonCanvasNodeImport {
             source_id: frame.id.clone(),
             node: serde_json::from_value(prepared).map_err(|error| error.to_string())?,
         });
         structure.push(json!({"id":id,"kind":"content","parentId":parent,"order":order,"locked":false,"nodeId":id}));
-        let mut layout = json!({"structureNodeId":id,"kind":"content","transform":{"x":x,"y":y,"rotation":0,"scale":1},"size":{"width":frame.width,"height":frame.height},"sizeAuthority":"frame","appearance":appearance});
+        let mut layout = json!({"structureNodeId":id,"kind":"content","transform":{"x":x,"y":y,"rotation":0,"scale":1},"size":{"width":frame.width,"height":frame.height},"sizingMode":"frame","appearance":appearance});
         if let Some(subpath) = node.subpath() {
             layout["fileSubpath"] = json!(subpath);
         }

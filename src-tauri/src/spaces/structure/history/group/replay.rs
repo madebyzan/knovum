@@ -5,18 +5,18 @@ use sqlx::{Sqlite, Transaction};
 use super::TargetState;
 use crate::spaces::{db, structure::StructureNode};
 
-pub(super) fn preserve_history_neutral_content_heights(targets: &mut [TargetState]) {
-    let current = super::super::neutral::content_height_states(
+pub(super) fn preserve_history_neutral_content_sizes(targets: &mut [TargetState]) {
+    let current = super::super::neutral::content_size_states(
         targets.iter().map(|target| &target.current_snapshot),
     );
-    let before = super::super::neutral::content_height_states(
+    let before = super::super::neutral::content_size_states(
         targets.iter().map(|target| &target.before_snapshot),
     );
-    let after = super::super::neutral::content_height_states(
+    let after = super::super::neutral::content_size_states(
         targets.iter().map(|target| &target.after_snapshot),
     );
     for target in targets {
-        super::super::neutral::preserve_content_heights(
+        super::super::neutral::preserve_content_sizes(
             &mut target.snapshot,
             &current,
             &before,

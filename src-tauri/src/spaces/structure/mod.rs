@@ -19,7 +19,7 @@ pub(crate) mod search;
 mod validation;
 
 pub(crate) use contract::{
-    LocalTransform, Point, RelationColor, RelationStyle, Size, SizeAuthority, StructureLayout,
+    LocalTransform, Point, RelationColor, RelationStyle, Size, SizingMode, StructureLayout,
     StructureNode,
 };
 pub(crate) use edit_contract::{ExecuteSpaceEditRequest, SpaceEditSnapshotResponse};

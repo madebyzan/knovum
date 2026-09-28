@@ -78,3 +78,10 @@ export function scaleCropToPixelSize(input: {
 export function nextQuarterTurn(rotation: ImageEdit["rotation"]): ImageEdit["rotation"] {
   return (rotation + 90) % 360;
 }
+
+export function rotatedImageSize(width: number, height: number, rotation: number) {
+  const radians = (rotation * Math.PI) / 180;
+  const cosine = Math.abs(Math.cos(radians));
+  const sine = Math.abs(Math.sin(radians));
+  return { width: width * cosine + height * sine, height: width * sine + height * cosine };
+}

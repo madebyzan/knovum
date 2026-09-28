@@ -95,7 +95,7 @@ pub(in crate::spaces::structure) fn layout_keeping_world(
         StructureLayout::Content {
             structure_node_id,
             size,
-            size_authority,
+            sizing_mode,
             appearance,
             file_subpath,
             ..
@@ -103,7 +103,7 @@ pub(in crate::spaces::structure) fn layout_keeping_world(
             structure_node_id,
             transform: local,
             size,
-            size_authority,
+            sizing_mode,
             appearance,
             file_subpath,
         },

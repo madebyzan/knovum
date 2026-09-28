@@ -3,7 +3,7 @@ use sqlx::Row;
 use tauri::{AppHandle, Runtime};
 
 use super::{
-    contracts::{NodeContentChange, UpdateNodesRequest},
+    contracts::{NodeContentChange, UpdateNodesRequest, UpdateNodesResponse},
     derived::{changed_top_level_fields, field_changed, generated_chunks, media_chunks},
     space_timestamp::touch_updated_at,
 };
@@ -13,12 +13,15 @@ use crate::spaces::{
     knowledge::{chunk_store, contracts, events},
 };
 
-pub async fn update_many<R: Runtime>(
+pub(in crate::spaces) async fn update_many<R: Runtime>(
     app: &AppHandle<R>,
     mut request: UpdateNodesRequest,
-) -> Result<Vec<super::contracts::CommittedNodeContent>, String> {
+) -> Result<UpdateNodesResponse, String> {
     if request.changes.is_empty() {
-        return Ok(Vec::new());
+        return Ok(UpdateNodesResponse {
+            nodes: Vec::new(),
+            edit_snapshot: None,
+        });
     }
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
@@ -37,17 +40,22 @@ pub async fn update_many<R: Runtime>(
         .await?;
     }
     let now = crate::clock::unix_time_millis()?;
-    update_many_in_transaction(&mut tx, &request.space_id, &request.changes, "human", now).await?;
+    let edit_snapshot =
+        update_many_in_transaction(&mut tx, &request.space_id, &request.changes, "human", now)
+            .await?;
     touch_updated_at(&mut tx, &request.space_id, now).await?;
     tx.commit().await.map_err(db::sql_error)?;
-    Ok(request
-        .changes
-        .into_iter()
-        .map(|change| super::contracts::CommittedNodeContent {
-            id: change.id,
-            data: change.data,
-        })
-        .collect())
+    Ok(UpdateNodesResponse {
+        nodes: request
+            .changes
+            .into_iter()
+            .map(|change| super::contracts::CommittedNodeContent {
+                id: change.id,
+                data: change.data,
+            })
+            .collect(),
+        edit_snapshot,
+    })
 }
 
 pub(in crate::spaces) async fn update_many_in_transaction(
@@ -56,11 +64,11 @@ pub(in crate::spaces) async fn update_many_in_transaction(
     changes: &[NodeContentChange],
     actor_kind: &str,
     now: i64,
-) -> Result<(), String> {
+) -> Result<Option<crate::spaces::structure::SpaceEditSnapshotResponse>, String> {
     for change in changes {
         apply_node_change(tx, space_id, change, actor_kind, now).await?;
     }
-    Ok(())
+    super::content_size::sync_changed_in_transaction(tx, space_id, changes).await
 }
 
 async fn apply_node_change(

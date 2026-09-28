@@ -1,14 +1,15 @@
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import { createSpaceNode } from "../canvas/node";
-import { spaceNodeSizePolicy, spaceNodeSupportsContentSizing } from "../canvas/node-size";
-import type { CommittedNodeContent } from "../contracts/generated/CommittedNodeContent";
+import { spaceNodeDefaultDimensions, spaceNodeSupportsContentSizing } from "../canvas/node-size";
 import type { DiscardPendingContentRequest } from "../contracts/generated/DiscardPendingContentRequest";
 import type { DiscardPendingContentResponse } from "../contracts/generated/DiscardPendingContentResponse";
 import type { SpaceNodeProjection } from "../contracts/generated/SpaceNodeProjection";
+import type { UpdateNodesResponse } from "../contracts/generated/UpdateNodesResponse";
 import type { KnowledgeChunkSeed } from "../knowledge/model/schema/chunk";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
 import { validateSpaceNodePayload } from "../model/nodes/node-validation";
+import { parseSpaceEditSnapshot, type SpaceEditSnapshot } from "../model/structure/schema/edit-snapshot";
 import { invokeConfirmedMutation } from "../structure/confirmed-mutation";
 
 export function parseSpaceNodes(rows: readonly SpaceNodeProjection[]): SpaceCanvasNode[] {
@@ -54,11 +55,11 @@ export async function createNodes(
 }
 
 function spaceNodeLayoutInput(node: SpaceCanvasNode) {
-  const size = spaceNodeSizePolicy(node.data);
+  const size = spaceNodeDefaultDimensions(node.data.kind);
   return {
     width: size.width,
     height: size.height,
-    sizeAuthority: spaceNodeSupportsContentSizing(node.data) ? ("content" as const) : ("frame" as const),
+    sizingMode: spaceNodeSupportsContentSizing(node.data) ? ("content" as const) : ("frame" as const),
   };
 }
 
@@ -70,25 +71,25 @@ export async function updateNodePayload(
     data: SpaceNodePayload;
     sourceChunks?: readonly KnowledgeChunkSeed[] | undefined;
   },
-): Promise<SpaceNodePayload> {
+): Promise<{ data: SpaceNodePayload; editSnapshot: SpaceEditSnapshot | null }> {
   const { id, expectedData: expectedContent, data, sourceChunks } = change;
   const committed = await updateNodePayloadMany(
     spaceId,
     [{ id, expectedData: expectedContent, data }],
     sourceChunks ? new Map([[id, sourceChunks]]) : undefined,
   );
-  const committedNode = committed.find((node) => node.id === id);
+  const committedNode = committed.nodes.find((node) => node.id === id);
   if (!committedNode) throw new Error("Node update did not return its committed projection");
-  return committedNode.data;
+  return { data: committedNode.data, editSnapshot: committed.editSnapshot };
 }
 
 export async function updateNodePayloadMany(
   spaceId: string,
   changes: readonly { id: string; expectedData: SpaceNodePayload; data: SpaceNodePayload }[],
   sourceChunks?: ReadonlyMap<string, readonly KnowledgeChunkSeed[]>,
-): Promise<Array<{ id: string; data: SpaceNodePayload }>> {
-  if (!changes.length) return [];
-  const committed = await invokeCommand<CommittedNodeContent[]>("plugin:spaces|update_nodes", {
+): Promise<{ nodes: Array<{ id: string; data: SpaceNodePayload }>; editSnapshot: SpaceEditSnapshot | null }> {
+  if (!changes.length) return { nodes: [], editSnapshot: null };
+  const committed = await invokeCommand<UpdateNodesResponse>("plugin:spaces|update_nodes", {
     request: {
       spaceId,
       changes: changes.map((change) => {
@@ -100,7 +101,10 @@ export async function updateNodePayloadMany(
       }),
     },
   });
-  return committed.map(({ id, data }) => ({ id, data: validateSpaceNodePayload(data) }));
+  return {
+    nodes: committed.nodes.map(({ id, data }) => ({ id, data: validateSpaceNodePayload(data) })),
+    editSnapshot: committed.editSnapshot ? parseSpaceEditSnapshot(committed.editSnapshot) : null,
+  };
 }
 
 export function discardPendingContent(request: DiscardPendingContentRequest) {

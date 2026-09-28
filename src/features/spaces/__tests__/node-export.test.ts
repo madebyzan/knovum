@@ -186,7 +186,7 @@ function sectionSnapshot(): SpaceEditSnapshot {
         kind: "content",
         transform: { x: 20, y: 60, rotation: 0, scale: 1 },
         size: { width: 200, height: 120 },
-        sizeAuthority: "frame",
+        sizingMode: "frame",
       },
     ],
   };

@@ -125,7 +125,7 @@ function layout(nodeId: string) {
   return {
     nodeId,
     frame: { x: 0, y: 0, width: 300, height: 220, rotation: 0 },
-    sizeAuthority: "frame" as const,
+    sizingMode: "frame" as const,
     zIndex: 0,
   };
 }

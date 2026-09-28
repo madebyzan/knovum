@@ -72,7 +72,7 @@ describe("Konva media node content", () => {
         layout: {
           nodeId: "video",
           frame: { x: 0, y: 0, width: 420, height: 368, rotation: 0 },
-          sizeAuthority: "frame",
+          sizingMode: "frame",
           zIndex: 0,
         },
         node: { id: "video", type: "video", data, initialPosition: { x: 0, y: 0 } },

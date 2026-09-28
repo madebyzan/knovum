@@ -13,7 +13,7 @@ const document: CanvasDocumentV1 = {
     {
       nodeId: "text",
       frame: { x: 10, y: 20, width: 240, height: 40, rotation: 0 },
-      sizeAuthority: "frame",
+      sizingMode: "frame",
       zIndex: 0,
     },
   ],

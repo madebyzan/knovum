@@ -1,38 +1,41 @@
 use std::collections::HashMap;
 
 use super::super::repository::SpaceStructureSnapshot;
-use super::super::{SizeAuthority, StructureLayout};
+use super::super::{SizingMode, StructureLayout};
 
-pub(super) type ContentHeightStates = HashMap<String, (f64, SizeAuthority)>;
+pub(super) type ContentSizeStates = HashMap<String, (f64, f64, SizingMode)>;
 
-pub(super) fn content_height_states<'a>(
+pub(super) fn content_size_states<'a>(
     snapshots: impl Iterator<Item = &'a SpaceStructureSnapshot>,
-) -> ContentHeightStates {
+) -> ContentSizeStates {
     snapshots
         .flat_map(|snapshot| &snapshot.layouts)
         .filter_map(|layout| match layout {
             StructureLayout::Content {
                 structure_node_id,
                 size,
-                size_authority,
+                sizing_mode,
                 ..
-            } => Some((structure_node_id.clone(), (size.height, *size_authority))),
+            } => Some((
+                structure_node_id.clone(),
+                (size.width, size.height, *sizing_mode),
+            )),
             _ => None,
         })
         .collect()
 }
 
-pub(super) fn preserve_content_heights(
+pub(super) fn preserve_content_sizes(
     target: &mut SpaceStructureSnapshot,
-    current: &ContentHeightStates,
-    before: &ContentHeightStates,
-    after: &ContentHeightStates,
+    current: &ContentSizeStates,
+    before: &ContentSizeStates,
+    after: &ContentSizeStates,
 ) {
     for layout in &mut target.layouts {
         let StructureLayout::Content {
             structure_node_id,
             size,
-            size_authority,
+            sizing_mode,
             ..
         } = layout
         else {
@@ -46,10 +49,13 @@ pub(super) fn preserve_content_heights(
             continue;
         };
         if before.0 == after.0 {
-            size.height = current.0;
+            size.width = current.0;
         }
         if before.1 == after.1 {
-            *size_authority = current.1;
+            size.height = current.1;
+        }
+        if before.2 == after.2 {
+            *sizing_mode = current.2;
         }
     }
 }

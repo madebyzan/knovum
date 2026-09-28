@@ -1,5 +1,6 @@
 import type { Ref } from "vue";
 
+import { decodeCommandError } from "../../../../foundation/ipc/command-error";
 import { beginSpaceMutation } from "../../history/mutation-barrier";
 import { recordSpaceHistory, type SpaceHistoryState } from "../../history/stack";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
@@ -32,6 +33,9 @@ export function createStructureActions(context: {
       await reloadProjection(spaceId);
       if (spaceEditCommandRecordsHistory(command)) recordRustEdit(spaceId);
       return receipt;
+    } catch (error) {
+      if (decodeCommandError(error)?.code === "space_edit_revision_conflict") await reloadProjection(spaceId);
+      throw error;
     } finally {
       releaseMutation();
     }
@@ -53,8 +57,13 @@ export function createStructureActions(context: {
   async function transition(spaceId: string, direction: "undo" | "redo") {
     if (context.activeSpaceId.value !== spaceId)
       throw new Error("Open the Space where this edit was made before changing its history");
-    await spaceEditOperations[direction](spaceId, context.editSnapshot.value.editRevision);
-    await reloadProjection(spaceId);
+    try {
+      await spaceEditOperations[direction](spaceId, context.editSnapshot.value.editRevision);
+      await reloadProjection(spaceId);
+    } catch (error) {
+      if (decodeCommandError(error)?.code === "space_edit_revision_conflict") await reloadProjection(spaceId);
+      throw error;
+    }
   }
 
   async function reloadProjection(spaceId: string) {

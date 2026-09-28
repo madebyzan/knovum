@@ -1,7 +1,7 @@
 import type {
   CanvasDocumentV1,
   CanvasNodeAppearance,
-  CanvasNodeSizeAuthority,
+  CanvasNodeSizingMode,
   CanvasRelationColor,
 } from "../schema/document";
 
@@ -41,7 +41,7 @@ export interface CanvasRect extends CanvasPoint {
 export interface CanvasContentHeightMeasurement {
   contentRevision: string | null;
   height: number;
-  sizeAuthority: CanvasNodeSizeAuthority;
+  sizingMode: CanvasNodeSizingMode;
   typographyScale: number;
   width: number;
 }

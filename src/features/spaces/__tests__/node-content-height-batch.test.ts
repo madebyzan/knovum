@@ -12,7 +12,7 @@ const node = createSpaceNode(createSpaceTextPayload("Text"), { x: 0, y: 0 }, "te
 const layout: CanvasNodeLayoutV1 = {
   nodeId: "text",
   frame: { x: 0, y: 0, width: 240, height: 220, rotation: 0 },
-  sizeAuthority: "frame",
+  sizingMode: "frame",
   zIndex: 0,
 };
 
@@ -28,14 +28,14 @@ describe("node content height batch", () => {
     batch.fit("text", {
       contentRevision: null,
       height: 96,
-      sizeAuthority: "frame",
+      sizingMode: "frame",
       typographyScale: 1,
       width: 240,
     });
     batch.fit("text", {
       contentRevision: null,
       height: 120,
-      sizeAuthority: "frame",
+      sizingMode: "frame",
       typographyScale: 1,
       width: 240,
     });
@@ -56,7 +56,7 @@ describe("node content height batch", () => {
     batch.fit("text", {
       contentRevision: null,
       height: 96,
-      sizeAuthority: "frame",
+      sizingMode: "frame",
       typographyScale: 1,
       width: 240,
     });
@@ -78,7 +78,7 @@ describe("node content height batch", () => {
     batch.fit("text", {
       contentRevision: null,
       height: 96,
-      sizeAuthority: "frame",
+      sizingMode: "frame",
       typographyScale: 1,
       width: 200,
     });

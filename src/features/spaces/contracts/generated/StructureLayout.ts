@@ -3,6 +3,6 @@ import type { JsonValue } from "../../../../shared/contracts/generated/serde_jso
 import type { LocalTransform } from "./LocalTransform";
 import type { Point } from "./Point";
 import type { Size } from "./Size";
-import type { SizeAuthority } from "./SizeAuthority";
+import type { SizingMode } from "./SizingMode";
 
-export type StructureLayout = { "kind": "content", structureNodeId: string, transform: LocalTransform, size: Size, sizeAuthority: SizeAuthority, appearance?: JsonValue | null, fileSubpath?: string | null, } | { "kind": "group", structureNodeId: string, transform: LocalTransform, } | { "kind": "section", structureNodeId: string, position: Point, size: Size, collapsed: boolean, appearance?: JsonValue | null, };
+export type StructureLayout = { "kind": "content", structureNodeId: string, transform: LocalTransform, size: Size, sizingMode: SizingMode, appearance?: JsonValue | null, fileSubpath?: string | null, } | { "kind": "group", structureNodeId: string, transform: LocalTransform, } | { "kind": "section", structureNodeId: string, position: Point, size: Size, collapsed: boolean, appearance?: JsonValue | null, };

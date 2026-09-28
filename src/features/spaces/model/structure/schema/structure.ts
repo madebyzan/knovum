@@ -87,7 +87,7 @@ export const structureLayoutSchema = z.discriminatedUnion("kind", [
       kind: z.literal("content"),
       transform: localTransformSchema,
       size,
-      sizeAuthority: z.enum(["content", "frame"]),
+      sizingMode: z.enum(["content", "frame"]),
       appearance: contentAppearance.optional(),
       fileSubpath: z.string().startsWith("#").optional(),
     })

@@ -9,13 +9,13 @@ const layouts: CanvasNodeLayoutV1[] = [
   {
     nodeId: "a",
     frame: { x: 0, y: 0, width: 100, height: 80, rotation: 0 },
-    sizeAuthority: "frame",
+    sizingMode: "frame",
     zIndex: 0,
   },
   {
     nodeId: "b",
     frame: { x: 140, y: 0, width: 100, height: 80, rotation: 0 },
-    sizeAuthority: "frame",
+    sizingMode: "frame",
     zIndex: 1,
   },
 ];
