@@ -41,8 +41,8 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
     <KonvaStage
       ref="stage"
       :config="{
-        width: runtime.viewport.size.width,
-        height: runtime.viewport.size.height,
+        width: runtime.viewport.stageSize.width,
+        height: runtime.viewport.stageSize.height,
         x: runtime.viewport.viewport.value.x,
         y: runtime.viewport.viewport.value.y,
         scaleX: runtime.viewport.viewport.value.zoom,
@@ -56,7 +56,7 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
     >
       <CanvasGridLayer
         :palette="runtime.palette.value"
-        :size="runtime.viewport.size"
+        :size="runtime.viewport.stageSize"
         :viewport="runtime.viewport.viewport.value"
       />
       <CanvasStructureSectionsLayer

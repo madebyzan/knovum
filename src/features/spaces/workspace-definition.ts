@@ -10,7 +10,6 @@ export function useSpacesWorkspace(): WorkspaceDefinition {
     view: defineAsyncComponent(() => import("./SpaceView.vue")),
     sidebar: defineAsyncComponent(() => import("./presentation/SpaceSidebar.vue")),
     rightSidebar: defineAsyncComponent(() => import("./presentation/SpaceRightSidebar.vue")),
-    rightSidebarToolbar: defineAsyncComponent(() => import("./presentation/SpaceRightSidebarToolbar.vue")),
     toolbarLeading: defineAsyncComponent(() => import("./presentation/SpaceHistoryControls.vue")),
     rightSidebarLayout: { defaultSize: 380, minSize: 300, maxSize: 480 },
     openDefaultRightSidebar: () => {

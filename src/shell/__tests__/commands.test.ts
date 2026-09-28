@@ -9,7 +9,6 @@ function workspace(rightSidebarAvailable = true): WorkspaceDefinition {
     view: {} as never,
     sidebar: {} as never,
     rightSidebar: {} as never,
-    rightSidebarToolbar: {} as never,
     toolbarLeading: {} as never,
     toolbar: {} as never,
     rightSidebarLayout: { defaultSize: 380, minSize: 300, maxSize: 480 },

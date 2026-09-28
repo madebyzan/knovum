@@ -5,11 +5,11 @@ defineProps<{ workspace: WorkspaceDefinition }>();
 </script>
 
 <template>
-  <div class="flex min-h-0 min-w-0 flex-col items-stretch overflow-hidden select-none">
-    <div class="flex min-h-0 flex-1 items-start overflow-hidden select-text">
-      <KeepAlive :max="4">
-        <component :is="workspace.rightSidebar" />
-      </KeepAlive>
+  <div
+    class="relative h-full min-h-0 w-full min-w-0 overflow-hidden rounded-xl border border-(--knovum-window-border-color) bg-surface-panel shadow-workspace select-none"
+  >
+    <div class="workspace-right-sidebar-content absolute inset-y-0 right-0 w-full min-w-0">
+      <component :is="workspace.rightSidebar" />
     </div>
   </div>
 </template>

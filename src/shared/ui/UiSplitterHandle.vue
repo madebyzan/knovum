@@ -13,6 +13,7 @@ const props = withDefaults(
     disabled: false,
   },
 );
+const emit = defineEmits<{ dragging: [value: boolean] }>();
 </script>
 
 <template>
@@ -20,6 +21,7 @@ const props = withDefaults(
     :class="cn('group relative z-30 w-0 shrink-0 self-stretch bg-transparent outline-none', props.class)"
     :disabled="disabled"
     :tabindex="disabled ? -1 : 0"
+    @dragging="emit('dragging', $event)"
   >
     <span v-show="!disabled" class="absolute inset-y-0 -left-2 w-4">
       <span

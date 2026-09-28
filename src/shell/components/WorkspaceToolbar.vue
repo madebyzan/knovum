@@ -11,10 +11,11 @@ const props = defineProps<{
   sidebarPinned: boolean;
   sidebarWidth: number;
   rightSidebarOpen: boolean;
-  rightSidebarWidth: number;
+  rightSidebarLayoutWidth: number;
 }>();
 const toolbarColumns = computed(
-  () => `${props.sidebarWidth}px minmax(0, 1fr) ${props.rightSidebarOpen ? props.rightSidebarWidth : 56}px`,
+  () =>
+    `${props.sidebarWidth}px minmax(0, 1fr) ${props.rightSidebarLayoutWidth}px`,
 );
 const emit = defineEmits<{
   "toggle-sidebar": [];
@@ -42,41 +43,34 @@ const emit = defineEmits<{
         />
         <component :is="workspace.toolbarLeading" class="ml-auto shrink-0" />
       </div>
-      <div class="flex min-w-0 items-center pr-3">
+      <div class="flex min-w-0 items-center pl-2" :class="rightSidebarOpen ? 'pr-3' : 'pr-14'">
         <component :is="workspace.toolbar" class="min-w-0 flex-1" />
       </div>
-      <div
-        class="flex min-w-0 items-center gap-1 overflow-hidden px-3"
-        :class="{ 'border-l border-(--knovum-window-border-color) bg-surface-panel': rightSidebarOpen }"
-      >
-        <component v-if="rightSidebarOpen" :is="workspace.rightSidebarToolbar" class="min-w-0" />
-        <UiIconButton
-          id="workspace-right-sidebar-toggle"
-          class="ml-auto shrink-0"
-          :label="$t('shell.toggleRightSidebar')"
-          aria-controls="spaces-right-sidebar"
-          :aria-expanded="rightSidebarOpen"
-          shortcut="$mod+Shift+B"
-          :active="rightSidebarOpen"
-          :disabled="!workspace.rightSidebarAvailable.value"
-          size="md"
-          @click="emit('toggle-right-sidebar')"
-        >
-          <component
-            :is="rightSidebarOpen ? PanelRightClose : PanelRightOpen"
-            class="size-4.5"
-            :stroke-width="1.55"
-          />
-        </UiIconButton>
-      </div>
     </div>
+    <UiIconButton
+      id="workspace-right-sidebar-toggle"
+      class="absolute top-1/2 right-3 -translate-y-1/2"
+      :label="$t('shell.toggleRightSidebar')"
+      aria-controls="spaces-right-sidebar"
+      :aria-expanded="rightSidebarOpen"
+      shortcut="$mod+Shift+B"
+      :active="rightSidebarOpen"
+      :disabled="!workspace.rightSidebarAvailable.value"
+      size="md"
+      @click="emit('toggle-right-sidebar')"
+    >
+      <component
+        :is="rightSidebarOpen ? PanelRightClose : PanelRightOpen"
+        class="size-4.5"
+        :stroke-width="1.55"
+      />
+    </UiIconButton>
   </header>
 </template>
 
 <style scoped>
 .workspace-toolbar-content {
   pointer-events: none;
-  transition: grid-template-columns 220ms var(--ease-standard);
 }
 .workspace-toolbar-content :deep(button),
 .workspace-toolbar-content :deep(input),

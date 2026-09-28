@@ -1,20 +1,19 @@
 <script setup lang="ts">
-import { clamp } from "es-toolkit";
 import { SplitterGroup, SplitterPanel } from "reka-ui";
-import { computed, shallowRef, watch } from "vue";
+import { useTemplateRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import type { WorkspaceDefinition } from "../../shared/contracts/workspace-definition";
 import UiSplitterHandle from "../../shared/ui/UiSplitterHandle.vue";
 import FeatureErrorBoundary from "../FeatureErrorBoundary.vue";
 import { workspaceSidebarGeometry } from "../sidebar-geometry";
+import { useWorkspaceSplitter } from "../use-workspace-splitter";
 import TaskCenter from "./TaskCenter.vue";
 import WorkspaceRightSidebar from "./WorkspaceRightSidebar.vue";
 import WorkspaceSidebar from "./WorkspaceSidebar.vue";
 
 const props = defineProps<{
   workspace: WorkspaceDefinition;
-  sidebarVisible: boolean;
   sidebarPinned: boolean;
   sidebarWidth: number;
   sidebarPreview: boolean;
@@ -25,74 +24,51 @@ const emit = defineEmits<{
   "set-sidebar-pinned": [value: boolean];
   "set-sidebar-width": [value: number];
   "set-right-sidebar-width": [value: number];
+  "close-right-sidebar": [];
+  "panel-layout": [sizes: number[]];
+  "cancel-panel-motion": [];
   "open-sidebar-preview": [];
   "schedule-sidebar-close": [];
   "close-sidebar-preview": [];
 }>();
 const { t } = useI18n();
-const leadingPanel = shallowRef<InstanceType<typeof SplitterPanel> | null>(null);
-const trailingPanel = shallowRef<InstanceType<typeof SplitterPanel> | null>(null);
-const layoutReady = shallowRef(false);
-const motionReady = shallowRef(false);
-const rightWidth = computed(() =>
-  clamp(
-    props.rightSidebarWidth,
-    props.workspace.rightSidebarLayout.minSize,
-    props.workspace.rightSidebarLayout.maxSize,
-  ),
-);
-
-watch(
-  () => [props.sidebarPinned, layoutReady.value] as const,
-  ([pinned, ready]) => {
-    if (!ready) return;
-    if (pinned) leadingPanel.value?.resize(props.sidebarWidth);
-    else leadingPanel.value?.collapse();
-  },
-  { flush: "post" },
-);
-watch(
-  () => [props.rightSidebarOpen, layoutReady.value] as const,
-  ([open, ready]) => {
-    if (!ready) return;
-    if (open) trailingPanel.value?.resize(rightWidth.value);
-    else trailingPanel.value?.collapse();
-  },
-  { flush: "post" },
-);
-function updateSidebarWidth(size: number) {
-  if (size === 0) {
-    emit("set-sidebar-pinned", false);
-    return;
-  }
-  if (size >= workspaceSidebarGeometry.minSize) {
-    if (!props.sidebarPinned) emit("set-sidebar-pinned", true);
-    emit("set-sidebar-width", size);
-  }
+const pinnedSidebarHost = useTemplateRef<HTMLElement>("pinnedSidebarHost");
+const previewSidebarHost = useTemplateRef<HTMLElement>("previewSidebarHost");
+const { handleLayout, leadingPanel, trailingPanel } = useWorkspaceSplitter({
+  sidebarPinned: () => props.sidebarPinned,
+  sidebarWidth: () => props.sidebarWidth,
+  rightSidebarOpen: () => props.rightSidebarOpen,
+  rightSidebarWidth: () => props.rightSidebarWidth,
+  onLayout: (sizes) => emit("panel-layout", sizes),
+});
+function commitSidebarWidth() {
+  const size = leadingPanel.value?.getSize();
+  if (size === 0) emit("set-sidebar-pinned", false);
+  else if (size && size >= workspaceSidebarGeometry.minSize) emit("set-sidebar-width", size);
 }
-
-function markLayoutReady(sizes: number[]) {
-  if (sizes.length !== 3 || layoutReady.value) return;
-  layoutReady.value = true;
-  requestAnimationFrame(() => requestAnimationFrame(() => (motionReady.value = true)));
+function commitRightSidebarWidth() {
+  const size = trailingPanel.value?.getSize();
+  if (size === 0) emit("close-right-sidebar");
+  else if (size && size >= props.workspace.rightSidebarLayout.minSize)
+    emit("set-right-sidebar-width", size);
+}
+function onDrag(active: boolean, commit: () => void) {
+  if (active) emit("cancel-panel-motion");
+  else commit();
 }
 </script>
 
 <template>
   <div class="relative flex min-h-0 min-w-0 flex-1">
-    <div
-      class="workspace-frame pointer-events-none absolute top-0 right-2 bottom-2 z-20 rounded-xl border border-(--knovum-window-border-color) shadow-workspace"
-      :style="{ left: sidebarPinned ? `${sidebarWidth}px` : '8px' }"
-    />
     <SplitterGroup
       direction="horizontal"
       class="workspace-splitter-group relative z-10 min-h-0 min-w-0 flex-1"
-      :class="{ 'is-motion-ready': motionReady }"
-      @layout="markLayoutReady"
+      @layout="handleLayout"
     >
       <SplitterPanel
         ref="leadingPanel"
         id="spaces-sidebar"
+        class="overflow-hidden"
         :order="1"
         size-unit="px"
         :default-size="sidebarPinned ? sidebarWidth : 0"
@@ -100,18 +76,19 @@ function markLayoutReady(sizes: number[]) {
         :max-size="workspaceSidebarGeometry.maxSize"
         :collapsed-size="0"
         collapsible
-        @resize="updateSidebarWidth"
+      >
+        <div ref="pinnedSidebarHost" class="h-full w-full" :style="{ minWidth: `${sidebarWidth}px` }" />
+      </SplitterPanel>
+      <UiSplitterHandle
+        :disabled="!sidebarPinned"
+        @dragging="onDrag($event, commitSidebarWidth)"
+        @keyup="commitSidebarWidth"
       />
-      <UiSplitterHandle :disabled="!sidebarPinned" />
 
       <SplitterPanel id="spaces-work-area" :order="2" :min-size="35">
-        <main
-          class="h-full min-w-0 transition-[padding-left,padding-right] duration-220 ease-standard select-text"
-          :class="[sidebarPinned ? 'pb-2' : 'pb-2 pl-2', rightSidebarOpen ? '' : 'pr-2']"
-        >
+        <main class="h-full min-w-0 px-2 pb-2 select-text">
           <div
-            class="relative h-full min-h-0 overflow-hidden bg-surface-canvas"
-            :class="rightSidebarOpen ? 'rounded-l-xl' : 'rounded-xl'"
+            class="relative h-full min-h-0 overflow-hidden rounded-xl border border-(--knovum-window-border-color) bg-surface-canvas shadow-workspace"
           >
             <FeatureErrorBoundary reset-key="spaces">
               <component :is="workspace.view" />
@@ -121,50 +98,52 @@ function markLayoutReady(sizes: number[]) {
         </main>
       </SplitterPanel>
 
-      <UiSplitterHandle :disabled="!rightSidebarOpen" />
+      <UiSplitterHandle
+        :disabled="!rightSidebarOpen"
+        @dragging="onDrag($event, commitRightSidebarWidth)"
+        @keyup="commitRightSidebarWidth"
+      />
       <SplitterPanel
         ref="trailingPanel"
         id="spaces-right-sidebar"
+        class="relative overflow-hidden"
         :order="3"
         size-unit="px"
-        :default-size="rightSidebarOpen ? rightWidth : 0"
+        :default-size="rightSidebarOpen ? rightSidebarWidth : 0"
         :min-size="workspace.rightSidebarLayout.minSize"
         :max-size="workspace.rightSidebarLayout.maxSize"
         :collapsed-size="0"
         collapsible
-        @resize="($event) => $event > 0 && emit('set-right-sidebar-width', $event)"
       >
         <div
-          class="h-full min-h-0 pr-2 pb-2"
-          :style="{ width: `${rightWidth}px` }"
+          class="h-full min-w-0 pb-2 pr-2"
+          :style="{ '--workspace-right-sidebar-width': `${rightSidebarWidth}px` }"
           :inert="!rightSidebarOpen"
           :aria-hidden="!rightSidebarOpen"
         >
-          <div
-            class="h-full min-h-0 overflow-hidden rounded-r-xl"
-            :class="{ 'border-l border-(--knovum-window-border-color)': rightSidebarOpen }"
-          >
-            <Transition name="workspace-pane-content">
-              <WorkspaceRightSidebar v-if="rightSidebarOpen" class="h-full min-h-0" :workspace="workspace" />
-            </Transition>
-          </div>
+          <Transition name="workspace-pane-content">
+            <WorkspaceRightSidebar v-if="rightSidebarOpen" :workspace="workspace" />
+          </Transition>
         </div>
       </SplitterPanel>
     </SplitterGroup>
 
-    <WorkspaceSidebar
+    <div
+      ref="previewSidebarHost"
       class="workspace-sidebar-surface absolute inset-y-0 left-0 z-40 h-full min-h-0"
-      :class="{
-        'is-visible': sidebarVisible,
-        'is-preview rounded-r-xl': sidebarPreview,
-      }"
+      :class="sidebarPreview ? 'is-visible is-preview rounded-r-xl' : ''"
       :style="{ width: `${sidebarWidth}px` }"
-      :aria-hidden="!sidebarVisible"
-      :inert="!sidebarVisible"
-      :workspace="workspace"
+      :aria-hidden="!sidebarPreview"
+      :inert="!sidebarPreview"
       @pointerenter="emit('open-sidebar-preview')"
       @pointerleave="emit('schedule-sidebar-close')"
     />
+    <Teleport
+      v-if="pinnedSidebarHost && previewSidebarHost"
+      :to="sidebarPinned ? pinnedSidebarHost : previewSidebarHost"
+    >
+      <WorkspaceSidebar :workspace="workspace" />
+    </Teleport>
     <div
       v-if="!sidebarPinned && !sidebarPreview"
       class="absolute inset-y-0 left-0 z-50 w-3"
