@@ -102,29 +102,35 @@ function backToApp() {
       @back="backToApp"
       @select="selectPane"
     />
-    <UiScrollArea class="min-h-0 min-w-0 flex-1 select-text">
-      <div data-tauri-drag-region class="h-(--knovum-titlebar-height)" />
-      <div class="mx-auto max-w-208 px-10 pt-5 pb-16">
-        <header
-          class="mb-5 flex min-h-(--knovum-control-height-sm) items-center justify-between gap-4 px-0.5"
-        >
-          <h1 class="m-0 text-display font-semibold tracking-title text-fg-primary">
-            {{ paneTitle }}
-          </h1>
-          <component :is="paneHeaderAction" v-if="paneHeaderAction" />
-        </header>
-        <Transition
-          mode="out-in"
-          enter-active-class="animate-in fade-in-0 slide-in-from-right-1 duration-150 ease-standard motion-reduce:animate-none"
-          leave-active-class="animate-out fade-out-0 duration-100 ease-standard motion-reduce:animate-none"
-        >
-          <CreationSettingsPane
-            v-if="activePane === 'creation'"
-            :load-generation-actions="props.loadGenerationActions"
-          />
-          <component :is="paneComponent" v-else :key="activePane" />
-        </Transition>
+    <div class="flex min-h-0 min-w-0 flex-1 flex-col">
+      <div data-tauri-drag-region class="h-(--knovum-titlebar-height) shrink-0" />
+      <div class="relative mt-4 min-h-0 flex-1">
+        <UiScrollArea class="size-full select-text">
+          <div class="mx-auto max-w-208 px-10 pt-10 pb-20">
+            <header
+              class="mb-5 flex min-h-(--knovum-control-height-sm) items-center justify-between gap-4 px-0.5"
+            >
+              <h1 class="m-0 text-display font-semibold tracking-title text-fg-primary">
+                {{ paneTitle }}
+              </h1>
+              <component :is="paneHeaderAction" v-if="paneHeaderAction" />
+            </header>
+            <Transition
+              mode="out-in"
+              enter-active-class="animate-in fade-in-0 slide-in-from-right-1 duration-150 ease-standard motion-reduce:animate-none"
+              leave-active-class="animate-out fade-out-0 duration-100 ease-standard motion-reduce:animate-none"
+            >
+              <CreationSettingsPane
+                v-if="activePane === 'creation'"
+                :load-generation-actions="props.loadGenerationActions"
+              />
+              <component :is="paneComponent" v-else :key="activePane" />
+            </Transition>
+          </div>
+        </UiScrollArea>
+        <div class="pointer-events-none absolute inset-x-0 top-0 h-8 bg-linear-to-b from-surface-canvas to-transparent" />
+        <div class="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-linear-to-t from-surface-canvas to-transparent" />
       </div>
-    </UiScrollArea>
+    </div>
   </main>
 </template>
