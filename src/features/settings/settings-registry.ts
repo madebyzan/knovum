@@ -4,7 +4,6 @@ import {
   Boxes,
   Info,
   MonitorCog,
-  Power,
   Route,
   Terminal,
   WandSparkles,
@@ -55,14 +54,6 @@ export const settingsRegistry: readonly SettingsDefinition[] = [
         descriptionKey: "settings.appearance.language.description",
       },
     ],
-  },
-  {
-    id: "startup",
-    group: "general",
-    titleKey: "settings.startup.title",
-    descriptionKey: "settings.startup.description",
-    searchKeys: ["settings.startup.description"],
-    icon: Power,
   },
   {
     id: "aiModels",
