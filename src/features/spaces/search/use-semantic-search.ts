@@ -3,8 +3,10 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { textEmbeddingReady } from "../../../foundation/runtime/local-resources";
-import { prepareModelCapability } from "../../../foundation/runtime/model-preparation";
-import { ResourcePreparationCancelledError } from "../../../foundation/runtime/resource-preparation";
+import {
+  ResourcePreparationCancelledError,
+  startResourcePreparation,
+} from "../../../foundation/runtime/resource-preparation";
 import { useLocalResourcesQuery } from "../../../foundation/runtime/resource-query";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import { indexKnowledgeRetrieval } from "../knowledge/persistence/retrieval-index";
@@ -34,7 +36,10 @@ export function useSemanticSearch(open: Ref<boolean>) {
     if (!spaceId || preparing.value) return;
     preparing.value = true;
     try {
-      await prepareModelCapability("textEmbedding", t("spaces.search.semantic.preparing"));
+      await startResourcePreparation(
+        { kind: "textEmbedding" },
+        t("spaces.search.semantic.preparing"),
+      ).completion;
       if (!open.value || store.activeSpaceId !== spaceId) return;
       indexing.value = true;
       const id = tasks.start(t("spaces.search.semantic.indexing"));

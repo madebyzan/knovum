@@ -14,7 +14,7 @@ pub(crate) mod requests;
 
 use contracts::{ResourcePreparationProgress, ResourcePreparationStage, ResourcePreparationTarget};
 
-pub use locks::{acquire_model_removal, acquire_verified_models, PreparedModels};
+pub use locks::{acquire_verified_models, PreparedModels};
 
 pub const RESOURCE_PREPARATION_CANCELLED: &str = "local-resource-preparation-cancelled";
 

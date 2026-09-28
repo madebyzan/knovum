@@ -152,7 +152,7 @@ function updateTaskProgress(
     return;
   }
   if (progress.stage === "verifying") {
-    tasks.indeterminate(taskId, i18n.global.t("settings.offlineModels.download.verifying"));
+    tasks.indeterminate(taskId, i18n.global.t("tasks.verifyingResource"));
     return;
   }
   if (progress.stage === "ready") {

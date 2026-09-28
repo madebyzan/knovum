@@ -5,5 +5,6 @@
   "cancel": "取消任务",
   "cancelling": "正在取消…",
   "forceDismiss": "从列表移除",
-  "failed": "此任务未能完成。"
+  "failed": "此任务未能完成。",
+  "verifyingResource": "校验完整性中…"
 }

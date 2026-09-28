@@ -9,10 +9,6 @@ pub fn active_text_provider() -> &'static dyn EmbeddingCapability {
     &LocalCandleEmbeddingAdapter
 }
 
-pub fn unload() -> Result<(), String> {
-    local_candle::engine::unload()
-}
-
 pub async fn embed(
     texts: Vec<String>,
     resources: &crate::local_resources::preparation::PreparedModels,

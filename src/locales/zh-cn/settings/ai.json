@@ -1,11 +1,7 @@
 {
   "title": "服务商与模型",
-  "description": "连接 API 服务商，并管理本机或服务商端点提供的模型。",
+  "description": "连接 API 服务商，并管理服务商提供的模型。",
   "knowledgeSpace": "智能能力",
-  "navigation": {
-    "providers": "服务商",
-    "onDevice": "本机模型"
-  },
   "provider": "模型服务商",
   "baseUrl": "API Base URL",
   "apiKey": "API Key",

@@ -18,7 +18,6 @@ fn main() {
                     "prepare_resources",
                     "cancel_resource_preparation",
                     "list_resource_preparations",
-                    "remove_model",
                 ]),
             )
             .plugin(

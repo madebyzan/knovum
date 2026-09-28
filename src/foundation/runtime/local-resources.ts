@@ -1,6 +1,3 @@
-import type { ModelKind } from "../../shared/contracts/generated/ModelKind";
-export type { ModelKind } from "../../shared/contracts/generated/ModelKind";
-
 import type { LocalResourcesStatus } from "../../shared/contracts/generated/LocalResourcesStatus";
 export type { LocalResourcesStatus } from "../../shared/contracts/generated/LocalResourcesStatus";
 import type { ResourcePreparationProgress } from "../../shared/contracts/generated/ResourcePreparationProgress";
@@ -38,17 +35,6 @@ export function cancelResourcePreparation(jobId: string): Promise<void> {
 }
 export function listResourcePreparations(): Promise<ResourcePreparationSnapshot[]> {
   return invokeCommand("plugin:local-resources|list_resource_preparations");
-}
-export function removeLocalModel(model: ModelKind): Promise<void> {
-  return invokeCommand("plugin:local-resources|remove_model", { model });
-}
-export function transcriptionReady(status?: LocalResourcesStatus) {
-  return Boolean(
-    status?.ffmpeg.available &&
-    status.whisperCli.available &&
-    status.models.transcription.verified &&
-    status.models.transcriptionVad.verified,
-  );
 }
 export function textEmbeddingReady(status?: LocalResourcesStatus) {
   return Boolean(

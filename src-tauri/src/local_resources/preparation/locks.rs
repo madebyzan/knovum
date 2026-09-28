@@ -5,7 +5,7 @@ use std::{
 };
 
 use tauri::{AppHandle, Runtime};
-use tokio::sync::{OwnedRwLockReadGuard, OwnedRwLockWriteGuard, RwLock};
+use tokio::sync::{OwnedRwLockReadGuard, RwLock};
 use tokio_util::sync::CancellationToken;
 
 use super::RESOURCE_PREPARATION_CANCELLED;
@@ -53,17 +53,6 @@ impl PreparedModels {
     }
 }
 
-pub struct ModelRemoval {
-    kind: ModelKind,
-    _exclusive: OwnedRwLockWriteGuard<()>,
-}
-
-impl ModelRemoval {
-    pub fn remove<R: Runtime>(self, app: &AppHandle<R>) -> Result<(), String> {
-        models::uninstall(app, catalog::descriptor(self.kind))
-    }
-}
-
 pub async fn acquire_verified_models<R: Runtime>(
     app: &AppHandle<R>,
     kinds: &[ModelKind],
@@ -106,16 +95,6 @@ const fn model_order(kind: ModelKind) -> u8 {
         ModelKind::TextEmbeddingTokenizer => 3,
         ModelKind::TextEmbeddingWeights => 4,
     }
-}
-
-pub fn acquire_model_removal(kind: ModelKind) -> Result<ModelRemoval, String> {
-    let exclusive = resource_lock(ModelIdentity::for_kind(kind))?
-        .try_write_owned()
-        .map_err(|_| "Model resource is currently in use".to_string())?;
-    Ok(ModelRemoval {
-        kind,
-        _exclusive: exclusive,
-    })
 }
 
 pub(super) fn resource_lock(identity: ModelIdentity) -> Result<Arc<RwLock<()>>, String> {
