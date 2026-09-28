@@ -53,10 +53,11 @@ function updatePanelLayout(sizes: number[]) {
       </FeatureErrorBoundary>
     </RouterView>
   </div>
+  <!-- Keep the mounted canvas sized while Settings is open; opacity hides explicit-visible descendants. -->
   <div
     data-testid="spaces-workspace"
     class="spaces-workspace absolute inset-0 flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden bg-surface-chrome transition-colors duration-220 ease-standard select-none"
-    :class="{ invisible: !workspaceActive, 'is-panel-motion': panelMotion }"
+    :class="{ 'opacity-0': !workspaceActive, 'is-panel-motion': panelMotion }"
     :aria-hidden="!workspaceActive"
     :inert="!workspaceActive"
   >
