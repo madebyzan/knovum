@@ -1,7 +1,7 @@
 import { listen } from "@tauri-apps/api/event";
 import { error as logError } from "@tauri-apps/plugin-log";
-import { useTimeoutFn } from "@vueuse/core";
-import { computed, nextTick, onMounted, onUnmounted, provide, shallowRef, watchEffect } from "vue";
+import { useEventListener, useTimeoutFn } from "@vueuse/core";
+import { computed, onMounted, onUnmounted, provide, shallowRef, watchEffect } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 
@@ -25,10 +25,22 @@ export function useShellController(workspace: WorkspaceDefinition) {
   const sidebarPreviewArmed = shallowRef(true);
   const rightSidebarOpen = shallowRef(false);
   const rightSidebarWidth = shallowRef(workspace.rightSidebarLayout.defaultSize);
-  const workspaceActive = computed(() => route.name === "spaces");
-  const sidebarVisible = computed(
-    () => workspaceActive.value && (sidebarPinned.value || sidebarPreview.value),
+  const panelMotion = shallowRef(false);
+  const { start: endPanelMotion, stop: cancelPanelMotionTimer } = useTimeoutFn(
+    () => (panelMotion.value = false),
+    220,
+    { immediate: false },
   );
+  function beginPanelMotion() {
+    panelMotion.value = true;
+    endPanelMotion();
+  }
+  function cancelPanelMotion() {
+    cancelPanelMotionTimer();
+    panelMotion.value = false;
+  }
+  useEventListener(window, "resize", cancelPanelMotion);
+  const workspaceActive = computed(() => route.name === "spaces");
   const { start: startSidebarPreviewClose, stop: cancelSidebarPreviewClose } = useTimeoutFn(
     () => (sidebarPreview.value = false),
     160,
@@ -36,6 +48,7 @@ export function useShellController(workspace: WorkspaceDefinition) {
   );
 
   function toggleSidebarPanel() {
+    beginPanelMotion();
     setSidebarPinned(!sidebarPinned.value);
   }
   function toggleSidebarFromControl() {
@@ -71,6 +84,7 @@ export function useShellController(workspace: WorkspaceDefinition) {
   }
   function toggleRightSidebar() {
     if (!workspaceActive.value || !workspace.rightSidebarAvailable.value) return;
+    beginPanelMotion();
     if (rightSidebarOpen.value) {
       rightSidebarOpen.value = false;
     } else {
@@ -80,6 +94,7 @@ export function useShellController(workspace: WorkspaceDefinition) {
   }
   function openRightSidebar() {
     if (!workspaceActive.value || !workspace.rightSidebarAvailable.value) return;
+    if (!rightSidebarOpen.value) beginPanelMotion();
     rightSidebarOpen.value = true;
   }
   function setRightSidebarWidth(value: number) {
@@ -87,7 +102,7 @@ export function useShellController(workspace: WorkspaceDefinition) {
   }
   function closeRightSidebar() {
     rightSidebarOpen.value = false;
-    void nextTick(() => document.getElementById("workspace-right-sidebar-toggle")?.focus());
+    document.getElementById("workspace-right-sidebar-toggle")?.focus();
   }
   provide(workspaceRightSidebarKey, { open: openRightSidebar, close: closeRightSidebar });
   watchEffect(() => {
@@ -129,12 +144,13 @@ export function useShellController(workspace: WorkspaceDefinition) {
     route,
     commandOpen,
     shortcutsOpen,
-    sidebarVisible,
     sidebarPinned,
     sidebarWidth,
     sidebarPreview,
     rightSidebarOpen,
     rightSidebarWidth,
+    panelMotion,
+    cancelPanelMotion,
     workspaceActive,
     commands,
     toggleSidebarPanel,

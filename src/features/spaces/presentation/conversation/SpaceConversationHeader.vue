@@ -10,6 +10,7 @@ import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiInput from "../../../../shared/ui/UiInput.vue";
 import { useConversationSessionStore } from "../../conversation/conversation-session-store";
 import SpaceContextHeader from "../SpaceContextHeader.vue";
+import SpaceRightSidebarViewPicker from "../SpaceRightSidebarViewPicker.vue";
 import SpaceConversationHistory from "./SpaceConversationHistory.vue";
 
 const { t } = useI18n();
@@ -52,7 +53,8 @@ async function saveTitle() {
 </script>
 
 <template>
-  <SpaceContextHeader :title="selectedConversation?.title || t('spaces.assistant.title')">
+  <SpaceContextHeader :title="selectedConversation?.title || t('spaces.assistant.conversations.create')">
+    <template #leading><SpaceRightSidebarViewPicker /></template>
     <template #actions>
       <SpaceConversationHistory
         v-model:open="historyOpen"

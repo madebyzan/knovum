@@ -1,11 +1,18 @@
 <script setup lang="ts">
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { useSpaceStore } from "../../session/space-store";
 import SpaceContextHeader from "../SpaceContextHeader.vue";
+import SpaceRightSidebarViewPicker from "../SpaceRightSidebarViewPicker.vue";
 
 const store = useSpaceStore();
 const { t } = useI18n();
+const title = computed(
+  () =>
+    store.nodes.find((node) => node.id === store.focusedEditorId)?.data.title ??
+    t("spaces.sidebar.editorOutline.title"),
+);
 
 function reveal(position: number) {
   store.documentOutlineRequest = {
@@ -17,7 +24,9 @@ function reveal(position: number) {
 
 <template>
   <section class="flex min-h-0 flex-col">
-    <SpaceContextHeader :title="t('spaces.sidebar.editorOutline.title')" />
+    <SpaceContextHeader :title="title">
+      <template #leading><SpaceRightSidebarViewPicker /></template>
+    </SpaceContextHeader>
     <nav
       class="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 py-3"
       :aria-label="t('spaces.sidebar.editorOutline.title')"

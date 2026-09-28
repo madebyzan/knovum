@@ -4,7 +4,7 @@ import { useI18n } from "vue-i18n";
 
 import UiIconButton from "../../../shared/ui/UiIconButton.vue";
 
-defineProps<{ title: string; subtitle?: string; back?: boolean; closable?: boolean }>();
+defineProps<{ title: string; subtitle?: string | undefined; back?: boolean; closable?: boolean }>();
 const emit = defineEmits<{ back: []; close: [] }>();
 const { t } = useI18n();
 </script>
@@ -16,6 +16,7 @@ const { t } = useI18n();
     <UiIconButton v-if="back" :label="t('common.back')" size="sm" @click="emit('back')">
       <ArrowLeft class="size-3.5" :stroke-width="1.55" />
     </UiIconButton>
+    <slot name="leading" />
     <div class="min-w-0 flex-1">
       <h2 class="truncate text-title-sm font-semibold tracking-title">{{ title }}</h2>
       <p v-if="subtitle" class="mt-0.5 truncate text-caption-sm text-fg-tertiary">{{ subtitle }}</p>

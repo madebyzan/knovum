@@ -10,6 +10,7 @@ import SpaceConversationPanel from "./conversation/SpaceConversationPanel.vue";
 import SpaceDocumentOutline from "./editor/SpaceDocumentOutline.vue";
 import SpaceSelectionInspector from "./inspector/SpaceSelectionInspector.vue";
 import SpaceContextHeader from "./SpaceContextHeader.vue";
+import SpaceRightSidebarViewPicker from "./SpaceRightSidebarViewPicker.vue";
 import SpaceSourcePeek from "./SpaceSourcePeek.vue";
 
 const store = useSpaceStore();
@@ -35,9 +36,10 @@ watch(
 
 const title = computed(() => {
   if (rightSidebarView.value === "source") return sourcePeek.value?.nodeTitle ?? t("spaces.inspector.source");
-  if (selectedNodes.value.length === 1) return t("spaces.inspector.title");
-  return selectedNodes.value.length
-    ? t("spaces.inspector.itemsSelected", { count: selectedNodes.value.length })
+  const selected = selectedNodes.value;
+  if (selected.length === 1) return selected[0]!.data.title;
+  return selected.length
+    ? t("spaces.inspector.itemsSelected", { count: selected.length })
     : t("spaces.knowledge.health.title");
 });
 const subtitle = computed(() =>
@@ -52,20 +54,20 @@ const subtitle = computed(() =>
     :data-sidebar-view="rightSidebarView"
     class="pointer-events-auto flex h-full w-full min-w-0 flex-col overflow-hidden bg-surface-panel select-none"
   >
-    <section class="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-      <SpaceContextHeader
-        v-if="rightSidebarView === 'inspect' || rightSidebarView === 'source'"
-        :title="title"
-        v-bind="subtitle === undefined ? {} : { subtitle }"
-        :back="rightSidebarView === 'source'"
-        @back="store.closeSource()"
-      />
-      <div class="min-h-0 flex-1 overflow-hidden select-text">
-        <SpaceSelectionInspector v-if="rightSidebarView === 'inspect'" class="h-full" />
-        <SpaceConversationPanel v-else-if="rightSidebarView === 'ask'" class="h-full" />
-        <SpaceDocumentOutline v-else-if="rightSidebarView === 'document-outline'" class="h-full" />
-        <SpaceSourcePeek v-if="rightSidebarView === 'source' && sourcePeek" class="h-full" />
-      </div>
-    </section>
+    <SpaceContextHeader
+      v-if="rightSidebarView === 'inspect' || rightSidebarView === 'source'"
+      :title="title"
+      :subtitle="subtitle"
+      :back="rightSidebarView === 'source'"
+      @back="store.closeSource()"
+    >
+      <template #leading><SpaceRightSidebarViewPicker /></template>
+    </SpaceContextHeader>
+    <div class="min-h-0 flex-1 overflow-hidden select-text">
+      <SpaceSelectionInspector v-if="rightSidebarView === 'inspect'" class="h-full" />
+      <SpaceConversationPanel v-else-if="rightSidebarView === 'ask'" class="h-full" />
+      <SpaceDocumentOutline v-else-if="rightSidebarView === 'document-outline'" class="h-full" />
+      <SpaceSourcePeek v-if="rightSidebarView === 'source' && sourcePeek" class="h-full" />
+    </div>
   </aside>
 </template>

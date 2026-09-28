@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { shallowRef } from "vue";
 import { RouterView } from "vue-router";
 
 import type { WorkspaceDefinition } from "../shared/contracts/workspace-definition";
@@ -14,16 +15,18 @@ const {
   route,
   commandOpen,
   shortcutsOpen,
-  sidebarVisible,
   sidebarPinned,
   sidebarWidth,
   sidebarPreview,
   rightSidebarOpen,
   rightSidebarWidth,
+  panelMotion,
+  cancelPanelMotion,
   workspaceActive,
   commands,
   toggleSidebarFromControl,
   toggleRightSidebar,
+  closeRightSidebar,
   setSidebarPinned,
   setSidebarWidth,
   setRightSidebarWidth,
@@ -32,6 +35,11 @@ const {
   scheduleSidebarPreviewClose,
   closeSidebarPreview,
 } = useShellController(props.workspace);
+const rightSidebarLayoutWidth = shallowRef(0);
+
+function updatePanelLayout(sizes: number[]) {
+  rightSidebarLayoutWidth.value = sizes[2]!;
+}
 </script>
 
 <template>
@@ -48,7 +56,7 @@ const {
   <div
     data-testid="spaces-workspace"
     class="spaces-workspace absolute inset-0 flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden bg-surface-chrome transition-colors duration-220 ease-standard select-none"
-    :class="{ invisible: !workspaceActive }"
+    :class="{ invisible: !workspaceActive, 'is-panel-motion': panelMotion }"
     :aria-hidden="!workspaceActive"
     :inert="!workspaceActive"
   >
@@ -57,7 +65,7 @@ const {
       :sidebar-pinned="sidebarPinned"
       :sidebar-width="sidebarWidth"
       :right-sidebar-open="rightSidebarOpen"
-      :right-sidebar-width="rightSidebarWidth"
+      :right-sidebar-layout-width="rightSidebarLayoutWidth"
       @toggle-right-sidebar="toggleRightSidebar"
       @toggle-sidebar="toggleSidebarFromControl"
       @preview-sidebar="openSidebarPreview"
@@ -65,15 +73,17 @@ const {
     />
     <WorkspaceLayout
       :workspace="workspace"
-      :sidebar-visible="sidebarVisible"
       :sidebar-pinned="sidebarPinned"
       :sidebar-width="sidebarWidth"
       :sidebar-preview="sidebarPreview"
       :right-sidebar-open="rightSidebarOpen"
       :right-sidebar-width="rightSidebarWidth"
+      @panel-layout="updatePanelLayout"
+      @cancel-panel-motion="cancelPanelMotion"
       @set-sidebar-pinned="setSidebarPinned"
       @set-sidebar-width="setSidebarWidth"
       @set-right-sidebar-width="setRightSidebarWidth"
+      @close-right-sidebar="closeRightSidebar"
       @open-sidebar-preview="openSidebarPreview"
       @schedule-sidebar-close="scheduleSidebarPreviewClose"
       @close-sidebar-preview="closeSidebarPreview"

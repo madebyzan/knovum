@@ -188,12 +188,17 @@ menu highlighting and canvas-object selection are separate states, not button fo
 Desktop motion is short, interruptible, and spatially truthful. Use Vue's built-in `<Transition>` and CSS for
 shell and component enter/leave states; do not add a motion runtime for simple opacity and transform effects.
 
-- transient sidebar: horizontal transform plus opacity, 200ms enter and 150ms exit;
-- scrim: opacity only, 200ms enter and 150ms exit;
+- transient sidebar: horizontal transform over 180ms and opacity over 150ms in both directions;
+- scrim: opacity only, 150ms enter and exit;
 - view swaps: at most 150ms with a 4px directional offset;
 - controls: 100–150ms paint transitions; toolbar controls never change geometry when pressed;
-- panel visibility changes animate the split width and its matching toolbar region over 220ms; direct splitter
-  resizing never animates, so the content boundary remains under the pointer;
+- command-initiated panel visibility animates the split width and matching toolbar region over 180ms; direct
+  splitter dragging and window resizing track their actual dimensions without interpolation. The canvas stage
+  uses a bounded size step around its visible host to reduce backing reallocations during resize;
+- the pinned left sidebar stays inside its splitter panel; only its temporary preview overlays the canvas.
+  The sidebar content keeps its chosen width while the panel reveals it, so labels do not reflow through narrow
+  intermediate widths. The canvas keeps the same left inset and rounded corner in both states; with the sidebar
+  pinned, workspace tabs align to that inset;
 - never animate canvas-object geometry or other layout dimensions, and never interpolate a persisted
   node position while it is dragged, undone or restored; the single exception is a command-initiated rearrange
   (align, distribute, auto layout), which may transition the rendered transform for 150ms and stays subject to
@@ -266,25 +271,26 @@ presenting the product as a collection of unrelated tools.
 
 One unified 40px toolbar spans the window above the workspace split. Its empty area is the Tauri drag target;
 interactive controls alone receive pointer input. A subtle highlight separates the chrome from the inset work area.
-Resizing the panes updates the corresponding toolbar regions from the same shell width state without animation.
+Resizing the panes updates the corresponding toolbar regions from the splitter's actual layout without animation.
 
 The leading toolbar region shares the left navigation panel's width and keeps navigation and history controls in
-place when the sidebar is previewed. Space tabs align with the main work surface's leading edge. Leading and right
-chrome actions follow the established compact control size; the right view switcher uses the medium control token
-to keep its contextual modes distinct from Space navigation.
+place when the sidebar is previewed. With the sidebar pinned, Space tabs align with the main work surface's
+leading edge. Leading and right chrome actions follow the established compact control size. The right pane's
+view picker is part of its content header rather than the window toolbar.
 
-The right pane's divider continues through the toolbar at the same horizontal coordinate as its content
-divider. The right view controls and content use one surface color, so the pane reads as a full-height
-column of the desktop workbench rather than a card attached below the toolbar.
+The canvas and right pane each own an inset, rounded surface with a border and the same bottom gutter. The
+right pane's view picker, content header, body and composer live inside that one surface. The window toolbar
+remains a separate native-chrome plane above both surfaces. During expansion, the pane reveals right-anchored
+content at its preferred width instead of compressing the content.
 
 The Spaces sidebar uses a consistent 224px default width in both pinned and transient-preview states. A
 pinned sidebar remains resizable between 200px and 320px. Its resize feedback is painted on the workspace
 surface boundary, never inside the navigation background or the window gutter. Closing it preserves the
 navigation affordance and hover preview; it is application navigation, not a context panel. The right workspace sidebar is a
-full-height resizable pane in the workspace split; it keeps the canvas visible instead of covering it. Its view
-controls sit in the right toolbar region, while the pane content begins directly below it. That region ends with
-the stable visibility toggle; content headers do not repeat that close action. That toggle opens Conversation as the
-default view. Explicit object actions open Details;
+resizable pane in the workspace split; it keeps the canvas visible instead of covering it. One compact header
+contains the current view picker, conversation or content title, and local actions. The picker menu can add views
+without compressing that header. The visibility toggle stays at the window toolbar's top-right corner in both states.
+That toggle opens Conversation as the default view. Explicit object actions open Details;
 the document editor can open its heading Outline. Source opens as a temporary drill-in and returns to its originating
 view. Selection alone never changes the active view. The right pane does not change the leading sidebar width.
 Closing it releases workspace width and suspends its content until reopened; it has no hover preview.
@@ -473,8 +479,8 @@ The leading and right sidebar widths remain stable while the workspace is open. 
 
 On macOS, the unified toolbar owns the entire traffic-light band. Its leading controls begin after one native-control exclusion zone and never jump when the Feature Sidebar opens or closes. All splitters begin below the toolbar, so neither their lines nor resize hit targets cross the native controls.
 
-The window chrome and the inset workspace frame define separate depth planes. The canvas and right pane meet at
-one hairline, and both retain the same bottom inset so the work area reads as one frame.
+The window chrome and the inset workspace surfaces define separate depth planes. Canvas and right pane retain
+their own rounded borders and a shared bottom inset, with a narrow gutter between them.
 
 ### Platform-owned window chrome
 

@@ -1,12 +1,8 @@
-.workspace-frame {
-  transition: left 220ms var(--ease-standard);
-}
-
 .workspace-sidebar-surface {
   opacity: 0;
   transform: translate3d(-100%, 0, 0);
   transition:
-    transform 220ms var(--ease-standard),
+    transform 180ms var(--ease-standard),
     opacity 150ms var(--ease-decelerate),
     box-shadow 150ms var(--ease-decelerate);
 }
@@ -32,7 +28,7 @@
 
 .workspace-pane-content-enter-active,
 .workspace-pane-content-leave-active {
-  transition: opacity 150ms var(--ease-decelerate);
+  transition: opacity 180ms var(--ease-decelerate);
 }
 
 .workspace-pane-content-enter-from,

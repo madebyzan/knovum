@@ -15,10 +15,15 @@ interface StageViewportOptions {
 }
 
 export function useStageViewport(options: StageViewportOptions) {
+  const stageSizeStep = 128;
   const measuredSize = useElementSize(options.host, { width: 1, height: 1 });
   const size = reactive({
     width: computed(() => Math.max(1, measuredSize.width.value)),
     height: computed(() => Math.max(1, measuredSize.height.value)),
+  });
+  const stageSize = reactive({
+    width: computed(() => Math.ceil(size.width / stageSizeStep) * stageSizeStep),
+    height: computed(() => Math.ceil(size.height / stageSizeStep) * stageSizeStep),
   });
   const viewport = shallowRef<CanvasViewport>({ ...options.initialViewport });
   let publishedViewport = viewport.value;
@@ -167,6 +172,7 @@ export function useStageViewport(options: StageViewportOptions) {
     panning,
     setViewport,
     size,
+    stageSize,
     spacePressed,
     viewport,
     wheel,
