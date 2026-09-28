@@ -31,11 +31,13 @@ pub(super) async fn execute(
         let record = repository::start_tool_call(
             pool,
             &ids.task_id,
+            &ids.run_id,
             turn_id,
             &call.call_id,
             &call.name,
             &action_id,
             &invocation_id,
+            &call.arguments,
         )
         .await?;
         if let Some(value) = record.result {
@@ -92,6 +94,7 @@ async fn complete_tool(
     repository::complete_tool_call(
         pool,
         row_id,
+        &ids.run_id,
         &ids.conversation_id,
         &ids.branch_id,
         &call.call_id,

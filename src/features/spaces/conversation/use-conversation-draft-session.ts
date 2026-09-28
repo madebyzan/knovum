@@ -66,5 +66,26 @@ export function useConversationDraftSession(input: {
     if (sameAttachments(input.attachments.value, sent)) input.attachments.value = [];
   }
 
-  return { remember, restore, move, clearSubmitted };
+  function restoreSubmitted(request: StartAssistantTaskInput) {
+    const conversationId = request.conversationId ?? "";
+    if (input.spaceId.value === request.spaceId && input.selectedConversationId.value === conversationId) {
+      if (!input.prompt.value && !input.attachments.value.length) {
+        input.prompt.value = request.prompt;
+        input.attachments.value = [...(request.attachments ?? [])];
+        drafts.save(request.spaceId, conversationId, {
+          prompt: request.prompt,
+          attachments: [...(request.attachments ?? [])],
+        });
+      }
+      return;
+    }
+    if (!drafts.read(request.spaceId, conversationId)) {
+      drafts.save(request.spaceId, conversationId, {
+        prompt: request.prompt,
+        attachments: [...(request.attachments ?? [])],
+      });
+    }
+  }
+
+  return { remember, restore, move, clearSubmitted, restoreSubmitted };
 }

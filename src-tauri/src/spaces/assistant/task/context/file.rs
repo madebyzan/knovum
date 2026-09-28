@@ -54,13 +54,29 @@ pub(super) async fn resolve(
             )
         }
     };
+    let kind_name = match kind {
+        UploadKind::Image(_) => "image",
+        UploadKind::Text => "text",
+        UploadKind::Pdf => "pdf",
+        UploadKind::Office => "office",
+    };
+    let thumbnail = if matches!(kind, UploadKind::Image(_)) {
+        Some(super::image_thumbnail(source.clone()).await?)
+    } else {
+        None
+    };
     verify_revision(source, source_revision.to_owned()).await?;
     Ok(ResolvedPart {
         manifest: json!({
-            "source": "file", "kind": match kind { UploadKind::Image(_) => "image", UploadKind::Text => "text", UploadKind::Pdf => "pdf", UploadKind::Office => "office" },
-            "name": name, "sourceRevision": source_revision,
+            "source": "file", "kind": kind_name,
+            "name": name.clone(), "sourceRevision": source_revision,
             "size": size, "charactersRead": characters_read,
         }),
+        summary: crate::spaces::assistant::AssistantMessageAttachment::File {
+            title: name,
+            kind: kind_name.to_owned(),
+            thumbnail,
+        },
         excerpt,
         image,
         agent_path,

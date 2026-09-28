@@ -32,7 +32,7 @@ pub(super) async fn complete(
         &ids.conversation_id,
         &ids.branch_id,
         repository::AssistantMessageRole::Assistant,
-        &json!({"parts": [{"type": "text", "text": output}]}),
+        &json!({"parts": [{"type": "text", "text": output}], "runId": ids.run_id}),
         now,
     )
     .await?;

@@ -3,4 +3,4 @@ import type { ModelContentPart } from "../../../../shared/contracts/generated/Mo
 import type { AssistantMessageAttachment } from "./AssistantMessageAttachment";
 import type { AssistantMessageStatus } from "./AssistantMessageStatus";
 
-export type AssistantMessageContent = { parts: Array<ModelContentPart>, attachments?: Array<AssistantMessageAttachment>, citations: Array<unknown>, status?: AssistantMessageStatus | null, };
+export type AssistantMessageContent = { parts: Array<ModelContentPart>, runId?: string | null, attachments?: Array<AssistantMessageAttachment>, citations: Array<unknown>, status?: AssistantMessageStatus | null, };

@@ -18,6 +18,7 @@ pub(super) struct NewAssistantTaskState<'a> {
     pub grant: &'a AuthorizationContext,
     pub catalog: &'a tools::ToolCatalog,
     pub context_manifest: &'a serde_json::Value,
+    pub attachment_summaries: &'a [crate::spaces::assistant::AssistantMessageAttachment],
     pub checkpoint: &'a ControlCheckpoint,
     pub now: i64,
 }
@@ -32,6 +33,7 @@ pub(super) async fn persist_task(
         grant,
         catalog,
         context_manifest,
+        attachment_summaries,
         checkpoint,
         now,
     } = records;
@@ -100,7 +102,8 @@ pub(super) async fn persist_task(
         repository::AssistantMessageRole::User,
         &json!({
             "parts": [{"type": "text", "text": request.prompt}],
-            "attachments": repository::attachment_summaries(context_manifest)?,
+            "runId": ids.run_id,
+            "attachments": attachment_summaries,
         }),
         now,
     )

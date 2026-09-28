@@ -12,7 +12,7 @@ pub async fn start_turn(
     let now = crate::clock::unix_time_millis()?;
     let mut tx = db::begin_write(pool).await?;
     let binding = sqlx::query(
-        "SELECT state,assistant_conversation_id,branch_id
+        "SELECT state,assistant_conversation_id,branch_id,run_id
          FROM spaces_external_agent_conversations WHERE id=$1",
     )
     .bind(conversation_id)
@@ -31,6 +31,7 @@ pub async fn start_turn(
         .try_get("assistant_conversation_id")
         .map_err(db::sql_error)?;
     let branch_id: String = binding.try_get("branch_id").map_err(db::sql_error)?;
+    let run_id: String = binding.try_get("run_id").map_err(db::sql_error)?;
     let assistant_message_id = uuid::Uuid::new_v4().to_string();
     append_message(
         &mut tx,
@@ -39,6 +40,7 @@ pub async fn start_turn(
         "user",
         prompt,
         attachments,
+        &run_id,
         now,
     )
     .await?;
@@ -49,7 +51,7 @@ pub async fn start_turn(
     .bind(&assistant_message_id)
     .bind(&assistant_id)
     .bind(&branch_id)
-    .bind(serde_json::json!({"parts":[{"type":"text","text":""}]}).to_string())
+    .bind(serde_json::json!({"parts":[{"type":"text","text":""}], "runId": run_id}).to_string())
     .bind(now)
     .execute(&mut *tx)
     .await
@@ -109,6 +111,22 @@ pub async fn append_agent_message_in_transaction(
     Ok(())
 }
 
+pub async fn clear_agent_message_in_transaction(
+    tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
+    conversation_id: &str,
+) -> Result<(), String> {
+    sqlx::query(
+        "UPDATE spaces_assistant_messages SET content=json_set(content,'$.parts[0].text','')
+         WHERE id=(SELECT assistant_message_id FROM spaces_external_agent_turns
+           WHERE conversation_id=$1 AND state='running' ORDER BY created_at DESC LIMIT 1)",
+    )
+    .bind(conversation_id)
+    .execute(&mut **tx)
+    .await
+    .map_err(db::sql_error)?;
+    Ok(())
+}
+
 pub async fn finish_turn(
     pool: &SqlitePool,
     turn_id: &str,
@@ -146,6 +164,7 @@ async fn append_message(
     role: &str,
     content: &str,
     attachments: &[crate::spaces::assistant::AssistantMessageAttachment],
+    run_id: &str,
     now: i64,
 ) -> Result<(), String> {
     sqlx::query(
@@ -157,7 +176,7 @@ async fn append_message(
     .bind(branch_id)
     .bind(role)
     .bind(
-        serde_json::json!({"parts":[{"type":"text","text":content}], "attachments": attachments})
+        serde_json::json!({"parts":[{"type":"text","text":content}], "attachments": attachments, "runId": run_id})
             .to_string(),
     )
     .bind(now)

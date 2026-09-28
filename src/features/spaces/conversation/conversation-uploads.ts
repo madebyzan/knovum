@@ -2,6 +2,10 @@ import { open } from "@tauri-apps/plugin-dialog";
 
 import { inspectAssistantUpload } from "./conversation-ipc";
 
+export function inspectAssistantUploads(paths: readonly string[]) {
+  return Promise.all(paths.map((path) => inspectAssistantUpload(path)));
+}
+
 export async function chooseAssistantUploads() {
   const selected = await open({
     directory: false,
@@ -33,5 +37,5 @@ export async function chooseAssistantUploads() {
   });
   if (!selected) return [];
   const paths = Array.isArray(selected) ? selected : [selected];
-  return Promise.all(paths.map((path) => inspectAssistantUpload(path)));
+  return inspectAssistantUploads(paths);
 }

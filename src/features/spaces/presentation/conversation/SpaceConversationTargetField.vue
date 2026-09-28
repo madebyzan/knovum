@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Bot, ChevronDown, Monitor, Settings2 } from "@lucide/vue";
+import { Bot, Check, ChevronDown, Monitor, Settings2 } from "@lucide/vue";
+import { DropdownMenuGroup, DropdownMenuItemIndicator, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem } from "reka-ui";
 import { computed, onMounted, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
@@ -8,7 +9,9 @@ import { availableExecutionTargets, defaultExecutionTarget } from "../../../../f
 import { useAiSettingsStore } from "../../../../foundation/ai/ai-settings-store";
 import { useExecutionCatalogQuery } from "../../../../foundation/ai/execution-catalog-query";
 import UiButton from "../../../../shared/ui/UiButton.vue";
-import UiDropdownMenu, { type UiDropdownMenuItemOption } from "../../../../shared/ui/UiDropdownMenu.vue";
+import UiDropdownMenu from "../../../../shared/ui/UiDropdownMenu.vue";
+import UiDropdownMenuItem from "../../../../shared/ui/UiDropdownMenuItem.vue";
+import UiSeparator from "../../../../shared/ui/UiSeparator.vue";
 import { conversationTargetKey, type ConversationTarget } from "../../conversation/conversation-target";
 
 const target = defineModel<ConversationTarget | undefined>();
@@ -19,6 +22,14 @@ const settings = useAiSettingsStore();
 const catalog = useExecutionCatalogQuery({ detectInstallations: false });
 
 const models = computed(() => availableExecutionTargets(settings.settings, "knowledge"));
+const modelChoices = computed(() => models.value.map((option) => {
+  const connection = settings.settings.connections.find(({ id }) => id === option.target.connectionId);
+  return {
+    ...option,
+    name: connection?.models.find(({ id }) => id === option.target.modelId)?.name,
+    connectionName: connection?.name,
+  };
+}));
 const desktopAgents = computed(() =>
   (catalog.data.value?.agents ?? []).filter((agent) =>
     settings.settings.desktopAgents.some((configured) => configured.kind === agent.kind),
@@ -27,43 +38,11 @@ const desktopAgents = computed(() =>
 const selectedKey = computed(() => (target.value ? conversationTargetKey(target.value) : ""));
 const selectedLabel = computed(() => {
   const model = models.value.find(({ value }) => value === selectedKey.value);
-  if (model) return `${t("spaces.assistant.agents.builtIn")} · ${model.label}`;
+  if (model) return model.label;
   const agent = desktopAgents.value.find(({ kind }) => `agent:${kind}` === selectedKey.value);
-  if (agent) return `${t("spaces.assistant.agents.external")} · ${agent.displayName}`;
+  if (agent) return agent.displayName;
   return t("spaces.assistant.agents.select");
 });
-const choices = computed<UiDropdownMenuItemOption[]>(() => [
-  { label: t("spaces.assistant.agents.builtIn"), disabled: true },
-  ...models.value.map((model) => ({
-    id: model.value,
-    label: model.label,
-    icon: Bot,
-    checked: selectedKey.value === model.value,
-    onSelect: () => (target.value = model.target),
-  })),
-  ...(!models.value.length ? [{ label: t("spaces.assistant.agents.noModel"), disabled: true }] : []),
-  {
-    label: t("ai.openSettings"),
-    icon: Settings2,
-    onSelect: () => void router.push({ name: "settings", query: { pane: "aiModels" } }),
-  },
-  { separator: true },
-  { label: t("spaces.assistant.agents.external"), disabled: true },
-  ...desktopAgents.value.map((agent) => ({
-    id: `agent:${agent.kind}`,
-    label: agent.displayName,
-    icon: Monitor,
-    checked: selectedKey.value === `agent:${agent.kind}`,
-    onSelect: () => (target.value = { type: "agent", runtimeKind: agent.kind }),
-  })),
-  ...(catalog.error.value ? [{ label: String(catalog.error.value), disabled: true }] : []),
-  {
-    label: t("spaces.assistant.agents.configure"),
-    icon: Settings2,
-    onSelect: () => void router.push({ name: "settings", query: { pane: "aiModels" } }),
-  },
-]);
-
 watch(
   [selectedKey, models, desktopAgents, () => settings.ready],
   () => {
@@ -97,7 +76,7 @@ onMounted(() => void settings.ensureLoaded());
     <p v-if="settings.loadError" class="text-caption text-fg-danger" role="alert">
       {{ t("ai.settingsUnavailable") }}: {{ String(settings.loadError) }}
     </p>
-    <UiDropdownMenu :items="choices" side="top" align="start" class="max-h-72 max-w-80 overflow-y-auto">
+    <UiDropdownMenu side="top" align="start" class="w-80 max-w-[calc(100vw-24px)] max-h-96 overflow-y-auto p-1.5">
       <template #trigger>
         <UiButton
           variant="ghost"
@@ -111,6 +90,53 @@ onMounted(() => void settings.ensureLoaded());
           <ChevronDown class="size-3 shrink-0" />
         </UiButton>
       </template>
+      <DropdownMenuRadioGroup :model-value="selectedKey">
+        <DropdownMenuGroup>
+          <DropdownMenuLabel class="px-2.5 pt-1.5 pb-1 text-caption-sm font-medium text-fg-tertiary">
+            {{ t("spaces.assistant.agents.builtIn") }}
+          </DropdownMenuLabel>
+          <DropdownMenuRadioItem
+            v-for="model in modelChoices"
+            :key="model.value"
+            :value="model.value"
+            :text-value="model.label"
+            class="relative flex min-h-12 cursor-default items-center rounded-md px-2.5 py-1.5 pr-8 outline-none data-highlighted:bg-surface-control-hover"
+            @select="target = model.target"
+          >
+            <span class="min-w-0 flex-1">
+              <span class="block truncate text-label text-fg-primary">{{ model.name }}</span>
+              <span class="block truncate text-caption-sm text-fg-tertiary">{{ model.connectionName }}</span>
+            </span>
+            <DropdownMenuItemIndicator class="absolute right-2.5 text-fg-accent"><Check class="size-4" /></DropdownMenuItemIndicator>
+          </DropdownMenuRadioItem>
+          <p v-if="!models.length" class="px-2.5 py-2 text-caption text-fg-tertiary">{{ t("spaces.assistant.agents.noModel") }}</p>
+        </DropdownMenuGroup>
+        <UiSeparator class="my-1.5" />
+        <DropdownMenuGroup>
+          <DropdownMenuLabel class="px-2.5 pt-1.5 pb-1 text-caption-sm font-medium text-fg-tertiary">
+            {{ t("spaces.assistant.agents.external") }}
+          </DropdownMenuLabel>
+          <DropdownMenuRadioItem
+            v-for="agent in desktopAgents"
+            :key="agent.kind"
+            :value="`agent:${agent.kind}`"
+            :text-value="agent.displayName"
+            class="relative flex min-h-12 cursor-default items-center rounded-md px-2.5 py-1.5 pr-8 outline-none data-highlighted:bg-surface-control-hover"
+            @select="target = { type: 'agent', runtimeKind: agent.kind }"
+          >
+            <span class="min-w-0 flex-1">
+              <span class="block truncate text-label text-fg-primary">{{ agent.displayName }}</span>
+              <span class="block truncate text-caption-sm text-fg-tertiary">{{ t("spaces.assistant.agents.externalDescription") }}</span>
+            </span>
+            <DropdownMenuItemIndicator class="absolute right-2.5 text-fg-accent"><Check class="size-4" /></DropdownMenuItemIndicator>
+          </DropdownMenuRadioItem>
+          <p v-if="catalog.error.value" class="px-2.5 py-2 text-caption text-fg-danger" role="alert">{{ String(catalog.error.value) }}</p>
+        </DropdownMenuGroup>
+      </DropdownMenuRadioGroup>
+      <UiSeparator class="my-1.5" />
+      <UiDropdownMenuItem class="gap-2.5 px-2.5 text-fg-secondary" @select="router.push({ name: 'settings', query: { pane: 'aiModels' } })">
+        <Settings2 class="size-4" />{{ t("spaces.assistant.agents.manage") }}
+      </UiDropdownMenuItem>
     </UiDropdownMenu>
   </div>
 </template>

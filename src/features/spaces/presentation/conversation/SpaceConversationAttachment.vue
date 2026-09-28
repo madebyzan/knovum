@@ -1,74 +1,57 @@
 <script setup lang="ts">
-import { FileText, Link2, X } from "@lucide/vue";
-import { HoverCardContent, HoverCardPortal, HoverCardRoot, HoverCardTrigger } from "reka-ui";
+import { File, FileImage, FileText, Link2, X } from "@lucide/vue";
+import { ref } from "vue";
 
 defineProps<{
-  attachment: { key: string; kind: "node" | "file"; title: string; previewSource: string };
+  attachment: { key: string; kind: "node" | "file"; title: string; isImage: boolean; previewSource: string };
 }>();
 const emit = defineEmits<{ remove: [key: string] }>();
+const imageWidth = ref(96);
+
+function sizeImage(event: Event) {
+  const image = event.target as HTMLImageElement;
+  imageWidth.value = Math.max(64, Math.min(144, Math.round((96 * image.naturalWidth) / image.naturalHeight)));
+}
 </script>
 
 <template>
-  <HoverCardRoot :open-delay="350" :close-delay="100">
-    <HoverCardTrigger as-child>
-      <span
-        class="inline-flex max-w-full min-w-0 items-center gap-2 rounded-md border border-stroke-divider bg-surface-control py-1 pr-1 pl-1.5 text-caption focus-visible:outline-2 focus-visible:outline-stroke-focus"
-        tabindex="0"
-      >
-        <img
-          v-if="attachment.previewSource"
-          :src="attachment.previewSource"
-          alt=""
-          class="size-7 shrink-0 rounded-md object-cover"
-        />
-        <span
-          v-else
-          class="flex size-7 shrink-0 items-center justify-center rounded-md"
-          :class="
-            attachment.kind === 'node'
-              ? 'bg-surface-accent-subtle text-fg-accent'
-              : 'bg-surface-raised text-fg-secondary'
-          "
-        >
-          <Link2 v-if="attachment.kind === 'node'" class="size-3.5" />
-          <FileText v-else class="size-3.5" />
-        </span>
-        <span class="max-w-36 min-w-0">
-          <span class="block text-caption-sm text-fg-tertiary">{{
-            $t(
-              attachment.kind === "node"
-                ? "spaces.assistant.attachments.canvasNodeShort"
-                : "spaces.assistant.attachments.localFileShort",
-            )
-          }}</span>
-          <span class="block truncate font-medium text-fg-primary">{{ attachment.title }}</span>
-        </span>
-        <button
-          type="button"
-          class="ml-0.5 flex size-6 shrink-0 items-center justify-center rounded-md text-fg-tertiary hover:bg-surface-control-hover hover:text-fg-primary focus-visible:outline-2 focus-visible:outline-stroke-focus"
-          :aria-label="$t('spaces.assistant.attachments.remove', { name: attachment.title })"
-          @click="emit('remove', attachment.key)"
-        >
-          <X class="size-3" />
-        </button>
-      </span>
-    </HoverCardTrigger>
-    <HoverCardPortal v-if="attachment.previewSource">
-      <HoverCardContent
-        side="top"
-        align="start"
-        :side-offset="8"
-        :collision-padding="12"
-        avoid-collisions
-        class="z-50 w-56 rounded-panel border border-stroke-default material-overlay p-1.5 shadow-popover"
-      >
-        <img
-          :src="attachment.previewSource"
-          :alt="attachment.title"
-          class="max-h-64 w-full rounded-md object-contain"
-        />
-        <p class="truncate px-1 pt-1 text-caption text-fg-secondary">{{ attachment.title }}</p>
-      </HoverCardContent>
-    </HoverCardPortal>
-  </HoverCardRoot>
+  <div
+    class="group relative flex h-24 min-w-16 flex-col overflow-hidden rounded-lg border border-stroke-divider bg-surface-raised transition-[border-color,box-shadow] duration-150 hover:border-stroke-default-hover hover:shadow-control focus-within:border-stroke-focus"
+    :class="{ 'w-36': !attachment.isImage }"
+    :style="attachment.isImage ? { width: `${imageWidth}px` } : undefined"
+    :title="attachment.title"
+    role="group"
+    :aria-label="`${$t(attachment.kind === 'node' ? 'spaces.assistant.attachments.canvasNodeShort' : 'spaces.assistant.attachments.localFileShort')}: ${attachment.title}`"
+  >
+    <div class="flex min-h-0 flex-1 items-center justify-center overflow-hidden bg-surface-muted">
+      <img
+        v-if="attachment.previewSource"
+        :src="attachment.previewSource"
+        alt=""
+        class="size-full object-contain"
+        @load="attachment.isImage && sizeImage($event)"
+      />
+      <FileImage v-else-if="attachment.isImage" class="size-5 text-fg-tertiary" :stroke-width="1.5" />
+      <File v-else class="size-5 text-fg-tertiary" :stroke-width="1.5" />
+    </div>
+    <div v-if="!attachment.isImage" class="flex h-7 min-w-0 shrink-0 items-center gap-1.5 px-2">
+      <Link2 v-if="attachment.kind === 'node'" class="size-3.5 shrink-0 text-fg-accent" />
+      <FileText v-else class="size-3.5 shrink-0 text-fg-secondary" />
+      <span class="min-w-0 truncate text-caption font-medium text-fg-primary">{{ attachment.title }}</span>
+    </div>
+    <button
+      type="button"
+      class="attachment-remove absolute top-1 right-1 flex size-6 items-center justify-center rounded-md bg-surface-overlay/95 text-fg-secondary opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100 hover:bg-surface-control-hover hover:text-fg-primary focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-stroke-focus"
+      :aria-label="$t('spaces.assistant.attachments.remove', { name: attachment.title })"
+      @click="emit('remove', attachment.key)"
+    >
+      <X class="size-3.5" />
+    </button>
+  </div>
 </template>
+
+<style scoped>
+@media (hover: none) {
+  .attachment-remove { opacity: 1; }
+}
+</style>

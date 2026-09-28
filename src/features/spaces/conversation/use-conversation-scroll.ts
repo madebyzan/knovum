@@ -15,7 +15,7 @@ export function useConversationScroll(
     streamedText: string;
     loadingOlder: boolean;
     scrollKey: string;
-    savedScrollTop: number;
+    savedScrollTop?: number | undefined;
   },
   events: { loadOlder: () => void; remember: (key: string, top: number) => void },
 ) {
@@ -28,6 +28,7 @@ export function useConversationScroll(
     computed(() => ({
       count: props.messages.length,
       getScrollElement: () => scroller.value,
+      getItemKey: (index) => props.messages[index]!.id,
       estimateSize: () => 92,
       overscan: 6,
     })),
@@ -52,6 +53,17 @@ export function useConversationScroll(
     atTail.value = true;
   }
 
+  function restoreScrollPosition() {
+    const element = scroller.value;
+    if (!element) return;
+    if (props.savedScrollTop === undefined) scrollToTail();
+    else {
+      element.scrollTop = props.savedScrollTop;
+      updateScrollPosition();
+    }
+    restorePending = false;
+  }
+
   function loadOlder() {
     const element = scroller.value;
     if (element) {
@@ -74,12 +86,7 @@ export function useConversationScroll(
       }
       if (restorePending && props.messages.length) {
         await nextTick();
-        const element = scroller.value;
-        if (element) {
-          element.scrollTop = props.savedScrollTop;
-          updateScrollPosition();
-          restorePending = false;
-        }
+        restoreScrollPosition();
         return;
       }
       if (!atTail.value) return;
@@ -103,12 +110,7 @@ export function useConversationScroll(
       if (previousKey !== undefined && scroller.value) events.remember(previousKey, scroller.value.scrollTop);
       restorePending = true;
       await nextTick();
-      const element = scroller.value;
-      if (element && props.messages.length) {
-        element.scrollTop = props.savedScrollTop;
-        updateScrollPosition();
-        restorePending = false;
-      }
+      if (props.messages.length) restoreScrollPosition();
     },
     { immediate: true },
   );

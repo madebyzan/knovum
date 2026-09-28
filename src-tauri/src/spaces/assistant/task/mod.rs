@@ -72,6 +72,7 @@ pub async fn start(
             grant: &grant,
             catalog: &catalog,
             context_manifest: &context.manifest,
+            attachment_summaries: &context.summaries,
             checkpoint: &checkpoint,
             now,
         },

@@ -1,25 +1,24 @@
 <script setup lang="ts">
-import { MoreHorizontal } from "@lucide/vue";
+import { Check, Copy, GitBranch, RefreshCw } from "@lucide/vue";
+import { useTimeoutFn } from "@vueuse/core";
 import { writeText } from "tauri-plugin-clipboard-api";
 import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
-import { z } from "zod";
 
-import UiDropdownMenu from "../../../../shared/ui/UiDropdownMenu.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiMarkdown from "../../../../shared/ui/UiMarkdown.vue";
 import type { AssistantMessage } from "../../conversation/conversation-ipc";
 import { groundedCitationSchema } from "../../knowledge/model/schema/grounded-citation";
 import { useSpaceStore } from "../../session/space-store";
-import { captureActionLabel } from "../workflows/workflow-capture-labels";
 import SpaceConversationMessageAttachments from "./SpaceConversationMessageAttachments.vue";
-import SpaceConversationSearchMatches from "./SpaceConversationSearchMatches.vue";
 
-const props = defineProps<{ message: AssistantMessage; streamedText?: string }>();
+const props = defineProps<{ message: AssistantMessage; streamedText?: string; busy: boolean }>();
 const emit = defineEmits<{ branch: []; regenerate: [] }>();
 const { t } = useI18n();
 const store = useSpaceStore();
 const copyFailed = shallowRef(false);
+const copied = shallowRef(false);
+const { start: resetCopied } = useTimeoutFn(() => (copied.value = false), 1600, { immediate: false });
 const messageText = computed(() =>
   props.message.content.parts
     .filter((part) => part.type === "text")
@@ -27,37 +26,17 @@ const messageText = computed(() =>
     .join("\n\n"),
 );
 const citations = computed(() => groundedCitationSchema.array().parse(props.message.content.citations));
-const actions = computed(() => [
-  ...(messageText.value
-    ? [{ label: t("spaces.assistant.messages.copy"), onSelect: () => void copyMessage() }]
-    : []),
-  { label: t("spaces.assistant.conversations.branch"), onSelect: () => emit("branch") },
-  { label: t("spaces.assistant.regenerate"), onSelect: () => emit("regenerate") },
-]);
 
 async function copyMessage() {
   try {
     await writeText(messageText.value);
     copyFailed.value = false;
+    copied.value = true;
+    resetCopied();
   } catch {
     copyFailed.value = true;
+    copied.value = false;
   }
-}
-
-function actionName(id: string) {
-  return captureActionLabel(id, t);
-}
-
-/** Run results arrive as generated JSON values, so the created-node receipts are untrusted shapes. */
-const createdNodeSchema = z.discriminatedUnion("type", [
-  z.object({ type: z.literal("accepted_run"), nodeId: z.string() }),
-  z.object({ type: z.literal("committed_receipt"), receipt: z.object({ nodeId: z.string().optional() }) }),
-]);
-
-function createdNodeId(creationReply: unknown): string | undefined {
-  const created = createdNodeSchema.safeParse(creationReply);
-  if (!created.success) return undefined;
-  return created.data.type === "accepted_run" ? created.data.nodeId : created.data.receipt.nodeId;
 }
 </script>
 
@@ -66,43 +45,19 @@ function createdNodeId(creationReply: unknown): string | undefined {
     class="group flex min-w-0 flex-col gap-2"
     :class="message.role === 'user' ? 'items-end' : 'items-start'"
   >
-    <span v-if="message.role === 'assistant'" class="text-caption font-semibold text-fg-secondary">
-      {{ t("spaces.assistant.role.assistant") }}
-    </span>
     <div
-      class="max-w-full min-w-0 space-y-2 text-body leading-relaxed text-fg-primary"
-      :class="message.role === 'user' ? 'w-fit rounded-panel bg-surface-control px-3 py-2.5' : 'w-full'"
+      class="min-w-0 space-y-2 text-body leading-relaxed text-fg-primary"
+      :class="message.role === 'user' ? 'w-fit max-w-[85%] rounded-panel bg-surface-control px-3 py-2.5' : 'w-full'"
     >
       <template v-for="(part, index) in message.content.parts" :key="index">
         <UiMarkdown
-          v-if="part.type === 'text' && !streamedText"
+          v-if="part.type === 'text' && part.text.trim() && !streamedText"
           :content="part.text"
           class="wrap-break-word"
         />
         <p v-else-if="part.type === 'binary'" class="text-caption text-fg-secondary">
           {{ part.name || part.mediaType }}
         </p>
-        <SpaceConversationSearchMatches
-          v-else-if="part.type === 'tool_result' && part.name === 'search-knowledge'"
-          :value="part.result"
-        />
-        <p v-else-if="part.type === 'tool_call'" class="text-caption text-fg-secondary">
-          {{ t("spaces.assistant.actions.working") }}
-        </p>
-        <div
-          v-else-if="part.type === 'tool_result'"
-          class="rounded-md bg-surface-control px-2.5 py-2 text-caption text-fg-secondary"
-        >
-          <span>{{ t("spaces.assistant.actions.completed", { name: actionName(part.name) }) }}</span>
-          <button
-            v-if="createdNodeId(part.result)"
-            type="button"
-            class="ml-2 font-medium text-fg-accent hover:underline"
-            @click="store.requestReveal([createdNodeId(part.result)!], 'focus')"
-          >
-            {{ t("spaces.assistant.actions.viewCreated") }}
-          </button>
-        </div>
       </template>
       <p v-if="streamedText" class="wrap-break-word whitespace-pre-wrap">{{ streamedText }}</p>
     </div>
@@ -161,12 +116,26 @@ function createdNodeId(creationReply: unknown): string | undefined {
     <p v-if="copyFailed" role="alert" class="text-caption text-fg-danger">
       {{ t("spaces.assistant.messages.copyFailed") }}
     </p>
-    <UiDropdownMenu v-if="message.role === 'assistant'" :items="actions">
-      <template #trigger>
-        <UiIconButton :label="t('spaces.assistant.messages.actions')" size="sm" class="text-fg-tertiary">
-          <MoreHorizontal class="size-3.5" />
-        </UiIconButton>
-      </template>
-    </UiDropdownMenu>
+    <div
+      v-if="message.role === 'assistant' && messageText"
+      class="message-actions flex items-center gap-0.5 opacity-0 transition-opacity duration-100 group-hover:opacity-100 group-focus-within:opacity-100"
+    >
+      <UiIconButton :label="t(copied ? 'spaces.assistant.messages.copied' : 'spaces.assistant.messages.copy')" size="sm" @click="copyMessage">
+        <Check v-if="copied" class="size-3.5 text-fg-accent" />
+        <Copy v-else class="size-3.5" />
+      </UiIconButton>
+      <UiIconButton :label="t('spaces.assistant.conversations.branch')" size="sm" :disabled="busy" @click="emit('branch')">
+        <GitBranch class="size-3.5" />
+      </UiIconButton>
+      <UiIconButton :label="t('spaces.assistant.regenerate')" size="sm" :disabled="busy" @click="emit('regenerate')">
+        <RefreshCw class="size-3.5" />
+      </UiIconButton>
+    </div>
   </div>
 </template>
+
+<style scoped>
+@media (hover: none) {
+  .message-actions { opacity: 1; }
+}
+</style>

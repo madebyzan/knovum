@@ -68,11 +68,11 @@ fn durable_update(
 ) -> Option<(crate::spaces::runs::RunEventKind, serde_json::Value)> {
     use external_agents::session::AgentSessionUpdate;
     match update {
-        AgentSessionUpdate::ToolCall { id, title } => Some((
+        AgentSessionUpdate::ToolCall { id, title, .. } => Some((
             crate::spaces::runs::RunEventKind::ExternalAgentToolStarted,
             serde_json::json!({"toolCallId": id, "title": title}),
         )),
-        AgentSessionUpdate::ToolUpdate { id } => Some((
+        AgentSessionUpdate::ToolUpdate { id, .. } => Some((
             crate::spaces::runs::RunEventKind::ExternalAgentToolUpdated,
             serde_json::json!({"toolCallId": id}),
         )),
@@ -127,10 +127,10 @@ fn event_from_update(
     match update {
         AgentSessionUpdate::Thought(text) => contracts::AgentCreationEvent::Thought { text },
         AgentSessionUpdate::Message(text) => contracts::AgentCreationEvent::Message { text },
-        AgentSessionUpdate::ToolCall { id, title } => {
+        AgentSessionUpdate::ToolCall { id, title, .. } => {
             contracts::AgentCreationEvent::ToolStarted { id, title }
         }
-        AgentSessionUpdate::ToolUpdate { id } => contracts::AgentCreationEvent::ToolUpdated { id },
+        AgentSessionUpdate::ToolUpdate { id, .. } => contracts::AgentCreationEvent::ToolUpdated { id },
         AgentSessionUpdate::PermissionRequested {
             request_id,
             title,

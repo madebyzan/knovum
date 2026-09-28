@@ -19,6 +19,8 @@ pub struct AssistantMessage {
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct AssistantMessageContent {
     pub parts: Vec<crate::ai::contracts::ModelContentPart>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub run_id: Option<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub attachments: Vec<AssistantMessageAttachment>,
     #[serde(default)]
@@ -37,36 +39,17 @@ pub struct AssistantMessageContent {
     deny_unknown_fields
 )]
 pub enum AssistantMessageAttachment {
-    Node { title: String, node_id: String },
-    File { title: String },
-}
-
-pub(crate) fn attachment_summaries(
-    manifest: &Value,
-) -> Result<Vec<AssistantMessageAttachment>, String> {
-    let items = manifest
-        .as_array()
-        .ok_or("assistant-context-manifest-invalid")?;
-    items
-        .iter()
-        .map(|item| match item.get("source").and_then(Value::as_str) {
-            Some("node") => Ok(AssistantMessageAttachment::Node {
-                title: required_attachment_field(item, "title")?,
-                node_id: required_attachment_field(item, "nodeId")?,
-            }),
-            Some("file") => Ok(AssistantMessageAttachment::File {
-                title: required_attachment_field(item, "name")?,
-            }),
-            _ => Err("assistant-context-manifest-invalid: attachment source".into()),
-        })
-        .collect()
-}
-
-fn required_attachment_field(item: &Value, key: &str) -> Result<String, String> {
-    item.get(key)
-        .and_then(Value::as_str)
-        .map(str::to_owned)
-        .ok_or_else(|| format!("assistant-context-manifest-invalid: {key}"))
+    Node {
+        title: String,
+        node_id: String,
+        kind: String,
+        thumbnail: Option<String>,
+    },
+    File {
+        title: String,
+        kind: String,
+        thumbnail: Option<String>,
+    },
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, Serialize, TS)]

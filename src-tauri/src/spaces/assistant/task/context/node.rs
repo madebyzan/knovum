@@ -58,22 +58,26 @@ pub(super) async fn resolve(
         .unwrap_or("");
     let excerpt: String = text.chars().take(remaining.min(8_000)).collect();
     let characters_read = excerpt.chars().count();
-    let (image, agent_path) = if kind == "image" {
+    let (image, agent_path, thumbnail) = if kind == "image" {
         let path = image_path(app, &data).await?;
+        let thumbnail = super::image_thumbnail(path.clone()).await?;
         if target == ContextTarget::Model {
-            (Some(load_image(&path).await?), None)
+            (Some(load_image(&path).await?), None, Some(thumbnail))
         } else {
-            (None, Some(path))
+            (None, Some(path), Some(thumbnail))
         }
     } else {
-        (None, None)
+        (None, None, None)
     };
     Ok(ResolvedPart {
         manifest: json!({
             "source": "node", "nodeId": node_id, "sourceRevision": source_revision,
-            "role": role, "locator": locator, "kind": kind, "title": title,
+            "role": role, "locator": locator, "kind": kind.clone(), "title": title,
             "representation": "current-node-data", "charactersRead": characters_read,
         }),
+        summary: crate::spaces::assistant::AssistantMessageAttachment::Node {
+            title: title.to_owned(), node_id: node_id.to_owned(), kind, thumbnail,
+        },
         excerpt: Some(format!(
             "[node={node_id} revision={source_revision} title={title}]\n{excerpt}"
         )),

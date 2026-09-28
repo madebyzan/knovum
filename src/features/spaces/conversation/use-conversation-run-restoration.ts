@@ -29,6 +29,7 @@ export function useConversationRunRestoration(state: {
   loading: ShallowRef<boolean>;
   permission: ShallowRef<Permission | undefined>;
   error: ShallowRef<string | undefined>;
+  activityRevision: ShallowRef<number>;
   refresh: () => Promise<void>;
   select: (id: string, skipRemember?: boolean, branchId?: string) => Promise<void>;
   onDetach: () => void;
@@ -79,6 +80,7 @@ export function useConversationRunRestoration(state: {
       if (observingRunId !== run.id) return;
       state.taskState.value = run.state;
       state.waitReason.value = run.waitReason;
+      state.activityRevision.value += 1;
       if (run.completedAt !== null) {
         state.permission.value = undefined;
         approvals.value = [];

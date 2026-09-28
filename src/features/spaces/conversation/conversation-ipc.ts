@@ -14,9 +14,14 @@ import type { AssistantMessage } from "../contracts/generated/AssistantMessage";
 import type { AssistantTaskAccepted } from "../contracts/generated/AssistantTaskAccepted";
 import type { AssistantTaskUpdate } from "../contracts/generated/AssistantTaskUpdate";
 import type { PendingApproval } from "../contracts/generated/PendingApproval";
+import type { RunEvent } from "../contracts/generated/RunEvent";
 
 export type { AssistantConversation } from "../contracts/generated/AssistantConversation";
 export type { AssistantMessage, AssistantTaskAccepted };
+
+export function listAssistantRunEvents(runId: string, afterSequence = 0): Promise<RunEvent[]> {
+  return invokeCommand("plugin:spaces|list_run_events", { runId, afterSequence });
+}
 
 export function listActiveAssistantRuns(spaceId?: string): Promise<ActiveAssistantRun[]> {
   return invokeCommand("plugin:spaces|list_active_assistant_runs", { spaceId });
@@ -69,6 +74,14 @@ export function listAssistantMessages(
     beforeId: before?.id,
     limit: 100,
   });
+}
+
+export function listAssistantBranches(conversationId: string): Promise<string[]> {
+  return invokeCommand("plugin:spaces|list_assistant_branches", { conversationId });
+}
+
+export function activateAssistantBranch(conversationId: string, branchId: string): Promise<void> {
+  return invokeCommand("plugin:spaces|activate_assistant_branch", { conversationId, branchId });
 }
 
 export async function startAssistantTask(

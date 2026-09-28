@@ -58,54 +58,42 @@ function chooseFiles() {
 </script>
 
 <template>
-  <UiPopover v-model:open="open" side="top" align="start" class="w-80 max-w-[calc(100vw-24px)] p-2">
+  <UiPopover v-model:open="open" side="top" align="start" class="w-72 max-w-[calc(100vw-24px)] p-1.5">
     <template #trigger>
       <UiIconButton :label="$t('spaces.assistant.attachments.add')" size="sm">
         <Plus class="size-3.5" />
       </UiIconButton>
     </template>
     <template v-if="view === 'sources'">
-      <p class="px-2 py-1.5 text-caption-sm font-medium text-fg-tertiary">
-        {{ $t("spaces.assistant.attachments.source") }}
+      <p class="px-2.5 pt-1.5 pb-1 text-caption-sm font-medium text-fg-tertiary">
+        {{ $t("spaces.assistant.attachments.add") }}
       </p>
       <button
         type="button"
-        class="flex w-full items-center gap-3 rounded-md px-2 py-2.5 text-left hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus"
+        class="flex min-h-14 w-full items-center gap-2.5 rounded-md px-2 text-left transition-colors duration-100 hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus"
         @click="view = 'nodes'"
       >
-        <span
-          class="flex size-9 shrink-0 items-center justify-center rounded-md bg-surface-accent-subtle text-fg-accent"
-        >
-          <Link2 class="size-3.5" />
+        <span class="flex size-8 shrink-0 items-center justify-center rounded-md bg-surface-accent-subtle text-fg-accent">
+          <Link2 class="size-4" :stroke-width="1.6" />
         </span>
         <span class="min-w-0 flex-1">
-          <span class="block text-caption font-medium">{{
-            $t("spaces.assistant.attachments.citeCanvasNode")
-          }}</span>
-          <span class="block text-caption-sm text-fg-tertiary">{{
-            $t("spaces.assistant.attachments.citeCanvasNodeHint")
-          }}</span>
+          <span class="block truncate text-caption font-medium text-fg-primary">{{ $t("spaces.assistant.attachments.citeCanvasNode") }}</span>
+          <span class="block truncate text-caption-sm text-fg-tertiary">{{ $t("spaces.assistant.attachments.citeCanvasNodeHint") }}</span>
         </span>
-        <ArrowRight class="size-3 shrink-0 text-fg-tertiary" />
+        <ArrowRight class="size-3.5 shrink-0 text-fg-tertiary" />
       </button>
       <button
         type="button"
-        class="flex w-full items-center gap-3 rounded-md px-2 py-2.5 text-left hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus disabled:opacity-40"
+        class="flex min-h-14 w-full items-center gap-2.5 rounded-md px-2 text-left transition-colors duration-100 hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus disabled:opacity-40"
         :disabled="pickingFiles"
         @click="chooseFiles"
       >
-        <span
-          class="flex size-9 shrink-0 items-center justify-center rounded-md bg-surface-control text-fg-secondary"
-        >
-          <FileUp class="size-3.5" />
+        <span class="flex size-8 shrink-0 items-center justify-center rounded-md bg-surface-muted text-fg-secondary">
+          <FileUp class="size-4" :stroke-width="1.6" />
         </span>
         <span class="min-w-0 flex-1">
-          <span class="block text-caption font-medium">{{
-            $t("spaces.assistant.attachments.uploadLocalFile")
-          }}</span>
-          <span class="block text-caption-sm text-fg-tertiary">{{
-            $t("spaces.assistant.attachments.uploadLocalFileHint")
-          }}</span>
+          <span class="block truncate text-caption font-medium text-fg-primary">{{ $t("spaces.assistant.attachments.uploadLocalFile") }}</span>
+          <span class="block truncate text-caption-sm text-fg-tertiary">{{ $t("spaces.assistant.attachments.uploadLocalFileHint") }}</span>
         </span>
       </button>
     </template>
@@ -121,6 +109,7 @@ function chooseFiles() {
           v-model="query"
           autofocus
           size="sm"
+          :label="$t('spaces.assistant.attachments.search')"
           :placeholder="$t('spaces.assistant.attachments.search')"
         />
       </div>
@@ -147,14 +136,9 @@ function chooseFiles() {
             v-if="candidate.previewSource"
             :src="candidate.previewSource"
             alt=""
-            class="size-8 shrink-0 rounded-md object-cover"
+            class="size-6 shrink-0 rounded-sm object-cover"
           />
-          <span
-            v-else
-            class="flex size-8 shrink-0 items-center justify-center rounded-md bg-surface-accent-subtle text-fg-accent"
-          >
-            <Link2 class="size-3" />
-          </span>
+          <Link2 v-else class="size-4 shrink-0 text-fg-accent" :stroke-width="1.6" />
           <span class="min-w-0 flex-1 truncate">{{ candidate.title }}</span>
           <Check v-if="candidate.attached" class="size-3 shrink-0" />
         </button>
