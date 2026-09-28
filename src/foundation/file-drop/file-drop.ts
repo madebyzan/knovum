@@ -10,6 +10,20 @@ export interface DragDropPosition {
 
 export type FileDrop = { paths: string[]; position: DragDropPosition };
 
+export function isFileDropInside(
+  element: HTMLElement | null | undefined,
+  position: DragDropPosition | undefined,
+) {
+  if (!element || !position) return false;
+  const rect = element.getBoundingClientRect();
+  return (
+    position.x >= rect.left &&
+    position.x <= rect.right &&
+    position.y >= rect.top &&
+    position.y <= rect.bottom
+  );
+}
+
 export interface FileDropHandlers {
   hover?(active: boolean, position?: DragDropPosition): void;
   drop(payload: FileDrop): void | Promise<void>;

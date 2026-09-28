@@ -1,6 +1,6 @@
 import { onBeforeUnmount, onMounted, shallowRef } from "vue";
 
-import { listenForFileDrops } from "../../../../foundation/file-drop/file-drop";
+import { isFileDropInside, listenForFileDrops } from "../../../../foundation/file-drop/file-drop";
 import { i18n } from "../../../../foundation/i18n/i18n";
 import { createAsyncDisposer } from "../../../../foundation/lifecycle/async-disposer";
 import type { SpaceImportSourceAccess } from "../../assets/asset-operations";
@@ -24,6 +24,7 @@ import type { SpaceUrlCaptureProjection } from "../../sources/url-capture-projec
 interface SpaceCanvasImportOptions {
   store: ReturnType<typeof useSpaceStore>;
   editorSession: ReturnType<typeof useCanvasEditorSession>;
+  dropTarget(): HTMLElement | null;
   newNoteTitle: string;
   reportError(error: unknown): void;
 }
@@ -138,11 +139,12 @@ export function useSpaceCanvasImports(options: SpaceCanvasImportOptions) {
       .attach(
         listenForFileDrops({
           hover(active, position) {
-            fileHover.value = active;
-            fileHoverPosition.value = active ? position : undefined;
+            fileHover.value = active && isFileDropInside(options.dropTarget(), position);
+            fileHoverPosition.value = fileHover.value ? position : undefined;
           },
           async drop(payload) {
             if (!operations.allows("create")) return;
+            if (!isFileDropInside(options.dropTarget(), payload.position)) return;
             const editor = options.editorSession.activeEditor.value;
             if (!editor) return;
             await importDroppedFiles(

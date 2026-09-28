@@ -69,3 +69,14 @@ pub async fn branch_assistant_conversation(
     )
     .await)?)
 }
+
+#[tauri::command]
+pub async fn activate_assistant_branch(
+    app: tauri::AppHandle,
+    conversation_id: String,
+    branch_id: String,
+) -> Result<(), CommandError> {
+    Ok((repository::activate_branch(
+        crate::spaces::db::pool(&app).await?, &conversation_id, &branch_id,
+    ).await)?)
+}

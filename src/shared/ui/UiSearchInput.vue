@@ -10,6 +10,7 @@ const model = defineModel<string>({ default: "" });
 
 const props = withDefaults(
   defineProps<{
+    label?: string | undefined;
     placeholder?: string | undefined;
     disabled?: boolean | undefined;
     autofocus?: boolean | undefined;
@@ -59,6 +60,7 @@ defineExpose({ focus, focused });
       ref="input"
       v-model="model"
       type="text"
+      :aria-label="label"
       :placeholder="placeholder"
       :disabled="disabled"
       :autofocus="autofocus"

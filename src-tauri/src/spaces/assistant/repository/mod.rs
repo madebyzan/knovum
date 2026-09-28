@@ -9,8 +9,7 @@ pub use context::build as build_context;
 pub use conversations::{
     archive, delete, ensure_branch_idle, ensure_conversation, list_conversations, rename, unarchive,
 };
-pub use message_branches::branch;
-pub(crate) use message_contract::attachment_summaries;
+pub use message_branches::{activate as activate_branch, branch, list as list_branches};
 pub use message_contract::{
     AssistantMessage, AssistantMessageAttachment, AssistantMessageContent, AssistantMessageRole,
 };

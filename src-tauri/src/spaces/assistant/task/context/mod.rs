@@ -8,6 +8,7 @@ use crate::spaces::assistant::{contract::AssistantAttachment, upload};
 
 struct ResolvedPart {
     manifest: Value,
+    summary: crate::spaces::assistant::AssistantMessageAttachment,
     excerpt: Option<String>,
     image: Option<crate::ai::contracts::ModelContentPart>,
     agent_path: Option<std::path::PathBuf>,
@@ -23,6 +24,7 @@ pub(crate) enum ContextTarget {
 
 pub(crate) struct ResolvedContext {
     pub manifest: Value,
+    pub summaries: Vec<crate::spaces::assistant::AssistantMessageAttachment>,
     excerpts: Vec<String>,
     images: Vec<crate::ai::contracts::ModelContentPart>,
     agent_paths: Vec<std::path::PathBuf>,
@@ -99,6 +101,7 @@ pub(crate) async fn resolve(
         return Err("assistant-context-limit: at most 32 resources may be attached".into());
     }
     let mut manifest = Vec::with_capacity(attachments.len());
+    let mut summaries = Vec::with_capacity(attachments.len());
     let mut excerpts = Vec::new();
     let mut images = Vec::new();
     let mut agent_paths = Vec::new();
@@ -147,12 +150,36 @@ pub(crate) async fn resolve(
             agent_paths.push(path);
         }
         manifest.push(part.manifest);
+        summaries.push(part.summary);
     }
     Ok(ResolvedContext {
         manifest: Value::Array(manifest),
+        summaries,
         excerpts,
         images,
         agent_paths,
         uploaded_paths,
     })
+}
+
+async fn image_thumbnail(path: std::path::PathBuf) -> Result<String, String> {
+    crate::blocking::run(move || {
+        use base64::Engine;
+        let (width, height) = image::image_dimensions(&path).map_err(|error| error.to_string())?;
+        if u64::from(width) * u64::from(height) > 24_000_000 {
+            return Err("assistant-attachment-too-large: image exceeds 24 megapixels".into());
+        }
+        let image = image::open(path)
+            .map_err(|error| error.to_string())?
+            .thumbnail(144, 144);
+        let mut bytes = std::io::Cursor::new(Vec::new());
+        image
+            .write_to(&mut bytes, image::ImageFormat::Png)
+            .map_err(|error| error.to_string())?;
+        Ok(format!(
+            "data:image/png;base64,{}",
+            base64::engine::general_purpose::STANDARD.encode(bytes.into_inner())
+        ))
+    })
+    .await
 }

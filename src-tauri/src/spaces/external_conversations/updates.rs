@@ -124,9 +124,18 @@ async fn record(
         super::repository::append_agent_message_in_transaction(&mut tx, conversation_id, &message)
             .await?;
     }
+    if matches!(kind, crate::spaces::runs::RunEventKind::ExternalAgentToolStarted) {
+        super::repository::clear_agent_message_in_transaction(&mut tx, conversation_id).await?;
+    }
+    let notify_run = matches!(
+        kind,
+        crate::spaces::runs::RunEventKind::ExternalAgentToolStarted
+            | crate::spaces::runs::RunEventKind::ExternalAgentToolUpdated
+            | crate::spaces::runs::RunEventKind::ExternalAgentPermissionRequested
+    );
     crate::spaces::runs::append_event(&mut tx, run_id, None, None, kind, &payload, now).await?;
     tx.commit().await.map_err(super::super::db::sql_error)?;
-    if permission.is_some() {
+    if notify_run {
         crate::spaces::runs::announce_change();
     }
     if let (Some(channel), Some(text)) = (channel, delta) {
@@ -136,6 +145,11 @@ async fn record(
                 text,
             },
         );
+    }
+    if matches!(kind, crate::spaces::runs::RunEventKind::ExternalAgentToolStarted) {
+        if let Some(channel) = channel {
+            let _ = channel.send(crate::spaces::assistant::AssistantTaskUpdate::ContentBoundary);
+        }
     }
     if let (Some(channel), Some(permission)) = (channel, permission) {
         let _ = channel.send(permission);
@@ -158,14 +172,14 @@ fn durable(
             serde_json::json!({"text": text}),
             Some(text),
         )),
-        AgentSessionUpdate::ToolCall { id, title } => Some((
+        AgentSessionUpdate::ToolCall { id, title, status, detail } => Some((
             crate::spaces::runs::RunEventKind::ExternalAgentToolStarted,
-            serde_json::json!({"toolCallId": id, "title": title}),
+            serde_json::json!({"toolCallId": id, "title": title, "status": status, "detail": detail}),
             None,
         )),
-        AgentSessionUpdate::ToolUpdate { id } => Some((
+        AgentSessionUpdate::ToolUpdate { id, title, status, detail } => Some((
             crate::spaces::runs::RunEventKind::ExternalAgentToolUpdated,
-            serde_json::json!({"toolCallId": id}),
+            serde_json::json!({"toolCallId": id, "title": title, "status": status, "detail": detail}),
             None,
         )),
         AgentSessionUpdate::PermissionRequested {

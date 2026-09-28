@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ChevronDown, FileText, Info, MessageSquareText, Search } from "@lucide/vue";
+import { ChevronDown, FileText, Info, MessageCircle, Search } from "@lucide/vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -20,7 +20,7 @@ const currentView = computed(() => {
     case "source":
       return { label: t("spaces.inspector.source"), icon: Search };
     default:
-      return { label: t("spaces.assistant.title"), icon: MessageSquareText };
+      return { label: t("spaces.assistant.title"), icon: MessageCircle };
   }
 });
 const views = computed(() => {
@@ -28,7 +28,7 @@ const views = computed(() => {
     {
       id: "ask",
       label: t("spaces.assistant.title"),
-      icon: MessageSquareText,
+      icon: MessageCircle,
       checked: store.rightSidebarView === "ask",
       onSelect: () => dock.openAsk(),
     },

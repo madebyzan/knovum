@@ -1,12 +1,15 @@
 <script setup lang="ts">
-import { ArrowUp, CircleStop } from "@lucide/vue";
-import { computed, ref, useTemplateRef } from "vue";
+import { ArrowUp, CircleStop, FileUp } from "@lucide/vue";
+import { useTextareaAutosize } from "@vueuse/core";
+import { computed, onBeforeUnmount, onMounted, ref, shallowRef, useTemplateRef } from "vue";
+import { toast } from "vue-sonner";
 
+import { isFileDropInside, listenForFileDrops } from "../../../../foundation/file-drop/file-drop";
+import { createAsyncDisposer } from "../../../../foundation/lifecycle/async-disposer";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
-import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
 import type { ConversationTarget } from "../../conversation/conversation-target";
-import SpaceConversationAttachment from "./SpaceConversationAttachment.vue";
 import SpaceConversationAttachmentPicker from "./SpaceConversationAttachmentPicker.vue";
+import SpaceConversationAttachmentTray from "./SpaceConversationAttachmentTray.vue";
 import SpaceConversationTargetField from "./SpaceConversationTargetField.vue";
 
 const prompt = defineModel<string>({ required: true });
@@ -14,7 +17,7 @@ const target = defineModel<ConversationTarget | undefined>("target");
 const targetAvailable = ref(false);
 const props = defineProps<{
   busy: boolean;
-  attachments: readonly { key: string; kind: "node" | "file"; title: string; previewSource: string }[];
+  attachments: readonly { key: string; kind: "node" | "file"; title: string; isImage: boolean; previewSource: string }[];
   attachmentCandidates: readonly {
     nodeId: string;
     title: string;
@@ -31,51 +34,74 @@ const emit = defineEmits<{
   addSelection: [];
   addAttachment: [nodeId: string];
   chooseFiles: [];
+  dropFiles: [paths: string[]];
   removeAttachment: [key: string];
 }>();
+const composerRoot = useTemplateRef<HTMLElement>("composerRoot");
+const { textarea } = useTextareaAutosize({ input: prompt, maxHeight: 192 });
+const fileHover = shallowRef(false);
+const fileDropListener = createAsyncDisposer();
 const canSend = computed(
   () =>
     Boolean(prompt.value.trim() && target.value && targetAvailable.value) &&
     !props.busy &&
     !props.pickingFiles,
 );
-const input = useTemplateRef<InstanceType<typeof UiTextarea>>("input");
-defineExpose({ focus: () => input.value?.focus() });
+defineExpose({ focus: () => textarea.value?.focus() });
 
 function submit(event?: KeyboardEvent) {
   if (event?.isComposing || event?.keyCode === 229) return;
   event?.preventDefault();
   if (canSend.value) emit("send");
 }
+
+onMounted(() => {
+  void fileDropListener
+    .attach(
+      listenForFileDrops({
+        hover(active, position) {
+          fileHover.value = active && !props.pickingFiles && isFileDropInside(composerRoot.value, position);
+        },
+        drop({ paths, position }) {
+          fileHover.value = false;
+          if (paths.length && !props.pickingFiles && isFileDropInside(composerRoot.value, position))
+            emit("dropFiles", paths);
+        },
+      }),
+    )
+    .catch((error) => toast.error(String(error)));
+});
+onBeforeUnmount(fileDropListener.dispose);
 </script>
 
 <template>
-  <footer class="min-w-0 shrink-0 border-t border-stroke-divider bg-surface-panel p-3">
+  <footer class="min-w-0 shrink-0 bg-surface-panel px-3 pt-1 pb-3">
     <div
-      class="min-w-0 rounded-panel border border-stroke-default bg-surface-raised focus-within:border-stroke-focus"
+      ref="composerRoot"
+      class="relative min-w-0 rounded-panel border border-stroke-default bg-surface-raised shadow-control transition-colors focus-within:border-stroke-focus"
     >
-      <UiTextarea
-        v-if="!busy"
-        ref="input"
+      <div
+        v-if="fileHover"
+        class="pointer-events-none absolute inset-0 z-10 flex items-center justify-center gap-2 rounded-panel border-2 border-dashed border-stroke-focus bg-surface-raised/95 text-caption font-medium text-fg-accent"
+      >
+        <FileUp class="size-4" :stroke-width="1.6" />
+        {{ $t("spaces.assistant.attachments.dropFiles") }}
+      </div>
+      <SpaceConversationAttachmentTray
+        :attachments="attachments"
+        @remove="emit('removeAttachment', $event)"
+      />
+      <textarea
+        ref="textarea"
         v-model="prompt"
-        :rows="3"
-        class="max-h-48 min-h-24 resize-none rounded-b-none border-0 bg-transparent px-3 py-3"
+        rows="2"
+        class="composer-input block max-h-48 min-h-16 w-full resize-none overflow-y-auto border-0 bg-transparent px-3 py-3 text-body text-fg-primary outline-none placeholder:text-fg-tertiary"
+        :aria-label="$t('spaces.assistant.input.placeholder')"
         :placeholder="$t('spaces.assistant.input.placeholder')"
         @keydown.enter.exact="submit"
         @keydown.meta.enter="submit"
         @keydown.ctrl.enter="submit"
       />
-      <div v-else class="min-h-24 px-3 py-3 text-body text-fg-tertiary">
-        {{ $t("spaces.assistant.input.placeholder") }}
-      </div>
-      <div v-if="attachments.length" class="flex min-w-0 flex-wrap gap-1.5 px-3 pb-2">
-        <SpaceConversationAttachment
-          v-for="attachment in attachments"
-          :key="attachment.key"
-          :attachment="attachment"
-          @remove="emit('removeAttachment', $event)"
-        />
-      </div>
       <div class="flex min-w-0 items-center gap-1 px-2 pb-2">
         <SpaceConversationAttachmentPicker
           :candidates="attachmentCandidates"
@@ -110,3 +136,8 @@ function submit(event?: KeyboardEvent) {
     </p>
   </footer>
 </template>
+
+<style scoped>
+.composer-input { scrollbar-width: none; }
+.composer-input::-webkit-scrollbar { display: none; }
+</style>

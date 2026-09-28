@@ -25,17 +25,20 @@ const searchResponseSchema = z
     ),
   })
   .passthrough();
+const parsed = computed(() => searchResponseSchema.safeParse(props.value));
 const matches = computed(() => {
-  const parsed = searchResponseSchema.safeParse(props.value);
-  return parsed.success ? parsed.data.result : [];
+  const result = parsed.value;
+  return result.success ? result.data.result : [];
 });
 </script>
 
 <template>
-  <details class="rounded-md border border-stroke-divider px-2 py-1.5 text-caption">
-    <summary class="cursor-pointer text-fg-secondary select-none">
+  <section class="mt-2 text-caption">
+    <p class="text-fg-tertiary">
       {{ t("spaces.assistant.sources", { count: matches.length }) }}
-    </summary>
+    </p>
+    <p v-if="!parsed.success" class="mt-1 text-fg-danger" role="alert">{{ t("spaces.assistant.activity.invalidResult") }}</p>
+    <p v-else-if="!matches.length" class="mt-1 text-fg-tertiary">{{ t("spaces.assistant.activity.noSources") }}</p>
     <ul class="mt-2 space-y-1.5">
       <li
         v-for="match in matches"
@@ -59,5 +62,5 @@ const matches = computed(() => {
         <p class="mt-1 line-clamp-3 text-fg-secondary">{{ match.preview }}</p>
       </li>
     </ul>
-  </details>
+  </section>
 </template>

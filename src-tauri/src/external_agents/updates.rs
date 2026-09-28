@@ -1,7 +1,10 @@
 use std::path::{Path, PathBuf};
 
 use agent_client_protocol::{
-    schema::v1::{AudioContent, ContentBlock, ImageContent, SessionNotification, SessionUpdate},
+    schema::v1::{
+        AudioContent, ContentBlock, ImageContent, SessionNotification, SessionUpdate,
+        ToolCallContent, ToolCallStatus,
+    },
     util::MatchDispatch,
     Error, SessionMessage,
 };
@@ -13,9 +16,14 @@ pub enum AgentSessionUpdate {
     ToolCall {
         id: String,
         title: String,
+        status: String,
+        detail: Option<String>,
     },
     ToolUpdate {
         id: String,
+        title: Option<String>,
+        status: Option<String>,
+        detail: Option<String>,
     },
     PermissionRequested {
         request_id: String,
@@ -69,11 +77,67 @@ pub async fn receive(
         SessionUpdate::ToolCall(call) => Ok(Some(AgentSessionUpdate::ToolCall {
             id: call.tool_call_id.0.to_string(),
             title: call.title,
+            status: tool_status(call.status)?.to_owned(),
+            detail: tool_detail(&call.content, call.raw_output.as_ref().or(call.raw_input.as_ref())),
         })),
         SessionUpdate::ToolCallUpdate(update) => Ok(Some(AgentSessionUpdate::ToolUpdate {
             id: update.tool_call_id.0.to_string(),
+            title: update.fields.title,
+            status: update
+                .fields
+                .status
+                .map(tool_status)
+                .transpose()?
+                .map(str::to_owned),
+            detail: update.fields.content.as_deref().and_then(|content| {
+                tool_detail(
+                    content,
+                    update.fields.raw_output.as_ref().or(update.fields.raw_input.as_ref()),
+                )
+            }).or_else(|| {
+                update.fields.raw_output.as_ref().or(update.fields.raw_input.as_ref())
+                    .map(compact_value)
+            }),
         })),
         _ => Ok(None),
+    }
+}
+
+fn tool_status(status: ToolCallStatus) -> Result<&'static str, Error> {
+    match status {
+        ToolCallStatus::Pending => Ok("pending"),
+        ToolCallStatus::InProgress => Ok("in_progress"),
+        ToolCallStatus::Completed => Ok("completed"),
+        ToolCallStatus::Failed => Ok("failed"),
+        _ => Err(Error::invalid_request().data("Unsupported ACP tool status")),
+    }
+}
+
+fn tool_detail(content: &[ToolCallContent], raw: Option<&serde_json::Value>) -> Option<String> {
+    content
+        .iter()
+        .find_map(|item| match item {
+            ToolCallContent::Content(block) => match &block.content {
+                ContentBlock::Text(text) => Some(compact(&text.text)),
+                _ => None,
+            },
+            ToolCallContent::Diff(diff) => Some(diff.path.display().to_string()),
+            _ => None,
+        })
+        .or_else(|| raw.map(compact_value))
+}
+
+fn compact_value(value: &serde_json::Value) -> String {
+    compact(&value.to_string())
+}
+
+fn compact(value: &str) -> String {
+    let mut chars = value.chars();
+    let result: String = chars.by_ref().take(4_000).collect();
+    if chars.next().is_some() {
+        format!("{result}…")
+    } else {
+        result
     }
 }
 

@@ -23,11 +23,13 @@ export function useConversationTask(input: {
   prompt: Ref<string>;
   target: Ref<ConversationTarget | undefined>;
   attachments: Ref<Attachment[]>;
+  visibleAttachments: Ref<readonly { title: string; isImage: boolean; previewSource: string }[]>;
   messages: ShallowRef<AssistantMessage[]>;
   refresh: () => Promise<void>;
   select: (id: string, skipRemember?: boolean, branchId?: string) => Promise<void>;
   moveDraft: (fromId: string, toId: string) => void;
   clearDraft: (request: StartAssistantTaskInput) => void;
+  restoreDraft: (request: StartAssistantTaskInput) => void;
 }) {
   const activeRunId = shallowRef<string>();
   const activeConversationId = shallowRef("");
@@ -38,6 +40,7 @@ export function useConversationTask(input: {
   const error = shallowRef<string>();
   const streamedText = shallowRef("");
   const permission = shallowRef<PermissionRequest>();
+  const activityRevision = shallowRef(0);
   const visible = computed(
     () =>
       input.spaceId.value === activeSpaceId.value &&
@@ -82,6 +85,7 @@ export function useConversationTask(input: {
     loading,
     permission,
     error,
+    activityRevision,
     refresh: input.refresh,
     select: input.select,
     onDetach: () => submission.invalidate(),
@@ -99,6 +103,7 @@ export function useConversationTask(input: {
       error,
       streamedText,
       permission,
+      activityRevision,
     },
     accepted: conversation.accepted,
     settled: conversation.settled,
@@ -120,6 +125,7 @@ export function useConversationTask(input: {
     decidingApproval,
     decideApproval,
     visibleStreamedText,
+    activityRevision,
     send: submission.send,
     cancel,
     decidePermission,

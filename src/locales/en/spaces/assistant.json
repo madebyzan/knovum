@@ -3,19 +3,19 @@
     "noText": "No text content at source location.",
     "open": "Locate at source"
   },
-  "title": "Ask",
+  "title": "Conversation",
   "agents": {
     "builtIn": "Built-in Agent",
     "external": "External Agent",
     "select": "Choose an Agent",
     "noModel": "No conversation model configured",
     "working": "Working…",
-    "configure": "Configure desktop Agents"
+    "externalDescription": "Desktop Agent running on this device",
+    "manage": "Manage models and Agents…"
   },
   "empty": {
-    "builtIn": "Ask about this Space or describe what you want to make.",
-    "title": "Start a conversation",
-    "attachmentHint": "You can also reference canvas content or add local files as sources."
+    "builtIn": "Ask a question, find the key points, or plan what comes next.",
+    "title": "Start with this Space"
   },
   "starter": {
     "summarize": "Summarize this Space",
@@ -40,7 +40,15 @@
     "delete": "Delete",
     "search": "Search conversations",
     "archived": "Archived",
+    "records": "Conversation history",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "viewArchived": "View archived conversations",
+    "backToRecent": "Back to recent conversations",
     "branch": "Branch here",
+    "branchNumber": "Branch {number}",
+    "regenerateAttachments": "Reattach the original resources before sending this request again",
+    "branchCreated": "Switched to the new branch",
     "returnToRunning": "A conversation task is running. Return to its conversation."
   },
   "role": {
@@ -61,18 +69,22 @@
   },
   "attachments": {
     "add": "Add resource",
-    "source": "Add to this conversation",
     "citeCanvasNode": "Reference canvas content",
+    "citeCanvasNodeHint": "Choose content from this Space",
     "canvasNodeShort": "Canvas reference",
-    "citeCanvasNodeHint": "Select a Space source with a traceable citation",
     "uploadLocalFile": "Add local file",
+    "uploadLocalFileHint": "Images, PDFs, or documents",
     "localFileShort": "Local file",
-    "uploadLocalFileHint": "Images, text, PDF, or Office documents",
+    "dropFiles": "Drop files to attach",
     "limit": "You can attach up to 32 items to one message.",
     "addCurrentSelection": "Add current selection ({count})",
     "search": "Search resources in this Space",
     "none": "No matching resources",
-    "remove": "Remove resource: {name}"
+    "remove": "Remove resource: {name}",
+    "expand": "Show {count} more resources",
+    "more": "More resources",
+    "previousPage": "Previous resource page",
+    "nextPage": "Next resource page"
   },
   "uploads": {
     "sizeError": "Files cannot be empty. Images must be at most 10 MiB; other files at most 20 MiB.",
@@ -94,8 +106,9 @@
   "messages": {
     "actions": "More actions",
     "copy": "Copy message",
+    "copied": "Copied",
     "copyFailed": "Could not copy the message. Try again.",
-    "new": "New messages ↓",
+    "new": "Jump to latest ↓",
     "loadOlder": "Load earlier messages"
   },
   "regenerate": "Regenerate",
@@ -110,6 +123,14 @@
     "completed": "Completed {name}",
     "working": "Running action",
     "viewCreated": "Locate result"
+  },
+  "activity": {
+    "running": "Working · {count} actions",
+    "finished": "Completed · {count} actions",
+    "recorded": "Activity · {count} actions",
+    "tool": "Tool action",
+    "invalidResult": "Search results could not be displayed",
+    "noSources": "No matching sources"
   },
   "askSelection": "Ask selection"
 }

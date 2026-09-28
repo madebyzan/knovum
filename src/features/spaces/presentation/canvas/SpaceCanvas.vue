@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watch } from "vue";
+import { computed, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { useCanvasToolStore } from "../../canvas/canvas-tool-store";
@@ -34,6 +34,7 @@ const editorSession = useCanvasEditorSession();
 const operations = useNodeOperationGate();
 const dock = useContextDock();
 const { t } = useI18n();
+const canvasRoot = useTemplateRef<HTMLElement>("canvasRoot");
 const selection = createCanvasSelectionActions(store);
 const persistNodeContent = createCanvasNodeContentPersistence(store);
 const { visibleNodes, visibleRelations } = useVisibleCanvasContent(
@@ -80,6 +81,7 @@ watch(
 const imports = useSpaceCanvasImports({
   store,
   editorSession,
+  dropTarget: () => canvasRoot.value,
   newNoteTitle: t("spaces.editor.note.new"),
   reportError: lifecycle.reportError,
 });
@@ -109,7 +111,7 @@ const canvasEvents = createSpaceCanvasEvents({
 </script>
 
 <template>
-  <section class="relative h-full min-h-0 overflow-hidden bg-surface-canvas select-none">
+  <section ref="canvasRoot" class="relative h-full min-h-0 overflow-hidden bg-surface-canvas select-none">
     <div
       v-if="lifecycle.error.value && !editorSession.activeEditor.value"
       class="pointer-events-none absolute inset-0 z-20 grid place-items-center p-6 text-fg-secondary"

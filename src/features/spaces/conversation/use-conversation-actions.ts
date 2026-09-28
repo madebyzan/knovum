@@ -1,6 +1,8 @@
 import { ask, save } from "@tauri-apps/plugin-dialog";
 import { writeTextFile } from "@tauri-apps/plugin-fs";
 import type { ComputedRef, ShallowRef } from "vue";
+import { toast } from "vue-sonner";
+import { i18n } from "../../../foundation/i18n/i18n";
 
 import {
   archiveAssistantConversation,
@@ -74,8 +76,13 @@ export function useConversationActions(state: ConversationActionState) {
   async function branchFrom(message: AssistantMessage) {
     const conversation = state.selected.value;
     if (!conversation?.branchId || state.loading.value) return;
-    const branchId = await branchAssistantConversation(conversation.id, conversation.branchId, message.id);
-    await adoptBranch(conversation.id, branchId);
+    try {
+      const branchId = await branchAssistantConversation(conversation.id, conversation.branchId, message.id);
+      await adoptBranch(conversation.id, branchId);
+      toast.success(i18n.global.t("spaces.assistant.conversations.branchCreated"));
+    } catch (cause) {
+      toast.error(String(cause));
+    }
   }
 
   async function regenerate(message: AssistantMessage) {
@@ -83,19 +90,27 @@ export function useConversationActions(state: ConversationActionState) {
     const index = state.messages.value.findIndex(({ id }) => id === message.id);
     const source = state.messages.value.slice(0, index).findLast(({ role }) => role === "user");
     if (!conversation?.branchId || !source || state.loading.value) return;
+    if (source.content.attachments?.length) {
+      toast.error(i18n.global.t("spaces.assistant.conversations.regenerateAttachments"));
+      return;
+    }
     const text = source.content.parts
       .filter((part) => part.type === "text")
       .map((part) => part.text)
       .join("\n");
-    const branchId = await branchAssistantConversation(
-      conversation.id,
-      conversation.branchId,
-      source.id,
-      false,
-    );
-    await adoptBranch(conversation.id, branchId);
-    state.prompt.value = text;
-    await state.send();
+    try {
+      const branchId = await branchAssistantConversation(
+        conversation.id,
+        conversation.branchId,
+        source.id,
+        false,
+      );
+      await adoptBranch(conversation.id, branchId);
+      state.prompt.value = text;
+      await state.send();
+    } catch (cause) {
+      toast.error(String(cause));
+    }
   }
 
   function clearSelection() {

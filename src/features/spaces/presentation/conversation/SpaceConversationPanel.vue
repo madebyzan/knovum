@@ -11,6 +11,8 @@ import SpaceConversationRunStatus from "./SpaceConversationRunStatus.vue";
 const conversationSession = useConversationSessionStore();
 const {
   messages,
+  eventsByRun,
+  activityError,
   selectedConversationId,
   prompt,
   target,
@@ -66,11 +68,13 @@ async function useSuggestion(value: string) {
       <SpaceConversationMessages
         class="h-full"
         :scroll-key="selectedConversationId"
-        :saved-scroll-top="scrollPositions[selectedConversationId] ?? 0"
+        :saved-scroll-top="scrollPositions[selectedConversationId]"
         :messages="messages"
+        :events-by-run="eventsByRun"
+        :active-run-id="activeRunId"
         :busy="loading"
         :preparing="loading && !activeRunId"
-        :error="visibleError"
+        :error="visibleError || activityError"
         :streamed-text="visibleStreamedText"
         :has-older="hasOlder"
         :loading-older="loadingOlder"
@@ -85,6 +89,7 @@ async function useSuggestion(value: string) {
         @decide-approval="conversationSession.decideApproval"
         @scroll-position="conversationSession.rememberScroll"
         @suggest="useSuggestion"
+        @inspect-activity="conversationSession.inspectActivity"
       />
     </div>
     <SpaceConversationRunStatus
@@ -105,6 +110,7 @@ async function useSuggestion(value: string) {
       @add-selection="conversationSession.addSelectedAttachments"
       @add-attachment="(id) => conversationSession.addNodeAttachments([id])"
       @choose-files="conversationSession.chooseFiles"
+      @drop-files="conversationSession.chooseFiles($event)"
       @remove-attachment="conversationSession.removeAttachment"
       @send="conversationSession.send"
       @cancel="conversationSession.cancel"

@@ -56,18 +56,38 @@ pub async fn save_checkpoint(
 pub async fn start_tool_call(
     pool: &SqlitePool,
     task_id: &str,
+    run_id: &str,
     model_turn_id: &str,
     provider_call_id: &str,
     wire_name: &str,
     action_id: &str,
     invocation_id: &str,
+    arguments: &Value,
 ) -> Result<AssistantToolCallOutcome, String> {
     let id = uuid::Uuid::new_v4().to_string();
-    sqlx::query("INSERT OR IGNORE INTO spaces_assistant_tool_calls(id,task_id,model_turn_id,provider_call_id,
+    let now = crate::clock::unix_time_millis()?;
+    let mut tx = db::begin_write(pool).await?;
+    let inserted = sqlx::query("INSERT OR IGNORE INTO spaces_assistant_tool_calls(id,task_id,model_turn_id,provider_call_id,
          wire_name,action_id,invocation_id,created_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8)")
         .bind(&id).bind(task_id).bind(model_turn_id).bind(provider_call_id).bind(wire_name)
-        .bind(action_id).bind(invocation_id).bind(crate::clock::unix_time_millis()?)
-        .execute(pool).await.map_err(db::sql_error)?;
+        .bind(action_id).bind(invocation_id).bind(now)
+        .execute(&mut *tx).await.map_err(db::sql_error)?;
+    if inserted.rows_affected() != 0 {
+        crate::spaces::runs::append_event(
+            &mut tx, run_id, None, None,
+            crate::spaces::runs::RunEventKind::AssistantToolStarted,
+            &serde_json::json!({
+                "toolCallId": provider_call_id,
+                "actionId": action_id,
+                "detail": arguments,
+            }),
+            now,
+        ).await?;
+    }
+    tx.commit().await.map_err(db::sql_error)?;
+    if inserted.rows_affected() != 0 {
+        crate::spaces::runs::announce_change();
+    }
     let row = sqlx::query("SELECT id,result FROM spaces_assistant_tool_calls WHERE task_id=$1 AND provider_call_id=$2")
         .bind(task_id).bind(provider_call_id).fetch_one(pool).await.map_err(db::sql_error)?;
     let stored_id: String = row.try_get("id").map_err(db::sql_error)?;
@@ -85,6 +105,7 @@ pub async fn start_tool_call(
 pub async fn complete_tool_call(
     pool: &SqlitePool,
     id: &str,
+    run_id: &str,
     conversation_id: &str,
     branch_id: &str,
     call_id: &str,
@@ -99,7 +120,14 @@ pub async fn complete_tool_call(
     db::require_one(updated, "assistant-tool-call-already-completed")?;
     super::super::messages::append_message_in_transaction(
         &mut tx, conversation_id, branch_id, super::super::AssistantMessageRole::Tool,
-        &serde_json::json!({"parts": [{"type": "tool_result", "callId": call_id, "name": name, "result": tool_output}]}), now,
+        &serde_json::json!({"parts": [{"type": "tool_result", "callId": call_id, "name": name, "result": tool_output}], "runId": run_id}), now,
     ).await?;
-    tx.commit().await.map_err(db::sql_error)
+    crate::spaces::runs::append_event(
+        &mut tx, run_id, None, None,
+        crate::spaces::runs::RunEventKind::AssistantToolFinished,
+        &serde_json::json!({"toolCallId": call_id}), now,
+    ).await?;
+    tx.commit().await.map_err(db::sql_error)?;
+    crate::spaces::runs::announce_change();
+    Ok(())
 }

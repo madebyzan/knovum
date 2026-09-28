@@ -99,7 +99,7 @@ pub(super) async fn drive(
                                 };
                                 repository::append_message(
                                     pool, &ids.conversation_id, &ids.branch_id, repository::AssistantMessageRole::Assistant,
-                                    &serde_json::json!({"parts": [{"type": "text", "text": partial}], "status": status}),
+                                    &serde_json::json!({"parts": [{"type": "text", "text": partial}], "runId": ids.run_id, "status": status}),
                                 ).await?;
                             }
                             return Err(error.to_string());
@@ -128,6 +128,11 @@ pub(super) async fn drive(
                 )?;
             }
             ControlDirective::CallTools { calls } => {
+                if let Some(channel) = updates {
+                    let _ = channel.send(
+                        crate::spaces::assistant::AssistantTaskUpdate::ContentBoundary,
+                    );
+                }
                 let results = super::tool_execution::execute(
                     pool,
                     request,

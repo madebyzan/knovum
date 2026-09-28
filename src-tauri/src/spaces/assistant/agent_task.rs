@@ -52,7 +52,6 @@ pub async fn start(
         context::ContextTarget::ExternalAgent,
     )
     .await?;
-    let attachment_summaries = repository::attachment_summaries(&context.manifest)?;
     let history = if let Some((id, branch)) = &conversation {
         repository::build_context(pool, id, branch).await?
     } else {
@@ -76,7 +75,7 @@ pub async fn start(
         app.clone(),
         &session.id,
         &prompt,
-        &attachment_summaries,
+        &context.summaries,
     )
     .await
     {

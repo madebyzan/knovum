@@ -38,6 +38,14 @@ pub async fn list_assistant_messages(
 }
 
 #[tauri::command]
+pub async fn list_assistant_branches(
+    app: tauri::AppHandle,
+    conversation_id: String,
+) -> Result<Vec<String>, CommandError> {
+    Ok((repository::list_branches(crate::spaces::db::pool(&app).await?, &conversation_id).await)?)
+}
+
+#[tauri::command]
 pub async fn load_assistant_branch_messages(
     app: tauri::AppHandle,
     conversation_id: String,

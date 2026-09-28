@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { MoreHorizontal, Plus } from "@lucide/vue";
+import { GitBranch, MoreHorizontal, Plus } from "@lucide/vue";
 import { storeToRefs } from "pinia";
 import { computed, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import { toast } from "vue-sonner";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiDropdownMenu from "../../../../shared/ui/UiDropdownMenu.vue";
@@ -15,11 +16,8 @@ import SpaceConversationHistory from "./SpaceConversationHistory.vue";
 
 const { t } = useI18n();
 const session = useConversationSessionStore();
-const { conversations, selectedConversationId, loading, conversationQuery, showingArchived } =
+const { conversations, branches, selectedConversationId, selectedConversation, loading, conversationQuery, showingArchived } =
   storeToRefs(session);
-const selectedConversation = computed(() =>
-  conversations.value.find(({ id }) => id === selectedConversationId.value),
-);
 const historyOpen = shallowRef(false);
 const renaming = shallowRef(false);
 const titleDraft = shallowRef("");
@@ -40,6 +38,11 @@ const actions = computed(() => [
     onSelect: () => void session.deleteSelected(),
   },
 ]);
+const branchItems = computed(() => branches.value.map((id, index) => ({
+  label: t("spaces.assistant.conversations.branchNumber", { number: index + 1 }),
+  checked: selectedConversation.value?.branchId === id,
+  onSelect: () => void session.selectBranch(id).catch((cause: unknown) => toast.error(String(cause))),
+})));
 
 watch(selectedConversation, (conversation) => {
   titleDraft.value = conversation?.title ?? "";
@@ -56,6 +59,14 @@ async function saveTitle() {
   <SpaceContextHeader :title="selectedConversation?.title || t('spaces.assistant.conversations.create')">
     <template #leading><SpaceRightSidebarViewPicker /></template>
     <template #actions>
+      <UiDropdownMenu v-if="branches.length > 1" :items="branchItems" align="end">
+        <template #trigger>
+          <UiButton size="sm" variant="ghost" :disabled="loading" class="gap-1 text-fg-secondary">
+            <GitBranch class="size-3.5" />
+            {{ t("spaces.assistant.conversations.branchNumber", { number: branches.indexOf(selectedConversation?.branchId ?? '') + 1 }) }}
+          </UiButton>
+        </template>
+      </UiDropdownMenu>
       <SpaceConversationHistory
         v-model:open="historyOpen"
         v-model:query="conversationQuery"

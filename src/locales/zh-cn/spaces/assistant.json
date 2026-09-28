@@ -3,19 +3,19 @@
     "noText": "当前来源位置无文本内容。",
     "open": "定位至来源位置"
   },
-  "title": "询问",
+  "title": "对话",
   "agents": {
     "builtIn": "内置 Agent",
     "external": "外部 Agent",
     "select": "选择 Agent",
     "noModel": "尚未配置可用于对话的模型",
     "working": "正在处理…",
-    "configure": "配置桌面 Agent"
+    "externalDescription": "在本机运行的桌面 Agent",
+    "manage": "管理模型与 Agent…"
   },
   "empty": {
-    "builtIn": "在这里询问当前空间中的内容，或描述想完成的事情。",
-    "title": "开始对话",
-    "attachmentHint": "也可以引用画布中的内容，或添加本地文件作为资料。"
+    "builtIn": "提问、梳理重点，或规划下一步。",
+    "title": "从这个空间开始"
   },
   "starter": {
     "summarize": "梳理这个空间的内容",
@@ -40,7 +40,15 @@
     "delete": "删除",
     "search": "搜索对话",
     "archived": "已归档",
+    "records": "会话记录",
+    "today": "今天",
+    "yesterday": "昨天",
+    "viewArchived": "查看已归档会话",
+    "backToRecent": "返回最近会话",
     "branch": "从这里分支",
+    "branchNumber": "分支 {number}",
+    "regenerateAttachments": "这条消息含有附件，请重新添加资料后发送",
+    "branchCreated": "已切换到新分支",
     "returnToRunning": "对话任务正在进行。点击返回对应对话。"
   },
   "role": {
@@ -61,18 +69,22 @@
   },
   "attachments": {
     "add": "添加资料",
-    "source": "添加到本次对话",
     "citeCanvasNode": "引用画布内容",
+    "citeCanvasNodeHint": "选择当前空间的内容",
     "canvasNodeShort": "画布引用",
-    "citeCanvasNodeHint": "从当前空间选择内容，回答可定位来源",
     "uploadLocalFile": "添加本地文件",
+    "uploadLocalFileHint": "图片、PDF 或文档",
     "localFileShort": "本地文件",
-    "uploadLocalFileHint": "图片、文本、PDF 或 Office 文档",
+    "dropFiles": "松开以添加文件",
     "limit": "一次对话最多可添加 32 项资料。",
     "addCurrentSelection": "添加当前选中（{count}）",
     "search": "搜索当前空间的资料",
     "none": "没有匹配的可用资料",
-    "remove": "移除资料：{name}"
+    "remove": "移除资料：{name}",
+    "expand": "显示其余 {count} 项资料",
+    "more": "更多资料",
+    "previousPage": "上一页资料",
+    "nextPage": "下一页资料"
   },
   "uploads": {
     "sizeError": "文件不能为空；图片不能超过 10 MiB，其他文件不能超过 20 MiB。",
@@ -94,8 +106,9 @@
   "messages": {
     "actions": "更多操作",
     "copy": "复制消息",
+    "copied": "已复制",
     "copyFailed": "复制失败，请重试。",
-    "new": "有新消息 ↓",
+    "new": "回到最新 ↓",
     "loadOlder": "加载更早消息"
   },
   "regenerate": "重新生成",
@@ -110,6 +123,14 @@
     "completed": "已完成 {name}",
     "working": "正在执行操作",
     "viewCreated": "定位产物"
+  },
+  "activity": {
+    "running": "正在执行 · {count} 项操作",
+    "finished": "已执行 · {count} 项操作",
+    "recorded": "过程记录 · {count} 项操作",
+    "tool": "执行工具",
+    "invalidResult": "搜索结果无法显示",
+    "noSources": "没有找到相关资料"
   },
   "askSelection": "询问选中项"
 }

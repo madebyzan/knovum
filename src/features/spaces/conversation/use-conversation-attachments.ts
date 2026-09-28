@@ -9,7 +9,8 @@ import { createStructureIndex } from "../model/structure/structure-index";
 import { contentNodeIdsWithin } from "../model/structure/structure-queries";
 import { useSpaceStore } from "../session/space-store";
 import type { StartAssistantTaskInput } from "./conversation-ipc";
-import { chooseAssistantUploads } from "./conversation-uploads";
+import { chooseAssistantUploads, inspectAssistantUploads } from "./conversation-uploads";
+import { isAssistantImagePath, useConversationImagePreviews } from "./use-conversation-image-previews";
 
 type Attachment = NonNullable<StartAssistantTaskInput["attachments"]>[number];
 
@@ -29,6 +30,7 @@ export function useConversationAttachments() {
   const canvas = useCanvasEditorSession();
   const store = useSpaceStore();
   const attachments = shallowRef<Attachment[]>([]);
+  const imagePreview = useConversationImagePreviews(attachments);
   const pickingFiles = shallowRef(false);
   const attachmentError = shallowRef<string>();
   const selectedSourceNodeIds = computed(() => {
@@ -54,13 +56,15 @@ export function useConversationAttachments() {
           key: `file:${attachment.path}`,
           kind: attachment.kind,
           title: basename(attachment.path),
-          previewSource: "",
+          isImage: isAssistantImagePath(attachment.path),
+          previewSource: imagePreview(attachment),
         };
       const node = store.nodes.find(({ id }) => id === attachment.nodeId);
       return {
         key: `node:${attachment.nodeId}`,
         kind: attachment.kind,
         title: node?.data.title ?? attachment.nodeId,
+        isImage: node?.data.kind === "image",
         previewSource: node ? spaceCanvasOverviewSource(node.data) : "",
       };
     }),
@@ -111,12 +115,12 @@ export function useConversationAttachments() {
     attachments.value = [...next.values()];
   }
 
-  async function chooseFiles(isCurrent: () => boolean) {
+  async function chooseFiles(isCurrent: () => boolean, paths?: readonly string[]) {
     if (pickingFiles.value) return;
     pickingFiles.value = true;
     attachmentError.value = undefined;
     try {
-      const files = await chooseAssistantUploads();
+      const files = await (paths ? inspectAssistantUploads(paths) : chooseAssistantUploads());
       if (!isCurrent()) return;
       const next = new Map(
         attachments.value.map((item) => [

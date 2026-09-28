@@ -129,6 +129,7 @@ pub enum AssistantTaskUpdate {
         task_id: String,
         text: String,
     },
+    ContentBoundary,
     PermissionRequested {
         session_id: String,
         request_id: String,

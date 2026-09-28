@@ -12,6 +12,7 @@ import {
 import { observeConversationRun } from "./conversation-run-observation";
 import type { ConversationTarget } from "./conversation-target";
 import { conversationTaskRequest } from "./conversation-task-request";
+import { pendingConversationMessage } from "./conversation-pending-message";
 
 type Attachment = NonNullable<StartAssistantTaskInput["attachments"]>[number];
 type Permission = Extract<AssistantTaskUpdate, { type: "permission_requested" }>;
@@ -28,6 +29,7 @@ export interface ConversationSubmissionState {
   error: ShallowRef<string | undefined>;
   streamedText: ShallowRef<string>;
   permission: ShallowRef<Permission | undefined>;
+  activityRevision: ShallowRef<number>;
 }
 
 export function createConversationTaskSubmission(options: {
@@ -38,8 +40,10 @@ export function createConversationTaskSubmission(options: {
     prompt: Ref<string>;
     target: Ref<ConversationTarget | undefined>;
     attachments: Ref<Attachment[]>;
+    visibleAttachments: Ref<readonly { title: string; isImage: boolean; previewSource: string }[]>;
     messages: ShallowRef<AssistantMessage[]>;
     clearDraft: (request: StartAssistantTaskInput) => void;
+    restoreDraft: (request: StartAssistantTaskInput) => void;
   };
   state: ConversationSubmissionState;
   accepted: (task: StartedTask["accepted"], selection: Selection) => Promise<void>;
@@ -63,6 +67,7 @@ export function createConversationTaskSubmission(options: {
         if (submitted !== generation) return;
         state.taskState.value = run.state;
         state.waitReason.value = run.waitReason;
+        state.activityRevision.value += 1;
         if (run.state === "waiting") {
           void options.refreshPending(run.id, selection.spaceId).catch((cause: unknown) => {
             state.error.value = String(cause);
@@ -117,19 +122,13 @@ export function createConversationTaskSubmission(options: {
     });
     if (!request) return;
     const submitted = ++generation;
+    let accepted = false;
     const selection = { spaceId: request.spaceId, conversationId: input.selectedConversationId.value };
     const pendingId = `pending:${crypto.randomUUID()}`;
-    input.messages.value = [
-      ...input.messages.value,
-      {
-        id: pendingId,
-        conversationId: selection.conversationId,
-        branchId: input.conversation.value?.branchId ?? "",
-        role: "user",
-        content: { parts: [{ type: "text", text: request.prompt }], citations: [] },
-        createdAt: Date.now(),
-      },
-    ];
+    const pendingMessage = pendingConversationMessage(request, pendingId, selection.conversationId,
+      input.conversation.value?.branchId ?? "", input.visibleAttachments.value);
+    input.clearDraft(request);
+    input.messages.value = [...input.messages.value, pendingMessage];
     state.activeSpaceId.value = selection.spaceId;
     state.activeConversationId.value = selection.conversationId;
     state.loading.value = true;
@@ -142,15 +141,19 @@ export function createConversationTaskSubmission(options: {
       const task = await startAssistantTask(request, (update) => {
         if (submitted !== generation) return;
         if (update.type === "content_delta") state.streamedText.value += update.text;
+        else if (update.type === "content_boundary") state.streamedText.value = "";
         else if (update.type === "permission_requested") state.permission.value = update;
       });
+      accepted = true;
       if (submitted !== generation) return;
       state.activeRunId.value = task.accepted.runId;
       observe(task, request, selection, submitted);
-      input.clearDraft(request);
       await settle(task, selection, submitted);
     } catch (reason) {
-      if (submitted === generation) state.error.value = String(reason);
+      if (submitted === generation) {
+        if (!accepted) input.restoreDraft(request);
+        state.error.value = String(reason);
+      }
     } finally {
       if (input.messages.value.some(({ id }) => id === pendingId))
         input.messages.value = input.messages.value.filter(({ id }) => id !== pendingId);
