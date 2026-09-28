@@ -17,14 +17,6 @@ fn engine_lock() -> &'static Mutex<Option<Arc<Qwen3TextEmbedding>>> {
     ENGINE.get_or_init(|| Mutex::new(None))
 }
 
-pub fn unload() -> Result<(), String> {
-    let mut guard = engine_lock()
-        .lock()
-        .map_err(|_| "Embedding engine lock was poisoned".to_string())?;
-    *guard = None;
-    Ok(())
-}
-
 fn get_or_load(resources: &PreparedModels) -> Result<Arc<Qwen3TextEmbedding>, String> {
     let mut guard = engine_lock()
         .lock()

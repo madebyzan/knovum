@@ -1,11 +1,7 @@
 {
   "title": "Providers & models",
-  "description": "Connect API providers and manage models available locally or through provider endpoints.",
+  "description": "Connect API providers and manage their available models.",
   "knowledgeSpace": "Intelligence",
-  "navigation": {
-    "providers": "Providers",
-    "onDevice": "On-device"
-  },
   "provider": "Model provider",
   "baseUrl": "API base URL",
   "apiKey": "API key",

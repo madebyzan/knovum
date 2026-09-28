@@ -60,18 +60,13 @@ export const settingsRegistry: readonly SettingsDefinition[] = [
     group: "intelligence",
     titleKey: "settings.ai.title",
     descriptionKey: "settings.ai.description",
-    searchKeys: ["settings.ai.description", "settings.ai.connections", "settings.offlineModels.title"],
+    searchKeys: ["settings.ai.description", "settings.ai.connections"],
     icon: Boxes,
     locations: [
       {
         id: "settings-ai-providers",
         labelKey: "settings.ai.connections",
         descriptionKey: "settings.ai.connectionsDescription",
-      },
-      {
-        id: "settings-local-models",
-        labelKey: "settings.offlineModels.title",
-        descriptionKey: "settings.offlineModels.description",
       },
     ],
   },

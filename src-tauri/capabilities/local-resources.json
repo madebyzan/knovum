@@ -7,7 +7,6 @@
     "local-resources:allow-get-status",
     "local-resources:allow-prepare-resources",
     "local-resources:allow-cancel-resource-preparation",
-    "local-resources:allow-list-resource-preparations",
-    "local-resources:allow-remove-model"
+    "local-resources:allow-list-resource-preparations"
   ]
 }

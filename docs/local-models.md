@@ -23,12 +23,12 @@ status, but users do not need to understand or manually install them before usin
 
 Knovum does not download model weights during application installation or first launch. A capability
 that needs a missing model prepares it after the user starts that capability and reports the work in
-the shared Task Center. Settings remains a management surface.
+the shared Task Center. The provider settings page manages generative model connections, not these resources.
 
 | Capability                       | Model                                           | Ownership | Product action              |
 | -------------------------------- | ----------------------------------------------- | --------- | --------------------------- |
-| Local text embedding             | `Qwen3-Embedding-0.6B` (`fastembed` + `candle`) | Knovum    | Prepare on use / Remove     |
-| Multilingual media transcription | `ggml-small-q8_0.bin`                           | Knovum    | Prepare on use / Remove     |
+| Local text embedding             | `Qwen3-Embedding-0.6B` (`fastembed` + `candle`) | Knovum    | Prepare on use              |
+| Multilingual media transcription | `ggml-small-q8_0.bin`                           | Knovum    | Prepare on use              |
 | Speech-region detection          | `ggml-silero-v6.2.0.bin`                        | Knovum    | Prepared with transcription |
 
 Every local model descriptor has a pinned source and SHA-256. Installation uses a temporary file, streams real byte progress into the shared Task Center, verifies the checksum, and only then atomically activates the model.

@@ -211,15 +211,3 @@ fn remove_temporary(path: &Path) {
         }
     }
 }
-
-pub(super) fn uninstall<R: Runtime>(
-    app: &AppHandle<R>,
-    descriptor: ModelDescriptor,
-) -> Result<(), String> {
-    let path = installation_path(app, descriptor)?;
-    if path.exists() {
-        fs::remove_file(&path).map_err(|error| error.to_string())?;
-    }
-    super::verification::remove_receipt(&path)?;
-    Ok(())
-}

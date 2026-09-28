@@ -1,10 +1,8 @@
 <script setup lang="ts">
-import { Cloud, Cpu } from "@lucide/vue";
 import { useQuery } from "@tanstack/vue-query";
 import { ask } from "@tauri-apps/plugin-dialog";
 import { storeToRefs } from "pinia";
-import { TabsContent, TabsList, TabsRoot, TabsTrigger } from "reka-ui";
-import { computed, onMounted, shallowRef, watch } from "vue";
+import { computed, onMounted, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
@@ -15,7 +13,6 @@ import { useProtectedExecutionTargets } from "../../use-protected-execution-targ
 import AiConnectionsSettings from "../AiConnectionsSettings.vue";
 import FalImageLayerSettings from "../FalImageLayerSettings.vue";
 import SettingsLoadFailure from "../SettingsLoadFailure.vue";
-import SpaceRuntimeSettings from "../SpaceRuntimeSettings.vue";
 
 const PROVIDER_CATALOG_KEY = ["integrations", "provider-descriptors"] as const;
 
@@ -30,11 +27,6 @@ const catalog = useQuery({
   staleTime: 30_000,
 });
 const providers = computed(() => catalog.data.value ?? []);
-const activeSection = shallowRef("providers");
-const sections = computed(() => [
-  { value: "providers", label: t("settings.ai.navigation.providers"), icon: Cloud },
-  { value: "onDevice", label: t("settings.ai.navigation.onDevice"), icon: Cpu },
-]);
 const failure = computed(() =>
   loadError.value
     ? { source: "ai" as const, cause: loadError.value, canReset: true }
@@ -82,24 +74,9 @@ onMounted(hydrateStores);
     @retry="reload"
     @reset="resetSection"
   />
-  <TabsRoot v-else v-model="activeSection" :class="!ready && 'pointer-events-none opacity-60'">
+  <div v-else :class="!ready && 'pointer-events-none opacity-60'">
     <p class="mb-4 max-w-2xl text-body text-fg-secondary">{{ t("settings.ai.description") }}</p>
-    <TabsList
-      :aria-label="t('settings.ai.title')"
-      class="mb-5 inline-flex rounded-md bg-surface-control p-0.5"
-    >
-      <TabsTrigger
-        v-for="section in sections"
-        :key="section.value"
-        :value="section.value"
-        class="flex h-(--knovum-control-height-md) items-center gap-1.5 rounded-md px-3 text-label text-fg-secondary transition-colors outline-none hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-stroke-focus data-[state=active]:bg-surface-raised data-[state=active]:text-fg-primary data-[state=active]:shadow-control"
-      >
-        <component :is="section.icon" class="size-3.5" :stroke-width="1.7" />
-        {{ section.label }}
-      </TabsTrigger>
-    </TabsList>
-
-    <TabsContent value="providers" class="grid gap-5 outline-none">
+    <div class="grid gap-5">
       <AiConnectionsSettings
         v-model="settings.connections"
         :providers="providers"
@@ -107,7 +84,6 @@ onMounted(hydrateStores);
         :protected-model-targets="protectedModelTargets"
       />
       <FalImageLayerSettings />
-    </TabsContent>
-    <TabsContent value="onDevice" class="outline-none"><SpaceRuntimeSettings /></TabsContent>
-  </TabsRoot>
+    </div>
+  </div>
 </template>
