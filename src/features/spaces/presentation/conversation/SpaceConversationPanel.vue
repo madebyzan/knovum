@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 import { nextTick, useTemplateRef } from "vue";
+import { toast } from "vue-sonner";
 
 import { useConversationSessionStore } from "../../conversation/conversation-session-store";
 import SpaceConversationComposer from "./SpaceConversationComposer.vue";
@@ -38,10 +39,18 @@ const {
 } = storeToRefs(conversationSession);
 const composer = useTemplateRef<InstanceType<typeof SpaceConversationComposer>>("composer");
 
-async function useSuggestion(value: string) {
+async function useSuggestion(value: string, selection?: string) {
   prompt.value = value;
   await nextTick();
-  composer.value?.focus();
+  composer.value?.focus(selection);
+}
+
+async function previewAttachment(key: string) {
+  try {
+    await conversationSession.previewAttachment(key);
+  } catch (error) {
+    toast.error(String(error));
+  }
 }
 </script>
 
@@ -73,6 +82,7 @@ async function useSuggestion(value: string) {
         :events-by-run="eventsByRun"
         :active-run-id="activeRunId"
         :busy="loading"
+        :has-draft="Boolean(prompt.trim())"
         :preparing="loading && !activeRunId"
         :error="visibleError || activityError"
         :streamed-text="visibleStreamedText"
@@ -112,6 +122,7 @@ async function useSuggestion(value: string) {
       @choose-files="conversationSession.chooseFiles"
       @drop-files="conversationSession.chooseFiles($event)"
       @remove-attachment="conversationSession.removeAttachment"
+      @preview-attachment="previewAttachment"
       @send="conversationSession.send"
       @cancel="conversationSession.cancel"
     />

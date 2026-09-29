@@ -10,9 +10,6 @@ vi.mock("@tauri-apps/plugin-dialog", () => ({
   ask: vi.fn<() => Promise<boolean>>(),
   save: vi.fn<() => Promise<string | null>>(),
 }));
-vi.mock("@tauri-apps/plugin-fs", () => ({
-  writeTextFile: vi.fn<(path: string, contents: string) => Promise<void>>(),
-}));
 
 function session() {
   const conversation: AssistantConversation = {

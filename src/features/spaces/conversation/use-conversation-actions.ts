@@ -1,8 +1,8 @@
-import { ask, save } from "@tauri-apps/plugin-dialog";
-import { writeTextFile } from "@tauri-apps/plugin-fs";
+import { ask } from "@tauri-apps/plugin-dialog";
 import type { ComputedRef, ShallowRef } from "vue";
 import { toast } from "vue-sonner";
 import { i18n } from "../../../foundation/i18n/i18n";
+import { exportSpaceTextFile, safeExportFileName } from "../assets/export";
 
 import {
   archiveAssistantConversation,
@@ -67,10 +67,16 @@ export function useConversationActions(state: ConversationActionState) {
   async function exportSelected() {
     const conversation = state.selected.value;
     if (!conversation?.branchId) return;
-    const destination = await save({ defaultPath: `${conversation.title}.json` });
-    if (!destination) return;
-    const value = await loadAssistantBranchMessages(conversation.id, conversation.branchId);
-    await writeTextFile(destination, `${JSON.stringify(value, null, 2)}\n`);
+    try {
+      const value = await loadAssistantBranchMessages(conversation.id, conversation.branchId);
+      await exportSpaceTextFile({
+        defaultPath: `${safeExportFileName(conversation.title) || "conversation"}.json`,
+        filters: [{ name: "JSON", extensions: ["json"] }],
+        text: `${JSON.stringify(value, null, 2)}\n`,
+      });
+    } catch (cause) {
+      toast.error(`${i18n.global.t("spaces.assistant.conversations.exportFailed")}: ${String(cause)}`);
+    }
   }
 
   async function branchFrom(message: AssistantMessage) {

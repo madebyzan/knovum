@@ -5,23 +5,22 @@
   },
   "title": "Conversation",
   "agents": {
-    "builtIn": "Built-in Agent",
-    "external": "External Agent",
-    "select": "Choose an Agent",
+    "knovumAssistant": "Knovum Assistant · Model",
+    "desktop": "Desktop Agents",
+    "select": "Choose an assistant",
     "noModel": "No conversation model configured",
     "working": "Working…",
-    "externalDescription": "Desktop Agent running on this device",
     "manage": "Manage models and Agents…"
   },
   "empty": {
-    "builtIn": "Ask a question, find the key points, or plan what comes next.",
-    "title": "Start with this Space"
-  },
-  "starter": {
-    "summarize": "Summarize this Space",
-    "summarizePrompt": "Summarize the main content in this Space, including key conclusions and open questions.",
-    "plan": "Plan the next steps",
-    "planPrompt": "Based on this Space, help me organize an actionable next-step plan."
+    "title": "Try one of these tasks",
+    "topic": "[topic]",
+    "search": "Find sources",
+    "searchPrompt": "Find sources about {topic} in this Space and list where each one came from.",
+    "document": "Create a document",
+    "documentPrompt": "Create an editable overview document from sources about {topic} in this Space.",
+    "compare": "Compare ideas",
+    "comparePrompt": "Compare ideas about {topic} in this Space, including common ground, differences, and evidence."
   },
   "input": {
     "placeholder": "Ask, plan, or create in this Space…",
@@ -35,6 +34,7 @@
     "none": "No conversations yet",
     "actions": "Conversation actions",
     "export": "Export",
+    "exportFailed": "Could not export conversation",
     "archive": "Archive",
     "restore": "Restore",
     "delete": "Delete",
@@ -69,6 +69,7 @@
   },
   "attachments": {
     "add": "Add resource",
+    "attached": "Attached resources, scroll horizontally to see more",
     "citeCanvasNode": "Reference canvas content",
     "citeCanvasNodeHint": "Choose content from this Space",
     "canvasNodeShort": "Canvas reference",
@@ -81,10 +82,7 @@
     "search": "Search resources in this Space",
     "none": "No matching resources",
     "remove": "Remove resource: {name}",
-    "expand": "Show {count} more resources",
-    "more": "More resources",
-    "previousPage": "Previous resource page",
-    "nextPage": "Next resource page"
+    "preview": "Preview resource: {name}"
   },
   "uploads": {
     "sizeError": "Files cannot be empty. Images must be at most 10 MiB; other files at most 20 MiB.",
@@ -125,6 +123,7 @@
     "viewCreated": "Locate result"
   },
   "activity": {
+    "generating": "Generating response…",
     "running": "Working · {count} actions",
     "finished": "Completed · {count} actions",
     "recorded": "Activity · {count} actions",

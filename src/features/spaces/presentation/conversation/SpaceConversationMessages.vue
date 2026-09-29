@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { AlertCircle, ArrowUpRight } from "@lucide/vue";
+import { AlertCircle } from "@lucide/vue";
 import { computed, nextTick, watch, type ComponentPublicInstance } from "vue";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
@@ -9,14 +9,17 @@ import type { RunEvent } from "../../contracts/generated/RunEvent";
 import type { AssistantMessage } from "../../conversation/conversation-ipc";
 import { useConversationScroll } from "../../conversation/use-conversation-scroll";
 import SpaceConversationActivity from "./SpaceConversationActivity.vue";
+import SpaceConversationEmptyGuide from "./SpaceConversationEmptyGuide.vue";
 import SpaceConversationMessage from "./SpaceConversationMessage.vue";
 import SpaceConversationPendingActions from "./SpaceConversationPendingActions.vue";
+import SpaceConversationShimmerText from "./SpaceConversationShimmerText.vue";
 
 const props = defineProps<{
   messages: readonly AssistantMessage[];
   eventsByRun: Readonly<Record<string, RunEvent[]>>;
   activeRunId?: string | undefined;
   busy: boolean;
+  hasDraft: boolean;
   preparing: boolean;
   error?: string | undefined;
   streamedText: string;
@@ -36,7 +39,7 @@ const emit = defineEmits<{
   decidePermission: [optionId: string | null];
   decideApproval: [approvalId: string, approved: boolean];
   scrollPosition: [key: string, top: number];
-  suggest: [prompt: string];
+  suggest: [prompt: string, selection?: string];
   inspectActivity: [runId: string];
 }>();
 const visibleMessages = computed(() => props.messages.filter((message) =>
@@ -61,9 +64,9 @@ const streamingMessageId = computed(() => {
   const last = visibleMessages.value.at(-1);
   return last?.role === "assistant" ? last.id : undefined;
 });
-const hasActiveTurn = computed(() => props.messages.some((message) =>
+const hasActiveTurn = computed(() => Boolean(props.activeRunId && props.messages.some((message) =>
   message.role === "user" && message.content.runId === props.activeRunId,
-));
+)));
 watch(() => props.eventsByRun, async () => {
   if (!atTail.value) return;
   await nextTick();
@@ -73,7 +76,6 @@ watch(() => props.eventsByRun, async () => {
 function bindScroller(element: Element | ComponentPublicInstance | null) {
   scroller.value = element instanceof HTMLDivElement ? element : null;
 }
-const starters = ["summarize", "plan"] as const;
 </script>
 
 <template>
@@ -89,29 +91,10 @@ const starters = ["summarize", "plan"] as const;
       @scroll.passive="updateScrollPosition"
     >
       <div
-        v-if="visibleMessages.length === 0 && !busy && !error && !permission && !approvals.length"
-        class="min-h-full px-2 pt-12 pb-8"
+        v-if="visibleMessages.length === 0 && !hasDraft && !busy && !error && !permission && !approvals.length"
+        class="flex min-h-full items-center justify-center px-2 pb-12"
       >
-        <div class="mx-auto w-full max-w-sm">
-          <h2 class="text-title-sm font-semibold text-fg-primary">
-            {{ $t("spaces.assistant.empty.title") }}
-          </h2>
-          <p class="mt-1 text-caption text-fg-secondary">
-            {{ $t("spaces.assistant.empty.builtIn") }}
-          </p>
-          <div class="mt-5 space-y-0.5">
-            <button
-              v-for="starter in starters"
-              :key="starter"
-              type="button"
-              class="group flex w-full items-center justify-between gap-3 rounded-md px-2.5 py-2.5 text-left text-caption font-medium text-fg-secondary transition-colors duration-100 hover:bg-surface-control-hover hover:text-fg-primary focus-visible:outline-2 focus-visible:outline-stroke-focus"
-              @click="emit('suggest', $t(`spaces.assistant.starter.${starter}Prompt`))"
-            >
-              <span>{{ $t(`spaces.assistant.starter.${starter}`) }}</span>
-              <ArrowUpRight class="size-3.5 shrink-0 text-fg-tertiary group-hover:text-fg-secondary" />
-            </button>
-          </div>
-        </div>
+        <SpaceConversationEmptyGuide @select="(value, selection) => emit('suggest', value, selection)" />
       </div>
       <div class="relative w-full" :style="{ height: `${totalSize}px` }">
         <article
@@ -139,10 +122,7 @@ const starters = ["summarize", "plan"] as const;
           />
         </article>
       </div>
-      <article
-        v-if="streamedText && !streamingMessageId"
-        class="pb-5 text-body leading-relaxed text-fg-primary"
-      >
+      <article v-if="streamedText && !streamingMessageId" class="pb-5 text-body leading-relaxed text-fg-primary">
         <p class="whitespace-pre-wrap">{{ streamedText }}</p>
       </article>
       <SpaceConversationPendingActions
@@ -153,9 +133,10 @@ const starters = ["summarize", "plan"] as const;
         @decide-permission="emit('decidePermission', $event)"
         @decide-approval="(id, approved) => emit('decideApproval', id, approved)"
       />
-      <p v-if="busy && !hasActiveTurn" role="status" class="flex items-center gap-2 py-3 text-caption text-fg-secondary">
-        <span class="size-1.5 shrink-0 rounded-full bg-surface-accent" />
-        {{ $t(preparing ? "spaces.assistant.conversations.preparing" : "spaces.assistant.agents.working") }}
+      <p v-if="busy && !hasActiveTurn && !error" role="status" class="py-3 text-caption text-fg-secondary">
+        <SpaceConversationShimmerText>
+          {{ $t(preparing ? "spaces.assistant.conversations.preparing" : "spaces.assistant.activity.generating") }}
+        </SpaceConversationShimmerText>
       </p>
       <div
         v-if="error"

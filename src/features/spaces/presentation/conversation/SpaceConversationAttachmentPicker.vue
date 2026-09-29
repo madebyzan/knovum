@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowLeft, ArrowRight, Check, FileUp, Link2, Plus } from "@lucide/vue";
+import { ArrowLeft, ArrowRight, Check, FileUp, Link2, Paperclip, Plus } from "@lucide/vue";
 import { search } from "fast-fuzzy";
 import { computed, shallowRef, watch } from "vue";
 
@@ -58,41 +58,41 @@ function chooseFiles() {
 </script>
 
 <template>
-  <UiPopover v-model:open="open" side="top" align="start" class="w-72 max-w-[calc(100vw-24px)] p-1.5">
+  <UiPopover v-model:open="open" side="top" align="start" class="w-64 max-w-[calc(100vw-24px)] p-1.5">
     <template #trigger>
       <UiIconButton :label="$t('spaces.assistant.attachments.add')" size="sm">
-        <Plus class="size-3.5" />
+        <Paperclip class="size-3.5" />
       </UiIconButton>
     </template>
     <template v-if="view === 'sources'">
-      <p class="px-2.5 pt-1.5 pb-1 text-caption-sm font-medium text-fg-tertiary">
+      <p class="px-2.5 pt-1 pb-1.5 text-caption-sm font-medium text-fg-tertiary">
         {{ $t("spaces.assistant.attachments.add") }}
       </p>
       <button
         type="button"
-        class="flex min-h-14 w-full items-center gap-2.5 rounded-md px-2 text-left transition-colors duration-100 hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus"
+        class="flex min-h-12 w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-left transition-colors duration-100 hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus"
         @click="view = 'nodes'"
       >
-        <span class="flex size-8 shrink-0 items-center justify-center rounded-md bg-surface-accent-subtle text-fg-accent">
+        <span class="flex size-7 shrink-0 items-center justify-center rounded-md bg-surface-control text-fg-secondary">
           <Link2 class="size-4" :stroke-width="1.6" />
         </span>
         <span class="min-w-0 flex-1">
-          <span class="block truncate text-caption font-medium text-fg-primary">{{ $t("spaces.assistant.attachments.citeCanvasNode") }}</span>
+          <span class="block truncate text-label font-medium text-fg-primary">{{ $t("spaces.assistant.attachments.citeCanvasNode") }}</span>
           <span class="block truncate text-caption-sm text-fg-tertiary">{{ $t("spaces.assistant.attachments.citeCanvasNodeHint") }}</span>
         </span>
         <ArrowRight class="size-3.5 shrink-0 text-fg-tertiary" />
       </button>
       <button
         type="button"
-        class="flex min-h-14 w-full items-center gap-2.5 rounded-md px-2 text-left transition-colors duration-100 hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus disabled:opacity-40"
+        class="flex min-h-12 w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-left transition-colors duration-100 hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus disabled:opacity-40"
         :disabled="pickingFiles"
         @click="chooseFiles"
       >
-        <span class="flex size-8 shrink-0 items-center justify-center rounded-md bg-surface-muted text-fg-secondary">
+        <span class="flex size-7 shrink-0 items-center justify-center rounded-md bg-surface-control text-fg-secondary">
           <FileUp class="size-4" :stroke-width="1.6" />
         </span>
         <span class="min-w-0 flex-1">
-          <span class="block truncate text-caption font-medium text-fg-primary">{{ $t("spaces.assistant.attachments.uploadLocalFile") }}</span>
+          <span class="block truncate text-label font-medium text-fg-primary">{{ $t("spaces.assistant.attachments.uploadLocalFile") }}</span>
           <span class="block truncate text-caption-sm text-fg-tertiary">{{ $t("spaces.assistant.attachments.uploadLocalFileHint") }}</span>
         </span>
       </button>

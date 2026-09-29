@@ -10,6 +10,7 @@ import { contentNodeIdsWithin } from "../model/structure/structure-queries";
 import { useSpaceStore } from "../session/space-store";
 import type { StartAssistantTaskInput } from "./conversation-ipc";
 import { chooseAssistantUploads, inspectAssistantUploads } from "./conversation-uploads";
+import { previewConversationAttachment } from "./preview-conversation-attachment";
 import { isAssistantImagePath, useConversationImagePreviews } from "./use-conversation-image-previews";
 
 type Attachment = NonNullable<StartAssistantTaskInput["attachments"]>[number];
@@ -164,5 +165,6 @@ export function useConversationAttachments() {
     addNodeAttachments,
     chooseFiles,
     removeAttachment,
+    previewAttachment: (key: string) => previewConversationAttachment(attachments.value, store, key),
   };
 }

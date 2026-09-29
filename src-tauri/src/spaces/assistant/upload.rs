@@ -31,6 +31,16 @@ pub async fn inspect_assistant_upload(
     Ok((crate::blocking::run(move || inspect(&app, &path)).await)?)
 }
 
+#[tauri::command]
+pub async fn preview_assistant_upload(
+    app: tauri::AppHandle,
+    path: String,
+) -> Result<(), CommandError> {
+    let source = authorize(&app, &path)?;
+    classify(&source)?;
+    Ok((crate::system_preview::open(app, source).await)?)
+}
+
 fn inspect(app: &tauri::AppHandle, path: &str) -> Result<InspectedAssistantUpload, String> {
     let source = authorize(app, path)?;
     source

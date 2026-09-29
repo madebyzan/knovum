@@ -45,6 +45,10 @@ async function copyMessage() {
     class="group flex min-w-0 flex-col gap-2"
     :class="message.role === 'user' ? 'items-end' : 'items-start'"
   >
+    <SpaceConversationMessageAttachments
+      v-if="message.role === 'user' && message.content.attachments?.length"
+      :attachments="message.content.attachments"
+    />
     <div
       class="min-w-0 space-y-2 text-body leading-relaxed text-fg-primary"
       :class="message.role === 'user' ? 'w-fit max-w-[85%] rounded-panel bg-surface-control px-3 py-2.5' : 'w-full'"
@@ -61,10 +65,6 @@ async function copyMessage() {
       </template>
       <p v-if="streamedText" class="wrap-break-word whitespace-pre-wrap">{{ streamedText }}</p>
     </div>
-    <SpaceConversationMessageAttachments
-      v-if="message.role === 'user' && message.content.attachments?.length"
-      :attachments="message.content.attachments"
-    />
     <details
       v-if="citations.length"
       class="w-full rounded-md border border-stroke-divider px-2 py-1.5 text-caption"

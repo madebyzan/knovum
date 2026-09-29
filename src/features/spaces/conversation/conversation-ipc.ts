@@ -54,6 +54,10 @@ export function inspectAssistantUpload(path: string): Promise<InspectedAssistant
   return invokeCommand("plugin:spaces|inspect_assistant_upload", { path });
 }
 
+export function previewAssistantUpload(path: string): Promise<void> {
+  return invokeCommand("plugin:spaces|preview_assistant_upload", { path });
+}
+
 export function listAssistantConversations(
   spaceId: string,
   query = "",
