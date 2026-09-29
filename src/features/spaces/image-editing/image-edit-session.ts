@@ -5,7 +5,7 @@ import { readonly, shallowRef, watch } from "vue";
 import { useSpaceStore } from "../session/space-store";
 import { imageEditOf, type ImageEdit } from "./image-edit";
 
-export type ImageEditTool = "adjust" | "crop" | "transform" | "eraser";
+export type ImageEditTool = "adjust" | "crop" | "transform";
 
 interface ActiveImageEdit {
   spaceId: string;
@@ -18,24 +18,19 @@ export const useImageEditSession = defineStore("spaces-image-edit-session", () =
   const space = useSpaceStore();
   const active = shallowRef<ActiveImageEdit>();
   const applying = shallowRef(false);
-  const brushDiameter = shallowRef(0.045);
   const cropAspectRatio = shallowRef<number>();
-  const imageDimensions = shallowRef(new Map<string, { width: number; height: number }>());
-
-  function setImageDimensions(nodeId: string, width: number, height: number) {
-    imageDimensions.value = new Map(imageDimensions.value).set(nodeId, { width, height });
-  }
-
-  function dimensionsFor(nodeId: string) {
-    return imageDimensions.value.get(nodeId);
-  }
 
   function begin(nodeId: string, tool: ImageEditTool) {
     if (applying.value || active.value) return;
     const node = space.nodes.find(({ id }) => id === nodeId);
     if (!node || node.data.kind !== "image") throw new Error("Selected image is unavailable");
     if (!space.activeSpaceId) throw new Error("No active Space for image editing");
-    active.value = { spaceId: space.activeSpaceId, nodeId, tool, draft: imageEditOf(node.data) };
+    active.value = {
+      spaceId: space.activeSpaceId,
+      nodeId,
+      tool,
+      draft: imageEditOf(node.data),
+    };
     cropAspectRatio.value = undefined;
   }
 
@@ -47,20 +42,6 @@ export const useImageEditSession = defineStore("spaces-image-edit-session", () =
     const current = active.value;
     if (!current || applying.value) return;
     active.value = { ...current, draft: { ...current.draft, ...patch } };
-  }
-
-  function addEraserStroke(points: number[]) {
-    const current = active.value;
-    if (current?.tool !== "eraser" || points.length < 4) return;
-    update({
-      eraserStrokes: [...current.draft.eraserStrokes, { diameter: brushDiameter.value, points }],
-    });
-  }
-
-  function undoEraserStroke() {
-    const current = active.value;
-    if (current?.tool !== "eraser") return;
-    update({ eraserStrokes: current.draft.eraserStrokes.slice(0, -1) });
   }
 
   function cancel() {
@@ -100,7 +81,6 @@ export const useImageEditSession = defineStore("spaces-image-edit-session", () =
     () => {
       active.value = undefined;
       cropAspectRatio.value = undefined;
-      imageDimensions.value = new Map();
     },
     { flush: "sync" },
   );
@@ -109,7 +89,6 @@ export const useImageEditSession = defineStore("spaces-image-edit-session", () =
     (nodes) => {
       const ids = new Set(nodes.map(({ id }) => id));
       if (active.value && !ids.has(active.value.nodeId)) active.value = undefined;
-      imageDimensions.value = new Map([...imageDimensions.value].filter(([id]) => ids.has(id)));
     },
     { flush: "sync" },
   );
@@ -117,16 +96,10 @@ export const useImageEditSession = defineStore("spaces-image-edit-session", () =
   return {
     active: readonly(active),
     applying: readonly(applying),
-    brushDiameter: readonly(brushDiameter),
     cropAspectRatio: readonly(cropAspectRatio),
-    setImageDimensions,
-    dimensionsFor,
     begin,
     previewFor,
     update,
-    addEraserStroke,
-    undoEraserStroke,
-    setBrushDiameter: (diameter: number) => (brushDiameter.value = diameter),
     setCropAspectRatio: (ratio?: number) => {
       if (active.value?.tool === "crop" && !applying.value) cropAspectRatio.value = ratio;
     },

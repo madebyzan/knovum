@@ -33,6 +33,7 @@ export async function deriveImage(
   store: SpaceStore,
   source: SpaceCanvasNode<SpaceImagePayload>,
   operation: ImageOperation,
+  onOutputCreated?: () => void,
 ) {
   const spaceId = store.activeSpaceId;
   const sourceRevision = source.data.sourceRevision;
@@ -41,7 +42,9 @@ export async function deriveImage(
   const label =
     operation.kind === "upscale"
       ? `${operation.targetLongEdge / 1024}K`
-      : `${operation.mode}-${operation.yaw}-${operation.pitch}-${operation.zoom}`;
+      : operation.kind === "multi-angle"
+        ? `${operation.mode}-${operation.yaw}-${operation.pitch}-${operation.zoom}`
+        : i18n.global.t("spaces.media.imageEditor.removeObject.resultSuffix");
   const title = `${source.data.title}-${label}`;
   const [pending] = await store.addContent(
     {
@@ -56,7 +59,7 @@ export async function deriveImage(
   );
   if (!pending) throw new Error("Image operation output node was not created");
   const id = crypto.randomUUID();
-  return runDerivation<ImageOperationOutput>({
+  const result = runDerivation<ImageOperationOutput>({
     store,
     pendingId: pending.id,
     sourceNodeIds: [source.id],
@@ -106,4 +109,6 @@ export async function deriveImage(
       await store.refreshActiveSpace();
     },
   });
+  onOutputCreated?.();
+  return result;
 }

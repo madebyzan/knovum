@@ -60,6 +60,19 @@ pub fn request(operation: SourceImageOperation<'_>) -> (&'static str, serde_json
                 "parameters": { "n": 1, "prompt_extend": true, "watermark": false }
             }),
         ),
+        SourceImageOperation::Inpaint { data_uri, mask_uri } => (
+            "services/aigc/image2image/image-synthesis",
+            serde_json::json!({
+                "model": "wanx2.1-imageedit",
+                "input": {
+                    "function": "description_edit_with_mask",
+                    "base_image_url": data_uri,
+                    "mask_image_url": mask_uri,
+                    "prompt": "A natural, unobstructed background continuous with the surrounding scene, matching its texture, lighting, and perspective."
+                },
+                "parameters": { "n": 1, "watermark": false }
+            }),
+        ),
     }
 }
 

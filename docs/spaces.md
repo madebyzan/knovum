@@ -287,12 +287,20 @@ Canvas items are **content-first spatial representations**, not a grid of generi
 
 Image and video editing deliberately use different product surfaces. One selected image exposes
 non-destructive crop presets, quarter-turn rotation, horizontal/vertical flip, tonal adjustments
-and an eraser directly in the canvas selection bar. The active control panel sits beside the
+and AI object removal directly in the canvas selection bar. The active control panel sits beside the
 selected image when the canvas has room on either side. Otherwise, the panel uses the larger free
 area above or below and scrolls within that area. The selection surface owns this placement rule
-for other long node controls as well. The persisted `imageEdit` contract keeps the
-source asset immutable; the canvas renderer projects the crop, transform, filter and normalized
-eraser strokes. System preview and PNG export render the same saved edit through Rust; opening
+for other long node controls as well. The persisted `imageEdit` v6 contract keeps the
+source asset immutable; the canvas renderer projects crop, transform and filter edits. Earlier
+pre-release image edit recipes are rejected explicitly; the old transparency eraser is not a
+same-node edit. Object removal publishes a new image with `derives-from` lineage. With Qwen or a
+GPT Image model, brush selections stay transient and Rust sends the rendered source with a
+provider-specific mask. With a Gemini, Grok Imagine, Doubao Seedream, SiliconFlow Qwen edit,
+Kling Omni or supported OpenRouter image model (including FLUX.2), the user describes the object
+and Rust sends the rendered source with that instruction. Rust uploads the source to Gemini or xAI
+before those edit requests; inline encoding happens only for providers whose image edit API needs it.
+Text-to-image support alone does not enable object removal. System
+preview and PNG export render the same saved edit through Rust; opening
 an image never hands the unedited source to the system preview. Image comments are normalized
 positions on the displayed image, saved in the image node payload with their text and creation
 time. A comment may target a point, a freehand

@@ -1,5 +1,4 @@
 mod contract;
-mod eraser;
 mod geometry;
 mod glow;
 mod pixels;

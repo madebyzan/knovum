@@ -1,7 +1,10 @@
 mod image;
+mod image_edit;
+mod image_task;
 mod video;
 
 pub use image::KlingImageAdapter;
+pub use image_edit::edit_source;
 pub use video::KlingVideoAdapter;
 
 use crate::ai::contracts::{AiProvider, ImageGenerationCapability, VideoGenerationCapability};

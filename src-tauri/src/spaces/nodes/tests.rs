@@ -50,9 +50,9 @@ async fn resetting_image_edits_replaces_the_visual_job_through_the_node_update_p
         "kind":"image", "title":"Picture", "sourceRevision":"asset-1",
         "assetPath":"/assets/picture.png", "fileName":"picture.png",
         "imageEdit":{
-            "version":5, "crop":{"x":0.0,"y":0.0,"width":1.0,"height":1.0},
+            "version":6, "crop":{"x":0.0,"y":0.0,"width":1.0,"height":1.0},
             "rotation":90.0,"flipHorizontal":false,"flipVertical":false,
-            "adjustments":adjustments,"eraserStrokes":[]
+            "adjustments":adjustments
         }
     });
     crate::spaces::knowledge::indexing::revision::apply(&mut before).unwrap();

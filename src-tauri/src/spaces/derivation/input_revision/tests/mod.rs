@@ -14,7 +14,7 @@ fn rendered_revision_tracks_image_edits_but_not_annotations() {
     );
 
     image["imageEdit"] = json!({
-        "version": 5,
+        "version": 6,
         "crop": {"x": 0.0, "y": 0.0, "width": 1.0, "height": 1.0},
         "rotation": 90.0,
         "flipHorizontal": false,
@@ -26,7 +26,6 @@ fn rendered_revision_tracks_image_edits_but_not_annotations() {
             "vignette": 0.0, "vibrance": 0.0, "tint": 0.0,
             "clarity": 0.0, "grain": 0.0, "softLight": 0.0, "glow": 0.0
         },
-        "eraserStrokes": []
     });
     assert_ne!(
         resolve("image", &image, RevisionBasis::Rendered).unwrap().0,

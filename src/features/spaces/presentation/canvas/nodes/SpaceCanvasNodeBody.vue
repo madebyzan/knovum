@@ -21,6 +21,7 @@ const props = defineProps<{
   data: SpaceNodePayload;
   presentationContext: CanvasNodePresentationContext;
   interactive: boolean;
+  frameRotation: number;
 }>();
 const { t } = useI18n();
 const presentation = computed(() => spaceCanvasNodePresentation(props.data));
@@ -52,7 +53,13 @@ const work = computed(() => nodePayloadWork(props.data));
     :id="id"
     :data="data"
   />
-  <SpaceCanvasImage v-else-if="data.kind === 'image'" :id="id" :data="data" :interactive="interactive" />
+  <SpaceCanvasImage
+    v-else-if="data.kind === 'image'"
+    :id="id"
+    :data="data"
+    :interactive="interactive"
+    :frame-rotation="frameRotation"
+  />
   <SpaceCanvasArchiveEntries
     v-else-if="entries.length > 0"
     :entries="entries"

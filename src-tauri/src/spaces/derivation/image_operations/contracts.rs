@@ -15,6 +15,20 @@ pub enum ImageOperation {
         pitch: i16,
         zoom: ImageZoom,
     },
+    RemoveObject {
+        strokes: Vec<MaskStroke>,
+    },
+    RemoveObjectPrompt {
+        prompt: String,
+    },
+}
+
+#[derive(Clone, Deserialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
+pub struct MaskStroke {
+    pub diameter: f64,
+    pub points: Vec<f64>,
 }
 
 #[derive(Clone, Copy, Deserialize, ts_rs::TS)]
@@ -36,6 +50,34 @@ pub enum ImageZoom {
 
 impl ImageOperation {
     pub fn validate(&self) -> Result<(), String> {
+        if let Self::RemoveObject { strokes } = self {
+            if strokes.is_empty() || strokes.len() > 100 {
+                return Err("Object removal requires 1–100 mask strokes".into());
+            }
+            let mut total_points = 0;
+            for stroke in strokes {
+                if !stroke.diameter.is_finite() || !(0.005..=0.15).contains(&stroke.diameter) {
+                    return Err("Object removal brush size is invalid".into());
+                }
+                if stroke.points.len() < 4 || stroke.points.len() % 2 != 0 {
+                    return Err("Object removal mask stroke is invalid".into());
+                }
+                total_points += stroke.points.len() / 2;
+                if total_points > 10_000
+                    || stroke
+                        .points
+                        .iter()
+                        .any(|v| !v.is_finite() || !(0.0..=1.0).contains(v))
+                {
+                    return Err("Object removal mask points are invalid".into());
+                }
+            }
+        }
+        if let Self::RemoveObjectPrompt { prompt } = self {
+            if prompt.trim().is_empty() || prompt.chars().count() > 1000 {
+                return Err("Object removal description must contain 1–1000 characters".into());
+            }
+        }
         if let Self::MultiAngle { yaw, pitch, .. } = self {
             if !(-90..=90).contains(yaw) || !(-30..=60).contains(pitch) {
                 return Err("Image viewing angle is out of range".into());
@@ -83,9 +125,32 @@ impl ImageOperation {
             "Create one new view from the input image. {orientation} {framing} Preserve subject identity, clothing, materials, proportions, and visual style."
         ))
     }
+}
 
-    fn view_key(&self) -> String {
+impl ImageOperation {
+    pub fn action_kind(&self) -> &'static str {
         match self {
+            Self::Upscale { .. } => "upscale-image",
+            Self::MultiAngle { .. } => "generate-image-angle",
+            Self::RemoveObject { .. } | Self::RemoveObjectPrompt { .. } => "remove-image-object",
+        }
+    }
+
+    pub fn engine(&self, provider: &str, configured_model: &str) -> String {
+        let model = match (provider, self) {
+            ("qwen", Self::Upscale { .. } | Self::RemoveObject { .. }) => "wanx2.1-imageedit",
+            ("qwen", Self::MultiAngle { .. }) => "qwen-image-3.0-pro",
+            _ => configured_model,
+        };
+        let provider = if provider == "qwen" {
+            "dashscope"
+        } else {
+            provider
+        };
+        match self {
+            Self::Upscale { target_long_edge } => {
+                format!("{provider}:{model}:target-{target_long_edge}")
+            }
             Self::MultiAngle {
                 mode,
                 yaw,
@@ -101,36 +166,10 @@ impl ImageOperation {
                     ImageZoom::Medium => "medium",
                     ImageZoom::Wide => "wide",
                 };
-                format!("{mode}:{yaw}:{pitch}:{zoom}")
+                format!("{provider}:{model}:{mode}:{yaw}:{pitch}:{zoom}")
             }
-            Self::Upscale { .. } => String::new(),
-        }
-    }
-}
-
-impl ImageOperation {
-    pub fn action_kind(&self) -> &'static str {
-        match self {
-            Self::Upscale { .. } => "upscale-image",
-            Self::MultiAngle { .. } => "generate-image-angle",
-        }
-    }
-
-    pub fn model(&self) -> &'static str {
-        match self {
-            Self::Upscale { .. } => "wanx2.1-imageedit",
-            Self::MultiAngle { .. } => "qwen-image-3.0-pro",
-        }
-    }
-
-    pub fn engine(&self) -> String {
-        match self {
-            Self::Upscale { target_long_edge } => {
-                format!("dashscope:{}:target-{target_long_edge}", self.model())
-            }
-            Self::MultiAngle { .. } => {
-                format!("dashscope:{}:{}", self.model(), self.view_key())
-            }
+            Self::RemoveObject { .. } => format!("{provider}:{model}:mask"),
+            Self::RemoveObjectPrompt { .. } => format!("{provider}:{model}:prompt"),
         }
     }
 
@@ -138,13 +177,16 @@ impl ImageOperation {
         match self {
             Self::Upscale { .. } => "Image upscaled from source image",
             Self::MultiAngle { .. } => "View generated from source image",
+            Self::RemoveObject { .. } | Self::RemoveObjectPrompt { .. } => {
+                "Object removed and background completed from source image"
+            }
         }
     }
 
     pub fn target_long_edge(&self) -> Option<u32> {
         match self {
             Self::Upscale { target_long_edge } => Some(*target_long_edge),
-            Self::MultiAngle { .. } => None,
+            _ => None,
         }
     }
 }
@@ -168,6 +210,8 @@ pub struct DeriveImageRequest {
 pub struct ImageOperationCapabilities {
     pub upscale: ImageOperationCapability,
     pub multi_angle: ImageOperationCapability,
+    pub masked_removal: ImageOperationCapability,
+    pub prompt_removal: ImageOperationCapability,
 }
 
 #[derive(Clone, Copy, Serialize, ts_rs::TS)]
@@ -185,4 +229,23 @@ pub enum ImageOperationBlockReason {
     ConfigurationIncomplete,
     ProviderUnsupported,
     CredentialUnavailable,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::ImageOperation;
+
+    #[test]
+    fn prompt_removal_rejects_missing_and_oversized_descriptions() {
+        for prompt in ["  ".to_owned(), "x".repeat(1001)] {
+            assert!(ImageOperation::RemoveObjectPrompt { prompt }
+                .validate()
+                .is_err());
+        }
+        assert!(ImageOperation::RemoveObjectPrompt {
+            prompt: "person in the background".into(),
+        }
+        .validate()
+        .is_ok());
+    }
 }

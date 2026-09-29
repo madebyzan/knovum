@@ -1,6 +1,7 @@
 import { clamp } from "es-toolkit";
 import { shallowRef } from "vue";
 
+import { viewportToLocalPoint } from "../canvas/viewport-to-local-point";
 import type { SpaceImagePayload } from "../model/nodes/node-payload";
 import { useImageCommentSession } from "./image-comment-session";
 
@@ -12,11 +13,12 @@ interface Gesture {
   points: number[];
 }
 
-function point(event: PointerEvent): { x: number; y: number } {
-  const bounds = (event.currentTarget as HTMLElement).getBoundingClientRect();
+function point(event: PointerEvent, rotation: number): { x: number; y: number } {
+  const element = event.currentTarget as HTMLElement;
+  const local = viewportToLocalPoint(element, event.clientX, event.clientY, rotation);
   return {
-    x: clamp((event.clientX - bounds.left) / bounds.width, 0, 1),
-    y: clamp((event.clientY - bounds.top) / bounds.height, 0, 1),
+    x: clamp(local.x / element.offsetWidth, 0, 1),
+    y: clamp(local.y / element.offsetHeight, 0, 1),
   };
 }
 
@@ -26,7 +28,7 @@ function completeMark(mark: CommentMark | undefined): mark is CommentMark {
   return false;
 }
 
-export function useImageCommentGesture(complete: (mark: CommentMark) => void) {
+export function useImageCommentGesture(complete: (mark: CommentMark) => void, rotation: () => number) {
   const session = useImageCommentSession();
   const gesture = shallowRef<Gesture>();
   const preview = shallowRef<CommentMark>();
@@ -36,7 +38,7 @@ export function useImageCommentGesture(complete: (mark: CommentMark) => void) {
     if (!current || current.pointerId !== event.pointerId) return;
     event.preventDefault();
     event.stopPropagation();
-    const end = point(event);
+    const end = point(event, rotation());
     if (session.mode === "region") {
       const x = Math.min(current.start.x, end.x);
       const y = Math.min(current.start.y, end.y);
@@ -65,7 +67,7 @@ export function useImageCommentGesture(complete: (mark: CommentMark) => void) {
     if (gesture.value) return;
     event.preventDefault();
     event.stopPropagation();
-    const origin = point(event);
+    const origin = point(event, rotation());
     (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
     gesture.value = { pointerId: event.pointerId, start: origin, points: [origin.x, origin.y] };
     preview.value = session.mode === "point" ? origin : undefined;

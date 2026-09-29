@@ -78,6 +78,7 @@ fn validate(row: &PackageDerivation) -> Result<(), String> {
     let action = matches!(
         row.action_kind.as_str(),
         "remove-image-background"
+            | "remove-image-object"
             | "split-image-layers"
             | "upscale-image"
             | "generate-image-angle"
@@ -167,6 +168,26 @@ mod tests {
         value.as_object_mut().unwrap().remove("generatedVideo");
         value["actionKind"] = serde_json::json!("export-document-as-pdf");
         value["engine"] = serde_json::json!("typst:0.15.1");
+        assert!(validate(&serde_json::from_value(value).unwrap()).is_ok());
+    }
+    #[test]
+    fn accepts_object_removal_without_generation_metadata() {
+        let mut value = derivation();
+        value.as_object_mut().unwrap().remove("generatedVideo");
+        value["actionKind"] = serde_json::json!("remove-image-object");
+        value["engine"] = serde_json::json!("dashscope:wanx2.1-imageedit:mask");
+        value["outputNodeId"] = serde_json::json!("image-output");
+        value["inputs"][0]["sourceSnapshot"]["kind"] = serde_json::json!("image");
+        value["inputs"][0]["revisionBasis"] = serde_json::json!("rendered");
+        let snapshot = serde_json::json!({ "imageEdit": null });
+        value["inputs"][0]["inputRevision"] = serde_json::json!(input_revision::from_snapshot(
+            "image",
+            "node1:source",
+            RevisionBasis::Rendered,
+            &snapshot,
+        )
+        .unwrap());
+        value["inputs"][0]["inputSnapshot"] = snapshot;
         assert!(validate(&serde_json::from_value(value).unwrap()).is_ok());
     }
 }

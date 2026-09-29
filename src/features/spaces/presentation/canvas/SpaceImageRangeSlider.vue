@@ -9,6 +9,7 @@ defineProps<{
   step?: number;
   minimal?: boolean;
   displayValue?: string;
+  disabled?: boolean;
 }>();
 const emit = defineEmits<{ update: [value: number] }>();
 </script>
@@ -26,6 +27,7 @@ const emit = defineEmits<{ update: [value: number] }>();
       :max="max"
       :step="step ?? 1"
       :aria-label="label"
+      :disabled="disabled"
       class="relative flex h-4 w-full touch-none items-center select-none"
       @update:model-value="(next) => next?.[0] !== undefined && emit('update', next[0])"
     >

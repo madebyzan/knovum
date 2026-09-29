@@ -238,7 +238,7 @@ CREATE TABLE spaces_knowledge_derivations (
   id TEXT PRIMARY KEY NOT NULL,
   space_id TEXT NOT NULL,
   output_node_id TEXT NOT NULL,
-  action_kind TEXT NOT NULL CHECK (action_kind IN ('remove-image-background', 'split-image-layers', 'upscale-image', 'generate-image-angle', 'generate-visualization', 'extract-subtitles', 'render-subtitled-video', 'draft-document', 'export-document-as-docx', 'export-document-as-pdf', 'export-document-as-txt', 'render-presentation', 'generate-video')),
+  action_kind TEXT NOT NULL CHECK (action_kind IN ('remove-image-background', 'remove-image-object', 'split-image-layers', 'upscale-image', 'generate-image-angle', 'generate-visualization', 'extract-subtitles', 'render-subtitled-video', 'draft-document', 'export-document-as-docx', 'export-document-as-pdf', 'export-document-as-txt', 'render-presentation', 'generate-video')),
   action_version INTEGER NOT NULL CHECK (action_version = 1),
   engine TEXT NOT NULL,
   status TEXT NOT NULL CHECK (status IN ('running', 'completed', 'failed')),

@@ -275,7 +275,7 @@ The node-kind decision is explicit:
 | Kind                 | Edits the same identity                                                                        | Creates a derivative when requested                                                |
 | -------------------- | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
 | Note, text, Markdown | Body, title and tags                                                                           | Summary, drafted document, visualization or other independently useful output      |
-| Image                | Crop, rotation, flip, tone, eraser recipe and comments                                         | Background removal, upscale, new angle, separated layers or generated image        |
+| Image                | Crop, rotation, flip, tone and comments                                                        | Background removal, AI object removal, upscale, new angle, separated layers or generated image |
 | Video                | Edit project, title, tags and annotations                                                      | Rendered video, subtitle resource, burn-in output or generated clip                |
 | Audio                | Title, tags and corrected node-owned transcript/analysis                                       | Separately published subtitle, transcript or document resource                     |
 | Subtitle             | Language, cues and corrections                                                                 | Burned-in video or a separately authored document                                  |
@@ -284,6 +284,14 @@ The node-kind decision is explicit:
 | Knowledge object     | Typed properties, status, title and evidence relations                                         | A new knowledge resource only when the intent explicitly creates one               |
 | Credential           | Metadata and dedicated local credential-database reference                                     | No credential derivative; generated artifacts may consume an authorized credential |
 | Portal               | Target and presentation metadata                                                               | No content derivative; duplicate is a clone                                        |
+
+For images, the same-identity path writes only the source node's validated `imageEdit` recipe
+(adjustments, crop, flip and rotation) and its undo history. Background removal, object removal,
+layer splitting, multi-angle generation and upscaling never write that recipe or replace the
+source asset. Each reserves a new output node, consumes the pinned rendered source, and records
+Derivation provenance plus `derives-from` only after a successful publish. A brush selection for
+object removal is a transient derivation input, not an image edit. Shared image dimensions are
+read-only presentation data and do not determine which persistence path owns an operation.
 
 Groups and Sections are Structure entities rather than content nodes. Move, resize, reorder, lock,
 align, reparent, rename and dissolve mutate Structure. Saved Views mutate their own scene record;
@@ -298,7 +306,7 @@ Revision selection follows the data actually consumed:
 - `sourceRevision` identifies immutable managed source bytes. It does not change when an image
   edit recipe, video edit project or comment changes.
 - A rendered-content revision identifies the canonical source bytes plus the normalized edit
-  recipe used to render them. Image crop/flip/tone/eraser and video render projects change this
+  recipe used to render them. Image crop/flip/tone and video render projects change this
   revision. Comments, title, canvas position and selection do not.
 - `knowledgeRevision` identifies semantic node content used for retrieval and grounding. It is
   distinct from rendered pixels and from the raw asset revision. A knowledge-producing edit must

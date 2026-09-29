@@ -7,8 +7,18 @@ use super::image_operation_protocol as protocol;
 use crate::ai::transport::{http_client, SecurityContext};
 
 pub enum SourceImageOperation<'a> {
-    Upscale { data_uri: &'a str, factor: u8 },
-    View { data_uri: &'a str, prompt: &'a str },
+    Upscale {
+        data_uri: &'a str,
+        factor: u8,
+    },
+    View {
+        data_uri: &'a str,
+        prompt: &'a str,
+    },
+    Inpaint {
+        data_uri: &'a str,
+        mask_uri: &'a str,
+    },
 }
 
 pub async fn execute_image_operation(
@@ -19,14 +29,19 @@ pub async fn execute_image_operation(
     let secret = ctx.require_api_key().map_err(|error| error.to_string())?;
     let endpoint = endpoint(&ctx.endpoint);
     let (path, body) = protocol::request(operation);
-    let response = http_client()
+    if cancellation.is_cancelled() {
+        return Err("Image operation was cancelled".into());
+    }
+    let request = http_client()
         .post(format!("{endpoint}/{path}"))
         .bearer_auth(secret)
         .header("X-DashScope-Async", "enable")
         .json(&body)
-        .send()
-        .await
-        .map_err(provider_error)?;
+        .send();
+    let response = tokio::select! {
+        _ = cancellation.cancelled() => return Err("Image operation was cancelled".into()),
+        response = request => response.map_err(provider_error)?,
+    };
     let status = response.status();
     let response: protocol::Response =
         response::read_json(response, response::MAX_CONTROL_JSON_BYTES)

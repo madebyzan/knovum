@@ -1,9 +1,9 @@
 # OSS-first gate
 
-## Canvas image editing and video workbench reviewed 2026-09-23
+## Canvas image editing and video workbench reviewed 2026-09-29
 
 - The existing exact-pinned **Konva/vue-konva** canvas stack and browser Canvas 2D primitives own
-  interactive image projection. Crop, rotation, flip, tonal controls and alpha erasing do not
+  interactive image projection. Crop, rotation, flip and tonal controls do not
   justify another image-editor framework or a second scene graph. Rust's maintained `image` crate
   owns canonical raster materialization and validates encoded outputs before managed persistence
   or export. The shared strict image-edit contract keeps preview and output behavior aligned.
@@ -15,6 +15,22 @@
   supplies actual separate transparent layers; its credential stays in the OS secret store and
   layer publishing remains a Rust multi-output transaction. Local Qwen deployment needs a
   Python/PyTorch/CUDA runtime and does not fit the Tauri desktop packaging contract.
+- Object removal reuses the existing image-derivation transaction and configured provider.
+  [DashScope `wanx2.1-imageedit`](https://help.aliyun.com/en/model-studio/wanx-image-edit-api-reference)
+  receives a black/white brush mask; [OpenAI GPT Image edits](https://developers.openai.com/api/docs/guides/image-generation)
+  receive the same selection as a transparent PNG mask. [Gemini image editing](https://ai.google.dev/gemini-api/docs/generate-content/image-generation)
+  receives the source image and an object description. The same prompt-based path uses the
+  documented source-image inputs for [xAI image edits](https://docs.x.ai/developers/model-capabilities/images/editing),
+  [Doubao Seedream](https://docs.volcengine.com/docs/ark/image-generation-api?lang=en),
+  [OpenRouter's image API](https://openrouter.ai/docs/guides/overview/multimodal/image-generation),
+  [SiliconFlow Qwen image editing](https://docs.siliconflow.cn/docs/api/images-generations-post),
+  and [Kling Omni Image](https://kling.ai/document-api/apiReference/model/OmniImage).
+  OpenAI submits PNG files as multipart form data; Gemini uses the existing Files API uploader,
+  and xAI references a private uploaded file ID with a one-hour expiry. The remaining edit APIs
+  require inline image bytes for local sources: a data URI for Qwen, Seedream, OpenRouter and
+  SiliconFlow, and raw Base64 for Kling.
+  Each publishes a separate derived node, leaving the source untouched. Models without a verified
+  source-image edit contract remain disabled; no new provider dependency is needed.
 - The official **FFmpeg filter graph** remains the video rendering engine. It already supplies
   trim/atrim, concat, volume, rotation, flip and libass timed-text rendering, while the platform H.264 encoder
   and Task Center cancellation are already provisioned by Knovum.

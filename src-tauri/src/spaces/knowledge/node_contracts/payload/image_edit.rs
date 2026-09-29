@@ -16,12 +16,11 @@ pub(super) fn validate(value: Option<&Value>) -> Result<(), String> {
             "flipHorizontal",
             "flipVertical",
             "adjustments",
-            "eraserStrokes",
         ],
         "imageEdit",
     )?;
-    if edit.get("version").and_then(Value::as_u64) != Some(5) {
-        return Err("imageEdit.version must be 5".into());
+    if edit.get("version").and_then(Value::as_u64) != Some(6) {
+        return Err("imageEdit.version must be 6".into());
     }
     let crop = object_field(edit, "crop")?;
     reject_unknown(crop, ["x", "y", "width", "height"], "imageEdit.crop")?;
@@ -73,36 +72,6 @@ pub(super) fn validate(value: Option<&Value>) -> Result<(), String> {
             100.0,
             "imageEdit.adjustments",
         )?;
-    }
-    let strokes = edit
-        .get("eraserStrokes")
-        .and_then(Value::as_array)
-        .ok_or("imageEdit.eraserStrokes must be an array")?;
-    if strokes.len() > 500 {
-        return Err("imageEdit.eraserStrokes exceeds 500 entries".into());
-    }
-    for stroke in strokes {
-        let stroke = object(stroke, "imageEdit.eraserStroke")?;
-        reject_unknown(stroke, ["diameter", "points"], "imageEdit.eraserStroke")?;
-        let diameter = number(stroke, "diameter", 0.0, 0.5, "imageEdit.eraserStroke")?;
-        if diameter == 0.0 {
-            return Err("imageEdit.eraserStroke.diameter must be positive".into());
-        }
-        let points = stroke
-            .get("points")
-            .and_then(Value::as_array)
-            .ok_or("imageEdit.eraserStroke.points must be an array")?;
-        if points.len() < 4 || points.len() > 4096 || points.len() % 2 != 0 {
-            return Err("imageEdit.eraserStroke.points length is invalid".into());
-        }
-        for point in points {
-            if !point
-                .as_f64()
-                .is_some_and(|value| (0.0..=1.0).contains(&value))
-            {
-                return Err("imageEdit.eraserStroke.points must be normalized numbers".into());
-            }
-        }
     }
     Ok(())
 }

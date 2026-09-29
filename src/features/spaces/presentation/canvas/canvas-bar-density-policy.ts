@@ -4,10 +4,14 @@ export const IMAGE_EDIT_TOOL_ORDER = [
   "adjust",
   "crop",
   "transform",
-  "eraser",
 ] as const satisfies readonly ImageEditTool[];
 
-export type CanvasBarAction = "node-primary" | "video-edit" | "image-edit" | "image-remove-background";
+export type CanvasBarAction =
+  | "node-primary"
+  | "video-edit"
+  | "image-edit"
+  | "image-remove-background"
+  | "image-remove-object";
 
 /** Presentation-only overflow order; execution availability stays with the owning capability. */
 const MINIMAL_MENU_ACTIONS: ReadonlySet<CanvasBarAction> = new Set([
@@ -15,6 +19,7 @@ const MINIMAL_MENU_ACTIONS: ReadonlySet<CanvasBarAction> = new Set([
   "video-edit",
   "image-edit",
   "image-remove-background",
+  "image-remove-object",
 ]);
 
 export function canvasBarPlacement(action: CanvasBarAction, minimal: boolean): "bar" | "menu" {

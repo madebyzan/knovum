@@ -2,7 +2,6 @@ use image::{Rgba, RgbaImage};
 
 use super::{
     contract::ImageEdit,
-    eraser::EraserIndex,
     geometry::{crop_contains, RenderGeometry},
     glow::apply_glow,
     texture::apply_texture,
@@ -11,7 +10,6 @@ use super::{
 
 pub(super) fn render(source: &RgbaImage, edit: &ImageEdit) -> Result<RgbaImage, String> {
     let geometry = RenderGeometry::new(source.width(), source.height(), edit)?;
-    let eraser = EraserIndex::new(source.width(), source.height(), &edit.eraser_strokes)?;
     let tone = ToneAdjuster::new(&edit.adjustments);
     let mut output = RgbaImage::new(geometry.output_width, geometry.output_height);
     for y in 0..geometry.output_height {
@@ -29,7 +27,6 @@ pub(super) fn render(source: &RgbaImage, edit: &ImageEdit) -> Result<RgbaImage, 
                 continue;
             }
             let mut pixel = sample_bilinear(source, source_x, source_y);
-            pixel[3] = to_byte(f64::from(pixel[3]) * eraser.opacity_at(source_x, source_y));
             tone.apply(
                 &mut pixel,
                 x,

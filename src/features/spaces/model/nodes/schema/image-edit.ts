@@ -13,20 +13,9 @@ export const imageCropSchema = z
   .refine(({ x, width }) => x + width <= 1, "Crop exceeds the image width")
   .refine(({ y, height }) => y + height <= 1, "Crop exceeds the image height");
 
-const imageEraserStrokeSchema = z
-  .object({
-    diameter: z.number().positive().max(0.5),
-    points: z
-      .array(normalized)
-      .min(4)
-      .max(4096)
-      .refine((points) => points.length % 2 === 0),
-  })
-  .strict();
-
 export const imageEditSchema = z
   .object({
-    version: z.literal(5),
+    version: z.literal(6),
     crop: imageCropSchema,
     rotation: z.number().finite().min(0).lt(360),
     flipHorizontal: z.boolean(),
@@ -51,6 +40,5 @@ export const imageEditSchema = z
         glow: z.number().min(0).max(100),
       })
       .strict(),
-    eraserStrokes: z.array(imageEraserStrokeSchema).max(500),
   })
   .strict();

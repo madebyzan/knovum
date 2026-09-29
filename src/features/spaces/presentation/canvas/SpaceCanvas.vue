@@ -32,10 +32,7 @@ const tools = useCanvasToolStore();
 const createTextNode = useCanvasTextCreation();
 const editorSession = useCanvasEditorSession();
 const operations = useNodeOperationGate();
-const canvasGesturesEnabled = computed(() => {
-  const kind = operations.active.value?.kind;
-  return kind !== "image-edit" && kind !== "image-comment";
-});
+const canvasGesturesEnabled = computed(() => operations.allowsGestureCommit());
 const dock = useContextDock();
 const { t } = useI18n();
 const canvasRoot = useTemplateRef<HTMLElement>("canvasRoot");

@@ -1,26 +1,28 @@
 <script setup lang="ts">
-import { Box, ScanLine } from "@lucide/vue";
-import { ToolbarButton, ToolbarRoot } from "reka-ui";
+import { ToolbarRoot } from "reka-ui";
 import { computed, nextTick, shallowRef, toRef, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { canRunAction, showsAction } from "../../../../shared/contracts/action-availability";
-import UiTooltip from "../../../../shared/ui/UiTooltip.vue";
+
 import type {
   CreationIntentDecisions,
   CreationIntentId,
 } from "../../knowledge-derivations/catalog/creation-intent-definitions";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../../model/nodes/node-payload";
-import { CANVAS_ACTION_BAR_CLASSES, CANVAS_ACTION_BUTTON_CLASSES } from "./canvas-action-classes";
+import { CANVAS_ACTION_BAR_CLASSES } from "./canvas-action-classes";
 import { canvasBarPlacement } from "./canvas-bar-density-policy";
-import { nodeActionLabelClass, nodeActionLabelState } from "./node-action-label";
 import SpaceCanvasImageActivePanel from "./SpaceCanvasImageActivePanel.vue";
+import SpaceCanvasImageAngleTrigger from "./SpaceCanvasImageAngleTrigger.vue";
 import SpaceCanvasImageEditActions from "./SpaceCanvasImageEditActions.vue";
 import SpaceCanvasImageOverflowActions from "./SpaceCanvasImageOverflowActions.vue";
+import SpaceCanvasImageRemovalPanel from "./SpaceCanvasImageRemovalPanel.vue";
+import SpaceCanvasImageRemoveBackgroundTrigger from "./SpaceCanvasImageRemoveBackgroundTrigger.vue";
+import SpaceCanvasImageRemoveObjectTrigger from "./SpaceCanvasImageRemoveObjectTrigger.vue";
 import SpaceCanvasSelectionMenu from "./SpaceCanvasSelectionMenu.vue";
 import SpaceImageAngleInspector from "./SpaceImageAngleInspector.vue";
 import SpaceImageCommentModeBar from "./SpaceImageCommentModeBar.vue";
 import SpaceImageLayerPanel from "./SpaceImageLayerPanel.vue";
+import SpaceImagePromptRemovalPanel from "./SpaceImagePromptRemovalPanel.vue";
 import SpaceImageUpscalePopover from "./SpaceImageUpscalePopover.vue";
 import SpaceNodeBarCommonActions from "./SpaceNodeBarCommonActions.vue";
 import type { useCanvasSelectionActions } from "./use-canvas-selection-actions";
@@ -41,11 +43,15 @@ const { t, locale } = useI18n();
 const {
   openPopover,
   activeTool,
+  removing,
   commenting,
   directAvailability,
   directReason,
   dimensionsReady,
+  removalMode,
+  removalReason,
   beginTool,
+  beginRemoval,
   beginAngle,
   setPopover,
   beginComment,
@@ -55,7 +61,7 @@ const {
 );
 const bar = useTemplateRef<HTMLElement>("bar");
 const densityIdentity = computed(
-  () => `${locale.value}:${props.node.id}:${activeTool.value ?? ""}:${commenting.value}`,
+  () => `${locale.value}:${props.node.id}:${activeTool.value ?? ""}:${removing.value}:${commenting.value}`,
 );
 const { compact, minimal, ready } = useNodeActionBarDensity(
   bar,
@@ -63,33 +69,35 @@ const { compact, minimal, ready } = useNodeActionBarDensity(
   densityIdentity,
 );
 const restoreFocus = shallowRef(false);
-watch([activeTool, commenting], ([tool, comment], [previousTool, previousComment]) => {
-  if (!tool && !comment && (previousTool || previousComment)) restoreFocus.value = true;
-});
 watch(
-  () => props.angleOpen,
-  async (open, previous) => {
-    if (open || !previous) return;
-    await nextTick();
-    bar.value?.querySelector<HTMLElement>("button")?.focus({ preventScroll: true });
+  [activeTool, removing, commenting, () => props.angleOpen, () => openPopover.value === "prompt-removal"],
+  (current, previous) => {
+    if (current.every((value) => !value) && previous.some(Boolean)) restoreFocus.value = true;
   },
 );
-watch(ready, (isReady) => {
-  if (!isReady || !restoreFocus.value) return;
-  bar.value?.querySelector<HTMLElement>("button")?.focus({ preventScroll: true });
-  restoreFocus.value = false;
-}, { flush: "post" });
+watch(
+  [ready, restoreFocus],
+  async ([isReady, shouldRestore]) => {
+    if (!isReady || !shouldRestore) return;
+    await nextTick();
+    bar.value?.querySelector<HTMLElement>("button")?.focus({ preventScroll: true });
+    restoreFocus.value = false;
+  },
+  { flush: "post" },
+);
 </script>
 <template>
   <SpaceCanvasImageActivePanel v-if="activeTool" :node="node" />
-  <SpaceImageAngleInspector
-    v-else-if="angleOpen"
+  <SpaceCanvasImageRemovalPanel v-else-if="removing" :node="node" />
+  <SpaceImagePromptRemovalPanel
+    v-else-if="openPopover === 'prompt-removal'"
     :node="node"
-    @close="emit('update:angleOpen', false)"
+    @close="openPopover = undefined"
   />
+  <SpaceImageAngleInspector v-else-if="angleOpen" :node="node" @close="emit('update:angleOpen', false)" />
   <SpaceImageCommentModeBar v-else-if="commenting" />
   <div
-    v-if="!activeTool && !commenting && !angleOpen"
+    v-if="!activeTool && !removing && !commenting && !angleOpen && openPopover !== 'prompt-removal'"
     ref="bar"
     class="w-max"
     :class="ready ? 'visible' : 'invisible'"
@@ -114,54 +122,38 @@ watch(ready, (isReady) => {
         :open="openPopover === 'upscale'"
         @update:open="setPopover('upscale', $event)"
       />
-      <UiTooltip
-        v-if="
-          canvasBarPlacement('image-remove-background', minimal) === 'bar' && showsAction(directAvailability)
-        "
-        :text="canRunAction(directAvailability) ? t('spaces.creation.image.removeBackground') : directReason"
-        :disabled="canRunAction(directAvailability) && !compact"
-        side="top"
-      >
-        <ToolbarButton as-child>
-          <button
-            type="button"
-            :class="CANVAS_ACTION_BUTTON_CLASSES"
-            :aria-disabled="!canRunAction(directAvailability)"
-            :aria-label="t('spaces.creation.image.removeBackground')"
-            @click="removeBackground"
-          >
-            <ScanLine class="size-4.5" :stroke-width="1.6" />
-            <span :class="[nodeActionLabelClass, nodeActionLabelState(compact)]">{{
-              t("spaces.creation.image.removeBackground")
-            }}</span>
-          </button>
-        </ToolbarButton>
-      </UiTooltip>
+      <SpaceCanvasImageRemoveBackgroundTrigger
+        v-if="canvasBarPlacement('image-remove-background', minimal) === 'bar'"
+        :compact="compact"
+        :availability="directAvailability"
+        :reason="directReason"
+        @begin="removeBackground"
+      />
+      <SpaceCanvasImageRemoveObjectTrigger
+        v-if="canvasBarPlacement('image-remove-object', minimal) === 'bar'"
+        :compact="compact"
+        :disabled="!removalMode"
+        :reason="removalReason"
+        @begin="beginRemoval"
+      />
       <SpaceImageLayerPanel
         :node="node"
         :compact="compact"
         :open="openPopover === 'layers'"
         @update:open="setPopover('layers', $event)"
       />
-      <ToolbarButton as-child>
-        <button
-          type="button"
-          :class="CANVAS_ACTION_BUTTON_CLASSES"
-          :aria-label="t('spaces.media.imageEditor.angle.title')"
-          :title="compact ? t('spaces.media.imageEditor.angle.title') : undefined"
-          @click="beginAngle() && emit('update:angleOpen', true)"
-        >
-          <Box class="size-4.5" :stroke-width="1.6" />
-          <span :class="[nodeActionLabelClass, nodeActionLabelState(compact)]">{{
-            t("spaces.media.imageEditor.angle.title")
-          }}</span>
-        </button>
-      </ToolbarButton>
+      <SpaceCanvasImageAngleTrigger
+        :compact="compact"
+        @begin="beginAngle() && emit('update:angleOpen', true)"
+      />
       <SpaceCanvasSelectionMenu
         :actions="actions"
         :derivations="derivations"
         node-bar
-        :node-tools-visible="canvasBarPlacement('image-edit', minimal) === 'menu'"
+        :node-tools-visible="
+          canvasBarPlacement('image-edit', minimal) === 'menu' ||
+          canvasBarPlacement('image-remove-object', minimal) === 'menu'
+        "
         :exclude-direct-image-actions="canvasBarPlacement('image-remove-background', minimal) === 'bar'"
         @invoke-derivation="emit('invokeDerivation', $event)"
       >
@@ -171,6 +163,13 @@ watch(ready, (isReady) => {
             :dimensions-ready="dimensionsReady"
             @begin-tool="beginTool"
             @begin-comment="beginComment"
+          />
+          <SpaceCanvasImageRemoveObjectTrigger
+            v-if="canvasBarPlacement('image-remove-object', minimal) === 'menu'"
+            menu-item
+            :disabled="!removalMode"
+            :reason="removalReason"
+            @begin="beginRemoval"
           />
         </template>
       </SpaceCanvasSelectionMenu>
