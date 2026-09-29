@@ -22,7 +22,10 @@ function handleOpenChange(open: boolean) {
     <p class="text-body leading-relaxed text-fg-secondary">{{ activeConfirmation?.description }}</p>
     <template #footer>
       <UiButton variant="ghost" @click="resolveConfirmation(false)">{{ t("common.cancel") }}</UiButton>
-      <UiButton :variant="activeConfirmation?.danger ? 'danger' : 'primary'" @click="resolveConfirmation(true)">
+      <UiButton
+        :variant="activeConfirmation?.danger ? 'danger' : 'primary'"
+        @click="resolveConfirmation(true)"
+      >
         {{ activeConfirmation?.confirmLabel }}
       </UiButton>
     </template>

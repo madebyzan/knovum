@@ -15,7 +15,9 @@ const context = vi.hoisted(() => ({
   },
 }));
 const deriveImage = vi.hoisted(() =>
-  vi.fn((_space: unknown, _node: unknown, _operation: unknown, onOutputCreated?: () => void) => {
+  vi.fn<
+    (_space: unknown, _node: unknown, _operation: unknown, onOutputCreated?: () => void) => Promise<void>
+  >((_space, _node, _operation, onOutputCreated) => {
     onOutputCreated?.();
     return Promise.resolve(undefined);
   }),

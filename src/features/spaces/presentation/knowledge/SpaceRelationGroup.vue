@@ -50,7 +50,9 @@ const { t } = useI18n();
             :title="item.neighbor.data.title"
             :aria-label="`${t('spaces.knowledge.relations.inspect')}: ${item.neighbor.data.title}`"
           >
-            <span class="grid size-9 shrink-0 place-items-center overflow-hidden rounded-md bg-surface-control text-fg-tertiary">
+            <span
+              class="grid size-9 shrink-0 place-items-center overflow-hidden rounded-md bg-surface-control text-fg-tertiary"
+            >
               <img
                 v-if="item.thumbnail"
                 :src="item.thumbnail"
@@ -62,7 +64,9 @@ const { t } = useI18n();
               <component :is="nodeIcon(item.neighbor.data.kind)" v-else class="size-4" :stroke-width="1.5" />
             </span>
             <span class="min-w-0 flex-1">
-              <span class="block truncate text-label font-medium text-fg-primary">{{ item.neighbor.data.title }}</span>
+              <span class="block truncate text-label font-medium text-fg-primary">{{
+                item.neighbor.data.title
+              }}</span>
               <span class="mt-0.5 inline-flex items-center gap-1 text-caption text-fg-tertiary">
                 {{ t(`spaces.nodeTypes.${item.neighbor.data.kind}`) }}
                 <ChevronDown

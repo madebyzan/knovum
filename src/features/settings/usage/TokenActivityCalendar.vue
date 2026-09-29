@@ -14,15 +14,23 @@ const dateFormatter = computed(
   () => new Intl.DateTimeFormat(locale.value, { year: "numeric", month: "short", day: "numeric", timeZone }),
 );
 const weeks = computed(() =>
-  buildTokenActivityWeeks(props.report.activity, props.report.fromDate, props.report.toDate, locale.value).map(
-    (week) => ({
-      ...week,
-      cells: week.cells.map((cell) => ({
-        ...cell,
-        label: cell.inRange ? label(cell.date, cell.tokens) : undefined,
-      })),
-    }),
-  ),
+  buildTokenActivityWeeks(
+    props.report.activity,
+    props.report.fromDate,
+    props.report.toDate,
+    locale.value,
+  ).map((week) => ({
+    key: week.key,
+    month: week.month,
+    cells: week.cells.map((cell) => ({
+      date: cell.date,
+      tokens: cell.tokens,
+      requests: cell.requests,
+      level: cell.level,
+      inRange: cell.inRange,
+      label: cell.inRange ? label(cell.date, cell.tokens) : undefined,
+    })),
+  })),
 );
 const levelClasses = [
   "bg-surface-control",
@@ -47,7 +55,7 @@ function label(date: string, tokens: number) {
       <span
         v-for="week in weeks"
         :key="week.key"
-        class="min-w-0 flex-1 whitespace-nowrap text-caption-sm text-fg-tertiary"
+        class="min-w-0 flex-1 text-caption-sm whitespace-nowrap text-fg-tertiary"
       >
         {{ week.month }}
       </span>
@@ -58,11 +66,17 @@ function label(date: string, tokens: number) {
         aria-hidden="true"
       >
         <span />
-        <span class="flex items-center whitespace-nowrap">{{ t("settings.usage.activity.weekdays.monday") }}</span>
+        <span class="flex items-center whitespace-nowrap">{{
+          t("settings.usage.activity.weekdays.monday")
+        }}</span>
         <span />
-        <span class="flex items-center whitespace-nowrap">{{ t("settings.usage.activity.weekdays.wednesday") }}</span>
+        <span class="flex items-center whitespace-nowrap">{{
+          t("settings.usage.activity.weekdays.wednesday")
+        }}</span>
         <span />
-        <span class="flex items-center whitespace-nowrap">{{ t("settings.usage.activity.weekdays.friday") }}</span>
+        <span class="flex items-center whitespace-nowrap">{{
+          t("settings.usage.activity.weekdays.friday")
+        }}</span>
         <span />
       </div>
       <div class="flex gap-1" role="group" :aria-label="t('settings.usage.activity.title')">

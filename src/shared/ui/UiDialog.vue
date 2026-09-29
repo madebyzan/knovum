@@ -61,9 +61,7 @@ const widthClass = computed(() => (props.size === "wide" ? "max-w-[720px]" : "ma
             </DialogDescription>
           </div>
           <DialogClose v-if="closable" as-child>
-            <UiIconButton :label="t('common.close')" size="sm"
-              ><X class="size-3.5"
-            /></UiIconButton>
+            <UiIconButton :label="t('common.close')" size="sm"><X class="size-3.5" /></UiIconButton>
           </DialogClose>
         </header>
         <div :class="cn('min-h-0 flex-1 overflow-y-auto px-4 py-3', props.bodyClass)"><slot /></div>

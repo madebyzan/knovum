@@ -78,7 +78,10 @@ pub async fn receive(
             id: call.tool_call_id.0.to_string(),
             title: call.title,
             status: tool_status(call.status)?.to_owned(),
-            detail: tool_detail(&call.content, call.raw_output.as_ref().or(call.raw_input.as_ref())),
+            detail: tool_detail(
+                &call.content,
+                call.raw_output.as_ref().or(call.raw_input.as_ref()),
+            ),
         })),
         SessionUpdate::ToolCallUpdate(update) => Ok(Some(AgentSessionUpdate::ToolUpdate {
             id: update.tool_call_id.0.to_string(),
@@ -89,15 +92,28 @@ pub async fn receive(
                 .map(tool_status)
                 .transpose()?
                 .map(str::to_owned),
-            detail: update.fields.content.as_deref().and_then(|content| {
-                tool_detail(
-                    content,
-                    update.fields.raw_output.as_ref().or(update.fields.raw_input.as_ref()),
-                )
-            }).or_else(|| {
-                update.fields.raw_output.as_ref().or(update.fields.raw_input.as_ref())
-                    .map(compact_value)
-            }),
+            detail: update
+                .fields
+                .content
+                .as_deref()
+                .and_then(|content| {
+                    tool_detail(
+                        content,
+                        update
+                            .fields
+                            .raw_output
+                            .as_ref()
+                            .or(update.fields.raw_input.as_ref()),
+                    )
+                })
+                .or_else(|| {
+                    update
+                        .fields
+                        .raw_output
+                        .as_ref()
+                        .or(update.fields.raw_input.as_ref())
+                        .map(compact_value)
+                }),
         })),
         _ => Ok(None),
     }

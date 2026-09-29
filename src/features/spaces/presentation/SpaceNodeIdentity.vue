@@ -101,7 +101,9 @@ async function open() {
       :aria-label="nodeDraft.available.value ? t('spaces.inspector.renameHint') : undefined"
       @click="beginEdit"
     >
-      <h2 class="min-w-0 flex-1 text-title leading-snug font-semibold tracking-title wrap-break-word text-fg-primary">
+      <h2
+        class="min-w-0 flex-1 text-title leading-snug font-semibold tracking-title wrap-break-word text-fg-primary"
+      >
         {{ node.data.title }}
       </h2>
       <Pencil v-if="nodeDraft.available.value" class="mt-1 size-3.5 shrink-0 text-fg-tertiary" />

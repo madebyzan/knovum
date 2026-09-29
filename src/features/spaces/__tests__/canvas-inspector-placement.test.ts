@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { placeSelectionSurface } from "../presentation/canvas/selection-surface-placement";
 import type { PlacementInput } from "../presentation/canvas/selection-surface-geometry";
+import { placeSelectionSurface } from "../presentation/canvas/selection-surface-placement";
 
 const input: PlacementInput = {
   selection: { left: 220, top: 360, right: 380, bottom: 560 },
@@ -29,11 +29,13 @@ describe("canvas inspector placement", () => {
   });
 
   it("keeps a compact edit toolbar 12px outside the selected image", () => {
-    expect(placeSelectionSurface({
-      ...input,
-      kind: "compact-editor",
-      surface: { width: 180, height: 36 },
-    })).toEqual({
+    expect(
+      placeSelectionSurface({
+        ...input,
+        kind: "compact-editor",
+        surface: { width: 180, height: 36 },
+      }),
+    ).toEqual({
       left: 210,
       top: 312,
       maxHeight: 36,

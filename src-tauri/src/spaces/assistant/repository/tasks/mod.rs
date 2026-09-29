@@ -10,6 +10,7 @@ mod operations;
 
 pub use operations::{
     complete_tool_call, complete_turn, save_checkpoint, start_tool_call, start_turn,
+    AssistantToolCallCompletion, AssistantToolCallStart,
 };
 
 pub struct AssistantToolCallOutcome {

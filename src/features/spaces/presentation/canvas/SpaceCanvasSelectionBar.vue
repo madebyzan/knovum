@@ -18,7 +18,11 @@ import SpaceCanvasNodeActionBar from "./SpaceCanvasNodeActionBar.vue";
 import SpaceCanvasSelectionMenu from "./SpaceCanvasSelectionMenu.vue";
 import { useCanvasSelectionActions } from "./use-canvas-selection-actions";
 
-defineProps<{ derivations: CreationIntentDecisions; availableWidth: number; angleNodeId?: string }>();
+defineProps<{
+  derivations: CreationIntentDecisions;
+  availableWidth: number;
+  angleNodeId: string | undefined;
+}>();
 const emit = defineEmits<{
   invokeDerivation: [actionId: CreationIntentId];
   "update:angleNodeId": [nodeId: string | undefined];
@@ -90,7 +94,12 @@ const singleSection = computed(
       </UiIconButton>
     </ToolbarButton>
     <ToolbarButton v-if="actions.state.value.canCreateSection" as-child>
-      <UiIconButton :label="t('spaces.canvas.sections.create')" tooltip size="sm" @click="actions.createSection">
+      <UiIconButton
+        :label="t('spaces.canvas.sections.create')"
+        tooltip
+        size="sm"
+        @click="actions.createSection"
+      >
         <Group class="size-3.5" :stroke-width="1.55" />
       </UiIconButton>
     </ToolbarButton>

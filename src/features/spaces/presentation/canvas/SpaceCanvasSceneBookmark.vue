@@ -91,20 +91,10 @@ const menuItems = computed(() => [
         @keydown.escape="editing = false"
       />
       <div class="flex items-center justify-self-end">
-        <UiIconButton
-          :label="t('common.save')"
-          size="sm"
-          class="size-6"
-          @click="finishRename"
-        >
+        <UiIconButton :label="t('common.save')" size="sm" class="size-6" @click="finishRename">
           <Check class="size-3" />
         </UiIconButton>
-        <UiIconButton
-          :label="t('common.cancel')"
-          size="sm"
-          class="size-6"
-          @click="editing = false"
-        >
+        <UiIconButton :label="t('common.cancel')" size="sm" class="size-6" @click="editing = false">
           <X class="size-3" />
         </UiIconButton>
       </div>

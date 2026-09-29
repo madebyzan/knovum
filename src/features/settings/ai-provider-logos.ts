@@ -1,5 +1,4 @@
 import type { AiProvider } from "../../foundation/ai/schema/models";
-
 import anthropic from "./assets/provider-logos/anthropic.svg?url";
 import deepseek from "./assets/provider-logos/deepseek.svg?url";
 import doubao from "./assets/provider-logos/doubao.svg?url";

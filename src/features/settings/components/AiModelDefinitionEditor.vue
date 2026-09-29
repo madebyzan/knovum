@@ -14,12 +14,16 @@ const props = defineProps<{
 }>();
 const { t } = useI18n();
 const capabilityTouched = shallowRef(false);
-const capabilities = computed(() => ([
-  { value: "text-generation", label: t("settings.ai.capabilities.text") },
-  { value: "vision-understanding", label: t("settings.ai.capabilities.vision") },
-  { value: "image-generation", label: t("settings.ai.capabilities.image") },
-  { value: "video-generation", label: t("settings.ai.capabilities.video") },
-] satisfies { value: AiModelCapability; label: string }[]).filter(({ value }) => props.allowedCapabilities.includes(value)));
+const capabilities = computed(() =>
+  (
+    [
+      { value: "text-generation", label: t("settings.ai.capabilities.text") },
+      { value: "vision-understanding", label: t("settings.ai.capabilities.vision") },
+      { value: "image-generation", label: t("settings.ai.capabilities.image") },
+      { value: "video-generation", label: t("settings.ai.capabilities.video") },
+    ] satisfies { value: AiModelCapability; label: string }[]
+  ).filter(({ value }) => props.allowedCapabilities.includes(value)),
+);
 
 function toggleCapability(capability: AiModelCapability) {
   const selected = model.value.capabilities.includes(capability);
@@ -32,20 +36,26 @@ function toggleCapability(capability: AiModelCapability) {
 </script>
 
 <template>
-  <div class="pb-4 pt-2">
+  <div class="pt-2 pb-4">
     <div class="grid gap-4">
       <label class="grid min-w-0 gap-1 text-caption text-fg-secondary">
         {{ t("settings.ai.modelDisplayName") }}
         <UiInput v-model="model.name" />
-        <span v-if="showErrors && !model.name.trim()" class="text-fg-danger">{{ t("settings.ai.requiredField") }}</span>
+        <span v-if="showErrors && !model.name.trim()" class="text-fg-danger">{{
+          t("settings.ai.requiredField")
+        }}</span>
       </label>
       <label class="grid min-w-0 gap-1 text-caption text-fg-secondary">
         {{ t("settings.ai.modelIdentifier") }}
         <UiInput v-model="model.model" />
-        <span v-if="showErrors && !model.model.trim()" class="text-fg-danger">{{ t("settings.ai.requiredField") }}</span>
+        <span v-if="showErrors && !model.model.trim()" class="text-fg-danger">{{
+          t("settings.ai.requiredField")
+        }}</span>
       </label>
     </div>
-    <p class="mt-5 text-caption font-medium text-fg-secondary">{{ t("settings.ai.modelCapabilitiesHelp") }}</p>
+    <p class="mt-5 text-caption font-medium text-fg-secondary">
+      {{ t("settings.ai.modelCapabilitiesHelp") }}
+    </p>
     <div class="mt-2 flex flex-wrap gap-2" role="group" :aria-label="t('settings.ai.modelCapabilitiesHelp')">
       <button
         v-for="capability in capabilities"
@@ -54,14 +64,28 @@ function toggleCapability(capability: AiModelCapability) {
         :aria-pressed="model.capabilities.includes(capability.value)"
         :disabled="protected && model.capabilities.includes(capability.value)"
         class="inline-flex min-h-interaction items-center gap-1.5 rounded-md border px-3 py-1.5 text-label font-medium transition-colors duration-100 ease-standard focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stroke-focus"
-        :class="model.capabilities.includes(capability.value) ? 'border-stroke-accent bg-surface-accent-subtle text-fg-accent enabled:hover:bg-surface-selected' : 'border-stroke-default bg-surface-raised text-fg-secondary hover:border-stroke-default-hover hover:bg-surface-control-hover hover:text-fg-primary'"
+        :class="
+          model.capabilities.includes(capability.value)
+            ? 'border-stroke-accent bg-surface-accent-subtle text-fg-accent enabled:hover:bg-surface-selected'
+            : 'border-stroke-default bg-surface-raised text-fg-secondary hover:border-stroke-default-hover hover:bg-surface-control-hover hover:text-fg-primary'
+        "
         @click="toggleCapability(capability.value)"
       >
-        <Check aria-hidden="true" class="size-3.5 shrink-0" :class="model.capabilities.includes(capability.value) ? 'opacity-100' : 'opacity-0'" />
+        <Check
+          aria-hidden="true"
+          class="size-3.5 shrink-0"
+          :class="model.capabilities.includes(capability.value) ? 'opacity-100' : 'opacity-0'"
+        />
         <span>{{ capability.label }}</span>
       </button>
     </div>
     <p v-if="protected" class="mt-2 text-caption text-fg-secondary">{{ t("settings.ai.modelInUse") }}</p>
-    <p v-if="(showErrors || capabilityTouched) && !model.capabilities.length" class="mt-2 text-caption text-fg-danger" role="alert">{{ t("settings.ai.selectCapability") }}</p>
+    <p
+      v-if="(showErrors || capabilityTouched) && !model.capabilities.length"
+      class="mt-2 text-caption text-fg-danger"
+      role="alert"
+    >
+      {{ t("settings.ai.selectCapability") }}
+    </p>
   </div>
 </template>

@@ -26,8 +26,10 @@ const permissionPayload = z.object({
   options: z.array(z.object({ label: z.string() })),
 });
 const toolEvents = new Set([
-  "external_agent_tool_started", "external_agent_tool_updated",
-  "assistant_tool_started", "assistant_tool_finished",
+  "external_agent_tool_started",
+  "external_agent_tool_updated",
+  "assistant_tool_started",
+  "assistant_tool_finished",
 ]);
 
 function toolResults(messages: readonly AssistantMessage[], runId: string) {
@@ -42,6 +44,7 @@ function toolResults(messages: readonly AssistantMessage[], runId: string) {
 }
 
 type ActivityState = { items: ActivityItem[]; positions: Map<string, number>; commentary: string };
+type ToolLabels = { action: (id: string) => string; default: string };
 
 function appendCommentary(state: ActivityState, event: RunEvent) {
   if (!state.commentary.trim()) return;
@@ -61,25 +64,40 @@ function appendPermission(state: ActivityState, event: RunEvent) {
   });
 }
 
+function toolTitle(
+  payload: z.infer<typeof toolPayload>,
+  previous: ActivityItem | undefined,
+  labels: ToolLabels,
+) {
+  return (
+    payload.title ?? previous?.title ?? (payload.actionId ? labels.action(payload.actionId) : labels.default)
+  );
+}
+
+function toolStatus(event: RunEvent, status: z.infer<typeof toolPayload>["status"], previous?: ActivityItem) {
+  return (
+    status ?? (event.kind === "assistant_tool_finished" ? "completed" : (previous?.status ?? "in_progress"))
+  );
+}
+
 function appendTool(
   state: ActivityState,
   event: RunEvent,
   results: Map<string, { name: string; value: unknown }>,
-  actionLabel: (id: string) => string,
-  defaultLabel: string,
+  labels: ToolLabels,
 ) {
   if (!toolEvents.has(event.kind)) return;
   const parsed = toolPayload.safeParse(event.payload);
   if (!parsed.success) return;
   appendCommentary(state, event);
-  const { toolCallId, title, actionId, status, detail } = parsed.data;
+  const { toolCallId, detail } = parsed.data;
   const index = state.positions.get(toolCallId);
   const previous = index === undefined ? undefined : state.items[index];
   const result = results.get(toolCallId);
   const item: ActivityItem = {
     id: toolCallId,
-    title: title ?? previous?.title ?? (actionId ? actionLabel(actionId) : defaultLabel),
-    status: status ?? (event.kind === "assistant_tool_finished" ? "completed" : previous?.status ?? "in_progress"),
+    title: toolTitle(parsed.data, previous, labels),
+    status: toolStatus(event, parsed.data.status, previous),
     detail: detail == null ? previous?.detail : detail,
     result: result?.value,
     ...(result && { resultName: result.name }),
@@ -94,8 +112,7 @@ export function conversationActivityItems(
   events: readonly RunEvent[],
   messages: readonly AssistantMessage[],
   runId: string,
-  actionLabel: (id: string) => string,
-  defaultLabel: string,
+  labels: ToolLabels,
 ) {
   const results = toolResults(messages, runId);
   const state: ActivityState = { items: [], positions: new Map(), commentary: "" };
@@ -104,7 +121,7 @@ export function conversationActivityItems(
       const parsed = textPayload.safeParse(event.payload);
       if (parsed.success) state.commentary += parsed.data.text;
     } else if (event.kind === "external_agent_permission_requested") appendPermission(state, event);
-    else appendTool(state, event, results, actionLabel, defaultLabel);
+    else appendTool(state, event, results, labels);
   }
   return state.items;
 }

@@ -34,7 +34,6 @@
     "export": "导出 JSON Canvas…",
     "exported": "JSON Canvas 已导出"
   },
-  "localPrivateCopy": "由知生知管理的本地副本",
   "progress": {
     "resource": "正在导入资源",
     "preparing": "正在复制并校验资源…",

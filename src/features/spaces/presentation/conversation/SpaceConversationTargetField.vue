@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { Bot, Check, ChevronDown, Monitor, Settings2 } from "@lucide/vue";
-import { DropdownMenuGroup, DropdownMenuItemIndicator, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem } from "reka-ui";
+import {
+  DropdownMenuGroup,
+  DropdownMenuItemIndicator,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+} from "reka-ui";
 import { computed, onMounted, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
@@ -22,14 +28,16 @@ const settings = useAiSettingsStore();
 const catalog = useExecutionCatalogQuery({ detectInstallations: false });
 
 const models = computed(() => availableExecutionTargets(settings.settings, "knowledge"));
-const modelChoices = computed(() => models.value.map((option) => {
-  const connection = settings.settings.connections.find(({ id }) => id === option.target.connectionId);
-  return {
-    ...option,
-    name: connection?.models.find(({ id }) => id === option.target.modelId)?.name,
-    connectionName: connection?.name,
-  };
-}));
+const modelChoices = computed(() =>
+  models.value.map((option) => {
+    const connection = settings.settings.connections.find(({ id }) => id === option.target.connectionId);
+    return {
+      ...option,
+      name: connection?.models.find(({ id }) => id === option.target.modelId)?.name,
+      connectionName: connection?.name,
+    };
+  }),
+);
 const desktopAgents = computed(() =>
   (catalog.data.value?.agents ?? []).filter((agent) =>
     settings.settings.desktopAgents.some((configured) => configured.kind === agent.kind),
@@ -76,7 +84,11 @@ onMounted(() => void settings.ensureLoaded());
     <p v-if="settings.loadError" class="text-caption text-fg-danger" role="alert">
       {{ t("ai.settingsUnavailable") }}: {{ String(settings.loadError) }}
     </p>
-    <UiDropdownMenu side="top" align="start" class="w-64 max-w-[calc(100vw-24px)] max-h-96 overflow-y-auto p-1.5">
+    <UiDropdownMenu
+      side="top"
+      align="start"
+      class="max-h-96 w-64 max-w-[calc(100vw-24px)] overflow-y-auto p-1.5"
+    >
       <template #trigger>
         <UiButton
           variant="ghost"
@@ -107,9 +119,13 @@ onMounted(() => void settings.ensureLoaded());
               <span class="block truncate text-label text-fg-primary">{{ model.name }}</span>
               <span class="block truncate text-caption-sm text-fg-tertiary">{{ model.connectionName }}</span>
             </span>
-            <DropdownMenuItemIndicator class="absolute right-2.5 text-fg-accent"><Check class="size-4" /></DropdownMenuItemIndicator>
+            <DropdownMenuItemIndicator class="absolute right-2.5 text-fg-accent"
+              ><Check class="size-4"
+            /></DropdownMenuItemIndicator>
           </DropdownMenuRadioItem>
-          <p v-if="!models.length" class="px-2.5 py-2 text-caption text-fg-tertiary">{{ t("spaces.assistant.agents.noModel") }}</p>
+          <p v-if="!models.length" class="px-2.5 py-2 text-caption text-fg-tertiary">
+            {{ t("spaces.assistant.agents.noModel") }}
+          </p>
         </DropdownMenuGroup>
         <UiSeparator class="my-1.5" />
         <DropdownMenuGroup>
@@ -125,13 +141,20 @@ onMounted(() => void settings.ensureLoaded());
             @select="target = { type: 'agent', runtimeKind: agent.kind }"
           >
             <span class="min-w-0 flex-1 truncate text-label text-fg-primary">{{ agent.displayName }}</span>
-            <DropdownMenuItemIndicator class="absolute right-2.5 text-fg-accent"><Check class="size-4" /></DropdownMenuItemIndicator>
+            <DropdownMenuItemIndicator class="absolute right-2.5 text-fg-accent"
+              ><Check class="size-4"
+            /></DropdownMenuItemIndicator>
           </DropdownMenuRadioItem>
-          <p v-if="catalog.error.value" class="px-2.5 py-2 text-caption text-fg-danger" role="alert">{{ String(catalog.error.value) }}</p>
+          <p v-if="catalog.error.value" class="px-2.5 py-2 text-caption text-fg-danger" role="alert">
+            {{ String(catalog.error.value) }}
+          </p>
         </DropdownMenuGroup>
       </DropdownMenuRadioGroup>
       <UiSeparator class="my-1.5" />
-      <UiDropdownMenuItem class="gap-2.5 px-2.5 text-fg-secondary" @select="router.push({ name: 'settings', query: { pane: 'aiModels' } })">
+      <UiDropdownMenuItem
+        class="gap-2.5 px-2.5 text-fg-secondary"
+        @select="router.push({ name: 'settings', query: { pane: 'aiModels' } })"
+      >
         <Settings2 class="size-4" />{{ t("spaces.assistant.agents.manage") }}
       </UiDropdownMenuItem>
     </UiDropdownMenu>

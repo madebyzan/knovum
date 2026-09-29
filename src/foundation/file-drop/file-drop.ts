@@ -17,10 +17,7 @@ export function isFileDropInside(
   if (!element || !position) return false;
   const rect = element.getBoundingClientRect();
   return (
-    position.x >= rect.left &&
-    position.x <= rect.right &&
-    position.y >= rect.top &&
-    position.y <= rect.bottom
+    position.x >= rect.left && position.x <= rect.right && position.y >= rect.top && position.y <= rect.bottom
   );
 }
 

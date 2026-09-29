@@ -55,7 +55,10 @@ function syncActive() {
 </script>
 
 <template>
-  <section class="flex h-104 w-60 flex-col text-fg-primary" :aria-label="t('spaces.media.imageEditor.adjust.title')">
+  <section
+    class="flex h-104 w-60 flex-col text-fg-primary"
+    :aria-label="t('spaces.media.imageEditor.adjust.title')"
+  >
     <header class="flex items-center justify-between px-1 pb-2">
       <h3 class="text-title-sm font-semibold">{{ t("spaces.media.imageEditor.adjust.title") }}</h3>
       <div class="flex items-center gap-1">

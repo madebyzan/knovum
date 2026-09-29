@@ -87,7 +87,11 @@ function retry() {
         <button type="button" class="mt-1 underline" @click="retry">{{ t("common.retry") }}</button>
       </div>
     </div>
-    <div v-else-if="pending" class="flex items-center gap-2 px-1 py-2 text-caption text-fg-tertiary" role="status">
+    <div
+      v-else-if="pending"
+      class="flex items-center gap-2 px-1 py-2 text-caption text-fg-tertiary"
+      role="status"
+    >
       <UiSpinner size="sm" />{{ t("spaces.inspector.related.indexing") }}
     </div>
     <div
@@ -120,8 +124,17 @@ function retry() {
         :aria-label="`${t('spaces.canvas.revealInCanvas')}: ${item.nodeTitle}`"
         @click="reveal(item.nodeId)"
       >
-        <span class="grid size-9 shrink-0 place-items-center overflow-hidden rounded-md bg-surface-control text-fg-tertiary">
-          <img v-if="item.thumbnail" :src="item.thumbnail" alt="" class="size-full object-contain" loading="lazy" decoding="async" />
+        <span
+          class="grid size-9 shrink-0 place-items-center overflow-hidden rounded-md bg-surface-control text-fg-tertiary"
+        >
+          <img
+            v-if="item.thumbnail"
+            :src="item.thumbnail"
+            alt=""
+            class="size-full object-contain"
+            loading="lazy"
+            decoding="async"
+          />
           <component :is="nodeIcon(item.nodeKind)" v-else class="size-4" :stroke-width="1.5" />
         </span>
         <span class="min-w-0 flex-1">

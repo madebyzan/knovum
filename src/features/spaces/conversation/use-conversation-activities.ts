@@ -13,16 +13,19 @@ export function useConversationActivities(
   let selection = 0;
   const pending = new Map<string, Promise<void>>();
 
+  async function loadPage(runId: string, events: RunEvent[], current: number): Promise<void> {
+    const seen = events.at(-1)?.sequence ?? 0;
+    const page = await listAssistantRunEvents(runId, seen);
+    if (selection !== current) return;
+    events.push(...page.filter((event) => event.sequence > seen));
+    if (page.length === 1000) await loadPage(runId, events, current);
+  }
+
   async function load(runId: string) {
     const current = selection;
-    let events = eventsByRun.value[runId] ?? [];
-    let page: RunEvent[];
-    do {
-      page = await listAssistantRunEvents(runId, events.at(-1)?.sequence ?? 0);
-      if (selection !== current) return;
-      const seen = events.at(-1)?.sequence ?? 0;
-      events = [...events, ...page.filter((event) => event.sequence > seen)];
-    } while (page.length === 1000);
+    const events = [...(eventsByRun.value[runId] ?? [])];
+    await loadPage(runId, events, current);
+    if (selection !== current) return;
     eventsByRun.value = { ...eventsByRun.value, [runId]: events };
     error.value = undefined;
   }
@@ -30,9 +33,11 @@ export function useConversationActivities(
   function refresh(runId: string) {
     const current = selection;
     const previous = pending.get(runId) ?? Promise.resolve();
-    const next = previous.then(() => load(runId)).catch((cause: unknown) => {
-      if (selection === current) error.value = String(cause);
-    });
+    const next = previous
+      .then(() => load(runId))
+      .catch((cause: unknown) => {
+        if (selection === current) error.value = String(cause);
+      });
     pending.set(runId, next);
     void next.finally(() => {
       if (pending.get(runId) === next) pending.delete(runId);

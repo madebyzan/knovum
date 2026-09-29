@@ -28,7 +28,7 @@ describe("Konva rich node content", () => {
       previewPath: "/spaces/research-preview.png",
     };
     const wrapper = shallowMount(SpaceCanvasNodeBody, {
-      props: { id: "file", data, presentationContext: preview("full"), interactive: false },
+      props: { id: "file", data, presentationContext: preview("full"), interactive: false, frameRotation: 0 },
       global: {
         plugins: [createPinia(), i18n],
         stubs: {
@@ -92,6 +92,7 @@ describe("Konva rich node content", () => {
         data: html,
         presentationContext: { viewport: profiles.full, mode: "interactive" },
         interactive: true,
+        frameRotation: 0,
       },
       global: { plugins: [createPinia(), i18n] },
     });
@@ -120,6 +121,7 @@ describe("Konva rich node content", () => {
         },
         presentationContext: preview("full"),
         interactive: false,
+        frameRotation: 0,
       },
       global: { plugins: [createPinia(), i18n] },
     });

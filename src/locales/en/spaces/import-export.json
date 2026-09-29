@@ -34,7 +34,6 @@
     "export": "Export JSON Canvas…",
     "exported": "JSON Canvas exported"
   },
-  "localPrivateCopy": "Local copy managed by Knovum",
   "progress": {
     "resource": "Importing resource",
     "preparing": "Copying and verifying resources…",

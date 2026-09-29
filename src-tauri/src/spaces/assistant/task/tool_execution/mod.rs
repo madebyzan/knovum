@@ -30,14 +30,16 @@ pub(super) async fn execute(
         let invocation_id = format!("{}:{}", ids.task_id, call.call_id);
         let record = repository::start_tool_call(
             pool,
-            &ids.task_id,
-            &ids.run_id,
-            turn_id,
-            &call.call_id,
-            &call.name,
-            &action_id,
-            &invocation_id,
-            &call.arguments,
+            repository::AssistantToolCallStart {
+                task_id: &ids.task_id,
+                run_id: &ids.run_id,
+                model_turn_id: turn_id,
+                provider_call_id: &call.call_id,
+                wire_name: &call.name,
+                action_id: &action_id,
+                invocation_id: &invocation_id,
+                arguments: &call.arguments,
+            },
         )
         .await?;
         if let Some(value) = record.result {
@@ -93,13 +95,15 @@ async fn complete_tool(
 ) -> Result<(), String> {
     repository::complete_tool_call(
         pool,
-        row_id,
-        &ids.run_id,
-        &ids.conversation_id,
-        &ids.branch_id,
-        &call.call_id,
-        action_id,
-        &value,
+        repository::AssistantToolCallCompletion {
+            id: row_id,
+            run_id: &ids.run_id,
+            conversation_id: &ids.conversation_id,
+            branch_id: &ids.branch_id,
+            call_id: &call.call_id,
+            name: action_id,
+            tool_output: &value,
+        },
     )
     .await
 }

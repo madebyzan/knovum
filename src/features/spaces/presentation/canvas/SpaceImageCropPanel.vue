@@ -86,7 +86,10 @@ function toggleAspect() {
 </script>
 
 <template>
-  <section class="flex h-104 w-60 flex-col text-fg-primary" :aria-label="t('spaces.media.imageEditor.crop.title')">
+  <section
+    class="flex h-104 w-60 flex-col text-fg-primary"
+    :aria-label="t('spaces.media.imageEditor.crop.title')"
+  >
     <h3 class="px-1 pb-3 text-title-sm font-semibold">{{ t("spaces.media.imageEditor.crop.title") }}</h3>
     <div class="flex items-center gap-2 pb-3">
       <label

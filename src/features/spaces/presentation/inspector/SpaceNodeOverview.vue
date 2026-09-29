@@ -48,10 +48,16 @@ async function openPreview() {
         v-if="visual"
         type="button"
         class="group/preview relative block w-full cursor-pointer focus-visible:outline-2 focus-visible:outline-stroke-focus"
-        :aria-label="t(node.data.kind === 'video' ? 'spaces.inspector.playVideo' : 'spaces.inspector.openContent')"
+        :aria-label="
+          t(node.data.kind === 'video' ? 'spaces.inspector.playVideo' : 'spaces.inspector.openContent')
+        "
         @click="openPreview"
       >
-        <img :src="preview" alt="" class="h-44 w-full object-contain transition-opacity duration-100 group-hover/preview:opacity-90" />
+        <img
+          :src="preview"
+          alt=""
+          class="h-44 w-full object-contain transition-opacity duration-100 group-hover/preview:opacity-90"
+        />
         <span v-if="node.data.kind === 'video'" class="absolute inset-0 grid place-items-center">
           <span class="grid size-9 place-items-center rounded-full bg-surface-inverse/80 text-fg-inverse">
             <Play class="size-3.5 fill-current" />

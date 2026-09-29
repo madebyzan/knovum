@@ -129,9 +129,8 @@ pub(super) async fn drive(
             }
             ControlDirective::CallTools { calls } => {
                 if let Some(channel) = updates {
-                    let _ = channel.send(
-                        crate::spaces::assistant::AssistantTaskUpdate::ContentBoundary,
-                    );
+                    let _ = channel
+                        .send(crate::spaces::assistant::AssistantTaskUpdate::ContentBoundary);
                 }
                 let results = super::tool_execution::execute(
                     pool,

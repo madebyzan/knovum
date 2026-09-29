@@ -1,8 +1,8 @@
 import { shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
-import { confirmAction } from "../../../shared/ui/confirm-action";
 
+import { confirmAction } from "../../../shared/ui/confirm-action";
 import { useSpaceStore } from "../session/space-store";
 import type { SpaceDeletedStructureRoot } from "./deleted-structure";
 import { permanentlyDeleteStructure, restoreDeletedStructure } from "./deleted-structure-actions";
@@ -35,9 +35,10 @@ export function useRecentlyDeletedActions() {
     try {
       const confirmed = await confirmAction({
         title: t(scope === undefined ? "spaces.trash.deletePermanently" : "spaces.trash.deleteAll.title"),
-        description: scope === undefined
-          ? t("spaces.trash.structure.deleteDescription", { title: selected[0]!.title })
-          : t("spaces.trash.deleteAll.description", { count: selected.length, scope }),
+        description:
+          scope === undefined
+            ? t("spaces.trash.structure.deleteDescription", { title: selected[0]!.title })
+            : t("spaces.trash.deleteAll.description", { count: selected.length, scope }),
         confirmLabel: t("spaces.trash.deletePermanently"),
         danger: true,
       });

@@ -44,7 +44,10 @@ const fields = computed(() => {
       label: t("spaces.inspector.fields.provider"),
       value: media?.origin ? mediaProviderDisplayName(media.origin.provider) : undefined,
     },
-    { label: t("spaces.importExport.fileName"), value: asset?.fileName === data.title ? undefined : asset?.fileName },
+    {
+      label: t("spaces.importExport.fileName"),
+      value: asset?.fileName === data.title ? undefined : asset?.fileName,
+    },
     { label: t("spaces.inspector.fields.size"), value: formatByteSize(asset?.size) },
     {
       label: t("spaces.inspector.fields.modified"),

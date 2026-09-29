@@ -39,7 +39,7 @@ export function useShellController(workspace: WorkspaceDefinition) {
     cancelPanelMotionTimer();
     panelMotion.value = false;
   }
-  useEventListener(window, "resize", cancelPanelMotion);
+  useEventListener(globalThis, "resize", cancelPanelMotion);
   const workspaceActive = computed(() => route.name === "spaces");
   const { start: startSidebarPreviewClose, stop: cancelSidebarPreviewClose } = useTimeoutFn(
     () => (sidebarPreview.value = false),

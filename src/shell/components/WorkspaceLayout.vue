@@ -49,8 +49,7 @@ function commitSidebarWidth() {
 function commitRightSidebarWidth() {
   const size = trailingPanel.value?.getSize();
   if (size === 0) emit("close-right-sidebar");
-  else if (size && size >= props.workspace.rightSidebarLayout.minSize)
-    emit("set-right-sidebar-width", size);
+  else if (size && size >= props.workspace.rightSidebarLayout.minSize) emit("set-right-sidebar-width", size);
 }
 function onDrag(active: boolean, commit: () => void) {
   if (active) emit("cancel-panel-motion");
@@ -116,7 +115,7 @@ function onDrag(active: boolean, commit: () => void) {
         collapsible
       >
         <div
-          class="h-full min-w-0 pb-2 pr-2"
+          class="h-full min-w-0 pr-2 pb-2"
           :style="{ '--workspace-right-sidebar-width': `${rightSidebarWidth}px` }"
           :inert="!rightSidebarOpen"
           :aria-hidden="!rightSidebarOpen"

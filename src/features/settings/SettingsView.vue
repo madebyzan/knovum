@@ -126,8 +126,12 @@ function backToApp() {
             </Transition>
           </div>
         </UiScrollArea>
-        <div class="pointer-events-none absolute inset-x-0 top-0 h-8 bg-linear-to-b from-surface-canvas to-transparent" />
-        <div class="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-linear-to-t from-surface-canvas to-transparent" />
+        <div
+          class="pointer-events-none absolute inset-x-0 top-0 h-8 bg-linear-to-b from-surface-canvas to-transparent"
+        />
+        <div
+          class="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-linear-to-t from-surface-canvas to-transparent"
+        />
       </div>
     </div>
   </main>

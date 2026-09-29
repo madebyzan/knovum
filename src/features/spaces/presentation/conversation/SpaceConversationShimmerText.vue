@@ -22,8 +22,12 @@
 }
 
 @keyframes conversation-shimmer {
-  from { background-position: 100% 0; }
-  to { background-position: 0 0; }
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce), (forced-colors: active) {

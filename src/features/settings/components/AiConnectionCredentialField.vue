@@ -29,7 +29,11 @@ onMounted(async () => {
   <div class="grid gap-1.5">
     <div class="flex items-center gap-2 text-caption font-medium text-fg-secondary">
       <label :for="`key-${connectionId}`">{{ t("settings.ai.apiKey") }}</label>
-      <span v-if="hasKey" class="rounded-sm bg-surface-success-subtle px-1.5 py-0.5 text-caption-sm text-fg-success">{{ t("settings.ai.keyStored") }}</span>
+      <span
+        v-if="hasKey"
+        class="rounded-sm bg-surface-success-subtle px-1.5 py-0.5 text-caption-sm text-fg-success"
+        >{{ t("settings.ai.keyStored") }}</span
+      >
     </div>
     <div class="relative min-w-0">
       <UiInput
@@ -38,7 +42,13 @@ onMounted(async () => {
         :type="reveal ? 'text' : 'password'"
         :disabled="disabled"
         class="pr-10"
-        :placeholder="hasKey === null ? '' : hasKey ? t('settings.ai.keySavedPlaceholder') : t('settings.ai.keyOptionalPlaceholder')"
+        :placeholder="
+          hasKey === null
+            ? ''
+            : hasKey
+              ? t('settings.ai.keySavedPlaceholder')
+              : t('settings.ai.keyOptionalPlaceholder')
+        "
         @update:model-value="secret = $event || undefined"
       />
       <UiIconButton
@@ -61,7 +71,11 @@ onMounted(async () => {
     >
       {{ secret === null ? t("common.cancel") : t("settings.ai.removeSavedKey") }}
     </button>
-    <p v-if="secret === null" class="text-caption text-fg-secondary">{{ t("settings.ai.keyRemovalPending") }}</p>
-    <p v-if="loadError" class="text-caption text-fg-danger" role="alert">{{ t("settings.ai.secretLoadFailed") }}: {{ loadError }}</p>
+    <p v-if="secret === null" class="text-caption text-fg-secondary">
+      {{ t("settings.ai.keyRemovalPending") }}
+    </p>
+    <p v-if="loadError" class="text-caption text-fg-danger" role="alert">
+      {{ t("settings.ai.secretLoadFailed") }}: {{ loadError }}
+    </p>
   </div>
 </template>

@@ -44,7 +44,10 @@ pub(crate) fn authorize_edited_image_preview<R: tauri::Runtime>(
     let canonical = source.canonicalize().map_err(|error| error.to_string())?;
     if !canonical.starts_with(&previews)
         || !canonical.is_file()
-        || canonical.extension().and_then(|extension| extension.to_str()) != Some("png")
+        || canonical
+            .extension()
+            .and_then(|extension| extension.to_str())
+            != Some("png")
     {
         return Err("Only rendered Space images can be attached".into());
     }

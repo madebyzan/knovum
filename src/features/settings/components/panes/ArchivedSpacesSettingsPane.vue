@@ -9,8 +9,8 @@ import {
   type ArchivedSpace,
   type ArchiveSettingsContract,
 } from "../../../../shared/contracts/archive-settings";
-import UiButton from "../../../../shared/ui/UiButton.vue";
 import { confirmAction } from "../../../../shared/ui/confirm-action";
+import UiButton from "../../../../shared/ui/UiButton.vue";
 import SettingsSection from "../SettingsSection.vue";
 
 const archive = requireArchiveSettings();

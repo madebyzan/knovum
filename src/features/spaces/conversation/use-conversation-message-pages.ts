@@ -1,10 +1,6 @@
 import { shallowRef, type Ref, type ShallowRef } from "vue";
 
-import {
-  listAssistantMessages,
-  type AssistantConversation,
-  type AssistantMessage,
-} from "./conversation-ipc";
+import { listAssistantMessages, type AssistantConversation, type AssistantMessage } from "./conversation-ipc";
 
 export function useConversationMessagePages(input: {
   spaceId: Ref<string | undefined>;
@@ -24,7 +20,8 @@ export function useConversationMessagePages(input: {
     try {
       const requestedSpaceId = input.spaceId.value;
       const page = await listAssistantMessages(conversation.id, conversation.branchId, first);
-      if (input.spaceId.value !== requestedSpaceId || input.selectedConversationId.value !== conversation.id) return;
+      if (input.spaceId.value !== requestedSpaceId || input.selectedConversationId.value !== conversation.id)
+        return;
       input.messages.value = [...page, ...input.messages.value];
       hasOlder.value = page.length === 100;
     } finally {

@@ -17,7 +17,13 @@ const target = defineModel<ConversationTarget | undefined>("target");
 const targetAvailable = ref(false);
 const props = defineProps<{
   busy: boolean;
-  attachments: readonly { key: string; kind: "node" | "file"; title: string; isImage: boolean; previewSource: string }[];
+  attachments: readonly {
+    key: string;
+    kind: "node" | "file";
+    title: string;
+    isImage: boolean;
+    previewSource: string;
+  }[];
   attachmentCandidates: readonly {
     nodeId: string;
     title: string;
@@ -148,6 +154,10 @@ onBeforeUnmount(fileDropListener.dispose);
 </template>
 
 <style scoped>
-.composer-input { scrollbar-width: none; }
-.composer-input::-webkit-scrollbar { display: none; }
+.composer-input {
+  scrollbar-width: none;
+}
+.composer-input::-webkit-scrollbar {
+  display: none;
+}
 </style>

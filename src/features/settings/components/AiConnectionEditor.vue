@@ -3,12 +3,20 @@ import { computed, reactive, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { requireProvider, type ProviderDescriptor } from "../../../foundation/ai/providers";
-import { aiConnectionSettingsSchema, type AiConnectionSettings, type AiProvider } from "../../../foundation/ai/schema/models";
+import {
+  aiConnectionSettingsSchema,
+  type AiConnectionSettings,
+  type AiProvider,
+} from "../../../foundation/ai/schema/models";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiDialog from "../../../shared/ui/UiDialog.vue";
 import UiInput from "../../../shared/ui/UiInput.vue";
 import UiSelect from "../../../shared/ui/UiSelect.vue";
-import { createAiConnectionDraft, finalizeAiConnectionDraft, type AiConnectionSubmission } from "../ai-connection-draft";
+import {
+  createAiConnectionDraft,
+  finalizeAiConnectionDraft,
+  type AiConnectionSubmission,
+} from "../ai-connection-draft";
 import { providerOptions } from "../ai-provider-options";
 import AiConnectionCredentialField from "./AiConnectionCredentialField.vue";
 
@@ -45,9 +53,11 @@ const validUrl = computed(() => {
 });
 const valid = computed(() => aiConnectionSettingsSchema.safeParse(draft).success && validUrl.value);
 const initialDraft = finalizeAiConnectionDraft(draft);
-const changed = computed(() =>
-  secret.value === null || Boolean(secret.value?.trim()) ||
-  JSON.stringify(finalizeAiConnectionDraft(draft)) !== JSON.stringify(initialDraft),
+const changed = computed(
+  () =>
+    secret.value === null ||
+    Boolean(secret.value?.trim()) ||
+    JSON.stringify(finalizeAiConnectionDraft(draft)) !== JSON.stringify(initialDraft),
 );
 watch(changed, (value) => emit("dirty", value), { immediate: true });
 
@@ -60,7 +70,10 @@ function selectProvider(id: AiProvider) {
 }
 
 function save() {
-  if (props.connection && !changed.value) { open.value = false; return; }
+  if (props.connection && !changed.value) {
+    open.value = false;
+    return;
+  }
   attempted.value = true;
   if (!valid.value || props.busy) return;
   emit("save", {
@@ -71,30 +84,53 @@ function save() {
 </script>
 
 <template>
-  <UiDialog v-model:open="open" :title="t(props.connection ? 'settings.ai.editConnection' : 'settings.ai.addConnection')">
+  <UiDialog
+    v-model:open="open"
+    :title="t(props.connection ? 'settings.ai.editConnection' : 'settings.ai.addConnection')"
+  >
     <fieldset :disabled="busy" class="min-w-0 border-0 p-0">
       <div class="grid gap-4">
         <div v-if="!props.connection" class="grid gap-1.5 text-caption font-medium text-fg-secondary">
           {{ t("settings.ai.provider") }}
-          <UiSelect :model-value="draft.provider" :label="t('settings.ai.provider')" :options="options" @update:model-value="selectProvider($event as AiProvider)" />
+          <UiSelect
+            :model-value="draft.provider"
+            :label="t('settings.ai.provider')"
+            :options="options"
+            @update:model-value="selectProvider($event as AiProvider)"
+          />
         </div>
         <label class="grid gap-1.5 text-caption font-medium text-fg-secondary">
           {{ t("settings.ai.connectionName") }}
           <UiInput v-model="draft.name" />
-          <span v-if="attempted && !draft.name.trim()" class="text-fg-danger">{{ t("settings.ai.requiredField") }}</span>
+          <span v-if="attempted && !draft.name.trim()" class="text-fg-danger">{{
+            t("settings.ai.requiredField")
+          }}</span>
         </label>
         <label class="grid min-w-0 gap-1.5 text-caption font-medium text-fg-secondary">
           {{ t("settings.ai.baseUrl") }}
           <UiInput v-model="draft.baseUrl" />
-          <span v-if="attempted && !validUrl" class="text-fg-danger">{{ t("settings.ai.invalidBaseUrl") }}</span>
+          <span v-if="attempted && !validUrl" class="text-fg-danger">{{
+            t("settings.ai.invalidBaseUrl")
+          }}</span>
         </label>
-        <AiConnectionCredentialField v-model="secret" :connection-id="draft.id" :existing="Boolean(props.connection)" :disabled="busy" />
+        <AiConnectionCredentialField
+          v-model="secret"
+          :connection-id="draft.id"
+          :existing="Boolean(props.connection)"
+          :disabled="busy"
+        />
       </div>
     </fieldset>
     <p v-if="props.error" class="mt-3 text-caption text-fg-danger" role="alert">{{ props.error }}</p>
     <template #footer>
       <UiButton variant="ghost" :disabled="busy" @click="open = false">{{ t("common.cancel") }}</UiButton>
-      <UiButton variant="primary" :disabled="busy" @click="save">{{ busy ? t("settings.ai.savingConnection") : props.connection && !changed ? t("settings.ai.finishEditing") : t("settings.ai.saveConnection") }}</UiButton>
+      <UiButton variant="primary" :disabled="busy" @click="save">{{
+        busy
+          ? t("settings.ai.savingConnection")
+          : props.connection && !changed
+            ? t("settings.ai.finishEditing")
+            : t("settings.ai.saveConnection")
+      }}</UiButton>
     </template>
   </UiDialog>
 </template>

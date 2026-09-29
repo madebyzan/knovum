@@ -43,8 +43,7 @@
     "text": "Text generation",
     "vision": "Visual understanding",
     "image": "Image generation",
-    "video": "Video generation",
-    "embedding": "Embeddings"
+    "video": "Video generation"
   },
   "imageLayers": {
     "title": "Image layer splitting",

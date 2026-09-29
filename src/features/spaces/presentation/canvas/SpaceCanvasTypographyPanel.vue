@@ -49,12 +49,7 @@ const verticalOptions = [
 </script>
 
 <template>
-  <UiPopover
-    side="top"
-    align="center"
-    :side-offset="6"
-    class="p-0.5"
-  >
+  <UiPopover side="top" align="center" :side-offset="6" class="p-0.5">
     <template #trigger>
       <button
         type="button"

@@ -272,18 +272,18 @@ processing is not automatically an edit, and AI processing is not automatically 
 
 The node-kind decision is explicit:
 
-| Kind                 | Edits the same identity                                                                        | Creates a derivative when requested                                                |
-| -------------------- | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| Note, text, Markdown | Body, title and tags                                                                           | Summary, drafted document, visualization or other independently useful output      |
+| Kind                 | Edits the same identity                                                                        | Creates a derivative when requested                                                            |
+| -------------------- | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Note, text, Markdown | Body, title and tags                                                                           | Summary, drafted document, visualization or other independently useful output                  |
 | Image                | Crop, rotation, flip, tone and comments                                                        | Background removal, AI object removal, upscale, new angle, separated layers or generated image |
-| Video                | Edit project, title, tags and annotations                                                      | Rendered video, subtitle resource, burn-in output or generated clip                |
-| Audio                | Title, tags and corrected node-owned transcript/analysis                                       | Separately published subtitle, transcript or document resource                     |
-| Subtitle             | Language, cues and corrections                                                                 | Burned-in video or a separately authored document                                  |
-| Website              | URL, captured metadata and annotations of that saved resource                                  | Summary, document or visualization grounded in its captured revision               |
-| File, code           | Title, tags and other node metadata; an explicit source replacement changes its asset revision | Converted document, generated code or other new resource                           |
-| Knowledge object     | Typed properties, status, title and evidence relations                                         | A new knowledge resource only when the intent explicitly creates one               |
-| Credential           | Metadata and dedicated local credential-database reference                                     | No credential derivative; generated artifacts may consume an authorized credential |
-| Portal               | Target and presentation metadata                                                               | No content derivative; duplicate is a clone                                        |
+| Video                | Edit project, title, tags and annotations                                                      | Rendered video, subtitle resource, burn-in output or generated clip                            |
+| Audio                | Title, tags and corrected node-owned transcript/analysis                                       | Separately published subtitle, transcript or document resource                                 |
+| Subtitle             | Language, cues and corrections                                                                 | Burned-in video or a separately authored document                                              |
+| Website              | URL, captured metadata and annotations of that saved resource                                  | Summary, document or visualization grounded in its captured revision                           |
+| File, code           | Title, tags and other node metadata; an explicit source replacement changes its asset revision | Converted document, generated code or other new resource                                       |
+| Knowledge object     | Typed properties, status, title and evidence relations                                         | A new knowledge resource only when the intent explicitly creates one                           |
+| Credential           | Metadata and dedicated local credential-database reference                                     | No credential derivative; generated artifacts may consume an authorized credential             |
+| Portal               | Target and presentation metadata                                                               | No content derivative; duplicate is a clone                                                    |
 
 For images, the same-identity path writes only the source node's validated `imageEdit` recipe
 (adjustments, crop, flip and rotation) and its undo history. Background removal, object removal,

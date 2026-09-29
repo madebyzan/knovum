@@ -2,8 +2,8 @@
 import { ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import UiButton from "../../../../shared/ui/UiButton.vue";
 import { confirmAction } from "../../../../shared/ui/confirm-action";
+import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiInput from "../../../../shared/ui/UiInput.vue";
 import {
   deleteCapturedWorkflow,

@@ -11,9 +11,11 @@ import SpaceTags from "./SpaceTags.vue";
 
 const props = defineProps<{ node: SpaceCanvasNode }>();
 const store = useSpaceStore();
-const hasRelations = computed(() => store.relations.some((relation) =>
-  relation.sourceId === props.node.id || relation.targetId === props.node.id,
-));
+const hasRelations = computed(() =>
+  store.relations.some(
+    (relation) => relation.sourceId === props.node.id || relation.targetId === props.node.id,
+  ),
+);
 </script>
 
 <template>

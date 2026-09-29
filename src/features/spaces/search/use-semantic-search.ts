@@ -36,10 +36,8 @@ export function useSemanticSearch(open: Ref<boolean>) {
     if (!spaceId || preparing.value) return;
     preparing.value = true;
     try {
-      await startResourcePreparation(
-        { kind: "textEmbedding" },
-        t("spaces.search.semantic.preparing"),
-      ).completion;
+      await startResourcePreparation({ kind: "textEmbedding" }, t("spaces.search.semantic.preparing"))
+        .completion;
       if (!open.value || store.activeSpaceId !== spaceId) return;
       indexing.value = true;
       const id = tasks.start(t("spaces.search.semantic.indexing"));

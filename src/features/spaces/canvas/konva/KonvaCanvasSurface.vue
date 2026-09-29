@@ -113,7 +113,9 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
       <CanvasStructureInteractionLayer
         :groups="runtime.structure.structureScene.value.groups"
         :group-scope-path="groupScopePath"
-        :interactive="interactionEnabled && canvasGesturesEnabled && tool === 'select' && !runtime.viewport.panning.value"
+        :interactive="
+          interactionEnabled && canvasGesturesEnabled && tool === 'select' && !runtime.viewport.panning.value
+        "
         :palette="runtime.palette.value"
         :sections="runtime.structure.structureScene.value.sections"
         :selected-ids="runtime.selection.structureNodeIds.value"

@@ -42,36 +42,57 @@ const emit = defineEmits<{
   suggest: [prompt: string, selection?: string];
   inspectActivity: [runId: string];
 }>();
-const visibleMessages = computed(() => props.messages.filter((message) =>
-  message.role !== "tool" && (
-    message.role !== "assistant" ||
-    message.content.parts.some((part) => part.type !== "text" || part.text.trim()) ||
-    Boolean(props.streamedText && message.id === props.messages.at(-1)?.id)
+const visibleMessages = computed(() =>
+  props.messages.filter(
+    (message) =>
+      message.role !== "tool" &&
+      (message.role !== "assistant" ||
+        message.content.parts.some((part) => part.type !== "text" || part.text.trim()) ||
+        Boolean(props.streamedText && message.id === props.messages.at(-1)?.id)),
   ),
-));
+);
 const { scroller, atTail, rows, totalSize, measureElement, updateScrollPosition, scrollToTail, loadOlder } =
-  useConversationScroll({
-    get messages() { return visibleMessages.value; },
-    get streamedText() { return props.streamedText; },
-    get loadingOlder() { return props.loadingOlder; },
-    get scrollKey() { return props.scrollKey; },
-    get savedScrollTop() { return props.savedScrollTop; },
-  }, {
-    loadOlder: () => emit("loadOlder"),
-    remember: (key, top) => emit("scrollPosition", key, top),
-  });
+  useConversationScroll(
+    {
+      get messages() {
+        return visibleMessages.value;
+      },
+      get streamedText() {
+        return props.streamedText;
+      },
+      get loadingOlder() {
+        return props.loadingOlder;
+      },
+      get scrollKey() {
+        return props.scrollKey;
+      },
+      get savedScrollTop() {
+        return props.savedScrollTop;
+      },
+    },
+    {
+      loadOlder: () => emit("loadOlder"),
+      remember: (key, top) => emit("scrollPosition", key, top),
+    },
+  );
 const streamingMessageId = computed(() => {
   const last = visibleMessages.value.at(-1);
   return last?.role === "assistant" ? last.id : undefined;
 });
-const hasActiveTurn = computed(() => Boolean(props.activeRunId && props.messages.some((message) =>
-  message.role === "user" && message.content.runId === props.activeRunId,
-)));
-watch(() => props.eventsByRun, async () => {
-  if (!atTail.value) return;
-  await nextTick();
-  scrollToTail();
-});
+const hasActiveTurn = computed(() =>
+  Boolean(
+    props.activeRunId &&
+    props.messages.some((message) => message.role === "user" && message.content.runId === props.activeRunId),
+  ),
+);
+watch(
+  () => props.eventsByRun,
+  async () => {
+    if (!atTail.value) return;
+    await nextTick();
+    scrollToTail();
+  },
+);
 
 function bindScroller(element: Element | ComponentPublicInstance | null) {
   scroller.value = element instanceof HTMLDivElement ? element : null;
@@ -91,7 +112,9 @@ function bindScroller(element: Element | ComponentPublicInstance | null) {
       @scroll.passive="updateScrollPosition"
     >
       <div
-        v-if="visibleMessages.length === 0 && !hasDraft && !busy && !error && !permission && !approvals.length"
+        v-if="
+          visibleMessages.length === 0 && !hasDraft && !busy && !error && !permission && !approvals.length
+        "
         class="flex min-h-full items-center justify-center px-2 pb-12"
       >
         <SpaceConversationEmptyGuide @select="(value, selection) => emit('suggest', value, selection)" />
@@ -122,7 +145,10 @@ function bindScroller(element: Element | ComponentPublicInstance | null) {
           />
         </article>
       </div>
-      <article v-if="streamedText && !streamingMessageId" class="pb-5 text-body leading-relaxed text-fg-primary">
+      <article
+        v-if="streamedText && !streamingMessageId"
+        class="pb-5 text-body leading-relaxed text-fg-primary"
+      >
         <p class="whitespace-pre-wrap">{{ streamedText }}</p>
       </article>
       <SpaceConversationPendingActions
@@ -135,7 +161,11 @@ function bindScroller(element: Element | ComponentPublicInstance | null) {
       />
       <p v-if="busy && !hasActiveTurn && !error" role="status" class="py-3 text-caption text-fg-secondary">
         <SpaceConversationShimmerText>
-          {{ $t(preparing ? "spaces.assistant.conversations.preparing" : "spaces.assistant.activity.generating") }}
+          {{
+            $t(
+              preparing ? "spaces.assistant.conversations.preparing" : "spaces.assistant.activity.generating",
+            )
+          }}
         </SpaceConversationShimmerText>
       </p>
       <div

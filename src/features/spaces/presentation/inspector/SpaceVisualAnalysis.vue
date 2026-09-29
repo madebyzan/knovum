@@ -15,7 +15,10 @@ import { useSpaceStore } from "../../session/space-store";
 const props = defineProps<{ node: SpaceCanvasNode }>();
 const { t } = useI18n();
 const { activeSpaceId } = storeToRefs(useSpaceStore());
-const { jobs, loading, refresh } = useNodeEnrichmentStatus(activeSpaceId, computed(() => props.node.id));
+const { jobs, loading, refresh } = useNodeEnrichmentStatus(
+  activeSpaceId,
+  computed(() => props.node.id),
+);
 const visualJob = computed(() => jobs.value.find((job) => job.jobType === "analyze_visual"));
 const retrying = shallowRef(false);
 const knowledge = computed(() => {
@@ -79,6 +82,8 @@ async function retry() {
         <RefreshCw class="size-3" :class="retrying && 'animate-spin'" />{{ t("common.retry") }}
       </UiButton>
     </div>
-    <p v-else class="text-caption leading-relaxed text-fg-tertiary">{{ t("spaces.knowledge.visual.empty") }}</p>
+    <p v-else class="text-caption leading-relaxed text-fg-tertiary">
+      {{ t("spaces.knowledge.visual.empty") }}
+    </p>
   </div>
 </template>

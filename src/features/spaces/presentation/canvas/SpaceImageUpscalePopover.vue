@@ -21,15 +21,11 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{ "update:open": [open: boolean] }>();
 const { t } = useI18n();
-const {
-  busy,
-  help,
-  targetDimensions,
-  optionAvailability,
-  openAiSettings,
-  run,
-} = useImageGenerateActions(toRef(props, "node"), "upscale", toRef(props, "open"), () =>
-  emit("update:open", false),
+const { busy, help, targetDimensions, optionAvailability, openAiSettings, run } = useImageGenerateActions(
+  toRef(props, "node"),
+  "upscale",
+  toRef(props, "open"),
+  () => emit("update:open", false),
 );
 const sizes = [2048, 4096, 8192] as const;
 </script>

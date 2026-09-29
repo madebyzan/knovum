@@ -1,4 +1,4 @@
-import { clamp, compact, uniq } from "es-toolkit";
+import { clamp } from "es-toolkit";
 
 import {
   fitsChrome,
@@ -39,7 +39,11 @@ function horizontal(
   const overlap = (band: { top: number; bottom: number }) =>
     Math.max(0, Math.min(band.bottom, visible.bottom) - Math.max(band.top, visible.top));
   const best = bands
-    .map((band) => ({ ...band, shown: Math.min(height, band.bottom - band.top) }))
+    .map((band) => ({
+      top: band.top,
+      bottom: band.bottom,
+      shown: Math.min(height, band.bottom - band.top),
+    }))
     .filter((band) => band.shown >= Math.min(160, height))
     .toSorted(
       (a, b) =>
@@ -95,6 +99,29 @@ function candidateForSide(
   return undefined;
 }
 
+function firstPlacement(
+  input: PlacementInput,
+  options: {
+    safe: SurfaceRect;
+    visible: SurfaceRect;
+    sides: readonly SurfaceSide[];
+    height: number;
+  },
+) {
+  for (const side of options.sides) {
+    const candidate = candidateForSide(input, options.safe, options.visible, {
+      side,
+      height: options.height,
+    });
+    if (candidate) return candidate;
+  }
+  return undefined;
+}
+
+function preferredSides<T extends SurfaceSide>(previous: SurfaceSide | undefined, first: T, second: T): T[] {
+  return previous === second ? [second, first] : [first, second];
+}
+
 /** Keep an editor beside the selected object and scroll it within the available vertical band. */
 export function placeInspectorSurface(
   input: PlacementInput,
@@ -103,19 +130,11 @@ export function placeInspectorSurface(
 ): SurfacePlacement | undefined {
   const height = Math.min(input.surface.height, safe.bottom - safe.top);
   if (input.surface.width > safe.right - safe.left || height <= 0) return undefined;
-  const previousHorizontal =
-    input.previousSide === "left" || input.previousSide === "right" ? input.previousSide : undefined;
-  const horizontalSides = uniq(compact([previousHorizontal, "right", "left"]));
-  for (const side of horizontalSides) {
-    const candidate = candidateForSide(input, safe, visible, { side, height });
-    if (candidate) return candidate;
-  }
-  const previousVertical =
-    input.previousSide === "above" || input.previousSide === "below" ? input.previousSide : undefined;
-  const verticalSides = uniq(compact([previousVertical, "above", "below"]));
-  for (const side of verticalSides) {
-    const candidate = candidateForSide(input, safe, visible, { side, height });
-    if (candidate) return candidate;
-  }
+  const horizontalSides = preferredSides(input.previousSide, "right", "left");
+  const horizontalPlacement = firstPlacement(input, { safe, visible, sides: horizontalSides, height });
+  if (horizontalPlacement) return horizontalPlacement;
+  const verticalSides = preferredSides(input.previousSide, "above", "below");
+  const verticalPlacement = firstPlacement(input, { safe, visible, sides: verticalSides, height });
+  if (verticalPlacement) return verticalPlacement;
   return input.kind === "inspector" ? inside(input, safe, visible, height) : undefined;
 }

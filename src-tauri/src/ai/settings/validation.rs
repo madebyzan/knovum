@@ -31,20 +31,19 @@ pub(super) fn validate(settings: &AiSettings) -> AiResult<()> {
         let mut model_ids = HashSet::new();
         let mut provider_model_ids = HashSet::new();
         if connection.models.iter().any(|model| {
-                model.id.trim().is_empty()
-                    || model.name.trim().is_empty()
-                    || model.model.trim().is_empty()
-                    || model.capabilities.is_empty()
-                    || !model_ids.insert(model.id.as_str())
-                    || !provider_model_ids.insert(model.model.as_str())
-                    || model.capabilities.iter().collect::<HashSet<_>>().len()
-                        != model.capabilities.len()
-                    || model
-                        .capabilities
-                        .iter()
-                        .any(|capability| !descriptor.capabilities.contains(capability))
-            })
-        {
+            model.id.trim().is_empty()
+                || model.name.trim().is_empty()
+                || model.model.trim().is_empty()
+                || model.capabilities.is_empty()
+                || !model_ids.insert(model.id.as_str())
+                || !provider_model_ids.insert(model.model.as_str())
+                || model.capabilities.iter().collect::<HashSet<_>>().len()
+                    != model.capabilities.len()
+                || model
+                    .capabilities
+                    .iter()
+                    .any(|capability| !descriptor.capabilities.contains(capability))
+        }) {
             return Err(AiError::invalid("AI model settings are invalid"));
         }
     }

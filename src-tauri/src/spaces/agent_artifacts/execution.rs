@@ -130,7 +130,9 @@ fn event_from_update(
         AgentSessionUpdate::ToolCall { id, title, .. } => {
             contracts::AgentCreationEvent::ToolStarted { id, title }
         }
-        AgentSessionUpdate::ToolUpdate { id, .. } => contracts::AgentCreationEvent::ToolUpdated { id },
+        AgentSessionUpdate::ToolUpdate { id, .. } => {
+            contracts::AgentCreationEvent::ToolUpdated { id }
+        }
         AgentSessionUpdate::PermissionRequested {
             request_id,
             title,

@@ -77,6 +77,9 @@ pub async fn activate_assistant_branch(
     branch_id: String,
 ) -> Result<(), CommandError> {
     Ok((repository::activate_branch(
-        crate::spaces::db::pool(&app).await?, &conversation_id, &branch_id,
-    ).await)?)
+        crate::spaces::db::pool(&app).await?,
+        &conversation_id,
+        &branch_id,
+    )
+    .await)?)
 }
