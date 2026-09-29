@@ -26,12 +26,7 @@ const selectedColor = computed(() => props.options.find(({ value }) => value ===
 </script>
 
 <template>
-  <UiPopover
-    side="top"
-    align="center"
-    :side-offset="5"
-    class="p-0.5"
-  >
+  <UiPopover side="top" align="center" :side-offset="5" class="p-0.5">
     <template #trigger>
       <UiButton
         v-if="labeled"

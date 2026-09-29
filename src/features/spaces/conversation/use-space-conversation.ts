@@ -1,12 +1,8 @@
 import { computed, shallowRef, watch, type Ref } from "vue";
 
 import { useSpaceStore } from "../session/space-store";
-import {
-  listAssistantConversations,
-  listAssistantMessages,
-  type AssistantConversation,
-  type AssistantMessage,
-} from "./conversation-ipc";
+import { type AssistantConversation, type AssistantMessage } from "./conversation-ipc";
+import { createConversationSelection } from "./conversation-selection";
 import type { ConversationTarget } from "./conversation-target";
 import { useConversationActions } from "./use-conversation-actions";
 import { useConversationActivities } from "./use-conversation-activities";
@@ -37,52 +33,43 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
       paths,
     );
   }
-  const selectedConversation = computed(() => selectedConversationId.value ? selectedSnapshot.value : undefined);
-  const pages = useConversationMessagePages({ spaceId, selectedConversationId, selectedConversation, messages });
-  const branchSession = useConversationBranches({
-    selected: selectedConversation,
-    selectedId: selectedConversationId,
-    get loading() { return task.loading; },
-    refresh: refreshConversations,
-    select: selectConversation,
+  const selectedConversation = computed(() =>
+    selectedConversationId.value ? selectedSnapshot.value : undefined,
+  );
+  const pages = useConversationMessagePages({
+    spaceId,
+    selectedConversationId,
+    selectedConversation,
+    messages,
   });
   const draftSession = useConversationDraftSession({ spaceId, selectedConversationId, prompt, attachments });
   draftSession.restore("");
-  useImageCommentDraft(spaceId, prompt);
-
-  async function refreshConversations() {
-    const requestedSpaceId = spaceId.value;
-    if (!requestedSpaceId) return;
-    const requestedQuery = conversationQuery.value;
-    const requestedArchived = showingArchived.value;
-    const loadedConversations = await listAssistantConversations(requestedSpaceId, requestedQuery, requestedArchived);
-    if (spaceId.value === requestedSpaceId && conversationQuery.value === requestedQuery && showingArchived.value === requestedArchived) {
-      conversations.value = loadedConversations;
-      selectedSnapshot.value = selectedConversationId.value ? loadedConversations.find(({ id }) => id === selectedConversationId.value) ?? selectedSnapshot.value : undefined;
-    }
-  }
-  async function selectConversation(id: string, skipRemember = false, acceptedBranchId?: string) {
-    if (!skipRemember) draftSession.remember();
-    const conversation = conversations.value.find((item) => item.id === id) ?? (selectedConversationId.value === id ? selectedSnapshot.value : undefined);
-    selectedConversationId.value = id;
-    selectedSnapshot.value = conversation;
-    draftSession.restore(id);
-    if (!id) {
-      messages.value = [];
+  const { refreshConversations, selectConversation } = createConversationSelection({
+    spaceId,
+    query: conversationQuery,
+    showingArchived,
+    conversations,
+    selectedId: selectedConversationId,
+    selectedSnapshot,
+    messages,
+    hasOlder: pages.hasOlder,
+    rememberDraft: () => draftSession.remember(),
+    restoreDraft: draftSession.restore,
+    clearBranches: () => {
       branchSession.branches.value = [];
-      pages.hasOlder.value = false;
-      return;
-    }
-    const branchId = conversation?.branchId ?? acceptedBranchId;
-    const requestedSpaceId = spaceId.value;
-    if (!branchId) return;
-    const page = await listAssistantMessages(id, branchId);
-    if (selectedConversationId.value !== id || spaceId.value !== requestedSpaceId) return;
-    messages.value = page;
-    await branchSession.load(id);
-    if (selectedConversationId.value !== id || spaceId.value !== requestedSpaceId) return;
-    pages.hasOlder.value = page.length === 100;
-  }
+    },
+    loadBranches: (id) => branchSession.load(id),
+  });
+  const branchSession = useConversationBranches({
+    selected: selectedConversation,
+    selectedId: selectedConversationId,
+    get loading() {
+      return task.loading;
+    },
+    refresh: refreshConversations,
+    select: selectConversation,
+  });
+  useImageCommentDraft(spaceId, prompt);
 
   const task = useConversationTask({
     spaceId,
@@ -99,7 +86,11 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
     clearDraft: draftSession.clearSubmitted,
     restoreDraft: draftSession.restoreSubmitted,
   });
-  const { eventsByRun, error: activityError, inspect: inspectActivity } = useConversationActivities(selectedConversationId, task.activeRunId, task.activityRevision);
+  const {
+    eventsByRun,
+    error: activityError,
+    inspect: inspectActivity,
+  } = useConversationActivities(selectedConversationId, task.activeRunId, task.activityRevision);
 
   watch(
     spaceId,
@@ -141,7 +132,9 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
     conversations,
     messages,
     branches: branchSession.branches,
-    eventsByRun, activityError, inspectActivity,
+    eventsByRun,
+    activityError,
+    inspectActivity,
     selectedConversationId,
     selectedConversation,
     prompt,

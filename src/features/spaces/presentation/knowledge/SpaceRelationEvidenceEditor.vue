@@ -71,7 +71,9 @@ async function saveRationale() {
           @keydown.ctrl.enter.stop.prevent="saveRationale"
         />
         <div class="mt-2 flex justify-end gap-1">
-          <UiButton size="sm" variant="ghost" :disabled="saving" @click="cancelEdit">{{ t("common.cancel") }}</UiButton>
+          <UiButton size="sm" variant="ghost" :disabled="saving" @click="cancelEdit">{{
+            t("common.cancel")
+          }}</UiButton>
           <UiButton size="sm" variant="primary" :disabled="!changed || saving" @click="saveRationale">
             {{ t("common.save") }}
           </UiButton>

@@ -25,7 +25,7 @@ describe("canvas image editing", () => {
         assetPath: "/managed/image.png",
         imageEdit: { ...edit, eraserStrokes: [] },
       }),
-    ).toThrow();
+    ).toThrow(/eraserStrokes/);
     expect(() =>
       validateSpaceNodePayload({
         kind: "image",
@@ -34,7 +34,7 @@ describe("canvas image editing", () => {
         assetPath: "/managed/image.png",
         imageEdit: { ...edit, version: 5 },
       }),
-    ).toThrow();
+    ).toThrow(/version/);
     expect(() =>
       validateSpaceNodePayload({
         kind: "image",

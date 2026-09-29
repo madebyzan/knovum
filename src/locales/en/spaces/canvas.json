@@ -82,9 +82,7 @@
     "downLarge": "Move down 10pt"
   },
   "relations": {
-    "connect": "Connect",
-    "incoming": "Incoming",
-    "outgoing": "Outgoing"
+    "connect": "Connect"
   },
   "typography": "Typography",
   "noteBackground": "Note background",

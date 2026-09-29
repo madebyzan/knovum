@@ -1,11 +1,12 @@
-import { watch, type Ref } from "vue";
+import { watch, type DeepReadonly, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { useImageCommentSession, type ImageCommentContext } from "../comments/image-comment-session";
 import { useSpaceStore } from "../session/space-store";
 
-function coordinates(comment: ImageCommentContext) {
-  const percent = (value: number) => `${Math.round(value * 1000) / 10}%`;
+const percent = (value: number) => `${Math.round(value * 1000) / 10}%`;
+
+function coordinates(comment: DeepReadonly<ImageCommentContext>) {
   const shape = comment.shape;
   if (shape?.kind === "region") {
     return `x=${percent(shape.x)}, y=${percent(shape.y)}, width=${percent(shape.width)}, height=${percent(shape.height)}`;
@@ -29,7 +30,7 @@ export function useImageCommentDraft(spaceId: Ref<string | undefined>, prompt: R
     (draft) => {
       if (!draft || !spaceId.value || !store.nodes.some(({ id }) => id === draft.nodeId)) return;
       const shape = draft.comment.shape?.kind;
-      const kind = shape === "stroke" ? "draw" : shape ?? "point";
+      const kind = shape === "stroke" ? "draw" : (shape ?? "point");
       const context = t("spaces.media.imageEditor.comments.conversationContext", {
         kind: t(`spaces.media.imageEditor.comments.${kind}`),
         coordinates: coordinates(draft.comment),

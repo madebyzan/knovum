@@ -71,9 +71,11 @@ const gazeStyle = computed(() => ({
         class="absolute inset-x-0 top-1 h-9 rounded-md border border-neutral-950/70 bg-neutral-800 shadow-control"
       >
         <span class="absolute -top-1 left-4 h-1.5 w-4 rounded-t-sm bg-neutral-800" />
-        <span class="absolute -right-0.5 top-1.5 h-6 w-1 rounded-r-sm bg-neutral-900" />
+        <span class="absolute top-1.5 -right-0.5 h-6 w-1 rounded-r-sm bg-neutral-900" />
         <span class="absolute top-0.5 right-1.5 size-1 rounded-full bg-neutral-500" />
-        <div class="absolute inset-y-1 left-1 w-8 overflow-hidden rounded-sm border border-neutral-600 bg-neutral-100">
+        <div
+          class="absolute inset-y-1 left-1 w-8 overflow-hidden rounded-sm border border-neutral-600 bg-neutral-100"
+        >
           <SpaceImageEditedThumbnail :path="path" :revision="revision" :edit="edit" />
         </div>
         <span class="absolute top-3 right-1 size-1 rounded-full border border-neutral-400" />

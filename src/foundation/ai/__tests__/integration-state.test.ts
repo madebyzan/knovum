@@ -8,7 +8,12 @@ describe("integration state persistence", () => {
 
   it("does not save a revision again after an explicit flush", async () => {
     const save = vi.fn<(_value: { count: number }) => Promise<void>>().mockResolvedValue(undefined);
-    const state = createIntegrationState({ initial: { count: 0 }, load: async () => ({ count: 0 }), save, reset: async () => {} });
+    const state = createIntegrationState({
+      initial: { count: 0 },
+      load: async () => ({ count: 0 }),
+      save,
+      reset: async () => {},
+    });
     await state.ensureLoaded();
 
     state.value.value.count = 1;
@@ -24,7 +29,7 @@ describe("integration state persistence", () => {
     const state = createIntegrationState({
       initial: { count: 0 },
       load: async () => ({ count: 0 }),
-      save: vi.fn().mockRejectedValue(failure),
+      save: vi.fn<() => Promise<void>>().mockRejectedValue(failure),
       reset: async () => {},
     });
     await state.ensureLoaded();

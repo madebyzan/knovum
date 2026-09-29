@@ -9,7 +9,6 @@
     "desktop": "Desktop Agents",
     "select": "Choose an assistant",
     "noModel": "No conversation model configured",
-    "working": "Working…",
     "manage": "Manage models and Agents…"
   },
   "empty": {
@@ -51,9 +50,6 @@
     "regenerateAttachments": "Reattach the original resources before sending this request again",
     "branchCreated": "Switched to the new branch",
     "returnToRunning": "A conversation task is running. Return to its conversation."
-  },
-  "role": {
-    "assistant": "Assistant"
   },
   "approval": {
     "plan": "Exact action plan",
@@ -103,7 +99,6 @@
     "incomplete": "Response incomplete"
   },
   "messages": {
-    "actions": "More actions",
     "copy": "Copy message",
     "copied": "Copied",
     "copyFailed": "Could not copy the message. Try again.",
@@ -119,8 +114,6 @@
     "deny": "Deny this request"
   },
   "actions": {
-    "completed": "Completed {name}",
-    "working": "Running action",
     "viewCreated": "Locate result"
   },
   "activity": {

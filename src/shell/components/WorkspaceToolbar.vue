@@ -14,8 +14,7 @@ const props = defineProps<{
   rightSidebarLayoutWidth: number;
 }>();
 const toolbarColumns = computed(
-  () =>
-    `${props.sidebarWidth}px minmax(0, 1fr) ${props.rightSidebarLayoutWidth}px`,
+  () => `${props.sidebarWidth}px minmax(0, 1fr) ${props.rightSidebarLayoutWidth}px`,
 );
 const emit = defineEmits<{
   "toggle-sidebar": [];

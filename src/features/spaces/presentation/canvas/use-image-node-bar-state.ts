@@ -54,17 +54,23 @@ export function useImageNodeBarState(
     if (capabilities.data.value?.promptRemoval.state === "ready") return "prompt";
     return undefined;
   });
-  const removalReason = computed(() => {
+  const removalStatusReason = computed(() => {
     if (!node.value.data.sourceRevision) return t("spaces.media.imageEditor.status.imagePreparing");
     if (capabilities.isFetching.value) return t("spaces.media.imageEditor.status.capabilityChecking");
     if (capabilities.isError.value) return t("spaces.media.imageEditor.errors.capabilityCheckFailed");
+    return undefined;
+  });
+  const removalSizeReason = computed(() =>
+    t(
+      dimensionsReady.value
+        ? "spaces.media.imageEditor.removeObject.sizeLimit"
+        : "spaces.media.imageEditor.status.imagePreparing",
+    ),
+  );
+  const removalReason = computed(() => {
+    if (removalStatusReason.value) return removalStatusReason.value;
     const available = capabilities.data.value;
-    if (available?.maskedRemoval.state === "ready" && !removalSizeValid.value)
-      return t(
-        dimensionsReady.value
-          ? "spaces.media.imageEditor.removeObject.sizeLimit"
-          : "spaces.media.imageEditor.status.imagePreparing",
-      );
+    if (available?.maskedRemoval.state === "ready" && !removalSizeValid.value) return removalSizeReason.value;
     const blocked = [available?.maskedRemoval, available?.promptRemoval].find(
       (capability) => capability?.state === "blocked" && capability.reason !== "provider_unsupported",
     );

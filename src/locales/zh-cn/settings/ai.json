@@ -43,8 +43,7 @@
     "text": "文本生成",
     "vision": "视觉理解",
     "image": "图片生成",
-    "video": "视频生成",
-    "embedding": "向量嵌入"
+    "video": "视频生成"
   },
   "imageLayers": {
     "title": "图片图层拆分",

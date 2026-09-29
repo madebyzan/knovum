@@ -1,12 +1,4 @@
-import {
-  Activity,
-  Archive,
-  Boxes,
-  Info,
-  MonitorCog,
-  Terminal,
-  WandSparkles,
-} from "@lucide/vue";
+import { Activity, Archive, Boxes, Info, MonitorCog, Terminal, WandSparkles } from "@lucide/vue";
 import type { Component } from "vue";
 
 import type { SettingsPaneId } from "./settings-pane";

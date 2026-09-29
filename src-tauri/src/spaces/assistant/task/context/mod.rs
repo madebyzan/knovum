@@ -60,14 +60,19 @@ impl ResolvedContext {
     ) -> Result<crate::external_agents::prompt::AgentPrompt, String> {
         crate::external_agents::prompt::AgentPrompt::from_authorized_assets(
             self.text(user_prompt, conversation_context),
-            self.agent_paths.iter().map(|(path, _)| path.clone()).collect(),
+            self.agent_paths
+                .iter()
+                .map(|(path, _)| path.clone())
+                .collect(),
             |path| {
                 let origin = self
                     .agent_paths
                     .iter()
                     .find(|(source, _)| source == path)
                     .map(|(_, origin)| origin)
-                    .ok_or_else(|| crate::ai::error::AiError::invalid("Unknown agent attachment"))?;
+                    .ok_or_else(|| {
+                        crate::ai::error::AiError::invalid("Unknown agent attachment")
+                    })?;
                 let authorized_attachment = match origin {
                     AgentPathOrigin::Upload => {
                         upload::authorize(app, &path.to_string_lossy()).map(|_| ())

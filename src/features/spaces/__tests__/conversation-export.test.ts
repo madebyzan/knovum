@@ -11,7 +11,7 @@ const mocks = vi.hoisted(() => ({
 }));
 vi.mock("../../../foundation/ipc/invoke-command", () => ({ invokeCommand: mocks.invoke }));
 vi.mock("@tauri-apps/plugin-dialog", () => ({ save: mocks.save }));
-vi.mock("vue-sonner", () => ({ toast: { error: mocks.error, success: vi.fn() } }));
+vi.mock("vue-sonner", () => ({ toast: { error: mocks.error, success: vi.fn<() => void>() } }));
 
 function actions() {
   const conversation: AssistantConversation = {
@@ -28,18 +28,20 @@ function actions() {
     messages: shallowRef<AssistantMessage[]>([]),
     loading: shallowRef(false),
     prompt: shallowRef(""),
-    refresh: vi.fn(),
-    select: vi.fn(),
-    send: vi.fn(),
+    refresh: vi.fn<() => Promise<void>>(),
+    select: vi.fn<() => Promise<void>>(),
+    send: vi.fn<() => Promise<void>>(),
   });
 }
 
 beforeEach(() => {
   mocks.save.mockReset().mockResolvedValue("/exports/conversation.json");
   mocks.error.mockReset();
-  mocks.invoke.mockReset().mockImplementation(async (command) =>
-    command === "plugin:spaces|load_assistant_branch_messages" ? [{ id: "message" }] : undefined,
-  );
+  mocks.invoke
+    .mockReset()
+    .mockImplementation(async (command) =>
+      command === "plugin:spaces|load_assistant_branch_messages" ? [{ id: "message" }] : undefined,
+    );
 });
 
 describe("conversation export", () => {

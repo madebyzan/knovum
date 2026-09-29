@@ -29,7 +29,12 @@ const attrs = useAttrs();
 </script>
 
 <template>
-  <UiTooltip :text="label" :shortcut="shortcut" :side="tooltipSide" :disabled="!(tooltip ?? Boolean(shortcut))">
+  <UiTooltip
+    :text="label"
+    :shortcut="shortcut"
+    :side="tooltipSide"
+    :disabled="!(tooltip ?? Boolean(shortcut))"
+  >
     <button
       v-bind="attrs"
       type="button"

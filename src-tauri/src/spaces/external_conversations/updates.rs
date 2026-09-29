@@ -124,7 +124,10 @@ async fn record(
         super::repository::append_agent_message_in_transaction(&mut tx, conversation_id, &message)
             .await?;
     }
-    if matches!(kind, crate::spaces::runs::RunEventKind::ExternalAgentToolStarted) {
+    if matches!(
+        kind,
+        crate::spaces::runs::RunEventKind::ExternalAgentToolStarted
+    ) {
         super::repository::clear_agent_message_in_transaction(&mut tx, conversation_id).await?;
     }
     let notify_run = matches!(
@@ -146,7 +149,10 @@ async fn record(
             },
         );
     }
-    if matches!(kind, crate::spaces::runs::RunEventKind::ExternalAgentToolStarted) {
+    if matches!(
+        kind,
+        crate::spaces::runs::RunEventKind::ExternalAgentToolStarted
+    ) {
         if let Some(channel) = channel {
             let _ = channel.send(crate::spaces::assistant::AssistantTaskUpdate::ContentBoundary);
         }
@@ -172,12 +178,22 @@ fn durable(
             serde_json::json!({"text": text}),
             Some(text),
         )),
-        AgentSessionUpdate::ToolCall { id, title, status, detail } => Some((
+        AgentSessionUpdate::ToolCall {
+            id,
+            title,
+            status,
+            detail,
+        } => Some((
             crate::spaces::runs::RunEventKind::ExternalAgentToolStarted,
             serde_json::json!({"toolCallId": id, "title": title, "status": status, "detail": detail}),
             None,
         )),
-        AgentSessionUpdate::ToolUpdate { id, title, status, detail } => Some((
+        AgentSessionUpdate::ToolUpdate {
+            id,
+            title,
+            status,
+            detail,
+        } => Some((
             crate::spaces::runs::RunEventKind::ExternalAgentToolUpdated,
             serde_json::json!({"toolCallId": id, "title": title, "status": status, "detail": detail}),
             None,

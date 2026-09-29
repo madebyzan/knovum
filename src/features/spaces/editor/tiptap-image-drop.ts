@@ -24,7 +24,10 @@ export function useSpaceTiptapImageDrop(
           active.value = false;
           const current = editor.value;
           if (!current || !isFileDropInside(target.value, payload.position) || !payload.paths.length) return;
-          const position = current.view.posAtCoords({ left: payload.position.x, top: payload.position.y })?.pos;
+          const position = current.view.posAtCoords({
+            left: payload.position.x,
+            top: payload.position.y,
+          })?.pos;
           try {
             await insertSpaceTiptapImagePaths(current, payload.paths, position);
           } catch (error) {

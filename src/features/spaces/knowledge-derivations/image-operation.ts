@@ -31,12 +31,14 @@ export function getImageOperationCapabilities() {
 
 export async function deriveImage(
   store: SpaceStore,
-  source: SpaceCanvasNode<SpaceImagePayload>,
+  source: SpaceCanvasNode,
   operation: ImageOperation,
   onOutputCreated?: () => void,
 ) {
   const spaceId = store.activeSpaceId;
-  const sourceRevision = source.data.sourceRevision;
+  if (source.data.kind !== "image") throw new Error("Image source is unavailable");
+  const image = source.data;
+  const sourceRevision = image.sourceRevision;
   if (!spaceId || !sourceRevision) throw new Error("Image source revision is unavailable");
   const outputPath = await invokeCommand<string>("plugin:spaces|allocate_visualization_output_path");
   const label =
@@ -45,7 +47,7 @@ export async function deriveImage(
       : operation.kind === "multi-angle"
         ? `${operation.mode}-${operation.yaw}-${operation.pitch}-${operation.zoom}`
         : i18n.global.t("spaces.media.imageEditor.removeObject.resultSuffix");
-  const title = `${source.data.title}-${label}`;
+  const title = `${image.title}-${label}`;
   const [pending] = await store.addContent(
     {
       kind: "image",
@@ -87,7 +89,7 @@ export async function deriveImage(
           sourceNodeId: source.id,
           outputNodeId: pending.id,
           sourceRevision,
-          sourceEdit: source.data.imageEdit ?? null,
+          sourceEdit: image.imageEdit ?? null,
           operation,
         },
         onStage: stages,

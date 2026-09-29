@@ -16,8 +16,15 @@ import SpaceConversationHistory from "./SpaceConversationHistory.vue";
 
 const { t } = useI18n();
 const session = useConversationSessionStore();
-const { conversations, branches, selectedConversationId, selectedConversation, loading, conversationQuery, showingArchived } =
-  storeToRefs(session);
+const {
+  conversations,
+  branches,
+  selectedConversationId,
+  selectedConversation,
+  loading,
+  conversationQuery,
+  showingArchived,
+} = storeToRefs(session);
 const historyOpen = shallowRef(false);
 const renaming = shallowRef(false);
 const titleDraft = shallowRef("");
@@ -38,11 +45,13 @@ const actions = computed(() => [
     onSelect: () => void session.deleteSelected(),
   },
 ]);
-const branchItems = computed(() => branches.value.map((id, index) => ({
-  label: t("spaces.assistant.conversations.branchNumber", { number: index + 1 }),
-  checked: selectedConversation.value?.branchId === id,
-  onSelect: () => void session.selectBranch(id).catch((cause: unknown) => toast.error(String(cause))),
-})));
+const branchItems = computed(() =>
+  branches.value.map((id, index) => ({
+    label: t("spaces.assistant.conversations.branchNumber", { number: index + 1 }),
+    checked: selectedConversation.value?.branchId === id,
+    onSelect: () => void session.selectBranch(id).catch((cause: unknown) => toast.error(String(cause))),
+  })),
+);
 
 watch(selectedConversation, (conversation) => {
   titleDraft.value = conversation?.title ?? "";
@@ -63,7 +72,11 @@ async function saveTitle() {
         <template #trigger>
           <UiButton size="sm" variant="ghost" :disabled="loading" class="gap-1 text-fg-secondary">
             <GitBranch class="size-3.5" />
-            {{ t("spaces.assistant.conversations.branchNumber", { number: branches.indexOf(selectedConversation?.branchId ?? '') + 1 }) }}
+            {{
+              t("spaces.assistant.conversations.branchNumber", {
+                number: branches.indexOf(selectedConversation?.branchId ?? "") + 1,
+              })
+            }}
           </UiButton>
         </template>
       </UiDropdownMenu>

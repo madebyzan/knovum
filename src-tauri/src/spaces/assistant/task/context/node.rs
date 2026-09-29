@@ -76,7 +76,10 @@ pub(super) async fn resolve(
             "representation": "current-node-data", "charactersRead": characters_read,
         }),
         summary: crate::spaces::assistant::AssistantMessageAttachment::Node {
-            title: title.to_owned(), node_id: node_id.to_owned(), kind, thumbnail,
+            title: title.to_owned(),
+            node_id: node_id.to_owned(),
+            kind,
+            thumbnail,
         },
         excerpt: Some(format!(
             "[node={node_id} revision={source_revision} title={title}]\n{excerpt}"

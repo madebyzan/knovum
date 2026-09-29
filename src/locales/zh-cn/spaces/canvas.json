@@ -82,9 +82,7 @@
     "downLarge": "向下移动 10px"
   },
   "relations": {
-    "connect": "建立关联",
-    "incoming": "入向",
-    "outgoing": "出向"
+    "connect": "建立关联"
   },
   "typography": "文字排版",
   "noteBackground": "便签背景",

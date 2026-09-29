@@ -73,7 +73,13 @@ async function remove() {
           :aria-label="label"
           class="pr-10"
           :type="reveal ? 'text' : 'password'"
-          :placeholder="configured === null ? '' : configured ? t('settings.ai.keySavedPlaceholder') : t('settings.ai.apiKeyNotSet')"
+          :placeholder="
+            configured === null
+              ? ''
+              : configured
+                ? t('settings.ai.keySavedPlaceholder')
+                : t('settings.ai.apiKeyNotSet')
+          "
           :disabled="disabled || saving"
           @update:model-value="updateDraft"
           @keydown.enter="save"
@@ -88,8 +94,12 @@ async function remove() {
           <Eye v-else class="size-3.5" />
         </UiIconButton>
       </div>
-      <UiButton size="sm" :disabled="disabled || saving || !draft.trim()" @click="save">{{ t("settings.ai.saveConnection") }}</UiButton>
-      <UiButton v-if="configured" size="sm" variant="ghost" :disabled="disabled || saving" @click="remove">{{ t("settings.ai.removeSavedKey") }}</UiButton>
+      <UiButton size="sm" :disabled="disabled || saving || !draft.trim()" @click="save">{{
+        t("settings.ai.saveConnection")
+      }}</UiButton>
+      <UiButton v-if="configured" size="sm" variant="ghost" :disabled="disabled || saving" @click="remove">{{
+        t("settings.ai.removeSavedKey")
+      }}</UiButton>
     </div>
   </PreferenceField>
 </template>

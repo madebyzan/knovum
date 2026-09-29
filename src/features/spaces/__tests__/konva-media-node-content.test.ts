@@ -26,6 +26,7 @@ describe("Konva media node content", () => {
         data,
         presentationContext: { viewport: profiles.summary, mode: "preview" },
         interactive: false,
+        frameRotation: 0,
       },
       global: {
         plugins: [createPinia(), i18n],
@@ -50,6 +51,7 @@ describe("Konva media node content", () => {
         data,
         presentationContext: { viewport: profiles.full, mode: "interactive" },
         interactive: true,
+        frameRotation: 0,
       },
       global: {
         plugins: [createPinia(), i18n],

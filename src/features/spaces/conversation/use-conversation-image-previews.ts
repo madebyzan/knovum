@@ -42,20 +42,18 @@ export function useConversationImagePreviews(attachments: Readonly<Ref<Assistant
       );
       const keys = new Set(images.map(previewKey));
       previews.value = new Map([...previews.value].filter(([key]) => keys.has(key)));
-      void (async () => {
-        for (const image of images) {
-          if (!active) return;
+      void Promise.all(
+        images.map(async (image) => {
           const key = previewKey(image);
-          if (previews.value.has(key)) continue;
+          if (!active || previews.value.has(key)) return;
           try {
             const source = await createPreview(image.path);
-            if (!active) return;
-            previews.value = new Map(previews.value).set(key, source);
+            if (active) previews.value = new Map(previews.value).set(key, source);
           } catch {
             // The attachment remains removable if its preview cannot be read.
           }
-        }
-      })();
+        }),
+      );
     },
     { immediate: true },
   );

@@ -38,7 +38,11 @@ export const aiConnectionSettingsSchema = z
       context.addIssue({ code: "custom", path: ["models"], message: "Duplicate AI model id" });
     }
     if (new Set(connection.models.map(({ model }) => model)).size !== connection.models.length) {
-      context.addIssue({ code: "custom", path: ["models"], message: "Duplicate AI provider model identifier" });
+      context.addIssue({
+        code: "custom",
+        path: ["models"],
+        message: "Duplicate AI provider model identifier",
+      });
     }
   });
 

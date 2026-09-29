@@ -67,11 +67,10 @@ export function createIntegrationState<T>(options: IntegrationStateOptions<T>) {
     return pendingSave;
   }
 
-  async function flush() {
-    while (savedRevision < requestedRevision) {
-      await persist();
-      if (saveError.value) throw saveError.value;
-    }
+  async function flush(): Promise<void> {
+    await persist();
+    if (saveError.value) throw saveError.value;
+    if (savedRevision < requestedRevision) await flush();
   }
 
   const scheduleSave = useDebounceFn(() => void persist(), 350, { maxWait: 1200 });

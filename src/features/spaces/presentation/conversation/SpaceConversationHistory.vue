@@ -17,8 +17,12 @@ const props = defineProps<{
   selectedId: string;
 }>();
 const { locale, t } = useI18n();
-const timeFormatter = computed(() => new Intl.DateTimeFormat(locale.value, { hour: "2-digit", minute: "2-digit" }));
-const dateFormatter = computed(() => new Intl.DateTimeFormat(locale.value, { year: "numeric", month: "long", day: "numeric" }));
+const timeFormatter = computed(
+  () => new Intl.DateTimeFormat(locale.value, { hour: "2-digit", minute: "2-digit" }),
+);
+const dateFormatter = computed(
+  () => new Intl.DateTimeFormat(locale.value, { year: "numeric", month: "long", day: "numeric" }),
+);
 const groups = computed(() => {
   const today = new Date();
   const yesterday = new Date(today);
@@ -29,11 +33,12 @@ const groups = computed(() => {
   for (const conversation of props.conversations) {
     const date = new Date(conversation.updatedAt);
     const key = date.toDateString();
-    const label = key === todayKey
-      ? t("spaces.assistant.conversations.today")
-      : key === yesterdayKey
-        ? t("spaces.assistant.conversations.yesterday")
-        : dateFormatter.value.format(date);
+    const label =
+      key === todayKey
+        ? t("spaces.assistant.conversations.today")
+        : key === yesterdayKey
+          ? t("spaces.assistant.conversations.yesterday")
+          : dateFormatter.value.format(date);
     if (!result.has(key)) result.set(key, { key, label, items: [] });
     result.get(key)?.items.push(conversation);
   }
@@ -69,7 +74,11 @@ function toggleArchived() {
     </template>
     <div class="px-3 pt-3 pb-2">
       <h2 class="mb-2 text-title-sm font-semibold text-fg-primary">
-        {{ archived ? t("spaces.assistant.conversations.archived") : t("spaces.assistant.conversations.records") }}
+        {{
+          archived
+            ? t("spaces.assistant.conversations.archived")
+            : t("spaces.assistant.conversations.records")
+        }}
       </h2>
       <UiSearchInput
         v-model="query"
@@ -88,18 +97,26 @@ function toggleArchived() {
           :key="conversation.id"
           type="button"
           class="flex w-full min-w-0 items-center gap-2 rounded-md px-2 py-2 text-left text-caption transition-colors duration-100 hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus"
-          :class="conversation.id === selectedId ? 'bg-surface-accent-subtle text-fg-primary' : 'text-fg-secondary'"
+          :class="
+            conversation.id === selectedId ? 'bg-surface-accent-subtle text-fg-primary' : 'text-fg-secondary'
+          "
           :aria-current="conversation.id === selectedId ? 'true' : undefined"
           @click="choose(conversation.id)"
         >
           <span class="min-w-0 flex-1 truncate">{{ conversation.title }}</span>
-          <time class="shrink-0 text-caption-sm text-fg-tertiary" :datetime="new Date(conversation.updatedAt).toISOString()">
+          <time
+            class="shrink-0 text-caption-sm text-fg-tertiary"
+            :datetime="new Date(conversation.updatedAt).toISOString()"
+          >
             {{ timeFormatter.format(conversation.updatedAt) }}
           </time>
           <Check v-if="conversation.id === selectedId" class="size-3.5 shrink-0 text-fg-accent" />
         </button>
       </div>
-      <div v-if="!conversations.length" class="flex items-center justify-center gap-2 px-2 py-5 text-caption text-fg-tertiary">
+      <div
+        v-if="!conversations.length"
+        class="flex items-center justify-center gap-2 px-2 py-5 text-caption text-fg-tertiary"
+      >
         <History class="size-4" :stroke-width="1.5" />
         {{ t("spaces.assistant.conversations.none") }}
       </div>
@@ -109,7 +126,11 @@ function toggleArchived() {
       class="w-full border-t border-stroke-divider px-3 py-2.5 text-center text-caption text-fg-accent transition-colors duration-100 hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus"
       @click="toggleArchived"
     >
-      {{ archived ? t("spaces.assistant.conversations.backToRecent") : t("spaces.assistant.conversations.viewArchived") }}
+      {{
+        archived
+          ? t("spaces.assistant.conversations.backToRecent")
+          : t("spaces.assistant.conversations.viewArchived")
+      }}
     </button>
   </UiPopover>
 </template>

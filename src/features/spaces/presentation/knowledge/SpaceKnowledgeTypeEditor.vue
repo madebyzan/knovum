@@ -3,8 +3,8 @@ import { Plus, Trash2 } from "@lucide/vue";
 import { shallowRef, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
-import UiButton from "../../../../shared/ui/UiButton.vue";
 import { confirmAction } from "../../../../shared/ui/confirm-action";
+import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiDialog from "../../../../shared/ui/UiDialog.vue";
 import UiInput from "../../../../shared/ui/UiInput.vue";
 import UiScrollArea from "../../../../shared/ui/UiScrollArea.vue";
@@ -127,7 +127,7 @@ async function changeEditor(action: () => void) {
           </div>
           <label class="mt-3 grid gap-1 text-caption text-fg-secondary">
             <span>{{ t("spaces.knowledge.types.description") }}</span>
-            <UiTextarea v-model="description" :rows="2" maxlength="4096" class="resize-none" />
+            <UiTextarea v-model="description" :rows="2" :maxlength="4096" class="resize-none" />
           </label>
           <SpaceKnowledgeTypeFields
             :fields="fields"

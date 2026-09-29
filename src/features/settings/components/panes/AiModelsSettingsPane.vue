@@ -94,7 +94,11 @@ async function manageModels(purpose: AiRoutingPurpose) {
         :protected-connection-ids="protectedConnectionIds"
         :protected-model-targets="protectedModelTargets"
       />
-      <AiRoutingSettings v-model="settings.defaults" :connections="settings.connections" @manage-models="manageModels" />
+      <AiRoutingSettings
+        v-model="settings.defaults"
+        :connections="settings.connections"
+        @manage-models="manageModels"
+      />
     </div>
   </div>
   <div v-else class="flex items-center gap-2 text-caption text-fg-secondary" role="status">

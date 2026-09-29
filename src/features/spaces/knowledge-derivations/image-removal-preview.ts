@@ -1,5 +1,3 @@
-import type { MaskStroke } from "../contracts/generated/MaskStroke";
-
 interface ImageRect {
   left: number;
   top: number;
@@ -11,7 +9,7 @@ export function drawRemovalMask(
   context: CanvasRenderingContext2D,
   rect: ImageRect,
   pixelRatio: number,
-  strokes: MaskStroke[],
+  strokes: readonly { readonly diameter: number; readonly points: readonly number[] }[],
 ) {
   context.save();
   context.scale(pixelRatio, pixelRatio);

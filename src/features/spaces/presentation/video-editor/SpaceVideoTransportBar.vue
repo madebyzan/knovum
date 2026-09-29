@@ -52,7 +52,11 @@ const { t } = useI18n();
         <Redo2 class="size-3.5" />
       </UiIconButton>
       <span class="bg-border-divider mx-1 h-5 w-px" aria-hidden="true" />
-      <UiIconButton :label="t('spaces.media.videoEditor.clip.split')" tooltip size="sm" @click="$emit('split')"
+      <UiIconButton
+        :label="t('spaces.media.videoEditor.clip.split')"
+        tooltip
+        size="sm"
+        @click="$emit('split')"
         ><Scissors class="size-3.5"
       /></UiIconButton>
       <UiIconButton :label="t('spaces.media.videoEditor.text.add')" size="sm" @click="$emit('addText')"

@@ -9,10 +9,10 @@ import {
   type AssistantConversation,
   type StartAssistantTaskInput,
 } from "./conversation-ipc";
+import { pendingConversationMessage } from "./conversation-pending-message";
 import { observeConversationRun } from "./conversation-run-observation";
 import type { ConversationTarget } from "./conversation-target";
 import { conversationTaskRequest } from "./conversation-task-request";
-import { pendingConversationMessage } from "./conversation-pending-message";
 
 type Attachment = NonNullable<StartAssistantTaskInput["attachments"]>[number];
 type Permission = Extract<AssistantTaskUpdate, { type: "permission_requested" }>;
@@ -111,6 +111,18 @@ export function createConversationTaskSubmission(options: {
     }
   }
 
+  function handleUpdate(update: AssistantTaskUpdate, submitted: number) {
+    if (submitted !== generation) return;
+    if (update.type === "content_delta") state.streamedText.value += update.text;
+    else if (update.type === "content_boundary") state.streamedText.value = "";
+    else if (update.type === "permission_requested") state.permission.value = update;
+  }
+
+  function clearPending(id: string) {
+    if (input.messages.value.some((message) => message.id === id))
+      input.messages.value = input.messages.value.filter((message) => message.id !== id);
+  }
+
   async function send() {
     if (state.loading.value || state.activeRunId.value) return;
     const request = conversationTaskRequest({
@@ -125,8 +137,15 @@ export function createConversationTaskSubmission(options: {
     let accepted = false;
     const selection = { spaceId: request.spaceId, conversationId: input.selectedConversationId.value };
     const pendingId = `pending:${crypto.randomUUID()}`;
-    const pendingMessage = pendingConversationMessage(request, pendingId, selection.conversationId,
-      input.conversation.value?.branchId ?? "", input.visibleAttachments.value);
+    const pendingMessage = pendingConversationMessage(
+      request,
+      {
+        id: pendingId,
+        conversationId: selection.conversationId,
+        branchId: input.conversation.value?.branchId ?? "",
+      },
+      input.visibleAttachments.value,
+    );
     input.clearDraft(request);
     input.messages.value = [...input.messages.value, pendingMessage];
     state.activeSpaceId.value = selection.spaceId;
@@ -138,12 +157,7 @@ export function createConversationTaskSubmission(options: {
     state.streamedText.value = "";
     state.permission.value = undefined;
     try {
-      const task = await startAssistantTask(request, (update) => {
-        if (submitted !== generation) return;
-        if (update.type === "content_delta") state.streamedText.value += update.text;
-        else if (update.type === "content_boundary") state.streamedText.value = "";
-        else if (update.type === "permission_requested") state.permission.value = update;
-      });
+      const task = await startAssistantTask(request, (update) => handleUpdate(update, submitted));
       accepted = true;
       if (submitted !== generation) return;
       state.activeRunId.value = task.accepted.runId;
@@ -155,8 +169,7 @@ export function createConversationTaskSubmission(options: {
         state.error.value = String(reason);
       }
     } finally {
-      if (input.messages.value.some(({ id }) => id === pendingId))
-        input.messages.value = input.messages.value.filter(({ id }) => id !== pendingId);
+      clearPending(pendingId);
       await finish(submitted);
     }
   }

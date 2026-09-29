@@ -14,8 +14,6 @@ import { aiModelSettingsSchema, defaultAiModelSettings, type AiModelSettings } f
 export { defaultAiModelSettings, type AiModelSettings } from "./schema/model-settings";
 export { defaultCreationLibrary, type CreationLibrary } from "./schema/creation-library";
 
-export type { AiProvider } from "./schema/models";
-
 const SETTINGS_FILE = "settings.json";
 const settingKeys = { aiModels: "ai.models", creationLibrary: "creation.library" } as const;
 const SETTINGS_SCHEMA_VERSION = 1;

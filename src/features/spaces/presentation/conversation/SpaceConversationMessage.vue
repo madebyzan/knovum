@@ -51,7 +51,9 @@ async function copyMessage() {
     />
     <div
       class="min-w-0 space-y-2 text-body leading-relaxed text-fg-primary"
-      :class="message.role === 'user' ? 'w-fit max-w-[85%] rounded-panel bg-surface-control px-3 py-2.5' : 'w-full'"
+      :class="
+        message.role === 'user' ? 'w-fit max-w-[85%] rounded-panel bg-surface-control px-3 py-2.5' : 'w-full'
+      "
     >
       <template v-for="(part, index) in message.content.parts" :key="index">
         <UiMarkdown
@@ -118,16 +120,32 @@ async function copyMessage() {
     </p>
     <div
       v-if="message.role === 'assistant' && messageText"
-      class="message-actions flex items-center gap-0.5 opacity-0 transition-opacity duration-100 group-hover:opacity-100 group-focus-within:opacity-100"
+      class="message-actions flex items-center gap-0.5 opacity-0 transition-opacity duration-100 group-focus-within:opacity-100 group-hover:opacity-100"
     >
-      <UiIconButton :label="t(copied ? 'spaces.assistant.messages.copied' : 'spaces.assistant.messages.copy')" size="sm" @click="copyMessage">
+      <UiIconButton
+        :label="t(copied ? 'spaces.assistant.messages.copied' : 'spaces.assistant.messages.copy')"
+        size="sm"
+        @click="copyMessage"
+      >
         <Check v-if="copied" class="size-3.5 text-fg-accent" />
         <Copy v-else class="size-3.5" />
       </UiIconButton>
-      <UiIconButton :label="t('spaces.assistant.conversations.branch')" tooltip size="sm" :disabled="busy" @click="emit('branch')">
+      <UiIconButton
+        :label="t('spaces.assistant.conversations.branch')"
+        tooltip
+        size="sm"
+        :disabled="busy"
+        @click="emit('branch')"
+      >
         <GitBranch class="size-3.5" />
       </UiIconButton>
-      <UiIconButton :label="t('spaces.assistant.regenerate')" tooltip size="sm" :disabled="busy" @click="emit('regenerate')">
+      <UiIconButton
+        :label="t('spaces.assistant.regenerate')"
+        tooltip
+        size="sm"
+        :disabled="busy"
+        @click="emit('regenerate')"
+      >
         <RefreshCw class="size-3.5" />
       </UiIconButton>
     </div>
@@ -136,6 +154,8 @@ async function copyMessage() {
 
 <style scoped>
 @media (hover: none) {
-  .message-actions { opacity: 1; }
+  .message-actions {
+    opacity: 1;
+  }
 }
 </style>

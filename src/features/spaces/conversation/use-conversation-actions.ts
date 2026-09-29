@@ -1,9 +1,9 @@
 import type { ComputedRef, ShallowRef } from "vue";
 import { toast } from "vue-sonner";
+
 import { i18n } from "../../../foundation/i18n/i18n";
 import { confirmAction } from "../../../shared/ui/confirm-action";
 import { exportSpaceTextFile, safeExportFileName } from "../assets/export";
-
 import {
   archiveAssistantConversation,
   unarchiveAssistantConversation,
@@ -56,7 +56,9 @@ export function useConversationActions(state: ConversationActionState) {
     if (!conversation) return;
     const confirmed = await confirmAction({
       title: i18n.global.t("spaces.assistant.conversations.delete"),
-      description: i18n.global.t("spaces.assistant.conversations.deleteConfirm", { title: conversation.title }),
+      description: i18n.global.t("spaces.assistant.conversations.deleteConfirm", {
+        title: conversation.title,
+      }),
       confirmLabel: i18n.global.t("common.delete"),
       danger: true,
     });

@@ -33,17 +33,21 @@ pub async fn start_turn(
     let branch_id: String = binding.try_get("branch_id").map_err(db::sql_error)?;
     let run_id: String = binding.try_get("run_id").map_err(db::sql_error)?;
     let assistant_message_id = uuid::Uuid::new_v4().to_string();
-    append_message(
-        &mut tx,
-        &assistant_id,
-        &branch_id,
-        "user",
-        prompt,
-        attachments,
-        &run_id,
-        now,
+    sqlx::query(
+        "INSERT INTO spaces_assistant_messages(
+         id,conversation_id,branch_id,role,content,created_at) VALUES($1,$2,$3,'user',$4,$5)",
     )
-    .await?;
+    .bind(uuid::Uuid::new_v4().to_string())
+    .bind(&assistant_id)
+    .bind(&branch_id)
+    .bind(
+        serde_json::json!({"parts":[{"type":"text","text":prompt}], "attachments": attachments, "runId": run_id})
+            .to_string(),
+    )
+    .bind(now)
+    .execute(&mut *tx)
+    .await
+    .map_err(db::sql_error)?;
     sqlx::query(
         "INSERT INTO spaces_assistant_messages(id,conversation_id,branch_id,role,content,created_at)
          VALUES($1,$2,$3,'assistant',$4,$5)",
@@ -177,33 +181,4 @@ pub async fn has_turn_output(pool: &SqlitePool, turn_id: &str) -> Result<bool, S
     .await
     .map_err(db::sql_error)?;
     Ok(has_output != 0)
-}
-
-async fn append_message(
-    tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
-    conversation_id: &str,
-    branch_id: &str,
-    role: &str,
-    content: &str,
-    attachments: &[crate::spaces::assistant::AssistantMessageAttachment],
-    run_id: &str,
-    now: i64,
-) -> Result<(), String> {
-    sqlx::query(
-        "INSERT INTO spaces_assistant_messages(
-         id,conversation_id,branch_id,role,content,created_at) VALUES($1,$2,$3,$4,$5,$6)",
-    )
-    .bind(uuid::Uuid::new_v4().to_string())
-    .bind(conversation_id)
-    .bind(branch_id)
-    .bind(role)
-    .bind(
-        serde_json::json!({"parts":[{"type":"text","text":content}], "attachments": attachments, "runId": run_id})
-            .to_string(),
-    )
-    .bind(now)
-    .execute(&mut **tx)
-    .await
-    .map_err(db::sql_error)?;
-    Ok(())
 }

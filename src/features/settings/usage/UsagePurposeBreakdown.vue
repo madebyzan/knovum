@@ -31,7 +31,7 @@ const rows = computed(() =>
     <div v-if="rows.length" class="mt-4 border-t border-stroke-divider">
       <div v-for="row in rows" :key="row.purpose" class="flex items-center justify-between gap-4 py-3">
         <span class="truncate text-label text-fg-secondary">{{ row.label }}</span>
-        <span class="shrink-0 text-label font-medium tabular-nums text-fg-primary">
+        <span class="shrink-0 text-label font-medium text-fg-primary tabular-nums">
           {{ n(row.totalTokens, "compact") }} Token
         </span>
       </div>

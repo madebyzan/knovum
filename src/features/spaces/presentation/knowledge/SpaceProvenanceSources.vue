@@ -102,9 +102,9 @@ function openSource(source: (typeof sources.value)[number]) {
 <template>
   <section v-if="sources.length || attachable">
     <div class="flex items-center gap-2">
-      <h5 class="min-w-0 flex-1 text-caption font-medium text-fg-secondary">{{
-        t("spaces.knowledge.provenance")
-      }}</h5>
+      <h5 class="min-w-0 flex-1 text-caption font-medium text-fg-secondary">
+        {{ t("spaces.knowledge.provenance") }}
+      </h5>
       <UiIconButton
         v-if="attachable"
         :label="t('spaces.assistant.evidence.useCurrent')"
@@ -123,7 +123,9 @@ function openSource(source: (typeof sources.value)[number]) {
           class="flex min-w-0 flex-1 items-start gap-2 rounded-md px-1 py-1.5 text-left hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus"
           @click="openSource(source)"
         >
-          <span class="grid size-8 shrink-0 place-items-center overflow-hidden rounded-md bg-surface-control text-fg-tertiary">
+          <span
+            class="grid size-8 shrink-0 place-items-center overflow-hidden rounded-md bg-surface-control text-fg-tertiary"
+          >
             <img
               v-if="source.thumbnail"
               :src="source.thumbnail"

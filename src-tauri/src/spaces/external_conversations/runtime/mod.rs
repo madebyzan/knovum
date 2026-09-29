@@ -133,8 +133,9 @@ pub async fn send_prepared(
                 .fetch_one(pool)
                 .await
                 .map_err(db::sql_error)?;
-                let workspace = capabilities::agent_artifacts::workspace(&app, &space_id, conversation_id)
-                    .map_err(|error| error.to_string())?;
+                let workspace =
+                    capabilities::agent_artifacts::workspace(&app, &space_id, conversation_id)
+                        .map_err(|error| error.to_string())?;
                 if capabilities::agent_artifacts::collect(&workspace)
                     .map_err(|error| error.to_string())?
                     .is_empty()

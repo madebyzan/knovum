@@ -6,8 +6,8 @@ import type { TokenUsageReport } from "../../../foundation/ai/token-usage";
 
 const props = defineProps<{ summary: TokenUsageReport["summary"] }>();
 const { locale, t } = useI18n();
-const dayFormatter = computed(() =>
-  new Intl.NumberFormat(locale.value, { style: "unit", unit: "day", unitDisplay: "long" }),
+const dayFormatter = computed(
+  () => new Intl.NumberFormat(locale.value, { style: "unit", unit: "day", unitDisplay: "long" }),
 );
 const rows = computed(() => [
   { label: t("settings.usage.activeDays"), days: props.summary.activeDays },
@@ -24,7 +24,7 @@ const rows = computed(() => [
     <dl class="mt-4 border-t border-stroke-divider">
       <div v-for="row in rows" :key="row.label" class="flex items-center justify-between gap-4 py-3">
         <dt class="text-label text-fg-secondary">{{ row.label }}</dt>
-        <dd class="text-label font-medium tabular-nums text-fg-primary">
+        <dd class="text-label font-medium text-fg-primary tabular-nums">
           {{ dayFormatter.format(row.days) }}
         </dd>
       </div>

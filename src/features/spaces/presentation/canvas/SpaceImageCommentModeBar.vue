@@ -21,8 +21,10 @@ const modes = [
     :loop="false"
     :aria-label="$t('spaces.media.imageEditor.comments.mode')"
   >
-    <span class="px-2 text-label font-medium text-fg-primary">{{ $t("spaces.media.imageEditor.comments.title") }}</span>
-    <ToolbarSeparator class="mx-0.5 h-4 w-px bg-border-divider" />
+    <span class="px-2 text-label font-medium text-fg-primary">{{
+      $t("spaces.media.imageEditor.comments.title")
+    }}</span>
+    <ToolbarSeparator class="bg-border-divider mx-0.5 h-4 w-px" />
     <ToolbarButton v-for="item in modes" :key="item.id" as-child>
       <UiIconButton
         :label="$t(item.label)"
@@ -35,7 +37,7 @@ const modes = [
         <component :is="item.icon" class="size-3.5" :stroke-width="1.55" />
       </UiIconButton>
     </ToolbarButton>
-    <ToolbarSeparator class="mx-0.5 h-4 w-px bg-border-divider" />
+    <ToolbarSeparator class="bg-border-divider mx-0.5 h-4 w-px" />
     <ToolbarButton as-child>
       <UiIconButton :label="$t('common.cancel')" size="sm" @click.stop="session.cancel()">
         <X class="size-3.5" :stroke-width="1.55" />

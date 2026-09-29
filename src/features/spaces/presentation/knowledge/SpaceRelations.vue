@@ -58,7 +58,9 @@ function editRelation(id: string) {
     (candidate) => candidate.relation.id === id,
   );
   if (!neighbor) return;
-  void showSpaceRelationKindMenu(neighbor.relation.kind, (kind) => store.updateRelationKind(id, kind));
+  void showSpaceRelationKindMenu(neighbor.relation.kind, async (kind) => {
+    await store.updateRelationKind(id, kind);
+  });
 }
 
 async function removeRelation(id: string, neighborTitle: string) {

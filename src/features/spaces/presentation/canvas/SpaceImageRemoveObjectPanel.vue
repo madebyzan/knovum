@@ -11,7 +11,7 @@ const props = defineProps<{
   canUndo: boolean;
   canGenerate: boolean;
   submitting: boolean;
-  hint?: string;
+  hint: string | undefined;
 }>();
 const emit = defineEmits<{
   updateDiameter: [diameter: number];

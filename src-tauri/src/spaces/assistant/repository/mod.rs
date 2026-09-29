@@ -16,7 +16,8 @@ pub use message_contract::{
 pub use messages::{all_messages, append_message, append_message_in_transaction, list_messages};
 pub use tasks::{
     complete_tool_call, complete_turn, insert_task, recoverable_task, recoverable_tasks,
-    save_checkpoint, start_tool_call, start_turn, RecoverableTask,
+    save_checkpoint, start_tool_call, start_turn, AssistantToolCallCompletion,
+    AssistantToolCallStart, RecoverableTask,
 };
 
 #[cfg(test)]

@@ -9,7 +9,6 @@
     "desktop": "桌面 Agent",
     "select": "选择助手",
     "noModel": "尚未配置可用于对话的模型",
-    "working": "正在处理…",
     "manage": "管理模型与 Agent…"
   },
   "empty": {
@@ -51,9 +50,6 @@
     "regenerateAttachments": "这条消息含有附件，请重新添加资料后发送",
     "branchCreated": "已切换到新分支",
     "returnToRunning": "对话任务正在进行。点击返回对应对话。"
-  },
-  "role": {
-    "assistant": "助手"
   },
   "approval": {
     "plan": "精确操作方案",
@@ -103,7 +99,6 @@
     "incomplete": "回复未完成"
   },
   "messages": {
-    "actions": "更多操作",
     "copy": "复制消息",
     "copied": "已复制",
     "copyFailed": "复制失败，请重试。",
@@ -119,8 +114,6 @@
     "deny": "拒绝本次请求"
   },
   "actions": {
-    "completed": "已完成 {name}",
-    "working": "正在执行操作",
     "viewCreated": "定位产物"
   },
   "activity": {

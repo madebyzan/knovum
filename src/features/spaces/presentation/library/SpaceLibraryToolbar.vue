@@ -27,7 +27,12 @@ watch(
     <UiIconButton size="sm" :label="t('spaces.space.new')" shortcut="$mod+T" @click="emit('create')">
       <Plus class="size-3.5" :stroke-width="1.6" />
     </UiIconButton>
-    <UiIconButton size="sm" :label="t('spaces.importExport.space.import')" tooltip @click="packages.importPackage">
+    <UiIconButton
+      size="sm"
+      :label="t('spaces.importExport.space.import')"
+      tooltip
+      @click="packages.importPackage"
+    >
       <FileInput class="size-3.5" :stroke-width="1.6" />
     </UiIconButton>
     <UiIconButton
