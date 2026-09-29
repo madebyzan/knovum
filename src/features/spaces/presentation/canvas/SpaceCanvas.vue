@@ -32,6 +32,10 @@ const tools = useCanvasToolStore();
 const createTextNode = useCanvasTextCreation();
 const editorSession = useCanvasEditorSession();
 const operations = useNodeOperationGate();
+const canvasGesturesEnabled = computed(() => {
+  const kind = operations.active.value?.kind;
+  return kind !== "image-edit" && kind !== "image-comment";
+});
 const dock = useContextDock();
 const { t } = useI18n();
 const canvasRoot = useTemplateRef<HTMLElement>("canvasRoot");
@@ -127,6 +131,7 @@ const canvasEvents = createSpaceCanvasEvents({
       :focus-node-ids="store.canvasFocusIds"
       :group-scope-path="store.groupScopePath"
       :interaction-enabled="!editorSession.transitioning.value"
+      :canvas-gestures-enabled="canvasGesturesEnabled"
       :tool="tools.tool"
       :space-id="spaceId"
       :scene-input="sceneInput"

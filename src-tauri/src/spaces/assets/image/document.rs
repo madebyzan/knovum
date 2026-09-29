@@ -25,6 +25,10 @@ pub(in crate::spaces::assets) async fn load(
     .map_err(db::sql_error)?
     .ok_or("Image source is unavailable")?;
     let data: Value = serde_json::from_str(&data).map_err(db::json_error)?;
+    from_payload(&data)
+}
+
+pub(in crate::spaces::assets) fn from_payload(data: &Value) -> Result<ImageDocument, String> {
     Ok(ImageDocument {
         source_path: data
             .get("assetPath")

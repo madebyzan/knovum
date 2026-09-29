@@ -117,5 +117,5 @@ export function placeInspectorSurface(
     const candidate = candidateForSide(input, safe, visible, { side, height });
     if (candidate) return candidate;
   }
-  return inside(input, safe, visible, height);
+  return input.kind === "inspector" ? inside(input, safe, visible, height) : undefined;
 }

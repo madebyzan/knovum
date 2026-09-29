@@ -48,10 +48,10 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
         scaleX: runtime.viewport.viewport.value.zoom,
         scaleY: runtime.viewport.viewport.value.zoom,
       }"
-      @pointerdown="interactionEnabled && runtime.pointer.pointerDown($event)"
-      @pointermove="interactionEnabled && runtime.connectors.pointerMove($event)"
+      @pointerdown="interactionEnabled && canvasGesturesEnabled && runtime.pointer.pointerDown($event)"
+      @pointermove="interactionEnabled && canvasGesturesEnabled && runtime.connectors.pointerMove($event)"
       @pointercancel="runtime.pointer.pointerCancel($event.evt)"
-      @pointerup="interactionEnabled && runtime.connectors.pointerUp($event)"
+      @pointerup="interactionEnabled && canvasGesturesEnabled && runtime.connectors.pointerUp($event)"
       @wheel="interactionEnabled && runtime.viewport.wheel($event)"
     >
       <CanvasGridLayer
@@ -66,6 +66,7 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
       <CanvasSceneLayers
         :interactive="
           interactionEnabled &&
+          canvasGesturesEnabled &&
           tool === 'select' &&
           !runtime.viewport.panning.value &&
           !runtime.capturesCanvasInteraction.value &&
@@ -73,6 +74,7 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
         "
         :selection-chrome-visible="
           interactionEnabled &&
+          canvasGesturesEnabled &&
           tool === 'select' &&
           !runtime.viewport.spacePressed.value &&
           !runtime.viewport.panning.value &&
@@ -111,7 +113,7 @@ defineExpose({ flushViewport: runtime.viewport.flushViewport });
       <CanvasStructureInteractionLayer
         :groups="runtime.structure.structureScene.value.groups"
         :group-scope-path="groupScopePath"
-        :interactive="interactionEnabled && tool === 'select' && !runtime.viewport.panning.value"
+        :interactive="interactionEnabled && canvasGesturesEnabled && tool === 'select' && !runtime.viewport.panning.value"
         :palette="runtime.palette.value"
         :sections="runtime.structure.structureScene.value.sections"
         :selected-ids="runtime.selection.structureNodeIds.value"

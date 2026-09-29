@@ -11,9 +11,15 @@ struct ResolvedPart {
     summary: crate::spaces::assistant::AssistantMessageAttachment,
     excerpt: Option<String>,
     image: Option<crate::ai::contracts::ModelContentPart>,
-    agent_path: Option<std::path::PathBuf>,
-    uploaded: bool,
+    agent_path: Option<(std::path::PathBuf, AgentPathOrigin)>,
     characters_read: usize,
+}
+
+#[derive(Clone, Copy)]
+enum AgentPathOrigin {
+    Upload,
+    SpaceAsset,
+    RenderedImage,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -27,8 +33,7 @@ pub(crate) struct ResolvedContext {
     pub summaries: Vec<crate::spaces::assistant::AssistantMessageAttachment>,
     excerpts: Vec<String>,
     images: Vec<crate::ai::contracts::ModelContentPart>,
-    agent_paths: Vec<std::path::PathBuf>,
-    uploaded_paths: Vec<std::path::PathBuf>,
+    agent_paths: Vec<(std::path::PathBuf, AgentPathOrigin)>,
 }
 
 impl ResolvedContext {
@@ -55,14 +60,25 @@ impl ResolvedContext {
     ) -> Result<crate::external_agents::prompt::AgentPrompt, String> {
         crate::external_agents::prompt::AgentPrompt::from_authorized_assets(
             self.text(user_prompt, conversation_context),
-            self.agent_paths.clone(),
+            self.agent_paths.iter().map(|(path, _)| path.clone()).collect(),
             |path| {
-                let authorized_attachment =
-                    if self.uploaded_paths.iter().any(|source| source == path) {
+                let origin = self
+                    .agent_paths
+                    .iter()
+                    .find(|(source, _)| source == path)
+                    .map(|(_, origin)| origin)
+                    .ok_or_else(|| crate::ai::error::AiError::invalid("Unknown agent attachment"))?;
+                let authorized_attachment = match origin {
+                    AgentPathOrigin::Upload => {
                         upload::authorize(app, &path.to_string_lossy()).map(|_| ())
-                    } else {
+                    }
+                    AgentPathOrigin::SpaceAsset => {
                         crate::spaces::assets::authorize_spaces_asset(app, path).map(|_| ())
-                    };
+                    }
+                    AgentPathOrigin::RenderedImage => {
+                        crate::spaces::assets::authorize_edited_image_preview(app, path).map(|_| ())
+                    }
+                };
                 authorized_attachment.map_err(crate::ai::error::AiError::invalid)
             },
         )
@@ -105,7 +121,6 @@ pub(crate) async fn resolve(
     let mut excerpts = Vec::new();
     let mut images = Vec::new();
     let mut agent_paths = Vec::new();
-    let mut uploaded_paths = Vec::new();
     let mut characters_read = 0;
     for attachment in attachments {
         let remaining = 32_000_usize.saturating_sub(characters_read);
@@ -144,9 +159,6 @@ pub(crate) async fn resolve(
             images.push(image);
         }
         if let Some(path) = part.agent_path {
-            if part.uploaded {
-                uploaded_paths.push(path.clone());
-            }
             agent_paths.push(path);
         }
         manifest.push(part.manifest);
@@ -158,7 +170,6 @@ pub(crate) async fn resolve(
         excerpts,
         images,
         agent_paths,
-        uploaded_paths,
     })
 }
 

@@ -74,7 +74,11 @@ describe("image session ownership", () => {
     edits.setImageDimensions("same-id", 100, 100);
     edits.begin("same-id", "crop");
     comments.begin("same-id");
-    comments.addToConversation("same-id", "old comment");
+    comments.addToConversation("same-id", {
+      x: 0.5,
+      y: 0.5,
+      text: "old comment",
+    });
     context.space!.activeSpaceId = "second";
     expect(edits.active).toBeUndefined();
     expect(edits.dimensionsFor("same-id")).toBeUndefined();
@@ -90,7 +94,11 @@ describe("image session ownership", () => {
     edits.setImageDimensions("same-id", 100, 100);
     edits.begin("same-id", "adjust");
     comments.begin("same-id");
-    comments.addToConversation("same-id", "deleted comment");
+    comments.addToConversation("same-id", {
+      x: 0.5,
+      y: 0.5,
+      text: "deleted comment",
+    });
     context.space!.nodes = [];
     expect(edits.active).toBeUndefined();
     expect(edits.dimensionsFor("same-id")).toBeUndefined();

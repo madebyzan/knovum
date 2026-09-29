@@ -1,11 +1,21 @@
 <script setup lang="ts">
 import { PopoverContent, PopoverPortal, PopoverRoot, PopoverTrigger } from "reka-ui";
-import type { HTMLAttributes } from "vue";
+import { computed, inject, watch, type HTMLAttributes } from "vue";
 
+import { overlayScopeVisibleKey } from "../contracts/overlay-scope-visibility";
 import { cn } from "./cn";
 import { POPUP_ANIMATE_CLASSES, POPOVER_SURFACE_CLASSES } from "./ui-classes";
 
 const open = defineModel<boolean>("open", { default: false });
+const scopeVisible = inject(overlayScopeVisibleKey, undefined);
+const scopeActive = computed(() => scopeVisible?.value !== false);
+watch(
+  scopeActive,
+  (visible) => {
+    if (!visible) open.value = false;
+  },
+  { flush: "sync" },
+);
 
 const props = withDefaults(
   defineProps<{
@@ -32,7 +42,7 @@ function handleOutsideInteraction(event: Event) {
 </script>
 
 <template>
-  <PopoverRoot v-model:open="open">
+  <PopoverRoot v-if="scopeActive" v-model:open="open">
     <PopoverTrigger v-if="$slots.trigger" as-child>
       <slot name="trigger" />
     </PopoverTrigger>

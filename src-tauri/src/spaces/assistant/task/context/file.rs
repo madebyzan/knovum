@@ -2,7 +2,7 @@ use base64::Engine;
 use serde_json::json;
 use std::path::Path;
 
-use super::{ContextTarget, ResolvedPart};
+use super::{AgentPathOrigin, ContextTarget, ResolvedPart};
 use crate::spaces::assistant::upload::{self, UploadKind};
 
 pub(super) async fn resolve(
@@ -25,7 +25,12 @@ pub(super) async fn resolve(
         .ok_or("assistant-upload-invalid: filename is not Unicode")?
         .to_owned();
     let (excerpt, image, agent_path, characters_read) = match (target, kind) {
-        (ContextTarget::ExternalAgent, _) => (None, None, Some(source.clone()), 0),
+        (ContextTarget::ExternalAgent, _) => (
+            None,
+            None,
+            Some((source.clone(), AgentPathOrigin::Upload)),
+            0,
+        ),
         (ContextTarget::Model, UploadKind::Image(media_type)) => {
             let file = source.clone();
             let bytes = crate::blocking::run(move || upload::read_image(&file, media_type)).await?;
@@ -80,7 +85,6 @@ pub(super) async fn resolve(
         excerpt,
         image,
         agent_path,
-        uploaded: true,
         characters_read,
     })
 }

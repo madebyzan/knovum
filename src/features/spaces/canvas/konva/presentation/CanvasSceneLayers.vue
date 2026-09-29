@@ -95,7 +95,7 @@ onMounted(() => void nextTick(syncInteractionCanvas));
     :zoom="zoom"
     @pointer-down="(id, event) => emit('relationPointerDown', id, event)"
   />
-  <KonvaLayer :config="{ id: 'canvas-node-layer' }">
+  <KonvaLayer :config="{ id: 'canvas-node-layer', listening: interactive }">
     <CanvasNodeShape
       :interactive="interactive"
       v-for="sceneNode in visibleContentNodes"

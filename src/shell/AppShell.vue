@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { shallowRef } from "vue";
+import { provide, shallowRef } from "vue";
 import { RouterView } from "vue-router";
 
+import { overlayScopeVisibleKey } from "../shared/contracts/overlay-scope-visibility";
 import type { WorkspaceDefinition } from "../shared/contracts/workspace-definition";
 import CommandPalette from "./components/CommandPalette.vue";
 import KeyboardShortcutsModal from "./components/KeyboardShortcutsModal.vue";
@@ -35,6 +36,7 @@ const {
   scheduleSidebarPreviewClose,
   closeSidebarPreview,
 } = useShellController(props.workspace);
+provide(overlayScopeVisibleKey, workspaceActive);
 const rightSidebarLayoutWidth = shallowRef(0);
 
 function updatePanelLayout(sizes: number[]) {

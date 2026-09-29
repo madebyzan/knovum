@@ -2,19 +2,15 @@
 import { Trash2 } from "@lucide/vue";
 
 import UiPopover from "../../../../../shared/ui/UiPopover.vue";
-import { useImageCommentSession } from "../../../comments/image-comment-session";
 import { useImageComments, type ImageCommentCanvas } from "../../../comments/use-image-comments";
-import SpaceImageCommentModeBar from "./SpaceImageCommentModeBar.vue";
 import SpaceImageCommentShape from "./SpaceImageCommentShape.vue";
 
 const props = defineProps<ImageCommentCanvas>();
-const commentSession = useImageCommentSession();
 const {
   t,
   adding,
   hintLabel,
   mode,
-  setMode,
   preview,
   startGesture,
   moveGesture,
@@ -28,7 +24,7 @@ const {
   comments,
   areaStyle,
   positionStyle,
-  send,
+  saveComment,
   addToConversation,
   remove,
   discuss,
@@ -38,9 +34,8 @@ const {
 </script>
 
 <template>
-  <div class="pointer-events-none absolute" :style="areaStyle">
+  <div v-if="adding" class="pointer-events-none absolute" :style="areaStyle">
     <button
-      v-if="adding"
       type="button"
       class="nodrag pointer-events-auto absolute inset-0 size-full cursor-crosshair touch-none"
       :aria-label="hintLabel"
@@ -157,9 +152,9 @@ const {
           type="button"
           class="rounded-md border border-stroke-default px-3 py-1 text-label text-fg-primary disabled:opacity-40"
           :disabled="!text.trim() || busy"
-          @click="send"
+          @click="saveComment"
         >
-          {{ t("spaces.media.imageEditor.comments.send") }}</button
+          {{ t("spaces.media.imageEditor.comments.save") }}</button
         ><button
           type="button"
           class="rounded-md bg-surface-control-hover px-3 py-1 text-label text-fg-primary disabled:opacity-40"
@@ -170,11 +165,5 @@ const {
         </button>
       </div>
     </UiPopover>
-    <SpaceImageCommentModeBar
-      v-if="adding"
-      :mode="mode"
-      @change="setMode"
-      @cancel="commentSession.cancel()"
-    />
   </div>
 </template>

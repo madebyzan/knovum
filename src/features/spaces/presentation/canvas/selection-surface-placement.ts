@@ -48,5 +48,10 @@ export function placeSelectionSurface(input: PlacementInput): SurfacePlacement |
   if (!visible) return undefined;
   if (input.kind === "inspector") return placeInspectorSurface(input, safe, visible);
   const selection = actionAnchor(input, safe, visible);
+  if (input.kind === "compact-editor")
+    return (
+      placeActionSurface({ ...input, selection }, safe, visible) ??
+      placeInspectorSurface(input, safe, visible)
+    );
   return placeActionSurface({ ...input, selection }, safe, intersection(selection, safe) ?? visible);
 }
