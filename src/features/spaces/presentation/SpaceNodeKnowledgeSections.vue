@@ -1,20 +1,26 @@
 <script setup lang="ts">
 import { Layers, Tag } from "@lucide/vue";
+import { computed } from "vue";
 
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
+import { useSpaceStore } from "../session/space-store";
 import SpaceInspectorSection from "./inspector/SpaceInspectorSection.vue";
 import SpaceKnowledgeHistory from "./knowledge/SpaceKnowledgeHistory.vue";
 import SpaceRelations from "./knowledge/SpaceRelations.vue";
 import SpaceTags from "./SpaceTags.vue";
 
-defineProps<{ node: SpaceCanvasNode }>();
+const props = defineProps<{ node: SpaceCanvasNode }>();
+const store = useSpaceStore();
+const hasRelations = computed(() => store.relations.some((relation) =>
+  relation.sourceId === props.node.id || relation.targetId === props.node.id,
+));
 </script>
 
 <template>
   <SpaceInspectorSection
     :title="$t('spaces.knowledge.relations.title')"
     :icon="Layers"
-    :default-expanded="true"
+    :default-expanded="hasRelations"
   >
     <SpaceRelations />
   </SpaceInspectorSection>

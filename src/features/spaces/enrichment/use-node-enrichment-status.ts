@@ -64,5 +64,5 @@ export function useNodeEnrichmentStatus(spaceId: Ref<string | undefined>, nodeId
     }
   }
 
-  return { status, jobs, retrying, refresh, retryFailed };
+  return { status, jobs, loading: query.isPending, retrying, refresh, retryFailed };
 }

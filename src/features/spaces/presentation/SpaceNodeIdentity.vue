@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ArrowUpRight, LocateFixed } from "@lucide/vue";
+import { ArrowUpRight, LocateFixed, Pencil } from "@lucide/vue";
 import { camelCase } from "es-toolkit";
-import { computed, shallowRef, watch } from "vue";
+import { computed, nextTick, shallowRef, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
@@ -20,6 +20,7 @@ const props = defineProps<{
 const { d, t } = useI18n();
 const store = useSpaceStore();
 const draft = shallowRef(props.node.data.title);
+const titleInput = useTemplateRef<InstanceType<typeof UiInput>>("titleInput");
 const editing = shallowRef(false);
 const saving = shallowRef(false);
 const nodeDraft = useNodeDraft(
@@ -44,8 +45,11 @@ watch(
   () => (editing.value = false),
 );
 
-function beginEdit() {
-  if (nodeDraft.begin()) editing.value = true;
+async function beginEdit() {
+  if (!nodeDraft.begin()) return;
+  editing.value = true;
+  await nextTick();
+  titleInput.value?.focus();
 }
 
 async function submit() {
@@ -84,25 +88,27 @@ async function open() {
 </script>
 
 <template>
-  <div class="px-4 pt-5 pb-4">
-    <div class="flex items-center gap-1.5 text-caption text-fg-tertiary">
-      <component :is="kindIcon" class="size-3" :stroke-width="1.6" />
+  <div class="px-4 pt-4 pb-4">
+    <div class="flex items-center gap-1.5 text-caption font-medium text-fg-secondary">
+      <component :is="kindIcon" class="size-3.5" :stroke-width="1.6" />
       <span>{{ typeLabel }}</span>
     </div>
     <button
       v-if="!editing"
       type="button"
-      class="mt-2 block w-full text-left disabled:cursor-default"
+      class="mt-2 flex w-full items-start gap-2 rounded-md text-left focus-visible:outline-2 focus-visible:outline-stroke-focus disabled:cursor-default"
       :disabled="!nodeDraft.available.value"
-      :title="t('spaces.inspector.renameHint')"
+      :title="nodeDraft.available.value ? t('spaces.inspector.renameHint') : undefined"
       @click="beginEdit"
     >
-      <h2 class="text-title leading-snug font-semibold tracking-title wrap-break-word text-fg-primary">
+      <h2 class="min-w-0 flex-1 text-title leading-snug font-semibold tracking-title wrap-break-word text-fg-primary">
         {{ node.data.title }}
       </h2>
+      <Pencil v-if="nodeDraft.available.value" class="mt-1 size-3.5 shrink-0 text-fg-tertiary" />
     </button>
     <UiInput
       v-else
+      ref="titleInput"
       v-model="draft"
       :disabled="saving"
       class="mt-2 w-full text-title font-semibold"

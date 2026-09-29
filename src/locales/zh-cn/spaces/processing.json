@@ -57,6 +57,6 @@
     }
   },
   "visual": {
-    "waitingConfiguration": "尚未配置视觉理解，此项分析等待配置。"
+    "waitingConfiguration": "配置视觉理解模型后，可查看图片或视频的内容分析。"
   }
 }

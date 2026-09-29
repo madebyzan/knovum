@@ -1,16 +1,19 @@
 <script setup lang="ts">
-import { ExternalLink, Link2, Plus, X } from "@lucide/vue";
+import { ArrowUpRight, Plus, X } from "@lucide/vue";
 import { storeToRefs } from "pinia";
-import { computed } from "vue";
+import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
+import { toast } from "vue-sonner";
 
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
+import { spaceCanvasOverviewSource } from "../../assets/node-preview-source";
 import { useContextDock } from "../../canvas/use-context-dock";
 import type { SpaceProvenanceTargetKind } from "../../knowledge/model/provenance";
 import { knowledgeLocationLabel } from "../../knowledge/presentation/location-label";
 import { attachProvenance, detachProvenance } from "../../knowledge/provenance-actions";
 import { useSpaceProvenanceQuery } from "../../knowledge/queries/use-knowledge-queries";
 import { useSpaceStore } from "../../session/space-store";
+import { nodeIcon } from "../node-icon";
 
 const props = defineProps<{
   targetKind: SpaceProvenanceTargetKind;
@@ -24,45 +27,70 @@ const { activeSpaceId, nodes, sourcePeek } = storeToRefs(store);
 const { t } = useI18n();
 const provenanceQuery = useSpaceProvenanceQuery(activeSpaceId, props.targetKind, () => props.targetId);
 const provenance = computed(() => provenanceQuery.data.value ?? []);
+const mutating = shallowRef(false);
 const attachable = computed(() => {
   const peek = sourcePeek.value;
   return peek && (!props.attachNodeIds || props.attachNodeIds.includes(peek.nodeId)) ? peek : undefined;
 });
 
-const nodeTitles = computed(() => new Map(nodes.value.map((node) => [node.id, node.data.title])));
+const nodeById = computed(() => new Map(nodes.value.map((node) => [node.id, node])));
+const sources = computed(() =>
+  provenance.value.map((record) => {
+    const node = nodeById.value.get(record.sourceNodeId);
+    return {
+      record,
+      title: node?.data.title ?? record.sourceNodeId,
+      kind: node?.data.kind ?? "file",
+      thumbnail: node ? spaceCanvasOverviewSource(node.data) : "",
+    };
+  }),
+);
 
-function sourceTitle(nodeId: string) {
-  return nodeTitles.value.get(nodeId) ?? nodeId;
+async function mutate(action: () => Promise<unknown>) {
+  if (mutating.value) return;
+  mutating.value = true;
+  try {
+    await action();
+  } catch (error) {
+    toast.error(String(error));
+  } finally {
+    mutating.value = false;
+  }
 }
 async function attachCurrent() {
   const peek = attachable.value;
   const spaceId = activeSpaceId.value;
   if (!peek || !spaceId) return;
-  await attachProvenance({
-    id: crypto.randomUUID(),
-    spaceId,
-    targetKind: props.targetKind,
-    targetId: props.targetId,
-    sourceNodeId: peek.nodeId,
-    locator: peek.locator,
-    sourceRevision: peek.locator.sourceRevision,
-    quote: peek.locator.quote?.exact ?? peek.text ?? "",
-  });
+  await mutate(() =>
+    attachProvenance({
+      id: crypto.randomUUID(),
+      spaceId,
+      targetKind: props.targetKind,
+      targetId: props.targetId,
+      sourceNodeId: peek.nodeId,
+      locator: peek.locator,
+      sourceRevision: peek.locator.sourceRevision,
+      quote: peek.locator.quote?.exact ?? peek.text ?? "",
+    }),
+  );
 }
 async function remove(id: string) {
   const spaceId = activeSpaceId.value;
   if (!spaceId) return;
-  await detachProvenance(id, {
-    spaceId,
-    targetKind: props.targetKind,
-    targetId: props.targetId,
-  });
+  await mutate(() =>
+    detachProvenance(id, {
+      spaceId,
+      targetKind: props.targetKind,
+      targetId: props.targetId,
+    }),
+  );
 }
-function openSource(record: (typeof provenance.value)[number]) {
+function openSource(source: (typeof sources.value)[number]) {
+  const { record } = source;
   dock.openSource(
     {
       nodeId: record.sourceNodeId,
-      nodeTitle: sourceTitle(record.sourceNodeId),
+      nodeTitle: source.title,
       locator: record.locator,
       text: record.quote,
     },
@@ -72,44 +100,56 @@ function openSource(record: (typeof provenance.value)[number]) {
 </script>
 
 <template>
-  <section v-if="provenance.length || attachable" class="rounded-md border border-stroke-divider p-2">
+  <section v-if="sources.length || attachable">
     <div class="flex items-center gap-2">
-      <span class="min-w-0 flex-1 text-caption-sm font-medium text-fg-tertiary">{{
+      <h5 class="min-w-0 flex-1 text-caption font-medium text-fg-secondary">{{
         t("spaces.knowledge.provenance")
-      }}</span>
+      }}</h5>
       <UiIconButton
         v-if="attachable"
         :label="t('spaces.assistant.evidence.useCurrent')"
         size="sm"
+        :disabled="mutating"
         @click="attachCurrent"
       >
         <Plus class="size-3" />
       </UiIconButton>
     </div>
-    <div v-if="provenance.length" class="mt-1.5 space-y-1.5">
-      <div v-for="record in provenance" :key="record.id" class="flex items-start gap-1">
+    <div v-if="sources.length" class="mt-1 space-y-0.5">
+      <div v-for="source in sources" :key="source.record.id" class="flex items-start gap-1">
         <button
           type="button"
-          class="min-w-0 flex-1 rounded-md px-1.5 py-1.5 text-left hover:bg-surface-control-hover"
-          @click="openSource(record)"
+          class="flex min-w-0 flex-1 items-start gap-2 rounded-md px-1 py-1.5 text-left hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus"
+          @click="openSource(source)"
         >
-          <span class="flex items-center gap-1.5 text-caption text-fg-primary">
-            <Link2 class="size-3 shrink-0 text-fg-tertiary" />
-            <span class="truncate">{{ sourceTitle(record.sourceNodeId) }}</span>
-            <ExternalLink class="size-3 shrink-0 text-fg-tertiary" />
+          <span class="grid size-8 shrink-0 place-items-center overflow-hidden rounded-md bg-surface-control text-fg-tertiary">
+            <img
+              v-if="source.thumbnail"
+              :src="source.thumbnail"
+              alt=""
+              class="size-full object-contain"
+              loading="lazy"
+              decoding="async"
+            />
+            <component :is="nodeIcon(source.kind)" v-else class="size-4" :stroke-width="1.5" />
           </span>
-          <span class="mt-0.5 block truncate pl-5 text-caption-sm text-fg-tertiary">
-            {{ knowledgeLocationLabel(record.locator) }}
+          <span class="min-w-0 flex-1">
+            <span class="block truncate text-label text-fg-primary">{{ source.title }}</span>
+            <span class="block truncate text-caption text-fg-tertiary">
+              {{ knowledgeLocationLabel(source.record.locator) }}
+            </span>
+            <span v-if="source.record.quote" class="mt-0.5 line-clamp-2 block text-caption text-fg-secondary">
+              “{{ source.record.quote }}”
+            </span>
           </span>
-          <span v-if="record.quote" class="mt-1 line-clamp-2 block pl-5 text-caption-sm text-fg-secondary">
-            “{{ record.quote }}”
-          </span>
+          <ArrowUpRight class="mt-1 size-3 shrink-0 text-fg-tertiary" :stroke-width="1.5" />
         </button>
         <UiIconButton
-          v-if="removable && record.status === 'active'"
+          v-if="removable && source.record.status === 'active'"
           :label="t('spaces.assistant.evidence.remove')"
           size="sm"
-          @click="remove(record.id)"
+          :disabled="mutating"
+          @click="remove(source.record.id)"
         >
           <X class="size-3" />
         </UiIconButton>

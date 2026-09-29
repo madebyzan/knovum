@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { Tag, X } from "@lucide/vue";
+import { Plus, Tag, X } from "@lucide/vue";
 import { union, uniq, without } from "es-toolkit";
 import { storeToRefs } from "pinia";
 import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
+import { toast } from "vue-sonner";
 
 import UiBadge from "../../../shared/ui/UiBadge.vue";
+import UiIconButton from "../../../shared/ui/UiIconButton.vue";
 import UiInput from "../../../shared/ui/UiInput.vue";
 import { useCanvasEditorSession, useCanvasSelectionProjection } from "../canvas/editor-session";
 import { useNodeOperationGate } from "../canvas/node-operation-gate";
@@ -24,30 +26,35 @@ const nodeOperations = useNodeOperationGate();
 const { selectedNodes } = useCanvasSelectionProjection(nodes);
 const { t } = useI18n();
 const draft = shallowRef("");
-const selectedContentNodes = computed(() => selectedNodes.value);
-const selectedIds = computed(() => selectedContentNodes.value.map((node) => node.id));
-const selectionTagCounts = computed(() => selectedTagCounts(selectedContentNodes.value));
+const saving = shallowRef(false);
+const selectionTagCounts = computed(() => selectedTagCounts(selectedNodes.value));
 const tagCounts = computed(() => spaceTagCounts(nodes.value));
 const suggestions = computed(() => suggestTags(draft.value, tagCounts.value, selectionTagCounts.value));
-
 async function applyTag(tag = draft.value) {
   const value = tag.trim();
-  const ids = [...selectedIds.value];
   const spaceId = store.activeSpaceId;
   const initialDraft = draft.value;
-  if (!value || ids.length === 0 || !spaceId) return;
-  await updateTags((tags) => union(tags, [value]));
-  if (store.activeSpaceId === spaceId && draft.value === initialDraft) draft.value = "";
+  if (!value || selectedNodes.value.length === 0 || !spaceId) return;
+  const saved = await updateTags((tags) => union(tags, [value]));
+  if (saved && store.activeSpaceId === spaceId && draft.value === initialDraft) draft.value = "";
 }
 
-async function removeTag(tag: string) {
-  await updateTags((tags) => without(tags, tag));
-}
+const removeTag = (tag: string) => updateTags((tags) => without(tags, tag));
 
 async function updateTags(update: (tags: readonly string[]) => string[]) {
-  if (!nodeOperations.allows("edit")) return;
-  const changes = createTagChanges(selectedContentNodes.value, update);
-  if (changes.length) await store.updateNodeContents(changes);
+  if (saving.value || !nodeOperations.allows("edit")) return false;
+  const changes = createTagChanges(selectedNodes.value, update);
+  if (!changes.length) return true;
+  saving.value = true;
+  try {
+    await store.updateNodeContents(changes);
+    return true;
+  } catch (error) {
+    toast.error(String(error));
+    return false;
+  } finally {
+    saving.value = false;
+  }
 }
 async function revealTag(tag: string) {
   if (!nodeOperations.allows("structure")) return;
@@ -106,18 +113,30 @@ async function showTagMenu(tag: string) {
   </section>
 
   <section v-if="mode !== 'browse'">
-    <div v-if="selectedIds.length === 0" class="px-1 text-caption text-fg-tertiary">
+    <div v-if="selectedNodes.length === 0" class="px-1 text-caption text-fg-tertiary">
       {{ t("spaces.tags.selectionHint") }}
     </div>
     <template v-else>
       <div class="relative">
         <UiInput
           v-model="draft"
-          :disabled="!nodeOperations.allows('edit')"
-          class="w-full"
+          :disabled="saving || !nodeOperations.allows('edit')"
+          size="sm"
+          class="pr-8"
           :placeholder="t('spaces.tags.add')"
-          @keydown.enter="applyTag()"
+          :aria-label="t('spaces.tags.add')"
+          @keydown.enter.prevent="applyTag()"
+          @keydown.esc="draft = ''"
         />
+        <UiIconButton
+          :label="t('spaces.tags.add')"
+          size="sm"
+          class="absolute top-0 right-0"
+          :disabled="saving || !draft.trim() || !nodeOperations.allows('edit')"
+          @click="applyTag()"
+        >
+          <Plus class="size-3.5" />
+        </UiIconButton>
         <div
           v-if="suggestions.length"
           class="absolute top-full left-0 z-20 mt-1 w-full rounded-panel bg-surface-overlay p-1 shadow-popover ring-1 ring-stroke-default"
@@ -126,8 +145,8 @@ async function showTagMenu(tag: string) {
             v-for="[tag, count] in suggestions"
             :key="tag"
             type="button"
-            :disabled="!nodeOperations.allows('edit')"
-            class="flex h-interaction w-full items-center justify-between rounded-md px-2 text-left text-caption hover:bg-surface-control-hover"
+            :disabled="saving || !nodeOperations.allows('edit')"
+            class="flex h-interaction w-full items-center justify-between rounded-md px-2 text-left text-caption hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus"
             @click="applyTag(tag)"
           >
             <span class="truncate">{{ tag }}</span>
@@ -135,20 +154,20 @@ async function showTagMenu(tag: string) {
           </button>
         </div>
       </div>
-      <div v-if="selectionTagCounts.size" class="mt-2 flex flex-wrap gap-1.5">
+      <div v-if="selectionTagCounts.size" class="mt-2 flex flex-wrap gap-1">
         <span
           v-for="[tag, count] in selectionTagCounts"
           :key="tag"
           class="inline-flex h-(--knovum-control-height-sm) items-center gap-1 rounded-md bg-surface-control pr-1 pl-2 text-caption text-fg-secondary"
         >
           {{ tag }}
-          <span v-if="count !== selectedIds.length" class="text-caption-sm text-fg-tertiary"
-            >{{ count }}/{{ selectedIds.length }}</span
+          <span v-if="count !== selectedNodes.length" class="text-caption-sm text-fg-tertiary"
+            >{{ count }}/{{ selectedNodes.length }}</span
           >
           <button
             type="button"
-            :disabled="!nodeOperations.allows('edit')"
-            class="grid size-5 place-items-center rounded-md hover:bg-surface-control-hover"
+            :disabled="saving || !nodeOperations.allows('edit')"
+            class="grid size-5 place-items-center rounded-md hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus"
             :aria-label="t('spaces.tags.remove', { tag })"
             @click="removeTag(tag)"
           >
