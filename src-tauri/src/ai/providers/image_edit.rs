@@ -32,7 +32,7 @@ struct ImageData {
     url: Option<String>,
 }
 
-pub(crate) async fn edit_source(
+pub(crate) async fn edit_image(
     api: ImageEditApi,
     ctx: &SecurityContext,
     image: &[u8],

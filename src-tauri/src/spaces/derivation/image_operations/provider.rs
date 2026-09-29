@@ -78,7 +78,7 @@ pub(super) async fn execute(
             }
         }
         (ImageOperationBackend::Gemini, ImageOperation::RemoveObjectPrompt { prompt }) => {
-            gemini::edit_source(
+            gemini::edit_image(
                 &ctx,
                 &source.bytes,
                 &removal_instruction(prompt),
@@ -87,7 +87,7 @@ pub(super) async fn execute(
             .await?
         }
         (ImageOperationBackend::Kling, ImageOperation::RemoveObjectPrompt { prompt }) => {
-            kling::edit_source(
+            kling::edit_image(
                 &ctx,
                 &source.bytes,
                 source.width,
@@ -98,7 +98,7 @@ pub(super) async fn execute(
             .await?
         }
         (ImageOperationBackend::ImageEdit(api), ImageOperation::RemoveObjectPrompt { prompt }) => {
-            image_edit::edit_source(
+            image_edit::edit_image(
                 api,
                 &ctx,
                 &source.bytes,
