@@ -6,10 +6,7 @@ import { useConversationActions } from "../conversation/use-conversation-actions
 
 const ipc = vi.hoisted(() => ({ invoke: vi.fn<(...args: unknown[]) => Promise<void>>() }));
 vi.mock("../../../foundation/ipc/invoke-command", () => ({ invokeCommand: ipc.invoke }));
-vi.mock("@tauri-apps/plugin-dialog", () => ({
-  ask: vi.fn<() => Promise<boolean>>(),
-  save: vi.fn<() => Promise<string | null>>(),
-}));
+vi.mock("@tauri-apps/plugin-dialog", () => ({ save: vi.fn() }));
 
 function session() {
   const conversation: AssistantConversation = {

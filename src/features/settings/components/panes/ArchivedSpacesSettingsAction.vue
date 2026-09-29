@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { Trash2 } from "@lucide/vue";
-import { ask } from "@tauri-apps/plugin-dialog";
 import { inject } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
@@ -10,6 +9,7 @@ import {
   type ArchiveSettingsContract,
 } from "../../../../shared/contracts/archive-settings";
 import UiButton from "../../../../shared/ui/UiButton.vue";
+import { confirmAction } from "../../../../shared/ui/confirm-action";
 
 const archive = requireArchiveSettings();
 const { t } = useI18n();
@@ -22,11 +22,11 @@ function requireArchiveSettings(): ArchiveSettingsContract {
 
 async function permanentlyDeleteAll() {
   const count = archive.spaces.value.length;
-  const confirmed = await ask(t("settings.general.archived.deleteAll.description", { count }), {
+  const confirmed = await confirmAction({
     title: t("settings.general.archived.deleteAll.title"),
-    kind: "warning",
-    okLabel: t("settings.general.archived.deleteAll.label"),
-    cancelLabel: t("common.cancel"),
+    description: t("settings.general.archived.deleteAll.description", { count }),
+    confirmLabel: t("settings.general.archived.deleteAll.label"),
+    danger: true,
   });
   if (!confirmed) return;
   try {

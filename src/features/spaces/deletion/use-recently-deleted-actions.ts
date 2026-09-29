@@ -1,7 +1,7 @@
-import { ask } from "@tauri-apps/plugin-dialog";
 import { shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
+import { confirmAction } from "../../../shared/ui/confirm-action";
 
 import { useSpaceStore } from "../session/space-store";
 import type { SpaceDeletedStructureRoot } from "./deleted-structure";
@@ -33,17 +33,14 @@ export function useRecentlyDeletedActions() {
     const selected = [...deletedRoots];
     busy.value = true;
     try {
-      const confirmed = await ask(
-        scope === undefined
+      const confirmed = await confirmAction({
+        title: t(scope === undefined ? "spaces.trash.deletePermanently" : "spaces.trash.deleteAll.title"),
+        description: scope === undefined
           ? t("spaces.trash.structure.deleteDescription", { title: selected[0]!.title })
           : t("spaces.trash.deleteAll.description", { count: selected.length, scope }),
-        {
-          title: t(scope === undefined ? "spaces.trash.deletePermanently" : "spaces.trash.deleteAll.title"),
-          kind: "warning",
-          okLabel: t("spaces.trash.deletePermanently"),
-          cancelLabel: t("common.cancel"),
-        },
-      );
+        confirmLabel: t("spaces.trash.deletePermanently"),
+        danger: true,
+      });
       if (!confirmed) return;
       await permanentlyDeleteStructure(selected, scope !== undefined);
       toast.success(t("spaces.trash.structure.deletedNotice", { count: selected.length }));

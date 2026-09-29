@@ -1,4 +1,3 @@
-import { ask } from "@tauri-apps/plugin-dialog";
 import { compact, isEqual } from "es-toolkit";
 import { storeToRefs } from "pinia";
 import { computed, ref, shallowRef, watch, type Ref } from "vue";
@@ -6,6 +5,7 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { queryClient } from "../../../../foundation/query/query-client";
+import { confirmAction } from "../../../../shared/ui/confirm-action";
 import { useSpaceStore } from "../../session/space-store";
 import type { SpaceObjectFieldDefinition, SpaceObjectFieldKind } from "../model/object-types";
 import { createObjectType, deleteObjectType, updateObjectType } from "../persistence/knowledge-operations";
@@ -114,9 +114,11 @@ export function useKnowledgeTypeEditor(open: Ref<boolean>) {
     saving.value = true;
     try {
       if (
-        !(await ask(t("spaces.knowledge.types.deleteConfirmation", { name: name.value }), {
-          title: t("spaces.knowledge.types.manage"),
-          kind: "warning",
+        !(await confirmAction({
+          title: t("common.delete"),
+          description: t("spaces.knowledge.types.deleteConfirmation", { name: name.value }),
+          confirmLabel: t("common.delete"),
+          danger: true,
         }))
       )
         return;

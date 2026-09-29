@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ArrowDownLeft, ArrowUpRight, Link2 } from "@lucide/vue";
-import { ask } from "@tauri-apps/plugin-dialog";
 import { storeToRefs } from "pinia";
 import { AccordionRoot } from "reka-ui";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
+import { confirmAction } from "../../../../shared/ui/confirm-action";
 import { spaceCanvasOverviewSource } from "../../assets/node-preview-source";
 import { useCanvasSelectionProjection } from "../../canvas/editor-session";
 import { selectAndRevealSpaceNode } from "../../canvas/selection-actions";
@@ -62,9 +62,11 @@ function editRelation(id: string) {
 }
 
 async function removeRelation(id: string, neighborTitle: string) {
-  const confirmed = await ask(t("spaces.knowledge.relations.removeConfirm", { title: neighborTitle }), {
-    kind: "warning",
+  const confirmed = await confirmAction({
     title: t("spaces.knowledge.relations.remove"),
+    description: t("spaces.knowledge.relations.removeConfirm", { title: neighborTitle }),
+    confirmLabel: t("spaces.knowledge.relations.remove"),
+    danger: true,
   });
   if (!confirmed) return;
   try {

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { Pencil, Plus, Trash2 } from "@lucide/vue";
-import { ask } from "@tauri-apps/plugin-dialog";
 import { computed, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -10,6 +9,7 @@ import { requireProvider, type ProviderDescriptor } from "../../../foundation/ai
 import type { AiConnectionSettings, AiModelCapability, AiModelDefinition, AiRoutingPurpose } from "../../../foundation/ai/schema/models";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiIconButton from "../../../shared/ui/UiIconButton.vue";
+import { confirmAction } from "../../../shared/ui/confirm-action";
 import AiModelEditor from "./AiModelEditor.vue";
 
 const props = defineProps<{
@@ -59,11 +59,11 @@ function closeEditor() {
 
 async function requestClose() {
   if (busy.value) return;
-  if (dirty.value && !(await ask(t("settings.ai.discardChanges"), {
+  if (dirty.value && !(await confirmAction({
     title: t("settings.ai.discardChangesTitle"),
-    kind: "warning",
-    okLabel: t("settings.ai.discardChangesAction"),
-    cancelLabel: t("common.cancel"),
+    description: t("settings.ai.discardChanges"),
+    confirmLabel: t("settings.ai.discardChangesAction"),
+    danger: true,
   }))) return;
   closeEditor();
 }
@@ -99,11 +99,11 @@ async function saveModel(model: AiModelDefinition) {
 async function removeModel(model: AiModelDefinition) {
   const connection = props.connection;
   if (busy.value || modelInUse(model.id)) return;
-  const confirmed = await ask(t("settings.ai.deleteModelConfirm", { name: model.name }), {
+  const confirmed = await confirmAction({
     title: t("common.delete"),
-    kind: "warning",
-    okLabel: t("common.delete"),
-    cancelLabel: t("common.cancel"),
+    description: t("settings.ai.deleteModelConfirm", { name: model.name }),
+    confirmLabel: t("common.delete"),
+    danger: true,
   });
   if (!confirmed) return;
   busy.value = true;

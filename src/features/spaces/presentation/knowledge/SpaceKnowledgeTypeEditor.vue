@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { Plus, Trash2 } from "@lucide/vue";
-import { ask } from "@tauri-apps/plugin-dialog";
 import { shallowRef, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
+import { confirmAction } from "../../../../shared/ui/confirm-action";
 import UiDialog from "../../../../shared/ui/UiDialog.vue";
 import UiInput from "../../../../shared/ui/UiInput.vue";
 import UiScrollArea from "../../../../shared/ui/UiScrollArea.vue";
@@ -44,9 +44,11 @@ async function changeEditor(action: () => void) {
   try {
     if (
       !dirty.value ||
-      (await ask(t("spaces.knowledge.types.discardChanges"), {
-        title: t("spaces.knowledge.types.manage"),
-        kind: "warning",
+      (await confirmAction({
+        title: t("common.discardChanges"),
+        description: t("spaces.knowledge.types.discardChanges"),
+        confirmLabel: t("common.discardChanges"),
+        danger: true,
       }))
     )
       action();
