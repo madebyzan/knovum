@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ChevronRight, Eye, EyeOff, KeyRound, LockKeyhole } from "@lucide/vue";
+import { Eye, EyeOff, KeyRound, LockKeyhole, Pencil } from "@lucide/vue";
 import { computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -71,7 +71,7 @@ const kindLabel = computed(() =>
       @dblclick.stop
       @click.stop="beginEditor"
     >
-      <ChevronRight class="size-3.5" :stroke-width="1.5" />
+      <Pencil class="size-3.5" :stroke-width="1.5" />
     </UiIconButton>
   </div>
 

@@ -60,7 +60,6 @@ function changeZoom(delta: number) {
         variant="ghost"
         size="sm"
         class="shadow-none"
-        :title="t('common.reset')"
         :aria-label="t('common.reset')"
         :disabled="busy || !changed"
         @click="reset"

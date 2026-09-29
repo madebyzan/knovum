@@ -13,7 +13,7 @@ const { t } = useI18n();
 <template>
   <div class="flex h-full shrink-0 items-center gap-0.5 border-l border-stroke-divider px-1">
     <ToolbarButton as-child>
-      <UiIconButton :label="t('spaces.inspector.title')" @click="emit('inspect')">
+      <UiIconButton :label="t('spaces.inspector.title')" tooltip @click="emit('inspect')">
         <Info class="size-4.5" :stroke-width="1.6" />
       </UiIconButton>
     </ToolbarButton>

@@ -16,6 +16,7 @@ const { t } = useI18n();
   <SpaceTiptapTableControl :editor="editor" />
   <UiIconButton
     :label="t('spaces.richtext.horizontalRule')"
+    tooltip
     size="sm"
     @click="editor.chain().focus().setHorizontalRule().run()"
   >

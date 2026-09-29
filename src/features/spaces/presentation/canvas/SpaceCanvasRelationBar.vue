@@ -110,7 +110,7 @@ function setColor(value: string) {
   >
     <UiDropdownMenu side="top" align="center" :side-offset="6" class="min-w-52">
       <template #trigger>
-        <UiIconButton :label="t('spaces.knowledge.relations.title')" size="sm">
+        <UiIconButton :label="t('spaces.knowledge.relations.title')" tooltip size="sm">
           <GitBranch class="size-3.5" :stroke-width="1.55" />
         </UiIconButton>
       </template>
@@ -126,7 +126,7 @@ function setColor(value: string) {
     </UiDropdownMenu>
     <UiPopover v-model:open="rationaleOpen" side="top" align="center" :side-offset="8" class="w-72">
       <template #trigger>
-        <UiIconButton :label="t('spaces.knowledge.relations.rationale')" size="sm">
+        <UiIconButton :label="t('spaces.knowledge.relations.rationale')" tooltip size="sm">
           <MessageSquareText class="size-3.5" :stroke-width="1.55" />
         </UiIconButton>
       </template>

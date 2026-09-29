@@ -71,6 +71,7 @@ const activeHeading = computed(() => headings.find((level) => props.editor.isAct
 
   <UiIconButton
     :label="t('spaces.richtext.blockquote')"
+    tooltip
     size="sm"
     :active="editor.isActive('blockquote')"
     @click="editor.chain().focus().toggleBlockquote().run()"

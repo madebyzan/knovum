@@ -124,10 +124,10 @@ async function copyMessage() {
         <Check v-if="copied" class="size-3.5 text-fg-accent" />
         <Copy v-else class="size-3.5" />
       </UiIconButton>
-      <UiIconButton :label="t('spaces.assistant.conversations.branch')" size="sm" :disabled="busy" @click="emit('branch')">
+      <UiIconButton :label="t('spaces.assistant.conversations.branch')" tooltip size="sm" :disabled="busy" @click="emit('branch')">
         <GitBranch class="size-3.5" />
       </UiIconButton>
-      <UiIconButton :label="t('spaces.assistant.regenerate')" size="sm" :disabled="busy" @click="emit('regenerate')">
+      <UiIconButton :label="t('spaces.assistant.regenerate')" tooltip size="sm" :disabled="busy" @click="emit('regenerate')">
         <RefreshCw class="size-3.5" />
       </UiIconButton>
     </div>

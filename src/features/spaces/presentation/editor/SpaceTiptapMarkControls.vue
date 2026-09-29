@@ -62,6 +62,7 @@ const highlights = [
   <SpaceTiptapLinkControl :editor="props.editor" />
   <UiIconButton
     :label="t('spaces.richtext.superscript')"
+    tooltip
     size="sm"
     :active="editor.isActive('superscript')"
     @click="editor.chain().focus().toggleSuperscript().run()"
@@ -70,6 +71,7 @@ const highlights = [
   </UiIconButton>
   <UiIconButton
     :label="t('spaces.richtext.subscript')"
+    tooltip
     size="sm"
     :active="editor.isActive('subscript')"
     @click="editor.chain().focus().toggleSubscript().run()"

@@ -93,7 +93,6 @@ const menuItems = computed(() => [
       <div class="flex items-center justify-self-end">
         <UiIconButton
           :label="t('common.save')"
-          :tooltip="false"
           size="sm"
           class="size-6"
           @click="finishRename"
@@ -102,7 +101,6 @@ const menuItems = computed(() => [
         </UiIconButton>
         <UiIconButton
           :label="t('common.cancel')"
-          :tooltip="false"
           size="sm"
           class="size-6"
           @click="editing = false"
@@ -145,7 +143,6 @@ const menuItems = computed(() => [
       <template #trigger>
         <UiIconButton
           :label="t('common.more')"
-          :tooltip="false"
           size="sm"
           class="absolute top-1/2 right-1 z-10 size-6 -translate-y-1/2 rounded-sm opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 data-[state=open]:bg-surface-control data-[state=open]:opacity-100"
           @click.stop

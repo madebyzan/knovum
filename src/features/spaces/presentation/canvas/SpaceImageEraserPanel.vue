@@ -29,7 +29,6 @@ const brushSize = computed({
         size="sm"
         class="shadow-none"
         :disabled="!canUndo"
-        :title="t('spaces.media.imageEditor.eraser.undo')"
         :aria-label="t('spaces.media.imageEditor.eraser.undo')"
         @click="emit('undo')"
       >

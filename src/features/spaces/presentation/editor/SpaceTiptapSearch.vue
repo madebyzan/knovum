@@ -68,6 +68,7 @@ function doReplaceAll() {
         />
         <UiIconButton
           :label="t('spaces.richtext.find.toggleReplace')"
+          tooltip
           size="sm"
           :active="showReplace"
           @click="
@@ -110,6 +111,7 @@ function doReplaceAll() {
         />
         <UiIconButton
           :label="t('spaces.richtext.find.replace')"
+          tooltip
           size="sm"
           :disabled="!query"
           @click="doReplace"
@@ -118,6 +120,7 @@ function doReplaceAll() {
         </UiIconButton>
         <UiIconButton
           :label="t('spaces.richtext.find.replaceAll')"
+          tooltip
           size="sm"
           :disabled="!query"
           @click="doReplaceAll"
