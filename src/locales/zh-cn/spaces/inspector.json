@@ -7,7 +7,6 @@
     "type": "类型",
     "source": "来源",
     "size": "大小",
-    "storage": "存储路径",
     "originalUrl": "原地址",
     "provider": "平台",
     "siteName": "网站",
@@ -33,6 +32,7 @@
   "related": {
     "title": "相关内容",
     "show": "查看更多",
+    "showLess": "收起",
     "unavailable": "相关内容暂时无法检索。",
     "indexing": "正在建立内容索引，完成后会显示相关内容。",
     "notIndexed": "当前内容尚未准备好相关内容检索。",

@@ -57,6 +57,6 @@
     }
   },
   "visual": {
-    "waitingConfiguration": "Visual analysis is waiting for visual understanding to be configured."
+    "waitingConfiguration": "Configure a visual understanding model to analyze this image or video."
   }
 }

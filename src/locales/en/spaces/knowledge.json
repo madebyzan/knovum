@@ -53,11 +53,14 @@
   "structuredKnowledge": "Structured knowledge",
   "relations": {
     "title": "Knowledge relations",
+    "symmetric": "Two-way ({count})",
     "incoming": "Incoming ({count})",
     "outgoing": "Outgoing ({count})",
     "empty": "Drag node anchors or select multiple items to create relations.",
     "inspect": "Connection details",
+    "kind": "Relation type",
     "rationale": "Why these are connected",
+    "addRationale": "Add",
     "rationalePlaceholder": "Describe how these items are connected…",
     "color": "Relation line color",
     "colors": {
@@ -69,6 +72,7 @@
       "purple": "Purple"
     },
     "remove": "Remove relation",
+    "removeConfirm": "Remove the relation with “{title}”?",
     "kinds": {
       "reference": "Reference",
       "related": "Related",
@@ -140,6 +144,7 @@
     "loadFailed": "Could not load schema types"
   },
   "visual": {
-    "pending": "Analyzing image content…"
+    "pending": "Analyzing image content…",
+    "empty": "No image analysis yet"
   }
 }

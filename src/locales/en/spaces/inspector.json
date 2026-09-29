@@ -7,7 +7,6 @@
     "type": "Type",
     "source": "Source",
     "size": "Size",
-    "storage": "Storage path",
     "originalUrl": "Original URL",
     "provider": "Platform",
     "siteName": "Website",
@@ -33,6 +32,7 @@
   "related": {
     "title": "Related content",
     "show": "Show more",
+    "showLess": "Show less",
     "unavailable": "Related content is temporarily unavailable.",
     "indexing": "Building the content index. Related content will appear when it is ready.",
     "notIndexed": "Related content is not prepared for this item yet.",

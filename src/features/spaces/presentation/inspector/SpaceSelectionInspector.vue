@@ -29,7 +29,7 @@ function saveTitle(node: SpaceCanvasNode, value: string) {
 </script>
 
 <template>
-  <div v-if="selectedNode" :key="selectedNode.id" class="h-full overflow-y-auto overscroll-contain">
+  <div v-if="selectedNode" :key="selectedNode.id" class="h-full overflow-y-auto overscroll-contain pb-3 [scrollbar-gutter:stable]">
     <SpaceNodeIdentity :node="selectedNode" :save-title="saveTitle" />
     <SpaceNodeOverview :node="selectedNode" />
     <SpaceNodeCapabilitySections :node="selectedNode" />
@@ -44,7 +44,7 @@ function saveTitle(node: SpaceCanvasNode, value: string) {
       <SpaceNodeMetadata :node="selectedNode" />
     </SpaceInspectorSection>
   </div>
-  <div v-else-if="selectedNodes.length > 1" class="h-full overflow-y-auto overscroll-contain pt-4">
+  <div v-else-if="selectedNodes.length > 1" class="h-full overflow-y-auto overscroll-contain pt-4 pb-3 [scrollbar-gutter:stable]">
     <div class="px-4 pb-4">
       <h2 class="text-title font-semibold text-fg-primary">
         {{ $t("spaces.inspector.itemsSelected", { count: selectedNodes.length }) }}

@@ -3,7 +3,6 @@ import { storeToRefs } from "pinia";
 import { computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { useCanvasSelectionProjection } from "../canvas/editor-session";
 import { knowledgeLocationLabel } from "../knowledge/presentation/location-label";
 import { useSpaceStore } from "../session/space-store";
 import SpaceConversationPanel from "./conversation/SpaceConversationPanel.vue";
@@ -15,7 +14,6 @@ import SpaceSourcePeek from "./SpaceSourcePeek.vue";
 
 const store = useSpaceStore();
 const { rightSidebarView, sourcePeek } = storeToRefs(store);
-const { selectedNodes } = useCanvasSelectionProjection(() => store.nodes);
 const { t } = useI18n();
 
 watch(
@@ -36,11 +34,7 @@ watch(
 
 const title = computed(() => {
   if (rightSidebarView.value === "source") return sourcePeek.value?.nodeTitle ?? t("spaces.inspector.source");
-  const selected = selectedNodes.value;
-  if (selected.length === 1) return selected[0]!.data.title;
-  return selected.length
-    ? t("spaces.inspector.itemsSelected", { count: selected.length })
-    : t("spaces.knowledge.health.title");
+  return undefined;
 });
 const subtitle = computed(() =>
   rightSidebarView.value === "source" && sourcePeek.value

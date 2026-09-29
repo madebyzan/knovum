@@ -75,13 +75,14 @@ function appendTool(
   const { toolCallId, title, actionId, status, detail } = parsed.data;
   const index = state.positions.get(toolCallId);
   const previous = index === undefined ? undefined : state.items[index];
+  const result = results.get(toolCallId);
   const item: ActivityItem = {
     id: toolCallId,
     title: title ?? previous?.title ?? (actionId ? actionLabel(actionId) : defaultLabel),
     status: status ?? (event.kind === "assistant_tool_finished" ? "completed" : previous?.status ?? "in_progress"),
     detail: detail == null ? previous?.detail : detail,
-    result: results.get(toolCallId)?.value,
-    resultName: results.get(toolCallId)?.name,
+    result: result?.value,
+    ...(result && { resultName: result.name }),
   };
   if (index === undefined) {
     state.positions.set(toolCallId, state.items.length);
