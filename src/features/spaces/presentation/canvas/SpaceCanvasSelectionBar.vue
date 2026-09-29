@@ -18,8 +18,11 @@ import SpaceCanvasNodeActionBar from "./SpaceCanvasNodeActionBar.vue";
 import SpaceCanvasSelectionMenu from "./SpaceCanvasSelectionMenu.vue";
 import { useCanvasSelectionActions } from "./use-canvas-selection-actions";
 
-defineProps<{ derivations: CreationIntentDecisions; availableWidth: number }>();
-const emit = defineEmits<{ invokeDerivation: [actionId: CreationIntentId] }>();
+defineProps<{ derivations: CreationIntentDecisions; availableWidth: number; angleNodeId?: string }>();
+const emit = defineEmits<{
+  invokeDerivation: [actionId: CreationIntentId];
+  "update:angleNodeId": [nodeId: string | undefined];
+}>();
 const actions = useCanvasSelectionActions();
 const { t } = useI18n();
 const singleNode = computed(() => {
@@ -38,6 +41,8 @@ const singleSection = computed(
     :derivations="derivations"
     :node="actions.selectedImageNode.value"
     :available-width="availableWidth"
+    :angle-open="angleNodeId === actions.selectedImageNode.value.id"
+    @update:angle-open="emit('update:angleNodeId', $event ? singleNode?.id : undefined)"
     @invoke-derivation="emit('invokeDerivation', $event)"
   />
   <SpaceCanvasNodeActionBar

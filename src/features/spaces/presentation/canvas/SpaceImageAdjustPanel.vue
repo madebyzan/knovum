@@ -55,7 +55,7 @@ function syncActive() {
 </script>
 
 <template>
-  <section class="w-60 text-fg-primary" :aria-label="t('spaces.media.imageEditor.adjust.title')">
+  <section class="flex h-104 w-60 flex-col text-fg-primary" :aria-label="t('spaces.media.imageEditor.adjust.title')">
     <header class="flex items-center justify-between px-1 pb-2">
       <h3 class="text-title-sm font-semibold">{{ t("spaces.media.imageEditor.adjust.title") }}</h3>
       <div class="flex items-center gap-1">
@@ -94,7 +94,7 @@ function syncActive() {
         <component :is="group.icon" class="size-3.5" :stroke-width="1.6" />
       </button>
     </nav>
-    <UiScrollArea ref="list" class="h-80" @scroll="syncActive">
+    <UiScrollArea ref="list" class="min-h-0 flex-1" @scroll="syncActive">
       <div class="pr-3 pl-1">
         <section
           v-for="group in imageAdjustmentGroups"

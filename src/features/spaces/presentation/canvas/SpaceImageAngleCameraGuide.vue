@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Camera } from "@lucide/vue";
 import { range } from "es-toolkit";
 import { computed } from "vue";
 
@@ -30,6 +29,7 @@ const cameraStyle = computed(() => ({
   left: `${orbit.value.x}%`,
   top: `${orbit.value.y}%`,
   scale: `${0.85 + orbit.value.depth * 0.2}`,
+  zIndex: orbit.value.depth >= 0 ? 2 : 0,
 }));
 const globeStyle = computed(() => ({
   transform: `rotateX(${12 - props.pitch * 0.45}deg) rotateY(${-12 - props.yaw * 0.45}deg)`,
@@ -63,19 +63,25 @@ const gazeStyle = computed(() => ({
         :style="{ transform: `rotateX(${ring}deg)` }"
       />
     </div>
-    <svg class="absolute inset-0 size-full text-fg-tertiary" viewBox="0 0 100 100" aria-hidden="true">
-      <line
-        x1="50"
-        y1="50"
-        :x2="orbit.x"
-        :y2="orbit.y"
-        stroke="currentColor"
-        stroke-width="0.65"
-        stroke-dasharray="2 2"
-      />
-    </svg>
     <div
-      class="absolute top-1/2 left-1/2 size-16 -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-md border border-stroke-default bg-surface-raised shadow-control transition-transform duration-150 ease-standard motion-reduce:transition-none"
+      class="absolute size-12 -translate-x-1/2 -translate-y-1/2 transition-[left,top,scale] duration-150 ease-standard motion-reduce:transition-none"
+      :style="cameraStyle"
+    >
+      <div
+        class="absolute inset-x-0 top-1 h-9 rounded-md border border-neutral-950/70 bg-neutral-800 shadow-control"
+      >
+        <span class="absolute -top-1 left-4 h-1.5 w-4 rounded-t-sm bg-neutral-800" />
+        <span class="absolute -right-0.5 top-1.5 h-6 w-1 rounded-r-sm bg-neutral-900" />
+        <span class="absolute top-0.5 right-1.5 size-1 rounded-full bg-neutral-500" />
+        <div class="absolute inset-y-1 left-1 w-8 overflow-hidden rounded-sm border border-neutral-600 bg-neutral-100">
+          <SpaceImageEditedThumbnail :path="path" :revision="revision" :edit="edit" />
+        </div>
+        <span class="absolute top-3 right-1 size-1 rounded-full border border-neutral-400" />
+        <span class="absolute right-1 bottom-2 size-1 rounded-full bg-neutral-500" />
+      </div>
+    </div>
+    <div
+      class="absolute top-1/2 left-1/2 z-1 size-18 -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-md border border-stroke-strong bg-surface-raised p-0.5 shadow-control transition-transform duration-150 ease-standard motion-reduce:transition-none"
       :style="subjectStyle"
     >
       <SpaceImageEditedThumbnail :path="path" :revision="revision" :edit="edit" />
@@ -83,28 +89,6 @@ const gazeStyle = computed(() => ({
         class="absolute size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border border-stroke-on-image bg-(--color-content-purple) shadow-control transition-[top,left] duration-150 ease-standard motion-reduce:transition-none"
         :style="gazeStyle"
       />
-    </div>
-    <div
-      class="absolute size-10 -translate-x-1/2 -translate-y-1/2 transition-[top,left,scale] duration-150 ease-standard [perspective:100px] motion-reduce:transition-none"
-      :style="cameraStyle"
-    >
-      <div
-        class="relative size-full [transform:rotateX(-22deg)_rotateY(-28deg)] [transform-style:preserve-3d]"
-      >
-        <div
-          class="absolute inset-0 [transform:translateZ(20px)] overflow-hidden rounded-md border border-stroke-strong bg-surface-raised"
-        >
-          <SpaceImageEditedThumbnail :path="path" :revision="revision" :edit="edit" />
-        </div>
-        <div
-          class="absolute inset-0 grid [transform:rotateY(90deg)_translateZ(20px)] place-items-center rounded-md border border-stroke-strong bg-surface-raised"
-        >
-          <Camera class="size-3 text-fg-secondary" :stroke-width="1.4" />
-        </div>
-        <div
-          class="absolute inset-0 [transform:rotateX(90deg)_translateZ(20px)] rounded-md border border-stroke-strong bg-surface-raised"
-        />
-      </div>
     </div>
   </div>
 </template>

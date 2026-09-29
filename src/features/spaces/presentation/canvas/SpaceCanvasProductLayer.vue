@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { Star } from "@lucide/vue";
-import { computed, shallowRef } from "vue";
+import { computed, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
-
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import { useCanvasToolStore } from "../../canvas/canvas-tool-store";
 import { useCanvasEditorSession, useCanvasSelectionProjection } from "../../canvas/editor-session";
@@ -25,7 +24,6 @@ import SpaceCanvasToolbar from "./SpaceCanvasToolbar.vue";
 import SpaceCanvasViewControls from "./SpaceCanvasViewControls.vue";
 import SpaceCanvasWorkflowPanel from "./SpaceCanvasWorkflowPanel.vue";
 import { useCanvasChromeRects } from "./use-canvas-chrome-rects";
-
 defineProps<{
   canvasToViewportPoint(point: { x: number; y: number }): { x: number; y: number };
   captures: readonly SpaceUrlCaptureProjection[];
@@ -41,9 +39,11 @@ const { t } = useI18n();
 const editorSession = useCanvasEditorSession();
 const nodeOperations = useNodeOperationGate();
 const imageEdit = useImageEditSession();
+const angleNodeId = shallowRef<string>();
 const selectionSurfaceKind = computed(() => {
   const tool = imageEdit.active?.tool;
   if (tool === "adjust" || tool === "crop") return "inspector";
+  if (angleNodeId.value) return "inspector";
   return tool ? "compact-editor" : "actions";
 });
 const showSelectionActions = computed(() => {
@@ -66,17 +66,15 @@ const selectionKey = computed(() => {
   const { nodeIds, structureNodeIds, relationIds } = editorSession.selection.value;
   return [...nodeIds, ...structureNodeIds, ...relationIds].join("|");
 });
+watch([selectionKey, () => imageEdit.active?.tool, () => store.workflowMode], () => (angleNodeId.value = undefined));
 const singleCanvasObjectSelected = computed(
   () =>
-    editorSession.selection.value.nodeIds.length + editorSession.selection.value.structureNodeIds.length ===
-    1,
+    editorSession.selection.value.nodeIds.length + editorSession.selection.value.structureNodeIds.length === 1,
 );
-const selectionBarGap = computed(() => {
-  const node = selectedNodes.value.length === 1 ? selectedNodes.value[0] : undefined;
-  return canvasSelectionGap(node);
-});
+const selectionBarGap = computed(() =>
+  canvasSelectionGap(selectedNodes.value.length === 1 ? selectedNodes.value[0] : undefined),
+);
 </script>
-
 <template>
   <div ref="chromeRoot" class="pointer-events-none absolute inset-0 z-30 overflow-hidden">
     <div ref="topChrome" class="pointer-events-auto absolute top-4 left-1/2 -translate-x-1/2">
@@ -129,7 +127,7 @@ const selectionBarGap = computed(() => {
       :reserved="chromeRects"
       :selection-key="selectionKey"
       :kind="selectionSurfaceKind"
-      :gap="imageEdit.active ? 12 : singleCanvasObjectSelected ? selectionBarGap : 34"
+      :gap="imageEdit.active || angleNodeId ? 12 : singleCanvasObjectSelected ? selectionBarGap : 34"
       v-slot="{ availableWidth }"
     >
       <SpaceCanvasRelationBar v-if="editorSession.selection.value.relationIds.length === 1" />
@@ -140,6 +138,8 @@ const selectionBarGap = computed(() => {
         "
         :derivations="derivations.decisions.value"
         :available-width="availableWidth"
+        :angle-node-id="angleNodeId"
+        @update:angle-node-id="angleNodeId = $event"
         @invoke-derivation="derivations.run"
       />
     </SpaceCanvasSelectionAnchor>

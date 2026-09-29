@@ -53,7 +53,7 @@ function changeZoom(delta: number) {
 </script>
 
 <template>
-  <section class="w-72 space-y-3 text-fg-primary" :aria-label="t('spaces.media.imageEditor.angle.title')">
+  <section class="w-72 space-y-2.5 text-fg-primary" :aria-label="t('spaces.media.imageEditor.angle.title')">
     <header class="flex items-center justify-between px-1">
       <h3 class="text-title-sm font-semibold">{{ t("spaces.media.imageEditor.angle.title") }}</h3>
       <UiButton
