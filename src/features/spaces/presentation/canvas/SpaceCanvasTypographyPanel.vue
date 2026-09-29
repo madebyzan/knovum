@@ -53,7 +53,6 @@ const verticalOptions = [
     side="top"
     align="center"
     :side-offset="6"
-    :trigger-tooltip="compact ? t('spaces.canvas.typography') : undefined"
     class="p-0.5"
   >
     <template #trigger>
@@ -61,6 +60,7 @@ const verticalOptions = [
         type="button"
         class="inline-flex h-(--knovum-control-height-md) min-w-8 items-center justify-center gap-1.5 rounded-md px-2.5 text-label font-medium text-fg-secondary transition-colors duration-100 outline-none hover:bg-surface-control-hover hover:text-fg-primary focus-visible:ring-2 focus-visible:ring-stroke-focus"
         :aria-label="t('spaces.canvas.typography')"
+        :title="compact ? t('spaces.canvas.typography') : undefined"
       >
         Aa
         <span :class="[nodeActionLabelClass, nodeActionLabelState(compact)]">{{

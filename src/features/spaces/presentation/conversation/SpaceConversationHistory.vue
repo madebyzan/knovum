@@ -59,7 +59,11 @@ function toggleArchived() {
 <template>
   <UiPopover v-model:open="open" side="bottom" align="end" class="w-80 max-w-[calc(100vw-24px)] p-0">
     <template #trigger>
-      <UiIconButton :label="$t('spaces.assistant.conversations.history')" tooltip size="sm">
+      <UiIconButton
+        :label="$t('spaces.assistant.conversations.history')"
+        :title="$t('spaces.assistant.conversations.history')"
+        size="sm"
+      >
         <History class="size-3.5" />
       </UiIconButton>
     </template>

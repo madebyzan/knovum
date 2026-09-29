@@ -79,7 +79,6 @@ function openAiSettings() {
 <template>
   <UiPopover
     :open="open"
-    :trigger-tooltip="compact ? t('spaces.media.imageEditor.layers.title') : undefined"
     side="bottom"
     align="center"
     :class="custom ? 'w-72 p-3 shadow-popover' : 'w-52 p-1.5'"
@@ -92,6 +91,7 @@ function openAiSettings() {
           :class="CANVAS_ACTION_BUTTON_CLASSES"
           :disabled="busy"
           :aria-label="t('spaces.media.imageEditor.layers.title')"
+          :title="compact ? t('spaces.media.imageEditor.layers.title') : undefined"
         >
           <Layers3 class="size-4.5" :stroke-width="1.6" />
           <span :class="[nodeActionLabelClass, nodeActionLabelState(Boolean(compact))]">{{

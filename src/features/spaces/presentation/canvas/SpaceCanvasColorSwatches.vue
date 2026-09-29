@@ -30,7 +30,6 @@ const selectedColor = computed(() => props.options.find(({ value }) => value ===
     side="top"
     align="center"
     :side-offset="5"
-    :trigger-tooltip="labeled && compact ? label : undefined"
     class="p-0.5"
   >
     <template #trigger>
@@ -40,6 +39,7 @@ const selectedColor = computed(() => props.options.find(({ value }) => value ===
         size="sm"
         class="h-(--knovum-control-height-md) shadow-none"
         :aria-label="label"
+        :title="compact ? label : undefined"
       >
         <span
           class="size-3.5 rounded-full ring-1 ring-stroke-default"

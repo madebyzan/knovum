@@ -108,7 +108,12 @@ async function duplicateScene(scene: SpaceScene) {
     <UiPopover v-model:open="open" side="top" align="center" :side-offset="6" class="p-0">
       <template #trigger>
         <ToolbarButton as-child>
-          <UiIconButton :label="t('spaces.scenes.title')" tooltip size="sm" class="size-5 rounded-sm">
+          <UiIconButton
+            :label="t('spaces.scenes.title')"
+            :title="t('spaces.scenes.title')"
+            size="sm"
+            class="size-5 rounded-sm"
+          >
             <List class="size-3" :stroke-width="1.55" />
           </UiIconButton>
         </ToolbarButton>
