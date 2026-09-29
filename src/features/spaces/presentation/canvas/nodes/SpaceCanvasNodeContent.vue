@@ -7,6 +7,7 @@ import { canvasNodePresentationContext, type CanvasPreviewPolicy } from "../../.
 import type { CanvasNodeLayoutV1 } from "../../../canvas/schema/document";
 import { useImageCommentSession } from "../../../comments/image-comment-session";
 import { useImageEditSession } from "../../../image-editing/image-edit-session";
+import { useImageRemovalSession } from "../../../knowledge-derivations/image-removal-session";
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import { canvasTextPresentation } from "./canvas-text-appearance";
 import { spaceCanvasNodePresentation } from "./space-canvas-node-presentation";
@@ -30,6 +31,7 @@ const props = defineProps<{
   fitContentHeight: (id: string, measurement: CanvasContentHeightMeasurement) => void;
 }>();
 const imageEditSession = useImageEditSession();
+const imageRemovalSession = useImageRemovalSession();
 const imageComments = useImageCommentSession();
 const contentInteractive = computed(() => {
   const active = imageEditSession.active;
@@ -37,7 +39,8 @@ const contentInteractive = computed(() => {
     props.interactive ||
     (props.node.data.kind === "image" &&
       (imageComments.activeNodeId === props.node.id ||
-        (active?.nodeId === props.node.id && (active.tool === "eraser" || active.tool === "crop"))))
+        (active?.nodeId === props.node.id && active.tool === "crop") ||
+        imageRemovalSession.active?.nodeId === props.node.id))
   );
 });
 const presentation = computed(() => spaceCanvasNodePresentation(props.node.data));
@@ -137,6 +140,7 @@ const textPresentation = computed(() =>
         :data="node.data"
         :presentation-context="presentationContext"
         :interactive="contentInteractive"
+        :frame-rotation="layout.frame.rotation"
       />
       <div
         v-if="visualOnly"

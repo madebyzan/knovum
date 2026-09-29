@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, shallowRef, useTemplateRef, type CSSProperties } from "vue";
 
+import { viewportToLocalPoint } from "../../../canvas/viewport-to-local-point";
 import {
   cropFromPointer,
   drawCropFromPointer,
@@ -9,20 +10,22 @@ import {
   type CropDrawOrigin,
 } from "../../../image-editing/crop-geometry";
 import type { ImageCrop } from "../../../image-editing/image-edit";
-
 interface ImageRect {
   left: number;
   top: number;
   width: number;
   height: number;
 }
-
-const props = defineProps<{ crop: ImageCrop; imageRect: ImageRect; lockedAspect?: number }>();
+const props = defineProps<{
+  crop: ImageCrop;
+  imageRect: ImageRect;
+  lockedAspect?: number;
+  frameRotation: number;
+}>();
 const emit = defineEmits<{ update: [crop: ImageCrop] }>();
 const root = useTemplateRef<HTMLDivElement>("root");
 type PointerDrag = { kind: "handle"; origin: CropDragOrigin } | { kind: "draw"; origin: CropDrawOrigin };
 const drag = shallowRef<PointerDrag>();
-
 const handles: ReadonlyArray<{ handle: Exclude<CropDragHandle, "move">; className: string }> = [
   { handle: "nw", className: "top-0 left-0 -translate-x-1/2 -translate-y-1/2 cursor-nwse-resize" },
   { handle: "n", className: "top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 cursor-ns-resize" },
@@ -33,7 +36,6 @@ const handles: ReadonlyArray<{ handle: Exclude<CropDragHandle, "move">; classNam
   { handle: "sw", className: "bottom-0 left-0 -translate-x-1/2 translate-y-1/2 cursor-nesw-resize" },
   { handle: "w", className: "top-1/2 left-0 -translate-x-1/2 -translate-y-1/2 cursor-ew-resize" },
 ];
-
 const rootStyle = computed<CSSProperties>(() => ({
   left: `${props.imageRect.left}px`,
   top: `${props.imageRect.top}px`,
@@ -52,48 +54,45 @@ const shadeStyles = computed<CSSProperties[]>(() => {
   return [
     { inset: `0 0 auto 0`, height: `${props.crop.y * 100}%` },
     {
-      left: 0,
-      top: `${props.crop.y * 100}%`,
+      inset: `${props.crop.y * 100}% auto auto 0`,
       width: `${props.crop.x * 100}%`,
       height: `${props.crop.height * 100}%`,
     },
     {
-      right: 0,
-      top: `${props.crop.y * 100}%`,
+      inset: `${props.crop.y * 100}% 0 auto auto`,
       width: `${(1 - right) * 100}%`,
       height: `${props.crop.height * 100}%`,
     },
     { inset: `${bottom * 100}% 0 0 0` },
   ];
 });
-
 function begin(handle: CropDragHandle, event: PointerEvent) {
-  const bounds = root.value!.getBoundingClientRect();
+  const point = localPoint(event);
   (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
   drag.value = {
     kind: "handle",
     origin: {
       handle,
       crop: props.crop,
-      clientX: event.clientX,
-      clientY: event.clientY,
-      viewportWidth: bounds.width,
-      viewportHeight: bounds.height,
+      clientX: point.x,
+      clientY: point.y,
+      viewportWidth: root.value!.offsetWidth,
+      viewportHeight: root.value!.offsetHeight,
       lockedAspect: props.lockedAspect,
     },
   };
 }
 
 function beginDraw(event: PointerEvent) {
-  const bounds = root.value!.getBoundingClientRect();
+  const point = localPoint(event);
   (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
   drag.value = {
     kind: "draw",
     origin: {
-      x: (event.clientX - bounds.left) / bounds.width,
-      y: (event.clientY - bounds.top) / bounds.height,
-      viewportWidth: bounds.width,
-      viewportHeight: bounds.height,
+      x: point.x / root.value!.offsetWidth,
+      y: point.y / root.value!.offsetHeight,
+      viewportWidth: root.value!.offsetWidth,
+      viewportHeight: root.value!.offsetHeight,
       lockedAspect: props.lockedAspect,
     },
   };
@@ -107,17 +106,21 @@ function beginInterior(event: PointerEvent) {
 function update(event: PointerEvent) {
   const current = drag.value;
   if (!current) return;
+  const point = localPoint(event);
   if (current.kind === "handle") {
-    emit("update", cropFromPointer(current.origin, event.clientX, event.clientY));
+    emit("update", cropFromPointer(current.origin, point.x, point.y));
     return;
   }
-  const bounds = root.value!.getBoundingClientRect();
   const crop = drawCropFromPointer(
     current.origin,
-    (event.clientX - bounds.left) / bounds.width,
-    (event.clientY - bounds.top) / bounds.height,
+    point.x / root.value!.offsetWidth,
+    point.y / root.value!.offsetHeight,
   );
   if (crop) emit("update", crop);
+}
+
+function localPoint(event: PointerEvent) {
+  return viewportToLocalPoint(root.value!, event.clientX, event.clientY, props.frameRotation);
 }
 
 function finish() {
@@ -168,7 +171,9 @@ function complete(event: PointerEvent) {
         @pointerup.stop="complete"
         @pointercancel="finish"
       >
-        <span class="pointer-events-none absolute inset-1 rounded-full border border-stroke-strong bg-surface-raised shadow-control" />
+        <span
+          class="pointer-events-none absolute inset-1 rounded-full border border-stroke-strong bg-surface-raised shadow-control"
+        />
       </span>
     </div>
   </div>

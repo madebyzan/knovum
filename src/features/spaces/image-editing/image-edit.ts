@@ -8,7 +8,7 @@ export type ImageCrop = ImageEdit["crop"];
 
 export function defaultImageEdit(): ImageEdit {
   return {
-    version: 5,
+    version: 6,
     crop: { x: 0, y: 0, width: 1, height: 1 },
     rotation: 0,
     flipHorizontal: false,
@@ -31,7 +31,6 @@ export function defaultImageEdit(): ImageEdit {
       softLight: 0,
       glow: 0,
     },
-    eraserStrokes: [],
   };
 }
 

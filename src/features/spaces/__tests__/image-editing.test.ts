@@ -14,16 +14,27 @@ describe("canvas image editing", () => {
     expect(nextQuarterTurn(270)).toBe(0);
   });
 
-  it("validates normalized eraser strokes and crop bounds", () => {
+  it("keeps derived mask strokes out of original-image edits", () => {
     const edit = defaultImageEdit();
-    const data = validateSpaceNodePayload({
-      kind: "image",
-      title: "Image",
-      fileName: "image.png",
-      assetPath: "/managed/image.png",
-      imageEdit: { ...edit, eraserStrokes: [{ diameter: 0.05, points: [0.1, 0.2, 0.3, 0.4] }] },
-    });
-    expect(data.kind === "image" && data.imageEdit?.eraserStrokes).toHaveLength(1);
+    expect(edit.version).toBe(6);
+    expect(() =>
+      validateSpaceNodePayload({
+        kind: "image",
+        title: "Image",
+        fileName: "image.png",
+        assetPath: "/managed/image.png",
+        imageEdit: { ...edit, eraserStrokes: [] },
+      }),
+    ).toThrow();
+    expect(() =>
+      validateSpaceNodePayload({
+        kind: "image",
+        title: "Image",
+        fileName: "image.png",
+        assetPath: "/managed/image.png",
+        imageEdit: { ...edit, version: 5 },
+      }),
+    ).toThrow();
     expect(() =>
       validateSpaceNodePayload({
         kind: "image",

@@ -6,7 +6,6 @@ import { toast } from "vue-sonner";
 import { canRunAction } from "../../../../shared/contracts/action-availability";
 import { useNodeOperationGate } from "../../canvas/node-operation-gate";
 import { imageEditOf, rotatedImageSize } from "../../image-editing/image-edit";
-import { useImageEditSession } from "../../image-editing/image-edit-session";
 import { useImageOperationCapabilities } from "../../knowledge-derivations/image-capabilities";
 import { deriveImage, type ImageOperation } from "../../knowledge-derivations/image-operation";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
@@ -14,6 +13,7 @@ import type { SpaceImagePayload } from "../../model/nodes/node-payload";
 import { useSpaceStore } from "../../session/space-store";
 import { imageActionAvailability, upscaleAvailability } from "./image-action-availability";
 import { imageActionHelp } from "./image-action-help";
+import { useImageSourceDimensions } from "./image-source-dimensions";
 
 export function useImageGenerateActions(
   node: Readonly<Ref<SpaceCanvasNode<SpaceImagePayload>>>,
@@ -24,12 +24,12 @@ export function useImageGenerateActions(
   const { t } = useI18n();
   const router = useRouter();
   const store = useSpaceStore();
-  const session = useImageEditSession();
+  const imageDimensions = useImageSourceDimensions();
   const nodeOperations = useNodeOperationGate();
   const capabilities = useImageOperationCapabilities(open);
   const busy = shallowRef(false);
   const dimensions = computed(() => {
-    const loaded = session.dimensionsFor(node.value.id);
+    const loaded = imageDimensions.forNode(node.value.id, node.value.data.sourceRevision);
     const width = node.value.data.intrinsicWidth ?? loaded?.width;
     const height = node.value.data.intrinsicHeight ?? loaded?.height;
     if (!width || !height) return undefined;

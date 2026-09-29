@@ -3,23 +3,35 @@ use image::{ImageReader, Limits};
 use std::io::Cursor;
 
 pub struct SourceImage {
-    pub data_uri: String,
+    pub bytes: Vec<u8>,
     pub width: u32,
     pub height: u32,
+    mime_type: &'static str,
 }
 
-pub fn encode_canonical(output: crate::images::EditedImageOutput) -> Result<SourceImage, String> {
+impl SourceImage {
+    pub fn data_uri(&self) -> String {
+        format!(
+            "data:{};base64,{}",
+            self.mime_type,
+            STANDARD.encode(&self.bytes)
+        )
+    }
+}
+
+pub fn from_rendered(output: crate::images::EditedImageOutput) -> Result<SourceImage, String> {
     if output.png.is_empty() || output.png.len() > 10 * 1024 * 1024 {
         return Err("Image operation source exceeds the 10 MB provider limit".into());
     }
     Ok(SourceImage {
-        data_uri: format!("data:image/png;base64,{}", STANDARD.encode(output.png)),
+        bytes: output.png,
         width: output.width,
         height: output.height,
+        mime_type: "image/png",
     })
 }
 
-pub fn encode_any(bytes: &[u8]) -> Result<SourceImage, String> {
+pub fn from_generated(bytes: &[u8]) -> Result<SourceImage, String> {
     if bytes.len() > 10 * 1024 * 1024 {
         return Err("Generated intermediate image exceeds the 10 MB provider limit".into());
     }
@@ -42,8 +54,9 @@ pub fn encode_any(bytes: &[u8]) -> Result<SourceImage, String> {
         return Err("Generated image exceeds the pixel limit".into());
     }
     Ok(SourceImage {
-        data_uri: format!("data:{mime};base64,{}", STANDARD.encode(bytes)),
+        bytes: bytes.to_vec(),
         width: image.width(),
         height: image.height(),
+        mime_type: mime,
     })
 }

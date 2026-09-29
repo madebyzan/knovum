@@ -1,9 +1,12 @@
 pub(crate) mod contracts;
+mod mask;
 mod output;
 mod output_file;
 mod persistence;
 mod provider;
+mod routing;
 mod source;
+mod upscale;
 mod validation;
 
 use tauri::{ipc::Channel, AppHandle};
@@ -20,28 +23,51 @@ use crate::{
 
 pub async fn capabilities(app: &AppHandle) -> ImageOperationCapabilities {
     use contracts::{ImageOperationBlockReason as Reason, ImageOperationCapability as Capability};
-    let configured = match resolve_target(app) {
-        Err(_) => Capability::Blocked {
-            reason: Reason::ConfigurationIncomplete,
-        },
-        Ok(target) if target.provider() != "qwen" => Capability::Blocked {
-            reason: Reason::ProviderUnsupported,
-        },
-        Ok(target) => match crate::ai::transport::SecurityContext::from_target(&target).await {
-            Ok(_) => Capability::Ready,
-            Err(error) if error.code == crate::ai::error::AiErrorCode::NotConfigured => {
-                Capability::Blocked {
-                    reason: Reason::ConfigurationIncomplete,
-                }
+    let target = match resolve_target(app) {
+        Ok(target) => target,
+        Err(_) => {
+            return ImageOperationCapabilities::all(Capability::Blocked {
+                reason: Reason::ConfigurationIncomplete,
+            })
+        }
+    };
+    let operations = routing::supported_operations(routing::backend(&target));
+    let configured = match crate::ai::transport::SecurityContext::from_target(&target).await {
+        Ok(_) => Capability::Ready,
+        Err(error) if error.code == crate::ai::error::AiErrorCode::NotConfigured => {
+            Capability::Blocked {
+                reason: Reason::ConfigurationIncomplete,
             }
-            Err(_) => Capability::Blocked {
-                reason: Reason::CredentialUnavailable,
-            },
+        }
+        Err(_) => Capability::Blocked {
+            reason: Reason::CredentialUnavailable,
         },
     };
+    let supported = |enabled| {
+        if enabled {
+            configured
+        } else {
+            Capability::Blocked {
+                reason: Reason::ProviderUnsupported,
+            }
+        }
+    };
     ImageOperationCapabilities {
-        upscale: configured,
-        multi_angle: configured,
+        upscale: supported(operations.upscale),
+        multi_angle: supported(operations.multi_angle),
+        masked_removal: supported(operations.masked_removal),
+        prompt_removal: supported(operations.prompt_removal),
+    }
+}
+
+impl ImageOperationCapabilities {
+    fn all(capability: contracts::ImageOperationCapability) -> Self {
+        Self {
+            upscale: capability,
+            multi_angle: capability,
+            masked_removal: capability,
+            prompt_removal: capability,
+        }
     }
 }
 
@@ -54,11 +80,20 @@ pub async fn derive(
         Ok(value) => value,
         Err(error) => return fail_pending(&app, &request, error).await,
     };
+    let backend = routing::backend(&target);
+    if !routing::supported_operations(backend).allows(&request.operation) {
+        return fail_pending(
+            &app,
+            &request,
+            "Configured image model does not support this image operation".into(),
+        )
+        .await;
+    }
     let (cancellation, _lease) = match crate::ai::executions::acquire(request.id.clone()) {
         Ok(value) => value,
         Err(error) => return fail_pending(&app, &request, error.to_string()).await,
     };
-    if let Err(error) = persistence::start(&app, &request).await {
+    if let Err(error) = persistence::start(&app, &request, &target).await {
         return fail_pending(&app, &request, error).await;
     }
     if let Err(error) = super::stage(&stages, "renderingSource") {
@@ -82,7 +117,7 @@ pub async fn derive(
     })
     .await;
     let source = match rendered {
-        Ok(value) => match crate::blocking::run(move || source::encode_canonical(value)).await {
+        Ok(value) => match crate::blocking::run(move || source::from_rendered(value)).await {
             Ok(source) => source,
             Err(error) => return fail_running(&app, &request, error).await,
         },
@@ -91,7 +126,8 @@ pub async fn derive(
     if let Err(error) = super::stage(&stages, "processing") {
         return fail_running(&app, &request, error).await;
     }
-    let generated = provider::execute(&target, &request.operation, &source, &cancellation).await;
+    let generated =
+        provider::execute(&target, backend, &request.operation, &source, &cancellation).await;
     let edited_image = match generated {
         Ok(generated) => {
             let target = request.operation.target_long_edge();

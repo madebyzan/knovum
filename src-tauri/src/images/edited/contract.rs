@@ -10,7 +10,6 @@ pub(super) struct ImageEdit {
     pub flip_horizontal: bool,
     pub flip_vertical: bool,
     pub adjustments: Adjustments,
-    pub eraser_strokes: Vec<EraserStroke>,
 }
 
 #[derive(Clone, Deserialize)]
@@ -43,13 +42,6 @@ pub(super) struct Adjustments {
     pub glow: f64,
 }
 
-#[derive(Clone, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub(super) struct EraserStroke {
-    pub diameter: f64,
-    pub points: Vec<f64>,
-}
-
 impl ImageEdit {
     pub(super) fn parse(value: &Value) -> Result<Self, String> {
         if value.is_null() {
@@ -63,7 +55,7 @@ impl ImageEdit {
 
     fn identity() -> Self {
         Self {
-            version: 5,
+            version: 6,
             crop: Crop {
                 x: 0.0,
                 y: 0.0,
@@ -91,13 +83,12 @@ impl ImageEdit {
                 soft_light: 0.0,
                 glow: 0.0,
             },
-            eraser_strokes: Vec::new(),
         }
     }
 
     fn validate(&self) -> Result<(), String> {
-        if self.version != 5 {
-            return Err("imageEdit.version must be 5".into());
+        if self.version != 6 {
+            return Err("imageEdit.version must be 6".into());
         }
         finite_range(self.crop.x, 0.0, 1.0, "imageEdit.crop.x")?;
         finite_range(self.crop.y, 0.0, 1.0, "imageEdit.crop.y")?;
@@ -124,22 +115,6 @@ impl ImageEdit {
                 -100.0
             };
             finite_range(value, min, 100.0, name)?;
-        }
-        if self.eraser_strokes.len() > 500 {
-            return Err("imageEdit.eraserStrokes exceeds 500 entries".into());
-        }
-        for stroke in &self.eraser_strokes {
-            finite_range(stroke.diameter, 0.0, 0.5, "imageEdit.eraserStroke.diameter")?;
-            if stroke.diameter == 0.0 {
-                return Err("imageEdit.eraserStroke.diameter must be positive".into());
-            }
-            if stroke.points.len() < 4 || stroke.points.len() > 4096 || stroke.points.len() % 2 != 0
-            {
-                return Err("imageEdit.eraserStroke.points length is invalid".into());
-            }
-            for point in &stroke.points {
-                finite_range(*point, 0.0, 1.0, "imageEdit.eraserStroke.points")?;
-            }
         }
         Ok(())
     }
@@ -173,5 +148,18 @@ fn finite_range(value: f64, min: f64, max: f64, label: &str) -> Result<(), Strin
         Ok(())
     } else {
         Err(format!("{label} must be between {min} and {max}"))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::ImageEdit;
+
+    #[test]
+    fn image_edit_contract_rejects_obsolete_version() {
+        let mut edit = ImageEdit::identity();
+        assert!(edit.validate().is_ok());
+        edit.version = 5;
+        assert_eq!(edit.validate().unwrap_err(), "imageEdit.version must be 6");
     }
 }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Crop, Eraser, RotateCw, SlidersHorizontal } from "@lucide/vue";
+import { Crop, RotateCw, SlidersHorizontal } from "@lucide/vue";
 import { ToolbarButton } from "reka-ui";
 import { useI18n } from "vue-i18n";
 
@@ -21,12 +21,11 @@ const props = withDefaults(
 const emit = defineEmits<{ begin: [tool: ImageEditTool] }>();
 const { t } = useI18n();
 const labels: Record<ImageEditTool, string> = {
-  eraser: "spaces.media.imageEditor.eraser.tool",
   adjust: "spaces.media.imageEditor.adjust.title",
   crop: "spaces.media.imageEditor.crop.title",
   transform: "spaces.media.imageEditor.transform.title",
 };
-const icons = { eraser: Eraser, adjust: SlidersHorizontal, crop: Crop, transform: RotateCw };
+const icons = { adjust: SlidersHorizontal, crop: Crop, transform: RotateCw };
 </script>
 
 <template>

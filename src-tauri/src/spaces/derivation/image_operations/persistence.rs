@@ -10,7 +10,11 @@ use crate::spaces::{
     knowledge::{contracts, indexing::revision},
 };
 
-pub async fn start(app: &AppHandle, request: &DeriveImageRequest) -> Result<(), String> {
+pub async fn start(
+    app: &AppHandle,
+    request: &DeriveImageRequest,
+    target: &crate::ai::models::ExecutionTarget,
+) -> Result<(), String> {
     validation::request(request)?;
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
@@ -49,7 +53,8 @@ pub async fn start(app: &AppHandle, request: &DeriveImageRequest) -> Result<(), 
     let now = crate::clock::unix_time_millis()?;
     sqlx::query("INSERT INTO spaces_knowledge_derivations(id,space_id,output_node_id,action_kind,action_version,engine,status,created_at,updated_at) VALUES($1,$2,$3,$4,1,$5,'running',$6,$6)")
         .bind(&request.id).bind(&request.space_id).bind(&request.output_node_id)
-        .bind(request.operation.action_kind()).bind(request.operation.engine())
+        .bind(request.operation.action_kind())
+        .bind(request.operation.engine(target.provider(), target.model()))
         .bind(now).execute(&mut *tx).await.map_err(db::sql_error)?;
     inputs::insert(
         &mut tx,

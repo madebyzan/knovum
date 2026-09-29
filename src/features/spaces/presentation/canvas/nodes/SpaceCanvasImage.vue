@@ -1,28 +1,36 @@
 <script setup lang="ts">
 import { useResizeObserver } from "@vueuse/core";
-import { computed, shallowRef, useTemplateRef, watch } from "vue";
+import { computed, shallowRef, toRef, useTemplateRef, watch } from "vue";
 
 import {
-  canvasPointToImage,
   displayedImageRect,
   renderEditedImage,
   type ImageCanvasSize,
 } from "../../../image-editing/canvas-image-renderer";
 import { imageEditOf, type ImageEdit } from "../../../image-editing/image-edit";
 import { useImageEditSession } from "../../../image-editing/image-edit-session";
+import { drawRemovalMask } from "../../../knowledge-derivations/image-removal-preview";
+import { useImageRemovalSession } from "../../../knowledge-derivations/image-removal-session";
 import type { SpaceImagePayload } from "../../../model/nodes/node-payload";
 import { versionedMediaSource } from "../../media/media-element-source";
+import { useImageSourceDimensions } from "../image-source-dimensions";
 import SpaceCanvasImageComments from "./SpaceCanvasImageComments.vue";
 import SpaceCanvasImageCropOverlay from "./SpaceCanvasImageCropOverlay.vue";
-import SpaceCanvasImageEraserCursor from "./SpaceCanvasImageEraserCursor.vue";
+import SpaceCanvasImageRemovalCursor from "./SpaceCanvasImageRemovalCursor.vue";
 import SpaceCanvasImageWorkOverlay from "./SpaceCanvasImageWorkOverlay.vue";
 import { useCanvasImageSource } from "./use-canvas-image-source";
-const props = defineProps<{ id: string; data: SpaceImagePayload; interactive: boolean }>();
+import { useImageRemovalStrokes } from "./use-image-removal-strokes";
+const props = defineProps<{
+  id: string;
+  data: SpaceImagePayload;
+  interactive: boolean;
+  frameRotation: number;
+}>();
 const session = useImageEditSession();
+const dimensions = useImageSourceDimensions();
+const removalSession = useImageRemovalSession();
 const canvas = useTemplateRef<HTMLCanvasElement>("canvas");
 const size = shallowRef<ImageCanvasSize>({ width: 1, height: 1, pixelRatio: 1 });
-const draftStroke = shallowRef<number[]>();
-const brushCursor = shallowRef<{ x: number; y: number }>();
 const source = computed(() =>
   props.data.sourceRevision
     ? versionedMediaSource(props.data.previewPath ?? props.data.assetPath, props.data.sourceRevision)
@@ -30,24 +38,21 @@ const source = computed(() =>
 );
 const { image, naturalSize, loadState } = useCanvasImageSource(source, {
   onReady: (loaded) => {
-    session.setImageDimensions(props.id, loaded.naturalWidth, loaded.naturalHeight);
+    if (props.data.sourceRevision)
+      dimensions.set(props.id, props.data.sourceRevision, loaded.naturalWidth, loaded.naturalHeight);
     draw();
   },
   onReset: () => {
+    dimensions.clear(props.id);
     const context = canvas.value?.getContext("2d");
     if (context && canvas.value) context.clearRect(0, 0, canvas.value.width, canvas.value.height);
   },
 });
 const edit = computed(() => session.previewFor(props.id) ?? imageEditOf(props.data));
-const erasing = computed(
-  () => props.interactive && session.active?.nodeId === props.id && session.active.tool === "eraser",
-);
+const removing = computed(() => props.interactive && removalSession.active?.nodeId === props.id);
 const cropping = computed(
   () => props.interactive && session.active?.nodeId === props.id && session.active.tool === "crop",
 );
-watch(erasing, (value) => {
-  if (!value) brushCursor.value = undefined;
-});
 const previewEdit = computed<ImageEdit>(() =>
   cropping.value
     ? {
@@ -60,6 +65,16 @@ const previewEdit = computed<ImageEdit>(() =>
     : edit.value,
 );
 const imageRect = computed(() => displayedImageRect(size.value, naturalSize.value, previewEdit.value));
+const removal = useImageRemovalStrokes({
+  canvas,
+  size,
+  rect: imageRect,
+  enabled: removing,
+  frameRotation: toRef(props, "frameRotation"),
+  session: removalSession,
+  redraw: draw,
+});
+const brushCursor = removal.cursor;
 useResizeObserver(canvas, ([entry]) => {
   const box = entry?.contentRect;
   if (!box) return;
@@ -75,64 +90,22 @@ watch(previewEdit, draw, { deep: true });
 function draw() {
   const context = canvas.value?.getContext("2d", { willReadFrequently: true });
   if (!context || loadState.value !== "ready") return;
-  const next: ImageEdit = draftStroke.value
-    ? {
-        ...edit.value,
-        eraserStrokes: [
-          ...edit.value.eraserStrokes,
-          { diameter: session.brushDiameter, points: draftStroke.value },
-        ],
-      }
-    : previewEdit.value;
-  renderEditedImage(context, image, size.value, next);
+  renderEditedImage(context, image, size.value, previewEdit.value);
+  const rect = imageRect.value;
+  if (removing.value && rect) {
+    const strokes = removalSession.active?.strokes ?? [];
+    drawRemovalMask(
+      context,
+      rect,
+      size.value.pixelRatio,
+      removal.draftStroke.value
+        ? [...strokes, { diameter: removalSession.brushDiameter, points: removal.draftStroke.value }]
+        : strokes,
+    );
+  }
 }
 
-function point(event: PointerEvent) {
-  const bounds = canvas.value!.getBoundingClientRect();
-  return canvasPointToImage(
-    {
-      x: ((event.clientX - bounds.left) * size.value.width) / bounds.width,
-      y: ((event.clientY - bounds.top) * size.value.height) / bounds.height,
-    },
-    image,
-    size.value,
-    edit.value,
-  );
-}
-
-function trackBrush(event: PointerEvent) {
-  const target = canvas.value;
-  if (!target) return;
-  const bounds = target.getBoundingClientRect();
-  brushCursor.value = {
-    x: ((event.clientX - bounds.left) * size.value.width) / bounds.width,
-    y: ((event.clientY - bounds.top) * size.value.height) / bounds.height,
-  };
-}
-
-function beginStroke(event: PointerEvent) {
-  if (!erasing.value) return;
-  const position = point(event);
-  if (!position) return;
-  canvas.value?.setPointerCapture(event.pointerId);
-  draftStroke.value = position;
-  draw();
-}
-
-function extendStroke(event: PointerEvent) {
-  if (!draftStroke.value) return;
-  const position = point(event);
-  if (!position) return;
-  draftStroke.value = [...draftStroke.value, ...position];
-  draw();
-}
-
-function commitStroke() {
-  const points = draftStroke.value;
-  draftStroke.value = undefined;
-  if (!points) return;
-  session.addEraserStroke(points.length === 2 ? [...points, ...points] : points);
-}
+watch(() => removalSession.active?.strokes, draw);
 </script>
 
 <template>
@@ -140,40 +113,37 @@ function commitStroke() {
     <canvas
       ref="canvas"
       class="absolute inset-0 size-full"
-      :class="erasing ? 'nodrag pointer-events-auto cursor-none' : 'pointer-events-none'"
+      :class="removing ? 'nodrag pointer-events-auto cursor-none touch-none' : 'pointer-events-none'"
       :aria-label="data.title"
-      @pointerdown.stop="beginStroke"
-      @pointermove.stop="
-        trackBrush($event);
-        extendStroke($event);
-      "
-      @pointerenter="trackBrush"
-      @pointerleave="brushCursor = undefined"
-      @pointerup.stop="commitStroke"
-      @pointercancel="commitStroke"
+      @pointerdown.stop="removal.begin"
+      @pointermove.stop="removal.move"
+      @pointerenter="removal.move"
+      @pointerleave="removal.leave"
+      @pointerup.stop.prevent="removal.commit"
+      @pointercancel.stop="removal.cancel"
     />
     <SpaceCanvasImageWorkOverlay :id="id" :data="data" :load-state="loadState" :image-rect="imageRect" />
-    <SpaceCanvasImageEraserCursor
-      v-if="erasing"
+    <SpaceCanvasImageRemovalCursor
+      v-if="removing && imageRect"
       v-bind="brushCursor ? { position: brushCursor } : {}"
-      :size="size"
-      :natural-size="naturalSize"
-      :edit="edit"
-      :diameter="session.brushDiameter"
+      :rect="imageRect"
+      :diameter="removalSession.brushDiameter"
     />
     <SpaceCanvasImageCropOverlay
       v-if="cropping && imageRect"
       :crop="edit.crop"
       :image-rect="imageRect"
+      :frame-rotation="frameRotation"
       v-bind="session.cropAspectRatio === undefined ? {} : { lockedAspect: session.cropAspectRatio }"
       @update="(crop) => session.update({ crop })"
     />
     <SpaceCanvasImageComments
-      v-if="imageRect && !cropping && !erasing"
+      v-if="imageRect && !cropping && !removing"
       :id="id"
       :data="data"
       :image-rect="imageRect"
       :interactive="interactive"
+      :frame-rotation="frameRotation"
     />
   </div>
 </template>

@@ -1,7 +1,7 @@
 mod image;
 mod upload;
 
-pub use image::OpenAiImageAdapter;
+pub use image::{edit_mask, OpenAiImageAdapter};
 pub use upload::OpenAiFileUploadAdapter;
 
 use crate::ai::contracts::{

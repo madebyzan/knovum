@@ -19,10 +19,19 @@
     "title": "Flip and rotate",
     "rotationDegrees": "Rotation angle"
   },
-  "eraser": {
-    "tool": "Eraser",
-    "undo": "Undo eraser stroke",
-    "brushSize": "Brush size"
+  "removeObject": {
+    "tool": "AI Remove Object",
+    "undo": "Undo selection stroke",
+    "brushSize": "Selection brush",
+    "instruction": "Paint over the object. AI will complete the background in a new image.",
+    "promptLabel": "Describe what to remove",
+    "promptPlaceholder": "For example: Remove the person on the left and complete the street behind them",
+    "promptHint": "A new image will be generated from the source. Other areas may change.",
+    "generate": "Remove and generate",
+    "submitting": "Creating the derived image task…",
+    "resultSuffix": "object-removed",
+    "sizeLimit": "Image width and height must be 512–4096 pixels",
+    "limitReached": "Selection limit reached. Generate the image or undo a stroke."
   },
   "adjust": {
     "title": "Adjust",

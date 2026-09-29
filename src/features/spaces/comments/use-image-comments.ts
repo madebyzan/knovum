@@ -14,6 +14,7 @@ export interface ImageCommentCanvas {
   data: SpaceImagePayload;
   imageRect: { left: number; top: number; width: number; height: number };
   interactive: boolean;
+  frameRotation: number;
 }
 
 function positionStyle(position: { x: number; y: number }) {
@@ -55,7 +56,7 @@ export function useImageComments(props: ImageCommentCanvas) {
   function placeCenter() {
     if (session.mode === "point") complete({ x: 0.5, y: 0.5 });
   }
-  const gesture = useImageCommentGesture(complete);
+  const gesture = useImageCommentGesture(complete, () => props.frameRotation);
   watch(() => session.mode, gesture.cancel);
   watch(
     adding,

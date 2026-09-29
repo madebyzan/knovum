@@ -6,12 +6,18 @@ import { useI18n } from "vue-i18n";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import SpaceImageRangeSlider from "./SpaceImageRangeSlider.vue";
 
-const props = defineProps<{ diameter: number; canUndo: boolean; canApply: boolean }>();
+const props = defineProps<{
+  diameter: number;
+  canUndo: boolean;
+  canGenerate: boolean;
+  submitting: boolean;
+  hint?: string;
+}>();
 const emit = defineEmits<{
   updateDiameter: [diameter: number];
   undo: [];
   cancel: [];
-  apply: [];
+  generate: [];
 }>();
 const { t } = useI18n();
 const brushSize = computed({
@@ -21,33 +27,42 @@ const brushSize = computed({
 </script>
 
 <template>
-  <section class="w-56 space-y-3 text-fg-primary" :aria-label="t('spaces.media.imageEditor.eraser.tool')">
+  <section
+    class="w-56 space-y-3 text-fg-primary"
+    :aria-label="t('spaces.media.imageEditor.removeObject.tool')"
+  >
     <header class="flex items-center justify-between px-1">
-      <h3 class="text-title-sm font-semibold">{{ t("spaces.media.imageEditor.eraser.tool") }}</h3>
+      <h3 class="text-title-sm font-semibold">{{ t("spaces.media.imageEditor.removeObject.tool") }}</h3>
       <UiButton
         variant="ghost"
         size="sm"
         class="shadow-none"
-        :disabled="!canUndo"
-        :aria-label="t('spaces.media.imageEditor.eraser.undo')"
+        :disabled="!canUndo || submitting"
+        :aria-label="t('spaces.media.imageEditor.removeObject.undo')"
         @click="emit('undo')"
       >
         <Undo2 class="size-3.5" />
       </UiButton>
     </header>
+    <p class="px-1 text-caption text-fg-secondary">
+      {{ t("spaces.media.imageEditor.removeObject.instruction") }}
+    </p>
     <SpaceImageRangeSlider
       minimal
-      :label="t('spaces.media.imageEditor.eraser.brushSize')"
+      :label="t('spaces.media.imageEditor.removeObject.brushSize')"
       :value="brushSize"
       :min="5"
       :max="150"
+      :disabled="submitting"
       @update="brushSize = $event"
     />
+    <p v-if="hint" class="px-1 text-caption text-fg-secondary">{{ hint }}</p>
     <footer class="flex gap-2 border-t border-stroke-divider pt-2">
       <UiButton
         variant="secondary"
         size="sm"
         class="min-w-0 flex-1 border border-stroke-default bg-surface-raised"
+        :disabled="submitting"
         @click="emit('cancel')"
         >{{ t("common.cancel") }}</UiButton
       >
@@ -55,9 +70,9 @@ const brushSize = computed({
         variant="primary"
         size="sm"
         class="min-w-0 flex-1 bg-surface-inverse text-fg-inverse hover:bg-surface-inverse hover:opacity-90"
-        :disabled="!canApply"
-        @click="emit('apply')"
-        >{{ t("spaces.media.imageEditor.applyNow") }}</UiButton
+        :disabled="!canGenerate || submitting"
+        @click="emit('generate')"
+        >{{ t("spaces.media.imageEditor.removeObject.generate") }}</UiButton
       >
     </footer>
   </section>

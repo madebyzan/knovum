@@ -6,23 +6,23 @@ import { defaultImageEdit, imageEditOf } from "../../image-editing/image-edit";
 import { useImageEditSession } from "../../image-editing/image-edit-session";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../../model/nodes/node-payload";
+import { useImageSourceDimensions } from "./image-source-dimensions";
 import SpaceImageAdjustPanel from "./SpaceImageAdjustPanel.vue";
 import SpaceImageCropPanel from "./SpaceImageCropPanel.vue";
-import SpaceImageEraserPanel from "./SpaceImageEraserPanel.vue";
 import SpaceImageTransformPanel from "./SpaceImageTransformPanel.vue";
 
 const props = defineProps<{ node: SpaceCanvasNode<SpaceImagePayload> }>();
 const session = useImageEditSession();
+const imageDimensions = useImageSourceDimensions();
 const panel = useTemplateRef<HTMLElement>("panel");
 const active = computed(() => (session.active?.nodeId === props.node.id ? session.active : undefined));
 const edit = computed(() => active.value?.draft ?? imageEditOf(props.node.data));
 const dimensions = computed(() => {
-  const loaded = session.dimensionsFor(props.node.id);
+  const loaded = imageDimensions.forNode(props.node.id, props.node.data.sourceRevision);
   const width = props.node.data.intrinsicWidth ?? loaded?.width;
   const height = props.node.data.intrinsicHeight ?? loaded?.height;
   return width && height ? { width, height } : undefined;
 });
-
 function apply() {
   void session.apply().catch((error) => toast.error(String(error)));
 }
@@ -69,16 +69,6 @@ watch(
         :locked-aspect="session.cropAspectRatio"
         @update="(crop) => session.update({ crop })"
         @update-locked-aspect="session.setCropAspectRatio"
-        @cancel="session.cancel"
-        @apply="apply"
-      />
-      <SpaceImageEraserPanel
-        v-else-if="active?.tool === 'eraser'"
-        :diameter="session.brushDiameter"
-        :can-undo="edit.eraserStrokes.length > imageEditOf(node.data).eraserStrokes.length"
-        :can-apply="edit.eraserStrokes.length !== imageEditOf(node.data).eraserStrokes.length"
-        @update-diameter="session.setBrushDiameter"
-        @undo="session.undoEraserStroke"
         @cancel="session.cancel"
         @apply="apply"
       />

@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { Star } from "@lucide/vue";
-import { computed, shallowRef, watch } from "vue";
+import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
+
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import { useCanvasToolStore } from "../../canvas/canvas-tool-store";
 import { useCanvasEditorSession, useCanvasSelectionProjection } from "../../canvas/editor-session";
-import { useNodeOperationGate } from "../../canvas/node-operation-gate";
-import { useImageEditSession } from "../../image-editing/image-edit-session";
 import { useSelectionDerivations } from "../../knowledge-derivations/selection/use-selection-derivations";
 import { useSpaceStore } from "../../session/space-store";
 import type { SpaceUrlCaptureProjection } from "../../sources/url-capture-projection";
@@ -24,6 +23,7 @@ import SpaceCanvasToolbar from "./SpaceCanvasToolbar.vue";
 import SpaceCanvasViewControls from "./SpaceCanvasViewControls.vue";
 import SpaceCanvasWorkflowPanel from "./SpaceCanvasWorkflowPanel.vue";
 import { useCanvasChromeRects } from "./use-canvas-chrome-rects";
+import { useSelectionSurfaceState } from "./use-selection-surface-state";
 defineProps<{
   canvasToViewportPoint(point: { x: number; y: number }): { x: number; y: number };
   captures: readonly SpaceUrlCaptureProjection[];
@@ -37,21 +37,12 @@ const store = useSpaceStore();
 const tools = useCanvasToolStore();
 const { t } = useI18n();
 const editorSession = useCanvasEditorSession();
-const nodeOperations = useNodeOperationGate();
-const imageEdit = useImageEditSession();
-const angleNodeId = shallowRef<string>();
-const selectionSurfaceKind = computed(() => {
-  const tool = imageEdit.active?.tool;
-  if (tool === "adjust" || tool === "crop") return "inspector";
-  if (angleNodeId.value) return "inspector";
-  if (nodeOperations.active.value?.kind === "image-comment") return "compact-editor";
-  return tool ? "compact-editor" : "actions";
-});
-const showSelectionActions = computed(() => {
-  if (store.workflowMode) return false;
-  const operation = nodeOperations.active.value;
-  return !operation || operation.kind === "image-edit" || operation.kind === "image-comment";
-});
+const {
+  angleNodeId,
+  selectionKey,
+  kind: selectionSurfaceKind,
+  showActions: showSelectionActions,
+} = useSelectionSurfaceState();
 const scenesCollapsed = shallowRef(false);
 const { selectedNodes } = useCanvasSelectionProjection(() => store.nodes);
 const derivations = useSelectionDerivations({ store, selection: computed(() => selectedNodes.value) });
@@ -62,14 +53,10 @@ const emit = defineEmits<{
 }>();
 const canvasChromeInsets = { top: 8, right: 16, bottom: 8, left: 16 } as const;
 const { chromeRects } = useCanvasChromeRects();
-const selectionKey = computed(() => {
-  const { nodeIds, structureNodeIds, relationIds } = editorSession.selection.value;
-  return [...nodeIds, ...structureNodeIds, ...relationIds].join("|");
-});
-watch([selectionKey, () => imageEdit.active?.tool, () => store.workflowMode], () => (angleNodeId.value = undefined));
 const singleCanvasObjectSelected = computed(
   () =>
-    editorSession.selection.value.nodeIds.length + editorSession.selection.value.structureNodeIds.length === 1,
+    editorSession.selection.value.nodeIds.length + editorSession.selection.value.structureNodeIds.length ===
+    1,
 );
 const selectionBarGap = computed(() =>
   canvasSelectionGap(selectedNodes.value.length === 1 ? selectedNodes.value[0] : undefined),

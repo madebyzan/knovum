@@ -13,6 +13,7 @@ const props = withDefaults(
     placeholder?: string | undefined;
     disabled?: boolean | undefined;
     rows?: number | undefined;
+    maxlength?: number | undefined;
     class?: HTMLAttributes["class"];
   }>(),
   {
@@ -41,6 +42,7 @@ defineExpose({ focus });
     :placeholder="placeholder"
     :disabled="disabled"
     :rows="rows"
+    :maxlength="maxlength"
     :class="cn('w-full resize-y px-2.5 py-2 text-body', INPUT_BASE_CLASSES, props.class)"
   />
 </template>

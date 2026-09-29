@@ -41,8 +41,17 @@ struct ImageConfig<'a> {
 }
 
 #[derive(Deserialize)]
-struct GeminiResponse {
+pub(super) struct GeminiResponse {
     candidates: Vec<Candidate>,
+}
+
+impl GeminiResponse {
+    pub(super) fn image_data(self) -> Option<String> {
+        self.candidates
+            .into_iter()
+            .flat_map(|candidate| candidate.content.parts)
+            .find_map(|part| part.inline_data.map(|image| image.data))
+    }
 }
 
 #[derive(Deserialize)]
@@ -121,14 +130,9 @@ impl ImageGenerationCapability for GeminiImageAdapter {
                     .await
                     .map_err(provider_err)?;
                 let gemini_response: GeminiResponse = check_status(response).await?;
-                gemini_response
-                    .candidates
-                    .into_iter()
-                    .flat_map(|item| item.content.parts)
-                    .find_map(|part| part.inline_data.map(|d| d.data))
-                    .ok_or_else(|| {
-                        AiError::new(AiErrorCode::EmptyResponse, "Gemini returned no image")
-                    })?
+                gemini_response.image_data().ok_or_else(|| {
+                    AiError::new(AiErrorCode::EmptyResponse, "Gemini returned no image")
+                })?
             };
 
             let bytes = response::decode_image(&encoded)?;
@@ -143,7 +147,9 @@ impl ImageGenerationCapability for GeminiImageAdapter {
     }
 }
 
-async fn check_status<T: serde::de::DeserializeOwned>(response: reqwest::Response) -> AiResult<T> {
+pub(super) async fn check_status<T: serde::de::DeserializeOwned>(
+    response: reqwest::Response,
+) -> AiResult<T> {
     let status = response.status();
     if !status.is_success() {
         let text = response::read_text(response).await?;
