@@ -3,7 +3,7 @@ use tauri::AppHandle;
 use crate::{ai::capabilities, spaces::db};
 
 pub async fn close(app: AppHandle, conversation_id: &str) -> Result<(), String> {
-    crate::external_agents::conversation::close(conversation_id).await?;
+    crate::external_agents::conversation::finish(conversation_id).await?;
     super::updates::release(conversation_id);
     let pool = db::pool(&app).await?;
     let row = sqlx::query_as::<_, (String, String, String)>(

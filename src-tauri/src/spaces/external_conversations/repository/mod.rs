@@ -157,6 +157,28 @@ pub async fn finish_turn(
     Ok(())
 }
 
+pub async fn has_turn_output(pool: &SqlitePool, turn_id: &str) -> Result<bool, String> {
+    let has_output: i64 = sqlx::query_scalar(
+        "SELECT EXISTS(
+           SELECT 1 FROM spaces_external_agent_turns t
+           JOIN spaces_external_agent_conversations c ON c.id=t.conversation_id
+           WHERE t.id=$1 AND (
+             EXISTS(SELECT 1 FROM spaces_assistant_messages m
+               WHERE m.id=t.assistant_message_id
+                 AND TRIM(json_extract(m.content,'$.parts[0].text'))<>'')
+             OR EXISTS(SELECT 1 FROM spaces_run_events e
+               WHERE e.run_id=c.run_id AND e.created_at>=t.created_at
+                 AND e.kind IN ('external_agent_tool_started','external_agent_tool_updated')
+                 AND json_extract(e.payload,'$.status')='completed')
+           ))",
+    )
+    .bind(turn_id)
+    .fetch_one(pool)
+    .await
+    .map_err(db::sql_error)?;
+    Ok(has_output != 0)
+}
+
 async fn append_message(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     conversation_id: &str,

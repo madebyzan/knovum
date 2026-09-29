@@ -124,7 +124,28 @@ pub async fn send_prepared(
         return Err(error);
     }
     match outcome {
-        Ok(()) => repository::finish_turn(pool, turn_id, "completed", None).await,
+        Ok(()) => {
+            if !repository::has_turn_output(pool, turn_id).await? {
+                let space_id: String = sqlx::query_scalar(
+                    "SELECT space_id FROM spaces_external_agent_conversations WHERE id=$1",
+                )
+                .bind(conversation_id)
+                .fetch_one(pool)
+                .await
+                .map_err(db::sql_error)?;
+                let workspace = capabilities::agent_artifacts::workspace(&app, &space_id, conversation_id)
+                    .map_err(|error| error.to_string())?;
+                if capabilities::agent_artifacts::collect(&workspace)
+                    .map_err(|error| error.to_string())?
+                    .is_empty()
+                {
+                    let error = "Desktop Agent completed without a reply. Check its model configuration and retry.";
+                    repository::finish_turn(pool, turn_id, "failed", Some(error)).await?;
+                    return Err(error.into());
+                }
+            }
+            repository::finish_turn(pool, turn_id, "completed", None).await
+        }
         Err(error) => {
             let message = error.to_string();
             let state = if error.code == crate::ai::error::AiErrorCode::Cancelled {

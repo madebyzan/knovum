@@ -20,7 +20,7 @@ mod requests;
 mod start;
 
 use requests::ConversationRequest;
-pub use requests::{close, is_active, send};
+pub use requests::{close, finish, is_active, send};
 pub use start::start;
 
 pub struct ConversationSession {
@@ -89,9 +89,11 @@ async fn serve(
                 loop {
                     let request = tokio::select! {
                         _ = session_cancel.cancelled() => return Ok(true),
-                        request = requests.recv() => match request { Some(value) => value, None => return Ok(false) },
+                        request = requests.recv() => match request {
+                            Some(ConversationRequest::Turn(value)) => value,
+                            Some(ConversationRequest::Finish) | None => return Ok(false),
+                        },
                     };
-                    let ConversationRequest::Turn(request) = request;
                     let content = request.prompt.into_content(&workspace, prompt_capabilities.clone()).await
                         .map_err(|error| agent_client_protocol::Error::invalid_params().data(error.to_string()))?;
                     let prompt = session.connection().send_request(
@@ -100,6 +102,7 @@ async fn serve(
                     tokio::pin!(prompt);
                     let turn_outcome = loop {
                         tokio::select! {
+                            biased;
                             _ = session_cancel.cancelled() => {
                                 session.connection().send_notification(
                                     CancelNotification::new(session.session_id().clone()),

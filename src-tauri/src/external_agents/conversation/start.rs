@@ -35,7 +35,11 @@ pub async fn start(
             keepalive,
         };
         if let Err(error) = serve(context, receiver, cancellation, ready_tx).await {
-            log::error!("External Agent conversation ended: {error}");
+            if error.code == crate::ai::error::AiErrorCode::Cancelled {
+                log::debug!("External Agent conversation cancelled: {error}");
+            } else {
+                log::error!("External Agent conversation ended: {error}");
+            }
         }
         requests::remove(&runtime_id);
     });

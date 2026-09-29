@@ -1,18 +1,11 @@
 <script setup lang="ts">
 import { File, FileImage, Link2 } from "@lucide/vue";
-import { shallowRef } from "vue";
 
 import type { AssistantMessageAttachment } from "../../contracts/generated/AssistantMessageAttachment";
 import { useSpaceStore } from "../../session/space-store";
 
 const props = defineProps<{ attachment: AssistantMessageAttachment }>();
 const store = useSpaceStore();
-const imageWidth = shallowRef(88);
-
-function sizeImage(event: Event) {
-  const image = event.target as HTMLImageElement;
-  imageWidth.value = Math.max(64, Math.min(128, Math.round(88 * image.naturalWidth / image.naturalHeight)));
-}
 
 function openSource() {
   if (props.attachment.source === "node") store.requestReveal([props.attachment.nodeId], "focus");
@@ -24,9 +17,8 @@ function openSource() {
     :is="attachment.source === 'node' ? 'button' : 'div'"
     :type="attachment.source === 'node' ? 'button' : undefined"
     :role="attachment.source === 'file' ? 'img' : undefined"
-    class="group relative flex h-22 shrink-0 flex-col overflow-hidden rounded-lg border border-stroke-divider bg-surface-raised text-left transition-colors duration-100 enabled:hover:border-stroke-default-hover enabled:hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus"
-    :class="attachment.kind === 'image' ? '' : 'w-36'"
-    :style="attachment.kind === 'image' ? { width: `${imageWidth}px` } : undefined"
+    class="group relative flex h-20 shrink-0 flex-col overflow-hidden rounded-lg border border-stroke-divider bg-surface-raised text-left transition-colors duration-100 enabled:hover:border-stroke-default-hover enabled:hover:bg-surface-control-hover focus-visible:outline-2 focus-visible:outline-stroke-focus"
+    :class="attachment.kind === 'image' ? 'w-20' : 'w-28'"
     :aria-label="attachment.title"
     :title="attachment.title"
     @click="openSource"
@@ -35,8 +27,7 @@ function openSource() {
       v-if="attachment.thumbnail"
       :src="attachment.thumbnail"
       alt=""
-      class="size-full object-contain"
-      @load="attachment.kind === 'image' && sizeImage($event)"
+      class="min-h-0 w-full flex-1 bg-surface-muted object-contain"
     />
     <div v-else class="flex min-h-0 flex-1 items-center justify-center bg-surface-muted">
       <FileImage v-if="attachment.kind === 'image'" class="size-5 text-fg-tertiary" />

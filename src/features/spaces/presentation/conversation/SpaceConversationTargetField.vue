@@ -76,7 +76,7 @@ onMounted(() => void settings.ensureLoaded());
     <p v-if="settings.loadError" class="text-caption text-fg-danger" role="alert">
       {{ t("ai.settingsUnavailable") }}: {{ String(settings.loadError) }}
     </p>
-    <UiDropdownMenu side="top" align="start" class="w-80 max-w-[calc(100vw-24px)] max-h-96 overflow-y-auto p-1.5">
+    <UiDropdownMenu side="top" align="start" class="w-64 max-w-[calc(100vw-24px)] max-h-96 overflow-y-auto p-1.5">
       <template #trigger>
         <UiButton
           variant="ghost"
@@ -84,8 +84,8 @@ onMounted(() => void settings.ensureLoaded());
           class="max-w-full min-w-0 justify-start px-1.5 text-fg-secondary"
           :disabled="!settings.ready"
         >
-          <Bot v-if="target?.type === 'model'" class="size-3 shrink-0" />
-          <Monitor v-else class="size-3 shrink-0" />
+          <Monitor v-if="target?.type === 'agent'" class="size-3 shrink-0" />
+          <Bot v-else class="size-3 shrink-0" />
           <span class="min-w-0 truncate">{{ selectedLabel }}</span>
           <ChevronDown class="size-3 shrink-0" />
         </UiButton>
@@ -93,7 +93,7 @@ onMounted(() => void settings.ensureLoaded());
       <DropdownMenuRadioGroup :model-value="selectedKey">
         <DropdownMenuGroup>
           <DropdownMenuLabel class="px-2.5 pt-1.5 pb-1 text-caption-sm font-medium text-fg-tertiary">
-            {{ t("spaces.assistant.agents.builtIn") }}
+            {{ t("spaces.assistant.agents.knovumAssistant") }}
           </DropdownMenuLabel>
           <DropdownMenuRadioItem
             v-for="model in modelChoices"
@@ -114,20 +114,17 @@ onMounted(() => void settings.ensureLoaded());
         <UiSeparator class="my-1.5" />
         <DropdownMenuGroup>
           <DropdownMenuLabel class="px-2.5 pt-1.5 pb-1 text-caption-sm font-medium text-fg-tertiary">
-            {{ t("spaces.assistant.agents.external") }}
+            {{ t("spaces.assistant.agents.desktop") }}
           </DropdownMenuLabel>
           <DropdownMenuRadioItem
             v-for="agent in desktopAgents"
             :key="agent.kind"
             :value="`agent:${agent.kind}`"
             :text-value="agent.displayName"
-            class="relative flex min-h-12 cursor-default items-center rounded-md px-2.5 py-1.5 pr-8 outline-none data-highlighted:bg-surface-control-hover"
+            class="relative flex min-h-interaction cursor-default items-center rounded-md px-2.5 py-1.5 pr-8 outline-none data-highlighted:bg-surface-control-hover"
             @select="target = { type: 'agent', runtimeKind: agent.kind }"
           >
-            <span class="min-w-0 flex-1">
-              <span class="block truncate text-label text-fg-primary">{{ agent.displayName }}</span>
-              <span class="block truncate text-caption-sm text-fg-tertiary">{{ t("spaces.assistant.agents.externalDescription") }}</span>
-            </span>
+            <span class="min-w-0 flex-1 truncate text-label text-fg-primary">{{ agent.displayName }}</span>
             <DropdownMenuItemIndicator class="absolute right-2.5 text-fg-accent"><Check class="size-4" /></DropdownMenuItemIndicator>
           </DropdownMenuRadioItem>
           <p v-if="catalog.error.value" class="px-2.5 py-2 text-caption text-fg-danger" role="alert">{{ String(catalog.error.value) }}</p>

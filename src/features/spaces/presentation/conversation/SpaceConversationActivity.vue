@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Check, ChevronRight, Circle, LoaderCircle, Shield, Wrench } from "@lucide/vue";
+import { Check, ChevronRight, Circle, Shield, Wrench } from "@lucide/vue";
 import { computed, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { z } from "zod";
@@ -10,6 +10,7 @@ import type { AssistantMessage } from "../../conversation/conversation-ipc";
 import { useSpaceStore } from "../../session/space-store";
 import { captureActionLabel } from "../workflows/workflow-capture-labels";
 import SpaceConversationSearchMatches from "./SpaceConversationSearchMatches.vue";
+import SpaceConversationShimmerText from "./SpaceConversationShimmerText.vue";
 
 const props = defineProps<{
   events: readonly RunEvent[];
@@ -40,6 +41,9 @@ const items = computed(() => conversationActivityItems(
   t("spaces.assistant.activity.tool"),
 ));
 const toolCount = computed(() => items.value.filter((item) => item.status !== "commentary").length);
+const runningTool = computed(() => items.value.some((item) =>
+  item.status === "pending" || item.status === "in_progress",
+));
 const unfinished = computed(() => !props.active && items.value.some((item) =>
   item.status === "failed" || item.status === "pending" || item.status === "in_progress",
 ));
@@ -61,25 +65,35 @@ function toggleTool(event: Event, id: string) {
 </script>
 
 <template>
-  <details v-if="items.length || active" :open="active" class="group/activity mt-4 w-full text-caption text-fg-secondary">
+  <p v-if="active && !items.length" role="status" class="mt-4 py-1.5 text-caption text-fg-secondary">
+    <SpaceConversationShimmerText>{{ $t("spaces.assistant.activity.generating") }}</SpaceConversationShimmerText>
+  </p>
+  <details v-else-if="items.length" :open="active" class="group/activity mt-4 w-full text-caption text-fg-secondary">
     <summary class="flex cursor-pointer list-none items-center gap-2 py-1.5 select-none hover:text-fg-primary focus-visible:outline-2 focus-visible:outline-stroke-focus">
-      <LoaderCircle v-if="active" class="size-3.5 shrink-0 animate-spin text-fg-accent" />
-      <Circle v-else-if="unfinished" class="size-3.5 shrink-0" />
-      <Check v-else class="size-3.5 shrink-0" />
-      <span>{{ $t(active ? "spaces.assistant.activity.running" : unfinished ? "spaces.assistant.activity.recorded" : "spaces.assistant.activity.finished", { count: toolCount }) }}</span>
+      <Circle v-if="!active && unfinished" class="size-3.5 shrink-0" />
+      <Check v-else-if="!active" class="size-3.5 shrink-0" />
+      <SpaceConversationShimmerText v-if="active && !runningTool">
+        {{ $t("spaces.assistant.activity.generating") }}
+      </SpaceConversationShimmerText>
+      <SpaceConversationShimmerText v-else-if="active">
+        {{ $t("spaces.assistant.activity.running", { count: toolCount }) }}
+      </SpaceConversationShimmerText>
+      <span v-else>{{ $t(unfinished ? "spaces.assistant.activity.recorded" : "spaces.assistant.activity.finished", { count: toolCount }) }}</span>
       <ChevronRight class="size-3.5 shrink-0 transition-transform group-open/activity:rotate-90" />
     </summary>
     <div class="mt-1 space-y-1 border-l border-stroke-divider pl-3">
-      <div v-if="!items.length" class="py-1">{{ $t("spaces.assistant.agents.working") }}</div>
       <div v-for="item in items" :key="item.id" class="min-w-0 py-1">
         <p v-if="item.status === 'commentary'" class="whitespace-pre-wrap text-fg-primary">{{ item.title }}</p>
         <component :is="hasDetails(item) ? 'details' : 'div'" v-else class="group/tool min-w-0" @toggle="toggleTool($event, item.id)">
           <component :is="hasDetails(item) ? 'summary' : 'div'" class="flex list-none items-center gap-2 rounded-md py-1" :class="hasDetails(item) ? 'cursor-pointer select-none hover:text-fg-primary focus-visible:outline-2 focus-visible:outline-stroke-focus' : ''">
-            <LoaderCircle v-if="active && (item.status === 'in_progress' || item.status === 'pending')" class="size-3.5 shrink-0 animate-spin" />
-            <Circle v-else-if="item.status === 'failed' || item.status === 'in_progress' || item.status === 'pending'" class="size-3.5 shrink-0 text-fg-danger" />
+            <Circle v-if="item.status === 'failed' || (!active && (item.status === 'in_progress' || item.status === 'pending'))" class="size-3.5 shrink-0 text-fg-danger" />
             <Shield v-else-if="item.status === 'permission'" class="size-3.5 shrink-0" />
             <Wrench v-else class="size-3.5 shrink-0" />
-            <span class="min-w-0 flex-1 truncate">{{ item.title }}</span>
+            <SpaceConversationShimmerText
+              v-if="active && (item.status === 'in_progress' || item.status === 'pending')"
+              class="min-w-0 truncate"
+            >{{ item.title }}</SpaceConversationShimmerText>
+            <span v-else class="min-w-0 flex-1 truncate">{{ item.title }}</span>
             <ChevronRight v-if="hasDetails(item)" class="size-3.5 shrink-0 transition-transform group-open/tool:rotate-90" />
           </component>
           <div v-if="expanded.has(item.id) && hasDetails(item)" class="min-w-0 pl-5 pb-1 text-fg-tertiary">

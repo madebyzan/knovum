@@ -5,23 +5,22 @@
   },
   "title": "对话",
   "agents": {
-    "builtIn": "内置 Agent",
-    "external": "外部 Agent",
-    "select": "选择 Agent",
+    "knovumAssistant": "Knovum 助手 · 选择模型",
+    "desktop": "桌面 Agent",
+    "select": "选择助手",
     "noModel": "尚未配置可用于对话的模型",
     "working": "正在处理…",
-    "externalDescription": "在本机运行的桌面 Agent",
     "manage": "管理模型与 Agent…"
   },
   "empty": {
-    "builtIn": "提问、梳理重点，或规划下一步。",
-    "title": "从这个空间开始"
-  },
-  "starter": {
-    "summarize": "梳理这个空间的内容",
-    "summarizePrompt": "梳理当前空间的主要内容，列出关键结论和仍需确认的问题。",
-    "plan": "规划下一步",
-    "planPrompt": "根据当前空间的内容，帮我整理可执行的下一步计划。"
+    "title": "试试这些任务",
+    "topic": "【主题】",
+    "search": "找资料",
+    "searchPrompt": "在这个空间中查找与{topic}相关的资料，并列出来源。",
+    "document": "创建文档",
+    "documentPrompt": "结合这个空间中关于{topic}的资料，创建一份可编辑的概览文档。",
+    "compare": "梳理观点",
+    "comparePrompt": "比较这个空间中关于{topic}的不同观点，列出共同点、分歧和依据。"
   },
   "input": {
     "placeholder": "在当前空间中询问、规划或创建…",
@@ -35,6 +34,7 @@
     "none": "暂无对话",
     "actions": "对话操作",
     "export": "导出",
+    "exportFailed": "导出对话失败",
     "archive": "归档",
     "restore": "恢复",
     "delete": "删除",
@@ -69,6 +69,7 @@
   },
   "attachments": {
     "add": "添加资料",
+    "attached": "已添加的资料，可横向滚动",
     "citeCanvasNode": "引用画布内容",
     "citeCanvasNodeHint": "选择当前空间的内容",
     "canvasNodeShort": "画布引用",
@@ -81,10 +82,7 @@
     "search": "搜索当前空间的资料",
     "none": "没有匹配的可用资料",
     "remove": "移除资料：{name}",
-    "expand": "显示其余 {count} 项资料",
-    "more": "更多资料",
-    "previousPage": "上一页资料",
-    "nextPage": "下一页资料"
+    "preview": "预览资料：{name}"
   },
   "uploads": {
     "sizeError": "文件不能为空；图片不能超过 10 MiB，其他文件不能超过 20 MiB。",
@@ -125,6 +123,7 @@
     "viewCreated": "定位产物"
   },
   "activity": {
+    "generating": "正在生成回复…",
     "running": "正在执行 · {count} 项操作",
     "finished": "已执行 · {count} 项操作",
     "recorded": "过程记录 · {count} 项操作",

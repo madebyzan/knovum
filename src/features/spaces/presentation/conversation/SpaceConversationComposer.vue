@@ -36,6 +36,7 @@ const emit = defineEmits<{
   chooseFiles: [];
   dropFiles: [paths: string[]];
   removeAttachment: [key: string];
+  previewAttachment: [key: string];
 }>();
 const composerRoot = useTemplateRef<HTMLElement>("composerRoot");
 const { textarea } = useTextareaAutosize({ input: prompt, maxHeight: 192 });
@@ -47,7 +48,15 @@ const canSend = computed(
     !props.busy &&
     !props.pickingFiles,
 );
-defineExpose({ focus: () => textarea.value?.focus() });
+defineExpose({
+  focus(selection?: string) {
+    const input = textarea.value;
+    input?.focus();
+    if (!input || !selection) return;
+    const start = prompt.value.indexOf(selection);
+    if (start >= 0) input.setSelectionRange(start, start + selection.length);
+  },
+});
 
 function submit(event?: KeyboardEvent) {
   if (event?.isComposing || event?.keyCode === 229) return;
@@ -90,6 +99,7 @@ onBeforeUnmount(fileDropListener.dispose);
       <SpaceConversationAttachmentTray
         :attachments="attachments"
         @remove="emit('removeAttachment', $event)"
+        @preview="emit('previewAttachment', $event)"
       />
       <textarea
         ref="textarea"

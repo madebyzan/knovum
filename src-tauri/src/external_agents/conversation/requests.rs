@@ -15,6 +15,7 @@ pub(super) struct TurnRequest {
 
 pub(super) enum ConversationRequest {
     Turn(TurnRequest),
+    Finish,
 }
 
 struct ConversationHandle {
@@ -62,13 +63,26 @@ pub async fn close(id: &str) -> Result<(), String> {
         .map(|handle| handle.cancellation.clone())
         .ok_or("ACP conversation is disconnected")?;
     cancellation.cancel();
+    wait_until_inactive(id).await
+}
+
+pub async fn finish(id: &str) -> Result<(), String> {
+    sender(id)
+        .map_err(|error| error.to_string())?
+        .send(ConversationRequest::Finish)
+        .await
+        .map_err(|_| "ACP conversation channel closed".to_owned())?;
+    wait_until_inactive(id).await
+}
+
+async fn wait_until_inactive(id: &str) -> Result<(), String> {
     tokio::time::timeout(super::super::connection::CANCEL_TIMEOUT, async {
         while is_active(id) {
             tokio::time::sleep(std::time::Duration::from_millis(20)).await;
         }
     })
     .await
-    .map_err(|_| "ACP conversation did not close before the cancellation deadline")?;
+    .map_err(|_| "ACP conversation did not close before the deadline")?;
     Ok(())
 }
 

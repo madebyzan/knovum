@@ -7,7 +7,6 @@ export const dynamicLocaleKeyPrefixes = [
   "settings.creation.knowledgeActions.",
   "settings.routing.routes.",
   "shell.commandUnavailable.",
-  "spaces.assistant.starter.",
   "spaces.canvas.align.",
   "spaces.canvas.distribute.",
   "spaces.canvas.noteFills.",
