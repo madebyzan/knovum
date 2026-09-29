@@ -9,7 +9,7 @@ use crate::ai::{
     transport::{http_client, response, SecurityContext},
 };
 
-pub async fn edit_source(
+pub async fn edit_image(
     ctx: &SecurityContext,
     image: &[u8],
     prompt: &str,
