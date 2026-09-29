@@ -1,67 +1,46 @@
 <script setup lang="ts">
+import { BookOpen, Image, Languages, PenLine, ScanSearch, Video } from "@lucide/vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { availableExecutionTargets } from "../../../foundation/ai/ai-execution";
 import { decodeExecutionTarget, encodeExecutionTarget } from "../../../foundation/ai/execution-target-codec";
 import type {
-  AgentDescriptor,
-  AgentInstallation,
-  DesktopAgentSettings,
-} from "../../../foundation/ai/schema/agents";
-import type {
   AiConnectionSettings,
   AiRoutingDefaults,
   AiRoutingPurpose,
 } from "../../../foundation/ai/schema/models";
 import UiSelect from "../../../shared/ui/UiSelect.vue";
-import PreferenceField from "./PreferenceField.vue";
 import SettingsSection from "./SettingsSection.vue";
 
-const props = defineProps<{
-  connections: AiConnectionSettings[];
-  desktopAgents: DesktopAgentSettings[];
-  agentDescriptors: readonly AgentDescriptor[];
-  agentInstallations: readonly AgentInstallation[];
-}>();
+const props = defineProps<{ connections: AiConnectionSettings[] }>();
 const routes = defineModel<AiRoutingDefaults>({ required: true });
-const emit = defineEmits<{ changed: [] }>();
+const emit = defineEmits<{ manageModels: [purpose: AiRoutingPurpose] }>();
 const { t } = useI18n();
+const UNASSIGNED = "__unassigned__";
 const routeDefinitions = [
-  ["writing", "writing"],
-  ["knowledge", "knowledge"],
-  ["visualUnderstanding", "visual-understanding"],
-  ["translation", "translation"],
-  ["imageGeneration", "image-generation"],
-  ["videoGeneration", "video-generation"],
-] as const satisfies readonly (readonly [keyof AiRoutingDefaults, AiRoutingPurpose])[];
-const settings = computed(() => ({
-  connections: props.connections,
-  desktopAgents: props.desktopAgents,
-  defaults: routes.value,
-}));
+  ["writing", "writing", PenLine],
+  ["knowledge", "knowledge", BookOpen],
+  ["visualUnderstanding", "visual-understanding", ScanSearch],
+  ["translation", "translation", Languages],
+  ["imageGeneration", "image-generation", Image],
+  ["videoGeneration", "video-generation", Video],
+] as const;
 const routeRows = computed(() =>
-  routeDefinitions.map(([key, purpose]) => ({
+  routeDefinitions.map(([key, purpose, icon]) => ({
     key,
     purpose,
+    icon,
     label: t(`settings.routing.routes.${key}.label`),
     description: t(`settings.routing.routes.${key}.description`),
-    options: availableExecutionTargets(settings.value, purpose).map((option) =>
-      Object.assign({}, option, {
-        description: t("ai.targetModelNative"),
-      }),
-    ),
+    options: availableExecutionTargets(props, purpose).map(({ value, label }) => ({ value, label })),
   })),
 );
-const hasTargets = computed(() => props.connections.some((connection) => connection.models.length > 0));
-
 function update(key: keyof AiRoutingDefaults, value: string) {
-  const target = value ? decodeExecutionTarget(value) : null;
-  routes.value[key] = target;
-  emit("changed");
+  routes.value[key] = value === UNASSIGNED ? null : decodeExecutionTarget(value);
 }
 const selected = (target: AiRoutingDefaults[keyof AiRoutingDefaults]) =>
-  target ? encodeExecutionTarget(target) : "";
+  target ? encodeExecutionTarget(target) : UNASSIGNED;
 </script>
 
 <template>
@@ -71,28 +50,34 @@ const selected = (target: AiRoutingDefaults[keyof AiRoutingDefaults]) =>
     :title="t('settings.routing.defaultsTitle')"
     :description="t('settings.routing.defaultsDescription')"
   >
-    <div v-if="!hasTargets" class="px-4 py-3">
-      <p class="text-body-lg font-medium text-fg-primary">{{ t("settings.routing.unavailable") }}</p>
-      <p class="mt-0.5 max-w-xl text-caption leading-normal text-fg-secondary">
-        {{ t("settings.routing.unavailableDescription") }}
-      </p>
-    </div>
-    <template v-else>
-      <PreferenceField
-        v-for="row in routeRows"
-        :key="row.key"
+    <div
+      v-for="row in routeRows"
+      :key="row.key"
+      class="flex min-h-(--knovum-setting-min-height) flex-wrap items-center justify-between gap-x-6 gap-y-2 border-b border-stroke-divider px-4 py-3 last:border-b-0"
+    >
+      <div class="flex min-w-0 flex-1 items-center gap-3">
+        <component :is="row.icon" class="size-4 shrink-0 text-fg-secondary" aria-hidden="true" />
+        <div class="min-w-0">
+          <p class="text-label font-medium text-fg-primary">{{ row.label }}</p>
+          <p class="mt-0.5 text-caption leading-normal text-fg-secondary">{{ row.description }}</p>
+        </div>
+      </div>
+      <UiSelect
+        v-if="row.options.length"
+        :model-value="selected(routes[row.key])"
         :label="row.label"
-        :description="row.description"
+        :options="[{ value: UNASSIGNED, label: t('settings.routing.unassigned') }, ...row.options]"
+        class="w-full sm:w-64"
+        @update:model-value="update(row.key, $event)"
+      />
+      <button
+        v-else
+        type="button"
+        class="rounded-md text-caption text-fg-secondary underline-offset-2 hover:text-fg-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stroke-focus"
+        @click="emit('manageModels', row.purpose)"
       >
-        <UiSelect
-          :model-value="selected(routes[row.key])"
-          :label="row.label"
-          :options="row.options"
-          :placeholder="t('ai.noCompatibleTarget')"
-          :disabled="row.options.length === 0"
-          @update:model-value="update(row.key, $event)"
-        />
-      </PreferenceField>
-    </template>
+        {{ t(connections.length ? "settings.routing.noCompatibleModel" : "settings.ai.addConnection") }}
+      </button>
+    </div>
   </SettingsSection>
 </template>

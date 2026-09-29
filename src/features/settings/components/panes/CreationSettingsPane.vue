@@ -9,6 +9,7 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { useCreationLibraryStore } from "../../../../foundation/ai/creation-library-store";
+import FalImageLayerSettings from "../FalImageLayerSettings.vue";
 import SavedGenerationPresets from "../SavedGenerationPresets.vue";
 import SettingsLoadFailure from "../SettingsLoadFailure.vue";
 
@@ -48,5 +49,6 @@ onMounted(store.ensureLoaded);
       v-model="library.generationPresets"
       :load-generation-actions="props.loadGenerationActions"
     />
+    <FalImageLayerSettings />
   </div>
 </template>

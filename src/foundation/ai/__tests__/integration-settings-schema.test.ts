@@ -43,6 +43,18 @@ describe("integration settings persisted contracts", () => {
     expect(value.connections[0]).not.toHaveProperty("apiKey");
   });
 
+  it("accepts a provider connection before models are added", () => {
+    const value = structuredClone(defaultAiModelSettings);
+    value.connections.push({
+      id: "openai",
+      name: "OpenAI",
+      provider: "openai",
+      baseUrl: "https://api.openai.com/v1/",
+      models: [],
+    });
+    expect(decodeAiModelSettings({ schemaVersion: 1, value })).toEqual(value);
+  });
+
   it("rejects desktop Agent identities in model routing defaults", () => {
     const value = structuredClone(defaultAiModelSettings) as unknown as Record<string, unknown>;
     value.defaults = {

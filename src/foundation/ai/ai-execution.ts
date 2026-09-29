@@ -65,7 +65,7 @@ export function aiExecutionTargetPayload(target: ResolvedAiModelTarget, temperat
 }
 
 export function availableExecutionTargets(
-  settings: AiModelSettings,
+  settings: Pick<AiModelSettings, "connections">,
   purpose: AiRoutingPurpose,
 ): ExecutionTargetOption[] {
   const capability = routingCapabilities[purpose];

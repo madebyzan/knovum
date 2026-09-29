@@ -1,10 +1,8 @@
 {
-  "title": "Execution routing",
-  "description": "Set the execution target for each task. Model APIs and compatible desktop Agents are equal choices controlled by you.",
-  "defaultsTitle": "Default execution routes",
-  "defaultsDescription": "Choose a model or desktop Agent for each purpose. Neither execution channel is preferred automatically.",
-  "unavailable": "No execution targets available",
-  "unavailableDescription": "Add a model provider or enable a detected desktop Agent before choosing execution defaults.",
+  "defaultsTitle": "Task default models",
+  "defaultsDescription": "Only models that support each task appear. Changes save automatically.",
+  "unassigned": "No default model",
+  "noCompatibleModel": "Configure a model for this task",
   "routes": {
     "writing": {
       "label": "Writing",

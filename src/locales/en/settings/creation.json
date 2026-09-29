@@ -1,6 +1,6 @@
 {
   "title": "Creation",
-  "description": "Manage reusable configurations saved from Knovum’s document, image, video, and multi-step creation tools.",
+  "description": "Manage creation presets and the service used for image layer splitting.",
   "presets": {
     "title": "Generation presets",
     "description": "Single-model configurations saved while creating content.",
