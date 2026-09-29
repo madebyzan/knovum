@@ -57,12 +57,20 @@ export function useImageComments(props: ImageCommentCanvas) {
   }
   const gesture = useImageCommentGesture(complete);
   watch(() => session.mode, gesture.cancel);
-  watch(adding, (value) => {
-    if (!value) gesture.cancel();
-  });
+  watch(
+    adding,
+    (value) => {
+      if (value) return;
+      gesture.cancel();
+      draft.value = undefined;
+      selectedId.value = undefined;
+      text.value = "";
+    },
+    { flush: "sync" },
+  );
   async function persist(next: ImageComment[]) {
     const node = store.nodes.find(({ id }) => id === props.id);
-    if (!node || node.data.kind !== "image") return false;
+    if (!node || node.data.kind !== "image") return;
     busy.value = true;
     try {
       await store.updateNodeContents([
@@ -71,39 +79,33 @@ export function useImageComments(props: ImageCommentCanvas) {
       draft.value = undefined;
       selectedId.value = undefined;
       text.value = "";
-      return true;
     } catch (error) {
       toast.error(String(error));
-      return false;
     } finally {
       busy.value = false;
     }
   }
-  async function saveDraft() {
+  function saveComment() {
     const value = text.value.trim();
     const mark = draft.value;
     if (!mark || !value || busy.value) return;
-    const saved = await persist([
-      ...comments.value,
-      { id: crypto.randomUUID(), ...mark, text: value, createdAt: Date.now() },
-    ]);
-    return saved ? value : undefined;
+    const comment = { id: crypto.randomUUID(), ...mark, text: value, createdAt: Date.now() };
+    void persist([...comments.value, comment]);
   }
-  function send() {
-    void saveDraft();
-  }
-  async function addToConversation() {
-    const value = await saveDraft();
-    if (!value) return;
-    session.addToConversation(props.id, value);
+  function addToConversation() {
+    const value = text.value.trim();
+    const mark = draft.value;
+    if (!mark || !value || busy.value) return;
+    session.addToConversation(props.id, { ...mark, text: value });
+    session.cancel();
     dock.openAsk("selection", { nodeIds: [props.id] });
   }
   function remove(comment: ImageComment) {
     if (!busy.value) void persist(comments.value.filter(({ id }) => id !== comment.id));
   }
   function discuss(comment: ImageComment) {
-    session.addToConversation(props.id, comment.text);
-    selectedId.value = undefined;
+    session.addToConversation(props.id, comment);
+    session.cancel();
     dock.openAsk("selection", { nodeIds: [props.id] });
   }
   function close(open: boolean, id: string) {
@@ -119,7 +121,6 @@ export function useImageComments(props: ImageCommentCanvas) {
     adding,
     hintLabel,
     mode: computed(() => session.mode),
-    setMode: session.setMode,
     preview: gesture.preview,
     startGesture: gesture.start,
     moveGesture: gesture.move,
@@ -133,7 +134,7 @@ export function useImageComments(props: ImageCommentCanvas) {
     comments,
     areaStyle,
     positionStyle,
-    send,
+    saveComment,
     addToConversation,
     remove,
     discuss,

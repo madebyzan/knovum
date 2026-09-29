@@ -84,8 +84,9 @@
   "comments": {
     "title": "评论",
     "prompt": "添加描述",
-    "send": "发送",
+    "save": "保存评论",
     "addToConversation": "添加到对话",
+    "conversationContext": "图片标注（{kind}；以左上角为原点，坐标单位为图片宽高的百分比）：{coordinates}\n标注内容：{text}",
     "delete": "删除评论",
     "hint": "点击图片位置添加评论",
     "mode": "评论标注方式",

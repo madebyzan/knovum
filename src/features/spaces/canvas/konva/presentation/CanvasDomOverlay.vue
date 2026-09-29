@@ -30,7 +30,7 @@ const worldStyle = computed(() => ({
 <template>
   <div
     :inert="!interactionEnabled"
-    class="pointer-events-none absolute inset-0 z-10 overflow-hidden select-none"
+    class="pointer-events-none absolute inset-0 z-[17] overflow-hidden select-none"
   >
     <div class="absolute top-0 left-0 origin-top-left" :style="worldStyle">
       <CanvasDomNodeOverlay

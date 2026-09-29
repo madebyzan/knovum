@@ -1,0 +1,45 @@
+<script setup lang="ts">
+import { MessageCircle, Pencil, ScanLine, X } from "@lucide/vue";
+import { ToolbarButton, ToolbarRoot, ToolbarSeparator } from "reka-ui";
+
+import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
+import { useImageCommentSession } from "../../comments/image-comment-session";
+import { CANVAS_ACTION_BAR_CLASSES } from "./canvas-action-classes";
+
+const session = useImageCommentSession();
+const modes = [
+  { id: "point", icon: MessageCircle, label: "spaces.media.imageEditor.comments.point" },
+  { id: "draw", icon: Pencil, label: "spaces.media.imageEditor.comments.draw" },
+  { id: "region", icon: ScanLine, label: "spaces.media.imageEditor.comments.region" },
+] as const;
+</script>
+
+<template>
+  <ToolbarRoot
+    :class="CANVAS_ACTION_BAR_CLASSES"
+    orientation="horizontal"
+    :loop="false"
+    :aria-label="$t('spaces.media.imageEditor.comments.mode')"
+  >
+    <span class="px-2 text-label font-medium text-fg-primary">{{ $t("spaces.media.imageEditor.comments.title") }}</span>
+    <ToolbarSeparator class="mx-0.5 h-4 w-px bg-border-divider" />
+    <ToolbarButton v-for="item in modes" :key="item.id" as-child>
+      <UiIconButton
+        :label="$t(item.label)"
+        :active="session.mode === item.id"
+        tooltip
+        size="sm"
+        class="data-[active=true]:bg-surface-selected data-[active=true]:text-fg-accent"
+        @click.stop="session.setMode(item.id)"
+      >
+        <component :is="item.icon" class="size-3.5" :stroke-width="1.55" />
+      </UiIconButton>
+    </ToolbarButton>
+    <ToolbarSeparator class="mx-0.5 h-4 w-px bg-border-divider" />
+    <ToolbarButton as-child>
+      <UiIconButton :label="$t('common.cancel')" size="sm" @click.stop="session.cancel()">
+        <X class="size-3.5" :stroke-width="1.55" />
+      </UiIconButton>
+    </ToolbarButton>
+  </ToolbarRoot>
+</template>

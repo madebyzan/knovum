@@ -19,6 +19,7 @@ import SpaceCanvasImageEditActions from "./SpaceCanvasImageEditActions.vue";
 import SpaceCanvasImageOverflowActions from "./SpaceCanvasImageOverflowActions.vue";
 import SpaceCanvasSelectionMenu from "./SpaceCanvasSelectionMenu.vue";
 import SpaceImageAngleInspector from "./SpaceImageAngleInspector.vue";
+import SpaceImageCommentModeBar from "./SpaceImageCommentModeBar.vue";
 import SpaceImageLayerPanel from "./SpaceImageLayerPanel.vue";
 import SpaceImageUpscalePopover from "./SpaceImageUpscalePopover.vue";
 import SpaceNodeBarCommonActions from "./SpaceNodeBarCommonActions.vue";
@@ -73,12 +74,11 @@ watch(
     bar.value?.querySelector<HTMLElement>("button")?.focus({ preventScroll: true });
   },
 );
-watch(ready, async (isReady) => {
+watch(ready, (isReady) => {
   if (!isReady || !restoreFocus.value) return;
-  await nextTick();
   bar.value?.querySelector<HTMLElement>("button")?.focus({ preventScroll: true });
   restoreFocus.value = false;
-});
+}, { flush: "post" });
 </script>
 <template>
   <SpaceCanvasImageActivePanel v-if="activeTool" :node="node" />
@@ -87,6 +87,7 @@ watch(ready, async (isReady) => {
     :node="node"
     @close="emit('update:angleOpen', false)"
   />
+  <SpaceImageCommentModeBar v-else-if="commenting" />
   <div
     v-if="!activeTool && !commenting && !angleOpen"
     ref="bar"

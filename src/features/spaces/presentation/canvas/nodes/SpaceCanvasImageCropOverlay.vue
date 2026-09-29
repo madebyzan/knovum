@@ -68,6 +68,7 @@ const shadeStyles = computed<CSSProperties[]>(() => {
 });
 
 function begin(handle: CropDragHandle, event: PointerEvent) {
+  const bounds = root.value!.getBoundingClientRect();
   (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
   drag.value = {
     kind: "handle",
@@ -76,8 +77,8 @@ function begin(handle: CropDragHandle, event: PointerEvent) {
       crop: props.crop,
       clientX: event.clientX,
       clientY: event.clientY,
-      viewportWidth: props.imageRect.width,
-      viewportHeight: props.imageRect.height,
+      viewportWidth: bounds.width,
+      viewportHeight: bounds.height,
       lockedAspect: props.lockedAspect,
     },
   };
@@ -160,13 +161,15 @@ function complete(event: PointerEvent) {
         v-for="handle in handles"
         :key="handle.handle"
         aria-hidden="true"
-        class="pointer-events-auto absolute z-10 size-2.5 touch-none rounded-full border border-stroke-strong bg-surface-raised shadow-control"
+        class="pointer-events-auto absolute z-10 size-5 touch-none rounded-full"
         :class="handle.className"
         @pointerdown.stop.prevent="begin(handle.handle, $event)"
         @pointermove.stop.prevent="update"
         @pointerup.stop="complete"
         @pointercancel="finish"
-      />
+      >
+        <span class="pointer-events-none absolute inset-1 rounded-full border border-stroke-strong bg-surface-raised shadow-control" />
+      </span>
     </div>
   </div>
 </template>

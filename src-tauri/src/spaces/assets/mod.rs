@@ -93,7 +93,8 @@ fn snapshot_to_imported(
 pub(crate) use access::asset_directory;
 
 pub(crate) use access::{
-    authorize_canvas_thumbnail, authorize_destination, authorize_source, authorize_spaces_asset,
+    authorize_canvas_thumbnail, authorize_destination, authorize_edited_image_preview,
+    authorize_source, authorize_spaces_asset,
 };
 pub(crate) use reclamation::{
     referenced_paths_for_nodes, referenced_paths_for_space, unreferenced_paths,

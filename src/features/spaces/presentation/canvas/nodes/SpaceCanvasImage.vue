@@ -90,7 +90,10 @@ function draw() {
 function point(event: PointerEvent) {
   const bounds = canvas.value!.getBoundingClientRect();
   return canvasPointToImage(
-    { x: event.clientX - bounds.left, y: event.clientY - bounds.top },
+    {
+      x: ((event.clientX - bounds.left) * size.value.width) / bounds.width,
+      y: ((event.clientY - bounds.top) * size.value.height) / bounds.height,
+    },
     image,
     size.value,
     edit.value,
@@ -144,6 +147,7 @@ function commitStroke() {
         trackBrush($event);
         extendStroke($event);
       "
+      @pointerenter="trackBrush"
       @pointerleave="brushCursor = undefined"
       @pointerup.stop="commitStroke"
       @pointercancel="commitStroke"

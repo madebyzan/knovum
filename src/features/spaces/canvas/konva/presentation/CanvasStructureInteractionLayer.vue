@@ -55,7 +55,7 @@ onMounted(() => void nextTick(syncLayerOrder));
 </script>
 
 <template>
-  <KonvaLayer ref="sectionLayer" :config="{ id: 'canvas-section-interaction-layer' }">
+  <KonvaLayer ref="sectionLayer" :config="{ id: 'canvas-section-interaction-layer', listening: interactive }">
     <CanvasSectionChrome
       v-for="section in sections"
       :key="section.section.id"
@@ -72,7 +72,7 @@ onMounted(() => void nextTick(syncLayerOrder));
       @select="emit('select', section.section.id, $event)"
     />
   </KonvaLayer>
-  <KonvaLayer ref="groupLayer" :config="{ id: 'canvas-group-interaction-layer' }">
+  <KonvaLayer ref="groupLayer" :config="{ id: 'canvas-group-interaction-layer', listening: interactive }">
     <CanvasGroupChrome
       v-for="group in selectedGroups"
       :key="group.group.id"

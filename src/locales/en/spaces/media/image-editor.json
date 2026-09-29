@@ -84,8 +84,9 @@
   "comments": {
     "title": "Comment",
     "prompt": "Add a description",
-    "send": "Send",
+    "save": "Save comment",
     "addToConversation": "Add to conversation",
+    "conversationContext": "Image annotation ({kind}; origin at top left; coordinates are percentages of image width and height): {coordinates}\nAnnotation: {text}",
     "delete": "Delete comment",
     "hint": "Click an image location to comment",
     "mode": "Comment annotation mode",

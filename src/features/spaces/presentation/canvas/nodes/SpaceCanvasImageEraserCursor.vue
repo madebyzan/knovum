@@ -33,7 +33,7 @@ const style = computed<CSSProperties>(() => {
 <template>
   <span
     v-if="position && naturalSize.width && naturalSize.height"
-    class="pointer-events-none absolute z-30 -translate-x-1/2 -translate-y-1/2 rounded-full border border-stroke-contrast bg-surface-raised/35 shadow-control"
+    class="pointer-events-none absolute z-30 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-stroke-on-image bg-surface-raised/20 ring-1 ring-black/70"
     :style="style"
   />
 </template>

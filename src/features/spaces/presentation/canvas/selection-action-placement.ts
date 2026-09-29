@@ -56,7 +56,7 @@ export function placeActionSurface(
   if (width > safe.right - safe.left || height > safe.bottom - safe.top) return undefined;
   const anchorX = (visible.left + visible.right) / 2;
   const outer = outside(input, safe, anchorX);
-  if (outer) return outer;
+  if (outer || input.kind === "compact-editor") return outer;
   return (
     atSide(input, safe, { anchorX, side: "inside", top: visible.top + CHROME_GAP }) ??
     atSide(input, safe, { anchorX, side: "inside", top: visible.bottom - height - CHROME_GAP })

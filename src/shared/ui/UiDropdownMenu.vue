@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { DropdownMenuContent, DropdownMenuPortal, DropdownMenuRoot, DropdownMenuTrigger } from "reka-ui";
-import type { Component, HTMLAttributes } from "vue";
+import { computed, inject, watch, type Component, type HTMLAttributes } from "vue";
 
+import { overlayScopeVisibleKey } from "../contracts/overlay-scope-visibility";
 import { cn } from "./cn";
 import { POPUP_ANIMATE_CLASSES, POPOVER_SURFACE_CLASSES } from "./ui-classes";
 import UiDropdownMenuCheckboxItem from "./UiDropdownMenuCheckboxItem.vue";
@@ -22,6 +23,15 @@ export interface UiDropdownMenuItemOption {
 }
 
 const open = defineModel<boolean>("open", { default: false });
+const scopeVisible = inject(overlayScopeVisibleKey, undefined);
+const scopeActive = computed(() => scopeVisible?.value !== false);
+watch(
+  scopeActive,
+  (visible) => {
+    if (!visible) open.value = false;
+  },
+  { flush: "sync" },
+);
 
 const props = withDefaults(
   defineProps<{
@@ -45,7 +55,7 @@ const props = withDefaults(
 </script>
 
 <template>
-  <DropdownMenuRoot v-model:open="open" :modal="modal">
+  <DropdownMenuRoot v-if="scopeActive" v-model:open="open" :modal="modal">
     <DropdownMenuTrigger v-if="$slots.trigger" as-child>
       <slot name="trigger" />
     </DropdownMenuTrigger>

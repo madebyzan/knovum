@@ -44,6 +44,7 @@ const selectionSurfaceKind = computed(() => {
   const tool = imageEdit.active?.tool;
   if (tool === "adjust" || tool === "crop") return "inspector";
   if (angleNodeId.value) return "inspector";
+  if (nodeOperations.active.value?.kind === "image-comment") return "compact-editor";
   return tool ? "compact-editor" : "actions";
 });
 const showSelectionActions = computed(() => {
@@ -53,8 +54,7 @@ const showSelectionActions = computed(() => {
 });
 const scenesCollapsed = shallowRef(false);
 const { selectedNodes } = useCanvasSelectionProjection(() => store.nodes);
-const selection = computed(() => selectedNodes.value);
-const derivations = useSelectionDerivations({ store, selection });
+const derivations = useSelectionDerivations({ store, selection: computed(() => selectedNodes.value) });
 const emit = defineEmits<{
   dismissError: [];
   dismissCapture: [id: string];
@@ -127,7 +127,7 @@ const selectionBarGap = computed(() =>
       :reserved="chromeRects"
       :selection-key="selectionKey"
       :kind="selectionSurfaceKind"
-      :gap="imageEdit.active || angleNodeId ? 12 : singleCanvasObjectSelected ? selectionBarGap : 34"
+      :gap="selectionSurfaceKind === 'actions' ? (singleCanvasObjectSelected ? selectionBarGap : 34) : 12"
       v-slot="{ availableWidth }"
     >
       <SpaceCanvasRelationBar v-if="editorSession.selection.value.relationIds.length === 1" />

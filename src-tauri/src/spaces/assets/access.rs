@@ -30,6 +30,27 @@ pub(crate) fn authorize_spaces_asset<R: tauri::Runtime>(
     Ok(canonical)
 }
 
+pub(crate) fn authorize_edited_image_preview<R: tauri::Runtime>(
+    app: &tauri::AppHandle<R>,
+    source: &Path,
+) -> Result<PathBuf, String> {
+    let previews = app
+        .path()
+        .app_cache_dir()
+        .map_err(|error| error.to_string())?
+        .join("edited-image-previews")
+        .canonicalize()
+        .map_err(|error| error.to_string())?;
+    let canonical = source.canonicalize().map_err(|error| error.to_string())?;
+    if !canonical.starts_with(&previews)
+        || !canonical.is_file()
+        || canonical.extension().and_then(|extension| extension.to_str()) != Some("png")
+    {
+        return Err("Only rendered Space images can be attached".into());
+    }
+    Ok(canonical)
+}
+
 pub(crate) fn authorize_canvas_thumbnail<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
     path: &str,
