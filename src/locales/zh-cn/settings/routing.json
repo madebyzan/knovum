@@ -1,10 +1,8 @@
 {
-  "title": "执行路由",
-  "description": "为每类任务设置执行目标。模型 API 与兼容的桌面 Agent 是由你选择的平级通道。",
-  "defaultsTitle": "默认执行路由",
-  "defaultsDescription": "为每类任务选择模型或桌面 Agent；系统不会自动偏向任一执行通道。",
-  "unavailable": "暂无可分配的执行目标",
-  "unavailableDescription": "请先添加模型服务商，或启用已检测到的桌面 Agent，再设置默认执行目标。",
+  "defaultsTitle": "任务默认模型",
+  "defaultsDescription": "只显示支持对应任务的模型；修改后自动保存。",
+  "unassigned": "未设置默认模型",
+  "noCompatibleModel": "配置支持此任务的模型",
   "routes": {
     "writing": {
       "label": "写作",

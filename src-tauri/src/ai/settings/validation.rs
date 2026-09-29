@@ -30,8 +30,7 @@ pub(super) fn validate(settings: &AiSettings) -> AiResult<()> {
             .ok_or_else(|| AiError::unsupported("AI provider is not configurable"))?;
         let mut model_ids = HashSet::new();
         let mut provider_model_ids = HashSet::new();
-        if connection.models.is_empty()
-            || connection.models.iter().any(|model| {
+        if connection.models.iter().any(|model| {
                 model.id.trim().is_empty()
                     || model.name.trim().is_empty()
                     || model.model.trim().is_empty()

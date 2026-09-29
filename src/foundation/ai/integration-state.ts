@@ -59,10 +59,19 @@ export function createIntegrationState<T>(options: IntegrationStateOptions<T>) {
   }
 
   function persist() {
-    pendingSave ??= drain().finally(() => {
+    if (pendingSave) return pendingSave;
+    if (savedRevision === requestedRevision) return Promise.resolve();
+    pendingSave = drain().finally(() => {
       pendingSave = undefined;
     });
     return pendingSave;
+  }
+
+  async function flush() {
+    while (savedRevision < requestedRevision) {
+      await persist();
+      if (saveError.value) throw saveError.value;
+    }
   }
 
   const scheduleSave = useDebounceFn(() => void persist(), 350, { maxWait: 1200 });
@@ -94,7 +103,7 @@ export function createIntegrationState<T>(options: IntegrationStateOptions<T>) {
     saveError,
     ensureLoaded,
     reload: load,
-    flush: persist,
+    flush,
     reset,
   };
 }

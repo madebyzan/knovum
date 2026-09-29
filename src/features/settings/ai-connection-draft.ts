@@ -1,5 +1,10 @@
 import type { AiConnectionSettings, AiModelDefinition } from "../../foundation/ai/schema/models";
 
+export interface AiConnectionSubmission {
+  connection: AiConnectionSettings;
+  secret: string | null | undefined;
+}
+
 function copyModel(model: AiModelDefinition): AiModelDefinition {
   return {
     id: model.id,

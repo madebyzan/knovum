@@ -4,7 +4,6 @@ import {
   Boxes,
   Info,
   MonitorCog,
-  Route,
   Terminal,
   WandSparkles,
 } from "@lucide/vue";
@@ -68,6 +67,11 @@ export const settingsRegistry: readonly SettingsDefinition[] = [
         labelKey: "settings.ai.connections",
         descriptionKey: "settings.ai.connectionsDescription",
       },
+      {
+        id: "settings-ai-routing",
+        labelKey: "settings.routing.defaultsTitle",
+        descriptionKey: "settings.routing.defaultsDescription",
+      },
     ],
   },
   {
@@ -82,21 +86,6 @@ export const settingsRegistry: readonly SettingsDefinition[] = [
         id: "settings-desktop-agents",
         labelKey: "settings.agents.title",
         descriptionKey: "settings.agents.description",
-      },
-    ],
-  },
-  {
-    id: "executionRouting",
-    group: "intelligence",
-    titleKey: "settings.routing.title",
-    descriptionKey: "settings.routing.description",
-    searchKeys: ["settings.routing.defaultsTitle", "settings.routing.defaultsDescription"],
-    icon: Route,
-    locations: [
-      {
-        id: "settings-ai-routing",
-        labelKey: "settings.routing.defaultsTitle",
-        descriptionKey: "settings.routing.defaultsDescription",
       },
     ],
   },
@@ -120,6 +109,11 @@ export const settingsRegistry: readonly SettingsDefinition[] = [
         id: "settings-generation-presets",
         labelKey: "settings.creation.presets.title",
         descriptionKey: "settings.creation.presets.description",
+      },
+      {
+        id: "settings-image-layers",
+        labelKey: "settings.ai.imageLayers.title",
+        descriptionKey: "settings.ai.imageLayers.description",
       },
     ],
   },

@@ -12,7 +12,7 @@ export const aiProviderSchema = z.enum(providerKinds);
 export const aiCapabilitySchema = z.enum(executionCapabilities);
 export const aiRoutingPurposeSchema = z.enum(routingPurposes);
 
-const aiModelDefinitionSchema = z
+export const aiModelDefinitionSchema = z
   .object({
     id: z.string().trim().min(1),
     name: z.string().trim().min(1),
@@ -27,7 +27,7 @@ export const aiConnectionSettingsSchema = z
     name: z.string().trim().min(1),
     provider: aiProviderSchema,
     baseUrl: z.string().trim().min(1),
-    models: z.array(aiModelDefinitionSchema).min(1),
+    models: z.array(aiModelDefinitionSchema),
   })
   .strict()
   .superRefine((connection, context) => {
@@ -36,6 +36,9 @@ export const aiConnectionSettingsSchema = z
     }
     if (new Set(connection.models.map(({ id }) => id)).size !== connection.models.length) {
       context.addIssue({ code: "custom", path: ["models"], message: "Duplicate AI model id" });
+    }
+    if (new Set(connection.models.map(({ model }) => model)).size !== connection.models.length) {
+      context.addIssue({ code: "custom", path: ["models"], message: "Duplicate AI provider model identifier" });
     }
   });
 

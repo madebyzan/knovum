@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { Eye, EyeOff } from "@lucide/vue";
-import { shallowRef } from "vue";
+import { onMounted, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import { getSecret, persistOptionalSecret } from "../../../foundation/secrets/secret-store";
+import { deleteSecret, getSecret, setSecret } from "../../../foundation/secrets/secret-store";
+import UiButton from "../../../shared/ui/UiButton.vue";
 import UiIconButton from "../../../shared/ui/UiIconButton.vue";
 import UiInput from "../../../shared/ui/UiInput.vue";
 import PreferenceField from "./PreferenceField.vue";
@@ -17,22 +18,29 @@ const props = defineProps<{
 }>();
 const { t } = useI18n();
 const draft = shallowRef("");
-const dirty = shallowRef(false);
 const saving = shallowRef(false);
 const reveal = shallowRef(false);
+const configured = shallowRef<boolean | null>(null);
+
+onMounted(async () => {
+  try {
+    configured.value = Boolean(await getSecret(props.secretKey));
+  } catch (error) {
+    toast.error(`${t("settings.ai.secretLoadFailed")}: ${String(error)}`);
+  }
+});
 
 function updateDraft(value: string) {
   draft.value = value;
-  dirty.value = true;
 }
 
-async function persistDraft() {
-  if (!dirty.value || saving.value) return;
+async function save() {
+  if (!draft.value.trim() || saving.value) return;
   saving.value = true;
   try {
-    await persistOptionalSecret(props.secretKey, draft.value);
+    await setSecret(props.secretKey, draft.value.trim());
+    configured.value = true;
     draft.value = "";
-    dirty.value = false;
     reveal.value = false;
   } catch (error) {
     toast.error(`${t("settings.ai.integrationSaveFailed")}: ${String(error)}`);
@@ -41,39 +49,47 @@ async function persistDraft() {
   }
 }
 
-async function toggleReveal() {
+async function remove() {
+  if (saving.value) return;
+  saving.value = true;
   try {
-    if (!reveal.value && !draft.value) draft.value = (await getSecret(props.secretKey)) ?? "";
-    reveal.value = !reveal.value;
+    await deleteSecret(props.secretKey);
+    configured.value = false;
+    draft.value = "";
   } catch (error) {
     toast.error(`${t("settings.ai.integrationSaveFailed")}: ${String(error)}`);
+  } finally {
+    saving.value = false;
   }
 }
 </script>
 
 <template>
   <PreferenceField :label="label" :description="description">
-    <div class="relative w-80">
-      <UiInput
-        :model-value="draft"
-        class="pr-10"
-        :type="reveal ? 'text' : 'password'"
-        placeholder="••••••••"
-        :disabled="disabled || saving"
-        @update:model-value="updateDraft"
-        @blur="persistDraft"
-        @keydown.enter="($event.target as HTMLInputElement).blur()"
-      />
-      <UiIconButton
-        class="absolute top-1/2 right-1 -translate-y-1/2"
-        :label="reveal ? t('common.hideSecret') : t('common.showSecret')"
-        size="sm"
-        @pointerdown.prevent
-        @click="toggleReveal"
-      >
-        <EyeOff v-if="reveal" class="size-3.5" />
-        <Eye v-else class="size-3.5" />
-      </UiIconButton>
+    <div class="flex flex-wrap items-center gap-2">
+      <div class="relative w-80">
+        <UiInput
+          :model-value="draft"
+          :aria-label="label"
+          class="pr-10"
+          :type="reveal ? 'text' : 'password'"
+          :placeholder="configured === null ? '' : configured ? t('settings.ai.keySavedPlaceholder') : t('settings.ai.apiKeyNotSet')"
+          :disabled="disabled || saving"
+          @update:model-value="updateDraft"
+          @keydown.enter="save"
+        />
+        <UiIconButton
+          class="absolute top-1/2 right-1 -translate-y-1/2"
+          :label="reveal ? t('common.hideSecret') : t('common.showSecret')"
+          size="sm"
+          @click="reveal = !reveal"
+        >
+          <EyeOff v-if="reveal" class="size-3.5" />
+          <Eye v-else class="size-3.5" />
+        </UiIconButton>
+      </div>
+      <UiButton size="sm" :disabled="disabled || saving || !draft.trim()" @click="save">{{ t("settings.ai.saveConnection") }}</UiButton>
+      <UiButton v-if="configured" size="sm" variant="ghost" :disabled="disabled || saving" @click="remove">{{ t("settings.ai.removeSavedKey") }}</UiButton>
     </div>
   </PreferenceField>
 </template>
