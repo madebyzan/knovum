@@ -17,7 +17,7 @@ import { imageActionHelp } from "./image-action-help";
 
 export function useImageGenerateActions(
   node: Readonly<Ref<SpaceCanvasNode<SpaceImagePayload>>>,
-  mode: Readonly<Ref<"upscale" | "angle">>,
+  mode: "upscale" | "angle",
   open: Readonly<Ref<boolean>>,
   close: () => void,
 ) {
@@ -42,7 +42,7 @@ export function useImageGenerateActions(
       editing: !nodeOperations.allows("derive"),
       capability: capabilities.isFetching.value
         ? undefined
-        : mode.value === "upscale"
+        : mode === "upscale"
           ? capabilities.data.value?.upscale
           : capabilities.data.value?.multiAngle,
       failed: capabilities.isError.value && !capabilities.isFetching.value,

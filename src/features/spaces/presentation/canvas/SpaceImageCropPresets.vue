@@ -29,11 +29,11 @@ function glyphStyle(ratio = 1): CSSProperties {
 </script>
 
 <template>
-  <div>
+  <div class="flex min-h-0 flex-1 flex-col">
     <p class="px-1 pb-2 text-caption text-fg-tertiary">
       {{ t("spaces.media.imageEditor.crop.presets") }}
     </p>
-    <UiScrollArea class="h-80">
+    <UiScrollArea class="min-h-0 flex-1">
       <details
         v-for="group in cropPresetGroups"
         :key="group.id"

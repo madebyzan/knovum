@@ -8,6 +8,21 @@ import {
   type SurfaceSide,
 } from "./selection-surface-geometry";
 
+function freeVerticalBands(left: number, right: number, safe: SurfaceRect, reserved: readonly SurfaceRect[]) {
+  let bands = [{ top: safe.top, bottom: safe.bottom }];
+  for (const area of reserved) {
+    if (right <= area.left || left >= area.right) continue;
+    bands = bands.flatMap((band) => {
+      if (area.bottom <= band.top || area.top >= band.bottom) return [band];
+      return [
+        ...(area.top > band.top ? [{ top: band.top, bottom: area.top }] : []),
+        ...(area.bottom < band.bottom ? [{ top: area.bottom, bottom: band.bottom }] : []),
+      ];
+    });
+  }
+  return bands;
+}
+
 function horizontal(
   input: PlacementInput,
   safe: SurfaceRect,
@@ -19,12 +34,23 @@ function horizontal(
   const left =
     side === "right" ? input.selection.right + input.gap : input.selection.left - input.gap - width;
   if (left < safe.left || left + width > safe.right) return undefined;
-  const centered = clamp((visible.top + visible.bottom - height) / 2, safe.top, safe.bottom - height);
-  for (const top of [centered, clamp(visible.top, safe.top, safe.bottom - height)]) {
-    if (fitsChrome({ left, top, right: left + width, bottom: top + height }, input.reserved))
-      return { left, top, maxHeight: height, side };
-  }
-  return undefined;
+  const bands = freeVerticalBands(left, left + width, safe, input.reserved);
+  const center = (visible.top + visible.bottom) / 2;
+  const overlap = (band: { top: number; bottom: number }) =>
+    Math.max(0, Math.min(band.bottom, visible.bottom) - Math.max(band.top, visible.top));
+  const best = bands
+    .map((band) => ({ ...band, shown: Math.min(height, band.bottom - band.top) }))
+    .filter((band) => band.shown >= Math.min(160, height))
+    .toSorted(
+      (a, b) =>
+        overlap(b) - overlap(a) ||
+        b.shown - a.shown ||
+        Math.abs(center - clamp(center, a.top + a.shown / 2, a.bottom - a.shown / 2)) -
+          Math.abs(center - clamp(center, b.top + b.shown / 2, b.bottom - b.shown / 2)),
+    )[0];
+  if (!best) return undefined;
+  const top = clamp(center - best.shown / 2, best.top, best.bottom - best.shown);
+  return { left, top, maxHeight: best.shown, side };
 }
 
 function vertical(
@@ -69,7 +95,7 @@ function candidateForSide(
   return undefined;
 }
 
-/** Keep an editor panel on its current side until that side no longer fits. */
+/** Keep an editor beside the selected object and scroll it within the available vertical band. */
 export function placeInspectorSurface(
   input: PlacementInput,
   safe: SurfaceRect,
@@ -77,13 +103,17 @@ export function placeInspectorSurface(
 ): SurfacePlacement | undefined {
   const height = Math.min(input.surface.height, safe.bottom - safe.top);
   if (input.surface.width > safe.right - safe.left || height <= 0) return undefined;
-  if (input.previousSide === "inside") {
-    const current = inside(input, safe, visible, height);
-    if (current) return current;
+  const previousHorizontal =
+    input.previousSide === "left" || input.previousSide === "right" ? input.previousSide : undefined;
+  const horizontalSides = uniq(compact([previousHorizontal, "right", "left"]));
+  for (const side of horizontalSides) {
+    const candidate = candidateForSide(input, safe, visible, { side, height });
+    if (candidate) return candidate;
   }
-  const preferred: (SurfaceSide | undefined)[] = [input.previousSide, "right", "left", "above", "below"];
-  const sides = uniq(compact(preferred));
-  for (const side of sides) {
+  const previousVertical =
+    input.previousSide === "above" || input.previousSide === "below" ? input.previousSide : undefined;
+  const verticalSides = uniq(compact([previousVertical, "above", "below"]));
+  for (const side of verticalSides) {
     const candidate = candidateForSide(input, safe, visible, { side, height });
     if (candidate) return candidate;
   }

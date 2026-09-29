@@ -10,7 +10,7 @@ import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../../model/nodes/node-payload";
 import { imageActionHelp } from "./image-action-help";
 
-type ImagePopover = "upscale" | "angle" | "layers";
+type ImagePopover = "upscale" | "layers";
 
 export function useImageNodeBarState(
   node: Readonly<Ref<SpaceCanvasNode<SpaceImagePayload>>>,
@@ -53,6 +53,12 @@ export function useImageNodeBarState(
     openPopover.value = open ? mode : openPopover.value === mode ? undefined : openPopover.value;
   }
 
+  function beginAngle() {
+    if (!nodeOperations.allows("derive")) return false;
+    openPopover.value = undefined;
+    return true;
+  }
+
   function beginComment() {
     if (!nodeOperations.allows("edit") || session.applying) return;
     openPopover.value = undefined;
@@ -87,6 +93,7 @@ export function useImageNodeBarState(
     dimensionsReady,
     beginTool,
     setPopover,
+    beginAngle,
     beginComment,
     removeBackground,
   };
