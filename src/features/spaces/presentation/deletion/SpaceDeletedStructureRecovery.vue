@@ -63,6 +63,7 @@ function measureElement(element: Element | ComponentPublicInstance | null) {
         <UiIconButton
           :disabled="busy"
           :label="t('spaces.trash.structure.restoreNode')"
+          tooltip
           size="sm"
           @click="emit('restore', deletedRoot)"
         >
@@ -72,6 +73,7 @@ function measureElement(element: Element | ComponentPublicInstance | null) {
           v-if="(batchCounts[deletedRoot.batchId] ?? 0) > 1"
           :disabled="busy"
           :label="t('spaces.trash.structure.restoreOperation')"
+          tooltip
           size="sm"
           @click="emit('restoreBatch', deletedRoot)"
         >

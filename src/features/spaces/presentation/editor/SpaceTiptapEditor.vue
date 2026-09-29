@@ -81,6 +81,7 @@ async function exportMarkdown() {
       <SpaceTiptapSearch v-if="editor" :editor="editor" />
       <UiIconButton
         :label="t('spaces.sidebar.editorOutline.title')"
+        tooltip
         size="sm"
         @click="dock.openDocumentOutline()"
       >

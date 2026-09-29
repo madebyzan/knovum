@@ -62,7 +62,7 @@ const menuItems = computed(() =>
     :items="menuItems.length ? menuItems : undefined"
   >
     <template #trigger>
-      <UiIconButton :label="t('spaces.space.moveTo')" size="sm">
+      <UiIconButton :label="t('spaces.space.moveTo')" tooltip size="sm">
         <FolderInput class="size-3.5" :stroke-width="1.55" />
       </UiIconButton>
     </template>

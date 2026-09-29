@@ -43,6 +43,7 @@ watch(
       <p class="text-label font-medium text-fg-primary">{{ t("spaces.scenes.title") }}</p>
       <UiIconButton
         :label="t('spaces.scenes.save')"
+        tooltip
         size="sm"
         class="size-6 rounded-sm"
         :disabled="saving"

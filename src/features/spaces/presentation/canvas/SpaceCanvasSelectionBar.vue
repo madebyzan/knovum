@@ -59,17 +59,17 @@ const singleSection = computed(
       {{ actions.state.value.structureNodeIds.length }}
     </UiBadge>
     <ToolbarButton as-child>
-      <UiIconButton :label="t('spaces.inspector.title')" size="sm" @click="actions.inspect">
+      <UiIconButton :label="t('spaces.inspector.title')" tooltip size="sm" @click="actions.inspect">
         <Info class="size-3.5" :stroke-width="1.55" />
       </UiIconButton>
     </ToolbarButton>
     <ToolbarButton v-if="actions.state.value.canConnect" as-child>
-      <UiIconButton :label="t('spaces.canvas.relations.connect')" size="sm" @click="actions.connect">
+      <UiIconButton :label="t('spaces.canvas.relations.connect')" tooltip size="sm" @click="actions.connect">
         <Link2 class="size-3.5" :stroke-width="1.55" />
       </UiIconButton>
     </ToolbarButton>
     <ToolbarButton v-if="actions.state.value.canAsk" as-child>
-      <UiIconButton :label="t('spaces.assistant.askSelection')" size="sm" @click="actions.ask">
+      <UiIconButton :label="t('spaces.assistant.askSelection')" tooltip size="sm" @click="actions.ask">
         <Sparkles class="size-3.5" :stroke-width="1.55" />
       </UiIconButton>
     </ToolbarButton>
@@ -85,7 +85,7 @@ const singleSection = computed(
       </UiIconButton>
     </ToolbarButton>
     <ToolbarButton v-if="actions.state.value.canCreateSection" as-child>
-      <UiIconButton :label="t('spaces.canvas.sections.create')" size="sm" @click="actions.createSection">
+      <UiIconButton :label="t('spaces.canvas.sections.create')" tooltip size="sm" @click="actions.createSection">
         <Group class="size-3.5" :stroke-width="1.55" />
       </UiIconButton>
     </ToolbarButton>

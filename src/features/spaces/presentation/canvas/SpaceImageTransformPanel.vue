@@ -56,6 +56,7 @@ function setRotation(event: Event) {
       <ToolbarButton as-child>
         <UiIconButton
           :label="t('spaces.media.imageEditor.transform.flipHorizontal')"
+          tooltip
           :active="edit.flipHorizontal"
           :disabled="busy"
           @click="emit('update', { flipHorizontal: !edit.flipHorizontal })"
@@ -66,6 +67,7 @@ function setRotation(event: Event) {
       <ToolbarButton as-child>
         <UiIconButton
           :label="t('spaces.media.imageEditor.transform.flipVertical')"
+          tooltip
           :active="edit.flipVertical"
           :disabled="busy"
           @click="emit('update', { flipVertical: !edit.flipVertical })"

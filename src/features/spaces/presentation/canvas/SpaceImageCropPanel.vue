@@ -104,6 +104,7 @@ function toggleAspect() {
       </label>
       <UiIconButton
         :label="t('spaces.media.imageEditor.crop.lockAspect')"
+        tooltip
         :active="Boolean(lockedAspect)"
         class="size-(--knovum-control-height-lg)"
         @click="toggleAspect"

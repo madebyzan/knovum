@@ -98,7 +98,7 @@ async function open() {
       type="button"
       class="mt-2 flex w-full items-start gap-2 rounded-md text-left focus-visible:outline-2 focus-visible:outline-stroke-focus disabled:cursor-default"
       :disabled="!nodeDraft.available.value"
-      :title="nodeDraft.available.value ? t('spaces.inspector.renameHint') : undefined"
+      :aria-label="nodeDraft.available.value ? t('spaces.inspector.renameHint') : undefined"
       @click="beginEdit"
     >
       <h2 class="min-w-0 flex-1 text-title leading-snug font-semibold tracking-title wrap-break-word text-fg-primary">

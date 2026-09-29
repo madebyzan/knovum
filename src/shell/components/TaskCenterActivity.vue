@@ -65,6 +65,7 @@ const { t } = useI18n();
       <UiIconButton
         v-else-if="task.cancelling"
         :label="t('tasks.forceDismiss')"
+        tooltip
         size="sm"
         @click="emit('dismiss', task.id)"
       >

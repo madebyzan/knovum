@@ -76,7 +76,6 @@ watch(
         <span class="text-label font-medium text-fg-primary">{{ t("spaces.recording.note") }}</span>
         <UiIconButton
           :label="t('common.cancel')"
-          :tooltip="false"
           size="sm"
           class="ml-auto size-6"
           :disabled="controller.isSaving.value"

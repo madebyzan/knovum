@@ -21,7 +21,6 @@ const props = withDefaults(
   {
     active: false,
     disabled: false,
-    tooltip: true,
     size: "md",
     tooltipSide: "top",
   },
@@ -30,7 +29,7 @@ const attrs = useAttrs();
 </script>
 
 <template>
-  <UiTooltip :text="label" :shortcut="shortcut" :side="tooltipSide" :disabled="!tooltip">
+  <UiTooltip :text="label" :shortcut="shortcut" :side="tooltipSide" :disabled="!(tooltip ?? Boolean(shortcut))">
     <button
       v-bind="attrs"
       type="button"

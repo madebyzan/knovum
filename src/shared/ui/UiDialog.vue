@@ -59,7 +59,7 @@ const widthClass = computed(() => (props.size === "wide" ? "max-w-[720px]" : "ma
             </DialogDescription>
           </div>
           <DialogClose as-child>
-            <UiIconButton :label="t('common.close')" :tooltip="false" size="sm"
+            <UiIconButton :label="t('common.close')" size="sm"
               ><X class="size-3.5"
             /></UiIconButton>
           </DialogClose>

@@ -127,6 +127,7 @@ onBeforeUnmount(() => {
         </UiIconButton>
         <UiIconButton
           :label="t('spaces.richtext.bulletList')"
+          tooltip
           size="sm"
           :active="editor.isActive('bulletList')"
           @click="editor.chain().focus().toggleBulletList().run()"

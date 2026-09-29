@@ -108,6 +108,7 @@ function openSource(source: (typeof sources.value)[number]) {
       <UiIconButton
         v-if="attachable"
         :label="t('spaces.assistant.evidence.useCurrent')"
+        tooltip
         size="sm"
         :disabled="mutating"
         @click="attachCurrent"
