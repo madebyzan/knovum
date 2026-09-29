@@ -29,8 +29,9 @@ const props = withDefaults(
 </script>
 
 <template>
-  <TooltipProvider :delay-duration="300" :skip-delay-duration="100">
-    <TooltipRoot :disabled="disabled" :ignore-non-keyboard-focus="true">
+  <slot v-if="disabled" />
+  <TooltipProvider v-else :delay-duration="300" :skip-delay-duration="100">
+    <TooltipRoot :ignore-non-keyboard-focus="true">
       <TooltipTrigger as-child><slot /></TooltipTrigger>
       <TooltipPortal>
         <TooltipContent
