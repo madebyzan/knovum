@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { Archive, RotateCcw, Trash2 } from "@lucide/vue";
-import { ask } from "@tauri-apps/plugin-dialog";
 import { inject, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
@@ -11,6 +10,7 @@ import {
   type ArchiveSettingsContract,
 } from "../../../../shared/contracts/archive-settings";
 import UiButton from "../../../../shared/ui/UiButton.vue";
+import { confirmAction } from "../../../../shared/ui/confirm-action";
 import SettingsSection from "../SettingsSection.vue";
 
 const archive = requireArchiveSettings();
@@ -25,11 +25,11 @@ function requireArchiveSettings(): ArchiveSettingsContract {
 }
 
 async function permanentlyDelete(space: ArchivedSpace) {
-  const confirmed = await ask(t("settings.general.archived.delete.description"), {
+  const confirmed = await confirmAction({
     title: t("settings.general.archived.delete.title", { title: space.title }),
-    kind: "warning",
-    okLabel: t("settings.general.archived.delete.label"),
-    cancelLabel: t("common.cancel"),
+    description: t("settings.general.archived.delete.description"),
+    confirmLabel: t("settings.general.archived.delete.label"),
+    danger: true,
   });
   if (!confirmed) return;
   try {

@@ -1,7 +1,7 @@
-import { ask } from "@tauri-apps/plugin-dialog";
 import type { ComputedRef, ShallowRef } from "vue";
 import { toast } from "vue-sonner";
 import { i18n } from "../../../foundation/i18n/i18n";
+import { confirmAction } from "../../../shared/ui/confirm-action";
 import { exportSpaceTextFile, safeExportFileName } from "../assets/export";
 
 import {
@@ -54,9 +54,11 @@ export function useConversationActions(state: ConversationActionState) {
   async function deleteSelected() {
     const conversation = state.selected.value;
     if (!conversation) return;
-    const confirmed = await ask(`Delete “${conversation.title}” and its task history?`, {
-      kind: "warning",
-      title: "Delete conversation",
+    const confirmed = await confirmAction({
+      title: i18n.global.t("spaces.assistant.conversations.delete"),
+      description: i18n.global.t("spaces.assistant.conversations.deleteConfirm", { title: conversation.title }),
+      confirmLabel: i18n.global.t("common.delete"),
+      danger: true,
     });
     if (!confirmed) return;
     await deleteAssistantConversation(conversation.id);

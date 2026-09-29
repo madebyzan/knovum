@@ -3,7 +3,6 @@ import type { GenerationActionOption } from "../generation-action-option";
 
 const props = defineProps<{ loadGenerationActions: () => Promise<GenerationActionOption[]> }>();
 import { Copy, Pencil, Trash2 } from "@lucide/vue";
-import { ask } from "@tauri-apps/plugin-dialog";
 import { camelCase } from "es-toolkit";
 import { shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
@@ -11,6 +10,7 @@ import { useI18n } from "vue-i18n";
 import type { GenerationPreset } from "../../../foundation/ai/schema/models";
 import UiIconButton from "../../../shared/ui/UiIconButton.vue";
 import UiInput from "../../../shared/ui/UiInput.vue";
+import { confirmAction } from "../../../shared/ui/confirm-action";
 import GenerationPresetEditor from "./GenerationPresetEditor.vue";
 import SettingsSection from "./SettingsSection.vue";
 
@@ -20,11 +20,11 @@ const editingIndex = shallowRef<number>();
 const editorOpen = shallowRef(false);
 
 async function removePreset(index: number) {
-  const confirmed = await ask(t("settings.creation.presets.deleteConfirm"), {
+  const confirmed = await confirmAction({
     title: t("common.delete"),
-    kind: "warning",
-    okLabel: t("common.delete"),
-    cancelLabel: t("common.cancel"),
+    description: t("settings.creation.presets.deleteConfirm"),
+    confirmLabel: t("common.delete"),
+    danger: true,
   });
   if (confirmed) presets.value.splice(index, 1);
 }

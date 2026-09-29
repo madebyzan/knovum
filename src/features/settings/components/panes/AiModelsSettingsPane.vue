@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { useQuery } from "@tanstack/vue-query";
-import { ask } from "@tauri-apps/plugin-dialog";
 import { storeToRefs } from "pinia";
 import { computed, nextTick, onMounted, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -10,6 +9,7 @@ import { useAiSettingsStore } from "../../../../foundation/ai/ai-settings-store"
 import { useCreationLibraryStore } from "../../../../foundation/ai/creation-library-store";
 import { loadProviderDescriptors } from "../../../../foundation/ai/providers";
 import type { AiRoutingPurpose } from "../../../../foundation/ai/schema/models";
+import { confirmAction } from "../../../../shared/ui/confirm-action";
 import UiSpinner from "../../../../shared/ui/UiSpinner.vue";
 import { useProtectedExecutionTargets } from "../../use-protected-execution-targets";
 import AiConnectionsSettings from "../AiConnectionsSettings.vue";
@@ -55,11 +55,11 @@ async function reload() {
 }
 
 async function resetSection() {
-  const confirmed = await ask(t("settings.general.reset.confirmation"), {
+  const confirmed = await confirmAction({
     title: t("settings.general.reset.action"),
-    kind: "warning",
-    okLabel: t("settings.general.reset.action"),
-    cancelLabel: t("common.cancel"),
+    description: t("settings.general.reset.confirmation"),
+    confirmLabel: t("settings.general.reset.action"),
+    danger: true,
   });
   if (!confirmed) return;
   if (failure.value?.source === "creation") await creationStore.reset();

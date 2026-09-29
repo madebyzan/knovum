@@ -12,6 +12,7 @@ import { useSpacesWorkspace } from "./features/spaces/workspace-definition";
 import { useBootstrapStore } from "./foundation/bootstrap/bootstrap-store";
 import { usePreferencesStore } from "./foundation/preferences/preferences-store";
 import { archiveSettingsKey } from "./shared/contracts/archive-settings";
+import UiConfirmAction from "./shared/ui/UiConfirmAction.vue";
 import AppErrorBoundary from "./shell/AppErrorBoundary.vue";
 import AppShell from "./shell/AppShell.vue";
 import BootstrapScreen from "./shell/BootstrapScreen.vue";
@@ -34,6 +35,7 @@ provide(archiveSettingsKey, createSpaceArchiveSettings());
         :disable-hoverable-content="true"
       >
         <AppShell :workspace="workspace" />
+        <UiConfirmAction />
         <Toaster :theme="theme" position="bottom-right" :visible-toasts="4" close-button />
       </TooltipProvider>
     </AppErrorBoundary>

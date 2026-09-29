@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ask } from "@tauri-apps/plugin-dialog";
 import { storeToRefs } from "pinia";
 import { computed, onMounted, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -8,6 +7,7 @@ import { toast } from "vue-sonner";
 import { useAiSettingsStore } from "../../../../foundation/ai/ai-settings-store";
 import { useExecutionCatalogQuery } from "../../../../foundation/ai/execution-catalog-query";
 import type { AgentKind, DesktopAgentSettings } from "../../../../foundation/ai/schema/agents";
+import { confirmAction } from "../../../../shared/ui/confirm-action";
 import AgentAvailability from "../AgentAvailability.vue";
 import SettingsLoadFailure from "../SettingsLoadFailure.vue";
 import SettingsSection from "../SettingsSection.vue";
@@ -52,11 +52,11 @@ async function load() {
 }
 
 async function resetSection() {
-  const confirmed = await ask(t("settings.general.reset.confirmation"), {
+  const confirmed = await confirmAction({
     title: t("settings.general.reset.action"),
-    kind: "warning",
-    okLabel: t("settings.general.reset.action"),
-    cancelLabel: t("common.cancel"),
+    description: t("settings.general.reset.confirmation"),
+    confirmLabel: t("settings.general.reset.action"),
+    danger: true,
   });
   if (!confirmed) return;
   await aiStore.reset();

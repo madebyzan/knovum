@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ask } from "@tauri-apps/plugin-dialog";
 import { ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
+import { confirmAction } from "../../../../shared/ui/confirm-action";
 import UiInput from "../../../../shared/ui/UiInput.vue";
 import {
   deleteCapturedWorkflow,
@@ -51,9 +51,11 @@ async function rename() {
 
 async function remove() {
   if (busy.value) return;
-  const confirmed = await ask(t("spaces.creation.workflow.deleteConfirm", { name: props.workflow.name }), {
-    kind: "warning",
+  const confirmed = await confirmAction({
     title: t("spaces.creation.workflow.delete"),
+    description: t("spaces.creation.workflow.deleteConfirm", { name: props.workflow.name }),
+    confirmLabel: t("spaces.creation.workflow.delete"),
+    danger: true,
   });
   if (!confirmed) return;
   busy.value = true;

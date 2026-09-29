@@ -22,12 +22,14 @@ const props = withDefaults(
     title: string;
     description?: string | undefined;
     size?: "default" | "wide" | undefined;
+    closable?: boolean | undefined;
     class?: HTMLAttributes["class"];
     bodyClass?: HTMLAttributes["class"];
   }>(),
   {
     description: undefined,
     size: "default",
+    closable: true,
   },
 );
 
@@ -58,7 +60,7 @@ const widthClass = computed(() => (props.size === "wide" ? "max-w-[720px]" : "ma
               {{ description }}
             </DialogDescription>
           </div>
-          <DialogClose as-child>
+          <DialogClose v-if="closable" as-child>
             <UiIconButton :label="t('common.close')" size="sm"
               ><X class="size-3.5"
             /></UiIconButton>

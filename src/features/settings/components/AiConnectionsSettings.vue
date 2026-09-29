@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ChevronDown, ChevronRight, Plus, Server, Settings, Trash2 } from "@lucide/vue";
-import { ask } from "@tauri-apps/plugin-dialog";
 import { computed, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -11,6 +10,7 @@ import { deleteSecret, persistOptionalSecret } from "../../../foundation/secrets
 import { routingCapabilities } from "../../../shared/contracts/generated/contract-values";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiIconButton from "../../../shared/ui/UiIconButton.vue";
+import { confirmAction } from "../../../shared/ui/confirm-action";
 import type { AiConnectionSubmission } from "../ai-connection-draft";
 import { providerLogos } from "../ai-provider-logos";
 import AiConnectionEditor from "./AiConnectionEditor.vue";
@@ -54,11 +54,11 @@ watch(() => props.createModelRequest, (request) => {
 });
 
 async function confirmDiscard() {
-  return !dirty.value || ask(t("settings.ai.discardChanges"), {
+  return !dirty.value || confirmAction({
     title: t("settings.ai.discardChangesTitle"),
-    kind: "warning",
-    okLabel: t("settings.ai.discardChangesAction"),
-    cancelLabel: t("common.cancel"),
+    description: t("settings.ai.discardChanges"),
+    confirmLabel: t("settings.ai.discardChangesAction"),
+    danger: true,
   });
 }
 
@@ -112,11 +112,11 @@ async function saveConnection(submission: AiConnectionSubmission) {
 
 async function removeConnection(connection: AiConnectionSettings) {
   if (busy.value || props.protectedConnectionIds.includes(connection.id)) return;
-  const confirmed = await ask(t("settings.ai.deleteConnectionConfirm", { name: connection.name }), {
+  const confirmed = await confirmAction({
     title: t("common.delete"),
-    kind: "warning",
-    okLabel: t("common.delete"),
-    cancelLabel: t("common.cancel"),
+    description: t("settings.ai.deleteConnectionConfirm", { name: connection.name }),
+    confirmLabel: t("common.delete"),
+    danger: true,
   });
   if (!confirmed) return;
   busy.value = true;

@@ -10,7 +10,7 @@ const mocks = vi.hoisted(() => ({
   error: vi.fn<(message: string) => void>(),
 }));
 vi.mock("../../../foundation/ipc/invoke-command", () => ({ invokeCommand: mocks.invoke }));
-vi.mock("@tauri-apps/plugin-dialog", () => ({ ask: vi.fn(), save: mocks.save }));
+vi.mock("@tauri-apps/plugin-dialog", () => ({ save: mocks.save }));
 vi.mock("vue-sonner", () => ({ toast: { error: mocks.error, success: vi.fn() } }));
 
 function actions() {

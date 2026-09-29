@@ -38,6 +38,7 @@
     "archive": "Archive",
     "restore": "Restore",
     "delete": "Delete",
+    "deleteConfirm": "Delete “{title}” and its task history? This cannot be undone.",
     "search": "Search conversations",
     "archived": "Archived",
     "records": "Conversation history",

@@ -503,7 +503,7 @@ Interactive WebView controls remain ordinary controls, not drag regions. Feature
 - `UiKbd` renders platform-correct modifiers;
 - icon-only actions require an accessible label and tooltip when the icon is not self-evident;
 - right-click context menus on non-editable desktop workspace surfaces use Tauri's native `Menu.popup()` path, not a WebView Context Menu component; this rule covers canvas objects/background, Spaces, Outline, Scenes, Tags and Relations. Editable text is not intercepted so the platform text-editing menu remains available;
-- transient outcomes use `vue-sonner`; decisions use Reka Dialog/AlertDialog;
+- transient outcomes use `vue-sonner`; destructive and discard confirmations use the shared in-app `UiConfirmAction` dialog, while file picking and saving use the native OS dialog;
 - background jobs use the Task Center bridge and OS progress;
 - reduced-motion and forced-colors are handled globally;
 - content is selectable by default; shell/navigation chrome opts out with `select-none`.
