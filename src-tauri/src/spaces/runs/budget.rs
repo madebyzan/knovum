@@ -1,4 +1,4 @@
-use sqlx::{Row, SqlitePool};
+use sqlx::{Row, Sqlite, SqlitePool, Transaction};
 
 use crate::spaces::db;
 
@@ -40,13 +40,13 @@ pub(crate) async fn record_usage(
     tx.commit().await.map_err(db::sql_error)
 }
 
-pub(crate) async fn reserve_output_bytes(
-    pool: &SqlitePool,
+pub(crate) async fn reserve_output_bytes_in_transaction(
+    tx: &mut Transaction<'_, Sqlite>,
     run_id: &str,
     bytes: usize,
+    now: i64,
 ) -> Result<(), String> {
     let bytes = i64::try_from(bytes).map_err(|_| "budget-exhausted: output is too large")?;
-    let mut tx = db::begin_write(pool).await?;
     let rows = sqlx::query(
         "WITH RECURSIVE ancestors(id,parent_run_id,output_bytes,budget) AS (
            SELECT id,parent_run_id,output_bytes,budget FROM spaces_runs WHERE id=$1
@@ -56,7 +56,7 @@ pub(crate) async fn reserve_output_bytes(
          ) SELECT id,output_bytes,budget FROM ancestors",
     )
     .bind(run_id)
-    .fetch_all(&mut *tx)
+    .fetch_all(&mut **tx)
     .await
     .map_err(db::sql_error)?;
     if rows.is_empty() {
@@ -76,7 +76,6 @@ pub(crate) async fn reserve_output_bytes(
         }
         ids.push(row.try_get::<String, _>("id").map_err(db::sql_error)?);
     }
-    let now = crate::clock::unix_time_millis()?;
     for id in ids {
         sqlx::query(
             "UPDATE spaces_runs SET output_bytes=output_bytes+$1,updated_at=$2 WHERE id=$3",
@@ -84,9 +83,9 @@ pub(crate) async fn reserve_output_bytes(
         .bind(bytes)
         .bind(now)
         .bind(id)
-        .execute(&mut *tx)
+        .execute(&mut **tx)
         .await
         .map_err(db::sql_error)?;
     }
-    tx.commit().await.map_err(db::sql_error)
+    Ok(())
 }

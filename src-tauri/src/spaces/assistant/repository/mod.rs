@@ -11,7 +11,8 @@ pub use conversations::{
 };
 pub use message_branches::{activate as activate_branch, branch, list as list_branches};
 pub use message_contract::{
-    AssistantMessage, AssistantMessageAttachment, AssistantMessageContent, AssistantMessageRole,
+    AssistantMessage, AssistantMessageAttachment, AssistantMessageContent, AssistantMessageOutput,
+    AssistantMessageRole,
 };
 pub use messages::{all_messages, append_message, append_message_in_transaction, list_messages};
 pub use tasks::{

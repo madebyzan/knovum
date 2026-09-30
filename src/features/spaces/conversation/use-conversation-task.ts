@@ -1,7 +1,5 @@
 import { computed, shallowRef, type Ref, type ShallowRef } from "vue";
 
-import type { AssistantTaskUpdate } from "../contracts/generated/AssistantTaskUpdate";
-import type { WaitReason } from "../contracts/generated/WaitReason";
 import {
   cancelAssistantTask,
   type AssistantMessage,
@@ -14,7 +12,6 @@ import { createConversationTaskSubmission } from "./conversation-task-submission
 import { useConversationRunRestoration } from "./use-conversation-run-restoration";
 
 type Attachment = NonNullable<StartAssistantTaskInput["attachments"]>[number];
-type PermissionRequest = Extract<AssistantTaskUpdate, { type: "permission_requested" }>;
 
 export function useConversationTask(input: {
   spaceId: Ref<string | undefined>;
@@ -35,11 +32,9 @@ export function useConversationTask(input: {
   const activeConversationId = shallowRef("");
   const activeSpaceId = shallowRef<string>();
   const taskState = shallowRef<string>();
-  const waitReason = shallowRef<WaitReason | null>(null);
   const loading = shallowRef(false);
   const error = shallowRef<string>();
   const streamedText = shallowRef("");
-  const permission = shallowRef<PermissionRequest>();
   const activityRevision = shallowRef(0);
   const visible = computed(
     () =>
@@ -48,9 +43,7 @@ export function useConversationTask(input: {
   );
   const visibleStreamedText = computed(() => (visible.value ? streamedText.value : ""));
   const visibleTaskState = computed(() => (visible.value ? taskState.value : undefined));
-  const visibleWaitReason = computed(() => (visible.value ? waitReason.value : null));
   const visibleError = computed(() => (visible.value ? error.value : undefined));
-  const visiblePermission = computed(() => (visible.value ? permission.value : undefined));
 
   const conversation = createConversationTaskState({
     spaceId: input.spaceId,
@@ -65,25 +58,14 @@ export function useConversationTask(input: {
     if (activeRunId.value) await cancelAssistantTask(activeRunId.value);
   }
 
-  const {
-    restoreForSpace,
-    resume,
-    decidingPermission,
-    decidePermission,
-    approvals,
-    decidingApproval,
-    decideApproval,
-    refreshPending,
-  } = useConversationRunRestoration({
+  const { restoreForSpace, resume } = useConversationRunRestoration({
     spaceId: input.spaceId,
     selectedConversationId: input.selectedConversationId,
     activeRunId,
     activeConversationId,
     activeSpaceId,
     taskState,
-    waitReason,
     loading,
-    permission,
     error,
     activityRevision,
     refresh: input.refresh,
@@ -98,37 +80,26 @@ export function useConversationTask(input: {
       activeConversationId,
       activeSpaceId,
       taskState,
-      waitReason,
       loading,
       error,
       streamedText,
-      permission,
       activityRevision,
     },
     accepted: conversation.accepted,
     settled: conversation.settled,
-    refreshPending,
     restoreForSpace,
   });
 
   return {
     activeRunId,
     activeConversationId,
-    pendingPermission: permission,
     visibleTaskState,
-    visibleWaitReason,
     loading,
     visibleError,
-    visiblePermission,
-    decidingPermission,
-    approvals,
-    decidingApproval,
-    decideApproval,
     visibleStreamedText,
     activityRevision,
     send: submission.send,
     cancel,
-    decidePermission,
     restoreForSpace,
     resume,
   };

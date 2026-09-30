@@ -13,10 +13,12 @@ pub(super) enum ResourceError {
 /// A lossless PNG raster is the one visual-input contract. The original remains in the document.
 pub(super) fn save(
     app: &tauri::AppHandle,
+    source: &Path,
     bytes: &[u8],
+    claim_managed_path: &mut dyn FnMut(&Path) -> Result<(), String>,
 ) -> Result<DocumentResource, ResourceError> {
     let (bytes, width, height) = normalize(bytes).map_err(ResourceError::Unsupported)?;
-    store(app, &bytes, width, height).map_err(ResourceError::Storage)
+    store(app, source, &bytes, width, height, claim_managed_path).map_err(ResourceError::Storage)
 }
 
 fn normalize(bytes: &[u8]) -> Result<(Vec<u8>, u32, u32), String> {
@@ -60,24 +62,58 @@ fn normalize(bytes: &[u8]) -> Result<(Vec<u8>, u32, u32), String> {
 
 fn store(
     app: &tauri::AppHandle,
+    source: &Path,
     bytes: &[u8],
     width: u32,
     height: u32,
+    claim_managed_path: &mut dyn FnMut(&Path) -> Result<(), String>,
 ) -> Result<DocumentResource, String> {
     let id = format!("{:x}", Sha256::digest(bytes));
-    let path = asset_directory(app)?.join(format!("document-{id}.png"));
+    let path = resource_path(&asset_directory(app)?, source, &id);
+    let resource = store_at(&path, id, bytes, width, height, claim_managed_path)?;
+    authorize_spaces_asset(app, &path)?;
+    Ok(resource)
+}
+
+fn resource_path(directory: &Path, source: &Path, digest: &str) -> std::path::PathBuf {
+    let owner = format!(
+        "{:x}",
+        Sha256::digest(source.as_os_str().as_encoded_bytes())
+    );
+    directory.join(format!("document-{owner}-{digest}.png"))
+}
+
+fn store_at(
+    path: &Path,
+    id: String,
+    bytes: &[u8],
+    width: u32,
+    height: u32,
+    claim_managed_path: &mut dyn FnMut(&Path) -> Result<(), String>,
+) -> Result<DocumentResource, String> {
+    claim_managed_path(path)?;
     if path.exists() {
-        let canonical = authorize_spaces_asset(app, &path)?;
-        let existing = read_bounded(&canonical)?;
+        let existing = read_bounded(path)?;
         if format!("{:x}", Sha256::digest(&existing)) != id {
             return Err("Document resource digest does not match its stored bytes".into());
         }
     } else {
         let partial = path.with_extension(format!("{}.partial", uuid::Uuid::new_v4()));
-        fs::write(&partial, bytes).map_err(|error| error.to_string())?;
-        fs::rename(&partial, &path).map_err(|error| error.to_string())?;
+        claim_managed_path(&partial)?;
+        let result = fs::write(&partial, bytes)
+            .and_then(|()| fs::rename(&partial, path))
+            .map_err(|error| error.to_string());
+        if let Err(error) = result {
+            return if partial.exists() {
+                match fs::remove_file(&partial) {
+                    Ok(()) => Err(error),
+                    Err(cleanup) => Err(format!("{error}; partial cleanup failed: {cleanup}")),
+                }
+            } else {
+                Err(error)
+            };
+        }
     }
-    authorize_spaces_asset(app, &path)?;
     Ok(DocumentResource {
         id,
         path: path.to_string_lossy().into_owned(),
@@ -119,11 +155,90 @@ pub(super) fn save_render(
     app: &tauri::AppHandle,
     source: &Path,
     input: &crate::documents::pdf_input::PdfInput,
+    claim_managed_path: &mut dyn FnMut(&Path) -> Result<(), String>,
 ) -> Result<DocumentResource, String> {
     let raster = crate::documents::rendering::render(source, input)?;
     // The native adapter already owns bounded PNG generation; do not decode and encode it again.
     if raster.bytes.len() as u64 > MAX_RESOURCE_BYTES {
         return Err("Rendered PDF input exceeds 32 MiB".into());
     }
-    store(app, &raster.bytes, raster.width, raster.height)
+    store(
+        app,
+        source,
+        &raster.bytes,
+        raster.width,
+        raster.height,
+        claim_managed_path,
+    )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn extracted_resources_are_owned_by_the_source_asset() {
+        let assets = Path::new("assets");
+        let first = resource_path(assets, Path::new("assets/first.docx"), "digest");
+        let second = resource_path(assets, Path::new("assets/second.docx"), "digest");
+        assert_ne!(first, second);
+        assert_eq!(
+            first,
+            resource_path(assets, Path::new("assets/first.docx"), "digest")
+        );
+        assert_ne!(
+            first,
+            resource_path(assets, Path::new("assets/first.docx"), "changed")
+        );
+    }
+
+    #[test]
+    fn ownership_is_claimed_before_resource_bytes_are_created() {
+        let directory =
+            std::env::temp_dir().join(format!("document-ownership-{}", uuid::Uuid::new_v4()));
+        std::fs::create_dir(&directory).unwrap();
+        let path = directory.join("resource.png");
+        let mut claimed = Vec::new();
+        let resource = store_at(
+            &path,
+            format!("{:x}", Sha256::digest(b"png")),
+            b"png",
+            1,
+            1,
+            &mut |candidate| {
+                assert!(!candidate.exists());
+                claimed.push(candidate.to_path_buf());
+                Ok(())
+            },
+        )
+        .unwrap();
+        assert_eq!(claimed.first(), Some(&path));
+        assert_eq!(claimed.len(), 2);
+        assert!(claimed[1]
+            .extension()
+            .is_some_and(|value| value == "partial"));
+        assert!(!claimed[1].exists());
+        assert_eq!(resource.path, path.to_string_lossy().as_ref());
+        assert_eq!(std::fs::read(path).unwrap(), b"png");
+        std::fs::remove_dir_all(directory).unwrap();
+    }
+
+    #[test]
+    fn rejected_ownership_prevents_resource_creation() {
+        let directory =
+            std::env::temp_dir().join(format!("document-ownership-{}", uuid::Uuid::new_v4()));
+        std::fs::create_dir(&directory).unwrap();
+        let path = directory.join("resource.png");
+        let result = store_at(
+            &path,
+            format!("{:x}", Sha256::digest(b"png")),
+            b"png",
+            1,
+            1,
+            &mut |_| Err("inactive owner".into()),
+        );
+        assert!(result.is_err());
+        assert!(!path.exists());
+        std::fs::remove_dir_all(directory).unwrap();
+    }
 }

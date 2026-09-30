@@ -8,6 +8,7 @@ pub(crate) mod permissions;
 pub mod prompt;
 mod protocol;
 pub mod registry;
+mod resource_links;
 pub mod session;
 mod updates;
 

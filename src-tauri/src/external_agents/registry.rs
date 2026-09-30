@@ -17,6 +17,10 @@ fn registered(kind: AgentKind) -> &'static RegisteredAgent {
         .expect("every AgentKind must have one registry entry")
 }
 
+pub(super) fn trusted_session_mode(kind: AgentKind) -> Option<&'static str> {
+    registered(kind).launch.trusted_session_mode()
+}
+
 pub fn descriptors() -> Vec<AgentDescriptor> {
     AGENTS
         .iter()

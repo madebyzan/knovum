@@ -59,7 +59,10 @@ impl ResolvedContext {
         conversation_context: Option<&str>,
     ) -> Result<crate::external_agents::prompt::AgentPrompt, String> {
         crate::external_agents::prompt::AgentPrompt::from_authorized_assets(
-            self.text(user_prompt, conversation_context),
+            format!(
+                "When you create a resource for the user (image, video, document, code, or other file), save the final file in your current working directory. Knovum will import regular files from that directory into the Space canvas after this turn. Keep temporary work in hidden directories.\n\n{}",
+                self.text(user_prompt, conversation_context)
+            ),
             self.agent_paths
                 .iter()
                 .map(|(path, _)| path.clone())

@@ -19,7 +19,6 @@ pub use super::updates::AgentSessionUpdate;
 pub type AgentUpdateHandler = Arc<dyn Fn(AgentSessionUpdate) -> AiResult<()> + Send + Sync>;
 
 pub async fn run(
-    task_id: String,
     kind: AgentKind,
     working_directory: PathBuf,
     prompt: super::prompt::AgentPrompt,
@@ -29,17 +28,12 @@ pub async fn run(
 ) -> AiResult<()> {
     let agent = super::connection::runtime(kind, &cancellation).await?;
     let permission_cancellation = cancellation.clone();
-    let permission_updates = on_update.clone();
     let client = Client.builder().on_receive_request(
         async move |request: RequestPermissionRequest, responder, _cx| {
-            let response = super::permissions::request_decision(
-                &task_id,
+            responder.respond_with_result(super::permissions::authorize(
                 &request,
                 &permission_cancellation,
-                &permission_updates,
-            )
-            .await;
-            responder.respond(response)
+            ))
         },
         agent_client_protocol::on_receive_request!(),
     );
@@ -87,6 +81,11 @@ pub async fn run(
             .build_session_from(NewSessionRequest::new(&working_directory).mcp_servers(mcp_servers))
             .block_task()
             .run_until(async move |mut session| {
+                if let Some(request) = super::permissions::trusted_mode_request(
+                    super::registry::trusted_session_mode(kind), &session.response(),
+                )? {
+                    session.connection().send_request(request).block_task().await?;
+                }
                 let _ = session_started.send(());
                 let session_id = session.session_id().clone();
                 let prompt = session

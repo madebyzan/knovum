@@ -1,7 +1,10 @@
 use std::{
     fs,
     path::{Path, PathBuf},
-    sync::mpsc::{sync_channel, Receiver, RecvTimeoutError, SyncSender},
+    sync::{
+        mpsc::{sync_channel, Receiver, RecvTimeoutError, SyncSender},
+        Arc, Mutex,
+    },
     time::{Duration, Instant},
 };
 
@@ -31,23 +34,26 @@ pub(super) fn save(
     source: &Path,
     target: &Path,
     cancellation: &CancellationToken,
+    claim_path: &mut dyn FnMut(&Path) -> Result<(), String>,
 ) -> Result<(), String> {
+    let partial = super::claim_output_paths(target, claim_path)?;
     let request = request(source)?;
-    // Drawn to a sibling first: a callback that lands after we gave up must never be able to
-    // publish a half-written file under the name the asset payload points at.
-    let partial = target.with_extension("partial");
+    // Draw to a sibling first. Closing the shared gate waits for an in-flight encoder and makes a
+    // late callback inert before the caller can remove this partial or release its ownership.
+    let active = Arc::new(Mutex::new(true));
     let (sender, receiver) = sync_channel::<Outcome>(1);
     unsafe {
         let generator = QLThumbnailGenerator::sharedGenerator();
-        let completion = completion(sender, partial.clone());
+        let completion = completion(sender, partial.clone(), Arc::clone(&active));
         generator.generateBestRepresentationForRequest_completionHandler(&request, &completion);
-        match wait(receiver, cancellation, &generator, &request) {
-            Ok(()) => fs::rename(&partial, target).map_err(|error| error.to_string()),
-            Err(error) => {
-                let _ = fs::remove_file(&partial);
-                Err(error)
-            }
+        let outcome = wait(receiver, cancellation, &generator, &request);
+        let published = close_writer(&active)
+            .and(outcome)
+            .and_then(|()| fs::rename(&partial, target).map_err(|error| error.to_string()));
+        if published.is_err() {
+            let _ = fs::remove_file(&partial);
         }
+        published
     }
 }
 
@@ -66,18 +72,42 @@ fn request(source: &Path) -> Result<Retained<QLThumbnailGenerationRequest>, Stri
     })
 }
 
-/// The block captures owned data only, so a callback that fires after `save` returned writes its
-/// file and drops its send into a closed channel instead of touching a borrowed stack frame.
+/// The block captures owned data only. The gate keeps its disk write inside `save`'s lifetime even
+/// when Quick Look delivers the callback after cancellation or timeout.
 fn completion(
     sender: SyncSender<Outcome>,
     partial: PathBuf,
+    active: Arc<Mutex<bool>>,
 ) -> RcBlock<dyn Fn(*mut QLThumbnailRepresentation, *mut NSError)> {
     RcBlock::new(
         move |thumbnail: *mut QLThumbnailRepresentation, error: *mut NSError| {
+            let outcome =
+                with_open_writer(&active, || unsafe { write_png(thumbnail, error, &partial) });
             // try_send, never send: Quick Look owns this queue and must not be able to block on us.
-            let _ = sender.try_send(unsafe { write_png(thumbnail, error, &partial) });
+            let _ = sender.try_send(outcome);
         },
     )
+}
+
+fn with_open_writer<T>(
+    active: &Mutex<bool>,
+    write: impl FnOnce() -> Result<T, String>,
+) -> Result<T, String> {
+    let active = active
+        .lock()
+        .map_err(|_| "Quick Look thumbnail writer lock was poisoned".to_owned())?;
+    if !*active {
+        return Err("Quick Look thumbnail writer is closed".into());
+    }
+    write()
+}
+
+fn close_writer(active: &Mutex<bool>) -> Result<(), String> {
+    let mut active = active
+        .lock()
+        .map_err(|_| "Quick Look thumbnail writer lock was poisoned".to_owned())?;
+    *active = false;
+    Ok(())
 }
 
 fn wait(
@@ -160,4 +190,24 @@ unsafe fn describe(error: *const NSError) -> String {
 fn utf8(path: &Path) -> Result<&str, String> {
     path.to_str()
         .ok_or_else(|| "Asset path is not valid Unicode".to_owned())
+}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::Mutex;
+
+    use super::{close_writer, with_open_writer};
+
+    #[test]
+    fn closed_writer_rejects_late_callbacks_before_they_touch_disk() {
+        let active = Mutex::new(true);
+        close_writer(&active).unwrap();
+        let mut wrote = false;
+        let result = with_open_writer(&active, || {
+            wrote = true;
+            Ok(())
+        });
+        assert_eq!(result.unwrap_err(), "Quick Look thumbnail writer is closed");
+        assert!(!wrote);
+    }
 }

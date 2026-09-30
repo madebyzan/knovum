@@ -19,17 +19,11 @@ const {
   target,
   activeRunId,
   activeConversationId,
-  pendingPermission,
-  approvals,
-  decidingApproval,
   visibleTaskState,
-  visibleWaitReason,
   loading,
   loadingOlder,
   hasOlder,
   visibleError,
-  visiblePermission,
-  decidingPermission,
   visibleStreamedText,
   visibleAttachments,
   attachmentCandidates,
@@ -58,15 +52,7 @@ async function previewAttachment(key: string) {
   <section class="flex h-full min-h-0 min-w-0 flex-col bg-surface-panel">
     <SpaceConversationHeader />
     <button
-      v-if="(pendingPermission || approvals.length) && activeConversationId !== selectedConversationId"
-      type="button"
-      class="shrink-0 border-b border-stroke-warning/40 bg-surface-warning-subtle px-3 py-2 text-left text-caption text-fg-primary hover:bg-surface-warning-subtle-hover"
-      @click="conversationSession.selectConversation(activeConversationId)"
-    >
-      {{ $t("spaces.assistant.permission.return") }}
-    </button>
-    <button
-      v-else-if="activeRunId && activeConversationId && activeConversationId !== selectedConversationId"
+      v-if="activeRunId && activeConversationId && activeConversationId !== selectedConversationId"
       type="button"
       class="shrink-0 border-b border-stroke-divider bg-surface-control px-3 py-2 text-left text-caption text-fg-primary hover:bg-surface-control-hover"
       @click="conversationSession.selectConversation(activeConversationId)"
@@ -88,26 +74,15 @@ async function previewAttachment(key: string) {
         :streamed-text="visibleStreamedText"
         :has-older="hasOlder"
         :loading-older="loadingOlder"
-        :permission="visiblePermission"
-        :deciding-permission="decidingPermission"
-        :approvals="activeConversationId === selectedConversationId ? approvals : []"
-        :deciding-approval="decidingApproval"
         @load-older="conversationSession.loadOlder"
         @branch="conversationSession.branchFrom"
         @regenerate="conversationSession.regenerate"
-        @decide-permission="conversationSession.decidePermission"
-        @decide-approval="conversationSession.decideApproval"
         @scroll-position="conversationSession.rememberScroll"
         @suggest="useSuggestion"
         @inspect-activity="conversationSession.inspectActivity"
       />
     </div>
-    <SpaceConversationRunStatus
-      :state="visibleTaskState"
-      :wait-reason="visibleWaitReason"
-      :has-pending-decision="Boolean(visiblePermission || approvals.length)"
-      @resume="conversationSession.resume"
-    />
+    <SpaceConversationRunStatus :state="visibleTaskState" @resume="conversationSession.resume" />
     <SpaceConversationComposer
       ref="composer"
       v-model="prompt"

@@ -34,6 +34,31 @@ pub(crate) fn enrich_visual(
     attach_system_thumbnail(app, source, asset, cancellation)
 }
 
+pub(crate) fn reserved_thumbnail_path(
+    app: &tauri::AppHandle,
+    source: &Path,
+) -> Result<Option<std::path::PathBuf>, String> {
+    thumbnail::reserve(app, source)
+}
+
+pub(crate) fn enrich_visual_at(
+    app: &tauri::AppHandle,
+    source: &Path,
+    asset: &mut PreparedAsset,
+    cancellation: &CancellationToken,
+    reserved: Option<&Path>,
+    claim_path: &mut dyn FnMut(&Path) -> Result<(), String>,
+) -> Result<(), String> {
+    if asset.preview_language.as_deref() == Some("html") {
+        return Ok(());
+    }
+    ensure_active(cancellation)?;
+    if asset.preview_path.is_some() {
+        return Ok(());
+    }
+    attach_thumbnail_at(app, source, asset, cancellation, reserved, claim_path)
+}
+
 fn attach_system_thumbnail(
     app: &tauri::AppHandle,
     source: &Path,
@@ -55,6 +80,28 @@ fn attach_thumbnail(
     let Some(path) = thumbnail::generate(app, source, cancellation)? else {
         return Ok(());
     };
+    apply_thumbnail(path, asset)
+}
+
+fn attach_thumbnail_at(
+    app: &tauri::AppHandle,
+    source: &Path,
+    asset: &mut PreparedAsset,
+    cancellation: &CancellationToken,
+    reserved: Option<&Path>,
+    claim_path: &mut dyn FnMut(&Path) -> Result<(), String>,
+) -> Result<(), String> {
+    let Some(path) = (match reserved {
+        Some(target) => thumbnail::generate_at(source, target, cancellation, claim_path).map(Some),
+        None => thumbnail::generate(app, source, cancellation),
+    })?
+    else {
+        return Ok(());
+    };
+    apply_thumbnail(path, asset)
+}
+
+fn apply_thumbnail(path: std::path::PathBuf, asset: &mut PreparedAsset) -> Result<(), String> {
     // The system preview is the visual representation shown on the canvas. Its aspect ratio is
     // authoritative when the source inspector did not provide geometry (notably video and audio).
     if asset.intrinsic_width.is_none() || asset.intrinsic_height.is_none() {

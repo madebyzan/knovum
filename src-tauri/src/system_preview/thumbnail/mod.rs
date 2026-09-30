@@ -10,21 +10,33 @@ pub(crate) mod policy;
 mod windows;
 
 #[cfg(target_os = "macos")]
-pub(crate) fn save(
+pub(crate) fn save_owned(
     source: &Path,
     target: &Path,
     cancellation: &CancellationToken,
+    claim_path: &mut dyn FnMut(&Path) -> Result<(), String>,
 ) -> Result<(), String> {
-    macos::save(source, target, cancellation)
+    macos::save(source, target, cancellation, claim_path)
 }
 
 #[cfg(target_os = "windows")]
-pub(crate) fn save(
+pub(crate) fn save_owned(
     source: &Path,
     target: &Path,
     cancellation: &CancellationToken,
+    claim_path: &mut dyn FnMut(&Path) -> Result<(), String>,
 ) -> Result<(), String> {
-    windows::save(source, target, cancellation)
+    windows::save(source, target, cancellation, claim_path)
+}
+
+fn claim_output_paths(
+    target: &Path,
+    claim_path: &mut dyn FnMut(&Path) -> Result<(), String>,
+) -> Result<std::path::PathBuf, String> {
+    claim_path(target)?;
+    let partial = target.with_extension("partial");
+    claim_path(&partial)?;
+    Ok(partial)
 }
 
 fn ensure_not_cancelled(cancellation: &CancellationToken) -> Result<(), String> {

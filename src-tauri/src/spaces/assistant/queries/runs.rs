@@ -1,4 +1,3 @@
-use super::super::{AssistantPermissionOption, AssistantTaskUpdate};
 use crate::command_error::CommandError;
 
 #[derive(serde::Serialize, ts_rs::TS)]
@@ -43,43 +42,6 @@ pub async fn list_active_assistant_runs(
     }
     runs.sort_by_key(|entry| std::cmp::Reverse(entry.run.created_at));
     Ok(runs)
-}
-
-#[tauri::command]
-pub async fn get_pending_assistant_permission(
-    app: tauri::AppHandle,
-    run_id: String,
-) -> Result<Option<AssistantTaskUpdate>, CommandError> {
-    let pool = crate::spaces::db::pool(&app).await?;
-    let session_id: Option<String> = sqlx::query_scalar(
-        "SELECT id FROM spaces_external_agent_conversations
-         WHERE run_id=$1 AND state='connected'",
-    )
-    .bind(&run_id)
-    .fetch_optional(pool)
-    .await
-    .map_err(crate::spaces::db::sql_error)?;
-    let Some(session_id) = session_id else {
-        return Ok(None);
-    };
-    let pending = crate::external_agents::permissions::pending_for_session(&session_id)?;
-    Ok(pending
-        .into_iter()
-        .next()
-        .map(|request| AssistantTaskUpdate::PermissionRequested {
-            session_id,
-            request_id: request.request_id,
-            title: request.title,
-            options: request
-                .options
-                .into_iter()
-                .map(|option| AssistantPermissionOption {
-                    id: option.id,
-                    label: option.label,
-                    kind: option.kind.to_owned(),
-                })
-                .collect(),
-        }))
 }
 
 #[tauri::command]

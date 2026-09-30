@@ -2,9 +2,8 @@
 import { useI18n } from "vue-i18n";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
-import type { WaitReason } from "../../contracts/generated/WaitReason";
 
-defineProps<{ state?: string | undefined; waitReason: WaitReason | null; hasPendingDecision: boolean }>();
+defineProps<{ state?: string | undefined }>();
 const emit = defineEmits<{ resume: [] }>();
 const { t } = useI18n();
 </script>
@@ -19,16 +18,7 @@ const { t } = useI18n();
       t("spaces.assistant.tasks.resume")
     }}</UiButton>
   </div>
-  <p
-    v-else-if="state === 'waiting' && !hasPendingDecision"
-    class="shrink-0 px-3 py-2 text-caption text-fg-secondary"
-  >
-    {{
-      t(
-        waitReason === "approval"
-          ? "spaces.assistant.tasks.needsAttention"
-          : "spaces.assistant.tasks.waitingForResult",
-      )
-    }}
+  <p v-else-if="state === 'waiting'" class="shrink-0 px-3 py-2 text-caption text-fg-secondary">
+    {{ t("spaces.assistant.tasks.waitingForResult") }}
   </p>
 </template>

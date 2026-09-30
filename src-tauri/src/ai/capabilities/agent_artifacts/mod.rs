@@ -12,6 +12,9 @@ use crate::ai::{
 };
 
 mod classification;
+mod output_projection;
+
+pub(crate) use output_projection::{obsolete_tool_artifacts, record_message, record_tool};
 
 pub fn space_workspace<R: Runtime>(app: &AppHandle<R>, space_id: &str) -> AiResult<PathBuf> {
     let space = uuid::Uuid::parse_str(space_id)
@@ -44,25 +47,29 @@ pub fn prepare(path: &Path) -> AiResult<()> {
 }
 
 pub fn collect(root: &Path) -> AiResult<Vec<AgentArtifact>> {
+    let retired_local_paths = output_projection::retired_local_paths(root)?;
     let mut artifacts = Vec::new();
     for entry in WalkDir::new(root).follow_links(false) {
         let entry = entry.map_err(|error| AiError::internal(error.to_string()))?;
         if !entry.file_type().is_file() {
             continue;
         }
-        let metadata = entry
-            .metadata()
-            .map_err(|error| AiError::internal(error.to_string()))?;
         if hidden(entry.path(), root) {
             continue;
         }
         let path = entry.path();
-        let kind = classification::classify(path)?;
         let relative_path = path
             .strip_prefix(root)
             .map_err(|error| AiError::internal(error.to_string()))?
             .to_string_lossy()
             .into_owned();
+        if retired_local_paths.contains(&relative_path) {
+            continue;
+        }
+        let metadata = entry
+            .metadata()
+            .map_err(|error| AiError::internal(error.to_string()))?;
+        let kind = classification::classify(path)?;
         artifacts.push(AgentArtifact {
             name: entry.file_name().to_string_lossy().into_owned(),
             relative_path,
@@ -87,6 +94,16 @@ pub fn consume(root: &Path, relative_path: &str) -> AiResult<()> {
 }
 
 pub fn resolve(root: &Path, relative_path: &str) -> AiResult<PathBuf> {
+    let manifest = collect(root)?;
+    let artifact = manifest
+        .iter()
+        .find(|artifact| artifact.relative_path == relative_path)
+        .ok_or_else(|| AiError::invalid("Agent artifact is not present in the session manifest"))?;
+    resolve_collected(root, artifact)
+}
+
+pub fn resolve_collected(root: &Path, artifact: &AgentArtifact) -> AiResult<PathBuf> {
+    let relative_path = &artifact.relative_path;
     let relative = Path::new(relative_path);
     if relative.is_absolute()
         || relative.components().any(|component| {
@@ -97,14 +114,6 @@ pub fn resolve(root: &Path, relative_path: &str) -> AiResult<PathBuf> {
         })
     {
         return Err(AiError::invalid("Invalid Agent artifact path"));
-    }
-    if !collect(root)?
-        .iter()
-        .any(|artifact| artifact.relative_path == relative_path)
-    {
-        return Err(AiError::invalid(
-            "Agent artifact is not present in the session manifest",
-        ));
     }
     let root = root
         .canonicalize()

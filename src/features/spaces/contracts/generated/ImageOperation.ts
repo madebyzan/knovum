@@ -3,4 +3,4 @@ import type { ImageViewMode } from "./ImageViewMode";
 import type { ImageZoom } from "./ImageZoom";
 import type { MaskStroke } from "./MaskStroke";
 
-export type ImageOperation = { "kind": "upscale", targetLongEdge: number, } | { "kind": "multi-angle", mode: ImageViewMode, yaw: number, pitch: number, zoom: ImageZoom, } | { "kind": "remove-object", strokes: MaskStroke[], } | { "kind": "remove-object-prompt", prompt: string, };
+export type ImageOperation = { "kind": "upscale", targetLongEdge: number, } | { "kind": "multi-angle", mode: ImageViewMode, yaw: number, pitch: number, zoom: ImageZoom, } | { "kind": "remove-object", strokes: Array<MaskStroke>, } | { "kind": "remove-object-prompt", prompt: string, };

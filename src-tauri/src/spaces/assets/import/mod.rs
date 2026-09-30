@@ -10,6 +10,8 @@ pub(crate) mod web;
 
 pub(crate) use prepare::PreparedSpaceImport;
 
+pub(crate) use commit::{copy_owned_import, discard_owned_import};
+
 pub(crate) fn prepare_owned_asset(
     app: &tauri::AppHandle,
     source: std::path::PathBuf,

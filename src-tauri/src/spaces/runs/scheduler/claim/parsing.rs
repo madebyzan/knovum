@@ -19,20 +19,9 @@ pub(super) fn claim(
         node_kind: row.try_get("node_kind").map_err(db::sql_error)?,
         configuration: json(row, "configuration")?,
         resolved_input: json(row, "resolved_input")?,
-        previous_output: optional_json(row, "output")?,
         policy_snapshot: json(row, "policy_snapshot")?,
         budget: json(row, "budget")?,
     })
-}
-
-fn optional_json(
-    row: &sqlx::sqlite::SqliteRow,
-    field: &str,
-) -> Result<Option<serde_json::Value>, String> {
-    row.try_get::<Option<String>, _>(field)
-        .map_err(db::sql_error)?
-        .map(|encoded| serde_json::from_str(&encoded).map_err(db::json_error))
-        .transpose()
 }
 
 fn json(row: &sqlx::sqlite::SqliteRow, field: &str) -> Result<serde_json::Value, String> {

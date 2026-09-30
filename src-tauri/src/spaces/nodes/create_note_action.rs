@@ -3,7 +3,7 @@ use sqlx::{Sqlite, Transaction};
 
 use crate::spaces::{
     authorization::Principal,
-    knowledge::indexing::KnowledgeChunkInput,
+    knowledge::contracts,
     nodes::{self, contracts::InsertNode},
     structure::{self, SizingMode},
 };
@@ -21,13 +21,14 @@ pub(crate) async fn execute(
     let title = required_text(object, "title", 512)?;
     let content = required_text(object, "content", 4 * 1024 * 1024)?;
     let (mut snapshot, revision) = structure::repository::load_in_transaction(tx, space_id).await?;
-    let count = snapshot.structure.len();
+    let (initial_x, initial_y) =
+        structure::place_new_content(&snapshot.structure, &snapshot.layouts, &[], 320.0, 220.0)?;
     let node_id = uuid::Uuid::new_v4().to_string();
-    let node = InsertNode {
+    let mut node = InsertNode {
         id: node_id.clone(),
         kind: "note".into(),
-        initial_x: 80.0 + (count % 6) as f64 * 360.0,
-        initial_y: 80.0 + (count / 6) as f64 * 260.0,
+        initial_x,
+        initial_y,
         width: 320.0,
         height: 220.0,
         sizing_mode: SizingMode::Content,
@@ -37,8 +38,9 @@ pub(crate) async fn execute(
             "kind": "note", "title": title, "plainText": content,
             "tiptapContent": tiptap_document(content),
         }),
-        source_chunks: Vec::<KnowledgeChunkInput>::new(),
+        source_chunks: Vec::new(),
     };
+    contracts::normalize_node(tx, space_id, &node.id, &node.kind, &mut node.data).await?;
     let before = structure::history::capture(tx, space_id, &snapshot).await?;
     structure::creation::append_content(&mut snapshot, std::slice::from_ref(&node), None)?;
     nodes::insert_rows_with_actor(

@@ -27,12 +27,18 @@ pub(super) async fn complete(
         updated,
         "assistant-task-inactive: task was cancelled or paused",
     )?;
+    let principal = crate::spaces::authorization::Principal {
+        kind: crate::spaces::authorization::PrincipalKind::Assistant,
+        id: ids.task_id.clone(),
+    };
+    let outputs =
+        crate::spaces::assistant::outputs::collect(&mut tx, &run.home_space_id, &principal).await?;
     repository::append_message_in_transaction(
         &mut tx,
         &ids.conversation_id,
         &ids.branch_id,
         repository::AssistantMessageRole::Assistant,
-        &json!({"parts": [{"type": "text", "text": output}], "runId": ids.run_id}),
+        &json!({"parts": [{"type": "text", "text": output}], "runId": ids.run_id, "outputs": outputs}),
         now,
     )
     .await?;

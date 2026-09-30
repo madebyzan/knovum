@@ -68,16 +68,14 @@ async fn execute_claim(app: &AppHandle, claim: super::AttemptClaim) -> Result<()
         Ok(StepOutcome::Completed {
             output,
             selected_branch,
-        }) => {
-            let output_bytes = serde_json::to_vec(&output)
-                .map_err(crate::spaces::db::json_error)?
-                .len();
-            if let Err(error) = super::reserve_output_bytes(pool, &claim.run_id, output_bytes).await
-            {
-                return scheduler::fail_step(pool, &claim, &error).await;
+        }) => match scheduler::complete_step(pool, &claim, &output, selected_branch.as_deref())
+            .await
+        {
+            Err(error) if error.starts_with("budget-exhausted:") => {
+                scheduler::fail_step(pool, &claim, &error).await
             }
-            scheduler::complete_step(pool, &claim, &output, selected_branch.as_deref()).await
-        }
+            result => result,
+        },
         Ok(StepOutcome::Waiting { reason, checkpoint }) => {
             scheduler::wait_step(pool, &claim, reason, &checkpoint).await
         }

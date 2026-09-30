@@ -46,7 +46,7 @@ pub(in crate::spaces::knowledge::change_commit) struct ObjectUpdate<'a> {
     pub summary: &'a Option<String>,
     pub status: &'a Option<String>,
     pub properties: &'a Option<Map<String, Value>>,
-    pub agent_id: &'a str,
+    pub actor: events::EventActor<'a>,
     pub now: i64,
 }
 
@@ -138,7 +138,7 @@ async fn emit_object_updated(
             input.space_id,
             events::EventEntity::new("node", input.id),
             "updated",
-            events::EventActor::new("agent", Some(input.agent_id)),
+            input.actor,
             &payload,
             input.now,
         ),
@@ -150,7 +150,7 @@ async fn emit_object_updated(
         input.id,
         before,
         data,
-        events::EventActor::new("agent", Some(input.agent_id)),
+        input.actor,
         input.now,
     )
     .await

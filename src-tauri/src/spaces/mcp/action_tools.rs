@@ -38,8 +38,7 @@ impl SpaceMcpServer {
                 parameters: args.parameters,
                 input_snapshot: args.input_snapshot,
                 expected_revisions: args.expected_revisions,
-                approval_id: args.approval_id,
-                parent_run_id: None,
+                parent_run_id: Some(self.parent_run_id.clone()),
             },
         )
         .await
@@ -65,8 +64,7 @@ impl SpaceMcpServer {
                 parameters: json!({"operations": args.operations}),
                 input_snapshot: json!({}),
                 expected_revisions: json!({}),
-                approval_id: args.approval_id,
-                parent_run_id: None,
+                parent_run_id: Some(self.parent_run_id.clone()),
             },
         )
         .await

@@ -101,7 +101,13 @@ pub(crate) async fn request_control(
 ) -> Result<(), String> {
     let now = crate::clock::unix_time_millis()?;
     let sql = match control {
-        "cancel" => "UPDATE spaces_runs SET cancel_requested_at=$1,execution_epoch=execution_epoch+1,updated_at=$1 WHERE id=$2 AND completed_at IS NULL",
+        "cancel" => "WITH RECURSIVE run_tree(id) AS (
+            SELECT id FROM spaces_runs WHERE id=$2 AND completed_at IS NULL
+            UNION ALL SELECT child.id FROM spaces_runs child JOIN run_tree parent ON child.parent_run_id=parent.id
+            WHERE child.completed_at IS NULL)
+            UPDATE spaces_runs SET cancel_requested_at=COALESCE(cancel_requested_at,$1),
+            execution_epoch=execution_epoch+CASE WHEN cancel_requested_at IS NULL THEN 1 ELSE 0 END,
+            updated_at=$1 WHERE id IN (SELECT id FROM run_tree)",
         "pause" => "UPDATE spaces_runs SET pause_requested_at=$1,updated_at=$1 WHERE id=$2 AND completed_at IS NULL",
         "resume" => "UPDATE spaces_runs SET pause_requested_at=NULL,state=CASE WHEN state='paused' THEN 'queued' ELSE state END,state_version=state_version+1,updated_at=$1 WHERE id=$2 AND completed_at IS NULL",
         _ => return Err("Unsupported Run control".into()),
@@ -112,7 +118,9 @@ pub(crate) async fn request_control(
         .execute(pool)
         .await
         .map_err(db::sql_error)?;
-    db::require_one(run_write, "Run is unavailable or already complete")?;
+    if run_write.rows_affected() == 0 {
+        return Err("Run is unavailable or already complete".into());
+    }
     super::signals::announce();
     Ok(())
 }

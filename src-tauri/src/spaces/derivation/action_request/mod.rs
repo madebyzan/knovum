@@ -6,13 +6,13 @@ use tauri::AppHandle;
 
 use crate::spaces::actions;
 
-pub(crate) async fn prepare(
+pub(super) async fn prepare(
     app: &AppHandle,
     action_id: &str,
-    run_id: &str,
     space_id: &str,
     parameters: &Value,
     snapshot: &Value,
+    authority: &super::action_execution::ExecutionAuthority,
 ) -> Result<Value, String> {
     let definition = actions::require(action_id)?;
     let resolved =
@@ -42,11 +42,11 @@ pub(crate) async fn prepare(
     output::reserve(
         app,
         space_id,
-        run_id,
         action_id,
         parameters,
         &resolved,
         &mut request,
+        authority,
     )
     .await?;
     Ok(Value::Object(request))

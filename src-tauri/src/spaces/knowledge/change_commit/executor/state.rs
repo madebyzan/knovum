@@ -2,14 +2,17 @@ use std::collections::HashMap;
 
 use sqlx::{Sqlite, Transaction};
 
-use crate::spaces::knowledge::{contracts, relations};
+use crate::spaces::{
+    knowledge::{contracts, relations},
+    nodes::contracts::InsertNode,
+};
 
 #[derive(Default)]
 pub(super) struct ApplyState {
     pub(super) node_ids: HashMap<String, String>,
     pub(super) relation_ids: HashMap<String, String>,
     pub(super) resolved_ids: HashMap<String, String>,
-    pub(super) create_index: usize,
+    pub(super) created_nodes: Vec<InsertNode>,
 }
 
 pub(super) async fn resolve_node(

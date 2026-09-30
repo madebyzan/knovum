@@ -14,11 +14,11 @@ mod media;
 pub(super) async fn reserve(
     app: &AppHandle,
     space_id: &str,
-    run_id: &str,
     action_id: &str,
     parameters: &Value,
     inputs: &ResolvedInputs,
     request: &mut Map<String, Value>,
+    authority: &super::super::action_execution::ExecutionAuthority,
 ) -> Result<(), String> {
     match action_id {
         "extract-subtitles" => media::subtitle_request(inputs, request)?,
@@ -30,7 +30,7 @@ pub(super) async fn reserve(
     else {
         return Ok(());
     };
-    let node_id = format!("{run_id}-output");
+    let node_id = format!("{}-output", authority.action_run_id()?);
     request.insert("outputNodeId".into(), node_id.clone().into());
     if node_exists(app, space_id, &node_id).await? {
         return Ok(());
@@ -41,7 +41,7 @@ pub(super) async fn reserve(
         .iter()
         .map(|node| node.id.clone())
         .collect::<Vec<_>>();
-    insert_output(app, space_id, run_id, node_id, kind, data, &sources).await
+    insert_output(app, space_id, node_id, kind, data, &sources, authority).await
 }
 
 fn build_pending_output_content(
@@ -105,14 +105,15 @@ async fn node_exists(app: &AppHandle, space_id: &str, node_id: &str) -> Result<b
 async fn insert_output(
     app: &AppHandle,
     space_id: &str,
-    run_id: &str,
     node_id: String,
     kind: &str,
     data: Value,
     sources: &[String],
+    authority: &super::super::action_execution::ExecutionAuthority,
 ) -> Result<(), String> {
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
+    authority.require_active(&mut *tx).await?;
     let (mut snapshot, base) =
         structure::repository::load_in_transaction(&mut tx, space_id).await?;
     let before = structure::history::capture(&mut tx, space_id, &snapshot).await?;
@@ -142,7 +143,7 @@ async fn insert_output(
         space_id,
         &[node],
         "system",
-        Some(run_id),
+        Some(authority.action_run_id()?),
         crate::clock::unix_time_millis()?,
     )
     .await?;

@@ -11,7 +11,7 @@ renders PDF source pages in the evidence inspector; it shows textual evidence an
 the original file through the existing OS integration.
 
 File nodes retain one typed `documentCoverage` aggregate tied to `sourceRevision`:
-parser identity, page/recognition coverage, content-addressed PNG resources, logical
+parser identity, page/recognition coverage, source-owned content-addressed PNG resources, logical
 occurrences, analysis provenance and explicit unsupported-format warnings. PDF visuals
 use public positioned `ItemType::Image` items in `PositionFrame::Display`; normal text
 pages do not generate page-level AI calls. Scanned, garbled or vector-text pages generate
@@ -21,6 +21,9 @@ Inline images and vector graphics are not guaranteed to be fully covered by this
 Core Graphics and Windows.Data.Pdf render the selected region directly into a bounded
 bitmap. Coordinates are PDF points, lower-left/y-up in the rotated visible page frame;
 Windows converts to top-left DIPs at 96/72.
+Extracted raster paths contain both the managed source asset identity and raster digest.
+Repeated images inside one document share a raster; different source assets own separate
+files, so rollback of an unpublished import cannot remove another document's in-flight raster.
 Raster geometry belongs to the explicit `pdfInput` contract; visual citations navigate to
 the actual page and identify their occurrence, without redefining generic locator rectangles.
 There is no alternate rendering engine or WebView

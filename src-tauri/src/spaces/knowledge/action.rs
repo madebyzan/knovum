@@ -29,8 +29,11 @@ pub(crate) async fn commit_changes(
         return Err("Knowledge Change Set target Space does not exist".into());
     }
     change_commit::validate_references(tx, space_id, &operations).await?;
-    let actor = format!("{}:{}", principal.kind.as_str(), principal.id);
-    change_commit::apply(tx, space_id, &actor, operations, now).await
+    let actor = super::events::EventActor::new(
+        principal.kind.event_actor_kind(),
+        Some(principal.id.as_str()),
+    );
+    change_commit::apply(tx, space_id, actor, operations, now).await
 }
 
 pub(crate) async fn search(

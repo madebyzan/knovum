@@ -22,10 +22,7 @@ pub fn project(mode: AssistantMode) -> Result<ToolCatalog, String> {
             AssistantMode::Ask | AssistantMode::Plan => {
                 definition.impact == actions::SpaceActionImpact::ReadOnly
             }
-            AssistantMode::Execute => {
-                definition.impact != actions::SpaceActionImpact::MutatesResource
-                    && definition.id != "commit-knowledge-changes"
-            }
+            AssistantMode::Execute => true,
         })
         .collect::<Vec<_>>();
     let mut by_wire_name = HashMap::new();

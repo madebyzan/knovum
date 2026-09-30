@@ -7,13 +7,18 @@ use crate::spaces::knowledge::change_commit::{
     mutations::{self, ObjectInsert, ObjectUpdate},
 };
 use crate::spaces::knowledge::{contracts, events};
+use crate::spaces::{nodes::contracts::InsertNode, structure};
+
+const OBJECT_WIDTH: f64 = 256.0;
+const OBJECT_HEIGHT: f64 = 176.0;
 
 pub(super) async fn create(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
-    agent_id: &str,
+    actor: events::EventActor<'_>,
     operations: &[KnowledgeChange],
     now: i64,
+    placement: &mut structure::repository::SpaceStructureSnapshot,
     state: &mut ApplyState,
 ) -> Result<(), String> {
     for operation in operations {
@@ -41,8 +46,29 @@ pub(super) async fn create(
         let object_type_id = contracts::validate_node(tx, space_id, &id, "object", &data)
             .await?
             .ok_or_else(|| "Knowledge object type validation failed".to_string())?;
-        let (initial_x, initial_y) = object_position(position.as_ref(), state.create_index);
-        state.create_index += 1;
+        let (initial_x, initial_y) = match position {
+            Some(position) => (position.x, position.y),
+            None => structure::place_new_content(
+                &placement.structure,
+                &placement.layouts,
+                &[],
+                OBJECT_WIDTH,
+                OBJECT_HEIGHT,
+            )?,
+        };
+        let node = InsertNode {
+            id: id.clone(),
+            kind: "object".into(),
+            initial_x,
+            initial_y,
+            width: OBJECT_WIDTH,
+            height: OBJECT_HEIGHT,
+            sizing_mode: structure::SizingMode::Frame,
+            appearance: None,
+            file_subpath: None,
+            data,
+            source_chunks: Vec::new(),
+        };
         mutations::insert_object(
             tx,
             ObjectInsert {
@@ -51,14 +77,16 @@ pub(super) async fn create(
                 object_type_id: &object_type_id,
                 initial_x,
                 initial_y,
-                data: &data,
+                data: &node.data,
                 now,
             },
         )
         .await?;
-        emit_created(tx, space_id, agent_id, temp_id, &id, &data, now).await?;
+        emit_created(tx, space_id, actor, temp_id, &id, &node.data, now).await?;
+        structure::creation::append_content(placement, std::slice::from_ref(&node), None)?;
         state.node_ids.insert(temp_id.clone(), id.clone());
         state.resolved_ids.insert(temp_id.clone(), id);
+        state.created_nodes.push(node);
     }
     Ok(())
 }
@@ -66,7 +94,7 @@ pub(super) async fn create(
 pub(super) async fn update(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
-    agent_id: &str,
+    actor: events::EventActor<'_>,
     operations: &[KnowledgeChange],
     now: i64,
     state: &ApplyState,
@@ -92,7 +120,7 @@ pub(super) async fn update(
                 summary,
                 status,
                 properties,
-                agent_id,
+                actor,
                 now,
             },
         )
@@ -104,7 +132,7 @@ pub(super) async fn update(
 async fn emit_created(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
-    agent_id: &str,
+    actor: events::EventActor<'_>,
     temp_id: &str,
     id: &str,
     data: &Value,
@@ -117,23 +145,14 @@ async fn emit_created(
             space_id,
             events::EventEntity::new("node", id),
             "created",
-            events::EventActor::new("agent", Some(agent_id)),
+            actor,
             &payload,
             now,
         ),
     )
     .await?;
     let before = serde_json::json!({});
-    events::append_object_status_transition(
-        tx,
-        space_id,
-        id,
-        &before,
-        data,
-        events::EventActor::new("agent", Some(agent_id)),
-        now,
-    )
-    .await
+    events::append_object_status_transition(tx, space_id, id, &before, data, actor, now).await
 }
 
 fn build_object_content(
@@ -156,19 +175,4 @@ fn build_object_content(
             .insert("summary".into(), Value::String(summary.into()));
     }
     data
-}
-
-fn object_position(
-    position: Option<&crate::spaces::knowledge::change_commit::contract::Position>,
-    create_index: usize,
-) -> (f64, f64) {
-    position.map_or_else(
-        || {
-            (
-                96.0 + (create_index % 3) as f64 * 300.0,
-                84.0 + (create_index / 3) as f64 * 180.0,
-            )
-        },
-        |value| (value.x, value.y),
-    )
 }

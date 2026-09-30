@@ -1,29 +1,6 @@
-use crate::command_error::CommandError;
-mod approval;
 mod grant;
 mod scope;
 
-pub(crate) use approval::{consume as consume_approval, create as create_approval};
-pub(crate) use approval::{ApprovalDecision, ApprovalRequest, PendingApproval};
-
-#[tauri::command]
-pub async fn list_pending_action_approvals(
-    app: tauri::AppHandle,
-    space_id: String,
-) -> Result<Vec<approval::PendingApproval>, CommandError> {
-    Ok((approval::list_pending(crate::spaces::db::pool(&app).await?, &space_id).await)?)
-}
-
-#[tauri::command]
-pub async fn decide_action_approval(
-    app: tauri::AppHandle,
-    approval_id: String,
-    decision: ApprovalDecision,
-) -> Result<(), CommandError> {
-    approval::decide(crate::spaces::db::pool(&app).await?, &approval_id, decision).await?;
-    crate::spaces::runs::announce_change();
-    Ok(())
-}
 pub(crate) use grant::{create_grant, load_grant};
 pub(crate) use scope::{AuthorizationContext, Principal, PrincipalKind};
 

@@ -11,7 +11,6 @@ pub struct AttemptClaim {
     pub node_kind: String,
     pub configuration: Value,
     pub resolved_input: Value,
-    pub previous_output: Option<Value>,
     pub policy_snapshot: Value,
     pub budget: Value,
 }

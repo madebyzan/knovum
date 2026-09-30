@@ -131,9 +131,12 @@ pub(super) async fn resolve_run(
     } else {
         RunState::Succeeded
     };
-    sqlx::query("UPDATE spaces_runs SET state=$1,state_version=state_version+1,wait_reason=NULL,updated_at=$2,completed_at=$2 WHERE id=$3 AND completed_at IS NULL")
+    let changed = sqlx::query("UPDATE spaces_runs SET state=$1,state_version=state_version+1,wait_reason=NULL,updated_at=$2,completed_at=$2 WHERE id=$3 AND cancel_requested_at IS NULL AND completed_at IS NULL")
         .bind(enum_text(state)?).bind(now).bind(run_id).execute(&mut **tx).await.map_err(db::sql_error)?;
-    Ok(())
+    db::require_one(
+        changed,
+        "run-stale: Run authority changed before resolution",
+    )
 }
 
 async fn run_failure_policy(

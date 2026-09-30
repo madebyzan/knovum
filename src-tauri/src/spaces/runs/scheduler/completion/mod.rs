@@ -10,10 +10,10 @@ use crate::spaces::{
 };
 
 mod resumption;
+#[cfg(test)]
+mod tests;
 
-pub(crate) use resumption::{
-    resume_approved_step, settle_waiting_step, settle_waiting_step_in_transaction,
-};
+pub(crate) use resumption::{settle_waiting_step, settle_waiting_step_in_transaction};
 
 pub(crate) async fn complete_step(
     pool: &SqlitePool,
@@ -22,7 +22,16 @@ pub(crate) async fn complete_step(
     selected_branch: Option<&str>,
 ) -> Result<(), String> {
     let now = crate::clock::unix_time_millis()?;
+    let output_bytes = serde_json::to_vec(output).map_err(db::json_error)?.len();
     let mut tx = db::begin_write(pool).await?;
+    require_current_claim(&mut tx, claim).await?;
+    crate::spaces::runs::budget::reserve_output_bytes_in_transaction(
+        &mut tx,
+        &claim.run_id,
+        output_bytes,
+        now,
+    )
+    .await?;
     finish_attempt(&mut tx, claim, "succeeded", Some(output), None, now).await?;
     update_step(&mut tx, claim, "succeeded", Some(output), None, now).await?;
     if let Some(branch) = selected_branch {
@@ -41,6 +50,7 @@ pub(crate) async fn wait_step(
 ) -> Result<(), String> {
     let now = crate::clock::unix_time_millis()?;
     let mut tx = db::begin_write(pool).await?;
+    require_current_claim(&mut tx, claim).await?;
     finish_attempt(&mut tx, claim, "succeeded", Some(checkpoint), None, now).await?;
     update_step(
         &mut tx,
@@ -51,9 +61,22 @@ pub(crate) async fn wait_step(
         now,
     )
     .await?;
-    sqlx::query("UPDATE spaces_runs SET state='waiting',state_version=state_version+1,wait_reason=$1,updated_at=$2 WHERE id=$3 AND execution_epoch=$4 AND completed_at IS NULL")
-        .bind(enum_text(reason)?).bind(now).bind(&claim.run_id).bind(claim.execution_epoch)
-        .execute(&mut *tx).await.map_err(db::sql_error)?;
+    let changed = sqlx::query(
+        "UPDATE spaces_runs SET state='waiting',state_version=state_version+1,
+        wait_reason=$1,updated_at=$2 WHERE id=$3 AND execution_epoch=$4
+        AND cancel_requested_at IS NULL AND completed_at IS NULL",
+    )
+    .bind(enum_text(reason)?)
+    .bind(now)
+    .bind(&claim.run_id)
+    .bind(claim.execution_epoch)
+    .execute(&mut *tx)
+    .await
+    .map_err(db::sql_error)?;
+    db::require_one(
+        changed,
+        "attempt-stale: Run authority changed before waiting",
+    )?;
     tx.commit().await.map_err(db::sql_error)
 }
 
@@ -64,6 +87,7 @@ pub(crate) async fn fail_step(
 ) -> Result<(), String> {
     let now = crate::clock::unix_time_millis()?;
     let mut tx = db::begin_write(pool).await?;
+    require_current_claim(&mut tx, claim).await?;
     finish_attempt(&mut tx, claim, "failed", None, Some(error), now).await?;
     let max_attempts = claim
         .budget
@@ -106,6 +130,30 @@ pub(crate) async fn fail_step(
     }
     resolve_run(&mut tx, &claim.run_id, now).await?;
     tx.commit().await.map_err(db::sql_error)
+}
+
+async fn require_current_claim(
+    tx: &mut Transaction<'_, Sqlite>,
+    claim: &AttemptClaim,
+) -> Result<(), String> {
+    let authority: Option<i64> = sqlx::query_scalar(
+        "SELECT 1 FROM spaces_run_attempts a
+         JOIN spaces_run_steps s ON s.id=a.step_instance_id AND s.run_id=a.run_id
+         JOIN spaces_runs r ON r.id=a.run_id
+         WHERE a.id=$1 AND a.run_id=$2 AND a.step_instance_id=$3 AND a.state='executing'
+         AND a.execution_epoch=$4 AND s.state='running' AND r.state IN ('queued','running','waiting')
+         AND r.execution_epoch=$4 AND r.cancel_requested_at IS NULL AND r.completed_at IS NULL",
+    )
+    .bind(&claim.attempt_id)
+    .bind(&claim.run_id)
+    .bind(&claim.step_instance_id)
+    .bind(claim.execution_epoch)
+    .fetch_optional(&mut **tx)
+    .await
+    .map_err(db::sql_error)?;
+    authority
+        .map(|_| ())
+        .ok_or_else(|| "attempt-stale: Run authority changed during execution".into())
 }
 
 fn retryable(error: &str) -> bool {

@@ -8,6 +8,7 @@ pub(crate) mod files;
 pub(crate) mod image;
 pub(crate) mod import;
 pub(crate) mod media_analysis;
+pub(crate) mod node_payload;
 pub(crate) mod reclamation;
 mod recovery;
 mod references;
@@ -98,6 +99,7 @@ pub(crate) use access::{
 };
 pub(crate) use reclamation::{
     referenced_paths_for_nodes, referenced_paths_for_space, unreferenced_paths,
+    unreferenced_paths_in_transaction,
 };
 pub(crate) use references::{
     rewrite_node_asset_paths, visit_asset_references, AssetReference, PACKAGE_ASSET_PREFIX,

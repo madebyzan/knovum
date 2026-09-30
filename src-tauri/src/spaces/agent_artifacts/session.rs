@@ -15,7 +15,7 @@ pub(super) async fn start(
     let mut tx = db::begin_write(pool).await?;
     let principal = crate::spaces::authorization::Principal {
         kind: crate::spaces::authorization::PrincipalKind::ExternalAgent,
-        id: kind.as_str().to_owned(),
+        id: session_id.to_owned(),
     };
     crate::spaces::runs::create_run_in_transaction(
         &mut tx,

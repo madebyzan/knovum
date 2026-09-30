@@ -25,10 +25,40 @@ pub(crate) fn copy_pending_import(
     job_id: &str,
     progress: &Channel<AssetImportProgress>,
 ) -> Result<PreparedAsset, String> {
-    let job = registry::get(job_id)?;
     let mut state = ProgressState::default();
+    copy_import(job_id, |delta, total| state.report(delta, total, progress))
+}
+
+pub(crate) fn copy_owned_import(job_id: &str) -> Result<PreparedAsset, String> {
+    copy_import(job_id, |_, _| Ok(()))
+}
+
+pub(crate) fn discard_owned_import(job_id: &str) -> Result<(), String> {
+    let job = registry::get(job_id)?;
+    let release = registry::remove(job_id);
+    let cleanup = remove_path(&job.target);
+    match (release, cleanup) {
+        (Ok(()), Ok(())) => Ok(()),
+        (release, cleanup) => {
+            let mut errors = Vec::new();
+            if let Err(error) = release {
+                errors.push(format!("Import registry release failed: {error}"));
+            }
+            if let Err(error) = cleanup {
+                errors.push(format!("Import target cleanup failed: {error}"));
+            }
+            Err(errors.join("; "))
+        }
+    }
+}
+
+fn copy_import(
+    job_id: &str,
+    mut on_bytes: impl FnMut(u64, Option<u64>) -> Result<(), String>,
+) -> Result<PreparedAsset, String> {
+    let job = registry::get(job_id)?;
     let copied = copy_resource(&job.source, &job.target, &job.cancellation, |delta| {
-        state.report(delta, job.total_bytes, progress)
+        on_bytes(delta, job.total_bytes)
     })
     .and_then(|summary| copied_asset(&job, summary));
     let release = registry::remove(job_id);

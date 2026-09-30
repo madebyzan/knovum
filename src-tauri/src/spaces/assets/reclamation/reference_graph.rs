@@ -6,13 +6,14 @@ use sqlx::Row;
 use super::super::references::collect_node_asset_paths;
 use crate::spaces::db;
 
-pub(super) async fn all(pool: &sqlx::SqlitePool) -> Result<BTreeSet<String>, String> {
-    let mut tx = pool.begin().await.map_err(db::sql_error)?;
+pub(super) async fn all(
+    tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
+) -> Result<BTreeSet<String>, String> {
     let mut paths = BTreeSet::new();
     let rows = sqlx::query(
         "SELECT data,json_extract(data,'$.previewPath') AS generated_preview FROM spaces_nodes",
     )
-    .fetch_all(&mut *tx)
+    .fetch_all(&mut **tx)
     .await
     .map_err(db::sql_error)?;
     for row in &rows {
@@ -33,7 +34,7 @@ pub(super) async fn all(pool: &sqlx::SqlitePool) -> Result<BTreeSet<String>, Str
          JOIN spaces_deleted_structure_batches b ON b.id=l.batch_id \
          WHERE b.restored_at IS NULL AND json_type(l.data,'$.appearance.background')='text'",
     )
-    .fetch_all(&mut *tx)
+    .fetch_all(&mut **tx)
     .await
     .map_err(db::sql_error)?;
     paths.extend(layout_paths);
@@ -41,7 +42,7 @@ pub(super) async fn all(pool: &sqlx::SqlitePool) -> Result<BTreeSet<String>, Str
         "SELECT thumbnail_path FROM spaces WHERE thumbnail_path IS NOT NULL \
          UNION ALL SELECT thumbnail_path FROM spaces_scenes WHERE thumbnail_path IS NOT NULL",
     )
-    .fetch_all(&mut *tx)
+    .fetch_all(&mut **tx)
     .await
     .map_err(db::sql_error)?;
     paths.extend(thumbnails);
@@ -50,9 +51,8 @@ pub(super) async fn all(pool: &sqlx::SqlitePool) -> Result<BTreeSet<String>, Str
          JOIN spaces_enrichment_jobs j ON j.id=c.job_id JOIN spaces_nodes n ON n.id=j.node_id AND n.space_id=j.space_id \
          WHERE c.resource IS NOT NULL AND j.status IN ('pending','running','failed','awaiting_configuration') \
            AND json_extract(n.data,'$.sourceRevision')=j.source_revision",
-    ).fetch_all(&mut *tx).await.map_err(db::sql_error)?;
+    ).fetch_all(&mut **tx).await.map_err(db::sql_error)?;
     paths.extend(checkpoints);
-    tx.commit().await.map_err(db::sql_error)?;
     Ok(paths)
 }
 

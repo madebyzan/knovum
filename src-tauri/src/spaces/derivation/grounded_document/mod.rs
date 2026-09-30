@@ -56,6 +56,30 @@ pub async fn generate(
     request: GenerateGroundedDocumentRequest,
     stages: Channel<String>,
 ) -> Result<GroundedDocumentOutput, String> {
+    generate_inner(
+        super::action_execution::ExecutionAuthority::DirectCommand,
+        app,
+        request,
+        stages,
+    )
+    .await
+}
+
+pub(super) async fn generate_for_action(
+    authority: super::action_execution::ExecutionAuthority,
+    app: AppHandle,
+    request: GenerateGroundedDocumentRequest,
+    stages: Channel<String>,
+) -> Result<GroundedDocumentOutput, String> {
+    generate_inner(authority, app, request, stages).await
+}
+
+async fn generate_inner(
+    authority: super::action_execution::ExecutionAuthority,
+    app: AppHandle,
+    request: GenerateGroundedDocumentRequest,
+    stages: Channel<String>,
+) -> Result<GroundedDocumentOutput, String> {
     let target = settings::resolve(
         &app,
         request.target.clone(),
@@ -64,7 +88,8 @@ pub async fn generate(
     .map_err(|error| error.to_string())?;
     let (cancellation, _lease) =
         crate::ai::executions::acquire(request.id.clone()).map_err(|error| error.to_string())?;
-    if let Err(error) = persistence::start(&app, &request).await {
+    authority.require_active(db::pool(&app).await?).await?;
+    if let Err(error) = persistence::start(&app, &request, &authority).await {
         super::failure::fail_pending(
             &app,
             &request.space_id,
@@ -85,7 +110,7 @@ pub async fn generate(
                 crate::spaces::runs::record_usage(db::pool(&app).await?, &request.id, usage)
                     .await?;
             }
-            completion::complete(&app, &request, generated).await
+            completion::complete(&app, &request, generated, &authority).await
         }
         Err(error) => {
             persistence::fail(&app, &request.id, &error).await?;

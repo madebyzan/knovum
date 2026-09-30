@@ -22,6 +22,7 @@ pub(super) async fn execute_run(
         app,
         action_id,
         &claim.run_id,
+        claim.execution_epoch,
         &claim.home_space_id,
         parameters,
         inputs,
@@ -83,12 +84,6 @@ pub(super) async fn execute_invocation(
             parameters,
             input_snapshot,
             expected_revisions: Value::Null,
-            approval_id: claim
-                .previous_output
-                .as_ref()
-                .and_then(|value| value.get("approvalId"))
-                .and_then(Value::as_str)
-                .map(str::to_owned),
             parent_run_id: Some(claim.run_id.clone()),
         },
     )
@@ -101,15 +96,6 @@ pub(super) async fn execute_invocation(
         ActionInvocationOutcome::AcceptedRun { run_id } => {
             waiting(WaitReason::Executor, json!({ "childRunId": run_id }))
         }
-        ActionInvocationOutcome::RequiresApproval {
-            approval_id,
-            plan_digest,
-        } => waiting(
-            WaitReason::Approval,
-            json!({
-                "approvalId": approval_id, "planDigest": plan_digest,
-            }),
-        ),
     }
 }
 

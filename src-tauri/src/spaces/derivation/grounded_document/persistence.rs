@@ -8,10 +8,12 @@ use crate::spaces::{db, knowledge::contracts};
 pub async fn start(
     app: &AppHandle,
     request: &GenerateGroundedDocumentRequest,
+    authority: &super::super::action_execution::ExecutionAuthority,
 ) -> Result<(), String> {
     validate_request(request)?;
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
+    authority.require_active(&mut *tx).await?;
     for input in &request.inputs {
         contracts::validate_same_space_node(
             &mut tx,

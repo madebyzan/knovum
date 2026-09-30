@@ -46,7 +46,14 @@ pub(crate) async fn mark_disconnected(
     super::super::updates::release(id);
     let now = crate::clock::unix_time_millis()?;
     let mut tx = db::begin_write(pool).await?;
-    sqlx::query("UPDATE spaces_external_agent_conversations SET state='disconnected',error=$1,updated_at=$2 WHERE id=$3")
+    sqlx::query("UPDATE spaces_external_agent_conversations SET state='disconnected',error=$1,updated_at=$2,
+        output_publication_state=CASE WHEN output_publication_state='pending' AND EXISTS(
+            SELECT 1 FROM spaces_external_agent_turns WHERE conversation_id=$3 AND state='completed')
+            THEN 'failed' ELSE output_publication_state END,
+        output_publication_error=CASE WHEN output_publication_state='pending' AND EXISTS(
+            SELECT 1 FROM spaces_external_agent_turns WHERE conversation_id=$3 AND state='completed')
+            THEN $1 ELSE output_publication_error END
+        WHERE id=$3 AND output_publication_state<>'committed' AND state<>'closed'")
         .bind(error).bind(now).bind(id).execute(&mut *tx).await.map_err(db::sql_error)?;
     sqlx::query(
         "UPDATE spaces_runs SET state='failed',state_version=state_version+1,updated_at=$1,

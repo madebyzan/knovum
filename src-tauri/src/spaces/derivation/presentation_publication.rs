@@ -38,6 +38,7 @@ pub(super) async fn publish(
     app: &AppHandle,
     prepared_action: Value,
     bytes: Vec<u8>,
+    authority: &super::action_execution::ExecutionAuthority,
 ) -> Result<PresentationOutput, String> {
     // Prepared Action metadata also contains its resolved source document and primary input.
     // Rendered bytes come only from the Rust document engine, never from Renderer input.
@@ -47,6 +48,7 @@ pub(super) async fn publish(
     validate(&request)?;
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
+    authority.require_active(&mut *tx).await?;
     for input in &request.inputs {
         contracts::validate_same_space_node(
             &mut tx,

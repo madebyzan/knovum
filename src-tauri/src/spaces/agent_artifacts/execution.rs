@@ -22,7 +22,7 @@ pub(super) async fn run(
     let event_app = app.clone();
     let event_run_id = request.session_id.clone();
     let callback = Arc::new(move |update| {
-        if let Some((kind, payload)) = durable_update(&update, &event_run_id) {
+        if let Some((kind, payload)) = durable_update(&update) {
             let app = event_app.clone();
             let run_id = event_run_id.clone();
             tauri::async_runtime::spawn(async move {
@@ -43,13 +43,13 @@ pub(super) async fn run(
     let mcp_binding = super::super::mcp::agent_server::start(
         app.clone(),
         request.space_id.clone(),
-        request.kind.as_str().to_owned(),
+        request.session_id.clone(),
+        request.session_id.clone(),
     )
     .await
     .map_err(AiError::internal)?;
     let mcp_servers = vec![mcp_binding.server()];
     external_agents::session::run(
-        request.session_id.clone(),
         request.kind,
         workspace.to_path_buf(),
         prompt,
@@ -59,12 +59,24 @@ pub(super) async fn run(
     )
     .await?;
     external_agents::prompt::discard_staged_context(workspace).await?;
+    let settlement = crate::spaces::runs::wait_for_children(
+        crate::spaces::db::pool(app)
+            .await
+            .map_err(AiError::internal)?,
+        &request.session_id,
+    )
+    .await
+    .map_err(AiError::internal)?;
+    if settlement != crate::spaces::runs::RunState::Succeeded {
+        return Err(AiError::internal(
+            "An Agent child Action failed; inspect its Run for details",
+        ));
+    }
     capabilities::agent_artifacts::collect(workspace)
 }
 
 fn durable_update(
     update: &external_agents::session::AgentSessionUpdate,
-    session_id: &str,
 ) -> Option<(crate::spaces::runs::RunEventKind, serde_json::Value)> {
     use external_agents::session::AgentSessionUpdate;
     match update {
@@ -75,21 +87,6 @@ fn durable_update(
         AgentSessionUpdate::ToolUpdate { id, .. } => Some((
             crate::spaces::runs::RunEventKind::ExternalAgentToolUpdated,
             serde_json::json!({"toolCallId": id}),
-        )),
-        AgentSessionUpdate::PermissionRequested {
-            request_id,
-            title,
-            options,
-        } => Some((
-            crate::spaces::runs::RunEventKind::ExternalAgentPermissionRequested,
-            serde_json::json!({
-                "requestId": request_id,
-                "sessionId": session_id,
-                "title": title,
-                "options": options.iter().map(|option| serde_json::json!({
-                    "id": option.id, "label": option.label, "kind": option.kind,
-                })).collect::<Vec<_>>(),
-            }),
         )),
         AgentSessionUpdate::Message(text) => Some((
             crate::spaces::runs::RunEventKind::ExternalAgentMessage,
@@ -133,22 +130,6 @@ fn event_from_update(
         AgentSessionUpdate::ToolUpdate { id, .. } => {
             contracts::AgentCreationEvent::ToolUpdated { id }
         }
-        AgentSessionUpdate::PermissionRequested {
-            request_id,
-            title,
-            options,
-        } => contracts::AgentCreationEvent::PermissionRequested {
-            request_id,
-            title,
-            options: options
-                .into_iter()
-                .map(|option| contracts::AgentPermissionOption {
-                    id: option.id,
-                    label: option.label,
-                    kind: option.kind.to_owned(),
-                })
-                .collect(),
-        },
     }
 }
 
@@ -159,7 +140,7 @@ fn creation_prompt(request: &contracts::AgentCreationRequest) -> String {
             " The request includes {count} attached local resources; inspect them as source material."
         ),
     };
-    let knowledge = format!(" The attached Knovum Knowledge MCP server is scoped by tool arguments; use Space ID `{}` for every knowledge read or write in this session. Commit knowledge changes only when they are part of the requested result. A commit may return requires_approval; wait for the user to approve it, then retry the unchanged request with the same idempotency key and returned approvalId.", request.space_id);
+    let knowledge = format!(" The attached Knovum Knowledge MCP server is scoped by tool arguments; use Space ID `{}` for every knowledge read or write in this session. Commit knowledge changes only when they are part of the requested result. The user has authorized autonomous execution; use the provided tools without requesting confirmation.", request.space_id);
     format!(
         "Work only inside the current working directory. Save every final artifact the user requested as a file in this directory. Do not write temporary dependencies, caches, or project scaffolding here unless they are themselves requested deliverables.{knowledge}{attachments}\n\nUser request:\n{}",
         request.prompt.trim()

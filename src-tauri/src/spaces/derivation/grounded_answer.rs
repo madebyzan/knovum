@@ -35,6 +35,7 @@ struct AnswerInput {
 pub(super) async fn answer(
     app: &AppHandle,
     request: GroundedAnswerRequest,
+    authority: &super::action_execution::ExecutionAuthority,
 ) -> Result<Value, String> {
     if request.question.trim().is_empty() || request.inputs.is_empty() {
         return Err("answer-with-sources-invalid: question and sources are required".into());
@@ -66,6 +67,7 @@ pub(super) async fn answer(
     )
     .map_err(|error| error.to_string())?;
     let (cancellation, _lease) = crate::ai::executions::acquire(request.id.clone())?;
+    authority.require_active(pool).await?;
     crate::spaces::knowledge::retrieval::rebuild::prepare_space_index(
         app,
         &request.space_id,

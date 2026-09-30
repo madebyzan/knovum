@@ -57,6 +57,5 @@ fn exported_read_model_files_match_their_type_identity() {
         );
     }
     assert_identity::<crate::spaces::runs::StepObservation>();
-    assert_identity::<crate::spaces::authorization::PendingApproval>();
     assert_identity::<crate::spaces::assistant::AssistantConversation>();
 }

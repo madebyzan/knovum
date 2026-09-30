@@ -8,12 +8,7 @@ import { useAiSettingsStore } from "../../../foundation/ai/ai-settings-store";
 import type { AgentKind } from "../../../foundation/ai/schema/agents";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import { useSpaceStore } from "../session/space-store";
-import {
-  decideAgentPermission,
-  listRecoverableAgentCreations,
-  runAgentCreation,
-  type AgentPermissionOption,
-} from "./agent-artifacts";
+import { listRecoverableAgentCreations, runAgentCreation } from "./agent-artifacts";
 import { useAgentArtifacts } from "./use-agent-artifacts";
 import { useAgentCreationCatalog } from "./use-agent-creation-catalog";
 
@@ -29,11 +24,6 @@ export function useAgentCreation(open: Ref<boolean>) {
   const prompt = ref("");
   const running = ref(false);
   const status = ref("");
-  const pendingPermission = ref<{
-    requestId: string;
-    title: string;
-    options: AgentPermissionOption[];
-  } | null>(null);
   let abandonRequested = false;
 
   const { agents, agentOptions } = catalog;
@@ -113,10 +103,6 @@ export function useAgentCreation(open: Ref<boolean>) {
         (event) => {
           if (event.type === "thought" || event.type === "message") status.value = event.text;
           if (event.type === "tool_started") status.value = event.title;
-          if (event.type === "permission_requested") {
-            pendingPermission.value = event;
-            status.value = event.title;
-          }
           tasks.setStatusMessage(taskId, status.value);
         },
       );
@@ -133,17 +119,8 @@ export function useAgentCreation(open: Ref<boolean>) {
       }
       artifactState.clear();
     } finally {
-      pendingPermission.value = null;
       running.value = false;
     }
-  }
-
-  async function decidePermission(optionId: string | null) {
-    const permission = pendingPermission.value;
-    const activeSessionId = artifactState.sessionId.value;
-    if (!permission || !activeSessionId) return;
-    pendingPermission.value = null;
-    await decideAgentPermission(activeSessionId, permission.requestId, optionId);
   }
 
   async function cancelActiveRun() {
@@ -171,13 +148,11 @@ export function useAgentCreation(open: Ref<boolean>) {
     prompt,
     running,
     status,
-    pendingPermission,
     agentOptions,
     recoveryOptions,
     canRun,
     openAgentSettings,
     run,
-    decidePermission,
     ...artifactState,
   };
 }

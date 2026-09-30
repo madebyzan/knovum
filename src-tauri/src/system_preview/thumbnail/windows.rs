@@ -22,13 +22,15 @@ pub(super) fn save(
     source: &Path,
     target: &Path,
     cancellation: &CancellationToken,
+    claim_path: &mut dyn FnMut(&Path) -> Result<(), String>,
 ) -> Result<(), String> {
+    let partial = super::claim_output_paths(target, claim_path)?;
     let source = source.to_path_buf();
     let target = target.to_path_buf();
     let cancellation = cancellation.clone();
     std::thread::Builder::new()
         .name("windows-shell-thumbnail".into())
-        .spawn(move || save_on_sta(&source, &target, &cancellation))
+        .spawn(move || save_on_sta(&source, &target, &partial, &cancellation))
         .map_err(|error| format!("Windows Shell thumbnail worker could not start: {error}"))?
         .join()
         .map_err(|_| "Windows Shell thumbnail worker panicked".to_owned())?
@@ -37,6 +39,7 @@ pub(super) fn save(
 fn save_on_sta(
     source: &Path,
     target: &Path,
+    partial: &Path,
     cancellation: &CancellationToken,
 ) -> Result<(), String> {
     ensure_not_cancelled(cancellation)?;
@@ -57,9 +60,8 @@ fn save_on_sta(
     let bitmap = OwnedBitmap(bitmap);
     ensure_not_cancelled(cancellation)?;
     let image = bitmap.rgba()?;
-    let partial = target.with_extension("partial");
     let published = image
-        .save_with_format(&partial, image::ImageFormat::Png)
+        .save_with_format(partial, image::ImageFormat::Png)
         .map_err(|error| format!("Windows thumbnail could not be encoded as PNG: {error}"))
         .and_then(|()| ensure_not_cancelled(cancellation))
         .and_then(|()| fs::rename(&partial, target).map_err(|error| error.to_string()));

@@ -24,6 +24,5 @@
     "run": "Recovered run {index} · {count} files"
   },
   "failed": "Agent creation failed",
-  "permissionDescription": "The external Agent is waiting for your permission. Review and choose an explicit option to continue.",
   "run": "Run Agent"
 }

@@ -29,31 +29,8 @@ pub struct AgentCreationRequest {
 )]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub enum AgentCreationEvent {
-    Thought {
-        text: String,
-    },
-    Message {
-        text: String,
-    },
-    ToolStarted {
-        id: String,
-        title: String,
-    },
-    ToolUpdated {
-        id: String,
-    },
-    PermissionRequested {
-        request_id: String,
-        title: String,
-        options: Vec<AgentPermissionOption>,
-    },
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize, ts_rs::TS)]
-#[serde(rename_all = "camelCase")]
-#[ts(export_to = "../../../features/spaces/contracts/generated/")]
-pub struct AgentPermissionOption {
-    pub id: String,
-    pub label: String,
-    pub kind: String,
+    Thought { text: String },
+    Message { text: String },
+    ToolStarted { id: String, title: String },
+    ToolUpdated { id: String },
 }

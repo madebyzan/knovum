@@ -1,21 +1,10 @@
-import { shallowRef, type Ref, type ShallowRef } from "vue";
+import { type Ref, type ShallowRef } from "vue";
 
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
-import { decideAgentPermission } from "../agent-creation/agent-artifacts";
-import type { AssistantTaskUpdate } from "../contracts/generated/AssistantTaskUpdate";
-import type { PendingApproval } from "../contracts/generated/PendingApproval";
 import type { RunObservation } from "../contracts/generated/RunObservation";
-import type { WaitReason } from "../contracts/generated/WaitReason";
-import {
-  decideAssistantApproval,
-  getAssistantTaskError,
-  listActiveAssistantRuns,
-  listAssistantApprovals,
-  getPendingAssistantPermission,
-} from "./conversation-ipc";
+import { getAssistantTaskError, listActiveAssistantRuns } from "./conversation-ipc";
 import { observeConversationRun } from "./conversation-run-observation";
 
-type Permission = Extract<AssistantTaskUpdate, { type: "permission_requested" }>;
 const stopNoObservation = () => {};
 
 export function useConversationRunRestoration(state: {
@@ -25,9 +14,7 @@ export function useConversationRunRestoration(state: {
   activeConversationId: ShallowRef<string>;
   activeSpaceId: ShallowRef<string | undefined>;
   taskState: ShallowRef<string | undefined>;
-  waitReason: ShallowRef<WaitReason | null>;
   loading: ShallowRef<boolean>;
-  permission: ShallowRef<Permission | undefined>;
   error: ShallowRef<string | undefined>;
   activityRevision: ShallowRef<number>;
   refresh: () => Promise<void>;
@@ -36,20 +23,6 @@ export function useConversationRunRestoration(state: {
 }) {
   let observingRunId = "";
   let stopObserving = stopNoObservation;
-  const decidingPermission = shallowRef(false);
-  const approvals = shallowRef<PendingApproval[]>([]);
-  const decidingApproval = shallowRef(false);
-
-  async function refreshPending(runId: string, spaceId: string) {
-    const [pending, actionApprovals] = await Promise.all([
-      getPendingAssistantPermission(runId),
-      listAssistantApprovals(spaceId, runId),
-    ]);
-    if (state.activeRunId.value !== runId) return;
-    state.permission.value = pending ?? undefined;
-    approvals.value = actionApprovals;
-  }
-
   async function restoreForSpace(spaceId: string) {
     if (state.activeSpaceId.value && state.activeSpaceId.value !== spaceId) {
       state.onDetach();
@@ -59,11 +32,8 @@ export function useConversationRunRestoration(state: {
       state.activeConversationId.value = "";
       state.activeSpaceId.value = undefined;
       state.taskState.value = undefined;
-      state.waitReason.value = null;
       state.loading.value = false;
       state.error.value = undefined;
-      state.permission.value = undefined;
-      approvals.value = [];
     }
     if (state.loading.value || state.activeRunId.value) return;
     const [active] = await listActiveAssistantRuns(spaceId);
@@ -72,18 +42,14 @@ export function useConversationRunRestoration(state: {
     state.activeConversationId.value = active.conversationId;
     state.activeSpaceId.value = spaceId;
     state.taskState.value = active.run.state;
-    state.waitReason.value = active.run.waitReason;
     state.loading.value = true;
     observingRunId = active.run.id;
 
     const onRun = (run: RunObservation) => {
       if (observingRunId !== run.id) return;
       state.taskState.value = run.state;
-      state.waitReason.value = run.waitReason;
       state.activityRevision.value += 1;
       if (run.completedAt !== null) {
-        state.permission.value = undefined;
-        approvals.value = [];
         state.activeRunId.value = undefined;
         state.loading.value = false;
         observingRunId = "";
@@ -108,10 +74,6 @@ export function useConversationRunRestoration(state: {
           .catch((cause: unknown) => {
             state.error.value = String(cause);
           });
-      } else if (run.state === "waiting") {
-        void refreshPending(run.id, spaceId).catch((cause: unknown) => {
-          state.error.value = String(cause);
-        });
       }
     };
     stopObserving = observeConversationRun(active.run, active.title, onRun, {
@@ -131,43 +93,8 @@ export function useConversationRunRestoration(state: {
     }
   }
 
-  async function decidePermission(optionId: string | null) {
-    const pending = state.permission.value;
-    if (!pending || decidingPermission.value) return;
-    decidingPermission.value = true;
-    state.error.value = undefined;
-    try {
-      await decideAgentPermission(pending.session_id, pending.request_id, optionId);
-      if (state.permission.value?.request_id === pending.request_id) state.permission.value = undefined;
-    } catch (cause) {
-      state.error.value = String(cause);
-    } finally {
-      decidingPermission.value = false;
-    }
-  }
-
-  async function decideApproval(approvalId: string, approved: boolean) {
-    if (decidingApproval.value || !approvals.value.some(({ id }) => id === approvalId)) return;
-    decidingApproval.value = true;
-    state.error.value = undefined;
-    try {
-      await decideAssistantApproval(approvalId, approved);
-      approvals.value = approvals.value.filter(({ id }) => id !== approvalId);
-    } catch (cause) {
-      state.error.value = String(cause);
-    } finally {
-      decidingApproval.value = false;
-    }
-  }
-
   return {
     restoreForSpace,
     resume,
-    decidingPermission,
-    decidePermission,
-    approvals,
-    decidingApproval,
-    decideApproval,
-    refreshPending,
   };
 }

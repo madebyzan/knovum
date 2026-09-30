@@ -11,6 +11,7 @@ import type { AssistantMessage } from "../../conversation/conversation-ipc";
 import { groundedCitationSchema } from "../../knowledge/model/schema/grounded-citation";
 import { useSpaceStore } from "../../session/space-store";
 import SpaceConversationMessageAttachments from "./SpaceConversationMessageAttachments.vue";
+import SpaceConversationOutputs from "./SpaceConversationOutputs.vue";
 
 const props = defineProps<{ message: AssistantMessage; streamedText?: string; busy: boolean }>();
 const emit = defineEmits<{ branch: []; regenerate: [] }>();
@@ -67,6 +68,10 @@ async function copyMessage() {
       </template>
       <p v-if="streamedText" class="wrap-break-word whitespace-pre-wrap">{{ streamedText }}</p>
     </div>
+    <SpaceConversationOutputs
+      v-if="message.role === 'assistant' && message.content.outputs?.length"
+      :outputs="message.content.outputs"
+    />
     <details
       v-if="citations.length"
       class="w-full rounded-md border border-stroke-divider px-2 py-1.5 text-caption"

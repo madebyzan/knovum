@@ -23,6 +23,7 @@ pub(super) fn router(
     token: String,
     space_scope: Option<String>,
     grant_id: String,
+    parent_run_id: String,
     cancellation: CancellationToken,
 ) -> Router {
     let mcp_transport: StreamableHttpService<SpaceMcpServer, LocalSessionManager> =
@@ -32,6 +33,7 @@ pub(super) fn router(
                     app: app.clone(),
                     space_scope: space_scope.clone(),
                     grant_id: grant_id.clone(),
+                    parent_run_id: parent_run_id.clone(),
                 })
             },
             Default::default(),

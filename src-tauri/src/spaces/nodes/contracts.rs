@@ -4,7 +4,7 @@ use serde_json::Value;
 use crate::spaces::knowledge::indexing::KnowledgeChunkInput;
 use crate::spaces::structure::{SizingMode, SpaceEditSnapshotResponse};
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct InsertNode {
     pub id: String,

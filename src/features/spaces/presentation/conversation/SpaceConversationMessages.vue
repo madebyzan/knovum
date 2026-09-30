@@ -3,15 +3,12 @@ import { AlertCircle } from "@lucide/vue";
 import { computed, nextTick, watch, type ComponentPublicInstance } from "vue";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
-import type { AssistantTaskUpdate } from "../../contracts/generated/AssistantTaskUpdate";
-import type { PendingApproval } from "../../contracts/generated/PendingApproval";
 import type { RunEvent } from "../../contracts/generated/RunEvent";
 import type { AssistantMessage } from "../../conversation/conversation-ipc";
 import { useConversationScroll } from "../../conversation/use-conversation-scroll";
 import SpaceConversationActivity from "./SpaceConversationActivity.vue";
 import SpaceConversationEmptyGuide from "./SpaceConversationEmptyGuide.vue";
 import SpaceConversationMessage from "./SpaceConversationMessage.vue";
-import SpaceConversationPendingActions from "./SpaceConversationPendingActions.vue";
 import SpaceConversationShimmerText from "./SpaceConversationShimmerText.vue";
 
 const props = defineProps<{
@@ -25,10 +22,6 @@ const props = defineProps<{
   streamedText: string;
   hasOlder: boolean;
   loadingOlder: boolean;
-  permission?: Extract<AssistantTaskUpdate, { type: "permission_requested" }> | undefined;
-  decidingPermission: boolean;
-  approvals: readonly PendingApproval[];
-  decidingApproval: boolean;
   scrollKey: string;
   savedScrollTop?: number | undefined;
 }>();
@@ -36,8 +29,6 @@ const emit = defineEmits<{
   loadOlder: [];
   branch: [message: AssistantMessage];
   regenerate: [message: AssistantMessage];
-  decidePermission: [optionId: string | null];
-  decideApproval: [approvalId: string, approved: boolean];
   scrollPosition: [key: string, top: number];
   suggest: [prompt: string, selection?: string];
   inspectActivity: [runId: string];
@@ -48,6 +39,7 @@ const visibleMessages = computed(() =>
       message.role !== "tool" &&
       (message.role !== "assistant" ||
         message.content.parts.some((part) => part.type !== "text" || part.text.trim()) ||
+        Boolean(message.content.outputs?.length) ||
         Boolean(props.streamedText && message.id === props.messages.at(-1)?.id)),
   ),
 );
@@ -112,9 +104,7 @@ function bindScroller(element: Element | ComponentPublicInstance | null) {
       @scroll.passive="updateScrollPosition"
     >
       <div
-        v-if="
-          visibleMessages.length === 0 && !hasDraft && !busy && !error && !permission && !approvals.length
-        "
+        v-if="visibleMessages.length === 0 && !hasDraft && !busy && !error"
         class="flex min-h-full items-center justify-center px-2 pb-12"
       >
         <SpaceConversationEmptyGuide @select="(value, selection) => emit('suggest', value, selection)" />
@@ -151,14 +141,6 @@ function bindScroller(element: Element | ComponentPublicInstance | null) {
       >
         <p class="whitespace-pre-wrap">{{ streamedText }}</p>
       </article>
-      <SpaceConversationPendingActions
-        :permission="permission"
-        :deciding-permission="decidingPermission"
-        :approvals="approvals"
-        :deciding-approval="decidingApproval"
-        @decide-permission="emit('decidePermission', $event)"
-        @decide-approval="(id, approved) => emit('decideApproval', id, approved)"
-      />
       <p v-if="busy && !hasActiveTurn && !error" role="status" class="py-3 text-caption text-fg-secondary">
         <SpaceConversationShimmerText>
           {{

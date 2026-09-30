@@ -18,7 +18,6 @@ pub struct SpaceActionDefinition {
     pub version: u16,
     pub impact: SpaceActionImpact,
     pub execution_mode: SpaceActionExecutionMode,
-    pub approval_policy: SpaceActionApprovalPolicy,
     pub input_consistency: SpaceActionInputConsistency,
     pub execution_capability: Option<ExecutionCapability>,
     pub routing_purpose: Option<RoutingPurpose>,
@@ -54,14 +53,6 @@ pub enum SpaceActionImpact {
 pub enum SpaceActionExecutionMode {
     Immediate,
     Durable,
-}
-
-#[derive(Clone, Copy, Eq, PartialEq, Serialize, ts_rs::TS)]
-#[serde(rename_all = "snake_case")]
-#[ts(export_to = "../../../features/spaces/contracts/generated/")]
-pub enum SpaceActionApprovalPolicy {
-    TaskGrant,
-    ExactPlan,
 }
 
 #[derive(Clone, Copy, Serialize, ts_rs::TS)]

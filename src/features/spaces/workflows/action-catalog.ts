@@ -26,7 +26,6 @@ const spaceActionDefinitionSchema = z
     version: z.number().int().positive(),
     impact: z.enum(["read_only", "creates_resource", "mutates_resource"]),
     executionMode: z.enum(["immediate", "durable"]),
-    approvalPolicy: z.enum(["task_grant", "exact_plan"]),
     inputConsistency: z.literal("pinned_revision"),
     executionCapability: aiCapabilitySchema.nullable(),
     routingPurpose: aiRoutingPurposeSchema.nullable(),

@@ -13,7 +13,6 @@ import type { AssistantConversation } from "../contracts/generated/AssistantConv
 import type { AssistantMessage } from "../contracts/generated/AssistantMessage";
 import type { AssistantTaskAccepted } from "../contracts/generated/AssistantTaskAccepted";
 import type { AssistantTaskUpdate } from "../contracts/generated/AssistantTaskUpdate";
-import type { PendingApproval } from "../contracts/generated/PendingApproval";
 import type { RunEvent } from "../contracts/generated/RunEvent";
 
 export type { AssistantConversation } from "../contracts/generated/AssistantConversation";
@@ -25,25 +24,6 @@ export function listAssistantRunEvents(runId: string, afterSequence = 0): Promis
 
 export function listActiveAssistantRuns(spaceId?: string): Promise<ActiveAssistantRun[]> {
   return invokeCommand("plugin:spaces|list_active_assistant_runs", { spaceId });
-}
-
-export function getPendingAssistantPermission(
-  runId: string,
-): Promise<Extract<AssistantTaskUpdate, { type: "permission_requested" }> | null> {
-  return invokeCommand("plugin:spaces|get_pending_assistant_permission", { runId });
-}
-
-export function listAssistantApprovals(spaceId: string, runId: string): Promise<PendingApproval[]> {
-  return invokeCommand<PendingApproval[]>("plugin:spaces|list_pending_action_approvals", { spaceId }).then(
-    (items) => items.filter((item) => item.runId === runId),
-  );
-}
-
-export function decideAssistantApproval(approvalId: string, approved: boolean): Promise<void> {
-  return invokeCommand("plugin:spaces|decide_action_approval", {
-    approvalId,
-    decision: approved ? "approve" : "reject",
-  });
 }
 
 export function getAssistantTaskError(runId: string): Promise<string | null> {

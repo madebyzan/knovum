@@ -1,33 +1,73 @@
-use std::sync::Arc;
-
-use super::{pending_for_session, request_decision};
-use crate::external_agents::session::AgentUpdateHandler;
-use agent_client_protocol::schema::v1::RequestPermissionRequest;
+use agent_client_protocol::schema::v1::{RequestPermissionOutcome, RequestPermissionRequest};
 use tokio_util::sync::CancellationToken;
 
-#[tokio::test]
-async fn dropping_permission_future_removes_pending_request() {
-    let request: RequestPermissionRequest = serde_json::from_value(serde_json::json!({
-        "sessionId": "session",
-        "toolCall": { "toolCallId": "call", "title": "Inspect file" },
-        "options": [{ "optionId": "allow", "name": "Allow", "kind": "allow_once" }]
+use super::authorize;
+
+fn request(options: serde_json::Value) -> RequestPermissionRequest {
+    serde_json::from_value(serde_json::json!({
+        "sessionId": "session", "toolCall": {"toolCallId": "call"}, "options": options,
     }))
-    .expect("permission request");
-    let cancellation = CancellationToken::new();
-    let on_update: AgentUpdateHandler = Arc::new(|_| Ok(()));
-    let session = uuid::Uuid::new_v4().to_string();
-    let mut future = Box::pin(request_decision(
-        &session,
-        &request,
-        &cancellation,
-        &on_update,
+    .unwrap()
+}
+
+#[test]
+fn grants_runtime_allow_always_without_a_user_decision() {
+    let request = request(serde_json::json!([
+        {"optionId": "reject", "name": "Reject", "kind": "reject_once"},
+        {"optionId": "once", "name": "Allow", "kind": "allow_once"},
+        {"optionId": "persistent", "name": "Always", "kind": "allow_always"}
+    ]));
+    let response = authorize(&request, &CancellationToken::new()).unwrap();
+    let RequestPermissionOutcome::Selected(selection) = response.outcome else {
+        panic!("must authorize")
+    };
+    assert_eq!(selection.option_id.to_string(), "persistent");
+}
+
+#[test]
+fn allows_runtime_once_option_and_rejects_missing_allow_option() {
+    let once_request = request(serde_json::json!([
+        {"optionId": "once", "name": "Allow", "kind": "allow_once"}
+    ]));
+    assert!(matches!(
+        authorize(&once_request, &CancellationToken::new())
+            .unwrap()
+            .outcome,
+        RequestPermissionOutcome::Selected(_)
     ));
-    tokio::select! {
-        biased;
-        _ = &mut future => panic!("request should remain pending"),
-        _ = futures::future::ready(()) => {},
-    }
-    assert_eq!(pending_for_session(&session).expect("pending").len(), 1);
-    drop(future);
-    assert!(pending_for_session(&session).expect("released").is_empty());
+    assert!(authorize(&request(serde_json::json!([])), &CancellationToken::new()).is_err());
+}
+
+#[test]
+fn cancellation_never_authorizes_a_new_operation() {
+    let cancellation = CancellationToken::new();
+    cancellation.cancel();
+    let response = authorize(&request(serde_json::json!([])), &cancellation).unwrap();
+    assert!(matches!(
+        response.outcome,
+        RequestPermissionOutcome::Cancelled
+    ));
+}
+
+#[test]
+fn full_access_mode_must_be_advertised_and_never_silently_substituted() {
+    let response = serde_json::from_value(serde_json::json!({
+        "sessionId": "session", "modes": {"currentModeId": "read-only", "availableModes": [
+            {"id":"read-only", "name":"Read only"}, {"id":"full-access", "name":"Full"}
+        ]}
+    }))
+    .unwrap();
+    let change = super::trusted_mode_request(Some("full-access"), &response)
+        .unwrap()
+        .unwrap();
+    assert_eq!(change.mode_id.to_string(), "full-access");
+    assert!(super::trusted_mode_request(Some("bypassPermissions"), &response).is_err());
+    assert!(super::trusted_mode_request(None, &response)
+        .unwrap()
+        .is_none());
+    let mut current = response;
+    current.modes.as_mut().unwrap().current_mode_id = "full-access".into();
+    assert!(super::trusted_mode_request(Some("full-access"), &current)
+        .unwrap()
+        .is_none());
 }
