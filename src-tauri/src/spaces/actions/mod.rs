@@ -88,6 +88,7 @@ pub enum SpaceActionOutputContract {
     ResourceReceipt,
     SearchResults,
     SpaceEditReceipt,
+    SpaceContents,
     Subtitle,
     Video,
 }
@@ -104,6 +105,7 @@ impl SpaceActionOutputContract {
             Self::ResourceReceipt => "resource_receipt",
             Self::SearchResults => "search_results",
             Self::SpaceEditReceipt => "space_edit_receipt",
+            Self::SpaceContents => "space_contents",
             Self::Subtitle => "subtitle",
             Self::Video => "video",
         }

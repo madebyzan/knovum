@@ -1,26 +1,25 @@
 use serde_json::{json, Value};
-use sqlx::Row;
-use tauri::AppHandle;
+use sqlx::{Row, SqliteConnection};
 
 use crate::spaces::db;
 
 pub(crate) async fn get_node(
-    app: &AppHandle,
+    connection: &mut SqliteConnection,
     space_id: &str,
     node_id: &str,
 ) -> Result<Value, String> {
-    let pool = db::pool(app).await?;
     let row = sqlx::query(
-        "SELECT id,kind,data,created_at,updated_at FROM spaces_semantic_nodes \
-         WHERE space_id=$1 AND id=$2",
+        "SELECT id,kind,data,created_at,updated_at FROM spaces_nodes \
+         WHERE space_id=$1 AND id=$2 AND deleted_at IS NULL AND kind NOT IN ('credential','portal')",
     )
     .bind(space_id)
     .bind(node_id)
-    .fetch_optional(pool)
+    .fetch_optional(&mut *connection)
     .await
     .map_err(db::sql_error)?
     .ok_or("node-unavailable: node does not exist in the requested Space")?;
     let data = parse_json(row.try_get("data").map_err(db::sql_error)?)?;
+    let asset_revision = asset_revision(&data)?;
     let chunks = sqlx::query(
         "SELECT c.id,c.kind,c.source_revision,c.text,c.locator,c.updated_at \
          FROM spaces_current_knowledge_chunks c JOIN spaces_semantic_nodes n \
@@ -29,7 +28,7 @@ pub(crate) async fn get_node(
     )
     .bind(space_id)
     .bind(node_id)
-    .fetch_all(pool)
+    .fetch_all(&mut *connection)
     .await
     .map_err(db::sql_error)?;
     let chunks = chunks
@@ -46,9 +45,27 @@ pub(crate) async fn get_node(
         .collect::<Result<Vec<Value>, String>>()?;
     Ok(json!({
         "id": row.try_get::<String,_>("id").map_err(db::sql_error)?, "kind": row.try_get::<String,_>("kind").map_err(db::sql_error)?,
+        "knowledgeRevision": data.get("knowledgeRevision"), "sourceRevision": data.get("sourceRevision"),
+        "assetRevision": asset_revision,
         "data": data, "chunks": chunks, "createdAt": row.try_get::<i64,_>("created_at").map_err(db::sql_error)?,
         "updatedAt": row.try_get::<i64,_>("updated_at").map_err(db::sql_error)?,
     }))
+}
+
+fn asset_revision(data: &Value) -> Result<Option<String>, String> {
+    if data.get("assetPath").is_none() || data.get("sourceRevision").is_none() {
+        return Ok(None);
+    }
+    let kind = data["kind"]
+        .as_str()
+        .ok_or("Resource kind is unavailable")?;
+    use crate::spaces::derivation::input_revision::{resolve, RevisionBasis};
+    let basis = if kind == "image" {
+        RevisionBasis::Rendered
+    } else {
+        RevisionBasis::Asset
+    };
+    resolve(kind, data, basis).map(|(revision, _)| Some(revision))
 }
 
 fn parse_json(raw: String) -> Result<Value, String> {

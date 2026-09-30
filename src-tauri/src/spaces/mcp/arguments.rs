@@ -17,6 +17,22 @@ pub(super) struct NodeArgs {
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub(super) struct AssetArgs {
+    pub(super) space_id: String,
+    pub(super) node_id: String,
+    pub(super) asset_revision: String,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub(super) struct ContentsArgs {
+    pub(super) space_id: String,
+    pub(super) offset: i64,
+    pub(super) limit: i64,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
 pub(super) struct ProvenanceArgs {
     pub(super) space_id: String,
     pub(super) target_kind: String,

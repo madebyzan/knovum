@@ -64,6 +64,15 @@ pub(super) struct SearchParameters {
 
 #[derive(Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(super) struct ContentsParameters {
+    #[schemars(range(min = 0))]
+    offset: u32,
+    #[schemars(range(min = 1, max = 100))]
+    limit: u8,
+}
+
+#[derive(Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub(super) struct NodeParameters {
     #[schemars(length(min = 1))]
     node_id: String,
@@ -145,6 +154,7 @@ schema!(purpose, PurposeParameters);
 schema!(note, NoteParameters);
 schema!(knowledge_changes, KnowledgeChangesParameters);
 schema!(space_edit, SpaceEditParameters);
+schema!(contents, ContentsParameters);
 schema!(search, SearchParameters);
 schema!(node, NodeParameters);
 schema!(question, QuestionParameters);

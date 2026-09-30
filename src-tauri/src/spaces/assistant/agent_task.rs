@@ -65,7 +65,7 @@ pub async fn start(
             runtime_kind,
             title: prompt.chars().take(80).collect(),
             max_duration_seconds: 900,
-            input_snapshot: serde_json::json!({"prompt": prompt, "attachments": context.manifest}),
+            input_snapshot: serde_json::json!({"prompt": prompt, "attachments": context.manifest, "spaceContext": context.space}),
         },
         conversation,
         updates.clone(),

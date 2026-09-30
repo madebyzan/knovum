@@ -12,9 +12,10 @@ pub(crate) struct AgentMcpBinding {
 impl AgentMcpBinding {
     pub(crate) fn server(&self) -> McpServer {
         McpServer::Http(
-            McpServerHttp::new("Knovum Knowledge", self.endpoint.clone()).headers(vec![
-                HttpHeader::new("Authorization", self.authorization.clone()),
-            ]),
+            McpServerHttp::new("knovum", self.endpoint.clone()).headers(vec![HttpHeader::new(
+                "Authorization",
+                self.authorization.clone(),
+            )]),
         )
     }
 }

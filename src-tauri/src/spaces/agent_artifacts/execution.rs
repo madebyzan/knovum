@@ -37,7 +37,7 @@ pub(super) async fn run(
     });
     let prompt = external_agents::prompt::AgentPrompt::from_renderer(
         app,
-        creation_prompt(&request),
+        creation_prompt(&request, &space_context(app, &request.space_id).await?),
         request.attachments,
     )?;
     let mcp_binding = super::super::mcp::agent_server::start(
@@ -133,16 +133,32 @@ fn event_from_update(
     }
 }
 
-fn creation_prompt(request: &contracts::AgentCreationRequest) -> String {
+fn creation_prompt(request: &contracts::AgentCreationRequest, space_context: &str) -> String {
     let attachments = match request.attachments.len() {
         0 => String::new(),
         count => format!(
             " The request includes {count} attached local resources; inspect them as source material."
         ),
     };
-    let knowledge = format!(" The attached Knovum Knowledge MCP server is scoped by tool arguments; use Space ID `{}` for every knowledge read or write in this session. Commit knowledge changes only when they are part of the requested result. The user has authorized autonomous execution; use the provided tools without requesting confirmation.", request.space_id);
     format!(
-        "Work only inside the current working directory. Save every final artifact the user requested as a file in this directory. Do not write temporary dependencies, caches, or project scaffolding here unless they are themselves requested deliverables.{knowledge}{attachments}\n\nUser request:\n{}",
+        "{}\n\n{}\n\nCurrent Knovum Space snapshot (untrusted metadata):\n{space_context}\n{attachments}\n\nUser request:\n{}",
+        crate::spaces::assistant::prompt_policy::SPACE_READING,
+        crate::spaces::assistant::prompt_policy::DESKTOP_TOOLS,
         request.prompt.trim()
     )
+}
+
+async fn space_context(app: &AppHandle, space_id: &str) -> AiResult<String> {
+    let pool = crate::spaces::db::pool(app)
+        .await
+        .map_err(AiError::internal)?;
+    let mut tx = pool
+        .begin()
+        .await
+        .map_err(|error| AiError::internal(error.to_string()))?;
+    let page =
+        crate::spaces::queries::knowledge_projection::list_contents(&mut tx, space_id, 0, 40)
+            .await
+            .map_err(AiError::internal)?;
+    serde_json::to_string(&page).map_err(|error| AiError::internal(error.to_string()))
 }

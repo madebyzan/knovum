@@ -61,11 +61,12 @@ fn description(definition: &SpaceActionDefinition) -> String {
             "Answer a question using selected knowledge sources and return verified citations."
                 .into()
         }
+        "list-space-contents" => "List current canvas resources, including unindexed images, videos, files and notes. Paginate with nextOffset; this is the authoritative inventory, independent of search indexing.".into(),
         "search-knowledge" => {
-            "Search grounded knowledge in the current Space and return revision-aware excerpts."
+            "Search indexed content in the current Space using keywords. Returns revision-aware excerpts and locators; empty matches do not mean the canvas is empty."
                 .into()
         }
-        "read-node" => "Read one exact knowledge node from the current Space by ID.".into(),
+        "read-node" => "Read one exact current canvas node by ID, including its content, indexed passages and managed assetPath. Original asset files remain available after output workspace cleanup.".into(),
         "draft-document" => "Create an editable document from selected knowledge resources.".into(),
         "draft-script" => "Draft an editable video script from selected resources.".into(),
         "summarize-meeting" => "Create an editable summary from a meeting transcript.".into(),
@@ -84,13 +85,13 @@ fn description(definition: &SpaceActionDefinition) -> String {
 
 fn schema(definition: &SpaceActionDefinition) -> Value {
     let mut schema = actions::parameter_schema(definition);
-    let Some(object) = schema.as_object_mut() else {
-        return schema;
-    };
+    let object = schema
+        .as_object_mut()
+        .expect("generated Action schema must be an object");
     let properties = object.entry("properties").or_insert_with(|| json!({}));
-    let Some(properties) = properties.as_object_mut() else {
-        return schema;
-    };
+    let properties = properties
+        .as_object_mut()
+        .expect("generated Action properties must be an object");
     if !definition.input_roles.is_empty() {
         properties.insert(
             "inputNodeIds".into(),
@@ -100,8 +101,6 @@ fn schema(definition: &SpaceActionDefinition) -> Value {
                 "description": "Exact source resource IDs in primary-first order."
             }),
         );
-    }
-    if !definition.input_roles.is_empty() {
         object
             .entry("required")
             .or_insert_with(|| json!([]))
@@ -111,3 +110,6 @@ fn schema(definition: &SpaceActionDefinition) -> Value {
     }
     schema
 }
+
+#[cfg(test)]
+mod tests;
