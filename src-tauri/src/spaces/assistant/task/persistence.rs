@@ -1,6 +1,9 @@
 use serde_json::json;
 use sqlx::SqlitePool;
 
+#[cfg(test)]
+mod tests;
+
 use super::{identity, NewAssistantTask, ASSISTANT_PROFILE_VERSION};
 use crate::{
     agent_runtime::ControlCheckpoint,
@@ -18,6 +21,7 @@ pub(super) struct NewAssistantTaskState<'a> {
     pub grant: &'a AuthorizationContext,
     pub catalog: &'a tools::ToolCatalog,
     pub context_manifest: &'a serde_json::Value,
+    pub space_context: &'a crate::spaces::queries::knowledge_projection::ContentsPage,
     pub attachment_summaries: &'a [crate::spaces::assistant::AssistantMessageAttachment],
     pub checkpoint: &'a ControlCheckpoint,
     pub now: i64,
@@ -33,6 +37,7 @@ pub(super) async fn persist_task(
         grant,
         catalog,
         context_manifest,
+        space_context,
         attachment_summaries,
         checkpoint,
         now,
@@ -59,7 +64,7 @@ pub(super) async fn persist_task(
         "mode": request.mode, "grantId": grant.grant_id,
         "assistantProfileVersion": ASSISTANT_PROFILE_VERSION,
     });
-    let input = json!({"prompt": request.prompt, "contextManifest": context_manifest});
+    let input = json!({"prompt": request.prompt, "contextManifest": context_manifest, "spaceContext": space_context});
     let budget = json!({
         "maxTurns": request.max_turns, "maxTools": request.max_tool_calls,
         "maxTotalTokens": request.max_total_tokens,

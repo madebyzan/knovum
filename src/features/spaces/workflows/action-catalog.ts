@@ -16,6 +16,7 @@ const spaceActionOutputContractSchema = z.enum([
   "resource_receipt",
   "search_results",
   "space_edit_receipt",
+  "space_contents",
   "subtitle",
   "video",
 ]);

@@ -50,6 +50,19 @@ pub(crate) async fn execute_immediate(
             .await?;
             serde_json::to_value(receipt).map_err(db::json_error)
         }
+        "list-space-contents" => {
+            let offset = parameters["offset"]
+                .as_i64()
+                .ok_or("list-space-contents requires offset")?;
+            let limit = parameters["limit"]
+                .as_i64()
+                .ok_or("list-space-contents requires limit")?;
+            let page = crate::spaces::queries::knowledge_projection::list_contents(
+                tx, space_id, offset, limit,
+            )
+            .await?;
+            serde_json::to_value(page).map_err(db::json_error)
+        }
         "search-knowledge" => {
             crate::spaces::knowledge::action::search(tx, space_id, parameters).await
         }

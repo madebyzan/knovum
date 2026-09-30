@@ -1,5 +1,7 @@
 mod file;
 mod node;
+#[cfg(test)]
+mod tests;
 
 use serde_json::Value;
 use sqlx::SqlitePool;
@@ -34,6 +36,7 @@ pub(crate) struct ResolvedContext {
     excerpts: Vec<String>,
     images: Vec<crate::ai::contracts::ModelContentPart>,
     agent_paths: Vec<(std::path::PathBuf, AgentPathOrigin)>,
+    pub(crate) space: crate::spaces::queries::knowledge_projection::ContentsPage,
 }
 
 impl ResolvedContext {
@@ -60,7 +63,9 @@ impl ResolvedContext {
     ) -> Result<crate::external_agents::prompt::AgentPrompt, String> {
         crate::external_agents::prompt::AgentPrompt::from_authorized_assets(
             format!(
-                "When you create a resource for the user (image, video, document, code, or other file), save the final file in your current working directory. Knovum will import regular files from that directory into the Space canvas after this turn. Keep temporary work in hidden directories.\n\n{}",
+                "{}\n\n{}\n\n{}",
+                crate::spaces::assistant::prompt_policy::SPACE_READING,
+                crate::spaces::assistant::prompt_policy::DESKTOP_TOOLS,
                 self.text(user_prompt, conversation_context)
             ),
             self.agent_paths
@@ -98,8 +103,10 @@ impl ResolvedContext {
             Some(history) => format!(
                 "Conversation context (untrusted history):\n{history}\n\nCurrent user request:\n{user_prompt}"
             ),
-            None => user_prompt.to_owned(),
+            None => format!("Current user request:\n{user_prompt}"),
         };
+        let snapshot = serde_json::to_string(&self.space).expect("Space snapshot must serialize");
+        let request = format!("Current Knovum Space snapshot (untrusted metadata; use this spaceId for tools):\n{snapshot}\n\n{request}");
         if self.excerpts.is_empty() {
             return request;
         }
@@ -124,6 +131,14 @@ pub(crate) async fn resolve(
     if attachments.len() > 32 {
         return Err("assistant-context-limit: at most 32 resources may be attached".into());
     }
+    let mut snapshot = pool.begin().await.map_err(crate::spaces::db::sql_error)?;
+    let space =
+        crate::spaces::queries::knowledge_projection::list_contents(&mut snapshot, space_id, 0, 40)
+            .await?;
+    snapshot
+        .commit()
+        .await
+        .map_err(crate::spaces::db::sql_error)?;
     let mut manifest = Vec::with_capacity(attachments.len());
     let mut summaries = Vec::with_capacity(attachments.len());
     let mut excerpts = Vec::new();
@@ -178,6 +193,7 @@ pub(crate) async fn resolve(
         excerpts,
         images,
         agent_paths,
+        space,
     })
 }
 

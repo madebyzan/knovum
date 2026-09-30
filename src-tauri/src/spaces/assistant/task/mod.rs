@@ -16,7 +16,7 @@ use crate::spaces::{
     runs::{transition_run, RunState},
 };
 
-pub(super) const ASSISTANT_PROFILE_VERSION: u16 = 2;
+pub(super) const ASSISTANT_PROFILE_VERSION: u16 = 3;
 
 pub(super) struct NewAssistantTask<'a> {
     pub task_id: &'a str,
@@ -72,6 +72,7 @@ pub async fn start(
             grant: &grant,
             catalog: &catalog,
             context_manifest: &context.manifest,
+            space_context: &context.space,
             attachment_summaries: &context.summaries,
             checkpoint: &checkpoint,
             now,

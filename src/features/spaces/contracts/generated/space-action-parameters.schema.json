@@ -54,6 +54,29 @@
       "command"
     ]
   },
+  "list-space-contents": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "ContentsParameters",
+    "type": "object",
+    "properties": {
+      "offset": {
+        "type": "integer",
+        "format": "uint32",
+        "minimum": 0
+      },
+      "limit": {
+        "type": "integer",
+        "format": "uint8",
+        "minimum": 1,
+        "maximum": 100
+      }
+    },
+    "additionalProperties": false,
+    "required": [
+      "offset",
+      "limit"
+    ]
+  },
   "search-knowledge": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "title": "SearchParameters",

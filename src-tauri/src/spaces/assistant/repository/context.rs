@@ -1,4 +1,3 @@
-use serde_json::Value;
 use sha2::{Digest, Sha256};
 use sqlx::{Row, SqlitePool};
 
@@ -6,6 +5,7 @@ use crate::spaces::db;
 
 const RECENT_MESSAGE_COUNT: usize = 24;
 const MAX_CONTEXT_CHARACTERS: usize = 20_000;
+const SUMMARY_CHARACTERS: usize = 4_000;
 
 pub async fn build(
     pool: &SqlitePool,
@@ -36,13 +36,22 @@ pub async fn build(
     if !summary.is_empty() {
         transcript.push_str("Earlier conversation summary:\n");
         transcript.push_str(&summary);
-        transcript.push_str("\n\nRecent conversation:\n");
+        transcript.push_str("\n\n");
     }
-    for message in recent {
-        append_bounded(
-            &mut transcript,
-            &format!("{}: {}\n", message.role, message.text),
-        );
+    transcript.push_str("Recent conversation:\n");
+    let mut remaining = MAX_CONTEXT_CHARACTERS - transcript.chars().count();
+    let mut turns = Vec::new();
+    for message in recent.iter().rev() {
+        let turn = format!("{}: {}\n", message.role, message.text);
+        let bounded: String = turn.chars().take(remaining.min(4_000)).collect();
+        remaining -= bounded.chars().count();
+        turns.push(bounded);
+        if remaining == 0 {
+            break;
+        }
+    }
+    for turn in turns.into_iter().rev() {
+        transcript.push_str(&turn);
     }
     Ok((!transcript.is_empty()).then_some(transcript))
 }
@@ -55,38 +64,62 @@ struct ContextMessage {
 
 fn parse(row: sqlx::sqlite::SqliteRow) -> Result<ContextMessage, String> {
     let encoded: String = row.try_get("content").map_err(db::sql_error)?;
-    let content: Value = serde_json::from_str(&encoded).map_err(db::json_error)?;
-    let text = content
-        .get("parts")
-        .and_then(Value::as_array)
-        .into_iter()
-        .flatten()
+    let content: super::AssistantMessageContent =
+        serde_json::from_str(&encoded).map_err(db::json_error)?;
+    let body = content
+        .parts
+        .iter()
         .filter_map(context_part)
         .collect::<Vec<_>>()
         .join(" ");
     Ok(ContextMessage {
         id: row.try_get("id").map_err(db::sql_error)?,
         role: row.try_get("role").map_err(db::sql_error)?,
-        text,
+        text: format!("{}{}", resource_references(content), body),
     })
 }
 
-fn context_part(part: &Value) -> Option<String> {
-    match part.get("type").and_then(Value::as_str) {
-        Some("text") => part.get("text").and_then(Value::as_str).map(str::to_owned),
-        Some("tool_result") => Some(format!(
-            "[tool {} completed]",
-            part.get("name")
-                .and_then(Value::as_str)
-                .unwrap_or("unknown"),
-        )),
+fn resource_references(message: super::AssistantMessageContent) -> String {
+    let outputs = message.outputs;
+    let attachments = message
+        .attachments
+        .into_iter()
+        .filter_map(|attachment| match attachment {
+            super::AssistantMessageAttachment::Node {
+                node_id,
+                title,
+                kind,
+                ..
+            } => Some(super::AssistantMessageOutput {
+                node_id,
+                title,
+                kind,
+            }),
+            super::AssistantMessageAttachment::File { .. } => None,
+        })
+        .collect::<Vec<_>>();
+    if outputs.is_empty() && attachments.is_empty() {
+        return String::new();
+    }
+    format!(
+        "Canvas resource references (read current nodes, not old file paths): {}\n",
+        serde_json::json!({"outputs": outputs, "attachments": attachments})
+    )
+}
+
+fn context_part(part: &crate::ai::contracts::ModelContentPart) -> Option<String> {
+    match part {
+        crate::ai::contracts::ModelContentPart::Text { text } => Some(text.clone()),
+        crate::ai::contracts::ModelContentPart::ToolResult { name, .. } => {
+            Some(format!("[tool {name} completed]"))
+        }
         _ => None,
     }
 }
 
 fn summarize(messages: &[ContextMessage]) -> String {
     let mut summary = String::new();
-    for message in messages {
+    for message in messages.iter().rev() {
         let excerpt = message.text.chars().take(320).collect::<String>();
         append_bounded(&mut summary, &format!("{}: {}\n", message.role, excerpt));
     }
@@ -94,7 +127,7 @@ fn summarize(messages: &[ContextMessage]) -> String {
 }
 
 fn append_bounded(target: &mut String, value: &str) {
-    let remaining = MAX_CONTEXT_CHARACTERS.saturating_sub(target.chars().count());
+    let remaining = SUMMARY_CHARACTERS.saturating_sub(target.chars().count());
     target.extend(value.chars().take(remaining));
 }
 
@@ -130,3 +163,6 @@ async fn store_segment(
     .map_err(db::sql_error)?;
     Ok(())
 }
+
+#[cfg(test)]
+mod tests;

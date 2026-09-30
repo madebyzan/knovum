@@ -1,6 +1,6 @@
 use base64::Engine;
 use serde_json::{json, Value};
-use sqlx::{Row, SqlitePool};
+use sqlx::SqlitePool;
 
 use super::{AgentPathOrigin, ContextTarget, ResolvedPart};
 use crate::spaces::db;
@@ -26,19 +26,15 @@ pub(super) async fn resolve(
         role,
         locator,
     } = reference;
-    let row = sqlx::query(
-        "SELECT kind,data FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND deleted_at IS NULL",
-    )
-    .bind(node_id)
-    .bind(space_id)
-    .fetch_optional(pool)
-    .await
-    .map_err(db::sql_error)?
-    .ok_or("source-unavailable: attached resource is unavailable")?;
-    let kind: String = row.try_get("kind").map_err(db::sql_error)?;
-    let data: Value =
-        serde_json::from_str(&row.try_get::<String, _>("data").map_err(db::sql_error)?)
-            .map_err(db::json_error)?;
+    let mut tx = pool.begin().await.map_err(db::sql_error)?;
+    let node =
+        crate::spaces::queries::knowledge_projection::get_node(&mut tx, space_id, node_id).await?;
+    tx.commit().await.map_err(db::sql_error)?;
+    let kind = node["kind"]
+        .as_str()
+        .ok_or("attached resource has no kind")?
+        .to_owned();
+    let data = &node["data"];
     let current_revision = data
         .get("knowledgeRevision")
         .or_else(|| data.get("sourceRevision"))
@@ -47,19 +43,13 @@ pub(super) async fn resolve(
     if current_revision != source_revision {
         return Err("source-revision-changed: attached resource changed before task start".into());
     }
-    let title = data
-        .get("title")
-        .and_then(Value::as_str)
-        .unwrap_or("Untitled");
-    let text = data
-        .get("text")
-        .or_else(|| data.get("transcript"))
-        .and_then(Value::as_str)
-        .unwrap_or("");
-    let excerpt: String = text.chars().take(remaining.min(8_000)).collect();
+    let title = data["title"]
+        .as_str()
+        .ok_or("attached resource has no title")?;
+    let excerpt = excerpt(data, remaining)?;
     let characters_read = excerpt.chars().count();
     let (image, agent_path, thumbnail) = if kind == "image" {
-        let (path, origin) = image_path(app, &data).await?;
+        let (path, origin) = image_path(app, data).await?;
         let thumbnail = super::image_thumbnail(path.clone()).await?;
         if target == ContextTarget::Model {
             (Some(load_image(&path).await?), None, Some(thumbnail))
@@ -88,6 +78,19 @@ pub(super) async fn resolve(
         agent_path,
         characters_read,
     })
+}
+
+fn excerpt(data: &Value, remaining: usize) -> Result<String, String> {
+    let mut chunks = crate::spaces::knowledge::indexing::node::derived_chunks(data)?;
+    chunks.extend(crate::spaces::knowledge::indexing::media::chunks(data)?);
+    Ok(chunks
+        .iter()
+        .map(|chunk| chunk.text.as_str())
+        .collect::<Vec<_>>()
+        .join("\n\n")
+        .chars()
+        .take(remaining.min(8_000))
+        .collect())
 }
 
 async fn image_path(
@@ -136,4 +139,17 @@ async fn load_image(
             .and_then(|value| value.to_str())
             .map(str::to_owned),
     })
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn attached_notes_use_canonical_editor_content_and_respect_the_read_budget() {
+        let data = serde_json::json!({
+            "kind":"note", "knowledgeRevision":"node1:test", "plainText":"画布里的资料",
+            "tiptapContent":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"画布里的资料"}]}]},
+        });
+        assert_eq!(super::excerpt(&data, 100).unwrap(), "画布里的资料");
+        assert_eq!(super::excerpt(&data, 2).unwrap(), "画布");
+    }
 }

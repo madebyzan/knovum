@@ -37,9 +37,7 @@ pub(super) fn router(
                 })
             },
             Default::default(),
-            StreamableHttpServerConfig::default()
-                .with_legacy_session_mode(false)
-                .with_cancellation_token(cancellation),
+            StreamableHttpServerConfig::default().with_cancellation_token(cancellation),
         );
     Router::new()
         .nest_service(MCP_PATH, mcp_transport)
