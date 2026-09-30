@@ -23,6 +23,7 @@ pub async fn generate_media_insights(
     job_id: String,
     expected_revision: String,
     on_progress: Channel<MediaTranscriptionProgress>,
+    target: Option<crate::ai::tasks::TaskTargetSelection>,
 ) -> Result<Value, CommandError> {
     let (cancellation, _lease) = crate::ai::executions::acquire(job_id)?;
     let data = super::node_payload::load_node_content(&app, &space_id, &node_id).await?;
@@ -36,7 +37,7 @@ pub async fn generate_media_insights(
         .ok_or("Current media transcript is unavailable")?
         .clone();
     let generated_insights =
-        insights::generate(&app, &knowledge, &on_progress, &cancellation).await;
+        insights::generate(&app, target, &knowledge, &on_progress, &cancellation).await;
     if cancellation.is_cancelled() {
         return Err("media-insights-cancelled: Media insights generation cancelled".into());
     }
@@ -50,6 +51,8 @@ pub async fn generate_media_insights(
             source_revision: Some(&source),
             job_id: None,
             media_knowledge: Some(&knowledge),
+            document_coverage: None,
+            cancellation: Some(&cancellation),
         },
         fields,
         None,

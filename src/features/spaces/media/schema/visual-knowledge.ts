@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { executionSourceSchema } from "../../../../foundation/ai/schema/models";
+
 export const spaceVisualKnowledgeSchema = z
   .object({
     sourceRevision: z.string().trim().min(1).max(128),
@@ -7,8 +9,7 @@ export const spaceVisualKnowledgeSchema = z
     detectedText: z.string().trim().min(1).max(16_000).optional(),
     tags: z.array(z.string().trim().min(1).max(80)).max(32),
     generatedAt: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
-    provider: z.string().trim().min(1).max(128),
-    model: z.string().trim().min(1).max(256),
+    executionSource: executionSourceSchema,
   })
   .strict();
 

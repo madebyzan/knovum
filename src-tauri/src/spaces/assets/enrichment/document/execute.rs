@@ -5,7 +5,7 @@ use tokio_util::sync::CancellationToken;
 use super::model::{DocumentCoverage, VisualState};
 use crate::spaces::assets::enrichment::{commit, jobs::RunEnrichmentJobRequest};
 use crate::{
-    ai::models::ExecutionTarget,
+    ai::tasks::TaskExecutionTarget,
     spaces::assets::{
         authorize_spaces_asset, enrichment::ensure_active,
         transcription::MediaTranscriptionProgress,
@@ -16,7 +16,7 @@ pub(in crate::spaces) async fn analyze(
     app: &AppHandle,
     request: &RunEnrichmentJobRequest,
     data: Value,
-    target: ExecutionTarget,
+    target: TaskExecutionTarget,
     progress: &Channel<MediaTranscriptionProgress>,
     cancellation: &CancellationToken,
 ) -> Result<Value, String> {
@@ -75,7 +75,14 @@ pub(in crate::spaces) async fn analyze(
                     }
                 });
                 if let Err(error) = validation {
-                    fail_occurrence(app, request, &mut report, index, &error).await?;
+                    fail_occurrence(
+                        app,
+                        request,
+                        &mut report,
+                        (index, &error),
+                        (&data["documentCoverage"], cancellation),
+                    )
+                    .await?;
                     return Err(error);
                 }
                 text_width += width;
@@ -84,7 +91,14 @@ pub(in crate::spaces) async fn analyze(
                 report.occurrences[index].error = None;
             }
             Err(error) => {
-                fail_occurrence(app, request, &mut report, index, &error).await?;
+                fail_occurrence(
+                    app,
+                    request,
+                    &mut report,
+                    (index, &error),
+                    (&data["documentCoverage"], cancellation),
+                )
+                .await?;
                 return Err(error);
             }
         }
@@ -95,7 +109,14 @@ pub(in crate::spaces) async fn analyze(
         ));
     }
     report.validate()?;
-    let data = publish(app, request, &report).await?;
+    let data = publish(
+        app,
+        request,
+        &report,
+        &data["documentCoverage"],
+        cancellation,
+    )
+    .await?;
     super::checkpoint::clear(app, &request.job_id).await?;
     Ok(data)
 }
@@ -104,8 +125,8 @@ async fn fail_occurrence(
     app: &AppHandle,
     request: &RunEnrichmentJobRequest,
     report: &mut DocumentCoverage,
-    index: usize,
-    error: &str,
+    (index, error): (usize, &str),
+    (expected, cancellation): (&Value, &CancellationToken),
 ) -> Result<(), String> {
     let occurrence = &mut report.occurrences[index];
     occurrence.analysis = None;
@@ -116,7 +137,7 @@ async fn fail_occurrence(
     super::checkpoint::save(app, request, report, index).await?;
     // Publish completed knowledge once on failure; retries still resume the durable job state.
     report.validate()?;
-    publish(app, request, report).await?;
+    publish(app, request, report, expected, cancellation).await?;
     Ok(())
 }
 
@@ -142,6 +163,8 @@ async fn publish(
     app: &AppHandle,
     request: &RunEnrichmentJobRequest,
     report: &DocumentCoverage,
+    expected: &Value,
+    cancellation: &CancellationToken,
 ) -> Result<Value, String> {
     let mut fields = serde_json::Map::new();
     fields.insert(
@@ -156,6 +179,8 @@ async fn publish(
             source_revision: Some(&report.source_revision),
             job_id: Some(&request.job_id),
             media_knowledge: None,
+            document_coverage: Some(expected),
+            cancellation: Some(cancellation),
         },
         fields,
         None,

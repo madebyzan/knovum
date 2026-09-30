@@ -21,7 +21,7 @@ async fn database() -> (sqlx::SqlitePool, String) {
         "spaceId":"space","mutationId":"source-create","expectedEditRevision":0,"targetParentId":null,
         "nodes":[{"id":"source","kind":"markdown","initialX":0,"initialY":0,"width":300,"height":200,"sizingMode":"frame","data":data,"sourceChunks":[]}]
     })).unwrap();
-    crate::spaces::nodes::insert_many_in_transaction(&mut tx, request)
+    crate::spaces::nodes::insert_many_in_transaction(&mut tx, request, None)
         .await
         .unwrap();
     tx.commit().await.unwrap();

@@ -47,9 +47,12 @@ pub(crate) async fn execute(
         tx,
         space_id,
         std::slice::from_ref(&node),
-        principal.kind.event_actor_kind(),
-        Some(&principal.id),
+        crate::spaces::knowledge::events::EventActor::new(
+            principal.kind.event_actor_kind(),
+            Some(&principal.id),
+        ),
         now,
+        None, // Notes do not create visual enrichment.
     )
     .await?;
     let edit_revision =

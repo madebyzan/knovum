@@ -1,7 +1,7 @@
 use super::*;
 
-fn target(provider: &str, model: &str) -> ExecutionTarget {
-    ExecutionTarget {
+fn target(provider: &str, model: &str) -> ModelExecutionTarget {
+    ModelExecutionTarget {
         provider: provider.into(),
         model: model.into(),
         base_url: String::new(),

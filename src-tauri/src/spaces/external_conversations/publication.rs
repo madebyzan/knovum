@@ -37,7 +37,15 @@ pub(super) async fn publish(
     db::require_one(claim, "Agent output publication is already active")?;
     super::staging::cleanup(app, pool, run_id).await?;
     let outputs = super::staging::stage(app, pool, run_id, workspace).await?;
-    let result = commit(pool, conversation_id, run_id, space_id, &outputs).await;
+    let result = commit(
+        pool,
+        conversation_id,
+        run_id,
+        space_id,
+        &outputs,
+        crate::spaces::assets::enrichment::jobs::intent::selection(app)?.as_ref(),
+    )
+    .await;
     if let Err(error) = result {
         return match super::staging::cleanup(app, pool, run_id).await {
             Ok(()) => Err(error),
@@ -71,6 +79,7 @@ async fn commit(
     run_id: &str,
     space_id: &str,
     outputs: &[PreparedOutput],
+    enrichment_target: Option<&crate::ai::tasks::TaskTargetSelection>,
 ) -> Result<(), String> {
     let mut tx = db::begin_write(pool).await?;
     let now = crate::clock::unix_time_millis()?;
@@ -91,7 +100,16 @@ async fn commit(
     let mut references =
         crate::spaces::assistant::outputs::collect(&mut tx, space_id, &principal).await?;
     if !outputs.is_empty() {
-        insert_outputs(&mut tx, space_id, conversation_id, outputs, &sources, now).await?;
+        insert_outputs(
+            &mut tx,
+            space_id,
+            conversation_id,
+            outputs,
+            &sources,
+            now,
+            enrichment_target,
+        )
+        .await?;
         for output in outputs {
             references.push(AssistantMessageOutput {
                 node_id: output.node.id.clone(),
@@ -179,6 +197,7 @@ async fn insert_outputs(
     outputs: &[PreparedOutput],
     sources: &[String],
     now: i64,
+    enrichment_target: Option<&crate::ai::tasks::TaskTargetSelection>,
 ) -> Result<(), String> {
     let (mut snapshot, revision) = structure::repository::load_in_transaction(tx, space_id).await?;
     let before = structure::history::capture(tx, space_id, &snapshot).await?;
@@ -225,9 +244,9 @@ async fn insert_outputs(
             tx,
             space_id,
             std::slice::from_ref(&node),
-            "agent",
-            Some(principal_id),
+            knowledge::events::EventActor::new("agent", Some(principal_id)),
             now,
+            enrichment_target,
         )
         .await?;
         anchor = Some(node.id);
@@ -314,6 +333,7 @@ mod tests {
             "run",
             "space",
             &[output("report", "markdown")],
+            None,
         )
         .await
         .unwrap();
@@ -341,7 +361,8 @@ mod tests {
             "session",
             "run",
             "space",
-            &[output("good", "markdown"), output("bad", "invalid")]
+            &[output("good", "markdown"), output("bad", "invalid")],
+            None
         )
         .await
         .is_err());
@@ -380,9 +401,9 @@ mod tests {
             &mut tx,
             "space",
             std::slice::from_ref(&node),
-            "agent",
-            Some("session"),
+            knowledge::events::EventActor::new("agent", Some("session")),
             2,
+            None,
         )
         .await
         .unwrap();
@@ -394,7 +415,9 @@ mod tests {
         assert!(super::super::repository::has_turn_output(&pool, "turn")
             .await
             .unwrap());
-        commit(&pool, "session", "run", "space", &[]).await.unwrap();
+        commit(&pool, "session", "run", "space", &[], None)
+            .await
+            .unwrap();
         let content: String =
             sqlx::query_scalar("SELECT content FROM spaces_assistant_messages WHERE id='reply'")
                 .fetch_one(&pool)
@@ -422,6 +445,7 @@ mod tests {
                 target_parent_id: None,
                 nodes: vec![output("source", "markdown").node],
             },
+            None,
         )
         .await
         .unwrap();
@@ -437,6 +461,7 @@ mod tests {
             "run",
             "space",
             &[output("derived", "markdown")],
+            None,
         )
         .await
         .unwrap();
@@ -460,7 +485,8 @@ mod tests {
             "session",
             "run",
             "space",
-            &[output("late", "markdown")]
+            &[output("late", "markdown")],
+            None
         )
         .await
         .is_err());
@@ -483,6 +509,7 @@ mod tests {
             "run",
             "space",
             &[output("report", "markdown")],
+            None,
         )
         .await
         .unwrap();
@@ -509,6 +536,7 @@ mod tests {
             "run",
             "space",
             &[output("report", "markdown")],
+            None,
         )
         .await
         .unwrap();
@@ -521,7 +549,8 @@ mod tests {
             "session",
             "run",
             "space",
-            &[output("duplicate", "markdown")]
+            &[output("duplicate", "markdown")],
+            None
         )
         .await
         .is_err());
@@ -540,7 +569,8 @@ mod tests {
             "session",
             "run",
             "space",
-            &[output("too-early", "markdown")]
+            &[output("too-early", "markdown")],
+            None
         )
         .await
         .is_err());
@@ -554,6 +584,7 @@ mod tests {
             "run",
             "space",
             &[output("report", "markdown")],
+            None,
         )
         .await
         .unwrap();
@@ -577,6 +608,8 @@ mod tests {
         let count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM spaces_runs WHERE cancel_requested_at IS NOT NULL AND execution_epoch=1")
             .fetch_one(&pool).await.unwrap();
         assert_eq!(count, 3);
-        assert!(commit(&pool, "session", "run", "space", &[]).await.is_err());
+        assert!(commit(&pool, "session", "run", "space", &[], None)
+            .await
+            .is_err());
     }
 }

@@ -159,7 +159,38 @@ pub(crate) use invocation::{invoke, ActionInvocationOutcome, ActionInvocationReq
 
 pub(crate) async fn invoke_with_app(
     app: &tauri::AppHandle,
-    request: ActionInvocationRequest,
+    mut request: ActionInvocationRequest,
 ) -> Result<ActionInvocationOutcome, String> {
+    let definition = require(&request.action_id)?;
+    if let Some(purpose) = definition.routing_purpose {
+        let inputs = request
+            .input_snapshot
+            .as_object_mut()
+            .ok_or("action-input-invalid: inputSnapshot must be an object")?;
+        let targets = inputs
+            .entry("targets")
+            .or_insert_with(|| serde_json::json!({}))
+            .as_object_mut()
+            .ok_or("action-input-invalid: targets must be an object")?;
+        let target = match targets.get(definition.id) {
+            Some(value) => {
+                serde_json::from_value(value.clone()).map_err(crate::spaces::db::json_error)?
+            }
+            None => crate::ai::settings::default_selection(app, purpose)
+                .map_err(|error| error.task_message())?,
+        };
+        crate::ai::settings::resolve_task(
+            app,
+            target.clone(),
+            definition
+                .execution_capability
+                .ok_or("action-target-invalid: execution capability missing")?,
+        )
+        .map_err(|error| error.task_message())?;
+        targets.insert(
+            definition.id.into(),
+            serde_json::to_value(target).map_err(crate::spaces::db::json_error)?,
+        );
+    }
     invoke(crate::spaces::db::pool(app).await?, request).await
 }

@@ -23,8 +23,7 @@ const mediaKnowledge = {
     chapters: [{ startMs: 0, endMs: 10_000, title: "Greeting", summary: "A greeting" }],
     promptVersion: 1,
     generatedAt: 1,
-    provider: "provider",
-    model: "model",
+    executionSource: { type: "model", provider: "provider", model: "model" },
   },
 };
 

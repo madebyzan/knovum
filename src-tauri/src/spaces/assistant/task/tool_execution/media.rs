@@ -2,13 +2,13 @@ use serde_json::Value;
 
 use crate::ai::{
     contracts::{ExecutionCapability, ModelContentPart},
-    models::{ExecutionTarget, ExecutionTargetSelection},
+    models::{ModelExecutionTarget, ModelTargetSelection},
 };
 
 pub(super) async fn read_node(
     app: &tauri::AppHandle,
-    target: &ExecutionTarget,
-    binding: &ExecutionTargetSelection,
+    target: &ModelExecutionTarget,
+    binding: &ModelTargetSelection,
     action_id: &str,
     outcome: &Value,
 ) -> Result<Vec<ModelContentPart>, String> {

@@ -30,7 +30,7 @@ pub(super) async fn thumbnail(path: std::path::PathBuf) -> Result<String, String
 
 pub(crate) async fn prepare_image_input_from_file(
     path: &std::path::Path,
-    target: &crate::ai::models::ExecutionTarget,
+    target: &crate::ai::models::ModelExecutionTarget,
 ) -> Result<crate::ai::contracts::ModelContentPart, String> {
     let image = read_image_attachment(path).await?;
     crate::ai::model_turn::media::prepare_image_input(

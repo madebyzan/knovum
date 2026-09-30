@@ -7,7 +7,7 @@ mod wire;
 use crate::ai::{
     contracts::{ModelTurnCapability, ModelTurnRequest, ModelTurnResponse, ProviderKind},
     error::AiResult,
-    models::ExecutionTarget,
+    models::ModelExecutionTarget,
     transport::SecurityContext,
 };
 
@@ -23,18 +23,23 @@ static GROQ: GenAiModelTurnAdapter = GenAiModelTurnAdapter::new(AdapterKind::Gro
 static OLLAMA: GenAiModelTurnAdapter = GenAiModelTurnAdapter::new(AdapterKind::Ollama);
 
 pub async fn execute(
-    target: &ExecutionTarget,
+    target: &ModelExecutionTarget,
     request: &ModelTurnRequest,
+    cancellation: &CancellationToken,
 ) -> AiResult<ModelTurnResponse> {
     let context = SecurityContext::from_target(target).await?;
     let capability = adapter(target.model_provider_kind()?)?;
-    let response = capability.execute_turn(&context, request).await?;
+    let response = tokio::select! {
+        biased;
+        _ = cancellation.cancelled() => return Err(crate::ai::error::AiError::cancelled("Model task was cancelled")),
+        result = capability.execute_turn(&context, request) => result?,
+    };
     crate::ai::usage::record_turn(request.purpose, &response).await?;
     Ok(response)
 }
 
 pub async fn stream_text(
-    target: &ExecutionTarget,
+    target: &ModelExecutionTarget,
     request: &ModelTurnRequest,
     cancellation: CancellationToken,
 ) -> AiResult<crate::ai::contracts::StreamFrameStream> {
@@ -44,7 +49,7 @@ pub async fn stream_text(
 }
 
 pub async fn stream_turn(
-    target: &ExecutionTarget,
+    target: &ModelExecutionTarget,
     request: &ModelTurnRequest,
     cancellation: CancellationToken,
     deltas: tokio::sync::mpsc::Sender<String>,

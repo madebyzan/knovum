@@ -3,14 +3,14 @@ use base64::{engine::general_purpose::STANDARD, Engine};
 use crate::ai::{
     contracts::{FileUploadCapability, ModelBinarySource, ModelContentPart},
     error::{AiError, AiResult},
-    models::ExecutionTarget,
+    models::ModelExecutionTarget,
     providers::resolve_provider,
     transport::SecurityContext,
 };
 
 /// The caller owns local-file authorization and content validation.
 pub(crate) async fn prepare_image_input(
-    target: &ExecutionTarget,
+    target: &ModelExecutionTarget,
     bytes: Vec<u8>,
     media_type: &str,
     name: String,

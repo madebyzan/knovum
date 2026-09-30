@@ -47,7 +47,7 @@ impl ResolvedContext {
         &self,
         user_prompt: &str,
         conversation_context: Option<&str>,
-        target: &crate::ai::models::ExecutionTarget,
+        target: &crate::ai::models::ModelExecutionTarget,
     ) -> Result<crate::ai::contracts::ModelMessage, String> {
         let mut content = vec![crate::ai::contracts::ModelContentPart::Text {
             text: self.text(user_prompt, conversation_context),

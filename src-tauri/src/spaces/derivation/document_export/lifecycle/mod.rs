@@ -111,6 +111,7 @@ pub(super) async fn prepare_in_transaction(
                 source_chunks: vec![],
             }],
         },
+        None, // Reserved unpublished output has no source and creates no enrichment.
     )
     .await?;
     let now = crate::clock::unix_time_millis()?;

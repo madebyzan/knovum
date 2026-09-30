@@ -13,7 +13,7 @@ use crate::spaces::{
 pub async fn start(
     app: &AppHandle,
     request: &DeriveImageRequest,
-    target: &crate::ai::models::ExecutionTarget,
+    target: &crate::ai::tasks::TaskExecutionTarget,
 ) -> Result<(), String> {
     validation::request(request)?;
     let pool = db::pool(app).await?;
@@ -54,7 +54,7 @@ pub async fn start(
     sqlx::query("INSERT INTO spaces_knowledge_derivations(id,space_id,output_node_id,action_kind,action_version,engine,status,created_at,updated_at) VALUES($1,$2,$3,$4,1,$5,'running',$6,$6)")
         .bind(&request.id).bind(&request.space_id).bind(&request.output_node_id)
         .bind(request.operation.action_kind())
-        .bind(request.operation.engine(target.provider(), target.model()))
+        .bind(match target { crate::ai::tasks::TaskExecutionTarget::Model(model) => request.operation.engine(model.provider(), model.model()), crate::ai::tasks::TaskExecutionTarget::Agent { .. } => target.engine() })
         .bind(now).execute(&mut *tx).await.map_err(db::sql_error)?;
     inputs::insert(
         &mut tx,
@@ -74,9 +74,10 @@ pub async fn complete(
     app: &AppHandle,
     request: &DeriveImageRequest,
     image: CanonicalImage,
+    cancellation: &tokio_util::sync::CancellationToken,
 ) -> Result<CompletedDerivationOutput, String> {
     let path = output_file::write(app, &image.png).await?;
-    let completed = complete_persistence(app, request, &image, &path).await;
+    let completed = complete_persistence(app, request, &image, &path, cancellation).await;
     if completed.is_err() {
         let _ = tokio::fs::remove_file(&path).await;
     }
@@ -88,6 +89,7 @@ async fn complete_persistence(
     request: &DeriveImageRequest,
     image: &CanonicalImage,
     path: &Path,
+    cancellation: &tokio_util::sync::CancellationToken,
 ) -> Result<CompletedDerivationOutput, String> {
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
@@ -106,6 +108,9 @@ async fn complete_persistence(
     let mut data: Value = serde_json::from_str(&encoded).map_err(db::json_error)?;
     pending_output::validate_unpublished_asset(&data)?;
     let relation = persist(&mut tx, request, &mut data, image, path).await?;
+    if cancellation.is_cancelled() {
+        return Err("Image operation was cancelled".into());
+    }
     tx.commit().await.map_err(db::sql_error)?;
     Ok(CompletedDerivationOutput {
         node_id: request.output_node_id.clone(),

@@ -16,7 +16,7 @@ async fn space_snapshot_preserves_media_based_vision_recovery() {
         branch_id: None,
         prompt: "Describe this image".into(),
         mode: crate::spaces::assistant::AssistantMode::Execute,
-        target: crate::ai::models::ExecutionTargetSelection::Model {
+        target: crate::ai::models::ModelTargetSelection::Model {
             connection_id: "connection".into(),
             model_id: "vision-model".into(),
             temperature: 0.0,

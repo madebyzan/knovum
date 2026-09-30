@@ -41,7 +41,7 @@ pub(in crate::spaces) fn chunks(data: &Value) -> Result<Vec<KnowledgeChunkSeed>,
             }
             chunks.extend(indexing::chunks(kind, &text, revision, occurrence.location.clone(), json!({
                 "role":role, "occurrenceId":occurrence.id, "assetSourceRevision":report.source_revision,
-                "provider":analysis.provider, "model":analysis.model, "analysisVersion":analysis.analysis_version,
+                "executionEngine":analysis.execution_source.engine(), "analysisVersion":analysis.analysis_version,
                 "context":occurrence.context,
             })));
         }

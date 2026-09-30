@@ -1,4 +1,3 @@
-use base64::Engine;
 use genai::{
     adapter::AdapterKind,
     chat::{
@@ -8,14 +7,13 @@ use genai::{
     resolver::{AuthData, Endpoint},
     Client, ModelIden, ServiceTarget,
 };
-use std::path::Path;
 use tauri::AppHandle;
 use tokio_util::sync::CancellationToken;
 
 use crate::ai::{
     contracts::ProviderKind,
     error::{AiError, AiErrorCode, AiResult},
-    models::{CompletionOutput, ImageAnalysisRequest, ImageAnalysisSource},
+    models::{CompletionOutput, ImageAnalysisRequest},
     transport::SecurityContext,
 };
 
@@ -28,16 +26,7 @@ pub async fn analyze_image(
     let ctx = SecurityContext::from_target(&request.target).await?;
     let target = service_target(&ctx, request.target.model_provider_kind()?)?;
 
-    let image = match &request.source {
-        ImageAnalysisSource::FilePath(path) => {
-            Binary::from_file(Path::new(path)).map_err(|e| AiError::invalid(e.to_string()))?
-        }
-        ImageAnalysisSource::Png(bytes) => Binary::from_base64(
-            "image/png",
-            base64::engine::general_purpose::STANDARD.encode(bytes),
-            None,
-        ),
-    };
+    let image = Binary::from_file(&request.source).map_err(|e| AiError::invalid(e.to_string()))?;
     if !image.is_image() {
         return Err(AiError::invalid("Vision analysis requires an image file"));
     }
@@ -143,14 +132,8 @@ fn service_target(ctx: &SecurityContext, kind: ProviderKind) -> AiResult<Service
 }
 
 fn validate(request: &ImageAnalysisRequest) -> AiResult<()> {
-    match &request.source {
-        ImageAnalysisSource::FilePath(path) if path.trim().is_empty() => {
-            return Err(AiError::invalid("Image path is required"))
-        }
-        ImageAnalysisSource::Png(bytes) if bytes.is_empty() => {
-            return Err(AiError::invalid("Image PNG is required"))
-        }
-        _ => {}
+    if request.source.as_os_str().is_empty() {
+        return Err(AiError::invalid("Image path is required"));
     }
     if request.instruction.trim().is_empty() {
         return Err(AiError::invalid("Vision instruction is required"));

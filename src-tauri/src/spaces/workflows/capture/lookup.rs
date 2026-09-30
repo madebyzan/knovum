@@ -3,7 +3,7 @@ use serde_json::Value;
 use sqlx::{Row, Sqlite, Transaction};
 
 use super::types::{CaptureIssue, CapturedInput, RecordedExecutionSpec};
-use crate::ai::models::ExecutionTargetSelection;
+use crate::ai::tasks::TaskTargetSelection;
 use crate::spaces::{actions::input_selection::source_node_ids, db};
 
 pub(super) struct VerifiedActionSpec {
@@ -94,16 +94,10 @@ pub(super) async fn completed_action_spec(
         return Ok(None);
     };
     let target = if definition.routing_purpose.is_some() {
-        let Some(value) = spec
-            .pointer(&format!("/inputs/targets/{action_id}"))
-            .or_else(|| {
-                spec.get("inputs")
-                    .filter(|value| value.get("type").and_then(Value::as_str) == Some("model"))
-            })
-        else {
+        let Some(value) = spec.pointer(&format!("/inputs/targets/{action_id}")) else {
             return Ok(None);
         };
-        let Ok(target) = serde_json::from_value::<ExecutionTargetSelection>(value.clone()) else {
+        let Ok(target) = serde_json::from_value::<TaskTargetSelection>(value.clone()) else {
             return Ok(None);
         };
         Some(target)

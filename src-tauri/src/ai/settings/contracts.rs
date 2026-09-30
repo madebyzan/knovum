@@ -2,7 +2,7 @@ use serde::Deserialize;
 
 use crate::ai::{
     contracts::{AgentKind, ExecutionCapability, ProviderKind},
-    models::ExecutionTargetRef,
+    tasks::TaskTargetRef,
 };
 
 #[derive(Deserialize)]
@@ -53,27 +53,32 @@ pub(crate) struct DesktopAgent {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[ts(rename = "AiRoutingDefaults")]
 pub(crate) struct Defaults {
-    pub writing: Option<ExecutionTargetRef>,
-    pub knowledge: Option<ExecutionTargetRef>,
-    pub visual_understanding: Option<ExecutionTargetRef>,
-    pub translation: Option<ExecutionTargetRef>,
-    pub image_generation: Option<ExecutionTargetRef>,
-    pub video_generation: Option<ExecutionTargetRef>,
+    pub default_target: Option<TaskTargetRef>,
+    pub writing: Option<TaskTargetRef>,
+    pub knowledge: Option<TaskTargetRef>,
+    pub visual_understanding: Option<TaskTargetRef>,
+    pub translation: Option<TaskTargetRef>,
+    pub image_generation: Option<TaskTargetRef>,
+    pub video_generation: Option<TaskTargetRef>,
 }
+
+#[cfg(test)]
+mod tests;
 
 impl Defaults {
     pub(super) fn target(
         &self,
         purpose: crate::ai::contracts::RoutingPurpose,
-    ) -> Option<ExecutionTargetRef> {
+    ) -> Option<TaskTargetRef> {
         use crate::ai::contracts::RoutingPurpose;
-        match purpose {
+        let override_target = match purpose {
             RoutingPurpose::Writing => self.writing.clone(),
             RoutingPurpose::Knowledge => self.knowledge.clone(),
             RoutingPurpose::VisualUnderstanding => self.visual_understanding.clone(),
             RoutingPurpose::Translation => self.translation.clone(),
             RoutingPurpose::ImageGeneration => self.image_generation.clone(),
             RoutingPurpose::VideoGeneration => self.video_generation.clone(),
-        }
+        };
+        override_target.or_else(|| self.default_target.clone())
     }
 }

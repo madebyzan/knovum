@@ -10,7 +10,7 @@ use tauri::{ipc::Channel, AppHandle};
 use tokio::sync::{OwnedSemaphorePermit, Semaphore};
 
 use crate::{
-    ai::models::ExecutionTargetSelection, spaces::assets::transcription::MediaTranscriptionProgress,
+    ai::tasks::TaskTargetSelection, spaces::assets::transcription::MediaTranscriptionProgress,
 };
 
 use super::{job::EnrichmentJobType, EnqueueEnrichmentJobRequest};
@@ -23,7 +23,7 @@ pub struct RunEnrichmentJobRequest {
     pub node_id: String,
     pub job_type: EnrichmentJobType,
     pub source_revision: String,
-    pub vision_target: Option<ExecutionTargetSelection>,
+    pub vision_target: Option<TaskTargetSelection>,
 }
 
 #[derive(Debug, Serialize)]
@@ -100,12 +100,12 @@ async fn execute(
                 .vision_target
                 .take()
                 .ok_or("Document visual analysis requires an AI target")?;
-            let target = crate::ai::settings::resolve(
+            let target = crate::ai::settings::resolve_task(
                 app,
                 selected,
                 crate::ai::contracts::ExecutionCapability::VisionUnderstanding,
             )
-            .map_err(|error| error.to_string())?;
+            .map_err(|error| error.task_message())?;
             let data = crate::spaces::assets::enrichment::document::execute::analyze(
                 app,
                 &request,
@@ -121,16 +121,15 @@ async fn execute(
             });
         }
         EnrichmentJobType::AnalyzeVisual => {
-            let target = request
-                .vision_target
-                .take()
-                .ok_or_else(|| "Visual analysis requires an AI connection target".to_owned())?;
-            let target = crate::ai::settings::resolve(
+            let target = request.vision_target.take().ok_or_else(|| {
+                "ai-not-configured: Visual analysis requires an execution choice".to_owned()
+            })?;
+            let target = crate::ai::settings::resolve_task(
                 app,
                 target,
                 crate::ai::contracts::ExecutionCapability::VisionUnderstanding,
             )
-            .map_err(|error| error.to_string())?;
+            .map_err(|error| error.task_message())?;
             visual::analyze(app, &request, &mut data, target, cancellation).await?;
         }
         EnrichmentJobType::AnalyzeMedia => {
@@ -140,7 +139,7 @@ async fn execute(
             media::transcribe(app, job_id, &request, &mut data, progress).await?;
         }
     }
-    let data = node::save(app, &request, data, &expected_media_knowledge).await?;
+    let data = node::save(app, &request, data, &expected_media_knowledge, cancellation).await?;
     Ok(EnrichmentJobOutput {
         node_id: request.node_id,
         data,

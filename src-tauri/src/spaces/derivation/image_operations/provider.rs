@@ -2,7 +2,7 @@ use tokio_util::sync::CancellationToken;
 
 use super::{contracts::ImageOperation, routing::ImageOperationBackend, source::SourceImage};
 use crate::ai::{
-    models::ExecutionTarget,
+    models::ModelExecutionTarget,
     providers::{
         dashscope::{execute_image_operation, SourceImageOperation},
         gemini, image_edit, kling, openai,
@@ -11,7 +11,7 @@ use crate::ai::{
 };
 
 pub(super) async fn execute(
-    target: &ExecutionTarget,
+    target: &ModelExecutionTarget,
     backend: ImageOperationBackend,
     operation: &ImageOperation,
     source: &SourceImage,

@@ -219,6 +219,7 @@ pub struct ImageOperationCapabilities {
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub enum ImageOperationCapability {
     Ready,
+    Unverified,
     Blocked { reason: ImageOperationBlockReason },
 }
 

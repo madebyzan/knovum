@@ -24,7 +24,7 @@ async fn even_an_unattached_message_contains_space_identity_and_unindexed_canvas
             next_offset: None,
         },
     };
-    let target = crate::ai::models::ExecutionTarget {
+    let target = crate::ai::models::ModelExecutionTarget {
         provider: "openai".into(),
         model: "test".into(),
         base_url: "https://unused.invalid".into(),

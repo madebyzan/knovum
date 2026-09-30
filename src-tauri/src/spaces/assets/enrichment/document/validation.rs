@@ -130,12 +130,9 @@ fn validate_input(
 }
 
 pub(super) fn validate_analysis(analysis: &DocumentAnalysis) -> Result<(), String> {
+    analysis.execution_source.validate()?;
     if analysis.analysis_version != "document-visual:1"
         || analysis.generated_at < 0
-        || analysis.provider.is_empty()
-        || analysis.provider.encode_utf16().count() > 256
-        || analysis.model.is_empty()
-        || analysis.model.encode_utf16().count() > 1024
         || analysis.description.encode_utf16().count() > 48_000
         || analysis.detected_text.encode_utf16().count() > 48_000
     {

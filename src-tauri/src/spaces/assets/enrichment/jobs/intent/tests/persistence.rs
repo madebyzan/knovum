@@ -24,7 +24,7 @@ async fn synchronize(pool: &SqlitePool, data: &Value) {
         .execute(&mut *tx)
         .await
         .unwrap();
-    synchronize_for_node(&mut tx, "space", "node", data, 2)
+    synchronize_for_node(&mut tx, "space", "node", data, 2, None)
         .await
         .unwrap();
     tx.commit().await.unwrap();
@@ -110,4 +110,54 @@ async fn current_schema_rejects_both_obsolete_visual_job_names() {
         assert!(sqlx::query("INSERT INTO spaces_enrichment_jobs(id,space_id,node_id,job_type,status,source_revision,created_at,updated_at) VALUES($1,'space','node',$1,'pending','asset-1',1,1)")
             .bind(old).execute(&pool).await.is_err());
     }
+}
+
+#[tokio::test]
+async fn execution_choice_is_frozen_at_creation_and_survives_retry_and_restart() {
+    use crate::ai::{contracts::AgentKind, tasks::TaskTargetSelection};
+    let data = json!({"kind":"image","title":"Image","sourceRevision":"asset-1"});
+    let pool = fixture(&data).await;
+    let first = TaskTargetSelection::Agent {
+        runtime_kind: AgentKind::Codex,
+    };
+    let next = TaskTargetSelection::Agent {
+        runtime_kind: AgentKind::QoderCli,
+    };
+    let mut tx = pool.begin().await.unwrap();
+    synchronize_for_node(&mut tx, "space", "node", &data, 2, Some(&first))
+        .await
+        .unwrap();
+    tx.commit().await.unwrap();
+    let jobs = persistence::list_actionable(&pool, None).await.unwrap();
+    let id = &jobs[0].id;
+    assert_eq!(jobs[0].execution_target, Some(first.clone()));
+    assert_eq!(
+        persistence::freeze_target(&pool, id, &next).await.unwrap(),
+        first
+    );
+    let mut tx = pool.begin().await.unwrap();
+    synchronize_for_node(&mut tx, "space", "node", &data, 3, Some(&next))
+        .await
+        .unwrap();
+    tx.commit().await.unwrap();
+    sqlx::query("UPDATE spaces_enrichment_jobs SET status='running' WHERE id=$1")
+        .bind(id)
+        .execute(&pool)
+        .await
+        .unwrap();
+    persistence::reconcile_interrupted(&pool, 4).await.unwrap();
+    let jobs = persistence::list_actionable(&pool, None).await.unwrap();
+    assert_eq!(jobs[0].execution_target, Some(first.clone()));
+    sqlx::query("UPDATE spaces_enrichment_jobs SET status='failed' WHERE id=$1")
+        .bind(id)
+        .execute(&pool)
+        .await
+        .unwrap();
+    persistence::set_status(&pool, id, "'failed'", "pending", None, 5, false)
+        .await
+        .unwrap();
+    assert_eq!(
+        persistence::freeze_target(&pool, id, &next).await.unwrap(),
+        first
+    );
 }

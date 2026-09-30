@@ -7,5 +7,7 @@
   "disabledTitle": "No compatible AI target",
   "disabledDescription": "Configure a compatible model or enable an installed desktop Agent for this action.",
   "openSettings": "Configure models",
-  "settingsUnavailable": "AI settings could not be loaded"
+  "settingsUnavailable": "AI settings could not be loaded",
+  "executedWithModel": "Executed with {provider} · {model}",
+  "executedWithAgent": "Executed by {name} · desktop Agent"
 }

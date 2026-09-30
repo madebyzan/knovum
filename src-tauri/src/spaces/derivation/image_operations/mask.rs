@@ -14,15 +14,27 @@ pub fn encode(
     strokes: &[MaskStroke],
     cancellation: &CancellationToken,
 ) -> Result<String, String> {
+    Ok(format!(
+        "data:image/png;base64,{}",
+        STANDARD.encode(encode_png(width, height, strokes, cancellation)?)
+    ))
+}
+
+pub fn encode_png(
+    width: u32,
+    height: u32,
+    strokes: &[MaskStroke],
+    cancellation: &CancellationToken,
+) -> Result<Vec<u8>, String> {
     let mask = rasterize(width, height, strokes, cancellation)?;
     let mut png = Vec::new();
     image::DynamicImage::ImageRgb8(mask)
         .write_to(&mut Cursor::new(&mut png), ImageFormat::Png)
         .map_err(|error| format!("Object removal mask could not be encoded: {error}"))?;
     if png.len() > 10 * 1024 * 1024 {
-        return Err("Object removal mask exceeds the provider limit".into());
+        return Err("Object removal mask exceeds its byte budget".into());
     }
-    Ok(format!("data:image/png;base64,{}", STANDARD.encode(png)))
+    Ok(png)
 }
 
 pub fn encode_openai(

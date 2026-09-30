@@ -2,7 +2,6 @@
   "failedAttempt": "Creation failed",
   "removeFailedOutput": "Remove failed item",
   "knowledgeDerivation": "Created from knowledge",
-  "generatedWith": "Generated with {provider} · {model}",
   "presets": {
     "save": "Save as preset",
     "saved": "Generation preset saved",

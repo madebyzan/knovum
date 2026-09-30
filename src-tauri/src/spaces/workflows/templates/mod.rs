@@ -6,7 +6,7 @@ use sqlx::SqlitePool;
 use ts_rs::TS;
 
 use super::{definition::WorkflowNode, WorkflowDefinition};
-use crate::ai::models::ExecutionTargetSelection;
+use crate::ai::tasks::TaskTargetSelection;
 use crate::spaces::runs::RunObservation;
 
 mod recipes;
@@ -33,13 +33,13 @@ pub(crate) struct StartBuiltInWorkflowRequest {
     pub template_id: BuiltInWorkflowTemplateId,
     pub parameters: Value,
     pub input_node_ids: Vec<String>,
-    pub targets: HashMap<String, ExecutionTargetSelection>,
+    pub targets: HashMap<String, TaskTargetSelection>,
 }
 
 pub(crate) async fn start(
     app: &tauri::AppHandle,
     pool: &SqlitePool,
-    request: StartBuiltInWorkflowRequest,
+    mut request: StartBuiltInWorkflowRequest,
 ) -> Result<RunObservation, String> {
     let definition = definition(request.template_id, &request.parameters)?;
     let mut required_targets = HashSet::new();
@@ -50,12 +50,19 @@ pub(crate) async fn start(
         let action = crate::spaces::actions::require(action_id)?;
         if let Some(capability) = action.execution_capability {
             required_targets.insert(action_id.as_str());
-            let target = request
-                .targets
-                .get(action_id)
-                .ok_or("workflow-target-missing: select a target for each model Action")?;
-            crate::ai::settings::resolve(app, target.clone(), capability)
-                .map_err(|error| format!("workflow-target-unavailable: {error}"))?;
+            if !request.targets.contains_key(action_id) {
+                let purpose = action
+                    .routing_purpose
+                    .ok_or("Workflow Action has no routing purpose")?;
+                request.targets.insert(
+                    action_id.clone(),
+                    crate::ai::settings::default_selection(app, purpose)
+                        .map_err(|error| error.task_message())?,
+                );
+            }
+            let target = &request.targets[action_id];
+            crate::ai::settings::resolve_task(app, target.clone(), capability)
+                .map_err(|error| error.task_message())?;
         }
     }
     if request

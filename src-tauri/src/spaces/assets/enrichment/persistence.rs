@@ -61,6 +61,8 @@ pub(in crate::spaces::assets) async fn persist_processing_state(
             source_revision: expected,
             job_id: guard.and_then(|guard| guard.job_id),
             media_knowledge: None,
+            document_coverage: None,
+            cancellation: None,
         },
         fields,
         chunks,

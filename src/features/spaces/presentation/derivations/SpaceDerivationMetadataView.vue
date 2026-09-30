@@ -2,12 +2,13 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
+import AiExecutionSourceLabel from "../../../../foundation/ai/AiExecutionSourceLabel.vue";
 import type { VisualizationMetadata } from "../../knowledge-derivations/image/metadata";
 import type { GeneratedVideoMetadata } from "../../knowledge-derivations/video/metadata";
 import SpaceDerivationSources from "./SpaceDerivationSources.vue";
 
 const props = defineProps<{ metadata: VisualizationMetadata | GeneratedVideoMetadata }>();
-const { d, t } = useI18n();
+const { d } = useI18n();
 
 const isImage = computed(() => "intent" in props.metadata);
 const description = computed(() =>
@@ -30,9 +31,7 @@ const metaLine = computed(() => {
   <div class="space-y-4 text-caption">
     <div class="space-y-1 text-fg-secondary">
       <p>
-        {{
-          t("spaces.creation.shared.generatedWith", { provider: metadata.provider, model: metadata.model })
-        }}
+        <AiExecutionSourceLabel :source="metadata.executionSource" />
       </p>
       <p>{{ description }}</p>
       <p class="text-fg-tertiary">{{ metaLine }}</p>

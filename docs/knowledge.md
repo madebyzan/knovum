@@ -54,14 +54,48 @@ Budgets: one parser at a time across imports/jobs; input 128 MiB; 2000 PDF pages
 2000 visual resources/occurrences, 256 MiB normalized rasters, 32 MiB/24 MP per image,
 4 Mi UTF-16 analysis units; native raster long edge 2048 pixels and scale at most 2.
 Excess fails visibly. PDF page count is checked after parsing and is not an internal
-decompression-work limit. Native rendering and visual calls are serial and cancellation
-is checked between operations; running vendor/native calls are not forcibly interrupted.
+decompression-work limit. Native rendering and visual calls are serial. Native rendering checks cancellation between operations; model calls and desktop Agent sessions support cooperative cancellation, with ACP acknowledgement before session teardown.
+
+## AI task results and execution selection
+
+Knowledge tasks share product execution policy with the Assistant. A configured and
+explicitly selected desktop Agent can execute transcript insights, image understanding
+and document visual understanding with zero user model connections and no Knovum-held
+API key. Its tools/Skills must actually satisfy the task; execution failure is visible
+and never silently invokes a Provider using another account.
+
+Transcript insights consume existing timestamped transcript text. The existing bounded
+chunking, candidate merge and chapter validation are retained: chapter starts must be
+unique transcript segment timestamps, begin with the first segment and end within the
+transcript duration. Strict JSON and nonempty bounded summary/chapters are required.
+A failed/invalid/cancelled insights task never deletes or replaces the transcript.
+Publication checks source identity and the complete original media-knowledge snapshot
+inside the existing node/chunk write transaction, protecting concurrent manual edits.
+
+Image understanding prepares the current applied `imageEdit` as a canonical PNG from
+the authorized managed original, verifies its byte revision, and binds knowledge to
+the rendered revision. Video visual enrichment currently interprets only `previewPath`:
+it is preview-image understanding, not whole-video analysis. Document visual delegates
+receive the verified materialized raster for the exact occurrence plus its nearby
+context; original parser locations, resource IDs, source revisions and per-occurrence
+checkpoints stay authoritative. Body parsing and basic resource use remain local and
+do not require any AI selection. Cancellation, job liveness, source identity and document
+coverage edits guard publication; successful Agent results enter the same knowledge
+passages and indexing as model results.
+
+`executionSource` records either actual Provider/model identity or the external Agent
+runtime kind. Agent execution does not fabricate model identity, tokens or cost.
+Local transcription continues to use its own Whisper resources, media preparation,
+FFmpeg and cancellation registry; it never resolves user AI model settings or keys.
+Missing local model resources/tooling/source bytes are separate failures from an
+unselected AI executor. This change adds no speculative external long-audio ASR path,
+whole-video inference engine or hosted subscription service.
 
 ## Document locations and job checkpoints
 
 Office body, header and footer locations use the library's public logical positions; they do not infer rendered pagination. XLSX images and text shapes use public worksheet interfaces and retain EMU geometry. Geometry is not the original cell anchor. Legacy binary Office image locations remain limited by the parser's location support.
 
-Intermediate document visual results belong to the enrichment job and are stored per occurrence in `spaces_document_visual_checkpoints`, not as a duplicate canonical Knowledge store. Completed analysis is published on job completion or failure. Cancellation retains checkpoints, but unpublished resources of cancelled jobs are not reclamation roots. Retryable jobs for the current source remain referenced by the asset graph.
+Intermediate document visual results belong to the enrichment job and are stored per occurrence in `spaces_document_visual_checkpoints`, not as a duplicate canonical Knowledge store. Completed analysis is published on job completion or failure, after checking that the node document-coverage snapshot has not been edited concurrently. Recovery fills unfinished occurrences and preserves already published completed knowledge, including edits made before recovery. Cancellation retains checkpoints, but unpublished resources of cancelled jobs are not reclamation roots. Retryable jobs for the current source remain referenced by the asset graph.
 
 ## Database migrations
 

@@ -159,8 +159,8 @@ pub(super) fn targets(app: &tauri::AppHandle, definition: &CaptureCandidate) -> 
         if let Some(target) = &step.execution_spec.target {
             let capability = action
                 .execution_capability
-                .ok_or("workflow-target-invalid: action does not accept a model target")?;
-            crate::ai::settings::resolve(app, target.clone(), capability)
+                .ok_or("workflow-target-invalid: action does not accept an AI execution target")?;
+            crate::ai::settings::resolve_task(app, target.clone(), capability)
                 .map_err(|error| format!("workflow-target-unavailable: {error}"))?;
         }
     }

@@ -28,7 +28,7 @@ pub struct RecoverableTask {
     pub mode: super::super::AssistantMode,
     pub profile_version: u16,
     pub prompt: String,
-    pub model_binding: crate::ai::models::ExecutionTargetSelection,
+    pub model_binding: crate::ai::models::ModelTargetSelection,
     pub catalog_digest: String,
     pub checkpoint: ControlCheckpoint,
     pub max_total_tokens: u32,

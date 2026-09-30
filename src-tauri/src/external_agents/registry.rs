@@ -37,7 +37,7 @@ pub(super) fn runtime(kind: AgentKind, path: &str) -> AiResult<AcpAgent> {
         .find_map(|name| discovery::find_executable(name, path))
         .ok_or_else(|| {
             AiError::new(
-                AiErrorCode::ProviderRequestFailed,
+                AiErrorCode::AgentUnavailable,
                 format!("{} execution entry was not found in PATH ({}). A desktop application installation does not provide this entry automatically.",
                     agent.descriptor.display_name, agent.descriptor.executable_names.join(", ")),
             )

@@ -4,7 +4,7 @@ use tokio_util::sync::CancellationToken;
 use crate::ai::{
     contracts::ImageGenerationInput,
     error::{AiError, AiErrorCode, AiResult},
-    models::ExecutionTarget,
+    models::ModelExecutionTarget,
     providers::resolve_provider,
     transport::SecurityContext,
 };
@@ -13,7 +13,7 @@ pub use crate::ai::contracts::GeneratedImage;
 
 #[derive(Debug)]
 pub struct ImageGenerationRequest {
-    pub target: ExecutionTarget,
+    pub target: ModelExecutionTarget,
     pub prompt: String,
     pub aspect_ratio: String,
 }

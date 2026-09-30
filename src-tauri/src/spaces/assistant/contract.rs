@@ -1,27 +1,8 @@
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
-use crate::ai::contracts::AgentKind;
-use crate::ai::models::ExecutionTargetSelection;
-
-#[derive(Clone, Debug, Deserialize, ts_rs::TS)]
-#[serde(
-    tag = "type",
-    rename_all = "snake_case",
-    rename_all_fields = "camelCase",
-    deny_unknown_fields
-)]
-#[ts(export_to = "../../../features/spaces/contracts/generated/")]
-pub enum AssistantExecutionTargetSelection {
-    Model {
-        connection_id: String,
-        model_id: String,
-        temperature: f64,
-    },
-    Agent {
-        runtime_kind: AgentKind,
-    },
-}
+use crate::ai::models::ModelTargetSelection;
+pub use crate::ai::tasks::TaskTargetSelection as AssistantExecutionTargetSelection;
 
 #[derive(Clone, Copy, Debug, Deserialize, Serialize, TS)]
 #[serde(rename_all = "snake_case")]
@@ -63,7 +44,7 @@ pub struct StartAssistantTaskRequest {
     pub branch_id: Option<String>,
     pub prompt: String,
     pub mode: AssistantMode,
-    pub target: ExecutionTargetSelection,
+    pub target: ModelTargetSelection,
     pub max_turns: u16,
     pub max_tool_calls: u16,
     pub max_total_tokens: u32,
@@ -72,7 +53,7 @@ pub struct StartAssistantTaskRequest {
 }
 
 impl SubmitAssistantTaskRequest {
-    pub fn into_model(self, target: ExecutionTargetSelection) -> StartAssistantTaskRequest {
+    pub fn into_model(self, target: ModelTargetSelection) -> StartAssistantTaskRequest {
         StartAssistantTaskRequest {
             space_id: self.space_id,
             conversation_id: self.conversation_id,

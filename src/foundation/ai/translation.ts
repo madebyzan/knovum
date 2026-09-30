@@ -1,7 +1,7 @@
 import { Channel } from "@tauri-apps/api/core";
 
-import type { CompletionOutput } from "../../shared/contracts/generated/CompletionOutput";
-import type { CompletionStreamEvent } from "../../shared/contracts/generated/CompletionStreamEvent";
+import type { TaskCompletionOutput } from "../../shared/contracts/generated/TaskCompletionOutput";
+import type { TaskStreamEvent } from "../../shared/contracts/generated/TaskStreamEvent";
 import type { TranslationCommandRequest } from "../../shared/contracts/generated/TranslationCommandRequest";
 import { invokeCommand } from "../ipc/invoke-command";
 import { aiExecutionTargetPayload, loadAiExecutionTarget } from "./ai-execution";
@@ -41,15 +41,15 @@ class TranslationError extends Error {
 export async function translateTextStream(
   request: TranslationInput,
   jobId: string,
-  onEvent: (event: CompletionStreamEvent) => void,
+  onEvent: (event: TaskStreamEvent) => void,
 ): Promise<string> {
   if (!request.text.trim()) return "";
   try {
     const executionTarget = await loadAiExecutionTarget("translation");
-    const channel = new Channel<CompletionStreamEvent>();
+    const channel = new Channel<TaskStreamEvent>();
     // oxlint-disable-next-line unicorn/prefer-add-event-listener -- Tauri Channel exposes events through onmessage.
     channel.onmessage = onEvent;
-    const completion = await invokeCommand<CompletionOutput>("plugin:ai|translate_text_stream", {
+    const completion = await invokeCommand<TaskCompletionOutput>("plugin:ai|translate_text_stream", {
       request: {
         executionTarget: aiExecutionTargetPayload(executionTarget),
         text: request.text,

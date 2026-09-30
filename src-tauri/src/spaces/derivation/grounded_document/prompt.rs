@@ -1,14 +1,10 @@
 use serde_json::Value;
 
-use crate::ai::models::{CompletionRequest, ExecutionTarget};
+use crate::ai::tasks::completion::TaskInput;
 
 const SYSTEM: &str = "Create a useful Markdown document only from the supplied Knovum knowledge sources. Cite supported factual claims inline with source IDs such as [C1] or [C1][C3]. Never invent a source ID. Preserve disagreements and uncertainty. Return only the document Markdown.";
 
-pub fn request(
-    target: &ExecutionTarget,
-    purpose: &str,
-    sources: &[Value],
-) -> Result<CompletionRequest, String> {
+pub fn request(purpose: &str, sources: &[Value]) -> Result<TaskInput, String> {
     let context = sources
         .iter()
         .enumerate()
@@ -25,12 +21,12 @@ pub fn request(
         })
         .collect::<Result<Vec<_>, String>>()?
         .join("\n\n---\n\n");
-    Ok(CompletionRequest {
+    Ok(TaskInput {
         purpose: crate::ai::usage::UsagePurpose::Knowledge,
-        target: target.clone(),
         system_prompt: SYSTEM.into(),
         instruction: format!("Document purpose:\n{}", purpose.trim()),
         text: format!("SOURCES:\n{context}"),
         max_tokens: None,
+        image: None,
     })
 }

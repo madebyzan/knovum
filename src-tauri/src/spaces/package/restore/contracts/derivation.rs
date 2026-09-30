@@ -24,8 +24,7 @@ pub struct PackageDerivation {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct PackageGroundedDocument {
     pub citations: Value,
-    pub provider: String,
-    pub model: String,
+    pub execution_source: crate::ai::tasks::ExecutionSource,
 }
 
 #[derive(Debug, Deserialize)]
@@ -34,8 +33,7 @@ pub struct PackageGeneratedImage {
     pub intent: String,
     pub style: String,
     pub aspect_ratio: String,
-    pub provider: String,
-    pub model: String,
+    pub execution_source: crate::ai::tasks::ExecutionSource,
     pub revised_prompt: Option<String>,
 }
 
@@ -45,9 +43,8 @@ pub struct PackageGeneratedVideo {
     pub prompt: String,
     pub aspect_ratio: String,
     pub duration_seconds: i64,
-    pub provider: String,
-    pub model: String,
-    pub operation_id: String,
+    pub execution_source: crate::ai::tasks::ExecutionSource,
+    pub operation_id: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]

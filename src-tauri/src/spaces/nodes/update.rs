@@ -40,9 +40,15 @@ pub(in crate::spaces) async fn update_many<R: Runtime>(
         .await?;
     }
     let now = crate::clock::unix_time_millis()?;
-    let edit_snapshot =
-        update_many_in_transaction(&mut tx, &request.space_id, &request.changes, "human", now)
-            .await?;
+    let edit_snapshot = update_many_in_transaction(
+        &mut tx,
+        &request.space_id,
+        &request.changes,
+        "human",
+        now,
+        jobs::intent::selection(app)?.as_ref(),
+    )
+    .await?;
     touch_updated_at(&mut tx, &request.space_id, now).await?;
     tx.commit().await.map_err(db::sql_error)?;
     Ok(UpdateNodesResponse {
@@ -64,9 +70,10 @@ pub(in crate::spaces) async fn update_many_in_transaction(
     changes: &[NodeContentChange],
     actor_kind: &str,
     now: i64,
+    enrichment_target: Option<&crate::ai::tasks::TaskTargetSelection>,
 ) -> Result<Option<crate::spaces::structure::SpaceEditSnapshotResponse>, String> {
     for change in changes {
-        apply_node_change(tx, space_id, change, actor_kind, now).await?;
+        apply_node_change(tx, space_id, change, actor_kind, now, enrichment_target).await?;
     }
     super::content_size::sync_changed_in_transaction(tx, space_id, changes).await
 }
@@ -77,6 +84,7 @@ async fn apply_node_change(
     change: &NodeContentChange,
     actor_kind: &str,
     now: i64,
+    enrichment_target: Option<&crate::ai::tasks::TaskTargetSelection>,
 ) -> Result<(), String> {
     let row = sqlx::query("SELECT kind, data FROM spaces_nodes WHERE space_id = $1 AND id = $2 AND deleted_at IS NULL")
         .bind(space_id)
@@ -171,7 +179,15 @@ async fn apply_node_change(
         .iter()
         .any(|field| field_changed(&before, &change.data, field));
     if enrichment_changed {
-        jobs::intent::synchronize_for_node(tx, space_id, &change.id, &change.data, now).await?;
+        jobs::intent::synchronize_for_node(
+            tx,
+            space_id,
+            &change.id,
+            &change.data,
+            now,
+            enrichment_target,
+        )
+        .await?;
     }
     Ok(())
 }

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
 
+import AiExecutionSourceLabel from "../../../../foundation/ai/AiExecutionSourceLabel.vue";
 import type { GroundedDocumentMetadata } from "../../knowledge-derivations/document/metadata";
 import SpaceDerivationSources from "../derivations/SpaceDerivationSources.vue";
 
@@ -12,9 +13,7 @@ const { d, t } = useI18n();
   <div class="space-y-4">
     <div class="space-y-1 text-caption text-fg-secondary">
       <p>
-        {{
-          t("spaces.creation.shared.generatedWith", { provider: metadata.provider, model: metadata.model })
-        }}
+        <AiExecutionSourceLabel :source="metadata.executionSource" />
       </p>
       <p class="text-fg-tertiary">{{ d(metadata.createdAt, "short") }}</p>
     </div>

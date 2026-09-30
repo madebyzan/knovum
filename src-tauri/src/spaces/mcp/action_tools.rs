@@ -17,7 +17,14 @@ impl SpaceMcpServer {
     ) -> Result<String, McpError> {
         self.require_space(&args.space_id)?;
         self.authorize_read(&args.space_id).await?;
-        json_text(actions::definitions())
+        // Desktop reasoning stays in the external runtime. These tools prepare/read/commit
+        // knowledge and run deterministic processing; they never route inference back to it.
+        json_text(
+            actions::definitions()
+                .iter()
+                .filter(|action| action.routing_purpose.is_none())
+                .collect::<Vec<_>>(),
+        )
     }
 
     #[tool(description = "Invoke one registered Space Action through authorization and receipts")]
@@ -26,6 +33,7 @@ impl SpaceMcpServer {
         Parameters(args): Parameters<InvokeActionArgs>,
     ) -> Result<String, McpError> {
         self.require_space(&args.space_id)?;
+        require_platform_action(&args.action_id).map_err(mcp_error)?;
         let outcome = actions::invoke_with_app(
             &self.app,
             actions::ActionInvocationRequest {
@@ -70,5 +78,32 @@ impl SpaceMcpServer {
         .await
         .map_err(mcp_error)?;
         json_text(outcome)
+    }
+}
+
+fn require_platform_action(id: &str) -> Result<&'static actions::SpaceActionDefinition, String> {
+    let definition = actions::require(id)?;
+    if definition.routing_purpose.is_some() {
+        return Err("agent-inference-reentry: use your own runtime and publish the result; Knovum inference Actions are unavailable in desktop Agent sessions".into());
+    }
+    Ok(definition)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn desktop_mcp_rejects_inference_before_it_can_create_a_child_run() {
+        for action in actions::definitions() {
+            let result = require_platform_action(action.id);
+            if action.routing_purpose.is_some() {
+                assert!(result
+                    .err()
+                    .unwrap()
+                    .starts_with("agent-inference-reentry:"));
+            } else {
+                assert!(result.is_ok());
+            }
+        }
     }
 }

@@ -5,6 +5,7 @@ mod prompt;
 pub(crate) mod registry;
 #[cfg(test)]
 mod tests;
+mod validation;
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -13,8 +14,8 @@ use tauri::{ipc::Channel, AppHandle};
 use crate::ai::{
     capabilities::video::{self, VideoGenerationRequest},
     contracts::ExecutionCapability,
-    models::{ExecutionTarget, ExecutionTargetSelection},
     settings,
+    tasks::{ExecutionSource, TaskExecutionTarget, TaskTargetSelection},
 };
 
 #[derive(Deserialize)]
@@ -35,7 +36,7 @@ pub struct GenerateVideoRequest {
     prompt: String,
     aspect_ratio: String,
     duration_seconds: u8,
-    target: ExecutionTargetSelection,
+    target: TaskTargetSelection,
 }
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -78,13 +79,13 @@ async fn generate_inner(
     authority
         .require_active(crate::spaces::db::pool(&app).await?)
         .await?;
-    let output = match settings::resolve(
+    let output = match settings::resolve_task(
         &app,
         request.target.clone(),
         ExecutionCapability::VideoGeneration,
     ) {
         Ok(target) => execute(&app, &request, &target, stages, &cancellation, &authority).await,
-        Err(error) => Err(error.to_string()),
+        Err(error) => Err(error.task_message()),
     };
     output
 }
@@ -92,7 +93,7 @@ async fn generate_inner(
 async fn execute(
     app: &AppHandle,
     request: &GenerateVideoRequest,
-    target: &ExecutionTarget,
+    target: &TaskExecutionTarget,
     stages: Channel<String>,
     cancellation: &tokio_util::sync::CancellationToken,
     authority: &super::action_execution::ExecutionAuthority,
@@ -110,20 +111,31 @@ async fn execute(
             return Err(error);
         }
     };
-    let generated = video::generate(
-        app,
-        VideoGenerationRequest {
-            target: target.clone(),
-            prompt: prepared.provider_prompt,
-            ratio: request.aspect_ratio.clone(),
-            duration: request.duration_seconds,
-            reference_images: prepared.reference_images,
-        },
-        cancellation,
-        move |stage| stages.send(stage.into()).map_err(|error| error.to_string()),
-    )
-    .await
-    .map_err(|error| error.to_string());
+    let generated = match target {
+        TaskExecutionTarget::Model(model) => video::generate(
+            app,
+            VideoGenerationRequest {
+                target: model.clone(),
+                prompt: prepared.provider_prompt,
+                ratio: request.aspect_ratio.clone(),
+                duration: request.duration_seconds,
+                reference_images: prepared.reference_images,
+            },
+            cancellation,
+            move |stage| stages.send(stage.into()).map_err(|error| error.to_string()),
+        )
+        .await
+        .map(VideoResult::from)
+        .map_err(|error| error.task_message()),
+        TaskExecutionTarget::Agent { runtime_kind } => {
+            super::stage(&stages, "generatingVideo")?;
+            crate::external_agents::task::artifact(app, *runtime_kind,
+                format!("Produce an MP4 video, requested duration {} seconds and ratio {}, using your own tools/Skills.\n{}", request.duration_seconds, request.aspect_ratio, prepared.provider_prompt),
+                prepared.reference_images.iter().map(std::path::PathBuf::from).collect(),
+                crate::external_agents::task::ArtifactFormat::Mp4, cancellation.clone(),
+            ).await.map(|bytes| VideoResult { bytes, execution_source: target.source(), operation_id: None }).map_err(|error| error.task_message())
+        }
+    };
     let generated = match generated {
         Ok(value) => value,
         Err(error) => {
@@ -136,10 +148,40 @@ async fn execute(
         super::failure::fail_message(app, &request.id, &message).await?;
         return Err(message);
     }
-    let completion = completion::complete(app, request, &prepared.path, generated, authority).await;
+    let completion = async {
+        validation::validate(app, &prepared.path, cancellation).await?;
+        completion::complete(
+            app,
+            request,
+            &prepared.path,
+            generated,
+            authority,
+            cancellation,
+        )
+        .await
+    }
+    .await;
     if let Err(error) = &completion {
         let _ = tokio::fs::remove_file(prepared.path).await;
         super::failure::fail_message(app, &request.id, error).await?;
     }
     completion
+}
+
+pub(super) struct VideoResult {
+    bytes: Vec<u8>,
+    execution_source: ExecutionSource,
+    operation_id: Option<String>,
+}
+impl From<video::GeneratedVideo> for VideoResult {
+    fn from(value: video::GeneratedVideo) -> Self {
+        Self {
+            bytes: value.bytes,
+            execution_source: ExecutionSource::Model {
+                provider: value.provider,
+                model: value.model,
+            },
+            operation_id: Some(value.operation_id),
+        }
+    }
 }

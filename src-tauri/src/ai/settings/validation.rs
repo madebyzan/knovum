@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use crate::ai::{
     contracts::RoutingPurpose,
     error::{AiError, AiResult},
-    models::ExecutionTargetRef,
+    tasks::TaskTargetRef,
 };
 
 use super::contracts::AiSettings;
@@ -59,57 +59,65 @@ pub(super) fn validate(settings: &AiSettings) -> AiResult<()> {
 }
 
 fn validate_defaults(settings: &AiSettings) -> AiResult<()> {
+    validate_default(settings, settings.defaults.default_target.as_ref(), None)?;
     validate_default(
         settings,
         settings.defaults.writing.as_ref(),
-        RoutingPurpose::Writing,
+        Some(RoutingPurpose::Writing),
     )?;
     validate_default(
         settings,
         settings.defaults.knowledge.as_ref(),
-        RoutingPurpose::Knowledge,
+        Some(RoutingPurpose::Knowledge),
     )?;
     validate_default(
         settings,
         settings.defaults.translation.as_ref(),
-        RoutingPurpose::Translation,
+        Some(RoutingPurpose::Translation),
     )?;
     validate_default(
         settings,
         settings.defaults.visual_understanding.as_ref(),
-        RoutingPurpose::VisualUnderstanding,
+        Some(RoutingPurpose::VisualUnderstanding),
     )?;
     validate_default(
         settings,
         settings.defaults.image_generation.as_ref(),
-        RoutingPurpose::ImageGeneration,
+        Some(RoutingPurpose::ImageGeneration),
     )?;
     validate_default(
         settings,
         settings.defaults.video_generation.as_ref(),
-        RoutingPurpose::VideoGeneration,
+        Some(RoutingPurpose::VideoGeneration),
     )
 }
 
 fn validate_default(
     settings: &AiSettings,
-    target: Option<&ExecutionTargetRef>,
-    purpose: RoutingPurpose,
+    target: Option<&TaskTargetRef>,
+    purpose: Option<RoutingPurpose>,
 ) -> AiResult<()> {
     let Some(target) = target else {
         return Ok(());
     };
-    let capability = purpose.execution_capability();
-    let ExecutionTargetRef::Model {
+    if let TaskTargetRef::Agent { runtime_kind } = target {
+        return super::ensure_enabled(settings, *runtime_kind);
+    }
+    let TaskTargetRef::Model {
         connection_id,
         model_id,
-    } = target;
+    } = target
+    else {
+        unreachable!()
+    };
     let model = settings
         .connections
         .iter()
         .find(|connection| connection.id == *connection_id)
         .and_then(|connection| connection.models.iter().find(|model| model.id == *model_id));
-    if model.is_none_or(|model| !model.capabilities.contains(&capability)) {
+    if model.is_none_or(|model| {
+        purpose.is_some_and(|purpose| !model.capabilities.contains(&purpose.execution_capability()))
+    }) {
         return Err(AiError::invalid("AI default references an invalid model"));
     }
     Ok(())

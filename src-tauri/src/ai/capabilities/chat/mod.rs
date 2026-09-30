@@ -12,51 +12,19 @@ use crate::ai::{
     models::{CompletionOutput, CompletionRequest, CompletionStreamEvent},
 };
 
-pub(crate) use request::{complete_target, stream_target};
-
-pub async fn complete(request: CompletionRequest) -> AiResult<CompletionOutput> {
-    let (target, chat_req) = request::prepare(request);
-
-    let response = request::complete_target(&target, &chat_req).await?;
-    Ok(CompletionOutput {
-        text: response.text,
-        provider: response.provider,
-        model: response.model,
-        usage: response.usage,
-    })
-}
+pub(crate) use request::stream_target;
 
 pub async fn complete_cancellable(
     request: CompletionRequest,
     cancellation: CancellationToken,
 ) -> AiResult<CompletionOutput> {
     let (target, chat_req) = request::prepare(request);
-    let mut stream = stream_target(&target, &chat_req, cancellation).await?;
-    let mut text = String::new();
-    let mut execution_metadata = None;
-    let mut usage = None;
-    while let Some(frame) = stream.next().await {
-        match frame? {
-            StreamFrame::Started { provider, model } => {
-                execution_metadata = Some((provider, model));
-            }
-            StreamFrame::ContentDelta(delta) => text.push_str(&delta),
-            StreamFrame::ReasoningDelta(_) => {}
-            StreamFrame::Usage(value) => usage = Some(value),
-        }
-    }
-    if text.trim().is_empty() {
-        return Err(AiError::new(
-            AiErrorCode::EmptyResponse,
-            "AI provider returned no text.",
-        ));
-    }
-    let (provider, model) = require_execution_metadata(execution_metadata)?;
+    let response = request::complete_target(&target, &chat_req, &cancellation).await?;
     Ok(CompletionOutput {
-        text: text.trim().to_owned(),
-        provider,
-        model,
-        usage,
+        text: response.text,
+        provider: response.provider,
+        model: response.model,
+        usage: response.usage,
     })
 }
 

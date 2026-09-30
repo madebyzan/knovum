@@ -4,7 +4,7 @@ use tokio_util::sync::CancellationToken;
 use crate::ai::{
     contracts::VideoGenerationInput,
     error::{AiError, AiErrorCode, AiResult},
-    models::ExecutionTarget,
+    models::ModelExecutionTarget,
     providers::resolve_provider,
     transport::SecurityContext,
 };
@@ -15,7 +15,7 @@ pub use materialize::materialize;
 
 #[derive(Debug)]
 pub struct VideoGenerationRequest {
-    pub target: ExecutionTarget,
+    pub target: ModelExecutionTarget,
     pub prompt: String,
     pub ratio: String,
     pub duration: u8,
@@ -51,7 +51,7 @@ pub async fn generate(
 }
 
 async fn prepare_reference_images(
-    target: &ExecutionTarget,
+    target: &ModelExecutionTarget,
     images: Vec<String>,
 ) -> AiResult<Vec<String>> {
     let mut prepared_list = Vec::with_capacity(images.len());

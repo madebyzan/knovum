@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::ai::models::ExecutionTargetSelection;
+use crate::ai::tasks::TaskTargetSelection;
 
 #[derive(Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
@@ -102,7 +102,7 @@ pub struct CapturedStep {
 pub struct RecordedExecutionSpec {
     #[ts(type = "Record<string, unknown>")]
     pub parameters: Value,
-    pub target: Option<ExecutionTargetSelection>,
+    pub target: Option<TaskTargetSelection>,
 }
 
 #[derive(Clone, Serialize, ts_rs::TS)]

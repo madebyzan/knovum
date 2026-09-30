@@ -1,11 +1,6 @@
 import { executionTargetSchema, type ExecutionTarget } from "./schema/models";
 
-export const encodeExecutionTarget = (target: ExecutionTarget) =>
-  JSON.stringify({
-    type: target.type,
-    connectionId: target.connectionId,
-    modelId: target.modelId,
-  });
+export const encodeExecutionTarget = (target: ExecutionTarget) => JSON.stringify(target);
 
 export function decodeExecutionTarget(value: string): ExecutionTarget {
   const parsed: unknown = JSON.parse(value);

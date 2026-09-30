@@ -1,22 +1,11 @@
 use serde::{Deserialize, Serialize};
 
-use super::{ExecutionTarget, ExecutionTargetSelection};
+use super::ModelExecutionTarget;
 
 #[derive(Debug)]
 pub struct CompletionRequest {
     pub purpose: crate::ai::usage::UsagePurpose,
-    pub target: ExecutionTarget,
-    pub system_prompt: String,
-    pub instruction: String,
-    pub text: String,
-    pub max_tokens: Option<u32>,
-}
-
-#[derive(Debug, Deserialize, ts_rs::TS)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-#[ts(optional_fields = nullable)]
-pub struct CompletionCommandRequest {
-    pub target: ExecutionTargetSelection,
+    pub target: ModelExecutionTarget,
     pub system_prompt: String,
     pub instruction: String,
     pub text: String,
@@ -47,36 +36,6 @@ pub enum EditorTransformAction {
     TonePersuasive,
 }
 
-#[derive(Debug)]
-pub struct EditorTransformRequest {
-    pub target: ExecutionTarget,
-    pub action: EditorTransformAction,
-    pub text: String,
-}
-
-#[derive(Debug, Deserialize, ts_rs::TS)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct EditorTransformCommandRequest {
-    pub target: ExecutionTargetSelection,
-    pub action: EditorTransformAction,
-    pub text: String,
-}
-
-#[derive(Debug)]
-pub struct TranslationRequest {
-    pub execution_target: ExecutionTarget,
-    pub text: String,
-    pub target_language: String,
-}
-
-#[derive(Debug, Deserialize, ts_rs::TS)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct TranslationCommandRequest {
-    pub execution_target: ExecutionTargetSelection,
-    pub text: String,
-    pub target_language: String,
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub struct CompletionOutput {
@@ -86,7 +45,7 @@ pub struct CompletionOutput {
     pub usage: Option<crate::ai::contracts::TokenUsage>,
 }
 
-#[derive(Debug, Serialize, ts_rs::TS)]
+#[derive(Debug, Serialize, Deserialize, ts_rs::TS)]
 #[serde(tag = "event", rename_all = "snake_case")]
 pub enum CompletionStreamEvent {
     Started {

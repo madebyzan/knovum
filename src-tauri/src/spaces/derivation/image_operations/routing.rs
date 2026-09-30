@@ -1,5 +1,5 @@
 use crate::ai::{
-    contracts::ProviderKind, models::ExecutionTarget, providers::image_edit::ImageEditApi,
+    contracts::ProviderKind, models::ModelExecutionTarget, providers::image_edit::ImageEditApi,
 };
 
 use super::contracts::ImageOperation;
@@ -49,7 +49,7 @@ pub(super) fn supported_operations(backend: ImageOperationBackend) -> SupportedO
     }
 }
 
-pub(super) fn backend(target: &ExecutionTarget) -> ImageOperationBackend {
+pub(super) fn backend(target: &ModelExecutionTarget) -> ImageOperationBackend {
     match (ProviderKind::parse(target.provider()), target.model()) {
         (Some(ProviderKind::DashScope), _) => ImageOperationBackend::DashScope,
         (Some(ProviderKind::OpenAi), model)

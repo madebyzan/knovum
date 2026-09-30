@@ -14,6 +14,7 @@ pub async fn complete(
     request: &GenerateGroundedDocumentRequest,
     generated: GeneratedDocument,
     authority: &super::super::action_execution::ExecutionAuthority,
+    cancellation: &tokio_util::sync::CancellationToken,
 ) -> Result<GroundedDocumentOutput, String> {
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
@@ -48,6 +49,9 @@ pub async fn complete(
     persist_generation(&mut tx, &request.id, &generated).await?;
     sqlx::query("UPDATE spaces_knowledge_derivations SET status='completed',completed_at=$1,updated_at=$1 WHERE id=$2")
         .bind(now).bind(&request.id).execute(&mut *tx).await.map_err(db::sql_error)?;
+    if cancellation.is_cancelled() {
+        return Err("Grounded document creation was cancelled".into());
+    }
     tx.commit().await.map_err(db::sql_error)?;
     Ok(GroundedDocumentOutput {
         node_id: request.output_node_id.clone(),
@@ -95,8 +99,8 @@ async fn persist_generation(
     generated: &GeneratedDocument,
 ) -> Result<(), String> {
     let citations = serde_json::to_string(&generated.citations).map_err(db::json_error)?;
-    sqlx::query("INSERT INTO spaces_grounded_documents(derivation_id,citations,provider,model) VALUES($1,$2,$3,$4)")
-        .bind(id).bind(citations).bind(&generated.provider).bind(&generated.model)
+    sqlx::query("INSERT INTO spaces_grounded_documents(derivation_id,citations,execution_source) VALUES($1,$2,$3)")
+        .bind(id).bind(citations).bind(serde_json::to_string(&generated.execution_source).map_err(db::json_error)?)
         .execute(&mut **tx).await.map_err(db::sql_error)?;
     Ok(())
 }

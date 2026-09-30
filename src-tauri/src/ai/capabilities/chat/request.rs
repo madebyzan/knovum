@@ -6,10 +6,10 @@ use crate::ai::{
         ModelTurnRequest, StreamFrameStream,
     },
     error::{AiError, AiErrorCode, AiResult},
-    models::{CompletionRequest, ExecutionTarget},
+    models::{CompletionRequest, ModelExecutionTarget},
 };
 
-pub(super) fn prepare(request: CompletionRequest) -> (ExecutionTarget, ChatRequest) {
+pub(super) fn prepare(request: CompletionRequest) -> (ModelExecutionTarget, ChatRequest) {
     let chat_request = ChatRequest {
         purpose: request.purpose,
         system_prompt: (!request.system_prompt.trim().is_empty()).then_some(request.system_prompt),
@@ -22,10 +22,11 @@ pub(super) fn prepare(request: CompletionRequest) -> (ExecutionTarget, ChatReque
 }
 
 pub(crate) async fn complete_target(
-    target: &ExecutionTarget,
+    target: &ModelExecutionTarget,
     request: &ChatRequest,
+    cancellation: &CancellationToken,
 ) -> AiResult<ChatResponse> {
-    let turn = crate::ai::model_turn::execute(target, &model_turn(request)).await?;
+    let turn = crate::ai::model_turn::execute(target, &model_turn(request), cancellation).await?;
     let text = turn
         .message
         .content
@@ -51,7 +52,7 @@ pub(crate) async fn complete_target(
 }
 
 pub(crate) async fn stream_target(
-    target: &ExecutionTarget,
+    target: &ModelExecutionTarget,
     request: &ChatRequest,
     cancellation: CancellationToken,
 ) -> AiResult<StreamFrameStream> {

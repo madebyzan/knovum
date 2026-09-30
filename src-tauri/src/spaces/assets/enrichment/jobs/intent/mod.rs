@@ -10,6 +10,7 @@ pub(crate) async fn synchronize_for_node(
     node_id: &str,
     data: &Value,
     now: i64,
+    target: Option<&crate::ai::tasks::TaskTargetSelection>,
 ) -> Result<(), String> {
     let Some(source_revision) = source_revision(data) else {
         return Ok(());
@@ -39,7 +40,7 @@ pub(crate) async fn synchronize_for_node(
         } else {
             source_revision
         };
-        enqueue(tx, space_id, node_id, revision, job_type, now).await?;
+        enqueue(tx, space_id, node_id, revision, job_type, now, target).await?;
     }
     Ok(())
 }
@@ -134,10 +135,11 @@ async fn enqueue(
     source_revision: &str,
     job_type: EnrichmentJobType,
     now: i64,
+    target: Option<&crate::ai::tasks::TaskTargetSelection>,
 ) -> Result<(), String> {
     sqlx::query(
-        "INSERT INTO spaces_enrichment_jobs(id,space_id,node_id,job_type,status,source_revision,attempts,error,created_at,updated_at) \
-         SELECT $1,$2,$3,$4,$5,$6,0,NULL,$7,$7 \
+        "INSERT INTO spaces_enrichment_jobs(id,space_id,node_id,job_type,status,source_revision,execution_target,attempts,error,created_at,updated_at) \
+         SELECT $1,$2,$3,$4,$5,$6,$8,0,NULL,$7,$7 \
          WHERE NOT EXISTS (SELECT 1 FROM spaces_enrichment_jobs \
            WHERE space_id=$2 AND node_id=$3 AND job_type=$4 AND source_revision=$6 AND status='failed') \
          ON CONFLICT(space_id,node_id,job_type,source_revision) WHERE status IN ('pending','running','awaiting_configuration') \
@@ -150,6 +152,7 @@ async fn enqueue(
     .bind(STATUS_PENDING)
     .bind(source_revision)
     .bind(now)
+    .bind(target.filter(|_| matches!(job_type, EnrichmentJobType::AnalyzeVisual | EnrichmentJobType::AnalyzeDocument | EnrichmentJobType::ParseDocument)).map(serde_json::to_string).transpose().map_err(crate::spaces::db::json_error)?)
     .execute(&mut **tx)
     .await
     .map_err(crate::spaces::db::sql_error)?;
@@ -158,3 +161,17 @@ async fn enqueue(
 
 #[cfg(test)]
 mod tests;
+
+/// Capture policy at the node mutation boundary; execution validates runtime readiness later.
+pub(in crate::spaces) fn selection<R: tauri::Runtime>(
+    app: &tauri::AppHandle<R>,
+) -> Result<Option<crate::ai::tasks::TaskTargetSelection>, String> {
+    match crate::ai::settings::default_selection(
+        app,
+        crate::ai::contracts::RoutingPurpose::VisualUnderstanding,
+    ) {
+        Ok(target) => Ok(Some(target)),
+        Err(error) if error.code == crate::ai::error::AiErrorCode::NotConfigured => Ok(None),
+        Err(error) => Err(error.to_string()),
+    }
+}

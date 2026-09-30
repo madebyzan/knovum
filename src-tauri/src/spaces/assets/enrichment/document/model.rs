@@ -68,8 +68,7 @@ pub(crate) enum VisualState {
 pub(crate) struct DocumentAnalysis {
     pub description: String,
     pub detected_text: String,
-    pub provider: String,
-    pub model: String,
+    pub execution_source: crate::ai::tasks::ExecutionSource,
     pub generated_at: i64,
     pub analysis_version: String,
 }

@@ -142,9 +142,12 @@ async fn insert_output(
         &mut tx,
         space_id,
         &[node],
-        "system",
-        Some(authority.action_run_id()?),
+        crate::spaces::knowledge::events::EventActor::new(
+            "system",
+            Some(authority.action_run_id()?),
+        ),
         crate::clock::unix_time_millis()?,
+        crate::spaces::assets::enrichment::jobs::intent::selection(app)?.as_ref(),
     )
     .await?;
     let revision =

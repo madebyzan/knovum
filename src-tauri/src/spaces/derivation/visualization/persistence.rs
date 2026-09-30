@@ -4,10 +4,10 @@ use serde_json::Value;
 use sha2::{Digest, Sha256};
 use tauri::AppHandle;
 
-use super::{validation, GenerateVisualizationRequest, VisualizationOutput};
+use super::{validation, GenerateVisualizationRequest, VisualizationOutput, VisualizationResult};
 use crate::spaces::derivation::{inputs, pending_output, relations, source_validation};
 use crate::{
-    ai::{capabilities::image::GeneratedImage, models::ExecutionTarget},
+    ai::tasks::TaskExecutionTarget,
     spaces::{
         assets::asset_directory,
         db,
@@ -18,7 +18,7 @@ use crate::{
 pub async fn start(
     app: &AppHandle,
     request: &GenerateVisualizationRequest,
-    target: &ExecutionTarget,
+    target: &TaskExecutionTarget,
     authority: &super::super::action_execution::ExecutionAuthority,
 ) -> Result<(), String> {
     validation::validate_request(request)?;
@@ -53,7 +53,7 @@ pub async fn start(
     let now = crate::clock::unix_time_millis()?;
     sqlx::query("INSERT INTO spaces_knowledge_derivations(id,space_id,output_node_id,action_kind,action_version,engine,status,created_at,updated_at) VALUES($1,$2,$3,'generate-visualization',1,$4,'running',$5,$5)")
         .bind(&request.id).bind(&request.space_id).bind(&request.output_node_id)
-        .bind(format!("{}:{}", target.provider(), target.model())).bind(now)
+        .bind(target.engine()).bind(now)
         .execute(&mut *tx).await.map_err(db::sql_error)?;
     let values = request
         .inputs
@@ -72,8 +72,9 @@ pub async fn start(
 pub async fn complete(
     app: &AppHandle,
     request: &GenerateVisualizationRequest,
-    generated: GeneratedImage,
+    generated: VisualizationResult,
     authority: &super::super::action_execution::ExecutionAuthority,
+    cancellation: &tokio_util::sync::CancellationToken,
 ) -> Result<VisualizationOutput, String> {
     let (bytes, width, height) = validation::canonical_png(&generated.bytes)?;
     let pool = db::pool(app).await?;
@@ -102,6 +103,10 @@ pub async fn complete(
     .await;
     match persisted {
         Ok(relations) => {
+            if cancellation.is_cancelled() {
+                let _ = tokio::fs::remove_file(&path).await;
+                return Err("Visualization generation was cancelled".into());
+            }
             tx.commit().await.map_err(db::sql_error)?;
             Ok(VisualizationOutput {
                 node_id: request.output_node_id.clone(),
@@ -123,7 +128,7 @@ pub async fn fail(app: &AppHandle, id: &str, error: &str) -> Result<(), String> 
 async fn persist_completion(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     request: &GenerateVisualizationRequest,
-    generated: &GeneratedImage,
+    generated: &VisualizationResult,
     data: &mut Value,
     bytes: &[u8],
     width: u32,
@@ -164,9 +169,9 @@ async fn persist_completion(
         relations::insert(tx, &relation).await?;
         output_relations.push(relation);
     }
-    sqlx::query("INSERT INTO spaces_generated_images(derivation_id,intent,style,aspect_ratio,provider,model,revised_prompt) VALUES($1,$2,$3,$4,$5,$6,$7)")
+    sqlx::query("INSERT INTO spaces_generated_images(derivation_id,intent,style,aspect_ratio,execution_source,revised_prompt) VALUES($1,$2,$3,$4,$5,$6)")
         .bind(&request.id).bind(&request.intent).bind(&request.style).bind(&request.aspect_ratio)
-        .bind(&generated.provider).bind(&generated.model).bind(&generated.revised_prompt)
+        .bind(serde_json::to_string(&generated.execution_source).map_err(db::json_error)?).bind(&generated.revised_prompt)
         .execute(&mut **tx).await.map_err(db::sql_error)?;
     sqlx::query("UPDATE spaces_knowledge_derivations SET status='completed',completed_at=$1,updated_at=$1 WHERE id=$2")
         .bind(now).bind(&request.id).execute(&mut **tx).await.map_err(db::sql_error)?;

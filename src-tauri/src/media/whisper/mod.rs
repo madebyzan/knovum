@@ -113,3 +113,6 @@ fn command(request: &WhisperRequest<'_>) -> Command {
     }
     command
 }
+
+#[cfg(all(test, unix))]
+mod tests;
