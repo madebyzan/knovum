@@ -33,6 +33,7 @@ export const dynamicLocaleKeyPrefixes = [
   "spaces.media.imageEditor.crop.",
   "spaces.media.imageEditor.layers.stage.",
   "spaces.media.imageEditor.operation.stage.",
+  "spaces.media.imageEditor.removeObject.modes.",
   "spaces.media.videoEditor.text.presets.",
   "spaces.nodeTypes.",
   "spaces.processing.enrichmentJobType.",

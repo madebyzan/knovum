@@ -3,21 +3,30 @@ import { Undo2 } from "@lucide/vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
+import UiActionHelp from "../../../../shared/ui/UiActionHelp.vue";
 import UiButton from "../../../../shared/ui/UiButton.vue";
+import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
+import type { ImageRemovalMode } from "../../knowledge-derivations/image-removal-session";
+import type { ImageActionHelp } from "./image-action-help";
 import SpaceImageRangeSlider from "./SpaceImageRangeSlider.vue";
 
 const props = defineProps<{
+  mode: ImageRemovalMode;
+  prompt: string;
   diameter: number;
   canUndo: boolean;
   canGenerate: boolean;
   submitting: boolean;
-  hint: string | undefined;
+  help: ImageActionHelp | undefined;
 }>();
 const emit = defineEmits<{
+  updateMode: [mode: ImageRemovalMode];
+  updatePrompt: [prompt: string];
   updateDiameter: [diameter: number];
   undo: [];
   cancel: [];
   generate: [];
+  openSettings: [];
 }>();
 const { t } = useI18n();
 const brushSize = computed({
@@ -34,6 +43,7 @@ const brushSize = computed({
     <header class="flex items-center justify-between px-1">
       <h3 class="text-title-sm font-semibold">{{ t("spaces.media.imageEditor.removeObject.tool") }}</h3>
       <UiButton
+        v-if="mode === 'mask'"
         variant="ghost"
         size="sm"
         class="shadow-none"
@@ -44,10 +54,28 @@ const brushSize = computed({
         <Undo2 class="size-3.5" />
       </UiButton>
     </header>
-    <p class="px-1 text-caption text-fg-secondary">
-      {{ t("spaces.media.imageEditor.removeObject.instruction") }}
-    </p>
+    <div
+      class="grid grid-cols-2 rounded-panel bg-surface-control p-0.5"
+      role="group"
+      :aria-label="t('spaces.media.imageEditor.removeObject.mode')"
+    >
+      <button
+        v-for="item in ['mask', 'prompt'] as const"
+        :key="item"
+        type="button"
+        class="h-(--knovum-control-height-md) rounded-md text-label text-fg-secondary transition-colors focus-visible:ring-2 focus-visible:ring-stroke-focus"
+        :class="
+          mode === item && 'border border-stroke-default bg-surface-raised text-fg-primary shadow-control'
+        "
+        :aria-pressed="mode === item"
+        :disabled="submitting"
+        @click="emit('updateMode', item)"
+      >
+        {{ t(`spaces.media.imageEditor.removeObject.modes.${item}`) }}
+      </button>
+    </div>
     <SpaceImageRangeSlider
+      v-if="mode === 'mask'"
       minimal
       :label="t('spaces.media.imageEditor.removeObject.brushSize')"
       :value="brushSize"
@@ -56,7 +84,18 @@ const brushSize = computed({
       :disabled="submitting"
       @update="brushSize = $event"
     />
-    <p v-if="hint" class="px-1 text-caption text-fg-secondary">{{ hint }}</p>
+    <label v-else class="grid text-label">
+      <span class="sr-only">{{ t("spaces.media.imageEditor.removeObject.promptLabel") }}</span>
+      <UiTextarea
+        :model-value="prompt"
+        :placeholder="t('spaces.media.imageEditor.removeObject.promptPlaceholder')"
+        :disabled="submitting"
+        :maxlength="1000"
+        :rows="2"
+        class="h-20 min-h-0 resize-none"
+        @update:model-value="emit('updatePrompt', $event)"
+      />
+    </label>
     <footer class="flex gap-2 border-t border-stroke-divider pt-2">
       <UiButton
         variant="secondary"
@@ -74,6 +113,12 @@ const brushSize = computed({
         @click="emit('generate')"
         >{{ t("spaces.media.imageEditor.removeObject.generate") }}</UiButton
       >
+      <UiActionHelp
+        v-if="help"
+        :label="help.label"
+        :action-label="help.actionLabel"
+        @action="emit('openSettings')"
+      />
     </footer>
   </section>
 </template>

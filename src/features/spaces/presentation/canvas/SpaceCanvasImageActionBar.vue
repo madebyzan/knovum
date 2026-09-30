@@ -22,7 +22,6 @@ import SpaceCanvasSelectionMenu from "./SpaceCanvasSelectionMenu.vue";
 import SpaceImageAngleInspector from "./SpaceImageAngleInspector.vue";
 import SpaceImageCommentModeBar from "./SpaceImageCommentModeBar.vue";
 import SpaceImageLayerPanel from "./SpaceImageLayerPanel.vue";
-import SpaceImagePromptRemovalPanel from "./SpaceImagePromptRemovalPanel.vue";
 import SpaceImageUpscalePopover from "./SpaceImageUpscalePopover.vue";
 import SpaceNodeBarCommonActions from "./SpaceNodeBarCommonActions.vue";
 import type { useCanvasSelectionActions } from "./use-canvas-selection-actions";
@@ -48,7 +47,7 @@ const {
   directAvailability,
   directReason,
   dimensionsReady,
-  removalMode,
+  removalAvailability,
   removalReason,
   beginTool,
   beginRemoval,
@@ -69,12 +68,9 @@ const { compact, minimal, ready } = useNodeActionBarDensity(
   densityIdentity,
 );
 const restoreFocus = shallowRef(false);
-watch(
-  [activeTool, removing, commenting, () => props.angleOpen, () => openPopover.value === "prompt-removal"],
-  (current, previous) => {
-    if (current.every((value) => !value) && previous.some(Boolean)) restoreFocus.value = true;
-  },
-);
+watch([activeTool, removing, commenting, () => props.angleOpen], (current, previous) => {
+  if (current.every((value) => !value) && previous.some(Boolean)) restoreFocus.value = true;
+});
 watch(
   [ready, restoreFocus],
   async ([isReady, shouldRestore]) => {
@@ -89,15 +85,10 @@ watch(
 <template>
   <SpaceCanvasImageActivePanel v-if="activeTool" :node="node" />
   <SpaceCanvasImageRemovalPanel v-else-if="removing" :node="node" />
-  <SpaceImagePromptRemovalPanel
-    v-else-if="openPopover === 'prompt-removal'"
-    :node="node"
-    @close="openPopover = undefined"
-  />
   <SpaceImageAngleInspector v-else-if="angleOpen" :node="node" @close="emit('update:angleOpen', false)" />
   <SpaceImageCommentModeBar v-else-if="commenting" />
   <div
-    v-if="!activeTool && !removing && !commenting && !angleOpen && openPopover !== 'prompt-removal'"
+    v-if="!activeTool && !removing && !commenting && !angleOpen"
     ref="bar"
     class="w-max"
     :class="ready ? 'visible' : 'invisible'"
@@ -132,7 +123,7 @@ watch(
       <SpaceCanvasImageRemoveObjectTrigger
         v-if="canvasBarPlacement('image-remove-object', minimal) === 'bar'"
         :compact="compact"
-        :disabled="!removalMode"
+        :disabled="removalAvailability.state !== 'ready'"
         :reason="removalReason"
         @begin="beginRemoval"
       />
@@ -167,7 +158,7 @@ watch(
           <SpaceCanvasImageRemoveObjectTrigger
             v-if="canvasBarPlacement('image-remove-object', minimal) === 'menu'"
             menu-item
-            :disabled="!removalMode"
+            :disabled="removalAvailability.state !== 'ready'"
             :reason="removalReason"
             @begin="beginRemoval"
           />

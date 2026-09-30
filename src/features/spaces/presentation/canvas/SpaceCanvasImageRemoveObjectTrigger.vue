@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { WandSparkles } from "@lucide/vue";
+import { Eraser } from "@lucide/vue";
 import { ToolbarButton } from "reka-ui";
 import { useI18n } from "vue-i18n";
 
@@ -25,7 +25,7 @@ const label = "spaces.media.imageEditor.removeObject.tool";
     :aria-label="disabled && reason ? `${t(label)}：${reason}` : undefined"
     @select="emit('begin')"
   >
-    <WandSparkles class="size-3.5" />{{ t(label) }}
+    <Eraser class="size-3.5" />{{ t(label) }}
   </UiDropdownMenuItem>
   <UiTooltip
     v-else
@@ -41,7 +41,7 @@ const label = "spaces.media.imageEditor.removeObject.tool";
         :disabled="disabled"
         @click="emit('begin')"
       >
-        <WandSparkles class="size-4.5" :stroke-width="1.6" />
+        <Eraser class="size-4.5" :stroke-width="1.6" />
         <span :class="[nodeActionLabelClass, nodeActionLabelState(compact)]">{{ t(label) }}</span>
       </button>
     </ToolbarButton>

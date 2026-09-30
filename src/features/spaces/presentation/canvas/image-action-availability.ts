@@ -17,6 +17,17 @@ export type ImageActionReason =
 
 export type ImageActionAvailability = ActionAvailability<ImageActionReason>;
 
+export function imageToolAvailability(input: {
+  sourceReady: boolean;
+  editing: boolean;
+  busy: boolean;
+}): ImageActionAvailability {
+  if (input.busy) return { state: "busy" };
+  if (input.editing) return { state: "blocked", reason: "finish_image_edit" };
+  if (!input.sourceReady) return { state: "blocked", reason: "image_preparing" };
+  return { state: "ready" };
+}
+
 export function imageActionAvailability(input: {
   sourceReady: boolean;
   editing: boolean;
@@ -24,10 +35,9 @@ export function imageActionAvailability(input: {
   failed: boolean;
   busy: boolean;
 }): ImageActionAvailability {
-  const { sourceReady, editing, capability, failed, busy } = input;
-  if (busy) return { state: "busy" };
-  if (editing) return { state: "blocked", reason: "finish_image_edit" };
-  if (!sourceReady) return { state: "blocked", reason: "image_preparing" };
+  const local = imageToolAvailability(input);
+  if (local.state !== "ready") return local;
+  const { capability, failed } = input;
   if (failed) return { state: "blocked", reason: "capability_failed" };
   if (!capability) return { state: "checking" };
   return capability.state === "ready" || capability.state === "unverified" ? { state: "ready" } : capability;

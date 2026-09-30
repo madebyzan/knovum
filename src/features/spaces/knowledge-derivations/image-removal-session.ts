@@ -1,13 +1,18 @@
 import { defineStore } from "pinia";
 import { computed, readonly, shallowRef, watch } from "vue";
 
+import type { ImageOperation } from "../contracts/generated/ImageOperation";
 import type { MaskStroke } from "../contracts/generated/MaskStroke";
 import { useSpaceStore } from "../session/space-store";
 import { deriveImage } from "./image-operation";
 
+export type ImageRemovalMode = "mask" | "prompt";
+
 interface RemovalSelection {
   spaceId: string;
   nodeId: string;
+  mode: ImageRemovalMode;
+  prompt: string;
   strokes: MaskStroke[];
 }
 
@@ -27,6 +32,7 @@ export const useImageRemovalSession = defineStore("spaces-image-removal-session"
   const canDraw = computed(() =>
     Boolean(
       active.value &&
+      active.value.mode === "mask" &&
       !submitting.value &&
       active.value.strokes.length < MAX_STROKES &&
       remainingPoints.value >= 2,
@@ -38,7 +44,15 @@ export const useImageRemovalSession = defineStore("spaces-image-removal-session"
     if (!space.activeSpaceId) throw new Error("No active Space for image derivation");
     const node = space.nodes.find(({ id }) => id === nodeId);
     if (!node || node.data.kind !== "image") throw new Error("Selected image is unavailable");
-    active.value = { spaceId: space.activeSpaceId, nodeId, strokes: [] };
+    active.value = { spaceId: space.activeSpaceId, nodeId, mode: "mask", prompt: "", strokes: [] };
+  }
+
+  function setMode(mode: ImageRemovalMode) {
+    if (active.value && !submitting.value) active.value = { ...active.value, mode };
+  }
+
+  function setPrompt(prompt: string) {
+    if (active.value && !submitting.value) active.value = { ...active.value, prompt };
   }
 
   function addStroke(points: number[]) {
@@ -72,14 +86,19 @@ export const useImageRemovalSession = defineStore("spaces-image-removal-session"
 
   async function generate() {
     const current = active.value;
-    if (!current || current.strokes.length === 0 || submitting.value) return;
+    if (!current || submitting.value) return;
+    const operation: ImageOperation =
+      current.mode === "mask"
+        ? { kind: "remove-object", strokes: current.strokes }
+        : { kind: "remove-object-prompt", prompt: current.prompt.trim() };
+    if (operation.kind === "remove-object" ? !operation.strokes.length : !operation.prompt) return;
     if (space.activeSpaceId !== current.spaceId) throw new Error("Image belongs to another Space");
     const node = space.nodes.find(({ id }) => id === current.nodeId);
     if (!node || node.data.kind !== "image") throw new Error("Selected image is unavailable");
     submitting.value = true;
     let outputCreated = false;
     try {
-      await deriveImage(space, node, { kind: "remove-object", strokes: current.strokes }, () => {
+      await deriveImage(space, node, operation, () => {
         outputCreated = true;
         if (active.value === current) active.value = undefined;
         submitting.value = false;
@@ -109,6 +128,8 @@ export const useImageRemovalSession = defineStore("spaces-image-removal-session"
     canDraw,
     remainingPoints,
     begin,
+    setMode,
+    setPrompt,
     addStroke,
     undoStroke,
     cancel,
