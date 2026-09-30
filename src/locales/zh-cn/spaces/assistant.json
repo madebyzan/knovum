@@ -5,11 +5,11 @@
   },
   "title": "对话",
   "agents": {
-    "knovumAssistant": "Knovum 助手 · 选择模型",
+    "knovumAssistant": "Knovum Agent",
     "desktop": "桌面 Agent",
     "select": "选择助手",
-    "noModel": "尚未配置可用于对话的模型",
-    "manage": "管理模型与 Agent…"
+    "noModel": "尚未配置模型",
+    "manage": "配置模型与 Agent…"
   },
   "empty": {
     "title": "试试这些任务",

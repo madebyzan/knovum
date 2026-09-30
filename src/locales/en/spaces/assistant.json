@@ -5,11 +5,11 @@
   },
   "title": "Conversation",
   "agents": {
-    "knovumAssistant": "Knovum Assistant · Model",
+    "knovumAssistant": "Knovum Agent",
     "desktop": "Desktop Agents",
     "select": "Choose an assistant",
-    "noModel": "No conversation model configured",
-    "manage": "Manage models and Agents…"
+    "noModel": "No model configured",
+    "manage": "Configure models and Agents…"
   },
   "empty": {
     "title": "Try one of these tasks",
