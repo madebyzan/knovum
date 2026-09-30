@@ -1,6 +1,7 @@
 use crate::command_error::CommandError;
 mod attempt;
 mod budget;
+mod children;
 mod contract;
 mod events;
 mod intervention;
@@ -14,7 +15,8 @@ mod scheduler;
 mod signals;
 
 pub(crate) use attempt::{AttemptClaim, StepOutcome};
-pub(crate) use budget::{record_usage, reserve_output_bytes};
+pub(crate) use budget::record_usage;
+pub(crate) use children::{child_settlement, drain_children, wait_for_children};
 pub(crate) use contract::{RunKind, RunObservation, RunState, StepState, WaitReason};
 pub(crate) use events::append_event;
 pub use events::RunEventKind;
@@ -22,6 +24,13 @@ pub(crate) use observation::{RunEvent, StepObservation};
 pub(crate) use repository::{create_run_in_transaction, load_run, transition_run, NewRun};
 pub(crate) use runtime::start as start_scheduler;
 pub(crate) use signals::{announce as announce_change, subscribe as subscribe_to_changes};
+
+pub(crate) async fn request_cancellation(
+    pool: &sqlx::SqlitePool,
+    run_id: &str,
+) -> Result<(), String> {
+    repository::request_control(pool, run_id, "cancel").await
+}
 
 #[tauri::command]
 pub async fn list_runs(
@@ -43,9 +52,17 @@ pub async fn get_run(
 pub async fn cancel_run(app: tauri::AppHandle, run_id: String) -> Result<(), CommandError> {
     let pool = crate::spaces::db::pool(&app).await?;
     let run = load_run(pool, &run_id).await?;
-    repository::request_control(pool, &run_id, "cancel").await?;
-    if let Some(action_id) = repository::durable_action_id(pool, &run_id).await? {
-        crate::spaces::derivation::action_execution::cancel(&action_id, &run_id).await?;
+    request_cancellation(pool, &run_id).await?;
+    let action_runs: Vec<String> = sqlx::query_scalar(
+        "WITH RECURSIVE run_tree(id) AS (
+         SELECT id FROM spaces_runs WHERE id=$1
+         UNION ALL SELECT child.id FROM spaces_runs child JOIN run_tree parent ON child.parent_run_id=parent.id)
+         SELECT id FROM spaces_runs WHERE id IN (SELECT id FROM run_tree) AND kind='action' AND completed_at IS NULL",
+    ).bind(&run_id).fetch_all(pool).await.map_err(crate::spaces::db::sql_error)?;
+    for action_run in action_runs {
+        if let Some(action_id) = repository::durable_action_id(pool, &action_run).await? {
+            crate::spaces::derivation::action_execution::cancel(&action_id, &action_run).await?;
+        }
     }
     if run.kind == RunKind::ExternalAgent
         && !crate::spaces::external_conversations::cancel_by_run(&app, &run_id).await?

@@ -19,8 +19,30 @@ pub async fn create(
     app: &AppHandle,
     request: CreateSubtitleResourceRequest,
 ) -> Result<DerivationRelation, String> {
+    create_inner(
+        app,
+        request,
+        &super::action_execution::ExecutionAuthority::DirectCommand,
+    )
+    .await
+}
+
+pub(super) async fn create_for_action(
+    app: &AppHandle,
+    request: CreateSubtitleResourceRequest,
+    authority: &super::action_execution::ExecutionAuthority,
+) -> Result<DerivationRelation, String> {
+    create_inner(app, request, authority).await
+}
+
+async fn create_inner(
+    app: &AppHandle,
+    request: CreateSubtitleResourceRequest,
+    authority: &super::action_execution::ExecutionAuthority,
+) -> Result<DerivationRelation, String> {
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
+    authority.require_active(&mut *tx).await?;
     contracts::validate_same_space_node(
         &mut tx,
         &request.space_id,

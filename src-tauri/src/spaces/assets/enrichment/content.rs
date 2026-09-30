@@ -19,6 +19,17 @@ pub(in crate::spaces::assets) fn extract(
     asset: &mut PreparedAsset,
     cancellation: &CancellationToken,
 ) -> Result<(), String> {
+    extract_owned(app, source, revision, asset, cancellation, &mut |_| Ok(()))
+}
+
+pub(in crate::spaces::assets) fn extract_owned(
+    app: &tauri::AppHandle,
+    source: &Path,
+    revision: &str,
+    asset: &mut PreparedAsset,
+    cancellation: &CancellationToken,
+    claim_managed_path: &mut dyn FnMut(&Path) -> Result<(), String>,
+) -> Result<(), String> {
     ensure_active(cancellation)?;
     let pdf_source = mime_guess::from_path(source).first_raw() == Some("application/pdf");
     let document_source = pdf_source || office::supports(source);
@@ -32,8 +43,14 @@ pub(in crate::spaces::assets) fn extract(
     }
     if pdf_source {
         let document = pdf::extract(source, cancellation)?;
-        let coverage =
-            super::document::prepare::pdf(app, source, &document, revision, cancellation)?;
+        let coverage = super::document::prepare::pdf(
+            app,
+            source,
+            &document,
+            revision,
+            cancellation,
+            claim_managed_path,
+        )?;
         asset.preview_text = document.preview_text;
         asset.extracted_text = document.extracted_text;
         asset.knowledge_chunks = Some(source_chunks(document.segments, revision));
@@ -43,10 +60,12 @@ pub(in crate::spaces::assets) fn extract(
         let document = office::extract(source, cancellation)?;
         let coverage = super::document::prepare::office(
             app,
+            source,
             document.images,
             document.warnings,
             revision,
             cancellation,
+            claim_managed_path,
         )?;
         asset.preview_text = document.preview_text;
         asset.extracted_text = document.extracted_text;

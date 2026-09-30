@@ -1,6 +1,7 @@
 mod agent_task;
 pub(crate) mod commands;
 mod contract;
+pub(crate) mod outputs;
 pub(crate) mod queries;
 mod repository;
 mod task;
@@ -22,14 +23,13 @@ pub(crate) async fn require_paused_checkpoint(
     task::require_paused_checkpoint(pool, run_id).await
 }
 
-pub(crate) use contract::AssistantPermissionOption;
 pub use contract::{
     AssistantConversation, AssistantMode, AssistantTaskAccepted, AssistantTaskUpdate,
     StartAssistantTaskRequest, SubmitAssistantTaskRequest,
 };
 pub(crate) use repository::ensure_branch_idle;
 pub(crate) use repository::{
-    AssistantMessage, AssistantMessageAttachment, AssistantMessageContent,
+    AssistantMessage, AssistantMessageAttachment, AssistantMessageContent, AssistantMessageOutput,
 };
 
 pub(crate) use commands::cancel_task;

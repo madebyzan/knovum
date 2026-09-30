@@ -19,10 +19,12 @@ pub async fn start(
     app: &AppHandle,
     request: &GenerateVisualizationRequest,
     target: &ExecutionTarget,
+    authority: &super::super::action_execution::ExecutionAuthority,
 ) -> Result<(), String> {
     validation::validate_request(request)?;
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
+    authority.require_active(&mut *tx).await?;
     for input in &request.inputs {
         contracts::validate_same_space_node(
             &mut tx,
@@ -71,10 +73,12 @@ pub async fn complete(
     app: &AppHandle,
     request: &GenerateVisualizationRequest,
     generated: GeneratedImage,
+    authority: &super::super::action_execution::ExecutionAuthority,
 ) -> Result<VisualizationOutput, String> {
     let (bytes, width, height) = validation::canonical_png(&generated.bytes)?;
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
+    authority.require_active(&mut *tx).await?;
     let encoded: String = sqlx::query_scalar("SELECT n.data FROM spaces_knowledge_derivations d JOIN spaces_nodes n ON n.id=d.output_node_id WHERE d.id=$1 AND d.status='running'")
         .bind(&request.id).fetch_optional(&mut *tx).await.map_err(db::sql_error)?.ok_or("Visualization is no longer running")?;
     for input in &request.inputs {

@@ -9,6 +9,14 @@ pub(super) enum AcpLaunch {
 }
 
 impl AcpLaunch {
+    pub const fn trusted_session_mode(self) -> Option<&'static str> {
+        match self {
+            Self::Codex => Some("full-access"),
+            Self::Claude => Some("bypassPermissions"),
+            Self::Native { .. } | Self::Server => None,
+        }
+    }
+
     const fn connection(self) -> AgentConnectionKind {
         match self {
             Self::Codex | Self::Claude => AgentConnectionKind::NodeAdapter,

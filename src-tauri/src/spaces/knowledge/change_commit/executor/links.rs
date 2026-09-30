@@ -13,7 +13,7 @@ use crate::spaces::{
 pub(super) async fn create_relations(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
-    agent_id: &str,
+    actor: events::EventActor<'_>,
     operations: &[KnowledgeChange],
     now: i64,
     state: &mut ApplyState,
@@ -37,7 +37,7 @@ pub(super) async fn create_relations(
         let id = uuid::Uuid::new_v4().to_string();
         sqlx::query(
             "INSERT INTO spaces_relations(id,space_id,source_id,target_id,kind,rationale,status,confidence,actor_kind,actor_id,created_at,updated_at) \
-             VALUES($1,$2,$3,$4,$5,$6,'active',$7,'agent',$8,$9,$9)",
+             VALUES($1,$2,$3,$4,$5,$6,'active',$7,$8,$9,$10,$10)",
         )
         .bind(&id)
         .bind(space_id)
@@ -46,12 +46,13 @@ pub(super) async fn create_relations(
         .bind(kind)
         .bind(rationale)
         .bind(confidence)
-        .bind(agent_id)
+        .bind(actor.kind())
+        .bind(actor.id())
         .bind(now)
         .execute(&mut **tx)
         .await
         .map_err(db::sql_error)?;
-        emit_relation_created(tx, space_id, agent_id, &id, kind, now).await?;
+        emit_relation_created(tx, space_id, actor, &id, kind, now).await?;
         state.relation_ids.insert(temp_id.clone(), id.clone());
         state.resolved_ids.insert(temp_id.clone(), id);
     }
@@ -61,7 +62,7 @@ pub(super) async fn create_relations(
 async fn emit_relation_created(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
-    agent_id: &str,
+    actor: events::EventActor<'_>,
     id: &str,
     kind: &str,
     now: i64,
@@ -73,7 +74,7 @@ async fn emit_relation_created(
             space_id,
             events::EventEntity::new("relation", id),
             "created",
-            events::EventActor::new("agent", Some(agent_id)),
+            actor,
             &payload,
             now,
         ),
@@ -84,7 +85,7 @@ async fn emit_relation_created(
 pub(super) async fn add_provenance(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
-    agent_id: &str,
+    actor: events::EventActor<'_>,
     operations: &[KnowledgeChange],
     now: i64,
     state: &ApplyState,
@@ -117,7 +118,7 @@ pub(super) async fn add_provenance(
                 locator,
                 source_revision,
                 quote,
-                agent_id,
+                actor,
                 now,
             },
         )

@@ -45,7 +45,6 @@ pub enum StepState {
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub enum WaitReason {
-    Approval,
     ContentReview,
     Executor,
     ExternalReconciliation,

@@ -164,9 +164,9 @@ Personal workflows use captured derivation steps and explicit resource slots rat
 recipe graph.
 The built-in assistant calls Knovum Space Actions. Desktop Agents manage external tools in their
 own runtime; the Space package does not export Agent tool configuration.
-The model conversation exposes read Actions and resource creation Actions through one tool
-catalog. Each non-read Action pauses for the existing exact-plan approval in the conversation;
-structure mutations and bulk knowledge edits are outside the model tool catalog. Built-in
+The model conversation exposes all registered Space Actions through one tool catalog in Execute
+mode. Built-in and desktop Agents execute under authenticated task grants without per-operation
+confirmation; Ask and Plan modes expose read actions only. Built-in
 recipe Runs that need content review appear in Task Center. The reviewer can inspect the
 current draft or subtitles, edit the resource on the canvas, then approve the revision actually
 displayed. Rust validates that revision and settles the waiting step in one transaction.

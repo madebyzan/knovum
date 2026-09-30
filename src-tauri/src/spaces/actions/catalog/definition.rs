@@ -1,9 +1,8 @@
 use crate::ai::contracts::{ExecutionCapability, RoutingPurpose};
 
 use super::super::{
-    ParameterSchemaFactory, SpaceActionApprovalPolicy, SpaceActionDefinition,
-    SpaceActionExecutionMode, SpaceActionImpact, SpaceActionInputConsistency, SpaceActionInputRole,
-    SpaceActionOutputContract,
+    ParameterSchemaFactory, SpaceActionDefinition, SpaceActionExecutionMode, SpaceActionImpact,
+    SpaceActionInputConsistency, SpaceActionInputRole, SpaceActionOutputContract,
 };
 
 struct ActionBinding {
@@ -130,11 +129,6 @@ const fn definition(
         version: 1,
         impact,
         execution_mode,
-        approval_policy: if !matches!(impact, SpaceActionImpact::ReadOnly) {
-            SpaceActionApprovalPolicy::ExactPlan
-        } else {
-            SpaceActionApprovalPolicy::TaskGrant
-        },
         input_consistency: SpaceActionInputConsistency::PinnedRevision,
         execution_capability: binding.capability,
         routing_purpose: binding.purpose,

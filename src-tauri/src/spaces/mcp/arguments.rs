@@ -48,9 +48,6 @@ pub(super) struct CommitKnowledgeArgs {
     pub(super) space_id: String,
     pub(super) idempotency_key: String,
     pub(super) operations: Value,
-    /// Retry an unchanged plan after the user approved the returned approvalId.
-    #[serde(default)]
-    pub(super) approval_id: Option<String>,
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]
@@ -90,8 +87,6 @@ pub(super) struct InvokeActionArgs {
     pub(super) input_snapshot: Value,
     #[serde(default)]
     pub(super) expected_revisions: Value,
-    #[serde(default)]
-    pub(super) approval_id: Option<String>,
 }
 
 fn default_limit() -> i64 {

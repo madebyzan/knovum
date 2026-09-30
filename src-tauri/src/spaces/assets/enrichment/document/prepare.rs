@@ -14,6 +14,7 @@ pub(in crate::spaces::assets::enrichment) fn pdf(
     document: &PdfDocumentContent,
     revision: &str,
     cancellation: &tokio_util::sync::CancellationToken,
+    claim_managed_path: &mut dyn FnMut(&Path) -> Result<(), String>,
 ) -> Result<DocumentCoverage, String> {
     let mut report = DocumentCoverage {
         schema_version: 1,
@@ -40,17 +41,19 @@ pub(in crate::spaces::assets::enrichment) fn pdf(
             analysis: None,
         });
     }
-    super::raster::materialize_all(app, source, &mut report, cancellation)?;
+    super::raster::materialize_all(app, source, &mut report, cancellation, claim_managed_path)?;
     report.validate()?;
     Ok(report)
 }
 
 pub(in crate::spaces::assets::enrichment) fn office(
     app: &AppHandle,
+    source: &Path,
     images: Vec<DocumentImage>,
     warnings: Vec<String>,
     revision: &str,
     cancellation: &tokio_util::sync::CancellationToken,
+    claim_managed_path: &mut dyn FnMut(&Path) -> Result<(), String>,
 ) -> Result<DocumentCoverage, String> {
     let mut report = DocumentCoverage {
         schema_version: 1,
@@ -82,7 +85,7 @@ pub(in crate::spaces::assets::enrichment) fn office(
         match image
             .data
             .as_deref()
-            .map(|bytes| resource::save(app, bytes))
+            .map(|bytes| resource::save(app, source, bytes, claim_managed_path))
         {
             Some(Ok(resource)) => {
                 occurrence.resource_id = Some(resource.id.clone());

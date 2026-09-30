@@ -430,23 +430,6 @@ CREATE TABLE spaces_authorization_grants (
   FOREIGN KEY (home_space_id) REFERENCES spaces(id) ON DELETE CASCADE
 );
 
-CREATE TABLE spaces_action_approvals (
-  id TEXT PRIMARY KEY NOT NULL,
-  grant_id TEXT NOT NULL,
-  space_id TEXT NOT NULL,
-  action_id TEXT NOT NULL,
-  plan_digest TEXT NOT NULL CHECK (length(plan_digest) = 64),
-  plan TEXT NOT NULL CHECK (json_valid(plan)),
-  expected_revisions TEXT NOT NULL CHECK (json_valid(expected_revisions)),
-  valid_until INTEGER NOT NULL,
-  decision TEXT NOT NULL DEFAULT 'pending' CHECK (decision IN ('pending','approved','rejected')),
-  decided_at INTEGER,
-  consumed_at INTEGER,
-  created_at INTEGER NOT NULL,
-  FOREIGN KEY (grant_id) REFERENCES spaces_authorization_grants(id) ON DELETE CASCADE,
-  FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE
-);
-
 CREATE TABLE spaces_action_invocations (
   id TEXT PRIMARY KEY NOT NULL,
   principal_kind TEXT NOT NULL,
@@ -456,7 +439,7 @@ CREATE TABLE spaces_action_invocations (
   action_version INTEGER NOT NULL CHECK (action_version > 0),
   idempotency_key TEXT NOT NULL,
   request_digest TEXT NOT NULL CHECK (length(request_digest) = 64),
-  outcome_kind TEXT NOT NULL CHECK (outcome_kind IN ('query_result','committed_receipt','accepted_run','requires_approval')),
+  outcome_kind TEXT NOT NULL CHECK (outcome_kind IN ('query_result','committed_receipt','accepted_run')),
   outcome TEXT NOT NULL CHECK (json_valid(outcome)),
   created_at INTEGER NOT NULL,
   FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE,
@@ -561,6 +544,8 @@ CREATE TABLE spaces_external_agent_conversations (
   session_capabilities TEXT CHECK (session_capabilities IS NULL OR json_valid(session_capabilities)),
   title TEXT NOT NULL,
   state TEXT NOT NULL CHECK (state IN ('connecting','connected','disconnected','closed')),
+  output_publication_state TEXT NOT NULL DEFAULT 'pending' CHECK (output_publication_state IN ('pending','publishing','committed','failed')),
+  output_publication_error TEXT,
   error TEXT,
   created_at INTEGER NOT NULL,
   updated_at INTEGER NOT NULL, assistant_conversation_id TEXT REFERENCES spaces_assistant_conversations(id) ON DELETE CASCADE, branch_id TEXT,
@@ -577,6 +562,15 @@ CREATE TABLE spaces_external_agent_turns (
   completed_at INTEGER, assistant_message_id TEXT
   REFERENCES spaces_assistant_messages(id) ON DELETE SET NULL,
   FOREIGN KEY (conversation_id) REFERENCES spaces_external_agent_conversations(id) ON DELETE CASCADE
+);
+
+CREATE TABLE spaces_external_output_staging (
+  run_id TEXT NOT NULL,
+  path TEXT NOT NULL CHECK (length(path) > 0),
+  role TEXT NOT NULL CHECK (role IN ('asset','preview','embedded')),
+  created_at INTEGER NOT NULL,
+  PRIMARY KEY (run_id, path),
+  FOREIGN KEY (run_id) REFERENCES spaces_runs(id) ON DELETE CASCADE
 );
 
 CREATE TABLE spaces_workflow_templates (
@@ -1062,6 +1056,9 @@ CREATE INDEX spaces_run_events_run_sequence ON spaces_run_events(run_id, sequenc
 
 CREATE INDEX spaces_external_agent_conversations_space
   ON spaces_external_agent_conversations(space_id, updated_at DESC);
+
+CREATE INDEX spaces_external_output_staging_path
+  ON spaces_external_output_staging(path);
 
 CREATE UNIQUE INDEX spaces_external_agent_turns_active
   ON spaces_external_agent_turns(conversation_id) WHERE state='running';

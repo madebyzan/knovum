@@ -6,7 +6,6 @@ pub(super) fn handler() -> impl Fn(Invoke<tauri::Wry>) -> bool + Send + Sync + '
         crate::spaces::agent_artifacts::recovery::list_recoverable_artifact_workspaces,
         crate::spaces::agent_artifacts::preview_generated_artifact,
         crate::spaces::agent_artifacts::create_agent_artifacts,
-        crate::external_agents::permissions::decide_external_agent_permission,
         crate::spaces::agent_artifacts::import::stage_generated_artifact_import,
         crate::spaces::agent_artifacts::consume_agent_artifact,
         crate::spaces::assets::audio::commands::start_audio_recording,

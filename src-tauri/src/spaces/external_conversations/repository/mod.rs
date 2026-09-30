@@ -152,9 +152,10 @@ pub async fn finish_turn(
     sqlx::query(
         "DELETE FROM spaces_assistant_messages WHERE id=(
            SELECT assistant_message_id FROM spaces_external_agent_turns WHERE id=$1
-         ) AND json_extract(content,'$.parts[0].text')=''",
+         ) AND json_extract(content,'$.parts[0].text')='' AND $2 <> 'completed'",
     )
     .bind(turn_id)
+    .bind(state)
     .execute(pool)
     .await
     .map_err(db::sql_error)?;
@@ -174,6 +175,14 @@ pub async fn has_turn_output(pool: &SqlitePool, turn_id: &str) -> Result<bool, S
                WHERE e.run_id=c.run_id AND e.created_at>=t.created_at
                  AND e.kind IN ('external_agent_tool_started','external_agent_tool_updated')
                  AND json_extract(e.payload,'$.status')='completed')
+             OR EXISTS(SELECT 1 FROM spaces_knowledge_events e
+               WHERE e.space_id=c.space_id AND e.entity_kind='node'
+                 AND e.event_kind='created' AND e.actor_kind='agent'
+                 AND e.actor_id=c.id AND e.created_at>=t.created_at)
+             OR EXISTS(SELECT 1 FROM spaces_action_invocations a
+               WHERE a.space_id=c.space_id AND a.principal_kind='external_agent'
+                 AND a.principal_id=c.id AND a.created_at>=t.created_at
+                 AND a.outcome_kind IN ('accepted_run','committed_receipt'))
            ))",
     )
     .bind(turn_id)

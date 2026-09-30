@@ -62,10 +62,19 @@ pub(crate) async fn execute_durable(
     app: &AppHandle,
     action_id: &str,
     run_id: &str,
+    execution_epoch: i64,
     space_id: &str,
     parameters: &Value,
     inputs: &Value,
 ) -> Result<Value, String> {
-    crate::spaces::derivation::execute_action(app, action_id, run_id, space_id, parameters, inputs)
-        .await
+    crate::spaces::derivation::execute_action(
+        app,
+        action_id,
+        run_id,
+        execution_epoch,
+        space_id,
+        parameters,
+        inputs,
+    )
+    .await
 }

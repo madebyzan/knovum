@@ -1,6 +1,6 @@
 use sqlx::{Sqlite, SqlitePool, Transaction};
 
-mod approval;
+mod authorization;
 mod durable;
 
 use super::{digest::request_digest, store, ActionInvocationOutcome, ActionInvocationRequest};
@@ -21,22 +21,11 @@ pub async fn invoke(
     let now = crate::clock::unix_time_millis()?;
     let mut tx = db::begin_write(pool).await?;
     let authorization = load_grant(&mut tx, &request.grant_id).await?;
-    approval::authorize(&authorization, definition, &request, now)?;
-    approval::require_active_parent(&mut tx, request.parent_run_id.as_deref()).await?;
+    authorization::authorize(&authorization, definition, &request, now)?;
+    authorization::require_active_parent(&mut tx, request.parent_run_id.as_deref()).await?;
     if let Some(outcome) = store::load_existing(&mut tx, &request, &digest).await? {
-        if request.approval_id.is_none()
-            || !matches!(outcome, ActionInvocationOutcome::RequiresApproval { .. })
-        {
-            tx.commit().await.map_err(db::sql_error)?;
-            return Ok(outcome);
-        }
-    }
-    if approval::required(authorization.principal.kind, definition) {
-        if let Some(outcome) = approval::handle(&mut tx, &request, &digest, now).await? {
-            store::save_outcome(&mut tx, &request, &authorization, &digest, &outcome, now).await?;
-            tx.commit().await.map_err(db::sql_error)?;
-            return Ok(outcome);
-        }
+        tx.commit().await.map_err(db::sql_error)?;
+        return Ok(outcome);
     }
     let outcome = execute(
         &mut tx,

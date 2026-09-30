@@ -13,7 +13,6 @@ pub struct ActionInvocationRequest {
     pub parameters: Value,
     pub input_snapshot: Value,
     pub expected_revisions: Value,
-    pub approval_id: Option<String>,
     pub parent_run_id: Option<String>,
 }
 
@@ -24,19 +23,9 @@ pub struct ActionInvocationRequest {
     rename_all_fields = "camelCase"
 )]
 pub enum ActionInvocationOutcome {
-    QueryResult {
-        result: Value,
-    },
-    CommittedReceipt {
-        receipt: Value,
-    },
-    AcceptedRun {
-        run_id: String,
-    },
-    RequiresApproval {
-        approval_id: String,
-        plan_digest: String,
-    },
+    QueryResult { result: Value },
+    CommittedReceipt { receipt: Value },
+    AcceptedRun { run_id: String },
 }
 
 impl ActionInvocationRequest {

@@ -29,6 +29,7 @@ pub(crate) async fn start(
     app: AppHandle,
     space_id: String,
     actor_id: String,
+    parent_run_id: String,
 ) -> Result<AgentMcpBinding, String> {
     let grant_id = create_session_grant(&app, &space_id, &actor_id).await?;
     let listener = tokio::net::TcpListener::bind(("127.0.0.1", 0))
@@ -45,6 +46,7 @@ pub(crate) async fn start(
         token.clone(),
         Some(space_id),
         grant_id,
+        parent_run_id,
         cancellation.child_token(),
     );
     let shutdown = cancellation.clone();

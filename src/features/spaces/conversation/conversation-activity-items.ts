@@ -20,11 +20,6 @@ const toolPayload = z.object({
   detail: z.unknown().optional(),
 });
 const textPayload = z.object({ text: z.string() });
-const permissionPayload = z.object({
-  requestId: z.string(),
-  title: z.string(),
-  options: z.array(z.object({ label: z.string() })),
-});
 const toolEvents = new Set([
   "external_agent_tool_started",
   "external_agent_tool_updated",
@@ -50,18 +45,6 @@ function appendCommentary(state: ActivityState, event: RunEvent) {
   if (!state.commentary.trim()) return;
   state.items.push({ id: `text:${event.sequence}`, title: state.commentary.trim(), status: "commentary" });
   state.commentary = "";
-}
-
-function appendPermission(state: ActivityState, event: RunEvent) {
-  const parsed = permissionPayload.safeParse(event.payload);
-  if (!parsed.success) return;
-  appendCommentary(state, event);
-  state.items.push({
-    id: `permission:${parsed.data.requestId}`,
-    title: parsed.data.title,
-    status: "permission",
-    detail: parsed.data.options.map((option) => option.label).join(" · "),
-  });
 }
 
 function toolTitle(
@@ -120,8 +103,7 @@ export function conversationActivityItems(
     if (event.kind === "external_agent_message") {
       const parsed = textPayload.safeParse(event.payload);
       if (parsed.success) state.commentary += parsed.data.text;
-    } else if (event.kind === "external_agent_permission_requested") appendPermission(state, event);
-    else appendTool(state, event, results, labels);
+    } else appendTool(state, event, results, labels);
   }
   return state.items;
 }

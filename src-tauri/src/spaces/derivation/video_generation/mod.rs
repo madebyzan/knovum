@@ -50,13 +50,40 @@ pub async fn generate(
     request: GenerateVideoRequest,
     stages: Channel<String>,
 ) -> Result<VideoOutput, String> {
+    generate_inner(
+        super::action_execution::ExecutionAuthority::DirectCommand,
+        app,
+        request,
+        stages,
+    )
+    .await
+}
+
+pub(super) async fn generate_for_action(
+    authority: super::action_execution::ExecutionAuthority,
+    app: AppHandle,
+    request: GenerateVideoRequest,
+    stages: Channel<String>,
+) -> Result<VideoOutput, String> {
+    generate_inner(authority, app, request, stages).await
+}
+
+async fn generate_inner(
+    authority: super::action_execution::ExecutionAuthority,
+    app: AppHandle,
+    request: GenerateVideoRequest,
+    stages: Channel<String>,
+) -> Result<VideoOutput, String> {
     let (cancellation, _lease) = registry::acquire(&request.id)?;
+    authority
+        .require_active(crate::spaces::db::pool(&app).await?)
+        .await?;
     let output = match settings::resolve(
         &app,
         request.target.clone(),
         ExecutionCapability::VideoGeneration,
     ) {
-        Ok(target) => execute(&app, &request, &target, stages, &cancellation).await,
+        Ok(target) => execute(&app, &request, &target, stages, &cancellation, &authority).await,
         Err(error) => Err(error.to_string()),
     };
     output
@@ -68,8 +95,9 @@ async fn execute(
     target: &ExecutionTarget,
     stages: Channel<String>,
     cancellation: &tokio_util::sync::CancellationToken,
+    authority: &super::action_execution::ExecutionAuthority,
 ) -> Result<VideoOutput, String> {
-    let prepared = match preparation::start(app, request, target).await {
+    let prepared = match preparation::start(app, request, target, authority).await {
         Ok(prepared) => prepared,
         Err(error) => {
             super::failure::fail_pending(
@@ -108,7 +136,7 @@ async fn execute(
         super::failure::fail_message(app, &request.id, &message).await?;
         return Err(message);
     }
-    let completion = completion::complete(app, request, &prepared.path, generated).await;
+    let completion = completion::complete(app, request, &prepared.path, generated, authority).await;
     if let Err(error) = &completion {
         let _ = tokio::fs::remove_file(prepared.path).await;
         super::failure::fail_message(app, &request.id, error).await?;

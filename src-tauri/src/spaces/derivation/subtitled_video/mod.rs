@@ -40,8 +40,35 @@ pub(super) async fn render(
     request: RenderSubtitledVideoRequest,
     on_progress: Channel<SubtitledVideoProgress>,
 ) -> Result<CompletedDerivationOutput, String> {
+    render_inner(
+        super::action_execution::ExecutionAuthority::DirectCommand,
+        app,
+        request,
+        on_progress,
+    )
+    .await
+}
+
+pub(super) async fn render_for_action(
+    authority: super::action_execution::ExecutionAuthority,
+    app: AppHandle,
+    request: RenderSubtitledVideoRequest,
+    on_progress: Channel<SubtitledVideoProgress>,
+) -> Result<CompletedDerivationOutput, String> {
+    render_inner(authority, app, request, on_progress).await
+}
+
+async fn render_inner(
+    authority: super::action_execution::ExecutionAuthority,
+    app: AppHandle,
+    request: RenderSubtitledVideoRequest,
+    on_progress: Channel<SubtitledVideoProgress>,
+) -> Result<CompletedDerivationOutput, String> {
     let (cancellation, _lease) = registry::acquire(request.id.clone())?;
-    let source = start::start(&app, &request).await?;
+    authority
+        .require_active(crate::spaces::db::pool(&app).await?)
+        .await?;
+    let source = start::start(&app, &request, &authority).await?;
     let execution_app = app.clone();
     let execution_id = request.id.clone();
     let rendered = blocking::run(move || {
@@ -57,7 +84,7 @@ pub(super) async fn render(
     match rendered {
         Ok(output) => {
             let path = output.path.clone();
-            match persistence::complete(&app, &request.id, output).await {
+            match persistence::complete(&app, &request.id, output, &authority).await {
                 Ok(completed) => Ok(completed),
                 Err(error) => {
                     tokio::fs::remove_file(path).await.map_err(|cleanup| {

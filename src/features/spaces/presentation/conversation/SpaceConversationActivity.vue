@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Check, ChevronRight, Circle, Shield, Wrench } from "@lucide/vue";
+import { Check, ChevronRight, Circle, Wrench } from "@lucide/vue";
 import { computed, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { z } from "zod";
@@ -131,7 +131,6 @@ function toggleTool(event: Event, id: string) {
               "
               class="size-3.5 shrink-0 text-fg-danger"
             />
-            <Shield v-else-if="item.status === 'permission'" class="size-3.5 shrink-0" />
             <Wrench v-else class="size-3.5 shrink-0" />
             <SpaceConversationShimmerText
               v-if="active && (item.status === 'in_progress' || item.status === 'pending')"

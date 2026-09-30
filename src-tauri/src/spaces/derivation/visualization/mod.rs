@@ -52,6 +52,30 @@ pub async fn generate(
     request: GenerateVisualizationRequest,
     stages: Channel<String>,
 ) -> Result<VisualizationOutput, String> {
+    generate_inner(
+        super::action_execution::ExecutionAuthority::DirectCommand,
+        app,
+        request,
+        stages,
+    )
+    .await
+}
+
+pub(super) async fn generate_for_action(
+    authority: super::action_execution::ExecutionAuthority,
+    app: AppHandle,
+    request: GenerateVisualizationRequest,
+    stages: Channel<String>,
+) -> Result<VisualizationOutput, String> {
+    generate_inner(authority, app, request, stages).await
+}
+
+async fn generate_inner(
+    authority: super::action_execution::ExecutionAuthority,
+    app: AppHandle,
+    request: GenerateVisualizationRequest,
+    stages: Channel<String>,
+) -> Result<VisualizationOutput, String> {
     let target = settings::resolve(
         &app,
         request.target.clone(),
@@ -60,7 +84,10 @@ pub async fn generate(
     .map_err(|error| error.to_string())?;
     let (cancellation, _lease) =
         crate::ai::executions::acquire(request.id.clone()).map_err(|error| error.to_string())?;
-    if let Err(error) = persistence::start(&app, &request, &target).await {
+    authority
+        .require_active(crate::spaces::db::pool(&app).await?)
+        .await?;
+    if let Err(error) = persistence::start(&app, &request, &target, &authority).await {
         super::failure::fail_pending(
             &app,
             &request.space_id,
@@ -76,7 +103,7 @@ pub async fn generate(
         generated_visualization = execution => generated_visualization,
     };
     match generated_visualization {
-        Ok(image) => persistence::complete(&app, &request, image).await,
+        Ok(image) => persistence::complete(&app, &request, image, &authority).await,
         Err(error) => {
             persistence::fail(&app, &request.id, &error).await?;
             Err(error)

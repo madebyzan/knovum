@@ -13,9 +13,11 @@ pub async fn complete(
     app: &AppHandle,
     request: &GenerateGroundedDocumentRequest,
     generated: GeneratedDocument,
+    authority: &super::super::action_execution::ExecutionAuthority,
 ) -> Result<GroundedDocumentOutput, String> {
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
+    authority.require_active(&mut *tx).await?;
     let data: String = sqlx::query_scalar("SELECT n.data FROM spaces_knowledge_derivations d JOIN spaces_nodes n ON n.id=d.output_node_id WHERE d.id=$1 AND d.status='running'")
         .bind(&request.id).fetch_optional(&mut *tx).await.map_err(db::sql_error)?
         .ok_or("Grounded document derivation is no longer running")?;

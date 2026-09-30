@@ -125,29 +125,9 @@ pub struct AssistantTaskAccepted {
 #[ts(export_to = "../../../features/spaces/contracts/generated/AssistantTaskUpdate.ts")]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum AssistantTaskUpdate {
-    ContentDelta {
-        task_id: String,
-        text: String,
-    },
+    ContentDelta { task_id: String, text: String },
     ContentBoundary,
-    PermissionRequested {
-        session_id: String,
-        request_id: String,
-        title: String,
-        options: Vec<AssistantPermissionOption>,
-    },
-    Finished {
-        state: String,
-    },
-}
-
-#[derive(Clone, Debug, Serialize, TS)]
-#[ts(export_to = "../../../features/spaces/contracts/generated/AssistantPermissionOption.ts")]
-#[serde(rename_all = "camelCase")]
-pub struct AssistantPermissionOption {
-    pub id: String,
-    pub label: String,
-    pub kind: String,
+    Finished { state: String },
 }
 
 #[derive(Clone, Debug, Serialize, TS)]

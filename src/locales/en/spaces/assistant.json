@@ -51,11 +51,6 @@
     "branchCreated": "Switched to the new branch",
     "returnToRunning": "A conversation task is running. Return to its conversation."
   },
-  "approval": {
-    "plan": "Exact action plan",
-    "title": "Allow “{action}” to run?",
-    "hint": "Review this action's parameters and impact. Approval applies only to this plan."
-  },
   "evidence": {
     "sourceRationale": "Sources and evidence",
     "ask": "Ask question",
@@ -88,7 +83,6 @@
     "permissionError": "This file is not available. Select it again in the system file dialog."
   },
   "tasks": {
-    "needsAttention": "This action needs your decision in the conversation.",
     "waitingForResult": "Waiting for the operation to finish…",
     "failed": "The conversation task failed. Return to the conversation for details.",
     "paused": "This task is paused. You can continue it when ready.",
@@ -97,6 +91,9 @@
   "response": {
     "stopped": "Stopped",
     "incomplete": "Response incomplete"
+  },
+  "outputs": {
+    "added": "Added to canvas · {count}"
   },
   "messages": {
     "copy": "Copy message",
@@ -108,11 +105,6 @@
   "regenerate": "Regenerate",
   "stop": "Stop",
   "sources": "Sources · {count}",
-  "permission": {
-    "request": "Desktop Agent requests permission",
-    "return": "The desktop Agent is waiting for your decision. Return to its conversation.",
-    "deny": "Deny this request"
-  },
   "actions": {
     "viewCreated": "Locate result"
   },

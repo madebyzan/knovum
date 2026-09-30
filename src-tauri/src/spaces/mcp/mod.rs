@@ -19,6 +19,7 @@ struct SpaceMcpServer {
     app: AppHandle,
     space_scope: Option<String>,
     grant_id: String,
+    parent_run_id: String,
 }
 
 impl SpaceMcpServer {

@@ -60,7 +60,7 @@ pub(super) async fn execute(
             input_snapshot["targets"] = json!({});
             input_snapshot["targets"][definition.id] = json!(&request.target);
         }
-        let mut invocation = ActionInvocationRequest {
+        let invocation = ActionInvocationRequest {
             invocation_id: invocation_id.clone(),
             idempotency_key: invocation_id,
             grant_id: ids.grant_id.clone(),
@@ -70,11 +70,10 @@ pub(super) async fn execute(
             parameters,
             input_snapshot,
             expected_revisions: Value::Null,
-            approval_id: None,
             parent_run_id: Some(ids.run_id.clone()),
         };
-        let outcome = actions::invoke(pool, invocation.clone()).await?;
-        let value = settlement::settle(pool, &ids.run_id, &mut invocation, outcome).await?;
+        let outcome = actions::invoke(pool, invocation).await?;
+        let value = settlement::settle(pool, &ids.run_id, outcome).await?;
         complete_tool(pool, ids, &call, &record.id, &action_id, value.clone()).await?;
         results.push(RuntimeToolReply {
             call_id: call.call_id,

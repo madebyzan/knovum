@@ -18,10 +18,12 @@ pub async fn start(
     app: &AppHandle,
     request: &GenerateVideoRequest,
     target: &ExecutionTarget,
+    authority: &super::super::action_execution::ExecutionAuthority,
 ) -> Result<PreparedVideo, String> {
     validate_request(request)?;
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
+    authority.require_active(&mut *tx).await?;
     let asset_directory = asset_directory(app)?;
     for input in &request.inputs {
         contracts::validate_same_space_node(

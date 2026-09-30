@@ -9,10 +9,12 @@ use crate::spaces::{db, knowledge::contracts};
 pub async fn start(
     app: &AppHandle,
     request: &RenderSubtitledVideoRequest,
+    authority: &super::super::action_execution::ExecutionAuthority,
 ) -> Result<VideoSubtitleSource, String> {
     validate_job_id(&request.id)?;
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
+    authority.require_active(&mut *tx).await?;
     contracts::validate_same_space_node(
         &mut tx,
         &request.space_id,

@@ -14,7 +14,7 @@ pub(in crate::spaces::knowledge::change_commit) struct ProvenanceInsert<'a> {
     pub locator: &'a Value,
     pub source_revision: &'a str,
     pub quote: &'a str,
-    pub agent_id: &'a str,
+    pub actor: events::EventActor<'a>,
     pub now: i64,
 }
 
@@ -35,7 +35,7 @@ pub(in crate::spaces::knowledge::change_commit) async fn insert_provenance(
     let id = uuid::Uuid::new_v4().to_string();
     sqlx::query(
         "INSERT INTO spaces_provenance(id,space_id,target_kind,target_id,source_node_id,locator,source_revision,quote,status,actor_kind,actor_id,created_at,updated_at) \
-         VALUES($1,$2,$3,$4,$5,$6,$7,$8,'active','agent',$9,$10,$10)",
+         VALUES($1,$2,$3,$4,$5,$6,$7,$8,'active',$9,$10,$11,$11)",
     )
     .bind(&id)
     .bind(input.space_id)
@@ -45,7 +45,8 @@ pub(in crate::spaces::knowledge::change_commit) async fn insert_provenance(
     .bind(locator)
     .bind(input.source_revision)
     .bind(input.quote)
-    .bind(input.agent_id)
+    .bind(input.actor.kind())
+    .bind(input.actor.id())
     .bind(input.now)
     .execute(&mut **tx)
     .await
@@ -68,7 +69,7 @@ async fn emit_created(
             input.space_id,
             events::EventEntity::new("provenance", id),
             "created",
-            events::EventActor::new("agent", Some(input.agent_id)),
+            input.actor,
             &payload,
             input.now,
         ),

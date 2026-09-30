@@ -15,9 +15,11 @@ pub async fn complete(
     request: &GenerateVideoRequest,
     expected_path: &str,
     generated: GeneratedVideo,
+    authority: &super::super::action_execution::ExecutionAuthority,
 ) -> Result<VideoOutput, String> {
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
+    authority.require_active(&mut *tx).await?;
     let encoded: String = sqlx::query_scalar(
         "SELECT n.data FROM spaces_knowledge_derivations d JOIN spaces_nodes n \
          ON n.id=d.output_node_id AND n.space_id=d.space_id \

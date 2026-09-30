@@ -23,11 +23,22 @@ pub struct AssistantMessageContent {
     pub run_id: Option<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub attachments: Vec<AssistantMessageAttachment>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub outputs: Vec<AssistantMessageOutput>,
     #[serde(default)]
     #[ts(type = "Array<unknown>")]
     pub citations: Vec<Value>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub status: Option<AssistantMessageStatus>,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize, TS)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
+pub struct AssistantMessageOutput {
+    pub node_id: String,
+    pub title: String,
+    pub kind: String,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, TS)]

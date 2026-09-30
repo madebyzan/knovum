@@ -95,7 +95,7 @@ pub(super) async fn remaining_duration(
 }
 
 pub(super) async fn ensure_active(pool: &SqlitePool, run_id: &str) -> Result<(), String> {
-    let active: Option<i64> = sqlx::query_scalar("SELECT 1 FROM spaces_runs WHERE id=$1 AND state='running' AND cancel_requested_at IS NULL AND pause_requested_at IS NULL AND completed_at IS NULL")
+    let active: Option<i64> = sqlx::query_scalar("SELECT 1 FROM spaces_runs WHERE id=$1 AND state IN ('running','waiting') AND cancel_requested_at IS NULL AND pause_requested_at IS NULL AND completed_at IS NULL")
         .bind(run_id).fetch_optional(pool).await.map_err(db::sql_error)?;
     active
         .ok_or_else(|| "assistant-task-inactive: task was cancelled, paused, or completed".into())

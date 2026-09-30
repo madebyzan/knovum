@@ -1,7 +1,10 @@
 mod contract;
 mod lifecycle;
+mod publication;
+mod publication_ownership;
 mod repository;
 mod runtime;
+mod staging;
 mod updates;
 
 pub(crate) use contract::{AgentSessionBinding, StartExternalConversationRequest};

@@ -22,7 +22,6 @@ const {
   prompt,
   running,
   status,
-  pendingPermission,
   artifacts,
   selectedArtifacts,
   agentOptions,
@@ -31,7 +30,6 @@ const {
   canRun,
   selectedCount,
   run,
-  decidePermission,
   discardCurrent,
   importSelected,
   preview,
@@ -107,32 +105,6 @@ watch(open, (isOpen) => {
         </span>
       </div>
       <p v-if="status" class="line-clamp-3 text-caption text-fg-secondary">{{ status }}</p>
-      <section
-        v-if="pendingPermission"
-        class="space-y-3 rounded-panel border border-stroke-warning/40 bg-surface-warning-subtle p-3"
-        aria-live="assertive"
-      >
-        <div>
-          <p class="text-label text-fg-primary">{{ pendingPermission.title }}</p>
-          <p class="text-caption text-fg-secondary">
-            {{ t("spaces.creation.agent.permissionDescription") }}
-          </p>
-        </div>
-        <div class="flex flex-wrap gap-2">
-          <UiButton
-            v-for="option in pendingPermission.options"
-            :key="option.id"
-            size="sm"
-            :variant="option.kind.startsWith('allow') ? 'primary' : 'dangerSubtle'"
-            @click="decidePermission(option.id)"
-          >
-            {{ option.label }}
-          </UiButton>
-          <UiButton size="sm" variant="ghost" @click="decidePermission(null)">
-            {{ t("common.cancel") }}
-          </UiButton>
-        </div>
-      </section>
       <SpaceAgentArtifactPicker
         v-if="artifacts.length"
         :artifacts="artifacts"

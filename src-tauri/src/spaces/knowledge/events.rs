@@ -14,6 +14,7 @@ impl<'a> EventEntity<'a> {
     }
 }
 
+#[derive(Clone, Copy)]
 pub struct EventActor<'a> {
     kind: &'a str,
     id: Option<&'a str>,
@@ -22,6 +23,14 @@ pub struct EventActor<'a> {
 impl<'a> EventActor<'a> {
     pub fn new(kind: &'a str, id: Option<&'a str>) -> Self {
         Self { kind, id }
+    }
+
+    pub fn kind(self) -> &'a str {
+        self.kind
+    }
+
+    pub fn id(self) -> Option<&'a str> {
+        self.id
     }
 }
 

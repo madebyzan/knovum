@@ -9,6 +9,74 @@ use crate::spaces::knowledge::indexing::revision as knowledge_revision;
 use node_payload::{load_node_content, required_string};
 use persistence::persist_processing_state;
 
+pub(crate) struct FinalizedImport {
+    pub data: Value,
+    pub source_chunks: Vec<crate::spaces::knowledge::indexing::KnowledgeChunkInput>,
+}
+
+pub(crate) fn reserve_import_preview(
+    app: &AppHandle,
+    asset: &super::PreparedAsset,
+) -> Result<Option<PathBuf>, String> {
+    if asset.preview_language.as_deref() == Some("html")
+        || !matches!(asset.kind, "image" | "video" | "audio" | "file" | "code")
+    {
+        return Ok(None);
+    }
+    let Some(source) = asset.path.as_deref() else {
+        return Ok(None);
+    };
+    crate::spaces::previews::reserved_thumbnail_path(app, std::path::Path::new(source))
+}
+
+pub(crate) fn finalize_import(
+    app: &AppHandle,
+    mut asset: super::PreparedAsset,
+    reserved_preview: Option<&std::path::Path>,
+    cancellation: &CancellationToken,
+    claim_preview_path: &mut dyn FnMut(&std::path::Path) -> Result<(), String>,
+    claim_embedded_path: &mut dyn FnMut(&std::path::Path) -> Result<(), String>,
+) -> Result<FinalizedImport, String> {
+    let Some(source) = asset.path.as_deref().map(PathBuf::from) else {
+        let mut data = super::node_payload::from_import(asset)?;
+        knowledge_revision::apply(&mut data)?;
+        return Ok(FinalizedImport {
+            data,
+            source_chunks: Vec::new(),
+        });
+    };
+    let revision = asset
+        .source_revision
+        .clone()
+        .ok_or("Imported asset has no source revision")?;
+    if matches!(asset.kind, "image" | "video" | "audio" | "file" | "code") {
+        crate::spaces::previews::enrich_visual_at(
+            app,
+            &source,
+            &mut asset,
+            cancellation,
+            reserved_preview,
+            claim_preview_path,
+        )?;
+    }
+    content::extract_owned(
+        app,
+        &source,
+        &revision,
+        &mut asset,
+        cancellation,
+        claim_embedded_path,
+    )?;
+    asset.processing_state = None;
+    let source_chunks = persistence::take_chunks(&mut asset);
+    let mut data = super::node_payload::from_import(asset)?;
+    knowledge_revision::apply(&mut data)?;
+    Ok(FinalizedImport {
+        data,
+        source_chunks,
+    })
+}
+
 pub const ASSET_PROCESSING_CANCELLED: &str = "space-asset-processing-cancelled";
 
 pub async fn enrich_node_with_cancellation(

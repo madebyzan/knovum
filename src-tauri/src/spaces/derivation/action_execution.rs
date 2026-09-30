@@ -1,6 +1,7 @@
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 use serde_json::{Map, Value};
+use sqlx::{Executor, Sqlite};
 use tauri::{ipc::Channel, AppHandle};
 
 use super::{
@@ -11,18 +12,26 @@ pub(crate) async fn execute(
     app: &AppHandle,
     action_id: &str,
     run_id: &str,
+    execution_epoch: i64,
     space_id: &str,
     parameters: &Value,
     inputs: &Value,
 ) -> Result<Value, String> {
+    let authority = ExecutionAuthority::ActionRun {
+        run_id: run_id.to_owned(),
+        execution_epoch,
+    };
     let prepared =
-        super::action_request::prepare(app, action_id, run_id, space_id, parameters, inputs)
+        super::action_request::prepare(app, action_id, space_id, parameters, inputs, &authority)
             .await?;
     let request = request_value(run_id, space_id, parameters, &prepared)?;
     match action_id {
-        "answer-with-sources" => super::grounded_answer::answer(app, decode(request)?).await,
+        "answer-with-sources" => {
+            super::grounded_answer::answer(app, decode(request)?, &authority).await
+        }
         "draft-document" | "draft-script" | "summarize-meeting" | "draft-social-post" => serialize(
-            grounded_document::generate(
+            grounded_document::generate_for_action(
+                authority.clone(),
                 app.clone(),
                 decode(text_request(action_id, request)?)?,
                 quiet_channel(),
@@ -30,7 +39,8 @@ pub(crate) async fn execute(
             .await?,
         ),
         "generate-visualization" | "generate-image" => serialize(
-            visualization::generate(
+            visualization::generate_for_action(
+                authority.clone(),
                 app.clone(),
                 decode(image_request(request)?)?,
                 quiet_channel(),
@@ -38,20 +48,38 @@ pub(crate) async fn execute(
             .await?,
         ),
         "generate-video" => serialize(
-            video_generation::generate(app.clone(), decode(request)?, quiet_channel()).await?,
+            video_generation::generate_for_action(
+                authority.clone(),
+                app.clone(),
+                decode(request)?,
+                quiet_channel(),
+            )
+            .await?,
         ),
-        "extract-subtitles" => serialize(subtitle_extraction::create(app, decode(request)?).await?),
+        "extract-subtitles" => serialize(
+            subtitle_extraction::create_for_action(app, decode(request)?, &authority).await?,
+        ),
         "render-subtitled-video" => serialize(
-            subtitled_video::render(app.clone(), decode(request)?, quiet_channel()).await?,
+            subtitled_video::render_for_action(
+                authority.clone(),
+                app.clone(),
+                decode(request)?,
+                quiet_channel(),
+            )
+            .await?,
         ),
-        "render-presentation" => render_presentation(app, request).await,
+        "render-presentation" => render_presentation(app, request, &authority).await,
         _ => Err(format!(
             "action-executor-unavailable: durable Action {action_id} has no registered handler"
         )),
     }
 }
 
-async fn render_presentation(app: &AppHandle, request: Value) -> Result<Value, String> {
+async fn render_presentation(
+    app: &AppHandle,
+    request: Value,
+    authority: &ExecutionAuthority,
+) -> Result<Value, String> {
     let document = request
         .pointer("/document/data")
         .and_then(Value::as_object)
@@ -63,7 +91,7 @@ async fn render_presentation(app: &AppHandle, request: Value) -> Result<Value, S
     };
     let bytes =
         crate::blocking::run(move || crate::documents::generation::pptx::render(&source)).await?;
-    serialize(super::presentation_publication::publish(app, request, bytes).await?)
+    serialize(super::presentation_publication::publish(app, request, bytes, authority).await?)
 }
 
 pub(crate) async fn cancel(action_id: &str, run_id: &str) -> Result<(), String> {
@@ -72,12 +100,68 @@ pub(crate) async fn cancel(action_id: &str, run_id: &str) -> Result<(), String> 
         | "draft-script"
         | "summarize-meeting"
         | "draft-social-post"
+        | "answer-with-sources"
         | "generate-visualization"
         | "generate-image" => crate::ai::executions::cancel(run_id),
         "generate-video" => video_generation::registry::cancel(run_id),
         "render-subtitled-video" => subtitled_video::cancel(run_id.to_owned()).await,
         _ => Ok(()),
     }
+}
+
+#[derive(Clone, Debug)]
+pub(super) enum ExecutionAuthority {
+    DirectCommand,
+    ActionRun {
+        run_id: String,
+        execution_epoch: i64,
+    },
+}
+
+impl ExecutionAuthority {
+    pub(super) fn action_run_id(&self) -> Result<&str, String> {
+        match self {
+            Self::ActionRun { run_id, .. } => Ok(run_id),
+            Self::DirectCommand => {
+                Err("action-execution-authority-invalid: Action Run authority is required".into())
+            }
+        }
+    }
+
+    pub(super) async fn require_active<'e, E>(&self, executor: E) -> Result<(), String>
+    where
+        E: Executor<'e, Database = Sqlite>,
+    {
+        match self {
+            Self::DirectCommand => Ok(()),
+            Self::ActionRun {
+                run_id,
+                execution_epoch,
+            } => require_active_execution(executor, run_id, *execution_epoch).await,
+        }
+    }
+}
+
+pub(super) async fn require_active_execution<'e, E>(
+    executor: E,
+    run_id: &str,
+    execution_epoch: i64,
+) -> Result<(), String>
+where
+    E: Executor<'e, Database = Sqlite>,
+{
+    let active: Option<i64> = sqlx::query_scalar(
+        "SELECT 1 FROM spaces_runs WHERE id=$1 AND execution_epoch=$2 AND state='running'
+         AND cancel_requested_at IS NULL AND completed_at IS NULL",
+    )
+    .bind(run_id)
+    .bind(execution_epoch)
+    .fetch_optional(executor)
+    .await
+    .map_err(crate::spaces::db::sql_error)?;
+    active
+        .map(|_| ())
+        .ok_or_else(|| "action-execution-stale: Run was cancelled, completed, or superseded".into())
 }
 
 fn request_value(

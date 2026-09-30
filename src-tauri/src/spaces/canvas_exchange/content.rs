@@ -50,50 +50,11 @@ pub(super) fn payload(
                 json!({"kind":"website","title":title,"siteName":title,"url":url.as_str(),"metadataState":"idle"}),
             )
         }
-        JsonCanvasNodeV1::File(_) => {
-            asset_payload(asset.ok_or("JSON Canvas file has no prepared resource")?)
-        }
+        JsonCanvasNodeV1::File(_) => crate::spaces::assets::node_payload::from_import(
+            asset.ok_or("JSON Canvas file has no prepared resource")?,
+        ),
         JsonCanvasNodeV1::Group(_) => Err("A visual group is not a content node".into()),
     }
-}
-
-fn asset_payload(asset: PreparedAsset) -> Result<Value, String> {
-    if asset.kind == "markdown" {
-        let text = asset.text.ok_or("Imported Markdown has no text")?;
-        let (title, text) = markdown_document(&asset.name, &text);
-        return Ok(
-            json!({"kind":"markdown", "title":title, "text":text, "sourceRevision":asset.source_revision}),
-        );
-    }
-    let path = asset
-        .path
-        .as_ref()
-        .ok_or("Imported resource has no managed path")?;
-    let mut data =
-        json!({"kind":asset.kind, "title":asset.name, "fileName":asset.name, "assetPath":path});
-    let encoded = serde_json::to_value(&asset).map_err(|error| error.to_string())?;
-    for field in [
-        "sourceRevision",
-        "previewPath",
-        "previewText",
-        "size",
-        "modifiedAt",
-        "processingState",
-        "intrinsicWidth",
-        "intrinsicHeight",
-        "extractedText",
-        "entries",
-    ] {
-        if let Some(value) = encoded.get(field) {
-            data[field] = value.clone();
-        }
-    }
-    if asset.kind == "code" {
-        data["previewLanguage"] = json!(asset
-            .preview_language
-            .ok_or("Imported code has no language")?);
-    }
-    Ok(data)
 }
 
 fn website_url(value: &str) -> Result<reqwest::Url, String> {
@@ -112,50 +73,6 @@ fn website_url(value: &str) -> Result<reqwest::Url, String> {
         return Err("JSON Canvas link is not an HTTP URL".into());
     };
     reqwest::Url::parse(&candidate).map_err(|error| error.to_string())
-}
-
-fn markdown_document(name: &str, raw: &str) -> (String, String) {
-    let first = raw
-        .trim_start()
-        .split_once('\n')
-        .map_or(raw.trim_start(), |(line, _)| line)
-        .trim_end_matches('\r');
-    if let Some(heading) = first
-        .strip_prefix('#')
-        .filter(|text| text.starts_with([' ', '\t']))
-    {
-        let heading = heading.trim();
-        let hashes = heading.trim_end_matches('#');
-        let title = if hashes.len() < heading.len() && hashes.ends_with(char::is_whitespace) {
-            hashes.trim_end()
-        } else {
-            heading
-        };
-        if !title.is_empty() {
-            let consumed = raw.len() - raw.trim_start().len() + first.len();
-            let text = raw[consumed..].trim_start_matches(['\r', '\n']);
-            return (truncate_title(title), text.to_owned());
-        }
-    }
-    let lowercase = name.to_ascii_lowercase();
-    let title = [".markdown", ".md"]
-        .iter()
-        .find(|suffix| lowercase.ends_with(**suffix))
-        .map_or(name, |suffix| &name[..name.len() - suffix.len()]);
-    (
-        truncate_title(if title.is_empty() { name } else { title }),
-        raw.to_owned(),
-    )
-}
-
-fn truncate_title(value: &str) -> String {
-    value
-        .chars()
-        .scan(0, |units, character| {
-            *units += character.len_utf16();
-            (*units <= 512).then_some(character)
-        })
-        .collect()
 }
 
 #[cfg(test)]
@@ -181,21 +98,6 @@ mod tests {
             assert!(actual.get("sectionId").is_none());
             assert!(actual.get("locked").is_none());
         }
-    }
-    #[test]
-    fn markdown_import_preserves_heading_and_filename_behavior() {
-        assert_eq!(
-            markdown_document("NOTE.MD", "# Research ##\r\n\r\nBody"),
-            ("Research".into(), "Body".into())
-        );
-        assert_eq!(
-            markdown_document("NOTE.MARKDOWN", "## Keep heading\nBody"),
-            ("NOTE".into(), "## Keep heading\nBody".into())
-        );
-        assert_eq!(
-            markdown_document("note.md", "# C#\nBody"),
-            ("C#".into(), "Body".into())
-        );
     }
     #[test]
     fn website_import_accepts_host_input_and_rejects_unsafe_schemes() {

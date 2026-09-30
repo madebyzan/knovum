@@ -27,7 +27,6 @@ pub async fn start(
     let runtime_id = id.clone();
     tauri::async_runtime::spawn(async move {
         let context = ServeContext {
-            id: runtime_id.clone(),
             kind,
             workspace,
             on_update,

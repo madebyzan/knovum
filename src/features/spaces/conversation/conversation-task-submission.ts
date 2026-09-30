@@ -1,7 +1,6 @@
 import type { Ref, ShallowRef } from "vue";
 
 import type { AssistantTaskUpdate } from "../contracts/generated/AssistantTaskUpdate";
-import type { WaitReason } from "../contracts/generated/WaitReason";
 import {
   getAssistantTaskError,
   startAssistantTask,
@@ -15,7 +14,6 @@ import type { ConversationTarget } from "./conversation-target";
 import { conversationTaskRequest } from "./conversation-task-request";
 
 type Attachment = NonNullable<StartAssistantTaskInput["attachments"]>[number];
-type Permission = Extract<AssistantTaskUpdate, { type: "permission_requested" }>;
 type StartedTask = Awaited<ReturnType<typeof startAssistantTask>>;
 type Selection = { spaceId: string; conversationId: string };
 
@@ -24,11 +22,9 @@ export interface ConversationSubmissionState {
   activeConversationId: ShallowRef<string>;
   activeSpaceId: ShallowRef<string | undefined>;
   taskState: ShallowRef<string | undefined>;
-  waitReason: ShallowRef<WaitReason | null>;
   loading: ShallowRef<boolean>;
   error: ShallowRef<string | undefined>;
   streamedText: ShallowRef<string>;
-  permission: ShallowRef<Permission | undefined>;
   activityRevision: ShallowRef<number>;
 }
 
@@ -48,7 +44,6 @@ export function createConversationTaskSubmission(options: {
   state: ConversationSubmissionState;
   accepted: (task: StartedTask["accepted"], selection: Selection) => Promise<void>;
   settled: (task: StartedTask["accepted"], spaceId: string) => Promise<void>;
-  refreshPending: (runId: string, spaceId: string) => Promise<void>;
   restoreForSpace: (spaceId: string) => Promise<void>;
 }) {
   const { input, state } = options;
@@ -66,13 +61,7 @@ export function createConversationTaskSubmission(options: {
       (run) => {
         if (submitted !== generation) return;
         state.taskState.value = run.state;
-        state.waitReason.value = run.waitReason;
         state.activityRevision.value += 1;
-        if (run.state === "waiting") {
-          void options.refreshPending(run.id, selection.spaceId).catch((cause: unknown) => {
-            state.error.value = String(cause);
-          });
-        }
       },
       { spaceId: selection.spaceId, conversationId: task.accepted.conversationId },
     );
@@ -87,7 +76,6 @@ export function createConversationTaskSubmission(options: {
     const outcome = await task.settled;
     if (submitted !== generation) return;
     state.taskState.value = outcome;
-    state.permission.value = undefined;
     await options.settled(task.accepted, selection.spaceId);
     state.streamedText.value = "";
     state.error.value = undefined;
@@ -115,7 +103,6 @@ export function createConversationTaskSubmission(options: {
     if (submitted !== generation) return;
     if (update.type === "content_delta") state.streamedText.value += update.text;
     else if (update.type === "content_boundary") state.streamedText.value = "";
-    else if (update.type === "permission_requested") state.permission.value = update;
   }
 
   function clearPending(id: string) {
@@ -152,10 +139,8 @@ export function createConversationTaskSubmission(options: {
     state.activeConversationId.value = selection.conversationId;
     state.loading.value = true;
     state.taskState.value = undefined;
-    state.waitReason.value = null;
     state.error.value = undefined;
     state.streamedText.value = "";
-    state.permission.value = undefined;
     try {
       const task = await startAssistantTask(request, (update) => handleUpdate(update, submitted));
       accepted = true;

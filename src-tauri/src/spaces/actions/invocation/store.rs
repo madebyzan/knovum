@@ -45,7 +45,6 @@ pub(super) async fn save_outcome(
         ActionInvocationOutcome::QueryResult { .. } => "query_result",
         ActionInvocationOutcome::CommittedReceipt { .. } => "committed_receipt",
         ActionInvocationOutcome::AcceptedRun { .. } => "accepted_run",
-        ActionInvocationOutcome::RequiresApproval { .. } => "requires_approval",
     };
     sqlx::query(
         "INSERT INTO spaces_action_invocations(id,principal_kind,principal_id,space_id,

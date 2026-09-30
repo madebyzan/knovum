@@ -12,7 +12,9 @@ pub(crate) async fn settle_waiting_step(
 ) -> Result<(), String> {
     let mut tx = db::begin_write(pool).await?;
     settle_waiting_step_in_transaction(&mut tx, step_id, run_id, outcome).await?;
-    tx.commit().await.map_err(db::sql_error)
+    tx.commit().await.map_err(db::sql_error)?;
+    super::super::super::signals::announce();
+    Ok(())
 }
 
 pub(crate) async fn settle_waiting_step_in_transaction(
@@ -21,6 +23,7 @@ pub(crate) async fn settle_waiting_step_in_transaction(
     run_id: &str,
     outcome: Result<&Value, &str>,
 ) -> Result<(), String> {
+    require_active_waiting_step(tx, step_id, run_id).await?;
     let now = crate::clock::unix_time_millis()?;
     match outcome {
         Ok(output) => {
@@ -58,29 +61,23 @@ pub(crate) async fn settle_waiting_step_in_transaction(
     Ok(())
 }
 
-pub(crate) async fn resume_approved_step(
-    pool: &SqlitePool,
+async fn require_active_waiting_step(
+    tx: &mut Transaction<'_, Sqlite>,
     step_id: &str,
     run_id: &str,
 ) -> Result<(), String> {
-    let now = crate::clock::unix_time_millis()?;
-    let mut tx = db::begin_write(pool).await?;
-    let changed = sqlx::query("UPDATE spaces_run_steps SET state='ready',wait_reason=NULL,state_version=state_version+1,updated_at=$1 WHERE id=$2 AND state='waiting' AND wait_reason='approval'")
-        .bind(now).bind(step_id).execute(&mut *tx).await.map_err(db::sql_error)?;
-    db::require_one(
-        changed,
-        "run-step-stale: approval step changed before resumption",
-    )?;
-    queue_run(&mut tx, run_id, now).await?;
-    tx.commit().await.map_err(db::sql_error)
-}
-
-async fn queue_run(
-    tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
-    run_id: &str,
-    now: i64,
-) -> Result<(), String> {
-    sqlx::query("UPDATE spaces_runs SET state='queued',wait_reason=NULL,state_version=state_version+1,updated_at=$1 WHERE id=$2 AND state='waiting'")
-        .bind(now).bind(run_id).execute(&mut **tx).await.map_err(db::sql_error)?;
-    Ok(())
+    let active: Option<i64> = sqlx::query_scalar(
+        "SELECT 1 FROM spaces_run_steps s JOIN spaces_runs r ON r.id=s.run_id
+         WHERE s.id=$1 AND s.run_id=$2 AND s.state='waiting'
+         AND r.state IN ('queued','running','waiting') AND r.cancel_requested_at IS NULL
+         AND r.pause_requested_at IS NULL AND r.completed_at IS NULL",
+    )
+    .bind(step_id)
+    .bind(run_id)
+    .fetch_optional(&mut **tx)
+    .await
+    .map_err(db::sql_error)?;
+    active
+        .map(|_| ())
+        .ok_or_else(|| "run-step-stale: waiting Run authority changed before settlement".into())
 }

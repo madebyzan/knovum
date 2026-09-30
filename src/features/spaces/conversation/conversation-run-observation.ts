@@ -1,7 +1,10 @@
+import { toast } from "vue-sonner";
+
 import { i18n } from "../../../foundation/i18n/i18n";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import type { RunObservation } from "../contracts/generated/RunObservation";
 import { observeRun } from "../runs/run-observation";
+import { useSpaceStore } from "../session/space-store";
 import { cancelAssistantTask, getAssistantTaskError, listActiveAssistantRuns } from "./conversation-ipc";
 
 type RunIdentity = Pick<RunObservation, "id" | "createdAt">;
@@ -25,6 +28,7 @@ export function observeConversationRun(
   location?: { spaceId: string; conversationId: string },
 ) {
   const tasks = useTaskStore();
+  const space = useSpaceStore();
   function attachNavigation() {
     if (!location) return;
     tasks.setOpen(run.id, async () => {
@@ -48,14 +52,17 @@ export function observeConversationRun(
   observeRun(run.id, {
     update: (next) => {
       for (const listener of listeners) listener(next);
-      if (next.state === "succeeded") tasks.succeed(next.id);
-      else if (next.state === "cancelled") tasks.cancelled(next.id);
+      if (next.completedAt !== null && space.activeSpaceId === next.homeSpaceId)
+        void space.refreshActiveSpace().catch((cause: unknown) => toast.error(String(cause)));
+      if (next.state === "succeeded") {
+        tasks.succeed(next.id);
+      } else if (next.state === "cancelled") tasks.cancelled(next.id);
       else if (next.completedAt !== null) {
         void getAssistantTaskError(next.id)
           .then((reason) => tasks.fail(next.id, reason ?? i18n.global.t("spaces.assistant.tasks.failed")))
           .catch((cause: unknown) => tasks.fail(next.id, String(cause)));
-      } else if (next.state === "paused" || next.waitReason === "approval") {
-        tasks.setStatusMessage(next.id, i18n.global.t("spaces.assistant.tasks.needsAttention"));
+      } else if (next.state === "paused") {
+        tasks.setStatusMessage(next.id, i18n.global.t("spaces.assistant.tasks.paused"));
       } else if (next.state === "waiting") {
         tasks.setStatusMessage(next.id, i18n.global.t("spaces.assistant.tasks.waitingForResult"));
       } else tasks.setStatusMessage(next.id, "");

@@ -90,31 +90,7 @@ async fn record(
         AgentSessionUpdate::Message(text) => Some(text.clone()),
         _ => None,
     };
-    let permission = match &update {
-        AgentSessionUpdate::PermissionRequested {
-            request_id,
-            title,
-            options,
-        } => Some(
-            crate::spaces::assistant::AssistantTaskUpdate::PermissionRequested {
-                session_id: conversation_id.to_owned(),
-                request_id: request_id.clone(),
-                title: title.clone(),
-                options: options
-                    .iter()
-                    .map(
-                        |option| crate::spaces::assistant::AssistantPermissionOption {
-                            id: option.id.clone(),
-                            label: option.label.clone(),
-                            kind: option.kind.to_owned(),
-                        },
-                    )
-                    .collect(),
-            },
-        ),
-        _ => None,
-    };
-    let Some((kind, payload, message)) = durable(update, conversation_id) else {
+    let Some((kind, payload, message)) = durable(update) else {
         return Ok(());
     };
     let pool = super::super::db::pool(app).await?;
@@ -134,7 +110,6 @@ async fn record(
         kind,
         crate::spaces::runs::RunEventKind::ExternalAgentToolStarted
             | crate::spaces::runs::RunEventKind::ExternalAgentToolUpdated
-            | crate::spaces::runs::RunEventKind::ExternalAgentPermissionRequested
     );
     crate::spaces::runs::append_event(&mut tx, run_id, None, None, kind, &payload, now).await?;
     tx.commit().await.map_err(super::super::db::sql_error)?;
@@ -157,15 +132,11 @@ async fn record(
             let _ = channel.send(crate::spaces::assistant::AssistantTaskUpdate::ContentBoundary);
         }
     }
-    if let (Some(channel), Some(permission)) = (channel, permission) {
-        let _ = channel.send(permission);
-    }
     Ok(())
 }
 
 fn durable(
     update: AgentSessionUpdate,
-    conversation_id: &str,
 ) -> Option<(
     crate::spaces::runs::RunEventKind,
     serde_json::Value,
@@ -196,20 +167,6 @@ fn durable(
         } => Some((
             crate::spaces::runs::RunEventKind::ExternalAgentToolUpdated,
             serde_json::json!({"toolCallId": id, "title": title, "status": status, "detail": detail}),
-            None,
-        )),
-        AgentSessionUpdate::PermissionRequested {
-            request_id,
-            title,
-            options,
-        } => Some((
-            crate::spaces::runs::RunEventKind::ExternalAgentPermissionRequested,
-            serde_json::json!({
-                "requestId": request_id, "sessionId": conversation_id, "title": title,
-                "options": options.into_iter().map(|option| serde_json::json!({
-                    "id": option.id, "label": option.label, "kind": option.kind,
-                })).collect::<Vec<_>>(),
-            }),
             None,
         )),
     }

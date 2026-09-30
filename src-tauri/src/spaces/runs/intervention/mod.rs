@@ -141,5 +141,7 @@ async fn settle(
         validate_review_revision(&mut tx, step_id, revision).await?;
     }
     scheduler::settle_waiting_step_in_transaction(&mut tx, step_id, &run_id, outcome).await?;
-    tx.commit().await.map_err(db::sql_error)
+    tx.commit().await.map_err(db::sql_error)?;
+    super::signals::announce();
+    Ok(())
 }

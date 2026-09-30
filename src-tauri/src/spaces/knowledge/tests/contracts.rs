@@ -49,6 +49,62 @@ async fn change_failure_rolls_back_objects_created_earlier_in_transaction() {
     let pool = database().await;
     sqlx::query("INSERT INTO spaces(id,kind,title,created_at,updated_at,last_opened_at) VALUES ('space','space','Space',1,1,1)")
         .execute(&pool).await.expect("space");
+    sqlx::query("INSERT INTO spaces_edit_state(space_id,revision,updated_at) VALUES ('space',0,1)")
+        .execute(&pool)
+        .await
+        .expect("edit state");
+    let mut existing = crate::spaces::nodes::contracts::InsertNode {
+        id: "existing".into(),
+        kind: "note".into(),
+        initial_x: 0.0,
+        initial_y: 0.0,
+        width: 256.0,
+        height: 176.0,
+        sizing_mode: crate::spaces::structure::SizingMode::Frame,
+        appearance: None,
+        file_subpath: None,
+        data: serde_json::json!({
+            "kind":"note", "title":"Existing", "plainText":"",
+            "tiptapContent":{"type":"doc","content":[]}
+        }),
+        source_chunks: Vec::new(),
+    };
+    let mut setup = pool.begin().await.expect("begin canvas setup");
+    crate::spaces::knowledge::contracts::normalize_node(
+        &mut setup,
+        "space",
+        "existing",
+        "note",
+        &mut existing.data,
+    )
+    .await
+    .expect("normalize existing node");
+    let (mut snapshot, revision) =
+        crate::spaces::structure::repository::load_in_transaction(&mut setup, "space")
+            .await
+            .expect("load empty structure");
+    crate::spaces::structure::creation::append_content(
+        &mut snapshot,
+        std::slice::from_ref(&existing),
+        None,
+    )
+    .expect("project existing node");
+    crate::spaces::nodes::insert_rows_with_actor(
+        &mut setup,
+        "space",
+        std::slice::from_ref(&existing),
+        "human",
+        Some("user"),
+        1,
+    )
+    .await
+    .expect("insert existing node");
+    crate::spaces::structure::repository::save_in_transaction(
+        &mut setup, "space", revision, &snapshot,
+    )
+    .await
+    .expect("save existing structure");
+    setup.commit().await.expect("commit canvas setup");
     let operations = serde_json::from_value::<Vec<super::super::change_commit::KnowledgeChange>>(
         serde_json::json!([
             {
@@ -73,7 +129,8 @@ async fn change_failure_rolls_back_objects_created_earlier_in_transaction() {
     .expect("knowledge changes");
 
     let mut tx = pool.begin().await.expect("begin knowledge change");
-    let error = super::super::change_commit::apply(&mut tx, "space", "agent", operations, 20)
+    let actor = super::super::events::EventActor::new("agent", Some("agent"));
+    let error = super::super::change_commit::apply(&mut tx, "space", actor, operations, 20)
         .await
         .expect_err("invalid provenance source must fail");
     assert!(error.contains("source") || error.contains("reference"));
@@ -86,7 +143,150 @@ async fn change_failure_rolls_back_objects_created_earlier_in_transaction() {
             .fetch_one(&pool)
             .await
             .expect("node count");
-    assert_eq!(count, 0);
+    assert_eq!(count, 1);
+    let mut inspection = pool.begin().await.expect("begin canvas inspection");
+    let snapshot =
+        crate::spaces::structure::repository::load_in_transaction(&mut inspection, "space")
+            .await
+            .expect("unchanged canvas after rollback");
+    assert_eq!(snapshot.0.structure.len(), 1);
+    inspection
+        .rollback()
+        .await
+        .expect("finish canvas inspection");
+}
+
+#[tokio::test]
+async fn change_commit_preserves_actor_identity_across_rows_and_events() {
+    let pool = database().await;
+    sqlx::query("INSERT INTO spaces(id,kind,title,created_at,updated_at,last_opened_at) VALUES ('space','space','Space',1,1,1)")
+        .execute(&pool).await.expect("space");
+    sqlx::query("INSERT INTO spaces_edit_state(space_id,revision,updated_at) VALUES ('space',0,1)")
+        .execute(&pool)
+        .await
+        .expect("edit state");
+    let parameters = serde_json::json!({"operations": [
+        {
+            "op":"create-object",
+            "tempId":"source",
+            "objectTypeId":"system:claim",
+            "title":"Source",
+            "status":"draft",
+            "properties":{"statement":"Source claim"}
+        },
+        {
+            "op":"create-object",
+            "tempId":"target",
+            "objectTypeId":"system:claim",
+            "title":"Target",
+            "status":"draft",
+            "properties":{"statement":"Target claim"}
+        },
+        {
+            "op":"create-relation",
+            "tempId":"relation",
+            "sourceId":"source",
+            "targetId":"target",
+            "kind":"supports",
+            "rationale":"Evidence"
+        },
+        {
+            "op":"add-provenance",
+            "targetKind":"relation",
+            "targetId":"relation",
+            "sourceNodeId":"source",
+            "locator":{"sourceRevision":"rev","location":{"kind":"node"}},
+            "sourceRevision":"rev",
+            "quote":"Source claim"
+        }
+    ]});
+
+    let mut tx = pool.begin().await.expect("begin knowledge change");
+    let result = super::super::action::commit_changes(
+        &mut tx,
+        &crate::spaces::authorization::Principal {
+            kind: crate::spaces::authorization::PrincipalKind::ExternalAgent,
+            id: "external-session".into(),
+        },
+        "space",
+        &parameters,
+        20,
+    )
+    .await
+    .expect("commit changes");
+    tx.commit().await.expect("commit knowledge change");
+
+    let relation_actor = sqlx::query_as::<_, (String, Option<String>)>(
+        "SELECT actor_kind,actor_id FROM spaces_relations WHERE space_id='space'",
+    )
+    .fetch_one(&pool)
+    .await
+    .expect("relation actor");
+    assert_eq!(
+        relation_actor,
+        ("agent".into(), Some("external-session".into()))
+    );
+
+    let provenance_actor = sqlx::query_as::<_, (String, Option<String>)>(
+        "SELECT actor_kind,actor_id FROM spaces_provenance WHERE space_id='space'",
+    )
+    .fetch_one(&pool)
+    .await
+    .expect("provenance actor");
+    assert_eq!(
+        provenance_actor,
+        ("agent".into(), Some("external-session".into()))
+    );
+
+    let event_actors = sqlx::query_as::<_, (String, Option<String>)>(
+        "SELECT DISTINCT actor_kind,actor_id FROM spaces_knowledge_events WHERE space_id='space' AND actor_id='external-session'",
+    )
+    .fetch_all(&pool)
+    .await
+    .expect("event actors");
+    assert_eq!(
+        event_actors,
+        vec![("agent".into(), Some("external-session".into()))]
+    );
+
+    let projected_nodes = sqlx::query_scalar::<_, String>(
+        "SELECT node_id FROM spaces_structure_nodes WHERE space_id='space' ORDER BY order_index",
+    )
+    .fetch_all(&pool)
+    .await
+    .expect("projected knowledge objects");
+    assert_eq!(projected_nodes.len(), 2);
+    let layout_count = sqlx::query_scalar::<_, i64>(
+        "SELECT COUNT(*) FROM spaces_structure_layouts WHERE space_id='space'",
+    )
+    .fetch_one(&pool)
+    .await
+    .expect("knowledge object layouts");
+    assert_eq!(layout_count, 2);
+
+    let resolved = result
+        .get("resolvedIds")
+        .and_then(serde_json::Value::as_object)
+        .expect("resolved object ids");
+    let source_id = resolved
+        .get("source")
+        .and_then(serde_json::Value::as_str)
+        .expect("source id");
+    let target_id = resolved
+        .get("target")
+        .and_then(serde_json::Value::as_str)
+        .expect("target id");
+    let positions = sqlx::query_scalar::<_, f64>(
+        "SELECT json_extract(l.data,'$.transform.x') FROM spaces_structure_nodes s \
+         JOIN spaces_structure_layouts l ON l.space_id=s.space_id AND l.structure_node_id=s.id \
+         WHERE s.node_id IN ($1,$2) ORDER BY json_extract(l.data,'$.transform.x')",
+    )
+    .bind(source_id)
+    .bind(target_id)
+    .fetch_all(&pool)
+    .await
+    .expect("created object positions");
+    assert_eq!(positions, vec![0.0, 304.0]);
 }
 
 #[tokio::test]

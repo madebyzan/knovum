@@ -24,6 +24,5 @@
     "run": "恢复记录 {index} · {count} 个文件"
   },
   "failed": "Agent 创作失败",
-  "permissionDescription": "外部 Agent 正在等待权限。请检查操作并明确选择后再继续。",
   "run": "运行 Agent"
 }

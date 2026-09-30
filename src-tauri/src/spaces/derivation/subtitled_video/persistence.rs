@@ -17,9 +17,11 @@ pub async fn complete(
     app: &AppHandle,
     id: &str,
     output: RenderedVideo,
+    authority: &super::super::action_execution::ExecutionAuthority,
 ) -> Result<CompletedDerivationOutput, String> {
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
+    authority.require_active(&mut *tx).await?;
     let row: (String, String, String, String) = sqlx::query_as(
         "SELECT d.space_id,i.node_id,d.output_node_id,n.data FROM spaces_knowledge_derivations d \
          JOIN spaces_knowledge_derivation_inputs i ON i.derivation_id=d.id AND i.position=0 AND i.role='primary' \

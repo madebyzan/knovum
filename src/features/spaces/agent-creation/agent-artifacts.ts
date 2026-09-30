@@ -7,7 +7,6 @@ import type { AgentCreationRequest } from "../contracts/generated/AgentCreationR
 import type { RecoverableAgentCreation } from "../contracts/generated/RecoverableAgentCreation";
 export type { AgentArtifact } from "../../../shared/contracts/generated/AgentArtifact";
 export type { RecoverableAgentCreation } from "../contracts/generated/RecoverableAgentCreation";
-export type { AgentPermissionOption } from "../contracts/generated/AgentPermissionOption";
 
 export function runAgentCreation(
   request: AgentCreationRequest,
@@ -20,18 +19,6 @@ export function runAgentCreation(
   return invokeCommand<AgentArtifact[]>("plugin:spaces|create_agent_artifacts", {
     request,
     onEvent: channel,
-  });
-}
-
-export function decideAgentPermission(
-  sessionId: string,
-  requestId: string,
-  optionId: string | null,
-): Promise<void> {
-  return invokeCommand<void>("plugin:spaces|decide_external_agent_permission", {
-    sessionId,
-    requestId,
-    optionId,
   });
 }
 
