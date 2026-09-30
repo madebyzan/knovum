@@ -1,6 +1,6 @@
 {
   "defaultsTitle": "AI execution",
-  "defaultsDescription": "Task overrides take precedence over the default. Desktop Agents use their own authentication and tools. Changes save automatically.",
+  "defaultsDescription": "Set each capability individually, or let it use the default execution method.",
   "unassigned": "Use default execution method",
   "noCompatibleModel": "Configure a model for this task",
   "routes": {
@@ -9,8 +9,8 @@
       "description": "Drafting, rewriting, and editor assistance."
     },
     "knowledge": {
-      "label": "Knowledge work",
-      "description": "Answers, summaries, and reasoning grounded in space content."
+      "label": "Assistant",
+      "description": "Conversations, task planning, tool use, and knowledge organization."
     },
     "visualUnderstanding": {
       "label": "Visual understanding",
@@ -30,7 +30,7 @@
     },
     "defaultTarget": {
       "label": "Default execution method",
-      "description": "Applicable AI tasks inherit this choice. No other account is selected automatically."
+      "description": "Used by features without an individual execution choice."
     }
   },
   "unselected": "No execution method selected"

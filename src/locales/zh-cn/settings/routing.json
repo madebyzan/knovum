@@ -1,6 +1,6 @@
 {
   "defaultsTitle": "AI 执行方式",
-  "defaultsDescription": "功能覆盖优先于默认执行方式。桌面 Agent 使用自身的认证和工具；修改后自动保存。",
+  "defaultsDescription": "各项能力可单独设置，未设置时跟随默认执行方式。",
   "unassigned": "跟随默认执行方式",
   "noCompatibleModel": "配置支持此任务的模型",
   "routes": {
@@ -9,8 +9,8 @@
       "description": "起草、改写与编辑器辅助。"
     },
     "knowledge": {
-      "label": "知识处理",
-      "description": "基于空间知识完成问答、总结与推理。"
+      "label": "智能助手",
+      "description": "用于对话、任务规划、工具调用与知识整理。"
     },
     "visualUnderstanding": {
       "label": "视觉理解",
@@ -30,7 +30,7 @@
     },
     "defaultTarget": {
       "label": "默认执行方式",
-      "description": "适用的 AI 任务继承此选择；未选择时不会自动使用其他账户。"
+      "description": "未单独设置执行方式的功能使用此选择。"
     }
   },
   "unselected": "未选择执行方式"

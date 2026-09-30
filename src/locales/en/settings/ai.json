@@ -1,6 +1,6 @@
 {
   "title": "Models",
-  "description": "Connect model providers and choose defaults for each task.",
+  "description": "Connect models or desktop Agents and choose how each AI feature runs.",
   "knowledgeSpace": "Intelligence",
   "provider": "Model provider",
   "baseUrl": "API base URL",
