@@ -2,7 +2,8 @@ use genai::chat::{BinarySource, ContentPart, StopReason};
 
 use crate::ai::{
     contracts::{
-        ModelContentPart, ModelFinishReason, ModelMessage, ModelRole, ModelTurnResponse, TokenUsage,
+        ModelBinarySource, ModelContentPart, ModelFinishReason, ModelMessage, ModelRole,
+        ModelTurnResponse, TokenUsage,
     },
     error::{AiError, AiErrorCode, AiResult},
     transport::SecurityContext,
@@ -73,7 +74,9 @@ fn from_part(part: ContentPart) -> AiResult<ModelContentPart> {
         ContentPart::Binary(binary) => match binary.source {
             BinarySource::Base64(data) => Ok(ModelContentPart::Binary {
                 media_type: binary.content_type,
-                data: data.to_string(),
+                source: ModelBinarySource::Base64 {
+                    data: data.to_string(),
+                },
                 name: binary.name,
             }),
             BinarySource::Url(_) => Err(unsupported("provider returned a remote binary URL")),

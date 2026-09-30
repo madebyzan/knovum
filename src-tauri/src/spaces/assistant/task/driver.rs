@@ -15,6 +15,7 @@ use crate::{
 };
 
 pub(super) struct DriverContext<'a> {
+    pub app: &'a tauri::AppHandle,
     pub pool: &'a SqlitePool,
     pub target: &'a crate::ai::models::ExecutionTarget,
     pub request: &'a StartAssistantTaskRequest,
@@ -29,6 +30,7 @@ pub(super) async fn drive(
     cancellation: CancellationToken,
 ) -> Result<String, String> {
     let DriverContext {
+        app: _,
         pool,
         target,
         request,
@@ -132,15 +134,8 @@ pub(super) async fn drive(
                     let _ = channel
                         .send(crate::spaces::assistant::AssistantTaskUpdate::ContentBoundary);
                 }
-                let results = super::tool_execution::execute(
-                    pool,
-                    request,
-                    ids,
-                    catalog,
-                    &last_turn_id,
-                    calls,
-                )
-                .await?;
+                let results =
+                    super::tool_execution::execute(&context, &last_turn_id, calls).await?;
                 agent_runtime::accept_tools(checkpoint, results)?;
             }
             ControlDirective::Done { output } => return Ok(output),

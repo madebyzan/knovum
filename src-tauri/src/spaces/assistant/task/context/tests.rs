@@ -1,5 +1,5 @@
-#[test]
-fn even_an_unattached_message_contains_space_identity_and_unindexed_canvas_resources() {
+#[tokio::test]
+async fn even_an_unattached_message_contains_space_identity_and_unindexed_canvas_resources() {
     let context = super::ResolvedContext {
         manifest: serde_json::json!([]),
         summaries: vec![],
@@ -24,7 +24,21 @@ fn even_an_unattached_message_contains_space_identity_and_unindexed_canvas_resou
             next_offset: None,
         },
     };
-    let message = context.initial_message("What is in this Space?", Some("Created Girl earlier"));
+    let target = crate::ai::models::ExecutionTarget {
+        provider: "openai".into(),
+        model: "test".into(),
+        base_url: "https://unused.invalid".into(),
+        temperature: 0.0,
+        secret_key: String::new(),
+    };
+    let message = context
+        .initial_message(
+            "What is in this Space?",
+            Some("Created Girl earlier"),
+            &target,
+        )
+        .await
+        .unwrap();
     let crate::ai::contracts::ModelContentPart::Text { text } = &message.content[0] else {
         panic!("context text");
     };

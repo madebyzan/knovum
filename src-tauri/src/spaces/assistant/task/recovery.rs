@@ -89,9 +89,11 @@ async fn recover_record(
     }
     let cancellation = super::cancellation::register(&ids.run_id)?;
     let active_run_id = ids.run_id.clone();
+    let app = app.clone();
     tauri::async_runtime::spawn(async move {
         match driver::drive(
             driver::DriverContext {
+                app: &app,
                 pool,
                 target: &target,
                 request: &request,

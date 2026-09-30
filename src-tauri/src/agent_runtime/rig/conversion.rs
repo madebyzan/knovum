@@ -5,8 +5,8 @@ use rig_agent::{
     core::{
         completion::{FinishReason, Message, Usage},
         message::{
-            AssistantContent, DocumentSourceKind, Image, ImageMediaType, Message as RigMessage,
-            MimeType, Text, ToolCall, ToolFunction, UserContent,
+            AssistantContent, Message as RigMessage, Text, ToolCall, ToolFunction,
+            ToolResultContent, UserContent,
         },
     },
 };
@@ -15,12 +15,12 @@ use crate::ai::contracts::{
     ModelContentPart, ModelFinishReason, ModelMessage, ModelRole, ModelTurnResponse,
 };
 
-pub fn messages(history: Vec<Message>, prompt: Message) -> Vec<ModelMessage> {
-    history
-        .into_iter()
-        .chain(std::iter::once(prompt))
-        .map(message)
-        .collect()
+pub fn messages(history: Vec<Message>, prompt: Message) -> Result<Vec<ModelMessage>, String> {
+    let mut result = Vec::new();
+    for item in history.into_iter().chain(std::iter::once(prompt)) {
+        result.extend(message(item)?);
+    }
+    Ok(result)
 }
 
 pub fn prompt(message: ModelMessage) -> Result<RigMessage, String> {
@@ -32,20 +32,10 @@ pub fn prompt(message: ModelMessage) -> Result<RigMessage, String> {
         .into_iter()
         .map(|part| match part {
             ModelContentPart::Text { text } => Ok(UserContent::Text(Text::new(text))),
-            ModelContentPart::Binary {
-                media_type, data, ..
-            } => {
-                let media_type = ImageMediaType::from_mime_type(&media_type).ok_or(
-                    "assistant-attachment-unsupported: binary prompt part is not a supported image",
-                )?;
-                Ok(UserContent::Image(Image {
-                    data: DocumentSourceKind::Base64(data),
-                    media_type: Some(media_type),
-                    detail: None,
-                    additional_params: None,
-                }))
+            part @ ModelContentPart::Binary { .. } => {
+                super::media::to_image(part).map(UserContent::Image)
             }
-            _ => Err("assistant-prompt-invalid: initial prompt contains a control part"),
+            _ => Err("assistant-prompt-invalid: initial prompt contains a control part".into()),
         })
         .collect::<Result<Vec<_>, _>>()?;
     Ok(RigMessage::User { content })
@@ -78,20 +68,65 @@ pub fn model_turn(response: ModelTurnResponse, advertised_tools: BTreeSet<String
     .with_finish_reason(finish_reason(response.finish_reason))
 }
 
-fn message(message: Message) -> ModelMessage {
+fn message(message: Message) -> Result<Vec<ModelMessage>, String> {
     match message {
-        Message::System { content } => model_text(ModelRole::System, content),
-        Message::User { content } => ModelMessage {
-            role: ModelRole::User,
-            content: content.into_iter().filter_map(user_content).collect(),
-        },
-        Message::Assistant { content, .. } => ModelMessage {
+        Message::System { content } => Ok(vec![model_text(ModelRole::System, content)]),
+        Message::User { content } => {
+            let mut tools = Vec::new();
+            let mut materials = Vec::new();
+            for part in content {
+                match part {
+                    UserContent::ToolResult(reply) => {
+                        let mut result = Vec::new();
+                        for item in reply.content {
+                            match item {
+                                ToolResultContent::Image(image) => {
+                                    materials.push(super::media::from_image(image)?)
+                                }
+                                item => result.push(item),
+                            }
+                        }
+                        tools.push(ModelContentPart::ToolResult {
+                            call_id: reply.call.into_string(),
+                            name: reply.name,
+                            result: serde_json::to_value(result)
+                                .map_err(|error| error.to_string())?,
+                        });
+                    }
+                    UserContent::Text(text) => {
+                        materials.push(ModelContentPart::Text { text: text.text })
+                    }
+                    UserContent::Image(image) => materials.push(super::media::from_image(image)?),
+                    _ => {
+                        return Err(
+                            "assistant-media-unsupported: runtime contains unsupported input"
+                                .into(),
+                        )
+                    }
+                }
+            }
+            let mut messages = Vec::new();
+            if !tools.is_empty() {
+                messages.push(ModelMessage {
+                    role: ModelRole::Tool,
+                    content: tools,
+                });
+            }
+            if !materials.is_empty() {
+                messages.push(ModelMessage {
+                    role: ModelRole::User,
+                    content: materials,
+                });
+            }
+            Ok(messages)
+        }
+        Message::Assistant { content, .. } => Ok(vec![ModelMessage {
             role: ModelRole::Assistant,
             content: content
                 .into_iter()
                 .filter_map(rig_assistant_content)
                 .collect(),
-        },
+        }]),
     }
 }
 
@@ -99,19 +134,6 @@ fn model_text(role: ModelRole, text: String) -> ModelMessage {
     ModelMessage {
         role,
         content: vec![ModelContentPart::Text { text }],
-    }
-}
-
-fn user_content(content: UserContent) -> Option<ModelContentPart> {
-    match content {
-        UserContent::Text(text) => Some(ModelContentPart::Text { text: text.text }),
-        UserContent::ToolResult(tool_reply) => Some(ModelContentPart::ToolResult {
-            call_id: tool_reply.call.into_string(),
-            name: tool_reply.name,
-            result: serde_json::to_value(tool_reply.content).ok()?,
-        }),
-        UserContent::Image(_) | UserContent::Audio(_) => None,
-        UserContent::Video(_) | UserContent::Document(_) => None,
     }
 }
 

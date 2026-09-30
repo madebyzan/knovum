@@ -1,7 +1,7 @@
 use serde_json::{json, Value};
 
 #[tokio::test]
-async fn space_snapshot_preserves_attachment_based_vision_recovery() {
+async fn space_snapshot_preserves_media_based_vision_recovery() {
     let pool = sqlx::sqlite::SqlitePoolOptions::new()
         .max_connections(1)
         .connect("sqlite::memory:")
@@ -33,9 +33,18 @@ async fn space_snapshot_preserves_attachment_based_vision_recovery() {
     let checkpoint = crate::agent_runtime::start(
         crate::ai::contracts::ModelMessage {
             role: crate::ai::contracts::ModelRole::User,
-            content: vec![crate::ai::contracts::ModelContentPart::Text {
-                text: request.prompt.clone(),
-            }],
+            content: vec![
+                crate::ai::contracts::ModelContentPart::Text {
+                    text: request.prompt.clone(),
+                },
+                crate::ai::contracts::ModelContentPart::Binary {
+                    media_type: "image/png".into(),
+                    source: crate::ai::contracts::ModelBinarySource::Base64 {
+                        data: "aW1hZ2U=".into(),
+                    },
+                    name: Some("image.png".into()),
+                },
+            ],
         },
         request.max_turns,
         request.max_tool_calls,

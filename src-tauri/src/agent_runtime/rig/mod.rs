@@ -1,4 +1,7 @@
 mod conversion;
+mod media;
+#[cfg(test)]
+mod tests;
 
 use std::collections::BTreeSet;
 
@@ -46,7 +49,7 @@ pub fn next(checkpoint: &mut ControlCheckpoint) -> Result<ControlDirective, Stri
             checkpoint.current_turn_id = Some(format!("{}:{turn}", checkpoint.segment_id));
             ControlDirective::CallModel {
                 turn,
-                messages: conversion::messages(history, prompt),
+                messages: conversion::messages(history, prompt)?,
             }
         }
         AgentRunStep::CallTools { calls } => ControlDirective::CallTools {
@@ -109,13 +112,17 @@ pub fn accept_tools(
         .map(|tool_reply| {
             let call = ToolCallId::new(tool_reply.call_id)
                 .ok_or("tool-schema-invalid: tool result call ID is empty")?;
+            let mut content = vec![ToolResultContent::Json {
+                value: tool_reply.result,
+            }];
+            for part in tool_reply.media {
+                content.push(ToolResultContent::Image(media::to_image(part)?));
+            }
             Ok(UserContent::ToolResult(ToolResult {
                 call,
                 provider: None,
                 name: tool_reply.name,
-                content: vec![ToolResultContent::Json {
-                    value: tool_reply.result,
-                }],
+                content,
             }))
         })
         .collect::<Result<Vec<_>, String>>()?;
@@ -124,6 +131,24 @@ pub fn accept_tools(
     checkpoint.tool_call_count += added;
     checkpoint.state = serde_json::to_value(run).map_err(|error| error.to_string())?;
     Ok(())
+}
+
+pub fn requires_vision(checkpoint: &ControlCheckpoint) -> Result<bool, String> {
+    verify(checkpoint)?;
+    let run = restore(checkpoint)?;
+    Ok(run.messages().iter().any(|message| match message {
+        rig_agent::core::message::Message::User { content } => {
+            content.iter().any(|part| match part {
+                UserContent::Image(_) => true,
+                UserContent::ToolResult(reply) => reply
+                    .content
+                    .iter()
+                    .any(|part| matches!(part, ToolResultContent::Image(_))),
+                _ => false,
+            })
+        }
+        _ => false,
+    }))
 }
 
 fn checkpoint(

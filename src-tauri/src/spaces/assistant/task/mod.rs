@@ -16,7 +16,7 @@ use crate::spaces::{
     runs::{transition_run, RunState},
 };
 
-pub(super) const ASSISTANT_PROFILE_VERSION: u16 = 3;
+pub(super) const ASSISTANT_PROFILE_VERSION: u16 = 4;
 
 pub(super) struct NewAssistantTask<'a> {
     pub task_id: &'a str,
@@ -57,7 +57,9 @@ pub async fn start(
     let now = crate::clock::unix_time_millis()?;
     let grant = identity::grant(&request, &ids, &catalog, now);
     let mut checkpoint = crate::agent_runtime::start(
-        context.initial_message(&request.prompt, conversation_context.as_deref()),
+        context
+            .initial_message(&request.prompt, conversation_context.as_deref(), &target)
+            .await?,
         request.max_turns,
         request.max_tool_calls,
         ids.run_id.clone(),
@@ -91,6 +93,7 @@ pub async fn start(
     tauri::async_runtime::spawn(async move {
         match driver::drive(
             driver::DriverContext {
+                app: &app,
                 pool,
                 target: &target,
                 request: &request,

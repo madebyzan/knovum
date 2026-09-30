@@ -8,6 +8,7 @@ pub(crate) mod files;
 pub(crate) mod image;
 pub(crate) mod import;
 pub(crate) mod media_analysis;
+pub(crate) mod node_asset;
 pub(crate) mod node_payload;
 pub(crate) mod reclamation;
 mod recovery;

@@ -62,10 +62,7 @@ pub async fn run(
                 "Desktop Agent does not support HTTP MCP servers",
             ));
         }
-        let prepare_content = prompt.into_content(
-            &working_directory,
-            initialization.agent_capabilities.prompt_capabilities,
-        );
+        let prepare_content = prompt.into_content();
         let content = tokio::select! {
             biased;
             _ = session_cancellation.cancelled() => {

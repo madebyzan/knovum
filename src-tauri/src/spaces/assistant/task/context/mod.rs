@@ -1,4 +1,5 @@
 mod file;
+mod image;
 mod node;
 #[cfg(test)]
 mod tests;
@@ -7,12 +8,14 @@ use serde_json::Value;
 use sqlx::SqlitePool;
 
 use crate::spaces::assistant::{contract::AssistantAttachment, upload};
+pub(super) use image::prepare_image_input_from_file;
+use image::ImageAttachmentContent;
 
 struct ResolvedPart {
     manifest: Value,
     summary: crate::spaces::assistant::AssistantMessageAttachment,
     excerpt: Option<String>,
-    image: Option<crate::ai::contracts::ModelContentPart>,
+    image: Option<ImageAttachmentContent>,
     agent_path: Option<(std::path::PathBuf, AgentPathOrigin)>,
     characters_read: usize,
 }
@@ -34,25 +37,37 @@ pub(crate) struct ResolvedContext {
     pub manifest: Value,
     pub summaries: Vec<crate::spaces::assistant::AssistantMessageAttachment>,
     excerpts: Vec<String>,
-    images: Vec<crate::ai::contracts::ModelContentPart>,
+    images: Vec<ImageAttachmentContent>,
     agent_paths: Vec<(std::path::PathBuf, AgentPathOrigin)>,
     pub(crate) space: crate::spaces::queries::knowledge_projection::ContentsPage,
 }
 
 impl ResolvedContext {
-    pub fn initial_message(
+    pub async fn initial_message(
         &self,
         user_prompt: &str,
         conversation_context: Option<&str>,
-    ) -> crate::ai::contracts::ModelMessage {
+        target: &crate::ai::models::ExecutionTarget,
+    ) -> Result<crate::ai::contracts::ModelMessage, String> {
         let mut content = vec![crate::ai::contracts::ModelContentPart::Text {
             text: self.text(user_prompt, conversation_context),
         }];
-        content.extend(self.images.clone());
-        crate::ai::contracts::ModelMessage {
+        for image in &self.images {
+            content.push(
+                crate::ai::model_turn::media::prepare_image_input(
+                    target,
+                    image.bytes.clone(),
+                    image.media_type,
+                    image.name.clone(),
+                )
+                .await
+                .map_err(|error| error.to_string())?,
+            );
+        }
+        Ok(crate::ai::contracts::ModelMessage {
             role: crate::ai::contracts::ModelRole::User,
             content,
-        }
+        })
     }
 
     pub(crate) fn agent_prompt(
@@ -195,26 +210,4 @@ pub(crate) async fn resolve(
         agent_paths,
         space,
     })
-}
-
-async fn image_thumbnail(path: std::path::PathBuf) -> Result<String, String> {
-    crate::blocking::run(move || {
-        use base64::Engine;
-        let (width, height) = image::image_dimensions(&path).map_err(|error| error.to_string())?;
-        if u64::from(width) * u64::from(height) > 24_000_000 {
-            return Err("assistant-attachment-too-large: image exceeds 24 megapixels".into());
-        }
-        let image = image::open(path)
-            .map_err(|error| error.to_string())?
-            .thumbnail(144, 144);
-        let mut bytes = std::io::Cursor::new(Vec::new());
-        image
-            .write_to(&mut bytes, image::ImageFormat::Png)
-            .map_err(|error| error.to_string())?;
-        Ok(format!(
-            "data:image/png;base64,{}",
-            base64::engine::general_purpose::STANDARD.encode(bytes.into_inner())
-        ))
-    })
-    .await
 }
