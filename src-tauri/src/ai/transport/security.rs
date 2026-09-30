@@ -1,6 +1,6 @@
 use crate::ai::{
     error::{AiError, AiErrorCode, AiResult},
-    models::ExecutionTarget,
+    models::ModelExecutionTarget,
 };
 
 #[derive(Debug, Clone)]
@@ -13,8 +13,8 @@ pub struct SecurityContext {
 }
 
 impl SecurityContext {
-    pub async fn from_target(target: &ExecutionTarget) -> AiResult<Self> {
-        let ExecutionTarget {
+    pub async fn from_target(target: &ModelExecutionTarget) -> AiResult<Self> {
+        let ModelExecutionTarget {
             provider,
             model,
             base_url,

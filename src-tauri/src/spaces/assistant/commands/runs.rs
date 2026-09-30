@@ -18,7 +18,7 @@ pub async fn start_assistant_task(
         } => {
             task::start(
                 app,
-                request.into_model(crate::ai::models::ExecutionTargetSelection::Model {
+                request.into_model(crate::ai::models::ModelTargetSelection::Model {
                     connection_id,
                     model_id,
                     temperature,

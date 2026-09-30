@@ -9,8 +9,7 @@ use crate::spaces::db;
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct VisualizationMetadata {
-    provider: String,
-    model: String,
+    execution_source: crate::ai::tasks::ExecutionSource,
     intent: String,
     style: String,
     aspect_ratio: String,
@@ -21,13 +20,16 @@ pub struct VisualizationMetadata {
 
 pub async fn get(app: &AppHandle, node_id: &str) -> Result<Option<VisualizationMetadata>, String> {
     let pool = db::pool(app).await?;
-    let row = sqlx::query("SELECT d.id,d.created_at,g.provider,g.model,g.intent,g.style,g.aspect_ratio,g.revised_prompt FROM spaces_knowledge_derivations d JOIN spaces_generated_images g ON g.derivation_id=d.id WHERE d.output_node_id=$1 AND d.status='completed'")
+    let row = sqlx::query("SELECT d.id,d.created_at,g.execution_source,g.intent,g.style,g.aspect_ratio,g.revised_prompt FROM spaces_knowledge_derivations d JOIN spaces_generated_images g ON g.derivation_id=d.id WHERE d.output_node_id=$1 AND d.status='completed'")
         .bind(node_id).fetch_optional(pool).await.map_err(db::sql_error)?;
     let Some(row) = row else { return Ok(None) };
     let id: String = row.try_get("id").map_err(db::sql_error)?;
     Ok(Some(VisualizationMetadata {
-        provider: row.try_get("provider").map_err(db::sql_error)?,
-        model: row.try_get("model").map_err(db::sql_error)?,
+        execution_source: serde_json::from_str(
+            &row.try_get::<String, _>("execution_source")
+                .map_err(db::sql_error)?,
+        )
+        .map_err(db::json_error)?,
         intent: row.try_get("intent").map_err(db::sql_error)?,
         style: row.try_get("style").map_err(db::sql_error)?,
         aspect_ratio: row.try_get("aspect_ratio").map_err(db::sql_error)?,

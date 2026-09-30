@@ -4,9 +4,11 @@ use tauri::AppHandle;
 
 use crate::{
     ai::{
-        capabilities::chat,
-        models::{CompletionRequest, ExecutionTargetSelection},
         settings,
+        tasks::{
+            completion::{self, TaskInput},
+            TaskTargetSelection,
+        },
     },
     spaces::knowledge::{
         grounding::prompt,
@@ -21,7 +23,7 @@ pub(super) struct GroundedAnswerRequest {
     space_id: String,
     inputs: Vec<AnswerInput>,
     question: String,
-    target: ExecutionTargetSelection,
+    target: TaskTargetSelection,
 }
 
 #[derive(Deserialize)]
@@ -60,12 +62,12 @@ pub(super) async fn answer(
         .await?;
     }
     tx.commit().await.map_err(crate::spaces::db::sql_error)?;
-    let target = settings::resolve(
+    let target = settings::resolve_task(
         app,
         request.target,
         crate::ai::contracts::ExecutionCapability::TextGeneration,
     )
-    .map_err(|error| error.to_string())?;
+    .map_err(|error| error.task_message())?;
     let (cancellation, _lease) = crate::ai::executions::acquire(request.id.clone())?;
     authority.require_active(pool).await?;
     crate::spaces::knowledge::retrieval::rebuild::prepare_space_index(
@@ -103,23 +105,25 @@ pub(super) async fn answer(
     if sources.is_empty() {
         return Err("answer-with-sources-empty: no indexed source supports the question".into());
     }
-    let completion = chat::complete_cancellable(
-        CompletionRequest {
+    let completion = completion::complete(
+        app,
+        target,
+        TaskInput {
             purpose: crate::ai::usage::UsagePurpose::Knowledge,
-            target,
             system_prompt: prompt::SYSTEM.into(),
             instruction: String::new(),
             text: prompt::build(&request.question, &[], &sources)?,
             max_tokens: None,
+            image: None,
         },
         cancellation,
     )
     .await
-    .map_err(|error| error.to_string())?;
+    .map_err(|error| error.task_message())?;
     if let Some(usage) = completion.usage.as_ref() {
         crate::spaces::runs::record_usage(pool, &request.id, usage).await?;
     }
     let citations = prompt::citations(&completion.text, &sources, &request.space_id)?;
     Ok(json!({"answer":completion.text,"citations":citations,
-        "provider":completion.provider,"model":completion.model,"usage":completion.usage}))
+        "executionSource":completion.execution_source,"usage":completion.usage}))
 }

@@ -3,13 +3,13 @@ use std::path::Path;
 use crate::ai::{
     contracts::UploadedFileReference,
     error::{AiError, AiErrorCode, AiResult},
-    models::ExecutionTarget,
+    models::ModelExecutionTarget,
     providers::resolve_provider,
     transport::SecurityContext,
 };
 
 pub async fn upload_file_path(
-    target: &ExecutionTarget,
+    target: &ModelExecutionTarget,
     file_path: &Path,
 ) -> AiResult<UploadedFileReference> {
     if !file_path.is_file() {
@@ -39,7 +39,7 @@ pub async fn upload_file_path(
 }
 
 pub async fn upload_file_bytes(
-    target: &ExecutionTarget,
+    target: &ModelExecutionTarget,
     bytes: Vec<u8>,
     mime_type: &str,
     file_name: &str,

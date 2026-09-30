@@ -39,11 +39,13 @@ pub(in crate::spaces::assets) fn prepare(
         &display_name
     };
     let path = directory.join(format!("{display_name}.png"));
+    let source = super::super::authorize_spaces_asset(app, Path::new(&document.source_path))?;
+    crate::file_inspection::verify_content_revision(&source, &document.source_revision)?;
     if path.is_file() {
         return Ok(path);
     }
-    let source = super::super::authorize_spaces_asset(app, Path::new(&document.source_path))?;
     let rendered = crate::images::render_source_png(&source, &document.edit)?;
+    crate::file_inspection::verify_content_revision(&source, &document.source_revision)?;
     let temporary = directory.join(format!("{}.partial", uuid::Uuid::new_v4()));
     fs::write(&temporary, rendered.png).map_err(|error| error.to_string())?;
     fs::rename(&temporary, &path).map_err(|error| error.to_string())?;

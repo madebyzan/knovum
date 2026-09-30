@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { isProxy, reactive } from "vue";
 
-import { availableExecutionTargets, defaultExecutionTarget } from "../ai-execution";
+import { availableExecutionTargets, availableModelTargets, defaultExecutionTarget } from "../ai-execution";
 import { encodeExecutionTarget, decodeExecutionTarget } from "../execution-target-codec";
 import { defaultAiModelSettings } from "../integration-settings";
 
@@ -53,7 +53,7 @@ describe("execution target options", () => {
   it("does not mix desktop Agents into model execution routes", () => {
     const settings = structuredClone(defaultAiModelSettings);
     settings.desktopAgents.push({ kind: "codex", enabled: true });
-    expect(availableExecutionTargets(settings, "image-generation")).toEqual([]);
+    expect(availableModelTargets(settings, "image-generation")).toEqual([]);
   });
 });
 
@@ -66,4 +66,31 @@ it("keeps distinct model references separate when identifiers contain separators
   const left = { type: "model" as const, connectionId: "a:b", modelId: "c" };
   const right = { type: "model" as const, connectionId: "a", modelId: "b:c" };
   expect(encodeExecutionTarget(left)).not.toBe(encodeExecutionTarget(right));
+});
+
+it("inherits an explicitly selected desktop Agent across product tasks without model connections", () => {
+  const settings = structuredClone(defaultAiModelSettings);
+  settings.desktopAgents = [{ kind: "codex", enabled: true }];
+  settings.defaults.defaultTarget = { type: "agent", runtimeKind: "codex" };
+  for (const purpose of [
+    "writing",
+    "knowledge",
+    "visual-understanding",
+    "translation",
+    "image-generation",
+    "video-generation",
+  ] as const) {
+    expect(defaultExecutionTarget(settings, purpose)).toEqual(settings.defaults.defaultTarget);
+    expect(availableExecutionTargets(settings, purpose)).toMatchObject([
+      { target: settings.defaults.defaultTarget },
+    ]);
+  }
+  settings.defaults.knowledge = { type: "agent", runtimeKind: "qoder_cli" };
+  expect(defaultExecutionTarget(settings, "knowledge")).toEqual(settings.defaults.knowledge);
+  expect(settings.connections).toEqual([]);
+});
+it("does not choose an executor just because it was enabled", () => {
+  const settings = structuredClone(defaultAiModelSettings);
+  settings.desktopAgents = [{ kind: "codex", enabled: true }];
+  expect(defaultExecutionTarget(settings, "knowledge")).toBeNull();
 });

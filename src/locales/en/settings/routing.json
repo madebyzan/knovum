@@ -1,7 +1,7 @@
 {
-  "defaultsTitle": "Task default models",
-  "defaultsDescription": "Only models that support each task appear. Changes save automatically.",
-  "unassigned": "No default model",
+  "defaultsTitle": "AI execution",
+  "defaultsDescription": "Task overrides take precedence over the default. Desktop Agents use their own authentication and tools. Changes save automatically.",
+  "unassigned": "Use default execution method",
   "noCompatibleModel": "Configure a model for this task",
   "routes": {
     "writing": {
@@ -14,7 +14,7 @@
     },
     "visualUnderstanding": {
       "label": "Visual understanding",
-      "description": "Analyze images and video frames for search and knowledge retrieval."
+      "description": "Understand images, document visuals and video preview images for retrieval."
     },
     "translation": {
       "label": "Translation",
@@ -27,6 +27,11 @@
     "videoGeneration": {
       "label": "Video creation",
       "description": "Create videos from instructions and source material."
+    },
+    "defaultTarget": {
+      "label": "Default execution method",
+      "description": "Applicable AI tasks inherit this choice. No other account is selected automatically."
     }
-  }
+  },
+  "unselected": "No execution method selected"
 }

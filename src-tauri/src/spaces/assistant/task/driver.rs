@@ -17,7 +17,7 @@ use crate::{
 pub(super) struct DriverContext<'a> {
     pub app: &'a tauri::AppHandle,
     pub pool: &'a SqlitePool,
-    pub target: &'a crate::ai::models::ExecutionTarget,
+    pub target: &'a crate::ai::models::ModelExecutionTarget,
     pub request: &'a StartAssistantTaskRequest,
     pub ids: &'a TaskIds,
     pub catalog: &'a tools::ToolCatalog,
@@ -145,7 +145,7 @@ pub(super) async fn drive(
 }
 
 fn model_request(
-    target: &crate::ai::models::ExecutionTarget,
+    target: &crate::ai::models::ModelExecutionTarget,
     mode: AssistantMode,
     messages: Vec<crate::ai::contracts::ModelMessage>,
     tools: &[crate::ai::contracts::ModelToolDefinition],

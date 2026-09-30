@@ -10,10 +10,12 @@ use tauri::{ipc::Channel, AppHandle};
 use super::stage;
 use crate::{
     ai::{
-        capabilities::chat,
         contracts::ExecutionCapability,
-        models::{ExecutionTarget, ExecutionTargetSelection},
         settings,
+        tasks::{
+            completion as task_completion, ExecutionSource, TaskExecutionTarget,
+            TaskTargetSelection,
+        },
     },
     spaces::{
         db,
@@ -32,7 +34,7 @@ pub struct GenerateGroundedDocumentRequest {
     output_node_id: String,
     inputs: Vec<DocumentInput>,
     purpose: String,
-    target: ExecutionTargetSelection,
+    target: TaskTargetSelection,
 }
 
 #[derive(Deserialize)]
@@ -80,14 +82,13 @@ async fn generate_inner(
     request: GenerateGroundedDocumentRequest,
     stages: Channel<String>,
 ) -> Result<GroundedDocumentOutput, String> {
-    let target = settings::resolve(
+    let target = settings::resolve_task(
         &app,
         request.target.clone(),
         ExecutionCapability::TextGeneration,
     )
-    .map_err(|error| error.to_string())?;
-    let (cancellation, _lease) =
-        crate::ai::executions::acquire(request.id.clone()).map_err(|error| error.to_string())?;
+    .map_err(|error| error.task_message())?;
+    let (cancellation, _lease) = crate::ai::executions::acquire(request.id.clone())?;
     authority.require_active(db::pool(&app).await?).await?;
     if let Err(error) = persistence::start(&app, &request, &authority).await {
         super::failure::fail_pending(
@@ -99,18 +100,14 @@ async fn generate_inner(
         .await?;
         return Err(error);
     }
-    let execution = execute(&app, &request, &target, &stages, cancellation.clone());
-    let generated_document = tokio::select! {
-        _ = cancellation.cancelled() => Err("Grounded document creation was cancelled".to_owned()),
-        generated_document = execution => generated_document,
-    };
+    let generated_document = execute(&app, &request, &target, &stages, cancellation.clone()).await;
     match generated_document {
         Ok(generated) => {
             if let Some(usage) = generated.usage.as_ref() {
                 crate::spaces::runs::record_usage(db::pool(&app).await?, &request.id, usage)
                     .await?;
             }
-            completion::complete(&app, &request, generated, &authority).await
+            completion::complete(&app, &request, generated, &authority, &cancellation).await
         }
         Err(error) => {
             persistence::fail(&app, &request.id, &error).await?;
@@ -122,7 +119,7 @@ async fn generate_inner(
 async fn execute(
     app: &AppHandle,
     request: &GenerateGroundedDocumentRequest,
-    target: &ExecutionTarget,
+    target: &TaskExecutionTarget,
     stages: &Channel<String>,
     cancellation: tokio_util::sync::CancellationToken,
 ) -> Result<GeneratedDocument, String> {
@@ -163,17 +160,18 @@ async fn execute(
         return Err("Selected resources contain no current indexed knowledge".into());
     }
     stage(stages, "generating")?;
-    let completion = chat::complete_cancellable(
-        prompt::request(target, &request.purpose, &sources)?,
+    let completion = task_completion::complete(
+        app,
+        target.clone(),
+        prompt::request(&request.purpose, &sources)?,
         cancellation,
     )
     .await
-    .map_err(|error| error.to_string())?;
+    .map_err(|error| error.task_message())?;
     let citations = grounding::prompt::citations(&completion.text, &sources, &request.space_id)?;
     Ok(GeneratedDocument {
         text: completion.text,
-        provider: completion.provider,
-        model: completion.model,
+        execution_source: completion.execution_source,
         usage: completion.usage,
         citations,
     })
@@ -181,8 +179,7 @@ async fn execute(
 
 struct GeneratedDocument {
     text: String,
-    provider: String,
-    model: String,
+    execution_source: ExecutionSource,
     usage: Option<crate::ai::contracts::TokenUsage>,
     citations: Value,
 }

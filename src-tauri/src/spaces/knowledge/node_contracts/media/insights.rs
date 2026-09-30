@@ -16,8 +16,7 @@ pub(super) fn validate(value: &Value, transcript: &TranscriptContract) -> Result
             "promptVersion",
             "generatedAt",
             "editedAt",
-            "provider",
-            "model",
+            "executionSource",
         ],
         "Media insights",
     )?;
@@ -29,8 +28,14 @@ pub(super) fn validate(value: &Value, transcript: &TranscriptContract) -> Result
     if insights.contains_key("editedAt") {
         nonnegative(insights, "editedAt")?;
     }
-    required_string(insights, "provider", 128)?;
-    required_string(insights, "model", 256)?;
+    let source: crate::ai::tasks::ExecutionSource = serde_json::from_value(
+        insights
+            .get("executionSource")
+            .ok_or("Media execution source is required")?
+            .clone(),
+    )
+    .map_err(|e| format!("Invalid media execution source: {e}"))?;
+    source.validate()?;
     validate_chapters(insights, transcript)
 }
 

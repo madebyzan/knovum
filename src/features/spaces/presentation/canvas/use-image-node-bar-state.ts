@@ -7,6 +7,7 @@ import { useImageCommentSession } from "../../comments/image-comment-session";
 import { useImageEditSession, type ImageEditTool } from "../../image-editing/image-edit-session";
 import type { CreationIntentDecisions } from "../../knowledge-derivations/catalog/creation-intent-definitions";
 import { useImageOperationCapabilities } from "../../knowledge-derivations/image-capabilities";
+import type { ImageOperationCapability } from "../../knowledge-derivations/image-operation";
 import { useImageRemovalSession } from "../../knowledge-derivations/image-removal-session";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../../model/nodes/node-payload";
@@ -50,8 +51,13 @@ export function useImageNodeBarState(
     imageRemovalSizeValid(imageRemovalSize(node.value, imageDimensions)),
   );
   const removalMode = computed(() => {
-    if (capabilities.data.value?.maskedRemoval.state === "ready" && removalSizeValid.value) return "mask";
-    if (capabilities.data.value?.promptRemoval.state === "ready") return "prompt";
+    if (
+      capabilities.data.value &&
+      capabilities.data.value.maskedRemoval.state !== "blocked" &&
+      removalSizeValid.value
+    )
+      return "mask";
+    if (capabilities.data.value && capabilities.data.value.promptRemoval.state !== "blocked") return "prompt";
     return undefined;
   });
   const removalStatusReason = computed(() => {
@@ -70,9 +76,11 @@ export function useImageNodeBarState(
   const removalReason = computed(() => {
     if (removalStatusReason.value) return removalStatusReason.value;
     const available = capabilities.data.value;
-    if (available?.maskedRemoval.state === "ready" && !removalSizeValid.value) return removalSizeReason.value;
+    if (available && available.maskedRemoval.state !== "blocked" && !removalSizeValid.value)
+      return removalSizeReason.value;
     const blocked = [available?.maskedRemoval, available?.promptRemoval].find(
-      (capability) => capability?.state === "blocked" && capability.reason !== "provider_unsupported",
+      (capability): capability is Extract<ImageOperationCapability, { state: "blocked" }> =>
+        capability?.state === "blocked" && capability.reason !== "provider_unsupported",
     );
     return imageActionHelp(blocked ?? { state: "blocked", reason: "provider_unsupported" }, t)?.label ?? "";
   });

@@ -9,8 +9,7 @@ use crate::spaces::db;
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct GeneratedVideoMetadata {
-    provider: String,
-    model: String,
+    execution_source: crate::ai::tasks::ExecutionSource,
     prompt: String,
     aspect_ratio: String,
     duration_seconds: i64,
@@ -20,13 +19,16 @@ pub struct GeneratedVideoMetadata {
 
 pub async fn get(app: &AppHandle, node_id: &str) -> Result<Option<GeneratedVideoMetadata>, String> {
     let pool = db::pool(app).await?;
-    let row = sqlx::query("SELECT d.id,d.created_at,g.provider,g.model,g.prompt,g.aspect_ratio,g.duration_seconds FROM spaces_knowledge_derivations d JOIN spaces_generated_videos g ON g.derivation_id=d.id WHERE d.output_node_id=$1 AND d.status='completed'")
+    let row = sqlx::query("SELECT d.id,d.created_at,g.execution_source,g.prompt,g.aspect_ratio,g.duration_seconds FROM spaces_knowledge_derivations d JOIN spaces_generated_videos g ON g.derivation_id=d.id WHERE d.output_node_id=$1 AND d.status='completed'")
         .bind(node_id).fetch_optional(pool).await.map_err(db::sql_error)?;
     let Some(row) = row else { return Ok(None) };
     let derivation_id: String = row.try_get("id").map_err(db::sql_error)?;
     Ok(Some(GeneratedVideoMetadata {
-        provider: row.try_get("provider").map_err(db::sql_error)?,
-        model: row.try_get("model").map_err(db::sql_error)?,
+        execution_source: serde_json::from_str(
+            &row.try_get::<String, _>("execution_source")
+                .map_err(db::sql_error)?,
+        )
+        .map_err(db::json_error)?,
         prompt: row.try_get("prompt").map_err(db::sql_error)?,
         aspect_ratio: row.try_get("aspect_ratio").map_err(db::sql_error)?,
         duration_seconds: row.try_get("duration_seconds").map_err(db::sql_error)?,

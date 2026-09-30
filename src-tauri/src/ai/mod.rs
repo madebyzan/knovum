@@ -8,6 +8,7 @@ pub mod models;
 pub mod providers;
 mod queries;
 pub mod settings;
+pub mod tasks;
 pub mod transport;
 pub mod usage;
 
@@ -16,6 +17,8 @@ use tauri::{plugin::TauriPlugin, Wry};
 pub fn plugin() -> TauriPlugin<Wry> {
     tauri::plugin::Builder::new("ai")
         .setup(|app, _api| {
+            crate::external_agents::task::discard_interrupted(app)
+                .map_err(std::io::Error::other)?;
             tauri::async_runtime::block_on(usage::initialize(app))
                 .map_err(std::io::Error::other)?;
             Ok(())

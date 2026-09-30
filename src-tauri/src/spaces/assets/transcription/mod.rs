@@ -84,7 +84,7 @@ pub(in crate::spaces::assets) async fn start_transcription(
         if cancellation.is_cancelled() || error == preparation::RESOURCE_PREPARATION_CANCELLED {
             crate::media::TRANSCRIPTION_CANCELLED.into()
         } else {
-            error
+            format!("local-resource-unavailable: {error}")
         }
     })?;
     let execution = registry::execution_permit(&cancellation).await?;
@@ -180,7 +180,7 @@ fn required_tool(
     label: &str,
 ) -> Result<std::path::PathBuf, String> {
     tools::resolve_tool(app, env_key, name)?
-        .ok_or_else(|| format!("{label} is required and is not installed"))
+        .ok_or_else(|| format!("local-tool-unavailable: {label} is required and is not installed"))
 }
 
 pub(crate) fn send_progress(

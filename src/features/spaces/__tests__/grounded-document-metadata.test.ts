@@ -7,8 +7,7 @@ vi.mock("@tauri-apps/api/core", () => ({ invoke: ipc.invoke }));
 
 const metadata = {
   actionKind: "draft-document",
-  provider: "openai",
-  model: "model",
+  executionSource: { type: "model", provider: "openai", model: "model" },
   createdAt: 1,
   sources: [],
   citations: [],

@@ -97,6 +97,7 @@ async function manageModels(purpose: AiRoutingPurpose) {
       <AiRoutingSettings
         v-model="settings.defaults"
         :connections="settings.connections"
+        :desktop-agents="settings.desktopAgents"
         @manage-models="manageModels"
       />
     </div>

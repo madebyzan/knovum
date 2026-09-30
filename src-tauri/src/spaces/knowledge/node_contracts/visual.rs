@@ -22,8 +22,7 @@ pub(super) fn validate(value: Option<&Value>) -> Result<(), String> {
             "detectedText",
             "tags",
             "generatedAt",
-            "provider",
-            "model",
+            "executionSource",
         ],
         "visualKnowledge",
     )?;
@@ -35,7 +34,13 @@ pub(super) fn validate(value: Option<&Value>) -> Result<(), String> {
     }
     optional_string_array(object, "tags", 32, 80)?;
     required_safe_nonnegative_integer(object, "generatedAt")?;
-    required_string(object, "provider", 128)?;
-    required_string(object, "model", 256)?;
+    let source: crate::ai::tasks::ExecutionSource = serde_json::from_value(
+        object
+            .get("executionSource")
+            .ok_or("Visual execution source is required")?
+            .clone(),
+    )
+    .map_err(|e| format!("Invalid visual execution source: {e}"))?;
+    source.validate()?;
     Ok(())
 }

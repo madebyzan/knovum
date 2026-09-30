@@ -6,6 +6,7 @@ describe("integration settings persisted contracts", () => {
   it("defaults without built-in AI models or connections", () => {
     expect(defaultAiModelSettings.connections).toEqual([]);
     expect(defaultAiModelSettings.defaults).toEqual({
+      defaultTarget: null,
       writing: null,
       knowledge: null,
       visualUnderstanding: null,
@@ -55,7 +56,7 @@ describe("integration settings persisted contracts", () => {
     expect(decodeAiModelSettings({ schemaVersion: 1, value })).toEqual(value);
   });
 
-  it("rejects desktop Agent identities in model routing defaults", () => {
+  it("rejects malformed or unenabled desktop Agent identities", () => {
     const value = structuredClone(defaultAiModelSettings) as unknown as Record<string, unknown>;
     value.defaults = {
       writing: { type: "agent", kind: "codex" },
@@ -102,4 +103,12 @@ describe("integration settings persisted contracts", () => {
   it("rejects unversioned or non-current envelopes", () => {
     expect(() => decodeAiModelSettings({ schemaVersion: 2, value: defaultAiModelSettings })).toThrow(/./u);
   });
+});
+
+it("accepts enabled Agent-only product routing", () => {
+  const value = structuredClone(defaultAiModelSettings);
+  value.desktopAgents = [{ kind: "codex", enabled: true }];
+  value.defaults.defaultTarget = { type: "agent", runtimeKind: "codex" };
+  value.defaults.visualUnderstanding = { type: "agent", runtimeKind: "codex" };
+  expect(decodeAiModelSettings({ schemaVersion: 1, value })).toEqual(value);
 });

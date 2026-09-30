@@ -1,54 +1,25 @@
 use crate::ai::{
-    capabilities::chat,
     error::{AiError, AiResult},
-    models::{
-        CompletionOutput, CompletionRequest, CompletionStreamEvent, EditorTransformAction,
-        EditorTransformRequest,
-    },
+    models::EditorTransformAction,
+    tasks::completion::TaskInput,
 };
 
 const EDITOR_SYSTEM: &str = "You are Knovum's Markdown writing engine. Follow the requested transformation exactly. Preserve factual meaning, Markdown structure, links, code spans, and proper nouns unless the action explicitly requires a change. Return only the transformed text without commentary, labels, quotation marks, or code fences.";
 
-pub async fn transform(request: EditorTransformRequest) -> AiResult<CompletionOutput> {
-    let inst = instruction(request.action);
-    let source = request.text.trim();
-    if source.is_empty() {
+pub(crate) fn input(action: EditorTransformAction, text: String) -> AiResult<TaskInput> {
+    if text.trim().is_empty() {
         return Err(AiError::invalid(
-            "Editor transform requires non-empty source text.",
+            "Editor transform requires non-empty source text",
         ));
     }
-    let req = CompletionRequest {
+    Ok(TaskInput {
         purpose: crate::ai::usage::UsagePurpose::Editor,
-        target: request.target,
-        system_prompt: EDITOR_SYSTEM.to_string(),
-        instruction: inst.to_string(),
-        text: source.to_string(),
+        system_prompt: EDITOR_SYSTEM.into(),
+        instruction: instruction(action).into(),
+        text: text.trim().into(),
         max_tokens: None,
-    };
-    chat::complete(req).await
-}
-
-pub async fn transform_stream(
-    request: EditorTransformRequest,
-    events: tauri::ipc::Channel<CompletionStreamEvent>,
-    cancellation: tokio_util::sync::CancellationToken,
-) -> AiResult<CompletionOutput> {
-    let inst = instruction(request.action);
-    let source = request.text.trim();
-    if source.is_empty() {
-        return Err(AiError::invalid(
-            "Editor transform requires non-empty source text.",
-        ));
-    }
-    let req = CompletionRequest {
-        purpose: crate::ai::usage::UsagePurpose::Editor,
-        target: request.target,
-        system_prompt: EDITOR_SYSTEM.to_string(),
-        instruction: inst.to_string(),
-        text: source.to_string(),
-        max_tokens: None,
-    };
-    chat::complete_stream(req, events, cancellation).await
+        image: None,
+    })
 }
 
 fn instruction(action: EditorTransformAction) -> &'static str {

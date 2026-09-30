@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { executionSourceSchema } from "../../../../../foundation/ai/schema/models";
 import { knowledgeLocatorSchema } from "../../../knowledge/model/schema/chunk";
 
 const resourceSchema = z
@@ -24,8 +25,7 @@ const analysisSchema = z
   .object({
     description: z.string().max(48_000),
     detectedText: z.string().max(48_000),
-    provider: z.string().min(1).max(256),
-    model: z.string().min(1).max(1024),
+    executionSource: executionSourceSchema,
     generatedAt: z.number().int().nonnegative(),
     analysisVersion: z.literal("document-visual:1"),
   })

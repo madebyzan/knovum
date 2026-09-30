@@ -7,5 +7,7 @@
   "disabledTitle": "没有兼容的 AI 执行目标",
   "disabledDescription": "请为当前操作配置兼容模型，或启用已安装的桌面 Agent。",
   "openSettings": "配置模型",
-  "settingsUnavailable": "AI 设置加载失败"
+  "settingsUnavailable": "AI 设置加载失败",
+  "executedWithModel": "由 {provider} · {model} 执行",
+  "executedWithAgent": "由 {name} · 桌面 Agent 执行"
 }

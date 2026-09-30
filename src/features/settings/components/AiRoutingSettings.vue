@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { BookOpen, Image, Languages, PenLine, ScanSearch, Video } from "@lucide/vue";
+import { BookOpen, Bot, Image, Languages, PenLine, ScanSearch, Video } from "@lucide/vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { availableExecutionTargets } from "../../../foundation/ai/ai-execution";
+import { useExecutionCatalogQuery } from "../../../foundation/ai/execution-catalog-query";
 import { decodeExecutionTarget, encodeExecutionTarget } from "../../../foundation/ai/execution-target-codec";
+import type { DesktopAgentSettings } from "../../../foundation/ai/schema/agents";
 import type {
   AiConnectionSettings,
   AiRoutingDefaults,
@@ -13,12 +15,14 @@ import type {
 import UiSelect from "../../../shared/ui/UiSelect.vue";
 import SettingsSection from "./SettingsSection.vue";
 
-const props = defineProps<{ connections: AiConnectionSettings[] }>();
+const props = defineProps<{ connections: AiConnectionSettings[]; desktopAgents: DesktopAgentSettings[] }>();
 const routes = defineModel<AiRoutingDefaults>({ required: true });
 const emit = defineEmits<{ manageModels: [purpose: AiRoutingPurpose] }>();
 const { t } = useI18n();
 const UNASSIGNED = "__unassigned__";
+const catalog = useExecutionCatalogQuery({ detectInstallations: false });
 const routeDefinitions = [
+  ["defaultTarget", undefined, Bot],
   ["writing", "writing", PenLine],
   ["knowledge", "knowledge", BookOpen],
   ["visualUnderstanding", "visual-understanding", ScanSearch],
@@ -33,7 +37,13 @@ const routeRows = computed(() =>
     icon,
     label: t(`settings.routing.routes.${key}.label`),
     description: t(`settings.routing.routes.${key}.description`),
-    options: availableExecutionTargets(props, purpose).map(({ value, label }) => ({ value, label })),
+    options: availableExecutionTargets(props, purpose).map(({ value, label, target }) => ({
+      value,
+      label:
+        target.type === "agent"
+          ? (catalog.data.value?.agents.find(({ kind }) => kind === target.runtimeKind)?.displayName ?? label)
+          : label,
+    })),
   })),
 );
 function update(key: keyof AiRoutingDefaults, value: string) {
@@ -66,7 +76,15 @@ const selected = (target: AiRoutingDefaults[keyof AiRoutingDefaults]) =>
         v-if="row.options.length"
         :model-value="selected(routes[row.key])"
         :label="row.label"
-        :options="[{ value: UNASSIGNED, label: t('settings.routing.unassigned') }, ...row.options]"
+        :options="[
+          {
+            value: UNASSIGNED,
+            label: t(
+              row.key === 'defaultTarget' ? 'settings.routing.unselected' : 'settings.routing.unassigned',
+            ),
+          },
+          ...row.options,
+        ]"
         class="w-full sm:w-64"
         @update:model-value="update(row.key, $event)"
       />
@@ -74,7 +92,7 @@ const selected = (target: AiRoutingDefaults[keyof AiRoutingDefaults]) =>
         v-else
         type="button"
         class="rounded-md text-caption text-fg-secondary underline-offset-2 hover:text-fg-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stroke-focus"
-        @click="emit('manageModels', row.purpose)"
+        @click="emit('manageModels', row.purpose ?? 'knowledge')"
       >
         {{ t(connections.length ? "settings.routing.noCompatibleModel" : "settings.ai.addConnection") }}
       </button>

@@ -18,7 +18,11 @@ export function useProtectedExecutionTargets() {
   ]);
 
   return {
-    protectedConnectionIds: computed(() => uniq(targets.value.map(({ connectionId }) => connectionId))),
-    protectedModelTargets: computed(() => targets.value.map(encodeExecutionTarget)),
+    protectedConnectionIds: computed(() =>
+      uniq(targets.value.filter((target) => target.type === "model").map(({ connectionId }) => connectionId)),
+    ),
+    protectedModelTargets: computed(() =>
+      targets.value.filter((target) => target.type === "model").map(encodeExecutionTarget),
+    ),
   };
 }

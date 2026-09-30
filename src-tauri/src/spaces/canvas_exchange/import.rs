@@ -95,8 +95,14 @@ pub(crate) async fn import_nodes<R: Runtime>(
         .await?;
     }
     let now = crate::clock::unix_time_millis()?;
-    crate::spaces::nodes::insert_rows_in_transaction(&mut tx, &request.space_id, &nodes, now)
-        .await?;
+    crate::spaces::nodes::insert_rows_in_transaction(
+        &mut tx,
+        &request.space_id,
+        &nodes,
+        now,
+        crate::spaces::assets::enrichment::jobs::intent::selection(&app)?.as_ref(),
+    )
+    .await?;
     for relation in &request.relations {
         if relation.space_id != request.space_id {
             return Err("Imported relation belongs to a different Space".into());

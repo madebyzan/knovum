@@ -8,6 +8,7 @@ pub enum AiErrorCode {
     InvalidRequest,
     UnsupportedProvider,
     NotConfigured,
+    AgentUnavailable,
     AuthenticationFailed,
     CapabilityNotSupported,
     ProviderRequestFailed,
@@ -30,6 +31,18 @@ impl AiError {
             code,
             message: message.into(),
         }
+    }
+
+    /// Carry machine-readable AI errors through feature commands that use CommandError.
+    pub fn task_message(&self) -> String {
+        let code = serde_json::to_value(self.code).expect("AI error code is serializable");
+        format!(
+            "ai-{}: {}",
+            code.as_str()
+                .expect("AI error code is a string")
+                .replace('_', "-"),
+            self.message
+        )
     }
 
     pub fn invalid(message: impl Into<String>) -> Self {

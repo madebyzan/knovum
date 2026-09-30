@@ -1,7 +1,7 @@
-import type { CompletionOutput } from "../../shared/contracts/generated/CompletionOutput";
-import type { CompletionStreamEvent } from "../../shared/contracts/generated/CompletionStreamEvent";
 import type { EditorTransformAction } from "../../shared/contracts/generated/EditorTransformAction";
 import type { EditorTransformCommandRequest } from "../../shared/contracts/generated/EditorTransformCommandRequest";
+import type { TaskCompletionOutput } from "../../shared/contracts/generated/TaskCompletionOutput";
+import type { TaskStreamEvent } from "../../shared/contracts/generated/TaskStreamEvent";
 export type { EditorTransformAction } from "../../shared/contracts/generated/EditorTransformAction";
 import { Channel } from "@tauri-apps/api/core";
 
@@ -12,13 +12,13 @@ export async function transformEditorTextStream(
   action: EditorTransformAction,
   text: string,
   jobId: string,
-  onEvent: (event: CompletionStreamEvent) => void,
+  onEvent: (event: TaskStreamEvent) => void,
 ): Promise<string> {
   const target = await loadAiExecutionTarget("writing");
-  const channel = new Channel<CompletionStreamEvent>();
+  const channel = new Channel<TaskStreamEvent>();
   // oxlint-disable-next-line unicorn/prefer-add-event-listener -- Tauri Channel exposes events through onmessage.
   channel.onmessage = onEvent;
-  const completion = await invokeCommand<CompletionOutput>("plugin:ai|transform_editor_text_stream", {
+  const completion = await invokeCommand<TaskCompletionOutput>("plugin:ai|transform_editor_text_stream", {
     request: {
       target: aiExecutionTargetPayload(target),
       action,

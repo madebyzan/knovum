@@ -1,8 +1,8 @@
 use std::time::Instant;
 
-use crate::ai::models::ExecutionTarget;
+use crate::ai::models::ModelExecutionTarget;
 
-pub fn stream_request_started(target: &ExecutionTarget, prompt_bytes: usize) {
+pub fn stream_request_started(target: &ModelExecutionTarget, prompt_bytes: usize) {
     log::info!(
         "AI stream request started provider={} model={} prompt_bytes={}",
         target.provider(),
@@ -11,7 +11,7 @@ pub fn stream_request_started(target: &ExecutionTarget, prompt_bytes: usize) {
     );
 }
 
-pub fn stream_opened(target: &ExecutionTarget, started_at: Instant) {
+pub fn stream_opened(target: &ModelExecutionTarget, started_at: Instant) {
     log::info!(
         "AI stream opened provider={} model={} elapsed_ms={}",
         target.provider(),
@@ -20,7 +20,7 @@ pub fn stream_opened(target: &ExecutionTarget, started_at: Instant) {
     );
 }
 
-pub fn stream_first_text(target: &ExecutionTarget, started_at: Instant) {
+pub fn stream_first_text(target: &ModelExecutionTarget, started_at: Instant) {
     log::info!(
         "AI stream first text provider={} model={} elapsed_ms={}",
         target.provider(),
@@ -30,7 +30,7 @@ pub fn stream_first_text(target: &ExecutionTarget, started_at: Instant) {
 }
 
 pub fn stream_ended(
-    target: &ExecutionTarget,
+    target: &ModelExecutionTarget,
     chunk_count: u64,
     text_bytes: usize,
     started_at: Instant,
@@ -45,7 +45,7 @@ pub fn stream_ended(
     );
 }
 
-pub fn stream_completed(target: &ExecutionTarget, started_at: Instant) {
+pub fn stream_completed(target: &ModelExecutionTarget, started_at: Instant) {
     log::info!(
         "AI stream completed provider={} model={} elapsed_ms={}",
         target.provider(),

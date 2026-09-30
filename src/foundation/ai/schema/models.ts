@@ -7,6 +7,8 @@ import {
   executionCapabilities,
   routingPurposes,
 } from "../../../shared/contracts/generated/contract-values";
+import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
+import { agentKindSchema } from "./agents";
 
 export const aiProviderSchema = z.enum(providerKinds);
 export const aiCapabilitySchema = z.enum(executionCapabilities);
@@ -46,18 +48,35 @@ export const aiConnectionSettingsSchema = z
     }
   });
 
-export const executionTargetSchema = z
+const modelTargetSchema = z
   .object({ type: z.literal("model"), connectionId: z.string().min(1), modelId: z.string().min(1) })
   .strict();
 
+export const executionTargetSchema = z.discriminatedUnion("type", [
+  modelTargetSchema,
+  z.object({ type: z.literal("agent"), runtimeKind: agentKindSchema }).strict(),
+]);
+
+export const executionSourceSchema = z.discriminatedUnion("type", [
+  z
+    .object({
+      type: z.literal("model"),
+      provider: z.string().trim().min(1).max(128),
+      model: z.string().trim().min(1).max(256),
+    })
+    .strict(),
+  z.object({ type: z.literal("agent"), runtimeKind: agentKindSchema }).strict(),
+]);
+
 export const aiDefaultsSchema = z
   .object({
-    writing: executionTargetSchema.nullable(),
-    knowledge: executionTargetSchema.nullable(),
-    visualUnderstanding: executionTargetSchema.nullable(),
-    translation: executionTargetSchema.nullable(),
-    imageGeneration: executionTargetSchema.nullable(),
-    videoGeneration: executionTargetSchema.nullable(),
+    defaultTarget: executionTargetSchema.nullable().default(null),
+    writing: executionTargetSchema.nullable().default(null),
+    knowledge: executionTargetSchema.nullable().default(null),
+    visualUnderstanding: executionTargetSchema.nullable().default(null),
+    translation: executionTargetSchema.nullable().default(null),
+    imageGeneration: executionTargetSchema.nullable().default(null),
+    videoGeneration: executionTargetSchema.nullable().default(null),
   })
   .strict();
 
@@ -76,7 +95,7 @@ export type { ExecutionCapability as AiModelCapability } from "../../../shared/c
 export type { RoutingPurpose as AiRoutingPurpose } from "../../../shared/contracts/generated/RoutingPurpose";
 export type { AiModelDefinition } from "../../../shared/contracts/generated/AiModelDefinition";
 export type { AiConnectionSettings } from "../../../shared/contracts/generated/AiConnectionSettings";
-export type { ExecutionTargetRef as ExecutionTarget } from "../../../shared/contracts/generated/ExecutionTargetRef";
+export type { TaskTargetRef as ExecutionTarget } from "../../../shared/contracts/generated/TaskTargetRef";
 export type { AiRoutingDefaults } from "../../../shared/contracts/generated/AiRoutingDefaults";
 export type GenerationPreset = z.infer<typeof generationPresetSchema>;
 
@@ -88,3 +107,5 @@ export interface ResolvedAiModelTarget {
 
 export const aiConnectionSecretKey = (connectionId: string) =>
   `integrations.ai.connections.${connectionId}.api-key`;
+
+export type ResolvedAiTaskTarget = ResolvedAiModelTarget | Extract<TaskTargetRef, { type: "agent" }>;

@@ -3,6 +3,20 @@ use sqlx::Row;
 
 use super::job::{EnqueueEnrichmentJobRequest, EnrichmentJobState, STATUS_RUNNING};
 
+pub(crate) async fn freeze_target(
+    pool: &sqlx::SqlitePool,
+    id: &str,
+    target: &crate::ai::tasks::TaskTargetSelection,
+) -> Result<crate::ai::tasks::TaskTargetSelection, String> {
+    let raw = serde_json::to_string(target).map_err(db::json_error)?;
+    let frozen: Option<String> = sqlx::query_scalar("UPDATE spaces_enrichment_jobs SET execution_target=COALESCE(execution_target,$1) WHERE id=$2 AND status IN ('pending','awaiting_configuration') RETURNING execution_target")
+        .bind(raw).bind(id).fetch_optional(pool).await.map_err(db::sql_error)?;
+    serde_json::from_str(
+        &frozen.ok_or("Enrichment intent no longer permits execution preparation")?,
+    )
+    .map_err(db::json_error)
+}
+
 pub(crate) async fn claim_job(
     pool: &sqlx::SqlitePool,
     id: &str,
@@ -93,13 +107,13 @@ pub(crate) async fn list_actionable(
 ) -> Result<Vec<EnrichmentJobState>, String> {
     let rows = sqlx::query(
         "WITH ranked AS ( \
-           SELECT id,space_id,node_id,job_type,status,source_revision,attempts,error,created_at,updated_at, \
+           SELECT id,space_id,node_id,job_type,status,source_revision,execution_target,attempts,error,created_at,updated_at, \
              row_number() OVER ( \
                PARTITION BY space_id,node_id,job_type,source_revision ORDER BY updated_at DESC,id DESC \
              ) AS position \
            FROM spaces_enrichment_jobs WHERE ($1 IS NULL OR space_id=$1) \
          ) \
-         SELECT r.id,r.space_id,r.node_id,r.job_type,r.status,r.source_revision,r.attempts,r.error,r.created_at,r.updated_at,n.data \
+         SELECT r.id,r.space_id,r.node_id,r.job_type,r.status,r.source_revision,r.execution_target,r.attempts,r.error,r.created_at,r.updated_at,n.data \
          FROM ranked r JOIN spaces_nodes n ON n.space_id=r.space_id AND n.id=r.node_id AND n.deleted_at IS NULL \
          WHERE r.position=1 AND r.status IN ('pending','running','failed','awaiting_configuration') \
          ORDER BY r.updated_at ASC",
@@ -139,6 +153,11 @@ fn job_from_row(row: sqlx::sqlite::SqliteRow) -> Result<EnrichmentJobState, Stri
         .map_err(db::json_error)?,
         source_revision: row.try_get("source_revision").map_err(db::sql_error)?,
         attempts: row.try_get("attempts").map_err(db::sql_error)?,
+        execution_target: row
+            .try_get::<Option<String>, _>("execution_target")
+            .map_err(db::sql_error)?
+            .map(|raw| serde_json::from_str(&raw).map_err(db::json_error))
+            .transpose()?,
         error: row.try_get("error").map_err(db::sql_error)?,
         created_at: row.try_get("created_at").map_err(db::sql_error)?,
         updated_at: row.try_get("updated_at").map_err(db::sql_error)?,

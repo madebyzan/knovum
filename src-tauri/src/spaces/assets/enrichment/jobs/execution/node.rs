@@ -34,6 +34,7 @@ pub(super) async fn save(
     request: &RunEnrichmentJobRequest,
     data: Value,
     expected_media_knowledge: &Value,
+    cancellation: &tokio_util::sync::CancellationToken,
 ) -> Result<Value, String> {
     let field = match request.job_type {
         super::EnrichmentJobType::AnalyzeMedia => "mediaAnalysis",
@@ -55,6 +56,8 @@ pub(super) async fn save(
             job_id: Some(&request.job_id),
             media_knowledge: (request.job_type == super::EnrichmentJobType::TranscribeMedia)
                 .then_some(expected_media_knowledge),
+            document_coverage: None,
+            cancellation: Some(cancellation),
         },
         fields,
         None,

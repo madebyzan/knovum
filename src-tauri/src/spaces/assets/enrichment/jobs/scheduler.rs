@@ -73,19 +73,39 @@ async fn dispatch(
         if active.contains(&node) || active.len() >= 32 {
             continue;
         }
-        let target = match vision_selection(app, job.job_type) {
+        let selection = match &job.execution_target {
+            Some(target) => Ok(Some(target.clone())),
+            None => vision_selection(app, job.job_type),
+        };
+        let target = match selection {
             Ok(target) => target,
             Err(error) if error.code == crate::ai::error::AiErrorCode::NotConfigured => {
                 persistence::defer_for_configuration(
                     pool,
                     &job.id,
-                    error.to_string(),
+                    error.task_message(),
                     crate::clock::unix_time_millis()?,
                 )
                 .await?;
                 continue;
             }
-            Err(error) => return Err(error.to_string()),
+            Err(error) => {
+                persistence::set_status(
+                    pool,
+                    &job.id,
+                    "'pending','awaiting_configuration'",
+                    "failed",
+                    Some(error.task_message()),
+                    crate::clock::unix_time_millis()?,
+                    false,
+                )
+                .await?;
+                continue;
+            }
+        };
+        let target = match target {
+            Some(target) => Some(persistence::freeze_target(pool, &job.id, &target).await?),
+            None => None,
         };
         active.insert(node.clone());
         let app = app.clone();
@@ -100,7 +120,7 @@ async fn dispatch(
 fn vision_selection(
     app: &AppHandle,
     kind: EnrichmentJobType,
-) -> Result<Option<crate::ai::models::ExecutionTargetSelection>, crate::ai::error::AiError> {
+) -> Result<Option<crate::ai::tasks::TaskTargetSelection>, crate::ai::error::AiError> {
     if !matches!(
         kind,
         EnrichmentJobType::AnalyzeVisual | EnrichmentJobType::AnalyzeDocument
@@ -118,7 +138,7 @@ async fn execute(
     app: &AppHandle,
     pool: &sqlx::SqlitePool,
     job: super::job::EnrichmentJobState,
-    target: Option<crate::ai::models::ExecutionTargetSelection>,
+    target: Option<crate::ai::tasks::TaskTargetSelection>,
 ) -> Result<(), String> {
     let update = EnrichmentJobUpdate {
         job_id: job.id.clone(),

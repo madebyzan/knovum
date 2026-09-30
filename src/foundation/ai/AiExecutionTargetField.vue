@@ -8,6 +8,7 @@ import UiButton from "../../shared/ui/UiButton.vue";
 import UiSelect from "../../shared/ui/UiSelect.vue";
 import { availableExecutionTargets, defaultExecutionTarget } from "./ai-execution";
 import { useAiSettingsStore } from "./ai-settings-store";
+import { useExecutionCatalogQuery } from "./execution-catalog-query";
 import { decodeExecutionTarget, encodeExecutionTarget } from "./execution-target-codec";
 import type { AiRoutingPurpose, ExecutionTarget } from "./schema/models";
 
@@ -21,11 +22,18 @@ const target = defineModel<ExecutionTarget | undefined>();
 const { t } = useI18n();
 const router = useRouter();
 const store = useAiSettingsStore();
+const catalog = useExecutionCatalogQuery({ detectInstallations: false });
 const { settings, ready: settingsReady, loadError: settingsError } = storeToRefs(store);
 const options = computed(() =>
   availableExecutionTargets(settings.value, props.purpose).map((option) =>
     Object.assign({}, option, {
-      description: t("ai.targetModelNative"),
+      label:
+        option.target.type === "agent"
+          ? (catalog.data.value?.agents.find(
+              ({ kind }) => option.target.type === "agent" && kind === option.target.runtimeKind,
+            )?.displayName ?? option.label)
+          : option.label,
+      description: t(option.target.type === "model" ? "ai.targetModelNative" : "ai.targetAgentWorkflow"),
     }),
   ),
 );

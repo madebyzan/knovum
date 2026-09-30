@@ -30,7 +30,7 @@ export function imageActionAvailability(input: {
   if (!sourceReady) return { state: "blocked", reason: "image_preparing" };
   if (failed) return { state: "blocked", reason: "capability_failed" };
   if (!capability) return { state: "checking" };
-  return capability.state === "ready" ? { state: "ready" } : capability;
+  return capability.state === "ready" || capability.state === "unverified" ? { state: "ready" } : capability;
 }
 
 export function upscaleAvailability(

@@ -1,7 +1,3 @@
-use std::io::Cursor;
-
-use image::{GenericImageView, ImageFormat};
-
 use super::GenerateVisualizationRequest;
 
 pub fn validate_request(request: &GenerateVisualizationRequest) -> Result<(), String> {
@@ -25,15 +21,6 @@ pub fn validate_request(request: &GenerateVisualizationRequest) -> Result<(), St
 }
 
 pub fn canonical_png(bytes: &[u8]) -> Result<(Vec<u8>, u32, u32), String> {
-    let image = image::load_from_memory(bytes)
-        .map_err(|error| format!("Generated image is invalid: {error}"))?;
-    let (width, height) = image.dimensions();
-    if width == 0 || height == 0 {
-        return Err("Generated image dimensions are invalid".into());
-    }
-    let mut output = Cursor::new(Vec::new());
-    image
-        .write_to(&mut output, ImageFormat::Png)
-        .map_err(|error| error.to_string())?;
-    Ok((output.into_inner(), width, height))
+    let image = super::super::image_operations::output::canonicalize(bytes, None)?;
+    Ok((image.png, image.width, image.height))
 }

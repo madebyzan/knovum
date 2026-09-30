@@ -32,14 +32,7 @@ export type AiModelSettings = z.infer<typeof aiModelSettingsSchema>;
 export const defaultAiModelSettings: AiModelSettings = {
   connections: [],
   desktopAgents: [],
-  defaults: {
-    writing: null,
-    knowledge: null,
-    visualUnderstanding: null,
-    translation: null,
-    imageGeneration: null,
-    videoGeneration: null,
-  },
+  defaults: aiDefaultsSchema.parse({}),
 };
 
 function rejectDuplicateConnections(settings: AiModelSettingsShape, context: SettingsRefinement) {
@@ -55,7 +48,8 @@ function rejectDuplicateDesktopAgents(settings: AiModelSettingsShape, context: S
 }
 
 function rejectInvalidDefaultTargets(settings: AiModelSettingsShape, context: SettingsRefinement) {
-  const targets: ReadonlyArray<readonly [ExecutionTarget | null, AiRoutingPurpose]> = [
+  const targets: ReadonlyArray<readonly [ExecutionTarget | null, AiRoutingPurpose | undefined]> = [
+    [settings.defaults.defaultTarget, undefined],
     [settings.defaults.writing, "writing"],
     [settings.defaults.knowledge, "knowledge"],
     [settings.defaults.visualUnderstanding, "visual-understanding"],
@@ -66,7 +60,12 @@ function rejectInvalidDefaultTargets(settings: AiModelSettingsShape, context: Se
 
   for (const [target, purpose] of targets) {
     if (!target) continue;
-    const capability: AiModelCapability = routingCapabilities[purpose];
+    if (target.type === "agent") {
+      if (!settings.desktopAgents.some(({ kind, enabled }) => kind === target.runtimeKind && enabled))
+        context.addIssue({ code: "custom", message: "Default desktop Agent is not enabled" });
+      continue;
+    }
+    const capability = purpose ? routingCapabilities[purpose] : undefined;
     if (!resolvesToCapability(settings.connections, target, capability)) {
       context.addIssue({ code: "custom", message: `Invalid ${capability} model target` });
     }
@@ -75,10 +74,10 @@ function rejectInvalidDefaultTargets(settings: AiModelSettingsShape, context: Se
 
 function resolvesToCapability(
   connections: AiModelSettingsShape["connections"],
-  target: ExecutionTarget,
-  capability: AiModelCapability,
+  target: Extract<ExecutionTarget, { type: "model" }>,
+  capability: AiModelCapability | undefined,
 ) {
   const connection = connections.find(({ id }) => id === target.connectionId);
   const model = connection?.models.find(({ id }) => id === target.modelId);
-  return Boolean(model?.capabilities.includes(capability));
+  return Boolean(model && (!capability || model.capabilities.includes(capability)));
 }

@@ -365,6 +365,17 @@ No source path alias is configured. Relative paths intentionally expose ownershi
 
 Preferences use a strict v1 Tauri Store envelope. Before first public release, only the current v1 schema is accepted; incompatible development data is reset explicitly instead of carrying compatibility readers or migration chains. The same rule applies to other internal Store/package/protocol envelopes. The first public release must explicitly replace this development policy with a production migration policy if persisted compatibility becomes a supported product contract. The non-sensitive last-workspace route is a single WebView `localStorage` string so optional session restore cannot make the Store file a bootstrap dependency. Feature structured data belongs to feature-owned SQLite schemas. Credentials belong only in the foundation-owned `secrets.db`.
 
+Optional preference additions are not incompatible data changes. Their owning schema must define
+the meaning of absence and normalize it at decoding, identically in Rust and TypeScript where both
+consume the setting. A missing optional preference is distinct from an invalid explicit value:
+only absence receives the declared default; malformed values, unknown fields, missing required
+records and unsupported envelope versions remain errors. Reading performs no write or reset.
+Normal saves write the complete canonical value through the existing serialized Store mutation.
+Default state derives from the same schema rather than a second list of optional field defaults.
+Tests must preserve populated user configuration with optional preferences absent and reject
+invalid explicit values. Adding a field or changing its meaning must include these contract tests;
+incompatible required-field or semantic changes need an explicit version-policy decision.
+
 ## Runtime architecture
 
 Source dependency direction is intentionally separate from process/runtime topology. The system-level view, hidden-main startup sequence, IPC/task flow, storage ownership and platform lifecycle are documented in `system-architecture.md`.
@@ -375,8 +386,15 @@ Model connection settings shared by otherwise isolated features belong to `found
 connections own user-editable endpoints and model definitions; official OpenAI and
 OpenAI-compatible endpoints are explicit protocol choices. External Agent discovery and sessions are
 owned by the crate-level `external_agents/` boundary and are not `AiProvider` implementations or model
-fallbacks. SpaceAction execution requirements resolve independently to a model, deterministic
-processor or explicitly delegated external session. Rust catalogs project Provider, External Agent,
+fallbacks. `ai/models/ModelExecutionTarget` and `ModelTargetSelection` describe only direct
+model calls. `ai/tasks/TaskTargetSelection` and `TaskExecutionTarget` are product task boundaries:
+they route to a direct model call or a desktop Agent without changing Provider transport contracts.
+`ai/tasks/completion` is the bounded text/vision dispatch seam, not a second Agent framework or
+scheduler. The built-in assistant keeps its existing Knovum-controlled orchestration runtime;
+user model connections currently supply its inference. Future hosted supply may use that same
+runtime, but no hosted service, subscription entitlement or billing implementation exists yet.
+Deterministic document/media/image processing remains independent of AI task routing.
+SpaceAction execution requirements resolve independently to these task executors or local processors. Rust catalogs project Provider, External Agent,
 SpaceAction and Workflow definitions to the Renderer. Secret values are persisted only through
 `foundation/secrets/` and its dedicated local credential database.
 

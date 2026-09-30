@@ -27,12 +27,12 @@ pub(super) async fn prepare(
             .get("targets")
             .and_then(|targets| targets.get(action_id))
             .ok_or("action-target-missing: select an execution target for this Action")?;
-        let target: crate::ai::models::ExecutionTargetSelection =
+        let target: crate::ai::tasks::TaskTargetSelection =
             serde_json::from_value(target.clone()).map_err(crate::spaces::db::json_error)?;
         let capability = definition
             .execution_capability
             .ok_or("action-target-invalid: Action has no execution capability")?;
-        crate::ai::settings::resolve(app, target.clone(), capability)
+        crate::ai::settings::resolve_task(app, target.clone(), capability)
             .map_err(|error| format!("action-target-unavailable: {error}"))?;
         request.insert(
             "target".into(),

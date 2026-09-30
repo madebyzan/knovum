@@ -53,7 +53,7 @@ pub(super) async fn load(
             .ok_or("Exported derivation must be an object")?
             .insert("inputs".into(), Value::Array(inputs));
         let grounded = sqlx::query(
-            "SELECT citations,provider,model FROM spaces_grounded_documents WHERE derivation_id=?",
+            "SELECT citations,execution_source AS executionSource FROM spaces_grounded_documents WHERE derivation_id=?",
         )
         .bind(&id)
         .fetch_optional(&mut **tx)
@@ -65,12 +65,11 @@ pub(super) async fn load(
                 "groundedDocument".into(),
                 serde_json::json!({
                     "citations": serde_json::from_str::<Value>(&citations).map_err(db::json_error)?,
-                    "provider": row.try_get::<String, _>("provider").map_err(db::sql_error)?,
-                    "model": row.try_get::<String, _>("model").map_err(db::sql_error)?,
+                    "executionSource": super::decode::decode_json(&row, "executionSource")?,
                 }),
             );
         }
-        let image = sqlx::query("SELECT intent,style,aspect_ratio AS aspectRatio,provider,model,revised_prompt AS revisedPrompt FROM spaces_generated_images WHERE derivation_id=?")
+        let image = sqlx::query("SELECT intent,style,aspect_ratio AS aspectRatio,execution_source AS executionSource,revised_prompt AS revisedPrompt FROM spaces_generated_images WHERE derivation_id=?")
             .bind(&id).fetch_optional(&mut **tx).await.map_err(db::sql_error)?;
         if let Some(row) = image {
             value.as_object_mut().ok_or("Exported derivation must be an object")?.insert(
@@ -78,13 +77,12 @@ pub(super) async fn load(
                     "intent": row.try_get::<String, _>("intent").map_err(db::sql_error)?,
                     "style": row.try_get::<String, _>("style").map_err(db::sql_error)?,
                     "aspectRatio": row.try_get::<String, _>("aspectRatio").map_err(db::sql_error)?,
-                    "provider": row.try_get::<String, _>("provider").map_err(db::sql_error)?,
-                    "model": row.try_get::<String, _>("model").map_err(db::sql_error)?,
+                    "executionSource": super::decode::decode_json(&row, "executionSource")?,
                     "revisedPrompt": row.try_get::<Option<String>, _>("revisedPrompt").map_err(db::sql_error)?,
                 }),
             );
         }
-        let video = sqlx::query("SELECT prompt,aspect_ratio AS aspectRatio,duration_seconds AS durationSeconds,provider,model,operation_id AS operationId FROM spaces_generated_videos WHERE derivation_id=?")
+        let video = sqlx::query("SELECT prompt,aspect_ratio AS aspectRatio,duration_seconds AS durationSeconds,execution_source AS executionSource,operation_id AS operationId FROM spaces_generated_videos WHERE derivation_id=?")
             .bind(&id).fetch_optional(&mut **tx).await.map_err(db::sql_error)?;
         if let Some(row) = video {
             value.as_object_mut().ok_or("Exported derivation must be an object")?.insert(
@@ -92,9 +90,8 @@ pub(super) async fn load(
                     "prompt": row.try_get::<String, _>("prompt").map_err(db::sql_error)?,
                     "aspectRatio": row.try_get::<String, _>("aspectRatio").map_err(db::sql_error)?,
                     "durationSeconds": row.try_get::<i64, _>("durationSeconds").map_err(db::sql_error)?,
-                    "provider": row.try_get::<String, _>("provider").map_err(db::sql_error)?,
-                    "model": row.try_get::<String, _>("model").map_err(db::sql_error)?,
-                    "operationId": row.try_get::<String, _>("operationId").map_err(db::sql_error)?,
+                    "executionSource": super::decode::decode_json(&row, "executionSource")?,
+                    "operationId": row.try_get::<Option<String>, _>("operationId").map_err(db::sql_error)?,
                 }),
             );
         }
@@ -116,3 +113,6 @@ async fn reject_active(tx: &mut Transaction<'_, Sqlite>, space_id: &str) -> Resu
     }
     Ok(())
 }
+
+#[cfg(test)]
+mod tests;

@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { executionSourceSchema } from "../../../../foundation/ai/schema/models";
+
 const spaceTranscriptSegmentSchema = z
   .object({
     startMs: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
@@ -45,8 +47,7 @@ const insightsSchema = z
     promptVersion: z.literal(1),
     generatedAt: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
     editedAt: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER).optional(),
-    provider: z.string().trim().min(1).max(128),
-    model: z.string().trim().min(1).max(256),
+    executionSource: executionSourceSchema,
   })
   .strict();
 

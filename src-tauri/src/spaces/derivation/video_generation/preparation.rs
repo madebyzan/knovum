@@ -4,7 +4,7 @@ use serde_json::Value;
 use tauri::AppHandle;
 
 use super::GenerateVideoRequest;
-use crate::ai::models::ExecutionTarget;
+use crate::ai::tasks::TaskExecutionTarget;
 use crate::spaces::derivation::{inputs, pending_output, source_validation};
 use crate::spaces::{assets::asset_directory, db, knowledge::contracts};
 
@@ -17,10 +17,11 @@ pub struct PreparedVideo {
 pub async fn start(
     app: &AppHandle,
     request: &GenerateVideoRequest,
-    target: &ExecutionTarget,
+    target: &TaskExecutionTarget,
     authority: &super::super::action_execution::ExecutionAuthority,
 ) -> Result<PreparedVideo, String> {
     validate_request(request)?;
+    super::validation::require_decoder(app)?;
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
     authority.require_active(&mut *tx).await?;
@@ -61,7 +62,11 @@ fn validate_request(request: &GenerateVideoRequest) -> Result<(), String> {
         .iter()
         .filter(|input| input.role == "primary")
         .count();
-    if request.inputs.is_empty()
+    if !matches!(request.aspect_ratio.as_str(), "1:1" | "16:9" | "9:16")
+        || !(5..=15).contains(&request.duration_seconds)
+        || request.prompt.trim().is_empty()
+        || request.prompt.encode_utf16().count() > 16_000
+        || request.inputs.is_empty()
         || primary_count != 1
         || request
             .inputs
@@ -155,12 +160,12 @@ async fn output(
 async fn persist_start(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     request: &GenerateVideoRequest,
-    target: &ExecutionTarget,
+    target: &TaskExecutionTarget,
 ) -> Result<(), String> {
     let now = crate::clock::unix_time_millis()?;
     sqlx::query("INSERT INTO spaces_knowledge_derivations(id,space_id,output_node_id,action_kind,action_version,engine,status,created_at,updated_at) VALUES($1,$2,$3,'generate-video',1,$4,'running',$5,$5)")
         .bind(&request.id).bind(&request.space_id).bind(&request.output_node_id)
-        .bind(format!("{}:{}", target.provider(), target.model())).bind(now)
+        .bind(target.engine()).bind(now)
         .execute(&mut **tx).await.map_err(db::sql_error)?;
     let values = request
         .inputs

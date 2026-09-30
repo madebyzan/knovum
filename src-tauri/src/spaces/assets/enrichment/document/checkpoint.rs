@@ -32,15 +32,6 @@ pub(super) async fn restore(
         let index = *indices
             .get(&id)
             .ok_or("Document checkpoint input no longer exists")?;
-        let planned = &report.occurrences[index];
-        if occurrence.id != planned.id
-            || occurrence.location != planned.location
-            || occurrence.pdf_input != planned.pdf_input
-            || occurrence.context != planned.context
-            || occurrence.alt_text != planned.alt_text
-        {
-            return Err("Document checkpoint and input plan disagree".into());
-        }
         let raw: Option<String> = row.try_get("resource").map_err(db::sql_error)?;
         if let Some(raw) = raw {
             let resource: DocumentResource = serde_json::from_str(&raw).map_err(db::json_error)?;
@@ -55,10 +46,32 @@ pub(super) async fn restore(
             }
             resources.insert(resource.id.clone(), resource);
         }
-        report.occurrences[index] = occurrence;
+        restore_occurrence(&mut report.occurrences[index], occurrence)?;
     }
     report.resources = resources.into_values().collect();
     report.validate()
+}
+
+fn restore_occurrence(
+    planned: &mut DocumentOccurrence,
+    checkpoint: DocumentOccurrence,
+) -> Result<(), String> {
+    if checkpoint.id != planned.id
+        || checkpoint.location != planned.location
+        || checkpoint.pdf_input != planned.pdf_input
+        || checkpoint.context != planned.context
+        || checkpoint.alt_text != planned.alt_text
+    {
+        return Err("Document checkpoint and input plan disagree".into());
+    }
+    // Published completed knowledge is authoritative, including edits made before recovery.
+    if !matches!(
+        planned.state,
+        super::model::VisualState::Completed | super::model::VisualState::Unsupported
+    ) {
+        *planned = checkpoint;
+    }
+    Ok(())
 }
 
 /// Write one occurrence and its raster reference, without rebuilding canonical knowledge.
@@ -104,3 +117,6 @@ pub(super) async fn clear(app: &AppHandle, job_id: &str) -> Result<(), String> {
         .map_err(db::sql_error)?;
     Ok(())
 }
+
+#[cfg(test)]
+mod tests;

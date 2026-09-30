@@ -93,9 +93,9 @@ async fn change_failure_rolls_back_objects_created_earlier_in_transaction() {
         &mut setup,
         "space",
         std::slice::from_ref(&existing),
-        "human",
-        Some("user"),
+        crate::spaces::knowledge::events::EventActor::new("human", Some("user")),
         1,
+        None,
     )
     .await
     .expect("insert existing node");

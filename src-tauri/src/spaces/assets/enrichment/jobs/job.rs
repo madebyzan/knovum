@@ -66,6 +66,7 @@ pub struct EnrichmentJobState {
     pub status: EnrichmentJobStatus,
     pub source_revision: String,
     pub attempts: i64,
+    pub execution_target: Option<crate::ai::tasks::TaskTargetSelection>,
     pub error: Option<String>,
     pub created_at: i64,
     pub updated_at: i64,

@@ -11,7 +11,7 @@ import { computed, onMounted, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 
-import { availableExecutionTargets, defaultExecutionTarget } from "../../../../foundation/ai/ai-execution";
+import { availableModelTargets, defaultExecutionTarget } from "../../../../foundation/ai/ai-execution";
 import { useAiSettingsStore } from "../../../../foundation/ai/ai-settings-store";
 import { useExecutionCatalogQuery } from "../../../../foundation/ai/execution-catalog-query";
 import UiButton from "../../../../shared/ui/UiButton.vue";
@@ -27,13 +27,14 @@ const router = useRouter();
 const settings = useAiSettingsStore();
 const catalog = useExecutionCatalogQuery({ detectInstallations: false });
 
-const models = computed(() => availableExecutionTargets(settings.settings, "knowledge"));
+const models = computed(() => availableModelTargets(settings.settings, "knowledge"));
 const modelChoices = computed(() =>
   models.value.map((option) => {
-    const connection = settings.settings.connections.find(({ id }) => id === option.target.connectionId);
+    const selected = option.target;
+    const connection = settings.settings.connections.find(({ id }) => id === selected.connectionId);
     return {
       ...option,
-      name: connection?.models.find(({ id }) => id === option.target.modelId)?.name,
+      name: connection?.models.find(({ id }) => id === selected.modelId)?.name,
       connectionName: connection?.name,
     };
   }),
@@ -47,7 +48,9 @@ const selectedKey = computed(() => (target.value ? conversationTargetKey(target.
 const selectedLabel = computed(() => {
   const model = models.value.find(({ value }) => value === selectedKey.value);
   if (model) return model.label;
-  const agent = desktopAgents.value.find(({ kind }) => `agent:${kind}` === selectedKey.value);
+  const agent = desktopAgents.value.find(
+    ({ kind }) => conversationTargetKey({ type: "agent", runtimeKind: kind }) === selectedKey.value,
+  );
   if (agent) return agent.displayName;
   return t("spaces.assistant.agents.select");
 });
@@ -58,7 +61,9 @@ watch(
       target.value &&
       settings.ready &&
       (models.value.some(({ value }) => value === selectedKey.value) ||
-        desktopAgents.value.some(({ kind }) => `agent:${kind}` === selectedKey.value)),
+        desktopAgents.value.some(
+          ({ kind }) => conversationTargetKey({ type: "agent", runtimeKind: kind }) === selectedKey.value,
+        )),
     );
   },
   { immediate: true },
@@ -68,13 +73,15 @@ watch(
   () => {
     if (target.value) return;
     const preferred = defaultExecutionTarget(settings.settings, "knowledge");
-    target.value =
-      models.value.find((model) => preferred && model.value === conversationTargetKey(preferred))?.target ??
-      models.value[0]?.target ??
-      (desktopAgents.value[0] ? { type: "agent", runtimeKind: desktopAgents.value[0].kind } : undefined);
+    target.value = preferred ?? undefined;
   },
   { immediate: true },
 );
+
+function select(selected: ConversationTarget) {
+  target.value = selected;
+  settings.settings.defaults.defaultTarget = { ...selected };
+}
 
 onMounted(() => void settings.ensureLoaded());
 </script>
@@ -113,7 +120,7 @@ onMounted(() => void settings.ensureLoaded());
             :value="model.value"
             :text-value="model.label"
             class="relative flex min-h-12 cursor-default items-center rounded-md px-2.5 py-1.5 pr-8 outline-none data-highlighted:bg-surface-control-hover"
-            @select="target = model.target"
+            @select="select(model.target)"
           >
             <span class="min-w-0 flex-1">
               <span class="block truncate text-label text-fg-primary">{{ model.name }}</span>
@@ -135,10 +142,10 @@ onMounted(() => void settings.ensureLoaded());
           <DropdownMenuRadioItem
             v-for="agent in desktopAgents"
             :key="agent.kind"
-            :value="`agent:${agent.kind}`"
+            :value="conversationTargetKey({ type: 'agent', runtimeKind: agent.kind })"
             :text-value="agent.displayName"
             class="relative flex min-h-interaction cursor-default items-center rounded-md px-2.5 py-1.5 pr-8 outline-none data-highlighted:bg-surface-control-hover"
-            @select="target = { type: 'agent', runtimeKind: agent.kind }"
+            @select="select({ type: 'agent', runtimeKind: agent.kind })"
           >
             <span class="min-w-0 flex-1 truncate text-label text-fg-primary">{{ agent.displayName }}</span>
             <DropdownMenuItemIndicator class="absolute right-2.5 text-fg-accent"

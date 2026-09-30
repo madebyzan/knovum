@@ -12,8 +12,8 @@ use crate::{
     ai::{
         capabilities::image,
         contracts::ExecutionCapability,
-        models::{ExecutionTarget, ExecutionTargetSelection},
         settings,
+        tasks::{ExecutionSource, TaskExecutionTarget, TaskTargetSelection},
     },
     spaces::knowledge::retrieval::hybrid::{self, HybridSearchRequest},
 };
@@ -28,7 +28,7 @@ pub struct GenerateVisualizationRequest {
     intent: String,
     style: String,
     aspect_ratio: String,
-    target: ExecutionTargetSelection,
+    target: TaskTargetSelection,
 }
 
 #[derive(Deserialize)]
@@ -76,14 +76,13 @@ async fn generate_inner(
     request: GenerateVisualizationRequest,
     stages: Channel<String>,
 ) -> Result<VisualizationOutput, String> {
-    let target = settings::resolve(
+    let target = settings::resolve_task(
         &app,
         request.target.clone(),
         ExecutionCapability::ImageGeneration,
     )
-    .map_err(|error| error.to_string())?;
-    let (cancellation, _lease) =
-        crate::ai::executions::acquire(request.id.clone()).map_err(|error| error.to_string())?;
+    .map_err(|error| error.task_message())?;
+    let (cancellation, _lease) = crate::ai::executions::acquire(request.id.clone())?;
     authority
         .require_active(crate::spaces::db::pool(&app).await?)
         .await?;
@@ -97,13 +96,9 @@ async fn generate_inner(
         .await?;
         return Err(error);
     }
-    let execution = execute(&app, &request, &target, &stages, &cancellation);
-    let generated_visualization = tokio::select! {
-        _ = cancellation.cancelled() => Err("Visualization generation was cancelled".to_owned()),
-        generated_visualization = execution => generated_visualization,
-    };
+    let generated_visualization = execute(&app, &request, &target, &stages, &cancellation).await;
     match generated_visualization {
-        Ok(image) => persistence::complete(&app, &request, image, &authority).await,
+        Ok(image) => persistence::complete(&app, &request, image, &authority, &cancellation).await,
         Err(error) => {
             persistence::fail(&app, &request.id, &error).await?;
             Err(error)
@@ -114,10 +109,10 @@ async fn generate_inner(
 async fn execute(
     app: &AppHandle,
     request: &GenerateVisualizationRequest,
-    target: &ExecutionTarget,
+    target: &TaskExecutionTarget,
     stages: &Channel<String>,
     cancellation: &tokio_util::sync::CancellationToken,
-) -> Result<image::GeneratedImage, String> {
+) -> Result<VisualizationResult, String> {
     stage(stages, "retrieving")?;
     crate::spaces::knowledge::retrieval::rebuild::prepare_space_index(
         app,
@@ -155,15 +150,48 @@ async fn execute(
         return Err("Selected resources contain no current indexed knowledge".into());
     }
     stage(stages, "generatingImage")?;
-    image::generate(
-        app,
-        image::ImageGenerationRequest {
-            target: target.clone(),
-            prompt: prompt::build(&request.intent, &request.style, &sources)?,
-            aspect_ratio: request.aspect_ratio.clone(),
-        },
-        cancellation,
-    )
-    .await
-    .map_err(|error| error.to_string())
+    let prompt = prompt::build(&request.intent, &request.style, &sources)?;
+    match target {
+        TaskExecutionTarget::Model(target) => image::generate(
+            app,
+            image::ImageGenerationRequest {
+                target: target.clone(),
+                prompt,
+                aspect_ratio: request.aspect_ratio.clone(),
+            },
+            cancellation,
+        )
+        .await
+        .map(VisualizationResult::from)
+        .map_err(|error| error.to_string()),
+        TaskExecutionTarget::Agent { runtime_kind } => {
+            let bytes = crate::external_agents::task::artifact(app, *runtime_kind, format!("Create the requested image as PNG with aspect ratio {}. Use your own available tools/Skills.\n{prompt}", request.aspect_ratio), Vec::new(), crate::external_agents::task::ArtifactFormat::Png, cancellation.clone()).await.map_err(|error| error.task_message())?;
+            Ok(VisualizationResult {
+                bytes,
+                execution_source: ExecutionSource::Agent {
+                    runtime_kind: *runtime_kind,
+                },
+                revised_prompt: None,
+            })
+        }
+    }
+}
+
+pub(super) struct VisualizationResult {
+    bytes: Vec<u8>,
+    execution_source: ExecutionSource,
+    revised_prompt: Option<String>,
+}
+
+impl From<image::GeneratedImage> for VisualizationResult {
+    fn from(image: image::GeneratedImage) -> Self {
+        Self {
+            bytes: image.bytes,
+            execution_source: ExecutionSource::Model {
+                provider: image.provider,
+                model: image.model,
+            },
+            revised_prompt: image.revised_prompt,
+        }
+    }
 }

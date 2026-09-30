@@ -1,6 +1,8 @@
+mod agent;
 pub(crate) mod contracts;
 mod mask;
-mod output;
+pub(crate) use agent::discard_interrupted;
+pub(super) mod output;
 mod output_file;
 mod persistence;
 mod provider;
@@ -30,6 +32,9 @@ pub async fn capabilities(app: &AppHandle) -> ImageOperationCapabilities {
                 reason: Reason::ConfigurationIncomplete,
             })
         }
+    };
+    let crate::ai::tasks::TaskExecutionTarget::Model(target) = target else {
+        return ImageOperationCapabilities::all(Capability::Unverified);
     };
     let operations = routing::supported_operations(routing::backend(&target));
     let configured = match crate::ai::transport::SecurityContext::from_target(&target).await {
@@ -80,14 +85,15 @@ pub async fn derive(
         Ok(value) => value,
         Err(error) => return fail_pending(&app, &request, error).await,
     };
-    let backend = routing::backend(&target);
-    if !routing::supported_operations(backend).allows(&request.operation) {
-        return fail_pending(
-            &app,
-            &request,
-            "Configured image model does not support this image operation".into(),
-        )
-        .await;
+    if let crate::ai::tasks::TaskExecutionTarget::Model(model) = &target {
+        if !routing::supported_operations(routing::backend(model)).allows(&request.operation) {
+            return fail_pending(
+                &app,
+                &request,
+                "Configured image model does not support this image operation".into(),
+            )
+            .await;
+        }
     }
     let (cancellation, _lease) = match crate::ai::executions::acquire(request.id.clone()) {
         Ok(value) => value,
@@ -126,13 +132,33 @@ pub async fn derive(
     if let Err(error) = super::stage(&stages, "processing") {
         return fail_running(&app, &request, error).await;
     }
-    let generated =
-        provider::execute(&target, backend, &request.operation, &source, &cancellation).await;
+    let generated = match &target {
+        crate::ai::tasks::TaskExecutionTarget::Model(model) => {
+            provider::execute(
+                model,
+                routing::backend(model),
+                &request.operation,
+                &source,
+                &cancellation,
+            )
+            .await
+        }
+        crate::ai::tasks::TaskExecutionTarget::Agent { runtime_kind } => {
+            agent::execute(
+                &app,
+                *runtime_kind,
+                &request.operation,
+                &source,
+                &cancellation,
+            )
+            .await
+        }
+    };
     let edited_image = match generated {
         Ok(generated) => {
             let target = request.operation.target_long_edge();
             match crate::blocking::run(move || output::canonicalize(&generated, target)).await {
-                Ok(image) => persistence::complete(&app, &request, image).await,
+                Ok(image) => persistence::complete(&app, &request, image, &cancellation).await,
                 Err(error) => Err(error),
             }
         }
@@ -171,9 +197,9 @@ async fn fail_pending<T>(
     Err(error)
 }
 
-fn resolve_target(app: &AppHandle) -> Result<crate::ai::models::ExecutionTarget, String> {
+fn resolve_target(app: &AppHandle) -> Result<crate::ai::tasks::TaskExecutionTarget, String> {
     let selection = settings::default_selection(app, RoutingPurpose::ImageGeneration)
         .map_err(|error| error.to_string())?;
-    settings::resolve(app, selection, ExecutionCapability::ImageGeneration)
+    settings::resolve_task(app, selection, ExecutionCapability::ImageGeneration)
         .map_err(|error| error.to_string())
 }

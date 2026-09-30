@@ -1,87 +1,109 @@
 use tauri::ipc::Channel;
+use tokio_util::sync::CancellationToken;
 
 use crate::ai::{
-    capabilities, contracts,
+    capabilities,
+    contracts::ExecutionCapability,
     error::AiError,
-    executions,
-    models::{self, CompletionOutput, CompletionStreamEvent},
-    settings,
+    executions, settings,
+    tasks::{
+        self,
+        completion::{TaskCompletionOutput, TaskInput},
+        stream::TaskStreamEvent,
+        text::{
+            CompletionCommandRequest, EditorTransformCommandRequest, TranslationCommandRequest,
+        },
+        TaskExecutionTarget, TaskTargetSelection,
+    },
 };
 
-fn resolve_target(
+async fn execute(
     app: &tauri::AppHandle,
-    target: models::ExecutionTargetSelection,
-) -> Result<models::ExecutionTarget, AiError> {
-    settings::resolve(app, target, contracts::ExecutionCapability::TextGeneration)
+    target: TaskTargetSelection,
+    input: TaskInput,
+    events: Option<Channel<TaskStreamEvent>>,
+    cancellation: CancellationToken,
+) -> Result<TaskCompletionOutput, AiError> {
+    let mut target = settings::resolve_task(app, target, ExecutionCapability::TextGeneration)?;
+    if matches!(input.purpose, crate::ai::usage::UsagePurpose::Translation) {
+        if let TaskExecutionTarget::Model(model) = &mut target {
+            model.temperature = 0.0;
+        }
+    }
+    if let Some(events) = events {
+        tasks::stream::complete(app, target, input, events, cancellation).await
+    } else {
+        tasks::completion::complete(app, target, input, cancellation).await
+    }
+}
+
+fn input(request: &CompletionCommandRequest) -> TaskInput {
+    TaskInput {
+        purpose: crate::ai::usage::UsagePurpose::Knowledge,
+        system_prompt: request.system_prompt.clone(),
+        instruction: request.instruction.clone(),
+        text: request.text.clone(),
+        max_tokens: request.max_tokens,
+        image: None,
+    }
 }
 
 #[tauri::command]
 pub async fn generate_text(
     app: tauri::AppHandle,
-    request: models::CompletionCommandRequest,
-) -> Result<CompletionOutput, AiError> {
-    capabilities::chat::complete(models::CompletionRequest {
-        purpose: crate::ai::usage::UsagePurpose::Knowledge,
-        target: resolve_target(&app, request.target)?,
-        system_prompt: request.system_prompt,
-        instruction: request.instruction,
-        text: request.text,
-        max_tokens: request.max_tokens,
-    })
+    request: CompletionCommandRequest,
+) -> Result<TaskCompletionOutput, AiError> {
+    let prepared = input(&request);
+    execute(
+        &app,
+        request.target,
+        prepared,
+        None,
+        CancellationToken::new(),
+    )
     .await
 }
 
 #[tauri::command]
 pub async fn generate_text_stream(
     app: tauri::AppHandle,
-    request: models::CompletionCommandRequest,
+    request: CompletionCommandRequest,
     job_id: String,
-    on_event: Channel<CompletionStreamEvent>,
-) -> Result<CompletionOutput, AiError> {
+    on_event: Channel<TaskStreamEvent>,
+) -> Result<TaskCompletionOutput, AiError> {
     let (cancellation, _lease) = executions::acquire(job_id).map_err(AiError::from)?;
-    capabilities::chat::complete_stream(
-        models::CompletionRequest {
-            purpose: crate::ai::usage::UsagePurpose::Knowledge,
-            target: resolve_target(&app, request.target)?,
-            system_prompt: request.system_prompt,
-            instruction: request.instruction,
-            text: request.text,
-            max_tokens: request.max_tokens,
-        },
-        on_event,
-        cancellation,
-    )
-    .await
+    let prepared = input(&request);
+    execute(&app, request.target, prepared, Some(on_event), cancellation).await
 }
 
 #[tauri::command]
 pub async fn transform_editor_text(
     app: tauri::AppHandle,
-    request: models::EditorTransformCommandRequest,
-) -> Result<CompletionOutput, AiError> {
-    capabilities::editor::transform(models::EditorTransformRequest {
-        target: resolve_target(&app, request.target)?,
-        action: request.action,
-        text: request.text,
-    })
+    request: EditorTransformCommandRequest,
+) -> Result<TaskCompletionOutput, AiError> {
+    execute(
+        &app,
+        request.target,
+        capabilities::editor::input(request.action, request.text)?,
+        None,
+        CancellationToken::new(),
+    )
     .await
 }
 
 #[tauri::command]
 pub async fn transform_editor_text_stream(
     app: tauri::AppHandle,
-    request: models::EditorTransformCommandRequest,
+    request: EditorTransformCommandRequest,
     job_id: String,
-    on_event: Channel<CompletionStreamEvent>,
-) -> Result<CompletionOutput, AiError> {
+    on_event: Channel<TaskStreamEvent>,
+) -> Result<TaskCompletionOutput, AiError> {
     let (cancellation, _lease) = executions::acquire(job_id).map_err(AiError::from)?;
-    capabilities::editor::transform_stream(
-        models::EditorTransformRequest {
-            target: resolve_target(&app, request.target)?,
-            action: request.action,
-            text: request.text,
-        },
-        on_event,
+    execute(
+        &app,
+        request.target,
+        capabilities::editor::input(request.action, request.text)?,
+        Some(on_event),
         cancellation,
     )
     .await
@@ -90,31 +112,31 @@ pub async fn transform_editor_text_stream(
 #[tauri::command]
 pub async fn translate_text(
     app: tauri::AppHandle,
-    request: models::TranslationCommandRequest,
-) -> Result<CompletionOutput, AiError> {
-    capabilities::translation::translate(models::TranslationRequest {
-        execution_target: resolve_target(&app, request.execution_target)?,
-        text: request.text,
-        target_language: request.target_language,
-    })
+    request: TranslationCommandRequest,
+) -> Result<TaskCompletionOutput, AiError> {
+    execute(
+        &app,
+        request.execution_target,
+        capabilities::translation::input(request.text, request.target_language)?,
+        None,
+        CancellationToken::new(),
+    )
     .await
 }
 
 #[tauri::command]
 pub async fn translate_text_stream(
     app: tauri::AppHandle,
-    request: models::TranslationCommandRequest,
+    request: TranslationCommandRequest,
     job_id: String,
-    on_event: Channel<CompletionStreamEvent>,
-) -> Result<CompletionOutput, AiError> {
+    on_event: Channel<TaskStreamEvent>,
+) -> Result<TaskCompletionOutput, AiError> {
     let (cancellation, _lease) = executions::acquire(job_id).map_err(AiError::from)?;
-    capabilities::translation::translate_stream(
-        models::TranslationRequest {
-            execution_target: resolve_target(&app, request.execution_target)?,
-            text: request.text,
-            target_language: request.target_language,
-        },
-        on_event,
+    execute(
+        &app,
+        request.execution_target,
+        capabilities::translation::input(request.text, request.target_language)?,
+        Some(on_event),
         cancellation,
     )
     .await

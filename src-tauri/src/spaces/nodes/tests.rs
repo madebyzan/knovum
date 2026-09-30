@@ -61,7 +61,7 @@ async fn resetting_image_edits_replaces_the_visual_job_through_the_node_update_p
     sqlx::query("INSERT INTO spaces_nodes(id,space_id,kind,initial_x,initial_y,data,created_at,updated_at) VALUES('node','space','image',0,0,$1,1,1)")
         .bind(before.to_string()).execute(&pool).await.unwrap();
     let mut tx = pool.begin().await.unwrap();
-    jobs::intent::synchronize_for_node(&mut tx, "space", "node", &before, 1)
+    jobs::intent::synchronize_for_node(&mut tx, "space", "node", &before, 1, None)
         .await
         .unwrap();
     let mut after = before.clone();
@@ -82,6 +82,7 @@ async fn resetting_image_edits_replaces_the_visual_job_through_the_node_update_p
         }],
         "human",
         2,
+        None,
     )
     .await
     .unwrap();

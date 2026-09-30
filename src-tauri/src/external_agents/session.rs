@@ -18,14 +18,32 @@ pub use super::updates::AgentSessionUpdate;
 
 pub type AgentUpdateHandler = Arc<dyn Fn(AgentSessionUpdate) -> AiResult<()> + Send + Sync>;
 
-pub async fn run(
+pub fn run(
     kind: AgentKind,
     working_directory: PathBuf,
     prompt: super::prompt::AgentPrompt,
     cancellation: CancellationToken,
     on_update: AgentUpdateHandler,
     mcp_servers: Vec<McpServer>,
-) -> AiResult<()> {
+) -> futures::future::BoxFuture<'static, AiResult<StopReason>> {
+    Box::pin(run_session(
+        kind,
+        working_directory,
+        prompt,
+        cancellation,
+        on_update,
+        mcp_servers,
+    ))
+}
+
+async fn run_session(
+    kind: AgentKind,
+    working_directory: PathBuf,
+    prompt: super::prompt::AgentPrompt,
+    cancellation: CancellationToken,
+    on_update: AgentUpdateHandler,
+    mcp_servers: Vec<McpServer>,
+) -> AiResult<StopReason> {
     let agent = super::connection::runtime(kind, &cancellation).await?;
     let permission_cancellation = cancellation.clone();
     let client = Client.builder().on_receive_request(
@@ -112,7 +130,7 @@ pub async fn run(
                                                 "Agent completed without acknowledging session cancellation",
                                             ));
                                         }
-                                        return Ok(true);
+                                        return Ok(StopReason::Cancelled);
                                     }
                                     _ = &mut deadline => {
                                         return Err(agent_client_protocol::Error::internal_error().data(
@@ -130,7 +148,7 @@ pub async fn run(
                             ).await?;
                         }
                         response = &mut prompt => {
-                            return Ok(response?.stop_reason == StopReason::Cancelled);
+                            return Ok(response?.stop_reason);
                         }
                     }
                 }
@@ -173,5 +191,9 @@ pub async fn run(
             return Err(AiError::internal("ACP connection timed out after 30 seconds"));
         }
     };
-    super::connection::finish(outcome)
+    let reason = outcome.map_err(AiError::from)?;
+    if reason == StopReason::Cancelled {
+        return Err(AiError::cancelled("Agent session was cancelled"));
+    }
+    Ok(reason)
 }

@@ -293,8 +293,7 @@ CREATE TABLE spaces_agent_artifact_sessions (
 CREATE TABLE spaces_grounded_documents (
   derivation_id TEXT PRIMARY KEY NOT NULL,
   citations TEXT NOT NULL CHECK (json_valid(citations) AND json_type(citations) = 'array'),
-  provider TEXT NOT NULL,
-  model TEXT NOT NULL,
+  execution_source TEXT NOT NULL CHECK (json_valid(execution_source)),
   FOREIGN KEY (derivation_id) REFERENCES spaces_knowledge_derivations(id) ON DELETE CASCADE
 );
 
@@ -303,8 +302,7 @@ CREATE TABLE spaces_generated_images (
   intent TEXT NOT NULL,
   style TEXT NOT NULL,
   aspect_ratio TEXT NOT NULL CHECK (aspect_ratio IN ('1:1','3:2','2:3','16:9','9:16')),
-  provider TEXT NOT NULL,
-  model TEXT NOT NULL,
+  execution_source TEXT NOT NULL CHECK (json_valid(execution_source)),
   revised_prompt TEXT,
   FOREIGN KEY (derivation_id) REFERENCES spaces_knowledge_derivations(id) ON DELETE CASCADE
 );
@@ -314,9 +312,8 @@ CREATE TABLE spaces_generated_videos (
   prompt TEXT NOT NULL,
   aspect_ratio TEXT NOT NULL CHECK (aspect_ratio IN ('1:1','16:9','9:16')),
   duration_seconds INTEGER NOT NULL CHECK (duration_seconds BETWEEN 5 AND 15),
-  provider TEXT NOT NULL,
-  model TEXT NOT NULL,
-  operation_id TEXT NOT NULL,
+  execution_source TEXT NOT NULL CHECK (json_valid(execution_source)),
+  operation_id TEXT,
   FOREIGN KEY (derivation_id) REFERENCES spaces_knowledge_derivations(id) ON DELETE CASCADE
 );
 
@@ -400,6 +397,7 @@ CREATE TABLE spaces_enrichment_jobs (
   job_type TEXT NOT NULL CHECK (job_type IN ('analyze_visual', 'analyze_media', 'transcribe_media', 'parse_document', 'analyze_document')),
   status TEXT NOT NULL CHECK (status IN ('pending', 'running', 'succeeded', 'failed', 'cancelled', 'awaiting_configuration')),
   source_revision TEXT NOT NULL,
+  execution_target TEXT CHECK (execution_target IS NULL OR json_valid(execution_target)),
   attempts INTEGER NOT NULL DEFAULT 0 CHECK (attempts >= 0),
   error TEXT,
   created_at INTEGER NOT NULL,

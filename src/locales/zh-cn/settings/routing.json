@@ -1,7 +1,7 @@
 {
-  "defaultsTitle": "任务默认模型",
-  "defaultsDescription": "只显示支持对应任务的模型；修改后自动保存。",
-  "unassigned": "未设置默认模型",
+  "defaultsTitle": "AI 执行方式",
+  "defaultsDescription": "功能覆盖优先于默认执行方式。桌面 Agent 使用自身的认证和工具；修改后自动保存。",
+  "unassigned": "跟随默认执行方式",
   "noCompatibleModel": "配置支持此任务的模型",
   "routes": {
     "writing": {
@@ -14,7 +14,7 @@
     },
     "visualUnderstanding": {
       "label": "视觉理解",
-      "description": "分析图片和视频画面，用于搜索与知识检索。"
+      "description": "理解图片、文档视觉及视频预览图，用于知识检索。"
     },
     "translation": {
       "label": "翻译",
@@ -27,6 +27,11 @@
     "videoGeneration": {
       "label": "视频创作",
       "description": "根据创作要求与素材生成视频。"
+    },
+    "defaultTarget": {
+      "label": "默认执行方式",
+      "description": "适用的 AI 任务继承此选择；未选择时不会自动使用其他账户。"
     }
-  }
+  },
+  "unselected": "未选择执行方式"
 }
