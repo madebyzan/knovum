@@ -22,8 +22,9 @@ const emit = defineEmits<{ ready: [] }>();
 const editorSession = useCanvasEditorSession();
 const host = useTemplateRef<HTMLElement>("host");
 const toolbar = useTemplateRef<HTMLElement>("toolbar");
+const content = useTemplateRef<HTMLElement>("content");
 const hostSize = useElementSize(host);
-const toolbarSize = useElementSize(toolbar);
+const contentSize = useElementSize(content);
 const previousSide = shallowRef<SurfaceSide>();
 const transientOpen = useSurfaceTriggerOpen(toolbar);
 
@@ -39,8 +40,8 @@ const geometry = computed(() => {
     !editorSession.viewport.value ||
     !hostSize.width.value ||
     !hostSize.height.value ||
-    !toolbarSize.width.value ||
-    !toolbarSize.height.value
+    !contentSize.width.value ||
+    !contentSize.height.value
   )
     return undefined;
   const start = props.canvasToViewportPoint(props.bounds);
@@ -66,8 +67,8 @@ const placement = computed(() => {
     viewport: { width: hostSize.width.value, height: hostSize.height.value },
     insets: props.safeArea,
     surface: {
-      width: toolbarSize.width.value,
-      height: Math.max(toolbar.value?.scrollHeight ?? 0, toolbarSize.height.value),
+      width: contentSize.width.value,
+      height: contentSize.height.value,
     },
     kind: props.kind,
     gap: props.gap ?? 34,
@@ -113,10 +114,12 @@ watch(
       :style="position"
       :data-side="placement?.side"
     >
-      <slot
-        :available-width="Math.max(0, hostSize.width.value - safeArea.left - safeArea.right)"
-        :available-height="position ? Number.parseFloat(position.maxHeight) : undefined"
-      />
+      <div ref="content" class="w-max">
+        <slot
+          :available-width="Math.max(0, hostSize.width.value - safeArea.left - safeArea.right)"
+          :available-height="position ? Number.parseFloat(position.maxHeight) : undefined"
+        />
+      </div>
     </div>
   </div>
 </template>

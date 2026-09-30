@@ -20,13 +20,13 @@
     "rotationDegrees": "旋转角度"
   },
   "removeObject": {
-    "tool": "AI 移除物体",
+    "tool": "橡皮擦",
+    "mode": "移除方式",
+    "modes": { "mask": "涂抹选区", "prompt": "文字描述" },
     "undo": "撤销选区笔画",
     "brushSize": "选区画笔",
-    "instruction": "涂抹要移除的物体，AI 会在新图片中补全背景。",
     "promptLabel": "描述要移除的内容",
-    "promptPlaceholder": "例如：移除画面左侧的路人，并补全身后的街道",
-    "promptHint": "将参考原图生成新图片，无法保证其他区域完全不变。",
+    "promptPlaceholder": "描述要移除的内容…",
     "generate": "移除并生成",
     "submitting": "正在创建派生任务…",
     "resultSuffix": "移除物体",

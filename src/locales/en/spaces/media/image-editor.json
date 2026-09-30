@@ -20,13 +20,13 @@
     "rotationDegrees": "Rotation angle"
   },
   "removeObject": {
-    "tool": "AI Remove Object",
+    "tool": "Eraser",
+    "mode": "Removal input",
+    "modes": { "mask": "Paint a mask", "prompt": "Describe" },
     "undo": "Undo selection stroke",
     "brushSize": "Selection brush",
-    "instruction": "Paint over the object. AI will complete the background in a new image.",
     "promptLabel": "Describe what to remove",
-    "promptPlaceholder": "For example: Remove the person on the left and complete the street behind them",
-    "promptHint": "A new image will be generated from the source. Other areas may change.",
+    "promptPlaceholder": "Describe what to remove…",
     "generate": "Remove and generate",
     "submitting": "Creating the derived image task…",
     "resultSuffix": "object-removed",

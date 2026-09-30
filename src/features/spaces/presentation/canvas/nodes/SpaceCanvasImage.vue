@@ -49,7 +49,10 @@ const { image, naturalSize, loadState } = useCanvasImageSource(source, {
   },
 });
 const edit = computed(() => session.previewFor(props.id) ?? imageEditOf(props.data));
-const removing = computed(() => props.interactive && removalSession.active?.nodeId === props.id);
+const removing = computed(
+  () =>
+    props.interactive && removalSession.active?.nodeId === props.id && removalSession.active.mode === "mask",
+);
 const cropping = computed(
   () => props.interactive && session.active?.nodeId === props.id && session.active.tool === "crop",
 );

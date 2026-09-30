@@ -6,15 +6,14 @@ import { useNodeOperationGate } from "../../canvas/node-operation-gate";
 import { useImageCommentSession } from "../../comments/image-comment-session";
 import { useImageEditSession, type ImageEditTool } from "../../image-editing/image-edit-session";
 import type { CreationIntentDecisions } from "../../knowledge-derivations/catalog/creation-intent-definitions";
-import { useImageOperationCapabilities } from "../../knowledge-derivations/image-capabilities";
-import type { ImageOperationCapability } from "../../knowledge-derivations/image-operation";
 import { useImageRemovalSession } from "../../knowledge-derivations/image-removal-session";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../../model/nodes/node-payload";
+import { imageToolAvailability } from "./image-action-availability";
 import { imageActionHelp } from "./image-action-help";
-import { imageRemovalSize, imageRemovalSizeValid, useImageSourceDimensions } from "./image-source-dimensions";
+import { useImageSourceDimensions } from "./image-source-dimensions";
 
-type ImagePopover = "upscale" | "layers" | "prompt-removal";
+type ImagePopover = "upscale" | "layers";
 
 export function useImageNodeBarState(
   node: Readonly<Ref<SpaceCanvasNode<SpaceImagePayload>>>,
@@ -25,7 +24,6 @@ export function useImageNodeBarState(
   const session = useImageEditSession();
   const imageDimensions = useImageSourceDimensions();
   const removal = useImageRemovalSession();
-  const capabilities = useImageOperationCapabilities(computed(() => Boolean(node.value.data.sourceRevision)));
   const nodeOperations = useNodeOperationGate();
   const comments = useImageCommentSession();
   const openPopover = shallowRef<ImagePopover>();
@@ -47,43 +45,14 @@ export function useImageNodeBarState(
       (node.value.data.intrinsicHeight ?? loaded?.height),
     );
   });
-  const removalSizeValid = computed(() =>
-    imageRemovalSizeValid(imageRemovalSize(node.value, imageDimensions)),
+  const removalAvailability = computed(() =>
+    imageToolAvailability({
+      sourceReady: Boolean(node.value.data.sourceRevision),
+      editing: !nodeOperations.allows("derive"),
+      busy: removal.submitting,
+    }),
   );
-  const removalMode = computed(() => {
-    if (
-      capabilities.data.value &&
-      capabilities.data.value.maskedRemoval.state !== "blocked" &&
-      removalSizeValid.value
-    )
-      return "mask";
-    if (capabilities.data.value && capabilities.data.value.promptRemoval.state !== "blocked") return "prompt";
-    return undefined;
-  });
-  const removalStatusReason = computed(() => {
-    if (!node.value.data.sourceRevision) return t("spaces.media.imageEditor.status.imagePreparing");
-    if (capabilities.isFetching.value) return t("spaces.media.imageEditor.status.capabilityChecking");
-    if (capabilities.isError.value) return t("spaces.media.imageEditor.errors.capabilityCheckFailed");
-    return undefined;
-  });
-  const removalSizeReason = computed(() =>
-    t(
-      dimensionsReady.value
-        ? "spaces.media.imageEditor.removeObject.sizeLimit"
-        : "spaces.media.imageEditor.status.imagePreparing",
-    ),
-  );
-  const removalReason = computed(() => {
-    if (removalStatusReason.value) return removalStatusReason.value;
-    const available = capabilities.data.value;
-    if (available && available.maskedRemoval.state !== "blocked" && !removalSizeValid.value)
-      return removalSizeReason.value;
-    const blocked = [available?.maskedRemoval, available?.promptRemoval].find(
-      (capability): capability is Extract<ImageOperationCapability, { state: "blocked" }> =>
-        capability?.state === "blocked" && capability.reason !== "provider_unsupported",
-    );
-    return imageActionHelp(blocked ?? { state: "blocked", reason: "provider_unsupported" }, t)?.label ?? "";
-  });
+  const removalReason = computed(() => imageActionHelp(removalAvailability.value, t)?.label ?? "");
 
   function beginTool(tool: ImageEditTool) {
     if (!nodeOperations.allows("edit") || session.applying || (tool === "crop" && !dimensionsReady.value))
@@ -94,13 +63,9 @@ export function useImageNodeBarState(
   }
 
   function beginRemoval() {
-    if (!nodeOperations.allows("derive") || !removalMode.value) return;
-    if (removalMode.value === "mask") {
-      openPopover.value = undefined;
-      removal.begin(node.value.id);
-    } else {
-      openPopover.value = "prompt-removal";
-    }
+    if (!canRunAction(removalAvailability.value)) return;
+    openPopover.value = undefined;
+    removal.begin(node.value.id);
   }
 
   function setPopover(mode: ImagePopover, open: boolean) {
@@ -149,8 +114,7 @@ export function useImageNodeBarState(
     directAvailability,
     directReason,
     dimensionsReady,
-    removalSizeValid,
-    removalMode,
+    removalAvailability,
     removalReason,
     beginTool,
     beginRemoval,
