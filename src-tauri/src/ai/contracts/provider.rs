@@ -167,4 +167,9 @@ pub trait AiProvider: Send + Sync {
     fn as_file_upload(&self) -> Option<&dyn FileUploadCapability> {
         None
     }
+
+    /// Returns an uploader whose file URI can be used as media input by the active ModelTurn protocol.
+    fn as_input_upload(&self) -> Option<&dyn FileUploadCapability> {
+        None
+    }
 }

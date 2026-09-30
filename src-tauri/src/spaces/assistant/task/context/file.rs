@@ -1,4 +1,3 @@
-use base64::Engine;
 use serde_json::json;
 use std::path::Path;
 
@@ -31,16 +30,12 @@ pub(super) async fn resolve(
             Some((source.clone(), AgentPathOrigin::Upload)),
             0,
         ),
-        (ContextTarget::Model, UploadKind::Image(media_type)) => {
-            let file = source.clone();
-            let bytes = crate::blocking::run(move || upload::read_image(&file, media_type)).await?;
-            let image = crate::ai::contracts::ModelContentPart::Binary {
-                media_type: media_type.into(),
-                data: base64::engine::general_purpose::STANDARD.encode(bytes),
-                name: Some(name.clone()),
-            };
-            (None, Some(image), None, 0)
-        }
+        (ContextTarget::Model, UploadKind::Image(_)) => (
+            None,
+            Some(super::image::read_image_attachment(&source).await?),
+            None,
+            0,
+        ),
         (ContextTarget::Model, _) => {
             if remaining == 0 {
                 return Err(
@@ -66,7 +61,7 @@ pub(super) async fn resolve(
         UploadKind::Office => "office",
     };
     let thumbnail = if matches!(kind, UploadKind::Image(_)) {
-        Some(super::image_thumbnail(source.clone()).await?)
+        Some(super::image::thumbnail(source.clone()).await?)
     } else {
         None
     };

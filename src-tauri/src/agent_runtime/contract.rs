@@ -55,4 +55,5 @@ pub struct RuntimeToolReply {
     pub call_id: String,
     pub name: String,
     pub result: Value,
+    pub media: Vec<crate::ai::contracts::ModelContentPart>,
 }

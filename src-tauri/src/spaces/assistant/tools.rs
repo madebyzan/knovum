@@ -66,7 +66,7 @@ fn description(definition: &SpaceActionDefinition) -> String {
             "Search indexed content in the current Space using keywords. Returns revision-aware excerpts and locators; empty matches do not mean the canvas is empty."
                 .into()
         }
-        "read-node" => "Read one exact current canvas node by ID, including its content, indexed passages and managed assetPath. Original asset files remain available after output workspace cleanup.".into(),
+        "read-node" => "Read one exact current canvas node by ID, including its content and indexed passages. Images are delivered as actual visual input to vision-capable models, including current crop, rotation and adjustments. A local assetPath alone is not visual evidence; original asset files remain available after output workspace cleanup.".into(),
         "draft-document" => "Create an editable document from selected knowledge resources.".into(),
         "draft-script" => "Draft an editable video script from selected resources.".into(),
         "summarize-meeting" => "Create an editable summary from a meeting transcript.".into(),

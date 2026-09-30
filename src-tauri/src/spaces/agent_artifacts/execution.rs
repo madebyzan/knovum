@@ -58,7 +58,6 @@ pub(super) async fn run(
         mcp_servers,
     )
     .await?;
-    external_agents::prompt::discard_staged_context(workspace).await?;
     let settlement = crate::spaces::runs::wait_for_children(
         crate::spaces::db::pool(app)
             .await

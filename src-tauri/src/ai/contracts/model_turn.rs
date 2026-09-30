@@ -6,6 +6,13 @@ use ts_rs::TS;
 use crate::ai::{error::AiResult, transport::SecurityContext};
 
 #[derive(Clone, Debug, Deserialize, Serialize, TS)]
+#[serde(tag = "type", rename_all = "snake_case", deny_unknown_fields)]
+pub enum ModelBinarySource {
+    Base64 { data: String },
+    Url { url: String },
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize, TS)]
 #[serde(rename_all = "snake_case")]
 pub enum ModelRole {
     System,
@@ -26,7 +33,7 @@ pub enum ModelContentPart {
     },
     Binary {
         media_type: String,
-        data: String,
+        source: ModelBinarySource,
         name: Option<String>,
     },
     ToolCall {

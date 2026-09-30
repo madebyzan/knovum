@@ -70,6 +70,12 @@ fn parse_recoverable(row: sqlx::sqlite::SqliteRow) -> Result<RecoverableTask, St
     let policy = parse_value(&row, "policy_snapshot")?;
     let input = parse_value(&row, "input_snapshot")?;
     let budget = parse_value(&row, "budget")?;
+    let checkpoint = serde_json::from_str(
+        &row.try_get::<String, _>("envelope")
+            .map_err(db::sql_error)?,
+    )
+    .map_err(db::json_error)?;
+    let requires_vision = crate::agent_runtime::requires_vision(&checkpoint)?;
     Ok(RecoverableTask {
         task_id: row.try_get("task_id").map_err(db::sql_error)?,
         run_id: row.try_get("run_id").map_err(db::sql_error)?,
@@ -100,11 +106,7 @@ fn parse_recoverable(row: sqlx::sqlite::SqliteRow) -> Result<RecoverableTask, St
         )
         .map_err(db::json_error)?,
         catalog_digest: row.try_get("catalog_digest").map_err(db::sql_error)?,
-        checkpoint: serde_json::from_str(
-            &row.try_get::<String, _>("envelope")
-                .map_err(db::sql_error)?,
-        )
-        .map_err(db::json_error)?,
+        checkpoint,
         max_total_tokens: budget
             .get("maxTotalTokens")
             .and_then(Value::as_u64)
@@ -115,14 +117,7 @@ fn parse_recoverable(row: sqlx::sqlite::SqliteRow) -> Result<RecoverableTask, St
             .and_then(Value::as_u64)
             .and_then(|value| u32::try_from(value).ok())
             .ok_or("assistant-duration-budget-missing")?,
-        requires_vision: input
-            .pointer("/contextManifest")
-            .and_then(Value::as_array)
-            .is_some_and(|items| {
-                items
-                    .iter()
-                    .any(|item| item.get("kind").and_then(Value::as_str) == Some("image"))
-            }),
+        requires_vision,
     })
 }
 

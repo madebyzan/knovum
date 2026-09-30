@@ -1,10 +1,13 @@
 use genai::chat::{
-    Binary, ChatMessage, ChatOptions, ChatRequest, ChatRole, ContentPart, MessageContent, Tool,
-    ToolCall, ToolChoice, ToolResponse,
+    Binary, BinarySource, ChatMessage, ChatOptions, ChatRequest, ChatRole, ContentPart,
+    MessageContent, Tool, ToolCall, ToolChoice, ToolResponse,
 };
 
 use crate::ai::{
-    contracts::{ModelContentPart, ModelMessage, ModelRole, ModelToolChoice, ModelTurnRequest},
+    contracts::{
+        ModelBinarySource, ModelContentPart, ModelMessage, ModelRole, ModelToolChoice,
+        ModelTurnRequest,
+    },
     error::{AiError, AiErrorCode, AiResult},
 };
 
@@ -53,11 +56,14 @@ fn to_part(part: &ModelContentPart) -> AiResult<ContentPart> {
         ModelContentPart::Text { text } => Ok(ContentPart::Text(text.clone())),
         ModelContentPart::Binary {
             media_type,
-            data,
+            source,
             name,
-        } => Ok(ContentPart::Binary(Binary::from_base64(
+        } => Ok(ContentPart::Binary(Binary::new(
             media_type.clone(),
-            data.clone(),
+            match source {
+                ModelBinarySource::Base64 { data } => BinarySource::Base64(data.clone().into()),
+                ModelBinarySource::Url { url } => BinarySource::Url(url.clone()),
+            },
             name.clone(),
         ))),
         ModelContentPart::ToolCall {

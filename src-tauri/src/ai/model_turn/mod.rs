@@ -1,3 +1,4 @@
+pub(crate) mod media;
 mod output_budget;
 mod stream;
 mod text_stream;

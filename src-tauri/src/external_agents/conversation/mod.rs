@@ -67,7 +67,6 @@ async fn serve(
             let _ = ready.send(Err(error));
             return Ok(false);
         }
-        let prompt_capabilities = initialized.agent_capabilities.prompt_capabilities;
         connection.build_session_from(NewSessionRequest::new(&workspace).mcp_servers(mcp_servers))
             .block_task().run_until(async move |mut session| {
                 let permission_mode = async {
@@ -96,7 +95,7 @@ async fn serve(
                             Some(ConversationRequest::Finish) | None => return Ok(false),
                         },
                     };
-                    let content = request.prompt.into_content(&workspace, prompt_capabilities.clone()).await
+                    let content = request.prompt.into_content().await
                         .map_err(|error| agent_client_protocol::Error::invalid_params().data(error.to_string()))?;
                     let prompt = session.connection().send_request(
                         PromptRequest::new(session.session_id().clone(), content),

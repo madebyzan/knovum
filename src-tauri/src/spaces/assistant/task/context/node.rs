@@ -1,4 +1,3 @@
-use base64::Engine;
 use serde_json::{json, Value};
 use sqlx::SqlitePool;
 
@@ -48,16 +47,52 @@ pub(super) async fn resolve(
         .ok_or("attached resource has no title")?;
     let excerpt = excerpt(data, remaining)?;
     let characters_read = excerpt.chars().count();
-    let (image, agent_path, thumbnail) = if kind == "image" {
-        let (path, origin) = image_path(app, data).await?;
-        let thumbnail = super::image_thumbnail(path.clone()).await?;
-        if target == ContextTarget::Model {
-            (Some(load_image(&path).await?), None, Some(thumbnail))
-        } else {
-            (None, Some((path, origin)), Some(thumbnail))
-        }
+    let asset_revision = node["assetRevision"]
+        .as_str()
+        .filter(|_| target == ContextTarget::ExternalAgent || kind == "image");
+    let asset = if let Some(revision) = asset_revision {
+        Some(crate::spaces::assets::node_asset::resolve(app, &node, revision).await?)
     } else {
-        (None, None, None)
+        None
+    };
+    let thumbnail = if kind == "image" {
+        Some(
+            super::image::thumbnail(
+                asset
+                    .as_ref()
+                    .ok_or("image-source-unavailable")?
+                    .path
+                    .clone(),
+            )
+            .await?,
+        )
+    } else {
+        None
+    };
+    let image = if target == ContextTarget::Model && kind == "image" {
+        Some(
+            super::image::read_image_attachment(
+                &asset.as_ref().ok_or("image-source-unavailable")?.path,
+            )
+            .await?,
+        )
+    } else {
+        None
+    };
+    let agent_path = if target == ContextTarget::ExternalAgent {
+        asset.map(|asset| {
+            let origin = match asset.representation {
+                crate::spaces::assets::node_asset::AssetRepresentation::Original => {
+                    AgentPathOrigin::SpaceAsset
+                }
+                crate::spaces::assets::node_asset::AssetRepresentation::Rendered => {
+                    AgentPathOrigin::RenderedImage
+                }
+            };
+            (asset.path, origin)
+        })
+    } else {
+        None
     };
     Ok(ResolvedPart {
         manifest: json!({
@@ -91,54 +126,6 @@ fn excerpt(data: &Value, remaining: usize) -> Result<String, String> {
         .chars()
         .take(remaining.min(8_000))
         .collect())
-}
-
-async fn image_path(
-    app: &tauri::AppHandle,
-    data: &Value,
-) -> Result<(std::path::PathBuf, AgentPathOrigin), String> {
-    let (path, origin) = if data.get("imageEdit").is_some_and(|edit| !edit.is_null()) {
-        (
-            crate::spaces::assets::image::rendered_preview(app, data).await?,
-            AgentPathOrigin::RenderedImage,
-        )
-    } else {
-        let source = data
-            .get("assetPath")
-            .and_then(Value::as_str)
-            .ok_or("assistant-attachment-invalid: image has no asset path")?;
-        (
-            crate::spaces::assets::authorize_spaces_asset(app, std::path::Path::new(source))?,
-            AgentPathOrigin::SpaceAsset,
-        )
-    };
-    let metadata = tokio::fs::metadata(&path)
-        .await
-        .map_err(|error| error.to_string())?;
-    if metadata.len() > 10 * 1024 * 1024 {
-        return Err("assistant-attachment-too-large: image exceeds 10 MiB".into());
-    }
-    Ok((path, origin))
-}
-
-async fn load_image(
-    path: &std::path::Path,
-) -> Result<crate::ai::contracts::ModelContentPart, String> {
-    let bytes = tokio::fs::read(path)
-        .await
-        .map_err(|error| error.to_string())?;
-    let media_type = mime_guess::from_path(path)
-        .first_raw()
-        .filter(|value| value.starts_with("image/"))
-        .ok_or("assistant-attachment-unsupported: image media type is unavailable")?;
-    Ok(crate::ai::contracts::ModelContentPart::Binary {
-        media_type: media_type.to_owned(),
-        data: base64::engine::general_purpose::STANDARD.encode(bytes),
-        name: path
-            .file_name()
-            .and_then(|value| value.to_str())
-            .map(str::to_owned),
-    })
 }
 
 #[cfg(test)]
