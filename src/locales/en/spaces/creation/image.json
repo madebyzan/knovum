@@ -1,13 +1,13 @@
 {
   "removeBackground": "Remove background",
-  "visualize": "Visualize knowledge",
+  "visualize": "Generate image",
   "visualization": {
-    "title": "Visualize selected knowledge",
+    "title": "Generate image",
     "description": "Create a generated illustration beside its exact knowledge sources.",
-    "defaultTitle": "Visualization",
+    "defaultTitle": "Generated image",
     "intent": "Image focus",
     "placeholder": "Describe the concepts or relationships to show. Keep the image grounded in the selected sources.",
-    "task": "Generating visualization"
+    "task": "Generating image"
   },
   "style": "Visual direction",
   "aspectRatio": "Aspect ratio",

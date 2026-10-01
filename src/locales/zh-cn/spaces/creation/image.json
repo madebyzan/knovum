@@ -1,13 +1,13 @@
 {
   "removeBackground": "去背景",
-  "visualize": "可视化知识",
+  "visualize": "生成图片",
   "visualization": {
-    "title": "可视化选中知识",
+    "title": "生成图片",
     "description": "在精确来源旁生成一张解释性图片。",
-    "defaultTitle": "可视化",
+    "defaultTitle": "生成图片",
     "intent": "图片内容",
     "placeholder": "描述要呈现的概念或关系，内容应以选中来源为准。",
-    "task": "正在生成可视化内容"
+    "task": "正在生成图片"
   },
   "style": "视觉方向",
   "aspectRatio": "画面比例",
