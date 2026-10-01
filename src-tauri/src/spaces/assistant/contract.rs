@@ -107,7 +107,17 @@ pub struct AssistantTaskAccepted {
 pub enum AssistantTaskUpdate {
     ContentDelta { task_id: String, text: String },
     ContentBoundary,
-    Finished { state: String },
+    Finished { state: AssistantTaskFinishedState },
+}
+
+#[derive(Clone, Copy, Debug, Serialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
+pub enum AssistantTaskFinishedState {
+    Succeeded,
+    Failed,
+    Cancelled,
+    Paused,
 }
 
 #[derive(Clone, Debug, Serialize, TS)]

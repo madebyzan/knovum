@@ -17,14 +17,12 @@ export interface NodeEnrichmentStatus {
 
 export function useNodeEnrichmentStatus(spaceId: Ref<string | undefined>, nodeId: Ref<string | undefined>) {
   const retrying = shallowRef(false);
-  const query = useQuery(
-    computed(() => enrichmentJobsQuery(spaceId.value ?? "", Boolean(spaceId.value && nodeId.value))),
-  );
+  const query = useQuery(computed(() => enrichmentJobsQuery(Boolean(spaceId.value && nodeId.value))));
   const jobs = computed<EnrichmentJobState[]>(() => {
     if (!spaceId.value || !nodeId.value) return [];
-    return (query.data.value ?? []).filter(
-      (job) => job.spaceId === spaceId.value && job.nodeId === nodeId.value,
-    );
+    return (query.data.value ?? [])
+      .map(({ job }) => job)
+      .filter((job) => job.spaceId === spaceId.value && job.nodeId === nodeId.value);
   });
   const status = computed<NodeEnrichmentStatus>(() => {
     let pending = 0;

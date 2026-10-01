@@ -1,6 +1,23 @@
 {
   "title": "任务",
+  "summary": "任务，共 {count} 项",
+  "scopeFilter": "任务范围",
+  "all": "全部",
+  "currentSpace": "当前空间",
+  "empty": "暂无任务。",
+  "emptyCurrentSpace": "当前空间没有任务。",
+  "scope": "空间",
+  "subject": "对象",
+  "status": {
+    "queued": "排队中",
+    "running": "进行中",
+    "attention": "需要处理",
+    "failed": "失败",
+    "succeeded": "已完成",
+    "cancelled": "已取消"
+  },
   "clearCompleted": "清除已完成",
+  "openSubject": "打开相关对象",
   "dismiss": "移除记录",
   "cancel": "取消任务",
   "cancelling": "正在取消…",

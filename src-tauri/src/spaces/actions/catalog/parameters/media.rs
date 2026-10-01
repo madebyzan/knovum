@@ -4,7 +4,7 @@ use schemars::{schema_for, JsonSchema};
 use serde::Deserialize;
 use serde_json::Value;
 
-#[derive(Deserialize, JsonSchema, ts_rs::TS)]
+#[derive(Clone, Copy, Debug, Deserialize, JsonSchema, ts_rs::TS)]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub(crate) enum ImageAspectRatio {
     #[serde(rename = "1:1")]
@@ -19,6 +19,18 @@ pub(crate) enum ImageAspectRatio {
     Vertical,
 }
 
+impl ImageAspectRatio {
+    pub(crate) fn as_str(self) -> &'static str {
+        match self {
+            Self::Square => "1:1",
+            Self::Landscape => "3:2",
+            Self::Portrait => "2:3",
+            Self::Widescreen => "16:9",
+            Self::Vertical => "9:16",
+        }
+    }
+}
+
 #[derive(Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct ImageParameters {
@@ -29,14 +41,25 @@ struct ImageParameters {
     aspect_ratio: ImageAspectRatio,
 }
 
-#[derive(Deserialize, JsonSchema)]
-enum VideoAspectRatio {
+#[derive(Clone, Copy, Debug, Deserialize, JsonSchema, ts_rs::TS)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
+pub(crate) enum VideoAspectRatio {
     #[serde(rename = "1:1")]
     Square,
     #[serde(rename = "16:9")]
     Widescreen,
     #[serde(rename = "9:16")]
     Vertical,
+}
+
+impl VideoAspectRatio {
+    pub(crate) fn as_str(self) -> &'static str {
+        match self {
+            Self::Square => "1:1",
+            Self::Widescreen => "16:9",
+            Self::Vertical => "9:16",
+        }
+    }
 }
 
 #[derive(Deserialize, JsonSchema)]

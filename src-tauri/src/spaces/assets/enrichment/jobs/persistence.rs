@@ -1,7 +1,15 @@
 use crate::spaces::db;
 use sqlx::Row;
 
-use super::job::{EnqueueEnrichmentJobRequest, EnrichmentJobState, STATUS_RUNNING};
+use super::job::{
+    EnqueueEnrichmentJobRequest, EnrichmentJobProjection, EnrichmentJobState, STATUS_RUNNING,
+};
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum ArchivedSpaces {
+    Include,
+    Exclude,
+}
 
 pub(crate) async fn freeze_target(
     pool: &sqlx::SqlitePool,
@@ -105,6 +113,25 @@ pub(crate) async fn list_actionable(
     pool: &sqlx::SqlitePool,
     space_id: Option<&str>,
 ) -> Result<Vec<EnrichmentJobState>, String> {
+    Ok(query_actionable(pool, space_id, ArchivedSpaces::Include)
+        .await?
+        .into_iter()
+        .map(|projection| projection.job)
+        .collect())
+}
+
+pub(crate) async fn list_actionable_projection(
+    pool: &sqlx::SqlitePool,
+    space_id: Option<&str>,
+) -> Result<Vec<EnrichmentJobProjection>, String> {
+    query_actionable(pool, space_id, ArchivedSpaces::Exclude).await
+}
+
+async fn query_actionable(
+    pool: &sqlx::SqlitePool,
+    space_id: Option<&str>,
+    archived_spaces: ArchivedSpaces,
+) -> Result<Vec<EnrichmentJobProjection>, String> {
     let rows = sqlx::query(
         "WITH ranked AS ( \
            SELECT id,space_id,node_id,job_type,status,source_revision,execution_target,attempts,error,created_at,updated_at, \
@@ -113,12 +140,17 @@ pub(crate) async fn list_actionable(
              ) AS position \
            FROM spaces_enrichment_jobs WHERE ($1 IS NULL OR space_id=$1) \
          ) \
-         SELECT r.id,r.space_id,r.node_id,r.job_type,r.status,r.source_revision,r.execution_target,r.attempts,r.error,r.created_at,r.updated_at,n.data \
-         FROM ranked r JOIN spaces_nodes n ON n.space_id=r.space_id AND n.id=r.node_id AND n.deleted_at IS NULL \
+         SELECT r.id,r.space_id,r.node_id,r.job_type,r.status,r.source_revision,r.execution_target,r.attempts,r.error,r.created_at,r.updated_at, \
+           s.title AS space_title,n.kind AS node_kind,json_extract(n.data,'$.title') AS node_title,n.data \
+         FROM ranked r \
+         JOIN spaces s ON s.id=r.space_id \
+         JOIN spaces_nodes n ON n.space_id=r.space_id AND n.id=r.node_id AND n.deleted_at IS NULL \
          WHERE r.position=1 AND r.status IN ('pending','running','failed','awaiting_configuration') \
+           AND ($2 OR s.archived_at IS NULL) \
          ORDER BY r.updated_at ASC",
     )
     .bind(space_id)
+    .bind(archived_spaces == ArchivedSpaces::Include)
     .fetch_all(pool)
     .await
     .map_err(db::sql_error)?;
@@ -132,13 +164,18 @@ pub(crate) async fn list_actionable(
         let revision = super::revision::expected_revision(&data, kind)?;
         let job_revision: String = row.try_get("source_revision").map_err(db::sql_error)?;
         if revision.as_deref() == Some(job_revision.as_str()) {
-            actionable.push(job_from_row(row)?);
+            actionable.push(EnrichmentJobProjection {
+                job: job_from_row(&row)?,
+                space_title: row.try_get("space_title").map_err(db::sql_error)?,
+                node_title: row.try_get("node_title").map_err(db::sql_error)?,
+                node_kind: row.try_get("node_kind").map_err(db::sql_error)?,
+            });
         }
     }
     Ok(actionable)
 }
 
-fn job_from_row(row: sqlx::sqlite::SqliteRow) -> Result<EnrichmentJobState, String> {
+fn job_from_row(row: &sqlx::sqlite::SqliteRow) -> Result<EnrichmentJobState, String> {
     Ok(EnrichmentJobState {
         id: row.try_get("id").map_err(db::sql_error)?,
         space_id: row.try_get("space_id").map_err(db::sql_error)?,

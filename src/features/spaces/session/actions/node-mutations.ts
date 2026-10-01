@@ -1,5 +1,5 @@
 import { createSpaceNode } from "../../canvas/node";
-import { refreshEnrichmentTasks } from "../../enrichment/job-observation";
+import { refreshEnrichmentJobs } from "../../enrichment/enrichment-jobs-query";
 import { createSpaceHistoryMutations } from "../../history/mutation-actions";
 import { beginSpaceMutation } from "../../history/mutation-barrier";
 import {
@@ -135,7 +135,7 @@ function createContentMutations(context: SpaceMutationContext) {
       spaceId,
       contentNodes.map((node) => node.id),
     );
-    void refreshEnrichmentTasks(spaceId);
+    void refreshEnrichmentJobs();
   }
 
   function currentTargetParentId() {

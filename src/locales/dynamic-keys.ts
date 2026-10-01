@@ -37,6 +37,7 @@ export const dynamicLocaleKeyPrefixes = [
   "spaces.media.videoEditor.text.presets.",
   "spaces.nodeTypes.",
   "spaces.processing.enrichmentJobType.",
+  "spaces.processing.jobStatus.",
   "spaces.recording.problems.",
   "spaces.richtext.align.",
   "spaces.richtext.heading",

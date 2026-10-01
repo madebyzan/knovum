@@ -71,3 +71,13 @@ pub struct EnrichmentJobState {
     pub created_at: i64,
     pub updated_at: i64,
 }
+
+#[derive(Debug, Clone, Serialize, ts_rs::TS)]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
+#[serde(rename_all = "camelCase")]
+pub struct EnrichmentJobProjection {
+    pub job: EnrichmentJobState,
+    pub space_title: String,
+    pub node_title: String,
+    pub node_kind: String,
+}

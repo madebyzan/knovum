@@ -28,7 +28,7 @@ pub struct GenerateVisualizationRequest {
     inputs: Vec<VisualizationInput>,
     intent: String,
     style: String,
-    aspect_ratio: String,
+    aspect_ratio: crate::spaces::actions::catalog::parameters::media::ImageAspectRatio,
     target: TaskTargetSelection,
 }
 
@@ -145,14 +145,14 @@ async fn execute(
             image::ImageGenerationRequest {
                 target: target.clone(),
                 prompt,
-                aspect_ratio: request.aspect_ratio.clone(),
+                aspect_ratio: request.aspect_ratio.as_str().to_owned(),
             },
             cancellation,
         )
         .await
         .map(VisualizationResult::from),
         TaskExecutionTarget::Agent { runtime_kind } => {
-            let bytes = crate::external_agents::task::artifact(app, *runtime_kind, format!("Create the requested image as PNG with aspect ratio {}. Use your own available tools/Skills.\n{prompt}", request.aspect_ratio), Vec::new(), crate::external_agents::task::ArtifactFormat::Png, cancellation.clone()).await?;
+            let bytes = crate::external_agents::task::artifact(app, *runtime_kind, format!("Create the requested image as PNG with aspect ratio {}. Use your own available tools/Skills.\n{prompt}", request.aspect_ratio.as_str()), Vec::new(), crate::external_agents::task::ArtifactFormat::Png, cancellation.clone()).await?;
             Ok(VisualizationResult {
                 bytes,
                 execution_source: ExecutionSource::Agent {

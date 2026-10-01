@@ -117,7 +117,7 @@ pub async fn start(
                     });
                 } else {
                     let _ = updates.send(super::AssistantTaskUpdate::Finished {
-                        state: "succeeded".into(),
+                        state: super::contract::AssistantTaskFinishedState::Succeeded,
                     });
                 }
             }

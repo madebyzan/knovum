@@ -235,9 +235,9 @@ fn relation(
             .get(&edge.to_node)
             .ok_or("Unknown JSON Canvas edge target")?
             .clone(),
-        kind: "related".into(),
+        kind: crate::spaces::knowledge::contracts::RelationKind::Related,
         rationale: edge.label.clone().unwrap_or_default(),
-        status: "active".into(),
+        status: crate::spaces::knowledge::contracts::RelationStatus::Active,
         confidence: None,
     })
 }

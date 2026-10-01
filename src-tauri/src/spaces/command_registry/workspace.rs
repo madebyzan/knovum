@@ -37,7 +37,7 @@ pub(super) fn handler() -> impl Fn(Invoke<tauri::Wry>) -> bool + Send + Sync + '
         crate::spaces::assets::enrichment::jobs::requests::retry_enrichment_job,
         crate::spaces::assets::enrichment::media_knowledge::generate_media_insights,
         crate::spaces::assets::enrichment::jobs::cancel_enrichment_job,
-        crate::spaces::assets::enrichment::jobs::list_enrichment_jobs,
+        crate::spaces::assets::enrichment::jobs::list_actionable_enrichment_jobs,
         crate::spaces::assets::import::web::capture_web_resource,
         crate::spaces::assets::import::web::import_web_image,
         crate::spaces::clipboard_content::read_space_clipboard_content,

@@ -35,7 +35,7 @@ pub struct GenerateVideoRequest {
     output_node_id: String,
     inputs: Vec<VideoInput>,
     prompt: String,
-    aspect_ratio: String,
+    aspect_ratio: crate::spaces::actions::catalog::parameters::media::VideoAspectRatio,
     duration_seconds: u8,
     target: TaskTargetSelection,
 }
@@ -104,7 +104,7 @@ async fn execute(
             VideoGenerationRequest {
                 target: model.clone(),
                 prompt: prepared.provider_prompt,
-                ratio: request.aspect_ratio.clone(),
+                ratio: request.aspect_ratio.as_str().to_owned(),
                 duration: request.duration_seconds,
                 reference_images: prepared.reference_images,
             },
@@ -116,7 +116,7 @@ async fn execute(
         TaskExecutionTarget::Agent { runtime_kind } => {
             super::stage(&stages, "generatingVideo")?;
             crate::external_agents::task::artifact(app, *runtime_kind,
-                format!("Produce an MP4 video, requested duration {} seconds and ratio {}, using your own tools/Skills.\n{}", request.duration_seconds, request.aspect_ratio, prepared.provider_prompt),
+                format!("Produce an MP4 video, requested duration {} seconds and ratio {}, using your own tools/Skills.\n{}", request.duration_seconds, request.aspect_ratio.as_str(), prepared.provider_prompt),
                 prepared.reference_images.iter().map(std::path::PathBuf::from).collect(),
                 crate::external_agents::task::ArtifactFormat::Mp4, cancellation.clone(),
             ).await.map(|bytes| VideoResult { bytes, execution_source: target.source(), operation_id: None })

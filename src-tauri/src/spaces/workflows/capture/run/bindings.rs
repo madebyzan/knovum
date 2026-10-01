@@ -6,9 +6,7 @@ use sha2::{Digest, Sha256};
 use sqlx::{Row, Sqlite, Transaction};
 
 use super::BoundResource;
-use crate::spaces::{
-    db, derivation::inputs::RevisionBasis, workflows::capture::types::CandidateInputSlot,
-};
+use crate::spaces::{db, workflows::capture::types::CandidateInputSlot};
 
 pub(super) async fn bind_inputs(
     tx: &mut Transaction<'_, Sqlite>,
@@ -55,12 +53,8 @@ pub(super) async fn bind_inputs(
             let data: String = row.try_get("data").map_err(db::sql_error)?;
             let value: Value = serde_json::from_str(&data).map_err(db::json_error)?;
             for basis in &slot.revision_bases {
-                crate::spaces::derivation::input_revision::resolve(
-                    &kind,
-                    &value,
-                    RevisionBasis::parse(basis)?,
-                )
-                .map_err(|error| format!("workflow-bindings-invalid: {error}"))?;
+                crate::spaces::derivation::input_revision::resolve(&kind, &value, *basis)
+                    .map_err(|error| format!("workflow-bindings-invalid: {error}"))?;
             }
             let data_digest = format!("{:x}", Sha256::digest(data.as_bytes()));
             resources.push(BoundResource {

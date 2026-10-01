@@ -29,7 +29,17 @@ pub(crate) async fn find_relation_path(
     Ok(find_path(&graph, source_id, target_id, max_depth))
 }
 
-type Graph = HashMap<String, Vec<(String, Value)>>;
+struct RelationEdge {
+    next_node_id: String,
+    payload: Value,
+}
+
+type Graph = HashMap<String, Vec<RelationEdge>>;
+
+struct PathPredecessor {
+    node_id: String,
+    edge: Value,
+}
 
 fn build_graph(rows: Vec<sqlx::sqlite::SqliteRow>) -> Result<Graph, String> {
     let mut graph = Graph::new();
@@ -42,12 +52,15 @@ fn build_graph(rows: Vec<sqlx::sqlite::SqliteRow>) -> Result<Graph, String> {
             "kind": kind, "status": row.try_get::<String,_>("status").map_err(db::sql_error)?,
             "rationale": row.try_get::<String,_>("rationale").map_err(db::sql_error)?,
         });
-        graph
-            .entry(source.clone())
-            .or_default()
-            .push((target.clone(), edge.clone()));
+        graph.entry(source.clone()).or_default().push(RelationEdge {
+            next_node_id: target.clone(),
+            payload: edge.clone(),
+        });
         if contracts::is_symmetric_relation_kind(&kind) {
-            graph.entry(target).or_default().push((source, edge));
+            graph.entry(target).or_default().push(RelationEdge {
+                next_node_id: source,
+                payload: edge,
+            });
         }
     }
     Ok(graph)
@@ -55,16 +68,32 @@ fn build_graph(rows: Vec<sqlx::sqlite::SqliteRow>) -> Result<Graph, String> {
 
 fn find_path(graph: &Graph, source_id: &str, target_id: &str, max_depth: usize) -> Vec<Value> {
     let mut queue = VecDeque::from([(source_id.to_string(), 0usize)]);
-    let mut previous = HashMap::from([(source_id.to_string(), (String::new(), Value::Null))]);
+    let mut previous = HashMap::from([(
+        source_id.to_string(),
+        PathPredecessor {
+            node_id: String::new(),
+            edge: Value::Null,
+        },
+    )]);
     while let Some((current, depth)) = queue.pop_front() {
         if depth >= max_depth {
             continue;
         }
-        for (next, edge) in graph.get(&current).into_iter().flatten() {
+        for RelationEdge {
+            next_node_id: next,
+            payload: edge,
+        } in graph.get(&current).into_iter().flatten()
+        {
             if previous.contains_key(next) {
                 continue;
             }
-            previous.insert(next.clone(), (current.clone(), edge.clone()));
+            previous.insert(
+                next.clone(),
+                PathPredecessor {
+                    node_id: current.clone(),
+                    edge: edge.clone(),
+                },
+            );
             if next == target_id {
                 return unwind(previous, source_id, target_id);
             }
@@ -75,14 +104,18 @@ fn find_path(graph: &Graph, source_id: &str, target_id: &str, max_depth: usize) 
 }
 
 fn unwind(
-    previous: HashMap<String, (String, Value)>,
+    previous: HashMap<String, PathPredecessor>,
     source_id: &str,
     target_id: &str,
 ) -> Vec<Value> {
     let mut current = target_id.to_string();
     let mut reversed = Vec::new();
     while current != source_id {
-        let Some((prior, edge)) = previous.get(&current) else {
+        let Some(PathPredecessor {
+            node_id: prior,
+            edge,
+        }) = previous.get(&current)
+        else {
             return Vec::new();
         };
         reversed.push(json!({"traversedFrom": prior, "traversedTo": current, "relation": edge}));

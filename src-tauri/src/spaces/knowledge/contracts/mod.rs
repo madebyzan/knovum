@@ -4,7 +4,9 @@ use sqlx::{Sqlite, Transaction};
 use super::{node_contracts, semantic_nodes};
 use crate::spaces::knowledge::indexing::revision;
 
+mod relation;
 mod rules;
+pub use relation::{RelationActorKind, RelationKind, RelationStatus};
 pub use rules::{
     validate_event_entity_kind, validate_event_pair, validate_provenance_quote,
     validate_relation_rationale, validate_text_limit, MAX_CHANGE_SET_OPERATIONS,
@@ -73,27 +75,19 @@ pub fn canonical_relation_endpoints(
 }
 
 pub fn validate_relation_kind(kind: &str) -> Result<(), String> {
-    match kind {
-        "reference" | "related" | "supports" | "contradicts" | "depends-on" | "supersedes"
-        | "answers" | "uses" | "derives-from" | "caused-by" => Ok(()),
-        _ => Err("Unsupported Space relation kind".into()),
-    }
+    RelationKind::parse(kind).map(|_| ())
 }
 
 pub fn validate_relation_status(status: &str) -> Result<(), String> {
-    match status {
-        "active" | "contested" | "invalidated" => Ok(()),
-        _ => Err("Unsupported Space relation status".into()),
-    }
+    RelationStatus::parse(status).map(|_| ())
 }
 
 pub fn validate_current_relation_status(status: &str) -> Result<(), String> {
-    match status {
-        "active" | "contested" => Ok(()),
-        "invalidated" => {
+    match RelationStatus::parse(status)? {
+        RelationStatus::Active | RelationStatus::Contested => Ok(()),
+        RelationStatus::Invalidated => {
             Err("Invalidated Relations must use the dedicated lifecycle command".into())
         }
-        _ => Err("Unsupported Space relation status".into()),
     }
 }
 
@@ -129,10 +123,7 @@ async fn validate_knowledge_node(
 }
 
 pub fn validate_actor_kind(kind: &str) -> Result<(), String> {
-    match kind {
-        "human" | "assistant" | "agent" | "system" => Ok(()),
-        _ => Err("Unsupported knowledge actor kind".into()),
-    }
+    RelationActorKind::parse(kind).map(|_| ())
 }
 
 pub fn validate_confidence(value: Option<f64>) -> Result<(), String> {

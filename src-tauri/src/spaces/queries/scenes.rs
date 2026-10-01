@@ -16,12 +16,9 @@ pub(crate) struct SpaceSceneProjection {
     pub viewport_zoom: f64,
     pub thumbnail_path: Option<String>,
     pub order_index: i64,
-    #[ts(type = "unknown")]
-    pub focus_structure_node_ids: Value,
-    #[ts(type = "unknown")]
-    pub relation_kinds: Value,
-    #[ts(type = "unknown")]
-    pub relation_statuses: Value,
+    pub focus_structure_node_ids: Vec<String>,
+    pub relation_kinds: Vec<crate::spaces::knowledge::contracts::RelationKind>,
+    pub relation_statuses: Vec<crate::spaces::knowledge::contracts::RelationStatus>,
     #[ts(type = "unknown")]
     pub query_filter: Value,
     pub created_at: i64,
@@ -45,10 +42,7 @@ pub(crate) async fn list_in_transaction(
 }
 
 fn decode_scene_projection(row: sqlx::sqlite::SqliteRow) -> Result<SpaceSceneProjection, String> {
-    let parse = |name: &str| -> Result<Value, String> {
-        let raw: String = row.try_get(name).map_err(db::sql_error)?;
-        serde_json::from_str(&raw).map_err(db::json_error)
-    };
+    let parse = |name: &str| -> Result<String, String> { row.try_get(name).map_err(db::sql_error) };
     Ok(SpaceSceneProjection {
         id: row.try_get::<String, _>("id").map_err(db::sql_error)?,
         space_id: row
@@ -66,10 +60,12 @@ fn decode_scene_projection(row: sqlx::sqlite::SqliteRow) -> Result<SpaceScenePro
         order_index: row
             .try_get::<i64, _>("order_index")
             .map_err(db::sql_error)?,
-        focus_structure_node_ids: parse("focus_structure_node_ids")?,
-        relation_kinds: parse("relation_kinds")?,
-        relation_statuses: parse("relation_statuses")?,
-        query_filter: parse("query_filter")?,
+        focus_structure_node_ids: serde_json::from_str(&parse("focus_structure_node_ids")?)
+            .map_err(db::json_error)?,
+        relation_kinds: serde_json::from_str(&parse("relation_kinds")?).map_err(db::json_error)?,
+        relation_statuses: serde_json::from_str(&parse("relation_statuses")?)
+            .map_err(db::json_error)?,
+        query_filter: serde_json::from_str(&parse("query_filter")?).map_err(db::json_error)?,
         created_at: row.try_get::<i64, _>("created_at").map_err(db::sql_error)?,
         updated_at: row.try_get::<i64, _>("updated_at").map_err(db::sql_error)?,
     })

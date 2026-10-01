@@ -66,10 +66,8 @@ engines of the knowledge space rather than separate top-level products.
 The Shell owns stable workbench zones:
 
 ```text
-Unified Toolbar
+Unified Toolbar (Space tabs | Task Center | Inspector toggle)
 optional Feature Sidebar | Workspace | optional contextual Inspector
-                                           |
-                                   contextual Task Center
 ```
 
 The unified toolbar belongs to the knowledge space. Its feature-owned tab strip is a session view over open
@@ -123,12 +121,12 @@ Tauri Channel<TaskUpdate>
 foundation task bridge
       |
 Pinia Task Center
-      +-- contextual toolbar Task Center
+      +-- global toolbar Task Center
       +-- Dock/Taskbar progress
       +-- completion notification when appropriate
 ```
 
-The bridge transports task presentation state. Cancellation and domain semantics stay with the feature engine.
+The bridge transports task presentation state. Cancellation and domain semantics stay with the feature engine. Spaces owns a single all-Space actionable enrichment query that joins persisted jobs with their live Space and node labels. The presentation excludes archived Spaces because those nodes cannot be opened; the scheduler still reads their jobs, and unarchiving restores the same job identity. Successful snapshots reconcile only the `spaces-enrichment` task producer, including removals; query errors retain the last successful projection. Enrichment events invalidate this query and supply progress to known running jobs. The same query feeds the canvas node indicator and the inspector, while Task Center adds global and current-Space views and navigation to the exact node. The Knowledge Health view has no separate enrichment queue.
 
 Space asset publication and node persistence are separate steps. Database initialization must not sweep
 unreferenced asset-directory entries: an asset can be written before its node is committed, including
@@ -140,12 +138,12 @@ Opening or refreshing a Space reads its nodes, scenes, relations, and structure 
 read transaction. The canvas receives the resulting structure, nodes, and relations as one scene input,
 so a committed derivation or structure edit cannot be rendered with content from another revision.
 
-Canvas node work state has two authorities: persisted node payload state for import, derivation and metadata,
-and feature session state for an in-flight edit or media analysis. Rust and the owning feature publish their
-own transitions; the canvas never infers job completion from an animation or a timer. The canvas presentation
-projects these sources into one active/failed view, then places the same dot visual in unavailable content,
-node chrome beside available content, or the selected image region during an edit apply. The Task Center
-remains the place for cancellation and real task progress. No canvas-only status is persisted.
+Canvas node work state uses persisted node payload state for import, derivation and metadata; the Space-owned
+actionable enrichment query for durable node jobs; and feature session state for an in-flight edit or media
+analysis preview. Rust and the owning feature publish their own transitions; the canvas never infers job
+completion from an animation or a timer. The canvas presents each node's relevant job state in its chrome,
+while content acquisition state may appear inside unavailable content and edit apply state in the selected
+image region. Task Center owns cancellation and detailed progress. No canvas-only status is persisted.
 An asset revision marks published bytes; a pending derived node owns a distinct reserved output path and
 does not copy the source revision or preview. The Rust derivation boundary rejects unpublished asset
 outputs that already carry a revision or preview, both when work starts and before completion writes

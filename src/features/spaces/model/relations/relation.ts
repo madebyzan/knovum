@@ -1,18 +1,11 @@
+import { relationKinds, relationStatuses } from "../../contracts/generated/contract-values";
+import type { RelationActorKind } from "../../contracts/generated/RelationActorKind";
+import type { RelationKind } from "../../contracts/generated/RelationKind";
+import type { RelationStatus } from "../../contracts/generated/RelationStatus";
 import { compareUtf8Binary } from "../text";
 
-export const SPACE_RELATION_KINDS = [
-  "reference",
-  "related",
-  "supports",
-  "contradicts",
-  "depends-on",
-  "supersedes",
-  "answers",
-  "uses",
-  "derives-from",
-  "caused-by",
-] as const;
-export type SpaceRelationKind = (typeof SPACE_RELATION_KINDS)[number];
+export const SPACE_RELATION_KINDS = relationKinds;
+export type SpaceRelationKind = RelationKind;
 
 export function isSymmetricRelationKind(kind: unknown): kind is "related" | "contradicts" {
   return kind === "related" || kind === "contradicts";
@@ -31,9 +24,8 @@ export function canonicalRelationEndpoints(
     : [sourceId, targetId];
 }
 
-export const SPACE_RELATION_STATUSES = ["active", "contested", "invalidated"] as const;
-export type SpaceRelationStatus = (typeof SPACE_RELATION_STATUSES)[number];
-type SpaceRelationActorKind = "human" | "assistant" | "agent" | "system";
+export const SPACE_RELATION_STATUSES = relationStatuses;
+export type SpaceRelationStatus = RelationStatus;
 
 export interface SpaceRelation {
   id: string;
@@ -45,7 +37,7 @@ export interface SpaceRelation {
   status: SpaceRelationStatus;
   statusBeforeInvalidation?: "active" | "contested" | null;
   confidence?: number;
-  actorKind: SpaceRelationActorKind;
+  actorKind: RelationActorKind;
   actorId?: string;
   createdAt: number;
   updatedAt: number;

@@ -70,9 +70,9 @@ pub(super) async fn insert_relations(
             space_id: space_id.to_owned(),
             source_id: relation.source_id.clone(),
             target_id: relation.target_id.clone(),
-            kind: relation.kind.clone(),
+            kind: crate::spaces::knowledge::contracts::RelationKind::parse(&relation.kind)?,
             rationale: relation.rationale.clone(),
-            status: relation.status.clone(),
+            status: crate::spaces::knowledge::contracts::RelationStatus::parse(&relation.status)?,
             confidence: relation.confidence,
         };
         crate::spaces::commands::relations::create_relation_in_transaction(

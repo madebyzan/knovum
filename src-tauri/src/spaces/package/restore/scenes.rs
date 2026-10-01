@@ -47,11 +47,5 @@ async fn validate_scene(
     {
         return Err("Package Saved View contains an invalid focus node identity".into());
     }
-    for kind in &row.relation_kinds {
-        contracts::validate_relation_kind(kind)?;
-    }
-    for status in &row.relation_statuses {
-        contracts::validate_relation_status(status)?;
-    }
     Ok(())
 }

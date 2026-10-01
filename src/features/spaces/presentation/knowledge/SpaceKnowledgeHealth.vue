@@ -15,7 +15,6 @@ import { rebuildKnowledgeRetrievalIndex } from "../../knowledge/indexing/rebuild
 import type { SpaceKnowledgeHealthIssue } from "../../knowledge/model/health";
 import { useSpaceKnowledgeHealthQuery } from "../../knowledge/queries/use-knowledge-queries";
 import { useSpaceStore } from "../../session/space-store";
-import SpaceEnrichmentQueuePanel from "../SpaceEnrichmentQueuePanel.vue";
 
 const props = defineProps<{ compact?: boolean }>();
 const store = useSpaceStore();
@@ -124,7 +123,6 @@ function reveal(issue: SpaceKnowledgeHealthIssue) {
         <p v-if="criticalCount" class="mt-2 text-caption-sm text-fg-danger">
           {{ t("spaces.knowledge.health.critical", { count: criticalCount }) }}
         </p>
-        <SpaceEnrichmentQueuePanel v-if="activeSpaceId" class="mt-2" :space-id="activeSpaceId" />
         <div v-if="activeSpaceId" class="mt-3 border-t border-stroke-divider pt-2">
           <UiButton
             class="w-full justify-start"

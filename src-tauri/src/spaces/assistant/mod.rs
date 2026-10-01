@@ -23,6 +23,7 @@ pub(crate) async fn require_paused_checkpoint(
     task::require_paused_checkpoint(pool, run_id).await
 }
 
+pub(crate) use contract::AssistantTaskFinishedState;
 pub use contract::{
     AssistantConversation, AssistantMode, AssistantTaskAccepted, AssistantTaskUpdate,
     StartAssistantTaskRequest, SubmitAssistantTaskRequest,

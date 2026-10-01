@@ -12,8 +12,8 @@ import {
 } from "../media/analysis-preview";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
 import { validateSpaceNodePayload } from "../model/nodes/node-validation";
-import { cancelEnrichmentJob, listEnrichmentJobs, retryEnrichmentJob } from "./enrichment-jobs";
-import { enrichmentJobTitle, failedEnrichmentTask, runningEnrichmentTask } from "./job-tasks";
+import { refreshEnrichmentJobs } from "./enrichment-jobs-query";
+import { ENRICHMENT_TASK_PRODUCER } from "./job-tasks";
 
 export interface SpaceEnrichmentObserverContext {
   activeSpaceId: Ref<string | undefined>;
@@ -26,11 +26,10 @@ export function observeEnrichmentJobs(context: SpaceEnrichmentObserverContext) {
   let disposed = false;
   const subscription = listen<EnrichmentJobUpdate>("space-enrichment-update", ({ payload }) => {
     const tasks = useTaskStore();
-    projectMediaProgress(context, payload);
-    tasks.restoreRunning(
-      { id: payload.jobId, title: enrichmentJobTitle(payload.jobType), startedAt: payload.createdAt },
-      () => cancelEnrichmentJob(payload.jobId),
+    const current = tasks.tasks.find(
+      (task) => task.id === payload.jobId && task.producer === ENRICHMENT_TASK_PRODUCER,
     );
+    projectMediaProgress(context, payload);
     if (payload.progress) tasks.progress(payload.jobId, payload.progress.progress, payload.progress.stage);
     if (payload.data)
       context.applyNodeContentForSpace(
@@ -38,13 +37,8 @@ export function observeEnrichmentJobs(context: SpaceEnrichmentObserverContext) {
         payload.nodeId,
         validateSpaceNodePayload(payload.data),
       );
-    if (payload.status === "succeeded") tasks.succeed(payload.jobId);
-    else if (payload.status === "cancelled") tasks.cancelled(payload.jobId);
-    else if (payload.status === "failed") {
-      if (!payload.error) throw new Error("Failed enrichment event is missing its error");
-      tasks.fail(payload.jobId, payload.error);
-      tasks.setObservedRetry(payload.jobId, () => retryEnrichmentJob(payload.jobId));
-    }
+    if (payload.status !== "running" || current?.status !== "running")
+      void refreshEnrichmentJobs().catch(reportSubscriptionFailure);
   });
   const failure = listen<string>("space-enrichment-error", ({ payload }) => {
     const tasks = useTaskStore();
@@ -68,17 +62,6 @@ export function observeEnrichmentJobs(context: SpaceEnrichmentObserverContext) {
     for (const registration of [subscription, failure])
       void registration.then((unlisten) => unlisten()).catch(reportSubscriptionFailure);
   });
-}
-
-export async function refreshEnrichmentTasks(spaceId: string | undefined) {
-  if (!spaceId) return;
-  const tasks = useTaskStore();
-  for (const job of await listEnrichmentJobs(spaceId)) {
-    if (job.status === "failed") {
-      tasks.restoreFailed(failedEnrichmentTask(job), () => retryEnrichmentJob(job.id));
-      tasks.setObservedRetry(job.id, () => retryEnrichmentJob(job.id));
-    } else tasks.restoreRunning(runningEnrichmentTask(job), () => cancelEnrichmentJob(job.id));
-  }
 }
 
 function reportSubscriptionFailure(error: unknown) {

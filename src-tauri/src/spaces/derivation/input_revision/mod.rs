@@ -1,7 +1,20 @@
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 
-#[derive(Clone, Copy)]
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Ord,
+    PartialEq,
+    PartialOrd,
+    serde::Deserialize,
+    serde::Serialize,
+    ts_rs::TS,
+)]
+#[serde(rename_all = "lowercase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub enum RevisionBasis {
     Asset,
     Knowledge,

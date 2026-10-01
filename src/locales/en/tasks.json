@@ -1,6 +1,23 @@
 {
   "title": "Tasks",
+  "summary": "Tasks, {count} total",
+  "scopeFilter": "Task scope",
+  "all": "All",
+  "currentSpace": "Current Space",
+  "empty": "No tasks.",
+  "emptyCurrentSpace": "No tasks in this Space.",
+  "scope": "Space",
+  "subject": "Item",
+  "status": {
+    "queued": "Queued",
+    "running": "Running",
+    "attention": "Needs attention",
+    "failed": "Failed",
+    "succeeded": "Completed",
+    "cancelled": "Cancelled"
+  },
   "clearCompleted": "Clear completed",
+  "openSubject": "Open related item",
   "dismiss": "Dismiss",
   "cancel": "Cancel task",
   "cancelling": "Cancelling…",

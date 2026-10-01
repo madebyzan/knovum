@@ -65,8 +65,7 @@ fn validate_request(request: &GenerateVideoRequest) -> Result<(), String> {
         .iter()
         .filter(|input| input.role == "primary")
         .count();
-    if !matches!(request.aspect_ratio.as_str(), "1:1" | "16:9" | "9:16")
-        || !(5..=15).contains(&request.duration_seconds)
+    if !(5..=15).contains(&request.duration_seconds)
         || request.prompt.trim().is_empty()
         || request.prompt.encode_utf16().count() > 16_000
         || request.inputs.is_empty()

@@ -1,4 +1,3 @@
-use serde_json::Value;
 use sqlx::{Sqlite, Transaction};
 
 use super::SpaceSceneInput;
@@ -15,12 +14,14 @@ pub(super) async fn validate_scene(
     {
         return Err("Saved View title or viewport is invalid".into());
     }
-    let focus_ids = string_array(
-        &scene.focus_structure_node_ids,
-        "Saved View focus nodes",
-        100_000,
-    )?;
-    for structure_node_id in focus_ids {
+    if scene.focus_structure_node_ids.len() > 100_000
+        || scene.focus_structure_node_ids.iter().any(String::is_empty)
+        || scene.relation_kinds.len() > 32
+        || scene.relation_statuses.len() > 8
+    {
+        return Err("Saved View filters are invalid".into());
+    }
+    for structure_node_id in &scene.focus_structure_node_ids {
         let exists: bool = sqlx::query_scalar(
             "SELECT EXISTS(SELECT 1 FROM spaces_structure_nodes \
              WHERE space_id=$1 AND id=$2 AND deleted_at IS NULL)",
@@ -36,33 +37,8 @@ pub(super) async fn validate_scene(
             ));
         }
     }
-    for kind in string_array(&scene.relation_kinds, "Saved View relation kinds", 32)? {
-        contracts::validate_relation_kind(kind)?;
-    }
-    for status in string_array(&scene.relation_statuses, "Saved View relation statuses", 8)? {
-        contracts::validate_relation_status(status)?;
-    }
     contracts::validate_query_filter(tx, &scene.space_id, &scene.query_filter).await
 }
-
-fn string_array<'a>(value: &'a Value, label: &str, max: usize) -> Result<Vec<&'a str>, String> {
-    let values = value
-        .as_array()
-        .ok_or_else(|| format!("{label} must be an array"))?;
-    if values.len() > max {
-        return Err(format!("{label} exceeds the maximum of {max}"));
-    }
-    values
-        .iter()
-        .map(|value| {
-            value
-                .as_str()
-                .filter(|value| !value.is_empty())
-                .ok_or_else(|| format!("{label} must contain non-empty strings"))
-        })
-        .collect()
-}
-
-pub(super) fn json(value: &Value) -> Result<String, String> {
+pub(super) fn json(value: &impl serde::Serialize) -> Result<String, String> {
     serde_json::to_string(value).map_err(db::json_error)
 }

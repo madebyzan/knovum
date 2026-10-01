@@ -2,6 +2,7 @@ use uuid::Uuid;
 
 use super::DerivationRelation;
 use crate::spaces::commands::relations::SpaceRelationInput;
+use crate::spaces::knowledge::contracts::{RelationActorKind, RelationKind, RelationStatus};
 
 pub fn derives_from(
     space_id: &str,
@@ -15,10 +16,10 @@ pub fn derives_from(
         space_id: space_id.into(),
         source_id: output_id.into(),
         target_id: source_id.into(),
-        kind: "derives-from",
+        kind: RelationKind::DerivesFrom,
         rationale,
-        status: "active",
-        actor_kind: "system",
+        status: RelationStatus::Active,
+        actor_kind: RelationActorKind::System,
         created_at: now,
         updated_at: now,
     }
@@ -33,15 +34,15 @@ pub async fn insert(
         space_id: value.space_id.clone(),
         source_id: value.source_id.clone(),
         target_id: value.target_id.clone(),
-        kind: value.kind.to_owned(),
+        kind: value.kind,
         rationale: value.rationale.to_owned(),
-        status: value.status.to_owned(),
+        status: value.status,
         confidence: None,
     };
     crate::spaces::commands::relations::create_relation_in_transaction(
         tx,
         &relation,
-        value.actor_kind,
+        value.actor_kind.as_str(),
         None,
         value.created_at,
     )

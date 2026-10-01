@@ -2,6 +2,33 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::ai::tasks::TaskTargetSelection;
+use crate::spaces::derivation::input_revision::RevisionBasis;
+
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize, ts_rs::TS)]
+#[serde(rename_all = "kebab-case")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
+pub enum CaptureInputRole {
+    Primary,
+    Source,
+    Context,
+    StyleReference,
+}
+
+impl CaptureInputRole {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Primary => "primary",
+            Self::Source => "source",
+            Self::Context => "context",
+            Self::StyleReference => "style-reference",
+        }
+    }
+
+    pub fn parse(value: &str) -> Result<Self, String> {
+        serde_json::from_value(Value::String(value.to_owned()))
+            .map_err(|_| "Derivation input role is invalid".into())
+    }
+}
 
 #[derive(Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
@@ -30,7 +57,7 @@ pub struct CaptureCandidate {
 pub struct CandidateInputSlot {
     pub id: String,
     pub kind: String,
-    pub revision_bases: Vec<String>,
+    pub revision_bases: Vec<RevisionBasis>,
     pub min_items: usize,
     pub max_items: usize,
     pub ordered: bool,
@@ -52,9 +79,9 @@ pub struct CandidateStep {
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct CandidateBinding {
-    pub role: String,
+    pub role: CaptureInputRole,
     pub position: i64,
-    pub revision_basis: String,
+    pub revision_basis: RevisionBasis,
     #[serde(flatten)]
     pub source: CandidateSource,
 }
@@ -111,10 +138,10 @@ pub struct RecordedExecutionSpec {
 pub struct CapturedInput {
     pub node_id: String,
     pub kind: String,
-    pub role: String,
+    pub role: CaptureInputRole,
     pub position: i64,
     pub source_revision: String,
-    pub revision_basis: String,
+    pub revision_basis: RevisionBasis,
 }
 
 #[derive(Serialize, ts_rs::TS)]
@@ -133,9 +160,9 @@ pub struct BoundaryInput {
 pub struct BoundaryUse {
     pub derivation_id: String,
     pub position: i64,
-    pub role: String,
+    pub role: CaptureInputRole,
     pub source_revision: String,
-    pub revision_basis: String,
+    pub revision_basis: RevisionBasis,
 }
 
 #[derive(Serialize, ts_rs::TS)]

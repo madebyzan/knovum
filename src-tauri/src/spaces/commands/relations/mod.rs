@@ -16,9 +16,9 @@ pub(crate) struct SpaceRelationInput {
     pub(crate) space_id: String,
     pub(crate) source_id: String,
     pub(crate) target_id: String,
-    pub(crate) kind: String,
+    pub(crate) kind: contracts::RelationKind,
     pub(crate) rationale: String,
-    pub(crate) status: String,
+    pub(crate) status: contracts::RelationStatus,
     pub(crate) confidence: Option<f64>,
 }
 
@@ -72,8 +72,8 @@ pub(crate) async fn create_relation_in_transaction(
          ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$11)",
     )
     .bind(&relation.id).bind(&relation.space_id).bind(&source_id)
-    .bind(&target_id).bind(&relation.kind).bind(&relation.rationale)
-    .bind(&relation.status).bind(relation.confidence).bind(actor_kind)
+    .bind(&target_id).bind(relation.kind.as_str()).bind(&relation.rationale)
+    .bind(relation.status.as_str()).bind(relation.confidence).bind(actor_kind)
     .bind(actor_id).bind(now).execute(&mut **tx).await.map_err(db::sql_error)?;
     append_relation_event(
         tx,
@@ -97,8 +97,8 @@ pub async fn update_relation<R: Runtime>(
         "UPDATE spaces_relations SET source_id=$1,target_id=$2,kind=$3,rationale=$4,status=$5,\
          confidence=$6,actor_kind=$7,actor_id=$8,updated_at=$9 WHERE id=$10 AND space_id=$11 AND status <> 'invalidated'",
     )
-    .bind(&source_id).bind(&target_id).bind(&relation.kind)
-    .bind(&relation.rationale).bind(&relation.status).bind(relation.confidence)
+    .bind(&source_id).bind(&target_id).bind(relation.kind.as_str())
+    .bind(&relation.rationale).bind(relation.status.as_str()).bind(relation.confidence)
     .bind("human").bind(Option::<&str>::None).bind(now)
     .bind(&relation.id).bind(&relation.space_id).execute(&mut *tx).await.map_err(db::sql_error)?;
     db::require_one(executed, "Space Relation no longer exists")?;
@@ -142,15 +142,14 @@ pub async fn restore_relation<R: Runtime>(
 }
 
 pub(crate) fn validate_relation(relation: &SpaceRelationInput) -> Result<(), String> {
-    contracts::validate_relation_kind(&relation.kind)?;
-    contracts::validate_current_relation_status(&relation.status)?;
+    contracts::validate_current_relation_status(relation.status.as_str())?;
     contracts::validate_relation_rationale(&relation.rationale)?;
     contracts::validate_confidence(relation.confidence)
 }
 
 pub(crate) fn canonical_endpoints(relation: &SpaceRelationInput) -> (String, String) {
     contracts::canonical_relation_endpoints(
-        &relation.kind,
+        relation.kind.as_str(),
         &relation.source_id,
         &relation.target_id,
     )

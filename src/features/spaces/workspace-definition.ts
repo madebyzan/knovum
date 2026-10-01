@@ -17,6 +17,11 @@ export function useSpacesWorkspace(): WorkspaceDefinition {
       store.setRightSidebarView("ask");
     },
     rightSidebarAvailable: computed(() => store.workspaceMode === "space" && Boolean(store.activeSpaceId)),
+    currentScope: computed(() =>
+      store.activeSpace
+        ? { kind: "space", id: store.activeSpace.id, label: store.activeSpace.title }
+        : undefined,
+    ),
     toolbar: defineAsyncComponent(() => import("./presentation/SpaceWorkspaceTabs.vue")),
     commands: useSpaceCommands(),
   };

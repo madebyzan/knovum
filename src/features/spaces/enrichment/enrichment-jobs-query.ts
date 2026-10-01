@@ -1,18 +1,21 @@
 import { queryOptions } from "@tanstack/vue-query";
 
-import { listEnrichmentJobs } from "./enrichment-jobs";
+import { queryClient } from "../../../foundation/query/query-client";
+import { listActionableEnrichmentJobs } from "./enrichment-jobs";
 
 const POLL_INTERVAL_MS = 2_000;
 
-export function enrichmentJobsKey(spaceId: string) {
-  return ["spaces", spaceId, "enrichment-jobs"] as const;
-}
+export const enrichmentJobsKey = ["spaces", "enrichment-jobs"] as const;
 
-export function enrichmentJobsQuery(spaceId: string, enabled = true) {
+export function enrichmentJobsQuery(enabled = true) {
   return queryOptions({
-    queryKey: enrichmentJobsKey(spaceId),
-    queryFn: () => listEnrichmentJobs(spaceId),
+    queryKey: enrichmentJobsKey,
+    queryFn: listActionableEnrichmentJobs,
     enabled,
     refetchInterval: POLL_INTERVAL_MS,
   });
+}
+
+export function refreshEnrichmentJobs() {
+  return queryClient.invalidateQueries({ queryKey: enrichmentJobsKey });
 }

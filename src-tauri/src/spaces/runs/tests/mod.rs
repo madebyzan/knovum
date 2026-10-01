@@ -1,0 +1,37 @@
+use super::{load_run, RunKind};
+
+#[tokio::test]
+async fn database_run_kinds_decode_into_the_rust_contract() {
+    let pool = sqlx::sqlite::SqlitePoolOptions::new()
+        .max_connections(1)
+        .connect("sqlite::memory:")
+        .await
+        .unwrap();
+    crate::spaces::db::migrate(&pool).await.unwrap();
+    sqlx::query("INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES('space','space','Space',1,1)")
+        .execute(&pool)
+        .await
+        .unwrap();
+    for (index, kind) in [
+        "action",
+        "workflow",
+        "assistant",
+        "external_agent",
+        "automation",
+    ]
+    .into_iter()
+    .enumerate()
+    {
+        let id = format!("run-{index}");
+        sqlx::query("INSERT INTO spaces_runs(id,home_space_id,principal_kind,principal_id,kind,state,policy_snapshot,input_snapshot,budget,created_at,updated_at,completed_at) VALUES($1,'space','user','user',$2,'succeeded','{}','{}','{}',1,1,1)")
+            .bind(&id)
+            .bind(kind)
+            .execute(&pool)
+            .await
+            .unwrap();
+        let run = load_run(&pool, &id).await.unwrap();
+        if kind == "automation" {
+            assert_eq!(run.kind, RunKind::Automation);
+        }
+    }
+}

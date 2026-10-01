@@ -5,11 +5,19 @@ import type { AppTask } from "./task-model";
 
 export type RetryTask = () => Promise<void>;
 
-export function createTaskRetryController(
-  tasks: Ref<AppTask[]>,
-  succeed: (id: string) => void,
-  trimHistory: () => void,
-) {
+interface TaskRetryOptions {
+  tasks: Ref<AppTask[]>;
+  succeed: (id: string) => void;
+  trimHistory: () => void;
+  externallySettled: Set<string>;
+}
+
+export function createTaskRetryController({
+  tasks,
+  succeed,
+  trimHistory,
+  externallySettled,
+}: TaskRetryOptions) {
   const retries = new Map<string, RetryTask>();
 
   function restoreFailed(task: Omit<AppTask, "status">, retryTask: RetryTask) {
@@ -25,6 +33,18 @@ export function createTaskRetryController(
     if (!task || task.status !== "failed") return;
     retries.set(id, retryTask);
     task.retryable = true;
+  }
+
+  function setObservedRetry(id: string, retryTask: RetryTask) {
+    setRetry(id, async () => {
+      externallySettled.add(id);
+      try {
+        await retryTask();
+      } catch (error) {
+        externallySettled.delete(id);
+        throw error;
+      }
+    });
   }
 
   async function retry(id: string) {
@@ -49,6 +69,7 @@ export function createTaskRetryController(
     clear: () => retries.clear(),
     restoreFailed,
     setRetry,
+    setObservedRetry,
     retry,
   };
 }

@@ -8,6 +8,7 @@ import { toast } from "vue-sonner";
 import { normalizeError } from "../../foundation/errors/app-error";
 import { getErrorMessage } from "../../foundation/errors/error-format";
 import UiButton from "../../shared/ui/UiButton.vue";
+import { selectAndRevealSpaceNode } from "./canvas/selection-actions";
 import { useContextDock } from "./canvas/use-context-dock";
 import {
   registerConversationRunNavigation,
@@ -15,6 +16,7 @@ import {
 } from "./conversation/conversation-run-observation";
 import { useConversationSessionStore } from "./conversation/conversation-session-store";
 import { useDeferredEditorMount } from "./editor/use-deferred-editor-mount";
+import { useEnrichmentTaskProjection } from "./enrichment/use-enrichment-task-projection";
 import SpaceCanvas from "./presentation/canvas/SpaceCanvas.vue";
 import SpaceRecentlyDeleted from "./presentation/deletion/SpaceRecentlyDeleted.vue";
 import SpaceTiptapEditor from "./presentation/editor/SpaceTiptapEditor.vue";
@@ -27,13 +29,21 @@ import { useSpaceStore } from "./session/space-store";
 import { useSpaceSessionLifecycle } from "./workspace/use-space-session-lifecycle";
 
 const store = useSpaceStore();
-const { focusedEditorId } = storeToRefs(store);
+const { focusedEditorId, ready } = storeToRefs(store);
 const { t } = useI18n();
 const initializationError = shallowRef<Error>();
 const initializing = shallowRef(false);
 const mountedEditorId = useDeferredEditorMount(focusedEditorId);
 useSpaceSessionLifecycle(store.commitActiveSession);
 const dock = useContextDock();
+useEnrichmentTaskProjection(ready, async (spaceId, nodeId) => {
+  await store.openSpace(spaceId);
+  if (!store.nodes.some((node) => node.id === nodeId))
+    throw new Error(t("spaces.processing.nodeUnavailable"));
+  await nextTick();
+  selectAndRevealSpaceNode(nodeId);
+  dock.openInspect();
+});
 const unregisterConversationNavigation = registerConversationRunNavigation(
   async (spaceId, conversationId) => {
     await store.openSpace(spaceId);

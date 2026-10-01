@@ -126,15 +126,17 @@ pub async fn start(
         }
         let state = match db::pool(&app).await {
             Ok(pool) => match crate::spaces::runs::load_run(pool, &session.run_id).await {
-                Ok(run) if run.state == RunState::Succeeded => "succeeded",
-                Ok(run) if run.state == RunState::Cancelled => "cancelled",
-                _ => "failed",
+                Ok(run) if run.state == RunState::Succeeded => {
+                    super::contract::AssistantTaskFinishedState::Succeeded
+                }
+                Ok(run) if run.state == RunState::Cancelled => {
+                    super::contract::AssistantTaskFinishedState::Cancelled
+                }
+                _ => super::contract::AssistantTaskFinishedState::Failed,
             },
-            Err(_) => "failed",
+            Err(_) => super::contract::AssistantTaskFinishedState::Failed,
         };
-        let _ = updates.send(AssistantTaskUpdate::Finished {
-            state: state.into(),
-        });
+        let _ = updates.send(AssistantTaskUpdate::Finished { state });
     });
     Ok(accepted)
 }
