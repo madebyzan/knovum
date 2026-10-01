@@ -1,4 +1,3 @@
-
 #[test]
 fn cancellation_reaches_the_active_search_and_lease_release_allows_retry() {
     let job_id = uuid::Uuid::new_v4().to_string();

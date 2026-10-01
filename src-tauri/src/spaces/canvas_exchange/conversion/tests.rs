@@ -1,4 +1,3 @@
-
 use super::*;
 #[test]
 fn preserves_group_background_styles_with_the_managed_resource() {

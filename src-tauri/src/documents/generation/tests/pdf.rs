@@ -3,7 +3,7 @@ use super::{fixture, source};
 
 #[test]
 fn typst_source_uses_structural_lists_tables_and_raw_code() {
-    let rendered = pdf::test_support::render_source(&fixture()).unwrap();
+    let rendered = pdf::tests::render_source(&fixture()).unwrap();
     for marker in [
         "#table(columns: 2",
         "#enum(start: 7",
@@ -21,7 +21,7 @@ fn typst_source_uses_structural_lists_tables_and_raw_code() {
 fn typst_control_syntax_is_quoted_not_interpolated() {
     let mut input = source("`#read(\"private\")` and **bold**");
     input.title = "\"] #read(\"private\") [".into();
-    let rendered = pdf::test_support::render_source(&input).unwrap();
+    let rendered = pdf::tests::render_source(&input).unwrap();
     assert!(rendered.contains("#text(\"\\\"] #read(\\\"private\\\") [\")"));
     assert!(rendered.contains("#raw(\"#read(\\\"private\\\")\")"));
 }
@@ -29,6 +29,6 @@ fn typst_control_syntax_is_quoted_not_interpolated() {
 #[test]
 fn unsupported_binary_content_fails_before_typst_compilation() {
     for markdown in ["![Diagram](image.png)", "[Link](file:///private/a)"] {
-        assert!(pdf::test_support::render_source(&source(markdown)).is_err());
+        assert!(pdf::tests::render_source(&source(markdown)).is_err());
     }
 }

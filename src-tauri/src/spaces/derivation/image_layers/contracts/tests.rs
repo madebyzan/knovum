@@ -1,4 +1,3 @@
-
 #[test]
 fn generation_request_uses_explicit_identity_and_rejects_legacy_fields() {
     let mut request = serde_json::json!({

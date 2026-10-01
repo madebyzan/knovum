@@ -55,7 +55,7 @@ These limits bound conversion input; they are not a hard CPU-time or output-byte
 The owning `generation/tests` directory contains one shared Markdown fixture and focused tests for
 model structure, title handling, literal citations, lists/tables/code, safe Typst quoting, TXT output,
 unsupported input, and DOCX package XML (styles, numbering, hyperlinks, tables and escaped content).
-The existing platform PDF smoke remains under `spaces/derivation/document_formats_tests`, renamed to
+The existing platform PDF smoke remains under `spaces/derivation/tests/document_formats`, renamed to
 accurately describe its dependence on a platform CJK font. Frontend tests cover all three export Actions, revision identity and inactive-Space behavior. Action acceptance/capture/replay tests verify the shared execution boundary.
 
 Run on the supported desktop development environment:
@@ -63,7 +63,7 @@ Run on the supported desktop development environment:
 ```sh
 pnpm test -- src/features/spaces/__tests__/document-export.test.ts
 cargo test --locked --manifest-path src-tauri/Cargo.toml documents::generation
-cargo test --locked --manifest-path src-tauri/Cargo.toml spaces::derivation::document_formats_tests
+cargo test --locked --manifest-path src-tauri/Cargo.toml spaces::derivation::tests::document_formats
 pnpm check:web
 pnpm check:rust
 ```

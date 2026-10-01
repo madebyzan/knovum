@@ -1,4 +1,3 @@
-
 #[tokio::test]
 async fn nullable_json_stays_absent_and_malformed_json_is_rejected() {
     let pool = sqlx::sqlite::SqlitePoolOptions::new()

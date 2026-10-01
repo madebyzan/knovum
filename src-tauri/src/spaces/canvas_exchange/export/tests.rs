@@ -1,4 +1,3 @@
-
 use super::*;
 #[test]
 fn publishes_shared_file_and_group_background_reference() {

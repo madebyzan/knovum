@@ -27,4 +27,4 @@ pub(crate) fn render(input: &DocumentSource) -> Result<Vec<u8>, String> {
 }
 
 #[cfg(test)]
-pub(crate) mod test_support;
+pub(crate) mod tests;

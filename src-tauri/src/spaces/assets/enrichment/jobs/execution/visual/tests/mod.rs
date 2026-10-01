@@ -1,4 +1,3 @@
-
 use super::*;
 use crate::ai::{
     contracts::ExecutionCapability,
@@ -66,4 +65,12 @@ async fn invalid_visual_results_are_rejected() {
         .is_err());
         spy.assert_agent_only();
     }
+}
+
+#[test]
+fn web_downloaded_thumbnail_uses_space_asset_authority() {
+    assert!(web_media_preview(
+        &serde_json::json!({"origin": {"kind": "web"}})
+    ));
+    assert!(!web_media_preview(&serde_json::json!({"kind": "video"})));
 }

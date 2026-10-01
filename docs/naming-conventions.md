@@ -406,14 +406,16 @@ Short local names such as `row`, `value`, `save`, `start`, `busy`, and `editing`
 
 ## Tests
 
-Keep Rust unit tests close to the owning module, in separate `tests.rs` or `tests/mod.rs` files.
+Keep Rust unit tests close to the owning module, in separate files. A test file may sit beside
+the business entry only when those are the directory's only two entries, both files. Otherwise,
+test suites, fixtures and helpers belong under the owner's `tests/` directory, with `tests/mod.rs`
+as the test module entry. Split suites use concrete subject names inside that directory.
 The business module contains only the `#[cfg(test)] mod tests;` declaration; do not embed test
-bodies in business files. Named suites may use separate `<subject>_tests.rs` child modules when
-their distinct scope is useful. A module that gains test submodules follows the same `<name>/mod.rs`
-layout as other split modules. Test-only fixtures and helpers also live in separate files behind
-`#[cfg(test)]`. Child unit-test modules can exercise private implementation without widening the
-production API. Use `src-tauri/tests/` for integration tests through the crate's public interface;
-tests requiring private interfaces remain unit tests within their owning module.
+bodies in business files. A module that gains test submodules follows the same `<name>/mod.rs`
+layout as other split modules. Test-only helpers remain behind `#[cfg(test)]`. Child unit-test
+modules can exercise private implementation without widening the production API. Use
+`src-tauri/tests/` for integration tests through the crate's public interface; tests requiring
+private interfaces remain unit tests within their owning module.
 
 Vue/TypeScript tests live under the nearest common owner's `__tests__/` directory and use
 the `.test.ts` suffix. A unit test should make its tested owner obvious, for example `UiButton.vue`

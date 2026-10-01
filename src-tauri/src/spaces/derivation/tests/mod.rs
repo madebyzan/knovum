@@ -1,3 +1,5 @@
+mod document_formats;
+
 #[test]
 fn prepared_document_metadata_accepts_resolved_action_fields() {
     let value = serde_json::json!({

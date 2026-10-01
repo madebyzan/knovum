@@ -1,4 +1,3 @@
-
 #[test]
 fn canvas_read_tools_are_discoverable_with_space_scoped_arguments() {
     let tools = super::SpaceMcpServer::tool_router().list_all();

@@ -1,4 +1,3 @@
-
 use super::*;
 #[test]
 fn rejects_absolute_and_traversing_resource_references() {

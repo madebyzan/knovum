@@ -107,7 +107,4 @@ fn web_media_preview(data: &Value) -> bool {
 }
 
 #[cfg(test)]
-mod preview_authority_tests;
-
-#[cfg(test)]
-mod agent_task_tests;
+mod tests;

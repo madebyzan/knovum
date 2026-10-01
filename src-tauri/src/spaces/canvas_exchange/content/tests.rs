@@ -1,4 +1,3 @@
-
 use super::*;
 #[test]
 fn creates_text_and_link_payloads_without_structure_fields() {

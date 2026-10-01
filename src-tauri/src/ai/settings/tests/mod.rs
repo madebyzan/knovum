@@ -1,4 +1,3 @@
-
 use super::*;
 use serde_json::json;
 fn configured() -> serde_json::Value {
