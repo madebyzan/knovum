@@ -6,7 +6,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import { errorMessage } from "../../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import { openSpaceAsset, openSpaceAssetAtLocation } from "../../assets/asset-operations";
 import { useCanvasEditorSession } from "../../canvas/editor-session";
 import { createSourceEvidence } from "../../editor/knowledge-capture";
@@ -57,7 +57,7 @@ export function useSourcePeek() {
   const sourceContext = computed(() => sourceContextQuery.data.value ?? []);
   whenever(
     () => sourceContextQuery.error.value,
-    (error) => toast.error(errorMessage(error)),
+    (error) => toast.error(getErrorMessage(error)),
   );
   function revealSource() {
     if (sourcePeek.value) useCanvasEditorSession().reveal([sourcePeek.value.nodeId], "focus");
@@ -77,7 +77,7 @@ export function useSourcePeek() {
         rationale: t("spaces.assistant.evidence.sourceRationale"),
       });
     } catch (error) {
-      toast.error(errorMessage(error));
+      toast.error(getErrorMessage(error));
     }
   }
   async function openSourceExternally() {
@@ -94,7 +94,7 @@ export function useSourcePeek() {
       if (atLocation && target) await openSpaceAssetAtLocation(data.assetPath, target.locator);
       else await openSpaceAsset(data.assetPath);
     } catch (error) {
-      toast.error(errorMessage(error));
+      toast.error(getErrorMessage(error));
     }
   }
   return {

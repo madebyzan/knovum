@@ -3,7 +3,7 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { decodeAppError } from "../../../foundation/errors/app-error";
-import { errorMessage } from "../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { textEmbeddingReady } from "../../../foundation/runtime/local-resources";
 import { startResourcePreparation } from "../../../foundation/runtime/resource-preparation";
 import { useLocalResourcesQuery } from "../../../foundation/runtime/resource-query";
@@ -45,7 +45,7 @@ export function useSemanticSearch(open: Ref<boolean>) {
         tasks.succeed(id);
         if (open.value && store.activeSpaceId === spaceId) enabled.value = true;
       } catch (error) {
-        tasks.fail(id, errorMessage(error));
+        tasks.fail(id, getErrorMessage(error));
         throw error;
       } finally {
         indexing.value = false;
@@ -62,6 +62,6 @@ export function useSemanticSearch(open: Ref<boolean>) {
 
 function reportSemanticSearchError(error: unknown) {
   if (decodeAppError(error)?.code !== "local_resource_preparation_cancelled") {
-    toast.error(errorMessage(error));
+    toast.error(getErrorMessage(error));
   }
 }

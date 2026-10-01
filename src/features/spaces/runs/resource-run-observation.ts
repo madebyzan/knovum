@@ -1,7 +1,7 @@
 import { debounce } from "es-toolkit";
 import { toast } from "vue-sonner";
 
-import { errorMessage } from "../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { i18n } from "../../../foundation/i18n/i18n";
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
@@ -27,7 +27,7 @@ export function observeResourceRun(run: RunObservation, title: string, onUpdate?
   tasks.setOpen(run.id, () => space.openSpace(run.homeSpaceId));
   const refreshCanvas = debounce(() => {
     if (space.activeSpaceId !== run.homeSpaceId) return;
-    void space.refreshActiveSpace().catch((cause: unknown) => toast.error(errorMessage(cause)));
+    void space.refreshActiveSpace().catch((cause: unknown) => toast.error(getErrorMessage(cause)));
   }, 400);
   observeRun(run.id, {
     update: (next) => {
@@ -39,12 +39,12 @@ export function observeResourceRun(run: RunObservation, title: string, onUpdate?
       } else if (next.state === "cancelled") tasks.cancelled(next.id);
       else tasks.setStatusMessage(next.id, i18n.global.t(workflowStateLabelKey(next.state)));
     },
-    error: (cause) => tasks.fail(run.id, errorMessage(cause)),
+    error: (cause) => tasks.fail(run.id, getErrorMessage(cause)),
     finished: () => {
       observations.delete(run.id);
       refreshCanvas.cancel();
       if (space.activeSpaceId === run.homeSpaceId) {
-        void space.refreshActiveSpace().catch((cause: unknown) => toast.error(errorMessage(cause)));
+        void space.refreshActiveSpace().catch((cause: unknown) => toast.error(getErrorMessage(cause)));
       }
     },
   });

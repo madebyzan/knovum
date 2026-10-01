@@ -1,5 +1,5 @@
 import { decodeAppError } from "../../../../foundation/errors/app-error";
-import { errorMessage } from "../../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import { i18n } from "../../../../foundation/i18n/i18n";
 import { useTaskStore } from "../../../../foundation/tasks/task-store";
 import { scheduleSpaceAssetProcessing } from "../../assets/processing-scheduler";
@@ -93,7 +93,7 @@ export function createJsonCanvasImportActions(context: JsonCanvasImportContext) 
         };
       } catch (error) {
         if (decodeAppError(error)?.code === "json_canvas_import_cancelled") tasks.cancelled(taskId);
-        else tasks.fail(taskId, errorMessage(error));
+        else tasks.fail(taskId, getErrorMessage(error));
         throw error;
       }
     }

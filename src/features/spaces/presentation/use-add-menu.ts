@@ -2,7 +2,7 @@ import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import { errorMessage } from "../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { importSpaceFromPicker } from "../assets/import-flow";
 import { useNodeOperationGate } from "../canvas/node-operation-gate";
 import { createSystemKnowledgeObjectPayload } from "../knowledge/model/object-factory";
@@ -64,7 +64,7 @@ export function useAddMenu() {
         preparing: t("spaces.importExport.progress.preparing"),
       });
     } catch (error) {
-      toast.error(t("spaces.importExport.importFailed"), { description: errorMessage(error) });
+      toast.error(t("spaces.importExport.importFailed"), { description: getErrorMessage(error) });
     }
   }
   async function addWebsite() {

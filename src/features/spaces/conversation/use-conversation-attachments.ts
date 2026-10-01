@@ -3,7 +3,7 @@ import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { decodeAppError } from "../../../foundation/errors/app-error";
-import { errorMessage } from "../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { spaceCanvasOverviewSource } from "../assets/node-preview-source";
 import { useCanvasEditorSession } from "../canvas/editor-session";
 import { currentSelectionRoots } from "../canvas/selection/selection-roots";
@@ -27,7 +27,7 @@ function attachmentErrorMessage(error: unknown, t: ReturnType<typeof useI18n>["t
     assistant_upload_unauthorized: "spaces.assistant.uploads.permissionError",
   };
   const key = code ? known[code] : undefined;
-  return key ? t(key) : errorMessage(error);
+  return key ? t(key) : getErrorMessage(error);
 }
 
 export function useConversationAttachments() {

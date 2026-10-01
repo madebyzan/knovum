@@ -2,7 +2,7 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import type { ContextMenuItem } from "../../../foundation/context-menu/context-menu";
-import { errorMessage } from "../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../foundation/errors/error-format";
 import type { CanvasExchangePort } from "../canvas-exchange/canvas-exchange-port";
 import { useCanvasExchangeSession } from "../canvas-exchange/canvas-exchange-session";
 import { exportJsonCanvasFile } from "../canvas-exchange/transfer";
@@ -16,7 +16,7 @@ async function reportExchange(operation: () => Promise<boolean>, success: string
   try {
     if (await operation()) toast.success(success);
   } catch (error) {
-    toast.error(errorMessage(error));
+    toast.error(getErrorMessage(error));
   }
 }
 

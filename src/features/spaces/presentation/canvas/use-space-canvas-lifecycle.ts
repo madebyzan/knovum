@@ -1,6 +1,6 @@
 import { onBeforeUnmount, shallowRef, watch, type Ref } from "vue";
 
-import { errorMessage } from "../../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import type { CanvasExchangePort } from "../../canvas-exchange/canvas-exchange-port";
 import { registerCanvasExchangePort } from "../../canvas-exchange/canvas-exchange-session";
 import type { useCanvasToolStore } from "../../canvas/canvas-tool-store";
@@ -23,7 +23,7 @@ export function useSpaceCanvasLifecycle(options: {
   let detachExchange: (() => void) | undefined;
 
   function reportError(cause: unknown) {
-    error.value = errorMessage(cause);
+    error.value = getErrorMessage(cause);
   }
 
   function attachEditor(editor: CanvasEditorPort) {

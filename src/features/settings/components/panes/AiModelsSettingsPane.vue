@@ -8,7 +8,7 @@ import { toast } from "vue-sonner";
 import { useAiSettingsStore } from "../../../../foundation/ai/ai-settings-store";
 import { useCreationLibraryStore } from "../../../../foundation/ai/creation-library-store";
 import { loadProviderDescriptors } from "../../../../foundation/ai/providers";
-import { errorMessage } from "../../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import type { RoutingPurpose } from "../../../../shared/contracts/generated/RoutingPurpose";
 import { confirmAction } from "../../../../shared/ui/confirm-action";
 import UiSpinner from "../../../../shared/ui/UiSpinner.vue";
@@ -44,7 +44,7 @@ const ready = computed(() => aiReady.value && creationReady.value && !catalog.is
 const { protectedConnectionIds, protectedModelTargets } = useProtectedExecutionTargets();
 
 watch(saveError, (error) => {
-  if (error) toast.error(`${t("settings.ai.integrationSaveFailed")}: ${errorMessage(error)}`);
+  if (error) toast.error(`${t("settings.ai.integrationSaveFailed")}: ${getErrorMessage(error)}`);
 });
 
 async function hydrateStores() {
@@ -80,7 +80,7 @@ async function manageModels(purpose: RoutingPurpose) {
 <template>
   <SettingsLoadFailure
     v-if="failure"
-    :message="errorMessage(failure.cause)"
+    :message="getErrorMessage(failure.cause)"
     :can-reset="failure.canReset"
     @retry="reload"
     @reset="resetSection"

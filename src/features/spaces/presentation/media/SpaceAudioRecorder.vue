@@ -4,7 +4,7 @@ import { error as logError } from "@tauri-apps/plugin-log";
 import { computed, onBeforeUnmount, toRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { errorDiagnostic } from "../../../../foundation/errors/error-format";
+import { formatErrorDiagnostic } from "../../../../foundation/errors/error-format";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import { createSpaceAudioRecorderController } from "../../media/audio-recorder-controller";
@@ -41,7 +41,7 @@ onBeforeUnmount(() => {
   disposed = true;
 });
 function reportLifecycleError(error: unknown) {
-  void logError(`Audio recording lifecycle failed: ${errorDiagnostic(error)}`);
+  void logError(`Audio recording lifecycle failed: ${formatErrorDiagnostic(error)}`);
   emit("failed");
 }
 

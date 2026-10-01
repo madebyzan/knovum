@@ -5,7 +5,7 @@ import { onBeforeUnmount, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import { errorMessage } from "../../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import { exportSpaceMarkdown } from "../../assets/export";
 import { useContextDock } from "../../canvas/use-context-dock";
@@ -50,7 +50,7 @@ async function exportMarkdown() {
     if (await exportSpaceMarkdown(title.value, editor.value.getMarkdown()))
       toast.success(t("spaces.importExport.exportCompleted"));
   } catch (error) {
-    toast.error(errorMessage(error));
+    toast.error(getErrorMessage(error));
   }
 }
 </script>

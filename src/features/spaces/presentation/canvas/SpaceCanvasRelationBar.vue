@@ -5,7 +5,7 @@ import { computed, shallowRef, watch, watchEffect } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import { errorMessage } from "../../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiDropdownMenu from "../../../../shared/ui/UiDropdownMenu.vue";
 import UiDropdownMenuItem from "../../../../shared/ui/UiDropdownMenuItem.vue";
@@ -75,7 +75,7 @@ async function updateKind(kind: SpaceRelationKind) {
   try {
     await store.updateRelationKind(selected.value.id, kind);
   } catch (error) {
-    toast.error(errorMessage(error));
+    toast.error(getErrorMessage(error));
   } finally {
     mutationPending.value = false;
   }
@@ -88,7 +88,7 @@ async function saveRationale() {
     await store.updateRelation(selected.value.id, { rationale: rationale.value.trim() });
     rationaleOpen.value = false;
   } catch (error) {
-    toast.error(errorMessage(error));
+    toast.error(getErrorMessage(error));
   } finally {
     mutationPending.value = false;
   }

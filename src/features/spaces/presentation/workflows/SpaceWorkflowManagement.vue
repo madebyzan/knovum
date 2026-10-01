@@ -2,7 +2,7 @@
 import { ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { errorMessage } from "../../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import { confirmAction } from "../../../../shared/ui/confirm-action";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiInput from "../../../../shared/ui/UiInput.vue";
@@ -41,7 +41,7 @@ async function rename() {
     emit("renamed", await renameCapturedWorkflow(props.workflow.workflowId, props.workflow.name, name.value));
     editing.value = false;
   } catch (cause) {
-    error.value = errorMessage(cause);
+    error.value = getErrorMessage(cause);
   } finally {
     busy.value = false;
   }
@@ -62,7 +62,7 @@ async function remove() {
     await deleteCapturedWorkflow(props.workflow.workflowId, props.workflow.name);
     emit("deleted", props.workflow.workflowId);
   } catch (cause) {
-    error.value = errorMessage(cause);
+    error.value = getErrorMessage(cause);
   } finally {
     busy.value = false;
   }

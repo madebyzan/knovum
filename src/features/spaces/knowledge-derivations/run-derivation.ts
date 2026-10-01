@@ -1,6 +1,6 @@
 import { toast } from "vue-sonner";
 
-import { errorMessage } from "../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { i18n } from "../../../foundation/i18n/i18n";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import type { useSpaceStore } from "../session/space-store";
@@ -38,13 +38,13 @@ export async function runDerivation<Output>(
     await yieldToCanvas();
     completed = await execute({ spaceId, pendingId, taskId });
   } catch (error) {
-    tasks.fail(taskId, errorMessage(error));
+    tasks.fail(taskId, getErrorMessage(error));
     try {
       await onError(error, spaceId);
     } catch (recoveryError) {
       throw new AggregateError([error, recoveryError], "Derivation and recovery failed", { cause: error });
     }
-    toast.error(`${i18n.global.t(failureMessageKey)}: ${errorMessage(error)}`);
+    toast.error(`${i18n.global.t(failureMessageKey)}: ${getErrorMessage(error)}`);
     return undefined;
   }
 

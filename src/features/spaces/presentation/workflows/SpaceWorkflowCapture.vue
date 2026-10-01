@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/vue-query";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { errorMessage } from "../../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import type { CaptureIssueReason } from "../../contracts/generated/CaptureIssueReason";
 import { useSpaceStore } from "../../session/space-store";
@@ -31,7 +31,7 @@ const preview = computed(() => capturePreviewQuery.data.value);
 const loading = computed(() => capturePreviewQuery.isFetching.value);
 const error = computed(() => {
   const cause = capturePreviewQuery.error.value;
-  return cause ? errorMessage(cause) : "";
+  return cause ? getErrorMessage(cause) : "";
 });
 
 const nodeTitles = computed(() => new Map(store.nodes.map(({ id, data }) => [id, data.title])));

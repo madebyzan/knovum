@@ -2,7 +2,7 @@ import { useToggle } from "@vueuse/core";
 import { computed, onScopeDispose, shallowRef, watch } from "vue";
 import { toast } from "vue-sonner";
 
-import { errorMessage } from "../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../foundation/errors/error-format";
 import type { SpaceCredentialPayload } from "../model/nodes/node-payload";
 import { commitSpaceCredentialChange } from "./credential-actions";
 import { loadSpaceCredential } from "./credential-storage";
@@ -70,7 +70,7 @@ export function useCredentialEditor(options: CredentialEditorOptions) {
     } catch (error) {
       if (currentRequest !== request) return;
       open.value = false;
-      toast.error(errorMessage(error));
+      toast.error(getErrorMessage(error));
     } finally {
       if (currentRequest === request) loading.value = false;
     }
@@ -91,7 +91,7 @@ export function useCredentialEditor(options: CredentialEditorOptions) {
       );
       open.value = false;
     } catch (error) {
-      toast.error(errorMessage(error));
+      toast.error(getErrorMessage(error));
     } finally {
       saving.value = false;
     }

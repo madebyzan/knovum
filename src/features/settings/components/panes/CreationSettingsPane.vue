@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { errorMessage } from "../../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import type { GenerationActionOption } from "../../generation-action-option";
 
 const props = defineProps<{ loadGenerationActions: () => Promise<GenerationActionOption[]> }>();
@@ -19,7 +19,7 @@ const store = useCreationLibraryStore();
 const { library, ready, loadError, saveError } = storeToRefs(store);
 
 watch(saveError, (error) => {
-  if (error) toast.error(`${t("settings.creation.saveFailed")}: ${errorMessage(error)}`);
+  if (error) toast.error(`${t("settings.creation.saveFailed")}: ${getErrorMessage(error)}`);
 });
 
 async function resetSection() {
@@ -38,7 +38,7 @@ onMounted(store.ensureLoaded);
 <template>
   <SettingsLoadFailure
     v-if="loadError"
-    :message="errorMessage(loadError)"
+    :message="getErrorMessage(loadError)"
     @retry="store.reload"
     @reset="resetSection"
   />

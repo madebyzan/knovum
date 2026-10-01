@@ -1,6 +1,6 @@
 import { toast } from "vue-sonner";
 
-import { errorMessage } from "../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { i18n } from "../../../foundation/i18n/i18n";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import type { RunObservation } from "../contracts/generated/RunObservation";
@@ -54,21 +54,21 @@ export function observeConversationRun(
     update: (next) => {
       for (const listener of listeners) listener(next);
       if (next.completedAt !== null && space.activeSpaceId === next.homeSpaceId)
-        void space.refreshActiveSpace().catch((cause: unknown) => toast.error(errorMessage(cause)));
+        void space.refreshActiveSpace().catch((cause: unknown) => toast.error(getErrorMessage(cause)));
       if (next.state === "succeeded") {
         tasks.succeed(next.id);
       } else if (next.state === "cancelled") tasks.cancelled(next.id);
       else if (next.completedAt !== null) {
         void getAssistantTaskError(next.id)
           .then((reason) => tasks.fail(next.id, reason ?? i18n.global.t("spaces.assistant.tasks.failed")))
-          .catch((cause: unknown) => tasks.fail(next.id, errorMessage(cause)));
+          .catch((cause: unknown) => tasks.fail(next.id, getErrorMessage(cause)));
       } else if (next.state === "paused") {
         tasks.setStatusMessage(next.id, i18n.global.t("spaces.assistant.tasks.paused"));
       } else if (next.state === "waiting") {
         tasks.setStatusMessage(next.id, i18n.global.t("spaces.assistant.tasks.waitingForResult"));
       } else tasks.setStatusMessage(next.id, "");
     },
-    error: (cause) => tasks.fail(run.id, errorMessage(cause)),
+    error: (cause) => tasks.fail(run.id, getErrorMessage(cause)),
     finished: () => {
       observed.delete(run.id);
     },

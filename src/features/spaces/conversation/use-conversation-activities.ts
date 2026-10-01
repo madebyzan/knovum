@@ -1,6 +1,6 @@
 import { shallowRef, watch, type Ref } from "vue";
 
-import { errorMessage } from "../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../foundation/errors/error-format";
 import type { RunEvent } from "../contracts/generated/RunEvent";
 import { listAssistantRunEvents } from "./conversation-ipc";
 
@@ -37,7 +37,7 @@ export function useConversationActivities(
     const next = previous
       .then(() => load(runId))
       .catch((cause: unknown) => {
-        if (selection === current) error.value = errorMessage(cause);
+        if (selection === current) error.value = getErrorMessage(cause);
       });
     pending.set(runId, next);
     void next.finally(() => {

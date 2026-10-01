@@ -1,24 +1,23 @@
 import { decodeAppError, normalizeError } from "./app-error";
 
-export function errorMessage(reason: unknown): string {
+export function getErrorMessage(reason: unknown): string {
   return normalizeError(reason).message;
 }
 
-export function errorDiagnostic(reason: unknown): string {
+export function formatErrorDiagnostic(reason: unknown): string {
   return describe(reason, new Set());
 }
 
-function describe(reason: unknown, seen: Set<unknown>): string {
-  const payload = decodeAppError(reason);
+function describe(reason: unknown, seen: Set<Error>): string {
+  if (typeof reason === "string") return reason;
   if (!(reason instanceof Error)) {
-    if (payload) return `[${payload.code}] ${payload.message}`;
-    return typeof reason === "string" ? reason : "Unrecognized error payload";
+    const payload = decodeAppError(reason);
+    return payload ? `[${payload.code}] ${payload.message}` : "Unrecognized error payload";
   }
   if (seen.has(reason)) return "[Circular error cause]";
   seen.add(reason);
   const details = [reason.stack ?? `${reason.name}: ${reason.message}`];
-  if (payload) details.push(`Code: ${payload.code}`);
-  else if (reason.cause !== undefined) details.push(`Cause: ${describe(reason.cause, seen)}`);
+  if (reason.cause !== undefined) details.push(`Cause: ${describe(reason.cause, seen)}`);
   if (reason instanceof AggregateError) {
     details.push(...reason.errors.map((error: unknown) => describe(error, seen)));
   }

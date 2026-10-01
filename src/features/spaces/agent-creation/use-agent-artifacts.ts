@@ -2,7 +2,7 @@ import { computed, reactive, ref, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import { errorMessage } from "../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../foundation/errors/error-format";
 import type { AgentArtifact } from "../../../shared/contracts/generated/AgentArtifact";
 import { prepareAgentArtifactImport } from "../assets/asset-operations";
 import { spaceImportContext } from "../assets/import-context";
@@ -75,7 +75,9 @@ export function useAgentArtifacts(open: Ref<boolean>) {
     try {
       await discard(store.activeSpaceId);
     } catch (error) {
-      toast.error(t("spaces.creation.agent.artifacts.discardFailed"), { description: errorMessage(error) });
+      toast.error(t("spaces.creation.agent.artifacts.discardFailed"), {
+        description: getErrorMessage(error),
+      });
     }
   }
 
@@ -106,21 +108,23 @@ export function useAgentArtifacts(open: Ref<boolean>) {
         removeConsumed(artifact.relativePath);
       }
     } catch (error) {
-      toast.error(t("spaces.importExport.importFailed"), { description: errorMessage(error) });
+      toast.error(t("spaces.importExport.importFailed"), { description: getErrorMessage(error) });
       return;
     }
     open.value = false;
     try {
       await discard(spaceId, currentSessionId);
     } catch (error) {
-      toast.error(t("spaces.creation.agent.artifacts.discardFailed"), { description: errorMessage(error) });
+      toast.error(t("spaces.creation.agent.artifacts.discardFailed"), {
+        description: getErrorMessage(error),
+      });
     }
   }
 
   function preview(artifact: AgentArtifact) {
     if (!store.activeSpaceId || !sessionId.value) return;
     void previewAgentArtifact(store.activeSpaceId, sessionId.value, artifact.relativePath).catch((error) =>
-      toast.error(errorMessage(error)),
+      toast.error(getErrorMessage(error)),
     );
   }
 

@@ -5,7 +5,7 @@ import type { ResourcePreparationProgress } from "../../shared/contracts/generat
 import type { ResourcePreparationSnapshot } from "../../shared/contracts/generated/ResourcePreparationSnapshot";
 import type { ResourcePreparationTarget } from "../../shared/contracts/generated/ResourcePreparationTarget";
 import { createAppError, decodeAppError } from "../errors/app-error";
-import { errorDiagnostic, errorMessage } from "../errors/error-format";
+import { formatErrorDiagnostic, getErrorMessage } from "../errors/error-format";
 import { formatBytes } from "../format/bytes";
 import { i18n } from "../i18n/i18n";
 import { useTaskStore } from "../tasks/task-store";
@@ -84,7 +84,7 @@ async function runPreparation(options: PreparationRun) {
       tasks.cancelled(jobId);
       throw createAppError(CANCELLED_CODE, "Resource preparation cancelled");
     }
-    tasks.fail(jobId, errorMessage(error));
+    tasks.fail(jobId, getErrorMessage(error));
     throw error;
   } finally {
     await invalidateLocalResources();
@@ -107,10 +107,10 @@ async function observeRunning(tasks: ReturnType<typeof useTaskStore>, jobId: str
       if (!snapshot) throw new Error("Resource preparation snapshot is unavailable");
     } catch (error) {
       if (failures + 1 >= OBSERVATION_RETRIES) {
-        tasks.fail(jobId, `Unable to observe resource preparation: ${errorMessage(error)}`);
+        tasks.fail(jobId, `Unable to observe resource preparation: ${getErrorMessage(error)}`);
         tasks.setObservedRetry(jobId, () => observeRunning(tasks, jobId));
         await Promise.resolve(
-          logError(`Unable to observe resource preparation ${jobId}: ${errorDiagnostic(error)}`),
+          logError(`Unable to observe resource preparation ${jobId}: ${formatErrorDiagnostic(error)}`),
         ).catch(() => undefined);
         return;
       }

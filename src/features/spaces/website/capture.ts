@@ -2,7 +2,7 @@ import { warn as logWarn } from "@tauri-apps/plugin-log";
 import { compact } from "es-toolkit";
 import pLimit from "p-limit";
 
-import { errorDiagnostic } from "../../../foundation/errors/error-format";
+import { formatErrorDiagnostic } from "../../../foundation/errors/error-format";
 import { removeSpaceAssets } from "../assets/asset-operations";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceNodePayload, SpaceWebsitePayload } from "../model/nodes/node-payload";
@@ -45,7 +45,7 @@ export async function addSavedWebsite(
     void websiteCaptureConcurrency(() =>
       hydrateSavedWebsite(binding(context, spaceId, node), url, { preserveTitle: false }),
     ).catch((error: unknown) =>
-      logWarn(`Website metadata state could not be saved for ${node.id}: ${errorDiagnostic(error)}`),
+      logWarn(`Website metadata state could not be saved for ${node.id}: ${formatErrorDiagnostic(error)}`),
     );
   }
   return node;
@@ -87,7 +87,9 @@ async function hydrateSavedWebsite(
       ...(metadata.canonicalUrl ? { canonicalUrl: metadata.canonicalUrl } : {}),
     });
   } catch (error) {
-    void logWarn(`Website metadata hydration failed for ${target.id} (${url}): ${errorDiagnostic(error)}`);
+    void logWarn(
+      `Website metadata hydration failed for ${target.id} (${url}): ${formatErrorDiagnostic(error)}`,
+    );
     await markWebsiteFailed(target);
   }
 }
@@ -112,7 +114,7 @@ async function hydrateDirectImage(
     );
   } catch (error) {
     void logWarn(
-      `Direct website image hydration failed for ${target.id} (${url}): ${errorDiagnostic(error)}`,
+      `Direct website image hydration failed for ${target.id} (${url}): ${formatErrorDiagnostic(error)}`,
     );
     await markWebsiteFailed(target);
   }
@@ -135,7 +137,7 @@ async function cacheOptionalWebsiteAsset(url: string | undefined, kind: string) 
   try {
     return await cacheWebsiteAsset(url);
   } catch (error) {
-    void logWarn(`Website ${kind} could not be cached: ${errorDiagnostic(error)}`);
+    void logWarn(`Website ${kind} could not be cached: ${formatErrorDiagnostic(error)}`);
     return undefined;
   }
 }
@@ -172,7 +174,7 @@ async function persistWebsite(
   try {
     await removeSpaceAssets(stalePaths);
   } catch (error) {
-    void logWarn(`Website asset reclamation failed for ${target.id}: ${errorDiagnostic(error)}`);
+    void logWarn(`Website asset reclamation failed for ${target.id}: ${formatErrorDiagnostic(error)}`);
   }
 }
 

@@ -4,7 +4,7 @@ import { computed, shallowRef, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import { errorMessage } from "../../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import { refreshSpaceAsset } from "../../assets/asset-operations";
 import { useNodeOperationGate } from "../../canvas/node-operation-gate";
 import { useDerivationMetadata } from "../../knowledge-derivations/use-derivation-metadata";
@@ -50,7 +50,7 @@ async function onRetry() {
     }
     toast.success(t("common.retry"));
   } catch (error) {
-    toast.error(errorMessage(error));
+    toast.error(getErrorMessage(error));
   } finally {
     retrying.value = false;
   }

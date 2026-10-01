@@ -5,7 +5,7 @@ import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import { errorMessage } from "../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../foundation/errors/error-format";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiDialog from "../../../shared/ui/UiDialog.vue";
 import UiInput from "../../../shared/ui/UiInput.vue";
@@ -61,7 +61,7 @@ watch(customTypes, (types) => {
 watch(
   () => typesQuery.error.value,
   (error) => {
-    if (error) toast.error(errorMessage(error));
+    if (error) toast.error(getErrorMessage(error));
   },
 );
 watch(typeId, () => {
@@ -84,7 +84,7 @@ async function create() {
     });
     open.value = false;
   } catch (error) {
-    toast.error(errorMessage(error));
+    toast.error(getErrorMessage(error));
   }
 }
 </script>

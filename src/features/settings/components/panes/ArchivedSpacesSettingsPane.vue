@@ -4,7 +4,7 @@ import { inject, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import { errorMessage } from "../../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import {
   archiveSettingsKey,
   type ArchivedSpace,
@@ -36,7 +36,7 @@ async function permanentlyDelete(space: ArchivedSpace) {
   try {
     await archive.permanentlyDelete(space.id);
   } catch (error) {
-    toast.error(t("settings.general.archived.delete.failed"), { description: errorMessage(error) });
+    toast.error(t("settings.general.archived.delete.failed"), { description: getErrorMessage(error) });
   }
 }
 </script>

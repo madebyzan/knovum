@@ -4,7 +4,7 @@ import { useTextareaAutosize } from "@vueuse/core";
 import { computed, onBeforeUnmount, onMounted, ref, shallowRef, useTemplateRef } from "vue";
 import { toast } from "vue-sonner";
 
-import { errorMessage } from "../../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import { isFileDropInside, listenForFileDrops } from "../../../../foundation/file-drop/file-drop";
 import { createAsyncDisposer } from "../../../../foundation/lifecycle/async-disposer";
 import type { TaskTargetRef } from "../../../../shared/contracts/generated/TaskTargetRef";
@@ -85,7 +85,7 @@ onMounted(() => {
         },
       }),
     )
-    .catch((error) => toast.error(errorMessage(error)));
+    .catch((error) => toast.error(getErrorMessage(error)));
 });
 onBeforeUnmount(fileDropListener.dispose);
 </script>

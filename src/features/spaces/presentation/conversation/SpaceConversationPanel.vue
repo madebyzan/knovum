@@ -3,7 +3,7 @@ import { storeToRefs } from "pinia";
 import { nextTick, useTemplateRef } from "vue";
 import { toast } from "vue-sonner";
 
-import { errorMessage } from "../../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import { useConversationSessionStore } from "../../conversation/conversation-session-store";
 import SpaceConversationComposer from "./SpaceConversationComposer.vue";
 import SpaceConversationHeader from "./SpaceConversationHeader.vue";
@@ -44,7 +44,7 @@ async function previewAttachment(key: string) {
   try {
     await conversationSession.previewAttachment(key);
   } catch (error) {
-    toast.error(errorMessage(error));
+    toast.error(getErrorMessage(error));
   }
 }
 </script>

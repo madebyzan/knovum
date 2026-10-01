@@ -1,7 +1,7 @@
 import { info as logInfo } from "@tauri-apps/plugin-log";
 
 import { createAppError, decodeAppError } from "../../../../foundation/errors/app-error";
-import { errorMessage } from "../../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import { i18n } from "../../../../foundation/i18n/i18n";
 import { useTaskStore } from "../../../../foundation/tasks/task-store";
 import { formatByteSize } from "../../assets/format-byte-size";
@@ -59,7 +59,7 @@ export async function acquireMediaSource(
       tasks.dismiss(jobId);
       throw createAppError("media_acquisition_cancelled", "Media acquisition cancelled");
     }
-    tasks.fail(jobId, errorMessage(error));
+    tasks.fail(jobId, getErrorMessage(error));
     throw error;
   }
 }

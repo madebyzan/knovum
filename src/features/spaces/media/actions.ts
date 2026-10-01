@@ -2,7 +2,7 @@ import type { Ref } from "vue";
 
 import { cancelAiJob } from "../../../foundation/ai/ai-runtime";
 import { decodeAppError } from "../../../foundation/errors/app-error";
-import { errorMessage } from "../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { formatBytes } from "../../../foundation/format/bytes";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
@@ -63,7 +63,7 @@ export function createSpaceMediaActions(context: Context) {
     } catch (error) {
       if (decodeAppError(error)?.code === "media_insights_cancelled") tasks.cancelled(jobId);
       else {
-        tasks.fail(jobId, errorMessage(error));
+        tasks.fail(jobId, getErrorMessage(error));
         throw error;
       }
     } finally {

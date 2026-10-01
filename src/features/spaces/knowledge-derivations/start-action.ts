@@ -1,6 +1,6 @@
 import { toast } from "vue-sonner";
 
-import { errorMessage } from "../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
 import type { RunObservation } from "../contracts/generated/RunObservation";
@@ -43,7 +43,7 @@ export async function startDerivationAction({
     observeResourceRun(run, title);
     return run;
   } catch (error) {
-    toast.error(errorMessage(error));
+    toast.error(getErrorMessage(error));
     return undefined;
   }
 }

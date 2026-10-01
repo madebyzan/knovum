@@ -5,7 +5,7 @@ import { useI18n } from "vue-i18n";
 
 import AiExecutionTargetField from "../../../foundation/ai/AiExecutionTargetField.vue";
 import type { GenerationPreset } from "../../../foundation/ai/schema/models";
-import { errorMessage } from "../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../foundation/errors/error-format";
 import type { RoutingPurpose } from "../../../shared/contracts/generated/RoutingPurpose";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiDialog from "../../../shared/ui/UiDialog.vue";
@@ -60,7 +60,7 @@ function save() {
         <UiInput v-model="draft.name" />
       </label>
       <p v-if="actionLoadError" class="text-caption text-fg-danger">
-        {{ errorMessage(actionLoadError) }}
+        {{ getErrorMessage(actionLoadError) }}
       </p>
       <AiExecutionTargetField v-else-if="action" v-model="draft.target" :purpose="routingPurpose" />
       <section v-if="Object.keys(draft.parameters).length" class="grid gap-2">

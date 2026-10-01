@@ -2,7 +2,7 @@ import { info as logInfo, warn as logWarn } from "@tauri-apps/plugin-log";
 import { toast } from "vue-sonner";
 
 import { decodeAppError } from "../../../foundation/errors/app-error";
-import { errorDiagnostic } from "../../../foundation/errors/error-format";
+import { formatErrorDiagnostic } from "../../../foundation/errors/error-format";
 import { i18n } from "../../../foundation/i18n/i18n";
 import { removeSpaceAssets } from "../assets/asset-operations";
 import { acquireMediaSource } from "../media/import/acquisition";
@@ -75,7 +75,7 @@ export async function captureSpaceUrl(
     retainFailure = outcome.failed;
     return outcome.node;
   } catch (error) {
-    void logWarn(`URL capture failed for ${normalized}: ${errorDiagnostic(error)}`);
+    void logWarn(`URL capture failed for ${normalized}: ${formatErrorDiagnostic(error)}`);
     toast.error(i18n.global.t("spaces.importExport.website.captureFailed"));
     retainFailure = true;
     context.updateUrlCapture(projection.id, { status: "failed" });
@@ -122,7 +122,7 @@ async function importMediaSource(
     throw new Error(`Media source is unsupported: ${input.url}`);
   } catch (error) {
     if (decodeAppError(error)?.code === "media_acquisition_cancelled") return { failed: false };
-    void logWarn(`Media import failed for ${input.url}: ${errorDiagnostic(error)}`);
+    void logWarn(`Media import failed for ${input.url}: ${formatErrorDiagnostic(error)}`);
     toast.error(i18n.global.t("spaces.media.import.failed"));
     context.updateUrlCapture(input.captureId, { status: "failed" });
     return { failed: true };

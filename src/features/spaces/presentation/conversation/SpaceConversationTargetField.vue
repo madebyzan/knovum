@@ -15,7 +15,7 @@ import { availableModelTargets, defaultExecutionTarget } from "../../../../found
 import { useAiSettingsStore } from "../../../../foundation/ai/ai-settings-store";
 import { useExecutionCatalogQuery } from "../../../../foundation/ai/execution-catalog-query";
 import { encodeExecutionTarget } from "../../../../foundation/ai/execution-target-codec";
-import { errorMessage } from "../../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import type { TaskTargetRef } from "../../../../shared/contracts/generated/TaskTargetRef";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiDropdownMenu from "../../../../shared/ui/UiDropdownMenu.vue";
@@ -91,7 +91,7 @@ onMounted(() => void settings.ensureLoaded());
 <template>
   <div class="min-w-0 flex-1">
     <p v-if="settings.loadError" class="text-caption text-fg-danger" role="alert">
-      {{ t("ai.settingsUnavailable") }}: {{ errorMessage(settings.loadError) }}
+      {{ t("ai.settingsUnavailable") }}: {{ getErrorMessage(settings.loadError) }}
     </p>
     <UiDropdownMenu
       side="top"
@@ -155,7 +155,7 @@ onMounted(() => void settings.ensureLoaded());
             /></DropdownMenuItemIndicator>
           </DropdownMenuRadioItem>
           <p v-if="catalog.error.value" class="px-2.5 py-2 text-caption text-fg-danger" role="alert">
-            {{ errorMessage(catalog.error.value) }}
+            {{ getErrorMessage(catalog.error.value) }}
           </p>
         </DropdownMenuGroup>
       </DropdownMenuRadioGroup>

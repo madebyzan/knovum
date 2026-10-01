@@ -5,7 +5,7 @@ import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import { errorMessage } from "../../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import { spaceCanvasOverviewSource } from "../../assets/node-preview-source";
 import { useContextDock } from "../../canvas/use-context-dock";
@@ -53,7 +53,7 @@ async function mutate(action: () => Promise<unknown>) {
   try {
     await action();
   } catch (error) {
-    toast.error(errorMessage(error));
+    toast.error(getErrorMessage(error));
   } finally {
     mutating.value = false;
   }
