@@ -1,6 +1,12 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
-  "entry": ["tests/e2e/**/*.e2e.ts", "src/foundation/secrets/secret-store.ts", "src/**/*.css"],
+  "entry": [
+    "tests/e2e/**/*.e2e.ts",
+    "src/foundation/secrets/secret-store.ts",
+    "src/**/*.css",
+    "tools/release/relocate.mjs",
+    "tools/update-tests/*.test.mjs"
+  ],
   "project": [
     "src/**/*.{ts,tsx,vue}",
     "src/**/*.css",
