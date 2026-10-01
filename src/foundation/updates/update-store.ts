@@ -30,8 +30,14 @@ export const useUpdateStore = defineStore("application-updates", () => {
   let notifiedVersion: string | undefined;
   const phase = computed(() => snapshot.value?.phase);
   const blocking = computed(() => preparing.value || phase.value === "installing");
-  const busy = computed(() => requesting.value || blocking.value
-    || phase.value === "checking" || phase.value === "downloading" || phase.value === "verifying");
+  const busy = computed(
+    () =>
+      requesting.value ||
+      blocking.value ||
+      phase.value === "checking" ||
+      phase.value === "downloading" ||
+      phase.value === "verifying",
+  );
 
   function receive(value: unknown) {
     const next = updateSnapshotSchema.parse(value);
@@ -41,7 +47,12 @@ export const useUpdateStore = defineStore("application-updates", () => {
     mirrorTask(next);
     if (next.phase === "ready" && previousPhase === "verifying") {
       toast.success(t("settings.updates.download.ready"), {
-        action: { label: t("settings.updates.install.action"), onClick: () => { void install(); } },
+        action: {
+          label: t("settings.updates.install.action"),
+          onClick: () => {
+            void install();
+          },
+        },
       });
     }
     if (next.phase === "available" && next.update && notifiedVersion !== next.update.version) {
@@ -52,14 +63,17 @@ export const useUpdateStore = defineStore("application-updates", () => {
 
   function connect(): Promise<void> {
     if (connected) return Promise.resolve();
-    connecting ??= observe().finally(() => { connecting = undefined; });
+    connecting ??= observe().finally(() => {
+      connecting = undefined;
+    });
     return connecting;
   }
 
   async function observe() {
     const onEvent = new Channel<unknown>((value) => {
-      try { receive(value); }
-      catch (error) {
+      try {
+        receive(value);
+      } catch (error) {
         disconnected.value = true;
         connected = false;
         void logError(`Invalid updater event: ${formatErrorDiagnostic(error)}`);
@@ -88,12 +102,15 @@ export const useUpdateStore = defineStore("application-updates", () => {
     } catch (error) {
       toast.error(message);
       void logError(`Application update failed: ${formatErrorDiagnostic(error)}`);
-    } finally { requesting.value = false; }
+    } finally {
+      requesting.value = false;
+    }
   }
 
   async function cancel() {
-    try { await cancelDownload(); }
-    catch (error) {
+    try {
+      await cancelDownload();
+    } catch (error) {
       toast.error(t("settings.updates.download.failed"));
       void logError(`Update cancellation failed: ${formatErrorDiagnostic(error)}`);
     }
@@ -101,7 +118,10 @@ export const useUpdateStore = defineStore("application-updates", () => {
 
   async function install() {
     if (busy.value || phase.value !== "ready" || !snapshot.value?.update) return;
-    if (tasks.running.length) { toast.error(t("settings.updates.install.runningTasks")); return; }
+    if (tasks.running.length) {
+      toast.error(t("settings.updates.install.runningTasks"));
+      return;
+    }
     const version = snapshot.value.update.version;
     preparing.value = true;
     try {
@@ -114,11 +134,20 @@ export const useUpdateStore = defineStore("application-updates", () => {
     } catch (error) {
       toast.error(t("settings.updates.install.failed"));
       void logError(`Application update install failed: ${formatErrorDiagnostic(error)}`);
-    } finally { preparing.value = false; }
+    } finally {
+      preparing.value = false;
+    }
   }
 
   return {
-    snapshot, disconnected, phase, busy, blocking, connect, install, cancel,
+    snapshot,
+    disconnected,
+    phase,
+    busy,
+    blocking,
+    connect,
+    install,
+    cancel,
     check: () => run("check_for_update", t("settings.updates.check.failed")),
     download: () => run("download_update", t("settings.updates.download.failed")),
   };

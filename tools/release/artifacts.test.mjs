@@ -25,14 +25,19 @@ test("symbolic links are not accepted as release artifacts", (context) => {
 test("verification delegates each artifact to minisign and removes temporary signatures", (context) => {
   const fixture = releaseFixture(context);
   const signatures = [];
-  verifyArtifacts(fixture.directory, loadArtifacts(fixture.directory, fixture.version), fixture.publicKey, (command, args) => {
-    assert.equal(command, "minisign");
-    assert.equal(args[0], "-Vm");
-    assert.equal(args[2], "-P");
-    assert.equal(args[4], "-x");
-    signatures.push(args[5]);
-    assert.match(readFileSync(args[5], "utf8"), /^untrusted comment:/);
-  });
+  verifyArtifacts(
+    fixture.directory,
+    loadArtifacts(fixture.directory, fixture.version),
+    fixture.publicKey,
+    (command, args) => {
+      assert.equal(command, "minisign");
+      assert.equal(args[0], "-Vm");
+      assert.equal(args[2], "-P");
+      assert.equal(args[4], "-x");
+      signatures.push(args[5]);
+      assert.match(readFileSync(args[5], "utf8"), /^untrusted comment:/);
+    },
+  );
   assert.equal(signatures.length, releaseTargets.length);
   assert.ok(signatures.every((path) => !existsSync(path)));
 });
@@ -41,11 +46,20 @@ test("a signature failure aborts the sequence and cleans up", (context) => {
   const fixture = releaseFixture(context);
   let signatureFile;
   let count = 0;
-  assert.throws(() => verifyArtifacts(fixture.directory, loadArtifacts(fixture.directory, fixture.version), fixture.publicKey, (_, args) => {
-    count += 1;
-    signatureFile = args[5];
-    throw new Error("signature rejected");
-  }), /rejected/);
+  assert.throws(
+    () =>
+      verifyArtifacts(
+        fixture.directory,
+        loadArtifacts(fixture.directory, fixture.version),
+        fixture.publicKey,
+        (_, args) => {
+          count += 1;
+          signatureFile = args[5];
+          throw new Error("signature rejected");
+        },
+      ),
+    /rejected/,
+  );
   assert.equal(count, 1);
   assert.equal(existsSync(signatureFile), false);
 });

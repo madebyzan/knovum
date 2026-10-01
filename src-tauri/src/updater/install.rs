@@ -1,9 +1,9 @@
 use tauri::{AppHandle, Manager};
 
-use crate::app_error::{AppError, AppResult};
 use super::contracts::{UpdateFailure, UpdatePhase};
 use super::failure;
 use super::state::{busy, require_version, UpdateState};
+use crate::app_error::{AppError, AppResult};
 
 pub(super) async fn run(app: &AppHandle, version: &str) -> AppResult<()> {
     let state = app.state::<UpdateState>();
@@ -11,8 +11,14 @@ pub(super) async fn run(app: &AppHandle, version: &str) -> AppResult<()> {
     let (update, bytes) = {
         let mut session = state.lock()?;
         require_version(&session.snapshot, UpdatePhase::Ready, version)?;
-        let update = session.pending.clone().ok_or_else(|| AppError::internal("Missing selected update"))?;
-        let bytes = session.bytes.take().ok_or_else(|| AppError::internal("Missing verified update"))?;
+        let update = session
+            .pending
+            .clone()
+            .ok_or_else(|| AppError::internal("Missing selected update"))?;
+        let bytes = session
+            .bytes
+            .take()
+            .ok_or_else(|| AppError::internal("Missing verified update"))?;
         (update, bytes)
     };
     state.publish(|session| {
@@ -24,7 +30,8 @@ pub(super) async fn run(app: &AppHandle, version: &str) -> AppResult<()> {
     let outcome = tauri::async_runtime::spawn_blocking(move || {
         let outcome = update.install(&bytes);
         (bytes, outcome)
-    }).await;
+    })
+    .await;
     match outcome {
         Ok((_, Ok(()))) => crate::desktop::restart_after_update(app),
         Ok((bytes, Err(error))) => {

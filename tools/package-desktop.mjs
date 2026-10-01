@@ -37,10 +37,14 @@ const config = releaseConfig
   : { bundle: { resources: bundleResources } };
 const pnpmCli = process.env.npm_execpath;
 if (!pnpmCli || !existsSync(pnpmCli)) fail("Run packaging through pnpm package or pnpm package:release");
-execFileSync(process.execPath, [pnpmCli, "exec", "tauri", "build", ...args, "--config", JSON.stringify(config)], {
-  cwd: repository,
-  stdio: "inherit",
-});
+execFileSync(
+  process.execPath,
+  [pnpmCli, "exec", "tauri", "build", ...args, "--config", JSON.stringify(config)],
+  {
+    cwd: repository,
+    stdio: "inherit",
+  },
+);
 
 function requireRuntime(runtimeTarget) {
   const windows = runtimeTarget.startsWith("windows-");

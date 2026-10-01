@@ -22,7 +22,10 @@ pub(crate) fn initialize(app: &AppHandle) -> AppResult<()> {
 }
 
 #[tauri::command]
-pub fn observe_updates(app: AppHandle, on_event: Channel<UpdateSnapshot>) -> AppResult<UpdateSnapshot> {
+pub fn observe_updates(
+    app: AppHandle,
+    on_event: Channel<UpdateSnapshot>,
+) -> AppResult<UpdateSnapshot> {
     let state = app.state::<UpdateState>();
     let mut session = state.lock()?;
     session.observer = Some(on_event);

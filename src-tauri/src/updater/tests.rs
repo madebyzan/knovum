@@ -41,8 +41,12 @@ fn insecure_tls_configuration_is_rejected() {
 
 #[test]
 fn artifact_urls_must_be_public_non_expiring_https() {
-    for value in ["http://example.com/a", "https://user:password@example.com/a",
-        "https://example.com/a?token=secret", "https://example.com/a#fragment"] {
+    for value in [
+        "http://example.com/a",
+        "https://user:password@example.com/a",
+        "https://example.com/a?token=secret",
+        "https://example.com/a#fragment",
+    ] {
         assert!(config::validate_url(&value.parse().expect("fixture URL")).is_err());
     }
     assert!(config::validate_url(&"https://example.com/a".parse().expect("fixture URL")).is_ok());
@@ -57,8 +61,14 @@ fn install_is_bound_to_the_selected_version() {
 
 #[test]
 fn install_cannot_skip_download_or_verification() {
-    for phase in [UpdatePhase::Idle, UpdatePhase::Checking, UpdatePhase::Available,
-        UpdatePhase::Downloading, UpdatePhase::Verifying, UpdatePhase::Installing] {
+    for phase in [
+        UpdatePhase::Idle,
+        UpdatePhase::Checking,
+        UpdatePhase::Available,
+        UpdatePhase::Downloading,
+        UpdatePhase::Verifying,
+        UpdatePhase::Installing,
+    ] {
         assert!(require_version(&selected(phase), UpdatePhase::Ready, "0.0.2").is_err());
     }
 }
@@ -83,18 +93,31 @@ async fn checks_downloads_and_installs_share_one_operation_lock() {
 fn observations_have_monotonic_revisions_without_a_webview() {
     let state = UpdateState::new(true);
     let initial = state.snapshot().expect("snapshot");
-    let next = state.publish(|session| session.snapshot.phase = UpdatePhase::Checking).expect("publish");
+    let next = state
+        .publish(|session| session.snapshot.phase = UpdatePhase::Checking)
+        .expect("publish");
     assert_eq!(next.revision, initial.revision + 1);
-    assert_eq!(state.snapshot().expect("snapshot").phase, UpdatePhase::Checking);
+    assert_eq!(
+        state.snapshot().expect("snapshot").phase,
+        UpdatePhase::Checking
+    );
 }
 
 #[test]
 fn cancellation_is_accessible_while_an_operation_owns_the_gate() {
     let state = UpdateState::new(true);
     let token = CancellationToken::new();
-    state.publish(|session| session.cancellation = Some(token.clone())).expect("publish");
+    state
+        .publish(|session| session.cancellation = Some(token.clone()))
+        .expect("publish");
     let _operation = state.operation.try_lock().expect("operation");
-    state.lock().expect("session").cancellation.as_ref().expect("token").cancel();
+    state
+        .lock()
+        .expect("session")
+        .cancellation
+        .as_ref()
+        .expect("token")
+        .cancel();
     assert!(token.is_cancelled());
 }
 
@@ -102,12 +125,16 @@ fn cancellation_is_accessible_while_an_operation_owns_the_gate() {
 fn cancellation_wins_a_race_with_verified_download_completion() {
     let state = UpdateState::new(true);
     let token = CancellationToken::new();
-    state.publish(|session| {
-        session.snapshot = selected(UpdatePhase::Verifying);
-        session.cancellation = Some(token.clone());
-    }).expect("publish");
+    state
+        .publish(|session| {
+            session.snapshot = selected(UpdatePhase::Verifying);
+            session.cancellation = Some(token.clone());
+        })
+        .expect("publish");
     token.cancel();
-    let snapshot = state.complete_download(DownloadOutcome::Verified(vec![1, 2, 3])).expect("complete");
+    let snapshot = state
+        .complete_download(DownloadOutcome::Verified(vec![1, 2, 3]))
+        .expect("complete");
     assert_eq!(snapshot.phase, UpdatePhase::Available);
     assert_eq!(snapshot.downloaded, 0);
     assert!(state.lock().expect("session").bytes.is_none());
@@ -116,18 +143,31 @@ fn cancellation_wins_a_race_with_verified_download_completion() {
 #[test]
 fn only_successful_verification_promotes_the_download_to_ready() {
     let state = UpdateState::new(true);
-    state.publish(|session| session.snapshot = selected(UpdatePhase::Verifying)).expect("publish");
-    let snapshot = state.complete_download(DownloadOutcome::Verified(vec![1, 2, 3])).expect("complete");
+    state
+        .publish(|session| session.snapshot = selected(UpdatePhase::Verifying))
+        .expect("publish");
+    let snapshot = state
+        .complete_download(DownloadOutcome::Verified(vec![1, 2, 3]))
+        .expect("complete");
     assert_eq!(snapshot.phase, UpdatePhase::Ready);
     assert_eq!(snapshot.total, Some(3));
-    assert_eq!(state.lock().expect("session").bytes.as_ref().map(Vec::len), Some(3));
+    assert_eq!(
+        state.lock().expect("session").bytes.as_ref().map(Vec::len),
+        Some(3)
+    );
 }
 
 #[test]
 fn signature_failure_never_retains_installable_bytes() {
     let state = UpdateState::new(true);
-    state.publish(|session| session.snapshot = selected(UpdatePhase::Verifying)).expect("publish");
-    let snapshot = state.complete_download(DownloadOutcome::Failed(super::contracts::UpdateFailure::Signature)).expect("complete");
+    state
+        .publish(|session| session.snapshot = selected(UpdatePhase::Verifying))
+        .expect("publish");
+    let snapshot = state
+        .complete_download(DownloadOutcome::Failed(
+            super::contracts::UpdateFailure::Signature,
+        ))
+        .expect("complete");
     assert_eq!(snapshot.phase, UpdatePhase::Available);
     assert!(snapshot.failure.is_some());
     assert!(state.lock().expect("session").bytes.is_none());

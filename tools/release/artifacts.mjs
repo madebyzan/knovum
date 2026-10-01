@@ -37,7 +37,11 @@ export function stageTarget({ bundleDirectory, outputDirectory, version, target 
   copyFileSync(path, join(outputDirectory, name), constants.COPYFILE_EXCL);
   copyFileSync(`${path}.sig`, join(outputDirectory, `${name}.sig`), constants.COPYFILE_EXCL);
   if (humanInstaller) {
-    copyFileSync(humanInstaller, join(outputDirectory, name.replace(".app.tar.gz", ".dmg")), constants.COPYFILE_EXCL);
+    copyFileSync(
+      humanInstaller,
+      join(outputDirectory, name.replace(".app.tar.gz", ".dmg")),
+      constants.COPYFILE_EXCL,
+    );
   }
 }
 
@@ -51,11 +55,13 @@ function singleDmg(bundleDirectory) {
 }
 
 export function loadHumanInstallers(directory, version) {
-  return releaseTargets.filter((target) => target.startsWith("darwin-")).map((target) => {
-    const path = join(directory, artifactName(version, target).replace(".app.tar.gz", ".dmg"));
-    requireFile(path);
-    return path;
-  });
+  return releaseTargets
+    .filter((target) => target.startsWith("darwin-"))
+    .map((target) => {
+      const path = join(directory, artifactName(version, target).replace(".app.tar.gz", ".dmg"));
+      requireFile(path);
+      return path;
+    });
 }
 
 export function loadArtifacts(directory, version) {

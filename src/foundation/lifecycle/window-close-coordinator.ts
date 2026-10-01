@@ -4,7 +4,6 @@ import { error as logError } from "@tauri-apps/plugin-log";
 
 import { formatErrorDiagnostic } from "../errors/error-format";
 import { invokeCommand } from "../ipc/invoke-command";
-
 import { CloseCommitCoordinator } from "./close-commits";
 
 const coordinator = new CloseCommitCoordinator();

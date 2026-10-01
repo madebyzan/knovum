@@ -2,12 +2,7 @@ import { basename } from "node:path";
 
 import { decodeBase64, httpsUrl, requireValue, stableVersion } from "./config.mjs";
 
-export const releaseTargets = [
-  "darwin-aarch64",
-  "darwin-x86_64",
-  "windows-aarch64",
-  "windows-x86_64",
-];
+export const releaseTargets = ["darwin-aarch64", "darwin-x86_64", "windows-aarch64", "windows-x86_64"];
 
 function signatureText(value) {
   const encoded = requireValue(value, "artifact signature");

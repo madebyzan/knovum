@@ -8,7 +8,10 @@ import { loadArtifacts, loadHumanInstallers, verifyArtifacts } from "./artifacts
 import { releaseRepository, stableVersion } from "./config.mjs";
 import { createManifest } from "./manifest.mjs";
 
-export function prepareDraft({ repository, version, directory, notesFile, publicKey }, execute = execFileSync) {
+export function prepareDraft(
+  { repository, version, directory, notesFile, publicKey },
+  execute = execFileSync,
+) {
   const repo = releaseRepository(repository);
   const tag = `v${stableVersion(version)}`;
   const notes = readFileSync(notesFile, "utf8");
@@ -16,19 +19,42 @@ export function prepareDraft({ repository, version, directory, notesFile, public
   const humanInstallers = loadHumanInstallers(directory, version);
   verifyArtifacts(directory, artifacts, publicKey, execute);
   const manifest = createManifest({
-    version, notes, publishedAt: new Date().toISOString(), artifacts,
+    version,
+    notes,
+    publishedAt: new Date().toISOString(),
+    artifacts,
     baseUrl: `https://github.com/${repo}/releases/download/${tag}`,
   });
-  const privacy = execute("gh", ["repo", "view", repo, "--json", "isPrivate", "--jq", ".isPrivate"], { encoding: "utf8" }).trim();
-  if (privacy !== "false") throw new Error("The distribution repository must be public; never embed GitHub credentials in the app");
+  const privacy = execute("gh", ["repo", "view", repo, "--json", "isPrivate", "--jq", ".isPrivate"], {
+    encoding: "utf8",
+  }).trim();
+  if (privacy !== "false")
+    throw new Error("The distribution repository must be public; never embed GitHub credentials in the app");
   const temporary = mkdtempSync(join(tmpdir(), "knovum-release-"));
   try {
     const manifestFile = join(temporary, "latest.json");
     writeFileSync(manifestFile, JSON.stringify(manifest, null, 2) + "\n", { flag: "wx" });
     // Deliberately draft-only. A conflicting existing release is an error, never overwritten.
-    execute("gh", ["release", "create", tag, "--repo", repo, "--draft", "--title", `Knovum ${version}`, "--notes-file", notesFile], { stdio: "pipe" });
+    execute(
+      "gh",
+      [
+        "release",
+        "create",
+        tag,
+        "--repo",
+        repo,
+        "--draft",
+        "--title",
+        `Knovum ${version}`,
+        "--notes-file",
+        notesFile,
+      ],
+      { stdio: "pipe" },
+    );
     const files = artifacts.flatMap(({ name }) => [join(directory, name), join(directory, `${name}.sig`)]);
-    execute("gh", ["release", "upload", tag, "--repo", repo, ...files, ...humanInstallers, manifestFile], { stdio: "pipe" });
+    execute("gh", ["release", "upload", tag, "--repo", repo, ...files, ...humanInstallers, manifestFile], {
+      stdio: "pipe",
+    });
   } finally {
     rmSync(temporary, { recursive: true, force: true });
   }
@@ -42,8 +68,11 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
       throw new Error("Usage: node tools/release/prepare-draft.mjs VERSION ARTIFACT_DIRECTORY NOTES_FILE");
     }
     const result = prepareDraft({
-      repository: process.env.KNOVUM_RELEASE_REPOSITORY, version,
-      directory: resolve(directory), notesFile: resolve(notesFile), publicKey: process.env.KNOVUM_UPDATER_PUBKEY,
+      repository: process.env.KNOVUM_RELEASE_REPOSITORY,
+      version,
+      directory: resolve(directory),
+      notesFile: resolve(notesFile),
+      publicKey: process.env.KNOVUM_UPDATER_PUBKEY,
     });
     console.log(`Draft ${result.repository}@${result.tag} prepared. It is not published.`);
   } catch (error) {

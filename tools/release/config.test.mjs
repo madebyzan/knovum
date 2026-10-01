@@ -1,7 +1,14 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { decodeBase64, httpsUrl, publicKey, releaseConfiguration, releaseRepository, stableVersion } from "./config.mjs";
+import {
+  decodeBase64,
+  httpsUrl,
+  publicKey,
+  releaseConfiguration,
+  releaseRepository,
+  stableVersion,
+} from "./config.mjs";
 
 // Structural fixture only. Never used to sign or enable a release.
 const key = Buffer.concat([Buffer.from("Ed"), Buffer.alloc(40)]).toString("base64");
@@ -29,9 +36,14 @@ for (const name of Object.keys(environment)) {
   });
 }
 
-for (const address of ["http://example.com/latest.json", "relative.json", "https://u:p@example.com/latest.json",
-  "https://example.com/latest.json?token=secret", "https://example.com/latest.json#fragment",
-  "https://example.com/{{target}}/{{arch}}"] ) {
+for (const address of [
+  "http://example.com/latest.json",
+  "relative.json",
+  "https://u:p@example.com/latest.json",
+  "https://example.com/latest.json?token=secret",
+  "https://example.com/latest.json#fragment",
+  "https://example.com/{{target}}/{{arch}}",
+]) {
   test(`rejects non-stable discovery address: ${address}`, () => {
     assert.throws(() => httpsUrl(address, "endpoint"));
   });
@@ -50,15 +62,32 @@ test("stable release versions and repository selectors cannot inject paths or CL
     assert.throws(() => stableVersion(value));
   }
   assert.equal(releaseRepository("owner/knovum-releases"), "owner/knovum-releases");
-  for (const value of ["--repo", "../repo", "owner/repo/extra", "https://github.com/owner/repo", "owner/.", "owner/.."]) {
+  for (const value of [
+    "--repo",
+    "../repo",
+    "owner/repo/extra",
+    "https://github.com/owner/repo",
+    "owner/.",
+    "owner/..",
+  ]) {
     assert.throws(() => releaseRepository(value));
   }
 });
 
 test("release arguments cannot disable signing or override validated configuration", async () => {
   const { validateReleaseArguments } = await import("./config.mjs");
-  for (const args of [["--debug"], ["-d"], ["--no-bundle"], ["--no-sign"], ["--config", "x.json"],
-    ["--config=x.json"], ["-cx.json"], ["--features", "e2e"], ["--features=other,e2e"], ["-fe2e"]]) {
+  for (const args of [
+    ["--debug"],
+    ["-d"],
+    ["--no-bundle"],
+    ["--no-sign"],
+    ["--config", "x.json"],
+    ["--config=x.json"],
+    ["-cx.json"],
+    ["--features", "e2e"],
+    ["--features=other,e2e"],
+    ["-fe2e"],
+  ]) {
     assert.throws(() => validateReleaseArguments(args));
   }
   validateReleaseArguments(["--bundles", "app,dmg", "--target", "aarch64-apple-darwin"]);

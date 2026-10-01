@@ -4,8 +4,8 @@ use tauri::ipc::Channel;
 use tauri_plugin_updater::Update;
 use tokio_util::sync::CancellationToken;
 
-use crate::app_error::{AppError, AppResult};
 use super::contracts::{UpdateFailure, UpdatePhase, UpdateSnapshot};
+use crate::app_error::{AppError, AppResult};
 
 pub(super) enum DownloadOutcome {
     Verified(Vec<u8>),
@@ -41,7 +41,9 @@ impl UpdateState {
     }
 
     pub fn lock(&self) -> AppResult<MutexGuard<'_, Session>> {
-        self.session.lock().map_err(|_| AppError::internal("Updater state lock poisoned"))
+        self.session
+            .lock()
+            .map_err(|_| AppError::internal("Updater state lock poisoned"))
     }
 
     pub fn snapshot(&self) -> AppResult<UpdateSnapshot> {
@@ -68,7 +70,11 @@ impl UpdateState {
         self.publish(|session| {
             // Cancellation and Ready publication share this lock. Once cancellation
             // is accepted, even a just-verified download cannot become installable.
-            let outcome = if session.cancellation.as_ref().is_some_and(|token| token.is_cancelled()) {
+            let outcome = if session
+                .cancellation
+                .as_ref()
+                .is_some_and(|token| token.is_cancelled())
+            {
                 DownloadOutcome::Cancelled
             } else {
                 outcome
@@ -91,15 +97,20 @@ impl UpdateState {
             }
         })
     }
-
 }
 
-pub(super) fn require_version(snapshot: &UpdateSnapshot, phase: UpdatePhase, version: &str) -> AppResult<()> {
+pub(super) fn require_version(
+    snapshot: &UpdateSnapshot,
+    phase: UpdatePhase,
+    version: &str,
+) -> AppResult<()> {
     if snapshot.phase != phase {
         return Err(AppError::invalid("Update is not in the required phase"));
     }
     if snapshot.update.as_ref().map(|value| value.version.as_str()) != Some(version) {
-        return Err(AppError::invalid("The selected update version has changed; check again"));
+        return Err(AppError::invalid(
+            "The selected update version has changed; check again",
+        ));
     }
     Ok(())
 }

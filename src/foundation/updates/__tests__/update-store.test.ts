@@ -19,8 +19,14 @@ const mocks = vi.hoisted(() => ({
   },
 }));
 
-vi.mock("@tauri-apps/api/core", () => ({ Channel: class { constructor(public onmessage: (value: unknown) => void) {} } }));
-vi.mock("@tauri-apps/plugin-log", () => ({ error: vi.fn<(message: string) => Promise<void>>().mockResolvedValue(undefined) }));
+vi.mock("@tauri-apps/api/core", () => ({
+  Channel: class {
+    constructor(public onmessage: (value: unknown) => void) {}
+  },
+}));
+vi.mock("@tauri-apps/plugin-log", () => ({
+  error: vi.fn<(message: string) => Promise<void>>().mockResolvedValue(undefined),
+}));
 vi.mock("vue-sonner", () => ({ toast: mocks.toast }));
 vi.mock("../../ipc/invoke-command", () => ({ invokeCommand: mocks.invoke }));
 vi.mock("../../i18n/i18n", () => ({ i18n: { global: { t: (key: string) => key } } }));
@@ -30,9 +36,13 @@ vi.mock("../update-task", () => ({ createUpdateTask: () => mocks.mirror }));
 
 function snapshot(phase: UpdateSnapshot["phase"] = "ready", revision = 1): UpdateSnapshot {
   return {
-    revision, configured: true, phase,
+    revision,
+    configured: true,
+    phase,
     update: { version: "0.0.2", currentVersion: "0.0.1", notes: null },
-    downloaded: 12, total: 12, failure: null,
+    downloaded: 12,
+    total: 12,
+    failure: null,
   };
 }
 
@@ -45,7 +55,10 @@ beforeEach(() => {
   observer = undefined;
   mocks.commit.mockImplementation(async (install: () => Promise<void>) => install());
   mocks.invoke.mockImplementation(async (command, args) => {
-    if (command === "observe_updates") { observer = args?.onEvent; return snapshot(); }
+    if (command === "observe_updates") {
+      observer = args?.onEvent;
+      return snapshot();
+    }
     return undefined;
   });
 });
@@ -129,7 +142,12 @@ describe("application update session", () => {
     const store = useUpdateStore();
     await store.connect();
     let finish!: (value: UpdateSnapshot) => void;
-    mocks.invoke.mockImplementationOnce(() => new Promise((resolve) => { finish = resolve; }));
+    mocks.invoke.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          finish = resolve;
+        }),
+    );
     const first = store.check();
     await Promise.resolve();
     await store.check();

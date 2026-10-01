@@ -14,17 +14,20 @@ export function signingConfiguration(target, environment) {
   }
   if (target.startsWith("windows-")) {
     const certificateThumbprint = requireValue(
-      environment.KNOVUM_WINDOWS_CERTIFICATE_THUMBPRINT, "KNOVUM_WINDOWS_CERTIFICATE_THUMBPRINT",
+      environment.KNOVUM_WINDOWS_CERTIFICATE_THUMBPRINT,
+      "KNOVUM_WINDOWS_CERTIFICATE_THUMBPRINT",
     );
     if (!/^[0-9a-fA-F]{40}$/.test(certificateThumbprint)) {
       throw new Error("Windows signing requires a 40-character certificate thumbprint");
     }
-    return { windows: {
-      certificateThumbprint,
-      digestAlgorithm: "sha256",
-      timestampUrl: httpsUrl(environment.KNOVUM_WINDOWS_TIMESTAMP_URL, "KNOVUM_WINDOWS_TIMESTAMP_URL"),
-      tsp: true,
-    } };
+    return {
+      windows: {
+        certificateThumbprint,
+        digestAlgorithm: "sha256",
+        timestampUrl: httpsUrl(environment.KNOVUM_WINDOWS_TIMESTAMP_URL, "KNOVUM_WINDOWS_TIMESTAMP_URL"),
+        tsp: true,
+      },
+    };
   }
   throw new Error(`Unsupported production signing host: ${target}`);
 }

@@ -19,8 +19,21 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   try {
     if (process.env.GITHUB_REF_TYPE !== "tag") throw new Error("Run the release workflow on a tag");
     releaseRepository(process.env.KNOVUM_RELEASE_REPOSITORY);
-    const cargo = JSON.parse(execFileSync("cargo", ["metadata", "--locked", "--no-deps",
-      "--format-version", "1", "--manifest-path", "src-tauri/Cargo.toml"], { encoding: "utf8" }));
+    const cargo = JSON.parse(
+      execFileSync(
+        "cargo",
+        [
+          "metadata",
+          "--locked",
+          "--no-deps",
+          "--format-version",
+          "1",
+          "--manifest-path",
+          "src-tauri/Cargo.toml",
+        ],
+        { encoding: "utf8" },
+      ),
+    );
     const version = verifyVersions({
       tag: process.env.GITHUB_REF_NAME ?? "",
       tauriVersion: JSON.parse(readFileSync("src-tauri/tauri.conf.json", "utf8")).version,

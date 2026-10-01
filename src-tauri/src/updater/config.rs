@@ -22,7 +22,9 @@ pub(super) fn initialize(app: &AppHandle) -> AppResult<bool> {
 
 pub(super) fn validate(config: &Config) -> AppResult<()> {
     if config.pubkey.trim().is_empty() || config.endpoints.len() != 1 {
-        return Err(AppError::not_configured("Updater requires a key and one stable endpoint"));
+        return Err(AppError::not_configured(
+            "Updater requires a key and one stable endpoint",
+        ));
     }
     if config.dangerous_insecure_transport_protocol
         || config.dangerous_accept_invalid_certs
@@ -40,7 +42,9 @@ pub(super) fn validate_url(url: &tauri::Url) -> AppResult<()> {
         || url.query().is_some()
         || url.fragment().is_some()
     {
-        return Err(AppError::invalid("Updates require public, non-expiring HTTPS URLs"));
+        return Err(AppError::invalid(
+            "Updates require public, non-expiring HTTPS URLs",
+        ));
     }
     Ok(())
 }

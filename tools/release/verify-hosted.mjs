@@ -16,9 +16,27 @@ export function verifyHosted(manifest, key, execute = execFileSync) {
   try {
     const artifacts = Object.entries(manifest.platforms).map(([target, artifact]) => {
       const name = artifactName(manifest.version, target);
-      execute("curl", ["--fail", "--location", "--silent", "--show-error", "--proto", "=https",
-        "--proto-redir", "=https", "--connect-timeout", "10", "--max-time", "1800",
-        "--output", join(temporary, name), httpsUrl(artifact.url, "artifact URL")], { stdio: "pipe" });
+      execute(
+        "curl",
+        [
+          "--fail",
+          "--location",
+          "--silent",
+          "--show-error",
+          "--proto",
+          "=https",
+          "--proto-redir",
+          "=https",
+          "--connect-timeout",
+          "10",
+          "--max-time",
+          "1800",
+          "--output",
+          join(temporary, name),
+          httpsUrl(artifact.url, "artifact URL"),
+        ],
+        { stdio: "pipe" },
+      );
       return { name, signature: artifact.signature };
     });
     verifyArtifacts(temporary, artifacts, key, execute);

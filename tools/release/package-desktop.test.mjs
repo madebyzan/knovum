@@ -1,6 +1,14 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
@@ -17,7 +25,12 @@ function fixture(context) {
     mkdirSync(join(root, path), { recursive: true });
   }
   const source = fileURLToPath(new URL("../../", import.meta.url));
-  for (const path of ["tools/package-desktop.mjs", "tools/release/config.mjs", "tools/release/signing.mjs", "src-tauri/tauri.release.conf.json"]) {
+  for (const path of [
+    "tools/package-desktop.mjs",
+    "tools/release/config.mjs",
+    "tools/release/signing.mjs",
+    "src-tauri/tauri.release.conf.json",
+  ]) {
     copyFileSync(join(source, path), join(root, path));
   }
   for (const name of ["ffmpeg", "whisper-cli"]) {
@@ -34,12 +47,17 @@ function fixture(context) {
     KNOVUM_UPDATER_ENDPOINT: "https://example.com/stable/latest.json",
     KNOVUM_UPDATER_PUBKEY: testPublicKey,
     APPLE_SIGNING_IDENTITY: "Developer ID Application: Test (TESTTEAM)",
-    APPLE_API_KEY: "test-api-key", APPLE_API_ISSUER: "test-issuer", APPLE_API_KEY_PATH: "test.p8",
+    APPLE_API_KEY: "test-api-key",
+    APPLE_API_ISSUER: "test-issuer",
+    APPLE_API_KEY_PATH: "test.p8",
     TAURI_SIGNING_PRIVATE_KEY: "test-private-key-never-embedded",
   };
-  const run = (args, env = environment) => spawnSync(process.execPath, [
-    join(root, "tools/package-desktop.mjs"), "--runtime-target", "macos-arm64", ...args,
-  ], { env, encoding: "utf8" });
+  const run = (args, env = environment) =>
+    spawnSync(
+      process.execPath,
+      [join(root, "tools/package-desktop.mjs"), "--runtime-target", "macos-arm64", ...args],
+      { env, encoding: "utf8" },
+    );
   const configuration = () => {
     const args = JSON.parse(readFileSync(recording, "utf8"));
     assert.deepEqual(args.slice(0, 3), ["exec", "tauri", "build"]);
@@ -105,5 +123,8 @@ test("missing or repeated target arguments fail instead of choosing the host", (
   const subject = fixture(context);
   assert.match(subject.run(["--target"]).stderr, /Missing packaging option/);
   assert.match(subject.run(["--target=", "--bundles", "app"]).stderr, /Missing packaging option/);
-  assert.match(subject.run(["--target=aarch64-apple-darwin", "--target", "aarch64-apple-darwin"]).stderr, /Duplicate packaging option/);
+  assert.match(
+    subject.run(["--target=aarch64-apple-darwin", "--target", "aarch64-apple-darwin"]).stderr,
+    /Duplicate packaging option/,
+  );
 });

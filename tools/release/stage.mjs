@@ -7,7 +7,12 @@ try {
   if (!version || !target || !bundleDirectory || !outputDirectory || extra.length) {
     throw new Error("Usage: node tools/release/stage.mjs VERSION TARGET BUNDLE_DIRECTORY OUTPUT_DIRECTORY");
   }
-  stageTarget({ version, target, bundleDirectory: resolve(bundleDirectory), outputDirectory: resolve(outputDirectory) });
+  stageTarget({
+    version,
+    target,
+    bundleDirectory: resolve(bundleDirectory),
+    outputDirectory: resolve(outputDirectory),
+  });
 } catch (error) {
   console.error(error instanceof Error ? error.message : "Artifact staging failed");
   process.exitCode = 1;

@@ -301,20 +301,20 @@ require approval. Protect the main branch/tags, keep the workflow token read-onl
 publishing token Contents:write access to the distribution repository only. Public values are GitHub
 variables; private material is GitHub Environment secrets:
 
-| Kind | Name | Value |
-| --- | --- | --- |
-| Variable | `KNOVUM_RELEASE_REPOSITORY` | Actual public `owner/repository` |
-| Variable | `KNOVUM_UPDATER_ENDPOINT` | Permanent public HTTPS static manifest URL |
-| Variable | `KNOVUM_UPDATER_PUBKEY` | Entire base64 public-key file from Tauri signer |
-| Secret | `TAURI_SIGNING_PRIVATE_KEY` | Entire private-key file, not the public key |
-| Secret | `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | Updater key password |
-| Secret | `KNOVUM_RELEASE_TOKEN` | Fine-grained distribution-repository token |
-| Secret | `APPLE_CERTIFICATE`, `APPLE_CERTIFICATE_PASSWORD` | Developer ID P12 in base64 and export password |
-| Variable | `APPLE_SIGNING_IDENTITY` | Full `Developer ID Application: ...` identity |
-| Variable | `APPLE_API_KEY`, `APPLE_API_ISSUER` | App Store Connect key ID and issuer |
-| Secret | `APPLE_API_PRIVATE_KEY` | Contents of the downloaded P8 key |
-| Secret | `KNOVUM_WINDOWS_PFX`, `KNOVUM_WINDOWS_PFX_PASSWORD` | Issued Windows signing PFX in base64 and password |
-| Variable | `KNOVUM_WINDOWS_TIMESTAMP_URL` | Signer's HTTPS RFC 3161 timestamp service |
+| Kind     | Name                                                | Value                                             |
+| -------- | --------------------------------------------------- | ------------------------------------------------- |
+| Variable | `KNOVUM_RELEASE_REPOSITORY`                         | Actual public `owner/repository`                  |
+| Variable | `KNOVUM_UPDATER_ENDPOINT`                           | Permanent public HTTPS static manifest URL        |
+| Variable | `KNOVUM_UPDATER_PUBKEY`                             | Entire base64 public-key file from Tauri signer   |
+| Secret   | `TAURI_SIGNING_PRIVATE_KEY`                         | Entire private-key file, not the public key       |
+| Secret   | `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`                | Updater key password                              |
+| Secret   | `KNOVUM_RELEASE_TOKEN`                              | Fine-grained distribution-repository token        |
+| Secret   | `APPLE_CERTIFICATE`, `APPLE_CERTIFICATE_PASSWORD`   | Developer ID P12 in base64 and export password    |
+| Variable | `APPLE_SIGNING_IDENTITY`                            | Full `Developer ID Application: ...` identity     |
+| Variable | `APPLE_API_KEY`, `APPLE_API_ISSUER`                 | App Store Connect key ID and issuer               |
+| Secret   | `APPLE_API_PRIVATE_KEY`                             | Contents of the downloaded P8 key                 |
+| Secret   | `KNOVUM_WINDOWS_PFX`, `KNOVUM_WINDOWS_PFX_PASSWORD` | Issued Windows signing PFX in base64 and password |
+| Variable | `KNOVUM_WINDOWS_TIMESTAMP_URL`                      | Signer's HTTPS RFC 3161 timestamp service         |
 
 Also configure the existing `KNOVUM_BUNDLED_RUNTIME_*_URL`/`*_SHA256` variables and optional runtime
 authorization secret documented in `packaging.md` for all four targets. Do not give release signing
@@ -368,22 +368,22 @@ Do not put a production client on a test feed, inject testing bypasses into prod
 `tauri dev` as proof of installed-release behavior. Draft assets require authentication and cannot
 serve as an anonymous test feed; use an isolated public test repository or owned test host.
 
-| Scenario | Required observable result |
-| --- | --- |
-| QA/disabled build and enabled release cold launch | Both launch; only the enabled build checks after 60 seconds; offline startup remains usable |
-| N to N+1 via actual feed | Displayed version, downloaded candidate and installed version agree; restart opens N+1 |
-| Candidate changes on the server after check | The selected candidate is retained; a new candidate requires an explicit new check |
-| Leave/reopen Settings during download | Same native task and monotonic state, no duplicate download |
-| Cancel download, including at completion | No installable bytes after accepted cancellation; an explicit retry works |
-| Invalid manifest/platform, offline, timeout, interrupted download | Visible recoverable error; existing installation remains usable |
-| Wrong key or a flipped byte in the package | Verification fails; never reaches Ready; no installer is launched |
-| Running transcription/import/AI task | Install waits for the user to finish/cancel work; no forced termination |
-| Unsaved edits and delayed/failed save | All registered saves settle; failure blocks installation; ordinary quit/close still works afterward |
-| Native menu/shortcut during installation preparation | No new application command starts; modal cannot be dismissed into editing |
-| Disk full, permission denial, cancelled native authorization | No reported success; retry or documented manual recovery remains available |
-| Existing spaces, assets, settings and SQLite migrations | Data remains readable and editable after restart; validate realistic old databases, not only a fresh profile |
-| GitHub to COS with an old installed client | Without rebuilding that client, it reads the same feed and verifies/installs bytes from the new store |
-| Cache/long-offline clients | Previous discovery URL still works; old cached/in-flight payload URLs remain available during migration |
+| Scenario                                                          | Required observable result                                                                                   |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| QA/disabled build and enabled release cold launch                 | Both launch; only the enabled build checks after 60 seconds; offline startup remains usable                  |
+| N to N+1 via actual feed                                          | Displayed version, downloaded candidate and installed version agree; restart opens N+1                       |
+| Candidate changes on the server after check                       | The selected candidate is retained; a new candidate requires an explicit new check                           |
+| Leave/reopen Settings during download                             | Same native task and monotonic state, no duplicate download                                                  |
+| Cancel download, including at completion                          | No installable bytes after accepted cancellation; an explicit retry works                                    |
+| Invalid manifest/platform, offline, timeout, interrupted download | Visible recoverable error; existing installation remains usable                                              |
+| Wrong key or a flipped byte in the package                        | Verification fails; never reaches Ready; no installer is launched                                            |
+| Running transcription/import/AI task                              | Install waits for the user to finish/cancel work; no forced termination                                      |
+| Unsaved edits and delayed/failed save                             | All registered saves settle; failure blocks installation; ordinary quit/close still works afterward          |
+| Native menu/shortcut during installation preparation              | No new application command starts; modal cannot be dismissed into editing                                    |
+| Disk full, permission denial, cancelled native authorization      | No reported success; retry or documented manual recovery remains available                                   |
+| Existing spaces, assets, settings and SQLite migrations           | Data remains readable and editable after restart; validate realistic old databases, not only a fresh profile |
+| GitHub to COS with an old installed client                        | Without rebuilding that client, it reads the same feed and verifies/installs bytes from the new store        |
+| Cache/long-offline clients                                        | Previous discovery URL still works; old cached/in-flight payload URLs remain available during migration      |
 
 On macOS record `codesign --verify --deep --strict`, `spctl --assess --type execute`, and stapler
 validation on the actual distributed bundle. On Windows record `Get-AuthenticodeSignature` and

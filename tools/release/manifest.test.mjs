@@ -1,14 +1,24 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { artifactName, createManifest, relocateManifest, releaseTargets, signatureText } from "./manifest.mjs";
+import {
+  artifactName,
+  createManifest,
+  relocateManifest,
+  releaseTargets,
+  signatureText,
+} from "./manifest.mjs";
 
 // This is not a cryptographic verification fixture. Publishing independently runs minisign.
 const packet = Buffer.concat([Buffer.from("ED"), Buffer.alloc(72)]).toString("base64");
 const globalSignature = Buffer.alloc(64).toString("base64");
-const signature = Buffer.from(`untrusted comment: fixture\n${packet}\ntrusted comment: fixture\n${globalSignature}\n`).toString("base64");
+const signature = Buffer.from(
+  `untrusted comment: fixture\n${packet}\ntrusted comment: fixture\n${globalSignature}\n`,
+).toString("base64");
 const fixture = () => ({
-  version: "0.0.2", notes: "Fix updater initialization.", publishedAt: "2026-10-02T00:00:00Z",
+  version: "0.0.2",
+  notes: "Fix updater initialization.",
+  publishedAt: "2026-10-02T00:00:00Z",
   baseUrl: "https://github.com/owner/releases/releases/download/v0.0.2",
   artifacts: releaseTargets.map((target) => ({ target, name: artifactName("0.0.2", target), signature })),
 });
@@ -56,7 +66,12 @@ test("rejects mutable or traversal filenames and invalid metadata", () => {
 
 test("rejects signature URLs, incomplete envelopes, and malformed base64", () => {
   assert.equal(signatureText(signature).encoded, signature);
-  for (const value of ["https://example.com/signature.sig", "artifact.sig", "invalid", Buffer.from("signature").toString("base64")]) {
+  for (const value of [
+    "https://example.com/signature.sig",
+    "artifact.sig",
+    "invalid",
+    Buffer.from("signature").toString("base64"),
+  ]) {
     assert.throws(() => signatureText(value));
   }
 });

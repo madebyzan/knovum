@@ -2,16 +2,18 @@ use std::time::Duration;
 
 use tauri::{AppHandle, Manager};
 
-use crate::app_error::{AppError, AppResult};
-use super::{config, failure};
 use super::contracts::{UpdateFailure, UpdateMetadata, UpdatePhase, UpdateSnapshot};
 use super::state::{busy, UpdateState};
+use super::{config, failure};
+use crate::app_error::{AppError, AppResult};
 
 pub(super) async fn run(app: &AppHandle) -> AppResult<UpdateSnapshot> {
     let state = app.state::<UpdateState>();
     let _operation = state.operation.try_lock().map_err(|_| busy())?;
     if !state.snapshot()?.configured {
-        return Err(AppError::not_configured("Updates are disabled for this build"));
+        return Err(AppError::not_configured(
+            "Updates are disabled for this build",
+        ));
     }
     state.publish(|session| {
         session.pending = None;
@@ -39,7 +41,9 @@ pub(super) async fn run(app: &AppHandle) -> AppResult<UpdateSnapshot> {
                 session.snapshot.phase = UpdatePhase::Idle;
                 session.snapshot.failure = Some(UpdateFailure::Metadata);
             })?;
-            return Err(AppError::invalid("Stable update has an invalid download URL or version"));
+            return Err(AppError::invalid(
+                "Stable update has an invalid download URL or version",
+            ));
         }
     }
     state.publish(|session| {
@@ -48,7 +52,11 @@ pub(super) async fn run(app: &AppHandle) -> AppResult<UpdateSnapshot> {
             current_version: update.current_version.clone(),
             notes: update.body.clone(),
         });
-        session.snapshot.phase = if update.is_some() { UpdatePhase::Available } else { UpdatePhase::Idle };
+        session.snapshot.phase = if update.is_some() {
+            UpdatePhase::Available
+        } else {
+            UpdatePhase::Idle
+        };
         session.pending = update;
     })
 }
