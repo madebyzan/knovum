@@ -27,6 +27,4 @@ pub(crate) fn render(input: &DocumentSource) -> Result<Vec<u8>, String> {
 }
 
 #[cfg(test)]
-pub(crate) fn source_for_test(input: &DocumentSource) -> Result<String, String> {
-    source::render(&super::markdown::parse(input)?)
-}
+pub(crate) mod test_support;

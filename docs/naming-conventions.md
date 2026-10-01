@@ -406,15 +406,21 @@ Short local names such as `row`, `value`, `save`, `start`, `busy`, and `editing`
 
 ## Tests
 
-Keep Rust unit tests close to the owning module. Small focused tests may use an inline
-`#[cfg(test)] mod tests`; larger suites may use a `tests/` submodule. Use `src-tauri/tests/` for
-integration tests of cross-module or externally visible crate behavior. Choose the layout that
-makes ownership and test scope clear.
+Keep Rust unit tests close to the owning module, in separate `tests.rs` or `tests/mod.rs` files.
+The business module contains only the `#[cfg(test)] mod tests;` declaration; do not embed test
+bodies in business files. Named suites may use separate `<subject>_tests.rs` child modules when
+their distinct scope is useful. A module that gains test submodules follows the same `<name>/mod.rs`
+layout as other split modules. Test-only fixtures and helpers also live in separate files behind
+`#[cfg(test)]`. Child unit-test modules can exercise private implementation without widening the
+production API. Use `src-tauri/tests/` for integration tests through the crate's public interface;
+tests requiring private interfaces remain unit tests within their owning module.
 
-Vue/TypeScript tests normally live under the nearest common owner's `__tests__/` directory and use
+Vue/TypeScript tests live under the nearest common owner's `__tests__/` directory and use
 the `.test.ts` suffix. A unit test should make its tested owner obvious, for example `UiButton.vue`
 and `UiButton.test.ts`. Name a cross-owner integration scenario for the user capability it covers
-rather than pretending it maps to one source file.
+rather than pretending it maps to one source file. Shared test fixtures and mocks belong under that
+owner's `__tests__/support/`, so they remain outside production typechecking and business imports.
+Production source must not import test files, Vitest or Vue Test Utils.
 
 ## Automated checks
 

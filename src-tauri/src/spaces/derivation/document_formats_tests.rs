@@ -2,7 +2,7 @@ use crate::documents::generation::{document::DocumentSource, pdf};
 
 #[test]
 fn typst_source_preserves_headings_lists_and_unicode() {
-    let source = pdf::source_for_test(&DocumentSource {
+    let source = pdf::test_support::render_source(&DocumentSource {
         markdown: "# 标题\n\n- 第一项\n- **Second** item".into(),
         ..Default::default()
     })

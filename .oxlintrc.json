@@ -67,6 +67,14 @@
           {
             "paths": [
               {
+                "name": "vitest",
+                "message": "Test code belongs in the owning __tests__ directory."
+              },
+              {
+                "name": "@vue/test-utils",
+                "message": "Test code belongs in the owning __tests__ directory."
+              },
+              {
                 "name": "@tauri-apps/api/core",
                 "importNames": ["invoke"],
                 "message": "Application commands use foundation/ipc/invoke-command to preserve the error contract. Import official plugin APIs directly."
