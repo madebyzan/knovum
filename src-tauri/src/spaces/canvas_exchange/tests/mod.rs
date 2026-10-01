@@ -1,4 +1,12 @@
 use super::contract::JsonCanvasDocumentV1;
+
+#[test]
+fn cancelled_import_has_an_explicit_command_code() {
+    let error = super::import_error(super::import_control::CANCELLED.to_owned());
+    assert_eq!(error.code, "json_canvas_import_cancelled");
+    assert_eq!(error.message, super::import_control::CANCELLED);
+}
+
 fn parse_json_canvas(
     source: String,
 ) -> Result<JsonCanvasDocumentV1, crate::command_error::CommandError> {

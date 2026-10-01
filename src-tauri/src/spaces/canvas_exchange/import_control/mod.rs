@@ -2,6 +2,8 @@ use crate::job_registry::{JobLease, JobRegistry};
 use std::sync::OnceLock;
 use tokio_util::sync::CancellationToken;
 
+pub(super) const CANCELLED: &str = "json-canvas-import-cancelled: JSON Canvas import cancelled";
+
 fn jobs() -> &'static JobRegistry {
     static JOBS: OnceLock<JobRegistry> = OnceLock::new();
     JOBS.get_or_init(|| JobRegistry::new("JSON Canvas import"))
@@ -17,7 +19,7 @@ pub(super) fn cancel(id: &str) -> Result<(), String> {
 
 pub(super) fn check(token: &CancellationToken) -> Result<(), String> {
     if token.is_cancelled() {
-        Err("json-canvas-import-cancelled: JSON Canvas import cancelled".into())
+        Err(CANCELLED.into())
     } else {
         Ok(())
     }

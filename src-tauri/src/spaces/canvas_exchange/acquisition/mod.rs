@@ -26,7 +26,7 @@ impl ImportResources<'_> {
         let copied = assets::import::commit::copy_pending_import(&job_id, self.progress).map_err(
             |error| {
                 if error == assets::enrichment::ASSET_PROCESSING_CANCELLED {
-                    "json-canvas-import-cancelled: JSON Canvas import cancelled".to_owned()
+                    super::import_control::CANCELLED.to_owned()
                 } else {
                     error
                 }

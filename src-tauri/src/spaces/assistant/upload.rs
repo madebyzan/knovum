@@ -28,7 +28,7 @@ pub async fn inspect_assistant_upload(
     app: tauri::AppHandle,
     path: String,
 ) -> Result<InspectedAssistantUpload, CommandError> {
-    Ok((crate::blocking::run(move || inspect(&app, &path)).await)?)
+    crate::blocking::run(move || inspect(&app, &path)).await
 }
 
 #[tauri::command]
@@ -38,15 +38,21 @@ pub async fn preview_assistant_upload(
 ) -> Result<(), CommandError> {
     let source = authorize(&app, &path)?;
     classify(&source)?;
-    Ok((crate::system_preview::open(app, source).await)?)
+    crate::system_preview::open(app, source).await?;
+    Ok(())
 }
 
-fn inspect(app: &tauri::AppHandle, path: &str) -> Result<InspectedAssistantUpload, String> {
+fn inspect(app: &tauri::AppHandle, path: &str) -> Result<InspectedAssistantUpload, CommandError> {
     let source = authorize(app, path)?;
     source
         .file_name()
         .and_then(|value| value.to_str())
-        .ok_or("assistant-upload-invalid: filename is not Unicode")?;
+        .ok_or_else(|| {
+            CommandError::new(
+                "assistant_upload_invalid",
+                "assistant-upload-invalid: filename is not Unicode",
+            )
+        })?;
     let size = std::fs::metadata(&source)
         .map_err(|error| error.to_string())?
         .len();
@@ -57,8 +63,12 @@ fn inspect(app: &tauri::AppHandle, path: &str) -> Result<InspectedAssistantUploa
             read_image(&source, media_type)?;
         }
         UploadKind::Text => {
-            String::from_utf8(read_bounded(&source, MAX_FILE_BYTES)?)
-                .map_err(|error| format!("assistant-upload-invalid: text is not UTF-8: {error}"))?;
+            String::from_utf8(read_bounded(&source, MAX_FILE_BYTES)?).map_err(|error| {
+                CommandError::new(
+                    "assistant_upload_invalid",
+                    format!("assistant-upload-invalid: text is not UTF-8: {error}"),
+                )
+            })?;
         }
         UploadKind::Pdf | UploadKind::Office => {}
     }
@@ -68,23 +78,31 @@ fn inspect(app: &tauri::AppHandle, path: &str) -> Result<InspectedAssistantUploa
     })
 }
 
-pub(super) fn authorize(app: &tauri::AppHandle, path: &str) -> Result<PathBuf, String> {
+pub(super) fn authorize(app: &tauri::AppHandle, path: &str) -> Result<PathBuf, CommandError> {
     let source = Path::new(path);
-    crate::spaces::assets::authorize_source(app, source)
-        .map_err(|error| format!("assistant-upload-unauthorized: {error}"))?;
+    crate::spaces::assets::authorize_source(app, source).map_err(|error| {
+        CommandError::new(
+            "assistant_upload_unauthorized",
+            format!("assistant-upload-unauthorized: {error}"),
+        )
+    })?;
     if !source.is_file() {
-        return Err("assistant-upload-invalid: select a regular file".into());
+        return Err(CommandError::new(
+            "assistant_upload_invalid",
+            "assistant-upload-invalid: select a regular file",
+        ));
     }
     let canonical = source.canonicalize().map_err(|error| error.to_string())?;
     if !app.fs_scope().is_allowed(&canonical) {
-        return Err(
-            "assistant-upload-unauthorized: resolved path is outside the selected scope".into(),
-        );
+        return Err(CommandError::new(
+            "assistant_upload_unauthorized",
+            "assistant-upload-unauthorized: resolved path is outside the selected scope",
+        ));
     }
     Ok(canonical)
 }
 
-pub(super) fn classify(path: &Path) -> Result<UploadKind, String> {
+pub(super) fn classify(path: &Path) -> Result<UploadKind, CommandError> {
     let extension = path
         .extension()
         .and_then(|value| value.to_str())
@@ -97,42 +115,63 @@ pub(super) fn classify(path: &Path) -> Result<UploadKind, String> {
         "txt" | "md" | "markdown" | "csv" | "json" | "log" => Ok(UploadKind::Text),
         "pdf" => Ok(UploadKind::Pdf),
         "doc" | "docx" | "xls" | "xlsx" | "ppt" | "pptx" => Ok(UploadKind::Office),
-        _ => Err("assistant-upload-unsupported: file type is not supported".into()),
+        _ => Err(CommandError::new(
+            "assistant_upload_unsupported",
+            "assistant-upload-unsupported: file type is not supported",
+        )),
     }
 }
 
-pub(super) fn enforce_size(kind: UploadKind, size: u64) -> Result<(), String> {
+pub(super) fn enforce_size(kind: UploadKind, size: u64) -> Result<(), CommandError> {
     if size == 0
         || size > MAX_FILE_BYTES
         || matches!(kind, UploadKind::Image(_)) && size > MAX_IMAGE_BYTES
     {
-        return Err("assistant-upload-size: file is empty or exceeds its size limit".into());
+        return Err(CommandError::new(
+            "assistant_upload_size",
+            "assistant-upload-size: file is empty or exceeds its size limit",
+        ));
     }
     Ok(())
 }
 
-pub(super) fn read_image(path: &Path, media_type: &str) -> Result<Vec<u8>, String> {
+pub(super) fn read_image(path: &Path, media_type: &str) -> Result<Vec<u8>, CommandError> {
     let bytes = read_bounded(path, MAX_IMAGE_BYTES)?;
-    let format = image::guess_format(&bytes)
-        .map_err(|error| format!("assistant-upload-invalid: image format: {error}"))?;
+    let format = image::guess_format(&bytes).map_err(|error| {
+        CommandError::new(
+            "assistant_upload_invalid",
+            format!("assistant-upload-invalid: image format: {error}"),
+        )
+    })?;
     if !matches!(
         (media_type, format),
         ("image/png", image::ImageFormat::Png)
             | ("image/jpeg", image::ImageFormat::Jpeg)
             | ("image/webp", image::ImageFormat::WebP)
     ) {
-        return Err("assistant-upload-invalid: image content does not match its extension".into());
+        return Err(CommandError::new(
+            "assistant_upload_invalid",
+            "assistant-upload-invalid: image content does not match its extension",
+        ));
     }
     let (width, height) = image::ImageReader::with_format(std::io::Cursor::new(&bytes), format)
         .into_dimensions()
-        .map_err(|error| format!("assistant-upload-invalid: image dimensions: {error}"))?;
+        .map_err(|error| {
+            CommandError::new(
+                "assistant_upload_invalid",
+                format!("assistant-upload-invalid: image dimensions: {error}"),
+            )
+        })?;
     if u64::from(width) * u64::from(height) > 24_000_000 {
-        return Err("assistant-upload-size: image exceeds 24 megapixels".into());
+        return Err(CommandError::new(
+            "assistant_upload_size",
+            "assistant-upload-size: image exceeds 24 megapixels",
+        ));
     }
     Ok(bytes)
 }
 
-pub(super) fn read_bounded(path: &Path, limit: u64) -> Result<Vec<u8>, String> {
+pub(super) fn read_bounded(path: &Path, limit: u64) -> Result<Vec<u8>, CommandError> {
     use std::io::Read;
 
     let file = std::fs::File::open(path).map_err(|error| error.to_string())?;
@@ -141,7 +180,28 @@ pub(super) fn read_bounded(path: &Path, limit: u64) -> Result<Vec<u8>, String> {
         .read_to_end(&mut bytes)
         .map_err(|error| error.to_string())?;
     if bytes.len() as u64 > limit {
-        return Err("assistant-upload-size: file exceeds its size limit".into());
+        return Err(CommandError::new(
+            "assistant_upload_size",
+            "assistant-upload-size: file exceeds its size limit",
+        ));
     }
     Ok(bytes)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{classify, enforce_size, UploadKind};
+    use std::path::Path;
+
+    #[test]
+    fn upload_validation_returns_explicit_command_codes() {
+        assert_eq!(
+            classify(Path::new("attachment.exe")).err().unwrap().code,
+            "assistant_upload_unsupported"
+        );
+        assert_eq!(
+            enforce_size(UploadKind::Text, 0).err().unwrap().code,
+            "assistant_upload_size"
+        );
+    }
 }

@@ -29,7 +29,17 @@ pub(crate) async fn import_json_canvas_file(
     request: file_import::ImportRequest,
     on_progress: tauri::ipc::Channel<crate::spaces::assets::import::commit::AssetImportProgress>,
 ) -> Result<import::JsonCanvasImportReceipt, CommandError> {
-    Ok(file_import::import(app, request, on_progress).await?)
+    file_import::import(app, request, on_progress)
+        .await
+        .map_err(import_error)
+}
+
+fn import_error(error: String) -> CommandError {
+    if error == import_control::CANCELLED {
+        CommandError::new("json_canvas_import_cancelled", error)
+    } else {
+        CommandError::from_space_edit(error)
+    }
 }
 
 #[cfg(test)]

@@ -14,6 +14,14 @@ impl CommandError {
             message: message.into(),
         }
     }
+
+    pub(crate) fn from_space_edit(message: String) -> Self {
+        if message.starts_with("space-edit-revision-conflict:") {
+            Self::new("space_edit_revision_conflict", message)
+        } else {
+            message.into()
+        }
+    }
 }
 
 impl From<String> for CommandError {

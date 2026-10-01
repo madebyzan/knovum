@@ -14,7 +14,9 @@ pub(crate) async fn execute_space_edit<R: Runtime>(
 ) -> Result<SpaceEditReceipt, CommandError> {
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
-    let receipt = execute_in_transaction(&mut tx, request).await?;
+    let receipt = execute_in_transaction(&mut tx, request)
+        .await
+        .map_err(CommandError::from_space_edit)?;
     tx.commit().await.map_err(db::sql_error)?;
     Ok(receipt)
 }
@@ -137,7 +139,9 @@ pub(crate) async fn undo_space_edit<R: Runtime>(
     app: AppHandle<R>,
     request: SpaceEditHistoryRequest,
 ) -> Result<SpaceEditHistoryReceipt, CommandError> {
-    Ok((apply_history(app, request, false).await)?)
+    apply_history(app, request, false)
+        .await
+        .map_err(CommandError::from_space_edit)
 }
 
 #[tauri::command]
@@ -145,7 +149,9 @@ pub(crate) async fn redo_space_edit<R: Runtime>(
     app: AppHandle<R>,
     request: SpaceEditHistoryRequest,
 ) -> Result<SpaceEditHistoryReceipt, CommandError> {
-    Ok((apply_history(app, request, true).await)?)
+    apply_history(app, request, true)
+        .await
+        .map_err(CommandError::from_space_edit)
 }
 
 async fn apply_history<R: Runtime>(
@@ -177,7 +183,9 @@ pub(crate) async fn import_structure_clipboard<R: Runtime>(
     app: AppHandle<R>,
     request: super::clipboard::ImportStructureClipboardRequest,
 ) -> Result<super::clipboard::ImportStructureClipboardResponse, CommandError> {
-    Ok((super::clipboard::import(&app, request).await)?)
+    super::clipboard::import(&app, request)
+        .await
+        .map_err(CommandError::from_space_edit)
 }
 
 #[tauri::command]
@@ -185,7 +193,9 @@ pub(crate) async fn restore_deleted_structure<R: Runtime>(
     app: AppHandle<R>,
     request: super::deletion::RestoreDeletedStructureRequest,
 ) -> Result<SpaceEditReceipt, CommandError> {
-    Ok((super::deletion::restore(&app, request).await)?)
+    super::deletion::restore(&app, request)
+        .await
+        .map_err(CommandError::from_space_edit)
 }
 
 #[tauri::command]
@@ -193,7 +203,9 @@ pub(crate) async fn delete_structure_permanently<R: Runtime>(
     app: AppHandle<R>,
     request: super::deletion::DeleteStructurePermanentlyRequest,
 ) -> Result<Vec<String>, CommandError> {
-    Ok((super::deletion::delete_permanently(&app, request).await)?)
+    super::deletion::delete_permanently(&app, request)
+        .await
+        .map_err(CommandError::from_space_edit)
 }
 
 #[tauri::command]
@@ -201,5 +213,7 @@ pub(crate) async fn discard_pending_content<R: Runtime>(
     app: AppHandle<R>,
     request: super::deletion::DiscardPendingContentRequest,
 ) -> Result<super::deletion::DiscardPendingContentResponse, CommandError> {
-    Ok((super::deletion::discard_pending_content(&app, request).await)?)
+    super::deletion::discard_pending_content(&app, request)
+        .await
+        .map_err(CommandError::from_space_edit)
 }
