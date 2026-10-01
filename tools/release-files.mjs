@@ -39,13 +39,15 @@ export function verifySignature(file, signature, key) {
 export async function verifyReleaseFiles(directory, artifacts, key) {
   const names = artifacts.map((artifact) => safeFilename(artifact.file));
   if (new Set(names).size !== names.length) throw new Error("Duplicate release asset filename");
-  await Promise.all(artifacts.map(async (artifact) => {
-    const file = join(directory, artifact.file);
-    if ((await fileDigest(file)) !== artifact.sha256) {
-      throw new Error(`Release asset hash mismatch: ${artifact.file}`);
-    }
-    verifySignature(file, artifact.signature, key);
-  }));
+  await Promise.all(
+    artifacts.map(async (artifact) => {
+      const file = join(directory, artifact.file);
+      if ((await fileDigest(file)) !== artifact.sha256) {
+        throw new Error(`Release asset hash mismatch: ${artifact.file}`);
+      }
+      verifySignature(file, artifact.signature, key);
+    }),
+  );
 }
 
 export function downloadPublicFile(url, file) {

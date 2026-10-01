@@ -36,11 +36,13 @@ try {
   }
   if (release.prerelease) throw new Error("A prerelease cannot be promoted to stable");
   await verifyReleaseFiles(directory, candidate.artifacts, pubkey);
-  await Promise.all(candidate.installers.map(async (installer) => {
-    if ((await fileDigest(join(directory, safeFilename(installer.file)))) !== installer.sha256) {
-      throw new Error("Installer hash does not match the approved candidate");
-    }
-  }));
+  await Promise.all(
+    candidate.installers.map(async (installer) => {
+      if ((await fileDigest(join(directory, safeFilename(installer.file)))) !== installer.sha256) {
+        throw new Error("Installer hash does not match the approved candidate");
+      }
+    }),
+  );
   const baseUrl =
     process.env.ARTIFACT_BASE_URL?.trim() || `https://github.com/${repository}/releases/download/${tag}/`;
   const manifest = createManifest({ ...candidate, baseUrl });
@@ -54,12 +56,14 @@ try {
     });
   }
   // Verify the anonymous path, including a new COS/CDN host, before exposing it to old clients.
-  await Promise.all(candidate.artifacts.map(async (artifact) => {
-    const file = join(directory, `public-${safeFilename(artifact.file)}`);
-    downloadPublicFile(manifest.platforms[artifact.target].url, file);
-    if ((await fileDigest(file)) !== artifact.sha256)
-      throw new Error("Public artifact differs from the approved candidate");
-  }));
+  await Promise.all(
+    candidate.artifacts.map(async (artifact) => {
+      const file = join(directory, `public-${safeFilename(artifact.file)}`);
+      downloadPublicFile(manifest.platforms[artifact.target].url, file);
+      if ((await fileDigest(file)) !== artifact.sha256)
+        throw new Error("Public artifact differs from the approved candidate");
+    }),
+  );
   await writeStableChannel(repository, previous, manifest);
   const published = join(directory, "published-channel.json");
   downloadPublicFile(endpoint, published);

@@ -30,10 +30,16 @@ test("release filenames cannot escape staging directories or inject options", ()
   for (const name of ["../app.exe", "a/b.exe", "-o", "", "a\\b.exe", "..", "https://other/app"]) {
     assert.throws(() => safeFilename(name), /safe, flat filenames/);
   }
-  assert.equal(safeFilename("Knovum_1.2.3_windows-x86_64-setup.exe"), "Knovum_1.2.3_windows-x86_64-setup.exe");
+  assert.equal(
+    safeFilename("Knovum_1.2.3_windows-x86_64-setup.exe"),
+    "Knovum_1.2.3_windows-x86_64-setup.exe",
+  );
 });
 
 test("hash mismatch is rejected before invoking a signature verifier", async () => {
   writeFileSync(join(directory, "bad.exe"), "changed");
-  await assert.rejects(verifyReleaseFiles(directory, [{ file: "bad.exe", sha256: "wrong" }], ""), /hash mismatch/);
+  await assert.rejects(
+    verifyReleaseFiles(directory, [{ file: "bad.exe", sha256: "wrong" }], ""),
+    /hash mismatch/,
+  );
 });

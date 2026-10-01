@@ -1,10 +1,17 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { github, readStableChannel, requireDistributionRepository, writeStableChannel } from "../release-github.mjs";
+import {
+  github,
+  readStableChannel,
+  requireDistributionRepository,
+  writeStableChannel,
+} from "../release-github.mjs";
 
 const originalToken = process.env.GH_TOKEN;
-test.before(() => { process.env.GH_TOKEN = "test-only-token"; });
+test.before(() => {
+  process.env.GH_TOKEN = "test-only-token";
+});
 test.after(() => {
   if (originalToken === undefined) delete process.env.GH_TOKEN;
   else process.env.GH_TOKEN = originalToken;
@@ -34,7 +41,9 @@ test("channel promotion is a compare-and-swap, not a blind overwrite", async (co
 });
 
 test("anonymous distribution refuses private or uninitialized repositories", async (context) => {
-  const request = context.mock.method(globalThis, "fetch", async () => Response.json({ private: true, default_branch: "main" }));
+  const request = context.mock.method(globalThis, "fetch", async () =>
+    Response.json({ private: true, default_branch: "main" }),
+  );
   await assert.rejects(requireDistributionRepository("owner/releases"), /public, initialized/);
   request.mock.mockImplementation(async () => Response.json({ private: false, default_branch: "main" }));
   assert.equal(await requireDistributionRepository("owner/releases"), "owner/releases");

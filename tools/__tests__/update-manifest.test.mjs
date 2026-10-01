@@ -1,11 +1,25 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { assertPromotion, createManifest, validateManifest } from "../update-manifest.mjs";
-import { releaseTargets } from "../release-policy.mjs";
 
-const signature = Buffer.from("untrusted comment: test signature\nnot-used-for-cryptographic-verification\n").toString("base64");
-const artifacts = Object.values(releaseTargets).map((target) => ({ version: "1.2.3", target, file: `Knovum_1.2.3_${target}.bin`, signature }));
-const options = { version: "1.2.3", notes: "Reviewed release notes", pubDate: "2026-10-02T00:00:00Z", artifacts, baseUrl: "https://github.com/example/distribution/releases/download/v1.2.3" };
+import { releaseTargets } from "../release-policy.mjs";
+import { assertPromotion, createManifest, validateManifest } from "../update-manifest.mjs";
+
+const signature = Buffer.from(
+  "untrusted comment: test signature\nnot-used-for-cryptographic-verification\n",
+).toString("base64");
+const artifacts = Object.values(releaseTargets).map((target) => ({
+  version: "1.2.3",
+  target,
+  file: `Knovum_1.2.3_${target}.bin`,
+  signature,
+}));
+const options = {
+  version: "1.2.3",
+  notes: "Reviewed release notes",
+  pubDate: "2026-10-02T00:00:00Z",
+  artifacts,
+  baseUrl: "https://github.com/example/distribution/releases/download/v1.2.3",
+};
 
 test("standard Tauri manifests separate the permanent discovery endpoint from artifact hosting", () => {
   const github = createManifest(options);
@@ -18,7 +32,12 @@ test("standard Tauri manifests separate the permanent discovery endpoint from ar
 });
 
 test("partial, duplicate, mixed-version and unsafe artifact sets are rejected", () => {
-  for (const items of [artifacts.slice(1), [...artifacts, artifacts[0]], artifacts.map((item, index) => index === 0 ? { ...item, version: "1.2.4" } : item), artifacts.map((item) => ({ ...item, file: "../escape" }))]) {
+  for (const items of [
+    artifacts.slice(1),
+    [...artifacts, artifacts[0]],
+    artifacts.map((item, index) => (index === 0 ? { ...item, version: "1.2.4" } : item)),
+    artifacts.map((item) => ({ ...item, file: "../escape" })),
+  ]) {
     assert.throws(() => createManifest({ ...options, artifacts: items }));
   }
 });
@@ -26,7 +45,9 @@ test("partial, duplicate, mixed-version and unsafe artifact sets are rejected", 
 test("existing signed versions cannot be overwritten or downgraded", () => {
   const previous = createManifest(options);
   const changed = structuredClone(previous);
-  changed.platforms[artifacts[0].target].signature = Buffer.from("untrusted comment: replacement\n").toString("base64");
+  changed.platforms[artifacts[0].target].signature = Buffer.from("untrusted comment: replacement\n").toString(
+    "base64",
+  );
   assert.throws(() => assertPromotion(previous, changed), /immutable/);
   assert.throws(() => assertPromotion(previous, { ...previous, version: "1.2.2" }), /downgrade/);
   assert.throws(() => assertPromotion(previous, { ...previous, notes: "Changed" }), /URLs only/);

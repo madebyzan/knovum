@@ -21,7 +21,5 @@
   "cycles": {
     "dynamicImports": true
   },
-  "ignoreDependencies": [
-    "@wdio/local-runner"
-  ]
+  "ignoreDependencies": ["@wdio/local-runner"]
 }

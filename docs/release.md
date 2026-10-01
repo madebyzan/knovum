@@ -102,25 +102,25 @@ protection. Promotion is separately manual even after candidate builds succeed.
 
 Repository/environment variables, consistent between build and publication jobs:
 
-| Variable | Value |
-| --- | --- |
-| `KNOVUM_DISTRIBUTION_REPOSITORY` | The public distribution-only `owner/repository`. |
-| `KNOVUM_UPDATER_ENDPOINT` | The permanent anonymous HTTPS channel JSON URL. |
-| `KNOVUM_UPDATER_PUBKEY` | Entire base64 public-key output produced by the Tauri signer, not a path. |
-| `APPLE_SIGNING_IDENTITY` | Actual `Developer ID Application: ...` identity. |
-| `APPLE_API_ISSUER`, `APPLE_API_KEY` | App Store Connect notarization issuer and key IDs. |
-| `KNOVUM_WINDOWS_SIGN_COMMAND` | Explicit production signing command containing Tauri's `%1` file argument. |
-| `AZURE_CLIENT_ID`, `AZURE_TENANT_ID` | Identity used by the selected Windows Artifact Signing client. |
+| Variable                             | Value                                                                      |
+| ------------------------------------ | -------------------------------------------------------------------------- |
+| `KNOVUM_DISTRIBUTION_REPOSITORY`     | The public distribution-only `owner/repository`.                           |
+| `KNOVUM_UPDATER_ENDPOINT`            | The permanent anonymous HTTPS channel JSON URL.                            |
+| `KNOVUM_UPDATER_PUBKEY`              | Entire base64 public-key output produced by the Tauri signer, not a path.  |
+| `APPLE_SIGNING_IDENTITY`             | Actual `Developer ID Application: ...` identity.                           |
+| `APPLE_API_ISSUER`, `APPLE_API_KEY`  | App Store Connect notarization issuer and key IDs.                         |
+| `KNOVUM_WINDOWS_SIGN_COMMAND`        | Explicit production signing command containing Tauri's `%1` file argument. |
+| `AZURE_CLIENT_ID`, `AZURE_TENANT_ID` | Identity used by the selected Windows Artifact Signing client.             |
 
 Secrets are scoped to the step/environment that needs them:
 
-| Secret | Purpose |
-| --- | --- |
-| `TAURI_SIGNING_PRIVATE_KEY`, `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | Updater signing; never shipped to clients. |
-| `APPLE_CERTIFICATE`, `APPLE_CERTIFICATE_PASSWORD` | Developer ID `.p12` material for the Tauri bundler. |
-| `APPLE_API_PRIVATE_KEY` | Notarization `.p8` contents; CI writes a restricted temporary file and removes it. |
-| `AZURE_CLIENT_SECRET` | Windows signing service credential. |
-| `KNOVUM_DISTRIBUTION_TOKEN` | Fine-grained distribution-repository Contents write access only. |
+| Secret                                                            | Purpose                                                                            |
+| ----------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `TAURI_SIGNING_PRIVATE_KEY`, `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | Updater signing; never shipped to clients.                                         |
+| `APPLE_CERTIFICATE`, `APPLE_CERTIFICATE_PASSWORD`                 | Developer ID `.p12` material for the Tauri bundler.                                |
+| `APPLE_API_PRIVATE_KEY`                                           | Notarization `.p8` contents; CI writes a restricted temporary file and removes it. |
+| `AZURE_CLIENT_SECRET`                                             | Windows signing service credential.                                                |
+| `KNOVUM_DISTRIBUTION_TOKEN`                                       | Fine-grained distribution-repository Contents write access only.                   |
 
 The existing controlled-runtime URL/hash variables and optional runtime authorization secret remain
 required as documented in `packaging.md`. Public verification keys are intentionally not secrets.
@@ -183,18 +183,18 @@ recoverable, visible update states, not a claim of success. Release notes are re
 
 ## Required acceptance matrix
 
-| Scenario | Required outcome on every supported target |
-| --- | --- |
-| QA vs production startup | QA starts with updates disabled; correctly configured production initializes. |
-| Installed N to N+1 | Check, download, verify, save, install and relaunch; new version is reported. |
-| Data and migrations | Existing spaces, assets, credentials, preferences and schema remain usable. |
-| Wrong key / tampered file | Installation is refused and the current app remains usable. |
-| Offline / stalled service / invalid JSON | Finite wait, visible failure, explicit retry; no silent success. |
-| Slow/unknown-size download and cancel | Accurate/indeterminate progress, cancellation releases the operation. |
-| Repeated clicks / leave and reopen About | One native download/install, retained progress and selected version. |
-| Save failure / active task / rejected OS permission | No unsafe install; failure is visible and the app remains usable. |
-| GitHub to COS migration | Original client finds the same signed version through unchanged discovery. |
-| Relaunch / native installer behavior | No blocked restart, duplicate process or unexpected ordinary quit. |
+| Scenario                                            | Required outcome on every supported target                                    |
+| --------------------------------------------------- | ----------------------------------------------------------------------------- |
+| QA vs production startup                            | QA starts with updates disabled; correctly configured production initializes. |
+| Installed N to N+1                                  | Check, download, verify, save, install and relaunch; new version is reported. |
+| Data and migrations                                 | Existing spaces, assets, credentials, preferences and schema remain usable.   |
+| Wrong key / tampered file                           | Installation is refused and the current app remains usable.                   |
+| Offline / stalled service / invalid JSON            | Finite wait, visible failure, explicit retry; no silent success.              |
+| Slow/unknown-size download and cancel               | Accurate/indeterminate progress, cancellation releases the operation.         |
+| Repeated clicks / leave and reopen About            | One native download/install, retained progress and selected version.          |
+| Save failure / active task / rejected OS permission | No unsafe install; failure is visible and the app remains usable.             |
+| GitHub to COS migration                             | Original client finds the same signed version through unchanged discovery.    |
+| Relaunch / native installer behavior                | No blocked restart, duplicate process or unexpected ordinary quit.            |
 
 The first update-enabled public installation establishes the trust/endpoint baseline. A previously
 shipped updater-disabled QA binary cannot be remotely taught an endpoint; install the baseline normally.

@@ -1,7 +1,11 @@
 use super::{UpdateFailure, UpdateMetadata, UpdateService, UpdateSnapshot, UpdateState};
 
 fn release() -> UpdateMetadata {
-    UpdateMetadata { version: "1.2.3".into(), current_version: "1.2.2".into(), notes: "Reviewed notes".into() }
+    UpdateMetadata {
+        version: "1.2.3".into(),
+        current_version: "1.2.2".into(),
+        notes: "Reviewed notes".into(),
+    }
 }
 
 #[test]
@@ -30,12 +34,24 @@ fn checks_cannot_discard_pending_or_verified_updates() {
     for state in [
         UpdateState::Checking,
         UpdateState::Available { release: release() },
-        UpdateState::Downloading { release: release(), downloaded: 0, total: None },
+        UpdateState::Downloading {
+            release: release(),
+            downloaded: 0,
+            total: None,
+        },
         UpdateState::Verifying { release: release() },
         UpdateState::Ready { release: release() },
         UpdateState::Installing { release: release() },
-    ] { assert!(!state.can_check()); }
-    for state in [UpdateState::Idle, UpdateState::Current, UpdateState::Failed { reason: UpdateFailure::Check }] {
+    ] {
+        assert!(!state.can_check());
+    }
+    for state in [
+        UpdateState::Idle,
+        UpdateState::Current,
+        UpdateState::Failed {
+            reason: UpdateFailure::Check,
+        },
+    ] {
         assert!(state.can_check());
     }
 }
@@ -53,7 +69,11 @@ fn update_operations_are_single_flight_and_release_the_lock_on_failure() {
 fn progress_contract_preserves_unknown_sizes_and_camel_case_metadata() {
     let snapshot = UpdateSnapshot {
         revision: 7,
-        state: UpdateState::Downloading { release: release(), downloaded: 42, total: None },
+        state: UpdateState::Downloading {
+            release: release(),
+            downloaded: 42,
+            total: None,
+        },
     };
     let value = serde_json::to_value(snapshot).unwrap();
     assert_eq!(value["revision"], 7);
@@ -61,7 +81,6 @@ fn progress_contract_preserves_unknown_sizes_and_camel_case_metadata() {
     assert_eq!(value["state"]["release"]["currentVersion"], "1.2.2");
     assert!(value["state"]["total"].is_null());
 }
-
 
 #[test]
 fn only_replacing_application_files_blocks_an_ordinary_exit() {

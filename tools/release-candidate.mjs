@@ -62,11 +62,13 @@ const candidate = {
 };
 createManifest({ ...candidate, baseUrl: `https://github.com/${repository}/releases/download/${tag}/` });
 await verifyReleaseFiles(output, artifacts, pubkey);
-await Promise.all(installers.map(async (installer) => {
-  if ((await fileDigest(join(output, installer.file))) !== installer.sha256) {
-    throw new Error(`Installer hash mismatch: ${installer.file}`);
-  }
-}));
+await Promise.all(
+  installers.map(async (installer) => {
+    if ((await fileDigest(join(output, installer.file))) !== installer.sha256) {
+      throw new Error(`Installer hash mismatch: ${installer.file}`);
+    }
+  }),
+);
 writeFileSync(join(output, "candidate.json"), `${JSON.stringify(candidate, null, 2)}\n`);
 execFileSync(
   "gh",
