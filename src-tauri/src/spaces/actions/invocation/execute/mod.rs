@@ -14,30 +14,37 @@ pub async fn invoke(
     pool: &SqlitePool,
     request: ActionInvocationRequest,
 ) -> Result<ActionInvocationOutcome, String> {
+    let mut tx = db::begin_write(pool).await?;
+    let outcome = invoke_in_transaction(&mut tx, &request).await?;
+    tx.commit().await.map_err(db::sql_error)?;
+    Ok(outcome)
+}
+
+pub(crate) async fn invoke_in_transaction(
+    tx: &mut Transaction<'_, Sqlite>,
+    request: &ActionInvocationRequest,
+) -> Result<ActionInvocationOutcome, String> {
     request.validate_identity()?;
     let definition = crate::spaces::actions::require(&request.action_id)?;
-    validate_definition(definition, &request)?;
-    let digest = request_digest(&request)?;
+    validate_definition(definition, request)?;
+    let digest = request_digest(request)?;
     let now = crate::clock::unix_time_millis()?;
-    let mut tx = db::begin_write(pool).await?;
-    let authorization = load_grant(&mut tx, &request.grant_id).await?;
-    authorization::authorize(&authorization, definition, &request, now)?;
-    authorization::require_active_parent(&mut tx, request.parent_run_id.as_deref()).await?;
-    if let Some(outcome) = store::load_existing(&mut tx, &request, &digest).await? {
-        tx.commit().await.map_err(db::sql_error)?;
+    let authorization = load_grant(tx, &request.grant_id).await?;
+    authorization::authorize(&authorization, definition, request, now)?;
+    authorization::require_active_parent(tx, request.parent_run_id.as_deref()).await?;
+    if let Some(outcome) = store::load_existing(tx, request, &digest).await? {
         return Ok(outcome);
     }
     let outcome = execute(
-        &mut tx,
-        &request,
+        tx,
+        request,
         &authorization,
         definition.execution_mode,
         definition.impact,
         now,
     )
     .await?;
-    store::save_outcome(&mut tx, &request, &authorization, &digest, &outcome, now).await?;
-    tx.commit().await.map_err(db::sql_error)?;
+    store::save_outcome(tx, request, &authorization, &digest, &outcome, now).await?;
     Ok(outcome)
 }
 

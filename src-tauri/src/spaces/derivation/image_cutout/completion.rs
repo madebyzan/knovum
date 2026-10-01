@@ -113,7 +113,7 @@ async fn persist_completion(
     let mut value: Value = serde_json::from_str(&data).map_err(db::json_error)?;
     pending_output::validate_unpublished_asset(&value)?;
     apply_output_content(&mut value, path, digest, size, width, height, now)?;
-    contracts::validate_node(&mut tx, &space_id, &output_id, "image", &value).await?;
+    contracts::validate_node(&mut tx, &space_id, "image", &value).await?;
     let relation = relations::derives_from(
         &space_id,
         &output_id,

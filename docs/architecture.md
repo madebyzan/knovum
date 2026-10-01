@@ -54,7 +54,7 @@ The Spaces Rust boundary is divided by responsibility, not CRUD mechanics:
   remains in the domain owner that validates and commits it;
 - `authorization/`: principals, scopes, grants and effect-specific approvals;
 - `runs/`: durable Run, StepInstance and Attempt state, scheduling, recovery and events;
-- `workflows/`: versioned definitions, compilation and execution over SpaceActions;
+- `workflows/`: capture, versioned library and replay of verified derivation chains over SpaceActions;
 - `assistant/`: Space-specific conversations, context, tasks, tool calls and checkpoints;
 - `mcp/`: inbound Space protocol projection over Actions and Authorization, never direct mutation;
 - `knowledge/`: semantic contracts, provenance, patches, events and knowledge governance;
@@ -125,11 +125,7 @@ Spaces processing and retrieval are Rust application use cases, not WebView work
 
 Raw persistence transitions, embedding vectors and partial grounded-AI steps are not IPC contracts.
 
-Workflows compile and execute entirely through the Rust-owned Run scheduler. A Workflow Action invokes
-the same domain use case as UI or MCP, under a persisted grant and idempotency key. Renderer-only
-document assembly remains an implementation detail of its owning derivation rather than a second
-Workflow coordinator. Vue owns draft interaction and observation only; it never receives SQL, raw
-persistence transitions, leases or authority to mark a step complete.
+Canvas generation and document exports enter the typed `actions/canvas` acceptance boundary. Rust pins authorized source identities and execution choice, then creates an Action Run through the existing invocation contract. A Workflow replays a saved, verified derivation chain through those same Actions under a persisted grant and idempotency key. Built-in recipe definitions and their separate compiler are removed. Document assembly and publication belong to Rust, not a Renderer coordinator. Vue owns selection, input binding and observation; it never marks a step complete.
 
 The knowledge embedding model and vector dimensions form one Spaces retrieval-index contract. They are intentionally not a user-switchable generation preference: changing either requires an explicit index-contract change and complete rebuild. The generic `ai::embedding` adapter accepts a resolved target and dimensions but does not own the selected model identity.
 
@@ -276,9 +272,8 @@ The node-kind decision is explicit:
 | -------------------- | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
 | Note, text, Markdown | Body, title and tags                                                                           | Summary, drafted document, visualization or other independently useful output                  |
 | Image                | Crop, rotation, flip, tone and comments                                                        | Background removal, AI object removal, upscale, new angle, separated layers or generated image |
-| Video                | Edit project, title, tags and annotations                                                      | Rendered video, subtitle resource, burn-in output or generated clip                            |
-| Audio                | Title, tags and corrected node-owned transcript/analysis                                       | Separately published subtitle, transcript or document resource                                 |
-| Subtitle             | Language, cues and corrections                                                                 | Burned-in video or a separately authored document                                              |
+| Video                | Edit project, title, tags and annotations                                                      | Rendered video, video with burned-in subtitles or generated clip                               |
+| Audio                | Title, tags and corrected node-owned transcript/analysis                                       | Separately published transcript or document resource                                           |
 | Website              | URL, captured metadata and annotations of that saved resource                                  | Summary, document or visualization grounded in its captured revision                           |
 | File, code           | Title, tags and other node metadata; an explicit source replacement changes its asset revision | Converted document, generated code or other new resource                                       |
 | Knowledge object     | Typed properties, status, title and evidence relations                                         | A new knowledge resource only when the intent explicitly creates one                           |
@@ -324,8 +319,8 @@ their captured edit recipe before publishing. A newer source edit marks an older
 silently regenerate that output. Preview and external export consume the current rendered content
 and share its renderer.
 For example, background removal and upscale consume an image's `rendered` revision; analysis of
-untouched video frames consumes `asset`; subtitle burn-in consumes the video's asset
-revision and the subtitle node's `knowledge` revision. Presentation and video generation consume
+untouched video frames consumes `asset`; subtitle burn-in pins the video's file revision and its `knowledge` revision (including any
+existing transcript). Subtitle cues are internal media data; the only published derivative is a video. Presentation and video generation consume
 the document's `knowledge` revision and unedited image reference files by `asset` revision. A canvas
 move consumes none of these.
 

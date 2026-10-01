@@ -17,12 +17,11 @@
 - Space Action IDs use one imperative verb-object phrase (`draft-document`, `generate-video`,
   `render-presentation`). Resource type names stay nouns (`video`, `presentation`); do not prefix
   them with `knowledge-` merely because they live in a Space.
-- Built-in Workflow IDs name the delivered outcome (`video-production`, `meeting-content-package`),
-  not an implementation example. Durable event types use the CloudEvents reverse-DNS convention;
-  local Run event names are closed Rust enums serialized as `snake_case`.
+- Workflow definitions are user-owned captures of verified Action derivations. Durable event types use
+  the CloudEvents reverse-DNS convention; local Run event names are closed Rust enums serialized as `snake_case`.
 
 Do not use `Manager`, `Details`, `List`, `Row`, `Entry` or `Record` as project-owned component identity. Name the actual
-interaction or information: `SpaceSubtitleEditor`, `SpaceAgentArtifactPicker`, `SpaceVisualAnalysis`,
+interaction or information: `SpaceAgentArtifactPicker`, `SpaceVisualAnalysis`,
 `AgentAvailability`. Do not replace a vague suffix with another vague suffix such as `Panel` merely
 to pass review. Collections, table rows and enumeration verbs remain valid inside their actual scope.
 Use `Summary` only for actual summarized content, not an arbitrary reduced DTO; name read models
@@ -199,7 +198,7 @@ industry mandates one spelling for every use case.
 
 Model-produced text and artifacts use `generate` (`generate_text`, `generate_grounded_document`,
 `generate_image_layers`, `generate_video`). `render` names deterministic media/artifact processing
-(`render_subtitled_video`, `render_video_edit`). `create` allocates a durable entity or owned resource;
+(`render_video_edit`). `create` allocates a durable entity or owned resource;
 `derive_image` executes an image transformation. `request` accepts work for later execution;
 `await` waits for a defined lifecycle condition; `inspect` examines a boundary resource; `detect`
 discovers system installations. These verbs name distinct effects and are not interchangeable.

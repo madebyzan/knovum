@@ -71,8 +71,8 @@ Agent artifact commands never accept an app-owned absolute source path from the 
 
 ## Governed execution commands
 
-- `plugin:spaces|list_space_actions` projects the single versioned Action catalog; Action execution is internal to Assistant, Workflow and MCP adapters rather than a second renderer dispatcher.
-- Workflow commands save and revise personal workflows captured from canvas derivations, start a selected personal or built-in workflow, and inspect its Run.
+- `plugin:spaces|list_space_actions` projects the single versioned Action catalog. `plugin:spaces|start_space_action` accepts canvas resource creation with source IDs/revisions and an optional explicit target; Rust owns authorization, target resolution and the Action Run. Assistant, Workflow and MCP reuse the same invocation/execution boundary.
+- Workflow commands save and revise personal workflows captured from canvas derivations, start a selected personal workflow, and inspect its Run.
 - External conversation commands start one explicit ACP runtime session, send additional turns with explicitly selected attachments only while that exact session remains connected, list durable history and close the session without silent reconnection.
 - Run commands list Runs, steps and ordered events; request pause/resume/cancel; resolve a resource review; reconcile unknown external outcomes; retry failed workflow steps into a new Run; and produce a content-redacted diagnostic bundle.
 - Assistant conversation reads are `list_assistant_conversations`, `list_assistant_messages` and
@@ -97,10 +97,10 @@ When adding or removing an IPC command, review the Rust handler, build-time plug
 
 AI text generation uses `plugin:ai|generate_text` / `generate_text_stream`; editor text transformations
 use `transform_editor_text` / `transform_editor_text_stream`. Internal provider completion APIs keep
-their model terminology. Spaces generation uses `generate_grounded_document`, `generate_visualization`,
-`generate_video` and `generate_image_layers`; transformations use `derive_image`, and deterministic
-video processing uses `render_subtitled_video` / `render_video_edit`. Cancellation names the ongoing
-operation (`cancel_image_layer_generation`, `cancel_subtitled_video_render`). Image-layer generation
+their model terminology. Spaces generation enters `start_space_action` with a concrete versioned Action ID;
+specialized image-layer generation uses `generate_image_layers`; transformations use `derive_image`, and deterministic
+video edits use `render_video_edit`; subtitle burn-in uses the `add-video-subtitles` Action. Cancellation names the ongoing
+operation (`cancel_image_layer_generation`, `cancel_run`). Image-layer generation
 uses `generationId` for its multi-output request and cancellation; each output has its own derivation ID.
 No legacy `id` field is accepted by that strict request. Video generation and committed video rendering cancellation use `derivationId`; disposable proxy processing retains `jobId`.
 

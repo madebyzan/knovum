@@ -13,11 +13,10 @@ pub use rules::{
 pub async fn validate_node(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
-    node_id: &str,
     kind: &str,
     data: &Value,
 ) -> Result<Option<String>, String> {
-    let object_type_id = node_contracts::validate_node(tx, space_id, node_id, kind, data).await?;
+    let object_type_id = node_contracts::validate_node(tx, space_id, kind, data).await?;
     // Hash only structurally bounded data. This keeps revision calculation behind the same
     // depth/size contract that protects every other durable Node validation path.
     revision::validate_declared(data)?;
@@ -28,11 +27,10 @@ pub async fn validate_node(
 pub async fn normalize_node(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
-    node_id: &str,
     kind: &str,
     data: &mut Value,
 ) -> Result<Option<String>, String> {
-    let object_type_id = node_contracts::validate_node(tx, space_id, node_id, kind, data).await?;
+    let object_type_id = node_contracts::validate_node(tx, space_id, kind, data).await?;
     revision::apply(data)?;
     Ok(object_type_id)
 }

@@ -40,7 +40,7 @@ pub(crate) async fn execute(
         }),
         source_chunks: Vec::new(),
     };
-    contracts::normalize_node(tx, space_id, &node.id, &node.kind, &mut node.data).await?;
+    contracts::normalize_node(tx, space_id, &node.kind, &mut node.data).await?;
     let before = structure::history::capture(tx, space_id, &snapshot).await?;
     structure::creation::append_content(&mut snapshot, std::slice::from_ref(&node), None)?;
     nodes::insert_rows_with_actor(

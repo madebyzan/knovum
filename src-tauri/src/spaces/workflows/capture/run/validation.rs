@@ -147,8 +147,7 @@ fn output_kind(contract: SpaceActionOutputContract) -> Option<&'static str> {
         SpaceActionOutputContract::Document => Some("markdown"),
         SpaceActionOutputContract::Image => Some("image"),
         SpaceActionOutputContract::Video => Some("video"),
-        SpaceActionOutputContract::Subtitle => Some("subtitle"),
-        SpaceActionOutputContract::Presentation => Some("file"),
+        SpaceActionOutputContract::Presentation | SpaceActionOutputContract::File => Some("file"),
         _ => None,
     }
 }

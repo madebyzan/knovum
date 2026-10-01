@@ -4,11 +4,12 @@ import { aiCapabilitySchema, aiRoutingPurposeSchema } from "../../../foundation/
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import type { SpaceActionDefinition } from "../contracts/generated/SpaceActionDefinition";
 
-const spaceActionInputRoleSchema = z.enum(["document", "knowledge", "subtitle", "transcript", "video"]);
+const spaceActionInputRoleSchema = z.enum(["document", "knowledge", "transcript", "video"]);
 
 const spaceActionOutputContractSchema = z.enum([
   "answer",
   "document",
+  "file",
   "image",
   "knowledge_change_receipt",
   "knowledge_node",
@@ -17,7 +18,6 @@ const spaceActionOutputContractSchema = z.enum([
   "search_results",
   "space_edit_receipt",
   "space_contents",
-  "subtitle",
   "video",
 ]);
 

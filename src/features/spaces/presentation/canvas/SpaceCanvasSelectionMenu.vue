@@ -46,6 +46,7 @@ const menuRow =
 const submenu = SUBMENU_CONTENT_CLASSES;
 const deleteShortcut = platform() === "macos" ? "Backspace" : "Delete";
 const directImageActions: readonly CreationIntentId[] = ["remove-image-background"];
+const directVideoActions: readonly CreationIntentId[] = ["add-video-subtitles"];
 </script>
 
 <template>
@@ -108,7 +109,13 @@ const directImageActions: readonly CreationIntentId[] = ["remove-image-backgroun
         :derivations="derivations"
         :row-class="menuRow"
         :submenu-class="submenu"
-        v-bind="excludeDirectImageActions ? { exclude: directImageActions } : {}"
+        :exclude="
+          excludeDirectImageActions
+            ? directImageActions
+            : nodeBar && actions.selectedVideoNode.value
+              ? directVideoActions
+              : []
+        "
         @invoke="emit('invokeDerivation', $event)"
       />
       <UiDropdownMenuItem v-if="actions.selectedNodes.value.length" @select="actions.inspectWorkflow">

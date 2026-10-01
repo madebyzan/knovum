@@ -1,7 +1,6 @@
 import {
   AudioLines,
   Boxes,
-  Captions,
   Code2,
   File,
   Globe2,
@@ -56,7 +55,6 @@ const NODE_ICONS: Readonly<Record<SpaceNodeKind, Component>> = {
   audio: AudioLines,
   file: File,
   code: Code2,
-  subtitle: Captions,
   credential: KeyRound,
   object: Sparkles,
   portal: Boxes,
@@ -72,7 +70,6 @@ const NODE_LABELS: Readonly<Record<SpaceNodeKind, string>> = {
   audio: "Audio",
   file: "File",
   code: "Code",
-  subtitle: "Subtitles",
   credential: "Credential",
   object: "Knowledge object",
   portal: "Portal",
@@ -112,8 +109,6 @@ function fileSubtitle(data: SpaceNodePayload) {
       return data.entries ? `${data.entries.length} entries` : data.fileName;
     case "code":
       return data.previewLanguage;
-    case "subtitle":
-      return `${data.cues.length} cues`;
     default:
       return undefined;
   }

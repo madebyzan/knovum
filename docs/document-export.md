@@ -11,13 +11,7 @@ revision-checked `DocumentSource` containing the separately stored title, Markdo
 citation records. `pulldown-cmark` parses the body once per export into a temporary semantic document.
 The DOCX, PDF, and TXT backends consume that same model.
 
-`spaces/derivation/document_export` continues to reserve a managed file node, record the derivation
-and input revision, render off the async executor, publish through the existing completion transaction,
-and remove failed output bytes. `execute.rs` shares this orchestration between the three formats.
-The three `export_document_as_*` commands own output path reservation, node creation and derivation
-recording within the same source-validated transaction. Vue submits geometry and the expected edit
-revision; allocation is not a separate IPC command. This is format conversion, not the native Save Copy operation: TXT is a new file
-resource with `derives-from` lineage. Ordinary Markdown `.md` download is unchanged.
+The local `export-document-as-docx`, `export-document-as-pdf`, `export-document-as-txt` and `render-presentation` Actions share `spaces/derivation/document_formats` and `document_publication`. Canvas, Assistant/MCP and saved workflow steps use the same Action Run. Rust reserves the managed file node, pins one current Markdown resource, renders off the async executor and publishes with cancellation/epoch/source checks. Failed or stale output bytes are removed. Vue submits Action intent and source identity; it neither allocates paths nor serializes bytes. This is format conversion with `derives-from` lineage. Ordinary Markdown `.md` download is unchanged.
 
 ## Supported subset
 
@@ -61,15 +55,15 @@ These limits bound conversion input; they are not a hard CPU-time or output-byte
 The owning `generation/tests` directory contains one shared Markdown fixture and focused tests for
 model structure, title handling, literal citations, lists/tables/code, safe Typst quoting, TXT output,
 unsupported input, and DOCX package XML (styles, numbering, hyperlinks, tables and escaped content).
-The existing platform PDF smoke remains under `spaces/derivation/document_export/tests`, renamed to
-accurately describe its dependence on a platform CJK font. Frontend tests cover all three export commands, revision identity, inactive-Space behavior, and the TXT creation action.
+The existing platform PDF smoke remains under `spaces/derivation/document_formats_tests`, renamed to
+accurately describe its dependence on a platform CJK font. Frontend tests cover all three export Actions, revision identity and inactive-Space behavior. Action acceptance/capture/replay tests verify the shared execution boundary.
 
 Run on the supported desktop development environment:
 
 ```sh
 pnpm test -- src/features/spaces/__tests__/document-export.test.ts
 cargo test --locked --manifest-path src-tauri/Cargo.toml documents::generation
-cargo test --locked --manifest-path src-tauri/Cargo.toml spaces::derivation::document_export
+cargo test --locked --manifest-path src-tauri/Cargo.toml spaces::derivation::document_formats_tests
 pnpm check:web
 pnpm check:rust
 ```

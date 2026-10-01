@@ -36,7 +36,7 @@ pub(super) fn export(config: &Config) -> Result<(), String> {
         crate::command_error::CommandError::export_all,
         crate::ai::error::AiError::export_all,
         crate::spaces::queries::session::SpaceSessionProjection::export_all,
-        crate::spaces::workflows::BuiltInWorkflowTemplateId::export_all,
+        crate::spaces::actions::canvas::StartSpaceActionRequest::export_all,
         crate::spaces::runs::RunObservation::export_all,
         crate::spaces::runs::StepObservation::export_all,
         crate::spaces::runs::RunEvent::export_all,

@@ -31,7 +31,6 @@ const POLICIES: Record<SpaceNodeKind, SpaceNodeSizePolicy> = {
   image: policy([256, 156], [144, 72], "proportional"),
   video: policy([304, 170], [232, 132], "proportional"),
   audio: policy([288, 80], [288, 80], "fixed"),
-  subtitle: policy([272, 192], [232, 152]),
   file: policy([256, 192], [224, 152], "proportional"),
   code: policy([304, 224], [264, 168]),
   credential: policy([220, 56], [220, 56], "fixed"),

@@ -157,9 +157,6 @@ const selectionBarGap = computed(() =>
       @document="derivations.submitDocument"
       @visualization="derivations.submitVisualization"
       @video="derivations.submitVideo"
-      @social="derivations.submitSocial"
-      @meeting="derivations.submitMeetingPackage"
-      @presentation="derivations.submitPresentation"
     />
     <SpaceFind v-model:open="store.findOpen" />
     <SpaceGlobalFind v-model:open="store.globalFindOpen" />

@@ -68,7 +68,7 @@ pub async fn complete(
             load_pending_output(&mut tx, &derivation_id(&request.generation_id, index)).await?;
         pending_output::validate_unpublished_asset(&data)?;
         apply_layer_content(&mut data, layer, now)?;
-        contracts::validate_node(&mut tx, &request.space_id, output_id, "image", &data).await?;
+        contracts::validate_node(&mut tx, &request.space_id, "image", &data).await?;
         crate::spaces::derivation::persist_output_node(&mut tx, output_id, &data, now).await?;
         let relation = relations::derives_from(
             &request.space_id,

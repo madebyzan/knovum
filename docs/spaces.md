@@ -76,34 +76,24 @@ The canvas is a projection over durable knowledge, not the data model itself. Re
 
 ## Knowledge Derivation
 
-Implemented action families currently include image background removal and video subtitle burn-in. The video action consumes the selected video's current token-timed subtitle knowledge, creates a separate MP4 resource with subtitles rendered into the image beside the source, and records both the durable derivation row and `derives-from` relation. It never replaces the source video or consumes stale or pre-v2 transcript knowledge.
+Implemented action families include image background removal and the video-node **Add subtitles** derivation described in [Video subtitles](#video-subtitles). Both publish a separate resource and preserve the source.
 
-Spaces treats generation and media transformation as **Knowledge Derivation**: selected knowledge produces a new durable resource without losing its source context. The product entry is **Create from selection**, followed by an intent such as Summarize, Compare, Visualize, Remove background, Create subtitles or Turn into a document. Provider connections remain infrastructure configuration. Compatible model selection is available at the creation surface, defaults by capability, and can be captured with bounded generation parameters as a reusable **Generation Preset**. Models are execution targets, not ordinary knowledge nodes and not the canvas information architecture.
+Spaces treats generation and media transformation as **Knowledge Derivation**: selected knowledge produces a new durable resource without losing its source context. The product entry is **Create from selection**, followed by an intent such as Summarize, Compare, Visualize, Remove background, Add subtitles or Turn into a document. Provider connections remain infrastructure configuration. Compatible model selection is available at the creation surface, defaults by capability, and can be captured with bounded generation parameters as a reusable **Generation Preset**. Models are execution targets, not ordinary knowledge nodes and not the canvas information architecture.
 
 Editing an existing node keeps its identity; Create from selection publishes a separate resource.
 Duplicate copies a node without claiming derivation provenance, while Download writes an external
 file. The exact effect and revision rules for every node kind live in `docs/architecture.md` under
 “Space operation effects and source identity”.
 
-A **Workflow** is a durable dependency graph over the Space Action catalog. Five built-in production recipes compile directly into an immutable Run snapshot: presentation production, video production, social content package, subtitled-video production and meeting content package. A personal canvas workflow is captured from verified derivation facts as an ordered action graph with typed resource slots. Runs, step inputs and outputs, attempts and events are durable and resume without replaying committed side effects.
+A **Capability** executes one product operation: document/image/video generation, document export or a media transformation. Selecting several inputs does not turn that operation into a Workflow. A **Workflow** is a reusable dependency chain captured from completed, verified Space Action derivations. There are no built-in Workflow recipes.
 
-The Rust Run scheduler is the only execution authority. It leases ready steps, fences stale workers,
-records checkpoints and events, and delegates business effects to their owning Space Actions. The
-five built-in recipes use the narrowed Workflow compiler. Personal canvas workflows use
-captured action steps and a floating inspector; Vue observes Run state but does not advance a step
-or commit a result because a component reported success.
+The canvas starts registered generative capabilities and document exports through `start_space_action`. Rust pins the selected inputs, resolves and freezes the execution target, and creates an authorized Action Run in one transaction. Vue observes the shared Task Center; it does not sequence hidden generation steps or publish output bytes.
 
-A **Creation Intent** is the user-facing catalog entry. It owns selection availability, localized presentation, and whether execution dispatches one atomic derivation or a versioned Workflow. The canvas uses one intent catalog and one creation-dialog session, so adding a Workflow does not add another event chain or independent boolean state through the component tree.
+The Rust Run scheduler is the only execution authority. Personal workflows use the same Action executors, leases, cancellation, result validation and publication rules as an individual capability. A saved workflow contains typed input/output slots, bounded parameters, actual execution selections and dependencies, not executable references to its sample nodes. On reuse, the user binds new resources; each Run freezes their data digests and the workflow definition. Later edits or settings changes cannot silently change a running task.
 
-Built-in recipes have no draft or published-copy repository. Personal canvas captures have
-immutable numbered definitions in the workflow library. Each user-started Run creates its own
-execution grant; a selective retry creates a new grant and reuses only successful predecessor
-steps whose recorded resources remain valid.
+A **Creation Intent** is a localized capability entry with selection availability. The separate Workflow entry opens the canvas inspector to save or reuse verified chains. Immutable numbered workflow definitions remain in the personal library. Each Run has its own execution grant; retry reuses only successful predecessor results whose recorded resources remain valid.
 
-Personal canvas workflows contain no executable reference to their sample Space nodes. Each Run
-binds the named input slots to new resources, freezes their data digest, and checks the recorded
-revision basis before dispatching each action. The old personal-template commands and obsolete
-definitions are removed by the pre-release data transition.
+Capture currently covers registered single-resource Actions: document/image/video generation, subtitle burn-in and DOCX/PDF/TXT/PPTX export. Specialized image transformations still use their existing dedicated executors; without a recorded replayable Action invocation they are rejected by capture rather than reconstructed from relations. Audio generation, Excel generation and batch generation are not added by this change.
 
 The Assistant has one visible conversation and message store for API models and desktop Agents.
 The input chooses an enabled target for each turn. A desktop Agent turn creates a separate ACP
@@ -117,14 +107,9 @@ Closing an Agent session exposes workspace artifacts through the existing review
 
 DOCX and PDF export consume one explicit current Markdown resource. They do not silently synthesize a hidden document from an arbitrary selection; users create or choose the editable Markdown knowledge first, then export it. Multi-stage outcomes remain Workflows and keep their independently useful intermediate resources visible.
 
-AI configuration has four explicit levels:
+AI execution selection follows the task's explicit target, then its capability override, then the user's default execution method. An enabled desktop Agent uses its own authentication and tools; a selected user model uses its registered connection and credential reference. Local deterministic Actions do not require either. Missing or failed execution paths remain visible and do not switch to another account.
 
-1. an **AI Connection** owns provider, endpoint and one credential reference;
-2. models registered under that connection declare their supported capabilities;
-3. each capability has an application default model target;
-4. an individual creation may override the default or apply a reusable Creation Preset.
-
-The resolved provider and model are recorded with completed derivations. Changing a default never changes the identity of an existing generated resource.
+Each Run freezes the resolved execution selection. Completed derivations record the actual engine or model identity; desktop Agent execution does not invent a model, token count or fee. Changing a default never changes an existing Run or generated resource. Creation Presets capture bounded generation parameters without embedding credentials.
 
 A successful derivation:
 
@@ -156,20 +141,11 @@ returned. Rust revalidates action versions, typed bindings and dependencies befo
 the new version. Runs already accepted keep their original definition snapshot.
 Execution dependencies must come from validated action records, not visual proximity or hand-drawn
 relations. Model samplers and provider plumbing remain execution bindings rather than canvas nodes.
-Built-in recipes compile directly into an immutable Run snapshot. They no longer create a
-Workflow Studio draft and published copy for every invocation. Their runtime is limited to
-Input, Action, Review, Join and Output. Generic condition, iteration, delay, delegation,
-debug breakpoint and publication nodes are no longer accepted.
-Personal workflows use captured derivation steps and explicit resource slots rather than that
-recipe graph.
 The built-in assistant calls Knovum Space Actions. Desktop Agents manage external tools in their
 own runtime; the Space package does not export Agent tool configuration.
 The model conversation exposes all registered Space Actions through one tool catalog in Execute
 mode. Built-in and desktop Agents execute under authenticated task grants without per-operation
-confirmation; Ask and Plan modes expose read actions only. Built-in
-recipe Runs that need content review appear in Task Center. The reviewer can inspect the
-current draft or subtitles, edit the resource on the canvas, then approve the revision actually
-displayed. Rust validates that revision and settles the waiting step in one transaction.
+confirmation; Ask and Plan modes expose read actions only.
 Assistant failures retain their reason with the task record, and interrupted model streams
 retain any received text as an explicitly stopped or incomplete message. Returning to a
 conversation after an interruption does not turn partial text into a completed answer.
@@ -509,7 +485,7 @@ Mutation IDs bind the entire request digest. A retry of the identical request re
 
 Structure edits currently replace the validated snapshot in a transaction. Incremental writes require measured large-Space latency/write amplification and equivalence tests for history, tombstones and retries; no speculative second mutation path is maintained.
 
-All document serialization belongs to Rust `documents/generation`: DOCX, PDF, TXT and PPTX. The Renderer submits export intent or starts the `presentation-production` workflow; it never generates or submits document bytes. Spaces resolves and validates sources, owns authorization, output-node lifecycle and persistence, and calls the neutral document engine. PPTX uses the shared validated Markdown model and records the actual `knovum-pptx:1` engine. The former Web worker/PptxGenJS chain had no product consumer and is removed, together with its upload/path-allocation IPC. Current presentation workflows generate text slides; the deleted image-slide worker was not an exposed product capability. More than 100 slides fails visibly rather than silently dropping content. Optional panel loading changes require a measured startup or interaction cost; no unmeasured lazy-loading abstraction is added.
+All document serialization belongs to Rust `documents/generation`: DOCX, PDF, TXT and PPTX. The Renderer starts the corresponding local document Action; it never generates or submits document bytes. Spaces resolves and validates sources, owns authorization, output-node lifecycle and persistence, and calls the neutral document engine. PPTX uses the shared validated Markdown model and records the actual `knovum-pptx:1` engine. The former Web worker/PptxGenJS chain had no product consumer and is removed, together with its upload/path-allocation IPC. The presentation export capability generates text slides; the deleted image-slide worker was not an exposed product capability. More than 100 slides fails visibly rather than silently dropping content. Optional panel loading changes require a measured startup or interaction cost; no unmeasured lazy-loading abstraction is added.
 
 ### Semantic search activation
 
@@ -523,8 +499,8 @@ successful lexical-only response. Background index updates require already verif
 not trigger large downloads on note save. Grounded semantic use prepares resources at the retrieval
 use-case boundary; the AI engine itself does not download.
 
-Document exports submit source identity/revision and visual placement to Rust. Source validation,
-output path reservation, pending node creation and derivation recording share one transaction;
+Document exports submit source identity/revision to the same canvas Action acceptance boundary. Rust owns
+output path reservation, pending-node placement and source validation;
 render completion and failure update that same durable output. Vue does not allocate document
 paths or write a second pending output state. Image preview remains an interactive browser renderer,
 while native preview/export use Rust; shared tone fixtures constrain both environments without
@@ -535,3 +511,9 @@ claiming full pixel equality across browser interpolation and native rendering.
 Images and video covers share the `analyze_visual` task and `visualKnowledge` result contract. Image revisions include image edits; video-cover revisions include the media source, immutable preview path and preview origin. Node writes compare this visual revision directly, so changing or resetting image edits and replacing a cover reschedule visual work. Titles do not change either revision. Evidence retains its image or video-cover locator so retrieval can open the correct source.
 
 The current pre-release Spaces database baseline admits only the current job types. Obsolete baseline checksums and the former `analyze_image` / `analyze_video_cover` job names are rejected explicitly; there are no compatibility aliases, automatic data deletion or conversion readers.
+
+### Video subtitles
+
+**Add subtitles** is an atomic video-node derivation (`add-video-subtitles`), not a built-in Workflow. It takes one current video and publishes one new video with burned-in subtitles and a `derives-from` relation to that video. The original video is unchanged. Current timed transcript cues are reused; when no transcript exists, the same local Whisper runtime recognizes speech inside the derivation. Neither step requires a user model/API key. Subtitle text is an internal temporary render input, not an intermediate canvas node or review gate.
+
+Local recognition and FFmpeg share the derivation cancellation token. Input asset and knowledge revisions are captured before execution and revalidated before atomic publication; cancelled or stale results cannot be published. Local resource/tool preparation failures remain visible. There is no standalone `subtitle` node kind or subtitle-resource Action. Subtitle tracks in the video editor and transcript cues remain media-owned editing/recognition data.

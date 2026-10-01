@@ -1,7 +1,6 @@
 import {
   ArrowRightLeft,
   AudioLines,
-  Captions,
   Code2,
   File,
   FileText,
@@ -26,7 +25,6 @@ const NODE_ICONS = {
   code: Code2,
   image: Image,
   video: Film,
-  subtitle: Captions,
   object: MessageSquareQuote,
   portal: ArrowRightLeft,
   file: File,

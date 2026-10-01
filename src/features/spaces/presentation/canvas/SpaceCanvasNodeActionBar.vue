@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Focus, Info, Scissors } from "@lucide/vue";
+import { Focus, Info } from "@lucide/vue";
 import { ToolbarButton, ToolbarRoot } from "reka-ui";
 import { computed, toRef, useTemplateRef } from "vue";
 import { useI18n } from "vue-i18n";
@@ -18,6 +18,7 @@ import { nodeOpenIcons, nodeOpenLabels } from "./canvas-node-open-actions";
 import { nodeActionLabelClass, nodeActionLabelState } from "./node-action-label";
 import SpaceCanvasSelectionMenu from "./SpaceCanvasSelectionMenu.vue";
 import SpaceCanvasTextFormatBar from "./SpaceCanvasTextFormatBar.vue";
+import SpaceCanvasVideoActions from "./SpaceCanvasVideoActions.vue";
 import SpaceNodeBarCommonActions from "./SpaceNodeBarCommonActions.vue";
 import type { useCanvasSelectionActions } from "./use-canvas-selection-actions";
 import { useNodeActionBarDensity } from "./use-node-action-bar-density";
@@ -108,26 +109,13 @@ function runPrimaryAction() {
         v-bind="actions.selectedAppearance.value ? { appearance: actions.selectedAppearance.value } : {}"
         @update="actions.setAppearance"
       />
-      <UiTooltip
+      <SpaceCanvasVideoActions
         v-if="actions.selectedVideoNode.value && canvasBarPlacement('video-edit', minimal) === 'bar'"
-        :text="t('spaces.media.videoEditor.edit')"
-        :disabled="!compact"
-        side="top"
-      >
-        <ToolbarButton as-child>
-          <button
-            type="button"
-            :class="CANVAS_ACTION_BUTTON_CLASSES"
-            :aria-label="t('spaces.media.videoEditor.edit')"
-            @click="actions.editVideo"
-          >
-            <Scissors class="size-3.5" :stroke-width="1.6" />
-            <span :class="[nodeActionLabelClass, nodeActionLabelState(compact)]">{{
-              t("spaces.media.videoEditor.edit")
-            }}</span>
-          </button>
-        </ToolbarButton>
-      </UiTooltip>
+        :compact="compact"
+        :can-add-subtitles="derivations['add-video-subtitles'].state === 'ready'"
+        @edit="actions.editVideo"
+        @add-subtitles="emit('invokeDerivation', 'add-video-subtitles')"
+      />
       <UiSeparator
         v-if="
           (showPrimary && canvasBarPlacement('node-primary', minimal) === 'bar') ||
@@ -158,12 +146,13 @@ function runPrimaryAction() {
           >
             <component :is="primaryIcon" class="size-3.5" />{{ primaryLabel }}
           </UiDropdownMenuItem>
-          <UiDropdownMenuItem
+          <SpaceCanvasVideoActions
             v-if="actions.selectedVideoNode.value && canvasBarPlacement('video-edit', minimal) === 'menu'"
-            @select="actions.editVideo"
-          >
-            <Scissors class="size-3.5" />{{ t("spaces.media.videoEditor.edit") }}
-          </UiDropdownMenuItem>
+            menu-item
+            :can-add-subtitles="derivations['add-video-subtitles'].state === 'ready'"
+            @edit="actions.editVideo"
+            @add-subtitles="emit('invokeDerivation', 'add-video-subtitles')"
+          />
         </template>
       </SpaceCanvasSelectionMenu>
       <SpaceNodeBarCommonActions @inspect="actions.inspect" @download="actions.download" />

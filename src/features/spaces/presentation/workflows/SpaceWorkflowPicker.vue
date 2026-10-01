@@ -111,6 +111,9 @@ function deletedWorkflow(id: string) {
         {{ t("spaces.creation.workflow.derivation.loading") }}
       </p>
       <template v-else>
+        <p v-if="!items.length" class="text-caption text-fg-secondary">
+          {{ t("spaces.creation.workflow.empty") }}
+        </p>
         <UiButton
           v-if="!items.length"
           variant="secondary"

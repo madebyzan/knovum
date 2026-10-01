@@ -59,14 +59,13 @@ watch(open, (isOpen) => {
           @update:model-value="form.durationSeconds = Number($event) as VideoDraft['durationSeconds']"
         />
       </div>
-      <AiExecutionTargetField v-model="form.textTarget" purpose="knowledge" />
       <AiExecutionTargetField v-model="form.target" purpose="video-generation" />
     </div>
     <template #footer
       ><UiButton variant="ghost" @click="open = false">{{ t("common.cancel") }}</UiButton
       ><UiButton
         variant="primary"
-        :disabled="!form.title.trim() || !form.prompt.trim() || !form.textTarget || !form.target"
+        :disabled="!form.title.trim() || !form.prompt.trim() || !form.target"
         @click="emit('submit', { ...form })"
         >{{ t("spaces.creation.video.generation.create") }}</UiButton
       ></template

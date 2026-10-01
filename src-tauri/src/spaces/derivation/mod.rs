@@ -2,7 +2,9 @@ pub(crate) mod action_execution;
 pub(crate) mod action_request;
 pub(crate) mod commands;
 mod contracts;
-mod document_export;
+mod document_citations;
+mod document_formats;
+mod document_publication;
 mod failure;
 mod grounded_answer;
 pub(crate) mod grounded_document;
@@ -14,14 +16,12 @@ pub(crate) mod inputs;
 pub(crate) mod metadata_sources;
 pub(crate) mod output_paths;
 mod pending_output;
-mod presentation_publication;
 pub(crate) mod queries;
 mod relations;
 mod scratch_file;
 mod source_snapshot;
 mod source_validation;
-mod subtitle_extraction;
-mod subtitled_video;
+pub(crate) mod subtitled_video;
 pub(crate) mod video_edit;
 pub(crate) mod video_generation;
 mod video_output;
@@ -70,3 +70,6 @@ pub(crate) async fn persist_output_node(
 
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+mod document_formats_tests;

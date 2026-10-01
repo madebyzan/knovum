@@ -9,8 +9,7 @@ export type NodeDraftKind =
   | "media-summary"
   | "media-chapter"
   | "transcript"
-  | "credential"
-  | "subtitle";
+  | "credential";
 
 interface NodeDraftLease {
   id: number;

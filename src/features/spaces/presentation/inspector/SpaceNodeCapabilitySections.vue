@@ -7,7 +7,6 @@ import SpaceKnowledgeObjectInspection from "../knowledge/SpaceKnowledgeObjectIns
 import SpaceMediaKnowledge from "../media/SpaceMediaKnowledge.vue";
 import SpaceInspectorSection from "./SpaceInspectorSection.vue";
 import SpacePortalEditor from "./SpacePortalEditor.vue";
-import SpaceSubtitleEditor from "./SpaceSubtitleEditor.vue";
 
 defineProps<{ node: SpaceCanvasNode }>();
 </script>
@@ -27,14 +26,6 @@ defineProps<{ node: SpaceCanvasNode }>();
     :icon="MessageSquareQuote"
   >
     <SpaceKnowledgeObjectInspection :node="node" />
-  </SpaceInspectorSection>
-
-  <SpaceInspectorSection
-    v-if="node.data.kind === 'subtitle'"
-    :title="$t('spaces.creation.video.subtitles.editor')"
-    :icon="ScanText"
-  >
-    <SpaceSubtitleEditor :node="node" />
   </SpaceInspectorSection>
 
   <SpaceInspectorSection

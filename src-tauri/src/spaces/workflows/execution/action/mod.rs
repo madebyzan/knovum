@@ -31,33 +31,6 @@ pub(super) async fn execute_run(
     completed(output)
 }
 
-pub(super) async fn execute(
-    pool: &SqlitePool,
-    claim: &AttemptClaim,
-    action_id: String,
-    action_version: u16,
-    parameters: Value,
-) -> Result<StepOutcome, String> {
-    if isolated_write(claim, &action_id)? {
-        return completed(json!({
-            "isolated": true, "simulatedAction": action_id,
-            "input": claim.resolved_input, "parameters": parameters,
-        }));
-    }
-    execute_invocation(
-        pool,
-        claim,
-        action_id,
-        action_version,
-        parameters,
-        json!({
-            "inputs": &claim.resolved_input,
-            "targets": claim.policy_snapshot.get("targets"),
-        }),
-    )
-    .await
-}
-
 pub(super) async fn execute_invocation(
     pool: &SqlitePool,
     claim: &AttemptClaim,
@@ -66,12 +39,6 @@ pub(super) async fn execute_invocation(
     parameters: Value,
     input_snapshot: Value,
 ) -> Result<StepOutcome, String> {
-    if isolated_write(claim, &action_id)? {
-        return completed(json!({
-            "isolated": true, "simulatedAction": action_id,
-            "input": input_snapshot, "parameters": parameters,
-        }));
-    }
     let outcome = actions::invoke(
         pool,
         ActionInvocationRequest {
@@ -97,13 +64,4 @@ pub(super) async fn execute_invocation(
             waiting(WaitReason::Executor, json!({ "childRunId": run_id }))
         }
     }
-}
-
-fn isolated_write(claim: &AttemptClaim, action_id: &str) -> Result<bool, String> {
-    Ok(claim
-        .policy_snapshot
-        .get("testMode")
-        .and_then(Value::as_bool)
-        == Some(true)
-        && actions::require(action_id)?.impact != actions::SpaceActionImpact::ReadOnly)
 }

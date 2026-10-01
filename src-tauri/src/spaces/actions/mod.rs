@@ -3,6 +3,8 @@ use serde_json::Value;
 
 use crate::ai::contracts::{ExecutionCapability, RoutingPurpose};
 
+pub(crate) mod canvas;
+mod canvas_inputs;
 pub(crate) mod catalog;
 pub(crate) mod input_selection;
 mod invocation;
@@ -70,7 +72,6 @@ pub type ParameterSchemaFactory = fn() -> &'static Value;
 pub enum SpaceActionInputRole {
     Document,
     Knowledge,
-    Subtitle,
     Transcript,
     Video,
 }
@@ -81,6 +82,7 @@ pub enum SpaceActionInputRole {
 pub enum SpaceActionOutputContract {
     Answer,
     Document,
+    File,
     Image,
     KnowledgeChangeReceipt,
     KnowledgeNode,
@@ -89,27 +91,7 @@ pub enum SpaceActionOutputContract {
     SearchResults,
     SpaceEditReceipt,
     SpaceContents,
-    Subtitle,
     Video,
-}
-
-impl SpaceActionOutputContract {
-    pub const fn as_str(self) -> &'static str {
-        match self {
-            Self::Answer => "answer",
-            Self::Document => "document",
-            Self::Image => "image",
-            Self::KnowledgeChangeReceipt => "knowledge_change_receipt",
-            Self::KnowledgeNode => "knowledge_node",
-            Self::Presentation => "presentation",
-            Self::ResourceReceipt => "resource_receipt",
-            Self::SearchResults => "search_results",
-            Self::SpaceEditReceipt => "space_edit_receipt",
-            Self::SpaceContents => "space_contents",
-            Self::Subtitle => "subtitle",
-            Self::Video => "video",
-        }
-    }
 }
 
 pub fn definitions() -> &'static [SpaceActionDefinition] {
@@ -155,12 +137,22 @@ where
     factory().serialize(serializer)
 }
 
-pub(crate) use invocation::{invoke, ActionInvocationOutcome, ActionInvocationRequest};
+pub(crate) use invocation::{
+    invoke, invoke_in_transaction, ActionInvocationOutcome, ActionInvocationRequest,
+};
 
 pub(crate) async fn invoke_with_app(
     app: &tauri::AppHandle,
     mut request: ActionInvocationRequest,
 ) -> Result<ActionInvocationOutcome, String> {
+    resolve_target(app, &mut request)?;
+    invoke(crate::spaces::db::pool(app).await?, request).await
+}
+
+fn resolve_target(
+    app: &tauri::AppHandle,
+    request: &mut ActionInvocationRequest,
+) -> Result<(), String> {
     let definition = require(&request.action_id)?;
     if let Some(purpose) = definition.routing_purpose {
         let inputs = request
@@ -192,5 +184,5 @@ pub(crate) async fn invoke_with_app(
             serde_json::to_value(target).map_err(crate::spaces::db::json_error)?,
         );
     }
-    invoke(crate::spaces::db::pool(app).await?, request).await
+    Ok(())
 }

@@ -75,13 +75,6 @@ pub(super) fn specific_fields_for_kind(kind: &str) -> Result<&'static [&'static 
         "image" => Ok(IMAGE_ASSET_FIELDS),
         "video" => Ok(VIDEO_ASSET_FIELDS),
         "audio" => Ok(MEDIA_ASSET_FIELDS),
-        "subtitle" => Ok(&[
-            "sourceVideoNodeId",
-            "sourceVideoRevision",
-            "language",
-            "durationMs",
-            "cues",
-        ]),
         "file" => Ok(FILE_ASSET_FIELDS),
         "code" => Ok(CODE_ASSET_FIELDS),
         "credential" => Ok(&["credentialKind", "credentialConfigured"]),

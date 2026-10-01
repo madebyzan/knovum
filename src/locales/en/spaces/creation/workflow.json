@@ -1,7 +1,7 @@
 {
-  "title": "Creation workflow",
-  "select": "Select a creation workflow",
-  "createFromSelection": "Create workflow from selection",
+  "title": "Workflows",
+  "select": "Choose a workflow",
+  "createFromSelection": "Save derivation chain as workflow",
   "derivation": {
     "loading": "Inspecting derivation…",
     "separateChains": "The selection contains {count} disconnected derivation chains. Select the intended outputs separately.",
@@ -9,7 +9,8 @@
     "steps": "Verified actions",
     "inputs": "Process inputs",
     "issues": "Parts that cannot be reused",
-    "empty": "The selection has no replayable derivation actions."
+    "empty": "The selection has no replayable derivation actions.",
+    "sources": "Sources: {sources}"
   },
   "name": "Workflow name",
   "namePlaceholder": "Name this workflow",
@@ -66,16 +67,6 @@
   },
   "delete": "Delete workflow",
   "deleteConfirm": "Delete “{name}”? Completed runs and their outputs will remain.",
-  "review": {
-    "required": "Waiting for your content review",
-    "title": "Review generated content",
-    "unavailable": "The content awaiting review is unavailable. Check the run state.",
-    "changed": "The content changed during review. Reopen it before approving.",
-    "edited": "This content was edited. Approving will continue with the current version.",
-    "edit": "Edit on canvas",
-    "reject": "Reject and stop",
-    "approve": "Approve and continue"
-  },
   "states": {
     "queued": "Queued",
     "running": "Running",
@@ -107,8 +98,11 @@
     "generateVisualization": "Create visualization",
     "generateImage": "Generate image",
     "generateVideo": "Generate video",
-    "extractSubtitles": "Extract subtitles",
-    "renderSubtitledVideo": "Render subtitled video",
-    "renderPresentation": "Create presentation"
-  }
+    "renderPresentation": "Create presentation",
+    "addVideoSubtitles": "Add subtitles",
+    "exportDocx": "Export Word",
+    "exportPdf": "Export PDF",
+    "exportTxt": "Export text"
+  },
+  "empty": "No saved workflows yet. Select a completed derived resource and choose “Save as workflow”."
 }

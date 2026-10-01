@@ -139,3 +139,30 @@ fn media_origin_is_authoritative() {
         authoritative(&changed).unwrap()
     );
 }
+
+#[test]
+fn transcript_edits_change_media_knowledge_revision() {
+    let data = json!({"kind":"video","title":"V","sourceRevision":"asset:1","mediaKnowledge":{"sourceRevision":"asset:1","transcript":{"subtitleCues":[{"startMs":0,"endMs":1000,"text":"Original"}]}}});
+    let mut edited = data.clone();
+    edited["mediaKnowledge"]["transcript"]["subtitleCues"][0]["text"] = json!("Edited");
+    assert_ne!(
+        authoritative(&data).unwrap(),
+        authoritative(&edited).unwrap()
+    );
+}
+#[test]
+fn image_asset_and_edit_are_part_of_derivation_knowledge_identity() {
+    let data = json!({"kind":"image","title":"I","sourceRevision":"asset:1"});
+    let mut replaced = data.clone();
+    replaced["sourceRevision"] = json!("asset:2");
+    let mut edited = data.clone();
+    edited["imageEdit"] = json!({"rotation":90});
+    assert_ne!(
+        authoritative(&data).unwrap(),
+        authoritative(&replaced).unwrap()
+    );
+    assert_ne!(
+        authoritative(&data).unwrap(),
+        authoritative(&edited).unwrap()
+    );
+}

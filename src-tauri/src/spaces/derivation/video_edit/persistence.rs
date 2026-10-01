@@ -23,7 +23,7 @@ pub async fn complete(
     let now = crate::clock::unix_time_millis()?;
     let mut data: Value = serde_json::from_str(&row.3).map_err(db::json_error)?;
     apply_output(&mut data, &output, now)?;
-    contracts::validate_node(&mut tx, &row.0, &row.2, "video", &data).await?;
+    contracts::validate_node(&mut tx, &row.0, "video", &data).await?;
     let relation = relations::derives_from(
         &row.0,
         &row.2,

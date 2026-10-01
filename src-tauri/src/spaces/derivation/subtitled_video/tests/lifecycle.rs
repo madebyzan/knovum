@@ -1,0 +1,156 @@
+use serde_json::{json, Value};
+use sqlx::SqlitePool;
+use tokio_util::sync::CancellationToken;
+
+use super::super::{
+    persistence, preparation::PreparedSubtitles, start, RenderSubtitledVideoRequest,
+};
+use crate::spaces::{
+    db,
+    derivation::{action_execution::ExecutionAuthority, video_output::RenderedVideo},
+    knowledge::indexing::revision,
+    nodes::contracts::InsertNodesRequest,
+    structure::repository,
+};
+
+async fn fixture(with_transcript: bool) -> (SqlitePool, RenderSubtitledVideoRequest, Value) {
+    let pool = sqlx::sqlite::SqlitePoolOptions::new()
+        .max_connections(1)
+        .connect("sqlite::memory:")
+        .await
+        .unwrap();
+    db::migrate(&pool).await.unwrap();
+    sqlx::query("INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES('space','space','Space',1,1)").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO spaces_runs(id,home_space_id,principal_kind,principal_id,kind,state,execution_epoch,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES('job','space','user','local-user','action','running',0,'{}','{}','{}',1,1)").execute(&pool).await.unwrap();
+    let mut source = json!({"kind":"video","title":"Interview","assetPath":"/owned/source.mp4","fileName":"source.mp4","sourceRevision":"asset:1"});
+    if with_transcript {
+        source["mediaKnowledge"] = json!({"schemaVersion":4,"sourceRevision":"asset:1","transcript":{
+            "language":"en","durationMs":1000,"text":"Hello","segments":[{"startMs":0,"endMs":1000,"text":"Hello"}],
+            "subtitleCues":[{"startMs":0,"endMs":1000,"text":"Hello"}]
+        }});
+    }
+    revision::apply(&mut source).unwrap();
+    let mut output = json!({"kind":"video","title":"Subtitled","fileName":"subtitled.mp4","assetPath":"/owned/pending.mp4","processingState":"processing"});
+    revision::apply(&mut output).unwrap();
+    let request = RenderSubtitledVideoRequest {
+        id: "job".into(),
+        space_id: "space".into(),
+        source_node_id: "source".into(),
+        output_node_id: "output".into(),
+        source_revision: "asset:1".into(),
+        knowledge_revision: source["knowledgeRevision"].as_str().unwrap().into(),
+    };
+    let mut tx = db::begin_write(&pool).await.unwrap();
+    repository::initialize_empty_in_transaction(&mut tx, "space")
+        .await
+        .unwrap();
+    let nodes: InsertNodesRequest = serde_json::from_value(json!({
+        "spaceId":"space","mutationId":"create","expectedEditRevision":0,"targetParentId":null,
+        "nodes":[
+            {"id":"source","kind":"video","initialX":0,"initialY":0,"width":300,"height":200,"sizingMode":"frame","data":source,"sourceChunks":[]},
+            {"id":"output","kind":"video","initialX":400,"initialY":0,"width":300,"height":200,"sizingMode":"frame","data":output,"sourceChunks":[]}
+        ]
+    })).unwrap();
+    crate::spaces::nodes::insert_many_in_transaction(&mut tx, nodes, None)
+        .await
+        .unwrap();
+    tx.commit().await.unwrap();
+    (pool, request, source)
+}
+
+fn authority() -> ExecutionAuthority {
+    ExecutionAuthority {
+        run_id: "job".into(),
+        execution_epoch: 0,
+    }
+}
+
+fn rendered() -> RenderedVideo {
+    RenderedVideo {
+        path: "/owned/subtitled.mp4".into(),
+        size: 100,
+        revision: "asset:output".into(),
+    }
+}
+
+#[tokio::test]
+async fn automatic_subtitles_publish_only_a_derived_video_and_leave_source_unchanged() {
+    let (pool, request, original) = fixture(true).await;
+    let source = start::start(&pool, &request, &authority()).await.unwrap();
+    assert!(matches!(source.subtitles, PreparedSubtitles::Ready(srt) if srt.contains("Hello")));
+    let result = persistence::complete(
+        &pool,
+        "job",
+        rendered(),
+        &authority(),
+        &CancellationToken::new(),
+    )
+    .await
+    .unwrap();
+    assert_eq!(result.data["sourceRevision"], "asset:output");
+    assert!(result.data.get("processingState").is_none());
+    let counts: (i64, i64, i64) = sqlx::query_as("SELECT (SELECT COUNT(*) FROM spaces_nodes),(SELECT COUNT(*) FROM spaces_nodes WHERE kind='subtitle'),(SELECT COUNT(*) FROM spaces_relations WHERE source_id='output' AND target_id='source')").fetch_one(&pool).await.unwrap();
+    assert_eq!(counts, (2, 0, 1));
+    let encoded: String = sqlx::query_scalar("SELECT data FROM spaces_nodes WHERE id='source'")
+        .fetch_one(&pool)
+        .await
+        .unwrap();
+    assert_eq!(serde_json::from_str::<Value>(&encoded).unwrap(), original);
+}
+
+#[tokio::test]
+async fn untranscribed_video_prepares_recognition_without_subtitle_resource_or_model_target() {
+    let (pool, request, _) = fixture(false).await;
+    let source = start::start(&pool, &request, &authority()).await.unwrap();
+    assert!(matches!(source.subtitles, PreparedSubtitles::Recognize));
+    let row: (String, i64) = sqlx::query_as("SELECT action_kind,(SELECT COUNT(*) FROM spaces_knowledge_derivation_inputs WHERE derivation_id='job') FROM spaces_knowledge_derivations WHERE id='job'").fetch_one(&pool).await.unwrap();
+    assert_eq!(row, ("add-video-subtitles".into(), 1));
+}
+
+#[tokio::test]
+async fn source_change_and_cancellation_prevent_publication() {
+    for change_source in [true, false] {
+        let (pool, request, mut source) = fixture(true).await;
+        start::start(&pool, &request, &authority()).await.unwrap();
+        let cancellation = CancellationToken::new();
+        if change_source {
+            source["mediaKnowledge"]["transcript"]["subtitleCues"][0]["text"] = json!("Edited");
+            revision::apply(&mut source).unwrap();
+            sqlx::query("UPDATE spaces_nodes SET data=$1 WHERE id='source'")
+                .bind(source.to_string())
+                .execute(&pool)
+                .await
+                .unwrap();
+        } else {
+            cancellation.cancel();
+        }
+        assert!(
+            persistence::complete(&pool, "job", rendered(), &authority(), &cancellation)
+                .await
+                .is_err()
+        );
+        let output: String = sqlx::query_scalar("SELECT data FROM spaces_nodes WHERE id='output'")
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+        assert_eq!(
+            serde_json::from_str::<Value>(&output).unwrap()["processingState"],
+            "processing"
+        );
+        let relations: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM spaces_relations")
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+        assert_eq!(relations, 0);
+    }
+}
+
+#[tokio::test]
+async fn subtitle_action_cancellation_reaches_the_shared_engine_token() {
+    let id = uuid::Uuid::new_v4().to_string();
+    let (token, _lease) = super::super::registry::acquire(id.clone()).unwrap();
+    crate::spaces::derivation::action_execution::cancel("add-video-subtitles", &id)
+        .await
+        .unwrap();
+    assert!(token.is_cancelled());
+}

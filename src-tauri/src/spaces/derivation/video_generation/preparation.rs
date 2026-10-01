@@ -12,6 +12,8 @@ pub struct PreparedVideo {
     pub path: String,
     pub reference_images: Vec<String>,
     pub provider_prompt: String,
+    // Own temporary rendered references until the provider/Agent finishes consuming them.
+    pub _reference_files: Vec<super::super::scratch_file::ScratchFile>,
 }
 
 pub async fn start(
@@ -43,9 +45,9 @@ pub async fn start(
         )
         .await?;
     }
-    let script = validate_primary(&mut tx, request).await?;
-    let provider_prompt = super::prompt::assemble(&script, &request.prompt)?;
-    let references = load_references(&mut tx, request, &asset_directory).await?;
+    let context = load_context(&mut tx, request).await?;
+    let provider_prompt = super::prompt::assemble(&context, &request.prompt)?;
+    let (references, reference_files) = load_references(&mut tx, request, &asset_directory).await?;
     let path = output(&mut tx, request, &asset_directory).await?;
     persist_start(&mut tx, request, target).await?;
     tx.commit().await.map_err(db::sql_error)?;
@@ -53,6 +55,7 @@ pub async fn start(
         path,
         reference_images: references,
         provider_prompt,
+        _reference_files: reference_files,
     })
 }
 
@@ -83,29 +86,67 @@ fn validate_request(request: &GenerateVideoRequest) -> Result<(), String> {
     Ok(())
 }
 
-async fn validate_primary(
+async fn load_context(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     request: &GenerateVideoRequest,
 ) -> Result<String, String> {
-    let primary = &request.inputs[0];
-    let script: Option<String> = sqlx::query_scalar("SELECT json_extract(data,'$.text') FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND kind='markdown' AND deleted_at IS NULL AND json_extract(data,'$.knowledgeRevision')=$3")
-        .bind(&primary.node_id).bind(&request.space_id).bind(&primary.source_revision).fetch_one(&mut **tx).await.map_err(db::sql_error)?;
-    script
-        .filter(|value| !value.trim().is_empty())
-        .ok_or_else(|| "Video generation requires a current non-empty script".into())
+    let mut context = String::new();
+    for input in &request.inputs {
+        let encoded: String = sqlx::query_scalar(
+            "SELECT data FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND deleted_at IS NULL",
+        )
+        .bind(&input.node_id)
+        .bind(&request.space_id)
+        .fetch_one(&mut **tx)
+        .await
+        .map_err(db::sql_error)?;
+        let data: Value = serde_json::from_str(&encoded).map_err(db::json_error)?;
+        let chunks: Vec<String> = sqlx::query_scalar("SELECT text FROM spaces_current_knowledge_chunks WHERE node_id=$1 AND space_id=$2 ORDER BY created_at,id")
+            .bind(&input.node_id).bind(&request.space_id).fetch_all(&mut **tx).await.map_err(db::sql_error)?;
+        if chunks.is_empty() && data["kind"] != "image" {
+            return Err("Video generation requires current knowledge or an image reference for every selected source".into());
+        }
+        context.push_str(&format!(
+            "\nSOURCE {}\n",
+            data["title"]
+                .as_str()
+                .ok_or("Video source title is invalid")?
+        ));
+        for text in chunks {
+            context.push_str(&text);
+            context.push('\n');
+        }
+        if context.len() > 128 * 1024 {
+            return Err("Video source context exceeds 128 KiB; select a smaller source set".into());
+        }
+    }
+    Ok(context)
 }
 
 async fn load_references(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     request: &GenerateVideoRequest,
     directory: &Path,
-) -> Result<Vec<String>, String> {
+) -> Result<(Vec<String>, Vec<super::super::scratch_file::ScratchFile>), String> {
+    let mut files = Vec::new();
     let mut values = Vec::with_capacity(request.inputs.len().saturating_sub(1));
-    for input in request.inputs.iter().skip(1) {
-        let encoded: String = sqlx::query_scalar("SELECT data FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND kind='image' AND deleted_at IS NULL")
-            .bind(&input.node_id).bind(&request.space_id).fetch_optional(&mut **tx).await.map_err(db::sql_error)?
-            .ok_or("Video reference must be a current image")?;
+    for input in &request.inputs {
+        let encoded: String = sqlx::query_scalar(
+            "SELECT data FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND deleted_at IS NULL",
+        )
+        .bind(&input.node_id)
+        .bind(&request.space_id)
+        .fetch_optional(&mut **tx)
+        .await
+        .map_err(db::sql_error)?
+        .ok_or("Video reference must be a current image")?;
         let data: Value = serde_json::from_str(&encoded).map_err(db::json_error)?;
+        if data["kind"] != "image" {
+            continue;
+        }
+        if values.len() == 10 {
+            return Err("Video generation accepts at most 10 reference images".into());
+        }
         let path = Path::new(
             data["assetPath"]
                 .as_str()
@@ -123,9 +164,24 @@ async fn load_references(
         ) {
             return Err("Video reference image format is unsupported".into());
         }
-        values.push(path.to_string_lossy().into_owned());
+        let revision = data["sourceRevision"]
+            .as_str()
+            .ok_or("Video reference source revision is unavailable")?;
+        crate::file_inspection::verify_content_revision(path, revision)?;
+        let source = path.to_owned();
+        let edit = data.get("imageEdit").cloned().unwrap_or(Value::Null);
+        let rendered =
+            crate::blocking::run(move || crate::images::render_source_png(&source, &edit)).await?;
+        crate::file_inspection::verify_content_revision(path, revision)?;
+        let reference = directory.join(format!("video-reference-{}.png", uuid::Uuid::new_v4()));
+        let file = super::super::scratch_file::ScratchFile::new(reference.clone());
+        tokio::fs::write(&reference, &rendered.png)
+            .await
+            .map_err(|error| error.to_string())?;
+        files.push(file);
+        values.push(reference.to_string_lossy().into_owned());
     }
-    Ok(values)
+    Ok((values, files))
 }
 
 async fn output(
@@ -185,7 +241,7 @@ async fn persist_start(
 pub(super) fn input_basis(role: &str) -> Result<inputs::RevisionBasis, String> {
     match role {
         "primary" => Ok(inputs::RevisionBasis::Knowledge),
-        "source" => Ok(inputs::RevisionBasis::Asset),
+        "source" => Ok(inputs::RevisionBasis::Knowledge),
         _ => Err("Video generation input role is invalid".into()),
     }
 }

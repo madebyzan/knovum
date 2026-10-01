@@ -20,9 +20,8 @@ import SpaceLibrary from "./presentation/library/SpaceLibrary.vue";
 import SpaceAudioRecordingDock from "./presentation/media/SpaceAudioRecordingDock.vue";
 import SpaceEditorLoading from "./presentation/SpaceEditorLoading.vue";
 import SpaceVideoEditor from "./presentation/video-editor/SpaceVideoEditor.vue";
-import SpaceWorkflowReviewDialog from "./presentation/workflows/SpaceWorkflowReviewDialog.vue";
+import { restoreResourceRuns } from "./runs/resource-run-observation";
 import { useSpaceStore } from "./session/space-store";
-import { closeWorkflowReview, restoreWorkflowRuns, reviewRunId } from "./workflows/workflow-run-observation";
 import { useSpaceSessionLifecycle } from "./workspace/use-space-session-lifecycle";
 
 const store = useSpaceStore();
@@ -51,7 +50,7 @@ async function initialize() {
   initializationError.value = undefined;
   try {
     await store.initialize(t("spaces.space.inbox"));
-    void restoreWorkflowRuns(t("spaces.creation.workflow.title")).catch((caught: unknown) => {
+    void restoreResourceRuns(t("spaces.creation.shared.resourceTask")).catch((caught: unknown) => {
       toast.error(String(caught));
     });
     void restoreConversationRuns().catch((caught: unknown) => {
@@ -96,7 +95,6 @@ onMounted(() => void initialize());
         @update:open="!$event && (store.recentlyDeletedSpaceId = undefined)"
       />
       <SpaceVideoEditor v-if="store.videoEditorNodeId" />
-      <SpaceWorkflowReviewDialog v-if="reviewRunId" :run-id="reviewRunId" @close="closeWorkflowReview" />
     </template>
   </main>
 </template>

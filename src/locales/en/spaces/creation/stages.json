@@ -7,5 +7,6 @@
   "downloadingVideo": "Saving video",
   "preparingSubtitles": "Preparing transcript subtitles…",
   "renderingSubtitles": "Rendering subtitles into the video…",
-  "savingResource": "Saving derived video…"
+  "savingResource": "Saving derived video…",
+  "recognizingSubtitles": "Recognizing subtitles…"
 }

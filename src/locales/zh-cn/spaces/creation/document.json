@@ -3,12 +3,9 @@
     "docx": "导出为 Word 文档",
     "pdf": "导出为 PDF",
     "docxTask": "正在生成 Word 文档",
-    "docxFailed": "Word 文档生成失败",
     "pdfTask": "正在生成 PDF",
-    "pdfFailed": "PDF 生成失败",
     "txt": "导出为纯文本",
-    "txtTask": "正在生成纯文本",
-    "txtFailed": "无法生成纯文本"
+    "txtTask": "正在生成纯文本"
   },
   "generate": "生成文档",
   "title": "用选中知识生成文档",

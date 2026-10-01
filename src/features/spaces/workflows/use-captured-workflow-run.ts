@@ -1,6 +1,7 @@
 import { onBeforeUnmount, ref, shallowRef } from "vue";
 
 import type { RunObservation } from "../contracts/generated/RunObservation";
+import { cancelResourceRun, observeResourceRun } from "../runs/resource-run-observation";
 import { useSpaceStore } from "../session/space-store";
 import {
   listCapturedRunOutputs,
@@ -8,7 +9,6 @@ import {
   startCapturedWorkflow,
   type SavedCapturedWorkflow,
 } from "./captured-workflow-ipc";
-import { cancelWorkflowRun, observeWorkflowRun } from "./workflow-run-observation";
 
 export function useCapturedWorkflowRun() {
   const store = useSpaceStore();
@@ -49,7 +49,7 @@ export function useCapturedWorkflowRun() {
       if (run.completedAt !== null) void refreshOutputs(run.id);
     }
     if (run.completedAt !== null) return;
-    const stop = observeWorkflowRun(run, title, (next) => {
+    const stop = observeResourceRun(run, title, (next) => {
       if (next.id !== runId.value || disposed) return;
       runState.value = next.state;
       if (next.completedAt !== null) {
@@ -93,7 +93,7 @@ export function useCapturedWorkflowRun() {
     if (!runId.value || cancelling.value) return;
     cancelling.value = true;
     try {
-      await cancelWorkflowRun(runId.value);
+      await cancelResourceRun(runId.value);
     } catch (cause) {
       cancelling.value = false;
       error.value = String(cause);

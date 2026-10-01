@@ -46,20 +46,6 @@ pub struct VideoOutput {
     relations: Vec<super::DerivationRelation>,
 }
 
-pub async fn generate(
-    app: AppHandle,
-    request: GenerateVideoRequest,
-    stages: Channel<String>,
-) -> Result<VideoOutput, String> {
-    generate_inner(
-        super::action_execution::ExecutionAuthority::DirectCommand,
-        app,
-        request,
-        stages,
-    )
-    .await
-}
-
 pub(super) async fn generate_for_action(
     authority: super::action_execution::ExecutionAuthority,
     app: AppHandle,

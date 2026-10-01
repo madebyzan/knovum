@@ -1,15 +1,8 @@
 use crate::command_error::CommandError;
 pub(crate) mod capture;
-mod compiler;
-pub(crate) mod definition;
 mod execution;
-mod runtime;
-mod templates;
 
-pub(crate) use compiler::compile;
-pub(crate) use definition::WorkflowDefinition;
 pub(crate) use execution::execute_step;
-pub(crate) use templates::{BuiltInWorkflowTemplateId, StartBuiltInWorkflowRequest};
 
 #[tauri::command]
 pub async fn preview_workflow_capture(
@@ -100,12 +93,4 @@ pub async fn list_captured_workflow_runs(
     space_id: String,
 ) -> Result<Vec<capture::CapturedWorkflowRun>, CommandError> {
     Ok((capture::list_run_history(crate::spaces::db::pool(&app).await?, &space_id).await)?)
-}
-
-#[tauri::command]
-pub async fn start_builtin_workflow(
-    app: tauri::AppHandle,
-    request: StartBuiltInWorkflowRequest,
-) -> Result<crate::spaces::runs::RunObservation, CommandError> {
-    Ok((templates::start(&app, crate::spaces::db::pool(&app).await?, request).await)?)
 }

@@ -35,9 +35,6 @@ pub(super) fn remap(value: &mut Value, maps: &mut IdMaps, types: &[Value]) -> Re
                     maps.optional(data, field, collection)?;
                 }
             }
-            Some("subtitle") => {
-                maps.field(data, "sourceVideoNodeId", "nodes")?;
-            }
             Some("credential") => {
                 data["credentialConfigured"] = json!(false);
             }

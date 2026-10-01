@@ -29,6 +29,10 @@ pub struct MediaTranscriptionProgress {
 }
 
 impl MediaTranscriptionProgress {
+    pub(in crate::spaces) fn progress(&self) -> u8 {
+        self.progress
+    }
+
     pub(crate) fn stage(stage: &str, progress: u8) -> Self {
         Self {
             stage: stage.into(),
@@ -54,8 +58,27 @@ pub(in crate::spaces::assets) async fn start_transcription(
     source_revision: String,
     on_progress: Channel<MediaTranscriptionProgress>,
 ) -> Result<MediaTranscript, String> {
-    let source = authorize_spaces_asset(&app, Path::new(&source_path))?;
     let (cancellation, _lease) = registry::acquire(job_id.clone())?;
+    transcribe_media(
+        app,
+        job_id,
+        source_path,
+        source_revision,
+        on_progress,
+        cancellation,
+    )
+    .await
+}
+
+pub(in crate::spaces) async fn transcribe_media(
+    app: tauri::AppHandle,
+    job_id: String,
+    source_path: String,
+    source_revision: String,
+    on_progress: Channel<MediaTranscriptionProgress>,
+    cancellation: CancellationToken,
+) -> Result<MediaTranscript, String> {
+    let source = authorize_spaces_asset(&app, Path::new(&source_path))?;
     let inspected = source.clone();
     let revision = source_revision;
     let expected = revision.clone();
@@ -91,7 +114,6 @@ pub(in crate::spaces::assets) async fn start_transcription(
     let source = authorize_spaces_asset(&app, &source)?;
     blocking::run(move || {
         let _execution = execution;
-        let _job = _lease;
         crate::file_inspection::verify_content_revision(&source, &revision)?;
         transcribe(
             &app,

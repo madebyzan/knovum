@@ -115,7 +115,6 @@ describe("spaces node size policy", () => {
     for (const data of [
       { kind: "note", title: "Note" },
       { kind: "markdown", title: "Document" },
-      { kind: "subtitle", title: "Transcript" },
     ] as SpaceNodePayload[]) {
       expect(spaceNodeResizePolicy(data)).toMatchObject({ resizeMode: "free" });
     }

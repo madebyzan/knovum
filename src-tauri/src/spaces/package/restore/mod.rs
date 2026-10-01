@@ -166,8 +166,7 @@ async fn validate_nodes(
     request: &RestorePackageRequest,
 ) -> Result<(), String> {
     for row in &request.nodes {
-        knowledge_contracts::validate_node(tx, &request.space.id, &row.id, &row.kind, &row.data)
-            .await?;
+        knowledge_contracts::validate_node(tx, &request.space.id, &row.kind, &row.data).await?;
     }
     Ok(())
 }

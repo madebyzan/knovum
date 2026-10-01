@@ -2,7 +2,6 @@ mod fields;
 mod image_comments;
 mod image_edit;
 mod resource;
-mod subtitle;
 mod tiptap;
 mod website;
 
@@ -65,7 +64,6 @@ pub(super) fn validate_payload_shape(kind: &str, data: &Value) -> Result<(), Str
             resource::validate_media_metadata(object)?;
             super::media::validate(object.get("mediaKnowledge"))
         }
-        "subtitle" => subtitle::validate(object),
         "file" => resource::validate_file(object),
         "code" => resource::validate_code(object),
         "credential" => resource::validate_credential(object),

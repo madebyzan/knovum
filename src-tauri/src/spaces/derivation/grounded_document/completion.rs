@@ -35,14 +35,7 @@ pub async fn complete(
     let now = crate::clock::unix_time_millis()?;
     let mut data: Value = serde_json::from_str(&data).map_err(db::json_error)?;
     apply_document(&mut data, &generated.text)?;
-    contracts::validate_node(
-        &mut tx,
-        &request.space_id,
-        &request.output_node_id,
-        "markdown",
-        &data,
-    )
-    .await?;
+    contracts::validate_node(&mut tx, &request.space_id, "markdown", &data).await?;
     crate::spaces::derivation::persist_output_node(&mut tx, &request.output_node_id, &data, now)
         .await?;
     let output_relations = create_relations(&mut tx, request, now).await?;

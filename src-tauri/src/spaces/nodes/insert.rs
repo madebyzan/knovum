@@ -52,8 +52,7 @@ pub(in crate::spaces) async fn insert_many_in_transaction(
         return Err("space-edit-revision-conflict: Space edit revision conflict".into());
     }
     for node in &mut request.nodes {
-        contracts::normalize_node(tx, &request.space_id, &node.id, &node.kind, &mut node.data)
-            .await?;
+        contracts::normalize_node(tx, &request.space_id, &node.kind, &mut node.data).await?;
     }
     let before = structure::history::capture(tx, &request.space_id, &snapshot).await?;
     let selection = structure::creation::append_content(
@@ -150,8 +149,7 @@ async fn insert_single_node(
     if fields.contains_key("sectionId") || fields.contains_key("locked") {
         return Err("Content payload cannot contain structure fields sectionId or locked".into());
     }
-    let object_type_id =
-        contracts::validate_node(tx, space_id, &node.id, &node.kind, &node.data).await?;
+    let object_type_id = contracts::validate_node(tx, space_id, &node.kind, &node.data).await?;
     let data = serde_json::to_string(&node.data).map_err(db::json_error)?;
     sqlx::query(
         r#"INSERT INTO spaces_nodes (

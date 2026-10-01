@@ -23,7 +23,6 @@ fn registry_definitions_are_coherent() {
             !definition.input_roles.is_empty()
                 || properties.is_some_and(|properties| !properties.is_empty())
         );
-        assert!(!definition.output_contract.as_str().is_empty());
         assert_eq!(
             definition.execution_capability.is_some(),
             definition.routing_purpose.is_some(),

@@ -52,10 +52,7 @@ pub(super) async fn insert_nodes(
             .get("kind")
             .and_then(Value::as_str)
             .ok_or("Clipboard node kind is missing")?;
-        crate::spaces::knowledge::contracts::validate_node(
-            tx, space_id, &node.id, kind, &node.data,
-        )
-        .await?;
+        crate::spaces::knowledge::contracts::validate_node(tx, space_id, kind, &node.data).await?;
     }
     Ok(response)
 }

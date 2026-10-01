@@ -74,10 +74,7 @@ fn description(definition: &SpaceActionDefinition) -> String {
         "generate-visualization" => "Generate an image that visualizes selected knowledge.".into(),
         "generate-image" => "Generate an image from an editable document brief.".into(),
         "generate-video" => "Generate a video from a document or ordered image sequence.".into(),
-        "extract-subtitles" => "Create editable subtitle cues from a selected video.".into(),
-        "render-subtitled-video" => {
-            "Render a new video using a video and its edited subtitles.".into()
-        }
+        "add-video-subtitles" => "Add subtitles to one video using existing timed cues or local speech recognition and publish a new video. Does not create an intermediate subtitle resource or require a model account.".into(),
         "render-presentation" => "Render a presentation from an editable document outline.".into(),
         _ => format!("Execute Knovum Space Action {}.", definition.id),
     }

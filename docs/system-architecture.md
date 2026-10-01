@@ -170,10 +170,7 @@ precedence. Lease recovery invalidates and reconciles the whole expired executio
 including active siblings. Committed scheduling transitions notify observers; idle maintenance
 is silent. Assistant pause uses its own durable checkpoint policy.
 
-The built-in recipe graph accepts Input, Action, Review, Join and Output nodes. Personal
-workflows instead freeze a verified derivation sequence with explicit input and output slots.
-The runtime rejects removed generic graph node kinds; it does not reinterpret them as
-personal workflows. Terminal Space packages preserve Run history for inspection without replay.
+Workflows are personal reusable chains captured from completed Action derivations, with explicit replaceable input slots and named outputs. Built-in production templates and their graph compiler are removed. Atomic generation, subtitle burn-in and document export use the same Action Run and publication facilities as workflow steps. The runtime accepts captured steps and durable Actions only; removed recipe graph kinds fail explicitly. Terminal Space packages preserve Run history for inspection without replay.
 The built-in assistant exposes Knovum's declared Space Actions. Desktop Agents manage their own
 external tools through their protocol runtime. The product does not maintain a second MCP
 connection catalog for the built-in assistant.

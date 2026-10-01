@@ -237,8 +237,7 @@ async fn insert_outputs(
         };
         node.initial_x = x;
         node.initial_y = y;
-        knowledge::contracts::normalize_node(tx, space_id, &node.id, &node.kind, &mut node.data)
-            .await?;
+        knowledge::contracts::normalize_node(tx, space_id, &node.kind, &mut node.data).await?;
         structure::creation::append_content(&mut snapshot, std::slice::from_ref(&node), None)?;
         nodes::insert_rows_with_actor(
             tx,
@@ -383,15 +382,9 @@ mod tests {
         let pool = fixture().await;
         let mut tx = db::begin_write(&pool).await.unwrap();
         let mut node = output("mcp-note", "markdown").node;
-        knowledge::contracts::normalize_node(
-            &mut tx,
-            "space",
-            &node.id,
-            &node.kind,
-            &mut node.data,
-        )
-        .await
-        .unwrap();
+        knowledge::contracts::normalize_node(&mut tx, "space", &node.kind, &mut node.data)
+            .await
+            .unwrap();
         let (mut snapshot, revision) = structure::repository::load_in_transaction(&mut tx, "space")
             .await
             .unwrap();

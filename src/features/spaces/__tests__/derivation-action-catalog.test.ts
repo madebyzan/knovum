@@ -64,17 +64,14 @@ const indexedVideo = () =>
   );
 
 describe("selection derivation catalog", () => {
-  it("defines every selection action once with an explicit capability kind", () => {
+  it("defines each capability once without built-in workflow recipes", () => {
     const ids = creationIntentDefinitions.map(({ id }) => id);
 
     expect(new Set(ids).size).toBe(ids.length);
-    expect(creationIntentDefinitions.filter(({ kind }) => kind === "workflow").map(({ id }) => id)).toEqual([
-      "presentation-production",
-      "video-production",
-      "social-content-package",
-      "subtitled-video-production",
-      "meeting-content-package",
-    ]);
+    expect(ids).not.toContain("video-production");
+    expect(ids).not.toContain("presentation-production");
+    expect(ids).not.toContain("meeting-content-package");
+    expect(ids).not.toContain("social-content-package");
     expect(Object.keys(creationIntentCatalog([]).decisions)).toEqual(ids);
   });
 
@@ -83,9 +80,8 @@ describe("selection derivation catalog", () => {
 
     expect(decisions["draft-document"].state).toBe("ready");
     expect(decisions["export-document-as-pdf"].state).toBe("hidden");
-    expect(decisions["presentation-production"].state).toBe("ready");
-    expect(decisions["video-production"].state).toBe("ready");
-    expect(decisions["social-content-package"].state).toBe("ready");
+    expect(decisions["render-presentation"].state).toBe("hidden");
+    expect(decisions["generate-video"].state).toBe("ready");
   });
 
   it("rejects opaque resources instead of treating every selected file as knowledge", () => {
@@ -125,16 +121,27 @@ describe("selection derivation catalog", () => {
   it("keeps the provider reference-image limit explicit", () => {
     const nodes = [note(), ...Array.from({ length: 11 }, (_, index) => image(index))];
 
-    expect(creationIntentCatalog(nodes).decisions["video-production"]).toEqual({
+    expect(creationIntentCatalog(nodes).decisions["generate-video"]).toEqual({
       state: "blocked",
       reason: "too-many-video-images",
     });
   });
 
-  it("offers the complete subtitle Workflow for a current indexed video", () => {
+  it("offers an atomic subtitle derivation for a current video", () => {
     const decisions = creationIntentCatalog([indexedVideo()]).decisions;
 
-    expect(decisions["subtitled-video-production"].state).toBe("ready");
-    expect(decisions["meeting-content-package"].state).toBe("ready");
+    expect(decisions["add-video-subtitles"].state).toBe("ready");
   });
+});
+
+it("adds subtitles without requiring published transcript knowledge", () => {
+  const video = indexedVideo();
+  if (video.data.kind !== "video") throw new Error("Video fixture expected");
+  delete video.data.mediaKnowledge;
+  const decisions = creationIntentCatalog([video]).decisions;
+  expect(decisions["add-video-subtitles"].state).toBe("ready");
+  expect(creationIntentDefinitions.map(({ id }) => id)).not.toContain("extract-subtitles");
+  expect(creationIntentCatalog([video, note()]).decisions["add-video-subtitles"].state).toBe("hidden");
+  video.data.processingState = "processing";
+  expect(creationIntentCatalog([video]).decisions["add-video-subtitles"].state).toBe("hidden");
 });

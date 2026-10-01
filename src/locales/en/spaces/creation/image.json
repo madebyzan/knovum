@@ -7,8 +7,7 @@
     "defaultTitle": "Visualization",
     "intent": "Image focus",
     "placeholder": "Describe the concepts or relationships to show. Keep the image grounded in the selected sources.",
-    "task": "Generating visualization",
-    "failed": "Could not visualize knowledge"
+    "task": "Generating visualization"
   },
   "style": "Visual direction",
   "aspectRatio": "Aspect ratio",
