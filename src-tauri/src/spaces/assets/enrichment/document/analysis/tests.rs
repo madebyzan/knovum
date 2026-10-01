@@ -1,8 +1,9 @@
-use super::*;
+use super::analyze_input;
 use crate::ai::{
     contracts::ExecutionCapability,
     tasks::completion::tests::{agent_target, input, ExecutorSpy},
 };
+use tokio_util::sync::CancellationToken;
 #[tokio::test]
 async fn agent_only_visual_uses_prepared_input_without_model_transport() {
     let spy =

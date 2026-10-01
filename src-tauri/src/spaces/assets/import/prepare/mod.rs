@@ -9,6 +9,7 @@ use uuid::Uuid;
 
 use super::super::{
     access::{asset_directory, authorize_source},
+    kind::{AssetKind, PreparedAssetState},
     transfer::imported_resource_name,
     PreparedAsset,
 };
@@ -16,8 +17,9 @@ use super::markdown::{import_markdown, is_markdown};
 use super::registry::{self, PendingImport};
 use crate::file_inspection::{classify_file, modified_millis, ResourceClassification};
 
-#[derive(Serialize)]
+#[derive(Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct PreparedSpaceImport {
     pub job_id: Option<String>,
     pub asset: PreparedAsset,
@@ -102,18 +104,16 @@ fn prepared_asset(
     total_bytes: Option<u64>,
     metadata: &fs::Metadata,
 ) -> Result<PreparedAsset, String> {
-    let kind = classification.node_kind();
+    let kind = AssetKind::from_classification(classification);
     let geometry = if classification == ResourceClassification::Image {
         super::geometry::visual_geometry(source, "image")?
     } else {
         None
     };
     let (preview_text, entries) = if classification == ResourceClassification::Archive {
-        let entries = crate::file_inspection::archive_entries(source, &name).ok();
-        let text = entries
-            .as_deref()
-            .map(crate::file_inspection::entry_search_text);
-        (text, entries)
+        let entries = crate::file_inspection::archive_entries(source, &name)?;
+        let text = crate::file_inspection::entry_search_text(&entries);
+        (Some(text), Some(entries))
     } else {
         (None, None)
     };
@@ -129,7 +129,7 @@ fn prepared_asset(
         size: total_bytes,
         modified_at: Some(modified_millis(metadata)?),
         source_revision: None,
-        processing_state: Some("importing"),
+        processing_state: Some(PreparedAssetState::Importing),
         intrinsic_width: geometry.map(|value| value.0),
         intrinsic_height: geometry.map(|value| value.1),
         knowledge_chunks: None,

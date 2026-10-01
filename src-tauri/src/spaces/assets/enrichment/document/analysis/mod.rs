@@ -81,4 +81,4 @@ async fn analyze_input(
 }
 
 #[cfg(test)]
-mod agent_task_tests;
+mod tests;

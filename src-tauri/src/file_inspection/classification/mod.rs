@@ -60,9 +60,7 @@ fn is_archive(path: &Path) -> bool {
         return false;
     };
     [
-        ".zip", ".jar", ".apk", ".ipa", ".epub", ".vsix", ".tar", ".tar.gz", ".tgz", ".7z", ".rar",
-        ".gz", ".bz2", ".bz3", ".xz", ".zst", ".lz4", ".cab", ".iso", ".crx", ".deb", ".rpm",
-        ".par2", ".lz",
+        ".zip", ".jar", ".apk", ".ipa", ".epub", ".vsix", ".tar", ".tar.gz", ".tgz",
     ]
     .iter()
     .any(|suffix| name.ends_with(suffix))

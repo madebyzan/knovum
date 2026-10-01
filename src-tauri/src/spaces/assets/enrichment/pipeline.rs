@@ -61,14 +61,10 @@ fn build_prepared_asset(
     revision: &str,
     data: &Value,
 ) -> Result<PreparedAsset, String> {
-    let kind = match kind {
-        "image" => "image",
-        "video" => "video",
-        "audio" => "audio",
-        "file" => "file",
-        "code" => "code",
-        other => return Err(format!("Asset kind {other} cannot be enriched")),
-    };
+    let kind = crate::spaces::assets::kind::AssetKind::from_node_kind(kind)?;
+    if kind == crate::spaces::assets::kind::AssetKind::Markdown {
+        return Err("Markdown assets cannot be enriched".into());
+    }
     Ok(PreparedAsset {
         name: file_name.to_owned(),
         path: Some(source.to_string_lossy().into_owned()),
@@ -81,14 +77,15 @@ fn build_prepared_asset(
         size: data.get("size").and_then(Value::as_u64),
         modified_at: data.get("modifiedAt").and_then(Value::as_u64),
         source_revision: Some(revision.to_owned()),
-        processing_state: Some("processing"),
+        processing_state: Some(crate::spaces::assets::kind::PreparedAssetState::Processing),
         intrinsic_width: optional_u32(data, "intrinsicWidth"),
         intrinsic_height: optional_u32(data, "intrinsicHeight"),
         knowledge_chunks: None,
         document_coverage: data.get("documentCoverage").cloned(),
         entries: data
             .get("entries")
-            .and_then(|v| serde_json::from_value(v.clone()).ok()),
+            .map(|value| serde_json::from_value(value.clone()).map_err(|error| error.to_string()))
+            .transpose()?,
     })
 }
 

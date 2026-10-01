@@ -1,6 +1,9 @@
 use serde_json::Value;
 
-use super::{super::PreparedAsset, node_payload::set_optional};
+use super::{
+    super::{kind::AssetKind, PreparedAsset},
+    node_payload::set_optional,
+};
 
 pub(crate) fn apply_asset_fields(data: &mut Value, asset: &PreparedAsset) -> Result<(), String> {
     let object = data
@@ -31,18 +34,18 @@ pub(crate) fn apply_asset_fields(data: &mut Value, asset: &PreparedAsset) -> Res
 
 fn apply_intrinsic_geometry(
     object: &mut serde_json::Map<String, Value>,
-    kind: &str,
+    kind: AssetKind,
     width: Option<u32>,
     height: Option<u32>,
 ) -> Result<(), String> {
-    if matches!(kind, "image" | "video" | "file") {
+    if matches!(kind, AssetKind::Image | AssetKind::Video | AssetKind::File) {
         set_optional_u32(object, "intrinsicWidth", width);
         set_optional_u32(object, "intrinsicHeight", height);
         return Ok(());
     }
-    if !matches!(kind, "audio" | "code") {
+    if !matches!(kind, AssetKind::Audio | AssetKind::Code) {
         return Err(format!(
-            "Asset kind {kind} cannot receive enrichment fields"
+            "Asset kind {kind:?} cannot receive enrichment fields"
         ));
     }
     object.remove("intrinsicWidth");

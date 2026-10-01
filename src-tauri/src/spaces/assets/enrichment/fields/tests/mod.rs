@@ -1,4 +1,4 @@
-use super::apply_intrinsic_geometry;
+use super::{apply_intrinsic_geometry, AssetKind};
 use serde_json::{json, Map};
 
 #[test]
@@ -7,7 +7,7 @@ fn removes_visual_geometry_from_audio_projection() {
         ("intrinsicWidth".into(), json!(640)),
         ("intrinsicHeight".into(), json!(480)),
     ]);
-    apply_intrinsic_geometry(&mut object, "audio", Some(640), Some(480)).unwrap();
+    apply_intrinsic_geometry(&mut object, AssetKind::Audio, Some(640), Some(480)).unwrap();
     assert!(!object.contains_key("intrinsicWidth"));
     assert!(!object.contains_key("intrinsicHeight"));
 }

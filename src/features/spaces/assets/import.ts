@@ -1,7 +1,7 @@
+import type { PreparedAsset as ImportedSpaceAsset } from "../contracts/generated/PreparedAsset";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
 import { removeSpaceAsset } from "./asset-operations";
-import type { ImportedSpaceAsset } from "./imported-asset";
 import { importedSpaceNodePayload } from "./imported-asset-payload";
 
 type AddImportedContent = (

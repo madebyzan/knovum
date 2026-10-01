@@ -13,7 +13,10 @@ enum UpdateCommand {
     Flush(tokio::sync::oneshot::Sender<Result<(), String>>),
 }
 
-type UpdateSender = tokio::sync::mpsc::UnboundedSender<UpdateCommand>;
+const UPDATE_BUFFER_CAPACITY: usize = 128;
+const MAX_UPDATE_TEXT_BYTES: usize = 64 * 1024;
+
+type UpdateSender = tokio::sync::mpsc::Sender<UpdateCommand>;
 
 static ACTIVE_UPDATES: OnceLock<Mutex<HashMap<String, UpdateSender>>> = OnceLock::new();
 
@@ -31,6 +34,7 @@ pub async fn flush(session_id: &str) -> Result<(), String> {
     let (acknowledge, done) = tokio::sync::oneshot::channel();
     sender
         .send(UpdateCommand::Flush(acknowledge))
+        .await
         .map_err(|_| "Agent update stream has closed")?;
     done.await
         .map_err(|_| "Agent update stream stopped before flush".to_owned())?
@@ -48,7 +52,7 @@ pub fn callback(
     run_id: String,
     channel: Option<tauri::ipc::Channel<crate::spaces::assistant::AssistantTaskUpdate>>,
 ) -> Result<crate::external_agents::session::AgentUpdateHandler, String> {
-    let (sender, mut updates) = tokio::sync::mpsc::unbounded_channel();
+    let (sender, mut updates) = tokio::sync::mpsc::channel(UPDATE_BUFFER_CAPACITY);
     active_updates()
         .lock()
         .map_err(|_| "Agent update registry is unavailable")?
@@ -74,10 +78,47 @@ pub fn callback(
         }
     });
     Ok(std::sync::Arc::new(move |update| {
-        sender
-            .send(UpdateCommand::Record(update))
-            .map_err(|_| AppError::internal("External conversation update channel closed"))
+        enqueue_update(&sender, update)
     }))
+}
+
+fn enqueue_update(sender: &UpdateSender, update: AgentSessionUpdate) -> Result<(), AppError> {
+    let size = match &update {
+        AgentSessionUpdate::Thought(_) => return Ok(()),
+        AgentSessionUpdate::Message(text) => text.len(),
+        AgentSessionUpdate::ToolCall {
+            id,
+            title,
+            status,
+            detail,
+        } => id.len() + title.len() + status.len() + detail.as_ref().map_or(0, String::len),
+        AgentSessionUpdate::ToolUpdate {
+            id,
+            title,
+            status,
+            detail,
+        } => {
+            id.len()
+                + title.as_ref().map_or(0, String::len)
+                + status.as_ref().map_or(0, String::len)
+                + detail.as_ref().map_or(0, String::len)
+        }
+    };
+    if size > MAX_UPDATE_TEXT_BYTES {
+        return Err(AppError::invalid(
+            "External Agent update exceeds the size limit",
+        ));
+    }
+    sender
+        .try_send(UpdateCommand::Record(update))
+        .map_err(|error| match error {
+            tokio::sync::mpsc::error::TrySendError::Full(_) => {
+                AppError::internal("External Agent updates exceeded the processing budget")
+            }
+            tokio::sync::mpsc::error::TrySendError::Closed(_) => {
+                AppError::internal("External conversation update channel closed")
+            }
+        })
 }
 
 async fn record(
@@ -172,3 +213,7 @@ fn durable(
         )),
     }
 }
+
+#[cfg(test)]
+#[path = "tests/updates.rs"]
+mod tests;

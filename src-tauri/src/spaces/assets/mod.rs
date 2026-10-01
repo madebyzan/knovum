@@ -7,6 +7,7 @@ pub(crate) mod external_open;
 pub(crate) mod files;
 pub(crate) mod image;
 pub(crate) mod import;
+pub(crate) mod kind;
 pub(crate) mod media_analysis;
 pub(crate) mod node_asset;
 pub(crate) mod node_payload;
@@ -22,41 +23,58 @@ use serde::Serialize;
 
 use super::knowledge::indexing::KnowledgeChunkSeed;
 use crate::file_inspection::InspectedFile;
+use kind::{AssetKind, PreparedAssetState};
 
-#[derive(Serialize)]
+#[derive(Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct PreparedAsset {
     pub(crate) name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     pub(crate) path: Option<String>,
-    pub(crate) kind: &'static str,
+    pub(crate) kind: AssetKind,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     pub(crate) text: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     pub(crate) preview_text: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     pub(crate) preview_language: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     pub(crate) preview_path: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     pub(crate) extracted_text: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     pub(crate) size: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     pub(crate) modified_at: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     pub(crate) source_revision: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub(crate) processing_state: Option<&'static str>,
+    #[ts(optional)]
+    pub(crate) processing_state: Option<PreparedAssetState>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     pub(crate) intrinsic_width: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     pub(crate) intrinsic_height: Option<u32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip)]
+    #[ts(skip)]
     pub(crate) knowledge_chunks: Option<Vec<KnowledgeChunkSeed>>,
     #[serde(skip)]
+    #[ts(skip)]
     pub(crate) document_coverage: Option<serde_json::Value>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     pub(crate) entries: Option<Vec<crate::file_inspection::ArchiveMember>>,
 }
 
@@ -66,7 +84,8 @@ fn snapshot_to_imported(
     snapshot: InspectedFile,
     revision: String,
 ) -> Result<PreparedAsset, String> {
-    let geometry = if snapshot.kind == "image" {
+    let kind = AssetKind::from_node_kind(snapshot.kind)?;
+    let geometry = if kind == AssetKind::Image {
         import::geometry::visual_geometry(Path::new(&snapshot.path), "image")?
     } else {
         None
@@ -74,7 +93,7 @@ fn snapshot_to_imported(
     Ok(PreparedAsset {
         name: snapshot.name,
         path: Some(snapshot.path),
-        kind: snapshot.kind,
+        kind,
         text: None,
         preview_text: snapshot.preview_text,
         preview_language: snapshot.preview_language,

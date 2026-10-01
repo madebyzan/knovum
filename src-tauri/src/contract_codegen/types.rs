@@ -4,6 +4,11 @@ type ContractExporter = fn(&Config) -> Result<(), ts_rs::ExportError>;
 
 pub(super) fn export(config: &Config) -> Result<(), String> {
     let exporters: &[ContractExporter] = &[
+        crate::file_inspection::ArchiveMember::export_all,
+        crate::spaces::assets::kind::AssetKind::export_all,
+        crate::spaces::assets::kind::PreparedAssetState::export_all,
+        crate::spaces::assets::PreparedAsset::export_all,
+        crate::spaces::assets::import::PreparedSpaceImport::export_all,
         crate::spaces::derivation::video_edit::RenderVideoEditRequest::export_all,
         crate::spaces::derivation::video_edit::PrepareVideoEditProxyRequest::export_all,
         crate::spaces::derivation::video_edit::VideoEditProgress::export_all,

@@ -1,14 +1,10 @@
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
+import type { PreparedSpaceImport } from "../contracts/generated/PreparedSpaceImport";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { isSpaceManagedAssetPayload } from "../model/nodes/capabilities";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
-import {
-  cancelSpaceAssetImport,
-  copyStagedSpaceAsset,
-  removeSpaceAsset,
-  type PreparedSpaceImport,
-} from "./asset-operations";
+import { cancelSpaceAssetImport, copyStagedSpaceAsset, removeSpaceAsset } from "./asset-operations";
 import { runSpaceAssetTransfer } from "./concurrency-budget";
 import { formatByteSize } from "./format-byte-size";
 import type { SpaceImportContext, SpaceImportSource } from "./import-contract";

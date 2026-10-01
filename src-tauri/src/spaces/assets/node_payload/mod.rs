@@ -1,9 +1,9 @@
 use serde_json::{json, Value};
 
-use super::PreparedAsset;
+use super::{kind::AssetKind, PreparedAsset};
 
 pub(crate) fn from_import(asset: PreparedAsset) -> Result<Value, String> {
-    if asset.kind == "markdown" {
+    if asset.kind == AssetKind::Markdown {
         let text = asset.text.ok_or("Imported Markdown has no text")?;
         let (title, text) = markdown_document(&asset.name, &text);
         return Ok(
@@ -37,7 +37,7 @@ pub(crate) fn from_import(asset: PreparedAsset) -> Result<Value, String> {
     if let Some(coverage) = document_coverage {
         data["documentCoverage"] = coverage;
     }
-    if asset.kind == "code" {
+    if asset.kind == AssetKind::Code {
         data["previewLanguage"] = json!(asset
             .preview_language
             .ok_or("Imported code has no language")?);
