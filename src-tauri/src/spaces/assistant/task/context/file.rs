@@ -11,12 +11,12 @@ pub(super) async fn resolve(
     remaining: usize,
     target: ContextTarget,
 ) -> Result<ResolvedPart, String> {
-    let source = upload::authorize(app, path)?;
-    let kind = upload::classify(&source)?;
+    let source = upload::authorize(app, path).map_err(|error| error.to_string())?;
+    let kind = upload::classify(&source).map_err(|error| error.to_string())?;
     let size = std::fs::metadata(&source)
         .map_err(|error| error.to_string())?
         .len();
-    upload::enforce_size(kind, size)?;
+    upload::enforce_size(kind, size).map_err(|error| error.to_string())?;
     verify_revision(source.clone(), source_revision.to_owned()).await?;
     let name = source
         .file_name()
@@ -94,8 +94,10 @@ async fn verify_revision(source: std::path::PathBuf, revision: String) -> Result
 fn extract_text(path: &Path, kind: UploadKind) -> Result<String, String> {
     let cancellation = tokio_util::sync::CancellationToken::new();
     let text = match kind {
-        UploadKind::Text => String::from_utf8(upload::read_bounded(path, 20 * 1024 * 1024)?)
-            .map_err(|error| format!("assistant-upload-invalid: text is not UTF-8: {error}"))?,
+        UploadKind::Text => String::from_utf8(
+            upload::read_bounded(path, 20 * 1024 * 1024).map_err(|error| error.to_string())?,
+        )
+        .map_err(|error| format!("assistant-upload-invalid: text is not UTF-8: {error}"))?,
         UploadKind::Pdf => crate::documents::extraction::pdf::extract(path, &cancellation)?
             .extracted_text
             .ok_or("assistant-upload-empty: PDF has no extractable text")?,

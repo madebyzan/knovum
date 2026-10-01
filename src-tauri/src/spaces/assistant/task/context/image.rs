@@ -50,7 +50,9 @@ pub(super) async fn read_image_attachment(
         .first_raw()
         .ok_or("assistant-image-invalid: image media type is unavailable")?;
     let source = path.to_path_buf();
-    let bytes = crate::blocking::run(move || upload::read_image(&source, media_type)).await?;
+    let bytes = crate::blocking::run(move || upload::read_image(&source, media_type))
+        .await
+        .map_err(|error| error.to_string())?;
     let name = path
         .file_name()
         .and_then(|value| value.to_str())

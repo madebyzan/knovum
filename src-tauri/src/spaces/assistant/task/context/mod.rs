@@ -97,9 +97,9 @@ impl ResolvedContext {
                         crate::ai::error::AiError::invalid("Unknown agent attachment")
                     })?;
                 let authorized_attachment = match origin {
-                    AgentPathOrigin::Upload => {
-                        upload::authorize(app, &path.to_string_lossy()).map(|_| ())
-                    }
+                    AgentPathOrigin::Upload => upload::authorize(app, &path.to_string_lossy())
+                        .map(|_| ())
+                        .map_err(|error| error.to_string()),
                     AgentPathOrigin::SpaceAsset => {
                         crate::spaces::assets::authorize_spaces_asset(app, path).map(|_| ())
                     }

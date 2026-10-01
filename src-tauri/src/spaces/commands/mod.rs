@@ -21,5 +21,7 @@ pub async fn move_structure_selection<R: Runtime>(
     app: AppHandle<R>,
     request: selection_transfer::contracts::TransferSelectionRequest,
 ) -> Result<selection_transfer::contracts::TransferSelectionResponse, CommandError> {
-    Ok((selection_transfer::transfer_selection(&app, request).await)?)
+    selection_transfer::transfer_selection(&app, request)
+        .await
+        .map_err(CommandError::from_space_edit)
 }

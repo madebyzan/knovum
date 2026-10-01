@@ -54,7 +54,7 @@ pub async fn enrich_asset(
     on_update: tauri::ipc::Channel<serde_json::Value>,
 ) -> Result<serde_json::Value, CommandError> {
     let (cancellation, _lease) = enrichment::registry::acquire(job_id)?;
-    Ok((enrichment::enrich_node_with_cancellation(
+    enrichment::enrich_node_with_cancellation(
         &app,
         space_id,
         node_id,
@@ -62,10 +62,30 @@ pub async fn enrich_asset(
         Some(&on_update),
         None,
     )
-    .await)?)
+    .await
+    .map_err(enrichment_error)
+}
+
+fn enrichment_error(error: String) -> CommandError {
+    if error == enrichment::ASSET_PROCESSING_CANCELLED {
+        CommandError::new("space_asset_processing_cancelled", error)
+    } else {
+        error.into()
+    }
 }
 
 #[tauri::command]
 pub async fn cancel_asset_enrichment(job_id: String) -> Result<(), CommandError> {
     Ok((enrichment::registry::cancel(&job_id))?)
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn asset_processing_cancellation_has_an_explicit_command_code() {
+        let error = super::enrichment_error(
+            crate::spaces::assets::enrichment::ASSET_PROCESSING_CANCELLED.to_owned(),
+        );
+        assert_eq!(error.code, "space_asset_processing_cancelled");
+    }
 }
