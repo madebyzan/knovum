@@ -15,7 +15,7 @@
     "changed": "创建此内容后，部分来源已发生变化。"
   },
   "citations": "引用 · {count}",
-  "createFromSelection": "用选中知识创建",
+  "createFromSelection": "用选中项创建",
   "needsIndexedKnowledge": "选中项暂时没有可供读取的文本。",
   "finishNodeOperation": "请先完成或取消当前节点操作。"
 }
