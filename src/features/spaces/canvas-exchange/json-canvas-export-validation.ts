@@ -1,6 +1,7 @@
 import type { StructureScene } from "../canvas/document/structure-scene";
 import type { SpaceRelation } from "../model/relations/relation";
 import type { SpaceEditSnapshot } from "../model/structure/schema/edit-snapshot";
+import type { WorldBounds } from "../model/structure/world-bounds";
 
 export function assertJsonCanvasExportable(snapshot: SpaceEditSnapshot, relations: readonly SpaceRelation[]) {
   if (snapshot.structure.some(({ kind }) => kind === "group"))
@@ -39,9 +40,7 @@ export function assertSectionMembershipIsGeometric(
   }
 }
 
-type Bounds = { left: number; top: number; right: number; bottom: number };
-
-function contains(parent: Bounds, child: Bounds) {
+function contains(parent: WorldBounds, child: WorldBounds) {
   return (
     child.left >= parent.left &&
     child.top >= parent.top &&

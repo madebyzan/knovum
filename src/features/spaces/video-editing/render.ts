@@ -34,7 +34,7 @@ type VideoEditStore = Pick<
 
 export async function renderVideoEdit(
   store: VideoEditStore,
-  source: SpaceCanvasNode & { data: SpaceVideoPayload },
+  source: SpaceCanvasNode<SpaceVideoPayload>,
   project: VideoEditProject,
 ) {
   const spaceId = store.activeSpaceId;

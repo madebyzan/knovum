@@ -1,5 +1,5 @@
-import { rotatedImageSize, type ImageEdit } from "./image-edit";
-import { applyImageTone, type ImagePixelRect } from "./image-tone";
+import { rotatedImageSize, type ImageEdit, type ImagePixelRect } from "./image-edit";
+import { applyImageTone } from "./image-tone";
 
 export interface ImageCanvasSize {
   width: number;

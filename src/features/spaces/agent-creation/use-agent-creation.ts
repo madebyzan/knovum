@@ -21,7 +21,7 @@ export function useAgentCreation(open: Ref<boolean>) {
   const aiStore = useAiSettingsStore();
   const catalog = useAgentCreationCatalog();
   const artifactState = useAgentArtifacts(open);
-  const selectedAgent = ref("");
+  const selectedAgent = ref<AgentKind | "">("");
   const prompt = ref("");
   const running = ref(false);
   const status = ref("");
@@ -80,7 +80,8 @@ export function useAgentCreation(open: Ref<boolean>) {
 
   async function run(attachments: readonly string[]) {
     const spaceId = store.activeSpaceId;
-    if (!spaceId || !canRun.value) return;
+    const kind = selectedAgent.value;
+    if (!spaceId || !kind || !canRun.value) return;
     const sessionId = crypto.randomUUID();
     artifactState.begin(sessionId);
     abandonRequested = false;
@@ -95,7 +96,7 @@ export function useAgentCreation(open: Ref<boolean>) {
     try {
       const artifacts = await runAgentCreation(
         {
-          kind: selectedAgent.value as AgentKind,
+          kind,
           prompt: prompt.value,
           attachments: [...attachments],
           spaceId,

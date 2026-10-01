@@ -9,12 +9,31 @@ const nodes = ["a", "b"].map((id) => createSpaceNode(createSpaceNotePayload(id),
 
 describe("canvasSelectionProductState", () => {
   it("connects exactly two explicitly selected semantic content items", () => {
-    expect(canvasSelectionProductState(nodes, ["a", "b"], [], snapshot()).canConnect).toBe(true);
-    expect(canvasSelectionProductState(nodes, [], ["section"], snapshot()).canConnect).toBe(false);
+    expect(
+      canvasSelectionProductState({
+        nodes,
+        selectedIds: ["a", "b"],
+        selectedStructureNodeIds: [],
+        snapshot: snapshot(),
+      }).canConnect,
+    ).toBe(true);
+    expect(
+      canvasSelectionProductState({
+        nodes,
+        selectedIds: [],
+        selectedStructureNodeIds: ["section"],
+        snapshot: snapshot(),
+      }).canConnect,
+    ).toBe(false);
   });
 
   it("projects Section selection and ancestor locks from Structure", () => {
-    const state = canvasSelectionProductState(nodes, [], ["section"], snapshot(true));
+    const state = canvasSelectionProductState({
+      nodes,
+      selectedIds: [],
+      selectedStructureNodeIds: ["section"],
+      snapshot: snapshot(true),
+    });
 
     expect(state.section).toEqual({ id: "section", collapsed: true });
     expect(state.content.map(({ id }) => id)).toEqual(["a", "b"]);

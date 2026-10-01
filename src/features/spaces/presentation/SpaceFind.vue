@@ -95,7 +95,7 @@ function matchBadgeLabel(match: KnowledgeSearchMatch): string | null {
             <ListboxItem
               v-for="node in !query.trim() ? defaultNodes : []"
               :key="node.id"
-              :value="node"
+              :value="`node:${node.id}`"
               :text-value="node.data.title"
               class="flex min-h-(--knovum-command-palette-item-height) w-full cursor-default items-center gap-2.5 rounded-md px-2.5 py-2 text-left outline-none data-highlighted:bg-(--knovum-sidebar-item-bg-selected)"
             >
@@ -115,7 +115,7 @@ function matchBadgeLabel(match: KnowledgeSearchMatch): string | null {
             <ListboxItem
               v-for="match in query.trim() ? structureMatches : []"
               :key="match.structureNodeId"
-              :value="match"
+              :value="`structure:${match.structureNodeId}`"
               :text-value="match.title"
               class="flex min-h-(--knovum-command-palette-item-height) w-full cursor-default items-center gap-2.5 rounded-md px-2.5 py-2 text-left outline-none data-highlighted:bg-(--knovum-sidebar-item-bg-selected)"
             >
@@ -137,7 +137,7 @@ function matchBadgeLabel(match: KnowledgeSearchMatch): string | null {
             <ListboxItem
               v-for="match in query.trim() ? matches : []"
               :key="match.chunkId"
-              :value="match"
+              :value="`match:${match.chunkId}`"
               :text-value="`${match.nodeTitle} ${match.text}`"
               class="flex min-h-(--knovum-command-palette-item-height) w-full cursor-default items-start gap-2.5 rounded-md px-2.5 py-2.5 text-left outline-none data-highlighted:bg-(--knovum-sidebar-item-bg-selected)"
             >

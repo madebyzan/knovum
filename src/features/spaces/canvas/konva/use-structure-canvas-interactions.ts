@@ -52,9 +52,7 @@ export function useStructureCanvasInteractions(options: StructureCanvasInteracti
     report(
       options.events.onExecuteSpaceEdit(
         sectionDropMoveCommand(
-          options.snapshot(),
-          gestureRootIds(structureNodeId),
-          delta,
+          { snapshot: options.snapshot(), rootIds: gestureRootIds(structureNodeId), delta },
           options.temporarilyExpandedSectionId.value,
         ),
       ),

@@ -11,15 +11,13 @@ export interface VideoDraft {
   target?: TaskTargetRef | undefined;
 }
 
-export function generateVideoFromSources({
-  store,
-  sources,
-  draft,
-}: {
+interface VideoGenerationInput {
   store: DerivationActionStore;
   sources: readonly GroundedDocumentSource[];
   draft: VideoDraft;
-}) {
+}
+
+export function generateVideoFromSources({ store, sources, draft }: VideoGenerationInput) {
   return startDerivationAction({
     store,
     sources,

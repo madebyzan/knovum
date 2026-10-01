@@ -77,9 +77,10 @@ async function markPendingCutoutFailed(store: SpaceStore, spaceId: string, outpu
   if (store.activeSpaceId !== spaceId) return;
   const current = store.nodes.find(({ id }) => id === outputNodeId);
   if (current?.data.kind === "image" && current.data.processingState === "processing") {
-    await store.saveNodeContentForSpace(spaceId, current.id, current.data, {
-      ...current.data,
-      processingState: "failed",
+    await store.saveNodeContentForSpace(spaceId, {
+      id: current.id,
+      expectedData: current.data,
+      data: { ...current.data, processingState: "failed" },
     });
   }
 }

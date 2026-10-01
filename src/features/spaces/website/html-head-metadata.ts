@@ -2,19 +2,21 @@ import { truncateUtf16 } from "../model/text";
 import type { SpaceWebsiteMetadata } from "./metadata";
 import { websiteDefaultTitle } from "./url";
 
+interface ReadablePageMetadata {
+  title?: string;
+  siteName?: string;
+  excerpt?: string;
+}
+
 export function htmlHeadMetadata(
   document: Document,
   finalUrl: string,
-  readable: { title?: string; siteName?: string; excerpt?: string },
+  readable: ReadablePageMetadata,
 ): Omit<SpaceWebsiteMetadata, "finalUrl" | "contentPreview" | "knowledgeSections"> {
   return { ...headText(document, finalUrl, readable), ...headAssets(document, finalUrl) };
 }
 
-function headText(
-  document: Document,
-  finalUrl: string,
-  readable: { title?: string; siteName?: string; excerpt?: string },
-) {
+function headText(document: Document, finalUrl: string, readable: ReadablePageMetadata) {
   const title = pageTitle(document, finalUrl, readable.title);
   const siteName =
     meta(document, "property", "og:site_name") ?? readable.siteName ?? websiteDefaultTitle(finalUrl);

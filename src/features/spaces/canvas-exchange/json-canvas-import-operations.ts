@@ -13,11 +13,17 @@ interface CanvasJsonImportInput {
   sectionTitle: string;
 }
 
+interface JsonCanvasImportProgress {
+  stage: string;
+  bytesCopied: number;
+  totalBytes?: number;
+}
+
 export function importJsonCanvas(
   input: CanvasJsonImportInput,
-  onProgress: (progress: { stage: string; bytesCopied: number; totalBytes?: number }) => void,
+  onProgress: (progress: JsonCanvasImportProgress) => void,
 ) {
-  const channel = new Channel<{ stage: string; bytesCopied: number; totalBytes?: number }>();
+  const channel = new Channel<JsonCanvasImportProgress>();
   // oxlint-disable-next-line unicorn/prefer-add-event-listener -- Tauri Channel exposes onmessage rather than EventTarget.
   channel.onmessage = onProgress;
   return invokeConfirmedMutation<JsonCanvasImportReceipt>(

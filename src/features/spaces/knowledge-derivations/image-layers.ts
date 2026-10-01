@@ -104,9 +104,10 @@ export async function generateImageLayers(
     onError: async () => {
       for (const node of pending)
         if (node.data.kind === "image")
-          await store.saveNodeContentForSpace(spaceId, node.id, node.data, {
-            ...node.data,
-            processingState: "failed",
+          await store.saveNodeContentForSpace(spaceId, {
+            id: node.id,
+            expectedData: node.data,
+            data: { ...node.data, processingState: "failed" },
           });
       await store.refreshActiveSpace();
     },

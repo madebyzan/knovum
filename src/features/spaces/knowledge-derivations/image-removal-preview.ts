@@ -1,13 +1,8 @@
-interface ImageRect {
-  left: number;
-  top: number;
-  width: number;
-  height: number;
-}
+import type { ImagePixelRect } from "../image-editing/image-edit";
 
 export function drawRemovalMask(
   context: CanvasRenderingContext2D,
-  rect: ImageRect,
+  rect: ImagePixelRect,
   pixelRatio: number,
   strokes: readonly { readonly diameter: number; readonly points: readonly number[] }[],
 ) {

@@ -9,16 +9,10 @@ import {
   type CropDragOrigin,
   type CropDrawOrigin,
 } from "../../../image-editing/crop-geometry";
-import type { ImageCrop } from "../../../image-editing/image-edit";
-interface ImageRect {
-  left: number;
-  top: number;
-  width: number;
-  height: number;
-}
+import type { ImageCrop, ImagePixelRect } from "../../../image-editing/image-edit";
 const props = defineProps<{
   crop: ImageCrop;
-  imageRect: ImageRect;
+  imageRect: ImagePixelRect;
   lockedAspect?: number;
   frameRotation: number;
 }>();

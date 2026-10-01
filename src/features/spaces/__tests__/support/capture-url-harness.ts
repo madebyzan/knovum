@@ -3,11 +3,12 @@ import { vi } from "vitest";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceMediaPayload } from "../../model/nodes/capabilities";
 import type { SpaceNodePayload } from "../../model/nodes/node-payload";
+import type { NodePayloadChangeInput } from "../../nodes/node-operations";
 import type { SpaceUrlCaptureProjection } from "../../sources/url-capture-projection";
 
 type Point = { x: number; y: number };
 type AddContent = (data: SpaceNodePayload, position?: Point) => Promise<SpaceCanvasNode[]>;
-type SaveNodeContent = (spaceId: string, id: string, data: SpaceNodePayload) => Promise<void>;
+type SaveNodeContent = (spaceId: string, change: NodePayloadChangeInput) => Promise<void>;
 
 export const URL = "https://www.youtube.com/watch?v=abc123";
 export const POSITION = { x: 120, y: 80 };

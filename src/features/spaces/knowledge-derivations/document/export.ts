@@ -11,15 +11,13 @@ type IndexedMarkdownNode = SpaceCanvasNode & {
   data: { kind: "markdown"; title: string; knowledgeRevision: string };
 };
 
-export function exportMarkdownDocument({
-  store,
-  source,
-  format,
-}: {
+interface MarkdownDocumentExportInput {
   store: DerivationActionStore;
   source: IndexedMarkdownNode;
   format: DocumentFormat;
-}) {
+}
+
+export function exportMarkdownDocument({ store, source, format }: MarkdownDocumentExportInput) {
   return startDerivationAction({
     store,
     sources: [

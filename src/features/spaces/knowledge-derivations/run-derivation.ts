@@ -8,17 +8,25 @@ import { yieldToCanvas } from "./canvas-yield";
 
 type SpaceStore = Pick<ReturnType<typeof useSpaceStore>, "activeSpaceId">;
 
+interface DerivationTask {
+  id?: string;
+  title: string;
+  statusMessage?: string;
+  cancel?: () => Promise<void> | void;
+}
+
+interface DerivationExecutionContext {
+  spaceId: string;
+  pendingId: string;
+  taskId?: string | undefined;
+}
+
 export interface RunDerivationOptions<Output> {
   store: SpaceStore;
   pendingId: string;
-  task: {
-    id?: string;
-    title: string;
-    statusMessage?: string;
-    cancel?: () => Promise<void> | void;
-  };
+  task: DerivationTask;
   failureMessageKey: string;
-  execute: (context: { spaceId: string; pendingId: string; taskId?: string | undefined }) => Promise<Output>;
+  execute: (context: DerivationExecutionContext) => Promise<Output>;
   onSuccess: (completed: Output, spaceId: string) => Promise<void> | void;
   onError: (error: unknown, spaceId: string) => Promise<void> | void;
 }

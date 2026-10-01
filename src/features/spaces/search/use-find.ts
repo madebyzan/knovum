@@ -6,8 +6,6 @@ import { computed, ref, watch, type Ref } from "vue";
 import { useCanvasEditorSession } from "../canvas/editor-session";
 import { revealContentNode, revealStructureNode } from "../canvas/structure-navigation";
 import { useContextDock } from "../canvas/use-context-dock";
-import type { KnowledgeSearchMatch } from "../knowledge/model/schema/search-match";
-import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { useSpaceStore } from "../session/space-store";
 import { useSemanticSearch } from "./use-semantic-search";
 
@@ -68,14 +66,20 @@ export function useFind(open: Ref<boolean>, close: () => void) {
   const searchFailed = computed(() => searchQuery.isError.value);
 
   async function select(value: unknown) {
-    if (!value) return;
-    close();
-    if (isStructureTitleMatch(value)) {
-      await revealStructureNode(store, editorSession, value.structureNodeId);
+    if (typeof value !== "string") return;
+    if (value.startsWith("structure:")) {
+      const match = structureMatches.value.find(
+        ({ structureNodeId }) => structureNodeId === value.slice("structure:".length),
+      );
+      if (!match) return;
+      close();
+      await revealStructureNode(store, editorSession, match.structureNodeId);
       return;
     }
-    if (query.value.trim()) {
-      const match = value as KnowledgeSearchMatch;
+    if (value.startsWith("match:")) {
+      const match = matches.value.find(({ chunkId }) => chunkId === value.slice("match:".length));
+      if (!match) return;
+      close();
       await revealContentNode(store, editorSession, match.nodeId);
       dock.openSource({
         nodeId: match.nodeId,
@@ -84,7 +88,14 @@ export function useFind(open: Ref<boolean>, close: () => void) {
         locator: match.locator,
         text: match.text,
       });
-    } else await revealContentNode(store, editorSession, (value as SpaceCanvasNode).id);
+      return;
+    }
+    if (value.startsWith("node:")) {
+      const node = defaultNodes.value.find(({ id }) => id === value.slice("node:".length));
+      if (!node) return;
+      close();
+      await revealContentNode(store, editorSession, node.id);
+    }
   }
 
   return {
@@ -99,8 +110,4 @@ export function useFind(open: Ref<boolean>, close: () => void) {
     select,
     retry: () => searchQuery.refetch(),
   };
-}
-
-function isStructureTitleMatch(value: unknown): value is StructureTitleMatch {
-  return typeof value === "object" && value !== null && "kind" in value && value.kind === "structure";
 }

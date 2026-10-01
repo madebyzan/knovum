@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { File, FileImage, FileText, Link2, X } from "@lucide/vue";
 
+import type { VisibleConversationAttachment } from "../../conversation/conversation-pending-message";
+
 defineProps<{
-  attachment: { key: string; kind: "node" | "file"; title: string; isImage: boolean; previewSource: string };
+  attachment: VisibleConversationAttachment & { key: string; kind: "node" | "file" };
 }>();
 const emit = defineEmits<{ remove: [key: string]; preview: [key: string] }>();
 </script>

@@ -4,11 +4,13 @@ import { onBeforeUnmount, type Ref, type ShallowRef } from "vue";
 import type { SpaceEditSnapshot } from "../../model/structure/schema/edit-snapshot";
 import { sectionDropCandidateId } from "../../structure/section-drop-reparent";
 
-export function useSectionDropPreview(options: {
+interface SectionDropPreviewOptions {
   dropTargetId: ShallowRef<string | undefined>;
   snapshot(): SpaceEditSnapshot;
   temporarilyExpandedSectionId: Ref<string | undefined>;
-}) {
+}
+
+export function useSectionDropPreview(options: SectionDropPreviewOptions) {
   let pendingExpansionId: string | undefined;
   const expansion = useTimeoutFn(
     (candidate: string) => {
@@ -30,7 +32,7 @@ export function useSectionDropPreview(options: {
   function update(rootIds: readonly string[], delta: { x: number; y: number } | undefined) {
     if (!delta) return clear();
     const snapshot = options.snapshot();
-    const candidate = sectionDropCandidateId(snapshot, rootIds, delta, true);
+    const candidate = sectionDropCandidateId({ snapshot, rootIds, delta }, true);
     const collapsed =
       candidate &&
       snapshot.layouts.some(

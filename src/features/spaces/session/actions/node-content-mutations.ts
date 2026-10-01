@@ -7,7 +7,6 @@ import { refreshEnrichmentTasks } from "../../enrichment/job-observation";
 import { beginSpaceMutation } from "../../history/mutation-barrier";
 import { requireActiveSpaceId, type SpaceMutationContext } from "../../history/mutation-context";
 import { scheduleKnowledgeIndex } from "../../knowledge/indexing/index-scheduler";
-import type { KnowledgeChunkSeed } from "../../knowledge/model/schema/chunk";
 import type { SpaceNodePayload } from "../../model/nodes/node-payload";
 import { validateSpaceNodePayload } from "../../model/nodes/node-validation";
 import {
@@ -28,39 +27,24 @@ export function createNodeContentMutations(context: SpaceMutationContext) {
       context.editSnapshot.value = snapshot;
   }
 
-  async function saveNodeContent(
-    id: string,
-    expectedContent: SpaceNodePayload,
-    data: SpaceNodePayload,
-    sourceChunks?: readonly KnowledgeChunkSeed[],
-  ) {
+  async function saveNodeContent(change: NodePayloadChangeInput) {
     const releaseMutation = beginSpaceMutation(context.history);
     try {
       const spaceId = requireActiveSpaceId(context.activeSpaceId);
-      await persistNodeContent(spaceId, { id, expectedData: expectedContent, data, sourceChunks });
-      afterSaved(spaceId, id);
+      await persistNodeContent(spaceId, change);
+      afterSaved(spaceId, change.id);
     } finally {
       releaseMutation();
     }
   }
 
-  async function saveNodeContentForSpace(
-    spaceId: string,
-    id: string,
-    expectedContent: SpaceNodePayload,
-    data: SpaceNodePayload,
-  ) {
-    await persistNodeContent(spaceId, { id, expectedData: expectedContent, data });
-    afterSaved(spaceId, id);
+  async function saveNodeContentForSpace(spaceId: string, change: NodePayloadChangeInput) {
+    await persistNodeContent(spaceId, change);
+    afterSaved(spaceId, change.id);
   }
 
-  async function savePendingNodeContentForSpace(
-    spaceId: string,
-    id: string,
-    expectedContent: SpaceNodePayload,
-    data: SpaceNodePayload,
-  ) {
-    await persistNodeContent(spaceId, { id, expectedData: expectedContent, data });
+  async function savePendingNodeContentForSpace(spaceId: string, change: NodePayloadChangeInput) {
+    await persistNodeContent(spaceId, change);
   }
 
   async function persistNodeContent(spaceId: string, change: NodePayloadChangeInput) {

@@ -1,17 +1,10 @@
 import { clamp } from "es-toolkit";
 
-import type { ImageAdjustments } from "./image-edit";
+import type { ImageAdjustments, ImagePixelRect } from "./image-edit";
 import { applyImageGlow } from "./image-glow";
 import { applyImageTexture } from "./image-texture";
 
 const BYTE_MAX = 255;
-
-export interface ImagePixelRect {
-  left: number;
-  top: number;
-  width: number;
-  height: number;
-}
 
 interface ImageToneFrame {
   width: number;

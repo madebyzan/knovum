@@ -14,6 +14,11 @@ const open = defineModel<boolean>("open", { required: true });
 const props = defineProps<{ sourceTitle: string }>();
 const emit = defineEmits<{ submit: [draft: VideoDraft] }>();
 const { t } = useI18n();
+const durationOptions = [
+  { value: "5", label: "5s", seconds: 5 },
+  { value: "10", label: "10s", seconds: 10 },
+  { value: "15", label: "15s", seconds: 15 },
+] as const;
 const form = reactive<VideoDraft>({
   title: "",
   prompt: "",
@@ -26,6 +31,11 @@ watch(open, (isOpen) => {
     form.prompt = "";
   }
 });
+
+function selectDuration(value: string) {
+  const option = durationOptions.find((duration) => duration.value === value);
+  if (option) form.durationSeconds = option.seconds;
+}
 </script>
 <template>
   <UiDialog
@@ -51,12 +61,8 @@ watch(open, (isOpen) => {
         /><UiSelect
           :model-value="String(form.durationSeconds)"
           :label="t('spaces.creation.video.generation.duration')"
-          :options="[
-            { value: '5', label: '5s' },
-            { value: '10', label: '10s' },
-            { value: '15', label: '15s' },
-          ]"
-          @update:model-value="form.durationSeconds = Number($event) as VideoDraft['durationSeconds']"
+          :options="durationOptions"
+          @update:model-value="selectDuration"
         />
       </div>
       <AiExecutionTargetField v-model="form.target" purpose="video-generation" />

@@ -6,6 +6,13 @@ export type ImageEdit = NonNullable<SpaceImagePayload["imageEdit"]>;
 export type ImageAdjustments = ImageEdit["adjustments"];
 export type ImageCrop = ImageEdit["crop"];
 
+export interface ImagePixelRect {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+}
+
 export function defaultImageEdit(): ImageEdit {
   return {
     version: 6,

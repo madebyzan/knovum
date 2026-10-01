@@ -29,14 +29,13 @@ interface TrimGesture {
   timelineDuration: number;
 }
 
-export function useVideoTimelineInteraction(
-  props: VideoTimelineProps,
-  actions: {
-    seek(milliseconds: number): void;
-    trim(project: VideoEditProject): void;
-    selectClip(id: string): void;
-  },
-) {
+interface VideoTimelineActions {
+  seek(milliseconds: number): void;
+  trim(project: VideoEditProject): void;
+  selectClip(id: string): void;
+}
+
+export function useVideoTimelineInteraction(props: VideoTimelineProps, actions: VideoTimelineActions) {
   const gesture = shallowRef<TrimGesture>();
   const draftClip = shallowRef<VideoClip>();
   const visibleProject = computed(() => {

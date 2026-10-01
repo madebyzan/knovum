@@ -66,7 +66,7 @@ export function persistSpaceTiptapContent(options: PersistOptions): Promise<void
   const pending = editor ? pendingSave(node, { state, editor }) : undefined;
   if (!pending) return Promise.resolve();
   return editorWrites.run(pending.id, async () => {
-    await store.saveNodeContent(pending.id, node.data, pending.data);
+    await store.saveNodeContent({ id: pending.id, expectedData: node.data, data: pending.data });
     state.persistedRevision = Math.max(state.persistedRevision, pending.revision);
   });
 }

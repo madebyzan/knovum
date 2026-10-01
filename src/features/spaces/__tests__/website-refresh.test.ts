@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceNodePayload, SpaceWebsitePayload } from "../model/nodes/node-payload";
+import type { NodePayloadChangeInput } from "../nodes/node-operations";
 import { refreshSavedWebsite } from "../website/capture";
 
 const mocks = vi.hoisted(() => ({
@@ -29,14 +30,7 @@ const saved: SpaceWebsitePayload = {
 
 function context() {
   const saveNodeContentForSpace = vi
-    .fn<
-      (
-        spaceId: string,
-        id: string,
-        expectedContent: SpaceNodePayload,
-        data: SpaceNodePayload,
-      ) => Promise<void>
-    >()
+    .fn<(spaceId: string, change: NodePayloadChangeInput) => Promise<void>>()
     .mockResolvedValue(undefined);
   return {
     activeSpaceId: "space-1",
@@ -64,7 +58,7 @@ describe("saved website refresh", () => {
     });
     const input = context();
     await refreshSavedWebsite(input, "website-1", saved.url);
-    const latest = input.saveNodeContentForSpace.mock.lastCall?.[3];
+    const latest = input.saveNodeContentForSpace.mock.lastCall?.[1]?.data;
     expect(latest).toMatchObject({
       title: "User title",
       url: "https://example.com/new",
@@ -79,7 +73,7 @@ describe("saved website refresh", () => {
     mocks.fetch.mockRejectedValue(new Error("network unavailable"));
     const input = context();
     await refreshSavedWebsite(input, "website-1", saved.url);
-    const latest = input.saveNodeContentForSpace.mock.lastCall?.[3];
+    const latest = input.saveNodeContentForSpace.mock.lastCall?.[1]?.data;
     expect(latest).toMatchObject({
       description: "Old description",
       faviconPath: "/assets/old.ico",
@@ -95,7 +89,7 @@ describe("saved website refresh", () => {
     mocks.remove.mockRejectedValueOnce(new Error("cleanup unavailable"));
     const input = context();
     await refreshSavedWebsite(input, "website-1", saved.url);
-    expect(input.saveNodeContentForSpace.mock.lastCall?.[3]).toMatchObject({
+    expect(input.saveNodeContentForSpace.mock.lastCall?.[1]?.data).toMatchObject({
       metadataState: "ready",
       faviconPath: "/assets/new.ico",
     });

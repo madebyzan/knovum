@@ -3,12 +3,16 @@ import { basename } from "pathe";
 import type { AssistantMessage } from "../contracts/generated/AssistantMessage";
 import type { SubmitAssistantTaskRequest } from "../contracts/generated/SubmitAssistantTaskRequest";
 
-type VisibleAttachment = { title: string; isImage: boolean; previewSource: string };
+export interface VisibleConversationAttachment {
+  title: string;
+  isImage: boolean;
+  previewSource: string;
+}
 
 export function pendingConversationMessage(
   request: SubmitAssistantTaskRequest,
-  identity: { id: string; conversationId: string; branchId: string },
-  visibleAttachments: readonly VisibleAttachment[],
+  identity: Pick<AssistantMessage, "id" | "conversationId" | "branchId">,
+  visibleAttachments: readonly VisibleConversationAttachment[],
 ): AssistantMessage {
   const attachments = (request.attachments ?? []).map((attachment, index) => {
     const visible = visibleAttachments[index];

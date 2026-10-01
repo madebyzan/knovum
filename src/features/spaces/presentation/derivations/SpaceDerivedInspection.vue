@@ -43,9 +43,10 @@ async function onRetry() {
         ...props.node.data,
         derivationState: undefined,
       });
-      await store.saveNodeContentForSpace(spaceId, props.node.id, props.node.data, {
-        ...props.node.data,
-        derivationState: undefined,
+      await store.saveNodeContentForSpace(spaceId, {
+        id: props.node.id,
+        expectedData: props.node.data,
+        data: { ...props.node.data, derivationState: undefined },
       });
     }
     toast.success(t("common.retry"));
