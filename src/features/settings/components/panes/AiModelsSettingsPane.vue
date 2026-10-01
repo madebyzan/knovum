@@ -8,7 +8,7 @@ import { toast } from "vue-sonner";
 import { useAiSettingsStore } from "../../../../foundation/ai/ai-settings-store";
 import { useCreationLibraryStore } from "../../../../foundation/ai/creation-library-store";
 import { loadProviderDescriptors } from "../../../../foundation/ai/providers";
-import type { AiRoutingPurpose } from "../../../../foundation/ai/schema/models";
+import type { RoutingPurpose } from "../../../../shared/contracts/generated/RoutingPurpose";
 import { confirmAction } from "../../../../shared/ui/confirm-action";
 import UiSpinner from "../../../../shared/ui/UiSpinner.vue";
 import { useProtectedExecutionTargets } from "../../use-protected-execution-targets";
@@ -29,7 +29,7 @@ const catalog = useQuery({
   staleTime: 30_000,
 });
 const providers = computed(() => catalog.data.value ?? []);
-const createModelRequest = shallowRef<{ purpose: AiRoutingPurpose }>();
+const createModelRequest = shallowRef<{ purpose: RoutingPurpose }>();
 const failure = computed(() =>
   loadError.value
     ? { source: "ai" as const, cause: loadError.value, canReset: true }
@@ -68,7 +68,7 @@ async function resetSection() {
 
 onMounted(hydrateStores);
 
-async function manageModels(purpose: AiRoutingPurpose) {
+async function manageModels(purpose: RoutingPurpose) {
   const request = { purpose };
   createModelRequest.value = request;
   await nextTick();

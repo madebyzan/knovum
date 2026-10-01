@@ -4,8 +4,8 @@ import { useI18n } from "vue-i18n";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiSelect from "../../../../shared/ui/UiSelect.vue";
+import type { CapturedWorkflowRun } from "../../contracts/generated/CapturedWorkflowRun";
 import { useSpaceStore } from "../../session/space-store";
-import type { CapturedWorkflowRun } from "../../workflows/captured-workflow-ipc";
 import { useCapturedWorkflowLibrary } from "../../workflows/use-captured-workflow-library";
 import { useCapturedWorkflowRun } from "../../workflows/use-captured-workflow-run";
 import { useWorkflowBindings } from "../../workflows/use-workflow-bindings";
@@ -23,6 +23,7 @@ const {
   history,
   loading,
   error: loadError,
+  retry: retryLibrary,
   renamed,
   deleted,
   addRun,
@@ -47,10 +48,10 @@ watch(
   },
 );
 
-watch(loading, autoSelect, { immediate: true });
+watch([loading, loadError], autoSelect, { immediate: true });
 
 function autoSelect() {
-  if (autoSelected || loading.value) return;
+  if (autoSelected || loading.value || loadError.value) return;
   autoSelected = true;
   if (choices.value.length === 1 && !choices.value[0]!.disabled)
     workflowId.value = items.value[0]!.workflowId;
@@ -110,6 +111,12 @@ function deletedWorkflow(id: string) {
       <p v-if="loading" role="status" class="text-fg-secondary">
         {{ t("spaces.creation.workflow.derivation.loading") }}
       </p>
+      <div v-else-if="loadError" class="space-y-2">
+        <p role="alert" class="text-caption text-fg-danger">{{ loadError }}</p>
+        <UiButton variant="secondary" @click="retryLibrary">
+          {{ t("common.retry") }}
+        </UiButton>
+      </div>
       <template v-else>
         <p v-if="!items.length" class="text-caption text-fg-secondary">
           {{ t("spaces.creation.workflow.empty") }}
@@ -169,8 +176,8 @@ function deletedWorkflow(id: string) {
           :active-run-state="runState"
           @select="showHistory"
         />
-        <p v-if="error || loadError" role="alert" class="text-caption text-fg-danger">
-          {{ error || loadError }}
+        <p v-if="error" role="alert" class="text-caption text-fg-danger">
+          {{ error }}
         </p>
       </template>
     </div>

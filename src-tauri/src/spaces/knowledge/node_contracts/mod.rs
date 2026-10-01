@@ -1,3 +1,4 @@
+pub(crate) mod document_coverage;
 mod json_value;
 mod media;
 mod object;

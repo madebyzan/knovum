@@ -6,6 +6,33 @@ use tauri::{ipc::Channel, AppHandle};
 
 use super::{grounded_document, subtitled_video, video_generation, visualization};
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum Handler {
+    Answer,
+    Text,
+    Image,
+    Video,
+    Subtitles,
+    Document,
+}
+
+fn handler(action_id: &str) -> Option<Handler> {
+    match action_id {
+        "answer-with-sources" => Some(Handler::Answer),
+        "draft-document" | "draft-script" | "summarize-meeting" | "draft-social-post" => {
+            Some(Handler::Text)
+        }
+        "generate-visualization" | "generate-image" => Some(Handler::Image),
+        "generate-video" => Some(Handler::Video),
+        "add-video-subtitles" => Some(Handler::Subtitles),
+        "render-presentation"
+        | "export-document-as-docx"
+        | "export-document-as-pdf"
+        | "export-document-as-txt" => Some(Handler::Document),
+        _ => None,
+    }
+}
+
 pub(crate) async fn execute(
     app: &AppHandle,
     action_id: &str,
@@ -23,11 +50,11 @@ pub(crate) async fn execute(
         super::action_request::prepare(app, action_id, space_id, parameters, inputs, &authority)
             .await?;
     let request = request_value(run_id, space_id, parameters, &prepared)?;
-    match action_id {
-        "answer-with-sources" => {
+    match handler(action_id) {
+        Some(Handler::Answer) => {
             super::grounded_answer::answer(app, decode(request)?, &authority).await
         }
-        "draft-document" | "draft-script" | "summarize-meeting" | "draft-social-post" => serialize(
+        Some(Handler::Text) => serialize(
             grounded_document::generate_for_action(
                 authority.clone(),
                 app.clone(),
@@ -36,7 +63,7 @@ pub(crate) async fn execute(
             )
             .await?,
         ),
-        "generate-visualization" | "generate-image" => serialize(
+        Some(Handler::Image) => serialize(
             visualization::generate_for_action(
                 authority.clone(),
                 app.clone(),
@@ -45,7 +72,7 @@ pub(crate) async fn execute(
             )
             .await?,
         ),
-        "generate-video" => serialize(
+        Some(Handler::Video) => serialize(
             video_generation::generate_for_action(
                 authority.clone(),
                 app.clone(),
@@ -54,7 +81,7 @@ pub(crate) async fn execute(
             )
             .await?,
         ),
-        "add-video-subtitles" => serialize(
+        Some(Handler::Subtitles) => serialize(
             subtitled_video::render_for_action(
                 authority.clone(),
                 app.clone(),
@@ -63,11 +90,8 @@ pub(crate) async fn execute(
             )
             .await?,
         ),
-        "render-presentation"
-        | "export-document-as-docx"
-        | "export-document-as-pdf"
-        | "export-document-as-txt" => render_document(app, action_id, request, &authority).await,
-        _ => Err(format!(
+        Some(Handler::Document) => render_document(app, action_id, request, &authority).await,
+        None => Err(format!(
             "action-executor-unavailable: durable Action {action_id} has no registered handler"
         )),
     }
@@ -148,17 +172,13 @@ async fn render_document(
 }
 
 pub(crate) async fn cancel(action_id: &str, run_id: &str) -> Result<(), String> {
-    match action_id {
-        "draft-document"
-        | "draft-script"
-        | "summarize-meeting"
-        | "draft-social-post"
-        | "answer-with-sources"
-        | "generate-visualization"
-        | "generate-image" => crate::ai::executions::cancel(run_id),
-        "generate-video" => video_generation::registry::cancel(run_id),
-        "add-video-subtitles" => subtitled_video::cancel(run_id.to_owned()).await,
-        _ => Ok(()),
+    match handler(action_id) {
+        Some(Handler::Answer | Handler::Text | Handler::Image) => {
+            crate::ai::executions::cancel(run_id)
+        }
+        Some(Handler::Video) => video_generation::registry::cancel(run_id),
+        Some(Handler::Subtitles) => subtitled_video::cancel(run_id.to_owned()).await,
+        Some(Handler::Document) | None => Ok(()),
     }
 }
 

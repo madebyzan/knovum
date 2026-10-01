@@ -6,7 +6,8 @@ import { toast } from "vue-sonner";
 
 import { useAiSettingsStore } from "../../../../foundation/ai/ai-settings-store";
 import { useExecutionCatalogQuery } from "../../../../foundation/ai/execution-catalog-query";
-import type { AgentKind, DesktopAgentSettings } from "../../../../foundation/ai/schema/agents";
+import type { AgentKind } from "../../../../shared/contracts/generated/AgentKind";
+import type { DesktopAgentSettings } from "../../../../shared/contracts/generated/DesktopAgentSettings";
 import { confirmAction } from "../../../../shared/ui/confirm-action";
 import AgentAvailability from "../AgentAvailability.vue";
 import SettingsLoadFailure from "../SettingsLoadFailure.vue";

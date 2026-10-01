@@ -1,32 +1,30 @@
 import { computed, shallowRef, type Ref, type ShallowRef } from "vue";
 
-import {
-  cancelAssistantTask,
-  type AssistantMessage,
-  type AssistantConversation,
-  type StartAssistantTaskInput,
-} from "./conversation-ipc";
-import type { ConversationTarget } from "./conversation-target";
+import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
+import type { AssistantConversation } from "../contracts/generated/AssistantConversation";
+import type { AssistantMessage } from "../contracts/generated/AssistantMessage";
+import type { SubmitAssistantTaskRequest } from "../contracts/generated/SubmitAssistantTaskRequest";
+import { cancelAssistantTask } from "./conversation-ipc";
 import { createConversationTaskState } from "./conversation-task-state";
 import { createConversationTaskSubmission } from "./conversation-task-submission";
 import { useConversationRunRestoration } from "./use-conversation-run-restoration";
 
-type Attachment = NonNullable<StartAssistantTaskInput["attachments"]>[number];
+type Attachment = NonNullable<SubmitAssistantTaskRequest["attachments"]>[number];
 
 export function useConversationTask(input: {
   spaceId: Ref<string | undefined>;
   selectedConversationId: Ref<string>;
   conversation: Ref<AssistantConversation | undefined>;
   prompt: Ref<string>;
-  target: Ref<ConversationTarget | undefined>;
+  target: Ref<TaskTargetRef | undefined>;
   attachments: Ref<Attachment[]>;
   visibleAttachments: Ref<readonly { title: string; isImage: boolean; previewSource: string }[]>;
   messages: ShallowRef<AssistantMessage[]>;
   refresh: () => Promise<void>;
   select: (id: string, skipRemember?: boolean, branchId?: string) => Promise<void>;
   moveDraft: (fromId: string, toId: string) => void;
-  clearDraft: (request: StartAssistantTaskInput) => void;
-  restoreDraft: (request: StartAssistantTaskInput) => void;
+  clearDraft: (request: SubmitAssistantTaskRequest) => void;
+  restoreDraft: (request: SubmitAssistantTaskRequest) => void;
 }) {
   const activeRunId = shallowRef<string>();
   const activeConversationId = shallowRef("");

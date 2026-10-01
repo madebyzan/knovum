@@ -1,8 +1,6 @@
-export type { UpdateMetadata } from "../../shared/contracts/generated/UpdateMetadata";
-import type { UpdateMetadata } from "../../shared/contracts/generated/UpdateMetadata";
-export type { UpdateConfiguration } from "../../shared/contracts/generated/UpdateConfiguration";
 import { invokeCommand } from "../../foundation/ipc/invoke-command";
 import type { UpdateConfiguration } from "../../shared/contracts/generated/UpdateConfiguration";
+import type { UpdateMetadata } from "../../shared/contracts/generated/UpdateMetadata";
 
 export function getUpdateConfiguration() {
   return invokeCommand<UpdateConfiguration>("get_update_configuration");

@@ -1,4 +1,6 @@
-use super::model::{DocumentCoverage, DocumentOccurrence, DocumentResource};
+use crate::spaces::knowledge::node_contracts::document_coverage::{
+    DocumentCoverage, DocumentOccurrence, DocumentResource, VisualState,
+};
 use crate::spaces::{assets::enrichment::jobs::RunEnrichmentJobRequest, db};
 use sqlx::Row;
 use std::collections::BTreeMap;
@@ -67,7 +69,7 @@ fn restore_occurrence(
     // Published completed knowledge is authoritative, including edits made before recovery.
     if !matches!(
         planned.state,
-        super::model::VisualState::Completed | super::model::VisualState::Unsupported
+        VisualState::Completed | VisualState::Unsupported
     ) {
         *planned = checkpoint;
     }

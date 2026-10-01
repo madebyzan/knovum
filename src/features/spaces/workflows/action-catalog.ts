@@ -39,8 +39,6 @@ const spaceActionDefinitionSchema = z
   })
   .strict();
 
-export type { SpaceActionDefinition } from "../contracts/generated/SpaceActionDefinition";
-
 let catalog: Promise<SpaceActionDefinition[]> | undefined;
 
 export function listSpaceActions(): Promise<SpaceActionDefinition[]> {

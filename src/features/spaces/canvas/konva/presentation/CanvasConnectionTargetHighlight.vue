@@ -6,7 +6,7 @@ import "konva/lib/shapes/Circle";
 import "konva/lib/shapes/Rect";
 
 import type { CanvasConnectorTarget } from "../interaction/connector-gesture-controller";
-import type { CanvasSceneNode } from "../scene/scene-projection";
+import type { CanvasSceneNode } from "../scene/canvas-scene";
 import type { CanvasPalette } from "./use-canvas-palette";
 
 defineProps<{

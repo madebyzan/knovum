@@ -3,7 +3,7 @@ import type Konva from "konva";
 import { computed, onBeforeUnmount, reactive, shallowRef, watch, type Ref } from "vue";
 
 import { isScrollableTarget } from "../../../../../foundation/dom/scrollable-target";
-import type { CanvasPoint, CanvasViewport } from "../../contracts/canvas-editor";
+import type { CanvasPoint, CanvasViewport } from "../../contracts/canvas-editor-port";
 import { useViewportMotion } from "./use-viewport-motion";
 import { useViewportSpaceKey } from "./use-viewport-space-key";
 import { normalizedWheelDelta, zoomViewportAt } from "./viewport-math";

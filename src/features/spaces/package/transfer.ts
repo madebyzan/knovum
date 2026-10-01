@@ -1,4 +1,3 @@
-export type { SpacePackageProgress } from "../contracts/generated/SpacePackageProgress";
 import { Channel } from "@tauri-apps/api/core";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import { isString } from "es-toolkit";

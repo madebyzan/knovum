@@ -19,10 +19,10 @@ import UiKbd from "../../../shared/ui/UiKbd.vue";
 import UiSpinner from "../../../shared/ui/UiSpinner.vue";
 import { matchLocatorFor, type SpaceMatchLocator } from "../knowledge/model/match-locator";
 import type { KnowledgeSearchMatch } from "../knowledge/model/schema/search-match";
-import { knowledgeLocationLabel } from "../knowledge/presentation/location-label";
 import { formatDurationMs } from "../media/format-duration";
 import { highlightedSnippet } from "../search/highlighted-snippet";
 import { useFind } from "../search/use-find";
+import { knowledgeLocationLabel } from "./knowledge/knowledge-location-label";
 import { nodeIcon } from "./node-icon";
 
 const open = defineModel<boolean>("open", { required: true });

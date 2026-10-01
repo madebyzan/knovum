@@ -1,6 +1,6 @@
-use super::{
-    model::{DocumentAnalysis, DocumentCoverage},
-    resource,
+use super::resource;
+use crate::spaces::knowledge::node_contracts::document_coverage::{
+    DocumentAnalysis, DocumentCoverage,
 };
 use crate::{
     ai::tasks::{

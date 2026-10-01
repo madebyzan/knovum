@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { canvasRelationArrowheads } from "../canvas/konva/presentation/connector-presentation";
-import type { CanvasSceneRelation } from "../canvas/konva/scene/scene-projection";
+import type { CanvasSceneRelation } from "../canvas/konva/scene/canvas-scene";
 import { createSpaceNotePayload } from "../editor/tiptap-content";
 import { spaceCanvasNodePresentation } from "../presentation/canvas/nodes/space-canvas-node-presentation";
 

@@ -27,27 +27,11 @@ pub async fn derive_image(
 }
 
 #[tauri::command]
-pub async fn start_image_cutout_derivation(
+pub async fn run_image_cutout_derivation(
     app: AppHandle,
     request: image_cutout::StartImageCutoutRequest,
-) -> Result<(), CommandError> {
-    Ok((image_cutout::start(&app, request).await)?)
-}
-
-#[tauri::command]
-pub async fn submit_image_cutout_derivation(
-    app: AppHandle,
-    request: image_cutout::CompleteImageCutoutRequest,
 ) -> Result<CompletedDerivationOutput, CommandError> {
-    Ok((image_cutout::complete(app, request).await)?)
-}
-
-#[tauri::command]
-pub async fn fail_image_cutout_derivation(
-    app: AppHandle,
-    request: image_cutout::FailImageCutoutRequest,
-) -> Result<(), CommandError> {
-    Ok((image_cutout::fail(&app, request).await)?)
+    Ok(image_cutout::run(app, request).await?)
 }
 
 #[tauri::command]
@@ -56,7 +40,15 @@ pub async fn render_video_edit(
     request: video_edit::RenderVideoEditRequest,
     on_progress: tauri::ipc::Channel<video_edit::VideoEditProgress>,
 ) -> Result<CompletedDerivationOutput, CommandError> {
-    Ok((video_edit::render(app, request, on_progress).await)?)
+    video_edit::render(app, request, on_progress)
+        .await
+        .map_err(|message| {
+            if message == video_edit::CANCELLED {
+                CommandError::new("video_edit_render_cancelled", message)
+            } else {
+                message.into()
+            }
+        })
 }
 
 #[tauri::command]

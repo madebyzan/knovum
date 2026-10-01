@@ -1,6 +1,6 @@
 import type { CanvasViewport } from "../../contracts/canvas-editor-port";
 import type { CanvasNodeFrame } from "../../schema/document";
-import type { CanvasScene } from "../scene/scene-projection";
+import type { CanvasScene } from "../scene/canvas-scene";
 
 export interface CanvasOverviewViewport {
   x: number;

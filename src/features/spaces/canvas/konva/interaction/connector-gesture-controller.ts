@@ -1,12 +1,10 @@
-import type { CanvasPoint } from "../../contracts/canvas-editor";
+import type { CanvasPoint } from "../../contracts/canvas-editor-port";
 import {
   connectorAnchor,
   nearestConnectorTarget,
   type CanvasConnectorSide,
 } from "../scene/connector-geometry";
 import { targetsWithin, topmostTargetAt, type ConnectorTargetIndex } from "./connector-target-index";
-
-export type { CanvasConnectorSide } from "../scene/connector-geometry";
 
 export interface CanvasConnectorDraft {
   sourceNodeId: string;

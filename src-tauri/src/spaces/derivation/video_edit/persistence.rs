@@ -1,7 +1,9 @@
 use serde_json::Value;
 use tauri::AppHandle;
 
-use super::super::{inputs, relations, video_output::RenderedVideo, CompletedDerivationOutput};
+use super::super::{
+    inputs, pending_output, relations, video_output::RenderedVideo, CompletedDerivationOutput,
+};
 use crate::spaces::{
     db,
     knowledge::{contracts, indexing::revision},
@@ -14,14 +16,16 @@ pub async fn complete(
 ) -> Result<CompletedDerivationOutput, String> {
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
-    let row: (String, String, String, String) = sqlx::query_as(
-        "SELECT d.space_id,i.node_id,d.output_node_id,n.data FROM spaces_knowledge_derivations d \
+    let row: (String, String, String, String, String) = sqlx::query_as(
+        "SELECT d.space_id,i.node_id,d.output_node_id,n.data,json_extract(source.data,'$.assetPath') FROM spaces_knowledge_derivations d \
          JOIN spaces_knowledge_derivation_inputs i ON i.derivation_id=d.id AND i.position=0 AND i.role='primary' \
+         JOIN spaces_nodes source ON source.id=i.node_id AND source.space_id=d.space_id \
          JOIN spaces_nodes n ON n.id=d.output_node_id WHERE d.id=$1 AND d.status='running'",
     ).bind(id).fetch_optional(&mut *tx).await.map_err(db::sql_error)?.ok_or("Video edit is no longer rendering")?;
     inputs::validate_current(&mut tx, id).await?;
     let now = crate::clock::unix_time_millis()?;
     let mut data: Value = serde_json::from_str(&row.3).map_err(db::json_error)?;
+    pending_output::validate_separate_asset(&data, &row.4)?;
     apply_output(&mut data, &output, now)?;
     contracts::validate_node(&mut tx, &row.0, "video", &data).await?;
     let relation = relations::derives_from(

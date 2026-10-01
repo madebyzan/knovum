@@ -17,8 +17,6 @@ import {
   type ThemePreference,
 } from "./schema/preferences";
 
-export type { DensityPreference, LocalePreference, TextSizePreference, ThemePreference };
-
 const SETTINGS_FILE = "settings.json";
 const SETTINGS_KEY = "preferences";
 const currentWindow = getCurrentWindow();

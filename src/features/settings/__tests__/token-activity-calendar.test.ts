@@ -2,8 +2,8 @@ import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
 import { createI18n } from "vue-i18n";
 
-import type { TokenUsageReport } from "../../../foundation/ai/token-usage";
 import { localeMessages } from "../../../locales/locale-registry";
+import type { UsageReport } from "../../../shared/contracts/generated/UsageReport";
 import { buildTokenActivityWeeks } from "../usage/token-activity-calendar";
 import TokenActivityCalendar from "../usage/TokenActivityCalendar.vue";
 
@@ -34,7 +34,7 @@ describe("token activity calendar", () => {
   });
 
   it("includes the date and token count in an active day's tooltip", () => {
-    const report: TokenUsageReport = {
+    const report: UsageReport = {
       fromDate: "2026-09-22",
       toDate: "2026-09-22",
       activity: [{ date: "2026-09-22", inputTokens: 100, outputTokens: 300, totalTokens: 400, requests: 1 }],

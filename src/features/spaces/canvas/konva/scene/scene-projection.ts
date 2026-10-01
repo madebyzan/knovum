@@ -8,8 +8,6 @@ import type { CanvasDocumentV1, CanvasNodeLayoutV1 } from "../../schema/document
 import type { CanvasScene, CanvasSceneNode, CanvasSceneRelation } from "./canvas-scene";
 import { relationGeometry } from "./relation-path";
 
-export type { CanvasScene, CanvasSceneNode, CanvasSceneRelation } from "./canvas-scene";
-
 export function projectCanvasScene(
   document: CanvasDocumentV1,
   nodes: readonly SpaceCanvasNode[],

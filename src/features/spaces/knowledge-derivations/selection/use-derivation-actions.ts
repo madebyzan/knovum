@@ -2,7 +2,7 @@ import type { Ref, ShallowRef } from "vue";
 
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { useSpaceStore } from "../../session/space-store";
-import type { CreationIntentId } from "../catalog/creation-intent-catalog";
+import type { CreationIntentId } from "../catalog/creation-intent-definitions";
 import type { GroundedDocumentSource } from "../catalog/grounded-document";
 import { exportMarkdownDocument, isKnowledgeMarkdown, type DocumentFormat } from "../document/export";
 import { generateGroundedDocument, type GroundedDocumentDraft } from "../grounded-document";
@@ -13,12 +13,10 @@ import { generateVideoFromSources, type VideoDraft } from "../video/generation";
 import { generateVisualization, type VisualizationDraft } from "../visualization";
 import type { CreationDialogId } from "./creation-dialog";
 
-type SpaceStore = ReturnType<typeof useSpaceStore>;
-
 interface UseDerivationActionsOptions {
   canRun(actionId: CreationIntentId): boolean;
   canSubmit(): boolean;
-  store: SpaceStore;
+  store: ReturnType<typeof useSpaceStore>;
   selection: Ref<SpaceCanvasNode[]>;
   single: Ref<SpaceCanvasNode | undefined>;
   sources: Ref<readonly GroundedDocumentSource[] | undefined>;

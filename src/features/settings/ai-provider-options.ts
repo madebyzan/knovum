@@ -1,8 +1,8 @@
-import type { ProviderDescriptor } from "../../foundation/ai/providers";
-import type { AiProvider } from "../../foundation/ai/schema/models";
+import type { ProviderDescriptor } from "../../shared/contracts/generated/ProviderDescriptor";
+import type { ProviderKind } from "../../shared/contracts/generated/ProviderKind";
 
 export interface AiProviderOption {
-  readonly value: AiProvider;
+  readonly value: ProviderKind;
   readonly label: string;
 }
 

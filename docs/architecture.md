@@ -59,6 +59,7 @@ The Spaces Rust boundary is divided by responsibility, not CRUD mechanics:
 - `mcp/`: inbound Space protocol projection over Actions and Authorization, never direct mutation;
 - `knowledge/`: semantic contracts, provenance, patches, events and knowledge governance;
 - `knowledge/indexing/`: extraction of revisions, passages and knowledge chunks from Space nodes;
+- `knowledge/node_contracts/document_coverage/`: validation of the persisted document-coverage payload; document enrichment writes this contract, while `knowledge/indexing/node/document.rs` alone projects its semantic revision and chunks;
 - `knowledge/chunk_store/`: transactional persistence and revision rules for derived knowledge chunks;
 - `knowledge/retrieval/`: Space-owned vector indexing, semantic search and hybrid ranking;
 - `knowledge/grounding/`: answer-with-sources contracts, prompt construction, citations and reference cleanup;
@@ -127,7 +128,7 @@ Spaces processing and retrieval are Rust application use cases, not WebView work
 
 Raw persistence transitions, embedding vectors and partial grounded-AI steps are not IPC contracts.
 
-Canvas generation and document exports enter the typed `actions/canvas` acceptance boundary. Rust pins authorized source identities and execution choice, then creates an Action Run through the existing invocation contract. A Workflow replays a saved, verified derivation chain through those same Actions under a persisted grant and idempotency key. Built-in recipe definitions and their separate compiler are removed. Document assembly and publication belong to Rust, not a Renderer coordinator. Vue owns selection, input binding and observation; it never marks a step complete.
+Canvas generation and document exports enter the typed `actions/canvas` acceptance boundary. Rust pins authorized source identities and execution choice, then creates an Action Run through the existing invocation contract. A Workflow replays a saved, verified derivation chain through those same Actions under a persisted grant and idempotency key. Interactive image tools, multi-output layer splitting, and video-editor rendering use one capability-owned Rust command each; they record Derivation provenance but are not replayable Workflow Actions. Built-in recipe definitions and their separate compiler are removed. Document assembly and publication belong to Rust, not a Renderer coordinator. Vue owns selection, input binding and observation; it never marks a step complete.
 
 The knowledge embedding model and vector dimensions form one Spaces retrieval-index contract. They are intentionally not a user-switchable generation preference: changing either requires an explicit index-contract change and complete rebuild. The generic `ai::embedding` adapter accepts a resolved target and dimensions but does not own the selected model identity.
 
@@ -138,7 +139,8 @@ implementation from low-level Rust primitives.
 `knowledge/`, `knowledge/indexing/` and infrastructure adapters; semantic policy must not be duplicated in
 a command, derivation capability or query adapter. `knowledge/` never depends on
 `derivation/`: governance and provenance policy remain independent of the use cases that
-produce derivative resources.
+produce derivative resources. It also does not depend on `assets/` or `queries/`; the Rust boundary
+check in `pnpm check:rust` guards those imports. Action query dispatch calls `queries/` directly.
 
 Read and write files for the same aggregate are not duplicate implementations when they form an
 intentional command/query split. Two files are duplicate capability implementations only when both

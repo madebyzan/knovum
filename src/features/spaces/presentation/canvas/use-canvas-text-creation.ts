@@ -1,7 +1,7 @@
 import { useI18n } from "vue-i18n";
 
 import { useCanvasToolStore } from "../../canvas/canvas-tool-store";
-import type { CanvasPoint } from "../../canvas/contracts/canvas-editor";
+import type { CanvasPoint } from "../../canvas/contracts/canvas-editor-port";
 import { createSpaceNotePayload, createSpaceTextPayload } from "../../editor/tiptap-content";
 import { useSpaceStore } from "../../session/space-store";
 

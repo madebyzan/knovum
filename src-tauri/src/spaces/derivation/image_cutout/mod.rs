@@ -19,18 +19,9 @@ pub struct StartImageCutoutRequest {
     source_edit: Value,
 }
 
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct CompleteImageCutoutRequest {
+pub(super) struct CompleteImageCutoutRequest {
     id: String,
     source_edit: Value,
-}
-
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct FailImageCutoutRequest {
-    id: String,
-    error: String,
 }
 
 #[derive(Deserialize)]
@@ -56,8 +47,8 @@ pub async fn check_source(
     .await
 }
 
-pub async fn start(app: &AppHandle, request: StartImageCutoutRequest) -> Result<(), String> {
-    validate_request(&request)?;
+async fn start(app: &AppHandle, request: &StartImageCutoutRequest) -> Result<(), String> {
+    validate_request(request)?;
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
     contracts::validate_same_space_node(
@@ -122,15 +113,32 @@ pub async fn start(app: &AppHandle, request: StartImageCutoutRequest) -> Result<
     tx.commit().await.map_err(db::sql_error)
 }
 
-pub async fn complete(
+pub async fn run(
     app: AppHandle,
-    request: CompleteImageCutoutRequest,
+    request: StartImageCutoutRequest,
 ) -> Result<CompletedDerivationOutput, String> {
-    completion::complete(app, request).await
-}
-
-pub async fn fail(app: &AppHandle, request: FailImageCutoutRequest) -> Result<(), String> {
-    failure::fail_message(app, &request.id, &request.error).await
+    if let Err(error) = start(&app, &request).await {
+        failure::fail_pending(
+            &app,
+            &request.space_id,
+            &request.output_node_id,
+            failure::PendingNodeState::Processing,
+        )
+        .await?;
+        return Err(error);
+    }
+    let completed = completion::complete(
+        app.clone(),
+        CompleteImageCutoutRequest {
+            id: request.id.clone(),
+            source_edit: request.source_edit,
+        },
+    )
+    .await;
+    if let Err(error) = &completed {
+        failure::fail_message(&app, &request.id, error).await?;
+    }
+    completed
 }
 
 fn validate_request(request: &StartImageCutoutRequest) -> Result<(), String> {

@@ -1,7 +1,6 @@
 import { i18n } from "../../../foundation/i18n/i18n";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
-import type { useSpaceStore } from "../session/space-store";
-import { startDerivationAction } from "./start-action";
+import { startDerivationAction, type DerivationActionStore } from "./start-action";
 
 export function canAddVideoSubtitles(node?: SpaceCanvasNode): boolean {
   return (
@@ -11,7 +10,7 @@ export function canAddVideoSubtitles(node?: SpaceCanvasNode): boolean {
   );
 }
 
-export function addVideoSubtitles(store: ReturnType<typeof useSpaceStore>, source: SpaceCanvasNode) {
+export function addVideoSubtitles(store: DerivationActionStore, source: SpaceCanvasNode) {
   if (!canAddVideoSubtitles(source) || !source.data.knowledgeRevision) return;
   return startDerivationAction({
     store,

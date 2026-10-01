@@ -1,4 +1,4 @@
-use super::model::{
+use super::{
     DocumentAnalysis, DocumentCoverage, DocumentOccurrence, DocumentResource, VisualState,
     MAX_RESOURCE_BYTES, MAX_RESOURCE_DIMENSION, MAX_RESOURCE_PIXELS, MAX_TOTAL_RESOURCE_BYTES,
 };
@@ -129,7 +129,7 @@ fn validate_input(
     Ok(())
 }
 
-pub(super) fn validate_analysis(analysis: &DocumentAnalysis) -> Result<(), String> {
+pub(crate) fn validate_analysis(analysis: &DocumentAnalysis) -> Result<(), String> {
     analysis.execution_source.validate()?;
     if analysis.analysis_version != "document-visual:1"
         || analysis.generated_at < 0

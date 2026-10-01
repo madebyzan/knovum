@@ -7,6 +7,15 @@ pub(crate) struct CommandError {
     pub message: String,
 }
 
+impl CommandError {
+    pub(crate) fn new(code: &'static str, message: impl Into<String>) -> Self {
+        Self {
+            code: code.into(),
+            message: message.into(),
+        }
+    }
+}
+
 impl From<String> for CommandError {
     fn from(message: String) -> Self {
         let candidate = message

@@ -1,10 +1,7 @@
 import { shallowRef, type Ref } from "vue";
 
-import {
-  activateAssistantBranch,
-  listAssistantBranches,
-  type AssistantConversation,
-} from "./conversation-ipc";
+import type { AssistantConversation } from "../contracts/generated/AssistantConversation";
+import { activateAssistantBranch, listAssistantBranches } from "./conversation-ipc";
 
 export function useConversationBranches(input: {
   selected: Ref<AssistantConversation | undefined>;

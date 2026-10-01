@@ -1,4 +1,7 @@
-use super::{model::DocumentCoverage, resource};
+use super::resource;
+use crate::spaces::knowledge::node_contracts::document_coverage::{
+    DocumentCoverage, DocumentResource, MAX_TOTAL_RESOURCE_BYTES,
+};
 use tauri::AppHandle;
 use tokio_util::sync::CancellationToken;
 
@@ -27,7 +30,7 @@ pub(super) fn materialize_all(
 fn attach_resource(
     report: &mut DocumentCoverage,
     index: usize,
-    resource: super::model::DocumentResource,
+    resource: DocumentResource,
 ) -> Result<(), String> {
     let new_resource = !report.resources.iter().any(|value| value.id == resource.id);
     if new_resource {
@@ -37,7 +40,7 @@ fn attach_resource(
             .map(|value| value.byte_size)
             .sum::<u64>()
             + resource.byte_size;
-        if bytes > super::model::MAX_TOTAL_RESOURCE_BYTES {
+        if bytes > MAX_TOTAL_RESOURCE_BYTES {
             return Err("Document visual resources exceed 256 MiB".into());
         }
     }

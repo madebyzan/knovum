@@ -11,6 +11,10 @@ use agent_client_protocol::{
 use base64::{engine::general_purpose::STANDARD, Engine};
 use tokio::io::AsyncWriteExt;
 
+const MAX_EMBEDDED_RESOURCE_BYTES: usize = 32 * 1024 * 1024;
+const MAX_EMBEDDED_IMAGE_BYTES: usize = 64 * 1024 * 1024;
+const MAX_EMBEDDED_AUDIO_BYTES: usize = 128 * 1024 * 1024;
+
 pub enum AgentSessionUpdate {
     Thought(String),
     Message(String),
@@ -294,12 +298,13 @@ async fn persist_resource(
 ) -> Result<PathBuf, Error> {
     let (bytes, mime_type, uri, default_extension) = match content.resource {
         EmbeddedResourceResource::TextResourceContents(text) => {
+            if text.text.len() > MAX_EMBEDDED_RESOURCE_BYTES {
+                return Err(size_limit_error("resource"));
+            }
             (text.text.into_bytes(), text.mime_type, text.uri, "txt")
         }
         EmbeddedResourceResource::BlobResourceContents(blob) => (
-            STANDARD.decode(blob.blob).map_err(|error| {
-                Error::internal_error().data(format!("Agent returned invalid resource: {error}"))
-            })?,
+            decode_bounded(blob.blob, MAX_EMBEDDED_RESOURCE_BYTES, "resource")?,
             blob.mime_type,
             blob.uri,
             "bin",
@@ -376,9 +381,13 @@ async fn persist_media(
     stem: &str,
     identity: Option<&str>,
 ) -> Result<PathBuf, Error> {
-    let bytes = STANDARD.decode(encoded).map_err(|error| {
-        Error::internal_error().data(format!("Agent returned invalid media: {error}"))
-    })?;
+    let parsed_mime = mime_type.parse::<mime::Mime>().ok();
+    let maximum_bytes = match parsed_mime.as_ref().map(mime::Mime::type_) {
+        Some(mime::IMAGE) => MAX_EMBEDDED_IMAGE_BYTES,
+        Some(mime::AUDIO) => MAX_EMBEDDED_AUDIO_BYTES,
+        _ => MAX_EMBEDDED_RESOURCE_BYTES,
+    };
+    let bytes = decode_bounded(encoded, maximum_bytes, "media")?;
     let extension = mime_guess::get_mime_extensions_str(mime_type)
         .and_then(|values| values.first())
         .ok_or_else(|| {
@@ -394,6 +403,27 @@ async fn persist_media(
     ));
     publish_bytes(workspace, &path, &bytes, "media").await?;
     Ok(path)
+}
+
+fn decode_bounded(encoded: String, maximum_bytes: usize, label: &str) -> Result<Vec<u8>, Error> {
+    if encoded.len() > maximum_bytes.div_ceil(3).saturating_mul(4) {
+        return Err(size_limit_error(label));
+    }
+    let bytes = STANDARD.decode(encoded).map_err(|error| {
+        Error::invalid_request().data(format!("Agent returned invalid {label}: {error}"))
+    })?;
+    bounded_bytes(bytes, maximum_bytes, label)
+}
+
+fn bounded_bytes(bytes: Vec<u8>, maximum_bytes: usize, label: &str) -> Result<Vec<u8>, Error> {
+    if bytes.len() > maximum_bytes {
+        return Err(size_limit_error(label));
+    }
+    Ok(bytes)
+}
+
+fn size_limit_error(label: &str) -> Error {
+    Error::invalid_request().data(format!("Agent {label} exceeded its size limit"))
 }
 
 async fn publish_bytes(

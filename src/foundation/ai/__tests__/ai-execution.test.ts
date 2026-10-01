@@ -3,7 +3,7 @@ import { isProxy, reactive } from "vue";
 
 import { availableExecutionTargets, availableModelTargets, defaultExecutionTarget } from "../ai-execution";
 import { encodeExecutionTarget, decodeExecutionTarget } from "../execution-target-codec";
-import { defaultAiModelSettings } from "../integration-settings";
+import { defaultAiModelSettings } from "../schema/model-settings";
 
 describe("execution target options", () => {
   it("returns a plain default target when settings are reactive", () => {

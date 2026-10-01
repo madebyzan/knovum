@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { reactive } from "vue";
 
-import type { AiConnectionSettings } from "../../../foundation/ai/schema/models";
+import type { AiConnectionSettings } from "../../../shared/contracts/generated/AiConnectionSettings";
 import { createAiConnectionDraft, finalizeAiConnectionDraft } from "../ai-connection-draft";
 
 const connection: AiConnectionSettings = {

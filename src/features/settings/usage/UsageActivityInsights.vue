@@ -2,9 +2,9 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import type { TokenUsageReport } from "../../../foundation/ai/token-usage";
+import type { UsageReport } from "../../../shared/contracts/generated/UsageReport";
 
-const props = defineProps<{ summary: TokenUsageReport["summary"] }>();
+const props = defineProps<{ summary: UsageReport["summary"] }>();
 const { locale, t } = useI18n();
 const dayFormatter = computed(
   () => new Intl.NumberFormat(locale.value, { style: "unit", unit: "day", unitDisplay: "long" }),

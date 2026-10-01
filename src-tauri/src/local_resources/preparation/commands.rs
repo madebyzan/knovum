@@ -51,9 +51,16 @@ pub async fn prepare_resources(
         };
         let _ = finished_tx.send(preparation_outcome);
     });
-    finished_rx
+    let outcome = finished_rx
         .await
-        .map_err(|_| "Resource preparation task ended unexpectedly")??;
+        .map_err(|_| "Resource preparation task ended unexpectedly")?;
+    outcome.map_err(|message| {
+        if message == super::RESOURCE_PREPARATION_CANCELLED {
+            CommandError::new("local_resource_preparation_cancelled", message)
+        } else {
+            message.into()
+        }
+    })?;
     Ok(())
 }
 

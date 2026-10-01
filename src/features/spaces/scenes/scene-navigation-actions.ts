@@ -1,14 +1,23 @@
 import { nextTick, type Ref } from "vue";
 
 import { i18n } from "../../../foundation/i18n/i18n";
-import type { CanvasViewport } from "../canvas/contracts/canvas-editor";
+import type { CanvasViewport } from "../canvas/contracts/canvas-editor-port";
 import type { Space } from "../model/space";
 import type { useSpaceStore } from "../session/space-store";
 import { popupSpaceContextMenu, spaceMenuItem } from "../workspace/space-menu";
 import type { SpaceScene } from "./scene";
 
 export interface SceneNavigationContext {
-  store: ReturnType<typeof useSpaceStore>;
+  store: Pick<
+    ReturnType<typeof useSpaceStore>,
+    | "openSceneView"
+    | "createScene"
+    | "announceScene"
+    | "updateScene"
+    | "duplicateScene"
+    | "moveScene"
+    | "removeScene"
+  >;
   scenes: Ref<SpaceScene[]>;
   activeSpace: Ref<Space | undefined>;
   viewport: Ref<CanvasViewport | undefined>;

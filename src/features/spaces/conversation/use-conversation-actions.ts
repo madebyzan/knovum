@@ -4,6 +4,8 @@ import { toast } from "vue-sonner";
 import { i18n } from "../../../foundation/i18n/i18n";
 import { confirmAction } from "../../../shared/ui/confirm-action";
 import { exportSpaceTextFile, safeExportFileName } from "../assets/export";
+import type { AssistantConversation } from "../contracts/generated/AssistantConversation";
+import type { AssistantMessage } from "../contracts/generated/AssistantMessage";
 import {
   archiveAssistantConversation,
   unarchiveAssistantConversation,
@@ -11,8 +13,6 @@ import {
   deleteAssistantConversation,
   loadAssistantBranchMessages,
   renameAssistantConversation,
-  type AssistantConversation,
-  type AssistantMessage,
 } from "./conversation-ipc";
 
 interface ConversationActionState {

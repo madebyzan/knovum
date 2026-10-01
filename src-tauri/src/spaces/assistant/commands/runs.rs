@@ -1,8 +1,7 @@
 use super::super::{
-    agent_task, contract, task, AssistantTaskAccepted, AssistantTaskUpdate,
-    SubmitAssistantTaskRequest,
+    agent_task, task, AssistantTaskAccepted, AssistantTaskUpdate, SubmitAssistantTaskRequest,
 };
-use crate::command_error::CommandError;
+use crate::{ai::tasks::TaskTargetSelection, command_error::CommandError};
 
 #[tauri::command]
 pub async fn start_assistant_task(
@@ -11,7 +10,7 @@ pub async fn start_assistant_task(
     updates: tauri::ipc::Channel<AssistantTaskUpdate>,
 ) -> Result<AssistantTaskAccepted, CommandError> {
     let accepted = match request.target.clone() {
-        contract::AssistantExecutionTargetSelection::Model {
+        TaskTargetSelection::Model {
             connection_id,
             model_id,
             temperature,
@@ -27,7 +26,7 @@ pub async fn start_assistant_task(
             )
             .await
         }
-        contract::AssistantExecutionTargetSelection::Agent { runtime_kind } => {
+        TaskTargetSelection::Agent { runtime_kind } => {
             agent_task::start(app, request, runtime_kind, updates).await
         }
     };

@@ -1,5 +1,20 @@
 use super::*;
 use serde_json::json;
+
+#[test]
+fn every_durable_action_has_an_execution_handler() {
+    use crate::spaces::actions::SpaceActionExecutionMode;
+
+    for action in crate::spaces::actions::definitions() {
+        let has_handler = handler(action.id).is_some();
+        assert_eq!(
+            has_handler,
+            matches!(action.execution_mode, SpaceActionExecutionMode::Durable),
+            "Action {} has an inconsistent execution mode and handler",
+            action.id,
+        );
+    }
+}
 fn prepared() -> Value {
     json!({"outputNodeId":"output", "inputs":[{"nodeId":"note","role":"primary","sourceRevision":"knowledge:1"}], "target":{"type":"agent","runtimeKind":"codex"}})
 }

@@ -1,11 +1,12 @@
 import type { FileDrop } from "../../../foundation/file-drop/file-drop";
 import { i18n } from "../../../foundation/i18n/i18n";
 import { importSpaceBatch } from "../assets/import-batch";
-import { spaceImportContext } from "../assets/import-context";
+import { spaceImportContext, type SpaceImportStore } from "../assets/import-context";
 import type { useSpaceStore } from "../session/space-store";
-import type { CanvasPoint } from "./contracts/canvas-editor";
+import type { CanvasPoint } from "./contracts/canvas-editor-port";
 
-type SpaceStore = ReturnType<typeof useSpaceStore>;
+type SpaceStore = SpaceImportStore &
+  Pick<ReturnType<typeof useSpaceStore>, "focusedEditorId" | "requestReveal">;
 
 export async function importDroppedFiles(payload: FileDrop, store: SpaceStore, origin: CanvasPoint) {
   if (store.focusedEditorId) return;

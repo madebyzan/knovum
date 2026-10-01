@@ -18,3 +18,13 @@ fn stable_domain_codes_survive_the_ipc_boundary_without_parsing_english_messages
         "operation_failed"
     );
 }
+
+#[test]
+fn explicitly_coded_errors_preserve_their_message() {
+    let error = CommandError::new(
+        "media_insights_cancelled",
+        "Media insights generation cancelled",
+    );
+    assert_eq!(error.code, "media_insights_cancelled");
+    assert_eq!(error.message, "Media insights generation cancelled");
+}

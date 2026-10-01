@@ -1,20 +1,22 @@
 import { toast } from "vue-sonner";
 
-import type { ExecutionTarget } from "../../../foundation/ai/schema/models";
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
+import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
 import type { RunObservation } from "../contracts/generated/RunObservation";
 import type { StartSpaceActionRequest } from "../contracts/generated/StartSpaceActionRequest";
 import { observeResourceRun } from "../runs/resource-run-observation";
 import type { useSpaceStore } from "../session/space-store";
 import type { GroundedDocumentSource } from "./catalog/grounded-document";
 
+export type DerivationActionStore = Pick<ReturnType<typeof useSpaceStore>, "activeSpaceId">;
+
 interface StartActionOptions {
-  store: ReturnType<typeof useSpaceStore>;
+  store: DerivationActionStore;
   actionId: string;
   sources: readonly GroundedDocumentSource[];
   parameters: Record<string, unknown>;
   title: string;
-  target?: ExecutionTarget | undefined;
+  target?: TaskTargetRef | undefined;
 }
 
 export async function startDerivationAction({

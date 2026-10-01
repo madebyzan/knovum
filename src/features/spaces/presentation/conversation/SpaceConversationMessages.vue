@@ -3,8 +3,8 @@ import { AlertCircle } from "@lucide/vue";
 import { computed, nextTick, watch, type ComponentPublicInstance } from "vue";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
+import type { AssistantMessage } from "../../contracts/generated/AssistantMessage";
 import type { RunEvent } from "../../contracts/generated/RunEvent";
-import type { AssistantMessage } from "../../conversation/conversation-ipc";
 import { useConversationScroll } from "../../conversation/use-conversation-scroll";
 import SpaceConversationActivity from "./SpaceConversationActivity.vue";
 import SpaceConversationEmptyGuide from "./SpaceConversationEmptyGuide.vue";

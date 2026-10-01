@@ -4,7 +4,8 @@ import { computed, onMounted, ref, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import AiExecutionTargetField from "../../../foundation/ai/AiExecutionTargetField.vue";
-import type { AiRoutingPurpose, GenerationPreset } from "../../../foundation/ai/schema/models";
+import type { GenerationPreset } from "../../../foundation/ai/schema/models";
+import type { RoutingPurpose } from "../../../shared/contracts/generated/RoutingPurpose";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiDialog from "../../../shared/ui/UiDialog.vue";
 import UiInput from "../../../shared/ui/UiInput.vue";
@@ -35,7 +36,7 @@ watch(open, (value) => {
 });
 
 const action = computed(() => actions.value.find(({ id }) => id === draft.value.actionId));
-const routingPurpose = computed<AiRoutingPurpose>(() => {
+const routingPurpose = computed<RoutingPurpose>(() => {
   if (!action.value?.routingPurpose) {
     throw new Error(`SpaceAction has no execution target: ${draft.value.actionId}`);
   }

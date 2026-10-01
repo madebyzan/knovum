@@ -2,7 +2,7 @@ import { maxBy } from "es-toolkit";
 import RBush from "rbush";
 
 import { canvasFrameBounds } from "../../canvas-snap-geometry";
-import type { CanvasPoint } from "../../contracts/canvas-editor";
+import type { CanvasPoint } from "../../contracts/canvas-editor-port";
 import type { CanvasNodeLayoutV1 } from "../../schema/document";
 import { frameContainsPoint } from "../scene/connector-geometry";
 

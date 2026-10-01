@@ -3,13 +3,13 @@ import { storeToRefs } from "pinia";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import {
-  type DensityPreference,
-  type LocalePreference,
-  type TextSizePreference,
-  type ThemePreference,
-  usePreferencesStore,
-} from "../../../../foundation/preferences/preferences-store";
+import { usePreferencesStore } from "../../../../foundation/preferences/preferences-store";
+import type {
+  DensityPreference,
+  LocalePreference,
+  TextSizePreference,
+  ThemePreference,
+} from "../../../../foundation/preferences/schema/preferences";
 import UiSelect from "../../../../shared/ui/UiSelect.vue";
 import PreferenceField from "../PreferenceField.vue";
 import SettingsSection from "../SettingsSection.vue";

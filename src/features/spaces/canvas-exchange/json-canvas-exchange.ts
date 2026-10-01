@@ -17,7 +17,7 @@ import {
   assertSectionMembershipIsGeometric,
 } from "./json-canvas-export-validation";
 import type {
-  CanvasImportCommit,
+  CanvasImportReceipt,
   CanvasJsonImportDraft,
   JsonCanvasNodeContentV1,
 } from "./json-canvas-import-contract";
@@ -27,7 +27,7 @@ interface JsonCanvasExchangeOptions {
   snapshot(): SpaceEditSnapshot;
   nodes(): readonly SpaceCanvasNode[];
   relations(): readonly SpaceRelation[];
-  commitImport(request: CanvasJsonImportDraft): Promise<CanvasImportCommit>;
+  commitImport(request: CanvasJsonImportDraft): Promise<CanvasImportReceipt>;
   transaction(action: () => Promise<void>): Promise<void>;
 }
 

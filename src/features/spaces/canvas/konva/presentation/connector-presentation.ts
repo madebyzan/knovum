@@ -1,5 +1,5 @@
 import { isSymmetricRelationKind } from "../../../model/relations/relation";
-import type { CanvasSceneRelation } from "../scene/scene-projection";
+import type { CanvasSceneRelation } from "../scene/canvas-scene";
 
 export function canvasRelationArrowheads(relation: CanvasSceneRelation) {
   return isSymmetricRelationKind(relation.relation.kind)

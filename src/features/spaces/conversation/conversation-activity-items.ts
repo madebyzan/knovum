@@ -1,7 +1,7 @@
 import { z } from "zod";
 
+import type { AssistantMessage } from "../contracts/generated/AssistantMessage";
 import type { RunEvent } from "../contracts/generated/RunEvent";
-import type { AssistantMessage } from "./conversation-ipc";
 
 export type ActivityItem = {
   id: string;

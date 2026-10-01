@@ -6,8 +6,6 @@ import { decideCreationIntents, type CreationIntentDecisions } from "./creation-
 import { groundedDocumentSources } from "./grounded-document";
 import { hasDerivableKnowledge } from "./source-capability";
 
-export type { CreationIntentDecisions, CreationIntentId } from "./creation-intent-definitions";
-
 function canExportDocument(node: SpaceCanvasNode | undefined): boolean {
   return node?.data.kind === "markdown" && Boolean(node.data.knowledgeRevision);
 }

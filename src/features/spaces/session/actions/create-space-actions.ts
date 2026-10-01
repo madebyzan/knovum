@@ -5,7 +5,7 @@ import { createSpaceMediaActions } from "../../media/actions";
 import { createSpaceAudioRecordingActions } from "../../media/audio-recording-actions";
 import { createRightSidebarActions } from "../../right-sidebar/right-sidebar-actions";
 import { materializeActiveSpace } from "../../workspace/draft-space-actions";
-import type { SpaceSessionContext } from "../../workspace/space-session-actions";
+import type { SpaceSessionContext } from "../../workspace/space-session-context";
 import type { SpaceState } from "../session-state";
 import { assembleSpaceActions } from "./assemble-space-actions";
 import { createJsonCanvasImportActions } from "./json-canvas-import-actions";

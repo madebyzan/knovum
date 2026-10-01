@@ -3,8 +3,14 @@ import { groupScopePathFor, sectionAncestorOf } from "../model/structure/structu
 import type { useSpaceStore } from "../session/space-store";
 import type { useCanvasEditorSession } from "./editor-session";
 
-type SpaceStore = ReturnType<typeof useSpaceStore>;
-type EditorSession = ReturnType<typeof useCanvasEditorSession>;
+type SpaceStore = Pick<
+  ReturnType<typeof useSpaceStore>,
+  "editSnapshot" | "executeSpaceEdit" | "groupScopePath"
+>;
+type EditorSession = Pick<
+  ReturnType<typeof useCanvasEditorSession>,
+  "selectNodes" | "selectStructureNodes" | "reveal"
+>;
 
 export async function revealStructureNode(store: SpaceStore, editor: EditorSession, structureNodeId: string) {
   const index = createStructureIndex(store.editSnapshot.structure);

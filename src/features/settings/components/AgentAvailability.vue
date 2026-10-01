@@ -3,7 +3,8 @@ import { Terminal } from "@lucide/vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import type { AgentDescriptor, AgentInstallation } from "../../../foundation/ai/schema/agents";
+import type { AgentDescriptor } from "../../../shared/contracts/generated/AgentDescriptor";
+import type { AgentInstallation } from "../../../shared/contracts/generated/AgentInstallation";
 import UiBadge from "../../../shared/ui/UiBadge.vue";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import AgentConnectionHelp from "./AgentConnectionHelp.vue";

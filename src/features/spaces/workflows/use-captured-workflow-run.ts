@@ -1,13 +1,13 @@
 import { onBeforeUnmount, ref, shallowRef } from "vue";
 
 import type { RunObservation } from "../contracts/generated/RunObservation";
+import type { SavedCapturedWorkflow } from "../contracts/generated/SavedCapturedWorkflow";
 import { cancelResourceRun, observeResourceRun } from "../runs/resource-run-observation";
 import { useSpaceStore } from "../session/space-store";
 import {
   listCapturedRunOutputs,
   retryCapturedWorkflowRun,
   startCapturedWorkflow,
-  type SavedCapturedWorkflow,
 } from "./captured-workflow-ipc";
 
 export function useCapturedWorkflowRun() {

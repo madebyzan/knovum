@@ -4,14 +4,15 @@ import { useI18n } from "vue-i18n";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiInput from "../../../../shared/ui/UiInput.vue";
-import type { WorkflowCaptureCandidate, WorkflowCapturePreview } from "../../workflows/captured-workflow-ipc";
+import type { CaptureCandidate } from "../../contracts/generated/CaptureCandidate";
+import type { CapturePreview } from "../../contracts/generated/CapturePreview";
 import { useWorkflowCaptureSave } from "../../workflows/use-workflow-capture-save";
 
 const props = defineProps<{
   spaceId: string;
   selectedNodeIds: string[];
-  preview: WorkflowCapturePreview;
-  candidate: WorkflowCaptureCandidate;
+  preview: CapturePreview;
+  candidate: CaptureCandidate;
 }>();
 const { t } = useI18n();
 const save = useWorkflowCaptureSave();

@@ -2,7 +2,8 @@
 import { useI18n } from "vue-i18n";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
-import type { CapturedWorkflowRun, SavedCapturedWorkflow } from "../../workflows/captured-workflow-ipc";
+import type { CapturedWorkflowRun } from "../../contracts/generated/CapturedWorkflowRun";
+import type { SavedCapturedWorkflow } from "../../contracts/generated/SavedCapturedWorkflow";
 import { workflowStateLabelKey } from "../../workflows/workflow-state-label";
 
 defineProps<{

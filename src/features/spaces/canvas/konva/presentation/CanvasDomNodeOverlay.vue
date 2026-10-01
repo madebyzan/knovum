@@ -3,7 +3,7 @@ import { computed } from "vue";
 
 import type { CanvasPreviewPolicy } from "../../preview/policy";
 import type { CanvasNodeLayoutV1 } from "../../schema/document";
-import type { CanvasSceneNode } from "../scene/scene-projection";
+import type { CanvasSceneNode } from "../scene/canvas-scene";
 
 const props = defineProps<{
   previewPolicy: CanvasPreviewPolicy;

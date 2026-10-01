@@ -31,8 +31,7 @@ export async function persistAndTrackSpace(context: SpaceSessionContext, space: 
 }
 
 export async function markSpaceOpenedAndTrack(context: SpaceSessionContext, id: string) {
-  const openedAt = Date.now();
-  const space = context.spaces.value.find((candidate) => candidate.id === id);
-  if (space) space.lastOpenedAt = openedAt;
   await markSpaceOpened(id);
+  const space = context.spaces.value.find((candidate) => candidate.id === id);
+  if (space) space.lastOpenedAt = Date.now();
 }

@@ -1,4 +1,3 @@
-export type { DerivationFailure } from "../contracts/generated/DerivationFailure";
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import type { DerivationFailure } from "../contracts/generated/DerivationFailure";
 

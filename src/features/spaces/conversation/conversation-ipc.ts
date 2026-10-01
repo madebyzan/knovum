@@ -1,22 +1,14 @@
-import type { ActiveAssistantRun } from "../contracts/generated/ActiveAssistantRun";
-export type { ActiveAssistantRun } from "../contracts/generated/ActiveAssistantRun";
-import type { SubmitAssistantTaskRequest as StartAssistantTaskInput } from "../contracts/generated/SubmitAssistantTaskRequest";
-export type { SubmitAssistantTaskRequest as StartAssistantTaskInput } from "../contracts/generated/SubmitAssistantTaskRequest";
-
-export type { AssistantAttachment } from "../contracts/generated/AssistantAttachment";
-import type { InspectedAssistantUpload } from "../contracts/generated/InspectedAssistantUpload";
-export type { InspectedAssistantUpload } from "../contracts/generated/InspectedAssistantUpload";
 import { Channel } from "@tauri-apps/api/core";
 
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
+import type { ActiveAssistantRun } from "../contracts/generated/ActiveAssistantRun";
 import type { AssistantConversation } from "../contracts/generated/AssistantConversation";
 import type { AssistantMessage } from "../contracts/generated/AssistantMessage";
 import type { AssistantTaskAccepted } from "../contracts/generated/AssistantTaskAccepted";
 import type { AssistantTaskUpdate } from "../contracts/generated/AssistantTaskUpdate";
+import type { InspectedAssistantUpload } from "../contracts/generated/InspectedAssistantUpload";
 import type { RunEvent } from "../contracts/generated/RunEvent";
-
-export type { AssistantConversation } from "../contracts/generated/AssistantConversation";
-export type { AssistantMessage, AssistantTaskAccepted };
+import type { SubmitAssistantTaskRequest } from "../contracts/generated/SubmitAssistantTaskRequest";
 
 export function listAssistantRunEvents(runId: string, afterSequence = 0): Promise<RunEvent[]> {
   return invokeCommand("plugin:spaces|list_run_events", { runId, afterSequence });
@@ -69,7 +61,7 @@ export function activateAssistantBranch(conversationId: string, branchId: string
 }
 
 export async function startAssistantTask(
-  request: StartAssistantTaskInput,
+  request: SubmitAssistantTaskRequest,
   onUpdate: (update: AssistantTaskUpdate) => void,
 ): Promise<{ accepted: AssistantTaskAccepted; settled: Promise<string> }> {
   let finish!: (state: string) => void;

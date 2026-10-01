@@ -5,8 +5,6 @@ import type { AgentArtifact } from "../../../shared/contracts/generated/AgentArt
 import type { AgentCreationEvent } from "../contracts/generated/AgentCreationEvent";
 import type { AgentCreationRequest } from "../contracts/generated/AgentCreationRequest";
 import type { RecoverableAgentCreation } from "../contracts/generated/RecoverableAgentCreation";
-export type { AgentArtifact } from "../../../shared/contracts/generated/AgentArtifact";
-export type { RecoverableAgentCreation } from "../contracts/generated/RecoverableAgentCreation";
 
 export function runAgentCreation(
   request: AgentCreationRequest,

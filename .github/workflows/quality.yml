@@ -48,6 +48,8 @@ jobs:
         run: test -f src-tauri/Cargo.lock
       - name: Verify capability permission policy
         run: node tools/check-capability-policy.mjs
+      - name: Verify Rust module boundaries
+        run: node tools/check-rust-boundaries.mjs
       - name: Verify Rust toolchain
         run: rustc --version && cargo --version
       - name: Audit Rust dependencies

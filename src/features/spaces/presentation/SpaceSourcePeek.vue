@@ -3,8 +3,8 @@ import { ArrowUpRight, FilePlus2, LocateFixed } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 
 import UiButton from "../../../shared/ui/UiButton.vue";
-import { knowledgeLocationLabel } from "../knowledge/presentation/location-label";
-import { useSourcePeek } from "../knowledge/sources/use-source-peek";
+import { knowledgeLocationLabel } from "./knowledge/knowledge-location-label";
+import { useSourcePeek } from "./knowledge/use-source-peek";
 import SpaceTextQuote from "./SpaceTextQuote.vue";
 
 const { t } = useI18n();

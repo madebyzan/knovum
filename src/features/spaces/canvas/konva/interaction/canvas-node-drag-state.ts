@@ -2,10 +2,8 @@ import type Konva from "konva";
 
 import type { CanvasNodeFrameUpdate, CanvasNodeLayoutV1 } from "../../schema/document";
 import { captureCanvasNodeRefs } from "./canvas-node-access";
-import {
-  createCanvasTranslationSnapIndex,
-  type CanvasTranslationGestureState,
-} from "./canvas-translation-snapping";
+import { createCanvasTranslationSnapIndex } from "./canvas-translation-snap-index";
+import type { CanvasTranslationGestureState } from "./canvas-translation-snapping";
 
 export function captureCanvasNodeDragState(options: {
   layouts: readonly CanvasNodeLayoutV1[];

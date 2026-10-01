@@ -2,9 +2,10 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import type { TokenUsageReport, UsagePurpose } from "../../../foundation/ai/token-usage";
+import type { UsagePurpose } from "../../../shared/contracts/generated/UsagePurpose";
+import type { UsageReport } from "../../../shared/contracts/generated/UsageReport";
 
-const props = defineProps<{ report: TokenUsageReport }>();
+const props = defineProps<{ report: UsageReport }>();
 const { n, t } = useI18n();
 const purposeLabelKeys: Record<UsagePurpose, string> = {
   assistant: "settings.usage.purpose.assistant",

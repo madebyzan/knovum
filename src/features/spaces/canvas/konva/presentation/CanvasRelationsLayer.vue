@@ -4,8 +4,8 @@ import { Arrow as KonvaArrow, Layer as KonvaLayer } from "vue-konva/core";
 import "konva/lib/shapes/Arrow";
 
 import type { CanvasConnectorDraft } from "../interaction/connector-gesture-controller";
+import type { CanvasSceneRelation } from "../scene/canvas-scene";
 import { draftRelationPath } from "../scene/relation-path";
-import type { CanvasSceneRelation } from "../scene/scene-projection";
 import CanvasRelationShape from "./CanvasRelationShape.vue";
 import type { CanvasPalette } from "./use-canvas-palette";
 

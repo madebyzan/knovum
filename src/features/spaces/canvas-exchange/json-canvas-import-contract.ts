@@ -19,5 +19,3 @@ export interface CanvasImportReceipt {
   snapshot: SpaceEditSnapshot;
   revision: number;
 }
-
-export type CanvasImportCommit = CanvasImportReceipt;

@@ -14,14 +14,6 @@ import type {
 import { commitManagedImport } from "./import-transfer";
 import { importedSpaceNodePayload } from "./imported-asset-payload";
 
-export type {
-  PreparedSpaceImportOperation,
-  PreparedSpaceImportSource,
-  SpaceImportContext,
-  SpaceImportSessionLabels,
-  SpaceImportSource,
-} from "./import-contract";
-
 export async function importSpaceSource(input: {
   context: SpaceImportContext;
   spaceId: string;

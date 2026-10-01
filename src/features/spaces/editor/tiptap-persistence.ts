@@ -48,7 +48,7 @@ export function createEditingState(): EditingState {
 }
 
 export interface PersistOptions {
-  store: ReturnType<typeof useSpaceStore>;
+  store: Pick<ReturnType<typeof useSpaceStore>, "saveNodeContent">;
   nodes: readonly SpaceCanvasNode[];
   state: EditingState;
   editor?: PersistEditor | undefined;

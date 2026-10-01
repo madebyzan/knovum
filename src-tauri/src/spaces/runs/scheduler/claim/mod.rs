@@ -126,10 +126,7 @@ async fn candidate_has_dispatch_authority(
         let ancestor_id: String = ancestor.try_get("id").map_err(db::sql_error)?;
         let budget: String = ancestor.try_get("budget").map_err(db::sql_error)?;
         let budget: serde_json::Value = serde_json::from_str(&budget).map_err(db::json_error)?;
-        let limit = budget
-            .get("maxParallelism")
-            .and_then(serde_json::Value::as_i64)
-            .unwrap_or(1);
+        let limit = super::super::budget::optional_limit(&budget, "maxParallelism")?.unwrap_or(1);
         let running: i64 = sqlx::query_scalar(
             "WITH RECURSIVE run_tree(id) AS (
                SELECT id FROM spaces_runs WHERE id=$1
@@ -172,10 +169,8 @@ async fn reserve_attempt_budget(
         let attempts: i64 = row.try_get("step_attempts").map_err(db::sql_error)?;
         let budget: String = row.try_get("budget").map_err(db::sql_error)?;
         let budget: serde_json::Value = serde_json::from_str(&budget).map_err(db::json_error)?;
-        let limit = budget
-            .get("maxStepAttempts")
-            .and_then(serde_json::Value::as_i64)
-            .unwrap_or(i64::MAX);
+        let limit =
+            super::super::budget::optional_limit(&budget, "maxStepAttempts")?.unwrap_or(i64::MAX);
         if attempts >= limit {
             exhaust_run(tx, &id, now, "maxStepAttempts").await?;
             return Ok(false);

@@ -2,9 +2,9 @@
 import { Eye, File, Image, Music, Video } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 
+import type { AgentArtifact } from "../../../../shared/contracts/generated/AgentArtifact";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiCheckbox from "../../../../shared/ui/UiCheckbox.vue";
-import type { AgentArtifact } from "../../agent-creation/agent-artifacts";
 import { formatByteSize } from "../../assets/format-byte-size";
 
 defineProps<{

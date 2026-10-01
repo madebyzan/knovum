@@ -3,14 +3,13 @@ import pLimit from "p-limit";
 import { spaceNodeDimensions } from "../canvas/node-size";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceImportSourceAccess } from "./asset-operations";
+import type {
+  PreparedSpaceImportOperation,
+  SpaceImportContext,
+  SpaceImportSessionLabels,
+} from "./import-contract";
 import { layoutImportGrid } from "./import-placement";
-import {
-  commitPreparedSpaceImport,
-  prepareSpaceImportSource,
-  type PreparedSpaceImportOperation,
-  type SpaceImportContext,
-  type SpaceImportSessionLabels,
-} from "./import-session";
+import { commitPreparedSpaceImport, prepareSpaceImportSource } from "./import-session";
 import { importedSpaceNodePayload } from "./imported-asset-payload";
 
 const importConcurrency = pLimit(3);

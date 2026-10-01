@@ -1,8 +1,8 @@
 import { computed, ref, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
 
+import type { SavedCapturedWorkflow } from "../contracts/generated/SavedCapturedWorkflow";
 import { useSpaceStore } from "../session/space-store";
-import type { SavedCapturedWorkflow } from "./captured-workflow-ipc";
 
 export function useWorkflowBindings(workflow: Readonly<Ref<SavedCapturedWorkflow | undefined>>) {
   const store = useSpaceStore();

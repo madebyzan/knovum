@@ -90,7 +90,7 @@ const OPEN_HANDLERS: Partial<Record<SpaceNodeKind, OpenHandler>> = {
 };
 
 export async function openSpaceNode(store: ReturnType<typeof useSpaceStore>, node?: SpaceCanvasNode) {
-  if (!node) return;
+  if (!node || !isSpaceNodeOpenable(node)) return;
   const handler = OPEN_HANDLERS[node.data.kind];
   if (handler) {
     await handler(store, node);
@@ -107,6 +107,7 @@ export async function openSpaceNode(store: ReturnType<typeof useSpaceStore>, nod
 
 export function isSpaceNodeOpenable(node?: SpaceCanvasNode) {
   if (!node) return false;
+  if (node.data.kind === "video" && node.data.processingState && !node.data.sourceRevision) return false;
   return OPEN_HANDLERS[node.data.kind] !== undefined || isSpaceManagedAssetPayload(node.data);
 }
 

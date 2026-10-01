@@ -5,7 +5,7 @@ import { computed, onMounted, shallowRef } from "vue";
 import { toast } from "vue-sonner";
 
 import { useCreationLibraryStore } from "../../../../foundation/ai/creation-library-store";
-import type { CreationLibrary } from "../../../../foundation/ai/integration-settings";
+import type { CreationLibrary } from "../../../../foundation/ai/schema/creation-library";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiSelect from "../../../../shared/ui/UiSelect.vue";
 

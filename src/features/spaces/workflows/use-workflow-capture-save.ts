@@ -1,10 +1,8 @@
 import { shallowRef } from "vue";
 
-import {
-  saveCapturedWorkflow,
-  type SavedCapturedWorkflow,
-  type WorkflowCapturePreview,
-} from "./captured-workflow-ipc";
+import type { CapturePreview } from "../contracts/generated/CapturePreview";
+import type { SavedCapturedWorkflow } from "../contracts/generated/SavedCapturedWorkflow";
+import { saveCapturedWorkflow } from "./captured-workflow-ipc";
 
 export function useWorkflowCaptureSave() {
   const name = shallowRef("");
@@ -35,7 +33,7 @@ export function useWorkflowCaptureSave() {
   async function submit(
     spaceId: string,
     selectedNodeIds: string[],
-    preview: WorkflowCapturePreview,
+    preview: CapturePreview,
     outputNames: Record<string, string>,
   ) {
     if (saving.value || !preview.candidate || !preview.sourceDigest || !name.value.trim()) return;

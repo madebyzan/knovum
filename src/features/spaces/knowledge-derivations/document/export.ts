@@ -1,7 +1,6 @@
 import { i18n } from "../../../../foundation/i18n/i18n";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
-import type { useSpaceStore } from "../../session/space-store";
-import { startDerivationAction } from "../start-action";
+import { startDerivationAction, type DerivationActionStore } from "../start-action";
 export type DocumentFormat = "docx" | "pdf" | "txt";
 const taskLabels: Record<DocumentFormat, string> = {
   docx: "spaces.creation.document.export.docxTask",
@@ -17,7 +16,7 @@ export function exportMarkdownDocument({
   source,
   format,
 }: {
-  store: ReturnType<typeof useSpaceStore>;
+  store: DerivationActionStore;
   source: IndexedMarkdownNode;
   format: DocumentFormat;
 }) {

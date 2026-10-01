@@ -10,10 +10,18 @@ import type { SpaceImagePayload } from "../model/nodes/node-payload";
 import type { useSpaceStore } from "../session/space-store";
 import { yieldToCanvas } from "./canvas-yield";
 import { baseNameFromNode } from "./node-naming";
-import { beginPendingDerivation, endPendingDerivation } from "./pending-session";
 import { requiredNodePosition } from "./placement";
 
-type SpaceStore = ReturnType<typeof useSpaceStore>;
+type SpaceStore = Pick<
+  ReturnType<typeof useSpaceStore>,
+  | "activeSpaceId"
+  | "nodes"
+  | "addContent"
+  | "applyNodeContentForSpace"
+  | "refreshActiveSpace"
+  | "requestReveal"
+  | "saveNodeContentForSpace"
+>;
 
 interface CompletedCutout {
   nodeId: string;
@@ -33,36 +41,45 @@ export async function createImageCutout(store: SpaceStore, source: SpaceCanvasNo
   if (!(await checkCutoutSource(spaceId, source, sourceEdit))) return;
   const pending = await createPendingNode(store, source);
   if (!pending) return;
-  beginPendingDerivation(pending.id, [source.id]);
   const derivationId = crypto.randomUUID();
   const tasks = useTaskStore();
   const taskId = tasks.start(t("spaces.creation.image.cutout.task"), source.data.title);
-  let started = false;
   try {
     await yieldToCanvas();
-    await startDerivation({ id: derivationId, spaceId, source, outputNodeId: pending.id, sourceEdit });
-    started = true;
     tasks.setStatusMessage(taskId, t("spaces.creation.image.cutout.segmenting"));
-    const completed = await invokeCommand<CompletedCutout>("plugin:spaces|submit_image_cutout_derivation", {
-      request: { id: derivationId, sourceEdit },
+    const completed = await invokeCommand<CompletedCutout>("plugin:spaces|run_image_cutout_derivation", {
+      request: {
+        id: derivationId,
+        spaceId,
+        sourceNodeId: source.id,
+        outputNodeId: pending.id,
+        sourceRevision: source.data.sourceRevision,
+        sourceEdit,
+      },
     });
     store.applyNodeContentForSpace(spaceId, completed.nodeId, completed.data);
     await store.refreshActiveSpace();
     tasks.succeed(taskId);
     store.requestReveal([completed.nodeId], "ensure-visible");
   } catch (error) {
-    if (started) await failDerivation(derivationId, error);
-    else if (pending.data.kind === "image") {
-      await store.saveNodeContentForSpace(spaceId, pending.id, pending.data, {
-        ...pending.data,
-        processingState: "failed",
-      });
+    try {
+      await markPendingCutoutFailed(store, spaceId, pending.id);
+    } finally {
+      tasks.fail(taskId, String(error));
+      toast.error(`${t("spaces.creation.image.cutout.failed")}: ${String(error)}`);
     }
-    await store.refreshActiveSpace();
-    tasks.fail(taskId, String(error));
-    toast.error(`${t("spaces.creation.image.cutout.failed")}: ${String(error)}`);
-  } finally {
-    endPendingDerivation(pending.id);
+  }
+}
+
+async function markPendingCutoutFailed(store: SpaceStore, spaceId: string, outputNodeId: string) {
+  await store.refreshActiveSpace();
+  if (store.activeSpaceId !== spaceId) return;
+  const current = store.nodes.find(({ id }) => id === outputNodeId);
+  if (current?.data.kind === "image" && current.data.processingState === "processing") {
+    await store.saveNodeContentForSpace(spaceId, current.id, current.data, {
+      ...current.data,
+      processingState: "failed",
+    });
   }
 }
 
@@ -110,37 +127,4 @@ async function createPendingNode(store: SpaceStore, source: SpaceCanvasNode) {
     { reveal: true },
   );
   return node;
-}
-
-function startDerivation({
-  id,
-  spaceId,
-  source,
-  outputNodeId,
-  sourceEdit,
-}: {
-  id: string;
-  spaceId: string;
-  source: SpaceCanvasNode;
-  outputNodeId: string;
-  sourceEdit: SpaceImagePayload["imageEdit"] | null;
-}) {
-  if (source.data.kind !== "image" || !source.data.sourceRevision)
-    throw new Error("Image revision is missing");
-  return invokeCommand("plugin:spaces|start_image_cutout_derivation", {
-    request: {
-      id,
-      spaceId,
-      sourceNodeId: source.id,
-      outputNodeId,
-      sourceRevision: source.data.sourceRevision,
-      sourceEdit,
-    },
-  });
-}
-
-async function failDerivation(id: string, error: unknown) {
-  await invokeCommand("plugin:spaces|fail_image_cutout_derivation", {
-    request: { id, error: String(error) },
-  });
 }

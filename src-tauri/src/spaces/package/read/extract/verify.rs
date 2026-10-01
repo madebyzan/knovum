@@ -1,6 +1,6 @@
 use std::{collections::HashMap, path::PathBuf};
 
-use super::super::super::AssetIndex;
+use crate::spaces::package::AssetIndex;
 
 pub(super) fn verify_assets(
     targets: &HashMap<String, (PathBuf, bool)>,

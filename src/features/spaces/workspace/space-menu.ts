@@ -9,8 +9,6 @@ import {
   type PopupContextMenuOptions,
 } from "../../../foundation/context-menu/context-menu";
 
-export type SpaceMenuItem = ContextMenuItem;
-
 export function spaceMenuItem(
   text: string,
   action: () => void | Promise<void>,
@@ -23,7 +21,7 @@ export function spaceCheckItem(text: string, checked: boolean, action: () => voi
   return checkMenuItem(text, checked, action, { scope: "Space" });
 }
 
-export function spaceSubmenu(text: string, items: SpaceMenuItem[]) {
+export function spaceSubmenu(text: string, items: ContextMenuItem[]) {
   return submenu(text, items);
 }
 
@@ -35,7 +33,7 @@ export function spacePredefinedItem(
 }
 
 export function popupSpaceContextMenu(
-  items: readonly (SpaceMenuItem | readonly SpaceMenuItem[])[],
+  items: readonly (ContextMenuItem | readonly ContextMenuItem[])[],
   options: Omit<PopupContextMenuOptions, "scope"> = {},
 ) {
   return popupContextMenu(items, { ...options, scope: "Space" });

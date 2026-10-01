@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { computed, shallowRef } from "vue";
 
-import type { AssistantConversation, AssistantMessage } from "../conversation/conversation-ipc";
+import type { AssistantConversation } from "../contracts/generated/AssistantConversation";
+import type { AssistantMessage } from "../contracts/generated/AssistantMessage";
 import { useConversationActions } from "../conversation/use-conversation-actions";
 
 const mocks = vi.hoisted(() => ({

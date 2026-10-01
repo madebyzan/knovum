@@ -1,4 +1,5 @@
-import type { AiConnectionSettings, AiModelDefinition } from "../../foundation/ai/schema/models";
+import type { AiConnectionSettings } from "../../shared/contracts/generated/AiConnectionSettings";
+import type { AiModelDefinition } from "../../shared/contracts/generated/AiModelDefinition";
 
 export interface AiConnectionSubmission {
   connection: AiConnectionSettings;

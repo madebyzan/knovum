@@ -2,7 +2,7 @@ import { warn as logWarn } from "@tauri-apps/plugin-log";
 import pLimit from "p-limit";
 
 import { spaceAssetSource, spaceCanvasOverviewSource } from "../../../assets/node-preview-source";
-import type { CanvasScene } from "../scene/scene-projection";
+import type { CanvasScene } from "../scene/canvas-scene";
 
 const overviewDecodes = pLimit(4);
 

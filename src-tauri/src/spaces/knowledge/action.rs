@@ -34,28 +34,3 @@ pub(crate) async fn commit_changes(
     );
     change_commit::apply(tx, space_id, actor, operations, now).await
 }
-
-pub(crate) async fn search(
-    tx: &mut Transaction<'_, Sqlite>,
-    space_id: &str,
-    parameters: &Value,
-) -> Result<Value, String> {
-    let query = parameters["query"]
-        .as_str()
-        .ok_or("search-knowledge requires query")?;
-    let limit = parameters["limit"]
-        .as_i64()
-        .ok_or("search-knowledge requires limit")?;
-    crate::spaces::queries::knowledge_projection::search_knowledge(tx, space_id, query, limit).await
-}
-
-pub(crate) async fn read_node(
-    tx: &mut Transaction<'_, Sqlite>,
-    space_id: &str,
-    parameters: &Value,
-) -> Result<Value, String> {
-    let node_id = parameters["nodeId"]
-        .as_str()
-        .ok_or("read-node requires nodeId")?;
-    crate::spaces::queries::knowledge_projection::get_node(tx, space_id, node_id).await
-}

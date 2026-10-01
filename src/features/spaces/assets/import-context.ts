@@ -1,7 +1,18 @@
 import type { useSpaceStore } from "../session/space-store";
-import type { SpaceImportContext } from "./import-session";
+import type { SpaceImportContext } from "./import-contract";
 
-export function spaceImportContext(store: ReturnType<typeof useSpaceStore>): SpaceImportContext {
+export type SpaceImportStore = Pick<
+  ReturnType<typeof useSpaceStore>,
+  | "activeSpaceId"
+  | "ensureActiveSpacePersisted"
+  | "createPendingContentForSpace"
+  | "savePendingNodeContentForSpace"
+  | "finalizePendingContent"
+  | "applyNodeContentForSpace"
+  | "discardPendingContent"
+>;
+
+export function spaceImportContext(store: SpaceImportStore): SpaceImportContext {
   return {
     ensureImportTarget: async (spaceId) => {
       if (store.activeSpaceId !== spaceId) return;

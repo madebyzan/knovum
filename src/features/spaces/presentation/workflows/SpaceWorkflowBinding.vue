@@ -7,10 +7,10 @@ import { useI18n } from "vue-i18n";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiCheckbox from "../../../../shared/ui/UiCheckbox.vue";
 import UiSelect, { type SelectOption } from "../../../../shared/ui/UiSelect.vue";
-import type { WorkflowCaptureCandidate } from "../../workflows/captured-workflow-ipc";
+import type { CaptureCandidate } from "../../contracts/generated/CaptureCandidate";
 
 const props = defineProps<{
-  slot: WorkflowCaptureCandidate["inputSlots"][number];
+  slot: CaptureCandidate["inputSlots"][number];
   label: string;
   options: SelectOption[];
   modelValue: string[];

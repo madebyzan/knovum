@@ -4,7 +4,7 @@ import { shallowRef } from "vue";
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import type { SpaceEditSnapshot } from "../../../model/structure/schema/edit-snapshot";
 import { sectionDropMoveCommand } from "../../../structure/section-drop-reparent";
-import type { CanvasSurfaceEvents } from "../../contracts/canvas-editor";
+import type { CanvasHostEvents } from "../../contracts/canvas-editor";
 import type { CanvasPoint } from "../../contracts/canvas-editor-port";
 import { commandForCanvasGesture } from "../../document/structure-gesture-command";
 import type { CanvasNodeFrameUpdate, CanvasNodeLayoutV1 } from "../../schema/document";
@@ -20,7 +20,7 @@ import { NodeGestureController } from "./node-gesture-controller";
 
 interface CanvasGestureSessionOptions {
   document: CanvasDocumentModel;
-  events: CanvasSurfaceEvents;
+  events: CanvasHostEvents;
   layouts(): readonly CanvasNodeLayoutV1[];
   nodes(): readonly SpaceCanvasNode[];
   previewFrames(updates: readonly CanvasGestureUpdate[]): void;

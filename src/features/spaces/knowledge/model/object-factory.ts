@@ -1,8 +1,6 @@
 import type { SpaceNodePayload } from "../../model/nodes/node-payload";
 import { SYSTEM_OBJECT_TYPES, type SystemKnowledgeObjectKind } from "./object-types";
 
-export type { SystemKnowledgeObjectKind } from "./object-types";
-
 export function createSystemKnowledgeObjectPayload(
   kind: SystemKnowledgeObjectKind,
   title: string,

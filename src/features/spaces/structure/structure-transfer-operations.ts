@@ -1,13 +1,11 @@
-import type { TransferSelectionRequest as TransferStructureSelectionRequest } from "../contracts/generated/TransferSelectionRequest";
-import type { TransferSelectionResponse as TransferStructureSelectionResponse } from "../contracts/generated/TransferSelectionResponse";
-export type { TransferSelectionRequest as TransferStructureSelectionRequest } from "../contracts/generated/TransferSelectionRequest";
-export type { TransferSelectionResponse as TransferStructureSelectionResponse } from "../contracts/generated/TransferSelectionResponse";
+import type { TransferSelectionRequest } from "../contracts/generated/TransferSelectionRequest";
+import type { TransferSelectionResponse } from "../contracts/generated/TransferSelectionResponse";
 import { invokeConfirmedMutation } from "./confirmed-mutation";
 
 export function moveStructureSelectionBetweenSpaces(
-  request: TransferStructureSelectionRequest,
-): Promise<TransferStructureSelectionResponse> {
-  return invokeConfirmedMutation<TransferStructureSelectionResponse>(
+  request: TransferSelectionRequest,
+): Promise<TransferSelectionResponse> {
+  return invokeConfirmedMutation<TransferSelectionResponse>(
     "plugin:spaces|move_structure_selection",
     { request },
     request.mutationId,

@@ -5,12 +5,12 @@ import type { SpaceEditSnapshot } from "../../model/structure/schema/edit-snapsh
 import { createStructureIndex, effectiveOperationRoots } from "../../model/structure/structure-index";
 import { worldTransformFor } from "../../model/structure/world-transform";
 import { sectionDropMoveCommand } from "../../structure/section-drop-reparent";
-import type { CanvasSurfaceEvents } from "../contracts/canvas-editor";
+import type { CanvasHostEvents } from "../contracts/canvas-editor";
 import type { StructureScene } from "../document/structure-scene";
 import type { CanvasGestureUpdate } from "./interaction/canvas-gesture-update";
 import { useSectionDropPreview } from "./section-drop-preview";
 export function useStructureCanvasInteractions(options: {
-  events: CanvasSurfaceEvents;
+  events: CanvasHostEvents;
   clearSelection(): void;
   setStructureSelection(structureNodeIds: readonly string[]): void;
   scene: Readonly<Ref<StructureScene>>;

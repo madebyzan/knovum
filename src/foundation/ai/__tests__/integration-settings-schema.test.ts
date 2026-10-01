@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { decodeAiModelSettings, defaultAiModelSettings } from "../integration-settings";
+import { decodeAiModelSettings } from "../integration-settings";
+import { defaultAiModelSettings } from "../schema/model-settings";
 
 describe("integration settings persisted contracts", () => {
   it("defaults without built-in AI models or connections", () => {

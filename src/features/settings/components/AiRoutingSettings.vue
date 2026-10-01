@@ -6,18 +6,16 @@ import { useI18n } from "vue-i18n";
 import { availableExecutionTargets } from "../../../foundation/ai/ai-execution";
 import { useExecutionCatalogQuery } from "../../../foundation/ai/execution-catalog-query";
 import { decodeExecutionTarget, encodeExecutionTarget } from "../../../foundation/ai/execution-target-codec";
-import type { DesktopAgentSettings } from "../../../foundation/ai/schema/agents";
-import type {
-  AiConnectionSettings,
-  AiRoutingDefaults,
-  AiRoutingPurpose,
-} from "../../../foundation/ai/schema/models";
+import type { AiConnectionSettings } from "../../../shared/contracts/generated/AiConnectionSettings";
+import type { AiRoutingDefaults } from "../../../shared/contracts/generated/AiRoutingDefaults";
+import type { DesktopAgentSettings } from "../../../shared/contracts/generated/DesktopAgentSettings";
+import type { RoutingPurpose } from "../../../shared/contracts/generated/RoutingPurpose";
 import UiSelect from "../../../shared/ui/UiSelect.vue";
 import SettingsSection from "./SettingsSection.vue";
 
 const props = defineProps<{ connections: AiConnectionSettings[]; desktopAgents: DesktopAgentSettings[] }>();
 const routes = defineModel<AiRoutingDefaults>({ required: true });
-const emit = defineEmits<{ manageModels: [purpose: AiRoutingPurpose] }>();
+const emit = defineEmits<{ manageModels: [purpose: RoutingPurpose] }>();
 const { t } = useI18n();
 const UNASSIGNED = "__unassigned__";
 const catalog = useExecutionCatalogQuery({ detectInstallations: false });

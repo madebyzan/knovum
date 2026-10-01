@@ -4,14 +4,6 @@ import { createWorkspaceNavigationState } from "../workspace/navigation-history"
 import { createSpaceContentState } from "./content-state";
 import { createSpaceUiState } from "./workbench-state";
 
-export type {
-  CanvasZoomMode,
-  RevealRequest,
-  SceneCue,
-  ViewportRequest,
-  ZoomRequest,
-} from "./workbench-state";
-
 export function createSpaceState() {
   const ui = createSpaceUiState();
   return {

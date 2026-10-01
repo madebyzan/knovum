@@ -4,9 +4,9 @@ import pLimit from "p-limit";
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import { queryClient } from "../../../foundation/query/query-client";
 import { cleanupDeletedSpaceAssets } from "../assets/asset-operations";
+import type { SpaceEditReceipt } from "../contracts/generated/SpaceEditReceipt";
 import { spaceKnowledgeQueryKeys } from "../knowledge/queries/query-options";
 import { invokeConfirmedMutation } from "../structure/confirmed-mutation";
-import type { SpaceEditReceipt } from "../structure/space-edit-command";
 import { spaceEditOperations } from "../structure/space-edit-operations";
 import type { SpaceDeletedStructureRoot } from "./deleted-structure";
 

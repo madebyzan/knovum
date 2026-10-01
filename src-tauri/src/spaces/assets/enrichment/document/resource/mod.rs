@@ -1,7 +1,7 @@
-use super::model::{
+use crate::spaces::assets::{asset_directory, authorize_spaces_asset};
+use crate::spaces::knowledge::node_contracts::document_coverage::{
     DocumentResource, MAX_RESOURCE_BYTES, MAX_RESOURCE_DIMENSION, MAX_RESOURCE_PIXELS,
 };
-use crate::spaces::assets::{asset_directory, authorize_spaces_asset};
 use sha2::{Digest, Sha256};
 use std::{fs, io::Cursor, path::Path};
 

@@ -1,4 +1,5 @@
 import { Channel } from "@tauri-apps/api/core";
+import { omit } from "es-toolkit";
 import { parse } from "pathe";
 import { toast } from "vue-sonner";
 import { z } from "zod";
@@ -38,11 +39,23 @@ export async function renderVideoEdit(
   const spaceId = store.activeSpaceId;
   const sourceRevision = source.data.sourceRevision;
   if (!spaceId || !sourceRevision) throw new Error("Video source revision is unavailable");
-  const { videoEditProject: _project, ...sourceContent } = source.data;
+  const assetPath = await invokeCommand<string>("plugin:spaces|allocate_video_edit_output_path");
+  const sourceContent = omit(source.data, [
+    "videoEditProject",
+    "sourceRevision",
+    "knowledgeRevision",
+    "previewPath",
+    "previewText",
+    "size",
+    "modifiedAt",
+    "mediaKnowledge",
+    "mediaAnalysis",
+  ]);
   const pendingContent: SpaceVideoPayload = {
     ...sourceContent,
     title: editedName(source.data.title),
     fileName: editedName(source.data.fileName),
+    assetPath,
     processingState: "processing",
   };
   const [pending] = await store.addContent(pendingContent, undefined, { reveal: false });
@@ -80,11 +93,14 @@ export async function renderVideoEdit(
     store.closeVideoEditor();
     store.requestReveal([completed.nodeId], "ensure-visible");
   } catch (error) {
-    await store.refreshActiveSpace();
-    if (decodeCommandError(error)?.code === "video_edit_render_cancelled") tasks.dismiss(taskId);
-    else {
-      tasks.fail(taskId, String(error));
-      toast.error(`${i18n.global.t("spaces.media.videoEditor.render.failed")}: ${String(error)}`);
+    try {
+      await store.refreshActiveSpace();
+    } finally {
+      if (decodeCommandError(error)?.code === "video_edit_render_cancelled") tasks.dismiss(taskId);
+      else {
+        tasks.fail(taskId, String(error));
+        toast.error(`${i18n.global.t("spaces.media.videoEditor.render.failed")}: ${String(error)}`);
+      }
     }
   }
 }

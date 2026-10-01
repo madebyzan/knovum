@@ -1,8 +1,7 @@
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
-use crate::ai::models::ModelTargetSelection;
-pub use crate::ai::tasks::TaskTargetSelection as AssistantExecutionTargetSelection;
+use crate::ai::{models::ModelTargetSelection, tasks::TaskTargetSelection};
 
 #[derive(Clone, Copy, Debug, Deserialize, Serialize, TS)]
 #[serde(rename_all = "snake_case")]
@@ -32,7 +31,7 @@ pub struct SubmitAssistantTaskRequest {
     pub conversation_id: Option<String>,
     pub branch_id: Option<String>,
     pub prompt: String,
-    pub target: AssistantExecutionTargetSelection,
+    pub target: TaskTargetSelection,
     #[serde(default)]
     pub attachments: Vec<AssistantAttachment>,
 }

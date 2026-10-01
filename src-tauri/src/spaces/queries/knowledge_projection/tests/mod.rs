@@ -134,10 +134,18 @@ async fn search_actions_and_mcp_share_chinese_search_and_revision_aware_results(
         .await
         .unwrap();
     assert_eq!(expected.as_array().unwrap().len(), 1);
-    let action = crate::spaces::knowledge::action::search(
+    let principal = crate::spaces::authorization::Principal {
+        kind: crate::spaces::authorization::PrincipalKind::User,
+        id: "test".into(),
+    };
+    let action = crate::spaces::action_execution::execute_immediate(
         &mut tx,
+        &principal,
+        "search-action",
         "space",
+        "search-knowledge",
         &json!({"query":"图片","limit":20}),
+        1,
     )
     .await
     .unwrap();
@@ -155,10 +163,17 @@ async fn search_actions_and_mcp_share_chinese_search_and_revision_aware_results(
         .await
         .is_err());
     let direct = super::get_node(&mut tx, "space", "note").await.unwrap();
-    let action =
-        crate::spaces::knowledge::action::read_node(&mut tx, "space", &json!({"nodeId":"note"}))
-            .await
-            .unwrap();
+    let action = crate::spaces::action_execution::execute_immediate(
+        &mut tx,
+        &principal,
+        "read-action",
+        "space",
+        "read-node",
+        &json!({"nodeId":"note"}),
+        1,
+    )
+    .await
+    .unwrap();
     assert_eq!(direct, action);
     assert_eq!(direct["data"]["plainText"], "画布有图片资料");
     sqlx::query("UPDATE spaces_nodes SET deleted_at=2 WHERE id='note'")

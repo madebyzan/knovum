@@ -3,8 +3,6 @@ use crate::ai::{
     providers::local_candle::{self, LocalCandleEmbeddingAdapter},
 };
 
-pub use crate::ai::contracts::EmbeddingCapability as TextEmbeddingProvider;
-
 pub fn active_text_provider() -> &'static dyn EmbeddingCapability {
     &LocalCandleEmbeddingAdapter
 }

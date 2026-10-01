@@ -1,12 +1,9 @@
 import { useQuery, useQueryClient } from "@tanstack/vue-query";
 import { computed, toValue, type MaybeRefOrGetter } from "vue";
 
-import {
-  listCapturedWorkflows,
-  listCapturedWorkflowRuns,
-  type CapturedWorkflowRun,
-  type SavedCapturedWorkflow,
-} from "./captured-workflow-ipc";
+import type { CapturedWorkflowRun } from "../contracts/generated/CapturedWorkflowRun";
+import type { SavedCapturedWorkflow } from "../contracts/generated/SavedCapturedWorkflow";
+import { listCapturedWorkflows, listCapturedWorkflowRuns } from "./captured-workflow-ipc";
 
 const LIBRARY_KEY = ["spaces", "captured-workflows"] as const;
 const RUN_HISTORY_LIMIT = 30;
@@ -51,6 +48,7 @@ export function useCapturedWorkflowLibrary(spaceId: MaybeRefOrGetter<string | nu
       const cause = library.error.value ?? runs.error.value;
       return cause ? String(cause) : "";
     }),
+    retry: () => Promise.all([library.refetch(), runs.refetch()]),
     renamed: (value: SavedCapturedWorkflow) =>
       editLibrary((current) => current.map((item) => (item.workflowId === value.workflowId ? value : item))),
     deleted: (workflowId: string) =>

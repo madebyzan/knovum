@@ -1,15 +1,12 @@
 import { routingCapabilities } from "../../shared/contracts/generated/contract-values";
+import type { RoutingPurpose } from "../../shared/contracts/generated/RoutingPurpose";
+import type { TaskTargetRef } from "../../shared/contracts/generated/TaskTargetRef";
 import { useAiSettingsStore } from "./ai-settings-store";
 import { encodeExecutionTarget } from "./execution-target-codec";
-import type { AiModelSettings } from "./integration-settings";
-import type {
-  AiRoutingPurpose,
-  ExecutionTarget,
-  ResolvedAiModelTarget,
-  ResolvedAiTaskTarget,
-} from "./schema/models";
+import type { AiModelSettings } from "./schema/model-settings";
+import type { ResolvedAiModelTarget, ResolvedAiTaskTarget } from "./schema/models";
 
-const defaultTargetKey: Record<AiRoutingPurpose, keyof AiModelSettings["defaults"]> = {
+const defaultTargetKey: Record<RoutingPurpose, keyof AiModelSettings["defaults"]> = {
   writing: "writing",
   knowledge: "knowledge",
   "visual-understanding": "visualUnderstanding",
@@ -21,21 +18,21 @@ const defaultTargetKey: Record<AiRoutingPurpose, keyof AiModelSettings["defaults
 export interface ExecutionTargetOption {
   value: string;
   label: string;
-  target: ExecutionTarget;
+  target: TaskTargetRef;
 }
 
 export function defaultExecutionTarget(
   settings: AiModelSettings,
-  purpose: AiRoutingPurpose,
-): ExecutionTarget | null {
+  purpose: RoutingPurpose,
+): TaskTargetRef | null {
   const target = settings.defaults[defaultTargetKey[purpose]] ?? settings.defaults.defaultTarget;
   return target ? { ...target } : null;
 }
 
 function resolveModelTarget(
   settings: AiModelSettings,
-  purpose: AiRoutingPurpose,
-  target: Extract<ExecutionTarget, { type: "model" }>,
+  purpose: RoutingPurpose,
+  target: Extract<TaskTargetRef, { type: "model" }>,
 ): ResolvedAiModelTarget {
   const connection = settings.connections.find(({ id }) => id === target.connectionId);
   if (!connection) throw new Error(`AI connection is unavailable: ${target.connectionId}`);
@@ -48,8 +45,8 @@ function resolveModelTarget(
 }
 
 export async function loadAiExecutionTarget(
-  purpose: AiRoutingPurpose,
-  target?: ExecutionTarget,
+  purpose: RoutingPurpose,
+  target?: TaskTargetRef,
 ): Promise<ResolvedAiTaskTarget> {
   const store = useAiSettingsStore();
   await store.ensureLoaded();
@@ -76,13 +73,13 @@ export function aiExecutionTargetPayload(target: ResolvedAiTaskTarget, temperatu
 
 export function availableModelTargets(
   settings: Pick<AiModelSettings, "connections">,
-  purpose?: AiRoutingPurpose,
-): (Omit<ExecutionTargetOption, "target"> & { target: Extract<ExecutionTarget, { type: "model" }> })[] {
+  purpose?: RoutingPurpose,
+): (Omit<ExecutionTargetOption, "target"> & { target: Extract<TaskTargetRef, { type: "model" }> })[] {
   return settings.connections.flatMap((connection) =>
     connection.models
       .filter((model) => !purpose || model.capabilities.includes(routingCapabilities[purpose]))
       .map((model) => {
-        const target: ExecutionTarget = { type: "model", connectionId: connection.id, modelId: model.id };
+        const target: TaskTargetRef = { type: "model", connectionId: connection.id, modelId: model.id };
         return { value: encodeExecutionTarget(target), label: `${model.name} · ${connection.name}`, target };
       }),
   );
@@ -90,12 +87,12 @@ export function availableModelTargets(
 
 export function availableExecutionTargets(
   settings: Pick<AiModelSettings, "connections" | "desktopAgents">,
-  purpose?: AiRoutingPurpose,
+  purpose?: RoutingPurpose,
 ): ExecutionTargetOption[] {
   const agents = settings.desktopAgents
     .filter(({ enabled }) => enabled)
     .map(({ kind }) => {
-      const target: ExecutionTarget = { type: "agent", runtimeKind: kind };
+      const target: TaskTargetRef = { type: "agent", runtimeKind: kind };
       return { value: encodeExecutionTarget(target), label: kind, target };
     });
   return [...availableModelTargets(settings, purpose), ...agents];

@@ -7,7 +7,7 @@ import { useI18n } from "vue-i18n";
 
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiMarkdown from "../../../../shared/ui/UiMarkdown.vue";
-import type { AssistantMessage } from "../../conversation/conversation-ipc";
+import type { AssistantMessage } from "../../contracts/generated/AssistantMessage";
 import { groundedCitationSchema } from "../../knowledge/model/schema/grounded-citation";
 import { useSpaceStore } from "../../session/space-store";
 import SpaceConversationMessageAttachments from "./SpaceConversationMessageAttachments.vue";

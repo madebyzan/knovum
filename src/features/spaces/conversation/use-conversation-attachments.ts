@@ -5,15 +5,15 @@ import { decodeCommandError } from "../../../foundation/ipc/command-error";
 import { spaceCanvasOverviewSource } from "../assets/node-preview-source";
 import { useCanvasEditorSession } from "../canvas/editor-session";
 import { currentSelectionRoots } from "../canvas/selection/selection-roots";
+import type { SubmitAssistantTaskRequest } from "../contracts/generated/SubmitAssistantTaskRequest";
 import { createStructureIndex } from "../model/structure/structure-index";
 import { contentNodeIdsWithin } from "../model/structure/structure-queries";
 import { useSpaceStore } from "../session/space-store";
-import type { StartAssistantTaskInput } from "./conversation-ipc";
 import { chooseAssistantUploads, inspectAssistantUploads } from "./conversation-uploads";
 import { previewConversationAttachment } from "./preview-conversation-attachment";
 import { isAssistantImagePath, useConversationImagePreviews } from "./use-conversation-image-previews";
 
-type Attachment = NonNullable<StartAssistantTaskInput["attachments"]>[number];
+type Attachment = NonNullable<SubmitAssistantTaskRequest["attachments"]>[number];
 
 function attachmentErrorMessage(error: unknown) {
   const code = decodeCommandError(error)?.code;

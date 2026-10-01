@@ -64,9 +64,23 @@ pub(crate) async fn execute_immediate(
             serde_json::to_value(page).map_err(db::json_error)
         }
         "search-knowledge" => {
-            crate::spaces::knowledge::action::search(tx, space_id, parameters).await
+            let query = parameters["query"]
+                .as_str()
+                .ok_or("search-knowledge requires query")?;
+            let limit = parameters["limit"]
+                .as_i64()
+                .ok_or("search-knowledge requires limit")?;
+            crate::spaces::queries::knowledge_projection::search_knowledge(
+                tx, space_id, query, limit,
+            )
+            .await
         }
-        "read-node" => crate::spaces::knowledge::action::read_node(tx, space_id, parameters).await,
+        "read-node" => {
+            let node_id = parameters["nodeId"]
+                .as_str()
+                .ok_or("read-node requires nodeId")?;
+            crate::spaces::queries::knowledge_projection::get_node(tx, space_id, node_id).await
+        }
         _ => Err("action-executor-unavailable: immediate Action has no registered handler".into()),
     }
 }

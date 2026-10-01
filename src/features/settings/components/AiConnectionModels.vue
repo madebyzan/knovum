@@ -5,13 +5,12 @@ import { useI18n } from "vue-i18n";
 
 import { useAiSettingsStore } from "../../../foundation/ai/ai-settings-store";
 import { encodeExecutionTarget } from "../../../foundation/ai/execution-target-codec";
-import { requireProvider, type ProviderDescriptor } from "../../../foundation/ai/providers";
-import type {
-  AiConnectionSettings,
-  AiModelCapability,
-  AiModelDefinition,
-  AiRoutingPurpose,
-} from "../../../foundation/ai/schema/models";
+import { requireProvider } from "../../../foundation/ai/providers";
+import type { AiConnectionSettings } from "../../../shared/contracts/generated/AiConnectionSettings";
+import type { AiModelDefinition } from "../../../shared/contracts/generated/AiModelDefinition";
+import type { ExecutionCapability } from "../../../shared/contracts/generated/ExecutionCapability";
+import type { ProviderDescriptor } from "../../../shared/contracts/generated/ProviderDescriptor";
+import type { RoutingPurpose } from "../../../shared/contracts/generated/RoutingPurpose";
 import { confirmAction } from "../../../shared/ui/confirm-action";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiIconButton from "../../../shared/ui/UiIconButton.vue";
@@ -21,7 +20,7 @@ const props = defineProps<{
   connection: AiConnectionSettings;
   providers: readonly ProviderDescriptor[];
   protectedModelTargets: readonly string[];
-  createRequest?: { purpose: AiRoutingPurpose } | undefined;
+  createRequest?: { purpose: RoutingPurpose } | undefined;
 }>();
 const { t } = useI18n();
 const store = useAiSettingsStore();
@@ -36,7 +35,7 @@ const dialogOpen = computed({
     if (!value) void requestClose();
   },
 });
-const capabilityKey: Record<AiModelCapability, string> = {
+const capabilityKey: Record<ExecutionCapability, string> = {
   "text-generation": "text",
   "vision-understanding": "vision",
   "image-generation": "image",

@@ -2,7 +2,7 @@
 import { CircleCheck, CircleStop, CircleX, RotateCcw, X } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 
-import type { AppTask } from "../../foundation/tasks/task-store";
+import type { AppTask } from "../../foundation/tasks/task-model";
 import UiIconButton from "../../shared/ui/UiIconButton.vue";
 import UiProgress from "../../shared/ui/UiProgress.vue";
 import UiSpinner from "../../shared/ui/UiSpinner.vue";

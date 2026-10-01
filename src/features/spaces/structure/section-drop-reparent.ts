@@ -1,9 +1,10 @@
 import { maxBy } from "es-toolkit";
 
+import type { SpaceEditCommand } from "../contracts/generated/SpaceEditCommand";
+import type { SpacePoint } from "../contracts/generated/SpacePoint";
 import type { SpaceEditSnapshot } from "../model/structure/schema/edit-snapshot";
 import { createStructureIndex, effectiveOperationRoots } from "../model/structure/structure-index";
 import { boundsForOperationRoots } from "../model/structure/world-bounds";
-import type { SpaceEditCommand, SpacePoint } from "./space-edit-command";
 
 const CONTAINMENT_TOLERANCE = 0.5;
 

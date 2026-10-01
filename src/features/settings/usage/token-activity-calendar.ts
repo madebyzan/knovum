@@ -1,6 +1,6 @@
 import { getDayOfWeek, getLocalTimeZone, parseDate, type CalendarDate } from "@internationalized/date";
 
-import type { UsageDay } from "../../../foundation/ai/token-usage";
+import type { UsageDay } from "../../../shared/contracts/generated/UsageDay";
 
 export interface TokenActivityCell {
   date: string;

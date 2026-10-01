@@ -1,4 +1,4 @@
-import type { AiProvider } from "../../foundation/ai/schema/models";
+import type { ProviderKind } from "../../shared/contracts/generated/ProviderKind";
 import anthropic from "./assets/provider-logos/anthropic.svg?url";
 import deepseek from "./assets/provider-logos/deepseek.svg?url";
 import doubao from "./assets/provider-logos/doubao.svg?url";
@@ -20,7 +20,7 @@ import zhipu from "./assets/provider-logos/zhipu.svg?url";
 
 type ProviderLogo = { src: string; monochrome?: true } | null;
 
-export const providerLogos: Record<AiProvider, ProviderLogo> = {
+export const providerLogos: Record<ProviderKind, ProviderLogo> = {
   openai: { src: openai, monochrome: true },
   "openai-compatible": null,
   openrouter: { src: openrouter },

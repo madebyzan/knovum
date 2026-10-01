@@ -5,12 +5,12 @@ import { onMounted, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
+import type { UpdateMetadata } from "../../../../shared/contracts/generated/UpdateMetadata";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import {
   checkForUpdate,
   getUpdateConfiguration,
   installUpdate as installApplicationUpdate,
-  type UpdateMetadata,
 } from "../../updater";
 import PreferenceField from "../PreferenceField.vue";
 import SettingsSection from "../SettingsSection.vue";

@@ -4,14 +4,13 @@ import { computed, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { useAiSettingsStore } from "../../../foundation/ai/ai-settings-store";
-import { requireProvider, type ProviderDescriptor } from "../../../foundation/ai/providers";
-import {
-  aiConnectionSecretKey,
-  type AiConnectionSettings,
-  type AiRoutingPurpose,
-} from "../../../foundation/ai/schema/models";
+import { requireProvider } from "../../../foundation/ai/providers";
+import { aiConnectionSecretKey } from "../../../foundation/ai/schema/models";
 import { deleteSecret, persistOptionalSecret } from "../../../foundation/secrets/secret-store";
+import type { AiConnectionSettings } from "../../../shared/contracts/generated/AiConnectionSettings";
 import { routingCapabilities } from "../../../shared/contracts/generated/contract-values";
+import type { ProviderDescriptor } from "../../../shared/contracts/generated/ProviderDescriptor";
+import type { RoutingPurpose } from "../../../shared/contracts/generated/RoutingPurpose";
 import { confirmAction } from "../../../shared/ui/confirm-action";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiIconButton from "../../../shared/ui/UiIconButton.vue";
@@ -25,7 +24,7 @@ const props = defineProps<{
   protectedConnectionIds: readonly string[];
   protectedModelTargets: readonly string[];
   providers: readonly ProviderDescriptor[];
-  createModelRequest?: { purpose: AiRoutingPurpose } | undefined;
+  createModelRequest?: { purpose: RoutingPurpose } | undefined;
 }>();
 const { t } = useI18n();
 const store = useAiSettingsStore();

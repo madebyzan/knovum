@@ -8,7 +8,7 @@ import "konva/lib/shapes/Arrow";
 // oxlint-disable-next-line import/no-unassigned-import
 import "konva/lib/shapes/Text";
 
-import type { CanvasSceneRelation } from "../scene/scene-projection";
+import type { CanvasSceneRelation } from "../scene/canvas-scene";
 import { canvasRelationArrowheads, connectorLabelPosition } from "./connector-presentation";
 import type { CanvasPalette } from "./use-canvas-palette";
 

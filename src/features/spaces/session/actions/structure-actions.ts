@@ -1,12 +1,13 @@
 import type { Ref } from "vue";
 
 import { decodeCommandError } from "../../../../foundation/ipc/command-error";
+import type { SpaceEditCommand } from "../../contracts/generated/SpaceEditCommand";
 import { beginSpaceMutation } from "../../history/mutation-barrier";
 import { recordSpaceHistory, type SpaceHistoryState } from "../../history/stack";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceRelation } from "../../model/relations/relation";
 import type { SpaceEditSnapshot } from "../../model/structure/schema/edit-snapshot";
-import { spaceEditCommandRecordsHistory, type SpaceEditCommand } from "../../structure/space-edit-command";
+import { spaceEditCommandRecordsHistory } from "../../structure/space-edit-command";
 import { spaceEditOperations } from "../../structure/space-edit-operations";
 import { loadSpaceSessionProjection } from "../space-projection";
 

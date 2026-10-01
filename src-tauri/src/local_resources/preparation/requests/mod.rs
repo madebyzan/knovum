@@ -42,9 +42,10 @@ impl PreparationRequest {
         }
     }
 
-    pub(crate) fn finish(mut self, error: Option<&String>) {
-        finish_request(&self.job_id, &self.active, error);
+    pub(crate) fn finish(mut self, error: Option<&String>) -> Result<(), String> {
+        let result = finish_request(&self.job_id, &self.active, error);
         self.finished = true;
+        result
     }
 }
 
@@ -55,7 +56,9 @@ impl Drop for PreparationRequest {
         }
         self.active.cancellation.cancel();
         let error = RESOURCE_PREPARATION_CANCELLED.to_string();
-        finish_request(&self.job_id, &self.active, Some(&error));
+        if let Err(failure) = finish_request(&self.job_id, &self.active, Some(&error)) {
+            log::error!("Unable to finish resource preparation: {failure}");
+        }
     }
 }
 
@@ -88,11 +91,13 @@ pub(crate) fn begin(
     if registry.active.contains_key(job_id) {
         return Err(format!("Resource preparation job already exists: {job_id}"));
     }
+    active
+        .snapshot
+        .lock()
+        .map_err(|_| "Resource preparation snapshot lock poisoned".to_string())?
+        .state = ResourcePreparationState::Preparing;
     registry.completed.retain(|item| item.job_id != job_id);
     registry.active.insert(job_id.to_owned(), active.clone());
-    if let Ok(mut snapshot) = active.snapshot.lock() {
-        snapshot.state = ResourcePreparationState::Preparing;
-    }
     Ok(PreparationRequest {
         job_id: job_id.to_owned(),
         active,
@@ -117,12 +122,17 @@ pub(crate) fn list() -> Result<Vec<ResourcePreparationSnapshot>, String> {
         .map_err(|_| "Resource preparation registry lock poisoned".to_string())?;
     registry
         .completed
-        .retain(|item| item.completed_at.is_some_and(|time| time >= cutoff));
+        .retain(|item| item.completed_at.is_none_or(|time| time >= cutoff));
     let active = registry
         .active
         .values()
-        .filter_map(|item| item.snapshot.lock().ok().map(|value| value.clone()))
-        .collect::<Vec<_>>();
+        .map(|item| {
+            item.snapshot
+                .lock()
+                .map(|value| value.clone())
+                .map_err(|_| "Resource preparation snapshot lock poisoned".to_string())
+        })
+        .collect::<Result<Vec<_>, _>>()?;
     Ok(active
         .into_iter()
         .chain(registry.completed.iter().cloned())
@@ -136,18 +146,24 @@ fn progress_snapshot(
     snapshot.progress = progress;
 }
 
-fn finish_request(job_id: &str, active: &ActivePreparation, error: Option<&String>) {
-    let Ok(mut registry) = registry().lock() else {
-        log::error!("Resource preparation registry lock poisoned");
-        return;
-    };
-    let Ok(mut snapshot) = active.snapshot.lock() else {
-        log::error!("Resource preparation snapshot lock poisoned");
-        registry.active.remove(job_id);
-        return;
-    };
-    snapshot.completed_at = now().ok();
-    match error {
+fn finish_request(
+    job_id: &str,
+    active: &ActivePreparation,
+    error: Option<&String>,
+) -> Result<(), String> {
+    let mut registry = registry()
+        .lock()
+        .map_err(|_| "Resource preparation registry lock poisoned".to_string())?;
+    let mut snapshot = active
+        .snapshot
+        .lock()
+        .map_err(|_| "Resource preparation snapshot lock poisoned".to_string())?;
+    let completed_at = now();
+    snapshot.completed_at = completed_at.as_ref().ok().copied();
+    let failure = error
+        .cloned()
+        .or_else(|| completed_at.as_ref().err().cloned());
+    match failure.as_ref() {
         None => {
             snapshot.state = ResourcePreparationState::Ready;
             snapshot.error = None;
@@ -166,6 +182,7 @@ fn finish_request(job_id: &str, active: &ActivePreparation, error: Option<&Strin
     registry.active.remove(job_id);
     registry.completed.push_front(terminal);
     registry.completed.truncate(COMPLETED_LIMIT);
+    completed_at.map(|_| ())
 }
 
 fn now() -> Result<u64, String> {

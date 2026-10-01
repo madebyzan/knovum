@@ -1,10 +1,13 @@
+mod coverage;
+mod validation;
+
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-pub(super) const MAX_RESOURCE_BYTES: u64 = 32 * 1024 * 1024;
-pub(super) const MAX_TOTAL_RESOURCE_BYTES: u64 = 256 * 1024 * 1024;
-pub(super) const MAX_RESOURCE_PIXELS: u64 = 24_000_000;
-pub(super) const MAX_RESOURCE_DIMENSION: u32 = 16_384;
+pub(crate) const MAX_RESOURCE_BYTES: u64 = 32 * 1024 * 1024;
+pub(crate) const MAX_TOTAL_RESOURCE_BYTES: u64 = 256 * 1024 * 1024;
+pub(crate) const MAX_RESOURCE_PIXELS: u64 = 24_000_000;
+pub(crate) const MAX_RESOURCE_DIMENSION: u32 = 16_384;
 
 #[derive(Clone, Copy, PartialEq, Deserialize, Serialize)]
 pub(crate) enum DocumentParser {
@@ -92,7 +95,9 @@ impl DocumentCoverage {
         report.validate()?;
         Ok(report)
     }
-    pub(super) fn validate(&self) -> Result<(), String> {
-        super::validation::validate(self)
+    pub(crate) fn validate(&self) -> Result<(), String> {
+        validation::validate(self)
     }
 }
+
+pub(crate) use validation::validate_analysis;

@@ -9,11 +9,10 @@ import { toast } from "vue-sonner";
 import { openSpaceAsset, openSpaceAssetAtLocation } from "../../assets/asset-operations";
 import { useCanvasEditorSession } from "../../canvas/editor-session";
 import { createSourceEvidence } from "../../editor/knowledge-capture";
+import { loadDocumentContext } from "../../knowledge/sources/document-context";
 import { isSpaceManagedAssetPayload } from "../../model/nodes/capabilities";
 import { useSpaceStore } from "../../session/space-store";
-import type { KnowledgeChunk } from "../model/schema/persisted-chunk";
-import { listCurrentKnowledgeChunks } from "../persistence/chunk-operations";
-import { knowledgeLocationLabel } from "../presentation/location-label";
+import { knowledgeLocationLabel } from "./knowledge-location-label";
 
 const DOCUMENT_CONTEXT_KINDS = new Set<string>(["pdf", "word", "slides", "sheet"]);
 
@@ -111,40 +110,4 @@ export function useSourcePeek() {
     openSourceExternally,
     openSourceAtLocation,
   };
-}
-
-async function loadDocumentContext(request: DocumentContextRequest | undefined) {
-  if (!request) return [];
-  const chunks = await listCurrentKnowledgeChunks(request.spaceId, [request.nodeId]);
-  return documentContext(chunks, request.location);
-}
-
-function documentContext(chunks: KnowledgeChunk[], target: KnowledgeChunk["locator"]["location"]) {
-  if (target.kind === "pdf")
-    return chunks.filter(
-      ({ locator }) => locator.location.kind === "pdf" && locator.location.page === target.page,
-    );
-  if (target.kind === "word")
-    return chunks.filter(
-      ({ locator }) =>
-        locator.location.kind === "word" &&
-        locator.location.section === target.section &&
-        Math.abs(locator.location.element - target.element) <= 2,
-    );
-  if (target.kind === "slides")
-    return chunks.filter(
-      ({ locator }) => locator.location.kind === "slides" && locator.location.slide === target.slide,
-    );
-  if (target.kind === "sheet")
-    return chunks.filter(({ locator }) => {
-      const location = locator.location;
-      return (
-        location.kind === "sheet" &&
-        location.sheet === target.sheet &&
-        (target.element === undefined ||
-          location.element === undefined ||
-          Math.abs(location.element - target.element) <= 2)
-      );
-    });
-  return [];
 }

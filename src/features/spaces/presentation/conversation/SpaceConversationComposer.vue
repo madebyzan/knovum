@@ -6,14 +6,14 @@ import { toast } from "vue-sonner";
 
 import { isFileDropInside, listenForFileDrops } from "../../../../foundation/file-drop/file-drop";
 import { createAsyncDisposer } from "../../../../foundation/lifecycle/async-disposer";
+import type { TaskTargetRef } from "../../../../shared/contracts/generated/TaskTargetRef";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
-import type { ConversationTarget } from "../../conversation/conversation-target";
 import SpaceConversationAttachmentPicker from "./SpaceConversationAttachmentPicker.vue";
 import SpaceConversationAttachmentTray from "./SpaceConversationAttachmentTray.vue";
 import SpaceConversationTargetField from "./SpaceConversationTargetField.vue";
 
 const prompt = defineModel<string>({ required: true });
-const target = defineModel<ConversationTarget | undefined>("target");
+const target = defineModel<TaskTargetRef | undefined>("target");
 const targetAvailable = ref(false);
 const props = defineProps<{
   busy: boolean;
