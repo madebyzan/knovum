@@ -1,0 +1,68 @@
+name: Update implementation review
+
+on:
+  push:
+    branches: [feat/signed-application-updates]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: update-implementation-review
+  cancel-in-progress: true
+
+jobs:
+  review:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+      - name: Install repository tooling
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.17.0 --activate
+          pnpm install --frozen-lockfile
+      - name: Synchronize desktop and packaging documentation
+        run: |
+          python3 - <<'PYTHON'
+          from pathlib import Path
+          path = Path("docs/desktop-foundation.md")
+          text = path.read_text()
+          old = "The updater plugin is registered, but a build is considered update-enabled only when both `KNOVUM_UPDATER_ENDPOINT` and `KNOVUM_UPDATER_PUBKEY` are present at compile time. Production release builds use `tauri.release.conf.json`, which enables updater artifact generation. The application never invents placeholder release endpoints or verification keys; update signing, macOS code signing/notarization and Windows signing remain release-environment configuration documented in `release.md`."
+          assert old in text
+          text = text.replace(old, "The updater plugin is registered only when the build contains validated updater configuration. `package:release` embeds the permanent HTTPS manifest URL and verification key before plugin initialization, requires signing configuration and generates updater artifacts. QA builds remain disabled. Rust owns scheduled checks, the selected version, download/verification and installation; a shared Pinia snapshot projects that state into About and Task Center. Installation uses the existing registered-save barrier and explicit user confirmation. Signing, candidate promotion, native acceptance and GitHub/COS migration are owned by `release.md`.")
+          path.write_text(text)
+          path = Path("docs/packaging.md")
+          text = path.read_text()
+          old = "The official updater plugin is part of the bundled runtime. Normal QA packages remain updater-disabled unless `KNOVUM_UPDATER_ENDPOINT` and `KNOVUM_UPDATER_PUBKEY` are embedded at compile time. Production updater packages use `src-tauri/tauri.release.conf.json` to generate signed update artifacts; see `release.md` for channel, signing and publication requirements."
+          assert old in text
+          text = text.replace(old, "Normal QA packages remain updater-disabled even when updater environment variables are inherited. `pnpm package:release` (or `package:release:macos` / `package:release:windows`) validates aligned versions, production signing and permanent HTTPS discovery, then embeds the public verification configuration before plugin initialization. It merges `src-tauri/tauri.release.conf.json` and builds with the Cargo lockfile. Signed updater artifacts are separate from human-facing DMG installers. The candidate workflow covers all four supported targets; promotion, native upgrade acceptance and GitHub/COS migration are documented in `release.md`.")
+          path.write_text(text)
+          PYTHON
+      - name: Run the repository formatters on proposed files
+        shell: bash
+        run: |
+          git diff --name-only --diff-filter=ACM 94445ee8dd2f39a290f693be177817eaff581e51 HEAD > /tmp/update-paths
+          printf '%s\n' docs/desktop-foundation.md docs/packaging.md >> /tmp/update-paths
+          sort -u /tmp/update-paths -o /tmp/update-paths
+          mapfile -t paths < <(grep -E '\.(ts|vue|mjs|json|yml|md)$' /tmp/update-paths)
+          pnpm exec oxfmt "${paths[@]}"
+          cargo fmt --manifest-path src-tauri/Cargo.toml
+          tar -czf /tmp/formatted-updates.tar.gz -T /tmp/update-paths
+      - uses: actions/upload-artifact@v4
+        with:
+          name: formatted-update-implementation
+          path: /tmp/formatted-updates.tar.gz
+          if-no-files-found: error
+          retention-days: 3
+      - name: Check proposed behavior and repository web gates
+        run: |
+          node --test tools/__tests__/*.test.mjs
+          pnpm exec vitest run src/foundation/updates/__tests__/update-store.test.ts src/foundation/lifecycle/__tests__/window-close-coordinator.test.ts
+          pnpm check:web

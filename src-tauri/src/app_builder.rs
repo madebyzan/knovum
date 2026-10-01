@@ -3,9 +3,7 @@ use tauri::{Builder, Wry};
 use crate::{ai, app_resources, app_window, desktop, secrets, spaces, updater};
 
 pub(crate) fn run() {
-    let builder = base_builder();
-    let builder = release_builder(builder);
-    let builder = platform_builder(builder);
+    let builder = platform_builder(base_builder());
     let app = finish(builder);
     app.run(|app, event| desktop::handle_run_event(app, &event));
 }
@@ -13,8 +11,10 @@ pub(crate) fn run() {
 fn base_builder() -> Builder<Wry> {
     Builder::default()
         .invoke_handler(tauri::generate_handler![
+            updater::get_update_state,
             updater::check_for_update,
-            updater::get_update_configuration,
+            updater::download::download_update,
+            updater::download::cancel_update_download,
             updater::install_update,
         ])
         .on_webview_event(desktop::file_drop::authorize_drop)
@@ -57,16 +57,6 @@ fn window_state_plugin() -> tauri::plugin::TauriPlugin<Wry> {
         .build()
 }
 
-#[cfg(not(debug_assertions))]
-fn release_builder(builder: Builder<Wry>) -> Builder<Wry> {
-    builder.plugin(tauri_plugin_updater::Builder::new().build())
-}
-
-#[cfg(debug_assertions)]
-fn release_builder(builder: Builder<Wry>) -> Builder<Wry> {
-    builder
-}
-
 #[cfg(target_os = "macos")]
 fn platform_builder(builder: Builder<Wry>) -> Builder<Wry> {
     builder
@@ -96,6 +86,7 @@ fn finish(builder: Builder<Wry>) -> tauri::App<Wry> {
         .on_window_event(desktop::handle_window_event)
         .setup(|app| {
             secrets::install(app.handle()).map_err(std::io::Error::other)?;
+            updater::setup(app.handle())?;
             Ok(())
         })
         .build(tauri::generate_context!())
