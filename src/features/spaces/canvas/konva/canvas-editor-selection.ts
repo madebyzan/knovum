@@ -22,12 +22,12 @@ export function createCanvasEditorSelection(options: KonvaEditorPortOptions) {
   }
 
   function contentSnapshot() {
-    return createCanvasSelectionSnapshot(
-      options.layouts(),
-      options.selectedNodeIds(),
-      options.relationIds(),
-      options.relationBounds(),
-    );
+    return createCanvasSelectionSnapshot({
+      layouts: options.layouts(),
+      nodeIds: options.selectedNodeIds(),
+      relationIds: options.relationIds(),
+      relationBounds: options.relationBounds(),
+    });
   }
 
   function bounds() {

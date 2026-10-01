@@ -12,13 +12,15 @@ export interface SpaceAssetProcessingContext {
   applyNodeContentForSpace(spaceId: string, id: string, data: SpaceNodePayload): void;
 }
 
-export function scheduleSpaceAssetProcessing(input: {
+interface SpaceAssetProcessingInput {
   context: SpaceAssetProcessingContext;
   spaceId: string;
   nodeId: string;
   data: SpaceNodePayload;
   existingTaskId?: string;
-}) {
+}
+
+export function scheduleSpaceAssetProcessing(input: SpaceAssetProcessingInput) {
   const { context, spaceId, nodeId, data, existingTaskId } = input;
   const tasks = useTaskStore();
   const jobId = crypto.randomUUID();
@@ -39,9 +41,14 @@ export function scheduleSpaceAssetProcessing(input: {
     try {
       enriched = await runSpaceAssetProcessing(async () => {
         if (cancelRequested) throw new Error("Space asset processing cancelled");
-        return deriveSpaceAssetContent(spaceId, nodeId, jobId, (updated) => {
-          currentContent = updated;
-          context.applyNodeContentForSpace(spaceId, nodeId, updated);
+        return deriveSpaceAssetContent({
+          spaceId,
+          nodeId,
+          jobId,
+          onUpdate: (updated) => {
+            currentContent = updated;
+            context.applyNodeContentForSpace(spaceId, nodeId, updated);
+          },
         });
       });
     } catch (error) {

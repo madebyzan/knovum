@@ -22,12 +22,14 @@ export function registerConversationRunNavigation(
   };
 }
 
-export function observeConversationRun(
-  run: RunIdentity,
-  title: string,
-  onUpdate?: Listener,
-  location?: { spaceId: string; conversationId: string },
-) {
+interface ConversationRunObservationInput {
+  run: RunIdentity;
+  title: string;
+  onUpdate?: Listener | undefined;
+  location?: { spaceId: string; conversationId: string };
+}
+
+export function observeConversationRun({ run, title, onUpdate, location }: ConversationRunObservationInput) {
   const tasks = useTaskStore();
   const space = useSpaceStore();
   function attachNavigation() {
@@ -80,9 +82,10 @@ export function observeConversationRun(
 
 export async function restoreConversationRuns() {
   for (const active of await listActiveAssistantRuns()) {
-    observeConversationRun(active.run, active.title, undefined, {
-      spaceId: active.run.homeSpaceId,
-      conversationId: active.conversationId,
+    observeConversationRun({
+      run: active.run,
+      title: active.title,
+      location: { spaceId: active.run.homeSpaceId, conversationId: active.conversationId },
     });
   }
 }

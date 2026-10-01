@@ -11,7 +11,12 @@ import {
 
 describe("video edit project", () => {
   it("splits clips on the project timeline without changing total duration", () => {
-    const source = createVideoEditProject("sha256:source", 10_000, 1080, 1920);
+    const source = createVideoEditProject({
+      sourceRevision: "sha256:source",
+      durationMs: 10_000,
+      sourceWidth: 1080,
+      sourceHeight: 1920,
+    });
     const split = splitClip(source, 4_000);
     expect(split.videoTrack.clips.map(({ startMs, endMs }) => [startMs, endMs])).toEqual([
       [0, 4_000],
@@ -21,7 +26,15 @@ describe("video edit project", () => {
   });
 
   it("maps a timeline position back to its source clip", () => {
-    const project = splitClip(createVideoEditProject("sha256:source", 10_000, 1080, 1920), 4_000);
+    const project = splitClip(
+      createVideoEditProject({
+        sourceRevision: "sha256:source",
+        durationMs: 10_000,
+        sourceWidth: 1080,
+        sourceHeight: 1920,
+      }),
+      4_000,
+    );
     const trimmed = {
       ...project,
       videoTrack: {
@@ -35,7 +48,12 @@ describe("video edit project", () => {
   });
 
   it("keeps one clip and allows text in the final 100 ms", () => {
-    const project = createVideoEditProject("sha256:source", 2_000, 1080, 1920);
+    const project = createVideoEditProject({
+      sourceRevision: "sha256:source",
+      durationMs: 2_000,
+      sourceWidth: 1080,
+      sourceHeight: 1920,
+    });
     expect(removeClip(project, project.videoTrack.clips[0]!.id)).toBe(project);
     const withText = addTextOverlay(project, 1_900, "PingFang SC");
     expect(withText.textTrack.items[0]).toMatchObject({ startMs: 1_900, endMs: 2_000 });

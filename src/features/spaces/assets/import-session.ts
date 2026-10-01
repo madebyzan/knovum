@@ -15,14 +15,16 @@ import type {
 import { commitManagedImport } from "./import-transfer";
 import { importedSpaceNodePayload } from "./imported-asset-payload";
 
-export async function importSpaceSource(input: {
+interface SpaceImportSourceInput {
   context: SpaceImportContext;
   spaceId: string;
   source: SpaceImportSource;
   position: { x: number; y: number };
   labels: SpaceImportSessionLabels;
   reveal?: boolean;
-}): Promise<SpaceCanvasNode[]> {
+}
+
+export async function importSpaceSource(input: SpaceImportSourceInput): Promise<SpaceCanvasNode[]> {
   const { context, spaceId, source, position, labels, reveal = true } = input;
   await context.ensureImportTarget(spaceId);
   const operation = await prepareSpaceImportSource(source, labels, "scoped");
@@ -40,13 +42,15 @@ export async function prepareSpaceImportSource(
   return { source, prepared, taskId };
 }
 
-export function commitPreparedSpaceImport(input: {
+interface PreparedSpaceImportInput {
   context: SpaceImportContext;
   spaceId: string;
   operation: PreparedSpaceImportOperation;
   position: { x: number; y: number };
   reveal?: boolean;
-}): Promise<SpaceCanvasNode[]> {
+}
+
+export function commitPreparedSpaceImport(input: PreparedSpaceImportInput): Promise<SpaceCanvasNode[]> {
   const { context, operation, position, spaceId, reveal = true } = input;
   const { prepared, source, taskId } = operation;
   if (!prepared.jobId)

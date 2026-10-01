@@ -14,12 +14,12 @@ const dateFormatter = computed(
   () => new Intl.DateTimeFormat(locale.value, { year: "numeric", month: "short", day: "numeric", timeZone }),
 );
 const weeks = computed(() =>
-  buildTokenActivityWeeks(
-    props.report.activity,
-    props.report.fromDate,
-    props.report.toDate,
-    locale.value,
-  ).map((week) => ({
+  buildTokenActivityWeeks({
+    activity: props.report.activity,
+    fromDate: props.report.fromDate,
+    toDate: props.report.toDate,
+    locale: locale.value,
+  }).map((week) => ({
     key: week.key,
     month: week.month,
     cells: week.cells.map((cell) => ({

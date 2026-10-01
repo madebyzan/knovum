@@ -5,13 +5,15 @@ import type { useSpaceStore } from "../session/space-store";
 
 type SpaceStore = Pick<ReturnType<typeof useSpaceStore>, "activeSpace" | "addContent" | "createRelation">;
 
-export async function createSourceEvidence(input: {
+interface SourceEvidenceInput {
   store: SpaceStore;
   target: KnowledgePeekTarget;
   title: string;
   sourceLine: string;
   rationale: string;
-}) {
+}
+
+export async function createSourceEvidence(input: SourceEvidenceInput) {
   const { store, target, title, sourceLine, rationale } = input;
   const spaceId = requiredSpaceId(store);
   const quote = target.locator.quote?.exact ?? target.text ?? "";

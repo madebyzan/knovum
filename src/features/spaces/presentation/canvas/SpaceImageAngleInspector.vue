@@ -10,12 +10,12 @@ import { useImageGenerateActions } from "./use-image-generate-actions";
 const props = defineProps<{ node: SpaceCanvasNode<SpaceImagePayload> }>();
 const emit = defineEmits<{ close: [] }>();
 const panel = useTemplateRef<HTMLElement>("panel");
-const { busy, availability, help, openAiSettings, run } = useImageGenerateActions(
-  toRef(props, "node"),
-  "angle",
-  toRef(() => true),
-  () => emit("close"),
-);
+const { busy, availability, help, openAiSettings, run } = useImageGenerateActions({
+  node: toRef(props, "node"),
+  mode: "angle",
+  open: toRef(() => true),
+  close: () => emit("close"),
+});
 
 onMounted(async () => {
   await nextTick();

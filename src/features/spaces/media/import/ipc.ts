@@ -3,12 +3,14 @@ import { Channel } from "@tauri-apps/api/core";
 import { invokeCommand } from "../../../../foundation/ipc/invoke-command";
 import { importedMediaSchema, mediaImportProgressSchema, type MediaImportProgress } from "./schema/import";
 
-export async function requestMediaImport(
-  jobId: string,
-  resourceTitle: string,
-  url: string,
-  onProgress: (progress: MediaImportProgress) => void,
-) {
+interface MediaImportRequestInput {
+  jobId: string;
+  resourceTitle: string;
+  url: string;
+  onProgress: (progress: MediaImportProgress) => void;
+}
+
+export async function requestMediaImport({ jobId, resourceTitle, url, onProgress }: MediaImportRequestInput) {
   const channel = new Channel<unknown>();
   // Tauri Channel exposes its receiver as an onmessage property, not an EventTarget API.
   // oxlint-disable-next-line unicorn/prefer-add-event-listener

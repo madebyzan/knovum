@@ -1,5 +1,5 @@
 import { rotatedImageSize, type ImageEdit } from "./image-edit";
-import { applyImageTone } from "./image-tone";
+import { applyImageTone, type ImagePixelRect } from "./image-tone";
 
 export interface ImageCanvasSize {
   width: number;
@@ -69,7 +69,7 @@ export function renderEditedImage(
 function renderToneAdjustments(
   context: CanvasRenderingContext2D,
   edit: ImageEdit,
-  imageRect: { left: number; top: number; width: number; height: number },
+  imageRect: ImagePixelRect,
 ) {
   if (Object.values(edit.adjustments).every((value) => value === 0)) return;
   const { width, height } = context.canvas;

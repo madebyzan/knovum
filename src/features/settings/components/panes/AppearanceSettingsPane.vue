@@ -11,6 +11,7 @@ import type {
   ThemePreference,
 } from "../../../../foundation/preferences/schema/preferences";
 import UiSelect from "../../../../shared/ui/UiSelect.vue";
+import type { SelectOption } from "../../../../shared/ui/UiSelect.vue";
 import PreferenceField from "../PreferenceField.vue";
 import SettingsSection from "../SettingsSection.vue";
 
@@ -18,21 +19,21 @@ const { t } = useI18n();
 const preferences = usePreferencesStore();
 const { theme, density, textSize, locale } = storeToRefs(preferences);
 
-const themes = computed(() => [
+const themes = computed<readonly SelectOption<ThemePreference>[]>(() => [
   { value: "system", label: t("settings.appearance.options.followSystem") },
   { value: "light", label: t("settings.appearance.options.theme.light") },
   { value: "dark", label: t("settings.appearance.options.theme.dark") },
 ]);
-const textSizes = computed(() => [
+const textSizes = computed<readonly SelectOption<TextSizePreference>[]>(() => [
   { value: "small", label: t("settings.appearance.options.textSize.small") },
   { value: "default", label: t("settings.appearance.options.textSize.default") },
   { value: "large", label: t("settings.appearance.options.textSize.large") },
 ]);
-const densities = computed(() => [
+const densities = computed<readonly SelectOption<DensityPreference>[]>(() => [
   { value: "compact", label: t("settings.appearance.options.density.compact") },
   { value: "comfortable", label: t("settings.appearance.options.density.comfortable") },
 ]);
-const languages = computed(() => [
+const languages = computed<readonly SelectOption<LocalePreference>[]>(() => [
   { value: "system", label: t("settings.appearance.options.followSystem") },
   { value: "zh-CN", label: t("settings.appearance.options.language.simplifiedChinese") },
   { value: "en", label: t("settings.appearance.options.language.english") },
@@ -51,7 +52,7 @@ const languages = computed(() => [
         :model-value="theme"
         :label="t('settings.appearance.theme.label')"
         :options="themes"
-        @update:model-value="preferences.setTheme($event as ThemePreference)"
+        @update:model-value="preferences.setTheme($event)"
       />
     </PreferenceField>
     <PreferenceField
@@ -64,7 +65,7 @@ const languages = computed(() => [
         :model-value="textSize"
         :label="t('settings.appearance.textSize.label')"
         :options="textSizes"
-        @update:model-value="preferences.setTextSize($event as TextSizePreference)"
+        @update:model-value="preferences.setTextSize($event)"
       />
     </PreferenceField>
     <PreferenceField
@@ -77,7 +78,7 @@ const languages = computed(() => [
         :model-value="density"
         :label="t('settings.appearance.density.label')"
         :options="densities"
-        @update:model-value="preferences.setDensity($event as DensityPreference)"
+        @update:model-value="preferences.setDensity($event)"
       />
     </PreferenceField>
     <PreferenceField
@@ -90,7 +91,7 @@ const languages = computed(() => [
         :model-value="locale"
         :label="t('settings.appearance.language.label')"
         :options="languages"
-        @update:model-value="preferences.setLocale($event as LocalePreference)"
+        @update:model-value="preferences.setLocale($event)"
       />
     </PreferenceField>
   </SettingsSection>

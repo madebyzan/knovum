@@ -58,13 +58,15 @@ export function resizeCrop(crop: ImageCrop, width: number, height: number): Imag
   };
 }
 
-export function scaleCropToPixelSize(input: {
+interface CropPixelSizeInput {
   crop: ImageCrop;
   sourceWidth: number;
   sourceHeight: number;
   axis: "width" | "height";
   pixels: number;
-}): ImageCrop {
+}
+
+export function scaleCropToPixelSize(input: CropPixelSizeInput): ImageCrop {
   const { crop, sourceWidth, sourceHeight, axis, pixels } = input;
   const current = axis === "width" ? crop.width * sourceWidth : crop.height * sourceHeight;
   const factor = Math.max(

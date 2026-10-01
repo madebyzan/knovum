@@ -32,14 +32,16 @@ export function constrainSelectionTransform(
   };
 }
 
-function constrainedSize(options: {
+interface ConstrainedSizeOptions {
   width: number;
   height: number;
   currentWidth: number;
   currentHeight: number;
   activeAnchor: string | null;
   policy: CanvasSelectionTransformPolicy;
-}) {
+}
+
+function constrainedSize(options: ConstrainedSizeOptions) {
   const { width, height, currentWidth, currentHeight, activeAnchor, policy } = options;
   if (policy.contentAspect) {
     return contentAspectSize({ width, height, currentWidth, currentHeight, policy });
@@ -58,13 +60,15 @@ function constrainedSize(options: {
   };
 }
 
-function contentAspectSize(options: {
+interface ContentAspectSizeOptions {
   width: number;
   height: number;
   currentWidth: number;
   currentHeight: number;
   policy: CanvasSelectionTransformPolicy;
-}) {
+}
+
+function contentAspectSize(options: ContentAspectSizeOptions) {
   const { width, height, currentWidth, currentHeight, policy } = options;
   const aspect = policy.contentAspect!;
   const minimumWidth = Math.max(

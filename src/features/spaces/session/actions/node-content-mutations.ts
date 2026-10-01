@@ -13,6 +13,7 @@ import { validateSpaceNodePayload } from "../../model/nodes/node-validation";
 import {
   discardPendingContent as persistPendingContentDiscard,
   updateNodePayload,
+  type NodePayloadChangeInput,
 } from "../../nodes/node-operations";
 import { spaceEditOperations } from "../../structure/space-edit-operations";
 import { loadSpaceSessionProjection } from "../space-projection";
@@ -62,15 +63,7 @@ export function createNodeContentMutations(context: SpaceMutationContext) {
     await persistNodeContent(spaceId, { id, expectedData: expectedContent, data });
   }
 
-  async function persistNodeContent(
-    spaceId: string,
-    change: {
-      id: string;
-      expectedData: SpaceNodePayload;
-      data: SpaceNodePayload;
-      sourceChunks?: readonly KnowledgeChunkSeed[] | undefined;
-    },
-  ) {
+  async function persistNodeContent(spaceId: string, change: NodePayloadChangeInput) {
     const validated = validateSpaceNodePayload(change.data);
     const committed = await updateNodePayload(spaceId, { ...change, data: validated });
     patchActiveNodeContent(spaceId, change.id, committed.data);

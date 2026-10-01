@@ -35,12 +35,12 @@ export function useVideoEditProject(
       metadataError.value = i18n.global.t("spaces.media.videoEditor.preview.metadataUnavailable");
       return;
     }
-    project.value = createVideoEditProject(
-      data.value.sourceRevision ?? data.value.assetPath,
-      Math.max(1, Math.round(element.duration * 1000)),
-      element.videoWidth,
-      element.videoHeight,
-    );
+    project.value = createVideoEditProject({
+      sourceRevision: data.value.sourceRevision ?? data.value.assetPath,
+      durationMs: Math.max(1, Math.round(element.duration * 1000)),
+      sourceWidth: element.videoWidth,
+      sourceHeight: element.videoHeight,
+    });
   }
 
   return { project, metadataError, initializeFromMetadata };

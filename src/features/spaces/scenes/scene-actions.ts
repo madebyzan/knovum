@@ -21,12 +21,14 @@ interface SceneActionContext {
   queryFilter: Ref<SpaceSavedViewFilter>;
 }
 
-export async function createSpaceScene(
-  context: SceneActionContext,
-  title: string,
-  viewport: SpaceViewport,
-  thumbnailPath: string,
-) {
+interface CreateSpaceSceneInput {
+  context: SceneActionContext;
+  title: string;
+  viewport: SpaceViewport;
+  thumbnailPath: string;
+}
+
+export async function createSpaceScene({ context, title, viewport, thumbnailPath }: CreateSpaceSceneInput) {
   const spaceId = context.activeSpaceId.value;
   if (!spaceId) return;
   const now = Date.now();
@@ -51,11 +53,14 @@ export async function createSpaceScene(
   return scene;
 }
 
-export async function updateSpaceScene(
-  context: SceneActionContext,
-  id: string,
-  patch: { title?: string; viewport?: SpaceViewport; thumbnailPath?: string; captureView?: boolean },
-) {
+interface SpaceScenePatch {
+  title?: string;
+  viewport?: SpaceViewport;
+  thumbnailPath?: string;
+  captureView?: boolean;
+}
+
+export async function updateSpaceScene(context: SceneActionContext, id: string, patch: SpaceScenePatch) {
   const scene = context.scenes.value.find((candidate) => candidate.id === id);
   if (!scene) return;
   const viewport = patch.viewport;

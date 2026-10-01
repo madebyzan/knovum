@@ -14,7 +14,12 @@ it("opens a saved reactive video project as an independent draft", () => {
     fileName: "video.mp4",
     assetPath: "/owned/video.mp4",
     sourceRevision: "r1",
-    videoEditProject: createVideoEditProject("r1", 1000, 1920, 1080),
+    videoEditProject: createVideoEditProject({
+      sourceRevision: "r1",
+      durationMs: 1000,
+      sourceWidth: 1920,
+      sourceHeight: 1080,
+    }),
   });
   const scope = effectScope();
   try {

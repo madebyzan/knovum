@@ -16,12 +16,19 @@ export interface TokenActivityWeek {
   cells: TokenActivityCell[];
 }
 
-export function buildTokenActivityWeeks(
-  activity: UsageDay[],
-  fromDate: string,
-  toDate: string,
-  locale: string,
-): TokenActivityWeek[] {
+interface TokenActivityCalendarInput {
+  activity: readonly UsageDay[];
+  fromDate: string;
+  toDate: string;
+  locale: string;
+}
+
+export function buildTokenActivityWeeks({
+  activity,
+  fromDate,
+  toDate,
+  locale,
+}: TokenActivityCalendarInput): TokenActivityWeek[] {
   const totals = new Map(activity.map((day) => [day.date, day]));
   const from = parseDate(fromDate);
   const to = parseDate(toDate);

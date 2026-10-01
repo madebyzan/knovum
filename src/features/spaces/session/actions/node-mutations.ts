@@ -89,16 +89,16 @@ function createContentMutations(context: SpaceMutationContext) {
     let persisted = false;
     try {
       const snapshot = isActive ? context.editSnapshot.value : await spaceEditOperations.load(spaceId);
-      await createNodes(
+      await createNodes({
         spaceId,
-        contentNodes,
-        {
+        nodes: contentNodes,
+        edit: {
           mutationId: crypto.randomUUID(),
           expectedEditRevision: snapshot.editRevision,
           targetParentId,
         },
         sourceChunks,
-      );
+      });
       persisted = true;
       await synchronizeCreatedContent(spaceId, contentNodes);
     } catch (error) {

@@ -4,8 +4,15 @@ import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import type { MediaTranscriptionProgress } from "../contracts/generated/MediaTranscriptionProgress";
 import { validateSpaceNodePayload } from "../model/nodes/node-validation";
 
+interface MediaInsightsInput {
+  spaceId: string;
+  nodeId: string;
+  jobId: string;
+  expectedRevision: string;
+}
+
 export async function generateMediaInsights(
-  input: { spaceId: string; nodeId: string; jobId: string; expectedRevision: string },
+  input: MediaInsightsInput,
   progress: (value: MediaTranscriptionProgress) => void,
 ) {
   const onProgress = new Channel<MediaTranscriptionProgress>();

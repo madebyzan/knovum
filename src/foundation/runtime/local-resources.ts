@@ -9,12 +9,15 @@ import { invokeCommand } from "../ipc/invoke-command";
 export function getLocalResourcesStatus(): Promise<LocalResourcesStatus> {
   return invokeCommand("plugin:local-resources|get_status");
 }
-export function prepareResources(
-  target: ResourcePreparationTarget,
-  jobId: string,
-  title: string,
-  onProgress: (value: ResourcePreparationProgress) => void,
-) {
+
+interface ResourcePreparationInput {
+  target: ResourcePreparationTarget;
+  jobId: string;
+  title: string;
+  onProgress: (value: ResourcePreparationProgress) => void;
+}
+
+export function prepareResources({ target, jobId, title, onProgress }: ResourcePreparationInput) {
   const channel = new Channel<ResourcePreparationProgress>();
   // Tauri Channel exposes one IPC receiver rather than a DOM EventTarget.
   // oxlint-disable-next-line unicorn/prefer-add-event-listener
@@ -26,6 +29,7 @@ export function prepareResources(
     onProgress: channel,
   });
 }
+
 export function cancelResourcePreparation(jobId: string): Promise<void> {
   return invokeCommand("plugin:local-resources|cancel_resource_preparation", { jobId });
 }

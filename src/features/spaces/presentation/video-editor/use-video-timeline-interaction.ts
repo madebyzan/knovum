@@ -50,12 +50,12 @@ export function useVideoTimelineInteraction(
         }
       : props.project;
   });
-  const { viewport, duration, ticks, contentStyle, clipStyle } = useVideoTimelineScale(
-    visibleProject,
-    () => props.zoom,
-    () => props.playheadMs,
-    () => props.playing,
-  );
+  const { viewport, duration, ticks, contentStyle, clipStyle } = useVideoTimelineScale({
+    project: visibleProject,
+    zoom: () => props.zoom,
+    playhead: () => props.playheadMs,
+    playing: () => props.playing,
+  });
 
   function seekFromPointer(event: PointerEvent) {
     const bounds = (event.currentTarget as HTMLElement).getBoundingClientRect();

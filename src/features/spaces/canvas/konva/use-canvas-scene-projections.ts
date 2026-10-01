@@ -2,6 +2,7 @@ import { computed, type Ref } from "vue";
 
 import { ancestorsOf, createStructureIndex } from "../../model/structure/structure-index";
 import { isStructureNodeEffectivelyLocked } from "../../model/structure/structure-queries";
+import type { WorldBounds } from "../../model/structure/world-bounds";
 import type { CanvasSurfaceProps } from "../contracts/canvas-surface";
 import { projectStructureScene } from "../document/structure-scene-projection";
 import type { CanvasDocumentV1 } from "../schema/document";
@@ -24,15 +25,20 @@ export function useCanvasSceneProjections(
     );
   });
   const structureScene = computed(() =>
-    projectStructureScene(
-      props.sceneInput.editSnapshot,
-      props.sceneInput.nodes,
-      props.sceneInput.relations,
-      temporarilyExpandedSectionId.value ? new Set([temporarilyExpandedSectionId.value]) : new Set(),
-    ),
+    projectStructureScene({
+      snapshot: props.sceneInput.editSnapshot,
+      nodes: props.sceneInput.nodes,
+      relations: props.sceneInput.relations,
+      temporarilyExpandedSectionIds: temporarilyExpandedSectionId.value
+        ? new Set([temporarilyExpandedSectionId.value])
+        : new Set(),
+    }),
   );
   const scene = computed(() =>
-    projectCanvasScene(document.value, props.sceneInput.nodes, props.sceneInput.relations, {
+    projectCanvasScene({
+      document: document.value,
+      nodes: props.sceneInput.nodes,
+      relations: props.sceneInput.relations,
       lockedNodeIds: lockedNodeIds.value,
       structure: structureScene.value,
     }),
@@ -94,7 +100,7 @@ export function useCanvasSceneProjections(
   };
 }
 
-function canvasBounds(bounds: { left: number; top: number; right: number; bottom: number }) {
+function canvasBounds(bounds: WorldBounds) {
   return {
     x: bounds.left,
     y: bounds.top,

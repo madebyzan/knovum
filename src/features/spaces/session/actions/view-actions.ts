@@ -39,7 +39,11 @@ export function createSpaceViewActions(state: SpaceState, placement: SpacePlacem
     state.relationStatusFilter.value = [...scene.relationStatuses];
     state.savedQueryFilter.value = snapshotSpaceQueryFilter(scene.queryFilter);
     const dynamicIds = hasQueryFilter(scene.queryFilter)
-      ? queryMatchingNodes(state.nodes.value, state.relations.value, scene.queryFilter).map((node) => node.id)
+      ? queryMatchingNodes({
+          nodes: state.nodes.value,
+          relations: state.relations.value,
+          filter: scene.queryFilter,
+        }).map((node) => node.id)
       : contentNodeIdsWithin(
           scene.focusStructureNodeIds,
           createStructureIndex(state.editSnapshot.value.structure),

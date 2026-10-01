@@ -1,12 +1,11 @@
 import { defineStore } from "pinia";
 import { readonly, shallowRef, watch } from "vue";
 
-import type { SpaceImagePayload } from "../model/nodes/node-payload";
+import type { SpaceImageComment } from "../model/nodes/node-payload";
 import { useSpaceStore } from "../session/space-store";
 
 export type ImageCommentMode = "point" | "draw" | "region";
-type ImageComment = NonNullable<SpaceImagePayload["comments"]>[number];
-export type ImageCommentContext = Pick<ImageComment, "x" | "y" | "shape" | "text">;
+export type ImageCommentContext = Pick<SpaceImageComment, "x" | "y" | "shape" | "text">;
 
 export const useImageCommentSession = defineStore("spaces-image-comments", () => {
   const space = useSpaceStore();

@@ -39,7 +39,12 @@ const source: SpaceCanvasNode<SpaceVideoPayload> = {
   },
 };
 const pending = { ...source, id: "output-node" };
-const project = createVideoEditProject("source-revision", 2_000, 1080, 1920);
+const project = createVideoEditProject({
+  sourceRevision: "source-revision",
+  durationMs: 2_000,
+  sourceWidth: 1080,
+  sourceHeight: 1920,
+});
 
 function createStore(): Parameters<typeof renderVideoEdit>[0] {
   return {

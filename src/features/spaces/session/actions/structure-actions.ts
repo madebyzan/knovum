@@ -11,14 +11,16 @@ import { spaceEditCommandRecordsHistory } from "../../structure/space-edit-comma
 import { spaceEditOperations } from "../../structure/space-edit-operations";
 import { loadSpaceSessionProjection } from "../space-projection";
 
-export function createStructureActions(context: {
+interface StructureActionContext {
   activeSpaceId: Ref<string | undefined>;
   editSnapshot: Ref<SpaceEditSnapshot>;
   nodes: Ref<SpaceCanvasNode[]>;
   relations: Ref<SpaceRelation[]>;
   history: SpaceHistoryState;
   ensureActiveSpacePersisted: () => Promise<unknown>;
-}) {
+}
+
+export function createStructureActions(context: StructureActionContext) {
   async function executeSpaceEdit(command: SpaceEditCommand) {
     await context.ensureActiveSpacePersisted();
     const spaceId = context.activeSpaceId.value;

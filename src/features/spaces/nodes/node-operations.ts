@@ -23,16 +23,25 @@ export async function getNode(spaceId: string, nodeId: string): Promise<SpaceCan
   return createSpaceNode(validateSpaceNodePayload(row.data), { x: row.initialX, y: row.initialY }, row.id);
 }
 
-export async function createNodes(
-  spaceId: string,
-  nodes: readonly SpaceCanvasNode[],
-  edit: {
-    mutationId: string;
-    expectedEditRevision: number;
-    targetParentId: string | null;
-  },
-  sourceChunks: ReadonlyMap<string, readonly KnowledgeChunkSeed[]> = new Map(),
-): Promise<number> {
+interface NodeCreationMutation {
+  mutationId: string;
+  expectedEditRevision: number;
+  targetParentId: string | null;
+}
+
+interface CreateNodesInput {
+  spaceId: string;
+  nodes: readonly SpaceCanvasNode[];
+  edit: NodeCreationMutation;
+  sourceChunks?: ReadonlyMap<string, readonly KnowledgeChunkSeed[]> | undefined;
+}
+
+export async function createNodes({
+  spaceId,
+  nodes,
+  edit,
+  sourceChunks = new Map(),
+}: CreateNodesInput): Promise<number> {
   return invokeConfirmedMutation<number>(
     "plugin:spaces|create_nodes",
     {
@@ -63,14 +72,16 @@ function spaceNodeLayoutInput(node: SpaceCanvasNode) {
   };
 }
 
+export interface NodePayloadChangeInput {
+  id: string;
+  expectedData: SpaceNodePayload;
+  data: SpaceNodePayload;
+  sourceChunks?: readonly KnowledgeChunkSeed[] | undefined;
+}
+
 export async function updateNodePayload(
   spaceId: string,
-  change: {
-    id: string;
-    expectedData: SpaceNodePayload;
-    data: SpaceNodePayload;
-    sourceChunks?: readonly KnowledgeChunkSeed[] | undefined;
-  },
+  change: NodePayloadChangeInput,
 ): Promise<{ data: SpaceNodePayload; editSnapshot: SpaceEditSnapshot | null }> {
   const { id, expectedData: expectedContent, data, sourceChunks } = change;
   const committed = await updateNodePayloadMany(

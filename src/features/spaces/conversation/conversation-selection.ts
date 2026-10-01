@@ -4,7 +4,7 @@ import type { AssistantConversation } from "../contracts/generated/AssistantConv
 import type { AssistantMessage } from "../contracts/generated/AssistantMessage";
 import { listAssistantConversations, listAssistantMessages } from "./conversation-ipc";
 
-export function createConversationSelection(input: {
+interface ConversationSelectionInput {
   spaceId: Ref<string | undefined>;
   query: Ref<string>;
   showingArchived: Ref<boolean>;
@@ -17,7 +17,9 @@ export function createConversationSelection(input: {
   restoreDraft: (id: string) => void;
   clearBranches: () => void;
   loadBranches: (id: string) => Promise<void>;
-}) {
+}
+
+export function createConversationSelection(input: ConversationSelectionInput) {
   async function refreshConversations() {
     const requestedSpaceId = input.spaceId.value;
     if (!requestedSpaceId) return;

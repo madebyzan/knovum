@@ -15,12 +15,19 @@ export async function captureCanvasOverview(scene: CanvasScene, palette: CanvasP
   return renderCanvasThumbnail(scene, palette, viewport);
 }
 
-export function captureCanvasViewport(
-  scene: CanvasScene,
-  palette: CanvasPalette,
-  viewport: CanvasViewport,
-  size: { width: number; height: number },
-): Promise<Blob> {
+interface CanvasViewportCaptureInput {
+  scene: CanvasScene;
+  palette: CanvasPalette;
+  viewport: CanvasViewport;
+  size: { width: number; height: number };
+}
+
+export function captureCanvasViewport({
+  scene,
+  palette,
+  viewport,
+  size,
+}: CanvasViewportCaptureInput): Promise<Blob> {
   return renderCanvasThumbnail(
     scene,
     palette,

@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup lang="ts" generic="Value extends string = string">
 import { Check, ChevronDown } from "@lucide/vue";
 import {
   SelectContent,
@@ -17,20 +17,20 @@ import { computed, type HTMLAttributes } from "vue";
 import { cn } from "./cn";
 import { INPUT_BASE_CLASSES, POPUP_ANIMATE_CLASSES, POPOVER_SURFACE_CLASSES } from "./ui-classes";
 
-export interface SelectOption {
-  value: string;
+export interface SelectOption<Value extends string = string> {
+  value: Value;
   label: string;
   description?: string;
   disabled?: boolean;
 }
 
-const model = defineModel<string>({ required: true });
+const model = defineModel<Value>({ required: true });
 
 const props = withDefaults(
   defineProps<{
     id?: string | undefined;
     label: string;
-    options: readonly SelectOption[];
+    options: readonly SelectOption<Value>[];
     disabled?: boolean | undefined;
     placeholder?: string | undefined;
     size?: "sm" | "md" | undefined;

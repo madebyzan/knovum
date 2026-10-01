@@ -18,13 +18,20 @@ type ContentLayout = Extract<StructureLayout, { kind: "content" }>;
 type GroupStructureNode = Extract<StructureNode, { kind: "group" }>;
 type SectionStructureNode = Extract<StructureNode, { kind: "section" }>;
 
+interface StructureSceneProjectionInput {
+  snapshot: SpaceEditSnapshot;
+  nodes: readonly SpaceCanvasNode[];
+  relations: readonly SpaceRelation[];
+  temporarilyExpandedSectionIds?: ReadonlySet<StructureNodeId>;
+}
+
 /** One structure traversal owns content order, world geometry, folding, and relation representatives. */
-export function projectStructureScene(
-  snapshot: SpaceEditSnapshot,
-  nodes: readonly SpaceCanvasNode[],
-  relations: readonly SpaceRelation[],
-  temporarilyExpandedSectionIds: ReadonlySet<StructureNodeId> = new Set(),
-): StructureScene {
+export function projectStructureScene({
+  snapshot,
+  nodes,
+  relations,
+  temporarilyExpandedSectionIds = new Set(),
+}: StructureSceneProjectionInput): StructureScene {
   const index = validateStructureSnapshot(snapshot.structure, snapshot.layouts);
   const layouts = new Map(snapshot.layouts.map((layout) => [layout.structureNodeId, layout]));
   const contentById = new Map(nodes.map((node) => [node.id, node]));
@@ -50,12 +57,12 @@ export function projectStructureScene(
       inheritedLocked: false,
     });
   sections.sort((left, right) => left.section.order - right.section.order);
-  const projectedRelations = projectStructureRelations(
+  const projectedRelations = projectStructureRelations({
     relations,
     index,
     layouts,
     temporarilyExpandedSectionIds,
-  );
+  });
   return { content, groups, sections, relations: projectedRelations };
 }
 
@@ -94,15 +101,14 @@ function walkStructure(
   return projectContainer(state, { structureNode, layout, world, traversal, locked });
 }
 
-function projectContent(
-  state: ProjectionState,
-  projection: {
-    structureNode: ContentStructureNode;
-    layout: ContentLayout;
-    world: LocalTransform;
-    traversal: WalkState;
-  },
-) {
+interface ContentProjectionInput {
+  structureNode: ContentStructureNode;
+  layout: ContentLayout;
+  world: LocalTransform;
+  traversal: WalkState;
+}
+
+function projectContent(state: ProjectionState, projection: ContentProjectionInput) {
   const { structureNode, layout, world, traversal } = projection;
   const node = state.contentById.get(structureNode.nodeId);
   if (!node) throw new Error(`Active content missing for ${structureNode.nodeId}`);
@@ -120,16 +126,15 @@ function projectContent(
   return { bounds, contentCount: 1 };
 }
 
-function projectContainer(
-  state: ProjectionState,
-  projection: {
-    structureNode: GroupStructureNode | SectionStructureNode;
-    layout: Exclude<StructureLayout, ContentLayout>;
-    world: LocalTransform;
-    traversal: WalkState;
-    locked: boolean;
-  },
-) {
+interface ContainerProjectionInput {
+  structureNode: GroupStructureNode | SectionStructureNode;
+  layout: Exclude<StructureLayout, ContentLayout>;
+  world: LocalTransform;
+  traversal: WalkState;
+  locked: boolean;
+}
+
+function projectContainer(state: ProjectionState, projection: ContainerProjectionInput) {
   const { structureNode, layout, world, traversal, locked } = projection;
   const sectionId = structureNode.kind === "section" ? structureNode.id : traversal.sectionId;
   const temporarilyExpanded =
@@ -152,26 +157,30 @@ function projectContainer(
   return { bounds, contentCount };
 }
 
-function recordGroup(input: {
+interface GroupProjectionInput {
   state: ProjectionState;
   group: GroupStructureNode;
   traversal: WalkState;
   locked: boolean;
   bounds: WorldBounds | undefined;
-}) {
+}
+
+function recordGroup(input: GroupProjectionInput) {
   const { state, group, traversal, locked, bounds } = input;
   if (!bounds) throw new Error(`Empty Group: ${group.id}`);
   state.groups.push({ group, bounds, sectionId: traversal.sectionId, visible: !traversal.hidden, locked });
 }
 
-function recordSection(input: {
+interface SectionProjectionInput {
   state: ProjectionState;
   section: SectionStructureNode;
   layout: Exclude<StructureLayout, ContentLayout>;
   contentCount: number;
   locked: boolean;
   temporarilyExpanded: boolean;
-}) {
+}
+
+function recordSection(input: SectionProjectionInput) {
   const { state, section, layout, contentCount, locked, temporarilyExpanded } = input;
   if (layout.kind !== "section") throw new Error(`Missing Section layout for ${section.id}`);
   const { x, y } = layout.position;

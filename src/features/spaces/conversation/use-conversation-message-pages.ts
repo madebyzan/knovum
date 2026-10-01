@@ -4,12 +4,14 @@ import type { AssistantConversation } from "../contracts/generated/AssistantConv
 import type { AssistantMessage } from "../contracts/generated/AssistantMessage";
 import { listAssistantMessages } from "./conversation-ipc";
 
-export function useConversationMessagePages(input: {
+interface ConversationMessagePagesInput {
   spaceId: Ref<string | undefined>;
   selectedConversationId: Ref<string>;
   selectedConversation: Ref<AssistantConversation | undefined>;
   messages: ShallowRef<AssistantMessage[]>;
-}) {
+}
+
+export function useConversationMessagePages(input: ConversationMessagePagesInput) {
   const loadingOlder = shallowRef(false);
   const hasOlder = shallowRef(false);
   const scrollPositions = shallowRef<Record<string, number>>({});

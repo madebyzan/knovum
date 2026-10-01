@@ -2,6 +2,7 @@ import type { Ref, ShallowRef } from "vue";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
+import type { AssistantAttachment } from "../contracts/generated/AssistantAttachment";
 import type { AssistantConversation } from "../contracts/generated/AssistantConversation";
 import type { AssistantMessage } from "../contracts/generated/AssistantMessage";
 import type { AssistantTaskUpdate } from "../contracts/generated/AssistantTaskUpdate";
@@ -11,7 +12,6 @@ import { pendingConversationMessage } from "./conversation-pending-message";
 import { observeConversationRun } from "./conversation-run-observation";
 import { conversationTaskRequest } from "./conversation-task-request";
 
-type Attachment = NonNullable<SubmitAssistantTaskRequest["attachments"]>[number];
 type StartedTask = Awaited<ReturnType<typeof startAssistantTask>>;
 type Selection = { spaceId: string; conversationId: string };
 
@@ -26,24 +26,28 @@ export interface ConversationSubmissionState {
   activityRevision: ShallowRef<number>;
 }
 
-export function createConversationTaskSubmission(options: {
-  input: {
-    spaceId: Ref<string | undefined>;
-    selectedConversationId: Ref<string>;
-    conversation: Ref<AssistantConversation | undefined>;
-    prompt: Ref<string>;
-    target: Ref<TaskTargetRef | undefined>;
-    attachments: Ref<Attachment[]>;
-    visibleAttachments: Ref<readonly { title: string; isImage: boolean; previewSource: string }[]>;
-    messages: ShallowRef<AssistantMessage[]>;
-    clearDraft: (request: SubmitAssistantTaskRequest) => void;
-    restoreDraft: (request: SubmitAssistantTaskRequest) => void;
-  };
+export interface ConversationSubmissionInput {
+  spaceId: Ref<string | undefined>;
+  selectedConversationId: Ref<string>;
+  conversation: Ref<AssistantConversation | undefined>;
+  prompt: Ref<string>;
+  target: Ref<TaskTargetRef | undefined>;
+  attachments: Ref<AssistantAttachment[]>;
+  visibleAttachments: Ref<readonly { title: string; isImage: boolean; previewSource: string }[]>;
+  messages: ShallowRef<AssistantMessage[]>;
+  clearDraft: (request: SubmitAssistantTaskRequest) => void;
+  restoreDraft: (request: SubmitAssistantTaskRequest) => void;
+}
+
+interface ConversationTaskSubmissionOptions {
+  input: ConversationSubmissionInput;
   state: ConversationSubmissionState;
   accepted: (task: StartedTask["accepted"], selection: Selection) => Promise<void>;
   settled: (task: StartedTask["accepted"], spaceId: string) => Promise<void>;
   restoreForSpace: (spaceId: string) => Promise<void>;
-}) {
+}
+
+export function createConversationTaskSubmission(options: ConversationTaskSubmissionOptions) {
   const { input, state } = options;
   let generation = 0;
 
@@ -53,16 +57,16 @@ export function createConversationTaskSubmission(options: {
     selection: Selection,
     submitted: number,
   ) {
-    observeConversationRun(
-      { id: task.accepted.runId, createdAt: Date.now() },
-      input.conversation.value?.title || request.prompt.slice(0, 80),
-      (run) => {
+    observeConversationRun({
+      run: { id: task.accepted.runId, createdAt: Date.now() },
+      title: input.conversation.value?.title || request.prompt.slice(0, 80),
+      onUpdate: (run) => {
         if (submitted !== generation) return;
         state.taskState.value = run.state;
         state.activityRevision.value += 1;
       },
-      { spaceId: selection.spaceId, conversationId: task.accepted.conversationId },
-    );
+      location: { spaceId: selection.spaceId, conversationId: task.accepted.conversationId },
+    });
   }
 
   async function settle(task: StartedTask, selection: Selection, submitted: number) {

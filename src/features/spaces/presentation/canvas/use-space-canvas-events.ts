@@ -11,7 +11,7 @@ import { sectionDrawCandidateIds } from "../../structure/section-draw-candidates
 import type { CanvasContentLayoutCoordinator } from "./canvas-content-layout-coordinator";
 import type { useSpaceCanvasImports } from "./use-space-canvas-imports";
 
-export function createSpaceCanvasEvents(options: {
+interface SpaceCanvasEventOptions {
   activateNode(nodeId: string): Promise<void>;
   attachEditor(editor: CanvasEditorPort): void;
   contentLayout: CanvasContentLayoutCoordinator;
@@ -22,7 +22,9 @@ export function createSpaceCanvasEvents(options: {
   store: ReturnType<typeof useSpaceStore>;
   tools: ReturnType<typeof useCanvasToolStore>;
   untitledSection: string;
-}): CanvasHostEvents {
+}
+
+export function createSpaceCanvasEvents(options: SpaceCanvasEventOptions): CanvasHostEvents {
   const { store } = options;
   const operations = useNodeOperationGate();
   return {

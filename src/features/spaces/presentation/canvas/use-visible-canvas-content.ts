@@ -3,12 +3,19 @@ import { computed, type MaybeRefOrGetter, toValue } from "vue";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceRelation, SpaceRelationKind, SpaceRelationStatus } from "../../model/relations/relation";
 
-export function useVisibleCanvasContent(
-  nodes: MaybeRefOrGetter<readonly SpaceCanvasNode[]>,
-  relations: MaybeRefOrGetter<readonly SpaceRelation[]>,
-  relationKinds: MaybeRefOrGetter<readonly SpaceRelationKind[]>,
-  relationStatuses: MaybeRefOrGetter<readonly SpaceRelationStatus[]>,
-) {
+interface VisibleCanvasContentInput {
+  nodes: MaybeRefOrGetter<readonly SpaceCanvasNode[]>;
+  relations: MaybeRefOrGetter<readonly SpaceRelation[]>;
+  relationKinds: MaybeRefOrGetter<readonly SpaceRelationKind[]>;
+  relationStatuses: MaybeRefOrGetter<readonly SpaceRelationStatus[]>;
+}
+
+export function useVisibleCanvasContent({
+  nodes,
+  relations,
+  relationKinds,
+  relationStatuses,
+}: VisibleCanvasContentInput) {
   const visibleNodes = computed(() => toValue(nodes).filter((node) => !node.hidden));
   const visibleNodeIds = computed(() => new Set(visibleNodes.value.map(({ id }) => id)));
   const visibleRelations = computed(() => {

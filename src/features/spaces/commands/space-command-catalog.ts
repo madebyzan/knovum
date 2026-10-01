@@ -58,7 +58,7 @@ export function useSpaceCommands() {
 
     const hasStructureSelection = selectedStructureNodeIds().length > 0;
     const editingCommands: AppCommand[] = [
-      ...createSpaceStructureCommands(store, selectedStructureNodeIds, t, sidebar),
+      ...createSpaceStructureCommands({ store, selectedStructureNodeIds, t, sidebar }),
       {
         id: "spaces.focus-outline",
         title: t("spaces.sidebar.outline.title"),

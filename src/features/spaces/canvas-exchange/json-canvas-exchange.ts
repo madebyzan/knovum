@@ -50,7 +50,7 @@ async function exportDocument(
   relations: readonly SpaceRelation[],
 ): Promise<CanvasExchangeExport> {
   assertJsonCanvasExportable(snapshot, relations);
-  const scene = projectStructureScene(snapshot, nodes, relations);
+  const scene = projectStructureScene({ snapshot, nodes, relations });
   assertSectionMembershipIsGeometric(scene.content, scene.sections);
   const resources: CanvasExchangeResource[] = [];
   const sections = new Map(

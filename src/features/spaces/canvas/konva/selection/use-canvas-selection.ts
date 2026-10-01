@@ -78,12 +78,12 @@ export function useCanvasSelection(options: CanvasSelectionOptions) {
   }
 
   function notify() {
-    const snapshot = createCanvasSelectionSnapshot(
-      options.layouts.value,
-      nodeIds.value,
-      relationIds.value,
-      options.relationBounds.value,
-    );
+    const snapshot = createCanvasSelectionSnapshot({
+      layouts: options.layouts.value,
+      nodeIds: nodeIds.value,
+      relationIds: relationIds.value,
+      relationBounds: options.relationBounds.value,
+    });
     const bounds = selectedStructureBounds(structureNodeIds.value, options.structureBounds.value);
     options.changed({
       ...snapshot,

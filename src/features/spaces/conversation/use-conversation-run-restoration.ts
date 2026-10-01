@@ -8,7 +8,7 @@ import { observeConversationRun } from "./conversation-run-observation";
 
 const stopNoObservation = () => {};
 
-export function useConversationRunRestoration(state: {
+interface ConversationRunRestorationState {
   spaceId: Ref<string | undefined>;
   selectedConversationId: Ref<string>;
   activeRunId: ShallowRef<string | undefined>;
@@ -21,7 +21,9 @@ export function useConversationRunRestoration(state: {
   refresh: () => Promise<void>;
   select: (id: string, skipRemember?: boolean, branchId?: string) => Promise<void>;
   onDetach: () => void;
-}) {
+}
+
+export function useConversationRunRestoration(state: ConversationRunRestorationState) {
   let observingRunId = "";
   let stopObserving = stopNoObservation;
   async function restoreForSpace(spaceId: string) {
@@ -77,9 +79,11 @@ export function useConversationRunRestoration(state: {
           });
       }
     };
-    stopObserving = observeConversationRun(active.run, active.title, onRun, {
-      spaceId,
-      conversationId: active.conversationId,
+    stopObserving = observeConversationRun({
+      run: active.run,
+      title: active.title,
+      onUpdate: onRun,
+      location: { spaceId, conversationId: active.conversationId },
     });
     onRun(active.run);
   }

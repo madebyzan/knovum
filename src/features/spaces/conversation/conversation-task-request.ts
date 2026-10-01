@@ -1,14 +1,19 @@
 import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
+import type { AssistantAttachment } from "../contracts/generated/AssistantAttachment";
 import type { AssistantConversation } from "../contracts/generated/AssistantConversation";
 import type { SubmitAssistantTaskRequest } from "../contracts/generated/SubmitAssistantTaskRequest";
 
-export function conversationTaskRequest(input: {
+interface ConversationTaskRequestInput {
   spaceId: string | undefined;
   conversation: AssistantConversation | undefined;
   prompt: string;
   target: TaskTargetRef | undefined;
-  attachments: NonNullable<SubmitAssistantTaskRequest["attachments"]>;
-}): SubmitAssistantTaskRequest | undefined {
+  attachments: AssistantAttachment[];
+}
+
+export function conversationTaskRequest(
+  input: ConversationTaskRequestInput,
+): SubmitAssistantTaskRequest | undefined {
   const text = input.prompt.trim();
   if (!input.spaceId || !input.target || !text) return;
   return {

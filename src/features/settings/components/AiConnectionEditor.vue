@@ -14,6 +14,7 @@ import UiSelect from "../../../shared/ui/UiSelect.vue";
 import {
   createAiConnectionDraft,
   finalizeAiConnectionDraft,
+  type AiConnectionSecretChange,
   type AiConnectionSubmission,
 } from "../ai-connection-draft";
 import { providerOptions } from "../ai-provider-options";
@@ -43,7 +44,7 @@ const draft = reactive<AiConnectionSettings>(
       },
 );
 const attempted = shallowRef(false);
-const secret = shallowRef<string | null | undefined>();
+const secret = shallowRef<AiConnectionSecretChange>();
 const provider = computed(() => requireProvider(props.providers, draft.provider));
 const options = computed(() => providerOptions(props.providers));
 const validUrl = computed(() => {
@@ -95,7 +96,7 @@ function save() {
             :model-value="draft.provider"
             :label="t('settings.ai.provider')"
             :options="options"
-            @update:model-value="selectProvider($event as ProviderKind)"
+            @update:model-value="selectProvider($event)"
           />
         </div>
         <label class="grid gap-1.5 text-caption font-medium text-fg-secondary">

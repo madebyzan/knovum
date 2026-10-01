@@ -2,12 +2,14 @@ import type { AppCommand } from "../../../shared/contracts/app-command";
 import type { CanvasExchangePort } from "../canvas-exchange/canvas-exchange-port";
 import { exportJsonCanvasFile, importJsonCanvasFile } from "../canvas-exchange/transfer";
 
-export function createCanvasExchangeCommands(input: {
+interface CanvasExchangeCommandInput {
   exchange(): CanvasExchangePort | undefined;
   spaceTitle(): string | undefined;
   importTitle: string;
   exportTitle: string;
-}): AppCommand[] {
+}
+
+export function createCanvasExchangeCommands(input: CanvasExchangeCommandInput): AppCommand[] {
   return [
     {
       id: "spaces.import-json-canvas",

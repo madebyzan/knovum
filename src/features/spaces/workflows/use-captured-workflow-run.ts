@@ -11,6 +11,15 @@ import {
   startCapturedWorkflow,
 } from "./captured-workflow-ipc";
 
+interface CapturedWorkflowRunInput {
+  workflow: SavedCapturedWorkflow;
+  spaceId: string;
+  bindings: Record<string, string[]>;
+  requestId: string;
+  isCurrent: () => boolean;
+  onStarted: (run: RunObservation) => void;
+}
+
 export function useCapturedWorkflowRun() {
   const store = useSpaceStore();
   const runId = ref("");
@@ -62,14 +71,7 @@ export function useCapturedWorkflowRun() {
     else stop();
   }
 
-  async function start(input: {
-    workflow: SavedCapturedWorkflow;
-    spaceId: string;
-    bindings: Record<string, string[]>;
-    requestId: string;
-    isCurrent: () => boolean;
-    onStarted: (run: RunObservation) => void;
-  }) {
+  async function start(input: CapturedWorkflowRunInput) {
     if (submitting.value) return;
     submitting.value = true;
     error.value = "";

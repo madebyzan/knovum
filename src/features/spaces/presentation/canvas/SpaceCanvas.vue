@@ -38,12 +38,12 @@ const { t } = useI18n();
 const canvasRoot = useTemplateRef<HTMLElement>("canvasRoot");
 const selection = createCanvasSelectionActions(store);
 const persistNodeContent = createCanvasNodeContentPersistence(store);
-const { visibleNodes, visibleRelations } = useVisibleCanvasContent(
-  () => store.nodes,
-  () => store.relations,
-  () => store.relationKindFilter,
-  () => store.relationStatusFilter,
-);
+const { visibleNodes, visibleRelations } = useVisibleCanvasContent({
+  nodes: () => store.nodes,
+  relations: () => store.relations,
+  relationKinds: () => store.relationKindFilter,
+  relationStatuses: () => store.relationStatusFilter,
+});
 const sceneInput = computed<CanvasSceneInput>(() => ({
   editSnapshot: store.editSnapshot,
   nodes: store.nodes,

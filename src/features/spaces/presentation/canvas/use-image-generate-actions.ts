@@ -17,12 +17,14 @@ import { imageActionAvailability, upscaleAvailability } from "./image-action-ava
 import { imageActionHelp } from "./image-action-help";
 import { useImageSourceDimensions } from "./image-source-dimensions";
 
-export function useImageGenerateActions(
-  node: Readonly<Ref<SpaceCanvasNode<SpaceImagePayload>>>,
-  mode: "upscale" | "angle",
-  open: Readonly<Ref<boolean>>,
-  close: () => void,
-) {
+interface ImageGenerateActionsInput {
+  node: Readonly<Ref<SpaceCanvasNode<SpaceImagePayload>>>;
+  mode: "upscale" | "angle";
+  open: Readonly<Ref<boolean>>;
+  close: () => void;
+}
+
+export function useImageGenerateActions({ node, mode, open, close }: ImageGenerateActionsInput) {
   const { t } = useI18n();
   const router = useRouter();
   const store = useSpaceStore();

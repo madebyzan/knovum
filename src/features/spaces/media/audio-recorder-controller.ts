@@ -17,6 +17,13 @@ import { createAudioRecordingWriter } from "./audio-recording-writer";
 import { formatDurationMs } from "./format-duration";
 import { stopMediaRecorder } from "./media-recorder-operations";
 
+interface CompletedRecordingInput {
+  current: MediaRecorder;
+  session: SpaceAudioRecordingSession;
+  sessionGeneration: number;
+  spaceId: string;
+}
+
 export function createSpaceAudioRecorderController(options: AudioRecorderControllerOptions) {
   const isRecording = ref(false);
   const isPaused = ref(false);
@@ -68,12 +75,7 @@ export function createSpaceAudioRecorderController(options: AudioRecorderControl
     await completeRecording({ current, session, sessionGeneration, spaceId });
   }
 
-  async function completeRecording(input: {
-    current: MediaRecorder;
-    session: SpaceAudioRecordingSession;
-    sessionGeneration: number;
-    spaceId: string;
-  }) {
+  async function completeRecording(input: CompletedRecordingInput) {
     const { current, session, sessionGeneration, spaceId } = input;
     await stopMediaRecorder(current);
     await recordingWriter.settle();

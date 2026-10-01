@@ -47,18 +47,18 @@ export function useCanvasSelectionActions() {
   );
   const selectedAppearance = computed(() => selection.value.singleNodeAppearance);
   const { selectedImageNode, selectedVideoNode } = useCanvasSelectedMedia(selectedNodes);
-  const reparentActions = useCanvasReparentActions(
+  const reparentActions = useCanvasReparentActions({
     store,
     state,
-    t("spaces.canvas.spaceRoot"),
-    runSelectionMutation,
-  );
-  const structureActions = useCanvasStructureSelectionActions(
+    spaceRootTitle: t("spaces.canvas.spaceRoot"),
+    run: runSelectionMutation,
+  });
+  const structureActions = useCanvasStructureSelectionActions({
     store,
     state,
-    { group: t("spaces.canvas.groups.untitled"), section: t("spaces.canvas.sections.untitled") },
-    runSelectionMutation,
-  );
+    titles: { group: t("spaces.canvas.groups.untitled"), section: t("spaces.canvas.sections.untitled") },
+    run: runSelectionMutation,
+  });
 
   function setAppearance(patch: Partial<CanvasNodeAppearance>) {
     if (!nodeOperations.allows("edit")) return;

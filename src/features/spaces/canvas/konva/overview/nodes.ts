@@ -3,13 +3,15 @@ import Konva from "konva";
 import type { CanvasPalette } from "../presentation/use-canvas-palette";
 import type { CanvasSceneNode } from "../scene/canvas-scene";
 
-export function drawCanvasOverviewNode(options: {
+interface CanvasOverviewNodeOptions {
   parent: Konva.Group;
   sceneNode: CanvasSceneNode;
   palette: CanvasPalette;
   scale: number;
   image?: HTMLImageElement;
-}) {
+}
+
+export function drawCanvasOverviewNode(options: CanvasOverviewNodeOptions) {
   const { parent, sceneNode, palette, scale, image } = options;
   const { frame } = sceneNode.layout;
   const { data } = sceneNode.node;

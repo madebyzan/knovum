@@ -9,15 +9,15 @@ import TokenActivityCalendar from "../usage/TokenActivityCalendar.vue";
 
 describe("token activity calendar", () => {
   it("aligns the requested interval to full Sunday-first weeks", () => {
-    const weeks = buildTokenActivityWeeks(
-      [
+    const weeks = buildTokenActivityWeeks({
+      activity: [
         { date: "2026-09-21", inputTokens: 50, outputTokens: 50, totalTokens: 100, requests: 1 },
         { date: "2026-09-22", inputTokens: 100, outputTokens: 300, totalTokens: 400, requests: 2 },
       ],
-      "2026-09-21",
-      "2026-09-22",
-      "en",
-    );
+      fromDate: "2026-09-21",
+      toDate: "2026-09-22",
+      locale: "en",
+    });
 
     expect(weeks).toHaveLength(1);
     expect(weeks[0]!.cells.map((cell) => cell.date)).toEqual([

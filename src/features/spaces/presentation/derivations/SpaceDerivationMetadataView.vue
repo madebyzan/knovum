@@ -10,19 +10,16 @@ import SpaceDerivationSources from "./SpaceDerivationSources.vue";
 const props = defineProps<{ metadata: VisualizationMetadata | GeneratedVideoMetadata }>();
 const { d } = useI18n();
 
-const isImage = computed(() => "intent" in props.metadata);
 const description = computed(() =>
-  isImage.value
-    ? (props.metadata as VisualizationMetadata).intent
-    : (props.metadata as GeneratedVideoMetadata).prompt,
+  "intent" in props.metadata ? props.metadata.intent : props.metadata.prompt,
 );
 const metaLine = computed(() => {
   const date = d(props.metadata.createdAt, "short");
-  if (isImage.value) {
-    const meta = props.metadata as VisualizationMetadata;
+  if ("intent" in props.metadata) {
+    const meta = props.metadata;
     return `${meta.style} · ${meta.aspectRatio} · ${date}`;
   }
-  const meta = props.metadata as GeneratedVideoMetadata;
+  const meta = props.metadata;
   return `${meta.aspectRatio} · ${meta.durationSeconds}s · ${date}`;
 });
 </script>
