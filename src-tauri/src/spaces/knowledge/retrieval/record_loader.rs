@@ -1,5 +1,4 @@
-use sqlx::Row;
-use tauri::{AppHandle, Runtime};
+use sqlx::{Row, Sqlite, Transaction};
 
 use crate::spaces::db;
 
@@ -15,15 +14,15 @@ pub(super) struct EmbeddingSource {
 }
 
 /// Loads the persisted chunk metadata for each embedding input and combines it with the
-/// caller-provided vector. Revision mismatch is an explicit stale-job failure.
-pub(super) async fn load_records<R: Runtime>(
-    app: &AppHandle<R>,
+/// caller-provided vector under the publication write transaction. Revision mismatch
+/// is an explicit stale-job failure.
+pub(super) async fn load_records(
+    tx: &mut Transaction<'_, Sqlite>,
     embeddings: Vec<EmbeddingSource>,
 ) -> Result<Vec<IndexedKnowledgeChunk>, String> {
     if embeddings.is_empty() {
         return Ok(Vec::new());
     }
-    let pool = db::pool(app).await?;
     let now = crate::clock::unix_time_millis()?;
 
     let chunk_ids: Vec<&str> = embeddings.iter().map(|e| e.chunk_id.as_str()).collect();
@@ -37,7 +36,7 @@ pub(super) async fn load_records<R: Runtime>(
          WHERE c.id IN (SELECT value FROM json_each($1)) AND n.deleted_at IS NULL",
     )
     .bind(chunk_ids_json)
-    .fetch_all(pool)
+    .fetch_all(&mut **tx)
     .await
     .map_err(db::sql_error)?;
 
@@ -92,12 +91,10 @@ pub(super) async fn load_records<R: Runtime>(
 
 /// Persists a marker row per successfully indexed chunk. The marker is used by
 /// `list_missing_embedding_chunks` — the vector itself lives only in LanceDB.
-pub(super) async fn write_index_markers<R: Runtime>(
-    app: &AppHandle<R>,
+pub(super) async fn write_index_markers(
+    tx: &mut Transaction<'_, Sqlite>,
     records: &[IndexedKnowledgeChunk],
 ) -> Result<(), String> {
-    let pool = db::pool(app).await?;
-    let mut tx = db::begin_write(pool).await?;
     for record in records {
         sqlx::query(
             "INSERT INTO spaces_chunk_embeddings(chunk_id,source_revision,model,dimensions,updated_at) \
@@ -110,9 +107,9 @@ pub(super) async fn write_index_markers<R: Runtime>(
         .bind(&record.model)
         .bind(record.dimensions)
         .bind(record.updated_at)
-        .execute(&mut *tx)
+        .execute(&mut **tx)
         .await
         .map_err(db::sql_error)?;
     }
-    tx.commit().await.map_err(db::sql_error)
+    Ok(())
 }

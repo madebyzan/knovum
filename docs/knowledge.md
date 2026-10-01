@@ -139,7 +139,11 @@ Manual export writes a same-directory staging archive and replaces the selected 
 
 ## Search and passage work
 
-The renderer passage splitter uses linear UTF-8 width accounting and the same preferred whitespace window as the Rust splitter. Rust remains the durable authority for derived passage generation and all persisted passage size/revision validation. Semantic search keeps the dependency-light SQLite + Rust brute-force design with bounded top-K retention. All-Spaces Ask reuses the existing per-Space semantic search and global lexical search; it does not introduce a second global Knowledge store.
+The renderer passage splitter uses linear UTF-8 width accounting and the same preferred whitespace window as the Rust splitter. Rust remains the durable authority for derived passage generation and all persisted passage size/revision validation. SQLite owns current Knowledge chunks and index publication markers; LanceDB stores embedding vectors. Semantic search validates LanceDB matches against current SQLite chunk identities and revisions before hybrid ranking. All-Spaces Ask reuses the existing per-Space semantic search and global lexical search; it does not introduce a second global Knowledge store.
+
+Embedding computation runs outside the SQLite write transaction. Publication acquires the existing `BEGIN IMMEDIATE` boundary, revalidates the chunk/source revisions, drains pending retrieval invalidations for the affected Spaces, atomically upserts LanceDB vectors by chunk ID, and commits SQLite markers in that order. Chunk replacement/deletion and outbox draining use the same write boundary, so neither can invalidate a validated chunk during publication or remove freshly published vectors through an older invalidation. Successful invalidation deletes both vectors and their SQLite markers.
+
+SQLite and LanceDB do not share a distributed transaction. A failed vector upsert preserves previously committed rows and does not publish new markers; chunks without committed markers remain eligible for indexing. Durable invalidations are acknowledged only after vector deletion succeeds. Search still rejects stale revisions; foreign keys remain enabled, and source data is never reset to repair an index.
 
 ## Module boundary
 

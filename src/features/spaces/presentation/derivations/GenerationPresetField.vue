@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { cloneDeep } from "es-toolkit";
 import { useI18n } from "vue-i18n";
 
 import type { ExecutionTarget, GenerationPreset } from "../../../../foundation/ai/schema/models";
@@ -21,8 +22,8 @@ function createPreset(): GenerationPreset | undefined {
     id: crypto.randomUUID(),
     name: props.name.trim(),
     actionId: props.actionId,
-    target: structuredClone(props.target),
-    parameters: structuredClone(props.parameters),
+    target: cloneDeep(props.target),
+    parameters: cloneDeep(props.parameters),
   };
 }
 </script>

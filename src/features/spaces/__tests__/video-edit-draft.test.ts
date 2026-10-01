@@ -1,0 +1,28 @@
+import { expect, it, vi } from "vitest";
+import { effectScope, ref } from "vue";
+
+import type { SpaceVideoPayload } from "../model/nodes/node-payload";
+import { useVideoEditProject } from "../presentation/video-editor/use-video-edit-project";
+import { createVideoEditProject } from "../video-editing/project";
+
+vi.mock("../../../foundation/i18n/i18n", () => ({ i18n: { global: { t: (key: string) => key } } }));
+
+it("opens a saved reactive video project as an independent draft", () => {
+  const data = ref<SpaceVideoPayload>({
+    kind: "video",
+    title: "Video",
+    fileName: "video.mp4",
+    assetPath: "/owned/video.mp4",
+    sourceRevision: "r1",
+    videoEditProject: createVideoEditProject("r1", 1000, 1920, 1080),
+  });
+  const scope = effectScope();
+  try {
+    const editing = scope.run(() => useVideoEditProject(ref("video"), data, ref(undefined)))!;
+    expect(editing.project.value).toEqual(data.value.videoEditProject);
+    editing.project.value!.videoTrack.clips[0]!.volume = 0;
+    expect(data.value.videoEditProject!.videoTrack.clips[0]!.volume).toBe(1);
+  } finally {
+    scope.stop();
+  }
+});

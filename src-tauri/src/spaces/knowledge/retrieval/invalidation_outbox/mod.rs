@@ -1,7 +1,11 @@
-use sqlx::FromRow;
+use lancedb::Connection;
+use sqlx::{FromRow, Sqlite, Transaction};
 use tauri::{AppHandle, Runtime};
 
-use super::index_writer;
+use super::{
+    lancedb_store::{connect_retrieval_db, open_knowledge_table_if_exists},
+    predicates::{build_delete_node_predicate, build_delete_space_predicate},
+};
 use crate::spaces::db;
 
 #[derive(FromRow)]
@@ -62,21 +66,41 @@ pub(crate) async fn drain<R: Runtime>(
     app: &AppHandle<R>,
     pool: &sqlx::SqlitePool,
 ) -> Result<(), String> {
+    let index = connect_retrieval_db(app).await?;
+    drain_with_connection(&index, pool).await
+}
+
+pub(super) async fn drain_with_connection(
+    index: &Connection,
+    pool: &sqlx::SqlitePool,
+) -> Result<(), String> {
+    let mut tx = db::begin_write(pool).await?;
+    let outcome = drain_pending(index, &mut tx, None).await;
+    tx.commit().await.map_err(db::sql_error)?;
+    outcome
+}
+
+pub(super) async fn drain_pending(
+    index: &Connection,
+    tx: &mut Transaction<'_, Sqlite>,
+    space_id: Option<&str>,
+) -> Result<(), String> {
     let pending = sqlx::query_as::<_, PendingInvalidation>(
         "SELECT id,space_id,node_id FROM spaces_retrieval_invalidations \
-         ORDER BY node_id IS NOT NULL,id",
+         WHERE $1 IS NULL OR space_id=$1 ORDER BY node_id IS NOT NULL,id",
     )
-    .fetch_all(pool)
+    .bind(space_id)
+    .fetch_all(&mut **tx)
     .await
     .map_err(db::sql_error)?;
     let mut failures = Vec::new();
     for invalidation in pending {
-        let invalidation_outcome = apply(app, &invalidation).await;
+        let invalidation_outcome = apply(index, &invalidation).await;
         if let Err(error) = invalidation_outcome {
-            record_failure(pool, invalidation.id, &error).await?;
+            record_failure(tx, invalidation.id, &error).await?;
             failures.push(format!("{}: {error}", invalidation.id));
         } else {
-            acknowledge(pool, &invalidation).await?;
+            acknowledge(tx, &invalidation).await?;
         }
     }
     if failures.is_empty() {
@@ -95,49 +119,63 @@ pub(crate) async fn drain_and_report<R: Runtime>(app: &AppHandle<R>, pool: &sqlx
     }
 }
 
-async fn apply<R: Runtime>(
-    app: &AppHandle<R>,
-    invalidation: &PendingInvalidation,
-) -> Result<(), String> {
-    if let Some(node_id) = &invalidation.node_id {
-        index_writer::delete_node_embeddings(
-            app,
-            &invalidation.space_id,
-            std::slice::from_ref(node_id),
-        )
+async fn apply(index: &Connection, invalidation: &PendingInvalidation) -> Result<(), String> {
+    let Some(table) = open_knowledge_table_if_exists(index).await? else {
+        return Ok(());
+    };
+    let predicate = match &invalidation.node_id {
+        Some(node_id) => {
+            build_delete_node_predicate(&invalidation.space_id, std::slice::from_ref(node_id))
+        }
+        None => build_delete_space_predicate(&invalidation.space_id),
+    };
+    table
+        .delete(predicate.as_str())
         .await
-    } else {
-        index_writer::delete_space_embeddings(app, &invalidation.space_id).await
-    }
+        .map_err(|error| format!("Failed to delete LanceDB knowledge index rows: {error}"))?;
+    Ok(())
 }
 
 async fn acknowledge(
-    pool: &sqlx::SqlitePool,
+    tx: &mut Transaction<'_, Sqlite>,
     invalidation: &PendingInvalidation,
 ) -> Result<(), String> {
+    sqlx::query(
+        "DELETE FROM spaces_chunk_embeddings WHERE chunk_id IN (\
+         SELECT id FROM spaces_knowledge_chunks WHERE space_id=$1 AND ($2 IS NULL OR node_id=$2))",
+    )
+    .bind(&invalidation.space_id)
+    .bind(&invalidation.node_id)
+    .execute(&mut **tx)
+    .await
+    .map_err(db::sql_error)?;
     if invalidation.node_id.is_some() {
         sqlx::query("DELETE FROM spaces_retrieval_invalidations WHERE id=$1")
             .bind(invalidation.id)
-            .execute(pool)
+            .execute(&mut **tx)
             .await
             .map_err(db::sql_error)?;
     } else {
         sqlx::query("DELETE FROM spaces_retrieval_invalidations WHERE space_id=$1")
             .bind(&invalidation.space_id)
-            .execute(pool)
+            .execute(&mut **tx)
             .await
             .map_err(db::sql_error)?;
     }
     Ok(())
 }
 
-async fn record_failure(pool: &sqlx::SqlitePool, id: i64, error: &str) -> Result<(), String> {
+async fn record_failure(
+    tx: &mut Transaction<'_, Sqlite>,
+    id: i64,
+    error: &str,
+) -> Result<(), String> {
     sqlx::query(
         "UPDATE spaces_retrieval_invalidations SET attempts=attempts+1,last_error=$1 WHERE id=$2",
     )
     .bind(error)
     .bind(id)
-    .execute(pool)
+    .execute(&mut **tx)
     .await
     .map_err(db::sql_error)?;
     Ok(())

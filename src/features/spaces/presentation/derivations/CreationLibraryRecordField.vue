@@ -1,4 +1,5 @@
 <script setup lang="ts" generic="T extends { id: string; name: string }">
+import { cloneDeep } from "es-toolkit";
 import { storeToRefs } from "pinia";
 import { computed, onMounted, shallowRef } from "vue";
 import { toast } from "vue-sonner";
@@ -35,7 +36,7 @@ onMounted(store.ensureLoaded);
 function apply(id: string) {
   selected.value = id;
   const record = records.value.find((candidate) => candidate.id === id);
-  if (record) emit("apply", structuredClone(record));
+  if (record) emit("apply", cloneDeep(record));
 }
 
 async function save() {

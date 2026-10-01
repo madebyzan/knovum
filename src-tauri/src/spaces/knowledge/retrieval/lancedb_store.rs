@@ -34,10 +34,9 @@ pub(crate) async fn open_knowledge_table<R: Runtime>(app: &AppHandle<R>) -> Resu
 /// Opens the knowledge table if it exists; returns `Ok(None)` when the retrieval index has never
 /// been created (fresh install / empty workspace). Any other error — I/O, permission, corruption —
 /// is propagated so callers do not silently ignore real problems.
-pub(crate) async fn open_knowledge_table_if_exists<R: Runtime>(
-    app: &AppHandle<R>,
+pub(super) async fn open_knowledge_table_if_exists(
+    db: &Connection,
 ) -> Result<Option<Table>, String> {
-    let db = connect_retrieval_db(app).await?;
     let names = db
         .table_names()
         .execute()

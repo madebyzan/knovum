@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { omit } from "es-toolkit";
+import { cloneDeep, omit } from "es-toolkit";
 import { storeToRefs } from "pinia";
-import { computed, ref, toRaw, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
@@ -45,7 +45,7 @@ watch(() => props.node.data, resetDraft, { deep: true, immediate: true });
 function resetDraft() {
   summary.value = data.value.summary ?? "";
   status.value = data.value.status;
-  properties.value = structuredClone(toRaw(data.value.properties));
+  properties.value = cloneDeep(data.value.properties);
 }
 
 function updateProperty(key: string, value: ObjectPropertyValue | undefined) {

@@ -1,5 +1,8 @@
 use super::*;
 
+mod fixture;
+mod publication;
+
 fn build_input(vector: Vec<f64>, dims: i64) -> KnowledgeEmbeddingInput {
     KnowledgeEmbeddingInput {
         chunk_id: "c1".into(),

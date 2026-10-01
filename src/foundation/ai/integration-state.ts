@@ -1,4 +1,5 @@
 import { useDebounceFn } from "@vueuse/core";
+import { cloneDeep } from "es-toolkit";
 import { computed, ref, shallowRef, watch } from "vue";
 
 interface IntegrationStateOptions<T> {
@@ -9,7 +10,7 @@ interface IntegrationStateOptions<T> {
 }
 
 export function createIntegrationState<T>(options: IntegrationStateOptions<T>) {
-  const value = ref<T>(structuredClone(options.initial));
+  const value = ref<T>(cloneDeep(options.initial));
   const loaded = shallowRef(false);
   const loading = shallowRef(false);
   const saving = shallowRef(false);
@@ -87,7 +88,7 @@ export function createIntegrationState<T>(options: IntegrationStateOptions<T>) {
   async function reset() {
     loaded.value = false;
     await options.reset();
-    value.value = structuredClone(options.initial);
+    value.value = cloneDeep(options.initial);
     requestedRevision = 0;
     savedRevision = 0;
     loaded.value = true;
