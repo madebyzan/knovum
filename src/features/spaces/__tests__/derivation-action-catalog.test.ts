@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { createSpaceNode } from "../canvas/node";
 import { creationIntentCatalog } from "../knowledge-derivations/catalog/creation-intent-catalog";
 import { creationIntentDefinitions } from "../knowledge-derivations/catalog/creation-intent-definitions";
+import type { SpaceVideoPayload } from "../model/nodes/node-payload";
 
 const note = () =>
   createSpaceNode(
@@ -39,7 +40,7 @@ const image = (index: number) =>
   );
 
 const indexedVideo = () =>
-  createSpaceNode(
+  createSpaceNode<SpaceVideoPayload>(
     {
       kind: "video",
       knowledgeRevision: "node1:0000000000000002",

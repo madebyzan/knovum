@@ -1,18 +1,11 @@
-import type { CanvasViewport } from "../../contracts/canvas-editor-port";
-
-interface Rect {
-  height: number;
-  width: number;
-  x: number;
-  y: number;
-}
+import type { CanvasRect, CanvasViewport } from "../../contracts/canvas-editor-port";
 
 interface CullableNode {
-  layout: { frame: Rect; nodeId: string };
+  layout: { frame: CanvasRect; nodeId: string };
 }
 
 interface CullableRelation {
-  bounds: Rect;
+  bounds: CanvasRect;
   key: string;
 }
 
@@ -43,7 +36,7 @@ export function visibleSceneNodeIds(
   );
 }
 
-function worldBounds(viewport: CanvasViewport, size: ViewportSize, overscanPixels: number): Rect {
+function worldBounds(viewport: CanvasViewport, size: ViewportSize, overscanPixels: number): CanvasRect {
   const overscan = overscanPixels / viewport.zoom;
   return {
     x: -viewport.x / viewport.zoom - overscan,
@@ -53,7 +46,7 @@ function worldBounds(viewport: CanvasViewport, size: ViewportSize, overscanPixel
   };
 }
 
-function intersects(left: Rect, right: Rect) {
+function intersects(left: CanvasRect, right: CanvasRect) {
   return (
     left.x <= right.x + right.width &&
     left.x + left.width >= right.x &&

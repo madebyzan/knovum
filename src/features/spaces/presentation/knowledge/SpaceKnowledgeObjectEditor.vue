@@ -12,7 +12,6 @@ import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
 import { knowledgeObjectStatusesForType } from "../../knowledge/model/object-types";
 import { isSpaceSemanticNode } from "../../knowledge/model/semantic-node";
 import { useSpaceObjectTypesQuery } from "../../knowledge/queries/use-knowledge-queries";
-import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type {
   SpaceKnowledgeObjectPayload,
   SpaceKnowledgeObjectPropertyValue,
@@ -20,7 +19,7 @@ import type {
 import { useSpaceStore } from "../../session/space-store";
 import SpaceKnowledgeFieldEditor from "./SpaceKnowledgeFieldEditor.vue";
 
-const props = defineProps<{ node: SpaceCanvasNode }>();
+const props = defineProps<{ nodeId: string; data: SpaceKnowledgeObjectPayload }>();
 const emit = defineEmits<{ cancel: []; saved: [] }>();
 const store = useSpaceStore();
 const { activeSpaceId } = storeToRefs(store);
@@ -29,26 +28,25 @@ const typesQuery = useSpaceObjectTypesQuery(activeSpaceId);
 const summary = ref("");
 const status = ref<SpaceKnowledgeObjectPayload["status"]>("draft");
 const properties = ref<Record<string, SpaceKnowledgeObjectPropertyValue>>({});
-const data = computed(() => props.node.data as SpaceKnowledgeObjectPayload);
-const objectType = computed(() => typesQuery.data.value?.find((type) => type.id === data.value.objectTypeId));
+const objectType = computed(() => typesQuery.data.value?.find((type) => type.id === props.data.objectTypeId));
 const statusOptions = computed(() =>
-  knowledgeObjectStatusesForType(data.value.objectTypeId).map((value) => ({
+  knowledgeObjectStatusesForType(props.data.objectTypeId).map((value) => ({
     value,
     label: t(`spaces.knowledge.status.labels.${value}`),
   })),
 );
 const nodeOptions = computed(() =>
   store.nodes
-    .filter((node) => node.id !== props.node.id && isSpaceSemanticNode(node))
+    .filter((node) => node.id !== props.nodeId && isSpaceSemanticNode(node))
     .map((node) => ({ value: node.id, label: node.data.title })),
 );
 
-watch(() => props.node.data, resetDraft, { deep: true, immediate: true });
+watch(() => props.data, resetDraft, { deep: true, immediate: true });
 
 function resetDraft() {
-  summary.value = data.value.summary ?? "";
-  status.value = data.value.status;
-  properties.value = cloneDeep(data.value.properties);
+  summary.value = props.data.summary ?? "";
+  status.value = props.data.status;
+  properties.value = cloneDeep(props.data.properties);
 }
 
 function updateProperty(key: string, value: SpaceKnowledgeObjectPropertyValue | undefined) {
@@ -58,14 +56,14 @@ function updateProperty(key: string, value: SpaceKnowledgeObjectPropertyValue | 
 
 async function save() {
   const next: SpaceKnowledgeObjectPayload = {
-    ...data.value,
+    ...props.data,
     status: status.value,
     properties: properties.value,
     ...(summary.value.trim() ? { summary: summary.value.trim() } : {}),
   };
   if (!summary.value.trim()) delete next.summary;
   try {
-    await store.saveNodeContent(props.node.id, props.node.data, next);
+    await store.saveNodeContent({ id: props.nodeId, expectedData: props.data, data: next });
     emit("saved");
   } catch (error) {
     toast.error(getErrorMessage(error));

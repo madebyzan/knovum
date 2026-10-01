@@ -7,6 +7,7 @@ import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { describeSpaceNode } from "../model/nodes/node-description";
 import type { SpaceRelation } from "../model/relations/relation";
 import type { SpaceEditSnapshot } from "../model/structure/schema/edit-snapshot";
+import type { WorldBounds } from "../model/structure/world-bounds";
 import type {
   CanvasExchangeExport,
   CanvasExchangePort,
@@ -108,9 +109,7 @@ function orderedExportNodes(
   return ordered;
 }
 
-type Bounds = { left: number; top: number; right: number; bottom: number };
-
-function frame(bounds: Bounds) {
+function frame(bounds: WorldBounds) {
   return {
     x: bounds.left,
     y: bounds.top,

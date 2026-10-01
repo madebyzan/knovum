@@ -27,12 +27,13 @@ describe("Structure Section projection", () => {
   it("requires an explicitly expanded collapsed Section before producing a drop command", () => {
     const snapshot = dropSnapshot();
     const delta = { x: -350, y: 0 };
+    const drop = { snapshot, rootIds: ["free"], delta };
 
-    expect(sectionDropCandidateId(snapshot, ["free"], delta)).toBeUndefined();
-    expect(sectionDropCandidateId(snapshot, ["free"], delta, true)).toBe("section");
-    expect(sectionDropReparentCommand(snapshot, ["free"], delta)).toBeUndefined();
+    expect(sectionDropCandidateId(drop)).toBeUndefined();
+    expect(sectionDropCandidateId(drop, true)).toBe("section");
+    expect(sectionDropReparentCommand(drop)).toBeUndefined();
     expect(
-      sectionDropReparentCommand(snapshot, ["free"], delta, {
+      sectionDropReparentCommand(drop, {
         allowCollapsedSectionId: "section",
       }),
     ).toEqual({ kind: "structure.reparent", rootIds: ["free"], parentId: "section", order: 0 });

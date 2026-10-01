@@ -1,18 +1,14 @@
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
-import {
-  prepareSpaceAssetImport,
-  type PreparedSpaceImport,
-  type SpaceImportSourceAccess,
-} from "./asset-operations";
+import { prepareSpaceAssetImport, type SpaceImportSourceAccess } from "./asset-operations";
 import type {
   PreparedSpaceImportOperation,
   SpaceImportContext,
   SpaceImportSessionLabels,
   SpaceImportSource,
 } from "./import-contract";
-import { commitManagedImport } from "./import-transfer";
+import { commitManagedImport, type CommitManagedImportOptions } from "./import-transfer";
 import { importedSpaceNodePayload } from "./imported-asset-payload";
 
 interface SpaceImportSourceInput {
@@ -76,17 +72,7 @@ async function prepareImportSource(
   }
 }
 
-interface FinalizePreparedImportOptions {
-  context: SpaceImportContext;
-  source: SpaceImportSource;
-  position: { x: number; y: number };
-  reveal: boolean;
-  spaceId: string;
-  taskId: string;
-  prepared: PreparedSpaceImport;
-}
-
-async function finalizePreparedImport(options: FinalizePreparedImportOptions) {
+async function finalizePreparedImport(options: CommitManagedImportOptions) {
   const { context, source, position, reveal, spaceId, taskId, prepared } = options;
   const tasks = useTaskStore();
   let nodes: SpaceCanvasNode[] = [];

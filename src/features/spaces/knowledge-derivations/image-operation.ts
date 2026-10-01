@@ -110,9 +110,10 @@ export async function deriveImage(
     },
     onError: async () => {
       if (pending.data.kind === "image")
-        await store.saveNodeContentForSpace(spaceId, pending.id, pending.data, {
-          ...pending.data,
-          processingState: "failed",
+        await store.saveNodeContentForSpace(spaceId, {
+          id: pending.id,
+          expectedData: pending.data,
+          data: { ...pending.data, processingState: "failed" },
         });
       await store.refreshActiveSpace();
     },

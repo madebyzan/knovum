@@ -106,7 +106,10 @@ export function createCanvasGestureSession(options: CanvasGestureSessionOptions)
       const command = commandForCanvasGesture(options.snapshot(), before, after);
       const committed =
         command?.kind === "structure.move"
-          ? sectionDropMoveCommand(options.snapshot(), command.rootIds, command.delta, expandedSectionId)
+          ? sectionDropMoveCommand(
+              { snapshot: options.snapshot(), rootIds: command.rootIds, delta: command.delta },
+              expandedSectionId,
+            )
           : command;
       if (committed) await options.events.onExecuteSpaceEdit(committed);
       controller.restoreFrames(captureCanvasGestureLayouts(after, updates));

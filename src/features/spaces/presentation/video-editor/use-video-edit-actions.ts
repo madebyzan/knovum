@@ -113,11 +113,12 @@ export function useVideoEditActions(options: Options) {
   }
 
   async function render() {
-    if (rendering.value || !node.value || node.value.data.kind !== "video" || !project.value) return;
+    const sourceNode = node.value;
+    if (rendering.value || !sourceNode || sourceNode.type !== "video" || !project.value) return;
     rendering.value = true;
     try {
       if (history.dirty.value && !(await save())) return;
-      await renderVideoEdit(store, { ...node.value, data: node.value.data }, project.value);
+      await renderVideoEdit(store, sourceNode, project.value);
     } catch (error) {
       toast.error(`${t("spaces.media.videoEditor.render.failed")}: ${getErrorMessage(error)}`);
     } finally {

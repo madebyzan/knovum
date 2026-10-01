@@ -25,7 +25,7 @@ defineProps<{ node: SpaceCanvasNode }>();
     :title="$t('spaces.nodeTypes.object')"
     :icon="MessageSquareQuote"
   >
-    <SpaceKnowledgeObjectInspection :node="node" />
+    <SpaceKnowledgeObjectInspection :node-id="node.id" :data="node.data" />
   </SpaceInspectorSection>
 
   <SpaceInspectorSection

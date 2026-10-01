@@ -6,14 +6,16 @@ import type { CanvasSelectionTransformPolicy } from "./selection-transform-polic
 
 type TransformBox = Parameters<NonNullable<Konva.TransformerConfig["boundBoxFunc"]>>[1];
 
+interface SelectionTransformOptions {
+  activeAnchor: string | null;
+  policy: CanvasSelectionTransformPolicy;
+  stageScale: Konva.Vector2d;
+}
+
 export function constrainSelectionTransform(
   currentBox: TransformBox,
   box: TransformBox,
-  options: {
-    activeAnchor: string | null;
-    policy: CanvasSelectionTransformPolicy;
-    stageScale: Konva.Vector2d;
-  },
+  options: SelectionTransformOptions,
 ) {
   const { activeAnchor, policy, stageScale } = options;
   const width = Math.abs(box.width / stageScale.x);

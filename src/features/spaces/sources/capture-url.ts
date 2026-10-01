@@ -9,6 +9,7 @@ import { acquireMediaSource } from "../media/import/acquisition";
 import type { MediaImportProgress } from "../media/import/schema/import";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
+import type { NodePayloadChangeInput } from "../nodes/node-operations";
 import { addSavedWebsite } from "../website/capture";
 import { normalizeSpaceUrl, websiteDefaultTitle } from "../website/url";
 import type { SpaceUrlCaptureProjection } from "./url-capture-projection";
@@ -29,12 +30,7 @@ export interface UrlCaptureContext {
   ): void;
   finishUrlCapture(id: string): void;
   addContent(data: SpaceNodePayload, position?: { x: number; y: number }): Promise<SpaceCanvasNode[]>;
-  saveNodeContentForSpace(
-    spaceId: string,
-    id: string,
-    expectedContent: SpaceNodePayload,
-    data: SpaceNodePayload,
-  ): Promise<void>;
+  saveNodeContentForSpace(spaceId: string, change: NodePayloadChangeInput): Promise<void>;
 }
 
 export async function captureSpaceUrl(

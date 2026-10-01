@@ -8,16 +8,23 @@ import { boundsForOperationRoots, type WorldBounds } from "../model/structure/wo
 
 const CONTAINMENT_TOLERANCE = 0.5;
 
+interface SectionDropContext {
+  snapshot: SpaceEditSnapshot;
+  rootIds: readonly string[];
+  delta: SpacePoint;
+}
+
+interface SectionDropReparentOptions {
+  allowCollapsedSectionId?: string;
+  inspectCollapsed?: boolean;
+}
+
 export function sectionDropMoveCommand(
-  snapshot: SpaceEditSnapshot,
-  rootIds: readonly string[],
-  delta: SpacePoint,
+  { snapshot, rootIds, delta }: SectionDropContext,
   allowCollapsedSectionId?: string,
 ): SpaceEditCommand {
   const reparent = sectionDropReparentCommand(
-    snapshot,
-    rootIds,
-    delta,
+    { snapshot, rootIds, delta },
     allowCollapsedSectionId ? { allowCollapsedSectionId } : {},
   );
   if (!reparent) return { kind: "structure.move", rootIds: [...rootIds], delta };
@@ -32,10 +39,8 @@ export function sectionDropMoveCommand(
 }
 
 export function sectionDropReparentCommand(
-  snapshot: SpaceEditSnapshot,
-  rootIds: readonly string[],
-  delta: SpacePoint,
-  options: { allowCollapsedSectionId?: string; inspectCollapsed?: boolean } = {},
+  { snapshot, rootIds, delta }: SectionDropContext,
+  options: SectionDropReparentOptions = {},
 ): Extract<SpaceEditCommand, { kind: "structure.reparent" }> | undefined {
   const index = createStructureIndex(snapshot.structure);
   const roots = effectiveOperationRoots(rootIds, index);
@@ -84,7 +89,7 @@ interface SectionDropTargetContext {
   structureById: ReturnType<typeof createStructureIndex>["structureById"];
   selected: ReadonlySet<string>;
   moved: WorldBounds;
-  options: { allowCollapsedSectionId?: string; inspectCollapsed?: boolean };
+  options: SectionDropReparentOptions;
 }
 
 function sectionDropTarget(layout: SpaceEditSnapshot["layouts"][number], context: SectionDropTargetContext) {
@@ -104,12 +109,10 @@ function sectionDropTarget(layout: SpaceEditSnapshot["layouts"][number], context
 }
 
 export function sectionDropCandidateId(
-  snapshot: SpaceEditSnapshot,
-  rootIds: readonly string[],
-  delta: SpacePoint,
+  { snapshot, rootIds, delta }: SectionDropContext,
   inspectCollapsed = false,
 ) {
-  const command = sectionDropReparentCommand(snapshot, rootIds, delta, { inspectCollapsed });
+  const command = sectionDropReparentCommand({ snapshot, rootIds, delta }, { inspectCollapsed });
   if (!command) return undefined;
   if (command.parentId) return command.parentId;
   const index = createStructureIndex(snapshot.structure);

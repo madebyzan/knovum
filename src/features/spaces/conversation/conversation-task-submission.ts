@@ -8,7 +8,10 @@ import type { AssistantMessage } from "../contracts/generated/AssistantMessage";
 import type { AssistantTaskUpdate } from "../contracts/generated/AssistantTaskUpdate";
 import type { SubmitAssistantTaskRequest } from "../contracts/generated/SubmitAssistantTaskRequest";
 import { getAssistantTaskError, startAssistantTask } from "./conversation-ipc";
-import { pendingConversationMessage } from "./conversation-pending-message";
+import {
+  pendingConversationMessage,
+  type VisibleConversationAttachment,
+} from "./conversation-pending-message";
 import { observeConversationRun } from "./conversation-run-observation";
 import { conversationTaskRequest } from "./conversation-task-request";
 
@@ -33,7 +36,7 @@ export interface ConversationSubmissionInput {
   prompt: Ref<string>;
   target: Ref<TaskTargetRef | undefined>;
   attachments: Ref<AssistantAttachment[]>;
-  visibleAttachments: Ref<readonly { title: string; isImage: boolean; previewSource: string }[]>;
+  visibleAttachments: Ref<readonly VisibleConversationAttachment[]>;
   messages: ShallowRef<AssistantMessage[]>;
   clearDraft: (request: SubmitAssistantTaskRequest) => void;
   restoreDraft: (request: SubmitAssistantTaskRequest) => void;

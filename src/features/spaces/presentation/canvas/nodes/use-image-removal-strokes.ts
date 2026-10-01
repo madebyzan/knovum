@@ -2,19 +2,13 @@ import { shallowRef, watch, type Ref } from "vue";
 
 import { viewportToLocalPoint } from "../../../canvas/viewport-to-local-point";
 import type { ImageCanvasSize } from "../../../image-editing/canvas-image-renderer";
+import type { ImagePixelRect } from "../../../image-editing/image-edit";
 import type { useImageRemovalSession } from "../../../knowledge-derivations/image-removal-session";
-
-interface ImageRect {
-  left: number;
-  top: number;
-  width: number;
-  height: number;
-}
 
 interface ImageRemovalStrokeInput {
   canvas: Readonly<Ref<HTMLCanvasElement | null>>;
   size: Readonly<Ref<ImageCanvasSize>>;
-  rect: Readonly<Ref<ImageRect | undefined>>;
+  rect: Readonly<Ref<ImagePixelRect | undefined>>;
   enabled: Readonly<Ref<boolean>>;
   frameRotation: Readonly<Ref<number>>;
   session: ReturnType<typeof useImageRemovalSession>;

@@ -37,7 +37,7 @@ export function exportJsonCanvasDocument(
 }
 
 function exportNode(source: JsonCanvasExportNodeV1): JsonCanvasNodeV1 {
-  const node = { id: source.id, ...standardFrame(source.frame), ...source.content } as JsonCanvasNodeV1;
+  const node: JsonCanvasNodeV1 = { id: source.id, ...standardFrame(source.frame), ...source.content };
   applyExportAppearance(node, source);
   applyExportFileSubpath(node, source.fileSubpath);
   return node;
@@ -57,9 +57,12 @@ function applyExportFileSubpath(node: JsonCanvasNodeV1, subpath: string | undefi
 }
 
 function standardFrame(frame: JsonCanvasExportNodeV1["frame"]) {
-  const geometry = Object.fromEntries(
-    Object.entries(frame).map(([key, value]) => [key, Math.round(value)]),
-  ) as JsonCanvasExportNodeV1["frame"];
+  const geometry = {
+    x: Math.round(frame.x),
+    y: Math.round(frame.y),
+    width: Math.round(frame.width),
+    height: Math.round(frame.height),
+  };
   if (!Object.values(geometry).every(Number.isSafeInteger) || geometry.width <= 0 || geometry.height <= 0)
     throw new Error("Canvas frame cannot be represented by JSON Canvas 1.0 integer geometry");
   return geometry;

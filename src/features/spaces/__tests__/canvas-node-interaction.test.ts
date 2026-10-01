@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { canvasNodeInteraction } from "../canvas/canvas-node-interaction";
 import { projectSelectionTransformPolicy } from "../canvas/konva/selection/selection-transform-policy";
+import { createSpaceNode } from "../canvas/node";
 import { createSpaceNotePayload, createSpaceTextPayload } from "../editor/tiptap-content";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 
@@ -114,7 +115,7 @@ describe("canvas node interaction policy", () => {
 });
 
 function canvasNode(id: string, data: SpaceCanvasNode["data"]): SpaceCanvasNode {
-  return { id, type: data.kind, data, initialPosition: { x: 0, y: 0 } };
+  return createSpaceNode(data, { x: 0, y: 0 }, id);
 }
 
 function audioContent() {

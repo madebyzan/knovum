@@ -80,7 +80,11 @@ export function useMediaKnowledge(node: Ref<SpaceCanvasNode>) {
     if (stale.value) throw new Error(t("spaces.media.analysis.knowledge.stale"));
     const data = node.value.data;
     if (!isSpaceMediaPayload(data)) throw new Error(t("spaces.media.analysis.knowledge.stale"));
-    await store.saveNodeContent(node.value.id, data, { ...data, mediaKnowledge: next });
+    await store.saveNodeContent({
+      id: node.value.id,
+      expectedData: data,
+      data: { ...data, mediaKnowledge: next },
+    });
   }
   async function saveSummary(summary: string) {
     if (knowledge.value) await saveKnowledge(editMediaSummary(knowledge.value, summary));

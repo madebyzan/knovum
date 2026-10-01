@@ -30,12 +30,12 @@ export function useCanvasSelectionActions() {
     runNodeOperation("structure", operation);
   const { selection, selectedNodes } = useCanvasSelectionProjection(() => store.nodes);
   const state = computed(() =>
-    canvasSelectionProductState(
-      store.nodes,
-      selection.value.nodeIds,
-      selection.value.structureNodeIds,
-      store.editSnapshot,
-    ),
+    canvasSelectionProductState({
+      nodes: store.nodes,
+      selectedIds: selection.value.nodeIds,
+      selectedStructureNodeIds: selection.value.structureNodeIds,
+      snapshot: store.editSnapshot,
+    }),
   );
   const { t } = useI18n();
   const downloadSelected = useCanvasNodeDownload(store, state, selectedNodes);

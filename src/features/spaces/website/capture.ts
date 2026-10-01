@@ -6,6 +6,7 @@ import { formatErrorDiagnostic } from "../../../foundation/errors/error-format";
 import { removeSpaceAssets } from "../assets/asset-operations";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceNodePayload, SpaceWebsitePayload } from "../model/nodes/node-payload";
+import type { NodePayloadChangeInput } from "../nodes/node-operations";
 import { websiteDefaultTitle } from "./url";
 import { cacheWebsiteAsset, fetchWebsiteResource } from "./website-resource";
 
@@ -15,12 +16,7 @@ interface WebsiteCaptureContext {
   activeSpaceId?: string;
   nodes: SpaceCanvasNode[];
   addContent: (data: SpaceNodePayload, position?: { x: number; y: number }) => Promise<SpaceCanvasNode[]>;
-  saveNodeContentForSpace(
-    spaceId: string,
-    id: string,
-    expectedContent: SpaceNodePayload,
-    data: SpaceNodePayload,
-  ): Promise<void>;
+  saveNodeContentForSpace(spaceId: string, change: NodePayloadChangeInput): Promise<void>;
 }
 
 interface WebsiteBinding {
@@ -55,8 +51,8 @@ export async function refreshSavedWebsite(context: WebsiteCaptureContext, id: st
   const spaceId = requireSpace(context);
   const node = context.nodes.find((candidate) => candidate.id === id);
   if (!node || node.data.kind !== "website") return;
-  const next = { ...node.data, metadataState: "loading" } as SpaceWebsitePayload;
-  await context.saveNodeContentForSpace(spaceId, id, node.data, next);
+  const next: SpaceWebsitePayload = { ...node.data, metadataState: "loading" };
+  await context.saveNodeContentForSpace(spaceId, { id, expectedData: node.data, data: next });
   await websiteCaptureConcurrency(() =>
     hydrateSavedWebsite({ context, spaceId, id, data: next }, url, { preserveTitle: true }),
   );
@@ -179,7 +175,11 @@ async function persistWebsite(
 }
 
 async function saveBinding(target: WebsiteBinding, data: SpaceWebsitePayload) {
-  await target.context.saveNodeContentForSpace(target.spaceId, target.id, target.data, data);
+  await target.context.saveNodeContentForSpace(target.spaceId, {
+    id: target.id,
+    expectedData: target.data,
+    data,
+  });
   target.data = data;
 }
 

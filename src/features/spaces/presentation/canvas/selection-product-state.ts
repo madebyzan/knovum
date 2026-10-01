@@ -31,12 +31,19 @@ export interface CanvasSelectionProductState {
   section: { id: string; collapsed: boolean } | null;
 }
 
-export function canvasSelectionProductState(
-  nodes: readonly SpaceCanvasNode[],
-  selectedIds: readonly string[],
-  selectedStructureNodeIds: readonly string[],
-  snapshot: SpaceEditSnapshot,
-): CanvasSelectionProductState {
+interface CanvasSelectionProductInput {
+  nodes: readonly SpaceCanvasNode[];
+  selectedIds: readonly string[];
+  selectedStructureNodeIds: readonly string[];
+  snapshot: SpaceEditSnapshot;
+}
+
+export function canvasSelectionProductState({
+  nodes,
+  selectedIds,
+  selectedStructureNodeIds,
+  snapshot,
+}: CanvasSelectionProductInput): CanvasSelectionProductState {
   const selected = new Set(selectedIds);
   const explicitlySelectedContent = nodes.filter((node) => selected.has(node.id));
   const index = createStructureIndex(snapshot.structure);

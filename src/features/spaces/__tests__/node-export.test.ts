@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { createSpaceNode } from "../canvas/node";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceEditSnapshot } from "../model/structure/schema/edit-snapshot";
 
@@ -129,7 +130,7 @@ describe("Space section export", () => {
 });
 
 function canvasNode(id: string, data: SpaceCanvasNode["data"]): SpaceCanvasNode {
-  return { id, type: data.kind, data, initialPosition: { x: 0, y: 0 } };
+  return createSpaceNode(data, { x: 0, y: 0 }, id);
 }
 
 function sectionSnapshot(): SpaceEditSnapshot {

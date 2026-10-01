@@ -107,9 +107,10 @@ it("marks a pending output failed when the combined Rust command cannot run", as
     throw new Error("Cutout failed");
   });
   await createImageCutout(store, source);
-  expect(store.saveNodeContentForSpace).toHaveBeenCalledWith("space", pending.id, pending.data, {
-    ...pending.data,
-    processingState: "failed",
+  expect(store.saveNodeContentForSpace).toHaveBeenCalledWith("space", {
+    id: pending.id,
+    expectedData: pending.data,
+    data: { ...pending.data, processingState: "failed" },
   });
   expect(native.tasks.fail).toHaveBeenCalledWith("task", expect.stringContaining("Cutout failed"));
 });

@@ -30,6 +30,6 @@ const NODE_ICONS = {
   file: File,
 } satisfies Record<SpaceNodeKind, typeof File>;
 
-export function nodeIcon(kind: SpaceNodeKind | string) {
+export function nodeIcon(kind: string) {
   return (NODE_ICONS as Record<string, typeof File>)[kind] ?? File;
 }

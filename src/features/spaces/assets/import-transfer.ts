@@ -15,7 +15,7 @@ import type { SpaceImportContext, SpaceImportSource } from "./import-contract";
 import { importedSpaceNodePayload } from "./imported-asset-payload";
 import { scheduleSpaceAssetProcessing } from "./processing-scheduler";
 
-interface CommitManagedImportOptions {
+export interface CommitManagedImportOptions {
   context: SpaceImportContext;
   spaceId: string;
   taskId: string;
@@ -51,7 +51,11 @@ export async function commitManagedImport(options: CommitManagedImportOptions) {
     if (cancelRequested) throw new Error("Space import cancelled");
     copiedPath = copied.path;
     const copiedContent = importedSpaceNodePayload(copied);
-    await context.savePendingNodeContentForSpace(spaceId, node.id, node.data, copiedContent);
+    await context.savePendingNodeContentForSpace(spaceId, {
+      id: node.id,
+      expectedData: node.data,
+      data: copiedContent,
+    });
     node.data = copiedContent;
     if (typeof source !== "string") await source.finalize();
     context.finalizePendingContent(spaceId, [node], reveal);

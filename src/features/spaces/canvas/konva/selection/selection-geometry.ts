@@ -1,11 +1,6 @@
-interface Rect {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
+import type { CanvasRect } from "../../contracts/canvas-editor-port";
 
-export function selectionRectIntersects(left: Rect, right: Rect) {
+export function selectionRectIntersects(left: CanvasRect, right: CanvasRect) {
   return (
     left.x <= right.x + right.width &&
     left.x + left.width >= right.x &&
