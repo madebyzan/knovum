@@ -3,12 +3,9 @@
     "docx": "Export as Word document",
     "pdf": "Export as PDF",
     "docxTask": "Generating Word document",
-    "docxFailed": "Could not generate Word document",
     "pdfTask": "Generating PDF",
-    "pdfFailed": "Could not generate PDF",
     "txt": "Export as plain text",
-    "txtTask": "Generating plain text",
-    "txtFailed": "Could not generate plain text"
+    "txtTask": "Generating plain text"
   },
   "generate": "Generate document",
   "title": "Create a document from selected knowledge",

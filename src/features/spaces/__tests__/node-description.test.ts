@@ -39,21 +39,9 @@ describe("node description and preview", () => {
     expect(describeSpaceNode(payload({ ...object, summary: "" }))).toBe("");
   });
 
-  it("keeps subtitle description independent of viewport preview limits", () => {
-    const subtitle = payload({
-      title: "Captions",
-      kind: "subtitle",
-      sourceVideoNodeId: "video",
-      sourceVideoRevision: "revision",
-      language: "en",
-      durationMs: 4000,
-      cues: ["One", "Two", "Three", "Four"].map((text, index) => ({
-        startMs: index * 1000,
-        endMs: (index + 1) * 1000,
-        text,
-      })),
-    });
-    expect(describeSpaceNode(subtitle)).toBe("One\nTwo\nThree");
-    expect(spaceNodePreviewText(subtitle, context)).toBe("One\nTwo");
+  it("rejects subtitles as a standalone node kind", () => {
+    expect(spaceNodePayloadSchema.safeParse({ title: "Captions", kind: "subtitle", cues: [] }).success).toBe(
+      false,
+    );
   });
 });

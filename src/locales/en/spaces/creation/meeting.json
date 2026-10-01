@@ -1,9 +1,0 @@
-{
-  "contentPackage": "Create meeting video and summary",
-  "summary": {
-    "title": "Meeting summary",
-    "purpose": "Summarize topics, decisions, disagreements, action items, and open questions with source citations."
-  },
-  "videoDescription": "Create editable subtitles, a subtitled video, and a grounded meeting summary.",
-  "create": "Create meeting package"
-}

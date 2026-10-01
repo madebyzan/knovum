@@ -1,4 +1,5 @@
 mod persistence;
+mod preparation;
 mod registry;
 mod render;
 pub(super) mod srt;
@@ -8,7 +9,6 @@ mod start;
 mod tests;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 use tauri::{ipc::Channel, AppHandle};
 
 use super::{failure, CompletedDerivationOutput};
@@ -24,8 +24,7 @@ pub struct RenderSubtitledVideoRequest {
     pub source_node_id: String,
     pub output_node_id: String,
     pub source_revision: String,
-    pub subtitle_node_id: String,
-    pub subtitle_revision: String,
+    pub knowledge_revision: String,
 }
 
 #[derive(Clone, Serialize)]
@@ -33,20 +32,6 @@ pub struct RenderSubtitledVideoRequest {
 pub struct SubtitledVideoProgress {
     stage: &'static str,
     progress: u8,
-}
-
-pub(super) async fn render(
-    app: AppHandle,
-    request: RenderSubtitledVideoRequest,
-    on_progress: Channel<SubtitledVideoProgress>,
-) -> Result<CompletedDerivationOutput, String> {
-    render_inner(
-        super::action_execution::ExecutionAuthority::DirectCommand,
-        app,
-        request,
-        on_progress,
-    )
-    .await
 }
 
 pub(super) async fn render_for_action(
@@ -68,28 +53,68 @@ async fn render_inner(
     authority
         .require_active(crate::spaces::db::pool(&app).await?)
         .await?;
-    let source = start::start(&app, &request, &authority).await?;
+    let source =
+        match start::start(crate::spaces::db::pool(&app).await?, &request, &authority).await {
+            Ok(source) => source,
+            Err(error) => {
+                failure::fail_pending(
+                    &app,
+                    &request.space_id,
+                    &request.output_node_id,
+                    failure::PendingNodeState::Processing,
+                )
+                .await?;
+                return Err(error);
+            }
+        };
     let execution_app = app.clone();
     let execution_id = request.id.clone();
-    let rendered = blocking::run(move || {
-        render::render(
-            &execution_app,
-            &execution_id,
-            source,
-            &on_progress,
-            &cancellation,
-        )
-    })
+    let rendered = async {
+        let source =
+            preparation::prepare(&app, &request, source, &on_progress, &cancellation).await?;
+        let render_cancellation = cancellation.clone();
+        let expected = request.source_revision.clone();
+        blocking::run(move || {
+            let source_path = source.path.clone();
+            let output = render::render(
+                &execution_app,
+                &execution_id,
+                source,
+                &on_progress,
+                &render_cancellation,
+            )?;
+            if let Err(error) = crate::file_inspection::verify_content_revision(
+                std::path::Path::new(&source_path),
+                &expected,
+            ) {
+                std::fs::remove_file(&output.path).map_err(|cleanup| {
+                    format!("{error}; derived video cleanup failed: {cleanup}")
+                })?;
+                return Err(error);
+            }
+            Ok(output)
+        })
+        .await
+    }
     .await;
     match rendered {
         Ok(output) => {
             let path = output.path.clone();
-            match persistence::complete(&app, &request.id, output, &authority).await {
+            match persistence::complete(
+                crate::spaces::db::pool(&app).await?,
+                &request.id,
+                output,
+                &authority,
+                &cancellation,
+            )
+            .await
+            {
                 Ok(completed) => Ok(completed),
                 Err(error) => {
                     tokio::fs::remove_file(path).await.map_err(|cleanup| {
                         format!("{error}; derived video cleanup failed: {cleanup}")
                     })?;
+                    failure::fail_message(&app, &request.id, &error).await?;
                     Err(error)
                 }
             }
@@ -116,8 +141,4 @@ pub(super) fn progress(
             progress: value,
         })
         .map_err(|error| error.to_string())
-}
-
-pub(super) fn subtitle_text(value: &Value) -> Result<String, String> {
-    srt::from_subtitle(value)
 }

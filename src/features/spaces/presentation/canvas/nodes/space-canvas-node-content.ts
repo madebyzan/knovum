@@ -8,10 +8,6 @@ export function spaceNodePreviewText(
   context: CanvasNodePresentationContext,
 ): string | undefined {
   switch (data.kind) {
-    case "subtitle":
-      return projectPreviewItems(data.cues, context)
-        .map(({ text }) => text)
-        .join("\n");
     case "object": {
       const fields = [
         ...(data.summary ? [data.summary] : []),

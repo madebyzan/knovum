@@ -59,14 +59,7 @@ pub async fn complete(
     object.insert("modifiedAt".into(), now.into());
     object.remove("processingState");
     revision::apply(&mut data)?;
-    contracts::validate_node(
-        &mut tx,
-        &request.space_id,
-        &request.output_node_id,
-        "video",
-        &data,
-    )
-    .await?;
+    contracts::validate_node(&mut tx, &request.space_id, "video", &data).await?;
     crate::spaces::derivation::persist_output_node(&mut tx, &request.output_node_id, &data, now)
         .await?;
     let mut output_relations = Vec::with_capacity(request.inputs.len());

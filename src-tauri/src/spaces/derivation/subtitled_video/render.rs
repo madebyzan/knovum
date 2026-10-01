@@ -30,7 +30,7 @@ pub fn render(
     channel: &Channel<SubtitledVideoProgress>,
     cancellation: &CancellationToken,
 ) -> Result<RenderedVideo, String> {
-    progress(channel, "preparingSubtitles", 8)?;
+    progress(channel, "preparingSubtitles", 62)?;
     let directory = asset_directory(app)?;
     let output = ScratchFile::new(directory.join(format!("derived-{}.mp4", Uuid::new_v4())));
     burn_in_subtitles(
@@ -43,7 +43,9 @@ pub fn render(
         cancellation,
     )?;
     progress(channel, "savingResource", 94)?;
-    video_output::inspect(output.retain())
+    let rendered = video_output::inspect(output.path().to_path_buf())?;
+    output.retain();
+    Ok(rendered)
 }
 
 fn burn_in_subtitles(
@@ -77,7 +79,7 @@ fn run_ffmpeg(
 ) -> Result<(), String> {
     let ffmpeg = tools::resolve_tool(app, "KNOVUM_FFMPEG_PATH", tools::ffmpeg_name())?
         .ok_or("FFmpeg is required to create a subtitled video")?;
-    progress(channel, "renderingSubtitles", 24)?;
+    progress(channel, "renderingSubtitles", 68)?;
     let subtitle_name = subtitle
         .file_name()
         .and_then(|name| name.to_str())

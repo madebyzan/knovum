@@ -2,7 +2,6 @@ import { compact } from "es-toolkit";
 import { z } from "zod";
 
 import { KNOWLEDGE_OBJECT_STATUSES } from "../../../knowledge/model/object-types";
-import { spaceSubtitleCueSchema } from "../../../media/schema/knowledge";
 import { SPACE_CREDENTIAL_KINDS } from "../../schema/credential";
 import { baseSpaceNodeFields } from "./base-fields";
 import { tiptapContentSchema } from "./content";
@@ -43,31 +42,6 @@ export const spaceNodePayloadDiscriminatedSchema = z.discriminatedUnion("kind", 
       derivationState: z.enum(["pending", "failed"]).optional(),
     })
     .strict(),
-  z
-    .object({
-      ...baseSpaceNodeFields,
-      kind: z.literal("subtitle"),
-      sourceVideoNodeId: z.string().min(1).max(128),
-      sourceVideoRevision: z.string().min(1).max(128),
-      language: z.string().trim().min(1).max(64),
-      durationMs: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
-      cues: z.array(spaceSubtitleCueSchema).min(1).max(100_000),
-    })
-    .strict()
-    .superRefine((value, context) => {
-      const invalid = value.cues.some(
-        (cue, index) =>
-          cue.endMs <= cue.startMs ||
-          cue.endMs > value.durationMs ||
-          (index > 0 && cue.startMs < value.cues[index - 1]!.startMs),
-      );
-      if (invalid)
-        context.addIssue({
-          code: "custom",
-          path: ["cues"],
-          message: "Subtitle cues must be ordered and bounded",
-        });
-    }),
   spaceWebsitePayloadSchema,
   ...spaceResourceNodeSchemas,
   z

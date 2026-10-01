@@ -43,7 +43,7 @@ pub(super) async fn create(
             properties.clone(),
         );
         crate::spaces::knowledge::indexing::revision::apply(&mut data)?;
-        let object_type_id = contracts::validate_node(tx, space_id, &id, "object", &data)
+        let object_type_id = contracts::validate_node(tx, space_id, "object", &data)
             .await?
             .ok_or_else(|| "Knowledge object type validation failed".to_string())?;
         let (initial_x, initial_y) = match position {

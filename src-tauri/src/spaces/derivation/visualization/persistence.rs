@@ -51,7 +51,7 @@ pub async fn start(
         return Err("Visualization output path is outside the Space asset directory".into());
     }
     let now = crate::clock::unix_time_millis()?;
-    sqlx::query("INSERT INTO spaces_knowledge_derivations(id,space_id,output_node_id,action_kind,action_version,engine,status,created_at,updated_at) VALUES($1,$2,$3,'generate-visualization',1,$4,'running',$5,$5)")
+    sqlx::query("INSERT INTO spaces_knowledge_derivations(id,space_id,output_node_id,action_kind,action_version,engine,status,created_at,updated_at) VALUES($1,$2,$3,(SELECT json_extract(input_snapshot,'$.actionId') FROM spaces_runs WHERE id=$1 AND kind='action'),1,$4,'running',$5,$5)")
         .bind(&request.id).bind(&request.space_id).bind(&request.output_node_id)
         .bind(target.engine()).bind(now)
         .execute(&mut *tx).await.map_err(db::sql_error)?;
@@ -148,14 +148,7 @@ async fn persist_completion(
     object.insert("intrinsicHeight".into(), height.into());
     object.remove("processingState");
     revision::apply(data)?;
-    contracts::validate_node(
-        tx,
-        &request.space_id,
-        &request.output_node_id,
-        "image",
-        data,
-    )
-    .await?;
+    contracts::validate_node(tx, &request.space_id, "image", data).await?;
     crate::spaces::derivation::persist_output_node(tx, &request.output_node_id, data, now).await?;
     let mut output_relations = Vec::with_capacity(request.inputs.len());
     for input in &request.inputs {

@@ -59,7 +59,7 @@ pub(in crate::spaces::knowledge::change_commit) async fn update_object(
     let before = data.clone();
     apply_object_changes(&mut data, &input)?;
     crate::spaces::knowledge::indexing::revision::apply(&mut data)?;
-    let object_type_id = contracts::validate_node(tx, input.space_id, input.id, "object", &data)
+    let object_type_id = contracts::validate_node(tx, input.space_id, "object", &data)
         .await?
         .ok_or_else(|| "Knowledge object type validation failed".to_string())?;
     if before.get("knowledgeRevision") != data.get("knowledgeRevision") {

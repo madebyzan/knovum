@@ -96,6 +96,11 @@ function actionText(actionId: string) {
                 <span class="pl-4 text-caption font-normal text-fg-secondary">{{
                   actionText(step.actionId)
                 }}</span>
+                <span class="truncate pl-4 text-caption-sm font-normal text-fg-tertiary">{{
+                  t("spaces.creation.workflow.derivation.sources", {
+                    sources: step.inputs.map((input) => title(input.nodeId)).join(" · "),
+                  })
+                }}</span>
               </UiButton>
             </li>
           </ol>

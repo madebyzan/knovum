@@ -77,8 +77,8 @@ pub(super) async fn completed_action_spec(
         crate::spaces::actions::SpaceActionOutputContract::Document => "markdown",
         crate::spaces::actions::SpaceActionOutputContract::Image => "image",
         crate::spaces::actions::SpaceActionOutputContract::Video => "video",
-        crate::spaces::actions::SpaceActionOutputContract::Subtitle => "subtitle",
-        crate::spaces::actions::SpaceActionOutputContract::Presentation => "file",
+        crate::spaces::actions::SpaceActionOutputContract::Presentation
+        | crate::spaces::actions::SpaceActionOutputContract::File => "file",
         _ => return Ok(None),
     };
     if output_kind != expected_kind {

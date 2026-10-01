@@ -116,7 +116,6 @@ export interface SpaceTranscriptEdit {
   index: number;
   text: string;
 }
-export type SpaceSubtitleCue = z.infer<typeof spaceSubtitleCueSchema>;
 export type SpaceMediaTranscript = z.infer<typeof spaceMediaTranscriptSchema>;
 export type SpaceMediaChapter = z.infer<typeof spaceMediaChapterSchema>;
 export type SpaceMediaInsights = z.infer<typeof insightsSchema>;

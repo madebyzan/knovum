@@ -27,17 +27,6 @@ pub(crate) fn authoritative(data: &Value) -> Result<Option<String>, String> {
             insert_if_present(&mut projection, object, "plainText");
         }
         "markdown" => insert_if_present(&mut projection, object, "text"),
-        "subtitle" => {
-            for key in [
-                "sourceVideoNodeId",
-                "sourceVideoRevision",
-                "language",
-                "durationMs",
-                "cues",
-            ] {
-                insert_if_present(&mut projection, object, key);
-            }
-        }
         "website" => {
             for key in [
                 "url",
@@ -64,9 +53,19 @@ pub(crate) fn authoritative(data: &Value) -> Result<Option<String>, String> {
                 );
             }
             if matches!(kind, "video" | "audio") {
-                for key in ["origin", "creator", "durationSeconds", "sourceRevision"] {
+                for key in [
+                    "origin",
+                    "creator",
+                    "durationSeconds",
+                    "sourceRevision",
+                    "mediaKnowledge",
+                ] {
                     insert_if_present(&mut projection, object, key);
                 }
+            }
+            if kind == "image" {
+                insert_if_present(&mut projection, object, "sourceRevision");
+                insert_if_present(&mut projection, object, "imageEdit");
             }
             if matches!(kind, "image" | "video") {
                 insert_if_present(&mut projection, object, "visualKnowledge");

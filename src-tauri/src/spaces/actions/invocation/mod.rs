@@ -7,4 +7,4 @@ mod store;
 mod tests;
 
 pub(crate) use contract::{ActionInvocationOutcome, ActionInvocationRequest};
-pub(crate) use execute::invoke;
+pub(crate) use execute::{invoke, invoke_in_transaction};

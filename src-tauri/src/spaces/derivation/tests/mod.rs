@@ -1,14 +1,12 @@
 #[test]
-fn prepared_presentation_metadata_accepts_resolved_action_fields() {
+fn prepared_document_metadata_accepts_resolved_action_fields() {
     let value = serde_json::json!({
         "id":"run", "spaceId":"space", "outputNodeId":"run-output",
         "inputs":[{"nodeId":"source", "role":"primary", "sourceRevision":"revision"}],
-        "primary":{"nodeId":"source"},
         "document":{"nodeId":"source", "data":{"title":"Title", "text":"Content"}}
     });
     assert!(
-        serde_json::from_value::<super::presentation_publication::PresentationPublication>(value)
-            .is_ok()
+        serde_json::from_value::<super::document_publication::DocumentPublication>(value).is_ok()
     );
 }
 
@@ -19,7 +17,7 @@ async fn stale_claim_cannot_adopt_the_current_execution_epoch() {
         .execute(&pool)
         .await
         .unwrap();
-    let stale = super::action_execution::ExecutionAuthority::ActionRun {
+    let stale = super::action_execution::ExecutionAuthority {
         run_id: "action".into(),
         execution_epoch: 7,
     };
@@ -49,7 +47,7 @@ async fn pending_pause_keeps_the_claimed_action_authority_active() {
         .execute(&pool)
         .await
         .unwrap();
-    let authority = super::action_execution::ExecutionAuthority::ActionRun {
+    let authority = super::action_execution::ExecutionAuthority {
         run_id: "paused-action".into(),
         execution_epoch: 3,
     };
@@ -81,7 +79,7 @@ async fn cancellation_before_registry_acquire_still_blocks_generation() {
         .execute(&pool)
         .await
         .unwrap();
-    let authority = super::action_execution::ExecutionAuthority::ActionRun {
+    let authority = super::action_execution::ExecutionAuthority {
         run_id: run_id.clone(),
         execution_epoch: 4,
     };
@@ -107,7 +105,7 @@ async fn cancelled_authority_cannot_reserve_or_publish() {
         .execute(&pool)
         .await
         .unwrap();
-    let authority = super::action_execution::ExecutionAuthority::ActionRun {
+    let authority = super::action_execution::ExecutionAuthority {
         run_id: "guarded".into(),
         execution_epoch: 2,
     };

@@ -18,7 +18,10 @@ impl PendingNodeState {
 }
 
 pub fn state_field_for(action_kind: &str) -> &'static str {
-    if action_kind == "draft-document" {
+    if matches!(
+        action_kind,
+        "draft-document" | "draft-script" | "summarize-meeting" | "draft-social-post"
+    ) {
         "derivationState"
     } else {
         "processingState"
@@ -53,6 +56,13 @@ pub async fn fail_pending(
     };
     let mut data: Value = serde_json::from_str(&encoded).map_err(db::json_error)?;
     let key = field.field_name();
+    let pending = match field {
+        PendingNodeState::Processing => "processing",
+        PendingNodeState::Derivation => "pending",
+    };
+    if data.get(key).and_then(Value::as_str) != Some(pending) {
+        return Ok(());
+    }
     data[key] = "failed".into();
     sqlx::query("UPDATE spaces_nodes SET data=$1,updated_at=$2 WHERE id=$3 AND space_id=$4")
         .bind(serde_json::to_string(&data).map_err(db::json_error)?)

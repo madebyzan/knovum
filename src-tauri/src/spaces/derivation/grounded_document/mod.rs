@@ -53,20 +53,6 @@ pub struct GroundedDocumentOutput {
     relations: Vec<super::DerivationRelation>,
 }
 
-pub async fn generate(
-    app: AppHandle,
-    request: GenerateGroundedDocumentRequest,
-    stages: Channel<String>,
-) -> Result<GroundedDocumentOutput, String> {
-    generate_inner(
-        super::action_execution::ExecutionAuthority::DirectCommand,
-        app,
-        request,
-        stages,
-    )
-    .await
-}
-
 pub(super) async fn generate_for_action(
     authority: super::action_execution::ExecutionAuthority,
     app: AppHandle,

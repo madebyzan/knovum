@@ -73,7 +73,6 @@ async fn change_failure_rolls_back_objects_created_earlier_in_transaction() {
     crate::spaces::knowledge::contracts::normalize_node(
         &mut setup,
         "space",
-        "existing",
         "note",
         &mut existing.data,
     )

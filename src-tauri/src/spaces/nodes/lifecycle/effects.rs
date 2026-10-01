@@ -161,7 +161,7 @@ pub(super) async fn restore_nodes(
         let kind: String = row.try_get("kind").map_err(db::sql_error)?;
         let raw: String = row.try_get("data").map_err(db::sql_error)?;
         let data: serde_json::Value = serde_json::from_str(&raw).map_err(db::json_error)?;
-        crate::spaces::knowledge::contracts::validate_node(tx, space_id, id, &kind, &data).await?;
+        crate::spaces::knowledge::contracts::validate_node(tx, space_id, &kind, &data).await?;
         crate::spaces::knowledge::events::append(
             tx,
             crate::spaces::knowledge::events::KnowledgeEvent::new(

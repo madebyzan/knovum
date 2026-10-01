@@ -19,32 +19,6 @@ describe("Space node export", () => {
     mocks.save.mockReset().mockResolvedValue("/exports/result");
   });
 
-  it("exports subtitle nodes as correctly timed SubRip text", async () => {
-    const node = canvasNode("subtitle", {
-      kind: "subtitle",
-      title: "Interview / captions",
-      sourceVideoNodeId: "video",
-      sourceVideoRevision: "revision",
-      language: "en",
-      durationMs: 3_700_001,
-      cues: [
-        { startMs: 1_234, endMs: 3_456, text: "First line" },
-        { startMs: 3_600_000, endMs: 3_700_001, text: "Last line" },
-      ],
-    });
-
-    await expect(exportSpaceNode("space", node)).resolves.toBe(true);
-
-    expect(mocks.save).toHaveBeenCalledWith({
-      defaultPath: "Interview - captions.srt",
-      filters: [{ name: "SubRip subtitles", extensions: ["srt"] }],
-    });
-    expect(mocks.invoke).toHaveBeenCalledWith("plugin:spaces|export_text", {
-      destinationPath: "/exports/result",
-      text: "1\n00:00:01,234 --> 00:00:03,456\nFirst line\n\n2\n01:00:00,000 --> 01:01:40,001\nLast line\n",
-    });
-  });
-
   it("exports credential metadata from an explicit safe allowlist", async () => {
     const data = {
       kind: "credential",

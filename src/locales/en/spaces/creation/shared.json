@@ -2,6 +2,7 @@
   "failedAttempt": "Creation failed",
   "removeFailedOutput": "Remove failed item",
   "knowledgeDerivation": "Created from knowledge",
+  "resourceTask": "Resource task",
   "presets": {
     "save": "Save as preset",
     "saved": "Generation preset saved",

@@ -143,14 +143,7 @@ async fn persist(
     object.remove("imageEdit");
     object.remove("previewPath");
     revision::apply(data)?;
-    contracts::validate_node(
-        tx,
-        &request.space_id,
-        &request.output_node_id,
-        "image",
-        data,
-    )
-    .await?;
+    contracts::validate_node(tx, &request.space_id, "image", data).await?;
     crate::spaces::derivation::persist_output_node(tx, &request.output_node_id, data, now).await?;
     let relation = relations::derives_from(
         &request.space_id,

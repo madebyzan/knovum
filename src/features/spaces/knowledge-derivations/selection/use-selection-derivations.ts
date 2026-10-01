@@ -28,7 +28,7 @@ export function useSelectionDerivations({ store, selection }: SelectionDerivatio
           const decision = catalogState.decisions.value[definition.id];
           return [
             definition.id,
-            canRunAction(decision) && !gate.allows(definition.effect)
+            canRunAction(decision) && !gate.allows("derive")
               ? { state: "blocked", reason: "active-node-operation" }
               : decision,
           ];
@@ -40,7 +40,6 @@ export function useSelectionDerivations({ store, selection }: SelectionDerivatio
     selection,
     single: catalogState.single,
     sources: catalogState.sources,
-    subtitleInputs: catalogState.subtitleInputs,
     dialog,
     canRun: (actionId) => canRunAction(decisions.value[actionId]),
     canSubmit: () => gate.allows("derive"),
@@ -52,7 +51,6 @@ export function useSelectionDerivations({ store, selection }: SelectionDerivatio
     sourceTitle: catalogState.sourceTitle,
     sources: catalogState.sources,
     dialog,
-    subtitleInputs: catalogState.subtitleInputs,
     ...actions,
   };
 }

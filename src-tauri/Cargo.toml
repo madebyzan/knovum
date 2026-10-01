@@ -92,7 +92,6 @@ axum = "=0.8.9"
 tokio-util = "=0.7.19"
 walkdir = "2.5.0"
 agent-client-protocol = "=2.1.0"
-petgraph = { version = "=0.8.3", default-features = false, features = ["std"] }
 chrono = { version = "=0.4.45", default-features = false, features = ["clock", "serde"] }
 schemars = "=1.2.2"
 ts-rs = { version = "=12.0.1", features = ["no-serde-warnings", "serde-compat", "serde-json-impl"] }

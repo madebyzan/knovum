@@ -1,7 +1,7 @@
 {
-  "title": "创作工作流",
-  "select": "选择创作工作流",
-  "createFromSelection": "从所选派生创建工作流",
+  "title": "工作流",
+  "select": "选择工作流",
+  "createFromSelection": "保存派生链为工作流",
   "derivation": {
     "loading": "正在整理派生过程…",
     "separateChains": "选中内容包含 {count} 条互不相连的派生链。请分别选择需要的产物。",
@@ -9,7 +9,8 @@
     "steps": "已验证的操作",
     "inputs": "工作流输入",
     "issues": "无法复用的部分",
-    "empty": "选中内容没有可重放的派生操作。"
+    "empty": "选中内容没有可重放的派生操作。",
+    "sources": "来源：{sources}"
   },
   "name": "工作流名称",
   "namePlaceholder": "为这个工作流命名",
@@ -66,16 +67,6 @@
   },
   "delete": "删除工作流",
   "deleteConfirm": "删除“{name}”？已完成的运行记录和产物仍会保留。",
-  "review": {
-    "required": "等待你审核内容",
-    "title": "审核生成的内容",
-    "unavailable": "待审核内容已不可用，请检查运行状态。",
-    "changed": "审核期间内容发生变化，请重新查看后批准。",
-    "edited": "这份内容已编辑；批准后将使用当前版本继续。",
-    "edit": "在画布编辑",
-    "reject": "拒绝并停止",
-    "approve": "批准并继续"
-  },
   "states": {
     "queued": "排队中",
     "running": "正在运行",
@@ -107,8 +98,11 @@
     "generateVisualization": "生成可视化图片",
     "generateImage": "生成图片",
     "generateVideo": "生成视频",
-    "extractSubtitles": "提取字幕",
-    "renderSubtitledVideo": "合成带字幕视频",
-    "renderPresentation": "生成演示文稿"
-  }
+    "renderPresentation": "生成演示文稿",
+    "addVideoSubtitles": "添加字幕",
+    "exportDocx": "导出 Word",
+    "exportPdf": "导出 PDF",
+    "exportTxt": "导出文本"
+  },
+  "empty": "还没有保存的工作流。选中已完成的派生产物，选择“保存为工作流”。"
 }

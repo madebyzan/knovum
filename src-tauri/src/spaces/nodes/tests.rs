@@ -6,11 +6,9 @@ async fn user_edits_receive_a_rust_owned_revision() {
     crate::spaces::db::migrate(&pool).await.unwrap();
     let mut tx = pool.begin().await.unwrap();
     let mut data = json!({"kind":"markdown","title":"Note","text":"Updated text","knowledgeRevision":"obsolete-ui-hash"});
-    crate::spaces::knowledge::contracts::normalize_node(
-        &mut tx, "space", "node", "markdown", &mut data,
-    )
-    .await
-    .unwrap();
+    crate::spaces::knowledge::contracts::normalize_node(&mut tx, "space", "markdown", &mut data)
+        .await
+        .unwrap();
     assert_eq!(
         data["knowledgeRevision"].as_str(),
         crate::spaces::knowledge::indexing::revision::authoritative(&data)
@@ -66,11 +64,9 @@ async fn resetting_image_edits_replaces_the_visual_job_through_the_node_update_p
         .unwrap();
     let mut after = before.clone();
     after.as_object_mut().unwrap().remove("imageEdit");
-    crate::spaces::knowledge::contracts::normalize_node(
-        &mut tx, "space", "node", "image", &mut after,
-    )
-    .await
-    .unwrap();
+    crate::spaces::knowledge::contracts::normalize_node(&mut tx, "space", "image", &mut after)
+        .await
+        .unwrap();
     super::update_many_in_transaction(
         &mut tx,
         "space",

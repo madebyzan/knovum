@@ -5662,7 +5662,6 @@ dependencies = [
  "objc2-quick-look-thumbnailing",
  "office_oxide",
  "pdf-inspector",
- "petgraph",
  "pulldown-cmark",
  "quicklook",
  "reqwest 0.13.4",

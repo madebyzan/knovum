@@ -19,9 +19,6 @@ pub(super) async fn prepare(
         inputs::resolve(app, space_id, action_id, definition.input_roles, snapshot).await?;
     let mut request = Map::new();
     request.insert("inputs".into(), Value::Array(resolved.items.clone()));
-    if let Some(primary) = resolved.items.first() {
-        request.insert("primary".into(), primary.clone());
-    }
     if definition.routing_purpose.is_some() {
         let target = snapshot
             .get("targets")

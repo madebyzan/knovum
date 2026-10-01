@@ -21,16 +21,18 @@ pub(super) async fn reserve(
     authority: &super::super::action_execution::ExecutionAuthority,
 ) -> Result<(), String> {
     match action_id {
-        "extract-subtitles" => media::subtitle_request(inputs, request)?,
-        "render-subtitled-video" => media::subtitled_video_request(inputs, request)?,
-        "render-presentation" => media::presentation_request(inputs, request)?,
+        "add-video-subtitles" => media::subtitled_video_request(inputs, request)?,
+        "render-presentation"
+        | "export-document-as-docx"
+        | "export-document-as-pdf"
+        | "export-document-as-txt" => media::document_request(inputs, request)?,
         _ => {}
     }
     let Some((kind, mut data)) = build_pending_output_content(app, action_id, parameters, inputs)?
     else {
         return Ok(());
     };
-    let node_id = format!("{}-output", authority.action_run_id()?);
+    let node_id = format!("{}-output", authority.run_id);
     request.insert("outputNodeId".into(), node_id.clone().into());
     if node_exists(app, space_id, &node_id).await? {
         return Ok(());
@@ -50,7 +52,7 @@ fn build_pending_output_content(
     parameters: &Value,
     inputs: &ResolvedInputs,
 ) -> Result<Option<(&'static str, Value)>, String> {
-    let title = title(action_id, parameters);
+    let title = title(parameters, inputs)?;
     let output = match action_id {
         "draft-document" | "draft-script" | "summarize-meeting" | "draft-social-post" => (
             "markdown",
@@ -72,19 +74,17 @@ fn build_pending_output_content(
                 "processingState":"processing"
             }),
         ),
-        "render-subtitled-video" => (
-            "video",
-            media::build_subtitled_video_content(inputs, &title)?,
-        ),
-        "render-presentation" => (
-            "file",
-            json!({
-                "kind":"file","title":title,"fileName":format!("{title}.pptx"),
-                "assetPath": super::super::output_paths::reserve(app, "presentation", "pptx")?,
-                "processingState":"processing"
-            }),
-        ),
-        "extract-subtitles" => ("subtitle", media::build_subtitle_content(inputs)?),
+        "add-video-subtitles" => ("video", media::build_subtitled_video_content(app, &title)?),
+        "render-presentation"
+        | "export-document-as-docx"
+        | "export-document-as-pdf"
+        | "export-document-as-txt" => {
+            let format = super::super::document_formats::require(action_id)?;
+            (
+                "file",
+                json!({"kind":"file", "title":title, "fileName":format!("{title}.{}", format.extension), "assetPath":super::super::output_paths::reserve(app, "document", format.extension)?, "processingState":"processing"}),
+            )
+        }
         _ => return Ok(None),
     };
     Ok(Some(output))
@@ -142,10 +142,7 @@ async fn insert_output(
         &mut tx,
         space_id,
         &[node],
-        crate::spaces::knowledge::events::EventActor::new(
-            "system",
-            Some(authority.action_run_id()?),
-        ),
+        crate::spaces::knowledge::events::EventActor::new("system", Some(&authority.run_id)),
         crate::clock::unix_time_millis()?,
         crate::spaces::assets::enrichment::jobs::intent::selection(app)?.as_ref(),
     )
@@ -157,24 +154,18 @@ async fn insert_output(
     tx.commit().await.map_err(db::sql_error)
 }
 
-fn title(action_id: &str, parameters: &Value) -> String {
+fn title(parameters: &Value, inputs: &ResolvedInputs) -> Result<String, String> {
     parameters
         .get("title")
         .and_then(Value::as_str)
-        .map(str::to_owned)
-        .unwrap_or_else(|| {
-            action_id
-                .split('-')
-                .map(capitalize)
-                .collect::<Vec<_>>()
-                .join(" ")
+        .or_else(|| {
+            inputs
+                .nodes
+                .first()
+                .and_then(|node| node.data.get("title"))
+                .and_then(Value::as_str)
         })
-}
-
-fn capitalize(value: &str) -> String {
-    let mut chars = value.chars();
-    chars
-        .next()
-        .map(|first| first.to_uppercase().collect::<String>() + chars.as_str())
-        .unwrap_or_default()
+        .filter(|title| !title.trim().is_empty())
+        .map(str::to_owned)
+        .ok_or_else(|| "action-input-invalid: output title is required".into())
 }

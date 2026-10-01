@@ -370,13 +370,25 @@
       }
     }
   },
-  "extract-subtitles": {
+  "add-video-subtitles": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "title": "EmptyParameters",
     "type": "object",
     "additionalProperties": false
   },
-  "render-subtitled-video": {
+  "export-document-as-docx": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "EmptyParameters",
+    "type": "object",
+    "additionalProperties": false
+  },
+  "export-document-as-pdf": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "EmptyParameters",
+    "type": "object",
+    "additionalProperties": false
+  },
+  "export-document-as-txt": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "title": "EmptyParameters",
     "type": "object",

@@ -88,7 +88,7 @@ pub(super) async fn resolve(
                 .ok_or("action-input-invalid: ordered input digest is missing")?;
             if format!("{:x}", sha2::Sha256::digest(encoded.as_bytes())) != expected {
                 return Err(
-                    "action-input-stale: resource changed after the workflow Run started".into(),
+                    "action-input-stale: resource changed after the Action Run was accepted".into(),
                 );
             }
             let basis = RevisionBasis::parse(
@@ -147,20 +147,20 @@ fn revision(data: &Value) -> Result<String, String> {
 
 fn order_for_action(action_id: &str, nodes: &mut [ResolvedNode]) -> Result<(), String> {
     let primary_kind = match action_id {
-        "generate-video" | "render-presentation" | "generate-image" => Some("markdown"),
-        "extract-subtitles" | "render-subtitled-video" => Some("video"),
+        "render-presentation"
+        | "export-document-as-docx"
+        | "export-document-as-pdf"
+        | "export-document-as-txt"
+        | "generate-image" => Some("markdown"),
+        "add-video-subtitles" => Some("video"),
         _ => None,
     };
     if let Some(kind) = primary_kind {
         let index = nodes
             .iter()
-            .position(|node| node.kind == kind && node.id.ends_with("-output"))
-            .or_else(|| nodes.iter().position(|node| node.kind == kind))
+            .position(|node| node.kind == kind)
             .ok_or_else(|| format!("action-input-invalid: {action_id} requires a {kind} source"))?;
         nodes[..=index].rotate_right(1);
-    }
-    if action_id == "render-subtitled-video" && !nodes.iter().any(|node| node.kind == "subtitle") {
-        return Err("action-input-invalid: render-subtitled-video requires subtitles".into());
     }
     Ok(())
 }

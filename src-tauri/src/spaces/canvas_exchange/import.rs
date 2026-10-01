@@ -88,7 +88,6 @@ pub(crate) async fn import_nodes<R: Runtime>(
         crate::spaces::knowledge::contracts::normalize_node(
             &mut tx,
             &request.space_id,
-            &node.id,
             &node.kind,
             &mut node.data,
         )

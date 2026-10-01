@@ -144,18 +144,16 @@ async fn validate_existing_objects(
     space_id: &str,
     object_type_id: &str,
 ) -> Result<(), String> {
-    let rows =
-        sqlx::query("SELECT id,data FROM spaces_nodes WHERE space_id=$1 AND object_type_id=$2")
-            .bind(space_id)
-            .bind(object_type_id)
-            .fetch_all(&mut **tx)
-            .await
-            .map_err(db::sql_error)?;
+    let rows = sqlx::query("SELECT data FROM spaces_nodes WHERE space_id=$1 AND object_type_id=$2")
+        .bind(space_id)
+        .bind(object_type_id)
+        .fetch_all(&mut **tx)
+        .await
+        .map_err(db::sql_error)?;
     for row in rows {
-        let node_id: String = row.try_get("id").map_err(db::sql_error)?;
         let raw: String = row.try_get("data").map_err(db::sql_error)?;
         let data: Value = serde_json::from_str(&raw).map_err(db::json_error)?;
-        node_contracts::validate_node(tx, space_id, &node_id, "object", &data).await?;
+        node_contracts::validate_node(tx, space_id, "object", &data).await?;
     }
     Ok(())
 }

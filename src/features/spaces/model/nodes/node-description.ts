@@ -11,11 +11,6 @@ export function describeSpaceNode(data: SpaceNodePayload) {
       return data.text;
     case "website":
       return data.description ?? data.contentPreview ?? data.url;
-    case "subtitle":
-      return data.cues
-        .slice(0, 3)
-        .map(({ text }) => text)
-        .join("\n");
     case "image":
     case "video":
     case "audio":

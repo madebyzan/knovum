@@ -2,6 +2,7 @@
   "failedAttempt": "创建失败",
   "removeFailedOutput": "移除失败项",
   "knowledgeDerivation": "基于知识创建",
+  "resourceTask": "资源任务",
   "presets": {
     "save": "保存为方案",
     "saved": "生成预设已保存",

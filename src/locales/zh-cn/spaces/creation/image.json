@@ -7,8 +7,7 @@
     "defaultTitle": "可视化",
     "intent": "图片内容",
     "placeholder": "描述要呈现的概念或关系，内容应以选中来源为准。",
-    "task": "正在生成可视化内容",
-    "failed": "知识可视化失败"
+    "task": "正在生成可视化内容"
   },
   "style": "视觉方向",
   "aspectRatio": "画面比例",

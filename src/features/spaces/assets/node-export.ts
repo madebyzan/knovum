@@ -1,6 +1,6 @@
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { isSpaceManagedAssetPayload } from "../model/nodes/capabilities";
-import type { SpaceNodePayload, SpaceSubtitlePayload } from "../model/nodes/node-payload";
+import type { SpaceNodePayload } from "../model/nodes/node-payload";
 import type { SpaceEditSnapshot } from "../model/structure/schema/edit-snapshot";
 import type { StructureIndex } from "../model/structure/structure-index";
 import { validateStructureSnapshot } from "../model/structure/structure-validation";
@@ -38,7 +38,6 @@ function nodeTextExport(data: Exclude<SpaceNodePayload, { assetPath: string }>):
   if (data.kind === "text") return textExport(name, data.plainText);
   if (data.kind === "markdown") return markdownExport(name, formatExportMarkdown(data.title, data.text));
   if (data.kind === "website") return markdownExport(name, websiteMarkdown(data));
-  if (data.kind === "subtitle") return subtitleExport(name, data);
   if (data.kind === "credential") return jsonExport(name, credentialMetadata(data));
   if (data.kind === "object") return jsonExport(name, objectDocument(data));
   if (data.kind === "portal") return jsonExport(name, portalDocument(data));
@@ -60,29 +59,6 @@ function jsonExport(name: string, value: unknown): SpaceTextExport {
     filters: [{ name: "JSON", extensions: ["json"] }],
     text: `${JSON.stringify(value, undefined, 2)}\n`,
   };
-}
-
-function subtitleExport(name: string, data: SpaceSubtitlePayload): SpaceTextExport {
-  const text = data.cues
-    .map((cue, index) => `${index + 1}\n${srtTime(cue.startMs)} --> ${srtTime(cue.endMs)}\n${cue.text}`)
-    .join("\n\n");
-  return {
-    defaultPath: `${name}.srt`,
-    filters: [{ name: "SubRip subtitles", extensions: ["srt"] }],
-    text: `${text}\n`,
-  };
-}
-
-function srtTime(milliseconds: number) {
-  const hours = Math.floor(milliseconds / 3_600_000);
-  const minutes = Math.floor((milliseconds % 3_600_000) / 60_000);
-  const seconds = Math.floor((milliseconds % 60_000) / 1_000);
-  const millis = milliseconds % 1_000;
-  return `${pad(hours, 2)}:${pad(minutes, 2)}:${pad(seconds, 2)},${pad(millis, 3)}`;
-}
-
-function pad(value: number, length: number) {
-  return String(value).padStart(length, "0");
 }
 
 function websiteMarkdown(data: Extract<SpaceNodePayload, { kind: "website" }>) {
@@ -161,8 +137,6 @@ function safeOutlineContent(data: SpaceNodePayload): unknown {
       contentPreview: data.contentPreview,
       sections: data.websiteSections,
     };
-  if (data.kind === "subtitle")
-    return { language: data.language, durationMs: data.durationMs, cues: data.cues };
   if (data.kind === "credential") return credentialMetadata(data);
   if (data.kind === "object") return objectDocument(data);
   if (data.kind === "portal") return portalDocument(data);

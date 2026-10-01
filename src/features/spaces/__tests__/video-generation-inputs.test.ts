@@ -1,52 +1,43 @@
-import { describe, expect, it } from "vitest";
+import { clearMocks, mockIPC } from "@tauri-apps/api/mocks";
+import { afterEach, expect, it, vi } from "vitest";
 
-import { createSpaceNode } from "../canvas/node";
-import { resolveVideoInputs } from "../knowledge-derivations/video/generation";
+import type { useSpaceStore } from "../session/space-store";
+const observed = vi.hoisted(() => vi.fn<(...args: unknown[]) => void>());
+vi.mock("../runs/resource-run-observation", () => ({ observeResourceRun: observed }));
+vi.mock("../../../foundation/i18n/i18n", () => ({ i18n: { global: { t: (key: string) => key } } }));
+import { generateVideoFromSources } from "../knowledge-derivations/video/generation";
 
-const documentNode = () =>
-  createSpaceNode(
-    {
-      kind: "markdown",
-      title: "Knowledge script",
-      text: "Use Image 1 as the visual reference.",
-      knowledgeRevision: "node1:script",
-    },
-    { x: 0, y: 0 },
-    "script",
-  );
-
-const imageNode = () =>
-  createSpaceNode(
-    {
-      kind: "image",
-      title: "Reference",
-      fileName: "reference.png",
-      assetPath: "/spaces/assets/reference.png",
-      sourceRevision: "sha256:image",
-    },
-    { x: 100, y: 0 },
-    "image",
-  );
-
-describe("video generation inputs", () => {
-  it("keeps current Markdown first and selected images in canvas order", () => {
-    const inputs = resolveVideoInputs([documentNode(), imageNode()]);
-    expect(inputs?.document.id).toBe("script");
-    expect(inputs?.images.map(({ id }) => id)).toEqual(["image"]);
+afterEach(() => {
+  clearMocks();
+  vi.clearAllMocks();
+});
+it("generates video directly from selected knowledge with only its explicit executor", async () => {
+  const invoke = vi.fn<(command: string, args?: unknown) => void>();
+  mockIPC((command, args) => {
+    invoke(command, args);
+    return { id: "video-run" };
   });
-
-  it("rejects Markdown without a knowledge revision and unrelated selected resources", () => {
-    const draft = createSpaceNode(
-      { kind: "markdown", title: "Draft", text: "Draft" },
-      { x: 0, y: 0 },
-      "draft",
-    );
-    const note = createSpaceNode(
-      { kind: "note", title: "Note", plainText: "text", tiptapContent: { type: "doc", content: [] } },
-      { x: 0, y: 0 },
-      "note",
-    );
-    expect(resolveVideoInputs([draft, imageNode()])).toBeUndefined();
-    expect(resolveVideoInputs([documentNode(), note])).toBeUndefined();
+  await generateVideoFromSources({
+    store: { activeSpaceId: "space" } as ReturnType<typeof useSpaceStore>,
+    sources: [{ nodeId: "note", role: "primary", sourceRevision: "knowledge:1", title: "Idea" }],
+    draft: {
+      title: "Video",
+      prompt: "Camera movement",
+      aspectRatio: "16:9",
+      durationSeconds: 5,
+      target: { type: "agent", runtimeKind: "codex" },
+    },
   });
+  expect(invoke).toHaveBeenCalledOnce();
+  expect(invoke).toHaveBeenCalledWith(
+    "plugin:spaces|start_space_action",
+    expect.objectContaining({
+      request: expect.objectContaining({
+        actionId: "generate-video",
+        parameters: { title: "Video", prompt: "Camera movement", aspectRatio: "16:9", durationSeconds: 5 },
+        sources: [{ nodeId: "note", knowledgeRevision: "knowledge:1" }],
+        target: { type: "agent", runtimeKind: "codex" },
+      }),
+    }),
+  );
 });

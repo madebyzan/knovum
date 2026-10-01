@@ -7,5 +7,6 @@
   "downloadingVideo": "正在保存视频",
   "preparingSubtitles": "正在准备字幕…",
   "renderingSubtitles": "正在将字幕渲染到画面…",
-  "savingResource": "正在保存派生视频…"
+  "savingResource": "正在保存派生视频…",
+  "recognizingSubtitles": "正在识别字幕…"
 }

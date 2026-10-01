@@ -7,24 +7,10 @@ import type { GroundedDocumentSource } from "../catalog/grounded-document";
 import { exportMarkdownDocument, isKnowledgeMarkdown, type DocumentFormat } from "../document/export";
 import { generateGroundedDocument, type GroundedDocumentDraft } from "../grounded-document";
 import { createImageCutout } from "../image-cutout";
-import { createSubtitleResource } from "../subtitle-extraction";
-import { renderSubtitledVideo, type SubtitleVideoInputs } from "../subtitled-video";
-import type { VideoDraft } from "../video/generation";
+import { startDerivationAction } from "../start-action";
+import { addVideoSubtitles } from "../subtitled-video";
+import { generateVideoFromSources, type VideoDraft } from "../video/generation";
 import { generateVisualization, type VisualizationDraft } from "../visualization";
-import {
-  createMeetingContentPackage,
-  type MeetingContentPackageDraft,
-} from "../workflows/meeting-content-package";
-import {
-  generatePresentationFromSources,
-  type PresentationGenerationDraft,
-} from "../workflows/presentation-production";
-import {
-  createSocialContentPackage,
-  type SocialContentPackageDraft,
-} from "../workflows/social-content-package";
-import { startSubtitledVideoWorkflow } from "../workflows/subtitled-video-production";
-import { generateVideoFromSources } from "../workflows/video-production";
 import type { CreationDialogId } from "./creation-dialog";
 
 type SpaceStore = ReturnType<typeof useSpaceStore>;
@@ -36,7 +22,6 @@ interface UseDerivationActionsOptions {
   selection: Ref<SpaceCanvasNode[]>;
   single: Ref<SpaceCanvasNode | undefined>;
   sources: Ref<readonly GroundedDocumentSource[] | undefined>;
-  subtitleInputs: Ref<SubtitleVideoInputs | undefined>;
   dialog: ShallowRef<CreationDialogId | undefined>;
 }
 
@@ -47,25 +32,18 @@ export function useDerivationActions({
   selection,
   single,
   sources,
-  subtitleInputs,
   dialog,
 }: UseDerivationActionsOptions) {
   const handlers: Record<CreationIntentId, () => void> = {
     "remove-image-background": () => void (single.value && createImageCutout(store, single.value)),
-    "extract-subtitles": () => void (single.value && createSubtitleResource(store, single.value)),
-    "render-subtitled-video": () =>
-      void (subtitleInputs.value && renderSubtitledVideo(store, subtitleInputs.value)),
-    "subtitled-video-production": () =>
-      void (single.value && startSubtitledVideoWorkflow(store, single.value)),
-    "meeting-content-package": () => (dialog.value = "meeting-content-package"),
+    "add-video-subtitles": () => void (single.value && addVideoSubtitles(store, single.value)),
     "draft-document": () => (dialog.value = "document"),
     "generate-visualization": () => (dialog.value = "visualization"),
     "export-document-as-docx": () => void exportDocument("docx"),
     "export-document-as-pdf": () => void exportDocument("pdf"),
     "export-document-as-txt": () => void exportDocument("txt"),
-    "presentation-production": () => (dialog.value = "presentation"),
-    "video-production": () => (dialog.value = "video"),
-    "social-content-package": () => (dialog.value = "social-content-package"),
+    "render-presentation": () => void renderPresentation(),
+    "generate-video": () => (dialog.value = "video"),
   };
 
   function exportDocument(format: DocumentFormat) {
@@ -82,7 +60,6 @@ export function useDerivationActions({
     dialog.value = undefined;
     void generateGroundedDocument({
       store,
-      selected: selection.value,
       sources: sources.value,
       draft,
     });
@@ -93,45 +70,36 @@ export function useDerivationActions({
     dialog.value = undefined;
     void generateVisualization({
       store,
-      selected: selection.value,
       sources: sources.value,
       draft,
     });
   }
 
   function submitVideo(draft: VideoDraft) {
-    if (!canSubmit() || !sources.value) return;
+    if (!canSubmit()) return;
+    const videoSources = selection.value.map((node, index) => ({
+      nodeId: node.id,
+      title: node.data.title,
+      role: index === 0 ? ("primary" as const) : ("source" as const),
+      sourceRevision: node.data.knowledgeRevision ?? "",
+    }));
+    if (videoSources.some((source) => !source.sourceRevision)) return;
     dialog.value = undefined;
     void generateVideoFromSources({
       store,
-      sources: sources.value,
+      sources: videoSources,
       draft,
     });
   }
 
-  function submitSocial(draft: SocialContentPackageDraft) {
-    if (!canSubmit() || !sources.value) return;
-    dialog.value = undefined;
-    void createSocialContentPackage({
+  function renderPresentation() {
+    if (!single.value || !sources.value) return;
+    return startDerivationAction({
       store,
       sources: sources.value,
-      draft,
-    });
-  }
-
-  function submitMeetingPackage(draft: MeetingContentPackageDraft) {
-    if (!canSubmit() || !single.value) return;
-    dialog.value = undefined;
-    void createMeetingContentPackage(store, single.value, draft);
-  }
-
-  function submitPresentation(draft: PresentationGenerationDraft) {
-    if (!canSubmit() || !sources.value) return;
-    dialog.value = undefined;
-    void generatePresentationFromSources({
-      store,
-      sources: sources.value,
-      draft,
+      actionId: "render-presentation",
+      parameters: {},
+      title: single.value.data.title,
     });
   }
 
@@ -142,8 +110,5 @@ export function useDerivationActions({
     submitDocument,
     submitVisualization,
     submitVideo,
-    submitSocial,
-    submitMeetingPackage,
-    submitPresentation,
   };
 }

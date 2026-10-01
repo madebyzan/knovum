@@ -4,7 +4,6 @@ mod object;
 mod payload;
 mod projection;
 mod scalars;
-mod subtitle;
 mod validation;
 mod visual;
 
@@ -16,7 +15,6 @@ use self::payload::validate_payload_shape;
 pub(super) async fn validate_node(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
-    node_id: &str,
     kind: &str,
     data: &Value,
 ) -> Result<Option<String>, String> {
@@ -26,10 +24,6 @@ pub(super) async fn validate_node(
         "object" => object::validate_object(tx, space_id, data).await.map(Some),
         "portal" => {
             projection::validate_portal(tx, data).await?;
-            Ok(None)
-        }
-        "subtitle" => {
-            subtitle::validate_source(tx, space_id, node_id, data).await?;
             Ok(None)
         }
         "note" | "text" | "website" | "markdown" | "image" | "video" | "audio" | "file"

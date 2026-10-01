@@ -20,8 +20,6 @@ pub fn export(project_root: &Path) -> Result<(), String> {
 
 fn export_schemas(output: &Path) -> Result<(), String> {
     std::fs::create_dir_all(output).map_err(io_error)?;
-    let workflow = schema_for!(crate::spaces::workflows::WorkflowDefinition);
-    write_json(&output.join("workflow-definition.schema.json"), &workflow)?;
     let action_schemas = crate::spaces::actions::definitions()
         .iter()
         .map(|definition| {

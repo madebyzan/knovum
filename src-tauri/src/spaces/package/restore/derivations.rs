@@ -83,10 +83,13 @@ fn validate(row: &PackageDerivation) -> Result<(), String> {
             | "upscale-image"
             | "generate-image-angle"
             | "generate-visualization"
-            | "extract-subtitles"
-            | "render-subtitled-video"
+            | "generate-image"
+            | "add-video-subtitles"
             | "render-video-edit"
             | "draft-document"
+            | "draft-script"
+            | "summarize-meeting"
+            | "draft-social-post"
             | "export-document-as-docx"
             | "export-document-as-pdf"
             | "export-document-as-txt"
@@ -106,20 +109,23 @@ fn validate(row: &PackageDerivation) -> Result<(), String> {
             .first()
             .is_some_and(|input| input.role == "primary");
     let document = match (&row.action_kind[..], &row.grounded_document) {
-        ("draft-document", Some(metadata)) => {
-            metadata.citations.is_array() && metadata.execution_source.validate().is_ok()
+        (
+            "draft-document" | "draft-script" | "summarize-meeting" | "draft-social-post",
+            Some(metadata),
+        ) => metadata.citations.is_array() && metadata.execution_source.validate().is_ok(),
+        ("draft-document" | "draft-script" | "summarize-meeting" | "draft-social-post", None) => {
+            row.status == "failed"
         }
-        ("draft-document", None) => row.status == "failed",
         (_, None) => true,
         (_, Some(_)) => false,
     };
     let image = match (&row.action_kind[..], &row.generated_image) {
-        ("generate-visualization", Some(metadata)) => {
+        ("generate-visualization" | "generate-image", Some(metadata)) => {
             !metadata.intent.trim().is_empty()
                 && !metadata.aspect_ratio.trim().is_empty()
                 && metadata.execution_source.validate().is_ok()
         }
-        ("generate-visualization", None) => row.status == "failed",
+        ("generate-visualization" | "generate-image", None) => row.status == "failed",
         (_, None) => true,
         (_, Some(_)) => false,
     };
@@ -205,6 +211,37 @@ mod tests {
         .unwrap());
         value["inputs"][0]["inputSnapshot"] = snapshot;
         assert!(validate(&serde_json::from_value(value).unwrap()).is_ok());
+    }
+    #[test]
+    fn generated_metadata_matches_the_actual_action_identity() {
+        for (actions, field, metadata) in [
+            (
+                vec![
+                    "draft-document",
+                    "draft-script",
+                    "summarize-meeting",
+                    "draft-social-post",
+                ],
+                "groundedDocument",
+                serde_json::json!({"citations":[],"executionSource":{"type":"agent","runtimeKind":"codex"}}),
+            ),
+            (
+                vec!["generate-visualization", "generate-image"],
+                "generatedImage",
+                serde_json::json!({"intent":"Explain","style":"Flat","aspectRatio":"1:1","executionSource":{"type":"agent","runtimeKind":"codex"},"revisedPrompt":null}),
+            ),
+        ] {
+            for action in actions {
+                let mut value = derivation();
+                value.as_object_mut().unwrap().remove("generatedVideo");
+                value["actionKind"] = serde_json::json!(action);
+                value[field] = metadata.clone();
+                assert!(
+                    validate(&serde_json::from_value(value).unwrap()).is_ok(),
+                    "{action}"
+                );
+            }
+        }
     }
     #[tokio::test]
     async fn restores_agent_execution_sources_into_the_current_sql_baseline() {

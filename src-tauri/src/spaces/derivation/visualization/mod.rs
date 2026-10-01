@@ -47,20 +47,6 @@ pub struct VisualizationOutput {
     relations: Vec<super::DerivationRelation>,
 }
 
-pub async fn generate(
-    app: AppHandle,
-    request: GenerateVisualizationRequest,
-    stages: Channel<String>,
-) -> Result<VisualizationOutput, String> {
-    generate_inner(
-        super::action_execution::ExecutionAuthority::DirectCommand,
-        app,
-        request,
-        stages,
-    )
-    .await
-}
-
 pub(super) async fn generate_for_action(
     authority: super::action_execution::ExecutionAuthority,
     app: AppHandle,

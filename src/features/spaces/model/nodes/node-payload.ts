@@ -12,7 +12,6 @@ export type SpaceWebsitePayload = Extract<SpaceNodePayload, { kind: "website" }>
 export type SpaceImagePayload = Extract<SpaceNodePayload, { kind: "image" }>;
 export type SpaceVideoPayload = Extract<SpaceNodePayload, { kind: "video" }>;
 export type SpaceAudioPayload = Extract<SpaceNodePayload, { kind: "audio" }>;
-export type SpaceSubtitlePayload = Extract<SpaceNodePayload, { kind: "subtitle" }>;
 export type SpaceFilePayload = Extract<SpaceNodePayload, { kind: "file" }>;
 export type SpaceCodePayload = Extract<SpaceNodePayload, { kind: "code" }>;
 export type SpaceCredentialPayload = Extract<SpaceNodePayload, { kind: "credential" }>;

@@ -12,8 +12,3 @@ pub(crate) fn reserve(app: &AppHandle, prefix: &str, extension: &str) -> Result<
 pub fn allocate_visualization_output_path(app: AppHandle) -> Result<String, CommandError> {
     Ok((reserve(&app, "generated", "png"))?)
 }
-
-#[tauri::command]
-pub fn allocate_video_output_path(app: AppHandle) -> Result<String, CommandError> {
-    Ok((reserve(&app, "generated", "mp4"))?)
-}
