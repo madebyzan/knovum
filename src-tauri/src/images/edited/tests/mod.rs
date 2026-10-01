@@ -20,8 +20,11 @@ fn native_export_matches_shared_preview_tone_fixtures() {
         adjustments: super::contract::Adjustments,
         expected: Vec<u8>,
     }
-    let fixtures: Vec<Fixture> =
-        serde_json::from_str(include_str!("../../../../tests/fixtures/image-tone.json")).unwrap();
+    let fixtures: Vec<Fixture> = serde_json::from_str(include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../tests/fixtures/image-tone.json"
+    )))
+    .unwrap();
     for fixture in fixtures {
         let mut image =
             image::RgbaImage::from_raw(fixture.width, fixture.height, fixture.source).unwrap();
