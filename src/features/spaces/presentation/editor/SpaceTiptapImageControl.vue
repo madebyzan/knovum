@@ -5,6 +5,7 @@ import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
+import { errorMessage } from "../../../../foundation/errors/error-format";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiInput from "../../../../shared/ui/UiInput.vue";
@@ -31,7 +32,7 @@ async function choose() {
   try {
     if (await chooseSpaceTiptapImages(props.editor)) open.value = false;
   } catch (error) {
-    toast.error(t("spaces.richtext.image.uploadFailed"), { description: String(error) });
+    toast.error(t("spaces.richtext.image.uploadFailed"), { description: errorMessage(error) });
   } finally {
     busy.value = false;
   }

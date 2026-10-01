@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/vue-query";
 import { computed, shallowRef, type Ref } from "vue";
 import { toast } from "vue-sonner";
 
+import { errorMessage } from "../../../foundation/errors/error-format";
 import type { EnrichmentJobState } from "../contracts/generated/EnrichmentJobState";
 import { retryEnrichmentJob } from "./enrichment-jobs";
 import { enrichmentJobsQuery } from "./enrichment-jobs-query";
@@ -58,7 +59,7 @@ export function useNodeEnrichmentStatus(spaceId: Ref<string | undefined>, nodeId
         await retryEnrichmentJob(job.id);
       }
     } catch (error) {
-      toast.error(String(error));
+      toast.error(errorMessage(error));
     } finally {
       retrying.value = false;
       await refresh();

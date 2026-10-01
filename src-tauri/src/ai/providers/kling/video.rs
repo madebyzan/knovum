@@ -7,9 +7,9 @@ use crate::ai::{
         GeneratedVideo, VideoGenerationCapability, VideoGenerationInput,
         VideoGenerationStageCallback, VideoGenerationStatus, VideoGenerationSubmission,
     },
-    error::{AiError, AiErrorCode, AiResult},
     transport::{http_client, SecurityContext},
 };
+use crate::app_error::{AppError, AppResult};
 
 pub struct KlingVideoAdapter;
 
@@ -18,7 +18,7 @@ impl VideoGenerationCapability for KlingVideoAdapter {
         &'a self,
         ctx: &'a SecurityContext,
         req: &'a VideoGenerationInput,
-    ) -> BoxFuture<'a, AiResult<VideoGenerationSubmission>> {
+    ) -> BoxFuture<'a, AppResult<VideoGenerationSubmission>> {
         Box::pin(async move {
             let api_key = ctx.require_api_key()?;
             let model = if ctx.model.is_empty() {
@@ -63,19 +63,19 @@ impl VideoGenerationCapability for KlingVideoAdapter {
                 .json(&payload)
                 .send()
                 .await
-                .map_err(|e| AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string()))?;
+                .map_err(|e| AppError::new("provider_request_failed", e.to_string()))?;
 
             if !submission_response.status().is_success() {
                 let error_text = response::read_text(submission_response).await?;
-                return Err(AiError::new(AiErrorCode::ProviderRequestFailed, error_text));
+                return Err(AppError::new("provider_request_failed", error_text));
             }
 
             let init_val: serde_json::Value =
                 response::read_json(submission_response, response::MAX_CONTROL_JSON_BYTES).await?;
 
-            let raw_task_id = init_val["data"]["task_id"].as_str().ok_or_else(|| {
-                AiError::new(AiErrorCode::InvalidResponse, "Missing Kling task_id")
-            })?;
+            let raw_task_id = init_val["data"]["task_id"]
+                .as_str()
+                .ok_or_else(|| AppError::new("invalid_response", "Missing Kling task_id"))?;
             let task_id = format!("{action}/{raw_task_id}");
 
             Ok(VideoGenerationSubmission {
@@ -90,7 +90,7 @@ impl VideoGenerationCapability for KlingVideoAdapter {
         &'a self,
         ctx: &'a SecurityContext,
         task_id: &'a str,
-    ) -> BoxFuture<'a, AiResult<VideoGenerationStatus>> {
+    ) -> BoxFuture<'a, AppResult<VideoGenerationStatus>> {
         Box::pin(async move {
             let api_key = ctx.require_api_key()?;
             let endpoint = ctx.endpoint.trim_end_matches('/');
@@ -107,9 +107,9 @@ impl VideoGenerationCapability for KlingVideoAdapter {
                 .bearer_auth(api_key)
                 .send()
                 .await
-                .map_err(|e| AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string()))?
+                .map_err(|e| AppError::new("provider_request_failed", e.to_string()))?
                 .error_for_status()
-                .map_err(|e| AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string()))?;
+                .map_err(|e| AppError::new("provider_request_failed", e.to_string()))?;
 
             let payload: serde_json::Value =
                 response::read_json(query_response, response::MAX_CONTROL_JSON_BYTES).await?;
@@ -120,10 +120,7 @@ impl VideoGenerationCapability for KlingVideoAdapter {
                     let video_url = payload["data"]["task_result"]["videos"][0]["url"]
                         .as_str()
                         .ok_or_else(|| {
-                            AiError::new(
-                                AiErrorCode::InvalidResponse,
-                                "No video URL in Kling response",
-                            )
+                            AppError::new("invalid_response", "No video URL in Kling response")
                         })?
                         .to_string();
                     Ok(VideoGenerationStatus::Succeeded { video_url })
@@ -149,7 +146,7 @@ impl VideoGenerationCapability for KlingVideoAdapter {
         req: &'a VideoGenerationInput,
         cancellation: &'a CancellationToken,
         stage: VideoGenerationStageCallback<'a>,
-    ) -> BoxFuture<'a, AiResult<GeneratedVideo>> {
+    ) -> BoxFuture<'a, AppResult<GeneratedVideo>> {
         Box::pin(async move {
             crate::ai::capabilities::video::materialize(self, ctx, req, cancellation, stage).await
         })

@@ -1,30 +1,25 @@
 use std::path::Path;
 
 use crate::ai::{
-    contracts::UploadedFileReference,
-    error::{AiError, AiErrorCode, AiResult},
-    models::ModelExecutionTarget,
-    providers::resolve_provider,
+    contracts::UploadedFileReference, models::ModelExecutionTarget, providers::resolve_provider,
     transport::SecurityContext,
 };
+use crate::app_error::{AppError, AppResult};
 
 pub async fn upload_file_path(
     target: &ModelExecutionTarget,
     file_path: &Path,
-) -> AiResult<UploadedFileReference> {
+) -> AppResult<UploadedFileReference> {
     if !file_path.is_file() {
-        return Err(AiError::new(
-            AiErrorCode::InvalidRequest,
+        return Err(AppError::new(
+            "invalid_request",
             format!("File not found: {}", file_path.display()),
         ));
     }
 
-    let file_bytes = tokio::fs::read(file_path).await.map_err(|e| {
-        AiError::new(
-            AiErrorCode::InvalidRequest,
-            format!("Failed to read file: {e}"),
-        )
-    })?;
+    let file_bytes = tokio::fs::read(file_path)
+        .await
+        .map_err(|e| AppError::new("invalid_request", format!("Failed to read file: {e}")))?;
 
     let file_name = file_path
         .file_name()
@@ -43,12 +38,12 @@ pub async fn upload_file_bytes(
     bytes: Vec<u8>,
     mime_type: &str,
     file_name: &str,
-) -> AiResult<UploadedFileReference> {
+) -> AppResult<UploadedFileReference> {
     let kind = target.model_provider_kind()?;
     let provider = resolve_provider(kind);
     let uploader = provider
         .as_file_upload()
-        .ok_or_else(|| AiError::capability_not_supported(target.provider(), "file upload"))?;
+        .ok_or_else(|| AppError::capability_not_supported(target.provider(), "file upload"))?;
 
     let ctx = SecurityContext::from_target(target).await?;
     uploader

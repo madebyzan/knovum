@@ -1,4 +1,5 @@
 use super::{contracts::ImageOperation, mask, source::SourceImage};
+use crate::app_error::AppError;
 use crate::{
     ai::contracts::AgentKind,
     external_agents::task::{self, ArtifactFormat},
@@ -13,7 +14,7 @@ pub(super) async fn execute(
     operation: &ImageOperation,
     source: &SourceImage,
     cancellation: &CancellationToken,
-) -> Result<Vec<u8>, String> {
+) -> Result<Vec<u8>, AppError> {
     let directory = app
         .path()
         .app_cache_dir()
@@ -54,8 +55,7 @@ pub(super) async fn execute(
         ArtifactFormat::Png,
         cancellation.clone(),
     )
-    .await
-    .map_err(|error| error.task_message());
+    .await;
     drop(mask_file);
     result
 }

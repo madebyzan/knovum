@@ -2,21 +2,23 @@ use super::contract::JsonCanvasDocumentV1;
 
 #[test]
 fn cancelled_import_has_an_explicit_command_code() {
-    let error = super::import_error(super::import_control::CANCELLED.to_owned());
+    let error = {
+        let token = tokio_util::sync::CancellationToken::new();
+        token.cancel();
+        super::import_control::check(&token).unwrap_err()
+    };
     assert_eq!(error.code, "json_canvas_import_cancelled");
-    assert_eq!(error.message, super::import_control::CANCELLED);
+    assert_eq!(error.message, "Canvas import cancelled");
 }
 
-fn parse_json_canvas(
-    source: String,
-) -> Result<JsonCanvasDocumentV1, crate::command_error::CommandError> {
+fn parse_json_canvas(source: String) -> Result<JsonCanvasDocumentV1, crate::app_error::AppError> {
     let document = serde_json::from_str(&source).map_err(|error| error.to_string())?;
     super::validation::validate(&document)?;
     Ok(document)
 }
 fn serialize_json_canvas(
     document: JsonCanvasDocumentV1,
-) -> Result<String, crate::command_error::CommandError> {
+) -> Result<String, crate::app_error::AppError> {
     super::validation::validate(&document)?;
     Ok(serde_json::to_string_pretty(&document).map_err(|error| error.to_string())?)
 }

@@ -5,6 +5,7 @@ import { computed, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
+import { errorMessage } from "../../foundation/errors/error-format";
 import { useTaskStore } from "../../foundation/tasks/task-store";
 import UiButton from "../../shared/ui/UiButton.vue";
 import UiPopover from "../../shared/ui/UiPopover.vue";
@@ -22,7 +23,7 @@ async function openTask(id: string) {
     await store.open(id);
     open.value = false;
   } catch (cause) {
-    toast.error(String(cause));
+    toast.error(errorMessage(cause));
   }
 }
 

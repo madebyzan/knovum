@@ -4,6 +4,7 @@ import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
+import { errorMessage } from "../../../../foundation/errors/error-format";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiInput from "../../../../shared/ui/UiInput.vue";
 import UiSelect from "../../../../shared/ui/UiSelect.vue";
@@ -41,7 +42,7 @@ async function savePortal() {
     await store.saveNodeContent(props.node.id, props.node.data, draft.value);
     nodeDraft.end();
   } catch (error) {
-    toast.error(String(error));
+    toast.error(errorMessage(error));
   }
 }
 function cancelPortalEdit() {

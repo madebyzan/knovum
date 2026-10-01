@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 mod completion;
 mod source;
 
@@ -47,7 +48,7 @@ pub async fn check_source(
     .await
 }
 
-async fn start(app: &AppHandle, request: &StartImageCutoutRequest) -> Result<(), String> {
+async fn start(app: &AppHandle, request: &StartImageCutoutRequest) -> Result<(), AppError> {
     validate_request(request)?;
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
@@ -110,13 +111,13 @@ async fn start(app: &AppHandle, request: &StartImageCutoutRequest) -> Result<(),
         }],
     )
     .await?;
-    tx.commit().await.map_err(db::sql_error)
+    Ok(tx.commit().await.map_err(db::sql_error)?)
 }
 
 pub async fn run(
     app: AppHandle,
     request: StartImageCutoutRequest,
-) -> Result<CompletedDerivationOutput, String> {
+) -> Result<CompletedDerivationOutput, AppError> {
     if let Err(error) = start(&app, &request).await {
         failure::fail_pending(
             &app,
@@ -136,12 +137,12 @@ pub async fn run(
     )
     .await;
     if let Err(error) = &completed {
-        failure::fail_message(&app, &request.id, error).await?;
+        failure::fail_message(&app, &request.id, &error.message).await?;
     }
     completed
 }
 
-fn validate_request(request: &StartImageCutoutRequest) -> Result<(), String> {
+fn validate_request(request: &StartImageCutoutRequest) -> Result<(), AppError> {
     if request.id.trim().is_empty() || request.space_id.trim().is_empty() {
         return Err("Derivation identity is required".into());
     }

@@ -1,3 +1,4 @@
+import { errorMessage } from "../../../foundation/errors/error-format";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import {
@@ -66,7 +67,7 @@ async function prepareImportSource(
     tasks.title(taskId, prepared.asset.name);
     return prepared;
   } catch (error) {
-    tasks.fail(taskId, String(error));
+    tasks.fail(taskId, errorMessage(error));
     throw error;
   }
 }
@@ -95,7 +96,7 @@ async function finalizePreparedImport(options: FinalizePreparedImportOptions) {
     context.finalizePendingContent(spaceId, nodes, reveal);
   } catch (error) {
     await Promise.all(nodes.map((node) => context.discardPendingContent(spaceId, node.id)));
-    tasks.fail(taskId, String(error));
+    tasks.fail(taskId, errorMessage(error));
     throw error;
   }
   tasks.succeed(taskId);

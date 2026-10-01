@@ -1,6 +1,7 @@
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
+import { errorMessage } from "../../../foundation/errors/error-format";
 import { formatBytes } from "../../../foundation/format/bytes";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import type { SpacePackageProgress } from "../contracts/generated/SpacePackageProgress";
@@ -31,8 +32,8 @@ export function useSpacePackageTransfer() {
         tasks.dismiss(taskId);
       }
     } catch (error) {
-      tasks.fail(taskId, String(error));
-      toast.error(String(error));
+      tasks.fail(taskId, errorMessage(error));
+      toast.error(errorMessage(error));
     }
   }
 

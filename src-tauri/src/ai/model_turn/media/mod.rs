@@ -2,11 +2,11 @@ use base64::{engine::general_purpose::STANDARD, Engine};
 
 use crate::ai::{
     contracts::{FileUploadCapability, ModelBinarySource, ModelContentPart},
-    error::{AiError, AiResult},
     models::ModelExecutionTarget,
     providers::resolve_provider,
     transport::SecurityContext,
 };
+use crate::app_error::{AppError, AppResult};
 
 /// The caller owns local-file authorization and content validation.
 pub(crate) async fn prepare_image_input(
@@ -14,7 +14,7 @@ pub(crate) async fn prepare_image_input(
     bytes: Vec<u8>,
     media_type: &str,
     name: String,
-) -> AiResult<ModelContentPart> {
+) -> AppResult<ModelContentPart> {
     let provider = resolve_provider(target.model_provider_kind()?);
     let source = match provider.as_input_upload() {
         Some(uploader) => {
@@ -38,20 +38,20 @@ async fn upload_image_reference(
     bytes: Vec<u8>,
     media_type: &str,
     name: &str,
-) -> AiResult<ModelBinarySource> {
+) -> AppResult<ModelBinarySource> {
     let uploaded = uploader
         .upload_ephemeral_file(context, bytes, media_type, name)
         .await?;
     let url = uploaded
         .access_url
-        .ok_or_else(|| AiError::invalid("Model media upload returned no consumable URI"))?;
-    let parsed = reqwest::Url::parse(&url).map_err(|error| AiError::invalid(error.to_string()))?;
+        .ok_or_else(|| AppError::invalid("Model media upload returned no consumable URI"))?;
+    let parsed = reqwest::Url::parse(&url).map_err(|error| AppError::invalid(error.to_string()))?;
     if parsed.scheme() != "https"
         || parsed.host_str().is_none()
         || !parsed.username().is_empty()
         || parsed.password().is_some()
     {
-        return Err(AiError::invalid(
+        return Err(AppError::invalid(
             "Model media upload must return a credential-free HTTPS URI",
         ));
     }

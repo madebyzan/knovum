@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use std::path::PathBuf;
 
 use serde_json::Value;
@@ -15,7 +16,7 @@ pub(in crate::spaces::assets) async fn refresh_node(
     app: &AppHandle,
     space_id: String,
     node_id: String,
-) -> Result<Option<Value>, String> {
+) -> Result<Option<Value>, AppError> {
     let data = load_node_content(app, &space_id, &node_id).await?;
     if let Some(state) = data.get("processingState").and_then(Value::as_str) {
         if state == "importing" || state == "processing" {
@@ -43,7 +44,7 @@ async fn refresh_and_publish(
     space_id: &str,
     node_id: &str,
     data: &Value,
-) -> Result<Option<Value>, String> {
+) -> Result<Option<Value>, AppError> {
     let source = required_string(data, "assetPath")?;
     let file_name = required_string(data, "fileName")?;
     let known_revision = optional_string(data, "sourceRevision");
@@ -88,7 +89,7 @@ async fn publish_refresh(
     node_id: &str,
     data: &Value,
     asset: &mut PreparedAsset,
-) -> Result<Option<Value>, String> {
+) -> Result<Option<Value>, AppError> {
     let mut current = load_node_content(app, space_id, node_id).await?;
     apply_refresh_fields(&mut current, asset)?;
     revision::apply(&mut current)?;
@@ -114,7 +115,7 @@ fn apply_metadata_fields(
     data: &mut Value,
     size: Option<u64>,
     modified_at: Option<u64>,
-) -> Result<bool, String> {
+) -> Result<bool, AppError> {
     let object = data
         .as_object_mut()
         .ok_or_else(|| "Space node data must be an object".to_owned())?;
@@ -130,7 +131,7 @@ fn apply_metadata_fields(
     Ok(changed)
 }
 
-fn apply_refresh_fields(data: &mut Value, asset: &PreparedAsset) -> Result<(), String> {
+fn apply_refresh_fields(data: &mut Value, asset: &PreparedAsset) -> Result<(), AppError> {
     apply_asset_fields(data, asset)?;
     let object = data
         .as_object_mut()

@@ -115,7 +115,8 @@ async fn recover_record(
                 }
             }
             Err(error) => {
-                if let Err(write_error) = completion::fail(pool, &ids.run_id, &error).await {
+                if let Err(write_error) = completion::fail(pool, &ids.run_id, &error.message).await
+                {
                     log::error!("Recovered Assistant failure recording failed: {write_error}");
                 }
                 log::error!("Recovered Assistant task failed: {error}");

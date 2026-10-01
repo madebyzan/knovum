@@ -4,6 +4,7 @@ import { ToolbarButton } from "reka-ui";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
+import { errorMessage } from "../../../foundation/errors/error-format";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiDialog from "../../../shared/ui/UiDialog.vue";
 import UiDropdownMenu from "../../../shared/ui/UiDropdownMenu.vue";
@@ -43,7 +44,7 @@ async function beginAudioRecording() {
   try {
     await store.beginAudioRecording();
   } catch (error) {
-    toast.error(t("spaces.recording.startFailed"), { description: String(error) });
+    toast.error(t("spaces.recording.startFailed"), { description: errorMessage(error) });
   }
 }
 </script>

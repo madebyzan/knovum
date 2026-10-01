@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use serde_json::Value;
 use sqlx::{Sqlite, Transaction};
 use tauri::AppHandle;
@@ -12,7 +13,7 @@ pub(crate) async fn execute_immediate(
     action_id: &str,
     parameters: &Value,
     now: i64,
-) -> Result<Value, String> {
+) -> Result<Value, AppError> {
     match action_id {
         "create-note" => {
             crate::spaces::nodes::create_note_action::execute(
@@ -48,7 +49,7 @@ pub(crate) async fn execute_immediate(
                 },
             )
             .await?;
-            serde_json::to_value(receipt).map_err(db::json_error)
+            Ok(serde_json::to_value(receipt).map_err(db::json_error)?)
         }
         "list-space-contents" => {
             let offset = parameters["offset"]
@@ -61,7 +62,7 @@ pub(crate) async fn execute_immediate(
                 tx, space_id, offset, limit,
             )
             .await?;
-            serde_json::to_value(page).map_err(db::json_error)
+            Ok(serde_json::to_value(page).map_err(db::json_error)?)
         }
         "search-knowledge" => {
             let query = parameters["query"]
@@ -70,16 +71,21 @@ pub(crate) async fn execute_immediate(
             let limit = parameters["limit"]
                 .as_i64()
                 .ok_or("search-knowledge requires limit")?;
-            crate::spaces::queries::knowledge_projection::search_knowledge(
-                tx, space_id, query, limit,
+            Ok(
+                crate::spaces::queries::knowledge_projection::search_knowledge(
+                    tx, space_id, query, limit,
+                )
+                .await?,
             )
-            .await
         }
         "read-node" => {
             let node_id = parameters["nodeId"]
                 .as_str()
                 .ok_or("read-node requires nodeId")?;
-            crate::spaces::queries::knowledge_projection::get_node(tx, space_id, node_id).await
+            Ok(
+                crate::spaces::queries::knowledge_projection::get_node(tx, space_id, node_id)
+                    .await?,
+            )
         }
         _ => Err("action-executor-unavailable: immediate Action has no registered handler".into()),
     }
@@ -93,7 +99,7 @@ pub(crate) async fn execute_durable(
     space_id: &str,
     parameters: &Value,
     inputs: &Value,
-) -> Result<Value, String> {
+) -> Result<Value, AppError> {
     crate::spaces::derivation::execute_action(
         app,
         action_id,

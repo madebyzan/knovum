@@ -4,6 +4,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
+import { errorMessage } from "../../../foundation/errors/error-format";
 import type { AgentDescriptor } from "../../../shared/contracts/generated/AgentDescriptor";
 
 const props = defineProps<{ agent: AgentDescriptor }>();
@@ -23,7 +24,7 @@ async function visit(url: string) {
   try {
     await openUrl(url);
   } catch (error) {
-    toast.error(t("settings.agents.documentationOpenFailed"), { description: String(error) });
+    toast.error(t("settings.agents.documentationOpenFailed"), { description: errorMessage(error) });
   }
 }
 </script>

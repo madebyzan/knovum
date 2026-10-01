@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use serde::Deserialize;
 use serde_json::Value;
 use tauri::AppHandle;
@@ -26,7 +27,7 @@ pub(super) async fn analyze(
     data: &mut Value,
     target: TaskExecutionTarget,
     cancellation: &tokio_util::sync::CancellationToken,
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     let source = match data.get("kind").and_then(Value::as_str) {
         Some("image") => crate::spaces::assets::image::rendered_preview(app, data).await?,
         Some("video") => {
@@ -37,7 +38,11 @@ pub(super) async fn analyze(
                 authorize_generated_preview(app, path)?
             }
         }
-        _ => return Err("Visual analysis requires an image or video node".to_owned()),
+        _ => {
+            return Err(AppError::invalid(
+                "Visual analysis requires an image or video node",
+            ))
+        }
     };
     let completion = interpret(&completion::ProductExecutor(app), target, TaskInput {
             purpose: crate::ai::usage::UsagePurpose::VisualAnalysis,
@@ -62,13 +67,14 @@ async fn interpret(
     input: TaskInput,
     cancellation: tokio_util::sync::CancellationToken,
     revision: &str,
-) -> Result<Value, String> {
-    let completion = completion::execute(executor, target, input, cancellation)
-        .await
-        .map_err(|error| error.task_message())?;
+) -> Result<Value, AppError> {
+    let completion = completion::execute(executor, target, input, cancellation).await?;
     let analysis: VisualInterpretation =
         serde_json::from_str(completion.text.trim()).map_err(|error| {
-            format!("ai-invalid-response: Visual analysis returned invalid JSON: {error}")
+            AppError::new(
+                "invalid_response",
+                format!("Visual analysis returned invalid JSON: {error}"),
+            )
         })?;
     if analysis.description.trim().is_empty()
         || analysis.description.encode_utf16().count() > 8_000
@@ -78,13 +84,17 @@ async fn interpret(
             .iter()
             .any(|tag| tag.trim().is_empty() || tag.encode_utf16().count() > 80)
     {
-        return Err(
-            "ai-invalid-response: Visual interpretation exceeds its result contract".into(),
-        );
+        return Err(AppError::new(
+            "invalid_response",
+            "Visual interpretation exceeds its result contract",
+        ));
     }
     let detected_text = analysis.detected_text.join("\n");
     if detected_text.encode_utf16().count() > 16_000 {
-        return Err("ai-invalid-response: Visual detected text exceeds its result contract".into());
+        return Err(AppError::new(
+            "invalid_response",
+            "Visual detected text exceeds its result contract",
+        ));
     }
     let mut knowledge = serde_json::json!({
         "sourceRevision": revision,

@@ -1,6 +1,6 @@
 import { error as logError } from "@tauri-apps/plugin-log";
 
-import { decodeAiErrorPayload } from "../../../../foundation/ai/ai-runtime";
+import { errorDiagnostic } from "../../../../foundation/errors/error-format";
 import { indexKnowledgeRetrieval } from "../persistence/retrieval-index";
 
 export type KnowledgeIndexStatus = "idle" | "scheduled" | "indexing" | "ready" | "unavailable";
@@ -96,7 +96,7 @@ async function runPending(spaceId: string, state: SpaceIndexState) {
     await indexKnowledgeRetrieval(spaceId, nodeIds);
   } catch (error) {
     failed = true;
-    void logError(`Knowledge semantic indexing failed: ${describeIndexError(error)}`);
+    void logError(`Knowledge semantic indexing failed: ${errorDiagnostic(error)}`);
   } finally {
     state.running = false;
   }
@@ -110,15 +110,6 @@ async function runPending(spaceId: string, state: SpaceIndexState) {
     return;
   }
   setStatus(spaceId, failed ? "unavailable" : "ready");
-}
-
-function describeIndexError(error: unknown) {
-  const aiError = decodeAiErrorPayload(error);
-  if (aiError) {
-    return JSON.stringify({ code: aiError.code, message: aiError.message });
-  }
-  if (error instanceof Error) return error.message;
-  return String(error);
 }
 
 function setStatus(spaceId: string, status: KnowledgeIndexStatus) {

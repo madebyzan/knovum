@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 mod assets;
 mod contracts;
 mod fal;
@@ -28,14 +29,14 @@ pub async fn generate(
     app: AppHandle,
     request: GenerateImageLayersRequest,
     on_stage: Channel<String>,
-) -> Result<Vec<CompletedDerivationOutput>, String> {
+) -> Result<Vec<CompletedDerivationOutput>, AppError> {
     contracts::validate(&request)?;
     let api_key = require_api_key().await?;
     let (cancellation, _lease) = registry::acquire(&request.generation_id)?;
     persistence::start(&app, &request).await?;
     let encode_source_image_uri = match source::load_image_uri(&app, &request).await {
         Ok(data_uri) => data_uri,
-        Err(error) => return failed(&app, &request, error).await,
+        Err(error) => return failed(&app, &request, error.into()).await,
     };
     stage(&on_stage, "submitting");
     stage(&on_stage, "processing");
@@ -50,11 +51,11 @@ pub async fn generate(
     .await
     {
         Ok(layers) => layers,
-        Err(error) => return failed(&app, &request, error).await,
+        Err(error) => return failed(&app, &request, error.into()).await,
     };
     let prepared = match assets::prepare(&app, layers) {
         Ok(prepared) => prepared,
-        Err(error) => return failed(&app, &request, error).await,
+        Err(error) => return failed(&app, &request, error.into()).await,
     };
     stage(&on_stage, "publishing");
     match persistence::complete(&app, &request, &prepared).await {
@@ -70,7 +71,7 @@ pub fn cancel(generation_id: &str) -> Result<(), String> {
     registry::cancel(generation_id)
 }
 
-async fn require_api_key() -> Result<String, String> {
+async fn require_api_key() -> Result<String, AppError> {
     crate::secrets::read_secret(contracts::FAL_SECRET_KEY)
         .await?
         .filter(|secret| !secret.trim().is_empty())
@@ -80,9 +81,9 @@ async fn require_api_key() -> Result<String, String> {
 async fn failed<T>(
     app: &AppHandle,
     request: &GenerateImageLayersRequest,
-    error: String,
-) -> Result<T, String> {
-    persistence::fail(app, request, &error).await;
+    error: AppError,
+) -> Result<T, AppError> {
+    persistence::fail(app, request, &error.message).await;
     Err(error)
 }
 

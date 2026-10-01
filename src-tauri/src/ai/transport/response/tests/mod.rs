@@ -2,7 +2,6 @@ use std::io::{BufRead, BufReader, Write};
 use std::net::TcpListener;
 
 use super::{read_bytes, read_json};
-use crate::ai::error::AiErrorCode;
 
 async fn response(wire: &'static str) -> reqwest::Response {
     let server = TcpListener::bind("127.0.0.1:0").expect("local server");
@@ -34,7 +33,7 @@ async fn rejects_declared_and_chunked_oversized_bodies() {
         "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\nConnection: close\r\n\r\n4\r\n1234\r\n4\r\n5678\r\n0\r\n\r\n",
     ] {
         let error = read_bytes(response(wire).await, 7).await.expect_err("size limit");
-        assert_eq!(error.code, AiErrorCode::InvalidResponse);
+        assert_eq!(error.code, "invalid_response");
     }
 }
 

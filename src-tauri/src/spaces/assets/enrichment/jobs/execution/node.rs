@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use serde_json::Value;
 use sqlx::Row;
 use tauri::AppHandle;
@@ -35,12 +36,12 @@ pub(super) async fn save(
     data: Value,
     expected_media_knowledge: &Value,
     cancellation: &tokio_util::sync::CancellationToken,
-) -> Result<Value, String> {
+) -> Result<Value, AppError> {
     let field = match request.job_type {
         super::EnrichmentJobType::AnalyzeMedia => "mediaAnalysis",
         super::EnrichmentJobType::TranscribeMedia => "mediaKnowledge",
         super::EnrichmentJobType::AnalyzeVisual => "visualKnowledge",
-        _ => return Err("Enrichment job does not own node data".to_owned()),
+        _ => return Err(AppError::invalid("Enrichment job does not own node data")),
     };
     let value = data
         .get(field)

@@ -13,7 +13,7 @@ use super::{
     },
     RESOURCE_PREPARATION_CANCELLED,
 };
-use crate::command_error::CommandError;
+use crate::app_error::AppError;
 
 const COMPLETED_LIMIT: usize = 32;
 const COMPLETED_TTL_MS: u64 = 10 * 60 * 1_000;
@@ -174,7 +174,7 @@ fn finish_request(
         }
         Some(message) => {
             snapshot.state = ResourcePreparationState::Failed;
-            snapshot.error = Some(CommandError::from(message.clone()));
+            snapshot.error = Some(AppError::from(message.clone()));
         }
     }
     let terminal = snapshot.clone();

@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use serde_json::Value;
 use sqlx::Row;
 use tauri::AppHandle;
@@ -25,7 +26,7 @@ pub(in crate::spaces) async fn publish(
     guard: PublicationGuard<'_>,
     fields: serde_json::Map<String, Value>,
     chunks: Option<Vec<KnowledgeChunkInput>>,
-) -> Result<Value, String> {
+) -> Result<Value, AppError> {
     let target = match guard.job_id {
         Some(id) => {
             let raw: Option<String> = sqlx::query_scalar(
@@ -60,7 +61,10 @@ pub(in crate::spaces) async fn publish(
     )
     .await?;
     if cancellation.is_some_and(|token| token.is_cancelled()) {
-        return Err("enrichment-cancelled: Publication was cancelled".into());
+        return Err(AppError::new(
+            "enrichment_cancelled",
+            "Publication was cancelled",
+        ));
     }
     tx.commit().await.map_err(db::sql_error)?;
     Ok(current)
@@ -73,9 +77,12 @@ pub(in crate::spaces) async fn publish_in_transaction(
     fields: serde_json::Map<String, Value>,
     chunks: Option<Vec<KnowledgeChunkInput>>,
     target: Option<&crate::ai::tasks::TaskTargetSelection>,
-) -> Result<Value, String> {
+) -> Result<Value, AppError> {
     if guard.cancellation.is_some_and(|token| token.is_cancelled()) {
-        return Err("enrichment-cancelled: Publication was cancelled".into());
+        return Err(AppError::new(
+            "enrichment_cancelled",
+            "Publication was cancelled",
+        ));
     }
     let PublicationGuard {
         source_revision,
@@ -97,9 +104,10 @@ pub(in crate::spaces) async fn publish_in_transaction(
     let mut current: Value = serde_json::from_str(&raw).map_err(db::json_error)?;
     let expected_data = current.clone();
     if document_coverage.is_some_and(|expected| current.get("documentCoverage") != Some(expected)) {
-        return Err(
-            "document-coverage-obsolete: Document coverage changed while processing".into(),
-        );
+        return Err(AppError::new(
+            "document_coverage_obsolete",
+            "Document coverage changed while processing",
+        ));
     }
     if let Some(expected) = media_knowledge {
         super::media_knowledge::validate_input(&current["mediaKnowledge"], expected)?;
@@ -113,7 +121,10 @@ pub(in crate::spaces) async fn publish_in_transaction(
             .map(str::to_owned)
     };
     if current_revision.as_deref() != source_revision {
-        return Err("enrichment-source-obsolete: Source revision is obsolete".into());
+        return Err(AppError::new(
+            "enrichment_source_obsolete",
+            "Source revision is obsolete",
+        ));
     }
     if let Some(id) = job_id {
         let live: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM spaces_enrichment_jobs WHERE id=$1 AND space_id=$2 AND node_id=$3 AND source_revision=$4 AND status='running'")

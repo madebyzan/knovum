@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const native = vi.hoisted(() => ({ invoke: vi.fn<(...args: unknown[]) => Promise<unknown>>() }));
 vi.mock("@tauri-apps/api/core", () => ({ invoke: native.invoke }));
-import { decodeCommandError } from "../command-error";
+import { decodeAppError } from "../../errors/app-error";
 import { invokeCommand } from "../invoke-command";
 
 beforeEach(() => {
@@ -36,7 +36,7 @@ describe("application IPC error boundary", () => {
       sourcePath: "/tmp/file",
     }).catch((reason: unknown) => reason);
     expect(error).toBeInstanceOf(Error);
-    expect(decodeCommandError(error)).toEqual(payload);
+    expect(decodeAppError(error)).toEqual(payload);
   });
   it("preserves errors that are already normalized", async () => {
     const error = new Error("Cancelled", { cause: { code: "cancelled", message: "Cancelled" } });
@@ -56,6 +56,6 @@ describe("application IPC error boundary", () => {
     const error = await invokeCommand<void>("plugin:spaces|get_node").catch((reason: unknown) => reason);
     expect(error).toBeInstanceOf(Error);
     expect(error).toHaveProperty("cause", payload);
-    expect(decodeCommandError(error)).toBeNull();
+    expect(decodeAppError(error)).toBeNull();
   });
 });

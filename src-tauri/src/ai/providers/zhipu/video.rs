@@ -7,9 +7,9 @@ use crate::ai::{
         GeneratedVideo, VideoGenerationCapability, VideoGenerationInput,
         VideoGenerationStageCallback, VideoGenerationStatus, VideoGenerationSubmission,
     },
-    error::{AiError, AiErrorCode, AiResult},
     transport::{http_client, SecurityContext},
 };
+use crate::app_error::{AppError, AppResult};
 
 pub struct ZhipuVideoAdapter;
 
@@ -18,7 +18,7 @@ impl VideoGenerationCapability for ZhipuVideoAdapter {
         &'a self,
         ctx: &'a SecurityContext,
         req: &'a VideoGenerationInput,
-    ) -> BoxFuture<'a, AiResult<VideoGenerationSubmission>> {
+    ) -> BoxFuture<'a, AppResult<VideoGenerationSubmission>> {
         Box::pin(async move {
             let api_key = ctx.require_api_key()?;
             let model = if ctx.model.is_empty() {
@@ -45,11 +45,11 @@ impl VideoGenerationCapability for ZhipuVideoAdapter {
                 .json(&payload)
                 .send()
                 .await
-                .map_err(|e| AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string()))?;
+                .map_err(|e| AppError::new("provider_request_failed", e.to_string()))?;
 
             if !submission_response.status().is_success() {
                 let error_text = response::read_text(submission_response).await?;
-                return Err(AiError::new(AiErrorCode::ProviderRequestFailed, error_text));
+                return Err(AppError::new("provider_request_failed", error_text));
             }
 
             let init_val: serde_json::Value =
@@ -57,7 +57,7 @@ impl VideoGenerationCapability for ZhipuVideoAdapter {
 
             let task_id = init_val["id"]
                 .as_str()
-                .ok_or_else(|| AiError::new(AiErrorCode::InvalidResponse, "Missing Zhipu task ID"))?
+                .ok_or_else(|| AppError::new("invalid_response", "Missing Zhipu task ID"))?
                 .to_string();
 
             Ok(VideoGenerationSubmission {
@@ -72,7 +72,7 @@ impl VideoGenerationCapability for ZhipuVideoAdapter {
         &'a self,
         ctx: &'a SecurityContext,
         task_id: &'a str,
-    ) -> BoxFuture<'a, AiResult<VideoGenerationStatus>> {
+    ) -> BoxFuture<'a, AppResult<VideoGenerationStatus>> {
         Box::pin(async move {
             let api_key = ctx.require_api_key()?;
             let endpoint = zhipu_endpoint(&ctx.endpoint);
@@ -84,11 +84,11 @@ impl VideoGenerationCapability for ZhipuVideoAdapter {
                 .bearer_auth(api_key)
                 .send()
                 .await
-                .map_err(|e| AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string()))?;
+                .map_err(|e| AppError::new("provider_request_failed", e.to_string()))?;
 
             if !query_response.status().is_success() {
                 let error_text = response::read_text(query_response).await?;
-                return Err(AiError::new(AiErrorCode::ProviderRequestFailed, error_text));
+                return Err(AppError::new("provider_request_failed", error_text));
             }
 
             let val: serde_json::Value =
@@ -99,9 +99,7 @@ impl VideoGenerationCapability for ZhipuVideoAdapter {
                 "SUCCESS" => {
                     let video_url = val["video_result"][0]["url"]
                         .as_str()
-                        .ok_or_else(|| {
-                            AiError::new(AiErrorCode::InvalidResponse, "Missing video URL")
-                        })?
+                        .ok_or_else(|| AppError::new("invalid_response", "Missing video URL"))?
                         .to_string();
                     Ok(VideoGenerationStatus::Succeeded { video_url })
                 }
@@ -120,7 +118,7 @@ impl VideoGenerationCapability for ZhipuVideoAdapter {
         req: &'a VideoGenerationInput,
         cancellation: &'a CancellationToken,
         stage: VideoGenerationStageCallback<'a>,
-    ) -> BoxFuture<'a, AiResult<GeneratedVideo>> {
+    ) -> BoxFuture<'a, AppResult<GeneratedVideo>> {
         Box::pin(async move {
             crate::ai::capabilities::video::materialize(self, ctx, req, cancellation, stage).await
         })

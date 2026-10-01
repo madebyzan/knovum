@@ -6,18 +6,19 @@ use std::time::Instant;
 use tauri::ipc::Channel;
 use tokio_util::sync::CancellationToken;
 
+use crate::ai::channel::send_channel_event;
 use crate::ai::{
     contracts::StreamFrame,
-    error::{send_channel_event, AiError, AiErrorCode, AiResult},
     models::{CompletionOutput, CompletionRequest, CompletionStreamEvent},
 };
+use crate::app_error::{AppError, AppResult};
 
 pub(crate) use request::stream_target;
 
 pub async fn complete_cancellable(
     request: CompletionRequest,
     cancellation: CancellationToken,
-) -> AiResult<CompletionOutput> {
+) -> AppResult<CompletionOutput> {
     let (target, chat_req) = request::prepare(request);
     let response = request::complete_target(&target, &chat_req, &cancellation).await?;
     Ok(CompletionOutput {
@@ -32,7 +33,7 @@ pub async fn complete_stream(
     request: CompletionRequest,
     events: Channel<CompletionStreamEvent>,
     cancellation: CancellationToken,
-) -> AiResult<CompletionOutput> {
+) -> AppResult<CompletionOutput> {
     let started_at = Instant::now();
     let prompt_bytes = request.text.len();
     telemetry::stream_request_started(&request.target, prompt_bytes);
@@ -89,8 +90,8 @@ pub async fn complete_stream(
     }
 
     if full_text.trim().is_empty() {
-        return Err(AiError::new(
-            AiErrorCode::EmptyResponse,
+        return Err(AppError::new(
+            "empty_response",
             "AI provider returned no text.",
         ));
     }
@@ -107,10 +108,10 @@ pub async fn complete_stream(
     })
 }
 
-fn require_execution_metadata(metadata: Option<(String, String)>) -> AiResult<(String, String)> {
+fn require_execution_metadata(metadata: Option<(String, String)>) -> AppResult<(String, String)> {
     metadata.ok_or_else(|| {
-        AiError::new(
-            AiErrorCode::InvalidResponse,
+        AppError::new(
+            "invalid_response",
             "AI execution stream did not identify its provider and model.",
         )
     })

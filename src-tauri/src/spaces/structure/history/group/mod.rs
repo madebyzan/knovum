@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use sqlx::{Row, Sqlite, Transaction};
 
 use super::{insert, prune, HistoryInsert, HistoryState, RelationLifecycle};
@@ -21,7 +22,7 @@ pub(super) async fn record(
     tx: &mut Transaction<'_, Sqlite>,
     group_id: &str,
     entries: &[(&str, &HistoryState, &HistoryState, i64)],
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     let now = crate::clock::unix_time_millis()?;
     for (space_id, before, after, revision) in entries {
         clear_redo(tx, space_id).await?;
@@ -44,7 +45,7 @@ pub(super) async fn record(
     Ok(())
 }
 
-async fn clear_redo(tx: &mut Transaction<'_, Sqlite>, space_id: &str) -> Result<(), String> {
+async fn clear_redo(tx: &mut Transaction<'_, Sqlite>, space_id: &str) -> Result<(), AppError> {
     let batches: Vec<String> = sqlx::query_scalar("SELECT deletion_batch_id FROM spaces_edit_history WHERE space_id=$1 AND undone=1 AND deletion_batch_id IS NOT NULL").bind(space_id).fetch_all(&mut **tx).await.map_err(db::sql_error)?;
     sqlx::query("DELETE FROM spaces_edit_history WHERE space_id=$1 AND undone=1")
         .bind(space_id)
@@ -63,7 +64,7 @@ pub(super) async fn apply(
     requested_space: &str,
     requested_revision: i64,
     redo: bool,
-) -> Result<i64, String> {
+) -> Result<i64, AppError> {
     let mut targets = load_targets(tx, group_id, requested_space, requested_revision, redo).await?;
     replay::preserve_history_neutral_content_sizes(&mut targets);
     replay::remove_current_structures(tx, &targets).await?;
@@ -90,7 +91,7 @@ async fn load_targets(
     requested_space: &str,
     requested_revision: i64,
     redo: bool,
-) -> Result<Vec<TargetState>, String> {
+) -> Result<Vec<TargetState>, AppError> {
     let rows = sqlx::query("SELECT id,space_id,before_snapshot,after_snapshot,before_node_ids,after_node_ids,before_relations,after_relations FROM spaces_edit_history WHERE history_group_id=$1 AND undone=$2 ORDER BY id").bind(group_id).bind(if redo {1}else{0}).fetch_all(&mut **tx).await.map_err(db::sql_error)?;
     if rows.len() != 2 {
         return Err("Coordinated Space history is incomplete".into());
@@ -101,7 +102,10 @@ async fn load_targets(
         let (current_snapshot, current) =
             super::super::repository::load_in_transaction(tx, &space_id).await?;
         if space_id == requested_space && current != requested_revision {
-            return Err("space-edit-revision-conflict: Space edit revision conflict".into());
+            return Err(AppError::new(
+                "space_edit_revision_conflict",
+                "Space edit revision conflict",
+            ));
         }
         let history_id: i64 = row.try_get("id").map_err(db::sql_error)?;
         ensure_top(tx, &space_id, history_id, redo).await?;
@@ -142,12 +146,17 @@ async fn load_targets(
     Ok(targets)
 }
 
-async fn current_revision(tx: &mut Transaction<'_, Sqlite>, space_id: &str) -> Result<i64, String> {
-    sqlx::query_scalar("SELECT revision FROM spaces_edit_state WHERE space_id=$1")
-        .bind(space_id)
-        .fetch_one(&mut **tx)
-        .await
-        .map_err(db::sql_error)
+async fn current_revision(
+    tx: &mut Transaction<'_, Sqlite>,
+    space_id: &str,
+) -> Result<i64, AppError> {
+    Ok(
+        sqlx::query_scalar("SELECT revision FROM spaces_edit_state WHERE space_id=$1")
+            .bind(space_id)
+            .fetch_one(&mut **tx)
+            .await
+            .map_err(db::sql_error)?,
+    )
 }
 
 async fn ensure_top(
@@ -155,7 +164,7 @@ async fn ensure_top(
     space_id: &str,
     history_id: i64,
     redo: bool,
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     let sql = if redo {
         "SELECT id FROM spaces_edit_history WHERE space_id=$1 AND undone=1 ORDER BY id ASC LIMIT 1"
     } else {

@@ -1,14 +1,11 @@
-use crate::ai::{
-    error::{AiError, AiResult},
-    models::EditorTransformAction,
-    tasks::completion::TaskInput,
-};
+use crate::ai::{models::EditorTransformAction, tasks::completion::TaskInput};
+use crate::app_error::{AppError, AppResult};
 
 const EDITOR_SYSTEM: &str = "You are Knovum's Markdown writing engine. Follow the requested transformation exactly. Preserve factual meaning, Markdown structure, links, code spans, and proper nouns unless the action explicitly requires a change. Return only the transformed text without commentary, labels, quotation marks, or code fences.";
 
-pub(crate) fn input(action: EditorTransformAction, text: String) -> AiResult<TaskInput> {
+pub(crate) fn input(action: EditorTransformAction, text: String) -> AppResult<TaskInput> {
     if text.trim().is_empty() {
-        return Err(AiError::invalid(
+        return Err(AppError::invalid(
             "Editor transform requires non-empty source text",
         ));
     }

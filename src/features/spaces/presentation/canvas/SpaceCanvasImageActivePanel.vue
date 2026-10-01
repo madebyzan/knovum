@@ -2,6 +2,7 @@
 import { computed, nextTick, useTemplateRef, watch } from "vue";
 import { toast } from "vue-sonner";
 
+import { errorMessage } from "../../../../foundation/errors/error-format";
 import { defaultImageEdit, imageEditOf } from "../../image-editing/image-edit";
 import { useImageEditSession } from "../../image-editing/image-edit-session";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
@@ -24,7 +25,7 @@ const dimensions = computed(() => {
   return width && height ? { width, height } : undefined;
 });
 function apply() {
-  void session.apply().catch((error) => toast.error(String(error)));
+  void session.apply().catch((error) => toast.error(errorMessage(error)));
 }
 watch(
   () => active.value?.tool,

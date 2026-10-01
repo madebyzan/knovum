@@ -1,10 +1,11 @@
 import { beforeEach, expect, it, vi } from "vitest";
 
 const uploads = vi.hoisted(() => vi.fn<() => Promise<{ path: string; sourceRevision: string }[]>>());
+vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
 vi.mock("../conversation/conversation-uploads", () => ({ chooseAssistantUploads: uploads }));
 vi.mock("../canvas/editor-session", () => ({ useCanvasEditorSession: () => ({}) }));
 vi.mock("../session/space-store", () => ({ useSpaceStore: () => ({}) }));
-import { normalizeCommandError } from "../../../foundation/ipc/command-error";
+import { normalizeError } from "../../../foundation/errors/app-error";
 import { useConversationAttachments } from "../conversation/use-conversation-attachments";
 
 beforeEach(() => {
@@ -31,7 +32,7 @@ it("rejects more than 32 attachments visibly and preserves the previous selectio
 it("selects the localized outcome by wire code even when the backend message changes", async () => {
   const session = useConversationAttachments();
   uploads.mockRejectedValue(
-    normalizeCommandError({
+    normalizeError({
       code: "assistant_upload_unauthorized",
       message: "外部文件访问已拒绝",
     }),

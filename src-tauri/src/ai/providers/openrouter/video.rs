@@ -9,9 +9,9 @@ use crate::ai::{
         GeneratedVideo, VideoGenerationCapability, VideoGenerationInput,
         VideoGenerationStageCallback, VideoGenerationStatus, VideoGenerationSubmission,
     },
-    error::{AiError, AiErrorCode, AiResult},
     transport::{http_client, SecurityContext},
 };
+use crate::app_error::{AppError, AppResult};
 
 pub struct OpenRouterVideoAdapter;
 
@@ -41,7 +41,7 @@ impl VideoGenerationCapability for OpenRouterVideoAdapter {
         &'a self,
         ctx: &'a SecurityContext,
         req: &'a VideoGenerationInput,
-    ) -> BoxFuture<'a, AiResult<VideoGenerationSubmission>> {
+    ) -> BoxFuture<'a, AppResult<VideoGenerationSubmission>> {
         Box::pin(async move {
             let secret = ctx.require_api_key()?;
             let url = format!("{}/videos", openrouter_endpoint(&ctx.endpoint));
@@ -71,13 +71,13 @@ impl VideoGenerationCapability for OpenRouterVideoAdapter {
 
             if let Some(err) = submission.error {
                 let msg = err.message.unwrap_or_else(|| "Submit failed".to_string());
-                return Err(AiError::new(AiErrorCode::ProviderRequestFailed, msg));
+                return Err(AppError::new("provider_request_failed", msg));
             }
 
             let task_id = submission
                 .id
                 .or(submission.job_id)
-                .ok_or_else(|| AiError::new(AiErrorCode::InvalidResponse, "No job ID returned"))?;
+                .ok_or_else(|| AppError::new("invalid_response", "No job ID returned"))?;
 
             Ok(VideoGenerationSubmission {
                 operation_id: task_id,
@@ -91,7 +91,7 @@ impl VideoGenerationCapability for OpenRouterVideoAdapter {
         &'a self,
         ctx: &'a SecurityContext,
         task_id: &'a str,
-    ) -> BoxFuture<'a, AiResult<VideoGenerationStatus>> {
+    ) -> BoxFuture<'a, AppResult<VideoGenerationStatus>> {
         Box::pin(async move {
             let secret = ctx.require_api_key()?;
             let url = format!("{}/videos/{task_id}", openrouter_endpoint(&ctx.endpoint));
@@ -114,7 +114,7 @@ impl VideoGenerationCapability for OpenRouterVideoAdapter {
             match status {
                 "completed" | "succeeded" => {
                     let video_url = extract_video_url(query).ok_or_else(|| {
-                        AiError::new(AiErrorCode::InvalidResponse, "No video URL returned")
+                        AppError::new("invalid_response", "No video URL returned")
                     })?;
                     Ok(VideoGenerationStatus::Succeeded { video_url })
                 }
@@ -134,7 +134,7 @@ impl VideoGenerationCapability for OpenRouterVideoAdapter {
         req: &'a VideoGenerationInput,
         cancellation: &'a CancellationToken,
         stage: VideoGenerationStageCallback<'a>,
-    ) -> BoxFuture<'a, AiResult<GeneratedVideo>> {
+    ) -> BoxFuture<'a, AppResult<GeneratedVideo>> {
         Box::pin(async move {
             crate::ai::capabilities::video::materialize(self, ctx, req, cancellation, stage).await
         })
@@ -169,6 +169,6 @@ fn openrouter_endpoint(raw: &str) -> String {
     }
 }
 
-fn provider_err(e: impl std::fmt::Display) -> AiError {
-    AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string())
+fn provider_err(e: impl std::fmt::Display) -> AppError {
+    AppError::new("provider_request_failed", e.to_string())
 }

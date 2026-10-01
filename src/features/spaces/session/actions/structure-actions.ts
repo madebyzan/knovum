@@ -1,6 +1,6 @@
 import type { Ref } from "vue";
 
-import { decodeCommandError } from "../../../../foundation/ipc/command-error";
+import { decodeAppError } from "../../../../foundation/errors/app-error";
 import type { SpaceEditCommand } from "../../contracts/generated/SpaceEditCommand";
 import { beginSpaceMutation } from "../../history/mutation-barrier";
 import { recordSpaceHistory, type SpaceHistoryState } from "../../history/stack";
@@ -35,7 +35,7 @@ export function createStructureActions(context: {
       if (spaceEditCommandRecordsHistory(command)) recordRustEdit(spaceId);
       return receipt;
     } catch (error) {
-      if (decodeCommandError(error)?.code === "space_edit_revision_conflict") await reloadProjection(spaceId);
+      if (decodeAppError(error)?.code === "space_edit_revision_conflict") await reloadProjection(spaceId);
       throw error;
     } finally {
       releaseMutation();
@@ -62,7 +62,7 @@ export function createStructureActions(context: {
       await spaceEditOperations[direction](spaceId, context.editSnapshot.value.editRevision);
       await reloadProjection(spaceId);
     } catch (error) {
-      if (decodeCommandError(error)?.code === "space_edit_revision_conflict") await reloadProjection(spaceId);
+      if (decodeAppError(error)?.code === "space_edit_revision_conflict") await reloadProjection(spaceId);
       throw error;
     }
   }

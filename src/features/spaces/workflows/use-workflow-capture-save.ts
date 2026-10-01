@@ -1,5 +1,6 @@
 import { shallowRef } from "vue";
 
+import { errorMessage } from "../../../foundation/errors/error-format";
 import type { CapturePreview } from "../contracts/generated/CapturePreview";
 import type { SavedCapturedWorkflow } from "../contracts/generated/SavedCapturedWorkflow";
 import { saveCapturedWorkflow } from "./captured-workflow-ipc";
@@ -62,7 +63,7 @@ export function useWorkflowCaptureSave() {
       });
       if (generation === current) saved.value = savedWorkflow;
     } catch (cause) {
-      if (generation === current) error.value = String(cause);
+      if (generation === current) error.value = errorMessage(cause);
     } finally {
       if (generation === current) saving.value = false;
     }

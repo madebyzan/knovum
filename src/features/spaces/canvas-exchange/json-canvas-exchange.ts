@@ -1,7 +1,7 @@
 import { compact } from "es-toolkit";
 import { basename } from "pathe";
 
-import { decodeCommandError } from "../../../foundation/ipc/command-error";
+import { decodeAppError } from "../../../foundation/errors/app-error";
 import { projectStructureScene } from "../canvas/document/structure-scene-projection";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { describeSpaceNode } from "../model/nodes/node-description";
@@ -37,7 +37,7 @@ export function createJsonCanvasExchangePort(options: JsonCanvasExchangeOptions)
       try {
         await options.transaction(async () => void (await options.commitImport({ sourcePath })));
       } catch (error) {
-        if (decodeCommandError(error)?.code !== "json_canvas_import_cancelled") throw error;
+        if (decodeAppError(error)?.code !== "json_canvas_import_cancelled") throw error;
       }
     },
     exportJsonCanvas: () => exportDocument(options.snapshot(), options.nodes(), options.relations()),

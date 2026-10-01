@@ -4,9 +4,10 @@ import type { Pinia } from "pinia";
 import type { ResourcePreparationProgress } from "../../shared/contracts/generated/ResourcePreparationProgress";
 import type { ResourcePreparationSnapshot } from "../../shared/contracts/generated/ResourcePreparationSnapshot";
 import type { ResourcePreparationTarget } from "../../shared/contracts/generated/ResourcePreparationTarget";
+import { createAppError, decodeAppError } from "../errors/app-error";
+import { errorDiagnostic, errorMessage } from "../errors/error-format";
 import { formatBytes } from "../format/bytes";
 import { i18n } from "../i18n/i18n";
-import { decodeCommandError } from "../ipc/command-error";
 import { useTaskStore } from "../tasks/task-store";
 import { cancelResourcePreparation, listResourcePreparations, prepareResources } from "./local-resources";
 import { invalidateLocalResources } from "./resource-query";
@@ -14,8 +15,6 @@ import { invalidateLocalResources } from "./resource-query";
 const CANCELLED_CODE = "local_resource_preparation_cancelled";
 const OBSERVATION_RETRIES = 3;
 const OBSERVATION_INTERVAL_MS = 1_000;
-
-export class ResourcePreparationCancelledError extends Error {}
 
 export interface ResourcePreparationHandle {
   completion: Promise<void>;
@@ -81,11 +80,11 @@ async function runPreparation(options: PreparationRun) {
     });
     tasks.succeed(jobId);
   } catch (error) {
-    if (isCancelled() || decodeCommandError(error)?.code === CANCELLED_CODE) {
+    if (isCancelled() || decodeAppError(error)?.code === CANCELLED_CODE) {
       tasks.cancelled(jobId);
-      throw new ResourcePreparationCancelledError("Resource preparation cancelled");
+      throw createAppError(CANCELLED_CODE, "Resource preparation cancelled");
     }
-    tasks.fail(jobId, String(error));
+    tasks.fail(jobId, errorMessage(error));
     throw error;
   } finally {
     await invalidateLocalResources();
@@ -108,10 +107,10 @@ async function observeRunning(tasks: ReturnType<typeof useTaskStore>, jobId: str
       if (!snapshot) throw new Error("Resource preparation snapshot is unavailable");
     } catch (error) {
       if (failures + 1 >= OBSERVATION_RETRIES) {
-        tasks.fail(jobId, `Unable to observe resource preparation: ${String(error)}`);
+        tasks.fail(jobId, `Unable to observe resource preparation: ${errorMessage(error)}`);
         tasks.setObservedRetry(jobId, () => observeRunning(tasks, jobId));
         await Promise.resolve(
-          logError(`Unable to observe resource preparation ${jobId}: ${String(error)}`),
+          logError(`Unable to observe resource preparation ${jobId}: ${errorDiagnostic(error)}`),
         ).catch(() => undefined);
         return;
       }

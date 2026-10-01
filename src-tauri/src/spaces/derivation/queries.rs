@@ -1,4 +1,4 @@
-use crate::command_error::CommandError;
+use crate::app_error::AppError;
 use serde::Serialize;
 use sqlx::Row;
 use tauri::AppHandle;
@@ -22,7 +22,7 @@ pub struct DerivationFailure {
 pub async fn get_grounded_document_metadata(
     app: AppHandle,
     node_id: String,
-) -> Result<Option<grounded_document::metadata::GroundedDocumentMetadata>, CommandError> {
+) -> Result<Option<grounded_document::metadata::GroundedDocumentMetadata>, AppError> {
     Ok((grounded_document::metadata::get(&app, &node_id).await)?)
 }
 
@@ -30,7 +30,7 @@ pub async fn get_grounded_document_metadata(
 pub async fn get_visualization_metadata(
     app: AppHandle,
     node_id: String,
-) -> Result<Option<visualization::metadata::VisualizationMetadata>, CommandError> {
+) -> Result<Option<visualization::metadata::VisualizationMetadata>, AppError> {
     Ok((visualization::metadata::get(&app, &node_id).await)?)
 }
 
@@ -38,7 +38,7 @@ pub async fn get_visualization_metadata(
 pub async fn get_generated_video_metadata(
     app: AppHandle,
     node_id: String,
-) -> Result<Option<video_generation::metadata::GeneratedVideoMetadata>, CommandError> {
+) -> Result<Option<video_generation::metadata::GeneratedVideoMetadata>, AppError> {
     Ok((video_generation::metadata::get(&app, &node_id).await)?)
 }
 
@@ -46,7 +46,7 @@ pub async fn get_generated_video_metadata(
 pub async fn get_derivation_failure(
     app: AppHandle,
     node_id: String,
-) -> Result<Option<DerivationFailure>, CommandError> {
+) -> Result<Option<DerivationFailure>, AppError> {
     let pool = db::pool(&app).await?;
     let row = sqlx::query("SELECT action_kind,error,completed_at FROM spaces_knowledge_derivations WHERE output_node_id=$1 AND status='failed'")
         .bind(node_id).fetch_optional(pool).await.map_err(db::sql_error)?;
@@ -74,11 +74,11 @@ pub async fn get_image_operation_capabilities(
 pub async fn check_image_cutout_source(
     app: AppHandle,
     request: image_cutout::CheckImageCutoutSourceRequest,
-) -> Result<bool, CommandError> {
+) -> Result<bool, AppError> {
     Ok((image_cutout::check_source(&app, request).await)?)
 }
 
 #[tauri::command]
-pub async fn list_video_fonts() -> Result<Vec<video_edit::fonts::InstalledFont>, CommandError> {
+pub async fn list_video_fonts() -> Result<Vec<video_edit::fonts::InstalledFont>, AppError> {
     Ok(crate::blocking::run(|| Ok::<_, String>(video_edit::fonts::installed())).await?)
 }

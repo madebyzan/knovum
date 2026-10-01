@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use serde_json::Value;
 use sqlx::{Sqlite, Transaction};
 use tauri::AppHandle;
@@ -9,7 +10,7 @@ use crate::spaces::{
     knowledge::{contracts, indexing::revision},
 };
 
-pub async fn start(app: &AppHandle, request: &GenerateImageLayersRequest) -> Result<(), String> {
+pub async fn start(app: &AppHandle, request: &GenerateImageLayersRequest) -> Result<(), AppError> {
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
     let source_path = source::validate(&mut tx, request).await?;
@@ -30,7 +31,9 @@ pub async fn start(app: &AppHandle, request: &GenerateImageLayersRequest) -> Res
         .await
         .map_err(db::sql_error)?
         .ok_or("Image layer output node is unavailable")?;
-        let output: Value = serde_json::from_str(&encoded).map_err(db::json_error)?;
+        let output: Value = serde_json::from_str(&encoded)
+            .map_err(db::json_error)
+            .map_err(AppError::from)?;
         pending_output::validate_separate_asset(&output, &source_path)?;
     }
     for (index, output_id) in request.output_node_ids.iter().enumerate() {
@@ -50,14 +53,17 @@ pub async fn start(app: &AppHandle, request: &GenerateImageLayersRequest) -> Res
         )
         .await?;
     }
-    tx.commit().await.map_err(db::sql_error)
+    tx.commit()
+        .await
+        .map_err(db::sql_error)
+        .map_err(AppError::from)
 }
 
 pub async fn complete(
     app: &AppHandle,
     request: &GenerateImageLayersRequest,
     layers: &[PreparedLayer],
-) -> Result<Vec<CompletedDerivationOutput>, String> {
+) -> Result<Vec<CompletedDerivationOutput>, AppError> {
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
     source::validate(&mut tx, request).await?;
@@ -92,7 +98,10 @@ pub async fn complete(
         .execute(&mut *tx)
         .await
         .map_err(db::sql_error)?;
-    tx.commit().await.map_err(db::sql_error)?;
+    tx.commit()
+        .await
+        .map_err(db::sql_error)
+        .map_err(AppError::from)?;
     Ok(completed)
 }
 
@@ -110,16 +119,18 @@ pub async fn fail(app: &AppHandle, request: &GenerateImageLayersRequest, error: 
 async fn load_pending_output(
     tx: &mut Transaction<'_, Sqlite>,
     derivation_id: &str,
-) -> Result<Value, String> {
+) -> Result<Value, AppError> {
     let encoded = sqlx::query_scalar::<_, String>(
         "SELECT n.data FROM spaces_knowledge_derivations d JOIN spaces_nodes n ON n.id=d.output_node_id WHERE d.id=$1 AND d.status='running' AND n.kind='image' AND n.deleted_at IS NULL",
     )
     .bind(derivation_id).fetch_optional(&mut **tx).await.map_err(db::sql_error)?
     .ok_or("Image layer output is no longer pending")?;
-    serde_json::from_str(&encoded).map_err(db::json_error)
+    serde_json::from_str(&encoded)
+        .map_err(db::json_error)
+        .map_err(AppError::from)
 }
 
-fn apply_layer_content(data: &mut Value, layer: &PreparedLayer, now: i64) -> Result<(), String> {
+fn apply_layer_content(data: &mut Value, layer: &PreparedLayer, now: i64) -> Result<(), AppError> {
     let object = data
         .as_object_mut()
         .ok_or("Image layer output data is invalid")?;

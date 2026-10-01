@@ -8,20 +8,20 @@ use super::{
 };
 use crate::ai::{
     contracts::{ModelTurnRequest, StreamFrame, StreamFrameStream, TokenUsage},
-    error::{AiError, AiErrorCode, AiResult},
     transport::SecurityContext,
     usage::UsagePurpose,
 };
+use crate::app_error::{AppError, AppResult};
 
 pub(super) async fn stream_text(
     adapter: AdapterKind,
     context: SecurityContext,
     request: ModelTurnRequest,
     cancellation: CancellationToken,
-) -> AiResult<StreamFrameStream> {
+) -> AppResult<StreamFrameStream> {
     if !request.tools.is_empty() {
-        return Err(AiError::new(
-            AiErrorCode::InvalidRequest,
+        return Err(AppError::new(
+            "invalid_request",
             "Text streaming does not accept tool definitions.",
         ));
     }
@@ -32,7 +32,7 @@ pub(super) async fn stream_text(
     let client = Client::default();
     let response = tokio::select! {
         biased;
-        _ = cancellation.cancelled() => return Err(AiError::cancelled("Text stream was cancelled")),
+        _ = cancellation.cancelled() => return Err(AppError::cancelled("Text stream was cancelled")),
         response = client.exec_chat_stream(target, to_genai_request(&request)?, Some(&options)) => response.map_err(provider_error)?,
     };
     Ok(text_frames(
@@ -60,13 +60,13 @@ fn text_frames(
             loop {
                 let event = tokio::select! {
                     biased;
-                    _ = cancellation.cancelled() => return Some((Err(AiError::cancelled("Text stream was cancelled")), None)),
+                    _ = cancellation.cancelled() => return Some((Err(AppError::cancelled("Text stream was cancelled")), None)),
                     event = source.next() => event,
                 };
                 let Some(event) = event else {
                     return Some((
-                        Err(AiError::new(
-                            AiErrorCode::InvalidResponse,
+                        Err(AppError::new(
+                            "invalid_response",
                             "Model stream ended without a terminal response",
                         )),
                         None,

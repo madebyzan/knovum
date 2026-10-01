@@ -1,4 +1,4 @@
-use crate::command_error::CommandError;
+use crate::app_error::AppError;
 use serde::Deserialize;
 use serde_json::Value;
 use tauri::{AppHandle, Runtime};
@@ -19,7 +19,7 @@ pub struct KnowledgeChangeSet {
 pub async fn commit_knowledge_changes<R: Runtime>(
     app: AppHandle<R>,
     changes: KnowledgeChangeSet,
-) -> Result<Value, CommandError> {
+) -> Result<Value, AppError> {
     if changes.space_id.trim().is_empty() || changes.actor.trim().is_empty() {
         return Err("Knowledge Change Set identity is invalid".into());
     }

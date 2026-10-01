@@ -1,9 +1,11 @@
 import { error as logError } from "@tauri-apps/plugin-log";
 
+import { normalizeError } from "../foundation/errors/app-error";
+import { errorDiagnostic } from "../foundation/errors/error-format";
+
 export function handleBoundaryError(caught: unknown, prefix?: string): Error {
-  const error = caught instanceof Error ? caught : new Error(String(caught));
-  const diagnosticText = error.stack ? `${error.message}\n${error.stack}` : error.message;
-  const message = prefix ? `[${prefix}] ${diagnosticText}` : (error.stack ?? error.message);
-  void logError(message);
+  const error = normalizeError(caught);
+  const diagnostic = errorDiagnostic(error);
+  void logError(prefix ? `[${prefix}] ${diagnostic}` : diagnostic);
   return error;
 }

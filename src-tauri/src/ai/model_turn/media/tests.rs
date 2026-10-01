@@ -28,12 +28,12 @@ impl crate::ai::contracts::FileUploadCapability for Uploader {
         _: &'a str,
     ) -> futures::future::BoxFuture<
         'a,
-        crate::ai::error::AiResult<crate::ai::contracts::UploadedFileReference>,
+        crate::app_error::AppResult<crate::ai::contracts::UploadedFileReference>,
     > {
         Box::pin(async move {
             let uri = self
                 .0
-                .ok_or_else(|| crate::ai::error::AiError::invalid("upload failed"))?;
+                .ok_or_else(|| crate::app_error::AppError::invalid("upload failed"))?;
             Ok(crate::ai::contracts::UploadedFileReference {
                 file_id: "files/source".into(),
                 access_url: Some(uri.into()),

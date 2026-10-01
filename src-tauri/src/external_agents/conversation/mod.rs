@@ -10,10 +10,8 @@ use agent_client_protocol::{
 use tokio::sync::{mpsc, oneshot};
 use tokio_util::sync::CancellationToken;
 
-use crate::ai::{
-    contracts::AgentKind,
-    error::{AiError, AiResult},
-};
+use crate::ai::contracts::AgentKind;
+use crate::app_error::{AppError, AppResult};
 
 use super::session::AgentUpdateHandler;
 mod requests;
@@ -40,8 +38,8 @@ async fn serve(
     context: ServeContext,
     mut requests: mpsc::Receiver<ConversationRequest>,
     cancellation: CancellationToken,
-    ready: oneshot::Sender<AiResult<ConversationSession>>,
-) -> AiResult<()> {
+    ready: oneshot::Sender<AppResult<ConversationSession>>,
+) -> AppResult<()> {
     let ServeContext {
         kind,
         workspace,
@@ -63,7 +61,7 @@ async fn serve(
         let initialized = connection.send_request(super::protocol::initialize_request())
             .block_task().await?;
         if !mcp_servers.is_empty() && !initialized.agent_capabilities.mcp_capabilities.http {
-            let error = AiError::invalid("Desktop Agent does not support HTTP MCP servers");
+            let error = AppError::invalid("Desktop Agent does not support HTTP MCP servers");
             let _ = ready.send(Err(error));
             return Ok(false);
         }
@@ -78,7 +76,7 @@ async fn serve(
                     Ok::<(), agent_client_protocol::Error>(())
                 }.await;
                 if let Err(error) = permission_mode {
-                    let _ = ready.send(Err(AiError::invalid(error.to_string())));
+                    let _ = ready.send(Err(AppError::invalid(error.to_string())));
                     return Err(error);
                 }
                 let session_capabilities = serde_json::to_value(session.response())
@@ -108,7 +106,7 @@ async fn serve(
                                 session.connection().send_notification(
                                     CancelNotification::new(session.session_id().clone()),
                                 )?;
-                                break Err(AiError::cancelled("External Agent conversation was cancelled"));
+                                break Err(AppError::cancelled("External Agent conversation was cancelled"));
                             }
                             message = session.read_update() => {
                                 super::updates::receive_message(message?, &workspace, &on_update).await?;
@@ -116,7 +114,7 @@ async fn serve(
                             response = &mut prompt => {
                                 let response = response?;
                                 break if response.stop_reason == StopReason::Cancelled {
-                                    Err(AiError::cancelled("External Agent turn was cancelled"))
+                                    Err(AppError::cancelled("External Agent turn was cancelled"))
                                 } else { Ok(()) };
                             }
                         }

@@ -7,9 +7,7 @@ fn cancellation_reaches_resources_and_blocks_publication() {
     assert!(check(&token).is_ok());
     cancel(&id).unwrap();
     assert!(resource.is_cancelled());
-    assert!(check(&token)
-        .unwrap_err()
-        .starts_with("json-canvas-import-cancelled:"));
+    assert!(check(&token).unwrap_err().code == "json_canvas_import_cancelled");
 }
 #[test]
 fn completed_import_cannot_be_cancelled_and_duplicate_work_is_rejected() {

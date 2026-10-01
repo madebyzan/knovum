@@ -4,9 +4,9 @@ use futures::future::BoxFuture;
 use super::image_task;
 use crate::ai::{
     contracts::{GeneratedImage, ImageGenerationCapability, ImageGenerationInput},
-    error::{AiError, AiErrorCode, AiResult},
     transport::{http_client, SecurityContext},
 };
+use crate::app_error::{AppError, AppResult};
 
 pub struct KlingImageAdapter;
 
@@ -15,7 +15,7 @@ impl ImageGenerationCapability for KlingImageAdapter {
         &'a self,
         ctx: &'a SecurityContext,
         req: &'a ImageGenerationInput,
-    ) -> BoxFuture<'a, AiResult<GeneratedImage>> {
+    ) -> BoxFuture<'a, AppResult<GeneratedImage>> {
         Box::pin(async move {
             let api_key = ctx.require_api_key()?;
             let model = if ctx.model.is_empty() {
@@ -48,11 +48,11 @@ impl ImageGenerationCapability for KlingImageAdapter {
                 .json(&payload)
                 .send()
                 .await
-                .map_err(|e| AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string()))?;
+                .map_err(|e| AppError::new("provider_request_failed", e.to_string()))?;
 
             if !submission_response.status().is_success() {
                 let error_text = response::read_text(submission_response).await?;
-                return Err(AiError::new(AiErrorCode::ProviderRequestFailed, error_text));
+                return Err(AppError::new("provider_request_failed", error_text));
             }
 
             let submission_data: serde_json::Value =
@@ -61,8 +61,8 @@ impl ImageGenerationCapability for KlingImageAdapter {
             let task_id = submission_data["data"]["task_id"]
                 .as_str()
                 .ok_or_else(|| {
-                    AiError::new(
-                        AiErrorCode::InvalidResponse,
+                    AppError::new(
+                        "invalid_response",
                         "Missing task_id in Kling image generation response",
                     )
                 })?

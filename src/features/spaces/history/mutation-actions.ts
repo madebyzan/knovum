@@ -1,4 +1,4 @@
-import { decodeCommandError } from "../../../foundation/ipc/command-error";
+import { decodeAppError } from "../../../foundation/errors/app-error";
 import { scheduleKnowledgeIndex } from "../knowledge/indexing/index-scheduler";
 import { validateSpaceNodePayload } from "../model/nodes/node-validation";
 import type { NodePayloadChange } from "../model/nodes/payload-change";
@@ -83,7 +83,7 @@ export function createSpaceHistoryMutations(context: SpaceMutationContext) {
     try {
       await action();
     } catch (error) {
-      if (decodeCommandError(error)?.code === "space_edit_revision_conflict") clearSpaceHistory(history);
+      if (decodeAppError(error)?.code === "space_edit_revision_conflict") clearSpaceHistory(history);
       throw error;
     }
   }

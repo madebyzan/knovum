@@ -1,4 +1,4 @@
-use crate::command_error::CommandError;
+use crate::app_error::AppError;
 pub(crate) mod file_drop;
 #[cfg(target_os = "macos")]
 mod menu;
@@ -29,7 +29,7 @@ pub fn handle_menu_event<R: Runtime>(app: &AppHandle<R>, event: MenuEvent) {
 }
 
 #[tauri::command]
-pub fn set_locale<R: Runtime>(app: AppHandle<R>, locale: String) -> Result<(), CommandError> {
+pub fn set_locale<R: Runtime>(app: AppHandle<R>, locale: String) -> Result<(), AppError> {
     let locale = match locale.as_str() {
         "en" => "en",
         "zh-CN" => "zh-CN",
@@ -54,7 +54,7 @@ pub fn set_workspace_menu_state<R: Runtime>(
     workspace_active: bool,
     can_close: bool,
     can_reopen: bool,
-) -> Result<(), CommandError> {
+) -> Result<(), AppError> {
     #[cfg(target_os = "macos")]
     menu::set_workspace_state(&app, workspace_active, can_close, can_reopen)
         .map_err(|error| error.to_string())?;
@@ -66,7 +66,7 @@ pub fn set_workspace_menu_state<R: Runtime>(
 }
 
 #[tauri::command]
-pub fn reveal_main_window<R: Runtime>(app: AppHandle<R>) -> Result<(), CommandError> {
+pub fn reveal_main_window<R: Runtime>(app: AppHandle<R>) -> Result<(), AppError> {
     #[cfg(any(target_os = "macos", target_os = "windows"))]
     tray::ensure_installed(&app, "en").map_err(|error| error.to_string())?;
     Ok((crate::app_window::focus_main(&app))?)

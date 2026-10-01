@@ -4,11 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ResourcePreparationSnapshot } from "../../../shared/contracts/generated/ResourcePreparationSnapshot";
 import { useTaskStore } from "../../tasks/task-store";
 import { cancelResourcePreparation, listResourcePreparations, prepareResources } from "../local-resources";
-import {
-  ResourcePreparationCancelledError,
-  restoreResourcePreparationTasks,
-  startResourcePreparation,
-} from "../resource-preparation";
+import { restoreResourcePreparationTasks, startResourcePreparation } from "../resource-preparation";
 
 vi.mock("@tauri-apps/plugin-log", () => ({ error: vi.fn<(message: string) => Promise<void>>() }));
 vi.mock("../../i18n/i18n", () => ({ i18n: { global: { t: (key: string) => key } } }));
@@ -56,7 +52,9 @@ describe("resource preparation task lifetime", () => {
     });
     const preparation = startResourcePreparation({ kind: "textEmbedding" }, "Semantic search");
 
-    await expect(preparation.completion).rejects.toBeInstanceOf(ResourcePreparationCancelledError);
+    await expect(preparation.completion).rejects.toMatchObject({
+      cause: { code: "local_resource_preparation_cancelled" },
+    });
     expect(useTaskStore().tasks[0]).toMatchObject({ status: "cancelled" });
   });
 

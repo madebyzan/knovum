@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::ai::error::AiResult;
+use crate::app_error::AppResult;
 
 #[derive(Debug, Clone, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
@@ -39,4 +39,4 @@ pub struct ChatResponse {
 }
 
 pub type StreamFrameStream =
-    std::pin::Pin<Box<dyn futures::Stream<Item = AiResult<StreamFrame>> + Send>>;
+    std::pin::Pin<Box<dyn futures::Stream<Item = AppResult<StreamFrame>> + Send>>;

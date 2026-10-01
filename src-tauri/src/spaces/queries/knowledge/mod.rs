@@ -1,4 +1,4 @@
-use crate::command_error::CommandError;
+use crate::app_error::AppError;
 mod search;
 
 use search::append_json_in_filter;
@@ -28,7 +28,7 @@ pub struct GlobalKnowledgeSearchRequest {
 pub async fn list_knowledge_chunks<R: Runtime>(
     app: AppHandle<R>,
     request: KnowledgeQueryRequest,
-) -> Result<Vec<Value>, CommandError> {
+) -> Result<Vec<Value>, AppError> {
     let pool = db::pool(&app).await?;
     let source = if request.current_only {
         "spaces_current_knowledge_chunks"
@@ -78,7 +78,7 @@ pub(crate) async fn search_space<R: Runtime>(
 pub async fn search_knowledge_global<R: Runtime>(
     app: AppHandle<R>,
     request: GlobalKnowledgeSearchRequest,
-) -> Result<Vec<Value>, CommandError> {
+) -> Result<Vec<Value>, AppError> {
     Ok((search_global(&app, &request.query).await)?)
 }
 

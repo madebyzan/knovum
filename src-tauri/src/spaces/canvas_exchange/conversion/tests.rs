@@ -28,6 +28,7 @@ fn adopts_unambiguous_section_membership_and_rejects_group_edges() {
     );
     assert!(memberships(&document)
         .unwrap_err()
+        .message
         .contains("visual groups"));
 }
 #[test]
@@ -46,10 +47,16 @@ fn maps_edges_to_semantic_relations_and_rejects_unknown_targets() {
 #[test]
 fn rejects_ambiguous_membership_and_undersized_sections() {
     let document = serde_json::from_value(json!({"nodes":[{"id":"left","type":"group","x":0,"y":0,"width":400,"height":300},{"id":"right","type":"group","x":0,"y":0,"width":400,"height":300},{"id":"note","type":"text","text":"Evidence","x":20,"y":40,"width":200,"height":120}]})).unwrap();
-    assert!(memberships(&document).unwrap_err().contains("ambiguous"));
+    assert!(memberships(&document)
+        .unwrap_err()
+        .message
+        .contains("ambiguous"));
     let document = serde_json::from_value(
         json!({"nodes":[{"id":"small","type":"group","x":0,"y":0,"width":239,"height":160}]}),
     )
     .unwrap();
-    assert!(memberships(&document).unwrap_err().contains("too small"));
+    assert!(memberships(&document)
+        .unwrap_err()
+        .message
+        .contains("too small"));
 }

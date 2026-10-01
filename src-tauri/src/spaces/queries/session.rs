@@ -1,4 +1,4 @@
-use crate::command_error::CommandError;
+use crate::app_error::AppError;
 use serde::Serialize;
 use tauri::{AppHandle, Runtime};
 use ts_rs::TS;
@@ -21,7 +21,7 @@ pub(crate) struct SpaceSessionProjection {
 pub(crate) async fn load_space_session_projection<R: Runtime>(
     app: AppHandle<R>,
     space_id: String,
-) -> Result<SpaceSessionProjection, CommandError> {
+) -> Result<SpaceSessionProjection, AppError> {
     let pool = db::pool(&app).await?;
     let mut tx = pool.begin().await.map_err(db::sql_error)?;
     let (snapshot, edit_revision) =

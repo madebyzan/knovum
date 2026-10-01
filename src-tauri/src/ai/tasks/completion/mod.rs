@@ -7,10 +7,10 @@ use tokio_util::sync::CancellationToken;
 use super::{ExecutionSource, TaskExecutionTarget};
 use crate::ai::{
     capabilities::{chat, vision},
-    error::{AiError, AiResult},
     models::{CompletionOutput, CompletionRequest, ImageAnalysisRequest, ModelExecutionTarget},
     usage::UsagePurpose,
 };
+use crate::app_error::{AppError, AppResult};
 
 #[derive(Clone, Debug)]
 pub struct TaskInput {
@@ -50,13 +50,13 @@ pub(crate) trait TaskExecutor: Sync {
         target: ModelExecutionTarget,
         input: TaskInput,
         cancellation: CancellationToken,
-    ) -> impl std::future::Future<Output = AiResult<TaskCompletionOutput>> + Send;
+    ) -> impl std::future::Future<Output = AppResult<TaskCompletionOutput>> + Send;
     fn agent(
         &self,
         kind: crate::ai::contracts::AgentKind,
         input: TaskInput,
         cancellation: CancellationToken,
-    ) -> impl std::future::Future<Output = AiResult<TaskCompletionOutput>> + Send;
+    ) -> impl std::future::Future<Output = AppResult<TaskCompletionOutput>> + Send;
 }
 
 pub(crate) async fn execute(
@@ -64,9 +64,9 @@ pub(crate) async fn execute(
     target: TaskExecutionTarget,
     input: TaskInput,
     cancellation: CancellationToken,
-) -> AiResult<TaskCompletionOutput> {
+) -> AppResult<TaskCompletionOutput> {
     if cancellation.is_cancelled() {
-        return Err(AiError::cancelled("AI task was cancelled"));
+        return Err(AppError::cancelled("AI task was cancelled"));
     }
     let result = match target {
         TaskExecutionTarget::Model(target) => {
@@ -79,7 +79,7 @@ pub(crate) async fn execute(
         }
     }?;
     if cancellation.is_cancelled() {
-        return Err(AiError::cancelled("AI task was cancelled"));
+        return Err(AppError::cancelled("AI task was cancelled"));
     }
     Ok(result)
 }
@@ -92,7 +92,7 @@ impl TaskExecutor for ProductExecutor<'_> {
         target: ModelExecutionTarget,
         input: TaskInput,
         cancellation: CancellationToken,
-    ) -> AiResult<TaskCompletionOutput> {
+    ) -> AppResult<TaskCompletionOutput> {
         let output = if let Some(path) = input.image {
             vision::analyze_image(
                 self.0,
@@ -128,7 +128,7 @@ impl TaskExecutor for ProductExecutor<'_> {
         kind: crate::ai::contracts::AgentKind,
         input: TaskInput,
         cancellation: CancellationToken,
-    ) -> AiResult<TaskCompletionOutput> {
+    ) -> AppResult<TaskCompletionOutput> {
         let text =
             crate::external_agents::task::complete(self.0, kind, input, cancellation).await?;
         Ok(TaskCompletionOutput {
@@ -144,7 +144,7 @@ pub async fn complete(
     target: TaskExecutionTarget,
     input: TaskInput,
     cancellation: CancellationToken,
-) -> AiResult<TaskCompletionOutput> {
+) -> AppResult<TaskCompletionOutput> {
     execute(&ProductExecutor(app), target, input, cancellation).await
 }
 

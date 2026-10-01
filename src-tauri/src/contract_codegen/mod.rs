@@ -49,7 +49,6 @@ mod tests;
 
 fn export_runtime_values(output: &Path) -> Result<(), String> {
     let enums = [
-        ("aiErrorCodes", schema_for!(crate::ai::error::AiErrorCode)),
         (
             "usagePurposes",
             schema_for!(crate::ai::usage::contracts::UsagePurpose),

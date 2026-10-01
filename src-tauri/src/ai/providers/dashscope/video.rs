@@ -8,9 +8,9 @@ use crate::ai::{
         GeneratedVideo, VideoGenerationCapability, VideoGenerationInput,
         VideoGenerationStageCallback, VideoGenerationStatus, VideoGenerationSubmission,
     },
-    error::{AiError, AiErrorCode, AiResult},
     transport::{http_client, SecurityContext},
 };
+use crate::app_error::{AppError, AppResult};
 
 pub struct DashScopeVideoAdapter;
 
@@ -19,7 +19,7 @@ impl VideoGenerationCapability for DashScopeVideoAdapter {
         &'a self,
         ctx: &'a SecurityContext,
         req: &'a VideoGenerationInput,
-    ) -> BoxFuture<'a, AiResult<VideoGenerationSubmission>> {
+    ) -> BoxFuture<'a, AppResult<VideoGenerationSubmission>> {
         Box::pin(async move {
             let secret = ctx.require_api_key()?;
             let endpoint = dashscope_endpoint(&ctx.endpoint)?;
@@ -63,7 +63,7 @@ impl VideoGenerationCapability for DashScopeVideoAdapter {
         &'a self,
         ctx: &'a SecurityContext,
         task_id: &'a str,
-    ) -> BoxFuture<'a, AiResult<VideoGenerationStatus>> {
+    ) -> BoxFuture<'a, AppResult<VideoGenerationStatus>> {
         Box::pin(async move {
             let secret = ctx.require_api_key()?;
             let endpoint = dashscope_endpoint(&ctx.endpoint)?;
@@ -87,7 +87,7 @@ impl VideoGenerationCapability for DashScopeVideoAdapter {
             match output.task_status.as_str() {
                 "SUCCEEDED" => {
                     let video_url = output.video_url.ok_or_else(|| {
-                        AiError::new(AiErrorCode::EmptyResponse, "Wan returned no video URL")
+                        AppError::new("empty_response", "Wan returned no video URL")
                     })?;
                     Ok(VideoGenerationStatus::Succeeded { video_url })
                 }
@@ -109,22 +109,19 @@ impl VideoGenerationCapability for DashScopeVideoAdapter {
         req: &'a VideoGenerationInput,
         cancellation: &'a CancellationToken,
         stage: VideoGenerationStageCallback<'a>,
-    ) -> BoxFuture<'a, AiResult<GeneratedVideo>> {
+    ) -> BoxFuture<'a, AppResult<GeneratedVideo>> {
         Box::pin(async move {
             crate::ai::capabilities::video::materialize(self, ctx, req, cancellation, stage).await
         })
     }
 }
 
-fn response_error(code: Option<String>, message: Option<String>) -> AiError {
+fn response_error(code: Option<String>, message: Option<String>) -> AppError {
     let code = code.as_deref().unwrap_or("unknown");
     let message = message.as_deref().unwrap_or("request failed");
-    AiError::new(
-        AiErrorCode::ProviderRequestFailed,
-        format!("{code}: {message}"),
-    )
+    AppError::new("provider_request_failed", format!("{code}: {message}"))
 }
 
-fn provider_err(e: impl std::fmt::Display) -> AiError {
-    AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string())
+fn provider_err(e: impl std::fmt::Display) -> AppError {
+    AppError::new("provider_request_failed", e.to_string())
 }

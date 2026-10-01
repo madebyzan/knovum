@@ -4,6 +4,7 @@ import { meanBy } from "es-toolkit";
 import type { Pinia } from "pinia";
 import { watch } from "vue";
 
+import { errorDiagnostic } from "../errors/error-format";
 import { useTaskStore } from "./task-store";
 
 interface RunningTaskSnapshot {
@@ -37,7 +38,7 @@ export function installTaskbarProgress(pinia: Pinia): void {
     () => taskStore.running.map(({ progress }) => ({ progress })),
     (tasks) => {
       void updateTaskbar(tasks).catch((reason) =>
-        logError(`Failed to update taskbar progress: ${String(reason)}`),
+        logError(`Failed to update taskbar progress: ${errorDiagnostic(reason)}`),
       );
     },
     { deep: true, immediate: true },

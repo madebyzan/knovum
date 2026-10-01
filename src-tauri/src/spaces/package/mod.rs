@@ -1,4 +1,4 @@
-use crate::command_error::CommandError;
+use crate::app_error::AppError;
 mod import;
 mod manifest_assets;
 mod remap;
@@ -80,7 +80,7 @@ pub async fn export_space_package(
     space_id: String,
     destination_path: String,
     on_progress: Channel<SpacePackageProgress>,
-) -> Result<(), CommandError> {
+) -> Result<(), AppError> {
     let snapshot = crate::spaces::queries::package_snapshot::collect(&app, space_id).await?;
     let manifest = serde_json::to_string(&snapshot.manifest).map_err(|e| e.to_string())?;
     Ok(crate::blocking::run(move || {
@@ -96,6 +96,6 @@ pub async fn import_space_package(
     app: tauri::AppHandle,
     source_path: String,
     on_progress: Channel<SpacePackageProgress>,
-) -> Result<serde_json::Value, CommandError> {
-    Ok(import::execute(app, PathBuf::from(source_path), on_progress).await?)
+) -> Result<serde_json::Value, AppError> {
+    import::execute(app, PathBuf::from(source_path), on_progress).await
 }

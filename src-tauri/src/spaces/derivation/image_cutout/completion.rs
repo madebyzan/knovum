@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use std::fs;
 
 use serde_json::Value;
@@ -16,7 +17,7 @@ use crate::spaces::{
 pub(super) async fn complete(
     app: AppHandle,
     request: CompleteImageCutoutRequest,
-) -> Result<CompletedDerivationOutput, String> {
+) -> Result<CompletedDerivationOutput, AppError> {
     let path = asset_directory(&app)?.join(format!("derived-{}.png", Uuid::new_v4()));
     let source_path =
         super::super::source_snapshot::image_path(&app, &request.id, &request.source_edit).await?;
@@ -58,7 +59,7 @@ fn process(
     source_path: &str,
     source_edit: &Value,
     output: std::path::PathBuf,
-) -> Result<ProcessedCutout, String> {
+) -> Result<ProcessedCutout, AppError> {
     let path =
         crate::spaces::assets::authorize_spaces_asset(app, std::path::Path::new(source_path))?;
     let source = crate::images::render_source_png(&path, source_edit)?;
@@ -66,7 +67,7 @@ fn process(
     let digest = format!("sha256:{:x}", Sha256::digest(&cutout.png));
     if let Err(error) = fs::write(&output, &cutout.png) {
         let _ = fs::remove_file(output);
-        return Err(error.to_string());
+        return Err(error.to_string().into());
     }
     Ok(ProcessedCutout {
         digest,
@@ -84,7 +85,7 @@ async fn persist_completion(
     size: usize,
     width: u32,
     height: u32,
-) -> Result<CompletedDerivationOutput, String> {
+) -> Result<CompletedDerivationOutput, AppError> {
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
     let row: Option<(String, String, String, String)> = sqlx::query_as(
@@ -147,7 +148,7 @@ fn apply_output_content(
     width: u32,
     height: u32,
     now: i64,
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     let object = value
         .as_object_mut()
         .ok_or_else(|| "Derived image data is invalid".to_string())?;

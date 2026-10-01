@@ -2,9 +2,10 @@ mod protocol;
 #[cfg(test)]
 mod tests;
 
-use crate::ai::{error::AiResult, tasks::completion::TaskInput};
+use crate::ai::tasks::completion::TaskInput;
+use crate::app_error::AppResult;
 
-pub(crate) fn input(text: String, target_language: String) -> AiResult<TaskInput> {
+pub(crate) fn input(text: String, target_language: String) -> AppResult<TaskInput> {
     let language = protocol::language_name(&target_language)?;
     Ok(TaskInput {
         purpose: crate::ai::usage::UsagePurpose::Translation,

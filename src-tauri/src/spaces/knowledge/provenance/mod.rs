@@ -1,4 +1,4 @@
-use crate::command_error::CommandError;
+use crate::app_error::AppError;
 use serde_json::Value;
 use sqlx::Row;
 use tauri::{AppHandle, Runtime};
@@ -15,7 +15,7 @@ pub async fn list_provenance<R: Runtime>(
     space_id: String,
     target_kind: String,
     target_id: String,
-) -> Result<Vec<Value>, CommandError> {
+) -> Result<Vec<Value>, AppError> {
     contracts::validate_provenance_target_kind(&target_kind)?;
     let pool = db::pool(&app).await?;
     let rows = sqlx::query(
@@ -33,7 +33,7 @@ pub async fn list_provenance<R: Runtime>(
 pub async fn list_knowledge_events<R: Runtime>(
     app: AppHandle<R>,
     request: KnowledgeEventRequest,
-) -> Result<Vec<Value>, CommandError> {
+) -> Result<Vec<Value>, AppError> {
     let KnowledgeEventRequest {
         space_id,
         entity_kind,
@@ -71,7 +71,7 @@ pub async fn list_knowledge_events<R: Runtime>(
 pub async fn create_provenance<R: Runtime>(
     app: AppHandle<R>,
     input: ProvenanceInput,
-) -> Result<(), CommandError> {
+) -> Result<(), AppError> {
     validate_input(&input)?;
     let now = crate::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
@@ -127,7 +127,7 @@ pub async fn create_provenance<R: Runtime>(
 pub async fn revoke_provenance<R: Runtime>(
     app: AppHandle<R>,
     provenance_id: String,
-) -> Result<(), CommandError> {
+) -> Result<(), AppError> {
     let now = crate::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;

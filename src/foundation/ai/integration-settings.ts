@@ -3,6 +3,7 @@ import { LazyStore } from "@tauri-apps/plugin-store";
 import { cloneDeep, isNil } from "es-toolkit";
 import { z } from "zod";
 
+import { errorDiagnostic } from "../errors/error-format";
 import { invokeCommand } from "../ipc/invoke-command";
 import {
   creationLibrarySchema,
@@ -21,7 +22,7 @@ let writeQueue: Promise<void> = Promise.resolve();
 function enqueueMutation(mutation: () => Promise<void>): Promise<void> {
   const operation = writeQueue.then(mutation);
   writeQueue = operation.catch((error) => {
-    void logError(`Integration settings mutation failed: ${String(error)}`);
+    void logError(`Integration settings mutation failed: ${errorDiagnostic(error)}`);
   });
   return operation;
 }

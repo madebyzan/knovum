@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use serde_json::Value;
 use tauri::AppHandle;
 
@@ -15,7 +16,7 @@ pub async fn complete(
     generated: GeneratedDocument,
     authority: &super::super::action_execution::ExecutionAuthority,
     cancellation: &tokio_util::sync::CancellationToken,
-) -> Result<GroundedDocumentOutput, String> {
+) -> Result<GroundedDocumentOutput, AppError> {
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
     authority.require_active(&mut *tx).await?;
@@ -53,7 +54,7 @@ pub async fn complete(
     })
 }
 
-fn apply_document(data: &mut Value, text: &str) -> Result<(), String> {
+fn apply_document(data: &mut Value, text: &str) -> Result<(), AppError> {
     let text = text.trim();
     if text.is_empty() {
         return Err("Generated Markdown is empty".into());
@@ -63,14 +64,14 @@ fn apply_document(data: &mut Value, text: &str) -> Result<(), String> {
         .ok_or("Pending Markdown data is invalid")?;
     object.insert("text".into(), text.into());
     object.remove("derivationState");
-    revision::apply(data).map(|_| ())
+    revision::apply(data).map(|_| ()).map_err(AppError::from)
 }
 
 async fn create_relations(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     request: &GenerateGroundedDocumentRequest,
     now: i64,
-) -> Result<Vec<crate::spaces::derivation::DerivationRelation>, String> {
+) -> Result<Vec<crate::spaces::derivation::DerivationRelation>, AppError> {
     let mut output = Vec::with_capacity(request.inputs.len());
     for input in &request.inputs {
         let relation = relations::derives_from(
@@ -90,7 +91,7 @@ async fn persist_generation(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     id: &str,
     generated: &GeneratedDocument,
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     let citations = serde_json::to_string(&generated.citations).map_err(db::json_error)?;
     sqlx::query("INSERT INTO spaces_grounded_documents(derivation_id,citations,execution_source) VALUES($1,$2,$3)")
         .bind(id).bind(citations).bind(serde_json::to_string(&generated.execution_source).map_err(db::json_error)?)

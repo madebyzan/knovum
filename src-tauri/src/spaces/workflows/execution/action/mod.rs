@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use serde_json::{json, Value};
 use sqlx::SqlitePool;
 use tauri::AppHandle;
@@ -12,7 +13,7 @@ pub(super) async fn execute_run(
     app: &AppHandle,
     claim: &AttemptClaim,
     input: &Value,
-) -> Result<StepOutcome, String> {
+) -> Result<StepOutcome, AppError> {
     let action_id = required_str(input, "actionId")?;
     let parameters = input
         .get("parameters")
@@ -28,7 +29,7 @@ pub(super) async fn execute_run(
         inputs,
     )
     .await?;
-    completed(output)
+    Ok(completed(output)?)
 }
 
 pub(super) async fn execute_invocation(
@@ -38,7 +39,7 @@ pub(super) async fn execute_invocation(
     action_version: u16,
     parameters: Value,
     input_snapshot: Value,
-) -> Result<StepOutcome, String> {
+) -> Result<StepOutcome, AppError> {
     let outcome = actions::invoke(
         pool,
         ActionInvocationRequest {
@@ -58,10 +59,11 @@ pub(super) async fn execute_invocation(
     match outcome {
         ActionInvocationOutcome::QueryResult {
             result: action_output,
-        } => completed(action_output),
-        ActionInvocationOutcome::CommittedReceipt { receipt } => completed(receipt),
-        ActionInvocationOutcome::AcceptedRun { run_id } => {
-            waiting(WaitReason::Executor, json!({ "childRunId": run_id }))
-        }
+        } => Ok(completed(action_output)?),
+        ActionInvocationOutcome::CommittedReceipt { receipt } => Ok(completed(receipt)?),
+        ActionInvocationOutcome::AcceptedRun { run_id } => Ok(waiting(
+            WaitReason::Executor,
+            json!({ "childRunId": run_id }),
+        )?),
     }
 }

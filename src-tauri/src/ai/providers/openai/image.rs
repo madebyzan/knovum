@@ -6,9 +6,9 @@ use tokio_util::sync::CancellationToken;
 
 use crate::ai::{
     contracts::{GeneratedImage, ImageGenerationCapability, ImageGenerationInput},
-    error::{AiError, AiErrorCode, AiResult},
     transport::{http_client, SecurityContext},
 };
+use crate::app_error::{AppError, AppResult};
 
 pub struct OpenAiImageAdapter;
 
@@ -78,7 +78,7 @@ impl ImageGenerationCapability for OpenAiImageAdapter {
         &'a self,
         ctx: &'a SecurityContext,
         req: &'a ImageGenerationInput,
-    ) -> BoxFuture<'a, AiResult<GeneratedImage>> {
+    ) -> BoxFuture<'a, AppResult<GeneratedImage>> {
         Box::pin(async move {
             let api_key = ctx.require_api_key()?;
             let dimensions = image_size(&ctx.provider, &ctx.model, &req.aspect_ratio);
@@ -106,12 +106,12 @@ impl ImageGenerationCapability for OpenAiImageAdapter {
                 .json(&payload)
                 .send()
                 .await
-                .map_err(|e| AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string()))?;
+                .map_err(|e| AppError::new("provider_request_failed", e.to_string()))?;
 
             let status = response.status();
             if !status.is_success() {
                 let text = response::read_text(response).await?;
-                return Err(AiError::new(AiErrorCode::ProviderRequestFailed, text));
+                return Err(AppError::new("provider_request_failed", text));
             }
 
             let body: ImageResponse =
@@ -123,10 +123,7 @@ impl ImageGenerationCapability for OpenAiImageAdapter {
                 .chain(body.images)
                 .next()
                 .ok_or_else(|| {
-                    AiError::new(
-                        AiErrorCode::EmptyResponse,
-                        "AI image provider returned no image",
-                    )
+                    AppError::new("empty_response", "AI image provider returned no image")
                 })?;
 
             let bytes = if let Some(b64) = item.b64_json {
@@ -136,13 +133,13 @@ impl ImageGenerationCapability for OpenAiImageAdapter {
                     .get(image_url)
                     .send()
                     .await
-                    .map_err(|e| AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string()))?
+                    .map_err(|e| AppError::new("provider_request_failed", e.to_string()))?
                     .error_for_status()
-                    .map_err(|e| AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string()))?;
+                    .map_err(|e| AppError::new("provider_request_failed", e.to_string()))?;
                 response::read_bytes(download_response, response::MAX_IMAGE_BYTES).await?
             } else {
-                return Err(AiError::new(
-                    AiErrorCode::InvalidResponse,
+                return Err(AppError::new(
+                    "invalid_response",
                     "Image response contained neither b64_json nor url",
                 ));
             };

@@ -6,10 +6,10 @@ mod wire;
 
 use crate::ai::{
     contracts::{ModelTurnCapability, ModelTurnRequest, ModelTurnResponse, ProviderKind},
-    error::AiResult,
     models::ModelExecutionTarget,
     transport::SecurityContext,
 };
+use crate::app_error::AppResult;
 
 use genai::adapter::AdapterKind;
 use tokio_util::sync::CancellationToken;
@@ -26,12 +26,12 @@ pub async fn execute(
     target: &ModelExecutionTarget,
     request: &ModelTurnRequest,
     cancellation: &CancellationToken,
-) -> AiResult<ModelTurnResponse> {
+) -> AppResult<ModelTurnResponse> {
     let context = SecurityContext::from_target(target).await?;
     let capability = adapter(target.model_provider_kind()?)?;
     let response = tokio::select! {
         biased;
-        _ = cancellation.cancelled() => return Err(crate::ai::error::AiError::cancelled("Model task was cancelled")),
+        _ = cancellation.cancelled() => return Err(crate::app_error::AppError::cancelled("Model task was cancelled")),
         result = capability.execute_turn(&context, request) => result?,
     };
     crate::ai::usage::record_turn(request.purpose, &response).await?;
@@ -42,7 +42,7 @@ pub async fn stream_text(
     target: &ModelExecutionTarget,
     request: &ModelTurnRequest,
     cancellation: CancellationToken,
-) -> AiResult<crate::ai::contracts::StreamFrameStream> {
+) -> AppResult<crate::ai::contracts::StreamFrameStream> {
     let context = SecurityContext::from_target(target).await?;
     let adapter = adapter_kind(target.model_provider_kind()?)?;
     text_stream::stream_text(adapter, context, request.clone(), cancellation).await
@@ -53,7 +53,7 @@ pub async fn stream_turn(
     request: &ModelTurnRequest,
     cancellation: CancellationToken,
     deltas: tokio::sync::mpsc::Sender<String>,
-) -> AiResult<ModelTurnResponse> {
+) -> AppResult<ModelTurnResponse> {
     let context = SecurityContext::from_target(target).await?;
     let adapter = adapter_kind(target.model_provider_kind()?)?;
     let response =
@@ -62,7 +62,7 @@ pub async fn stream_turn(
     Ok(response)
 }
 
-fn adapter(provider: ProviderKind) -> AiResult<&'static dyn ModelTurnCapability> {
+fn adapter(provider: ProviderKind) -> AppResult<&'static dyn ModelTurnCapability> {
     let adapter = match adapter_kind(provider)? {
         AdapterKind::OpenAI => &OPENAI as &dyn ModelTurnCapability,
         AdapterKind::Anthropic => &ANTHROPIC,
@@ -72,7 +72,7 @@ fn adapter(provider: ProviderKind) -> AiResult<&'static dyn ModelTurnCapability>
         AdapterKind::Groq => &GROQ,
         AdapterKind::Ollama => &OLLAMA,
         _ => {
-            return Err(crate::ai::error::AiError::unsupported(
+            return Err(crate::app_error::AppError::unsupported(
                 "Unsupported ModelTurn adapter",
             ))
         }
@@ -80,7 +80,7 @@ fn adapter(provider: ProviderKind) -> AiResult<&'static dyn ModelTurnCapability>
     Ok(adapter)
 }
 
-fn adapter_kind(provider: ProviderKind) -> AiResult<AdapterKind> {
+fn adapter_kind(provider: ProviderKind) -> AppResult<AdapterKind> {
     match provider {
         ProviderKind::Anthropic => Ok(AdapterKind::Anthropic),
         ProviderKind::Gemini => Ok(AdapterKind::Gemini),
@@ -88,7 +88,7 @@ fn adapter_kind(provider: ProviderKind) -> AiResult<AdapterKind> {
         ProviderKind::DeepSeek => Ok(AdapterKind::DeepSeek),
         ProviderKind::Groq => Ok(AdapterKind::Groq),
         ProviderKind::Ollama => Ok(AdapterKind::Ollama),
-        ProviderKind::Kling => Err(crate::ai::error::AiError::unsupported(
+        ProviderKind::Kling => Err(crate::app_error::AppError::unsupported(
             "Kling does not provide the ModelTurn text protocol",
         )),
         _ => Ok(AdapterKind::OpenAI),

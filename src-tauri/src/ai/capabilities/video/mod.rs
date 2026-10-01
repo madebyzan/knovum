@@ -2,12 +2,10 @@ use tauri::AppHandle;
 use tokio_util::sync::CancellationToken;
 
 use crate::ai::{
-    contracts::VideoGenerationInput,
-    error::{AiError, AiErrorCode, AiResult},
-    models::ModelExecutionTarget,
-    providers::resolve_provider,
+    contracts::VideoGenerationInput, models::ModelExecutionTarget, providers::resolve_provider,
     transport::SecurityContext,
 };
+use crate::app_error::{AppError, AppResult};
 
 pub mod materialize;
 pub use crate::ai::contracts::GeneratedVideo;
@@ -27,12 +25,12 @@ pub async fn generate(
     request: VideoGenerationRequest,
     cancellation: &CancellationToken,
     stage: impl Fn(&str) -> Result<(), String> + Send + Sync + 'static,
-) -> AiResult<GeneratedVideo> {
+) -> AppResult<GeneratedVideo> {
     validate(&request)?;
     let kind = request.target.model_provider_kind()?;
     let provider = resolve_provider(kind);
     let video_generation = provider.as_video_generation().ok_or_else(|| {
-        AiError::capability_not_supported(request.target.provider(), "video generation")
+        AppError::capability_not_supported(request.target.provider(), "video generation")
     })?;
 
     let prepared_images =
@@ -53,7 +51,7 @@ pub async fn generate(
 async fn prepare_reference_images(
     target: &ModelExecutionTarget,
     images: Vec<String>,
-) -> AiResult<Vec<String>> {
+) -> AppResult<Vec<String>> {
     let mut prepared_list = Vec::with_capacity(images.len());
     for item in images {
         if item.starts_with("http://")
@@ -69,7 +67,7 @@ async fn prepare_reference_images(
                     use base64::Engine;
                     let decoded_bytes = base64::engine::general_purpose::STANDARD
                         .decode(base64_payload)
-                        .map_err(|e| AiError::new(AiErrorCode::InvalidRequest, e.to_string()))?;
+                        .map_err(|e| AppError::new("invalid_request", e.to_string()))?;
                     let upload_ref = super::files::upload_file_bytes(
                         target,
                         decoded_bytes,
@@ -94,10 +92,7 @@ async fn prepare_reference_images(
                     prepared_list.push(effective_reference);
                 } else {
                     let bytes = tokio::fs::read(path).await.map_err(|e| {
-                        AiError::new(
-                            AiErrorCode::InvalidRequest,
-                            format!("Failed to read file: {e}"),
-                        )
+                        AppError::new("invalid_request", format!("Failed to read file: {e}"))
                     })?;
                     let mime = mime_guess::from_path(path)
                         .first_or_octet_stream()
@@ -114,11 +109,11 @@ async fn prepare_reference_images(
     Ok(prepared_list)
 }
 
-fn validate(request: &VideoGenerationRequest) -> AiResult<()> {
+fn validate(request: &VideoGenerationRequest) -> AppResult<()> {
     if request.prompt.trim().is_empty() || request.ratio.trim().is_empty() || request.duration == 0
     {
-        return Err(AiError::new(
-            AiErrorCode::InvalidRequest,
+        return Err(AppError::new(
+            "invalid_request",
             "Video generation request is invalid",
         ));
     }

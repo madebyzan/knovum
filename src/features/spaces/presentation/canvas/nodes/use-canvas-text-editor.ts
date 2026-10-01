@@ -2,6 +2,7 @@ import { Editor } from "@tiptap/vue-3";
 import { nextTick, onBeforeUnmount, shallowRef, watch, type Ref } from "vue";
 import { toast } from "vue-sonner";
 
+import { errorMessage } from "../../../../../foundation/errors/error-format";
 import {
   registerSpaceSessionParticipant,
   updateCanvasTextEditorProjection,
@@ -102,7 +103,7 @@ export function useCanvasTextEditor(options: CanvasTextEditorOptions) {
       if (close) finishEditing();
     } catch (error) {
       if (close && editor.value === instance) instance.setEditable(true);
-      toast.error(String(error));
+      toast.error(errorMessage(error));
       throw error;
     } finally {
       saving.value = false;

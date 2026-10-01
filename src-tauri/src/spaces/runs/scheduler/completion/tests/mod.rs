@@ -89,7 +89,7 @@ async fn cancellation_after_claim_rejects_completion_without_reserving_output() 
     .await
     .unwrap_err();
 
-    assert!(error.starts_with("attempt-stale:"));
+    assert!(error.code == "attempt_stale");
     let row: (String, String, i64, Option<i64>) = sqlx::query_as(
         "SELECT a.state,s.state,r.output_bytes,r.cancel_requested_at
          FROM spaces_run_attempts a JOIN spaces_run_steps s ON s.id=a.step_instance_id
@@ -112,15 +112,18 @@ async fn stale_run_epoch_rejects_completion_without_reserving_output() {
         .await
         .unwrap();
 
-    assert!(complete_step(
-        &fixture.pool,
-        &fixture.claim,
-        &json!({"value": "stale"}),
-        None
-    )
-    .await
-    .unwrap_err()
-    .starts_with("attempt-stale:"));
+    assert!(
+        complete_step(
+            &fixture.pool,
+            &fixture.claim,
+            &json!({"value": "stale"}),
+            None
+        )
+        .await
+        .unwrap_err()
+        .code
+            == "attempt_stale"
+    );
     let bytes: i64 = sqlx::query_scalar("SELECT output_bytes FROM spaces_runs WHERE id='run'")
         .fetch_one(&fixture.pool)
         .await
@@ -324,4 +327,39 @@ async fn cancellation_after_atomic_completion_is_rejected_as_already_complete() 
         .await
         .unwrap();
     assert_eq!(state, "succeeded");
+}
+
+#[tokio::test]
+async fn failure_policy_uses_codes_and_records_the_complete_envelope() {
+    let fixture = executing_fixture().await;
+    let error =
+        crate::app_error::AppError::new("authentication_failed", "rate-limited: misleading prose");
+    super::fail_step(&fixture.pool, &fixture.claim, &error)
+        .await
+        .unwrap();
+    let code: String =
+        sqlx::query_scalar("SELECT error_code FROM spaces_run_attempts WHERE id='attempt'")
+            .fetch_one(&fixture.pool)
+            .await
+            .unwrap();
+    assert_eq!(code, "authentication_failed");
+    let state: String = sqlx::query_scalar("SELECT state FROM spaces_run_steps WHERE id='step'")
+        .fetch_one(&fixture.pool)
+        .await
+        .unwrap();
+    assert_eq!(state, "failed");
+    let payload: String =
+        sqlx::query_scalar("SELECT payload FROM spaces_run_events WHERE kind='step_failed'")
+            .fetch_one(&fixture.pool)
+            .await
+            .unwrap();
+    assert_eq!(
+        serde_json::from_str::<serde_json::Value>(&payload).unwrap()["error"],
+        serde_json::to_value(&error).unwrap()
+    );
+    assert!(super::retryable(&crate::app_error::AppError::new(
+        "rate_limited",
+        "Unrelated prose"
+    )));
+    assert!(!super::retryable(&error));
 }

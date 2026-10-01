@@ -1,4 +1,4 @@
-use crate::command_error::CommandError;
+use crate::app_error::AppError;
 use crate::spaces::db;
 use serde::Serialize;
 use serde_json::Value;
@@ -38,7 +38,7 @@ pub async fn get_node<R: Runtime>(
     app: AppHandle<R>,
     space_id: String,
     node_id: String,
-) -> Result<SpaceNodeProjection, CommandError> {
+) -> Result<SpaceNodeProjection, AppError> {
     let row = sqlx::query(
         "SELECT id, initial_x, initial_y, data FROM spaces_nodes
          WHERE id=$1 AND space_id=$2 AND deleted_at IS NULL",

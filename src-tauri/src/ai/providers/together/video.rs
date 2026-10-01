@@ -8,9 +8,9 @@ use crate::ai::{
         GeneratedVideo, VideoGenerationCapability, VideoGenerationInput,
         VideoGenerationStageCallback, VideoGenerationStatus, VideoGenerationSubmission,
     },
-    error::{AiError, AiErrorCode, AiResult},
     transport::{http_client, SecurityContext},
 };
+use crate::app_error::{AppError, AppResult};
 
 pub struct TogetherVideoAdapter;
 
@@ -39,7 +39,7 @@ impl VideoGenerationCapability for TogetherVideoAdapter {
         &'a self,
         ctx: &'a SecurityContext,
         req: &'a VideoGenerationInput,
-    ) -> BoxFuture<'a, AiResult<VideoGenerationSubmission>> {
+    ) -> BoxFuture<'a, AppResult<VideoGenerationSubmission>> {
         Box::pin(async move {
             let secret = ctx.require_api_key()?;
             let endpoint = together_endpoint(&ctx.endpoint);
@@ -82,12 +82,12 @@ impl VideoGenerationCapability for TogetherVideoAdapter {
 
             if let Some(err) = submission_response.error {
                 let msg = err.message.unwrap_or_else(|| "Submit failed".to_string());
-                return Err(AiError::new(AiErrorCode::ProviderRequestFailed, msg));
+                return Err(AppError::new("provider_request_failed", msg));
             }
 
-            let task_id = submission_response.id.ok_or_else(|| {
-                AiError::new(AiErrorCode::InvalidResponse, "Together returned no task ID")
-            })?;
+            let task_id = submission_response
+                .id
+                .ok_or_else(|| AppError::new("invalid_response", "Together returned no task ID"))?;
 
             Ok(VideoGenerationSubmission {
                 operation_id: task_id,
@@ -101,7 +101,7 @@ impl VideoGenerationCapability for TogetherVideoAdapter {
         &'a self,
         ctx: &'a SecurityContext,
         task_id: &'a str,
-    ) -> BoxFuture<'a, AiResult<VideoGenerationStatus>> {
+    ) -> BoxFuture<'a, AppResult<VideoGenerationStatus>> {
         Box::pin(async move {
             let secret = ctx.require_api_key()?;
             let endpoint = together_endpoint(&ctx.endpoint);
@@ -131,8 +131,8 @@ impl VideoGenerationCapability for TogetherVideoAdapter {
                         .and_then(|mut videos| videos.pop())
                         .and_then(|out| out.url)
                         .ok_or_else(|| {
-                            AiError::new(
-                                AiErrorCode::InvalidResponse,
+                            AppError::new(
+                                "invalid_response",
                                 "Together completed but returned no video URL",
                             )
                         })?;
@@ -154,7 +154,7 @@ impl VideoGenerationCapability for TogetherVideoAdapter {
         req: &'a VideoGenerationInput,
         cancellation: &'a CancellationToken,
         stage: VideoGenerationStageCallback<'a>,
-    ) -> BoxFuture<'a, AiResult<GeneratedVideo>> {
+    ) -> BoxFuture<'a, AppResult<GeneratedVideo>> {
         Box::pin(async move {
             crate::ai::capabilities::video::materialize(self, ctx, req, cancellation, stage).await
         })
@@ -170,6 +170,6 @@ fn together_endpoint(raw: &str) -> String {
     }
 }
 
-fn provider_err(e: impl std::fmt::Display) -> AiError {
-    AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string())
+fn provider_err(e: impl std::fmt::Display) -> AppError {
+    AppError::new("provider_request_failed", e.to_string())
 }

@@ -8,6 +8,7 @@ import type { RoutingPurpose } from "../../shared/contracts/generated/RoutingPur
 import type { TaskTargetRef } from "../../shared/contracts/generated/TaskTargetRef";
 import UiButton from "../../shared/ui/UiButton.vue";
 import UiSelect from "../../shared/ui/UiSelect.vue";
+import { errorMessage } from "../errors/error-format";
 import { availableExecutionTargets, defaultExecutionTarget } from "./ai-execution";
 import { useAiSettingsStore } from "./ai-settings-store";
 import { useExecutionCatalogQuery } from "./execution-catalog-query";
@@ -84,7 +85,7 @@ onMounted(load);
         {{ t("ai.settingsUnavailable") }}
       </p>
       <p v-if="!compact" class="text-caption wrap-break-word text-fg-secondary">
-        {{ String(loadError) }}
+        {{ errorMessage(loadError) }}
       </p>
       <UiButton size="sm" variant="secondary" @click="load">{{ t("common.retry") }}</UiButton>
     </div>

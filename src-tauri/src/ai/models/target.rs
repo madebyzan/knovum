@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::ai::contracts::ProviderKind;
-use crate::ai::error::{AiError, AiResult};
+use crate::app_error::{AppError, AppResult};
 
 #[derive(Clone, Debug, Deserialize, Serialize, ts_rs::TS)]
 #[serde(
@@ -28,9 +28,9 @@ pub struct ModelExecutionTarget {
 }
 
 impl ModelExecutionTarget {
-    pub fn model_provider_kind(&self) -> AiResult<ProviderKind> {
+    pub fn model_provider_kind(&self) -> AppResult<ProviderKind> {
         ProviderKind::parse(&self.provider).ok_or_else(|| {
-            AiError::unsupported(format!("Unsupported AI provider: {}", self.provider))
+            AppError::unsupported(format!("Unsupported AI provider: {}", self.provider))
         })
     }
 

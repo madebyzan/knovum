@@ -1,5 +1,6 @@
 import { onBeforeUnmount, ref, shallowRef } from "vue";
 
+import { errorMessage } from "../../../foundation/errors/error-format";
 import type { RunObservation } from "../contracts/generated/RunObservation";
 import type { SavedCapturedWorkflow } from "../contracts/generated/SavedCapturedWorkflow";
 import { cancelResourceRun, observeResourceRun } from "../runs/resource-run-observation";
@@ -37,7 +38,7 @@ export function useCapturedWorkflowRun() {
       const outputs = await listCapturedRunOutputs(id);
       if (runId.value === id && !disposed) outputNodes.value = outputs;
     } catch (cause) {
-      if (runId.value === id && !disposed) error.value = String(cause);
+      if (runId.value === id && !disposed) error.value = errorMessage(cause);
     }
   }
 
@@ -83,7 +84,7 @@ export function useCapturedWorkflowRun() {
       input.onStarted(started);
       attach(started, input.workflow.name, !disposed && input.isCurrent());
     } catch (cause) {
-      if (!disposed && input.isCurrent()) error.value = String(cause);
+      if (!disposed && input.isCurrent()) error.value = errorMessage(cause);
     } finally {
       submitting.value = false;
     }
@@ -96,7 +97,7 @@ export function useCapturedWorkflowRun() {
       await cancelResourceRun(runId.value);
     } catch (cause) {
       cancelling.value = false;
-      error.value = String(cause);
+      error.value = errorMessage(cause);
     }
   }
 
@@ -110,7 +111,7 @@ export function useCapturedWorkflowRun() {
       onStarted(started);
       attach(started, title, !disposed && runId.value === sourceRunId);
     } catch (cause) {
-      error.value = String(cause);
+      error.value = errorMessage(cause);
     } finally {
       retrying.value = false;
     }
@@ -121,7 +122,7 @@ export function useCapturedWorkflowRun() {
       await store.refreshActiveSpace();
       store.requestReveal([nodeId], "focus");
     } catch (cause) {
-      error.value = String(cause);
+      error.value = errorMessage(cause);
     }
   }
 

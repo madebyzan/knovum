@@ -1,4 +1,4 @@
-use crate::command_error::CommandError;
+use crate::app_error::AppError;
 use serde::{Deserialize, Serialize};
 use sqlx::Row;
 use tauri::{AppHandle, Runtime};
@@ -28,7 +28,7 @@ pub(crate) struct SaveCanvasViewStateRequest {
 pub(crate) async fn load_canvas_view_state<R: Runtime>(
     app: AppHandle<R>,
     space_id: String,
-) -> Result<Option<CanvasViewState>, CommandError> {
+) -> Result<Option<CanvasViewState>, AppError> {
     validate_space_id(&space_id)?;
     let pool = db::pool(&app).await?;
     let row = sqlx::query("SELECT x,y,zoom FROM spaces_canvas_view_state WHERE space_id=$1")
@@ -53,7 +53,7 @@ pub(crate) async fn load_canvas_view_state<R: Runtime>(
 pub(crate) async fn save_canvas_view_state<R: Runtime>(
     app: AppHandle<R>,
     request: SaveCanvasViewStateRequest,
-) -> Result<(), CommandError> {
+) -> Result<(), AppError> {
     validate_space_id(&request.space_id)?;
     validate_view(request.view)?;
     let pool = db::pool(&app).await?;

@@ -5,6 +5,7 @@ import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
+import { errorMessage } from "../../../foundation/errors/error-format";
 import { isSpaceEditorNode, type SpaceEditorNode } from "../canvas/node-capabilities";
 import { useContextDock } from "../canvas/use-context-dock";
 import { loadGroundedDocumentMetadata } from "../knowledge-derivations/document/metadata";
@@ -42,7 +43,7 @@ export function useSpaceTiptapEditor() {
   };
 
   const persistInBackground = () => {
-    void persist().catch((error) => toast.error(String(error)));
+    void persist().catch((error) => toast.error(errorMessage(error)));
   };
 
   const autoSave = useDebounceFn(persistInBackground, 1000);
@@ -55,7 +56,7 @@ export function useSpaceTiptapEditor() {
   const editor = useEditor({
     extensions: createSpaceTiptapExtensions(
       t("spaces.editor.placeholder"),
-      (error) => toast.error(t("spaces.richtext.image.uploadFailed"), { description: String(error) }),
+      (error) => toast.error(t("spaces.richtext.image.uploadFailed"), { description: errorMessage(error) }),
       async (index) => {
         const node = editorNode.value;
         if (!node || node.data.kind !== "markdown") return;
@@ -109,7 +110,7 @@ export function useSpaceTiptapEditor() {
     try {
       await persist();
     } catch (error) {
-      toast.error(String(error));
+      toast.error(errorMessage(error));
     } finally {
       state.loadedId = undefined;
       focusedEditorId.value = undefined;

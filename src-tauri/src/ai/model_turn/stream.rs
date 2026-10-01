@@ -2,11 +2,8 @@ use futures::StreamExt;
 use genai::{adapter::AdapterKind, chat::ChatStreamEvent, Client, ModelIden, ServiceTarget};
 use tokio_util::sync::CancellationToken;
 
-use crate::ai::{
-    contracts::ModelTurnRequest,
-    error::{AiError, AiErrorCode, AiResult},
-    transport::SecurityContext,
-};
+use crate::ai::{contracts::ModelTurnRequest, transport::SecurityContext};
+use crate::app_error::{AppError, AppResult};
 
 use super::{to_genai_options, to_genai_request, wire::response::from_stream_end};
 
@@ -16,7 +13,7 @@ pub(super) async fn stream_turn(
     request: ModelTurnRequest,
     cancellation: CancellationToken,
     deltas: tokio::sync::mpsc::Sender<String>,
-) -> AiResult<crate::ai::contracts::ModelTurnResponse> {
+) -> AppResult<crate::ai::contracts::ModelTurnResponse> {
     let target = service_target(adapter, &context);
     let options = to_genai_options(&request)
         .with_capture_content(true)
@@ -25,7 +22,7 @@ pub(super) async fn stream_turn(
     let client = Client::default();
     let response = tokio::select! {
         biased;
-        _ = cancellation.cancelled() => return Err(AiError::cancelled("Model turn was cancelled")),
+        _ = cancellation.cancelled() => return Err(AppError::cancelled("Model turn was cancelled")),
         response = client.exec_chat_stream(target, to_genai_request(&request)?, Some(&options)) => response.map_err(provider_error)?,
     };
     let mut source = response.stream;
@@ -33,7 +30,7 @@ pub(super) async fn stream_turn(
     loop {
         let event = tokio::select! {
             _ = cancellation.cancelled() => {
-                return Err(AiError::cancelled("Model turn was cancelled"));
+                return Err(AppError::cancelled("Model turn was cancelled"));
             }
             event = source.next() => event,
         };
@@ -44,10 +41,10 @@ pub(super) async fn stream_turn(
             Some(Ok(ChatStreamEvent::Chunk(chunk))) => {
                 tokio::select! {
                     biased;
-                    _ = cancellation.cancelled() => return Err(AiError::cancelled("Model turn was cancelled")),
+                    _ = cancellation.cancelled() => return Err(AppError::cancelled("Model turn was cancelled")),
                     sent = deltas.send(chunk.content) => {
                         if sent.is_err() {
-                            return Err(AiError::cancelled("Model turn consumer was released"));
+                            return Err(AppError::cancelled("Model turn consumer was released"));
                         }
                     }
                 }
@@ -61,8 +58,8 @@ pub(super) async fn stream_turn(
             )) => {}
             Some(Err(error)) => return Err(provider_error(error)),
             None => {
-                return Err(AiError::new(
-                    AiErrorCode::InvalidResponse,
+                return Err(AppError::new(
+                    "invalid_response",
                     "Model stream ended without a terminal response",
                 ))
             }
@@ -87,6 +84,6 @@ pub(super) fn service_target(adapter: AdapterKind, context: &SecurityContext) ->
     }
 }
 
-pub(super) fn provider_error(error: genai::Error) -> AiError {
-    AiError::new(AiErrorCode::ProviderRequestFailed, error.to_string())
+pub(super) fn provider_error(error: genai::Error) -> AppError {
+    AppError::new("provider_request_failed", error.to_string())
 }

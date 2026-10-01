@@ -60,7 +60,7 @@ export async function insertSpaceTiptapImagePaths(
       throw new AggregateError(
         [error, cleanupError],
         "Image import failed and staged images could not be removed",
-        { cause: cleanupError },
+        { cause: error },
       );
     }
     throw error;

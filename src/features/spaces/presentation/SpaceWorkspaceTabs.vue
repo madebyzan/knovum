@@ -9,6 +9,7 @@ import { useI18n } from "vue-i18n";
 import { useRoute } from "vue-router";
 
 import { syncWorkspaceMenuState } from "../../../foundation/desktop/workspace-menu";
+import { errorDiagnostic } from "../../../foundation/errors/error-format";
 import UiIconButton from "../../../shared/ui/UiIconButton.vue";
 import type { Space } from "../model/space";
 import { useSpaceStore } from "../session/space-store";
@@ -46,7 +47,7 @@ watchEffect(() => {
     workspaceActive: route.name === "spaces",
     canClose: openSpaceIds.value.length > 1,
     canReopen: closedSpaceIds.value.length > 0,
-  }).catch((error) => logError(`Failed to synchronize workspace menu state: ${String(error)}`));
+  }).catch((error) => logError(`Failed to synchronize workspace menu state: ${errorDiagnostic(error)}`));
 });
 
 function createSpace() {
@@ -90,7 +91,7 @@ function showTabMenu(space: Space) {
 // Template handlers drop the promise a tab action returns, and a rejected action leaves the tab bar
 // visibly unchanged, so the reason belongs in the application log rather than in an unhandled warning.
 function reportTabFailure(error: unknown) {
-  void logError(`Workspace tab action failed: ${String(error)}`);
+  void logError(`Workspace tab action failed: ${errorDiagnostic(error)}`);
 }
 </script>
 

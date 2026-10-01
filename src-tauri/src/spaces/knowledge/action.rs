@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use serde_json::Value;
 use sqlx::{Sqlite, Transaction};
 
@@ -11,7 +12,7 @@ pub(crate) async fn commit_changes(
     space_id: &str,
     parameters: &Value,
     now: i64,
-) -> Result<Value, String> {
+) -> Result<Value, AppError> {
     let operations = parameters
         .get("operations")
         .cloned()

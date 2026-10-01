@@ -1,14 +1,15 @@
 use super::super::{
     agent_task, task, AssistantTaskAccepted, AssistantTaskUpdate, SubmitAssistantTaskRequest,
 };
-use crate::{ai::tasks::TaskTargetSelection, command_error::CommandError};
+use crate::ai::tasks::TaskTargetSelection;
+use crate::app_error::AppError;
 
 #[tauri::command]
 pub async fn start_assistant_task(
     app: tauri::AppHandle,
     request: SubmitAssistantTaskRequest,
     updates: tauri::ipc::Channel<AssistantTaskUpdate>,
-) -> Result<AssistantTaskAccepted, CommandError> {
+) -> Result<AssistantTaskAccepted, AppError> {
     let accepted = match request.target.clone() {
         TaskTargetSelection::Model {
             connection_id,

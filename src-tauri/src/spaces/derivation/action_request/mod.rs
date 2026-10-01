@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 mod inputs;
 mod output;
 
@@ -13,7 +14,7 @@ pub(super) async fn prepare(
     parameters: &Value,
     snapshot: &Value,
     authority: &super::action_execution::ExecutionAuthority,
-) -> Result<Value, String> {
+) -> Result<Value, AppError> {
     let definition = actions::require(action_id)?;
     let resolved =
         inputs::resolve(app, space_id, action_id, definition.input_roles, snapshot).await?;

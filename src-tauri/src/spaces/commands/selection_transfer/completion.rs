@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use sqlx::{Sqlite, Transaction};
 
 use super::contracts::{TransferSelectionRequest, TransferSelectionResponse};
@@ -21,7 +22,7 @@ pub(super) struct TransferCompletion<'a> {
 pub(super) async fn complete(
     tx: &mut Transaction<'_, Sqlite>,
     context: TransferCompletion<'_>,
-) -> Result<TransferSelectionResponse, String> {
+) -> Result<TransferSelectionResponse, AppError> {
     let request = context.request;
     append_events(
         tx,
@@ -125,7 +126,7 @@ async fn append_events(
     entity_kind: &str,
     ids: &[String],
     now: i64,
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     let payload = serde_json::json!({});
     for id in ids {
         events::append(

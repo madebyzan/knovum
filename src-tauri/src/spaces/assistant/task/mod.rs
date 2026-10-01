@@ -122,7 +122,8 @@ pub async fn start(
                 }
             }
             Err(error) => {
-                if let Err(write_error) = completion::fail(pool, &ids.run_id, &error).await {
+                if let Err(write_error) = completion::fail(pool, &ids.run_id, &error.message).await
+                {
                     log::error!("Assistant failure recording failed: {write_error}");
                 }
                 let _ = updates.send(super::AssistantTaskUpdate::Finished {

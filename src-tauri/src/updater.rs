@@ -1,4 +1,4 @@
-use crate::command_error::CommandError;
+use crate::app_error::AppError;
 use serde::Serialize;
 use tauri::{AppHandle, Url};
 use tauri_plugin_updater::UpdaterExt;
@@ -47,7 +47,7 @@ async fn resolve_update(app: &AppHandle) -> Result<Option<tauri_plugin_updater::
 }
 
 #[tauri::command]
-pub async fn check_for_update(app: AppHandle) -> Result<Option<UpdateMetadata>, CommandError> {
+pub async fn check_for_update(app: AppHandle) -> Result<Option<UpdateMetadata>, AppError> {
     let update = resolve_update(&app).await?;
     Ok(update.map(|update| UpdateMetadata {
         version: update.version,
@@ -56,7 +56,7 @@ pub async fn check_for_update(app: AppHandle) -> Result<Option<UpdateMetadata>, 
 }
 
 #[tauri::command]
-pub async fn install_update(app: AppHandle) -> Result<(), CommandError> {
+pub async fn install_update(app: AppHandle) -> Result<(), AppError> {
     let update = resolve_update(&app)
         .await?
         .ok_or_else(|| "No update is currently available.".to_owned())?;

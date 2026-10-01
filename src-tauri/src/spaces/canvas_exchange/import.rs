@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use std::collections::HashSet;
 
 use serde::{Deserialize, Serialize};
@@ -50,7 +51,7 @@ pub(crate) async fn import_nodes<R: Runtime>(
     request: ImportJsonCanvasNodesRequest,
     digest: String,
     cancellation: &tokio_util::sync::CancellationToken,
-) -> Result<JsonCanvasImportReceipt, String> {
+) -> Result<JsonCanvasImportReceipt, AppError> {
     super::import_control::check(cancellation)?;
     validate_source_ids(&request.nodes)?;
     let imported_nodes = request
@@ -79,7 +80,10 @@ pub(crate) async fn import_nodes<R: Runtime>(
         crate::spaces::structure::repository::load_in_transaction(&mut tx, &request.space_id)
             .await?;
     if current_revision != request.base_revision {
-        return Err("space-edit-revision-conflict: Space edit revision conflict".into());
+        return Err(AppError::new(
+            "space_edit_revision_conflict",
+            "Space edit revision conflict",
+        ));
     }
     let before =
         crate::spaces::structure::history::capture(&mut tx, &request.space_id, &before_snapshot)
@@ -156,7 +160,7 @@ pub(crate) async fn import_nodes<R: Runtime>(
     Ok(import_receipt)
 }
 
-pub(super) fn validate_source_ids(nodes: &[JsonCanvasNodeImport]) -> Result<(), String> {
+pub(super) fn validate_source_ids(nodes: &[JsonCanvasNodeImport]) -> Result<(), AppError> {
     let mut ids = HashSet::with_capacity(nodes.len());
     if nodes
         .iter()

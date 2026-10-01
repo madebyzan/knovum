@@ -2,6 +2,7 @@ mod catalog;
 mod connection;
 pub mod conversation;
 pub mod discovery;
+mod error;
 mod help;
 mod installed_clients;
 pub(crate) mod permissions;

@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use serde_json::Value;
 use tauri::{ipc::Channel, AppHandle};
 use tokio_util::sync::CancellationToken;
@@ -21,7 +22,7 @@ pub(in crate::spaces) async fn analyze(
     target: TaskExecutionTarget,
     progress: &Channel<MediaTranscriptionProgress>,
     cancellation: &CancellationToken,
-) -> Result<Value, String> {
+) -> Result<Value, AppError> {
     let mut report = DocumentCoverage::from_node_content(&data)?;
     super::checkpoint::restore(app, request, &mut report).await?;
     let source = data
@@ -32,7 +33,7 @@ pub(in crate::spaces) async fn analyze(
     let fingerprint = source_fingerprint(&source)?;
     let checked_source = source.clone();
     let revision = report.source_revision.clone();
-    crate::blocking::run(move || -> Result<(), String> {
+    crate::blocking::run(move || -> Result<(), AppError> {
         if crate::file_inspection::content_revision(&checked_source)? != revision {
             return Err("Document source bytes changed before analysis".into());
         }
@@ -81,11 +82,11 @@ pub(in crate::spaces) async fn analyze(
                         app,
                         request,
                         &mut report,
-                        (index, &error),
+                        (index, &error.to_string()),
                         (&data["documentCoverage"], cancellation),
                     )
                     .await?;
-                    return Err(error);
+                    return Err(error.into());
                 }
                 text_width += width;
                 report.occurrences[index].analysis = Some(analysis);
@@ -97,7 +98,7 @@ pub(in crate::spaces) async fn analyze(
                     app,
                     request,
                     &mut report,
-                    (index, &error),
+                    (index, &error.to_string()),
                     (&data["documentCoverage"], cancellation),
                 )
                 .await?;
@@ -129,7 +130,7 @@ async fn fail_occurrence(
     report: &mut DocumentCoverage,
     (index, error): (usize, &str),
     (expected, cancellation): (&Value, &CancellationToken),
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     let occurrence = &mut report.occurrences[index];
     occurrence.analysis = None;
     occurrence.state = VisualState::Failed;
@@ -143,7 +144,7 @@ async fn fail_occurrence(
     Ok(())
 }
 
-fn source_fingerprint(source: &std::path::Path) -> Result<(u64, std::time::SystemTime), String> {
+fn source_fingerprint(source: &std::path::Path) -> Result<(u64, std::time::SystemTime), AppError> {
     let metadata = std::fs::metadata(source).map_err(|error| error.to_string())?;
     Ok((
         metadata.len(),
@@ -154,7 +155,7 @@ fn source_fingerprint(source: &std::path::Path) -> Result<(u64, std::time::Syste
 fn require_unchanged_source(
     source: &std::path::Path,
     fingerprint: &(u64, std::time::SystemTime),
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     if &source_fingerprint(source)? != fingerprint {
         return Err("Document source changed during analysis".into());
     }
@@ -167,7 +168,7 @@ async fn publish(
     report: &DocumentCoverage,
     expected: &Value,
     cancellation: &CancellationToken,
-) -> Result<Value, String> {
+) -> Result<Value, AppError> {
     let mut fields = serde_json::Map::new();
     fields.insert(
         "documentCoverage".into(),

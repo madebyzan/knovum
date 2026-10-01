@@ -5,13 +5,8 @@ use tokio::sync::oneshot;
 use tokio_util::sync::CancellationToken;
 
 use super::{requests, serve, ConversationSession, ServeContext};
-use crate::{
-    ai::{
-        contracts::AgentKind,
-        error::{AiError, AiResult},
-    },
-    external_agents::session::AgentUpdateHandler,
-};
+use crate::app_error::{AppError, AppResult};
+use crate::{ai::contracts::AgentKind, external_agents::session::AgentUpdateHandler};
 
 pub async fn start(
     id: String,
@@ -20,7 +15,7 @@ pub async fn start(
     on_update: AgentUpdateHandler,
     mcp_servers: Vec<McpServer>,
     keepalive: Arc<dyn Send + Sync>,
-) -> AiResult<ConversationSession> {
+) -> AppResult<ConversationSession> {
     let cancellation = CancellationToken::new();
     let receiver = requests::register(&id, cancellation.clone())?;
     let (ready_tx, ready_rx) = oneshot::channel();
@@ -34,7 +29,7 @@ pub async fn start(
             keepalive,
         };
         if let Err(error) = serve(context, receiver, cancellation, ready_tx).await {
-            if error.code == crate::ai::error::AiErrorCode::Cancelled {
+            if error.code == "cancelled" {
                 log::debug!("External Agent conversation cancelled: {error}");
             } else {
                 log::error!("External Agent conversation ended: {error}");
@@ -50,13 +45,13 @@ pub async fn start(
         }
         Ok(Err(_)) => {
             requests::remove(&id);
-            Err(AiError::internal(
+            Err(AppError::internal(
                 "ACP conversation ended before session creation",
             ))
         }
         Err(_) => {
-            requests::close(&id).await.map_err(AiError::internal)?;
-            Err(AiError::internal(
+            requests::close(&id).await.map_err(AppError::internal)?;
+            Err(AppError::internal(
                 "ACP conversation timed out during session creation",
             ))
         }

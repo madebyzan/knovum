@@ -1,6 +1,7 @@
 import { compact } from "es-toolkit";
 import { computed, shallowRef, type Ref } from "vue";
 
+import { errorMessage } from "../../../../foundation/errors/error-format";
 import type { SpaceEditSnapshot } from "../../model/structure/schema/edit-snapshot";
 import { createStructureIndex, effectiveOperationRoots } from "../../model/structure/structure-index";
 import { worldTransformFor } from "../../model/structure/world-transform";
@@ -138,7 +139,7 @@ export function useStructureCanvasInteractions(options: {
       renameStructureNodeId.value = undefined;
       renameError.value = undefined;
     } catch (error) {
-      renameError.value = error instanceof Error ? error.message : String(error);
+      renameError.value = errorMessage(error);
       options.events.onError(error);
     }
   }

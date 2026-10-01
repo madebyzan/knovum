@@ -6,6 +6,7 @@ import { toast } from "vue-sonner";
 
 import { useCreationLibraryStore } from "../../../../foundation/ai/creation-library-store";
 import type { CreationLibrary } from "../../../../foundation/ai/schema/creation-library";
+import { errorMessage } from "../../../../foundation/errors/error-format";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiSelect from "../../../../shared/ui/UiSelect.vue";
 
@@ -46,7 +47,7 @@ async function save() {
   props.addRecordToLibrary(library.value, record);
   await store.flush();
   if (saveError.value) {
-    toast.error(String(saveError.value));
+    toast.error(errorMessage(saveError.value));
     return;
   }
   selected.value = record.id;

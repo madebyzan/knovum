@@ -1,4 +1,4 @@
-use crate::command_error::CommandError;
+use crate::app_error::AppError;
 mod attempt;
 mod budget;
 mod children;
@@ -36,20 +36,17 @@ pub(crate) async fn request_cancellation(
 pub async fn list_runs(
     app: tauri::AppHandle,
     space_id: String,
-) -> Result<Vec<RunObservation>, CommandError> {
+) -> Result<Vec<RunObservation>, AppError> {
     Ok((repository::list_runs(crate::spaces::db::pool(&app).await?, &space_id).await)?)
 }
 
 #[tauri::command]
-pub async fn get_run(
-    app: tauri::AppHandle,
-    run_id: String,
-) -> Result<RunObservation, CommandError> {
+pub async fn get_run(app: tauri::AppHandle, run_id: String) -> Result<RunObservation, AppError> {
     Ok((load_run(crate::spaces::db::pool(&app).await?, &run_id).await)?)
 }
 
 #[tauri::command]
-pub async fn cancel_run(app: tauri::AppHandle, run_id: String) -> Result<(), CommandError> {
+pub async fn cancel_run(app: tauri::AppHandle, run_id: String) -> Result<(), AppError> {
     let pool = crate::spaces::db::pool(&app).await?;
     let run = load_run(pool, &run_id).await?;
     request_cancellation(pool, &run_id).await?;
@@ -76,7 +73,7 @@ pub async fn cancel_run(app: tauri::AppHandle, run_id: String) -> Result<(), Com
 }
 
 #[tauri::command]
-pub async fn pause_run(app: tauri::AppHandle, run_id: String) -> Result<(), CommandError> {
+pub async fn pause_run(app: tauri::AppHandle, run_id: String) -> Result<(), AppError> {
     let pool = crate::spaces::db::pool(&app).await?;
     if load_run(pool, &run_id).await?.kind == RunKind::ExternalAgent {
         return Err(
@@ -88,7 +85,7 @@ pub async fn pause_run(app: tauri::AppHandle, run_id: String) -> Result<(), Comm
 }
 
 #[tauri::command]
-pub async fn resume_run(app: tauri::AppHandle, run_id: String) -> Result<(), CommandError> {
+pub async fn resume_run(app: tauri::AppHandle, run_id: String) -> Result<(), AppError> {
     let pool = crate::spaces::db::pool(&app).await?;
     let run = load_run(pool, &run_id).await?;
     if run.kind == RunKind::Assistant {
@@ -106,7 +103,7 @@ pub async fn retry_run(
     app: tauri::AppHandle,
     run_id: String,
     step_ids: Vec<String>,
-) -> Result<RunObservation, CommandError> {
+) -> Result<RunObservation, AppError> {
     Ok((retry::create_retry(crate::spaces::db::pool(&app).await?, &run_id, &step_ids).await)?)
 }
 
@@ -114,7 +111,7 @@ pub async fn retry_run(
 pub async fn list_run_steps(
     app: tauri::AppHandle,
     run_id: String,
-) -> Result<Vec<observation::StepObservation>, CommandError> {
+) -> Result<Vec<observation::StepObservation>, AppError> {
     Ok((observation::list_steps(crate::spaces::db::pool(&app).await?, &run_id).await)?)
 }
 
@@ -123,7 +120,7 @@ pub async fn list_run_events(
     app: tauri::AppHandle,
     run_id: String,
     after_sequence: i64,
-) -> Result<Vec<observation::RunEvent>, CommandError> {
+) -> Result<Vec<observation::RunEvent>, AppError> {
     Ok((observation::list_events(
         crate::spaces::db::pool(&app).await?,
         &run_id,
@@ -136,7 +133,7 @@ pub async fn list_run_events(
 pub async fn get_run_diagnostics(
     app: tauri::AppHandle,
     run_id: String,
-) -> Result<serde_json::Value, CommandError> {
+) -> Result<serde_json::Value, AppError> {
     Ok((observation::diagnostic_bundle(crate::spaces::db::pool(&app).await?, &run_id).await)?)
 }
 
@@ -147,7 +144,7 @@ pub async fn decide_run_step_review(
     expected_version: i64,
     reviewed_revision: String,
     approved: bool,
-) -> Result<(), CommandError> {
+) -> Result<(), AppError> {
     Ok((intervention::decide_review(
         crate::spaces::db::pool(&app).await?,
         &step_id,
@@ -164,7 +161,7 @@ pub async fn reconcile_run_step(
     step_id: String,
     expected_version: i64,
     decision: intervention::ReconciliationDecision,
-) -> Result<(), CommandError> {
+) -> Result<(), AppError> {
     Ok((intervention::reconcile(
         crate::spaces::db::pool(&app).await?,
         &step_id,

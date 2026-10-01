@@ -1,8 +1,9 @@
 import type { Ref } from "vue";
 
 import { cancelAiJob } from "../../../foundation/ai/ai-runtime";
+import { decodeAppError } from "../../../foundation/errors/app-error";
+import { errorMessage } from "../../../foundation/errors/error-format";
 import { formatBytes } from "../../../foundation/format/bytes";
-import { decodeCommandError } from "../../../foundation/ipc/command-error";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { isSpaceMediaPayload } from "../model/nodes/capabilities";
@@ -60,9 +61,9 @@ export function createSpaceMediaActions(context: Context) {
       context.applyNodeContentForSpace(spaceId, id, data);
       tasks.succeed(jobId);
     } catch (error) {
-      if (decodeCommandError(error)?.code === "media_insights_cancelled") tasks.cancelled(jobId);
+      if (decodeAppError(error)?.code === "media_insights_cancelled") tasks.cancelled(jobId);
       else {
-        tasks.fail(jobId, String(error));
+        tasks.fail(jobId, errorMessage(error));
         throw error;
       }
     } finally {

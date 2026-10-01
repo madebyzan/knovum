@@ -1,4 +1,4 @@
-use crate::command_error::CommandError;
+use crate::app_error::AppError;
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Runtime};
 
@@ -48,7 +48,7 @@ async fn prepare_relation_write<R: Runtime>(
 pub async fn create_relation<R: Runtime>(
     app: AppHandle<R>,
     relation: SpaceRelationInput,
-) -> Result<(), CommandError> {
+) -> Result<(), AppError> {
     let now = crate::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
@@ -91,7 +91,7 @@ pub(crate) async fn create_relation_in_transaction(
 pub async fn update_relation<R: Runtime>(
     app: AppHandle<R>,
     relation: SpaceRelationInput,
-) -> Result<(), CommandError> {
+) -> Result<(), AppError> {
     let (mut tx, source_id, target_id, now) = prepare_relation_write(&app, &relation).await?;
     let executed = sqlx::query(
         "UPDATE spaces_relations SET source_id=$1,target_id=$2,kind=$3,rationale=$4,status=$5,\
@@ -119,7 +119,7 @@ pub async fn update_relation<R: Runtime>(
 pub async fn revoke_relation<R: Runtime>(
     app: AppHandle<R>,
     relation_id: String,
-) -> Result<(), CommandError> {
+) -> Result<(), AppError> {
     let now = crate::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
@@ -133,7 +133,7 @@ pub async fn revoke_relation<R: Runtime>(
 pub async fn restore_relation<R: Runtime>(
     app: AppHandle<R>,
     relation_id: String,
-) -> Result<(), CommandError> {
+) -> Result<(), AppError> {
     let now = crate::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;

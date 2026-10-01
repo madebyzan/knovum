@@ -1,10 +1,11 @@
+use crate::app_error::AppError;
 use crate::{
-    ai::{contracts, error::AiError, providers},
+    ai::{contracts, providers},
     external_agents,
 };
 
 #[tauri::command]
-pub async fn detect_agent_installations() -> Result<Vec<contracts::AgentInstallation>, AiError> {
+pub async fn detect_agent_installations() -> Result<Vec<contracts::AgentInstallation>, AppError> {
     external_agents::detect_agent_installations().await
 }
 

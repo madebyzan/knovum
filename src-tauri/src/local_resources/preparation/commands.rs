@@ -8,7 +8,7 @@ use super::{
     },
     requests,
 };
-use crate::command_error::CommandError;
+use crate::app_error::AppError;
 
 #[tauri::command]
 pub async fn prepare_resources(
@@ -17,7 +17,7 @@ pub async fn prepare_resources(
     job_id: String,
     title: String,
     on_progress: Channel<ResourcePreparationProgress>,
-) -> Result<(), CommandError> {
+) -> Result<(), AppError> {
     validate_request(&job_id, &title)?;
     let request = requests::begin(&job_id, &title, target.clone())?;
     let (finished_tx, finished_rx) = oneshot::channel();
@@ -56,7 +56,7 @@ pub async fn prepare_resources(
         .map_err(|_| "Resource preparation task ended unexpectedly")?;
     outcome.map_err(|message| {
         if message == super::RESOURCE_PREPARATION_CANCELLED {
-            CommandError::new("local_resource_preparation_cancelled", message)
+            AppError::new("local_resource_preparation_cancelled", message)
         } else {
             message.into()
         }
@@ -65,17 +65,17 @@ pub async fn prepare_resources(
 }
 
 #[tauri::command]
-pub fn cancel_resource_preparation(job_id: String) -> Result<(), CommandError> {
+pub fn cancel_resource_preparation(job_id: String) -> Result<(), AppError> {
     requests::cancel(&job_id)?;
     Ok(())
 }
 
 #[tauri::command]
-pub fn list_resource_preparations() -> Result<Vec<ResourcePreparationSnapshot>, CommandError> {
+pub fn list_resource_preparations() -> Result<Vec<ResourcePreparationSnapshot>, AppError> {
     Ok(requests::list()?)
 }
 
-fn validate_request(job_id: &str, title: &str) -> Result<(), CommandError> {
+fn validate_request(job_id: &str, title: &str) -> Result<(), AppError> {
     if job_id.trim().is_empty() {
         return Err(("Resource preparation requires a job identifier".to_string()).into());
     }

@@ -1,4 +1,5 @@
 use super::SpacePackageProgress;
+use crate::app_error::AppError;
 use serde_json::{json, Value};
 use std::{fs, path::PathBuf};
 use tauri::{ipc::Channel, AppHandle};
@@ -7,7 +8,7 @@ pub(super) async fn execute(
     app: AppHandle,
     source: PathBuf,
     progress: Channel<SpacePackageProgress>,
-) -> Result<Value, String> {
+) -> Result<Value, AppError> {
     let target_id = uuid::Uuid::new_v4().to_string();
     let worker_app = app.clone();
     let worker_id = target_id.clone();
@@ -20,7 +21,7 @@ pub(super) async fn execute(
         let request = super::remap::prepare(&unpacked.manifest,&unpacked.assets,&target_id)?;
         let overview = json!({"id":request.space.id,"kind":"space","title":request.space.title,"archivedAt":null,"favorite":false,"thumbnailPath":null,"lastOpenedAt":request.space.last_opened_at,"createdAt":request.space.created_at,"updatedAt":request.space.updated_at,"nodeCount":request.nodes.len()});
         super::restore::restore(&app,request).await?;
-        Ok::<_,String>(overview)
+        Ok::<_,AppError>(overview)
     }.await;
     match restored {
         Ok(overview) => {

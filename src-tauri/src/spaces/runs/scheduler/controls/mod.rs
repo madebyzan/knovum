@@ -20,7 +20,7 @@ pub(super) async fn recover_expired_leases(pool: &SqlitePool) -> Result<(), Stri
     for (run_id, epoch) in expired_epochs {
         let step_ids: Vec<String> = sqlx::query_scalar(
             "UPDATE spaces_run_attempts SET state='outcome_unknown',finished_at=$1,
-             error_code='lease-expired' WHERE run_id=$2 AND execution_epoch=$3
+             error_code='lease_expired' WHERE run_id=$2 AND execution_epoch=$3
              AND state IN ('claimed','executing') RETURNING step_instance_id",
         )
         .bind(now)
@@ -76,7 +76,7 @@ pub(super) async fn apply(pool: &SqlitePool) -> Result<(), String> {
     let mut tx = db::begin_write(pool).await?;
     propagate_cancellation(&mut tx, now).await?;
     let expired = expire_duration_budgets(&mut tx, now).await?;
-    sqlx::query("UPDATE spaces_run_attempts SET state='cancelled',lease_until=NULL,finished_at=$1,error_code='run-cancelled' WHERE state IN ('claimed','executing','waiting_external') AND run_id IN (SELECT id FROM spaces_runs WHERE cancel_requested_at IS NOT NULL AND completed_at IS NULL)")
+    sqlx::query("UPDATE spaces_run_attempts SET state='cancelled',lease_until=NULL,finished_at=$1,error_code='run_cancelled' WHERE state IN ('claimed','executing','waiting_external') AND run_id IN (SELECT id FROM spaces_runs WHERE cancel_requested_at IS NOT NULL AND completed_at IS NULL)")
         .bind(now).execute(&mut *tx).await.map_err(db::sql_error)?;
     sqlx::query("UPDATE spaces_run_steps SET state='cancelled',wait_reason=NULL,state_version=state_version+1,updated_at=$1 WHERE state IN ('pending','ready','running','waiting','paused','blocked') AND run_id IN (SELECT id FROM spaces_runs WHERE cancel_requested_at IS NOT NULL AND completed_at IS NULL)")
         .bind(now).execute(&mut *tx).await.map_err(db::sql_error)?;
@@ -119,7 +119,7 @@ async fn expire_duration_budgets(
     .map_err(db::sql_error)?;
     let mut changed = 0;
     for root_id in roots {
-        changed += exhaust_run_tree(tx, &root_id, now, "run-duration-exceeded").await?;
+        changed += exhaust_run_tree(tx, &root_id, now, "run_duration_exceeded").await?;
     }
     Ok(changed)
 }

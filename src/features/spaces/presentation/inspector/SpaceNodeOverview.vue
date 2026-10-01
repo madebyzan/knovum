@@ -4,6 +4,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
+import { errorMessage } from "../../../../foundation/errors/error-format";
 import { spaceCanvasOverviewSource } from "../../assets/node-preview-source";
 import { openSpaceNode } from "../../canvas/selection-actions";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
@@ -33,7 +34,7 @@ async function openPreview() {
   try {
     await openSpaceNode(store, props.node);
   } catch (error) {
-    toast.error(String(error));
+    toast.error(errorMessage(error));
   }
 }
 </script>

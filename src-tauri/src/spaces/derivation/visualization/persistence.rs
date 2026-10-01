@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use std::path::Path;
 
 use serde_json::Value;
@@ -20,7 +21,7 @@ pub async fn start(
     request: &GenerateVisualizationRequest,
     target: &TaskExecutionTarget,
     authority: &super::super::action_execution::ExecutionAuthority,
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     validation::validate_request(request)?;
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
@@ -66,7 +67,10 @@ pub async fn start(
         })
         .collect::<Vec<_>>();
     inputs::insert(&mut tx, &request.id, &values).await?;
-    tx.commit().await.map_err(db::sql_error)
+    tx.commit()
+        .await
+        .map_err(db::sql_error)
+        .map_err(AppError::from)
 }
 
 pub async fn complete(
@@ -75,7 +79,7 @@ pub async fn complete(
     generated: VisualizationResult,
     authority: &super::super::action_execution::ExecutionAuthority,
     cancellation: &tokio_util::sync::CancellationToken,
-) -> Result<VisualizationOutput, String> {
+) -> Result<VisualizationOutput, AppError> {
     let (bytes, width, height) = validation::canonical_png(&generated.bytes)?;
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
@@ -92,7 +96,9 @@ pub async fn complete(
         )
         .await?;
     }
-    let mut data: Value = serde_json::from_str(&encoded).map_err(db::json_error)?;
+    let mut data: Value = serde_json::from_str(&encoded)
+        .map_err(db::json_error)
+        .map_err(AppError::from)?;
     let path = pending_output::validate_unpublished_asset(&data)?.to_owned();
     tokio::fs::write(&path, &bytes)
         .await
@@ -107,7 +113,10 @@ pub async fn complete(
                 let _ = tokio::fs::remove_file(&path).await;
                 return Err("Visualization generation was cancelled".into());
             }
-            tx.commit().await.map_err(db::sql_error)?;
+            tx.commit()
+                .await
+                .map_err(db::sql_error)
+                .map_err(AppError::from)?;
             Ok(VisualizationOutput {
                 node_id: request.output_node_id.clone(),
                 data,
@@ -121,8 +130,10 @@ pub async fn complete(
     }
 }
 
-pub async fn fail(app: &AppHandle, id: &str, error: &str) -> Result<(), String> {
-    crate::spaces::derivation::failure::fail_message(app, id, error).await
+pub async fn fail(app: &AppHandle, id: &str, error: &str) -> Result<(), AppError> {
+    crate::spaces::derivation::failure::fail_message(app, id, error)
+        .await
+        .map_err(AppError::from)
 }
 
 async fn persist_completion(
@@ -133,7 +144,7 @@ async fn persist_completion(
     bytes: &[u8],
     width: u32,
     height: u32,
-) -> Result<Vec<super::super::DerivationRelation>, String> {
+) -> Result<Vec<super::super::DerivationRelation>, AppError> {
     let now = crate::clock::unix_time_millis()?;
     let object = data
         .as_object_mut()

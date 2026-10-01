@@ -4,9 +4,9 @@ use serde::Deserialize;
 
 use crate::ai::{
     contracts::{GeneratedImage, ImageGenerationCapability, ImageGenerationInput},
-    error::{AiError, AiErrorCode, AiResult},
     transport::{http_client, SecurityContext},
 };
+use crate::app_error::{AppError, AppResult};
 
 pub struct MiniMaxImageAdapter;
 
@@ -39,7 +39,7 @@ impl ImageGenerationCapability for MiniMaxImageAdapter {
         &'a self,
         ctx: &'a SecurityContext,
         req: &'a ImageGenerationInput,
-    ) -> BoxFuture<'a, AiResult<GeneratedImage>> {
+    ) -> BoxFuture<'a, AppResult<GeneratedImage>> {
         Box::pin(async move {
             let secret = ctx.require_api_key()?;
             let base = ctx.endpoint.trim_end_matches('/');
@@ -85,7 +85,7 @@ impl ImageGenerationCapability for MiniMaxImageAdapter {
                     let msg = base
                         .status_msg
                         .unwrap_or_else(|| "Unknown error".to_string());
-                    return Err(AiError::new(AiErrorCode::ProviderRequestFailed, msg));
+                    return Err(AppError::new("provider_request_failed", msg));
                 }
             }
 
@@ -100,10 +100,7 @@ impl ImageGenerationCapability for MiniMaxImageAdapter {
                         .and_then(|item| item.url)
                 })
                 .ok_or_else(|| {
-                    AiError::new(
-                        AiErrorCode::InvalidResponse,
-                        "MiniMax returned no image URL",
-                    )
+                    AppError::new("invalid_response", "MiniMax returned no image URL")
                 })?;
 
             let download_response = client
@@ -127,6 +124,6 @@ impl ImageGenerationCapability for MiniMaxImageAdapter {
     }
 }
 
-fn provider_err(e: impl std::fmt::Display) -> AiError {
-    AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string())
+fn provider_err(e: impl std::fmt::Display) -> AppError {
+    AppError::new("provider_request_failed", e.to_string())
 }

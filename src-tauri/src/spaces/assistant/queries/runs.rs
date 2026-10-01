@@ -1,4 +1,4 @@
-use crate::command_error::CommandError;
+use crate::app_error::AppError;
 
 #[derive(serde::Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
@@ -14,7 +14,7 @@ pub struct ActiveAssistantRun {
 pub async fn list_active_assistant_runs(
     app: tauri::AppHandle,
     space_id: Option<String>,
-) -> Result<Vec<ActiveAssistantRun>, CommandError> {
+) -> Result<Vec<ActiveAssistantRun>, AppError> {
     let pool = crate::spaces::db::pool(&app).await?;
     let identities: Vec<(String, String, String, String)> = sqlx::query_as(
         "SELECT r.id,t.conversation_id,t.branch_id,c.title FROM spaces_runs r
@@ -48,7 +48,7 @@ pub async fn list_active_assistant_runs(
 pub async fn get_assistant_task_error(
     app: tauri::AppHandle,
     run_id: String,
-) -> Result<Option<String>, CommandError> {
+) -> Result<Option<String>, AppError> {
     let pool = crate::spaces::db::pool(&app).await?;
     let model: Option<Option<String>> =
         sqlx::query_scalar("SELECT error FROM spaces_assistant_tasks WHERE run_id=$1")

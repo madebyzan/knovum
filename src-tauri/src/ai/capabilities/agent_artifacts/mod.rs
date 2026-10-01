@@ -6,19 +6,17 @@ use std::{
 use tauri::{AppHandle, Manager, Runtime};
 use walkdir::WalkDir;
 
-use crate::ai::{
-    contracts::AgentArtifact,
-    error::{AiError, AiResult},
-};
+use crate::ai::contracts::AgentArtifact;
+use crate::app_error::{AppError, AppResult};
 
 mod classification;
 mod output_projection;
 
 pub(crate) use output_projection::{obsolete_tool_artifacts, record_message, record_tool};
 
-pub fn space_workspace<R: Runtime>(app: &AppHandle<R>, space_id: &str) -> AiResult<PathBuf> {
+pub fn space_workspace<R: Runtime>(app: &AppHandle<R>, space_id: &str) -> AppResult<PathBuf> {
     let space = uuid::Uuid::parse_str(space_id)
-        .map_err(|_| AiError::invalid("Agent session requires a valid Space identifier"))?;
+        .map_err(|_| AppError::invalid("Agent session requires a valid Space identifier"))?;
     app.path()
         .app_data_dir()
         .map(|root| {
@@ -26,31 +24,31 @@ pub fn space_workspace<R: Runtime>(app: &AppHandle<R>, space_id: &str) -> AiResu
                 .join("spaces")
                 .join(space.to_string())
         })
-        .map_err(|error| AiError::internal(error.to_string()))
+        .map_err(|error| AppError::internal(error.to_string()))
 }
 
 pub fn workspace<R: Runtime>(
     app: &AppHandle<R>,
     space_id: &str,
     session_id: &str,
-) -> AiResult<PathBuf> {
+) -> AppResult<PathBuf> {
     let session = uuid::Uuid::parse_str(session_id)
-        .map_err(|_| AiError::invalid("Agent session requires a valid session identifier"))?;
+        .map_err(|_| AppError::invalid("Agent session requires a valid session identifier"))?;
     Ok(space_workspace(app, space_id)?.join(session.to_string()))
 }
 
-pub fn prepare(path: &Path) -> AiResult<()> {
+pub fn prepare(path: &Path) -> AppResult<()> {
     if path.exists() {
-        fs::remove_dir_all(path).map_err(|error| AiError::internal(error.to_string()))?;
+        fs::remove_dir_all(path).map_err(|error| AppError::internal(error.to_string()))?;
     }
-    fs::create_dir_all(path).map_err(|error| AiError::internal(error.to_string()))
+    fs::create_dir_all(path).map_err(|error| AppError::internal(error.to_string()))
 }
 
-pub fn collect(root: &Path) -> AiResult<Vec<AgentArtifact>> {
+pub fn collect(root: &Path) -> AppResult<Vec<AgentArtifact>> {
     let retired_local_paths = output_projection::retired_local_paths(root)?;
     let mut artifacts = Vec::new();
     for entry in WalkDir::new(root).follow_links(false) {
-        let entry = entry.map_err(|error| AiError::internal(error.to_string()))?;
+        let entry = entry.map_err(|error| AppError::internal(error.to_string()))?;
         if !entry.file_type().is_file() {
             continue;
         }
@@ -60,7 +58,7 @@ pub fn collect(root: &Path) -> AiResult<Vec<AgentArtifact>> {
         let path = entry.path();
         let relative_path = path
             .strip_prefix(root)
-            .map_err(|error| AiError::internal(error.to_string()))?
+            .map_err(|error| AppError::internal(error.to_string()))?
             .to_string_lossy()
             .into_owned();
         if retired_local_paths.contains(&relative_path) {
@@ -68,7 +66,7 @@ pub fn collect(root: &Path) -> AiResult<Vec<AgentArtifact>> {
         }
         let metadata = entry
             .metadata()
-            .map_err(|error| AiError::internal(error.to_string()))?;
+            .map_err(|error| AppError::internal(error.to_string()))?;
         let kind = classification::classify(path)?;
         artifacts.push(AgentArtifact {
             name: entry.file_name().to_string_lossy().into_owned(),
@@ -81,28 +79,30 @@ pub fn collect(root: &Path) -> AiResult<Vec<AgentArtifact>> {
     Ok(artifacts)
 }
 
-pub fn discard(path: &Path) -> AiResult<()> {
+pub fn discard(path: &Path) -> AppResult<()> {
     if path.exists() {
-        fs::remove_dir_all(path).map_err(|error| AiError::internal(error.to_string()))?;
+        fs::remove_dir_all(path).map_err(|error| AppError::internal(error.to_string()))?;
     }
     Ok(())
 }
 
-pub fn consume(root: &Path, relative_path: &str) -> AiResult<()> {
+pub fn consume(root: &Path, relative_path: &str) -> AppResult<()> {
     let artifact = resolve(root, relative_path)?;
-    fs::remove_file(artifact).map_err(|error| AiError::internal(error.to_string()))
+    fs::remove_file(artifact).map_err(|error| AppError::internal(error.to_string()))
 }
 
-pub fn resolve(root: &Path, relative_path: &str) -> AiResult<PathBuf> {
+pub fn resolve(root: &Path, relative_path: &str) -> AppResult<PathBuf> {
     let manifest = collect(root)?;
     let artifact = manifest
         .iter()
         .find(|artifact| artifact.relative_path == relative_path)
-        .ok_or_else(|| AiError::invalid("Agent artifact is not present in the session manifest"))?;
+        .ok_or_else(|| {
+            AppError::invalid("Agent artifact is not present in the session manifest")
+        })?;
     resolve_collected(root, artifact)
 }
 
-pub fn resolve_collected(root: &Path, artifact: &AgentArtifact) -> AiResult<PathBuf> {
+pub fn resolve_collected(root: &Path, artifact: &AgentArtifact) -> AppResult<PathBuf> {
     let relative_path = &artifact.relative_path;
     let relative = Path::new(relative_path);
     if relative.is_absolute()
@@ -113,17 +113,17 @@ pub fn resolve_collected(root: &Path, artifact: &AgentArtifact) -> AiResult<Path
             )
         })
     {
-        return Err(AiError::invalid("Invalid Agent artifact path"));
+        return Err(AppError::invalid("Invalid Agent artifact path"));
     }
     let root = root
         .canonicalize()
-        .map_err(|error| AiError::internal(error.to_string()))?;
+        .map_err(|error| AppError::internal(error.to_string()))?;
     let candidate = root
         .join(relative)
         .canonicalize()
-        .map_err(|error| AiError::invalid(error.to_string()))?;
+        .map_err(|error| AppError::invalid(error.to_string()))?;
     if !candidate.starts_with(&root) || !candidate.is_file() {
-        return Err(AiError::invalid(
+        return Err(AppError::invalid(
             "Agent artifact is outside its session workspace",
         ));
     }

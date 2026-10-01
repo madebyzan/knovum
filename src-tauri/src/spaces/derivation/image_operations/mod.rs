@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 mod agent;
 pub(crate) mod contracts;
 mod mask;
@@ -39,11 +40,9 @@ pub async fn capabilities(app: &AppHandle) -> ImageOperationCapabilities {
     let operations = routing::supported_operations(routing::backend(&target));
     let configured = match crate::ai::transport::SecurityContext::from_target(&target).await {
         Ok(_) => Capability::Ready,
-        Err(error) if error.code == crate::ai::error::AiErrorCode::NotConfigured => {
-            Capability::Blocked {
-                reason: Reason::ConfigurationIncomplete,
-            }
-        }
+        Err(error) if error.code == "not_configured" => Capability::Blocked {
+            reason: Reason::ConfigurationIncomplete,
+        },
         Err(_) => Capability::Blocked {
             reason: Reason::CredentialUnavailable,
         },
@@ -80,7 +79,7 @@ pub async fn derive(
     app: AppHandle,
     request: DeriveImageRequest,
     stages: Channel<String>,
-) -> Result<CompletedDerivationOutput, String> {
+) -> Result<CompletedDerivationOutput, AppError> {
     let target = match resolve_target(&app) {
         Ok(value) => value,
         Err(error) => return fail_pending(&app, &request, error).await,
@@ -97,18 +96,18 @@ pub async fn derive(
     }
     let (cancellation, _lease) = match crate::ai::executions::acquire(request.id.clone()) {
         Ok(value) => value,
-        Err(error) => return fail_pending(&app, &request, error.to_string()).await,
+        Err(error) => return fail_pending(&app, &request, error.into()).await,
     };
     if let Err(error) = persistence::start(&app, &request, &target).await {
         return fail_pending(&app, &request, error).await;
     }
     if let Err(error) = super::stage(&stages, "renderingSource") {
-        return fail_running(&app, &request, error).await;
+        return fail_running(&app, &request, error.into()).await;
     }
     let source_path =
         match super::source_snapshot::image_path(&app, &request.id, &request.source_edit).await {
             Ok(value) => value,
-            Err(error) => return fail_running(&app, &request, error).await,
+            Err(error) => return fail_running(&app, &request, error.into()).await,
         };
     let rendered = crate::blocking::run({
         let render_app = app.clone();
@@ -125,12 +124,12 @@ pub async fn derive(
     let source = match rendered {
         Ok(value) => match crate::blocking::run(move || source::from_rendered(value)).await {
             Ok(source) => source,
-            Err(error) => return fail_running(&app, &request, error).await,
+            Err(error) => return fail_running(&app, &request, error.into()).await,
         },
-        Err(error) => return fail_running(&app, &request, error).await,
+        Err(error) => return fail_running(&app, &request, error.into()).await,
     };
     if let Err(error) = super::stage(&stages, "processing") {
-        return fail_running(&app, &request, error).await;
+        return fail_running(&app, &request, error.into()).await;
     }
     let generated = match &target {
         crate::ai::tasks::TaskExecutionTarget::Model(model) => {
@@ -159,7 +158,7 @@ pub async fn derive(
             let target = request.operation.target_long_edge();
             match crate::blocking::run(move || output::canonicalize(&generated, target)).await {
                 Ok(image) => persistence::complete(&app, &request, image, &cancellation).await,
-                Err(error) => Err(error),
+                Err(error) => Err(error.into()),
             }
         }
         Err(error) => Err(error),
@@ -167,7 +166,7 @@ pub async fn derive(
     match edited_image {
         Ok(output) => Ok(output),
         Err(error) => {
-            super::failure::fail_message(&app, &request.id, &error).await?;
+            super::failure::fail_message(&app, &request.id, &error.message).await?;
             Err(error)
         }
     }
@@ -176,17 +175,17 @@ pub async fn derive(
 async fn fail_running<T>(
     app: &AppHandle,
     request: &DeriveImageRequest,
-    error: String,
-) -> Result<T, String> {
-    super::failure::fail_message(app, &request.id, &error).await?;
+    error: AppError,
+) -> Result<T, AppError> {
+    super::failure::fail_message(app, &request.id, &error.message).await?;
     Err(error)
 }
 
 async fn fail_pending<T>(
     app: &AppHandle,
     request: &DeriveImageRequest,
-    error: String,
-) -> Result<T, String> {
+    error: AppError,
+) -> Result<T, AppError> {
     super::failure::fail_pending(
         app,
         &request.space_id,
@@ -197,9 +196,7 @@ async fn fail_pending<T>(
     Err(error)
 }
 
-fn resolve_target(app: &AppHandle) -> Result<crate::ai::tasks::TaskExecutionTarget, String> {
-    let selection = settings::default_selection(app, RoutingPurpose::ImageGeneration)
-        .map_err(|error| error.to_string())?;
+fn resolve_target(app: &AppHandle) -> Result<crate::ai::tasks::TaskExecutionTarget, AppError> {
+    let selection = settings::default_selection(app, RoutingPurpose::ImageGeneration)?;
     settings::resolve_task(app, selection, ExecutionCapability::ImageGeneration)
-        .map_err(|error| error.to_string())
 }

@@ -1,4 +1,4 @@
-use crate::command_error::CommandError;
+use crate::app_error::AppError;
 mod execution;
 pub(crate) mod intent;
 pub(crate) mod job;
@@ -22,7 +22,7 @@ use job::{FROM_LIVE, FROM_RUNNING, STATUS_CANCELLED, STATUS_FAILED, STATUS_SUCCE
 pub async fn cancel_enrichment_job<R: Runtime>(
     app: AppHandle<R>,
     job_id: String,
-) -> Result<(), CommandError> {
+) -> Result<(), AppError> {
     // The row is cancelled before the token is signalled so the execution being stopped cannot race
     // its own failure write in first. Cancelling an already finished job is a normal no-op.
     set_status(&app, &job_id, FROM_LIVE, STATUS_CANCELLED, None, false).await?;
@@ -35,7 +35,7 @@ pub async fn cancel_enrichment_job<R: Runtime>(
 pub async fn list_enrichment_jobs<R: Runtime>(
     app: AppHandle<R>,
     space_id: String,
-) -> Result<Vec<EnrichmentJobState>, CommandError> {
+) -> Result<Vec<EnrichmentJobState>, AppError> {
     let pool = db::pool(&app).await?;
     Ok((persistence::list_actionable(pool, Some(&space_id)).await)?)
 }

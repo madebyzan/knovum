@@ -1,6 +1,7 @@
 import type { ComputedRef, ShallowRef } from "vue";
 import { toast } from "vue-sonner";
 
+import { errorMessage } from "../../../foundation/errors/error-format";
 import { i18n } from "../../../foundation/i18n/i18n";
 import { confirmAction } from "../../../shared/ui/confirm-action";
 import { exportSpaceTextFile, safeExportFileName } from "../assets/export";
@@ -79,7 +80,7 @@ export function useConversationActions(state: ConversationActionState) {
         text: `${JSON.stringify(value, null, 2)}\n`,
       });
     } catch (cause) {
-      toast.error(`${i18n.global.t("spaces.assistant.conversations.exportFailed")}: ${String(cause)}`);
+      toast.error(`${i18n.global.t("spaces.assistant.conversations.exportFailed")}: ${errorMessage(cause)}`);
     }
   }
 
@@ -91,7 +92,7 @@ export function useConversationActions(state: ConversationActionState) {
       await adoptBranch(conversation.id, branchId);
       toast.success(i18n.global.t("spaces.assistant.conversations.branchCreated"));
     } catch (cause) {
-      toast.error(String(cause));
+      toast.error(errorMessage(cause));
     }
   }
 
@@ -119,7 +120,7 @@ export function useConversationActions(state: ConversationActionState) {
       state.prompt.value = text;
       await state.send();
     } catch (cause) {
-      toast.error(String(cause));
+      toast.error(errorMessage(cause));
     }
   }
 

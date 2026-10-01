@@ -4,38 +4,36 @@ use std::collections::HashSet;
 use sqlx::Row;
 use tauri::{AppHandle, Manager};
 
-use crate::ai::{
-    capabilities,
-    error::{AiError, AiResult},
-};
+use crate::ai::capabilities;
+use crate::app_error::{AppError, AppResult};
 
 #[tauri::command]
 pub async fn list_recoverable_artifact_workspaces(
     app: AppHandle,
     space_id: String,
-) -> AiResult<Vec<contracts::RecoverableAgentCreation>> {
+) -> AppResult<Vec<contracts::RecoverableAgentCreation>> {
     let root = capabilities::agent_artifacts::space_workspace(&app, &space_id)?;
     if !root.is_dir() {
         return Ok(Vec::new());
     }
     let mut entries = tokio::fs::read_dir(root)
         .await
-        .map_err(|error| AiError::internal(error.to_string()))?;
+        .map_err(|error| AppError::internal(error.to_string()))?;
     let mut recoverable = Vec::new();
     while let Some(entry) = entries
         .next_entry()
         .await
-        .map_err(|error| AiError::internal(error.to_string()))?
+        .map_err(|error| AppError::internal(error.to_string()))?
     {
         let session_id = entry
             .file_name()
             .into_string()
-            .map_err(|_| AiError::invalid("Agent workspace has an invalid session identifier"))?;
+            .map_err(|_| AppError::invalid("Agent workspace has an invalid session identifier"))?;
         uuid::Uuid::parse_str(&session_id)
-            .map_err(|_| AiError::invalid("Agent workspace has an invalid session identifier"))?;
+            .map_err(|_| AppError::invalid("Agent workspace has an invalid session identifier"))?;
         let completed_at = super::session::completed_at(&app, &space_id, &session_id)
             .await
-            .map_err(AiError::internal)?;
+            .map_err(AppError::internal)?;
         let Some(completed_at) = completed_at else {
             continue;
         };

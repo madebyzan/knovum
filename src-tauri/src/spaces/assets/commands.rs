@@ -1,4 +1,4 @@
-use crate::command_error::CommandError;
+use crate::app_error::AppError;
 use std::{collections::BTreeSet, path::PathBuf};
 
 use crate::spaces::assets::{
@@ -12,17 +12,17 @@ pub async fn refresh_asset(
     app: tauri::AppHandle,
     space_id: String,
     node_id: String,
-) -> Result<Option<serde_json::Value>, CommandError> {
-    Ok((enrichment::refresh::refresh_node(&app, space_id, node_id).await)?)
+) -> Result<Option<serde_json::Value>, AppError> {
+    enrichment::refresh::refresh_node(&app, space_id, node_id).await
 }
 
 #[tauri::command]
-pub async fn open_asset(app: tauri::AppHandle, source_path: String) -> Result<(), CommandError> {
+pub async fn open_asset(app: tauri::AppHandle, source_path: String) -> Result<(), AppError> {
     Ok((crate::blocking::run(move || files::open_asset(&app, PathBuf::from(source_path))).await)?)
 }
 
 #[tauri::command]
-pub async fn preview_asset(app: tauri::AppHandle, source_path: String) -> Result<(), CommandError> {
+pub async fn preview_asset(app: tauri::AppHandle, source_path: String) -> Result<(), AppError> {
     let source = access::authorize_spaces_asset(&app, &PathBuf::from(source_path))?;
     Ok((crate::system_preview::open(app, source).await)?)
 }
@@ -32,7 +32,7 @@ pub async fn preview_image(
     app: tauri::AppHandle,
     space_id: String,
     node_id: String,
-) -> Result<(), CommandError> {
+) -> Result<(), AppError> {
     let document = document::load(&app, &space_id, &node_id).await?;
     let render_app = app.clone();
     let path = crate::blocking::run(move || preview::prepare(&render_app, document)).await?;
@@ -44,7 +44,7 @@ pub async fn open_asset_at_location(
     app: tauri::AppHandle,
     source_path: String,
     location: external_open::ExternalLocation,
-) -> Result<(), CommandError> {
+) -> Result<(), AppError> {
     Ok((crate::blocking::run(move || {
         let canonical = access::authorize_spaces_asset(&app, &PathBuf::from(source_path))?;
         external_open::open_at_location(&canonical, location)
@@ -56,7 +56,7 @@ pub async fn open_asset_at_location(
 pub async fn duplicate_asset(
     app: tauri::AppHandle,
     source_path: String,
-) -> Result<String, CommandError> {
+) -> Result<String, AppError> {
     Ok(
         (crate::blocking::run(move || files::duplicate_asset(&app, PathBuf::from(source_path)))
             .await)?,
@@ -67,7 +67,7 @@ pub async fn duplicate_asset(
 pub async fn remove_assets(
     app: tauri::AppHandle,
     source_paths: Vec<String>,
-) -> Result<(), CommandError> {
+) -> Result<(), AppError> {
     let candidates: BTreeSet<_> = source_paths.into_iter().collect();
     if candidates.len() > 10_000 {
         return Err("asset-cleanup-invalid: too many cleanup candidates".into());
@@ -101,7 +101,7 @@ pub async fn export_asset(
     app: tauri::AppHandle,
     source_path: String,
     destination_path: String,
-) -> Result<(), CommandError> {
+) -> Result<(), AppError> {
     Ok((crate::blocking::run(move || {
         files::export_asset(
             &app,
@@ -117,7 +117,7 @@ pub async fn export_text(
     app: tauri::AppHandle,
     destination_path: String,
     text: String,
-) -> Result<(), CommandError> {
+) -> Result<(), AppError> {
     Ok((crate::blocking::run(move || {
         files::export_text(&app, PathBuf::from(destination_path), text)
     })
@@ -130,7 +130,7 @@ pub async fn export_image(
     space_id: String,
     node_id: String,
     destination_path: String,
-) -> Result<(), CommandError> {
+) -> Result<(), AppError> {
     let document = document::load(&app, &space_id, &node_id).await?;
     Ok((crate::blocking::run(move || {
         let source = access::authorize_spaces_asset(&app, &PathBuf::from(&document.source_path))?;

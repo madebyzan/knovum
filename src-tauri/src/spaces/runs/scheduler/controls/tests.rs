@@ -63,7 +63,7 @@ async fn explicit_cancellation_wins_over_duration_expiry_in_the_same_tick() {
     assert_eq!(states.2, "cancelled");
     assert!(states.3.is_none());
     assert_eq!(states.4, "cancelled");
-    assert_eq!(states.5.as_deref(), Some("run-cancelled"));
+    assert_eq!(states.5.as_deref(), Some("run_cancelled"));
 }
 
 #[tokio::test]
@@ -318,7 +318,7 @@ async fn duration_expiry_fences_the_entire_unfinished_run_tree() {
         (
             "blocked".into(),
             "cancelled".into(),
-            Some("run-duration-exceeded".into())
+            Some("run_duration_exceeded".into())
         )
     );
 }

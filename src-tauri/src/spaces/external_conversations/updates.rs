@@ -5,7 +5,8 @@ use std::{
 
 use tauri::AppHandle;
 
-use crate::{ai::error::AiError, external_agents::session::AgentSessionUpdate};
+use crate::app_error::AppError;
+use crate::external_agents::session::AgentSessionUpdate;
 
 enum UpdateCommand {
     Record(AgentSessionUpdate),
@@ -75,7 +76,7 @@ pub fn callback(
     Ok(std::sync::Arc::new(move |update| {
         sender
             .send(UpdateCommand::Record(update))
-            .map_err(|_| AiError::internal("External conversation update channel closed"))
+            .map_err(|_| AppError::internal("External conversation update channel closed"))
     }))
 }
 

@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use crate::spaces::assets::{
     self,
     import::{commit::AssetImportProgress, PreparedSpaceImport},
@@ -15,7 +16,7 @@ pub(super) struct ImportResources<'a> {
 }
 
 impl ImportResources<'_> {
-    pub fn acquire(&mut self, relative: &str) -> Result<PreparedAsset, String> {
+    pub fn acquire(&mut self, relative: &str) -> Result<PreparedAsset, AppError> {
         super::import_control::check(self.cancellation)?;
         let source = resolve_resource(self.directory, relative)?;
         let PreparedSpaceImport { job_id, asset } =
@@ -26,9 +27,9 @@ impl ImportResources<'_> {
         let copied = assets::import::commit::copy_pending_import(&job_id, self.progress).map_err(
             |error| {
                 if error == assets::enrichment::ASSET_PROCESSING_CANCELLED {
-                    super::import_control::CANCELLED.to_owned()
+                    AppError::new("json_canvas_import_cancelled", "Canvas import cancelled")
                 } else {
-                    error
+                    error.into()
                 }
             },
         )?;

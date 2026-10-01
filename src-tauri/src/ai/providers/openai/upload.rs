@@ -4,9 +4,9 @@ use reqwest::multipart::{Form, Part};
 
 use crate::ai::{
     contracts::{FileUploadCapability, UploadedFileReference},
-    error::{AiError, AiErrorCode, AiResult},
     transport::{http_client, SecurityContext},
 };
+use crate::app_error::{AppError, AppResult};
 
 pub struct OpenAiFileUploadAdapter;
 
@@ -17,7 +17,7 @@ impl FileUploadCapability for OpenAiFileUploadAdapter {
         bytes: Vec<u8>,
         mime_type: &'a str,
         file_name: &'a str,
-    ) -> BoxFuture<'a, AiResult<UploadedFileReference>> {
+    ) -> BoxFuture<'a, AppResult<UploadedFileReference>> {
         Box::pin(async move {
             let api_key = ctx.require_api_key()?;
             let client = http_client();
@@ -27,7 +27,7 @@ impl FileUploadCapability for OpenAiFileUploadAdapter {
             let part = Part::bytes(bytes)
                 .file_name(file_name.to_string())
                 .mime_str(mime_type)
-                .map_err(|e| AiError::new(AiErrorCode::InvalidRequest, e.to_string()))?;
+                .map_err(|e| AppError::new("invalid_request", e.to_string()))?;
 
             let form = Form::new().part("file", part).text("purpose", "assistants");
 
@@ -37,11 +37,11 @@ impl FileUploadCapability for OpenAiFileUploadAdapter {
                 .multipart(form)
                 .send()
                 .await
-                .map_err(|e| AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string()))?;
+                .map_err(|e| AppError::new("provider_request_failed", e.to_string()))?;
 
             if !upload_response.status().is_success() {
                 let error_text = response::read_text(upload_response).await?;
-                return Err(AiError::new(AiErrorCode::ProviderRequestFailed, error_text));
+                return Err(AppError::new("provider_request_failed", error_text));
             }
 
             let file_data: serde_json::Value =
@@ -50,10 +50,7 @@ impl FileUploadCapability for OpenAiFileUploadAdapter {
             let file_id = file_data["id"]
                 .as_str()
                 .ok_or_else(|| {
-                    AiError::new(
-                        AiErrorCode::InvalidResponse,
-                        "Missing file ID in OpenAI response",
-                    )
+                    AppError::new("invalid_response", "Missing file ID in OpenAI response")
                 })?
                 .to_string();
 

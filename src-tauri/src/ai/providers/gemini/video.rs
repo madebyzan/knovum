@@ -7,9 +7,9 @@ use crate::ai::{
         GeneratedVideo, VideoGenerationCapability, VideoGenerationInput,
         VideoGenerationStageCallback, VideoGenerationStatus, VideoGenerationSubmission,
     },
-    error::{AiError, AiErrorCode, AiResult},
     transport::{http_client, SecurityContext},
 };
+use crate::app_error::{AppError, AppResult};
 
 pub struct GeminiVideoAdapter;
 
@@ -18,7 +18,7 @@ impl VideoGenerationCapability for GeminiVideoAdapter {
         &'a self,
         ctx: &'a SecurityContext,
         req: &'a VideoGenerationInput,
-    ) -> BoxFuture<'a, AiResult<VideoGenerationSubmission>> {
+    ) -> BoxFuture<'a, AppResult<VideoGenerationSubmission>> {
         Box::pin(async move {
             let api_key = ctx.require_api_key()?;
             let model = if ctx.model.is_empty() {
@@ -64,11 +64,11 @@ impl VideoGenerationCapability for GeminiVideoAdapter {
                 .json(&payload)
                 .send()
                 .await
-                .map_err(|e| AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string()))?;
+                .map_err(|e| AppError::new("provider_request_failed", e.to_string()))?;
 
             if !submission_response.status().is_success() {
                 let error_text = response::read_text(submission_response).await?;
-                return Err(AiError::new(AiErrorCode::ProviderRequestFailed, error_text));
+                return Err(AppError::new("provider_request_failed", error_text));
             }
 
             let initial_payload: serde_json::Value =
@@ -76,9 +76,7 @@ impl VideoGenerationCapability for GeminiVideoAdapter {
 
             let operation_name = initial_payload["name"]
                 .as_str()
-                .ok_or_else(|| {
-                    AiError::new(AiErrorCode::InvalidResponse, "Missing operation name")
-                })?
+                .ok_or_else(|| AppError::new("invalid_response", "Missing operation name"))?
                 .to_string();
 
             Ok(VideoGenerationSubmission {
@@ -93,7 +91,7 @@ impl VideoGenerationCapability for GeminiVideoAdapter {
         &'a self,
         ctx: &'a SecurityContext,
         task_id: &'a str,
-    ) -> BoxFuture<'a, AiResult<VideoGenerationStatus>> {
+    ) -> BoxFuture<'a, AppResult<VideoGenerationStatus>> {
         Box::pin(async move {
             let api_key = ctx.require_api_key()?;
             let endpoint = ctx.endpoint.trim_end_matches('/');
@@ -112,11 +110,11 @@ impl VideoGenerationCapability for GeminiVideoAdapter {
                 .header("x-goog-api-key", api_key)
                 .send()
                 .await
-                .map_err(|e| AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string()))?;
+                .map_err(|e| AppError::new("provider_request_failed", e.to_string()))?;
 
             if !poll_response.status().is_success() {
                 let error_text = response::read_text(poll_response).await?;
-                return Err(AiError::new(AiErrorCode::ProviderRequestFailed, error_text));
+                return Err(AppError::new("provider_request_failed", error_text));
             }
 
             let operation_status: serde_json::Value =
@@ -136,8 +134,8 @@ impl VideoGenerationCapability for GeminiVideoAdapter {
                 } else if let Some(uri) = sample["uri"].as_str() {
                     uri.to_string()
                 } else {
-                    return Err(AiError::new(
-                        AiErrorCode::InvalidResponse,
+                    return Err(AppError::new(
+                        "invalid_response",
                         "No video content in Veo response",
                     ));
                 };
@@ -154,7 +152,7 @@ impl VideoGenerationCapability for GeminiVideoAdapter {
         req: &'a VideoGenerationInput,
         cancellation: &'a CancellationToken,
         stage: VideoGenerationStageCallback<'a>,
-    ) -> BoxFuture<'a, AiResult<GeneratedVideo>> {
+    ) -> BoxFuture<'a, AppResult<GeneratedVideo>> {
         Box::pin(async move {
             crate::ai::capabilities::video::materialize(self, ctx, req, cancellation, stage).await
         })

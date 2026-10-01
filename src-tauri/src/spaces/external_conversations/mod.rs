@@ -77,7 +77,9 @@ pub(crate) async fn close_for_assistant(
     app: tauri::AppHandle,
     session_id: &str,
 ) -> Result<(), String> {
-    lifecycle::close(app, session_id).await
+    lifecycle::close(app, session_id)
+        .await
+        .map_err(|error| error.to_string())
 }
 
 pub(crate) async fn fail_for_assistant(

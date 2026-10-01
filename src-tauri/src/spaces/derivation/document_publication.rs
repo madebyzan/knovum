@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use sha2::{Digest, Sha256};
@@ -40,7 +41,7 @@ pub(super) async fn start(
     action_id: &str,
     engine: &str,
     authority: &super::action_execution::ExecutionAuthority,
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     let request: DocumentPublication = serde_json::from_value(prepared).map_err(db::json_error)?;
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
@@ -59,9 +60,12 @@ pub(super) async fn start(
                 revision_basis: input_basis(&input.role)?,
             })
         })
-        .collect::<Result<Vec<_>, String>>()?;
+        .collect::<Result<Vec<_>, AppError>>()?;
     inputs::insert(&mut tx, &request.id, &sources).await?;
-    tx.commit().await.map_err(db::sql_error)
+    tx.commit()
+        .await
+        .map_err(db::sql_error)
+        .map_err(AppError::from)
 }
 
 pub(super) async fn publish(
@@ -71,7 +75,7 @@ pub(super) async fn publish(
     action_id: &str,
     engine: &str,
     authority: &super::action_execution::ExecutionAuthority,
-) -> Result<DocumentOutput, String> {
+) -> Result<DocumentOutput, AppError> {
     // Prepared Action metadata contains the resolved source document.
     // Rendered bytes come only from the Rust document engine, never from Renderer input.
     let mut request: DocumentPublication =
@@ -106,7 +110,9 @@ pub(super) async fn publish(
     .fetch_one(&mut *tx)
     .await
     .map_err(db::sql_error)?;
-    let mut data: Value = serde_json::from_str(&encoded).map_err(db::json_error)?;
+    let mut data: Value = serde_json::from_str(&encoded)
+        .map_err(db::json_error)
+        .map_err(AppError::from)?;
     let path = pending_output::validate_unpublished_asset(&data)?.to_owned();
     let parent = std::path::Path::new(&path)
         .parent()
@@ -125,7 +131,10 @@ pub(super) async fn publish(
         .map_err(|error| error.to_string())?;
     persist(&mut tx, &request, &mut data, action_id, engine).await?;
     authority.require_active(&mut *tx).await?;
-    tx.commit().await.map_err(db::sql_error)?;
+    tx.commit()
+        .await
+        .map_err(db::sql_error)
+        .map_err(AppError::from)?;
     file.retain();
     Ok(DocumentOutput {
         node_id: request.output_node_id,
@@ -139,7 +148,7 @@ async fn persist(
     data: &mut Value,
     action_id: &str,
     engine: &str,
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     let now = crate::clock::unix_time_millis()?;
     let object = data
         .as_object_mut()
@@ -176,7 +185,7 @@ async fn persist(
     Ok(())
 }
 
-fn input_basis(role: &str) -> Result<inputs::RevisionBasis, String> {
+fn input_basis(role: &str) -> Result<inputs::RevisionBasis, AppError> {
     match role {
         "primary" => Ok(inputs::RevisionBasis::Knowledge),
         "source" => Ok(inputs::RevisionBasis::Asset),
@@ -184,7 +193,7 @@ fn input_basis(role: &str) -> Result<inputs::RevisionBasis, String> {
     }
 }
 
-fn validate(request: &DocumentPublication) -> Result<(), String> {
+fn validate(request: &DocumentPublication) -> Result<(), AppError> {
     let primary = request
         .inputs
         .iter()

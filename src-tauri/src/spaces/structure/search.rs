@@ -1,4 +1,4 @@
-use crate::command_error::CommandError;
+use crate::app_error::AppError;
 use serde::{Deserialize, Serialize};
 use sqlx::Row;
 use tauri::{AppHandle, Runtime};
@@ -32,7 +32,7 @@ enum StructureSearchKind {
 pub(crate) async fn search_structure_global<R: Runtime>(
     app: AppHandle<R>,
     request: StructureSearchRequest,
-) -> Result<Vec<StructureSearchMatch>, CommandError> {
+) -> Result<Vec<StructureSearchMatch>, AppError> {
     let query = request.query.trim();
     if query.is_empty() || query.encode_utf16().count() > 512 {
         return Err("Structure search query must contain 1 to 512 characters".into());

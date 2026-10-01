@@ -3,6 +3,7 @@ import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { toast } from "vue-sonner";
 
+import { errorMessage } from "../../../../foundation/errors/error-format";
 import { canRunAction } from "../../../../shared/contracts/action-availability";
 import { useNodeOperationGate } from "../../canvas/node-operation-gate";
 import type { ImageOperation } from "../../contracts/generated/ImageOperation";
@@ -76,7 +77,7 @@ export function useImageGenerateActions(
     try {
       await deriveImage(store, node.value, operation);
     } catch (error) {
-      toast.error(String(error));
+      toast.error(errorMessage(error));
     } finally {
       busy.value = false;
     }

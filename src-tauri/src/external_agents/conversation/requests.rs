@@ -6,11 +6,11 @@ use std::{
 use tokio::sync::{mpsc, oneshot};
 use tokio_util::sync::CancellationToken;
 
-use crate::ai::error::{AiError, AiResult};
+use crate::app_error::{AppError, AppResult};
 
 pub(super) struct TurnRequest {
     pub(super) prompt: super::super::prompt::AgentPrompt,
-    pub(super) reply: oneshot::Sender<AiResult<()>>,
+    pub(super) reply: oneshot::Sender<AppResult<()>>,
 }
 
 pub(super) enum ConversationRequest {
@@ -28,11 +28,11 @@ static ACTIVE: OnceLock<Mutex<HashMap<String, ConversationHandle>>> = OnceLock::
 pub(super) fn register(
     id: &str,
     cancellation: CancellationToken,
-) -> AiResult<mpsc::Receiver<ConversationRequest>> {
+) -> AppResult<mpsc::Receiver<ConversationRequest>> {
     let (requests, receiver) = mpsc::channel(1);
     active()
         .lock()
-        .map_err(|_| AiError::internal("ACP conversation registry unavailable"))?
+        .map_err(|_| AppError::internal("ACP conversation registry unavailable"))?
         .insert(
             id.to_owned(),
             ConversationHandle {
@@ -43,16 +43,16 @@ pub(super) fn register(
     Ok(receiver)
 }
 
-pub async fn send(id: &str, prompt: super::super::prompt::AgentPrompt) -> AiResult<()> {
+pub async fn send(id: &str, prompt: super::super::prompt::AgentPrompt) -> AppResult<()> {
     let requests = sender(id)?;
     let (reply, outcome) = oneshot::channel();
     requests
         .send(ConversationRequest::Turn(TurnRequest { prompt, reply }))
         .await
-        .map_err(|_| AiError::internal("ACP conversation channel closed"))?;
+        .map_err(|_| AppError::internal("ACP conversation channel closed"))?;
     outcome
         .await
-        .map_err(|_| AiError::internal("ACP conversation turn ended without a result"))?
+        .map_err(|_| AppError::internal("ACP conversation turn ended without a result"))?
 }
 
 pub async fn close(id: &str) -> Result<(), String> {
@@ -96,14 +96,14 @@ pub(super) fn remove(id: &str) {
     }
 }
 
-fn sender(id: &str) -> AiResult<mpsc::Sender<ConversationRequest>> {
+fn sender(id: &str) -> AppResult<mpsc::Sender<ConversationRequest>> {
     let conversations = active()
         .lock()
-        .map_err(|_| AiError::internal("ACP conversation registry unavailable"))?;
+        .map_err(|_| AppError::internal("ACP conversation registry unavailable"))?;
     conversations
         .get(id)
         .map(|handle| handle.requests.clone())
-        .ok_or_else(|| AiError::invalid("ACP conversation is disconnected"))
+        .ok_or_else(|| AppError::invalid("ACP conversation is disconnected"))
 }
 
 fn active() -> &'static Mutex<HashMap<String, ConversationHandle>> {

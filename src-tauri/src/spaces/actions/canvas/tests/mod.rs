@@ -1,4 +1,5 @@
 use super::*;
+use crate::app_error::AppError;
 use crate::spaces::knowledge::indexing::revision;
 
 pub(super) async fn database() -> SqlitePool {
@@ -42,7 +43,7 @@ pub(super) fn request(
 pub(super) async fn start(
     pool: &SqlitePool,
     request: &StartSpaceActionRequest,
-) -> Result<RunObservation, String> {
+) -> Result<RunObservation, AppError> {
     accept(
         pool,
         request,
@@ -100,6 +101,7 @@ async fn stale_or_malformed_acceptance_rolls_back_grant_and_run() {
     assert!(start(&pool, &malformed)
         .await
         .unwrap_err()
+        .message
         .contains("parameters are invalid"));
     let stale = request(
         "export-document-as-docx",
@@ -110,6 +112,7 @@ async fn stale_or_malformed_acceptance_rolls_back_grant_and_run() {
     assert!(start(&pool, &stale)
         .await
         .unwrap_err()
+        .message
         .contains("action-input-stale"));
     let counts: (i64,i64) = sqlx::query_as("SELECT (SELECT COUNT(*) FROM spaces_runs),(SELECT COUNT(*) FROM spaces_authorization_grants)").fetch_one(&pool).await.unwrap();
     assert_eq!(counts, (0, 0));
