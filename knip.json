@@ -4,9 +4,6 @@
     "tests/e2e/**/*.e2e.ts",
     "src/foundation/secrets/secret-store.ts",
     "src/**/*.css",
-    "tools/collect-release.mjs",
-    "tools/release-candidate.mjs",
-    "tools/promote-update.mjs",
     "tools/__tests__/*.test.mjs",
     "tools/__tests__/*.integration.mjs"
   ],
@@ -21,5 +18,6 @@
   "cycles": {
     "dynamicImports": true
   },
+  "ignoreBinaries": ["minisign"],
   "ignoreDependencies": ["@wdio/local-runner"]
 }
