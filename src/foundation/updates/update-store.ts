@@ -13,6 +13,10 @@ import { useTaskStore } from "../tasks/task-store";
 import { updateSnapshotSchema } from "./update-schema";
 import { createUpdateTask } from "./update-task";
 
+async function cancelDownload() {
+  await invokeCommand("cancel_update_download");
+}
+
 export const useUpdateStore = defineStore("application-updates", () => {
   const snapshot = shallowRef<UpdateSnapshot | null>(null);
   const disconnected = shallowRef(false);
@@ -53,15 +57,14 @@ export const useUpdateStore = defineStore("application-updates", () => {
   }
 
   async function observe() {
-    const onEvent = new Channel<unknown>();
-    onEvent.onmessage = (value) => {
+    const onEvent = new Channel<unknown>((value) => {
       try { receive(value); }
       catch (error) {
         disconnected.value = true;
         connected = false;
         void logError(`Invalid updater event: ${formatErrorDiagnostic(error)}`);
       }
-    };
+    });
     try {
       receive(await invokeCommand<unknown>("observe_updates", { onEvent }));
       connected = true;
@@ -86,10 +89,6 @@ export const useUpdateStore = defineStore("application-updates", () => {
       toast.error(message);
       void logError(`Application update failed: ${formatErrorDiagnostic(error)}`);
     } finally { requesting.value = false; }
-  }
-
-  async function cancelDownload() {
-    await invokeCommand("cancel_update_download");
   }
 
   async function cancel() {

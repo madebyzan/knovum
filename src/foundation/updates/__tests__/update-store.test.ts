@@ -4,16 +4,23 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { UpdateSnapshot } from "../../../shared/contracts/generated/UpdateSnapshot";
 import { useUpdateStore } from "../update-store";
 
+type Observer = { onmessage: (value: unknown) => void };
+type CommandArguments = { onEvent?: Observer; version?: string };
+
 const mocks = vi.hoisted(() => ({
-  invoke: vi.fn(),
-  commit: vi.fn(),
-  mirror: vi.fn(),
+  invoke: vi.fn<(command: string, args?: CommandArguments) => Promise<unknown>>(),
+  commit: vi.fn<(install: () => Promise<void>) => Promise<void>>(),
+  mirror: vi.fn<(snapshot: UpdateSnapshot) => void>(),
   tasks: { running: [] as { id: string }[] },
-  toast: { info: vi.fn(), success: vi.fn(), error: vi.fn() },
+  toast: {
+    info: vi.fn<(message: string) => void>(),
+    success: vi.fn<(message: string, options?: unknown) => void>(),
+    error: vi.fn<(message: string) => void>(),
+  },
 }));
 
-vi.mock("@tauri-apps/api/core", () => ({ Channel: class { onmessage = (_value: unknown) => {}; } }));
-vi.mock("@tauri-apps/plugin-log", () => ({ error: vi.fn() }));
+vi.mock("@tauri-apps/api/core", () => ({ Channel: class { constructor(public onmessage: (value: unknown) => void) {} } }));
+vi.mock("@tauri-apps/plugin-log", () => ({ error: vi.fn<(message: string) => Promise<void>>().mockResolvedValue(undefined) }));
 vi.mock("vue-sonner", () => ({ toast: mocks.toast }));
 vi.mock("../../ipc/invoke-command", () => ({ invokeCommand: mocks.invoke }));
 vi.mock("../../i18n/i18n", () => ({ i18n: { global: { t: (key: string) => key } } }));
@@ -37,8 +44,8 @@ beforeEach(() => {
   mocks.tasks.running = [];
   observer = undefined;
   mocks.commit.mockImplementation(async (install: () => Promise<void>) => install());
-  mocks.invoke.mockImplementation(async (command: string, args: { onEvent?: typeof observer }) => {
-    if (command === "observe_updates") { observer = args.onEvent; return snapshot(); }
+  mocks.invoke.mockImplementation(async (command, args) => {
+    if (command === "observe_updates") { observer = args?.onEvent; return snapshot(); }
     return undefined;
   });
 });
@@ -92,8 +99,8 @@ describe("application update session", () => {
   });
 
   it("never regresses to a stale snapshot after a newer channel event", async () => {
-    mocks.invoke.mockImplementationOnce(async (_command: string, args: { onEvent: NonNullable<typeof observer> }) => {
-      args.onEvent.onmessage(snapshot("ready", 3));
+    mocks.invoke.mockImplementationOnce(async (_command, args) => {
+      args?.onEvent?.onmessage(snapshot("ready", 3));
       return snapshot("available", 2);
     });
     const store = useUpdateStore();

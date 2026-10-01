@@ -4,9 +4,9 @@ import { test } from "node:test";
 import { CloseCommitCoordinator } from "../../src/foundation/lifecycle/close-commits.ts";
 
 function deferred() {
-  let resolve;
-  const promise = new Promise((done) => { resolve = done; });
-  return { promise, resolve };
+  let complete;
+  const promise = new Promise((resolve) => { complete = resolve; });
+  return { promise, resolve: complete };
 }
 
 test("installation follows all registered saves", async () => {
@@ -36,7 +36,7 @@ test("failure waits for other saves instead of returning with writes still runni
   let settled = false;
   const result = coordinator.restart(async () => assert.fail("must not install"))
     .catch(() => { settled = true; });
-  await new Promise((done) => setImmediate(done));
+  await new Promise((resolve) => setImmediate(resolve));
   assert.equal(settled, false);
   assert.equal(coordinator.restarting, true);
   slow.resolve();
@@ -80,7 +80,7 @@ test("a second installation is rejected while the installer is running", async (
   const coordinator = new CloseCommitCoordinator();
   const installer = deferred();
   const first = coordinator.restart(() => installer.promise);
-  await new Promise((done) => setImmediate(done));
+  await new Promise((resolve) => setImmediate(resolve));
   await assert.rejects(coordinator.restart(async () => {}), /already in progress/);
   installer.resolve();
   await first;

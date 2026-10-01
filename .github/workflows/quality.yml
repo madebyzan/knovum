@@ -34,6 +34,19 @@ jobs:
         run: pnpm security:web
       - name: Run web gates
         run: pnpm check:web
+      - name: Prepare formatting repair for failed checks
+        if: failure()
+        run: |
+          pnpm exec oxfmt .
+          git diff --binary > "$RUNNER_TEMP/web-format.patch"
+      - name: Upload formatting repair
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: web-format-repair
+          path: ${{ runner.temp }}/web-format.patch
+          if-no-files-found: ignore
+          retention-days: 7
 
   rust:
     name: Rust quality
@@ -63,3 +76,16 @@ jobs:
           cargo fmt --manifest-path src-tauri/Cargo.toml -- --check
           cargo clippy --locked --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
           cargo test --locked --manifest-path src-tauri/Cargo.toml
+      - name: Prepare formatting repair for failed checks
+        if: failure()
+        run: |
+          git ls-files -z '*.rs' | xargs -0 rustfmt --edition 2021 --config skip_children=true
+          git diff --binary > "$RUNNER_TEMP/rust-format.patch"
+      - name: Upload formatting repair
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: rust-format-repair
+          path: ${{ runner.temp }}/rust-format.patch
+          if-no-files-found: ignore
+          retention-days: 7

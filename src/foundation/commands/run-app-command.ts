@@ -11,9 +11,7 @@ export function runAppCommand(command: AppCommand): void {
   if (isApplicationRestarting()) return;
   if (command.availability && !canRunAction(command.availability())) return;
   void Promise.resolve()
-    .then(() => {
-      if (!isApplicationRestarting()) return command.run();
-    })
+    .then(() => isApplicationRestarting() ? undefined : command.run())
     .catch((error) => {
       void logError(`Command ${command.id} failed: ${formatErrorDiagnostic(error)}`);
       toast.error(getErrorMessage(error));

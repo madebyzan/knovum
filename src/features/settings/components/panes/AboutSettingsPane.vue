@@ -25,14 +25,19 @@ const failureMessage = computed(() => {
 });
 
 onMounted(() => {
-  void getVersion().then((value) => { version.value = value; }).catch((error) => {
-    version.value = "—";
-    void logError(`Failed to read application version: ${formatErrorDiagnostic(error)}`);
-  });
+  void loadVersion();
   void updates.connect().catch((error) => {
     void logError(`Failed to observe application updates: ${formatErrorDiagnostic(error)}`);
   });
 });
+async function loadVersion() {
+  try {
+    version.value = await getVersion();
+  } catch (error) {
+    version.value = "—";
+    void logError(`Failed to read application version: ${formatErrorDiagnostic(error)}`);
+  }
+}
 </script>
 
 <template>
