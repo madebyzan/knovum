@@ -1,41 +1,56 @@
 <script setup lang="ts">
 import { AlertTriangle, RotateCcw } from "@lucide/vue";
-import { nextTick, onErrorCaptured, ref, watch } from "vue";
+import { error as logError } from "@tauri-apps/plugin-log";
+import { ErrorCodes, onErrorCaptured, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { formatErrorDiagnostic } from "../foundation/errors/error-format";
 import UiButton from "../shared/ui/UiButton.vue";
-import { handleBoundaryError } from "./error-handling";
 
 const props = defineProps<{ resetKey: string }>();
-const failure = ref<Error>();
+const failed = shallowRef(false);
 const { t } = useI18n();
 
-watch(
-  () => props.resetKey,
-  () => {
-    failure.value = undefined;
-  },
+// Vue supplies descriptions in development and reference URLs in production.
+const renderingErrors = new Set(
+  import.meta.env.PROD
+    ? [ErrorCodes.SETUP_FUNCTION, ErrorCodes.RENDER_FUNCTION, ErrorCodes.ASYNC_COMPONENT_LOADER].map(
+        (code) => `https://vuejs.org/error-reference/#runtime-${code}`,
+      )
+    : ["setup function", "render function", "async component loader"],
 );
 
-onErrorCaptured((caught) => {
-  failure.value = handleBoundaryError(caught, "feature-error-boundary");
+watch(() => props.resetKey, retry);
+
+onErrorCaptured((caught, _instance, info) => {
+  if (!renderingErrors.has(info)) return;
+  if (!failed.value) {
+    failed.value = true;
+    void logError(`Content rendering failed (${info}): ${formatErrorDiagnostic(caught)}`);
+  }
   return false;
 });
 
-async function retry() {
-  failure.value = undefined;
-  await nextTick();
+function retry() {
+  failed.value = false;
 }
 </script>
 
 <template>
-  <slot v-if="!failure" />
-  <main v-else class="grid h-full place-items-center bg-surface-canvas p-8">
-    <section class="w-full max-w-130 rounded-xl border border-stroke-strong bg-surface-raised p-5">
-      <AlertTriangle class="mb-3 size-5 text-fg-danger" />
-      <h1 class="m-0 text-title-sm font-semibold">{{ t("errors.feature.title") }}</h1>
+  <slot v-if="!failed" />
+  <div
+    v-else
+    data-testid="content-render-error"
+    role="alert"
+    class="grid h-full place-items-center bg-surface-canvas p-6"
+  >
+    <section class="flex max-w-sm flex-col items-center text-center">
+      <AlertTriangle aria-hidden="true" class="mb-3 size-5 text-fg-secondary" />
+      <h2 class="m-0 text-label font-medium text-fg-primary">{{ t("errors.feature.title") }}</h2>
       <p class="mt-1.5 text-body text-fg-secondary">{{ t("errors.feature.description") }}</p>
-      <UiButton class="mt-4" @click="retry"><RotateCcw class="size-3.5" /> {{ t("common.retry") }}</UiButton>
+      <UiButton class="mt-4" size="sm" @click="retry">
+        <RotateCcw aria-hidden="true" class="size-3.5" /> {{ t("errors.feature.reopen") }}
+      </UiButton>
     </section>
-  </main>
+  </div>
 </template>

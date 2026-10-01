@@ -13,7 +13,6 @@ import { useBootstrapStore } from "./foundation/bootstrap/bootstrap-store";
 import { usePreferencesStore } from "./foundation/preferences/preferences-store";
 import { archiveSettingsKey } from "./shared/contracts/archive-settings";
 import UiConfirmAction from "./shared/ui/UiConfirmAction.vue";
-import AppErrorBoundary from "./shell/AppErrorBoundary.vue";
 import AppShell from "./shell/AppShell.vue";
 import BootstrapScreen from "./shell/BootstrapScreen.vue";
 
@@ -27,18 +26,17 @@ provide(archiveSettingsKey, createSpaceArchiveSettings());
 
 <template>
   <div class="relative h-full min-h-0 w-full min-w-0 overflow-hidden bg-surface-chrome">
-    <AppErrorBoundary v-if="status === 'ready'">
-      <TooltipProvider
-        :delay-duration="550"
-        :skip-delay-duration="120"
-        :ignore-non-keyboard-focus="true"
-        :disable-hoverable-content="true"
-      >
-        <AppShell :workspace="workspace" />
-        <UiConfirmAction />
-        <Toaster :theme="theme" position="bottom-right" :visible-toasts="4" close-button />
-      </TooltipProvider>
-    </AppErrorBoundary>
+    <TooltipProvider
+      v-if="status === 'ready'"
+      :delay-duration="550"
+      :skip-delay-duration="120"
+      :ignore-non-keyboard-focus="true"
+      :disable-hoverable-content="true"
+    >
+      <AppShell :workspace="workspace" />
+      <UiConfirmAction />
+      <Toaster :theme="theme" position="bottom-right" :visible-toasts="4" close-button />
+    </TooltipProvider>
 
     <Transition name="bootstrap-fade">
       <BootstrapScreen

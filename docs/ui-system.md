@@ -14,6 +14,11 @@ The design language is **quiet, layered, native-aware and keyboard-first**:
 - normal system state is silent: no permanent "Online" or "Ready" chrome;
 - no hero sections, marketing cards, giant headings, pill-heavy navigation or dashboard grids inside workspaces.
 
+Content rendering failures use a compact, borderless state inside the affected work area with
+a neutral icon, a short explanation and an explicit reopen action. Navigation and unrelated
+controls remain available. Do not replace the whole workbench with a diagnostic card or expose
+technical stacks. Expected operation errors stay with the initiating control or Task Center.
+
 ## Surface hierarchy
 
 The visual system has four layers:
