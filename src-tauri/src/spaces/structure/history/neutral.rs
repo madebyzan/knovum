@@ -3,7 +3,14 @@ use std::collections::HashMap;
 use super::super::repository::SpaceStructureSnapshot;
 use super::super::{SizingMode, StructureLayout};
 
-pub(super) type ContentSizeStates = HashMap<String, (f64, f64, SizingMode)>;
+#[derive(Clone, Copy)]
+pub(super) struct ContentSizeState {
+    width: f64,
+    height: f64,
+    sizing_mode: SizingMode,
+}
+
+pub(super) type ContentSizeStates = HashMap<String, ContentSizeState>;
 
 pub(super) fn content_size_states<'a>(
     snapshots: impl Iterator<Item = &'a SpaceStructureSnapshot>,
@@ -18,7 +25,11 @@ pub(super) fn content_size_states<'a>(
                 ..
             } => Some((
                 structure_node_id.clone(),
-                (size.width, size.height, *sizing_mode),
+                ContentSizeState {
+                    width: size.width,
+                    height: size.height,
+                    sizing_mode: *sizing_mode,
+                },
             )),
             _ => None,
         })
@@ -48,14 +59,14 @@ pub(super) fn preserve_content_sizes(
         ) else {
             continue;
         };
-        if before.0 == after.0 {
-            size.width = current.0;
+        if before.width == after.width {
+            size.width = current.width;
         }
-        if before.1 == after.1 {
-            size.height = current.1;
+        if before.height == after.height {
+            size.height = current.height;
         }
-        if before.2 == after.2 {
-            *sizing_mode = current.2;
+        if before.sizing_mode == after.sizing_mode {
+            *sizing_mode = current.sizing_mode;
         }
     }
 }

@@ -1,3 +1,4 @@
+use crate::spaces::knowledge::contracts::{RelationActorKind, RelationKind, RelationStatus};
 use serde::Serialize;
 use serde_json::Value;
 
@@ -18,10 +19,10 @@ pub struct DerivationRelation {
     pub space_id: String,
     pub source_id: String,
     pub target_id: String,
-    pub kind: &'static str,
+    pub kind: RelationKind,
     pub rationale: &'static str,
-    pub status: &'static str,
-    pub actor_kind: &'static str,
+    pub status: RelationStatus,
+    pub actor_kind: RelationActorKind,
     pub created_at: i64,
     pub updated_at: i64,
 }

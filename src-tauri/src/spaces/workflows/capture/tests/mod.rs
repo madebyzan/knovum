@@ -1,4 +1,5 @@
-use super::types::{CandidateBinding, CandidateSource};
+use super::types::{CandidateBinding, CandidateSource, CaptureInputRole};
+use crate::spaces::derivation::input_revision::RevisionBasis;
 
 #[test]
 fn captured_bindings_use_camel_case_fields() {
@@ -26,9 +27,9 @@ fn captured_bindings_use_camel_case_fields() {
         ),
     ] {
         let binding = CandidateBinding {
-            role: "source".into(),
+            role: CaptureInputRole::Source,
             position: 0,
-            revision_basis: "content".into(),
+            revision_basis: RevisionBasis::Knowledge,
             source,
         };
         let value = serde_json::to_value(&binding).unwrap();
@@ -38,4 +39,21 @@ fn captured_bindings_use_camel_case_fields() {
         let decoded: CandidateBinding = serde_json::from_value(value.clone()).unwrap();
         assert_eq!(serde_json::to_value(decoded).unwrap(), value);
     }
+}
+
+#[test]
+fn captured_bindings_reject_unknown_role_and_revision_basis() {
+    let valid = serde_json::json!({
+        "role": "source",
+        "position": 0,
+        "revisionBasis": "knowledge",
+        "sourceType": "inputSlot",
+        "inputSlotId": "input"
+    });
+    let mut unknown_role = valid.clone();
+    unknown_role["role"] = "unknown".into();
+    assert!(serde_json::from_value::<CandidateBinding>(unknown_role).is_err());
+    let mut unknown_basis = valid;
+    unknown_basis["revisionBasis"] = "content".into();
+    assert!(serde_json::from_value::<CandidateBinding>(unknown_basis).is_err());
 }

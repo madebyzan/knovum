@@ -77,9 +77,9 @@ pub(super) fn build(
                 }
             };
             inputs.push(CandidateBinding {
-                role: input.role.clone(),
+                role: input.role,
                 position: input.position,
-                revision_basis: input.revision_basis.clone(),
+                revision_basis: input.revision_basis,
                 source,
             });
         }
@@ -118,7 +118,7 @@ pub(super) fn build(
                 revision_bases: input
                     .uses
                     .iter()
-                    .map(|use_| use_.revision_basis.clone())
+                    .map(|use_| use_.revision_basis)
                     .collect::<std::collections::BTreeSet<_>>()
                     .into_iter()
                     .collect(),

@@ -29,9 +29,9 @@ pub(super) fn finish(
                 boundary.uses.push(BoundaryUse {
                     derivation_id: step.derivation_id.clone(),
                     position: input.position,
-                    role: input.role.clone(),
+                    role: input.role,
                     source_revision: input.source_revision.clone(),
-                    revision_basis: input.revision_basis.clone(),
+                    revision_basis: input.revision_basis,
                 });
             }
         }

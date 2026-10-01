@@ -4,6 +4,7 @@ import { computed } from "vue";
 
 import type { WorkspaceDefinition } from "../../shared/contracts/workspace-definition";
 import UiIconButton from "../../shared/ui/UiIconButton.vue";
+import TaskCenter from "./TaskCenter.vue";
 import WorkspaceNavigationControls from "./WorkspaceNavigationControls.vue";
 
 const props = defineProps<{
@@ -13,8 +14,9 @@ const props = defineProps<{
   rightSidebarOpen: boolean;
   rightSidebarLayoutWidth: number;
 }>();
+const trailingUtilityWidth = computed(() => Math.max(props.rightSidebarLayoutWidth, 96));
 const toolbarColumns = computed(
-  () => `${props.sidebarWidth}px minmax(0, 1fr) ${props.rightSidebarLayoutWidth}px`,
+  () => `${props.sidebarWidth}px minmax(0, 1fr) ${trailingUtilityWidth.value}px`,
 );
 const emit = defineEmits<{
   "toggle-sidebar": [];
@@ -42,28 +44,32 @@ const emit = defineEmits<{
         />
         <component :is="workspace.toolbarLeading" class="ml-auto shrink-0" />
       </div>
-      <div class="flex min-w-0 items-center pl-2" :class="rightSidebarOpen ? 'pr-3' : 'pr-14'">
+      <div class="flex min-w-0 items-center px-2">
         <component :is="workspace.toolbar" class="min-w-0 flex-1" />
       </div>
+      <div
+        class="z-10 col-start-3 row-start-1 flex min-w-max items-center gap-1 self-center justify-self-end pr-3"
+      >
+        <TaskCenter :current-scope="workspace.currentScope?.value" />
+        <UiIconButton
+          id="workspace-right-sidebar-toggle"
+          :label="$t('shell.toggleRightSidebar')"
+          aria-controls="spaces-right-sidebar"
+          :aria-expanded="rightSidebarOpen"
+          shortcut="$mod+Shift+B"
+          :active="rightSidebarOpen"
+          :disabled="!workspace.rightSidebarAvailable.value"
+          size="md"
+          @click="emit('toggle-right-sidebar')"
+        >
+          <component
+            :is="rightSidebarOpen ? PanelRightClose : PanelRightOpen"
+            class="size-4.5"
+            :stroke-width="1.55"
+          />
+        </UiIconButton>
+      </div>
     </div>
-    <UiIconButton
-      id="workspace-right-sidebar-toggle"
-      class="absolute top-1/2 right-3 -translate-y-1/2"
-      :label="$t('shell.toggleRightSidebar')"
-      aria-controls="spaces-right-sidebar"
-      :aria-expanded="rightSidebarOpen"
-      shortcut="$mod+Shift+B"
-      :active="rightSidebarOpen"
-      :disabled="!workspace.rightSidebarAvailable.value"
-      size="md"
-      @click="emit('toggle-right-sidebar')"
-    >
-      <component
-        :is="rightSidebarOpen ? PanelRightClose : PanelRightOpen"
-        class="size-4.5"
-        :stroke-width="1.55"
-      />
-    </UiIconButton>
   </header>
 </template>
 

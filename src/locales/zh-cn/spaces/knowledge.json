@@ -144,7 +144,6 @@
     "loadFailed": "无法加载 Schema 类型"
   },
   "visual": {
-    "pending": "正在分析图像内容…",
     "empty": "暂无图像分析内容"
   }
 }

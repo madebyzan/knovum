@@ -79,7 +79,7 @@ fn main() {
                         "retry_enrichment_job",
                         "request_media_transcription",
                         "generate_media_insights",
-                        "list_enrichment_jobs",
+                        "list_actionable_enrichment_jobs",
                         "capture_web_resource",
                         "import_web_image",
                         "read_space_clipboard_content",

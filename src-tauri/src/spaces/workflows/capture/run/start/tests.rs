@@ -25,9 +25,9 @@ async fn insert_node(pool: &SqlitePool, id: &str, mut data: Value) {
 }
 fn workflow() -> SavedCapturedWorkflow {
     let binding = |source| CandidateBinding {
-        role: "primary".into(),
+        role: CaptureInputRole::Primary,
         position: 0,
-        revision_basis: "knowledge".into(),
+        revision_basis: crate::spaces::derivation::input_revision::RevisionBasis::Knowledge,
         source,
     };
     SavedCapturedWorkflow {
@@ -43,7 +43,9 @@ fn workflow() -> SavedCapturedWorkflow {
             input_slots: vec![CandidateInputSlot {
                 id: "idea".into(),
                 kind: "note".into(),
-                revision_bases: vec!["knowledge".into()],
+                revision_bases: vec![
+                    crate::spaces::derivation::input_revision::RevisionBasis::Knowledge,
+                ],
                 min_items: 1,
                 max_items: 1,
                 ordered: false,

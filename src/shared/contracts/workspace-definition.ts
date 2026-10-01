@@ -1,6 +1,7 @@
 import type { Component, ComputedRef } from "vue";
 
 import type { AppCommand } from "./app-command";
+import type { TaskReference } from "./task-reference";
 
 export interface WorkspaceDefinition {
   view: Component;
@@ -15,5 +16,6 @@ export interface WorkspaceDefinition {
   };
   openDefaultRightSidebar: () => void;
   rightSidebarAvailable: ComputedRef<boolean>;
+  currentScope?: ComputedRef<TaskReference | undefined>;
   commands: ComputedRef<readonly AppCommand[]>;
 }

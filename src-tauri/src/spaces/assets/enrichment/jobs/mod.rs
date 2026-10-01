@@ -11,7 +11,7 @@ pub(crate) mod scheduler;
 mod tests;
 
 pub(crate) use execution::RunEnrichmentJobRequest;
-pub use job::{EnqueueEnrichmentJobRequest, EnrichmentJobState};
+pub use job::{EnqueueEnrichmentJobRequest, EnrichmentJobProjection, EnrichmentJobState};
 
 use tauri::{AppHandle, Runtime};
 
@@ -32,12 +32,11 @@ pub async fn cancel_enrichment_job<R: Runtime>(
 }
 
 #[tauri::command]
-pub async fn list_enrichment_jobs<R: Runtime>(
+pub async fn list_actionable_enrichment_jobs<R: Runtime>(
     app: AppHandle<R>,
-    space_id: String,
-) -> Result<Vec<EnrichmentJobState>, AppError> {
+) -> Result<Vec<EnrichmentJobProjection>, AppError> {
     let pool = db::pool(&app).await?;
-    Ok((persistence::list_actionable(pool, Some(&space_id)).await)?)
+    Ok((persistence::list_actionable_projection(pool, None).await)?)
 }
 
 pub(crate) async fn reconcile_interrupted(app: &tauri::AppHandle) -> Result<(), String> {

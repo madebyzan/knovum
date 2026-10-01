@@ -19,9 +19,9 @@ pub struct SpaceSceneInput {
     viewport_zoom: f64,
     thumbnail_path: Option<String>,
     order_index: i64,
-    focus_structure_node_ids: Value,
-    relation_kinds: Value,
-    relation_statuses: Value,
+    focus_structure_node_ids: Vec<String>,
+    relation_kinds: Vec<crate::spaces::knowledge::contracts::RelationKind>,
+    relation_statuses: Vec<crate::spaces::knowledge::contracts::RelationStatus>,
     query_filter: Value,
 }
 

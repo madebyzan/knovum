@@ -161,3 +161,93 @@ async fn execution_choice_is_frozen_at_creation_and_survives_retry_and_restart()
         first
     );
 }
+
+#[tokio::test]
+async fn actionable_projection_identifies_each_live_job_owner_across_spaces() {
+    let data = json!({"kind":"image","title":"First image","sourceRevision":"asset-1"});
+    let pool = fixture(&data).await;
+    sqlx::query("INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES('other','space','Other Space',1,1)")
+        .execute(&pool)
+        .await
+        .unwrap();
+    sqlx::query("INSERT INTO spaces_nodes(id,space_id,kind,initial_x,initial_y,data,created_at,updated_at) VALUES('other-node','other','image',0,0,$1,1,1)")
+        .bind(json!({"kind":"image","title":"Second image","sourceRevision":"asset-2"}).to_string())
+        .execute(&pool)
+        .await
+        .unwrap();
+
+    let mut tx = pool.begin().await.unwrap();
+    synchronize_for_node(&mut tx, "space", "node", &data, 2, None)
+        .await
+        .unwrap();
+    synchronize_for_node(
+        &mut tx,
+        "other",
+        "other-node",
+        &json!({"kind":"image","title":"Second image","sourceRevision":"asset-2"}),
+        3,
+        None,
+    )
+    .await
+    .unwrap();
+    tx.commit().await.unwrap();
+
+    let projections = persistence::list_actionable_projection(&pool, None)
+        .await
+        .unwrap();
+    assert_eq!(projections.len(), 2);
+    assert_eq!(projections[0].job.space_id, "space");
+    assert_eq!(projections[0].space_title, "Space");
+    assert_eq!(projections[0].node_title, "First image");
+    assert_eq!(projections[0].node_kind, "image");
+    assert_eq!(projections[1].job.space_id, "other");
+    assert_eq!(projections[1].space_title, "Other Space");
+    assert_eq!(projections[1].node_title, "Second image");
+
+    let other_job_id = projections[1].job.id.clone();
+    sqlx::query("UPDATE spaces SET title='Renamed Space' WHERE id='other'")
+        .execute(&pool)
+        .await
+        .unwrap();
+    sqlx::query("UPDATE spaces_nodes SET data=json_set(data,'$.title','Renamed image') WHERE id='other-node'")
+        .execute(&pool)
+        .await
+        .unwrap();
+    let renamed = persistence::list_actionable_projection(&pool, None)
+        .await
+        .unwrap();
+    assert_eq!(renamed[1].job.id, other_job_id);
+    assert_eq!(renamed[1].space_title, "Renamed Space");
+    assert_eq!(renamed[1].node_title, "Renamed image");
+
+    sqlx::query("UPDATE spaces SET archived_at=4 WHERE id='other'")
+        .execute(&pool)
+        .await
+        .unwrap();
+    let projected = persistence::list_actionable_projection(&pool, None)
+        .await
+        .unwrap();
+    assert_eq!(projected.len(), 1);
+    let schedulable = persistence::list_actionable(&pool, None).await.unwrap();
+    assert_eq!(schedulable.len(), 2);
+    assert_eq!(schedulable[1].id, other_job_id);
+
+    sqlx::query("UPDATE spaces SET archived_at=NULL WHERE id='other'")
+        .execute(&pool)
+        .await
+        .unwrap();
+    let restored = persistence::list_actionable_projection(&pool, None)
+        .await
+        .unwrap();
+    assert_eq!(restored[1].job.id, other_job_id);
+
+    sqlx::query("UPDATE spaces_nodes SET deleted_at=4 WHERE id='other-node'")
+        .execute(&pool)
+        .await
+        .unwrap();
+    let projections = persistence::list_actionable_projection(&pool, None)
+        .await
+        .unwrap();
+    assert_eq!(projections.len(), 1);
+    assert_eq!(projections[0].job.node_id, "node");
+}

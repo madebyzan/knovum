@@ -1,7 +1,6 @@
 {
   "queue": {
     "title": "正在处理",
-    "subtitle": "还剩 {count} 项",
     "pending": "等待中 {count}",
     "running": "处理中 {count}",
     "failed": "失败 {count}"
@@ -12,6 +11,14 @@
     "transcribe_media": "音频 Whisper 转写",
     "parse_document": "文档内容提取",
     "analyze_document": "文档图片分析"
+  },
+  "jobStatus": {
+    "pending": "排队中",
+    "running": "进行中",
+    "awaiting_configuration": "需要配置",
+    "failed": "失败",
+    "succeeded": "已完成",
+    "cancelled": "已取消"
   },
   "matchBadge": {
     "documentOcr": "文档识别文字",
@@ -25,6 +32,7 @@
     "rebuildDone": "索引完成，已构建 {count} 条向量数据。"
   },
   "failed": "解析处理失败",
+  "nodeUnavailable": "任务所属节点已不可用",
   "imageProgress": "正在处理图片",
   "mediaProgress": "正在处理媒体",
   "applyingEdit": "正在应用编辑",

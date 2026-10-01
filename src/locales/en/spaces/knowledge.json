@@ -144,7 +144,6 @@
     "loadFailed": "Could not load schema types"
   },
   "visual": {
-    "pending": "Analyzing image content…",
     "empty": "No image analysis yet"
   }
 }

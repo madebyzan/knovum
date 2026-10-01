@@ -8,7 +8,6 @@ import UiSplitterHandle from "../../shared/ui/UiSplitterHandle.vue";
 import FeatureErrorBoundary from "../FeatureErrorBoundary.vue";
 import { workspaceSidebarGeometry } from "../sidebar-geometry";
 import { useWorkspaceSplitter } from "../use-workspace-splitter";
-import TaskCenter from "./TaskCenter.vue";
 import WorkspaceRightSidebar from "./WorkspaceRightSidebar.vue";
 import WorkspaceSidebar from "./WorkspaceSidebar.vue";
 
@@ -92,7 +91,6 @@ function onDrag(active: boolean, commit: () => void) {
             <FeatureErrorBoundary reset-key="spaces">
               <component :is="workspace.view" />
             </FeatureErrorBoundary>
-            <div class="absolute right-3 bottom-3 z-30"><TaskCenter /></div>
           </div>
         </main>
       </SplitterPanel>

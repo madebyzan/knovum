@@ -4,6 +4,7 @@ import {
   loadSpaceCredential,
   saveSpaceCredential,
 } from "../credentials/credential-storage";
+import { refreshEnrichmentJobs } from "../enrichment/enrichment-jobs-query";
 import type { SpaceCredential } from "../model/schema/credential";
 import {
   archiveSpace as persistSpaceArchive,
@@ -20,6 +21,7 @@ export async function archiveSpace(context: SpaceSessionContext, id: string) {
   const archivedAt = Date.now();
   await persistSpaceArchive(id);
   Object.assign(space, { archivedAt, updatedAt: archivedAt });
+  void refreshEnrichmentJobs();
   await leaveUnavailableSpace(context, id);
   discardSpaceTab(context, id);
 }
@@ -29,6 +31,7 @@ export async function unarchiveSpace(context: SpaceSessionContext, id: string) {
   if (!space) return;
   await persistSpaceUnarchive(id);
   Object.assign(space, { archivedAt: null, updatedAt: Date.now() });
+  void refreshEnrichmentJobs();
 }
 
 export async function permanentlyDeleteSpace(context: SpaceSessionContext, id: string) {
@@ -52,6 +55,7 @@ export async function permanentlyDeleteSpace(context: SpaceSessionContext, id: s
     throw error;
   }
   context.spaces.value = context.spaces.value.filter((candidate) => candidate.id !== id);
+  void refreshEnrichmentJobs();
   discardSpaceTab(context, id);
   await cleanupDeletedSpaceAssets(paths);
 }

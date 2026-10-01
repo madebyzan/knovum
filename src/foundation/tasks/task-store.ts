@@ -1,14 +1,15 @@
 import { defineStore } from "pinia";
 import { computed, onScopeDispose, ref } from "vue";
 
-import { getErrorMessage } from "../errors/error-format";
+import { createTaskCancellation } from "./task-cancellation";
 import { TaskExecutionHandlers, type CancelTask, type OpenTask } from "./task-execution-handlers";
+import { trimTaskHistory } from "./task-history";
 import type { AppTask, TaskStatus } from "./task-model";
+import { createTaskObservation, type ObservedTask } from "./task-observation";
 import { createTaskProgress } from "./task-progress";
 import { createTaskRetryController } from "./task-retry";
 
 const SUCCESS_DISMISS_DELAY_MS = 10_000;
-const TASK_HISTORY_LIMIT = 50;
 
 export const useTaskStore = defineStore("tasks", () => {
   const tasks = ref<AppTask[]>([]);
@@ -19,30 +20,43 @@ export const useTaskStore = defineStore("tasks", () => {
   const running = computed(() => tasks.value.filter((task) => task.status === "running"));
   const failed = computed(() => tasks.value.filter((task) => task.status === "failed"));
   const completed = computed(() => tasks.value.filter((task) => task.status === "succeeded"));
-  const retryController = createTaskRetryController(
+  const retryController = createTaskRetryController({
     tasks,
-    (id) => {
+    succeed: (id) => {
       if (!externallySettled.has(id)) succeed(id);
     },
     trimHistory,
-  );
+    externallySettled,
+  });
+  const observation = createTaskObservation({ tasks, handlers, externallySettled, remove });
+  const cancel = createTaskCancellation({ tasks, handlers, externallySettled, finish });
 
-  function dismiss(id: string) {
+  function remove(id: string) {
     const timer = completionTimers.get(id);
     if (timer) clearTimeout(timer);
     completionTimers.delete(id);
     handlers.delete(id);
     externallySettled.delete(id);
     retryController.delete(id);
+    observation.delete(id);
     tasks.value = tasks.value.filter((task) => task.id !== id);
   }
 
+  function dismiss(id: string) {
+    const task = tasks.value.find((candidate) => candidate.id === id);
+    if (
+      task?.durable &&
+      (task.status === "queued" ||
+        task.status === "running" ||
+        task.status === "attention" ||
+        task.status === "failed")
+    )
+      return;
+    remove(id);
+  }
+
   function trimHistory() {
-    while (tasks.value.length > TASK_HISTORY_LIMIT) {
-      const removable = tasks.value.findLast((candidate) => candidate.status !== "running");
-      if (!removable) return;
-      dismiss(removable.id);
-    }
+    trimTaskHistory(tasks, remove);
   }
 
   function start(
@@ -88,24 +102,6 @@ export const useTaskStore = defineStore("tasks", () => {
     return task;
   }
 
-  async function cancel(id: string) {
-    const task = tasks.value.find((candidate) => candidate.id === id);
-    const handler = handlers.cancellation(id);
-    if (!task || task.status !== "running" || task.cancelling || !handler) return;
-    task.cancelling = true;
-    task.cancellable = false;
-    try {
-      await handler();
-      if (!externallySettled.has(id)) finish(id, "cancelled");
-    } catch (error) {
-      if (externallySettled.has(id)) {
-        task.cancelling = false;
-        task.cancellable = true;
-        task.statusMessage = getErrorMessage(error);
-      } else finish(id, "failed", getErrorMessage(error));
-    }
-  }
-
   function setCancellation(id: string, handler?: CancelTask) {
     const task = tasks.value.find((candidate) => candidate.id === id);
     if (!task || task.status !== "running") return;
@@ -145,20 +141,14 @@ export const useTaskStore = defineStore("tasks", () => {
     finish(id, "cancelled");
   }
 
-  function setObservedRetry(id: string, retry: () => Promise<void>) {
-    retryController.setRetry(id, async () => {
-      externallySettled.add(id);
-      try {
-        await retry();
-      } catch (error) {
-        externallySettled.delete(id);
-        throw error;
-      }
-    });
+  function reconcileObserved(producer: string, entries: readonly ObservedTask[]) {
+    observation.reconcile(producer, entries);
+    trimHistory();
   }
 
-  function clearCompleted() {
-    for (const task of completed.value) dismiss(task.id);
+  async function retry(id: string) {
+    if (observation.handlesRetry(id)) await observation.retry(id);
+    else await retryController.retry(id);
   }
 
   onScopeDispose(() => {
@@ -167,6 +157,7 @@ export const useTaskStore = defineStore("tasks", () => {
     handlers.clear();
     externallySettled.clear();
     retryController.clear();
+    observation.clear();
   });
 
   return {
@@ -177,6 +168,7 @@ export const useTaskStore = defineStore("tasks", () => {
     start,
     restoreRunning,
     restoreFailed: retryController.restoreFailed,
+    reconcileObserved,
     indeterminate,
     progress,
     setStatusMessage,
@@ -189,9 +181,9 @@ export const useTaskStore = defineStore("tasks", () => {
     fail,
     cancelled,
     setRetry: retryController.setRetry,
-    setObservedRetry,
-    retry: retryController.retry,
+    setObservedRetry: retryController.setObservedRetry,
+    retry,
     dismiss,
-    clearCompleted,
+    clearCompleted: () => completed.value.forEach(({ id }) => dismiss(id)),
   };
 });

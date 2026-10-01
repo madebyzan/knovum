@@ -1,3 +1,4 @@
+import { refreshEnrichmentJobs } from "../enrichment/enrichment-jobs-query";
 import { updateSpaceTitle } from "./space-operations";
 import type { SpaceSessionContext } from "./space-session-context";
 
@@ -11,4 +12,5 @@ export async function renameSpace(context: SpaceSessionContext, id: string, titl
   await updateSpaceTitle(id, title);
   space.title = title;
   space.updatedAt = Date.now();
+  void refreshEnrichmentJobs();
 }

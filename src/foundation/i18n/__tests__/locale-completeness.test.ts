@@ -24,6 +24,7 @@ const serializedValueMaps = new Set([
   "spaces.knowledge.health.issues",
   "spaces.knowledge.relations.kinds",
   "spaces.processing.enrichmentJobType",
+  "spaces.processing.jobStatus",
 ]);
 
 function flattenLocale(tree: LocaleTree, parent = "", keys = new Set<string>()) {

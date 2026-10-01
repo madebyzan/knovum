@@ -3,10 +3,12 @@ import { EditorContent } from "@tiptap/vue-3";
 import { flushPromises, mount } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { defineComponent, nextTick } from "vue";
+import { defineComponent, nextTick, shallowRef } from "vue";
 
 import { i18n } from "../../../foundation/i18n/i18n";
+import type { EnrichmentJobProjection } from "../contracts/generated/EnrichmentJobProjection";
 import { createSpaceNotePayload } from "../editor/tiptap-content";
+import { enrichmentProjectionKey } from "../enrichment/use-enrichment-task-projection";
 import type { SpaceCanvasTextPayload } from "../model/nodes/capabilities";
 import type { SpaceVideoPayload } from "../model/nodes/node-payload";
 import SpaceCanvasMedia from "../presentation/canvas/nodes/SpaceCanvasMedia.vue";
@@ -121,11 +123,48 @@ describe("Konva rich node interactions", () => {
           fileName: "interview.mp4",
         },
       },
-      global: { plugins: [i18n] },
+      global: { plugins: [i18n], provide: { [enrichmentProjectionKey]: shallowRef([]) } },
     });
 
     expect(wrapper.get('[role="status"]').attributes("aria-label")).toBe(
       i18n.global.t("spaces.media.analysis.inProgress"),
+    );
+  });
+
+  it("identifies a visual analysis job on its own canvas node", () => {
+    const store = useSpaceStore();
+    store.activeSpaceId = "space-1";
+    const record = {
+      job: {
+        id: "job-1",
+        spaceId: "space-1",
+        nodeId: "image-1",
+        jobType: "analyze_visual",
+        status: "failed",
+        sourceRevision: "revision-1",
+        attempts: 1,
+        executionTarget: null,
+        error: "Model unavailable",
+        createdAt: 1,
+        updatedAt: 2,
+      },
+      spaceTitle: "Research",
+      nodeTitle: "Cover",
+      nodeKind: "image",
+    } satisfies EnrichmentJobProjection;
+    const wrapper = mount(SpaceCanvasNodeStatus, {
+      props: {
+        id: "image-1",
+        data: { kind: "image", title: "Cover", assetPath: "/spaces/cover.png", fileName: "cover.png" },
+      },
+      global: { plugins: [i18n], provide: { [enrichmentProjectionKey]: shallowRef([record]) } },
+    });
+
+    expect(wrapper.get('[role="status"]').attributes("aria-label")).toContain(
+      i18n.global.t("spaces.processing.enrichmentJobType.analyze_visual"),
+    );
+    expect(wrapper.get('[role="status"]').attributes("aria-label")).toContain(
+      i18n.global.t("spaces.processing.jobStatus.failed"),
     );
   });
 });

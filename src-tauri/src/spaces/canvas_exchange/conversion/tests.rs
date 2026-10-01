@@ -40,7 +40,10 @@ fn maps_edges_to_semantic_relations_and_rejects_unknown_targets() {
     let mapped = relation(&edge, &identities, "space").unwrap();
     assert_eq!(mapped.source_id, "node-a");
     assert_eq!(mapped.target_id, "node-b");
-    assert_eq!(mapped.kind, "related");
+    assert_eq!(
+        mapped.kind,
+        crate::spaces::knowledge::contracts::RelationKind::Related
+    );
     assert_eq!(mapped.rationale, "supports");
     assert!(relation(&edge, &HashMap::new(), "space").is_err());
 }

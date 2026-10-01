@@ -2,7 +2,7 @@ import { decodeAppError } from "../../../foundation/errors/app-error";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { i18n } from "../../../foundation/i18n/i18n";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
-import { refreshEnrichmentTasks } from "../enrichment/job-observation";
+import { refreshEnrichmentJobs } from "../enrichment/enrichment-jobs-query";
 import { isSpaceManagedAssetPayload } from "../model/nodes/capabilities";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
 import { cancelSpaceAssetProcessing, deriveSpaceAssetContent } from "./asset-operations";
@@ -57,12 +57,8 @@ export function scheduleSpaceAssetProcessing(input: SpaceAssetProcessingInput) {
     }
     currentContent = enriched;
     context.applyNodeContentForSpace(spaceId, nodeId, enriched);
-    try {
-      await refreshEnrichmentTasks(spaceId);
-      tasks.succeed(taskId);
-    } catch (error) {
-      tasks.fail(taskId, getErrorMessage(error));
-    }
+    tasks.succeed(taskId);
+    void refreshEnrichmentJobs();
   }
 
   async function handleEnrichmentFailure(error: unknown) {
@@ -75,11 +71,7 @@ export function scheduleSpaceAssetProcessing(input: SpaceAssetProcessingInput) {
     if (isSpaceManagedAssetPayload(currentContent)) {
       context.applyNodeContentForSpace(spaceId, nodeId, { ...currentContent, processingState: "failed" });
     }
-    try {
-      await refreshEnrichmentTasks(spaceId);
-      tasks.fail(taskId, getErrorMessage(error));
-    } catch (resumeError) {
-      tasks.fail(taskId, `${getErrorMessage(error)} · ${getErrorMessage(resumeError)}`);
-    }
+    tasks.fail(taskId, getErrorMessage(error));
+    void refreshEnrichmentJobs();
   }
 }

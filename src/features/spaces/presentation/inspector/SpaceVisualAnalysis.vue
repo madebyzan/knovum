@@ -62,11 +62,12 @@ async function retry() {
       </div>
     </template>
     <p
-      v-else-if="loading || visualJob?.status === 'pending' || visualJob?.status === 'running'"
-      class="text-caption leading-relaxed text-fg-tertiary"
+      v-if="visualJob?.status === 'pending' || visualJob?.status === 'running'"
+      class="mt-2 text-caption leading-relaxed text-fg-tertiary"
       role="status"
     >
-      {{ t("spaces.knowledge.visual.pending") }}
+      {{ t(`spaces.processing.enrichmentJobType.${visualJob.jobType}`) }} ·
+      {{ t(`spaces.processing.jobStatus.${visualJob.status}`) }}
     </p>
     <p
       v-else-if="visualJob?.status === 'awaiting_configuration'"
@@ -78,12 +79,12 @@ async function retry() {
       v-else-if="visualJob?.status === 'failed'"
       class="flex items-center justify-between gap-2 text-caption text-fg-danger"
     >
-      <span>{{ t("spaces.processing.failed") }}</span>
+      <span class="min-w-0 wrap-break-word">{{ visualJob.error ?? t("spaces.processing.failed") }}</span>
       <UiButton size="sm" variant="ghost" :disabled="retrying" @click="retry">
         <RefreshCw class="size-3" :class="retrying && 'animate-spin'" />{{ t("common.retry") }}
       </UiButton>
     </div>
-    <p v-else class="text-caption leading-relaxed text-fg-tertiary">
+    <p v-else-if="!knowledge && !loading" class="text-caption leading-relaxed text-fg-tertiary">
       {{ t("spaces.knowledge.visual.empty") }}
     </p>
   </div>

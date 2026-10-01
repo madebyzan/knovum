@@ -1,5 +1,4 @@
 import { commitActiveCanvasThumbnail } from "../../canvas/thumbnail-scheduler";
-import { refreshEnrichmentTasks } from "../../enrichment/job-observation";
 import type { createSpaceMediaActions } from "../../media/actions";
 import type { createRightSidebarActions } from "../../right-sidebar/right-sidebar-actions";
 import {
@@ -75,20 +74,14 @@ export function assembleSpaceActions(input: Input) {
     relationStatuses: state.relationStatusFilter,
     queryFilter: state.savedQueryFilter,
   };
-  const refreshTasks = () => refreshEnrichmentTasks(state.activeSpaceId.value);
-  const initialize = async (title: string) => {
-    await initializeSpaces(spaceContext, title);
-    await refreshTasks();
-  };
+  const initialize = (title: string) => initializeSpaces(spaceContext, title);
   const openSpace = async (id: string) => {
     await commitActiveCanvasThumbnail(state);
     state.workspaceMode.value = "space";
     await navigateToSpace(spaceContext, id);
-    await refreshTasks();
   };
   const refreshActiveSpace = async () => {
     await refreshSpace(spaceContext);
-    await refreshTasks();
   };
   const beginUrlCapture = (capture: Omit<(typeof state.urlCaptures.value)[number], "id">) => {
     const projection = { ...capture, id: crypto.randomUUID() };

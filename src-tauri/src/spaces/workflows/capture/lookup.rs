@@ -138,10 +138,15 @@ pub(super) async fn derivation_inputs(
             (Some(node_id), Some(kind)) => inputs.push(CapturedInput {
                 node_id,
                 kind,
-                role: row.try_get("role").map_err(db::sql_error)?,
+                role: super::types::CaptureInputRole::parse(
+                    &row.try_get::<String, _>("role").map_err(db::sql_error)?,
+                )?,
                 position: row.try_get("position").map_err(db::sql_error)?,
                 source_revision: row.try_get("source_revision").map_err(db::sql_error)?,
-                revision_basis: row.try_get("revision_basis").map_err(db::sql_error)?,
+                revision_basis: crate::spaces::derivation::input_revision::RevisionBasis::parse(
+                    &row.try_get::<String, _>("revision_basis")
+                        .map_err(db::sql_error)?,
+                )?,
             }),
             (Some(node_id), None) => issues.push(CaptureIssue {
                 node_id,

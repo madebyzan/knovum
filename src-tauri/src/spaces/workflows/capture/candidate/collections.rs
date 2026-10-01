@@ -36,12 +36,12 @@ pub(super) fn group(candidate: &mut CaptureCandidate) -> Result<(), CaptureIssue
             .enumerate()
             .filter_map(|(index, input)| match &input.source {
                 CandidateSource::InputSlot { input_slot_id }
-                    if input.role == contract.role
+                    if input.role.as_str() == contract.role
                         && slot_kinds.get(input_slot_id).map(String::as_str)
                             == Some(contract.kind)
                         && uses.get(input_slot_id.as_str()) == Some(&1) =>
                 {
-                    Some((index, input_slot_id.clone(), input.revision_basis.clone()))
+                    Some((index, input_slot_id.clone(), input.revision_basis))
                 }
                 _ => None,
             })

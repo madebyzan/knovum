@@ -1,4 +1,5 @@
 use crate::spaces::db;
+use crate::spaces::knowledge::contracts::{RelationActorKind, RelationKind, RelationStatus};
 use serde::Serialize;
 use sqlx::{Row, Sqlite, Transaction};
 use ts_rs::TS;
@@ -11,12 +12,12 @@ pub(crate) struct SpaceRelationProjection {
     pub space_id: String,
     pub source_id: String,
     pub target_id: String,
-    pub kind: String,
+    pub kind: RelationKind,
     pub rationale: String,
-    pub status: String,
-    pub status_before_invalidation: Option<String>,
+    pub status: RelationStatus,
+    pub status_before_invalidation: Option<RelationStatus>,
     pub confidence: Option<f64>,
-    pub actor_kind: String,
+    pub actor_kind: RelationActorKind,
     pub actor_id: Option<String>,
     pub created_at: i64,
     pub updated_at: i64,
@@ -52,20 +53,24 @@ fn decode_relation_projection(
         target_id: row
             .try_get::<String, _>("target_id")
             .map_err(db::sql_error)?,
-        kind: row.try_get::<String, _>("kind").map_err(db::sql_error)?,
+        kind: RelationKind::parse(&row.try_get::<String, _>("kind").map_err(db::sql_error)?)?,
         rationale: row
             .try_get::<String, _>("rationale")
             .map_err(db::sql_error)?,
-        status: row.try_get::<String, _>("status").map_err(db::sql_error)?,
+        status: RelationStatus::parse(&row.try_get::<String, _>("status").map_err(db::sql_error)?)?,
         status_before_invalidation: row
             .try_get::<Option<String>, _>("status_before_invalidation")
-            .map_err(db::sql_error)?,
+            .map_err(db::sql_error)?
+            .as_deref()
+            .map(RelationStatus::parse)
+            .transpose()?,
         confidence: row
             .try_get::<Option<f64>, _>("confidence")
             .map_err(db::sql_error)?,
-        actor_kind: row
-            .try_get::<String, _>("actor_kind")
-            .map_err(db::sql_error)?,
+        actor_kind: RelationActorKind::parse(
+            &row.try_get::<String, _>("actor_kind")
+                .map_err(db::sql_error)?,
+        )?,
         actor_id: row
             .try_get::<Option<String>, _>("actor_id")
             .map_err(db::sql_error)?,

@@ -3,7 +3,7 @@ import { useTaskStore } from "../../../../foundation/tasks/task-store";
 import { cleanupDeletedSpaceAssets } from "../../assets/asset-operations";
 import { applySpaceNodeContent } from "../../canvas/node";
 import { spaceNodeSizePolicy, spaceNodeSupportsContentSizing } from "../../canvas/node-size";
-import { refreshEnrichmentTasks } from "../../enrichment/job-observation";
+import { refreshEnrichmentJobs } from "../../enrichment/enrichment-jobs-query";
 import { beginSpaceMutation } from "../../history/mutation-barrier";
 import { requireActiveSpaceId, type SpaceMutationContext } from "../../history/mutation-context";
 import { scheduleKnowledgeIndex } from "../../knowledge/indexing/index-scheduler";
@@ -118,5 +118,5 @@ export function createNodeContentMutations(context: SpaceMutationContext) {
 
 function afterSaved(spaceId: string, id: string) {
   scheduleKnowledgeIndex(spaceId, [id]);
-  void refreshEnrichmentTasks(spaceId);
+  void refreshEnrichmentJobs();
 }

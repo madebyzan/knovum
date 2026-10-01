@@ -9,6 +9,7 @@ pub enum RunKind {
     Workflow,
     Assistant,
     ExternalAgent,
+    Automation,
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize, TS)]

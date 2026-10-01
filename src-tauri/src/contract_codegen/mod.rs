@@ -11,10 +11,26 @@ pub fn export(project_root: &Path) -> Result<(), String> {
     types::export(&config)?;
     export_runtime_values(&output)?;
     let spaces_output = project_root.join("src/features/spaces/contracts/generated");
-    std::fs::write(
-        spaces_output.join("contract-values.ts"),
-        format!("// Generated from Rust contracts. Do not edit.\nexport const maxKnowledgePassageBytes = {} as const;\nexport const packageAssetPrefix = {:?} as const;\n", crate::spaces::knowledge::indexing::MAX_KNOWLEDGE_PASSAGE_BYTES, crate::spaces::assets::PACKAGE_ASSET_PREFIX),
-    ).map_err(io_error)?;
+    let relation_kinds = schema_for!(crate::spaces::knowledge::contracts::RelationKind);
+    let relation_statuses = schema_for!(crate::spaces::knowledge::contracts::RelationStatus);
+    let source = format!(
+        concat!(
+            "// Generated from Rust contracts. Do not edit.\n",
+            "export const maxKnowledgePassageBytes = {} as const;\n",
+            "export const packageAssetPrefix = {:?} as const;\n",
+            "export const relationKinds = {} as const;\n",
+            "export const relationStatuses = {} as const;\n",
+        ),
+        crate::spaces::knowledge::indexing::MAX_KNOWLEDGE_PASSAGE_BYTES,
+        crate::spaces::assets::PACKAGE_ASSET_PREFIX,
+        relation_kinds
+            .get("enum")
+            .ok_or("Relation kinds must be an enum")?,
+        relation_statuses
+            .get("enum")
+            .ok_or("Relation statuses must be an enum")?,
+    );
+    std::fs::write(spaces_output.join("contract-values.ts"), source).map_err(io_error)?;
     export_schemas(&spaces_output)
 }
 

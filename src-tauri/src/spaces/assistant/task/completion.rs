@@ -97,7 +97,11 @@ pub(super) async fn fail(pool: &sqlx::SqlitePool, run_id: &str, error: &str) -> 
     Ok(())
 }
 
-pub(super) async fn stopped_state(pool: &sqlx::SqlitePool, run_id: &str) -> String {
+pub(super) async fn stopped_state(
+    pool: &sqlx::SqlitePool,
+    run_id: &str,
+) -> super::super::contract::AssistantTaskFinishedState {
+    use super::super::contract::AssistantTaskFinishedState;
     let controls = sqlx::query_as::<_, (Option<i64>, Option<i64>)>(
         "SELECT pause_requested_at,cancel_requested_at FROM spaces_runs WHERE id=$1",
     )
@@ -107,9 +111,8 @@ pub(super) async fn stopped_state(pool: &sqlx::SqlitePool, run_id: &str) -> Stri
     .ok()
     .flatten();
     match controls {
-        Some((_, Some(_))) => "cancelled",
-        Some((Some(_), None)) => "paused",
-        _ => "failed",
+        Some((_, Some(_))) => AssistantTaskFinishedState::Cancelled,
+        Some((Some(_), None)) => AssistantTaskFinishedState::Paused,
+        _ => AssistantTaskFinishedState::Failed,
     }
-    .into()
 }

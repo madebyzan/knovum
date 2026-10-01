@@ -15,22 +15,25 @@ pub(super) async fn insert_relations(
     request: &RestorePackageRequest,
 ) -> Result<(), String> {
     for row in &request.relations {
-        contracts::validate_relation_kind(&row.kind)?;
-        contracts::validate_relation_status(&row.status)?;
         contracts::validate_relation_rationale(&row.rationale)?;
-        validate_relation_lifecycle(&row.status, row.status_before_invalidation.as_deref())?;
-        contracts::validate_actor_kind(&row.actor_kind)?;
+        validate_relation_lifecycle(
+            row.status.as_str(),
+            row.status_before_invalidation.map(|status| status.as_str()),
+        )?;
         contracts::validate_confidence(row.confidence)?;
-        let (source_id, target_id) =
-            contracts::canonical_relation_endpoints(&row.kind, &row.source_id, &row.target_id);
+        let (source_id, target_id) = contracts::canonical_relation_endpoints(
+            row.kind.as_str(),
+            &row.source_id,
+            &row.target_id,
+        );
         contracts::validate_relation_endpoints(tx, &request.space.id, &source_id, &target_id)
             .await?;
         sqlx::query(
             "INSERT INTO spaces_relations(id,space_id,source_id,target_id,kind,rationale,status,status_before_invalidation,confidence,actor_kind,actor_id,created_at,updated_at) \
              VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)",
         ).bind(&row.id).bind(&request.space.id).bind(&source_id).bind(&target_id)
-            .bind(&row.kind).bind(&row.rationale).bind(&row.status).bind(&row.status_before_invalidation).bind(row.confidence)
-            .bind(&row.actor_kind).bind(&row.actor_id).bind(row.created_at).bind(row.updated_at)
+            .bind(row.kind.as_str()).bind(&row.rationale).bind(row.status.as_str()).bind(row.status_before_invalidation.map(|status| status.as_str())).bind(row.confidence)
+            .bind(row.actor_kind.as_str()).bind(&row.actor_id).bind(row.created_at).bind(row.updated_at)
             .execute(&mut **tx).await.map_err(db::sql_error)?;
     }
     Ok(())

@@ -13,7 +13,6 @@ pub(crate) struct SpaceSessionProjection {
     nodes: Vec<nodes::SpaceNodeProjection>,
     scenes: Vec<scenes::SpaceSceneProjection>,
     relations: Vec<relations::SpaceRelationProjection>,
-    #[ts(type = "unknown")]
     edit_snapshot: structure::SpaceEditSnapshotResponse,
 }
 

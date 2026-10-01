@@ -20,10 +20,6 @@ pub(crate) fn candidate(definition: &CaptureCandidate) -> Result<(), String> {
             || slot.max_items > 64
             || (!slot.ordered && (slot.min_items != 1 || slot.max_items != 1))
             || (slot.ordered && slot.max_items == 1)
-            || slot
-                .revision_bases
-                .iter()
-                .any(|basis| !matches!(basis.as_str(), "asset" | "rendered" | "knowledge"))
             || !inputs.insert(&slot.id)
         {
             return Err("workflow-definition-invalid: input slots must be unique and typed".into());
@@ -47,16 +43,7 @@ pub(crate) fn candidate(definition: &CaptureCandidate) -> Result<(), String> {
         }
         let mut positions = HashSet::new();
         for binding in &step.inputs {
-            if !positions.insert(binding.position)
-                || !matches!(
-                    binding.role.as_str(),
-                    "primary" | "source" | "context" | "style-reference"
-                )
-                || !matches!(
-                    binding.revision_basis.as_str(),
-                    "asset" | "rendered" | "knowledge"
-                )
-            {
+            if !positions.insert(binding.position) {
                 return Err(
                     "workflow-definition-invalid: step input position or revision basis is invalid"
                         .into(),
@@ -78,7 +65,7 @@ pub(crate) fn candidate(definition: &CaptureCandidate) -> Result<(), String> {
                                 && slot.revision_bases.contains(&binding.revision_basis)
                                 && action.collection_input.is_some_and(|collection| {
                                     collection.kind == slot.kind
-                                        && collection.role == binding.role
+                                        && collection.role == binding.role.as_str()
                                         && slot.max_items <= collection.max_items
                                 })
                         }) => {}

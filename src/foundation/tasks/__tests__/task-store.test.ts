@@ -35,7 +35,7 @@ describe("task store", () => {
     expect(store.tasks.map((task) => task.id)).toEqual([failed]);
   });
 
-  it("caps historical tasks while never evicting running work", () => {
+  it("retains actionable failures while trimming terminal history", () => {
     const store = useTaskStore();
     const running = store.start("Long running");
     for (let index = 0; index < 60; index += 1) {
@@ -43,8 +43,38 @@ describe("task store", () => {
       store.fail(id, "failed");
     }
 
-    expect(store.tasks).toHaveLength(50);
+    expect(store.tasks).toHaveLength(61);
     expect(store.tasks.some((task) => task.id === running)).toBe(true);
+  });
+
+  it("reconciles one producer without dropping other work or live progress", () => {
+    const store = useTaskStore();
+    const other = store.start("Download");
+    const task = { id: "job-1", title: "Visual analysis", status: "running" as const, startedAt: 1 };
+    store.reconcileObserved("spaces-enrichment", [{ task }]);
+    store.progress(task.id, 42, "Analyzing image");
+
+    store.reconcileObserved("spaces-enrichment", [{ task: { ...task, title: "Visual analysis · Renamed" } }]);
+    expect(store.tasks.find(({ id }) => id === task.id)).toMatchObject({
+      title: "Visual analysis · Renamed",
+      progress: 42,
+      statusMessage: "Analyzing image",
+    });
+
+    store.reconcileObserved("spaces-enrichment", []);
+    expect(store.tasks.map(({ id }) => id)).toEqual([other]);
+  });
+
+  it("keeps durable failures actionable and allows terminal dismissal", () => {
+    const store = useTaskStore();
+    const task = { id: "job-1", title: "Visual analysis", status: "failed" as const, startedAt: 1 };
+    store.reconcileObserved("spaces-enrichment", [{ task }]);
+    store.dismiss(task.id);
+    expect(store.tasks).toHaveLength(1);
+
+    store.reconcileObserved("spaces-enrichment", [{ task: { ...task, status: "running" } }]);
+    store.reconcileObserved("spaces-enrichment", []);
+    expect(store.tasks).toHaveLength(0);
   });
 
   it("retries failed tasks with the same task identity", async () => {
