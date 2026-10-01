@@ -4,15 +4,17 @@ import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import type { JsonCanvasImportReceipt } from "../contracts/generated/JsonCanvasImportReceipt";
 import { invokeConfirmedMutation } from "../structure/confirmed-mutation";
 
+interface CanvasJsonImportInput {
+  spaceId: string;
+  sourcePath: string;
+  mutationId: string;
+  baseRevision: number;
+  noteTitle: string;
+  sectionTitle: string;
+}
+
 export function importJsonCanvas(
-  input: {
-    spaceId: string;
-    sourcePath: string;
-    mutationId: string;
-    baseRevision: number;
-    noteTitle: string;
-    sectionTitle: string;
-  },
+  input: CanvasJsonImportInput,
   onProgress: (progress: { stage: string; bytesCopied: number; totalBytes?: number }) => void,
 ) {
   const channel = new Channel<{ stage: string; bytesCopied: number; totalBytes?: number }>();

@@ -99,15 +99,14 @@ function candidateForSide(
   return undefined;
 }
 
-function firstPlacement(
-  input: PlacementInput,
-  options: {
-    safe: SurfaceRect;
-    visible: SurfaceRect;
-    sides: readonly SurfaceSide[];
-    height: number;
-  },
-) {
+interface InspectorPlacementOptions {
+  safe: SurfaceRect;
+  visible: SurfaceRect;
+  sides: readonly SurfaceSide[];
+  height: number;
+}
+
+function firstPlacement(input: PlacementInput, options: InspectorPlacementOptions) {
   for (const side of options.sides) {
     const candidate = candidateForSide(input, options.safe, options.visible, {
       side,

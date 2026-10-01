@@ -141,9 +141,9 @@ export function assembleSpaceActions(input: Input) {
     unarchiveSpace: (id: string) => unarchiveSpace(spaceContext, id),
     permanentlyDeleteSpace: (id: string) => permanentlyDeleteSpace(spaceContext, id),
     search: (value: string, semantic = false, signal?: AbortSignal) =>
-      searchSpace(navigation, value, semantic, signal),
+      searchSpace({ context: navigation, value, semantic, signal }),
     createScene: (title: string, viewport: { x: number; y: number; zoom: number }, thumbnailPath: string) =>
-      createSpaceScene(navigation, title, viewport, thumbnailPath),
+      createSpaceScene({ context: navigation, title, viewport, thumbnailPath }),
     updateScene: (id: string, patch: Parameters<typeof updateSpaceScene>[2]) =>
       updateSpaceScene(navigation, id, patch),
     duplicateScene: (id: string) => duplicateSpaceScene(navigation, id),

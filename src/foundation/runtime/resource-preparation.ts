@@ -74,9 +74,14 @@ export async function restoreResourcePreparationTasks(pinia: Pinia): Promise<voi
 async function runPreparation(options: PreparationRun) {
   const { tasks, target, jobId, title, isCancelled, onProgress } = options;
   try {
-    await prepareResources(target, jobId, title, (progress) => {
-      updateTaskProgress(tasks, jobId, progress);
-      onProgress?.(progress);
+    await prepareResources({
+      target,
+      jobId,
+      title,
+      onProgress: (progress) => {
+        updateTaskProgress(tasks, jobId, progress);
+        onProgress?.(progress);
+      },
     });
     tasks.succeed(jobId);
   } catch (error) {
@@ -132,8 +137,11 @@ async function retrySnapshot(
   tasks: ReturnType<typeof useTaskStore>,
   snapshot: ResourcePreparationSnapshot,
 ): Promise<void> {
-  await prepareResources(snapshot.target, snapshot.jobId, snapshot.title, (progress) => {
-    updateTaskProgress(tasks, snapshot.jobId, progress);
+  await prepareResources({
+    target: snapshot.target,
+    jobId: snapshot.jobId,
+    title: snapshot.title,
+    onProgress: (progress) => updateTaskProgress(tasks, snapshot.jobId, progress),
   });
   await invalidateLocalResources();
 }

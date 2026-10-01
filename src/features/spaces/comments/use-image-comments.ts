@@ -4,12 +4,11 @@ import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { useContextDock } from "../canvas/use-context-dock";
-import type { SpaceImagePayload } from "../model/nodes/node-payload";
+import type { SpaceImageComment, SpaceImagePayload } from "../model/nodes/node-payload";
 import { useSpaceStore } from "../session/space-store";
 import { useImageCommentSession } from "./image-comment-session";
 import { useImageCommentGesture, type CommentMark } from "./use-image-comment-gesture";
 
-type ImageComment = NonNullable<SpaceImagePayload["comments"]>[number];
 export interface ImageCommentCanvas {
   id: string;
   data: SpaceImagePayload;
@@ -70,7 +69,7 @@ export function useImageComments(props: ImageCommentCanvas) {
     },
     { flush: "sync" },
   );
-  async function persist(next: ImageComment[]) {
+  async function persist(next: SpaceImageComment[]) {
     const node = store.nodes.find(({ id }) => id === props.id);
     if (!node || node.data.kind !== "image") return;
     busy.value = true;
@@ -102,10 +101,10 @@ export function useImageComments(props: ImageCommentCanvas) {
     session.cancel();
     dock.openAsk("selection", { nodeIds: [props.id] });
   }
-  function remove(comment: ImageComment) {
+  function remove(comment: SpaceImageComment) {
     if (!busy.value) void persist(comments.value.filter(({ id }) => id !== comment.id));
   }
-  function discuss(comment: ImageComment) {
+  function discuss(comment: SpaceImageComment) {
     session.addToConversation(props.id, comment);
     session.cancel();
     dock.openAsk("selection", { nodeIds: [props.id] });

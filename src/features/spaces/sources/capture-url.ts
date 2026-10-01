@@ -85,15 +85,14 @@ export async function captureSpaceUrl(
   }
 }
 
-async function importMediaSource(
-  context: UrlCaptureContext,
-  input: {
-    spaceId: string;
-    url: string;
-    target: { x: number; y: number };
-    captureId: string;
-  },
-) {
+interface MediaSourceImportInput {
+  spaceId: string;
+  url: string;
+  target: { x: number; y: number };
+  captureId: string;
+}
+
+async function importMediaSource(context: UrlCaptureContext, input: MediaSourceImportInput) {
   try {
     const acquisition = await acquireMediaSource(input.url, (progress: MediaImportProgress) =>
       context.updateUrlCapture(input.captureId, {

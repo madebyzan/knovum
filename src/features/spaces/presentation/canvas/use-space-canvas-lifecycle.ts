@@ -10,13 +10,15 @@ import type { useSpaceStore } from "../../session/space-store";
 import type { CanvasContentLayoutCoordinator } from "./canvas-content-layout-coordinator";
 import type { useCanvasNavigationRequests } from "./use-canvas-navigation-requests";
 
-export function useSpaceCanvasLifecycle(options: {
+interface SpaceCanvasLifecycleOptions {
   contentLayout: CanvasContentLayoutCoordinator;
   navigation: ReturnType<typeof useCanvasNavigationRequests>;
   spaceId: Readonly<Ref<string>>;
   store: ReturnType<typeof useSpaceStore>;
   tools: ReturnType<typeof useCanvasToolStore>;
-}) {
+}
+
+export function useSpaceCanvasLifecycle(options: SpaceCanvasLifecycleOptions) {
   const error = shallowRef<string>();
   let detachEditor: (() => void) | undefined;
   let detachOverviewObserver: (() => void) | undefined;

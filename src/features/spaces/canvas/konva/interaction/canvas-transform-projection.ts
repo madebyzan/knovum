@@ -12,12 +12,19 @@ export interface CanvasTransformTarget {
   node: Konva.Node;
 }
 
-export function captureCanvasTransformTargets(
-  layouts: readonly CanvasNodeLayoutV1[],
-  nodes: readonly SpaceCanvasNode[],
-  selectedNodeIds: ReadonlySet<string>,
-  stage: Konva.Stage | undefined,
-) {
+interface CanvasTransformCaptureInput {
+  layouts: readonly CanvasNodeLayoutV1[];
+  nodes: readonly SpaceCanvasNode[];
+  selectedNodeIds: ReadonlySet<string>;
+  stage: Konva.Stage | undefined;
+}
+
+export function captureCanvasTransformTargets({
+  layouts,
+  nodes,
+  selectedNodeIds,
+  stage,
+}: CanvasTransformCaptureInput) {
   const contentById = new Map(nodes.map((node) => [node.id, node]));
   const sceneNodes = captureCanvasNodeRefs(stage, selectedNodeIds);
   return layouts.flatMap<CanvasTransformTarget>((layout) => {

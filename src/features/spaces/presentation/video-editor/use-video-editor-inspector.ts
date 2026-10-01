@@ -4,13 +4,15 @@ import { clipTimelineStart, type VideoEditProject } from "../../video-editing/pr
 import type { useVideoEditSelection } from "./use-video-edit-selection";
 import type { useVideoProjectPlayback } from "./use-video-project-playback";
 
-export function useVideoEditorInspector(options: {
+interface VideoEditorInspectorOptions {
   project: Ref<VideoEditProject | undefined>;
   video: Ref<HTMLVideoElement | null>;
   editorRoot: Ref<HTMLElement | null>;
   selection: ReturnType<typeof useVideoEditSelection>;
   playback: ReturnType<typeof useVideoProjectPlayback>;
-}) {
+}
+
+export function useVideoEditorInspector(options: VideoEditorInspectorOptions) {
   const { project, video, editorRoot, selection, playback } = options;
   const visible = computed(() => !!selection.selectedClipId.value || !!selection.selectedTextId.value);
 

@@ -52,7 +52,7 @@ const kindOptions = computed(() =>
         :model-value="field.kind"
         :label="t('spaces.knowledge.fields.kind')"
         :options="kindOptions"
-        @update:model-value="emit('kind', $event as SpaceObjectFieldKind)"
+        @update:model-value="emit('kind', $event)"
       />
       <label class="flex h-(--knovum-control-height-md) items-center justify-center">
         <UiCheckbox

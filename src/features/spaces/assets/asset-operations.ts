@@ -58,12 +58,19 @@ export function cancelSpaceAssetImport(jobId: string): Promise<void> {
   return invokeCommand("plugin:spaces|cancel_asset_import", { jobId });
 }
 
-export function deriveSpaceAssetContent(
-  spaceId: string,
-  nodeId: string,
-  jobId: string,
-  onUpdate: (data: SpaceNodePayload) => void,
-): Promise<SpaceNodePayload> {
+interface DeriveSpaceAssetContentInput {
+  spaceId: string;
+  nodeId: string;
+  jobId: string;
+  onUpdate: (data: SpaceNodePayload) => void;
+}
+
+export function deriveSpaceAssetContent({
+  spaceId,
+  nodeId,
+  jobId,
+  onUpdate,
+}: DeriveSpaceAssetContentInput): Promise<SpaceNodePayload> {
   const channel = new Channel<SpaceNodePayload>();
   // oxlint-disable-next-line unicorn/prefer-add-event-listener -- Tauri Channel exposes progress through onmessage, not EventTarget.
   channel.onmessage = onUpdate;

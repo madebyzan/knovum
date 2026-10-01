@@ -43,12 +43,14 @@ function offsetBezierControls(points: CanvasRelationPath, offset: number): Canva
   return [x0, y0, x1 + offsetX, y1 + offsetY, x2 + offsetX, y2 + offsetY, x3, y3];
 }
 
-export function draftRelationPath(
-  from: CanvasPoint,
-  fromSide: CanvasConnectorSide,
-  to: CanvasPoint,
-  toSide?: CanvasConnectorSide,
-) {
+interface DraftRelationPathInput {
+  from: CanvasPoint;
+  fromSide: CanvasConnectorSide;
+  to: CanvasPoint;
+  toSide?: CanvasConnectorSide | undefined;
+}
+
+export function draftRelationPath({ from, fromSide, to, toSide }: DraftRelationPathInput) {
   return bezierConnectorPoints(from, fromSide, to, toSide ?? oppositeSide(fromSide));
 }
 

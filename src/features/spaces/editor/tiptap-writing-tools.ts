@@ -61,7 +61,7 @@ export function useSpaceTiptapWritingTools(editor: Editor) {
 
   async function run(action: EditorTransformAction) {
     await executeTransformAction(action, actionSource(editor, action), action, (text, jobId) =>
-      transformEditorTextStream(action, text, jobId, () => {}),
+      transformEditorTextStream({ action, text, jobId, onEvent: () => {} }),
     );
   }
 

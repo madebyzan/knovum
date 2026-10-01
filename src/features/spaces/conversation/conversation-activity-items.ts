@@ -91,12 +91,14 @@ function appendTool(
   } else state.items[index] = item;
 }
 
-export function conversationActivityItems(
-  events: readonly RunEvent[],
-  messages: readonly AssistantMessage[],
-  runId: string,
-  labels: ToolLabels,
-) {
+interface ConversationActivityInput {
+  events: readonly RunEvent[];
+  messages: readonly AssistantMessage[];
+  runId: string;
+  labels: ToolLabels;
+}
+
+export function conversationActivityItems({ events, messages, runId, labels }: ConversationActivityInput) {
   const results = toolResults(messages, runId);
   const state: ActivityState = { items: [], positions: new Map(), commentary: "" };
   for (const event of events) {

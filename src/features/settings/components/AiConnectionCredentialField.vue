@@ -8,8 +8,9 @@ import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { getSecret } from "../../../foundation/secrets/secret-store";
 import UiIconButton from "../../../shared/ui/UiIconButton.vue";
 import UiInput from "../../../shared/ui/UiInput.vue";
+import type { AiConnectionSecretChange } from "../ai-connection-draft";
 
-const secret = defineModel<string | null | undefined>({ required: true });
+const secret = defineModel<AiConnectionSecretChange>({ required: true });
 const props = defineProps<{ connectionId: string; existing: boolean; disabled: boolean }>();
 const { t } = useI18n();
 const hasKey = shallowRef<boolean | null>(props.existing ? null : false);

@@ -1,7 +1,11 @@
-export function applyImageGlow(
-  source: Uint8ClampedArray,
-  input: { width: number; height: number; amount: number; visibleSize: { width: number; height: number } },
-): Uint8ClampedArray {
+interface ImageGlowInput {
+  width: number;
+  height: number;
+  amount: number;
+  visibleSize: { width: number; height: number };
+}
+
+export function applyImageGlow(source: Uint8ClampedArray, input: ImageGlowInput): Uint8ClampedArray {
   const { width, height, amount, visibleSize } = input;
   if (amount === 0) return source;
   const mask = document.createElement("canvas");

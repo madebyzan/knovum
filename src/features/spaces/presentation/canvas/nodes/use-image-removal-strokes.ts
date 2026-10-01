@@ -11,7 +11,7 @@ interface ImageRect {
   height: number;
 }
 
-export function useImageRemovalStrokes(input: {
+interface ImageRemovalStrokeInput {
   canvas: Readonly<Ref<HTMLCanvasElement | null>>;
   size: Readonly<Ref<ImageCanvasSize>>;
   rect: Readonly<Ref<ImageRect | undefined>>;
@@ -19,7 +19,9 @@ export function useImageRemovalStrokes(input: {
   frameRotation: Readonly<Ref<number>>;
   session: ReturnType<typeof useImageRemovalSession>;
   redraw: () => void;
-}) {
+}
+
+export function useImageRemovalStrokes(input: ImageRemovalStrokeInput) {
   const draftStroke = shallowRef<number[]>();
   const cursor = shallowRef<{ x: number; y: number }>();
   const pointerId = shallowRef<number>();

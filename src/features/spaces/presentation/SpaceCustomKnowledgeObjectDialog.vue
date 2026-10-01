@@ -14,7 +14,7 @@ import UiTextarea from "../../../shared/ui/UiTextarea.vue";
 import { useNodeOperationGate } from "../canvas/node-operation-gate";
 import { isSpaceSemanticNode } from "../knowledge/model/semantic-node";
 import { useSpaceObjectTypesQuery } from "../knowledge/queries/use-knowledge-queries";
-import type { SpaceKnowledgeObjectPayload } from "../model/nodes/node-payload";
+import type { SpaceKnowledgeObjectPropertyValue } from "../model/nodes/node-payload";
 import { useSpaceStore } from "../session/space-store";
 import SpaceKnowledgeFieldEditor from "./knowledge/SpaceKnowledgeFieldEditor.vue";
 
@@ -27,8 +27,7 @@ const typesQuery = useSpaceObjectTypesQuery(activeSpaceId);
 const typeId = ref("");
 const title = ref("");
 const summary = ref("");
-type ObjectPropertyValue = SpaceKnowledgeObjectPayload["properties"][string];
-const properties = ref<Record<string, ObjectPropertyValue>>({});
+const properties = ref<Record<string, SpaceKnowledgeObjectPropertyValue>>({});
 const customTypes = computed(() => (typesQuery.data.value ?? []).filter((type) => !type.system));
 const typeOptions = computed(() => customTypes.value.map((type) => ({ value: type.id, label: type.name })));
 const selectedType = computed(() => customTypes.value.find((type) => type.id === typeId.value));
@@ -67,7 +66,7 @@ watch(
 watch(typeId, () => {
   properties.value = {};
 });
-function setProperty(key: string, value: ObjectPropertyValue | undefined) {
+function setProperty(key: string, value: SpaceKnowledgeObjectPropertyValue | undefined) {
   properties.value =
     value === undefined ? omit(properties.value, [key]) : { ...properties.value, [key]: value };
 }

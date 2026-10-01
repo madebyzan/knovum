@@ -101,12 +101,19 @@ export function loadAssistantBranchMessages(conversationId: string, branchId: st
   return invokeCommand("plugin:spaces|load_assistant_branch_messages", { conversationId, branchId });
 }
 
-export function branchAssistantConversation(
-  conversationId: string,
-  sourceBranchId: string,
-  throughMessageId: string,
+interface BranchAssistantConversationInput {
+  conversationId: string;
+  sourceBranchId: string;
+  throughMessageId: string;
+  includeBoundary?: boolean;
+}
+
+export function branchAssistantConversation({
+  conversationId,
+  sourceBranchId,
+  throughMessageId,
   includeBoundary = true,
-): Promise<string> {
+}: BranchAssistantConversationInput): Promise<string> {
   return invokeCommand("plugin:spaces|branch_assistant_conversation", {
     conversationId,
     sourceBranchId,

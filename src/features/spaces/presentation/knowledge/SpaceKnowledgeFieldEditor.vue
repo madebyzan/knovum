@@ -9,11 +9,9 @@ import UiNumberField from "../../../../shared/ui/UiNumberField.vue";
 import UiSelect from "../../../../shared/ui/UiSelect.vue";
 import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
 import type { SpaceObjectFieldDefinition } from "../../knowledge/model/object-types";
-import type { SpaceKnowledgeObjectPayload } from "../../model/nodes/node-payload";
+import type { SpaceKnowledgeObjectPropertyValue } from "../../model/nodes/node-payload";
 
-type ObjectPropertyValue = SpaceKnowledgeObjectPayload["properties"][string];
-
-const modelValue = defineModel<ObjectPropertyValue>();
+const modelValue = defineModel<SpaceKnowledgeObjectPropertyValue>();
 const props = defineProps<{
   field: SpaceObjectFieldDefinition;
   nodeOptions: readonly { value: string; label: string }[];

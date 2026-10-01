@@ -5,13 +5,15 @@ import { captureCanvasNodeRefs } from "./canvas-node-access";
 import { createCanvasTranslationSnapIndex } from "./canvas-translation-snap-index";
 import type { CanvasTranslationGestureState } from "./canvas-translation-snapping";
 
-export function captureCanvasNodeDragState(options: {
+interface CanvasNodeDragOptions {
   layouts: readonly CanvasNodeLayoutV1[];
   selectedNodeIds: ReadonlySet<string>;
   lockedNodeIds: ReadonlySet<string>;
   primaryId: string;
   stage: Konva.Stage | undefined;
-}) {
+}
+
+export function captureCanvasNodeDragState(options: CanvasNodeDragOptions) {
   const { layouts, selectedNodeIds, lockedNodeIds, primaryId, stage } = options;
   if (lockedNodeIds.has(primaryId)) return undefined;
   const movable = movableCanvasSelectionNodeIds(new Set(selectedNodeIds).add(primaryId), lockedNodeIds);

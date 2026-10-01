@@ -19,9 +19,9 @@ function sceneAt(frame: { x: number; y: number; width: number; height: number; r
       },
     ],
   };
-  return projectCanvasScene(
+  return projectCanvasScene({
     document,
-    [
+    nodes: [
       {
         id: "note",
         type: "note",
@@ -29,8 +29,8 @@ function sceneAt(frame: { x: number; y: number; width: number; height: number; r
         initialPosition: { x, y },
       },
     ],
-    [],
-  );
+    relations: [],
+  });
 }
 
 describe("canvas overview geometry", () => {
@@ -51,11 +51,11 @@ describe("canvas overview geometry", () => {
   });
 
   it("does not depend on a mounted viewport when empty", () => {
-    const scene = projectCanvasScene(
-      { version: 1, viewport: { x: 900, y: 900, zoom: 0.25 }, nodes: [] },
-      [],
-      [],
-    );
+    const scene = projectCanvasScene({
+      document: { version: 1, viewport: { x: 900, y: 900, zoom: 0.25 }, nodes: [] },
+      nodes: [],
+      relations: [],
+    });
     expect(canvasOverviewViewport(scene, 480, 270)).toEqual({ x: 0, y: 0, scale: 1 });
   });
 });

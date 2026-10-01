@@ -71,12 +71,19 @@ export function createSpaceRelationIndex(relations: readonly SpaceRelation[]): S
   return index;
 }
 
-export function queryMatchingNodes(
-  nodes: readonly SpaceCanvasNode[],
-  relations: readonly SpaceRelation[],
-  filter: SpaceSavedViewFilter,
-  index: SpaceRelationIndex = createSpaceRelationIndex(relations),
-) {
+interface MatchingNodesQuery {
+  nodes: readonly SpaceCanvasNode[];
+  relations: readonly SpaceRelation[];
+  filter: SpaceSavedViewFilter;
+  index?: SpaceRelationIndex;
+}
+
+export function queryMatchingNodes({
+  nodes,
+  relations,
+  filter,
+  index = createSpaceRelationIndex(relations),
+}: MatchingNodesQuery) {
   return nodes.filter((node) => matchesNode(node, index, filter));
 }
 

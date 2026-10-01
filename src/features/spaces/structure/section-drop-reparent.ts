@@ -4,7 +4,7 @@ import type { SpaceEditCommand } from "../contracts/generated/SpaceEditCommand";
 import type { SpacePoint } from "../contracts/generated/SpacePoint";
 import type { SpaceEditSnapshot } from "../model/structure/schema/edit-snapshot";
 import { createStructureIndex, effectiveOperationRoots } from "../model/structure/structure-index";
-import { boundsForOperationRoots } from "../model/structure/world-bounds";
+import { boundsForOperationRoots, type WorldBounds } from "../model/structure/world-bounds";
 
 const CONTAINMENT_TOLERANCE = 0.5;
 
@@ -80,15 +80,14 @@ function reparentableParentId(
   return parent && parent.kind !== "section" ? undefined : parentId;
 }
 
-function sectionDropTarget(
-  layout: SpaceEditSnapshot["layouts"][number],
-  context: {
-    structureById: ReturnType<typeof createStructureIndex>["structureById"];
-    selected: ReadonlySet<string>;
-    moved: { left: number; top: number; right: number; bottom: number };
-    options: { allowCollapsedSectionId?: string; inspectCollapsed?: boolean };
-  },
-) {
+interface SectionDropTargetContext {
+  structureById: ReturnType<typeof createStructureIndex>["structureById"];
+  selected: ReadonlySet<string>;
+  moved: WorldBounds;
+  options: { allowCollapsedSectionId?: string; inspectCollapsed?: boolean };
+}
+
+function sectionDropTarget(layout: SpaceEditSnapshot["layouts"][number], context: SectionDropTargetContext) {
   const { structureById, selected, moved, options } = context;
   const section = structureById.get(layout.structureNodeId);
   if (layout.kind !== "section" || section?.kind !== "section") return [];
@@ -119,10 +118,7 @@ export function sectionDropCandidateId(
   return parentId && index.structureById.get(parentId)?.kind === "section" ? parentId : undefined;
 }
 
-function contains(
-  container: { left: number; top: number; right: number; bottom: number },
-  content: { left: number; top: number; right: number; bottom: number },
-) {
+function contains(container: WorldBounds, content: WorldBounds) {
   return (
     content.left >= container.left - CONTAINMENT_TOLERANCE &&
     content.top >= container.top - CONTAINMENT_TOLERANCE &&

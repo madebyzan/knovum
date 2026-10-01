@@ -13,7 +13,10 @@ import { knowledgeObjectStatusesForType } from "../../knowledge/model/object-typ
 import { isSpaceSemanticNode } from "../../knowledge/model/semantic-node";
 import { useSpaceObjectTypesQuery } from "../../knowledge/queries/use-knowledge-queries";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
-import type { SpaceKnowledgeObjectPayload } from "../../model/nodes/node-payload";
+import type {
+  SpaceKnowledgeObjectPayload,
+  SpaceKnowledgeObjectPropertyValue,
+} from "../../model/nodes/node-payload";
 import { useSpaceStore } from "../../session/space-store";
 import SpaceKnowledgeFieldEditor from "./SpaceKnowledgeFieldEditor.vue";
 
@@ -24,9 +27,8 @@ const { activeSpaceId } = storeToRefs(store);
 const { t } = useI18n();
 const typesQuery = useSpaceObjectTypesQuery(activeSpaceId);
 const summary = ref("");
-const status = ref("draft");
-type ObjectPropertyValue = SpaceKnowledgeObjectPayload["properties"][string];
-const properties = ref<Record<string, ObjectPropertyValue>>({});
+const status = ref<SpaceKnowledgeObjectPayload["status"]>("draft");
+const properties = ref<Record<string, SpaceKnowledgeObjectPropertyValue>>({});
 const data = computed(() => props.node.data as SpaceKnowledgeObjectPayload);
 const objectType = computed(() => typesQuery.data.value?.find((type) => type.id === data.value.objectTypeId));
 const statusOptions = computed(() =>
@@ -49,7 +51,7 @@ function resetDraft() {
   properties.value = cloneDeep(data.value.properties);
 }
 
-function updateProperty(key: string, value: ObjectPropertyValue | undefined) {
+function updateProperty(key: string, value: SpaceKnowledgeObjectPropertyValue | undefined) {
   properties.value =
     value === undefined ? omit(properties.value, [key]) : { ...properties.value, [key]: value };
 }
@@ -57,7 +59,7 @@ function updateProperty(key: string, value: ObjectPropertyValue | undefined) {
 async function save() {
   const next: SpaceKnowledgeObjectPayload = {
     ...data.value,
-    status: status.value as SpaceKnowledgeObjectPayload["status"],
+    status: status.value,
     properties: properties.value,
     ...(summary.value.trim() ? { summary: summary.value.trim() } : {}),
   };

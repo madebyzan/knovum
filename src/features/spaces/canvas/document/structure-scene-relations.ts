@@ -4,12 +4,19 @@ import { visibleRepresentativeForNode } from "../../model/structure/structure-qu
 import type { validateStructureSnapshot } from "../../model/structure/structure-validation";
 import type { ProjectedRelation } from "./structure-scene";
 
-export function projectStructureRelations(
-  relations: readonly SpaceRelation[],
-  index: ReturnType<typeof validateStructureSnapshot>,
-  layouts: ReadonlyMap<StructureNodeId, StructureLayout>,
-  temporarilyExpandedSectionIds: ReadonlySet<StructureNodeId>,
-) {
+interface StructureRelationProjectionInput {
+  relations: readonly SpaceRelation[];
+  index: ReturnType<typeof validateStructureSnapshot>;
+  layouts: ReadonlyMap<StructureNodeId, StructureLayout>;
+  temporarilyExpandedSectionIds: ReadonlySet<StructureNodeId>;
+}
+
+export function projectStructureRelations({
+  relations,
+  index,
+  layouts,
+  temporarilyExpandedSectionIds,
+}: StructureRelationProjectionInput) {
   return relations.flatMap<ProjectedRelation>((relation) => {
     const sourceStructureNodeId = visibleRepresentativeForNode(
       relation.sourceId,

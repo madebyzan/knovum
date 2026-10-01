@@ -1,9 +1,12 @@
 import type { AiConnectionSettings } from "../../shared/contracts/generated/AiConnectionSettings";
 import type { AiModelDefinition } from "../../shared/contracts/generated/AiModelDefinition";
 
+/** undefined keeps the stored key, null removes it, and a string replaces it. */
+export type AiConnectionSecretChange = string | null | undefined;
+
 export interface AiConnectionSubmission {
   connection: AiConnectionSettings;
-  secret: string | null | undefined;
+  secret: AiConnectionSecretChange;
 }
 
 function copyModel(model: AiModelDefinition): AiModelDefinition {

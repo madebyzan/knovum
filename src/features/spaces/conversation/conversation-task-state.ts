@@ -4,14 +4,16 @@ import type { AssistantTaskAccepted } from "../contracts/generated/AssistantTask
 
 type Selection = { spaceId: string; conversationId: string };
 
-export function createConversationTaskState(input: {
+interface ConversationTaskStateInput {
   spaceId: Ref<string | undefined>;
   selectedConversationId: Ref<string>;
   activeConversationId: ShallowRef<string>;
   refresh: () => Promise<void>;
   select: (id: string, skipRemember?: boolean, branchId?: string) => Promise<void>;
   moveDraft: (fromId: string, toId: string) => void;
-}) {
+}
+
+export function createConversationTaskState(input: ConversationTaskStateInput) {
   function isSelected(selection: Selection) {
     return (
       input.spaceId.value === selection.spaceId &&

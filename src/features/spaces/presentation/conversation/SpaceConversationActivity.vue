@@ -42,9 +42,14 @@ function createdNodeId(value: unknown) {
 }
 
 const items = computed(() =>
-  conversationActivityItems(props.events, props.messages, props.runId, {
-    action: (id) => captureActionLabel(id, t),
-    default: t("spaces.assistant.activity.tool"),
+  conversationActivityItems({
+    events: props.events,
+    messages: props.messages,
+    runId: props.runId,
+    labels: {
+      action: (id) => captureActionLabel(id, t),
+      default: t("spaces.assistant.activity.tool"),
+    },
   }),
 );
 const toolCount = computed(() => items.value.filter((item) => item.status !== "commentary").length);

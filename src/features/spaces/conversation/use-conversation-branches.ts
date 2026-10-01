@@ -3,13 +3,15 @@ import { shallowRef, type Ref } from "vue";
 import type { AssistantConversation } from "../contracts/generated/AssistantConversation";
 import { activateAssistantBranch, listAssistantBranches } from "./conversation-ipc";
 
-export function useConversationBranches(input: {
+interface ConversationBranchesInput {
   selected: Ref<AssistantConversation | undefined>;
   selectedId: Ref<string>;
   loading: Ref<boolean>;
   refresh: () => Promise<void>;
   select: (id: string) => Promise<void>;
-}) {
+}
+
+export function useConversationBranches(input: ConversationBranchesInput) {
   const branches = shallowRef<string[]>([]);
 
   async function load(id: string) {

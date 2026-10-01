@@ -28,13 +28,15 @@ export function imageToolAvailability(input: {
   return { state: "ready" };
 }
 
-export function imageActionAvailability(input: {
+interface ImageActionAvailabilityInput {
   sourceReady: boolean;
   editing: boolean;
   capability: LayerAvailability | ImageOperationCapability | undefined;
   failed: boolean;
   busy: boolean;
-}): ImageActionAvailability {
+}
+
+export function imageActionAvailability(input: ImageActionAvailabilityInput): ImageActionAvailability {
   const local = imageToolAvailability(input);
   if (local.state !== "ready") return local;
   const { capability, failed } = input;

@@ -10,13 +10,15 @@ import { createConnectorTargetIndex } from "./connector-target-index";
 import { useCanvasEdgeAutoPan } from "./use-canvas-edge-auto-pan";
 import type { usePointerInteractions } from "./use-pointer-interactions";
 
-export function useConnectorCreation(options: {
+interface ConnectorCreationOptions {
   createRelation: CanvasHostEvents["onCreateRelation"];
   reportError(error: unknown): void;
   pointer: ReturnType<typeof usePointerInteractions>;
   scene: Readonly<Ref<CanvasScene>>;
   viewport: ReturnType<typeof useStageViewport>;
-}) {
+}
+
+export function useConnectorCreation(options: ConnectorCreationOptions) {
   const draft = shallowRef<CanvasConnectorDraft>();
   const targetIndex = computed(() =>
     createConnectorTargetIndex(

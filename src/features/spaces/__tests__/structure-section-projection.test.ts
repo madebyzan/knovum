@@ -13,8 +13,15 @@ describe("Structure Section projection", () => {
     const node = createSpaceNode(createSpaceNotePayload("Evidence"), { x: 0, y: 0 }, "node");
 
     expect(projectStructureCanvasDocument(snapshot).nodes.map(({ nodeId }) => nodeId)).toEqual(["node"]);
-    expect(projectStructureScene(snapshot, [node], []).content[0]?.visible).toBe(false);
-    expect(projectStructureScene(snapshot, [node], [], new Set(["section"])).content[0]?.visible).toBe(true);
+    expect(projectStructureScene({ snapshot, nodes: [node], relations: [] }).content[0]?.visible).toBe(false);
+    expect(
+      projectStructureScene({
+        snapshot,
+        nodes: [node],
+        relations: [],
+        temporarilyExpandedSectionIds: new Set(["section"]),
+      }).content[0]?.visible,
+    ).toBe(true);
   });
 
   it("requires an explicitly expanded collapsed Section before producing a drop command", () => {

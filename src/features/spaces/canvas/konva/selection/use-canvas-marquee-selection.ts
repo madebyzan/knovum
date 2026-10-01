@@ -4,14 +4,16 @@ import { computed, shallowRef, type Ref } from "vue";
 import type { CanvasNodeLayoutV1 } from "../../schema/document";
 import { selectionRectIntersects } from "./selection-geometry";
 
-export function useCanvasMarqueeSelection(options: {
+interface CanvasMarqueeSelectionOptions {
   clear(): void;
   layouts: Readonly<Ref<readonly CanvasNodeLayoutV1[]>>;
   nodeIds: Ref<Set<string>>;
   notify(): void;
   structureNodeIds: Ref<Set<string>>;
   structureSelectionForNode(nodeId: string): string | undefined;
-}) {
+}
+
+export function useCanvasMarqueeSelection(options: CanvasMarqueeSelectionOptions) {
   const marquee = shallowRef<{ start: { x: number; y: number }; end: { x: number; y: number } }>();
   const marqueeRect = computed(() => {
     const value = marquee.value;

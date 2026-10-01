@@ -3,12 +3,19 @@ import type { Ref } from "vue";
 import type { useSpaceStore } from "../../session/space-store";
 import type { CanvasSelectionProductState } from "./selection-product-state";
 
-export function useCanvasStructureSelectionActions(
-  store: ReturnType<typeof useSpaceStore>,
-  state: Readonly<Ref<CanvasSelectionProductState>>,
-  titles: { group: string; section: string },
-  run: (operation: () => Promise<unknown>) => void,
-) {
+interface CanvasStructureSelectionActionsInput {
+  store: ReturnType<typeof useSpaceStore>;
+  state: Readonly<Ref<CanvasSelectionProductState>>;
+  titles: { group: string; section: string };
+  run: (operation: () => Promise<unknown>) => void;
+}
+
+export function useCanvasStructureSelectionActions({
+  store,
+  state,
+  titles,
+  run,
+}: CanvasStructureSelectionActionsInput) {
   function createSection() {
     run(() =>
       store.executeSpaceEdit({

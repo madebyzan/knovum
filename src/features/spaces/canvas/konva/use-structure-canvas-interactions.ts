@@ -7,10 +7,12 @@ import { createStructureIndex, effectiveOperationRoots } from "../../model/struc
 import { worldTransformFor } from "../../model/structure/world-transform";
 import { sectionDropMoveCommand } from "../../structure/section-drop-reparent";
 import type { CanvasHostEvents } from "../contracts/canvas-editor";
+import type { CanvasRect } from "../contracts/canvas-editor-port";
 import type { StructureScene } from "../document/structure-scene";
 import type { CanvasGestureUpdate } from "./interaction/canvas-gesture-update";
 import { useSectionDropPreview } from "./section-drop-preview";
-export function useStructureCanvasInteractions(options: {
+
+interface StructureCanvasInteractionOptions {
   events: CanvasHostEvents;
   clearSelection(): void;
   setStructureSelection(structureNodeIds: readonly string[]): void;
@@ -18,7 +20,9 @@ export function useStructureCanvasInteractions(options: {
   selectedIds: Readonly<Ref<ReadonlySet<string>>>;
   snapshot(): SpaceEditSnapshot;
   temporarilyExpandedSectionId: Ref<string | undefined>;
-}) {
+}
+
+export function useStructureCanvasInteractions(options: StructureCanvasInteractionOptions) {
   const renameStructureNodeId = shallowRef<string>();
   const renameError = shallowRef<string>();
   const dropTargetId = shallowRef<string>();
@@ -103,7 +107,7 @@ export function useStructureCanvasInteractions(options: {
     }
   }
 
-  function resize(structureNodeId: string, frame: { x: number; y: number; width: number; height: number }) {
+  function resize(structureNodeId: string, frame: CanvasRect) {
     report(options.events.onExecuteSpaceEdit({ kind: "section.resize-frame", structureNodeId, frame }));
   }
 

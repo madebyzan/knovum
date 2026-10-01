@@ -9,14 +9,16 @@ import {
   type ComponentPublicInstance,
 } from "vue";
 
+interface ConversationScrollOptions {
+  messages: readonly { id: string }[];
+  streamedText: string;
+  loadingOlder: boolean;
+  scrollKey: string;
+  savedScrollTop?: number | undefined;
+}
+
 export function useConversationScroll(
-  props: {
-    messages: readonly { id: string }[];
-    streamedText: string;
-    loadingOlder: boolean;
-    scrollKey: string;
-    savedScrollTop?: number | undefined;
-  },
+  props: ConversationScrollOptions,
   events: { loadOlder: () => void; remember: (key: string, top: number) => void },
 ) {
   const scroller = ref<HTMLDivElement | null>(null);

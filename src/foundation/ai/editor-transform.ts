@@ -7,12 +7,19 @@ import type { TaskStreamEvent } from "../../shared/contracts/generated/TaskStrea
 import { invokeCommand } from "../ipc/invoke-command";
 import { aiExecutionTargetPayload, loadAiExecutionTarget } from "./ai-execution";
 
-export async function transformEditorTextStream(
-  action: EditorTransformAction,
-  text: string,
-  jobId: string,
-  onEvent: (event: TaskStreamEvent) => void,
-): Promise<string> {
+interface EditorTextTransformInput {
+  action: EditorTransformAction;
+  text: string;
+  jobId: string;
+  onEvent: (event: TaskStreamEvent) => void;
+}
+
+export async function transformEditorTextStream({
+  action,
+  text,
+  jobId,
+  onEvent,
+}: EditorTextTransformInput): Promise<string> {
   const target = await loadAiExecutionTarget("writing");
   const channel = new Channel<TaskStreamEvent>();
   // oxlint-disable-next-line unicorn/prefer-add-event-listener -- Tauri Channel exposes events through onmessage.

@@ -87,7 +87,12 @@ export function createKonvaEditorPort(options: KonvaEditorPortOptions): CanvasEd
     },
     clearSelection: selection.clear,
     captureSceneViewport: () =>
-      captureCanvasViewport(options.scene(), options.palette(), options.viewport(), options.size()),
+      captureCanvasViewport({
+        scene: options.scene(),
+        palette: options.palette(),
+        viewport: options.viewport(),
+        size: options.size(),
+      }),
     captureCanvasOverview: () => captureCanvasOverview(options.scene(), options.palette()),
     getSelectionSnapshot: selection.snapshot,
     getSelectionBounds: selection.bounds,

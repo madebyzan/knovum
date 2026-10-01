@@ -8,15 +8,22 @@ import {
   groupCapability,
 } from "../structure/structure-capabilities";
 
-export function createSpaceStructureCommands(
+interface SpaceStructureCommandInput {
   store: Pick<
     ReturnType<typeof useSpaceStore>,
     "editSnapshot" | "executeSpaceEdit" | "outlineRenameStructureNodeId"
-  >,
-  selectedStructureNodeIds: () => string[],
-  t: (key: string) => string,
-  sidebar: WorkspaceSidebarPresentation,
-): AppCommand[] {
+  >;
+  selectedStructureNodeIds: () => string[];
+  t: (key: string) => string;
+  sidebar: WorkspaceSidebarPresentation;
+}
+
+export function createSpaceStructureCommands({
+  store,
+  selectedStructureNodeIds,
+  t,
+  sidebar,
+}: SpaceStructureCommandInput): AppCommand[] {
   return [
     {
       id: "spaces.group-selection",

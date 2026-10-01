@@ -6,14 +6,23 @@ import { applyImageTexture } from "./image-texture";
 
 const BYTE_MAX = 255;
 
+export interface ImagePixelRect {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+}
+
+interface ImageToneFrame {
+  width: number;
+  height: number;
+  imageRect: ImagePixelRect;
+}
+
 export function applyImageTone(
   source: Uint8ClampedArray,
   adjustments: ImageAdjustments,
-  size: {
-    width: number;
-    height: number;
-    imageRect: { left: number; top: number; width: number; height: number };
-  },
+  size: ImageToneFrame,
 ): Uint8ClampedArray {
   const { width, imageRect } = size;
   const output = new Uint8ClampedArray(source);
@@ -93,7 +102,7 @@ export function applyImageTone(
 function finishSpatialAdjustments(
   pixels: Uint8ClampedArray,
   adjustments: ImageAdjustments,
-  size: { width: number; height: number; imageRect: { width: number; height: number } },
+  size: ImageToneFrame,
 ) {
   const texturedPixels = applyImageTexture(pixels, {
     width: size.width,

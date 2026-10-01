@@ -7,15 +7,13 @@ import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { spaceCanvasOverviewSource } from "../assets/node-preview-source";
 import { useCanvasEditorSession } from "../canvas/editor-session";
 import { currentSelectionRoots } from "../canvas/selection/selection-roots";
-import type { SubmitAssistantTaskRequest } from "../contracts/generated/SubmitAssistantTaskRequest";
+import type { AssistantAttachment } from "../contracts/generated/AssistantAttachment";
 import { createStructureIndex } from "../model/structure/structure-index";
 import { contentNodeIdsWithin } from "../model/structure/structure-queries";
 import { useSpaceStore } from "../session/space-store";
 import { chooseAssistantUploads, inspectAssistantUploads } from "./conversation-uploads";
 import { previewConversationAttachment } from "./preview-conversation-attachment";
 import { isAssistantImagePath, useConversationImagePreviews } from "./use-conversation-image-previews";
-
-type Attachment = NonNullable<SubmitAssistantTaskRequest["attachments"]>[number];
 
 function attachmentErrorMessage(error: unknown, t: ReturnType<typeof useI18n>["t"]) {
   const code = decodeAppError(error)?.code;
@@ -34,7 +32,7 @@ export function useConversationAttachments() {
   const { t } = useI18n();
   const canvas = useCanvasEditorSession();
   const store = useSpaceStore();
-  const attachments = shallowRef<Attachment[]>([]);
+  const attachments = shallowRef<AssistantAttachment[]>([]);
   const imagePreview = useConversationImagePreviews(attachments);
   const pickingFiles = shallowRef(false);
   const attachmentError = shallowRef<string>();

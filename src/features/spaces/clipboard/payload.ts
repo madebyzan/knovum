@@ -9,12 +9,14 @@ import { validateStructureSnapshot } from "../model/structure/structure-validati
 import { worldTransformFor } from "../model/structure/world-transform";
 import type { SpaceClipboardPayload } from "./clipboard-envelope";
 
-export function createSpaceClipboardPayload(input: {
+interface SpaceClipboardPayloadInput {
   snapshot: SpaceEditSnapshot;
   nodes: readonly SpaceCanvasNode[];
   relations: readonly SpaceRelation[];
   selectedStructureNodeIds: readonly string[];
-}): SpaceClipboardPayload {
+}
+
+export function createSpaceClipboardPayload(input: SpaceClipboardPayloadInput): SpaceClipboardPayload {
   const index = validateStructureSnapshot(input.snapshot.structure, input.snapshot.layouts);
   const layouts = new Map(input.snapshot.layouts.map((layout) => [layout.structureNodeId, layout]));
   const roots = effectiveOperationRoots(input.selectedStructureNodeIds, index);

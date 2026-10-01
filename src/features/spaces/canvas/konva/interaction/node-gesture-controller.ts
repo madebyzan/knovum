@@ -101,18 +101,23 @@ export class NodeGestureController {
     const frame = updates[0]?.frame;
     this.options.updateFeedback(
       frame
-        ? projectResizeFeedback(frame, this.resizeGuides, this.options.zoom(), proportionalAnchor)
+        ? projectResizeFeedback({
+            frame,
+            snapGuides: this.resizeGuides,
+            zoom: this.options.zoom(),
+            proportionalAnchor,
+          })
         : undefined,
     );
   };
 
   beginTransform() {
-    this.transformTargets = captureCanvasTransformTargets(
-      this.options.layouts(),
-      this.options.nodes(),
-      this.options.selectedNodeIds(),
-      this.options.stage(),
-    );
+    this.transformTargets = captureCanvasTransformTargets({
+      layouts: this.options.layouts(),
+      nodes: this.options.nodes(),
+      selectedNodeIds: this.options.selectedNodeIds(),
+      stage: this.options.stage(),
+    });
   }
 
   panDrag(offset: { x: number; y: number }) {

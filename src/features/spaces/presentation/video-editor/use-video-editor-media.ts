@@ -6,7 +6,7 @@ import type { useVideoEditHistory } from "./use-video-edit-history";
 import type { useVideoEditSelection } from "./use-video-edit-selection";
 import type { useVideoProjectPlayback } from "./use-video-project-playback";
 
-export function useVideoEditorMedia(options: {
+interface VideoEditorMediaOptions {
   nodeId: Ref<string | undefined>;
   data: Ref<SpaceVideoPayload | undefined>;
   project: Ref<VideoEditProject | undefined>;
@@ -16,7 +16,9 @@ export function useVideoEditorMedia(options: {
   selection: ReturnType<typeof useVideoEditSelection>;
   playback: ReturnType<typeof useVideoProjectPlayback>;
   initializeFromMetadata(event: Event): void;
-}) {
+}
+
+export function useVideoEditorMedia(options: VideoEditorMediaOptions) {
   const sourceDurationMs = shallowRef(0);
 
   watch(

@@ -4,6 +4,7 @@ import type {
   CanvasEditorPort,
   CanvasNodePlacement,
   CanvasPoint,
+  CanvasRect,
   CanvasSelectionSnapshot,
   CanvasViewport,
 } from "./canvas-editor-port";
@@ -24,7 +25,7 @@ export interface CanvasHostEvents {
   onDeleteRelations(ids: readonly string[]): Promise<void>;
   onCreateRelation(sourceNodeId: string, targetNodeId: string): Promise<void>;
   onCreateTextNode(kind: "note" | "text", point: CanvasPoint): Promise<string | undefined>;
-  onCreateSection(frame: { x: number; y: number; width: number; height: number }): Promise<void>;
+  onCreateSection(frame: CanvasRect): Promise<void>;
   onExecuteSpaceEdit(command: SpaceEditCommand): Promise<unknown>;
   onEnterGroup(structureNodeId: string): void;
   onExitGroup(): boolean;

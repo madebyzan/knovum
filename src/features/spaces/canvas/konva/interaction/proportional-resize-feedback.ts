@@ -4,12 +4,19 @@ import type { CanvasGestureFeedback, CanvasSnapGuide } from "./canvas-snapping";
 const MEASUREMENT_EXTENSION_PX = 120;
 const BADGE_OFFSET_PX = 12;
 
-export function projectResizeFeedback(
-  frame: CanvasNodeFrame,
-  snapGuides: readonly CanvasSnapGuide[],
-  zoom: number,
-  proportionalAnchor?: string,
-): CanvasGestureFeedback {
+interface ResizeFeedbackInput {
+  frame: CanvasNodeFrame;
+  snapGuides: readonly CanvasSnapGuide[];
+  zoom: number;
+  proportionalAnchor?: string | undefined;
+}
+
+export function projectResizeFeedback({
+  frame,
+  snapGuides,
+  zoom,
+  proportionalAnchor,
+}: ResizeFeedbackInput): CanvasGestureFeedback {
   const measurement = proportionalAnchor
     ? proportionalResizeMeasurement(frame, proportionalAnchor, MEASUREMENT_EXTENSION_PX / zoom)
     : undefined;

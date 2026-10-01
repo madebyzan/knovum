@@ -26,13 +26,17 @@ export type SpaceImportBatchOutcome<Key> =
   | { status: "cancelled"; key: Key }
   | { status: "failed"; key: Key; error: unknown };
 
-export async function importSpaceBatch<Key>(input: {
+interface SpaceImportBatchInput<Key> {
   context: SpaceImportContext;
   spaceId: string;
   requests: readonly SpaceImportBatchRequest<Key>[];
   origin: { x: number; y: number };
   labels: SpaceImportSessionLabels;
-}): Promise<SpaceImportBatchOutcome<Key>[]> {
+}
+
+export async function importSpaceBatch<Key>(
+  input: SpaceImportBatchInput<Key>,
+): Promise<SpaceImportBatchOutcome<Key>[]> {
   const { context, labels, origin, requests, spaceId } = input;
   await context.ensureImportTarget(spaceId);
   const prepared = await Promise.all(
@@ -95,13 +99,17 @@ async function prepareBatchSource<Key>(
   }
 }
 
-async function commitBatchSource<Key>(input: {
+interface CommitBatchSourceInput<Key> {
   context: SpaceImportContext;
   spaceId: string;
   request: SpaceImportBatchRequest<Key>;
   operation: PreparedSpaceImportOperation;
   position: { x: number; y: number };
-}): Promise<SpaceImportBatchOutcome<Key>> {
+}
+
+async function commitBatchSource<Key>(
+  input: CommitBatchSourceInput<Key>,
+): Promise<SpaceImportBatchOutcome<Key>> {
   const { context, operation, position, request, spaceId } = input;
   try {
     const nodes = await commitPreparedSpaceImport({

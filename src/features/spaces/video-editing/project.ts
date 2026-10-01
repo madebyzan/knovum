@@ -7,6 +7,13 @@ export type VideoClip = VideoEditProject["videoTrack"]["clips"][number];
 export type VideoTextOverlay = VideoEditProject["textTrack"]["items"][number];
 export type VideoTextStyle = VideoTextOverlay["style"];
 
+interface VideoEditProjectSource {
+  sourceRevision: string;
+  durationMs: number;
+  sourceWidth: number;
+  sourceHeight: number;
+}
+
 export function defaultVideoTextStyle(family: string): VideoTextStyle {
   return {
     family,
@@ -17,12 +24,12 @@ export function defaultVideoTextStyle(family: string): VideoTextStyle {
   };
 }
 
-export function createVideoEditProject(
-  sourceRevision: string,
-  durationMs: number,
-  sourceWidth: number,
-  sourceHeight: number,
-): VideoEditProject {
+export function createVideoEditProject({
+  sourceRevision,
+  durationMs,
+  sourceWidth,
+  sourceHeight,
+}: VideoEditProjectSource): VideoEditProject {
   return {
     version: 1,
     sourceRevision,

@@ -36,12 +36,12 @@ const emit = defineEmits<{ pointerDown: [id: string, event: PointerEvent] }>();
     <KonvaArrow
       v-if="connectorDraft"
       :config="{
-        points: draftRelationPath(
-          connectorDraft.from,
-          connectorDraft.sourceSide,
-          connectorDraft.to,
-          connectorDraft.target?.side,
-        ),
+        points: draftRelationPath({
+          from: connectorDraft.from,
+          fromSide: connectorDraft.sourceSide,
+          to: connectorDraft.to,
+          toSide: connectorDraft.target?.side,
+        }),
         bezier: true,
         stroke: palette.accent,
         fill: palette.accent,

@@ -1,31 +1,20 @@
-import { computed, shallowRef, type Ref, type ShallowRef } from "vue";
+import { computed, shallowRef } from "vue";
 
-import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
-import type { AssistantConversation } from "../contracts/generated/AssistantConversation";
-import type { AssistantMessage } from "../contracts/generated/AssistantMessage";
-import type { SubmitAssistantTaskRequest } from "../contracts/generated/SubmitAssistantTaskRequest";
 import { cancelAssistantTask } from "./conversation-ipc";
 import { createConversationTaskState } from "./conversation-task-state";
-import { createConversationTaskSubmission } from "./conversation-task-submission";
+import {
+  createConversationTaskSubmission,
+  type ConversationSubmissionInput,
+} from "./conversation-task-submission";
 import { useConversationRunRestoration } from "./use-conversation-run-restoration";
 
-type Attachment = NonNullable<SubmitAssistantTaskRequest["attachments"]>[number];
-
-export function useConversationTask(input: {
-  spaceId: Ref<string | undefined>;
-  selectedConversationId: Ref<string>;
-  conversation: Ref<AssistantConversation | undefined>;
-  prompt: Ref<string>;
-  target: Ref<TaskTargetRef | undefined>;
-  attachments: Ref<Attachment[]>;
-  visibleAttachments: Ref<readonly { title: string; isImage: boolean; previewSource: string }[]>;
-  messages: ShallowRef<AssistantMessage[]>;
+interface ConversationTaskInput extends ConversationSubmissionInput {
   refresh: () => Promise<void>;
   select: (id: string, skipRemember?: boolean, branchId?: string) => Promise<void>;
   moveDraft: (fromId: string, toId: string) => void;
-  clearDraft: (request: SubmitAssistantTaskRequest) => void;
-  restoreDraft: (request: SubmitAssistantTaskRequest) => void;
-}) {
+}
+
+export function useConversationTask(input: ConversationTaskInput) {
   const activeRunId = shallowRef<string>();
   const activeConversationId = shallowRef("");
   const activeSpaceId = shallowRef<string>();

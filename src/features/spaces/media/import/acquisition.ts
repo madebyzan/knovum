@@ -32,11 +32,11 @@ export async function acquireMediaSource(
   );
   try {
     void logInfo("[spaces.url-capture] media acquisition started");
-    const mediaAcquisition = await requestMediaImport(
+    const mediaAcquisition = await requestMediaImport({
       jobId,
-      i18n.global.t("spaces.media.import.preparing"),
+      resourceTitle: i18n.global.t("spaces.media.import.preparing"),
       url,
-      (progress) => {
+      onProgress: (progress) => {
         if (progress.stage !== loggedStage) {
           loggedStage = progress.stage;
           void logInfo(`[spaces.url-capture] media stage=${progress.stage}`);
@@ -44,7 +44,7 @@ export async function acquireMediaSource(
         updateProgress(jobId, progress);
         onProgress(progress);
       },
-    );
+    });
     if (mediaAcquisition.outcome === "unsupported") {
       void logInfo("[spaces.url-capture] media source unsupported");
       tasks.dismiss(jobId);

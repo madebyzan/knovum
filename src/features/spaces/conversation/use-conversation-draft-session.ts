@@ -1,11 +1,10 @@
 import type { Ref } from "vue";
 
+import type { AssistantAttachment } from "../contracts/generated/AssistantAttachment";
 import type { SubmitAssistantTaskRequest } from "../contracts/generated/SubmitAssistantTaskRequest";
 import { useConversationDraftStore } from "./conversation-draft-store";
 
-type Attachment = NonNullable<SubmitAssistantTaskRequest["attachments"]>[number];
-
-function sameAttachments(left: readonly Attachment[], right: readonly Attachment[]) {
+function sameAttachments(left: readonly AssistantAttachment[], right: readonly AssistantAttachment[]) {
   return (
     left.length === right.length &&
     left.every((item) =>
@@ -22,12 +21,14 @@ function sameAttachments(left: readonly Attachment[], right: readonly Attachment
   );
 }
 
-export function useConversationDraftSession(input: {
+interface ConversationDraftSessionInput {
   spaceId: Ref<string | undefined>;
   selectedConversationId: Ref<string>;
   prompt: Ref<string>;
-  attachments: Ref<Attachment[]>;
-}) {
+  attachments: Ref<AssistantAttachment[]>;
+}
+
+export function useConversationDraftSession(input: ConversationDraftSessionInput) {
   const drafts = useConversationDraftStore();
 
   function remember(id = input.selectedConversationId.value, currentSpaceId = input.spaceId.value) {

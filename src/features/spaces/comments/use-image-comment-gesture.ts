@@ -2,11 +2,10 @@ import { clamp } from "es-toolkit";
 import { shallowRef } from "vue";
 
 import { viewportToLocalPoint } from "../canvas/viewport-to-local-point";
-import type { SpaceImagePayload } from "../model/nodes/node-payload";
+import type { SpaceImageComment } from "../model/nodes/node-payload";
 import { useImageCommentSession } from "./image-comment-session";
 
-type Comment = NonNullable<SpaceImagePayload["comments"]>[number];
-export type CommentMark = Pick<Comment, "x" | "y" | "shape">;
+export type CommentMark = Pick<SpaceImageComment, "x" | "y" | "shape">;
 interface Gesture {
   pointerId: number;
   start: { x: number; y: number };

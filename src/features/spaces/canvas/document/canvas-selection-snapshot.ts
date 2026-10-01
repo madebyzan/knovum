@@ -4,12 +4,19 @@ import type { CanvasRect, CanvasSelectionSnapshot } from "../contracts/canvas-ed
 import type { CanvasNodeLayoutV1 } from "../schema/document";
 import { canvasLayoutBounds } from "./canvas-layout-bounds";
 
-export function createCanvasSelectionSnapshot(
-  layouts: readonly CanvasNodeLayoutV1[],
-  nodeIds: ReadonlySet<string>,
-  relationIds: ReadonlySet<string>,
-  relationBounds: ReadonlyMap<string, CanvasRect>,
-): CanvasSelectionSnapshot {
+interface CanvasSelectionInput {
+  layouts: readonly CanvasNodeLayoutV1[];
+  nodeIds: ReadonlySet<string>;
+  relationIds: ReadonlySet<string>;
+  relationBounds: ReadonlyMap<string, CanvasRect>;
+}
+
+export function createCanvasSelectionSnapshot({
+  layouts,
+  nodeIds,
+  relationIds,
+  relationBounds,
+}: CanvasSelectionInput): CanvasSelectionSnapshot {
   const selectedLayouts = layouts.filter(({ nodeId }) => nodeIds.has(nodeId));
   const bounds = canvasLayoutBounds(selectedLayouts) ?? selectedRelationBounds(relationIds, relationBounds);
   return {

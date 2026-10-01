@@ -31,12 +31,14 @@ export function createCanvasResizeSnapIndex(
   };
 }
 
-export function resizeSnapCoordinate(options: {
+interface ResizeSnapCoordinateOptions {
   activeAnchor: string;
   axis: "x" | "y";
   index: CanvasResizeSnapIndex;
   value: number;
-}) {
+}
+
+export function resizeSnapCoordinate(options: ResizeSnapCoordinateOptions) {
   const enabled =
     options.axis === "x"
       ? options.activeAnchor.includes("left") || options.activeAnchor.includes("right")
@@ -45,13 +47,15 @@ export function resizeSnapCoordinate(options: {
   return nearestSortedCanvasSnap(options.value, options.index[options.axis], 6);
 }
 
-export function resizeSnapGuides(options: {
+interface ResizeSnapGuideOptions {
   index: CanvasResizeSnapIndex;
   snapped: { x: number; y: number };
   transform: Konva.Transform;
   x: number | undefined;
   y: number | undefined;
-}) {
+}
+
+export function resizeSnapGuides(options: ResizeSnapGuideOptions) {
   const { index, snapped, transform, x, y } = options;
   const point = transform.copy().invert().point(snapped);
   const { extent } = index;

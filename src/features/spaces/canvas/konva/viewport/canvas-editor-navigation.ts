@@ -1,6 +1,6 @@
 import { compact, intersectionBy } from "es-toolkit";
 
-import type { CanvasViewport } from "../../contracts/canvas-editor-port";
+import type { CanvasRect, CanvasViewport } from "../../contracts/canvas-editor-port";
 import type { CanvasNodeLayoutV1 } from "../../schema/document";
 import { screenPointFromCanvas, zoomViewportAt } from "./viewport-math";
 
@@ -64,7 +64,7 @@ export function fitCanvasLayouts(context: CanvasNavigationContext, layouts: read
 
 export function fitCanvasBounds(
   context: Pick<CanvasNavigationContext, "setViewport" | "size" | "viewport">,
-  bounds: { x: number; y: number; width: number; height: number },
+  bounds: CanvasRect,
 ) {
   const size = context.size();
   const padding = 80;

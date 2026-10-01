@@ -2,20 +2,29 @@ import { compact, groupBy, sortBy } from "es-toolkit";
 
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import type { SpaceRelation } from "../../../model/relations/relation";
+import type { WorldBounds } from "../../../model/structure/world-bounds";
 import { canvasNodeInteraction } from "../../canvas-node-interaction";
 import type { StructureScene } from "../../document/structure-scene";
 import type { CanvasDocumentV1, CanvasNodeLayoutV1 } from "../../schema/document";
 import type { CanvasScene, CanvasSceneNode, CanvasSceneRelation } from "./canvas-scene";
 import { relationGeometry } from "./relation-path";
 
-export function projectCanvasScene(
-  document: CanvasDocumentV1,
-  nodes: readonly SpaceCanvasNode[],
-  relations: readonly SpaceRelation[],
-  options: { lockedNodeIds?: ReadonlySet<string>; structure?: StructureScene } = {},
-): CanvasScene {
-  const lockedNodeIds = options.lockedNodeIds ?? new Set<string>();
-  const structure = options.structure;
+interface CanvasSceneProjectionInput {
+  document: CanvasDocumentV1;
+  nodes: readonly SpaceCanvasNode[];
+  relations: readonly SpaceRelation[];
+  lockedNodeIds?: ReadonlySet<string>;
+  structure?: StructureScene;
+}
+
+export function projectCanvasScene({
+  document,
+  nodes,
+  relations,
+  lockedNodeIds: lockedIds,
+  structure,
+}: CanvasSceneProjectionInput): CanvasScene {
+  const lockedNodeIds = lockedIds ?? new Set<string>();
   const content = new Map(nodes.map((node) => [node.id, node]));
   const visibleStructureNodeIds = structure
     ? new Set(structure.content.filter(({ visible }) => visible).map(({ node }) => node.id))
@@ -73,14 +82,16 @@ export function projectCanvasScene(
   };
 }
 
-function projectRelation(options: {
+interface CanvasRelationProjectionOptions {
   relation: SpaceRelation;
   endpoints: ReadonlyMap<string, RelationEndpoint>;
   sourceStructureNodeId: string;
   targetStructureNodeId: string;
   color: CanvasSceneRelation["color"];
   parallelOffset: number;
-}): CanvasSceneRelation[] {
+}
+
+function projectRelation(options: CanvasRelationProjectionOptions): CanvasSceneRelation[] {
   const { relation, endpoints, sourceStructureNodeId, targetStructureNodeId, color, parallelOffset } =
     options;
   const source = endpoints.get(sourceStructureNodeId);
@@ -141,7 +152,7 @@ function structureRelationEndpoints(scene: StructureScene) {
   return endpoints;
 }
 
-function boundsFrame(bounds: { left: number; top: number; right: number; bottom: number }) {
+function boundsFrame(bounds: WorldBounds) {
   return {
     x: bounds.left,
     y: bounds.top,

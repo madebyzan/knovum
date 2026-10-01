@@ -90,7 +90,11 @@ export function useConversationActions(state: ConversationActionState) {
     const conversation = state.selected.value;
     if (!conversation?.branchId || state.loading.value) return;
     try {
-      const branchId = await branchAssistantConversation(conversation.id, conversation.branchId, message.id);
+      const branchId = await branchAssistantConversation({
+        conversationId: conversation.id,
+        sourceBranchId: conversation.branchId,
+        throughMessageId: message.id,
+      });
       await adoptBranch(conversation.id, branchId);
       toast.success(i18n.global.t("spaces.assistant.conversations.branchCreated"));
     } catch (cause) {
@@ -112,12 +116,12 @@ export function useConversationActions(state: ConversationActionState) {
       .map((part) => part.text)
       .join("\n");
     try {
-      const branchId = await branchAssistantConversation(
-        conversation.id,
-        conversation.branchId,
-        source.id,
-        false,
-      );
+      const branchId = await branchAssistantConversation({
+        conversationId: conversation.id,
+        sourceBranchId: conversation.branchId,
+        throughMessageId: source.id,
+        includeBoundary: false,
+      });
       await adoptBranch(conversation.id, branchId);
       state.prompt.value = text;
       await state.send();

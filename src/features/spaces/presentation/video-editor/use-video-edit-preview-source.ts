@@ -3,12 +3,14 @@ import { shallowRef, watch, type Ref } from "vue";
 import { i18n } from "../../../../foundation/i18n/i18n";
 import type { SpaceVideoPayload } from "../../model/nodes/node-payload";
 
-export function useVideoEditPreviewSource(options: {
+interface VideoEditPreviewSourceOptions {
   data: Ref<SpaceVideoPayload | undefined>;
   proxyPath: Ref<string | undefined>;
   playing: Ref<boolean>;
   metadataError: Ref<string | undefined>;
-}) {
+}
+
+export function useVideoEditPreviewSource(options: VideoEditPreviewSourceOptions) {
   const { data, proxyPath, playing, metadataError } = options;
   const previewPath = shallowRef<string>();
 
