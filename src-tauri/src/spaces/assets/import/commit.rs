@@ -3,7 +3,12 @@ use std::time::{Duration, Instant};
 use serde::Serialize;
 use tauri::ipc::Channel;
 
-use super::super::{snapshot_to_imported, transfer::remove_path, PreparedAsset};
+use super::super::{
+    kind::{AssetKind, PreparedAssetState},
+    snapshot_to_imported,
+    transfer::remove_path,
+    PreparedAsset,
+};
 use super::{
     copy::{copy_resource, CopiedResource},
     registry::{self, PendingImport},
@@ -123,46 +128,61 @@ impl ProgressState {
 }
 
 fn copied_asset(job: &PendingImport, summary: CopiedResource) -> Result<PreparedAsset, String> {
-    let (preview_text, preview_language, entries) = copied_preview(job);
+    let preview = copied_preview(job)?;
     let snapshot = InspectedFile {
         name: job.name.clone(),
         path: job.target.to_string_lossy().into_owned(),
         kind: job.classification.node_kind(),
-        preview_text,
-        preview_language,
+        preview_text: preview.text,
+        preview_language: preview.language,
         size: summary.size,
         modified_at: summary.modified_at,
-        entries,
+        entries: preview.entries,
     };
     let mut asset = snapshot_to_imported(snapshot, summary.revision)?;
-    asset.processing_state = (asset.kind != "audio").then_some("processing");
+    asset.processing_state =
+        (asset.kind != AssetKind::Audio).then_some(PreparedAssetState::Processing);
     Ok(asset)
 }
 
-fn copied_preview(
-    job: &PendingImport,
-) -> (
-    Option<String>,
-    Option<String>,
-    Option<Vec<crate::file_inspection::ArchiveMember>>,
-) {
+struct CopiedPreview {
+    text: Option<String>,
+    language: Option<String>,
+    entries: Option<Vec<crate::file_inspection::ArchiveMember>>,
+}
+
+fn copied_preview(job: &PendingImport) -> Result<CopiedPreview, String> {
     if let ResourceClassification::SourceCode(language) = job.classification {
         let text = if language == "html" {
             read_html_preview(&job.target).ok()
         } else {
             read_text_preview(&job.target).ok()
         };
-        return (text, Some(language.to_owned()), None);
+        return Ok(CopiedPreview {
+            text,
+            language: Some(language.to_owned()),
+            entries: None,
+        });
     }
     if job.classification.is_text_document() {
-        return (read_text_preview(&job.target).ok(), None, None);
+        return Ok(CopiedPreview {
+            text: read_text_preview(&job.target).ok(),
+            language: None,
+            entries: None,
+        });
     }
     if job.classification == ResourceClassification::Archive {
-        let entries = crate::file_inspection::archive_entries(&job.target, &job.name).ok();
-        let text = entries
-            .as_deref()
-            .map(crate::file_inspection::entry_search_text);
-        return (text, None, entries);
+        let entries = crate::file_inspection::archive_entries(&job.target, &job.name)?;
+        let text = crate::file_inspection::entry_search_text(&entries);
+        return Ok(CopiedPreview {
+            text: Some(text),
+            language: None,
+            entries: Some(entries),
+        });
     }
-    (None, None, None)
+    Ok(CopiedPreview {
+        text: None,
+        language: None,
+        entries: None,
+    })
 }

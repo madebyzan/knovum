@@ -10,7 +10,7 @@ pub(super) fn attach(asset: &mut PreparedAsset, revision: &str) {
     else {
         return;
     };
-    if asset.kind == "code" {
+    if asset.kind == crate::spaces::assets::kind::AssetKind::Code {
         asset.knowledge_chunks = Some(code_chunks(text, revision));
         return;
     }

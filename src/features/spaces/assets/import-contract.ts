@@ -1,7 +1,7 @@
+import type { PreparedSpaceImport } from "../contracts/generated/PreparedSpaceImport";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
 import type { NodePayloadChangeInput } from "../nodes/node-operations";
-import type { PreparedSpaceImport } from "./asset-operations";
 import type { SpaceAssetProcessingContext } from "./processing-scheduler";
 
 export interface SpaceImportContext extends SpaceAssetProcessingContext {

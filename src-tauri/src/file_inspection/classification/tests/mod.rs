@@ -28,12 +28,15 @@ fn treats_sensitive_files_as_opaque_files() {
 
 #[test]
 fn treats_archives_as_opaque_archive_resources() {
-    for name in ["bundle.zip", "site.tar.gz", "backup.7z", "package.rar"] {
+    for name in ["bundle.zip", "site.tar.gz", "package.jar", "site.epub"] {
         assert_eq!(
             classify_file(Path::new(name)),
             ResourceClassification::Archive
         );
         assert_eq!(ResourceClassification::Archive.node_kind(), "file");
+    }
+    for name in ["backup.7z", "package.rar", "disk.iso", "backup.gz"] {
+        assert_eq!(classify_file(Path::new(name)), ResourceClassification::File);
     }
 }
 

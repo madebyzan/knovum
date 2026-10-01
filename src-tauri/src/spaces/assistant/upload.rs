@@ -186,19 +186,5 @@ pub(super) fn read_bounded(path: &Path, limit: u64) -> Result<Vec<u8>, AppError>
 }
 
 #[cfg(test)]
-mod tests {
-    use super::{classify, enforce_size, UploadKind};
-    use std::path::Path;
-
-    #[test]
-    fn upload_validation_returns_explicit_command_codes() {
-        assert_eq!(
-            classify(Path::new("attachment.exe")).err().unwrap().code,
-            "assistant_upload_unsupported"
-        );
-        assert_eq!(
-            enforce_size(UploadKind::Text, 0).err().unwrap().code,
-            "assistant_upload_size"
-        );
-    }
-}
+#[path = "tests/upload.rs"]
+mod tests;

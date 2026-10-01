@@ -48,14 +48,14 @@ fn inspect_regular_file(
             None,
         ),
         ResourceClassification::Archive => {
-            let entries = super::archive_entries(path, logical_name).ok();
-            let text = entries.as_deref().map(super::entry_search_text);
+            let entries = super::archive_entries(path, logical_name)?;
+            let text = Some(super::entry_search_text(&entries));
             (
                 ResourcePreview {
                     text,
                     language: None,
                 },
-                entries,
+                Some(entries),
             )
         }
         _ => (ResourcePreview::default(), None),
@@ -101,3 +101,7 @@ fn snapshot(
         entries,
     }
 }
+
+#[cfg(test)]
+#[path = "tests/inspect.rs"]
+mod tests;

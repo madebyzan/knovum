@@ -2,7 +2,7 @@ import { info as logInfo, warn as logWarn } from "@tauri-apps/plugin-log";
 import { hasFiles, readFiles } from "tauri-plugin-clipboard-api";
 
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
-import type { ImportedSpaceAsset } from "../assets/imported-asset";
+import type { PreparedAsset as ImportedSpaceAsset } from "../contracts/generated/PreparedAsset";
 import { importSpaceClipboardImage } from "./image-import";
 
 interface SpaceClipboardPasteHandlers {

@@ -1,6 +1,6 @@
 use std::{fs, path::Path};
 
-use super::super::PreparedAsset;
+use super::super::{kind::AssetKind, PreparedAsset};
 
 const MAX_MARKDOWN_BYTES: u64 = 4 * 1024 * 1024;
 
@@ -23,7 +23,7 @@ pub(super) fn import_markdown(source: &Path, name: String) -> Result<PreparedAss
     Ok(PreparedAsset {
         name,
         path: None,
-        kind: "markdown",
+        kind: AssetKind::Markdown,
         text: Some(text),
         preview_text: None,
         preview_language: None,

@@ -5,20 +5,16 @@ import { isString, uniq } from "es-toolkit";
 
 import { formatErrorDiagnostic } from "../../../foundation/errors/error-format";
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
+import type { PreparedAsset as ImportedSpaceAsset } from "../contracts/generated/PreparedAsset";
+import type { PreparedSpaceImport } from "../contracts/generated/PreparedSpaceImport";
 import type { KnowledgeLocator } from "../knowledge/model/schema/chunk";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
-import type { ImportedSpaceAsset } from "./imported-asset";
 
 const resourceRefreshes = new Map<string, Promise<SpaceNodePayload | undefined>>();
 
 export async function chooseSpaceSourcePath(): Promise<string | undefined> {
   const source = await open({ multiple: false, directory: false });
   return isString(source) ? source : undefined;
-}
-
-export interface PreparedSpaceImport {
-  jobId: string | null;
-  asset: ImportedSpaceAsset;
 }
 
 export interface SpaceAssetImportProgress {

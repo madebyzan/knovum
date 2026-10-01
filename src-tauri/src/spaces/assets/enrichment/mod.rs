@@ -20,7 +20,7 @@ pub(crate) fn reserve_import_preview(
     asset: &super::PreparedAsset,
 ) -> Result<Option<PathBuf>, String> {
     if asset.preview_language.as_deref() == Some("html")
-        || !matches!(asset.kind, "image" | "video" | "audio" | "file" | "code")
+        || asset.kind == super::kind::AssetKind::Markdown
     {
         return Ok(None);
     }
@@ -50,7 +50,7 @@ pub(crate) fn finalize_import(
         .source_revision
         .clone()
         .ok_or("Imported asset has no source revision")?;
-    if matches!(asset.kind, "image" | "video" | "audio" | "file" | "code") {
+    if asset.kind != super::kind::AssetKind::Markdown {
         crate::spaces::previews::enrich_visual_at(
             app,
             &source,

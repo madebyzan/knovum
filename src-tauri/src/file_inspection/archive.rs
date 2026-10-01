@@ -4,7 +4,7 @@ use flate2::read::GzDecoder;
 use tar::Archive as TarArchive;
 use zip::ZipArchive;
 
-use super::ArchiveMember;
+use super::{ArchiveMember, ArchiveMemberKind};
 
 const MAX_ARCHIVE_ENTRIES: usize = 180;
 const MAX_TAR_SCAN_BYTES: u64 = 512 * 1024 * 1024;
@@ -39,9 +39,9 @@ fn zip_entries(path: &Path) -> Result<Vec<ArchiveMember>, String> {
         entries.push(ArchiveMember {
             path: name,
             kind: if entry.is_dir() {
-                "folder".to_owned()
+                ArchiveMemberKind::Folder
             } else {
-                "file".to_owned()
+                ArchiveMemberKind::File
             },
             size: (!entry.is_dir()).then_some(entry.size()),
         });
@@ -82,9 +82,9 @@ fn tar_entries(reader: impl Read) -> Result<Vec<ArchiveMember>, String> {
         entries.push(ArchiveMember {
             path: name,
             kind: if entry_type.is_dir() {
-                "folder".to_owned()
+                ArchiveMemberKind::Folder
             } else {
-                "file".to_owned()
+                ArchiveMemberKind::File
             },
             size: entry_type.is_file().then_some(entry.size()),
         });

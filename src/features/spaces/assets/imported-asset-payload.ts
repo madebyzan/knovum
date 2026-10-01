@@ -1,5 +1,5 @@
+import type { PreparedAsset as ImportedSpaceAsset } from "../contracts/generated/PreparedAsset";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
-import type { ImportedSpaceAsset } from "./imported-asset";
 import { extractImportedMarkdownDocument } from "./markdown-document";
 
 export function importedSpaceNodePayload(asset: ImportedSpaceAsset): SpaceNodePayload {
