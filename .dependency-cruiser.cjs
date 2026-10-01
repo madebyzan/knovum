@@ -24,6 +24,12 @@ module.exports = {
       to: { circular: true },
     },
     {
+      name: "production-does-not-import-tests",
+      severity: "error",
+      from: { path: "^src/", pathNot: "(?:^|/)__tests__/" },
+      to: { path: "(?:^|/)__tests__/" },
+    },
+    {
       name: "renderer-has-no-document-generation-engine",
       severity: "error",
       comment: "Document serialization belongs to Rust documents/generation; the Renderer submits intent.",

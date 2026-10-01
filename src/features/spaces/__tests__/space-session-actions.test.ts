@@ -4,13 +4,13 @@ import { ref } from "vue";
 
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { loadSpaceSessionProjection } from "../session/space-projection";
-import { createTestSpace, createTestSessionContext } from "../test-support/session-context";
 import {
   createSpace,
   materializeActiveSpace,
   openSpace,
   type SpaceSessionContext,
 } from "../workspace/space-session-actions";
+import { createTestSpace, createTestSessionContext } from "./support/session-context";
 
 type Projection = Awaited<ReturnType<typeof loadSpaceSessionProjection>>;
 const projectionRepository = vi.hoisted(() => ({
