@@ -1,4 +1,3 @@
-
 use std::sync::Mutex;
 
 use super::{close_writer, with_open_writer};

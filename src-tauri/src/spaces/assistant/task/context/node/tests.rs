@@ -1,4 +1,3 @@
-
 #[test]
 fn attached_notes_use_canonical_editor_content_and_respect_the_read_budget() {
     let data = serde_json::json!({

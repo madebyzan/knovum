@@ -1,4 +1,3 @@
-
 use super::*;
 #[test]
 fn desktop_mcp_rejects_inference_before_it_can_create_a_child_run() {

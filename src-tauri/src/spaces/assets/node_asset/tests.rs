@@ -1,4 +1,3 @@
-
 #[test]
 fn asset_identity_does_not_substitute_knowledge_or_original_file_revisions() {
     let node = serde_json::json!({"assetRevision":"rendered1:current","knowledgeRevision":"node1:content","sourceRevision":"sha256:file"});

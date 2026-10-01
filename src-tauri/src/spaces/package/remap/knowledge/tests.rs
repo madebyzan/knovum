@@ -1,4 +1,3 @@
-
 use super::*;
 #[test]
 fn rebinds_canonical_citations_and_preserves_detached_snapshots() {

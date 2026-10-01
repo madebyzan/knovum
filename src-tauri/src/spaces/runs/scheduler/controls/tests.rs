@@ -1,4 +1,3 @@
-
 use sqlx::sqlite::SqlitePoolOptions;
 
 use super::{apply, recover_expired_leases};

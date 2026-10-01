@@ -1,4 +1,3 @@
-
 use serde_json::json;
 
 use super::{fitted_size, Size, SizingMode};

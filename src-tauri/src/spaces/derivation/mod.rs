@@ -70,6 +70,3 @@ pub(crate) async fn persist_output_node(
 
 #[cfg(test)]
 mod tests;
-
-#[cfg(test)]
-mod document_formats_tests;
