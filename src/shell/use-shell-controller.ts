@@ -7,7 +7,7 @@ import { useRoute, useRouter } from "vue-router";
 
 import { bindCommandShortcuts } from "../foundation/commands/command-shortcuts";
 import { runAppCommand } from "../foundation/commands/run-app-command";
-import { errorDiagnostic } from "../foundation/errors/error-format";
+import { formatErrorDiagnostic } from "../foundation/errors/error-format";
 import { createAsyncDisposer } from "../foundation/lifecycle/async-disposer";
 import type { WorkspaceDefinition } from "../shared/contracts/workspace-definition";
 import { workspaceRightSidebarKey } from "../shared/contracts/workspace-right-sidebar";
@@ -138,7 +138,9 @@ export function useShellController(workspace: WorkspaceDefinition) {
   onMounted(() => {
     void menuCommandListener
       .attach(listen<string>("knovum-run-command", ({ payload }) => runCommand(payload)))
-      .catch((error) => void logError(`Failed to register menu command listener: ${errorDiagnostic(error)}`));
+      .catch(
+        (error) => void logError(`Failed to register menu command listener: ${formatErrorDiagnostic(error)}`),
+      );
   });
   onUnmounted(menuCommandListener.dispose);
   return {

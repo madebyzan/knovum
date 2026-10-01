@@ -1,6 +1,6 @@
 import { error as logError, warn as logWarning } from "@tauri-apps/plugin-log";
 
-import { errorDiagnostic, errorMessage } from "../../../foundation/errors/error-format";
+import { formatErrorDiagnostic, getErrorMessage } from "../../../foundation/errors/error-format";
 import { cleanupDeletedSpaceAssets, removeSpaceAsset } from "../assets/asset-operations";
 import { saveCanvasThumbnailBlob } from "../assets/canvas-thumbnail-file";
 import type { SpaceState } from "../session/session-state";
@@ -17,7 +17,7 @@ export function scheduleCanvasThumbnail(state: SpaceState) {
   pendingCapture = globalThis.setTimeout(() => {
     pendingCapture = undefined;
     void persistActiveCanvasThumbnail(state).catch((error) =>
-      logError(`Failed to update Space thumbnail: ${errorDiagnostic(error)}`),
+      logError(`Failed to update Space thumbnail: ${formatErrorDiagnostic(error)}`),
     );
   }, SETTLE_DELAY_MS);
 }
@@ -34,7 +34,7 @@ export async function commitActiveCanvasThumbnail(state: SpaceState) {
     await persistActiveCanvasThumbnail(state);
   } catch (error) {
     await logWarning(
-      `Space navigation continued without refreshing its derived thumbnail: ${errorMessage(error)}`,
+      `Space navigation continued without refreshing its derived thumbnail: ${getErrorMessage(error)}`,
     );
   }
 }

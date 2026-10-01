@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
 
-import { errorMessage } from "../../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import TokenActivityCalendar from "../../usage/TokenActivityCalendar.vue";
 import TokenUsageMetrics from "../../usage/TokenUsageMetrics.vue";
 import UsageActivityInsights from "../../usage/UsageActivityInsights.vue";
@@ -16,7 +16,7 @@ const usage = useTokenUsage();
 <template>
   <SettingsLoadFailure
     v-if="usage.isError.value"
-    :message="errorMessage(usage.error.value)"
+    :message="getErrorMessage(usage.error.value)"
     :can-reset="false"
     @retry="usage.refetch()"
   />

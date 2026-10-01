@@ -2,7 +2,7 @@ import { useMediaControls } from "@vueuse/core";
 import { clamp } from "es-toolkit";
 import { computed, nextTick, shallowRef, toValue, watch, type MaybeRefOrGetter, type Ref } from "vue";
 
-import { errorMessage } from "../../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import type { SpaceMediaPlaybackState } from "../../media/playback";
 import { waitForMediaMetadata } from "./media-element-source";
 
@@ -64,7 +64,7 @@ export function useMediaPlayback(
       await ensureReady();
       playing.value = !playing.value;
     } catch (error) {
-      options.onPlaybackError?.(errorMessage(error));
+      options.onPlaybackError?.(getErrorMessage(error));
     }
   }
 

@@ -3,7 +3,7 @@ import { onBeforeUnmount } from "vue";
 import { onBeforeRouteLeave } from "vue-router";
 import { toast } from "vue-sonner";
 
-import { errorMessage } from "../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { registerWindowCloseCommit } from "../../../foundation/lifecycle/window-close-coordinator";
 
 export function useSpaceSessionLifecycle(commit: () => Promise<void>) {
@@ -12,7 +12,7 @@ export function useSpaceSessionLifecycle(commit: () => Promise<void>) {
       await commit();
       return true;
     } catch (error) {
-      const message = errorMessage(error);
+      const message = getErrorMessage(error);
       void logError(`Space commit prevented navigation: ${message}`);
       toast.error(message);
       return false;

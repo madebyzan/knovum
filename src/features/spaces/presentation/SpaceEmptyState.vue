@@ -3,7 +3,7 @@ import { FilePlus2, Inbox, StickyNote } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import { errorMessage } from "../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../foundation/errors/error-format";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import { importSpaceFromPicker } from "../assets/import-flow";
 import { useNodeOperationGate } from "../canvas/node-operation-gate";
@@ -27,7 +27,7 @@ async function importFile() {
       preparing: t("spaces.importExport.progress.preparing"),
     });
   } catch (error) {
-    toast.error(t("spaces.importExport.importFailed"), { description: errorMessage(error) });
+    toast.error(t("spaces.importExport.importFailed"), { description: getErrorMessage(error) });
   }
 }
 </script>

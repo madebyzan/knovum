@@ -4,7 +4,7 @@ import { nextTick } from "vue";
 import type { Router } from "vue-router";
 
 import { useBootstrapStore } from "../foundation/bootstrap/bootstrap-store";
-import { errorDiagnostic } from "../foundation/errors/error-format";
+import { formatErrorDiagnostic } from "../foundation/errors/error-format";
 import { invokeCommand } from "../foundation/ipc/invoke-command";
 import { initializeExitCoordination } from "../foundation/lifecycle/window-close-coordinator";
 import {
@@ -32,7 +32,7 @@ export async function bootstrap(pinia: Pinia, router: Router): Promise<void> {
     installRuntimeDiagnostics();
     installTaskbarProgress(pinia);
     void restoreResourcePreparationTasks(pinia).catch((reason) =>
-      logError(`Failed to restore resource preparation tasks: ${errorDiagnostic(reason)}`),
+      logError(`Failed to restore resource preparation tasks: ${formatErrorDiagnostic(reason)}`),
     );
     await Promise.all([usePreferencesStore(pinia).load(), installWindowActivityState()]);
     await invokeCommand("plugin:spaces|await_space_runtime");
@@ -43,13 +43,13 @@ export async function bootstrap(pinia: Pinia, router: Router): Promise<void> {
     await nextTick();
   } catch (reason) {
     state.fail(reason);
-    await logError(errorDiagnostic(reason));
+    await logError(formatErrorDiagnostic(reason));
   } finally {
     clearTimeout(watchdog);
     try {
       await invokeCommand("plugin:desktop|reveal_main_window");
     } catch (reason) {
-      await logError(`Failed to reveal main window: ${errorDiagnostic(reason)}`);
+      await logError(`Failed to reveal main window: ${formatErrorDiagnostic(reason)}`);
     }
   }
 }

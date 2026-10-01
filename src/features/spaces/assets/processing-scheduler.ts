@@ -1,5 +1,5 @@
 import { decodeAppError } from "../../../foundation/errors/app-error";
-import { errorMessage } from "../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { i18n } from "../../../foundation/i18n/i18n";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import { refreshEnrichmentTasks } from "../enrichment/job-observation";
@@ -54,7 +54,7 @@ export function scheduleSpaceAssetProcessing(input: {
       await refreshEnrichmentTasks(spaceId);
       tasks.succeed(taskId);
     } catch (error) {
-      tasks.fail(taskId, errorMessage(error));
+      tasks.fail(taskId, getErrorMessage(error));
     }
   }
 
@@ -70,9 +70,9 @@ export function scheduleSpaceAssetProcessing(input: {
     }
     try {
       await refreshEnrichmentTasks(spaceId);
-      tasks.fail(taskId, errorMessage(error));
+      tasks.fail(taskId, getErrorMessage(error));
     } catch (resumeError) {
-      tasks.fail(taskId, `${errorMessage(error)} · ${errorMessage(resumeError)}`);
+      tasks.fail(taskId, `${getErrorMessage(error)} · ${getErrorMessage(resumeError)}`);
     }
   }
 }

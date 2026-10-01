@@ -6,7 +6,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import { errorMessage } from "../../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import { confirmAction } from "../../../../shared/ui/confirm-action";
 import { spaceCanvasOverviewSource } from "../../assets/node-preview-source";
 import { useCanvasSelectionProjection } from "../../canvas/editor-session";
@@ -75,7 +75,7 @@ async function removeRelation(id: string, neighborTitle: string) {
   try {
     await store.revokeRelation(id);
   } catch (error) {
-    toast.error(errorMessage(error));
+    toast.error(getErrorMessage(error));
   }
 }
 </script>

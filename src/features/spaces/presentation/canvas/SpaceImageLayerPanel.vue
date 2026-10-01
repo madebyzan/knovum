@@ -6,7 +6,7 @@ import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { toast } from "vue-sonner";
 
-import { errorMessage } from "../../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import { canRunAction } from "../../../../shared/contracts/action-availability";
 import UiActionHelp from "../../../../shared/ui/UiActionHelp.vue";
 import UiPopover from "../../../../shared/ui/UiPopover.vue";
@@ -60,7 +60,7 @@ async function submit(mode: "automatic" | "custom") {
   try {
     await generateImageLayers(store, props.node, 4, mode === "custom" ? prompt.value : undefined);
   } catch (error) {
-    toast.error(errorMessage(error));
+    toast.error(getErrorMessage(error));
   } finally {
     busy.value = false;
   }

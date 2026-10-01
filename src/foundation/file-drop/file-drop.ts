@@ -3,7 +3,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { error as logError } from "@tauri-apps/plugin-log";
 import { platform, type Platform } from "@tauri-apps/plugin-os";
 
-import { errorDiagnostic } from "../errors/error-format";
+import { formatErrorDiagnostic } from "../errors/error-format";
 
 export interface DragDropPosition {
   x: number;
@@ -74,7 +74,7 @@ export async function listenForFileDrops(handlers: FileDropHandlers): Promise<()
       };
       void Promise.resolve()
         .then(() => handlers.drop(drop))
-        .catch((err) => logError(`File drop handler failed: ${errorDiagnostic(err)}`));
+        .catch((err) => logError(`File drop handler failed: ${formatErrorDiagnostic(err)}`));
       return;
     }
     if (payload.type === "leave") {

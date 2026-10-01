@@ -1,7 +1,7 @@
 import { listen } from "@tauri-apps/api/event";
 import { onScopeDispose, type Ref } from "vue";
 
-import { errorMessage } from "../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { i18n } from "../../../foundation/i18n/i18n";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import type { EnrichmentJobUpdate } from "../contracts/generated/EnrichmentJobUpdate";
@@ -89,7 +89,7 @@ function reportSubscriptionFailure(error: unknown) {
     undefined,
     "space-enrichment-observation",
   );
-  tasks.fail("space-enrichment-observation", errorMessage(error));
+  tasks.fail("space-enrichment-observation", getErrorMessage(error));
 }
 
 function projectMediaProgress(context: SpaceEnrichmentObserverContext, payload: EnrichmentJobUpdate) {

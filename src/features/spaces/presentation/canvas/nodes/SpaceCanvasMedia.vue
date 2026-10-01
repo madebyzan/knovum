@@ -4,7 +4,7 @@ import { computed, nextTick, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import { errorMessage } from "../../../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../../../foundation/errors/error-format";
 import type { SpaceMediaPayload } from "../../../model/nodes/capabilities";
 import { useSpaceStore } from "../../../session/space-store";
 import SpaceMediaPlayer from "../../media/SpaceMediaPlayer.vue";
@@ -33,7 +33,7 @@ async function consumeToggleRequest(request: typeof mediaToggleRequest.value) {
   try {
     await player.value.togglePlayback();
   } catch (error) {
-    toast.error(errorMessage(error));
+    toast.error(getErrorMessage(error));
   } finally {
     store.consumeMediaToggle(request.nonce);
   }
@@ -45,7 +45,7 @@ async function consumeSeekRequest(request: typeof mediaSeekRequest.value) {
   try {
     await player.value.seekTo(request.positionMs);
   } catch (error) {
-    toast.error(errorMessage(error));
+    toast.error(getErrorMessage(error));
   } finally {
     store.consumeMediaSeek(request.nonce);
   }

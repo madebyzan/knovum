@@ -5,7 +5,7 @@ import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import { errorMessage } from "../../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import { formatByteSize } from "../../assets/format-byte-size";
 import { useNodeOperationGate } from "../../canvas/node-operation-gate";
@@ -107,7 +107,7 @@ async function refreshWebsite() {
       props.node.data.url,
     );
   } catch (error) {
-    toast.error(t("spaces.importExport.website.refreshFailed"), { description: errorMessage(error) });
+    toast.error(t("spaces.importExport.website.refreshFailed"), { description: getErrorMessage(error) });
   } finally {
     refreshing.value = false;
   }

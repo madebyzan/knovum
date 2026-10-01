@@ -5,7 +5,7 @@ import { onMounted, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import { errorDiagnostic } from "../../../../foundation/errors/error-format";
+import { formatErrorDiagnostic } from "../../../../foundation/errors/error-format";
 import type { UpdateMetadata } from "../../../../shared/contracts/generated/UpdateMetadata";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import {
@@ -33,7 +33,7 @@ async function loadVersion() {
     version.value = await getVersion();
   } catch (error) {
     version.value = "—";
-    void logError(`Failed to read application version: ${errorDiagnostic(error)}`);
+    void logError(`Failed to read application version: ${formatErrorDiagnostic(error)}`);
   }
 }
 
@@ -41,7 +41,7 @@ async function loadUpdateConfiguration() {
   try {
     updaterConfigured.value = (await getUpdateConfiguration()).configured;
   } catch (error) {
-    void logError(`Failed to read updater status: ${errorDiagnostic(error)}`);
+    void logError(`Failed to read updater status: ${formatErrorDiagnostic(error)}`);
   }
 }
 
@@ -53,7 +53,7 @@ async function checkForUpdates() {
     if (!availableUpdate.value) toast.success(t("settings.updates.current.upToDate"));
   } catch (error) {
     toast.error(t("settings.updates.check.failed"));
-    void logError(`Failed to check for application update: ${errorDiagnostic(error)}`);
+    void logError(`Failed to check for application update: ${formatErrorDiagnostic(error)}`);
   } finally {
     checkingUpdate.value = false;
   }
@@ -67,7 +67,7 @@ async function installUpdate() {
   } catch (error) {
     installingUpdate.value = false;
     toast.error(t("settings.updates.install.failed"));
-    void logError(`Failed to install application update: ${errorDiagnostic(error)}`);
+    void logError(`Failed to install application update: ${formatErrorDiagnostic(error)}`);
   }
 }
 </script>

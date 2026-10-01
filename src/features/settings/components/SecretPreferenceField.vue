@@ -4,7 +4,7 @@ import { onMounted, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import { errorMessage } from "../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { deleteSecret, getSecret, setSecret } from "../../../foundation/secrets/secret-store";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiIconButton from "../../../shared/ui/UiIconButton.vue";
@@ -27,7 +27,7 @@ onMounted(async () => {
   try {
     configured.value = Boolean(await getSecret(props.secretKey));
   } catch (error) {
-    toast.error(`${t("settings.ai.secretLoadFailed")}: ${errorMessage(error)}`);
+    toast.error(`${t("settings.ai.secretLoadFailed")}: ${getErrorMessage(error)}`);
   }
 });
 
@@ -44,7 +44,7 @@ async function save() {
     draft.value = "";
     reveal.value = false;
   } catch (error) {
-    toast.error(`${t("settings.ai.integrationSaveFailed")}: ${errorMessage(error)}`);
+    toast.error(`${t("settings.ai.integrationSaveFailed")}: ${getErrorMessage(error)}`);
   } finally {
     saving.value = false;
   }
@@ -58,7 +58,7 @@ async function remove() {
     configured.value = false;
     draft.value = "";
   } catch (error) {
-    toast.error(`${t("settings.ai.integrationSaveFailed")}: ${errorMessage(error)}`);
+    toast.error(`${t("settings.ai.integrationSaveFailed")}: ${getErrorMessage(error)}`);
   } finally {
     saving.value = false;
   }

@@ -3,7 +3,7 @@ import { cloneDeep } from "es-toolkit";
 import { computed, onMounted, ref, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { errorMessage } from "../../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import type { SavedCapturedWorkflow } from "../../contracts/generated/SavedCapturedWorkflow";
 import type { SpaceActionDefinition } from "../../contracts/generated/SpaceActionDefinition";
@@ -24,7 +24,7 @@ onMounted(async () => {
   try {
     catalog.value = await listSpaceActions();
   } catch (cause) {
-    catalogError.value = errorMessage(cause);
+    catalogError.value = getErrorMessage(cause);
   }
 });
 const outputSlots = ref(workflow.candidate.outputSlots);
@@ -116,7 +116,7 @@ async function save() {
       }),
     );
   } catch (cause) {
-    error.value = errorMessage(cause);
+    error.value = getErrorMessage(cause);
   } finally {
     busy.value = false;
   }

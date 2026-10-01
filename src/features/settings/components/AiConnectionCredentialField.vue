@@ -4,7 +4,7 @@ import { onMounted, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { aiConnectionSecretKey } from "../../../foundation/ai/schema/models";
-import { errorMessage } from "../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { getSecret } from "../../../foundation/secrets/secret-store";
 import UiIconButton from "../../../shared/ui/UiIconButton.vue";
 import UiInput from "../../../shared/ui/UiInput.vue";
@@ -21,7 +21,7 @@ onMounted(async () => {
   try {
     hasKey.value = Boolean(await getSecret(aiConnectionSecretKey(props.connectionId)));
   } catch (error) {
-    loadError.value = errorMessage(error);
+    loadError.value = getErrorMessage(error);
   }
 });
 </script>

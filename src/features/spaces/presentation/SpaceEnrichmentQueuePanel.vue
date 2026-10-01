@@ -4,7 +4,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import { errorMessage } from "../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { cancelEnrichmentJob } from "../enrichment/enrichment-jobs";
 import { enrichmentJobsKey, enrichmentJobsQuery } from "../enrichment/enrichment-jobs-query";
 
@@ -17,7 +17,7 @@ const jobs = computed(() => query.data.value ?? []);
 const cancellation = useMutation({
   mutationFn: cancelEnrichmentJob,
   onSuccess: () => queryClient.invalidateQueries({ queryKey: enrichmentJobsKey(props.spaceId) }),
-  onError: (error) => toast.error(errorMessage(error)),
+  onError: (error) => toast.error(getErrorMessage(error)),
 });
 </script>
 

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { errorMessage } from "../../../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../../../foundation/errors/error-format";
 import { validateStructureSnapshot } from "../structure-validation";
 import { structureLayoutSchema, MAX_STRUCTURE_NODES, structureNodeSchema } from "./structure";
 
@@ -23,7 +23,7 @@ export const spaceEditSnapshotSchema = z
     try {
       validateStructureSnapshot(snapshot.structure, snapshot.layouts);
     } catch (error) {
-      context.addIssue({ code: "custom", message: errorMessage(error) });
+      context.addIssue({ code: "custom", message: getErrorMessage(error) });
     }
     const relationIds = new Set<string>();
     for (const [index, style] of snapshot.relationStyles.entries()) {

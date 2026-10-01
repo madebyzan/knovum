@@ -5,7 +5,7 @@ import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import { errorMessage } from "../../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiSelect from "../../../../shared/ui/UiSelect.vue";
 import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
@@ -66,7 +66,7 @@ async function save() {
     await store.saveNodeContent(props.node.id, props.node.data, next);
     emit("saved");
   } catch (error) {
-    toast.error(errorMessage(error));
+    toast.error(getErrorMessage(error));
   }
 }
 </script>

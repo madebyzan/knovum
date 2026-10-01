@@ -2,7 +2,7 @@ import { computed, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import { errorMessage } from "../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { useContextDock } from "../canvas/use-context-dock";
 import type { SpaceImagePayload } from "../model/nodes/node-payload";
 import { useSpaceStore } from "../session/space-store";
@@ -82,7 +82,7 @@ export function useImageComments(props: ImageCommentCanvas) {
       selectedId.value = undefined;
       text.value = "";
     } catch (error) {
-      toast.error(errorMessage(error));
+      toast.error(getErrorMessage(error));
     } finally {
       busy.value = false;
     }

@@ -6,7 +6,7 @@ import { useI18n } from "vue-i18n";
 import { useAiSettingsStore } from "../../../foundation/ai/ai-settings-store";
 import { requireProvider } from "../../../foundation/ai/providers";
 import { aiConnectionSecretKey } from "../../../foundation/ai/schema/models";
-import { errorMessage } from "../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { deleteSecret, persistOptionalSecret } from "../../../foundation/secrets/secret-store";
 import type { AiConnectionSettings } from "../../../shared/contracts/generated/AiConnectionSettings";
 import { routingCapabilities } from "../../../shared/contracts/generated/contract-values";
@@ -125,7 +125,7 @@ async function saveConnection(submission: AiConnectionSubmission) {
     closeEditor();
   } catch (cause) {
     if (!connectionSaved) rollbackConnection(index, previous, connection.id);
-    error.value = `${t(connectionSaved ? "settings.ai.secretSaveFailed" : "settings.ai.integrationSaveFailed")}: ${errorMessage(cause)}`;
+    error.value = `${t(connectionSaved ? "settings.ai.secretSaveFailed" : "settings.ai.integrationSaveFailed")}: ${getErrorMessage(cause)}`;
   } finally {
     busy.value = false;
   }
@@ -155,7 +155,7 @@ async function removeConnection(connection: AiConnectionSettings) {
   } catch (cause) {
     connections.value.splice(index, 0, connection);
     await store.flush();
-    error.value = `${t("settings.ai.integrationSaveFailed")}: ${errorMessage(cause)}`;
+    error.value = `${t("settings.ai.integrationSaveFailed")}: ${getErrorMessage(cause)}`;
   } finally {
     busy.value = false;
   }

@@ -6,7 +6,7 @@ import { toast } from "vue-sonner";
 
 import { useAiSettingsStore } from "../../../../foundation/ai/ai-settings-store";
 import { useExecutionCatalogQuery } from "../../../../foundation/ai/execution-catalog-query";
-import { errorMessage } from "../../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import type { AgentKind } from "../../../../shared/contracts/generated/AgentKind";
 import type { DesktopAgentSettings } from "../../../../shared/contracts/generated/DesktopAgentSettings";
 import { confirmAction } from "../../../../shared/ui/confirm-action";
@@ -35,7 +35,7 @@ const installation = (kind: AgentKind) =>
 const isEnabled = (kind: AgentKind) => settings.value.desktopAgents.some((agent) => agent.kind === kind);
 
 watch(saveError, (error) => {
-  if (error) toast.error(`${t("settings.ai.integrationSaveFailed")}: ${errorMessage(error)}`);
+  if (error) toast.error(`${t("settings.ai.integrationSaveFailed")}: ${getErrorMessage(error)}`);
 });
 
 function setEnabled(kind: AgentKind, enabled: boolean) {
@@ -70,7 +70,7 @@ onMounted(load);
 <template>
   <SettingsLoadFailure
     v-if="failure"
-    :message="errorMessage(failure.cause)"
+    :message="getErrorMessage(failure.cause)"
     :can-reset="failure.canReset"
     @retry="load"
     @reset="resetSection"
@@ -84,7 +84,7 @@ onMounted(load);
         v-if="catalog.installationError.value"
         class="border-b border-stroke-warning/30 bg-surface-warning-subtle px-4 py-3"
       >
-        <p class="text-caption text-fg-warning">{{ errorMessage(catalog.installationError.value) }}</p>
+        <p class="text-caption text-fg-warning">{{ getErrorMessage(catalog.installationError.value) }}</p>
       </div>
       <div class="divide-y divide-stroke-divider">
         <AgentAvailability

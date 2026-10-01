@@ -6,7 +6,7 @@ import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import { errorMessage } from "../../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiInput from "../../../../shared/ui/UiInput.vue";
@@ -64,7 +64,7 @@ async function visit() {
   try {
     await openUrl(activeHref.value);
   } catch (error) {
-    toast.error(t("spaces.richtext.link.openFailed"), { description: errorMessage(error) });
+    toast.error(t("spaces.richtext.link.openFailed"), { description: getErrorMessage(error) });
   }
 }
 </script>

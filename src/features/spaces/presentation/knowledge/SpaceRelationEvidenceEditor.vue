@@ -5,7 +5,7 @@ import { computed, nextTick, shallowRef, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import { errorMessage } from "../../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
 import type { SpaceRelation } from "../../model/relations/relation";
@@ -48,7 +48,7 @@ async function saveRationale() {
     draft.value = rationale;
     editing.value = false;
   } catch (error) {
-    toast.error(errorMessage(error));
+    toast.error(getErrorMessage(error));
   } finally {
     saving.value = false;
   }

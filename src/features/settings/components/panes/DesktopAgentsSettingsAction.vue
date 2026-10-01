@@ -4,7 +4,7 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { useExecutionCatalogQuery } from "../../../../foundation/ai/execution-catalog-query";
-import { errorMessage } from "../../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 
 const { t } = useI18n();
@@ -12,7 +12,7 @@ const catalog = useExecutionCatalogQuery();
 
 async function refresh() {
   const installationRefresh = await catalog.refreshInstallations();
-  if (installationRefresh.error) toast.error(errorMessage(installationRefresh.error));
+  if (installationRefresh.error) toast.error(getErrorMessage(installationRefresh.error));
 }
 </script>
 

@@ -1,6 +1,6 @@
 import { error as logError } from "@tauri-apps/plugin-log";
 
-import { errorDiagnostic } from "../../../../foundation/errors/error-format";
+import { formatErrorDiagnostic } from "../../../../foundation/errors/error-format";
 import { indexKnowledgeRetrieval } from "../persistence/retrieval-index";
 
 export type KnowledgeIndexStatus = "idle" | "scheduled" | "indexing" | "ready" | "unavailable";
@@ -96,7 +96,7 @@ async function runPending(spaceId: string, state: SpaceIndexState) {
     await indexKnowledgeRetrieval(spaceId, nodeIds);
   } catch (error) {
     failed = true;
-    void logError(`Knowledge semantic indexing failed: ${errorDiagnostic(error)}`);
+    void logError(`Knowledge semantic indexing failed: ${formatErrorDiagnostic(error)}`);
   } finally {
     state.running = false;
   }

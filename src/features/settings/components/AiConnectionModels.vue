@@ -6,7 +6,7 @@ import { useI18n } from "vue-i18n";
 import { useAiSettingsStore } from "../../../foundation/ai/ai-settings-store";
 import { encodeExecutionTarget } from "../../../foundation/ai/execution-target-codec";
 import { requireProvider } from "../../../foundation/ai/providers";
-import { errorMessage } from "../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../foundation/errors/error-format";
 import type { AiConnectionSettings } from "../../../shared/contracts/generated/AiConnectionSettings";
 import type { AiModelDefinition } from "../../../shared/contracts/generated/AiModelDefinition";
 import type { ExecutionCapability } from "../../../shared/contracts/generated/ExecutionCapability";
@@ -106,7 +106,7 @@ async function saveModel(model: AiModelDefinition) {
       const addedIndex = connection.models.findIndex(({ id }) => id === model.id);
       if (addedIndex >= 0) connection.models.splice(addedIndex, 1);
     }
-    error.value = `${t("settings.ai.integrationSaveFailed")}: ${errorMessage(cause)}`;
+    error.value = `${t("settings.ai.integrationSaveFailed")}: ${getErrorMessage(cause)}`;
   } finally {
     busy.value = false;
   }
@@ -134,7 +134,7 @@ async function removeModel(model: AiModelDefinition) {
     await store.flush();
   } catch (cause) {
     connection.models.splice(index, 0, model);
-    error.value = `${t("settings.ai.integrationSaveFailed")}: ${errorMessage(cause)}`;
+    error.value = `${t("settings.ai.integrationSaveFailed")}: ${getErrorMessage(cause)}`;
   } finally {
     busy.value = false;
   }

@@ -2,7 +2,7 @@ import type { Editor } from "@tiptap/vue-3";
 import { onBeforeUnmount, onMounted, ref, type Ref } from "vue";
 import { toast } from "vue-sonner";
 
-import { errorMessage } from "../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { isFileDropInside, listenForFileDrops } from "../../../foundation/file-drop/file-drop";
 import { createAsyncDisposer } from "../../../foundation/lifecycle/async-disposer";
 import { insertSpaceTiptapImagePaths } from "./tiptap-images";
@@ -32,7 +32,7 @@ export function useSpaceTiptapImageDrop(
           try {
             await insertSpaceTiptapImagePaths(current, payload.paths, position);
           } catch (error) {
-            toast.error(errorLabel(), { description: errorMessage(error) });
+            toast.error(errorLabel(), { description: getErrorMessage(error) });
           }
         },
       }),

@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/vue-query";
 import { computed, toValue, type MaybeRefOrGetter } from "vue";
 
-import { errorMessage } from "../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../foundation/errors/error-format";
 import type { CapturedWorkflowRun } from "../contracts/generated/CapturedWorkflowRun";
 import type { SavedCapturedWorkflow } from "../contracts/generated/SavedCapturedWorkflow";
 import { listCapturedWorkflows, listCapturedWorkflowRuns } from "./captured-workflow-ipc";
@@ -47,7 +47,7 @@ export function useCapturedWorkflowLibrary(spaceId: MaybeRefOrGetter<string | nu
     error: computed(() => {
       if (!toValue(spaceId)) return "Space is unavailable";
       const cause = library.error.value ?? runs.error.value;
-      return cause ? errorMessage(cause) : "";
+      return cause ? getErrorMessage(cause) : "";
     }),
     retry: () => Promise.all([library.refetch(), runs.refetch()]),
     renamed: (value: SavedCapturedWorkflow) =>

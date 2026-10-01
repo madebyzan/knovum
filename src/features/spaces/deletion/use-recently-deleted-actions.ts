@@ -2,7 +2,7 @@ import { shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import { errorMessage } from "../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { confirmAction } from "../../../shared/ui/confirm-action";
 import { useSpaceStore } from "../session/space-store";
 import type { SpaceDeletedStructureRoot } from "./deleted-structure";
@@ -23,7 +23,7 @@ export function useRecentlyDeletedActions() {
         store.recordCommittedSpaceEdit();
       }
     } catch (error) {
-      toast.error(t("spaces.trash.structure.restoreFailed"), { description: errorMessage(error) });
+      toast.error(t("spaces.trash.structure.restoreFailed"), { description: getErrorMessage(error) });
     } finally {
       busy.value = false;
     }
@@ -47,7 +47,7 @@ export function useRecentlyDeletedActions() {
       await permanentlyDeleteStructure(selected, scope !== undefined);
       toast.success(t("spaces.trash.structure.deletedNotice", { count: selected.length }));
     } catch (error) {
-      toast.error(t("spaces.trash.structure.deleteFailed"), { description: errorMessage(error) });
+      toast.error(t("spaces.trash.structure.deleteFailed"), { description: getErrorMessage(error) });
     } finally {
       busy.value = false;
     }

@@ -3,7 +3,7 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { error as logError } from "@tauri-apps/plugin-log";
 import { isString, uniq } from "es-toolkit";
 
-import { errorDiagnostic } from "../../../foundation/errors/error-format";
+import { formatErrorDiagnostic } from "../../../foundation/errors/error-format";
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import type { KnowledgeLocator } from "../knowledge/model/schema/chunk";
 import type { SpaceNodePayload } from "../model/nodes/node-payload";
@@ -128,7 +128,7 @@ export async function cleanupDeletedSpaceAssets(paths: readonly string[]): Promi
     await removeSpaceAssets(paths);
   } catch (error) {
     void logError(
-      `Space database deletion committed, but local asset cleanup failed: ${errorDiagnostic(error)}`,
+      `Space database deletion committed, but local asset cleanup failed: ${formatErrorDiagnostic(error)}`,
     );
     throw new Error("Space data was deleted, but local asset cleanup failed", { cause: error });
   }

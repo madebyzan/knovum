@@ -1,4 +1,4 @@
-import { errorMessage } from "../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { isSpaceManagedAssetPayload } from "../model/nodes/capabilities";
@@ -61,7 +61,7 @@ export async function commitManagedImport(options: CommitManagedImportOptions) {
     if (node) await context.discardPendingContent(spaceId, node.id);
     if (copiedPath) await removeSpaceAsset(copiedPath);
     if (cancelRequested) return [];
-    tasks.fail(taskId, errorMessage(error));
+    tasks.fail(taskId, getErrorMessage(error));
     throw error;
   }
   if (isSpaceManagedAssetPayload(imported.data) && imported.data.processingState === "processing") {

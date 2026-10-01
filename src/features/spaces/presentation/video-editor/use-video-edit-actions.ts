@@ -2,7 +2,7 @@ import { computed, onMounted, onUnmounted, shallowRef, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import { errorMessage } from "../../../../foundation/errors/error-format";
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import { systemSansFamily } from "../../../../foundation/typography/system-font";
 import { registerVideoEditCommands } from "../../commands/video-edit-commands";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
@@ -54,7 +54,7 @@ export function useVideoEditActions(options: Options) {
       toast.success(t("spaces.media.videoEditor.project.saved"));
       return true;
     } catch (error) {
-      toast.error(errorMessage(error));
+      toast.error(getErrorMessage(error));
       return false;
     } finally {
       saving.value = false;
@@ -109,7 +109,7 @@ export function useVideoEditActions(options: Options) {
   }
 
   function togglePlayback() {
-    void playback.toggle().catch((error) => toast.error(errorMessage(error)));
+    void playback.toggle().catch((error) => toast.error(getErrorMessage(error)));
   }
 
   async function render() {
@@ -119,7 +119,7 @@ export function useVideoEditActions(options: Options) {
       if (history.dirty.value && !(await save())) return;
       await renderVideoEdit(store, { ...node.value, data: node.value.data }, project.value);
     } catch (error) {
-      toast.error(`${t("spaces.media.videoEditor.render.failed")}: ${errorMessage(error)}`);
+      toast.error(`${t("spaces.media.videoEditor.render.failed")}: ${getErrorMessage(error)}`);
     } finally {
       rendering.value = false;
     }
