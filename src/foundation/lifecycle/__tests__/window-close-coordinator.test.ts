@@ -1,11 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@tauri-apps/api/event", () => ({ listen: vi.fn<() => Promise<() => void>>(async () => vi.fn<() => void>()) }));
+vi.mock("@tauri-apps/api/event", () => ({
+  listen: vi.fn<() => Promise<() => void>>(async () => vi.fn<() => void>()),
+}));
 vi.mock("@tauri-apps/api/window", () => ({
-  getCurrentWindow: () => ({ onCloseRequested: vi.fn<() => Promise<() => void>>(async () => vi.fn<() => void>()), hide: vi.fn<() => Promise<void>>() }),
+  getCurrentWindow: () => ({
+    onCloseRequested: vi.fn<() => Promise<() => void>>(async () => vi.fn<() => void>()),
+    hide: vi.fn<() => Promise<void>>(),
+  }),
 }));
 vi.mock("@tauri-apps/plugin-log", () => ({ error: vi.fn<(message: string) => Promise<void>>() }));
-vi.mock("../../ipc/invoke-command", () => ({ invokeCommand: vi.fn<() => Promise<void>>(async () => undefined) }));
+vi.mock("../../ipc/invoke-command", () => ({
+  invokeCommand: vi.fn<() => Promise<void>>(async () => undefined),
+}));
 
 function deferred() {
   let complete!: () => void;

@@ -25,7 +25,11 @@ impl UpdateService {
             session: Mutex::new(Session {
                 snapshot: UpdateSnapshot {
                     revision: 0,
-                    state: if configured { UpdateState::Idle } else { UpdateState::Disabled },
+                    state: if configured {
+                        UpdateState::Idle
+                    } else {
+                        UpdateState::Disabled
+                    },
                 },
                 pending: None,
                 bytes: None,
@@ -38,14 +42,18 @@ impl UpdateService {
         match self.snapshot() {
             Ok(snapshot) => matches!(snapshot.state, UpdateState::Installing { .. }),
             Err(error) => {
-                log::error!("Cannot determine whether the updater is replacing application files: {error}");
+                log::error!(
+                    "Cannot determine whether the updater is replacing application files: {error}"
+                );
                 true
             }
         }
     }
 
     pub(super) fn lock(&self) -> Result<MutexGuard<'_, Session>, String> {
-        self.session.lock().map_err(|_| "Application updater state is poisoned.".to_owned())
+        self.session
+            .lock()
+            .map_err(|_| "Application updater state is poisoned.".to_owned())
     }
 
     pub(super) fn snapshot(&self) -> Result<UpdateSnapshot, String> {

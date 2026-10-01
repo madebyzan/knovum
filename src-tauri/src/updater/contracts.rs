@@ -34,16 +34,26 @@ pub enum UpdateState {
     Idle,
     Checking,
     Current,
-    Available { release: UpdateMetadata },
+    Available {
+        release: UpdateMetadata,
+    },
     Downloading {
         release: UpdateMetadata,
         downloaded: u64,
         total: Option<u64>,
     },
-    Verifying { release: UpdateMetadata },
-    Ready { release: UpdateMetadata },
-    Installing { release: UpdateMetadata },
-    Failed { reason: UpdateFailure },
+    Verifying {
+        release: UpdateMetadata,
+    },
+    Ready {
+        release: UpdateMetadata,
+    },
+    Installing {
+        release: UpdateMetadata,
+    },
+    Failed {
+        reason: UpdateFailure,
+    },
 }
 
 impl UpdateState {

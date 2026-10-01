@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import { error as logError } from "@tauri-apps/plugin-log";
-import { DialogContent, DialogDescription, DialogOverlay, DialogPortal, DialogRoot, DialogTitle } from "reka-ui";
+import {
+  DialogContent,
+  DialogDescription,
+  DialogOverlay,
+  DialogPortal,
+  DialogRoot,
+  DialogTitle,
+} from "reka-ui";
 import { onMounted, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";

@@ -96,7 +96,9 @@ export function platformSigningConfiguration(target, env) {
     return {};
   }
   if (!target.startsWith("windows-")) throw new Error(`Unsupported signing target: ${target}`);
-  return { windows: { signCommand: requireValue(env.KNOVUM_WINDOWS_SIGN_COMMAND, "KNOVUM_WINDOWS_SIGN_COMMAND") } };
+  return {
+    windows: { signCommand: requireValue(env.KNOVUM_WINDOWS_SIGN_COMMAND, "KNOVUM_WINDOWS_SIGN_COMMAND") },
+  };
 }
 
 export function validateReleaseArguments(args) {

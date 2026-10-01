@@ -18,7 +18,9 @@ const file = safeFilename(`Knovum_${version}_${target}${mac ? ".app.tar.gz" : "-
 copyFileSync(source, join(directory, file));
 copyFileSync(`${source}.sig`, join(directory, `${file}.sig`));
 const artifact = {
-  target, version, file,
+  target,
+  version,
+  file,
   signature: readFileSync(`${source}.sig`, "utf8").trim(),
   sha256: await fileDigest(source),
 };
@@ -29,17 +31,26 @@ if (mac) {
   copyFileSync(dmg, join(directory, installer));
   installers.push({ file: installer, sha256: await fileDigest(dmg) });
 }
-writeFileSync(join(directory, "platform.json"), JSON.stringify({
-  version,
-  sourceCommit: requireValue(process.env.GITHUB_SHA, "GITHUB_SHA"),
-  endpoint: httpsUrl(process.env.KNOVUM_UPDATER_ENDPOINT, "KNOVUM_UPDATER_ENDPOINT").href,
-  pubkey: publicKey(process.env.KNOVUM_UPDATER_PUBKEY),
-  artifact, installers,
-}, null, 2));
+writeFileSync(
+  join(directory, "platform.json"),
+  JSON.stringify(
+    {
+      version,
+      sourceCommit: requireValue(process.env.GITHUB_SHA, "GITHUB_SHA"),
+      endpoint: httpsUrl(process.env.KNOVUM_UPDATER_ENDPOINT, "KNOVUM_UPDATER_ENDPOINT").href,
+      pubkey: publicKey(process.env.KNOVUM_UPDATER_PUBKEY),
+      artifact,
+      installers,
+    },
+    null,
+    2,
+  ),
+);
 
 function findOne(directoryPath, suffix) {
-  const files = readdirSync(directoryPath, { withFileTypes: true })
-    .filter((entry) => entry.isFile() && entry.name.endsWith(suffix));
+  const files = readdirSync(directoryPath, { withFileTypes: true }).filter(
+    (entry) => entry.isFile() && entry.name.endsWith(suffix),
+  );
   if (files.length !== 1) throw new Error(`Expected exactly one ${suffix} in ${directoryPath}`);
   return join(directoryPath, files[0].name);
 }

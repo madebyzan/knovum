@@ -23,7 +23,10 @@ export const useUpdateStore = defineStore("application-update", () => {
   const state = computed(() => snapshot.value?.state ?? null);
   const blockedByTasks = computed(() => tasks.running.some((task) => task.id !== applicationUpdateTaskId));
   const installing = computed(() => preparingInstall.value || state.value?.status === "installing");
-  const canInstall = computed(() => state.value?.status === "ready" && !blockedByTasks.value && !requestPending.value && !installing.value);
+  const canInstall = computed(
+    () =>
+      state.value?.status === "ready" && !blockedByTasks.value && !requestPending.value && !installing.value,
+  );
 
   function accept(value: unknown) {
     const next = updateSnapshotSchema.parse(value);
@@ -40,7 +43,10 @@ export const useUpdateStore = defineStore("application-update", () => {
     });
     try {
       const initial = await invokeCommand<unknown>("get_update_state");
-      if (disposed) { stop(); return; }
+      if (disposed) {
+        stop();
+        return;
+      }
       accept(initial);
       unlisten = stop;
     } catch (error) {
@@ -75,7 +81,8 @@ export const useUpdateStore = defineStore("application-update", () => {
   }
 
   async function install() {
-    if (!canInstall.value || state.value?.status !== "ready") throw new Error("Finish background tasks before installing the update.");
+    if (!canInstall.value || state.value?.status !== "ready")
+      throw new Error("Finish background tasks before installing the update.");
     const version = state.value.release.version;
     preparingInstall.value = true;
     try {
@@ -87,10 +94,21 @@ export const useUpdateStore = defineStore("application-update", () => {
     }
   }
 
-  onScopeDispose(() => { disposed = true; unlisten?.(); });
+  onScopeDispose(() => {
+    disposed = true;
+    unlisten?.();
+  });
 
   return {
-    state, snapshot, requestPending, installing, blockedByTasks, canInstall, initialize, download, install,
+    state,
+    snapshot,
+    requestPending,
+    installing,
+    blockedByTasks,
+    canInstall,
+    initialize,
+    download,
+    install,
     check: () => request("check_for_update"),
     cancelDownload: () => invokeCommand<void>("cancel_update_download"),
   };

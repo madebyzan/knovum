@@ -17,10 +17,18 @@ export const updateSnapshotSchema: z.ZodType<UpdateSnapshot> = z.strictObject({
     z.strictObject({ status: z.literal("checking") }),
     z.strictObject({ status: z.literal("current") }),
     z.strictObject({ status: z.literal("available"), release }),
-    z.strictObject({ status: z.literal("downloading"), release, downloaded: integer, total: integer.nullable() }),
+    z.strictObject({
+      status: z.literal("downloading"),
+      release,
+      downloaded: integer,
+      total: integer.nullable(),
+    }),
     z.strictObject({ status: z.literal("verifying"), release }),
     z.strictObject({ status: z.literal("ready"), release }),
     z.strictObject({ status: z.literal("installing"), release }),
-    z.strictObject({ status: z.literal("failed"), reason: z.enum(["check", "download", "signature", "install"]) }),
+    z.strictObject({
+      status: z.literal("failed"),
+      reason: z.enum(["check", "download", "signature", "install"]),
+    }),
   ]),
 });
