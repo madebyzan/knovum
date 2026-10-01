@@ -3,9 +3,10 @@ import { toast } from "vue-sonner";
 
 import { formatBytes } from "../../../foundation/format/bytes";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
+import type { SpacePackageProgress } from "../contracts/generated/SpacePackageProgress";
 import type { Space } from "../model/space";
 import { useSpaceStore } from "../session/space-store";
-import { exportSpacePackage, importSpacePackage, type SpacePackageProgress } from "./transfer";
+import { exportSpacePackage, importSpacePackage } from "./transfer";
 
 export function useSpacePackageTransfer() {
   const store = useSpaceStore();

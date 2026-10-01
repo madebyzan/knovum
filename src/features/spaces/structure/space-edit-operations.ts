@@ -1,8 +1,9 @@
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
+import type { ExecuteSpaceEditRequest } from "../contracts/generated/ExecuteSpaceEditRequest";
 import type { SpaceEditHistoryReceipt } from "../contracts/generated/SpaceEditHistoryReceipt";
+import type { SpaceEditReceipt } from "../contracts/generated/SpaceEditReceipt";
 import { parseSpaceEditSnapshot, type SpaceEditSnapshot } from "../model/structure/schema/edit-snapshot";
 import { invokeConfirmedMutation } from "./confirmed-mutation";
-import type { ExecuteSpaceEditRequest, SpaceEditReceipt } from "./space-edit-command";
 
 /** Typed IPC boundary. Rust owns revision checks, mutations and committed snapshots. */
 export const spaceEditOperations = {

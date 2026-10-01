@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
 
-import type { WorkflowCaptureCandidate } from "../../workflows/captured-workflow-ipc";
+import type { CaptureCandidate } from "../../contracts/generated/CaptureCandidate";
 
-defineProps<{ outputs: WorkflowCaptureCandidate["outputSlots"] }>();
+defineProps<{ outputs: CaptureCandidate["outputSlots"] }>();
 const { t } = useI18n();
 </script>
 

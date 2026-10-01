@@ -3,11 +3,11 @@ import { useI18n } from "vue-i18n";
 
 import UiCheckbox from "../../../../shared/ui/UiCheckbox.vue";
 import UiInput from "../../../../shared/ui/UiInput.vue";
-import type { WorkflowCaptureCandidate } from "../../workflows/captured-workflow-ipc";
+import type { CaptureCandidate } from "../../contracts/generated/CaptureCandidate";
 import { captureActionLabel } from "./workflow-capture-labels";
 
-type Step = WorkflowCaptureCandidate["steps"][number];
-type Output = WorkflowCaptureCandidate["outputSlots"][number];
+type Step = CaptureCandidate["steps"][number];
+type Output = CaptureCandidate["outputSlots"][number];
 const props = defineProps<{ steps: readonly Step[]; modelValue: readonly Output[] }>();
 const emit = defineEmits<{ "update:modelValue": [value: Output[]] }>();
 const { t } = useI18n();

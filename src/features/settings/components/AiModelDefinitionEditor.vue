@@ -3,13 +3,14 @@ import { Check } from "@lucide/vue";
 import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
-import type { AiModelCapability, AiModelDefinition } from "../../../foundation/ai/schema/models";
+import type { AiModelDefinition } from "../../../shared/contracts/generated/AiModelDefinition";
+import type { ExecutionCapability } from "../../../shared/contracts/generated/ExecutionCapability";
 import UiInput from "../../../shared/ui/UiInput.vue";
 
 const model = defineModel<AiModelDefinition>({ required: true });
 const props = defineProps<{
   protected: boolean;
-  allowedCapabilities: readonly AiModelCapability[];
+  allowedCapabilities: readonly ExecutionCapability[];
   showErrors?: boolean;
 }>();
 const { t } = useI18n();
@@ -21,11 +22,11 @@ const capabilities = computed(() =>
       { value: "vision-understanding", label: t("settings.ai.capabilities.vision") },
       { value: "image-generation", label: t("settings.ai.capabilities.image") },
       { value: "video-generation", label: t("settings.ai.capabilities.video") },
-    ] satisfies { value: AiModelCapability; label: string }[]
+    ] satisfies { value: ExecutionCapability; label: string }[]
   ).filter(({ value }) => props.allowedCapabilities.includes(value)),
 );
 
-function toggleCapability(capability: AiModelCapability) {
+function toggleCapability(capability: ExecutionCapability) {
   const selected = model.value.capabilities.includes(capability);
   if (selected && props.protected) return;
   capabilityTouched.value = true;

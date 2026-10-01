@@ -5,9 +5,10 @@ import { toast } from "vue-sonner";
 
 import { canRunAction } from "../../../../shared/contracts/action-availability";
 import { useNodeOperationGate } from "../../canvas/node-operation-gate";
+import type { ImageOperation } from "../../contracts/generated/ImageOperation";
 import { imageEditOf, rotatedImageSize } from "../../image-editing/image-edit";
 import { useImageOperationCapabilities } from "../../knowledge-derivations/image-capabilities";
-import { deriveImage, type ImageOperation } from "../../knowledge-derivations/image-operation";
+import { deriveImage } from "../../knowledge-derivations/image-operation";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../../model/nodes/node-payload";
 import { useSpaceStore } from "../../session/space-store";

@@ -1,21 +1,19 @@
 import { error as logError } from "@tauri-apps/plugin-log";
 import type { Pinia } from "pinia";
 
+import type { ResourcePreparationProgress } from "../../shared/contracts/generated/ResourcePreparationProgress";
+import type { ResourcePreparationSnapshot } from "../../shared/contracts/generated/ResourcePreparationSnapshot";
+import type { ResourcePreparationTarget } from "../../shared/contracts/generated/ResourcePreparationTarget";
 import { formatBytes } from "../format/bytes";
 import { i18n } from "../i18n/i18n";
 import { decodeCommandError } from "../ipc/command-error";
 import { useTaskStore } from "../tasks/task-store";
-import {
-  cancelResourcePreparation,
-  listResourcePreparations,
-  prepareResources,
-  type ResourcePreparationProgress,
-  type ResourcePreparationSnapshot,
-  type ResourcePreparationTarget,
-} from "./local-resources";
+import { cancelResourcePreparation, listResourcePreparations, prepareResources } from "./local-resources";
 import { invalidateLocalResources } from "./resource-query";
 
 const CANCELLED_CODE = "local_resource_preparation_cancelled";
+const OBSERVATION_RETRIES = 3;
+const OBSERVATION_INTERVAL_MS = 1_000;
 
 export class ResourcePreparationCancelledError extends Error {}
 
@@ -102,24 +100,33 @@ function restoreRunning(tasks: ReturnType<typeof useTaskStore>, snapshot: Resour
 }
 
 async function observeRunning(tasks: ReturnType<typeof useTaskStore>, jobId: string): Promise<void> {
-  async function poll(): Promise<void> {
+  async function poll(failures: number): Promise<void> {
     if (!tasks.running.some(({ id }) => id === jobId)) return;
     let snapshot: ResourcePreparationSnapshot | undefined;
     try {
       snapshot = (await listResourcePreparations()).find(({ jobId: candidate }) => candidate === jobId);
+      if (!snapshot) throw new Error("Resource preparation snapshot is unavailable");
     } catch (error) {
-      await logError(`Unable to observe resource preparation ${jobId}: ${String(error)}`);
-      return;
+      if (failures + 1 >= OBSERVATION_RETRIES) {
+        tasks.fail(jobId, `Unable to observe resource preparation: ${String(error)}`);
+        tasks.setObservedRetry(jobId, () => observeRunning(tasks, jobId));
+        await Promise.resolve(
+          logError(`Unable to observe resource preparation ${jobId}: ${String(error)}`),
+        ).catch(() => undefined);
+        return;
+      }
+      await new Promise<void>((resolve) => globalThis.setTimeout(resolve, OBSERVATION_INTERVAL_MS));
+      return poll(failures + 1);
     }
-    if (!snapshot) return;
     updateTaskProgress(tasks, jobId, snapshot.progress);
     if (snapshot.state === "ready") return tasks.succeed(jobId);
     if (snapshot.state === "failed")
       return tasks.fail(jobId, snapshot.error?.message ?? "Resource preparation failed");
     if (snapshot.state === "cancelled") return tasks.cancelled(jobId);
-    globalThis.setTimeout(() => void poll(), 1_000);
+    await new Promise<void>((resolve) => globalThis.setTimeout(resolve, OBSERVATION_INTERVAL_MS));
+    return poll(0);
   }
-  await poll();
+  return poll(0);
 }
 
 async function retrySnapshot(

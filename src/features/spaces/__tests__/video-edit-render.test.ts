@@ -3,6 +3,7 @@ import { clearMocks, mockIPC } from "@tauri-apps/api/mocks";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { useTaskStore } from "../../../foundation/tasks/task-store";
+import { isSpaceNodeOpenable } from "../canvas/selection-actions";
 import type { RenderVideoEditRequest } from "../contracts/generated/RenderVideoEditRequest";
 import type { VideoEditProgress } from "../contracts/generated/VideoEditProgress";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
@@ -57,11 +58,29 @@ beforeEach(() => {
   vi.clearAllMocks();
   native.invoke.mockReset();
   native.tasks.start.mockReturnValue("task-id");
-  mockIPC((command, args) => native.invoke(command, args));
+  mockIPC((command, args) =>
+    command === "plugin:spaces|allocate_video_edit_output_path"
+      ? "/assets/edited-reserved.mp4"
+      : native.invoke(command, args),
+  );
 });
 afterEach(() => clearMocks());
 
 describe("video render IPC boundary", () => {
+  it("does not expose an unpublished video output as openable", () => {
+    expect(isSpaceNodeOpenable(source)).toBe(true);
+    expect(isSpaceNodeOpenable({ ...source, data: { ...source.data, sourceRevision: undefined } })).toBe(
+      true,
+    );
+    expect(
+      isSpaceNodeOpenable({
+        ...source,
+        id: "pending-output",
+        data: { ...source.data, sourceRevision: undefined, processingState: "processing" },
+      }),
+    ).toBe(false);
+  });
+
   it("sends the source revision, output identity and Channel, then publishes validated content", async () => {
     const store = createStore();
     native.invoke.mockImplementationOnce(async (_command, args) => {
@@ -72,6 +91,16 @@ describe("video render IPC boundary", () => {
       return { nodeId: pending.id, data: source.data };
     });
     await renderVideoEdit(store, source, project);
+    expect(store.addContent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        assetPath: "/assets/edited-reserved.mp4",
+        processingState: "processing",
+      }),
+      undefined,
+      { reveal: false },
+    );
+    const pendingContent = vi.mocked(store.addContent).mock.calls[0]?.[0];
+    expect(pendingContent?.sourceRevision).toBeUndefined();
     expect(native.invoke).toHaveBeenCalledExactlyOnceWith("plugin:spaces|render_video_edit", {
       request: {
         id: expect.any(String),
@@ -122,5 +151,14 @@ describe("video render IPC boundary", () => {
     expect(native.invoke).toHaveBeenLastCalledWith("plugin:spaces|cancel_video_edit_render", {
       derivationId: request?.id,
     });
+  });
+
+  it("settles the failed task when refreshing the Space fails", async () => {
+    const store = createStore();
+    vi.mocked(store.refreshActiveSpace).mockRejectedValueOnce(new Error("Refresh failed"));
+    native.invoke.mockRejectedValueOnce(new Error("Render failed"));
+    await expect(renderVideoEdit(store, source, project)).rejects.toThrow("Refresh failed");
+    expect(native.tasks.fail).toHaveBeenCalledWith("task-id", expect.stringContaining("Render failed"));
+    expect(native.toastError).toHaveBeenCalled();
   });
 });

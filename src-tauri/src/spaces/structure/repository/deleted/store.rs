@@ -1,7 +1,9 @@
 use sqlx::{Sqlite, Transaction};
 
-use super::super::super::{StructureLayout, StructureNode};
-use crate::spaces::db;
+use crate::spaces::{
+    db,
+    structure::{StructureLayout, StructureNode},
+};
 
 pub(crate) struct DeletionBatch<'a> {
     pub space_id: &'a str,

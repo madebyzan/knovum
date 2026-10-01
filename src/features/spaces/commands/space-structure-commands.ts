@@ -9,7 +9,10 @@ import {
 } from "../structure/structure-capabilities";
 
 export function createSpaceStructureCommands(
-  store: ReturnType<typeof useSpaceStore>,
+  store: Pick<
+    ReturnType<typeof useSpaceStore>,
+    "editSnapshot" | "executeSpaceEdit" | "outlineRenameStructureNodeId"
+  >,
   selectedStructureNodeIds: () => string[],
   t: (key: string) => string,
   sidebar: WorkspaceSidebarPresentation,

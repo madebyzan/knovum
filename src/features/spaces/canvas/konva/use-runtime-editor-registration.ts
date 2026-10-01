@@ -8,7 +8,7 @@ import type { CanvasDocumentModel } from "./document/canvas-document-model";
 import type { createCanvasGestureSession } from "./interaction/canvas-gesture-session";
 import type { usePointerInteractions } from "./interaction/use-pointer-interactions";
 import type { CanvasPalette } from "./presentation/use-canvas-palette";
-import type { CanvasScene } from "./scene/scene-projection";
+import type { CanvasScene } from "./scene/canvas-scene";
 import type { useCanvasSelection } from "./selection/use-canvas-selection";
 import type { useCanvasSceneProjections } from "./use-canvas-scene-projections";
 import { useEditorRegistration } from "./use-editor-registration";

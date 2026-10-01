@@ -1,11 +1,14 @@
 import { useQueries } from "@tanstack/vue-query";
 import { computed, type Ref } from "vue";
 
+import type { DerivationFailure } from "../contracts/generated/DerivationFailure";
+import type { GeneratedVideoMetadata } from "../contracts/generated/GeneratedVideoMetadata";
+import type { VisualizationMetadata } from "../contracts/generated/VisualizationMetadata";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { loadGroundedDocumentMetadata, type GroundedDocumentMetadata } from "./document/metadata";
-import { loadDerivationFailure, type DerivationFailure } from "./failure-metadata";
-import { loadVisualizationMetadata, type VisualizationMetadata } from "./image/metadata";
-import { loadGeneratedVideoMetadata, type GeneratedVideoMetadata } from "./video/metadata";
+import { loadDerivationFailure } from "./failure-metadata";
+import { loadVisualizationMetadata } from "./image/metadata";
+import { loadGeneratedVideoMetadata } from "./video/metadata";
 
 type DerivationMetadata =
   | { kind: "image"; value: VisualizationMetadata | null }

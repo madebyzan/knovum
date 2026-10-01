@@ -4,7 +4,7 @@ import { ref } from "vue";
 import type { SpaceCredential } from "../model/schema/credential";
 import type { Space } from "../model/space";
 import { archiveSpace, permanentlyDeleteSpace, unarchiveSpace } from "../workspace/archive-actions";
-import type { SpaceSessionContext } from "../workspace/space-session-actions";
+import type { SpaceSessionContext } from "../workspace/space-session-context";
 import { createTestSessionContext, createTestSpace } from "./support/session-context";
 
 const lifecycleRepository = vi.hoisted(() => ({

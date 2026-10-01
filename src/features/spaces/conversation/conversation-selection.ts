@@ -1,11 +1,8 @@
 import type { Ref } from "vue";
 
-import {
-  listAssistantConversations,
-  listAssistantMessages,
-  type AssistantConversation,
-  type AssistantMessage,
-} from "./conversation-ipc";
+import type { AssistantConversation } from "../contracts/generated/AssistantConversation";
+import type { AssistantMessage } from "../contracts/generated/AssistantMessage";
+import { listAssistantConversations, listAssistantMessages } from "./conversation-ipc";
 
 export function createConversationSelection(input: {
   spaceId: Ref<string | undefined>;

@@ -3,11 +3,11 @@ import { storeToRefs } from "pinia";
 import { computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { knowledgeLocationLabel } from "../knowledge/presentation/location-label";
 import { useSpaceStore } from "../session/space-store";
 import SpaceConversationPanel from "./conversation/SpaceConversationPanel.vue";
 import SpaceDocumentOutline from "./editor/SpaceDocumentOutline.vue";
 import SpaceSelectionInspector from "./inspector/SpaceSelectionInspector.vue";
+import { knowledgeLocationLabel } from "./knowledge/knowledge-location-label";
 import SpaceContextHeader from "./SpaceContextHeader.vue";
 import SpaceRightSidebarViewPicker from "./SpaceRightSidebarViewPicker.vue";
 import SpaceSourcePeek from "./SpaceSourcePeek.vue";

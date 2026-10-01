@@ -2,14 +2,11 @@ import { z } from "zod";
 
 import type { AiSettings } from "../../../shared/contracts/generated/AiSettings";
 import { routingCapabilities } from "../../../shared/contracts/generated/contract-values";
+import type { ExecutionCapability } from "../../../shared/contracts/generated/ExecutionCapability";
+import type { RoutingPurpose } from "../../../shared/contracts/generated/RoutingPurpose";
+import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
 import { desktopAgentSettingsSchema } from "./agents";
-import {
-  aiConnectionSettingsSchema,
-  aiDefaultsSchema,
-  type AiModelCapability,
-  type AiRoutingPurpose,
-  type ExecutionTarget,
-} from "./models";
+import { aiConnectionSettingsSchema, aiDefaultsSchema } from "./models";
 
 type AiModelSettingsShape = AiSettings;
 type SettingsRefinement = z.core.$RefinementCtx<AiModelSettingsShape>;
@@ -48,7 +45,7 @@ function rejectDuplicateDesktopAgents(settings: AiModelSettingsShape, context: S
 }
 
 function rejectInvalidDefaultTargets(settings: AiModelSettingsShape, context: SettingsRefinement) {
-  const targets: ReadonlyArray<readonly [ExecutionTarget | null, AiRoutingPurpose | undefined]> = [
+  const targets: ReadonlyArray<readonly [TaskTargetRef | null, RoutingPurpose | undefined]> = [
     [settings.defaults.defaultTarget, undefined],
     [settings.defaults.writing, "writing"],
     [settings.defaults.knowledge, "knowledge"],
@@ -74,8 +71,8 @@ function rejectInvalidDefaultTargets(settings: AiModelSettingsShape, context: Se
 
 function resolvesToCapability(
   connections: AiModelSettingsShape["connections"],
-  target: Extract<ExecutionTarget, { type: "model" }>,
-  capability: AiModelCapability | undefined,
+  target: Extract<TaskTargetRef, { type: "model" }>,
+  capability: ExecutionCapability | undefined,
 ) {
   const connection = connections.find(({ id }) => id === target.connectionId);
   const model = connection?.models.find(({ id }) => id === target.modelId);

@@ -1,6 +1,6 @@
 import { onBeforeUnmount, type Reactive, type Ref } from "vue";
 
-import type { CanvasPoint, CanvasViewport } from "../../contracts/canvas-editor";
+import type { CanvasPoint, CanvasViewport } from "../../contracts/canvas-editor-port";
 import { edgeAutoPanVelocity } from "./edge-auto-pan";
 
 interface EdgeAutoPanOptions {

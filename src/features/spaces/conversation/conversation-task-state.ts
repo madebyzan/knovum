@@ -1,6 +1,6 @@
 import type { Ref, ShallowRef } from "vue";
 
-import type { AssistantTaskAccepted } from "./conversation-ipc";
+import type { AssistantTaskAccepted } from "../contracts/generated/AssistantTaskAccepted";
 
 type Selection = { spaceId: string; conversationId: string };
 

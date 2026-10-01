@@ -5,8 +5,8 @@ import { toast } from "vue-sonner";
 
 import { cancelAiJob } from "../../../foundation/ai/ai-runtime";
 import { useAiSettingsStore } from "../../../foundation/ai/ai-settings-store";
-import type { AgentKind } from "../../../foundation/ai/schema/agents";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
+import type { AgentKind } from "../../../shared/contracts/generated/AgentKind";
 import { useSpaceStore } from "../session/space-store";
 import { listRecoverableAgentCreations, runAgentCreation } from "./agent-artifacts";
 import { useAgentArtifacts } from "./use-agent-artifacts";

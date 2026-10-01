@@ -1,10 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import { frameSnapCoordinates, nearestCanvasSnap } from "../canvas/konva/interaction/canvas-snapping";
-import {
-  createCanvasTranslationSnapIndex,
-  snapCanvasTranslation,
-} from "../canvas/konva/interaction/canvas-translation-snapping";
+import { createCanvasTranslationSnapIndex } from "../canvas/konva/interaction/canvas-translation-snap-index";
+import { snapCanvasTranslation } from "../canvas/konva/interaction/canvas-translation-snapping";
 import type { CanvasNodeFrame } from "../canvas/schema/document";
 
 describe("canvas snapping", () => {

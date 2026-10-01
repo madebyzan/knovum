@@ -1,15 +1,14 @@
-import type { ExecutionTarget } from "../../../../foundation/ai/schema/models";
 import { i18n } from "../../../../foundation/i18n/i18n";
-import type { useSpaceStore } from "../../session/space-store";
+import type { TaskTargetRef } from "../../../../shared/contracts/generated/TaskTargetRef";
 import type { GroundedDocumentSource } from "../catalog/grounded-document";
-import { startDerivationAction } from "../start-action";
+import { startDerivationAction, type DerivationActionStore } from "../start-action";
 
 export interface VideoDraft {
   title: string;
   prompt: string;
   aspectRatio: "16:9" | "9:16" | "1:1";
   durationSeconds: 5 | 10 | 15;
-  target?: ExecutionTarget | undefined;
+  target?: TaskTargetRef | undefined;
 }
 
 export function generateVideoFromSources({
@@ -17,7 +16,7 @@ export function generateVideoFromSources({
   sources,
   draft,
 }: {
-  store: ReturnType<typeof useSpaceStore>;
+  store: DerivationActionStore;
   sources: readonly GroundedDocumentSource[];
   draft: VideoDraft;
 }) {

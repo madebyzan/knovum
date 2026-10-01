@@ -36,8 +36,3 @@ export const desktopAgentSettingsSchema: z.ZodType<DesktopAgentSettings> = z
     enabled: z.literal(true),
   })
   .strict();
-
-export type { AgentKind } from "../../../shared/contracts/generated/AgentKind";
-export type { AgentInstallation } from "../../../shared/contracts/generated/AgentInstallation";
-export type { AgentDescriptor } from "../../../shared/contracts/generated/AgentDescriptor";
-export type { DesktopAgentSettings } from "../../../shared/contracts/generated/DesktopAgentSettings";

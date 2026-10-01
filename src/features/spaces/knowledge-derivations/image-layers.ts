@@ -14,7 +14,16 @@ import { applyDerivationOutput } from "./apply-output";
 import { derivedNodePosition } from "./placement";
 import { runDerivation } from "./run-derivation";
 
-type SpaceStore = ReturnType<typeof useSpaceStore>;
+type SpaceStore = Pick<
+  ReturnType<typeof useSpaceStore>,
+  | "activeSpaceId"
+  | "addContents"
+  | "applyNodeContentForSpace"
+  | "refreshActiveSpace"
+  | "relations"
+  | "requestReveal"
+  | "saveNodeContentForSpace"
+>;
 export type LayerAvailability =
   | { state: "ready" }
   | { state: "blocked"; reason: "missing_credential" | "secret_database_unavailable" };
@@ -57,7 +66,6 @@ export async function generateImageLayers(
   return runDerivation<LayerOutput[]>({
     store,
     pendingId: first.id,
-    sourceNodeIds: [source.id],
     task: {
       id: generationId,
       title: i18n.global.t("spaces.media.imageEditor.layers.task"),

@@ -1,6 +1,6 @@
-import type { WorkflowCaptureIssueReason } from "../../workflows/captured-workflow-ipc";
+import type { CaptureIssueReason } from "../../contracts/generated/CaptureIssueReason";
 
-export const captureIssueLabels: Record<WorkflowCaptureIssueReason, string> = {
+export const captureIssueLabels: Record<CaptureIssueReason, string> = {
   "resource-unavailable": "resourceUnavailable",
   "derivation-incomplete": "derivationIncomplete",
   "execution-spec-unavailable": "executionSpecUnavailable",

@@ -4,13 +4,13 @@ import { onBeforeUnmount, onMounted, useTemplateRef, watch } from "vue";
 import type { CanvasExchangePort } from "../../canvas-exchange/canvas-exchange-port";
 import { createJsonCanvasExchangePort } from "../../canvas-exchange/json-canvas-exchange";
 import type {
-  CanvasImportCommit,
+  CanvasImportReceipt,
   CanvasJsonImportDraft,
   CanvasJsonImportRequest,
 } from "../../canvas-exchange/json-canvas-import-contract";
 import type { SpaceRelation } from "../../model/relations/relation";
 import type { SpacePersistenceState } from "../../workspace/persistence-state";
-import type { CanvasHostEvents, CanvasSurfaceEvents } from "../contracts/canvas-editor";
+import type { CanvasHostEvents } from "../contracts/canvas-editor";
 import type { CanvasNodeContentSlotProps, CanvasSceneInput } from "../contracts/canvas-surface";
 import type { CanvasTool } from "../contracts/canvas-tool";
 import KonvaCanvasSurface from "../konva/KonvaCanvasSurface.vue";
@@ -20,7 +20,7 @@ const props = defineProps<{
   events: CanvasHostEvents;
   persistence: SpacePersistenceState;
   ensurePersisted(): Promise<void>;
-  importJsonCanvas(request: CanvasJsonImportRequest): Promise<CanvasImportCommit>;
+  importJsonCanvas(request: CanvasJsonImportRequest): Promise<CanvasImportReceipt>;
   focusNodeIds: readonly string[];
   groupScopePath: readonly string[];
   interactionEnabled: boolean;
@@ -41,7 +41,7 @@ const session = useCanvasDocumentSession({
 });
 const surface = useTemplateRef<InstanceType<typeof KonvaCanvasSurface>>("surface");
 
-const surfaceEvents: CanvasSurfaceEvents = {
+const surfaceEvents: CanvasHostEvents = {
   ...props.events,
   onViewportChange(viewport) {
     session.viewportChanged(viewport);

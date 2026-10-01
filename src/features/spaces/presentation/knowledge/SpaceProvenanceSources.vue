@@ -9,11 +9,11 @@ import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import { spaceCanvasOverviewSource } from "../../assets/node-preview-source";
 import { useContextDock } from "../../canvas/use-context-dock";
 import type { SpaceProvenanceTargetKind } from "../../knowledge/model/provenance";
-import { knowledgeLocationLabel } from "../../knowledge/presentation/location-label";
 import { attachProvenance, detachProvenance } from "../../knowledge/provenance-actions";
 import { useSpaceProvenanceQuery } from "../../knowledge/queries/use-knowledge-queries";
 import { useSpaceStore } from "../../session/space-store";
 import { nodeIcon } from "../node-icon";
+import { knowledgeLocationLabel } from "./knowledge-location-label";
 
 const props = defineProps<{
   targetKind: SpaceProvenanceTargetKind;

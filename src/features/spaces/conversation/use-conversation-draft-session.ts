@@ -1,9 +1,9 @@
 import type { Ref } from "vue";
 
+import type { SubmitAssistantTaskRequest } from "../contracts/generated/SubmitAssistantTaskRequest";
 import { useConversationDraftStore } from "./conversation-draft-store";
-import type { StartAssistantTaskInput } from "./conversation-ipc";
 
-type Attachment = NonNullable<StartAssistantTaskInput["attachments"]>[number];
+type Attachment = NonNullable<SubmitAssistantTaskRequest["attachments"]>[number];
 
 function sameAttachments(left: readonly Attachment[], right: readonly Attachment[]) {
   return (
@@ -53,7 +53,7 @@ export function useConversationDraftSession(input: {
     });
   }
 
-  function clearSubmitted(request: StartAssistantTaskInput) {
+  function clearSubmitted(request: SubmitAssistantTaskRequest) {
     const conversationId = request.conversationId ?? "";
     const stored = drafts.read(request.spaceId, conversationId);
     const sent = request.attachments ?? [];
@@ -66,7 +66,7 @@ export function useConversationDraftSession(input: {
     if (sameAttachments(input.attachments.value, sent)) input.attachments.value = [];
   }
 
-  function restoreSubmitted(request: StartAssistantTaskInput) {
+  function restoreSubmitted(request: SubmitAssistantTaskRequest) {
     const conversationId = request.conversationId ?? "";
     if (input.spaceId.value === request.spaceId && input.selectedConversationId.value === conversationId) {
       if (!input.prompt.value && !input.attachments.value.length) {

@@ -1,4 +1,4 @@
-import type { JsonCanvasDocumentV1 } from "./json-canvas-contract";
+import type { JsonCanvasDocumentV1 } from "../contracts/generated/JsonCanvasDocumentV1";
 
 export interface CanvasExchangeResource {
   sourcePath: string;

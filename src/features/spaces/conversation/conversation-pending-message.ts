@@ -1,11 +1,12 @@
 import { basename } from "pathe";
 
-import type { AssistantMessage, StartAssistantTaskInput } from "./conversation-ipc";
+import type { AssistantMessage } from "../contracts/generated/AssistantMessage";
+import type { SubmitAssistantTaskRequest } from "../contracts/generated/SubmitAssistantTaskRequest";
 
 type VisibleAttachment = { title: string; isImage: boolean; previewSource: string };
 
 export function pendingConversationMessage(
-  request: StartAssistantTaskInput,
+  request: SubmitAssistantTaskRequest,
   identity: { id: string; conversationId: string; branchId: string },
   visibleAttachments: readonly VisibleAttachment[],
 ): AssistantMessage {

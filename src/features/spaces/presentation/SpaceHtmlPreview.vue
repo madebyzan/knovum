@@ -30,7 +30,7 @@ function isLocalAssetReference(value: string) {
     <iframe
       :title="title"
       :src="frameSource"
-      sandbox="allow-scripts"
+      sandbox=""
       loading="lazy"
       referrerpolicy="no-referrer"
       tabindex="-1"

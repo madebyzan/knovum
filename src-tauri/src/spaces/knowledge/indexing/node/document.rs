@@ -1,5 +1,5 @@
-use super::model::{DocumentCoverage, VisualState};
 use crate::spaces::knowledge::indexing::{self, KnowledgeChunkSeed};
+use crate::spaces::knowledge::node_contracts::document_coverage::{DocumentCoverage, VisualState};
 use serde_json::{json, Value};
 
 pub(in crate::spaces) fn projection(data: &Value) -> Value {

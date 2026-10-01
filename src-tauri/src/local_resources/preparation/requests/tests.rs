@@ -14,7 +14,7 @@ fn accepted_request_can_be_cancelled_before_runner_starts() {
 
     assert!(request.cancellation().is_cancelled());
     let error = RESOURCE_PREPARATION_CANCELLED.to_string();
-    request.finish(Some(&error));
+    request.finish(Some(&error)).unwrap();
     let snapshot = list()
         .unwrap()
         .into_iter()

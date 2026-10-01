@@ -39,7 +39,10 @@ pub async fn generate_media_insights(
     let generated_insights =
         insights::generate(&app, target, &knowledge, &on_progress, &cancellation).await;
     if cancellation.is_cancelled() {
-        return Err("media-insights-cancelled: Media insights generation cancelled".into());
+        return Err(CommandError::new(
+            "media_insights_cancelled",
+            "media-insights-cancelled: Media insights generation cancelled",
+        ));
     }
     let next = generated_insights?;
     let fields = serde_json::Map::from_iter([("mediaKnowledge".into(), next)]);

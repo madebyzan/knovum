@@ -6,8 +6,9 @@ import type { VueKonvaRef } from "vue-konva/core";
 
 import type { CanvasNodeLayoutV1 } from "../../schema/document";
 import type { CanvasGestureFeedback, CanvasSnapGuide } from "../interaction/canvas-snapping";
-import type { CanvasConnectorDraft, CanvasConnectorSide } from "../interaction/connector-gesture-controller";
-import type { CanvasScene, CanvasSceneRelation } from "../scene/scene-projection";
+import type { CanvasConnectorDraft } from "../interaction/connector-gesture-controller";
+import type { CanvasScene, CanvasSceneRelation } from "../scene/canvas-scene";
+import type { CanvasConnectorSide } from "../scene/connector-geometry";
 import type { CanvasSelectionTransformPolicy } from "../selection/selection-transform-policy";
 import CanvasConnectionTargetHighlight from "./CanvasConnectionTargetHighlight.vue";
 import CanvasConnectorControls from "./CanvasConnectorControls.vue";

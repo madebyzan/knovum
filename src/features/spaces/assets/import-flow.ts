@@ -1,9 +1,10 @@
 import type { useSpaceStore } from "../session/space-store";
 import { chooseSpaceSourcePath } from "./asset-operations";
-import { spaceImportContext } from "./import-context";
-import { importSpaceSource, type SpaceImportSessionLabels } from "./import-session";
+import { spaceImportContext, type SpaceImportStore } from "./import-context";
+import type { SpaceImportSessionLabels } from "./import-contract";
+import { importSpaceSource } from "./import-session";
 
-type SpaceStore = ReturnType<typeof useSpaceStore>;
+type SpaceStore = SpaceImportStore & Pick<ReturnType<typeof useSpaceStore>, "nextInsertionPoint">;
 
 export async function importSpaceFromPicker(store: SpaceStore, labels: SpaceImportSessionLabels) {
   const source = await chooseSpaceSourcePath();

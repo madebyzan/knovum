@@ -4,9 +4,9 @@ import { computed, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { z } from "zod";
 
+import type { AssistantMessage } from "../../contracts/generated/AssistantMessage";
 import type { RunEvent } from "../../contracts/generated/RunEvent";
 import { conversationActivityItems, type ActivityItem } from "../../conversation/conversation-activity-items";
-import type { AssistantMessage } from "../../conversation/conversation-ipc";
 import { useSpaceStore } from "../../session/space-store";
 import { captureActionLabel } from "../workflows/workflow-capture-labels";
 import SpaceConversationSearchMatches from "./SpaceConversationSearchMatches.vue";

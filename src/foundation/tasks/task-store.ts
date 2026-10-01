@@ -9,8 +9,6 @@ import { createTaskRetryController } from "./task-retry";
 const SUCCESS_DISMISS_DELAY_MS = 10_000;
 const TASK_HISTORY_LIMIT = 50;
 
-export type { AppTask } from "./task-model";
-
 export const useTaskStore = defineStore("tasks", () => {
   const tasks = ref<AppTask[]>([]);
   const { progress, indeterminate, setStatusMessage, title } = createTaskProgress(tasks);

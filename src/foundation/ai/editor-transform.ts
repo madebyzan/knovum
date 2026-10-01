@@ -1,10 +1,9 @@
+import { Channel } from "@tauri-apps/api/core";
+
 import type { EditorTransformAction } from "../../shared/contracts/generated/EditorTransformAction";
 import type { EditorTransformCommandRequest } from "../../shared/contracts/generated/EditorTransformCommandRequest";
 import type { TaskCompletionOutput } from "../../shared/contracts/generated/TaskCompletionOutput";
 import type { TaskStreamEvent } from "../../shared/contracts/generated/TaskStreamEvent";
-export type { EditorTransformAction } from "../../shared/contracts/generated/EditorTransformAction";
-import { Channel } from "@tauri-apps/api/core";
-
 import { invokeCommand } from "../ipc/invoke-command";
 import { aiExecutionTargetPayload, loadAiExecutionTarget } from "./ai-execution";
 

@@ -11,8 +11,6 @@ import { listSpaces } from "./space-operations";
 import type { LoadSpaceOptions, SpaceSessionContext } from "./space-session-context";
 import { transitionActiveSpaceSession } from "./space-transition";
 
-export type { SpaceSessionContext } from "./space-session-context";
-
 export async function initializeSpaces(context: SpaceSessionContext, inboxTitle: string) {
   if (context.ready.value) return;
   context.spaces.value = await listSpaces();
@@ -25,9 +23,6 @@ export async function initializeSpaces(context: SpaceSessionContext, inboxTitle:
 export async function createSpace(context: SpaceSessionContext, title: string) {
   await createDraftSpace(context, title);
 }
-
-export { materializeActiveSpace } from "./draft-space-actions";
-export { renameSpace } from "./space-title-actions";
 
 export async function openSpace(context: SpaceSessionContext, id: string) {
   await activateSpace(context, id, true);
@@ -136,6 +131,8 @@ async function loadSpace(context: SpaceSessionContext, id: string, options: Load
     return await transitionActiveSpaceSession(context, async () => {
       const { nodes, scenes, relations, editSnapshot } = await loadSpaceSessionProjection(id);
       if (generation !== context.runtime.openGeneration) return false;
+      if (options.markOpened) await markSpaceOpenedAndTrack(context, id);
+      if (generation !== context.runtime.openGeneration) return false;
       if (options.resetHistory) clearSpaceHistory(context.history);
       if (context.focusedEditorId.value) {
         context.focusedEditorId.value = undefined;
@@ -147,7 +144,6 @@ async function loadSpace(context: SpaceSessionContext, id: string, options: Load
       context.relations.value = relations;
       context.editSnapshot.value = editSnapshot;
       context.groupScopePath.value = [];
-      if (options.markOpened) await markSpaceOpenedAndTrack(context, id);
       scheduleSpaceKnowledgeIndex(id);
       return true;
     });

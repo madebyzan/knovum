@@ -1,6 +1,6 @@
 import { isPlainObject, isString } from "es-toolkit";
 
-import type { SpaceActionDefinition } from "../../workflows/action-catalog";
+import type { SpaceActionDefinition } from "../../contracts/generated/SpaceActionDefinition";
 
 function objectValue(value: unknown): Record<string, unknown> | undefined {
   return isPlainObject(value) ? value : undefined;

@@ -1,6 +1,7 @@
 import { openSpaceNode } from "../canvas/selection-actions";
+import type { AssistantAttachment } from "../contracts/generated/AssistantAttachment";
 import type { useSpaceStore } from "../session/space-store";
-import { previewAssistantUpload, type AssistantAttachment } from "./conversation-ipc";
+import { previewAssistantUpload } from "./conversation-ipc";
 
 export async function previewConversationAttachment(
   attachments: readonly AssistantAttachment[],

@@ -1,6 +1,3 @@
-import type { ImageOperationCapabilities } from "../contracts/generated/ImageOperationCapabilities";
-export type { ImageOperationCapability } from "../contracts/generated/ImageOperationCapability";
-export type { ImageOperation } from "../contracts/generated/ImageOperation";
 import { Channel } from "@tauri-apps/api/core";
 
 import { cancelAiJob } from "../../../foundation/ai/ai-runtime";
@@ -9,6 +6,7 @@ import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import { useCanvasEditorSession } from "../canvas/editor-session";
 import type { ImageOperation } from "../contracts/generated/ImageOperation";
+import type { ImageOperationCapabilities } from "../contracts/generated/ImageOperationCapabilities";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../model/nodes/node-payload";
 import type { SpaceRelation } from "../model/relations/relation";
@@ -17,7 +15,16 @@ import { applyDerivationOutput } from "./apply-output";
 import { derivedNodePosition } from "./placement";
 import { runDerivation } from "./run-derivation";
 
-type SpaceStore = ReturnType<typeof useSpaceStore>;
+type SpaceStore = Pick<
+  ReturnType<typeof useSpaceStore>,
+  | "activeSpaceId"
+  | "addContent"
+  | "applyNodeContentForSpace"
+  | "refreshActiveSpace"
+  | "relations"
+  | "requestReveal"
+  | "saveNodeContentForSpace"
+>;
 
 interface ImageOperationOutput {
   nodeId: string;
@@ -64,7 +71,6 @@ export async function deriveImage(
   const result = runDerivation<ImageOperationOutput>({
     store,
     pendingId: pending.id,
-    sourceNodeIds: [source.id],
     task: {
       id,
       title: i18n.global.t("spaces.media.imageEditor.operation.task"),

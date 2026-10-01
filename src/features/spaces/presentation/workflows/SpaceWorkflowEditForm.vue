@@ -4,8 +4,10 @@ import { computed, onMounted, ref, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
-import { listSpaceActions, type SpaceActionDefinition } from "../../workflows/action-catalog";
-import { reviseCapturedWorkflow, type SavedCapturedWorkflow } from "../../workflows/captured-workflow-ipc";
+import type { SavedCapturedWorkflow } from "../../contracts/generated/SavedCapturedWorkflow";
+import type { SpaceActionDefinition } from "../../contracts/generated/SpaceActionDefinition";
+import { listSpaceActions } from "../../workflows/action-catalog";
+import { reviseCapturedWorkflow } from "../../workflows/captured-workflow-ipc";
 import SpaceWorkflowOutputEditor from "./SpaceWorkflowOutputEditor.vue";
 import SpaceWorkflowParameterFields from "./SpaceWorkflowParameterFields.vue";
 import SpaceWorkflowStepSelection from "./SpaceWorkflowStepSelection.vue";

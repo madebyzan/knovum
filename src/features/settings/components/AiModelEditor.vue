@@ -2,11 +2,9 @@
 import { computed, reactive, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import {
-  aiModelDefinitionSchema,
-  type AiModelCapability,
-  type AiModelDefinition,
-} from "../../../foundation/ai/schema/models";
+import { aiModelDefinitionSchema } from "../../../foundation/ai/schema/models";
+import type { AiModelDefinition } from "../../../shared/contracts/generated/AiModelDefinition";
+import type { ExecutionCapability } from "../../../shared/contracts/generated/ExecutionCapability";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiDialog from "../../../shared/ui/UiDialog.vue";
 import AiModelDefinitionEditor from "./AiModelDefinitionEditor.vue";
@@ -15,7 +13,7 @@ const open = defineModel<boolean>("open", { required: true });
 const props = defineProps<{
   connectionName: string;
   model?: AiModelDefinition | undefined;
-  allowedCapabilities: readonly AiModelCapability[];
+  allowedCapabilities: readonly ExecutionCapability[];
   protected: boolean;
   busy: boolean;
   error?: string | undefined;

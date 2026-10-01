@@ -10,8 +10,6 @@ import {
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { error as logError } from "@tauri-apps/plugin-log";
 
-export type { CheckMenuItemOptions, MenuItemOptions, PredefinedMenuItemOptions, SubmenuOptions };
-
 export type ContextMenuItem =
   | MenuItemOptions
   | CheckMenuItemOptions

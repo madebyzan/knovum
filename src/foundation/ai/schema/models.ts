@@ -90,13 +90,6 @@ export const generationPresetSchema = z
   })
   .strict();
 
-export type { ProviderKind as AiProvider } from "../../../shared/contracts/generated/ProviderKind";
-export type { ExecutionCapability as AiModelCapability } from "../../../shared/contracts/generated/ExecutionCapability";
-export type { RoutingPurpose as AiRoutingPurpose } from "../../../shared/contracts/generated/RoutingPurpose";
-export type { AiModelDefinition } from "../../../shared/contracts/generated/AiModelDefinition";
-export type { AiConnectionSettings } from "../../../shared/contracts/generated/AiConnectionSettings";
-export type { TaskTargetRef as ExecutionTarget } from "../../../shared/contracts/generated/TaskTargetRef";
-export type { AiRoutingDefaults } from "../../../shared/contracts/generated/AiRoutingDefaults";
 export type GenerationPreset = z.infer<typeof generationPresetSchema>;
 
 export interface ResolvedAiModelTarget {

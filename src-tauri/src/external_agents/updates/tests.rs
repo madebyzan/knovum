@@ -14,6 +14,16 @@ fn collected_names(workspace: &Path) -> Vec<String> {
         .collect()
 }
 
+#[test]
+fn embedded_base64_is_rejected_before_or_after_decoding_when_oversized() {
+    decode_bounded(STANDARD.encode(b"12345"), 4, "resource").expect_err("decoded limit");
+    decode_bounded("AAAAAA==".repeat(2), 4, "media").expect_err("encoded limit");
+    assert_eq!(
+        decode_bounded(STANDARD.encode(b"1234"), 4, "resource").unwrap(),
+        b"1234"
+    );
+}
+
 #[tokio::test]
 async fn embedded_document_is_saved_as_workspace_artifact() {
     let workspace =

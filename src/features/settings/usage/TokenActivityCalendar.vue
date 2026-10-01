@@ -3,11 +3,11 @@ import { getLocalTimeZone, parseDate } from "@internationalized/date";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import type { TokenUsageReport } from "../../../foundation/ai/token-usage";
+import type { UsageReport } from "../../../shared/contracts/generated/UsageReport";
 import UiTooltip from "../../../shared/ui/UiTooltip.vue";
 import { buildTokenActivityWeeks } from "./token-activity-calendar";
 
-const props = defineProps<{ report: TokenUsageReport }>();
+const props = defineProps<{ report: UsageReport }>();
 const { locale, n, t } = useI18n();
 const timeZone = getLocalTimeZone();
 const dateFormatter = computed(

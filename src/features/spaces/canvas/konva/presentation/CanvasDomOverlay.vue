@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-import type { CanvasViewport } from "../../contracts/canvas-editor";
+import type { CanvasViewport } from "../../contracts/canvas-editor-port";
 import { canvasPreviewPolicy } from "../../preview/policy";
 import type { CanvasNodeLayoutV1 } from "../../schema/document";
-import type { CanvasScene } from "../scene/scene-projection";
+import type { CanvasScene } from "../scene/canvas-scene";
 import CanvasDomNodeOverlay from "./CanvasDomNodeOverlay.vue";
 
 const props = defineProps<{

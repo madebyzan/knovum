@@ -4,21 +4,22 @@ import { computed, onMounted, watch, type HTMLAttributes } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 
+import type { RoutingPurpose } from "../../shared/contracts/generated/RoutingPurpose";
+import type { TaskTargetRef } from "../../shared/contracts/generated/TaskTargetRef";
 import UiButton from "../../shared/ui/UiButton.vue";
 import UiSelect from "../../shared/ui/UiSelect.vue";
 import { availableExecutionTargets, defaultExecutionTarget } from "./ai-execution";
 import { useAiSettingsStore } from "./ai-settings-store";
 import { useExecutionCatalogQuery } from "./execution-catalog-query";
 import { decodeExecutionTarget, encodeExecutionTarget } from "./execution-target-codec";
-import type { AiRoutingPurpose, ExecutionTarget } from "./schema/models";
 
 const props = defineProps<{
-  purpose: AiRoutingPurpose;
+  purpose: RoutingPurpose;
   disabled?: boolean | undefined;
   compact?: boolean | undefined;
   class?: HTMLAttributes["class"];
 }>();
-const target = defineModel<ExecutionTarget | undefined>();
+const target = defineModel<TaskTargetRef | undefined>();
 const { t } = useI18n();
 const router = useRouter();
 const store = useAiSettingsStore();
@@ -49,7 +50,7 @@ function currentTargetIsSelectable(): boolean {
   return target.value !== undefined && isSelectableExecutionTarget(encodeExecutionTarget(target.value));
 }
 
-function resolveConfiguredTarget(): ExecutionTarget | undefined {
+function resolveConfiguredTarget(): TaskTargetRef | undefined {
   const configured = defaultExecutionTarget(settings.value, props.purpose) ?? undefined;
   if (!configured) return;
   return isSelectableExecutionTarget(encodeExecutionTarget(configured)) ? configured : undefined;

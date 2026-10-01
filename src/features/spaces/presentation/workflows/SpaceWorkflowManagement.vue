@@ -5,11 +5,8 @@ import { useI18n } from "vue-i18n";
 import { confirmAction } from "../../../../shared/ui/confirm-action";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiInput from "../../../../shared/ui/UiInput.vue";
-import {
-  deleteCapturedWorkflow,
-  renameCapturedWorkflow,
-  type SavedCapturedWorkflow,
-} from "../../workflows/captured-workflow-ipc";
+import type { SavedCapturedWorkflow } from "../../contracts/generated/SavedCapturedWorkflow";
+import { deleteCapturedWorkflow, renameCapturedWorkflow } from "../../workflows/captured-workflow-ipc";
 import SpaceWorkflowEditForm from "./SpaceWorkflowEditForm.vue";
 
 const props = defineProps<{ workflow: SavedCapturedWorkflow }>();

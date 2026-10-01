@@ -7,6 +7,13 @@ use agent_client_protocol::{schema::v1::ResourceLink, Error};
 use sha2::{Digest, Sha256};
 use tokio::io::AsyncWriteExt;
 
+use crate::public_network::public_address;
+
+const MAX_REMOTE_RESOURCE_BYTES: usize = 64 * 1024 * 1024;
+const MAX_REMOTE_IMAGE_BYTES: usize = 64 * 1024 * 1024;
+const MAX_REMOTE_AUDIO_BYTES: usize = 128 * 1024 * 1024;
+const MAX_REMOTE_VIDEO_BYTES: usize = 512 * 1024 * 1024;
+
 pub(super) async fn materialize(
     workspace: &Path,
     link: ResourceLink,
@@ -41,30 +48,55 @@ async fn acquire(
         return Ok(Some(canonical));
     }
     require_https(&url)?;
-    let mut response = remote_response(url.clone()).await?;
+    let response = remote_response(url.clone()).await?;
+    let response_content_type = response
+        .headers()
+        .get(reqwest::header::CONTENT_TYPE)
+        .and_then(|value| value.to_str().ok());
     let extension = remote_extension(
         response.url(),
-        response
-            .headers()
-            .get(reqwest::header::CONTENT_TYPE)
-            .and_then(|value| value.to_str().ok()),
+        response_content_type,
         link.mime_type.as_deref(),
     )?;
+    let maximum_bytes = remote_size_limit(response_content_type, link.mime_type.as_deref());
     let identity = Sha256::digest(url.as_str().as_bytes());
     let base = output_identity
         .map(str::to_owned)
         .unwrap_or_else(|| format!("resource-{identity:x}"));
+    persist_response(workspace, response, &base, &extension, maximum_bytes)
+        .await
+        .map(Some)
+}
+
+async fn persist_response(
+    workspace: &Path,
+    mut response: reqwest::Response,
+    base: &str,
+    extension: &str,
+    maximum_bytes: usize,
+) -> Result<PathBuf, String> {
+    if response
+        .content_length()
+        .is_some_and(|length| length > maximum_bytes as u64)
+    {
+        return Err("Agent remote output exceeded its size limit".into());
+    }
     let pending = workspace.join(format!(".{base}-{}.partial", uuid::Uuid::new_v4()));
     let mut file = tokio::fs::File::create(&pending)
         .await
         .map_err(|error| error.to_string())?;
     let mut content_identity = Sha256::new();
+    let mut written = 0_usize;
     let result = async {
         while let Some(chunk) = response
             .chunk()
             .await
             .map_err(|error| error.without_url().to_string())?
         {
+            written = written.saturating_add(chunk.len());
+            if written > maximum_bytes {
+                return Err("Agent remote output exceeded its size limit".into());
+            }
             content_identity.update(&chunk);
             file.write_all(&chunk)
                 .await
@@ -83,7 +115,35 @@ async fn acquire(
     if result.is_err() {
         let _ = tokio::fs::remove_file(&pending).await;
     }
-    result.map(Some)
+    result
+}
+
+fn remote_size_limit(
+    response_content_type: Option<&str>,
+    declared_mime_type: Option<&str>,
+) -> usize {
+    let response_mime = response_content_type.and_then(|value| value.parse::<mime::Mime>().ok());
+    response_mime
+        .as_ref()
+        .and_then(|mime| {
+            if mime.essence_str() == "application/octet-stream" {
+                declared_mime_type.and_then(mime_size_limit)
+            } else {
+                mime_size_limit(mime.essence_str())
+            }
+        })
+        .or_else(|| declared_mime_type.and_then(mime_size_limit))
+        .unwrap_or(MAX_REMOTE_RESOURCE_BYTES)
+}
+
+fn mime_size_limit(value: &str) -> Option<usize> {
+    let mime = value.parse::<mime::Mime>().ok()?;
+    match mime.type_().as_str() {
+        "image" => Some(MAX_REMOTE_IMAGE_BYTES),
+        "audio" => Some(MAX_REMOTE_AUDIO_BYTES),
+        "video" => Some(MAX_REMOTE_VIDEO_BYTES),
+        _ => Some(MAX_REMOTE_RESOURCE_BYTES),
+    }
 }
 
 fn remote_extension(
@@ -154,40 +214,6 @@ async fn remote_response(mut url: tauri::Url) -> Result<reqwest::Response, Strin
         }
     }
     Err("Agent output exceeded redirect limit".into())
-}
-
-fn public_address(ip: std::net::IpAddr) -> bool {
-    match ip {
-        std::net::IpAddr::V4(ip) => {
-            let [first, second, third, _] = ip.octets();
-            !ip.is_private()
-                && !ip.is_loopback()
-                && !ip.is_link_local()
-                && !ip.is_unspecified()
-                && !ip.is_broadcast()
-                && !ip.is_multicast()
-                && !ip.is_documentation()
-                && first != 0
-                && first < 240
-                && !(first == 192 && second == 0 && third == 0)
-                && !(first == 192 && second == 88 && third == 99)
-                && !(first == 100 && (64..=127).contains(&second))
-                && !(first == 198 && (18..=19).contains(&second))
-        }
-        std::net::IpAddr::V6(ip) => ip.to_ipv4_mapped().map_or_else(
-            || {
-                (ip.segments()[0] & 0xe000) == 0x2000
-                    && ip.segments()[0] != 0x2002
-                    && !ip.is_loopback()
-                    && !ip.is_unspecified()
-                    && !ip.is_multicast()
-                    && !ip.is_unique_local()
-                    && !ip.is_unicast_link_local()
-                    && !(ip.segments()[0] == 0x2001 && ip.segments()[1] == 0x0db8)
-            },
-            |ip| public_address(std::net::IpAddr::V4(ip)),
-        ),
-    }
 }
 
 fn require_https(url: &tauri::Url) -> Result<(), String> {

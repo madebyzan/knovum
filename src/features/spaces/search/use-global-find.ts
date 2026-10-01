@@ -26,7 +26,6 @@ export function useGlobalFind(open: Ref<boolean>) {
       queryKey: ["spaces", "global-search", normalizedQuery.value],
       queryFn: () => searchAcrossSpaces(normalizedQuery.value),
       enabled: Boolean(normalizedQuery.value),
-      staleTime: 30_000,
     })),
   );
 

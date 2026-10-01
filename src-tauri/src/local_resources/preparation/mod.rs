@@ -132,6 +132,6 @@ pub(crate) async fn prepare_models_for_request<R: Runtime>(
             prepared_models = prepare_models(app, kinds, request.cancellation(), &mut observe) => prepared_models,
         }
     };
-    request.finish(prepared_models.as_ref().err());
+    request.finish(prepared_models.as_ref().err())?;
     prepared_models
 }

@@ -1,4 +1,4 @@
-use super::model::{DocumentCoverage, DocumentParser, VisualState};
+use super::{DocumentCoverage, DocumentParser, VisualState};
 use crate::documents::pdf_input::PdfInput;
 use std::collections::BTreeSet;
 

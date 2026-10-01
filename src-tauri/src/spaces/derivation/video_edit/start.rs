@@ -3,7 +3,11 @@ use tauri::AppHandle;
 use uuid::Uuid;
 
 use super::{fonts, RenderVideoEditRequest, VideoEditProject};
-use crate::spaces::{db, derivation::inputs, knowledge::contracts};
+use crate::spaces::{
+    db,
+    derivation::{inputs, pending_output},
+    knowledge::contracts,
+};
 
 pub struct VideoEditSource {
     pub path: String,
@@ -41,6 +45,17 @@ pub async fn start(
         .and_then(Value::as_str)
         .filter(|value| !value.is_empty())
         .ok_or("Video asset is unavailable")?;
+    let output: String = sqlx::query_scalar(
+        "SELECT data FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND kind='video' AND deleted_at IS NULL",
+    )
+    .bind(&request.output_node_id)
+    .bind(&request.space_id)
+    .fetch_optional(&mut *tx)
+    .await
+    .map_err(db::sql_error)?
+    .ok_or("Video edit output is unavailable")?;
+    let output: Value = serde_json::from_str(&output).map_err(db::json_error)?;
+    pending_output::validate_separate_asset(&output, path)?;
     let now = crate::clock::unix_time_millis()?;
     sqlx::query("INSERT INTO spaces_knowledge_derivations(id,space_id,output_node_id,action_kind,action_version,engine,status,created_at,updated_at) VALUES($1,$2,$3,'render-video-edit',1,'ffmpeg:filter-complex','running',$4,$4)")
         .bind(&request.id).bind(&request.space_id).bind(&request.output_node_id).bind(now)

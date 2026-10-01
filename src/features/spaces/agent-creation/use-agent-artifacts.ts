@@ -2,18 +2,14 @@ import { computed, reactive, ref, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
+import type { AgentArtifact } from "../../../shared/contracts/generated/AgentArtifact";
 import { prepareAgentArtifactImport } from "../assets/asset-operations";
 import { spaceImportContext } from "../assets/import-context";
 import { importSpaceSource } from "../assets/import-session";
 import { useNodeOperationGate } from "../canvas/node-operation-gate";
+import type { RecoverableAgentCreation } from "../contracts/generated/RecoverableAgentCreation";
 import { useSpaceStore } from "../session/space-store";
-import {
-  consumeAgentArtifact,
-  discardAgentCreation,
-  previewAgentArtifact,
-  type AgentArtifact,
-  type RecoverableAgentCreation,
-} from "./agent-artifacts";
+import { consumeAgentArtifact, discardAgentCreation, previewAgentArtifact } from "./agent-artifacts";
 
 export function useAgentArtifacts(open: Ref<boolean>) {
   const { t } = useI18n();

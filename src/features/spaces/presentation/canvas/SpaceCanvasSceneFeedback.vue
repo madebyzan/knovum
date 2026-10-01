@@ -5,8 +5,8 @@ import { storeToRefs } from "pinia";
 import { computed, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import type { SceneCue } from "../../session/session-state";
 import { useSpaceStore } from "../../session/space-store";
+import type { SceneCue } from "../../session/workbench-state";
 
 const { t } = useI18n();
 const store = useSpaceStore();

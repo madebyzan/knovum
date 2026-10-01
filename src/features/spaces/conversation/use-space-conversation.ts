@@ -1,9 +1,10 @@
 import { computed, shallowRef, watch, type Ref } from "vue";
 
+import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
+import type { AssistantConversation } from "../contracts/generated/AssistantConversation";
+import type { AssistantMessage } from "../contracts/generated/AssistantMessage";
 import { useSpaceStore } from "../session/space-store";
-import { type AssistantConversation, type AssistantMessage } from "./conversation-ipc";
 import { createConversationSelection } from "./conversation-selection";
-import type { ConversationTarget } from "./conversation-target";
 import { useConversationActions } from "./use-conversation-actions";
 import { useConversationActivities } from "./use-conversation-activities";
 import { useConversationAttachments } from "./use-conversation-attachments";
@@ -22,7 +23,7 @@ export function useSpaceConversation(spaceId: Ref<string | undefined>) {
   const messages = shallowRef<AssistantMessage[]>([]);
   const selectedConversationId = shallowRef("");
   const prompt = shallowRef("");
-  const target = shallowRef<ConversationTarget>();
+  const target = shallowRef<TaskTargetRef>();
   const conversationQuery = shallowRef("");
   const showingArchived = shallowRef(false);
   function chooseFiles(paths?: readonly string[]) {

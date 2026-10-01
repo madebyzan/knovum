@@ -13,8 +13,6 @@ const providerDescriptorSchema: z.ZodType<ProviderDescriptor> = z
   })
   .strict();
 
-export type { ProviderDescriptor } from "../../shared/contracts/generated/ProviderDescriptor";
-
 export async function loadProviderDescriptors(): Promise<ProviderDescriptor[]> {
   return z
     .array(providerDescriptorSchema)

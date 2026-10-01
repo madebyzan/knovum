@@ -10,7 +10,10 @@ use super::{
 use definition::{
     action, durable_query_action, immediate_action, immediate_mutation_action, query_action,
 };
-use parameters::*;
+use parameters::{
+    contents, empty, image, knowledge_changes, meeting_summary, node, note, purpose, question,
+    script, search, social_copy, space_edit, video, visualization,
+};
 
 pub(super) const ACTIONS: &[SpaceActionDefinition] = &[
     immediate_action("create-note", &[], note, Output::ResourceReceipt),

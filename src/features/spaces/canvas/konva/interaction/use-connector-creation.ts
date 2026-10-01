@@ -1,8 +1,8 @@
 import type Konva from "konva";
 import { computed, shallowRef, type Ref } from "vue";
 
-import type { CanvasSurfaceEvents } from "../../contracts/canvas-editor";
-import type { CanvasScene } from "../scene/scene-projection";
+import type { CanvasHostEvents } from "../../contracts/canvas-editor";
+import type { CanvasScene } from "../scene/canvas-scene";
 import type { useStageViewport } from "../viewport/use-stage-viewport";
 import { canvasPointFromScreen } from "../viewport/viewport-math";
 import { ConnectorGestureController, type CanvasConnectorDraft } from "./connector-gesture-controller";
@@ -11,7 +11,7 @@ import { useCanvasEdgeAutoPan } from "./use-canvas-edge-auto-pan";
 import type { usePointerInteractions } from "./use-pointer-interactions";
 
 export function useConnectorCreation(options: {
-  createRelation: CanvasSurfaceEvents["onCreateRelation"];
+  createRelation: CanvasHostEvents["onCreateRelation"];
   reportError(error: unknown): void;
   pointer: ReturnType<typeof usePointerInteractions>;
   scene: Readonly<Ref<CanvasScene>>;

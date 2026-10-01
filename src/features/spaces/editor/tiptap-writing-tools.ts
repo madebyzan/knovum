@@ -4,12 +4,10 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { cancelAiJob } from "../../../foundation/ai/ai-runtime";
-import {
-  transformEditorTextStream,
-  type EditorTransformAction,
-} from "../../../foundation/ai/editor-transform";
+import { transformEditorTextStream } from "../../../foundation/ai/editor-transform";
 import { translateTextStream, type TranslationTarget } from "../../../foundation/ai/translation";
 import { i18n } from "../../../foundation/i18n/i18n";
+import type { EditorTransformAction } from "../../../shared/contracts/generated/EditorTransformAction";
 import { clearReasoningTrace, setReasoningTraceRange } from "./tiptap-reasoning-trace";
 
 type TransformSource = { text: string; from: number; to: number } | { text: string; insertAt: number };

@@ -1,3 +1,4 @@
+pub(super) mod document;
 mod markdown;
 mod note;
 mod visual;
@@ -14,7 +15,7 @@ use super::KnowledgeChunkSeed;
 pub(crate) fn derived_chunks(data: &Value) -> Result<Vec<KnowledgeChunkSeed>, String> {
     let kind = data.get("kind").and_then(Value::as_str);
     if kind == Some("file") {
-        return crate::spaces::assets::enrichment::document::knowledge::chunks(data);
+        return document::chunks(data);
     }
     if matches!(kind, Some("image" | "video")) {
         return visual_chunks(data);

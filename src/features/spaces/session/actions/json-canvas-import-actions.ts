@@ -3,7 +3,7 @@ import { decodeCommandError } from "../../../../foundation/ipc/command-error";
 import { useTaskStore } from "../../../../foundation/tasks/task-store";
 import { scheduleSpaceAssetProcessing } from "../../assets/processing-scheduler";
 import type {
-  CanvasImportCommit,
+  CanvasImportReceipt,
   CanvasJsonImportRequest,
 } from "../../canvas-exchange/json-canvas-import-contract";
 import {
@@ -27,7 +27,7 @@ interface JsonCanvasImportContext {
 }
 
 export function createJsonCanvasImportActions(context: JsonCanvasImportContext) {
-  async function importJsonCanvas(request: CanvasJsonImportRequest): Promise<CanvasImportCommit> {
+  async function importJsonCanvas(request: CanvasJsonImportRequest): Promise<CanvasImportReceipt> {
     const spaceId = context.state.activeSpaceId.value;
     if (!spaceId) throw new Error("A Space must be active to import JSON Canvas content");
     await context.ensureActiveSpacePersisted();

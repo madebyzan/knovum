@@ -1,19 +1,16 @@
 import type { Ref, ShallowRef } from "vue";
 
+import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
+import type { AssistantConversation } from "../contracts/generated/AssistantConversation";
+import type { AssistantMessage } from "../contracts/generated/AssistantMessage";
 import type { AssistantTaskUpdate } from "../contracts/generated/AssistantTaskUpdate";
-import {
-  getAssistantTaskError,
-  startAssistantTask,
-  type AssistantMessage,
-  type AssistantConversation,
-  type StartAssistantTaskInput,
-} from "./conversation-ipc";
+import type { SubmitAssistantTaskRequest } from "../contracts/generated/SubmitAssistantTaskRequest";
+import { getAssistantTaskError, startAssistantTask } from "./conversation-ipc";
 import { pendingConversationMessage } from "./conversation-pending-message";
 import { observeConversationRun } from "./conversation-run-observation";
-import type { ConversationTarget } from "./conversation-target";
 import { conversationTaskRequest } from "./conversation-task-request";
 
-type Attachment = NonNullable<StartAssistantTaskInput["attachments"]>[number];
+type Attachment = NonNullable<SubmitAssistantTaskRequest["attachments"]>[number];
 type StartedTask = Awaited<ReturnType<typeof startAssistantTask>>;
 type Selection = { spaceId: string; conversationId: string };
 
@@ -34,12 +31,12 @@ export function createConversationTaskSubmission(options: {
     selectedConversationId: Ref<string>;
     conversation: Ref<AssistantConversation | undefined>;
     prompt: Ref<string>;
-    target: Ref<ConversationTarget | undefined>;
+    target: Ref<TaskTargetRef | undefined>;
     attachments: Ref<Attachment[]>;
     visibleAttachments: Ref<readonly { title: string; isImage: boolean; previewSource: string }[]>;
     messages: ShallowRef<AssistantMessage[]>;
-    clearDraft: (request: StartAssistantTaskInput) => void;
-    restoreDraft: (request: StartAssistantTaskInput) => void;
+    clearDraft: (request: SubmitAssistantTaskRequest) => void;
+    restoreDraft: (request: SubmitAssistantTaskRequest) => void;
   };
   state: ConversationSubmissionState;
   accepted: (task: StartedTask["accepted"], selection: Selection) => Promise<void>;
@@ -51,7 +48,7 @@ export function createConversationTaskSubmission(options: {
 
   function observe(
     task: StartedTask,
-    request: StartAssistantTaskInput,
+    request: SubmitAssistantTaskRequest,
     selection: Selection,
     submitted: number,
   ) {

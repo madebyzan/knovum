@@ -5,20 +5,20 @@ import type { VueKonvaRef } from "vue-konva/core";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceRelation } from "../../model/relations/relation";
 import type { SpaceEditSnapshot } from "../../model/structure/schema/edit-snapshot";
-import type { CanvasSurfaceEvents } from "../contracts/canvas-editor";
+import type { CanvasHostEvents } from "../contracts/canvas-editor";
 import type { CanvasPoint, CanvasRect } from "../contracts/canvas-editor-port";
 import type { CanvasNodeLayoutV1 } from "../schema/document";
 import type { CanvasFrameMutation } from "./canvas-editor-port-options";
 import { createKonvaEditorPort } from "./create-canvas-editor-port";
 import type { CanvasDocumentModel } from "./document/canvas-document-model";
 import type { CanvasPalette } from "./presentation/use-canvas-palette";
-import type { CanvasScene } from "./scene/scene-projection";
+import type { CanvasScene } from "./scene/canvas-scene";
 import type { useCanvasSelection } from "./selection/use-canvas-selection";
 import type { useStageViewport } from "./viewport/use-stage-viewport";
 
 interface EditorRegistrationOptions {
   cancelInteraction(): void;
-  events: CanvasSurfaceEvents;
+  events: CanvasHostEvents;
   focusNodeIds(): readonly string[];
   host: Readonly<Ref<HTMLElement | null>>;
   layouts: Readonly<Ref<readonly CanvasNodeLayoutV1[]>>;

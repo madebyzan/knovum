@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import { defaultExecutionTarget } from "../ai-execution";
-import { decodeAiModelSettings, defaultAiModelSettings } from "../integration-settings";
+import { decodeAiModelSettings } from "../integration-settings";
+import { defaultAiModelSettings } from "../schema/model-settings";
 
 function configuredSettings() {
   const value = structuredClone(defaultAiModelSettings);

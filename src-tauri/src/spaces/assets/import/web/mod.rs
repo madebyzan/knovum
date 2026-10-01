@@ -53,7 +53,7 @@ pub async fn capture_web_resource(
 
 #[tauri::command]
 pub async fn import_web_image(app: tauri::AppHandle, url: String) -> Result<String, CommandError> {
-    let (_, media_type, bytes) = crate::web_capture::capture_image(&url).await?;
+    let (_, media_type, bytes) = crate::web_capture::capture_derived_image(&url).await?;
     Ok((persist(&app, &bytes, &media_type))?)
 }
 

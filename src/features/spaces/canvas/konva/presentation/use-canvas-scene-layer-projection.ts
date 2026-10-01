@@ -1,7 +1,7 @@
 import { computed } from "vue";
 
 import type { CanvasConnectorDraft } from "../interaction/connector-gesture-controller";
-import type { CanvasScene } from "../scene/scene-projection";
+import type { CanvasScene } from "../scene/canvas-scene";
 
 interface CanvasSceneLayerProjectionInput {
   connectorDraft: CanvasConnectorDraft | undefined;

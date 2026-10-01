@@ -1,6 +1,6 @@
 import type { ActionAvailability } from "../../../../shared/contracts/action-availability";
+import type { ImageOperationCapability } from "../../contracts/generated/ImageOperationCapability";
 import type { LayerAvailability } from "../../knowledge-derivations/image-layers";
-import type { ImageOperationCapability } from "../../knowledge-derivations/image-operation";
 
 export type ImageActionReason =
   | "image_preparing"

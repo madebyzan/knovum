@@ -1,4 +1,4 @@
-import type { CanvasViewport } from "../../contracts/canvas-editor";
+import type { CanvasViewport } from "../../contracts/canvas-editor-port";
 
 interface Rect {
   height: number;

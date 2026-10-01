@@ -16,10 +16,10 @@ import { useI18n } from "vue-i18n";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiKbd from "../../../shared/ui/UiKbd.vue";
 import UiSpinner from "../../../shared/ui/UiSpinner.vue";
-import { knowledgeLocationLabel } from "../knowledge/presentation/location-label";
 import { highlightedSnippet } from "../search/highlighted-snippet";
 import type { GlobalSearchMatch } from "../search/search-match";
 import { useGlobalFind } from "../search/use-global-find";
+import { knowledgeLocationLabel } from "./knowledge/knowledge-location-label";
 import { nodeIcon } from "./node-icon";
 
 const open = defineModel<boolean>("open", { required: true });

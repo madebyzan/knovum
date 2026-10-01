@@ -2,13 +2,14 @@
 import { cloneDeep } from "es-toolkit";
 import { useI18n } from "vue-i18n";
 
-import type { ExecutionTarget, GenerationPreset } from "../../../../foundation/ai/schema/models";
+import type { GenerationPreset } from "../../../../foundation/ai/schema/models";
+import type { TaskTargetRef } from "../../../../shared/contracts/generated/TaskTargetRef";
 import CreationLibraryRecordField from "./CreationLibraryRecordField.vue";
 
 interface GenerationPresetFieldProps {
   actionId: string;
   name: string;
-  target?: ExecutionTarget | undefined;
+  target?: TaskTargetRef | undefined;
   parameters: GenerationPreset["parameters"];
 }
 

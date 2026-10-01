@@ -4,11 +4,9 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
+import type { CaptureIssueReason } from "../../contracts/generated/CaptureIssueReason";
 import { useSpaceStore } from "../../session/space-store";
-import {
-  previewWorkflowCapture,
-  type WorkflowCaptureIssueReason,
-} from "../../workflows/captured-workflow-ipc";
+import { previewWorkflowCapture } from "../../workflows/captured-workflow-ipc";
 import SpaceWorkflowSaveForm from "./SpaceWorkflowSaveForm.vue";
 import { captureActionLabel, captureIssueLabels } from "./workflow-capture-labels";
 
@@ -40,7 +38,7 @@ function title(nodeId: string) {
   return nodeTitles.value.get(nodeId) ?? nodeId;
 }
 
-function issueText(reason: WorkflowCaptureIssueReason) {
+function issueText(reason: CaptureIssueReason) {
   return t(`spaces.creation.workflow.captureIssues.${captureIssueLabels[reason]}`);
 }
 

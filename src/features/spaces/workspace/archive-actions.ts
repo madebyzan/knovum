@@ -11,7 +11,8 @@ import {
   listCredentialNodeIds,
   unarchiveSpace as persistSpaceUnarchive,
 } from "./space-operations";
-import { discardSpaceTab, openSpace, type SpaceSessionContext } from "./space-session-actions";
+import { discardSpaceTab, openSpace } from "./space-session-actions";
+import type { SpaceSessionContext } from "./space-session-context";
 
 export async function archiveSpace(context: SpaceSessionContext, id: string) {
   const space = editableSpace(context, id);

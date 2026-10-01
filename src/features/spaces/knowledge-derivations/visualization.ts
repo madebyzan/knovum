@@ -1,17 +1,15 @@
-import type { ImageAspectRatio } from "../contracts/generated/ImageAspectRatio";
-export type { ImageAspectRatio } from "../contracts/generated/ImageAspectRatio";
-import type { ExecutionTarget } from "../../../foundation/ai/schema/models";
 import { i18n } from "../../../foundation/i18n/i18n";
-import type { useSpaceStore } from "../session/space-store";
+import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
+import type { ImageAspectRatio } from "../contracts/generated/ImageAspectRatio";
 import type { GroundedDocumentSource } from "./catalog/grounded-document";
-import { startDerivationAction } from "./start-action";
+import { startDerivationAction, type DerivationActionStore } from "./start-action";
 
 export interface VisualizationDraft {
   title: string;
   intent: string;
   style: string;
   aspectRatio: ImageAspectRatio;
-  target?: ExecutionTarget | undefined;
+  target?: TaskTargetRef | undefined;
 }
 
 const imageAspectRatios: ReadonlySet<unknown> = new Set(["1:1", "3:2", "2:3", "16:9", "9:16"]);
@@ -20,7 +18,7 @@ export function isImageAspectRatio(value: unknown): value is ImageAspectRatio {
   return imageAspectRatios.has(value);
 }
 interface GenerateVisualizationContext {
-  store: ReturnType<typeof useSpaceStore>;
+  store: DerivationActionStore;
   sources: readonly GroundedDocumentSource[];
   draft: VisualizationDraft;
 }

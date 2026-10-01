@@ -1,8 +1,7 @@
 import { compact } from "es-toolkit";
 import { shallowRef, watch, type Ref } from "vue";
 
-import type { CanvasSelectionSnapshot } from "../../contracts/canvas-editor";
-import type { CanvasRect } from "../../contracts/canvas-editor-port";
+import type { CanvasRect, CanvasSelectionSnapshot } from "../../contracts/canvas-editor-port";
 import { createCanvasSelectionSnapshot } from "../../document/canvas-selection-snapshot";
 import type { CanvasNodeLayoutV1 } from "../../schema/document";
 import { useCanvasMarqueeSelection } from "./use-canvas-marquee-selection";

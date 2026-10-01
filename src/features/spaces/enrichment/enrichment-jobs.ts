@@ -1,7 +1,4 @@
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
-export type { EnrichmentJobType as SpaceEnrichmentJobType } from "../contracts/generated/EnrichmentJobType";
-export type { EnrichmentJobState as SpaceEnrichmentJobState } from "../contracts/generated/EnrichmentJobState";
-export type { MediaTranscriptionProgress as SpaceEnrichmentJobProgress } from "../contracts/generated/MediaTranscriptionProgress";
 import type { EnrichmentJobState } from "../contracts/generated/EnrichmentJobState";
 
 export function cancelEnrichmentJob(jobId: string) {

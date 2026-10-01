@@ -1,13 +1,9 @@
 import { createPinia, setActivePinia } from "pinia";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { ResourcePreparationSnapshot } from "../../../shared/contracts/generated/ResourcePreparationSnapshot";
 import { useTaskStore } from "../../tasks/task-store";
-import {
-  cancelResourcePreparation,
-  listResourcePreparations,
-  prepareResources,
-  type ResourcePreparationSnapshot,
-} from "../local-resources";
+import { cancelResourcePreparation, listResourcePreparations, prepareResources } from "../local-resources";
 import {
   ResourcePreparationCancelledError,
   restoreResourcePreparationTasks,
@@ -89,5 +85,59 @@ describe("resource preparation task lifetime", () => {
     expect(useTaskStore().tasks).toMatchObject([
       { id: snapshot.jobId, title: snapshot.title, status: "succeeded" },
     ]);
+  });
+
+  it("keeps observing a restored task after a transient list failure", async () => {
+    const snapshot: ResourcePreparationSnapshot = {
+      jobId: "resource:transient",
+      title: "Prepare transcription",
+      target: { kind: "transcription" },
+      startedAt: 1,
+      completedAt: null,
+      state: "preparing",
+      progress: { stage: "installing", downloaded: 0, total: null, percent: null },
+      error: null,
+    };
+    vi.mocked(listResourcePreparations)
+      .mockResolvedValueOnce([snapshot])
+      .mockRejectedValueOnce(new Error("temporary IPC failure"))
+      .mockResolvedValueOnce([{ ...snapshot, state: "ready", completedAt: 2 }]);
+
+    const pinia = createPinia();
+    setActivePinia(pinia);
+    await restoreResourcePreparationTasks(pinia);
+    await vi.advanceTimersByTimeAsync(1_000);
+
+    expect(useTaskStore().tasks[0]).toMatchObject({ id: snapshot.jobId, status: "succeeded" });
+  });
+
+  it("fails a task whose restored snapshot disappears and can observe it again on retry", async () => {
+    const snapshot: ResourcePreparationSnapshot = {
+      jobId: "resource:missing",
+      title: "Prepare media tools",
+      target: { kind: "mediaImportTools" },
+      startedAt: 1,
+      completedAt: null,
+      state: "preparing",
+      progress: { stage: "installing", downloaded: 0, total: null, percent: null },
+      error: null,
+    };
+    vi.mocked(listResourcePreparations)
+      .mockResolvedValueOnce([snapshot])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([{ ...snapshot, state: "ready", completedAt: 2 }]);
+
+    const pinia = createPinia();
+    setActivePinia(pinia);
+    await restoreResourcePreparationTasks(pinia);
+    await vi.advanceTimersByTimeAsync(2_000);
+    const tasks = useTaskStore();
+    expect(tasks.tasks[0]).toMatchObject({ id: snapshot.jobId, status: "failed", retryable: true });
+
+    await tasks.retry(snapshot.jobId);
+    expect(tasks.tasks[0]).toMatchObject({ id: snapshot.jobId, status: "succeeded" });
+    expect(prepareResources).not.toHaveBeenCalled();
   });
 });

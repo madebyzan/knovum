@@ -14,13 +14,14 @@ import { useRouter } from "vue-router";
 import { availableModelTargets, defaultExecutionTarget } from "../../../../foundation/ai/ai-execution";
 import { useAiSettingsStore } from "../../../../foundation/ai/ai-settings-store";
 import { useExecutionCatalogQuery } from "../../../../foundation/ai/execution-catalog-query";
+import { encodeExecutionTarget } from "../../../../foundation/ai/execution-target-codec";
+import type { TaskTargetRef } from "../../../../shared/contracts/generated/TaskTargetRef";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiDropdownMenu from "../../../../shared/ui/UiDropdownMenu.vue";
 import UiDropdownMenuItem from "../../../../shared/ui/UiDropdownMenuItem.vue";
 import UiSeparator from "../../../../shared/ui/UiSeparator.vue";
-import { conversationTargetKey, type ConversationTarget } from "../../conversation/conversation-target";
 
-const target = defineModel<ConversationTarget | undefined>();
+const target = defineModel<TaskTargetRef | undefined>();
 const available = defineModel<boolean>("available", { default: false });
 const { t } = useI18n();
 const router = useRouter();
@@ -44,12 +45,12 @@ const desktopAgents = computed(() =>
     settings.settings.desktopAgents.some((configured) => configured.kind === agent.kind),
   ),
 );
-const selectedKey = computed(() => (target.value ? conversationTargetKey(target.value) : ""));
+const selectedKey = computed(() => (target.value ? encodeExecutionTarget(target.value) : ""));
 const selectedLabel = computed(() => {
   const model = models.value.find(({ value }) => value === selectedKey.value);
   if (model) return model.label;
   const agent = desktopAgents.value.find(
-    ({ kind }) => conversationTargetKey({ type: "agent", runtimeKind: kind }) === selectedKey.value,
+    ({ kind }) => encodeExecutionTarget({ type: "agent", runtimeKind: kind }) === selectedKey.value,
   );
   if (agent) return agent.displayName;
   return t("spaces.assistant.agents.select");
@@ -62,7 +63,7 @@ watch(
       settings.ready &&
       (models.value.some(({ value }) => value === selectedKey.value) ||
         desktopAgents.value.some(
-          ({ kind }) => conversationTargetKey({ type: "agent", runtimeKind: kind }) === selectedKey.value,
+          ({ kind }) => encodeExecutionTarget({ type: "agent", runtimeKind: kind }) === selectedKey.value,
         )),
     );
   },
@@ -78,7 +79,7 @@ watch(
   { immediate: true },
 );
 
-function select(selected: ConversationTarget) {
+function select(selected: TaskTargetRef) {
   target.value = selected;
   settings.settings.defaults.defaultTarget = { ...selected };
 }
@@ -142,7 +143,7 @@ onMounted(() => void settings.ensureLoaded());
           <DropdownMenuRadioItem
             v-for="agent in desktopAgents"
             :key="agent.kind"
-            :value="conversationTargetKey({ type: 'agent', runtimeKind: agent.kind })"
+            :value="encodeExecutionTarget({ type: 'agent', runtimeKind: agent.kind })"
             :text-value="agent.displayName"
             class="relative flex min-h-interaction cursor-default items-center rounded-md px-2.5 py-1.5 pr-8 outline-none data-highlighted:bg-surface-control-hover"
             @select="select({ type: 'agent', runtimeKind: agent.kind })"

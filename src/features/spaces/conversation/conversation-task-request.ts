@@ -1,13 +1,14 @@
-import type { AssistantConversation, StartAssistantTaskInput } from "./conversation-ipc";
-import type { ConversationTarget } from "./conversation-target";
+import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
+import type { AssistantConversation } from "../contracts/generated/AssistantConversation";
+import type { SubmitAssistantTaskRequest } from "../contracts/generated/SubmitAssistantTaskRequest";
 
 export function conversationTaskRequest(input: {
   spaceId: string | undefined;
   conversation: AssistantConversation | undefined;
   prompt: string;
-  target: ConversationTarget | undefined;
-  attachments: NonNullable<StartAssistantTaskInput["attachments"]>;
-}): StartAssistantTaskInput | undefined {
+  target: TaskTargetRef | undefined;
+  attachments: NonNullable<SubmitAssistantTaskRequest["attachments"]>;
+}): SubmitAssistantTaskRequest | undefined {
   const text = input.prompt.trim();
   if (!input.spaceId || !input.target || !text) return;
   return {

@@ -24,9 +24,9 @@ import {
   openSpace as navigateToSpace,
   refreshSpace,
   reopenClosedSpaceTab,
-  renameSpace,
-  type SpaceSessionContext,
 } from "../../workspace/space-session-actions";
+import type { SpaceSessionContext } from "../../workspace/space-session-context";
+import { renameSpace } from "../../workspace/space-title-actions";
 import { commitActiveSpaceSession } from "../../workspace/space-transition";
 import type { SpaceState } from "../session-state";
 import type { createSpaceMutations } from "./node-mutations";

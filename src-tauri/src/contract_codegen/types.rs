@@ -10,6 +10,7 @@ pub(super) fn export(config: &Config) -> Result<(), String> {
         crate::spaces::derivation::video_edit::fonts::InstalledFont::export_all,
         crate::spaces::derivation::CompletedDerivationOutput::export_all,
         crate::spaces::nodes::contracts::CommittedNodeContent::export_all,
+        crate::spaces::nodes::contracts::UpdateNodesResponse::export_all,
         crate::spaces::assets::enrichment::jobs::EnrichmentJobState::export_all,
         crate::spaces::assets::enrichment::jobs::job::EnrichmentJobType::export_all,
         crate::spaces::assets::enrichment::jobs::scheduler::EnrichmentJobUpdate::export_all,

@@ -1,6 +1,8 @@
 import { shallowRef, type Ref, type ShallowRef } from "vue";
 
-import { listAssistantMessages, type AssistantConversation, type AssistantMessage } from "./conversation-ipc";
+import type { AssistantConversation } from "../contracts/generated/AssistantConversation";
+import type { AssistantMessage } from "../contracts/generated/AssistantMessage";
+import { listAssistantMessages } from "./conversation-ipc";
 
 export function useConversationMessagePages(input: {
   spaceId: Ref<string | undefined>;

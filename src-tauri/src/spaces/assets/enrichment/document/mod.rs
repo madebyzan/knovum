@@ -1,10 +1,6 @@
 mod analysis;
 mod checkpoint;
-mod coverage;
 pub(in crate::spaces) mod execute;
-pub(in crate::spaces) mod knowledge;
-pub(crate) mod model;
 pub(super) mod prepare;
 mod raster;
 mod resource;
-mod validation;

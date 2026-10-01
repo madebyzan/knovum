@@ -1,13 +1,9 @@
-import type { LocalResourcesStatus } from "../../shared/contracts/generated/LocalResourcesStatus";
-export type { LocalResourcesStatus } from "../../shared/contracts/generated/LocalResourcesStatus";
-import type { ResourcePreparationProgress } from "../../shared/contracts/generated/ResourcePreparationProgress";
-export type { ResourcePreparationProgress } from "../../shared/contracts/generated/ResourcePreparationProgress";
-import type { ResourcePreparationSnapshot } from "../../shared/contracts/generated/ResourcePreparationSnapshot";
-export type { ResourcePreparationSnapshot } from "../../shared/contracts/generated/ResourcePreparationSnapshot";
-import type { ResourcePreparationTarget } from "../../shared/contracts/generated/ResourcePreparationTarget";
-export type { ResourcePreparationTarget } from "../../shared/contracts/generated/ResourcePreparationTarget";
 import { Channel } from "@tauri-apps/api/core";
 
+import type { LocalResourcesStatus } from "../../shared/contracts/generated/LocalResourcesStatus";
+import type { ResourcePreparationProgress } from "../../shared/contracts/generated/ResourcePreparationProgress";
+import type { ResourcePreparationSnapshot } from "../../shared/contracts/generated/ResourcePreparationSnapshot";
+import type { ResourcePreparationTarget } from "../../shared/contracts/generated/ResourcePreparationTarget";
 import { invokeCommand } from "../ipc/invoke-command";
 
 export function getLocalResourcesStatus(): Promise<LocalResourcesStatus> {

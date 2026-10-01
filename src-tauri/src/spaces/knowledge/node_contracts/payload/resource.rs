@@ -88,7 +88,9 @@ pub(super) fn validate_file(object: &Map<String, Value>) -> Result<(), String> {
     }
     if let Some(coverage) = object.get("documentCoverage") {
         let report =
-            crate::spaces::assets::enrichment::document::model::DocumentCoverage::decode(coverage)?;
+            crate::spaces::knowledge::node_contracts::document_coverage::DocumentCoverage::decode(
+                coverage,
+            )?;
         if object.get("sourceRevision").and_then(Value::as_str)
             != Some(report.source_revision.as_str())
         {

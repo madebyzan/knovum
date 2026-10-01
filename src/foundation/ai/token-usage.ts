@@ -47,10 +47,6 @@ const tokenUsageReportSchema: z.ZodType<UsageReport> = z
   })
   .strict();
 
-export type { UsageReport as TokenUsageReport } from "../../shared/contracts/generated/UsageReport";
-export type { UsageDay } from "../../shared/contracts/generated/UsageDay";
-export type { UsagePurpose } from "../../shared/contracts/generated/UsagePurpose";
-
 export async function loadTokenUsageReport(fromDate: string, toDate: string) {
   const value = await invokeCommand<unknown>("plugin:ai|get_token_usage_report", {
     request: { fromDate, toDate },

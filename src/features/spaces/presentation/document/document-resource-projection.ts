@@ -1,5 +1,5 @@
-import { knowledgeLocationLabelFromLocation } from "../../knowledge/presentation/location-label";
 import type { DocumentCoverage } from "../../model/nodes/schema/document-coverage-fields";
+import { knowledgeLocationLabelFromLocation } from "../knowledge/knowledge-location-label";
 
 type DocumentResource = DocumentCoverage["resources"][number];
 type DocumentOccurrence = DocumentCoverage["occurrences"][number];

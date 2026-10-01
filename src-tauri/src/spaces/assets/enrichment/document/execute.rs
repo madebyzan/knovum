@@ -2,8 +2,10 @@ use serde_json::Value;
 use tauri::{ipc::Channel, AppHandle};
 use tokio_util::sync::CancellationToken;
 
-use super::model::{DocumentCoverage, VisualState};
 use crate::spaces::assets::enrichment::{commit, jobs::RunEnrichmentJobRequest};
+use crate::spaces::knowledge::node_contracts::document_coverage::{
+    validate_analysis, DocumentCoverage, VisualState,
+};
 use crate::{
     ai::tasks::TaskExecutionTarget,
     spaces::assets::{
@@ -67,7 +69,7 @@ pub(in crate::spaces) async fn analyze(
             Ok(analysis) => {
                 let width = analysis.description.encode_utf16().count()
                     + analysis.detected_text.encode_utf16().count();
-                let validation = super::validation::validate_analysis(&analysis).and_then(|_| {
+                let validation = validate_analysis(&analysis).and_then(|_| {
                     if text_width + width > 4 * 1024 * 1024 {
                         Err("Document visual text exceeds 4 Mi UTF-16 units".into())
                     } else {

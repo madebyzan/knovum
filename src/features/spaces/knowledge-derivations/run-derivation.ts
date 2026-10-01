@@ -4,61 +4,55 @@ import { i18n } from "../../../foundation/i18n/i18n";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import type { useSpaceStore } from "../session/space-store";
 import { yieldToCanvas } from "./canvas-yield";
-import { beginPendingDerivation, endPendingDerivation } from "./pending-session";
 
-type SpaceStore = ReturnType<typeof useSpaceStore>;
+type SpaceStore = Pick<ReturnType<typeof useSpaceStore>, "activeSpaceId">;
 
 export interface RunDerivationOptions<Output> {
   store: SpaceStore;
   pendingId: string;
-  sourceNodeIds: string[];
-  task?: {
+  task: {
     id?: string;
     title: string;
     statusMessage?: string;
     cancel?: () => Promise<void> | void;
   };
-  failureMessageKey?: string;
+  failureMessageKey: string;
   execute: (context: { spaceId: string; pendingId: string; taskId?: string | undefined }) => Promise<Output>;
-  onSuccess?: (completed: Output, spaceId: string) => Promise<void> | void;
-  onError?: (error: unknown, spaceId: string) => Promise<void> | void;
+  onSuccess: (completed: Output, spaceId: string) => Promise<void> | void;
+  onError: (error: unknown, spaceId: string) => Promise<void> | void;
 }
 
 export async function runDerivation<Output>(
   options: RunDerivationOptions<Output>,
 ): Promise<Output | undefined> {
-  const { store, pendingId, sourceNodeIds, task, execute, onSuccess, onError, failureMessageKey } = options;
+  const { store, pendingId, task, execute, onSuccess, onError, failureMessageKey } = options;
   const spaceId = store.activeSpaceId;
   if (!spaceId) return undefined;
 
-  beginPendingDerivation(pendingId, sourceNodeIds);
   const tasks = useTaskStore();
-  const taskId = task ? tasks.start(task.title, task.statusMessage, task.cancel, task.id) : undefined;
+  const taskId = tasks.start(task.title, task.statusMessage, task.cancel, task.id);
 
+  let completed: Output;
   try {
     await yieldToCanvas();
-    const completed = await execute({ spaceId, pendingId: pendingId, taskId });
-    if (onSuccess) {
-      await onSuccess(completed, spaceId);
-    }
-    if (taskId) {
-      tasks.succeed(taskId);
-    }
-    return completed;
+    completed = await execute({ spaceId, pendingId, taskId });
   } catch (error) {
-    if (onError) {
+    try {
       await onError(error, spaceId);
-    } else {
-      await store.refreshActiveSpace();
-    }
-    if (taskId) {
+    } finally {
       tasks.fail(taskId, String(error));
-    }
-    if (failureMessageKey) {
       toast.error(`${i18n.global.t(failureMessageKey)}: ${String(error)}`);
     }
     return undefined;
-  } finally {
-    endPendingDerivation(pendingId);
   }
+
+  try {
+    await onSuccess(completed, spaceId);
+  } catch (error) {
+    toast.error(`${i18n.global.t(failureMessageKey)}: ${String(error)}`);
+    throw error;
+  } finally {
+    tasks.succeed(taskId);
+  }
+  return completed;
 }

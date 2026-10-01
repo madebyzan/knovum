@@ -49,7 +49,7 @@ pub(crate) fn authoritative(data: &Value) -> Result<Option<String>, String> {
             if kind == "file" && object.contains_key("documentCoverage") {
                 projection.insert(
                     "documentKnowledge".into(),
-                    crate::spaces::assets::enrichment::document::knowledge::projection(data),
+                    super::node::document::projection(data),
                 );
             }
             if matches!(kind, "video" | "audio") {

@@ -114,6 +114,7 @@ async fn stale_or_malformed_acceptance_rolls_back_grant_and_run() {
     let counts: (i64,i64) = sqlx::query_as("SELECT (SELECT COUNT(*) FROM spaces_runs),(SELECT COUNT(*) FROM spaces_authorization_grants)").fetch_one(&pool).await.unwrap();
     assert_eq!(counts, (0, 0));
 }
+
 #[test]
 fn local_actions_reject_ai_targets_and_immediate_mutations() {
     let target = Some(TaskTargetRef::Agent {

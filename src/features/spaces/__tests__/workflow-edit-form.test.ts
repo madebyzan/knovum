@@ -2,10 +2,11 @@ import { flushPromises, shallowMount } from "@vue/test-utils";
 import { describe, expect, it, vi } from "vitest";
 import { reactive, shallowReadonly } from "vue";
 
+import type { SavedCapturedWorkflow } from "../contracts/generated/SavedCapturedWorkflow";
 import SpaceWorkflowEditForm from "../presentation/workflows/SpaceWorkflowEditForm.vue";
 import SpaceWorkflowOutputEditor from "../presentation/workflows/SpaceWorkflowOutputEditor.vue";
 import SpaceWorkflowParameterFields from "../presentation/workflows/SpaceWorkflowParameterFields.vue";
-import type { reviseCapturedWorkflow, SavedCapturedWorkflow } from "../workflows/captured-workflow-ipc";
+import type { reviseCapturedWorkflow } from "../workflows/captured-workflow-ipc";
 
 const revise = vi.hoisted(() => vi.fn<typeof reviseCapturedWorkflow>());
 vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));

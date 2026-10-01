@@ -1,16 +1,7 @@
+import type { SpaceEditCommand } from "../../contracts/generated/SpaceEditCommand";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
-import type { SpaceEditCommand } from "../../structure/space-edit-command";
 import type {
   CanvasEditorPort,
-  CanvasNodePlacement,
-  CanvasPoint,
-  CanvasSelectionSnapshot,
-  CanvasViewport,
-} from "./canvas-editor-port";
-
-export type {
-  CanvasEditorPort,
-  CanvasLayerMove,
   CanvasNodePlacement,
   CanvasPoint,
   CanvasSelectionSnapshot,
@@ -50,5 +41,3 @@ export interface CanvasHostEvents {
   onSelectionChange(selection: CanvasSelectionSnapshot): void;
   onViewportChange(viewport: CanvasViewport): void;
 }
-
-export type CanvasSurfaceEvents = CanvasHostEvents;

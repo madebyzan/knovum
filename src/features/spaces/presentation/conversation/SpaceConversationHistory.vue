@@ -7,7 +7,7 @@ import { useI18n } from "vue-i18n";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiPopover from "../../../../shared/ui/UiPopover.vue";
 import UiSearchInput from "../../../../shared/ui/UiSearchInput.vue";
-import type { AssistantConversation } from "../../conversation/conversation-ipc";
+import type { AssistantConversation } from "../../contracts/generated/AssistantConversation";
 
 const open = defineModel<boolean>("open", { default: false });
 const query = defineModel<string>("query", { required: true });

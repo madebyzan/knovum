@@ -150,6 +150,8 @@ An asset revision marks published bytes; a pending derived node owns a distinct 
 does not copy the source revision or preview. The Rust derivation boundary rejects unpublished asset
 outputs that already carry a revision or preview, both when work starts and before completion writes
 back to the node. Operations with a primary asset source must use a different path from that source.
+Video-edit outputs reserve a separate MP4 path while pending; the renderer writes its own managed
+output file, and Rust checks the unpublished pending node before starting and publishing.
 Canvas image decoding
 has a separate local loading/error state and cannot make a pending output look complete.
 

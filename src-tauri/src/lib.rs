@@ -15,6 +15,7 @@ mod images;
 mod job_registry;
 mod local_resources;
 mod media;
+mod public_network;
 mod secrets;
 mod spaces;
 mod sqlite;

@@ -11,9 +11,9 @@ import { spaceCanvasOverviewSource } from "../../assets/node-preview-source";
 import { useCanvasSelectionProjection } from "../../canvas/editor-session";
 import { selectAndRevealSpaceNode } from "../../canvas/selection-actions";
 import { isSpaceSemanticNode } from "../../knowledge/model/semantic-node";
-import { showSpaceRelationKindMenu } from "../../knowledge/presentation/relation-menu";
 import { isSymmetricRelationKind } from "../../model/relations/relation";
 import { useSpaceStore } from "../../session/space-store";
+import { showSpaceRelationKindMenu } from "./relation-kind-menu";
 import SpaceRelationGroup from "./SpaceRelationGroup.vue";
 
 const store = useSpaceStore();

@@ -1,6 +1,6 @@
 import type { SpaceNodeResizeMode } from "../../node-size";
 import { CANVAS_TYPOGRAPHY_SCALE_MAX, CANVAS_TYPOGRAPHY_SCALE_MIN } from "../../schema/document";
-import type { CanvasSceneNode } from "../scene/scene-projection";
+import type { CanvasSceneNode } from "../scene/canvas-scene";
 
 export interface CanvasSelectionTransformPolicy {
   contentAspect?: {

@@ -107,7 +107,10 @@ Standalone Renderer runtime schema modules live under their owning capability or
 `<subject>-schema.ts` modules for the same role. Schema fields and Zod refinements stay with the
 schema they define. Public parsing/validation operations use a concrete validation module when
 they serve callers independently of schema construction. Inferred types may remain beside their
-schema; do not introduce forwarding type barrels.
+schema; do not introduce forwarding type barrels. Renderer callers import functions and types
+from their defining modules. IPC adapters, stores, schemas and projections do not re-export another
+module's declarations. Generated contracts retain their generated names; do not rename them merely
+to provide a second frontend vocabulary. Local derived types still belong beside their derivation.
 
 A local schema used solely to validate one IO response may stay private beside that operation.
 Importing Zod does not turn an IO adapter, a projection or a type-only consumer into a schema module.
@@ -342,6 +345,13 @@ review responsibility; static checks must not infer semantics from implementatio
 Renderer files must not use `*-database.ts`; the WebView does not own SQLite authority.
 
 ## Rust module direction
+
+Use explicit imports and re-exports for project-owned business interfaces. Test modules may use
+`use super::*`, and vendor preludes may use their documented glob imports. Use `super::` for nearby
+module relationships and `crate::` when repeated parent traversal obscures the owning capability.
+Scoped `use` declarations, full-path calls, aliases and conditional imports remain valid Rust
+mechanisms; choose them for clarity without mechanically rewriting every call. Re-exports expose
+an owner's intended interface and must retain its existing visibility boundary.
 
 Use names that reflect ownership:
 

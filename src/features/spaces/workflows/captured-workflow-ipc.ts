@@ -1,30 +1,15 @@
+import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import type { CapturedRunOutput } from "../contracts/generated/CapturedRunOutput";
 import type { CapturedWorkflowLibrary } from "../contracts/generated/CapturedWorkflowLibrary";
+import type { CapturedWorkflowRun } from "../contracts/generated/CapturedWorkflowRun";
+import type { CapturePreview } from "../contracts/generated/CapturePreview";
 import type { ReviseCapturedWorkflowRequest } from "../contracts/generated/ReviseCapturedWorkflowRequest";
+import type { RunObservation } from "../contracts/generated/RunObservation";
+import type { SaveCapturedWorkflowRequest } from "../contracts/generated/SaveCapturedWorkflowRequest";
+import type { SavedCapturedWorkflow } from "../contracts/generated/SavedCapturedWorkflow";
 import type { StartCapturedWorkflowRequest } from "../contracts/generated/StartCapturedWorkflowRequest";
 
-export type { CapturedInput } from "../contracts/generated/CapturedInput";
-
-export type { CaptureIssueReason as WorkflowCaptureIssueReason } from "../contracts/generated/CaptureIssueReason";
-
-export type { CaptureCandidate as WorkflowCaptureCandidate } from "../contracts/generated/CaptureCandidate";
-
-export type { CapturedStep } from "../contracts/generated/CapturedStep";
-import type { CapturePreview as WorkflowCapturePreview } from "../contracts/generated/CapturePreview";
-export type { CapturePreview as WorkflowCapturePreview } from "../contracts/generated/CapturePreview";
-import type { SaveCapturedWorkflowRequest } from "../contracts/generated/SaveCapturedWorkflowRequest";
-export type { SaveCapturedWorkflowRequest } from "../contracts/generated/SaveCapturedWorkflowRequest";
-import type { SavedCapturedWorkflow } from "../contracts/generated/SavedCapturedWorkflow";
-export type { SavedCapturedWorkflow } from "../contracts/generated/SavedCapturedWorkflow";
-import type { CapturedWorkflowRun } from "../contracts/generated/CapturedWorkflowRun";
-export type { CapturedWorkflowRun } from "../contracts/generated/CapturedWorkflowRun";
-import { invokeCommand } from "../../../foundation/ipc/invoke-command";
-import type { RunObservation } from "../contracts/generated/RunObservation";
-
-export function previewWorkflowCapture(
-  spaceId: string,
-  selectedNodeIds: string[],
-): Promise<WorkflowCapturePreview> {
+export function previewWorkflowCapture(spaceId: string, selectedNodeIds: string[]): Promise<CapturePreview> {
   return invokeCommand("plugin:spaces|preview_workflow_capture", { spaceId, selectedNodeIds });
 }
 

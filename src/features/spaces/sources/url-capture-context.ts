@@ -1,7 +1,18 @@
 import type { useSpaceStore } from "../session/space-store";
 import type { UrlCaptureContext } from "./capture-url";
 
-export function urlCaptureContext(store: ReturnType<typeof useSpaceStore>): UrlCaptureContext {
+type UrlCaptureStore = Pick<
+  ReturnType<typeof useSpaceStore>,
+  | "activeSpaceId"
+  | "nodes"
+  | "beginUrlCapture"
+  | "updateUrlCapture"
+  | "finishUrlCapture"
+  | "addContent"
+  | "saveNodeContentForSpace"
+>;
+
+export function urlCaptureContext(store: UrlCaptureStore): UrlCaptureContext {
   return {
     getActiveSpaceId: () => store.activeSpaceId,
     get nodes() {

@@ -2,7 +2,8 @@ import { useQuery } from "@tanstack/vue-query";
 import { computed, shallowRef, type Ref } from "vue";
 import { toast } from "vue-sonner";
 
-import { retryEnrichmentJob, type SpaceEnrichmentJobState } from "./enrichment-jobs";
+import type { EnrichmentJobState } from "../contracts/generated/EnrichmentJobState";
+import { retryEnrichmentJob } from "./enrichment-jobs";
 import { enrichmentJobsQuery } from "./enrichment-jobs-query";
 
 export interface NodeEnrichmentStatus {
@@ -18,7 +19,7 @@ export function useNodeEnrichmentStatus(spaceId: Ref<string | undefined>, nodeId
   const query = useQuery(
     computed(() => enrichmentJobsQuery(spaceId.value ?? "", Boolean(spaceId.value && nodeId.value))),
   );
-  const jobs = computed<SpaceEnrichmentJobState[]>(() => {
+  const jobs = computed<EnrichmentJobState[]>(() => {
     if (!spaceId.value || !nodeId.value) return [];
     return (query.data.value ?? []).filter(
       (job) => job.spaceId === spaceId.value && job.nodeId === nodeId.value,

@@ -1,7 +1,7 @@
 import { ref } from "vue";
 
 import type { Space } from "../../model/space";
-import type { SpaceSessionContext } from "../../workspace/space-session-actions";
+import type { SpaceSessionContext } from "../../workspace/space-session-context";
 
 export function createTestSpace(overrides: Partial<Space> = {}): Space {
   return {

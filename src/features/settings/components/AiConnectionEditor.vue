@@ -2,12 +2,11 @@
 import { computed, reactive, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { requireProvider, type ProviderDescriptor } from "../../../foundation/ai/providers";
-import {
-  aiConnectionSettingsSchema,
-  type AiConnectionSettings,
-  type AiProvider,
-} from "../../../foundation/ai/schema/models";
+import { requireProvider } from "../../../foundation/ai/providers";
+import { aiConnectionSettingsSchema } from "../../../foundation/ai/schema/models";
+import type { AiConnectionSettings } from "../../../shared/contracts/generated/AiConnectionSettings";
+import type { ProviderDescriptor } from "../../../shared/contracts/generated/ProviderDescriptor";
+import type { ProviderKind } from "../../../shared/contracts/generated/ProviderKind";
 import UiButton from "../../../shared/ui/UiButton.vue";
 import UiDialog from "../../../shared/ui/UiDialog.vue";
 import UiInput from "../../../shared/ui/UiInput.vue";
@@ -61,7 +60,7 @@ const changed = computed(
 );
 watch(changed, (value) => emit("dirty", value), { immediate: true });
 
-function selectProvider(id: AiProvider) {
+function selectProvider(id: ProviderKind) {
   const previous = provider.value;
   const next = requireProvider(props.providers, id);
   if (draft.name === previous.displayName) draft.name = next.displayName;
@@ -96,7 +95,7 @@ function save() {
             :model-value="draft.provider"
             :label="t('settings.ai.provider')"
             :options="options"
-            @update:model-value="selectProvider($event as AiProvider)"
+            @update:model-value="selectProvider($event as ProviderKind)"
           />
         </div>
         <label class="grid gap-1.5 text-caption font-medium text-fg-secondary">

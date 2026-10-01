@@ -3,7 +3,7 @@ import { SYSTEM_OBJECT_TYPE_IDS } from "../knowledge/model/object-types";
 import { createProvenance } from "../knowledge/persistence/knowledge-operations";
 import type { useSpaceStore } from "../session/space-store";
 
-type SpaceStore = ReturnType<typeof useSpaceStore>;
+type SpaceStore = Pick<ReturnType<typeof useSpaceStore>, "activeSpace" | "addContent" | "createRelation">;
 
 export async function createSourceEvidence(input: {
   store: SpaceStore;

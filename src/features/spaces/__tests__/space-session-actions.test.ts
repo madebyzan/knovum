@@ -4,12 +4,9 @@ import { ref } from "vue";
 
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { loadSpaceSessionProjection } from "../session/space-projection";
-import {
-  createSpace,
-  materializeActiveSpace,
-  openSpace,
-  type SpaceSessionContext,
-} from "../workspace/space-session-actions";
+import { materializeActiveSpace } from "../workspace/draft-space-actions";
+import { createSpace, openSpace } from "../workspace/space-session-actions";
+import type { SpaceSessionContext } from "../workspace/space-session-context";
 import { createTestSpace, createTestSessionContext } from "./support/session-context";
 
 type Projection = Awaited<ReturnType<typeof loadSpaceSessionProjection>>;
@@ -48,6 +45,7 @@ function context(activeSpaceId = "inbox"): SpaceSessionContext {
 describe("openSpace", () => {
   beforeEach(() => {
     projectionRepository.load.mockReset();
+    lifecycleRepository.markSpaceOpened.mockReset().mockResolvedValue();
   });
 
   it("does not reload the already active space", async () => {
@@ -124,6 +122,21 @@ describe("openSpace", () => {
     await pending;
     expect(state.activeSpaceId.value).toBe("inbox");
     expect(state.runtime.pendingSpaceId).toBeUndefined();
+  });
+
+  it("leaves the active projection intact if recording the new Space fails", async () => {
+    projectionRepository.load.mockResolvedValue(projection());
+    lifecycleRepository.markSpaceOpened.mockRejectedValueOnce(new Error("database unavailable"));
+    const state = context("inbox");
+    const research = state.spaces.value.find((space) => space.id === "research")!;
+    const lastOpenedAt = research.lastOpenedAt;
+
+    await expect(openSpace(state, "research")).rejects.toThrow("database unavailable");
+
+    expect(state.activeSpaceId.value).toBe("inbox");
+    expect(state.openSpaceIds.value).toEqual(["inbox"]);
+    expect(research.lastOpenedAt).toBe(lastOpenedAt);
+    expect(state.loading.value).toBe(false);
   });
 });
 

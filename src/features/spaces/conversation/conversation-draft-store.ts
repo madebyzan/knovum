@@ -1,9 +1,9 @@
 import { defineStore } from "pinia";
 import { shallowRef } from "vue";
 
-import type { StartAssistantTaskInput } from "./conversation-ipc";
+import type { SubmitAssistantTaskRequest } from "../contracts/generated/SubmitAssistantTaskRequest";
 
-type Attachment = NonNullable<StartAssistantTaskInput["attachments"]>[number];
+type Attachment = NonNullable<SubmitAssistantTaskRequest["attachments"]>[number];
 interface ConversationDraft {
   prompt: string;
   attachments: Attachment[];

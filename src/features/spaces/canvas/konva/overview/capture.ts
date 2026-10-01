@@ -2,7 +2,7 @@ import Konva from "konva";
 
 import type { CanvasViewport } from "../../contracts/canvas-editor-port";
 import type { CanvasPalette } from "../presentation/use-canvas-palette";
-import type { CanvasScene } from "../scene/scene-projection";
+import type { CanvasScene } from "../scene/canvas-scene";
 import { loadCanvasOverviewImages } from "./assets";
 import { canvasOverviewViewport, canvasViewportThumbnail } from "./geometry";
 import { drawCanvasOverviewNode } from "./nodes";

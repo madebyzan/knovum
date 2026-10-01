@@ -120,7 +120,7 @@ pub(crate) async fn prepare_media_import_tools_for_request<R: Runtime>(
             prepared_tools = prepare_media_import_tools(app, request.cancellation(), &mut on_update) => prepared_tools,
         }
     };
-    request.finish(prepared_tools.as_ref().err());
+    request.finish(prepared_tools.as_ref().err())?;
     prepared_tools
 }
 

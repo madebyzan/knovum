@@ -3,8 +3,8 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import AiExecutionSourceLabel from "../../../../foundation/ai/AiExecutionSourceLabel.vue";
-import type { VisualizationMetadata } from "../../knowledge-derivations/image/metadata";
-import type { GeneratedVideoMetadata } from "../../knowledge-derivations/video/metadata";
+import type { GeneratedVideoMetadata } from "../../contracts/generated/GeneratedVideoMetadata";
+import type { VisualizationMetadata } from "../../contracts/generated/VisualizationMetadata";
 import SpaceDerivationSources from "./SpaceDerivationSources.vue";
 
 const props = defineProps<{ metadata: VisualizationMetadata | GeneratedVideoMetadata }>();

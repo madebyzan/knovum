@@ -1,7 +1,7 @@
 import { useThrottleFn } from "@vueuse/core";
 import { computed, shallowRef, watch, type Ref } from "vue";
 
-import type { CanvasScene } from "./scene-projection";
+import type { CanvasScene } from "./canvas-scene";
 import { visibleSceneNodeIds, visibleSceneRelationIds } from "./viewport-culling";
 
 interface SceneVisibilityOptions {

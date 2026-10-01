@@ -24,6 +24,75 @@ fn export_space_contracts() {
 }
 
 #[test]
+fn committed_contracts_match_rust_sources() {
+    use std::{
+        collections::BTreeMap,
+        path::{Path, PathBuf},
+    };
+
+    struct TemporaryRoot(PathBuf);
+    impl Drop for TemporaryRoot {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_dir_all(&self.0);
+        }
+    }
+    fn files(root: &Path) -> BTreeMap<PathBuf, Vec<u8>> {
+        fn visit(root: &Path, directory: &Path, output: &mut BTreeMap<PathBuf, Vec<u8>>) {
+            for entry in std::fs::read_dir(directory).expect("generated contract directory") {
+                let entry = entry.expect("generated contract entry");
+                if entry.file_type().expect("contract entry type").is_dir() {
+                    visit(root, &entry.path(), output);
+                } else {
+                    output.insert(
+                        entry
+                            .path()
+                            .strip_prefix(root)
+                            .expect("contract path")
+                            .to_owned(),
+                        std::fs::read(entry.path()).expect("generated contract"),
+                    );
+                }
+            }
+        }
+        let mut output = BTreeMap::new();
+        visit(root, root, &mut output);
+        output
+    }
+
+    let repository = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .expect("project root");
+    let temporary = TemporaryRoot(
+        std::env::temp_dir().join(format!("knovum-contract-check-{}", uuid::Uuid::new_v4())),
+    );
+    for directory in [
+        "src/shared/contracts/generated",
+        "src/features/spaces/contracts/generated",
+    ] {
+        std::fs::create_dir_all(temporary.0.join(directory)).expect("temporary contract directory");
+    }
+    super::export(&temporary.0).expect("Rust contracts must export");
+    for directory in [
+        "src/shared/contracts/generated",
+        "src/features/spaces/contracts/generated",
+    ] {
+        let committed = files(&repository.join(directory));
+        let generated = files(&temporary.0.join(directory));
+        let differences = committed
+            .keys()
+            .chain(generated.keys())
+            .collect::<std::collections::BTreeSet<_>>()
+            .into_iter()
+            .filter(|path| committed.get(*path) != generated.get(*path))
+            .collect::<Vec<_>>();
+        assert!(
+            differences.is_empty(),
+            "Committed contracts differ from Rust sources in {directory}: {differences:?}; run pnpm contracts:generate"
+        );
+    }
+}
+
+#[test]
 fn contracts_keep_their_capability_owner() {
     use ts_rs::TS;
     let spaces = std::path::Path::new("../../../features/spaces/contracts/generated");
