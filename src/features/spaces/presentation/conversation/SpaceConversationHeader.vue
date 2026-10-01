@@ -5,6 +5,7 @@ import { computed, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
+import { errorMessage } from "../../../../foundation/errors/error-format";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiDropdownMenu from "../../../../shared/ui/UiDropdownMenu.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
@@ -49,7 +50,7 @@ const branchItems = computed(() =>
   branches.value.map((id, index) => ({
     label: t("spaces.assistant.conversations.branchNumber", { number: index + 1 }),
     checked: selectedConversation.value?.branchId === id,
-    onSelect: () => void session.selectBranch(id).catch((cause: unknown) => toast.error(String(cause))),
+    onSelect: () => void session.selectBranch(id).catch((cause: unknown) => toast.error(errorMessage(cause))),
   })),
 );
 

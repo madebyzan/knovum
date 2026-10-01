@@ -1,41 +1,39 @@
 use std::{path::PathBuf, time::Duration};
 
-use crate::ai::{
-    contracts::AgentInstallation,
-    error::{AiError, AiResult},
-};
+use crate::ai::contracts::AgentInstallation;
+use crate::app_error::{AppError, AppResult};
 
 const SHELL_PATH_TIMEOUT: Duration = Duration::from_secs(3);
 
-pub async fn system_path() -> AiResult<String> {
+pub async fn system_path() -> AppResult<String> {
     #[cfg(target_os = "macos")]
     return login_shell_path().await;
 
     #[cfg(not(target_os = "macos"))]
-    std::env::var("PATH").map_err(|_| AiError::internal("PATH is not available to Knovum"))
+    std::env::var("PATH").map_err(|_| AppError::internal("PATH is not available to Knovum"))
 }
 
 #[cfg(target_os = "macos")]
-async fn login_shell_path() -> AiResult<String> {
+async fn login_shell_path() -> AppResult<String> {
     let shell = std::env::var("SHELL")
-        .map_err(|_| AiError::internal("The macOS login shell is not available to Knovum"))?;
+        .map_err(|_| AppError::internal("The macOS login shell is not available to Knovum"))?;
     let mut command = tokio::process::Command::new(shell);
     command
         .args(["-l", "-c", "echo \"__KNOVUM_PATH__:$PATH:__KNOVUM_PATH__\""])
         .kill_on_drop(true);
     let output = tokio::time::timeout(SHELL_PATH_TIMEOUT, command.output())
         .await
-        .map_err(|_| AiError::internal("Reading the macOS login-shell PATH timed out"))?
-        .map_err(|error| AiError::internal(error.to_string()))?;
+        .map_err(|_| AppError::internal("Reading the macOS login-shell PATH timed out"))?
+        .map_err(|error| AppError::internal(error.to_string()))?;
     if !output.status.success() {
-        return Err(AiError::internal(format!(
+        return Err(AppError::internal(format!(
             "The macOS login shell exited with {} while reading PATH",
             output.status
         )));
     }
     extract_delimited(&String::from_utf8_lossy(&output.stdout), "__KNOVUM_PATH__:")
         .filter(|path| !path.is_empty())
-        .ok_or_else(|| AiError::internal("The macOS login shell returned an invalid PATH"))
+        .ok_or_else(|| AppError::internal("The macOS login shell returned an invalid PATH"))
 }
 
 fn extract_delimited(text: &str, prefix: &str) -> Option<String> {
@@ -73,9 +71,9 @@ fn is_executable(path: &std::path::Path) -> bool {
     path.is_file()
 }
 
-pub async fn detect_agent_installations() -> AiResult<Vec<AgentInstallation>> {
+pub async fn detect_agent_installations() -> AppResult<Vec<AgentInstallation>> {
     let path = system_path().await?;
-    tokio::task::spawn_blocking(move || -> AiResult<Vec<AgentInstallation>> {
+    tokio::task::spawn_blocking(move || -> AppResult<Vec<AgentInstallation>> {
         #[cfg(any(target_os = "macos", windows))]
         let installed_clients = super::installed_clients::detect()?;
         #[cfg(not(any(target_os = "macos", windows)))]
@@ -98,5 +96,5 @@ pub async fn detect_agent_installations() -> AiResult<Vec<AgentInstallation>> {
             .collect())
     })
     .await
-    .map_err(|error| AiError::internal(error.to_string()))?
+    .map_err(|error| AppError::internal(error.to_string()))?
 }

@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use tokio_util::sync::CancellationToken;
 
 use super::{contracts::ImageOperation, routing::ImageOperationBackend, source::SourceImage};
@@ -16,10 +17,8 @@ pub(super) async fn execute(
     operation: &ImageOperation,
     source: &SourceImage,
     cancellation: &CancellationToken,
-) -> Result<Vec<u8>, String> {
-    let ctx = SecurityContext::from_target(target)
-        .await
-        .map_err(|error| error.to_string())?;
+) -> Result<Vec<u8>, AppError> {
+    let ctx = SecurityContext::from_target(target).await?;
     let bytes = match (backend, operation) {
         (ImageOperationBackend::DashScope, ImageOperation::Upscale { target_long_edge }) => {
             super::upscale::execute(&ctx, source, *target_long_edge, cancellation).await?
@@ -45,7 +44,7 @@ pub(super) async fn execute(
         ) => {
             let (width, height, strokes) = (source.width, source.height, strokes.clone());
             if cancellation.is_cancelled() {
-                return Err("Image operation was cancelled".into());
+                return Err(AppError::cancelled("Image operation was cancelled"));
             }
             let mask_cancellation = cancellation.clone();
             if backend == ImageOperationBackend::OpenAi {
@@ -54,7 +53,7 @@ pub(super) async fn execute(
                 })
                 .await?;
                 if cancellation.is_cancelled() {
-                    return Err("Image operation was cancelled".into());
+                    return Err(AppError::cancelled("Image operation was cancelled"));
                 }
                 openai::edit_mask(&ctx, &source.bytes, mask, cancellation).await?
             } else {
@@ -63,7 +62,7 @@ pub(super) async fn execute(
                 })
                 .await?;
                 if cancellation.is_cancelled() {
-                    return Err("Image operation was cancelled".into());
+                    return Err(AppError::cancelled("Image operation was cancelled"));
                 }
                 let data_uri = source.data_uri();
                 execute_image_operation(
@@ -107,7 +106,12 @@ pub(super) async fn execute(
             )
             .await?
         }
-        _ => return Err("Configured image model does not support this image operation".into()),
+        _ => {
+            return Err(AppError::new(
+                "capability_not_supported",
+                "Configured image model does not support this image operation",
+            ))
+        }
     };
     Ok(bytes)
 }

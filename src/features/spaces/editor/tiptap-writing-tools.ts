@@ -6,6 +6,7 @@ import { toast } from "vue-sonner";
 import { cancelAiJob } from "../../../foundation/ai/ai-runtime";
 import { transformEditorTextStream } from "../../../foundation/ai/editor-transform";
 import { translateTextStream, type TranslationTarget } from "../../../foundation/ai/translation";
+import { errorMessage } from "../../../foundation/errors/error-format";
 import { i18n } from "../../../foundation/i18n/i18n";
 import type { EditorTransformAction } from "../../../shared/contracts/generated/EditorTransformAction";
 import { clearReasoningTrace, setReasoningTraceRange } from "./tiptap-reasoning-trace";
@@ -50,7 +51,7 @@ export function useSpaceTiptapWritingTools(editor: Editor) {
       if (!applyGeneratedText(editor, actionContext, source, generated))
         toast.error(t("spaces.richtext.ai.applyFailed"));
     } catch (error) {
-      toast.error(t("spaces.richtext.ai.failed"), { description: String(error) });
+      toast.error(t("spaces.richtext.ai.failed"), { description: errorMessage(error) });
     } finally {
       clearReasoningTrace(editor.view);
       runningAction.value = undefined;

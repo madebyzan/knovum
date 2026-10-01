@@ -3,9 +3,9 @@ use futures::future::BoxFuture;
 
 use crate::ai::{
     contracts::{FileUploadCapability, UploadedFileReference},
-    error::{AiError, AiErrorCode, AiResult},
     transport::{http_client, SecurityContext},
 };
+use crate::app_error::{AppError, AppResult};
 
 pub struct GeminiFileUploadAdapter;
 
@@ -16,7 +16,7 @@ impl FileUploadCapability for GeminiFileUploadAdapter {
         bytes: Vec<u8>,
         mime_type: &'a str,
         file_name: &'a str,
-    ) -> BoxFuture<'a, AiResult<UploadedFileReference>> {
+    ) -> BoxFuture<'a, AppResult<UploadedFileReference>> {
         Box::pin(async move {
             let api_key = ctx.require_api_key()?;
             let client = http_client();
@@ -45,11 +45,11 @@ impl FileUploadCapability for GeminiFileUploadAdapter {
                 .json(&metadata_payload)
                 .send()
                 .await
-                .map_err(|err| AiError::new(AiErrorCode::ProviderRequestFailed, err.to_string()))?;
+                .map_err(|err| AppError::new("provider_request_failed", err.to_string()))?;
 
             if !init_response.status().is_success() {
                 let error_text = response::read_text(init_response).await?;
-                return Err(AiError::new(AiErrorCode::ProviderRequestFailed, error_text));
+                return Err(AppError::new("provider_request_failed", error_text));
             }
 
             let upload_url = init_response
@@ -57,8 +57,8 @@ impl FileUploadCapability for GeminiFileUploadAdapter {
                 .get("x-goog-upload-url")
                 .and_then(|v| v.to_str().ok())
                 .ok_or_else(|| {
-                    AiError::new(
-                        AiErrorCode::InvalidResponse,
+                    AppError::new(
+                        "invalid_response",
                         "Gemini upload did not return x-goog-upload-url",
                     )
                 })?
@@ -72,11 +72,11 @@ impl FileUploadCapability for GeminiFileUploadAdapter {
                 .body(bytes)
                 .send()
                 .await
-                .map_err(|err| AiError::new(AiErrorCode::ProviderRequestFailed, err.to_string()))?;
+                .map_err(|err| AppError::new("provider_request_failed", err.to_string()))?;
 
             if !upload_response.status().is_success() {
                 let error_text = response::read_text(upload_response).await?;
-                return Err(AiError::new(AiErrorCode::ProviderRequestFailed, error_text));
+                return Err(AppError::new("provider_request_failed", error_text));
             }
 
             let file_data: serde_json::Value =
@@ -85,10 +85,7 @@ impl FileUploadCapability for GeminiFileUploadAdapter {
             let file_id = file_data["file"]["name"]
                 .as_str()
                 .ok_or_else(|| {
-                    AiError::new(
-                        AiErrorCode::InvalidResponse,
-                        "Missing file name in Gemini response",
-                    )
+                    AppError::new("invalid_response", "Missing file name in Gemini response")
                 })?
                 .to_string();
 

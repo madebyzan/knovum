@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use serde_json::Value;
 use sqlx::SqlitePool;
 use tokio_util::sync::CancellationToken;
@@ -20,7 +21,7 @@ pub async fn complete(
     output: RenderedVideo,
     authority: &super::super::action_execution::ExecutionAuthority,
     cancellation: &CancellationToken,
-) -> Result<CompletedDerivationOutput, String> {
+) -> Result<CompletedDerivationOutput, AppError> {
     let mut tx = db::begin_write(pool).await?;
     authority.require_active(&mut *tx).await?;
     if cancellation.is_cancelled() {
@@ -60,7 +61,7 @@ pub async fn complete(
     })
 }
 
-fn apply_output(data: &mut Value, output: &RenderedVideo, now: i64) -> Result<(), String> {
+fn apply_output(data: &mut Value, output: &RenderedVideo, now: i64) -> Result<(), AppError> {
     let object = data
         .as_object_mut()
         .ok_or("Derived video data is invalid")?;
@@ -76,5 +77,5 @@ fn apply_output(data: &mut Value, output: &RenderedVideo, now: i64) -> Result<()
     {
         knowledge.insert("sourceRevision".into(), output.revision.clone().into());
     }
-    revision::apply(data).map(|_| ())
+    revision::apply(data).map(|_| ()).map_err(AppError::from)
 }

@@ -1,4 +1,4 @@
-use crate::command_error::CommandError;
+use crate::app_error::AppError;
 mod validation;
 
 use serde::Deserialize;
@@ -36,7 +36,7 @@ pub struct SpaceSceneOrderInput {
 pub async fn create_scene<R: Runtime>(
     app: AppHandle<R>,
     scene: SpaceSceneInput,
-) -> Result<(), CommandError> {
+) -> Result<(), AppError> {
     validate_thumbnail_path(&app, scene.thumbnail_path.as_deref())?;
     let now = crate::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
@@ -70,7 +70,7 @@ pub async fn create_scene<R: Runtime>(
 pub async fn update_scene<R: Runtime>(
     app: AppHandle<R>,
     scene: SpaceSceneInput,
-) -> Result<Vec<String>, CommandError> {
+) -> Result<Vec<String>, AppError> {
     validate_thumbnail_path(&app, scene.thumbnail_path.as_deref())?;
     let now = crate::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
@@ -132,7 +132,7 @@ pub async fn update_scene_orders<R: Runtime>(
     app: AppHandle<R>,
     space_id: String,
     scenes: Vec<SpaceSceneOrderInput>,
-) -> Result<(), CommandError> {
+) -> Result<(), AppError> {
     if scenes.is_empty() {
         return Ok(());
     }
@@ -159,7 +159,7 @@ pub async fn update_scene_orders<R: Runtime>(
 pub async fn delete_scene<R: Runtime>(
     app: AppHandle<R>,
     scene_id: String,
-) -> Result<Vec<String>, CommandError> {
+) -> Result<Vec<String>, AppError> {
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
     let previous = sqlx::query_scalar::<_, Option<String>>(

@@ -5,6 +5,8 @@ import { nextTick, onBeforeUnmount, onMounted, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
+import { normalizeError } from "../../foundation/errors/app-error";
+import { errorMessage } from "../../foundation/errors/error-format";
 import UiButton from "../../shared/ui/UiButton.vue";
 import { useContextDock } from "./canvas/use-context-dock";
 import {
@@ -51,13 +53,13 @@ async function initialize() {
   try {
     await store.initialize(t("spaces.space.inbox"));
     void restoreResourceRuns(t("spaces.creation.shared.resourceTask")).catch((caught: unknown) => {
-      toast.error(String(caught));
+      toast.error(errorMessage(caught));
     });
     void restoreConversationRuns().catch((caught: unknown) => {
-      toast.error(String(caught));
+      toast.error(errorMessage(caught));
     });
   } catch (caught) {
-    initializationError.value = caught instanceof Error ? caught : new Error(String(caught));
+    initializationError.value = normalizeError(caught);
   } finally {
     initializing.value = false;
   }

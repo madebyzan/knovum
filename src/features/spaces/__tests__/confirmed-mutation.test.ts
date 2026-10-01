@@ -2,7 +2,7 @@ import { beforeEach, expect, it, vi } from "vitest";
 
 const native = vi.hoisted(() => ({ invoke: vi.fn<(...args: unknown[]) => Promise<unknown>>() }));
 vi.mock("@tauri-apps/api/core", () => ({ invoke: native.invoke }));
-import { decodeCommandError } from "../../../foundation/ipc/command-error";
+import { decodeAppError } from "../../../foundation/errors/app-error";
 import { invokeConfirmedMutation } from "../structure/confirmed-mutation";
 
 beforeEach(() => {
@@ -19,7 +19,7 @@ it.each(["mutation_id_conflict", "operation_failed"])(
       { request: { mutationId: "used-id" } },
       "used-id",
     ).catch((error: unknown) => error);
-    expect(decodeCommandError(mutationFailure)?.code).toBe(code);
+    expect(decodeAppError(mutationFailure)?.code).toBe(code);
     expect(native.invoke).toHaveBeenCalledTimes(1);
   },
 );

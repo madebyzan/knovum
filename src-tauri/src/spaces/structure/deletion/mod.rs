@@ -1,5 +1,6 @@
 use super::edit_contract::SpaceEditReceipt;
 use super::{history, repository, StructureNode};
+use crate::app_error::AppError;
 use crate::spaces::db;
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Runtime};
@@ -27,7 +28,7 @@ pub(crate) struct RestoreDeletedStructureRequest {
 pub(crate) async fn restore<R: Runtime>(
     app: &AppHandle<R>,
     request: RestoreDeletedStructureRequest,
-) -> Result<SpaceEditReceipt, String> {
+) -> Result<SpaceEditReceipt, AppError> {
     let digest = super::receipts::digest(&request)?;
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
@@ -40,7 +41,10 @@ pub(crate) async fn restore<R: Runtime>(
     let (mut snapshot, revision) =
         repository::load_in_transaction(&mut tx, &request.space_id).await?;
     if revision != request.expected_edit_revision {
-        return Err("space-edit-revision-conflict: Space edit revision conflict".into());
+        return Err(AppError::new(
+            "space_edit_revision_conflict",
+            "Space edit revision conflict",
+        ));
     }
     let before = history::capture(&mut tx, &request.space_id, &snapshot).await?;
     let restored = match request.root_structure_node_id.as_deref() {

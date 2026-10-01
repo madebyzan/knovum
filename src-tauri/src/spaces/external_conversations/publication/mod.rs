@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use std::path::Path;
 
 use serde_json::Value;
@@ -17,7 +18,7 @@ pub(super) async fn publish(
     run_id: &str,
     space_id: &str,
     workspace: &Path,
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     let pool = db::pool(app).await?;
     let _ownership = super::publication_ownership::acquire(run_id).await?;
     let (publication, cancelled): (String, Option<i64>) = sqlx::query_as(
@@ -49,7 +50,15 @@ pub(super) async fn publish(
     if let Err(error) = result {
         return match super::staging::cleanup(app, pool, run_id).await {
             Ok(()) => Err(error),
-            Err(cleanup) => Err(format!("{error}; staged output cleanup failed: {cleanup}")),
+            Err(cleanup) => {
+                log::error!(
+                    "Agent output publication failed: {error:?}; cleanup failed: {cleanup}"
+                );
+                Err(AppError::new(
+                    "artifact_cleanup_failed",
+                    format!("{}; staged output cleanup failed: {cleanup}", error.message),
+                ))
+            }
         };
     }
     discard_committed_workspace(workspace);
@@ -80,7 +89,7 @@ async fn commit(
     space_id: &str,
     outputs: &[PreparedOutput],
     enrichment_target: Option<&crate::ai::tasks::TaskTargetSelection>,
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     let mut tx = db::begin_write(pool).await?;
     let now = crate::clock::unix_time_millis()?;
     let (snapshot, is_retry): (String, bool) = sqlx::query_as(
@@ -161,7 +170,7 @@ async fn current_sources(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
     snapshot: &str,
-) -> Result<Vec<String>, String> {
+) -> Result<Vec<String>, AppError> {
     let input: Value = serde_json::from_str(snapshot).map_err(db::json_error)?;
     let attachments = input
         .get("attachments")
@@ -198,7 +207,7 @@ async fn insert_outputs(
     sources: &[String],
     now: i64,
     enrichment_target: Option<&crate::ai::tasks::TaskTargetSelection>,
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     let (mut snapshot, revision) = structure::repository::load_in_transaction(tx, space_id).await?;
     let before = structure::history::capture(tx, space_id, &snapshot).await?;
     let mut anchor = sources.first().cloned().or_else(|| {
@@ -261,7 +270,7 @@ async fn attach_outputs(
     tx: &mut Transaction<'_, Sqlite>,
     conversation_id: &str,
     outputs: &[AssistantMessageOutput],
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     let encoded = serde_json::to_string(outputs).map_err(db::json_error)?;
     let result = sqlx::query("UPDATE spaces_assistant_messages SET content=json_set(content,'$.outputs',json($1)) WHERE id=(SELECT assistant_message_id FROM spaces_external_agent_turns WHERE conversation_id=$2 AND state='completed' ORDER BY created_at DESC LIMIT 1)")
         .bind(encoded)

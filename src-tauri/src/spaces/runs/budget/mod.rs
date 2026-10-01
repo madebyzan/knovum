@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use sqlx::{Row, Sqlite, SqlitePool, Transaction};
 
 use crate::spaces::db;
@@ -56,8 +57,9 @@ pub(crate) async fn reserve_output_bytes_in_transaction(
     run_id: &str,
     bytes: usize,
     now: i64,
-) -> Result<(), String> {
-    let bytes = i64::try_from(bytes).map_err(|_| "budget-exhausted: output is too large")?;
+) -> Result<(), AppError> {
+    let bytes = i64::try_from(bytes)
+        .map_err(|_| AppError::new("budget_exhausted", "Output is too large"))?;
     let rows = sqlx::query(
         "WITH RECURSIVE ancestors(id,parent_run_id,output_bytes,budget) AS (
            SELECT id,parent_run_id,output_bytes,budget FROM spaces_runs WHERE id=$1
@@ -80,7 +82,10 @@ pub(crate) async fn reserve_output_bytes_in_transaction(
         let budget: serde_json::Value = serde_json::from_str(&budget).map_err(db::json_error)?;
         let limit = optional_limit(&budget, "maxOutputBytes")?.unwrap_or(i64::MAX);
         if used.saturating_add(bytes) > limit {
-            return Err("budget-exhausted: Run tree output byte budget was exceeded".into());
+            return Err(AppError::new(
+                "budget_exhausted",
+                "Run tree output byte budget was exceeded",
+            ));
         }
         ids.push(row.try_get::<String, _>("id").map_err(db::sql_error)?);
     }
@@ -99,29 +104,4 @@ pub(crate) async fn reserve_output_bytes_in_transaction(
 }
 
 #[cfg(test)]
-mod tests {
-    use super::optional_limit;
-
-    #[test]
-    fn optional_budget_limit_distinguishes_absent_and_malformed_values() {
-        assert_eq!(
-            optional_limit(&serde_json::json!({}), "maxOutputBytes").unwrap(),
-            None
-        );
-        assert_eq!(
-            optional_limit(&serde_json::json!({"maxOutputBytes": 0}), "maxOutputBytes").unwrap(),
-            Some(0)
-        );
-        for value in [
-            serde_json::json!(null),
-            serde_json::json!("100"),
-            serde_json::json!(-1),
-        ] {
-            assert!(optional_limit(
-                &serde_json::json!({"maxOutputBytes": value}),
-                "maxOutputBytes"
-            )
-            .is_err());
-        }
-    }
-}
+mod tests;

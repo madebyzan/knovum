@@ -5,6 +5,7 @@ import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
+import { errorMessage } from "../../../../foundation/errors/error-format";
 import UiBadge from "../../../../shared/ui/UiBadge.vue";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import { retryEnrichmentJob } from "../../enrichment/enrichment-jobs";
@@ -33,7 +34,7 @@ async function retry() {
     await retryEnrichmentJob(visualJob.value.id);
     await refresh();
   } catch (error) {
-    toast.error(String(error));
+    toast.error(errorMessage(error));
   } finally {
     retrying.value = false;
   }

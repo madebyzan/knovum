@@ -1,3 +1,4 @@
+import { errorMessage } from "../../../../foundation/errors/error-format";
 import { useTaskStore } from "../../../../foundation/tasks/task-store";
 import { cleanupDeletedSpaceAssets } from "../../assets/asset-operations";
 import { applySpaceNodeContent } from "../../canvas/node";
@@ -94,7 +95,7 @@ export function createNodeContentMutations(context: SpaceMutationContext) {
     )
       void refreshCommittedGeometry(spaceId).catch((error: unknown) => {
         const tasks = useTaskStore();
-        tasks.fail(tasks.start(validated.title), String(error));
+        tasks.fail(tasks.start(validated.title), errorMessage(error));
       });
     scheduleKnowledgeIndex(spaceId, [id]);
   }

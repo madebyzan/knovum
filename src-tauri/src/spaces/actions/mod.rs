@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use serde::{Serialize, Serializer};
 use serde_json::Value;
 
@@ -144,7 +145,7 @@ pub(crate) use invocation::{
 pub(crate) async fn invoke_with_app(
     app: &tauri::AppHandle,
     mut request: ActionInvocationRequest,
-) -> Result<ActionInvocationOutcome, String> {
+) -> Result<ActionInvocationOutcome, AppError> {
     resolve_target(app, &mut request)?;
     invoke(crate::spaces::db::pool(app).await?, request).await
 }
@@ -152,7 +153,7 @@ pub(crate) async fn invoke_with_app(
 fn resolve_target(
     app: &tauri::AppHandle,
     request: &mut ActionInvocationRequest,
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     let definition = require(&request.action_id)?;
     if let Some(purpose) = definition.routing_purpose {
         let inputs = request
@@ -168,8 +169,7 @@ fn resolve_target(
             Some(value) => {
                 serde_json::from_value(value.clone()).map_err(crate::spaces::db::json_error)?
             }
-            None => crate::ai::settings::default_selection(app, purpose)
-                .map_err(|error| error.task_message())?,
+            None => crate::ai::settings::default_selection(app, purpose)?,
         };
         crate::ai::settings::resolve_task(
             app,
@@ -177,8 +177,7 @@ fn resolve_target(
             definition
                 .execution_capability
                 .ok_or("action-target-invalid: execution capability missing")?,
-        )
-        .map_err(|error| error.task_message())?;
+        )?;
         targets.insert(
             definition.id.into(),
             serde_json::to_value(target).map_err(crate::spaces::db::json_error)?,

@@ -1,15 +1,13 @@
 use std::time::{Duration, Instant};
 
-use crate::ai::{
-    error::{AiError, AiErrorCode, AiResult},
-    transport::{http_client, response, SecurityContext},
-};
+use crate::ai::transport::{http_client, response, SecurityContext};
+use crate::app_error::{AppError, AppResult};
 
 pub(super) async fn poll(
     ctx: &SecurityContext,
     resource: &str,
     task_id: &str,
-) -> AiResult<Vec<u8>> {
+) -> AppResult<Vec<u8>> {
     let url = format!(
         "{}/v1/images/{resource}/{task_id}",
         ctx.endpoint.trim_end_matches('/')
@@ -19,8 +17,8 @@ pub(super) async fn poll(
     let mut interval = Duration::from_secs(2);
     loop {
         if started_at.elapsed() >= Duration::from_secs(180) {
-            return Err(AiError::new(
-                AiErrorCode::ProviderRequestFailed,
+            return Err(AppError::new(
+                "provider_request_failed",
                 format!("Kling image task timed out (task_id: {task_id})"),
             ));
         }
@@ -35,16 +33,16 @@ pub(super) async fn poll(
             .await
             .map_err(provider_error)?;
         if !result.status().is_success() {
-            return Err(AiError::new(
-                AiErrorCode::ProviderRequestFailed,
+            return Err(AppError::new(
+                "provider_request_failed",
                 response::read_text(result).await?,
             ));
         }
         let body: serde_json::Value =
             response::read_json(result, response::MAX_CONTROL_JSON_BYTES).await?;
         if body["code"].as_i64().is_some_and(|code| code != 0) {
-            return Err(AiError::new(
-                AiErrorCode::ProviderRequestFailed,
+            return Err(AppError::new(
+                "provider_request_failed",
                 body["message"]
                     .as_str()
                     .unwrap_or("Kling image task failed"),
@@ -55,7 +53,7 @@ pub(super) async fn poll(
                 let image_url = body["data"]["task_result"]["images"][0]["url"]
                     .as_str()
                     .ok_or_else(|| {
-                        AiError::new(AiErrorCode::InvalidResponse, "Kling returned no image URL")
+                        AppError::new("invalid_response", "Kling returned no image URL")
                     })?;
                 let download = client
                     .get(image_url)
@@ -67,8 +65,8 @@ pub(super) async fn poll(
                 return response::read_bytes(download, response::MAX_IMAGE_BYTES).await;
             }
             Some("failed") => {
-                return Err(AiError::new(
-                    AiErrorCode::ProviderRequestFailed,
+                return Err(AppError::new(
+                    "provider_request_failed",
                     body["data"]["task_status_msg"]
                         .as_str()
                         .unwrap_or("Kling image task failed"),
@@ -76,8 +74,8 @@ pub(super) async fn poll(
             }
             Some("submitted" | "processing") => {}
             _ => {
-                return Err(AiError::new(
-                    AiErrorCode::InvalidResponse,
+                return Err(AppError::new(
+                    "invalid_response",
                     "Kling returned an unknown image task status",
                 ));
             }
@@ -85,6 +83,6 @@ pub(super) async fn poll(
     }
 }
 
-fn provider_error(error: reqwest::Error) -> AiError {
-    AiError::new(AiErrorCode::ProviderRequestFailed, error.to_string())
+fn provider_error(error: reqwest::Error) -> AppError {
+    AppError::new("provider_request_failed", error.to_string())
 }

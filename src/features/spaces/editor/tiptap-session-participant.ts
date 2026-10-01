@@ -1,6 +1,7 @@
 import type { Editor } from "@tiptap/vue-3";
 import { toast } from "vue-sonner";
 
+import { errorMessage } from "../../../foundation/errors/error-format";
 import { registerSpaceSessionParticipant } from "../canvas/editor-session";
 
 interface TiptapSessionParticipantOptions {
@@ -15,7 +16,7 @@ export function registerTiptapSessionParticipant(options: TiptapSessionParticipa
       try {
         await options.persist();
       } catch (error) {
-        toast.error(String(error));
+        toast.error(errorMessage(error));
         throw error;
       }
     },

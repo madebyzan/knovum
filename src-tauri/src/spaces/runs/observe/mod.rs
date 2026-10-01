@@ -1,4 +1,4 @@
-use crate::command_error::CommandError;
+use crate::app_error::AppError;
 use sqlx::SqlitePool;
 use tauri::ipc::Channel;
 
@@ -8,7 +8,7 @@ use crate::spaces::db;
 #[tauri::command]
 pub async fn list_active_resource_runs(
     app: tauri::AppHandle,
-) -> Result<Vec<RunObservation>, CommandError> {
+) -> Result<Vec<RunObservation>, AppError> {
     let pool: &SqlitePool = db::pool(&app).await?;
     Ok(active_resource_runs(pool).await?)
 }
@@ -34,7 +34,7 @@ pub async fn observe_run(
     app: tauri::AppHandle,
     run_id: String,
     updates: Channel<RunObservation>,
-) -> Result<(), CommandError> {
+) -> Result<(), AppError> {
     let pool = crate::spaces::db::pool(&app).await?;
     let mut changes = subscribe_to_changes();
     loop {

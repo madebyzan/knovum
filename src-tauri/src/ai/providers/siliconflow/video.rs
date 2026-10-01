@@ -8,9 +8,9 @@ use crate::ai::{
         GeneratedVideo, VideoGenerationCapability, VideoGenerationInput,
         VideoGenerationStageCallback, VideoGenerationStatus, VideoGenerationSubmission,
     },
-    error::{AiError, AiErrorCode, AiResult},
     transport::{http_client, SecurityContext},
 };
+use crate::app_error::{AppError, AppResult};
 
 pub struct SiliconFlowVideoAdapter;
 
@@ -44,7 +44,7 @@ impl VideoGenerationCapability for SiliconFlowVideoAdapter {
         &'a self,
         ctx: &'a SecurityContext,
         req: &'a VideoGenerationInput,
-    ) -> BoxFuture<'a, AiResult<VideoGenerationSubmission>> {
+    ) -> BoxFuture<'a, AppResult<VideoGenerationSubmission>> {
         Box::pin(async move {
             let secret = ctx.require_api_key()?;
             let endpoint = siliconflow_endpoint(&ctx.endpoint);
@@ -81,7 +81,7 @@ impl VideoGenerationCapability for SiliconFlowVideoAdapter {
                 let msg = submission_response
                     .message
                     .unwrap_or_else(|| "SiliconFlow returned no requestId".to_string());
-                AiError::new(AiErrorCode::InvalidResponse, msg)
+                AppError::new("invalid_response", msg)
             })?;
 
             Ok(VideoGenerationSubmission {
@@ -96,7 +96,7 @@ impl VideoGenerationCapability for SiliconFlowVideoAdapter {
         &'a self,
         ctx: &'a SecurityContext,
         task_id: &'a str,
-    ) -> BoxFuture<'a, AiResult<VideoGenerationStatus>> {
+    ) -> BoxFuture<'a, AppResult<VideoGenerationStatus>> {
         Box::pin(async move {
             let secret = ctx.require_api_key()?;
             let endpoint = siliconflow_endpoint(&ctx.endpoint);
@@ -122,8 +122,8 @@ impl VideoGenerationCapability for SiliconFlowVideoAdapter {
                         .and_then(|mut videos| videos.pop())
                         .map(|item| item.url)
                         .ok_or_else(|| {
-                            AiError::new(
-                                AiErrorCode::InvalidResponse,
+                            AppError::new(
+                                "invalid_response",
                                 "SiliconFlow returned no video url on success",
                             )
                         })?;
@@ -149,7 +149,7 @@ impl VideoGenerationCapability for SiliconFlowVideoAdapter {
         req: &'a VideoGenerationInput,
         cancellation: &'a CancellationToken,
         stage: VideoGenerationStageCallback<'a>,
-    ) -> BoxFuture<'a, AiResult<GeneratedVideo>> {
+    ) -> BoxFuture<'a, AppResult<GeneratedVideo>> {
         Box::pin(async move {
             crate::ai::capabilities::video::materialize(self, ctx, req, cancellation, stage).await
         })
@@ -167,6 +167,6 @@ fn siliconflow_endpoint(raw: &str) -> String {
     }
 }
 
-fn provider_err(e: impl std::fmt::Display) -> AiError {
-    AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string())
+fn provider_err(e: impl std::fmt::Display) -> AppError {
+    AppError::new("provider_request_failed", e.to_string())
 }

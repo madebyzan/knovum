@@ -1,5 +1,7 @@
 import { defineStore } from "pinia";
 
+import { normalizeError } from "../errors/app-error";
+
 export type BootstrapStatus = "starting" | "ready" | "failed";
 
 export const useBootstrapStore = defineStore("bootstrap", {
@@ -17,7 +19,7 @@ export const useBootstrapStore = defineStore("bootstrap", {
     fail(reason: unknown) {
       if (this.status !== "starting") return;
       this.status = "failed";
-      this.failure = reason instanceof Error ? reason : new Error(String(reason));
+      this.failure = normalizeError(reason);
     },
   },
 });

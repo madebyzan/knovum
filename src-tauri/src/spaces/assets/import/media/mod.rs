@@ -1,4 +1,4 @@
-use crate::command_error::CommandError;
+use crate::app_error::AppError;
 mod acquisition;
 mod contract;
 mod jobs;
@@ -18,7 +18,7 @@ pub async fn import_media_from_url(
     resource_title: String,
     url: String,
     on_progress: tauri::ipc::Channel<AcquisitionProgress>,
-) -> Result<Option<ImportedMedia>, CommandError> {
+) -> Result<Option<ImportedMedia>, AppError> {
     acquisition::validate_source_url(&url)?;
     acquisition::validate_job_id(&job_id)?;
     let (cancellation, _lease) = jobs::acquire(job_id.clone())?;
@@ -62,9 +62,9 @@ pub async fn import_media_from_url(
     .map_err(media_acquisition_error)
 }
 
-fn media_preparation_error(error: String) -> CommandError {
+fn media_preparation_error(error: String) -> AppError {
     if error == crate::local_resources::preparation::RESOURCE_PREPARATION_CANCELLED {
-        return CommandError::new(
+        return AppError::new(
             "media_acquisition_cancelled",
             format!(
                 "{}: Media import was cancelled",
@@ -75,9 +75,9 @@ fn media_preparation_error(error: String) -> CommandError {
     error.into()
 }
 
-fn media_acquisition_error(error: String) -> CommandError {
+fn media_acquisition_error(error: String) -> AppError {
     if error == crate::media::acquisition::yt_dlp::ACQUISITION_CANCELLED {
-        CommandError::new("media_acquisition_cancelled", error)
+        AppError::new("media_acquisition_cancelled", error)
     } else {
         error.into()
     }
@@ -90,7 +90,7 @@ fn observe(channel: &tauri::ipc::Channel<AcquisitionProgress>, progress: Acquisi
 }
 
 #[tauri::command]
-pub async fn cancel_media_import(job_id: String) -> Result<(), CommandError> {
+pub async fn cancel_media_import(job_id: String) -> Result<(), AppError> {
     Ok((jobs::cancel(&job_id))?)
 }
 

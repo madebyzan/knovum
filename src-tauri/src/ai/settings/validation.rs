@@ -1,14 +1,11 @@
 use std::collections::HashSet;
 
-use crate::ai::{
-    contracts::RoutingPurpose,
-    error::{AiError, AiResult},
-    tasks::TaskTargetRef,
-};
+use crate::ai::{contracts::RoutingPurpose, tasks::TaskTargetRef};
+use crate::app_error::{AppError, AppResult};
 
 use super::contracts::AiSettings;
 
-pub(super) fn validate(settings: &AiSettings) -> AiResult<()> {
+pub(super) fn validate(settings: &AiSettings) -> AppResult<()> {
     let mut connection_ids = HashSet::new();
     for connection in &settings.connections {
         if connection.id.trim().is_empty()
@@ -16,18 +13,18 @@ pub(super) fn validate(settings: &AiSettings) -> AiResult<()> {
             || connection.base_url.trim().is_empty()
             || !connection_ids.insert(connection.id.as_str())
         {
-            return Err(AiError::invalid("AI connection settings are invalid"));
+            return Err(AppError::invalid("AI connection settings are invalid"));
         }
         let endpoint = reqwest::Url::parse(&connection.base_url)
-            .map_err(|_| AiError::invalid("AI connection Base URL is invalid"))?;
+            .map_err(|_| AppError::invalid("AI connection Base URL is invalid"))?;
         if !matches!(endpoint.scheme(), "http" | "https") {
-            return Err(AiError::invalid(
+            return Err(AppError::invalid(
                 "AI connection Base URL must use HTTP or HTTPS",
             ));
         }
         let provider = connection.provider;
         let descriptor = crate::ai::providers::registry::descriptor(provider)
-            .ok_or_else(|| AiError::unsupported("AI provider is not configurable"))?;
+            .ok_or_else(|| AppError::unsupported("AI provider is not configurable"))?;
         let mut model_ids = HashSet::new();
         let mut provider_model_ids = HashSet::new();
         if connection.models.iter().any(|model| {
@@ -44,7 +41,7 @@ pub(super) fn validate(settings: &AiSettings) -> AiResult<()> {
                     .iter()
                     .any(|capability| !descriptor.capabilities.contains(capability))
         }) {
-            return Err(AiError::invalid("AI model settings are invalid"));
+            return Err(AppError::invalid("AI model settings are invalid"));
         }
     }
     let mut agent_kinds = HashSet::new();
@@ -53,12 +50,12 @@ pub(super) fn validate(settings: &AiSettings) -> AiResult<()> {
         .iter()
         .any(|agent| !agent.enabled || !agent_kinds.insert(agent.kind))
     {
-        return Err(AiError::invalid("Desktop Agent settings are invalid"));
+        return Err(AppError::invalid("Desktop Agent settings are invalid"));
     }
     validate_defaults(settings)
 }
 
-fn validate_defaults(settings: &AiSettings) -> AiResult<()> {
+fn validate_defaults(settings: &AiSettings) -> AppResult<()> {
     validate_default(settings, settings.defaults.default_target.as_ref(), None)?;
     validate_default(
         settings,
@@ -96,7 +93,7 @@ fn validate_default(
     settings: &AiSettings,
     target: Option<&TaskTargetRef>,
     purpose: Option<RoutingPurpose>,
-) -> AiResult<()> {
+) -> AppResult<()> {
     let Some(target) = target else {
         return Ok(());
     };
@@ -118,7 +115,7 @@ fn validate_default(
     if model.is_none_or(|model| {
         purpose.is_some_and(|purpose| !model.capabilities.contains(&purpose.execution_capability()))
     }) {
-        return Err(AiError::invalid("AI default references an invalid model"));
+        return Err(AppError::invalid("AI default references an invalid model"));
     }
     Ok(())
 }

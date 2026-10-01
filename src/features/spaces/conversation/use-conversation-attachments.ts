@@ -1,7 +1,9 @@
 import { basename } from "pathe";
 import { computed, shallowRef } from "vue";
+import { useI18n } from "vue-i18n";
 
-import { decodeCommandError } from "../../../foundation/ipc/command-error";
+import { decodeAppError } from "../../../foundation/errors/app-error";
+import { errorMessage } from "../../../foundation/errors/error-format";
 import { spaceCanvasOverviewSource } from "../assets/node-preview-source";
 import { useCanvasEditorSession } from "../canvas/editor-session";
 import { currentSelectionRoots } from "../canvas/selection/selection-roots";
@@ -15,8 +17,8 @@ import { isAssistantImagePath, useConversationImagePreviews } from "./use-conver
 
 type Attachment = NonNullable<SubmitAssistantTaskRequest["attachments"]>[number];
 
-function attachmentErrorMessage(error: unknown) {
-  const code = decodeCommandError(error)?.code;
+function attachmentErrorMessage(error: unknown, t: ReturnType<typeof useI18n>["t"]) {
+  const code = decodeAppError(error)?.code;
   const known: Readonly<Record<string, string>> = {
     assistant_context_limit: "spaces.assistant.attachments.limit",
     assistant_upload_size: "spaces.assistant.uploads.sizeError",
@@ -24,10 +26,12 @@ function attachmentErrorMessage(error: unknown) {
     assistant_upload_invalid: "spaces.assistant.uploads.invalidError",
     assistant_upload_unauthorized: "spaces.assistant.uploads.permissionError",
   };
-  return (code ? known[code] : undefined) ?? (error instanceof Error ? error.message : String(error));
+  const key = code ? known[code] : undefined;
+  return key ? t(key) : errorMessage(error);
 }
 
 export function useConversationAttachments() {
+  const { t } = useI18n();
   const canvas = useCanvasEditorSession();
   const store = useSpaceStore();
   const attachments = shallowRef<Attachment[]>([]);
@@ -109,7 +113,7 @@ export function useConversationAttachments() {
         });
     }
     if (next.size > 32) {
-      attachmentError.value = "spaces.assistant.attachments.limit";
+      attachmentError.value = t("spaces.assistant.attachments.limit");
       return;
     }
     attachmentError.value = undefined;
@@ -136,13 +140,13 @@ export function useConversationAttachments() {
           sourceRevision: file.sourceRevision,
         });
       if (next.size > 32) {
-        attachmentError.value = "spaces.assistant.attachments.limit";
+        attachmentError.value = t("spaces.assistant.attachments.limit");
         return;
       }
       attachments.value = [...next.values()];
     } catch (error) {
       if (!isCurrent()) return;
-      attachmentError.value = attachmentErrorMessage(error);
+      attachmentError.value = attachmentErrorMessage(error, t);
     } finally {
       pickingFiles.value = false;
     }

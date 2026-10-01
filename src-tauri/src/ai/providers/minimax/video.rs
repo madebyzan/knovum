@@ -7,9 +7,9 @@ use crate::ai::{
         GeneratedVideo, VideoGenerationCapability, VideoGenerationInput,
         VideoGenerationStageCallback, VideoGenerationStatus, VideoGenerationSubmission,
     },
-    error::{AiError, AiErrorCode, AiResult},
     transport::{http_client, SecurityContext},
 };
+use crate::app_error::{AppError, AppResult};
 
 pub struct MiniMaxVideoAdapter;
 
@@ -18,7 +18,7 @@ impl VideoGenerationCapability for MiniMaxVideoAdapter {
         &'a self,
         ctx: &'a SecurityContext,
         req: &'a VideoGenerationInput,
-    ) -> BoxFuture<'a, AiResult<VideoGenerationSubmission>> {
+    ) -> BoxFuture<'a, AppResult<VideoGenerationSubmission>> {
         Box::pin(async move {
             let api_key = ctx.require_api_key()?;
             let model = if ctx.model.is_empty() {
@@ -42,7 +42,7 @@ impl VideoGenerationCapability for MiniMaxVideoAdapter {
 
             if !submission_response.status().is_success() {
                 let error_text = response::read_text(submission_response).await?;
-                return Err(AiError::new(AiErrorCode::ProviderRequestFailed, error_text));
+                return Err(AppError::new("provider_request_failed", error_text));
             }
 
             let submission_data: serde_json::Value =
@@ -64,7 +64,7 @@ impl VideoGenerationCapability for MiniMaxVideoAdapter {
         &'a self,
         ctx: &'a SecurityContext,
         task_id: &'a str,
-    ) -> BoxFuture<'a, AiResult<VideoGenerationStatus>> {
+    ) -> BoxFuture<'a, AppResult<VideoGenerationStatus>> {
         Box::pin(async move {
             let api_key = ctx.require_api_key()?;
             let endpoint = minimax_endpoint(&ctx.endpoint);
@@ -79,7 +79,7 @@ impl VideoGenerationCapability for MiniMaxVideoAdapter {
 
             if !query_response.status().is_success() {
                 let error_text = response::read_text(query_response).await?;
-                return Err(AiError::new(AiErrorCode::ProviderRequestFailed, error_text));
+                return Err(AppError::new("provider_request_failed", error_text));
             }
 
             let query_data: serde_json::Value =
@@ -123,7 +123,7 @@ impl VideoGenerationCapability for MiniMaxVideoAdapter {
         req: &'a VideoGenerationInput,
         cancellation: &'a CancellationToken,
         stage: VideoGenerationStageCallback<'a>,
-    ) -> BoxFuture<'a, AiResult<GeneratedVideo>> {
+    ) -> BoxFuture<'a, AppResult<GeneratedVideo>> {
         Box::pin(async move {
             crate::ai::capabilities::video::materialize(self, ctx, req, cancellation, stage).await
         })
@@ -141,15 +141,15 @@ fn minimax_endpoint(raw: &str) -> String {
     }
 }
 
-fn req_err(e: impl std::fmt::Display) -> AiError {
-    AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string())
+fn req_err(e: impl std::fmt::Display) -> AppError {
+    AppError::new("provider_request_failed", e.to_string())
 }
 
-fn parse_err(e: impl std::fmt::Display) -> AiError {
-    AiError::new(AiErrorCode::InvalidResponse, e.to_string())
+fn parse_err(e: impl std::fmt::Display) -> AppError {
+    AppError::new("invalid_response", e.to_string())
 }
 
-async fn retrieve_file_url(endpoint: &str, api_key: &str, file_id: &str) -> AiResult<String> {
+async fn retrieve_file_url(endpoint: &str, api_key: &str, file_id: &str) -> AppResult<String> {
     let file_url = format!("{endpoint}/files/retrieve?file_id={file_id}");
     let file_response = http_client()
         .get(&file_url)

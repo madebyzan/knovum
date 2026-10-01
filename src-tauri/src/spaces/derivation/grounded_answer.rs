@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use serde::Deserialize;
 use serde_json::{json, Value};
 use tauri::AppHandle;
@@ -38,16 +39,22 @@ pub(super) async fn answer(
     app: &AppHandle,
     request: GroundedAnswerRequest,
     authority: &super::action_execution::ExecutionAuthority,
-) -> Result<Value, String> {
+) -> Result<Value, AppError> {
     if request.question.trim().is_empty() || request.inputs.is_empty() {
-        return Err("answer-with-sources-invalid: question and sources are required".into());
+        return Err(AppError::new(
+            "answer_with_sources_invalid",
+            "question and sources are required",
+        ));
     }
     if request
         .inputs
         .first()
         .is_none_or(|input| input.role != "primary")
     {
-        return Err("answer-with-sources-invalid: the first source must be primary".into());
+        return Err(AppError::new(
+            "answer_with_sources_invalid",
+            "the first source must be primary",
+        ));
     }
     let pool = crate::spaces::db::pool(app).await?;
     let mut tx = crate::spaces::db::begin_write(pool).await?;
@@ -66,8 +73,7 @@ pub(super) async fn answer(
         app,
         request.target,
         crate::ai::contracts::ExecutionCapability::TextGeneration,
-    )
-    .map_err(|error| error.task_message())?;
+    )?;
     let (cancellation, _lease) = crate::ai::executions::acquire(request.id.clone())?;
     authority.require_active(pool).await?;
     crate::spaces::knowledge::retrieval::rebuild::prepare_space_index(
@@ -103,7 +109,10 @@ pub(super) async fn answer(
     .await?;
     let sources = prompt::select_sources(retrieval.matches)?;
     if sources.is_empty() {
-        return Err("answer-with-sources-empty: no indexed source supports the question".into());
+        return Err(AppError::new(
+            "answer_with_sources_empty",
+            "no indexed source supports the question",
+        ));
     }
     let completion = completion::complete(
         app,
@@ -118,8 +127,7 @@ pub(super) async fn answer(
         },
         cancellation,
     )
-    .await
-    .map_err(|error| error.task_message())?;
+    .await?;
     if let Some(usage) = completion.usage.as_ref() {
         crate::spaces::runs::record_usage(pool, &request.id, usage).await?;
     }

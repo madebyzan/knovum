@@ -1,10 +1,11 @@
 use super::job::EnrichmentJobType;
-use crate::{command_error::CommandError, spaces::db};
+use crate::app_error::AppError;
+use crate::spaces::db;
 use sqlx::Row;
 use tauri::AppHandle;
 
 #[tauri::command]
-pub async fn retry_enrichment_job(app: AppHandle, job_id: String) -> Result<(), CommandError> {
+pub async fn retry_enrichment_job(app: AppHandle, job_id: String) -> Result<(), AppError> {
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
     let row = sqlx::query("SELECT j.job_type,j.source_revision,n.data FROM spaces_enrichment_jobs j JOIN spaces_nodes n ON n.space_id=j.space_id AND n.id=j.node_id AND n.deleted_at IS NULL WHERE j.id=$1 AND j.status IN ('failed','cancelled')")
@@ -35,7 +36,7 @@ pub async fn request_media_transcription(
     app: AppHandle,
     space_id: String,
     node_id: String,
-) -> Result<String, CommandError> {
+) -> Result<String, AppError> {
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
     let raw: String = sqlx::query_scalar(

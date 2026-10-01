@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use serde_json::{json, Value};
 use sqlx::{Sqlite, Transaction};
 
@@ -14,7 +15,7 @@ pub(crate) async fn execute(
     space_id: &str,
     parameters: &Value,
     now: i64,
-) -> Result<Value, String> {
+) -> Result<Value, AppError> {
     let object = parameters
         .as_object()
         .ok_or("create-note parameters must be an object")?;
@@ -83,7 +84,7 @@ fn required_text<'a>(
     parameters: &'a serde_json::Map<String, Value>,
     key: &str,
     max_utf16: usize,
-) -> Result<&'a str, String> {
+) -> Result<&'a str, AppError> {
     let value = parameters
         .get(key)
         .and_then(Value::as_str)
@@ -91,7 +92,9 @@ fn required_text<'a>(
         .filter(|value| !value.is_empty())
         .ok_or_else(|| format!("create-note requires {key}"))?;
     if value.encode_utf16().count() > max_utf16 {
-        return Err(format!("create-note {key} exceeds its limit"));
+        return Err(AppError::invalid(format!(
+            "create-note {key} exceeds its limit"
+        )));
     }
     Ok(value)
 }

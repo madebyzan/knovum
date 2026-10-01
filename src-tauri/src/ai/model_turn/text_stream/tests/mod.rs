@@ -3,9 +3,7 @@ use genai::chat::{ChatStreamEvent, StreamChunk, StreamEnd};
 use tokio_util::sync::CancellationToken;
 
 use super::text_frames;
-use crate::ai::{
-    contracts::StreamFrame, error::AiErrorCode, transport::SecurityContext, usage::UsagePurpose,
-};
+use crate::ai::{contracts::StreamFrame, transport::SecurityContext, usage::UsagePurpose};
 
 fn context() -> SecurityContext {
     SecurityContext {
@@ -43,7 +41,7 @@ async fn partial_text_then_eof_is_not_success() {
         .await
         .expect("terminal failure")
         .expect_err("unexpected EOF");
-    assert_eq!(error.code, AiErrorCode::InvalidResponse);
+    assert_eq!(error.code, "invalid_response");
     assert!(frames.next().await.is_none());
 }
 
@@ -73,7 +71,7 @@ async fn partial_text_then_cancel_is_not_success() {
         .await
         .expect("terminal failure")
         .expect_err("cancelled");
-    assert_eq!(error.code, AiErrorCode::Cancelled);
+    assert_eq!(error.code, "cancelled");
     assert!(frames.next().await.is_none());
 }
 
@@ -121,7 +119,7 @@ async fn oversized_output_fails_without_publishing_the_oversized_chunk() {
         .await
         .expect("limit error")
         .expect_err("oversized output");
-    assert_eq!(error.code, AiErrorCode::InvalidResponse);
+    assert_eq!(error.code, "invalid_response");
     assert!(error.message.contains("8 MiB"));
     assert!(frames.next().await.is_none());
 }

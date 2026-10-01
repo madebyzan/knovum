@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use std::collections::HashSet;
 
 use sqlx::{Row, Sqlite, Transaction};
@@ -13,7 +14,7 @@ pub(in crate::spaces::structure) async fn apply(
     current_revision: i64,
     current_snapshot: &SpaceStructureSnapshot,
     redo: bool,
-) -> Result<i64, String> {
+) -> Result<i64, AppError> {
     let order = if redo { "ASC" } else { "DESC" };
     let undone = if redo { 1 } else { 0 };
     let sql = format!("SELECT id,before_snapshot,after_snapshot,before_node_ids,after_node_ids,before_relations,after_relations,deletion_batch_id,deletion_batch_restored_after,history_group_id FROM spaces_edit_history WHERE space_id=$1 AND undone=$2 ORDER BY id {order} LIMIT 1");
@@ -109,7 +110,7 @@ async fn apply_nodes(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
     target: &[String],
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     let current: Vec<String> =
         sqlx::query_scalar("SELECT id FROM spaces_nodes WHERE space_id=$1 AND deleted_at IS NULL")
             .bind(space_id)

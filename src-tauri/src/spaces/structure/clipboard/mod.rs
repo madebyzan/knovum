@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tauri::{AppHandle, Runtime};
@@ -68,7 +69,7 @@ pub(crate) struct ImportStructureClipboardResponse {
 pub(crate) async fn import<R: Runtime>(
     app: &AppHandle<R>,
     request: ImportStructureClipboardRequest,
-) -> Result<ImportStructureClipboardResponse, String> {
+) -> Result<ImportStructureClipboardResponse, AppError> {
     if request.space_id.is_empty() || request.space_id.encode_utf16().count() > 128 {
         return Err("Space ID must contain 1 to 128 characters".into());
     }
@@ -88,7 +89,10 @@ pub(crate) async fn import<R: Runtime>(
     let (mut snapshot, revision) =
         super::repository::load_in_transaction(&mut tx, &request.space_id).await?;
     if revision != request.expected_edit_revision {
-        return Err("space-edit-revision-conflict: Space edit revision conflict".into());
+        return Err(AppError::new(
+            "space_edit_revision_conflict",
+            "Space edit revision conflict",
+        ));
     }
     let before = history::capture(&mut tx, &request.space_id, &snapshot).await?;
     let mut imported = payload::remap(request.payload, &request.anchor)?;

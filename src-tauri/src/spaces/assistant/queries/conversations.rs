@@ -1,5 +1,5 @@
 use super::super::{repository, AssistantConversation};
-use crate::command_error::CommandError;
+use crate::app_error::AppError;
 
 #[tauri::command]
 pub async fn list_assistant_conversations(
@@ -7,7 +7,7 @@ pub async fn list_assistant_conversations(
     space_id: String,
     query: Option<String>,
     archived: Option<bool>,
-) -> Result<Vec<AssistantConversation>, CommandError> {
+) -> Result<Vec<AssistantConversation>, AppError> {
     Ok((repository::list_conversations(
         crate::spaces::db::pool(&app).await?,
         &space_id,
@@ -25,7 +25,7 @@ pub async fn list_assistant_messages(
     before_created_at: Option<i64>,
     before_id: Option<String>,
     limit: Option<u16>,
-) -> Result<Vec<repository::AssistantMessage>, CommandError> {
+) -> Result<Vec<repository::AssistantMessage>, AppError> {
     let before = before_created_at.zip(before_id.as_deref());
     Ok((repository::list_messages(
         crate::spaces::db::pool(&app).await?,
@@ -41,7 +41,7 @@ pub async fn list_assistant_messages(
 pub async fn list_assistant_branches(
     app: tauri::AppHandle,
     conversation_id: String,
-) -> Result<Vec<String>, CommandError> {
+) -> Result<Vec<String>, AppError> {
     Ok((repository::list_branches(crate::spaces::db::pool(&app).await?, &conversation_id).await)?)
 }
 
@@ -50,7 +50,7 @@ pub async fn load_assistant_branch_messages(
     app: tauri::AppHandle,
     conversation_id: String,
     branch_id: String,
-) -> Result<serde_json::Value, CommandError> {
+) -> Result<serde_json::Value, AppError> {
     let messages = repository::all_messages(
         crate::spaces::db::pool(&app).await?,
         &conversation_id,

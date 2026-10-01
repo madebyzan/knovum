@@ -12,23 +12,23 @@ use tokio_util::sync::CancellationToken;
 
 use crate::ai::{
     contracts::ProviderKind,
-    error::{AiError, AiErrorCode, AiResult},
     models::{CompletionOutput, ImageAnalysisRequest},
     transport::SecurityContext,
 };
+use crate::app_error::{AppError, AppResult};
 
 pub async fn analyze_image(
     _app: &AppHandle,
     request: ImageAnalysisRequest,
     cancellation: &CancellationToken,
-) -> AiResult<CompletionOutput> {
+) -> AppResult<CompletionOutput> {
     validate(&request)?;
     let ctx = SecurityContext::from_target(&request.target).await?;
     let target = service_target(&ctx, request.target.model_provider_kind()?)?;
 
-    let image = Binary::from_file(&request.source).map_err(|e| AiError::invalid(e.to_string()))?;
+    let image = Binary::from_file(&request.source).map_err(|e| AppError::invalid(e.to_string()))?;
     if !image.is_image() {
-        return Err(AiError::invalid("Vision analysis requires an image file"));
+        return Err(AppError::invalid("Vision analysis requires an image file"));
     }
 
     let content = MessageContent::from_parts(vec![
@@ -59,17 +59,17 @@ pub async fn analyze_image(
     let client = Client::default();
     let response = tokio::select! {
         _ = cancellation.cancelled() => {
-            return Err(AiError::cancelled("Visual analysis was cancelled"));
+            return Err(AppError::cancelled("Visual analysis was cancelled"));
         }
         vision_completion = client.exec_chat(target, chat, Some(&options)) => vision_completion,
     }
-    .map_err(|e| AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string()))?;
+    .map_err(|e| AppError::new("provider_request_failed", e.to_string()))?;
 
     let raw_text = response
         .first_text()
         .map(str::trim)
         .filter(|v| !v.is_empty())
-        .ok_or_else(|| AiError::new(AiErrorCode::EmptyResponse, "AI provider returned no text."))?;
+        .ok_or_else(|| AppError::new("empty_response", "AI provider returned no text."))?;
 
     let text = super::response_text::strip_markdown_fences(raw_text).to_string();
     let usage = crate::ai::usage::from_provider_usage(response.usage);
@@ -91,7 +91,7 @@ pub async fn analyze_image(
     })
 }
 
-fn service_target(ctx: &SecurityContext, kind: ProviderKind) -> AiResult<ServiceTarget> {
+fn service_target(ctx: &SecurityContext, kind: ProviderKind) -> AppResult<ServiceTarget> {
     let adapter = match kind {
         ProviderKind::OpenAi
         | ProviderKind::OpenAiCompatible
@@ -113,7 +113,7 @@ fn service_target(ctx: &SecurityContext, kind: ProviderKind) -> AiResult<Service
         ProviderKind::DashScope => AdapterKind::Aliyun,
         ProviderKind::Ollama => AdapterKind::Ollama,
         _ => {
-            return Err(AiError::unsupported(
+            return Err(AppError::unsupported(
                 "Vision is not supported on this provider",
             ))
         }
@@ -131,12 +131,12 @@ fn service_target(ctx: &SecurityContext, kind: ProviderKind) -> AiResult<Service
     })
 }
 
-fn validate(request: &ImageAnalysisRequest) -> AiResult<()> {
+fn validate(request: &ImageAnalysisRequest) -> AppResult<()> {
     if request.source.as_os_str().is_empty() {
-        return Err(AiError::invalid("Image path is required"));
+        return Err(AppError::invalid("Image path is required"));
     }
     if request.instruction.trim().is_empty() {
-        return Err(AiError::invalid("Vision instruction is required"));
+        return Err(AppError::invalid("Vision instruction is required"));
     }
     Ok(())
 }

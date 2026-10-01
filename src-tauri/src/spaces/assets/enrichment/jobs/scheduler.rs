@@ -79,11 +79,11 @@ async fn dispatch(
         };
         let target = match selection {
             Ok(target) => target,
-            Err(error) if error.code == crate::ai::error::AiErrorCode::NotConfigured => {
+            Err(error) if error.code == "not_configured" => {
                 persistence::defer_for_configuration(
                     pool,
                     &job.id,
-                    error.task_message(),
+                    error.to_string(),
                     crate::clock::unix_time_millis()?,
                 )
                 .await?;
@@ -95,7 +95,7 @@ async fn dispatch(
                     &job.id,
                     "'pending','awaiting_configuration'",
                     "failed",
-                    Some(error.task_message()),
+                    Some(error.to_string()),
                     crate::clock::unix_time_millis()?,
                     false,
                 )
@@ -120,7 +120,7 @@ async fn dispatch(
 fn vision_selection(
     app: &AppHandle,
     kind: EnrichmentJobType,
-) -> Result<Option<crate::ai::tasks::TaskTargetSelection>, crate::ai::error::AiError> {
+) -> Result<Option<crate::ai::tasks::TaskTargetSelection>, crate::app_error::AppError> {
     if !matches!(
         kind,
         EnrichmentJobType::AnalyzeVisual | EnrichmentJobType::AnalyzeDocument
@@ -177,7 +177,7 @@ async fn execute(
         }
         Err(error) => {
             completed.status = EnrichmentJobStatus::Failed;
-            completed.error = Some(error);
+            completed.error = Some(error.to_string());
         }
     }
     // Persistence wins over a late return after cancellation.

@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use serde_json::Value;
 use sqlx::{Sqlite, SqlitePool, Transaction};
 
@@ -20,7 +21,7 @@ pub(crate) async fn complete_step(
     claim: &AttemptClaim,
     output: &Value,
     selected_branch: Option<&str>,
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     let now = crate::clock::unix_time_millis()?;
     let output_bytes = serde_json::to_vec(output).map_err(db::json_error)?.len();
     let mut tx = db::begin_write(pool).await?;
@@ -39,7 +40,7 @@ pub(crate) async fn complete_step(
     }
     resolve_dependents(&mut tx, &claim.run_id, now).await?;
     resolve_run(&mut tx, &claim.run_id, now).await?;
-    tx.commit().await.map_err(db::sql_error)
+    Ok(tx.commit().await.map_err(db::sql_error)?)
 }
 
 pub(crate) async fn wait_step(
@@ -47,7 +48,7 @@ pub(crate) async fn wait_step(
     claim: &AttemptClaim,
     reason: WaitReason,
     checkpoint: &Value,
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     let now = crate::clock::unix_time_millis()?;
     let mut tx = db::begin_write(pool).await?;
     require_current_claim(&mut tx, claim).await?;
@@ -73,22 +74,25 @@ pub(crate) async fn wait_step(
     .execute(&mut *tx)
     .await
     .map_err(db::sql_error)?;
-    db::require_one(
-        changed,
-        "attempt-stale: Run authority changed before waiting",
-    )?;
-    tx.commit().await.map_err(db::sql_error)
+    if changed.rows_affected() != 1 {
+        return Err(AppError::new(
+            "attempt_stale",
+            "Run authority changed before waiting",
+        ));
+    }
+
+    Ok(tx.commit().await.map_err(db::sql_error)?)
 }
 
 pub(crate) async fn fail_step(
     pool: &SqlitePool,
     claim: &AttemptClaim,
-    error: &str,
-) -> Result<(), String> {
+    error: &AppError,
+) -> Result<(), AppError> {
     let now = crate::clock::unix_time_millis()?;
     let mut tx = db::begin_write(pool).await?;
     require_current_claim(&mut tx, claim).await?;
-    finish_attempt(&mut tx, claim, "failed", None, Some(error), now).await?;
+    finish_attempt(&mut tx, claim, "failed", None, Some(&error.code), now).await?;
     let max_attempts = claim
         .budget
         .get("maxAttempts")
@@ -129,13 +133,13 @@ pub(crate) async fn fail_step(
         resolve_dependents(&mut tx, &claim.run_id, now).await?;
     }
     resolve_run(&mut tx, &claim.run_id, now).await?;
-    tx.commit().await.map_err(db::sql_error)
+    Ok(tx.commit().await.map_err(db::sql_error)?)
 }
 
 async fn require_current_claim(
     tx: &mut Transaction<'_, Sqlite>,
     claim: &AttemptClaim,
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     let authority: Option<i64> = sqlx::query_scalar(
         "SELECT 1 FROM spaces_run_attempts a
          JOIN spaces_run_steps s ON s.id=a.step_instance_id AND s.run_id=a.run_id
@@ -153,13 +157,14 @@ async fn require_current_claim(
     .map_err(db::sql_error)?;
     authority
         .map(|_| ())
-        .ok_or_else(|| "attempt-stale: Run authority changed during execution".into())
+        .ok_or_else(|| AppError::new("attempt_stale", "Run authority changed during execution"))
 }
 
-fn retryable(error: &str) -> bool {
-    ["transient-failure:", "rate-limited:", "request-timeout:"]
-        .iter()
-        .any(|prefix| error.starts_with(prefix))
+fn retryable(error: &AppError) -> bool {
+    matches!(
+        error.code.as_str(),
+        "transient_failure" | "rate_limited" | "request_timeout"
+    )
 }
 
 async fn schedule_retry(
@@ -167,7 +172,7 @@ async fn schedule_retry(
     claim: &AttemptClaim,
     available_at: i64,
     now: i64,
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     let changed = sqlx::query(
         "UPDATE spaces_run_steps SET state='ready',state_version=state_version+1,output=NULL,
          wait_reason=NULL,available_at=$1,updated_at=$2 WHERE id=$3 AND state='running'",
@@ -178,10 +183,13 @@ async fn schedule_retry(
     .execute(&mut **tx)
     .await
     .map_err(db::sql_error)?;
-    db::require_one(
-        changed,
-        "step-stale: Step state changed during retry scheduling",
-    )
+    if changed.rows_affected() != 1 {
+        return Err(AppError::new(
+            "step_stale",
+            "Step state changed during retry scheduling",
+        ));
+    }
+    Ok(())
 }
 
 async fn finish_attempt(
@@ -191,7 +199,7 @@ async fn finish_attempt(
     attempt_output: Option<&Value>,
     error: Option<&str>,
     now: i64,
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     let attempt_output = attempt_output
         .map(serde_json::to_string)
         .transpose()
@@ -199,10 +207,13 @@ async fn finish_attempt(
     let changed = sqlx::query("UPDATE spaces_run_attempts SET state=$1,result=$2,error_code=$3,lease_until=NULL,finished_at=$4 WHERE id=$5 AND state='executing' AND execution_epoch=$6")
         .bind(state).bind(attempt_output).bind(error).bind(now).bind(&claim.attempt_id).bind(claim.execution_epoch)
         .execute(&mut **tx).await.map_err(db::sql_error)?;
-    db::require_one(
-        changed,
-        "attempt-stale: execution lease is no longer active",
-    )
+    if changed.rows_affected() != 1 {
+        return Err(AppError::new(
+            "attempt_stale",
+            "execution lease is no longer active",
+        ));
+    }
+    Ok(())
 }
 
 async fn update_step(
@@ -212,7 +223,7 @@ async fn update_step(
     output: Option<&Value>,
     reason: Option<WaitReason>,
     now: i64,
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     let output = output
         .map(serde_json::to_string)
         .transpose()
@@ -220,10 +231,16 @@ async fn update_step(
     let changed = sqlx::query("UPDATE spaces_run_steps SET state=$1,state_version=state_version+1,output=$2,wait_reason=$3,updated_at=$4 WHERE id=$5 AND state='running'")
         .bind(state).bind(output).bind(reason.map(enum_text).transpose()?).bind(now)
         .bind(&claim.step_instance_id).execute(&mut **tx).await.map_err(db::sql_error)?;
-    db::require_one(changed, "step-stale: Step state changed during execution")
+    if changed.rows_affected() != 1 {
+        return Err(AppError::new(
+            "step_stale",
+            "Step state changed during execution",
+        ));
+    }
+    Ok(())
 }
 
-fn enum_text(value: impl serde::Serialize) -> Result<String, String> {
+fn enum_text(value: impl serde::Serialize) -> Result<String, AppError> {
     serde_json::to_value(value)
         .map_err(db::json_error)?
         .as_str()

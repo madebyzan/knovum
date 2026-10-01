@@ -7,6 +7,7 @@ import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
+import { errorMessage } from "../../../../foundation/errors/error-format";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import { selectAndRevealSpaceNode } from "../../canvas/selection-actions";
@@ -29,7 +30,7 @@ const criticalCount = computed(() => issues.value.filter((issue) => issue.severi
 
 whenever(
   () => healthQuery.error.value,
-  (error) => toast.error(String(error)),
+  (error) => toast.error(errorMessage(error)),
 );
 function refresh() {
   void healthQuery.refetch();
@@ -43,7 +44,7 @@ async function rebuildIndex() {
     toast.success(t("spaces.processing.index.rebuildDone", { count: rebuild.indexed }));
     void healthQuery.refetch();
   } catch (error) {
-    toast.error(String(error));
+    toast.error(errorMessage(error));
   } finally {
     rebuilding.value = false;
   }

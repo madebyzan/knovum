@@ -1,12 +1,10 @@
 use std::{fs, io::Read, path::Path};
 
-use crate::ai::{
-    capabilities::agent_artifacts,
-    error::{AiError, AiErrorCode, AiResult},
-};
+use crate::ai::capabilities::agent_artifacts;
+use crate::app_error::{AppError, AppResult};
 
-pub(super) fn read(root: &Path, name: &str, limit: u64) -> AiResult<Vec<u8>> {
-    let invalid = |message| AiError::new(AiErrorCode::InvalidResponse, message);
+pub(super) fn read(root: &Path, name: &str, limit: u64) -> AppResult<Vec<u8>> {
+    let invalid = |message| AppError::new("invalid_response", message);
     let path = agent_artifacts::resolve(root, name).map_err(|e| {
         invalid(format!(
             "Desktop Agent did not submit a valid task result: {e}"

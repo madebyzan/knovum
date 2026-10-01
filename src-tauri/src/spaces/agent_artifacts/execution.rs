@@ -3,11 +3,8 @@ use std::sync::Arc;
 
 use tauri::{ipc::Channel, AppHandle};
 
-use crate::ai::{
-    capabilities,
-    error::{AiError, AiResult},
-    executions,
-};
+use crate::ai::{capabilities, executions};
+use crate::app_error::{AppError, AppResult};
 use crate::external_agents;
 
 pub(super) async fn run(
@@ -15,10 +12,10 @@ pub(super) async fn run(
     request: contracts::AgentCreationRequest,
     on_event: Channel<contracts::AgentCreationEvent>,
     workspace: &std::path::Path,
-) -> AiResult<Vec<crate::ai::contracts::AgentArtifact>> {
+) -> AppResult<Vec<crate::ai::contracts::AgentArtifact>> {
     capabilities::agent_artifacts::prepare(workspace)?;
     let (cancellation, _lease) =
-        executions::acquire(request.session_id.clone()).map_err(AiError::from)?;
+        executions::acquire(request.session_id.clone()).map_err(AppError::from)?;
     let event_app = app.clone();
     let event_run_id = request.session_id.clone();
     let callback = Arc::new(move |update| {
@@ -33,7 +30,7 @@ pub(super) async fn run(
         }
         on_event
             .send(event_from_update(update))
-            .map_err(|error| AiError::internal(error.to_string()))
+            .map_err(|error| AppError::internal(error.to_string()))
     });
     let prompt = external_agents::prompt::AgentPrompt::from_renderer(
         app,
@@ -47,7 +44,7 @@ pub(super) async fn run(
         request.session_id.clone(),
     )
     .await
-    .map_err(AiError::internal)?;
+    .map_err(AppError::internal)?;
     let mcp_servers = vec![mcp_binding.server()];
     external_agents::session::run(
         request.kind,
@@ -61,13 +58,13 @@ pub(super) async fn run(
     let settlement = crate::spaces::runs::wait_for_children(
         crate::spaces::db::pool(app)
             .await
-            .map_err(AiError::internal)?,
+            .map_err(AppError::internal)?,
         &request.session_id,
     )
     .await
-    .map_err(AiError::internal)?;
+    .map_err(AppError::internal)?;
     if settlement != crate::spaces::runs::RunState::Succeeded {
-        return Err(AiError::internal(
+        return Err(AppError::internal(
             "An Agent child Action failed; inspect its Run for details",
         ));
     }
@@ -147,17 +144,17 @@ fn creation_prompt(request: &contracts::AgentCreationRequest, space_context: &st
     )
 }
 
-async fn space_context(app: &AppHandle, space_id: &str) -> AiResult<String> {
+async fn space_context(app: &AppHandle, space_id: &str) -> AppResult<String> {
     let pool = crate::spaces::db::pool(app)
         .await
-        .map_err(AiError::internal)?;
+        .map_err(AppError::internal)?;
     let mut tx = pool
         .begin()
         .await
-        .map_err(|error| AiError::internal(error.to_string()))?;
+        .map_err(|error| AppError::internal(error.to_string()))?;
     let page =
         crate::spaces::queries::knowledge_projection::list_contents(&mut tx, space_id, 0, 40)
             .await
-            .map_err(AiError::internal)?;
-    serde_json::to_string(&page).map_err(|error| AiError::internal(error.to_string()))
+            .map_err(AppError::internal)?;
+    serde_json::to_string(&page).map_err(|error| AppError::internal(error.to_string()))
 }

@@ -1,4 +1,4 @@
-use crate::command_error::CommandError;
+use crate::app_error::AppError;
 use clipboard_rs::{Clipboard, ClipboardContent, ClipboardContext, ContentFormat};
 
 #[derive(serde::Serialize)]
@@ -8,7 +8,7 @@ pub(crate) struct SpaceClipboardContent {
 }
 
 #[tauri::command]
-pub(crate) async fn read_space_clipboard_content() -> Result<SpaceClipboardContent, CommandError> {
+pub(crate) async fn read_space_clipboard_content() -> Result<SpaceClipboardContent, AppError> {
     Ok((crate::blocking::run(read_content).await)?)
 }
 

@@ -47,10 +47,7 @@ fn disabled_agent_is_unavailable_and_model_native_capabilities_remain_enforced()
         ExecutionCapability::VisionUnderstanding,
     )
     .unwrap_err();
-    assert_eq!(
-        error.code,
-        super::super::error::AiErrorCode::AgentUnavailable
-    );
+    assert_eq!(error.code, "agent_unavailable");
     let mut value = configured();
     value["connections"] = json!([{"id":"byok","name":"User","provider":"openai","baseUrl":"https://api.openai.com/v1","models":[{"id":"text","name":"Text","model":"text","capabilities":["text-generation"]}]}]);
     let selection = TaskTargetSelection::Model {
@@ -71,8 +68,5 @@ fn disabled_agent_is_unavailable_and_model_native_capabilities_remain_enforced()
         ExecutionCapability::VisionUnderstanding,
     )
     .unwrap_err();
-    assert_eq!(
-        error.code,
-        super::super::error::AiErrorCode::CapabilityNotSupported
-    );
+    assert_eq!(error.code, "capability_not_supported");
 }

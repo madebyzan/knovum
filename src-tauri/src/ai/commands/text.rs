@@ -4,7 +4,6 @@ use tokio_util::sync::CancellationToken;
 use crate::ai::{
     capabilities,
     contracts::ExecutionCapability,
-    error::AiError,
     executions, settings,
     tasks::{
         self,
@@ -16,6 +15,7 @@ use crate::ai::{
         TaskExecutionTarget, TaskTargetSelection,
     },
 };
+use crate::app_error::AppError;
 
 async fn execute(
     app: &tauri::AppHandle,
@@ -23,7 +23,7 @@ async fn execute(
     input: TaskInput,
     events: Option<Channel<TaskStreamEvent>>,
     cancellation: CancellationToken,
-) -> Result<TaskCompletionOutput, AiError> {
+) -> Result<TaskCompletionOutput, AppError> {
     let mut target = settings::resolve_task(app, target, ExecutionCapability::TextGeneration)?;
     if matches!(input.purpose, crate::ai::usage::UsagePurpose::Translation) {
         if let TaskExecutionTarget::Model(model) = &mut target {
@@ -52,7 +52,7 @@ fn input(request: &CompletionCommandRequest) -> TaskInput {
 pub async fn generate_text(
     app: tauri::AppHandle,
     request: CompletionCommandRequest,
-) -> Result<TaskCompletionOutput, AiError> {
+) -> Result<TaskCompletionOutput, AppError> {
     let prepared = input(&request);
     execute(
         &app,
@@ -70,8 +70,8 @@ pub async fn generate_text_stream(
     request: CompletionCommandRequest,
     job_id: String,
     on_event: Channel<TaskStreamEvent>,
-) -> Result<TaskCompletionOutput, AiError> {
-    let (cancellation, _lease) = executions::acquire(job_id).map_err(AiError::from)?;
+) -> Result<TaskCompletionOutput, AppError> {
+    let (cancellation, _lease) = executions::acquire(job_id).map_err(AppError::from)?;
     let prepared = input(&request);
     execute(&app, request.target, prepared, Some(on_event), cancellation).await
 }
@@ -80,7 +80,7 @@ pub async fn generate_text_stream(
 pub async fn transform_editor_text(
     app: tauri::AppHandle,
     request: EditorTransformCommandRequest,
-) -> Result<TaskCompletionOutput, AiError> {
+) -> Result<TaskCompletionOutput, AppError> {
     execute(
         &app,
         request.target,
@@ -97,8 +97,8 @@ pub async fn transform_editor_text_stream(
     request: EditorTransformCommandRequest,
     job_id: String,
     on_event: Channel<TaskStreamEvent>,
-) -> Result<TaskCompletionOutput, AiError> {
-    let (cancellation, _lease) = executions::acquire(job_id).map_err(AiError::from)?;
+) -> Result<TaskCompletionOutput, AppError> {
+    let (cancellation, _lease) = executions::acquire(job_id).map_err(AppError::from)?;
     execute(
         &app,
         request.target,
@@ -113,7 +113,7 @@ pub async fn transform_editor_text_stream(
 pub async fn translate_text(
     app: tauri::AppHandle,
     request: TranslationCommandRequest,
-) -> Result<TaskCompletionOutput, AiError> {
+) -> Result<TaskCompletionOutput, AppError> {
     execute(
         &app,
         request.execution_target,
@@ -130,8 +130,8 @@ pub async fn translate_text_stream(
     request: TranslationCommandRequest,
     job_id: String,
     on_event: Channel<TaskStreamEvent>,
-) -> Result<TaskCompletionOutput, AiError> {
-    let (cancellation, _lease) = executions::acquire(job_id).map_err(AiError::from)?;
+) -> Result<TaskCompletionOutput, AppError> {
+    let (cancellation, _lease) = executions::acquire(job_id).map_err(AppError::from)?;
     execute(
         &app,
         request.execution_target,
@@ -143,6 +143,6 @@ pub async fn translate_text_stream(
 }
 
 #[tauri::command]
-pub fn cancel_job(job_id: String) -> Result<(), AiError> {
-    executions::cancel(&job_id).map_err(AiError::from)
+pub fn cancel_job(job_id: String) -> Result<(), AppError> {
+    executions::cancel(&job_id).map_err(AppError::from)
 }

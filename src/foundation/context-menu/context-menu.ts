@@ -10,6 +10,8 @@ import {
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { error as logError } from "@tauri-apps/plugin-log";
 
+import { errorDiagnostic } from "../errors/error-format";
+
 export type ContextMenuItem =
   | MenuItemOptions
   | CheckMenuItemOptions
@@ -61,7 +63,7 @@ function wrapAction(scope: string, action?: ((id: string) => void | Promise<void
   return (id: string) => {
     void Promise.resolve()
       .then(() => action(id))
-      .catch((err) => logError(`[${scope}] application menu action failed: ${String(err)}`));
+      .catch((err) => logError(`[${scope}] application menu action failed: ${errorDiagnostic(err)}`));
   };
 }
 
@@ -124,10 +126,10 @@ export async function popupContextMenu(
     try {
       await menu.popup(popupPos, options.window ?? getCurrentWindow());
     } finally {
-      await menu.close().catch((err) => logError(`[${scope}] menu close failed: ${String(err)}`));
+      await menu.close().catch((err) => logError(`[${scope}] menu close failed: ${errorDiagnostic(err)}`));
     }
   } catch (err) {
-    void logError(`[${scope}] menu popup failed: ${String(err)}`);
+    void logError(`[${scope}] menu popup failed: ${errorDiagnostic(err)}`);
   }
 }
 

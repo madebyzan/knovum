@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use std::collections::HashSet;
 
 use serde::{Deserialize, Serialize};
@@ -29,7 +30,7 @@ pub(crate) struct DiscardPendingContentResponse {
 pub(crate) async fn discard_pending_content<R: Runtime>(
     app: &AppHandle<R>,
     request: DiscardPendingContentRequest,
-) -> Result<DiscardPendingContentResponse, String> {
+) -> Result<DiscardPendingContentResponse, AppError> {
     if request.mutation_id.is_empty() || request.mutation_id.encode_utf16().count() > 128 {
         return Err("Mutation ID must contain 1 to 128 characters".into());
     }
@@ -48,7 +49,10 @@ pub(crate) async fn discard_pending_content<R: Runtime>(
     let (mut snapshot, revision) =
         super::super::repository::load_in_transaction(&mut tx, &request.space_id).await?;
     if revision != request.expected_edit_revision {
-        return Err("space-edit-revision-conflict: Space edit revision conflict".into());
+        return Err(AppError::new(
+            "space_edit_revision_conflict",
+            "Space edit revision conflict",
+        ));
     }
     let structure_node_id = content_structure_node_id(&snapshot.structure, &request.node_id)?;
     let index =
@@ -140,7 +144,10 @@ pub(crate) async fn discard_pending_content<R: Runtime>(
     Ok(response)
 }
 
-fn content_structure_node_id(structure: &[StructureNode], node_id: &str) -> Result<String, String> {
+fn content_structure_node_id(
+    structure: &[StructureNode],
+    node_id: &str,
+) -> Result<String, AppError> {
     structure
         .iter()
         .find_map(|structure_node| match structure_node {
@@ -158,7 +165,10 @@ fn content_structure_node_id(structure: &[StructureNode], node_id: &str) -> Resu
 fn normalize_orders(
     structure: &mut [StructureNode],
     layouts: &[super::super::StructureLayout],
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     let index = super::super::planner::tree_policy::Index::new(structure, layouts);
-    super::super::planner::tree_policy::apply_sequences(structure, &index.children)
+    Ok(super::super::planner::tree_policy::apply_sequences(
+        structure,
+        &index.children,
+    )?)
 }

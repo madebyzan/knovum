@@ -73,7 +73,7 @@ describe("task store", () => {
     expect(store.tasks[0]).toMatchObject({
       id: "persisted-job",
       status: "failed",
-      statusMessage: "Error: Whisper model is not installed",
+      statusMessage: "Whisper model is not installed",
       retryable: true,
     });
   });

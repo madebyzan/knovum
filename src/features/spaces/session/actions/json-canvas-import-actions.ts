@@ -1,5 +1,6 @@
+import { decodeAppError } from "../../../../foundation/errors/app-error";
+import { errorMessage } from "../../../../foundation/errors/error-format";
 import { i18n } from "../../../../foundation/i18n/i18n";
-import { decodeCommandError } from "../../../../foundation/ipc/command-error";
 import { useTaskStore } from "../../../../foundation/tasks/task-store";
 import { scheduleSpaceAssetProcessing } from "../../assets/processing-scheduler";
 import type {
@@ -41,7 +42,7 @@ export function createJsonCanvasImportActions(context: JsonCanvasImportContext) 
     async function cancelImport() {
       await cancelJsonCanvasImport(mutationId);
       await operation.catch((error: unknown) => {
-        if (decodeCommandError(error)?.code !== "json_canvas_import_cancelled") throw error;
+        if (decodeAppError(error)?.code !== "json_canvas_import_cancelled") throw error;
       });
     }
 
@@ -91,8 +92,8 @@ export function createJsonCanvasImportActions(context: JsonCanvasImportContext) 
           snapshot: projection.editSnapshot,
         };
       } catch (error) {
-        if (decodeCommandError(error)?.code === "json_canvas_import_cancelled") tasks.cancelled(taskId);
-        else tasks.fail(taskId, String(error));
+        if (decodeAppError(error)?.code === "json_canvas_import_cancelled") tasks.cancelled(taskId);
+        else tasks.fail(taskId, errorMessage(error));
         throw error;
       }
     }

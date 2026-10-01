@@ -1,4 +1,5 @@
 use super::{publish_in_transaction, PublicationGuard};
+use crate::app_error::AppError;
 use serde_json::{json, Value};
 use sqlx::SqlitePool;
 use tokio_util::sync::CancellationToken;
@@ -21,7 +22,7 @@ pub(in crate::spaces::assets::enrichment) async fn publish(
     data: &Value,
     fields: serde_json::Map<String, Value>,
     token: &CancellationToken,
-) -> Result<Value, String> {
+) -> Result<Value, AppError> {
     let mut tx = crate::spaces::db::begin_write(pool).await?;
     let result = publish_in_transaction(
         &mut tx,
@@ -68,11 +69,11 @@ async fn stale_sources_manual_edits_and_cancelled_results_cannot_publish() {
         .await
         .unwrap_err();
         let expected = match change {
-            "source" => "enrichment-source-obsolete:",
-            "manual" => "Media knowledge changed while processing",
-            _ => "enrichment-cancelled:",
+            "source" => "enrichment_source_obsolete",
+            "manual" => "operation_failed",
+            _ => "enrichment_cancelled",
         };
-        assert!(error.starts_with(expected), "{error}");
+        assert!(error.code == expected, "{error}");
         let raw: String = sqlx::query_scalar("SELECT data FROM spaces_nodes WHERE id='node'")
             .fetch_one(&pool)
             .await
@@ -100,5 +101,5 @@ async fn manual_document_coverage_edit_invalidates_an_older_analysis() {
     )
     .await
     .unwrap_err();
-    assert!(error.starts_with("document-coverage-obsolete:"));
+    assert!(error.code == "document_coverage_obsolete");
 }

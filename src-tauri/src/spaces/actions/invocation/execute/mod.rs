@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use sqlx::{Sqlite, SqlitePool, Transaction};
 
 mod authorization;
@@ -13,7 +14,7 @@ use crate::spaces::{
 pub async fn invoke(
     pool: &SqlitePool,
     request: ActionInvocationRequest,
-) -> Result<ActionInvocationOutcome, String> {
+) -> Result<ActionInvocationOutcome, AppError> {
     let mut tx = db::begin_write(pool).await?;
     let outcome = invoke_in_transaction(&mut tx, &request).await?;
     tx.commit().await.map_err(db::sql_error)?;
@@ -23,7 +24,7 @@ pub async fn invoke(
 pub(crate) async fn invoke_in_transaction(
     tx: &mut Transaction<'_, Sqlite>,
     request: &ActionInvocationRequest,
-) -> Result<ActionInvocationOutcome, String> {
+) -> Result<ActionInvocationOutcome, AppError> {
     request.validate_identity()?;
     let definition = crate::spaces::actions::require(&request.action_id)?;
     validate_definition(definition, request)?;
@@ -51,11 +52,14 @@ pub(crate) async fn invoke_in_transaction(
 fn validate_definition(
     definition: &crate::spaces::actions::SpaceActionDefinition,
     request: &ActionInvocationRequest,
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     if definition.version != request.action_version {
         return Err("action-version-unavailable: SpaceAction version is unavailable".into());
     }
-    crate::spaces::actions::validate_parameters(definition, &request.parameters)
+    Ok(crate::spaces::actions::validate_parameters(
+        definition,
+        &request.parameters,
+    )?)
 }
 
 async fn execute(
@@ -65,7 +69,7 @@ async fn execute(
     mode: SpaceActionExecutionMode,
     impact: SpaceActionImpact,
     now: i64,
-) -> Result<ActionInvocationOutcome, String> {
+) -> Result<ActionInvocationOutcome, AppError> {
     match mode {
         SpaceActionExecutionMode::Immediate => {
             let action_output = crate::spaces::action_execution::execute_immediate(
@@ -88,6 +92,8 @@ async fn execute(
                 }
             })
         }
-        SpaceActionExecutionMode::Durable => durable::create(tx, request, authorization, now).await,
+        SpaceActionExecutionMode::Durable => {
+            Ok(durable::create(tx, request, authorization, now).await?)
+        }
     }
 }

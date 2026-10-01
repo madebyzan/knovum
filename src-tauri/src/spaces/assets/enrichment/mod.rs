@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use std::path::PathBuf;
 
 use serde_json::Value;
@@ -86,7 +87,7 @@ pub async fn enrich_node_with_cancellation(
     cancellation: &CancellationToken,
     updates: Option<&tauri::ipc::Channel<Value>>,
     job_id: Option<&str>,
-) -> Result<Value, String> {
+) -> Result<Value, AppError> {
     let mut data = load_node_content(app, &space_id, &node_id).await?;
     let source = required_string(&data, "assetPath")?;
     let file_name = required_string(&data, "fileName")?;
@@ -184,14 +185,14 @@ async fn finish_enrichment_error(
     data: &mut Value,
     error: String,
     guard: &persistence::PublicationGuard<'_>,
-) -> Result<Value, String> {
+) -> Result<Value, AppError> {
     let state = if error == ASSET_PROCESSING_CANCELLED {
         "done"
     } else {
         "failed"
     };
     persist_processing_state(app, space_id, node_id, data, state, None, Some(guard)).await?;
-    Err(error)
+    Err(processing_error(error))
 }
 
 pub(in crate::spaces) mod commit;
@@ -215,3 +216,17 @@ pub(crate) fn ensure_active(cancellation: &CancellationToken) -> Result<(), Stri
         Ok(())
     }
 }
+
+pub(crate) fn processing_error(message: String) -> AppError {
+    if message == ASSET_PROCESSING_CANCELLED {
+        AppError::new(
+            "space_asset_processing_cancelled",
+            "Asset processing cancelled",
+        )
+    } else {
+        AppError::from(message)
+    }
+}
+
+#[cfg(test)]
+mod tests;

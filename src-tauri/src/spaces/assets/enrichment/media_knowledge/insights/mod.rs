@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use crate::{
     ai::{
         self,
@@ -16,18 +17,16 @@ pub(super) async fn generate(
     knowledge: &Value,
     progress: &Channel<MediaTranscriptionProgress>,
     cancellation: &CancellationToken,
-) -> Result<Value, String> {
+) -> Result<Value, AppError> {
     let selection = match selection {
         Some(selected) => selected,
-        None => ai::settings::default_selection(app, ai::contracts::RoutingPurpose::Knowledge)
-            .map_err(|e| e.task_message())?,
+        None => ai::settings::default_selection(app, ai::contracts::RoutingPurpose::Knowledge)?,
     };
     let target = ai::settings::resolve_task(
         app,
         selection,
         ai::contracts::ExecutionCapability::TextGeneration,
-    )
-    .map_err(|e| e.task_message())?;
+    )?;
     generate_with(
         &ProductExecutor(app),
         target,
@@ -44,7 +43,7 @@ pub(super) async fn generate_with(
     knowledge: &Value,
     progress: &Channel<MediaTranscriptionProgress>,
     cancellation: &CancellationToken,
-) -> Result<Value, String> {
+) -> Result<Value, AppError> {
     let transcript = &knowledge["transcript"];
     let chunks = transcript_chunks(transcript)?;
     transcription::send_progress(progress, "organizing", 10);
@@ -80,14 +79,11 @@ pub(super) async fn generate_with(
     if let Some(error) = completions
         .iter()
         .filter_map(|result| result.as_ref().err())
-        .find(|error| error.code != ai::error::AiErrorCode::Cancelled)
+        .find(|error| error.code != "cancelled")
     {
-        return Err(error.task_message());
+        return Err(error.clone());
     }
-    let completions = completions
-        .into_iter()
-        .collect::<Result<Vec<_>, _>>()
-        .map_err(|error| error.task_message())?;
+    let completions = completions.into_iter().collect::<Result<Vec<_>, _>>()?;
     let mut candidates = Vec::with_capacity(completions.len());
     for completion in &completions {
         candidates.push(parse_candidate(&completion.text).map_err(invalid_result)?);
@@ -111,8 +107,7 @@ pub(super) async fn generate_with(
             },
             cancellation.clone(),
         )
-        .await
-        .map_err(|e| e.task_message())?;
+        .await?;
         execution_source = completion.execution_source;
         parse_candidate(&completion.text).map_err(invalid_result)?
     };
@@ -165,8 +160,8 @@ fn instruction(final_pass: bool) -> String {
     format!("Structure the {source} into a searchable media knowledge record. Return JSON only, with exactly this shape: {{\"summary\":\"...\",\"chapters\":[{{\"startMs\":0,\"title\":\"...\",\"summary\":\"...\"}}]}} summary must capture the whole supplied material concisely. chapters must follow content order, use timestamps that exist in the supplied material, and describe topic changes rather than arbitrary time intervals. The first chapter must start at the first timestamp in the supplied material. Use the language of the supplied material. Do not add markdown or commentary outside the JSON object.")
 }
 
-fn invalid_result(message: String) -> String {
-    ai::error::AiError::new(ai::error::AiErrorCode::InvalidResponse, message).task_message()
+fn invalid_result(message: String) -> AppError {
+    AppError::new("invalid_response", message)
 }
 
 fn parse_candidate(text: &str) -> Result<Value, String> {

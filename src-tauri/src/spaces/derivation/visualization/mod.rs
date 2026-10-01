@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 pub(crate) mod metadata;
 mod persistence;
 mod prompt;
@@ -52,7 +53,7 @@ pub(super) async fn generate_for_action(
     app: AppHandle,
     request: GenerateVisualizationRequest,
     stages: Channel<String>,
-) -> Result<VisualizationOutput, String> {
+) -> Result<VisualizationOutput, AppError> {
     generate_inner(authority, app, request, stages).await
 }
 
@@ -61,13 +62,12 @@ async fn generate_inner(
     app: AppHandle,
     request: GenerateVisualizationRequest,
     stages: Channel<String>,
-) -> Result<VisualizationOutput, String> {
+) -> Result<VisualizationOutput, AppError> {
     let target = settings::resolve_task(
         &app,
         request.target.clone(),
         ExecutionCapability::ImageGeneration,
-    )
-    .map_err(|error| error.task_message())?;
+    )?;
     let (cancellation, _lease) = crate::ai::executions::acquire(request.id.clone())?;
     authority
         .require_active(crate::spaces::db::pool(&app).await?)
@@ -84,9 +84,11 @@ async fn generate_inner(
     }
     let generated_visualization = execute(&app, &request, &target, &stages, &cancellation).await;
     match generated_visualization {
-        Ok(image) => persistence::complete(&app, &request, image, &authority, &cancellation).await,
+        Ok(image) => {
+            Ok(persistence::complete(&app, &request, image, &authority, &cancellation).await?)
+        }
         Err(error) => {
-            persistence::fail(&app, &request.id, &error).await?;
+            persistence::fail(&app, &request.id, &error.message).await?;
             Err(error)
         }
     }
@@ -98,7 +100,7 @@ async fn execute(
     target: &TaskExecutionTarget,
     stages: &Channel<String>,
     cancellation: &tokio_util::sync::CancellationToken,
-) -> Result<VisualizationResult, String> {
+) -> Result<VisualizationResult, AppError> {
     stage(stages, "retrieving")?;
     crate::spaces::knowledge::retrieval::rebuild::prepare_space_index(
         app,
@@ -148,10 +150,9 @@ async fn execute(
             cancellation,
         )
         .await
-        .map(VisualizationResult::from)
-        .map_err(|error| error.to_string()),
+        .map(VisualizationResult::from),
         TaskExecutionTarget::Agent { runtime_kind } => {
-            let bytes = crate::external_agents::task::artifact(app, *runtime_kind, format!("Create the requested image as PNG with aspect ratio {}. Use your own available tools/Skills.\n{prompt}", request.aspect_ratio), Vec::new(), crate::external_agents::task::ArtifactFormat::Png, cancellation.clone()).await.map_err(|error| error.task_message())?;
+            let bytes = crate::external_agents::task::artifact(app, *runtime_kind, format!("Create the requested image as PNG with aspect ratio {}. Use your own available tools/Skills.\n{prompt}", request.aspect_ratio), Vec::new(), crate::external_agents::task::ArtifactFormat::Png, cancellation.clone()).await?;
             Ok(VisualizationResult {
                 bytes,
                 execution_source: ExecutionSource::Agent {

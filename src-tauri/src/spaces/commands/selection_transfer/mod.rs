@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 mod completion;
 pub(crate) mod contracts;
 mod operations;
@@ -14,7 +15,7 @@ use contracts::TransferSelectionResponse;
 pub async fn transfer_selection<R: Runtime>(
     app: &AppHandle<R>,
     request: TransferSelectionRequest,
-) -> Result<TransferSelectionResponse, String> {
+) -> Result<TransferSelectionResponse, AppError> {
     if request.source_space_id == request.target_space_id
         || request.root_structure_node_ids.is_empty()
     {
@@ -38,7 +39,10 @@ pub async fn transfer_selection<R: Runtime>(
     if source_revision != request.expected_source_edit_revision
         || target_revision != request.expected_target_edit_revision
     {
-        return Err("space-edit-revision-conflict: Cross-Space edit revision conflict".into());
+        return Err(AppError::new(
+            "space_edit_revision_conflict",
+            "Cross-Space edit revision conflict",
+        ));
     }
     let source_before =
         structure::history::capture(&mut tx, &request.source_space_id, &source_snapshot).await?;

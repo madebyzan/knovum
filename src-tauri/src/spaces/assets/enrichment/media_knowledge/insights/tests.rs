@@ -103,7 +103,7 @@ async fn failed_chunk_cancels_and_drains_started_sessions_without_hiding_the_err
             _: ai::models::ModelExecutionTarget,
             _: TaskInput,
             _: CancellationToken,
-        ) -> ai::error::AiResult<ai::tasks::completion::TaskCompletionOutput> {
+        ) -> crate::app_error::AppResult<ai::tasks::completion::TaskCompletionOutput> {
             panic!("Agent task must not reach model transport");
         }
         async fn agent(
@@ -111,18 +111,18 @@ async fn failed_chunk_cancels_and_drains_started_sessions_without_hiding_the_err
             _: ai::contracts::AgentKind,
             _: TaskInput,
             cancellation: CancellationToken,
-        ) -> ai::error::AiResult<ai::tasks::completion::TaskCompletionOutput> {
+        ) -> crate::app_error::AppResult<ai::tasks::completion::TaskCompletionOutput> {
             let position = self.started.fetch_add(1, Ordering::SeqCst);
             if position == 1 {
                 self.settled.fetch_add(1, Ordering::SeqCst);
-                return Err(ai::error::AiError::new(
-                    ai::error::AiErrorCode::AuthenticationFailed,
+                return Err(crate::app_error::AppError::new(
+                    "authentication_failed",
                     "Login required",
                 ));
             }
             cancellation.cancelled().await;
             self.settled.fetch_add(1, Ordering::SeqCst);
-            Err(ai::error::AiError::cancelled("Sibling failed"))
+            Err(crate::app_error::AppError::cancelled("Sibling failed"))
         }
     }
     let executor = FailingExecutor {
@@ -139,7 +139,7 @@ async fn failed_chunk_cancels_and_drains_started_sessions_without_hiding_the_err
     )
     .await
     .unwrap_err();
-    assert!(error.starts_with("ai-authentication-failed:"), "{error}");
+    assert!(error.code == "authentication_failed", "{error}");
     assert_eq!(executor.started.load(Ordering::SeqCst), 2);
     assert_eq!(executor.settled.load(Ordering::SeqCst), 2);
     assert!(knowledge.get("insights").is_none());

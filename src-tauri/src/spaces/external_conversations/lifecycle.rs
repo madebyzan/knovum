@@ -1,8 +1,9 @@
+use crate::app_error::AppError;
 use tauri::AppHandle;
 
 use crate::{ai::capabilities, spaces::db};
 
-pub async fn close(app: AppHandle, conversation_id: &str) -> Result<(), String> {
+pub async fn close(app: AppHandle, conversation_id: &str) -> Result<(), AppError> {
     crate::external_agents::conversation::finish(conversation_id).await?;
     super::updates::release(conversation_id);
     let pool = db::pool(&app).await?;
@@ -18,7 +19,7 @@ pub async fn close(app: AppHandle, conversation_id: &str) -> Result<(), String> 
     if let Err(error) =
         super::publication::publish(&app, conversation_id, &row.0, &row.1, &workspace).await
     {
-        record_publication_failure(pool, conversation_id, &error).await?;
+        record_publication_failure(pool, conversation_id, &error.message).await?;
         return Err(error);
     }
     Ok(())
@@ -162,7 +163,7 @@ pub async fn recover(app: AppHandle) -> Result<(), String> {
             super::publication::publish(&app, &id, &run_id, &space_id, &workspace).await
         {
             log::error!("Agent output recovery failed for {id}: {error}");
-            record_publication_failure(pool, &id, &error).await?;
+            record_publication_failure(pool, &id, &error.message).await?;
         }
     }
     let committed: Vec<(String, String, String)> = sqlx::query_as(

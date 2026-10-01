@@ -171,7 +171,7 @@ pub(in crate::spaces) fn selection<R: tauri::Runtime>(
         crate::ai::contracts::RoutingPurpose::VisualUnderstanding,
     ) {
         Ok(target) => Ok(Some(target)),
-        Err(error) if error.code == crate::ai::error::AiErrorCode::NotConfigured => Ok(None),
+        Err(error) if error.code == "not_configured" => Ok(None),
         Err(error) => Err(error.to_string()),
     }
 }

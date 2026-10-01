@@ -4,9 +4,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::ai::{
     contracts::{GeneratedImage, ImageGenerationCapability, ImageGenerationInput},
-    error::{AiError, AiErrorCode, AiResult},
     transport::{http_client, SecurityContext},
 };
+use crate::app_error::{AppError, AppResult};
 
 pub struct GeminiImageAdapter;
 
@@ -80,7 +80,7 @@ impl ImageGenerationCapability for GeminiImageAdapter {
         &'a self,
         ctx: &'a SecurityContext,
         req: &'a ImageGenerationInput,
-    ) -> BoxFuture<'a, AiResult<GeneratedImage>> {
+    ) -> BoxFuture<'a, AppResult<GeneratedImage>> {
         Box::pin(async move {
             let secret = ctx.require_api_key()?;
             let endpoint = ctx.endpoint.trim_end_matches('/');
@@ -105,9 +105,7 @@ impl ImageGenerationCapability for GeminiImageAdapter {
                 let data: serde_json::Value = check_status(response).await?;
                 data["predictions"][0]["bytesBase64Encoded"]
                     .as_str()
-                    .ok_or_else(|| {
-                        AiError::new(AiErrorCode::EmptyResponse, "Imagen returned no image")
-                    })?
+                    .ok_or_else(|| AppError::new("empty_response", "Imagen returned no image"))?
                     .to_string()
             } else {
                 let url = format!("{endpoint}/models/{}:generateContent", ctx.model);
@@ -130,9 +128,9 @@ impl ImageGenerationCapability for GeminiImageAdapter {
                     .await
                     .map_err(provider_err)?;
                 let gemini_response: GeminiResponse = check_status(response).await?;
-                gemini_response.image_data().ok_or_else(|| {
-                    AiError::new(AiErrorCode::EmptyResponse, "Gemini returned no image")
-                })?
+                gemini_response
+                    .image_data()
+                    .ok_or_else(|| AppError::new("empty_response", "Gemini returned no image"))?
             };
 
             let bytes = response::decode_image(&encoded)?;
@@ -149,15 +147,15 @@ impl ImageGenerationCapability for GeminiImageAdapter {
 
 pub(super) async fn check_status<T: serde::de::DeserializeOwned>(
     response: reqwest::Response,
-) -> AiResult<T> {
+) -> AppResult<T> {
     let status = response.status();
     if !status.is_success() {
         let text = response::read_text(response).await?;
-        return Err(AiError::new(AiErrorCode::ProviderRequestFailed, text));
+        return Err(AppError::new("provider_request_failed", text));
     }
     response::read_json(response, response::MAX_IMAGE_JSON_BYTES).await
 }
 
-fn provider_err(e: impl std::fmt::Display) -> AiError {
-    AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string())
+fn provider_err(e: impl std::fmt::Display) -> AppError {
+    AppError::new("provider_request_failed", e.to_string())
 }

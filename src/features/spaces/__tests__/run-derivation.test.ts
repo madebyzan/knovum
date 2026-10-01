@@ -35,9 +35,16 @@ it("settles a failed task even if output recovery fails", async () => {
       onSuccess: () => undefined,
       onError,
     }),
-  ).rejects.toThrow("Recovery failed");
+  ).rejects.toMatchObject({
+    name: "AggregateError",
+    cause: expect.objectContaining({ message: "Derivation failed" }),
+    errors: [
+      expect.objectContaining({ message: "Derivation failed" }),
+      expect.objectContaining({ message: "Recovery failed" }),
+    ],
+  });
   expect(state.tasks.fail).toHaveBeenCalledWith("task", expect.stringContaining("Derivation failed"));
-  expect(state.toastError).toHaveBeenCalled();
+  expect(state.toastError).not.toHaveBeenCalled();
 });
 
 it("does not run failure recovery after a committed output has a projection error", async () => {
@@ -58,5 +65,5 @@ it("does not run failure recovery after a committed output has a projection erro
   expect(onError).not.toHaveBeenCalled();
   expect(state.tasks.succeed).toHaveBeenCalledWith("task");
   expect(state.tasks.fail).not.toHaveBeenCalled();
-  expect(state.toastError).toHaveBeenCalled();
+  expect(state.toastError).not.toHaveBeenCalled();
 });

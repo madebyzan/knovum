@@ -1,5 +1,6 @@
 import { toast } from "vue-sonner";
 
+import { errorMessage } from "../../../foundation/errors/error-format";
 import { i18n } from "../../../foundation/i18n/i18n";
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
@@ -65,8 +66,8 @@ export async function createImageCutout(store: SpaceStore, source: SpaceCanvasNo
     try {
       await markPendingCutoutFailed(store, spaceId, pending.id);
     } finally {
-      tasks.fail(taskId, String(error));
-      toast.error(`${t("spaces.creation.image.cutout.failed")}: ${String(error)}`);
+      tasks.fail(taskId, errorMessage(error));
+      toast.error(`${t("spaces.creation.image.cutout.failed")}: ${errorMessage(error)}`);
     }
   }
 }
@@ -100,7 +101,7 @@ async function checkCutoutSource(
     if (available) return true;
     toast.error(i18n.global.t("spaces.creation.image.cutout.sourceMissing"));
   } catch (error) {
-    toast.error(`${i18n.global.t("spaces.creation.image.cutout.failed")}: ${String(error)}`);
+    toast.error(`${i18n.global.t("spaces.creation.image.cutout.failed")}: ${errorMessage(error)}`);
   }
   return false;
 }

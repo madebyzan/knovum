@@ -3,7 +3,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use ts_rs::TS;
 
-use crate::ai::{error::AiResult, transport::SecurityContext};
+use crate::ai::transport::SecurityContext;
+use crate::app_error::AppResult;
 
 #[derive(Clone, Debug, Deserialize, Serialize, TS)]
 #[serde(tag = "type", rename_all = "snake_case", deny_unknown_fields)]
@@ -116,5 +117,5 @@ pub trait ModelTurnCapability: Send + Sync {
         &'a self,
         context: &'a SecurityContext,
         request: &'a ModelTurnRequest,
-    ) -> BoxFuture<'a, AiResult<ModelTurnResponse>>;
+    ) -> BoxFuture<'a, AppResult<ModelTurnResponse>>;
 }

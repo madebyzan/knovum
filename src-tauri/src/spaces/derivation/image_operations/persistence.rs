@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use std::path::Path;
 
 use serde_json::Value;
@@ -14,7 +15,7 @@ pub async fn start(
     app: &AppHandle,
     request: &DeriveImageRequest,
     target: &crate::ai::tasks::TaskExecutionTarget,
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     validation::request(request)?;
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
@@ -67,7 +68,10 @@ pub async fn start(
         }],
     )
     .await?;
-    tx.commit().await.map_err(db::sql_error)
+    tx.commit()
+        .await
+        .map_err(db::sql_error)
+        .map_err(AppError::from)
 }
 
 pub async fn complete(
@@ -75,7 +79,7 @@ pub async fn complete(
     request: &DeriveImageRequest,
     image: CanonicalImage,
     cancellation: &tokio_util::sync::CancellationToken,
-) -> Result<CompletedDerivationOutput, String> {
+) -> Result<CompletedDerivationOutput, AppError> {
     let path = output_file::write(app, &image.png).await?;
     let completed = complete_persistence(app, request, &image, &path, cancellation).await;
     if completed.is_err() {
@@ -90,7 +94,7 @@ async fn complete_persistence(
     image: &CanonicalImage,
     path: &Path,
     cancellation: &tokio_util::sync::CancellationToken,
-) -> Result<CompletedDerivationOutput, String> {
+) -> Result<CompletedDerivationOutput, AppError> {
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
     source_validation::validate(
@@ -105,13 +109,18 @@ async fn complete_persistence(
     let encoded: String = sqlx::query_scalar("SELECT n.data FROM spaces_knowledge_derivations d JOIN spaces_nodes n ON n.id=d.output_node_id AND n.space_id=d.space_id WHERE d.id=$1 AND d.status='running' AND n.kind='image' AND n.deleted_at IS NULL")
         .bind(&request.id).fetch_optional(&mut *tx).await.map_err(db::sql_error)?
         .ok_or("Image operation is no longer running")?;
-    let mut data: Value = serde_json::from_str(&encoded).map_err(db::json_error)?;
+    let mut data: Value = serde_json::from_str(&encoded)
+        .map_err(db::json_error)
+        .map_err(AppError::from)?;
     pending_output::validate_unpublished_asset(&data)?;
     let relation = persist(&mut tx, request, &mut data, image, path).await?;
     if cancellation.is_cancelled() {
         return Err("Image operation was cancelled".into());
     }
-    tx.commit().await.map_err(db::sql_error)?;
+    tx.commit()
+        .await
+        .map_err(db::sql_error)
+        .map_err(AppError::from)?;
     Ok(CompletedDerivationOutput {
         node_id: request.output_node_id.clone(),
         data,
@@ -125,7 +134,7 @@ async fn persist(
     data: &mut Value,
     image: &CanonicalImage,
     path: &Path,
-) -> Result<super::super::DerivationRelation, String> {
+) -> Result<super::super::DerivationRelation, AppError> {
     let now = crate::clock::unix_time_millis()?;
     let object = data
         .as_object_mut()

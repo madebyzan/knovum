@@ -1,5 +1,6 @@
 import { type Ref, type ShallowRef } from "vue";
 
+import { errorMessage } from "../../../foundation/errors/error-format";
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import type { RunObservation } from "../contracts/generated/RunObservation";
 import { getAssistantTaskError, listActiveAssistantRuns } from "./conversation-ipc";
@@ -61,7 +62,7 @@ export function useConversationRunRestoration(state: {
               return undefined;
             })
             .catch((cause: unknown) => {
-              state.error.value = String(cause);
+              state.error.value = errorMessage(cause);
             });
         }
         void state
@@ -72,7 +73,7 @@ export function useConversationRunRestoration(state: {
             return undefined;
           })
           .catch((cause: unknown) => {
-            state.error.value = String(cause);
+            state.error.value = errorMessage(cause);
           });
       }
     };
@@ -89,7 +90,7 @@ export function useConversationRunRestoration(state: {
     try {
       await invokeCommand("plugin:spaces|resume_run", { runId: state.activeRunId.value });
     } catch (cause) {
-      state.error.value = String(cause);
+      state.error.value = errorMessage(cause);
     }
   }
 

@@ -2,7 +2,8 @@ use futures::future::BoxFuture;
 use serde::{Deserialize, Serialize};
 use tokio_util::sync::CancellationToken;
 
-use crate::ai::{error::AiResult, transport::SecurityContext};
+use crate::ai::transport::SecurityContext;
+use crate::app_error::AppResult;
 
 #[derive(Debug, Clone)]
 pub struct ImageGenerationInput {
@@ -23,7 +24,7 @@ pub trait ImageGenerationCapability: Send + Sync {
         &'a self,
         ctx: &'a SecurityContext,
         req: &'a ImageGenerationInput,
-    ) -> BoxFuture<'a, AiResult<GeneratedImage>>;
+    ) -> BoxFuture<'a, AppResult<GeneratedImage>>;
 }
 
 #[derive(Debug, Clone)]
@@ -67,13 +68,13 @@ pub trait VideoGenerationCapability: Send + Sync {
         &'a self,
         ctx: &'a SecurityContext,
         req: &'a VideoGenerationInput,
-    ) -> BoxFuture<'a, AiResult<VideoGenerationSubmission>>;
+    ) -> BoxFuture<'a, AppResult<VideoGenerationSubmission>>;
 
     fn status<'a>(
         &'a self,
         ctx: &'a SecurityContext,
         operation_id: &'a str,
-    ) -> BoxFuture<'a, AiResult<VideoGenerationStatus>>;
+    ) -> BoxFuture<'a, AppResult<VideoGenerationStatus>>;
 
     fn generate<'a>(
         &'a self,
@@ -81,5 +82,5 @@ pub trait VideoGenerationCapability: Send + Sync {
         req: &'a VideoGenerationInput,
         cancellation: &'a CancellationToken,
         stage: VideoGenerationStageCallback<'a>,
-    ) -> BoxFuture<'a, AiResult<GeneratedVideo>>;
+    ) -> BoxFuture<'a, AppResult<GeneratedVideo>>;
 }

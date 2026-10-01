@@ -4,9 +4,9 @@ use serde::Deserialize;
 
 use crate::ai::{
     contracts::{GeneratedImage, ImageGenerationCapability, ImageGenerationInput},
-    error::{AiError, AiErrorCode, AiResult},
     transport::{http_client, SecurityContext},
 };
+use crate::app_error::{AppError, AppResult};
 
 pub struct DashScopeImageAdapter;
 
@@ -50,7 +50,7 @@ impl ImageGenerationCapability for DashScopeImageAdapter {
         &'a self,
         ctx: &'a SecurityContext,
         req: &'a ImageGenerationInput,
-    ) -> BoxFuture<'a, AiResult<GeneratedImage>> {
+    ) -> BoxFuture<'a, AppResult<GeneratedImage>> {
         Box::pin(async move {
             let secret = ctx.require_api_key()?;
             let endpoint = dashscope_endpoint(&ctx.endpoint)?;
@@ -78,7 +78,7 @@ impl ImageGenerationCapability for DashScopeImageAdapter {
                 .json(&body)
                 .send()
                 .await
-                .map_err(|e| AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string()))?;
+                .map_err(|e| AppError::new("provider_request_failed", e.to_string()))?;
 
             let status = generation_response.status();
             let payload: ResponsePayload =
@@ -87,15 +87,15 @@ impl ImageGenerationCapability for DashScopeImageAdapter {
             if !status.is_success() {
                 let code = payload.code.as_deref().unwrap_or("unknown");
                 let msg = payload.message.as_deref().unwrap_or("request failed");
-                return Err(AiError::new(
-                    AiErrorCode::ProviderRequestFailed,
+                return Err(AppError::new(
+                    "provider_request_failed",
                     format!("DashScope image generation failed: {code} - {msg}"),
                 ));
             }
 
             let (url, revised_prompt) = extract_image(payload.output).ok_or_else(|| {
-                AiError::new(
-                    AiErrorCode::InvalidResponse,
+                AppError::new(
+                    "invalid_response",
                     "DashScope image response did not contain an image URL",
                 )
             })?;
@@ -104,9 +104,9 @@ impl ImageGenerationCapability for DashScopeImageAdapter {
                 .get(&url)
                 .send()
                 .await
-                .map_err(|e| AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string()))?
+                .map_err(|e| AppError::new("provider_request_failed", e.to_string()))?
                 .error_for_status()
-                .map_err(|e| AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string()))?;
+                .map_err(|e| AppError::new("provider_request_failed", e.to_string()))?;
 
             let image_bytes =
                 response::read_bytes(download_response, response::MAX_IMAGE_BYTES).await?;
@@ -121,7 +121,7 @@ impl ImageGenerationCapability for DashScopeImageAdapter {
     }
 }
 
-pub(super) fn dashscope_endpoint(endpoint: &str) -> AiResult<String> {
+pub(super) fn dashscope_endpoint(endpoint: &str) -> AppResult<String> {
     let ep = endpoint.trim().trim_end_matches('/');
     let root = ep.strip_suffix("/compatible-mode/v1").unwrap_or(ep);
     let root = root.strip_suffix("/api/v1").unwrap_or(root);

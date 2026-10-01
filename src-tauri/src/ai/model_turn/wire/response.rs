@@ -5,14 +5,14 @@ use crate::ai::{
         ModelBinarySource, ModelContentPart, ModelFinishReason, ModelMessage, ModelRole,
         ModelTurnResponse, TokenUsage,
     },
-    error::{AiError, AiErrorCode, AiResult},
     transport::SecurityContext,
 };
+use crate::app_error::{AppError, AppResult};
 
 pub(super) fn from_genai_response(
     context: &SecurityContext,
     response: genai::chat::ChatResponse,
-) -> AiResult<ModelTurnResponse> {
+) -> AppResult<ModelTurnResponse> {
     let finish_reason_raw = response
         .stop_reason
         .as_ref()
@@ -23,7 +23,7 @@ pub(super) fn from_genai_response(
         .into_parts()
         .into_iter()
         .map(from_part)
-        .collect::<AiResult<Vec<_>>>()?;
+        .collect::<AppResult<Vec<_>>>()?;
     Ok(ModelTurnResponse {
         message: ModelMessage {
             role: ModelRole::Assistant,
@@ -41,7 +41,7 @@ pub(super) fn from_genai_response(
 pub(in crate::ai::model_turn) fn from_stream_end(
     context: &SecurityContext,
     end: genai::chat::StreamEnd,
-) -> AiResult<ModelTurnResponse> {
+) -> AppResult<ModelTurnResponse> {
     let finish_reason_raw = end
         .captured_stop_reason
         .as_ref()
@@ -53,7 +53,7 @@ pub(in crate::ai::model_turn) fn from_stream_end(
         .into_parts()
         .into_iter()
         .map(from_part)
-        .collect::<AiResult<Vec<_>>>()?;
+        .collect::<AppResult<Vec<_>>>()?;
     Ok(ModelTurnResponse {
         message: ModelMessage {
             role: ModelRole::Assistant,
@@ -68,7 +68,7 @@ pub(in crate::ai::model_turn) fn from_stream_end(
     })
 }
 
-fn from_part(part: ContentPart) -> AiResult<ModelContentPart> {
+fn from_part(part: ContentPart) -> AppResult<ModelContentPart> {
     match part {
         ContentPart::Text(text) => Ok(ModelContentPart::Text { text }),
         ContentPart::Binary(binary) => match binary.source {
@@ -99,9 +99,9 @@ fn from_part(part: ContentPart) -> AiResult<ModelContentPart> {
     }
 }
 
-fn unsupported(kind: &str) -> AiError {
-    AiError::new(
-        AiErrorCode::InvalidResponse,
+fn unsupported(kind: &str) -> AppError {
+    AppError::new(
+        "invalid_response",
         format!("ModelTurn cannot preserve {kind}; this provider response is unsupported."),
     )
 }

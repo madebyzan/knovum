@@ -1,4 +1,4 @@
-use crate::command_error::CommandError;
+use crate::app_error::AppError;
 use tauri::AppHandle;
 
 use super::{image_cutout, image_layers, image_operations, video_edit, CompletedDerivationOutput};
@@ -8,12 +8,12 @@ pub async fn generate_image_layers(
     app: AppHandle,
     request: image_layers::GenerateImageLayersRequest,
     on_stage: tauri::ipc::Channel<String>,
-) -> Result<Vec<CompletedDerivationOutput>, CommandError> {
-    Ok((image_layers::generate(app, request, on_stage).await)?)
+) -> Result<Vec<CompletedDerivationOutput>, AppError> {
+    image_layers::generate(app, request, on_stage).await
 }
 
 #[tauri::command]
-pub fn cancel_image_layer_generation(generation_id: String) -> Result<(), CommandError> {
+pub fn cancel_image_layer_generation(generation_id: String) -> Result<(), AppError> {
     Ok((image_layers::cancel(&generation_id))?)
 }
 
@@ -22,16 +22,16 @@ pub async fn derive_image(
     app: AppHandle,
     request: image_operations::DeriveImageRequest,
     on_stage: tauri::ipc::Channel<String>,
-) -> Result<CompletedDerivationOutput, CommandError> {
-    Ok((image_operations::derive(app, request, on_stage).await)?)
+) -> Result<CompletedDerivationOutput, AppError> {
+    image_operations::derive(app, request, on_stage).await
 }
 
 #[tauri::command]
 pub async fn run_image_cutout_derivation(
     app: AppHandle,
     request: image_cutout::StartImageCutoutRequest,
-) -> Result<CompletedDerivationOutput, CommandError> {
-    Ok(image_cutout::run(app, request).await?)
+) -> Result<CompletedDerivationOutput, AppError> {
+    image_cutout::run(app, request).await
 }
 
 #[tauri::command]
@@ -39,20 +39,12 @@ pub async fn render_video_edit(
     app: AppHandle,
     request: video_edit::RenderVideoEditRequest,
     on_progress: tauri::ipc::Channel<video_edit::VideoEditProgress>,
-) -> Result<CompletedDerivationOutput, CommandError> {
-    video_edit::render(app, request, on_progress)
-        .await
-        .map_err(|message| {
-            if message == video_edit::CANCELLED {
-                CommandError::new("video_edit_render_cancelled", message)
-            } else {
-                message.into()
-            }
-        })
+) -> Result<CompletedDerivationOutput, AppError> {
+    video_edit::render(app, request, on_progress).await
 }
 
 #[tauri::command]
-pub async fn cancel_video_edit_render(derivation_id: String) -> Result<(), CommandError> {
+pub async fn cancel_video_edit_render(derivation_id: String) -> Result<(), AppError> {
     Ok((video_edit::cancel(&derivation_id))?)
 }
 
@@ -60,11 +52,11 @@ pub async fn cancel_video_edit_render(derivation_id: String) -> Result<(), Comma
 pub async fn prepare_video_edit_proxy(
     app: AppHandle,
     request: video_edit::PrepareVideoEditProxyRequest,
-) -> Result<String, CommandError> {
+) -> Result<String, AppError> {
     Ok((video_edit::prepare_proxy(app, request).await)?)
 }
 
 #[tauri::command]
-pub async fn cancel_video_edit_proxy(job_id: String) -> Result<(), CommandError> {
+pub async fn cancel_video_edit_proxy(job_id: String) -> Result<(), AppError> {
     Ok((video_edit::cancel_proxy(&job_id))?)
 }

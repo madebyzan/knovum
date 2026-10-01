@@ -237,7 +237,7 @@ async fn persist_content(
     }
 }
 
-fn projection_error(error: crate::ai::error::AiError) -> Error {
+fn projection_error(error: crate::app_error::AppError) -> Error {
     Error::invalid_request().data(error.to_string())
 }
 

@@ -1,4 +1,4 @@
-use crate::command_error::CommandError;
+use crate::app_error::AppError;
 use tauri::AppHandle;
 
 pub(crate) fn reserve(app: &AppHandle, prefix: &str, extension: &str) -> Result<String, String> {
@@ -9,11 +9,11 @@ pub(crate) fn reserve(app: &AppHandle, prefix: &str, extension: &str) -> Result<
 }
 
 #[tauri::command]
-pub fn allocate_visualization_output_path(app: AppHandle) -> Result<String, CommandError> {
+pub fn allocate_visualization_output_path(app: AppHandle) -> Result<String, AppError> {
     Ok((reserve(&app, "generated", "png"))?)
 }
 
 #[tauri::command]
-pub fn allocate_video_edit_output_path(app: AppHandle) -> Result<String, CommandError> {
+pub fn allocate_video_edit_output_path(app: AppHandle) -> Result<String, AppError> {
     Ok(reserve(&app, "edited", "mp4")?)
 }

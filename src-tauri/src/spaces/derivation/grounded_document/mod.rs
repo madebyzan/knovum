@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 mod completion;
 pub(crate) mod metadata;
 mod persistence;
@@ -58,7 +59,7 @@ pub(super) async fn generate_for_action(
     app: AppHandle,
     request: GenerateGroundedDocumentRequest,
     stages: Channel<String>,
-) -> Result<GroundedDocumentOutput, String> {
+) -> Result<GroundedDocumentOutput, AppError> {
     generate_inner(authority, app, request, stages).await
 }
 
@@ -67,13 +68,12 @@ async fn generate_inner(
     app: AppHandle,
     request: GenerateGroundedDocumentRequest,
     stages: Channel<String>,
-) -> Result<GroundedDocumentOutput, String> {
+) -> Result<GroundedDocumentOutput, AppError> {
     let target = settings::resolve_task(
         &app,
         request.target.clone(),
         ExecutionCapability::TextGeneration,
-    )
-    .map_err(|error| error.task_message())?;
+    )?;
     let (cancellation, _lease) = crate::ai::executions::acquire(request.id.clone())?;
     authority.require_active(db::pool(&app).await?).await?;
     if let Err(error) = persistence::start(&app, &request, &authority).await {
@@ -84,7 +84,7 @@ async fn generate_inner(
             super::failure::PendingNodeState::Derivation,
         )
         .await?;
-        return Err(error);
+        return Err(error.into());
     }
     let generated_document = execute(&app, &request, &target, &stages, cancellation.clone()).await;
     match generated_document {
@@ -93,10 +93,10 @@ async fn generate_inner(
                 crate::spaces::runs::record_usage(db::pool(&app).await?, &request.id, usage)
                     .await?;
             }
-            completion::complete(&app, &request, generated, &authority, &cancellation).await
+            Ok(completion::complete(&app, &request, generated, &authority, &cancellation).await?)
         }
         Err(error) => {
-            persistence::fail(&app, &request.id, &error).await?;
+            persistence::fail(&app, &request.id, &error.message).await?;
             Err(error)
         }
     }
@@ -108,7 +108,7 @@ async fn execute(
     target: &TaskExecutionTarget,
     stages: &Channel<String>,
     cancellation: tokio_util::sync::CancellationToken,
-) -> Result<GeneratedDocument, String> {
+) -> Result<GeneratedDocument, AppError> {
     stage(stages, "retrieving")?;
     crate::spaces::knowledge::retrieval::rebuild::prepare_space_index(
         app,
@@ -152,8 +152,7 @@ async fn execute(
         prompt::request(&request.purpose, &sources)?,
         cancellation,
     )
-    .await
-    .map_err(|error| error.task_message())?;
+    .await?;
     let citations = grounding::prompt::citations(&completion.text, &sources, &request.space_id)?;
     Ok(GeneratedDocument {
         text: completion.text,

@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use std::path::PathBuf;
 
 use serde_json::Value;
@@ -18,7 +19,7 @@ const INTERRUPTED_ASSETS: &str =
            AND NOT EXISTS (SELECT 1 FROM spaces_run_attempts a WHERE a.run_id=r.id AND a.state IN ('claimed','executing','waiting_external')) \
        )";
 
-pub async fn reconcile(app: &tauri::AppHandle) -> Result<(), String> {
+pub async fn reconcile(app: &tauri::AppHandle) -> Result<(), AppError> {
     let pool = db::pool(app).await?;
     let rows = sqlx::query(INTERRUPTED_ASSETS)
         .fetch_all(pool)
@@ -51,7 +52,7 @@ async fn recover_interrupted_import(
     space_id: &str,
     node_id: &str,
     data: &mut Value,
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     if let Some(path) = data.get("assetPath").and_then(Value::as_str) {
         remove_owned_partial(app, PathBuf::from(path))?;
     }
@@ -66,7 +67,7 @@ async fn recover_interrupted_processing(
     space_id: &str,
     node_id: &str,
     data: &mut Value,
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     enrichment::persistence::persist_processing_state(
         app, space_id, node_id, data, "failed", None, None,
     )

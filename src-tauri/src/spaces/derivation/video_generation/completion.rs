@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 use tauri::AppHandle;
@@ -17,7 +18,7 @@ pub async fn complete(
     generated: VideoResult,
     authority: &super::super::action_execution::ExecutionAuthority,
     cancellation: &tokio_util::sync::CancellationToken,
-) -> Result<VideoOutput, String> {
+) -> Result<VideoOutput, AppError> {
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
     authority.require_active(&mut *tx).await?;

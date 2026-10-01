@@ -1,5 +1,6 @@
 import { error as logError } from "@tauri-apps/plugin-log";
 
+import { errorDiagnostic } from "../../../../foundation/errors/error-format";
 import { invokeCommand } from "../../../../foundation/ipc/invoke-command";
 import { knowledgeSearchResponseSchema, type KnowledgeSearchResponse } from "../model/schema/search-response";
 
@@ -18,7 +19,7 @@ export async function searchSpaceKnowledgeHybrid(
   const jobId = crypto.randomUUID();
   const cancel = () => {
     void invokeCommand<void>("plugin:spaces|cancel_knowledge_search", { jobId }).catch((error) => {
-      void logError(`Knowledge search cancellation failed: ${String(error)}`);
+      void logError(`Knowledge search cancellation failed: ${errorDiagnostic(error)}`);
     });
   };
   signal?.addEventListener("abort", cancel, { once: true });

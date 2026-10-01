@@ -5,6 +5,7 @@ import { TreeItem, type TreeItemSelectEvent, type TreeItemToggleEvent } from "re
 import { nextTick, shallowRef, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { errorDiagnostic } from "../../../../foundation/errors/error-format";
 import type { OutlineTreeItem } from "./outline-tree-items";
 import SpaceOutlineTitle from "./SpaceOutlineTitle.vue";
 
@@ -66,7 +67,7 @@ async function save() {
     emit("finish");
   } catch (cause) {
     error.value = t("spaces.sidebar.rename.failed");
-    void logError(`Structure node rename failed: ${String(cause)}`);
+    void logError(`Structure node rename failed: ${errorDiagnostic(cause)}`);
     await nextTick();
     input.value?.focus({ preventScroll: true });
   } finally {

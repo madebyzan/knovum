@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use std::collections::HashMap;
 
 use serde_json::{json, Value};
@@ -14,7 +15,7 @@ use crate::spaces::{
 pub(crate) async fn execute_step(
     pool: &SqlitePool,
     claim: &AttemptClaim,
-) -> Result<StepOutcome, String> {
+) -> Result<StepOutcome, AppError> {
     let step: CandidateStep =
         serde_json::from_value(claim.configuration.clone()).map_err(db::json_error)?;
     let bindings: HashMap<String, Vec<BoundResource>> = serde_json::from_value(

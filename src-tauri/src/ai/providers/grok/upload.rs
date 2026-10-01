@@ -4,9 +4,9 @@ use serde::Deserialize;
 
 use crate::ai::{
     contracts::{FileUploadCapability, UploadedFileReference},
-    error::{AiError, AiErrorCode, AiResult},
     transport::{http_client, response, SecurityContext},
 };
+use crate::app_error::{AppError, AppResult};
 
 pub struct GrokFileUploadAdapter;
 
@@ -22,12 +22,12 @@ impl FileUploadCapability for GrokFileUploadAdapter {
         bytes: Vec<u8>,
         mime_type: &'a str,
         file_name: &'a str,
-    ) -> BoxFuture<'a, AiResult<UploadedFileReference>> {
+    ) -> BoxFuture<'a, AppResult<UploadedFileReference>> {
         Box::pin(async move {
             let image = Part::bytes(bytes)
                 .file_name(file_name.to_owned())
                 .mime_str(mime_type)
-                .map_err(|error| AiError::new(AiErrorCode::InvalidRequest, error.to_string()))?;
+                .map_err(|error| AppError::new("invalid_request", error.to_string()))?;
             let form = Form::new()
                 .text("expires_after", "3600")
                 .part("file", image);
@@ -37,20 +37,18 @@ impl FileUploadCapability for GrokFileUploadAdapter {
                 .multipart(form)
                 .send()
                 .await
-                .map_err(|error| {
-                    AiError::new(AiErrorCode::ProviderRequestFailed, error.to_string())
-                })?;
+                .map_err(|error| AppError::new("provider_request_failed", error.to_string()))?;
             if !request.status().is_success() {
-                return Err(AiError::new(
-                    AiErrorCode::ProviderRequestFailed,
+                return Err(AppError::new(
+                    "provider_request_failed",
                     response::read_text(request).await?,
                 ));
             }
             let uploaded: UploadedFile =
                 response::read_json(request, response::MAX_CONTROL_JSON_BYTES).await?;
             if uploaded.id.is_empty() {
-                return Err(AiError::new(
-                    AiErrorCode::InvalidResponse,
+                return Err(AppError::new(
+                    "invalid_response",
                     "xAI image upload returned no file ID",
                 ));
             }

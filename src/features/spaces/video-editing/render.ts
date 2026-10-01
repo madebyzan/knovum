@@ -4,8 +4,9 @@ import { parse } from "pathe";
 import { toast } from "vue-sonner";
 import { z } from "zod";
 
+import { decodeAppError } from "../../../foundation/errors/app-error";
+import { errorMessage } from "../../../foundation/errors/error-format";
 import { i18n } from "../../../foundation/i18n/i18n";
-import { decodeCommandError } from "../../../foundation/ipc/command-error";
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import type { CompletedDerivationOutput } from "../contracts/generated/CompletedDerivationOutput";
@@ -96,10 +97,10 @@ export async function renderVideoEdit(
     try {
       await store.refreshActiveSpace();
     } finally {
-      if (decodeCommandError(error)?.code === "video_edit_render_cancelled") tasks.dismiss(taskId);
+      if (decodeAppError(error)?.code === "video_edit_render_cancelled") tasks.dismiss(taskId);
       else {
-        tasks.fail(taskId, String(error));
-        toast.error(`${i18n.global.t("spaces.media.videoEditor.render.failed")}: ${String(error)}`);
+        tasks.fail(taskId, errorMessage(error));
+        toast.error(`${i18n.global.t("spaces.media.videoEditor.render.failed")}: ${errorMessage(error)}`);
       }
     }
   }

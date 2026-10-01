@@ -1,7 +1,5 @@
-use crate::ai::{
-    error::{AiError, AiErrorCode, AiResult},
-    models::ModelExecutionTarget,
-};
+use crate::ai::models::ModelExecutionTarget;
+use crate::app_error::{AppError, AppResult};
 
 #[derive(Debug, Clone)]
 pub struct SecurityContext {
@@ -13,7 +11,7 @@ pub struct SecurityContext {
 }
 
 impl SecurityContext {
-    pub async fn from_target(target: &ModelExecutionTarget) -> AiResult<Self> {
+    pub async fn from_target(target: &ModelExecutionTarget) -> AppResult<Self> {
         let ModelExecutionTarget {
             provider,
             model,
@@ -23,7 +21,7 @@ impl SecurityContext {
         } = target;
         let model = model.trim();
         if model.is_empty() {
-            return Err(AiError::not_configured("AI model is not configured."));
+            return Err(AppError::not_configured("AI model is not configured."));
         }
         let endpoint = normalize_endpoint(base_url)?;
         let api_key = resolve_secret(provider, secret_key).await?;
@@ -36,27 +34,27 @@ impl SecurityContext {
         })
     }
 
-    pub fn require_api_key(&self) -> AiResult<&str> {
+    pub fn require_api_key(&self) -> AppResult<&str> {
         self.api_key.as_deref().ok_or_else(|| {
-            AiError::new(
-                AiErrorCode::NotConfigured,
+            AppError::new(
+                "not_configured",
                 format!("API key is missing for provider '{}'.", self.provider),
             )
         })
     }
 }
 
-fn normalize_endpoint(base_url: &str) -> AiResult<String> {
+fn normalize_endpoint(base_url: &str) -> AppResult<String> {
     let trimmed = base_url.trim().trim_end_matches('/');
     if trimmed.is_empty() {
-        return Err(AiError::not_configured(
+        return Err(AppError::not_configured(
             "AI provider base URL is not configured.",
         ));
     }
     Ok(trimmed.to_string())
 }
 
-async fn resolve_secret(provider: &str, secret_key: &str) -> AiResult<Option<String>> {
+async fn resolve_secret(provider: &str, secret_key: &str) -> AppResult<Option<String>> {
     let key_name = secret_key.trim();
     let is_local = provider == "ollama";
     if is_local && key_name.is_empty() {
@@ -64,11 +62,11 @@ async fn resolve_secret(provider: &str, secret_key: &str) -> AiResult<Option<Str
     }
     let secret = crate::secrets::read_secret(key_name)
         .await
-        .map_err(|err| AiError::new(AiErrorCode::ProviderRequestFailed, err.to_string()))?;
+        .map_err(|err| AppError::new("provider_request_failed", err.to_string()))?;
     match secret.filter(|v| !v.trim().is_empty()) {
         Some(val) => Ok(Some(val)),
         None if is_local => Ok(None),
-        None => Err(AiError::not_configured(format!(
+        None => Err(AppError::not_configured(format!(
             "API key is missing for provider '{provider}'."
         ))),
     }

@@ -4,6 +4,7 @@ import { inject } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
+import { errorMessage } from "../../../../foundation/errors/error-format";
 import {
   archiveSettingsKey,
   type ArchiveSettingsContract,
@@ -32,7 +33,7 @@ async function permanentlyDeleteAll() {
   try {
     await archive.permanentlyDeleteAll();
   } catch (error) {
-    toast.error(t("settings.general.archived.delete.failed"), { description: String(error) });
+    toast.error(t("settings.general.archived.delete.failed"), { description: errorMessage(error) });
   }
 }
 </script>

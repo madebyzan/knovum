@@ -5,12 +5,13 @@ use sqlx::SqlitePool;
 use super::{
     ActionInvocationOutcome, ActionInvocationRequest, SpaceActionExecutionMode, SpaceActionImpact,
 };
+use crate::ai::tasks::TaskTargetRef;
+use crate::app_error::AppError;
 use crate::spaces::{
     authorization::{create_grant, AuthorizationContext, Principal, PrincipalKind},
     db,
     runs::{load_run, RunObservation},
 };
-use crate::{ai::tasks::TaskTargetRef, command_error::CommandError};
 
 #[derive(Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -37,17 +38,17 @@ pub(crate) struct SpaceActionSource {
 pub(crate) async fn start_space_action(
     app: tauri::AppHandle,
     request: StartSpaceActionRequest,
-) -> Result<RunObservation, CommandError> {
+) -> Result<RunObservation, AppError> {
     let definition = super::require(&request.action_id)?;
     let mut invocation = invocation(&request, definition)?;
     super::resolve_target(&app, &mut invocation)?;
-    Ok(accept(db::pool(&app).await?, &request, invocation).await?)
+    accept(db::pool(&app).await?, &request, invocation).await
 }
 
 fn invocation(
     request: &StartSpaceActionRequest,
     definition: &super::SpaceActionDefinition,
-) -> Result<ActionInvocationRequest, String> {
+) -> Result<ActionInvocationRequest, AppError> {
     uuid::Uuid::parse_str(&request.request_id)
         .map_err(|_| "action-input-invalid: request ID must be a UUID")?;
     if !matches!(definition.execution_mode, SpaceActionExecutionMode::Durable)
@@ -85,7 +86,7 @@ async fn accept(
     pool: &SqlitePool,
     request: &StartSpaceActionRequest,
     mut invocation: ActionInvocationRequest,
-) -> Result<RunObservation, String> {
+) -> Result<RunObservation, AppError> {
     let mut tx = db::begin_write(pool).await?;
     invocation.input_snapshot["orderedInputs"] =
         super::canvas_inputs::pin(&mut tx, &request.space_id, &request.sources).await?;
@@ -129,7 +130,7 @@ async fn accept(
     };
     tx.commit().await.map_err(db::sql_error)?;
     crate::spaces::runs::announce_change();
-    load_run(pool, &run_id).await
+    Ok(load_run(pool, &run_id).await?)
 }
 
 #[cfg(test)]

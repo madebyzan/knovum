@@ -34,7 +34,7 @@ describe("spaces knowledge index scheduler", () => {
     await vi.runAllTimersAsync();
 
     expect(mocks.logError).toHaveBeenCalledWith(
-      'Knowledge semantic indexing failed: {"code":"provider_request_failed","message":"Embedding provider request failed"}',
+      "Knowledge semantic indexing failed: [provider_request_failed] Embedding provider request failed",
     );
     expect(knowledgeIndexStatus("structured-ai-error")).toBe("unavailable");
   });

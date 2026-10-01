@@ -4,6 +4,7 @@ import { useTextareaAutosize } from "@vueuse/core";
 import { computed, onBeforeUnmount, onMounted, ref, shallowRef, useTemplateRef } from "vue";
 import { toast } from "vue-sonner";
 
+import { errorMessage } from "../../../../foundation/errors/error-format";
 import { isFileDropInside, listenForFileDrops } from "../../../../foundation/file-drop/file-drop";
 import { createAsyncDisposer } from "../../../../foundation/lifecycle/async-disposer";
 import type { TaskTargetRef } from "../../../../shared/contracts/generated/TaskTargetRef";
@@ -84,7 +85,7 @@ onMounted(() => {
         },
       }),
     )
-    .catch((error) => toast.error(String(error)));
+    .catch((error) => toast.error(errorMessage(error)));
 });
 onBeforeUnmount(fileDropListener.dispose);
 </script>
@@ -148,7 +149,7 @@ onBeforeUnmount(fileDropListener.dispose);
       </div>
     </div>
     <p v-if="attachmentError" role="alert" class="pt-1.5 text-caption text-fg-danger">
-      {{ attachmentError.startsWith("spaces.assistant.") ? $t(attachmentError) : attachmentError }}
+      {{ attachmentError }}
     </p>
   </footer>
 </template>

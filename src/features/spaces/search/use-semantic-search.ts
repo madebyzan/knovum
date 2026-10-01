@@ -2,11 +2,10 @@ import { computed, shallowRef, watch, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
+import { decodeAppError } from "../../../foundation/errors/app-error";
+import { errorMessage } from "../../../foundation/errors/error-format";
 import { textEmbeddingReady } from "../../../foundation/runtime/local-resources";
-import {
-  ResourcePreparationCancelledError,
-  startResourcePreparation,
-} from "../../../foundation/runtime/resource-preparation";
+import { startResourcePreparation } from "../../../foundation/runtime/resource-preparation";
 import { useLocalResourcesQuery } from "../../../foundation/runtime/resource-query";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import { indexKnowledgeRetrieval } from "../knowledge/persistence/retrieval-index";
@@ -46,18 +45,23 @@ export function useSemanticSearch(open: Ref<boolean>) {
         tasks.succeed(id);
         if (open.value && store.activeSpaceId === spaceId) enabled.value = true;
       } catch (error) {
-        tasks.fail(id, String(error));
+        tasks.fail(id, errorMessage(error));
         throw error;
       } finally {
         indexing.value = false;
       }
     } catch (error) {
-      if (error instanceof ResourcePreparationCancelledError) return;
-      toast.error(String(error));
+      reportSemanticSearchError(error);
     } finally {
       preparing.value = false;
     }
   }
 
   return { enabled, preparing, indexing, enable };
+}
+
+function reportSemanticSearchError(error: unknown) {
+  if (decodeAppError(error)?.code !== "local_resource_preparation_cancelled") {
+    toast.error(errorMessage(error));
+  }
 }

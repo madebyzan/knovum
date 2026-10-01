@@ -1,4 +1,4 @@
-use crate::command_error::CommandError;
+use crate::app_error::AppError;
 use tauri::AppHandle;
 
 use crate::ai::capabilities;
@@ -9,7 +9,7 @@ pub async fn stage_generated_artifact_import(
     space_id: String,
     session_id: String,
     relative_path: String,
-) -> Result<crate::spaces::assets::import::PreparedSpaceImport, CommandError> {
+) -> Result<crate::spaces::assets::import::PreparedSpaceImport, AppError> {
     let completed = super::session::completed_at(&app, &space_id, &session_id).await?;
     if completed.is_none() {
         return Err(("Agent artifact session is not ready for import".to_owned()).into());

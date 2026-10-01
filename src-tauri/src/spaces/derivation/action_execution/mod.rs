@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 use serde_json::{Map, Value};
@@ -41,7 +42,7 @@ pub(crate) async fn execute(
     space_id: &str,
     parameters: &Value,
     inputs: &Value,
-) -> Result<Value, String> {
+) -> Result<Value, AppError> {
     let authority = ExecutionAuthority {
         run_id: run_id.to_owned(),
         execution_epoch,
@@ -54,7 +55,7 @@ pub(crate) async fn execute(
         Some(Handler::Answer) => {
             super::grounded_answer::answer(app, decode(request)?, &authority).await
         }
-        Some(Handler::Text) => serialize(
+        Some(Handler::Text) => Ok(serialize(
             grounded_document::generate_for_action(
                 authority.clone(),
                 app.clone(),
@@ -62,8 +63,8 @@ pub(crate) async fn execute(
                 quiet_channel(),
             )
             .await?,
-        ),
-        Some(Handler::Image) => serialize(
+        )?),
+        Some(Handler::Image) => Ok(serialize(
             visualization::generate_for_action(
                 authority.clone(),
                 app.clone(),
@@ -71,8 +72,8 @@ pub(crate) async fn execute(
                 quiet_channel(),
             )
             .await?,
-        ),
-        Some(Handler::Video) => serialize(
+        )?),
+        Some(Handler::Video) => Ok(serialize(
             video_generation::generate_for_action(
                 authority.clone(),
                 app.clone(),
@@ -80,8 +81,8 @@ pub(crate) async fn execute(
                 quiet_channel(),
             )
             .await?,
-        ),
-        Some(Handler::Subtitles) => serialize(
+        )?),
+        Some(Handler::Subtitles) => Ok(serialize(
             subtitled_video::render_for_action(
                 authority.clone(),
                 app.clone(),
@@ -89,10 +90,11 @@ pub(crate) async fn execute(
                 quiet_channel(),
             )
             .await?,
-        ),
-        Some(Handler::Document) => render_document(app, action_id, request, &authority).await,
-        None => Err(format!(
-            "action-executor-unavailable: durable Action {action_id} has no registered handler"
+        )?),
+        Some(Handler::Document) => Ok(render_document(app, action_id, request, &authority).await?),
+        None => Err(AppError::new(
+            "action_executor_unavailable",
+            format!("Durable Action {action_id} has no registered handler"),
         )),
     }
 }
@@ -102,7 +104,7 @@ async fn render_document(
     action_id: &str,
     request: Value,
     authority: &ExecutionAuthority,
-) -> Result<Value, String> {
+) -> Result<Value, AppError> {
     let document = request
         .pointer("/document/data")
         .and_then(Value::as_object)
@@ -150,9 +152,9 @@ async fn render_document(
         "id",
     )?
     .to_owned();
-    let result = async {
+    let result: Result<Value, AppError> = async {
         let bytes = crate::blocking::run(move || (format.render)(&source)).await?;
-        serialize(
+        Ok(serialize(
             super::document_publication::publish(
                 app,
                 request,
@@ -162,11 +164,11 @@ async fn render_document(
                 authority,
             )
             .await?,
-        )
+        )?)
     }
     .await;
     if let Err(error) = &result {
-        super::failure::fail_message(app, &run_id, error).await?;
+        super::failure::fail_message(app, &run_id, &error.message).await?;
     }
     result
 }

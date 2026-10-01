@@ -1,4 +1,4 @@
-use crate::command_error::CommandError;
+use crate::app_error::AppError;
 pub(crate) mod catalog;
 mod permanent_deletion;
 pub(crate) mod relations;
@@ -12,7 +12,7 @@ use tauri::{AppHandle, Runtime};
 pub async fn delete_space_permanently<R: Runtime>(
     app: AppHandle<R>,
     request: permanent_deletion::contracts::DeleteSpaceRequest,
-) -> Result<Vec<String>, CommandError> {
+) -> Result<Vec<String>, AppError> {
     Ok((permanent_deletion::delete(&app, request).await)?)
 }
 
@@ -20,8 +20,6 @@ pub async fn delete_space_permanently<R: Runtime>(
 pub async fn move_structure_selection<R: Runtime>(
     app: AppHandle<R>,
     request: selection_transfer::contracts::TransferSelectionRequest,
-) -> Result<selection_transfer::contracts::TransferSelectionResponse, CommandError> {
-    selection_transfer::transfer_selection(&app, request)
-        .await
-        .map_err(CommandError::from_space_edit)
+) -> Result<selection_transfer::contracts::TransferSelectionResponse, AppError> {
+    selection_transfer::transfer_selection(&app, request).await
 }

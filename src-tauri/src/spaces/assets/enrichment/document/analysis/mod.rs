@@ -1,4 +1,5 @@
 use super::resource;
+use crate::app_error::AppError;
 use crate::spaces::knowledge::node_contracts::document_coverage::{
     DocumentAnalysis, DocumentCoverage,
 };
@@ -26,7 +27,7 @@ pub(super) async fn analyze_occurrence(
     index: usize,
     target: TaskExecutionTarget,
     cancellation: &CancellationToken,
-) -> Result<DocumentAnalysis, String> {
+) -> Result<DocumentAnalysis, AppError> {
     ensure_active(cancellation)?;
     let occurrence = &report.occurrences[index];
     let resource = report
@@ -52,19 +53,23 @@ async fn analyze_input(
     target: TaskExecutionTarget,
     input: TaskInput,
     cancellation: CancellationToken,
-) -> Result<DocumentAnalysis, String> {
-    let output = completion::execute(executor, target, input, cancellation)
-        .await
-        .map_err(|error| error.task_message())?;
+) -> Result<DocumentAnalysis, AppError> {
+    let output = completion::execute(executor, target, input, cancellation).await?;
     let parsed: Analysis = serde_json::from_str(output.text.trim()).map_err(|error| {
-        format!("ai-invalid-response: Document analysis returned invalid JSON: {error}")
+        AppError::new(
+            "invalid_response",
+            format!("Document analysis returned invalid JSON: {error}"),
+        )
     })?;
     let text = parsed.detected_text.join("\n");
     if parsed.description.trim().is_empty()
         || parsed.description.encode_utf16().count() > 48_000
         || text.encode_utf16().count() > 48_000
     {
-        return Err("ai-invalid-response: Document visual analysis exceeds the text budget".into());
+        return Err(AppError::new(
+            "invalid_response",
+            "Document visual analysis exceeds the text budget",
+        ));
     }
     Ok(DocumentAnalysis {
         description: parsed.description,

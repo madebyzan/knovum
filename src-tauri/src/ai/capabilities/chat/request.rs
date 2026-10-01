@@ -5,9 +5,9 @@ use crate::ai::{
         ChatRequest, ChatResponse, ModelContentPart, ModelMessage, ModelRole, ModelToolChoice,
         ModelTurnRequest, StreamFrameStream,
     },
-    error::{AiError, AiErrorCode, AiResult},
     models::{CompletionRequest, ModelExecutionTarget},
 };
+use crate::app_error::{AppError, AppResult};
 
 pub(super) fn prepare(request: CompletionRequest) -> (ModelExecutionTarget, ChatRequest) {
     let chat_request = ChatRequest {
@@ -25,7 +25,7 @@ pub(crate) async fn complete_target(
     target: &ModelExecutionTarget,
     request: &ChatRequest,
     cancellation: &CancellationToken,
-) -> AiResult<ChatResponse> {
+) -> AppResult<ChatResponse> {
     let turn = crate::ai::model_turn::execute(target, &model_turn(request), cancellation).await?;
     let text = turn
         .message
@@ -38,8 +38,8 @@ pub(crate) async fn complete_target(
         .collect::<Vec<_>>()
         .join("\n");
     if text.trim().is_empty() {
-        return Err(AiError::new(
-            AiErrorCode::EmptyResponse,
+        return Err(AppError::new(
+            "empty_response",
             "AI provider returned no text.",
         ));
     }
@@ -55,7 +55,7 @@ pub(crate) async fn stream_target(
     target: &ModelExecutionTarget,
     request: &ChatRequest,
     cancellation: CancellationToken,
-) -> AiResult<StreamFrameStream> {
+) -> AppResult<StreamFrameStream> {
     crate::ai::model_turn::stream_text(target, &model_turn(request), cancellation).await
 }
 

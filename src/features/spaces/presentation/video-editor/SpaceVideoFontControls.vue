@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/vue-query";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { errorMessage } from "../../../../foundation/errors/error-format";
 import UiSelect from "../../../../shared/ui/UiSelect.vue";
 import { videoFontCatalogQuery } from "../../video-editing/font-catalog";
 import type { VideoTextStyle } from "../../video-editing/project";
@@ -15,7 +16,7 @@ const catalog = useQuery(videoFontCatalogQuery);
 const fonts = computed(() => catalog.data.value ?? []);
 const isPending = computed(() => catalog.isPending.value);
 const error = computed(() => {
-  if (catalog.error.value) return String(catalog.error.value);
+  if (catalog.error.value) return errorMessage(catalog.error.value);
   return isPending.value || fonts.value.length > 0 ? "" : t("spaces.media.videoEditor.font.catalogEmpty");
 });
 const selectedFont = computed(() => fonts.value.find(({ family }) => family === props.style.family));

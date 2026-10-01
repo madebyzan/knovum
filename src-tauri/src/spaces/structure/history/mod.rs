@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use serde::{Deserialize, Serialize};
 use sqlx::{Row, Sqlite, Transaction};
 
@@ -110,7 +111,7 @@ pub(crate) async fn record_group(
     tx: &mut Transaction<'_, Sqlite>,
     group_id: &str,
     entries: &[(&str, &HistoryState, &HistoryState, i64)],
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     group::record(tx, group_id, entries).await
 }
 

@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use serde_json::{json, Value};
 use sqlx::SqlitePool;
 
@@ -16,7 +17,7 @@ pub(super) async fn execute(
     context: &super::driver::DriverContext<'_>,
     turn_id: &str,
     calls: Vec<RuntimeToolCall>,
-) -> Result<Vec<RuntimeToolReply>, String> {
+) -> Result<Vec<RuntimeToolReply>, AppError> {
     let super::driver::DriverContext {
         app,
         pool,
@@ -97,8 +98,8 @@ async fn complete_tool(
     row_id: &str,
     action_id: &str,
     value: Value,
-) -> Result<(), String> {
-    repository::complete_tool_call(
+) -> Result<(), AppError> {
+    Ok(repository::complete_tool_call(
         pool,
         repository::AssistantToolCallCompletion {
             id: row_id,
@@ -110,5 +111,5 @@ async fn complete_tool(
             tool_output: &value,
         },
     )
-    .await
+    .await?)
 }

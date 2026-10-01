@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 mod media;
 mod node;
 mod visual;
@@ -37,7 +38,7 @@ pub async fn execute_job(
     app: AppHandle,
     request: RunEnrichmentJobRequest,
     progress: Channel<MediaTranscriptionProgress>,
-) -> Result<EnrichmentJobOutput, String> {
+) -> Result<EnrichmentJobOutput, AppError> {
     let seed = EnqueueEnrichmentJobRequest {
         space_id: request.space_id.clone(),
         node_id: request.node_id.clone(),
@@ -47,14 +48,17 @@ pub async fn execute_job(
     super::validate_request(&seed)?;
     let _permit = lane(request.job_type).await?;
     if !super::claim(&app, &request.job_id, &seed).await? {
-        return Err("Enrichment is already running for this node revision".to_owned());
+        return Err(AppError::new(
+            "enrichment_already_running",
+            "Enrichment is already running for this node revision",
+        ));
     }
     let job_id = request.job_id.clone();
     let (cancellation, _lease) = match crate::ai::executions::acquire(job_id.clone()) {
         Ok(execution) => execution,
         Err(error) => {
             super::mark_failed(&app, &job_id, error.clone()).await?;
-            return Err(error);
+            return Err(error.into());
         }
     };
     match execute(&app, &job_id, request, progress, &cancellation).await {
@@ -64,7 +68,7 @@ pub async fn execute_job(
             Ok(output)
         }
         Err(error) => {
-            super::mark_failed(&app, &job_id, error.clone()).await?;
+            super::mark_failed(&app, &job_id, error.to_string()).await?;
             Err(error)
         }
     }
@@ -76,7 +80,7 @@ async fn execute(
     mut request: RunEnrichmentJobRequest,
     progress: Channel<MediaTranscriptionProgress>,
     cancellation: &tokio_util::sync::CancellationToken,
-) -> Result<EnrichmentJobOutput, String> {
+) -> Result<EnrichmentJobOutput, AppError> {
     let mut data = node::load_current(app, &request).await?;
     let expected_media_knowledge = data["mediaKnowledge"].clone();
     match request.job_type {
@@ -96,16 +100,14 @@ async fn execute(
             });
         }
         EnrichmentJobType::AnalyzeDocument => {
-            let selected = request
-                .vision_target
-                .take()
-                .ok_or("Document visual analysis requires an AI target")?;
+            let selected = request.vision_target.take().ok_or_else(|| {
+                AppError::not_configured("Document visual analysis requires an execution choice")
+            })?;
             let target = crate::ai::settings::resolve_task(
                 app,
                 selected,
                 crate::ai::contracts::ExecutionCapability::VisionUnderstanding,
-            )
-            .map_err(|error| error.task_message())?;
+            )?;
             let data = crate::spaces::assets::enrichment::document::execute::analyze(
                 app,
                 &request,
@@ -122,14 +124,13 @@ async fn execute(
         }
         EnrichmentJobType::AnalyzeVisual => {
             let target = request.vision_target.take().ok_or_else(|| {
-                "ai-not-configured: Visual analysis requires an execution choice".to_owned()
+                AppError::not_configured("Visual analysis requires an execution choice")
             })?;
             let target = crate::ai::settings::resolve_task(
                 app,
                 target,
                 crate::ai::contracts::ExecutionCapability::VisionUnderstanding,
-            )
-            .map_err(|error| error.task_message())?;
+            )?;
             visual::analyze(app, &request, &mut data, target, cancellation).await?;
         }
         EnrichmentJobType::AnalyzeMedia => {
@@ -146,7 +147,7 @@ async fn execute(
     })
 }
 
-async fn lane(job_type: EnrichmentJobType) -> Result<OwnedSemaphorePermit, String> {
+async fn lane(job_type: EnrichmentJobType) -> Result<OwnedSemaphorePermit, AppError> {
     static ANALYSIS: OnceLock<Arc<Semaphore>> = OnceLock::new();
     static MEDIA: OnceLock<Arc<Semaphore>> = OnceLock::new();
     static VISUAL: OnceLock<Arc<Semaphore>> = OnceLock::new();
@@ -161,5 +162,5 @@ async fn lane(job_type: EnrichmentJobType) -> Result<OwnedSemaphorePermit, Strin
         .clone()
         .acquire_owned()
         .await
-        .map_err(|_| "Enrichment lane is unavailable".to_owned())
+        .map_err(|_| AppError::internal("Enrichment lane is unavailable"))
 }

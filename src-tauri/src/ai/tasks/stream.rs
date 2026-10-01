@@ -6,10 +6,9 @@ use super::{
     completion::{self, TaskCompletionOutput, TaskInput},
     ExecutionSource, TaskExecutionTarget,
 };
-use crate::ai::{
-    error::{send_channel_event, AiResult},
-    models::{CompletionRequest, CompletionStreamEvent},
-};
+use crate::ai::channel::send_channel_event;
+use crate::ai::models::{CompletionRequest, CompletionStreamEvent};
+use crate::app_error::AppResult;
 
 #[derive(Debug, Serialize, ts_rs::TS)]
 #[serde(tag = "event", rename_all = "snake_case")]
@@ -57,7 +56,7 @@ pub(crate) async fn complete(
     input: TaskInput,
     events: Channel<TaskStreamEvent>,
     cancellation: CancellationToken,
-) -> AiResult<TaskCompletionOutput> {
+) -> AppResult<TaskCompletionOutput> {
     match target {
         TaskExecutionTarget::Model(target) => {
             let channel = Channel::new(move |message| {

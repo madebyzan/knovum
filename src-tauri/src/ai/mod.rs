@@ -1,7 +1,7 @@
 pub mod capabilities;
+mod channel;
 mod commands;
 pub mod contracts;
-pub mod error;
 pub mod executions;
 pub mod model_turn;
 pub mod models;

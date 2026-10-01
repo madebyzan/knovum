@@ -3,6 +3,7 @@ import { computed, ref, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
+import { errorMessage } from "../../../foundation/errors/error-format";
 import { useCanvasEditorSession } from "../canvas/editor-session";
 import { useNodeOperationGate } from "../canvas/node-operation-gate";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
@@ -56,7 +57,7 @@ export function useMediaKnowledge(node: Ref<SpaceCanvasNode>) {
     try {
       await store.analyzeMedia(node.value.id);
     } catch (error) {
-      toast.error(String(error));
+      toast.error(errorMessage(error));
     }
   }
   function seek(positionMs: number) {
@@ -68,7 +69,7 @@ export function useMediaKnowledge(node: Ref<SpaceCanvasNode>) {
     try {
       await store.generateMediaInsights(node.value.id, spaceMediaAnalysisLabels());
     } catch (error) {
-      toast.error(String(error));
+      toast.error(errorMessage(error));
     }
   }
   async function saveKnowledge(next: NonNullable<typeof knowledge.value>) {

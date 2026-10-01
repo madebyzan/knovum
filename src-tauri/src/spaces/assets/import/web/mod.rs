@@ -1,4 +1,4 @@
-use crate::command_error::CommandError;
+use crate::app_error::AppError;
 use serde::Serialize;
 use std::fs;
 use uuid::Uuid;
@@ -29,7 +29,7 @@ pub enum WebpageResponse {
 pub async fn capture_web_resource(
     app: tauri::AppHandle,
     url: String,
-) -> Result<WebpageResponse, CommandError> {
+) -> Result<WebpageResponse, AppError> {
     match crate::web_capture::capture(&url).await? {
         CapturedWebResource::Document {
             final_url,
@@ -52,7 +52,7 @@ pub async fn capture_web_resource(
 }
 
 #[tauri::command]
-pub async fn import_web_image(app: tauri::AppHandle, url: String) -> Result<String, CommandError> {
+pub async fn import_web_image(app: tauri::AppHandle, url: String) -> Result<String, AppError> {
     let (_, media_type, bytes) = crate::web_capture::capture_derived_image(&url).await?;
     Ok((persist(&app, &bytes, &media_type))?)
 }

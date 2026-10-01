@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 mod deleted;
 mod history;
 mod read;
@@ -75,14 +76,17 @@ pub(crate) async fn save_in_transaction(
     space_id: &str,
     base_revision: i64,
     snapshot: &SpaceStructureSnapshot,
-) -> Result<i64, String> {
+) -> Result<i64, AppError> {
     validate_space_snapshot(&snapshot.structure, &snapshot.layouts)?;
     let active_nodes = read::active_node_ids(tx, space_id).await?;
     validate_content_coverage(&snapshot.structure, &active_nodes)?;
     read::validate_relation_styles(tx, space_id, &snapshot.relation_styles).await?;
     let current_revision = require_revision(tx, space_id).await?;
     if base_revision != current_revision {
-        return Err("space-edit-revision-conflict: Space edit revision conflict".into());
+        return Err(AppError::new(
+            "space_edit_revision_conflict",
+            "Space edit revision conflict",
+        ));
     }
     write::replace_active(tx, space_id, snapshot).await?;
     let next_revision = base_revision
@@ -100,7 +104,10 @@ pub(crate) async fn save_in_transaction(
     .await
     .map_err(db::sql_error)?;
     if edit_state_write.rows_affected() != 1 {
-        return Err("space-edit-revision-conflict: Space edit revision conflict".into());
+        return Err(AppError::new(
+            "space_edit_revision_conflict",
+            "Space edit revision conflict",
+        ));
     }
     Ok(next_revision)
 }

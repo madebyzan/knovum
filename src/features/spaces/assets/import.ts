@@ -23,7 +23,7 @@ export async function addImportedSpaceAsset(
       await removeSpaceAsset(asset.path);
     } catch (cleanupError) {
       throw new AggregateError([error, cleanupError], "Space import failed and staged asset cleanup failed", {
-        cause: cleanupError,
+        cause: error,
       });
     }
     throw error;

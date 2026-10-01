@@ -1,4 +1,4 @@
-use crate::command_error::CommandError;
+use crate::app_error::AppError;
 use tauri::{AppHandle, Runtime};
 
 use super::edit_contract::{
@@ -11,12 +11,10 @@ use crate::spaces::db;
 pub(crate) async fn execute_space_edit<R: Runtime>(
     app: AppHandle<R>,
     request: ExecuteSpaceEditRequest,
-) -> Result<SpaceEditReceipt, CommandError> {
+) -> Result<SpaceEditReceipt, AppError> {
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
-    let receipt = execute_in_transaction(&mut tx, request)
-        .await
-        .map_err(CommandError::from_space_edit)?;
+    let receipt = execute_in_transaction(&mut tx, request).await?;
     tx.commit().await.map_err(db::sql_error)?;
     Ok(receipt)
 }
@@ -24,7 +22,7 @@ pub(crate) async fn execute_space_edit<R: Runtime>(
 pub(crate) async fn execute_in_transaction(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     request: ExecuteSpaceEditRequest,
-) -> Result<SpaceEditReceipt, String> {
+) -> Result<SpaceEditReceipt, AppError> {
     validation::validate_id("Space ID", &request.space_id)?;
     validation::validate_id("Mutation ID", &request.mutation_id)?;
     if request.expected_edit_revision < 0 {
@@ -37,7 +35,10 @@ pub(crate) async fn execute_in_transaction(
     let (mut snapshot, edit_revision) =
         repository::load_in_transaction(tx, &request.space_id).await?;
     if edit_revision != request.expected_edit_revision {
-        return Err("space-edit-revision-conflict: Space edit revision conflict".into());
+        return Err(AppError::new(
+            "space_edit_revision_conflict",
+            "Space edit revision conflict",
+        ));
     }
     super::content_height_read_set::validate(
         &mut *tx,
@@ -138,27 +139,23 @@ pub(crate) async fn execute_in_transaction(
 pub(crate) async fn undo_space_edit<R: Runtime>(
     app: AppHandle<R>,
     request: SpaceEditHistoryRequest,
-) -> Result<SpaceEditHistoryReceipt, CommandError> {
-    apply_history(app, request, false)
-        .await
-        .map_err(CommandError::from_space_edit)
+) -> Result<SpaceEditHistoryReceipt, AppError> {
+    apply_history(app, request, false).await
 }
 
 #[tauri::command]
 pub(crate) async fn redo_space_edit<R: Runtime>(
     app: AppHandle<R>,
     request: SpaceEditHistoryRequest,
-) -> Result<SpaceEditHistoryReceipt, CommandError> {
-    apply_history(app, request, true)
-        .await
-        .map_err(CommandError::from_space_edit)
+) -> Result<SpaceEditHistoryReceipt, AppError> {
+    apply_history(app, request, true).await
 }
 
 async fn apply_history<R: Runtime>(
     app: AppHandle<R>,
     request: SpaceEditHistoryRequest,
     redo: bool,
-) -> Result<SpaceEditHistoryReceipt, String> {
+) -> Result<SpaceEditHistoryReceipt, AppError> {
     validation::validate_id("Space ID", &request.space_id)?;
     if request.expected_edit_revision < 0 {
         return Err("Expected edit revision must be nonnegative".into());
@@ -167,7 +164,10 @@ async fn apply_history<R: Runtime>(
     let mut tx = db::begin_write(pool).await?;
     let (snapshot, revision) = repository::load_in_transaction(&mut tx, &request.space_id).await?;
     if revision != request.expected_edit_revision {
-        return Err("space-edit-revision-conflict: Space edit revision conflict".into());
+        return Err(AppError::new(
+            "space_edit_revision_conflict",
+            "Space edit revision conflict",
+        ));
     }
     let applied_at_revision =
         history::apply(&mut tx, &request.space_id, revision, &snapshot, redo).await?;
@@ -182,38 +182,30 @@ async fn apply_history<R: Runtime>(
 pub(crate) async fn import_structure_clipboard<R: Runtime>(
     app: AppHandle<R>,
     request: super::clipboard::ImportStructureClipboardRequest,
-) -> Result<super::clipboard::ImportStructureClipboardResponse, CommandError> {
-    super::clipboard::import(&app, request)
-        .await
-        .map_err(CommandError::from_space_edit)
+) -> Result<super::clipboard::ImportStructureClipboardResponse, AppError> {
+    super::clipboard::import(&app, request).await
 }
 
 #[tauri::command]
 pub(crate) async fn restore_deleted_structure<R: Runtime>(
     app: AppHandle<R>,
     request: super::deletion::RestoreDeletedStructureRequest,
-) -> Result<SpaceEditReceipt, CommandError> {
-    super::deletion::restore(&app, request)
-        .await
-        .map_err(CommandError::from_space_edit)
+) -> Result<SpaceEditReceipt, AppError> {
+    super::deletion::restore(&app, request).await
 }
 
 #[tauri::command]
 pub(crate) async fn delete_structure_permanently<R: Runtime>(
     app: AppHandle<R>,
     request: super::deletion::DeleteStructurePermanentlyRequest,
-) -> Result<Vec<String>, CommandError> {
-    super::deletion::delete_permanently(&app, request)
-        .await
-        .map_err(CommandError::from_space_edit)
+) -> Result<Vec<String>, AppError> {
+    Ok(super::deletion::delete_permanently(&app, request).await?)
 }
 
 #[tauri::command]
 pub(crate) async fn discard_pending_content<R: Runtime>(
     app: AppHandle<R>,
     request: super::deletion::DiscardPendingContentRequest,
-) -> Result<super::deletion::DiscardPendingContentResponse, CommandError> {
-    super::deletion::discard_pending_content(&app, request)
-        .await
-        .map_err(CommandError::from_space_edit)
+) -> Result<super::deletion::DiscardPendingContentResponse, AppError> {
+    super::deletion::discard_pending_content(&app, request).await
 }

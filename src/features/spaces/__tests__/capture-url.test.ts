@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { createAppError } from "../../../foundation/errors/app-error";
 import type { MediaImportProgress } from "../media/import/schema/import";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceMediaPayload } from "../model/nodes/capabilities";
@@ -13,7 +14,6 @@ type WebsiteCapture = (
 ) => Promise<SpaceCanvasNode | undefined>;
 
 const mocks = vi.hoisted(() => {
-  class MediaImportCancelledError extends Error {}
   return {
     addSavedWebsite: vi.fn<WebsiteCapture>(),
     acquireMediaSource:
@@ -27,7 +27,6 @@ const mocks = vi.hoisted(() => {
     logInfo: vi.fn<(message: string) => void>(),
     removeSpaceAssets: vi.fn<(paths: readonly string[]) => Promise<void>>(),
     toastError: vi.fn<(message: string) => void>(),
-    MediaImportCancelledError,
   };
 });
 
@@ -39,7 +38,6 @@ vi.mock("../../../foundation/i18n/i18n", () => ({
 vi.mock("../assets/asset-operations", () => ({ removeSpaceAssets: mocks.removeSpaceAssets }));
 vi.mock("../media/import/acquisition", () => ({
   acquireMediaSource: mocks.acquireMediaSource,
-  MediaImportCancelledError: mocks.MediaImportCancelledError,
 }));
 vi.mock("../website/capture", () => ({ addSavedWebsite: mocks.addSavedWebsite }));
 
@@ -148,7 +146,7 @@ describe("Space URL capture", () => {
   });
 
   it("removes the projection quietly when the import is cancelled", async () => {
-    mocks.acquireMediaSource.mockRejectedValue(new mocks.MediaImportCancelledError());
+    mocks.acquireMediaSource.mockRejectedValue(createAppError("media_acquisition_cancelled", "Cancelled"));
     const harness = captureHarness();
     await captureSpaceUrl(harness.context, URL, POSITION);
     expect(harness.finish).toHaveBeenCalledWith("import-1");

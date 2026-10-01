@@ -4,6 +4,7 @@ import { computed, ref, shallowRef, watch, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
+import { errorMessage } from "../../../../foundation/errors/error-format";
 import { queryClient } from "../../../../foundation/query/query-client";
 import { confirmAction } from "../../../../shared/ui/confirm-action";
 import { useSpaceStore } from "../../session/space-store";
@@ -102,7 +103,7 @@ export function useKnowledgeTypeEditor(open: Ref<boolean>) {
       }
       await refreshTypes(spaceId);
     } catch (cause) {
-      error.value = String(cause);
+      error.value = errorMessage(cause);
     } finally {
       saving.value = false;
     }
@@ -127,7 +128,7 @@ export function useKnowledgeTypeEditor(open: Ref<boolean>) {
       saving.value = false;
       if (activeSpaceId.value === spaceId) reset();
     } catch (cause) {
-      toast.error(String(cause));
+      toast.error(errorMessage(cause));
     } finally {
       saving.value = false;
     }

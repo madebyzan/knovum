@@ -1,7 +1,6 @@
 use super::*;
 use crate::ai::{
     contracts::{AgentKind, ExecutionCapability},
-    error::AiErrorCode,
     settings,
     tasks::TaskTargetSelection,
 };
@@ -15,7 +14,7 @@ pub(crate) struct ExecutorSpy {
     pub(crate) agent_calls: AtomicUsize,
     pub(crate) model_calls: AtomicUsize,
     pub(crate) inputs: Mutex<Vec<TaskInput>>,
-    response: AiResult<String>,
+    response: AppResult<String>,
     cancel_on_return: bool,
 }
 
@@ -23,7 +22,10 @@ impl ExecutorSpy {
     pub(crate) fn returns(text: impl Into<String>) -> Self {
         Self::new(Ok(text.into()), false)
     }
-    fn new(response: AiResult<String>, cancel_on_return: bool) -> Self {
+    pub(crate) fn fails(error: AppError) -> Self {
+        Self::new(Err(error), false)
+    }
+    fn new(response: AppResult<String>, cancel_on_return: bool) -> Self {
         Self {
             agent_calls: AtomicUsize::new(0),
             model_calls: AtomicUsize::new(0),
@@ -43,7 +45,7 @@ impl TaskExecutor for ExecutorSpy {
         target: ModelExecutionTarget,
         _: TaskInput,
         _: CancellationToken,
-    ) -> AiResult<TaskCompletionOutput> {
+    ) -> AppResult<TaskCompletionOutput> {
         self.model_calls.fetch_add(1, Ordering::SeqCst);
         Ok(TaskCompletionOutput {
             text: self.response.clone()?,
@@ -59,7 +61,7 @@ impl TaskExecutor for ExecutorSpy {
         kind: AgentKind,
         input: TaskInput,
         cancellation: CancellationToken,
-    ) -> AiResult<TaskCompletionOutput> {
+    ) -> AppResult<TaskCompletionOutput> {
         self.agent_calls.fetch_add(1, Ordering::SeqCst);
         self.inputs.lock().unwrap().push(input);
         if self.cancel_on_return {
@@ -102,14 +104,14 @@ pub(crate) fn input() -> TaskInput {
 #[tokio::test]
 async fn agent_failure_never_enters_credentials_or_provider_transport() {
     for code in [
-        AiErrorCode::AgentUnavailable,
-        AiErrorCode::AuthenticationFailed,
-        AiErrorCode::ProviderRequestFailed,
-        AiErrorCode::InvalidResponse,
-        AiErrorCode::Cancelled,
+        "agent_unavailable",
+        "authentication_failed",
+        "provider_request_failed",
+        "invalid_response",
+        "cancelled",
     ] {
         let spy = ExecutorSpy::new(
-            Err(AiError::new(
+            Err(AppError::new(
                 code,
                 "Unavailable / quota exhausted / invalid result",
             )),
@@ -140,7 +142,7 @@ async fn cancellation_invalidates_an_otherwise_valid_late_result() {
     )
     .await
     .unwrap_err();
-    assert_eq!(error.code, AiErrorCode::Cancelled);
+    assert_eq!(error.code, "cancelled");
     spy.assert_agent_only();
 }
 
@@ -159,7 +161,7 @@ async fn pre_cancelled_task_does_not_start_an_executor() {
         .await
         .unwrap_err()
         .code,
-        AiErrorCode::Cancelled
+        "cancelled"
     );
     assert_eq!(spy.agent_calls.load(Ordering::SeqCst), 0);
 }

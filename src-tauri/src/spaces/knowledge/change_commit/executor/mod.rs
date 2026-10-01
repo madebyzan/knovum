@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 mod links;
 mod objects;
 mod state;
@@ -15,7 +16,7 @@ pub(super) async fn execute(
     actor: EventActor<'_>,
     operations: &[KnowledgeChange],
     now: i64,
-) -> Result<Value, String> {
+) -> Result<Value, AppError> {
     let structure_change = if operations
         .iter()
         .any(|operation| matches!(operation, KnowledgeChange::CreateObject { .. }))

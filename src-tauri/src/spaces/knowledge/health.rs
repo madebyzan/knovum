@@ -1,4 +1,4 @@
-use crate::command_error::CommandError;
+use crate::app_error::AppError;
 use serde_json::Value;
 use sqlx::Row;
 use tauri::{AppHandle, Runtime};
@@ -9,7 +9,7 @@ use crate::spaces::db;
 pub async fn list_knowledge_health_issues<R: Runtime>(
     app: AppHandle<R>,
     space_id: String,
-) -> Result<Vec<Value>, CommandError> {
+) -> Result<Vec<Value>, AppError> {
     let pool = db::pool(&app).await?;
     let mut issues = Vec::new();
 

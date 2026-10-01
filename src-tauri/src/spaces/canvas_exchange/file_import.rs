@@ -1,4 +1,5 @@
 use super::{contract::JsonCanvasDocumentV1, import::JsonCanvasImportReceipt};
+use crate::app_error::AppError;
 use crate::spaces::{
     assets::import::commit::AssetImportProgress,
     db,
@@ -23,7 +24,7 @@ pub(super) async fn import(
     app: AppHandle,
     request: ImportRequest,
     progress: Channel<AssetImportProgress>,
-) -> Result<JsonCanvasImportReceipt, String> {
+) -> Result<JsonCanvasImportReceipt, AppError> {
     let (cancellation, _lease) = super::import_control::begin(&request.mutation_id)?;
     progress
         .send(AssetImportProgress {
@@ -72,7 +73,10 @@ pub(super) async fn import(
     }
     let (snapshot, revision) = repository::load_in_transaction(&mut tx, &request.space_id).await?;
     if revision != request.base_revision {
-        return Err("space-edit-revision-conflict: Space edit revision conflict".into());
+        return Err(AppError::new(
+            "space_edit_revision_conflict",
+            "Space edit revision conflict",
+        ));
     }
     tx.commit().await.map_err(db::sql_error)?;
     super::import_control::check(&cancellation)?;

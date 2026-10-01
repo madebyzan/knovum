@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use serde_json::{json, Map, Value};
 use tauri::AppHandle;
 
@@ -19,7 +20,7 @@ pub(super) async fn reserve(
     inputs: &ResolvedInputs,
     request: &mut Map<String, Value>,
     authority: &super::super::action_execution::ExecutionAuthority,
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     match action_id {
         "add-video-subtitles" => media::subtitled_video_request(inputs, request)?,
         "render-presentation"
@@ -51,7 +52,7 @@ fn build_pending_output_content(
     action_id: &str,
     parameters: &Value,
     inputs: &ResolvedInputs,
-) -> Result<Option<(&'static str, Value)>, String> {
+) -> Result<Option<(&'static str, Value)>, AppError> {
     let title = title(parameters, inputs)?;
     let output = match action_id {
         "draft-document" | "draft-script" | "summarize-meeting" | "draft-social-post" => (
@@ -90,7 +91,7 @@ fn build_pending_output_content(
     Ok(Some(output))
 }
 
-async fn node_exists(app: &AppHandle, space_id: &str, node_id: &str) -> Result<bool, String> {
+async fn node_exists(app: &AppHandle, space_id: &str, node_id: &str) -> Result<bool, AppError> {
     let count: i64 = sqlx::query_scalar(
         "SELECT COUNT(*) FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND deleted_at IS NULL",
     )
@@ -110,7 +111,7 @@ async fn insert_output(
     data: Value,
     sources: &[String],
     authority: &super::super::action_execution::ExecutionAuthority,
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
     authority.require_active(&mut *tx).await?;
@@ -151,10 +152,10 @@ async fn insert_output(
         structure::repository::save_in_transaction(&mut tx, space_id, base, &snapshot).await?;
     let after = structure::history::capture(&mut tx, space_id, &snapshot).await?;
     structure::history::record(&mut tx, space_id, &before, &after, None, None, revision).await?;
-    tx.commit().await.map_err(db::sql_error)
+    Ok(tx.commit().await.map_err(db::sql_error)?)
 }
 
-fn title(parameters: &Value, inputs: &ResolvedInputs) -> Result<String, String> {
+fn title(parameters: &Value, inputs: &ResolvedInputs) -> Result<String, AppError> {
     parameters
         .get("title")
         .and_then(Value::as_str)

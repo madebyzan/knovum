@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::command_error::CommandError;
+use crate::app_error::AppError;
 use crate::local_resources::models::catalog::{self, ModelKind};
 
 #[derive(Clone, Deserialize, Serialize, ts_rs::TS)]
@@ -60,5 +60,5 @@ pub struct ResourcePreparationSnapshot {
     pub completed_at: Option<u64>,
     pub state: ResourcePreparationState,
     pub progress: ResourcePreparationProgress,
-    pub error: Option<CommandError>,
+    pub error: Option<AppError>,
 }

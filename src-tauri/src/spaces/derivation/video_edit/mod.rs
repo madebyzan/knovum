@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 mod ass;
 mod contracts;
 mod filter_graph;
@@ -30,13 +31,20 @@ pub async fn render(
     app: AppHandle,
     request: RenderVideoEditRequest,
     progress: Channel<VideoEditProgress>,
-) -> Result<CompletedDerivationOutput, String> {
+) -> Result<CompletedDerivationOutput, AppError> {
     let (cancellation, _lease) = registry::acquire(request.id.clone())?;
     let source = start::start(&app, &request).await?;
     let execution_app = app.clone();
     let rendered =
         blocking::run(move || render::render(&execution_app, source, &progress, &cancellation))
-            .await;
+            .await
+            .map_err(|message| {
+                if message == CANCELLED {
+                    AppError::new("video_edit_render_cancelled", "Video render cancelled")
+                } else {
+                    AppError::from(message)
+                }
+            });
     match rendered {
         Ok(output) => {
             let path = output.path.clone();
@@ -51,7 +59,7 @@ pub async fn render(
             }
         }
         Err(error) => {
-            failure::fail_message(&app, &request.id, &error).await?;
+            failure::fail_message(&app, &request.id, &error.message).await?;
             Err(error)
         }
     }

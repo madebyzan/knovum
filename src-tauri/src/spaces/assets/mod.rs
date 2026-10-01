@@ -107,5 +107,7 @@ pub(crate) use references::{
 };
 
 pub(crate) async fn reconcile_interrupted_work(app: &tauri::AppHandle) -> Result<(), String> {
-    recovery::reconcile(app).await
+    recovery::reconcile(app)
+        .await
+        .map_err(|error| error.to_string())
 }

@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use std::collections::BTreeSet;
 
 use sqlx::SqlitePool;
@@ -28,7 +29,7 @@ pub(super) async fn drive(
     context: DriverContext<'_>,
     checkpoint: &mut crate::agent_runtime::ControlCheckpoint,
     cancellation: CancellationToken,
-) -> Result<String, String> {
+) -> Result<String, AppError> {
     let DriverContext {
         app: _,
         pool,
@@ -84,8 +85,8 @@ pub(super) async fn drive(
                     )
                     .await
                     .unwrap_or_else(|_| {
-                        Err(crate::ai::error::AiError::new(
-                            crate::ai::error::AiErrorCode::InvalidResponse,
+                        Err(crate::app_error::AppError::new(
+                            "invalid_response",
                             "budget-exhausted: Assistant duration limit was exceeded",
                         ))
                     });
@@ -104,7 +105,7 @@ pub(super) async fn drive(
                                     &serde_json::json!({"parts": [{"type": "text", "text": partial}], "runId": ids.run_id, "status": status}),
                                 ).await?;
                             }
-                            return Err(error.to_string());
+                            return Err(error);
                         }
                     };
                     repository::complete_turn(

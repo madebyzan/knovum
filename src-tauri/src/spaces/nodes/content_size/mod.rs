@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use std::collections::HashMap;
 
 use serde_json::Value;
@@ -18,7 +19,7 @@ pub(in crate::spaces) async fn sync_changed_in_transaction(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
     changes: &[NodeContentChange],
-) -> Result<Option<SpaceEditSnapshotResponse>, String> {
+) -> Result<Option<SpaceEditSnapshotResponse>, AppError> {
     let node_ids = changes
         .iter()
         .filter_map(|change| {
@@ -36,7 +37,7 @@ pub(in crate::spaces) async fn sync_node_ids_in_transaction(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
     node_ids: &[String],
-) -> Result<Option<SpaceEditSnapshotResponse>, String> {
+) -> Result<Option<SpaceEditSnapshotResponse>, AppError> {
     let (mut snapshot, revision) = structure::repository::load_in_transaction(tx, space_id).await?;
     if !fit_in_snapshot(tx, space_id, &mut snapshot, node_ids).await? {
         return Ok(None);
@@ -56,7 +57,7 @@ pub(in crate::spaces) async fn fit_in_snapshot(
     space_id: &str,
     snapshot: &mut structure::repository::SpaceStructureSnapshot,
     node_ids: &[String],
-) -> Result<bool, String> {
+) -> Result<bool, AppError> {
     let mut payloads = HashMap::new();
     for node_id in node_ids {
         let encoded: Option<String> = sqlx::query_scalar(

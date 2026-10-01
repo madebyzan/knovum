@@ -208,7 +208,7 @@ async fn edited_inputs_and_cancelled_parents_cannot_create_child_runs() {
     let error = super::super::super::execute_step(&pool, &claim(&pool, &cancelled, "draft").await)
         .await
         .unwrap_err();
-    assert!(error.contains("parent-run-inactive"));
+    assert!(error.message.contains("parent-run-inactive"));
     let stale = create_run(&pool).await;
     sqlx::query(
         "UPDATE spaces_nodes SET data=json_set(data,'$.title','Edited') WHERE id='new-note'",
@@ -219,7 +219,7 @@ async fn edited_inputs_and_cancelled_parents_cannot_create_child_runs() {
     let error = super::super::super::execute_step(&pool, &claim(&pool, &stale, "draft").await)
         .await
         .unwrap_err();
-    assert!(error.contains("workflow-run-stale"));
+    assert!(error.message.contains("workflow-run-stale"));
     let count: i64 =
         sqlx::query_scalar("SELECT COUNT(*) FROM spaces_runs WHERE parent_run_id IS NOT NULL")
             .fetch_one(&pool)

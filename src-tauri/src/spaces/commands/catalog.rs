@@ -1,4 +1,4 @@
-use crate::command_error::CommandError;
+use crate::app_error::AppError;
 use serde::Deserialize;
 use tauri::{AppHandle, Runtime};
 
@@ -16,7 +16,7 @@ pub struct SpaceInput {
 pub async fn create_space<R: Runtime>(
     app: AppHandle<R>,
     space: SpaceInput,
-) -> Result<(), CommandError> {
+) -> Result<(), AppError> {
     if !matches!(space.kind.as_str(), "inbox" | "space") {
         return Err("Unsupported Space kind".into());
     }
@@ -45,7 +45,7 @@ pub async fn update_space_title<R: Runtime>(
     app: AppHandle<R>,
     space_id: String,
     title: String,
-) -> Result<(), CommandError> {
+) -> Result<(), AppError> {
     let now = crate::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
     let executed =
@@ -63,7 +63,7 @@ pub async fn update_space_title<R: Runtime>(
 pub async fn archive_space<R: Runtime>(
     app: AppHandle<R>,
     space_id: String,
-) -> Result<(), CommandError> {
+) -> Result<(), AppError> {
     Ok((set_archived(&app, space_id, true).await)?)
 }
 
@@ -71,7 +71,7 @@ pub async fn archive_space<R: Runtime>(
 pub async fn unarchive_space<R: Runtime>(
     app: AppHandle<R>,
     space_id: String,
-) -> Result<(), CommandError> {
+) -> Result<(), AppError> {
     Ok((set_archived(&app, space_id, false).await)?)
 }
 
@@ -79,7 +79,7 @@ pub async fn unarchive_space<R: Runtime>(
 pub async fn mark_space_opened<R: Runtime>(
     app: AppHandle<R>,
     space_id: String,
-) -> Result<(), CommandError> {
+) -> Result<(), AppError> {
     let now = crate::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
     let executed = sqlx::query("UPDATE spaces SET last_opened_at = ? WHERE id = ?")
@@ -96,7 +96,7 @@ pub async fn set_space_favorite<R: Runtime>(
     app: AppHandle<R>,
     space_id: String,
     favorite: bool,
-) -> Result<(), CommandError> {
+) -> Result<(), AppError> {
     let now = crate::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
     let executed = sqlx::query(
@@ -116,7 +116,7 @@ pub async fn update_space_thumbnail<R: Runtime>(
     app: AppHandle<R>,
     space_id: String,
     thumbnail_path: String,
-) -> Result<Vec<String>, CommandError> {
+) -> Result<Vec<String>, AppError> {
     crate::spaces::assets::authorize_canvas_thumbnail(&app, &thumbnail_path)?;
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;

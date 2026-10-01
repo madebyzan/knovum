@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use std::{sync::Arc, time::Duration};
 
 use tauri::AppHandle;
@@ -52,7 +53,7 @@ async fn maintain(app: &AppHandle) -> Result<(), String> {
     Ok(())
 }
 
-async fn execute_claim(app: &AppHandle, claim: super::AttemptClaim) -> Result<(), String> {
+async fn execute_claim(app: &AppHandle, claim: super::AttemptClaim) -> Result<(), AppError> {
     let pool = crate::spaces::db::pool(app).await?;
     let execution = crate::spaces::workflows::execute_step(app, pool, &claim);
     tokio::pin!(execution);
@@ -71,7 +72,7 @@ async fn execute_claim(app: &AppHandle, claim: super::AttemptClaim) -> Result<()
         }) => match scheduler::complete_step(pool, &claim, &output, selected_branch.as_deref())
             .await
         {
-            Err(error) if error.starts_with("budget-exhausted:") => {
+            Err(error) if error.code == "budget_exhausted" => {
                 scheduler::fail_step(pool, &claim, &error).await
             }
             result => result,

@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 mod persistence;
 mod preparation;
 mod registry;
@@ -39,7 +40,7 @@ pub(super) async fn render_for_action(
     app: AppHandle,
     request: RenderSubtitledVideoRequest,
     on_progress: Channel<SubtitledVideoProgress>,
-) -> Result<CompletedDerivationOutput, String> {
+) -> Result<CompletedDerivationOutput, AppError> {
     render_inner(authority, app, request, on_progress).await
 }
 
@@ -48,7 +49,7 @@ async fn render_inner(
     app: AppHandle,
     request: RenderSubtitledVideoRequest,
     on_progress: Channel<SubtitledVideoProgress>,
-) -> Result<CompletedDerivationOutput, String> {
+) -> Result<CompletedDerivationOutput, AppError> {
     let (cancellation, _lease) = registry::acquire(request.id.clone())?;
     authority
         .require_active(crate::spaces::db::pool(&app).await?)
@@ -64,7 +65,7 @@ async fn render_inner(
                     failure::PendingNodeState::Processing,
                 )
                 .await?;
-                return Err(error);
+                return Err(error.into());
             }
         };
     let execution_app = app.clone();
@@ -114,13 +115,18 @@ async fn render_inner(
                     tokio::fs::remove_file(path).await.map_err(|cleanup| {
                         format!("{error}; derived video cleanup failed: {cleanup}")
                     })?;
-                    failure::fail_message(&app, &request.id, &error).await?;
+                    failure::fail_message(&app, &request.id, &error.message).await?;
                     Err(error)
                 }
             }
         }
         Err(error) => {
-            failure::fail_message(&app, &request.id, &error).await?;
+            let error = if error == CANCELLED {
+                AppError::new("cancelled", "Video subtitle rendering cancelled")
+            } else {
+                AppError::from(error)
+            };
+            failure::fail_message(&app, &request.id, &error.message).await?;
             Err(error)
         }
     }

@@ -1,4 +1,4 @@
-use crate::command_error::CommandError;
+use crate::app_error::AppError;
 use tauri::{AppHandle, Manager};
 use tokio::sync::OnceCell;
 
@@ -21,7 +21,7 @@ pub(super) fn start(app: AppHandle) {
 }
 
 #[tauri::command]
-pub async fn await_space_runtime(app: AppHandle) -> Result<(), CommandError> {
+pub async fn await_space_runtime(app: AppHandle) -> Result<(), AppError> {
     Ok(ready(&app).await?)
 }
 

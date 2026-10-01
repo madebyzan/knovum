@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use serde_json::Value;
 use sqlx::Row;
 use tauri::{AppHandle, Runtime};
@@ -16,7 +17,7 @@ use crate::spaces::{
 pub(in crate::spaces) async fn update_many<R: Runtime>(
     app: &AppHandle<R>,
     mut request: UpdateNodesRequest,
-) -> Result<UpdateNodesResponse, String> {
+) -> Result<UpdateNodesResponse, AppError> {
     if request.changes.is_empty() {
         return Ok(UpdateNodesResponse {
             nodes: Vec::new(),
@@ -64,7 +65,7 @@ pub(in crate::spaces) async fn update_many_in_transaction(
     actor_kind: &str,
     now: i64,
     enrichment_target: Option<&crate::ai::tasks::TaskTargetSelection>,
-) -> Result<Option<crate::spaces::structure::SpaceEditSnapshotResponse>, String> {
+) -> Result<Option<crate::spaces::structure::SpaceEditSnapshotResponse>, AppError> {
     for change in changes {
         apply_node_change(tx, space_id, change, actor_kind, now, enrichment_target).await?;
     }

@@ -1,5 +1,6 @@
 import type { Ref } from "vue";
 
+import { errorMessage } from "../errors/error-format";
 import type { AppTask } from "./task-model";
 
 export type RetryTask = () => Promise<void>;
@@ -38,7 +39,7 @@ export function createTaskRetryController(
       succeed(id);
     } catch (error) {
       task.status = "failed";
-      task.statusMessage = String(error);
+      task.statusMessage = errorMessage(error);
       task.retryable = true;
     }
   }

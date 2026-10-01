@@ -12,10 +12,8 @@ use windows::{
     },
 };
 
-use crate::ai::{
-    contracts::AgentKind,
-    error::{AiError, AiResult},
-};
+use crate::ai::contracts::AgentKind;
+use crate::app_error::{AppError, AppResult};
 
 const UNINSTALL_KEY: &str = "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
 
@@ -28,7 +26,7 @@ impl Drop for RegistryKey {
     }
 }
 
-pub(crate) fn detect() -> AiResult<HashSet<AgentKind>> {
+pub(crate) fn detect() -> AppResult<HashSet<AgentKind>> {
     let mut installed = HashSet::new();
     for hive in [HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE] {
         for view in [KEY_WOW64_64KEY, KEY_WOW64_32KEY] {
@@ -57,7 +55,7 @@ pub(crate) fn detect() -> AiResult<HashSet<AgentKind>> {
                 }
                 status.ok().map_err(registry_error)?;
                 let key = String::from_utf16(&name[..length as usize])
-                    .map_err(|error| AiError::internal(error.to_string()))?;
+                    .map_err(|error| AppError::internal(error.to_string()))?;
                 if let Some(kind) = installed_agent(root.0, &key)? {
                     installed.insert(kind);
                 }
@@ -68,7 +66,7 @@ pub(crate) fn detect() -> AiResult<HashSet<AgentKind>> {
     Ok(installed)
 }
 
-fn installed_agent(hive: HKEY, key: &str) -> AiResult<Option<AgentKind>> {
+fn installed_agent(hive: HKEY, key: &str) -> AppResult<Option<AgentKind>> {
     let Some(name) = read_string(hive, key, "DisplayName")? else {
         return Ok(None);
     };
@@ -88,7 +86,7 @@ fn installed_agent(hive: HKEY, key: &str) -> AiResult<Option<AgentKind>> {
         .then_some(agent.descriptor.kind))
 }
 
-fn open(hive: HKEY, path: &str, view: REG_SAM_FLAGS) -> AiResult<Option<RegistryKey>> {
+fn open(hive: HKEY, path: &str, view: REG_SAM_FLAGS) -> AppResult<Option<RegistryKey>> {
     let path = utf16(path);
     let mut key = HKEY::default();
     let status =
@@ -100,7 +98,7 @@ fn open(hive: HKEY, path: &str, view: REG_SAM_FLAGS) -> AiResult<Option<Registry
     Ok(Some(RegistryKey(key)))
 }
 
-fn read_string(hive: HKEY, key: &str, value: &str) -> AiResult<Option<String>> {
+fn read_string(hive: HKEY, key: &str, value: &str) -> AppResult<Option<String>> {
     let key = utf16(key);
     let value = utf16(value);
     let flags = RRF_RT_REG_SZ | RRF_RT_REG_EXPAND_SZ;
@@ -136,15 +134,15 @@ fn read_string(hive: HKEY, key: &str, value: &str) -> AiResult<Option<String>> {
     let length = data
         .iter()
         .position(|unit| *unit == 0)
-        .ok_or_else(|| AiError::internal("Registry string is not null-terminated"))?;
+        .ok_or_else(|| AppError::internal("Registry string is not null-terminated"))?;
     String::from_utf16(&data[..length])
         .map(Some)
-        .map_err(|error| AiError::internal(error.to_string()))
+        .map_err(|error| AppError::internal(error.to_string()))
 }
 
 fn utf16(value: &str) -> Vec<u16> {
     value.encode_utf16().chain(Some(0)).collect()
 }
-fn registry_error(error: windows::core::Error) -> AiError {
-    AiError::internal(error.to_string())
+fn registry_error(error: windows::core::Error) -> AppError {
+    AppError::internal(error.to_string())
 }

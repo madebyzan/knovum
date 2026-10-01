@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use std::collections::{HashMap, HashSet};
 
 use sqlx::{Sqlite, Transaction};
@@ -28,7 +29,7 @@ pub(super) fn preserve_history_neutral_content_sizes(targets: &mut [TargetState]
 pub(super) async fn remove_current_structures(
     tx: &mut Transaction<'_, Sqlite>,
     targets: &[TargetState],
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     for target in targets {
         let (current, _) =
             super::super::super::repository::load_in_transaction(tx, &target.space_id).await?;
@@ -51,7 +52,7 @@ pub(super) async fn remove_current_structures(
 pub(super) async fn move_nodes(
     tx: &mut Transaction<'_, Sqlite>,
     owners: &HashMap<&str, &str>,
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     for (node, space) in owners {
         sqlx::query("UPDATE spaces_nodes SET space_id=$1 WHERE id=$2 AND deleted_at IS NULL")
             .bind(space)
@@ -66,7 +67,7 @@ pub(super) async fn move_nodes(
 pub(super) async fn reconcile_knowledge_ownership(
     tx: &mut Transaction<'_, Sqlite>,
     targets: &[TargetState],
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     let ids: HashSet<&str> = targets
         .iter()
         .flat_map(|target| target.relations.iter().map(|relation| relation.id.as_str()))
@@ -85,7 +86,7 @@ pub(super) async fn save_targets(
     targets: &[TargetState],
     requested: &str,
     redo: bool,
-) -> Result<i64, String> {
+) -> Result<i64, AppError> {
     let mut requested_next = 0;
     for target in targets {
         super::super::apply_relations(tx, &target.relations).await?;

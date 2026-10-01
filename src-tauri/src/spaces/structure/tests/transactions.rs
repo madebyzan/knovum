@@ -49,6 +49,7 @@ async fn retry_returns_original_receipt_and_changed_request_is_rejected() {
         .await
         .err()
         .expect("mutation identity must bind its request")
+        .message
         .contains("different request"));
     tx.rollback().await.expect("rollback rejected request");
     let counts: (i64, i64, i64) = sqlx::query_as(

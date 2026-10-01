@@ -1,12 +1,12 @@
 use super::super::repository;
-use crate::command_error::CommandError;
+use crate::app_error::AppError;
 
 #[tauri::command]
 pub async fn rename_assistant_conversation(
     app: tauri::AppHandle,
     conversation_id: String,
     title: String,
-) -> Result<(), CommandError> {
+) -> Result<(), AppError> {
     Ok((repository::rename(
         crate::spaces::db::pool(&app).await?,
         &conversation_id,
@@ -19,7 +19,7 @@ pub async fn rename_assistant_conversation(
 pub async fn archive_assistant_conversation(
     app: tauri::AppHandle,
     conversation_id: String,
-) -> Result<(), CommandError> {
+) -> Result<(), AppError> {
     Ok((repository::archive(crate::spaces::db::pool(&app).await?, &conversation_id).await)?)
 }
 
@@ -27,7 +27,7 @@ pub async fn archive_assistant_conversation(
 pub async fn unarchive_assistant_conversation(
     app: tauri::AppHandle,
     conversation_id: String,
-) -> Result<(), CommandError> {
+) -> Result<(), AppError> {
     Ok((repository::unarchive(crate::spaces::db::pool(&app).await?, &conversation_id).await)?)
 }
 
@@ -35,7 +35,7 @@ pub async fn unarchive_assistant_conversation(
 pub async fn delete_assistant_conversation(
     app: tauri::AppHandle,
     conversation_id: String,
-) -> Result<(), CommandError> {
+) -> Result<(), AppError> {
     let pool = crate::spaces::db::pool(&app).await?;
     let active: i64 = sqlx::query_scalar(
         "SELECT COUNT(*) FROM spaces_assistant_tasks t JOIN spaces_runs r ON r.id=t.run_id
@@ -59,7 +59,7 @@ pub async fn branch_assistant_conversation(
     source_branch_id: String,
     through_message_id: String,
     include_boundary: bool,
-) -> Result<String, CommandError> {
+) -> Result<String, AppError> {
     Ok((repository::branch(
         crate::spaces::db::pool(&app).await?,
         &conversation_id,
@@ -75,7 +75,7 @@ pub async fn activate_assistant_branch(
     app: tauri::AppHandle,
     conversation_id: String,
     branch_id: String,
-) -> Result<(), CommandError> {
+) -> Result<(), AppError> {
     Ok((repository::activate_branch(
         crate::spaces::db::pool(&app).await?,
         &conversation_id,

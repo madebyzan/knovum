@@ -1,5 +1,6 @@
 import type { Ref, ShallowRef } from "vue";
 
+import { errorMessage } from "../../../foundation/errors/error-format";
 import type { TaskTargetRef } from "../../../shared/contracts/generated/TaskTargetRef";
 import type { AssistantConversation } from "../contracts/generated/AssistantConversation";
 import type { AssistantMessage } from "../contracts/generated/AssistantMessage";
@@ -68,7 +69,7 @@ export function createConversationTaskSubmission(options: {
     try {
       if (submitted === generation) await options.accepted(task.accepted, selection);
     } catch (reason) {
-      if (submitted === generation) state.error.value = String(reason);
+      if (submitted === generation) state.error.value = errorMessage(reason);
     }
     const outcome = await task.settled;
     if (submitted !== generation) return;
@@ -89,7 +90,7 @@ export function createConversationTaskSubmission(options: {
       try {
         await options.restoreForSpace(state.activeSpaceId.value);
       } catch (cause) {
-        state.error.value = String(cause);
+        state.error.value = errorMessage(cause);
       }
     } else if (state.taskState.value !== "waiting") {
       state.activeRunId.value = undefined;
@@ -148,7 +149,7 @@ export function createConversationTaskSubmission(options: {
     } catch (reason) {
       if (submitted === generation) {
         if (!accepted) input.restoreDraft(request);
-        state.error.value = String(reason);
+        state.error.value = errorMessage(reason);
       }
     } finally {
       clearPending(pendingId);

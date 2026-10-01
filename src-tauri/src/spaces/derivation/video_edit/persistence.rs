@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use serde_json::Value;
 use tauri::AppHandle;
 
@@ -13,7 +14,7 @@ pub async fn complete(
     app: &AppHandle,
     id: &str,
     output: RenderedVideo,
-) -> Result<CompletedDerivationOutput, String> {
+) -> Result<CompletedDerivationOutput, AppError> {
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
     let row: (String, String, String, String, String) = sqlx::query_as(
@@ -47,7 +48,7 @@ pub async fn complete(
     })
 }
 
-fn apply_output(data: &mut Value, output: &RenderedVideo, now: i64) -> Result<(), String> {
+fn apply_output(data: &mut Value, output: &RenderedVideo, now: i64) -> Result<(), AppError> {
     let object = data
         .as_object_mut()
         .ok_or("Rendered video data is invalid")?;
@@ -60,5 +61,5 @@ fn apply_output(data: &mut Value, output: &RenderedVideo, now: i64) -> Result<()
     object.remove("videoEditProject");
     object.remove("mediaKnowledge");
     object.remove("mediaAnalysis");
-    revision::apply(data).map(|_| ())
+    revision::apply(data).map(|_| ()).map_err(AppError::from)
 }

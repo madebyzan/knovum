@@ -1,14 +1,13 @@
 import { info as logInfo } from "@tauri-apps/plugin-log";
 
+import { createAppError, decodeAppError } from "../../../../foundation/errors/app-error";
+import { errorMessage } from "../../../../foundation/errors/error-format";
 import { i18n } from "../../../../foundation/i18n/i18n";
-import { decodeCommandError } from "../../../../foundation/ipc/command-error";
 import { useTaskStore } from "../../../../foundation/tasks/task-store";
 import { formatByteSize } from "../../assets/format-byte-size";
 import type { SpaceMediaPayload } from "../../model/nodes/capabilities";
 import { cancelMediaImport, requestMediaImport } from "./ipc";
 import type { ImportedMedia, MediaImportProgress } from "./schema/import";
-
-export class MediaImportCancelledError extends Error {}
 
 export type MediaSourceAcquisition =
   | { outcome: "imported"; payload: SpaceMediaPayload }
@@ -56,11 +55,11 @@ export async function acquireMediaSource(
     void logInfo("[spaces.url-capture] media acquisition completed");
     return { outcome: "imported", payload: mediaPayloadFromImport(mediaAcquisition.media) };
   } catch (error) {
-    if (cancelRequested || decodeCommandError(error)?.code === "media_acquisition_cancelled") {
+    if (cancelRequested || decodeAppError(error)?.code === "media_acquisition_cancelled") {
       tasks.dismiss(jobId);
-      throw new MediaImportCancelledError();
+      throw createAppError("media_acquisition_cancelled", "Media acquisition cancelled");
     }
-    tasks.fail(jobId, String(error));
+    tasks.fail(jobId, errorMessage(error));
     throw error;
   }
 }

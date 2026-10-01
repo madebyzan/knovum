@@ -1,12 +1,12 @@
 use serde::de::DeserializeOwned;
 
-use crate::ai::error::{AiError, AiErrorCode, AiResult};
+use crate::app_error::{AppError, AppResult};
 
 pub const MAX_IMAGE_BYTES: usize = 64 * 1024 * 1024;
 pub const MAX_IMAGE_JSON_BYTES: usize = 96 * 1024 * 1024;
 pub const MAX_CONTROL_JSON_BYTES: usize = 1024 * 1024;
 
-pub async fn read_bytes(mut response: reqwest::Response, limit: usize) -> AiResult<Vec<u8>> {
+pub async fn read_bytes(mut response: reqwest::Response, limit: usize) -> AppResult<Vec<u8>> {
     if response
         .content_length()
         .is_some_and(|length| length > limit as u64)
@@ -26,18 +26,18 @@ pub async fn read_bytes(mut response: reqwest::Response, limit: usize) -> AiResu
 pub async fn read_json<T: DeserializeOwned>(
     response: reqwest::Response,
     limit: usize,
-) -> AiResult<T> {
+) -> AppResult<T> {
     let bytes = read_bytes(response, limit).await?;
     serde_json::from_slice(&bytes)
-        .map_err(|error| AiError::new(AiErrorCode::InvalidResponse, error.to_string()))
+        .map_err(|error| AppError::new("invalid_response", error.to_string()))
 }
 
-fn provider_error(error: reqwest::Error) -> AiError {
-    AiError::new(AiErrorCode::ProviderRequestFailed, error.to_string())
+fn provider_error(error: reqwest::Error) -> AppError {
+    AppError::new("provider_request_failed", error.to_string())
 }
-fn limit_error() -> AiError {
-    AiError::new(
-        AiErrorCode::InvalidResponse,
+fn limit_error() -> AppError {
+    AppError::new(
+        "invalid_response",
         "Provider response exceeded its resource limit",
     )
 }
@@ -45,20 +45,19 @@ fn limit_error() -> AiError {
 #[cfg(test)]
 mod tests;
 
-pub async fn read_text(response: reqwest::Response) -> AiResult<String> {
+pub async fn read_text(response: reqwest::Response) -> AppResult<String> {
     let bytes = read_bytes(response, MAX_CONTROL_JSON_BYTES).await?;
-    String::from_utf8(bytes)
-        .map_err(|error| AiError::new(AiErrorCode::InvalidResponse, error.to_string()))
+    String::from_utf8(bytes).map_err(|error| AppError::new("invalid_response", error.to_string()))
 }
 
-pub fn decode_image(encoded: &str) -> AiResult<Vec<u8>> {
+pub fn decode_image(encoded: &str) -> AppResult<Vec<u8>> {
     use base64::Engine;
     if encoded.len() > MAX_IMAGE_BYTES.div_ceil(3) * 4 {
         return Err(limit_error());
     }
     let bytes = base64::engine::general_purpose::STANDARD
         .decode(encoded)
-        .map_err(|error| AiError::new(AiErrorCode::InvalidResponse, error.to_string()))?;
+        .map_err(|error| AppError::new("invalid_response", error.to_string()))?;
     if bytes.len() > MAX_IMAGE_BYTES {
         return Err(limit_error());
     }

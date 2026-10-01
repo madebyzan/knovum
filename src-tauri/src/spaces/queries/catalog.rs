@@ -1,4 +1,4 @@
-use crate::command_error::CommandError;
+use crate::app_error::AppError;
 use serde::Serialize;
 use sqlx::Row;
 use tauri::{AppHandle, Runtime};
@@ -21,9 +21,7 @@ pub struct SpaceOverview {
 }
 
 #[tauri::command]
-pub async fn list_spaces<R: Runtime>(
-    app: AppHandle<R>,
-) -> Result<Vec<SpaceOverview>, CommandError> {
+pub async fn list_spaces<R: Runtime>(app: AppHandle<R>) -> Result<Vec<SpaceOverview>, AppError> {
     let pool = db::pool(&app).await?;
     Ok((sqlx::query_as(
         "SELECT spaces.id, spaces.kind, spaces.title, archived_at, favorite, thumbnail_path, \
@@ -41,7 +39,7 @@ pub async fn list_spaces<R: Runtime>(
 pub async fn list_credential_node_ids<R: Runtime>(
     app: AppHandle<R>,
     space_id: String,
-) -> Result<Vec<String>, CommandError> {
+) -> Result<Vec<String>, AppError> {
     let pool = db::pool(&app).await?;
     let rows =
         sqlx::query("SELECT id FROM spaces_nodes WHERE space_id = ? AND kind = 'credential'")

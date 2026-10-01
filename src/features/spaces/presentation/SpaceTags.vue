@@ -6,6 +6,7 @@ import { computed, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
+import { errorMessage } from "../../../foundation/errors/error-format";
 import UiBadge from "../../../shared/ui/UiBadge.vue";
 import UiIconButton from "../../../shared/ui/UiIconButton.vue";
 import UiInput from "../../../shared/ui/UiInput.vue";
@@ -50,7 +51,7 @@ async function updateTags(update: (tags: readonly string[]) => string[]) {
     await store.updateNodeContents(changes);
     return true;
   } catch (error) {
-    toast.error(String(error));
+    toast.error(errorMessage(error));
     return false;
   } finally {
     saving.value = false;

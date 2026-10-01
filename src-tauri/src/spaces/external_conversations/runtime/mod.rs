@@ -150,7 +150,7 @@ pub async fn send_prepared(
         }
         Err(error) => {
             let message = error.to_string();
-            let state = if error.code == crate::ai::error::AiErrorCode::Cancelled {
+            let state = if error.code == "cancelled" {
                 "cancelled"
             } else {
                 "failed"

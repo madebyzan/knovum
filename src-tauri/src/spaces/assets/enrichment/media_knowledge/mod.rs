@@ -1,8 +1,7 @@
 pub(crate) mod insights;
 
-use crate::{
-    command_error::CommandError, spaces::assets::transcription::MediaTranscriptionProgress,
-};
+use crate::app_error::AppError;
+use crate::spaces::assets::transcription::MediaTranscriptionProgress;
 use serde_json::Value;
 use tauri::{ipc::Channel, AppHandle};
 
@@ -24,7 +23,7 @@ pub async fn generate_media_insights(
     expected_revision: String,
     on_progress: Channel<MediaTranscriptionProgress>,
     target: Option<crate::ai::tasks::TaskTargetSelection>,
-) -> Result<Value, CommandError> {
+) -> Result<Value, AppError> {
     let (cancellation, _lease) = crate::ai::executions::acquire(job_id)?;
     let data = super::node_payload::load_node_content(&app, &space_id, &node_id).await?;
     if data["knowledgeRevision"].as_str() != Some(&expected_revision) {
@@ -39,14 +38,14 @@ pub async fn generate_media_insights(
     let generated_insights =
         insights::generate(&app, target, &knowledge, &on_progress, &cancellation).await;
     if cancellation.is_cancelled() {
-        return Err(CommandError::new(
+        return Err(AppError::new(
             "media_insights_cancelled",
             "media-insights-cancelled: Media insights generation cancelled",
         ));
     }
     let next = generated_insights?;
     let fields = serde_json::Map::from_iter([("mediaKnowledge".into(), next)]);
-    Ok(super::commit::publish(
+    super::commit::publish(
         &app,
         &space_id,
         &node_id,
@@ -60,5 +59,5 @@ pub async fn generate_media_insights(
         fields,
         None,
     )
-    .await?)
+    .await
 }

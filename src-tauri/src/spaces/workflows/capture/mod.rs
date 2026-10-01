@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 mod boundaries;
 mod candidate;
 mod fingerprint;
@@ -87,7 +88,7 @@ pub(crate) async fn start(
 pub(crate) async fn execute_step(
     pool: &SqlitePool,
     claim: &crate::spaces::runs::AttemptClaim,
-) -> Result<crate::spaces::runs::StepOutcome, String> {
+) -> Result<crate::spaces::runs::StepOutcome, AppError> {
     run::execute_step(pool, claim).await
 }
 

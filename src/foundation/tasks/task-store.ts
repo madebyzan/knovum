@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { computed, onScopeDispose, ref } from "vue";
 
+import { errorMessage } from "../errors/error-format";
 import { TaskExecutionHandlers, type CancelTask, type OpenTask } from "./task-execution-handlers";
 import type { AppTask, TaskStatus } from "./task-model";
 import { createTaskProgress } from "./task-progress";
@@ -100,8 +101,8 @@ export const useTaskStore = defineStore("tasks", () => {
       if (externallySettled.has(id)) {
         task.cancelling = false;
         task.cancellable = true;
-        task.statusMessage = String(error);
-      } else finish(id, "failed", String(error));
+        task.statusMessage = errorMessage(error);
+      } else finish(id, "failed", errorMessage(error));
     }
   }
 

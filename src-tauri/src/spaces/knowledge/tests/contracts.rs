@@ -132,7 +132,7 @@ async fn change_failure_rolls_back_objects_created_earlier_in_transaction() {
     let error = super::super::change_commit::apply(&mut tx, "space", actor, operations, 20)
         .await
         .expect_err("invalid provenance source must fail");
-    assert!(error.contains("source") || error.contains("reference"));
+    assert!(error.message.contains("source") || error.message.contains("reference"));
     tx.rollback()
         .await
         .expect("rollback failed knowledge change");

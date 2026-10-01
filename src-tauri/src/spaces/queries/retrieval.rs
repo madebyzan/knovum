@@ -1,4 +1,4 @@
-use crate::command_error::CommandError;
+use crate::app_error::AppError;
 use tauri::{AppHandle, Runtime};
 
 use crate::spaces::knowledge::retrieval;
@@ -8,7 +8,7 @@ pub async fn search_knowledge_hybrid<R: Runtime>(
     app: AppHandle<R>,
     job_id: String,
     request: retrieval::hybrid::HybridSearchRequest,
-) -> Result<retrieval::hybrid::HybridSearchResponse, CommandError> {
+) -> Result<retrieval::hybrid::HybridSearchResponse, AppError> {
     let (cancellation, _lease) = retrieval::search_control::acquire(job_id)?;
     Ok(tokio::select! {
         biased;
@@ -22,6 +22,6 @@ pub async fn list_related_content<R: Runtime>(
     app: AppHandle<R>,
     space_id: String,
     node_id: String,
-) -> Result<retrieval::related::RelatedContentResponse, CommandError> {
+) -> Result<retrieval::related::RelatedContentResponse, AppError> {
     Ok((retrieval::related::list(&app, &space_id, &node_id).await)?)
 }

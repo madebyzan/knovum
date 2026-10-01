@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use tauri::{AppHandle, Runtime};
 
 use super::{
@@ -15,7 +16,7 @@ use crate::spaces::{
 pub async fn insert_many<R: Runtime>(
     app: &AppHandle<R>,
     request: InsertNodesRequest,
-) -> Result<i64, String> {
+) -> Result<i64, AppError> {
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
     let revision =
@@ -29,7 +30,7 @@ pub(in crate::spaces) async fn insert_many_in_transaction(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     mut request: InsertNodesRequest,
     enrichment_target: Option<&crate::ai::tasks::TaskTargetSelection>,
-) -> Result<i64, String> {
+) -> Result<i64, AppError> {
     if request.nodes.is_empty() {
         return Err("Node creation requires at least one node".into());
     }
@@ -49,7 +50,10 @@ pub(in crate::spaces) async fn insert_many_in_transaction(
     let (mut snapshot, revision) =
         structure::repository::load_in_transaction(tx, &request.space_id).await?;
     if revision != request.expected_edit_revision {
-        return Err("space-edit-revision-conflict: Space edit revision conflict".into());
+        return Err(AppError::new(
+            "space_edit_revision_conflict",
+            "Space edit revision conflict",
+        ));
     }
     for node in &mut request.nodes {
         contracts::normalize_node(tx, &request.space_id, &node.kind, &mut node.data).await?;
@@ -105,7 +109,7 @@ pub(in crate::spaces) async fn insert_rows_in_transaction(
     nodes: &[InsertNode],
     now: i64,
     enrichment_target: Option<&crate::ai::tasks::TaskTargetSelection>,
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     insert_rows_with_actor(
         tx,
         space_id,
@@ -124,7 +128,7 @@ pub(in crate::spaces) async fn insert_rows_with_actor(
     actor: events::EventActor<'_>,
     now: i64,
     enrichment_target: Option<&crate::ai::tasks::TaskTargetSelection>,
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     for node in nodes {
         insert_single_node(tx, space_id, node, actor, now, enrichment_target).await?;
     }
@@ -138,7 +142,7 @@ async fn insert_single_node(
     actor: events::EventActor<'_>,
     now: i64,
     enrichment_target: Option<&crate::ai::tasks::TaskTargetSelection>,
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     if node.kind == "section" {
         return Err("Section is a structure node and cannot be inserted as content".into());
     }
@@ -196,6 +200,13 @@ async fn insert_single_node(
     chunk_store::replace(tx, space_id, &node.id, "derived", &derived, now).await?;
     let media = media_chunks(&node.data)?;
     chunk_store::replace(tx, space_id, &node.id, "media", &media, now).await?;
-    jobs::intent::synchronize_for_node(tx, space_id, &node.id, &node.data, now, enrichment_target)
-        .await
+    Ok(jobs::intent::synchronize_for_node(
+        tx,
+        space_id,
+        &node.id,
+        &node.data,
+        now,
+        enrichment_target,
+    )
+    .await?)
 }

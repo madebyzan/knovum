@@ -9,14 +9,12 @@ use agent_client_protocol::{
 };
 use tokio_util::sync::CancellationToken;
 
-use crate::ai::{
-    contracts::AgentKind,
-    error::{AiError, AiResult},
-};
+use crate::ai::contracts::AgentKind;
+use crate::app_error::{AppError, AppResult};
 
 pub use super::updates::AgentSessionUpdate;
 
-pub type AgentUpdateHandler = Arc<dyn Fn(AgentSessionUpdate) -> AiResult<()> + Send + Sync>;
+pub type AgentUpdateHandler = Arc<dyn Fn(AgentSessionUpdate) -> AppResult<()> + Send + Sync>;
 
 pub fn run(
     kind: AgentKind,
@@ -25,7 +23,7 @@ pub fn run(
     cancellation: CancellationToken,
     on_update: AgentUpdateHandler,
     mcp_servers: Vec<McpServer>,
-) -> futures::future::BoxFuture<'static, AiResult<StopReason>> {
+) -> futures::future::BoxFuture<'static, AppResult<StopReason>> {
     Box::pin(run_session(
         kind,
         working_directory,
@@ -43,7 +41,7 @@ async fn run_session(
     cancellation: CancellationToken,
     on_update: AgentUpdateHandler,
     mcp_servers: Vec<McpServer>,
-) -> AiResult<StopReason> {
+) -> AppResult<StopReason> {
     let agent = super::connection::runtime(kind, &cancellation).await?;
     let permission_cancellation = cancellation.clone();
     let client = Client.builder().on_receive_request(
@@ -179,21 +177,21 @@ async fn run_session(
         biased;
         session_outcome = &mut connection => session_outcome,
         started = &mut connection_start => {
-            started.map_err(|_| AiError::internal(
+            started.map_err(|_| AppError::internal(
                 "ACP connection ended before initialization",
             ))?;
             connection.await
         }
         _ = cancellation.cancelled() => {
-            return Err(AiError::cancelled("Agent session was cancelled"));
+            return Err(AppError::cancelled("Agent session was cancelled"));
         }
         _ = tokio::time::sleep(super::connection::START_TIMEOUT) => {
-            return Err(AiError::internal("ACP connection timed out after 30 seconds"));
+            return Err(AppError::internal("ACP connection timed out after 30 seconds"));
         }
     };
-    let reason = outcome.map_err(AiError::from)?;
+    let reason = outcome.map_err(AppError::from)?;
     if reason == StopReason::Cancelled {
-        return Err(AiError::cancelled("Agent session was cancelled"));
+        return Err(AppError::cancelled("Agent session was cancelled"));
     }
     Ok(reason)
 }

@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use sqlx::{Sqlite, Transaction};
 use tauri::{AppHandle, Runtime};
 
@@ -13,7 +14,7 @@ use validation::validate_request_shape;
 pub async fn restore<R: Runtime>(
     app: &AppHandle<R>,
     mut request: RestorePackageRequest,
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     validate_request_shape(&request)?;
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
@@ -55,14 +56,14 @@ pub async fn restore<R: Runtime>(
         }
     }
     knowledge::insert_events(&mut tx, &request).await?;
-    tx.commit().await.map_err(db::sql_error)
+    Ok(tx.commit().await.map_err(db::sql_error)?)
 }
 
 async fn insert_structure(
     tx: &mut Transaction<'_, Sqlite>,
     request: &RestorePackageRequest,
     snapshot: &crate::spaces::structure::repository::SpaceStructureSnapshot,
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     sqlx::query("INSERT INTO spaces_edit_state(space_id,revision,updated_at) VALUES($1,0,$2)")
         .bind(&request.space.id)
         .bind(request.space.updated_at)
@@ -88,7 +89,7 @@ use scenes::insert_scenes;
 async fn insert_space(
     tx: &mut Transaction<'_, Sqlite>,
     request: &RestorePackageRequest,
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     let row = &request.space;
     sqlx::query(
         "INSERT INTO spaces(id,kind,title,archived_at,last_opened_at,created_at,updated_at) \
@@ -109,7 +110,7 @@ async fn insert_space(
 async fn insert_object_types(
     tx: &mut Transaction<'_, Sqlite>,
     request: &RestorePackageRequest,
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     for row in &request.object_types {
         object_types::validate_custom_type_definition(
             &row.id,
@@ -131,7 +132,7 @@ async fn insert_object_types(
 async fn insert_nodes(
     tx: &mut Transaction<'_, Sqlite>,
     request: &RestorePackageRequest,
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     for row in &request.nodes {
         let data_kind = row
             .data
@@ -164,7 +165,7 @@ async fn insert_nodes(
 async fn validate_nodes(
     tx: &mut Transaction<'_, Sqlite>,
     request: &RestorePackageRequest,
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     for row in &request.nodes {
         knowledge_contracts::validate_node(tx, &request.space.id, &row.kind, &row.data).await?;
     }

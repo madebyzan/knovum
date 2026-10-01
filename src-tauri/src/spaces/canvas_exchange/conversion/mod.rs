@@ -4,6 +4,7 @@ use super::{
     file_import::ImportRequest,
     import::{ImportJsonCanvasNodesRequest, JsonCanvasNodeImport},
 };
+use crate::app_error::AppError;
 use crate::spaces::structure::repository::SpaceStructureSnapshot;
 use serde_json::{json, Value};
 use std::collections::HashMap;
@@ -13,7 +14,7 @@ pub(super) fn prepare(
     document: JsonCanvasDocumentV1,
     snapshot: SpaceStructureSnapshot,
     resources: &mut ImportResources<'_>,
-) -> Result<ImportJsonCanvasNodesRequest, String> {
+) -> Result<ImportJsonCanvasNodesRequest, AppError> {
     let groups: Vec<_> = document
         .nodes
         .iter()
@@ -150,7 +151,7 @@ fn section_appearance(
     frame: &NodeFrameV1,
     background: Option<String>,
     style: Option<&super::contract::BackgroundStyleV1>,
-) -> Result<Value, String> {
+) -> Result<Value, AppError> {
     let mut section_appearance = appearance(frame);
     if let Some(background) = background {
         section_appearance["background"] = json!(background);
@@ -166,16 +167,16 @@ fn node_payload(
     node: &JsonCanvasNodeV1,
     note_title: &str,
     resources: &mut ImportResources<'_>,
-) -> Result<Value, String> {
+) -> Result<Value, AppError> {
     let asset = if let JsonCanvasNodeV1::File(node) = node {
         Some(resources.acquire(&node.file)?)
     } else {
         None
     };
-    super::content::payload(node, note_title, asset)
+    Ok(super::content::payload(node, note_title, asset)?)
 }
 
-fn memberships(document: &JsonCanvasDocumentV1) -> Result<HashMap<String, String>, String> {
+fn memberships(document: &JsonCanvasDocumentV1) -> Result<HashMap<String, String>, AppError> {
     let groups: Vec<_> = document
         .nodes
         .iter()
@@ -222,7 +223,7 @@ fn relation(
     edge: &super::contract::JsonCanvasEdgeV1,
     identities: &HashMap<String, String>,
     space: &str,
-) -> Result<crate::spaces::commands::relations::SpaceRelationInput, String> {
+) -> Result<crate::spaces::commands::relations::SpaceRelationInput, AppError> {
     Ok(crate::spaces::commands::relations::SpaceRelationInput {
         id: uuid::Uuid::new_v4().to_string(),
         space_id: space.into(),

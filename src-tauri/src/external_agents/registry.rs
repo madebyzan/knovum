@@ -1,9 +1,7 @@
 use agent_client_protocol::{AcpAgent, AcpAgentConfig};
 
-use crate::ai::{
-    contracts::{AgentDescriptor, AgentKind},
-    error::{AiError, AiErrorCode, AiResult},
-};
+use crate::ai::contracts::{AgentDescriptor, AgentKind};
+use crate::app_error::{AppError, AppResult};
 
 use super::{
     catalog::{AcpLaunch, RegisteredAgent, AGENTS},
@@ -28,7 +26,7 @@ pub fn descriptors() -> Vec<AgentDescriptor> {
         .collect()
 }
 
-pub(super) fn runtime(kind: AgentKind, path: &str) -> AiResult<AcpAgent> {
+pub(super) fn runtime(kind: AgentKind, path: &str) -> AppResult<AcpAgent> {
     let agent = registered(kind);
     let executable = agent
         .descriptor
@@ -36,8 +34,8 @@ pub(super) fn runtime(kind: AgentKind, path: &str) -> AiResult<AcpAgent> {
         .iter()
         .find_map(|name| discovery::find_executable(name, path))
         .ok_or_else(|| {
-            AiError::new(
-                AiErrorCode::AgentUnavailable,
+            AppError::new(
+                "agent_unavailable",
                 format!("{} execution entry was not found in PATH ({}). A desktop application installation does not provide this entry automatically.",
                     agent.descriptor.display_name, agent.descriptor.executable_names.join(", ")),
             )

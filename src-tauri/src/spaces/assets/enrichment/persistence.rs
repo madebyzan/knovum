@@ -1,3 +1,4 @@
+use crate::app_error::AppError;
 use serde_json::Value;
 use tauri::AppHandle;
 
@@ -17,7 +18,7 @@ pub(in crate::spaces::assets) async fn persist_processing_state(
     state: &str,
     chunks: Option<Vec<KnowledgeChunkInput>>,
     guard: Option<&PublicationGuard<'_>>,
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     let object = data
         .as_object_mut()
         .ok_or_else(|| "Space node data must be an object".to_owned())?;

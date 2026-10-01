@@ -1,7 +1,8 @@
 use futures::future::BoxFuture;
 use serde::{Deserialize, Serialize};
 
-use crate::ai::{error::AiResult, transport::SecurityContext};
+use crate::ai::transport::SecurityContext;
+use crate::app_error::AppResult;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -18,5 +19,5 @@ pub trait FileUploadCapability: Send + Sync {
         bytes: Vec<u8>,
         mime_type: &'a str,
         file_name: &'a str,
-    ) -> BoxFuture<'a, AiResult<UploadedFileReference>>;
+    ) -> BoxFuture<'a, AppResult<UploadedFileReference>>;
 }

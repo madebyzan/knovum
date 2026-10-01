@@ -3,20 +3,17 @@ use genai::chat::{
     MessageContent, Tool, ToolCall, ToolChoice, ToolResponse,
 };
 
-use crate::ai::{
-    contracts::{
-        ModelBinarySource, ModelContentPart, ModelMessage, ModelRole, ModelToolChoice,
-        ModelTurnRequest,
-    },
-    error::{AiError, AiErrorCode, AiResult},
+use crate::ai::contracts::{
+    ModelBinarySource, ModelContentPart, ModelMessage, ModelRole, ModelToolChoice, ModelTurnRequest,
 };
+use crate::app_error::{AppError, AppResult};
 
-pub(crate) fn to_genai_request(request: &ModelTurnRequest) -> AiResult<ChatRequest> {
+pub(crate) fn to_genai_request(request: &ModelTurnRequest) -> AppResult<ChatRequest> {
     let messages = request
         .messages
         .iter()
         .map(to_message)
-        .collect::<AiResult<_>>()?;
+        .collect::<AppResult<_>>()?;
     let tools = request
         .tools
         .iter()
@@ -36,12 +33,12 @@ pub(crate) fn to_genai_request(request: &ModelTurnRequest) -> AiResult<ChatReque
     })
 }
 
-fn to_message(message: &ModelMessage) -> AiResult<ChatMessage> {
+fn to_message(message: &ModelMessage) -> AppResult<ChatMessage> {
     let content = message
         .content
         .iter()
         .map(to_part)
-        .collect::<AiResult<Vec<_>>>()?;
+        .collect::<AppResult<Vec<_>>>()?;
     let role = match message.role {
         ModelRole::System => ChatRole::System,
         ModelRole::User => ChatRole::User,
@@ -51,7 +48,7 @@ fn to_message(message: &ModelMessage) -> AiResult<ChatMessage> {
     Ok(ChatMessage::new(role, MessageContent::from_parts(content)))
 }
 
-fn to_part(part: &ModelContentPart) -> AiResult<ContentPart> {
+fn to_part(part: &ModelContentPart) -> AppResult<ContentPart> {
     match part {
         ModelContentPart::Text { text } => Ok(ContentPart::Text(text.clone())),
         ModelContentPart::Binary {
@@ -85,7 +82,7 @@ fn to_part(part: &ModelContentPart) -> AiResult<ContentPart> {
             call_id: call_id.clone(),
             fn_name: Some(name.clone()),
             content: serde_json::to_string(tool_reply)
-                .map_err(|error| AiError::new(AiErrorCode::InvalidRequest, error.to_string()))?,
+                .map_err(|error| AppError::new("invalid_request", error.to_string()))?,
         })),
     }
 }

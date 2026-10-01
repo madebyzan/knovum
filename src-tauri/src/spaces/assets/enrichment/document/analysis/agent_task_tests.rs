@@ -68,3 +68,27 @@ async fn invalid_visual_results_are_rejected() {
         spy.assert_agent_only();
     }
 }
+
+#[tokio::test]
+async fn inference_failure_keeps_its_code_and_message() {
+    for code in [
+        "authentication_failed",
+        "agent_unavailable",
+        "provider_request_failed",
+        "cancelled",
+    ] {
+        let spy = ExecutorSpy::fails(crate::app_error::AppError::new(code, "Original failure"));
+        let error = analyze_input(
+            &spy,
+            agent_target(ExecutionCapability::VisionUnderstanding),
+            input(),
+            CancellationToken::new(),
+        )
+        .await
+        .err()
+        .expect("inference must fail");
+        assert_eq!(error.code, code);
+        assert_eq!(error.message, "Original failure");
+        spy.assert_agent_only();
+    }
+}

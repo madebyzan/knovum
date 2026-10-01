@@ -5,6 +5,7 @@ import { toast } from "vue-sonner";
 
 import { cancelAiJob } from "../../../foundation/ai/ai-runtime";
 import { useAiSettingsStore } from "../../../foundation/ai/ai-settings-store";
+import { errorMessage } from "../../../foundation/errors/error-format";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
 import type { AgentKind } from "../../../shared/contracts/generated/AgentKind";
 import { useSpaceStore } from "../session/space-store";
@@ -62,7 +63,7 @@ export function useAgentCreation(open: Ref<boolean>) {
       );
       if (!selectionAvailable) selectedAgent.value = "";
     } catch (error) {
-      toast.error(String(error));
+      toast.error(errorMessage(error));
     }
   }
 
@@ -113,9 +114,9 @@ export function useAgentCreation(open: Ref<boolean>) {
         ? t("spaces.creation.agent.artifacts.ready", { count: artifacts.length })
         : t("spaces.creation.agent.artifacts.none");
     } catch (error) {
-      tasks.fail(taskId, String(error));
+      tasks.fail(taskId, errorMessage(error));
       if (!abandonRequested) {
-        toast.error(t("spaces.creation.agent.failed"), { description: String(error) });
+        toast.error(t("spaces.creation.agent.failed"), { description: errorMessage(error) });
       }
       artifactState.clear();
     } finally {

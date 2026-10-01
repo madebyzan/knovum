@@ -1,4 +1,4 @@
-use crate::command_error::CommandError;
+use crate::app_error::AppError;
 use serde::Deserialize;
 use serde_json::Value;
 use sqlx::Row;
@@ -23,7 +23,7 @@ pub struct ObjectTypeInput {
 pub async fn list_object_types<R: Runtime>(
     app: AppHandle<R>,
     space_id: String,
-) -> Result<Vec<Value>, CommandError> {
+) -> Result<Vec<Value>, AppError> {
     let pool = db::pool(&app).await?;
     let rows = sqlx::query(
         "SELECT id,space_id,name,icon,description,fields,system,created_at,updated_at \
@@ -39,7 +39,7 @@ pub async fn list_object_types<R: Runtime>(
 pub async fn create_object_type<R: Runtime>(
     app: AppHandle<R>,
     input: ObjectTypeInput,
-) -> Result<(), CommandError> {
+) -> Result<(), AppError> {
     validate_input(&input)?;
     let now = crate::clock::unix_time_millis()?;
     let fields = serde_json::to_string(&input.fields).map_err(db::json_error)?;
@@ -69,7 +69,7 @@ pub async fn create_object_type<R: Runtime>(
 pub async fn update_object_type<R: Runtime>(
     app: AppHandle<R>,
     input: ObjectTypeInput,
-) -> Result<(), CommandError> {
+) -> Result<(), AppError> {
     validate_input(&input)?;
     let now = crate::clock::unix_time_millis()?;
     let fields = serde_json::to_string(&input.fields).map_err(db::json_error)?;
@@ -111,7 +111,7 @@ pub async fn delete_object_type<R: Runtime>(
     app: AppHandle<R>,
     object_type_id: String,
     space_id: String,
-) -> Result<(), CommandError> {
+) -> Result<(), AppError> {
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
     let count =

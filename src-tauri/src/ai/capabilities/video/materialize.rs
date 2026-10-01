@@ -6,9 +6,9 @@ use crate::ai::{
         GeneratedVideo, VideoGenerationCapability, VideoGenerationInput,
         VideoGenerationStageCallback, VideoGenerationStatus,
     },
-    error::{AiError, AiErrorCode, AiResult},
     transport::{http_client, SecurityContext},
 };
+use crate::app_error::{AppError, AppResult};
 
 pub async fn materialize(
     adapter: &dyn VideoGenerationCapability,
@@ -16,11 +16,11 @@ pub async fn materialize(
     req: &VideoGenerationInput,
     cancellation: &CancellationToken,
     stage: VideoGenerationStageCallback<'_>,
-) -> AiResult<GeneratedVideo> {
-    stage("submittingVideo").map_err(AiError::invalid)?;
+) -> AppResult<GeneratedVideo> {
+    stage("submittingVideo").map_err(AppError::invalid)?;
     let submission = adapter.submit(ctx, req).await?;
     let operation_id = submission.operation_id;
-    stage("videoGenerationSubmitted").map_err(AiError::invalid)?;
+    stage("videoGenerationSubmitted").map_err(AppError::invalid)?;
 
     let mut interval = Duration::from_secs(5);
     let max_interval = Duration::from_secs(30);
@@ -29,18 +29,18 @@ pub async fn materialize(
 
     loop {
         if cancellation.is_cancelled() {
-            return Err(AiError::cancelled("Video generation cancelled by user"));
+            return Err(AppError::cancelled("Video generation cancelled by user"));
         }
         if started_at.elapsed() >= max_duration {
-            return Err(AiError::new(
-                AiErrorCode::ProviderRequestFailed,
+            return Err(AppError::new(
+                "provider_request_failed",
                 format!("Video generation timed out after 60 minutes (operation: {operation_id})"),
             ));
         }
 
         tokio::select! {
             _ = cancellation.cancelled() => {
-                return Err(AiError::cancelled("Video generation cancelled by user"));
+                return Err(AppError::cancelled("Video generation cancelled by user"));
             }
             _ = tokio::time::sleep(interval) => {}
         }
@@ -49,38 +49,33 @@ pub async fn materialize(
             interval = (interval + Duration::from_secs(5)).min(max_interval);
         }
 
-        stage("generatingVideo").map_err(AiError::invalid)?;
+        stage("generatingVideo").map_err(AppError::invalid)?;
 
         let generation_status = adapter.status(ctx, &operation_id).await?;
         match generation_status {
             VideoGenerationStatus::Succeeded { video_url } => {
-                stage("downloadingVideo").map_err(AiError::invalid)?;
-                let video_bytes = if let Some(b64) =
-                    video_url.strip_prefix("data:video/mp4;base64,")
-                {
-                    use base64::Engine;
-                    base64::engine::general_purpose::STANDARD
-                        .decode(b64)
-                        .map_err(|e| AiError::new(AiErrorCode::InvalidResponse, e.to_string()))?
-                } else {
-                    let download_response = http_client()
-                        .get(&video_url)
-                        .send()
-                        .await
-                        .map_err(|e| {
-                            AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string())
-                        })?
-                        .error_for_status()
-                        .map_err(|e| {
-                            AiError::new(AiErrorCode::ProviderRequestFailed, e.to_string())
-                        })?;
+                stage("downloadingVideo").map_err(AppError::invalid)?;
+                let video_bytes =
+                    if let Some(b64) = video_url.strip_prefix("data:video/mp4;base64,") {
+                        use base64::Engine;
+                        base64::engine::general_purpose::STANDARD
+                            .decode(b64)
+                            .map_err(|e| AppError::new("invalid_response", e.to_string()))?
+                    } else {
+                        let download_response = http_client()
+                            .get(&video_url)
+                            .send()
+                            .await
+                            .map_err(|e| AppError::new("provider_request_failed", e.to_string()))?
+                            .error_for_status()
+                            .map_err(|e| AppError::new("provider_request_failed", e.to_string()))?;
 
-                    download_response
-                        .bytes()
-                        .await
-                        .map_err(|e| AiError::new(AiErrorCode::InvalidResponse, e.to_string()))?
-                        .to_vec()
-                };
+                        download_response
+                            .bytes()
+                            .await
+                            .map_err(|e| AppError::new("invalid_response", e.to_string()))?
+                            .to_vec()
+                    };
 
                 return Ok(GeneratedVideo {
                     bytes: video_bytes,
@@ -90,10 +85,7 @@ pub async fn materialize(
                 });
             }
             VideoGenerationStatus::Failed { error_message } => {
-                return Err(AiError::new(
-                    AiErrorCode::ProviderRequestFailed,
-                    error_message,
-                ));
+                return Err(AppError::new("provider_request_failed", error_message));
             }
             VideoGenerationStatus::Pending { .. } | VideoGenerationStatus::Processing { .. } => {
                 continue;

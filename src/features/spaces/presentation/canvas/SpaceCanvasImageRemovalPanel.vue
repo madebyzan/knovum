@@ -4,6 +4,7 @@ import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { toast } from "vue-sonner";
 
+import { errorMessage } from "../../../../foundation/errors/error-format";
 import { useImageOperationCapabilities } from "../../knowledge-derivations/image-capabilities";
 import { useImageRemovalSession } from "../../knowledge-derivations/image-removal-session";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
@@ -63,7 +64,7 @@ function openAiSettings() {
 
 function generate() {
   if (!canGenerate.value) return;
-  void removal.generate().catch((error) => toast.error(String(error)));
+  void removal.generate().catch((error) => toast.error(errorMessage(error)));
 }
 onMounted(async () => {
   await nextTick();

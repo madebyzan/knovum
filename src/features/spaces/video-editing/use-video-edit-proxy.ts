@@ -2,6 +2,7 @@ import * as log from "@tauri-apps/plugin-log";
 import { shallowRef, watch, type Ref } from "vue";
 import { z } from "zod";
 
+import { errorMessage } from "../../../foundation/errors/error-format";
 import { i18n } from "../../../foundation/i18n/i18n";
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import type { PrepareVideoEditProxyRequest } from "../contracts/generated/PrepareVideoEditProxyRequest";
@@ -33,7 +34,7 @@ export function useVideoEditProxy(
         active = false;
         if (pending) {
           void invokeCommand<void>("plugin:spaces|cancel_video_edit_proxy", { jobId }).catch((cause) =>
-            log.error(`Failed to cancel video editing proxy preparation: ${String(cause)}`),
+            log.error(`Failed to cancel video editing proxy preparation: ${errorMessage(cause)}`),
           );
         }
       });
@@ -50,7 +51,7 @@ export function useVideoEditProxy(
         if (active) path.value = proxyPath;
       } catch (caught) {
         if (active)
-          error.value = `${i18n.global.t("spaces.media.videoEditor.preview.proxyFailed")}: ${String(caught)}`;
+          error.value = `${i18n.global.t("spaces.media.videoEditor.preview.proxyFailed")}: ${errorMessage(caught)}`;
       } finally {
         pending = false;
       }

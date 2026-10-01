@@ -10,9 +10,9 @@ use genai::{
 
 use crate::ai::{
     contracts::{ModelTurnCapability, ModelTurnRequest, ModelTurnResponse},
-    error::{AiError, AiErrorCode, AiResult},
     transport::SecurityContext,
 };
+use crate::app_error::{AppError, AppResult};
 
 pub(crate) use request::{to_genai_options, to_genai_request};
 
@@ -43,7 +43,7 @@ impl ModelTurnCapability for GenAiModelTurnAdapter {
         &'a self,
         context: &'a SecurityContext,
         request: &'a ModelTurnRequest,
-    ) -> BoxFuture<'a, AiResult<ModelTurnResponse>> {
+    ) -> BoxFuture<'a, AppResult<ModelTurnResponse>> {
         Box::pin(async move {
             let response = Client::default()
                 .exec_chat(
@@ -52,9 +52,7 @@ impl ModelTurnCapability for GenAiModelTurnAdapter {
                     Some(&to_genai_options(request)),
                 )
                 .await
-                .map_err(|error| {
-                    AiError::new(AiErrorCode::ProviderRequestFailed, error.to_string())
-                })?;
+                .map_err(|error| AppError::new("provider_request_failed", error.to_string()))?;
             response::from_genai_response(context, response)
         })
     }

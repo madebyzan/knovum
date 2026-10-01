@@ -2,6 +2,7 @@ import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { error as logError } from "@tauri-apps/plugin-log";
 
+import { errorDiagnostic } from "../errors/error-format";
 import { invokeCommand } from "../ipc/invoke-command";
 
 type WindowCloseCommit = () => Promise<void>;
@@ -22,7 +23,7 @@ export async function initializeExitCoordination() {
 export function registerWindowCloseCommit(commit: WindowCloseCommit) {
   commits.add(commit);
   void initializeExitCoordination().catch((error) =>
-    logError(`Application close coordinator initialization failed: ${String(error)}`),
+    logError(`Application close coordinator initialization failed: ${errorDiagnostic(error)}`),
   );
   return () => commits.delete(commit);
 }
@@ -35,7 +36,7 @@ async function attachExitRequestListener() {
       await commitAll();
       await invokeCommand("plugin:desktop|decide_app_exit_request", { approved: true });
     } catch (error) {
-      await logError(`Application exit commit failed: ${String(error)}`);
+      await logError(`Application exit commit failed: ${errorDiagnostic(error)}`);
       await invokeCommand("plugin:desktop|decide_app_exit_request", { approved: false });
     } finally {
       exiting = false;
@@ -56,7 +57,7 @@ async function attachWindowCloseListener() {
       await commitAll();
       await getCurrentWindow().hide();
     } catch (error) {
-      await logError(`Window close commit failed: ${String(error)}`);
+      await logError(`Window close commit failed: ${errorDiagnostic(error)}`);
     } finally {
       closing = false;
     }

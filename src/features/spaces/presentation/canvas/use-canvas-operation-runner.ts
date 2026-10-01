@@ -1,5 +1,6 @@
 import { toast } from "vue-sonner";
 
+import { errorMessage } from "../../../../foundation/errors/error-format";
 import { useNodeOperationGate, type NodeOperationEffect } from "../../canvas/node-operation-gate";
 
 export function useCanvasOperationRunner() {
@@ -9,7 +10,7 @@ export function useCanvasOperationRunner() {
     if (!gate.allows(effect)) return;
     void Promise.resolve()
       .then(() => (gate.allows(effect) ? operation() : undefined))
-      .catch((error) => toast.error(String(error)));
+      .catch((error) => toast.error(errorMessage(error)));
   }
 
   return { allows: gate.allows, run };
