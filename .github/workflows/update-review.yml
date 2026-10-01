@@ -9,10 +9,13 @@ permissions:
 
 concurrency:
   group: update-implementation-review
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   review:
+    if: github.repository == 'madebyzan/knovum' && github.ref == 'refs/heads/feat/signed-application-updates'
+    permissions:
+      contents: write
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -55,10 +58,32 @@ jobs:
           pnpm exec oxfmt "${paths[@]}"
           cargo fmt --manifest-path src-tauri/Cargo.toml
           tar -czf /tmp/formatted-updates.tar.gz -T /tmp/update-paths
+      - name: Prepare formatted Git objects for explicit review
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node --input-type=module <<'JAVASCRIPT'
+          import { execFileSync } from "node:child_process";
+          import { readFileSync, writeFileSync } from "node:fs";
+          import { github } from "./tools/release-github.mjs";
+          const paths = readFileSync("/tmp/update-paths", "utf8").trim().split("\n")
+            .filter((path) => path !== ".github/workflows/update-review.yml");
+          const base = execFileSync("git", ["rev-parse", "HEAD^{tree}"], { encoding: "utf8" }).trim();
+          const result = await github(`/repos/${process.env.GITHUB_REPOSITORY}/git/trees`, {
+            method: "POST",
+            body: { base_tree: base, tree: paths.map((path) => ({
+              path, mode: "100644", type: "blob", content: readFileSync(path, "utf8"),
+            })) },
+          });
+          writeFileSync("/tmp/update-tree.json", JSON.stringify({ baseCommit: process.env.GITHUB_SHA, tree: result.sha, paths }, null, 2));
+          console.log(`Prepared tree ${result.sha}; no branch was updated.`);
+          JAVASCRIPT
       - uses: actions/upload-artifact@v4
         with:
           name: formatted-update-implementation
-          path: /tmp/formatted-updates.tar.gz
+          path: |
+            /tmp/formatted-updates.tar.gz
+            /tmp/update-tree.json
           if-no-files-found: error
           retention-days: 3
       - name: Check proposed behavior and repository web gates

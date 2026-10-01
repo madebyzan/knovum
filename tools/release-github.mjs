@@ -1,7 +1,7 @@
 import { distributionRepository, requireValue } from "./release-policy.mjs";
 
 export async function github(path, { method = "GET", body, allowMissing = false } = {}) {
-  const response = await fetch(`https://api.github.com${path}`, {
+  const options = {
     method,
     redirect: "error",
     signal: AbortSignal.timeout(30_000),
@@ -11,8 +11,12 @@ export async function github(path, { method = "GET", body, allowMissing = false 
       "X-GitHub-Api-Version": "2022-11-28",
       "Content-Type": "application/json",
     },
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
+  };
+  if (body !== undefined) {
+    if (method === "GET") throw new Error("GitHub GET requests cannot contain a body");
+    options.body = JSON.stringify(body);
+  }
+  const response = await fetch(`https://api.github.com${path}`, options);
   if (allowMissing && response.status === 404) return null;
   if (!response.ok) throw new Error(`GitHub ${method} ${path} failed: HTTP ${response.status}`);
   return response.json();

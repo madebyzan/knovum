@@ -29,24 +29,64 @@ for (const entry of readdirSync(input, { withFileTypes: true })) {
   if (!entry.isDirectory()) throw new Error("Expected one release artifact directory per target");
   const directory = join(input, entry.name);
   const part = JSON.parse(readFileSync(join(directory, "platform.json"), "utf8"));
-  if (part.version !== version || part.sourceCommit !== sourceCommit || part.endpoint !== endpoint || part.pubkey !== pubkey) {
+  if (
+    part.version !== version ||
+    part.sourceCommit !== sourceCommit ||
+    part.endpoint !== endpoint ||
+    part.pubkey !== pubkey
+  ) {
     throw new Error("All platform artifacts must share the release commit, version, endpoint and public key");
   }
   const payloads = [part.artifact, ...part.installers];
   for (const payload of payloads) {
     const name = safeFilename(payload.file);
     const source = join(directory, name);
-    if (await fileDigest(source) !== payload.sha256) throw new Error(`Artifact hash mismatch: ${name}`);
     copyFileSync(source, join(output, name));
   }
-  copyFileSync(join(directory, `${safeFilename(part.artifact.file)}.sig`), join(output, `${part.artifact.file}.sig`));
+  copyFileSync(
+    join(directory, `${safeFilename(part.artifact.file)}.sig`),
+    join(output, `${part.artifact.file}.sig`),
+  );
   artifacts.push(part.artifact);
   installers.push(...part.installers);
 }
-const candidate = { version, sourceCommit, endpoint, pubkey, notes, pubDate: new Date().toISOString(), artifacts, installers };
+const candidate = {
+  version,
+  sourceCommit,
+  endpoint,
+  pubkey,
+  notes,
+  pubDate: new Date().toISOString(),
+  artifacts,
+  installers,
+};
 createManifest({ ...candidate, baseUrl: `https://github.com/${repository}/releases/download/${tag}/` });
 await verifyReleaseFiles(output, artifacts, pubkey);
+await Promise.all(installers.map(async (installer) => {
+  if ((await fileDigest(join(output, installer.file))) !== installer.sha256) {
+    throw new Error(`Installer hash mismatch: ${installer.file}`);
+  }
+}));
 writeFileSync(join(output, "candidate.json"), `${JSON.stringify(candidate, null, 2)}\n`);
-execFileSync("gh", ["release", "create", tag, "--repo", repository, "--draft", "--title", `Knovum ${version}`, "--notes-file", resolve(process.argv[3])], { stdio: "inherit" });
-execFileSync("gh", ["release", "upload", tag, "--repo", repository, ...readdirSync(output).map((file) => join(output, file))], { stdio: "inherit" });
+execFileSync(
+  "gh",
+  [
+    "release",
+    "create",
+    tag,
+    "--repo",
+    repository,
+    "--draft",
+    "--title",
+    `Knovum ${version}`,
+    "--notes-file",
+    resolve(process.argv[3]),
+  ],
+  { stdio: "inherit" },
+);
+execFileSync(
+  "gh",
+  ["release", "upload", tag, "--repo", repository, ...readdirSync(output).map((file) => join(output, file))],
+  { stdio: "inherit" },
+);
 console.log(`Draft ${repository} ${tag} is ready for signed installer and upgrade acceptance.`);

@@ -37,23 +37,42 @@ export function verifySignature(file, signature, key) {
 }
 
 export async function verifyReleaseFiles(directory, artifacts, key) {
-  const names = new Set();
-  for (const artifact of artifacts) {
-    const name = safeFilename(artifact.file);
-    if (names.has(name)) throw new Error("Duplicate release asset filename");
-    names.add(name);
-    const file = join(directory, name);
-    if (await fileDigest(file) !== artifact.sha256) throw new Error(`Release asset hash mismatch: ${name}`);
+  const names = artifacts.map((artifact) => safeFilename(artifact.file));
+  if (new Set(names).size !== names.length) throw new Error("Duplicate release asset filename");
+  await Promise.all(artifacts.map(async (artifact) => {
+    const file = join(directory, artifact.file);
+    if ((await fileDigest(file)) !== artifact.sha256) {
+      throw new Error(`Release asset hash mismatch: ${artifact.file}`);
+    }
     verifySignature(file, artifact.signature, key);
-  }
+  }));
 }
 
 export function downloadPublicFile(url, file) {
   const source = httpsUrl(url, "Public release asset").href;
   // No GitHub token is ever sent to public artifact hosts or their redirects.
-  execFileSync("curl", [
-    "--fail", "--silent", "--show-error", "--location", "--proto", "=https",
-    "--proto-redir", "=https", "--connect-timeout", "15", "--max-time", "1800",
-    "--max-filesize", String(maxUpdateBytes), "--output", file, "--", source,
-  ], { stdio: "inherit" });
+  execFileSync(
+    "curl",
+    [
+      "--fail",
+      "--silent",
+      "--show-error",
+      "--location",
+      "--proto",
+      "=https",
+      "--proto-redir",
+      "=https",
+      "--connect-timeout",
+      "15",
+      "--max-time",
+      "1800",
+      "--max-filesize",
+      String(maxUpdateBytes),
+      "--output",
+      file,
+      "--",
+      source,
+    ],
+    { stdio: "inherit" },
+  );
 }

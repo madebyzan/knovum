@@ -1,13 +1,23 @@
-import { compareVersions, decodeSigningText, httpsUrl, releaseTargets, stableVersion } from "./release-policy.mjs";
+import {
+  compareVersions,
+  decodeSigningText,
+  httpsUrl,
+  releaseTargets,
+  stableVersion,
+} from "./release-policy.mjs";
 
-const platforms = Object.values(releaseTargets).sort();
+const platforms = Object.values(releaseTargets).toSorted();
 
 export function validateManifest(manifest) {
   if (!manifest || typeof manifest !== "object") throw new Error("Update manifest must be an object");
   stableVersion(manifest.version);
   validateNotes(manifest.notes);
   validateDate(manifest.pub_date);
-  if (Object.keys(manifest.platforms ?? {}).sort().join(",") !== platforms.join(",")) {
+  if (
+    Object.keys(manifest.platforms ?? {})
+      .toSorted()
+      .join(",") !== platforms.join(",")
+  ) {
     throw new Error("The update must contain exactly the four supported desktop targets");
   }
   for (const [target, artifact] of Object.entries(manifest.platforms)) {
@@ -65,7 +75,10 @@ function validateDate(value) {
     throw new Error("A UTC RFC 3339 publication date is required");
   }
   const milliseconds = Date.parse(value);
-  if (!Number.isFinite(milliseconds) || new Date(milliseconds).toISOString().slice(0, 19) !== value.slice(0, 19)) {
+  if (
+    !Number.isFinite(milliseconds) ||
+    new Date(milliseconds).toISOString().slice(0, 19) !== value.slice(0, 19)
+  ) {
     throw new Error("A valid calendar date is required");
   }
 }
