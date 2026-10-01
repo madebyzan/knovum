@@ -8,15 +8,15 @@ export function createUpdateTask(cancel: () => Promise<void>) {
   const t = i18n.global.t;
   let id: string | undefined;
 
-  function reportProgress(id: string, snapshot: UpdateSnapshot) {
+  function reportProgress(taskId: string, snapshot: UpdateSnapshot) {
     const verifying = snapshot.phase === "verifying";
-    tasks.setCancellation(id, verifying ? undefined : cancel);
+    tasks.setCancellation(taskId, verifying ? undefined : cancel);
     const message = verifying
       ? t("settings.updates.download.verifying")
       : t("settings.updates.download.downloading");
     if (snapshot.total && !verifying) {
-      tasks.progress(id, (snapshot.downloaded / snapshot.total) * 100, message);
-    } else tasks.indeterminate(id, message);
+      tasks.progress(taskId, (snapshot.downloaded / snapshot.total) * 100, message);
+    } else tasks.indeterminate(taskId, message);
   }
 
   return (snapshot: UpdateSnapshot) => {
