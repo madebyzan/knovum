@@ -1,6 +1,6 @@
 import { error as logError } from "@tauri-apps/plugin-log";
 import { LazyStore } from "@tauri-apps/plugin-store";
-import { isNil } from "es-toolkit";
+import { cloneDeep, isNil } from "es-toolkit";
 import { z } from "zod";
 
 import { invokeCommand } from "../ipc/invoke-command";
@@ -41,7 +41,7 @@ export function decodeAiModelSettings(raw: unknown): AiModelSettings {
 async function readSetting<T>(key: string, schema: z.ZodType<T>, defaultValue: T): Promise<T> {
   await writeQueue;
   const raw = await settingsStore.get<unknown>(key);
-  if (isNil(raw)) return structuredClone(defaultValue);
+  if (isNil(raw)) return cloneDeep(defaultValue);
   return decodeSetting(raw, schema);
 }
 function writeSetting<T>(key: string, schema: z.ZodType<T>, value: T): Promise<void> {

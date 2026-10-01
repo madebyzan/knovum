@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { cloneDeep } from "es-toolkit";
 import { computed, onMounted, ref, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -17,7 +18,7 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{ save: [preset: GenerationPreset] }>();
 const { t } = useI18n();
-const draft = ref<GenerationPreset>(structuredClone(props.preset));
+const draft = ref<GenerationPreset>(cloneDeep(props.preset));
 const actions = shallowRef<GenerationActionOption[]>([]);
 const actionLoadError = shallowRef<unknown>();
 
@@ -30,7 +31,7 @@ onMounted(async () => {
 });
 
 watch(open, (value) => {
-  if (value) draft.value = structuredClone(props.preset);
+  if (value) draft.value = cloneDeep(props.preset);
 });
 
 const action = computed(() => actions.value.find(({ id }) => id === draft.value.actionId));
@@ -44,7 +45,7 @@ const valid = computed(() => Boolean(action.value?.routingPurpose && draft.value
 
 function save() {
   if (!valid.value) return;
-  emit("save", { ...structuredClone(draft.value), name: draft.value.name.trim() } as GenerationPreset);
+  emit("save", { ...cloneDeep(draft.value), name: draft.value.name.trim() });
   open.value = false;
 }
 </script>

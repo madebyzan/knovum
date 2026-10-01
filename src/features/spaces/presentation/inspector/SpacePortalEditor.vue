@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, ref, toRaw, watch } from "vue";
+import { cloneDeep } from "es-toolkit";
+import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
@@ -30,7 +31,7 @@ const dirty = computed(() =>
 watch(
   () => props.node.data,
   () => {
-    if (props.node.data.kind === "portal") draft.value = structuredClone(toRaw(props.node.data));
+    if (props.node.data.kind === "portal") draft.value = cloneDeep(props.node.data);
   },
   { immediate: true, deep: true },
 );
@@ -44,7 +45,7 @@ async function savePortal() {
   }
 }
 function cancelPortalEdit() {
-  if (props.node.data.kind === "portal") draft.value = structuredClone(toRaw(props.node.data));
+  if (props.node.data.kind === "portal") draft.value = cloneDeep(props.node.data);
   nodeDraft.end();
 }
 </script>

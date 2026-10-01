@@ -1,3 +1,4 @@
+import { cloneDeep } from "es-toolkit";
 import { shallowRef, watch, type Ref } from "vue";
 
 import { i18n } from "../../../../foundation/i18n/i18n";
@@ -16,7 +17,7 @@ export function useVideoEditProject(
     [nodeId, () => data.value?.sourceRevision],
     () => {
       const saved = data.value?.videoEditProject;
-      project.value = saved ? structuredClone(saved) : undefined;
+      project.value = saved ? cloneDeep(saved) : undefined;
       metadataError.value = undefined;
     },
     { immediate: true },

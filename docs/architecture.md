@@ -117,7 +117,9 @@ Spaces processing and retrieval are Rust application use cases, not WebView work
 - `canvas_exchange/` owns JSON Canvas file reading, import mapping, asset acquisition and atomic
   commit. Vue projects the current visual frames for export and presents committed imports;
 - `knowledge/retrieval/` owns embedding instructions, model identity, batching, LanceDB writes, semantic search
-  and hybrid rank fusion. Vue submits query text or an indexing intent and never transports vectors;
+  and hybrid rank fusion. Its publication and invalidation outbox share the existing SQLite write
+  transaction boundary; embedding computation stays outside that boundary. Vue submits query text
+  or an indexing intent and never transports vectors;
 - `assistant/task/` owns built-in conversation execution and streaming persistence, with read APIs in
   `assistant/queries/` and mutation APIs in `assistant/commands/`, while
   `knowledge/grounding/` owns its reusable semantic contracts, prompt assembly, citation rules and
@@ -203,6 +205,8 @@ The `AppCommand` contract is the single source of truth for command-palette entr
 ## Direct vendor API rule
 
 Use Vue, Reka, VueUse, TanStack and official Tauri APIs directly. A local abstraction is allowed only when it owns Knovum policy, validation, security, domain translation or real multi-API orchestration.
+
+Use `cloneDeep` from the existing `es-toolkit` dependency for independent editable drafts and copies of repository-owned data, including Vue reactive data. Do not introduce clone wrappers or serialization-based clone substitutes. Boundary schemas still own input validation; cloning is not sanitization. Native `structuredClone` remains appropriate when platform structured-clone semantics are the requirement, including tests of transferable submission data.
 
 Rename-only wrappers are rejected. `readClipboardText()` around Tauri `readText()` is not an architecture boundary.
 

@@ -3,7 +3,7 @@ import type { GenerationActionOption } from "../generation-action-option";
 
 const props = defineProps<{ loadGenerationActions: () => Promise<GenerationActionOption[]> }>();
 import { Copy, Pencil, Trash2 } from "@lucide/vue";
-import { camelCase } from "es-toolkit";
+import { cloneDeep, camelCase } from "es-toolkit";
 import { shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -32,7 +32,7 @@ async function removePreset(index: number) {
 function duplicatePreset(index: number) {
   const source = presets.value[index]!;
   presets.value.splice(index + 1, 0, {
-    ...structuredClone(source),
+    ...cloneDeep(source),
     id: crypto.randomUUID(),
     name: t("settings.creation.copyName", { name: source.name }),
   });

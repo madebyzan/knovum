@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { cloneDeep } from "es-toolkit";
 import { computed, onMounted, ref, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -13,6 +14,7 @@ import { workflowParameterOptions } from "./workflow-parameter-options";
 const props = defineProps<{ workflow: SavedCapturedWorkflow }>();
 const emit = defineEmits<{ saved: [value: SavedCapturedWorkflow]; cancel: [] }>();
 const { t } = useI18n();
+const workflow = cloneDeep(props.workflow);
 const catalog = shallowRef<SpaceActionDefinition[]>([]);
 const catalogError = ref("");
 onMounted(async () => {
@@ -22,16 +24,12 @@ onMounted(async () => {
     catalogError.value = String(cause);
   }
 });
-const outputSlots = ref(structuredClone(props.workflow.candidate.outputSlots));
-const includedStepIds = ref(props.workflow.candidate.steps.map(({ id }) => id));
-const steps = computed(() =>
-  props.workflow.candidate.steps.filter(({ id }) => includedStepIds.value.includes(id)),
-);
+const outputSlots = ref(workflow.candidate.outputSlots);
+const includedStepIds = ref(workflow.candidate.steps.map(({ id }) => id));
+const steps = computed(() => workflow.candidate.steps.filter(({ id }) => includedStepIds.value.includes(id)));
 const parameterText = ref<Record<string, string>>({});
 const parameters = ref(
-  Object.fromEntries(
-    props.workflow.candidate.steps.map((step) => [step.id, structuredClone(step.executionSpec.parameters)]),
-  ),
+  Object.fromEntries(workflow.candidate.steps.map((step) => [step.id, step.executionSpec.parameters])),
 );
 const fields = computed(() =>
   steps.value.flatMap((step) =>
@@ -77,7 +75,7 @@ const busy = ref(false);
 const error = ref("");
 
 function setBoolean(stepId: string, key: string, value: boolean) {
-  parameters.value[stepId] = { ...parameters.value[stepId], [key]: value };
+  parameters.value[stepId]![key] = value;
 }
 
 function setText(key: string, value: string) {
@@ -95,7 +93,7 @@ async function save() {
   error.value = "";
   try {
     const stepParameters: Record<string, Record<string, unknown>> = Object.fromEntries(
-      steps.value.map(({ id }) => [id, structuredClone(parameters.value[id] ?? {})]),
+      steps.value.map(({ id }) => [id, cloneDeep(parameters.value[id]!)]),
     );
     for (const field of fields.value) {
       if (field.type === "boolean") continue;
@@ -105,11 +103,11 @@ async function save() {
     emit(
       "saved",
       await reviseCapturedWorkflow({
-        workflowId: props.workflow.workflowId,
-        expectedVersion: props.workflow.version,
-        outputSlots: outputSlots.value,
+        workflowId: workflow.workflowId,
+        expectedVersion: workflow.version,
+        outputSlots: cloneDeep(outputSlots.value),
         stepParameters,
-        removedStepIds: props.workflow.candidate.steps
+        removedStepIds: workflow.candidate.steps
           .filter(({ id }) => !includedStepIds.value.includes(id))
           .map(({ id }) => id),
       }),
