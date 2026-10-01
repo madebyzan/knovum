@@ -16,5 +16,16 @@
   "rust-analyzer.cargo.extraEnv": {
     "CARGO_BUILD_JOBS": "4"
   },
-  "cSpell.words": ["KNOVUM", "konva", "lucide", "rbush", "reka", "tauri", "vueuse", "wdio"]
+  "cSpell.words": [
+    "KNOVUM",
+    "konva",
+    "lucide",
+    "pinia",
+    "rbush",
+    "reka",
+    "sonner",
+    "tauri",
+    "vueuse",
+    "wdio"
+  ]
 }
