@@ -35,6 +35,23 @@ These stay in Rust because they must work when the Vue WebView is hidden.
 
 On macOS, Settings and Command Palette are inserted into the Knovum application submenu. Knovum replaces the generic File submenu with the current Space-tab lifecycle commands so `Command+T`, `Command+Shift+T` and `Command+W` create, restore and close workspace tabs instead of pretending the single main window is a browser window. These items follow the selected app locale and their enabled state follows the live tab session. Window/Help retain native platform behavior. The generic Edit submenu is removed: its predefined Cut/Copy/Paste items always register native `Command+X/C/V` accelerators, which consume canvas shortcuts before the WebView can dispatch them. The focused WebView editor or canvas owns editing chords through tinykeys on both platforms (`docs/commands.md`). Windows uses the same `AppCommand` identifiers and `Ctrl` shortcuts without a classic application menu bar.
 
+## Workbench failure isolation
+
+Operation failures belong to the initiating capability and its existing notification or task
+state. An uncaught event, watcher or lifecycle-effect error is logged by Vue's application
+error handler without unmounting the working interface. The application has no global
+stack-trace page or runtime WebView-reload recovery control.
+
+The settings content and Space work area each own a local rendering boundary. Only component
+setup, render and asynchronous component-loading failures replace that area's content; the
+surrounding workbench remains mounted. A user can explicitly reopen the failed content, and
+settings navigation resets its boundary. Reopening remounts the affected content, including
+its component-local state. The boundary adds no business-operation retries or Rust-job restarts;
+initialization effects remain owned by the remounted capability.
+Technical details belong to persistent logs, not the recovery presentation. Native process or
+WebView crashes are outside this Vue boundary. Required startup-service failures continue to
+use the separate bootstrap failure state before the main window is revealed.
+
 ## Shell/OS integration ready for features
 
 The runtime registers only plugins used by current product flows: clipboard, dialogs, filesystem, opener, OS information, Store, SQLite, logging, single-instance handling, window-state persistence, notifications and updater. Shell, WebSocket and arbitrary process execution remain unregistered.

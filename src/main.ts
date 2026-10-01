@@ -6,7 +6,7 @@ import { createApp } from "vue";
 
 import { bootstrap } from "./app/bootstrap";
 import { router } from "./app/router";
-import { getErrorMessage } from "./foundation/errors/error-format";
+import { formatErrorDiagnostic } from "./foundation/errors/error-format";
 import { i18n } from "./foundation/i18n/i18n";
 import { queryClient } from "./foundation/query/query-client";
 
@@ -35,8 +35,7 @@ document.documentElement.dataset.surface = "app";
 const { default: App } = await import("./KnovumApp.vue");
 const app = createApp(App);
 app.config.errorHandler = (err, _instance, info) => {
-  const message = getErrorMessage(err);
-  void logError(`Uncaught Vue application error (${info}): ${message}`);
+  void logError(`Uncaught Vue application error (${info}): ${formatErrorDiagnostic(err)}`);
 };
 app.use(pinia);
 app.use(i18n);
