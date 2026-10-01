@@ -135,6 +135,21 @@ jobs:
           APPLE_API_ISSUER: ${{ runner.os == 'macOS' && vars.APPLE_API_ISSUER || '' }}
           KNOVUM_WINDOWS_TIMESTAMP_URL: ${{ vars.KNOVUM_WINDOWS_TIMESTAMP_URL }}
         run: pnpm package:release --target ${{ matrix.target }} --bundles ${{ matrix.bundles }}
+      - name: Notarize the signed disk image
+        if: runner.os == 'macOS'
+        shell: bash
+        env:
+          APPLE_API_KEY: ${{ vars.APPLE_API_KEY }}
+          APPLE_API_ISSUER: ${{ vars.APPLE_API_ISSUER }}
+        run: |
+          bundle="src-tauri/target/${{ matrix.target }}/release/bundle"
+          for dmg in "$bundle"/dmg/*.dmg; do
+            xcrun notarytool submit "$dmg" --key "$APPLE_API_KEY_PATH" \
+              --key-id "$APPLE_API_KEY" --issuer "$APPLE_API_ISSUER" \
+              --wait --output-format json > "$RUNNER_TEMP/dmg-notarization.json"
+            jq -e '.status == "Accepted"' "$RUNNER_TEMP/dmg-notarization.json"
+            xcrun stapler staple "$dmg"
+          done
       - name: Verify Apple signature and notarization
         if: runner.os == 'macOS'
         shell: bash
