@@ -404,7 +404,7 @@ dialogs, receive session-scoped authorization, and are never covered by a broad 
 
 ### Resource lifecycle composition
 
-`app_resources` assembles the local-resources plugin and owns removal policy that takes an exclusive resource lease and unloads the AI embedding engine before deleting its model. `local_resources` owns path resolution, verification, download and filesystem operations; it does not import AI or Spaces. Rust modules use conventional paths. A file-only module uses `<name>.rs`; a module with a `<name>/` subdirectory owns its entry at `<name>/mod.rs`, never a sibling `<name>.rs`. Stable wire IDs are explicitly mapped to UI translation keys.
+`app_resources` assembles the local-resources plugin and owns removal policy that takes an exclusive resource lease and unloads the AI embedding engine before deleting its model. `local_resources` owns path resolution, verification, download and filesystem operations; it does not import AI or Spaces. Source directories must not contain a file and a sibling directory with the same basename. Rust modules use conventional paths. A file-only module uses `<name>.rs`; a module with a `<name>/` subdirectory owns its entry at `<name>/mod.rs`, never a sibling `<name>.rs`. `pnpm check:source-layout` enforces the naming rule for `src/`, `src-tauri/src/` and `tools/`, and runs through both `pnpm architecture` and `pnpm check:rust`. Stable wire IDs are explicitly mapped to UI translation keys.
 
 ### IPC error boundary
 
