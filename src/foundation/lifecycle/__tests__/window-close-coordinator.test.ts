@@ -1,24 +1,28 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@tauri-apps/api/event", () => ({ listen: vi.fn(async () => vi.fn()) }));
+vi.mock("@tauri-apps/api/event", () => ({ listen: vi.fn<() => Promise<() => void>>(async () => vi.fn<() => void>()) }));
 vi.mock("@tauri-apps/api/window", () => ({
-  getCurrentWindow: () => ({ onCloseRequested: vi.fn(async () => vi.fn()), hide: vi.fn() }),
+  getCurrentWindow: () => ({ onCloseRequested: vi.fn<() => Promise<() => void>>(async () => vi.fn<() => void>()), hide: vi.fn<() => Promise<void>>() }),
 }));
-vi.mock("@tauri-apps/plugin-log", () => ({ error: vi.fn() }));
-vi.mock("../../ipc/invoke-command", () => ({ invokeCommand: vi.fn(async () => undefined) }));
+vi.mock("@tauri-apps/plugin-log", () => ({ error: vi.fn<(message: string) => Promise<void>>() }));
+vi.mock("../../ipc/invoke-command", () => ({ invokeCommand: vi.fn<() => Promise<void>>(async () => undefined) }));
 
 function deferred() {
-  let resolve!: () => void;
-  const promise = new Promise<void>((complete) => { resolve = complete; });
-  return { promise, resolve };
+  let complete!: () => void;
+  const promise = new Promise<void>((resolve) => {
+    complete = resolve;
+  });
+  return { promise, resolve: complete };
 }
-beforeEach(() => { vi.resetModules(); });
+beforeEach(() => {
+  vi.resetModules();
+});
 
 describe("shared save barrier for quit and update installation", () => {
   it("coalesces concurrent requests and starts each save exactly once", async () => {
     const coordinator = await import("../window-close-coordinator");
     const save = deferred();
-    const commit = vi.fn(() => save.promise);
+    const commit = vi.fn<() => Promise<void>>(() => save.promise);
     coordinator.registerWindowCloseCommit(commit);
     const first = coordinator.flushWindowCloseCommits();
     const second = coordinator.flushWindowCloseCommits();
@@ -32,7 +36,9 @@ describe("shared save barrier for quit and update installation", () => {
   it("waits for slower saves even when another save rejects", async () => {
     const coordinator = await import("../window-close-coordinator");
     const slow = deferred();
-    coordinator.registerWindowCloseCommit(async () => { throw new Error("Disk full"); });
+    coordinator.registerWindowCloseCommit(async () => {
+      throw new Error("Disk full");
+    });
     coordinator.registerWindowCloseCommit(() => slow.promise);
     let settled = false;
     const outcome = coordinator.flushWindowCloseCommits().catch((error: unknown) => {
@@ -48,8 +54,10 @@ describe("shared save barrier for quit and update installation", () => {
 
   it("captures synchronous failures, saves other owners and allows an explicit retry", async () => {
     const coordinator = await import("../window-close-coordinator");
-    const remove = coordinator.registerWindowCloseCommit(() => { throw new Error("Synchronous save failure"); });
-    const healthy = vi.fn(async () => undefined);
+    const remove = coordinator.registerWindowCloseCommit(() => {
+      throw new Error("Synchronous save failure");
+    });
+    const healthy = vi.fn<() => Promise<void>>(async () => undefined);
     coordinator.registerWindowCloseCommit(healthy);
     await expect(coordinator.flushWindowCloseCommits()).rejects.toBeInstanceOf(AggregateError);
     expect(healthy).toHaveBeenCalledOnce();

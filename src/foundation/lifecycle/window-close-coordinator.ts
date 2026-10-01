@@ -32,13 +32,21 @@ export function registerWindowCloseCommit(commit: WindowCloseCommit) {
 // All callers share the same save barrier. A failed save must not release the
 // install/exit guard while another registered save is still running.
 export function flushWindowCloseCommits(): Promise<void> {
-  flushing ??= Promise.allSettled([...commits].map((commit) => Promise.resolve().then(commit)))
-    .then((results) => {
-      const failures = results.filter((result) => result.status === "rejected");
-      if (failures.length) throw new AggregateError(failures.map((result) => result.reason), "Application changes could not be saved.");
-    })
-    .finally(() => { flushing = undefined; });
+  flushing ??= commitRegisteredChanges().finally(() => {
+    flushing = undefined;
+  });
   return flushing;
+}
+
+async function commitRegisteredChanges(): Promise<void> {
+  const results = await Promise.allSettled([...commits].map((commit) => Promise.resolve().then(commit)));
+  const failures = results.filter((result) => result.status === "rejected");
+  if (failures.length) {
+    throw new AggregateError(
+      failures.map((result) => result.reason),
+      "Application changes could not be saved.",
+    );
+  }
 }
 
 async function attachExitRequestListener() {

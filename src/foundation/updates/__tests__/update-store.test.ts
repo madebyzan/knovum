@@ -8,9 +8,9 @@ import { useUpdateStore } from "../update-store";
 const mocks = vi.hoisted(() => ({
   invoke: vi.fn<(command: string, payload?: Record<string, unknown>) => Promise<unknown>>(),
   listen: vi.fn<(event: string, handler: (event: { payload: unknown }) => void) => Promise<() => void>>(),
-  stop: vi.fn(),
+  stop: vi.fn<() => void>(),
   flush: vi.fn<() => Promise<void>>(),
-  log: vi.fn(),
+  log: vi.fn<(message: string) => void>(),
 }));
 vi.mock("@tauri-apps/api/event", () => ({ listen: mocks.listen }));
 vi.mock("@tauri-apps/plugin-log", () => ({ error: mocks.log }));
@@ -19,25 +19,31 @@ vi.mock("../../lifecycle/window-close-coordinator", () => ({ flushWindowCloseCom
 
 const release = { version: "1.2.3", currentVersion: "1.2.2", notes: "Reviewed update" };
 let receive: (event: { payload: unknown }) => void;
-function emit(revision: number, state: UpdateState) { receive({ payload: { revision, state } }); }
+function emit(revision: number, state: UpdateState) {
+  receive({ payload: { revision, state } });
+}
 function deferred<T>() {
-  let resolve!: (value: T) => void;
-  const promise = new Promise<T>((complete) => { resolve = complete; });
-  return { promise, resolve };
+  let complete!: (value: T) => void;
+  const promise = new Promise<T>((resolve) => {
+    complete = resolve;
+  });
+  return { promise, resolve: complete };
 }
 
 beforeEach(() => {
   vi.resetAllMocks();
   setActivePinia(createPinia());
-  mocks.listen.mockImplementation(async (event, handler) => {
-    expect(event).toBe("knovum://update-state");
+  mocks.listen.mockImplementation(async (_event, handler) => {
     receive = handler;
     return mocks.stop;
   });
   mocks.invoke.mockResolvedValue({ revision: 0, state: { status: "idle" } });
   mocks.flush.mockResolvedValue(undefined);
 });
-afterEach(() => { useUpdateStore().$dispose(); useTaskStore().$dispose(); });
+afterEach(() => {
+  useUpdateStore().$dispose();
+  useTaskStore().$dispose();
+});
 
 describe("application update ownership", () => {
   it("subscribes before reading state and ignores a stale initial response", async () => {
@@ -46,6 +52,7 @@ describe("application update ownership", () => {
     const updates = useUpdateStore();
     const connecting = updates.initialize();
     await vi.waitFor(() => expect(mocks.invoke).toHaveBeenCalledWith("get_update_state"));
+    expect(mocks.listen).toHaveBeenCalledWith("knovum://update-state", expect.any(Function));
     emit(3, { status: "available", release });
     initial.resolve({ revision: 1, state: { status: "current" } });
     await connecting;
@@ -76,7 +83,9 @@ describe("application update ownership", () => {
     const downloaded = deferred<unknown>();
     mocks.invoke.mockReturnValue(downloaded.promise);
     const operation = updates.download();
-    await vi.waitFor(() => expect(mocks.invoke).toHaveBeenCalledWith("download_update", { version: "1.2.3" }));
+    await vi.waitFor(() =>
+      expect(mocks.invoke).toHaveBeenCalledWith("download_update", { version: "1.2.3" }),
+    );
     expect(useUpdateStore()).toBe(updates);
     await expect(useUpdateStore().download()).rejects.toThrow("already running");
     downloaded.resolve({ revision: 4, state: { status: "ready", release } });
