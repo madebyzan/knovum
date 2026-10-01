@@ -1,10 +1,10 @@
 {
   "title": "Software update",
-  "description": "Check and install digitally signed application updates.",
+  "description": "Updates are checked automatically. Download and restart only when you choose.",
   "channel": {
-    "label": "Release channel",
-    "connected": "Connected to the official release channel.",
-    "notConfigured": "Updates aren’t available in this version."
+    "label": "Stable channel",
+    "configured": "Automatic checks are enabled for this build.",
+    "notConfigured": "Online updates are disabled in this build."
   },
   "check": {
     "action": "Check for updates",
@@ -15,12 +15,29 @@
     "upToDate": "Knovum is up to date"
   },
   "available": {
-    "title": "Version {version} is available",
-    "description": "Current version: {current}. Signature will be verified before installation."
+    "title": "Version {version} is available"
+  },
+  "download": {
+    "action": "Download update",
+    "downloading": "Downloading update…",
+    "verifying": "Verifying update signature…",
+    "cancel": "Cancel download",
+    "ready": "Update verified. Restart when you are ready.",
+    "failed": "Could not download or verify the update"
   },
   "install": {
-    "action": "Install & restart",
-    "installing": "Installing update…",
-    "failed": "Could not install update"
+    "action": "Restart & install",
+    "installing": "Preparing to restart Knovum…",
+    "saving": "Saving your work and installing the verified update. Do not close the application.",
+    "failed": "Could not save your work or install the update",
+    "runningTasks": "Finish or cancel background tasks before restarting."
+  },
+  "unavailable": "The updater is unavailable. Retry the check to reconnect.",
+  "failure": {
+    "network": "The update server could not be reached. Check your connection and retry.",
+    "signature": "The downloaded package failed signature verification and will not be installed. Check for updates again.",
+    "metadata": "The release metadata is invalid for this platform. Check again later or contact support.",
+    "installation": "Installation failed. Check disk space and permissions before retrying.",
+    "internal": "The updater encountered an internal error. Restart Knovum and check again."
   }
 }

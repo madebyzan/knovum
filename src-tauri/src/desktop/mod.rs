@@ -164,3 +164,11 @@ fn emit_app_exit_request<R: Runtime>(app: &AppHandle<R>) {
         log::error!("failed to request coordinated application exit: {error}");
     }
 }
+
+/// Update installation has already passed the shared save barrier. Preserve the
+/// restart exit code instead of routing it through an ordinary app.exit(0).
+pub(crate) fn restart_after_update<R: Runtime>(app: &AppHandle<R>) -> ! {
+    APP_EXIT_REQUESTED.store(false, Ordering::SeqCst);
+    APP_EXIT_APPROVED.store(true, Ordering::SeqCst);
+    app.restart();
+}

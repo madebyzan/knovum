@@ -15,6 +15,7 @@ import { archiveSettingsKey } from "./shared/contracts/archive-settings";
 import UiConfirmAction from "./shared/ui/UiConfirmAction.vue";
 import AppShell from "./shell/AppShell.vue";
 import BootstrapScreen from "./shell/BootstrapScreen.vue";
+import UpdateInstallationDialog from "./shell/UpdateInstallationDialog.vue";
 
 const bootstrap = useBootstrapStore();
 const preferences = usePreferencesStore();
@@ -35,6 +36,7 @@ provide(archiveSettingsKey, createSpaceArchiveSettings());
     >
       <AppShell :workspace="workspace" />
       <UiConfirmAction />
+      <UpdateInstallationDialog />
       <Toaster :theme="theme" position="bottom-right" :visible-toasts="4" close-button />
     </TooltipProvider>
 

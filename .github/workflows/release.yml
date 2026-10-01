@@ -1,0 +1,204 @@
+name: Signed release candidate
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Protected signing/distribution environment
+        type: choice
+        options: [release-validation, release]
+        default: release-validation
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: signed-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: startsWith(github.ref, 'refs/tags/v')
+    environment: ${{ inputs.environment }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-15
+            target: aarch64-apple-darwin
+            updater: darwin-aarch64
+            bundles: app,dmg
+          - os: macos-15-intel
+            target: x86_64-apple-darwin
+            updater: darwin-x86_64
+            bundles: app,dmg
+          - os: windows-2025
+            target: x86_64-pc-windows-msvc
+            updater: windows-x86_64
+            bundles: nsis
+          - os: windows-11-arm
+            target: aarch64-pc-windows-msvc
+            updater: windows-aarch64
+            bundles: nsis
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: "22"
+      - name: Install pinned dependencies
+        shell: bash
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.17.0 --activate
+          pnpm install --frozen-lockfile
+          rustup target add "${{ matrix.target }}"
+      - name: Require tag, versions, notes and committed lockfiles
+        id: preflight
+        shell: bash
+        env:
+          KNOVUM_RELEASE_REPOSITORY: ${{ vars.KNOVUM_RELEASE_REPOSITORY }}
+        run: |
+          git ls-files --error-unmatch pnpm-lock.yaml src-tauri/Cargo.lock
+          version=$(node tools/release/preflight.mjs)
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - name: Provision bundled native runtime
+        env:
+          KNOVUM_BUNDLED_RUNTIME_MACOS_ARM64_URL: ${{ vars.KNOVUM_BUNDLED_RUNTIME_MACOS_ARM64_URL }}
+          KNOVUM_BUNDLED_RUNTIME_MACOS_ARM64_SHA256: ${{ vars.KNOVUM_BUNDLED_RUNTIME_MACOS_ARM64_SHA256 }}
+          KNOVUM_BUNDLED_RUNTIME_MACOS_X64_URL: ${{ vars.KNOVUM_BUNDLED_RUNTIME_MACOS_X64_URL }}
+          KNOVUM_BUNDLED_RUNTIME_MACOS_X64_SHA256: ${{ vars.KNOVUM_BUNDLED_RUNTIME_MACOS_X64_SHA256 }}
+          KNOVUM_BUNDLED_RUNTIME_WINDOWS_ARM64_URL: ${{ vars.KNOVUM_BUNDLED_RUNTIME_WINDOWS_ARM64_URL }}
+          KNOVUM_BUNDLED_RUNTIME_WINDOWS_ARM64_SHA256: ${{ vars.KNOVUM_BUNDLED_RUNTIME_WINDOWS_ARM64_SHA256 }}
+          KNOVUM_BUNDLED_RUNTIME_WINDOWS_X64_URL: ${{ vars.KNOVUM_BUNDLED_RUNTIME_WINDOWS_X64_URL }}
+          KNOVUM_BUNDLED_RUNTIME_WINDOWS_X64_SHA256: ${{ vars.KNOVUM_BUNDLED_RUNTIME_WINDOWS_X64_SHA256 }}
+          KNOVUM_BUNDLED_RUNTIME_AUTHORIZATION: ${{ secrets.KNOVUM_BUNDLED_RUNTIME_AUTHORIZATION }}
+        run: pnpm runtime:provision
+      - name: Quality and dependency gates
+        shell: bash
+        run: |
+          pnpm check
+          pnpm security:web
+          node --experimental-strip-types --test tools/release/*.test.mjs tools/update-tests/*.test.mjs
+          cargo install cargo-deny --locked
+          cargo deny --manifest-path src-tauri/Cargo.toml check advisories licenses
+      - name: Verify generated IPC contracts
+        shell: bash
+        run: |
+          pnpm contracts:generate
+          git diff --exit-code -- src/shared/contracts/generated
+      - name: Smoke native runtime
+        env:
+          KNOVUM_BUNDLED_RUNTIME_SMOKE: "1"
+        run: cargo test --locked --manifest-path src-tauri/Cargo.toml --test local_resources_smoke
+      - name: Prepare Apple notarization key
+        if: runner.os == 'macOS'
+        shell: bash
+        env:
+          APPLE_API_PRIVATE_KEY: ${{ secrets.APPLE_API_PRIVATE_KEY }}
+        run: |
+          test -n "$APPLE_API_PRIVATE_KEY"
+          umask 077
+          printf '%s' "$APPLE_API_PRIVATE_KEY" > "$RUNNER_TEMP/knovum-auth.p8"
+          echo "APPLE_API_KEY_PATH=$RUNNER_TEMP/knovum-auth.p8" >> "$GITHUB_ENV"
+      - name: Import Windows signing certificate
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          KNOVUM_WINDOWS_PFX: ${{ secrets.KNOVUM_WINDOWS_PFX }}
+          KNOVUM_WINDOWS_PFX_PASSWORD: ${{ secrets.KNOVUM_WINDOWS_PFX_PASSWORD }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (!$env:KNOVUM_WINDOWS_PFX) { throw 'KNOVUM_WINDOWS_PFX is required' }
+          $path = Join-Path $env:RUNNER_TEMP 'knovum-signing.pfx'
+          try {
+            [IO.File]::WriteAllBytes($path, [Convert]::FromBase64String($env:KNOVUM_WINDOWS_PFX))
+            $password = ConvertTo-SecureString $env:KNOVUM_WINDOWS_PFX_PASSWORD -AsPlainText -Force
+            $certificates = @(Import-PfxCertificate -FilePath $path -CertStoreLocation Cert:\CurrentUser\My -Password $password)
+            $signer = @($certificates | Where-Object { $_.HasPrivateKey })
+            if ($signer.Count -ne 1) { throw 'Expected one signing certificate with a private key' }
+            "KNOVUM_WINDOWS_CERTIFICATE_THUMBPRINT=$($signer[0].Thumbprint)" >> $env:GITHUB_ENV
+          } finally { Remove-Item $path -Force -ErrorAction SilentlyContinue }
+      - name: Build signed and notarized release
+        env:
+          KNOVUM_UPDATER_ENDPOINT: ${{ vars.KNOVUM_UPDATER_ENDPOINT }}
+          KNOVUM_UPDATER_PUBKEY: ${{ vars.KNOVUM_UPDATER_PUBKEY }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          APPLE_CERTIFICATE: ${{ runner.os == 'macOS' && secrets.APPLE_CERTIFICATE || '' }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ runner.os == 'macOS' && secrets.APPLE_CERTIFICATE_PASSWORD || '' }}
+          APPLE_SIGNING_IDENTITY: ${{ runner.os == 'macOS' && vars.APPLE_SIGNING_IDENTITY || '' }}
+          APPLE_API_KEY: ${{ runner.os == 'macOS' && vars.APPLE_API_KEY || '' }}
+          APPLE_API_ISSUER: ${{ runner.os == 'macOS' && vars.APPLE_API_ISSUER || '' }}
+          KNOVUM_WINDOWS_TIMESTAMP_URL: ${{ vars.KNOVUM_WINDOWS_TIMESTAMP_URL }}
+        run: pnpm package:release --target ${{ matrix.target }} --bundles ${{ matrix.bundles }}
+      - name: Verify Apple signature and notarization
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          bundle="src-tauri/target/${{ matrix.target }}/release/bundle"
+          codesign --verify --deep --strict "$bundle/macos/Knovum.app"
+          spctl --assess --type execute --verbose "$bundle/macos/Knovum.app"
+          xcrun stapler validate "$bundle/macos/Knovum.app"
+          for dmg in "$bundle"/dmg/*.dmg; do xcrun stapler validate "$dmg"; done
+      - name: Verify Windows publisher signature
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $packages = @(Get-ChildItem 'src-tauri/target/${{ matrix.target }}/release/bundle/nsis/*-setup.exe')
+          if ($packages.Count -ne 1) { throw 'Expected one NSIS installer' }
+          $signature = Get-AuthenticodeSignature $packages[0].FullName
+          if ($signature.Status -ne 'Valid' -or $signature.SignerCertificate.Thumbprint -ne $env:KNOVUM_WINDOWS_CERTIFICATE_THUMBPRINT) {
+            throw 'Invalid Windows publisher signature'
+          }
+      - name: Stage immutable artifacts
+        run: node tools/release/stage.mjs ${{ steps.preflight.outputs.version }} ${{ matrix.updater }} src-tauri/target/${{ matrix.target }}/release/bundle release-artifacts
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: release-${{ matrix.updater }}
+          path: release-artifacts/*
+          if-no-files-found: error
+          retention-days: 14
+      - name: Remove Apple private key
+        if: always() && runner.os == 'macOS'
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/knovum-auth.p8"
+      - name: Remove Windows private key
+        if: always() && runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          if ($env:KNOVUM_WINDOWS_CERTIFICATE_THUMBPRINT) {
+            Remove-Item "Cert:\CurrentUser\My\$env:KNOVUM_WINDOWS_CERTIFICATE_THUMBPRINT" -DeleteKey -Force
+          }
+
+  draft:
+    needs: build
+    runs-on: ubuntu-24.04
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: "22"
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: release-*
+          merge-multiple: true
+          path: release-artifacts
+      - name: Install signature verifier
+        run: sudo apt-get update && sudo apt-get install --yes minisign
+      - name: Verify updater signatures and create draft
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.KNOVUM_RELEASE_TOKEN }}
+          KNOVUM_RELEASE_REPOSITORY: ${{ vars.KNOVUM_RELEASE_REPOSITORY }}
+          KNOVUM_UPDATER_PUBKEY: ${{ vars.KNOVUM_UPDATER_PUBKEY }}
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          node tools/release/prepare-draft.mjs "$version" release-artifacts "releases/$version.md"

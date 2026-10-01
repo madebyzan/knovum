@@ -5,9 +5,9 @@ import { error as logError } from "@tauri-apps/plugin-log";
 import { formatErrorDiagnostic } from "../errors/error-format";
 import { invokeCommand } from "../ipc/invoke-command";
 
-type WindowCloseCommit = () => Promise<void>;
+import { CloseCommitCoordinator } from "./close-commits";
 
-const commits = new Set<WindowCloseCommit>();
+const coordinator = new CloseCommitCoordinator();
 let listener: Promise<() => void> | undefined;
 let exitListener: Promise<() => void> | undefined;
 let closing = false;
@@ -20,20 +20,24 @@ export async function initializeExitCoordination() {
   await invokeCommand("plugin:desktop|mark_exit_coordinator_ready");
 }
 
-export function registerWindowCloseCommit(commit: WindowCloseCommit) {
-  commits.add(commit);
+export function registerWindowCloseCommit(commit: () => Promise<void>) {
+  const unregister = coordinator.register(commit);
   void initializeExitCoordination().catch((error) =>
     logError(`Application close coordinator initialization failed: ${formatErrorDiagnostic(error)}`),
   );
-  return () => commits.delete(commit);
+  return unregister;
 }
 
 async function attachExitRequestListener() {
   return listen("knovum://app-exit-requested", async () => {
+    if (coordinator.restarting) {
+      await invokeCommand("plugin:desktop|decide_app_exit_request", { approved: false });
+      return;
+    }
     if (exiting) return;
     exiting = true;
     try {
-      await commitAll();
+      await coordinator.flush();
       await invokeCommand("plugin:desktop|decide_app_exit_request", { approved: true });
     } catch (error) {
       await logError(`Application exit commit failed: ${formatErrorDiagnostic(error)}`);
@@ -44,17 +48,18 @@ async function attachExitRequestListener() {
   });
 }
 
-function commitAll() {
-  return Promise.all([...commits].map((commit) => commit())).then(() => undefined);
+export function commitApplicationRestart(install: () => Promise<void>): Promise<void> {
+  if (closing || exiting) return Promise.reject(new Error("Application close is already in progress"));
+  return coordinator.restart(install);
 }
 
 async function attachWindowCloseListener() {
   return getCurrentWindow().onCloseRequested(async (event) => {
     event.preventDefault();
-    if (closing) return;
+    if (closing || coordinator.restarting) return;
     closing = true;
     try {
-      await commitAll();
+      await coordinator.flush();
       await getCurrentWindow().hide();
     } catch (error) {
       await logError(`Window close commit failed: ${formatErrorDiagnostic(error)}`);
@@ -62,4 +67,8 @@ async function attachWindowCloseListener() {
       closing = false;
     }
   });
+}
+
+export function isApplicationRestarting() {
+  return coordinator.restarting;
 }

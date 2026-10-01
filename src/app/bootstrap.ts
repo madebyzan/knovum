@@ -15,6 +15,7 @@ import { usePreferencesStore } from "../foundation/preferences/preferences-store
 import { restoreResourcePreparationTasks } from "../foundation/runtime/resource-preparation";
 import { installTaskbarProgress } from "../foundation/tasks/taskbar-progress";
 import { installWindowActivityState } from "../foundation/window/window-activity";
+import { useUpdateStore } from "../foundation/updates/update-store";
 import { installRuntimeDiagnostics } from "./runtime-diagnostics";
 
 const WATCHDOG_TIMEOUT_MS = 25000;
@@ -41,6 +42,9 @@ export async function bootstrap(pinia: Pinia, router: Router): Promise<void> {
     installWorkspaceSessionPersistence(router);
     state.ready();
     await nextTick();
+    void useUpdateStore(pinia).connect().catch((reason) =>
+      logError(`Updater observer failed: ${formatErrorDiagnostic(reason)}`),
+    );
   } catch (reason) {
     state.fail(reason);
     await logError(formatErrorDiagnostic(reason));

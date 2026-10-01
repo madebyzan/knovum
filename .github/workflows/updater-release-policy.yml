@@ -1,0 +1,45 @@
+name: Updater release policy
+
+on:
+  pull_request:
+    paths:
+      - "tools/release/**"
+      - "tools/update-tests/**"
+      - "src/foundation/lifecycle/**"
+      - "src/foundation/updates/**"
+      - "tools/package-desktop.mjs"
+      - "src-tauri/src/updater/**"
+      - "src-tauri/src/app_builder.rs"
+      - "src-tauri/tauri.release.conf.json"
+      - ".github/workflows/updater-release-policy.yml"
+      - ".github/workflows/release.yml"
+  push:
+    branches: [main]
+    paths:
+      - "tools/release/**"
+      - "tools/update-tests/**"
+      - "src/foundation/lifecycle/**"
+      - "src/foundation/updates/**"
+      - "tools/package-desktop.mjs"
+      - "src-tauri/src/updater/**"
+      - "src-tauri/src/app_builder.rs"
+      - "src-tauri/tauri.release.conf.json"
+      - ".github/workflows/updater-release-policy.yml"
+      - ".github/workflows/release.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  release-policy:
+    strategy:
+      matrix:
+        os: [ubuntu-24.04, windows-2025]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: "22"
+      - name: Test release configuration and distribution policies
+        run: node --experimental-strip-types --test tools/release/*.test.mjs tools/update-tests/*.test.mjs

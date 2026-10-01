@@ -3,17 +3,24 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, join, resolve as resolvePath } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { releaseConfiguration, validateReleaseArguments } from "./release/config.mjs";
+import { signingConfiguration } from "./release/signing.mjs";
+
 const repository = resolvePath(dirname(fileURLToPath(import.meta.url)), "..");
 const runtimeRoot = join(repository, "src-tauri", "resources", "bundled-runtime");
 const args = process.argv.slice(2);
-const explicitRuntimeTarget = option("--runtime-target");
-const buildTarget = value("--target");
+const explicitRuntimeTarget = option("--runtime-target", true);
+const buildTarget = option("--target");
 const buildRuntimeTarget = targetFromTriple(buildTarget);
 if (explicitRuntimeTarget && buildRuntimeTarget && explicitRuntimeTarget !== buildRuntimeTarget) {
   fail(`Runtime target ${explicitRuntimeTarget} does not match build target ${buildTarget}`);
 }
 const target = explicitRuntimeTarget ?? buildRuntimeTarget ?? hostTarget();
+if (!/^(macos|windows)-(arm64|x64)$/.test(target)) fail(`Unsupported runtime target: ${target}`);
 const release = takeFlag("--release");
+const updaterConfig = release ? releaseConfiguration(process.env) : undefined;
+if (release) validateReleaseArguments(args);
+const signing = release ? signingConfiguration(target, process.env) : {};
 
 requireRuntime(target);
 
@@ -22,12 +29,15 @@ const bundleResources = [
   "resources/bundled-runtime/media-import-manifest.json",
   ...runtimeResources(target),
 ];
-const releaseConfig = release ? readJson("src-tauri/tauri.release.conf.json") : undefined;
+const releaseConfig = updaterConfig
+  ? { ...readJson("src-tauri/tauri.release.conf.json"), ...updaterConfig }
+  : undefined;
 const config = releaseConfig
-  ? { ...releaseConfig, bundle: { ...releaseConfig.bundle, resources: bundleResources } }
+  ? { ...releaseConfig, bundle: { ...releaseConfig.bundle, ...signing, resources: bundleResources } }
   : { bundle: { resources: bundleResources } };
-const executable = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
-execFileSync(executable, ["exec", "tauri", "build", ...args, "--config", JSON.stringify(config)], {
+const pnpmCli = process.env.npm_execpath;
+if (!pnpmCli || !existsSync(pnpmCli)) fail("Run packaging through pnpm package or pnpm package:release");
+execFileSync(process.execPath, [pnpmCli, "exec", "tauri", "build", ...args, "--config", JSON.stringify(config)], {
   cwd: repository,
   stdio: "inherit",
 });
@@ -59,17 +69,18 @@ function runtimeResources(runtimeTarget) {
   });
 }
 
-function option(name) {
-  const index = args.indexOf(name);
-  if (index < 0) return undefined;
-  const result = args[index + 1];
-  args.splice(index, 2);
+function option(name, remove = false) {
+  const matches = args.flatMap((argument, index) =>
+    argument === name || argument.startsWith(`${name}=`) ? [index] : [],
+  );
+  if (matches.length > 1) fail(`Duplicate packaging option: ${name}`);
+  if (!matches.length) return undefined;
+  const index = matches[0];
+  const inline = args[index].startsWith(`${name}=`);
+  const result = inline ? args[index].slice(name.length + 1) : args[index + 1];
+  if (!result || result.startsWith("-")) fail(`Missing packaging option value: ${name}`);
+  if (remove) args.splice(index, inline ? 1 : 2);
   return result;
-}
-
-function value(name) {
-  const index = args.indexOf(name);
-  return index < 0 ? undefined : args[index + 1];
 }
 
 function takeFlag(name) {

@@ -1,6 +1,13 @@
 fn main() {
     tauri_build::try_build(
         tauri_build::Attributes::new()
+            .app_manifest(tauri_build::AppManifest::new().commands(&[
+                "observe_updates",
+                "check_for_update",
+                "download_update",
+                "cancel_update_download",
+                "install_update",
+            ]))
             .plugin(
                 "desktop",
                 tauri_build::InlinedPlugin::new().commands(&[
