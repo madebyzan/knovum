@@ -1,26 +1,46 @@
 {
   "title": "Software update",
-  "description": "Check and install digitally signed application updates.",
-  "channel": {
-    "label": "Release channel",
-    "connected": "Connected to the official release channel.",
-    "notConfigured": "Updates aren’t available in this version."
+  "description": "Knovum checks after startup and every six hours. Downloads and installation require your confirmation.",
+  "connection": {
+    "loading": "Reading updater status…",
+    "retry": "Retry updater connection"
+  },
+  "action": {
+    "failed": "The update action could not complete. Review the update status and try again."
   },
   "check": {
-    "action": "Check for updates",
-    "checking": "Checking for updates…",
-    "failed": "Could not check for updates"
+    "action": "Check for updates"
   },
-  "current": {
-    "upToDate": "Knovum is up to date"
-  },
-  "available": {
-    "title": "Version {version} is available",
-    "description": "Current version: {current}. Signature will be verified before installation."
+  "download": {
+    "action": "Download update",
+    "cancel": "Cancel download"
   },
   "install": {
-    "action": "Install & restart",
-    "installing": "Installing update…",
-    "failed": "Could not install update"
+    "action": "Restart and install",
+    "blocked": "Finish or cancel running background tasks before restarting.",
+    "title": "Preparing to restart Knovum",
+    "description": "Saving your changes and installing the verified update. Do not close the application."
+  },
+  "available": {
+    "review": "Review update",
+    "title": "Version {version} is available",
+    "notes": "Release notes"
+  },
+  "status": {
+    "disabled": "Updates are not enabled in this build.",
+    "idle": "Ready to check the release channel.",
+    "checking": "Checking for updates…",
+    "current": "Knovum is up to date.",
+    "available": "Review the release notes, then download the signed update.",
+    "downloading": "Downloading update…",
+    "verifying": "Verifying the update signature…",
+    "ready": "Downloaded and verified. Restart when you are ready.",
+    "installing": "Installing update…"
+  },
+  "failure": {
+    "check": "Could not check the release channel. Check your connection and try again.",
+    "download": "The download failed. Check your connection and available storage, then check again.",
+    "signature": "The update signature is invalid. Installation was refused. Check again after the publisher fixes the release.",
+    "install": "Installation failed. Your changes were saved. Check permissions and storage before checking again."
   }
 }

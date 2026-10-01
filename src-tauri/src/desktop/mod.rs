@@ -10,7 +10,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 #[cfg(target_os = "macos")]
 use tauri::menu::{Menu, MenuEvent};
 use tauri::Emitter;
-use tauri::{plugin::TauriPlugin, AppHandle, RunEvent, Runtime, Window, WindowEvent, Wry};
+use tauri::{plugin::TauriPlugin, AppHandle, Manager, RunEvent, Runtime, Window, WindowEvent, Wry};
 
 const MAIN_WINDOW_LABEL: &str = "main";
 const APP_EXIT_REQUESTED_EVENT: &str = "knovum://app-exit-requested";
@@ -123,7 +123,17 @@ pub fn handle_window_event<R: Runtime>(window: &Window<R>, event: &WindowEvent) 
 }
 
 pub fn handle_run_event<R: Runtime>(app: &AppHandle<R>, event: &RunEvent) {
-    if let RunEvent::ExitRequested { api, .. } = event {
+    if let RunEvent::ExitRequested { api, code, .. } = event {
+        if app
+            .try_state::<crate::updater::UpdateService>()
+            .is_some_and(|service| service.blocks_exit())
+        {
+            APP_EXIT_APPROVED.store(false, Ordering::SeqCst);
+            if *code != Some(tauri::RESTART_EXIT_CODE) {
+                api.prevent_exit();
+            }
+            return;
+        }
         if APP_EXIT_APPROVED.swap(false, Ordering::SeqCst) {
             return;
         }

@@ -7,6 +7,7 @@ import { Toaster } from "vue-sonner";
 // oxlint-disable-next-line import/no-unassigned-import
 import "vue-sonner/style.css";
 
+import ApplicationUpdates from "./app/ApplicationUpdates.vue";
 import { createSpaceArchiveSettings } from "./features/spaces/assets/archive-settings";
 import { useSpacesWorkspace } from "./features/spaces/workspace-definition";
 import { useBootstrapStore } from "./foundation/bootstrap/bootstrap-store";
@@ -34,6 +35,7 @@ provide(archiveSettingsKey, createSpaceArchiveSettings());
       :disable-hoverable-content="true"
     >
       <AppShell :workspace="workspace" />
+      <ApplicationUpdates />
       <UiConfirmAction />
       <Toaster :theme="theme" position="bottom-right" :visible-toasts="4" close-button />
     </TooltipProvider>
