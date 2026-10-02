@@ -1,9 +1,7 @@
-use std::{path::PathBuf, time::Duration};
+use std::path::PathBuf;
 
 use crate::ai::contracts::AgentInstallation;
 use crate::app_error::{AppError, AppResult};
-
-const SHELL_PATH_TIMEOUT: Duration = Duration::from_secs(3);
 
 pub async fn system_path() -> AppResult<String> {
     #[cfg(target_os = "macos")]
@@ -15,6 +13,7 @@ pub async fn system_path() -> AppResult<String> {
 
 #[cfg(target_os = "macos")]
 async fn login_shell_path() -> AppResult<String> {
+    const SHELL_PATH_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(3);
     let shell = std::env::var("SHELL")
         .map_err(|_| AppError::internal("The macOS login shell is not available to Knovum"))?;
     let mut command = tokio::process::Command::new(shell);
@@ -36,6 +35,7 @@ async fn login_shell_path() -> AppResult<String> {
         .ok_or_else(|| AppError::internal("The macOS login shell returned an invalid PATH"))
 }
 
+#[cfg(any(target_os = "macos", test))]
 fn extract_delimited(text: &str, prefix: &str) -> Option<String> {
     let start = text.find(prefix)? + prefix.len();
     let rest = &text[start..];
@@ -77,7 +77,7 @@ pub async fn detect_agent_installations() -> AppResult<Vec<AgentInstallation>> {
         #[cfg(any(target_os = "macos", windows))]
         let installed_clients = super::installed_clients::detect()?;
         #[cfg(not(any(target_os = "macos", windows)))]
-        let installed_clients = std::collections::HashSet::new();
+        let installed_clients = std::collections::HashSet::<crate::ai::contracts::AgentKind>::new();
         Ok(super::registry::descriptors()
             .into_iter()
             .map(|descriptor| {

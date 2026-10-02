@@ -20,7 +20,7 @@ default = []
 e2e = ["dep:tauri-plugin-wdio", "dep:tauri-plugin-wdio-webdriver"]
 
 [dependencies]
-tauri = { version = "2", features = ["macos-private-api", "protocol-asset", "tray-icon"] }
+tauri = { version = "2.12.1", features = ["protocol-asset", "tray-icon"] }
 tauri-plugin-clipboard = "2"
 clipboard-rs = "0.2.4"
 tauri-plugin-dialog = "2"

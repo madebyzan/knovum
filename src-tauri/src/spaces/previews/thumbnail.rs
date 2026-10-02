@@ -2,8 +2,10 @@ use std::path::{Path, PathBuf};
 
 use tokio_util::sync::CancellationToken;
 
+#[cfg(any(target_os = "macos", target_os = "windows"))]
 use crate::spaces::assets::enrichment::ensure_active;
 
+#[cfg(any(target_os = "macos", target_os = "windows"))]
 use super::paths;
 
 #[cfg(target_os = "macos")]
@@ -65,19 +67,7 @@ pub(crate) fn generate_at(
     Err("System thumbnails are unavailable on this platform".into())
 }
 
-#[cfg(target_os = "macos")]
-pub(crate) fn generate(
-    app: &tauri::AppHandle,
-    source: &Path,
-    cancellation: &CancellationToken,
-) -> Result<Option<PathBuf>, String> {
-    let Some(target) = reserve(app, source)? else {
-        return Ok(None);
-    };
-    generate_at(source, &target, cancellation, &mut |_| Ok(())).map(Some)
-}
-
-#[cfg(target_os = "windows")]
+#[cfg(any(target_os = "macos", target_os = "windows"))]
 pub(crate) fn generate(
     app: &tauri::AppHandle,
     source: &Path,
