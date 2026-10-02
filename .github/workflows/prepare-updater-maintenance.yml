@@ -1,0 +1,77 @@
+name: Prepare updater maintenance
+
+on:
+  push:
+    branches: [feat/signed-application-updates]
+    paths: [.github/workflows/prepare-updater-maintenance.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    if: github.repository == 'madebyzan/knovum'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          package-manager-cache: false
+      - name: Resolve published Tauri packages with Cargo
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          path = Path('src-tauri/Cargo.toml')
+          source = path.read_text()
+          old = 'tauri = { version = "2", features = ["macos-private-api", "protocol-asset", "tray-icon"] }'
+          new = 'tauri = { version = "2.12.1", features = ["protocol-asset", "tray-icon"] }'
+          assert source.count(old) == 1
+          path.write_text(source.replace(old, new))
+          for name in ['tauri.conf.json', 'tauri.macos.conf.json']:
+              config = Path('src-tauri') / name
+              text = config.read_text()
+              assert text.count('    "macOSPrivateApi": true,\n') == 1
+              config.write_text(text.replace('    "macOSPrivateApi": true,\n', ''))
+          PY
+          cargo update --manifest-path src-tauri/Cargo.toml -p tauri --precise 2.12.1
+          cargo update --manifest-path src-tauri/Cargo.toml -p tauri-build -p tauri-codegen -p tauri-macros -p tauri-runtime -p tauri-runtime-wry -p tauri-utils
+          cargo metadata --locked --manifest-path src-tauri/Cargo.toml --format-version 1 > "$RUNNER_TEMP/metadata.json"
+          python3 - <<'PY'
+          import json, os, tomllib
+          from pathlib import Path
+          packages = tomllib.loads(Path('src-tauri/Cargo.lock').read_text())['package']
+          assert not any(p['name'].startswith('unic-') for p in packages)
+          assert any(p['name'] == 'urlpattern' and p['version'] == '0.6.0' for p in packages)
+          for p in packages:
+              if p['name'].startswith('tauri') or p['name'] == 'urlpattern':
+                  print('RESOLVED', p['name'], p['version'], p.get('source', 'workspace'))
+          PY
+          node --test tools/__tests__/tauri-config.test.mjs
+          git diff --check
+          git diff --stat
+          git diff -- src-tauri/Cargo.toml src-tauri/Cargo.lock src-tauri/tauri.conf.json src-tauri/tauri.macos.conf.json
+      - name: Check the resolved Tauri utilities
+        run: cargo check --locked --manifest-path src-tauri/Cargo.toml -p tauri-utils --lib
+      - name: Store reviewable candidate blobs without moving refs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64, json, subprocess
+          from pathlib import Path
+          for name in ['src-tauri/Cargo.toml', 'src-tauri/Cargo.lock', 'src-tauri/tauri.conf.json', 'src-tauri/tauri.macos.conf.json']:
+              data = {'encoding': 'base64', 'content': base64.b64encode(Path(name).read_bytes()).decode()}
+              result = subprocess.run(['gh', 'api', '--method', 'POST', 'repos/madebyzan/knovum/git/blobs', '--input', '-'], input=json.dumps(data), text=True, capture_output=True, check=True)
+              print('CANDIDATE_BLOB', name, json.loads(result.stdout)['sha'], flush=True)
+          PY
