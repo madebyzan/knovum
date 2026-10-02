@@ -54,15 +54,17 @@ export interface KbdKeyGroup {
   keys: string[];
 }
 
-const isMac = platform() === "macos";
+function isMac(): boolean {
+  return platform() === "macos";
+}
 
 export function formatKey(key: string): string {
   const normalized = key.trim().toLowerCase();
   if (normalized === "mod" || normalized === "$mod") {
-    return isMac ? "⌘" : "Ctrl";
+    return isMac() ? "⌘" : "Ctrl";
   }
 
-  if (!isMac && NON_MAC_OVERRIDE[normalized]) {
+  if (!isMac() && NON_MAC_OVERRIDE[normalized]) {
     return NON_MAC_OVERRIDE[normalized];
   }
 
@@ -94,6 +96,6 @@ export function formatShortcutLabel(shortcut: string): string {
   const groups = parseShortcut(shortcut);
   if (!groups.length) return "";
   return groups
-    .map((g) => `${g.connector ? ` ${g.connector} ` : ""}${g.keys.join(isMac ? "" : "+")}`)
+    .map((g) => `${g.connector ? ` ${g.connector} ` : ""}${g.keys.join(isMac() ? "" : "+")}`)
     .join("");
 }
