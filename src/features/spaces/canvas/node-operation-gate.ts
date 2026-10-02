@@ -5,7 +5,7 @@ import { useImageEditSession } from "../image-editing/image-edit-session";
 import { useImageRemovalSession } from "../knowledge-derivations/image-removal-session";
 import { useNodeOperationDrafts } from "../session/node-operation-drafts";
 import { useSpaceStore } from "../session/space-store";
-import { useCanvasEditorSession } from "./editor-session";
+import { getCanvasEditorSession } from "./editor-session";
 
 export type NodeOperationEffect = "inspect" | "edit" | "structure" | "create" | "clone" | "derive" | "export";
 export type ActiveNodeOperation =
@@ -23,7 +23,7 @@ export function useNodeOperationGate() {
   const imageEdit = useImageEditSession();
   const imageRemoval = useImageRemovalSession();
   const imageComment = useImageCommentSession();
-  const canvas = useCanvasEditorSession();
+  const canvas = getCanvasEditorSession();
   const space = useSpaceStore();
   const drafts = useNodeOperationDrafts();
   const active = computed<ActiveNodeOperation | undefined>(() => {

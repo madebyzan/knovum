@@ -1,10 +1,12 @@
+use std::collections::BTreeMap;
+
+use sqlx::Row;
+use tauri::AppHandle;
+
 use crate::spaces::knowledge::node_contracts::document_coverage::{
     DocumentCoverage, DocumentOccurrence, DocumentResource, VisualState,
 };
 use crate::spaces::{assets::enrichment::jobs::RunEnrichmentJobRequest, db};
-use sqlx::Row;
-use std::collections::BTreeMap;
-use tauri::AppHandle;
 
 /// Restore only this job's durable results against the unchanged logical input plan.
 pub(super) async fn restore(

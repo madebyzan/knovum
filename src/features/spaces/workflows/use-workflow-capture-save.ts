@@ -5,6 +5,13 @@ import type { CapturePreview } from "../contracts/generated/CapturePreview";
 import type { SavedCapturedWorkflow } from "../contracts/generated/SavedCapturedWorkflow";
 import { saveCapturedWorkflow } from "./captured-workflow-ipc";
 
+interface WorkflowCaptureSaveInput {
+  spaceId: string;
+  selectedNodeIds: string[];
+  preview: CapturePreview;
+  outputNames: Record<string, string>;
+}
+
 export function useWorkflowCaptureSave() {
   const name = shallowRef("");
   const saving = shallowRef(false);
@@ -31,12 +38,7 @@ export function useWorkflowCaptureSave() {
     return requestId;
   }
 
-  async function submit(
-    spaceId: string,
-    selectedNodeIds: string[],
-    preview: CapturePreview,
-    outputNames: Record<string, string>,
-  ) {
+  async function submit({ spaceId, selectedNodeIds, preview, outputNames }: WorkflowCaptureSaveInput) {
     if (saving.value || !preview.candidate || !preview.sourceDigest || !name.value.trim()) return;
     const normalizedOutputNames = Object.fromEntries(
       Object.entries(outputNames).map(([id, value]) => [id, value.trim()]),

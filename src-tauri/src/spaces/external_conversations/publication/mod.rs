@@ -1,16 +1,18 @@
-use crate::app_error::AppError;
 use std::path::Path;
 
 use serde_json::Value;
 use sqlx::{Sqlite, Transaction};
 use tauri::AppHandle;
 
-use crate::spaces::nodes::contracts::InsertNode;
-use crate::spaces::{assistant::AssistantMessageOutput, db, knowledge, nodes, structure};
-
-pub(super) struct PreparedOutput {
-    pub(super) node: InsertNode,
-}
+use crate::{
+    app_error::AppError,
+    spaces::{
+        assistant::AssistantMessageOutput,
+        db, knowledge,
+        nodes::{self, contracts::InsertNode},
+        structure,
+    },
+};
 
 pub(super) async fn publish(
     app: &AppHandle,
@@ -87,7 +89,7 @@ async fn commit(
     conversation_id: &str,
     run_id: &str,
     space_id: &str,
-    outputs: &[PreparedOutput],
+    outputs: &[InsertNode],
     enrichment_target: Option<&crate::ai::tasks::TaskTargetSelection>,
 ) -> Result<(), AppError> {
     let mut tx = db::begin_write(pool).await?;
@@ -121,12 +123,12 @@ async fn commit(
         .await?;
         for output in outputs {
             references.push(AssistantMessageOutput {
-                node_id: output.node.id.clone(),
-                title: output.node.data["title"]
+                node_id: output.id.clone(),
+                title: output.data["title"]
                     .as_str()
                     .ok_or("Agent output has no node title")?
                     .to_owned(),
-                kind: output.node.kind.clone(),
+                kind: output.kind.clone(),
             });
         }
     }
@@ -203,7 +205,7 @@ async fn insert_outputs(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
     principal_id: &str,
-    outputs: &[PreparedOutput],
+    outputs: &[InsertNode],
     sources: &[String],
     now: i64,
     enrichment_target: Option<&crate::ai::tasks::TaskTargetSelection>,
@@ -221,7 +223,7 @@ async fn insert_outputs(
         })
     });
     for output in outputs {
-        let mut node = output.node.clone();
+        let mut node = output.clone();
         let requested = structure::Size {
             width: node.width,
             height: node.height,

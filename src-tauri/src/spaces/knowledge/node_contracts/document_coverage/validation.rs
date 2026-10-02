@@ -1,8 +1,9 @@
+use std::collections::BTreeSet;
+
 use super::{
     DocumentAnalysis, DocumentCoverage, DocumentOccurrence, DocumentResource, VisualState,
     MAX_RESOURCE_BYTES, MAX_RESOURCE_DIMENSION, MAX_RESOURCE_PIXELS, MAX_TOTAL_RESOURCE_BYTES,
 };
-use std::collections::BTreeSet;
 
 pub(super) fn validate(report: &DocumentCoverage) -> Result<(), String> {
     super::coverage::validate(report)?;

@@ -8,10 +8,10 @@ use serde_json::Value;
 use sqlx::Row;
 use tauri::{AppHandle, Runtime};
 
-use crate::spaces::db;
+use crate::{ai::capabilities::embedding, spaces::db};
 
 use super::{
-    embedding_contract, lancedb_store::open_knowledge_table, predicates::escape_sql_literal,
+    lancedb_store::open_knowledge_table, predicates::escape_sql_literal,
     search::search_semantic_vector,
 };
 
@@ -80,7 +80,7 @@ pub async fn list<R: Runtime>(
     )
     .bind(space_id)
     .bind(node_id)
-    .bind(embedding_contract::active_model_id())
+    .bind(embedding::active_text_provider().model_id())
     .bind(SOURCE_LIMIT as i64)
     .fetch_all(pool)
     .await
@@ -111,7 +111,7 @@ pub async fn list<R: Runtime>(
         "space_id = '{}' AND node_id = '{}' AND model = '{}' AND chunk_id IN ({id_filter})",
         escape_sql_literal(space_id),
         escape_sql_literal(node_id),
-        escape_sql_literal(embedding_contract::active_model_id()),
+        escape_sql_literal(embedding::active_text_provider().model_id()),
     );
     let batches = table
         .query()

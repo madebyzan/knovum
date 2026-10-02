@@ -5,7 +5,7 @@ import { computed, inject, onBeforeUnmount, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { workspaceSidebarKey } from "../../../../shared/contracts/workspace-sidebar";
-import { useCanvasEditorSession } from "../../canvas/editor-session";
+import { getCanvasEditorSession } from "../../canvas/editor-session";
 import { useNodeOperationGate } from "../../canvas/node-operation-gate";
 import { openSpaceNode } from "../../canvas/selection-actions";
 import { groupScopePathFor } from "../../model/structure/structure-queries";
@@ -17,7 +17,7 @@ import SpaceStructureTreeItem from "./SpaceStructureTreeItem.vue";
 import { useStructureOutlineMenu } from "./use-structure-outline-menu";
 
 const store = useSpaceStore();
-const editor = useCanvasEditorSession();
+const editor = getCanvasEditorSession();
 const operations = useNodeOperationGate();
 const drafts = useNodeOperationDrafts();
 let renameLease: number | undefined;

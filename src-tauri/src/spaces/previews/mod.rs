@@ -31,7 +31,10 @@ pub(crate) fn enrich_visual(
         return Ok(());
     }
     ensure_active(cancellation)?;
-    attach_system_thumbnail(app, source, asset, cancellation)
+    if asset.preview_path.is_some() {
+        return Ok(());
+    }
+    attach_thumbnail(app, source, asset, cancellation)
 }
 
 pub(crate) fn reserved_thumbnail_path(
@@ -57,18 +60,6 @@ pub(crate) fn enrich_visual_at(
         return Ok(());
     }
     attach_thumbnail_at(app, source, asset, cancellation, reserved, claim_path)
-}
-
-fn attach_system_thumbnail(
-    app: &tauri::AppHandle,
-    source: &Path,
-    asset: &mut PreparedAsset,
-    cancellation: &CancellationToken,
-) -> Result<(), String> {
-    if asset.preview_path.is_some() {
-        return Ok(());
-    }
-    attach_thumbnail(app, source, asset, cancellation)
 }
 
 fn attach_thumbnail(

@@ -1,4 +1,3 @@
-use crate::app_error::AppError;
 use std::path::PathBuf;
 
 use serde_json::Value;
@@ -10,6 +9,7 @@ use super::{
     node_payload::{load_node_content, optional_string, required_string, set_optional},
     persistence::{persist_processing_state, take_chunks},
 };
+use crate::app_error::AppError;
 use crate::spaces::knowledge::indexing::revision;
 
 pub(in crate::spaces::assets) async fn refresh_node(

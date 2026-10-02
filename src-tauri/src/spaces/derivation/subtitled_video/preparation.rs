@@ -71,11 +71,7 @@ pub(super) async fn prepare(
                     error
                 }
             })?;
-            super::srt::from_cues(
-                &serde_json::to_value(transcript.subtitle_cues)
-                    .map_err(|error| error.to_string())?,
-                transcript.duration_ms,
-            )?
+            super::srt::from_cues(&transcript.subtitle_cues, transcript.duration_ms)?
         }
     };
     if cancellation.is_cancelled() {

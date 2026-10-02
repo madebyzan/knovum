@@ -1,10 +1,10 @@
 import { storeToRefs } from "pinia";
 import { watch } from "vue";
 
-import type { useCanvasEditorSession } from "../../canvas/editor-session";
+import type { getCanvasEditorSession } from "../../canvas/editor-session";
 import type { useSpaceStore } from "../../session/space-store";
 
-type CanvasEditorSession = ReturnType<typeof useCanvasEditorSession>;
+type CanvasEditorSession = ReturnType<typeof getCanvasEditorSession>;
 type SpaceStore = ReturnType<typeof useSpaceStore>;
 
 export function useCanvasNavigationRequests(store: SpaceStore, editorSession: CanvasEditorSession) {

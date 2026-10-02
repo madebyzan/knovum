@@ -5,7 +5,7 @@ import { useI18n } from "vue-i18n";
 import { decodeAppError } from "../../../foundation/errors/app-error";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { spaceCanvasOverviewSource } from "../assets/node-preview-source";
-import { useCanvasEditorSession } from "../canvas/editor-session";
+import { getCanvasEditorSession } from "../canvas/editor-session";
 import { currentSelectionRoots } from "../canvas/selection/selection-roots";
 import type { AssistantAttachment } from "../contracts/generated/AssistantAttachment";
 import { createStructureIndex } from "../model/structure/structure-index";
@@ -30,7 +30,7 @@ function attachmentErrorMessage(error: unknown, t: ReturnType<typeof useI18n>["t
 
 export function useConversationAttachments() {
   const { t } = useI18n();
-  const canvas = useCanvasEditorSession();
+  const canvas = getCanvasEditorSession();
   const store = useSpaceStore();
   const attachments = shallowRef<AssistantAttachment[]>([]);
   const imagePreview = useConversationImagePreviews(attachments);

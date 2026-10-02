@@ -1,8 +1,8 @@
-use crate::app_error::AppError;
 use serde_json::Value;
 use tauri::{ipc::Channel, AppHandle};
 use tokio_util::sync::CancellationToken;
 
+use crate::app_error::AppError;
 use crate::spaces::assets::enrichment::{commit, jobs::RunEnrichmentJobRequest};
 use crate::spaces::knowledge::node_contracts::document_coverage::{
     validate_analysis, DocumentCoverage, VisualState,

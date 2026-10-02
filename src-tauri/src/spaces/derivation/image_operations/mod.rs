@@ -1,4 +1,3 @@
-use crate::app_error::AppError;
 mod agent;
 pub(crate) mod contracts;
 mod mask;
@@ -16,6 +15,7 @@ use tauri::{ipc::Channel, AppHandle};
 
 pub use contracts::{DeriveImageRequest, ImageOperationCapabilities};
 
+use crate::app_error::AppError;
 use crate::{
     ai::{
         contracts::{ExecutionCapability, RoutingPurpose},

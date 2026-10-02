@@ -4,10 +4,7 @@ use super::super::{MAX_CITATIONS, MAX_CITATION_QUOTE_CHARS, MAX_CITATION_TITLE_C
 use super::CurrentCitationRef;
 use crate::spaces::knowledge::{contracts, locator};
 
-pub(super) fn citation_shapes(
-    citations: &Value,
-    allow_detached: bool,
-) -> Result<Vec<CurrentCitationRef>, String> {
+pub(super) fn citation_shapes(citations: &Value) -> Result<Vec<CurrentCitationRef>, String> {
     let citations = citations
         .as_array()
         .ok_or_else(|| "Grounded AI message citations must be an array".to_string())?;
@@ -18,17 +15,14 @@ pub(super) fn citation_shapes(
     }
     let mut live = Vec::new();
     for citation in citations {
-        if let Some(reference) = citation_shape(citation, allow_detached)? {
+        if let Some(reference) = citation_shape(citation)? {
             live.push(reference);
         }
     }
     Ok(live)
 }
 
-fn citation_shape(
-    citation: &Value,
-    allow_detached: bool,
-) -> Result<Option<CurrentCitationRef>, String> {
+fn citation_shape(citation: &Value) -> Result<Option<CurrentCitationRef>, String> {
     let object = citation
         .as_object()
         .ok_or_else(|| "Grounded AI citation must be an object".to_string())?;
@@ -67,7 +61,7 @@ fn citation_shape(
             node_id: required_text(citation, "nodeId")?.to_owned(),
             revision: revision.to_owned(),
         })),
-        "detached" if allow_detached => {
+        "detached" => {
             if object.contains_key("chunkId") || object.contains_key("nodeId") {
                 return Err(
                     "Detached Grounded AI citations must not carry live node or chunk IDs".into(),
@@ -75,10 +69,6 @@ fn citation_shape(
             }
             Ok(None)
         }
-        "detached" => Err(
-            "Detached Grounded AI citations are only allowed for historical or All-Spaces sources"
-                .into(),
-        ),
         _ => Err("Unsupported Grounded AI citation state".into()),
     }
 }

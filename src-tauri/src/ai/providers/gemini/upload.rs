@@ -1,9 +1,8 @@
-use crate::ai::transport::response;
 use futures::future::BoxFuture;
 
 use crate::ai::{
     contracts::{FileUploadCapability, UploadedFileReference},
-    transport::{http_client, SecurityContext},
+    transport::{http_client, response, SecurityContext},
 };
 use crate::app_error::{AppError, AppResult};
 

@@ -1,6 +1,6 @@
 import { computed, shallowRef, watch } from "vue";
 
-import { useCanvasEditorSession } from "../../canvas/editor-session";
+import { getCanvasEditorSession } from "../../canvas/editor-session";
 import { useNodeOperationGate } from "../../canvas/node-operation-gate";
 import { useImageEditSession } from "../../image-editing/image-edit-session";
 import { useImageRemovalSession } from "../../knowledge-derivations/image-removal-session";
@@ -9,7 +9,7 @@ import { useSpaceStore } from "../../session/space-store";
 /** Keeps selection controls attached to the owning image interaction. */
 export function useSelectionSurfaceState() {
   const store = useSpaceStore();
-  const editorSession = useCanvasEditorSession();
+  const editorSession = getCanvasEditorSession();
   const nodeOperations = useNodeOperationGate();
   const imageEdit = useImageEditSession();
   const imageRemoval = useImageRemovalSession();

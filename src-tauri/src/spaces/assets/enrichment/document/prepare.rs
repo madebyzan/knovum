@@ -1,10 +1,12 @@
+use std::path::Path;
+
+use tauri::AppHandle;
+
 use super::resource;
 use crate::documents::extraction::{pdf::PdfDocumentContent, visual::DocumentImage};
 use crate::spaces::knowledge::node_contracts::document_coverage::{
     DocumentCoverage, DocumentOccurrence, DocumentParser, VisualState, MAX_TOTAL_RESOURCE_BYTES,
 };
-use std::path::Path;
-use tauri::AppHandle;
 
 pub(in crate::spaces::assets::enrichment) fn pdf(
     app: &AppHandle,

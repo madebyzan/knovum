@@ -1,7 +1,7 @@
-use crate::app_error::AppError;
 use serde::Deserialize;
 use tauri::{AppHandle, Runtime};
 
+use crate::app_error::AppError;
 use crate::spaces::{db, structure};
 
 #[derive(Debug, Deserialize)]

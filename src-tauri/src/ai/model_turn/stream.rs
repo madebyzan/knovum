@@ -1,11 +1,14 @@
 use futures::StreamExt;
-use genai::{adapter::AdapterKind, chat::ChatStreamEvent, Client, ModelIden, ServiceTarget};
+use genai::{adapter::AdapterKind, chat::ChatStreamEvent, Client};
 use tokio_util::sync::CancellationToken;
 
 use crate::ai::{contracts::ModelTurnRequest, transport::SecurityContext};
 use crate::app_error::{AppError, AppResult};
 
-use super::{to_genai_options, to_genai_request, wire::response::from_stream_end};
+use super::{
+    to_genai_options, to_genai_request,
+    wire::{response::from_stream_end, service_target},
+};
 
 pub(super) async fn stream_turn(
     adapter: AdapterKind,
@@ -64,23 +67,6 @@ pub(super) async fn stream_turn(
                 ))
             }
         }
-    }
-}
-
-pub(super) fn service_target(adapter: AdapterKind, context: &SecurityContext) -> ServiceTarget {
-    let auth = context
-        .api_key
-        .as_ref()
-        .map_or(genai::resolver::AuthData::None, |key| {
-            genai::resolver::AuthData::from_single(key.clone())
-        });
-    ServiceTarget {
-        endpoint: genai::resolver::Endpoint::from_owned(format!(
-            "{}/",
-            context.endpoint.trim_end_matches('/')
-        )),
-        auth,
-        model: ModelIden::new(adapter, context.model.clone()),
     }
 }
 

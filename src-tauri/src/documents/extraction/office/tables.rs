@@ -1,7 +1,8 @@
-use super::{document_text::table_row_text, DocumentSegment};
 use office_oxide::ir::Table;
 use serde_json::{json, Value};
 use tokio_util::sync::CancellationToken;
+
+use super::{document_text::table_row_text, DocumentSegment};
 
 pub(super) fn segments(
     table: &Table,

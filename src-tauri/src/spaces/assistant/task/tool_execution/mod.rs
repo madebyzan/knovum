@@ -1,10 +1,11 @@
-use crate::app_error::AppError;
 use serde_json::{json, Value};
 use sqlx::SqlitePool;
 
-use super::identity::{ensure_active, TaskIds};
 mod media;
 mod settlement;
+
+use super::identity::{ensure_active, TaskIds};
+use crate::app_error::AppError;
 use crate::{
     agent_runtime::{RuntimeToolCall, RuntimeToolReply},
     spaces::{

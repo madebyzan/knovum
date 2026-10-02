@@ -69,16 +69,16 @@ pub(crate) fn collect_node_asset_paths(value: &Value, paths: &mut BTreeSet<Strin
     });
 }
 
-pub(crate) fn rewrite_node_asset_paths<F>(value: &mut Value, mut rewrite: F)
+pub(crate) fn rewrite_node_asset_paths<F>(value: &mut Value, mut rewrite: F) -> Result<(), String>
 where
-    F: FnMut(&str) -> String,
+    F: FnMut(&str) -> Result<String, String>,
 {
     let Some(object) = value.as_object_mut() else {
-        return;
+        return Ok(());
     };
     for field in TOP_LEVEL_ASSET_FIELDS {
         if let Some(path) = object.get(field).and_then(Value::as_str).map(str::to_owned) {
-            object.insert(field.to_owned(), Value::String(rewrite(&path)));
+            object.insert(field.to_owned(), Value::String(rewrite(&path)?));
         }
     }
     if object.contains_key("origin") {
@@ -87,13 +87,13 @@ where
             .and_then(Value::as_str)
             .map(str::to_owned)
         {
-            object.insert("previewPath".into(), Value::String(rewrite(&path)));
+            object.insert("previewPath".into(), Value::String(rewrite(&path)?));
         }
     } else {
         object.remove("previewPath");
     }
     if let Some(content) = object.get_mut("tiptapContent") {
-        rewrite_tiptap_asset_paths(content, &mut rewrite);
+        rewrite_tiptap_asset_paths(content, &mut rewrite)?;
     }
     if let Some(resources) = object
         .get_mut("documentCoverage")
@@ -106,7 +106,7 @@ where
                 .and_then(Value::as_str)
                 .map(str::to_owned)
             {
-                resource["path"] = Value::String(rewrite(&path));
+                resource["path"] = Value::String(rewrite(&path)?);
             }
         }
     }
@@ -115,9 +115,10 @@ where
         .and_then(Value::as_str)
         .map(str::to_owned)
     {
-        let rewritten = markdown::rewrite_asset_paths(&text, &mut rewrite);
+        let rewritten = markdown::rewrite_asset_paths(&text, &mut rewrite)?;
         object.insert("text".to_owned(), Value::String(rewritten));
     }
+    Ok(())
 }
 
 fn visit_tiptap_references(value: &Value, visit: &mut impl FnMut(AssetReference, &str)) {
@@ -141,17 +142,17 @@ fn visit_tiptap_references(value: &Value, visit: &mut impl FnMut(AssetReference,
     }
 }
 
-fn rewrite_tiptap_asset_paths<F>(value: &mut Value, rewrite: &mut F)
+fn rewrite_tiptap_asset_paths<F>(value: &mut Value, rewrite: &mut F) -> Result<(), String>
 where
-    F: FnMut(&str) -> String,
+    F: FnMut(&str) -> Result<String, String>,
 {
     let Some(object) = value.as_object_mut() else {
-        return;
+        return Ok(());
     };
     if object.get("type").and_then(Value::as_str) == Some("image") {
         if let Some(attrs) = object.get_mut("attrs").and_then(Value::as_object_mut) {
             if let Some(path) = image_asset_path(attrs) {
-                let replacement = rewrite(&path);
+                let replacement = rewrite(&path)?;
                 attrs.insert("assetPath".to_owned(), Value::String(replacement.clone()));
                 attrs.insert("src".to_owned(), Value::String(replacement));
             }
@@ -159,16 +160,17 @@ where
     }
     if let Some(content) = object.get_mut("content").and_then(Value::as_array_mut) {
         for child in content {
-            rewrite_tiptap_asset_paths(child, rewrite);
+            rewrite_tiptap_asset_paths(child, rewrite)?;
         }
     }
+    Ok(())
 }
 
 fn image_asset_path(attrs: &serde_json::Map<String, Value>) -> Option<String> {
     attrs
         .get("assetPath")
         .and_then(Value::as_str)
-        .filter(|path| !path.is_empty() && !path.starts_with(PACKAGE_ASSET_PREFIX))
+        .filter(|path| !path.is_empty())
         .map(str::to_owned)
 }
 

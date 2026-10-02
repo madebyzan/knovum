@@ -87,8 +87,11 @@ pub(super) fn automatic_subtitles(
                 .pointer("/transcript/durationMs")
                 .and_then(Value::as_u64)
                 .ok_or("Video transcript duration is unavailable")?;
+            let cues: Vec<crate::media::transcript::SubtitleCue> =
+                serde_json::from_value(cues.clone())
+                    .map_err(|error| format!("Subtitle cues are invalid: {error}"))?;
             Ok(PreparedSubtitles::Ready(super::srt::from_cues(
-                cues, duration,
+                &cues, duration,
             )?))
         }
         None => Ok(PreparedSubtitles::Recognize),

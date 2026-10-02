@@ -12,7 +12,7 @@ import UiDropdownMenuItem from "../../../../shared/ui/UiDropdownMenuItem.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiPopover from "../../../../shared/ui/UiPopover.vue";
 import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
-import { useCanvasEditorSession } from "../../canvas/editor-session";
+import { getCanvasEditorSession } from "../../canvas/editor-session";
 import { CANVAS_RELATION_COLORS, type CanvasRelationColor } from "../../canvas/schema/document";
 import { SPACE_RELATION_KINDS, type SpaceRelationKind } from "../../model/relations/relation";
 import { useSpaceStore } from "../../session/space-store";
@@ -21,7 +21,7 @@ import SpaceCanvasColorSwatches from "./SpaceCanvasColorSwatches.vue";
 
 const store = useSpaceStore();
 const { relations } = storeToRefs(store);
-const session = useCanvasEditorSession();
+const session = getCanvasEditorSession();
 const { t } = useI18n();
 const rationale = shallowRef("");
 const rationaleOpen = shallowRef(false);

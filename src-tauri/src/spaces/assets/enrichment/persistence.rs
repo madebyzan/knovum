@@ -1,8 +1,8 @@
-use crate::app_error::AppError;
 use serde_json::Value;
 use tauri::AppHandle;
 
 use super::super::PreparedAsset;
+use crate::app_error::AppError;
 use crate::spaces::knowledge::indexing::KnowledgeChunkInput;
 
 pub(in crate::spaces) struct PublicationGuard<'a> {
@@ -78,11 +78,6 @@ pub(super) fn take_chunks(asset: &mut PreparedAsset) -> Vec<KnowledgeChunkInput>
         .take()
         .unwrap_or_default()
         .into_iter()
-        .map(|chunk| KnowledgeChunkInput {
-            kind: chunk.kind.to_owned(),
-            text: chunk.text,
-            locator: chunk.locator,
-            metadata: (!chunk.metadata.is_null()).then_some(chunk.metadata),
-        })
+        .map(Into::into)
         .collect()
 }

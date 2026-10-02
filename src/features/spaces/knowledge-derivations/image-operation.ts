@@ -4,7 +4,7 @@ import { cancelAiJob } from "../../../foundation/ai/ai-runtime";
 import { i18n } from "../../../foundation/i18n/i18n";
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
-import { useCanvasEditorSession } from "../canvas/editor-session";
+import { getCanvasEditorSession } from "../canvas/editor-session";
 import type { ImageOperation } from "../contracts/generated/ImageOperation";
 import type { ImageOperationCapabilities } from "../contracts/generated/ImageOperationCapabilities";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
@@ -63,7 +63,7 @@ export async function deriveImage(
       assetPath: outputPath,
       processingState: "processing",
     },
-    derivedNodePosition([source], useCanvasEditorSession().selection.value.nodePlacements),
+    derivedNodePosition([source], getCanvasEditorSession().selection.value.nodePlacements),
     { reveal: true },
   );
   if (!pending) throw new Error("Image operation output node was not created");

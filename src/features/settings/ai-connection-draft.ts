@@ -1,5 +1,6 @@
+import { cloneDeep } from "es-toolkit";
+
 import type { AiConnectionSettings } from "../../shared/contracts/generated/AiConnectionSettings";
-import type { AiModelDefinition } from "../../shared/contracts/generated/AiModelDefinition";
 
 /** undefined keeps the stored key, null removes it, and a string replaces it. */
 export type AiConnectionSecretChange = string | null | undefined;
@@ -9,23 +10,8 @@ export interface AiConnectionSubmission {
   secret: AiConnectionSecretChange;
 }
 
-function copyModel(model: AiModelDefinition): AiModelDefinition {
-  return {
-    id: model.id,
-    name: model.name,
-    model: model.model,
-    capabilities: [...model.capabilities],
-  };
-}
-
 export function createAiConnectionDraft(connection: AiConnectionSettings): AiConnectionSettings {
-  return {
-    id: connection.id,
-    name: connection.name,
-    provider: connection.provider,
-    baseUrl: connection.baseUrl,
-    models: connection.models.map(copyModel),
-  };
+  return cloneDeep(connection);
 }
 
 export function finalizeAiConnectionDraft(draft: AiConnectionSettings): AiConnectionSettings {

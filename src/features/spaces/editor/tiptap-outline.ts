@@ -72,7 +72,7 @@ export function headingElement(editor: OutlineEditor | undefined, position: numb
   return node instanceof HTMLElement ? node : undefined;
 }
 
-export function createHeadingNavigation(
+export function useHeadingNavigation(
   editor: () => Parameters<typeof activeHeadingFromScroll>[0],
   headings: () => ReturnType<typeof spaceTiptapHeadings>,
 ) {

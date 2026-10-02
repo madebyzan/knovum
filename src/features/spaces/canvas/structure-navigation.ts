@@ -1,14 +1,14 @@
 import { createStructureIndex } from "../model/structure/structure-index";
 import { groupScopePathFor, sectionAncestorOf } from "../model/structure/structure-queries";
 import type { useSpaceStore } from "../session/space-store";
-import type { useCanvasEditorSession } from "./editor-session";
+import type { getCanvasEditorSession } from "./editor-session";
 
 type SpaceStore = Pick<
   ReturnType<typeof useSpaceStore>,
   "editSnapshot" | "executeSpaceEdit" | "groupScopePath"
 >;
 type EditorSession = Pick<
-  ReturnType<typeof useCanvasEditorSession>,
+  ReturnType<typeof getCanvasEditorSession>,
   "selectNodes" | "selectStructureNodes" | "reveal"
 >;
 

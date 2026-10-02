@@ -1,9 +1,9 @@
-use crate::spaces::db;
 use sqlx::Row;
 
 use super::job::{
     EnqueueEnrichmentJobRequest, EnrichmentJobProjection, EnrichmentJobState, STATUS_RUNNING,
 };
+use crate::spaces::db;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum ArchivedSpaces {

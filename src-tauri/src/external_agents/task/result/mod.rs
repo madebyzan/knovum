@@ -1,5 +1,7 @@
 use std::{fs, io::Read, path::Path};
 
+use sha2::{Digest, Sha256};
+
 use crate::ai::capabilities::agent_artifacts;
 use crate::app_error::{AppError, AppResult};
 
@@ -28,7 +30,6 @@ pub(super) fn read(root: &Path, name: &str, limit: u64) -> AppResult<Vec<u8>> {
             "Desktop Agent result is empty or exceeds its task byte budget".into(),
         ));
     }
-    use sha2::{Digest, Sha256};
     if format!("sha256:{:x}", Sha256::digest(&bytes)) != revision {
         return Err(invalid("Desktop Agent result changed while reading".into()));
     }

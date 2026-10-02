@@ -12,7 +12,7 @@ use super::stage;
 use crate::{
     ai::{
         capabilities::image,
-        contracts::ExecutionCapability,
+        contracts::{ExecutionCapability, GeneratedImage},
         settings,
         tasks::{ExecutionSource, TaskExecutionTarget, TaskTargetSelection},
     },
@@ -49,15 +49,6 @@ pub struct VisualizationOutput {
 }
 
 pub(super) async fn generate_for_action(
-    authority: super::action_execution::ExecutionAuthority,
-    app: AppHandle,
-    request: GenerateVisualizationRequest,
-    stages: Channel<String>,
-) -> Result<VisualizationOutput, AppError> {
-    generate_inner(authority, app, request, stages).await
-}
-
-async fn generate_inner(
     authority: super::action_execution::ExecutionAuthority,
     app: AppHandle,
     request: GenerateVisualizationRequest,
@@ -170,8 +161,8 @@ pub(super) struct VisualizationResult {
     revised_prompt: Option<String>,
 }
 
-impl From<image::GeneratedImage> for VisualizationResult {
-    fn from(image: image::GeneratedImage) -> Self {
+impl From<GeneratedImage> for VisualizationResult {
+    fn from(image: GeneratedImage) -> Self {
         Self {
             bytes: image.bytes,
             execution_source: ExecutionSource::Model {

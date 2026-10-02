@@ -1,4 +1,3 @@
-use crate::app_error::AppError;
 mod completion;
 pub(crate) mod metadata;
 mod persistence;
@@ -9,6 +8,7 @@ use serde_json::Value;
 use tauri::{ipc::Channel, AppHandle};
 
 use super::stage;
+use crate::app_error::AppError;
 use crate::{
     ai::{
         contracts::ExecutionCapability,
@@ -55,15 +55,6 @@ pub struct GroundedDocumentOutput {
 }
 
 pub(super) async fn generate_for_action(
-    authority: super::action_execution::ExecutionAuthority,
-    app: AppHandle,
-    request: GenerateGroundedDocumentRequest,
-    stages: Channel<String>,
-) -> Result<GroundedDocumentOutput, AppError> {
-    generate_inner(authority, app, request, stages).await
-}
-
-async fn generate_inner(
     authority: super::action_execution::ExecutionAuthority,
     app: AppHandle,
     request: GenerateGroundedDocumentRequest,

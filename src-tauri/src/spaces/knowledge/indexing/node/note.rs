@@ -70,20 +70,12 @@ fn node_text(node: &Value) -> String {
     if let Some(text) = node.get("text").and_then(Value::as_str) {
         return text.to_owned();
     }
-    let separator = if node.get("type").and_then(Value::as_str) == Some("hardBreak") {
-        "\n"
-    } else {
-        ""
-    };
+    if node.get("type").and_then(Value::as_str) == Some("hardBreak") {
+        return "\n".to_owned();
+    }
     node.get("content")
         .and_then(Value::as_array)
-        .map(|children| {
-            children
-                .iter()
-                .map(node_text)
-                .collect::<Vec<_>>()
-                .join(separator)
-        })
+        .map(|children| children.iter().map(node_text).collect())
         .unwrap_or_default()
 }
 

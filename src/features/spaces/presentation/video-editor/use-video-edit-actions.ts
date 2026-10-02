@@ -95,12 +95,8 @@ export function useVideoEditActions(options: Options) {
 
   function remove() {
     if (!project.value || !canDelete.value) return;
-    const before = project.value;
-    selection.removeSelection();
-    if (project.value === before) return;
-    const after = project.value;
-    project.value = before;
-    history.commit(after);
+    const next = selection.removeSelection();
+    if (next) history.commit(next);
   }
 
   function step(milliseconds: number) {

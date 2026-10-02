@@ -1,4 +1,3 @@
-use crate::app_error::AppError;
 use serde::Serialize;
 use sqlx::Row;
 use tauri::AppHandle;
@@ -7,6 +6,7 @@ use super::{
     grounded_document, image_cutout, image_layers, image_operations, video_edit, video_generation,
     visualization,
 };
+use crate::app_error::AppError;
 use crate::spaces::db;
 
 #[derive(Serialize, ts_rs::TS)]

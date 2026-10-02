@@ -8,7 +8,7 @@ import { defineComponent, nextTick, shallowRef } from "vue";
 import { i18n } from "../../../foundation/i18n/i18n";
 import type { EnrichmentJobProjection } from "../contracts/generated/EnrichmentJobProjection";
 import { createSpaceNotePayload } from "../editor/tiptap-content";
-import { enrichmentProjectionKey } from "../enrichment/use-enrichment-task-projection";
+import { enrichmentProjectionKey } from "../enrichment/enrichment-projection-key";
 import type { SpaceCanvasTextPayload } from "../model/nodes/capabilities";
 import type { SpaceVideoPayload } from "../model/nodes/node-payload";
 import SpaceCanvasMedia from "../presentation/canvas/nodes/SpaceCanvasMedia.vue";

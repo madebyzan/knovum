@@ -9,6 +9,7 @@ mod deletion_transaction;
 pub(crate) mod edit_contract;
 mod geometry;
 pub(crate) mod history;
+mod node_reference_remap;
 mod placement;
 mod planner;
 pub(crate) mod portal_integrity;

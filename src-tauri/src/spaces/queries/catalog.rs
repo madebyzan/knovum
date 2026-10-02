@@ -23,7 +23,7 @@ pub struct SpaceOverview {
 #[tauri::command]
 pub async fn list_spaces<R: Runtime>(app: AppHandle<R>) -> Result<Vec<SpaceOverview>, AppError> {
     let pool = db::pool(&app).await?;
-    Ok((sqlx::query_as(
+    Ok(sqlx::query_as(
         "SELECT spaces.id, spaces.kind, spaces.title, archived_at, favorite, thumbnail_path, \
          last_opened_at, spaces.created_at, spaces.updated_at, \
          COUNT(spaces_nodes.id) AS node_count \
@@ -32,7 +32,7 @@ pub async fn list_spaces<R: Runtime>(app: AppHandle<R>) -> Result<Vec<SpaceOverv
     )
     .fetch_all(pool)
     .await
-    .map_err(db::sql_error))?)
+    .map_err(db::sql_error)?)
 }
 
 #[tauri::command]
@@ -47,8 +47,8 @@ pub async fn list_credential_node_ids<R: Runtime>(
             .fetch_all(pool)
             .await
             .map_err(db::sql_error)?;
-    Ok((rows
+    Ok(rows
         .into_iter()
         .map(|row| row.try_get::<String, _>("id").map_err(db::sql_error))
-        .collect::<Result<_, String>>())?)
+        .collect::<Result<_, String>>()?)
 }

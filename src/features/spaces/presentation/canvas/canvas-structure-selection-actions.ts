@@ -10,7 +10,7 @@ interface CanvasStructureSelectionActionsInput {
   run: (operation: () => Promise<unknown>) => void;
 }
 
-export function useCanvasStructureSelectionActions({
+export function createCanvasStructureSelectionActions({
   store,
   state,
   titles,

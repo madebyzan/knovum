@@ -1,6 +1,5 @@
 pub(crate) mod arrow_batch;
 mod current_chunks;
-mod embedding_contract;
 pub(crate) mod hybrid;
 pub(crate) mod index_writer;
 pub(crate) mod invalidation_outbox;

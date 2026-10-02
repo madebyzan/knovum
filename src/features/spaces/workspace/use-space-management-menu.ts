@@ -4,7 +4,7 @@ import { toast } from "vue-sonner";
 import type { ContextMenuItem } from "../../../foundation/context-menu/context-menu";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import type { CanvasExchangePort } from "../canvas-exchange/canvas-exchange-port";
-import { useCanvasExchangeSession } from "../canvas-exchange/canvas-exchange-session";
+import { activeCanvasExchangePort as activePort } from "../canvas-exchange/canvas-exchange-session";
 import { exportJsonCanvasFile } from "../canvas-exchange/transfer";
 import { useContextDock } from "../canvas/use-context-dock";
 import type { Space } from "../model/space";
@@ -24,12 +24,11 @@ export function useSpaceManagementMenu() {
   const store = useSpaceStore();
   const dock = useContextDock();
   const packages = useSpacePackageTransfer();
-  const { activePort } = useCanvasExchangeSession();
   const { t } = useI18n();
 
-  async function exportCanvas(space: Space, port: CanvasExchangePort) {
+  async function exportCanvas(space: Space, port: CanvasExchangePort | undefined) {
     await store.commitActiveSession();
-    if (store.activeSpaceId !== space.id || activePort.value !== port) {
+    if (!port || store.activeSpaceId !== space.id || activePort.value !== port) {
       throw new Error("The Space selected for JSON Canvas export is no longer active");
     }
     return exportJsonCanvasFile(port, space.title);
@@ -52,7 +51,7 @@ export function useSpaceManagementMenu() {
           spaceMenuItem(
             t("spaces.importExport.jsonCanvas.export"),
             () =>
-              reportExchange(() => exportCanvas(space, port!), t("spaces.importExport.jsonCanvas.exported")),
+              reportExchange(() => exportCanvas(space, port), t("spaces.importExport.jsonCanvas.exported")),
             { enabled: Boolean(port) },
           ),
         ]),

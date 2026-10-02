@@ -1,7 +1,8 @@
-use super::AssistantMessageOutput;
-use crate::spaces::db;
 use serde_json::Value;
 use sqlx::{Row, Sqlite, Transaction};
+
+use super::AssistantMessageOutput;
+use crate::spaces::db;
 
 pub(crate) async fn collect(
     tx: &mut Transaction<'_, Sqlite>,

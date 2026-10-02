@@ -10,7 +10,7 @@ pub(crate) struct MediaTranscript {
     pub(crate) subtitle_cues: Vec<SubtitleCue>,
 }
 
-#[derive(Serialize)]
+#[derive(serde::Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct SubtitleCue {
     pub(crate) start_ms: u64,

@@ -14,17 +14,15 @@ pub(super) async fn validate_query_filter(
     let filter = value
         .as_object()
         .ok_or_else(|| "Saved View query filter must be an object".to_string())?;
-    let allowed: HashSet<&str> = [
+    let allowed = [
         "text",
         "tags",
         "objectTypeIds",
         "statuses",
         "relationKinds",
         "relationStatuses",
-    ]
-    .into_iter()
-    .collect();
-    if let Some(key) = filter.keys().find(|key| !allowed.contains(key.as_str())) {
+    ];
+    if let Some(key) = filter.keys().find(|key| !allowed.contains(&key.as_str())) {
         return Err(format!(
             "Saved View query filter field '{key}' is not supported"
         ));

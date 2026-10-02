@@ -95,7 +95,7 @@ pub(crate) async fn fail_for_assistant(
             .err()
             .map(|error| error.to_string());
     }
-    runtime::mark_disconnected(
+    runtime::lifecycle::mark_disconnected(
         crate::spaces::db::pool(app).await?,
         session_id,
         run_id,

@@ -1,14 +1,15 @@
+use office_oxide::{
+    ir::{DocumentIR, Element},
+    DocumentFormat,
+};
+use tokio_util::sync::CancellationToken;
+
 use super::{
     content,
     document_text::element_text,
     ensure_active, images,
     location::{is_word, location, update_heading_path},
 };
-use office_oxide::{
-    ir::{DocumentIR, Element},
-    DocumentFormat,
-};
-use tokio_util::sync::CancellationToken;
 
 pub(super) fn collect(
     ir: &DocumentIR,

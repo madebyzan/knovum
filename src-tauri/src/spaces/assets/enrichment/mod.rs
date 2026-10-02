@@ -1,4 +1,3 @@
-use crate::app_error::AppError;
 use std::path::PathBuf;
 
 use serde_json::Value;
@@ -6,6 +5,7 @@ use tauri::AppHandle;
 use tokio_util::sync::CancellationToken;
 
 use super::access::authorize_spaces_asset;
+use crate::app_error::AppError;
 use crate::spaces::knowledge::indexing::revision as knowledge_revision;
 use node_payload::{load_node_content, required_string};
 use persistence::persist_processing_state;

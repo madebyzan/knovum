@@ -1,6 +1,7 @@
-use crate::documents::extraction::visual::DocumentImage;
 use office_oxide::ir::{Element, List};
 use serde_json::Value;
+
+use crate::documents::extraction::visual::DocumentImage;
 
 #[derive(Default)]
 pub(super) struct DocumentImages {

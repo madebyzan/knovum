@@ -1,19 +1,18 @@
 <script setup lang="ts">
-import { getErrorMessage } from "../../../../foundation/errors/error-format";
-import type { GenerationActionOption } from "../../generation-action-option";
-
-const props = defineProps<{ loadGenerationActions: () => Promise<GenerationActionOption[]> }>();
 import { storeToRefs } from "pinia";
 import { onMounted, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { useCreationLibraryStore } from "../../../../foundation/ai/creation-library-store";
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import { confirmAction } from "../../../../shared/ui/confirm-action";
+import type { GenerationActionOption } from "../../generation-action-option";
 import FalImageLayerSettings from "../FalImageLayerSettings.vue";
 import SavedGenerationPresets from "../SavedGenerationPresets.vue";
 import SettingsLoadFailure from "../SettingsLoadFailure.vue";
 
+const props = defineProps<{ loadGenerationActions: () => Promise<GenerationActionOption[]> }>();
 const { t } = useI18n();
 const store = useCreationLibraryStore();
 const { library, ready, loadError, saveError } = storeToRefs(store);

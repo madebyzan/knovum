@@ -9,7 +9,7 @@ import {
   type CreationIntentDecisions,
 } from "../catalog/creation-intent-definitions";
 import type { CreationDialogId } from "./creation-dialog";
-import { useDerivationActions } from "./use-derivation-actions";
+import { createDerivationActions } from "./derivation-actions";
 import { useDerivationCatalog } from "./use-derivation-catalog";
 
 interface SelectionDerivationsOptions {
@@ -35,7 +35,7 @@ export function useSelectionDerivations({ store, selection }: SelectionDerivatio
         }),
       ) as CreationIntentDecisions,
   );
-  const actions = useDerivationActions({
+  const actions = createDerivationActions({
     store,
     selection,
     single: catalogState.single,

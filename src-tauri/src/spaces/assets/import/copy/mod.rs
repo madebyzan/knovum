@@ -4,11 +4,11 @@ use std::{
     path::Path,
 };
 
-use crate::spaces::assets::enrichment::ensure_active;
 use sha2::{Digest, Sha256};
 use tokio_util::sync::CancellationToken;
 
 use crate::file_inspection::modified_millis;
+use crate::spaces::assets::enrichment::ensure_active;
 
 const BUFFER_BYTES: usize = 256 * 1024;
 

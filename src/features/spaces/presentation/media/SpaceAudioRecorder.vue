@@ -7,8 +7,8 @@ import { useI18n } from "vue-i18n";
 import { formatErrorDiagnostic } from "../../../../foundation/errors/error-format";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
-import { createSpaceAudioRecorderController } from "../../media/audio-recorder-controller";
 import type { PersistedAudioSpaceAsset } from "../../media/audio-recording";
+import { useSpaceAudioRecorderController } from "../../media/use-audio-recorder-controller";
 
 const open = defineModel<boolean>("open", { required: true });
 const props = defineProps<{
@@ -17,7 +17,7 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{ failed: [] }>();
 const { t } = useI18n();
-const controller = createSpaceAudioRecorderController({
+const controller = useSpaceAudioRecorderController({
   open,
   spaceId: toRef(props, "spaceId"),
   save: props.save,

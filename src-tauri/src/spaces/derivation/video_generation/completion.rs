@@ -1,14 +1,15 @@
-use crate::app_error::AppError;
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 use tauri::AppHandle;
 
-use super::VideoResult;
-use super::{GenerateVideoRequest, VideoOutput};
-use crate::spaces::derivation::{pending_output, relations, source_validation};
-use crate::spaces::{
-    db,
-    knowledge::{contracts, indexing::revision},
+use super::{GenerateVideoRequest, VideoOutput, VideoResult};
+use crate::{
+    app_error::AppError,
+    spaces::{
+        db,
+        derivation::{pending_output, relations, source_validation},
+        knowledge::{contracts, indexing::revision},
+    },
 };
 
 pub async fn complete(

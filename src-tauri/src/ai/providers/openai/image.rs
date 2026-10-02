@@ -1,4 +1,3 @@
-use crate::ai::transport::response;
 use futures::future::BoxFuture;
 use reqwest::multipart::{Form, Part};
 use serde::Deserialize;
@@ -6,7 +5,7 @@ use tokio_util::sync::CancellationToken;
 
 use crate::ai::{
     contracts::{GeneratedImage, ImageGenerationCapability, ImageGenerationInput},
-    transport::{http_client, SecurityContext},
+    transport::{http_client, response, SecurityContext},
 };
 use crate::app_error::{AppError, AppResult};
 

@@ -1,14 +1,13 @@
-use crate::ai::transport::response;
 use futures::future::BoxFuture;
 use tokio_util::sync::CancellationToken;
 
-use super::{image::dashscope_endpoint, protocol};
+use super::{endpoint, protocol};
 use crate::ai::{
     contracts::{
         GeneratedVideo, VideoGenerationCapability, VideoGenerationInput,
         VideoGenerationStageCallback, VideoGenerationStatus, VideoGenerationSubmission,
     },
-    transport::{http_client, SecurityContext},
+    transport::{http_client, response, SecurityContext},
 };
 use crate::app_error::{AppError, AppResult};
 
@@ -22,7 +21,7 @@ impl VideoGenerationCapability for DashScopeVideoAdapter {
     ) -> BoxFuture<'a, AppResult<VideoGenerationSubmission>> {
         Box::pin(async move {
             let secret = ctx.require_api_key()?;
-            let endpoint = dashscope_endpoint(&ctx.endpoint)?;
+            let endpoint = endpoint(&ctx.endpoint);
             let client = http_client();
 
             let request_body = protocol::create_wan_request(
@@ -66,7 +65,7 @@ impl VideoGenerationCapability for DashScopeVideoAdapter {
     ) -> BoxFuture<'a, AppResult<VideoGenerationStatus>> {
         Box::pin(async move {
             let secret = ctx.require_api_key()?;
-            let endpoint = dashscope_endpoint(&ctx.endpoint)?;
+            let endpoint = endpoint(&ctx.endpoint);
             let client = http_client();
 
             let query_response = client

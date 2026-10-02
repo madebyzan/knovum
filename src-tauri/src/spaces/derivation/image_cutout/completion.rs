@@ -1,4 +1,3 @@
-use crate::app_error::AppError;
 use std::fs;
 
 use serde_json::Value;
@@ -7,6 +6,7 @@ use tauri::AppHandle;
 use uuid::Uuid;
 
 use super::{source, CompleteImageCutoutRequest, CompletedDerivationOutput};
+use crate::app_error::AppError;
 use crate::spaces::derivation::{pending_output, relations};
 use crate::spaces::{
     assets::asset_directory,
@@ -28,17 +28,7 @@ pub(super) async fn complete(
         move || process(&app, &source_path, &source_edit, path)
     })
     .await?;
-    match persist_completion(
-        &app,
-        &request,
-        path.to_string_lossy().as_ref(),
-        &processed.digest,
-        processed.size,
-        processed.width,
-        processed.height,
-    )
-    .await
-    {
+    match persist_completion(&app, &request, path.to_string_lossy().as_ref(), &processed).await {
         Ok(completed) => Ok(completed),
         Err(error) => {
             let _ = fs::remove_file(path);
@@ -81,10 +71,7 @@ async fn persist_completion(
     app: &AppHandle,
     request: &CompleteImageCutoutRequest,
     path: &str,
-    digest: &str,
-    size: usize,
-    width: u32,
-    height: u32,
+    processed: &ProcessedCutout,
 ) -> Result<CompletedDerivationOutput, AppError> {
     let pool = db::pool(app).await?;
     let mut tx = db::begin_write(pool).await?;
@@ -113,7 +100,7 @@ async fn persist_completion(
     let now = crate::clock::unix_time_millis()?;
     let mut value: Value = serde_json::from_str(&data).map_err(db::json_error)?;
     pending_output::validate_unpublished_asset(&value)?;
-    apply_output_content(&mut value, path, digest, size, width, height, now)?;
+    apply_output_content(&mut value, path, processed, now)?;
     contracts::validate_node(&mut tx, &space_id, "image", &value).await?;
     let relation = relations::derives_from(
         &space_id,
@@ -143,21 +130,21 @@ async fn persist_completion(
 fn apply_output_content(
     value: &mut Value,
     path: &str,
-    digest: &str,
-    size: usize,
-    width: u32,
-    height: u32,
+    processed: &ProcessedCutout,
     now: i64,
 ) -> Result<(), AppError> {
     let object = value
         .as_object_mut()
         .ok_or_else(|| "Derived image data is invalid".to_string())?;
     object.insert("assetPath".into(), Value::String(path.into()));
-    object.insert("sourceRevision".into(), Value::String(digest.into()));
-    object.insert("size".into(), Value::from(size as u64));
+    object.insert(
+        "sourceRevision".into(),
+        Value::String(processed.digest.clone()),
+    );
+    object.insert("size".into(), Value::from(processed.size as u64));
     object.insert("modifiedAt".into(), Value::from(now));
-    object.insert("intrinsicWidth".into(), Value::from(width));
-    object.insert("intrinsicHeight".into(), Value::from(height));
+    object.insert("intrinsicWidth".into(), Value::from(processed.width));
+    object.insert("intrinsicHeight".into(), Value::from(processed.height));
     object.remove("imageEdit");
     object.remove("previewPath");
     object.remove("processingState");

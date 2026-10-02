@@ -21,7 +21,7 @@ vi.mock("vue-sonner", () => ({ toast: { error: native.toastError } }));
 vi.mock("../../../foundation/tasks/task-store", () => ({ useTaskStore: () => native.tasks }));
 vi.mock("../../../foundation/i18n/i18n", () => ({ i18n: { global: { t: (key: string) => key } } }));
 vi.mock("../canvas/editor-session", () => ({
-  useCanvasEditorSession: () => ({
+  getCanvasEditorSession: () => ({
     selection: { value: { nodePlacements: [{ id: "source", x: 10, y: 20 }] } },
   }),
 }));

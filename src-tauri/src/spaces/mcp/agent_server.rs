@@ -32,7 +32,9 @@ pub(crate) async fn start(
     actor_id: String,
     parent_run_id: String,
 ) -> Result<AgentMcpBinding, String> {
-    let grant_id = create_session_grant(&app, &space_id, &actor_id).await?;
+    let grant_id =
+        crate::spaces::authorization::create_external_agent_grant(&app, &space_id, &actor_id)
+            .await?;
     let listener = tokio::net::TcpListener::bind(("127.0.0.1", 0))
         .await
         .map_err(|error| error.to_string())?;
@@ -64,12 +66,4 @@ pub(crate) async fn start(
         authorization: format!("Bearer {token}"),
         cancellation,
     })
-}
-
-async fn create_session_grant(
-    app: &AppHandle,
-    space_id: &str,
-    actor_id: &str,
-) -> Result<String, String> {
-    crate::spaces::authorization::create_external_agent_grant(app, space_id, actor_id).await
 }

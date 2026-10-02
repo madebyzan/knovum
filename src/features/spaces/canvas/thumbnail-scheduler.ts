@@ -5,7 +5,7 @@ import { cleanupDeletedSpaceAssets, removeSpaceAsset } from "../assets/asset-ope
 import { saveCanvasThumbnailBlob } from "../assets/canvas-thumbnail-file";
 import type { SpaceState } from "../session/session-state";
 import { updateSpaceThumbnail } from "../workspace/space-operations";
-import { useCanvasEditorSession } from "./editor-session";
+import { getCanvasEditorSession } from "./editor-session";
 
 const SETTLE_DELAY_MS = 800;
 let pendingCapture: ReturnType<typeof globalThis.setTimeout> | undefined;
@@ -43,7 +43,7 @@ export async function persistActiveCanvasThumbnail(state: SpaceState) {
   const space = state.activeSpace.value;
   if (!space || (!state.thumbnailDirty.value && space.thumbnailPath)) return;
   if (!state.spaces.value.some((candidate) => candidate.id === space.id)) return;
-  const editor = useCanvasEditorSession().activeEditor.value;
+  const editor = getCanvasEditorSession().activeEditor.value;
   if (!editor) throw new Error("Space canvas is not mounted");
   state.thumbnailDirty.value = false;
   let stagedPath: string | undefined;

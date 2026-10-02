@@ -2,12 +2,12 @@ use tauri::AppHandle;
 use tokio_util::sync::CancellationToken;
 
 use crate::ai::{
-    contracts::ImageGenerationInput, models::ModelExecutionTarget, providers::resolve_provider,
+    contracts::{GeneratedImage, ImageGenerationInput},
+    models::ModelExecutionTarget,
+    providers::resolve_provider,
     transport::SecurityContext,
 };
 use crate::app_error::{AppError, AppResult};
-
-pub use crate::ai::contracts::GeneratedImage;
 
 #[derive(Debug)]
 pub struct ImageGenerationRequest {

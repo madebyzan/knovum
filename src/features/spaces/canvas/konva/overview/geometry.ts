@@ -1,5 +1,5 @@
+import { canvasFrameBounds } from "../../canvas-snap-geometry";
 import type { CanvasViewport } from "../../contracts/canvas-editor-port";
-import type { CanvasNodeFrame } from "../../schema/document";
 import type { CanvasScene } from "../scene/canvas-scene";
 
 export interface CanvasOverviewViewport {
@@ -32,7 +32,9 @@ export function canvasOverviewViewport(
   let right = -Infinity;
   let bottom = -Infinity;
   for (const { layout } of scene.nodes) {
-    for (const point of rotatedCorners(layout.frame)) include(point);
+    const bounds = canvasFrameBounds(layout.frame);
+    include({ x: bounds.left, y: bounds.top });
+    include({ x: bounds.right, y: bounds.bottom });
   }
   for (const { bounds } of scene.sectionBackdrops) {
     include({ x: bounds.x, y: bounds.y });
@@ -60,19 +62,4 @@ export function canvasOverviewViewport(
     right = Math.max(right, point.x);
     bottom = Math.max(bottom, point.y);
   }
-}
-
-function rotatedCorners(frame: CanvasNodeFrame) {
-  const radians = (frame.rotation * Math.PI) / 180;
-  const cosine = Math.cos(radians);
-  const sine = Math.sin(radians);
-  return [
-    { x: 0, y: 0 },
-    { x: frame.width, y: 0 },
-    { x: frame.width, y: frame.height },
-    { x: 0, y: frame.height },
-  ].map(({ x, y }) => ({
-    x: frame.x + x * cosine - y * sine,
-    y: frame.y + x * sine + y * cosine,
-  }));
 }

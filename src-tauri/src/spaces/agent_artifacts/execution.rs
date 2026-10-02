@@ -1,4 +1,3 @@
-use super::contracts;
 use std::sync::Arc;
 
 use tauri::{ipc::Channel, AppHandle};
@@ -6,6 +5,8 @@ use tauri::{ipc::Channel, AppHandle};
 use crate::ai::{capabilities, executions};
 use crate::app_error::{AppError, AppResult};
 use crate::external_agents;
+
+use super::contracts;
 
 pub(super) async fn run(
     app: &AppHandle,

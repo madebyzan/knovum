@@ -8,7 +8,7 @@ import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiPopover from "../../../../shared/ui/UiPopover.vue";
 import { removeSpaceAsset } from "../../assets/asset-operations";
 import { saveCanvasThumbnailBlob } from "../../assets/canvas-thumbnail-file";
-import { useCanvasEditorSession } from "../../canvas/editor-session";
+import { getCanvasEditorSession } from "../../canvas/editor-session";
 import { SPACE_COMMAND_SHORTCUTS } from "../../commands/space-command-shortcuts";
 import type { SpaceScene } from "../../scenes/scene";
 import { useSceneNavigation } from "../../scenes/use-scene-navigation";
@@ -17,7 +17,7 @@ import SpaceCanvasScenePanel from "./SpaceCanvasScenePanel.vue";
 
 const { t } = useI18n();
 const store = useSpaceStore();
-const editorSession = useCanvasEditorSession();
+const editorSession = getCanvasEditorSession();
 const { scenes, activeSceneId, recentSceneId, createScene, getTargetScene, openScene, stepScene } =
   useSceneNavigation();
 const open = shallowRef(false);

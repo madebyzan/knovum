@@ -25,7 +25,6 @@ interface CanvasTextEditorOptions {
 export function useCanvasTextEditor(options: CanvasTextEditorOptions) {
   const dirty = shallowRef(false);
   const editing = shallowRef(false);
-  const saving = shallowRef(false);
   const editor = shallowRef<Editor>();
   let detachCommit: (() => void) | undefined;
   let savePromise: Promise<void> | undefined;
@@ -90,7 +89,6 @@ export function useCanvasTextEditor(options: CanvasTextEditorOptions) {
   async function persist(instance: Editor, close: boolean) {
     const plainText = instance.state.doc.textBetween(0, instance.state.doc.content.size, "\n", "\n");
     const tiptapContent = tiptapContentSchema.parse(instance.getJSON());
-    saving.value = true;
     try {
       const data: SpaceCanvasTextPayload = {
         ...options.data.value,
@@ -105,8 +103,6 @@ export function useCanvasTextEditor(options: CanvasTextEditorOptions) {
       if (close && editor.value === instance) instance.setEditable(true);
       toast.error(getErrorMessage(error));
       throw error;
-    } finally {
-      saving.value = false;
     }
   }
 

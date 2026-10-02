@@ -14,7 +14,7 @@ vi.mock("@vueuse/core", () => ({
   }),
 }));
 vi.mock("../canvas/editor-session", () => ({
-  useCanvasEditorSession: () => ({ viewport: shallowRef({}) }),
+  getCanvasEditorSession: () => ({ viewport: shallowRef({}) }),
 }));
 vi.mock("../presentation/canvas/use-surface-trigger-open", () => ({
   useSurfaceTriggerOpen: () => shallowRef(false),

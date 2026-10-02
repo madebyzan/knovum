@@ -41,17 +41,7 @@ pub(super) async fn insert_chunks(
             .get("knowledgeRevision")
             .and_then(serde_json::Value::as_str)
             .ok_or_else(|| "Package semantic node is missing knowledgeRevision".to_string())?;
-        let seeds = generated
-            .into_iter()
-            .map(
-                |chunk| crate::spaces::knowledge::indexing::KnowledgeChunkInput {
-                    kind: chunk.kind.to_owned(),
-                    text: chunk.text,
-                    locator: chunk.locator,
-                    metadata: (!chunk.metadata.is_null()).then_some(chunk.metadata),
-                },
-            )
-            .collect::<Vec<_>>();
+        let seeds = generated.into_iter().map(Into::into).collect::<Vec<_>>();
         chunk_store::replace_with_expected(
             tx,
             &request.space.id,

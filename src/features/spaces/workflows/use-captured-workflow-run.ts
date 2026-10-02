@@ -2,6 +2,7 @@ import { onBeforeUnmount, ref, shallowRef } from "vue";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import type { RunObservation } from "../contracts/generated/RunObservation";
+import type { RunState } from "../contracts/generated/RunState";
 import type { SavedCapturedWorkflow } from "../contracts/generated/SavedCapturedWorkflow";
 import { cancelResourceRun, observeResourceRun } from "../runs/resource-run-observation";
 import { useSpaceStore } from "../session/space-store";
@@ -23,7 +24,7 @@ interface CapturedWorkflowRunInput {
 export function useCapturedWorkflowRun() {
   const store = useSpaceStore();
   const runId = ref("");
-  const runState = ref("");
+  const runState = ref<RunState | "">("");
   const cancelling = ref(false);
   const submitting = ref(false);
   const retrying = ref(false);

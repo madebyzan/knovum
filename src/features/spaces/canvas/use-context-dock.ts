@@ -5,11 +5,11 @@ import type { ConversationScope } from "../conversation/conversation-scope";
 import type { KnowledgePeekTarget } from "../knowledge/model/knowledge-peek-target";
 import type { AskSidebarOptions, OpenSourceOptions } from "../right-sidebar/right-sidebar-actions";
 import { useSpaceStore } from "../session/space-store";
-import { useCanvasEditorSession } from "./editor-session";
+import { getCanvasEditorSession } from "./editor-session";
 
 export function useContextDock() {
   const store = useSpaceStore();
-  const editorSession = useCanvasEditorSession();
+  const editorSession = getCanvasEditorSession();
   const rightSidebar = inject(workspaceRightSidebarKey);
 
   function openInspect() {

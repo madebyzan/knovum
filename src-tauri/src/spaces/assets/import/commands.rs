@@ -1,8 +1,8 @@
-use crate::app_error::AppError;
 use std::path::PathBuf;
 
 use super::super::{enrichment, PreparedAsset};
 use super::{commit, prepare, registry};
+use crate::app_error::AppError;
 
 #[derive(serde::Deserialize)]
 #[serde(rename_all = "camelCase")]

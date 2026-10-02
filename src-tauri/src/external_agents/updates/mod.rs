@@ -9,6 +9,7 @@ use agent_client_protocol::{
     Error, SessionMessage,
 };
 use base64::{engine::general_purpose::STANDARD, Engine};
+use sha2::{Digest, Sha256};
 use tokio::io::AsyncWriteExt;
 
 const MAX_EMBEDDED_RESOURCE_BYTES: usize = 32 * 1024 * 1024;
@@ -242,13 +243,11 @@ fn projection_error(error: crate::app_error::AppError) -> Error {
 }
 
 fn message_occurrence_identity(message_id: Option<&str>) -> String {
-    use sha2::{Digest, Sha256};
     let message = Sha256::digest(message_id.unwrap_or("unidentified").as_bytes());
     format!("message-{message:x}-{}", uuid::Uuid::new_v4())
 }
 
 fn tool_artifact_prefix(tool_id: &str) -> String {
-    use sha2::{Digest, Sha256};
     let identity = Sha256::digest(tool_id.as_bytes());
     format!("tool-{identity:x}-")
 }
@@ -328,7 +327,6 @@ async fn persist_resource(
         })
         .or_else(|| extensions.and_then(|values| values.first().copied()))
         .unwrap_or(default_extension);
-    use sha2::{Digest, Sha256};
     let uri_identity = Sha256::digest(uri.as_bytes());
     let base = output_identity
         .map(str::to_owned)
@@ -393,7 +391,6 @@ async fn persist_media(
         .ok_or_else(|| {
             Error::internal_error().data(format!("Agent returned unsupported media: {mime_type}"))
         })?;
-    use sha2::{Digest, Sha256};
     let occurrence = identity
         .map(str::to_owned)
         .unwrap_or_else(|| format!("media-{}", uuid::Uuid::new_v4()));

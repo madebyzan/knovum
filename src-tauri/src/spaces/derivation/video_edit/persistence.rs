@@ -1,13 +1,15 @@
-use crate::app_error::AppError;
 use serde_json::Value;
 use tauri::AppHandle;
 
 use super::super::{
     inputs, pending_output, relations, video_output::RenderedVideo, CompletedDerivationOutput,
 };
-use crate::spaces::{
-    db,
-    knowledge::{contracts, indexing::revision},
+use crate::{
+    app_error::AppError,
+    spaces::{
+        db,
+        knowledge::{contracts, indexing::revision},
+    },
 };
 
 pub async fn complete(

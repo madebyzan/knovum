@@ -28,21 +28,19 @@ async fn fixture() -> sqlx::SqlitePool {
     pool
 }
 
-fn output(id: &str, kind: &str) -> PreparedOutput {
-    PreparedOutput {
-        node: InsertNode {
-            id: id.into(),
-            kind: kind.into(),
-            initial_x: 0.0,
-            initial_y: 0.0,
-            width: 260.0,
-            height: 184.0,
-            sizing_mode: structure::SizingMode::Content,
-            appearance: None,
-            file_subpath: None,
-            data: json!({"kind":kind,"title":"Report","text":"Findings"}),
-            source_chunks: Vec::new(),
-        },
+fn output(id: &str, kind: &str) -> InsertNode {
+    InsertNode {
+        id: id.into(),
+        kind: kind.into(),
+        initial_x: 0.0,
+        initial_y: 0.0,
+        width: 260.0,
+        height: 184.0,
+        sizing_mode: structure::SizingMode::Content,
+        appearance: None,
+        file_subpath: None,
+        data: json!({"kind":kind,"title":"Report","text":"Findings"}),
+        source_chunks: Vec::new(),
     }
 }
 
@@ -104,7 +102,7 @@ async fn invalid_output_rolls_back_all_publication_state() {
 async fn existing_agent_created_node_is_attached_without_duplicate_import() {
     let pool = fixture().await;
     let mut tx = db::begin_write(&pool).await.unwrap();
-    let mut node = output("mcp-note", "markdown").node;
+    let mut node = output("mcp-note", "markdown");
     knowledge::contracts::normalize_node(&mut tx, "space", &node.kind, &mut node.data)
         .await
         .unwrap();
@@ -158,7 +156,7 @@ async fn context_attachment_does_not_assert_derivation() {
             mutation_id: "source-create".into(),
             expected_edit_revision: 0,
             target_parent_id: None,
-            nodes: vec![output("source", "markdown").node],
+            nodes: vec![output("source", "markdown")],
         },
         None,
     )
@@ -215,9 +213,14 @@ async fn cancel_request_prevents_publication() {
 #[tokio::test]
 async fn disconnected_session_keeps_completed_turn_outputs_retryable() {
     let pool = fixture().await;
-    super::super::runtime::mark_disconnected(&pool, "session", "run", "ACP finish failed")
-        .await
-        .unwrap();
+    super::super::runtime::lifecycle::mark_disconnected(
+        &pool,
+        "session",
+        "run",
+        "ACP finish failed",
+    )
+    .await
+    .unwrap();
     commit(
         &pool,
         "session",

@@ -1,5 +1,6 @@
 use std::{fs, io::Cursor, path::PathBuf};
 
+use base64::{engine::general_purpose::STANDARD, Engine};
 use sha2::{Digest, Sha256};
 use tauri::AppHandle;
 use uuid::Uuid;
@@ -18,8 +19,6 @@ pub struct PreparedLayer {
 }
 
 pub fn encode_source_image_uri(bytes: &[u8]) -> Result<String, String> {
-    use base64::{engine::general_purpose::STANDARD, Engine};
-
     if bytes.is_empty() || bytes.len() > MAX_SOURCE_BYTES {
         return Err("Image layer source must be a PNG no larger than 10 MB".into());
     }

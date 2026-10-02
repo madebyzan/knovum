@@ -1,8 +1,9 @@
+use sqlx::Row;
+use tauri::AppHandle;
+
 use super::job::EnrichmentJobType;
 use crate::app_error::AppError;
 use crate::spaces::db;
-use sqlx::Row;
-use tauri::AppHandle;
 
 #[tauri::command]
 pub async fn retry_enrichment_job(app: AppHandle, job_id: String) -> Result<(), AppError> {

@@ -52,3 +52,10 @@ impl AiProvider for DashScopeProvider {
         Some(&self.upload)
     }
 }
+
+fn endpoint(value: &str) -> String {
+    let value = value.trim().trim_end_matches('/');
+    let value = value.strip_suffix("/compatible-mode/v1").unwrap_or(value);
+    let value = value.strip_suffix("/api/v1").unwrap_or(value);
+    format!("{value}/api/v1")
+}

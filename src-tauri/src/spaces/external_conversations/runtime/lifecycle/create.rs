@@ -76,14 +76,6 @@ pub(crate) async fn create_records(
         .await
         .map_err(db::sql_error)?;
     }
-    if conversation.is_some() {
-        sqlx::query("UPDATE spaces_assistant_conversations SET active_branch_id=$1 WHERE id=$2")
-            .bind(branch_id)
-            .bind(assistant_id)
-            .execute(&mut *tx)
-            .await
-            .map_err(db::sql_error)?;
-    }
     sqlx::query(
         "INSERT INTO spaces_external_agent_conversations(
          id,run_id,space_id,assistant_conversation_id,branch_id,runtime_kind,title,state,created_at,updated_at)

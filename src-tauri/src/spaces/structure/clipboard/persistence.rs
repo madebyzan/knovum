@@ -33,14 +33,11 @@ pub(super) async fn insert_nodes(
             .and_then(Value::as_str)
             .ok_or("Clipboard node kind is missing")?
             .to_owned();
-        let object_type_id = (kind == "object")
-            .then(|| {
-                node.data
-                    .get("objectTypeId")
-                    .and_then(Value::as_str)
-                    .map(str::to_owned)
-            })
-            .flatten();
+        let object_type_id = if kind == "object" {
+            node.data.get("objectTypeId").and_then(Value::as_str)
+        } else {
+            None
+        };
         let world = world_transform(structure, layouts, &index, by_node[node.id.as_str()])?;
         let raw = serde_json::to_string(&node.data).map_err(db::json_error)?;
         sqlx::query("INSERT INTO spaces_nodes(id,space_id,kind,object_type_id,initial_x,initial_y,data,created_at,updated_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$8)").bind(&node.id).bind(space_id).bind(&kind).bind(object_type_id).bind(world.x).bind(world.y).bind(raw).bind(now).execute(&mut **tx).await.map_err(db::sql_error)?;

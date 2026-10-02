@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { AlertTriangle } from "@lucide/vue";
 import { storeToRefs } from "pinia";
-import { nextTick, onBeforeUnmount, onMounted, shallowRef } from "vue";
+import { nextTick, onBeforeUnmount, onMounted, provide, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
@@ -16,6 +16,7 @@ import {
 } from "./conversation/conversation-run-observation";
 import { useConversationSessionStore } from "./conversation/conversation-session-store";
 import { useDeferredEditorMount } from "./editor/use-deferred-editor-mount";
+import { enrichmentProjectionKey } from "./enrichment/enrichment-projection-key";
 import { useEnrichmentTaskProjection } from "./enrichment/use-enrichment-task-projection";
 import SpaceCanvas from "./presentation/canvas/SpaceCanvas.vue";
 import SpaceRecentlyDeleted from "./presentation/deletion/SpaceRecentlyDeleted.vue";
@@ -36,14 +37,18 @@ const initializing = shallowRef(false);
 const mountedEditorId = useDeferredEditorMount(focusedEditorId);
 useSpaceSessionLifecycle(store.commitActiveSession);
 const dock = useContextDock();
-useEnrichmentTaskProjection(ready, async (spaceId, nodeId) => {
-  await store.openSpace(spaceId);
-  if (!store.nodes.some((node) => node.id === nodeId))
-    throw new Error(t("spaces.processing.nodeUnavailable"));
-  await nextTick();
-  selectAndRevealSpaceNode(nodeId);
-  dock.openInspect();
+const enrichmentJobs = useEnrichmentTaskProjection({
+  ready,
+  openNode: async (spaceId, nodeId) => {
+    await store.openSpace(spaceId);
+    if (!store.nodes.some((node) => node.id === nodeId))
+      throw new Error(t("spaces.processing.nodeUnavailable"));
+    await nextTick();
+    selectAndRevealSpaceNode(nodeId);
+    dock.openInspect();
+  },
 });
+provide(enrichmentProjectionKey, enrichmentJobs);
 const unregisterConversationNavigation = registerConversationRunNavigation(
   async (spaceId, conversationId) => {
     await store.openSpace(spaceId);

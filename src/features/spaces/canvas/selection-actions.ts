@@ -11,7 +11,7 @@ import type { SpaceNodeKind } from "../model/nodes/node-payload";
 import { createStructureIndex } from "../model/structure/structure-index";
 import { groupScopePathFor } from "../model/structure/structure-queries";
 import type { useSpaceStore } from "../session/space-store";
-import { useCanvasEditorSession } from "./editor-session";
+import { getCanvasEditorSession } from "./editor-session";
 
 export async function duplicateSpaceSelection(
   store: ReturnType<typeof useSpaceStore>,
@@ -65,7 +65,7 @@ export async function pasteSpaceClipboardAt(
     store.relations = [...store.relations, ...pasteReceipt.relations];
     store.editSnapshot = pasteReceipt.snapshot;
     store.recordCommittedSpaceEdit();
-    useCanvasEditorSession().selectStructureNodes(pasteReceipt.selectionSuggestion);
+    getCanvasEditorSession().selectStructureNodes(pasteReceipt.selectionSuggestion);
     return true;
   }
   return false;
@@ -112,7 +112,7 @@ export function isSpaceNodeOpenable(node?: SpaceCanvasNode) {
 }
 
 export function selectAndRevealSpaceNode(id: string, mode: "focus" | "ensure-visible" = "focus") {
-  useCanvasEditorSession().reveal([id], mode);
+  getCanvasEditorSession().reveal([id], mode);
 }
 
 export async function openPortalNode(
@@ -127,7 +127,7 @@ export async function openPortalNode(
   } = target;
   await store.openSpace(spaceId);
   if (sceneId) await store.openSceneView(sceneId);
-  const editor = useCanvasEditorSession();
+  const editor = getCanvasEditorSession();
   if (nodeId) editor.reveal([nodeId], "focus");
   if (!structureNodeId) return;
   const index = createStructureIndex(store.editSnapshot.structure);

@@ -49,10 +49,8 @@ fn validate_field(field: &Value, keys: &mut HashSet<String>) -> Result<(), Strin
     let object = field
         .as_object()
         .ok_or_else(|| "Knowledge Type field must be an object".to_string())?;
-    let allowed: HashSet<&str> = ["key", "label", "kind", "required", "options"]
-        .into_iter()
-        .collect();
-    if let Some(name) = object.keys().find(|name| !allowed.contains(name.as_str())) {
+    let allowed = ["key", "label", "kind", "required", "options"];
+    if let Some(name) = object.keys().find(|name| !allowed.contains(&name.as_str())) {
         return Err(format!(
             "Knowledge Type field property '{name}' is not supported"
         ));

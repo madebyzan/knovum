@@ -78,17 +78,7 @@ pub(crate) async fn record(
     deletion_batch_restored_after: Option<bool>,
     applied_revision: i64,
 ) -> Result<(), String> {
-    let abandoned_batches: Vec<String> = sqlx::query_scalar("SELECT deletion_batch_id FROM spaces_edit_history WHERE space_id=$1 AND undone=1 AND deletion_batch_id IS NOT NULL")
-        .bind(space_id).fetch_all(&mut **tx).await.map_err(db::sql_error)?;
-    sqlx::query("DELETE FROM spaces_edit_history WHERE space_id=$1 AND undone=1")
-        .bind(space_id)
-        .execute(&mut **tx)
-        .await
-        .map_err(db::sql_error)?;
-    for batch_id in abandoned_batches {
-        sqlx::query("DELETE FROM spaces_deleted_structure_batches WHERE id=$1 AND space_id=$2 AND restored_at IS NOT NULL")
-            .bind(batch_id).bind(space_id).execute(&mut **tx).await.map_err(db::sql_error)?;
-    }
+    clear_redo(tx, space_id).await?;
     let now = crate::clock::unix_time_millis()?;
     insert(
         tx,
@@ -105,6 +95,24 @@ pub(crate) async fn record(
     )
     .await?;
     prune(tx, space_id).await
+}
+
+pub(super) async fn clear_redo(
+    tx: &mut Transaction<'_, Sqlite>,
+    space_id: &str,
+) -> Result<(), String> {
+    let abandoned_batches: Vec<String> = sqlx::query_scalar("SELECT deletion_batch_id FROM spaces_edit_history WHERE space_id=$1 AND undone=1 AND deletion_batch_id IS NOT NULL")
+        .bind(space_id).fetch_all(&mut **tx).await.map_err(db::sql_error)?;
+    sqlx::query("DELETE FROM spaces_edit_history WHERE space_id=$1 AND undone=1")
+        .bind(space_id)
+        .execute(&mut **tx)
+        .await
+        .map_err(db::sql_error)?;
+    for batch_id in abandoned_batches {
+        sqlx::query("DELETE FROM spaces_deleted_structure_batches WHERE id=$1 AND space_id=$2 AND restored_at IS NOT NULL")
+            .bind(batch_id).bind(space_id).execute(&mut **tx).await.map_err(db::sql_error)?;
+    }
+    Ok(())
 }
 
 pub(crate) async fn record_group(

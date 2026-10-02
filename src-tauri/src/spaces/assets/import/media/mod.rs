@@ -1,9 +1,9 @@
-use crate::app_error::AppError;
 mod acquisition;
 mod contract;
 mod jobs;
 mod publish;
 
+use crate::app_error::AppError;
 use crate::media::acquisition::contracts::AcquisitionProgress;
 pub(crate) use contract::ImportedMedia;
 

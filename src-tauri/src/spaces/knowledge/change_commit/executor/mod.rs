@@ -1,4 +1,3 @@
-use crate::app_error::AppError;
 mod links;
 mod objects;
 mod state;
@@ -7,7 +6,10 @@ use serde_json::Value;
 use sqlx::{Sqlite, Transaction};
 
 use super::contract::KnowledgeChange;
-use crate::spaces::{knowledge::events::EventActor, structure};
+use crate::{
+    app_error::AppError,
+    spaces::{knowledge::events::EventActor, structure},
+};
 use state::ApplyState;
 
 pub(super) async fn execute(

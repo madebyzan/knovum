@@ -1,9 +1,15 @@
+use std::{
+    fs,
+    io::{Cursor, Read},
+    path::Path,
+};
+
+use sha2::{Digest, Sha256};
+
 use crate::spaces::assets::{asset_directory, authorize_spaces_asset};
 use crate::spaces::knowledge::node_contracts::document_coverage::{
     DocumentResource, MAX_RESOURCE_BYTES, MAX_RESOURCE_DIMENSION, MAX_RESOURCE_PIXELS,
 };
-use sha2::{Digest, Sha256};
-use std::{fs, io::Cursor, path::Path};
 
 pub(super) enum ResourceError {
     Unsupported(String),
@@ -125,7 +131,6 @@ fn store_at(
 }
 
 fn read_bounded(path: &Path) -> Result<Vec<u8>, String> {
-    use std::io::Read;
     let file = fs::File::open(path).map_err(|error| error.to_string())?;
     let mut bytes = Vec::new();
     file.take(MAX_RESOURCE_BYTES + 1)

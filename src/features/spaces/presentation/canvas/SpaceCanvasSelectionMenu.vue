@@ -121,7 +121,7 @@ const directVideoActions: readonly CreationIntentId[] = ["add-video-subtitles"];
       <UiDropdownMenuItem v-if="actions.selectedNodes.value.length" @select="actions.inspectWorkflow">
         <Workflow class="size-3.5" />{{ t("spaces.creation.workflow.createFromSelection") }}
       </UiDropdownMenuItem>
-      <UiDropdownMenuItem v-if="actions.selectedNodes.value.length" @select="actions.useWorkflow">
+      <UiDropdownMenuItem v-if="actions.selectedNodes.value.length" @select="actions.openWorkflowUse">
         <Workflow class="size-3.5" />{{ t("spaces.creation.workflow.useSaved") }}
       </UiDropdownMenuItem>
       <SpaceCanvasArrangeMenu

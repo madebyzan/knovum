@@ -3,8 +3,8 @@ import { useI18n } from "vue-i18n";
 
 import type { AppCommand } from "../../../shared/contracts/app-command";
 import { workspaceSidebarKey } from "../../../shared/contracts/workspace-sidebar";
-import { useCanvasExchangeSession } from "../canvas-exchange/canvas-exchange-session";
-import { useCanvasEditorSession } from "../canvas/editor-session";
+import { activeCanvasExchangePort as activeExchange } from "../canvas-exchange/canvas-exchange-session";
+import { getCanvasEditorSession } from "../canvas/editor-session";
 import { useNodeOperationGate } from "../canvas/node-operation-gate";
 import { currentSelectionRoots } from "../canvas/selection/selection-roots";
 import { createStructureIndex } from "../model/structure/structure-index";
@@ -29,9 +29,8 @@ export function useSpaceCommands() {
   const { t } = useI18n();
   const store = useSpaceStore();
   const sidebar = inject(workspaceSidebarKey)!;
-  const { activeEditor, selection } = useCanvasEditorSession();
+  const { activeEditor, selection } = getCanvasEditorSession();
   const nodeOperations = useNodeOperationGate();
-  const { activePort: activeExchange } = useCanvasExchangeSession();
   const workspaceTabCommands = useWorkspaceTabCommands();
   const libraryCommands = useSpaceLibraryCommands();
   const canvasNavigationCommands = useCanvasNavigationCommands();

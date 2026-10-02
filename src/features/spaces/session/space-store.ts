@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import { watch } from "vue";
 
 import { createSpacePlacement } from "../canvas/navigation-requests";
-import { createSpaceActions } from "./actions/create-space-actions";
+import { useSpaceActions } from "./actions/use-space-actions";
 import { createSpaceState, spaceSessionBindings } from "./session-state";
 
 export const useSpaceStore = defineStore("spaces", () => {
@@ -29,7 +29,7 @@ export const useSpaceStore = defineStore("spaces", () => {
   return {
     ...spaceSessionBindings(state),
     ...placement,
-    ...createSpaceActions(state, placement),
+    ...useSpaceActions(state, placement),
     markCanvasOverviewDirty: () => {
       state.thumbnailDirty.value = true;
     },

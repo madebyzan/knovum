@@ -1,9 +1,10 @@
 #![allow(dead_code)] // These structs are the source of generated JSON Schemas.
 
+use std::sync::OnceLock;
+
 use schemars::{schema_for, JsonSchema};
 use serde::Deserialize;
 use serde_json::Value;
-use std::sync::OnceLock;
 
 pub(crate) mod media;
 

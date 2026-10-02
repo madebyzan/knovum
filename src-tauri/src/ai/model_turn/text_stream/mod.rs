@@ -2,10 +2,7 @@ use futures::{Stream, StreamExt};
 use genai::{adapter::AdapterKind, chat::ChatStreamEvent, Client};
 use tokio_util::sync::CancellationToken;
 
-use super::{
-    stream::{provider_error, service_target},
-    to_genai_options, to_genai_request,
-};
+use super::{stream::provider_error, to_genai_options, to_genai_request, wire::service_target};
 use crate::ai::{
     contracts::{ModelTurnRequest, StreamFrame, StreamFrameStream, TokenUsage},
     transport::SecurityContext,

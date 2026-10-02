@@ -19,12 +19,12 @@ pub async fn validate_assistant_citations(
     space_id: &str,
     citations: &Value,
 ) -> Result<(), String> {
-    let refs = shape::citation_shapes(citations, true)?;
+    let refs = shape::citation_shapes(citations)?;
     validate_live_refs(tx, space_id, refs).await
 }
 
 pub fn validate_citation_snapshots(citations: &Value) -> Result<(), String> {
-    shape::citation_shapes(citations, true).map(|_| ())
+    shape::citation_shapes(citations).map(|_| ())
 }
 
 async fn validate_live_refs(

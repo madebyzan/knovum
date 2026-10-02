@@ -2,13 +2,13 @@ import { useTimeoutFn } from "@vueuse/core";
 import { storeToRefs } from "pinia";
 import { computed, ref } from "vue";
 
-import { useCanvasEditorSession } from "../canvas/editor-session";
+import { getCanvasEditorSession } from "../canvas/editor-session";
 import { useSpaceStore } from "../session/space-store";
 import { createSceneNavigationActions, type SceneNavigationContext } from "./scene-navigation-actions";
 
 export function useSceneNavigation() {
   const store = useSpaceStore();
-  const editorSession = useCanvasEditorSession();
+  const editorSession = getCanvasEditorSession();
   const { scenes, activeSpace } = storeToRefs(store);
   const recentSceneId = ref<string>();
   const { start: triggerRecentTimer, stop: stopRecentTimer } = useTimeoutFn(

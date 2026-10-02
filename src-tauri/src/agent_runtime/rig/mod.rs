@@ -27,14 +27,22 @@ pub fn start(
     catalog_digest: String,
 ) -> Result<ControlCheckpoint, String> {
     let run = AgentRun::new(conversion::prompt(prompt)?).max_turns(usize::from(max_turns));
-    checkpoint(
-        run,
+    Ok(ControlCheckpoint {
+        schema_version: 1,
+        runtime: RUNTIME.into(),
+        runtime_version: RUNTIME_VERSION.into(),
         run_id,
         segment_id,
+        current_turn_id: None,
+        control_generation: 0,
         catalog_digest,
-        max_turns,
+        transcript_cursor: 0,
+        model_turn_count: 0,
+        tool_call_count: 0,
+        max_model_turns: max_turns,
         max_tool_calls,
-    )
+        state: serde_json::to_value(run).map_err(|error| error.to_string())?,
+    })
 }
 
 pub fn next(checkpoint: &mut ControlCheckpoint) -> Result<ControlDirective, String> {
@@ -149,32 +157,6 @@ pub fn requires_vision(checkpoint: &ControlCheckpoint) -> Result<bool, String> {
         }
         _ => false,
     }))
-}
-
-fn checkpoint(
-    run: AgentRun,
-    run_id: String,
-    segment_id: String,
-    catalog_digest: String,
-    max_model_turns: u16,
-    max_tool_calls: u16,
-) -> Result<ControlCheckpoint, String> {
-    Ok(ControlCheckpoint {
-        schema_version: 1,
-        runtime: RUNTIME.into(),
-        runtime_version: RUNTIME_VERSION.into(),
-        run_id,
-        segment_id,
-        current_turn_id: None,
-        control_generation: 0,
-        catalog_digest,
-        transcript_cursor: 0,
-        model_turn_count: 0,
-        tool_call_count: 0,
-        max_model_turns,
-        max_tool_calls,
-        state: serde_json::to_value(run).map_err(|error| error.to_string())?,
-    })
 }
 
 fn restore(checkpoint: &ControlCheckpoint) -> Result<AgentRun, String> {

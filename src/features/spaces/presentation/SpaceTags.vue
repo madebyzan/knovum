@@ -10,7 +10,7 @@ import { getErrorMessage } from "../../../foundation/errors/error-format";
 import UiBadge from "../../../shared/ui/UiBadge.vue";
 import UiIconButton from "../../../shared/ui/UiIconButton.vue";
 import UiInput from "../../../shared/ui/UiInput.vue";
-import { useCanvasEditorSession, useCanvasSelectionProjection } from "../canvas/editor-session";
+import { getCanvasEditorSession, useCanvasSelectionProjection } from "../canvas/editor-session";
 import { useNodeOperationGate } from "../canvas/node-operation-gate";
 import { createTagChanges } from "../model/nodes/tag-changes";
 import { createStructureIndex } from "../model/structure/structure-index";
@@ -22,7 +22,7 @@ import { selectedTagCounts, spaceTagCounts, suggestTags } from "./tag-projection
 withDefaults(defineProps<{ mode?: "both" | "browse" | "selection" }>(), { mode: "both" });
 const store = useSpaceStore();
 const { nodes } = storeToRefs(store);
-const editorSession = useCanvasEditorSession();
+const editorSession = getCanvasEditorSession();
 const nodeOperations = useNodeOperationGate();
 const { selectedNodes } = useCanvasSelectionProjection(nodes);
 const { t } = useI18n();

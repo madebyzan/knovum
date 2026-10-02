@@ -7,7 +7,7 @@ import type { CanvasSceneInput } from "../../canvas/contracts/canvas-surface";
 import {
   currentCanvasEditor,
   updateCanvasDirectManipulationProjection,
-  useCanvasEditorSession,
+  getCanvasEditorSession,
 } from "../../canvas/editor-session";
 import CanvasSurfaceHost from "../../canvas/host/CanvasSurfaceHost.vue";
 import { useNodeOperationGate } from "../../canvas/node-operation-gate";
@@ -18,11 +18,11 @@ import { useSpaceStore } from "../../session/space-store";
 import { createCanvasContentLayoutCoordinator } from "./canvas-content-layout-coordinator";
 import { createCanvasNodeContentPersistence } from "./canvas-node-content-persistence";
 import SpaceCanvasNodeContent from "./nodes/SpaceCanvasNodeContent.vue";
+import { createSpaceCanvasEvents } from "./space-canvas-events";
 import SpaceCanvasProductLayer from "./SpaceCanvasProductLayer.vue";
 import { useCanvasContentLayoutSession } from "./use-canvas-content-layout-session";
 import { useCanvasNavigationRequests } from "./use-canvas-navigation-requests";
 import { useCanvasTextCreation } from "./use-canvas-text-creation";
-import { createSpaceCanvasEvents } from "./use-space-canvas-events";
 import { useSpaceCanvasImports } from "./use-space-canvas-imports";
 import { useSpaceCanvasLifecycle } from "./use-space-canvas-lifecycle";
 import { useVisibleCanvasContent } from "./use-visible-canvas-content";
@@ -30,7 +30,7 @@ import { useVisibleCanvasContent } from "./use-visible-canvas-content";
 const store = useSpaceStore();
 const tools = useCanvasToolStore();
 const createTextNode = useCanvasTextCreation();
-const editorSession = useCanvasEditorSession();
+const editorSession = getCanvasEditorSession();
 const operations = useNodeOperationGate();
 const canvasGesturesEnabled = computed(() => operations.allowsGestureCommit());
 const dock = useContextDock();
@@ -103,6 +103,7 @@ const canvasEvents = createSpaceCanvasEvents({
   contentLayout,
   createTextNode,
   imports,
+  operations,
   reportError: lifecycle.reportError,
   selection,
   store,

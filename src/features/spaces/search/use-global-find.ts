@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/vue-query";
 import { refDebounced } from "@vueuse/core";
 import { computed, shallowRef, watch, type Ref } from "vue";
 
-import { useCanvasEditorSession } from "../canvas/editor-session";
+import { getCanvasEditorSession } from "../canvas/editor-session";
 import { revealContentNode, revealStructureNode } from "../canvas/structure-navigation";
 import { useContextDock } from "../canvas/use-context-dock";
 import { useSpaceStore } from "../session/space-store";
@@ -11,7 +11,7 @@ import type { GlobalSearchMatch } from "./search-match";
 
 export function useGlobalFind(open: Ref<boolean>) {
   const store = useSpaceStore();
-  const editorSession = useCanvasEditorSession();
+  const editorSession = getCanvasEditorSession();
   const dock = useContextDock();
   const query = shallowRef("");
   const debouncedQuery = refDebounced(query, 240);

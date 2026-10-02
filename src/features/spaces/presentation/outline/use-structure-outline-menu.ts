@@ -1,7 +1,7 @@
 import type { ComputedRef } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { useCanvasEditorSession } from "../../canvas/editor-session";
+import { getCanvasEditorSession } from "../../canvas/editor-session";
 import { useNodeOperationGate } from "../../canvas/node-operation-gate";
 import type { SpaceEditSnapshot } from "../../model/structure/schema/edit-snapshot";
 import { ancestorsOf, type StructureIndex } from "../../model/structure/structure-index";
@@ -20,7 +20,7 @@ interface StructureOutlineMenuOptions {
 
 export function useStructureOutlineMenu(options: StructureOutlineMenuOptions) {
   const { t } = useI18n();
-  const editor = useCanvasEditorSession();
+  const editor = getCanvasEditorSession();
   const operations = useNodeOperationGate();
 
   async function show(id: string) {

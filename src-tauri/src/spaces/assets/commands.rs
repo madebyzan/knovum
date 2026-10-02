@@ -1,6 +1,6 @@
-use crate::app_error::AppError;
 use std::{collections::BTreeSet, path::PathBuf};
 
+use crate::app_error::AppError;
 use crate::spaces::assets::{
     access, enrichment, external_open, files,
     image::{document, preview},

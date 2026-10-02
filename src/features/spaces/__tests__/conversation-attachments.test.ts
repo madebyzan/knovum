@@ -3,7 +3,7 @@ import { beforeEach, expect, it, vi } from "vitest";
 const uploads = vi.hoisted(() => vi.fn<() => Promise<{ path: string; sourceRevision: string }[]>>());
 vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
 vi.mock("../conversation/conversation-uploads", () => ({ chooseAssistantUploads: uploads }));
-vi.mock("../canvas/editor-session", () => ({ useCanvasEditorSession: () => ({}) }));
+vi.mock("../canvas/editor-session", () => ({ getCanvasEditorSession: () => ({}) }));
 vi.mock("../session/space-store", () => ({ useSpaceStore: () => ({}) }));
 import { normalizeError } from "../../../foundation/errors/app-error";
 import { useConversationAttachments } from "../conversation/use-conversation-attachments";

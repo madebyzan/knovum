@@ -1,4 +1,3 @@
-use crate::app_error::AppError;
 pub(crate) mod action_execution;
 pub(crate) mod action_request;
 pub(crate) mod commands;
@@ -30,6 +29,7 @@ pub(crate) mod visualization;
 
 use tauri::AppHandle;
 
+use crate::app_error::AppError;
 pub(crate) use action_execution::execute as execute_action;
 pub use contracts::{CompletedDerivationOutput, DerivationRelation};
 

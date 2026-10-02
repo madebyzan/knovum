@@ -61,3 +61,29 @@ fn restores_custom_type_metadata_without_system_or_source_ownership() {
     assert_ne!(restored.object_types[0].id, "custom");
     assert_eq!(restored.object_types[0].name, "Example");
 }
+
+#[test]
+fn restores_markdown_image_tokens_to_imported_asset_paths() {
+    let mut data = json!({
+        "kind": "markdown",
+        "title": "Image",
+        "text": "![photo](</source/photo.png>)"
+    });
+    crate::spaces::knowledge::indexing::revision::apply(&mut data).unwrap();
+    data["text"] = json!("![photo](<knovum-package-asset:photo>)");
+    let mut value = json!({
+        "nodes": [{"data": data}],
+        "structureNodes": [], "layouts": [], "relationStyles": [], "scenes": [], "relations": []
+    });
+    let mut maps = IdMaps {
+        source_space: "source".into(),
+        target_space: "target".into(),
+        entities: HashMap::new(),
+        assets: HashMap::from([("photo".into(), "/imported/photo.png".into())]),
+    };
+    content::remap(&mut value, &mut maps, &[]).unwrap();
+    assert_eq!(
+        value["nodes"][0]["data"]["text"],
+        "![photo](</imported/photo.png>)"
+    );
+}

@@ -1,9 +1,11 @@
-use super::canvas::SpaceActionSource;
-use crate::spaces::{db, knowledge::indexing::revision};
+use std::collections::HashSet;
+
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 use sqlx::{Sqlite, Transaction};
-use std::collections::HashSet;
+
+use super::canvas::SpaceActionSource;
+use crate::spaces::{db, knowledge::indexing::revision};
 
 pub(super) async fn pin(
     tx: &mut Transaction<'_, Sqlite>,

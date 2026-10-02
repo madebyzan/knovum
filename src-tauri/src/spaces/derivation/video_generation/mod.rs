@@ -14,7 +14,7 @@ use tauri::{ipc::Channel, AppHandle};
 
 use crate::ai::{
     capabilities::video::{self, VideoGenerationRequest},
-    contracts::ExecutionCapability,
+    contracts::{ExecutionCapability, GeneratedVideo},
     settings,
     tasks::{ExecutionSource, TaskExecutionTarget, TaskTargetSelection},
 };
@@ -53,28 +53,18 @@ pub(super) async fn generate_for_action(
     request: GenerateVideoRequest,
     stages: Channel<String>,
 ) -> Result<VideoOutput, AppError> {
-    generate_inner(authority, app, request, stages).await
-}
-
-async fn generate_inner(
-    authority: super::action_execution::ExecutionAuthority,
-    app: AppHandle,
-    request: GenerateVideoRequest,
-    stages: Channel<String>,
-) -> Result<VideoOutput, AppError> {
     let (cancellation, _lease) = registry::acquire(&request.id)?;
     authority
         .require_active(crate::spaces::db::pool(&app).await?)
         .await?;
-    let output = match settings::resolve_task(
+    match settings::resolve_task(
         &app,
         request.target.clone(),
         ExecutionCapability::VideoGeneration,
     ) {
         Ok(target) => execute(&app, &request, &target, stages, &cancellation, &authority).await,
         Err(error) => Err(error),
-    };
-    output
+    }
 }
 
 async fn execute(
@@ -159,8 +149,8 @@ pub(super) struct VideoResult {
     execution_source: ExecutionSource,
     operation_id: Option<String>,
 }
-impl From<video::GeneratedVideo> for VideoResult {
-    fn from(value: video::GeneratedVideo) -> Self {
+impl From<GeneratedVideo> for VideoResult {
+    fn from(value: GeneratedVideo) -> Self {
         Self {
             bytes: value.bytes,
             execution_source: ExecutionSource::Model {

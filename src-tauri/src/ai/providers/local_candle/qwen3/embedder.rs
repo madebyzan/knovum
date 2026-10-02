@@ -18,13 +18,17 @@ const MAX_PADDED_TOKENS: usize = 2048;
 const MAX_ATTENTION_CELLS: usize = 2048 * 2048;
 
 impl TextEmbedding {
-    pub fn new(model: Model, mut tokenizer: Tokenizer) -> Self {
+    pub fn new(model: Model, mut tokenizer: Tokenizer) -> std::result::Result<Self, String> {
         tokenizer.with_padding(None);
-        let _ = tokenizer.with_truncation(Some(TruncationParams {
-            max_length: 2048,
-            ..Default::default()
-        }));
-        Self { model, tokenizer }
+        tokenizer
+            .with_truncation(Some(TruncationParams {
+                max_length: 2048,
+                ..Default::default()
+            }))
+            .map_err(|error| {
+                format!("Failed to configure embedding tokenizer truncation: {error}")
+            })?;
+        Ok(Self { model, tokenizer })
     }
 
     pub fn embed(&self, texts: &[String]) -> Result<EmbeddingOutput> {

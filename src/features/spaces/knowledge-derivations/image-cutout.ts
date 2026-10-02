@@ -4,7 +4,7 @@ import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { i18n } from "../../../foundation/i18n/i18n";
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
-import { useCanvasEditorSession } from "../canvas/editor-session";
+import { getCanvasEditorSession } from "../canvas/editor-session";
 import { spaceNodeDimensions } from "../canvas/node-size";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../model/nodes/node-payload";
@@ -120,7 +120,7 @@ async function createPendingNode(store: SpaceStore, source: SpaceCanvasNode) {
     processingState: "processing",
   };
   const sourcePosition = requiredNodePosition(
-    useCanvasEditorSession().selection.value.nodePlacements,
+    getCanvasEditorSession().selection.value.nodePlacements,
     source.id,
   );
   const [node] = await store.addContent(

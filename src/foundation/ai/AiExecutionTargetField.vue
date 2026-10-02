@@ -25,7 +25,7 @@ const { t } = useI18n();
 const router = useRouter();
 const store = useAiSettingsStore();
 const catalog = useExecutionCatalogQuery({ detectInstallations: false });
-const { settings, ready: settingsReady, loadError: settingsError } = storeToRefs(store);
+const { settings, ready, loadError } = storeToRefs(store);
 const options = computed(() =>
   availableExecutionTargets(settings.value, props.purpose).map((option) =>
     Object.assign({}, option, {
@@ -39,8 +39,6 @@ const options = computed(() =>
     }),
   ),
 );
-const ready = computed(() => settingsReady.value);
-const loadError = computed(() => settingsError.value);
 const value = computed(() => (target.value ? encodeExecutionTarget(target.value) : ""));
 
 function isSelectableExecutionTarget(encodedTarget: string): boolean {

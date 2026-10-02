@@ -37,7 +37,7 @@ impl PreparationRequest {
 
     pub(crate) fn update(&self, progress: ResourcePreparationProgress) {
         match self.active.snapshot.lock() {
-            Ok(mut snapshot) => progress_snapshot(&mut snapshot, progress),
+            Ok(mut snapshot) => snapshot.progress = progress,
             Err(_) => log::error!("Resource preparation snapshot lock poisoned"),
         }
     }
@@ -137,13 +137,6 @@ pub(crate) fn list() -> Result<Vec<ResourcePreparationSnapshot>, String> {
         .into_iter()
         .chain(registry.completed.iter().cloned())
         .collect())
-}
-
-fn progress_snapshot(
-    snapshot: &mut ResourcePreparationSnapshot,
-    progress: ResourcePreparationProgress,
-) {
-    snapshot.progress = progress;
 }
 
 fn finish_request(

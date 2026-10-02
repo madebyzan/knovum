@@ -60,16 +60,10 @@ pub async fn start(
 }
 
 fn validate_request(request: &GenerateVideoRequest) -> Result<(), String> {
-    let primary_count = request
-        .inputs
-        .iter()
-        .filter(|input| input.role == "primary")
-        .count();
     if !(5..=15).contains(&request.duration_seconds)
         || request.prompt.trim().is_empty()
         || request.prompt.encode_utf16().count() > 16_000
         || request.inputs.is_empty()
-        || primary_count != 1
         || request
             .inputs
             .first()
@@ -239,8 +233,7 @@ async fn persist_start(
 
 pub(super) fn input_basis(role: &str) -> Result<inputs::RevisionBasis, String> {
     match role {
-        "primary" => Ok(inputs::RevisionBasis::Knowledge),
-        "source" => Ok(inputs::RevisionBasis::Knowledge),
+        "primary" | "source" => Ok(inputs::RevisionBasis::Knowledge),
         _ => Err("Video generation input role is invalid".into()),
     }
 }

@@ -1,7 +1,4 @@
 <script setup lang="ts">
-import type { GenerationActionOption } from "./generation-action-option";
-
-const props = defineProps<{ loadGenerationActions: () => Promise<GenerationActionOption[]> }>();
 import { computed, nextTick, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter, type LocationQueryRaw } from "vue-router";
@@ -18,9 +15,11 @@ import DesktopAgentsSettingsAction from "./components/panes/DesktopAgentsSetting
 import DesktopAgentsSettingsPane from "./components/panes/DesktopAgentsSettingsPane.vue";
 import UsageSettingsPane from "./components/panes/UsageSettingsPane.vue";
 import SettingsSidebar from "./components/SettingsSidebar.vue";
+import type { GenerationActionOption } from "./generation-action-option";
 import { resolveSettingsPaneId, type SettingsPaneId } from "./settings-pane";
 import { settingsDefinition } from "./settings-registry";
 
+const props = defineProps<{ loadGenerationActions: () => Promise<GenerationActionOption[]> }>();
 const { t } = useI18n();
 const router = useRouter();
 const route = useRoute();

@@ -9,11 +9,11 @@ import UiDropdownMenuItem from "../../../../shared/ui/UiDropdownMenuItem.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiKbd from "../../../../shared/ui/UiKbd.vue";
 import UiSeparator from "../../../../shared/ui/UiSeparator.vue";
-import { useCanvasEditorSession } from "../../canvas/editor-session";
+import { getCanvasEditorSession } from "../../canvas/editor-session";
 import { SPACE_COMMAND_SHORTCUTS } from "../../commands/space-command-shortcuts";
 
 const { t } = useI18n();
-const session = useCanvasEditorSession();
+const session = getCanvasEditorSession();
 const zoom = computed(() => Math.round((session.viewport.value?.zoom ?? 1) * 100));
 const hasSelection = computed(() => Boolean(session.selection.value.nodeIds.length));
 const zoomPresets = [25, 50, 75, 100, 125, 200] as const;

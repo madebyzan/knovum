@@ -51,7 +51,7 @@ fn clipboard_contains_source(source: &Path, clipboard_paths: &[String]) -> bool 
 #[cfg(test)]
 mod tests;
 
-pub(super) fn prepare_owned_asset(
+pub(crate) fn prepare_owned_asset(
     app: &tauri::AppHandle,
     source: PathBuf,
     cancellation: CancellationToken,

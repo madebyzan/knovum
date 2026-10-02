@@ -1,8 +1,8 @@
-use crate::app_error::AppError;
 use serde::{Serialize, Serializer};
 use serde_json::Value;
 
 use crate::ai::contracts::{ExecutionCapability, RoutingPurpose};
+use crate::app_error::AppError;
 
 pub(crate) mod canvas;
 mod canvas_inputs;

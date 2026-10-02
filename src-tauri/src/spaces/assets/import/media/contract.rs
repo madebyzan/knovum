@@ -1,4 +1,4 @@
-pub use crate::media::acquisition::contracts::MediaKind;
+use crate::media::acquisition::contracts::MediaKind;
 use serde::Serialize;
 
 #[derive(Debug, Serialize)]

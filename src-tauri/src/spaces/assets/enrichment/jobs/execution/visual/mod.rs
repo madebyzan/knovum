@@ -1,8 +1,8 @@
-use crate::app_error::AppError;
 use serde::Deserialize;
 use serde_json::Value;
 use tauri::AppHandle;
 
+use crate::app_error::AppError;
 use crate::{
     ai::tasks::{
         completion::{self, TaskInput},

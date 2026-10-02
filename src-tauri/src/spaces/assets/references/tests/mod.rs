@@ -28,10 +28,32 @@ fn rewrite_updates_tiptap_canonical_and_display_references() {
             {"type": "image", "attrs": {"assetPath": "/data/editor.png", "src": "display-only"}}
         ]}
     });
-    rewrite_node_asset_paths(&mut value, |_| "knovum-package-asset:token".to_owned());
+    rewrite_node_asset_paths(&mut value, |_| Ok("knovum-package-asset:token".to_owned())).unwrap();
     let attrs = &value["tiptapContent"]["content"][0]["attrs"];
     assert_eq!(attrs["assetPath"], "knovum-package-asset:token");
     assert_eq!(attrs["src"], "knovum-package-asset:token");
+}
+
+#[test]
+fn rewrite_restores_tiptap_package_tokens() {
+    let mut value = serde_json::json!({
+        "tiptapContent": {"type": "image", "attrs": {
+            "assetPath": "knovum-package-asset:photo", "src": "knovum-package-asset:photo"
+        }}
+    });
+    rewrite_node_asset_paths(&mut value, |path| {
+        assert_eq!(path, "knovum-package-asset:photo");
+        Ok("/imported/photo.png".into())
+    })
+    .unwrap();
+    assert_eq!(
+        value["tiptapContent"]["attrs"]["assetPath"],
+        "/imported/photo.png"
+    );
+    assert_eq!(
+        value["tiptapContent"]["attrs"]["src"],
+        "/imported/photo.png"
+    );
 }
 
 #[test]
@@ -55,11 +77,50 @@ fn rewrite_updates_markdown_image_references() {
         "title": "MD",
         "text": "Check ![diagram](/data/spaces/assets/diag.png) here."
     });
-    rewrite_node_asset_paths(&mut value, |_| "knovum-package-asset:token".to_owned());
+    rewrite_node_asset_paths(&mut value, |_| Ok("knovum-package-asset:token".to_owned())).unwrap();
     assert_eq!(
         value["text"],
-        "Check ![diagram](knovum-package-asset:token) here."
+        "Check ![diagram](<knovum-package-asset:token>) here."
     );
+}
+
+#[test]
+fn markdown_rewrite_uses_parsed_images_and_preserves_titles() {
+    let mut value = serde_json::json!({
+        "text": "`![code](/ignore.png)` ![nested [alt]](/chart(a).png \"Chart\") ![ref][chart]\n\n[chart]: /ref.png \"Reference\""
+    });
+    rewrite_node_asset_paths(&mut value, |path| {
+        Ok(format!("knovum-package-asset:{path}"))
+    })
+    .unwrap();
+    let text = value["text"].as_str().unwrap();
+    assert!(text.contains("`![code](/ignore.png)`"));
+    assert!(text.contains("![nested [alt]](<knovum-package-asset:/chart(a).png> \"Chart\")"));
+    assert!(text.contains("![ref](<knovum-package-asset:/ref.png> \"Reference\")"));
+    assert!(text.contains("[chart]: /ref.png \"Reference\""));
+}
+
+#[test]
+fn markdown_asset_path_keeps_spaces_from_angle_destinations() {
+    let value = serde_json::json!({"text": "![image](</data/my image.png>)"});
+    let mut paths = BTreeSet::new();
+    collect_node_asset_paths(&value, &mut paths);
+    assert!(paths.contains("/data/my image.png"));
+}
+
+#[test]
+fn remote_markdown_images_are_not_packaged() {
+    let mut value = serde_json::json!({
+        "text": "![remote](https://example.com/photo.png) ![local](/data/photo.png)"
+    });
+    let mut paths = BTreeSet::new();
+    collect_node_asset_paths(&value, &mut paths);
+    assert_eq!(paths, BTreeSet::from(["/data/photo.png".to_owned()]));
+    rewrite_node_asset_paths(&mut value, |_| Ok("knovum-package-asset:photo".into())).unwrap();
+    assert!(value["text"]
+        .as_str()
+        .unwrap()
+        .contains("![remote](https://example.com/photo.png)"));
 }
 
 #[test]

@@ -9,10 +9,12 @@ mod spreadsheet_visuals;
 mod tables;
 mod visuals;
 
-use super::DocumentSegment;
-use office_oxide::{Document, DocumentFormat};
 use std::path::Path;
+
+use office_oxide::{Document, DocumentFormat};
 use tokio_util::sync::CancellationToken;
+
+use super::DocumentSegment;
 
 pub(crate) struct OfficeDocument {
     pub(crate) preview_text: Option<String>,

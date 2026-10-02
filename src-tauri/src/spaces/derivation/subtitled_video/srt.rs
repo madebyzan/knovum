@@ -1,23 +1,19 @@
-use serde_json::Value;
+use crate::media::transcript::SubtitleCue;
 
-pub(crate) fn from_cues(value: &Value, duration_ms: u64) -> Result<String, String> {
-    let cues = value
-        .as_array()
-        .ok_or("Precise subtitle timing is unavailable; analyze the video again")?;
+pub(crate) fn from_cues(cues: &[SubtitleCue], duration_ms: u64) -> Result<String, String> {
     let mut srt = String::new();
     let mut previous_start = 0;
     for (index, cue) in cues.iter().enumerate() {
-        let start = time(cue, "startMs")?;
-        let end = time(cue, "endMs")?;
+        let start = cue.start_ms;
+        let end = cue.end_ms;
         if end <= start || end > duration_ms || start < previous_start {
             return Err("Subtitle cue timing is invalid".into());
         }
         previous_start = start;
-        let text = cue
-            .get("text")
-            .and_then(Value::as_str)
-            .filter(|text| !text.trim().is_empty())
-            .ok_or("Subtitle cue text is unavailable")?;
+        let text = cue.text.as_str();
+        if text.trim().is_empty() {
+            return Err("Subtitle cue text is unavailable".into());
+        }
         srt.push_str(&format!(
             "{}\n{} --> {}\n{}\n\n",
             index + 1,
@@ -31,13 +27,6 @@ pub(crate) fn from_cues(value: &Value, duration_ms: u64) -> Result<String, Strin
     } else {
         Ok(srt)
     }
-}
-
-fn time(value: &Value, key: &str) -> Result<u64, String> {
-    value
-        .get(key)
-        .and_then(Value::as_u64)
-        .ok_or_else(|| format!("Subtitle cue {key} is invalid"))
 }
 
 fn escape(text: &str) -> String {

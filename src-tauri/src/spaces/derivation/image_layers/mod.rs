@@ -1,4 +1,3 @@
-use crate::app_error::AppError;
 mod assets;
 mod contracts;
 mod fal;
@@ -10,6 +9,7 @@ mod source;
 use tauri::{ipc::Channel, AppHandle};
 
 use super::CompletedDerivationOutput;
+use crate::app_error::AppError;
 pub use contracts::{GenerateImageLayersRequest, ImageLayerAvailability};
 
 pub(crate) async fn availability() -> ImageLayerAvailability {
