@@ -1,0 +1,42 @@
+name: Updater review evidence
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  evidence:
+    if: github.head_ref == 'feat/signed-application-updates'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Archive reviewed source
+        run: |
+          mkdir -p "$RUNNER_TEMP/updater-review"
+          git rev-parse HEAD > "$RUNNER_TEMP/updater-review/commit.txt"
+          git archive --format=tar.gz HEAD > "$RUNNER_TEMP/updater-review/source.tar.gz"
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+      - name: Install repository tooling
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.17.0 --activate
+          pnpm install --frozen-lockfile
+      - name: Record actual formatter output
+        run: |
+          pnpm exec oxfmt .
+          cargo fmt --manifest-path src-tauri/Cargo.toml
+          git diff --binary > "$RUNNER_TEMP/updater-review/format.patch"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: updater-review-evidence
+          path: ${{ runner.temp }}/updater-review
+          retention-days: 2
+          if-no-files-found: error
