@@ -5,10 +5,12 @@ on:
     paths:
       - "src/**"
       - "src-tauri/**"
+      - "tools/**"
       - "package.json"
       - "pnpm-lock.yaml"
       - "vite.config.ts"
       - "tsconfig*.json"
+      - ".github/actions/setup-protoc/**"
       - ".github/workflows/platform-smoke.yml"
   workflow_dispatch:
 
@@ -33,6 +35,9 @@ jobs:
         with:
           node-version: "22"
           check-latest: false
+      - uses: ./.github/actions/setup-protoc
+      - name: Test desktop launcher
+        run: node --test tools/__tests__/run-tauri.test.mjs
       - name: Enable pnpm
         shell: bash
         run: |

@@ -1,5 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
+import { createRequire } from "node:module";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -9,8 +10,8 @@ const environment = { ...process.env };
 
 if (args[0] === "dev") configureDevelopmentRuntime(environment);
 
-const pnpm = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
-execFileSync(pnpm, ["exec", "tauri", ...args], {
+const cli = createRequire(import.meta.url).resolve("@tauri-apps/cli/tauri.js");
+execFileSync(process.execPath, [cli, ...args], {
   cwd: repository,
   env: environment,
   stdio: "inherit",
