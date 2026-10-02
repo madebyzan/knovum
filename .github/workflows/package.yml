@@ -34,6 +34,7 @@ jobs:
         with:
           node-version: "22"
           check-latest: false
+      - uses: ./.github/actions/setup-protoc
       - name: Enable pnpm
         shell: bash
         run: |
