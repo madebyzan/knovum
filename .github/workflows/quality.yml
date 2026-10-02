@@ -60,7 +60,8 @@ jobs:
       - name: Install Tauri Linux prerequisites
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev fontconfig fonts-noto-cjk
+          test "$(fc-match -f '%{family}' 'Noto Sans CJK SC')" = "Noto Sans CJK SC"
       - name: Require committed lockfile
         run: test -f src-tauri/Cargo.lock
       - name: Verify capability permission policy

@@ -5,3 +5,7 @@ pub(crate) const SYSTEM_SANS_FAMILY: &str = "PingFang SC";
 
 #[cfg(target_os = "windows")]
 pub(crate) const SYSTEM_SANS_FAMILY: &str = "Microsoft YaHei UI";
+
+// Linux verification installs this family through the fonts-noto-cjk package.
+#[cfg(target_os = "linux")]
+pub(crate) const SYSTEM_SANS_FAMILY: &str = "Noto Sans CJK SC";
