@@ -2,8 +2,8 @@ import { createPinia, setActivePinia } from "pinia";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { UpdateState } from "../../../shared/contracts/generated/UpdateState";
-import { useTaskStore } from "../../tasks/task-store";
 import { isApplicationTransitioning, runApplicationTransition } from "../../lifecycle/application-transition";
+import { useTaskStore } from "../../tasks/task-store";
 import { useUpdateStore } from "../update-store";
 
 const mocks = vi.hoisted(() => ({

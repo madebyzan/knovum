@@ -10,9 +10,7 @@ export function runAppCommand(command: AppCommand): void {
   if (isApplicationTransitioning()) return;
   if (command.availability && !canRunAction(command.availability())) return;
   void Promise.resolve()
-    .then(() => {
-      if (!isApplicationTransitioning()) return command.run();
-    })
+    .then(() => (isApplicationTransitioning() ? undefined : command.run()))
     .catch((error) => {
       void logError(`Command ${command.id} failed: ${formatErrorDiagnostic(error)}`);
       toast.error(getErrorMessage(error));

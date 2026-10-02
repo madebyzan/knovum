@@ -34,7 +34,11 @@ fn cancellation_winning_the_lock_prevents_ready_and_discards_verified_bytes() {
     let session = service.lock().unwrap();
     assert!(session.bytes.is_none());
     assert!(session.cancellation.is_none());
-    assert!(session.snapshot.state.require_version("1.2.3", true).is_err());
+    assert!(session
+        .snapshot
+        .state
+        .require_version("1.2.3", true)
+        .is_err());
 }
 
 #[test]
