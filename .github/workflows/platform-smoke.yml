@@ -36,8 +36,8 @@ jobs:
           node-version: "22"
           check-latest: false
       - uses: ./.github/actions/setup-protoc
-      - name: Test desktop launcher
-        run: node --test tools/__tests__/run-tauri.test.mjs
+      - name: Test desktop launcher and configuration
+        run: node --test tools/__tests__/run-tauri.test.mjs tools/__tests__/tauri-config.test.mjs
       - name: Enable pnpm
         shell: bash
         run: |
