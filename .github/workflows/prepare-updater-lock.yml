@@ -1,0 +1,93 @@
+name: Prepare updater dependency lock
+
+on:
+  push:
+    branches: [feat/signed-application-updates]
+    paths: [.github/workflows/prepare-updater-lock.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    if: github.repository == 'madebyzan/knovum' && github.event_name == 'push' && github.ref == 'refs/heads/feat/signed-application-updates'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+      - name: Prepare reviewed upstream patch without moving any branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git hash-object src-tauri/Cargo.toml)" = "054d7d2613b178ac6d3c00bd0b40cfe4a17a14b3"
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('src-tauri/Cargo.toml')
+          text = p.read_text()
+          assert '[patch.crates-io]' not in text
+          text = text.replace('name = "knovum"\n', 'name = "knovum"\npublish = false\n', 1)
+          text += '\n# Upstream security fix; remove after a compatible crates.io release includes it.\n'
+          text += '# https://github.com/typst/citationberg/pull/44\n[patch.crates-io]\n'
+          text += 'citationberg = { git = "https://github.com/typst/citationberg", rev = "06a591e2f237d25e1dfdedac3f3d1494c496c52d" }\n'
+          p.write_text(text)
+          PY
+          cargo update --manifest-path src-tauri/Cargo.toml -p citationberg
+          cargo update --manifest-path src-tauri/Cargo.toml -p h2 --precise 0.4.16
+          cargo update --manifest-path src-tauri/Cargo.toml -p rustls --precise 0.23.45
+          cargo update --manifest-path src-tauri/Cargo.toml -p chacha20
+          cargo metadata --locked --manifest-path src-tauri/Cargo.toml --format-version 1 > "$RUNNER_TEMP/metadata.json"
+          python3 - <<'PY'
+          import json, os, tomllib
+          from pathlib import Path
+          packages = tomllib.loads(Path('src-tauri/Cargo.lock').read_text())['package']
+          for name, minimum in [('h2', (0, 4, 16)), ('rustls', (0, 23, 45)), ('quick-xml', (0, 41, 0))]:
+              selected = [p for p in packages if p['name'] == name]
+              assert selected, name
+              for p in selected:
+                  assert tuple(map(int, p['version'].split('.'))) >= minimum, p
+                  print(name, p['version'], p['source'])
+          citation = [p for p in packages if p['name'] == 'citationberg']
+          assert len(citation) == 1
+          assert citation[0]['source'] == 'git+https://github.com/typst/citationberg?rev=06a591e2f237d25e1dfdedac3f3d1494c496c52d#06a591e2f237d25e1dfdedac3f3d1494c496c52d'
+          assert not any(p['name'] == 'chacha20' and p['version'] == '0.10.1' for p in packages)
+          metadata = json.loads(Path(os.environ['RUNNER_TEMP'], 'metadata.json').read_text())
+          upstream = next(p['manifest_path'] for p in metadata['packages'] if p['name'] == 'citationberg')
+          Path(os.environ['RUNNER_TEMP'], 'citationberg-manifest').write_text(upstream)
+          PY
+          git diff --stat
+          git diff -- src-tauri/Cargo.toml src-tauri/Cargo.lock
+      - name: Test the pinned upstream XML integration
+        shell: bash
+        run: cargo test --manifest-path "$(cat "$RUNNER_TEMP/citationberg-manifest")" --all-features
+      - name: Format changed tooling with the repository formatter
+        shell: bash
+        run: |
+          set -euo pipefail
+          corepack enable
+          corepack prepare pnpm@11.17.0 --activate
+          pnpm install --frozen-lockfile
+          pnpm exec oxfmt tools/__tests__/tauri-config.test.mjs .github/workflows/quality.yml .github/workflows/platform-smoke.yml
+          node --test tools/__tests__/tauri-config.test.mjs
+      - name: Store candidate Git blobs only for review
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64, json, os, subprocess
+          from pathlib import Path
+          paths = ['src-tauri/Cargo.toml', 'src-tauri/Cargo.lock', 'tools/__tests__/tauri-config.test.mjs', '.github/workflows/quality.yml', '.github/workflows/platform-smoke.yml']
+          for name in paths:
+              body = {'encoding': 'base64', 'content': base64.b64encode(Path(name).read_bytes()).decode()}
+              result = subprocess.run(['gh', 'api', '--method', 'POST', 'repos/madebyzan/knovum/git/blobs', '--input', '-'], input=json.dumps(body), text=True, capture_output=True, check=True)
+              sha = json.loads(result.stdout)['sha']
+              print(f'CANDIDATE_BLOB {name} {sha}', flush=True)
+          PY
