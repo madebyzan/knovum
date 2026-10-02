@@ -116,4 +116,4 @@ Those values are intentionally not filled with placeholders in source control. S
 
 ## Updater artifacts
 
-The official updater plugin is part of the bundled runtime. Normal QA packages remain updater-disabled unless `KNOVUM_UPDATER_ENDPOINT` and `KNOVUM_UPDATER_PUBKEY` are embedded at compile time. Production updater packages use `src-tauri/tauri.release.conf.json` to generate signed update artifacts; see `release.md` for channel, signing and publication requirements.
+Normal QA packages remain updater-disabled even when updater environment variables are inherited. `pnpm package:release` (or `package:release:macos` / `package:release:windows`) validates aligned versions, production signing and permanent HTTPS discovery, then embeds the public verification configuration before plugin initialization. It merges `src-tauri/tauri.release.conf.json` and builds with the Cargo lockfile. Signed updater artifacts are separate from human-facing DMG installers. The candidate workflow covers all four supported targets; promotion, native upgrade acceptance and GitHub/COS migration are documented in `release.md`.

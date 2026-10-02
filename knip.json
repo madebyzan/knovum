@@ -1,6 +1,12 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
-  "entry": ["tests/e2e/**/*.e2e.ts", "src/foundation/secrets/secret-store.ts", "src/**/*.css"],
+  "entry": [
+    "tests/e2e/**/*.e2e.ts",
+    "src/foundation/secrets/secret-store.ts",
+    "src/**/*.css",
+    "tools/__tests__/*.test.mjs",
+    "tools/__tests__/*.integration.mjs"
+  ],
   "project": [
     "src/**/*.{ts,tsx,vue}",
     "src/**/*.css",
@@ -12,5 +18,6 @@
   "cycles": {
     "dynamicImports": true
   },
+  "ignoreBinaries": ["minisign"],
   "ignoreDependencies": ["@wdio/local-runner"]
 }

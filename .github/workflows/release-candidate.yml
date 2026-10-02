@@ -1,0 +1,163 @@
+name: Signed release candidate
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-candidate-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    environment: release-signing
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-15
+            target: aarch64-apple-darwin
+            platform: darwin-aarch64
+            bundles: app,dmg
+          - os: macos-15-intel
+            target: x86_64-apple-darwin
+            platform: darwin-x86_64
+            bundles: app,dmg
+          - os: windows-2025
+            target: x86_64-pc-windows-msvc
+            platform: windows-x86_64
+            bundles: nsis
+          - os: windows-11-arm
+            target: aarch64-pc-windows-msvc
+            platform: windows-aarch64
+            bundles: nsis
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Require a release commit on main
+        shell: bash
+        run: git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+      - uses: ./.github/actions/setup-protoc
+      - name: Install locked dependencies
+        shell: bash
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.17.0 --activate
+          pnpm install --frozen-lockfile
+          rustup target add '${{ matrix.target }}'
+      - name: Validate tag and reviewed release notes
+        shell: bash
+        run: |
+          node --input-type=module -e 'import { readVersion } from "./tools/release-policy.mjs"; import { accessSync } from "node:fs"; const version = readVersion(process.cwd()); if (process.env.GITHUB_REF_NAME !== `v${version}`) throw new Error("Tag and package version differ"); accessSync(`docs/release-notes/${version}.md`);'
+      - name: Provision controlled bundled runtime
+        env:
+          KNOVUM_BUNDLED_RUNTIME_MACOS_ARM64_URL: ${{ vars.KNOVUM_BUNDLED_RUNTIME_MACOS_ARM64_URL }}
+          KNOVUM_BUNDLED_RUNTIME_MACOS_ARM64_SHA256: ${{ vars.KNOVUM_BUNDLED_RUNTIME_MACOS_ARM64_SHA256 }}
+          KNOVUM_BUNDLED_RUNTIME_MACOS_X64_URL: ${{ vars.KNOVUM_BUNDLED_RUNTIME_MACOS_X64_URL }}
+          KNOVUM_BUNDLED_RUNTIME_MACOS_X64_SHA256: ${{ vars.KNOVUM_BUNDLED_RUNTIME_MACOS_X64_SHA256 }}
+          KNOVUM_BUNDLED_RUNTIME_WINDOWS_ARM64_URL: ${{ vars.KNOVUM_BUNDLED_RUNTIME_WINDOWS_ARM64_URL }}
+          KNOVUM_BUNDLED_RUNTIME_WINDOWS_ARM64_SHA256: ${{ vars.KNOVUM_BUNDLED_RUNTIME_WINDOWS_ARM64_SHA256 }}
+          KNOVUM_BUNDLED_RUNTIME_WINDOWS_X64_URL: ${{ vars.KNOVUM_BUNDLED_RUNTIME_WINDOWS_X64_URL }}
+          KNOVUM_BUNDLED_RUNTIME_WINDOWS_X64_SHA256: ${{ vars.KNOVUM_BUNDLED_RUNTIME_WINDOWS_X64_SHA256 }}
+          KNOVUM_BUNDLED_RUNTIME_AUTHORIZATION: ${{ secrets.KNOVUM_BUNDLED_RUNTIME_AUTHORIZATION }}
+        run: pnpm runtime:provision
+      - name: Audit production web dependencies
+        run: pnpm security:web
+      - name: Install cargo-deny
+        run: cargo install cargo-deny --locked
+      - name: Audit Rust dependencies
+        run: cargo deny --manifest-path src-tauri/Cargo.toml check advisories licenses
+      - name: Run quality gates
+        run: pnpm check
+      - name: Provisioned runtime smoke
+        env:
+          KNOVUM_BUNDLED_RUNTIME_SMOKE: "1"
+        run: cargo test --locked --manifest-path src-tauri/Cargo.toml --test local_resources_smoke
+      - name: Real background removal smoke
+        run: pnpm smoke:cutout
+      - name: Install Windows signing client
+        if: runner.os == 'Windows'
+        run: cargo install artifact-signing-cli --version 0.11.0 --locked
+      - name: Prepare Apple notarization key
+        if: runner.os == 'macOS'
+        env:
+          APPLE_API_PRIVATE_KEY: ${{ secrets.APPLE_API_PRIVATE_KEY }}
+        run: |
+          node --input-type=module -e 'import { writeFileSync, appendFileSync } from "node:fs"; import { join } from "node:path"; import { requireValue } from "./tools/release-policy.mjs"; const file = join(process.env.RUNNER_TEMP, "knovum-notary.p8"); writeFileSync(file, requireValue(process.env.APPLE_API_PRIVATE_KEY, "APPLE_API_PRIVATE_KEY"), { mode: 0o600 }); appendFileSync(process.env.GITHUB_ENV, `APPLE_API_KEY_PATH=${file}\n`);'
+      - name: Build signed update-enabled package
+        env:
+          KNOVUM_UPDATER_ENDPOINT: ${{ vars.KNOVUM_UPDATER_ENDPOINT }}
+          KNOVUM_UPDATER_PUBKEY: ${{ vars.KNOVUM_UPDATER_PUBKEY }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ vars.APPLE_SIGNING_IDENTITY }}
+          APPLE_API_ISSUER: ${{ vars.APPLE_API_ISSUER }}
+          APPLE_API_KEY: ${{ vars.APPLE_API_KEY }}
+          KNOVUM_WINDOWS_SIGN_COMMAND: ${{ vars.KNOVUM_WINDOWS_SIGN_COMMAND }}
+          AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+          AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+        run: pnpm package:release --target ${{ matrix.target }} --bundles ${{ matrix.bundles }}
+      - name: Verify macOS distribution signature and notarization
+        if: runner.os == 'macOS'
+        run: |
+          app='src-tauri/target/${{ matrix.target }}/release/bundle/macos/Knovum.app'
+          codesign --verify --deep --strict --verbose=2 "$app"
+          spctl --assess --type execute --verbose=2 "$app"
+          xcrun stapler validate "$app"
+      - name: Verify Windows distribution signatures
+        if: runner.os == 'Windows'
+        run: ./tools/verify-windows-package.ps1 -Target '${{ matrix.target }}'
+      - name: Stage immutable release artifacts
+        env:
+          KNOVUM_UPDATER_ENDPOINT: ${{ vars.KNOVUM_UPDATER_ENDPOINT }}
+          KNOVUM_UPDATER_PUBKEY: ${{ vars.KNOVUM_UPDATER_PUBKEY }}
+        run: node tools/collect-release.mjs ${{ matrix.target }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.target }}
+          path: release-artifacts/${{ matrix.platform }}/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Remove notarization material
+        if: always() && runner.os == 'macOS'
+        run: rm -f "$RUNNER_TEMP/knovum-notary.p8"
+
+  candidate:
+    needs: build
+    runs-on: ubuntu-24.04
+    environment: release-publish
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+      - run: sudo apt-get update && sudo apt-get install -y minisign
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          path: downloaded
+      - name: Verify signatures and create draft distribution release
+        env:
+          GH_TOKEN: ${{ secrets.KNOVUM_DISTRIBUTION_TOKEN }}
+          KNOVUM_DISTRIBUTION_REPOSITORY: ${{ vars.KNOVUM_DISTRIBUTION_REPOSITORY }}
+          KNOVUM_UPDATER_ENDPOINT: ${{ vars.KNOVUM_UPDATER_ENDPOINT }}
+          KNOVUM_UPDATER_PUBKEY: ${{ vars.KNOVUM_UPDATER_PUBKEY }}
+        run: |
+          node --test tools/__tests__/*.test.mjs
+          node tools/release-candidate.mjs downloaded "docs/release-notes/${GITHUB_REF_NAME#v}.md"
