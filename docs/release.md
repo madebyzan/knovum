@@ -171,15 +171,22 @@ replacing a selected update. About also supports explicit checks. Downloads are 
 cancellable and visible in Task Center/Dock/Taskbar. The official plugin verifies the signature before
 the state becomes Ready. Files larger than 1 GiB are rejected by publishing and download policy;
 Tauri buffers accepted archives in memory, so this is not a streaming-to-disk/resume implementation.
+Cancellation and the transition to Ready are decided under the same native state lock. A cancellation
+accepted before completion discards the verified bytes; a request arriving after Ready is rejected
+instead of falsely reporting that it cancelled an installable update.
 Exiting before installation discards the in-memory download and requires another download next time.
 
 Only the version actually reviewed and downloaded may be installed. Installation is explicit, blocked
 while other Task Center jobs run, and shares the existing registered-save barrier with ordinary quit.
-All save attempts settle; a failed save prevents installation. A modal prevents new user edits while
-preparing/installing, and task state is checked again after saving. Windows may exit from inside its
-installer, so saving happens before invoking it. During native replacement, ordinary quit is blocked;
-Tauri's distinguished restart exit is allowed. Network, signature and installation failures become
-recoverable, visible update states, not a claim of success. Release notes are rendered as plain text.
+All save attempts settle; a failed save prevents installation. A shared lifecycle admission lock
+excludes concurrent quit, hide-after-save and installation.
+Application commands, including native-menu commands and already-queued shortcut callbacks, cannot
+start while that lock is held. The lock releases on save or installer failure. A modal prevents new
+user edits while preparing/installing, and task state is checked again after saving. Windows may exit
+from inside its installer, so saving happens before invoking it. During native replacement, ordinary
+quit is blocked; Tauri's distinguished restart exit is allowed. Network, signature and installation
+failures become recoverable, visible update states, not a claim of success. Release notes are rendered
+as plain text.
 
 ## Required acceptance matrix
 
