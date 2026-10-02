@@ -1,5 +1,6 @@
 [package]
 name = "knovum"
+publish = false
 default-run = "knovum"
 version = "0.0.1"
 description = "Local-first desktop knowledge space"
@@ -195,3 +196,8 @@ opt-level = 3
 
 [lints.rust]
 linker_messages = "allow"
+
+# Upstream security fix; remove after a compatible crates.io release includes it.
+# https://github.com/typst/citationberg/pull/44
+[patch.crates-io]
+citationberg = { git = "https://github.com/typst/citationberg", rev = "06a591e2f237d25e1dfdedac3f3d1494c496c52d" }
