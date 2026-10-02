@@ -16,6 +16,8 @@ jobs:
         with:
           persist-credentials: false
       - name: Archive reviewed source
+        env:
+          GIT_LFS_SKIP_SMUDGE: "1"
         run: |
           mkdir -p "$RUNNER_TEMP/updater-review"
           git rev-parse HEAD > "$RUNNER_TEMP/updater-review/commit.txt"
