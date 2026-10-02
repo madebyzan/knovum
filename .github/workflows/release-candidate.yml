@@ -71,12 +71,14 @@ jobs:
           KNOVUM_BUNDLED_RUNTIME_WINDOWS_X64_SHA256: ${{ vars.KNOVUM_BUNDLED_RUNTIME_WINDOWS_X64_SHA256 }}
           KNOVUM_BUNDLED_RUNTIME_AUTHORIZATION: ${{ secrets.KNOVUM_BUNDLED_RUNTIME_AUTHORIZATION }}
         run: pnpm runtime:provision
-      - name: Quality and dependency gates
-        run: |
-          pnpm security:web
-          cargo install cargo-deny --locked
-          cargo deny --manifest-path src-tauri/Cargo.toml check advisories licenses
-          pnpm check
+      - name: Audit production web dependencies
+        run: pnpm security:web
+      - name: Install cargo-deny
+        run: cargo install cargo-deny --locked
+      - name: Audit Rust dependencies
+        run: cargo deny --manifest-path src-tauri/Cargo.toml check advisories licenses
+      - name: Run quality gates
+        run: pnpm check
       - name: Provisioned runtime smoke
         env:
           KNOVUM_BUNDLED_RUNTIME_SMOKE: "1"
