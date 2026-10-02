@@ -1,3 +1,16 @@
+# Audit every supported release target plus the Linux compile/test target.
+# Custom cfg(fuzzing) dependencies are not part of these application builds.
+# Adding fuzzing or another shipping target requires its own matching audit scope.
+[graph]
+all-features = true
+targets = [
+  "aarch64-apple-darwin",
+  "x86_64-apple-darwin",
+  "aarch64-pc-windows-msvc",
+  "x86_64-pc-windows-msvc",
+  "x86_64-unknown-linux-gnu",
+]
+
 [licenses]
 confidence-threshold = 0.8
 allow = [
@@ -17,3 +30,8 @@ allow = [
   "Unicode-DFS-2016",
   "Zlib",
 ]
+
+# Only unpublished workspace packages are exempt from declaring an OSS license.
+# All third-party dependency licenses remain subject to the allowlist above.
+[licenses.private]
+ignore = true
