@@ -50,14 +50,7 @@ function fixture(context) {
 
 test("forwards exact arguments and uses the repository cwd without a pnpm shim", (context) => {
   const sample = fixture(context);
-  const args = [
-    "build",
-    "--config",
-    '{"productName":"Knovum & $HOME %PATH%"}',
-    "a b",
-    'a"b',
-    "",
-  ];
+  const args = ["build", "--config", '{"productName":"Knovum & $HOME %PATH%"}', "a b", 'a"b', ""];
   const result = sample.run(args, { KNOVUM_FFMPEG_PATH: "explicit ffmpeg path" });
   assert.equal(result.status, 0, result.stderr);
   assert.deepEqual(sample.read(), {
