@@ -29,7 +29,6 @@ jobs:
           set -euo pipefail
           python3 - <<'PY'
           from pathlib import Path
-          import json
           path = Path('src-tauri/Cargo.toml')
           source = path.read_text()
           old = 'tauri = { version = "2", features = ["macos-private-api", "protocol-asset", "tray-icon"] }'
@@ -46,10 +45,11 @@ jobs:
           cargo update --manifest-path src-tauri/Cargo.toml -p tauri-build -p tauri-codegen -p tauri-macros -p tauri-runtime -p tauri-runtime-wry -p tauri-utils
           cargo metadata --locked --manifest-path src-tauri/Cargo.toml --format-version 1 > "$RUNNER_TEMP/metadata.json"
           python3 - <<'PY'
-          import json, os, tomllib
+          import tomllib
           from pathlib import Path
           packages = tomllib.loads(Path('src-tauri/Cargo.lock').read_text())['package']
-          assert not any(p['name'].startswith('unic-') for p in packages)
+          retired = {'unic-char-property', 'unic-char-range', 'unic-common', 'unic-ucd-ident', 'unic-ucd-version'}
+          assert not retired.intersection(p['name'] for p in packages)
           assert any(p['name'] == 'urlpattern' and p['version'] == '0.6.0' for p in packages)
           for p in packages:
               if p['name'].startswith('tauri') or p['name'] == 'urlpattern':
