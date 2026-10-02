@@ -90,7 +90,7 @@ rmcp = { version = "=3.1.3", features = ["transport-streamable-http-server"] }
 axum = "=0.8.9"
 tokio-util = "=0.7.19"
 walkdir = "2.5.0"
-agent-client-protocol = "=2.1.0"
+agent-client-protocol = "=2.2.0"
 chrono = { version = "=0.4.45", default-features = false, features = ["clock", "serde"] }
 schemars = "=1.2.2"
 ts-rs = { version = "=12.0.1", features = ["no-serde-warnings", "serde-compat", "serde-json-impl"] }
