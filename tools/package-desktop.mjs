@@ -1,20 +1,28 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { createRequire } from "node:module";
 import { dirname, join, resolve as resolvePath } from "node:path";
 import { fileURLToPath } from "node:url";
+
+import {
+  platformSigningConfiguration,
+  readVersion,
+  updaterConfiguration,
+  validateReleaseArguments,
+} from "./release-policy.mjs";
 
 const repository = resolvePath(dirname(fileURLToPath(import.meta.url)), "..");
 const runtimeRoot = join(repository, "src-tauri", "resources", "bundled-runtime");
 const args = process.argv.slice(2);
 const explicitRuntimeTarget = option("--runtime-target");
 const buildTarget = value("--target");
-const buildRuntimeTarget = targetFromTriple(buildTarget);
-if (explicitRuntimeTarget && buildRuntimeTarget && explicitRuntimeTarget !== buildRuntimeTarget) {
+const buildRuntimeTarget = targetFromTriple(buildTarget) ?? hostTarget();
+if (explicitRuntimeTarget && explicitRuntimeTarget !== buildRuntimeTarget) {
   fail(`Runtime target ${explicitRuntimeTarget} does not match build target ${buildTarget}`);
 }
-const target = explicitRuntimeTarget ?? buildRuntimeTarget ?? hostTarget();
+const target = buildRuntimeTarget;
 const release = takeFlag("--release");
-
+const releaseConfig = release ? productionConfiguration() : {};
 requireRuntime(target);
 
 const bundleResources = [
@@ -22,15 +30,28 @@ const bundleResources = [
   "resources/bundled-runtime/media-import-manifest.json",
   ...runtimeResources(target),
 ];
-const releaseConfig = release ? readJson("src-tauri/tauri.release.conf.json") : undefined;
-const config = releaseConfig
-  ? { ...releaseConfig, bundle: { ...releaseConfig.bundle, resources: bundleResources } }
-  : { bundle: { resources: bundleResources } };
-const executable = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
-execFileSync(executable, ["exec", "tauri", "build", ...args, "--config", JSON.stringify(config)], {
-  cwd: repository,
-  stdio: "inherit",
-});
+const config = { ...releaseConfig, bundle: { ...releaseConfig.bundle, resources: bundleResources } };
+// Execute the official JavaScript CLI directly: Windows cannot exec a .cmd shim without a shell.
+const cli = createRequire(import.meta.url).resolve("@tauri-apps/cli/tauri.js");
+execFileSync(
+  process.execPath,
+  [cli, "build", ...args, "--config", JSON.stringify(config), ...(release ? ["--", "--locked"] : [])],
+  {
+    cwd: repository,
+    stdio: "inherit",
+  },
+);
+
+function productionConfiguration() {
+  validateReleaseArguments(args);
+  readVersion(repository);
+  const production = readJson("src-tauri/tauri.release.conf.json");
+  return {
+    ...production,
+    bundle: { ...production.bundle, ...platformSigningConfiguration(target, process.env) },
+    plugins: { ...production.plugins, updater: updaterConfiguration(process.env) },
+  };
+}
 
 function requireRuntime(runtimeTarget) {
   const windows = runtimeTarget.startsWith("windows-");
@@ -63,6 +84,7 @@ function option(name) {
   const index = args.indexOf(name);
   if (index < 0) return undefined;
   const result = args[index + 1];
+  if (!result || result.startsWith("--")) fail(`Missing value for ${name}`);
   args.splice(index, 2);
   return result;
 }

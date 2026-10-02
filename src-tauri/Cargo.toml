@@ -1,5 +1,6 @@
 [package]
 name = "knovum"
+publish = false
 default-run = "knovum"
 version = "0.0.1"
 description = "Local-first desktop knowledge space"
@@ -19,7 +20,7 @@ default = []
 e2e = ["dep:tauri-plugin-wdio", "dep:tauri-plugin-wdio-webdriver"]
 
 [dependencies]
-tauri = { version = "2", features = ["macos-private-api", "protocol-asset", "tray-icon"] }
+tauri = { version = "2.12.1", features = ["protocol-asset", "tray-icon"] }
 tauri-plugin-clipboard = "2"
 clipboard-rs = "0.2.4"
 tauri-plugin-dialog = "2"
@@ -195,3 +196,8 @@ opt-level = 3
 
 [lints.rust]
 linker_messages = "allow"
+
+# Upstream security fix; remove after a compatible crates.io release includes it.
+# https://github.com/typst/citationberg/pull/44
+[patch.crates-io]
+citationberg = { git = "https://github.com/typst/citationberg", rev = "06a591e2f237d25e1dfdedac3f3d1494c496c52d" }

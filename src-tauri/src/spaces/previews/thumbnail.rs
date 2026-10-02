@@ -2,8 +2,10 @@ use std::path::{Path, PathBuf};
 
 use tokio_util::sync::CancellationToken;
 
+#[cfg(any(target_os = "macos", target_os = "windows"))]
 use crate::spaces::assets::enrichment::ensure_active;
 
+#[cfg(any(target_os = "macos", target_os = "windows"))]
 use super::paths;
 
 #[cfg(target_os = "macos")]

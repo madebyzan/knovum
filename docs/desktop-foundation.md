@@ -86,7 +86,7 @@ Only the `main` window is authorized today. A multi-window feature must define i
 
 ## Updater and signing
 
-The updater plugin is registered, but a build is considered update-enabled only when both `KNOVUM_UPDATER_ENDPOINT` and `KNOVUM_UPDATER_PUBKEY` are present at compile time. Production release builds use `tauri.release.conf.json`, which enables updater artifact generation. The application never invents placeholder release endpoints or verification keys; update signing, macOS code signing/notarization and Windows signing remain release-environment configuration documented in `release.md`.
+The updater plugin is registered only when the build contains validated updater configuration. `package:release` embeds the permanent HTTPS manifest URL and verification key before plugin initialization, requires signing configuration and generates updater artifacts. QA builds remain disabled. Rust owns scheduled checks, the selected version, download/verification and installation; a shared Pinia snapshot projects that state into About and Task Center. Installation uses the existing registered-save barrier and explicit user confirmation. Signing, candidate promotion, native acceptance and GitHub/COS migration are owned by `release.md`.
 
 ## Cross-platform compile gate
 
