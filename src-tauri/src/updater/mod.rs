@@ -155,3 +155,6 @@ pub async fn install_update(
 
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+mod download_tests;

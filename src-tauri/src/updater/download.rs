@@ -15,9 +15,7 @@ const MAX_DOWNLOAD_BYTES: u64 = 1024 * 1024 * 1024;
 
 #[tauri::command]
 pub fn cancel_update_download(service: State<'_, UpdateService>) -> Result<(), AppError> {
-    if let Some(cancellation) = &service.lock()?.cancellation {
-        cancellation.cancel();
-    }
+    service.lock()?.cancel_download()?;
     Ok(())
 }
 
@@ -94,7 +92,6 @@ pub async fn download_update(
         _ = cancellation.cancelled() => Ok(None),
         result = download => result.map(Some),
     };
-    service.lock()?.cancellation = None;
     if oversized.load(Ordering::Relaxed) {
         service.fail(
             &app,
@@ -104,16 +101,7 @@ pub async fn download_update(
         return Ok(service.snapshot()?);
     }
     match result {
-        Ok(_) if cancellation.is_cancelled() => {
-            service.publish(&app, UpdateState::Available { release })?;
-        }
-        Ok(Some(bytes)) => {
-            service.lock()?.bytes = Some(bytes);
-            service.publish(&app, UpdateState::Ready { release })?;
-        }
-        Ok(None) => {
-            service.publish(&app, UpdateState::Available { release })?;
-        }
+        Ok(bytes) => Ok(service.complete_download(&app, release, bytes)?),
         Err(error) => {
             let reason = if matches!(
                 &error,
@@ -124,8 +112,7 @@ pub async fn download_update(
                 UpdateFailure::Download
             };
             service.fail(&app, reason, error)?;
-            return Ok(service.snapshot()?);
+            Ok(service.snapshot()?)
         }
     }
-    Ok(service.snapshot()?)
 }

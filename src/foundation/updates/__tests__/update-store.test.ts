@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { UpdateState } from "../../../shared/contracts/generated/UpdateState";
 import { useTaskStore } from "../../tasks/task-store";
+import { isApplicationTransitioning, runApplicationTransition } from "../../lifecycle/application-transition";
 import { useUpdateStore } from "../update-store";
 
 const mocks = vi.hoisted(() => ({
@@ -110,7 +111,19 @@ describe("application update ownership", () => {
     await expect(updates.install()).rejects.toThrow("Save failed");
     expect(mocks.invoke).not.toHaveBeenCalledWith("install_update", expect.anything());
     expect(updates.installing).toBe(false);
+    expect(isApplicationTransitioning()).toBe(false);
     expect(updates.state?.status).toBe("ready");
+  });
+
+  it("does not race an ordinary quit or hide transition", async () => {
+    const updates = useUpdateStore();
+    await updates.initialize();
+    emit(1, { status: "ready", release });
+    await runApplicationTransition(async () => {
+      await expect(updates.install()).rejects.toThrow("already running");
+      expect(updates.installing).toBe(false);
+    });
+    expect(mocks.flush).not.toHaveBeenCalled();
   });
 
   it("blocks installation while another task is running", async () => {
@@ -147,5 +160,6 @@ describe("application update ownership", () => {
     expect(mocks.invoke).toHaveBeenLastCalledWith("install_update", { version: "1.2.3" });
     expect(updates.state).toEqual({ status: "failed", reason: "install" });
     expect(updates.installing).toBe(false);
+    expect(isApplicationTransitioning()).toBe(false);
   });
 });

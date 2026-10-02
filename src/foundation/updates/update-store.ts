@@ -7,6 +7,7 @@ import type { UpdateSnapshot } from "../../shared/contracts/generated/UpdateSnap
 import { formatErrorDiagnostic } from "../errors/error-format";
 import { invokeCommand } from "../ipc/invoke-command";
 import { flushWindowCloseCommits } from "../lifecycle/window-close-coordinator";
+import { runApplicationTransition } from "../lifecycle/application-transition";
 import { useTaskStore } from "../tasks/task-store";
 import { updateSnapshotSchema } from "./update-schema";
 
@@ -84,14 +85,16 @@ export const useUpdateStore = defineStore("application-update", () => {
     if (!canInstall.value || state.value?.status !== "ready")
       throw new Error("Finish background tasks before installing the update.");
     const version = state.value.release.version;
-    preparingInstall.value = true;
-    try {
-      await flushWindowCloseCommits();
-      if (blockedByTasks.value) throw new Error("A background task started while preparing the update.");
-      accept(await invokeCommand<unknown>("install_update", { version }));
-    } finally {
-      preparingInstall.value = false;
-    }
+    await runApplicationTransition(async () => {
+      preparingInstall.value = true;
+      try {
+        await flushWindowCloseCommits();
+        if (blockedByTasks.value) throw new Error("A background task started while preparing the update.");
+        accept(await invokeCommand<unknown>("install_update", { version }));
+      } finally {
+        preparingInstall.value = false;
+      }
+    });
   }
 
   onScopeDispose(() => {
