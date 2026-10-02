@@ -65,7 +65,23 @@ jobs:
           git diff -- src-tauri/Cargo.toml src-tauri/Cargo.lock
       - name: Test the pinned upstream XML integration
         shell: bash
-        run: cargo test --manifest-path "$(cat "$RUNNER_TEMP/citationberg-manifest")" --all-features
+        run: |
+          set -euo pipefail
+          upstream_manifest="$(cat "$RUNNER_TEMP/citationberg-manifest")"
+          fixtures_root="$(dirname "$(dirname "$upstream_manifest")")"
+          # The upstream roundtrip tests require these two sibling repositories.
+          # Use snapshots from the security patch's merge date, not moving branches.
+          for fixture in \
+            "styles 8d129d151adfe68256ceb6e6ea59c6f651ab526a" \
+            "locales bc0a222b4ca526126faf892c35b2b7b1215c10eb"; do
+            read -r name revision <<< "$fixture"
+            destination="$fixtures_root/$name"
+            git init "$destination"
+            git -C "$destination" fetch --depth=1 "https://github.com/citation-style-language/$name.git" "$revision"
+            git -C "$destination" checkout --detach FETCH_HEAD
+            test "$(git -C "$destination" rev-parse HEAD)" = "$revision"
+          done
+          cargo test --manifest-path "$upstream_manifest" --all-features
       - name: Format changed tooling with the repository formatter
         shell: bash
         run: |
