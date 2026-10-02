@@ -4,13 +4,50 @@ use tauri::{AppHandle, Emitter};
 use tauri_plugin_updater::Update;
 use tokio_util::sync::CancellationToken;
 
-use super::contracts::{UpdateFailure, UpdateSnapshot, UpdateState};
+use super::contracts::{UpdateFailure, UpdateMetadata, UpdateSnapshot, UpdateState};
 
 pub(super) struct Session {
     pub snapshot: UpdateSnapshot,
     pub pending: Option<Update>,
     pub bytes: Option<Vec<u8>>,
     pub cancellation: Option<CancellationToken>,
+}
+
+impl Session {
+    pub(super) fn cancel_download(&self) -> Result<(), String> {
+        let cancellation = self
+            .cancellation
+            .as_ref()
+            .ok_or("No cancellable update download is running.")?;
+        cancellation.cancel();
+        Ok(())
+    }
+
+    pub(super) fn complete_download(
+        &mut self,
+        release: UpdateMetadata,
+        bytes: Option<Vec<u8>>,
+    ) -> Result<UpdateSnapshot, String> {
+        let cancellation = self
+            .cancellation
+            .take()
+            .ok_or("No update download is running.")?;
+        self.bytes = None;
+        let state = match bytes {
+            Some(bytes) if !cancellation.is_cancelled() => {
+                self.bytes = Some(bytes);
+                UpdateState::Ready { release }
+            }
+            _ => UpdateState::Available { release },
+        };
+        Ok(self.transition(state))
+    }
+
+    fn transition(&mut self, state: UpdateState) -> UpdateSnapshot {
+        self.snapshot.revision += 1;
+        self.snapshot.state = state;
+        self.snapshot.clone()
+    }
 }
 
 pub struct UpdateService {
@@ -61,16 +98,27 @@ impl UpdateService {
     }
 
     pub(super) fn publish(&self, app: &AppHandle, state: UpdateState) -> Result<(), String> {
-        let snapshot = {
-            let mut session = self.lock()?;
-            session.snapshot.revision += 1;
-            session.snapshot.state = state;
-            session.snapshot.clone()
-        };
-        if let Err(error) = app.emit_to("main", "knovum://update-state", &snapshot) {
+        let snapshot = self.lock()?.transition(state);
+        Self::emit_snapshot(app, &snapshot);
+        Ok(())
+    }
+
+    pub(super) fn complete_download(
+        &self,
+        app: &AppHandle,
+        release: UpdateMetadata,
+        bytes: Option<Vec<u8>>,
+    ) -> Result<UpdateSnapshot, String> {
+        // Cancellation and publication of Ready must have a single linearization point.
+        let snapshot = self.lock()?.complete_download(release, bytes)?;
+        Self::emit_snapshot(app, &snapshot);
+        Ok(snapshot)
+    }
+
+    fn emit_snapshot(app: &AppHandle, snapshot: &UpdateSnapshot) {
+        if let Err(error) = app.emit_to("main", "knovum://update-state", snapshot) {
             log::warn!("Failed to deliver updater state: {error}");
         }
-        Ok(())
     }
 
     pub(super) fn fail(
@@ -85,12 +133,14 @@ impl UpdateService {
             error => error.to_string(),
         };
         log::error!("Application update {reason:?} failed: {diagnostic}");
-        {
+        let snapshot = {
             let mut session = self.lock()?;
             session.pending = None;
             session.bytes = None;
             session.cancellation = None;
-        }
-        self.publish(app, UpdateState::Failed { reason })
+            session.transition(UpdateState::Failed { reason })
+        };
+        Self::emit_snapshot(app, &snapshot);
+        Ok(())
     }
 }

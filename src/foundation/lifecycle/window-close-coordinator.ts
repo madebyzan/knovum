@@ -4,6 +4,7 @@ import { error as logError } from "@tauri-apps/plugin-log";
 
 import { formatErrorDiagnostic } from "../errors/error-format";
 import { invokeCommand } from "../ipc/invoke-command";
+import { isApplicationTransitioning, runApplicationTransition } from "./application-transition";
 
 type WindowCloseCommit = () => Promise<void>;
 
@@ -11,8 +12,6 @@ const commits = new Set<WindowCloseCommit>();
 let listener: Promise<() => void> | undefined;
 let exitListener: Promise<() => void> | undefined;
 let flushing: Promise<void> | undefined;
-let closing = false;
-let exiting = false;
 
 export async function initializeExitCoordination() {
   listener ??= attachWindowCloseListener();
@@ -51,16 +50,18 @@ async function commitRegisteredChanges(): Promise<void> {
 
 async function attachExitRequestListener() {
   return listen("knovum://app-exit-requested", async () => {
-    if (exiting) return;
-    exiting = true;
+    if (isApplicationTransitioning()) {
+      await invokeCommand("plugin:desktop|decide_app_exit_request", { approved: false });
+      return;
+    }
     try {
-      await flushWindowCloseCommits();
-      await invokeCommand("plugin:desktop|decide_app_exit_request", { approved: true });
+      await runApplicationTransition(async () => {
+        await flushWindowCloseCommits();
+        await invokeCommand("plugin:desktop|decide_app_exit_request", { approved: true });
+      });
     } catch (error) {
       await logError(`Application exit commit failed: ${formatErrorDiagnostic(error)}`);
       await invokeCommand("plugin:desktop|decide_app_exit_request", { approved: false });
-    } finally {
-      exiting = false;
     }
   });
 }
@@ -68,15 +69,14 @@ async function attachExitRequestListener() {
 async function attachWindowCloseListener() {
   return getCurrentWindow().onCloseRequested(async (event) => {
     event.preventDefault();
-    if (closing) return;
-    closing = true;
+    if (isApplicationTransitioning()) return;
     try {
-      await flushWindowCloseCommits();
-      await getCurrentWindow().hide();
+      await runApplicationTransition(async () => {
+        await flushWindowCloseCommits();
+        await getCurrentWindow().hide();
+      });
     } catch (error) {
       await logError(`Window close commit failed: ${formatErrorDiagnostic(error)}`);
-    } finally {
-      closing = false;
     }
   });
 }

@@ -53,12 +53,14 @@ jobs:
       - name: Verify Rust toolchain
         run: rustc --version && cargo --version
       - name: Audit Rust dependencies
+        id: rust-audit
         uses: EmbarkStudios/cargo-deny-action@v2
         with:
           rust-version: "1.97.1"
           manifest-path: src-tauri/Cargo.toml
           command: check advisories licenses
       - name: Run Rust gates
+        if: ${{ !cancelled() && steps.rust-audit.outcome != 'skipped' }}
         run: |
           cargo fmt --manifest-path src-tauri/Cargo.toml -- --check
           cargo clippy --locked --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
