@@ -27,7 +27,6 @@
         "center": true,
         "decorations": true,
         "transparent": true,
-        "noRedirectionBitmap": true,
         "scrollBarStyle": "fluentOverlay",
         "windowEffects": {
           "effects": ["mica"]
