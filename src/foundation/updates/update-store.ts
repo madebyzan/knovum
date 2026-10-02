@@ -6,8 +6,8 @@ import { computed, onScopeDispose, shallowRef } from "vue";
 import type { UpdateSnapshot } from "../../shared/contracts/generated/UpdateSnapshot";
 import { formatErrorDiagnostic } from "../errors/error-format";
 import { invokeCommand } from "../ipc/invoke-command";
-import { flushWindowCloseCommits } from "../lifecycle/window-close-coordinator";
 import { runApplicationTransition } from "../lifecycle/application-transition";
+import { flushWindowCloseCommits } from "../lifecycle/window-close-coordinator";
 import { useTaskStore } from "../tasks/task-store";
 import { updateSnapshotSchema } from "./update-schema";
 

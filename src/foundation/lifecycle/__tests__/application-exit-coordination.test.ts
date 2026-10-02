@@ -10,7 +10,7 @@ vi.mock("@tauri-apps/api/event", () => ({ listen: mocks.listen }));
 vi.mock("@tauri-apps/api/window", () => ({
   getCurrentWindow: () => ({ onCloseRequested: mocks.close, hide: mocks.hide }),
 }));
-vi.mock("@tauri-apps/plugin-log", () => ({ error: vi.fn() }));
+vi.mock("@tauri-apps/plugin-log", () => ({ error: vi.fn<(message: string) => void>() }));
 vi.mock("../../ipc/invoke-command", () => ({ invokeCommand: mocks.invoke }));
 
 let exit: () => Promise<void>;
@@ -47,7 +47,7 @@ describe("quit, hide and update installation exclusion", () => {
     const coordinator = await import("../window-close-coordinator");
     const lifecycle = await import("../application-transition");
     await coordinator.initializeExitCoordination();
-    const event = { preventDefault: vi.fn() };
+    const event = { preventDefault: vi.fn<() => void>() };
     await lifecycle.runApplicationTransition(() => close(event));
     expect(event.preventDefault).toHaveBeenCalledOnce();
     expect(mocks.hide).not.toHaveBeenCalled();
@@ -58,7 +58,10 @@ describe("quit, hide and update installation exclusion", () => {
     const lifecycle = await import("../application-transition");
     let finish!: () => void;
     coordinator.registerWindowCloseCommit(
-      () => new Promise<void>((resolve) => { finish = resolve; }),
+      () =>
+        new Promise<void>((resolve) => {
+          finish = resolve;
+        }),
     );
     await coordinator.initializeExitCoordination();
     const quitting = exit();

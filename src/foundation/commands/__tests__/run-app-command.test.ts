@@ -4,8 +4,8 @@ import type { AppCommand } from "../../../shared/contracts/app-command";
 import { isApplicationTransitioning, runApplicationTransition } from "../../lifecycle/application-transition";
 import { runAppCommand } from "../run-app-command";
 
-vi.mock("@tauri-apps/plugin-log", () => ({ error: vi.fn() }));
-vi.mock("vue-sonner", () => ({ toast: { error: vi.fn() } }));
+vi.mock("@tauri-apps/plugin-log", () => ({ error: vi.fn<(message: string) => void>() }));
+vi.mock("vue-sonner", () => ({ toast: { error: vi.fn<(message: string) => void>() } }));
 
 function command(): AppCommand {
   return { id: "test.edit", title: "Edit", run: vi.fn<() => void>() };
