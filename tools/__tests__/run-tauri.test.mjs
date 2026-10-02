@@ -1,12 +1,20 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  copyFileSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  realpathSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
 function fixture(context) {
-  const root = mkdtempSync(join(tmpdir(), "knovum tauri runner "));
+  const root = realpathSync(mkdtempSync(join(tmpdir(), "knovum tauri runner ")));
   context.after(() => rmSync(root, { recursive: true, force: true }));
   const tools = join(root, "tools");
   const cli = join(root, "node_modules", "@tauri-apps", "cli");
