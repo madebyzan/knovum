@@ -7935,9 +7935,9 @@ dependencies = [
 
 [[package]]
 name = "pdf-inspector"
-version = "1.20.0"
+version = "1.25.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dfa8858423125d0d4cf7bb249a4df85fbabb3bdcdb4dcfeadee9c4d13c762277"
+checksum = "ef5970f05a55de82c8d6d6fd5f8ff162b50fc7828cc1fd0abd965abad6fcbc5b"
 dependencies = [
  "env_logger",
  "include_dir",
@@ -7948,6 +7948,7 @@ dependencies = [
  "regex",
  "thiserror 2.0.20",
  "ttf-parser",
+ "unicode-bidi",
  "unicode-normalization",
 ]
 
