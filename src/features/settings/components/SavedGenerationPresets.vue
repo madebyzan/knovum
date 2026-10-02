@@ -1,7 +1,4 @@
 <script setup lang="ts">
-import type { GenerationActionOption } from "../generation-action-option";
-
-const props = defineProps<{ loadGenerationActions: () => Promise<GenerationActionOption[]> }>();
 import { Copy, Pencil, Trash2 } from "@lucide/vue";
 import { cloneDeep, camelCase } from "es-toolkit";
 import { shallowRef } from "vue";
@@ -11,9 +8,11 @@ import type { GenerationPreset } from "../../../foundation/ai/schema/models";
 import { confirmAction } from "../../../shared/ui/confirm-action";
 import UiIconButton from "../../../shared/ui/UiIconButton.vue";
 import UiInput from "../../../shared/ui/UiInput.vue";
+import type { GenerationActionOption } from "../generation-action-option";
 import GenerationPresetEditor from "./GenerationPresetEditor.vue";
 import SettingsSection from "./SettingsSection.vue";
 
+const props = defineProps<{ loadGenerationActions: () => Promise<GenerationActionOption[]> }>();
 const presets = defineModel<GenerationPreset[]>({ required: true });
 const { t } = useI18n();
 const editingIndex = shallowRef<number>();

@@ -1,14 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { useKbd } from "../use-kbd";
+import { formatKey, formatShortcutLabel, parseShortcut } from "../keyboard-shortcut-label";
 
 vi.mock("@tauri-apps/plugin-os", () => ({
   platform: () => "macos",
 }));
 
-describe("useKbd", () => {
+describe("keyboard shortcut label", () => {
   it("formats standard modifiers on macOS", () => {
-    const { formatKey, formatShortcutLabel } = useKbd();
     expect(formatKey("mod")).toBe("⌘");
     expect(formatKey("shift")).toBe("⇧");
     expect(formatKey("alt")).toBe("⌥");
@@ -19,7 +18,6 @@ describe("useKbd", () => {
   });
 
   it("parses multi-step shortcuts with connectors", () => {
-    const { parseShortcut } = useKbd();
     const groups = parseShortcut("$mod+k or $mod+p");
     expect(groups).toHaveLength(2);
     expect(groups[0]?.keys).toEqual(["⌘", "K"]);

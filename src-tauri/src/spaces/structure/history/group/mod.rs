@@ -1,7 +1,7 @@
 use crate::app_error::AppError;
 use sqlx::{Row, Sqlite, Transaction};
 
-use super::{insert, prune, HistoryInsert, HistoryState, RelationLifecycle};
+use super::{clear_redo, insert, prune, HistoryInsert, HistoryState, RelationLifecycle};
 use crate::spaces::{db, structure::repository::SpaceStructureSnapshot};
 
 mod portal;
@@ -41,19 +41,6 @@ pub(super) async fn record(
         )
         .await?;
         prune(tx, space_id).await?;
-    }
-    Ok(())
-}
-
-async fn clear_redo(tx: &mut Transaction<'_, Sqlite>, space_id: &str) -> Result<(), AppError> {
-    let batches: Vec<String> = sqlx::query_scalar("SELECT deletion_batch_id FROM spaces_edit_history WHERE space_id=$1 AND undone=1 AND deletion_batch_id IS NOT NULL").bind(space_id).fetch_all(&mut **tx).await.map_err(db::sql_error)?;
-    sqlx::query("DELETE FROM spaces_edit_history WHERE space_id=$1 AND undone=1")
-        .bind(space_id)
-        .execute(&mut **tx)
-        .await
-        .map_err(db::sql_error)?;
-    for batch in batches {
-        sqlx::query("DELETE FROM spaces_deleted_structure_batches WHERE id=$1 AND space_id=$2 AND restored_at IS NOT NULL").bind(batch).bind(space_id).execute(&mut **tx).await.map_err(db::sql_error)?;
     }
     Ok(())
 }

@@ -24,6 +24,7 @@ const {
   status,
   artifacts,
   selectedArtifacts,
+  setArtifactSelected,
   agentOptions,
   recoveryOptions,
   sessionId,
@@ -110,6 +111,7 @@ watch(open, (isOpen) => {
         :artifacts="artifacts"
         :can-preview="canPreview"
         :selected-artifacts="selectedArtifacts"
+        @select="setArtifactSelected"
         @preview="preview"
       />
     </div>

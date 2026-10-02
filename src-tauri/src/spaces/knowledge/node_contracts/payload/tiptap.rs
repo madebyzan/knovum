@@ -13,13 +13,13 @@ pub(super) fn validate_canvas_text(object: &Map<String, Value>) -> Result<(), St
     required_string_allow_empty(object, "plainText", MAX_TEXT)?;
     let root = object
         .get("tiptapContent")
-        .and_then(Value::as_object)
+        .filter(|value| value.is_object())
         .ok_or_else(|| "Canvas text tiptapContent must be an object".to_string())?;
     if root.get("type").and_then(Value::as_str) != Some("doc") {
         return Err("Tiptap root must be doc".into());
     }
     let mut nodes = 0usize;
-    validate_node(&Value::Object(root.clone()), 0, &mut nodes)
+    validate_node(root, 0, &mut nodes)
 }
 
 fn validate_node(value: &Value, depth: usize, nodes: &mut usize) -> Result<(), String> {

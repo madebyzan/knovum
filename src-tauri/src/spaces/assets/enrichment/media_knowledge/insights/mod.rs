@@ -1,3 +1,8 @@
+use futures::{stream, StreamExt};
+use serde_json::{json, Value};
+use tauri::{ipc::Channel, AppHandle};
+use tokio_util::sync::CancellationToken;
+
 use crate::app_error::AppError;
 use crate::{
     ai::{
@@ -6,10 +11,6 @@ use crate::{
     },
     spaces::assets::transcription::{self, MediaTranscriptionProgress},
 };
-use futures::{stream, StreamExt};
-use serde_json::{json, Value};
-use tauri::{ipc::Channel, AppHandle};
-use tokio_util::sync::CancellationToken;
 
 pub(super) async fn generate(
     app: &AppHandle,

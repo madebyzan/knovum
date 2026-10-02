@@ -1,10 +1,10 @@
-use crate::ai::transport::response;
 use futures::future::BoxFuture;
 use serde::Deserialize;
 
+use super::endpoint;
 use crate::ai::{
     contracts::{GeneratedImage, ImageGenerationCapability, ImageGenerationInput},
-    transport::{http_client, SecurityContext},
+    transport::{http_client, response, SecurityContext},
 };
 use crate::app_error::{AppError, AppResult};
 
@@ -42,12 +42,7 @@ impl ImageGenerationCapability for MiniMaxImageAdapter {
     ) -> BoxFuture<'a, AppResult<GeneratedImage>> {
         Box::pin(async move {
             let secret = ctx.require_api_key()?;
-            let base = ctx.endpoint.trim_end_matches('/');
-            let endpoint = if base.ends_with("/v1") {
-                base.to_string()
-            } else {
-                format!("{base}/v1")
-            };
+            let endpoint = endpoint(&ctx.endpoint);
             let client = http_client();
 
             let model = if ctx.model.is_empty() {

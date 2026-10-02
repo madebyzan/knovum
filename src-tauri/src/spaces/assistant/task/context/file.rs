@@ -1,5 +1,6 @@
-use serde_json::json;
 use std::path::Path;
+
+use serde_json::json;
 
 use super::{AgentPathOrigin, ContextTarget, ResolvedPart};
 use crate::spaces::assistant::upload::{self, UploadKind};

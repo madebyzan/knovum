@@ -1,4 +1,16 @@
-use super::protocol;
+use super::{endpoint, protocol};
+
+#[test]
+fn all_dashscope_adapters_share_the_same_api_endpoint() {
+    assert_eq!(
+        endpoint("https://dashscope.aliyuncs.com/api/v1/"),
+        "https://dashscope.aliyuncs.com/api/v1"
+    );
+    assert_eq!(
+        endpoint("https://dashscope.aliyuncs.com/compatible-mode/v1"),
+        "https://dashscope.aliyuncs.com/api/v1"
+    );
+}
 
 #[test]
 fn wan_request_serializes_reference_images_in_selection_order() {

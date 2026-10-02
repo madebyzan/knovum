@@ -60,15 +60,16 @@ fn inspect_regular_file(
         }
         _ => (ResourcePreview::default(), None),
     };
-    Ok(snapshot(
-        path,
-        logical_name,
-        classification.node_kind(),
-        metadata.len(),
-        modified_millis(metadata)?,
-        preview,
+    Ok(InspectedFile {
+        name: logical_name.to_owned(),
+        path: path.to_string_lossy().into_owned(),
+        kind: classification.node_kind(),
+        preview_text: preview.text,
+        preview_language: preview.language,
+        size: metadata.len(),
+        modified_at: modified_millis(metadata)?,
         entries,
-    ))
+    })
 }
 
 fn reject_unsupported(metadata: &fs::Metadata) -> Result<(), String> {
@@ -79,27 +80,6 @@ fn reject_unsupported(metadata: &fs::Metadata) -> Result<(), String> {
         return Err("Only regular files can be imported into Spaces".into());
     }
     Ok(())
-}
-
-fn snapshot(
-    path: &Path,
-    name: &str,
-    kind: &'static str,
-    size: u64,
-    modified_at: u64,
-    preview: ResourcePreview,
-    entries: Option<Vec<super::ArchiveMember>>,
-) -> InspectedFile {
-    InspectedFile {
-        name: name.to_owned(),
-        path: path.to_string_lossy().into_owned(),
-        kind,
-        preview_text: preview.text,
-        preview_language: preview.language,
-        size,
-        modified_at,
-        entries,
-    }
 }
 
 #[cfg(test)]

@@ -34,7 +34,7 @@ const {
 } = storeToRefs(conversationSession);
 const composer = useTemplateRef<InstanceType<typeof SpaceConversationComposer>>("composer");
 
-async function useSuggestion(value: string, selection?: string) {
+async function applySuggestion(value: string, selection?: string) {
   prompt.value = value;
   await nextTick();
   composer.value?.focus(selection);
@@ -79,7 +79,7 @@ async function previewAttachment(key: string) {
         @branch="conversationSession.branchFrom"
         @regenerate="conversationSession.regenerate"
         @scroll-position="conversationSession.rememberScroll"
-        @suggest="useSuggestion"
+        @suggest="applySuggestion"
         @inspect-activity="conversationSession.inspectActivity"
       />
     </div>

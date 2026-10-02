@@ -1,4 +1,3 @@
-use crate::app_error::AppError;
 use serde::Deserialize;
 use serde_json::Value;
 use sqlx::Row;
@@ -6,7 +5,7 @@ use sqlx::Row;
 use tauri::{AppHandle, Runtime};
 
 use super::{events, node_contracts};
-use crate::spaces::db;
+use crate::{app_error::AppError, spaces::db};
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -62,7 +61,8 @@ pub async fn create_object_type<R: Runtime>(
         ),
     )
     .await?;
-    Ok((tx.commit().await.map_err(db::sql_error))?)
+    tx.commit().await.map_err(db::sql_error)?;
+    Ok(())
 }
 
 #[tauri::command]
@@ -103,7 +103,8 @@ pub async fn update_object_type<R: Runtime>(
         ),
     )
     .await?;
-    Ok((tx.commit().await.map_err(db::sql_error))?)
+    tx.commit().await.map_err(db::sql_error)?;
+    Ok(())
 }
 
 #[tauri::command]
@@ -136,7 +137,8 @@ pub async fn delete_object_type<R: Runtime>(
             .await
             .map_err(db::sql_error)?;
     db::require_one(executed, "Custom Knowledge Type no longer exists")?;
-    Ok((tx.commit().await.map_err(db::sql_error))?)
+    tx.commit().await.map_err(db::sql_error)?;
+    Ok(())
 }
 
 async fn validate_existing_objects(

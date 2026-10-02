@@ -47,10 +47,10 @@ pub async fn list_knowledge_chunks<R: Runtime>(
         query = query.bind(serde_json::to_string(&node_ids).map_err(db::json_error)?);
     }
     let rows = query.fetch_all(pool).await.map_err(db::sql_error)?;
-    Ok((rows
+    Ok(rows
         .into_iter()
         .map(decode_chunk_projection)
-        .collect::<Result<_, String>>())?)
+        .collect::<Result<_, String>>()?)
 }
 
 pub(crate) async fn search_space<R: Runtime>(

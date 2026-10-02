@@ -10,9 +10,12 @@ import { formatByteSize } from "../../assets/format-byte-size";
 defineProps<{
   artifacts: readonly AgentArtifact[];
   canPreview: boolean;
-  selectedArtifacts: Set<string>;
+  selectedArtifacts: ReadonlySet<string>;
 }>();
-const emit = defineEmits<{ preview: [artifact: AgentArtifact] }>();
+const emit = defineEmits<{
+  preview: [artifact: AgentArtifact];
+  select: [relativePath: string, selected: boolean];
+}>();
 const { t } = useI18n();
 const icons = { image: Image, video: Video, audio: Music, document: File, file: File };
 </script>
@@ -27,11 +30,7 @@ const icons = { image: Image, video: Video, audio: Music, document: File, file: 
       <UiCheckbox
         :model-value="selectedArtifacts.has(artifact.relativePath)"
         :label="artifact.name"
-        @update:model-value="
-          $event
-            ? selectedArtifacts.add(artifact.relativePath)
-            : selectedArtifacts.delete(artifact.relativePath)
-        "
+        @update:model-value="emit('select', artifact.relativePath, $event)"
       />
       <component :is="icons[artifact.kind]" class="size-3.5 text-fg-secondary" />
       <div class="min-w-0 flex-1">

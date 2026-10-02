@@ -1,5 +1,4 @@
-mod create;
-pub(super) use create::create_records;
+pub(super) mod create;
 
 use tauri::AppHandle;
 

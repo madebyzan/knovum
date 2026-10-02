@@ -1,10 +1,9 @@
-use crate::ai::transport::response;
 use futures::future::BoxFuture;
 use serde::{Deserialize, Serialize};
 
 use crate::ai::{
     contracts::{GeneratedImage, ImageGenerationCapability, ImageGenerationInput},
-    transport::{http_client, SecurityContext},
+    transport::{http_client, response, SecurityContext},
 };
 use crate::app_error::{AppError, AppResult};
 

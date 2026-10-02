@@ -24,7 +24,7 @@ interface CompletedRecordingInput {
   spaceId: string;
 }
 
-export function createSpaceAudioRecorderController(options: AudioRecorderControllerOptions) {
+export function useSpaceAudioRecorderController(options: AudioRecorderControllerOptions) {
   const isRecording = ref(false);
   const isPaused = ref(false);
   const isRequestingPermission = ref(false);

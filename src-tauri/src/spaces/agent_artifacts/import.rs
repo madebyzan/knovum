@@ -9,7 +9,7 @@ pub async fn stage_generated_artifact_import(
     space_id: String,
     session_id: String,
     relative_path: String,
-) -> Result<crate::spaces::assets::import::PreparedSpaceImport, AppError> {
+) -> Result<crate::spaces::assets::import::prepare::PreparedSpaceImport, AppError> {
     let completed = super::session::completed_at(&app, &space_id, &session_id).await?;
     if completed.is_none() {
         return Err(("Agent artifact session is not ready for import".to_owned()).into());
@@ -19,7 +19,7 @@ pub async fn stage_generated_artifact_import(
     let artifact = capabilities::agent_artifacts::resolve(&workspace, &relative_path)
         .map_err(|error| error.to_string())?;
     Ok((crate::blocking::run(move || {
-        crate::spaces::assets::import::prepare_owned_asset(
+        crate::spaces::assets::import::prepare::prepare_owned_asset(
             &app,
             artifact,
             tokio_util::sync::CancellationToken::new(),

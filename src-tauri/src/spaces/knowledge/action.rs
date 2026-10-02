@@ -1,10 +1,11 @@
-use crate::app_error::AppError;
 use serde_json::Value;
 use sqlx::{Sqlite, Transaction};
 
-use crate::spaces::{authorization::Principal, db};
-
 use super::change_commit::{self, KnowledgeChange};
+use crate::{
+    app_error::AppError,
+    spaces::{authorization::Principal, db},
+};
 
 pub(crate) async fn commit_changes(
     tx: &mut Transaction<'_, Sqlite>,

@@ -10,7 +10,7 @@ import { spaceImportContext } from "../../assets/import-context";
 import { scheduleSpaceAssetProcessing } from "../../assets/processing-scheduler";
 import type { CanvasFileImportRequest, CanvasFileImportReceipt } from "../../canvas/contracts/canvas-editor";
 import { importDroppedFiles } from "../../canvas/drop";
-import type { useCanvasEditorSession } from "../../canvas/editor-session";
+import type { getCanvasEditorSession } from "../../canvas/editor-session";
 import { useNodeOperationGate } from "../../canvas/node-operation-gate";
 import { pasteSpaceClipboardAt } from "../../canvas/selection-actions";
 import { noteFromPlainText } from "../../canvas/text-import";
@@ -23,7 +23,7 @@ import type { SpaceUrlCaptureProjection } from "../../sources/url-capture-projec
 
 interface SpaceCanvasImportOptions {
   store: ReturnType<typeof useSpaceStore>;
-  editorSession: ReturnType<typeof useCanvasEditorSession>;
+  editorSession: ReturnType<typeof getCanvasEditorSession>;
   dropTarget(): HTMLElement | null;
   newNoteTitle: string;
   reportError(error: unknown): void;

@@ -1,4 +1,3 @@
-use crate::app_error::AppError;
 mod execution;
 pub(crate) mod intent;
 pub(crate) mod job;
@@ -15,6 +14,7 @@ pub use job::{EnqueueEnrichmentJobRequest, EnrichmentJobProjection, EnrichmentJo
 
 use tauri::{AppHandle, Runtime};
 
+use crate::app_error::AppError;
 use crate::spaces::db;
 use job::{FROM_LIVE, FROM_RUNNING, STATUS_CANCELLED, STATUS_FAILED, STATUS_SUCCEEDED};
 

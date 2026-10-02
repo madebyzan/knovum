@@ -7,7 +7,6 @@ use crate::spaces::structure::planner::tree_policy::{
     apply_sequences, effective_roots, require_editable, Index,
 };
 use crate::spaces::structure::repository::SpaceStructureSnapshot;
-use crate::spaces::structure::StructureNode;
 
 pub(in crate::spaces::structure) fn reorder(
     snapshot: &mut SpaceStructureSnapshot,
@@ -23,13 +22,10 @@ pub(in crate::spaces::structure) fn reorder(
         .node(&snapshot.structure, &roots[0])?
         .parent_id()
         .map(str::to_owned);
-    if roots.iter().any(|id| {
-        index
-            .node(&snapshot.structure, id)
-            .ok()
-            .and_then(StructureNode::parent_id)
-            != parent.as_deref()
-    }) {
+    if roots
+        .iter()
+        .any(|id| snapshot.structure[index.positions[id]].parent_id() != parent.as_deref())
+    {
         return Err("Reorder requires roots with the same parent".into());
     }
     for id in &roots {
@@ -97,13 +93,10 @@ pub(in crate::spaces::structure) fn auto_layout(
         return Err("Auto-layout requires selected roots".into());
     }
     let parent = index.node(&snapshot.structure, &roots[0])?.parent_id();
-    if roots.iter().any(|id| {
-        index
-            .node(&snapshot.structure, id)
-            .ok()
-            .and_then(StructureNode::parent_id)
-            != parent
-    }) {
+    if roots
+        .iter()
+        .any(|id| snapshot.structure[index.positions[id]].parent_id() != parent)
+    {
         return Err("Auto-layout requires roots with the same parent".into());
     }
     let mut measures = roots
@@ -115,12 +108,7 @@ pub(in crate::spaces::structure) fn auto_layout(
             ))
         })
         .collect::<Result<Vec<_>, String>>()?;
-    measures.sort_by_key(|(id, _)| {
-        index
-            .node(&snapshot.structure, id)
-            .map(StructureNode::order)
-            .unwrap_or(0)
-    });
+    measures.sort_by_key(|(id, _)| snapshot.structure[index.positions[id]].order());
     let start = measures
         .iter()
         .fold(None, |area, (_, bounds)| Some(merge(area, *bounds)))

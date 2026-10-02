@@ -1,7 +1,7 @@
 use crate::app_error::AppError;
 use crate::spaces::assets::{
     self,
-    import::{commit::AssetImportProgress, PreparedSpaceImport},
+    import::{commit::AssetImportProgress, prepare::PreparedSpaceImport},
     PreparedAsset,
 };
 use std::path::{Component, Path, PathBuf};
@@ -19,8 +19,11 @@ impl ImportResources<'_> {
     pub fn acquire(&mut self, relative: &str) -> Result<PreparedAsset, AppError> {
         super::import_control::check(self.cancellation)?;
         let source = resolve_resource(self.directory, relative)?;
-        let PreparedSpaceImport { job_id, asset } =
-            assets::import::prepare_owned_asset(self.app, source, self.cancellation.child_token())?;
+        let PreparedSpaceImport { job_id, asset } = assets::import::prepare::prepare_owned_asset(
+            self.app,
+            source,
+            self.cancellation.child_token(),
+        )?;
         let Some(job_id) = job_id else {
             return Ok(asset);
         };

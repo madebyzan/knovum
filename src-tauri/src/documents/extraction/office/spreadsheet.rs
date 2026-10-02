@@ -1,7 +1,8 @@
-use super::DocumentSegment;
 use office_oxide::xlsx::{worksheet::Row, XlsxDocument};
 use serde_json::json;
 use tokio_util::sync::CancellationToken;
+
+use super::DocumentSegment;
 
 /// Public cell APIs preserve actual addresses, formulas and cached values without IR's row cap.
 pub(super) fn segments(

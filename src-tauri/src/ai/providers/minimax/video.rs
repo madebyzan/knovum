@@ -1,13 +1,13 @@
-use crate::ai::transport::response;
 use futures::future::BoxFuture;
 use tokio_util::sync::CancellationToken;
 
+use super::endpoint;
 use crate::ai::{
     contracts::{
         GeneratedVideo, VideoGenerationCapability, VideoGenerationInput,
         VideoGenerationStageCallback, VideoGenerationStatus, VideoGenerationSubmission,
     },
-    transport::{http_client, SecurityContext},
+    transport::{http_client, response, SecurityContext},
 };
 use crate::app_error::{AppError, AppResult};
 
@@ -31,7 +31,7 @@ impl VideoGenerationCapability for MiniMaxVideoAdapter {
                 payload["first_frame_image"] = serde_json::json!(first_frame);
             }
 
-            let endpoint = minimax_endpoint(&ctx.endpoint);
+            let endpoint = endpoint(&ctx.endpoint);
             let submission_response = http_client()
                 .post(format!("{endpoint}/video_generation"))
                 .bearer_auth(api_key)
@@ -67,7 +67,7 @@ impl VideoGenerationCapability for MiniMaxVideoAdapter {
     ) -> BoxFuture<'a, AppResult<VideoGenerationStatus>> {
         Box::pin(async move {
             let api_key = ctx.require_api_key()?;
-            let endpoint = minimax_endpoint(&ctx.endpoint);
+            let endpoint = endpoint(&ctx.endpoint);
             let query_url = format!("{endpoint}/query/video_generation?task_id={task_id}");
 
             let query_response = http_client()
@@ -127,17 +127,6 @@ impl VideoGenerationCapability for MiniMaxVideoAdapter {
         Box::pin(async move {
             crate::ai::capabilities::video::materialize(self, ctx, req, cancellation, stage).await
         })
-    }
-}
-
-fn minimax_endpoint(raw: &str) -> String {
-    let trimmed = raw.trim().trim_end_matches('/');
-    if trimmed.is_empty() {
-        "https://api.minimax.chat/v1".to_string()
-    } else if trimmed.ends_with("/v1") {
-        trimmed.to_string()
-    } else {
-        format!("{trimmed}/v1")
     }
 }
 

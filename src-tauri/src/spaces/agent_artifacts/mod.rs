@@ -14,14 +14,6 @@ pub async fn create_agent_artifacts(
     request: contracts::AgentCreationRequest,
     on_event: Channel<contracts::AgentCreationEvent>,
 ) -> Result<Vec<crate::ai::contracts::AgentArtifact>, AppError> {
-    create_agent_artifacts_scoped(app, request, on_event).await
-}
-
-async fn create_agent_artifacts_scoped(
-    app: AppHandle,
-    request: contracts::AgentCreationRequest,
-    on_event: Channel<contracts::AgentCreationEvent>,
-) -> Result<Vec<crate::ai::contracts::AgentArtifact>, AppError> {
     if request.prompt.trim().is_empty() {
         return Err(AppError::invalid("Agent creation prompt cannot be empty"));
     }

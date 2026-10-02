@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 use serde_json::{Map, Value};
 
 use super::{MAX_HEADING_PATH_ITEMS, MAX_LOCATION_TEXT_CHARS};
@@ -9,8 +7,7 @@ pub(super) fn ensure_keys(
     allowed: &[&str],
     label: &str,
 ) -> Result<(), String> {
-    let allowed: HashSet<&str> = allowed.iter().copied().collect();
-    if let Some(key) = object.keys().find(|key| !allowed.contains(key.as_str())) {
+    if let Some(key) = object.keys().find(|key| !allowed.contains(&key.as_str())) {
         return Err(format!("{label} field '{key}' is not supported"));
     }
     Ok(())

@@ -13,7 +13,7 @@ import { generateVideoFromSources, type VideoDraft } from "../video/generation";
 import { generateVisualization, type VisualizationDraft } from "../visualization";
 import type { CreationDialogId } from "./creation-dialog";
 
-interface UseDerivationActionsOptions {
+interface DerivationActionsOptions {
   canRun(actionId: CreationIntentId): boolean;
   canSubmit(): boolean;
   store: ReturnType<typeof useSpaceStore>;
@@ -23,7 +23,7 @@ interface UseDerivationActionsOptions {
   dialog: ShallowRef<CreationDialogId | undefined>;
 }
 
-export function useDerivationActions({
+export function createDerivationActions({
   canRun,
   canSubmit,
   store,
@@ -31,7 +31,7 @@ export function useDerivationActions({
   single,
   sources,
   dialog,
-}: UseDerivationActionsOptions) {
+}: DerivationActionsOptions) {
   const handlers: Record<CreationIntentId, () => void> = {
     "remove-image-background": () => void (single.value && createImageCutout(store, single.value)),
     "add-video-subtitles": () => void (single.value && addVideoSubtitles(store, single.value)),

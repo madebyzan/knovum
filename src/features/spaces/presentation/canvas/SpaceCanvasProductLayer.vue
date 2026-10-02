@@ -5,7 +5,7 @@ import { useI18n } from "vue-i18n";
 
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import { useCanvasToolStore } from "../../canvas/canvas-tool-store";
-import { useCanvasEditorSession, useCanvasSelectionProjection } from "../../canvas/editor-session";
+import { getCanvasEditorSession, useCanvasSelectionProjection } from "../../canvas/editor-session";
 import { useSelectionDerivations } from "../../knowledge-derivations/selection/use-selection-derivations";
 import { useSpaceStore } from "../../session/space-store";
 import type { SpaceUrlCaptureProjection } from "../../sources/url-capture-projection";
@@ -36,7 +36,7 @@ defineProps<{
 const store = useSpaceStore();
 const tools = useCanvasToolStore();
 const { t } = useI18n();
-const editorSession = useCanvasEditorSession();
+const editorSession = getCanvasEditorSession();
 const {
   angleNodeId,
   selectionKey,

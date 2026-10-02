@@ -4,8 +4,8 @@ import { storeToRefs } from "pinia";
 import { computed, inject } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { enrichmentProjectionKey } from "../../../enrichment/enrichment-projection-key";
 import { enrichmentJobTitle } from "../../../enrichment/job-tasks";
-import { enrichmentProjectionKey } from "../../../enrichment/use-enrichment-task-projection";
 import { useImageEditSession } from "../../../image-editing/image-edit-session";
 import type { SpaceNodePayload } from "../../../model/nodes/node-payload";
 import { useSpaceStore } from "../../../session/space-store";

@@ -1,5 +1,6 @@
 import {
   boundsEnd,
+  boundsPoints,
   boundsSize,
   boundsStart,
   canvasFrameBounds,
@@ -51,7 +52,7 @@ function alignmentSnap(
   tolerance: number,
 ) {
   const targets = axis === "x" ? index.x : index.y;
-  const points = alignmentPoints(moving, axis);
+  const points = boundsPoints(moving, axis);
   const match = nearestAlignment(points, targets, tolerance);
   if (!match) return undefined;
   const moved = translateCanvasBounds(
@@ -64,12 +65,6 @@ function alignmentSnap(
     points: alignmentGuidePoints(moved, extent, match.value, axis),
   };
   return { guides: [guide], offset: match.offset };
-}
-
-function alignmentPoints(bounds: CanvasBounds, axis: "x" | "y") {
-  return axis === "x"
-    ? [bounds.left, bounds.centerX, bounds.right]
-    : [bounds.top, bounds.centerY, bounds.bottom];
 }
 
 function nearestAlignment(points: readonly number[], targets: readonly number[], tolerance: number) {

@@ -49,7 +49,7 @@ pub async fn get_node<R: Runtime>(
     .await
     .map_err(db::sql_error)?
     .ok_or("node-unavailable: resource is unavailable")?;
-    Ok((decode_node_projection(row))?)
+    Ok(decode_node_projection(row)?)
 }
 
 fn decode_node_projection(row: sqlx::sqlite::SqliteRow) -> Result<SpaceNodeProjection, String> {

@@ -1,6 +1,7 @@
+use std::io::Cursor;
+
 use base64::{engine::general_purpose::STANDARD, Engine};
 use image::{ImageReader, Limits};
-use std::io::Cursor;
 
 pub struct SourceImage {
     pub bytes: Vec<u8>,

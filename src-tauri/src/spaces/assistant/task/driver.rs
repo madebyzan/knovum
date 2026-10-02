@@ -1,4 +1,3 @@
-use crate::app_error::AppError;
 use std::collections::BTreeSet;
 
 use sqlx::SqlitePool;
@@ -6,6 +5,7 @@ use tauri::ipc::Channel;
 use tokio_util::sync::CancellationToken;
 
 use super::identity::{ensure_active, ensure_within_duration, TaskIds};
+use crate::app_error::AppError;
 use crate::{
     agent_runtime::{self, ControlDirective},
     ai::contracts::{ModelToolChoice, ModelTurnRequest},

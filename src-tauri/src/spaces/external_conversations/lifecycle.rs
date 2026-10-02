@@ -1,7 +1,6 @@
-use crate::app_error::AppError;
 use tauri::AppHandle;
 
-use crate::{ai::capabilities, spaces::db};
+use crate::{ai::capabilities, app_error::AppError, spaces::db};
 
 pub async fn close(app: AppHandle, conversation_id: &str) -> Result<(), AppError> {
     crate::external_agents::conversation::finish(conversation_id).await?;

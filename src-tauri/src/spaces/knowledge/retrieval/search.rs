@@ -7,8 +7,8 @@ use tauri::{AppHandle, Runtime};
 use crate::{ai::capabilities::embedding, spaces::db};
 
 use super::{
-    current_chunks, embedding_contract, lancedb_store::open_knowledge_table,
-    predicates::escape_sql_literal, schema::VECTOR_COLUMN, validation::validate_query_vector,
+    current_chunks, lancedb_store::open_knowledge_table, predicates::escape_sql_literal,
+    schema::VECTOR_COLUMN, validation::validate_query_vector,
 };
 
 pub(crate) async fn embed_query<R: Runtime>(
@@ -26,7 +26,7 @@ pub(crate) async fn embed_query<R: Runtime>(
         cancellation,
     )
     .await?;
-    let formatted = embedding_contract::format_query(query);
+    let formatted = embedding::active_text_provider().format_query(query);
     let response = embedding::embed(vec![formatted], &resources, cancellation).await?;
     response
         .vectors
@@ -47,7 +47,7 @@ pub(crate) async fn search_semantic_vector<R: Runtime>(
     let table = open_knowledge_table(app).await?;
     let filter = build_filter(
         space_id,
-        embedding_contract::active_model_id(),
+        embedding::active_text_provider().model_id(),
         node_ids,
         exclude_node_id,
     );

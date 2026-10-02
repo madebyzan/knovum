@@ -1,3 +1,6 @@
+use tauri::{AppHandle, Manager};
+use tokio_util::sync::CancellationToken;
+
 use super::{contracts::ImageOperation, mask, source::SourceImage};
 use crate::app_error::AppError;
 use crate::{
@@ -5,8 +8,6 @@ use crate::{
     external_agents::task::{self, ArtifactFormat},
     spaces::derivation::scratch_file::ScratchFile,
 };
-use tauri::{AppHandle, Manager};
-use tokio_util::sync::CancellationToken;
 
 pub(super) async fn execute(
     app: &AppHandle,

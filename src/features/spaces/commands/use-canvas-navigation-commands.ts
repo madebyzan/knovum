@@ -4,7 +4,7 @@ import { useI18n } from "vue-i18n";
 import { availableWhen } from "../../../shared/contracts/action-availability";
 import type { AppCommand, CommandCategory } from "../../../shared/contracts/app-command";
 import { useCanvasToolStore } from "../canvas/canvas-tool-store";
-import { useCanvasEditorSession } from "../canvas/editor-session";
+import { getCanvasEditorSession } from "../canvas/editor-session";
 import { currentSelectionRoots } from "../canvas/selection/selection-roots";
 import { useContextDock } from "../canvas/use-context-dock";
 import { isSpaceSemanticNode } from "../knowledge/model/semantic-node";
@@ -18,7 +18,7 @@ export function useCanvasNavigationCommands() {
   const { t } = useI18n();
   const store = useSpaceStore();
   const dock = useContextDock();
-  const session = useCanvasEditorSession();
+  const session = getCanvasEditorSession();
   const tools = useCanvasToolStore();
   const scenes = useSceneNavigation();
   const selectedNodes = () => {

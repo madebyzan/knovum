@@ -7,23 +7,23 @@ import type {
   CanvasDistributeMode,
   CanvasLayerMove,
 } from "../../canvas/contracts/canvas-editor-port";
-import { useCanvasEditorSession, useCanvasSelectionProjection } from "../../canvas/editor-session";
+import { getCanvasEditorSession, useCanvasSelectionProjection } from "../../canvas/editor-session";
 import type { CanvasNodeAppearance } from "../../canvas/schema/document";
 import { openSpaceNode } from "../../canvas/selection-actions";
 import { useContextDock } from "../../canvas/use-context-dock";
 import { isSpaceSemanticNode } from "../../knowledge/model/semantic-node";
 import { useSpaceStore } from "../../session/space-store";
 import { useCanvasNodeDownload } from "./canvas-node-download";
+import { createCanvasStructureSelectionActions } from "./canvas-structure-selection-actions";
 import { canvasSelectionProductState } from "./selection-product-state";
 import { useCanvasOperationRunner } from "./use-canvas-operation-runner";
 import { useCanvasReparentActions } from "./use-canvas-reparent-actions";
 import { useCanvasSelectedMedia } from "./use-canvas-selected-media";
-import { useCanvasStructureSelectionActions } from "./use-canvas-structure-selection-actions";
 
 export function useCanvasSelectionActions() {
   const store = useSpaceStore();
   const dock = useContextDock();
-  const editorSession = useCanvasEditorSession();
+  const editorSession = getCanvasEditorSession();
   const nodeOperations = useCanvasOperationRunner();
   const runNodeOperation = nodeOperations.run;
   const runSelectionMutation = (operation: () => Promise<unknown>) =>
@@ -53,7 +53,7 @@ export function useCanvasSelectionActions() {
     spaceRootTitle: t("spaces.canvas.spaceRoot"),
     run: runSelectionMutation,
   });
-  const structureActions = useCanvasStructureSelectionActions({
+  const structureActions = createCanvasStructureSelectionActions({
     store,
     state,
     titles: { group: t("spaces.canvas.groups.untitled"), section: t("spaces.canvas.sections.untitled") },
@@ -88,7 +88,7 @@ export function useCanvasSelectionActions() {
     if (ids.length) dock.openWorkflowCapture(ids);
   }
 
-  function useWorkflow() {
+  function openWorkflowUse() {
     const ids = selectedNodes.value.map(({ id }) => id);
     if (ids.length) dock.openWorkflowUse(ids);
   }
@@ -169,7 +169,7 @@ export function useCanvasSelectionActions() {
     fitSection: structureActions.fitSection,
     inspect,
     inspectWorkflow,
-    useWorkflow,
+    openWorkflowUse,
     editVideo,
     moveToSpace,
     moveLayer,

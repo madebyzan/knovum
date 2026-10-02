@@ -1,8 +1,8 @@
-use crate::app_error::AppError;
 use serde_json::{json, Map, Value};
 use tauri::AppHandle;
 
 use super::inputs::ResolvedInputs;
+use crate::app_error::AppError;
 use crate::spaces::{
     db,
     knowledge::indexing::{revision, KnowledgeChunkInput},

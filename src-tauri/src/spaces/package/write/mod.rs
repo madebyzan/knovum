@@ -43,7 +43,7 @@ pub fn write_package(
         .map_err(|error| error.to_string())?;
     let packaged = archive::write(file, manifest, &index, &plans, progress, total)
         .and_then(|_| planning::verify_unchanged(&plans))
-        .and_then(|_| finalize_destination(&staging, target));
+        .and_then(|_| fs::rename(&staging, target).map_err(|error| error.to_string()));
     if packaged.is_err() {
         if let Err(error) = fs::remove_file(&staging) {
             if error.kind() != std::io::ErrorKind::NotFound {
@@ -55,10 +55,6 @@ pub fn write_package(
         }
     }
     packaged
-}
-
-fn finalize_destination(staging: &Path, target: &Path) -> Result<(), String> {
-    fs::rename(staging, target).map_err(|error| error.to_string())
 }
 
 fn staging_path(target: &Path, label: &str) -> Result<PathBuf, String> {

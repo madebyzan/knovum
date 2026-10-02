@@ -1,8 +1,9 @@
-use super::DocumentSegment;
+use std::{io::Read, path::Path};
+
 use serde_json::json;
-use std::io::Read;
-use std::path::Path;
 use tokio_util::sync::CancellationToken;
+
+use super::DocumentSegment;
 
 const MAX_SOURCE_BYTES: u64 = 128 * 1024 * 1024;
 const MAX_DOCUMENT_UTF16: usize = 4 * 1024 * 1024;

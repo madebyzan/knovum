@@ -100,7 +100,9 @@ pub(crate) async fn fail_step(
         .unwrap_or(3)
         .clamp(1, 10);
     if claim.attempt_number < max_attempts && retryable(error) {
-        let delay_seconds = 1_i64 << u32::try_from(claim.attempt_number - 1).unwrap_or(0).min(6);
+        let retry_index = u32::try_from(claim.attempt_number - 1)
+            .map_err(|_| AppError::new("attempt_invalid", "Run attempt number is invalid"))?;
+        let delay_seconds = 1_i64 << retry_index.min(6);
         schedule_retry(&mut tx, claim, now + delay_seconds * 1_000, now).await?;
         super::super::append_event(
             &mut tx,

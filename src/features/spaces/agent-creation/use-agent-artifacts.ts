@@ -59,6 +59,11 @@ export function useAgentArtifacts(open: Ref<boolean>) {
     );
   }
 
+  function setArtifactSelected(relativePath: string, selected: boolean) {
+    if (selected) selectedArtifacts.add(relativePath);
+    else selectedArtifacts.delete(relativePath);
+  }
+
   async function discard(spaceId: string, targetSessionId = sessionId.value) {
     if (!targetSessionId) return;
     await discardAgentCreation(spaceId, targetSessionId);
@@ -139,6 +144,7 @@ export function useAgentArtifacts(open: Ref<boolean>) {
     artifacts,
     recoveries,
     selectedArtifacts,
+    setArtifactSelected,
     selectedCount: computed(() => selectedArtifacts.size),
     replace,
     restore,

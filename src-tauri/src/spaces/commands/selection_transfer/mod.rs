@@ -1,4 +1,3 @@
-use crate::app_error::AppError;
 mod completion;
 pub(crate) mod contracts;
 mod operations;
@@ -8,6 +7,7 @@ use std::collections::HashSet;
 
 use tauri::{AppHandle, Runtime};
 
+use crate::app_error::AppError;
 use crate::spaces::{db, knowledge, structure};
 use contracts::TransferSelectionRequest;
 use contracts::TransferSelectionResponse;

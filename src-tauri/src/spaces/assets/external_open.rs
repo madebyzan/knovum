@@ -1,8 +1,9 @@
-use serde::Deserialize;
 use std::path::Path;
 
 #[cfg(target_os = "windows")]
 use std::process::Command;
+
+use serde::Deserialize;
 
 #[derive(Deserialize)]
 #[serde(tag = "kind", rename_all = "camelCase")]

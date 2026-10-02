@@ -31,10 +31,6 @@ onMounted(async () => {
   }
 });
 
-function updateDraft(value: string) {
-  draft.value = value;
-}
-
 async function save() {
   if (!draft.value.trim() || saving.value) return;
   saving.value = true;
@@ -70,7 +66,7 @@ async function remove() {
     <div class="flex flex-wrap items-center gap-2">
       <div class="relative w-80">
         <UiInput
-          :model-value="draft"
+          v-model="draft"
           :aria-label="label"
           class="pr-10"
           :type="reveal ? 'text' : 'password'"
@@ -82,7 +78,6 @@ async function remove() {
                 : t('settings.ai.apiKeyNotSet')
           "
           :disabled="disabled || saving"
-          @update:model-value="updateDraft"
           @keydown.enter="save"
         />
         <UiIconButton

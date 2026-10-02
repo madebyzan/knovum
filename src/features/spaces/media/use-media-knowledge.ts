@@ -4,7 +4,7 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
-import { useCanvasEditorSession } from "../canvas/editor-session";
+import { getCanvasEditorSession } from "../canvas/editor-session";
 import { useNodeOperationGate } from "../canvas/node-operation-gate";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { isSpaceMediaPayload } from "../model/nodes/capabilities";
@@ -61,7 +61,7 @@ export function useMediaKnowledge(node: Ref<SpaceCanvasNode>) {
     }
   }
   function seek(positionMs: number) {
-    useCanvasEditorSession().reveal([node.value.id], "focus");
+    getCanvasEditorSession().reveal([node.value.id], "focus");
     store.requestMediaSeek(node.value.id, positionMs);
   }
   async function generateInsights() {

@@ -1,4 +1,3 @@
-use crate::app_error::AppError;
 use std::path::Path;
 
 use serde_json::Value;
@@ -9,6 +8,7 @@ use super::{validation, GenerateVisualizationRequest, VisualizationOutput, Visua
 use crate::spaces::derivation::{inputs, pending_output, relations, source_validation};
 use crate::{
     ai::tasks::TaskExecutionTarget,
+    app_error::AppError,
     spaces::{
         assets::asset_directory,
         db,

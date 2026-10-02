@@ -5,7 +5,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
-import { useCanvasEditorSession } from "../../canvas/editor-session";
+import { getCanvasEditorSession } from "../../canvas/editor-session";
 import type { SpaceUrlCaptureProjection } from "../../sources/url-capture-projection";
 import SpaceEmptyState from "../SpaceEmptyState.vue";
 import SpaceCanvasMediaImport from "./SpaceCanvasMediaImport.vue";
@@ -26,7 +26,7 @@ const emit = defineEmits<{
   retryCapture: [capture: SpaceUrlCaptureProjection];
 }>();
 const { t } = useI18n();
-const editorSession = useCanvasEditorSession();
+const editorSession = getCanvasEditorSession();
 const visibleCaptures = computed(() => props.captures.filter((capture) => capture.spaceId === props.spaceId));
 
 function captureStyle(capture: SpaceUrlCaptureProjection) {

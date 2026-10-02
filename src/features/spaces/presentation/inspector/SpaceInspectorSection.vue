@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ChevronDown } from "@lucide/vue";
 import { CollapsibleContent, CollapsibleRoot, CollapsibleTrigger } from "reka-ui";
-import { shallowRef } from "vue";
+import { shallowRef, type Component } from "vue";
 
-const props = withDefaults(defineProps<{ title: string; icon?: unknown; defaultExpanded?: boolean }>(), {
+const props = withDefaults(defineProps<{ title: string; icon?: Component; defaultExpanded?: boolean }>(), {
   defaultExpanded: true,
 });
 const expanded = shallowRef(props.defaultExpanded);

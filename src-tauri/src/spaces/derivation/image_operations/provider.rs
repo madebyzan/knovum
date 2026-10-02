@@ -1,4 +1,3 @@
-use crate::app_error::AppError;
 use tokio_util::sync::CancellationToken;
 
 use super::{contracts::ImageOperation, routing::ImageOperationBackend, source::SourceImage};
@@ -10,6 +9,7 @@ use crate::ai::{
     },
     transport::SecurityContext,
 };
+use crate::app_error::AppError;
 
 pub(super) async fn execute(
     target: &ModelExecutionTarget,

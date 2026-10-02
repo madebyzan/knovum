@@ -1,3 +1,7 @@
+use serde::Deserialize;
+use tauri::AppHandle;
+use tokio_util::sync::CancellationToken;
+
 use super::resource;
 use crate::app_error::AppError;
 use crate::spaces::knowledge::node_contracts::document_coverage::{
@@ -10,9 +14,6 @@ use crate::{
     },
     spaces::assets::enrichment::ensure_active,
 };
-use serde::Deserialize;
-use tauri::AppHandle;
-use tokio_util::sync::CancellationToken;
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]

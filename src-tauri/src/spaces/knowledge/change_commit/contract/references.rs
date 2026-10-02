@@ -75,14 +75,6 @@ pub(crate) async fn validate_references(
     space_id: &str,
     operations: &[KnowledgeChange],
 ) -> Result<(), String> {
-    validate_references_mode(tx, space_id, operations).await
-}
-
-async fn validate_references_mode(
-    tx: &mut Transaction<'_, Sqlite>,
-    space_id: &str,
-    operations: &[KnowledgeChange],
-) -> Result<(), String> {
     let nodes = load_ids(
         tx,
         "SELECT id FROM spaces_semantic_nodes WHERE space_id=$1",

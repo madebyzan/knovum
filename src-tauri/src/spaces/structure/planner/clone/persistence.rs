@@ -8,10 +8,11 @@ pub(super) async fn clone_nodes(
     tx: &mut Transaction<'_, Sqlite>,
     space_id: &str,
     ids: &HashMap<String, String>,
+    structure_ids: &HashMap<String, String>,
 ) -> Result<(), String> {
     let now = crate::clock::unix_time_millis()?;
     for (old_id, new_id) in ids {
-        let row = sqlx::query("SELECT kind,object_type_id,initial_x,initial_y,data FROM spaces_nodes WHERE id=$1 AND space_id=$2 AND deleted_at IS NULL")
+        let row = sqlx::query("SELECT n.kind,n.object_type_id,n.initial_x,n.initial_y,n.data,t.fields AS object_fields FROM spaces_nodes n LEFT JOIN spaces_object_types t ON t.id=n.object_type_id WHERE n.id=$1 AND n.space_id=$2 AND n.deleted_at IS NULL")
             .bind(old_id).bind(space_id).fetch_optional(&mut **tx).await.map_err(db::sql_error)?
             .ok_or_else(|| format!("Clone content node not found: {old_id}"))?;
         let mut data: serde_json::Value = serde_json::from_str(
@@ -20,7 +21,17 @@ pub(super) async fn clone_nodes(
                 .as_str(),
         )
         .map_err(db::json_error)?;
-        rewrite_node_ids(&mut data, ids);
+        let fields: Option<String> = row.try_get("object_fields").map_err(db::sql_error)?;
+        let fields = fields
+            .as_deref()
+            .map(|raw| serde_json::from_str(raw).map_err(db::json_error))
+            .transpose()?;
+        super::super::super::node_reference_remap::remap(
+            &mut data,
+            ids,
+            structure_ids,
+            fields.as_ref(),
+        )?;
         sqlx::query("INSERT INTO spaces_nodes(id,space_id,kind,object_type_id,initial_x,initial_y,data,created_at,updated_at,deleted_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$8,NULL)")
             .bind(new_id).bind(space_id)
             .bind(row.try_get::<String,_>("kind").map_err(db::sql_error)?)
@@ -43,27 +54,6 @@ pub(super) async fn clone_nodes(
         crate::spaces::knowledge::contracts::validate_node(tx, space_id, &kind, &data).await?;
     }
     Ok(())
-}
-
-fn rewrite_node_ids(value: &mut serde_json::Value, ids: &HashMap<String, String>) {
-    match value {
-        serde_json::Value::String(current) => {
-            if let Some(replacement) = ids.get(current) {
-                *current = replacement.clone();
-            }
-        }
-        serde_json::Value::Array(values) => {
-            for value in values {
-                rewrite_node_ids(value, ids);
-            }
-        }
-        serde_json::Value::Object(fields) => {
-            for value in fields.values_mut() {
-                rewrite_node_ids(value, ids);
-            }
-        }
-        _ => {}
-    }
 }
 
 pub(super) async fn clone_relations(

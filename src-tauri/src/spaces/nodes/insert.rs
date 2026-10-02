@@ -97,9 +97,7 @@ pub(in crate::spaces) async fn insert_many_in_transaction(
         &edit_revision,
     )
     .await?;
-    if !request.nodes.is_empty() {
-        touch_updated_at(tx, &request.space_id, now).await?;
-    }
+    touch_updated_at(tx, &request.space_id, now).await?;
     Ok(edit_revision)
 }
 
@@ -200,13 +198,7 @@ async fn insert_single_node(
     chunk_store::replace(tx, space_id, &node.id, "derived", &derived, now).await?;
     let media = media_chunks(&node.data)?;
     chunk_store::replace(tx, space_id, &node.id, "media", &media, now).await?;
-    Ok(jobs::intent::synchronize_for_node(
-        tx,
-        space_id,
-        &node.id,
-        &node.data,
-        now,
-        enrichment_target,
-    )
-    .await?)
+    jobs::intent::synchronize_for_node(tx, space_id, &node.id, &node.data, now, enrichment_target)
+        .await?;
+    Ok(())
 }

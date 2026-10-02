@@ -2,6 +2,27 @@ use super::derived_chunks;
 use serde_json::json;
 
 #[test]
+fn note_hard_break_is_preserved_in_indexed_text() {
+    let data = json!({
+        "kind": "note",
+        "knowledgeRevision": "node1:note",
+        "tiptapContent": {
+            "type": "doc",
+            "content": [{
+                "type": "paragraph",
+                "content": [
+                    {"type": "text", "text": "first"},
+                    {"type": "hardBreak"},
+                    {"type": "text", "text": "second"}
+                ]
+            }]
+        }
+    });
+    let chunks = derived_chunks(&data).unwrap();
+    assert_eq!(chunks[0].text, "first\nsecond");
+}
+
+#[test]
 fn markdown_offsets_follow_crlf_utf16_positions() {
     let data = json!({"kind":"markdown","knowledgeRevision":"node1:test","text":"# A\r\n😀 body\r\n# B\r\nnext"});
     let chunks = derived_chunks(&data).unwrap();

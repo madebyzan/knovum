@@ -1,10 +1,9 @@
-use crate::ai::transport::response;
 use std::time::{Duration, Instant};
 
 use tokio_util::sync::CancellationToken;
 
-use super::image_operation_protocol as protocol;
-use crate::ai::transport::{http_client, SecurityContext};
+use super::{endpoint, image_operation_protocol as protocol};
+use crate::ai::transport::{http_client, response, SecurityContext};
 
 pub enum SourceImageOperation<'a> {
     Upscale {
@@ -109,13 +108,6 @@ async fn download(url: &str, cancellation: &CancellationToken) -> Result<Vec<u8>
             downloaded_image.map(|(_, _, bytes)| bytes)
         }
     }
-}
-
-fn endpoint(value: &str) -> String {
-    let value = value.trim().trim_end_matches('/');
-    let value = value.strip_suffix("/compatible-mode/v1").unwrap_or(value);
-    let value = value.strip_suffix("/api/v1").unwrap_or(value);
-    format!("{value}/api/v1")
 }
 
 fn response_error(code: Option<String>, message: Option<String>) -> String {

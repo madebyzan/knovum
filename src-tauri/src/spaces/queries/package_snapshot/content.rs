@@ -127,7 +127,7 @@ pub(super) async fn list_chunks(
 fn decode_node_projection(row: SqliteRow, assets: &mut PackageAssets) -> Result<Value, String> {
     let raw: String = row.try_get("data").map_err(db::sql_error)?;
     let mut data: Value = serde_json::from_str(&raw).map_err(db::json_error)?;
-    assets::rewrite_node_asset_paths(&mut data, |path| assets.reference(path));
+    assets::rewrite_node_asset_paths(&mut data, |path| Ok(assets.reference(path)))?;
     Ok(serde_json::json!({
         "id": row.try_get::<String, _>("id").map_err(db::sql_error)?,
         "kind": row.try_get::<String, _>("kind").map_err(db::sql_error)?,

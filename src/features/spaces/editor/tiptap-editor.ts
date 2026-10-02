@@ -14,7 +14,7 @@ import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { useSpaceStore as useStore } from "../session/space-store";
 import { createSpaceTiptapExtensions } from "./tiptap-extensions";
 import { revealKnowledgeInEditor } from "./tiptap-locator";
-import { createHeadingNavigation, spaceTiptapHeadings } from "./tiptap-outline";
+import { spaceTiptapHeadings, useHeadingNavigation } from "./tiptap-outline";
 import { createEditingState, persistSpaceTiptapContent, type EditingState } from "./tiptap-persistence";
 import { registerTiptapSessionParticipant } from "./tiptap-session-participant";
 import { createTiptapTextStatistics } from "./tiptap-text-statistics";
@@ -98,7 +98,7 @@ export function useSpaceTiptapEditor() {
     void state.revision.value;
     return spaceTiptapHeadings(editor.value);
   });
-  const outline = createHeadingNavigation(
+  const outline = useHeadingNavigation(
     () => editor.value,
     () => headings.value,
   );

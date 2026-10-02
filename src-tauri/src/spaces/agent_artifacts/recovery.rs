@@ -1,4 +1,3 @@
-use super::contracts;
 use std::collections::HashSet;
 
 use sqlx::Row;
@@ -6,6 +5,8 @@ use tauri::{AppHandle, Manager};
 
 use crate::ai::capabilities;
 use crate::app_error::{AppError, AppResult};
+
+use super::contracts;
 
 #[tauri::command]
 pub async fn list_recoverable_artifact_workspaces(

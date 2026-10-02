@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 use sqlx::{Sqlite, Transaction};
 use tokio_util::sync::CancellationToken;
 
-use super::publication::{dimensions, PreparedOutput};
+use super::publication::dimensions;
 use crate::{
     ai::capabilities::agent_artifacts,
     spaces::{assets, db, nodes::contracts::InsertNode, structure},
@@ -40,7 +40,7 @@ pub(super) async fn stage(
     pool: &sqlx::SqlitePool,
     run_id: &str,
     workspace: &Path,
-) -> Result<Vec<PreparedOutput>, String> {
+) -> Result<Vec<InsertNode>, String> {
     let workspace = workspace.to_path_buf();
     let artifacts = crate::blocking::run({
         let workspace = workspace.clone();
@@ -55,7 +55,7 @@ pub(super) async fn stage(
             move || {
                 let source = agent_artifacts::resolve_collected(&workspace, &artifact)
                     .map_err(|error| error.to_string())?;
-                assets::import::prepare_owned_asset(&app, source, CancellationToken::new())
+                assets::import::prepare::prepare_owned_asset(&app, source, CancellationToken::new())
             }
         })
         .await;
@@ -76,13 +76,13 @@ async fn stage_prepared(
     app: &tauri::AppHandle,
     pool: &sqlx::SqlitePool,
     run_id: &str,
-    prepared: assets::import::PreparedSpaceImport,
-) -> Result<PreparedOutput, String> {
+    prepared: assets::import::prepare::PreparedSpaceImport,
+) -> Result<InsertNode, String> {
     let main_path = prepared.asset.path.as_deref().map(PathBuf::from);
     if let Some(path) = &main_path {
         if let Err(error) = record_path(pool, run_id, path, PathRole::Asset).await {
             return match prepared.job_id.as_deref() {
-                Some(job_id) => match assets::import::discard_owned_import(job_id) {
+                Some(job_id) => match assets::import::commit::discard_owned_import(job_id) {
                     Ok(()) => Err(error),
                     Err(cleanup) => {
                         Err(format!("{error}; pending import cleanup failed: {cleanup}"))
@@ -94,7 +94,7 @@ async fn stage_prepared(
     }
     let asset = match prepared.job_id {
         Some(job_id) => {
-            crate::blocking::run(move || assets::import::copy_owned_import(&job_id)).await?
+            crate::blocking::run(move || assets::import::commit::copy_owned_import(&job_id)).await?
         }
         None => prepared.asset,
     };
@@ -134,20 +134,18 @@ async fn stage_prepared(
         .ok_or("Agent output has no node kind")?
         .to_owned();
     let (width, height) = dimensions(&kind);
-    Ok(PreparedOutput {
-        node: InsertNode {
-            id: uuid::Uuid::new_v4().to_string(),
-            kind,
-            initial_x: 0.0,
-            initial_y: 0.0,
-            width,
-            height,
-            sizing_mode: structure::SizingMode::Content,
-            appearance: None,
-            file_subpath: None,
-            data: finalized.data,
-            source_chunks: finalized.source_chunks,
-        },
+    Ok(InsertNode {
+        id: uuid::Uuid::new_v4().to_string(),
+        kind,
+        initial_x: 0.0,
+        initial_y: 0.0,
+        width,
+        height,
+        sizing_mode: structure::SizingMode::Content,
+        appearance: None,
+        file_subpath: None,
+        data: finalized.data,
+        source_chunks: finalized.source_chunks,
     })
 }
 

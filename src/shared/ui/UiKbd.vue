@@ -2,7 +2,7 @@
 import { computed, type HTMLAttributes } from "vue";
 
 import { cn } from "./cn";
-import { useKbd } from "./use-kbd";
+import { formatShortcutLabel, parseShortcut } from "./keyboard-shortcut-label";
 
 const props = withDefaults(
   defineProps<{
@@ -15,8 +15,6 @@ const props = withDefaults(
     variant: "subtle",
   },
 );
-
-const { parseShortcut, formatShortcutLabel } = useKbd();
 
 const keyGroups = computed(() => (props.shortcut ? parseShortcut(props.shortcut) : []));
 const shortcutLabel = computed(() => (props.shortcut ? formatShortcutLabel(props.shortcut) : undefined));

@@ -106,12 +106,7 @@ pub fn handle_window_event<R: Runtime>(window: &Window<R>, event: &WindowEvent) 
         return;
     }
 
-    #[cfg(target_os = "macos")]
-    if let WindowEvent::CloseRequested { api, .. } = event {
-        api.prevent_close();
-    }
-
-    #[cfg(target_os = "windows")]
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
     if let WindowEvent::CloseRequested { api, .. } = event {
         api.prevent_close();
     }

@@ -35,22 +35,24 @@ let pendingTransitions = 0;
 let suspendedEditor: CanvasEditorPort | undefined;
 let suspendedParticipants: readonly SpaceSessionParticipant[] = [];
 
-export function useCanvasEditorSession() {
-  return {
-    activeEditor,
-    activeTextSelectionNodeId: readonly(activeTextSelectionNodeId),
-    activeTextEditorNodeId: readonly(activeTextEditorNodeId),
-    directManipulation: readonly(directManipulation),
-    transitioning: readonly(transitioning),
-    selection: readonly(selection),
-    viewport,
-    clearSelection: () => activeEditor.value?.clearSelection(),
-    reveal: (nodeIds: readonly string[], mode: "ensure-visible" | "focus") =>
-      activeEditor.value?.reveal(nodeIds, mode),
-    selectNodes: (nodeIds: readonly string[]) => activeEditor.value?.selectNodes(nodeIds),
-    selectStructureNodes: (structureNodeIds: readonly string[]) =>
-      activeEditor.value?.selectStructureNodes(structureNodeIds),
-  };
+const editorSession = {
+  activeEditor,
+  activeTextSelectionNodeId: readonly(activeTextSelectionNodeId),
+  activeTextEditorNodeId: readonly(activeTextEditorNodeId),
+  directManipulation: readonly(directManipulation),
+  transitioning: readonly(transitioning),
+  selection: readonly(selection),
+  viewport,
+  clearSelection: () => activeEditor.value?.clearSelection(),
+  reveal: (nodeIds: readonly string[], mode: "ensure-visible" | "focus") =>
+    activeEditor.value?.reveal(nodeIds, mode),
+  selectNodes: (nodeIds: readonly string[]) => activeEditor.value?.selectNodes(nodeIds),
+  selectStructureNodes: (structureNodeIds: readonly string[]) =>
+    activeEditor.value?.selectStructureNodes(structureNodeIds),
+};
+
+export function getCanvasEditorSession() {
+  return editorSession;
 }
 
 export function currentCanvasEditor() {
@@ -156,7 +158,7 @@ export function runCanvasSessionTransition<T>(transition: () => Promise<T>) {
 }
 
 export function useCanvasSelectionProjection(nodes: MaybeRefOrGetter<readonly SpaceCanvasNode[]>) {
-  const session = useCanvasEditorSession();
+  const session = getCanvasEditorSession();
   const selectedNodes = computed(() =>
     selectedCanvasNodesInOrder(toValue(nodes), session.selection.value.nodeIds),
   );

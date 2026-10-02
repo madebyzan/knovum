@@ -1,4 +1,3 @@
-use crate::app_error::AppError;
 mod persistence;
 mod preparation;
 mod registry;
@@ -13,6 +12,7 @@ use serde::{Deserialize, Serialize};
 use tauri::{ipc::Channel, AppHandle};
 
 use super::{failure, CompletedDerivationOutput};
+use crate::app_error::AppError;
 use crate::blocking;
 
 pub const CANCELLED: &str = "video-subtitle-derivation-cancelled";
@@ -36,15 +36,6 @@ pub struct SubtitledVideoProgress {
 }
 
 pub(super) async fn render_for_action(
-    authority: super::action_execution::ExecutionAuthority,
-    app: AppHandle,
-    request: RenderSubtitledVideoRequest,
-    on_progress: Channel<SubtitledVideoProgress>,
-) -> Result<CompletedDerivationOutput, AppError> {
-    render_inner(authority, app, request, on_progress).await
-}
-
-async fn render_inner(
     authority: super::action_execution::ExecutionAuthority,
     app: AppHandle,
     request: RenderSubtitledVideoRequest,

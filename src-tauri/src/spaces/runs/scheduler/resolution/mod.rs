@@ -61,7 +61,10 @@ fn dependency_input(
                 .collect(),
         )
     } else if values.len() == 1 {
-        values.into_iter().next().unwrap_or(Value::Null)
+        values
+            .into_iter()
+            .next()
+            .expect("single dependency has one value")
     } else {
         Value::Object(ids.iter().cloned().zip(values).collect())
     };

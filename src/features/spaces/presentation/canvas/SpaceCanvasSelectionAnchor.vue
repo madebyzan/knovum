@@ -3,7 +3,7 @@ import { useElementSize } from "@vueuse/core";
 import { computed, shallowRef, useTemplateRef, watch } from "vue";
 
 import type { CanvasPoint, CanvasRect } from "../../canvas/contracts/canvas-editor-port";
-import { useCanvasEditorSession } from "../../canvas/editor-session";
+import { getCanvasEditorSession } from "../../canvas/editor-session";
 import { type SurfaceRect, type SurfaceSide } from "./selection-surface-geometry";
 import { placeSelectionSurface } from "./selection-surface-placement";
 import { useSurfaceTriggerOpen } from "./use-surface-trigger-open";
@@ -19,7 +19,7 @@ const props = defineProps<{
   kind: "actions" | "compact-editor" | "inspector";
 }>();
 const emit = defineEmits<{ ready: [] }>();
-const editorSession = useCanvasEditorSession();
+const editorSession = getCanvasEditorSession();
 const host = useTemplateRef<HTMLElement>("host");
 const toolbar = useTemplateRef<HTMLElement>("toolbar");
 const content = useTemplateRef<HTMLElement>("content");

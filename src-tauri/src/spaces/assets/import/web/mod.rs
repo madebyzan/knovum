@@ -1,11 +1,11 @@
-use crate::app_error::AppError;
-use serde::Serialize;
 use std::fs;
+
+use serde::Serialize;
 use uuid::Uuid;
 
-use crate::web_capture::{CapturedWebResource, WebDocumentKind};
-
 use super::super::asset_directory;
+use crate::app_error::AppError;
+use crate::web_capture::{CapturedWebResource, WebDocumentKind};
 
 #[derive(Serialize)]
 #[serde(

@@ -1,8 +1,12 @@
-use crate::app_error::AppError;
-use std::path::{Path, PathBuf};
+use std::{
+    io::Read,
+    path::{Path, PathBuf},
+};
 
 use serde::Serialize;
 use tauri_plugin_fs::FsExt;
+
+use crate::app_error::AppError;
 
 const MAX_FILE_BYTES: u64 = 20 * 1024 * 1024;
 const MAX_IMAGE_BYTES: u64 = 10 * 1024 * 1024;
@@ -169,8 +173,6 @@ pub(super) fn read_image(path: &Path, media_type: &str) -> Result<Vec<u8>, AppEr
 }
 
 pub(super) fn read_bounded(path: &Path, limit: u64) -> Result<Vec<u8>, AppError> {
-    use std::io::Read;
-
     let file = std::fs::File::open(path).map_err(|error| error.to_string())?;
     let mut bytes = Vec::new();
     file.take(limit + 1)

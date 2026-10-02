@@ -1,4 +1,3 @@
-use crate::app_error::AppError;
 pub(crate) mod contract;
 mod export;
 pub(crate) mod import;
@@ -9,6 +8,8 @@ mod content;
 mod conversion;
 mod file_import;
 mod import_control;
+
+use crate::app_error::AppError;
 
 #[tauri::command]
 pub(crate) fn cancel_json_canvas_import(mutation_id: String) -> Result<(), AppError> {

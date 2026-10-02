@@ -1,10 +1,10 @@
-use crate::app_error::AppError;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 use tauri::AppHandle;
 
 use super::{inputs, pending_output, relations, source_validation};
+use crate::app_error::AppError;
 use crate::spaces::{
     assets::asset_directory,
     db,
@@ -194,15 +194,8 @@ fn input_basis(role: &str) -> Result<inputs::RevisionBasis, AppError> {
 }
 
 fn validate(request: &DocumentPublication) -> Result<(), AppError> {
-    let primary = request
-        .inputs
-        .iter()
-        .filter(|input| input.role == "primary")
-        .count()
-        == 1;
     if request.bytes.is_empty()
         || request.inputs.len() != 1
-        || !primary
         || request
             .inputs
             .first()

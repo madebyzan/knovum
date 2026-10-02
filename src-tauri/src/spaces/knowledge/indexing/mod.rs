@@ -26,6 +26,17 @@ pub struct KnowledgeChunkInput {
     pub metadata: Option<Value>,
 }
 
+impl From<KnowledgeChunkSeed> for KnowledgeChunkInput {
+    fn from(chunk: KnowledgeChunkSeed) -> Self {
+        Self {
+            kind: chunk.kind.to_owned(),
+            text: chunk.text,
+            locator: chunk.locator,
+            metadata: (!chunk.metadata.is_null()).then_some(chunk.metadata),
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct KnowledgePassage {
     pub text: String,

@@ -61,7 +61,7 @@ async fn skip_path(
             .find(|node| node.get("id").and_then(Value::as_str) == Some(&node_id))
             .and_then(|node| node.get("kind"))
             .and_then(Value::as_str)
-            .unwrap_or_default();
+            .ok_or("workflow-plan-invalid: branch node is missing")?;
         if matches!(kind, "join" | "output") {
             continue;
         }

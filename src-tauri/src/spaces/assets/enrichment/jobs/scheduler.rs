@@ -1,12 +1,14 @@
+use std::{collections::HashSet, time::Duration};
+
+use serde::Serialize;
+use tauri::{ipc::Channel, AppHandle, Emitter};
+use tokio::task::JoinSet;
+
 use super::{
     execution::RunEnrichmentJobRequest,
     job::{EnrichmentJobStatus, EnrichmentJobType},
     persistence,
 };
-use serde::Serialize;
-use std::{collections::HashSet, time::Duration};
-use tauri::{ipc::Channel, AppHandle, Emitter};
-use tokio::task::JoinSet;
 
 #[derive(Clone, Serialize, ts_rs::TS)]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]

@@ -1,4 +1,3 @@
-use crate::app_error::AppError;
 mod media;
 mod node;
 mod visual;
@@ -10,6 +9,7 @@ use serde_json::Value;
 use tauri::{ipc::Channel, AppHandle};
 use tokio::sync::{OwnedSemaphorePermit, Semaphore};
 
+use crate::app_error::AppError;
 use crate::{
     ai::tasks::TaskTargetSelection, spaces::assets::transcription::MediaTranscriptionProgress,
 };

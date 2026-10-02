@@ -3,7 +3,7 @@ import { refDebounced } from "@vueuse/core";
 import { take } from "es-toolkit";
 import { computed, ref, watch, type Ref } from "vue";
 
-import { useCanvasEditorSession } from "../canvas/editor-session";
+import { getCanvasEditorSession } from "../canvas/editor-session";
 import { revealContentNode, revealStructureNode } from "../canvas/structure-navigation";
 import { useContextDock } from "../canvas/use-context-dock";
 import { useSpaceStore } from "../session/space-store";
@@ -19,7 +19,7 @@ export interface StructureTitleMatch {
 export function useFind(open: Ref<boolean>, close: () => void) {
   const store = useSpaceStore();
   const semanticSearch = useSemanticSearch(open);
-  const editorSession = useCanvasEditorSession();
+  const editorSession = getCanvasEditorSession();
   const dock = useContextDock();
   const query = ref("");
   const debouncedQuery = refDebounced(query, 300);

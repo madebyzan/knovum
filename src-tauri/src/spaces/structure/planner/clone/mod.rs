@@ -49,7 +49,7 @@ pub(in crate::spaces::structure) async fn clone_in_transaction(
             node_ids.insert(node_id.clone(), Uuid::new_v4().to_string());
         }
     }
-    persistence::clone_nodes(tx, space_id, &node_ids).await?;
+    persistence::clone_nodes(tx, space_id, &node_ids, &structure_node_ids).await?;
     persistence::clone_relations(tx, space_id, &node_ids, snapshot).await?;
 
     let root_set: HashSet<&str> = roots.iter().map(String::as_str).collect();

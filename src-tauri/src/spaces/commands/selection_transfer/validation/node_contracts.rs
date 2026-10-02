@@ -12,7 +12,7 @@ pub(super) async fn validate(
 ) -> Result<(), String> {
     validate_derivations(tx, space_id, selected).await?;
     let rows = sqlx::query(
-        "SELECT n.id,n.kind,n.data,n.object_type_id,t.fields FROM spaces_nodes n \
+        "SELECT n.id,n.data,n.object_type_id,t.fields FROM spaces_nodes n \
          LEFT JOIN spaces_object_types t ON t.id=n.object_type_id \
          WHERE n.space_id=$1 AND n.deleted_at IS NULL AND n.kind IN ('object')",
     )
@@ -59,14 +59,10 @@ async fn validate_derivations(
 
 fn validate_row(row: sqlx::sqlite::SqliteRow, selected: &HashSet<&str>) -> Result<(), String> {
     let id: String = row.try_get("id").map_err(db::sql_error)?;
-    let kind: String = row.try_get("kind").map_err(db::sql_error)?;
     let raw: String = row.try_get("data").map_err(db::sql_error)?;
     let data: Value = serde_json::from_str(&raw).map_err(db::json_error)?;
     let is_selected = selected.contains(id.as_str());
-    match kind.as_str() {
-        "object" => validate_object(&row, &data, is_selected, selected),
-        _ => Ok(()),
-    }
+    validate_object(&row, &data, is_selected, selected)
 }
 
 fn validate_object(

@@ -5,9 +5,9 @@ use tauri::AppHandle;
 use super::{repository, StartExternalConversationRequest};
 use crate::{ai::capabilities, spaces::db};
 
-mod lifecycle;
+pub(super) mod lifecycle;
 
-pub(super) use lifecycle::mark_disconnected;
+use lifecycle::mark_disconnected;
 
 pub async fn start(
     app: AppHandle,
@@ -23,7 +23,7 @@ pub async fn start(
     let workspace = capabilities::agent_artifacts::workspace(&app, &request.space_id, &id)
         .map_err(|error| error.to_string())?;
     capabilities::agent_artifacts::prepare(&workspace).map_err(|error| error.to_string())?;
-    if let Err(error) = lifecycle::create_records(
+    if let Err(error) = lifecycle::create::create_records(
         &app,
         &request,
         &id,

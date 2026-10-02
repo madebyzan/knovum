@@ -1,3 +1,7 @@
+use std::collections::HashMap;
+
+use serde_json::{json, Value};
+
 use super::acquisition::ImportResources;
 use super::{
     contract::{JsonCanvasDocumentV1, JsonCanvasNodeV1, NodeFrameV1},
@@ -5,9 +9,13 @@ use super::{
     import::{ImportJsonCanvasNodesRequest, JsonCanvasNodeImport},
 };
 use crate::app_error::AppError;
-use crate::spaces::structure::repository::SpaceStructureSnapshot;
-use serde_json::{json, Value};
-use std::collections::HashMap;
+use crate::spaces::{
+    nodes::contracts::InsertNode,
+    structure::{
+        repository::SpaceStructureSnapshot, LocalTransform, Point, Size, SizingMode,
+        StructureLayout, StructureNode,
+    },
+};
 
 pub(super) fn prepare(
     request: &ImportRequest,
@@ -31,19 +39,11 @@ pub(super) fn prepare(
     for node in &document.nodes {
         identities.insert(node.frame().id.clone(), uuid::Uuid::new_v4().to_string());
     }
-    let mut structure: Vec<Value> = serde_json::to_value(snapshot.structure)
-        .map_err(|error| error.to_string())?
-        .as_array()
-        .ok_or("Invalid Space structure")?
-        .clone();
-    let mut layouts: Vec<Value> = serde_json::to_value(snapshot.layouts)
-        .map_err(|error| error.to_string())?
-        .as_array()
-        .ok_or("Invalid Space layouts")?
-        .clone();
+    let mut structure = snapshot.structure;
+    let mut layouts = snapshot.layouts;
     let mut root_order = structure
         .iter()
-        .filter(|node| node["parentId"].is_null())
+        .filter(|node| node.parent_id().is_none())
         .count();
     let mut child_orders: HashMap<String, usize> = HashMap::new();
     let mut nodes = Vec::new();
@@ -72,8 +72,26 @@ pub(super) fn prepare(
                 None
             };
             appearance = section_appearance(frame, background, group.background_style.as_ref())?;
-            structure.push(json!({"id":id,"kind":"section","parentId":null,"order":root_order,"locked":false,"title":title}));
-            layouts.push(json!({"structureNodeId":id,"kind":"section","position":{"x":frame.x,"y":frame.y},"size":{"width":frame.width,"height":frame.height},"collapsed":false,"appearance":appearance}));
+            structure.push(StructureNode::Section {
+                id: id.clone(),
+                parent_id: None,
+                order: u32::try_from(root_order).map_err(|_| "JSON Canvas order exceeds limit")?,
+                locked: false,
+                title: title.to_owned(),
+            });
+            layouts.push(StructureLayout::Section {
+                structure_node_id: id.clone(),
+                position: Point {
+                    x: frame.x,
+                    y: frame.y,
+                },
+                size: Size {
+                    width: frame.width,
+                    height: frame.height,
+                },
+                collapsed: false,
+                appearance: Some(appearance),
+            });
             root_order += 1;
             continue;
         }
@@ -89,7 +107,7 @@ pub(super) fn prepare(
             let current = *order;
             *order += 1;
             (
-                json!(parent),
+                Some(parent.clone()),
                 frame.x - group.frame.x,
                 frame.y - group.frame.y,
                 current,
@@ -97,20 +115,52 @@ pub(super) fn prepare(
         } else {
             let order = root_order;
             root_order += 1;
-            (Value::Null, frame.x, frame.y, order)
+            (None, frame.x, frame.y, order)
         };
         let data = node_payload(node, &request.note_title, resources)?;
-        let prepared = json!({"id":id,"kind":data["kind"],"initialX":frame.x,"initialY":frame.y,"width":frame.width,"height":frame.height,"sizingMode":"frame","appearance":appearance,"fileSubpath":node.subpath(),"data":data,"sourceChunks":[]});
+        let prepared = InsertNode {
+            id: id.clone(),
+            kind: data["kind"]
+                .as_str()
+                .ok_or("JSON Canvas node kind is invalid")?
+                .to_owned(),
+            initial_x: frame.x,
+            initial_y: frame.y,
+            width: frame.width,
+            height: frame.height,
+            sizing_mode: SizingMode::Frame,
+            appearance: Some(appearance.clone()),
+            file_subpath: node.subpath().map(str::to_owned),
+            data,
+            source_chunks: Vec::new(),
+        };
         nodes.push(JsonCanvasNodeImport {
             source_id: frame.id.clone(),
-            node: serde_json::from_value(prepared).map_err(|error| error.to_string())?,
+            node: prepared,
         });
-        structure.push(json!({"id":id,"kind":"content","parentId":parent,"order":order,"locked":false,"nodeId":id}));
-        let mut layout = json!({"structureNodeId":id,"kind":"content","transform":{"x":x,"y":y,"rotation":0,"scale":1},"size":{"width":frame.width,"height":frame.height},"sizingMode":"frame","appearance":appearance});
-        if let Some(subpath) = node.subpath() {
-            layout["fileSubpath"] = json!(subpath);
-        }
-        layouts.push(layout);
+        structure.push(StructureNode::Content {
+            id: id.clone(),
+            parent_id: parent,
+            order: u32::try_from(order).map_err(|_| "JSON Canvas order exceeds limit")?,
+            locked: false,
+            node_id: id.clone(),
+        });
+        layouts.push(StructureLayout::Content {
+            structure_node_id: id.clone(),
+            transform: LocalTransform {
+                x,
+                y,
+                rotation: 0.0,
+                scale: 1.0,
+            },
+            size: Size {
+                width: frame.width,
+                height: frame.height,
+            },
+            sizing_mode: SizingMode::Frame,
+            appearance: Some(appearance),
+            file_subpath: node.subpath().map(str::to_owned),
+        });
     }
     let relations = document
         .edges
@@ -121,9 +171,8 @@ pub(super) fn prepare(
         space_id: request.space_id.clone(),
         mutation_id: request.mutation_id.clone(),
         base_revision: request.base_revision,
-        structure_nodes: serde_json::from_value(json!(structure))
-            .map_err(|error| error.to_string())?,
-        layouts: serde_json::from_value(json!(layouts)).map_err(|error| error.to_string())?,
+        structure_nodes: structure,
+        layouts,
         relation_styles: snapshot.relation_styles,
         nodes,
         relations,

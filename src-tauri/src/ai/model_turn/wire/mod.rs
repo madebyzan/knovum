@@ -24,17 +24,17 @@ impl GenAiModelTurnAdapter {
     pub const fn new(adapter_kind: AdapterKind) -> Self {
         Self { adapter_kind }
     }
+}
 
-    fn target(&self, context: &SecurityContext) -> ServiceTarget {
-        let auth = context
-            .api_key
-            .as_ref()
-            .map_or(AuthData::None, |key| AuthData::from_single(key.clone()));
-        ServiceTarget {
-            endpoint: Endpoint::from_owned(format!("{}/", context.endpoint.trim_end_matches('/'))),
-            auth,
-            model: ModelIden::new(self.adapter_kind, context.model.clone()),
-        }
+pub(super) fn service_target(adapter: AdapterKind, context: &SecurityContext) -> ServiceTarget {
+    let auth = context
+        .api_key
+        .as_ref()
+        .map_or(AuthData::None, |key| AuthData::from_single(key.clone()));
+    ServiceTarget {
+        endpoint: Endpoint::from_owned(format!("{}/", context.endpoint.trim_end_matches('/'))),
+        auth,
+        model: ModelIden::new(adapter, context.model.clone()),
     }
 }
 
@@ -47,7 +47,7 @@ impl ModelTurnCapability for GenAiModelTurnAdapter {
         Box::pin(async move {
             let response = Client::default()
                 .exec_chat(
-                    self.target(context),
+                    service_target(self.adapter_kind, context),
                     to_genai_request(request)?,
                     Some(&to_genai_options(request)),
                 )

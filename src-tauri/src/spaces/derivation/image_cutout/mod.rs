@@ -1,4 +1,3 @@
-use crate::app_error::AppError;
 mod completion;
 mod source;
 
@@ -7,6 +6,7 @@ use serde_json::Value;
 use tauri::AppHandle;
 
 use super::{failure, inputs, pending_output, CompletedDerivationOutput};
+use crate::app_error::AppError;
 use crate::spaces::{db, knowledge::contracts};
 
 #[derive(Deserialize)]

@@ -3,6 +3,7 @@ import { useI18n } from "vue-i18n";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import type { CapturedWorkflowRun } from "../../contracts/generated/CapturedWorkflowRun";
+import type { RunState } from "../../contracts/generated/RunState";
 import type { SavedCapturedWorkflow } from "../../contracts/generated/SavedCapturedWorkflow";
 import { workflowStateLabelKey } from "../../workflows/workflow-state-label";
 
@@ -10,7 +11,7 @@ defineProps<{
   entries: CapturedWorkflowRun[];
   workflows: SavedCapturedWorkflow[];
   activeRunId: string;
-  activeRunState: string;
+  activeRunState: RunState | "";
 }>();
 const emit = defineEmits<{ select: [entry: CapturedWorkflowRun] }>();
 const { t } = useI18n();

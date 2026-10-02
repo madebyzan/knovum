@@ -95,7 +95,9 @@ pub(crate) async fn import<R: Runtime>(
         ));
     }
     let before = history::capture(&mut tx, &request.space_id, &snapshot).await?;
-    let mut imported = payload::remap(request.payload, &request.anchor)?;
+    let object_fields =
+        super::node_reference_remap::load_object_fields(&mut tx, &request.space_id).await?;
+    let mut imported = payload::remap(request.payload, &request.anchor, &object_fields)?;
     let selection_suggestion = imported
         .structure
         .iter()

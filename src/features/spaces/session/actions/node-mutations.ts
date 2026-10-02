@@ -123,12 +123,8 @@ function createContentMutations(context: SpaceMutationContext) {
     }
   }
 
-  function commitPendingContent(
-    spaceId: string,
-    contentNodes: readonly SpaceCanvasNode[],
-    historyMode: "record" | "return" | "none" = "record",
-  ) {
-    if (context.activeSpaceId.value === spaceId && historyMode === "record") {
+  function commitPendingContent(spaceId: string, contentNodes: readonly SpaceCanvasNode[]) {
+    if (context.activeSpaceId.value === spaceId) {
       context.recordCommittedSpaceEdit();
     }
     scheduleKnowledgeIndex(

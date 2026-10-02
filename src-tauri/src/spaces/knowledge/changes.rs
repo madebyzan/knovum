@@ -1,10 +1,9 @@
-use crate::app_error::AppError;
 use serde::Deserialize;
 use serde_json::Value;
 use tauri::{AppHandle, Runtime};
 
 use super::change_commit::{self, KnowledgeChange};
-use crate::spaces::db;
+use crate::{app_error::AppError, spaces::db};
 
 #[derive(Debug, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]

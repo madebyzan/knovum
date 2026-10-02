@@ -56,7 +56,7 @@ fn load_model(
     let model = Qwen3Model::new(config, vb)
         .map_err(|error| format!("Failed to initialize Qwen3 model: {error}"))?;
 
-    Ok(Qwen3TextEmbedding::new(model, tokenizer))
+    Qwen3TextEmbedding::new(model, tokenizer)
 }
 
 pub async fn embed(

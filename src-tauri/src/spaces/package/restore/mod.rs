@@ -1,12 +1,14 @@
-use crate::app_error::AppError;
 use sqlx::{Sqlite, Transaction};
 use tauri::{AppHandle, Runtime};
 
 pub(super) mod contracts;
 
-use crate::spaces::{
-    db,
-    knowledge::{contracts as knowledge_contracts, object_types},
+use crate::{
+    app_error::AppError,
+    spaces::{
+        db,
+        knowledge::{contracts as knowledge_contracts, object_types},
+    },
 };
 use contracts::RestorePackageRequest;
 use validation::validate_request_shape;
@@ -56,7 +58,8 @@ pub async fn restore<R: Runtime>(
         }
     }
     knowledge::insert_events(&mut tx, &request).await?;
-    Ok(tx.commit().await.map_err(db::sql_error)?)
+    tx.commit().await.map_err(db::sql_error)?;
+    Ok(())
 }
 
 async fn insert_structure(

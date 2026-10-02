@@ -1,4 +1,3 @@
-use crate::app_error::AppError;
 mod ass;
 mod contracts;
 mod filter_graph;
@@ -16,7 +15,7 @@ mod tests;
 use tauri::{ipc::Channel, AppHandle};
 
 use super::{failure, CompletedDerivationOutput};
-use crate::blocking;
+use crate::{app_error::AppError, blocking};
 
 pub use contracts::{
     PrepareVideoEditProxyRequest, RenderVideoEditRequest, VideoEditProgress, VideoEditProject,

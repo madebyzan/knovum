@@ -1,5 +1,6 @@
-use serde_json::Value;
 use std::collections::HashMap;
+
+use serde_json::Value;
 
 pub(super) fn reviewed_revisions(snapshot: &Value) -> Result<HashMap<String, String>, String> {
     fn visit(value: &Value, revisions: &mut HashMap<String, String>) -> Result<(), String> {

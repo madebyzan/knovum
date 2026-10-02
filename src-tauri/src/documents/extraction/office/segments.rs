@@ -1,3 +1,10 @@
+use office_oxide::{
+    ir::{DocumentIR, Element},
+    DocumentFormat,
+};
+use serde_json::json;
+use tokio_util::sync::CancellationToken;
+
 use super::{
     budget, content,
     document_text::element_text,
@@ -5,12 +12,6 @@ use super::{
     location::{is_word, location, update_heading_path},
     tables, DocumentSegment,
 };
-use office_oxide::{
-    ir::{DocumentIR, Element},
-    DocumentFormat,
-};
-use serde_json::json;
-use tokio_util::sync::CancellationToken;
 
 pub(super) fn extract(
     ir: &DocumentIR,

@@ -48,7 +48,7 @@ export function createSpaceViewActions(state: SpaceState, placement: SpacePlacem
           scene.focusStructureNodeIds,
           createStructureIndex(state.editSnapshot.value.structure),
         );
-    const ids = new Set<string>(dynamicIds as string[]);
+    const ids = new Set(dynamicIds);
     state.canvasFocusIds.value = [...ids];
     placement.requestViewport(viewport);
     placement.announceScene(scene, "opened");

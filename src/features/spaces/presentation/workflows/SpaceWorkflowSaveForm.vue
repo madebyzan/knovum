@@ -37,7 +37,12 @@ function setOutputName(id: string, value: string) {
 }
 
 function submit() {
-  void save.submit(props.spaceId, props.selectedNodeIds, props.preview, outputNames.value);
+  void save.submit({
+    spaceId: props.spaceId,
+    selectedNodeIds: props.selectedNodeIds,
+    preview: props.preview,
+    outputNames: outputNames.value,
+  });
 }
 </script>
 

@@ -106,10 +106,11 @@ pub(super) async fn move_provenance(
     selected: &HashSet<&str>,
     now: i64,
 ) -> Result<(), String> {
-    let rows = sqlx::query(
-        "SELECT p.id,p.source_node_id,p.target_kind,p.target_id,r.source_id,r.target_id FROM spaces_provenance p \
-         LEFT JOIN spaces_relations r ON p.target_kind='relation' AND r.id=p.target_id WHERE p.space_id=$1",
-    ).bind(&request.source_space_id).fetch_all(&mut **tx).await.map_err(db::sql_error)?;
+    let rows = sqlx::query("SELECT id,source_node_id FROM spaces_provenance WHERE space_id=$1")
+        .bind(&request.source_space_id)
+        .fetch_all(&mut **tx)
+        .await
+        .map_err(db::sql_error)?;
     for row in rows {
         let source: String = row.try_get("source_node_id").map_err(db::sql_error)?;
         if !selected.contains(source.as_str()) {

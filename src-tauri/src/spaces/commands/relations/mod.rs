@@ -1,7 +1,7 @@
-use crate::app_error::AppError;
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Runtime};
 
+use crate::app_error::AppError;
 use crate::spaces::{
     db,
     knowledge::{contracts, events, invalidation},

@@ -3,7 +3,7 @@ import { computed, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import type { CanvasPoint } from "../../canvas/contracts/canvas-editor-port";
-import { useCanvasEditorSession, useCanvasSelectionProjection } from "../../canvas/editor-session";
+import { getCanvasEditorSession, useCanvasSelectionProjection } from "../../canvas/editor-session";
 import { useSpaceStore } from "../../session/space-store";
 import SpaceContextHeader from "../SpaceContextHeader.vue";
 import SpaceWorkflowCapture from "../workflows/SpaceWorkflowCapture.vue";
@@ -18,7 +18,7 @@ defineProps<{
 }>();
 
 const store = useSpaceStore();
-const editor = useCanvasEditorSession();
+const editor = getCanvasEditorSession();
 const panel = useTemplateRef<HTMLElement>("panel");
 const { selectedNodes } = useCanvasSelectionProjection(() => store.nodes);
 const { t } = useI18n();

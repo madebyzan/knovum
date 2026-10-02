@@ -13,7 +13,7 @@ function spaceIdValue(spaceId: MaybeRefOrGetter<string | null | undefined>) {
   return toValue(spaceId) ?? "none";
 }
 
-function spaceQuery<T>(
+function useSpaceQuery<T>(
   spaceId: MaybeRefOrGetter<string | null | undefined>,
   keyFactory: (id: string) => readonly unknown[],
   fetcher: (id: string) => Promise<T>,
@@ -32,18 +32,18 @@ function spaceQuery<T>(
 }
 
 export function useSpaceObjectTypesQuery(spaceId: MaybeRefOrGetter<string | null | undefined>) {
-  return spaceQuery(spaceId, spaceKnowledgeQueryKeys.objectTypes, listObjectTypes);
+  return useSpaceQuery(spaceId, spaceKnowledgeQueryKeys.objectTypes, listObjectTypes);
 }
 
 export function useSpaceKnowledgeHealthQuery(spaceId: MaybeRefOrGetter<string | null | undefined>) {
-  return spaceQuery(spaceId, spaceKnowledgeQueryKeys.health, listKnowledgeHealthIssues);
+  return useSpaceQuery(spaceId, spaceKnowledgeQueryKeys.health, listKnowledgeHealthIssues);
 }
 
 export function useSpaceKnowledgeHistoryQuery(
   spaceId: MaybeRefOrGetter<string | null | undefined>,
   nodeId: MaybeRefOrGetter<string>,
 ) {
-  return spaceQuery(
+  return useSpaceQuery(
     spaceId,
     (id) => spaceKnowledgeQueryKeys.history(id, toValue(nodeId)),
     (id) =>
@@ -62,7 +62,7 @@ export function useSpaceProvenanceQuery(
   targetKind: "node" | "relation",
   targetId: MaybeRefOrGetter<string>,
 ) {
-  return spaceQuery(
+  return useSpaceQuery(
     spaceId,
     (id) => spaceKnowledgeQueryKeys.provenance(id, targetKind, toValue(targetId)),
     (id) => listProvenance(id, targetKind, toValue(targetId)),

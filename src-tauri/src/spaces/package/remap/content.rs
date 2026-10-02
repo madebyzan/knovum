@@ -4,8 +4,23 @@ use serde_json::{json, Value};
 pub(super) fn remap(value: &mut Value, maps: &mut IdMaps, types: &[Value]) -> Result<(), String> {
     for row in array_mut(value, "nodes")? {
         let data = &mut row["data"];
-        crate::spaces::knowledge::indexing::revision::validate_declared(data)?;
-        restore_assets(data, maps)?;
+        // Markdown asset destinations are rewritten during export and import. The imported
+        // text receives a new canonical revision below; the packaged revision still anchors
+        // the source citations until knowledge::remap rebases them.
+        let packaged_markdown = data["kind"] == "markdown"
+            && data["text"]
+                .as_str()
+                .is_some_and(|text| text.contains(crate::spaces::assets::PACKAGE_ASSET_PREFIX));
+        if !packaged_markdown {
+            crate::spaces::knowledge::indexing::revision::validate_declared(data)?;
+        } else if data["knowledgeRevision"].as_str().is_none_or(|revision| {
+            revision.strip_prefix("node1:").is_none_or(|digest| {
+                digest.len() != 16 || !digest.bytes().all(|b| b.is_ascii_hexdigit())
+            })
+        }) {
+            return Err("Package Markdown node requires a Knowledge revision".into());
+        }
+        crate::spaces::assets::rewrite_node_asset_paths(data, |path| maps.asset(path))?;
         match data["kind"].as_str() {
             Some("object") => {
                 let source = string(data, "objectTypeId")?.to_owned();
@@ -86,51 +101,6 @@ pub(super) fn remap(value: &mut Value, maps: &mut IdMaps, types: &[Value]) -> Re
     for row in array_mut(value, "relations")? {
         maps.field(row, "sourceId", "nodes")?;
         maps.field(row, "targetId", "nodes")?;
-    }
-    Ok(())
-}
-
-fn restore_assets(data: &mut Value, maps: &IdMaps) -> Result<(), String> {
-    for field in ["assetPath", "faviconPath", "previewImagePath"] {
-        if let Some(path) = data[field].as_str() {
-            data[field] = json!(maps.asset(path)?);
-        }
-    }
-    if data.get("origin").is_some_and(Value::is_object) {
-        if let Some(path) = data["previewPath"].as_str() {
-            data["previewPath"] = json!(maps.asset(path)?);
-        }
-    } else {
-        object(data)?.remove("previewPath");
-    }
-    if let Some(content) = data.get_mut("tiptapContent") {
-        restore_tiptap(content, maps)?;
-    }
-    if let Some(resources) = data
-        .get_mut("documentCoverage")
-        .and_then(|v| v.get_mut("resources"))
-        .and_then(Value::as_array_mut)
-    {
-        for resource in resources {
-            if let Some(path) = resource["path"].as_str() {
-                resource["path"] = json!(maps.asset(path)?);
-            }
-        }
-    }
-    Ok(())
-}
-fn restore_tiptap(node: &mut Value, maps: &IdMaps) -> Result<(), String> {
-    if node["type"] == "image" {
-        if let Some(path) = node["attrs"]["assetPath"].as_str() {
-            let path = maps.asset(path)?;
-            node["attrs"]["assetPath"] = json!(path);
-            node["attrs"]["src"] = json!(path);
-        }
-    }
-    if let Some(children) = node.get_mut("content").and_then(Value::as_array_mut) {
-        for child in children {
-            restore_tiptap(child, maps)?;
-        }
     }
     Ok(())
 }

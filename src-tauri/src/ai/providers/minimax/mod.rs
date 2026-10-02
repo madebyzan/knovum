@@ -1,4 +1,6 @@
 mod image;
+#[cfg(test)]
+mod tests;
 mod video;
 
 pub use image::MiniMaxImageAdapter;
@@ -33,5 +35,16 @@ impl AiProvider for MiniMaxProvider {
 
     fn as_video_generation(&self) -> Option<&dyn VideoGenerationCapability> {
         Some(&self.video)
+    }
+}
+
+fn endpoint(raw: &str) -> String {
+    let trimmed = raw.trim().trim_end_matches('/');
+    if trimmed.is_empty() {
+        "https://api.minimax.chat/v1".to_string()
+    } else if trimmed.ends_with("/v1") {
+        trimmed.to_string()
+    } else {
+        format!("{trimmed}/v1")
     }
 }

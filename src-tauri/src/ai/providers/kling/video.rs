@@ -1,4 +1,3 @@
-use crate::ai::transport::response;
 use futures::future::BoxFuture;
 use tokio_util::sync::CancellationToken;
 
@@ -7,7 +6,7 @@ use crate::ai::{
         GeneratedVideo, VideoGenerationCapability, VideoGenerationInput,
         VideoGenerationStageCallback, VideoGenerationStatus, VideoGenerationSubmission,
     },
-    transport::{http_client, SecurityContext},
+    transport::{http_client, response, SecurityContext},
 };
 use crate::app_error::{AppError, AppResult};
 

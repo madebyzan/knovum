@@ -1,10 +1,9 @@
-use crate::app_error::AppError;
 use serde_json::Value;
 use sqlx::Row;
 use tauri::{AppHandle, Runtime};
 
 use super::{contracts, events, locator, semantic_nodes};
-use crate::spaces::db;
+use crate::{app_error::AppError, spaces::db};
 
 mod command_contracts;
 pub use command_contracts::{KnowledgeEventRequest, ProvenanceInput};
@@ -120,7 +119,8 @@ pub async fn create_provenance<R: Runtime>(
         ),
     )
     .await?;
-    Ok((tx.commit().await.map_err(db::sql_error))?)
+    tx.commit().await.map_err(db::sql_error)?;
+    Ok(())
 }
 
 #[tauri::command]
@@ -158,7 +158,8 @@ pub async fn revoke_provenance<R: Runtime>(
         ),
     )
     .await?;
-    Ok((tx.commit().await.map_err(db::sql_error))?)
+    tx.commit().await.map_err(db::sql_error)?;
+    Ok(())
 }
 
 mod validation;

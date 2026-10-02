@@ -3,11 +3,12 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
+import type { RunState } from "../../contracts/generated/RunState";
 import { workflowStateLabelKey } from "../../workflows/workflow-state-label";
 
 const props = defineProps<{
   runId: string;
-  runState: string;
+  runState: RunState | "";
   cancelling: boolean;
   retrying: boolean;
   allowNew: boolean;

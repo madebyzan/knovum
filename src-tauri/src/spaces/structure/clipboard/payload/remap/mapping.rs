@@ -1,23 +1,5 @@
 use crate::spaces::structure::{StructureLayout, StructureNode};
-use serde_json::Value;
 use std::collections::HashMap;
-
-pub(super) fn rewrite_node_ids(value: &mut Value, ids: &HashMap<String, String>) {
-    match value {
-        Value::String(current) => {
-            if let Some(replacement) = ids.get(current) {
-                *current = replacement.clone();
-            }
-        }
-        Value::Array(values) => values
-            .iter_mut()
-            .for_each(|value| rewrite_node_ids(value, ids)),
-        Value::Object(fields) => fields
-            .values_mut()
-            .for_each(|value| rewrite_node_ids(value, ids)),
-        _ => {}
-    }
-}
 
 pub(super) fn remap_structure_node(
     structure_node: StructureNode,

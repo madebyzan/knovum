@@ -13,13 +13,9 @@ pub(super) fn copy_then<T>(
     target: &Path,
     finish: impl FnOnce() -> Result<T, String>,
 ) -> Result<T, String> {
-    if let Err(error) = copy::copy_resource(source, target, &CancellationToken::new(), |_| Ok(())) {
-        return match remove_path(target) {
-            Ok(()) => Err(error),
-            Err(cleanup_error) => Err(format!("{error}; cleanup also failed: {cleanup_error}")),
-        };
-    }
-    match finish() {
+    let result = copy::copy_resource(source, target, &CancellationToken::new(), |_| Ok(()))
+        .and_then(|_| finish());
+    match result {
         Ok(value) => Ok(value),
         Err(error) => match remove_path(target) {
             Ok(()) => Err(error),

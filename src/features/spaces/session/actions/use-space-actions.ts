@@ -1,6 +1,6 @@
 import type { SpacePlacement } from "../../canvas/navigation-requests";
 import { createWorkflowPanelActions } from "../../canvas/workflow-panel-actions";
-import { observeEnrichmentJobs } from "../../enrichment/job-observation";
+import { useEnrichmentJobObservation } from "../../enrichment/use-enrichment-job-observation";
 import { createSpaceMediaActions } from "../../media/actions";
 import { createSpaceAudioRecordingActions } from "../../media/audio-recording-actions";
 import { createRightSidebarActions } from "../../right-sidebar/right-sidebar-actions";
@@ -16,7 +16,7 @@ import { createStructureActions } from "./structure-actions";
 import { createStructureTransferActions } from "./structure-transfer-actions";
 import { createSpaceViewActions } from "./view-actions";
 
-export function createSpaceActions(state: SpaceState, placement: SpacePlacement) {
+export function useSpaceActions(state: SpaceState, placement: SpacePlacement) {
   const spaceContext = createSpaceContext(state);
   const structure = createStructureActions({
     activeSpaceId: state.activeSpaceId,
@@ -42,7 +42,7 @@ export function createSpaceActions(state: SpaceState, placement: SpacePlacement)
     relations: state.relations,
     history: state.history,
   };
-  observeEnrichmentJobs({
+  useEnrichmentJobObservation({
     activeSpaceId: state.activeSpaceId,
     analysisIds: state.mediaAnalysisIds,
     analysisPreviews: state.mediaAnalysisPreviews,

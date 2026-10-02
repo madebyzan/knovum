@@ -22,7 +22,7 @@ export interface SpaceEnrichmentObserverContext {
   applyNodeContentForSpace(spaceId: string, id: string, data: SpaceNodePayload): void;
 }
 
-export function observeEnrichmentJobs(context: SpaceEnrichmentObserverContext) {
+export function useEnrichmentJobObservation(context: SpaceEnrichmentObserverContext) {
   let disposed = false;
   const subscription = listen<EnrichmentJobUpdate>("space-enrichment-update", ({ payload }) => {
     const tasks = useTaskStore();

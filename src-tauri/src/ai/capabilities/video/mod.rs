@@ -2,13 +2,14 @@ use tauri::AppHandle;
 use tokio_util::sync::CancellationToken;
 
 use crate::ai::{
-    contracts::VideoGenerationInput, models::ModelExecutionTarget, providers::resolve_provider,
+    contracts::{GeneratedVideo, VideoGenerationInput},
+    models::ModelExecutionTarget,
+    providers::resolve_provider,
     transport::SecurityContext,
 };
 use crate::app_error::{AppError, AppResult};
 
 pub mod materialize;
-pub use crate::ai::contracts::GeneratedVideo;
 pub use materialize::materialize;
 
 const MAX_INLINE_REFERENCES_BYTES: usize = 64 * 1024 * 1024;

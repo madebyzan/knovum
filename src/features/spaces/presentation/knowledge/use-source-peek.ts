@@ -8,7 +8,7 @@ import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import { openSpaceAsset, openSpaceAssetAtLocation } from "../../assets/asset-operations";
-import { useCanvasEditorSession } from "../../canvas/editor-session";
+import { getCanvasEditorSession } from "../../canvas/editor-session";
 import { createSourceEvidence } from "../../editor/knowledge-capture";
 import { loadDocumentContext } from "../../knowledge/sources/document-context";
 import { isSpaceManagedAssetPayload } from "../../model/nodes/capabilities";
@@ -60,7 +60,7 @@ export function useSourcePeek() {
     (error) => toast.error(getErrorMessage(error)),
   );
   function revealSource() {
-    if (sourcePeek.value) useCanvasEditorSession().reveal([sourcePeek.value.nodeId], "focus");
+    if (sourcePeek.value) getCanvasEditorSession().reveal([sourcePeek.value.nodeId], "focus");
   }
   async function extractSource() {
     const target = sourcePeek.value;

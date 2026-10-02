@@ -9,10 +9,7 @@ use crate::{
 };
 use tokio_util::sync::CancellationToken;
 
-use super::{
-    embedding_contract::{active_batch_size, active_dimensions, active_model_id},
-    index_writer::{upsert_embeddings, KnowledgeEmbeddingInput},
-};
+use super::index_writer::{upsert_embeddings, KnowledgeEmbeddingInput};
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -132,7 +129,7 @@ async fn index_prepared<R: Runtime>(
             &app,
             &space_id,
             node_ids_json.as_deref(),
-            active_batch_size() as i64,
+            embedding::active_text_provider().max_batch_size() as i64,
         )
         .await?;
         if chunks.is_empty() {
@@ -160,8 +157,8 @@ async fn index_prepared<R: Runtime>(
             .map(|(chunk, vector)| KnowledgeEmbeddingInput {
                 chunk_id: chunk.id,
                 source_revision: chunk.source_revision,
-                model: active_model_id().to_owned(),
-                dimensions: active_dimensions() as i64,
+                model: embedding::active_text_provider().model_id().to_owned(),
+                dimensions: embedding::active_text_provider().dimensions() as i64,
                 vector: vector.into_iter().map(f64::from).collect(),
             })
             .collect::<Vec<_>>();
@@ -212,7 +209,7 @@ async fn load_unindexed_chunks<R: Runtime>(
          ORDER BY c.updated_at,c.id LIMIT $3",
     )
     .bind(space_id)
-    .bind(active_model_id())
+    .bind(embedding::active_text_provider().model_id())
     .bind(limit)
     .bind(node_ids_json)
     .fetch_all(pool)

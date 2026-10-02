@@ -1,11 +1,10 @@
-use crate::ai::transport::response;
 use futures::future::BoxFuture;
 use reqwest::multipart::{Form, Part};
 
-use super::image::dashscope_endpoint;
+use super::endpoint;
 use crate::ai::{
     contracts::{FileUploadCapability, UploadedFileReference},
-    transport::{http_client, SecurityContext},
+    transport::{http_client, response, SecurityContext},
 };
 use crate::app_error::{AppError, AppResult};
 
@@ -22,7 +21,7 @@ impl FileUploadCapability for DashScopeFileUploadAdapter {
         Box::pin(async move {
             let secret = ctx.require_api_key()?;
             let client = http_client();
-            let endpoint = dashscope_endpoint(&ctx.endpoint)?;
+            let endpoint = endpoint(&ctx.endpoint);
             let upload_url = format!("{endpoint}/files");
 
             let part = Part::bytes(bytes)

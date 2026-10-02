@@ -1,6 +1,7 @@
+use std::collections::BTreeSet;
+
 use super::{DocumentCoverage, DocumentParser, VisualState};
 use crate::documents::pdf_input::PdfInput;
-use std::collections::BTreeSet;
 
 pub(super) fn validate(report: &DocumentCoverage) -> Result<(), String> {
     if report.schema_version != 1

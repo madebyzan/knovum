@@ -1,5 +1,6 @@
-use crate::app_error::AppError;
 use clipboard_rs::{Clipboard, ClipboardContent, ClipboardContext, ContentFormat};
+
+use crate::app_error::AppError;
 
 #[derive(serde::Serialize)]
 pub(crate) struct SpaceClipboardContent {

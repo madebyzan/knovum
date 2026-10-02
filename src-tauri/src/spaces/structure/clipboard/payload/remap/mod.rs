@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use serde_json::Value;
+
 use uuid::Uuid;
 
 use super::super::{ClipboardNode, ClipboardPayload, ClipboardRelation};
@@ -22,6 +24,7 @@ pub(crate) struct RemappedPayload {
 pub(crate) fn remap(
     payload: ClipboardPayload,
     anchor: &SpacePoint,
+    object_fields: &HashMap<String, Value>,
 ) -> Result<RemappedPayload, String> {
     let structure_node_ids = payload
         .structure
@@ -49,8 +52,8 @@ pub(crate) fn remap(
     let nodes = payload
         .nodes
         .into_iter()
-        .map(|node| remap_node(node, &node_ids))
-        .collect();
+        .map(|node| remap_node(node, &node_ids, &structure_node_ids, object_fields))
+        .collect::<Result<Vec<_>, _>>()?;
     let relations = payload
         .relations
         .into_iter()
@@ -90,12 +93,27 @@ fn shift_to_anchor(
     Ok(())
 }
 
-fn remap_node(mut node: ClipboardNode, ids: &HashMap<String, String>) -> ClipboardNode {
-    mapping::rewrite_node_ids(&mut node.data, ids);
-    ClipboardNode {
+fn remap_node(
+    mut node: ClipboardNode,
+    ids: &HashMap<String, String>,
+    structure_ids: &HashMap<String, String>,
+    object_fields: &HashMap<String, Value>,
+) -> Result<ClipboardNode, String> {
+    let fields = node
+        .data
+        .get("objectTypeId")
+        .and_then(Value::as_str)
+        .and_then(|id| object_fields.get(id));
+    crate::spaces::structure::node_reference_remap::remap(
+        &mut node.data,
+        ids,
+        structure_ids,
+        fields,
+    )?;
+    Ok(ClipboardNode {
         id: ids[&node.id].clone(),
         data: node.data,
-    }
+    })
 }
 
 fn remap_relation(

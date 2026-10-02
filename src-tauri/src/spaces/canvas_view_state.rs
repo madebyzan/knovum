@@ -1,8 +1,8 @@
-use crate::app_error::AppError;
 use serde::{Deserialize, Serialize};
 use sqlx::Row;
 use tauri::{AppHandle, Runtime};
 
+use crate::app_error::AppError;
 use crate::spaces::db;
 
 const MIN_ZOOM: f64 = 0.05;

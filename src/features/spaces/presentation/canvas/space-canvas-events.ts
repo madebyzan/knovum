@@ -2,7 +2,7 @@ import type { useCanvasToolStore } from "../../canvas/canvas-tool-store";
 import type { CanvasHostEvents } from "../../canvas/contracts/canvas-editor";
 import type { CanvasEditorPort } from "../../canvas/contracts/canvas-editor-port";
 import { updateCanvasSelectionProjection, updateCanvasViewportProjection } from "../../canvas/editor-session";
-import { useNodeOperationGate } from "../../canvas/node-operation-gate";
+import type { useNodeOperationGate } from "../../canvas/node-operation-gate";
 import { createStructureIndex } from "../../model/structure/structure-index";
 import { groupScopePathFor } from "../../model/structure/structure-queries";
 import type { createCanvasSelectionActions } from "../../session/actions/canvas-selection-actions";
@@ -17,6 +17,7 @@ interface SpaceCanvasEventOptions {
   contentLayout: CanvasContentLayoutCoordinator;
   createTextNode: CanvasHostEvents["onCreateTextNode"];
   imports: ReturnType<typeof useSpaceCanvasImports>;
+  operations: ReturnType<typeof useNodeOperationGate>;
   reportError(error: unknown): void;
   selection: ReturnType<typeof createCanvasSelectionActions>;
   store: ReturnType<typeof useSpaceStore>;
@@ -25,8 +26,7 @@ interface SpaceCanvasEventOptions {
 }
 
 export function createSpaceCanvasEvents(options: SpaceCanvasEventOptions): CanvasHostEvents {
-  const { store } = options;
-  const operations = useNodeOperationGate();
+  const { store, operations } = options;
   return {
     onCreateTextNode: (kind, point) =>
       operations.allowsGestureCommit() ? options.createTextNode(kind, point) : Promise.resolve(undefined),

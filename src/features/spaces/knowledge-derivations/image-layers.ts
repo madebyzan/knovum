@@ -3,7 +3,7 @@ import { Channel } from "@tauri-apps/api/core";
 import { i18n } from "../../../foundation/i18n/i18n";
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import { useTaskStore } from "../../../foundation/tasks/task-store";
-import { useCanvasEditorSession } from "../canvas/editor-session";
+import { getCanvasEditorSession } from "../canvas/editor-session";
 import { createSpaceNode } from "../canvas/node";
 import { spaceNodeDimensions } from "../canvas/node-size";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
@@ -47,7 +47,7 @@ export async function generateImageLayers(
   const sourceRevision = source.data.sourceRevision;
   if (!spaceId || !sourceRevision || !Number.isInteger(count) || count < 2 || count > 8)
     throw new Error("Image layer input is invalid");
-  const base = derivedNodePosition([source], useCanvasEditorSession().selection.value.nodePlacements);
+  const base = derivedNodePosition([source], getCanvasEditorSession().selection.value.nodePlacements);
   const width = spaceNodeDimensions(source.data).width;
   const nodes = await Promise.all(
     Array.from({ length: count }, async (_, index) => {

@@ -135,7 +135,11 @@ pub(super) async fn in_transaction(
     }
     if steps.is_empty() && issues.is_empty() {
         issues.push(CaptureIssue {
-            node_id: selected.iter().next().cloned().unwrap_or_default(),
+            node_id: selected
+                .iter()
+                .next()
+                .expect("validated capture selection is nonempty")
+                .clone(),
             reason: CaptureIssueReason::NoDerivedOutputSelected,
         });
     }

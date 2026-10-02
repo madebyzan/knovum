@@ -1,3 +1,8 @@
+use std::path::PathBuf;
+
+use serde::{Deserialize, Serialize};
+use tauri::{ipc::Channel, AppHandle};
+
 use super::{contract::JsonCanvasDocumentV1, import::JsonCanvasImportReceipt};
 use crate::app_error::AppError;
 use crate::spaces::{
@@ -5,9 +10,6 @@ use crate::spaces::{
     db,
     structure::{receipts, repository},
 };
-use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
-use tauri::{ipc::Channel, AppHandle};
 
 #[derive(Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]

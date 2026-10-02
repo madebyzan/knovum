@@ -1,9 +1,10 @@
-use crate::documents::pdf_input::{PdfInput, PdfRecognitionReason, PdfRegion};
 use pdf_inspector::types::ItemType;
 use pdf_inspector::{
     TextItem, OCR_REASON_NO_TEXT, OCR_REASON_SCANNED, OCR_REASON_SUSPECTED_GARBLED_TEXT,
     OCR_REASON_VECTOR_TEXT,
 };
+
+use crate::documents::pdf_input::{PdfInput, PdfRecognitionReason, PdfRegion};
 
 pub(crate) struct PdfVisual {
     pub input: PdfInput,

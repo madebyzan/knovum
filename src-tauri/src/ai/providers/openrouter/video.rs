@@ -1,4 +1,3 @@
-use crate::ai::transport::response;
 use futures::future::BoxFuture;
 use reqwest::Method;
 use serde::Deserialize;
@@ -9,7 +8,7 @@ use crate::ai::{
         GeneratedVideo, VideoGenerationCapability, VideoGenerationInput,
         VideoGenerationStageCallback, VideoGenerationStatus, VideoGenerationSubmission,
     },
-    transport::{http_client, SecurityContext},
+    transport::{http_client, response, SecurityContext},
 };
 use crate::app_error::{AppError, AppResult};
 
@@ -151,11 +150,11 @@ fn openrouter_request(method: Method, url: String, secret: &str) -> reqwest::Req
 
 fn extract_video_url(job: VideoJobResponse) -> Option<String> {
     job.unsigned_urls
-        .and_then(|mut u| u.drain(..).next())
+        .and_then(|urls| urls.into_iter().next())
         .or_else(|| {
             job.output.and_then(|o| {
                 o.video_url
-                    .or_else(|| o.urls.and_then(|mut u| u.drain(..).next()))
+                    .or_else(|| o.urls.and_then(|urls| urls.into_iter().next()))
             })
         })
 }

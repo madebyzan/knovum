@@ -22,17 +22,19 @@ export function useVideoEditSelection(project: Ref<VideoEditProject | undefined>
   }
 
   function removeSelection() {
-    if (!project.value) return;
-    if (selectedClipId.value) project.value = removeClip(project.value, selectedClipId.value);
+    const current = project.value;
+    if (!current) return undefined;
+    let next = selectedClipId.value ? removeClip(current, selectedClipId.value) : current;
     if (selectedTextId.value) {
-      project.value = {
-        ...project.value,
+      next = {
+        ...next,
         textTrack: {
-          items: project.value.textTrack.items.filter(({ id }) => id !== selectedTextId.value),
+          items: next.textTrack.items.filter(({ id }) => id !== selectedTextId.value),
         },
       };
     }
     clear();
+    return next;
   }
 
   watch(project, (current) => {

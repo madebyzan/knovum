@@ -1,10 +1,10 @@
-use crate::ai::transport::response;
 use futures::future::BoxFuture;
 use serde::Deserialize;
 
+use super::endpoint;
 use crate::ai::{
     contracts::{GeneratedImage, ImageGenerationCapability, ImageGenerationInput},
-    transport::{http_client, SecurityContext},
+    transport::{http_client, response, SecurityContext},
 };
 use crate::app_error::{AppError, AppResult};
 
@@ -53,7 +53,7 @@ impl ImageGenerationCapability for DashScopeImageAdapter {
     ) -> BoxFuture<'a, AppResult<GeneratedImage>> {
         Box::pin(async move {
             let secret = ctx.require_api_key()?;
-            let endpoint = dashscope_endpoint(&ctx.endpoint)?;
+            let endpoint = endpoint(&ctx.endpoint);
             let body = serde_json::json!({
                 "model": ctx.model,
                 "input": {
@@ -119,13 +119,6 @@ impl ImageGenerationCapability for DashScopeImageAdapter {
             })
         })
     }
-}
-
-pub(super) fn dashscope_endpoint(endpoint: &str) -> AppResult<String> {
-    let ep = endpoint.trim().trim_end_matches('/');
-    let root = ep.strip_suffix("/compatible-mode/v1").unwrap_or(ep);
-    let root = root.strip_suffix("/api/v1").unwrap_or(root);
-    Ok(format!("{root}/api/v1"))
 }
 
 fn extract_image(output: OutputPayload) -> Option<(String, Option<String>)> {

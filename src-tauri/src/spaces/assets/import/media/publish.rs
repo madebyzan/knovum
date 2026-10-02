@@ -3,10 +3,12 @@ use tauri::ipc::Channel;
 use tokio_util::sync::CancellationToken;
 use uuid::Uuid;
 
-use super::contract::{ImportedMedia, MediaKind, MediaOrigin};
+use super::contract::{ImportedMedia, MediaOrigin};
 use crate::file_inspection::{content_revision, modified_millis};
 use crate::media::acquisition::{
-    contracts::AcquisitionProgress, metadata::YtDlpMetadata, output, playable_asset,
+    contracts::{AcquisitionProgress, MediaKind},
+    metadata::YtDlpMetadata,
+    output, playable_asset,
 };
 
 pub(super) fn commit(

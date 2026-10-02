@@ -1,14 +1,16 @@
-use crate::app_error::AppError;
 use std::collections::HashMap;
 
 use serde_json::Value;
 use sqlx::{Sqlite, Transaction};
 
 use super::contracts::NodeContentChange;
-use crate::spaces::{
-    db,
-    structure::{
-        self, Size, SizingMode, SpaceEditSnapshotResponse, StructureLayout, StructureNode,
+use crate::{
+    app_error::AppError,
+    spaces::{
+        db,
+        structure::{
+            self, Size, SizingMode, SpaceEditSnapshotResponse, StructureLayout, StructureNode,
+        },
     },
 };
 
