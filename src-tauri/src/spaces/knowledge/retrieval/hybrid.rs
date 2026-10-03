@@ -56,7 +56,8 @@ pub async fn search<R: Runtime>(
             semantic: "disabled",
         });
     }
-    let vector = embed_query(app, query, cancellation).await?;
+    let owner_id = request.space_id.as_deref().unwrap_or("global");
+    let vector = embed_query(app, query, owner_id, cancellation).await?;
     let semantic = match request.space_id.as_deref() {
         Some(space_id) => {
             search_semantic_vector(

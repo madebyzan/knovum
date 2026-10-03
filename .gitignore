@@ -28,6 +28,11 @@ target
 *.sln
 *.sw?
 .pnpm-store
+python/.venv/
+__pycache__/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
 
 .tmp
 .playwright-cli

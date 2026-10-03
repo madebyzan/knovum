@@ -8,14 +8,20 @@ use crate::local_resources::models::catalog::{self, ModelKind};
 pub enum ResourcePreparationTarget {
     Transcription,
     TextEmbedding,
+    ImageSegmentation,
+    SpeechSynthesis,
     MediaImportTools,
 }
 
 impl ResourcePreparationTarget {
     pub fn models(&self) -> Option<&'static [ModelKind]> {
         match self {
-            Self::Transcription => Some(catalog::TRANSCRIPTION_MODELS),
+            Self::Transcription => {
+                (!catalog::TRANSCRIPTION_MODELS.is_empty()).then_some(catalog::TRANSCRIPTION_MODELS)
+            }
             Self::TextEmbedding => Some(catalog::TEXT_EMBEDDING_MODELS),
+            Self::ImageSegmentation => Some(catalog::IMAGE_SEGMENTATION_MODELS),
+            Self::SpeechSynthesis => None,
             Self::MediaImportTools => None,
         }
     }

@@ -11,7 +11,12 @@ A production candidate must use committed pnpm/Cargo lockfiles and one reviewed 
 The candidate workflow requires the tag to match all three application versions, reviewed notes at
 `docs/release-notes/<version>.md`, dependency signature/advisory/license checks, `pnpm check`, native
 builds, provisioned runtime smoke and the real background-removal smoke. The release matrix contains
-macOS arm64/x64 and Windows arm64/x64. A partial matrix cannot enter the stable manifest.
+macOS arm64 and Windows x64. A partial matrix cannot enter the stable manifest.
+The bundled CPython interpreter, native extension modules and dependent dynamic libraries are
+part of the application trust boundary. Each target must verify the complete runtime manifest,
+native loadability, signing/notarization or Authenticode conditions, and an installed inference
+smoke on a clean machine without a system Python installation. A matching hash alone does not
+establish code-signing trust or native wheel support.
 
 Before promotion, also review new capability permissions, CSP origins, protocol/file handlers and
 platform metadata. No WebView may receive SQL permissions or a generic SQL/runtime mutation command.
@@ -19,7 +24,7 @@ Exercise the full embedded Spaces SQLx migration history and packaged applicatio
 Fresh-database tests alone are not upgrade acceptance. Final product icons and publisher metadata
 must be approved before the first public distribution.
 
-FFmpeg/whisper.cpp archives must be provisioned for each target. Pinned yt-dlp/Deno downloads must
+FFmpeg and the locked Python runtime must be provisioned for each target. Pinned yt-dlp/Deno downloads must
 remain available and match their embedded hashes. Clean-profile tests must install that pair and
 exercise representative PDF, media and transcription workflows. Hashes prove artifact identity,
 not publisher signing or successful native execution. The inspected macOS arm64 yt-dlp standalone
@@ -77,7 +82,7 @@ Copy the exact published version's archives/installers to permanent, anonymous H
 Do not use expiring signed query URLs, expose bucket write access, or change artifact bytes. Retain
 the existing filenames. Run **Promote stable update** for that same version with `artifact_base_url`
 set to the new version directory. The workflow verifies the candidate signatures, then downloads all
-four public URLs without credentials and compares their SHA-256 hashes before changing discovery.
+two public URLs without credentials and compares their SHA-256 hashes before changing discovery.
 Same-version promotion may change URLs only, not signatures, notes or publication time.
 
 Keep old download URLs working during migration so clients that already selected or started a
@@ -140,7 +145,7 @@ Authenticode signatures and timestamps. Signing does not promise immediate Smart
 
 ## Candidate, acceptance, promotion
 
-`.github/workflows/release-candidate.yml` builds all four signed targets from a reviewed version tag.
+`.github/workflows/release-candidate.yml` builds both signed targets from a reviewed version tag.
 It collects immutable uniquely named update artifacts and human-facing installers. `candidate.json`
 records their hashes, original signatures, source commit, endpoint and public key. Collection rejects
 mixed commits/versions/configurations. Publication verifies every updater artifact with the official

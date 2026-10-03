@@ -1,7 +1,7 @@
 use super::*;
 
 fn installation() -> Arc<Installation> {
-    Installation::new(ModelKind::TranscriptionVad)
+    Installation::new(ModelKind::FasterWhisperConfig)
 }
 
 #[tokio::test]
@@ -41,8 +41,8 @@ async fn terminal_progress_reaches_remaining_waiter() {
     let mut waiter = installation.join();
     installation.finish(InstallationState::Progress(ResourcePreparationProgress {
         stage: ResourcePreparationStage::Ready,
-        downloaded: catalog::TRANSCRIPTION_VAD.download_size,
-        total: Some(catalog::TRANSCRIPTION_VAD.download_size),
+        downloaded: catalog::FASTER_WHISPER_CONFIG.download_size,
+        total: Some(catalog::FASTER_WHISPER_CONFIG.download_size),
         percent: Some(100),
     }));
     let mut observed = None;
@@ -62,7 +62,7 @@ async fn terminal_progress_reaches_remaining_waiter() {
 
 #[test]
 fn cancelled_installation_remains_registered_until_runner_finishes() {
-    let kind = ModelKind::TranscriptionVad;
+    let kind = ModelKind::FasterWhisperConfig;
     let identity = ModelIdentity::for_kind(kind);
     let installation = Installation::new(kind);
     let waiter = installation.join();

@@ -99,12 +99,28 @@ async fn automatic_subtitles_publish_only_a_derived_video_and_leave_source_uncha
 }
 
 #[tokio::test]
-async fn untranscribed_video_prepares_recognition_without_subtitle_resource_or_model_target() {
+async fn untranscribed_video_requires_a_qualified_recognition_engine() {
     let (pool, request, _) = fixture(false).await;
-    let source = start::start(&pool, &request, &authority()).await.unwrap();
-    assert!(matches!(source.subtitles, PreparedSubtitles::Recognize));
-    let row: (String, i64) = sqlx::query_as("SELECT action_kind,(SELECT COUNT(*) FROM spaces_knowledge_derivation_inputs WHERE derivation_id='job') FROM spaces_knowledge_derivations WHERE id='job'").fetch_one(&pool).await.unwrap();
-    assert_eq!(row, ("add-video-subtitles".into(), 1));
+    let engine = crate::spaces::assets::transcription::engine_id();
+    let result = start::start(&pool, &request, &authority()).await;
+    match engine {
+        Ok(_) => {
+            let source = result.unwrap();
+            assert!(matches!(source.subtitles, PreparedSubtitles::Recognize));
+            let row: (String, i64) = sqlx::query_as("SELECT action_kind,(SELECT COUNT(*) FROM spaces_knowledge_derivation_inputs WHERE derivation_id='job') FROM spaces_knowledge_derivations WHERE id='job'").fetch_one(&pool).await.unwrap();
+            assert_eq!(row, ("add-video-subtitles".into(), 1));
+        }
+        Err(error) => {
+            assert_eq!(result.err().unwrap(), error);
+            let count: i64 = sqlx::query_scalar(
+                "SELECT COUNT(*) FROM spaces_knowledge_derivations WHERE id='job'",
+            )
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+            assert_eq!(count, 0);
+        }
+    }
 }
 
 #[tokio::test]

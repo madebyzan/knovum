@@ -1,0 +1,34 @@
+{
+  "title": "Speech",
+  "newVoice": "Preset voice",
+  "newProject": "Speech project",
+  "voiceName": "Voice name",
+  "speakerId": "Speaker ID",
+  "language": "Language",
+  "addVoice": "Add",
+  "projectName": "Project name",
+  "scriptPlaceholder": "Enter the script for this revision",
+  "voice": "Voice",
+  "saveRevision": "Save revision",
+  "preview": "Preview",
+  "generate": "Generate",
+  "cancel": "Cancel",
+  "generatedSegments": "Generated audio",
+  "export": "Export",
+  "stages": {
+    "preparing": "Preparing resources",
+    "synthesizing": "Synthesizing preview",
+    "rendering": "Generating segments",
+    "done": "Complete"
+  },
+  "createProject": "Create",
+  "voices": "Voices",
+  "projects": "Projects",
+  "noVoices": "No voice profiles in this Space.",
+  "noProjects": "No speech projects in this Space.",
+  "types": {
+    "shortDubbing": "Short dubbing",
+    "audiobook": "Audiobook",
+    "videoDubbing": "Video dubbing"
+  }
+}

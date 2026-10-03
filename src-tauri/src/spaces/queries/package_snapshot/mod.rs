@@ -15,6 +15,7 @@ mod external_conversations;
 mod knowledge;
 mod package_assets;
 mod runs;
+mod speech;
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -41,6 +42,7 @@ pub(crate) async fn collect<R: Runtime>(
         external_conversations::load(&mut tx, &space_id).await?;
     let (assistant_conversations, assistant_messages) = assistant::load(&mut tx, &space_id).await?;
     let mut assets = package_assets::PackageAssets::default();
+    let speech = speech::load(&mut tx, &space_id, &mut assets).await?;
     let nodes = content::list_nodes(&mut tx, &space_id, &mut assets).await?;
     let (mut structure, _) =
         crate::spaces::structure::repository::load_in_transaction(&mut tx, &space_id).await?;
@@ -85,6 +87,12 @@ pub(crate) async fn collect<R: Runtime>(
         "externalAgentTurns": external_agent_turns,
         "assistantConversations": assistant_conversations,
         "assistantMessages": assistant_messages,
+        "voiceProfiles": speech.voice_profiles,
+        "voiceRevisions": speech.voice_revisions,
+        "speechProjects": speech.speech_projects,
+        "speechProjectRevisions": speech.project_revisions,
+        "speechSegments": speech.segments,
+        "speechRenders": speech.renders,
         "chunks": chunks,
         "objectTypes": object_types,
         "provenance": provenance,

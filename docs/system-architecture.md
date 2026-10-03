@@ -13,7 +13,9 @@ macOS / Windows
 Tauri 2 Rust host
       |
       +-- official plugins and scoped custom commands
+      +-- Rust dictation actor -> global shortcut / native microphone / guarded target insertion
       +-- long-running Rust work -> Tauri Channel
+      +-- private, verified CPython inference worker -> JSON-RPC 2.0 over stdio
       +-- single-instance / window-state
       |
 Tauri IPC boundary
@@ -28,6 +30,12 @@ Vue 3 WebView
 ```
 
 The source dependency graph is specified in `architecture.md` and enforced by dependency-cruiser.
+
+Cross-application dictation remains in the Rust host when the WebView is hidden. One actor owns
+the press/release session, temporary WAV lifetime and cancellation; final recognition enters the
+same private Python speech capability used by media transcription. The captured native target is
+revalidated before paste, and insertion failure is projected to the Vue result surface without
+changing the recognized text.
 
 ## Startup sequence
 
@@ -228,8 +236,8 @@ the model identity, capability purpose, event time, and the system-local activit
 streaming, assistant tool turns, translation, and visual analysis therefore share one accounting path. Missing
 provider usage is left absent rather than estimated with a tokenizer. Settings reads bounded daily and
 capability aggregates through a typed AI command; the WebView neither writes usage nor infers billing data. The
-local Qwen embedding engine additionally records the exact post-truncation input count from the same maintained
-`tokenizers` encoding used for inference, without running a second estimator.
+local Qwen embedding worker additionally reports the actual input token count from its model tokenizer.
+Inputs beyond the fixed embedding token limit fail rather than being silently truncated.
 
 Image edit state is a non-destructive node contract projected directly by the canvas content layer;
 it never replaces the managed source asset. Video edit projects are feature-owned Space node data,
@@ -334,12 +342,16 @@ Answer streams continue to use their owning conversation Channels.
 Embedding/index storage, hybrid retrieval, and answer-with-sources transactions remain entirely Rust-owned;
 the WebView never generates or transports embedding vectors or commits a partial grounded exchange.
 
-The local embedding engine owns a single inference permit, held by the blocking computation
-even if its asynchronous caller is cancelled. Model loading also stays on that blocking thread.
-Inputs are tokenized without padding, sorted by length, and evaluated in bounded microbatches
-(8 rows, 2,048 padded tokens, and 2,048² attention cells); vectors retain input order.
-Development builds optimize the host and numerical dependencies while retaining debug information.
-Indexing logs report actual persisted counts and elapsed time; an incomplete write fails explicitly.
+The Rust local inference supervisor grants one heavy-model compute permit across capabilities,
+including model loading. Interactive work takes priority while queued background work ages into
+service. It launches only a verified, application-bundled CPython interpreter with one selected
+capability and model path per worker session. The worker retains a model briefly between requests
+and is recycled on capability change, cancellation timeout, idle expiry or application exit.
+Python owns only current computation; Rust owns durable task state, revision checks, index
+generations and result publication. Embedding uses the fixed Qwen snapshot through Sentence
+Transformers with last-token pooling, 1,024-dimensional L2-normalized output and a strict 2,048
+token input limit. Indexing logs report actual persisted counts and elapsed time; an incomplete
+generation cannot become searchable.
 
 ## Security boundary
 
@@ -437,7 +449,8 @@ Models live in Tauri's platform app-data directory, never the application bundle
 window does not wait for optional downloads. A process restart preserves verified installations, but
 this implementation does not promise transfer resume or replay lost temporary user requests.
 
-The transcription inference queue retains the existing single-execution policy, moved from the
-Renderer to Rust so enrichment and direct user actions share it. Its permit and job lease stay inside
-the blocking computation until that computation finishes. Resource preparation occurs before this
-permit is acquired, so a network wait does not occupy an inference slot.
+The Rust local inference admission policy grants one heavy-model compute permit across
+transcription, dictation, embedding, image segmentation and synthesis. The permit stays with the
+running Python worker until the calculation ends or its process tree exits. Feature owners keep
+their own job leases and publication checks. Resource preparation completes before admission, so
+network waits do not occupy a compute permit.

@@ -1,0 +1,8 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "dictation",
+  "description": "Main-window access to the Rust-owned dictation session and result state.",
+  "windows": ["main"],
+  "platforms": ["macOS", "windows"],
+  "permissions": ["allow-dictation-session"]
+}

@@ -7,13 +7,32 @@ only its current target directory plus the shared media import manifest.
 bundled-runtime/
   <target>/
     ffmpeg[.exe]
-    whisper-cli[.exe]
-    platform libraries required by whisper-cli
+    python-runtime/
+      runtime-manifest.json
+      bin/python3             # macOS
+      python.exe              # Windows
+      packages/knovum_inference/
 ```
 
-Release target names are `macos-arm64`, `macos-x64`, `windows-x64`, and `windows-arm64`.
+Release target names are `macos-arm64` and `windows-x64`.
 
-Development may point to explicit binaries with `KNOVUM_FFMPEG_PATH`, `KNOVUM_YT_DLP_PATH`, `KNOVUM_DENO_PATH`, and `KNOVUM_WHISPER_PATH`. These overrides are for development and do not satisfy release packaging or production provenance checks.
+Development may point to explicit binaries with `KNOVUM_FFMPEG_PATH`, `KNOVUM_YT_DLP_PATH`, and `KNOVUM_DENO_PATH`. These overrides are for development and do not satisfy release packaging or production provenance checks.
+The development runner also sets `KNOVUM_PYTHON_RUNTIME_MANIFEST_PATH` to the provisioned host
+manifest. Release builds ignore that override and resolve only the signed application resource tree.
+
+`runtime-manifest.json` is schema version 1 and identifies `runtimeId`, exact CPython `3.11.13` `version`,
+`protocolVersion`, `target`, `executable`, `packageRoot`, and every runtime file by slash-relative
+path, byte size, and lowercase SHA-256. `dependencyLockSha256` binds the package to the repository's
+exact `python/uv.lock` bytes. The manifest does not list itself; its exact byte digest is
+the runtime identity passed to the Python worker. Archives and packaged trees reject links, special
+files, unsafe paths, duplicate entries, undeclared files, and file/hash mismatches. The runtime is
+built and signed before this manifest is generated; packaging must not mutate a listed file.
+Run `pnpm runtime:manifest --target <target> --directory <signed-python-runtime>` after the
+native interpreter, locked wheels, worker package, and native signatures are final.
+The command requires the build host to match the target; it cannot label an emulated or foreign tree
+as a native runtime.
+The Rust resolver fully verifies a runtime once per process. Debug manifests are re-read on use;
+changing their exact bytes invalidates the cache, so development file changes must regenerate the manifest.
 
 Every supported target must provide libass `ass`/`subtitles` filters with the native system font provider (Core Text on macOS, DirectWrite on Windows), plus `h264_videotoolbox` on macOS or `h264_mf` on Windows. Video and document export use the fonts installed on the current computer; no typeface is packaged with the runtime.
 
@@ -23,7 +42,7 @@ installing those tools under the application data directory when a user first st
 import. yt-dlp is the sole web media importer; Deno is supplied explicitly for yt-dlp's YouTube
 JavaScript challenge support.
 
-`pnpm runtime:provision` stages only the controlled FFmpeg/whisper.cpp archive and rejects archives
+`pnpm runtime:provision` stages the controlled FFmpeg and Python runtime archive and rejects archives
 that contain yt-dlp or Deno. `tools/package-desktop.mjs` applies the same boundary and enumerates the
 current target's files instead of using a catch-all glob.
 

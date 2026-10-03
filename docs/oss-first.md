@@ -99,6 +99,32 @@ Why custom code is necessary (custom only):
 
 Feature engines remain deliberately deferred until their business requirements are concrete.
 
+## Cross-application dictation reviewed 2026-10-03
+
+- Capability / requirements: a Rust-owned press-to-talk shortcut must remain available while the
+  WebView is hidden, capture the default microphone, run the selected native Python ASR profile,
+  and insert only when the original foreground application and OS permission are still valid.
+- Selected dependencies: Tauri's official `tauri-plugin-global-shortcut` 2.4.0
+  (`Apache-2.0 OR MIT`) owns global press/release registration; RustAudio `cpal` 0.16.0
+  (`Apache-2.0`) owns macOS CoreAudio and Windows WASAPI input; `hound` 3.5.1 (`Apache-2.0`)
+  writes bounded PCM WAV files. All three are target-only macOS/Windows dependencies. Existing
+  `clipboard-rs` 0.2.4 (`MIT`) owns multi-format clipboard snapshots.
+- Native integration: `objc2-app-kit` 0.3.2 (`Zlib OR Apache-2.0 OR MIT`) and `core-graphics`
+  0.25.0 (`MIT OR Apache-2.0`) capture the macOS
+  frontmost process and post Command+V after Accessibility authorization. Existing `windows`
+  bindings capture the foreground HWND/process and call `SendInput`; Windows UIPI rejection is
+  an explicit permission outcome. Only the named framework features are enabled.
+- Rejected alternatives: browser `MediaRecorder` cannot satisfy hidden-WebView lifetime;
+  `global-hotkey` would duplicate the official Tauri plugin boundary; `rodio` is playback-focused;
+  Enigo 0.6 is early-alpha and does not own Knovum's required target-identity revalidation or
+  clipboard transaction. Separate platform recorders would duplicate CPAL's maintained backends.
+- Custom code is limited to Knovum policy: session cancellation, two-minute capture bound,
+  verified-ASR request assembly, foreground identity revalidation, and a private clipboard marker.
+  Clipboard restoration occurs only while that marker is unchanged, so user clipboard activity
+  during transcription is never overwritten. The WebView receives only typed session commands
+  and state events; it receives no global-shortcut, microphone, input-injection, or raw clipboard
+  plugin permission.
+
 ## Spaces selections reviewed 2026-08-14
 
 - Exact-pinned `konva` and `vue-konva` are the infinite-canvas runtime. Konva's Stage, layered scene graph, hit graph, drag events and Transformer replace the former Vue Flow interaction surface. Vue remains the workbench and business-orchestration owner.
@@ -116,7 +142,7 @@ PDF parser choice: [upstream Rust API](https://github.com/firecrawl/pdf-inspecto
 
 - Existing Tiptap Vue 3 + first-party Markdown/extensions remain the editor engine. `@tiptap/extension-file-handler` owns image drop/paste semantics, the first-party Image extension owns image nodes/resizing, TableKit owns table commands, and the first-party `@tiptap/extension-find-and-replace` owns editor search/highlighting/navigation. Knovum glue only persists selected image bytes into its private asset scope and applies desktop visual composition; it does not reimplement editor transactions.
 - Image conversion/resizing uses the maintained Rust `image` crate rather than browser Canvas. The current output matrix is PNG/JPEG/BMP/TIFF; resize uses the crate's Lanczos3 filter and rotate/flip use its built-in transforms.
-- Rust background removal uses exact-pinned `tract-onnx` 0.23.5 and the existing `image` crate. The U²-Net small model is embedded with an explicit source, license record, engine version, and SHA-256. Browser-only `modern-rembg` and `onnxruntime-web` were removed because CPU inference and image compositing in the WebView made the desktop shell unresponsive.
+- Background removal keeps Rust `image` for bounded pixel preparation and compositing. The fixed U²-Net small ONNX model now executes in the private Python worker through ONNX Runtime; the model remains a verified Knovum resource. Browser-only `modern-rembg` and `onnxruntime-web` were removed because CPU inference and image compositing in the WebView made the desktop shell unresponsive.
 - Subtitled-video derivation reuses Knovum's provisioned FFmpeg runtime and current Whisper transcript contract. FFmpeg's libass `subtitles` filter plus the macOS VideoToolbox or Windows Media Foundation H.264 encoder own local subtitle burn-in, avoiding a GPL x264 distribution dependency. Knovum owns SubRip serialization, Space-scoped cancellation, source-revision validation, output persistence and lineage. No wrapper crate is added because the repository already has a bounded Rust process-control adapter.
 - Spaces binary document/media import/export uses Tauri dialog/filesystem/opener boundaries and preserves original bytes. Native PDF page rasters and supported Office images are private document resources for background analysis, not source-page previews. Their durable manifest participates in the existing package and asset-reference lifecycle. FFmpeg generates persistent video posters. Audio/video playback remains activation-only while heavy editing stays a professional-app handoff.
 - Sensitive Information nodes keep only non-secret metadata in Spaces SQLite and store values in the foundation-owned credential database. No parallel encryption subsystem or application-managed master key is introduced.
@@ -127,11 +153,11 @@ PDF parser choice: [upstream Rust API](https://github.com/firecrawl/pdf-inspecto
 
 - Infinite-canvas interaction uses Konva's official Stage, Layer, hit detection, drag events, transforms and redraw controls. Knovum adds only knowledge-object presentation, domain orchestration and the neutral persistence/exchange contract.
 - Long media transcripts use `@tanstack/vue-virtual`, the Vue adapter for TanStack Virtual. The Inspector keeps the complete transcript model while mounting only visible rows.
-- Local speech transcription uses the maintained whisper.cpp `whisper-cli` full JSON contract. FFmpeg normalizes imported audio/video once to 16 kHz mono PCM, then one accelerated Whisper process transcribes the complete track with built-in Silero VAD. The media domain persists token-timed subtitle cues split only at speech pauses, sentence boundaries, or elapsed-audio boundaries. FFmpeg's libass renderer owns glyph measurement and Unicode line wrapping against the real video frame; Knovum does not estimate line width from character counts. This keeps the model resident for the job, avoids intermediate chunk files, preserves original-timeline timestamps, and drives Task Center progress through the CLI callback. Browser speech APIs and cloud media-upload transcription are intentionally not part of the architecture.
-- Semantic Knowledge Search executes locally in-process using `Qwen3-Embedding-0.6B` through `fastembed` and `candle` at 1,024 dimensions. This keeps vector generation 100% offline, private, and removes external API/cloud dependencies for knowledge indexing and semantic search.
+- Local speech transcription uses explicit Python execution profiles: MLX Whisper on Apple Silicon and faster-whisper/CTranslate2 on Windows x64. FFmpeg normalizes imported audio/video to 16 kHz mono PCM. Rust verifies the pinned model snapshot, source revision, request identity, timestamps, and transcript before publication. Subtitle cues use the existing timed-token grouping; FFmpeg/libass measures glyphs and wraps against the rendered frame. Neither browser speech recognition nor cloud media upload participates in this path.
+- Semantic Knowledge Search executes locally through the application-managed CPython worker using the fixed `Qwen3-Embedding-0.6B` snapshot and upstream Sentence Transformers at 1,024 dimensions. Rust retains index generations, revision checks and publication; the worker neither reaches the network nor writes the vector store.
 - Translation uses the shared maintained `genai` multi-provider boundary and the same connection/model capability settings as other AI actions. Qwen-MT targets use Alibaba's documented `translation_options`; other explicitly translation-capable chat models use a provider-neutral translation-only chat protocol. Protocol selection is explicit from provider/model identity rather than a fallback, and Rust does not select a product-default model.
-- Token usage accounting reuses `genai`'s provider response usage instead of installing a second tokenizer or approximating vendor billing. For the local embedding model, the existing Hugging Face `tokenizers` encoding reports its exact post-truncation input count during inference. Provider omissions stay explicit; Knovum does not synthesize cloud usage from prompt text.
-- Background removal executes the bundled U2Net ONNX model directly with Tract's ONNX API. This avoids an incomplete ONNX Runtime C-API compatibility layer and preserves one pure-Rust inference implementation across Intel/Apple Silicon macOS, Windows and Linux.
+- Token usage accounting reuses `genai`'s provider response usage instead of installing a second tokenizer or approximating vendor billing. The local embedding worker reports counts from the model tokenizer and rejects overlong input rather than truncating it. Provider omissions stay explicit; Knovum does not synthesize cloud usage from prompt text.
+- Background removal executes U²-Net in the private Python worker through ONNX Runtime's upstream API. Rust validates the model resource and tensor file contract, then composites the returned mask through the existing `image` path.
 - Chapter/Summary generation reuses Knovum's existing Rust generative-AI provider integration. It is opt-in, receives timestamped text rather than media binaries, and Chapter timestamps must resolve to real Transcript segment starts before persistence.
 - Desktop Agent sessions reuse `agent-client-protocol` v1 MCP server declarations and the existing `rmcp` streamable-HTTP server. Each creation session receives a loopback-only, bearer-authenticated, Space-scoped endpoint that is cancelled with the ACP session; no Agent-specific knowledge protocol or direct database access is implemented.
 
@@ -139,7 +165,7 @@ PDF parser choice: [upstream Rust API](https://github.com/firecrawl/pdf-inspecto
 
 - Saved Website readable-content extraction uses Mozilla `@mozilla/readability` 0.6.0 rather than Knovum-owned DOM stripping/selector heuristics. Knovum keeps only security-sensitive Rust fetching, metadata normalization and domain translation.
 - Space transactions use the already selected `sqlx` dependency in Rust. A generic renderer-to-Rust SQL transaction bridge was rejected because it would widen authority and obscure domain invariants; commands are named for their business mutation.
-- `tract-onnx` remains exact-pinned. Runtime or model upgrades require cross-platform release builds, checksum/license review, representative-image fixtures, and a real inference smoke on macOS and Windows.
+- The Python ONNX Runtime and U²-Net resource remain exact-pinned. Runtime or model upgrades require cross-platform release builds, checksum/license review, representative-image fixtures, and a real inference smoke on macOS and Windows.
 - Editable Word export uses `docx-rs` in the Rust layer. Fixed-layout PDF export uses Typst's official compiler and PDF exporter through exact-pinned `typst-as-lib`, with its system-font discovery feature enabled; filesystem/package/network resolvers remain disabled. Presentation export uses the existing Rust PPTX serializer through the same validated document model. PDF and PPTX select the current platform's installed UI sans family. The light video editor uses exact-pinned `fontdb` (already present through Typst) to enumerate installed font families and face weights; libass burns the selected family and weight into the rendered video. Missing fonts are rejected before export. Editable projects still depend on fonts installed on the computer that renders them. None of these dependencies becomes a general office-document abstraction.
 - Video generation uses existing model/desktop-Agent execution and the current selected knowledge plus rendered image references. It does not require a hidden script-generation call. Deterministic subtitle burn-in reuses FFmpeg and local Whisper.
 - SQLite mutations that read before writing start with `BEGIN IMMEDIATE` through the Spaces-owned transaction boundary. This gives one explicit write-serialization policy without retry loops, busy-error fallbacks or a renderer-visible generic database service.

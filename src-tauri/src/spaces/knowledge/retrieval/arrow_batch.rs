@@ -44,6 +44,8 @@ fn build_columns(
     vector_array: FixedSizeListArray,
 ) -> Vec<ArrayRef> {
     vec![
+        string_column(records, |r| r.generation_id.as_str()),
+        string_column(records, |r| r.embedding_spec_id.as_str()),
         string_column(records, |r| r.chunk_id.as_str()),
         string_column(records, |r| r.space_id.as_str()),
         string_column(records, |r| r.node_id.as_str()),
@@ -51,7 +53,6 @@ fn build_columns(
         string_column(records, |r| r.node_title.as_str()),
         string_column(records, |r| r.chunk_kind.as_str()),
         string_column(records, |r| r.source_revision.as_str()),
-        string_column(records, |r| r.model.as_str()),
         Arc::new(Int32Array::from(
             records.iter().map(|r| r.dimensions).collect::<Vec<_>>(),
         )) as ArrayRef,

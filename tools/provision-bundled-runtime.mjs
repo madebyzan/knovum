@@ -1,10 +1,12 @@
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { createReadStream, createWriteStream, existsSync, mkdirSync, renameSync, rmSync } from "node:fs";
-import { dirname, isAbsolute, join, resolve as resolvePath } from "node:path";
+import { dirname, join, resolve as resolvePath } from "node:path";
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import { fileURLToPath } from "node:url";
+
+import { safeRelativePath, validatePythonRuntime } from "./runtime-manifest.mjs";
 
 const repository = resolvePath(dirname(fileURLToPath(import.meta.url)), "..");
 const args = process.argv.slice(2);
@@ -13,7 +15,7 @@ const value = (name) => {
   return index >= 0 ? args[index + 1] : undefined;
 };
 const target = value("--target") ?? hostTarget();
-const supportedTargets = new Set(["macos-arm64", "macos-x64", "windows-arm64", "windows-x64"]);
+const supportedTargets = new Set(["macos-arm64", "windows-x64"]);
 if (!supportedTargets.has(target)) throw new Error(`Unsupported bundled runtime target: ${target}`);
 const envKey = target.toUpperCase().replaceAll("-", "_");
 const url = value("--url") ?? process.env[`KNOVUM_BUNDLED_RUNTIME_${envKey}_URL`];
@@ -52,10 +54,7 @@ try {
 
 function validateRuntime(directory) {
   const windows = target.startsWith("windows-");
-  const required = [
-    join(directory, windows ? "ffmpeg.exe" : "ffmpeg"),
-    join(directory, windows ? "whisper-cli.exe" : "whisper-cli"),
-  ];
+  const required = [join(directory, windows ? "ffmpeg.exe" : "ffmpeg")];
   const missing = required.filter((path) => !existsSync(path));
   if (missing.length > 0) {
     throw new Error(`Bundled runtime is incomplete for ${target}:\n${missing.join("\n")}`);
@@ -69,6 +68,7 @@ function validateRuntime(directory) {
       `On-demand media tools must not be present in the bundled runtime:\n${forbidden.join("\n")}`,
     );
   }
+  validatePythonRuntime(join(directory, "python-runtime"), target, join(repository, "python", "uv.lock"));
 }
 
 async function download(
@@ -89,17 +89,9 @@ async function download(
 function preflightArchive(archive) {
   const entries = execFileSync("tar", ["-tf", archive], { encoding: "utf8" }).split(/\r?\n/u).filter(Boolean);
   if (!entries.length) throw new Error("Bundled runtime archive is empty");
-  if (new Set(entries).size !== entries.length) {
+  const normalized = entries.map(normalizeArchiveEntry);
+  if (new Set(normalized).size !== normalized.length) {
     throw new Error("Bundled runtime archive contains duplicate entries");
-  }
-  for (const entry of entries) {
-    if (
-      isAbsolute(entry) ||
-      /^[A-Za-z]:[\\/]/u.test(entry) ||
-      entry.replaceAll("\\", "/").split("/").includes("..")
-    ) {
-      throw new Error(`Bundled runtime archive contains an unsafe path: ${entry}`);
-    }
   }
   const verbose = execFileSync("tar", ["-tvf", archive], { encoding: "utf8" })
     .split(/\r?\n/u)
@@ -107,6 +99,15 @@ function preflightArchive(archive) {
   if (verbose.length !== entries.length || verbose.some((line) => !["-", "d"].includes(line[0]))) {
     throw new Error("Bundled runtime archive may contain only regular files and directories");
   }
+}
+
+function normalizeArchiveEntry(entry) {
+  const path = entry.endsWith("/") ? entry.slice(0, -1) : entry;
+  const containsControlCharacter = entry.includes("\0") || entry.includes("\n") || entry.includes("\r");
+  if (containsControlCharacter || !safeRelativePath(path)) {
+    throw new Error(`Bundled runtime archive contains an unsafe path: ${entry}`);
+  }
+  return path;
 }
 
 function hostTarget() {

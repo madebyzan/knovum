@@ -1,0 +1,24 @@
+{
+  "recording": "Listening… release the shortcut to transcribe",
+  "transcribing": "Transcribing dictation…",
+  "errors": {
+    "microphonePermissionDenied": "Microphone access was denied. Allow microphone access for Knovum in system settings.",
+    "microphoneUnavailable": "The microphone became unavailable. Check the selected input device and try again.",
+    "recordingLimitReached": "The recording reached the two minute limit and was cancelled.",
+    "audioCaptureEmpty": "The microphone did not capture any audio.",
+    "unsupportedAudioFormat": "The selected microphone format is not supported for dictation.",
+    "unsupportedDevice": "This device does not have a qualified native dictation profile.",
+    "dictationFocusChanged": "The target application changed, so no text was inserted.",
+    "dictationPermissionDenied": "The operating system blocked text insertion. The recognized text is preserved below.",
+    "dictationEmptyResult": "No insertable text was recognized.",
+    "dictationInsertionFailed": "Text insertion failed. The recognized text is preserved below.",
+    "dictationFailed": "Dictation could not be completed."
+  },
+  "result": {
+    "title": "Dictation result",
+    "description": "Automatic insertion was not completed. The recognized text is preserved here.",
+    "noText": "No text was recognized.",
+    "copy": "Copy text",
+    "copied": "Dictation copied"
+  }
+}

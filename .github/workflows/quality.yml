@@ -13,6 +13,30 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  runtime-manifest:
+    name: Runtime manifest
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+      - run: node --test tools/__tests__/write-python-runtime-manifest.test.mjs
+
+  python:
+    name: Python quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          version: "0.11.24"
+      - name: Check Python worker
+        run: npm run check:python
+
   web:
     name: Web quality
     runs-on: ubuntu-latest

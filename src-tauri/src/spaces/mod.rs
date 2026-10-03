@@ -20,6 +20,7 @@ mod previews;
 pub(crate) mod queries;
 mod recovery;
 pub(crate) mod runs;
+pub(crate) mod speech;
 pub(crate) mod structure;
 pub(crate) mod workflows;
 

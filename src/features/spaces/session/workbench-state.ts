@@ -39,7 +39,7 @@ export interface SceneCue {
   nonce: number;
 }
 
-export type RightSidebarView = "ask" | "inspect" | "document-outline" | "source";
+export type RightSidebarView = "ask" | "inspect" | "document-outline" | "speech" | "source";
 export type RightSidebarPrimaryView = Exclude<RightSidebarView, "source">;
 
 export function createSpaceUiState() {

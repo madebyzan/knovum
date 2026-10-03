@@ -22,8 +22,8 @@ pub struct LocalResourcesStatus {
     ffmpeg: ToolStatus,
     yt_dlp: ToolStatus,
     deno: ToolStatus,
-    whisper_cli: ToolStatus,
     models: ModelStatuses,
+    kokoro: models::kokoro::KokoroPackageStatus,
 }
 
 #[derive(Serialize, ts_rs::TS)]
@@ -36,10 +36,14 @@ struct ToolStatus {
 #[derive(Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 struct ModelStatuses {
-    transcription: ModelStatus,
-    transcription_vad: ModelStatus,
+    transcription: Vec<ModelStatus>,
+    image_segmentation: ModelStatus,
     text_embedding_config: ModelStatus,
+    text_embedding_modules: ModelStatus,
+    text_embedding_pooling_config: ModelStatus,
+    text_embedding_sentence_transformers_config: ModelStatus,
     text_embedding_tokenizer: ModelStatus,
+    text_embedding_tokenizer_config: ModelStatus,
     text_embedding_weights: ModelStatus,
 }
 
@@ -54,17 +58,31 @@ fn status(app: &AppHandle) -> Result<LocalResourcesStatus, String> {
         ffmpeg: tool_status(app, "KNOVUM_FFMPEG_PATH", tools::ffmpeg_name())?,
         yt_dlp: tool_status_from_path(tools::resolve_yt_dlp(app)?),
         deno: tool_status_from_path(tools::resolve_deno(app)?),
-        whisper_cli: tool_status(app, "KNOVUM_WHISPER_PATH", tools::whisper_cli_name())?,
         models: model_statuses(app)?,
+        kokoro: models::kokoro::status(app)?,
     })
 }
 
 fn model_statuses(app: &AppHandle) -> Result<ModelStatuses, String> {
     Ok(ModelStatuses {
-        transcription: model_status(app, ModelKind::Transcription)?,
-        transcription_vad: model_status(app, ModelKind::TranscriptionVad)?,
+        transcription: models::catalog::TRANSCRIPTION_MODELS
+            .iter()
+            .copied()
+            .map(|kind| model_status(app, kind))
+            .collect::<Result<Vec<_>, _>>()?,
+        image_segmentation: model_status(app, ModelKind::ImageSegmentation)?,
         text_embedding_config: model_status(app, ModelKind::TextEmbeddingConfig)?,
+        text_embedding_modules: model_status(app, ModelKind::TextEmbeddingModules)?,
+        text_embedding_pooling_config: model_status(app, ModelKind::TextEmbeddingPoolingConfig)?,
+        text_embedding_sentence_transformers_config: model_status(
+            app,
+            ModelKind::TextEmbeddingSentenceTransformersConfig,
+        )?,
         text_embedding_tokenizer: model_status(app, ModelKind::TextEmbeddingTokenizer)?,
+        text_embedding_tokenizer_config: model_status(
+            app,
+            ModelKind::TextEmbeddingTokenizerConfig,
+        )?,
         text_embedding_weights: model_status(app, ModelKind::TextEmbeddingWeights)?,
     })
 }

@@ -50,6 +50,16 @@ pub(super) fn handler() -> impl Fn(Invoke<tauri::Wry>) -> bool + Send + Sync + '
         crate::spaces::canvas_exchange::cancel_json_canvas_import,
         crate::spaces::nodes::commands::create_nodes,
         crate::spaces::nodes::commands::update_nodes,
+        crate::spaces::speech::commands::list_voice_profiles,
+        crate::spaces::speech::commands::create_preset_voice,
+        crate::spaces::speech::commands::list_speech_projects,
+        crate::spaces::speech::commands::create_speech_project,
+        crate::spaces::speech::commands::get_speech_project,
+        crate::spaces::speech::revisions::save_speech_project_revision,
+        crate::spaces::speech::execution::preview_preset_voice,
+        crate::spaces::speech::execution::generate_speech_project,
+        crate::spaces::speech::execution::cancel_speech_generation,
+        crate::spaces::speech::execution::discard_speech_preview,
         crate::spaces::recovery::await_space_runtime,
     ]
 }

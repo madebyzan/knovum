@@ -29,6 +29,9 @@ impl Fixture {
         crate::spaces::db::migrate(&pool).await.expect("migrations");
         sqlx::query("INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES ('space','space','Space',1,1)")
             .execute(&pool).await.expect("space");
+        sqlx::query("INSERT INTO spaces_retrieval_generations(id,space_id,embedding_spec_id,status,created_at) \
+            VALUES ('generation','space','spec','building',1)")
+            .execute(&pool).await.expect("generation");
         sqlx::query("INSERT INTO spaces_nodes(id,space_id,kind,initial_x,initial_y,data,created_at,updated_at) \
             VALUES ('node','space','image',0,0,'{\"kind\":\"image\",\"title\":\"Image\",\"sourceRevision\":\"r1\"}',1,1)")
             .execute(&pool).await.expect("node");
@@ -56,7 +59,7 @@ impl Fixture {
 
     pub async fn rows(&self) -> usize {
         self.index
-            .open_table("knowledge_chunks")
+            .open_table(crate::spaces::knowledge::retrieval::schema::TABLE_KNOWLEDGE_CHUNKS)
             .execute()
             .await
             .expect("table")

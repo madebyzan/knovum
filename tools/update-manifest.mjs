@@ -18,7 +18,7 @@ export function validateManifest(manifest) {
       .toSorted()
       .join(",") !== platforms.join(",")
   ) {
-    throw new Error("The update must contain exactly the four supported desktop targets");
+    throw new Error("The update must contain exactly the supported desktop targets");
   }
   for (const [target, artifact] of Object.entries(manifest.platforms)) {
     httpsUrl(artifact.url, `${target} download URL`);

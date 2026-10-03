@@ -14,7 +14,7 @@ pub(crate) mod requests;
 
 use contracts::{ResourcePreparationProgress, ResourcePreparationStage, ResourcePreparationTarget};
 
-pub use locks::{acquire_verified_models, PreparedModels};
+pub use locks::{acquire_verified_models, PreparedKokoroModel, PreparedModels};
 
 pub const RESOURCE_PREPARATION_CANCELLED: &str = "local-resource-preparation-cancelled";
 
@@ -109,6 +109,59 @@ pub async fn prepare_models_for_job<R: Runtime>(
         .ok_or_else(|| "Resource preparation target does not contain models".to_string())?;
     let request = requests::begin(job_id, title, target)?;
     prepare_models_for_request(app, kinds, request, business_cancellation, progress).await
+}
+
+pub async fn prepare_kokoro_for_job<R: Runtime>(
+    app: &AppHandle<R>,
+    job_id: &str,
+    title: &str,
+    business_cancellation: &CancellationToken,
+    progress: &mut impl FnMut(ResourcePreparationProgress),
+) -> Result<PreparedKokoroModel, String> {
+    if job_id.trim().is_empty() {
+        return Err("Kokoro preparation requires a job identifier".to_string());
+    }
+    if title.trim().is_empty() {
+        return Err("Kokoro preparation requires a task title".to_string());
+    }
+    let request = requests::begin(job_id, title, ResourcePreparationTarget::SpeechSynthesis)?;
+    prepare_kokoro_for_request(app, request, business_cancellation, progress).await
+}
+
+pub(crate) async fn prepare_kokoro_for_request<R: Runtime>(
+    app: &AppHandle<R>,
+    request: requests::PreparationRequest,
+    business_cancellation: &CancellationToken,
+    progress: &mut impl FnMut(ResourcePreparationProgress),
+) -> Result<PreparedKokoroModel, String> {
+    let prepared = {
+        let mut observe = |update: ResourcePreparationProgress| {
+            request.update(update.clone());
+            progress(update);
+        };
+        tokio::select! {
+            biased;
+            _ = business_cancellation.cancelled() => {
+                request.cancellation().cancel();
+                Err(RESOURCE_PREPARATION_CANCELLED.to_string())
+            }
+            outcome = prepare_kokoro(app, request.cancellation(), &mut observe) => outcome,
+        }
+    };
+    request.finish(prepared.as_ref().err())?;
+    prepared
+}
+
+async fn prepare_kokoro<R: Runtime>(
+    app: &AppHandle<R>,
+    cancellation: &CancellationToken,
+    progress: &mut impl FnMut(ResourcePreparationProgress),
+) -> Result<PreparedKokoroModel, String> {
+    {
+        let _installation = locks::acquire_kokoro_installation(cancellation).await?;
+        super::models::kokoro::install(app, progress, cancellation).await?;
+    }
+    locks::acquire_verified_kokoro(app, cancellation).await
 }
 
 pub(crate) async fn prepare_models_for_request<R: Runtime>(

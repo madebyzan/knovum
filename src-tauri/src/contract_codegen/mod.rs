@@ -3,6 +3,34 @@ use std::path::Path;
 use schemars::schema_for;
 use ts_rs::Config;
 
+// The fields exist only to collect one closed schema graph for Python generation.
+#[allow(dead_code)]
+#[derive(schemars::JsonSchema)]
+struct InferenceWireSchemas {
+    initialize_params: crate::ai::contracts::runtime::RuntimeInitializeParams,
+    initialize_result: crate::ai::contracts::runtime::RuntimeInitializeResult,
+    health_params: crate::ai::contracts::runtime::RuntimeHealthParams,
+    health_result: crate::ai::contracts::runtime::RuntimeHealthResult,
+    cancel_params: crate::ai::contracts::runtime::RuntimeCancelParams,
+    cancel_result: crate::ai::contracts::runtime::RuntimeCancelResult,
+    shutdown_params: crate::ai::contracts::runtime::RuntimeShutdownParams,
+    shutdown_result: crate::ai::contracts::runtime::RuntimeShutdownResult,
+    embedding_params: crate::ai::contracts::embedding_wire::EmbeddingEncodeParams,
+    embedding_result: crate::ai::contracts::embedding_wire::EmbeddingEncodeResult,
+    image_segment_params: crate::ai::contracts::image_wire::ImageSegmentParams,
+    image_segment_result: crate::ai::contracts::image_wire::ImageSegmentResult,
+    speech_transcribe_params: crate::ai::contracts::speech_wire::SpeechTranscribeParams,
+    speech_transcribe_result: crate::ai::contracts::speech_wire::SpeechTranscribeResult,
+    speech_progress_event: crate::ai::contracts::speech_wire::SpeechProgressEvent,
+    speech_progress_event_type: crate::ai::contracts::speech_wire::SpeechProgressEventType,
+    speech_align_params: crate::ai::contracts::speech_wire::SpeechAlignParams,
+    speech_align_result: crate::ai::contracts::speech_wire::SpeechAlignResult,
+    speech_diarize_params: crate::ai::contracts::speech_wire::SpeechDiarizeParams,
+    speech_diarize_result: crate::ai::contracts::speech_wire::SpeechDiarizeResult,
+    speech_synthesize_params: crate::ai::contracts::speech_wire::SpeechSynthesizeParams,
+    speech_synthesize_result: crate::ai::contracts::speech_wire::SpeechSynthesizeResult,
+}
+
 mod types;
 
 pub fn export(project_root: &Path) -> Result<(), String> {
@@ -10,6 +38,14 @@ pub fn export(project_root: &Path) -> Result<(), String> {
     let config = Config::new().with_out_dir(&output).with_large_int("number");
     types::export(&config)?;
     export_runtime_values(&output)?;
+    let wire_schema = project_root.join("python/schemas/runtime.schema.json");
+    std::fs::create_dir_all(
+        wire_schema
+            .parent()
+            .ok_or("Inference schema has no parent")?,
+    )
+    .map_err(io_error)?;
+    write_json(&wire_schema, &schema_for!(InferenceWireSchemas))?;
     let spaces_output = project_root.join("src/features/spaces/contracts/generated");
     let relation_kinds = schema_for!(crate::spaces::knowledge::contracts::RelationKind);
     let relation_statuses = schema_for!(crate::spaces::knowledge::contracts::RelationStatus);

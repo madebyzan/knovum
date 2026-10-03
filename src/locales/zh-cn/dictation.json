@@ -1,0 +1,24 @@
+{
+  "recording": "正在听写…松开快捷键开始识别",
+  "transcribing": "正在识别听写内容…",
+  "errors": {
+    "microphonePermissionDenied": "麦克风访问被拒绝，请在系统设置中允许 Knovum 使用麦克风。",
+    "microphoneUnavailable": "麦克风已不可用，请检查当前输入设备后重试。",
+    "recordingLimitReached": "录音达到两分钟上限，已取消本次听写。",
+    "audioCaptureEmpty": "麦克风没有采集到音频。",
+    "unsupportedAudioFormat": "当前麦克风格式不支持听写。",
+    "unsupportedDevice": "当前设备没有通过验收的原生听写配置。",
+    "dictationFocusChanged": "目标应用已改变，因此没有自动插入文字。",
+    "dictationPermissionDenied": "系统阻止了文字插入，识别结果已保留在下方。",
+    "dictationEmptyResult": "没有识别到可插入的文字。",
+    "dictationInsertionFailed": "文字插入失败，识别结果已保留在下方。",
+    "dictationFailed": "听写未能完成。"
+  },
+  "result": {
+    "title": "听写结果",
+    "description": "未能自动插入，识别结果已保留在这里。",
+    "noText": "未识别到文字。",
+    "copy": "复制文字",
+    "copied": "已复制听写结果"
+  }
+}

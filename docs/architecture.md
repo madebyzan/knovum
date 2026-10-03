@@ -89,6 +89,13 @@ separate capabilities. `local_resources/models` owns downloaded model installati
 Space domain types. A Space command authorizes an asset before calling `system_preview`; the preview
 engine never becomes a general Renderer file capability.
 
+`ai/local_runtime` owns the verified private CPython process, bounded JSON-RPC transport,
+one heavy-compute permit and process cleanup. It keeps no Run or project state. Capability
+modules authorize model paths and map typed requests; Python adapters invoke upstream model
+libraries and return temporary results. Python cannot write Space data, publish assets or
+choose a replacement model after failure. `spaces` owns durable Attempts, input revisions,
+checkpoints and publication. The WebView never starts or addresses Python directly.
+
 `file_inspection/classification` is the single authority for imported resource classification.
 Inspection, Space import and system-thumbnail eligibility consume its typed result; they must not
 maintain parallel extension lists or infer semantic categories from persisted node-kind strings.
@@ -117,7 +124,7 @@ Spaces processing and retrieval are Rust application use cases, not WebView work
   and failed-import cleanup. Vue owns dialogs, progress and opening the imported Space;
 - `canvas_exchange/` owns JSON Canvas file reading, import mapping, asset acquisition and atomic
   commit. Vue projects the current visual frames for export and presents committed imports;
-- `knowledge/retrieval/` owns embedding instructions, model identity, batching, LanceDB writes, semantic search
+- `knowledge/retrieval/` owns the fixed embedding spec identity, batching, LanceDB writes, semantic search
   and hybrid rank fusion. Its publication and invalidation outbox share the existing SQLite write
   transaction boundary; embedding computation stays outside that boundary. Vue submits query text
   or an indexing intent and never transports vectors;
@@ -130,7 +137,7 @@ Raw persistence transitions, embedding vectors and partial grounded-AI steps are
 
 Canvas generation and document exports enter the typed `actions/canvas` acceptance boundary. Rust pins authorized source identities and execution choice, then creates an Action Run through the existing invocation contract. A Workflow replays a saved, verified derivation chain through those same Actions under a persisted grant and idempotency key. Interactive image tools, multi-output layer splitting, and video-editor rendering use one capability-owned Rust command each; they record Derivation provenance but are not replayable Workflow Actions. Built-in recipe definitions and their separate compiler are removed. Document assembly and publication belong to Rust, not a Renderer coordinator. Vue owns selection, input binding and observation; it never marks a step complete.
 
-The knowledge embedding model and vector dimensions form one Spaces retrieval-index contract. They are intentionally not a user-switchable generation preference: changing either requires an explicit index-contract change and complete rebuild. The generic `ai::embedding` adapter accepts a resolved target and dimensions but does not own the selected model identity.
+The knowledge embedding model, preprocessing and vector dimensions form one Spaces retrieval-index contract. They are intentionally not a user-switchable generation preference: changing any part of the embedding spec requires a new index generation and complete rebuild. `ai/capabilities/embedding` owns the fixed Qwen execution spec and validates Python output; Spaces alone decides which generation may be searched.
 
 Expose one command per user/application intent so the WebView cannot assemble a second domain
 implementation from low-level Rust primitives.

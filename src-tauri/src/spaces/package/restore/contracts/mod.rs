@@ -3,6 +3,7 @@ mod derivation;
 mod external_conversation;
 mod restore_request;
 mod run;
+mod speech;
 
 use serde::Deserialize;
 use serde_json::Value;
@@ -12,6 +13,10 @@ pub use derivation::PackageDerivation;
 pub use external_conversation::{PackageExternalAgentConversation, PackageExternalAgentTurn};
 pub use restore_request::RestorePackageRequest;
 pub use run::{PackageRun, PackageRunAttempt, PackageRunEvent, PackageRunStep};
+pub use speech::{
+    PackageSpeechProject, PackageSpeechProjectRevision, PackageSpeechRender, PackageSpeechSegment,
+    PackageVoiceProfile, PackageVoiceRevision,
+};
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]

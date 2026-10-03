@@ -14,9 +14,7 @@ pub fn diagnostic_error(lines: &[String], default_message: &str) -> String {
     }
 }
 
-mod progress;
 mod runner;
-pub(crate) use progress::parse_progress;
 pub(crate) use runner::{wait_with_output, wait_with_stderr};
 
 #[cfg(test)]

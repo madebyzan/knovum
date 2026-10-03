@@ -5,9 +5,10 @@ mod publication;
 
 fn build_input(vector: Vec<f64>, dims: i64) -> KnowledgeEmbeddingInput {
     KnowledgeEmbeddingInput {
+        generation_id: "generation".into(),
+        embedding_spec_id: "spec".into(),
         chunk_id: "c1".into(),
         source_revision: "r1".into(),
-        model: "m".into(),
         dimensions: dims,
         vector,
     }
@@ -22,7 +23,7 @@ fn validate_embedding_requires_metadata() {
     bad.source_revision = String::new();
     assert!(validate_embedding(&bad).is_err());
     let mut bad = build_input(vec![0.1, 0.2], 2);
-    bad.model = String::new();
+    bad.embedding_spec_id = String::new();
     assert!(validate_embedding(&bad).is_err());
 }
 

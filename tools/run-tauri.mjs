@@ -23,13 +23,16 @@ function configureDevelopmentRuntime(targetEnvironment) {
   const windows = process.platform === "win32";
   const tools = {
     KNOVUM_FFMPEG_PATH: windows ? "ffmpeg.exe" : "ffmpeg",
-    KNOVUM_WHISPER_PATH: windows ? "whisper-cli.exe" : "whisper-cli",
   };
   for (const [key, name] of Object.entries(tools)) {
     if (targetEnvironment[key]) continue;
     const path = join(directory, name);
     if (!existsSync(path)) throw new Error(`Development runtime is missing ${path}`);
     targetEnvironment[key] = path;
+  }
+  if (!targetEnvironment.KNOVUM_PYTHON_RUNTIME_MANIFEST_PATH) {
+    const manifest = join(directory, "python-runtime", "runtime-manifest.json");
+    if (existsSync(manifest)) targetEnvironment.KNOVUM_PYTHON_RUNTIME_MANIFEST_PATH = manifest;
   }
 }
 

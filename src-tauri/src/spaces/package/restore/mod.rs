@@ -36,6 +36,7 @@ pub async fn restore<R: Runtime>(
     runs::insert(&mut tx, &request).await?;
     assistant::insert(&mut tx, &request).await?;
     external_conversations::insert(&mut tx, &request).await?;
+    speech::insert(&mut tx, &request).await?;
     knowledge::insert_provenance(&mut tx, &request).await?;
     content::insert_chunks(&mut tx, &request).await?;
     for message in &request.assistant_messages {
@@ -86,6 +87,7 @@ mod external_conversations;
 mod knowledge;
 mod runs;
 mod scenes;
+mod speech;
 mod validation;
 use scenes::insert_scenes;
 

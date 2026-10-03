@@ -22,6 +22,7 @@ pub struct StartImageCutoutRequest {
 
 pub(super) struct CompleteImageCutoutRequest {
     id: String,
+    source_revision: String,
     source_edit: Value,
 }
 
@@ -92,10 +93,11 @@ async fn start(app: &AppHandle, request: &StartImageCutoutRequest) -> Result<(),
             .ok_or("Image source path is unavailable")?,
     )?;
     let now = crate::clock::unix_time_millis()?;
-    sqlx::query("INSERT INTO spaces_knowledge_derivations(id,space_id,output_node_id,action_kind,action_version,engine,status,created_at,updated_at) VALUES($1,$2,$3,'remove-image-background',1,'u2netp-tract:1','running',$4,$4)")
+    sqlx::query("INSERT INTO spaces_knowledge_derivations(id,space_id,output_node_id,action_kind,action_version,engine,status,created_at,updated_at) VALUES($1,$2,$3,'remove-image-background',1,$4,'running',$5,$5)")
         .bind(&request.id)
         .bind(&request.space_id)
         .bind(&request.output_node_id)
+        .bind(crate::ai::contracts::image_wire::IMAGE_SEGMENTATION_SPEC_ID)
         .bind(now)
         .execute(&mut *tx)
         .await
@@ -132,6 +134,7 @@ pub async fn run(
         app.clone(),
         CompleteImageCutoutRequest {
             id: request.id.clone(),
+            source_revision: request.source_revision,
             source_edit: request.source_edit,
         },
     )

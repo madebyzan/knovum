@@ -19,12 +19,16 @@ pub async fn prepare_resources(
     on_progress: Channel<ResourcePreparationProgress>,
 ) -> Result<(), AppError> {
     validate_request(&job_id, &title)?;
+    if matches!(&target, ResourcePreparationTarget::Transcription) && target.models().is_none() {
+        return Err("Native transcription is not available on this platform".into());
+    }
     let request = requests::begin(&job_id, &title, target.clone())?;
     let (finished_tx, finished_rx) = oneshot::channel();
     tauri::async_runtime::spawn(async move {
         let preparation_outcome = match target {
             target @ (ResourcePreparationTarget::Transcription
-            | ResourcePreparationTarget::TextEmbedding) => {
+            | ResourcePreparationTarget::TextEmbedding
+            | ResourcePreparationTarget::ImageSegmentation) => {
                 let kinds = target
                     .models()
                     .expect("model preparation targets own a fixed model profile");
@@ -48,6 +52,14 @@ pub async fn prepare_resources(
                 .await
                 .map(|_| ())
             }
+            ResourcePreparationTarget::SpeechSynthesis => super::prepare_kokoro_for_request(
+                &app,
+                request,
+                &CancellationToken::new(),
+                &mut |progress| observe(&on_progress, progress),
+            )
+            .await
+            .map(|_| ()),
         };
         let _ = finished_tx.send(preparation_outcome);
     });

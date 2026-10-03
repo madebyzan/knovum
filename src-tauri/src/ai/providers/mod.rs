@@ -6,7 +6,6 @@ pub mod gemini;
 pub mod grok;
 pub mod image_edit;
 pub mod kling;
-pub mod local_candle;
 pub mod minimax;
 pub mod moonshot;
 pub mod openai;

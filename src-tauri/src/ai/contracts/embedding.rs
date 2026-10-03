@@ -7,7 +7,6 @@ pub trait EmbeddingCapability: Send + Sync {
     fn model_id(&self) -> &'static str;
     fn dimensions(&self) -> usize;
     fn max_batch_size(&self) -> usize;
-    fn format_query(&self, query: &str) -> String;
     fn max_chunk_bytes(&self) -> usize {
         64 * 1024
     }

@@ -1,0 +1,34 @@
+{
+  "title": "语音",
+  "newVoice": "预设音色",
+  "newProject": "语音项目",
+  "voiceName": "音色名称",
+  "speakerId": "说话人编号",
+  "language": "语言",
+  "addVoice": "添加",
+  "projectName": "项目名称",
+  "scriptPlaceholder": "输入此版本的配音稿",
+  "voice": "音色",
+  "saveRevision": "保存版本",
+  "preview": "试听",
+  "generate": "生成",
+  "cancel": "取消",
+  "generatedSegments": "完整音频",
+  "export": "导出",
+  "stages": {
+    "preparing": "准备资源",
+    "synthesizing": "生成试听",
+    "rendering": "生成片段",
+    "done": "完成"
+  },
+  "createProject": "创建",
+  "voices": "音色",
+  "projects": "项目",
+  "noVoices": "当前 Space 还没有音色。",
+  "noProjects": "当前 Space 还没有语音项目。",
+  "types": {
+    "shortDubbing": "短配音",
+    "audiobook": "有声书",
+    "videoDubbing": "视频配音"
+  }
+}
