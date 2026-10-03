@@ -1,0 +1,58 @@
+[build-system]
+requires = ["hatchling==1.27.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "knovum-runtime"
+version = "0.1.0"
+description = "Private local inference worker for Knovum"
+requires-python = "==3.11.13"
+dependencies = [
+  "av==18.1.0; sys_platform == 'win32' and (platform_machine == 'AMD64' or platform_machine == 'x86_64')",
+  "ctranslate2==4.8.2; sys_platform == 'win32' and (platform_machine == 'AMD64' or platform_machine == 'x86_64')",
+  "faster-whisper==1.2.1; sys_platform == 'win32' and (platform_machine == 'AMD64' or platform_machine == 'x86_64')",
+  "mlx==0.29.0; sys_platform == 'darwin' and platform_machine == 'arm64'",
+  "mlx-whisper==0.4.3; sys_platform == 'darwin' and platform_machine == 'arm64'",
+  "numpy==2.4.6",
+  "onnxruntime==1.23.2",
+  "pydantic==2.12.3",
+  "pyannote.audio==4.0.7",
+  "sentence-transformers==6.1.0",
+  "sherpa-onnx==1.13.8",
+  "silero-vad==6.2.3",
+  "torch==2.11.0",
+  "torchaudio==2.11.0",
+  "torchcodec==0.11.0",
+  "transformers==5.13.1",
+]
+
+[project.scripts]
+knovum-runtime = "knovum_inference.server:main"
+
+[dependency-groups]
+contracts = ["datamodel-code-generator==0.35.0"]
+quality = ["mypy==2.4.0", "pydantic==2.12.3", "pytest==9.1.1", "ruff==0.16.10"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 120
+src = ["src"]
+extend-exclude = ["src/knovum_inference/contracts.py"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/knovum_inference"]
+
+[tool.uv]
+default-groups = []

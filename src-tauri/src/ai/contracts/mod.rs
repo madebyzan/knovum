@@ -1,10 +1,14 @@
 pub mod agent;
 pub mod chat;
 pub mod embedding;
+pub mod embedding_wire;
 pub mod files;
+pub mod image_wire;
 pub mod media;
 pub mod model_turn;
 pub mod provider;
+pub mod runtime;
+pub mod speech_wire;
 
 pub use agent::{
     AgentArtifact, AgentArtifactKind, AgentConnectionKind, AgentDescriptor, AgentHelp,

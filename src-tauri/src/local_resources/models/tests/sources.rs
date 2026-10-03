@@ -2,7 +2,7 @@ use super::super::{catalog, sources};
 
 #[test]
 fn endpoints_preserve_the_same_pinned_artifact() {
-    let descriptor = catalog::TRANSCRIPTION;
+    let descriptor = catalog::FASTER_WHISPER_WEIGHTS;
     let urls = sources::urls(
         descriptor,
         &["https://huggingface.co", "https://hf-mirror.com/"],
@@ -15,7 +15,7 @@ fn endpoints_preserve_the_same_pinned_artifact() {
     assert_eq!(urls[1].query(), Some("download=true"));
     let custom = sources::urls(descriptor, &["https://models.example/hub/"]).unwrap();
     assert_eq!(custom.len(), 1);
-    assert!(custom[0].path().starts_with("/hub/ggerganov/"));
+    assert!(custom[0].path().starts_with("/hub/Systran/"));
 }
 
 #[test]
@@ -27,6 +27,6 @@ fn unsafe_or_malformed_endpoints_are_rejected() {
         "https://example.com?token=x",
         "https://example.com/#fragment",
     ] {
-        assert!(sources::urls(catalog::TRANSCRIPTION, &[endpoint]).is_err());
+        assert!(sources::urls(catalog::FASTER_WHISPER_WEIGHTS, &[endpoint]).is_err());
     }
 }

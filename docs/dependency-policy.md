@@ -29,6 +29,13 @@ Official Tauri plugins are registered only when a current product flow calls the
 
 Current desktop capabilities include lifecycle/single-instance, macOS menu-bar status item / Windows Tray, window state, Store, clipboard, dialogs, filesystem, opener, OS information, notifications, updater and logging. SQLite persistence and embedded migrations are Rust-owned through SQLx; no SQL capability is exposed to the WebView. Provider networking is Rust-owned rather than exposed as a wildcard WebView HTTP capability. Plugins with no current caller are removed rather than pre-provisioned.
 
+Cross-application dictation registers the official Tauri global-shortcut plugin only in Rust.
+Its WebView capability exposes Knovum's session state/cancel/copy commands, not the plugin's
+register/unregister API. CPAL and platform input bindings are macOS/Windows target dependencies;
+microphone bytes stay in a bounded Rust session file and are deleted after recognition or cancel.
+The OS adapter must revalidate the captured foreground process/window immediately before paste.
+Accessibility/UIPI denial and focus change remain product-visible outcomes, never retry fallbacks.
+
 Tauri remains the IPC transport. Application commands share a small error-normalization
 boundary; official plugin APIs are imported directly. Existing ts-rs owns wire DTO
 generation, including capability-owned video-editing requests and events. No parallel RPC
@@ -53,6 +60,38 @@ Tiptap packages are pinned to one release line as a unit; the current editor int
 Tiptap's Markdown extension is currently Beta, so its adoption is deliberately constrained: SQLite Markdown text remains the canonical body contract, only supported round-trippable Markdown structures are enabled, and Knovum does not persist vendor JSON as a parallel compatibility model. Tiptap's Notion-like template, Table of Contents UI and DOCX conversion are commercial/private-registry products and are not dependencies of Knovum's local OSS editor. Knovum derives its compact heading outline from the open editor document model. DOCX viewing fidelity, semantic conversion and editable round-tripping remain different capabilities and must not be treated as one dependency decision. Office ingestion now uses Rust `office_oxide` for plain-text/Markdown extraction so Space search and future RAG indexing do not depend on WebView rendering. Pixel-faithful Office preview remains a separate capability and is not approximated with a custom renderer. Editor search uses Tiptap's first-party Find and Replace extension rather than a parallel ProseMirror search package.
 
 Direct dependencies must have a current caller or satisfy a documented peer/runtime requirement. Knip exceptions are reserved for tooling/runtime cases that static import analysis cannot see; they are not a holding area for speculative packages.
+
+## Private local inference
+
+The desktop package owns a controlled CPython 3.11.13 runtime and a uv-locked set of Python
+dependencies. Rust invokes that interpreter over private stdio with one selected capability per
+session; the WebView has no Python launch permission. Sentence Transformers and PyTorch own the
+Qwen embedding model internals. ONNX Runtime Python owns U²-Net inference; Rust `image` still
+owns pixel conversion and final output. Candle and Tract are removed when their last respective
+callers move. Python dependencies are imported only for the selected capability and never
+installed or downloaded on the user machine.
+The `python/uv.lock` quality group pins Ruff, Mypy and pytest separately from the packaged
+runtime dependency set. `pnpm check:python` checks worker source, formatting, types and focused
+boundary tests without installing model libraries; native capability acceptance still runs against
+the complete target runtime.
+
+Native wheel availability, model license and actual execution are per-target release gates. A
+locked Python version alone does not establish native execution. The approved release targets
+are macOS arm64 and Windows x64. macOS x64 and Windows arm64 are outside the release scope because
+the selected PyTorch and TorchCodec versions do not provide a matching native wheel set. The
+runtime, package, and update manifests reject those targets; do not substitute an older Torch,
+emulation, or the removed Rust engines.
+
+WhisperX 3.8.6 requires the older Torch 2.8 line, which conflicts with the selected secure
+runtime baseline. Forced alignment uses the Apache-2.0 Qwen3 Forced Aligner through the
+Transformers API once its verified model resource and product caller are in place. It is not an
+ASR fallback. Pyannote Community-1 requires gated model access; no worker credential or
+unauthorized mirrored weight is bundled. The plan's Demucs htdemucs code license does not
+grant commercial use of its official pretrained weights, so two-track video background
+separation remains a release blocker until a licensed, qualified model is selected.
+The Kokoro package includes eSpeak NG data; its redistribution terms require explicit review
+against [upstream eSpeak NG](https://github.com/espeak-ng/espeak-ng) and
+[sherpa-onnx's recorded concern](https://github.com/k2-fsa/sherpa-onnx/issues/3731) before a signed release.
 
 If a future feature needs Shell, WebSocket, updater, notifications, process control, custom window positioning or persisted external file scopes, add the corresponding official Tauri plugin in the same change that defines its capability and product behavior.
 
@@ -79,7 +118,7 @@ The 2026-10-02 lock refresh upgrades `h2` to `0.4.16` and `rustls` to `0.23.45`,
 
 The patch was tested in [dependency preparation run 36966374084](https://github.com/madebyzan/knovum/actions/runs/36966374084): all 12 upstream unit tests and one documentation test passed with no ignored or filtered tests. Upstream's full roundtrip tests require sibling `citation-style-language/styles` and `citation-style-language/locales` checkouts; the recorded fixture revisions are `8d129d151adfe68256ceb6e6ea59c6f651ab526a` and `bc0a222b4ca526126faf892c35b2b7b1215c10eb`, respectively. This upstream result does not substitute for Knovum's native compile, tests or installed upgrade acceptance.
 
-The audit graph includes all features across both macOS release architectures, both Windows MSVC release architectures, and the Linux x64 CI target. This evaluates the supported application configurations rather than unrelated custom `cfg(fuzzing)` dependencies such as rav1e's `libfuzzer-sys`. Adding a target or enabling a fuzzing configuration requires an appropriate audit scope for that configuration. No third-party license has been added to the allowlist for this change.
+The audit graph includes all features across macOS arm64, Windows x64, and the Linux x64 CI target. This evaluates the supported application configurations rather than unrelated custom `cfg(fuzzing)` dependencies such as rav1e's `libfuzzer-sys`. Adding a target or enabling a fuzzing configuration requires an appropriate audit scope for that configuration. No third-party license has been added to the allowlist for this change.
 
 Knovum is an unpublished application crate (`publish = false`), not a public Rust library with an assumed OSS license. The license check exempts only unpublished workspace packages from declaring such a license; their third-party dependencies remain audited. Do not use `exclude-unpublished` to remove the application's dependency graph. Maintenance advisories remain enforced; this remediation adds no advisory-ignore entries and does not represent release approval.
 

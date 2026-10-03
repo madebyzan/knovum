@@ -1,0 +1,1272 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "InferenceWireSchemas",
+  "type": "object",
+  "properties": {
+    "initialize_params": {
+      "$ref": "#/$defs/RuntimeInitializeParams"
+    },
+    "initialize_result": {
+      "$ref": "#/$defs/RuntimeInitializeResult"
+    },
+    "health_params": {
+      "$ref": "#/$defs/RuntimeHealthParams"
+    },
+    "health_result": {
+      "$ref": "#/$defs/RuntimeHealthResult"
+    },
+    "cancel_params": {
+      "$ref": "#/$defs/RuntimeCancelParams"
+    },
+    "cancel_result": {
+      "$ref": "#/$defs/RuntimeCancelResult"
+    },
+    "shutdown_params": {
+      "$ref": "#/$defs/RuntimeShutdownParams"
+    },
+    "shutdown_result": {
+      "$ref": "#/$defs/RuntimeShutdownResult"
+    },
+    "embedding_params": {
+      "$ref": "#/$defs/EmbeddingEncodeParams"
+    },
+    "embedding_result": {
+      "$ref": "#/$defs/EmbeddingEncodeResult"
+    },
+    "image_segment_params": {
+      "$ref": "#/$defs/ImageSegmentParams"
+    },
+    "image_segment_result": {
+      "$ref": "#/$defs/ImageSegmentResult"
+    },
+    "speech_transcribe_params": {
+      "$ref": "#/$defs/SpeechTranscribeParams"
+    },
+    "speech_transcribe_result": {
+      "$ref": "#/$defs/SpeechTranscribeResult"
+    },
+    "speech_progress_event": {
+      "$ref": "#/$defs/SpeechProgressEvent"
+    },
+    "speech_progress_event_type": {
+      "$ref": "#/$defs/SpeechProgressEventType"
+    },
+    "speech_align_params": {
+      "$ref": "#/$defs/SpeechAlignParams"
+    },
+    "speech_align_result": {
+      "$ref": "#/$defs/SpeechAlignResult"
+    },
+    "speech_diarize_params": {
+      "$ref": "#/$defs/SpeechDiarizeParams"
+    },
+    "speech_diarize_result": {
+      "$ref": "#/$defs/SpeechDiarizeResult"
+    },
+    "speech_synthesize_params": {
+      "$ref": "#/$defs/SpeechSynthesizeParams"
+    },
+    "speech_synthesize_result": {
+      "$ref": "#/$defs/SpeechSynthesizeResult"
+    }
+  },
+  "required": [
+    "initialize_params",
+    "initialize_result",
+    "health_params",
+    "health_result",
+    "cancel_params",
+    "cancel_result",
+    "shutdown_params",
+    "shutdown_result",
+    "embedding_params",
+    "embedding_result",
+    "image_segment_params",
+    "image_segment_result",
+    "speech_transcribe_params",
+    "speech_transcribe_result",
+    "speech_progress_event",
+    "speech_progress_event_type",
+    "speech_align_params",
+    "speech_align_result",
+    "speech_diarize_params",
+    "speech_diarize_result",
+    "speech_synthesize_params",
+    "speech_synthesize_result"
+  ],
+  "$defs": {
+    "RuntimeInitializeParams": {
+      "type": "object",
+      "properties": {
+        "protocolVersion": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "runtimeDigest": {
+          "type": "string"
+        },
+        "sessionId": {
+          "type": "string"
+        },
+        "capability": {
+          "$ref": "#/$defs/RuntimeCapability"
+        },
+        "capabilitySpecId": {
+          "type": "string"
+        },
+        "deviceProfile": {
+          "$ref": "#/$defs/RuntimeDeviceProfile"
+        },
+        "workDirectory": {
+          "type": "string"
+        },
+        "modelPaths": {
+          "$ref": "#/$defs/RuntimeModelPaths"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "protocolVersion",
+        "runtimeDigest",
+        "sessionId",
+        "capability",
+        "capabilitySpecId",
+        "deviceProfile",
+        "workDirectory",
+        "modelPaths"
+      ]
+    },
+    "RuntimeCapability": {
+      "type": "string",
+      "enum": [
+        "embedding",
+        "speech_transcription",
+        "speech_alignment",
+        "speech_diarization",
+        "speech_synthesis",
+        "image_segmentation"
+      ]
+    },
+    "RuntimeDeviceProfile": {
+      "type": "object",
+      "properties": {
+        "device": {
+          "type": "string"
+        },
+        "executionProfileId": {
+          "type": "string"
+        },
+        "cpuThreads": {
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0,
+          "maximum": 255
+        }
+      },
+      "additionalProperties": false,
+      "required": ["device", "executionProfileId", "cpuThreads"]
+    },
+    "RuntimeModelPaths": {
+      "type": "object",
+      "properties": {
+        "embedding": {
+          "type": ["string", "null"]
+        },
+        "speechTranscription": {
+          "type": ["string", "null"]
+        },
+        "speechAlignment": {
+          "type": ["string", "null"]
+        },
+        "speechDiarization": {
+          "type": ["string", "null"]
+        },
+        "speechSynthesis": {
+          "type": ["string", "null"]
+        },
+        "imageSegmentation": {
+          "type": ["string", "null"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "RuntimeInitializeResult": {
+      "type": "object",
+      "properties": {
+        "protocolVersion": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "runtimeDigest": {
+          "type": "string"
+        },
+        "sessionId": {
+          "type": "string"
+        },
+        "capability": {
+          "$ref": "#/$defs/RuntimeCapability"
+        },
+        "capabilitySpecId": {
+          "type": "string"
+        },
+        "deviceProfile": {
+          "$ref": "#/$defs/RuntimeDeviceProfile"
+        },
+        "capabilities": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "limits": {
+          "$ref": "#/$defs/RuntimeLimits"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "protocolVersion",
+        "runtimeDigest",
+        "sessionId",
+        "capability",
+        "capabilitySpecId",
+        "deviceProfile",
+        "capabilities",
+        "limits"
+      ]
+    },
+    "RuntimeLimits": {
+      "type": "object",
+      "properties": {
+        "maxMessageBytes": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "maxEmbeddingTexts": {
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0,
+          "maximum": 255
+        },
+        "maxEmbeddingTokens": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": ["maxMessageBytes", "maxEmbeddingTexts", "maxEmbeddingTokens"]
+    },
+    "RuntimeHealthParams": {
+      "type": "object",
+      "properties": {
+        "sessionId": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": ["sessionId"]
+    },
+    "RuntimeHealthResult": {
+      "type": "object",
+      "properties": {
+        "sessionId": {
+          "type": "string"
+        },
+        "currentRequestId": {
+          "type": ["string", "null"]
+        },
+        "residentBytes": {
+          "type": ["integer", "null"],
+          "format": "uint64",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": ["sessionId"]
+    },
+    "RuntimeCancelParams": {
+      "type": "object",
+      "properties": {
+        "targetRequestId": {
+          "type": "string"
+        },
+        "attemptEpoch": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": ["targetRequestId", "attemptEpoch"]
+    },
+    "RuntimeCancelResult": {
+      "type": "object",
+      "properties": {
+        "accepted": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "required": ["accepted"]
+    },
+    "RuntimeShutdownParams": {
+      "type": "object",
+      "properties": {
+        "sessionId": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": ["sessionId"]
+    },
+    "RuntimeShutdownResult": {
+      "type": "object",
+      "properties": {
+        "accepted": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "required": ["accepted"]
+    },
+    "EmbeddingEncodeParams": {
+      "type": "object",
+      "properties": {
+        "requestId": {
+          "type": "string"
+        },
+        "ownerKind": {
+          "type": "string"
+        },
+        "ownerId": {
+          "type": "string"
+        },
+        "attemptId": {
+          "type": "string"
+        },
+        "attemptEpoch": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "inputRevision": {
+          "type": "string"
+        },
+        "modelSpecId": {
+          "type": "string"
+        },
+        "deadlineMs": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "role": {
+          "$ref": "#/$defs/EmbeddingRole"
+        },
+        "texts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "embeddingSpecId": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "requestId",
+        "ownerKind",
+        "ownerId",
+        "attemptId",
+        "attemptEpoch",
+        "inputRevision",
+        "modelSpecId",
+        "deadlineMs",
+        "role",
+        "texts",
+        "embeddingSpecId"
+      ]
+    },
+    "EmbeddingRole": {
+      "type": "string",
+      "enum": ["query", "document"]
+    },
+    "EmbeddingEncodeResult": {
+      "type": "object",
+      "properties": {
+        "requestId": {
+          "type": "string"
+        },
+        "attemptEpoch": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "embeddingSpecId": {
+          "type": "string"
+        },
+        "vectors": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "float"
+            }
+          }
+        },
+        "dimensions": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "inputTokens": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": ["requestId", "attemptEpoch", "embeddingSpecId", "vectors", "dimensions", "inputTokens"]
+    },
+    "ImageSegmentParams": {
+      "type": "object",
+      "properties": {
+        "requestId": {
+          "type": "string"
+        },
+        "ownerKind": {
+          "type": "string"
+        },
+        "ownerId": {
+          "type": "string"
+        },
+        "attemptId": {
+          "type": "string"
+        },
+        "attemptEpoch": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "inputRevision": {
+          "type": "string"
+        },
+        "modelSpecId": {
+          "type": "string"
+        },
+        "deadlineMs": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "tensorRef": {
+          "$ref": "#/$defs/TensorFileReference"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "requestId",
+        "ownerKind",
+        "ownerId",
+        "attemptId",
+        "attemptEpoch",
+        "inputRevision",
+        "modelSpecId",
+        "deadlineMs",
+        "tensorRef"
+      ]
+    },
+    "TensorFileReference": {
+      "type": "object",
+      "properties": {
+        "fileName": {
+          "type": "string"
+        },
+        "byteLength": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "shape": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "uint32",
+            "minimum": 0
+          },
+          "minItems": 4,
+          "maxItems": 4
+        },
+        "dataType": {
+          "$ref": "#/$defs/TensorDataType"
+        }
+      },
+      "additionalProperties": false,
+      "required": ["fileName", "byteLength", "sha256", "shape", "dataType"]
+    },
+    "TensorDataType": {
+      "type": "string",
+      "enum": ["float32_little_endian"]
+    },
+    "ImageSegmentResult": {
+      "type": "object",
+      "properties": {
+        "requestId": {
+          "type": "string"
+        },
+        "attemptEpoch": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "modelSpecId": {
+          "type": "string"
+        },
+        "maskRef": {
+          "$ref": "#/$defs/TensorFileReference"
+        }
+      },
+      "additionalProperties": false,
+      "required": ["requestId", "attemptEpoch", "modelSpecId", "maskRef"]
+    },
+    "SpeechTranscribeParams": {
+      "type": "object",
+      "properties": {
+        "requestId": {
+          "type": "string"
+        },
+        "ownerKind": {
+          "type": "string"
+        },
+        "ownerId": {
+          "type": "string"
+        },
+        "attemptId": {
+          "type": "string"
+        },
+        "attemptEpoch": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "inputRevision": {
+          "type": "string"
+        },
+        "modelSpecId": {
+          "type": "string"
+        },
+        "deadlineMs": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "audioRef": {
+          "$ref": "#/$defs/AudioFileReference"
+        },
+        "profile": {
+          "$ref": "#/$defs/AsrProfile"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "requestId",
+        "ownerKind",
+        "ownerId",
+        "attemptId",
+        "attemptEpoch",
+        "inputRevision",
+        "modelSpecId",
+        "deadlineMs",
+        "audioRef",
+        "profile"
+      ]
+    },
+    "AudioFileReference": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "mediaType": {
+          "type": "string"
+        },
+        "byteLength": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "sampleRate": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "channels": {
+          "type": "integer",
+          "format": "uint16",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "sampleFormat": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": ["path", "mediaType", "byteLength", "sha256", "sampleRate", "channels", "sampleFormat"]
+    },
+    "AsrProfile": {
+      "type": "object",
+      "properties": {
+        "engine": {
+          "$ref": "#/$defs/AsrEngine"
+        },
+        "languagePolicy": {
+          "$ref": "#/$defs/LanguagePolicy"
+        },
+        "language": {
+          "type": ["string", "null"]
+        },
+        "device": {
+          "type": "string"
+        },
+        "computeType": {
+          "type": "string"
+        },
+        "beamSize": {
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0,
+          "maximum": 255
+        },
+        "vadEnabled": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "required": ["engine", "languagePolicy", "device", "computeType", "beamSize", "vadEnabled"]
+    },
+    "AsrEngine": {
+      "type": "string",
+      "enum": ["faster_whisper", "mlx_whisper"]
+    },
+    "LanguagePolicy": {
+      "type": "string",
+      "enum": ["detect", "fixed"]
+    },
+    "SpeechTranscribeResult": {
+      "type": "object",
+      "properties": {
+        "requestId": {
+          "type": "string"
+        },
+        "attemptEpoch": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "modelSpecId": {
+          "type": "string"
+        },
+        "transcriptRef": {
+          "$ref": "#/$defs/SpeechFileReference"
+        }
+      },
+      "additionalProperties": false,
+      "required": ["requestId", "attemptEpoch", "modelSpecId", "transcriptRef"]
+    },
+    "SpeechFileReference": {
+      "type": "object",
+      "properties": {
+        "fileName": {
+          "type": "string"
+        },
+        "mediaType": {
+          "type": "string"
+        },
+        "byteLength": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "sha256": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": ["fileName", "mediaType", "byteLength", "sha256"]
+    },
+    "SpeechProgressEvent": {
+      "type": "object",
+      "properties": {
+        "requestId": {
+          "type": "string"
+        },
+        "attemptEpoch": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "seq": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "eventType": {
+          "$ref": "#/$defs/SpeechProgressEventType"
+        },
+        "stage": {
+          "type": "string"
+        },
+        "progress": {
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0,
+          "maximum": 255
+        },
+        "language": {
+          "type": ["string", "null"]
+        },
+        "partial": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SpeechTranscriptSegment"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": ["requestId", "attemptEpoch", "seq", "eventType", "stage", "progress"]
+    },
+    "SpeechProgressEventType": {
+      "type": "string",
+      "enum": ["progress", "partial_transcript"]
+    },
+    "SpeechTranscriptSegment": {
+      "type": "object",
+      "properties": {
+        "startMs": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "endMs": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "text": {
+          "type": "string"
+        },
+        "words": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SpeechWordTiming"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": ["startMs", "endMs", "text", "words"]
+    },
+    "SpeechWordTiming": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "startMs": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "endMs": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "probability": {
+          "type": ["number", "null"],
+          "format": "float"
+        }
+      },
+      "additionalProperties": false,
+      "required": ["text", "startMs", "endMs"]
+    },
+    "SpeechAlignParams": {
+      "type": "object",
+      "properties": {
+        "requestId": {
+          "type": "string"
+        },
+        "ownerKind": {
+          "type": "string"
+        },
+        "ownerId": {
+          "type": "string"
+        },
+        "attemptId": {
+          "type": "string"
+        },
+        "attemptEpoch": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "inputRevision": {
+          "type": "string"
+        },
+        "modelSpecId": {
+          "type": "string"
+        },
+        "deadlineMs": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "audioRef": {
+          "$ref": "#/$defs/AudioFileReference"
+        },
+        "textSegments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AlignmentTextSegment"
+          }
+        },
+        "profile": {
+          "$ref": "#/$defs/AlignmentProfile"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "requestId",
+        "ownerKind",
+        "ownerId",
+        "attemptId",
+        "attemptEpoch",
+        "inputRevision",
+        "modelSpecId",
+        "deadlineMs",
+        "audioRef",
+        "textSegments",
+        "profile"
+      ]
+    },
+    "AlignmentTextSegment": {
+      "type": "object",
+      "properties": {
+        "segmentId": {
+          "type": "string"
+        },
+        "startMs": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "endMs": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": ["segmentId", "startMs", "endMs", "text"]
+    },
+    "AlignmentProfile": {
+      "type": "object",
+      "properties": {
+        "language": {
+          "type": "string"
+        },
+        "device": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": ["language", "device"]
+    },
+    "SpeechAlignResult": {
+      "type": "object",
+      "properties": {
+        "requestId": {
+          "type": "string"
+        },
+        "attemptEpoch": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "modelSpecId": {
+          "type": "string"
+        },
+        "units": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AlignedSpeechUnit"
+          }
+        },
+        "coverage": {
+          "type": "number",
+          "format": "float"
+        }
+      },
+      "additionalProperties": false,
+      "required": ["requestId", "attemptEpoch", "modelSpecId", "units", "coverage"]
+    },
+    "AlignedSpeechUnit": {
+      "type": "object",
+      "properties": {
+        "segmentId": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "unitKind": {
+          "$ref": "#/$defs/AlignmentUnitKind"
+        },
+        "startMs": {
+          "type": ["integer", "null"],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "endMs": {
+          "type": ["integer", "null"],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "score": {
+          "type": ["number", "null"],
+          "format": "float"
+        },
+        "unalignedReason": {
+          "type": ["string", "null"]
+        }
+      },
+      "additionalProperties": false,
+      "required": ["segmentId", "text", "unitKind"]
+    },
+    "AlignmentUnitKind": {
+      "type": "string",
+      "enum": ["word", "character"]
+    },
+    "SpeechDiarizeParams": {
+      "type": "object",
+      "properties": {
+        "requestId": {
+          "type": "string"
+        },
+        "ownerKind": {
+          "type": "string"
+        },
+        "ownerId": {
+          "type": "string"
+        },
+        "attemptId": {
+          "type": "string"
+        },
+        "attemptEpoch": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "inputRevision": {
+          "type": "string"
+        },
+        "modelSpecId": {
+          "type": "string"
+        },
+        "deadlineMs": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "audioRef": {
+          "$ref": "#/$defs/AudioFileReference"
+        },
+        "speakerCountBounds": {
+          "$ref": "#/$defs/SpeakerCountBounds"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "requestId",
+        "ownerKind",
+        "ownerId",
+        "attemptId",
+        "attemptEpoch",
+        "inputRevision",
+        "modelSpecId",
+        "deadlineMs",
+        "audioRef",
+        "speakerCountBounds"
+      ]
+    },
+    "SpeakerCountBounds": {
+      "type": "object",
+      "properties": {
+        "minimum": {
+          "type": ["integer", "null"],
+          "format": "uint16",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "maximum": {
+          "type": ["integer", "null"],
+          "format": "uint16",
+          "minimum": 0,
+          "maximum": 65535
+        }
+      },
+      "additionalProperties": false
+    },
+    "SpeechDiarizeResult": {
+      "type": "object",
+      "properties": {
+        "requestId": {
+          "type": "string"
+        },
+        "attemptEpoch": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "modelSpecId": {
+          "type": "string"
+        },
+        "turns": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SpeakerTurn"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": ["requestId", "attemptEpoch", "modelSpecId", "turns"]
+    },
+    "SpeakerTurn": {
+      "type": "object",
+      "properties": {
+        "speakerId": {
+          "type": "string"
+        },
+        "startMs": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "endMs": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": ["speakerId", "startMs", "endMs"]
+    },
+    "SpeechSynthesizeParams": {
+      "type": "object",
+      "properties": {
+        "requestId": {
+          "type": "string"
+        },
+        "ownerKind": {
+          "type": "string"
+        },
+        "ownerId": {
+          "type": "string"
+        },
+        "attemptId": {
+          "type": "string"
+        },
+        "attemptEpoch": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "inputRevision": {
+          "type": "string"
+        },
+        "modelSpecId": {
+          "type": "string"
+        },
+        "deadlineMs": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "text": {
+          "type": "string"
+        },
+        "voiceRevision": {
+          "$ref": "#/$defs/VoiceRevisionReference"
+        },
+        "style": {
+          "type": ["string", "null"]
+        },
+        "seed": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "profile": {
+          "$ref": "#/$defs/SynthesisProfile"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "requestId",
+        "ownerKind",
+        "ownerId",
+        "attemptId",
+        "attemptEpoch",
+        "inputRevision",
+        "modelSpecId",
+        "deadlineMs",
+        "text",
+        "voiceRevision",
+        "seed",
+        "profile"
+      ]
+    },
+    "VoiceRevisionReference": {
+      "type": "object",
+      "properties": {
+        "revisionId": {
+          "type": "string"
+        },
+        "sourceKind": {
+          "$ref": "#/$defs/VoiceSourceKind"
+        },
+        "speakerId": {
+          "type": ["integer", "null"],
+          "format": "uint32",
+          "minimum": 0
+        },
+        "referenceAudio": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AudioFileReference"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "referenceText": {
+          "type": ["string", "null"]
+        },
+        "designPrompt": {
+          "type": ["string", "null"]
+        }
+      },
+      "additionalProperties": false,
+      "required": ["revisionId", "sourceKind"]
+    },
+    "VoiceSourceKind": {
+      "type": "string",
+      "enum": ["preset", "reference", "designed"]
+    },
+    "SynthesisProfile": {
+      "type": "object",
+      "properties": {
+        "engine": {
+          "$ref": "#/$defs/SpeechSynthesisEngine"
+        },
+        "language": {
+          "type": "string"
+        },
+        "speed": {
+          "type": "number",
+          "format": "float"
+        },
+        "sampleRate": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": ["engine", "language", "speed", "sampleRate"]
+    },
+    "SpeechSynthesisEngine": {
+      "type": "string",
+      "enum": ["kokoro"]
+    },
+    "SpeechSynthesizeResult": {
+      "type": "object",
+      "properties": {
+        "requestId": {
+          "type": "string"
+        },
+        "attemptEpoch": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "modelSpecId": {
+          "type": "string"
+        },
+        "audioRef": {
+          "$ref": "#/$defs/SynthesizedAudioFileReference"
+        },
+        "sampleCount": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": ["requestId", "attemptEpoch", "modelSpecId", "audioRef", "sampleCount"]
+    },
+    "SynthesizedAudioFileReference": {
+      "type": "object",
+      "properties": {
+        "fileName": {
+          "type": "string"
+        },
+        "mediaType": {
+          "type": "string"
+        },
+        "byteLength": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "sampleRate": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "channels": {
+          "type": "integer",
+          "format": "uint16",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "sampleFormat": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": ["fileName", "mediaType", "byteLength", "sha256", "sampleRate", "channels", "sampleFormat"]
+    }
+  }
+}

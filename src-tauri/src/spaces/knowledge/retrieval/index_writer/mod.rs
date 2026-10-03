@@ -8,6 +8,7 @@ use crate::spaces::db;
 
 use super::{
     arrow_batch::records_to_batch,
+    generation::{self, IndexGeneration},
     invalidation_outbox,
     lancedb_store::connect_retrieval_db,
     record_loader::{load_records, write_index_markers, EmbeddingSource},
@@ -19,9 +20,10 @@ const MAX_EMBEDDING_BATCH: usize = 64;
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct KnowledgeEmbeddingInput {
+    pub generation_id: String,
+    pub embedding_spec_id: String,
     pub chunk_id: String,
     pub source_revision: String,
-    pub model: String,
     pub dimensions: i64,
     pub vector: Vec<f64>,
 }
@@ -44,6 +46,8 @@ async fn publish_embeddings(
     // Serialize current-chunk validation, pending invalidations and index publication.
     // Model inference has already completed before this short write boundary begins.
     let mut tx = db::begin_write(pool).await?;
+    let generation = generation_from_batch(&embeddings)?;
+    generation::require_writable(&mut tx, &generation).await?;
     let records = load_records(&mut tx, embeddings.into_iter().map(into_source).collect()).await?;
     let spaces: std::collections::BTreeSet<_> = records
         .iter()
@@ -68,7 +72,7 @@ async fn publish_embeddings(
             .map_err(|error| format!("Failed to open LanceDB knowledge index: {error}"))?;
         let schema = batch.schema();
         let data = RecordBatchIterator::new(vec![Ok(batch)], schema);
-        let mut upsert = table.merge_insert(&["chunk_id"]);
+        let mut upsert = table.merge_insert(&["generation_id", "chunk_id"]);
         upsert
             .when_matched_update_all(None)
             .when_not_matched_insert_all();
@@ -90,9 +94,10 @@ async fn publish_embeddings(
 
 fn into_source(input: KnowledgeEmbeddingInput) -> EmbeddingSource {
     EmbeddingSource {
+        generation_id: input.generation_id,
+        embedding_spec_id: input.embedding_spec_id,
         chunk_id: input.chunk_id,
         source_revision: input.source_revision,
-        model: input.model,
         dimensions: input.dimensions,
         vector: input.vector.into_iter().map(|value| value as f32).collect(),
     }
@@ -116,10 +121,11 @@ fn validate_batch(embeddings: &[KnowledgeEmbeddingInput]) -> Result<(), String> 
 
 fn validate_embedding(embedding: &KnowledgeEmbeddingInput) -> Result<(), String> {
     if embedding.chunk_id.is_empty()
+        || embedding.generation_id.is_empty()
+        || embedding.embedding_spec_id.is_empty()
         || embedding.source_revision.is_empty()
-        || embedding.model.is_empty()
     {
-        return Err("Embedding chunk, revision and model are required".into());
+        return Err("Embedding generation, spec, chunk and revision are required".into());
     }
     if embedding.dimensions <= 0 || embedding.dimensions != embedding.vector.len() as i64 {
         return Err("Embedding dimensions do not match the vector length".into());
@@ -128,6 +134,22 @@ fn validate_embedding(embedding: &KnowledgeEmbeddingInput) -> Result<(), String>
         return Err("Embedding vectors must contain only finite numbers".into());
     }
     Ok(())
+}
+
+fn generation_from_batch(
+    embeddings: &[KnowledgeEmbeddingInput],
+) -> Result<IndexGeneration, String> {
+    let first = &embeddings[0];
+    if embeddings.iter().any(|embedding| {
+        embedding.generation_id != first.generation_id
+            || embedding.embedding_spec_id != first.embedding_spec_id
+    }) {
+        return Err("Embedding write batch contains mixed index generations".to_owned());
+    }
+    Ok(IndexGeneration {
+        id: first.generation_id.clone(),
+        embedding_spec_id: first.embedding_spec_id.clone(),
+    })
 }
 
 #[cfg(test)]

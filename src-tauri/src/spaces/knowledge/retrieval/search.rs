@@ -1,19 +1,31 @@
-use arrow_array::{Float32Array, RecordBatch, StringArray};
+use arrow_array::RecordBatch;
 use futures::TryStreamExt;
 use lancedb::query::{ExecutableQuery, QueryBase};
 use serde_json::Value;
+use sha2::{Digest, Sha256};
 use tauri::{AppHandle, Runtime};
 
-use crate::{ai::capabilities::embedding, spaces::db};
+use crate::{
+    ai::{
+        capabilities::embedding,
+        contracts::embedding_wire::{EmbeddingExecutionIdentity, EmbeddingRole},
+    },
+    spaces::db,
+};
 
 use super::{
-    current_chunks, lancedb_store::open_knowledge_table, predicates::escape_sql_literal,
-    schema::VECTOR_COLUMN, validation::validate_query_vector,
+    current_chunks, generation,
+    lancedb_store::{connect_retrieval_db, open_knowledge_table_if_exists},
+    predicates::escape_sql_literal,
+    schema::VECTOR_COLUMN,
+    search_results::batches_to_values,
+    validation::validate_query_vector,
 };
 
 pub(crate) async fn embed_query<R: Runtime>(
     app: &AppHandle<R>,
     query: &str,
+    owner_id: &str,
     cancellation: &tokio_util::sync::CancellationToken,
 ) -> Result<Vec<f32>, String> {
     let query = query.trim();
@@ -26,13 +38,35 @@ pub(crate) async fn embed_query<R: Runtime>(
         cancellation,
     )
     .await?;
-    let formatted = embedding::active_text_provider().format_query(query);
-    let response = embedding::embed(vec![formatted], &resources, cancellation).await?;
+    let identity = EmbeddingExecutionIdentity {
+        owner_kind: "knowledge_query".to_owned(),
+        owner_id: owner_id.to_owned(),
+        attempt_id: uuid::Uuid::new_v4().to_string(),
+        attempt_epoch: 1,
+        input_revision: format!("sha256:{:x}", Sha256::digest(query.as_bytes())),
+        deadline_ms: deadline_after(30_000)?,
+    };
+    let response = embedding::embed(
+        app,
+        vec![query.to_owned()],
+        EmbeddingRole::Query,
+        &identity,
+        &resources,
+        cancellation,
+    )
+    .await?;
     response
         .vectors
         .into_iter()
         .next()
         .ok_or_else(|| "Embedding provider returned no query vector".to_owned())
+}
+
+fn deadline_after(duration_ms: i64) -> Result<u64, String> {
+    crate::clock::unix_time_millis()?
+        .checked_add(duration_ms)
+        .and_then(|deadline| u64::try_from(deadline).ok())
+        .ok_or_else(|| "Embedding deadline exceeds the supported range".to_owned())
 }
 
 pub(crate) async fn search_semantic_vector<R: Runtime>(
@@ -44,10 +78,16 @@ pub(crate) async fn search_semantic_vector<R: Runtime>(
     limit: i64,
 ) -> Result<Vec<Value>, String> {
     validate_query_vector(query, limit)?;
-    let table = open_knowledge_table(app).await?;
+    let pool = db::pool(app).await?;
+    let generation = generation::active(pool, space_id, embedding::EMBEDDING_SPEC_ID).await?;
+    let index = connect_retrieval_db(app).await?;
+    let Some(table) = open_knowledge_table_if_exists(&index).await? else {
+        return Err(generation::REBUILD_REQUIRED.to_owned());
+    };
     let filter = build_filter(
         space_id,
-        embedding::active_text_provider().model_id(),
+        &generation.id,
+        &generation.embedding_spec_id,
         node_ids,
         exclude_node_id,
     );
@@ -64,20 +104,25 @@ pub(crate) async fn search_semantic_vector<R: Runtime>(
         .await
         .map_err(|error| format!("Failed to read LanceDB vector search results: {error}"))?;
     let values = batches_to_values(&batches)?;
-    let pool = db::pool(app).await?;
-    current_chunks::filter(pool, space_id, values).await
+    let still_active = generation::active(pool, space_id, embedding::EMBEDDING_SPEC_ID).await?;
+    if still_active.id != generation.id {
+        return Err(generation::REBUILD_REQUIRED.to_owned());
+    }
+    current_chunks::filter(pool, space_id, &generation, values).await
 }
 
 fn build_filter(
     space_id: &str,
-    model: &str,
+    generation_id: &str,
+    embedding_spec_id: &str,
     node_ids: Option<&[String]>,
     exclude_node_id: Option<&str>,
 ) -> String {
     let mut filter = format!(
-        "space_id = '{}' AND model = '{}'",
+        "space_id = '{}' AND generation_id = '{}' AND embedding_spec_id = '{}'",
         escape_sql_literal(space_id),
-        escape_sql_literal(model)
+        escape_sql_literal(generation_id),
+        escape_sql_literal(embedding_spec_id)
     );
     if let Some(ids) = node_ids.filter(|ids| !ids.is_empty()) {
         let quoted_ids = ids
@@ -95,62 +140,4 @@ fn build_filter(
         filter.push('\'');
     }
     filter
-}
-
-fn batches_to_values(batches: &[RecordBatch]) -> Result<Vec<Value>, String> {
-    let mut values = Vec::new();
-    for batch in batches {
-        let chunk_ids = utf8(batch, "chunk_id")?;
-        let node_ids = utf8(batch, "node_id")?;
-        let node_kinds = utf8(batch, "node_kind")?;
-        let node_titles = utf8(batch, "node_title")?;
-        let chunk_kinds = utf8(batch, "chunk_kind")?;
-        let source_revisions = utf8(batch, "source_revision")?;
-        let locators = utf8(batch, "locator")?;
-        let texts = utf8(batch, "text")?;
-        let metadata = utf8(batch, "metadata")?;
-        let distances = distance(batch)?;
-        for row in 0..batch.num_rows() {
-            let distance = distances.value(row) as f64;
-            let score = 1.0 / (1.0 + distance.max(0.0));
-            values.push(serde_json::json!({
-                "chunkId": chunk_ids.value(row),
-                "nodeId": node_ids.value(row),
-                "nodeKind": node_kinds.value(row),
-                "nodeTitle": node_titles.value(row),
-                "chunkKind": chunk_kinds.value(row),
-                "metadata": serde_json::from_str::<Value>(metadata.value(row)).map_err(crate::spaces::db::json_error)?,
-                "sourceRevision": source_revisions.value(row),
-                "locator": serde_json::from_str::<Value>(locators.value(row)).map_err(crate::spaces::db::json_error)?,
-                "snippet": texts.value(row),
-                "text": texts.value(row),
-                "score": score,
-            }));
-        }
-    }
-    Ok(values)
-}
-
-fn utf8<'a>(batch: &'a RecordBatch, name: &str) -> Result<&'a StringArray, String> {
-    let index = batch
-        .schema()
-        .index_of(name)
-        .map_err(|error| format!("LanceDB result missing column {name}: {error}"))?;
-    batch
-        .column(index)
-        .as_any()
-        .downcast_ref::<StringArray>()
-        .ok_or_else(|| format!("LanceDB result column {name} has unexpected type"))
-}
-
-fn distance(batch: &RecordBatch) -> Result<&Float32Array, String> {
-    let index = batch
-        .schema()
-        .index_of("_distance")
-        .map_err(|error| format!("LanceDB result missing column _distance: {error}"))?;
-    batch
-        .column(index)
-        .as_any()
-        .downcast_ref::<Float32Array>()
-        .ok_or_else(|| "LanceDB result _distance column has unexpected type".to_owned())
 }

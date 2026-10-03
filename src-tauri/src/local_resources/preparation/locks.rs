@@ -12,7 +12,55 @@ use super::RESOURCE_PREPARATION_CANCELLED;
 use crate::local_resources::models::{
     self,
     catalog::{self, ModelKind},
+    kokoro::VerifiedKokoroDirectory,
 };
+
+fn kokoro_lock() -> Arc<RwLock<()>> {
+    static LOCK: OnceLock<Arc<RwLock<()>>> = OnceLock::new();
+    Arc::clone(LOCK.get_or_init(|| Arc::new(RwLock::new(()))))
+}
+
+pub(super) async fn acquire_kokoro_installation(
+    cancellation: &CancellationToken,
+) -> Result<tokio::sync::OwnedRwLockWriteGuard<()>, String> {
+    tokio::select! {
+        biased;
+        _ = cancellation.cancelled() => Err(RESOURCE_PREPARATION_CANCELLED.to_string()),
+        guard = kokoro_lock().write_owned() => Ok(guard),
+    }
+}
+
+pub struct PreparedKokoroModel {
+    directory: VerifiedKokoroDirectory,
+    _usage: OwnedRwLockReadGuard<()>,
+}
+
+impl PreparedKokoroModel {
+    pub fn directory(&self) -> &VerifiedKokoroDirectory {
+        &self.directory
+    }
+}
+
+pub async fn acquire_verified_kokoro<R: Runtime>(
+    app: &AppHandle<R>,
+    cancellation: &CancellationToken,
+) -> Result<PreparedKokoroModel, String> {
+    let usage = tokio::select! {
+        biased;
+        _ = cancellation.cancelled() => return Err(RESOURCE_PREPARATION_CANCELLED.to_string()),
+        guard = kokoro_lock().read_owned() => guard,
+    };
+    let app = app.clone();
+    let cancellation = cancellation.clone();
+    let directory = crate::blocking::run(move || {
+        models::kokoro::require_verified_directory(&app, &cancellation)
+    })
+    .await?;
+    Ok(PreparedKokoroModel {
+        directory,
+        _usage: usage,
+    })
+}
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub(super) struct ModelIdentity {
@@ -89,11 +137,20 @@ pub async fn acquire_verified_models<R: Runtime>(
 
 const fn model_order(kind: ModelKind) -> u8 {
     match kind {
-        ModelKind::Transcription => 0,
-        ModelKind::TranscriptionVad => 1,
-        ModelKind::TextEmbeddingConfig => 2,
-        ModelKind::TextEmbeddingTokenizer => 3,
-        ModelKind::TextEmbeddingWeights => 4,
+        ModelKind::FasterWhisperConfig => 0,
+        ModelKind::FasterWhisperWeights => 1,
+        ModelKind::FasterWhisperTokenizer => 2,
+        ModelKind::FasterWhisperVocabulary => 3,
+        ModelKind::MlxWhisperConfig => 4,
+        ModelKind::MlxWhisperWeights => 5,
+        ModelKind::ImageSegmentation => 6,
+        ModelKind::TextEmbeddingConfig => 7,
+        ModelKind::TextEmbeddingModules => 8,
+        ModelKind::TextEmbeddingPoolingConfig => 9,
+        ModelKind::TextEmbeddingSentenceTransformersConfig => 10,
+        ModelKind::TextEmbeddingTokenizerConfig => 11,
+        ModelKind::TextEmbeddingTokenizer => 12,
+        ModelKind::TextEmbeddingWeights => 13,
     }
 }
 

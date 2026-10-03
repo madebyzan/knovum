@@ -3,6 +3,7 @@ use std::fs;
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 use tauri::AppHandle;
+use tokio_util::sync::CancellationToken;
 use uuid::Uuid;
 
 use super::{source, CompleteImageCutoutRequest, CompletedDerivationOutput};
@@ -22,12 +23,36 @@ pub(super) async fn complete(
     let source_path =
         super::super::source_snapshot::image_path(&app, &request.id, &request.source_edit).await?;
     let source_edit = request.source_edit.clone();
-    let processed = crate::blocking::run({
+    let source = crate::blocking::run({
         let app = app.clone();
-        let path = path.clone();
-        move || process(&app, &source_path, &source_edit, path)
+        move || render_source(&app, &source_path, &source_edit)
     })
     .await?;
+    let cancellation = CancellationToken::new();
+    let resources = crate::local_resources::preparation::prepare_models_for_job(
+        &app,
+        crate::local_resources::preparation::contracts::ResourcePreparationTarget::ImageSegmentation,
+        &request.id,
+        "Remove image background",
+        &cancellation,
+        &mut |_| {},
+    )
+    .await?;
+    let deadline_ms = u64::try_from(crate::clock::unix_time_millis()?)
+        .map_err(|_| "System clock is before the Unix epoch")?
+        .saturating_add(120_000);
+    let identity = crate::ai::contracts::image_wire::ImageSegmentationExecutionIdentity {
+        owner_kind: "space-derivation".into(),
+        owner_id: request.id.clone(),
+        attempt_id: request.id.clone(),
+        attempt_epoch: 0,
+        input_revision: request.source_revision.clone(),
+        deadline_ms,
+    };
+    let cutout =
+        crate::images::remove_background(&app, source.png, &identity, &resources, &cancellation)
+            .await?;
+    let processed = persist_cutout(&path, cutout).await?;
     match persist_completion(&app, &request, path.to_string_lossy().as_ref(), &processed).await {
         Ok(completed) => Ok(completed),
         Err(error) => {
@@ -44,19 +69,23 @@ struct ProcessedCutout {
     height: u32,
 }
 
-fn process(
+fn render_source(
     app: &AppHandle,
     source_path: &str,
     source_edit: &Value,
-    output: std::path::PathBuf,
-) -> Result<ProcessedCutout, AppError> {
+) -> Result<crate::images::EditedImageOutput, AppError> {
     let path =
         crate::spaces::assets::authorize_spaces_asset(app, std::path::Path::new(source_path))?;
-    let source = crate::images::render_source_png(&path, source_edit)?;
-    let cutout = crate::images::remove_background(&source.png)?;
+    Ok(crate::images::render_source_png(&path, source_edit)?)
+}
+
+async fn persist_cutout(
+    output: &std::path::Path,
+    cutout: crate::images::BackgroundRemovalOutput,
+) -> Result<ProcessedCutout, AppError> {
     let digest = format!("sha256:{:x}", Sha256::digest(&cutout.png));
-    if let Err(error) = fs::write(&output, &cutout.png) {
-        let _ = fs::remove_file(output);
+    if let Err(error) = tokio::fs::write(output, &cutout.png).await {
+        let _ = tokio::fs::remove_file(output).await;
         return Err(error.to_string().into());
     }
     Ok(ProcessedCutout {

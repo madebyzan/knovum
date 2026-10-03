@@ -18,6 +18,6 @@
   "cycles": {
     "dynamicImports": true
   },
-  "ignoreBinaries": ["minisign"],
+  "ignoreBinaries": ["minisign", "uv"],
   "ignoreDependencies": ["@wdio/local-runner"]
 }

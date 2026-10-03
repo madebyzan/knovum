@@ -1,0 +1,190 @@
+use std::sync::{
+    atomic::{AtomicBool, Ordering},
+    Arc, Mutex,
+};
+
+use cpal::{
+    traits::{DeviceTrait, HostTrait, StreamTrait},
+    SampleFormat, Stream, StreamConfig,
+};
+use tokio::sync::mpsc::UnboundedSender;
+
+use super::service::DictationAction;
+
+const MAX_RECORDING_SECONDS: usize = 120;
+
+pub(crate) struct Recorder {
+    stream: Stream,
+    samples: Arc<Mutex<Vec<i16>>>,
+    sample_rate: u32,
+    channels: u16,
+}
+
+pub(crate) struct RecordedAudio {
+    pub(crate) sample_rate: u32,
+    pub(crate) channels: u16,
+}
+
+impl Recorder {
+    pub(crate) fn start(
+        session_id: &str,
+        events: UnboundedSender<DictationAction>,
+    ) -> Result<Self, String> {
+        let host = cpal::default_host();
+        let device = host
+            .default_input_device()
+            .ok_or_else(|| "microphone_unavailable: no default input device".to_string())?;
+        let supported = device
+            .default_input_config()
+            .map_err(classify_audio_error)?;
+        let sample_format = supported.sample_format();
+        let config: StreamConfig = supported.into();
+        if !(1..=2).contains(&config.channels) {
+            return Err(format!(
+                "unsupported_audio_format: dictation requires one or two channels, got {}",
+                config.channels
+            ));
+        }
+        let samples = Arc::new(Mutex::new(Vec::new()));
+        let maximum =
+            config.sample_rate.0 as usize * config.channels as usize * MAX_RECORDING_SECONDS;
+        let signalled = Arc::new(AtomicBool::new(false));
+        let stream = match sample_format {
+            SampleFormat::F32 => build_stream::<f32>(
+                &device,
+                &config,
+                Arc::clone(&samples),
+                maximum,
+                session_id,
+                events,
+                signalled,
+                f32_to_i16,
+            ),
+            SampleFormat::I16 => build_stream::<i16>(
+                &device,
+                &config,
+                Arc::clone(&samples),
+                maximum,
+                session_id,
+                events,
+                signalled,
+                |sample| sample,
+            ),
+            SampleFormat::U16 => build_stream::<u16>(
+                &device,
+                &config,
+                Arc::clone(&samples),
+                maximum,
+                session_id,
+                events,
+                signalled,
+                |sample| (i32::from(sample) - 32_768) as i16,
+            ),
+            value => Err(format!(
+                "unsupported_audio_format: microphone format {value:?} is not supported"
+            )),
+        }?;
+        stream.play().map_err(classify_audio_error)?;
+        Ok(Self {
+            stream,
+            samples,
+            sample_rate: config.sample_rate.0,
+            channels: config.channels,
+        })
+    }
+
+    pub(crate) fn finish(self, target: &std::path::Path) -> Result<RecordedAudio, String> {
+        drop(self.stream);
+        let samples = std::mem::take(
+            &mut *self
+                .samples
+                .lock()
+                .map_err(|_| "audio_capture_failed: sample buffer is poisoned".to_string())?,
+        );
+        if samples.is_empty() {
+            return Err("audio_capture_empty: microphone captured no samples".into());
+        }
+        let spec = hound::WavSpec {
+            channels: self.channels,
+            sample_rate: self.sample_rate,
+            bits_per_sample: 16,
+            sample_format: hound::SampleFormat::Int,
+        };
+        let mut writer =
+            hound::WavWriter::create(target, spec).map_err(|error| error.to_string())?;
+        for sample in &samples {
+            writer
+                .write_sample(*sample)
+                .map_err(|error| error.to_string())?;
+        }
+        writer.finalize().map_err(|error| error.to_string())?;
+        Ok(RecordedAudio {
+            sample_rate: self.sample_rate,
+            channels: self.channels,
+        })
+    }
+}
+
+fn build_stream<T: cpal::SizedSample>(
+    device: &cpal::Device,
+    config: &StreamConfig,
+    samples: Arc<Mutex<Vec<i16>>>,
+    maximum: usize,
+    session_id: &str,
+    events: UnboundedSender<DictationAction>,
+    signalled: Arc<AtomicBool>,
+    convert: fn(T) -> i16,
+) -> Result<Stream, String> {
+    let failure_session = session_id.to_owned();
+    let overflow_session = session_id.to_owned();
+    let overflow_events = events.clone();
+    device
+        .build_input_stream(
+            config,
+            move |input: &[T], _| {
+                let Ok(mut output) = samples.try_lock() else {
+                    return;
+                };
+                let remaining = maximum.saturating_sub(output.len());
+                output.extend(input.iter().copied().take(remaining).map(convert));
+                if input.len() > remaining && !signalled.swap(true, Ordering::SeqCst) {
+                    let _ = overflow_events.send(DictationAction::DeviceFailed {
+                        session_id: overflow_session.clone(),
+                        code: "recording_limit_reached".into(),
+                        message: "Dictation recording exceeded the two minute limit".into(),
+                    });
+                }
+            },
+            move |error| {
+                let (code, message) = audio_error(&error.to_string());
+                let _ = events.send(DictationAction::DeviceFailed {
+                    session_id: failure_session.clone(),
+                    code,
+                    message,
+                });
+            },
+            None,
+        )
+        .map_err(classify_audio_error)
+}
+
+fn f32_to_i16(sample: f32) -> i16 {
+    (sample.clamp(-1.0, 1.0) * f32::from(i16::MAX)).round() as i16
+}
+
+fn classify_audio_error(error: impl std::fmt::Display) -> String {
+    let text = error.to_string();
+    let (code, message) = audio_error(&text);
+    format!("{code}: {message}")
+}
+
+fn audio_error(message: &str) -> (String, String) {
+    let lower = message.to_ascii_lowercase();
+    let code =
+        if lower.contains("permission") || lower.contains("denied") || lower.contains("access") {
+            "microphone_permission_denied"
+        } else {
+            "microphone_unavailable"
+        };
+    (code.into(), message.into())
+}

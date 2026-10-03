@@ -53,6 +53,16 @@ pub(super) async fn all(
            AND json_extract(n.data,'$.sourceRevision')=j.source_revision",
     ).fetch_all(&mut **tx).await.map_err(db::sql_error)?;
     paths.extend(checkpoints);
+    let speech = sqlx::query_scalar::<_, String>(
+        "SELECT asset_path FROM spaces_speech_renders \
+         WHERE asset_path IS NOT NULL AND state IN ('staged','published') \
+         UNION ALL SELECT output_asset_path FROM spaces_speech_project_revisions \
+         WHERE output_asset_path IS NOT NULL",
+    )
+    .fetch_all(&mut **tx)
+    .await
+    .map_err(db::sql_error)?;
+    paths.extend(speech);
     Ok(paths)
 }
 
@@ -126,6 +136,21 @@ pub(crate) async fn for_space(
          JOIN spaces_enrichment_jobs j ON j.id=c.job_id WHERE j.space_id=$1 AND c.resource IS NOT NULL",
     ).bind(space_id).fetch_all(&mut **tx).await.map_err(db::sql_error)?;
     paths.extend(checkpoints);
+    let speech = sqlx::query_scalar::<_, String>(
+        "SELECT o.asset_path FROM spaces_speech_renders o \
+         JOIN spaces_speech_segments s ON s.id=o.segment_id \
+         JOIN spaces_speech_project_revisions r ON r.id=s.project_revision_id \
+         JOIN spaces_speech_projects p ON p.id=r.project_id \
+         WHERE p.space_id=$1 AND o.asset_path IS NOT NULL AND o.state IN ('staged','published') \
+         UNION ALL SELECT r.output_asset_path FROM spaces_speech_project_revisions r \
+         JOIN spaces_speech_projects p ON p.id=r.project_id \
+         WHERE p.space_id=$1 AND r.output_asset_path IS NOT NULL",
+    )
+    .bind(space_id)
+    .fetch_all(&mut **tx)
+    .await
+    .map_err(db::sql_error)?;
+    paths.extend(speech);
     let layout_paths = sqlx::query_scalar::<_, String>(
         "SELECT json_extract(data,'$.appearance.background') FROM spaces_structure_layouts \
          WHERE space_id=$1 AND json_type(data,'$.appearance.background')='text' \

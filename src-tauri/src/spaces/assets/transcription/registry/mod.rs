@@ -16,17 +16,3 @@ pub fn acquire(job_id: String) -> Result<(CancellationToken, JobLease<Cancellati
 pub fn cancel(job_id: &str) -> Result<(), String> {
     registry().cancel(job_id)
 }
-
-pub(super) async fn execution_permit(
-    cancellation: &CancellationToken,
-) -> Result<tokio::sync::SemaphorePermit<'static>, String> {
-    static EXECUTION: tokio::sync::Semaphore = tokio::sync::Semaphore::const_new(1);
-    tokio::select! {
-        biased;
-        _ = cancellation.cancelled() => Err(crate::media::TRANSCRIPTION_CANCELLED.into()),
-        permit = EXECUTION.acquire() => permit.map_err(|error| error.to_string()),
-    }
-}
-
-#[cfg(test)]
-mod tests;

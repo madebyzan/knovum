@@ -64,15 +64,12 @@ fn validate_index(index: &[AssetIndex], manifest: &ManifestAssets) -> Result<(),
     }
     if tokens != manifest.used_tokens {
         return Err(
-            "Space package asset index must exactly match assets referenced by packaged nodes"
-                .into(),
+            "Space package asset index must exactly match assets referenced by the manifest".into(),
         );
     }
     for (token, expected) in &manifest.source_revisions {
         if revisions.get(token.as_str()).copied() != Some(expected.as_str()) {
-            return Err(
-                "Packaged node sourceRevision does not match its indexed asset digest".into(),
-            );
+            return Err("Packaged asset revision does not match its indexed asset digest".into());
         }
     }
     Ok(())

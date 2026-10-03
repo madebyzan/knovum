@@ -48,9 +48,18 @@ WiX/MSI requires a numeric `major.minor.patch[.build]` installer version, so pre
 
 Place each platform's runtime binaries under `src-tauri/resources/bundled-runtime/<target>/`.
 `pnpm runtime:provision` is the only provisioning entry point. It first stages the controlled
-target archive containing FFmpeg, `whisper-cli`, and their native
-dependencies. The archive is SHA-256 verified before it replaces the target directory. Provisioning
+target archive containing FFmpeg plus the application-managed CPython 3.11.13 runtime and its locked native site packages.
+The archive is SHA-256 verified before it replaces the target directory. Provisioning
 rejects archives containing yt-dlp or Deno because those tools do not belong to the desktop bundle.
+
+`python-runtime/runtime-manifest.json` enumerates every interpreter, extension and package file
+with exact size and SHA-256, and binds the package to the exact `python/uv.lock` digest.
+The native target build writes the manifest with `pnpm runtime:manifest --target <target>
+--directory <signed-python-runtime>` after signing the interpreter and native extensions.
+Build-time provisioning rejects links, undeclared files and an
+incorrect platform or protocol identity. Rust repeats the complete verification before launching
+the private worker. The package scripts include only the selected platform's declared runtime
+tree; the user computer never runs pip, uv or another dependency resolver.
 
 Packaged applications resolve these files only from
 `<Tauri resource directory>/resources/bundled-runtime/`. `pnpm tauri dev` and `pnpm desktop:dev`
@@ -66,19 +75,15 @@ tools over HTTPS, verifies the pinned hashes, and publishes versioned directorie
 does not cancel another waiter's installation. There is no PATH or bundled-runtime fallback. Explicit
 developer path overrides remain the only override boundary.
 
-No font files are included in the desktop package. `whisper-cli` must be built from the pinned
-whisper.cpp v1.9.3 release with built-in VAD. Apple Silicon uses the embedded Metal backend. Intel
-macOS uses the Accelerate CPU backend because the v1.9.3 Metal backend fails buffer allocation on
-supported Intel hardware; inference is invoked with GPU disabled on that architecture. The
-provisioned-runtime smoke enforces these bundled platform contracts.
+No font files are included in the desktop package. Native Python wheels are locked and verified for macOS arm64 and Windows x64; release acceptance executes the actual ASR, embedding, image, and speech profiles on both target architectures. Other architectures are outside the approved release scope.
 
-Background removal is linked into the Rust host through exact-pinned `tract-onnx`; it is not a separately provisioned user runtime. The embedded U²-Net model checksum and provenance live beside the model asset under `src-tauri/src/images/models/`. Release validation must build and run a real inference smoke for each supported macOS and Windows target.
+Background removal uses ONNX Runtime inside the private Python worker. U²-Net is a verified on-demand model resource; Rust owns image decoding, preprocessing, mask composition, and output publication.
 
 The provision command uses `KNOVUM_BUNDLED_RUNTIME_<TARGET>_URL` and
 `KNOVUM_BUNDLED_RUNTIME_<TARGET>_SHA256`; the optional
 `KNOVUM_BUNDLED_RUNTIME_AUTHORIZATION` secret supplies an Authorization header for a private
 artifact host. `tools/provision-bundled-runtime.mjs` owns build-time provisioning for FFmpeg and
-whisper.cpp only. On-demand yt-dlp/Deno installation belongs to
+the controlled Python runtime. On-demand yt-dlp/Deno installation belongs to
 `src-tauri/src/local_resources/tools/`; build scripts do not implement a second installer.
 
 All `pnpm package:*` commands route through `tools/package-desktop.mjs`. It validates the runtime,
@@ -116,4 +121,4 @@ Those values are intentionally not filled with placeholders in source control. S
 
 ## Updater artifacts
 
-Normal QA packages remain updater-disabled even when updater environment variables are inherited. `pnpm package:release` (or `package:release:macos` / `package:release:windows`) validates aligned versions, production signing and permanent HTTPS discovery, then embeds the public verification configuration before plugin initialization. It merges `src-tauri/tauri.release.conf.json` and builds with the Cargo lockfile. Signed updater artifacts are separate from human-facing DMG installers. The candidate workflow covers all four supported targets; promotion, native upgrade acceptance and GitHub/COS migration are documented in `release.md`.
+Normal QA packages remain updater-disabled even when updater environment variables are inherited. `pnpm package:release` (or `package:release:macos` / `package:release:windows`) validates aligned versions, production signing and permanent HTTPS discovery, then embeds the public verification configuration before plugin initialization. It merges `src-tauri/tauri.release.conf.json` and builds with the Cargo lockfile. Signed updater artifacts are separate from human-facing DMG installers. The candidate workflow covers both supported targets; promotion, native upgrade acceptance and GitHub/COS migration are documented in `release.md`.

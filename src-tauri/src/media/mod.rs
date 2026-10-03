@@ -6,7 +6,6 @@ pub(crate) mod subprocess;
 pub(crate) mod subtitle_timing;
 pub(crate) mod transcript;
 pub(crate) mod waveform;
-pub(crate) mod whisper;
 pub(crate) mod workspace;
 
 pub(crate) const TRANSCRIPTION_CANCELLED: &str = "media-transcription-cancelled";

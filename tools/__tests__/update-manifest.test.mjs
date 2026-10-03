@@ -21,6 +21,16 @@ const options = {
   baseUrl: "https://github.com/example/distribution/releases/download/v1.2.3",
 };
 
+test("release policy contains only the approved native targets", () => {
+  assert.deepEqual(Object.keys(releaseTargets), ["aarch64-apple-darwin", "x86_64-pc-windows-msvc"]);
+  assert.throws(() =>
+    createManifest({
+      ...options,
+      artifacts: [...artifacts, { ...artifacts[0], target: "darwin-x86_64" }],
+    }),
+  );
+});
+
 test("standard Tauri manifests separate the permanent discovery endpoint from artifact hosting", () => {
   const github = createManifest(options);
   const cos = createManifest({ ...options, baseUrl: "https://downloads.example.test/knovum/1.2.3" });

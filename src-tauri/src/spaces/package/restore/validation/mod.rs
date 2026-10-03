@@ -1,6 +1,7 @@
 use super::contracts::RestorePackageRequest;
 
 mod references;
+mod speech;
 
 pub(super) fn validate_request_shape(request: &RestorePackageRequest) -> Result<(), String> {
     let space = &request.space;
@@ -50,9 +51,20 @@ pub(super) fn validate_request_shape(request: &RestorePackageRequest) -> Result<
             2_000_000,
             "knowledge events",
         ),
+        (request.voice_profiles.len(), 100_000, "voice profiles"),
+        (request.voice_revisions.len(), 1_000_000, "voice revisions"),
+        (request.speech_projects.len(), 100_000, "speech projects"),
+        (
+            request.speech_project_revisions.len(),
+            1_000_000,
+            "speech project revisions",
+        ),
+        (request.speech_segments.len(), 2_000_000, "speech segments"),
+        (request.speech_renders.len(), 5_000_000, "speech renders"),
     ];
     if let Some((_, _, label)) = limits.into_iter().find(|(actual, limit, _)| actual > limit) {
         return Err(format!("Package contains too many {label}"));
     }
-    references::validate(request)
+    references::validate(request)?;
+    speech::validate(request)
 }

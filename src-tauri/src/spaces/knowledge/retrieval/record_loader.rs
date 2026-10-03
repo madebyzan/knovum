@@ -6,9 +6,10 @@ use super::schema::IndexedKnowledgeChunk;
 
 #[derive(Debug)]
 pub(super) struct EmbeddingSource {
+    pub generation_id: String,
+    pub embedding_spec_id: String,
     pub chunk_id: String,
     pub source_revision: String,
-    pub model: String,
     pub dimensions: i64,
     pub vector: Vec<f32>,
 }
@@ -67,6 +68,8 @@ pub(super) async fn load_records(
             )
         })?;
         records.push(IndexedKnowledgeChunk {
+            generation_id: embedding.generation_id,
+            embedding_spec_id: embedding.embedding_spec_id,
             chunk_id: row.try_get("chunk_id").map_err(db::sql_error)?,
             space_id: row.try_get("space_id").map_err(db::sql_error)?,
             node_id: row.try_get("node_id").map_err(db::sql_error)?,
@@ -77,7 +80,6 @@ pub(super) async fn load_records(
                 .ok_or_else(|| "Knowledge node is missing its required title".to_owned())?,
             chunk_kind: row.try_get("chunk_kind").map_err(db::sql_error)?,
             source_revision: row.try_get("source_revision").map_err(db::sql_error)?,
-            model: embedding.model,
             dimensions: embedding.dimensions as i32,
             text: row.try_get("text").map_err(db::sql_error)?,
             locator: row.try_get("locator").map_err(db::sql_error)?,
@@ -97,14 +99,18 @@ pub(super) async fn write_index_markers(
 ) -> Result<(), String> {
     for record in records {
         sqlx::query(
-            "INSERT INTO spaces_chunk_embeddings(chunk_id,source_revision,model,dimensions,updated_at) \
-             VALUES($1,$2,$3,$4,$5) \
-             ON CONFLICT(chunk_id) DO UPDATE SET source_revision=excluded.source_revision, \
-               model=excluded.model, dimensions=excluded.dimensions, updated_at=excluded.updated_at",
+            "INSERT INTO spaces_chunk_embeddings(\
+               generation_id,chunk_id,source_revision,embedding_spec_id,dimensions,updated_at\
+             ) VALUES($1,$2,$3,$4,$5,$6) \
+             ON CONFLICT(generation_id,chunk_id) DO UPDATE SET \
+               source_revision=excluded.source_revision, \
+               embedding_spec_id=excluded.embedding_spec_id, \
+               dimensions=excluded.dimensions, updated_at=excluded.updated_at",
         )
+        .bind(&record.generation_id)
         .bind(&record.chunk_id)
         .bind(&record.source_revision)
-        .bind(&record.model)
+        .bind(&record.embedding_spec_id)
         .bind(record.dimensions)
         .bind(record.updated_at)
         .execute(&mut **tx)

@@ -6,15 +6,15 @@ use tokio_util::sync::CancellationToken;
 
 use crate::{
     blocking,
-    local_resources::{models::catalog, preparation, tools},
-    media::{
-        compute_budget::ComputeBudget,
-        transcript::{MediaTranscript, TranscriptSegment},
-        workspace::AnalysisWorkspace,
-    },
+    local_resources::preparation,
+    media::transcript::{MediaTranscript, TranscriptSegment},
     spaces::assets::{authorize_spaces_asset, media_analysis},
 };
 use pipeline::TranscriptionPipeline;
+
+pub(crate) fn engine_id() -> Result<&'static str, String> {
+    pipeline::platform_profile().map(|(_, _, _, id)| id)
+}
 
 #[derive(Clone, Serialize, serde::Deserialize, ts_rs::TS)]
 #[ts(export_to = "../../../features/spaces/contracts/generated/")]
@@ -78,6 +78,7 @@ pub(in crate::spaces) async fn transcribe_media(
     on_progress: Channel<MediaTranscriptionProgress>,
     cancellation: CancellationToken,
 ) -> Result<MediaTranscript, String> {
+    pipeline::platform_profile()?;
     let source = authorize_spaces_asset(&app, Path::new(&source_path))?;
     let inspected = source.clone();
     let revision = source_revision;
@@ -110,25 +111,20 @@ pub(in crate::spaces) async fn transcribe_media(
             format!("local-resource-unavailable: {error}")
         }
     })?;
-    let execution = registry::execution_permit(&cancellation).await?;
     let source = authorize_spaces_asset(&app, &source)?;
-    blocking::run(move || {
-        let _execution = execution;
-        crate::file_inspection::verify_content_revision(&source, &revision)?;
-        transcribe(
-            &app,
-            &job_id,
-            &source,
-            &revision,
-            &on_progress,
-            &cancellation,
-            &prepared,
-        )
-    })
+    transcribe(
+        &app,
+        &job_id,
+        &source,
+        &revision,
+        &on_progress,
+        &cancellation,
+        &prepared,
+    )
     .await
 }
 
-fn transcribe(
+async fn transcribe(
     app: &tauri::AppHandle,
     job_id: &str,
     source: &Path,
@@ -143,37 +139,42 @@ fn transcribe(
     let started = Instant::now();
     log::info!("media_transcription job={job_id} event=started");
     send_progress(progress, "preparing", 3);
-    let audio = media_analysis::prepare(app, source, revision, cancellation)?;
-    let whisper = required_tool(
-        app,
-        "KNOVUM_WHISPER_PATH",
-        tools::whisper_cli_name(),
-        "whisper.cpp CLI",
-    )?;
-    let model = resources.path(catalog::ModelKind::Transcription)?;
-    let vad_model = resources.path(catalog::ModelKind::TranscriptionVad)?;
-    let compute_budget = ComputeBudget::detect()?;
-    let paths = AnalysisWorkspace::new(app)?;
+    let preparation_app = app.clone();
+    let preparation_source = source.to_path_buf();
+    let preparation_revision = revision.to_owned();
+    let preparation_cancellation = cancellation.clone();
+    let audio = blocking::run(move || {
+        media_analysis::prepare(
+            &preparation_app,
+            &preparation_source,
+            &preparation_revision,
+            &preparation_cancellation,
+        )
+    })
+    .await?;
     let pipeline = TranscriptionPipeline {
+        app,
         job_id,
+        source_revision: revision,
         progress,
         cancellation,
-        whisper_cli: &whisper,
-        model,
-        vad_model,
-        paths: &paths,
-        compute_budget,
+        resources,
     };
-    let transcribed = pipeline.run(&audio).and_then(|transcript| {
-        if cancellation.is_cancelled() {
-            return Err(crate::media::TRANSCRIPTION_CANCELLED.into());
-        }
-        crate::file_inspection::verify_content_revision(source, revision)?;
-        Ok(transcript)
-    });
-    let cleanup = paths.cleanup();
-    match (transcribed, cleanup) {
-        (Ok(transcript), Ok(())) => {
+    let transcribed = pipeline.run(&audio).await;
+    match transcribed {
+        Ok(transcript) => {
+            if cancellation.is_cancelled() {
+                return Err(crate::media::TRANSCRIPTION_CANCELLED.into());
+            }
+            let verified_source = source.to_path_buf();
+            let verified_revision = revision.to_owned();
+            blocking::run(move || {
+                crate::file_inspection::verify_content_revision(
+                    &verified_source,
+                    &verified_revision,
+                )
+            })
+            .await?;
             send_progress(progress, "done", 100);
             log::info!(
                 "media_transcription job={job_id} event=completed elapsed_ms={}",
@@ -181,28 +182,14 @@ fn transcribe(
             );
             Ok(transcript)
         }
-        (Err(error), cleanup) => {
-            if let Err(cleanup_error) = cleanup {
-                log::warn!("media_transcription job={job_id} cleanup failed: {cleanup_error}");
-            }
+        Err(error) => {
             log::error!(
                 "media_transcription job={job_id} event=failed elapsed_ms={} error={error}",
                 started.elapsed().as_millis()
             );
             Err(error)
         }
-        (Ok(_), Err(error)) => Err(error),
     }
-}
-
-fn required_tool(
-    app: &tauri::AppHandle,
-    env_key: &str,
-    name: &str,
-    label: &str,
-) -> Result<std::path::PathBuf, String> {
-    tools::resolve_tool(app, env_key, name)?
-        .ok_or_else(|| format!("local-tool-unavailable: {label} is required and is not installed"))
 }
 
 pub(crate) fn send_progress(

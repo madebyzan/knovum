@@ -1,6 +1,7 @@
 mod content;
 mod execution;
 mod knowledge;
+mod speech;
 #[cfg(test)]
 mod tests;
 
@@ -31,6 +32,12 @@ const ENTITIES: &[&str] = &[
     "objectTypes",
     "provenance",
     "chunks",
+    "voiceProfiles",
+    "voiceRevisions",
+    "speechProjects",
+    "speechProjectRevisions",
+    "speechSegments",
+    "speechRenders",
 ];
 const COLLECTIONS: &[&str] = &[
     "nodes",
@@ -52,6 +59,12 @@ const COLLECTIONS: &[&str] = &[
     "provenance",
     "chunks",
     "knowledgeEvents",
+    "voiceProfiles",
+    "voiceRevisions",
+    "speechProjects",
+    "speechProjectRevisions",
+    "speechSegments",
+    "speechRenders",
 ];
 
 pub(super) fn prepare(
@@ -111,6 +124,8 @@ pub(super) fn prepare(
                 "chunks",
                 "provenance",
                 "knowledgeEvents",
+                "voiceProfiles",
+                "speechProjects",
             ]
             .contains(&collection);
             if owned && owner.and_then(Value::as_str) != Some(maps.source_space.as_str()) {
@@ -137,6 +152,7 @@ pub(super) fn prepare(
     }
     content::remap(&mut value, &mut maps, &original_types)?;
     execution::remap(&mut value, &maps)?;
+    speech::remap(&mut value, &maps)?;
     knowledge::remap(&mut value, &maps)?;
     let now = crate::clock::unix_time_millis()?;
     let space = &value["space"];

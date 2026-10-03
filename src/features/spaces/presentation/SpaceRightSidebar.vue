@@ -4,6 +4,7 @@ import { computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { useSpaceStore } from "../session/space-store";
+import SpaceSpeechPanel from "../speech/SpaceSpeechPanel.vue";
 import SpaceConversationPanel from "./conversation/SpaceConversationPanel.vue";
 import SpaceDocumentOutline from "./editor/SpaceDocumentOutline.vue";
 import SpaceSelectionInspector from "./inspector/SpaceSelectionInspector.vue";
@@ -34,6 +35,7 @@ watch(
 
 const title = computed(() => {
   if (rightSidebarView.value === "source") return sourcePeek.value?.nodeTitle ?? t("spaces.inspector.source");
+  if (rightSidebarView.value === "speech") return t("spaces.speech.title");
   return undefined;
 });
 const subtitle = computed(() =>
@@ -49,7 +51,7 @@ const subtitle = computed(() =>
     class="pointer-events-auto flex h-full w-full min-w-0 flex-col overflow-hidden bg-surface-panel select-none"
   >
     <SpaceContextHeader
-      v-if="rightSidebarView === 'inspect' || rightSidebarView === 'source'"
+      v-if="rightSidebarView === 'inspect' || rightSidebarView === 'speech' || rightSidebarView === 'source'"
       :title="title"
       :subtitle="subtitle"
       :back="rightSidebarView === 'source'"
@@ -61,6 +63,7 @@ const subtitle = computed(() =>
       <SpaceSelectionInspector v-if="rightSidebarView === 'inspect'" class="h-full" />
       <SpaceConversationPanel v-else-if="rightSidebarView === 'ask'" class="h-full" />
       <SpaceDocumentOutline v-else-if="rightSidebarView === 'document-outline'" class="h-full" />
+      <SpaceSpeechPanel v-else-if="rightSidebarView === 'speech'" class="h-full" />
       <SpaceSourcePeek v-if="rightSidebarView === 'source' && sourcePeek" class="h-full" />
     </div>
   </aside>

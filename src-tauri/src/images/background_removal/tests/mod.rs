@@ -19,10 +19,3 @@ fn mask_replaces_source_alpha_at_original_resolution() {
     assert_eq!(foreground.dimensions(), (2, 3));
     assert_eq!(foreground.get_pixel(0, 0), &Rgba([12, 34, 56, 64]));
 }
-
-#[test]
-fn bundled_model_produces_a_complete_mask() {
-    let mask = super::inference::run(vec![0.0; MODEL_PIXELS * 3]).unwrap();
-    assert_eq!(mask.len(), MODEL_PIXELS);
-    assert!(mask.iter().all(|value| value.is_finite()));
-}

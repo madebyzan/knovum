@@ -5,7 +5,9 @@ pub(crate) mod revision;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-pub const MAX_KNOWLEDGE_PASSAGE_BYTES: usize = 48 * 1024;
+// A UTF-8 byte cannot produce more than one model token. Keeping each passage
+// below the 2,048-token model limit preserves complete source coverage.
+pub const MAX_KNOWLEDGE_PASSAGE_BYTES: usize = 1_900;
 
 #[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase")]

@@ -56,18 +56,6 @@ fn stdout_progress_is_delivered_without_entering_stderr_diagnostics() {
     assert_eq!(output.diagnostics, ["diagnostic"]);
 }
 
-#[test]
-fn parses_whisper_progress_format() {
-    use super::progress::parse_progress;
-
-    assert_eq!(parse_progress("progress = 80%", "progress ="), Some(80));
-    assert_eq!(
-        parse_progress("main: progress = 100%", "progress ="),
-        Some(100)
-    );
-    assert_eq!(parse_progress("invalid line", "progress ="), None);
-}
-
 #[cfg(unix)]
 fn completed_process_command() -> Command {
     let mut command = Command::new("sh");

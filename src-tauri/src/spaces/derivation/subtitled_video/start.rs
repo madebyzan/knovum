@@ -7,7 +7,7 @@ use super::{
 };
 use crate::spaces::derivation::inputs;
 use crate::spaces::derivation::pending_output;
-use crate::spaces::{db, knowledge::contracts};
+use crate::spaces::{assets::transcription, db, knowledge::contracts};
 
 pub async fn start(
     pool: &SqlitePool,
@@ -41,8 +41,13 @@ pub async fn start(
         revision_basis: inputs::RevisionBasis::Knowledge,
     }];
     let engine = match &subtitles {
-        PreparedSubtitles::Ready(_) => "ffmpeg:libass+platform-h264",
-        PreparedSubtitles::Recognize => "whisper.cpp+ffmpeg:libass+platform-h264",
+        PreparedSubtitles::Ready(_) => "ffmpeg:libass+platform-h264".to_owned(),
+        PreparedSubtitles::Recognize => {
+            format!(
+                "{}+ffmpeg:libass+platform-h264",
+                transcription::engine_id()?
+            )
+        }
     };
     let source = SubtitleVideoSource {
         path: required_string(&video, "assetPath")?.into(),

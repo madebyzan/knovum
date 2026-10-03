@@ -1,0 +1,149 @@
+use std::io;
+
+use serde::{de::DeserializeOwned, Serialize};
+use serde_json::{json, Value};
+use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
+use tokio::process::{ChildStdin, ChildStdout};
+
+use crate::ai::contracts::runtime::MAX_MESSAGE_BYTES;
+
+pub(super) struct Protocol {
+    input: ChildStdin,
+    output: BufReader<ChildStdout>,
+}
+
+impl Protocol {
+    pub(super) fn new(input: ChildStdin, output: ChildStdout) -> Self {
+        Self {
+            input,
+            output: BufReader::new(output),
+        }
+    }
+
+    pub(super) async fn request<P: Serialize, R: DeserializeOwned>(
+        &mut self,
+        id: &str,
+        method: &str,
+        params: &P,
+    ) -> Result<R, String> {
+        self.send_request(id, method, params).await?;
+        self.read_response(id).await
+    }
+
+    pub(super) async fn send_request<P: Serialize>(
+        &mut self,
+        id: &str,
+        method: &str,
+        params: &P,
+    ) -> Result<(), String> {
+        self.send(&json!({"jsonrpc":"2.0","id":id,"method":method,"params":params}))
+            .await
+    }
+
+    pub(super) async fn read_response<R: DeserializeOwned>(
+        &mut self,
+        id: &str,
+    ) -> Result<R, String> {
+        self.read_response_with_events(id, |_, _| {
+            Err("invalid_output: unexpected worker notification".into())
+        })
+        .await
+    }
+
+    pub(super) async fn read_response_with_events<R: DeserializeOwned>(
+        &mut self,
+        id: &str,
+        mut on_event: impl FnMut(&str, Value) -> Result<(), String>,
+    ) -> Result<R, String> {
+        loop {
+            let response = self.read().await?;
+            if let Some(method) = response.get("method").and_then(Value::as_str) {
+                if response.get("jsonrpc").and_then(Value::as_str) != Some("2.0")
+                    || response.get("id").is_some()
+                {
+                    return Err("invalid_output: worker notification envelope is invalid".into());
+                }
+                let params = response
+                    .get("params")
+                    .cloned()
+                    .ok_or("invalid_output: worker notification has no parameters")?;
+                on_event(method, params)?;
+                continue;
+            }
+            return Self::decode_response(response, id);
+        }
+    }
+
+    fn decode_response<R: DeserializeOwned>(response: Value, id: &str) -> Result<R, String> {
+        if response.get("jsonrpc").and_then(Value::as_str) != Some("2.0")
+            || response.get("id").and_then(Value::as_str) != Some(id)
+        {
+            return Err("invalid_output: worker returned a mismatched JSON-RPC response".into());
+        }
+        match (response.get("result"), response.get("error")) {
+            (Some(result), None) => serde_json::from_value(result.clone())
+                .map_err(|error| format!("invalid_output: {error}")),
+            (None, Some(error)) => {
+                let code = error
+                    .get("data")
+                    .and_then(|data| data.get("code"))
+                    .and_then(Value::as_str)
+                    .unwrap_or("invalid_output");
+                Err(code.to_owned())
+            }
+            _ => Err("invalid_output: worker returned an invalid JSON-RPC envelope".into()),
+        }
+    }
+
+    pub(super) async fn notify<P: Serialize>(
+        &mut self,
+        method: &str,
+        params: &P,
+    ) -> Result<(), String> {
+        self.send(&json!({"jsonrpc":"2.0","method":method,"params":params}))
+            .await
+    }
+
+    async fn send(&mut self, value: &Value) -> Result<(), String> {
+        let mut bytes = serde_json::to_vec(value).map_err(|error| error.to_string())?;
+        if bytes.len() >= MAX_MESSAGE_BYTES {
+            return Err("resource_exhausted: protocol message exceeds 1 MiB".into());
+        }
+        bytes.push(b'\n');
+        self.input
+            .write_all(&bytes)
+            .await
+            .map_err(|error| format!("worker_crashed: {error}"))
+    }
+
+    pub(super) async fn read(&mut self) -> Result<Value, String> {
+        let mut bytes = Vec::new();
+        loop {
+            let available = self
+                .output
+                .fill_buf()
+                .await
+                .map_err(|error| format!("worker_crashed: {error}"))?;
+            if available.is_empty() {
+                return Err("worker_crashed: worker closed its protocol stream".into());
+            }
+            let end = available.iter().position(|byte| *byte == b'\n');
+            let count = end.map_or(available.len(), |index| index + 1);
+            if bytes.len() + count > MAX_MESSAGE_BYTES {
+                return Err("invalid_output: worker protocol message exceeds 1 MiB".into());
+            }
+            bytes.extend_from_slice(&available[..count]);
+            self.output.consume(count);
+            if end.is_some() {
+                break;
+            }
+        }
+        let line = std::str::from_utf8(&bytes)
+            .map_err(|_| "invalid_output: worker emitted non-UTF-8 protocol data")?;
+        serde_json::from_str(line).map_err(|error| format!("invalid_output: {error}"))
+    }
+}
+
+pub(super) fn io_error(error: io::Error) -> String {
+    format!("worker_crashed: {error}")
+}

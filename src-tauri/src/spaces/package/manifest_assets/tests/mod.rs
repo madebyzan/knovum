@@ -9,7 +9,16 @@ fn digest(fill: char) -> String {
 }
 
 fn parse_node(data: Value) -> Result<ManifestAssets, String> {
-    parse(&json!({ "nodes": [{ "data": data }] }).to_string())
+    parse(
+        &json!({
+            "nodes": [{ "data": data }],
+            "layouts": [],
+            "voiceRevisions": [],
+            "speechProjectRevisions": [],
+            "speechRenders": []
+        })
+        .to_string(),
+    )
 }
 
 #[test]

@@ -29,9 +29,33 @@ fn provisioned_local_resources_starts() {
     let ffmpeg = root.join(executable("ffmpeg"));
     assert_command_starts(&ffmpeg, &["-version"]);
     assert_ffmpeg_subtitle_burn_in(&ffmpeg);
-    let whisper = root.join(executable("whisper-cli"));
-    assert_command_starts(&whisper, &["--help"]);
-    assert_whisper_capabilities(&whisper);
+    let python = root
+        .join("python-runtime")
+        .join(if cfg!(target_os = "windows") {
+            "python.exe"
+        } else {
+            "bin/python3"
+        });
+    assert_command_starts(&python, &["--version"]);
+    let packages = root.join("python-runtime").join("packages");
+    let packages = packages
+        .to_str()
+        .expect("Python package path must be UTF-8");
+    let backend = if cfg!(target_os = "macos") {
+        "mlx_whisper"
+    } else {
+        "faster_whisper"
+    };
+    assert_command_starts(
+        &python,
+        &[
+            "-I",
+            "-c",
+            "import sys; sys.path.insert(0, sys.argv[1]); import knovum_inference.worker, onnxruntime, torch, torchcodec; __import__(sys.argv[2])",
+            packages,
+            backend,
+        ],
+    );
 }
 
 fn assert_ffmpeg_subtitle_burn_in(path: &Path) {
@@ -68,58 +92,6 @@ fn command_text(path: &Path, args: &[&str]) -> String {
     )
 }
 
-fn assert_whisper_capabilities(path: &Path) {
-    let output = Command::new(path)
-        .arg("--help")
-        .output()
-        .expect("whisper help should run");
-    let help = format!(
-        "{}\n{}",
-        String::from_utf8_lossy(&output.stdout),
-        String::from_utf8_lossy(&output.stderr)
-    );
-    assert!(
-        help.contains("--vad"),
-        "whisper runtime must include built-in VAD"
-    );
-    #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
-    assert_macos_framework(path, "Metal.framework");
-    #[cfg(all(target_os = "macos", target_arch = "x86_64"))]
-    assert_macos_intel_backend(path);
-}
-
-#[cfg(target_os = "macos")]
-fn macos_libraries(path: &Path) -> String {
-    let output = Command::new("otool")
-        .args(["-L"])
-        .arg(path)
-        .output()
-        .expect("otool should inspect whisper runtime");
-    String::from_utf8_lossy(&output.stdout).into_owned()
-}
-
-#[cfg(all(target_os = "macos", target_arch = "aarch64"))]
-fn assert_macos_framework(path: &Path, framework: &str) {
-    let libraries = macos_libraries(path);
-    assert!(
-        libraries.contains(framework),
-        "macOS whisper runtime must link {framework}"
-    );
-}
-
-#[cfg(all(target_os = "macos", target_arch = "x86_64"))]
-fn assert_macos_intel_backend(path: &Path) {
-    let libraries = macos_libraries(path);
-    assert!(
-        libraries.contains("Accelerate.framework"),
-        "Intel macOS whisper runtime must link Accelerate.framework"
-    );
-    assert!(
-        !libraries.contains("Metal.framework"),
-        "Intel macOS whisper runtime must not link the unstable Metal backend"
-    );
-}
-
 fn assert_command_starts(path: &Path, args: &[&str]) {
     assert!(
         path.is_file(),
@@ -144,16 +116,8 @@ fn assert_command_starts(path: &Path, args: &[&str]) {
 const fn target_directory() -> &'static str {
     if cfg!(all(target_os = "macos", target_arch = "aarch64")) {
         "macos-arm64"
-    } else if cfg!(all(target_os = "macos", target_arch = "x86_64")) {
-        "macos-x64"
-    } else if cfg!(all(target_os = "windows", target_arch = "aarch64")) {
-        "windows-arm64"
     } else if cfg!(all(target_os = "windows", target_arch = "x86_64")) {
         "windows-x64"
-    } else if cfg!(all(target_os = "linux", target_arch = "aarch64")) {
-        "linux-arm64"
-    } else if cfg!(all(target_os = "linux", target_arch = "x86_64")) {
-        "linux-x64"
     } else {
         "unsupported"
     }

@@ -35,7 +35,8 @@
         "local-resources",
         "integrations",
         "ai-runtime",
-        "app-updater"
+        "app-updater",
+        "dictation"
       ],
       "assetProtocol": {
         "enable": true,

@@ -2,6 +2,14 @@ use serde_json::Value;
 use sqlx::sqlite::SqlitePoolOptions;
 
 use super::filter;
+use crate::spaces::knowledge::retrieval::generation::IndexGeneration;
+
+fn generation() -> IndexGeneration {
+    IndexGeneration {
+        id: "generation".into(),
+        embedding_spec_id: "spec".into(),
+    }
+}
 
 async fn database() -> sqlx::SqlitePool {
     let pool = SqlitePoolOptions::new()
@@ -48,9 +56,15 @@ async fn drops_stale_matches_and_keeps_current_ones() {
         .execute(&pool)
         .await
         .expect("chunk");
+    sqlx::query("INSERT INTO spaces_retrieval_generations(id,space_id,embedding_spec_id,status,created_at,activated_at) VALUES ('generation','space','spec','active',1,1)")
+        .execute(&pool).await.expect("generation");
+    sqlx::query("INSERT INTO spaces_chunk_embeddings(generation_id,chunk_id,source_revision,embedding_spec_id,dimensions,updated_at) VALUES ('generation','current','rev','spec',2,1)")
+        .execute(&pool).await.expect("marker");
 
     let values = vec![matched("stale", None), matched("current", None)];
-    let filtered = filter(&pool, "space", values).await.expect("filter");
+    let filtered = filter(&pool, "space", &generation(), values)
+        .await
+        .expect("filter");
     assert_eq!(filtered.len(), 1);
     assert_eq!(
         filtered[0].get("chunkId").and_then(Value::as_str),
@@ -73,8 +87,14 @@ async fn uses_explicit_space_id_when_present() {
         .execute(&pool)
         .await
         .expect("chunk");
+    sqlx::query("INSERT INTO spaces_retrieval_generations(id,space_id,embedding_spec_id,status,created_at,activated_at) VALUES ('generation','other','spec','active',1,1)")
+        .execute(&pool).await.expect("generation");
+    sqlx::query("INSERT INTO spaces_chunk_embeddings(generation_id,chunk_id,source_revision,embedding_spec_id,dimensions,updated_at) VALUES ('generation','chunk','rev','spec',2,1)")
+        .execute(&pool).await.expect("marker");
 
     let values = vec![matched("chunk", Some("other"))];
-    let filtered = filter(&pool, "wrong", values).await.expect("filter");
+    let filtered = filter(&pool, "wrong", &generation(), values)
+        .await
+        .expect("filter");
     assert_eq!(filtered.len(), 1);
 }

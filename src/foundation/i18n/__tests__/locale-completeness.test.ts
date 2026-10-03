@@ -77,7 +77,8 @@ function collectStaticTranslationKeys() {
 // Any dotted literal naming a locale key, which also covers keys held in a `labelKey`-style map
 // and translated later through a variable.
 function collectReferencedKeyLiterals() {
-  const literal = /["'`]((?:spaces|settings|shell|common|ai|tasks|errors)(?:\.[A-Za-z0-9_-]+)*\.?)["'`]/g;
+  const literal =
+    /["'`]((?:spaces|settings|shell|common|ai|tasks|errors|dictation)(?:\.[A-Za-z0-9_-]+)*\.?)["'`]/g;
   const keys = new Set<string>();
   for (const [path, source] of Object.entries(sourceModules)) {
     if (path.includes("/locales/") || path.endsWith("locale-completeness.test.ts")) continue;

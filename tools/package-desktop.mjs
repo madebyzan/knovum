@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join, resolve as resolvePath } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -10,6 +10,7 @@ import {
   updaterConfiguration,
   validateReleaseArguments,
 } from "./release-policy.mjs";
+import { listRuntimeFiles, validatePythonRuntime } from "./runtime-manifest.mjs";
 
 const repository = resolvePath(dirname(fileURLToPath(import.meta.url)), "..");
 const runtimeRoot = join(repository, "src-tauri", "resources", "bundled-runtime");
@@ -45,6 +46,10 @@ execFileSync(
 function productionConfiguration() {
   validateReleaseArguments(args);
   readVersion(repository);
+  const kokoro = readJson("src-tauri/src/local_resources/models/kokoro-int8-multi-lang-v1_0.json");
+  if (kokoro.licenseReview?.status !== "approved") {
+    fail("Kokoro archive license review is unresolved; release packaging is blocked");
+  }
   const production = readJson("src-tauri/tauri.release.conf.json");
   return {
     ...production,
@@ -59,8 +64,8 @@ function requireRuntime(runtimeTarget) {
     join(runtimeRoot, runtimeTarget, windows ? windowsName : unixName);
   const required = [
     binary("ffmpeg", "ffmpeg.exe"),
-    binary("whisper-cli", "whisper-cli.exe"),
     join(runtimeRoot, "media-import-manifest.json"),
+    join(runtimeRoot, runtimeTarget, "python-runtime", "runtime-manifest.json"),
   ];
   const missing = required.filter((path) => !existsSync(path));
   if (missing.length > 0) {
@@ -70,14 +75,16 @@ function requireRuntime(runtimeTarget) {
   if (forbidden.length > 0) {
     fail(`On-demand media tools must not be bundled:\n${forbidden.join("\n")}`);
   }
+  validatePythonRuntime(
+    join(runtimeRoot, runtimeTarget, "python-runtime"),
+    runtimeTarget,
+    join(repository, "python", "uv.lock"),
+  );
 }
 
 function runtimeResources(runtimeTarget) {
   const directory = join(runtimeRoot, runtimeTarget);
-  return readdirSync(directory, { withFileTypes: true }).map((entry) => {
-    if (!entry.isFile()) fail(`Bundled runtime target may contain only files: ${entry.name}`);
-    return `resources/bundled-runtime/${runtimeTarget}/${entry.name}`;
-  });
+  return listRuntimeFiles(directory).map((path) => `resources/bundled-runtime/${runtimeTarget}/${path}`);
 }
 
 function option(name) {
@@ -111,15 +118,17 @@ function hostTarget() {
   const platform = { darwin: "macos", win32: "windows" }[process.platform];
   const arch = { arm64: "arm64", x64: "x64" }[process.arch];
   if (!platform || !arch) fail(`Unsupported package host: ${process.platform}/${process.arch}`);
-  return `${platform}-${arch}`;
+  const hostRuntimeTarget = `${platform}-${arch}`;
+  if (!["macos-arm64", "windows-x64"].includes(hostRuntimeTarget)) {
+    fail(`Unsupported package target: ${hostRuntimeTarget}`);
+  }
+  return hostRuntimeTarget;
 }
 
 function targetFromTriple(triple) {
   if (!triple) return undefined;
   const targets = {
     "aarch64-apple-darwin": "macos-arm64",
-    "x86_64-apple-darwin": "macos-x64",
-    "aarch64-pc-windows-msvc": "windows-arm64",
     "x86_64-pc-windows-msvc": "windows-x64",
   };
   const resolvedTarget = targets[triple];

@@ -10,6 +10,7 @@ use super::preparation::contracts::{ResourcePreparationProgress, ResourcePrepara
 
 pub mod catalog;
 mod download;
+pub mod kokoro;
 mod sources;
 #[cfg(test)]
 mod tests;

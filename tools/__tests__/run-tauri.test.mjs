@@ -26,14 +26,13 @@ function fixture(context) {
     join(cli, "tauri.js"),
     `require("node:fs").writeFileSync(process.env.KNOVUM_TEST_OUTPUT, JSON.stringify({
       args: process.argv.slice(2), cwd: process.cwd(),
-      ffmpeg: process.env.KNOVUM_FFMPEG_PATH, whisper: process.env.KNOVUM_WHISPER_PATH
+      ffmpeg: process.env.KNOVUM_FFMPEG_PATH
     }));
     process.exitCode = Number(process.env.KNOVUM_TEST_EXIT || 0);`,
   );
   const output = join(root, "cli-output.json");
   const env = { ...process.env, KNOVUM_TEST_OUTPUT: output };
   delete env.KNOVUM_FFMPEG_PATH;
-  delete env.KNOVUM_WHISPER_PATH;
   delete env.KNOVUM_TEST_EXIT;
   return {
     root,
@@ -83,26 +82,22 @@ if (platform) {
     const directory = join(sample.root, "src-tauri", "resources", "bundled-runtime", target);
     mkdirSync(directory, { recursive: true });
     const ffmpeg = join(directory, process.platform === "win32" ? "ffmpeg.exe" : "ffmpeg");
-    const whisper = join(directory, process.platform === "win32" ? "whisper-cli.exe" : "whisper-cli");
     writeFileSync(ffmpeg, "fixture");
-    writeFileSync(whisper, "fixture");
     const result = sample.run(["dev"]);
     assert.equal(result.status, 0, result.stderr);
-    assert.deepEqual(sample.read(), { args: ["dev"], cwd: sample.root, ffmpeg, whisper });
+    assert.deepEqual(sample.read(), { args: ["dev"], cwd: sample.root, ffmpeg });
   });
 
   test("development preserves explicit runtime overrides", (context) => {
     const sample = fixture(context);
     const result = sample.run(["dev"], {
       KNOVUM_FFMPEG_PATH: "custom ffmpeg",
-      KNOVUM_WHISPER_PATH: "custom whisper",
     });
     assert.equal(result.status, 0, result.stderr);
     assert.deepEqual(sample.read(), {
       args: ["dev"],
       cwd: sample.root,
       ffmpeg: "custom ffmpeg",
-      whisper: "custom whisper",
     });
   });
 

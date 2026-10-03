@@ -9,7 +9,7 @@ pub(crate) fn run() {
 }
 
 fn base_builder() -> Builder<Wry> {
-    Builder::default()
+    let builder = Builder::default()
         .invoke_handler(tauri::generate_handler![
             updater::get_update_state,
             updater::check_for_update,
@@ -35,7 +35,26 @@ fn base_builder() -> Builder<Wry> {
         .plugin(app_resources::plugin())
         .plugin(secrets::plugin())
         .plugin(ai::plugin())
-        .plugin(spaces::plugin())
+        .plugin(spaces::plugin());
+    dictation_builder(builder)
+}
+
+#[cfg(any(
+    all(target_os = "macos", target_arch = "aarch64"),
+    all(target_os = "windows", target_arch = "x86_64")
+))]
+fn dictation_builder(builder: Builder<Wry>) -> Builder<Wry> {
+    builder
+        .plugin(crate::dictation::plugin())
+        .plugin(crate::dictation::global_shortcut_plugin())
+}
+
+#[cfg(not(any(
+    all(target_os = "macos", target_arch = "aarch64"),
+    all(target_os = "windows", target_arch = "x86_64")
+)))]
+fn dictation_builder(builder: Builder<Wry>) -> Builder<Wry> {
+    builder.plugin(crate::dictation_unsupported::plugin())
 }
 
 fn log_plugin() -> tauri::plugin::TauriPlugin<Wry> {

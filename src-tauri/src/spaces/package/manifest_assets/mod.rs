@@ -56,10 +56,96 @@ pub(super) fn parse(manifest: &str) -> Result<ManifestAssets, String> {
             used_tokens.insert(token.to_owned());
         }
     }
+    collect_speech_assets(&value, &mut used_tokens, &mut source_revisions)?;
     Ok(ManifestAssets {
         used_tokens,
         source_revisions,
     })
+}
+
+fn collect_speech_assets(
+    value: &Value,
+    used_tokens: &mut HashSet<String>,
+    source_revisions: &mut HashMap<String, String>,
+) -> Result<(), String> {
+    for revision in value
+        .get("voiceRevisions")
+        .and_then(Value::as_array)
+        .ok_or("Space package voiceRevisions must be an array")?
+    {
+        let Some(reference) = revision.get("referenceAssetId").and_then(Value::as_str) else {
+            continue;
+        };
+        let token = package_token(reference)?
+            .ok_or("Package voice reference must use a managed asset token")?;
+        let digest = revision
+            .get("referenceSourceRevision")
+            .and_then(Value::as_str)
+            .filter(|value| valid_revision(value))
+            .ok_or("Package voice reference requires a SHA-256 source revision")?;
+        record_digest(used_tokens, source_revisions, token, digest)?;
+    }
+    for render in value
+        .get("speechRenders")
+        .and_then(Value::as_array)
+        .ok_or("Space package speechRenders must be an array")?
+    {
+        let Some(reference) = render.get("assetPath").and_then(Value::as_str) else {
+            continue;
+        };
+        let token = package_token(reference)?
+            .ok_or("Package speech render must use a managed asset token")?;
+        let digest = render
+            .get("outputSha256")
+            .and_then(Value::as_str)
+            .filter(|value| value.len() == 64 && value.bytes().all(|byte| byte.is_ascii_hexdigit()))
+            .map(|value| format!("sha256:{value}"))
+            .ok_or("Package speech render requires a SHA-256 output digest")?;
+        record_digest(used_tokens, source_revisions, token, &digest)?;
+    }
+    for revision in value
+        .get("speechProjectRevisions")
+        .and_then(Value::as_array)
+        .ok_or("Space package speechProjectRevisions must be an array")?
+    {
+        let Some(reference) = revision.get("outputAssetPath").and_then(Value::as_str) else {
+            continue;
+        };
+        let token = package_token(reference)?
+            .ok_or("Package speech project output must use a managed asset token")?;
+        let digest = revision
+            .get("outputSha256")
+            .and_then(Value::as_str)
+            .filter(|value| value.len() == 64 && value.bytes().all(|byte| byte.is_ascii_hexdigit()))
+            .map(|value| format!("sha256:{value}"))
+            .ok_or("Package speech project output requires a SHA-256 digest")?;
+        record_digest(used_tokens, source_revisions, token, &digest)?;
+    }
+    Ok(())
+}
+
+fn record_digest(
+    used_tokens: &mut HashSet<String>,
+    revisions: &mut HashMap<String, String>,
+    token: &str,
+    digest: &str,
+) -> Result<(), String> {
+    used_tokens.insert(token.to_owned());
+    if revisions
+        .insert(token.to_owned(), digest.to_owned())
+        .is_some_and(|current| current != digest)
+    {
+        return Err(
+            "Space package reuses one asset token with conflicting source revisions".into(),
+        );
+    }
+    Ok(())
+}
+
+fn valid_revision(value: &str) -> bool {
+    value.len() == 71
+        && value.starts_with("sha256:")
+        && value[7..].bytes().all(|byte| byte.is_ascii_hexdigit())
 }
 
 /// Only the node's own managed asset carries the digest its `sourceRevision` records; an embedded

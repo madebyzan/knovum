@@ -60,6 +60,22 @@ Notification permission is feature-owned by the main WebView and only important 
 
 The base capability grants only low-risk desktop primitives already owned by the framework plus notification access for the main window. Clipboard and filesystem writes remain feature-scoped. Model networking no longer grants a wildcard HTTP client to the WebView; those calls stay behind validated Rust commands.
 
+## Cross-application dictation
+
+Dictation is a Rust-owned desktop session. `CommandOrControl+Shift+Space` starts microphone
+capture on press and submits the bounded WAV to the qualified Python ASR profile on release, so
+capture and recognition continue while the main WebView is hidden. Cancel destroys the temporary
+audio and prevents insertion. The recording is not a Space asset unless a separate explicit save
+operation is added. The first qualified profiles are Apple Silicon macOS and x64 Windows; other
+architectures do not register the shortcut and have no compatibility execution path.
+
+The session captures the foreground application before recording and validates the same native
+identity again before and immediately after staging the clipboard. macOS requires Accessibility
+permission; Windows may reject `SendInput` across an integrity boundary. Focus changes and
+permission denial preserve the recognized text in the Knovum result dialog. Automatic insertion
+uses a private clipboard marker and restores the prior clipboard only when the marker remains
+unchanged, preserving clipboard content copied by the user during recognition.
+
 ## Taskbar / Dock progress
 
 The app task presentation store is mirrored to Tauri `Window.setProgressBar`: no running task clears progress, unknown-progress tasks are indeterminate, and determinate tasks produce aggregate progress. On Linux this OS decoration is only available on supported desktop environments; failure is logged and does not invalidate the actual job.
@@ -98,19 +114,19 @@ Spaces (owned internally by the `spaces` feature) is the first feature to activa
 
 ### Local media analysis tools
 
-Media transcription engines are owned by `src-tauri/src/media/*`. The Space adapter validates the source through the Space-owned asset authorization boundary, performs blocking FFmpeg/whisper work off the async runtime, and streams stage/progress events to the WebView through a Tauri `Channel` so Task Center and Dock/Taskbar progress stay in sync. A temporary prepared WAV lives under a job-scoped `$APPCACHE/spaces/media-analysis` directory and is deleted before the command returns. One accelerated `whisper-cli` process transcribes the complete track with built-in Silero VAD, so long silence is skipped without repeatedly loading the Whisper model or extracting intermediate chunk files. Timestamps remain on the original media timeline when knowledge citations are persisted.
+Spaces authorizes media assets and FFmpeg decodes each source revision to a 16 kHz mono PCM cache under `$APPCACHE/spaces/media-analysis`; startup clears stale cache entries. The Python inference worker owns ASR execution under the shared Rust compute admission. Rust verifies the audio reference and returned transcript before publishing media knowledge. Stage events use a Tauri `Channel` for Task Center and Dock/Taskbar progress. ASR model files are prepared on demand from pinned per-platform snapshots.
 
-Bundled tool discovery is centralized in `src-tauri/src/local_resources/tools/mod.rs`; preview and transcription code do not implement separate lookup rules. Release/runtime configuration is explicit:
+Bundled FFmpeg and Python runtime discovery is centralized in `src-tauri/src/local_resources/tools/mod.rs`. Release/runtime configuration is explicit:
 
 During local desktop development, `tools/run-tauri.mjs` binds these variables to the single
 provisioned host runtime before launching Tauri. Packaged builds continue to resolve the same tools
 from their target-specific application resource directory.
 
 - `KNOVUM_FFMPEG_PATH`, or bundled `bundled-runtime/<platform>/ffmpeg[.exe]`;
-- `KNOVUM_WHISPER_PATH`, or bundled `bundled-runtime/<platform>/whisper-cli[.exe]`;
-- `KNOVUM_WHISPER_MODEL_PATH` and `KNOVUM_WHISPER_VAD_MODEL_PATH` are development/CI overrides for explicit Knovum-managed model installs. Release model weights live in application data and are never bundle resources.
+- `KNOVUM_PYTHON_RUNTIME_MANIFEST_PATH` is a development/CI override for the verified Python runtime. Release builds use the target-specific signed resource tree.
+- `KNOVUM_FASTER_WHISPER_*_PATH` and `KNOVUM_MLX_WHISPER_*_PATH` are development/CI overrides for individually verified model files. Release weights live in application data, outside the application bundle.
 
-The platform directory is one of `macos-arm64`, `macos-x64`, `windows-arm64`, `windows-x64`, `linux-arm64`, or `linux-x64`. Missing bundled core tools are configuration errors; optional models are prepared on first capability use; there is no browser speech-recognition path, remote media streaming path, or alternate silent implementation.
+The desktop release targets are `macos-arm64` and `windows-x64`. Missing bundled core tools are configuration errors; models are prepared on first capability use. Packaging and runtime manifests reject other architectures rather than presenting partial native inference support.
 
 The `integrations` capability grants clipboard access shared across features. Filesystem access remains limited to Tauri session-scoped dropped/Dialog-selected paths and user-selected exports. All provider traffic goes through shared Rust AI commands. No static `$HOME/**` scope is granted; provider credentials stay behind Rust secret commands.
 

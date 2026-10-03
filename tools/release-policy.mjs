@@ -3,9 +3,7 @@ import { join } from "node:path";
 
 export const releaseTargets = {
   "aarch64-apple-darwin": "darwin-aarch64",
-  "x86_64-apple-darwin": "darwin-x86_64",
   "x86_64-pc-windows-msvc": "windows-x86_64",
-  "aarch64-pc-windows-msvc": "windows-aarch64",
 };
 
 export function requireValue(value, name) {
@@ -85,6 +83,9 @@ export function distributionRepository(value) {
 }
 
 export function platformSigningConfiguration(target, env) {
+  if (!["macos-arm64", "windows-x64"].includes(target)) {
+    throw new Error(`Unsupported signing target: ${target}`);
+  }
   if (target.startsWith("macos-")) {
     const identity = requireValue(env.APPLE_SIGNING_IDENTITY, "APPLE_SIGNING_IDENTITY");
     if (!identity.startsWith("Developer ID Application:")) {
@@ -95,7 +96,6 @@ export function platformSigningConfiguration(target, env) {
     }
     return {};
   }
-  if (!target.startsWith("windows-")) throw new Error(`Unsupported signing target: ${target}`);
   return {
     windows: { signCommand: requireValue(env.KNOVUM_WINDOWS_SIGN_COMMAND, "KNOVUM_WINDOWS_SIGN_COMMAND") },
   };

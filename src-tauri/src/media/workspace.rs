@@ -10,14 +10,9 @@ pub(crate) struct AnalysisWorkspace {
     directory: PathBuf,
     pub wav: PathBuf,
     pub waveform: PathBuf,
-    pub transcript: PathBuf,
 }
 
 impl AnalysisWorkspace {
-    pub fn new(app: &tauri::AppHandle) -> Result<Self, String> {
-        Self::create(&analysis_directory(app)?)
-    }
-
     pub(super) fn create(root: &Path) -> Result<Self, String> {
         let directory = root.join(format!("media-{}", Uuid::new_v4()));
         fs::create_dir(&directory).map_err(|error| error.to_string())?;
@@ -28,7 +23,6 @@ impl AnalysisWorkspace {
         Self {
             wav: directory.join("source.wav"),
             waveform: directory.join("waveform.f32"),
-            transcript: directory.join("transcript"),
             directory,
         }
     }

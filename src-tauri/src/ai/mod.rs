@@ -3,6 +3,7 @@ mod channel;
 mod commands;
 pub mod contracts;
 pub mod executions;
+pub(crate) mod local_runtime;
 pub mod model_turn;
 pub mod models;
 pub mod providers;
@@ -22,6 +23,11 @@ pub fn plugin() -> TauriPlugin<Wry> {
             tauri::async_runtime::block_on(usage::initialize(app))
                 .map_err(std::io::Error::other)?;
             Ok(())
+        })
+        .on_event(|_, event| {
+            if matches!(event, tauri::RunEvent::Exit) {
+                tauri::async_runtime::block_on(local_runtime::shutdown());
+            }
         })
         .invoke_handler(tauri::generate_handler![
             crate::ai::commands::text::cancel_job,

@@ -1,6 +1,6 @@
 #[derive(Clone, Copy)]
 pub(crate) struct ComputeBudget {
-    pub whisper_threads: usize,
+    pub model_threads: u8,
 }
 
 impl ComputeBudget {
@@ -15,7 +15,7 @@ impl ComputeBudget {
         let interactive_reserve = if logical >= 8 { 4 } else { 2 };
         let usable = logical.saturating_sub(interactive_reserve).max(1);
         Self {
-            whisper_threads: usable.min(8),
+            model_threads: usable.min(4) as u8,
         }
     }
 }

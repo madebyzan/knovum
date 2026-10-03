@@ -27,28 +27,6 @@
         "binarySha256": "b3ac3bd206e48c26026cadd80c1367e96c149f9c66130952382a642b09fa8a71"
       }
     },
-    "macos-x64": {
-      "ytDlp": {
-        "asset": "yt-dlp_macos",
-        "sha256": "0f192b7ec147ab6288885d6351d9ab67367640029b4377576ef46dd79cf7b202"
-      },
-      "deno": {
-        "asset": "deno-x86_64-apple-darwin.zip",
-        "sha256": "7d4524b82bcc557fe020a1a5b56956ed42b992ae5b28026e8ad5d17329533f5f",
-        "binarySha256": "ec9fbd8e8f5f6ca5ceb0ebe4a564636f2c698bf60e3187460ded400cc0147fd5"
-      }
-    },
-    "windows-arm64": {
-      "ytDlp": {
-        "asset": "yt-dlp_arm64.exe",
-        "sha256": "05b438997bafc3affdfda9d041353c9d73e04dc842207254b655b0887c4445b0"
-      },
-      "deno": {
-        "asset": "deno-aarch64-pc-windows-msvc.zip",
-        "sha256": "acb014afe2299847764e232b4993e162e3946cdeec36603e3f1a0b548cd1ea55",
-        "binarySha256": "7259fbfaf9fb0d83551b7f85b38b3dc4d7c2c63cf05427b042fbf63bdcb6f778"
-      }
-    },
     "windows-x64": {
       "ytDlp": {
         "asset": "yt-dlp.exe",

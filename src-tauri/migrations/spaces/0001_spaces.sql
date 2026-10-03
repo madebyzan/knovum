@@ -372,12 +372,27 @@ CREATE VIRTUAL TABLE spaces_knowledge_fts USING fts5(
   chunk_id UNINDEXED, space_id UNINDEXED, node_id UNINDEXED, text, tokenize = 'trigram'
 );
 
+CREATE TABLE spaces_retrieval_generations (
+  id TEXT PRIMARY KEY NOT NULL CHECK (length(id) > 0),
+  space_id TEXT NOT NULL,
+  embedding_spec_id TEXT NOT NULL CHECK (length(embedding_spec_id) > 0),
+  status TEXT NOT NULL CHECK (status IN ('building', 'active', 'retired')),
+  created_at INTEGER NOT NULL,
+  activated_at INTEGER,
+  FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE,
+  CHECK ((status = 'active' AND activated_at IS NOT NULL) OR
+         (status <> 'active' AND activated_at IS NULL))
+);
+
 CREATE TABLE spaces_chunk_embeddings (
-  chunk_id TEXT PRIMARY KEY NOT NULL,
+  generation_id TEXT NOT NULL,
+  chunk_id TEXT NOT NULL,
   source_revision TEXT NOT NULL,
-  model TEXT NOT NULL,
+  embedding_spec_id TEXT NOT NULL CHECK (length(embedding_spec_id) > 0),
   dimensions INTEGER NOT NULL CHECK (dimensions > 0),
   updated_at INTEGER NOT NULL,
+  PRIMARY KEY (generation_id, chunk_id),
+  FOREIGN KEY (generation_id) REFERENCES spaces_retrieval_generations(id) ON DELETE CASCADE,
   FOREIGN KEY (chunk_id) REFERENCES spaces_knowledge_chunks(id) ON DELETE CASCADE
 );
 
@@ -909,7 +924,14 @@ CREATE UNIQUE INDEX spaces_retrieval_invalidation_space
 CREATE UNIQUE INDEX spaces_retrieval_invalidation_node
   ON spaces_retrieval_invalidations(space_id, node_id) WHERE node_id IS NOT NULL;
 
-CREATE INDEX spaces_chunk_embeddings_model ON spaces_chunk_embeddings(model, updated_at);
+CREATE UNIQUE INDEX spaces_retrieval_generation_active
+  ON spaces_retrieval_generations(space_id) WHERE status = 'active';
+
+CREATE UNIQUE INDEX spaces_retrieval_generation_building
+  ON spaces_retrieval_generations(space_id) WHERE status = 'building';
+
+CREATE INDEX spaces_chunk_embeddings_spec
+  ON spaces_chunk_embeddings(embedding_spec_id, generation_id, updated_at);
 
 CREATE UNIQUE INDEX spaces_enrichment_jobs_unique_pending
   ON spaces_enrichment_jobs(space_id, node_id, job_type, source_revision)
@@ -1079,3 +1101,158 @@ CREATE INDEX spaces_assistant_conversations_space
 
 CREATE INDEX spaces_assistant_messages_branch
   ON spaces_assistant_messages(conversation_id, branch_id, created_at, id);
+
+CREATE TABLE spaces_voice_profiles (
+  id TEXT PRIMARY KEY NOT NULL,
+  space_id TEXT NOT NULL,
+  name TEXT NOT NULL CHECK (length(trim(name)) BETWEEN 1 AND 120),
+  source_kind TEXT NOT NULL CHECK (source_kind IN ('preset','reference','designed')),
+  active_revision_id TEXT,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL,
+  FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE
+);
+
+CREATE TABLE spaces_voice_revisions (
+  id TEXT PRIMARY KEY NOT NULL,
+  profile_id TEXT NOT NULL,
+  revision INTEGER NOT NULL CHECK (revision > 0),
+  engine_id TEXT NOT NULL CHECK (length(trim(engine_id)) > 0),
+  model_spec_id TEXT NOT NULL CHECK (length(trim(model_spec_id)) > 0),
+  language TEXT NOT NULL CHECK (length(trim(language)) > 0),
+  preset_voice_id TEXT,
+  reference_asset_id TEXT,
+  reference_source_revision TEXT,
+  reference_text TEXT,
+  design_description TEXT,
+  synthesis_config TEXT NOT NULL CHECK (json_valid(synthesis_config) AND json_type(synthesis_config)='object'),
+  authorization TEXT NOT NULL CHECK (json_valid(authorization) AND json_type(authorization)='object'),
+  created_at INTEGER NOT NULL,
+  FOREIGN KEY (profile_id) REFERENCES spaces_voice_profiles(id) ON DELETE CASCADE,
+  UNIQUE (profile_id, revision),
+  CHECK (
+    (preset_voice_id IS NOT NULL AND reference_asset_id IS NULL AND design_description IS NULL)
+    OR (preset_voice_id IS NULL AND reference_asset_id IS NOT NULL AND design_description IS NULL)
+    OR (preset_voice_id IS NULL AND reference_asset_id IS NULL AND design_description IS NOT NULL)
+  )
+);
+
+CREATE TABLE spaces_speech_projects (
+  id TEXT PRIMARY KEY NOT NULL,
+  space_id TEXT NOT NULL,
+  project_type TEXT NOT NULL CHECK (project_type IN ('short_dubbing','audiobook','video_dubbing')),
+  title TEXT NOT NULL CHECK (length(trim(title)) BETWEEN 1 AND 200),
+  active_revision_id TEXT,
+  generation_epoch INTEGER NOT NULL DEFAULT 0 CHECK (generation_epoch >= 0),
+  active_generation_job_id TEXT,
+  generation_cancel_requested_at INTEGER,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL,
+  FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE,
+  CHECK (generation_cancel_requested_at IS NULL OR active_generation_job_id IS NOT NULL)
+);
+
+CREATE TABLE spaces_speech_project_revisions (
+  id TEXT PRIMARY KEY NOT NULL,
+  project_id TEXT NOT NULL,
+  revision INTEGER NOT NULL CHECK (revision > 0),
+  source_revision TEXT NOT NULL CHECK (length(trim(source_revision)) > 0),
+  pronunciation_lexicon TEXT NOT NULL CHECK (json_valid(pronunciation_lexicon) AND json_type(pronunciation_lexicon)='object'),
+  output_config TEXT NOT NULL CHECK (json_valid(output_config) AND json_type(output_config)='object'),
+  output_asset_path TEXT,
+  output_sha256 TEXT CHECK (output_sha256 IS NULL OR length(output_sha256)=64),
+  output_sample_rate INTEGER CHECK (output_sample_rate IS NULL OR output_sample_rate > 0),
+  output_sample_count INTEGER CHECK (output_sample_count IS NULL OR output_sample_count >= 0),
+  output_published_at INTEGER,
+  created_at INTEGER NOT NULL,
+  FOREIGN KEY (project_id) REFERENCES spaces_speech_projects(id) ON DELETE CASCADE,
+  UNIQUE (project_id, revision),
+  CHECK (
+    (output_asset_path IS NULL AND output_sha256 IS NULL AND output_sample_rate IS NULL
+      AND output_sample_count IS NULL AND output_published_at IS NULL)
+    OR
+    (output_asset_path IS NOT NULL AND output_sha256 IS NOT NULL AND output_sample_rate IS NOT NULL
+      AND output_sample_count IS NOT NULL AND output_published_at IS NOT NULL)
+  )
+);
+
+CREATE TABLE spaces_speech_segments (
+  id TEXT PRIMARY KEY NOT NULL,
+  project_revision_id TEXT NOT NULL,
+  ordinal INTEGER NOT NULL CHECK (ordinal >= 0),
+  chapter_key TEXT,
+  speaker_key TEXT,
+  text TEXT NOT NULL CHECK (length(trim(text)) > 0),
+  normalized_text TEXT NOT NULL CHECK (length(trim(normalized_text)) > 0),
+  voice_revision_id TEXT NOT NULL,
+  language TEXT NOT NULL CHECK (length(trim(language)) > 0),
+  target_start_ms INTEGER CHECK (target_start_ms IS NULL OR target_start_ms >= 0),
+  target_end_ms INTEGER CHECK (target_end_ms IS NULL OR target_end_ms > target_start_ms),
+  state TEXT NOT NULL CHECK (state IN ('pending','ready','rendering','rendered','needs_edit','failed')),
+  state_reason TEXT,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL,
+  FOREIGN KEY (project_revision_id) REFERENCES spaces_speech_project_revisions(id) ON DELETE CASCADE,
+  FOREIGN KEY (voice_revision_id) REFERENCES spaces_voice_revisions(id) ON DELETE RESTRICT,
+  UNIQUE (project_revision_id, ordinal)
+);
+
+CREATE TABLE spaces_speech_renders (
+  id TEXT PRIMARY KEY NOT NULL,
+  segment_id TEXT NOT NULL,
+  attempt_epoch INTEGER NOT NULL CHECK (attempt_epoch >= 0),
+  generation_job_id TEXT,
+  generation_epoch INTEGER CHECK (generation_epoch IS NULL OR generation_epoch >= 0),
+  input_digest TEXT NOT NULL CHECK (length(input_digest)=64),
+  model_spec_id TEXT NOT NULL,
+  engine_version TEXT NOT NULL,
+  seed INTEGER,
+  synthesis_config TEXT NOT NULL CHECK (json_valid(synthesis_config) AND json_type(synthesis_config)='object'),
+  state TEXT NOT NULL CHECK (state IN ('staged','published','rejected','failed','cancelled')),
+  asset_path TEXT,
+  output_sha256 TEXT CHECK (output_sha256 IS NULL OR length(output_sha256)=64),
+  sample_rate INTEGER CHECK (sample_rate IS NULL OR sample_rate > 0),
+  sample_count INTEGER CHECK (sample_count IS NULL OR sample_count >= 0),
+  created_at INTEGER NOT NULL,
+  published_at INTEGER,
+  FOREIGN KEY (segment_id) REFERENCES spaces_speech_segments(id) ON DELETE CASCADE,
+  UNIQUE (segment_id, attempt_epoch),
+  CHECK ((generation_job_id IS NULL) = (generation_epoch IS NULL))
+);
+
+CREATE INDEX spaces_voice_profiles_space ON spaces_voice_profiles(space_id, updated_at DESC);
+CREATE INDEX spaces_voice_revisions_profile ON spaces_voice_revisions(profile_id, revision DESC);
+CREATE INDEX spaces_speech_projects_space ON spaces_speech_projects(space_id, updated_at DESC);
+CREATE INDEX spaces_speech_segments_revision ON spaces_speech_segments(project_revision_id, ordinal);
+CREATE INDEX spaces_speech_renders_segment ON spaces_speech_renders(segment_id, attempt_epoch DESC);
+CREATE UNIQUE INDEX spaces_speech_projects_active_generation
+  ON spaces_speech_projects(active_generation_job_id) WHERE active_generation_job_id IS NOT NULL;
+
+CREATE TRIGGER spaces_voice_revision_source_guard
+BEFORE INSERT ON spaces_voice_revisions BEGIN
+  SELECT CASE
+    WHEN NOT EXISTS (
+      SELECT 1 FROM spaces_voice_profiles p WHERE p.id=NEW.profile_id AND (
+        (p.source_kind='preset' AND NEW.preset_voice_id IS NOT NULL)
+        OR (p.source_kind='reference' AND NEW.reference_asset_id IS NOT NULL)
+        OR (p.source_kind='designed' AND NEW.design_description IS NOT NULL)
+      )
+    ) THEN RAISE(ABORT, 'Voice revision source does not match its profile')
+  END;
+END;
+
+CREATE TRIGGER spaces_voice_profile_active_revision_guard
+BEFORE UPDATE OF active_revision_id ON spaces_voice_profiles
+WHEN NEW.active_revision_id IS NOT NULL BEGIN
+  SELECT CASE WHEN NOT EXISTS (
+    SELECT 1 FROM spaces_voice_revisions r WHERE r.id=NEW.active_revision_id AND r.profile_id=NEW.id
+  ) THEN RAISE(ABORT, 'Active voice revision does not belong to its profile') END;
+END;
+
+CREATE TRIGGER spaces_speech_project_active_revision_guard
+BEFORE UPDATE OF active_revision_id ON spaces_speech_projects
+WHEN NEW.active_revision_id IS NOT NULL BEGIN
+  SELECT CASE WHEN NOT EXISTS (
+    SELECT 1 FROM spaces_speech_project_revisions r WHERE r.id=NEW.active_revision_id AND r.project_id=NEW.id
+  ) THEN RAISE(ABORT, 'Active speech revision does not belong to its project') END;
+END;

@@ -8,6 +8,12 @@ Spaces enrichment runs in Rust independently of an open Space view. Manual trans
 node identity through [media/transcription.ts](../src/features/spaces/media/transcription.ts) to
 `plugin:spaces|request_media_transcription`; automatic intent enters the same durable job queue.
 Rust owns the source revision, resource preparation, concurrency lanes, cancellation and publication.
+Before local model execution, the owning enrichment job or Run obtains a shared Rust compute permit.
+The permit covers model loading and the active calculation, but it does not create another durable
+job state. Cancelling first revokes the owner Attempt's right to publish, then notifies the private
+Python worker; the permit is released only after that calculation ends or its process tree exits.
+Interactive requests take priority over queued background indexing and synthesis, while aging
+prevents background work from waiting indefinitely.
 
 Images and video covers use one durable `analyze_visual` job and one Vision execution pipeline.
 Node kind determines input preparation: images use the edited rendering and asset authorization;

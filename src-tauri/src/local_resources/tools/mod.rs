@@ -8,9 +8,11 @@ mod deno_archive;
 mod filesystem;
 mod install_requests;
 mod installer;
+mod python_runtime;
 
 pub(crate) use coordinator::prepare_media_import_tools_for_job;
 pub(crate) use coordinator::prepare_media_import_tools_for_request;
+pub(crate) use python_runtime::{resolve_python_runtime, verify_before_spawn, PythonRuntimePaths};
 
 #[derive(Clone)]
 pub(crate) struct ToolPreparationProgress {
@@ -77,10 +79,6 @@ pub const fn deno_name() -> &'static str {
     executable("deno", "deno.exe")
 }
 
-pub const fn whisper_cli_name() -> &'static str {
-    executable("whisper-cli", "whisper-cli.exe")
-}
-
 const fn executable(unix: &'static str, windows: &'static str) -> &'static str {
     if cfg!(target_os = "windows") {
         windows
@@ -92,16 +90,8 @@ const fn executable(unix: &'static str, windows: &'static str) -> &'static str {
 pub const fn platform_directory() -> &'static str {
     if cfg!(all(target_os = "macos", target_arch = "aarch64")) {
         "macos-arm64"
-    } else if cfg!(all(target_os = "macos", target_arch = "x86_64")) {
-        "macos-x64"
-    } else if cfg!(all(target_os = "windows", target_arch = "aarch64")) {
-        "windows-arm64"
     } else if cfg!(all(target_os = "windows", target_arch = "x86_64")) {
         "windows-x64"
-    } else if cfg!(all(target_os = "linux", target_arch = "aarch64")) {
-        "linux-arm64"
-    } else if cfg!(all(target_os = "linux", target_arch = "x86_64")) {
-        "linux-x64"
     } else {
         "unsupported"
     }

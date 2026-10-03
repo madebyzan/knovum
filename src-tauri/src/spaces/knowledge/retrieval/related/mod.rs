@@ -4,18 +4,19 @@ use arrow_array::RecordBatch;
 use futures::TryStreamExt;
 use lancedb::query::{ExecutableQuery, QueryBase};
 use serde::Serialize;
-use serde_json::Value;
 use sqlx::Row;
 use tauri::{AppHandle, Runtime};
 
 use crate::{ai::capabilities::embedding, spaces::db};
 
 use super::{
-    lancedb_store::open_knowledge_table, predicates::escape_sql_literal,
+    generation, lancedb_store::open_knowledge_table, predicates::escape_sql_literal,
     search::search_semantic_vector,
 };
 
+mod ranking;
 mod source;
+use ranking::{collect_match, RelatedContentItem};
 use source::{centroid, source_vectors};
 
 const SOURCE_LIMIT: usize = 4;
@@ -27,16 +28,6 @@ const RESULT_LIMIT: usize = 12;
 pub struct RelatedContentResponse {
     state: &'static str,
     items: Vec<RelatedContentItem>,
-}
-
-#[derive(Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
-struct RelatedContentItem {
-    node_id: String,
-    node_kind: String,
-    node_title: String,
-    snippet: String,
-    score: f64,
 }
 
 pub async fn list<R: Runtime>(
@@ -64,7 +55,7 @@ pub async fn list<R: Runtime>(
             items: Vec::new(),
         });
     }
-
+    let generation = generation::active(pool, space_id, embedding::EMBEDDING_SPEC_ID).await?;
     let rows = sqlx::query(
         "WITH indexed AS ( \
            SELECT c.id, c.source_revision, \
@@ -72,15 +63,17 @@ pub async fn list<R: Runtime>(
                   COUNT(*) OVER () AS total \
            FROM spaces_current_knowledge_chunks c \
            JOIN spaces_chunk_embeddings e ON e.chunk_id=c.id AND e.source_revision=c.source_revision \
-           WHERE c.space_id=$1 AND c.node_id=$2 AND e.model=$3 \
+             AND e.generation_id=$3 AND e.embedding_spec_id=$4 \
+           WHERE c.space_id=$1 AND c.node_id=$2 \
          ) \
          SELECT id, source_revision FROM indexed \
          WHERE position IN (1, (total+2)/3, (2*total+2)/3, total) \
-         ORDER BY position LIMIT $4",
+         ORDER BY position LIMIT $5",
     )
     .bind(space_id)
     .bind(node_id)
-    .bind(embedding::active_text_provider().model_id())
+    .bind(&generation.id)
+    .bind(&generation.embedding_spec_id)
     .bind(SOURCE_LIMIT as i64)
     .fetch_all(pool)
     .await
@@ -108,10 +101,12 @@ pub async fn list<R: Runtime>(
         .collect::<Vec<_>>()
         .join(",");
     let filter = format!(
-        "space_id = '{}' AND node_id = '{}' AND model = '{}' AND chunk_id IN ({id_filter})",
+        "space_id = '{}' AND node_id = '{}' AND generation_id = '{}' \
+         AND embedding_spec_id = '{}' AND chunk_id IN ({id_filter})",
         escape_sql_literal(space_id),
         escape_sql_literal(node_id),
-        escape_sql_literal(embedding::active_text_provider().model_id()),
+        escape_sql_literal(&generation.id),
+        escape_sql_literal(&generation.embedding_spec_id),
     );
     let batches = table
         .query()
@@ -127,7 +122,10 @@ pub async fn list<R: Runtime>(
     if vectors.is_empty() {
         return Err("Current source embeddings are missing from the retrieval index".to_owned());
     }
-
+    let still_active = generation::active(pool, space_id, embedding::EMBEDDING_SPEC_ID).await?;
+    if still_active.id != generation.id {
+        return Err(generation::REBUILD_REQUIRED.to_owned());
+    }
     let query = centroid(&vectors)?;
     let mut by_node: HashMap<String, RelatedContentItem> = HashMap::new();
     for match_value in
@@ -142,40 +140,4 @@ pub async fn list<R: Runtime>(
         state: "ready",
         items,
     })
-}
-
-fn collect_match(
-    by_node: &mut HashMap<String, RelatedContentItem>,
-    value: &Value,
-    source_node_id: &str,
-) -> Result<(), String> {
-    let field = |name: &str| {
-        value
-            .get(name)
-            .and_then(Value::as_str)
-            .ok_or_else(|| format!("Related content result is missing {name}"))
-    };
-    let node_id = field("nodeId")?;
-    if node_id == source_node_id {
-        return Ok(());
-    }
-    let score = value
-        .get("score")
-        .and_then(Value::as_f64)
-        .ok_or_else(|| "Related content result is missing score".to_owned())?;
-    let current = by_node.get(node_id);
-    if current.is_some_and(|item| item.score >= score) {
-        return Ok(());
-    }
-    by_node.insert(
-        node_id.to_owned(),
-        RelatedContentItem {
-            node_id: node_id.to_owned(),
-            node_kind: field("nodeKind")?.to_owned(),
-            node_title: field("nodeTitle")?.to_owned(),
-            snippet: field("snippet")?.to_owned(),
-            score,
-        },
-    );
-    Ok(())
 }
