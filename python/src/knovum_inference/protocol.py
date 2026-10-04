@@ -4,7 +4,7 @@ import asyncio
 import json
 import sys
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, NoReturn
 
 from knovum_inference.errors import RpcError
 
@@ -20,8 +20,8 @@ class Request:
 
 def parse_request(line: bytes) -> Request:
     try:
-        value = json.loads(line)
-    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        value = json.loads(line.decode("utf-8"), parse_constant=_reject_non_finite)
+    except (UnicodeDecodeError, ValueError, RecursionError) as error:
         raise RpcError(-32700, "Invalid JSON", "invalid_output") from error
     if not isinstance(value, dict) or value.get("jsonrpc") != "2.0":
         raise RpcError(-32600, "Invalid JSON-RPC request", "invalid_output")
@@ -38,6 +38,10 @@ def parse_request(line: bytes) -> Request:
         if isinstance(request_id, bool) or not isinstance(request_id, (str, int)):
             raise RpcError(-32600, "Request id must be a string or integer", "invalid_output")
     return Request(request_id, method, params)
+
+
+def _reject_non_finite(value: str) -> NoReturn:
+    raise ValueError(f"Non-finite number is not JSON: {value}")
 
 
 class ProtocolWriter:

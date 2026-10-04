@@ -8,7 +8,6 @@ import sys
 import threading
 import time
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Any, TypeVar
 
 from pydantic import BaseModel, ValidationError
@@ -41,23 +40,16 @@ from knovum_inference.contracts import (
     SpeechTranscribeResult,
     TensorDataType,
 )
-from knovum_inference.embedding import EXPECTED_DIMENSIONS, EmbeddingEngine
+from knovum_inference.embedding import EXPECTED_DIMENSIONS
 from knovum_inference.errors import RpcError, invalid_params, server_error
 from knovum_inference.input_stream import OVERSIZED, InputStream
 from knovum_inference.protocol import MAX_MESSAGE_BYTES, ProtocolWriter, Request, parse_request
 from knovum_inference.runtime_health import current_process_resident_bytes
-from knovum_inference.runtime_identity import verify_runtime_digest
-from knovum_inference.speech import (
-    AlignmentEngine,
-    DiarizationEngine,
-    SynthesisEngine,
-    TranscriptionEngine,
-)
+from knovum_inference.runtime_initialization import Session, capability_method, prepare_session
 from knovum_inference.speech_stream import ChunkCredits, SynthesisChunkPublisher
 
 T = TypeVar("T", bound=BaseModel)
 U64_MAX = (1 << 64) - 1
-_TORCH_EXECUTION_PROFILES = frozenset({"voxcpm2-mps-f32-v1", "voxcpm2-cpu-bf16-v1"})
 _OOM_MESSAGES = (
     "out of memory",
     "not enough memory",
@@ -67,15 +59,6 @@ _OOM_MESSAGES = (
     "memory allocation failed",
     "std::bad_alloc",
 )
-
-
-@dataclass(slots=True)
-class Session:
-    session_id: str
-    capability: RuntimeCapability
-    capability_spec_id: str
-    engine: Any
-    work_directory: Path
 
 
 @dataclass(slots=True)
@@ -89,17 +72,21 @@ class ActiveRequest:
 
 def _validated(model: type[T], value: Any) -> T:
     try:
-        encoded = json.dumps(value, ensure_ascii=False, allow_nan=False, separators=(",", ":"))
-        return model.model_validate_json(encoded)
+        return _decode_wire_model(model, value)
     except (TypeError, ValueError, ValidationError) as error:
         raise invalid_params("Parameters do not match the runtime contract") from error
 
 
 def _result(model: type[T], value: dict[str, Any]) -> dict[str, Any]:
     try:
-        return model.model_validate(value).model_dump(by_alias=True, mode="json")
-    except ValidationError as error:
+        return _decode_wire_model(model, value).model_dump(by_alias=True, mode="json")
+    except (TypeError, ValueError, ValidationError) as error:
         raise server_error("invalid_output", "Worker result violates its contract") from error
+
+
+def _decode_wire_model(model: type[T], value: Any) -> T:
+    encoded = json.dumps(value, ensure_ascii=False, allow_nan=False, separators=(",", ":"))
+    return model.model_validate_json(encoded)
 
 
 def _out_of_memory(error: BaseException) -> bool:
@@ -129,77 +116,54 @@ def _reported_error(error: Exception) -> RpcError:
     return server_error("invalid_output", "Worker request failed")
 
 
-def _configure_native_threads(params: RuntimeInitializeParams) -> None:
-    threads = str(params.device_profile.cpu_threads)
-    for name in (
-        "OMP_NUM_THREADS",
-        "MKL_NUM_THREADS",
-        "OPENBLAS_NUM_THREADS",
-        "NUMEXPR_NUM_THREADS",
-        "VECLIB_MAXIMUM_THREADS",
-    ):
-        os.environ[name] = threads
-    uses_torch = (
-        params.capability
-        in {
-            RuntimeCapability.speech_transcription,
-            RuntimeCapability.speech_alignment,
-            RuntimeCapability.speech_diarization,
-        }
-        or params.device_profile.execution_profile_id in _TORCH_EXECUTION_PROFILES
-    )
-    if not uses_torch:
-        return
-    try:
-        import torch
-    except ImportError as error:
-        raise server_error("runtime_mismatch", "PyTorch is unavailable") from error
-    try:
-        torch.set_num_threads(params.device_profile.cpu_threads)
-        torch.set_num_interop_threads(1)
-    except RuntimeError as error:
-        raise server_error("runtime_mismatch", "PyTorch thread budget cannot be applied") from error
-
-
 class Worker:
     def __init__(self) -> None:
         self._writer = ProtocolWriter()
         self._session: Session | None = None
         self._active: ActiveRequest | None = None
         self._accepting_work = True
+        self._initializing = False
         self._terminate = asyncio.Event()
         self._tasks: set[asyncio.Task[object]] = set()
 
     async def serve(self) -> None:
         input_stream = InputStream(asyncio.get_running_loop())
         input_stream.start()
-        while not self._terminate.is_set():
-            receive = asyncio.create_task(input_stream.receive())
-            stopping = asyncio.create_task(self._terminate.wait())
-            done, pending = await asyncio.wait({receive, stopping}, return_when=asyncio.FIRST_COMPLETED)
-            for task in pending:
-                task.cancel()
-            if stopping in done:
-                break
-            line = receive.result()
-            if line is None:
-                break
-            if line is OVERSIZED:
-                await self._writer.error(None, RpcError(-32600, "Message exceeds 1 MiB", "invalid_output"))
-                continue
-            assert isinstance(line, bytes)
-            try:
-                request = parse_request(line)
-            except RpcError as error:
-                await self._writer.error(None, error)
-                continue
-            task = asyncio.create_task(self._handle(request))
-            self._tasks.add(task)
-            task.add_done_callback(self._tasks.discard)
+        try:
+            while not self._terminate.is_set():
+                receive = asyncio.create_task(input_stream.receive())
+                stopping = asyncio.create_task(self._terminate.wait())
+                done, pending = await asyncio.wait({receive, stopping}, return_when=asyncio.FIRST_COMPLETED)
+                for task in pending:
+                    task.cancel()
+                if stopping in done:
+                    break
+                line = receive.result()
+                if line is None:
+                    break
+                if line is OVERSIZED:
+                    await self._writer.error(None, RpcError(-32600, "Message exceeds 1 MiB", "invalid_output"))
+                    continue
+                assert isinstance(line, bytes)
+                try:
+                    request = parse_request(line)
+                except RpcError as error:
+                    await self._writer.error(None, error)
+                    continue
+                task = asyncio.create_task(self._handle(request))
+                self._tasks.add(task)
+                task.add_done_callback(self._tasks.discard)
+        finally:
+            await self._settle_requests()
+
+    async def _settle_requests(self) -> None:
+        self._accepting_work = False
+        self._terminate.set()
         if self._active is not None:
             self._active.cancelled.set()
+        if self._tasks:
             try:
-                await asyncio.wait_for(self._active.done.wait(), timeout=5)
+                await asyncio.wait_for(asyncio.gather(*self._tasks, return_exceptions=True), timeout=5)
             except TimeoutError:
                 if os.name == "posix":
                     os.killpg(os.getpgrp(), signal.SIGKILL)
@@ -225,7 +189,7 @@ class Worker:
 
     async def _dispatch(self, request: Request) -> dict[str, Any]:
         if request.method == "runtime.initialize":
-            return self._initialize(request.params)
+            return await self._initialize(request.params)
         if self._session is None:
             raise server_error("runtime_mismatch", "Runtime is not initialized")
         handlers = {
@@ -246,30 +210,20 @@ class Worker:
             raise RpcError(-32601, "Method not found", "invalid_output")
         return await handler(request.params)
 
-    def _initialize(self, raw: dict[str, Any]) -> dict[str, Any]:
-        if self._session is not None:
-            raise server_error("runtime_mismatch", "Runtime is already initialized")
+    async def _initialize(self, raw: dict[str, Any]) -> dict[str, Any]:
+        if self._session is not None or self._initializing:
+            raise server_error("runtime_mismatch", "Runtime is already initialized or initializing")
+        if not self._accepting_work:
+            raise server_error("cancelled", "Runtime is stopping")
         params = _validated(RuntimeInitializeParams, raw)
-        if params.protocol_version != PROTOCOL_VERSION:
-            raise server_error("runtime_mismatch", "Protocol version does not match")
-        if not params.session_id or not params.capability_spec_id or not params.device_profile.execution_profile_id:
-            raise invalid_params("Runtime identity fields must be non-empty")
-        if params.device_profile.cpu_threads < 1:
-            raise server_error("unsupported_device", "CPU thread budget must be positive")
-        work_directory = Path(params.work_directory)
-        if not work_directory.is_absolute() or not work_directory.is_dir():
-            raise invalid_params("Work directory must be an existing absolute directory")
-        verify_runtime_digest(params.runtime_digest)
-        model_path = self._selected_model_path(params)
-        _configure_native_threads(params)
-        engine = self._create_engine(params, model_path, work_directory)
-        self._session = Session(
-            params.session_id,
-            params.capability,
-            params.capability_spec_id,
-            engine,
-            work_directory.resolve(strict=True),
-        )
+        self._initializing = True
+        try:
+            session = await asyncio.to_thread(prepare_session, params)
+            if not self._accepting_work:
+                raise server_error("cancelled", "Runtime stopped during initialization")
+            self._session = session
+        finally:
+            self._initializing = False
         return _result(
             RuntimeInitializeResult,
             {
@@ -279,7 +233,7 @@ class Worker:
                 "capability": params.capability.value,
                 "capabilitySpecId": params.capability_spec_id,
                 "deviceProfile": params.device_profile.model_dump(by_alias=True),
-                "capabilities": [self._method(params.capability)],
+                "capabilities": [capability_method(params.capability)],
                 "limits": {
                     "maxMessageBytes": MAX_MESSAGE_BYTES,
                     "maxEmbeddingTexts": 32,
@@ -289,80 +243,6 @@ class Worker:
                 },
             },
         )
-
-    @staticmethod
-    def _method(capability: RuntimeCapability) -> str:
-        methods = {
-            RuntimeCapability.embedding: "embedding.encode",
-            RuntimeCapability.speech_transcription: "speech.transcribe",
-            RuntimeCapability.speech_alignment: "speech.align",
-            RuntimeCapability.speech_diarization: "speech.diarize",
-            RuntimeCapability.speech_synthesis: "speech.synthesize",
-            RuntimeCapability.speech_separation: "speech.separate",
-            RuntimeCapability.image_segmentation: "image.segment",
-        }
-        method = methods.get(capability)
-        if method is None:
-            raise server_error("runtime_mismatch", "Runtime capability is not implemented")
-        return method
-
-    @staticmethod
-    def _selected_model_path(params: RuntimeInitializeParams) -> Path:
-        fields = {
-            RuntimeCapability.embedding: params.model_paths.embedding,
-            RuntimeCapability.speech_transcription: params.model_paths.speech_transcription,
-            RuntimeCapability.speech_alignment: params.model_paths.speech_alignment,
-            RuntimeCapability.speech_diarization: params.model_paths.speech_diarization,
-            RuntimeCapability.speech_synthesis: params.model_paths.speech_synthesis,
-            RuntimeCapability.speech_separation: params.model_paths.speech_separation,
-            RuntimeCapability.image_segmentation: params.model_paths.image_segmentation,
-        }
-        selected = fields[params.capability]
-        if selected is None or sum(value is not None for value in fields.values()) != 1:
-            raise invalid_params("Exactly one capability model path is required")
-        model_path = Path(selected)
-        if not model_path.is_absolute() or not model_path.exists():
-            raise server_error("model_missing", "Capability model path is missing")
-        return model_path.resolve(strict=True)
-
-    @staticmethod
-    def _create_engine(params: RuntimeInitializeParams, model_path: Path, work_directory: Path) -> Any:
-        capability = params.capability
-        device = params.device_profile.device
-        threads = params.device_profile.cpu_threads
-        if capability is RuntimeCapability.embedding:
-            if device != "cpu" or not model_path.is_dir():
-                raise server_error("unsupported_device", "Embedding profile is unsupported")
-            return EmbeddingEngine(str(model_path), device, threads)
-        if capability is RuntimeCapability.speech_transcription:
-            if not model_path.is_dir():
-                raise server_error("model_missing", "ASR model directory is missing")
-            return TranscriptionEngine(model_path, work_directory, threads)
-        if capability is RuntimeCapability.speech_alignment:
-            if device != "cpu" or not model_path.is_dir():
-                raise server_error("unsupported_device", "Qwen3 forced alignment requires CPU")
-            return AlignmentEngine(model_path, device, threads)
-        if capability is RuntimeCapability.speech_diarization:
-            if device != "cpu" or not model_path.is_dir():
-                raise server_error("unsupported_device", "Community-1 diarization requires CPU")
-            return DiarizationEngine(model_path, device)
-        if capability is RuntimeCapability.speech_synthesis:
-            if device not in {"cpu", "mps"} or not model_path.is_dir():
-                raise server_error("unsupported_device", "Synthesis profile is unsupported")
-            return SynthesisEngine(model_path, device, threads)
-        if capability is RuntimeCapability.speech_separation:
-            if device != "cpu" or not model_path.is_dir():
-                raise server_error("unsupported_device", "Spleeter source separation requires CPU")
-            from knovum_inference.speech_separation import SpleeterSourceSeparator
-
-            return SpleeterSourceSeparator(model_path, work_directory, threads)
-        if capability is RuntimeCapability.image_segmentation:
-            if device != "cpu" or not model_path.is_file():
-                raise server_error("unsupported_device", "Image segmentation profile is unsupported")
-            from knovum_inference.image_segmentation import ImageSegmentationEngine
-
-            return ImageSegmentationEngine(str(model_path), str(work_directory), threads)
-        raise server_error("runtime_mismatch", "Runtime capability is not implemented")
 
     async def _health(self, raw: dict[str, Any]) -> dict[str, Any]:
         params = _validated(RuntimeHealthParams, raw)

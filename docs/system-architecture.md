@@ -358,6 +358,16 @@ including model loading. Interactive work takes priority while queued background
 service. It launches only a verified, application-bundled CPython interpreter with one selected
 capability and model path per worker session. The worker retains a model briefly between requests
 and is recycled on capability change, cancellation timeout, idle expiry or application exit.
+Python session preparation, including native imports and thread configuration, runs off the
+asyncio control loop. Only one initialization may be pending, and a preparation result cannot
+activate a session after transport closure. Closing the transport stops admission, cancels current
+computation and waits at most five seconds for pending initialization and request handlers before
+terminating the process tree. Controls received before readiness return an explicit not-initialized
+error. Protocol input is strictly UTF-8 JSON; non-finite numeric literals are rejected at parsing.
+After spawning, Rust handles initialization cancellation/deadline inside the owned child lifecycle:
+it terminates and waits for that child before returning and releasing memory or compute admission.
+Input and output wire validation use the same strict generated JSON schema semantics, including
+JSON enum values; no permissive Python-object conversion or compatibility contract is used.
 Python owns only current computation; Rust owns durable task state, revision checks, index
 generations and result publication. Embedding uses the fixed Qwen snapshot through Sentence
 Transformers with last-token pooling, 1,024-dimensional L2-normalized output and a strict 2,048
