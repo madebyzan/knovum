@@ -98,23 +98,16 @@ impl Worker {
         cancellation: &CancellationToken,
         exit: &CancellationToken,
     ) -> Result<Self, String> {
-        let memory_reservation =
-            super::admission::reserve_memory(params.capability, &params.device_profile)?;
-        let result = tokio::select! {
-            biased;
-            _ = exit.cancelled() => Err("cancelled".into()),
-            _ = cancellation.cancelled() => Err("cancelled".into()),
-            result = tokio::time::timeout(
-                super::deadline_duration(deadline_ms)?,
-                Self::start_inner(
-                    runtime,
-                    work_directory,
-                    model_path,
-                    params,
-                    memory_reservation,
-                ),
-            ) => result.map_err(|_| "deadline_exceeded".to_owned())?,
-        };
+        let result = Self::start_inner(
+            runtime,
+            work_directory,
+            model_path,
+            params,
+            deadline_ms,
+            cancellation,
+            exit,
+        )
+        .await;
         if result.is_err() {
             let _ = tokio::fs::remove_dir_all(work_directory).await;
         }
@@ -126,13 +119,24 @@ impl Worker {
         work_directory: &Path,
         model_path: &Path,
         params: RuntimeInitializeParams,
-        memory_reservation: super::admission::MemoryReservation,
+        deadline_ms: u64,
+        cancellation: &CancellationToken,
+        exit: &CancellationToken,
     ) -> Result<Self, String> {
-        super::prepare_inference_root(work_directory).await?;
-        verify_runtime_for_spawn(runtime.clone()).await?;
-        tokio::fs::create_dir(work_directory)
-            .await
-            .map_err(|error| format!("resource_exhausted: {error}"))?;
+        let memory_reservation =
+            super::admission::reserve_memory(params.capability, &params.device_profile)?;
+        tokio::select! {
+            biased;
+            _ = exit.cancelled() => return Err("cancelled".into()),
+            _ = cancellation.cancelled() => return Err("cancelled".into()),
+            result = tokio::time::timeout(super::deadline_duration(deadline_ms)?, async {
+                super::prepare_inference_root(work_directory).await?;
+                verify_runtime_for_spawn(runtime.clone()).await?;
+                tokio::fs::create_dir(work_directory)
+                    .await
+                    .map_err(|error| format!("resource_exhausted: {error}"))
+            }) => result.map_err(|_| "deadline_exceeded".to_owned())??,
+        }
         let bootstrap = concat!(
             "import sys; ",
             "sys.path.insert(0, sys.argv[1]); ",
@@ -244,13 +248,23 @@ impl Worker {
             }
         });
         let mut protocol = Protocol::new(input, output);
-        let initialization: Result<RuntimeInitializeResult, String> = tokio::time::timeout(
-            Duration::from_secs(15),
-            protocol.request(&params.session_id, "runtime.initialize", &params),
-        )
-        .await
-        .map_err(|_| "deadline_exceeded: worker initialization timed out".to_owned())
-        .and_then(std::convert::identity);
+        // Once spawned, cancellation must settle the child before releasing its reservation.
+        let initialization: Result<RuntimeInitializeResult, String> = match super::deadline_duration(
+            deadline_ms,
+        ) {
+            Err(error) => Err(error),
+            Ok(remaining) => tokio::select! {
+                biased;
+                _ = exit.cancelled() => Err("cancelled".into()),
+                _ = cancellation.cancelled() => Err("cancelled".into()),
+                result = tokio::time::timeout(
+                    remaining.min(Duration::from_secs(15)),
+                    protocol.request(&params.session_id, "runtime.initialize", &params),
+                ) => result
+                    .map_err(|_| "deadline_exceeded: worker initialization timed out".to_owned())
+                    .and_then(std::convert::identity),
+            },
+        };
         let result = match initialization {
             Ok(result) => result,
             Err(error) => {
