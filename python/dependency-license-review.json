@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "reviewStatus": "required",
+  "dependencyLockSha256": "6688d0d28d04ef8a88c21b8b242936b5d722208504a07c3910b33b1331f09596",
+  "targets": {
+    "macos-arm64": null,
+    "windows-x64": null
+  }
+}

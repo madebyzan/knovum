@@ -18,6 +18,8 @@ pub enum EnrichmentJobType {
     AnalyzeVisual,
     AnalyzeMedia,
     TranscribeMedia,
+    AlignMediaTranscript,
+    DiarizeMediaTranscript,
     ParseDocument,
     AnalyzeDocument,
 }
@@ -28,6 +30,8 @@ impl EnrichmentJobType {
             Self::AnalyzeVisual => "analyze_visual",
             Self::AnalyzeMedia => "analyze_media",
             Self::TranscribeMedia => "transcribe_media",
+            Self::AlignMediaTranscript => "align_media_transcript",
+            Self::DiarizeMediaTranscript => "diarize_media_transcript",
             Self::ParseDocument => "parse_document",
             Self::AnalyzeDocument => "analyze_document",
         }

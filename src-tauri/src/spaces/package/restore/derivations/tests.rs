@@ -131,7 +131,7 @@ async fn restores_agent_execution_sources_into_the_current_sql_baseline() {
             "space":{"id":"space","kind":"space","title":"Space","lastOpenedAt":1,"createdAt":1,"updatedAt":1},
             "structureNodes":[],"layouts":[],"relationStyles":[],"objectTypes":[],"nodes":[],"scenes":[],"relations":[],"derivations":rows,
             "runs":[],"runSteps":[],"runAttempts":[],"runEvents":[],"externalAgentConversations":[],"externalAgentTurns":[],"assistantConversations":[],"assistantMessages":[],
-            "voiceProfiles":[],"voiceRevisions":[],"speechProjects":[],"speechProjectRevisions":[],"speechSegments":[],"speechRenders":[],
+            "voiceProfiles":[],"voiceRevisions":[],"voiceCandidates":[],"speechProjects":[],"speechProjectRevisions":[],"speechSegments":[],"speechRenders":[],"speechSourceSeparations":[],
             "provenance":[],"knowledgeEvents":[],"chunks":[]
         })).unwrap();
     let mut tx = pool.begin().await.unwrap();

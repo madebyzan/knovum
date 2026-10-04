@@ -1,4 +1,5 @@
 use crate::app_error::AppError;
+mod active_attempts;
 mod attempt;
 mod budget;
 mod children;
@@ -29,7 +30,8 @@ pub(crate) async fn request_cancellation(
     pool: &sqlx::SqlitePool,
     run_id: &str,
 ) -> Result<(), String> {
-    repository::request_control(pool, run_id, "cancel").await
+    repository::request_control(pool, run_id, "cancel").await?;
+    active_attempts::cancel_tree(pool, run_id).await
 }
 
 #[tauri::command]

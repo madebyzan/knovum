@@ -10,6 +10,8 @@ pub enum ResourcePreparationTarget {
     TextEmbedding,
     ImageSegmentation,
     SpeechSynthesis,
+    SpeechAlignment,
+    SpeechSeparation,
     MediaImportTools,
 }
 
@@ -22,6 +24,9 @@ impl ResourcePreparationTarget {
             Self::TextEmbedding => Some(catalog::TEXT_EMBEDDING_MODELS),
             Self::ImageSegmentation => Some(catalog::IMAGE_SEGMENTATION_MODELS),
             Self::SpeechSynthesis => None,
+            Self::SpeechAlignment => (!catalog::SPEECH_ALIGNMENT_MODELS.is_empty())
+                .then_some(catalog::SPEECH_ALIGNMENT_MODELS),
+            Self::SpeechSeparation => Some(catalog::SPEECH_SEPARATION_MODELS),
             Self::MediaImportTools => None,
         }
     }

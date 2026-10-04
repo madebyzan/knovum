@@ -1,5 +1,11 @@
 use serde::{Deserialize, Serialize};
 
+#[derive(Clone, Copy)]
+pub(super) struct ProjectRevisionIdentity<'a> {
+    pub project_id: &'a str,
+    pub revision_id: &'a str,
+}
+
 fn empty_object() -> serde_json::Value {
     serde_json::json!({})
 }
@@ -23,8 +29,9 @@ pub(crate) fn parse_synthesis_config(
     Ok(config)
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct CreatePresetVoiceRequest {
     pub space_id: String,
     pub name: String,
@@ -36,22 +43,31 @@ pub struct CreatePresetVoiceRequest {
     pub synthesis_config: serde_json::Value,
 }
 
-#[derive(Debug, Serialize, sqlx::FromRow)]
+#[derive(Debug, Serialize, sqlx::FromRow, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct VoiceProfileSummary {
     pub id: String,
     pub name: String,
     pub source_kind: String,
     pub active_revision_id: String,
+    pub revision: i64,
+    pub is_active: bool,
     pub engine_id: String,
     pub model_spec_id: String,
     pub language: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     pub preset_voice_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub archived_at: Option<i64>,
     pub updated_at: i64,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct CreateSpeechProjectRequest {
     pub space_id: String,
     pub project_type: String,
@@ -60,8 +76,9 @@ pub struct CreateSpeechProjectRequest {
     pub output_config: serde_json::Value,
 }
 
-#[derive(Debug, Serialize, sqlx::FromRow)]
+#[derive(Debug, Serialize, sqlx::FromRow, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct SpeechProjectSummary {
     pub id: String,
     pub space_id: String,
@@ -70,13 +87,15 @@ pub struct SpeechProjectSummary {
     pub active_revision_id: String,
     pub active_revision: i64,
     pub segment_count: i64,
-    pub generation_epoch: i64,
-    pub active_generation_job_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub active_run_id: Option<String>,
     pub updated_at: i64,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct SaveSpeechProjectRevisionRequest {
     pub project_id: String,
     pub expected_revision: i64,
@@ -88,21 +107,40 @@ pub struct SaveSpeechProjectRevisionRequest {
     pub segments: Vec<SpeechSegmentInput>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct SpeechSegmentInput {
     pub id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     pub chapter_key: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     pub speaker_key: Option<String>,
     pub text: String,
     pub voice_revision_id: String,
     pub language: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     pub target_start_ms: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     pub target_end_ms: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub source_segment_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub source_segment_revision: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub source_text: Option<String>,
 }
 
-#[derive(Debug, Serialize, sqlx::FromRow)]
+#[derive(Debug, Serialize, sqlx::FromRow, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct SpeechProjectRevision {
     pub id: String,
     pub project_id: String,
@@ -110,60 +148,110 @@ pub struct SpeechProjectRevision {
     pub source_revision: String,
     pub pronunciation_lexicon: String,
     pub output_config: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     pub output_asset_path: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     pub output_sha256: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     pub output_sample_rate: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     pub output_sample_count: Option<i64>,
     pub created_at: i64,
 }
 
-#[derive(Debug, Serialize, sqlx::FromRow)]
+#[derive(Debug, Serialize, sqlx::FromRow, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct SpeechSegment {
     pub id: String,
     pub ordinal: i64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     pub chapter_key: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     pub speaker_key: Option<String>,
     pub text: String,
     pub normalized_text: String,
     pub voice_revision_id: String,
     pub language: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     pub target_start_ms: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     pub target_end_ms: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub source_segment_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub source_segment_revision: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub source_text: Option<String>,
     pub state: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     pub state_reason: Option<String>,
 }
 
-#[derive(Debug, Serialize, sqlx::FromRow)]
+#[derive(Debug, Serialize, sqlx::FromRow, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct SpeechProjectDetail {
     pub project: SpeechProjectSummary,
     pub revision: SpeechProjectRevision,
     pub segments: Vec<SpeechSegment>,
 }
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct SpeechGenerationProgress {
     pub stage: String,
     pub completed: u32,
     pub total: u32,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     pub resources:
         Option<crate::local_resources::preparation::contracts::ResourcePreparationProgress>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
+pub struct SpeechPreviewAudioChunk {
+    pub request_id: String,
+    pub attempt_epoch: u64,
+    pub seq: u64,
+    pub sample_rate: u32,
+    pub sample_count: u64,
+    pub pcm16: Vec<u8>,
+}
+
+#[derive(Debug, Deserialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct PreviewVoiceRequest {
     pub job_id: String,
     pub space_id: String,
     pub voice_revision_id: String,
     pub text: String,
+    pub pronunciation_lexicon: serde_json::Value,
 }
 
-#[derive(Debug, Serialize)]
+pub use super::voice_candidates::{
+    CreateCandidateVoiceRequest, DraftVoiceCandidateRequest, VoiceCandidate, VoiceCandidateStatus,
+};
+
+#[derive(Debug, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct SpeechAudioOutput {
     pub path: String,
     pub sha256: String,
@@ -171,16 +259,18 @@ pub struct SpeechAudioOutput {
     pub sample_count: u64,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct GenerateSpeechProjectRequest {
-    pub job_id: String,
+    pub request_id: String,
     pub project_id: String,
     pub expected_revision: i64,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct SpeechSegmentRenderOutput {
     pub segment_id: String,
     pub path: String,
@@ -192,15 +282,16 @@ pub struct SpeechSegmentRenderOutput {
 
 #[derive(Debug, sqlx::FromRow)]
 pub(super) struct CachedSpeechRender {
-    pub segment_id: String,
+    pub id: String,
     pub path: String,
     pub sha256: String,
     pub sample_rate: i64,
     pub sample_count: i64,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../../features/spaces/contracts/generated/")]
 pub struct SpeechProjectRenderOutput {
     pub project_id: String,
     pub revision: i64,
@@ -209,12 +300,17 @@ pub struct SpeechProjectRenderOutput {
 }
 
 #[derive(Debug, sqlx::FromRow)]
-pub(super) struct PresetVoiceExecution {
+pub(super) struct VoiceExecution {
     pub revision_id: String,
+    pub source_kind: String,
     pub engine_id: String,
     pub model_spec_id: String,
     pub language: String,
-    pub preset_voice_id: String,
+    pub preset_voice_id: Option<String>,
+    pub reference_asset_id: Option<String>,
+    pub reference_source_revision: Option<String>,
+    pub reference_text: Option<String>,
+    pub design_description: Option<String>,
     pub synthesis_config: String,
 }
 

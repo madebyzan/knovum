@@ -24,6 +24,23 @@ fn validate_segment(segment: &SpeechSegmentInput) -> Result<(), String> {
         (Some(start), Some(end)) if start >= 0 && end > start => Ok(()),
         (None, None) => Ok(()),
         _ => Err("Speech segment timing must contain a valid start and end pair".to_owned()),
+    }?;
+    match (
+        segment.source_segment_id.as_deref(),
+        segment.source_segment_revision,
+        segment.source_text.as_deref(),
+    ) {
+        (None, None, None) => Ok(()),
+        (Some(id), Some(revision), Some(text))
+            if !id.trim().is_empty()
+                && id.encode_utf16().count() <= 240
+                && revision > 0
+                && !text.trim().is_empty()
+                && text.chars().count() <= 16_000 =>
+        {
+            Ok(())
+        }
+        _ => Err("Speech segment source identity is incomplete or invalid".into()),
     }
 }
 
@@ -52,22 +69,24 @@ pub async fn save_speech_project_revision(
     for segment in &request.segments {
         validate_segment(segment)?;
     }
-    if request
-        .output_config
-        .get("format")
-        .and_then(serde_json::Value::as_str)
-        != Some("wav")
-    {
-        return Err("Short dubbing revisions require WAV output".into());
-    }
-    let lexicon = serialize_object(request.pronunciation_lexicon, "Pronunciation lexicon")?;
-    let output = serialize_object(request.output_config, "Output configuration")?;
+    let pronunciations = text::parse_lexicon(&request.pronunciation_lexicon)?;
+    let lexicon = serialize_object(
+        request.pronunciation_lexicon.clone(),
+        "Pronunciation lexicon",
+    )?;
+    let output = serialize_object(request.output_config.clone(), "Output configuration")?;
     let revision_id = uuid::Uuid::new_v4().to_string();
     let now = crate::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
-    let (active_revision, project_type): (i64, String) = sqlx::query_as(
-        "SELECT r.revision,p.project_type FROM spaces_speech_projects p \
+    let (active_revision_id, active_revision, project_type, space_id, active_output): (
+        String,
+        i64,
+        String,
+        String,
+        String,
+    ) = sqlx::query_as(
+        "SELECT r.id,r.revision,p.project_type,p.space_id,r.output_config FROM spaces_speech_projects p \
          JOIN spaces_speech_project_revisions r ON r.id=p.active_revision_id WHERE p.id=?",
     )
     .bind(&request.project_id)
@@ -75,11 +94,83 @@ pub async fn save_speech_project_revision(
     .await
     .map_err(db::sql_error)?
     .ok_or("Speech project no longer exists")?;
-    if project_type != "short_dubbing" {
-        return Err("Only short dubbing projects can be edited in this workflow".into());
-    }
     if active_revision != request.expected_revision {
         return Err("stale_revision: Speech project changed before this revision was saved".into());
+    }
+    super::project_config::validate(&project_type, &request.output_config)?;
+    if project_type == "audiobook" {
+        let config = super::project_config::parse_audiobook(&request.output_config)?;
+        super::project_config::validate_chapter_order(
+            &config,
+            request
+                .segments
+                .iter()
+                .map(|segment| segment.chapter_key.as_deref()),
+        )?;
+        super::project_config::validate_role_bindings(&config, &request.segments)?;
+        for role in &config.roles {
+            repository::require_voice_in_space(
+                &mut tx,
+                &role.voice_revision_id,
+                &request.project_id,
+            )
+            .await?;
+        }
+        if request
+            .segments
+            .iter()
+            .any(|segment| segment.target_start_ms.is_some() || segment.source_segment_id.is_some())
+        {
+            return Err("Audiobook paragraphs must not contain video source metadata".into());
+        }
+    } else if project_type == "video_dubbing" {
+        let config = super::video_config::parse(&request.output_config)?;
+        super::video_config::require_sources(
+            &mut tx,
+            &space_id,
+            Some(&request.project_id),
+            &config,
+        )
+        .await?;
+        for segment in &request.segments {
+            super::video_config::validate_timing(
+                &config,
+                segment.target_start_ms,
+                segment.target_end_ms,
+                segment.chapter_key.as_deref(),
+            )?;
+        }
+        if config.translation.is_some()
+            && request
+                .segments
+                .iter()
+                .any(|segment| segment.source_segment_id.is_none())
+        {
+            return Err(
+                "Translated video revisions require source identity for every segment".into(),
+            );
+        }
+        let active_output: serde_json::Value =
+            serde_json::from_str(&active_output).map_err(db::json_error)?;
+        super::translation::validate_saved_provenance(
+            &mut tx,
+            super::translation::SaveContext {
+                space_id: &space_id,
+                project_id: &request.project_id,
+                active_revision_id: &active_revision_id,
+                active_revision,
+                active_output_config: &active_output,
+                requested_output_config: &config,
+                segments: &request.segments,
+            },
+        )
+        .await?;
+    } else if request.segments.iter().any(|segment| {
+        segment.chapter_key.is_some()
+            || segment.target_start_ms.is_some()
+            || segment.source_segment_id.is_some()
+    }) {
+        return Err("Short dubbing must not contain chapter or video time constraints".into());
     }
     let next_revision = active_revision + 1;
     sqlx::query(
@@ -118,10 +209,17 @@ pub async fn save_speech_project_revision(
             } else {
                 uuid::Uuid::new_v4().to_string()
             };
+            let normalized = text::apply_lexicon(&text_segment, &pronunciations);
+            if normalized.chars().count() > 10_000 {
+                return Err(
+                    "Pronunciation substitutions exceed the synthesis segment limit".into(),
+                );
+            }
             sqlx::query(
                 "INSERT INTO spaces_speech_segments(id,project_revision_id,ordinal,chapter_key,speaker_key, \
-                 text,normalized_text,voice_revision_id,language,target_start_ms,target_end_ms,state, \
-                 created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,'ready',?,?)",
+                text,normalized_text,voice_revision_id,language,target_start_ms,target_end_ms, \
+                 source_segment_id,source_segment_revision,source_text,state,created_at,updated_at) \
+                 VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,'ready',?,?)",
             )
             .bind(segment_id)
             .bind(&revision_id)
@@ -129,11 +227,14 @@ pub async fn save_speech_project_revision(
             .bind(&segment.chapter_key)
             .bind(&segment.speaker_key)
             .bind(&text_segment)
-            .bind(text::normalize(&text_segment))
+            .bind(normalized)
             .bind(&segment.voice_revision_id)
             .bind(segment.language.trim())
             .bind(segment.target_start_ms)
             .bind(segment.target_end_ms)
+            .bind(&segment.source_segment_id)
+            .bind(segment.source_segment_revision.map(i64::from))
+            .bind(segment.source_text.as_deref().map(str::trim))
             .bind(now)
             .bind(now)
             .execute(&mut *tx)

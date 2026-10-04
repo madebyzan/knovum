@@ -221,7 +221,54 @@ its fixed model group after asset authorization, displays resource transfer prog
 task, and revalidates the source revision before execution. Users do not have to download models from
 Settings. Cancelling preparation cancels that transcription demand, not another task's shared install. Analysis accepts only Knovum-owned Space assets and uses bundled FFmpeg to create a 16 kHz mono PCM working track plus a compact waveform. The verified local Python ASR profile runs under shared compute admission; Rust verifies its transcript and source revision before publishing. Stage progress is mapped into the shared Task Center, and segment plus word timestamps stay on the original media timeline for citations and subtitle cues. Media bytes never enter a generative-AI provider path.
 
-`mediaKnowledge` v4 persists Transcript + timed subtitle cues + waveform as a complete local state. Subtitle cues are separated by detected speech pauses, sentence endings, or elapsed audio time; FFmpeg/libass measures glyphs and performs Unicode wrapping against the actual video frame. Summary and Chapters are optional `insights` generated only after the user explicitly invokes that action with Assistant AI enabled; they are not required for search or playback. Chapter starts are validated against real Transcript segment boundaries, so every Chapter and Transcript row can seek the canvas player precisely. Transcript and generated-insight chunks are indexed separately, and long transcripts use `@tanstack/vue-virtual` rather than mounting every segment in the WebView DOM.
+`mediaKnowledge` v5 persists a source-bound, revisioned Transcript with stable segment/unit identities, 16 kHz source sample offsets, explicit timing provenance, speaker tracks, and timed subtitle cues. Subtitle cues are separated by detected speech pauses, sentence endings, or elapsed audio time; FFmpeg/libass measures glyphs and performs Unicode wrapping against the actual video frame. Editing a transcript segment preserves the artifact identity, advances transcript and segment revisions, invalidates that segment's word timing, rebuilds subtitle cues from the current segment texts, and clears source-derived insights. Ordinary ASR requests and failed-job retries cannot replace an existing current-source transcript, including its manual edits; execution rechecks that rule before recognition and publication rejects concurrent edits. Summary and Chapters are optional `insights` generated only after the user explicitly invokes that action with Assistant AI enabled; they are not required for search or playback. Chapter starts are validated against real Transcript segment boundaries, so every Chapter and Transcript row can seek the canvas player precisely. Transcript and generated-insight chunks are indexed separately, and long transcripts use `@tanstack/vue-virtual` rather than mounting every segment in the WebView DOM.
+
+Selected alignment is an explicit enrichment action over at most eight segments and 300 seconds.
+It preserves stable word or character unit identities and may publish partial progress; a manual edit
+invalidates the edited segment's timing rather than silently retaining stale alignment. Optional
+speaker diarization runs separately on CPU for media up to two hours with user bounds from 1 through
+32 speakers. It uses an imported, verified Community-1 resource and never asks the WebView for a
+Hugging Face token.
+
+## Speech projects
+
+Speech projects publish audiobook audio, short dubbing audio or video dubbing from durable Runs.
+WAV, MP3 and M4B are supported audio outputs. Chapter boundaries and mix placement use integer sample
+positions. Audiobook Runs checkpoint each chapter's PCM and its verified input digest, measure
+loudness in a separate step, then encode the final output using that measurement. Recovery verifies
+checkpoint hashes and sample counts before reuse. Temporary normalization files belong to one
+attempt; chapter and measurement checkpoints are cleared after final publication.
+
+Video dubbing can start a separate durable source-separation Run against the revision-pinned video.
+Rust decodes the audio track to a fixed 44.1 kHz stereo PCM timeline, runs the pinned Spleeter
+two-stem CPU profile, and publishes an accompaniment candidate as a managed Space asset. The editor
+labels this as vocals/accompaniment separation and requires playback plus an explicit accept/reject
+decision. Only an accepted candidate can enter the video background configuration. The product does
+not automatically claim that spoken dialogue was removed or that environmental sound was preserved.
+Space packages preserve the completed Run identity, candidate review state, frozen source identity,
+and both referenced source/background assets so an accepted background remains verifiable after
+export and restore.
+
+A voice design or clone is a durable single-step Run. Rust freezes an external reference into a
+hash-bound managed input before scheduling, recovers interrupted attempts through the shared Run
+lease policy, and publishes the normalized reference plus 48 kHz audition as one candidate record.
+Audition completion, rejection, and the selected profile/revision identity are persisted. Creating a
+reusable voice requires an explicit authorization record and a completed audition; it copies the
+candidate's verified 5–30 second 16 kHz mono reference into an immutable voice revision. Space
+voice profiles may be archived without losing candidate history. Physical deletion is allowed only
+after no selected candidate, speech segment, or audiobook role still references any profile revision;
+candidate provenance is retained as a real Space-local reference rather than rewritten as a tombstone.
+Space packages preserve candidate decisions, source identity, Run identity, and both candidate assets.
+
+Cloning references must contain at least 60% VAD-detected speech. If a confirmed reference transcript
+is supplied, its normalized character edit distance from recognition must not exceed 20%; comparison
+is bounded to 3,000 characters. Audio-only references remain supported, and inferred ASR text is
+never saved as a confirmed cloning condition.
+
+Video dialogue may be stretched only from 0.9 through 1.1 to fit its assigned interval. A larger
+mismatch becomes `needs_edit`, and overlapping dialogue is represented by explicit lanes. The editor
+offers source-voice mute or a separately imported background track. Knovum does not claim to retain
+environmental sound because no legally distributable, qualified dialogue-separation model is selected.
 
 ## Sensitive information
 
@@ -459,7 +506,7 @@ The current Knowledge contract, SQLx migration policy, Provenance/History/Patch 
 
 ## Pre-release database reset boundary
 
-Spaces has one current `0001_spaces.sql` baseline. SQLx rejects obsolete migration versions or checksums before applying schema changes. The startup error identifies `spaces-database-obsolete`; the application does not delete, rewrite or migrate that database. Back up `spaces.db` (and its WAL/SHM files while closed) before explicitly resetting development data. Package version 5 and media-knowledge schema version 4 describe different contracts and do not share the database baseline version.
+Spaces has one current `0001_spaces.sql` baseline. SQLx rejects obsolete migration versions or checksums before applying schema changes. The startup error identifies `spaces-database-obsolete`; the application does not delete, rewrite or migrate that database. Back up `spaces.db` (and its WAL/SHM files while closed) before explicitly resetting development data. Package version 5 and media-knowledge schema version 5 describe different contracts and do not share the database baseline version.
 
 Content layout JSON uses `sizingMode` (`content` or `frame`). The baseline requires this field, so beta databases containing the earlier field name follow the same explicit reset boundary.
 

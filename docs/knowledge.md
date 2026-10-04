@@ -111,7 +111,7 @@ There are no duplicate resource tables: the bounded document manifest belongs to
 
 Semantic Node `knowledgeRevision` is content-derived authority rather than caller-owned metadata. Vue computes the same `node1:` revision for immediate UX, while Rust recomputes it from the canonical semantic projection and rejects a mismatched declared revision at the durable boundary. Local image resource paths are excluded from Note revision identity; semantic non-image `src` values remain included. Canonical object-key ordering is stable across TypeScript and Rust.
 
-Derived Knowledge is generated from Node content in Rust. Durable supplemental passages have bounded UTF-8 size and explicit origin revision domains. Canonical `node:<id>` chunks remain bounded metadata records.
+Derived Knowledge is generated from Node content in Rust. Durable supplemental passages have bounded UTF-8 size and explicit origin revision domains. Canonical `node:<id>` chunks remain bounded metadata records. Transcript passage metadata includes `transcriptId`, `transcriptRevision`, `segmentId` and `segmentRevision`; the ordinal index only records presentation order. Units remain in the owning transcript instead of being copied into each search passage.
 
 ## Historical grounded evidence
 
@@ -148,3 +148,18 @@ SQLite and LanceDB do not share a distributed transaction. A failed vector upser
 ## Module boundary
 
 Knowledge State does not introduce a separate compatibility layer or speculative ANN subsystem. Domain truth stays in revision, passage, citation, asset and package boundaries rather than renderer fallback logic. MCP writes enter long-term Knowledge only through the same validated atomic KnowledgeChangeSet use case as native product actions.
+
+### Retired semantic generation reclamation
+
+A replacement generation becomes active only after its current chunks are complete. Its
+retired predecessors become durable cleanup work in the same generation rows. After
+activation, after Space recovery and hourly, the retrieval owner serializes its maintenance
+without holding a Space write transaction across physical compaction. Cleanup runs outside
+the readiness and generation-publication paths; failure retains pending work and cannot
+turn a committed activation into a failed rebuild. Index publication rejects retired generations. Cleanup deletes
+only retired generation vectors and markers, then
+materializes deletions through LanceDB compaction. Interrupted work remains retryable.
+An active replacement is required, so incomplete rebuilds never discard their predecessor.
+LanceDB's seven-day version retention protects in-flight snapshots; cleanup never forces
+unverified-file deletion. Once that window passes, version pruning releases old derived
+files and the retired generation records are removed. Canonical chunks are never deleted.

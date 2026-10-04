@@ -32,6 +32,7 @@ function fixture(context) {
     new URL("../write-python-runtime-manifest.mjs", import.meta.url),
     join(tools, "write-python-runtime-manifest.mjs"),
   );
+  copyFileSync(new URL("../runtime-files.mjs", import.meta.url), join(tools, "runtime-files.mjs"));
   writeFileSync(join(python, "uv.lock"), "locked dependency fixture\n");
   const executable = platform === "windows" ? join(runtime, "python.exe") : join(runtime, "bin", "python3");
   mkdirSync(join(runtime, "bin"), { recursive: true });

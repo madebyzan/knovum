@@ -63,17 +63,54 @@ Direct dependencies must have a current caller or satisfy a documented peer/runt
 
 ## Private local inference
 
-The desktop package owns a controlled CPython 3.11.13 runtime and a uv-locked set of Python
+The desktop package owns a controlled CPython 3.11.17 runtime and a uv-locked set of Python
 dependencies. Rust invokes that interpreter over private stdio with one selected capability per
 session; the WebView has no Python launch permission. Sentence Transformers and PyTorch own the
 Qwen embedding model internals. ONNX Runtime Python owns U²-Net inference; Rust `image` still
 owns pixel conversion and final output. Candle and Tract are removed when their last respective
 callers move. Python dependencies are imported only for the selected capability and never
 installed or downloaded on the user machine.
+The controlled producer uses the existing `uv==0.12.23` lock workflow and pinned
+python-build-standalone `20261003` CPython 3.11.17 target artifacts recorded with their digests in
+`python/runtime-source.json`; it does not copy a development virtual environment or infer a
+runtime from uv's managed catalog. The temporary runtime-build group pins `setuptools==83.0.0`,
+`wheel==0.48.0`, and `setuptools-scm==10.3.4` for required source builds, including VoxCPM, with
+build isolation disabled. `python/native-source-evidence.json` pins the sherpa-onnx, eSpeak NG,
+and piper source archives collected by the producer; this evidence does not claim that the
+unversioned 2023 Kokoro data archive corresponds to an approved eSpeak source release.
 The `python/uv.lock` quality group pins Ruff, Mypy and pytest separately from the packaged
 runtime dependency set. `pnpm check:python` checks worker source, formatting, types and focused
 boundary tests without installing model libraries; native capability acceptance still runs against
 the complete target runtime.
+
+The security-reviewed runtime baseline pins [`torch==2.13.0`](https://pypi.org/project/torch/2.13.0/),
+`torchaudio==2.11.0`, and
+[`torchcodec==0.12.0`](https://pypi.org/project/torchcodec/0.12.0/). PyTorch 2.13.0 is the first
+fixed release for [`GHSA-rrmf-rvhw-rf47`](https://github.com/advisories/GHSA-rrmf-rvhw-rf47)
+and publishes CPython 3.11 wheels for both supported targets. The macOS wheels for PyTorch 2.13
+and TorchCodec 0.12 require macOS 14 or later, so that is the minimum native-inference system until
+a separately qualified secure wheel set changes it. TorchAudio 2.11 is its
+[stable-ABI release](https://github.com/pytorch/audio/blob/main/docs/source/installation.rst) and
+officially supports PyTorch 2.11 and later; TorchCodec 0.12 uses the corresponding stable ABI and
+publishes CPython 3.11 macOS arm64 and Windows x64 wheels. The macOS ASR path pins
+[`mlx==0.29.4`](https://pypi.org/project/mlx/0.29.4/), the first release that fixes its two unsafe
+deserialization advisories. Contract generation pins
+[`datamodel-code-generator==0.64.0`](https://pypi.org/project/datamodel-code-generator/0.64.0/),
+the first release that fixes the complete set of audited schema and template injection,
+local-file disclosure, and SSRF issues. Do not lower these versions or split the runtime into
+security-dependent environments.
+
+The audit is still blocked by VoxCPM's official `datasets>=3,<4` requirement. The
+[pinned VoxCPM source](https://github.com/OpenBMB/VoxCPM/blob/19b6bf7590025418821a86dcb817504e0ad7e5df/pyproject.toml)
+and its current upstream branch retain that bound, while
+[`GHSA-379c-qx7v-6h59`](https://github.com/advisories/GHSA-379c-qx7v-6h59) is fixed only in
+`datasets==5.0.1`. VoxCPM currently imports Datasets only from its
+[training module](https://github.com/OpenBMB/VoxCPM/blob/19b6bf7590025418821a86dcb817504e0ad7e5df/src/voxcpm/training/data.py),
+but the published package metadata still makes it a mandatory distribution requirement. Knovum does
+not delete that requirement, override upstream metadata, fork the package, or suppress the advisory
+to make the audit appear clean. Signed distribution remains blocked until VoxCPM publishes a
+compatible dependency range or Knovum replaces VoxCPM through a reviewed capability decision and
+native acceptance run.
 
 Native wheel availability, model license and actual execution are per-target release gates. A
 locked Python version alone does not establish native execution. The approved release targets
@@ -83,15 +120,38 @@ runtime, package, and update manifests reject those targets; do not substitute a
 emulation, or the removed Rust engines.
 
 WhisperX 3.8.6 requires the older Torch 2.8 line, which conflicts with the selected secure
-runtime baseline. Forced alignment uses the Apache-2.0 Qwen3 Forced Aligner through the
-Transformers API once its verified model resource and product caller are in place. It is not an
-ASR fallback. Pyannote Community-1 requires gated model access; no worker credential or
-unauthorized mirrored weight is bundled. The plan's Demucs htdemucs code license does not
-grant commercial use of its official pretrained weights, so two-track video background
-separation remains a release blocker until a licensed, qualified model is selected.
-The Kokoro package includes eSpeak NG data; its redistribution terms require explicit review
-against [upstream eSpeak NG](https://github.com/espeak-ng/espeak-ng) and
-[sherpa-onnx's recorded concern](https://github.com/k2-fsa/sherpa-onnx/issues/3731) before a signed release.
+runtime baseline. Forced alignment uses the Apache-2.0 Qwen3 Forced Aligner snapshot pinned at
+`c7cbfc2048c462b0d63a45797104fc9db3ad62b7` through the Transformers 5.13.1 API. Its complete
+verified manifest is prepared only by a selected-segment enrichment job and it is never an ASR
+fallback. Pyannote Community-1 requires individual gated model access. Knovum accepts a local
+user-authorized import of exactly four files from revision
+`3533c8cf8e369892e6b79ff1bf80f7b0286a54ee`, verifies their manifest, and supplies its own fixed
+pipeline configuration; no worker credential, external YAML or unauthorized mirror is used.
+The plan's Demucs htdemucs code license does not grant commercial use of its official pretrained
+weights, so it is not the production baseline. Knovum instead selects sherpa-onnx 1.13.8 with the
+two-stem Spleeter FP16 ONNX snapshot pinned at
+`93ba771920ade509f8cbd6825b1a90856c797e08`. The [Spleeter project](https://github.com/deezer/spleeter)
+and its [JOSS paper](https://joss.theoj.org/papers/10.21105/joss.02154) state that the code and
+pretrained models are MIT licensed. This is a vocals/accompaniment model, so every derived background
+requires user audition and explicit acceptance. Release qualification must measure spoken-dialogue
+residual and background-sound loss on the fixed video corpus; implementation does not imply that
+quality gate has passed.
+
+Kokoro remains blocked for signed distribution. Its model package carries GPL eSpeak NG data, while
+the locked `sherpa-onnx==1.13.8` native Python wheel enables TTS by compiling GPL eSpeak NG with MIT
+piper-phonemize despite the sherpa source package's Apache-2.0 declaration. Upstream tracks this
+conflict in [issue 3731](https://github.com/k2-fsa/sherpa-onnx/issues/3731). Release materials must
+bind the exact platform wheels to the sherpa source, build information, pinned eSpeak and piper
+sources, their license texts, and the exact source for the distributed `espeak-ng-data`. The current
+2023 data archive has no embedded source/version notice and is not proven to correspond to the 2026
+eSpeak source used by sherpa 1.13.8. Model, voice, lexicon, cppjieba dictionary and Chinese FST
+provenance/notices also remain incomplete. Tooling must keep this review blocked until a maintainer
+records an explicit scoped legal decision; it must never infer approval from populated hashes.
+VoxCPM2 code and the pinned OpenBMB model revision both declare Apache-2.0, so they do not inherit
+the Kokoro/eSpeak release blocker. The model is an on-demand 4,960,722,408-byte resource rather
+than a packaged runtime payload. Release acceptance must prove the exact snapshot on MPS macOS
+arm64 and CPU Windows x64 and must include a disk-capacity failure path; it must not enable
+automatic device selection, optimization, denoising, Hub downloads or a synthesis fallback.
 
 If a future feature needs Shell, WebSocket, updater, notifications, process control, custom window positioning or persisted external file scopes, add the corresponding official Tauri plugin in the same change that defines its capability and product behavior.
 
@@ -125,3 +185,23 @@ Knovum is an unpublished application crate (`publish = false`), not a public Rus
 The Tauri Rust upgrade selects `tauri-utils 2.10.1` and `urlpattern 0.6.0`, removing `unic-char-range`, `unic-common`, `unic-char-property`, `unic-ucd-version` and `unic-ucd-ident` through a published upstream migration. The unrelated `unic-langid` family remains in use. Do not classify crates by a shared name prefix when checking a specific advisory's removal.
 
 Remaining maintenance advisories are tracked in [issue #22](https://github.com/madebyzan/knovum/issues/22). A maintenance notice is not itself proof of an exploitable vulnerability, and a maintained replacement is not automatically behavior-compatible. Prefer a tested parent-package migration. Any temporary acceptance must identify the exact advisory, dependency version/path, exposure review, approving release owner, review date and removal condition. It is not implied by opening an issue or approving unrelated code. Do not add broad suppression, rename-only replacement crates or unreviewed native rendering changes to make an audit green.
+
+The 2026-10-04 cargo-deny 0.20.2 check still rejects six maintenance advisories:
+`bincode 1.3.3`, `paste 1.0.15`, `proc-macro-error 1.0.4`, `rustybuzz 0.20.1`,
+`ttf-parser 0.25.1`, and `yaml-rust 0.4.5`. It also rejects the unapproved
+`bzip2-1.0.6` license of `libbz2-rs-sys 0.2.5`, reached through `bzip2 0.6.1`.
+That decoder has a real caller in the pinned Kokoro archive installer. The license
+allowlist remains unchanged pending the required scoped release/legal review.
+Local compile and regression success do not close either audit gate.
+
+### Python installed-distribution license release gate
+
+`python/dependency-license-review.json` starts with `reviewStatus: required`. Production
+packaging refuses it until an accountable review approves the current `uv.lock` SHA-256
+and each target's exact `build-evidence/dependency-evidence.json` SHA-256. Target records
+contain `inventorySha256`, `reviewer`, `reviewedAt` and a durable HTTPS `evidenceLocation`.
+The evidence must cover the interpreter and its contained native libraries as well as
+every actually installed distribution, its notices, native code
+and corresponding-source obligations; package metadata alone is not approval. A changed
+lock or conveyed inventory invalidates the review. This gate complements the separately
+owned Kokoro and native-source gates; QA artifacts do not represent license approval.

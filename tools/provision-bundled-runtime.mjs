@@ -1,55 +1,91 @@
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { createReadStream, createWriteStream, existsSync, mkdirSync, renameSync, rmSync } from "node:fs";
+import {
+  createReadStream,
+  createWriteStream,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  renameSync,
+  rmSync,
+} from "node:fs";
 import { dirname, join, resolve as resolvePath } from "node:path";
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import { fileURLToPath } from "node:url";
+import { parseArgs } from "node:util";
 
-import { safeRelativePath, validatePythonRuntime } from "./runtime-manifest.mjs";
+import { safeRelativePath } from "./runtime-files.mjs";
+import { validatePythonRuntime } from "./runtime-manifest.mjs";
 
 const repository = resolvePath(dirname(fileURLToPath(import.meta.url)), "..");
-const args = process.argv.slice(2);
-const value = (name) => {
-  const index = args.indexOf(name);
-  return index >= 0 ? args[index + 1] : undefined;
-};
-const target = value("--target") ?? hostTarget();
+const { values } = parseArgs({ options: { target: { type: "string" } } });
+const target = values.target ?? hostTarget();
 const supportedTargets = new Set(["macos-arm64", "windows-x64"]);
 if (!supportedTargets.has(target)) throw new Error(`Unsupported bundled runtime target: ${target}`);
 const envKey = target.toUpperCase().replaceAll("-", "_");
-const url = value("--url") ?? process.env[`KNOVUM_BUNDLED_RUNTIME_${envKey}_URL`];
-const expectedSha256 = value("--sha256") ?? process.env[`KNOVUM_BUNDLED_RUNTIME_${envKey}_SHA256`];
-if (!url || !/^[a-f0-9]{64}$/u.test(expectedSha256 ?? "")) {
-  throw new Error(
-    `Missing controlled runtime source for ${target}. Configure KNOVUM_BUNDLED_RUNTIME_${envKey}_URL and _SHA256.`,
-  );
-}
+const sources = ["FFMPEG", "PYTHON_RUNTIME"].map((kind) => {
+  const url = process.env[`KNOVUM_${kind}_${envKey}_URL`];
+  const expectedHash = process.env[`KNOVUM_${kind}_${envKey}_SHA256`];
+  if (!url?.startsWith("https://") || !/^[a-f0-9]{64}$/u.test(expectedHash ?? "")) {
+    throw new Error(`Missing controlled ${kind} source for ${target}; configure its HTTPS URL and SHA256.`);
+  }
+  return { kind, url, expectedHash };
+});
 
 const runtimeRoot = join(repository, "src-tauri", "resources", "bundled-runtime");
-const scratch = join(repository, ".bundled-runtime-stage");
+const scratch = mkdtempSync(join(repository, ".bundled-runtime-stage-"));
 const destination = join(runtimeRoot, target);
-rmSync(scratch, { recursive: true, force: true });
-mkdirSync(scratch, { recursive: true });
+let preserveScratch = false;
 try {
   const headers = { "User-Agent": "Knovum runtime provisioner" };
   if (process.env.KNOVUM_BUNDLED_RUNTIME_AUTHORIZATION) {
     headers.Authorization = process.env.KNOVUM_BUNDLED_RUNTIME_AUTHORIZATION;
   }
-  const archive = await download(url, expectedSha256, join(scratch, `${target}.tar`), headers);
-  preflightArchive(archive);
   const stagedRuntime = join(scratch, "runtime");
   mkdirSync(stagedRuntime);
-  execFileSync("tar", ["-xf", archive, "-C", stagedRuntime], { stdio: "inherit" });
+  const archives = await Promise.all(
+    sources.map((source) =>
+      download(source.url, source.expectedHash, join(scratch, `${source.kind}.tar`), headers),
+    ),
+  );
+  for (const [index, source] of sources.entries()) {
+    const archive = archives[index];
+    preflightArchive(archive);
+    const directory =
+      source.kind === "PYTHON_RUNTIME" ? join(stagedRuntime, "python-runtime") : stagedRuntime;
+    if (source.kind === "PYTHON_RUNTIME") {
+      if (existsSync(directory)) throw new Error("FFmpeg archive must not contain a Python runtime");
+      mkdirSync(directory);
+    }
+    execFileSync("tar", ["-xf", archive, "-C", directory], { stdio: "inherit" });
+  }
   validateRuntime(stagedRuntime);
-  rmSync(destination, { recursive: true, force: true });
-  renameSync(stagedRuntime, destination);
+  mkdirSync(runtimeRoot, { recursive: true });
+  const previous = join(scratch, "previous-runtime");
+  if (existsSync(destination)) renameSync(destination, previous);
+  try {
+    renameSync(stagedRuntime, destination);
+  } catch (error) {
+    if (existsSync(previous)) {
+      try {
+        renameSync(previous, destination);
+      } catch (restoreError) {
+        preserveScratch = true;
+        throw new AggregateError(
+          [error, restoreError],
+          `Runtime activation and restoration failed; previous runtime preserved at ${previous}`,
+        );
+      }
+    }
+    throw error;
+  }
   console.log(`Provisioned bundled runtime for ${target}`);
 } catch (error) {
   console.error(error instanceof Error ? error.message : String(error));
   process.exitCode = 1;
 } finally {
-  rmSync(scratch, { recursive: true, force: true });
+  if (!preserveScratch) rmSync(scratch, { recursive: true, force: true });
 }
 
 function validateRuntime(directory) {
@@ -79,6 +115,7 @@ async function download(
 ) {
   const response = await fetch(downloadUrl, { headers });
   if (!response.ok || !response.body) throw new Error(`Runtime download failed: HTTP ${response.status}`);
+  if (!response.url.startsWith("https://")) throw new Error("Runtime redirect must retain HTTPS");
   await pipeline(Readable.fromWeb(response.body), createWriteStream(file));
   if ((await sha256(file)) !== expectedHash) {
     throw new Error(`Runtime SHA-256 mismatch: ${file}`);

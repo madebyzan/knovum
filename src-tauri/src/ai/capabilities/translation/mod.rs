@@ -13,3 +13,7 @@ pub(crate) fn input(text: String, target_language: String) -> AppResult<TaskInpu
         instruction: String::new(), text, max_tokens: None, image: None,
     })
 }
+
+pub(crate) fn validate_target(target_language: &str) -> AppResult<()> {
+    protocol::language_name(target_language).map(|_| ())
+}

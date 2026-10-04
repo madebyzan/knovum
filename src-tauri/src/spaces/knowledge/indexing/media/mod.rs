@@ -14,6 +14,8 @@ struct MediaKnowledge {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Transcript {
+    id: String,
+    revision: u32,
     duration_ms: i64,
     segments: Vec<Segment>,
 }
@@ -21,6 +23,8 @@ struct Transcript {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Segment {
+    id: String,
+    revision: u32,
     start_ms: i64,
     end_ms: i64,
     text: String,
@@ -77,7 +81,14 @@ pub(crate) fn chunks(data: &Value) -> Result<Vec<KnowledgeChunkSeed>, String> {
             &segment.text,
             &knowledge.source_revision,
             json!({ "kind": "media", "startMs": segment.start_ms, "endMs": segment.end_ms }),
-            json!({ "role": "transcript", "index": index }),
+            json!({
+                "role": "transcript",
+                "index": index,
+                "transcriptId": knowledge.transcript.id,
+                "transcriptRevision": knowledge.transcript.revision,
+                "segmentId": segment.id,
+                "segmentRevision": segment.revision,
+            }),
         );
     }
     Ok(seeds)

@@ -1,0 +1,96 @@
+name: Controlled Python runtime
+
+on:
+  workflow_dispatch:
+    inputs:
+      production:
+        description: Sign the runtime for production (requires configured native certificates)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  id-token: write
+  attestations: write
+
+jobs:
+  runtime:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-15
+            target: macos-arm64
+            signing: adhoc
+          - os: windows-2025
+            target: windows-x64
+            signing: unsigned
+    runs-on: ${{ matrix.os }}
+    environment: ${{ inputs.production && 'release-build' || 'runtime-qa' }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          version: "0.12.23"
+      - name: Audit locked Python dependency graph
+        run: uv audit --project python --locked --output-format json
+      - name: Import macOS signing certificate
+        if: inputs.production && runner.os == 'macOS'
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        shell: bash
+        run: |
+          node --input-type=module -e 'import {writeFileSync} from "node:fs"; if(!process.env.APPLE_CERTIFICATE) throw Error("Missing APPLE_CERTIFICATE"); writeFileSync(`${process.env.RUNNER_TEMP}/runtime-signing.p12`, Buffer.from(process.env.APPLE_CERTIFICATE,"base64"), {mode:0o600});'
+          security create-keychain -p "$APPLE_CERTIFICATE_PASSWORD" "$RUNNER_TEMP/runtime-signing.keychain-db"
+          security set-keychain-settings -lut 21600 "$RUNNER_TEMP/runtime-signing.keychain-db"
+          security unlock-keychain -p "$APPLE_CERTIFICATE_PASSWORD" "$RUNNER_TEMP/runtime-signing.keychain-db"
+          security import "$RUNNER_TEMP/runtime-signing.p12" -P "$APPLE_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$RUNNER_TEMP/runtime-signing.keychain-db"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$APPLE_CERTIFICATE_PASSWORD" "$RUNNER_TEMP/runtime-signing.keychain-db"
+          security list-keychains -d user -s "$RUNNER_TEMP/runtime-signing.keychain-db"
+      - name: Import Windows signing certificate
+        if: inputs.production && runner.os == 'Windows'
+        env:
+          WINDOWS_CERTIFICATE: ${{ secrets.KNOVUM_WINDOWS_CERTIFICATE }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.KNOVUM_WINDOWS_CERTIFICATE_PASSWORD }}
+        shell: pwsh
+        run: |
+          if (!$env:WINDOWS_CERTIFICATE) { throw 'Missing KNOVUM_WINDOWS_CERTIFICATE' }
+          $certificatePath = Join-Path $env:RUNNER_TEMP 'runtime-signing.pfx'
+          [IO.File]::WriteAllBytes($certificatePath, [Convert]::FromBase64String($env:WINDOWS_CERTIFICATE))
+          $password = ConvertTo-SecureString $env:WINDOWS_CERTIFICATE_PASSWORD -AsPlainText -Force
+          $certificates = @(Import-PfxCertificate -FilePath $certificatePath -Password $password -CertStoreLocation Cert:\CurrentUser\My)
+          $signers = @($certificates | Where-Object { $_.HasPrivateKey })
+          if ($signers.Count -ne 1) { throw 'Expected exactly one private signing certificate' }
+          "KNOVUM_WINDOWS_CERTIFICATE_THUMBPRINT=$($signers[0].Thumbprint)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+      - name: Build locked runtime and verify relocation
+        env:
+          APPLE_SIGNING_IDENTITY: ${{ vars.APPLE_SIGNING_IDENTITY }}
+          KNOVUM_WINDOWS_SIGNTOOL: ${{ vars.KNOVUM_WINDOWS_SIGNTOOL }}
+          KNOVUM_WINDOWS_TIMESTAMP_URL: ${{ vars.KNOVUM_WINDOWS_TIMESTAMP_URL }}
+        run: npm run runtime:build -- --output runtime-artifacts --signing ${{ inputs.production && 'production' || matrix.signing }}
+      - name: Attest produced archive
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-path: runtime-artifacts/python-runtime-${{ matrix.target }}.tar.gz
+      - uses: actions/upload-artifact@v6
+        with:
+          name: python-runtime-${{ matrix.target }}
+          path: runtime-artifacts
+          if-no-files-found: error
+          retention-days: 30
+      - name: Remove macOS signing material
+        if: always() && inputs.production && runner.os == 'macOS'
+        shell: bash
+        run: |
+          security delete-keychain "$RUNNER_TEMP/runtime-signing.keychain-db"
+          rm -f "$RUNNER_TEMP/runtime-signing.p12"
+      - name: Remove Windows signing material
+        if: always() && inputs.production && runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          if ($env:KNOVUM_WINDOWS_CERTIFICATE_THUMBPRINT) { Remove-Item "Cert:\CurrentUser\My\$env:KNOVUM_WINDOWS_CERTIFICATE_THUMBPRINT" }
+          Remove-Item -ErrorAction SilentlyContinue (Join-Path $env:RUNNER_TEMP 'runtime-signing.pfx')

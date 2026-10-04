@@ -7,6 +7,8 @@ pub fn plugin() -> TauriPlugin<Wry> {
             crate::local_resources::preparation::commands::prepare_resources,
             crate::local_resources::preparation::commands::cancel_resource_preparation,
             crate::local_resources::preparation::commands::list_resource_preparations,
+            crate::local_resources::models::diarization::commands::import_diarization_model,
+            crate::local_resources::models::diarization::commands::remove_diarization_model,
         ])
         .build()
 }

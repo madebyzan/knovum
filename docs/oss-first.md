@@ -99,6 +99,48 @@ Why custom code is necessary (custom only):
 
 Feature engines remain deliberately deferred until their business requirements are concrete.
 
+## Voice design and cloning reviewed 2026-10-03
+
+- Capability / requirements: local voice design and authorized voice cloning must produce 48 kHz
+  speech on Apple Silicon macOS and x64 Windows, keep one confirmed reference immutable across
+  audiobook segments, and reject changed, mostly silent or oversized reference audio.
+- Selected implementation: official OpenBMB `voxcpm` 2.0.3 is pinned to source commit
+  `19b6bf7590025418821a86dcb817504e0ad7e5df` (`Apache-2.0`). The `openbmb/VoxCPM2` model is
+  pinned to revision `32279effe8c19989596f05d353d1447f51d9e915` (`Apache-2.0`); its seven runtime
+  files total 4,960,722,408 bytes and are downloaded on demand with a fixed size and SHA-256 for
+  every file. The worker imports `VoxCPM` directly and loads only that verified local directory.
+- Device policy: macOS arm64 selects MPS and Windows x64 selects CPU. Both use
+  `load_denoiser=False` and `optimize=False`; unsupported targets or devices fail without an
+  alternate engine. Model preparation never asks Hugging Face code to download resources.
+- Existing Kokoro remains the preset-voice engine. It cannot meet voice design, isolated cloning
+  or exact-transcript continuation. A cloud TTS provider would violate the local-first execution
+  requirement, and a custom PyTorch model wrapper would duplicate the official implementation.
+- Custom code is limited to Knovum policy: immutable reference digest verification, mono PCM16
+  16 kHz and 5–30 second bounds, a Silero speech ratio of at least 50%, exact-transcript routing,
+  bounded artifact publication and cancellation through the existing worker boundary. Voice
+  authorization and confirmation remain product-owned operations before this runtime is called.
+
+## Transcript forced alignment reviewed 2026-10-03
+
+- Capability / requirements: align user-selected transcript segments to the already prepared
+  16 kHz mono media timeline, preserve Unicode scalar ranges, and publish only through the existing
+  transcript revision and media-knowledge CAS boundaries.
+- Selected implementation: the official Apache-2.0 `Qwen/Qwen3-ForcedAligner-0.6B` snapshot is
+  pinned to commit `c7cbfc2048c462b0d63a45797104fc9db3ad62b7`. Its eight runtime files total
+  1,840,013,484 bytes; each has a fixed size and SHA-256 in the Rust resource catalog. The existing
+  exact-pinned Transformers 5.13.1 runtime provides `Qwen3ASRForTokenClassification`,
+  `prepare_forced_aligner_inputs`, and `decode_forced_alignment`, so no `qwen-asr` package or
+  custom alignment model implementation is added.
+- Device and task policy: both qualified release targets run this model on CPU. One existing
+  enrichment job owns 1–8 selected segments with at most five minutes of combined audio. Unsupported
+  languages, devices, targets, stale transcript revisions, and unmatched text remain explicit; ASR
+  is never rerun as a fallback.
+- WhisperX was rejected because its Torch 2.8 requirement conflicts with the packaged runtime.
+  CTC aligners would require a second language-dependent model catalog and do not satisfy the
+  selected multilingual model contract. Knovum custom code is limited to verified resource
+  preparation, durable job payload/CAS publication, and mapping official word results back to
+  source-owned scalar ranges without fabricating timestamps.
+
 ## Cross-application dictation reviewed 2026-10-03
 
 - Capability / requirements: a Rust-owned press-to-talk shortcut must remain available while the

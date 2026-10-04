@@ -13,6 +13,7 @@ struct InferenceWireSchemas {
     health_result: crate::ai::contracts::runtime::RuntimeHealthResult,
     cancel_params: crate::ai::contracts::runtime::RuntimeCancelParams,
     cancel_result: crate::ai::contracts::runtime::RuntimeCancelResult,
+    ack_chunk_params: crate::ai::contracts::runtime::RuntimeAckChunkParams,
     shutdown_params: crate::ai::contracts::runtime::RuntimeShutdownParams,
     shutdown_result: crate::ai::contracts::runtime::RuntimeShutdownResult,
     embedding_params: crate::ai::contracts::embedding_wire::EmbeddingEncodeParams,
@@ -21,6 +22,7 @@ struct InferenceWireSchemas {
     image_segment_result: crate::ai::contracts::image_wire::ImageSegmentResult,
     speech_transcribe_params: crate::ai::contracts::speech_wire::SpeechTranscribeParams,
     speech_transcribe_result: crate::ai::contracts::speech_wire::SpeechTranscribeResult,
+    speech_transcript_artifact: crate::ai::contracts::speech_wire::SpeechTranscriptArtifact,
     speech_progress_event: crate::ai::contracts::speech_wire::SpeechProgressEvent,
     speech_progress_event_type: crate::ai::contracts::speech_wire::SpeechProgressEventType,
     speech_align_params: crate::ai::contracts::speech_wire::SpeechAlignParams,
@@ -28,7 +30,12 @@ struct InferenceWireSchemas {
     speech_diarize_params: crate::ai::contracts::speech_wire::SpeechDiarizeParams,
     speech_diarize_result: crate::ai::contracts::speech_wire::SpeechDiarizeResult,
     speech_synthesize_params: crate::ai::contracts::speech_wire::SpeechSynthesizeParams,
+    speech_synthesis_chunk_event: crate::ai::contracts::speech_wire::SpeechSynthesisChunkEvent,
+    speech_synthesis_chunk_granularity:
+        crate::ai::contracts::speech_wire::SpeechSynthesisChunkGranularity,
     speech_synthesize_result: crate::ai::contracts::speech_wire::SpeechSynthesizeResult,
+    speech_separate_params: crate::ai::contracts::speech_wire::SpeechSeparateParams,
+    speech_separate_result: crate::ai::contracts::speech_wire::SpeechSeparateResult,
 }
 
 mod types;

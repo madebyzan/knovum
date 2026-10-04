@@ -48,6 +48,24 @@ pub struct SynthesizedAudioFileReference {
 }
 
 #[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct SpeechSynthesisChunkEvent {
+    pub request_id: String,
+    pub attempt_epoch: u64,
+    pub seq: u64,
+    pub granularity: SpeechSynthesisChunkGranularity,
+    pub chunk_ref: SynthesizedAudioFileReference,
+    pub sample_count: u64,
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, JsonSchema, PartialEq, Eq, Serialize, ts_rs::TS)]
+#[serde(rename_all = "snake_case")]
+pub enum SpeechSynthesisChunkGranularity {
+    ModelChunk,
+    Sentence,
+}
+
+#[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
 #[serde(rename_all = "snake_case")]
 pub enum LanguagePolicy {
     Detect,
@@ -134,6 +152,7 @@ pub struct SpeechTranscribeResult {
 pub struct SpeechTranscriptArtifact {
     pub language: String,
     pub duration_ms: u64,
+    pub speech_duration_ms: u64,
     pub segments: Vec<SpeechTranscriptSegment>,
 }
 
@@ -248,6 +267,7 @@ pub struct VoiceRevisionReference {
 #[serde(rename_all = "snake_case")]
 pub enum SpeechSynthesisEngine {
     Kokoro,
+    VoxCpm2,
 }
 
 #[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
@@ -277,6 +297,29 @@ pub struct SpeechSynthesizeResult {
     pub request_id: String,
     pub attempt_epoch: u64,
     pub model_spec_id: String,
-    pub audio_ref: SynthesizedAudioFileReference,
+    pub byte_length: u64,
+    pub sha256: String,
+    pub sample_rate: u32,
+    pub channels: u16,
+    pub sample_format: String,
+    pub sample_count: u64,
+}
+
+#[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct SpeechSeparateParams {
+    #[serde(flatten)]
+    pub identity: InferenceRequestIdentity,
+    pub audio_ref: AudioFileReference,
+}
+
+#[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct SpeechSeparateResult {
+    pub request_id: String,
+    pub attempt_epoch: u64,
+    pub model_spec_id: String,
+    pub vocals_ref: SynthesizedAudioFileReference,
+    pub background_ref: SynthesizedAudioFileReference,
     pub sample_count: u64,
 }

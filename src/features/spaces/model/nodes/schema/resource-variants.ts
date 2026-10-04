@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { spaceMediaAnalysisSchema } from "../../../media/schema/analysis";
-import { spaceMediaKnowledgeSchema } from "../../../media/schema/knowledge";
+import { spaceMediaKnowledgeSchema, type SpaceMediaKnowledge } from "../../../media/schema/knowledge";
 import { spaceMediaOriginSchema } from "../../../media/schema/origin";
 import { spaceVisualKnowledgeSchema } from "../../../media/schema/visual-knowledge";
 import { baseSpaceNodeFields } from "./base-fields";
@@ -81,6 +81,19 @@ const mediaFields = {
   mediaKnowledge: spaceMediaKnowledgeSchema.optional(),
 };
 
+function validateMediaSource(
+  node: { sourceRevision?: string | undefined; mediaKnowledge?: SpaceMediaKnowledge | undefined },
+  context: z.RefinementCtx,
+) {
+  if (node.mediaKnowledge && node.mediaKnowledge.sourceRevision !== node.sourceRevision) {
+    context.addIssue({
+      code: "custom",
+      path: ["mediaKnowledge", "sourceRevision"],
+      message: "Media knowledge source revision must match its node",
+    });
+  }
+}
+
 export const spaceResourceNodeSchemas = [
   z
     .object({
@@ -101,7 +114,8 @@ export const spaceResourceNodeSchemas = [
       kind: z.literal("video"),
       videoEditProject: videoEditProjectSchema.optional(),
     })
-    .strict(),
+    .strict()
+    .superRefine(validateMediaSource),
   z
     .object({
       ...baseSpaceNodeFields,
@@ -109,7 +123,8 @@ export const spaceResourceNodeSchemas = [
       ...mediaFields,
       kind: z.literal("audio"),
     })
-    .strict(),
+    .strict()
+    .superRefine(validateMediaSource),
   z
     .object({
       ...baseSpaceNodeFields,

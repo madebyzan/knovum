@@ -58,6 +58,7 @@ async fn executing_fixture() -> Fixture {
             resolved_input: json!({}),
             policy_snapshot: json!({"definition": {"failurePolicy": "stop_run"}}),
             budget: json!({"maxOutputBytes": 1024}),
+            cancellation: tokio_util::sync::CancellationToken::new(),
         },
     }
 }

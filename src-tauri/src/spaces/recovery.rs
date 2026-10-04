@@ -11,6 +11,7 @@ pub(super) fn start(app: AppHandle) {
         match ready(&app).await {
             Ok(()) => {
                 super::runs::start_scheduler(app.clone());
+                super::knowledge::retrieval::retired_generations::start(app.clone());
                 super::assets::enrichment::jobs::scheduler::start(app.clone());
                 super::assistant::recover_tasks(app.clone());
                 super::external_conversations::recover(app);

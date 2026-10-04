@@ -19,6 +19,7 @@ from knovum_inference.contracts import (
     EmbeddingEncodeResult,
     ImageSegmentParams,
     ImageSegmentResult,
+    RuntimeAckChunkParams,
     RuntimeCancelParams,
     RuntimeCancelResult,
     RuntimeCapability,
@@ -32,6 +33,8 @@ from knovum_inference.contracts import (
     SpeechAlignResult,
     SpeechDiarizeParams,
     SpeechDiarizeResult,
+    SpeechSeparateParams,
+    SpeechSeparateResult,
     SpeechSynthesizeParams,
     SpeechSynthesizeResult,
     SpeechTranscribeParams,
@@ -42,6 +45,7 @@ from knovum_inference.embedding import EXPECTED_DIMENSIONS, EmbeddingEngine
 from knovum_inference.errors import RpcError, invalid_params, server_error
 from knovum_inference.input_stream import OVERSIZED, InputStream
 from knovum_inference.protocol import MAX_MESSAGE_BYTES, ProtocolWriter, Request, parse_request
+from knovum_inference.runtime_health import current_process_resident_bytes
 from knovum_inference.runtime_identity import verify_runtime_digest
 from knovum_inference.speech import (
     AlignmentEngine,
@@ -49,9 +53,20 @@ from knovum_inference.speech import (
     SynthesisEngine,
     TranscriptionEngine,
 )
+from knovum_inference.speech_stream import ChunkCredits, SynthesisChunkPublisher
 
 T = TypeVar("T", bound=BaseModel)
 U64_MAX = (1 << 64) - 1
+_TORCH_EXECUTION_PROFILES = frozenset({"voxcpm2-mps-f32-v1", "voxcpm2-cpu-bf16-v1"})
+_OOM_MESSAGES = (
+    "out of memory",
+    "not enough memory",
+    "failed to allocate memory",
+    "cannot allocate memory",
+    "can't allocate memory",
+    "memory allocation failed",
+    "std::bad_alloc",
+)
 
 
 @dataclass(slots=True)
@@ -69,6 +84,7 @@ class ActiveRequest:
     attempt_epoch: int
     cancelled: threading.Event
     done: asyncio.Event
+    chunk_credits: ChunkCredits | None = None
 
 
 def _validated(model: type[T], value: Any) -> T:
@@ -84,6 +100,65 @@ def _result(model: type[T], value: dict[str, Any]) -> dict[str, Any]:
         return model.model_validate(value).model_dump(by_alias=True, mode="json")
     except ValidationError as error:
         raise server_error("invalid_output", "Worker result violates its contract") from error
+
+
+def _out_of_memory(error: BaseException) -> bool:
+    current: BaseException | None = error
+    visited: set[int] = set()
+    while current is not None and id(current) not in visited:
+        visited.add(id(current))
+        if isinstance(current, MemoryError):
+            return True
+        error_type = type(current)
+        if error_type.__name__ == "OutOfMemoryError" and error_type.__module__.startswith("torch"):
+            return True
+        message = str(current).lower()
+        if any(marker in message for marker in _OOM_MESSAGES):
+            return True
+        current = current.__cause__ or current.__context__
+    return False
+
+
+def _reported_error(error: Exception) -> RpcError:
+    if _out_of_memory(error):
+        return server_error("resource_exhausted", "Inference exhausted its memory budget")
+    if isinstance(error, RpcError):
+        return error
+    if isinstance(error, ImportError):
+        return server_error("runtime_mismatch", "Bundled inference dependency versions do not match")
+    return server_error("invalid_output", "Worker request failed")
+
+
+def _configure_native_threads(params: RuntimeInitializeParams) -> None:
+    threads = str(params.device_profile.cpu_threads)
+    for name in (
+        "OMP_NUM_THREADS",
+        "MKL_NUM_THREADS",
+        "OPENBLAS_NUM_THREADS",
+        "NUMEXPR_NUM_THREADS",
+        "VECLIB_MAXIMUM_THREADS",
+    ):
+        os.environ[name] = threads
+    uses_torch = (
+        params.capability
+        in {
+            RuntimeCapability.speech_transcription,
+            RuntimeCapability.speech_alignment,
+            RuntimeCapability.speech_diarization,
+        }
+        or params.device_profile.execution_profile_id in _TORCH_EXECUTION_PROFILES
+    )
+    if not uses_torch:
+        return
+    try:
+        import torch
+    except ImportError as error:
+        raise server_error("runtime_mismatch", "PyTorch is unavailable") from error
+    try:
+        torch.set_num_threads(params.device_profile.cpu_threads)
+        torch.set_num_interop_threads(1)
+    except RuntimeError as error:
+        raise server_error("runtime_mismatch", "PyTorch thread budget cannot be applied") from error
 
 
 class Worker:
@@ -138,20 +213,15 @@ class Worker:
             await self._writer.result(request.request_id, result)
             if request.method == "runtime.shutdown":
                 self._terminate.set()
-        except RpcError as error:
-            if request.request_id is not None:
-                await self._writer.error(request.request_id, error)
-        except Exception:
-            print(
-                json.dumps({"event": "requestFailed", "method": request.method}),
-                file=sys.stderr,
-                flush=True,
-            )
-            if request.request_id is not None:
-                await self._writer.error(
-                    request.request_id,
-                    server_error("invalid_output", "Worker request failed"),
+        except Exception as error:
+            if not isinstance(error, RpcError):
+                print(
+                    json.dumps({"event": "requestFailed", "method": request.method}),
+                    file=sys.stderr,
+                    flush=True,
                 )
+            if request.request_id is not None:
+                await self._writer.error(request.request_id, _reported_error(error))
 
     async def _dispatch(self, request: Request) -> dict[str, Any]:
         if request.method == "runtime.initialize":
@@ -161,6 +231,7 @@ class Worker:
         handlers = {
             "runtime.health": self._health,
             "runtime.cancel": self._cancel,
+            "runtime.ackChunk": self._ack_chunk,
             "runtime.shutdown": self._shutdown,
             "embedding.encode": self._embedding,
             "image.segment": self._image_segment,
@@ -168,6 +239,7 @@ class Worker:
             "speech.align": self._speech_align,
             "speech.diarize": self._speech_diarize,
             "speech.synthesize": self._speech_synthesize,
+            "speech.separate": self._speech_separate,
         }
         handler = handlers.get(request.method)
         if handler is None:
@@ -189,6 +261,7 @@ class Worker:
             raise invalid_params("Work directory must be an existing absolute directory")
         verify_runtime_digest(params.runtime_digest)
         model_path = self._selected_model_path(params)
+        _configure_native_threads(params)
         engine = self._create_engine(params, model_path, work_directory)
         self._session = Session(
             params.session_id,
@@ -211,6 +284,8 @@ class Worker:
                     "maxMessageBytes": MAX_MESSAGE_BYTES,
                     "maxEmbeddingTexts": 32,
                     "maxEmbeddingTokens": 2048,
+                    "maxUnconsumedChunkFiles": 8,
+                    "maxUnconsumedChunkBytes": 16 * 1024 * 1024,
                 },
             },
         )
@@ -223,6 +298,7 @@ class Worker:
             RuntimeCapability.speech_alignment: "speech.align",
             RuntimeCapability.speech_diarization: "speech.diarize",
             RuntimeCapability.speech_synthesis: "speech.synthesize",
+            RuntimeCapability.speech_separation: "speech.separate",
             RuntimeCapability.image_segmentation: "image.segment",
         }
         method = methods.get(capability)
@@ -238,6 +314,7 @@ class Worker:
             RuntimeCapability.speech_alignment: params.model_paths.speech_alignment,
             RuntimeCapability.speech_diarization: params.model_paths.speech_diarization,
             RuntimeCapability.speech_synthesis: params.model_paths.speech_synthesis,
+            RuntimeCapability.speech_separation: params.model_paths.speech_separation,
             RuntimeCapability.image_segmentation: params.model_paths.image_segmentation,
         }
         selected = fields[params.capability]
@@ -262,17 +339,23 @@ class Worker:
                 raise server_error("model_missing", "ASR model directory is missing")
             return TranscriptionEngine(model_path, work_directory, threads)
         if capability is RuntimeCapability.speech_alignment:
-            if not model_path.is_dir():
-                raise server_error("model_missing", "Alignment model directory is missing")
-            return AlignmentEngine(model_path, work_directory, device, threads)
+            if device != "cpu" or not model_path.is_dir():
+                raise server_error("unsupported_device", "Qwen3 forced alignment requires CPU")
+            return AlignmentEngine(model_path, device, threads)
         if capability is RuntimeCapability.speech_diarization:
-            if not model_path.is_dir():
-                raise server_error("model_missing", "Diarization model directory is missing")
+            if device != "cpu" or not model_path.is_dir():
+                raise server_error("unsupported_device", "Community-1 diarization requires CPU")
             return DiarizationEngine(model_path, device)
         if capability is RuntimeCapability.speech_synthesis:
-            if device != "cpu" or not model_path.is_dir():
+            if device not in {"cpu", "mps"} or not model_path.is_dir():
                 raise server_error("unsupported_device", "Synthesis profile is unsupported")
-            return SynthesisEngine(model_path, work_directory, threads)
+            return SynthesisEngine(model_path, device, threads)
+        if capability is RuntimeCapability.speech_separation:
+            if device != "cpu" or not model_path.is_dir():
+                raise server_error("unsupported_device", "Spleeter source separation requires CPU")
+            from knovum_inference.speech_separation import SpleeterSourceSeparator
+
+            return SpleeterSourceSeparator(model_path, work_directory, threads)
         if capability is RuntimeCapability.image_segmentation:
             if device != "cpu" or not model_path.is_file():
                 raise server_error("unsupported_device", "Image segmentation profile is unsupported")
@@ -289,7 +372,7 @@ class Worker:
             {
                 "sessionId": params.session_id,
                 "currentRequestId": self._active.request_id if self._active else None,
-                "residentBytes": None,
+                "residentBytes": current_process_resident_bytes(),
             },
         )
 
@@ -304,6 +387,19 @@ class Worker:
         if accepted and active is not None:
             active.cancelled.set()
         return _result(RuntimeCancelResult, {"accepted": accepted})
+
+    async def _ack_chunk(self, raw: dict[str, Any]) -> dict[str, Any]:
+        params = _validated(RuntimeAckChunkParams, raw)
+        active = self._active
+        if active is None or active.chunk_credits is None:
+            raise server_error("invalid_output", "No synthesis stream is awaiting chunk credit")
+        active.chunk_credits.acknowledge(
+            params.request_id,
+            params.attempt_epoch,
+            params.seq,
+            params.consumed_bytes,
+        )
+        return {}
 
     async def _shutdown(self, raw: dict[str, Any]) -> dict[str, Any]:
         params = _validated(RuntimeShutdownParams, raw)
@@ -396,10 +492,45 @@ class Worker:
     async def _speech_synthesize(self, raw: dict[str, Any]) -> dict[str, Any]:
         params = _validated(SpeechSynthesizeParams, raw)
         session, active = self._begin(params, RuntimeCapability.speech_synthesis)
+        active.chunk_credits = ChunkCredits(
+            params.request_id,
+            params.attempt_epoch,
+            params.deadline_ms,
+            active.cancelled,
+        )
+        loop = asyncio.get_running_loop()
+
+        def publish(event: dict[str, Any]) -> None:
+            if active.cancelled.is_set():
+                raise server_error("cancelled", "Synthesis was cancelled")
+            asyncio.run_coroutine_threadsafe(self._writer.notification("speech.chunk", event), loop).result(timeout=5)
+
+        publisher = SynthesisChunkPublisher(
+            session.work_directory,
+            params.request_id,
+            params.attempt_epoch,
+            params.deadline_ms,
+            active.chunk_credits,
+            publish,
+        )
         try:
-            value = await asyncio.to_thread(session.engine.synthesize, params)
+            value = await asyncio.to_thread(session.engine.synthesize, params, publisher, active.cancelled)
             self._check_active(params, active)
             return _result(SpeechSynthesizeResult, value)
+        finally:
+            self._complete(active)
+
+    async def _speech_separate(self, raw: dict[str, Any]) -> dict[str, Any]:
+        params = _validated(SpeechSeparateParams, raw)
+        session, active = self._begin(params, RuntimeCapability.speech_separation)
+        try:
+            value = await asyncio.to_thread(
+                session.engine.separate,
+                params,
+                active.cancelled,
+            )
+            self._check_active(params, active)
+            return _result(SpeechSeparateResult, value)
         finally:
             self._complete(active)
 

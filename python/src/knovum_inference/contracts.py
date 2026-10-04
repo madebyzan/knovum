@@ -3,97 +3,20 @@
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 from typing import Annotated
 
 from knovum_inference.contract_base import WireModel
 from pydantic import ConfigDict, Field, RootModel
 
 
-class AlignmentProfile(WireModel):
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    device: str
-    language: str
-
-
-class AlignmentTextSegment(WireModel):
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    end_ms: Annotated[int, Field(alias="endMs", ge=0)]
-    segment_id: Annotated[str, Field(alias="segmentId")]
-    start_ms: Annotated[int, Field(alias="startMs", ge=0)]
-    text: str
-
-
-class AlignmentUnitKind(Enum):
-    word = "word"
-    character = "character"
-
-
-class AsrEngine(Enum):
-    faster_whisper = "faster_whisper"
-    mlx_whisper = "mlx_whisper"
-
-
-class AudioFileReference(WireModel):
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    byte_length: Annotated[int, Field(alias="byteLength", ge=0)]
-    channels: Annotated[int, Field(ge=0, le=65535)]
-    media_type: Annotated[str, Field(alias="mediaType")]
-    path: str
-    sample_format: Annotated[str, Field(alias="sampleFormat")]
-    sample_rate: Annotated[int, Field(alias="sampleRate", ge=0)]
-    sha256: str
-
-
-class EmbeddingEncodeResult(WireModel):
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    attempt_epoch: Annotated[int, Field(alias="attemptEpoch", ge=0)]
-    dimensions: Annotated[int, Field(ge=0)]
-    embedding_spec_id: Annotated[str, Field(alias="embeddingSpecId")]
-    input_tokens: Annotated[int, Field(alias="inputTokens", ge=0)]
-    request_id: Annotated[str, Field(alias="requestId")]
-    vectors: list[list[float]]
-
-
-class EmbeddingRole(Enum):
-    query = "query"
-    document = "document"
-
-
-class LanguagePolicy(Enum):
-    detect = "detect"
-    fixed = "fixed"
-
-
-class RuntimeCancelParams(WireModel):
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    attempt_epoch: Annotated[int, Field(alias="attemptEpoch", ge=0)]
-    target_request_id: Annotated[str, Field(alias="targetRequestId")]
-
-
-class RuntimeCancelResult(WireModel):
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    accepted: bool
-
-
-class RuntimeCapability(Enum):
+class RuntimeCapability(StrEnum):
     embedding = "embedding"
     speech_transcription = "speech_transcription"
     speech_alignment = "speech_alignment"
     speech_diarization = "speech_diarization"
     speech_synthesis = "speech_synthesis"
+    speech_separation = "speech_separation"
     image_segmentation = "image_segmentation"
 
 
@@ -101,9 +24,39 @@ class RuntimeDeviceProfile(WireModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    cpu_threads: Annotated[int, Field(alias="cpuThreads", ge=0, le=255)]
     device: str
     execution_profile_id: Annotated[str, Field(alias="executionProfileId")]
+    cpu_threads: Annotated[int, Field(alias="cpuThreads", ge=0, le=255)]
+
+
+class RuntimeModelPaths(WireModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    embedding: str | None = None
+    speech_transcription: Annotated[str | None, Field(alias="speechTranscription")] = (
+        None
+    )
+    speech_alignment: Annotated[str | None, Field(alias="speechAlignment")] = None
+    speech_diarization: Annotated[str | None, Field(alias="speechDiarization")] = None
+    speech_synthesis: Annotated[str | None, Field(alias="speechSynthesis")] = None
+    speech_separation: Annotated[str | None, Field(alias="speechSeparation")] = None
+    image_segmentation: Annotated[str | None, Field(alias="imageSegmentation")] = None
+
+
+class RuntimeLimits(WireModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    max_message_bytes: Annotated[int, Field(alias="maxMessageBytes", ge=0)]
+    max_embedding_texts: Annotated[int, Field(alias="maxEmbeddingTexts", ge=0, le=255)]
+    max_embedding_tokens: Annotated[int, Field(alias="maxEmbeddingTokens", ge=0)]
+    max_unconsumed_chunk_files: Annotated[
+        int, Field(alias="maxUnconsumedChunkFiles", ge=0, le=255)
+    ]
+    max_unconsumed_chunk_bytes: Annotated[
+        int, Field(alias="maxUnconsumedChunkBytes", ge=0)
+    ]
 
 
 class RuntimeHealthParams(WireModel):
@@ -117,32 +70,34 @@ class RuntimeHealthResult(WireModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    current_request_id: Annotated[str | None, Field(alias="currentRequestId")] = None
-    resident_bytes: Annotated[int | None, Field(alias="residentBytes", ge=0)] = None
     session_id: Annotated[str, Field(alias="sessionId")]
+    current_request_id: Annotated[str | None, Field(alias="currentRequestId")] = None
+    resident_bytes: Annotated[int, Field(alias="residentBytes", ge=0)]
 
 
-class RuntimeLimits(WireModel):
+class RuntimeCancelParams(WireModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    max_embedding_texts: Annotated[int, Field(alias="maxEmbeddingTexts", ge=0, le=255)]
-    max_embedding_tokens: Annotated[int, Field(alias="maxEmbeddingTokens", ge=0)]
-    max_message_bytes: Annotated[int, Field(alias="maxMessageBytes", ge=0)]
+    target_request_id: Annotated[str, Field(alias="targetRequestId")]
+    attempt_epoch: Annotated[int, Field(alias="attemptEpoch", ge=0)]
 
 
-class RuntimeModelPaths(WireModel):
+class RuntimeCancelResult(WireModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    embedding: str | None = None
-    image_segmentation: Annotated[str | None, Field(alias="imageSegmentation")] = None
-    speech_alignment: Annotated[str | None, Field(alias="speechAlignment")] = None
-    speech_diarization: Annotated[str | None, Field(alias="speechDiarization")] = None
-    speech_synthesis: Annotated[str | None, Field(alias="speechSynthesis")] = None
-    speech_transcription: Annotated[str | None, Field(alias="speechTranscription")] = (
-        None
+    accepted: bool
+
+
+class RuntimeAckChunkParams(WireModel):
+    model_config = ConfigDict(
+        extra="forbid",
     )
+    request_id: Annotated[str, Field(alias="requestId")]
+    attempt_epoch: Annotated[int, Field(alias="attemptEpoch", ge=0)]
+    seq: Annotated[int, Field(ge=0)]
+    consumed_bytes: Annotated[int, Field(alias="consumedBytes", ge=0)]
 
 
 class RuntimeShutdownParams(WireModel):
@@ -159,53 +114,348 @@ class RuntimeShutdownResult(WireModel):
     accepted: bool
 
 
+class EmbeddingRole(StrEnum):
+    query = "query"
+    document = "document"
+
+
+class EmbeddingEncodeResult(WireModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    request_id: Annotated[str, Field(alias="requestId")]
+    attempt_epoch: Annotated[int, Field(alias="attemptEpoch", ge=0)]
+    embedding_spec_id: Annotated[str, Field(alias="embeddingSpecId")]
+    vectors: list[list[float]]
+    dimensions: Annotated[int, Field(ge=0)]
+    input_tokens: Annotated[int, Field(alias="inputTokens", ge=0)]
+
+
+class ShapeItem(RootModel[int]):
+    root: Annotated[int, Field(ge=0)]
+
+
+class TensorDataType(StrEnum):
+    float32_little_endian = "float32_little_endian"
+
+
+class AudioFileReference(WireModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    path: str
+    media_type: Annotated[str, Field(alias="mediaType")]
+    byte_length: Annotated[int, Field(alias="byteLength", ge=0)]
+    sha256: str
+    sample_rate: Annotated[int, Field(alias="sampleRate", ge=0)]
+    channels: Annotated[int, Field(ge=0, le=65535)]
+    sample_format: Annotated[str, Field(alias="sampleFormat")]
+
+
+class AsrEngine(StrEnum):
+    faster_whisper = "faster_whisper"
+    mlx_whisper = "mlx_whisper"
+
+
+class LanguagePolicy(StrEnum):
+    detect = "detect"
+    fixed = "fixed"
+
+
+class SpeechFileReference(WireModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    file_name: Annotated[str, Field(alias="fileName")]
+    media_type: Annotated[str, Field(alias="mediaType")]
+    byte_length: Annotated[int, Field(alias="byteLength", ge=0)]
+    sha256: str
+
+
+class SpeechWordTiming(WireModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    text: str
+    start_ms: Annotated[int, Field(alias="startMs", ge=0)]
+    end_ms: Annotated[int, Field(alias="endMs", ge=0)]
+    probability: float | None = None
+
+
+class SpeechProgressEventType(StrEnum):
+    progress = "progress"
+    partial_transcript = "partial_transcript"
+
+
+class AlignmentTextSegment(WireModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    segment_id: Annotated[str, Field(alias="segmentId")]
+    start_ms: Annotated[int, Field(alias="startMs", ge=0)]
+    end_ms: Annotated[int, Field(alias="endMs", ge=0)]
+    text: str
+
+
+class AlignmentProfile(WireModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    language: str
+    device: str
+
+
+class AlignmentUnitKind(StrEnum):
+    word = "word"
+    character = "character"
+
+
 class SpeakerCountBounds(WireModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    maximum: Annotated[int | None, Field(ge=0, le=65535)] = None
     minimum: Annotated[int | None, Field(ge=0, le=65535)] = None
+    maximum: Annotated[int | None, Field(ge=0, le=65535)] = None
 
 
 class SpeakerTurn(WireModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    end_ms: Annotated[int, Field(alias="endMs", ge=0)]
     speaker_id: Annotated[str, Field(alias="speakerId")]
     start_ms: Annotated[int, Field(alias="startMs", ge=0)]
+    end_ms: Annotated[int, Field(alias="endMs", ge=0)]
+
+
+class VoiceSourceKind(StrEnum):
+    preset = "preset"
+    reference = "reference"
+    designed = "designed"
+
+
+class SpeechSynthesisEngine(StrEnum):
+    kokoro = "kokoro"
+    vox_cpm2 = "vox_cpm2"
+
+
+class SpeechSynthesisChunkGranularity(StrEnum):
+    model_chunk = "model_chunk"
+    sentence = "sentence"
+
+
+class SynthesizedAudioFileReference(WireModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    file_name: Annotated[str, Field(alias="fileName")]
+    media_type: Annotated[str, Field(alias="mediaType")]
+    byte_length: Annotated[int, Field(alias="byteLength", ge=0)]
+    sha256: str
+    sample_rate: Annotated[int, Field(alias="sampleRate", ge=0)]
+    channels: Annotated[int, Field(ge=0, le=65535)]
+    sample_format: Annotated[str, Field(alias="sampleFormat")]
+
+
+class SpeechSynthesizeResult(WireModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    request_id: Annotated[str, Field(alias="requestId")]
+    attempt_epoch: Annotated[int, Field(alias="attemptEpoch", ge=0)]
+    model_spec_id: Annotated[str, Field(alias="modelSpecId")]
+    byte_length: Annotated[int, Field(alias="byteLength", ge=0)]
+    sha256: str
+    sample_rate: Annotated[int, Field(alias="sampleRate", ge=0)]
+    channels: Annotated[int, Field(ge=0, le=65535)]
+    sample_format: Annotated[str, Field(alias="sampleFormat")]
+    sample_count: Annotated[int, Field(alias="sampleCount", ge=0)]
+
+
+class SpeechSeparateParams(WireModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    request_id: Annotated[str, Field(alias="requestId")]
+    owner_kind: Annotated[str, Field(alias="ownerKind")]
+    owner_id: Annotated[str, Field(alias="ownerId")]
+    attempt_id: Annotated[str, Field(alias="attemptId")]
+    attempt_epoch: Annotated[int, Field(alias="attemptEpoch", ge=0)]
+    input_revision: Annotated[str, Field(alias="inputRevision")]
+    model_spec_id: Annotated[str, Field(alias="modelSpecId")]
+    deadline_ms: Annotated[int, Field(alias="deadlineMs", ge=0)]
+    audio_ref: Annotated[AudioFileReference, Field(alias="audioRef")]
+
+
+class SpeechSeparateResult(WireModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    request_id: Annotated[str, Field(alias="requestId")]
+    attempt_epoch: Annotated[int, Field(alias="attemptEpoch", ge=0)]
+    model_spec_id: Annotated[str, Field(alias="modelSpecId")]
+    vocals_ref: Annotated[SynthesizedAudioFileReference, Field(alias="vocalsRef")]
+    background_ref: Annotated[
+        SynthesizedAudioFileReference, Field(alias="backgroundRef")
+    ]
+    sample_count: Annotated[int, Field(alias="sampleCount", ge=0)]
+
+
+class RuntimeInitializeParams(WireModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    protocol_version: Annotated[int, Field(alias="protocolVersion", ge=0)]
+    runtime_digest: Annotated[str, Field(alias="runtimeDigest")]
+    session_id: Annotated[str, Field(alias="sessionId")]
+    capability: RuntimeCapability
+    capability_spec_id: Annotated[str, Field(alias="capabilitySpecId")]
+    device_profile: Annotated[RuntimeDeviceProfile, Field(alias="deviceProfile")]
+    work_directory: Annotated[str, Field(alias="workDirectory")]
+    model_paths: Annotated[RuntimeModelPaths, Field(alias="modelPaths")]
+
+
+class RuntimeInitializeResult(WireModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    protocol_version: Annotated[int, Field(alias="protocolVersion", ge=0)]
+    runtime_digest: Annotated[str, Field(alias="runtimeDigest")]
+    session_id: Annotated[str, Field(alias="sessionId")]
+    capability: RuntimeCapability
+    capability_spec_id: Annotated[str, Field(alias="capabilitySpecId")]
+    device_profile: Annotated[RuntimeDeviceProfile, Field(alias="deviceProfile")]
+    capabilities: list[str]
+    limits: RuntimeLimits
+
+
+class EmbeddingEncodeParams(WireModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    request_id: Annotated[str, Field(alias="requestId")]
+    owner_kind: Annotated[str, Field(alias="ownerKind")]
+    owner_id: Annotated[str, Field(alias="ownerId")]
+    attempt_id: Annotated[str, Field(alias="attemptId")]
+    attempt_epoch: Annotated[int, Field(alias="attemptEpoch", ge=0)]
+    input_revision: Annotated[str, Field(alias="inputRevision")]
+    model_spec_id: Annotated[str, Field(alias="modelSpecId")]
+    deadline_ms: Annotated[int, Field(alias="deadlineMs", ge=0)]
+    role: EmbeddingRole
+    texts: list[str]
+    embedding_spec_id: Annotated[str, Field(alias="embeddingSpecId")]
+
+
+class TensorFileReference(WireModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    file_name: Annotated[str, Field(alias="fileName")]
+    byte_length: Annotated[int, Field(alias="byteLength", ge=0)]
+    sha256: str
+    shape: Annotated[list[ShapeItem], Field(max_length=4, min_length=4)]
+    data_type: Annotated[TensorDataType, Field(alias="dataType")]
+
+
+class ImageSegmentResult(WireModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    request_id: Annotated[str, Field(alias="requestId")]
+    attempt_epoch: Annotated[int, Field(alias="attemptEpoch", ge=0)]
+    model_spec_id: Annotated[str, Field(alias="modelSpecId")]
+    mask_ref: Annotated[TensorFileReference, Field(alias="maskRef")]
+
+
+class AsrProfile(WireModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    engine: AsrEngine
+    language_policy: Annotated[LanguagePolicy, Field(alias="languagePolicy")]
+    language: str | None = None
+    device: str
+    compute_type: Annotated[str, Field(alias="computeType")]
+    beam_size: Annotated[int, Field(alias="beamSize", ge=0, le=255)]
+    vad_enabled: Annotated[bool, Field(alias="vadEnabled")]
+
+
+class SpeechTranscribeResult(WireModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    request_id: Annotated[str, Field(alias="requestId")]
+    attempt_epoch: Annotated[int, Field(alias="attemptEpoch", ge=0)]
+    model_spec_id: Annotated[str, Field(alias="modelSpecId")]
+    transcript_ref: Annotated[SpeechFileReference, Field(alias="transcriptRef")]
+
+
+class SpeechTranscriptSegment(WireModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    start_ms: Annotated[int, Field(alias="startMs", ge=0)]
+    end_ms: Annotated[int, Field(alias="endMs", ge=0)]
+    text: str
+    words: list[SpeechWordTiming]
+
+
+class SpeechProgressEvent(WireModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    request_id: Annotated[str, Field(alias="requestId")]
+    attempt_epoch: Annotated[int, Field(alias="attemptEpoch", ge=0)]
+    seq: Annotated[int, Field(ge=0)]
+    event_type: Annotated[SpeechProgressEventType, Field(alias="eventType")]
+    stage: str
+    progress: Annotated[int, Field(ge=0, le=255)]
+    language: str | None = None
+    partial: SpeechTranscriptSegment | None = None
 
 
 class SpeechAlignParams(WireModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    attempt_epoch: Annotated[int, Field(alias="attemptEpoch", ge=0)]
+    request_id: Annotated[str, Field(alias="requestId")]
+    owner_kind: Annotated[str, Field(alias="ownerKind")]
+    owner_id: Annotated[str, Field(alias="ownerId")]
     attempt_id: Annotated[str, Field(alias="attemptId")]
-    audio_ref: Annotated[AudioFileReference, Field(alias="audioRef")]
-    deadline_ms: Annotated[int, Field(alias="deadlineMs", ge=0)]
+    attempt_epoch: Annotated[int, Field(alias="attemptEpoch", ge=0)]
     input_revision: Annotated[str, Field(alias="inputRevision")]
     model_spec_id: Annotated[str, Field(alias="modelSpecId")]
-    owner_id: Annotated[str, Field(alias="ownerId")]
-    owner_kind: Annotated[str, Field(alias="ownerKind")]
-    profile: AlignmentProfile
-    request_id: Annotated[str, Field(alias="requestId")]
+    deadline_ms: Annotated[int, Field(alias="deadlineMs", ge=0)]
+    audio_ref: Annotated[AudioFileReference, Field(alias="audioRef")]
     text_segments: Annotated[list[AlignmentTextSegment], Field(alias="textSegments")]
+    profile: AlignmentProfile
+
+
+class AlignedSpeechUnit(WireModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    segment_id: Annotated[str, Field(alias="segmentId")]
+    text: str
+    unit_kind: Annotated[AlignmentUnitKind, Field(alias="unitKind")]
+    start_ms: Annotated[int | None, Field(alias="startMs", ge=0)] = None
+    end_ms: Annotated[int | None, Field(alias="endMs", ge=0)] = None
+    score: float | None = None
+    unaligned_reason: Annotated[str | None, Field(alias="unalignedReason")] = None
 
 
 class SpeechDiarizeParams(WireModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    attempt_epoch: Annotated[int, Field(alias="attemptEpoch", ge=0)]
+    request_id: Annotated[str, Field(alias="requestId")]
+    owner_kind: Annotated[str, Field(alias="ownerKind")]
+    owner_id: Annotated[str, Field(alias="ownerId")]
     attempt_id: Annotated[str, Field(alias="attemptId")]
-    audio_ref: Annotated[AudioFileReference, Field(alias="audioRef")]
-    deadline_ms: Annotated[int, Field(alias="deadlineMs", ge=0)]
+    attempt_epoch: Annotated[int, Field(alias="attemptEpoch", ge=0)]
     input_revision: Annotated[str, Field(alias="inputRevision")]
     model_spec_id: Annotated[str, Field(alias="modelSpecId")]
-    owner_id: Annotated[str, Field(alias="ownerId")]
-    owner_kind: Annotated[str, Field(alias="ownerKind")]
-    request_id: Annotated[str, Field(alias="requestId")]
+    deadline_ms: Annotated[int, Field(alias="deadlineMs", ge=0)]
+    audio_ref: Annotated[AudioFileReference, Field(alias="audioRef")]
     speaker_count_bounds: Annotated[
         SpeakerCountBounds, Field(alias="speakerCountBounds")
     ]
@@ -215,49 +465,24 @@ class SpeechDiarizeResult(WireModel):
     model_config = ConfigDict(
         extra="forbid",
     )
+    request_id: Annotated[str, Field(alias="requestId")]
     attempt_epoch: Annotated[int, Field(alias="attemptEpoch", ge=0)]
     model_spec_id: Annotated[str, Field(alias="modelSpecId")]
-    request_id: Annotated[str, Field(alias="requestId")]
     turns: list[SpeakerTurn]
 
 
-class SpeechFileReference(WireModel):
+class VoiceRevisionReference(WireModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    byte_length: Annotated[int, Field(alias="byteLength", ge=0)]
-    file_name: Annotated[str, Field(alias="fileName")]
-    media_type: Annotated[str, Field(alias="mediaType")]
-    sha256: str
-
-
-class SpeechProgressEventType(Enum):
-    progress = "progress"
-    partial_transcript = "partial_transcript"
-
-
-class SpeechSynthesisEngine(Enum):
-    kokoro = "kokoro"
-
-
-class SpeechTranscribeResult(WireModel):
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    attempt_epoch: Annotated[int, Field(alias="attemptEpoch", ge=0)]
-    model_spec_id: Annotated[str, Field(alias="modelSpecId")]
-    request_id: Annotated[str, Field(alias="requestId")]
-    transcript_ref: Annotated[SpeechFileReference, Field(alias="transcriptRef")]
-
-
-class SpeechWordTiming(WireModel):
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    end_ms: Annotated[int, Field(alias="endMs", ge=0)]
-    probability: float | None = None
-    start_ms: Annotated[int, Field(alias="startMs", ge=0)]
-    text: str
+    revision_id: Annotated[str, Field(alias="revisionId")]
+    source_kind: Annotated[VoiceSourceKind, Field(alias="sourceKind")]
+    speaker_id: Annotated[int | None, Field(alias="speakerId", ge=0)] = None
+    reference_audio: Annotated[
+        AudioFileReference | None, Field(alias="referenceAudio")
+    ] = None
+    reference_text: Annotated[str | None, Field(alias="referenceText")] = None
+    design_prompt: Annotated[str | None, Field(alias="designPrompt")] = None
 
 
 class SynthesisProfile(WireModel):
@@ -266,259 +491,119 @@ class SynthesisProfile(WireModel):
     )
     engine: SpeechSynthesisEngine
     language: str
-    sample_rate: Annotated[int, Field(alias="sampleRate", ge=0)]
     speed: float
-
-
-class SynthesizedAudioFileReference(WireModel):
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    byte_length: Annotated[int, Field(alias="byteLength", ge=0)]
-    channels: Annotated[int, Field(ge=0, le=65535)]
-    file_name: Annotated[str, Field(alias="fileName")]
-    media_type: Annotated[str, Field(alias="mediaType")]
-    sample_format: Annotated[str, Field(alias="sampleFormat")]
     sample_rate: Annotated[int, Field(alias="sampleRate", ge=0)]
-    sha256: str
 
 
-class TensorDataType(Enum):
-    float32_little_endian = "float32_little_endian"
-
-
-class ShapeItem(RootModel[int]):
-    root: Annotated[int, Field(ge=0)]
-
-
-class TensorFileReference(WireModel):
+class SpeechSynthesisChunkEvent(WireModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    byte_length: Annotated[int, Field(alias="byteLength", ge=0)]
-    data_type: Annotated[TensorDataType, Field(alias="dataType")]
-    file_name: Annotated[str, Field(alias="fileName")]
-    sha256: str
-    shape: Annotated[list[ShapeItem], Field(max_length=4, min_length=4)]
-
-
-class VoiceSourceKind(Enum):
-    preset = "preset"
-    reference = "reference"
-    designed = "designed"
-
-
-class AlignedSpeechUnit(WireModel):
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    end_ms: Annotated[int | None, Field(alias="endMs", ge=0)] = None
-    score: float | None = None
-    segment_id: Annotated[str, Field(alias="segmentId")]
-    start_ms: Annotated[int | None, Field(alias="startMs", ge=0)] = None
-    text: str
-    unaligned_reason: Annotated[str | None, Field(alias="unalignedReason")] = None
-    unit_kind: Annotated[AlignmentUnitKind, Field(alias="unitKind")]
-
-
-class AsrProfile(WireModel):
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    beam_size: Annotated[int, Field(alias="beamSize", ge=0, le=255)]
-    compute_type: Annotated[str, Field(alias="computeType")]
-    device: str
-    engine: AsrEngine
-    language: str | None = None
-    language_policy: Annotated[LanguagePolicy, Field(alias="languagePolicy")]
-    vad_enabled: Annotated[bool, Field(alias="vadEnabled")]
-
-
-class EmbeddingEncodeParams(WireModel):
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    attempt_epoch: Annotated[int, Field(alias="attemptEpoch", ge=0)]
-    attempt_id: Annotated[str, Field(alias="attemptId")]
-    deadline_ms: Annotated[int, Field(alias="deadlineMs", ge=0)]
-    embedding_spec_id: Annotated[str, Field(alias="embeddingSpecId")]
-    input_revision: Annotated[str, Field(alias="inputRevision")]
-    model_spec_id: Annotated[str, Field(alias="modelSpecId")]
-    owner_id: Annotated[str, Field(alias="ownerId")]
-    owner_kind: Annotated[str, Field(alias="ownerKind")]
     request_id: Annotated[str, Field(alias="requestId")]
-    role: EmbeddingRole
-    texts: list[str]
+    attempt_epoch: Annotated[int, Field(alias="attemptEpoch", ge=0)]
+    seq: Annotated[int, Field(ge=0)]
+    granularity: SpeechSynthesisChunkGranularity
+    chunk_ref: Annotated[SynthesizedAudioFileReference, Field(alias="chunkRef")]
+    sample_count: Annotated[int, Field(alias="sampleCount", ge=0)]
 
 
 class ImageSegmentParams(WireModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    attempt_epoch: Annotated[int, Field(alias="attemptEpoch", ge=0)]
+    request_id: Annotated[str, Field(alias="requestId")]
+    owner_kind: Annotated[str, Field(alias="ownerKind")]
+    owner_id: Annotated[str, Field(alias="ownerId")]
     attempt_id: Annotated[str, Field(alias="attemptId")]
-    deadline_ms: Annotated[int, Field(alias="deadlineMs", ge=0)]
+    attempt_epoch: Annotated[int, Field(alias="attemptEpoch", ge=0)]
     input_revision: Annotated[str, Field(alias="inputRevision")]
     model_spec_id: Annotated[str, Field(alias="modelSpecId")]
-    owner_id: Annotated[str, Field(alias="ownerId")]
-    owner_kind: Annotated[str, Field(alias="ownerKind")]
-    request_id: Annotated[str, Field(alias="requestId")]
+    deadline_ms: Annotated[int, Field(alias="deadlineMs", ge=0)]
     tensor_ref: Annotated[TensorFileReference, Field(alias="tensorRef")]
-
-
-class ImageSegmentResult(WireModel):
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    attempt_epoch: Annotated[int, Field(alias="attemptEpoch", ge=0)]
-    mask_ref: Annotated[TensorFileReference, Field(alias="maskRef")]
-    model_spec_id: Annotated[str, Field(alias="modelSpecId")]
-    request_id: Annotated[str, Field(alias="requestId")]
-
-
-class RuntimeInitializeParams(WireModel):
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    capability: RuntimeCapability
-    capability_spec_id: Annotated[str, Field(alias="capabilitySpecId")]
-    device_profile: Annotated[RuntimeDeviceProfile, Field(alias="deviceProfile")]
-    model_paths: Annotated[RuntimeModelPaths, Field(alias="modelPaths")]
-    protocol_version: Annotated[int, Field(alias="protocolVersion", ge=0)]
-    runtime_digest: Annotated[str, Field(alias="runtimeDigest")]
-    session_id: Annotated[str, Field(alias="sessionId")]
-    work_directory: Annotated[str, Field(alias="workDirectory")]
-
-
-class RuntimeInitializeResult(WireModel):
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    capabilities: list[str]
-    capability: RuntimeCapability
-    capability_spec_id: Annotated[str, Field(alias="capabilitySpecId")]
-    device_profile: Annotated[RuntimeDeviceProfile, Field(alias="deviceProfile")]
-    limits: RuntimeLimits
-    protocol_version: Annotated[int, Field(alias="protocolVersion", ge=0)]
-    runtime_digest: Annotated[str, Field(alias="runtimeDigest")]
-    session_id: Annotated[str, Field(alias="sessionId")]
-
-
-class SpeechAlignResult(WireModel):
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    attempt_epoch: Annotated[int, Field(alias="attemptEpoch", ge=0)]
-    coverage: float
-    model_spec_id: Annotated[str, Field(alias="modelSpecId")]
-    request_id: Annotated[str, Field(alias="requestId")]
-    units: list[AlignedSpeechUnit]
-
-
-class SpeechSynthesizeResult(WireModel):
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    attempt_epoch: Annotated[int, Field(alias="attemptEpoch", ge=0)]
-    audio_ref: Annotated[SynthesizedAudioFileReference, Field(alias="audioRef")]
-    model_spec_id: Annotated[str, Field(alias="modelSpecId")]
-    request_id: Annotated[str, Field(alias="requestId")]
-    sample_count: Annotated[int, Field(alias="sampleCount", ge=0)]
 
 
 class SpeechTranscribeParams(WireModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    attempt_epoch: Annotated[int, Field(alias="attemptEpoch", ge=0)]
+    request_id: Annotated[str, Field(alias="requestId")]
+    owner_kind: Annotated[str, Field(alias="ownerKind")]
+    owner_id: Annotated[str, Field(alias="ownerId")]
     attempt_id: Annotated[str, Field(alias="attemptId")]
-    audio_ref: Annotated[AudioFileReference, Field(alias="audioRef")]
-    deadline_ms: Annotated[int, Field(alias="deadlineMs", ge=0)]
+    attempt_epoch: Annotated[int, Field(alias="attemptEpoch", ge=0)]
     input_revision: Annotated[str, Field(alias="inputRevision")]
     model_spec_id: Annotated[str, Field(alias="modelSpecId")]
-    owner_id: Annotated[str, Field(alias="ownerId")]
-    owner_kind: Annotated[str, Field(alias="ownerKind")]
+    deadline_ms: Annotated[int, Field(alias="deadlineMs", ge=0)]
+    audio_ref: Annotated[AudioFileReference, Field(alias="audioRef")]
     profile: AsrProfile
+
+
+class SpeechTranscriptArtifact(WireModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    language: str
+    duration_ms: Annotated[int, Field(alias="durationMs", ge=0)]
+    speech_duration_ms: Annotated[int, Field(alias="speechDurationMs", ge=0)]
+    segments: list[SpeechTranscriptSegment]
+
+
+class SpeechAlignResult(WireModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
     request_id: Annotated[str, Field(alias="requestId")]
-
-
-class SpeechTranscriptSegment(WireModel):
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    end_ms: Annotated[int, Field(alias="endMs", ge=0)]
-    start_ms: Annotated[int, Field(alias="startMs", ge=0)]
-    text: str
-    words: list[SpeechWordTiming]
-
-
-class VoiceRevisionReference(WireModel):
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    design_prompt: Annotated[str | None, Field(alias="designPrompt")] = None
-    reference_audio: Annotated[
-        AudioFileReference | None, Field(alias="referenceAudio")
-    ] = None
-    reference_text: Annotated[str | None, Field(alias="referenceText")] = None
-    revision_id: Annotated[str, Field(alias="revisionId")]
-    source_kind: Annotated[VoiceSourceKind, Field(alias="sourceKind")]
-    speaker_id: Annotated[int | None, Field(alias="speakerId", ge=0)] = None
-
-
-class SpeechProgressEvent(WireModel):
-    model_config = ConfigDict(
-        extra="forbid",
-    )
     attempt_epoch: Annotated[int, Field(alias="attemptEpoch", ge=0)]
-    event_type: Annotated[SpeechProgressEventType, Field(alias="eventType")]
-    language: str | None = None
-    partial: SpeechTranscriptSegment | None = None
-    progress: Annotated[int, Field(ge=0, le=255)]
-    request_id: Annotated[str, Field(alias="requestId")]
-    seq: Annotated[int, Field(ge=0)]
-    stage: str
+    model_spec_id: Annotated[str, Field(alias="modelSpecId")]
+    units: list[AlignedSpeechUnit]
+    coverage: float
 
 
 class SpeechSynthesizeParams(WireModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    attempt_epoch: Annotated[int, Field(alias="attemptEpoch", ge=0)]
+    request_id: Annotated[str, Field(alias="requestId")]
+    owner_kind: Annotated[str, Field(alias="ownerKind")]
+    owner_id: Annotated[str, Field(alias="ownerId")]
     attempt_id: Annotated[str, Field(alias="attemptId")]
-    deadline_ms: Annotated[int, Field(alias="deadlineMs", ge=0)]
+    attempt_epoch: Annotated[int, Field(alias="attemptEpoch", ge=0)]
     input_revision: Annotated[str, Field(alias="inputRevision")]
     model_spec_id: Annotated[str, Field(alias="modelSpecId")]
-    owner_id: Annotated[str, Field(alias="ownerId")]
-    owner_kind: Annotated[str, Field(alias="ownerKind")]
-    profile: SynthesisProfile
-    request_id: Annotated[str, Field(alias="requestId")]
-    seed: Annotated[int, Field(ge=0)]
-    style: str | None = None
+    deadline_ms: Annotated[int, Field(alias="deadlineMs", ge=0)]
     text: str
     voice_revision: Annotated[VoiceRevisionReference, Field(alias="voiceRevision")]
+    style: str | None = None
+    seed: Annotated[int, Field(ge=0)]
+    profile: SynthesisProfile
 
 
 class InferenceWireSchemas(WireModel):
-    cancel_params: RuntimeCancelParams
-    cancel_result: RuntimeCancelResult
-    embedding_params: EmbeddingEncodeParams
-    embedding_result: EmbeddingEncodeResult
-    health_params: RuntimeHealthParams
-    health_result: RuntimeHealthResult
-    image_segment_params: ImageSegmentParams
-    image_segment_result: ImageSegmentResult
     initialize_params: RuntimeInitializeParams
     initialize_result: RuntimeInitializeResult
+    health_params: RuntimeHealthParams
+    health_result: RuntimeHealthResult
+    cancel_params: RuntimeCancelParams
+    cancel_result: RuntimeCancelResult
+    ack_chunk_params: RuntimeAckChunkParams
     shutdown_params: RuntimeShutdownParams
     shutdown_result: RuntimeShutdownResult
+    embedding_params: EmbeddingEncodeParams
+    embedding_result: EmbeddingEncodeResult
+    image_segment_params: ImageSegmentParams
+    image_segment_result: ImageSegmentResult
+    speech_transcribe_params: SpeechTranscribeParams
+    speech_transcribe_result: SpeechTranscribeResult
+    speech_transcript_artifact: SpeechTranscriptArtifact
+    speech_progress_event: SpeechProgressEvent
+    speech_progress_event_type: SpeechProgressEventType
     speech_align_params: SpeechAlignParams
     speech_align_result: SpeechAlignResult
     speech_diarize_params: SpeechDiarizeParams
     speech_diarize_result: SpeechDiarizeResult
-    speech_progress_event: SpeechProgressEvent
-    speech_progress_event_type: SpeechProgressEventType
     speech_synthesize_params: SpeechSynthesizeParams
+    speech_synthesis_chunk_event: SpeechSynthesisChunkEvent
+    speech_synthesis_chunk_granularity: SpeechSynthesisChunkGranularity
     speech_synthesize_result: SpeechSynthesizeResult
-    speech_transcribe_params: SpeechTranscribeParams
-    speech_transcribe_result: SpeechTranscribeResult
+    speech_separate_params: SpeechSeparateParams
+    speech_separate_result: SpeechSeparateResult

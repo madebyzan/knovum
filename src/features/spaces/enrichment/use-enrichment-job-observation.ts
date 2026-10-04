@@ -76,11 +76,14 @@ function reportSubscriptionFailure(error: unknown) {
 }
 
 function projectMediaProgress(context: SpaceEnrichmentObserverContext, payload: EnrichmentJobUpdate) {
-  if (context.activeSpaceId.value === payload.spaceId && payload.jobType === "transcribe_media") {
-    if (payload.status === "running") {
+  if (
+    context.activeSpaceId.value === payload.spaceId &&
+    ["transcribe_media", "align_media_transcript", "diarize_media_transcript"].includes(payload.jobType)
+  ) {
+    if (payload.status === "running" || payload.status === "pending") {
       if (!context.analysisIds.value.includes(payload.nodeId))
         context.analysisIds.value = [...context.analysisIds.value, payload.nodeId];
-      if (payload.progress?.partial)
+      if (payload.jobType === "transcribe_media" && payload.progress?.partial)
         appendSpaceMediaAnalysisPreview({
           previews: context.analysisPreviews,
           nodeId: payload.nodeId,

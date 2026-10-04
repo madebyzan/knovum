@@ -6,19 +6,37 @@ import type { TranslationCommandRequest } from "../../shared/contracts/generated
 import { invokeCommand } from "../ipc/invoke-command";
 import { aiExecutionTargetPayload, loadAiExecutionTarget } from "./ai-execution";
 
-export type TranslationTarget =
-  | "zh-CN"
-  | "zh-TW"
-  | "en"
-  | "ja"
-  | "ko"
-  | "fr"
-  | "de"
-  | "es"
-  | "pt"
-  | "it"
-  | "ru"
-  | "ar";
+export const translationTargets = [
+  "zh-CN",
+  "zh-TW",
+  "en",
+  "ja",
+  "ko",
+  "fr",
+  "de",
+  "es",
+  "pt",
+  "it",
+  "ru",
+  "ar",
+] as const;
+
+export type TranslationTarget = (typeof translationTargets)[number];
+
+export const translationTargetLabelKey: Record<TranslationTarget, string> = {
+  "zh-CN": "spaces.richtext.ai.languages.zhCn",
+  "zh-TW": "spaces.richtext.ai.languages.zhTw",
+  en: "spaces.richtext.ai.languages.en",
+  ja: "spaces.richtext.ai.languages.ja",
+  ko: "spaces.richtext.ai.languages.ko",
+  fr: "spaces.richtext.ai.languages.fr",
+  de: "spaces.richtext.ai.languages.de",
+  es: "spaces.richtext.ai.languages.es",
+  pt: "spaces.richtext.ai.languages.pt",
+  it: "spaces.richtext.ai.languages.it",
+  ru: "spaces.richtext.ai.languages.ru",
+  ar: "spaces.richtext.ai.languages.ar",
+};
 
 export interface TranslationInput {
   text: string;

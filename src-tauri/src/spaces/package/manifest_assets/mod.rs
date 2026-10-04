@@ -68,6 +68,62 @@ fn collect_speech_assets(
     used_tokens: &mut HashSet<String>,
     source_revisions: &mut HashMap<String, String>,
 ) -> Result<(), String> {
+    for candidate in value
+        .get("voiceCandidates")
+        .and_then(Value::as_array)
+        .ok_or("Space package voiceCandidates must be an array")?
+    {
+        for (path, digest) in [
+            ("referenceAssetPath", "referenceSha256"),
+            ("previewAssetPath", "previewSha256"),
+        ] {
+            let reference = candidate
+                .get(path)
+                .and_then(Value::as_str)
+                .ok_or("Package voice candidate asset is unavailable")?;
+            let token = package_token(reference)?
+                .ok_or("Package voice candidate must use a managed asset token")?;
+            let digest = candidate
+                .get(digest)
+                .and_then(Value::as_str)
+                .filter(|value| {
+                    value.len() == 64 && value.bytes().all(|byte| byte.is_ascii_hexdigit())
+                })
+                .map(|value| format!("sha256:{value}"))
+                .ok_or("Package voice candidate digest is invalid")?;
+            record_digest(used_tokens, source_revisions, token, &digest)?;
+        }
+    }
+    for separation in value
+        .get("speechSourceSeparations")
+        .and_then(Value::as_array)
+        .ok_or("Space package speechSourceSeparations must be an array")?
+    {
+        for (path, digest) in [
+            ("sourceAssetPath", "sourceRevision"),
+            ("backgroundAssetPath", "backgroundSha256"),
+        ] {
+            let reference = separation
+                .get(path)
+                .and_then(Value::as_str)
+                .ok_or("Package source separation asset is unavailable")?;
+            let token = package_token(reference)?
+                .ok_or("Package source separation must use a managed asset token")?;
+            let raw = separation
+                .get(digest)
+                .and_then(Value::as_str)
+                .ok_or("Package source separation digest is unavailable")?;
+            let revision = if digest == "backgroundSha256" {
+                format!("sha256:{raw}")
+            } else {
+                raw.to_owned()
+            };
+            if !valid_revision(&revision) {
+                return Err("Package source separation digest is invalid".into());
+            }
+            record_digest(used_tokens, source_revisions, token, &revision)?;
+        }
+    }
     for revision in value
         .get("voiceRevisions")
         .and_then(Value::as_array)
@@ -108,6 +164,22 @@ fn collect_speech_assets(
         .and_then(Value::as_array)
         .ok_or("Space package speechProjectRevisions must be an array")?
     {
+        if let Some(config) = revision
+            .get("outputConfig")
+            .filter(|config| config.get("video").is_some())
+        {
+            let config = crate::spaces::speech::video_config::parse(config)?;
+            for source in std::iter::once(&config.video).chain(config.background.iter()) {
+                let token = package_token(&source.asset_path)?
+                    .ok_or("Package video dubbing sources require managed asset tokens")?;
+                record_digest(
+                    used_tokens,
+                    source_revisions,
+                    token,
+                    &source.source_revision,
+                )?;
+            }
+        }
         let Some(reference) = revision.get("outputAssetPath").and_then(Value::as_str) else {
             continue;
         };

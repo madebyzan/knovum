@@ -12,6 +12,9 @@ use crate::{
 };
 use pipeline::TranscriptionPipeline;
 
+pub(crate) mod alignment;
+pub(crate) mod diarization;
+
 pub(crate) fn engine_id() -> Result<&'static str, String> {
     pipeline::platform_profile().map(|(_, _, _, id)| id)
 }

@@ -53,6 +53,12 @@ pub(super) async fn transcribe(
     if data["mediaAnalysis"]["sourceRevision"].as_str() != Some(request.source_revision.as_str()) {
         return Err("Transcription requires current media analysis".into());
     }
+    if super::super::requests::has_current_transcript(data, &request.source_revision) {
+        return Err(
+            "Current media transcript already exists; automatic retranscription would discard transcript edits"
+                .into(),
+        );
+    }
     let transcript = transcription::start_transcription(
         app.clone(),
         job_id.to_owned(),
@@ -73,10 +79,58 @@ pub(super) async fn transcribe(
             serde_json::json!({
                 "transcript": transcript,
                 "sourceRevision": request.source_revision,
-                "schemaVersion": 4,
+                "schemaVersion": 5,
             }),
         );
     Ok(())
+}
+
+pub(super) async fn align(
+    app: &AppHandle,
+    job_id: &str,
+    request: &RunEnrichmentJobRequest,
+    data: &mut Value,
+    progress: Channel<MediaTranscriptionProgress>,
+    cancellation: &CancellationToken,
+) -> Result<(), String> {
+    let source = media_source(data)?;
+    if data["mediaKnowledge"]["sourceRevision"].as_str() != Some(request.source_revision.as_str()) {
+        return Err("Alignment requires current media knowledge".into());
+    }
+    transcription::alignment::align_media(
+        app,
+        job_id,
+        &source,
+        &request.source_revision,
+        data,
+        &progress,
+        cancellation,
+    )
+    .await
+}
+
+pub(super) async fn diarize(
+    app: &AppHandle,
+    job_id: &str,
+    request: &RunEnrichmentJobRequest,
+    data: &mut Value,
+    progress: Channel<MediaTranscriptionProgress>,
+    cancellation: &CancellationToken,
+) -> Result<(), String> {
+    let source = media_source(data)?;
+    if data["mediaKnowledge"]["sourceRevision"].as_str() != Some(request.source_revision.as_str()) {
+        return Err("Diarization requires current media knowledge".into());
+    }
+    transcription::diarization::diarize_media(
+        app,
+        job_id,
+        &source,
+        &request.source_revision,
+        data,
+        &progress,
+        cancellation,
+    )
+    .await
 }
 
 fn media_source(data: &Value) -> Result<String, String> {

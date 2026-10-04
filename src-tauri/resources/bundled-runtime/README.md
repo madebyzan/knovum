@@ -20,7 +20,7 @@ Development may point to explicit binaries with `KNOVUM_FFMPEG_PATH`, `KNOVUM_YT
 The development runner also sets `KNOVUM_PYTHON_RUNTIME_MANIFEST_PATH` to the provisioned host
 manifest. Release builds ignore that override and resolve only the signed application resource tree.
 
-`runtime-manifest.json` is schema version 1 and identifies `runtimeId`, exact CPython `3.11.13` `version`,
+`runtime-manifest.json` is schema version 1 and identifies `runtimeId`, exact CPython `3.11.17` `version`,
 `protocolVersion`, `target`, `executable`, `packageRoot`, and every runtime file by slash-relative
 path, byte size, and lowercase SHA-256. `dependencyLockSha256` binds the package to the repository's
 exact `python/uv.lock` bytes. The manifest does not list itself; its exact byte digest is
@@ -42,10 +42,18 @@ installing those tools under the application data directory when a user first st
 import. yt-dlp is the sole web media importer; Deno is supplied explicitly for yt-dlp's YouTube
 JavaScript challenge support.
 
-`pnpm runtime:provision` stages the controlled FFmpeg and Python runtime archive and rejects archives
+`pnpm runtime:provision` stages separately pinned FFmpeg and Python runtime archives and rejects archives
 that contain yt-dlp or Deno. `tools/package-desktop.mjs` applies the same boundary and enumerates the
 current target's files instead of using a catch-all glob.
 
 The runtime installer verifies the downloaded archive hash and extracted executable hash before
 publishing a versioned tool directory. Fixed hashes establish artifact identity; production release
 evidence must separately cover platform signing and clean-machine execution.
+
+The Python archive is produced by `pnpm runtime:build` on its exact native target, using
+`python/runtime-source.json` and the frozen runtime/build groups. `build-evidence/`
+records interpreter origin, installed dependency/source/license inventory, CycloneDX
+SBOM, VoxCPM source, pinned sherpa/eSpeak/piper recipe sources, signing and relocation
+checks. The provisioner rejects a worker source tree that differs from this checkout.
+The sherpa recipe sources do not establish correspondence for the older Kokoro
+espeak-ng-data archive; production remains blocked pending that resource review.

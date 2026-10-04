@@ -4,6 +4,9 @@ mod knowledge;
 mod speech;
 #[cfg(test)]
 mod tests;
+mod translation;
+mod voice_candidate_selection;
+mod voice_candidates;
 
 use super::{restore::contracts::RestorePackageRequest, ImportedPackageAsset};
 use serde_json::{json, Value};
@@ -61,10 +64,12 @@ const COLLECTIONS: &[&str] = &[
     "knowledgeEvents",
     "voiceProfiles",
     "voiceRevisions",
+    "voiceCandidates",
     "speechProjects",
     "speechProjectRevisions",
     "speechSegments",
     "speechRenders",
+    "speechSourceSeparations",
 ];
 
 pub(super) fn prepare(
@@ -125,7 +130,9 @@ pub(super) fn prepare(
                 "provenance",
                 "knowledgeEvents",
                 "voiceProfiles",
+                "voiceCandidates",
                 "speechProjects",
+                "speechSourceSeparations",
             ]
             .contains(&collection);
             if owned && owner.and_then(Value::as_str) != Some(maps.source_space.as_str()) {
@@ -152,7 +159,9 @@ pub(super) fn prepare(
     }
     content::remap(&mut value, &mut maps, &original_types)?;
     execution::remap(&mut value, &maps)?;
+    voice_candidates::remap(&mut value, &maps)?;
     speech::remap(&mut value, &maps)?;
+    translation::remap(&mut value, &maps)?;
     knowledge::remap(&mut value, &maps)?;
     let now = crate::clock::unix_time_millis()?;
     let space = &value["space"];

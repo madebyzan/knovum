@@ -4,6 +4,7 @@ import { search } from "fast-fuzzy";
 import { computed, nextTick, ref, useTemplateRef, watch, type ComponentPublicInstance } from "vue";
 import { useI18n } from "vue-i18n";
 
+import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiSearchInput from "../../../../shared/ui/UiSearchInput.vue";
 import UiSwitch from "../../../../shared/ui/UiSwitch.vue";
 import type { SpaceTranscriptEdit, SpaceTranscriptSegment } from "../../media/schema/knowledge";
@@ -14,15 +15,35 @@ const props = defineProps<{
   segments: SpaceTranscriptSegment[];
   currentMs?: number;
   disabled?: boolean;
+  alignmentDisabled?: boolean;
 }>();
 const emit = defineEmits<{
   seek: [positionMs: number];
   save: [payload: SpaceTranscriptEdit];
+  align: [segmentIds: string[]];
 }>();
 const { t } = useI18n();
 const scroller = useTemplateRef<HTMLDivElement>("scroller");
 const query = ref("");
 const autoFollow = ref(true);
+const selected = ref<string[]>([]);
+const canAlign = computed(
+  () =>
+    selected.value.length > 0 &&
+    selected.value.length <= 8 &&
+    props.segments
+      .filter((segment) => selected.value.includes(segment.id))
+      .reduce((total, segment) => total + segment.endMs - segment.startMs, 0) <= 300_000,
+);
+function selectSegment(id: string, checked: boolean) {
+  selected.value = checked ? [...selected.value, id] : selected.value.filter((value) => value !== id);
+}
+watch(
+  () => props.segments,
+  () => {
+    selected.value = [];
+  },
+);
 const visibleIndices = computed(() => {
   const needle = query.value.trim();
   if (!needle) return props.segments.map((_, index) => index);
@@ -79,6 +100,12 @@ async function remeasure() {
         <UiSwitch v-model="autoFollow" :label="t('spaces.media.player.followPlayback')" />
       </label>
     </div>
+    <div class="flex items-center gap-2 border-b border-stroke-divider p-2">
+      <UiButton size="sm" :disabled="alignmentDisabled || !canAlign" @click="emit('align', [...selected])">
+        {{ t("spaces.transcript.text.alignSelected") }} · {{ selected.length }}
+      </UiButton>
+      <span class="text-caption-sm text-fg-tertiary">{{ t("spaces.transcript.text.alignmentLimit") }}</span>
+    </div>
     <div ref="scroller" class="h-80 overflow-y-auto">
       <div class="relative w-full" :style="{ height: `${totalSize}px` }">
         <SpaceTranscriptSegmentEditor
@@ -92,6 +119,12 @@ async function remeasure() {
           :segment="segments[visibleIndices[row.index]!]!"
           :index="visibleIndices[row.index]!"
           :active="visibleIndices[row.index] === activeIndex"
+          :selected="selected.includes(segments[visibleIndices[row.index]!]!.id)"
+          :selection-disabled="
+            alignmentDisabled ||
+            (selected.length >= 8 && !selected.includes(segments[visibleIndices[row.index]!]!.id))
+          "
+          @select="selectSegment(segments[visibleIndices[row.index]!]!.id, $event)"
           v-bind="disabled === undefined ? {} : { disabled }"
           @seek="emit('seek', $event)"
           @save="emit('save', $event)"

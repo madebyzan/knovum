@@ -1,113 +1,21 @@
-export type VoiceSourceKind = "preset" | "reference" | "designed";
-export type SpeechProjectType = "short_dubbing" | "audiobook" | "video_dubbing";
-
-export interface VoiceProfileSummary {
-  id: string;
-  name: string;
-  sourceKind: VoiceSourceKind;
-  activeRevisionId: string;
-  engineId: string;
-  modelSpecId: string;
-  language: string;
-  presetVoiceId?: string;
-  updatedAt: number;
-}
-
-export interface SpeechProjectSummary {
-  id: string;
-  spaceId: string;
-  projectType: SpeechProjectType;
-  title: string;
-  activeRevisionId: string;
-  activeRevision: number;
-  segmentCount: number;
-  generationEpoch: number;
-  activeGenerationJobId?: string;
-  updatedAt: number;
-}
-
-export interface CreatePresetVoiceInput {
-  spaceId: string;
-  name: string;
-  presetVoiceId: string;
-  engineId: string;
-  modelSpecId: string;
-  language: string;
-  synthesisConfig: Record<string, unknown>;
-}
-
-export interface CreateSpeechProjectInput {
-  spaceId: string;
-  projectType: SpeechProjectType;
-  title: string;
-  outputConfig: Record<string, unknown>;
-}
-
-export interface SpeechSegment {
-  id: string;
-  ordinal: number;
-  text: string;
-  normalizedText: string;
-  voiceRevisionId: string;
-  language: string;
-  state: "pending" | "ready" | "rendering" | "rendered" | "needs_edit" | "failed";
-}
-
-export interface SpeechProjectDetail {
-  project: SpeechProjectSummary;
-  revision: {
-    id: string;
-    projectId: string;
-    revision: number;
-    sourceRevision: string;
-    outputAssetPath?: string;
-    outputSha256?: string;
-    outputSampleRate?: number;
-    outputSampleCount?: number;
-  };
-  segments: SpeechSegment[];
-}
-
-export interface SaveSpeechProjectRevisionInput {
-  projectId: string;
-  expectedRevision: number;
-  sourceRevision: string;
-  pronunciationLexicon: Record<string, string>;
-  outputConfig: Record<string, unknown>;
-  segments: Array<{
-    id: string;
-    chapterKey?: string;
-    speakerKey?: string;
-    text: string;
-    voiceRevisionId: string;
-    language: string;
-    targetStartMs?: number;
-    targetEndMs?: number;
-  }>;
-}
-
-export interface SpeechGenerationProgress {
-  stage: "preparing" | "synthesizing" | "rendering" | "done";
-  completed: number;
-  total: number;
-  resources?: { downloaded: number; total?: number; percent?: number };
-}
-
-export interface SpeechAudioOutput {
-  path: string;
-  sha256: string;
-  sampleRate: number;
-  sampleCount: number;
-}
-
-export interface SpeechSegmentRenderOutput extends SpeechAudioOutput {
-  segmentId: string;
-  cached: boolean;
-}
-
-export interface SpeechProjectRenderOutput {
-  projectId: string;
-  revision: number;
-  renders: SpeechSegmentRenderOutput[];
-  output: SpeechAudioOutput;
-}
+export type { CreatePresetVoiceRequest as CreatePresetVoiceInput } from "../contracts/generated/CreatePresetVoiceRequest";
+export type { CreateSpeechProjectRequest as CreateSpeechProjectInput } from "../contracts/generated/CreateSpeechProjectRequest";
+export type { SaveSpeechProjectRevisionRequest as SaveSpeechProjectRevisionInput } from "../contracts/generated/SaveSpeechProjectRevisionRequest";
+export type { SpeechProjectSummary } from "../contracts/generated/SpeechProjectSummary";
+export type { SpeechProjectDetail } from "../contracts/generated/SpeechProjectDetail";
+export type { SpeechSegment } from "../contracts/generated/SpeechSegment";
+export type { VoiceProfileSummary } from "../contracts/generated/VoiceProfileSummary";
+export type { VoiceProfileDetail } from "../contracts/generated/VoiceProfileDetail";
+export type { VoiceRevisionSummary } from "../contracts/generated/VoiceRevisionSummary";
+export type { SpeechGenerationProgress } from "../contracts/generated/SpeechGenerationProgress";
+export type { SpeechAudioOutput } from "../contracts/generated/SpeechAudioOutput";
+export type { SpeechProjectRenderOutput } from "../contracts/generated/SpeechProjectRenderOutput";
+export type { AudiobookOutputConfig } from "../contracts/generated/AudiobookOutputConfig";
+export type { VideoDubbingOutputConfig } from "../contracts/generated/VideoDubbingOutputConfig";
+export type { AcceptedSourceSeparation } from "../contracts/generated/AcceptedSourceSeparation";
+export type { VideoTranslationProvenance } from "../contracts/generated/VideoTranslationProvenance";
+export type { VideoTranslationResult } from "../contracts/generated/VideoTranslationResult";
+export type { SpeechMediaSource } from "../contracts/generated/SpeechMediaSource";
+export type { DraftVoiceCandidateRequest } from "../contracts/generated/DraftVoiceCandidateRequest";
+export type { CreateCandidateVoiceRequest } from "../contracts/generated/CreateCandidateVoiceRequest";
+export type { VoiceCandidate } from "../contracts/generated/VoiceCandidate";

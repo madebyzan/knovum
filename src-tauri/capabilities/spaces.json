@@ -14,6 +14,7 @@
     "clipboard:allow-write-html-and-text",
     "spaces:allow-read-space-clipboard-content",
     "opener:default",
+    "fs:allow-stat",
     {
       "identifier": "fs:allow-read-file",
       "allow": [

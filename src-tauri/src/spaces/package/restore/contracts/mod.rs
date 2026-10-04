@@ -15,7 +15,8 @@ pub use restore_request::RestorePackageRequest;
 pub use run::{PackageRun, PackageRunAttempt, PackageRunEvent, PackageRunStep};
 pub use speech::{
     PackageSpeechProject, PackageSpeechProjectRevision, PackageSpeechRender, PackageSpeechSegment,
-    PackageVoiceProfile, PackageVoiceRevision,
+    PackageSpeechSourceSeparation, PackageVoiceCandidate, PackageVoiceProfile,
+    PackageVoiceRevision,
 };
 
 #[derive(Debug, Deserialize)]

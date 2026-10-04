@@ -36,11 +36,32 @@ pub(crate) async fn encode_embedding<R: Runtime>(
 ) -> Result<EmbeddingEncodeResult, String> {
     super::deadline_duration(identity.deadline_ms)?;
     let exit = super::exit_token();
+    let priority = match role {
+        EmbeddingRole::Query => super::admission::Priority::Interactive,
+        EmbeddingRole::Document => super::admission::Priority::Background,
+    };
+    let runtime = tools::resolve_python_runtime(app)?.ok_or("runtime_missing")?;
+    let model_directory = embedding_directory(resources)?;
+    let threads = std::thread::available_parallelism()
+        .map(|count| count.get().min(4) as u8)
+        .unwrap_or(1);
+    let device_profile = RuntimeDeviceProfile {
+        device: "cpu".into(),
+        execution_profile_id: format!("cpu-f32-threads{threads}-v1"),
+        cpu_threads: threads,
+    };
+    super::prepare_worker_for_admission(priority, |worker| {
+        worker.matches(
+            &runtime.digest,
+            model_directory,
+            RuntimeCapability::Embedding,
+            crate::ai::capabilities::embedding::EMBEDDING_SPEC_ID,
+            &device_profile,
+        )
+    })
+    .await?;
     let _permit = super::admission::acquire(
-        match role {
-            EmbeddingRole::Query => super::admission::Priority::Interactive,
-            EmbeddingRole::Document => super::admission::Priority::Background,
-        },
+        priority,
         cancellation,
         exit,
         super::deadline_duration(identity.deadline_ms)?,
@@ -53,13 +74,14 @@ pub(crate) async fn encode_embedding<R: Runtime>(
         _ = cancellation.cancelled() => return Err("cancelled".into()),
         guard = slot.lock() => guard,
     };
-    let runtime = tools::resolve_python_runtime(app)?.ok_or("runtime_missing")?;
-    let model_directory = embedding_directory(resources)?;
     if let Some(worker) = guard.as_mut() {
-        if worker.capability != RuntimeCapability::Embedding
-            || worker.runtime_digest != runtime.digest
-            || worker.model_path != model_directory
-        {
+        if !worker.matches(
+            &runtime.digest,
+            model_directory,
+            RuntimeCapability::Embedding,
+            crate::ai::capabilities::embedding::EMBEDDING_SPEC_ID,
+            &device_profile,
+        ) {
             worker.terminate().await;
             *guard = None;
         }
@@ -72,20 +94,13 @@ pub(crate) async fn encode_embedding<R: Runtime>(
             .map_err(|error| error.to_string())?
             .join("inference")
             .join(&session_id);
-        let threads = std::thread::available_parallelism()
-            .map(|count| count.get().min(4) as u8)
-            .unwrap_or(1);
         let params = RuntimeInitializeParams {
             protocol_version: PROTOCOL_VERSION,
             runtime_digest: runtime.digest.clone(),
             session_id,
             capability: RuntimeCapability::Embedding,
             capability_spec_id: crate::ai::capabilities::embedding::EMBEDDING_SPEC_ID.into(),
-            device_profile: RuntimeDeviceProfile {
-                device: "cpu".into(),
-                execution_profile_id: format!("cpu-f32-threads{threads}-v1"),
-                cpu_threads: threads,
-            },
+            device_profile: device_profile.clone(),
             work_directory: work_directory.to_string_lossy().into_owned(),
             model_paths: RuntimeModelPaths {
                 embedding: Some(model_directory.to_string_lossy().into_owned()),
@@ -93,6 +108,7 @@ pub(crate) async fn encode_embedding<R: Runtime>(
                 speech_alignment: None,
                 speech_diarization: None,
                 speech_synthesis: None,
+                speech_separation: None,
                 image_segmentation: None,
             },
         };
@@ -233,22 +249,22 @@ fn embedding_directory(resources: &PreparedModels) -> Result<&Path, String> {
 }
 
 async fn cancel(worker: &mut Worker, request_id: &str, attempt_epoch: u64) {
-    let _ = worker
-        .protocol
-        .notify(
-            "runtime.cancel",
-            &RuntimeCancelParams {
-                target_request_id: request_id.into(),
-                attempt_epoch,
-            },
-        )
-        .await;
-    let _ = tokio::time::timeout(
-        CANCEL_GRACE,
+    let _ = tokio::time::timeout(CANCEL_GRACE, async {
         worker
             .protocol
-            .read_response::<EmbeddingEncodeResult>(request_id),
-    )
+            .notify(
+                "runtime.cancel",
+                &RuntimeCancelParams {
+                    target_request_id: request_id.into(),
+                    attempt_epoch,
+                },
+            )
+            .await?;
+        worker
+            .protocol
+            .read_response::<EmbeddingEncodeResult>(request_id)
+            .await
+    })
     .await;
     worker.terminate().await;
 }

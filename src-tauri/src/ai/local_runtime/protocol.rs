@@ -74,7 +74,10 @@ impl Protocol {
         }
     }
 
-    fn decode_response<R: DeserializeOwned>(response: Value, id: &str) -> Result<R, String> {
+    pub(super) fn decode_response<R: DeserializeOwned>(
+        response: Value,
+        id: &str,
+    ) -> Result<R, String> {
         if response.get("jsonrpc").and_then(Value::as_str) != Some("2.0")
             || response.get("id").and_then(Value::as_str) != Some(id)
         {

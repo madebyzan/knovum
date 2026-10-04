@@ -1,6 +1,8 @@
 use super::{apply, authoritative, validate_declared};
 use serde_json::json;
 
+use crate::media::transcript::{tests::knowledge_fixture, TranscriptSegment};
+
 #[test]
 fn integer_and_decimal_json_numbers_share_the_webview_representation() {
     assert_eq!(
@@ -142,7 +144,15 @@ fn media_origin_is_authoritative() {
 
 #[test]
 fn transcript_edits_change_media_knowledge_revision() {
-    let data = json!({"kind":"video","title":"V","sourceRevision":"asset:1","mediaKnowledge":{"sourceRevision":"asset:1","transcript":{"subtitleCues":[{"startMs":0,"endMs":1000,"text":"Original"}]}}});
+    let mut data = json!({"kind":"video","title":"V","sourceRevision":"asset:1"});
+    data["mediaKnowledge"] = knowledge_fixture(
+        "asset:1",
+        vec![TranscriptSegment {
+            start_ms: 0,
+            end_ms: 1_000,
+            text: "Original".into(),
+        }],
+    );
     let mut edited = data.clone();
     edited["mediaKnowledge"]["transcript"]["subtitleCues"][0]["text"] = json!("Edited");
     assert_ne!(

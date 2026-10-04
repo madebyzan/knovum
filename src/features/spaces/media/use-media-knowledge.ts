@@ -6,6 +6,7 @@ import { toast } from "vue-sonner";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { getCanvasEditorSession } from "../canvas/editor-session";
 import { useNodeOperationGate } from "../canvas/node-operation-gate";
+import { refreshEnrichmentJobs } from "../enrichment/enrichment-jobs-query";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import { isSpaceMediaPayload } from "../model/nodes/capabilities";
 import { useSpaceStore } from "../session/space-store";
@@ -18,6 +19,7 @@ import {
   shiftMediaChapterStart,
 } from "./knowledge-editing";
 import type { SpaceTranscriptEdit } from "./schema/knowledge";
+import { requestMediaAlignment } from "./transcription";
 
 export function useMediaKnowledge(node: Ref<SpaceCanvasNode>) {
   const store = useSpaceStore();
@@ -25,6 +27,7 @@ export function useMediaKnowledge(node: Ref<SpaceCanvasNode>) {
   const { mediaAnalysisIds, mediaAnalysisPreviews, mediaPlayback } = storeToRefs(store);
   const { t } = useI18n();
   const transcriptOpen = ref(false);
+  const alignmentSubmitting = ref(false);
   const analyzing = computed(() => mediaAnalysisIds.value.includes(node.value.id));
   const analysisPreview = computed(() => mediaAnalysisPreviews.value[node.value.id]);
   const mediaContent = computed(() => (isSpaceMediaPayload(node.value.data) ? node.value.data : undefined));
@@ -58,6 +61,28 @@ export function useMediaKnowledge(node: Ref<SpaceCanvasNode>) {
       await store.analyzeMedia(node.value.id);
     } catch (error) {
       toast.error(getErrorMessage(error));
+    }
+  }
+  async function alignSegments(segmentIds: string[]) {
+    const current = knowledge.value;
+    const spaceId = store.activeSpaceId;
+    if (
+      !spaceId ||
+      !current ||
+      !canDerive.value ||
+      stale.value ||
+      analyzing.value ||
+      alignmentSubmitting.value
+    )
+      return;
+    alignmentSubmitting.value = true;
+    try {
+      await requestMediaAlignment(spaceId, node.value.id, current.transcript.revision, segmentIds);
+      await refreshEnrichmentJobs();
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    } finally {
+      alignmentSubmitting.value = false;
     }
   }
   function seek(positionMs: number) {
@@ -101,6 +126,8 @@ export function useMediaKnowledge(node: Ref<SpaceCanvasNode>) {
   }
   return {
     transcriptOpen,
+    alignmentSubmitting,
+    alignSegments,
     analyzing,
     analysisPreview,
     knowledge,

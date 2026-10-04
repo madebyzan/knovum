@@ -12,12 +12,22 @@ use super::RESOURCE_PREPARATION_CANCELLED;
 use crate::local_resources::models::{
     self,
     catalog::{self, ModelKind},
+    diarization::VerifiedDiarizationDirectory,
     kokoro::VerifiedKokoroDirectory,
 };
 
 fn kokoro_lock() -> Arc<RwLock<()>> {
     static LOCK: OnceLock<Arc<RwLock<()>>> = OnceLock::new();
     Arc::clone(LOCK.get_or_init(|| Arc::new(RwLock::new(()))))
+}
+
+fn diarization_lock() -> Arc<RwLock<()>> {
+    static LOCK: OnceLock<Arc<RwLock<()>>> = OnceLock::new();
+    Arc::clone(LOCK.get_or_init(|| Arc::new(RwLock::new(()))))
+}
+
+pub(crate) async fn acquire_diarization_installation() -> tokio::sync::OwnedRwLockWriteGuard<()> {
+    diarization_lock().write_owned().await
 }
 
 pub(super) async fn acquire_kokoro_installation(
@@ -33,6 +43,67 @@ pub(super) async fn acquire_kokoro_installation(
 pub struct PreparedKokoroModel {
     directory: VerifiedKokoroDirectory,
     _usage: OwnedRwLockReadGuard<()>,
+}
+
+pub struct PreparedVoxCpm2Model {
+    directory: PathBuf,
+    _models: PreparedModels,
+}
+
+pub struct PreparedDiarizationModel {
+    directory: VerifiedDiarizationDirectory,
+    _usage: OwnedRwLockReadGuard<()>,
+}
+
+impl PreparedDiarizationModel {
+    pub fn directory(&self) -> &Path {
+        self.directory.as_path()
+    }
+}
+
+pub async fn acquire_verified_diarization<R: Runtime>(
+    app: &AppHandle<R>,
+    cancellation: &CancellationToken,
+) -> Result<PreparedDiarizationModel, String> {
+    let usage = tokio::select! {
+        biased;
+        _ = cancellation.cancelled() => return Err(RESOURCE_PREPARATION_CANCELLED.into()),
+        guard = diarization_lock().read_owned() => guard,
+    };
+    let app = app.clone();
+    let directory = crate::blocking::run(move || {
+        crate::local_resources::models::diarization::require_verified_directory(&app)
+    })
+    .await?;
+    Ok(PreparedDiarizationModel {
+        directory,
+        _usage: usage,
+    })
+}
+
+impl PreparedVoxCpm2Model {
+    pub fn from_models(models: PreparedModels) -> Result<Self, String> {
+        let anchor = models.path(catalog::VOXCPM2_MODELS[0])?;
+        let directory = anchor
+            .parent()
+            .ok_or_else(|| "VoxCPM2 model directory is unavailable".to_string())?
+            .to_owned();
+        for kind in catalog::VOXCPM2_MODELS {
+            let actual = models.path(*kind)?;
+            let expected = directory.join(catalog::descriptor(*kind).file);
+            if actual != expected {
+                return Err("VoxCPM2 model snapshot is not co-located".to_string());
+            }
+        }
+        Ok(Self {
+            directory,
+            _models: models,
+        })
+    }
+
+    pub fn directory(&self) -> &Path {
+        &self.directory
+    }
 }
 
 impl PreparedKokoroModel {
@@ -151,6 +222,23 @@ const fn model_order(kind: ModelKind) -> u8 {
         ModelKind::TextEmbeddingTokenizerConfig => 11,
         ModelKind::TextEmbeddingTokenizer => 12,
         ModelKind::TextEmbeddingWeights => 13,
+        ModelKind::VoxCpm2AudioVae => 14,
+        ModelKind::VoxCpm2Config => 15,
+        ModelKind::VoxCpm2Weights => 16,
+        ModelKind::VoxCpm2SpecialTokens => 17,
+        ModelKind::VoxCpm2TokenizerImplementation => 18,
+        ModelKind::VoxCpm2Tokenizer => 19,
+        ModelKind::VoxCpm2TokenizerConfig => 20,
+        ModelKind::Qwen3ForcedAlignerChatTemplate => 21,
+        ModelKind::Qwen3ForcedAlignerConfig => 22,
+        ModelKind::Qwen3ForcedAlignerGenerationConfig => 23,
+        ModelKind::Qwen3ForcedAlignerMerges => 24,
+        ModelKind::Qwen3ForcedAlignerWeights => 25,
+        ModelKind::Qwen3ForcedAlignerPreprocessorConfig => 26,
+        ModelKind::Qwen3ForcedAlignerTokenizerConfig => 27,
+        ModelKind::Qwen3ForcedAlignerVocabulary => 28,
+        ModelKind::SpleeterAccompaniment => 29,
+        ModelKind::SpleeterVocals => 30,
     }
 }
 

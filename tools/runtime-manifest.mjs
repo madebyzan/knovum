@@ -1,6 +1,8 @@
-import { createHash } from "node:crypto";
-import { closeSync, lstatSync, openSync, readFileSync, readdirSync, readSync } from "node:fs";
-import { isAbsolute, join, relative } from "node:path";
+import { lstatSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+
+import { listRuntimeFiles, safeRelativePath, sha256File } from "./runtime-files.mjs";
+import { validateRuntimeProvenance } from "./runtime-provenance.mjs";
 
 const maxManifestBytes = 16 * 1024 * 1024;
 const maxRuntimeFileBytes = 4 * 1024 * 1024 * 1024;
@@ -28,32 +30,7 @@ export function validatePythonRuntime(directory, runtimeTarget, dependencyLock) 
   if (actual.length !== declared.size || actual.some((path) => !declared.has(path))) {
     throw new Error(`Python runtime contains files not declared by its manifest for ${runtimeTarget}`);
   }
-}
-
-export function listRuntimeFiles(root, options = {}) {
-  return walkRuntimeFiles(root, root)
-    .filter((path) => !options.excludeManifest || path !== "runtime-manifest.json")
-    .toSorted();
-}
-
-export function safeRelativePath(path) {
-  if (typeof path !== "string" || path.length === 0 || path.trim() !== path) return false;
-  if (path.includes("\\") || isAbsolute(path) || /^[A-Za-z]:/u.test(path)) return false;
-  return path.split("/").every((part) => part && part !== "." && part !== "..");
-}
-
-function sha256File(path) {
-  const descriptor = openSync(path, "r");
-  const hash = createHash("sha256");
-  const buffer = Buffer.allocUnsafe(1024 * 1024);
-  try {
-    for (let size = readSync(descriptor, buffer); size > 0; size = readSync(descriptor, buffer)) {
-      hash.update(buffer.subarray(0, size));
-    }
-  } finally {
-    closeSync(descriptor);
-  }
-  return hash.digest("hex");
+  validateRuntimeProvenance(directory, manifest, dependencyLock);
 }
 
 function readManifest(directory, runtimeTarget) {
@@ -76,7 +53,7 @@ function validateManifestHeader(manifest, target, executable, dependencyLock) {
 
 function validManifestShape(manifest, target, executable) {
   if (!exactKeys(manifest, manifestKeys) || manifest.schemaVersion !== 1) return false;
-  if (manifest.runtimeId !== "cpython" || manifest.version !== "3.11.13") return false;
+  if (manifest.runtimeId !== "cpython" || manifest.version !== "3.11.17") return false;
   if (manifest.protocolVersion !== 1 || manifest.packageRoot !== "packages") return false;
   if (manifest.target !== target || manifest.executable !== executable) return false;
   return Array.isArray(manifest.files) && manifest.files.length <= maxRuntimeFiles;
@@ -126,25 +103,6 @@ function validateRuntimeFile(directory, file, target, executable) {
 function assertRequiredFiles(declared, executable) {
   for (const required of [executable, "packages/knovum_inference/__main__.py"]) {
     if (!declared.has(required)) throw new Error(`Python runtime manifest does not declare ${required}`);
-  }
-}
-
-function walkRuntimeFiles(root, directory) {
-  const files = [];
-  for (const entry of readdirSync(directory, { withFileTypes: true })) {
-    const path = join(directory, entry.name);
-    const metadata = lstatSync(path);
-    assertRegularRuntimeEntry(path, metadata);
-    if (metadata.isDirectory()) files.push(...walkRuntimeFiles(root, path));
-    else files.push(relative(root, path).replaceAll("\\", "/"));
-  }
-  return files;
-}
-
-function assertRegularRuntimeEntry(path, metadata) {
-  if (metadata.isSymbolicLink()) throw new Error(`Runtime contains a link: ${path}`);
-  if (!metadata.isFile() && !metadata.isDirectory()) {
-    throw new Error(`Runtime contains a non-file: ${path}`);
   }
 }
 

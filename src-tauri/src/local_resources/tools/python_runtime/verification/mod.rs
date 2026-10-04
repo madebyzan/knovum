@@ -83,7 +83,7 @@ fn validate_identity(manifest: &RuntimeManifest) -> Result<(), String> {
     };
     if manifest.schema_version != 1
         || manifest.runtime_id != "cpython"
-        || manifest.version != "3.11.13"
+        || manifest.version != "3.11.17"
         || manifest.protocol_version != 1
         || manifest.dependency_lock_sha256
             != digest(include_bytes!(concat!(

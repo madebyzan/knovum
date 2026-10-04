@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join, resolve as resolvePath } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -10,7 +10,10 @@ import {
   updaterConfiguration,
   validateReleaseArguments,
 } from "./release-policy.mjs";
-import { listRuntimeFiles, validatePythonRuntime } from "./runtime-manifest.mjs";
+import { listRuntimeFiles } from "./runtime-files.mjs";
+import { validatePythonRuntime } from "./runtime-manifest.mjs";
+import { verifyWindowsRuntimePackage } from "./runtime-package.mjs";
+import { verifyRuntimeSignatures } from "./runtime-signatures.mjs";
 
 const repository = resolvePath(dirname(fileURLToPath(import.meta.url)), "..");
 const runtimeRoot = join(repository, "src-tauri", "resources", "bundled-runtime");
@@ -25,6 +28,7 @@ const target = buildRuntimeTarget;
 const release = takeFlag("--release");
 const releaseConfig = release ? productionConfiguration() : {};
 requireRuntime(target);
+if (release) verifyRuntimeSignatures(join(runtimeRoot, target, "python-runtime"), target, repository);
 
 const bundleResources = [
   "resources/bundled-runtime/README.md",
@@ -42,6 +46,45 @@ execFileSync(
     stdio: "inherit",
   },
 );
+requireRuntime(target);
+const bundleRoot = join(
+  repository,
+  "src-tauri",
+  "target",
+  ...(buildTarget ? [buildTarget] : []),
+  "release",
+  "bundle",
+);
+if (target === "windows-x64") {
+  const formats =
+    value("--bundles")?.split(",") ?? readJson("src-tauri/tauri.windows.conf.json").bundle.targets;
+  for (const format of formats) {
+    const directory = join(bundleRoot, format);
+    const extension = { nsis: ".exe", msi: ".msi" }[format];
+    if (!extension) fail(`Unsupported Windows package format: ${format}`);
+    const packages = readdirSync(directory).filter((name) => name.endsWith(extension));
+    if (!packages.length) fail(`No final ${format} package was produced`);
+    for (const name of packages) {
+      verifyWindowsRuntimePackage(join(directory, name), { target, repository, production: release });
+    }
+  }
+}
+if (target === "macos-arm64") {
+  const name = readJson("src-tauri/tauri.conf.json").productName;
+  const packaged = join(
+    bundleRoot,
+    "macos",
+    `${name}.app`,
+    "Contents",
+    "Resources",
+    "resources",
+    "bundled-runtime",
+    target,
+    "python-runtime",
+  );
+  validatePythonRuntime(packaged, target, join(repository, "python", "uv.lock"));
+  if (release) verifyRuntimeSignatures(packaged, target, repository);
+}
 
 function productionConfiguration() {
   validateReleaseArguments(args);
@@ -49,6 +92,10 @@ function productionConfiguration() {
   const kokoro = readJson("src-tauri/src/local_resources/models/kokoro-int8-multi-lang-v1_0.json");
   if (kokoro.licenseReview?.status !== "approved") {
     fail("Kokoro archive license review is unresolved; release packaging is blocked");
+  }
+  const nativeSources = readJson("python/native-source-evidence.json");
+  if (nativeSources.reviewStatus !== "approved") {
+    fail("Python native corresponding-source review is unresolved; release packaging is blocked");
   }
   const production = readJson("src-tauri/tauri.release.conf.json");
   return {

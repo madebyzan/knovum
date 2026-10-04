@@ -21,6 +21,7 @@ pub(super) fn claim(
         resolved_input: json(row, "resolved_input")?,
         policy_snapshot: json(row, "policy_snapshot")?,
         budget: json(row, "budget")?,
+        cancellation: tokio_util::sync::CancellationToken::new(),
     })
 }
 

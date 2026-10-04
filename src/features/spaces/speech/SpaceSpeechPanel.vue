@@ -6,6 +6,9 @@ import SpeechCatalog from "./SpeechCatalog.vue";
 import SpeechProjectEditor from "./SpeechProjectEditor.vue";
 import SpeechProjectForm from "./SpeechProjectForm.vue";
 import { useSpeechWorkspace } from "./use-speech-workspace";
+import { activeVoiceProfiles } from "./voice-options";
+import VoiceCandidateForm from "./VoiceCandidateForm.vue";
+import VoiceManagement from "./VoiceManagement.vue";
 import VoiceProfileForm from "./VoiceProfileForm.vue";
 
 const {
@@ -13,25 +16,33 @@ const {
   projects,
   selectedProject,
   preview,
-  renderOutput,
+  previewListening,
+  runState,
   generationProgress,
   activeJobId,
+  creatingVoice,
+  creatingProject,
+  savingRevision,
+  generationSubmitting,
+  generationCancelling,
   loading,
   error,
   addPreset,
   addProject,
+  acceptVoice,
+  refreshVoices,
   openProject,
   saveRevision,
   previewSelection,
   generateProject,
   cancelGeneration,
+  stopPreviewListening,
   exportRender,
 } = useSpeechWorkspace();
 
 const publishedOutput = computed<SpeechAudioOutput | undefined>(() => {
   const project = selectedProject.value;
   if (!project) return undefined;
-  if (renderOutput.value?.revision === project.project.activeRevision) return renderOutput.value.output;
   const revision = project.revision;
   if (
     !revision.outputAssetPath ||
@@ -47,6 +58,7 @@ const publishedOutput = computed<SpeechAudioOutput | undefined>(() => {
     sampleCount: revision.outputSampleCount,
   };
 });
+const catalogVoices = computed(() => activeVoiceProfiles(voices.value));
 </script>
 
 <template>
@@ -57,14 +69,16 @@ const publishedOutput = computed<SpeechAudioOutput | undefined>(() => {
     <div class="space-y-5" :aria-busy="loading">
       <section class="space-y-2">
         <h2 class="text-label font-medium text-fg-primary">{{ $t("spaces.speech.newVoice") }}</h2>
-        <fieldset :disabled="Boolean(activeJobId)">
-          <VoiceProfileForm @create="addPreset" />
+        <fieldset>
+          <VoiceProfileForm :disabled="creatingVoice" @create="addPreset" />
+          <VoiceCandidateForm @created="acceptVoice" />
         </fieldset>
       </section>
+      <VoiceManagement @changed="refreshVoices" />
       <section class="space-y-2 border-t border-stroke-divider pt-4">
         <h2 class="text-label font-medium text-fg-primary">{{ $t("spaces.speech.newProject") }}</h2>
-        <fieldset :disabled="Boolean(activeJobId)">
-          <SpeechProjectForm @create="addProject" />
+        <fieldset>
+          <SpeechProjectForm :disabled="creatingProject" @create="addProject" />
         </fieldset>
       </section>
       <SpeechProjectEditor
@@ -72,21 +86,22 @@ const publishedOutput = computed<SpeechAudioOutput | undefined>(() => {
         :project="selectedProject"
         :voices="voices"
         :preview="preview"
+        :preview-listening="previewListening"
         :output="publishedOutput"
         :progress="generationProgress"
+        :run-state="runState"
         :running="Boolean(activeJobId)"
+        :saving="savingRevision"
+        :submitting="generationSubmitting"
+        :cancelling="generationCancelling"
         @save="saveRevision"
         @preview="previewSelection"
         @generate="generateProject"
         @cancel="cancelGeneration"
+        @stop-listening="stopPreviewListening"
         @export="exportRender"
       />
-      <SpeechCatalog
-        :voices="voices"
-        :projects="projects"
-        :disabled="Boolean(activeJobId)"
-        @select-project="openProject"
-      />
+      <SpeechCatalog :voices="catalogVoices" :projects="projects" @select-project="openProject" />
     </div>
   </div>
 </template>

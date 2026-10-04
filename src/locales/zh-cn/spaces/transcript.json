@@ -12,6 +12,17 @@
     "search": "搜索转写文本",
     "noMatches": "无匹配的转写文本",
     "live": "实时转写中",
-    "liveHint": "实时转写文本将同步显示于此。"
+    "liveHint": "实时转写文本将同步显示于此。",
+    "alignSelected": "对齐所选片段",
+    "alignmentLimit": "最多 8 段 / 5 分钟",
+    "selectForAlignment": "选择此片段进行对齐"
+  },
+  "speakers": {
+    "title": "说话人轨道",
+    "needsModel": "在设置 → AI 模型 → 本地语音资源中导入已授权的 Community-1 模型。",
+    "durationLimit": "说话人分离支持最长两小时的媒体。",
+    "minimum": "最少人数（可选）",
+    "maximum": "最多人数（可选）",
+    "generate": "识别说话人"
   }
 }

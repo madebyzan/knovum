@@ -13,6 +13,27 @@ pub(crate) async fn execute_step(
     pool: &SqlitePool,
     claim: &AttemptClaim,
 ) -> Result<StepOutcome, AppError> {
+    if matches!(
+        claim.node_kind.as_str(),
+        "speech_segment"
+            | "speech_chapter_pcm"
+            | "speech_loudness_measurement"
+            | "speech_audiobook_encode"
+            | "speech_assembly"
+            | "speech_voice_candidate"
+            | "speech_source_separation"
+    ) {
+        if claim.node_kind == "speech_voice_candidate" {
+            return crate::spaces::speech::voice_candidates::execute(app, pool, claim).await;
+        }
+        if claim.node_kind == "speech_source_separation" {
+            return crate::spaces::speech::source_separation::execute(app, pool, claim).await;
+        }
+        return crate::spaces::speech::run_execution::execute(app, pool, claim).await;
+    }
+    if crate::spaces::speech::translation::is_run_step(&claim.node_kind) {
+        return crate::spaces::speech::translation::execute(app, pool, claim).await;
+    }
     if claim.node_kind == "captured_action" {
         return super::capture::execute_step(pool, claim).await;
     }

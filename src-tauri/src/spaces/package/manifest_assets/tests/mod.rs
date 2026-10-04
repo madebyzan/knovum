@@ -14,8 +14,10 @@ fn parse_node(data: Value) -> Result<ManifestAssets, String> {
             "nodes": [{ "data": data }],
             "layouts": [],
             "voiceRevisions": [],
+            "voiceCandidates": [],
             "speechProjectRevisions": [],
-            "speechRenders": []
+            "speechRenders": [],
+            "speechSourceSeparations": []
         })
         .to_string(),
     )

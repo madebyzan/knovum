@@ -1,4 +1,5 @@
 use serde_json::Value;
+use tokio_util::sync::CancellationToken;
 
 #[derive(Clone, Debug)]
 pub struct AttemptClaim {
@@ -13,6 +14,7 @@ pub struct AttemptClaim {
     pub resolved_input: Value,
     pub policy_snapshot: Value,
     pub budget: Value,
+    pub cancellation: CancellationToken,
 }
 
 #[derive(Debug)]

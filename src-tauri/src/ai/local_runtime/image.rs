@@ -48,6 +48,26 @@ pub(crate) async fn segment_image<R: Runtime>(
 ) -> Result<Vec<f32>, String> {
     validate_input(&input)?;
     let exit = super::exit_token();
+    let runtime = tools::resolve_python_runtime(app)?.ok_or("runtime_missing")?;
+    let model_path = resources.path(ModelKind::ImageSegmentation)?;
+    let threads = std::thread::available_parallelism()
+        .map(|count| count.get().min(4) as u8)
+        .unwrap_or(1);
+    let device_profile = RuntimeDeviceProfile {
+        device: "cpu".into(),
+        execution_profile_id: format!("cpu-f32-threads{threads}-v1"),
+        cpu_threads: threads,
+    };
+    super::prepare_worker_for_admission(super::admission::Priority::Interactive, |worker| {
+        worker.matches(
+            &runtime.digest,
+            model_path,
+            RuntimeCapability::ImageSegmentation,
+            IMAGE_SEGMENTATION_SPEC_ID,
+            &device_profile,
+        )
+    })
+    .await?;
     let _permit = super::admission::acquire(
         super::admission::Priority::Interactive,
         cancellation,
@@ -62,13 +82,14 @@ pub(crate) async fn segment_image<R: Runtime>(
         _ = cancellation.cancelled() => return Err("cancelled".into()),
         guard = slot.lock() => guard,
     };
-    let runtime = tools::resolve_python_runtime(app)?.ok_or("runtime_missing")?;
-    let model_path = resources.path(ModelKind::ImageSegmentation)?;
     if let Some(worker) = guard.as_mut() {
-        if worker.capability != RuntimeCapability::ImageSegmentation
-            || worker.runtime_digest != runtime.digest
-            || worker.model_path != model_path
-        {
+        if !worker.matches(
+            &runtime.digest,
+            model_path,
+            RuntimeCapability::ImageSegmentation,
+            IMAGE_SEGMENTATION_SPEC_ID,
+            &device_profile,
+        ) {
             worker.terminate().await;
             *guard = None;
         }
@@ -76,20 +97,13 @@ pub(crate) async fn segment_image<R: Runtime>(
     if guard.is_none() {
         let session_id = uuid::Uuid::new_v4().to_string();
         let work_directory = inference_directory(app, &session_id)?;
-        let threads = std::thread::available_parallelism()
-            .map(|count| count.get().min(4) as u8)
-            .unwrap_or(1);
         let params = RuntimeInitializeParams {
             protocol_version: PROTOCOL_VERSION,
             runtime_digest: runtime.digest.clone(),
             session_id,
             capability: RuntimeCapability::ImageSegmentation,
             capability_spec_id: IMAGE_SEGMENTATION_SPEC_ID.into(),
-            device_profile: RuntimeDeviceProfile {
-                device: "cpu".into(),
-                execution_profile_id: format!("cpu-f32-threads{threads}-v1"),
-                cpu_threads: threads,
-            },
+            device_profile: device_profile.clone(),
             work_directory: work_directory.to_string_lossy().into_owned(),
             model_paths: RuntimeModelPaths {
                 embedding: None,
@@ -97,6 +111,7 @@ pub(crate) async fn segment_image<R: Runtime>(
                 speech_alignment: None,
                 speech_diarization: None,
                 speech_synthesis: None,
+                speech_separation: None,
                 image_segmentation: Some(model_path.to_string_lossy().into_owned()),
             },
         };
@@ -239,22 +254,22 @@ async fn request(
 }
 
 async fn cancel(worker: &mut Worker, request_id: &str, attempt_epoch: u64) {
-    let _ = worker
-        .protocol
-        .notify(
-            "runtime.cancel",
-            &RuntimeCancelParams {
-                target_request_id: request_id.into(),
-                attempt_epoch,
-            },
-        )
-        .await;
-    let _ = tokio::time::timeout(
-        CANCEL_GRACE,
+    let _ = tokio::time::timeout(CANCEL_GRACE, async {
         worker
             .protocol
-            .read_response::<ImageSegmentResult>(request_id),
-    )
+            .notify(
+                "runtime.cancel",
+                &RuntimeCancelParams {
+                    target_request_id: request_id.into(),
+                    attempt_epoch,
+                },
+            )
+            .await?;
+        worker
+            .protocol
+            .read_response::<ImageSegmentResult>(request_id)
+            .await
+    })
     .await;
     worker.terminate().await;
 }

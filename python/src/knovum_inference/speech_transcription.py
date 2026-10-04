@@ -10,7 +10,7 @@ from pathlib import Path
 from threading import Event
 from typing import Any
 
-from knovum_inference.contracts import AsrEngine, SpeechTranscribeParams
+from knovum_inference.contracts import AsrEngine, SpeechTranscribeParams, SpeechTranscriptArtifact
 from knovum_inference.errors import invalid_params, server_error
 from knovum_inference.speech_common import attempt_directory, check_deadline, milliseconds, verify_audio
 
@@ -47,7 +47,8 @@ class TranscriptionEngine:
         return self._publish(params, artifact)
 
     def _publish(self, params: SpeechTranscribeParams, artifact: dict[str, Any]) -> dict[str, Any]:
-        payload = json.dumps(artifact, ensure_ascii=False, allow_nan=False, separators=(",", ":")).encode()
+        validated = SpeechTranscriptArtifact.model_validate(artifact).model_dump(by_alias=True)
+        payload = json.dumps(validated, ensure_ascii=False, allow_nan=False, separators=(",", ":")).encode()
         if len(payload) > MAX_TRANSCRIPT_BYTES:
             raise server_error("resource_exhausted", "Transcript artifact exceeds its byte limit")
         directory = attempt_directory(self._work_directory, params.request_id)
@@ -119,7 +120,7 @@ class TranscriptionEngine:
             parts.append(part)
             percent = min(99, part["endMs"] * 100 // max(1, duration_ms))
             progress("transcribing", percent, info.language, part)
-        return _artifact(info.language, info.duration, parts)
+        return _artifact(info.language, info.duration, info.duration_after_vad, parts)
 
     def _mlx(
         self, audio_path: Path, params: SpeechTranscribeParams, progress: Progress, cancelled: Event
@@ -134,7 +135,12 @@ class TranscriptionEngine:
             raise server_error("runtime_mismatch", "mlx-whisper is unavailable") from error
         speech_intervals, audio_duration_ms = self._speech_intervals(audio_path)
         if not speech_intervals:
-            return {"language": "und", "durationMs": audio_duration_ms, "segments": []}
+            return {
+                "language": "und",
+                "durationMs": audio_duration_ms,
+                "speechDurationMs": 0,
+                "segments": [],
+            }
         progress("transcribing", 0, None, None)
         result = mlx_whisper.transcribe(
             str(audio_path),
@@ -157,7 +163,13 @@ class TranscriptionEngine:
                 raise server_error("cancelled", "Transcription was cancelled")
             percent = min(99, part["endMs"] * 100 // max(1, audio_duration_ms))
             progress("transcribing", percent, language, part)
-        return {"language": language, "durationMs": audio_duration_ms, "segments": segments}
+        speech_duration_ms = sum(end - start for start, end in speech_intervals)
+        return {
+            "language": language,
+            "durationMs": audio_duration_ms,
+            "speechDurationMs": speech_duration_ms,
+            "segments": segments,
+        }
 
     def _speech_intervals(self, audio_path: Path) -> tuple[list[tuple[int, int]], int]:
         import numpy as np
@@ -173,7 +185,11 @@ class TranscriptionEngine:
             ):
                 raise invalid_params("Silero VAD requires 16 kHz mono PCM16 audio")
             frames = source.getnframes()
+            if not 0 < frames <= 2 * 60 * 60 * 16_000:
+                raise invalid_params("ASR input must contain audio and be at most two hours")
             pcm = source.readframes(frames)
+            if len(pcm) != frames * 2:
+                raise invalid_params("ASR input contains truncated PCM frames")
         if self._vad is None:
             self._vad = load_silero_vad(onnx=True)
         samples = torch.from_numpy(np.frombuffer(pcm, dtype="<i2").astype(np.float32) / 32768.0)
@@ -219,8 +235,13 @@ def _mlx_segment(segment: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _artifact(language: str, duration: float, segments: list[dict[str, Any]]) -> dict[str, Any]:
-    return {"language": language, "durationMs": milliseconds(duration), "segments": segments}
+def _artifact(language: str, duration: float, speech_duration: float, segments: list[dict[str, Any]]) -> dict[str, Any]:
+    return {
+        "language": language,
+        "durationMs": milliseconds(duration),
+        "speechDurationMs": milliseconds(speech_duration),
+        "segments": segments,
+    }
 
 
 def _overlaps_speech(segment: dict[str, Any], intervals: list[tuple[int, int]]) -> bool:

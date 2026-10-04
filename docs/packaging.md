@@ -48,7 +48,7 @@ WiX/MSI requires a numeric `major.minor.patch[.build]` installer version, so pre
 
 Place each platform's runtime binaries under `src-tauri/resources/bundled-runtime/<target>/`.
 `pnpm runtime:provision` is the only provisioning entry point. It first stages the controlled
-target archive containing FFmpeg plus the application-managed CPython 3.11.13 runtime and its locked native site packages.
+independently pinned FFmpeg archive and the controlled CPython 3.11.17 archive produced by the native runtime workflow. The FFmpeg archive must contain FFmpeg and its notices only; it cannot carry a second Python tree.
 The archive is SHA-256 verified before it replaces the target directory. Provisioning
 rejects archives containing yt-dlp or Deno because those tools do not belong to the desktop bundle.
 
@@ -77,10 +77,19 @@ developer path overrides remain the only override boundary.
 
 No font files are included in the desktop package. Native Python wheels are locked and verified for macOS arm64 and Windows x64; release acceptance executes the actual ASR, embedding, image, and speech profiles on both target architectures. Other architectures are outside the approved release scope.
 
+The locked runtime currently contains `sherpa-onnx==1.13.8`. Its package metadata is Apache-2.0,
+but its default TTS build includes GPL eSpeak NG and MIT piper-phonemize. Production packaging stays
+blocked until the distribution review records the exact target wheels, source archives, build and
+installation information, license texts and notices. The corresponding-source bundle must include
+the sherpa 1.13.8 source plus its exact pinned eSpeak NG and piper-phonemize sources; the separate
+`espeak-ng-data` archive also needs source provenance matching the conveyed bytes. A source URL or
+hash is evidence material, not legal approval. `tools/package-desktop.mjs` must continue to fail a
+production build while that decision is unresolved.
+
 Background removal uses ONNX Runtime inside the private Python worker. U²-Net is a verified on-demand model resource; Rust owns image decoding, preprocessing, mask composition, and output publication.
 
-The provision command uses `KNOVUM_BUNDLED_RUNTIME_<TARGET>_URL` and
-`KNOVUM_BUNDLED_RUNTIME_<TARGET>_SHA256`; the optional
+The provision command requires `KNOVUM_FFMPEG_<TARGET>_URL` / `_SHA256` and
+`KNOVUM_PYTHON_RUNTIME_<TARGET>_URL` / `_SHA256`; the optional
 `KNOVUM_BUNDLED_RUNTIME_AUTHORIZATION` secret supplies an Authorization header for a private
 artifact host. `tools/provision-bundled-runtime.mjs` owns build-time provisioning for FFmpeg and
 the controlled Python runtime. On-demand yt-dlp/Deno installation belongs to
@@ -92,11 +101,76 @@ target plus the media import manifest. `src-tauri/tauri.conf.json` deliberately 
 a macOS package cannot accidentally contain Windows binaries or the other macOS architecture (and
 vice versa).
 
+## Controlled Python runtime producer
+
+`pnpm runtime:build --output <fresh-directory> --signing <adhoc|unsigned|production>`
+runs only on macOS ARM64 or Windows x64. `python/runtime-source.json` pins the exact
+CPython 3.11.17 standalone release assets, size and SHA-256 for both native targets,
+independently of uv's managed-interpreter catalog. uv 0.12.23 exports the frozen
+runtime and build dependency groups. Registry inputs are installed with required
+lock hashes; source distributions build with the frozen build environment and no
+isolated dependency resolution. VoxCPM is built from the lock's exact Git commit,
+with commit/tree/source-archive/wheel hashes recorded. No developer virtual
+environment is copied into the application.
+
+The producer installs into `packages`, materializes only internal interpreter file
+aliases, rejects external links, and moves the complete tree to a new path containing
+spaces and Chinese characters before checking worker/native imports. Native code is
+signed and verified before the runtime manifest is written. macOS QA uses ad-hoc
+signing; Windows QA explicitly records unsigned status. Production requires Developer
+ID or Authenticode certificate configuration and timestamp verification. Verification binds the actual
+macOS leaf certificate name and Team ID or Windows signer certificate thumbprint to approved
+configuration. QA artifacts
+are not production-signing evidence.
+
+`.github/workflows/python-runtime.yml` emits the immutable target archive, SHA-256,
+GitHub build attestation, frozen requirements, actual installed dependency inventory,
+CycloneDX SBOM and source/license evidence. The existing provisioner validates the
+producer identity against the interpreter source and dependency lock as well as all
+runtime bytes. There is no old opaque Python archive input path.
+
+Production packaging verifies every native runtime signature before invoking Tauri;
+macOS also requires the runtime and application signing identity to match. Tauri
+preserves the pre-signed Resources tree on macOS; on Windows it skips EXE/DLL resources
+already accepted by Authenticode and does not sign PYD files itself. The producer owns
+all of those signatures. After bundling, packaging rechecks the source tree and the
+actual macOS app resource manifest and signatures without rewriting either. Every final
+Windows NSIS/MSI package is extracted into an owned temporary directory and must contain
+exactly one runtime matching the frozen manifest. Production packages must also pass the
+same approved-signer checks. Verification uses the independent frozen build Python rather
+than executing the runtime being verified. NSIS extraction requires 7-Zip 26.03; MSI uses
+Windows Installer's [administrative image](https://learn.microsoft.com/windows/win32/msi/administrative-installation)
+operation, without installing the desktop application. Temporary images are removed on
+success and failure. A signature or byte change fails the build; no post-notarization repair path exists. Final `.app` strict
+signature, Gatekeeper and notarization acceptance remains mandatory for this resource
+layout. See the [Tauri bundler implementation](https://github.com/tauri-apps/tauri/blob/8909f221d1515955fc843808032bdc5d62209c96/crates/tauri-bundler/src/bundle/macos/app.rs)
+and [Windows resource signing policy](https://github.com/tauri-apps/tauri/blob/8909f221d1515955fc843808032bdc5d62209c96/crates/tauri-bundler/src/bundle/windows/sign.rs).
+
+Dependency metadata and source hashes do not approve native licenses. The evidence
+record deliberately requires review; sherpa's embedded GPL components and the
+separate Kokoro model/data provenance remain subject to the production gate above.
+The produced tree includes pinned sherpa/eSpeak/piper build-recipe source archives and
+VoxCPM source. This closes source collection for those pinned recipes; it does not
+prove that a wheel was built exactly with those recipes or that the older Kokoro data
+corresponds. Full corresponding-source/installation materials must accompany approved distribution;
+the generated SBOM alone does not establish them. Native profile quality/performance,
+network privacy, notarization, clean installation and desktop behavior still need
+release-target acceptance.
+
+Production workflow configuration additionally supplies `KNOVUM_WINDOWS_SIGNTOOL`
+(the installed SDK executable), the approved runtime signer
+`KNOVUM_WINDOWS_CERTIFICATE_THUMBPRINT`, `KNOVUM_WINDOWS_TIMESTAMP_URL`, the Windows PFX
+certificate/password secrets, and the existing Apple signing identity/certificate
+secrets. Certificate files/stores are cleaned after the job.
+
 ## Artifact policy
 
 - macOS: `.dmg` is the primary human-facing direct installer; `.app` is retained for validation/debugging.
 - Windows: NSIS `setup.exe` is the primary human-facing installer; MSI is opt-in for stable numeric releases and managed deployment needs.
 - Never publish a production package that has not passed the same commit's quality gates and platform build.
+- Publish required third-party notices and corresponding-source bundles beside every installer and
+  updater artifact, or through the approved durable source-offer location bound to that release.
+  Mutable branches and unversioned project homepages do not satisfy artifact identity.
 
 ## QA packaging workflow
 
