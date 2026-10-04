@@ -56,6 +56,7 @@ pub(super) async fn run<R: Runtime>(
         if chunks.is_empty() {
             if activate {
                 generation::activate(pool, space_id, &generation).await?;
+                super::retired_generations::notify_pending();
             }
             log::info!(
                 "knowledge_index space={} event=completed indexed={} elapsed_ms={}",

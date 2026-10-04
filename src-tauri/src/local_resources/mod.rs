@@ -45,6 +45,10 @@ struct ModelStatuses {
     text_embedding_tokenizer: ModelStatus,
     text_embedding_tokenizer_config: ModelStatus,
     text_embedding_weights: ModelStatus,
+    voxcpm2: Vec<ModelStatus>,
+    speech_alignment: Vec<ModelStatus>,
+    speech_separation: Vec<ModelStatus>,
+    diarization: models::diarization::DiarizationModelStatus,
 }
 
 #[tauri::command]
@@ -84,6 +88,22 @@ fn model_statuses(app: &AppHandle) -> Result<ModelStatuses, String> {
             ModelKind::TextEmbeddingTokenizerConfig,
         )?,
         text_embedding_weights: model_status(app, ModelKind::TextEmbeddingWeights)?,
+        voxcpm2: models::catalog::VOXCPM2_MODELS
+            .iter()
+            .copied()
+            .map(|kind| model_status(app, kind))
+            .collect::<Result<Vec<_>, _>>()?,
+        speech_alignment: models::catalog::SPEECH_ALIGNMENT_MODELS
+            .iter()
+            .copied()
+            .map(|kind| model_status(app, kind))
+            .collect::<Result<Vec<_>, _>>()?,
+        speech_separation: models::catalog::SPEECH_SEPARATION_MODELS
+            .iter()
+            .copied()
+            .map(|kind| model_status(app, kind))
+            .collect::<Result<Vec<_>, _>>()?,
+        diarization: models::diarization::status(app)?,
     })
 }
 

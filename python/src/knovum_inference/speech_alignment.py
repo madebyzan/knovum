@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import tempfile
 import wave
 from pathlib import Path
 from typing import Any
@@ -24,24 +23,22 @@ MAX_SEGMENT_MS = 5 * 60 * 1000
 
 
 class AlignmentEngine:
-    def __init__(self, model_directory: Path, work_directory: Path, device: str, cpu_threads: int) -> None:
+    def __init__(self, model_directory: Path, device: str, cpu_threads: int) -> None:
         self._model_directory = model_directory
-        self._work_directory = work_directory
         self._device = device
         self._cpu_threads = cpu_threads
         self._loaded: tuple[Any, Any] | None = None
 
     def align(self, params: SpeechAlignParams) -> dict[str, Any]:
+        if self._device != "cpu" or params.profile.device != "cpu":
+            raise server_error("unsupported_device", "Qwen3 forced alignment requires CPU")
         audio_path = verify_audio(params.audio_ref)
         check_deadline(params.deadline_ms)
         language = LANGUAGES.get(params.profile.language.lower())
         if language is None:
             raise server_error("unsupported_language", "Forced alignment language is unsupported")
-        if params.profile.device != self._device:
-            raise server_error("runtime_mismatch", "Alignment session device changed")
-        if not params.text_segments:
-            raise invalid_params("Alignment requires at least one text segment")
-        processor, model = self._load()
+        if not 1 <= len(params.text_segments) <= 8:
+            raise invalid_params("Alignment requires one to eight text segments")
         units: list[dict[str, Any]] = []
         with wave.open(str(audio_path), "rb") as source:
             if (
@@ -53,7 +50,6 @@ class AlignmentEngine:
                 raise invalid_params("Alignment requires 16 kHz mono PCM16 audio")
             duration_ms = source.getnframes() * 1000 // 16_000
             for segment in params.text_segments:
-                check_deadline(params.deadline_ms)
                 if (
                     not segment.text.strip()
                     or segment.end_ms <= segment.start_ms
@@ -61,26 +57,26 @@ class AlignmentEngine:
                     or segment.end_ms > duration_ms
                 ):
                     raise invalid_params("Alignment segment is empty, outside the audio, or longer than five minutes")
-                clip = self._write_clip(source, segment.start_ms, segment.end_ms)
-                try:
-                    inputs, word_lists = processor.prepare_forced_aligner_inputs(
-                        audio=[str(clip)],
-                        transcript=[segment.text],
-                        language=[language],
-                    )
-                    inputs = inputs.to(model.device, model.dtype)
-                    import torch
+            processor, model = self._load()
+            for segment in params.text_segments:
+                check_deadline(params.deadline_ms)
+                samples = self._read_clip(source, segment.start_ms, segment.end_ms)
+                inputs, word_lists = processor.prepare_forced_aligner_inputs(
+                    audio=[samples],
+                    transcript=[segment.text],
+                    language=[language],
+                )
+                inputs = inputs.to(model.device, model.dtype)
+                import torch
 
-                    with torch.inference_mode():
-                        output = model(**inputs)
-                    words = processor.decode_forced_alignment(
-                        logits=output.logits,
-                        input_ids=inputs["input_ids"],
-                        word_lists=word_lists,
-                        timestamp_token_id=model.config.timestamp_token_id,
-                    )[0]
-                finally:
-                    clip.unlink(missing_ok=True)
+                with torch.inference_mode():
+                    output = model(**inputs)
+                words = processor.decode_forced_alignment(
+                    logits=output.logits,
+                    input_ids=inputs["input_ids"],
+                    word_lists=word_lists,
+                    timestamp_token_id=model.config.timestamp_token_id,
+                )[0]
                 unit_kind = "character" if language in {"Chinese", "Cantonese"} else "word"
                 for word in words:
                     start = word.get("start_time")
@@ -141,19 +137,14 @@ class AlignmentEngine:
             self._loaded = processor, model
         return self._loaded
 
-    def _write_clip(self, source: wave.Wave_read, start_ms: int, end_ms: int) -> Path:
+    @staticmethod
+    def _read_clip(source: wave.Wave_read, start_ms: int, end_ms: int) -> Any:
+        import numpy as np
+
         start = start_ms * 16_000 // 1000
         end = min(source.getnframes(), (end_ms * 16_000 + 999) // 1000)
         source.setpos(start)
-        with tempfile.NamedTemporaryFile(dir=self._work_directory, suffix=".wav", delete=False) as temporary:
-            path = Path(temporary.name)
-        try:
-            with wave.open(str(path), "wb") as output:
-                output.setnchannels(1)
-                output.setsampwidth(2)
-                output.setframerate(16_000)
-                output.writeframes(source.readframes(end - start))
-        except BaseException:
-            path.unlink(missing_ok=True)
-            raise
-        return path
+        pcm = source.readframes(end - start)
+        if len(pcm) != (end - start) * 2:
+            raise invalid_params("Alignment input has truncated PCM frames")
+        return np.frombuffer(pcm, dtype="<i2").astype(np.float32) / 32768.0

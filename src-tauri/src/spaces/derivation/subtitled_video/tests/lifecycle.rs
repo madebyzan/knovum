@@ -24,10 +24,14 @@ async fn fixture(with_transcript: bool) -> (SqlitePool, RenderSubtitledVideoRequ
     sqlx::query("INSERT INTO spaces_runs(id,home_space_id,principal_kind,principal_id,kind,state,execution_epoch,policy_snapshot,input_snapshot,budget,created_at,updated_at) VALUES('job','space','user','local-user','action','running',0,'{}','{}','{}',1,1)").execute(&pool).await.unwrap();
     let mut source = json!({"kind":"video","title":"Interview","assetPath":"/owned/source.mp4","fileName":"source.mp4","sourceRevision":"asset:1"});
     if with_transcript {
-        source["mediaKnowledge"] = json!({"schemaVersion":4,"sourceRevision":"asset:1","transcript":{
-            "language":"en","durationMs":1000,"text":"Hello","segments":[{"startMs":0,"endMs":1000,"text":"Hello"}],
-            "subtitleCues":[{"startMs":0,"endMs":1000,"text":"Hello"}]
-        }});
+        source["mediaKnowledge"] = crate::media::transcript::tests::knowledge_fixture(
+            "asset:1",
+            vec![crate::media::transcript::TranscriptSegment {
+                start_ms: 0,
+                end_ms: 1000,
+                text: "Hello".into(),
+            }],
+        );
     }
     revision::apply(&mut source).unwrap();
     let mut output = json!({"kind":"video","title":"Subtitled","fileName":"subtitled.mp4","assetPath":"/owned/pending.mp4","processingState":"processing"});

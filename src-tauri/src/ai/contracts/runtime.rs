@@ -12,6 +12,7 @@ pub enum RuntimeCapability {
     SpeechAlignment,
     SpeechDiarization,
     SpeechSynthesis,
+    SpeechSeparation,
     ImageSegmentation,
 }
 
@@ -23,6 +24,7 @@ impl RuntimeCapability {
             Self::SpeechAlignment => "speech.align",
             Self::SpeechDiarization => "speech.diarize",
             Self::SpeechSynthesis => "speech.synthesize",
+            Self::SpeechSeparation => "speech.separate",
             Self::ImageSegmentation => "image.segment",
         }
     }
@@ -44,6 +46,7 @@ pub struct RuntimeModelPaths {
     pub speech_alignment: Option<String>,
     pub speech_diarization: Option<String>,
     pub speech_synthesis: Option<String>,
+    pub speech_separation: Option<String>,
     pub image_segmentation: Option<String>,
 }
 
@@ -66,6 +69,8 @@ pub struct RuntimeLimits {
     pub max_message_bytes: u32,
     pub max_embedding_texts: u8,
     pub max_embedding_tokens: u32,
+    pub max_unconsumed_chunk_files: u8,
+    pub max_unconsumed_chunk_bytes: u32,
 }
 
 #[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
@@ -92,7 +97,7 @@ pub struct RuntimeHealthParams {
 pub struct RuntimeHealthResult {
     pub session_id: String,
     pub current_request_id: Option<String>,
-    pub resident_bytes: Option<u64>,
+    pub resident_bytes: u64,
 }
 
 #[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
@@ -106,6 +111,15 @@ pub struct RuntimeCancelParams {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct RuntimeCancelResult {
     pub accepted: bool,
+}
+
+#[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct RuntimeAckChunkParams {
+    pub request_id: String,
+    pub attempt_epoch: u64,
+    pub seq: u64,
+    pub consumed_bytes: u64,
 }
 
 #[derive(Clone, Debug, Deserialize, JsonSchema, Serialize, ts_rs::TS)]

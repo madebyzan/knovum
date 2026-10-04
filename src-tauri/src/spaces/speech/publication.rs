@@ -7,11 +7,8 @@ use std::{
 use sha2::{Digest, Sha256};
 use tauri::{AppHandle, Manager, Runtime};
 
-use super::{
-    contracts::{SpeechAudioOutput, SpeechSegmentRenderOutput},
-    generation_attempt::GenerationAttempt,
-};
-use crate::spaces::{assets, db};
+use super::contracts::{SpeechAudioOutput, SpeechSegmentRenderOutput};
+use crate::spaces::{assets, db, runs::AttemptClaim};
 
 pub fn write_preview<R: Runtime>(
     app: &AppHandle<R>,
@@ -41,11 +38,13 @@ pub fn segment_path<R: Runtime>(
     revision_id: &str,
     segment_id: &str,
     input_digest: &str,
+    attempt_id: &str,
 ) -> Result<PathBuf, String> {
     for (value, label) in [
         (project_id, "project"),
         (revision_id, "revision"),
         (segment_id, "segment"),
+        (attempt_id, "attempt"),
     ] {
         uuid::Uuid::parse_str(value).map_err(|_| format!("Speech {label} identity is invalid"))?;
     }
@@ -56,7 +55,7 @@ pub fn segment_path<R: Runtime>(
         .join("speech")
         .join(project_id)
         .join(revision_id)
-        .join(format!("{segment_id}-{input_digest}.wav")))
+        .join(format!("{segment_id}-{input_digest}-{attempt_id}.wav")))
 }
 
 pub fn publish_segment(
@@ -77,19 +76,22 @@ pub fn publish_segment(
     Ok(path.to_owned())
 }
 
+pub(super) fn validate_synthesized_audio(
+    audio: &crate::ai::local_runtime::speech::SynthesizedAudio,
+) -> Result<(), String> {
+    validate_audio_payload(audio)
+}
+
 pub fn validate_cached<R: Runtime>(
     app: &AppHandle<R>,
-    output: SpeechSegmentRenderOutput,
+    mut output: SpeechSegmentRenderOutput,
 ) -> Result<SpeechSegmentRenderOutput, String> {
     let path = assets::authorize_spaces_asset(app, Path::new(&output.path))?;
     if hash_file(&path)? != output.sha256 {
         return Err("Speech render cache is corrupt".to_owned());
     }
+    output.path = path.to_string_lossy().into_owned();
     Ok(output)
-}
-
-pub fn discard_published_file(path: &Path) {
-    let _ = fs::remove_file(path);
 }
 
 pub fn discard_preview<R: Runtime>(app: &AppHandle<R>, candidate: &str) -> Result<(), String> {
@@ -101,20 +103,59 @@ pub fn discard_preview<R: Runtime>(app: &AppHandle<R>, candidate: &str) -> Resul
     let root = directory
         .canonicalize()
         .map_err(|error| error.to_string())?;
-    let path = Path::new(candidate)
+    let candidate = Path::new(candidate);
+    let parent = candidate
+        .parent()
+        .ok_or("Speech preview has no parent directory")?
         .canonicalize()
         .map_err(|error| error.to_string())?;
-    if path.parent() != Some(root.as_path())
-        || path.extension().and_then(|value| value.to_str()) != Some("wav")
-    {
+    if parent != root || candidate.extension().and_then(|value| value.to_str()) != Some("wav") {
         return Err("Speech preview path is outside the managed cache".to_owned());
     }
-    fs::remove_file(path).map_err(|error| error.to_string())
+    let path = match candidate.canonicalize() {
+        Ok(path) => path,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+        Err(error) => return Err(error.to_string()),
+    };
+    if path.parent() != Some(root.as_path()) {
+        return Err("Speech preview resolves outside the managed cache".to_owned());
+    }
+    match fs::remove_file(path) {
+        Ok(()) => Ok(()),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
+        Err(error) => Err(error.to_string()),
+    }
 }
 
 pub async fn reconcile_interrupted<R: Runtime>(app: &AppHandle<R>) -> Result<(), String> {
     reconcile_previews(app)?;
     let pool = db::pool(app).await?;
+    super::voice_candidates::reconcile_terminal_snapshots(app, pool).await?;
+    super::asset_publication::reconcile(app, pool).await?;
+    let disposable_audiobook_checkpoints: Vec<String> = sqlx::query_scalar(
+        "SELECT c.project_revision_id FROM spaces_speech_chapter_checkpoints c \
+         JOIN spaces_speech_project_revisions r ON r.id=c.project_revision_id \
+         WHERE r.output_asset_path IS NOT NULL OR NOT EXISTS( \
+           SELECT 1 FROM spaces_runs run WHERE run.completed_at IS NULL \
+             AND json_extract(run.input_snapshot,'$.workflow')='speech_project_generation_v1' \
+             AND json_extract(run.input_snapshot,'$.revisionId')=c.project_revision_id) \
+         GROUP BY c.project_revision_id",
+    )
+    .fetch_all(pool)
+    .await
+    .map_err(db::sql_error)?;
+    for revision_id in disposable_audiobook_checkpoints {
+        super::project_publication::cleanup_audiobook_checkpoints(app, pool, &revision_id).await?;
+    }
+    sqlx::query(
+        "DELETE FROM spaces_speech_loudness_checkpoints \
+         WHERE EXISTS(SELECT 1 FROM spaces_speech_project_revisions r \
+           WHERE r.id=spaces_speech_loudness_checkpoints.project_revision_id \
+             AND r.output_asset_path IS NOT NULL) \
+         OR NOT EXISTS(SELECT 1 FROM spaces_runs run WHERE run.completed_at IS NULL \
+           AND json_extract(run.input_snapshot,'$.workflow')='speech_project_generation_v1' \
+           AND json_extract(run.input_snapshot,'$.revisionId')=spaces_speech_loudness_checkpoints.project_revision_id)",
+    ).execute(pool).await.map_err(db::sql_error)?;
     let rows: Vec<(String, String, Option<String>)> = sqlx::query_as(
         "SELECT id,segment_id,asset_path FROM spaces_speech_renders WHERE state='staged'",
     )
@@ -153,14 +194,7 @@ pub async fn reconcile_interrupted<R: Runtime>(app: &AppHandle<R>) -> Result<(),
         .map_err(db::sql_error)?;
         tx.commit().await.map_err(db::sql_error)?;
     }
-    sqlx::query(
-        "UPDATE spaces_speech_projects SET active_generation_job_id=NULL, \
-         generation_cancel_requested_at=NULL WHERE active_generation_job_id IS NOT NULL",
-    )
-    .execute(pool)
-    .await
-    .map_err(db::sql_error)?;
-    Ok(())
+    super::video_publication::reconcile_workspaces(app)
 }
 
 fn reconcile_previews<R: Runtime>(app: &AppHandle<R>) -> Result<(), String> {
@@ -185,53 +219,36 @@ fn reconcile_previews<R: Runtime>(app: &AppHandle<R>) -> Result<(), String> {
     Ok(())
 }
 
-pub async fn commit_render(
+pub(super) async fn commit_render(
     pool: &sqlx::SqlitePool,
-    attempt: GenerationAttempt<'_>,
+    claim: &AttemptClaim,
+    revision: super::contracts::ProjectRevisionIdentity<'_>,
     render_id: &str,
     segment_id: &str,
     path: &Path,
     audio: &crate::ai::local_runtime::speech::SynthesizedAudio,
-    is_last: bool,
 ) -> Result<(), String> {
+    let super::contracts::ProjectRevisionIdentity {
+        project_id,
+        revision_id,
+    } = revision;
     let mut tx = db::begin_write(pool).await?;
-    if attempt.cancellation.is_cancelled() {
-        reject_cancelled(
-            &mut tx,
-            render_id,
-            segment_id,
-            attempt.job_id,
-            attempt.epoch,
-        )
-        .await?;
-        tx.commit().await.map_err(db::sql_error)?;
-        let _ = fs::remove_file(path);
-        return Err("cancelled".to_owned());
-    }
-    let current: bool = sqlx::query_scalar(
-        "SELECT EXISTS(SELECT 1 FROM spaces_speech_projects p \
-         JOIN spaces_speech_project_revisions r ON r.id=p.active_revision_id \
-         JOIN spaces_speech_segments s ON s.project_revision_id=r.id \
-         WHERE p.id=? AND r.id=? AND s.id=? AND s.state='rendering' \
-         AND p.active_generation_job_id=? AND p.generation_epoch=? \
-         AND p.generation_cancel_requested_at IS NULL)",
+    if let Err(error) = super::generation_attempt::require_active(
+        &mut tx,
+        claim,
+        project_id,
+        revision_id,
+        segment_id,
     )
-    .bind(attempt.project_id)
-    .bind(attempt.revision_id)
-    .bind(segment_id)
-    .bind(attempt.job_id)
-    .bind(attempt.epoch)
-    .fetch_one(&mut *tx)
     .await
-    .map_err(db::sql_error)?;
-    if !current {
+    {
         let rejected = sqlx::query(
             "UPDATE spaces_speech_renders SET state='rejected',asset_path=NULL \
-             WHERE id=? AND state='staged' AND generation_job_id=? AND generation_epoch=?",
+             WHERE id=? AND state='staged' AND run_attempt_id=? AND run_execution_epoch=?",
         )
         .bind(render_id)
-        .bind(attempt.job_id)
-        .bind(attempt.epoch)
+        .bind(&claim.attempt_id)
+        .bind(claim.execution_epoch)
         .execute(&mut *tx)
         .await
         .map_err(db::sql_error)?;
@@ -245,13 +262,13 @@ pub async fn commit_render(
         }
         tx.commit().await.map_err(db::sql_error)?;
         let _ = fs::remove_file(path);
-        return Err("stale_revision: speech project changed before publication".to_owned());
+        return Err(error);
     }
     let now = crate::clock::unix_time_millis()?;
     let published = sqlx::query(
         "UPDATE spaces_speech_renders SET state='published',asset_path=?,output_sha256=?, \
          sample_rate=?,sample_count=?,published_at=? WHERE id=? AND state='staged' \
-         AND generation_job_id=? AND generation_epoch=?",
+         AND run_attempt_id=? AND run_execution_epoch=?",
     )
     .bind(path.to_string_lossy().as_ref())
     .bind(&audio.sha256)
@@ -262,8 +279,8 @@ pub async fn commit_render(
     )
     .bind(now)
     .bind(render_id)
-    .bind(attempt.job_id)
-    .bind(attempt.epoch)
+    .bind(&claim.attempt_id)
+    .bind(claim.execution_epoch)
     .execute(&mut *tx)
     .await
     .map_err(db::sql_error)?;
@@ -281,27 +298,21 @@ pub async fn commit_render(
     .await
     .map_err(db::sql_error)?;
     db::require_one(segment, "Speech segment changed before publication")?;
-    if attempt.cancellation.is_cancelled() {
-        reject_cancelled(
-            &mut tx,
-            render_id,
-            segment_id,
-            attempt.job_id,
-            attempt.epoch,
-        )
+    super::asset_publication::remove_attempt_in_transaction(&mut tx, claim, path, &audio.sha256)
         .await?;
+    if let Err(error) = super::generation_attempt::require_active(
+        &mut tx,
+        claim,
+        project_id,
+        revision_id,
+        segment_id,
+    )
+    .await
+    {
+        reject_cancelled(&mut tx, render_id, segment_id, claim).await?;
         tx.commit().await.map_err(db::sql_error)?;
         let _ = fs::remove_file(path);
-        return Err("cancelled".to_owned());
-    }
-    if is_last {
-        super::generation_attempt::clear_generation_in_transaction(
-            &mut tx,
-            attempt.project_id,
-            attempt.job_id,
-            attempt.epoch,
-        )
-        .await?;
+        return Err(error);
     }
     match tx.commit().await {
         Ok(()) => Ok(()),
@@ -347,18 +358,17 @@ async fn reject_cancelled(
     tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
     render_id: &str,
     segment_id: &str,
-    job_id: &str,
-    generation_epoch: i64,
+    claim: &AttemptClaim,
 ) -> Result<(), String> {
     let cancelled = sqlx::query(
         "UPDATE spaces_speech_renders SET state='cancelled',asset_path=NULL,output_sha256=NULL, \
          sample_rate=NULL,sample_count=NULL,published_at=NULL \
          WHERE id=? AND state IN ('staged','published') \
-         AND generation_job_id=? AND generation_epoch=?",
+         AND run_attempt_id=? AND run_execution_epoch=?",
     )
     .bind(render_id)
-    .bind(job_id)
-    .bind(generation_epoch)
+    .bind(&claim.attempt_id)
+    .bind(claim.execution_epoch)
     .execute(&mut **tx)
     .await
     .map_err(db::sql_error)?;

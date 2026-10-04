@@ -5,7 +5,21 @@ use crate::ai::{
 };
 #[tokio::test]
 async fn agent_only_chapters_preserve_transcript_and_domain_timestamps() {
-    let knowledge = json!({"schemaVersion":4,"sourceRevision":"source", "transcript":{"language":"en","text":"First Second","subtitleCues":[],"durationMs":4000,"segments":[{"startMs":0,"endMs":2000,"text":"First"},{"startMs":2000,"endMs":4000,"text":"Second"}]}});
+    let knowledge = crate::media::transcript::tests::knowledge_fixture(
+        "source",
+        vec![
+            crate::media::transcript::TranscriptSegment {
+                start_ms: 0,
+                end_ms: 2000,
+                text: "First".into(),
+            },
+            crate::media::transcript::TranscriptSegment {
+                start_ms: 2000,
+                end_ms: 4000,
+                text: "Second".into(),
+            },
+        ],
+    );
     let spy = ExecutorSpy::returns(
         r#"{"summary":"Whole record","chapters":[{"startMs":0,"title":"First","summary":"Topic"},{"startMs":2000,"title":"Second","summary":"Topic"}]}"#,
     );

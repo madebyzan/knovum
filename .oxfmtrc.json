@@ -17,6 +17,7 @@
     "src-tauri/target/**",
     "src-tauri/gen/**",
     "src/shared/contracts/generated/**",
+    "python/schemas/runtime.schema.json",
     "src/features/spaces/contracts/generated/**"
   ]
 }

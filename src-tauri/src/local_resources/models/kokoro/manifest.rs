@@ -50,8 +50,10 @@ fn validate(manifest: &Manifest) -> Result<(), String> {
     if manifest.schema_version != 1 || manifest.model_id != "kokoro-int8-multi-lang-v1_0" {
         return Err("Kokoro package manifest identity is invalid".to_string());
     }
-    if manifest.license_review.status != "blocked"
-        || manifest.license_review.reason.trim().is_empty()
+    if !matches!(
+        manifest.license_review.status.as_str(),
+        "blocked" | "approved"
+    ) || manifest.license_review.reason.trim().is_empty()
         || manifest.license_review.components.is_empty()
         || manifest.license_review.components.iter().any(|component| {
             component.path.trim().is_empty() || component.declared_license.trim().is_empty()

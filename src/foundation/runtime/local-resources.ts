@@ -1,5 +1,6 @@
 import { Channel } from "@tauri-apps/api/core";
 
+import type { DiarizationModelImportResult } from "../../shared/contracts/generated/DiarizationModelImportResult";
 import type { LocalResourcesStatus } from "../../shared/contracts/generated/LocalResourcesStatus";
 import type { ResourcePreparationProgress } from "../../shared/contracts/generated/ResourcePreparationProgress";
 import type { ResourcePreparationSnapshot } from "../../shared/contracts/generated/ResourcePreparationSnapshot";
@@ -8,6 +9,17 @@ import { invokeCommand } from "../ipc/invoke-command";
 
 export function getLocalResourcesStatus(): Promise<LocalResourcesStatus> {
   return invokeCommand("plugin:local-resources|get_status");
+}
+
+export function importDiarizationModel(sourcePath: string, acceptedTerms: boolean) {
+  return invokeCommand<DiarizationModelImportResult>("plugin:local-resources|import_diarization_model", {
+    sourcePath,
+    acceptedTerms,
+  });
+}
+
+export function removeDiarizationModel() {
+  return invokeCommand<void>("plugin:local-resources|remove_diarization_model");
 }
 
 interface ResourcePreparationInput {

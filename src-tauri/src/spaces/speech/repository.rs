@@ -8,10 +8,18 @@ pub async fn list_voices(
     space_id: &str,
 ) -> Result<Vec<VoiceProfileSummary>, String> {
     sqlx::query_as(
-        "SELECT p.id, p.name, p.source_kind, p.active_revision_id, r.engine_id, r.model_spec_id, \
-         r.language, r.preset_voice_id, p.updated_at FROM spaces_voice_profiles p \
-         JOIN spaces_voice_revisions r ON r.id=p.active_revision_id WHERE p.space_id=? \
-         ORDER BY p.updated_at DESC, p.id",
+        "SELECT p.id,p.name || CASE WHEN r.id=p.active_revision_id AND p.archived_at IS NULL \
+           THEN '' ELSE ' · v' || r.revision END AS name,p.source_kind,r.id AS active_revision_id,r.revision, \
+         r.id=p.active_revision_id AS is_active,r.engine_id,r.model_spec_id,r.language,r.preset_voice_id, \
+         p.archived_at,p.updated_at FROM spaces_voice_profiles p JOIN spaces_voice_revisions r ON r.profile_id=p.id \
+         WHERE p.space_id=? AND (p.archived_at IS NULL OR EXISTS( \
+           SELECT 1 FROM spaces_speech_segments s WHERE s.voice_revision_id=r.id) OR EXISTS( \
+           SELECT 1 FROM spaces_speech_projects project \
+           JOIN spaces_speech_project_revisions revision ON revision.project_id=project.id \
+           JOIN json_each(revision.output_config,'$.roles') role \
+           WHERE project.space_id=p.space_id \
+             AND json_extract(role.value,'$.voiceRevisionId')=r.id)) \
+         ORDER BY p.archived_at IS NOT NULL,p.updated_at DESC,r.id=p.active_revision_id DESC,r.revision DESC",
     )
     .bind(space_id)
     .fetch_all(pool)
@@ -25,7 +33,11 @@ pub async fn list_projects(
 ) -> Result<Vec<SpeechProjectSummary>, String> {
     sqlx::query_as(
         "SELECT p.id, p.space_id, p.project_type, p.title, p.active_revision_id, r.revision AS active_revision, \
-         COUNT(s.id) AS segment_count,p.generation_epoch,p.active_generation_job_id,p.updated_at \
+         COUNT(s.id) AS segment_count,(SELECT r0.id FROM spaces_runs r0 \
+           WHERE r0.kind='workflow' AND r0.completed_at IS NULL \
+             AND json_extract(r0.input_snapshot,'$.workflow')='speech_project_generation_v1' \
+             AND json_extract(r0.input_snapshot,'$.projectId')=p.id \
+           ORDER BY r0.created_at DESC LIMIT 1) AS active_run_id,p.updated_at \
          FROM spaces_speech_projects p \
          JOIN spaces_speech_project_revisions r ON r.id=p.active_revision_id \
          LEFT JOIN spaces_speech_segments s ON s.project_revision_id=r.id \
@@ -43,7 +55,11 @@ pub async fn load_project(
 ) -> Result<SpeechProjectDetail, String> {
     let project: SpeechProjectSummary = sqlx::query_as(
         "SELECT p.id, p.space_id, p.project_type, p.title, p.active_revision_id, r.revision AS active_revision, \
-         COUNT(s.id) AS segment_count,p.generation_epoch,p.active_generation_job_id,p.updated_at \
+         COUNT(s.id) AS segment_count,(SELECT r0.id FROM spaces_runs r0 \
+           WHERE r0.kind='workflow' AND r0.completed_at IS NULL \
+             AND json_extract(r0.input_snapshot,'$.workflow')='speech_project_generation_v1' \
+             AND json_extract(r0.input_snapshot,'$.projectId')=p.id \
+           ORDER BY r0.created_at DESC LIMIT 1) AS active_run_id,p.updated_at \
          FROM spaces_speech_projects p \
          JOIN spaces_speech_project_revisions r ON r.id=p.active_revision_id \
          LEFT JOIN spaces_speech_segments s ON s.project_revision_id=r.id \
@@ -65,7 +81,8 @@ pub async fn load_project(
     .map_err(db::sql_error)?;
     let segments = sqlx::query_as(
         "SELECT id, ordinal, chapter_key, speaker_key, text, normalized_text, voice_revision_id, \
-         language, target_start_ms, target_end_ms, state, state_reason \
+         language, target_start_ms, target_end_ms,source_segment_id,source_segment_revision, \
+         source_text,state, state_reason \
          FROM spaces_speech_segments WHERE project_revision_id=? ORDER BY ordinal",
     )
     .bind(&project.active_revision_id)
@@ -88,15 +105,20 @@ pub async fn require_voice_in_space(
         "SELECT r.language FROM spaces_voice_revisions r \
          JOIN spaces_voice_profiles v ON v.id=r.profile_id \
          JOIN spaces_speech_projects p ON p.space_id=v.space_id \
-         WHERE r.id=? AND p.id=? AND v.source_kind='preset' \
-           AND r.engine_id='kokoro' AND r.model_spec_id=?",
+         WHERE r.id=? AND p.id=? AND ( \
+           (v.source_kind='preset' AND r.engine_id='kokoro' AND r.model_spec_id=?) OR \
+           (v.source_kind IN ('reference','designed') AND r.engine_id='voxcpm2' \
+             AND r.model_spec_id=? \
+             AND r.reference_asset_id IS NOT NULL AND r.reference_source_revision IS NOT NULL \
+             AND (v.source_kind='reference' OR \
+               (r.reference_text IS NOT NULL AND length(trim(r.reference_text)) > 0))))",
     )
     .bind(voice_revision_id)
     .bind(project_id)
     .bind(super::execution::KOKORO_MODEL_SPEC_ID)
+    .bind(super::voice_candidates::MODEL_SPEC_ID)
     .fetch_optional(&mut **tx)
     .await
     .map_err(db::sql_error)?;
-    language
-        .ok_or_else(|| "A compatible preset voice revision is required in this Space".to_owned())
+    language.ok_or_else(|| "A compatible voice revision is required in this Space".to_owned())
 }

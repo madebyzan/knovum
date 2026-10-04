@@ -1,33 +1,40 @@
 from __future__ import annotations
 
-import hashlib
-import math
-import os
-import struct
-import wave
+import threading
 from pathlib import Path
 from typing import Any
 
 from knovum_inference.contracts import SpeechSynthesisEngine, SpeechSynthesizeParams, VoiceSourceKind
 from knovum_inference.errors import invalid_params, server_error
-from knovum_inference.speech_common import attempt_directory, check_deadline
-
-MAX_AUDIO_BYTES = 16 * 1024 * 1024
+from knovum_inference.speech_common import check_deadline
+from knovum_inference.speech_stream import SynthesisChunkPublisher
+from knovum_inference.speech_synthesis_voxcpm2 import VoxCpm2SynthesisEngine
 
 
 class SynthesisEngine:
-    def __init__(self, model_directory: Path, work_directory: Path, cpu_threads: int) -> None:
+    def __init__(self, model_directory: Path, device: str, cpu_threads: int) -> None:
         self._model_directory = model_directory
-        self._work_directory = work_directory
         self._cpu_threads = cpu_threads
+        self._device = device
         self._engine: Any = None
+        self._voxcpm2 = VoxCpm2SynthesisEngine(model_directory, device)
 
-    def synthesize(self, params: SpeechSynthesizeParams) -> dict[str, Any]:
-        if (
-            params.profile.engine is not SpeechSynthesisEngine.kokoro
-            or params.voice_revision.source_kind is not VoiceSourceKind.preset
-        ):
-            raise invalid_params("Kokoro requires its preset synthesis profile")
+    def synthesize(
+        self,
+        params: SpeechSynthesizeParams,
+        publisher: SynthesisChunkPublisher,
+        cancelled: threading.Event,
+    ) -> dict[str, Any]:
+        if not params.text.strip() or len(params.text) > 10_000:
+            raise invalid_params("Synthesis text is invalid")
+        check_deadline(params.deadline_ms)
+        if params.profile.engine is SpeechSynthesisEngine.vox_cpm2:
+            self._voxcpm2.generate(params, publisher, cancelled)
+            return {"modelSpecId": params.model_spec_id, **publisher.finish()}
+        if params.profile.engine is not SpeechSynthesisEngine.kokoro:
+            raise invalid_params("Synthesis engine is unsupported")
+        if self._device != "cpu" or params.voice_revision.source_kind is not VoiceSourceKind.preset:
+            raise invalid_params("Kokoro requires its CPU preset synthesis profile")
         if (
             params.voice_revision.speaker_id is None
             or params.voice_revision.reference_audio is not None
@@ -37,42 +44,22 @@ class SynthesisEngine:
             or params.seed != 0
         ):
             raise invalid_params("Kokoro preset voice controls are invalid")
-        if not params.text.strip() or len(params.text) > 10_000 or not 0.5 <= params.profile.speed <= 2.0:
-            raise invalid_params("Synthesis text or speed is invalid")
-        check_deadline(params.deadline_ms)
-        audio = self._load().generate(
-            text=params.text, sid=params.voice_revision.speaker_id, speed=params.profile.speed
-        )
-        sample_rate = int(audio.sample_rate)
-        if sample_rate <= 0 or sample_rate != params.profile.sample_rate:
-            raise server_error("invalid_output", "Synthesis sample rate differs from the profile")
-        samples = [float(sample) for sample in audio.samples]
-        if not samples or any(not math.isfinite(sample) for sample in samples):
-            raise server_error("invalid_output", "Synthesis returned empty or non-finite audio")
-        if len(samples) * 2 + 44 > MAX_AUDIO_BYTES:
-            raise server_error("resource_exhausted", "Synthesized audio exceeds its byte limit")
-        directory = attempt_directory(self._work_directory, params.request_id)
-        file_name = "audio.wav"
-        final = directory / file_name
-        temporary = directory / f".{file_name}.part"
-        _write_wave(temporary, samples, sample_rate)
-        os.replace(temporary, final)
-        data = final.read_bytes()
-        return {
-            "requestId": params.request_id,
-            "attemptEpoch": params.attempt_epoch,
-            "modelSpecId": params.model_spec_id,
-            "audioRef": {
-                "fileName": f"{directory.name}/{file_name}",
-                "mediaType": "audio/wav",
-                "byteLength": len(data),
-                "sha256": hashlib.sha256(data).hexdigest(),
-                "sampleRate": sample_rate,
-                "channels": 1,
-                "sampleFormat": "pcm_s16le",
-            },
-            "sampleCount": len(samples),
-        }
+        if not 0.5 <= params.profile.speed <= 2.0:
+            raise invalid_params("Kokoro synthesis speed is invalid")
+        for sentence in _sentences(params.text):
+            if cancelled.is_set():
+                raise server_error("cancelled", "Synthesis was cancelled")
+            check_deadline(params.deadline_ms)
+            audio = self._load().generate(
+                text=sentence,
+                sid=params.voice_revision.speaker_id,
+                speed=params.profile.speed,
+            )
+            sample_rate = int(audio.sample_rate)
+            if sample_rate != params.profile.sample_rate:
+                raise server_error("invalid_output", "Synthesis sentence output is invalid")
+            publisher.publish(audio.samples, sample_rate, "sentence")
+        return {"modelSpecId": params.model_spec_id, **publisher.finish()}
 
     def _load(self) -> Any:
         if self._engine is not None:
@@ -109,11 +96,16 @@ class SynthesisEngine:
         return self._engine
 
 
-def _write_wave(path: Path, samples: list[float], sample_rate: int) -> None:
-    with wave.open(str(path), "wb") as output:
-        output.setnchannels(1)
-        output.setsampwidth(2)
-        output.setframerate(sample_rate)
-        output.writeframes(
-            b"".join(struct.pack("<h", round(max(-1.0, min(1.0, sample)) * 32767)) for sample in samples)
-        )
+def _sentences(text: str) -> list[str]:
+    sentences: list[str] = []
+    start = 0
+    for index, character in enumerate(text, start=1):
+        if character in ".!?。！？；;\n" or index - start >= 500:
+            sentence = text[start:index].strip()
+            if sentence:
+                sentences.append(sentence)
+            start = index
+    tail = text[start:].strip()
+    if tail:
+        sentences.append(tail)
+    return sentences

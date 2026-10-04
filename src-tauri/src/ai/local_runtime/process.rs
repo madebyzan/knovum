@@ -18,7 +18,8 @@ use tokio_util::sync::CancellationToken;
 use super::protocol::{io_error, Protocol};
 use crate::{
     ai::contracts::runtime::{
-        RuntimeCapability, RuntimeInitializeParams, RuntimeInitializeResult, PROTOCOL_VERSION,
+        RuntimeCapability, RuntimeHealthParams, RuntimeHealthResult, RuntimeInitializeParams,
+        RuntimeInitializeResult, PROTOCOL_VERSION,
     },
     local_resources::tools::PythonRuntimePaths,
 };
@@ -32,6 +33,7 @@ use windows_job::WindowsJob;
 pub(super) struct Worker {
     pub(super) child: Child,
     process_tree: ProcessTree,
+    memory_reservation: Option<super::admission::MemoryReservation>,
     _kill_registration: KillRegistration,
     pub(super) protocol: Protocol,
     pub(super) session_id: String,
@@ -49,6 +51,44 @@ impl Worker {
         &self.work_directory
     }
 
+    pub(super) fn matches(
+        &self,
+        runtime_digest: &str,
+        model_path: &Path,
+        capability: RuntimeCapability,
+        capability_spec_id: &str,
+        device_profile: &crate::ai::contracts::runtime::RuntimeDeviceProfile,
+    ) -> bool {
+        self.runtime_digest == runtime_digest
+            && self.model_path == model_path
+            && self.capability == capability
+            && self.capability_spec_id == capability_spec_id
+            && self.device_profile == *device_profile
+    }
+
+    pub(super) async fn resident_bytes(&mut self) -> Result<u64, String> {
+        let request_id = uuid::Uuid::new_v4().to_string();
+        let result = tokio::time::timeout(
+            Duration::from_secs(2),
+            self.protocol.request::<_, RuntimeHealthResult>(
+                &request_id,
+                "runtime.health",
+                &RuntimeHealthParams {
+                    session_id: self.session_id.clone(),
+                },
+            ),
+        )
+        .await
+        .map_err(|_| "deadline_exceeded: runtime health timed out".to_owned())??;
+        if result.session_id != self.session_id || result.current_request_id.is_some() {
+            return Err("invalid_output: runtime health identity or worker state differs".into());
+        }
+        if result.resident_bytes == 0 {
+            return Err("invalid_output: runtime health reported zero resident memory".into());
+        }
+        Ok(result.resident_bytes)
+    }
+
     pub(super) async fn start(
         runtime: &PythonRuntimePaths,
         work_directory: &Path,
@@ -58,13 +98,21 @@ impl Worker {
         cancellation: &CancellationToken,
         exit: &CancellationToken,
     ) -> Result<Self, String> {
+        let memory_reservation =
+            super::admission::reserve_memory(params.capability, &params.device_profile)?;
         let result = tokio::select! {
             biased;
             _ = exit.cancelled() => Err("cancelled".into()),
             _ = cancellation.cancelled() => Err("cancelled".into()),
             result = tokio::time::timeout(
                 super::deadline_duration(deadline_ms)?,
-                Self::start_inner(runtime, work_directory, model_path, params),
+                Self::start_inner(
+                    runtime,
+                    work_directory,
+                    model_path,
+                    params,
+                    memory_reservation,
+                ),
             ) => result.map_err(|_| "deadline_exceeded".to_owned())?,
         };
         if result.is_err() {
@@ -78,6 +126,7 @@ impl Worker {
         work_directory: &Path,
         model_path: &Path,
         params: RuntimeInitializeParams,
+        memory_reservation: super::admission::MemoryReservation,
     ) -> Result<Self, String> {
         super::prepare_inference_root(work_directory).await?;
         verify_runtime_for_spawn(runtime.clone()).await?;
@@ -91,7 +140,7 @@ impl Worker {
         );
         let mut command = Command::new(&runtime.executable);
         command
-            .args(["-I", "-c", bootstrap])
+            .args(["-I", "-B", "-X", "utf8", "-c", bootstrap])
             .arg(&runtime.package_root)
             .current_dir(work_directory)
             .stdin(Stdio::piped())
@@ -100,11 +149,32 @@ impl Worker {
             .env_remove("PYTHONPATH")
             .env_remove("PYTHONHOME")
             .env_remove("PYTHONSTARTUP")
+            .env_remove("VOXCPM_MPS_DTYPE")
+            .env_remove("HF_TOKEN")
+            .env_remove("HUGGING_FACE_HUB_TOKEN")
             .env("HF_HUB_OFFLINE", "1")
             .env("TRANSFORMERS_OFFLINE", "1")
-            .env("PYTHONDONTWRITEBYTECODE", "1")
+            .env("PYANNOTE_METRICS_ENABLED", "0")
+            .env("HF_HUB_DISABLE_TELEMETRY", "1")
+            .env("PYTORCH_ENABLE_MPS_FALLBACK", "0")
             .env(
                 "OMP_NUM_THREADS",
+                params.device_profile.cpu_threads.to_string(),
+            )
+            .env(
+                "MKL_NUM_THREADS",
+                params.device_profile.cpu_threads.to_string(),
+            )
+            .env(
+                "OPENBLAS_NUM_THREADS",
+                params.device_profile.cpu_threads.to_string(),
+            )
+            .env(
+                "NUMEXPR_NUM_THREADS",
+                params.device_profile.cpu_threads.to_string(),
+            )
+            .env(
+                "VECLIB_MAXIMUM_THREADS",
                 params.device_profile.cpu_threads.to_string(),
             )
             .kill_on_drop(true);
@@ -205,6 +275,8 @@ impl Worker {
             || result.limits.max_message_bytes != 1_048_576
             || result.limits.max_embedding_texts != 32
             || result.limits.max_embedding_tokens != 2048
+            || result.limits.max_unconsumed_chunk_files != 8
+            || result.limits.max_unconsumed_chunk_bytes != 16 * 1024 * 1024
         {
             process_tree.terminate();
             let _ = child.kill().await;
@@ -215,6 +287,7 @@ impl Worker {
         Ok(Self {
             child,
             process_tree,
+            memory_reservation: Some(memory_reservation),
             _kill_registration: kill_registration,
             protocol,
             session_id: params.session_id,
@@ -234,6 +307,9 @@ impl Worker {
         let _ = self.child.kill().await;
         let _ = self.child.wait().await;
         let _ = tokio::fs::remove_dir_all(&self.work_directory).await;
+        if let Some(mut reservation) = self.memory_reservation.take() {
+            reservation.release();
+        }
     }
 }
 

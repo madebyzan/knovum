@@ -5,16 +5,13 @@ use std::{
 
 use tokio_util::sync::CancellationToken;
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy)]
 pub enum JobKind {
     Preview,
-    Project,
 }
 
 struct ActiveJob {
     token: CancellationToken,
-    kind: JobKind,
-    accepts_unpersisted_cancel: bool,
 }
 
 fn jobs() -> &'static Mutex<HashMap<String, ActiveJob>> {
@@ -22,7 +19,7 @@ fn jobs() -> &'static Mutex<HashMap<String, ActiveJob>> {
     JOBS.get_or_init(|| Mutex::new(HashMap::new()))
 }
 
-pub fn acquire(job_id: &str, kind: JobKind) -> Result<JobLease, String> {
+pub fn acquire(job_id: &str, _kind: JobKind) -> Result<JobLease, String> {
     uuid::Uuid::parse_str(job_id).map_err(|_| "Speech job identity is invalid")?;
     let token = CancellationToken::new();
     let mut active = jobs()
@@ -35,8 +32,6 @@ pub fn acquire(job_id: &str, kind: JobKind) -> Result<JobLease, String> {
         job_id.to_owned(),
         ActiveJob {
             token: token.clone(),
-            kind,
-            accepts_unpersisted_cancel: true,
         },
     );
     Ok(JobLease {
@@ -45,26 +40,16 @@ pub fn acquire(job_id: &str, kind: JobKind) -> Result<JobLease, String> {
     })
 }
 
-pub fn cancel(job_id: &str, persisted: bool) -> Result<bool, String> {
+pub fn cancel(job_id: &str, _persisted: bool) -> Result<bool, String> {
     uuid::Uuid::parse_str(job_id).map_err(|_| "Speech job identity is invalid")?;
     let active = jobs()
         .lock()
         .map_err(|_| "Speech job registry is unavailable")?;
     let Some(job) = active.get(job_id) else {
-        return Ok(persisted);
+        return Ok(false);
     };
     job.token.cancel();
-    Ok(persisted || job.kind == JobKind::Preview || job.accepts_unpersisted_cancel)
-}
-
-pub fn require_persisted_cancel(job_id: &str) -> Result<(), String> {
-    let mut active = jobs()
-        .lock()
-        .map_err(|_| "Speech job registry is unavailable")?;
-    if let Some(job) = active.get_mut(job_id) {
-        job.accepts_unpersisted_cancel = false;
-    }
-    Ok(())
+    Ok(true)
 }
 
 pub struct JobLease {

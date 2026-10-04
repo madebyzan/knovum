@@ -18,6 +18,86 @@ native loadability, signing/notarization or Authenticode conditions, and an inst
 smoke on a clean machine without a system Python installation. A matching hash alone does not
 establish code-signing trust or native wheel support.
 
+Speech acceptance uses the exact candidate runtime and resources. On macOS arm64 it covers the MPS
+float32 VoxCPM2 profile with the 48 GiB conservative admission threshold; on Windows x64 it covers
+the CPU bfloat16 profile with the 32 GiB threshold. These gates are not performance evidence: native
+QA must still record peak memory, latency, cancellation, recovery and output quality. Pyannote import
+acceptance uses a user-authorized fixed-revision directory without storing a token or reading external
+YAML. Alignment acceptance covers the selected-range limits and manual timing invalidation.
+
+### Native inference quality evidence
+
+`python/tools/acceptance_report.py` is the release evaluator for model quality. It reads a fixed corpus
+manifest, candidate outputs captured from the private worker and hash-bound reference/baseline outputs;
+it does not generate inference, substitute fixture values or infer a pass from imports. Run it on each
+supported target:
+
+```text
+<bundled-python> -I -B -X utf8 python/tools/acceptance_report.py \
+  --corpus <corpus.json> --results <native-results.json> --output <acceptance-report.json>
+```
+
+Exit code `0` means every scored capability passed. Exit code `1` means invalid evidence or a failed
+threshold. Exit code `2` means at least one capability or required input is unavailable. Only `passed`
+is release evidence; `unavailable` is deliberately not treated as a skip or success.
+
+The corpus manifest is schema version 1 and has exactly these top-level fields: `schemaVersion`,
+`corpusId`, `corpusVersion`, `description`, `embedding`, `asr`, `alignment` and `tts`. Its bytes are
+SHA-256 bound into the result provenance. The versioned corpus must contain:
+
+- embedding documents, notes, code and transcripts with non-empty query relevance judgments, plus the official
+  Sentence Transformers CPU/float32 reference profile;
+- Chinese and English ASR audio, SHA-256 identities, duration, sample rate, human reference text and coverage
+  tags for mixed language, proper nouns, numbers, silence, noise, speaker overlap and long recordings; the set
+  includes at least two sample rates and a recording of at least ten minutes. Its `baselineProfile` freezes
+  `modelSpecId`, `configId`, `modelFamily` and `modelSize`; candidate ASR config parameters must match the latter two;
+- Chinese and English alignment audio with human unit start/end boundaries and preregistered coverage,
+  median-error and P95-error limits;
+- at least 30 fixed Chinese/English TTS statements and preregistered 1-to-5 mean-score limits for
+  pronunciation, naturalness, voice consistency, reference similarity and emotion control.
+
+Audio paths are relative to the corpus manifest, cannot escape that directory and must match their
+declared digest. Licensed/private recordings may live in the controlled QA evidence store rather than
+Git, but the immutable corpus manifest, audio bytes and annotations must remain reviewable under the
+recorded corpus version. Missing assets make the run unavailable.
+
+The native result manifest is also schema version 1. It records `runId`, `capturedAt`, all four explicit
+capability states and provenance containing the application version/full commit, runtime version/digest, target, model
+spec IDs and identity digests, execution config IDs and parameters, corpus digest, and complete device,
+OS, driver and power-mode information. It accepts only `macos-arm64` and `windows-x64`. Every capability
+must say `completed` or `unavailable` with a reason; omission is invalid evidence.
+
+Completed capabilities refer to hash-bound raw JSON files beside the result manifest. Each raw file
+uses schema version 1 with `source`, `values`, and one or more request identities/timestamps. Candidate
+sources must identify `native_worker`, the actual JSON-RPC method, the candidate runtime digest, frozen
+model spec and config. Reference embedding evidence identifies `official_python_reference`; ASR
+comparison evidence identifies `product_baseline`. The raw value shapes are:
+
+- embedding: `queries` and `documents` maps from corpus ID to the full numeric vector;
+- ASR: `transcripts` from every corpus sample ID to the actual transcript;
+- alignment: every sample ID maps to every annotated unit ID and its returned nullable start/end time;
+- TTS: every sample ID maps to one hash-bound generated audio artifact.
+
+The evaluator calculates paired cosine, Recall@10 and nDCG@10. CPU/float32 paired cosine must be at
+least `0.9999`; retrieval metric loss against the official reference must not exceed `0.01`. It reports
+Chinese CER and English WER for the previous product baseline and candidate; either regression above
+`0.01` fails. Alignment reports coverage and median/P95 absolute boundary error by language and overall,
+then applies the limits fixed in the corpus before execution.
+
+TTS evidence includes the hash-bound concealed sample-assignment file and the time at which it was revealed.
+Every generated sample must receive one complete score set from at least three distinct blinded raters;
+duplicate reviews from one rater do not count. The evaluator verifies all audio hashes and requires each
+review's `reviewedAt` to precede assignment disclosure. It reports criterion means and applies the
+preregistered limits. An ASR round-trip score cannot replace these human
+records. The result report remains attached to the exact candidate artifacts and is regenerated for
+every runtime, model, execution-config or corpus change.
+
+Kokoro blocks production promotion independently of functional QA until the distribution review
+contains complete corresponding-source and notice materials for the GPL eSpeak NG data and for the
+GPL-bearing sherpa Python native binary, plus an explicit maintainer legal decision. Release tooling
+must not manufacture or default that decision to approved. Disabling the on-demand Kokoro download
+does not resolve a candidate that still conveys the affected sherpa wheel in its bundled runtime.
+
 Before promotion, also review new capability permissions, CSP origins, protocol/file handlers and
 platform metadata. No WebView may receive SQL permissions or a generic SQL/runtime mutation command.
 Exercise the full embedded Spaces SQLx migration history and packaged application upgrade path.
@@ -195,18 +275,20 @@ as plain text.
 
 ## Required acceptance matrix
 
-| Scenario                                            | Required outcome on every supported target                                    |
-| --------------------------------------------------- | ----------------------------------------------------------------------------- |
-| QA vs production startup                            | QA starts with updates disabled; correctly configured production initializes. |
-| Installed N to N+1                                  | Check, download, verify, save, install and relaunch; new version is reported. |
-| Data and migrations                                 | Existing spaces, assets, credentials, preferences and schema remain usable.   |
-| Wrong key / tampered file                           | Installation is refused and the current app remains usable.                   |
-| Offline / stalled service / invalid JSON            | Finite wait, visible failure, explicit retry; no silent success.              |
-| Slow/unknown-size download and cancel               | Accurate/indeterminate progress, cancellation releases the operation.         |
-| Repeated clicks / leave and reopen About            | One native download/install, retained progress and selected version.          |
-| Save failure / active task / rejected OS permission | No unsafe install; failure is visible and the app remains usable.             |
-| GitHub to COS migration                             | Original client finds the same signed version through unchanged discovery.    |
-| Relaunch / native installer behavior                | No blocked restart, duplicate process or unexpected ordinary quit.            |
+| Scenario                                            | Required outcome on every supported target                                                                           |
+| --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| QA vs production startup                            | QA starts with updates disabled; correctly configured production initializes.                                        |
+| Installed N to N+1                                  | Check, download, verify, save, install and relaunch; new version is reported.                                        |
+| Data and migrations                                 | Existing spaces, assets, credentials, preferences and schema remain usable.                                          |
+| Wrong key / tampered file                           | Installation is refused and the current app remains usable.                                                          |
+| Offline / stalled service / invalid JSON            | Finite wait, visible failure, explicit retry; no silent success.                                                     |
+| Slow/unknown-size download and cancel               | Accurate/indeterminate progress, cancellation releases the operation.                                                |
+| Repeated clicks / leave and reopen About            | One native download/install, retained progress and selected version.                                                 |
+| Save failure / active task / rejected OS permission | No unsafe install; failure is visible and the app remains usable.                                                    |
+| GitHub to COS migration                             | Original client finds the same signed version through unchanged discovery.                                           |
+| Relaunch / native installer behavior                | No blocked restart, duplicate process or unexpected ordinary quit.                                                   |
+| Speech runtime and model resources                  | Native ASR, alignment, diarization import, Kokoro gate and VoxCPM2 profiles are exercised on their supported target. |
+| GPL source and notices                              | Candidate materials match every conveyed wheel/data hash and the approved distribution decision.                     |
 
 The first update-enabled public installation establishes the trust/endpoint baseline. A previously
 shipped updater-disabled QA binary cannot be remotely taught an endpoint; install the baseline normally.

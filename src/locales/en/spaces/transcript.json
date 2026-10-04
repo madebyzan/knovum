@@ -12,6 +12,17 @@
     "search": "Search transcript",
     "noMatches": "No matching transcript text",
     "live": "Live transcription",
-    "liveHint": "Live transcript text will appear here as recognized."
+    "liveHint": "Live transcript text will appear here as recognized.",
+    "alignSelected": "Align selected",
+    "alignmentLimit": "Up to 8 segments / 5 minutes",
+    "selectForAlignment": "Select for alignment"
+  },
+  "speakers": {
+    "title": "Speaker tracks",
+    "needsModel": "Import the authorized Community-1 model in Settings → AI Models → Local speech resources.",
+    "durationLimit": "Speaker diarization supports recordings up to two hours.",
+    "minimum": "Minimum speakers (optional)",
+    "maximum": "Maximum speakers (optional)",
+    "generate": "Identify speakers"
   }
 }

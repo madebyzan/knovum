@@ -8,6 +8,7 @@ import UiSelect from "../../../shared/ui/UiSelect.vue";
 import type { CreatePresetVoiceInput } from "./contracts";
 
 const emit = defineEmits<{ create: [input: Omit<CreatePresetVoiceInput, "spaceId">] }>();
+defineProps<{ disabled?: boolean }>();
 const { t } = useI18n();
 const name = shallowRef("");
 const speakerId = shallowRef("0");
@@ -18,7 +19,7 @@ const languageOptions = [
 ] as const;
 
 function submit() {
-  if (!name.value.trim() || !/^\d+$/.test(speakerId.value)) return;
+  if (!name.value.trim() || !isPresetVoiceId(speakerId.value)) return;
   emit("create", {
     name: name.value.trim(),
     presetVoiceId: speakerId.value,
@@ -29,21 +30,37 @@ function submit() {
   });
   name.value = "";
 }
+
+function isPresetVoiceId(value: string) {
+  return /^\d+$/u.test(value) && Number(value) <= 4_294_967_295;
+}
 </script>
 
 <template>
   <form class="space-y-2" @submit.prevent="submit">
-    <UiInput v-model="name" size="sm" :placeholder="t('spaces.speech.voiceName')" />
+    <UiInput v-model="name" size="sm" :placeholder="t('spaces.speech.voiceName')" :disabled="disabled" />
     <div class="flex gap-2">
-      <UiInput v-model="speakerId" class="min-w-0" size="sm" :placeholder="t('spaces.speech.speakerId')" />
+      <UiInput
+        v-model="speakerId"
+        class="min-w-0"
+        size="sm"
+        type="number"
+        min="0"
+        max="4294967295"
+        :placeholder="t('spaces.speech.speakerId')"
+        :disabled="disabled"
+      />
       <UiSelect
         v-model="language"
         class="min-w-28"
         size="sm"
         :label="t('spaces.speech.language')"
         :options="languageOptions"
+        :disabled="disabled"
       />
-      <UiButton size="sm" variant="primary" type="submit">{{ t("spaces.speech.addVoice") }}</UiButton>
+      <UiButton size="sm" variant="primary" type="submit" :disabled="disabled">{{
+        t("spaces.speech.addVoice")
+      }}</UiButton>
     </div>
   </form>
 </template>

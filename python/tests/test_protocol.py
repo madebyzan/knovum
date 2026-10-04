@@ -24,6 +24,7 @@ def test_invalid_request_is_rejected(line: bytes) -> None:
         parse_request(line)
 
 
-def test_only_cancel_may_be_notification() -> None:
-    request = parse_request(b'{"jsonrpc":"2.0","method":"runtime.cancel","params":{}}')
+@pytest.mark.parametrize("method", ["runtime.cancel", "runtime.ackChunk"])
+def test_runtime_control_may_be_notification(method: str) -> None:
+    request = parse_request(f'{{"jsonrpc":"2.0","method":"{method}","params":{{}}}}'.encode())
     assert request.request_id is None

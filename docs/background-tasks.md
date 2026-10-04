@@ -44,4 +44,13 @@ ordered progress within an execution; events publish enrichment observations to 
 
 Spaces persists Assistant and Workflow execution as Runs. [runs/run-observation.ts](../src/features/spaces/runs/run-observation.ts) observes `Channel<RunObservation>` via `plugin:spaces|observe_run`. Conversation and Workflow owners project the observed states and cancellation handlers into Task Center and restore active Runs after reload. Closing the conversation panel does not end the Rust Run.
 
+Speech projects use the same durable Run authority. One accepted start owns a stable request ID;
+segment synthesis and final assembly receive separate attempt identities; audiobooks additionally
+checkpoint chapter PCM and loudness measurement in independent steps. Every claim carries
+the current execution epoch. Segment completion, output reservation and publication use epoch-aware
+compare-and-swap writes, so a recovered or cancelled worker cannot publish late output. Startup
+reconciles interrupted attempts and resumes only durable work. Audio normalization, video stretching
+and assembly artifacts remain attempt-owned until final publication; Task Center observes these
+phases but does not decide retry or success.
+
 Task Center titles open the owning Space/conversation. Approval and external-Agent permission decisions stay at that owner; Task Center shows their global summary. Run IDs, revision guards and recovery remain Rust-owned. See [system-architecture.md](system-architecture.md) for runtime flow and [architecture.md](architecture.md) for dependency rules.

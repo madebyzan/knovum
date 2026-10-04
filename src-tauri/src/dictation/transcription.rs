@@ -47,7 +47,6 @@ pub(crate) async fn transcribe<R: Runtime>(
     )
     .await?;
     let audio_ref = crate::blocking::run(move || audio_reference(&wav, recording)).await?;
-    let vad_enabled = matches!(&profile.engine, AsrEngine::FasterWhisper);
     let (attempt_epoch, deadline_ms) = deadline(120_000)?;
     let request_id = uuid::Uuid::new_v4().to_string();
     let identity = InferenceRequestIdentity {
@@ -78,7 +77,7 @@ pub(crate) async fn transcribe<R: Runtime>(
                 device: profile.device.into(),
                 compute_type: profile.compute_type.into(),
                 beam_size: 5,
-                vad_enabled,
+                vad_enabled: true,
             },
         },
         cancellation,

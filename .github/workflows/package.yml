@@ -36,7 +36,7 @@ jobs:
           check-latest: false
       - uses: astral-sh/setup-uv@v10.2.0
         with:
-          version: "0.11.24"
+          version: "0.12.23"
       - uses: ./.github/actions/setup-protoc
       - name: Enable pnpm
         shell: bash
@@ -52,10 +52,14 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Provision controlled bundled runtime
         env:
-          KNOVUM_BUNDLED_RUNTIME_MACOS_ARM64_URL: ${{ vars.KNOVUM_BUNDLED_RUNTIME_MACOS_ARM64_URL }}
-          KNOVUM_BUNDLED_RUNTIME_MACOS_ARM64_SHA256: ${{ vars.KNOVUM_BUNDLED_RUNTIME_MACOS_ARM64_SHA256 }}
-          KNOVUM_BUNDLED_RUNTIME_WINDOWS_X64_URL: ${{ vars.KNOVUM_BUNDLED_RUNTIME_WINDOWS_X64_URL }}
-          KNOVUM_BUNDLED_RUNTIME_WINDOWS_X64_SHA256: ${{ vars.KNOVUM_BUNDLED_RUNTIME_WINDOWS_X64_SHA256 }}
+          KNOVUM_FFMPEG_MACOS_ARM64_URL: ${{ vars.KNOVUM_FFMPEG_MACOS_ARM64_URL }}
+          KNOVUM_PYTHON_RUNTIME_MACOS_ARM64_URL: ${{ vars.KNOVUM_PYTHON_RUNTIME_MACOS_ARM64_URL }}
+          KNOVUM_FFMPEG_MACOS_ARM64_SHA256: ${{ vars.KNOVUM_FFMPEG_MACOS_ARM64_SHA256 }}
+          KNOVUM_PYTHON_RUNTIME_MACOS_ARM64_SHA256: ${{ vars.KNOVUM_PYTHON_RUNTIME_MACOS_ARM64_SHA256 }}
+          KNOVUM_FFMPEG_WINDOWS_X64_URL: ${{ vars.KNOVUM_FFMPEG_WINDOWS_X64_URL }}
+          KNOVUM_PYTHON_RUNTIME_WINDOWS_X64_URL: ${{ vars.KNOVUM_PYTHON_RUNTIME_WINDOWS_X64_URL }}
+          KNOVUM_FFMPEG_WINDOWS_X64_SHA256: ${{ vars.KNOVUM_FFMPEG_WINDOWS_X64_SHA256 }}
+          KNOVUM_PYTHON_RUNTIME_WINDOWS_X64_SHA256: ${{ vars.KNOVUM_PYTHON_RUNTIME_WINDOWS_X64_SHA256 }}
           KNOVUM_BUNDLED_RUNTIME_AUTHORIZATION: ${{ secrets.KNOVUM_BUNDLED_RUNTIME_AUTHORIZATION }}
         run: pnpm runtime:provision
       - name: Audit production web dependencies
@@ -75,6 +79,7 @@ jobs:
       - name: Build QA package
         env:
           APPLE_SIGNING_IDENTITY: ${{ matrix.os == 'macos-15' && '-' || '' }}
+          KNOVUM_WINDOWS_7ZIP_PATH: ${{ matrix.os == 'windows-2025' && 'C:\Program Files\7-Zip\7z.exe' || '' }}
         run: ${{ matrix.command }}
       - name: Upload package artifacts
         uses: actions/upload-artifact@v4

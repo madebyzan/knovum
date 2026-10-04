@@ -50,8 +50,11 @@ fn provisioned_local_resources_starts() {
         &python,
         &[
             "-I",
+            "-B",
+            "-X",
+            "utf8",
             "-c",
-            "import sys; sys.path.insert(0, sys.argv[1]); import knovum_inference.worker, onnxruntime, torch, torchcodec; __import__(sys.argv[2])",
+            "import sys; sys.path.insert(0, sys.argv[1]); import knovum_inference.worker, onnxruntime, torch, sherpa_onnx, voxcpm; from pyannote.audio import Pipeline; __import__(sys.argv[2])",
             packages,
             backend,
         ],

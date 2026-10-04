@@ -1,35 +1,13 @@
 import { z } from "zod";
 
 import { executionSourceSchema } from "../../../../foundation/ai/schema/models";
-
-const spaceTranscriptSegmentSchema = z
-  .object({
-    startMs: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
-    endMs: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
-    text: z.string().trim().min(1).max(16_000),
-  })
-  .strict();
-
-export const spaceSubtitleCueSchema = z
-  .object({
-    startMs: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
-    endMs: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
-    text: z.string().trim().min(1).max(16_000),
-  })
-  .strict();
-
-const spaceMediaTranscriptSchema = z
-  .object({
-    language: z.string().trim().min(1).max(64),
-    durationMs: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
-    text: z
-      .string()
-      .trim()
-      .max(4 * 1024 * 1024),
-    segments: z.array(spaceTranscriptSegmentSchema).max(100_000),
-    subtitleCues: z.array(spaceSubtitleCueSchema).max(100_000),
-  })
-  .strict();
+import {
+  mediaSourceRevisionSchema,
+  spaceMediaTranscriptSchema,
+  type SpaceMediaTranscript,
+  type SpaceTranscriptSegment,
+} from "./transcript";
+import { validateMediaTranscript } from "./transcript-validation";
 
 const spaceMediaChapterSchema = z
   .object({
@@ -53,40 +31,20 @@ const insightsSchema = z
 
 export const spaceMediaKnowledgeSchema = z
   .object({
-    transcript: spaceMediaTranscriptSchema,
-    sourceRevision: z.string().trim().min(1).max(128),
-    schemaVersion: z.literal(4),
+    transcript: spaceMediaTranscriptSchema.superRefine(validateMediaTranscript),
+    sourceRevision: mediaSourceRevisionSchema,
+    schemaVersion: z.literal(5),
     insights: insightsSchema.optional(),
   })
   .strict()
   .superRefine((knowledge, context) => {
     const { durationMs, segments } = knowledge.transcript;
     const transcriptStarts = new Set(segments.map((segment) => segment.startMs));
-    const invalidSegments = segments.some(
-      (segment, index) =>
-        segment.endMs < segment.startMs ||
-        segment.endMs > durationMs ||
-        (index > 0 && segment.startMs < segments[index - 1]!.startMs),
-    );
-    if (invalidSegments) {
+    if (knowledge.sourceRevision !== knowledge.transcript.sourceRevision) {
       context.addIssue({
         code: "custom",
-        path: ["transcript", "segments"],
-        message: "Transcript segments must be ordered and bounded",
-      });
-    }
-
-    const invalidSubtitleCues = knowledge.transcript.subtitleCues.some(
-      (cue, index, cues) =>
-        cue.endMs <= cue.startMs ||
-        cue.endMs > durationMs ||
-        (index > 0 && cue.startMs < cues[index - 1]!.startMs),
-    );
-    if (invalidSubtitleCues) {
-      context.addIssue({
-        code: "custom",
-        path: ["transcript", "subtitleCues"],
-        message: "Subtitle cues must be ordered and bounded",
+        path: ["transcript", "sourceRevision"],
+        message: "Transcript source revision must match media knowledge",
       });
     }
 
@@ -111,12 +69,11 @@ export const spaceMediaKnowledgeSchema = z
     }
   });
 
-export type SpaceTranscriptSegment = z.infer<typeof spaceTranscriptSegmentSchema>;
+export type { SpaceMediaTranscript, SpaceTranscriptSegment };
 export interface SpaceTranscriptEdit {
   index: number;
   text: string;
 }
-export type SpaceMediaTranscript = z.infer<typeof spaceMediaTranscriptSchema>;
 export type SpaceMediaChapter = z.infer<typeof spaceMediaChapterSchema>;
 export type SpaceMediaInsights = z.infer<typeof insightsSchema>;
 export type SpaceMediaKnowledge = z.infer<typeof spaceMediaKnowledgeSchema>;

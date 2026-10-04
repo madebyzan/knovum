@@ -4,6 +4,7 @@ import { reactive } from "vue";
 import { createSpaceNode } from "../canvas/node";
 import { createSpaceNotePayload } from "../editor/tiptap-content";
 import { validateSpaceNodePayload } from "../model/nodes/node-validation";
+import { transcriptFixture } from "./media-transcript-fixture";
 
 describe("createSpaceNode", () => {
   it("keeps renderer state out of the domain node contract", () => {
@@ -31,16 +32,11 @@ describe("createSpaceNode", () => {
         title: "Interview",
         assetPath: "/spaces/assets/interview.wav",
         fileName: "interview.wav",
+        sourceRevision: "sha256:test",
         mediaKnowledge: {
-          transcript: {
-            language: "en",
-            durationMs: 1_000,
-            text: "Hello",
-            segments: [{ startMs: 0, endMs: 1_000, text: "Hello" }],
-            subtitleCues: [{ startMs: 0, endMs: 1_000, text: "Hello" }],
-          },
+          transcript: transcriptFixture("sha256:test", [{ startMs: 0, endMs: 1000, text: "Hello" }]),
           sourceRevision: "sha256:test",
-          schemaVersion: 4,
+          schemaVersion: 5,
           insights: {
             summary: "Greeting",
             chapters: [{ startMs: 0, endMs: 1_000, title: "Intro", summary: "Greeting" }],

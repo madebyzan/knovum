@@ -8,9 +8,11 @@ use tokio_util::sync::CancellationToken;
 
 pub(crate) mod admission;
 mod artifact;
+pub(crate) mod device_profiles;
 mod image;
 mod process;
 mod protocol;
+pub(crate) mod separation;
 pub(crate) mod speech;
 mod supervisor;
 
@@ -88,6 +90,38 @@ pub(super) fn exit_token() -> &'static CancellationToken {
 
 fn worker_slot() -> WorkerSlot {
     WORKER.get_or_init(|| Arc::new(Mutex::new(None))).clone()
+}
+
+async fn prepare_worker_for_admission<F>(
+    priority: admission::Priority,
+    compatible: F,
+) -> Result<(), String>
+where
+    F: FnOnce(&process::Worker) -> bool,
+{
+    let slot = worker_slot();
+    let Ok(mut guard) = slot.try_lock() else {
+        return Ok(());
+    };
+    let Some(worker) = guard.as_mut() else {
+        return Ok(());
+    };
+    let resident_bytes = match worker.resident_bytes().await {
+        Ok(bytes) => bytes,
+        Err(error) => {
+            worker.terminate().await;
+            *guard = None;
+            return Err(error);
+        }
+    };
+    let reclaim_for_memory = admission::memory_pressure()?;
+    let reclaim_for_priority = priority == admission::Priority::Interactive && !compatible(worker);
+    if reclaim_for_memory || reclaim_for_priority {
+        log::info!("reclaiming idle inference worker resident_bytes={resident_bytes}");
+        worker.terminate().await;
+        *guard = None;
+    }
+    Ok(())
 }
 
 pub(super) fn deadline_duration(deadline_ms: u64) -> Result<Duration, String> {

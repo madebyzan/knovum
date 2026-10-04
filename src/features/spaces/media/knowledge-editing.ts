@@ -45,20 +45,45 @@ export function shiftMediaChapterStart(knowledge: SpaceMediaKnowledge, index: nu
 }
 
 export function editTranscriptSegment(knowledge: SpaceMediaKnowledge, index: number, text: string) {
-  const segments = knowledge.transcript.segments.map((segment) => ({ ...segment }));
-  const segment = segments[index];
+  const segment = knowledge.transcript.segments[index];
   if (!segment) throw new Error("Transcript segment does not exist");
-  segment.text = requireText(text, "Transcript segment");
+  const editedText = requireText(text, "Transcript segment");
+  if (editedText === segment.text) return knowledge;
+  const editedSegment = {
+    ...segment,
+    revision: nextRevision(segment.revision),
+    text: editedText,
+    units: [
+      {
+        id: segment.id,
+        text: editedText,
+        startCharacter: 0,
+        endCharacter: [...editedText].length,
+        startMs: null,
+        endMs: null,
+        score: null,
+        unalignedReason: "text_edited",
+        unitKind: "segment" as const,
+      },
+    ],
+  };
+  const segments = knowledge.transcript.segments.map((candidate, candidateIndex) =>
+    candidateIndex === index ? editedSegment : candidate,
+  );
   const transcript = {
     ...knowledge.transcript,
+    revision: nextRevision(knowledge.transcript.revision),
     segments,
     text: segments.map(({ text: value }) => value).join(" "),
+    subtitleCues: segments.map(({ startMs, endMs, text: cueText }) => ({
+      startMs,
+      endMs,
+      text: cueText,
+    })),
   };
-  return {
-    ...knowledge,
-    transcript,
-    insights: editedInsights(knowledge.insights),
-  };
+  const updated = { ...knowledge, transcript };
+  delete updated.insights;
+  return updated;
 }
 
 function editInsights(
@@ -68,9 +93,6 @@ function editInsights(
   const insights = requireInsights(knowledge);
   return { ...knowledge, insights: { ...insights, ...patch, editedAt: Date.now() } };
 }
-function editedInsights(insights?: SpaceMediaInsights) {
-  return insights ? { ...insights, editedAt: Date.now() } : undefined;
-}
 function requireInsights(knowledge: SpaceMediaKnowledge) {
   if (!knowledge.insights) throw new Error("Media insights have not been generated");
   return knowledge.insights;
@@ -79,4 +101,9 @@ function requireText(value: string, label: string) {
   const text = value.trim();
   if (!text) throw new Error(`${label} cannot be empty`);
   return text;
+}
+
+function nextRevision(current: number) {
+  if (current >= 0xffff_ffff) throw new Error("Transcript revision limit reached");
+  return current + 1;
 }

@@ -7,15 +7,19 @@ import type { SpeechProjectSummary, VoiceProfileSummary } from "./contracts";
 defineProps<{
   voices: readonly VoiceProfileSummary[];
   projects: readonly SpeechProjectSummary[];
-  disabled?: boolean;
 }>();
 const emit = defineEmits<{ selectProject: [projectId: string] }>();
 const { t } = useI18n();
-const projectIcons = { short_dubbing: AudioLines, audiobook: BookOpenText, video_dubbing: Video } as const;
+function projectIcon(project: SpeechProjectSummary) {
+  if (project.projectType === "short_dubbing") return AudioLines;
+  if (project.projectType === "video_dubbing") return Video;
+  return project.projectType === "audiobook" ? BookOpenText : AudioLines;
+}
 function projectTypeLabel(project: SpeechProjectSummary) {
   if (project.projectType === "short_dubbing") return t("spaces.speech.types.shortDubbing");
   if (project.projectType === "video_dubbing") return t("spaces.speech.types.videoDubbing");
-  return t("spaces.speech.types.audiobook");
+  if (project.projectType === "audiobook") return t("spaces.speech.types.audiobook");
+  return t("spaces.speech.unsupportedProject");
 }
 </script>
 
@@ -52,11 +56,10 @@ function projectTypeLabel(project: SpeechProjectSummary) {
           v-for="project in projects"
           :key="project.id"
           type="button"
-          :disabled="disabled"
           class="flex w-full items-center gap-2 rounded-md bg-surface-control px-2 py-1.5 text-left hover:bg-surface-control-hover"
           @click="emit('selectProject', project.id)"
         >
-          <component :is="projectIcons[project.projectType]" class="size-3.5 text-fg-tertiary" />
+          <component :is="projectIcon(project)" class="size-3.5 text-fg-tertiary" />
           <div class="min-w-0 flex-1">
             <p class="truncate text-label text-fg-primary">{{ project.title }}</p>
             <p class="text-caption-sm text-fg-tertiary">

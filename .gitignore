@@ -29,6 +29,8 @@ target
 *.sw?
 .pnpm-store
 python/.venv/
+runtime-artifacts/
+.bundled-runtime-stage-*/
 __pycache__/
 .mypy_cache/
 .pytest_cache/

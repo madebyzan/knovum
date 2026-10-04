@@ -1,0 +1,153 @@
+use std::path::Path;
+
+use sqlx::{Row, SqlitePool};
+
+use super::{
+    contracts::{SpeechSourceSeparationCandidate, SpeechSourceSeparationReviewStatus},
+    review_warning, MODEL_SPEC_ID,
+};
+use crate::{
+    ai::local_runtime::separation,
+    spaces::{db, runs::AttemptClaim, speech::video_config::SpeechMediaSource},
+};
+
+pub(super) async fn load_candidate(
+    pool: &SqlitePool,
+    separation_id: &str,
+) -> Result<SpeechSourceSeparationCandidate, String> {
+    load_candidate_optional(pool, separation_id)
+        .await?
+        .ok_or("Source separation candidate is unavailable".into())
+}
+
+pub(super) async fn load_candidate_optional(
+    pool: &SqlitePool,
+    separation_id: &str,
+) -> Result<Option<SpeechSourceSeparationCandidate>, String> {
+    let row = sqlx::query(
+        "SELECT id,space_id,run_id,source_asset_path,source_revision,source_duration_ms, \
+         model_spec_id,background_asset_path,background_sha256,background_duration_ms, \
+         review_status,review_warning FROM spaces_speech_source_separations WHERE id=?",
+    )
+    .bind(separation_id)
+    .fetch_optional(pool)
+    .await
+    .map_err(db::sql_error)?;
+    let Some(row) = row else {
+        return Ok(None);
+    };
+    let duration = |column: &str| -> Result<u64, String> {
+        u64::try_from(row.try_get::<i64, _>(column).map_err(db::sql_error)?)
+            .map_err(|_| "Source separation duration is invalid".into())
+    };
+    Ok(Some(SpeechSourceSeparationCandidate {
+        separation_id: row.try_get("id").map_err(db::sql_error)?,
+        space_id: row.try_get("space_id").map_err(db::sql_error)?,
+        run_id: row.try_get("run_id").map_err(db::sql_error)?,
+        source: SpeechMediaSource {
+            asset_path: row.try_get("source_asset_path").map_err(db::sql_error)?,
+            source_revision: row.try_get("source_revision").map_err(db::sql_error)?,
+            duration_ms: duration("source_duration_ms")?,
+        },
+        background: SpeechMediaSource {
+            asset_path: row
+                .try_get("background_asset_path")
+                .map_err(db::sql_error)?,
+            source_revision: format!(
+                "sha256:{}",
+                row.try_get::<String, _>("background_sha256")
+                    .map_err(db::sql_error)?
+            ),
+            duration_ms: duration("background_duration_ms")?,
+        },
+        model_spec_id: row.try_get("model_spec_id").map_err(db::sql_error)?,
+        review_status: SpeechSourceSeparationReviewStatus::parse(
+            &row.try_get::<String, _>("review_status")
+                .map_err(db::sql_error)?,
+        )?,
+        review_warning: row.try_get("review_warning").map_err(db::sql_error)?,
+    }))
+}
+
+pub(super) async fn persist_candidate(
+    pool: &SqlitePool,
+    claim: &AttemptClaim,
+    source: &SpeechMediaSource,
+    background: &Path,
+    metadata: &separation::SeparatedAudioMetadata,
+    duration_ms: u64,
+) -> Result<(), String> {
+    let now = crate::clock::unix_time_millis()?;
+    let mut tx = db::begin_write(pool).await?;
+    let active: bool = sqlx::query_scalar(
+        "SELECT EXISTS(SELECT 1 FROM spaces_run_attempts a JOIN spaces_runs r ON r.id=a.run_id \
+         WHERE a.id=? AND a.run_id=? AND a.step_instance_id=? AND a.state='executing' \
+           AND a.execution_epoch=? AND a.lease_until>? AND r.execution_epoch=a.execution_epoch \
+           AND r.cancel_requested_at IS NULL AND r.completed_at IS NULL)",
+    )
+    .bind(&claim.attempt_id)
+    .bind(&claim.run_id)
+    .bind(&claim.step_instance_id)
+    .bind(claim.execution_epoch)
+    .bind(now)
+    .fetch_one(&mut *tx)
+    .await
+    .map_err(db::sql_error)?;
+    if !active {
+        return Err("attempt-stale: source separation lease is no longer active".into());
+    }
+    sqlx::query(
+        "INSERT INTO spaces_speech_source_separations( \
+           id,space_id,run_id,source_asset_path,source_revision,source_duration_ms,model_spec_id, \
+           background_asset_path,background_sha256,background_sample_rate,background_sample_count, \
+           background_duration_ms,review_status,review_warning,created_at) \
+         VALUES(?,?,?,?,?,?,?,?,?,?,?,?, 'pending',?,?)",
+    )
+    .bind(&claim.run_id)
+    .bind(&claim.home_space_id)
+    .bind(&claim.run_id)
+    .bind(&source.asset_path)
+    .bind(&source.source_revision)
+    .bind(i64::try_from(source.duration_ms).map_err(|_| "Source duration exceeds SQLite range")?)
+    .bind(MODEL_SPEC_ID)
+    .bind(background.to_string_lossy().as_ref())
+    .bind(&metadata.sha256)
+    .bind(i64::from(metadata.sample_rate))
+    .bind(i64::try_from(metadata.sample_count).map_err(|_| "Sample count exceeds SQLite range")?)
+    .bind(i64::try_from(duration_ms).map_err(|_| "Background duration exceeds SQLite range")?)
+    .bind(review_warning())
+    .bind(now)
+    .execute(&mut *tx)
+    .await
+    .map_err(db::sql_error)?;
+    super::super::asset_publication::remove_attempt_in_transaction(
+        &mut tx,
+        claim,
+        background,
+        &metadata.sha256,
+    )
+    .await?;
+    tx.commit().await.map_err(db::sql_error)
+}
+
+pub(super) async fn transition_review(
+    pool: &SqlitePool,
+    separation_id: &str,
+    expected: SpeechSourceSeparationReviewStatus,
+    accepted: bool,
+    reviewed_at: i64,
+) -> Result<(), String> {
+    let status = if accepted { "accepted" } else { "rejected" };
+    let updated = sqlx::query(
+        "UPDATE spaces_speech_source_separations SET review_status=?,reviewed_at=? \
+         WHERE id=? AND review_status=?",
+    )
+    .bind(status)
+    .bind(reviewed_at)
+    .bind(separation_id)
+    .bind(expected.as_str())
+    .execute(pool)
+    .await
+    .map_err(db::sql_error)?;
+    db::require_one(updated, "Source separation review changed concurrently")
+}

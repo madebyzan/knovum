@@ -53,5 +53,17 @@
   },
   "integrationSaveFailed": "Could not save settings",
   "secretSaveFailed": "Connection saved, but the key could not be saved. Try again",
-  "secretLoadFailed": "Could not read the API key"
+  "secretLoadFailed": "Could not read the API key",
+  "localSpeech": {
+    "title": "Local speech resources",
+    "description": "Inference runs locally. Model access terms are accepted by you on the provider website.",
+    "diarization": "Speaker diarization · Community-1",
+    "ready": "Verified and ready for offline use",
+    "notInstalled": "Import an authorized model snapshot to enable speaker tracks",
+    "modelPage": "Model page and terms",
+    "instructions": "Accept the model access terms on Hugging Face and download revision 3533c8cf8e369892e6b79ff1bf80f7b0286a54ee. Choose its root folder containing embedding, segmentation and plda. Knovum verifies the four weight files and uses its own fixed inference configuration. External configuration files are not loaded.",
+    "accepted": "I accepted the access terms and obtained these files with authorization",
+    "import": "Import model folder",
+    "remove": "Remove local model"
+  }
 }

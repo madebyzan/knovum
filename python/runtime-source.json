@@ -1,0 +1,17 @@
+{
+  "version": "3.11.17",
+  "standaloneRelease": "20261003",
+  "uvVersion": "0.12.23",
+  "targets": {
+    "macos-arm64": {
+      "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20261003/cpython-3.11.17%2B20261003-aarch64-apple-darwin-install_only.tar.gz",
+      "sha256": "3663b71c18364eccfbad74c4f21f9f6149e40b07329cd776287410cc1da5d612",
+      "size": 27099994
+    },
+    "windows-x64": {
+      "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20261003/cpython-3.11.17%2B20261003-x86_64-pc-windows-msvc-install_only.tar.gz",
+      "sha256": "0f7defa7a0ed99b61e0df0bba5027474711521f1307cc3830c2f456401beeed5",
+      "size": 48217207
+    }
+  }
+}

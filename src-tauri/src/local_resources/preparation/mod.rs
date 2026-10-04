@@ -9,12 +9,15 @@ pub(crate) mod commands;
 pub(crate) mod contracts;
 mod coordinator;
 mod installation;
-mod locks;
+pub(crate) mod locks;
 pub(crate) mod requests;
 
 use contracts::{ResourcePreparationProgress, ResourcePreparationStage, ResourcePreparationTarget};
 
-pub use locks::{acquire_verified_models, PreparedKokoroModel, PreparedModels};
+pub use locks::{
+    acquire_verified_diarization, acquire_verified_models, PreparedDiarizationModel,
+    PreparedKokoroModel, PreparedModels, PreparedVoxCpm2Model,
+};
 
 pub const RESOURCE_PREPARATION_CANCELLED: &str = "local-resource-preparation-cancelled";
 
@@ -126,6 +129,32 @@ pub async fn prepare_kokoro_for_job<R: Runtime>(
     }
     let request = requests::begin(job_id, title, ResourcePreparationTarget::SpeechSynthesis)?;
     prepare_kokoro_for_request(app, request, business_cancellation, progress).await
+}
+
+pub async fn prepare_voxcpm2_for_job<R: Runtime>(
+    app: &AppHandle<R>,
+    job_id: &str,
+    title: &str,
+    business_cancellation: &CancellationToken,
+    progress: &mut impl FnMut(ResourcePreparationProgress),
+) -> Result<PreparedVoxCpm2Model, String> {
+    crate::ai::local_runtime::device_profiles::voxcpm2()?;
+    if job_id.trim().is_empty() {
+        return Err("VoxCPM2 preparation requires a job identifier".to_string());
+    }
+    if title.trim().is_empty() {
+        return Err("VoxCPM2 preparation requires a task title".to_string());
+    }
+    let request = requests::begin(job_id, title, ResourcePreparationTarget::SpeechSynthesis)?;
+    let models = prepare_models_for_request(
+        app,
+        catalog::VOXCPM2_MODELS,
+        request,
+        business_cancellation,
+        progress,
+    )
+    .await?;
+    PreparedVoxCpm2Model::from_models(models)
 }
 
 pub(crate) async fn prepare_kokoro_for_request<R: Runtime>(

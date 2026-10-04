@@ -1,12 +1,12 @@
 import { omit } from "es-toolkit";
 import type { Ref } from "vue";
 
-import type { SpaceTranscriptSegment } from "./schema/knowledge";
+import type { TranscriptSegment } from "../../../shared/contracts/generated/TranscriptSegment";
 
 export interface SpaceMediaAnalysisPreview {
   language: string;
   progress: number;
-  segments: SpaceTranscriptSegment[];
+  segments: TranscriptSegment[];
 }
 
 export type SpaceMediaAnalysisPreviews = Record<string, SpaceMediaAnalysisPreview>;

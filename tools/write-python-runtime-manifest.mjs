@@ -1,16 +1,9 @@
-import { createHash, randomUUID } from "node:crypto";
-import {
-  closeSync,
-  lstatSync,
-  openSync,
-  readSync,
-  readdirSync,
-  renameSync,
-  rmSync,
-  writeFileSync,
-} from "node:fs";
-import { dirname, join, relative, resolve } from "node:path";
+import { randomUUID } from "node:crypto";
+import { lstatSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+
+import { listRuntimeFiles, safeRelativePath, sha256File } from "./runtime-files.mjs";
 
 const repository = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const args = process.argv.slice(2);
@@ -43,7 +36,7 @@ if (!target.startsWith("windows-")) {
 const manifest = {
   schemaVersion: 1,
   runtimeId: "cpython",
-  version: "3.11.13",
+  version: "3.11.17",
   protocolVersion: 1,
   dependencyLockSha256: sha256File(join(repository, "python", "uv.lock")),
   target,
@@ -64,30 +57,14 @@ console.log(`Wrote ${target} runtime manifest for ${files.length} files`);
 
 function collectRuntimeFiles(runtimeRoot) {
   const state = { files: [], totalBytes: 0 };
-  visit(runtimeRoot, runtimeRoot, state);
-  return state.files.toSorted((left, right) => left.path.localeCompare(right.path));
-}
-
-function visit(runtimeRoot, directory, state) {
-  for (const entry of readdirSync(directory, { withFileTypes: true })) {
-    const path = join(directory, entry.name);
-    const metadata = lstatSync(path);
-    assertRegularEntry(path, metadata);
-    if (metadata.isDirectory()) visit(runtimeRoot, path, state);
-    else addFile(runtimeRoot, path, metadata, state);
+  for (const name of listRuntimeFiles(runtimeRoot, { excludeManifest: true })) {
+    const path = join(runtimeRoot, name);
+    addFile(name, path, lstatSync(path), state);
   }
+  return state.files;
 }
 
-function assertRegularEntry(path, metadata) {
-  if (metadata.isSymbolicLink()) throw new Error(`Runtime contains a link: ${path}`);
-  if (!metadata.isFile() && !metadata.isDirectory()) {
-    throw new Error(`Runtime contains a non-file: ${path}`);
-  }
-}
-
-function addFile(runtimeRoot, path, metadata, state) {
-  const name = relative(runtimeRoot, path).replaceAll("\\", "/");
-  if (name === "runtime-manifest.json") return;
+function addFile(name, path, metadata, state) {
   validateFileName(name);
   if (metadata.size > 4 * 1024 ** 3) throw new Error(`Runtime file exceeds 4 GiB: ${name}`);
   state.totalBytes += metadata.size;
@@ -101,21 +78,7 @@ function validateFileName(name) {
   if (name.startsWith(".runtime-manifest-") && name.endsWith(".part")) {
     throw new Error(`Runtime contains an incomplete manifest write: ${name}`);
   }
-  if (name.split("/").some((part) => !part || part === "." || part === "..")) {
+  if (!safeRelativePath(name)) {
     throw new Error(`Runtime contains an unsafe path: ${name}`);
   }
-}
-
-function sha256File(path) {
-  const descriptor = openSync(path, "r");
-  const hash = createHash("sha256");
-  const buffer = Buffer.allocUnsafe(1024 * 1024);
-  try {
-    for (let size = readSync(descriptor, buffer); size > 0; size = readSync(descriptor, buffer)) {
-      hash.update(buffer.subarray(0, size));
-    }
-  } finally {
-    closeSync(descriptor);
-  }
-  return hash.digest("hex");
 }

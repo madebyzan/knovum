@@ -139,6 +139,12 @@ async fn execute(
         EnrichmentJobType::TranscribeMedia => {
             media::transcribe(app, job_id, &request, &mut data, progress).await?;
         }
+        EnrichmentJobType::AlignMediaTranscript => {
+            media::align(app, job_id, &request, &mut data, progress, cancellation).await?;
+        }
+        EnrichmentJobType::DiarizeMediaTranscript => {
+            media::diarize(app, job_id, &request, &mut data, progress, cancellation).await?;
+        }
     }
     let data = node::save(app, &request, data, &expected_media_knowledge, cancellation).await?;
     Ok(EnrichmentJobOutput {
@@ -154,7 +160,11 @@ async fn lane(job_type: EnrichmentJobType) -> Result<OwnedSemaphorePermit, AppEr
     static DOCUMENT: OnceLock<Arc<Semaphore>> = OnceLock::new();
     let semaphore = match job_type {
         EnrichmentJobType::AnalyzeMedia => ANALYSIS.get_or_init(|| Arc::new(Semaphore::new(1))),
-        EnrichmentJobType::TranscribeMedia => MEDIA.get_or_init(|| Arc::new(Semaphore::new(1))),
+        EnrichmentJobType::TranscribeMedia
+        | EnrichmentJobType::AlignMediaTranscript
+        | EnrichmentJobType::DiarizeMediaTranscript => {
+            MEDIA.get_or_init(|| Arc::new(Semaphore::new(1)))
+        }
         EnrichmentJobType::ParseDocument => DOCUMENT.get_or_init(|| Arc::new(Semaphore::new(1))),
         _ => VISUAL.get_or_init(|| Arc::new(Semaphore::new(1))),
     };

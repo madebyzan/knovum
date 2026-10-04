@@ -28,6 +28,9 @@ def main() -> None:
             "--use-standard-collections",
             "--use-default",
             "--use-double-quotes",
+            "--formatters",
+            "black",
+            "isort",
         ],
         check=True,
     )

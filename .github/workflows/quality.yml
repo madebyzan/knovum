@@ -21,7 +21,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: "22"
-      - run: node --test tools/__tests__/write-python-runtime-manifest.test.mjs
+      - run: node --test tools/__tests__/runtime-manifest.test.mjs tools/__tests__/write-python-runtime-manifest.test.mjs tools/__tests__/runtime-package.test.mjs tools/__tests__/runtime-license-policy.test.mjs
 
   python:
     name: Python quality
@@ -33,9 +33,11 @@ jobs:
           node-version: "22"
       - uses: astral-sh/setup-uv@v10.2.0
         with:
-          version: "0.11.24"
+          version: "0.12.23"
       - name: Check Python worker
         run: npm run check:python
+      - name: Audit locked Python dependencies
+        run: uv audit --project python --locked
 
   web:
     name: Web quality
@@ -80,6 +82,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          version: "0.12.23"
       - uses: ./.github/actions/setup-protoc
       - name: Install Tauri Linux prerequisites
         run: |
@@ -104,6 +112,12 @@ jobs:
       - name: Run Rust unit tests
         if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}
         run: cargo test --locked --manifest-path src-tauri/Cargo.toml
+      - name: Verify generated Rust, TypeScript and Python contracts
+        if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}
+        run: |
+          npm run contracts:generate
+          uv run --project python --only-group contracts --frozen python python/tools/generate_contracts.py
+          git diff --exit-code -- src/shared/contracts/generated src/features/spaces/contracts/generated python/schemas/runtime.schema.json python/src/knovum_inference/contracts.py
       - name: Verify dependency inputs were not rewritten
         if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}
         run: git diff --exit-code -- src-tauri/Cargo.toml src-tauri/Cargo.lock

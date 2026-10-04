@@ -178,6 +178,17 @@ precedence. Lease recovery invalidates and reconciles the whole expired executio
 including active siblings. Committed scheduling transitions notify observers; idle maintenance
 is silent. Assistant pause uses its own durable checkpoint policy.
 
+Speech generation is a durable Action Run rather than an in-memory renderer job. A stable request ID
+binds the accepted project revision. Segment generation and assembly have independent attempts, and
+claimed work carries the Run execution epoch. Output reservation, segment completion and final
+publication compare that epoch in their own write transactions. Recovery reconciles interrupted
+attempts and can resume remaining durable work; cancelled or superseded attempts cannot publish.
+Voice candidate synthesis is a dedicated durable Run. An external clone source is streamed into a
+hash-bound managed snapshot before scheduling; the active Run owns that snapshot until a fenced
+attempt publishes the normalized reference and audition assets. Candidate audition and
+selected/rejected state survive restart, while an authorized selected candidate creates the
+immutable voice revision used by later Runs.
+
 Workflows are personal reusable chains captured from completed Action derivations, with explicit replaceable input slots and named outputs. Built-in production templates and their graph compiler are removed. Atomic generation, subtitle burn-in and document export use the same Action Run and publication facilities as workflow steps. The runtime accepts captured steps and durable Actions only; removed recipe graph kinds fail explicitly. Terminal Space packages preserve Run history for inspection without replay.
 The built-in assistant exposes Knovum's declared Space Actions. Desktop Agents manage their own
 external tools through their protocol runtime. The product does not maintain a second MCP
@@ -352,6 +363,42 @@ generations and result publication. Embedding uses the fixed Qwen snapshot throu
 Transformers with last-token pooling, 1,024-dimensional L2-normalized output and a strict 2,048
 token input limit. Indexing logs report actual persisted counts and elapsed time; an incomplete
 generation cannot become searchable.
+
+Speech synthesis accepts WAV, MP3 and M4B publication. Segment audio is converted to integer sample
+boundaries before chapter and assembly decisions. Mixing targets 24 kHz or 48 kHz according to the
+selected output contract. Audiobook chapter PCM and loudness measurements have separate durable
+checkpoints; final encoding applies the verified measurement, and publication retires those
+checkpoints. Temporary normalization files remain attempt-owned. Video dubbing time-stretches
+generated speech only within 0.9–1.1 of the target interval;
+larger mismatches publish `needs_edit`. Overlapping dialogue occupies explicit lanes. The source voice
+track is muted, the project uses a separately imported background track, or the user explicitly
+accepts a locally generated Spleeter background candidate after audition. Spleeter's vocals versus
+accompaniment split is never labeled as guaranteed dialogue removal; pending and rejected candidates
+cannot enter the video mix. A video revision that selects a candidate freezes its separation ID,
+model and source-video identity. Space packages carry the candidate row and both managed assets, so
+restored revisions retain the same reviewed provenance.
+
+Video-script translation uses the existing model settings and translation capability. Each request
+selects one configured model, and the saved project revision freezes its provider, model, target
+language and local-only policy alongside every translated segment's source identity, source revision
+and original text. The translated text remains editable; synthesis caching still keys the resulting
+segment text, so changing one translation invalidates only that segment and downstream assembly.
+Local-only translation accepts only an Ollama connection on a loopback endpoint. If no such model is
+configured, the editor requires a target-language script instead of calling a remote model.
+
+Voice profiles are mutable library identities backed by immutable configuration revisions. Renaming
+or archiving changes only the profile; language or supported speed changes create a new revision with
+the engine, model, reference digest and authorization frozen from the previous revision. Existing
+speech project revisions continue to point to their selected voice revision, including archived or
+superseded revisions. Physical deletion requires an archived profile with no segment references.
+Copying a voice to another Space creates a new profile and managed reference asset through the speech
+asset publication journal; the whole Space package remains the complete voice export boundary.
+
+Selected forced alignment is bounded to eight segments or 300 seconds and publishes stable units
+against the transcript revision. Manual segment edits invalidate that segment's aligned units.
+Optional Pyannote diarization is CPU-bound to two hours and speaker bounds 1–32. It uses four
+user-authorized files from the pinned Community-1 revision plus a repository-owned pipeline config;
+Rust never forwards a Hugging Face token or external YAML to Python.
 
 ## Security boundary
 

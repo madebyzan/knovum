@@ -5,7 +5,12 @@ import { toast } from "vue-sonner";
 
 import { cancelAiJob } from "../../../foundation/ai/ai-runtime";
 import { transformEditorTextStream } from "../../../foundation/ai/editor-transform";
-import { translateTextStream, type TranslationTarget } from "../../../foundation/ai/translation";
+import {
+  translationTargetLabelKey,
+  translateTextStream,
+  translationTargets,
+  type TranslationTarget,
+} from "../../../foundation/ai/translation";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { i18n } from "../../../foundation/i18n/i18n";
 import type { EditorTransformAction } from "../../../shared/contracts/generated/EditorTransformAction";
@@ -143,18 +148,5 @@ function toneOptions() {
 
 function translationOptions() {
   const t = i18n.global.t;
-  return [
-    ["zh-CN", t("spaces.richtext.ai.languages.zhCn")],
-    ["zh-TW", t("spaces.richtext.ai.languages.zhTw")],
-    ["en", t("spaces.richtext.ai.languages.en")],
-    ["ja", t("spaces.richtext.ai.languages.ja")],
-    ["ko", t("spaces.richtext.ai.languages.ko")],
-    ["fr", t("spaces.richtext.ai.languages.fr")],
-    ["de", t("spaces.richtext.ai.languages.de")],
-    ["es", t("spaces.richtext.ai.languages.es")],
-    ["pt", t("spaces.richtext.ai.languages.pt")],
-    ["it", t("spaces.richtext.ai.languages.it")],
-    ["ru", t("spaces.richtext.ai.languages.ru")],
-    ["ar", t("spaces.richtext.ai.languages.ar")],
-  ] as const satisfies readonly (readonly [TranslationTarget, string])[];
+  return translationTargets.map((target) => [target, t(translationTargetLabelKey[target])] as const);
 }

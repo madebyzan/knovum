@@ -4,6 +4,7 @@ import { computed, reactive, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
+import UiCheckbox from "../../../../shared/ui/UiCheckbox.vue";
 import UiDialog from "../../../../shared/ui/UiDialog.vue";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
@@ -17,11 +18,14 @@ const props = defineProps<{
   index: number;
   active?: boolean;
   disabled?: boolean;
+  selected?: boolean;
+  selectionDisabled?: boolean;
 }>();
 const emit = defineEmits<{
   seek: [positionMs: number];
   save: [payload: SpaceTranscriptEdit];
   editing: [active: boolean];
+  select: [selected: boolean];
 }>();
 const { t } = useI18n();
 
@@ -76,6 +80,12 @@ function save() {
     :class="active ? 'bg-(--knovum-sidebar-item-bg-selected)' : 'hover:bg-surface-control-hover/60'"
   >
     <div class="flex gap-2 px-2.5 py-1.5">
+      <UiCheckbox
+        :model-value="Boolean(selected)"
+        :disabled="selectionDisabled"
+        :label="t('spaces.transcript.text.selectForAlignment')"
+        @update:model-value="emit('select', $event)"
+      />
       <button
         type="button"
         class="w-11 shrink-0 pt-0.5 text-left font-mono text-caption-sm font-medium text-fg-tertiary tabular-nums hover:text-fg-primary"

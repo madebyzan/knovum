@@ -57,7 +57,23 @@ pub(super) async fn all(
         "SELECT asset_path FROM spaces_speech_renders \
          WHERE asset_path IS NOT NULL AND state IN ('staged','published') \
          UNION ALL SELECT output_asset_path FROM spaces_speech_project_revisions \
-         WHERE output_asset_path IS NOT NULL",
+         WHERE output_asset_path IS NOT NULL \
+         UNION ALL SELECT asset_path FROM spaces_speech_asset_publications \
+         UNION ALL SELECT part_path FROM spaces_speech_asset_publications WHERE part_path IS NOT NULL \
+         UNION ALL SELECT asset_path FROM spaces_speech_chapter_checkpoints \
+         UNION ALL SELECT background_asset_path FROM spaces_speech_source_separations \
+         UNION ALL SELECT source_asset_path FROM spaces_speech_source_separations \
+         UNION ALL SELECT preview_asset_path FROM spaces_voice_candidates \
+         UNION ALL SELECT reference_asset_path FROM spaces_voice_candidates \
+         UNION ALL SELECT json_extract(input_snapshot,'$.referenceSource.assetPath') FROM spaces_runs \
+         WHERE completed_at IS NULL AND json_extract(input_snapshot,'$.workflow')='speech_voice_candidate_v1' \
+           AND json_type(input_snapshot,'$.referenceSource.assetPath')='text' \
+         UNION ALL SELECT reference_asset_id FROM spaces_voice_revisions \
+         WHERE reference_asset_id IS NOT NULL \
+         UNION ALL SELECT json_extract(output_config,'$.video.assetPath') FROM spaces_speech_project_revisions \
+         WHERE json_type(output_config,'$.video.assetPath')='text' \
+         UNION ALL SELECT json_extract(output_config,'$.background.assetPath') FROM spaces_speech_project_revisions \
+         WHERE json_type(output_config,'$.background.assetPath')='text'",
     )
     .fetch_all(&mut **tx)
     .await
@@ -144,7 +160,31 @@ pub(crate) async fn for_space(
          WHERE p.space_id=$1 AND o.asset_path IS NOT NULL AND o.state IN ('staged','published') \
          UNION ALL SELECT r.output_asset_path FROM spaces_speech_project_revisions r \
          JOIN spaces_speech_projects p ON p.id=r.project_id \
-         WHERE p.space_id=$1 AND r.output_asset_path IS NOT NULL",
+         WHERE p.space_id=$1 AND r.output_asset_path IS NOT NULL \
+         UNION ALL SELECT asset_path FROM spaces_speech_asset_publications WHERE space_id=$1 \
+         UNION ALL SELECT part_path FROM spaces_speech_asset_publications WHERE space_id=$1 AND part_path IS NOT NULL \
+         UNION ALL SELECT c.asset_path FROM spaces_speech_chapter_checkpoints c \
+         JOIN spaces_speech_project_revisions r ON r.id=c.project_revision_id \
+         JOIN spaces_speech_projects p ON p.id=r.project_id WHERE p.space_id=$1 \
+         UNION ALL SELECT background_asset_path FROM spaces_speech_source_separations \
+         WHERE space_id=$1 \
+         UNION ALL SELECT source_asset_path FROM spaces_speech_source_separations \
+         WHERE space_id=$1 \
+         UNION ALL SELECT preview_asset_path FROM spaces_voice_candidates WHERE space_id=$1 \
+         UNION ALL SELECT reference_asset_path FROM spaces_voice_candidates WHERE space_id=$1 \
+         UNION ALL SELECT json_extract(input_snapshot,'$.referenceSource.assetPath') FROM spaces_runs \
+         WHERE home_space_id=$1 AND completed_at IS NULL \
+           AND json_extract(input_snapshot,'$.workflow')='speech_voice_candidate_v1' \
+           AND json_type(input_snapshot,'$.referenceSource.assetPath')='text' \
+         UNION ALL SELECT r.reference_asset_id FROM spaces_voice_revisions r \
+         JOIN spaces_voice_profiles p ON p.id=r.profile_id \
+         WHERE p.space_id=$1 AND r.reference_asset_id IS NOT NULL \
+         UNION ALL SELECT json_extract(r.output_config,'$.video.assetPath') FROM spaces_speech_project_revisions r \
+         JOIN spaces_speech_projects p ON p.id=r.project_id \
+         WHERE p.space_id=$1 AND json_type(r.output_config,'$.video.assetPath')='text' \
+         UNION ALL SELECT json_extract(r.output_config,'$.background.assetPath') FROM spaces_speech_project_revisions r \
+         JOIN spaces_speech_projects p ON p.id=r.project_id \
+         WHERE p.space_id=$1 AND json_type(r.output_config,'$.background.assetPath')='text'",
     )
     .bind(space_id)
     .fetch_all(&mut **tx)

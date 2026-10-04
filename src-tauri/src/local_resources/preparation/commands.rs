@@ -19,8 +19,14 @@ pub async fn prepare_resources(
     on_progress: Channel<ResourcePreparationProgress>,
 ) -> Result<(), AppError> {
     validate_request(&job_id, &title)?;
-    if matches!(&target, ResourcePreparationTarget::Transcription) && target.models().is_none() {
-        return Err("Native transcription is not available on this platform".into());
+    if matches!(
+        &target,
+        ResourcePreparationTarget::Transcription | ResourcePreparationTarget::SpeechAlignment
+    ) && target.models().is_none()
+    {
+        return Err(
+            "unsupported_device: native speech resources are not available on this platform".into(),
+        );
     }
     let request = requests::begin(&job_id, &title, target.clone())?;
     let (finished_tx, finished_rx) = oneshot::channel();
@@ -28,7 +34,9 @@ pub async fn prepare_resources(
         let preparation_outcome = match target {
             target @ (ResourcePreparationTarget::Transcription
             | ResourcePreparationTarget::TextEmbedding
-            | ResourcePreparationTarget::ImageSegmentation) => {
+            | ResourcePreparationTarget::ImageSegmentation
+            | ResourcePreparationTarget::SpeechAlignment
+            | ResourcePreparationTarget::SpeechSeparation) => {
                 let kinds = target
                     .models()
                     .expect("model preparation targets own a fixed model profile");

@@ -42,6 +42,7 @@ export const dynamicLocaleKeyPrefixes = [
   "spaces.richtext.align.",
   "spaces.richtext.heading",
   "spaces.richtext.highlightColor.",
+  "spaces.speech.separationStatus.",
 ] as const;
 
 /** Runtime-resolved keys that sit directly in a namespace too large to exempt as a prefix. */

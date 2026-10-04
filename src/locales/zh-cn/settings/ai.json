@@ -53,5 +53,17 @@
   },
   "integrationSaveFailed": "无法保存配置",
   "secretSaveFailed": "连接已保存，但密钥保存失败。请重试",
-  "secretLoadFailed": "无法读取密钥"
+  "secretLoadFailed": "无法读取密钥",
+  "localSpeech": {
+    "title": "本地语音资源",
+    "description": "推理在本地运行。模型访问条款由你在提供方网站自行接受。",
+    "diarization": "说话人分离 · Community-1",
+    "ready": "已校验，可离线使用",
+    "notInstalled": "导入已授权模型快照后可生成说话人轨道",
+    "modelPage": "模型页面与条款",
+    "instructions": "在 Hugging Face 接受模型访问条款，并下载版本 3533c8cf8e369892e6b79ff1bf80f7b0286a54ee。选择包含 embedding、segmentation 和 plda 的根目录。Knovum 校验四个权重文件，并使用固定推理配置，不加载外部配置文件。",
+    "accepted": "我已接受访问条款，并合法取得这些模型文件",
+    "import": "导入模型目录",
+    "remove": "移除本地模型"
+  }
 }

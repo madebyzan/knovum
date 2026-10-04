@@ -2,30 +2,21 @@ import { readonly, shallowRef, watch } from "vue";
 
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import { useSpaceStore } from "../session/space-store";
-import type {
-  CreatePresetVoiceInput,
-  CreateSpeechProjectInput,
-  SaveSpeechProjectRevisionInput,
-  SpeechProjectDetail,
-} from "./contracts";
-import {
-  createPresetVoice,
-  createSpeechProject,
-  getSpeechProject,
-  listSpeechProjects,
-  listVoiceProfiles,
-  saveSpeechProjectRevision,
-} from "./ipc";
+import type { SaveSpeechProjectRevisionInput, SpeechProjectDetail } from "./contracts";
+import { getSpeechProject, listSpeechProjects, saveSpeechProjectRevision } from "./ipc";
 import { useSpeechGeneration } from "./use-speech-generation";
+import { useSpeechProjectCreation } from "./use-speech-project-creation";
+import { useSpeechVoices } from "./use-speech-voices";
 
 export function useSpeechWorkspace() {
   const store = useSpaceStore();
-  const voices = shallowRef<Awaited<ReturnType<typeof listVoiceProfiles>>>([]);
   const projects = shallowRef<Awaited<ReturnType<typeof listSpeechProjects>>>([]);
   const loading = shallowRef(false);
   const error = shallowRef<string>();
   const selectedProject = shallowRef<SpeechProjectDetail>();
+  const savingRevision = shallowRef(false);
   let refreshEpoch = 0;
+  let selectionEpoch = 0;
   function isCurrentSpace(spaceId: string | undefined, epoch: number) {
     return store.activeSpaceId === spaceId && refreshEpoch === epoch;
   }
@@ -33,6 +24,26 @@ export function useSpeechWorkspace() {
   function isCurrentProject(spaceId: string, epoch: number, projectId: string) {
     return isCurrentSpace(spaceId, epoch) && selectedProject.value?.project.id === projectId;
   }
+  function setError(message?: string) {
+    error.value = message;
+  }
+
+  const voiceLibrary = useSpeechVoices({
+    activeSpaceId: () => store.activeSpaceId,
+    contextEpoch: () => refreshEpoch,
+    isCurrent: isCurrentSpace,
+    setError,
+  });
+  const projectCreation = useSpeechProjectCreation({
+    activeSpaceId: () => store.activeSpaceId,
+    contextEpoch: () => refreshEpoch,
+    isCurrent: isCurrentSpace,
+    created: (summary, detail) => {
+      projects.value = [summary, ...projects.value];
+      selectedProject.value = detail;
+    },
+    setError,
+  });
 
   const generation = useSpeechGeneration({
     project: () => selectedProject.value,
@@ -41,23 +52,21 @@ export function useSpeechWorkspace() {
       const epoch = refreshEpoch;
       if (!spaceId) return;
       const project = await getSpeechProject(projectId);
-      if (isCurrentSpace(spaceId, epoch) && project.project.spaceId === spaceId) {
+      if (isCurrentProject(spaceId, epoch, projectId) && project.project.spaceId === spaceId) {
         selectedProject.value = project;
       }
     },
-    setError: (message) => {
-      error.value = message;
-    },
+    setError,
   });
 
   async function refresh(spaceId = store.activeSpaceId) {
     const epoch = ++refreshEpoch;
+    selectionEpoch += 1;
     generation.reset();
     selectedProject.value = undefined;
+    voiceLibrary.replace([]);
+    projects.value = [];
     if (!spaceId) {
-      voices.value = [];
-      projects.value = [];
-      selectedProject.value = undefined;
       loading.value = false;
       return;
     }
@@ -65,11 +74,11 @@ export function useSpeechWorkspace() {
     error.value = undefined;
     try {
       const [nextVoices, nextProjects] = await Promise.all([
-        listVoiceProfiles(spaceId),
+        voiceLibrary.load(spaceId),
         listSpeechProjects(spaceId),
       ]);
       if (epoch !== refreshEpoch) return;
-      voices.value = nextVoices;
+      voiceLibrary.replace(nextVoices);
       projects.value = nextProjects;
     } catch (cause) {
       if (epoch === refreshEpoch) error.value = getErrorMessage(cause);
@@ -78,59 +87,35 @@ export function useSpeechWorkspace() {
     }
   }
 
-  async function addPreset(input: Omit<CreatePresetVoiceInput, "spaceId">) {
-    const spaceId = store.activeSpaceId;
-    const epoch = refreshEpoch;
-    try {
-      if (!spaceId) throw new Error("A persisted Space is required");
-      const voice = await createPresetVoice({ ...input, spaceId });
-      if (!isCurrentSpace(spaceId, epoch)) return;
-      voices.value = [voice, ...voices.value];
-      error.value = undefined;
-    } catch (cause) {
-      if (isCurrentSpace(spaceId, epoch)) error.value = getErrorMessage(cause);
-    }
-  }
-
-  async function addProject(input: Omit<CreateSpeechProjectInput, "spaceId">) {
-    if (generation.activeJobId.value) return;
-    const spaceId = store.activeSpaceId;
-    const epoch = refreshEpoch;
-    try {
-      if (!spaceId) throw new Error("A persisted Space is required");
-      const project = await createSpeechProject({ ...input, spaceId });
-      if (!isCurrentSpace(spaceId, epoch)) return;
-      projects.value = [project, ...projects.value];
-      const detail = await getSpeechProject(project.id);
-      if (!isCurrentSpace(spaceId, epoch) || detail.project.spaceId !== spaceId) return;
-      selectedProject.value = detail;
-      error.value = undefined;
-    } catch (cause) {
-      if (isCurrentSpace(spaceId, epoch)) error.value = getErrorMessage(cause);
-    }
-  }
-
   async function openProject(projectId: string) {
-    if (generation.activeJobId.value) return;
+    const selection = ++selectionEpoch;
     const spaceId = store.activeSpaceId;
     const epoch = refreshEpoch;
     try {
       if (!spaceId) return;
       const project = await getSpeechProject(projectId);
-      if (!isCurrentSpace(spaceId, epoch) || project.project.spaceId !== spaceId) return;
+      if (
+        selection !== selectionEpoch ||
+        !isCurrentSpace(spaceId, epoch) ||
+        project.project.spaceId !== spaceId
+      )
+        return;
       selectedProject.value = project;
       generation.reset();
       error.value = undefined;
     } catch (cause) {
-      if (isCurrentSpace(spaceId, epoch)) error.value = getErrorMessage(cause);
+      if (selection === selectionEpoch && isCurrentSpace(spaceId, epoch)) {
+        error.value = getErrorMessage(cause);
+      }
     }
   }
 
   async function saveRevision(input: Omit<SaveSpeechProjectRevisionInput, "projectId" | "expectedRevision">) {
     const current = selectedProject.value;
-    if (!current || current.project.projectType !== "short_dubbing") return;
+    if (!current || savingRevision.value) return;
     const spaceId = store.activeSpaceId;
     const epoch = refreshEpoch;
+    savingRevision.value = true;
     try {
       if (!spaceId || current.project.spaceId !== spaceId) return;
       const detail = await saveSpeechProjectRevision({
@@ -139,6 +124,7 @@ export function useSpeechWorkspace() {
         expectedRevision: current.project.activeRevision,
       });
       if (!isCurrentProject(spaceId, epoch, current.project.id) || detail.project.spaceId !== spaceId) return;
+      generation.clearPreview();
       selectedProject.value = detail;
       const updated = detail.project;
       projects.value = projects.value.map((project) => (project.id === updated.id ? updated : project));
@@ -146,6 +132,8 @@ export function useSpeechWorkspace() {
     } catch (cause) {
       if (spaceId && isCurrentProject(spaceId, epoch, current.project.id))
         error.value = getErrorMessage(cause);
+    } finally {
+      savingRevision.value = false;
     }
   }
 
@@ -155,22 +143,31 @@ export function useSpeechWorkspace() {
     { immediate: true },
   );
   return {
-    voices: readonly(voices),
+    voices: voiceLibrary.voices,
     projects: readonly(projects),
     loading: readonly(loading),
     error: readonly(error),
     selectedProject: readonly(selectedProject),
+    creatingVoice: voiceLibrary.creating,
+    creatingProject: projectCreation.creating,
+    savingRevision: readonly(savingRevision),
     preview: generation.preview,
-    renderOutput: generation.renderOutput,
+    previewListening: generation.listening,
+    runState: generation.runState,
     generationProgress: generation.progress,
     activeJobId: generation.activeJobId,
-    addPreset,
-    addProject,
+    generationSubmitting: generation.submitting,
+    generationCancelling: generation.cancelling,
+    addPreset: voiceLibrary.addPreset,
+    addProject: projectCreation.add,
+    acceptVoice: voiceLibrary.accept,
+    refreshVoices: voiceLibrary.refresh,
     openProject,
     saveRevision,
     previewSelection: generation.previewSelection,
     generateProject: generation.generateProject,
     cancelGeneration: generation.cancelGeneration,
+    stopPreviewListening: generation.stopListening,
     exportRender: generation.exportRender,
   };
 }

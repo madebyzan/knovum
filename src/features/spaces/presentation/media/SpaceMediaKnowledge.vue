@@ -7,6 +7,7 @@ import { useI18n } from "vue-i18n";
 import { useMediaKnowledge } from "../../media/use-media-knowledge";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import SpaceNodeEnrichmentStatus from "../SpaceNodeEnrichmentStatus.vue";
+import SpaceDiarizationControl from "./SpaceDiarizationControl.vue";
 import SpaceMediaChapterEditor from "./SpaceMediaChapterEditor.vue";
 import SpaceMediaLiveTranscript from "./SpaceMediaLiveTranscript.vue";
 import SpaceMediaSummaryEditor from "./SpaceMediaSummaryEditor.vue";
@@ -36,6 +37,8 @@ const {
   saveChapter,
   shiftChapter,
   saveSegment,
+  alignSegments,
+  alignmentSubmitting,
 } = useMediaKnowledge(nodeRef);
 </script>
 
@@ -122,13 +125,22 @@ const {
             </span>
           </CollapsibleTrigger>
           <CollapsibleContent class="mt-2">
+            <SpaceDiarizationControl
+              :node-id="nodeId"
+              :revision="knowledge.transcript.revision"
+              :duration-ms="knowledge.transcript.durationMs"
+              :speaker-count="knowledge.transcript.speakerTracks.length"
+              :disabled="stale || !canDerive || analyzing || alignmentSubmitting"
+            />
             <SpaceTranscriptNavigator
               :node-id="nodeId"
               :segments="knowledge.transcript.segments"
               v-bind="playback ? { currentMs: playback.currentMs } : {}"
-              :disabled="stale || !canEdit"
+              :disabled="stale || !canEdit || analyzing || alignmentSubmitting"
+              :alignment-disabled="stale || !canDerive || analyzing || alignmentSubmitting"
               @seek="seek"
               @save="saveSegment"
+              @align="alignSegments"
             />
           </CollapsibleContent>
         </div>

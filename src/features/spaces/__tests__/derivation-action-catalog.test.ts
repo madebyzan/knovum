@@ -4,6 +4,7 @@ import { createSpaceNode } from "../canvas/node";
 import { creationIntentCatalog } from "../knowledge-derivations/catalog/creation-intent-catalog";
 import { creationIntentDefinitions } from "../knowledge-derivations/catalog/creation-intent-definitions";
 import type { SpaceVideoPayload } from "../model/nodes/node-payload";
+import { transcriptFixture } from "./media-transcript-fixture";
 
 const note = () =>
   createSpaceNode(
@@ -49,15 +50,9 @@ const indexedVideo = () =>
       assetPath: "/spaces/assets/interview.mp4",
       sourceRevision: "video:current",
       mediaKnowledge: {
-        schemaVersion: 4,
+        schemaVersion: 5,
         sourceRevision: "video:current",
-        transcript: {
-          language: "en",
-          durationMs: 1_000,
-          text: "Hello",
-          segments: [{ startMs: 0, endMs: 1_000, text: "Hello" }],
-          subtitleCues: [{ startMs: 0, endMs: 1_000, text: "Hello" }],
-        },
+        transcript: transcriptFixture("video:current", [{ startMs: 0, endMs: 1000, text: "Hello" }]),
       },
     },
     { x: 0, y: 0 },

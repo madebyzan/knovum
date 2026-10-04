@@ -57,12 +57,18 @@ pub(super) fn validate_payload_shape(kind: &str, data: &Value) -> Result<(), Str
             resource::validate_visual_asset(object)?;
             resource::validate_media_metadata(object)?;
             super::visual::validate(object.get("visualKnowledge"))?;
-            super::media::validate(object.get("mediaKnowledge"))
+            super::media::validate(
+                object.get("mediaKnowledge"),
+                object.get("sourceRevision").and_then(Value::as_str),
+            )
         }
         "audio" => {
             resource::validate_asset(object)?;
             resource::validate_media_metadata(object)?;
-            super::media::validate(object.get("mediaKnowledge"))
+            super::media::validate(
+                object.get("mediaKnowledge"),
+                object.get("sourceRevision").and_then(Value::as_str),
+            )
         }
         "file" => resource::validate_file(object),
         "code" => resource::validate_code(object),

@@ -10,7 +10,9 @@
     "analyze_media": "Media duration and waveform",
     "transcribe_media": "Audio Whisper transcription",
     "parse_document": "Document extraction",
-    "analyze_document": "Document visual analysis"
+    "analyze_document": "Document visual analysis",
+    "align_media_transcript": "Selected transcript alignment",
+    "diarize_media_transcript": "Speaker diarization"
   },
   "jobStatus": {
     "pending": "Queued",

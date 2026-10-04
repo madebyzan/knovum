@@ -130,6 +130,7 @@ async fn claim(pool: &SqlitePool, run_id: &str, step: &str) -> AttemptClaim {
         resolved_input: json!({}),
         policy_snapshot: serde_json::from_str(&policy).unwrap(),
         budget: json!({}),
+        cancellation: tokio_util::sync::CancellationToken::new(),
     }
 }
 async fn child(pool: &SqlitePool, claim: &AttemptClaim) -> String {

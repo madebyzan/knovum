@@ -47,8 +47,11 @@ pub async fn create_preset_voice(
         .preset_voice_id
         .parse::<u32>()
         .map_err(|_| "Kokoro speaker identity must be an unsigned integer")?;
-    let config = serde_json::to_string(&parse_synthesis_config(&request.synthesis_config)?)
-        .map_err(db::json_error)?;
+    let parsed_config = parse_synthesis_config(&request.synthesis_config)?;
+    if parsed_config.sample_rate != 24_000 {
+        return Err("Kokoro voices require 24 kHz synthesis".into());
+    }
+    let config = serde_json::to_string(&parsed_config).map_err(db::json_error)?;
     let profile_id = uuid::Uuid::new_v4().to_string();
     let revision_id = uuid::Uuid::new_v4().to_string();
     let now = crate::clock::unix_time_millis()?;
@@ -109,24 +112,24 @@ pub async fn create_speech_project(
     request: CreateSpeechProjectRequest,
 ) -> Result<SpeechProjectSummary, AppError> {
     required(&request.title, "Project title", 200)?;
-    if request.project_type != "short_dubbing" {
-        return Err("This speech project type does not have a complete execution workflow".into());
+    super::project_config::validate(&request.project_type, &request.output_config)?;
+    if request.project_type == "audiobook" {
+        let config = super::project_config::parse_audiobook(&request.output_config)?;
+        if !config.chapters.is_empty() || !config.roles.is_empty() {
+            return Err("A new audiobook project must start with an empty script".into());
+        }
     }
-    if request
-        .output_config
-        .get("format")
-        .and_then(serde_json::Value::as_str)
-        != Some("wav")
-    {
-        return Err("Short dubbing projects require WAV output".into());
-    }
-    let output = object_json(request.output_config, "Output configuration")?;
+    let output = object_json(request.output_config.clone(), "Output configuration")?;
     let project_id = uuid::Uuid::new_v4().to_string();
     let revision_id = uuid::Uuid::new_v4().to_string();
     let source_revision = uuid::Uuid::new_v4().to_string();
     let now = crate::clock::unix_time_millis()?;
     let pool = db::pool(&app).await?;
     let mut tx = db::begin_write(pool).await?;
+    if request.project_type == "video_dubbing" {
+        let config = super::video_config::parse(&request.output_config)?;
+        super::video_config::require_sources(&mut tx, &request.space_id, None, &config).await?;
+    }
     sqlx::query(
         "INSERT INTO spaces_speech_projects(id,space_id,project_type,title,active_revision_id,created_at,updated_at) \
          VALUES(?,?,?,?,NULL,?,?)",

@@ -39,7 +39,9 @@ pub(super) async fn save(
 ) -> Result<Value, AppError> {
     let field = match request.job_type {
         super::EnrichmentJobType::AnalyzeMedia => "mediaAnalysis",
-        super::EnrichmentJobType::TranscribeMedia => "mediaKnowledge",
+        super::EnrichmentJobType::TranscribeMedia
+        | super::EnrichmentJobType::AlignMediaTranscript
+        | super::EnrichmentJobType::DiarizeMediaTranscript => "mediaKnowledge",
         super::EnrichmentJobType::AnalyzeVisual => "visualKnowledge",
         _ => return Err(AppError::invalid("Enrichment job does not own node data")),
     };
@@ -55,8 +57,13 @@ pub(super) async fn save(
         crate::spaces::assets::enrichment::commit::PublicationGuard {
             source_revision: Some(&request.source_revision),
             job_id: Some(&request.job_id),
-            media_knowledge: (request.job_type == super::EnrichmentJobType::TranscribeMedia)
-                .then_some(expected_media_knowledge),
+            media_knowledge: matches!(
+                request.job_type,
+                super::EnrichmentJobType::TranscribeMedia
+                    | super::EnrichmentJobType::AlignMediaTranscript
+                    | super::EnrichmentJobType::DiarizeMediaTranscript
+            )
+            .then_some(expected_media_knowledge),
             document_coverage: None,
             cancellation: Some(cancellation),
         },

@@ -95,7 +95,8 @@ bounded sequence of finite peaks in `[0, 1]`. Silence is valid analysis, not mis
 The `analyze_media` job requires the existing FFmpeg runtime, not Whisper, a speech model or an AI
 connection. It publishes only `mediaAnalysis`, guarded by the current node source revision and
 running job. Rust then records the dependent transcription intent. `mediaKnowledge` uses current
-schema version `4`: transcript text, timing and optional insights, but no waveform. Transcript
+schema version `5`: source-bound revisioned transcript text, normalized segment/unit timing,
+speaker tracks, subtitle cues and optional insights, but no waveform. Transcript
 duration bounds transcript timestamps; it is not an alternative audio-card duration source.
 Acquisition-supplied `durationSeconds` is source metadata, not the decoded audio-card authority.
 

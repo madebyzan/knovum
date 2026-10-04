@@ -82,7 +82,7 @@ pub(super) fn automatic_subtitles(
         return Ok(PreparedSubtitles::Recognize);
     };
     if knowledge.get("sourceRevision").and_then(Value::as_str) != Some(source_revision)
-        || knowledge.get("schemaVersion").and_then(Value::as_u64) != Some(4)
+        || knowledge.get("schemaVersion").and_then(Value::as_u64) != Some(5)
     {
         return Err("Video knowledge does not match the current source".into());
     }

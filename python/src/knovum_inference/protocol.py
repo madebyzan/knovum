@@ -30,8 +30,8 @@ def parse_request(line: bytes) -> Request:
     if not isinstance(method, str) or not isinstance(params, dict):
         raise RpcError(-32600, "Invalid JSON-RPC method or params", "invalid_output")
     if "id" not in value:
-        if method != "runtime.cancel":
-            raise RpcError(-32600, "Only runtime.cancel may be a notification", "invalid_output")
+        if method not in {"runtime.cancel", "runtime.ackChunk"}:
+            raise RpcError(-32600, "Runtime notification method is unsupported", "invalid_output")
         request_id = None
     else:
         request_id = value["id"]

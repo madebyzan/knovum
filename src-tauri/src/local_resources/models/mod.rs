@@ -9,6 +9,7 @@ use tokio_util::sync::CancellationToken;
 use super::preparation::contracts::{ResourcePreparationProgress, ResourcePreparationStage};
 
 pub mod catalog;
+pub mod diarization;
 mod download;
 pub mod kokoro;
 mod sources;

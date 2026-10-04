@@ -23,7 +23,7 @@ use crate::{
     media::{
         compute_budget::ComputeBudget,
         prepared_audio::PreparedMediaAudio,
-        transcript::{from_speech, MediaTranscript},
+        transcript::{from_speech, MediaTranscript, TranscriptProvenance},
     },
 };
 
@@ -39,6 +39,26 @@ pub struct TranscriptionPipeline<'a> {
 impl TranscriptionPipeline<'_> {
     pub async fn run(&self, audio: &PreparedMediaAudio) -> Result<MediaTranscript, String> {
         let (engine, device, compute_type, profile_id) = platform_profile()?;
+        let model_kind = match &engine {
+            AsrEngine::MlxWhisper => {
+                crate::local_resources::models::catalog::ModelKind::MlxWhisperWeights
+            }
+            AsrEngine::FasterWhisper => {
+                crate::local_resources::models::catalog::ModelKind::FasterWhisperWeights
+            }
+        };
+        let provenance = TranscriptProvenance {
+            engine_id: match &engine {
+                AsrEngine::MlxWhisper => "mlx-whisper",
+                AsrEngine::FasterWhisper => "faster-whisper",
+            }
+            .into(),
+            model_spec_id: profile_id.into(),
+            model_revision: crate::local_resources::models::catalog::descriptor(model_kind)
+                .revision
+                .into(),
+            timing: String::new(),
+        };
         let vad_enabled = true;
         let budget = ComputeBudget::detect()?;
         let threads = budget.model_threads;
@@ -99,13 +119,18 @@ impl TranscriptionPipeline<'_> {
             },
         )
         .await?;
-        let transcript = from_speech(result, audio.analysis.duration_ms)?;
+        let transcript = from_speech(
+            result,
+            audio.analysis.duration_ms,
+            self.source_revision,
+            provenance,
+        )?;
         send_progress(self.progress, "parsing", 96);
         Ok(transcript)
     }
 }
 
-fn audio_reference(wav: &Path) -> Result<AudioFileReference, String> {
+pub(super) fn audio_reference(wav: &Path) -> Result<AudioFileReference, String> {
     let length = std::fs::metadata(wav)
         .map_err(|error| error.to_string())?
         .len();

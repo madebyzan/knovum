@@ -2,6 +2,10 @@
 
 This is the framework-level contract for macOS and Windows. Business features should not reimplement these behaviors.
 
+The supported Apple desktop baseline is macOS 14 or later on arm64. The application bundle
+declares the same minimum through Tauri, matching the controlled PyTorch and TorchCodec wheels;
+macOS 13 and earlier are outside the release scope.
+
 | Concern                    | macOS                                                                                       | Windows                                                              | Foundation                                                                         |
 | -------------------------- | ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
 | Startup                    | Dock launch feedback; main appears when usable                                              | Taskbar launch feedback; main appears when usable                    | main starts hidden until usable/recoverable bootstrap state                        |
@@ -53,13 +57,31 @@ Any change to lifecycle, window, menu, keyboard, file, notification, updater or 
 
 ## Optional runtime resources
 
-The approved desktop release scope for native Python inference is macOS arm64 and Windows x64.
+The approved desktop release scope for native Python inference is macOS 14+ arm64 and Windows x64.
 Qualification is tracked per architecture, not only per OS:
 
-| Target      | Current native ASR path               | Release state                                                                |
-| ----------- | ------------------------------------- | ---------------------------------------------------------------------------- |
-| macOS arm64 | MLX Whisper                           | Implementation present; model, latency, and clean-install acceptance pending |
-| Windows x64 | faster-whisper / CTranslate2 CPU INT8 | Implementation present; clean-install and quality acceptance pending         |
+| Target          | Current native ASR path               | Release state                                                                |
+| --------------- | ------------------------------------- | ---------------------------------------------------------------------------- |
+| macOS 14+ arm64 | MLX Whisper                           | Implementation present; model, latency, and clean-install acceptance pending |
+| Windows x64     | faster-whisper / CTranslate2 CPU INT8 | Implementation present; clean-install and quality acceptance pending         |
+
+Spleeter 2-stem source separation uses the same CPU FP16 ONNX profile on both supported targets.
+The implementation and verified on-demand resource manifest are present. Native latency, peak
+memory, spoken-dialogue residual and background-loss acceptance remain release gates on both
+targets. The admitted profile is CPU with an 8 GiB inference reservation and a ten-minute input
+limit; no candidate is used until the user auditions and accepts it.
+
+Designed-voice synthesis has a separate conservative admission profile:
+
+| Target      | VoxCPM2 execution profile | Admission gate                                                           | Release state                                                                 |
+| ----------- | ------------------------- | ------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
+| macOS arm64 | MPS float32               | 48 GiB physical-memory floor plus available-memory/reservation admission | Implementation present; native memory, latency and quality acceptance pending |
+| Windows x64 | CPU bfloat16              | 32 GiB physical-memory floor plus available-memory/reservation admission | Implementation present; native memory, latency and quality acceptance pending |
+
+There is no automatic device, precision or engine selection after admission fails. These memory
+values are conservative product gates and must not be presented as measured minimum requirements.
+VoxCPM2 inputs are verified 16 kHz mono voice revisions sourced from authorized 5–30 second samples;
+the synthesis result is 48 kHz audio on both targets.
 
 macOS x64 and Windows arm64 are outside the release scope. Unsupported targets return an explicit
 error; there is no emulation or legacy engine route. A future scope expansion requires a product
