@@ -63,13 +63,14 @@ Direct dependencies must have a current caller or satisfy a documented peer/runt
 
 ## Private local inference
 
-The desktop package owns a controlled CPython 3.11.17 runtime and a uv-locked set of Python
-dependencies. Rust invokes that interpreter over private stdio with one selected capability per
+The desktop package binds a controlled CPython 3.11.17 runtime and the uv-locked
+`knovum-python[inference]` dependency selection. The application project has no default production
+dependencies; capability extras carry their actual libraries. Rust invokes that interpreter over private stdio with one selected capability per
 session; the WebView has no Python launch permission. Sentence Transformers and PyTorch own the
 Qwen embedding model internals. ONNX Runtime Python owns U²-Net inference; Rust `image` still
 owns pixel conversion and final output. Candle and Tract are removed when their last respective
-callers move. Python dependencies are imported only for the selected capability and never
-installed or downloaded on the user machine.
+callers move. Python libraries are imported only for the selected capability. Users download a verified frozen
+runtime archive; dependency resolution and package installation occur only in the controlled producer.
 The controlled producer uses the existing `uv==0.12.23` lock workflow and pinned
 python-build-standalone `20261003` CPython 3.11.17 target artifacts recorded with their digests in
 `python/runtime-source.json`; it does not copy a development virtual environment or infer a

@@ -98,18 +98,39 @@ libraries and return temporary results. Python cannot write Space data, publish 
 choose a replacement model after failure. `spaces` owns durable Attempts, input revisions,
 checkpoints and publication. The WebView never starts or addresses Python directly.
 
+`python/` is the `knovum-python` project for application-owned Python capabilities. Production
+code uses the standard `src/` layout and capability packages named `knovum_<capability>`;
+`knovum_inference` owns current model computation. Additional capabilities own their own entry,
+contracts and lifecycle. Source packages do not import peer capability internals; composition
+belongs to their process entry or the existing Rust capability orchestration. A shared module
+requires actual consumers and a concrete responsibility. Agent implementation remains a future
+capability; no SDK, empty package or generic runtime layer is preinstalled.
+
+Hatch and desktop packaging select application code from `python/src`, while inference release
+qualification hashes only `knovum_inference`. Default project dependencies are empty;
+`project.optional-dependencies.inference` declares the existing inference libraries. The producer
+and application verifier explicitly export that frozen extra. Other capabilities must define
+and qualify their dependency selection before release, rather than inherit the inference bundle.
+Their SDK execution cannot create a competing authority for Space authorization, durable Runs
+or publication. Those contracts remain Rust-owned unless their owning documents are revised.
+This project currently targets the managed CPython 3.11.17 interpreter. A capability requiring
+incompatible Python versions or library constraints needs an independently locked project and
+qualified runtime; a common workspace does not provide dependency isolation.
+
 Inside `python/src/knovum_inference`, `runtime/` owns worker admission, session preparation,
 request lifecycle and capability dispatch; `transport/` owns bounded stdio framing, JSON-RPC
 and wire validation. `speech/` owns transcription, alignment, diarization and separation;
 `speech/synthesis/` separates engine selection, Kokoro, VoxCPM2 and stream credits/publication.
 The focused embedding and image segmentation implementations remain file owners.
 Capability implementations depend on their own modules, generated contracts and neutral errors;
-they do not import worker lifecycle or transport. Only runtime composition connects these owners.
+they do not import worker lifecycle or transport. Only runtime composition connects these owners. Session engines use an explicit concrete union;
+method binding checks the parameter-model/execution signature statically, while the Worker
+validates the wire model and admits only the initialized capability before execution.
 Package `__init__.py` files do not re-export implementation symbols.
 
 Repository tooling owns `scripts/generate_python_contracts.py` and the native runtime publication
 entries `scripts/runtime/build_python.py` / `scripts/runtime/verify_signatures.py`.
-`scripts/runtime/` owns the bundled runtime toolchain: controlled artifact handling, binary inspection,
+`scripts/runtime/` owns the runtime distribution toolchain: controlled artifact handling, binary inspection,
 installed inventory, signing, manifest generation, provisioning and package verification. Python and
 Node modules share this lifecycle owner; their tests live in `scripts/runtime/__tests__/`.
 Model qualification belongs to `python/tests/acceptance/`: strict corpus/capture-manifest/execution contracts,
@@ -119,7 +140,10 @@ Only corpus coverage, release identity, retrieval judgments, thresholds and blin
 project logic. `pnpm inference:acceptance` evaluates retained native evidence; pytest exercises its
 policies with clearly identified synthetic fixtures. Contract generation, publication and acceptance
 dependencies have separate development groups and are excluded from the worker wheel/runtime.
-Worker tests remain grouped by runtime, transport and speech ownership under `python/tests/`.
+Capability tests live under `python/tests/<capability>/`; current Worker tests are grouped by
+runtime, transport and speech under `python/tests/inference/`. Repository architecture tests cover
+every source package and first-level owner, including relative imports and package-level imports.
+Adding an owner requires explicit dependency rules and a matching capability test directory.
 
 `file_inspection/classification` is the single authority for imported resource classification.
 Inspection, Space import and system-thumbnail eligibility consume its typed result; they must not
@@ -529,7 +553,7 @@ platform, renderer downloader, compatibility command alias, PATH fallback or alt
 
 ### Schema ownership and supporting modules
 
-Rust DTOs generate the TypeScript IPC contracts and the Python runtime JSON schema through
+Rust DTOs generate the TypeScript IPC contracts and `python/schemas/inference.schema.json` through
 `pnpm contracts:generate`. `scripts/generate_python_contracts.py` then produces strict Pydantic
 models under `python/src/knovum_inference/contracts/generated/` from that schema. The existing
 [generator's dotted namespace support](https://datamodel-code-generator.koxudaxi.dev/module-exports/) separates control, audio and capability contracts; its explicit

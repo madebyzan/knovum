@@ -114,7 +114,7 @@ jobs:
         if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}
         run: |
           npm run contracts:generate
-          git diff --exit-code -- src/shared/contracts/generated src/features/spaces/contracts/generated python/schemas/runtime.schema.json python/src/knovum_inference/contracts/generated
+          git diff --exit-code -- src/shared/contracts/generated src/features/spaces/contracts/generated python/schemas/inference.schema.json python/src/knovum_inference/contracts/generated
           test -z "$(git ls-files --others --exclude-standard -- src/shared/contracts/generated src/features/spaces/contracts/generated python/src/knovum_inference/contracts/generated)"
       - name: Verify dependency inputs were not rewritten
         if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}

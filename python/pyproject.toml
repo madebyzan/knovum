@@ -3,11 +3,14 @@ requires = ["hatchling==1.27.0"]
 build-backend = "hatchling.build"
 
 [project]
-name = "knovum-runtime"
+name = "knovum-python"
 version = "0.1.0"
-description = "Private local inference worker for Knovum"
+description = "Application-owned Python capabilities for Knovum"
 requires-python = "==3.11.17"
-dependencies = [
+dependencies = []
+
+[project.optional-dependencies]
+inference = [
   "av==18.1.0; sys_platform == 'win32' and (platform_machine == 'AMD64' or platform_machine == 'x86_64')",
   "ctranslate2==4.8.2; sys_platform == 'win32' and (platform_machine == 'AMD64' or platform_machine == 'x86_64')",
   "faster-whisper==1.2.1; sys_platform == 'win32' and (platform_machine == 'AMD64' or platform_machine == 'x86_64')",
@@ -28,7 +31,7 @@ dependencies = [
 ]
 
 [project.scripts]
-knovum-runtime = "knovum_inference.server:main"
+knovum-inference = "knovum_inference.server:main"
 
 [dependency-groups]
 runtime-build = ["setuptools==83.0.0", "wheel==0.48.0", "setuptools-scm==10.3.4"]
@@ -59,7 +62,12 @@ pythonpath = ["src", "tests", "../scripts"]
 testpaths = ["tests", "../scripts"]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/knovum_inference"]
+only-include = ["src"]
+sources = ["src"]
+exclude = ["**/__pycache__/**", "**/*.pyc"]
+
+[tool.hatch.metadata]
+allow-direct-references = true
 
 [tool.uv]
 default-groups = []

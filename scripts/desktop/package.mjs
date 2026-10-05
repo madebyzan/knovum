@@ -44,7 +44,7 @@ if (release) verifyRuntimeSignatures(join(distribution, "runtime"), target, repo
 const worker = join(repository, "src-tauri", "resources", "python-worker");
 rmSync(worker, { recursive: true, force: true });
 mkdirSync(worker, { recursive: true });
-cpSync(join(repository, "python", "src", "knovum_inference"), join(worker, "knovum_inference"), {
+cpSync(join(repository, "python", "src"), worker, {
   recursive: true,
   filter: (path) => !path.includes("__pycache__") && (lstatSync(path).isDirectory() || path.endsWith(".py")),
 });

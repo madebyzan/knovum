@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, TypeVar, cast
 
 from pydantic import BaseModel
 
@@ -30,56 +30,73 @@ InferenceParams = (
     | SpeechSynthesizeParams
     | SpeechTranscribeParams
 )
+Params = TypeVar("Params", bound=InferenceParams)
 
 
 @dataclass(frozen=True, slots=True)
 class InferenceMethod:
     capability: RuntimeCapability
-    params_model: type[InferenceParams]
     response_model: type[BaseModel]
-    execute: Callable[[Any, Session, ActiveRequest, ProtocolWriter], Awaitable[dict[str, Any]]]
+    decode: Callable[[dict[str, Any]], InferenceParams]
+    execute: Callable[[InferenceParams, Session, ActiveRequest, ProtocolWriter], Awaitable[dict[str, Any]]]
 
-    def decode(self, raw: dict[str, Any]) -> InferenceParams:
-        params = validate_params(self.params_model, raw)
-        if isinstance(params, EmbeddingEncodeParams) and (
-            not 1 <= len(params.texts) <= 32 or any(not text for text in params.texts)
-        ):
-            raise invalid_params("Embedding requires 1 to 32 non-empty texts")
-        return params
+    @classmethod
+    def bind(
+        cls,
+        capability: RuntimeCapability,
+        params_model: type[Params],
+        response_model: type[BaseModel],
+        execute: Callable[[Params, Session, ActiveRequest, ProtocolWriter], Awaitable[dict[str, Any]]],
+    ) -> InferenceMethod:
+        def decode(raw: dict[str, Any]) -> InferenceParams:
+            params = validate_params(params_model, raw)
+            if isinstance(params, EmbeddingEncodeParams) and (
+                not 1 <= len(params.texts) <= 32 or any(not text for text in params.texts)
+            ):
+                raise invalid_params("Embedding requires 1 to 32 non-empty texts")
+            return params
+
+        async def invoke(
+            params: InferenceParams, session: Session, active: ActiveRequest, writer: ProtocolWriter
+        ) -> dict[str, Any]:
+            # decode validates this exact model before the Worker invokes the bound execution.
+            return await execute(cast(Params, params), session, active, writer)
+
+        return cls(capability, response_model, decode, invoke)
 
 
 INFERENCE_METHODS = {
-    "embedding.encode": InferenceMethod(
+    "embedding.encode": InferenceMethod.bind(
         RuntimeCapability.embedding, EmbeddingEncodeParams, EmbeddingEncoding, execution.embedding
     ),
-    "speech.transcribe": InferenceMethod(
+    "speech.transcribe": InferenceMethod.bind(
         RuntimeCapability.speech_transcription,
         SpeechTranscribeParams,
         SpeechTranscription,
         execution.speech_transcribe,
     ),
-    "speech.align": InferenceMethod(
+    "speech.align": InferenceMethod.bind(
         RuntimeCapability.speech_alignment, SpeechAlignParams, SpeechAlignment, execution.speech_align
     ),
-    "speech.diarize": InferenceMethod(
+    "speech.diarize": InferenceMethod.bind(
         RuntimeCapability.speech_diarization,
         SpeechDiarizeParams,
         SpeechDiarization,
         execution.speech_diarize,
     ),
-    "speech.synthesize": InferenceMethod(
+    "speech.synthesize": InferenceMethod.bind(
         RuntimeCapability.speech_synthesis,
         SpeechSynthesizeParams,
         SpeechSynthesis,
         execution.speech_synthesize,
     ),
-    "speech.separate": InferenceMethod(
+    "speech.separate": InferenceMethod.bind(
         RuntimeCapability.speech_separation,
         SpeechSeparateParams,
         SpeechSeparation,
         execution.speech_separate,
     ),
-    "image.segment": InferenceMethod(
+    "image.segment": InferenceMethod.bind(
         RuntimeCapability.image_segmentation, ImageSegmentParams, ImageSegmentation, execution.image_segment
     ),
 }

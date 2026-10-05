@@ -13,13 +13,13 @@ export function validateApplicationResources(resources, repository, target) {
     sha256File(join(distributionDirectory(repository, target), "runtime-descriptor.json"))
   )
     throw new Error("Packaged runtime descriptor differs from the trusted build input");
-  const source = join(repository, "python", "src", "knovum_inference");
-  const worker = join(resources, "python-worker", "knovum_inference");
+  const source = join(repository, "python", "src");
+  const payload = join(resources, "python-worker");
   const expected = listRuntimeFiles(source).filter((path) => path.endsWith(".py"));
-  const actual = listRuntimeFiles(worker);
+  const actual = listRuntimeFiles(payload);
   if (
     actual.length !== expected.length ||
-    expected.some((path) => sha256File(join(worker, path)) !== sha256File(join(source, path)))
+    expected.some((path) => sha256File(join(payload, path)) !== sha256File(join(source, path)))
   )
     throw new Error("Packaged Python Worker differs from the application checkout");
   const files = listRuntimeFiles(resources);
@@ -33,6 +33,7 @@ export function validateApplicationResources(resources, repository, target) {
   )
     throw new Error("Desktop package must exclude the third-party Python runtime");
   const descriptor = JSON.parse(readFileSync(descriptorPath, "utf8"));
+  const worker = join(payload, "knovum_inference");
   return { worker, descriptor, workerDigest: workerDigest(worker) };
 }
 

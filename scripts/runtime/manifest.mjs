@@ -30,9 +30,7 @@ export function validatePythonRuntime(directory, runtimeTarget, dependencyLock) 
   if (actual.length !== declared.size || actual.some((path) => !declared.has(path))) {
     throw new Error(`Python runtime contains files not declared by its manifest for ${runtimeTarget}`);
   }
-  if (
-    actual.some((path) => path.startsWith("packages/knovum_inference/") || path.startsWith("build-evidence/"))
-  ) {
+  if (actual.some((path) => path.startsWith("packages/knovum_") || path.startsWith("build-evidence/"))) {
     throw new Error("Third-party runtime must exclude application Worker and external build evidence");
   }
   validateRuntimeProvenance(directory, manifest, dependencyLock);

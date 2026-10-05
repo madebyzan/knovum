@@ -366,7 +366,7 @@ the application Worker root, dependency root and actual runtime manifest path ex
 It launches only a verified, managed, on-demand CPython interpreter with one selected
 capability and model path per worker session. The worker retains a model briefly between requests
 and is recycled on capability change, cancellation timeout, idle expiry or application exit.
-Python `runtime/` composes the process lifecycle and capability dispatch; `transport/` owns stdio
+`knovum_inference/runtime/` composes the inference process lifecycle and capability dispatch; `transport/` owns stdio
 framing and validation, and `speech/` owns its engines and synthesis stream. Capability modules
 do not depend on transport or worker state. Session preparation, including native imports and
 thread configuration, runs off the
@@ -385,7 +385,7 @@ UUID request identity, exception type and at most eight basename/function/line f
 messages, source text, locals and full paths never enter that diagnostic stream.
 Input and output wire validation use the same strict generated JSON schema semantics, including
 JSON enum values; no permissive Python-object conversion or compatibility contract is used.
-Python owns only current computation; Rust owns durable task state, revision checks, index
+Current Python inference owns computation; Rust owns durable task state, revision checks, index
 generations and result publication. Embedding uses the fixed Qwen snapshot through Sentence
 Transformers with last-token pooling, 1,024-dimensional L2-normalized output and a strict 2,048
 token input limit. Indexing logs report actual persisted counts and elapsed time; an incomplete

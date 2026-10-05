@@ -49,6 +49,22 @@ test("desktop payload contains only owned Worker and trusted runtime descriptor"
   assert.equal(sample.verify().workerDigest, workerDigest(sample.source));
 });
 
+test("desktop payload verifies every application-owned Python capability", (context) => {
+  const sample = fixture(context);
+  const source = join(sample.repository, "python/src/knovum_document_processing");
+  const packaged = join(sample.resources, "python-worker/knovum_document_processing");
+  mkdirSync(source);
+  writeFileSync(join(source, "__init__.py"), "document capability\n");
+  assert.throws(sample.verify, /Worker differs/);
+  mkdirSync(packaged);
+  copyFileSync(join(source, "__init__.py"), join(packaged, "__init__.py"));
+  const before = sample.verify().workerDigest;
+  writeFileSync(join(source, "__init__.py"), "updated documents\n");
+  assert.throws(sample.verify, /Worker differs/);
+  copyFileSync(join(source, "__init__.py"), join(packaged, "__init__.py"));
+  assert.equal(sample.verify().workerDigest, before);
+});
+
 test("package rejects altered Worker or descriptor bytes", (context) => {
   const sample = fixture(context);
   writeFileSync(join(sample.worker, "server.py"), "other Worker");

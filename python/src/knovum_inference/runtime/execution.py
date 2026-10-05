@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Any
+from typing import TYPE_CHECKING, Any, cast
 
 from knovum_inference.contracts.generated.alignment import SpeechAlignParams
 from knovum_inference.contracts.generated.diarization import SpeechDiarizeParams
@@ -17,13 +17,25 @@ from knovum_inference.runtime.session import Session
 from knovum_inference.speech.synthesis.stream import ChunkCredits, SynthesisChunkPublisher
 from knovum_inference.transport.protocol import ProtocolWriter
 
+if TYPE_CHECKING:
+    from knovum_inference.embedding import EmbeddingEngine
+    from knovum_inference.image_segmentation import ImageSegmentationEngine
+    from knovum_inference.speech.alignment import AlignmentEngine
+    from knovum_inference.speech.diarization import DiarizationEngine
+    from knovum_inference.speech.separation import SpleeterSourceSeparator
+    from knovum_inference.speech.synthesis.engine import SynthesisEngine
+    from knovum_inference.speech.transcription import TranscriptionEngine
+
+# Worker admission checks the capability; session composition selects its concrete engine.
+
 
 async def embedding(
     params: EmbeddingEncodeParams, session: Session, active: ActiveRequest, writer: ProtocolWriter
 ) -> dict[str, Any]:
     if params.embedding_spec_id != session.capability_spec_id:
         raise server_error("runtime_mismatch", "Embedding specification does not match")
-    vectors, input_tokens = await asyncio.to_thread(session.engine.encode, params.texts, params.role.value)
+    engine = cast("EmbeddingEngine", session.engine)
+    vectors, input_tokens = await asyncio.to_thread(engine.encode, params.texts, params.role.value)
     return {
         "requestId": params.request_id,
         "attemptEpoch": params.attempt_epoch,
@@ -57,21 +69,24 @@ async def speech_transcribe(
         }
         asyncio.run_coroutine_threadsafe(writer.notification("speech.progress", event), loop).result(timeout=5)
 
-    value: dict[str, Any] = await asyncio.to_thread(session.engine.transcribe, params, progress, active.cancelled)
+    engine = cast("TranscriptionEngine", session.engine)
+    value = await asyncio.to_thread(engine.transcribe, params, progress, active.cancelled)
     return value
 
 
 async def speech_align(
     params: SpeechAlignParams, session: Session, active: ActiveRequest, writer: ProtocolWriter
 ) -> dict[str, Any]:
-    value: dict[str, Any] = await asyncio.to_thread(session.engine.align, params)
+    engine = cast("AlignmentEngine", session.engine)
+    value = await asyncio.to_thread(engine.align, params)
     return value
 
 
 async def speech_diarize(
     params: SpeechDiarizeParams, session: Session, active: ActiveRequest, writer: ProtocolWriter
 ) -> dict[str, Any]:
-    value: dict[str, Any] = await asyncio.to_thread(session.engine.diarize, params)
+    engine = cast("DiarizationEngine", session.engine)
+    value = await asyncio.to_thread(engine.diarize, params)
     return value
 
 
@@ -99,15 +114,17 @@ async def speech_synthesize(
         active.chunk_credits,
         publish,
     )
-    value: dict[str, Any] = await asyncio.to_thread(session.engine.synthesize, params, publisher, active.cancelled)
+    engine = cast("SynthesisEngine", session.engine)
+    value = await asyncio.to_thread(engine.synthesize, params, publisher, active.cancelled)
     return value
 
 
 async def speech_separate(
     params: SpeechSeparateParams, session: Session, active: ActiveRequest, writer: ProtocolWriter
 ) -> dict[str, Any]:
-    value: dict[str, Any] = await asyncio.to_thread(
-        session.engine.separate,
+    engine = cast("SpleeterSourceSeparator", session.engine)
+    value = await asyncio.to_thread(
+        engine.separate,
         params,
         active.cancelled,
     )
@@ -126,8 +143,9 @@ async def image_segment(
         or params.tensor_ref.data_type is not TensorDataType.float32_little_endian
     ):
         raise invalid_params("Image tensor metadata is invalid")
+    engine = cast("ImageSegmentationEngine", session.engine)
     mask = await asyncio.to_thread(
-        session.engine.segment,
+        engine.segment,
         params.tensor_ref.file_name,
         params.tensor_ref.sha256,
         params.request_id,
