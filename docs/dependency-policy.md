@@ -83,6 +83,22 @@ runtime dependency set. `pnpm check:python` checks worker source, formatting, ty
 boundary tests without installing model libraries; native capability acceptance still runs against
 the complete target runtime.
 
+Development tooling uses the existing Pydantic and NumPy pins rather than a second validation or
+numeric implementation. The `acceptance` group adds
+[`jiwer==4.0.0`](https://github.com/jitsi/jiwer) (Apache-2.0) for maintained CER/WER computation,
+including empty-reference hallucinations. Fixed language normalization and micro-aggregation remain
+Knovum's qualification policy; see [JiWER usage](https://jitsi.github.io/jiwer/usage/).
+The `publication` group uses
+[`cyclonedx-python-lib[json-validation]==11.12.0`](https://cyclonedx-python-library.readthedocs.io/en/stable/examples.html)
+(Apache-2.0) and [`packageurl-python==0.17.6`](https://github.com/package-url/packageurl-python)
+(MIT) for CycloneDX 1.6 serialization/schema validation and package URLs. The library receives the
+actual `runtime/packages` distribution inventory, not the development environment or an inferred
+lock-only SBOM. The generic CycloneDX environment CLI would inspect normal interpreter search paths;
+Knovum's isolated worker adds `packages` through its Rust bootstrap. Keeping this explicit inventory
+adapter preserves exact installed-file and source evidence without implementing another SBOM format.
+These groups do not change the production runtime requirements, approve licenses or add dependencies
+to end-user machines. `pnpm check:python` checks their source and tests alongside the worker.
+
 The security-reviewed runtime baseline pins [`torch==2.13.0`](https://pypi.org/project/torch/2.13.0/),
 `torchaudio==2.11.0`, and
 [`torchcodec==0.12.0`](https://pypi.org/project/torchcodec/0.12.0/). PyTorch 2.13.0 is the first

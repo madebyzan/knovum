@@ -22,7 +22,7 @@
     "security:web": "pnpm --registry=https://registry.npmjs.org audit --prod --audit-level high && pnpm --registry=https://registry.npmjs.org audit signatures",
     "check:web": "pnpm typecheck && pnpm typecheck:e2e && pnpm lint && pnpm architecture && pnpm test && pnpm deadcode && pnpm duplicates && pnpm format:check",
     "check:rust": "pnpm check:source-layout && pnpm check:capabilities && pnpm check:rust-boundaries && cargo fmt --manifest-path src-tauri/Cargo.toml -- --check && cargo clippy --locked --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings && cargo test --locked --manifest-path src-tauri/Cargo.toml",
-    "check:python": "uv run --project python --only-group quality --frozen ruff check python/src python/tools python/tests && uv run --project python --only-group quality --frozen ruff format --check python/src python/tools python/tests && uv run --project python --only-group quality --frozen mypy --config-file python/pyproject.toml python/src/knovum_inference python/tools && uv run --project python --only-group quality --frozen pytest -c python/pyproject.toml python/tests",
+    "check:python": "uv run --project python --only-group quality --only-group acceptance --only-group publication --frozen ruff check --config python/pyproject.toml python/src python/tests tools && uv run --project python --only-group quality --only-group acceptance --only-group publication --frozen ruff format --config python/pyproject.toml --check python/src python/tests tools && uv run --project python --only-group quality --only-group acceptance --only-group publication --frozen mypy --config-file python/pyproject.toml python/src/knovum_inference python/tests/acceptance tools/runtime_packaging tools/build_python_runtime.py tools/generate_python_contracts.py tools/verify_python_runtime_signatures.py && uv run --project python --only-group quality --only-group acceptance --only-group publication --frozen pytest -c python/pyproject.toml python/tests tools/__tests__",
     "check": "pnpm check:web && pnpm check:rust && pnpm check:python",
     "build:e2e": "vite build --mode e2e",
     "e2e:build": "pnpm build:e2e && tauri build --no-bundle --features e2e --config src-tauri/tauri.e2e.conf.json",
@@ -32,7 +32,7 @@
     "desktop:build": "tauri build --no-bundle",
     "runtime:provision": "node tools/provision-bundled-runtime.mjs",
     "runtime:manifest": "node tools/write-python-runtime-manifest.mjs",
-    "runtime:build": "uv run --project python --only-group quality --frozen python python/tools/build_runtime.py",
+    "runtime:build": "uv run --project python --only-group publication --frozen python tools/build_python_runtime.py",
     "contracts:generate": "cargo test --manifest-path src-tauri/Cargo.toml --lib contract_codegen::tests::export_space_contracts -- --ignored --exact",
     "package": "node tools/package-desktop.mjs",
     "package:macos": "node tools/package-desktop.mjs --bundles app,dmg",
@@ -45,7 +45,8 @@
     "smoke:cutout": "pnpm smoke:cutout:build && wdio run wdio.release.conf.ts",
     "check:capabilities": "node tools/check-capability-policy.mjs",
     "check:rust-boundaries": "node tools/check-rust-boundaries.mjs",
-    "check:source-layout": "node --test tools/__tests__/source-layout.test.mjs && node tools/check-source-layout.mjs"
+    "check:source-layout": "node --test tools/__tests__/source-layout.test.mjs && node tools/check-source-layout.mjs",
+    "inference:acceptance": "uv run --project python --only-group acceptance --frozen python -I -B -X utf8 python/tests/acceptance/report.py"
   },
   "dependencies": {
     "@internationalized/date": "^3.12.4",

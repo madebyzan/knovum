@@ -7,6 +7,7 @@ from pathlib import Path
 from unittest.mock import Mock
 
 import pytest
+
 from runtime_packaging.artifacts import archive_runtime, extract_python
 from runtime_packaging.signing import sign_runtime, verify_runtime
 
@@ -24,9 +25,17 @@ def archive(path: Path, entries: list[tuple[str, bytes | str]]) -> None:
                 output.addfile(info, io.BytesIO(contents))
 
 
-def test_internal_interpreter_alias_is_materialized_before_publication(tmp_path: Path) -> None:
+def test_internal_interpreter_alias_is_materialized_before_publication(
+    tmp_path: Path,
+) -> None:
     source = tmp_path / "input.tar"
-    archive(source, [("python/bin/python3.11", b"interpreter"), ("python/bin/python3", "python3.11")])
+    archive(
+        source,
+        [
+            ("python/bin/python3.11", b"interpreter"),
+            ("python/bin/python3", "python3.11"),
+        ],
+    )
     root = extract_python(source, tmp_path / "unpacked")
     assert (root / "bin/python3").read_bytes() == b"interpreter"
     assert not (root / "bin/python3").is_symlink()
@@ -108,7 +117,10 @@ def test_windows_valid_signature_from_wrong_signer_is_rejected(monkeypatch: pyte
     (tmp_path / "python.exe").write_bytes(b"MZ\0\0")
     monkeypatch.setenv("KNOVUM_WINDOWS_SIGNTOOL", "controlled-signtool")
     monkeypatch.setenv("KNOVUM_WINDOWS_CERTIFICATE_THUMBPRINT", "A" * 40)
-    monkeypatch.setattr("runtime_packaging.signing.subprocess.run", Mock(return_value=Mock(stdout="B" * 40)))
+    monkeypatch.setattr(
+        "runtime_packaging.signing.subprocess.run",
+        Mock(return_value=Mock(stdout="B" * 40)),
+    )
     with pytest.raises(ValueError, match="signer differs"):
         verify_runtime(tmp_path, "windows-x64")
 

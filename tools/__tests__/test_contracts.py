@@ -4,12 +4,13 @@ import importlib
 import json
 from pathlib import Path
 
-from generate_contracts import CONTRACT_MODULES
 from pydantic import BaseModel
+
+from generate_python_contracts import CONTRACT_MODULES
 
 
 def test_modular_contracts_cover_rust_definitions_without_aliases_or_duplicate_types() -> None:
-    source = Path(__file__).resolve().parents[2] / "schemas/runtime.schema.json"
+    source = Path(__file__).resolve().parents[2] / "python/schemas/runtime.schema.json"
     definitions = json.loads(source.read_text())["$defs"]
     generated: dict[str, type] = {}
     for owner, names in CONTRACT_MODULES.items():

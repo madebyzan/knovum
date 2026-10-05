@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 import pytest
+
 from runtime_packaging.inventory import interpreter_inventory, write_inventory
 
 
@@ -60,7 +61,9 @@ def write_distribution(root: Path) -> None:
     )
 
 
-def test_inventory_binds_interpreter_native_files_notices_lock_and_direct_source(tmp_path: Path) -> None:
+def test_inventory_binds_interpreter_native_files_notices_lock_and_direct_source(
+    tmp_path: Path,
+) -> None:
     root = tmp_path / "runtime"
     (root / "bin").mkdir(parents=True)
     (root / "bin/python.exe").write_bytes(b"MZ\0\0interpreter")
@@ -84,21 +87,18 @@ def test_inventory_binds_interpreter_native_files_notices_lock_and_direct_source
 
     sbom = json.loads((output / "sbom.cdx.json").read_text())
     evidence = json.loads((output / "dependency-evidence.json").read_text())
-    assert sbom["components"] == [
-        {
-            "type": "application",
-            "name": "CPython",
-            "version": "3.11.17",
-            "externalReferences": [{"type": "distribution", "url": "https://example.test/cpython.tar.gz"}],
-        },
-        {
-            "type": "library",
-            "name": "Demo_Package",
-            "version": "1.2.3",
-            "purl": "pkg:pypi/demo-package@1.2.3",
-            "licenses": [{"expression": "MIT"}],
-        },
+    from cyclonedx.schema import SchemaVersion
+    from cyclonedx.validation.json import JsonStrictValidator
+
+    assert JsonStrictValidator(SchemaVersion.V1_6).validate_str(json.dumps(sbom)) is None
+    components = {item["name"]: item for item in sbom["components"]}
+    assert components.keys() == {"CPython", "Demo_Package"}
+    assert components["CPython"]["version"] == "3.11.17"
+    assert components["CPython"]["externalReferences"] == [
+        {"type": "distribution", "url": "https://example.test/cpython.tar.gz"},
     ]
+    assert components["Demo_Package"]["purl"] == "pkg:pypi/demo-package@1.2.3"
+    assert components["Demo_Package"]["licenses"] == [{"expression": "MIT"}]
     assert evidence["dependencyLockSha256"] == sha256(lock)
     assert evidence["interpreter"]["compiledBinaries"] == ["bin/python.exe"]
     assert evidence["interpreter"]["notices"][0]["path"] == "LICENSE.python.txt"
@@ -109,7 +109,9 @@ def test_inventory_binds_interpreter_native_files_notices_lock_and_direct_source
     assert distribution["source"]["installedDirectUrl"]["vcs_info"]["commit_id"] == "b" * 40
 
 
-def test_inventory_rejects_installed_distribution_absent_from_lock(tmp_path: Path) -> None:
+def test_inventory_rejects_installed_distribution_absent_from_lock(
+    tmp_path: Path,
+) -> None:
     root = tmp_path / "runtime"
     root.mkdir()
     (root / "python.exe").write_bytes(b"MZ\0\0interpreter")

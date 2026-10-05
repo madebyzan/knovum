@@ -27,15 +27,19 @@ YAML. Alignment acceptance covers the selected-range limits and manual timing in
 
 ### Native inference quality evidence
 
-`python/tools/acceptance_report.py` is the release evaluator for model quality. It reads a fixed corpus
+`python/tests/acceptance/report.py` is the model qualification evaluator. It reads a fixed corpus
 manifest, candidate outputs captured from the private worker and hash-bound reference/baseline outputs;
-it does not generate inference, substitute fixture values or infer a pass from imports. Run it on each
-supported target:
+it does not generate inference, substitute fixture values or infer a pass from imports. Capture native outputs on each supported target, then score their retained evidence in the frozen
+acceptance development environment. The scoring libraries are not installed in the bundled worker:
 
 ```text
-<bundled-python> -I -B -X utf8 python/tools/acceptance_report.py \
+pnpm inference:acceptance \
   --corpus <corpus.json> --results <native-results.json> --output <acceptance-report.json>
 ```
+
+The release workflows build candidate artifacts; they do not capture this corpus or run the evaluator
+automatically. Native quality acceptance remains an explicit release requirement. Unit fixtures are
+never acceptance evidence.
 
 Exit code `0` means every scored capability passed. Exit code `1` means invalid evidence or a failed
 threshold. Exit code `2` means at least one capability or required input is unavailable. Only `passed`
@@ -80,9 +84,11 @@ comparison evidence identifies `product_baseline`. The raw value shapes are:
 
 The evaluator calculates paired cosine, Recall@10 and nDCG@10. CPU/float32 paired cosine must be at
 least `0.9999`; retrieval metric loss against the official reference must not exceed `0.01`. It reports
-Chinese CER and English WER for the previous product baseline and candidate; either regression above
+Chinese CER and English WER using JiWER after fixed NFKC/casefold and language tokenization.
+Counts are micro-aggregated across recordings, including insertions on silent references, for the
+previous product baseline and candidate; either regression above
 `0.01` fails. Alignment reports coverage and median/P95 absolute boundary error by language and overall,
-then applies the limits fixed in the corpus before execution.
+using NumPy linear percentiles, then applies the limits fixed in the corpus before execution.
 
 TTS evidence includes the hash-bound concealed sample-assignment file and the time at which it was revealed.
 Every generated sample must receive one complete score set from at least three distinct blinded raters;

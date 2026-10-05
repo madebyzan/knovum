@@ -105,11 +105,18 @@ Capability implementations depend on their own modules, generated contracts and 
 they do not import worker lifecycle or transport. Only runtime composition connects these owners.
 Package `__init__.py` files do not re-export implementation symbols.
 
-`python/tools/` contains development/build CLI entries, `runtime_packaging/` owns artifact handling,
-binary inspection, inventory and signing, and `runtime_acceptance/` owns provenance and per-capability
-scoring. Metric helpers stay with the capability scorer that uses them; invocation and run
-identity validation share the provenance owner. Tools are excluded from the worker package. Tests live under `python/tests/`, grouped by
-runtime, transport, speech and tooling ownership.
+Repository tooling owns `tools/generate_python_contracts.py` and the native runtime publication
+entries `tools/build_python_runtime.py` / `tools/verify_python_runtime_signatures.py`.
+`tools/runtime_packaging/` owns controlled artifact handling, binary inspection, installed inventory
+and native signing policy. Its tests live in `tools/__tests__/`.
+Model qualification belongs to `python/tests/acceptance/`: strict corpus/result/execution contracts,
+hash-bound provenance and the four capability scorers. Pydantic owns structural validation,
+NumPy owns vector arithmetic and percentiles, and JiWER owns transcription error counts.
+Only corpus coverage, release identity, retrieval judgments, thresholds and blind-review rules remain
+project logic. `pnpm inference:acceptance` evaluates retained native evidence; pytest exercises its
+policies with clearly identified synthetic fixtures. Contract generation, publication and acceptance
+dependencies have separate development groups and are excluded from the worker wheel/runtime.
+Worker tests remain grouped by runtime, transport and speech ownership under `python/tests/`.
 
 `file_inspection/classification` is the single authority for imported resource classification.
 Inspection, Space import and system-thumbnail eligibility consume its typed result; they must not
@@ -492,7 +499,7 @@ platform, renderer downloader, compatibility command alias, PATH fallback or alt
 ### Schema ownership and supporting modules
 
 Rust DTOs generate the TypeScript IPC contracts and the Python runtime JSON schema through
-`pnpm contracts:generate`. `python/tools/generate_contracts.py` then produces strict Pydantic
+`pnpm contracts:generate`. `tools/generate_python_contracts.py` then produces strict Pydantic
 models under `python/src/knovum_inference/contracts/generated/` from that schema. The existing
 [generator's dotted namespace support](https://datamodel-code-generator.koxudaxi.dev/module-exports/) separates control, audio and capability contracts; its explicit
 ownership map changes Python file placement only, never canonical wire names or field definitions.

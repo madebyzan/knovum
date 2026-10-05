@@ -63,7 +63,7 @@ CONTRACT_MODULES = {
 
 
 def main() -> None:
-    root = Path(__file__).resolve().parents[1]
+    root = Path(__file__).resolve().parents[1] / "python"
     schema = json.loads((root / "schemas/runtime.schema.json").read_text())
     owners = {name: module for module, names in CONTRACT_MODULES.items() for name in names}
     if len(owners) != sum(len(names) for names in CONTRACT_MODULES.values()) or owners.keys() != schema["$defs"].keys():
