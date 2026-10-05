@@ -241,6 +241,11 @@ Knovum does not own Agent installation, updates or credential provisioning.
 
 Common desktop capabilities are not owned by UI components. Interactive image editing lives in the Vue Canvas preview and one strict `imageEdit` v6 draft contract. `src-tauri/src/images` replays that contract from an authorized managed source to produce the canonical PNG for download, local U²-Net background removal, configured-provider image operations and fal layer splitting. The WebView sends node identity and edit metadata, never full image buffers for processing. Spaces owns revision checks, pending nodes, derivation provenance, cancellation and output publication; Rust provider modules own networking, credentials and bounded result decoding. Layer splitting uses a separate fal credential from the credential database and publishes its transparent outputs atomically. LLM transport is owned by `src-tauri/src/ai` through the shared `genai` provider layer. The WebView sends only a stable connection/model or Agent reference; Rust loads the strict current settings, resolves the user-configured Base URL and model ID, derives the credential key, validates capability, reads the secret and owns provider networking. The credential database stores values separately from Spaces data and is read only by Rust through validated credential identifiers.
 
+Layer preparation runs on the blocking executor and observes the same generation cancellation token
+as provider execution. Publication admission and cancellation share one locked decision: accepted
+cancellation prevents the database commit and releases prepared files; once publication is admitted,
+cancellation is rejected explicitly while the atomic commit settles.
+
 AI token accounting is part of that same Rust-owned provider boundary. Successful model turns persist only
 provider-reported input, output, and total Token counts to the AI-owned `ai-usage.db` v1 database, together with
 the model identity, capability purpose, event time, and the system-local activity date at occurrence. Text,
@@ -369,6 +374,12 @@ terminating the process tree. Controls received before readiness return an expli
 error. Protocol input is strictly UTF-8 JSON; non-finite numeric literals are rejected at parsing.
 After spawning, Rust handles initialization cancellation/deadline inside the owned child lifecycle:
 it terminates and waits for that child before returning and releasing memory or compute admission.
+The Worker also owns bounded request sending: cancellation, an elapsed deadline or a failed write
+terminates the child before the supervisor clears its slot. Successful sends retain one absolute
+deadline through response reception. Python emits unexpected request failures through the generated
+Rust-owned diagnostic contract; Rust accepts bounded structural evidence (error code, known method,
+UUID request identity, exception type and at most eight basename/function/line frames). Exception
+messages, source text, locals and full paths never enter that diagnostic stream.
 Input and output wire validation use the same strict generated JSON schema semantics, including
 JSON enum values; no permissive Python-object conversion or compatibility contract is used.
 Python owns only current computation; Rust owns durable task state, revision checks, index

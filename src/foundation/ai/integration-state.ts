@@ -1,5 +1,6 @@
 import { useDebounceFn } from "@vueuse/core";
 import { cloneDeep } from "es-toolkit";
+import pLimit from "p-limit";
 import { computed, ref, shallowRef, watch } from "vue";
 
 interface IntegrationStateOptions<T> {
@@ -20,14 +21,21 @@ export function createIntegrationState<T>(options: IntegrationStateOptions<T>) {
   let requestedRevision = 0;
   let savedRevision = 0;
   let pendingSave: Promise<void> | undefined;
+  let pendingReset: Promise<void> | undefined;
+  const serialize = pLimit(1);
 
   async function load() {
     loaded.value = false;
     loading.value = true;
     loadError.value = undefined;
     try {
-      value.value = await options.load();
-      loaded.value = true;
+      await serialize(async () => {
+        value.value = await options.load();
+        requestedRevision = 0;
+        savedRevision = 0;
+        saveError.value = undefined;
+        loaded.value = true;
+      });
     } catch (error) {
       loadError.value = error;
     } finally {
@@ -36,6 +44,7 @@ export function createIntegrationState<T>(options: IntegrationStateOptions<T>) {
   }
 
   function ensureLoaded() {
+    if (pendingReset) return pendingReset;
     if (loaded.value) return Promise.resolve();
     loadPromise ??= load().finally(() => {
       loadPromise = undefined;
@@ -48,7 +57,7 @@ export function createIntegrationState<T>(options: IntegrationStateOptions<T>) {
     saving.value = true;
     saveError.value = undefined;
     try {
-      await options.save(value.value);
+      await options.save(cloneDeep(value.value));
       savedRevision = revision;
     } catch (error) {
       saveError.value = error;
@@ -61,14 +70,22 @@ export function createIntegrationState<T>(options: IntegrationStateOptions<T>) {
 
   function persist() {
     if (pendingSave) return pendingSave;
+    if (!loaded.value) return Promise.resolve();
     if (savedRevision === requestedRevision) return Promise.resolve();
-    pendingSave = drain().finally(() => {
+    pendingSave = serialize(drain).finally(() => {
       pendingSave = undefined;
     });
     return pendingSave;
   }
 
   async function flush(): Promise<void> {
+    await pendingReset;
+    await loadPromise;
+    if (!loaded.value) {
+      if (savedRevision < requestedRevision)
+        throw loadError.value ?? new Error("Integration settings are not loaded");
+      return;
+    }
     await persist();
     if (saveError.value) throw saveError.value;
     if (savedRevision < requestedRevision) await flush();
@@ -78,20 +95,44 @@ export function createIntegrationState<T>(options: IntegrationStateOptions<T>) {
   watch(
     value,
     () => {
-      if (!loaded.value) return;
+      if (!loaded.value || loading.value || pendingReset) return;
       requestedRevision += 1;
       void scheduleSave();
     },
     { deep: true, flush: "sync" },
   );
 
-  async function reset() {
+  function reset(): Promise<void> {
+    if (pendingReset) return pendingReset;
+    const wasLoaded = loaded.value;
     loaded.value = false;
-    await options.reset();
-    value.value = cloneDeep(options.initial);
-    requestedRevision = 0;
-    savedRevision = 0;
-    loaded.value = true;
+    loading.value = true;
+    pendingReset = serialize(async () => {
+      try {
+        await options.reset();
+        value.value = cloneDeep(options.initial);
+        requestedRevision = 0;
+        savedRevision = 0;
+        loadError.value = undefined;
+        saveError.value = undefined;
+        loaded.value = true;
+      } catch (error) {
+        loaded.value = wasLoaded;
+        loadError.value = error;
+        throw error;
+      } finally {
+        loading.value = false;
+      }
+    }).finally(() => {
+      pendingReset = undefined;
+    });
+    return pendingReset;
+  }
+
+  function reload() {
+    if (pendingReset) return pendingReset;
+    loaded.value = false;
+    return ensureLoaded();
   }
 
   return {
@@ -102,7 +143,7 @@ export function createIntegrationState<T>(options: IntegrationStateOptions<T>) {
     loadError,
     saveError,
     ensureLoaded,
-    reload: load,
+    reload,
     flush,
     reset,
   };

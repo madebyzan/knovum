@@ -7,6 +7,13 @@ from pathlib import Path
 
 # This map selects file ownership only. Rust remains the source of every wire field and type name.
 CONTRACT_MODULES = {
+    "diagnostics": {
+        "RuntimeDiagnostic",
+        "RuntimeDiagnosticFrame",
+        "RuntimeDiagnosticEvent",
+        "RuntimeDiagnosticMethod",
+        "RuntimeDiagnosticCode",
+    },
     "control": {
         "RuntimeCapability",
         "RuntimeDeviceProfile",

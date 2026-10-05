@@ -1,5 +1,7 @@
+import { error as logError } from "@tauri-apps/plugin-log";
 import { computed, onBeforeUnmount, ref } from "vue";
 
+import { formatErrorDiagnostic } from "../../../foundation/errors/error-format";
 import { removeSpaceAsset } from "../assets/asset-operations";
 import {
   classifyAudioCaptureProblem,
@@ -15,7 +17,7 @@ import {
 import { prepareAudioRecording, type PreparedAudioRecording } from "./audio-recording-start";
 import { createAudioRecordingWriter } from "./audio-recording-writer";
 import { formatDurationMs } from "./format-duration";
-import { stopMediaRecorder } from "./media-recorder-operations";
+import { settleAudioRecording } from "./media-recorder-operations";
 
 interface CompletedRecordingInput {
   current: MediaRecorder;
@@ -36,14 +38,17 @@ export function useSpaceAudioRecorderController(options: AudioRecorderController
   let stream: MediaStream | undefined;
   let recorderSession: SpaceAudioRecordingSession | undefined;
   const recordingWriter = createAudioRecordingWriter();
-  let timer = 0;
+  let timer: ReturnType<typeof globalThis.setInterval> | undefined;
   let generation = 0;
   let recordingSpaceId: string | undefined;
 
   async function start() {
     if (isRecording.value || isRequestingPermission.value || isSaving.value) return;
     const availability = requireAudioRecordingSpace(options.spaceId.value);
-    if ("problem" in availability) return reportCaptureProblem(availability.problem);
+    if ("problem" in availability) {
+      captureProblem.value = availability.problem;
+      return;
+    }
     const sessionGeneration = ++generation;
     isRequestingPermission.value = true;
     captureProblem.value = undefined;
@@ -56,9 +61,9 @@ export function useSpaceAudioRecorderController(options: AudioRecorderController
       if (prepared) activateRecording(prepared, spaceId);
     } catch (error) {
       if (sessionGeneration === generation) {
-        recorderSession = undefined;
         cleanupMedia();
         captureProblem.value = classifyAudioCaptureProblem(error);
+        await cancelRecorderSession().catch(reportFailure);
       }
     } finally {
       if (sessionGeneration === generation) isRequestingPermission.value = false;
@@ -67,34 +72,36 @@ export function useSpaceAudioRecorderController(options: AudioRecorderController
 
   async function stop() {
     const current = recorder;
-    const sessionGeneration = generation;
     const spaceId = recordingSpaceId;
     const session = recorderSession;
     if (!current || current.state === "inactive" || !spaceId || !session || isSaving.value) return;
     isSaving.value = true;
-    await completeRecording({ current, session, sessionGeneration, spaceId });
+    await completeRecording({ current, session, sessionGeneration: generation, spaceId });
   }
 
   async function completeRecording(input: CompletedRecordingInput) {
     const { current, session, sessionGeneration, spaceId } = input;
-    await stopMediaRecorder(current);
-    await recordingWriter.settle();
-    cleanupMedia();
-    if (!isCurrent(sessionGeneration, spaceId)) return;
     try {
+      await settleAudioRecording(current, recordingWriter.settle);
+      if (sessionGeneration === generation) cleanupMedia();
+      if (!isCurrent(sessionGeneration, spaceId)) return;
       if (recordingWriter.failure()) throw recordingWriter.failure();
       await saveRecording(session, sessionGeneration, spaceId);
-    } catch {
-      await cancelRecorderSession();
+    } catch (error) {
+      let failure = error;
       if (sessionGeneration === generation) captureProblem.value = "unknown";
-      options.failed();
+      try {
+        await cancelRecorderSession(session);
+      } catch (cleanupError) {
+        failure = new AggregateError([error, cleanupError], "Audio recording and session cleanup failed");
+      }
+      reportFailure(failure);
     } finally {
-      if (sessionGeneration === generation) isSaving.value = false;
+      if (sessionGeneration === generation) {
+        cleanupMedia();
+        isSaving.value = false;
+      }
     }
-  }
-
-  function reportCaptureProblem(problem: NonNullable<typeof captureProblem.value>) {
-    captureProblem.value = problem;
   }
 
   function activateRecording(input: PreparedAudioRecording, spaceId: string) {
@@ -115,7 +122,7 @@ export function useSpaceAudioRecorderController(options: AudioRecorderController
     spaceId: string,
   ) {
     const asset = await finishSpaceAudioRecording(session);
-    recorderSession = undefined;
+    if (recorderSession === session) recorderSession = undefined;
     if (!isCurrent(sessionGeneration, spaceId)) return removeSpaceAsset(asset.path);
     await options.save(asset, spaceId);
     options.close();
@@ -137,11 +144,16 @@ export function useSpaceAudioRecorderController(options: AudioRecorderController
     generation += 1;
     const current = recorder;
     recordingSpaceId = undefined;
-    if (current && current.state !== "inactive") await stopMediaRecorder(current);
-    await recordingWriter.settle();
+    const outcomes = await Promise.allSettled([settleAudioRecording(current, recordingWriter.settle)]);
     cleanupMedia();
-    await cancelRecorderSession();
+    const cancelled = await Promise.allSettled([cancelRecorderSession()]);
     isSaving.value = false;
+    const failures = [...outcomes, ...cancelled].filter((outcome) => outcome.status === "rejected");
+    if (failures.length)
+      throw new AggregateError(
+        failures.map((failure) => failure.reason),
+        "Audio recording cleanup failed",
+      );
   }
 
   function isCurrent(sessionGeneration: number, spaceId: string) {
@@ -159,13 +171,16 @@ export function useSpaceAudioRecorderController(options: AudioRecorderController
     elapsedSeconds.value = 0;
   }
 
-  async function cancelRecorderSession() {
-    const session = recorderSession;
-    recorderSession = undefined;
+  async function cancelRecorderSession(session = recorderSession) {
+    if (recorderSession === session) recorderSession = undefined;
     if (session) await cancelSpaceAudioRecording(session);
   }
 
-  onBeforeUnmount(() => void invalidate());
+  function reportFailure(error: unknown) {
+    void logError(`Audio recording lifecycle failed: ${formatErrorDiagnostic(error)}`);
+    options.failed();
+  }
+  onBeforeUnmount(() => void invalidate().catch(reportFailure));
   return {
     isRecording,
     isPaused,

@@ -3,6 +3,7 @@ import type { AiModelDefinition } from "../../shared/contracts/generated/AiModel
 import { deleteSecret, persistOptionalSecret } from "../secrets/secret-store";
 import { useAiSettingsStore } from "./ai-settings-store";
 import { aiConnectionSecretKey } from "./schema/models";
+import { mutateAiSettings } from "./settings-mutations";
 
 export type AiConnectionSaveResult = { status: "saved" } | { status: "credential-failed"; cause: unknown };
 
@@ -98,25 +99,15 @@ async function removeAiConnectionModelChange(connectionId: string, modelId: stri
   }
 }
 
-let pendingChange: Promise<void> = Promise.resolve();
-function enqueueConnectionChange<T>(change: () => Promise<T>): Promise<T> {
-  const operation = pendingChange.then(change);
-  pendingChange = operation.then(
-    () => undefined,
-    () => undefined,
-  );
-  return operation;
-}
-
 export function saveAiConnection(connection: AiConnectionSettings, secret: string | null | undefined) {
-  return enqueueConnectionChange(() => saveAiConnectionChange(connection, secret));
+  return mutateAiSettings(() => saveAiConnectionChange(connection, secret));
 }
 export function removeAiConnection(id: string) {
-  return enqueueConnectionChange(() => removeAiConnectionChange(id));
+  return mutateAiSettings(() => removeAiConnectionChange(id));
 }
 export function saveAiConnectionModel(connectionId: string, model: AiModelDefinition) {
-  return enqueueConnectionChange(() => saveAiConnectionModelChange(connectionId, model));
+  return mutateAiSettings(() => saveAiConnectionModelChange(connectionId, model));
 }
 export function removeAiConnectionModel(connectionId: string, modelId: string) {
-  return enqueueConnectionChange(() => removeAiConnectionModelChange(connectionId, modelId));
+  return mutateAiSettings(() => removeAiConnectionModelChange(connectionId, modelId));
 }

@@ -456,8 +456,14 @@ protocol remains in `structure/confirmed-mutation`, where explicit command failu
 distinguished from an ambiguous transport outcome.
 
 AI connection configuration, model edits and credential lifecycle belong to
-`foundation/ai/connection-settings`. Its private queue serializes catalog edits through credential
-completion; failures propagate to callers. A credential save failure preserves committed configuration.
+`foundation/ai/connection-settings`. `foundation/ai/settings-mutations` serializes connection/model
+edits, Agent toggles and reset through credential completion, and rejects new mutations during an
+application transition. The exit barrier drains admitted mutations before flushing settings.
+`integration-state` serializes load, save and reset, snapshots each saved revision, and clears errors
+on successful reset. `desktop-agent-settings` owns enablement: disabling an Agent clears defaults
+that reference it and restores its affected settings on persistence failure. Explicit creation presets
+remain user-owned and require their selected Agent to be enabled. Failures propagate to callers.
+A credential save failure preserves committed configuration.
 A failed credential deletion restores the connection; independent restoration failure retains both
 causes in `AggregateError`. Settings components own drafts, confirmation and failure presentation.
 

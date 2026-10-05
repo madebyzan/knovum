@@ -1,11 +1,14 @@
 import { beforeEach, expect, it, vi } from "vitest";
 
 import type { AiConnectionSettings } from "../../../shared/contracts/generated/AiConnectionSettings";
+import { runApplicationTransition } from "../../lifecycle/application-transition";
 import { removeAiConnection, saveAiConnection } from "../connection-settings";
+import { flushAiSettingsMutations, resetAiSettings } from "../settings-mutations";
 
 const state = vi.hoisted(() => ({
   settings: { connections: [] as AiConnectionSettings[] },
   flush: vi.fn<() => Promise<void>>(),
+  reset: vi.fn<() => Promise<void>>(),
 }));
 const secrets = vi.hoisted(() => ({
   deleteSecret: vi.fn<() => Promise<void>>(),
@@ -25,6 +28,7 @@ beforeEach(() => {
   vi.resetAllMocks();
   state.settings.connections = [structuredClone(connection)];
   state.flush.mockResolvedValue(undefined);
+  state.reset.mockResolvedValue(undefined);
   secrets.deleteSecret.mockResolvedValue(undefined);
   secrets.persistOptionalSecret.mockResolvedValue(undefined);
 });
@@ -82,4 +86,32 @@ it("serializes another edit until credential work completes", async () => {
   await first;
   await second;
   expect(state.settings.connections[0]?.name).toBe("Second");
+});
+
+it("waits for credential completion before reset or exit flushing", async () => {
+  let release!: () => void;
+  secrets.persistOptionalSecret.mockReturnValueOnce(
+    new Promise<void>((resolve) => {
+      release = resolve;
+    }),
+  );
+  const saving = saveAiConnection(connection, "key");
+  await vi.waitFor(() => expect(secrets.persistOptionalSecret).toHaveBeenCalledOnce());
+  const resetting = resetAiSettings();
+  const closing = flushAiSettingsMutations();
+  expect(state.reset).not.toHaveBeenCalled();
+  expect(state.flush).toHaveBeenCalledOnce();
+  release();
+  await Promise.all([saving, resetting, closing]);
+  expect(state.reset).toHaveBeenCalledOnce();
+  expect(state.flush).toHaveBeenCalledTimes(2);
+});
+
+it("rejects new edits during an application transition while allowing its save barrier", async () => {
+  await runApplicationTransition(async () => {
+    await expect(saveAiConnection(connection, "key")).rejects.toThrow("transitioning");
+    await flushAiSettingsMutations();
+  });
+  expect(secrets.persistOptionalSecret).not.toHaveBeenCalled();
+  expect(state.flush).toHaveBeenCalledOnce();
 });

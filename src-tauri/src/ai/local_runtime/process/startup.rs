@@ -13,7 +13,7 @@ use std::{
     sync::OnceLock,
     time::{Duration, Instant},
 };
-use tokio::{io::AsyncReadExt, process::Command, sync::oneshot};
+use tokio::{process::Command, sync::oneshot};
 use tokio_util::sync::CancellationToken;
 
 impl Worker {
@@ -142,39 +142,7 @@ impl Worker {
             .stderr
             .take()
             .ok_or("worker_crashed: worker stderr unavailable")?;
-        tokio::spawn(async move {
-            let mut diagnostics = diagnostics;
-            let mut chunk = [0_u8; 4096];
-            let mut line = Vec::new();
-            let mut oversized = false;
-            while let Ok(size) = diagnostics.read(&mut chunk).await {
-                if size == 0 {
-                    break;
-                }
-                for byte in &chunk[..size] {
-                    if *byte == b'\n' {
-                        if !oversized {
-                            if let Ok(value) = serde_json::from_slice::<serde_json::Value>(&line) {
-                                if let Some(code) =
-                                    value.get("code").and_then(serde_json::Value::as_str)
-                                {
-                                    log::warn!("local inference diagnostic code={code}");
-                                }
-                            }
-                        }
-                        line.clear();
-                        oversized = false;
-                    } else if !oversized {
-                        if line.len() < 16 * 1024 {
-                            line.push(*byte);
-                        } else {
-                            line.clear();
-                            oversized = true;
-                        }
-                    }
-                }
-            }
-        });
+        tokio::spawn(super::diagnostics::observe(diagnostics));
         let mut protocol = Protocol::new(input, output);
         // Once spawned, cancellation must settle the child before releasing its reservation.
         let initialization: Result<RuntimeSession, String> =

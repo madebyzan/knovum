@@ -1,10 +1,8 @@
 from __future__ import annotations
 
 import asyncio
-import json
 import os
 import signal
-import sys
 import threading
 import time
 from typing import Any
@@ -27,6 +25,7 @@ from knovum_inference.runtime.active_request import ActiveRequest
 from knovum_inference.runtime.health import current_process_resident_bytes
 from knovum_inference.runtime.methods import INFERENCE_METHODS, InferenceParams, capability_method
 from knovum_inference.runtime.session import Session, prepare_session
+from knovum_inference.transport.diagnostics import report_request_failure
 from knovum_inference.transport.input_stream import OVERSIZED, InputStream
 from knovum_inference.transport.protocol import MAX_MESSAGE_BYTES, ProtocolWriter, Request, parse_request
 from knovum_inference.transport.validation import report_request_error, validate_params, validate_response
@@ -97,11 +96,7 @@ class Worker:
                 self._terminate.set()
         except Exception as error:
             if not isinstance(error, RpcError):
-                print(
-                    json.dumps({"event": "requestFailed", "method": request.method}),
-                    file=sys.stderr,
-                    flush=True,
-                )
+                report_request_failure(request, error)
             if request.request_id is not None:
                 await self._writer.error(request.request_id, report_request_error(error))
 

@@ -54,6 +54,11 @@ use the separate bootstrap failure state before the main window is revealed.
 
 ## Shell/OS integration ready for features
 
+Application composition registers AI model settings and the independent creation library with the
+existing window-close save barrier. Close, Quit and updater installation flush debounce-pending edits
+and await admitted AI configuration/credential mutations. All registered saves settle before the
+transition proceeds; any failure prevents hiding, exit or installation and is reported by its owner.
+
 The runtime registers only plugins used by current product flows: clipboard, dialogs, filesystem, opener, OS information, Store, SQLite, logging, single-instance handling, window-state persistence, notifications and updater. Shell, WebSocket and arbitrary process execution remain unregistered.
 
 Notification permission is feature-owned by the main WebView and only important state transitions are surfaced. The updater is Rust-owned and receives its endpoint/public verification key at release build time.

@@ -215,19 +215,16 @@ async fn request(
     cancellation: &CancellationToken,
     exit: &CancellationToken,
 ) -> Result<ImageSegmentation, String> {
-    let send: Result<(), String> = tokio::select! {
-        biased;
-        _ = exit.cancelled() => Err("cancelled".into()),
-        _ = cancellation.cancelled() => Err("cancelled".into()),
-        result = tokio::time::timeout(
-            super::deadline_duration(deadline_ms)?,
-            worker.protocol.send_request(request_id, RuntimeCapability::ImageSegmentation.method(), params),
-        ) => result.map_err(|_| "deadline_exceeded".to_owned())?,
-    };
-    if let Err(error) = send {
-        worker.terminate().await;
-        return Err(error);
-    }
+    let deadline = worker
+        .send_request(
+            request_id,
+            RuntimeCapability::ImageSegmentation.method(),
+            params,
+            deadline_ms,
+            cancellation,
+            exit,
+        )
+        .await?;
     tokio::select! {
         biased;
         _ = exit.cancelled() => {
@@ -238,8 +235,8 @@ async fn request(
             cancel(worker, request_id, attempt_epoch).await;
             Err("cancelled".into())
         }
-        result = tokio::time::timeout(
-            super::deadline_duration(deadline_ms)?,
+        result = tokio::time::timeout_at(
+            deadline,
             worker.protocol.read_response::<ImageSegmentation>(request_id),
         ) => match result {
             Ok(value) => value,
