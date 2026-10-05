@@ -13,15 +13,15 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  runtime-manifest:
-    name: Runtime manifest
+  runtime-distribution:
+    name: Runtime distribution
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
           node-version: "22"
-      - run: node --test scripts/runtime/__tests__/manifest.test.mjs scripts/runtime/__tests__/write-manifest.test.mjs scripts/runtime/__tests__/windows-package-verification.test.mjs scripts/runtime/__tests__/license-policy.test.mjs
+      - run: node --test scripts/runtime/__tests__/*.test.mjs
 
   python:
     name: Python quality

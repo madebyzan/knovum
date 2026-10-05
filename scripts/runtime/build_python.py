@@ -12,6 +12,7 @@ import sys
 import tempfile
 import tomllib
 from pathlib import Path
+from urllib.parse import urlparse
 
 # Standalone and isolated execution authorize only this repository-owned tooling package.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -49,6 +50,8 @@ def export_requirements(destination: Path, *options: str) -> None:
         str(PROJECT),
         "--frozen",
         "--no-emit-project",
+        "--no-header",
+        "--no-annotate",
         "--no-default-groups",
         *options,
         "--output-file",
@@ -149,14 +152,10 @@ def install_dependencies(runtime: Path, scratch: Path, executable: Path) -> dict
         str(wheels[0]),
         env=environment,
     )
-    shutil.copytree(
-        PROJECT / "src/knovum_inference",
-        packages / "knovum_inference",
-        ignore=shutil.ignore_patterns("__pycache__", "*.pyc"),
-    )
-    evidence = runtime / "build-evidence"
+    evidence = scratch / "build-evidence"
     write_inventory(runtime, PROJECT / "uv.lock", evidence, PROJECT / "runtime-source.json", host_target())
     shutil.copy2(requirements, evidence / "requirements.txt")
+    shutil.copy2(requirements, runtime / "runtime-requirements.txt")
     shutil.copy2(build_requirements, evidence / "build-requirements.txt")
     shutil.copy2(source_archive, evidence / "voxcpm-source.tar")
     compiled_sources = json.loads((PROJECT / "compiled-source-evidence.json").read_text())
@@ -180,7 +179,7 @@ def relocated_smoke(runtime: Path, target: str, version: str) -> None:
     code = (
         "import sys; sys.path.insert(0, sys.argv[1]); "
         "assert '.'.join(map(str,sys.version_info[:3]))==sys.argv[2]; "
-        "import knovum_inference.server,torch,onnxruntime,sherpa_onnx,voxcpm,sentence_transformers; "
+        "import torch,onnxruntime,sherpa_onnx,voxcpm,sentence_transformers; "
         "from pyannote.audio import Pipeline; from importlib.metadata import version; print(version('torch'))"
     )
     environment = dict(
@@ -216,7 +215,10 @@ def relocated_smoke(runtime: Path, target: str, version: str) -> None:
     )
 
 
-def build(output: Path, signing: str) -> None:
+def build(output: Path, signing: str, archive_url: str) -> None:
+    url = urlparse(archive_url)
+    if url.scheme != "https" or not url.hostname or url.username or url.password or url.fragment:
+        raise ValueError("Runtime publication requires an immutable HTTPS archive URL")
     target = host_target()
     config = json.loads((PROJECT / "runtime-source.json").read_text())
     actual_uv = run("uv", "--version", capture=True).split()[1]
@@ -259,7 +261,7 @@ def build(output: Path, signing: str) -> None:
             "signing": signature,
             "licenseReview": "required",
         }
-        (relocated / "build-evidence/producer.json").write_text(json.dumps(record, indent=2) + "\n")
+        (scratch / "build-evidence/producer.json").write_text(json.dumps(record, indent=2) + "\n")
         run(
             "node",
             str(REPOSITORY / "scripts/runtime/write-manifest.mjs"),
@@ -273,7 +275,23 @@ def build(output: Path, signing: str) -> None:
         artifact = publication / f"python-runtime-{target}.tar.gz"
         archive_runtime(relocated, artifact)
         (publication / f"{artifact.name}.sha256").write_text(digest(artifact) + "\n")
-        shutil.copytree(relocated / "build-evidence", publication / "build-evidence")
+        shutil.copytree(scratch / "build-evidence", publication / "build-evidence")
+        evidence_archive = publication / f"python-runtime-{target}-evidence.tar.gz"
+        archive_runtime(publication / "build-evidence", evidence_archive)
+        (publication / f"{evidence_archive.name}.sha256").write_text(digest(evidence_archive) + "\n")
+        manifest = json.loads((relocated / "runtime-manifest.json").read_text())
+        descriptor = {
+            "schemaVersion": 1,
+            "target": target,
+            "version": config["version"],
+            "dependencyRequirementsSha256": manifest["dependencyRequirementsSha256"],
+            "voxcpmCommit": dependencies["commit"],
+            "url": archive_url,
+            "size": artifact.stat().st_size,
+            "sha256": digest(artifact),
+            "manifestSha256": digest(relocated / "runtime-manifest.json"),
+        }
+        (publication / "runtime-descriptor.json").write_text(json.dumps(descriptor, indent=2) + "\n")
         publication.rename(output)
 
 
@@ -281,5 +299,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--signing", choices=("adhoc", "unsigned", "production"), required=True)
+    parser.add_argument("--archive-url", required=True, help="Immutable HTTPS location of the produced archive")
     args = parser.parse_args()
-    build(args.output.resolve(), args.signing)
+    build(args.output.resolve(), args.signing, args.archive_url)

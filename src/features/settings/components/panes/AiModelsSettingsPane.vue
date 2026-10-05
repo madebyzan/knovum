@@ -19,6 +19,7 @@ import UiSpinner from "../../../../shared/ui/UiSpinner.vue";
 import { useProtectedExecutionTargets } from "../../use-protected-execution-targets";
 import AiConnectionsSettings from "../AiConnectionsSettings.vue";
 import AiRoutingSettings from "../AiRoutingSettings.vue";
+import LocalInferenceSettings from "../LocalInferenceSettings.vue";
 import LocalSpeechResourcesSettings from "../LocalSpeechResourcesSettings.vue";
 import SettingsLoadFailure from "../SettingsLoadFailure.vue";
 
@@ -116,5 +117,6 @@ async function manageModels(purpose: RoutingPurpose) {
   <div v-else class="flex items-center gap-2 text-caption text-fg-secondary" role="status">
     <UiSpinner size="sm" />{{ t("common.loading") }}
   </div>
+  <LocalInferenceSettings />
   <LocalSpeechResourcesSettings />
 </template>

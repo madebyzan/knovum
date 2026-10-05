@@ -3,15 +3,14 @@ import { lstatSync, mkdtempSync, readdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, dirname, extname, join, relative, resolve, sep } from "node:path";
 
-import { validatePythonRuntime } from "./manifest.mjs";
-import { verifyRuntimeSignatures } from "./signatures.mjs";
+import { validateApplicationResources } from "./application-resources.mjs";
 
 const windowsTarget = "windows-x64";
 const sevenZipVersion = "26.03";
 const defaultSevenZip = String.raw`C:\Program Files\7-Zip\7z.exe`;
 const maxExtractedEntries = 200_000;
 
-export function verifyWindowsRuntimePackage(packagePath, options) {
+export function verifyWindowsApplicationPackage(packagePath, options) {
   if (options.target !== windowsTarget) {
     throw new Error(`Windows runtime package verification does not support ${options.target}`);
   }
@@ -24,44 +23,32 @@ export function verifyWindowsRuntimePackage(packagePath, options) {
       staging,
       options.sevenZipPath ?? process.env.KNOVUM_WINDOWS_7ZIP_PATH ?? defaultSevenZip,
     );
-    return verifyExtractedWindowsRuntime(staging, options);
+    return verifyExtractedWindowsApplication(staging, options);
   } finally {
     rmSync(staging, { recursive: true, force: true });
   }
 }
 
-function verifyExtractedWindowsRuntime(extractionRoot, options) {
-  const runtime = locatePackagedPythonRuntime(extractionRoot, options.target);
-  const repository = resolve(options.repository);
-  validatePythonRuntime(runtime, options.target, join(repository, "python", "uv.lock"));
-  if (options.production) verifyRuntimeSignatures(runtime, options.target, repository);
-  return runtime;
+function verifyExtractedWindowsApplication(extractionRoot, options) {
+  const resources = locateApplicationResources(extractionRoot, options.target);
+  validateApplicationResources(resources, resolve(options.repository), options.target);
+  return resources;
 }
 
-export function locatePackagedPythonRuntime(extractionRoot, target = windowsTarget) {
+export function locateApplicationResources(extractionRoot, target = windowsTarget) {
   if (target !== windowsTarget) throw new Error(`Unsupported packaged runtime target: ${target}`);
-  const manifests = findFiles(extractionRoot, (name) => name === "runtime-manifest.json");
-  if (manifests.length !== 1) {
-    throw new Error(`Windows package must contain exactly one Python runtime; found ${manifests.length}`);
-  }
-  const expected = ["resources", "bundled-runtime", target, "python-runtime", "runtime-manifest.json"];
+  const manifests = findFiles(extractionRoot, (name) => name === "python-runtime-descriptor.json");
+  if (manifests.length !== 1)
+    throw new Error(`Windows package must contain exactly one runtime descriptor; found ${manifests.length}`);
   const parts = relative(resolve(extractionRoot), manifests[0]).split(sep);
-  if (!hasPathSuffix(parts, expected)) {
-    throw new Error("Windows package Python runtime is outside the application resources directory");
-  }
-  const runtime = dirname(manifests[0]);
-  const executableSuffix = [...expected.slice(0, -1), "python.exe"];
-  const executables = findFiles(extractionRoot, (name) => name.toLowerCase() === "python.exe").filter(
-    (path) => hasPathSuffix(relative(resolve(extractionRoot), path).split(sep), executableSuffix),
+  if (!hasPathSuffix(parts, ["resources", "python-runtime-descriptor.json"]))
+    throw new Error("Windows package descriptor is outside the application resources directory");
+  const forbidden = findFiles(
+    extractionRoot,
+    (name) => name === "runtime-manifest.json" || name.toLowerCase() === "python.exe",
   );
-  if (executables.length !== 1) {
-    throw new Error(
-      `Windows package runtime must contain exactly one python.exe; found ${executables.length}`,
-    );
-  }
-  if (dirname(executables[0]) !== runtime)
-    throw new Error("Windows package runtime manifest and executable differ");
-  return runtime;
+  if (forbidden.length) throw new Error("Windows package must exclude the third-party Python runtime");
+  return dirname(manifests[0]);
 }
 
 function hasPathSuffix(parts, suffix) {

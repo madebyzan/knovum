@@ -10,12 +10,16 @@ export function validateDependencyLicenseReview(directory, target, repository) {
   if (policy.schemaVersion !== 1 || policy.reviewStatus !== "approved") {
     throw new Error("Python dependency license review is unresolved; production packaging is blocked");
   }
-  if (policy.dependencyLockSha256 !== sha256File(join(repository, "python", "uv.lock"))) {
-    throw new Error("Python dependency license review belongs to a different lock");
+  const manifest = JSON.parse(readFileSync(join(directory, "runtime-manifest.json"), "utf8"));
+  if (
+    policy.dependencyRequirementsSha256 !== manifest.dependencyRequirementsSha256 ||
+    policy.voxcpmCommit !== manifest.voxcpmCommit
+  ) {
+    throw new Error("Python dependency license review belongs to different runtime dependencies");
   }
   const review = policy.targets?.[target];
   validateReview(review);
-  const inventory = join(directory, "build-evidence", "dependency-evidence.json");
+  const inventory = join(directory, "..", "build-evidence", "dependency-evidence.json");
   if (review.inventorySha256 !== sha256File(inventory)) {
     throw new Error("Python dependency license review does not match the conveyed inventory");
   }

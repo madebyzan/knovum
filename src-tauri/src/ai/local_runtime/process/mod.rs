@@ -28,6 +28,7 @@ pub(super) struct Worker {
     process_tree: ProcessTree,
     memory_reservation: Option<super::admission::MemoryReservation>,
     _kill_registration: KillRegistration,
+    _runtime_lease: Option<std::sync::Arc<std::fs::File>>,
     pub(super) protocol: Protocol,
     pub(super) session_id: String,
     pub(super) runtime_digest: String,

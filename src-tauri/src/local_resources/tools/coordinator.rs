@@ -1,3 +1,5 @@
+use crate::local_resources::preparation::shared_installation::Registry;
+use std::sync::{Arc, OnceLock};
 use tauri::{AppHandle, Runtime};
 use tokio_util::sync::CancellationToken;
 
@@ -25,7 +27,25 @@ pub(crate) async fn prepare_media_import_tools<R: Runtime>(
         });
         return Ok(prepared);
     }
-    let mut waiter = super::install_requests::join(app, request_cancellation).await?;
+    static INSTALLATIONS: OnceLock<Arc<Registry<ToolPreparationProgress>>> = OnceLock::new();
+    let registry = INSTALLATIONS.get_or_init(Registry::new);
+    let handle = app.clone();
+    let mut waiter = registry
+        .join(
+            request_cancellation,
+            ToolPreparationProgress {
+                stage: ResourcePreparationStage::Queued,
+                downloaded: 0,
+                total: None,
+            },
+            move |installation| async move {
+                install_missing(&handle, &installation.cancellation, &mut |update| {
+                    installation.publish(update)
+                })
+                .await
+            },
+        )
+        .await?;
     let mut latest = ToolPreparationProgress {
         stage: ResourcePreparationStage::Queued,
         downloaded: 0,

@@ -13,6 +13,7 @@ pub enum ResourcePreparationTarget {
     SpeechAlignment,
     SpeechSeparation,
     MediaImportTools,
+    PythonRuntime,
 }
 
 impl ResourcePreparationTarget {
@@ -27,7 +28,7 @@ impl ResourcePreparationTarget {
             Self::SpeechAlignment => (!catalog::SPEECH_ALIGNMENT_MODELS.is_empty())
                 .then_some(catalog::SPEECH_ALIGNMENT_MODELS),
             Self::SpeechSeparation => Some(catalog::SPEECH_SEPARATION_MODELS),
-            Self::MediaImportTools => None,
+            Self::MediaImportTools | Self::PythonRuntime => None,
         }
     }
 }
@@ -40,6 +41,9 @@ pub enum ResourcePreparationStage {
     Verifying,
     Installing,
     Ready,
+    RuntimeDownloading,
+    RuntimeVerifying,
+    RuntimeInstalling,
 }
 
 #[derive(Clone, Serialize, Deserialize, ts_rs::TS)]

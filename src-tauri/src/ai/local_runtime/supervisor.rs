@@ -1,3 +1,4 @@
+use crate::local_resources::runtimes::python;
 use std::{
     path::Path,
     time::{Duration, Instant},
@@ -21,7 +22,6 @@ use crate::{
     local_resources::{
         models::catalog::{self, ModelKind},
         preparation::PreparedModels,
-        tools,
     },
 };
 
@@ -41,7 +41,7 @@ pub(crate) async fn encode_embedding<R: Runtime>(
         EmbeddingRole::Query => super::admission::Priority::Interactive,
         EmbeddingRole::Document => super::admission::Priority::Background,
     };
-    let runtime = tools::resolve_python_runtime(app)?.ok_or("runtime_missing")?;
+    let runtime = python::resolve_python_runtime(app)?.ok_or("runtime_missing")?;
     let model_directory = embedding_directory(resources)?;
     let threads = std::thread::available_parallelism()
         .map(|count| count.get().min(4) as u8)
@@ -96,6 +96,7 @@ pub(crate) async fn encode_embedding<R: Runtime>(
             .join("inference")
             .join(&session_id);
         let params = RuntimeInitializeParams {
+            runtime_manifest_path: runtime.manifest_path.to_string_lossy().into_owned(),
             protocol_version: PROTOCOL_VERSION,
             runtime_digest: runtime.digest.clone(),
             session_id,

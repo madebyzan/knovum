@@ -1,3 +1,4 @@
+pub(super) use crate::local_resources::filesystem::{remove_directory, verify_file};
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -43,30 +44,6 @@ pub(super) fn installation_directory<R: Runtime>(
                 .join(descriptor.directory)
                 .join(&descriptor.version)
         })
-}
-
-pub(super) fn remove_directory(path: &Path) -> Result<(), String> {
-    match fs::remove_dir_all(path) {
-        Ok(()) => Ok(()),
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
-        Err(error) => Err(error.to_string()),
-    }
-}
-
-pub(super) async fn verify_file(
-    path: PathBuf,
-    expected_sha256: String,
-    cancellation: CancellationToken,
-) -> Result<bool, String> {
-    crate::blocking::run(move || {
-        super::super::verification::verify_cancellable(
-            &path,
-            &expected_sha256,
-            &cancellation,
-            super::super::preparation::RESOURCE_PREPARATION_CANCELLED,
-        )
-    })
-    .await
 }
 
 pub(super) async fn verify_and_record_file(

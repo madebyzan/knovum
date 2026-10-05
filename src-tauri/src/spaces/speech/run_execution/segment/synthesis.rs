@@ -1,7 +1,6 @@
 use crate::{
     ai::local_runtime::{admission::Priority, speech},
-    local_resources::preparation,
-    spaces::{runs::AttemptClaim, speech::execution::kokoro_device_profile},
+    spaces::runs::AttemptClaim,
 };
 
 pub(super) struct SegmentTiming {
@@ -41,56 +40,29 @@ pub(super) fn validate_segment_timing(
 pub(super) async fn synthesize(
     app: &tauri::AppHandle,
     claim: &AttemptClaim,
-    engine_id: &str,
-    params: crate::ai::contracts::speech_wire::SpeechSynthesizeParams,
+    voice: &crate::spaces::speech::contracts::VoiceExecution,
+    text: &str,
+    attempt: crate::spaces::speech::execution::SynthesisAttempt<'_>,
 ) -> Result<speech::SynthesizedAudio, String> {
-    let mut progress = |_| {};
-    match engine_id {
-        "kokoro" => {
-            let model = preparation::prepare_kokoro_for_job(
-                app,
-                &claim.attempt_id,
-                "Preparing speech synthesis",
-                &claim.cancellation,
-                &mut progress,
-            )
-            .await?;
-            speech::synthesize(
-                app,
-                &model,
-                kokoro_device_profile(),
-                params,
-                speech::SynthesisExecution {
-                    cancellation: &claim.cancellation,
-                    priority: Priority::Background,
-                    on_chunk: None,
-                },
-            )
-            .await
-        }
-        "voxcpm2" => {
-            let device_profile = crate::ai::local_runtime::device_profiles::voxcpm2()?;
-            let model = preparation::prepare_voxcpm2_for_job(
-                app,
-                &claim.attempt_id,
-                "Preparing VoxCPM2 speech synthesis",
-                &claim.cancellation,
-                &mut progress,
-            )
-            .await?;
-            speech::synthesize_voxcpm2(
-                app,
-                &model,
-                device_profile,
-                params,
-                speech::SynthesisExecution {
-                    cancellation: &claim.cancellation,
-                    priority: Priority::Background,
-                    on_chunk: None,
-                },
-            )
-            .await
-        }
-        _ => Err("Speech voice uses an unsupported engine".into()),
-    }
+    let model = crate::spaces::speech::execution::prepare_synthesis(
+        app,
+        &voice.engine_id,
+        &claim.attempt_id,
+        "Preparing speech synthesis",
+        &claim.cancellation,
+        &mut |_| {},
+    )
+    .await?;
+    let params = crate::spaces::speech::execution::synthesis_params(app, voice, text, attempt)?;
+    model
+        .synthesize(
+            app,
+            params,
+            speech::SynthesisExecution {
+                cancellation: &claim.cancellation,
+                priority: Priority::Background,
+                on_chunk: None,
+            },
+        )
+        .await
 }

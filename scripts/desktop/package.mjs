@@ -1,5 +1,14 @@
 import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync, readdirSync } from "node:fs";
+import {
+  existsSync,
+  readFileSync,
+  readdirSync,
+  lstatSync,
+  mkdirSync,
+  cpSync,
+  copyFileSync,
+  rmSync,
+} from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join, resolve as resolvePath } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -10,10 +19,11 @@ import {
   updaterConfiguration,
   validateReleaseArguments,
 } from "../release/policy.mjs";
+import { validateApplicationResources } from "../runtime/application-resources.mjs";
+import { distributionDirectory, validateRuntimeDistribution } from "../runtime/distribution.mjs";
 import { listRuntimeFiles } from "../runtime/files.mjs";
-import { validatePythonRuntime } from "../runtime/manifest.mjs";
 import { verifyRuntimeSignatures } from "../runtime/signatures.mjs";
-import { verifyWindowsRuntimePackage } from "../runtime/windows-package-verification.mjs";
+import { verifyWindowsApplicationPackage } from "../runtime/windows-package-verification.mjs";
 
 const repository = resolvePath(dirname(fileURLToPath(import.meta.url)), "../..");
 const runtimeRoot = join(repository, "src-tauri", "resources", "bundled-runtime");
@@ -22,18 +32,32 @@ const explicitRuntimeTarget = option("--runtime-target");
 const buildTarget = value("--target");
 const buildRuntimeTarget = targetFromTriple(buildTarget) ?? hostTarget();
 if (explicitRuntimeTarget && explicitRuntimeTarget !== buildRuntimeTarget) {
-  fail(`Runtime target ${explicitRuntimeTarget} does not match build target ${buildTarget}`);
+  throw new Error(`Runtime target ${explicitRuntimeTarget} does not match build target ${buildTarget}`);
 }
 const target = buildRuntimeTarget;
 const release = takeFlag("--release");
 const releaseConfig = release ? productionConfiguration() : {};
 requireRuntime(target);
-if (release) verifyRuntimeSignatures(join(runtimeRoot, target, "python-runtime"), target, repository);
+const distribution = distributionDirectory(repository, target);
+validateRuntimeDistribution(repository, target);
+if (release) verifyRuntimeSignatures(join(distribution, "runtime"), target, repository);
+const worker = join(repository, "src-tauri", "resources", "python-worker");
+rmSync(worker, { recursive: true, force: true });
+mkdirSync(worker, { recursive: true });
+cpSync(join(repository, "python", "src", "knovum_inference"), join(worker, "knovum_inference"), {
+  recursive: true,
+  filter: (path) => !path.includes("__pycache__") && (lstatSync(path).isDirectory() || path.endsWith(".py")),
+});
+const descriptorPath = join(repository, "src-tauri", "resources", "python-runtime-descriptor.json");
+copyFileSync(join(distribution, "runtime-descriptor.json"), descriptorPath);
+validateApplicationResources(join(repository, "src-tauri", "resources"), repository, target);
 
 const bundleResources = [
   "resources/bundled-runtime/README.md",
   "resources/bundled-runtime/media-import-manifest.json",
   ...runtimeResources(target),
+  "resources/python-runtime-descriptor.json",
+  ...listRuntimeFiles(worker).map((path) => `resources/python-worker/${path}`),
 ];
 const config = { ...releaseConfig, bundle: { ...releaseConfig.bundle, resources: bundleResources } };
 // Execute the official JavaScript CLI directly: Windows cannot exec a .cmd shim without a shell.
@@ -43,6 +67,7 @@ execFileSync(
   [cli, "build", ...args, "--config", JSON.stringify(config), ...(release ? ["--", "--locked"] : [])],
   {
     cwd: repository,
+    env: { ...process.env, KNOVUM_PYTHON_RUNTIME_DESCRIPTOR_PATH: descriptorPath },
     stdio: "inherit",
   },
 );
@@ -61,29 +86,18 @@ if (target === "windows-x64") {
   for (const format of formats) {
     const directory = join(bundleRoot, format);
     const extension = { nsis: ".exe", msi: ".msi" }[format];
-    if (!extension) fail(`Unsupported Windows package format: ${format}`);
+    if (!extension) throw new Error(`Unsupported Windows package format: ${format}`);
     const packages = readdirSync(directory).filter((name) => name.endsWith(extension));
-    if (!packages.length) fail(`No final ${format} package was produced`);
+    if (!packages.length) throw new Error(`No final ${format} package was produced`);
     for (const name of packages) {
-      verifyWindowsRuntimePackage(join(directory, name), { target, repository, production: release });
+      verifyWindowsApplicationPackage(join(directory, name), { target, repository, production: release });
     }
   }
 }
 if (target === "macos-arm64") {
   const name = readJson("src-tauri/tauri.conf.json").productName;
-  const packaged = join(
-    bundleRoot,
-    "macos",
-    `${name}.app`,
-    "Contents",
-    "Resources",
-    "resources",
-    "bundled-runtime",
-    target,
-    "python-runtime",
-  );
-  validatePythonRuntime(packaged, target, join(repository, "python", "uv.lock"));
-  if (release) verifyRuntimeSignatures(packaged, target, repository);
+  const packaged = join(bundleRoot, "macos", `${name}.app`, "Contents", "Resources", "resources");
+  validateApplicationResources(packaged, repository, target);
 }
 
 function productionConfiguration() {
@@ -91,11 +105,11 @@ function productionConfiguration() {
   readVersion(repository);
   const kokoro = readJson("src-tauri/src/local_resources/models/kokoro-int8-multi-lang-v1_0.json");
   if (kokoro.licenseReview?.status !== "approved") {
-    fail("Kokoro archive license review is unresolved; release packaging is blocked");
+    throw new Error("Kokoro archive license review is unresolved; release packaging is blocked");
   }
   const compiledSources = readJson("python/compiled-source-evidence.json");
   if (compiledSources.reviewStatus !== "approved") {
-    fail("Python native corresponding-source review is unresolved; release packaging is blocked");
+    throw new Error("Python native corresponding-source review is unresolved; release packaging is blocked");
   }
   const production = readJson("src-tauri/tauri.release.conf.json");
   return {
@@ -109,24 +123,17 @@ function requireRuntime(runtimeTarget) {
   const windows = runtimeTarget.startsWith("windows-");
   const binary = (unixName, windowsName) =>
     join(runtimeRoot, runtimeTarget, windows ? windowsName : unixName);
-  const required = [
-    binary("ffmpeg", "ffmpeg.exe"),
-    join(runtimeRoot, "media-import-manifest.json"),
-    join(runtimeRoot, runtimeTarget, "python-runtime", "runtime-manifest.json"),
-  ];
+  const required = [binary("ffmpeg", "ffmpeg.exe"), join(runtimeRoot, "media-import-manifest.json")];
   const missing = required.filter((path) => !existsSync(path));
   if (missing.length > 0) {
-    fail(`Bundled runtime is incomplete for ${runtimeTarget}:\n${missing.join("\n")}`);
+    throw new Error(`Bundled runtime is incomplete for ${runtimeTarget}:\n${missing.join("\n")}`);
   }
   const forbidden = [binary("yt-dlp", "yt-dlp.exe"), binary("deno", "deno.exe")].filter(existsSync);
   if (forbidden.length > 0) {
-    fail(`On-demand media tools must not be bundled:\n${forbidden.join("\n")}`);
+    throw new Error(`On-demand media tools must not be bundled:\n${forbidden.join("\n")}`);
   }
-  validatePythonRuntime(
-    join(runtimeRoot, runtimeTarget, "python-runtime"),
-    runtimeTarget,
-    join(repository, "python", "uv.lock"),
-  );
+  if (existsSync(join(runtimeRoot, runtimeTarget, "python-runtime")))
+    throw new Error("Bundled resources must exclude the on-demand Python runtime");
 }
 
 function runtimeResources(runtimeTarget) {
@@ -138,7 +145,7 @@ function option(name) {
   const index = args.indexOf(name);
   if (index < 0) return undefined;
   const optionValue = args[index + 1];
-  if (!optionValue || optionValue.startsWith("--")) fail(`Missing value for ${name}`);
+  if (!optionValue || optionValue.startsWith("--")) throw new Error(`Missing value for ${name}`);
   args.splice(index, 2);
   return optionValue;
 }
@@ -157,17 +164,17 @@ function takeFlag(name) {
 
 function readJson(relativePath) {
   const path = join(repository, relativePath);
-  if (!existsSync(path)) fail(`Required packaging configuration is missing: ${path}`);
+  if (!existsSync(path)) throw new Error(`Required packaging configuration is missing: ${path}`);
   return JSON.parse(readFileSync(path, "utf8"));
 }
 
 function hostTarget() {
   const platform = { darwin: "macos", win32: "windows" }[process.platform];
   const arch = { arm64: "arm64", x64: "x64" }[process.arch];
-  if (!platform || !arch) fail(`Unsupported package host: ${process.platform}/${process.arch}`);
+  if (!platform || !arch) throw new Error(`Unsupported package host: ${process.platform}/${process.arch}`);
   const hostRuntimeTarget = `${platform}-${arch}`;
   if (!["macos-arm64", "windows-x64"].includes(hostRuntimeTarget)) {
-    fail(`Unsupported package target: ${hostRuntimeTarget}`);
+    throw new Error(`Unsupported package target: ${hostRuntimeTarget}`);
   }
   return hostRuntimeTarget;
 }
@@ -179,10 +186,6 @@ function targetFromTriple(triple) {
     "x86_64-pc-windows-msvc": "windows-x64",
   };
   const resolvedTarget = targets[triple];
-  if (!resolvedTarget) fail(`Unsupported package target: ${triple}`);
+  if (!resolvedTarget) throw new Error(`Unsupported package target: ${triple}`);
   return resolvedTarget;
-}
-
-function fail(message) {
-  throw new Error(message);
 }

@@ -118,6 +118,7 @@ class RuntimeInitializeParams(WireModel):
     model_config = ConfigDict(
         extra="forbid",
     )
+    runtime_manifest_path: Annotated[str, Field(alias="runtimeManifestPath")]
     protocol_version: Annotated[int, Field(alias="protocolVersion", ge=0)]
     runtime_digest: Annotated[str, Field(alias="runtimeDigest")]
     session_id: Annotated[str, Field(alias="sessionId")]

@@ -1,13 +1,25 @@
 import { execFileSync } from "node:child_process";
-import { createWriteStream, existsSync, mkdirSync, mkdtempSync, renameSync, rmSync } from "node:fs";
+import {
+  createWriteStream,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  copyFileSync,
+  renameSync,
+  rmSync,
+} from "node:fs";
 import { dirname, join, resolve as resolvePath } from "node:path";
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 
+import {
+  distributionDirectory,
+  readRuntimeDescriptor,
+  validateRuntimeDistribution,
+} from "./distribution.mjs";
 import { safeRelativePath, sha256File } from "./files.mjs";
-import { validatePythonRuntime } from "./manifest.mjs";
 
 const repository = resolvePath(dirname(fileURLToPath(import.meta.url)), "../..");
 const { values } = parseArgs({ options: { target: { type: "string" } } });
@@ -15,14 +27,16 @@ const target = values.target ?? hostTarget();
 const supportedTargets = new Set(["macos-arm64", "windows-x64"]);
 if (!supportedTargets.has(target)) throw new Error(`Unsupported bundled runtime target: ${target}`);
 const envKey = target.toUpperCase().replaceAll("-", "_");
-const sources = ["FFMPEG", "PYTHON_RUNTIME"].map((kind) => {
-  const url = process.env[`KNOVUM_${kind}_${envKey}_URL`];
-  const expectedHash = process.env[`KNOVUM_${kind}_${envKey}_SHA256`];
-  if (!url?.startsWith("https://") || !/^[a-f0-9]{64}$/u.test(expectedHash ?? "")) {
-    throw new Error(`Missing controlled ${kind} source for ${target}; configure its HTTPS URL and SHA256.`);
-  }
-  return { kind, url, expectedHash };
-});
+const sources = ["FFMPEG", "PYTHON_RUNTIME", "PYTHON_RUNTIME_DESCRIPTOR", "PYTHON_RUNTIME_EVIDENCE"].map(
+  (kind) => {
+    const url = process.env[`KNOVUM_${kind}_${envKey}_URL`];
+    const expectedHash = process.env[`KNOVUM_${kind}_${envKey}_SHA256`];
+    if (!url?.startsWith("https://") || !/^[a-f0-9]{64}$/u.test(expectedHash ?? "")) {
+      throw new Error(`Missing controlled ${kind} source for ${target}; configure its HTTPS URL and SHA256.`);
+    }
+    return { kind, url, expectedHash };
+  },
+);
 
 const runtimeRoot = join(repository, "src-tauri", "resources", "bundled-runtime");
 const scratch = mkdtempSync(join(repository, ".bundled-runtime-stage-"));
@@ -37,20 +51,40 @@ try {
   mkdirSync(stagedRuntime);
   const archives = await Promise.all(
     sources.map((source) =>
-      download(source.url, source.expectedHash, join(scratch, `${source.kind}.tar`), headers),
+      download(
+        source.url,
+        source.expectedHash,
+        join(scratch, `${source.kind}.tar`),
+        source.kind === "FFMPEG" ? headers : { "User-Agent": "Knovum runtime provisioner" },
+      ),
     ),
   );
-  for (const [index, source] of sources.entries()) {
-    const archive = archives[index];
-    preflightArchive(archive);
-    const directory =
-      source.kind === "PYTHON_RUNTIME" ? join(stagedRuntime, "python-runtime") : stagedRuntime;
-    if (source.kind === "PYTHON_RUNTIME") {
-      if (existsSync(directory)) throw new Error("FFmpeg archive must not contain a Python runtime");
-      mkdirSync(directory);
-    }
-    execFileSync("tar", ["-xf", archive, "-C", directory], { stdio: "inherit" });
+  const distribution = join(scratch, "distribution");
+  mkdirSync(distribution);
+  const python = join(distribution, "runtime");
+  const evidence = join(distribution, "build-evidence");
+  mkdirSync(python);
+  mkdirSync(evidence);
+  const descriptorPath = join(distribution, "runtime-descriptor.json");
+  copyFileSync(archives[2], descriptorPath);
+  const descriptor = readRuntimeDescriptor(descriptorPath, target);
+  if (descriptor.sha256 !== sources[1].expectedHash || descriptor.url !== sources[1].url)
+    throw new Error("Runtime descriptor differs from the controlled archive source");
+  if ((await import("node:fs")).statSync(archives[1]).size !== descriptor.size)
+    throw new Error("Runtime archive size differs from its descriptor");
+  for (const [index, directory] of [
+    [0, stagedRuntime],
+    [1, python],
+    [3, evidence],
+  ]) {
+    preflightArchive(archives[index]);
+    execFileSync("tar", ["-xf", archives[index], "-C", directory], { stdio: "inherit" });
   }
+  validateRuntimeDistribution(repository, target, distribution);
+  const distributionDestination = distributionDirectory(repository, target);
+  mkdirSync(dirname(distributionDestination), { recursive: true });
+  rmSync(distributionDestination, { recursive: true, force: true });
+  renameSync(distribution, distributionDestination);
   validateRuntime(stagedRuntime);
   mkdirSync(runtimeRoot, { recursive: true });
   const previous = join(scratch, "previous-runtime");
@@ -95,7 +129,7 @@ function validateRuntime(directory) {
       `On-demand media tools must not be present in the bundled runtime:\n${forbidden.join("\n")}`,
     );
   }
-  validatePythonRuntime(join(directory, "python-runtime"), target, join(repository, "python", "uv.lock"));
+  if (existsSync(join(directory, "python-runtime"))) throw new Error("FFmpeg archive must exclude Python");
 }
 
 async function download(

@@ -49,9 +49,15 @@ export function listResourcePreparations(): Promise<ResourcePreparationSnapshot[
   return invokeCommand("plugin:local-resources|list_resource_preparations");
 }
 export function textEmbeddingReady(status?: LocalResourcesStatus) {
-  return Boolean(
-    status?.models.textEmbeddingConfig.verified &&
-    status.models.textEmbeddingTokenizer.verified &&
-    status.models.textEmbeddingWeights.verified,
-  );
+  if (!status?.python.available) return false;
+  const { models } = status;
+  return [
+    models.textEmbeddingConfig,
+    models.textEmbeddingModules,
+    models.textEmbeddingPoolingConfig,
+    models.textEmbeddingSentenceTransformersConfig,
+    models.textEmbeddingTokenizer,
+    models.textEmbeddingTokenizerConfig,
+    models.textEmbeddingWeights,
+  ].every((model) => model.verified);
 }

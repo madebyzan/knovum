@@ -40,3 +40,6 @@ __pycache__/
 .playwright-cli
 design-assets
 .omx
+
+src-tauri/resources/python-worker/
+src-tauri/resources/python-runtime-descriptor.json

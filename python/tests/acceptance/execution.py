@@ -28,6 +28,7 @@ class Invocation(EvidenceModel):
 class ExecutionSource(EvidenceModel):
     kind: SourceKind
     method: Text
+    worker_digest: Sha256 | None = None
     runtime_digest: Sha256
     model_spec_id: Text
     config_id: Text
@@ -35,6 +36,8 @@ class ExecutionSource(EvidenceModel):
 
     @model_validator(mode="after")
     def validate_identities(self) -> Self:
+        if self.kind == "bundled_worker" and self.worker_digest is None:
+            raise ValueError("candidate execution requires the shipped Worker digest")
         if len({item.request_id for item in self.invocations}) != len(self.invocations):
             raise ValueError("execution repeats a native request id")
         return self

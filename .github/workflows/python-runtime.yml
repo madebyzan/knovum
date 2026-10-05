@@ -3,6 +3,10 @@ name: Controlled Python runtime
 on:
   workflow_dispatch:
     inputs:
+      archive_base_url:
+        description: Immutable HTTPS publication directory for both runtime archives and corresponding evidence
+        type: string
+        required: true
       production:
         description: Sign the runtime for production (requires configured native certificates)
         type: boolean
@@ -68,10 +72,12 @@ jobs:
           "KNOVUM_WINDOWS_CERTIFICATE_THUMBPRINT=$($signers[0].Thumbprint)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
       - name: Build locked runtime and verify relocation
         env:
+          KNOVUM_RUNTIME_ARCHIVE_BASE_URL: ${{ inputs.archive_base_url }}
           APPLE_SIGNING_IDENTITY: ${{ vars.APPLE_SIGNING_IDENTITY }}
           KNOVUM_WINDOWS_SIGNTOOL: ${{ vars.KNOVUM_WINDOWS_SIGNTOOL }}
           KNOVUM_WINDOWS_TIMESTAMP_URL: ${{ vars.KNOVUM_WINDOWS_TIMESTAMP_URL }}
-        run: npm run runtime:build -- --output runtime-artifacts --signing ${{ inputs.production && 'production' || matrix.signing }}
+        shell: bash
+        run: npm run runtime:build -- --output runtime-artifacts --signing ${{ inputs.production && 'production' || matrix.signing }} --archive-url "$KNOVUM_RUNTIME_ARCHIVE_BASE_URL/python-runtime-${{ matrix.target }}.tar.gz"
       - name: Attest produced archive
         uses: actions/attest-build-provenance@v3
         with:

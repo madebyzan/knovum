@@ -23,5 +23,6 @@
   "cancelling": "Cancelling…",
   "forceDismiss": "Remove from list",
   "failed": "This task could not be completed.",
-  "verifyingResource": "Verifying integrity…"
+  "verifyingResource": "Verifying integrity…",
+  "preparingLocalInference": "Preparing local AI components…"
 }

@@ -121,17 +121,18 @@ Spaces (owned internally by the `spaces` feature) is the first feature to activa
 
 Spaces authorizes media assets and FFmpeg decodes each source revision to a 16 kHz mono PCM cache under `$APPCACHE/spaces/media-analysis`; startup clears stale cache entries. The Python inference worker owns ASR execution under the shared Rust compute admission. Rust verifies the audio reference and returned transcript before publishing media knowledge. Stage events use a Tauri `Channel` for Task Center and Dock/Taskbar progress. ASR model files are prepared on demand from pinned per-platform snapshots.
 
-Bundled FFmpeg and Python runtime discovery is centralized in `src-tauri/src/local_resources/tools/mod.rs`. Release/runtime configuration is explicit:
+FFmpeg discovery belongs to `src-tauri/src/local_resources/tools/mod.rs`; managed Python
+publication, installation and verification belong to `local_resources/runtimes/python`. Release/runtime configuration is explicit:
 
-During local desktop development, `scripts/desktop/tauri.mjs` binds these variables to the single
-provisioned host runtime before launching Tauri. Packaged builds continue to resolve the same tools
-from their target-specific application resource directory.
+During development, `scripts/desktop/tauri.mjs` binds FFmpeg to the provisioned host directory.
+Python development requires an explicit manifest override or a configured trusted publication.
+Packaged FFmpeg resolves from Resources; Python resolves from its immutable app-data installation.
 
 - `KNOVUM_FFMPEG_PATH`, or bundled `bundled-runtime/<platform>/ffmpeg[.exe]`;
-- `KNOVUM_PYTHON_RUNTIME_MANIFEST_PATH` is a development/CI override for the verified Python runtime. Release builds use the target-specific signed resource tree.
+- `KNOVUM_PYTHON_RUNTIME_MANIFEST_PATH` is a development/CI override for the verified Python runtime. Release builds use the trusted descriptor and verified app-data runtime.
 - `KNOVUM_FASTER_WHISPER_*_PATH` and `KNOVUM_MLX_WHISPER_*_PATH` are development/CI overrides for individually verified model files. Release weights live in application data, outside the application bundle.
 
-The desktop release targets are `macos-arm64` and `windows-x64`. Missing bundled core tools are configuration errors; models are prepared on first capability use. Packaging and runtime manifests reject other architectures rather than presenting partial native inference support.
+The desktop release targets are `macos-arm64` and `windows-x64`. Missing bundled core tools are configuration errors; Python components and models are prepared on first capability use. Packaging and runtime manifests reject other architectures rather than presenting partial native inference support.
 
 The `integrations` capability grants clipboard access shared across features. Filesystem access remains limited to Tauri session-scoped dropped/Dialog-selected paths and user-selected exports. All provider traffic goes through shared Rust AI commands. No static `$HOME/**` scope is granted; provider credentials stay behind Rust secret commands.
 

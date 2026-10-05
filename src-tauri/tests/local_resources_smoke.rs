@@ -29,15 +29,19 @@ fn provisioned_local_resources_starts() {
     let ffmpeg = root.join(executable("ffmpeg"));
     assert_command_starts(&ffmpeg, &["-version"]);
     assert_ffmpeg_subtitle_burn_in(&ffmpeg);
-    let python = root
-        .join("python-runtime")
-        .join(if cfg!(target_os = "windows") {
-            "python.exe"
-        } else {
-            "bin/python3"
-        });
+    let runtime = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../runtime-artifacts")
+        .join(target_directory())
+        .join("runtime");
+    let python = runtime.join(if cfg!(target_os = "windows") {
+        "python.exe"
+    } else {
+        "bin/python3"
+    });
     assert_command_starts(&python, &["--version"]);
-    let packages = root.join("python-runtime").join("packages");
+    let packages = runtime.join("packages");
+    let worker = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../python/src");
+    let worker = worker.to_str().expect("Worker path must be UTF-8");
     let packages = packages
         .to_str()
         .expect("Python package path must be UTF-8");
@@ -54,7 +58,8 @@ fn provisioned_local_resources_starts() {
             "-X",
             "utf8",
             "-c",
-            "import sys; sys.path.insert(0, sys.argv[1]); import knovum_inference.worker, onnxruntime, torch, sherpa_onnx, voxcpm; from pyannote.audio import Pipeline; __import__(sys.argv[2])",
+            "import sys; sys.path[:0] = [sys.argv[1], sys.argv[2]]; import knovum_inference.server, onnxruntime, torch, sherpa_onnx, voxcpm; from pyannote.audio import Pipeline; __import__(sys.argv[3])",
+            worker,
             packages,
             backend,
         ],

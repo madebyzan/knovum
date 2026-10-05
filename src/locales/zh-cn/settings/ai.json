@@ -65,5 +65,16 @@
     "accepted": "我已接受访问条款，并合法取得这些模型文件",
     "import": "导入模型目录",
     "remove": "移除本地模型"
+  },
+  "localInference": {
+    "title": "本地 AI",
+    "description": "首次使用时下载组件，由本地 AI 功能共享。模型单独按需下载。",
+    "components": "本地 AI 组件",
+    "ready": "已准备，可离线使用",
+    "unavailable": "当前构建尚未配置运行时发布资源",
+    "download": "尚未准备 · 下载 {size}",
+    "preparing": "准备本地 AI 组件",
+    "prepare": "准备",
+    "cancel": "取消"
   }
 }

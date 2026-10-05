@@ -16,9 +16,10 @@ function fixture(context) {
   const python = join(repository, "python");
   const directory = join(repository, "runtime");
   mkdirSync(python);
-  mkdirSync(join(directory, "build-evidence"), { recursive: true });
+  mkdirSync(directory);
+  mkdirSync(join(directory, "..", "build-evidence"), { recursive: true });
   writeFileSync(join(python, "uv.lock"), "locked graph");
-  writeFileSync(join(directory, "build-evidence", "dependency-evidence.json"), "installed inventory");
+  writeFileSync(join(directory, "..", "build-evidence", "dependency-evidence.json"), "installed inventory");
   const review = {
     inventorySha256: hash("installed inventory"),
     reviewer: "release reviewer",
@@ -28,9 +29,17 @@ function fixture(context) {
   const policy = {
     schemaVersion: 1,
     reviewStatus: "approved",
-    dependencyLockSha256: hash("locked graph"),
+    dependencyRequirementsSha256: hash("locked graph"),
+    voxcpmCommit: "a".repeat(40),
     targets: { "macos-arm64": review, "windows-x64": null },
   };
+  writeFileSync(
+    join(directory, "runtime-manifest.json"),
+    JSON.stringify({
+      dependencyRequirementsSha256: policy.dependencyRequirementsSha256,
+      voxcpmCommit: policy.voxcpmCommit,
+    }),
+  );
   return {
     repository,
     directory,
@@ -41,19 +50,25 @@ function fixture(context) {
   };
 }
 
-test("approval is bound to the exact lock, conveyed inventory and target", (context) => {
+test("approval binds runtime dependencies, conveyed inventory and target", (context) => {
   const sample = fixture(context);
   sample.save();
   assert.doesNotThrow(() => sample.validate());
   assert.throws(() => sample.validate("windows-x64"), /absent or invalid/);
-  writeFileSync(join(sample.repository, "python", "uv.lock"), "changed graph");
-  assert.throws(() => sample.validate(), /different lock/);
+  writeFileSync(
+    join(sample.directory, "runtime-manifest.json"),
+    JSON.stringify({ dependencyRequirementsSha256: hash("changed runtime dependencies") }),
+  );
+  assert.throws(() => sample.validate(), /different runtime dependencies/);
 });
 
 test("changed installed bytes invalidate a previously approved inventory", (context) => {
   const sample = fixture(context);
   sample.save();
-  writeFileSync(join(sample.directory, "build-evidence", "dependency-evidence.json"), "changed inventory");
+  writeFileSync(
+    join(sample.directory, "..", "build-evidence", "dependency-evidence.json"),
+    "changed inventory",
+  );
   assert.throws(() => sample.validate(), /conveyed inventory/);
 });
 
@@ -62,7 +77,7 @@ test("production verification enforces unresolved review before invoking native 
   sample.policy.reviewStatus = "required";
   sample.save();
   writeFileSync(
-    join(sample.directory, "build-evidence", "producer.json"),
+    join(sample.directory, "..", "build-evidence", "producer.json"),
     JSON.stringify({
       signing: { mode: "production", identity: process.env.APPLE_SIGNING_IDENTITY },
     }),

@@ -14,8 +14,8 @@ import { join } from "node:path";
 import test from "node:test";
 
 import {
-  locatePackagedPythonRuntime,
-  verifyWindowsRuntimePackage,
+  locateApplicationResources,
+  verifyWindowsApplicationPackage,
 } from "../windows-package-verification.mjs";
 
 function extraction(context) {
@@ -25,44 +25,43 @@ function extraction(context) {
 }
 
 function manifest(root, prefix = "Knovum") {
-  const runtime = join(root, prefix, "resources", "bundled-runtime", "windows-x64", "python-runtime");
+  const runtime = join(root, prefix, "resources");
   mkdirSync(runtime, { recursive: true });
-  writeFileSync(join(runtime, "runtime-manifest.json"), "{}");
-  writeFileSync(join(runtime, "python.exe"), "python");
+  writeFileSync(join(runtime, "python-runtime-descriptor.json"), "{}");
   return runtime;
 }
 
-test("locates the single Windows runtime in the extracted application resources", (context) => {
+test("locates the single runtime descriptor in the extracted application resources", (context) => {
   const root = extraction(context);
   const runtime = manifest(root);
-  assert.equal(locatePackagedPythonRuntime(root), runtime);
+  assert.equal(locateApplicationResources(root), runtime);
 });
 
-test("rejects an installer without a Python runtime payload", (context) => {
+test("rejects an installer without a runtime descriptor", (context) => {
   const root = extraction(context);
-  assert.throws(() => locatePackagedPythonRuntime(root), /exactly one Python runtime; found 0/u);
+  assert.throws(() => locateApplicationResources(root), /exactly one runtime descriptor; found 0/u);
 });
 
-test("rejects duplicate Python runtime payloads", (context) => {
+test("rejects duplicate runtime descriptors", (context) => {
   const root = extraction(context);
   manifest(root, "Knovum");
   manifest(root, "duplicate");
-  assert.throws(() => locatePackagedPythonRuntime(root), /exactly one Python runtime; found 2/u);
+  assert.throws(() => locateApplicationResources(root), /exactly one runtime descriptor; found 2/u);
 });
 
-test("rejects a second runtime executable even when its manifest is missing", (context) => {
+test("rejects a bundled interpreter even when its manifest is missing", (context) => {
   const root = extraction(context);
   manifest(root, "Knovum");
   const duplicate = join(root, "duplicate", "resources", "bundled-runtime", "windows-x64", "python-runtime");
   mkdirSync(duplicate, { recursive: true });
   writeFileSync(join(duplicate, "python.exe"), "python");
-  assert.throws(() => locatePackagedPythonRuntime(root), /exactly one python.exe; found 2/u);
+  assert.throws(() => locateApplicationResources(root), /exclude the third-party Python runtime/u);
 });
 
 test("rejects a manifest outside the packaged resource path", (context) => {
   const root = extraction(context);
-  writeFileSync(join(root, "runtime-manifest.json"), "{}");
-  assert.throws(() => locatePackagedPythonRuntime(root), /outside the application resources/u);
+  writeFileSync(join(root, "python-runtime-descriptor.json"), "{}");
+  assert.throws(() => locateApplicationResources(root), /outside the application resources/u);
 });
 
 test("rejects links in the extracted installer tree", (context) => {
@@ -70,13 +69,13 @@ test("rejects links in the extracted installer tree", (context) => {
   const outside = extraction(context);
   manifest(outside);
   symlinkSync(outside, join(root, "linked"), "dir");
-  assert.throws(() => locatePackagedPythonRuntime(root), /contains a link/u);
+  assert.throws(() => locateApplicationResources(root), /contains a link/u);
 });
 
 test("rejects targets outside the supported Windows release architecture", (context) => {
   const root = extraction(context);
   assert.throws(
-    () => locatePackagedPythonRuntime(root, "windows-arm64"),
+    () => locateApplicationResources(root, "windows-arm64"),
     /Unsupported packaged runtime target/u,
   );
 });
@@ -91,13 +90,13 @@ test("cleans extraction staging when NSIS payload validation fails", (context) =
   const before = temporaryPackageDirectories();
   assert.throws(
     () =>
-      verifyWindowsRuntimePackage(packageFile, {
+      verifyWindowsApplicationPackage(packageFile, {
         target: "windows-x64",
         repository: root,
         production: false,
         sevenZipPath: sevenZip,
       }),
-    /exactly one Python runtime; found 0/u,
+    /exactly one runtime descriptor; found 0/u,
   );
   assert.deepEqual(temporaryPackageDirectories(), before);
 });
@@ -111,7 +110,7 @@ test("rejects an unreviewed 7-Zip version for NSIS extraction", (context) => {
   chmodSync(sevenZip, 0o755);
   assert.throws(
     () =>
-      verifyWindowsRuntimePackage(packageFile, {
+      verifyWindowsApplicationPackage(packageFile, {
         target: "windows-x64",
         repository: root,
         production: false,
@@ -134,10 +133,10 @@ test("extracts MSI through a Windows Installer administrative image", (context) 
     `#!/bin/sh
 printf '%s\n' "$@" > "$KNOVUM_MSI_TEST_LOG"
 for value in "$@"; do case "$value" in TARGETDIR=*) target="\${value#TARGETDIR=}";; esac; done
-runtime="$target/Knovum/resources/bundled-runtime/windows-x64/python-runtime"
+runtime="$target/Knovum/resources"
 mkdir -p "$runtime"
-printf '{}' > "$runtime/runtime-manifest.json"
-printf 'python' > "$runtime/python.exe"
+printf '{}' > "$runtime/python-runtime-descriptor.json"
+
 `,
   );
   chmodSync(installer, 0o755);
@@ -148,12 +147,12 @@ printf 'python' > "$runtime/python.exe"
   try {
     assert.throws(
       () =>
-        verifyWindowsRuntimePackage(packageFile, {
+        verifyWindowsApplicationPackage(packageFile, {
           target: "windows-x64",
           repository: root,
           production: false,
         }),
-      /manifest is invalid/u,
+      /Invalid Python runtime descriptor/u,
     );
   } finally {
     restoreEnvironment("SystemRoot", previousRoot);

@@ -360,7 +360,10 @@ the WebView never generates or transports embedding vectors or commits a partial
 
 The Rust local inference supervisor grants one heavy-model compute permit across capabilities,
 including model loading. Interactive work takes priority while queued background work ages into
-service. It launches only a verified, application-bundled CPython interpreter with one selected
+service. The application bundles its own Worker and an immutable platform download descriptor;
+CPython and third-party packages are shared resources installed before models/inference. Rust passes
+the application Worker root, dependency root and actual runtime manifest path explicitly.
+It launches only a verified, managed, on-demand CPython interpreter with one selected
 capability and model path per worker session. The worker retains a model briefly between requests
 and is recycled on capability change, cancellation timeout, idle expiry or application exit.
 Python `runtime/` composes the process lifecycle and capability dispatch; `transport/` owns stdio

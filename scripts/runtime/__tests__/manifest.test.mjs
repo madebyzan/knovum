@@ -36,7 +36,9 @@ function fixture(context) {
   write(python, "src/knovum_inference/__main__.py", "pass\n");
   write(runtime, "bin/python3", "interpreter");
   chmodSync(join(runtime, "bin/python3"), 0o755);
-  write(runtime, "packages/knovum_inference/__main__.py", "pass\n");
+  write(runtime, "packages/dependency.py", "pass\n");
+  write(runtime, "runtime-requirements.txt", "requirements");
+  const evidence = join(root, "build-evidence");
   const producer = {
     schemaVersion: 1,
     target,
@@ -57,7 +59,7 @@ function fixture(context) {
       buildRequirementsSha256: hash("build"),
     },
   };
-  write(runtime, "build-evidence/producer.json", JSON.stringify(producer));
+  write(evidence, "producer.json", JSON.stringify(producer));
   for (const [name, bytes] of [
     ["dependency-evidence.json", "{}"],
     ["sbom.cdx.json", "{}"],
@@ -67,7 +69,7 @@ function fixture(context) {
     ["compiled-source-evidence.json", JSON.stringify(native)],
     ["compiled-sources/native.zip", "native"],
   ])
-    write(runtime, `build-evidence/${name}`, bytes);
+    write(evidence, name, bytes);
   function manifest() {
     const files = listRuntimeFiles(runtime, { excludeManifest: true }).map((path) => {
       const bytes = readFileSync(join(runtime, path));
@@ -77,11 +79,11 @@ function fixture(context) {
       runtime,
       "runtime-manifest.json",
       JSON.stringify({
-        schemaVersion: 1,
+        schemaVersion: 2,
         runtimeId: "cpython",
         version: "3.11.17",
-        protocolVersion: 1,
-        dependencyLockSha256: hash(lock),
+        dependencyRequirementsSha256: hash("requirements"),
+        voxcpmCommit: commit,
         target,
         executable: "bin/python3",
         packageRoot: "packages",
@@ -92,6 +94,7 @@ function fixture(context) {
   manifest();
   return {
     python,
+    evidence,
     runtime,
     producer,
     manifest,
@@ -100,21 +103,21 @@ function fixture(context) {
   };
 }
 
-test("consumer binds producer, lock, worker source and native source bytes", (context) => {
+test("consumer binds interpreter, runtime requirements and external corresponding source bytes", (context) => {
   const sample = fixture(context);
   sample.validate();
 });
 
-test("manifest cannot accept a worker from another application checkout", (context) => {
+test("application Worker changes do not invalidate the third-party runtime", (context) => {
   const sample = fixture(context);
   sample.write(sample.python, "src/knovum_inference/__main__.py", "different worker\n");
-  assert.throws(sample.validate, /worker source differs/);
+  sample.validate();
 });
 
 test("changing an interpreter input remains invalid after recomputing file hashes", (context) => {
   const sample = fixture(context);
   sample.producer.interpreterSource = { ...sample.producer.interpreterSource, size: 43 };
-  sample.write(sample.runtime, "build-evidence/producer.json", JSON.stringify(sample.producer));
+  sample.write(sample.evidence, "producer.json", JSON.stringify(sample.producer));
   sample.manifest();
   assert.throws(sample.validate, /producer identity differs/);
 });
@@ -122,14 +125,14 @@ test("changing an interpreter input remains invalid after recomputing file hashe
 test("producer cannot claim a different frozen VoxCPM source", (context) => {
   const sample = fixture(context);
   sample.producer.voxcpm.commit = "d".repeat(40);
-  sample.write(sample.runtime, "build-evidence/producer.json", JSON.stringify(sample.producer));
+  sample.write(sample.evidence, "producer.json", JSON.stringify(sample.producer));
   sample.manifest();
   assert.throws(sample.validate, /VoxCPM build identity differs/);
 });
 
 test("requirements evidence must agree with producer digest", (context) => {
   const sample = fixture(context);
-  sample.write(sample.runtime, "build-evidence/requirements.txt", "changed");
+  sample.write(sample.evidence, "requirements.txt", "changed");
   sample.manifest();
   assert.throws(sample.validate, /producer digest differs/);
 });
@@ -138,4 +141,21 @@ test("runtime changes are rejected before trusting producer metadata", (context)
   const sample = fixture(context);
   sample.write(sample.runtime, "bin/python3", "corrupt");
   assert.throws(sample.validate, /file does not match/);
+});
+
+test("runtime archive rejects application Worker files", (context) => {
+  const sample = fixture(context);
+  sample.write(sample.runtime, "packages/knovum_inference/__main__.py", "pass\n");
+  sample.manifest();
+  assert.throws(sample.validate, /exclude application Worker/);
+});
+
+test("unrelated development lock changes do not invalidate runtime identity", (context) => {
+  const sample = fixture(context);
+  sample.write(
+    sample.python,
+    "uv.lock",
+    `# quality dependency changed\nsource = { git = "https://github.com/OpenBMB/VoxCPM.git?rev=${commit}#${commit}" }\n`,
+  );
+  sample.validate();
 });

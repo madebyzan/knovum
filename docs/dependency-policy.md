@@ -213,11 +213,11 @@ Local compile and regression success do not close either audit gate.
 ### Python installed-distribution license release gate
 
 `python/dependency-license-review.json` starts with `reviewStatus: required`. Production
-packaging refuses it until an accountable review approves the current `uv.lock` SHA-256
+packaging refuses it until an accountable review approves the frozen runtime requirements SHA-256 and VoxCPM source revision
 and each target's exact `build-evidence/dependency-evidence.json` SHA-256. Target records
 contain `inventorySha256`, `reviewer`, `reviewedAt` and a durable HTTPS `evidenceLocation`.
 The evidence must cover the interpreter and its contained native libraries as well as
 every actually installed distribution, its notices, native code
-and corresponding-source obligations; package metadata alone is not approval. A changed
-lock or conveyed inventory invalidates the review. This gate complements the separately
+and corresponding-source obligations; package metadata alone is not approval. Changed runtime dependencies, source revision or conveyed inventory invalidate the review;
+unrelated development dependencies and application Worker source do not. This gate complements the separately
 owned Kokoro and native-source gates; QA artifacts do not represent license approval.

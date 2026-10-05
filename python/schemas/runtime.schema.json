@@ -221,6 +221,9 @@
     "RuntimeInitializeParams": {
       "type": "object",
       "properties": {
+        "runtimeManifestPath": {
+          "type": "string"
+        },
         "protocolVersion": {
           "type": "integer",
           "format": "uint32",
@@ -250,6 +253,7 @@
       },
       "additionalProperties": false,
       "required": [
+        "runtimeManifestPath",
         "protocolVersion",
         "runtimeDigest",
         "sessionId",

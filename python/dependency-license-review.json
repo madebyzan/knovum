@@ -1,9 +1,10 @@
 {
   "schemaVersion": 1,
   "reviewStatus": "required",
-  "dependencyLockSha256": "6688d0d28d04ef8a88c21b8b242936b5d722208504a07c3910b33b1331f09596",
   "targets": {
     "macos-arm64": null,
     "windows-x64": null
-  }
+  },
+  "dependencyRequirementsSha256": null,
+  "voxcpmCommit": "19b6bf7590025418821a86dcb817504e0ad7e5df"
 }

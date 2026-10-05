@@ -2,6 +2,8 @@ pub(super) use voice::{input_digest, load_voice};
 mod voice;
 pub(super) use request::{synthesis_params, SynthesisAttempt};
 mod request;
+mod resources;
+pub(in crate::spaces::speech) use resources::prepare_synthesis;
 
 use sha2::{Digest, Sha256};
 use tauri::ipc::Channel;
@@ -75,6 +77,16 @@ pub async fn preview_voice(
     }
     send(&on_progress, "preparing", 0, 1, None);
     let input_revision = digest_text(&normalized);
+    let model = prepare_synthesis(
+        &app,
+        &voice.engine_id,
+        &request.job_id,
+        "Preparing voice preview",
+        lease.token(),
+        &mut |resources| send(&on_progress, "preparing", 0, 1, Some(resources)),
+    )
+    .await
+    .map_err(|error| command_error(error, lease.token().is_cancelled()))?;
     let params = synthesis_params(
         &app,
         &voice,
@@ -109,59 +121,19 @@ pub async fn preview_voice(
         }
         Ok(())
     };
-    let audio = match voice.engine_id.as_str() {
-        "kokoro" => {
-            let model = preparation::prepare_kokoro_for_job(
-                &app,
-                &request.job_id,
-                "Preparing preset voice",
-                lease.token(),
-                &mut |resources| send(&on_progress, "preparing", 0, 1, Some(resources)),
-            )
-            .await
-            .map_err(|error| command_error(error, lease.token().is_cancelled()))?;
-            send(&on_progress, "synthesizing", 0, 1, None);
-            speech::synthesize(
-                &app,
-                &model,
-                kokoro_device_profile(),
-                params,
-                speech::SynthesisExecution {
-                    cancellation: lease.token(),
-                    priority: Priority::Interactive,
-                    on_chunk: Some(&mut send_chunk),
-                },
-            )
-            .await
-        }
-        "voxcpm2" => {
-            let profile = crate::ai::local_runtime::device_profiles::voxcpm2()?;
-            let model = preparation::prepare_voxcpm2_for_job(
-                &app,
-                &request.job_id,
-                "Preparing reference voice",
-                lease.token(),
-                &mut |resources| send(&on_progress, "preparing", 0, 1, Some(resources)),
-            )
-            .await
-            .map_err(|error| command_error(error, lease.token().is_cancelled()))?;
-            send(&on_progress, "synthesizing", 0, 1, None);
-            speech::synthesize_voxcpm2(
-                &app,
-                &model,
-                profile,
-                params,
-                speech::SynthesisExecution {
-                    cancellation: lease.token(),
-                    priority: Priority::Interactive,
-                    on_chunk: Some(&mut send_chunk),
-                },
-            )
-            .await
-        }
-        _ => return Err("Voice preview engine is unsupported".into()),
-    }
-    .map_err(|error| command_error(error, lease.token().is_cancelled()))?;
+    send(&on_progress, "synthesizing", 0, 1, None);
+    let audio = model
+        .synthesize(
+            &app,
+            params,
+            speech::SynthesisExecution {
+                cancellation: lease.token(),
+                priority: Priority::Interactive,
+                on_chunk: Some(&mut send_chunk),
+            },
+        )
+        .await
+        .map_err(|error| command_error(error, lease.token().is_cancelled()))?;
     if lease.token().is_cancelled() {
         return Err(AppError::cancelled("Speech preview cancelled"));
     }
@@ -184,9 +156,8 @@ pub async fn generate_speech_project(
     app: tauri::AppHandle,
     request: GenerateSpeechProjectRequest,
 ) -> Result<RunObservation, AppError> {
-    let runtime = crate::local_resources::tools::resolve_python_runtime(&app)?
-        .ok_or("runtime_missing: managed Python runtime is unavailable")?;
-    Ok(run_start::start(db::pool(&app).await?, request, &runtime.digest).await?)
+    let digest = crate::local_resources::runtimes::python::required_digest(&app)?;
+    Ok(run_start::start(db::pool(&app).await?, request, &digest).await?)
 }
 
 #[tauri::command]

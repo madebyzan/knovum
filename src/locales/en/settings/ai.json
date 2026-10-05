@@ -65,5 +65,16 @@
     "accepted": "I accepted the access terms and obtained these files with authorization",
     "import": "Import model folder",
     "remove": "Remove local model"
+  },
+  "localInference": {
+    "title": "Local AI",
+    "description": "Components are downloaded when first needed and shared by local AI features. Models are downloaded separately.",
+    "components": "Local AI components",
+    "ready": "Ready for offline use",
+    "unavailable": "No runtime publication is configured for this build",
+    "download": "Not prepared · {size} download",
+    "preparing": "Prepare local AI components",
+    "prepare": "Prepare",
+    "cancel": "Cancel"
   }
 }

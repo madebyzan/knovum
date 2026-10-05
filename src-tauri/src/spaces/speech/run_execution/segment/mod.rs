@@ -7,9 +7,7 @@ use sqlx::Row;
 
 use super::super::{
     contracts::{ProjectRevisionIdentity, SpeechSegmentExecution, SpeechSegmentRenderOutput},
-    execution::{
-        command_error, input_digest, load_voice, parse_config, synthesis_params, SynthesisAttempt,
-    },
+    execution::{command_error, input_digest, load_voice, parse_config, SynthesisAttempt},
     generation_attempt, publication,
 };
 use crate::{
@@ -56,9 +54,8 @@ pub(super) async fn execute(
         .and_then(serde_json::Value::as_str)
         .filter(|value| super::super::run_start::valid_runtime_digest(value))
         .ok_or("runtime_mismatch: Speech Run has no valid frozen Python runtime digest")?;
-    let runtime = crate::local_resources::tools::resolve_python_runtime(app)?
-        .ok_or("runtime_missing: managed Python runtime is unavailable")?;
-    if runtime.digest != frozen_runtime {
+    let runtime_digest = crate::local_resources::runtimes::python::required_digest(app)?;
+    if runtime_digest != frozen_runtime {
         return Err("runtime_mismatch: Speech Run Python runtime changed".into());
     }
     uuid::Uuid::parse_str(&config.project_id).map_err(|_| "Speech project identity is invalid")?;
@@ -99,7 +96,7 @@ pub(super) async fn execute(
         return Err("Speech segment language differs from its voice revision".into());
     }
     let voice_config = parse_config(&voice.synthesis_config)?;
-    let digest = input_digest(&segment, &voice, &voice_config, &runtime.digest)?;
+    let digest = input_digest(&segment, &voice, &voice_config, &runtime_digest)?;
     if let Some(cached) =
         generation_attempt::cached_render(pool, &config.project_id, &segment.id, &digest).await?
     {
@@ -163,8 +160,9 @@ pub(super) async fn execute(
         &target_path,
     )
     .await?;
-    let params = match synthesis_params(
+    let audio = synthesize(
         app,
+        claim,
         &voice,
         &segment.normalized_text,
         SynthesisAttempt {
@@ -175,15 +173,8 @@ pub(super) async fn execute(
             attempt_id: &claim.attempt_id,
             attempt_epoch,
         },
-    ) {
-        Ok(params) => params,
-        Err(error) => {
-            generation_attempt::fail_render(pool, claim, &render_id, &segment.id, &error, false)
-                .await?;
-            return Err(error.into());
-        }
-    };
-    let audio = synthesize(app, claim, &voice.engine_id, params).await;
+    )
+    .await;
     let audio = match audio {
         Ok(audio) => audio,
         Err(error) => {
