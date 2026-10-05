@@ -18,8 +18,8 @@ from cyclonedx.schema import SchemaVersion
 from cyclonedx.validation.json import JsonStrictValidator
 from packageurl import PackageURL
 
-from runtime_packaging.artifacts import digest
-from runtime_packaging.binaries import compiled_binaries
+from runtime.artifacts import digest
+from runtime.binaries import compiled_binaries
 
 
 def canonical(name: str) -> str:

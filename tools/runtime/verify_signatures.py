@@ -7,8 +7,8 @@ from pathlib import Path
 
 def main() -> None:
     # Isolated Python excludes tools/ from sys.path; authorize this tool package only.
-    sys.path.insert(0, str(Path(__file__).resolve().parent))
-    from runtime_packaging.signing import verify_runtime
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    from runtime.signing import verify_runtime
 
     parser = argparse.ArgumentParser(description="Verify production runtime signatures against approved identities")
     parser.add_argument("--directory", type=Path, required=True)

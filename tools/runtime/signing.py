@@ -8,7 +8,7 @@ import re
 import subprocess
 from pathlib import Path
 
-from runtime_packaging.binaries import compiled_binaries
+from runtime.binaries import compiled_binaries
 
 
 def _mac_requirement() -> str:

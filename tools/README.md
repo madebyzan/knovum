@@ -33,17 +33,21 @@ For vendor operations such as test watch mode or compile-only Tauri smoke, use `
 | `desktop/package.mjs`                   | Validate target resources, production configuration and final packaged runtimes; `package`.    |
 | `desktop/verify-windows-signatures.ps1` | Check final application/NSIS Authenticode status and timestamps; release CI.                   |
 
-## Native runtime
+## Bundled runtime
+
+`runtime/` owns production, provisioning and verification of the bundled runtime. Python handles
+interpreter/dependency packaging and OS signing; Node integrates manifests and verification with
+desktop packaging. They share one owner and call each other where the workflow requires it.
 
 | File                                       | Responsibility and caller                                                                            |
 | ------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
-| `build_python_runtime.py`                  | Controlled interpreter/dependency build, relocation smoke and artifact publication; `runtime:build`. |
-| `verify_python_runtime_signatures.py`      | Isolated native signature verification entry; `runtime/signatures.mjs`.                              |
-| `runtime_packaging/artifacts.py`           | Interpreter download/hash/size, safe extraction and runtime archive rules.                           |
-| `runtime_packaging/binaries.py`            | Enumerate native binaries for inventory/signing.                                                     |
-| `runtime_packaging/inventory.py`           | Record actual installed distributions, notices and source evidence; official CycloneDX output.       |
-| `runtime_packaging/signing.py`             | Invoke OS signing/verifying commands under approved identity policy.                                 |
-| `runtime_packaging/__init__.py`            | Regular Python package marker; no exported facade.                                                   |
+| `runtime/build_python.py`                  | Controlled interpreter/dependency build, relocation smoke and artifact publication; `runtime:build`. |
+| `runtime/verify_signatures.py`             | Isolated native signature verification entry; `runtime/signatures.mjs`.                              |
+| `runtime/artifacts.py`                     | Interpreter download/hash/size, safe extraction and runtime archive rules.                           |
+| `runtime/binaries.py`                      | Enumerate native binaries for inventory/signing.                                                     |
+| `runtime/inventory.py`                     | Record actual installed distributions, notices and source evidence; official CycloneDX output.       |
+| `runtime/signing.py`                       | Invoke OS signing/verifying commands under approved identity policy.                                 |
+| `runtime/__init__.py`                      | Regular Python package marker; no exported facade.                                                   |
 | `runtime/provision.mjs`                    | Download, verify and activate controlled target archives; `runtime:provision`.                       |
 | `runtime/write-manifest.mjs`               | Enumerate and hash the signed runtime; called automatically by its producer.                         |
 | `runtime/files.mjs`                        | Strict runtime path/tree rules and file hashing reused by provisioning/manifests.                    |

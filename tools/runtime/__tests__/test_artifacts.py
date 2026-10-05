@@ -8,8 +8,8 @@ from unittest.mock import Mock
 
 import pytest
 
-from runtime_packaging.artifacts import archive_runtime, extract_python
-from runtime_packaging.signing import sign_runtime, verify_runtime
+from runtime.artifacts import archive_runtime, extract_python
+from runtime.signing import sign_runtime, verify_runtime
 
 
 def archive(path: Path, entries: list[tuple[str, bytes | str]]) -> None:
@@ -78,7 +78,7 @@ def test_windows_native_extensions_are_signed_and_verified(monkeypatch: pytest.M
     monkeypatch.setenv("KNOVUM_WINDOWS_CERTIFICATE_THUMBPRINT", "A" * 40)
     monkeypatch.setenv("KNOVUM_WINDOWS_TIMESTAMP_URL", "https://timestamp.example")
     commands = Mock(return_value=Mock(stdout="A" * 40))
-    monkeypatch.setattr("runtime_packaging.signing.subprocess.run", commands)
+    monkeypatch.setattr("runtime.signing.subprocess.run", commands)
     signing_evidence = sign_runtime(tmp_path, "windows-x64", "production")
     assert signing_evidence["compiledBinaryCount"] == 3
     signed = [Path(call.args[0][-1]).name for call in commands.call_args_list if call.args[0][1] == "sign"]
@@ -124,7 +124,7 @@ def test_windows_valid_signature_from_wrong_signer_is_rejected(monkeypatch: pyte
     monkeypatch.setenv("KNOVUM_WINDOWS_SIGNTOOL", "controlled-signtool")
     monkeypatch.setenv("KNOVUM_WINDOWS_CERTIFICATE_THUMBPRINT", "A" * 40)
     monkeypatch.setattr(
-        "runtime_packaging.signing.subprocess.run",
+        "runtime.signing.subprocess.run",
         Mock(return_value=Mock(stdout="B" * 40)),
     )
     with pytest.raises(ValueError, match="signer differs"):
@@ -138,7 +138,7 @@ def test_mac_signature_requirement_binds_approved_identity_and_team(
     identity = "Developer ID Application: Example Company (ABCDEFGHIJ)"
     monkeypatch.setenv("APPLE_SIGNING_IDENTITY", identity)
     commands = Mock()
-    monkeypatch.setattr("runtime_packaging.signing.subprocess.run", commands)
+    monkeypatch.setattr("runtime.signing.subprocess.run", commands)
     verify_runtime(tmp_path, "macos-arm64")
     command = commands.call_args.args[0]
     assert command[:4] == ["codesign", "--verify", "--strict", "-R"]
